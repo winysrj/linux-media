@@ -1,76 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rtr.ca ([76.10.145.34]:37367 "EHLO mail.rtr.ca"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754437AbZGSOik (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jul 2009 10:38:40 -0400
-Message-ID: <4A632FED.1000809@rtr.ca>
-Date: Sun, 19 Jul 2009 10:38:37 -0400
-From: Mark Lord <lkml@rtr.ca>
-MIME-Version: 1.0
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org,
-	Jarod Wilson <jarod@redhat.com>, Mike Isely <isely@pobox.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Janne Grunau <j@jannau.net>
-Subject: Re: [PATCH 1/3] ir-kbd-i2c: Allow use of ir-kdb-i2c internal get_key
-   funcs and set ir_type
-References: <1247862585.10066.16.camel@palomino.walls.org>	<1247862937.10066.21.camel@palomino.walls.org>	<20090719144749.689c2b3a@hyperion.delvare>	<4A6316F9.4070109@rtr.ca> <20090719145513.0502e0c9@hyperion.delvare> <4A631B41.5090301@rtr.ca> <4A631CEA.4090802@rtr.ca>
-In-Reply-To: <4A631CEA.4090802@rtr.ca>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([192.100.122.230]:31533 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751773AbZG0PX0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Jul 2009 11:23:26 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv14 1/8] v4l2-subdev.h: Add g_modulator callbacks to subdev api
+Date: Mon, 27 Jul 2009 18:12:03 +0300
+Message-Id: <1248707530-4068-2-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1248707530-4068-1-git-send-email-eduardo.valentin@nokia.com>
+References: <1248707530-4068-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mark Lord wrote:
-> Mark Lord wrote:
->> Jean Delvare wrote:
->>> Hi Mark,
->>>
->>> On Sun, 19 Jul 2009 08:52:09 -0400, Mark Lord wrote:
->>>> While you folks are looking into ir-kbd-i2c,
->>>> perhaps one of you will fix the regressions
->>>> introduced in 2.6.31-* ?
->>>>
->>>> The drive no longer detects/works with the I/R port on
->>>> the Hauppauge PVR-250 cards, which is a user-visible regression.
->>>
->>> This is bad. If there a bugzilla entry? If not, where can I read more
->>> details / get in touch with an affected user?
->> ..
->>
->> I imagine there will be thousands of affected users once the kernel
->> is released, but for now I'll volunteer as a guinea-pig.
->>
->> It is difficult to test with 2.6.31 on the system at present, though,
->> because that kernel also breaks other things that the MythTV box 
->> relies on,
->> and the system is in regular use as our only PVR.
->>
->> Right now, all I know is, that the PVR-250 IR port did not show up
->> in /dev/input/ with 2.6.31 after loading ir_kbd_i2c.  But it does show
->> up there with all previous kernels going back to the 2.6.1x days.
-> ..
-> 
-> Actually, I meant to say that it does not show up in the output from
-> the lsinput command, whereas it did show up there in all previous kernels.
-> 
->> So, to keep the pain level reasonable, perhaps you could send some
->> debugging patches, and I'll apply those, reconfigure the machine for
->> 2.6.31 again, and collect some output for you.  And also perhaps try
->> a few things locally as well to speed up the process.
-..
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ linux/include/media/v4l2-subdev.h |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-I'm debugging various other b0rked things in 2.6.31 here right now,
-so I had a closer look at the Hauppauge I/R remote issue.
+diff --git a/linux/include/media/v4l2-subdev.h b/linux/include/media/v4l2-subdev.h
+index 89a39ce..d411345 100644
+--- a/linux/include/media/v4l2-subdev.h
++++ b/linux/include/media/v4l2-subdev.h
+@@ -137,6 +137,8 @@ struct v4l2_subdev_tuner_ops {
+ 	int (*g_frequency)(struct v4l2_subdev *sd, struct v4l2_frequency *freq);
+ 	int (*g_tuner)(struct v4l2_subdev *sd, struct v4l2_tuner *vt);
+ 	int (*s_tuner)(struct v4l2_subdev *sd, struct v4l2_tuner *vt);
++	int (*g_modulator)(struct v4l2_subdev *sd, struct v4l2_modulator *vm);
++	int (*s_modulator)(struct v4l2_subdev *sd, struct v4l2_modulator *vm);
+ 	int (*s_type_addr)(struct v4l2_subdev *sd, struct tuner_setup *type);
+ 	int (*s_config)(struct v4l2_subdev *sd, const struct v4l2_priv_tun_config *config);
+ 	int (*s_standby)(struct v4l2_subdev *sd);
+-- 
+1.6.2.GIT
 
-The ir_kbd_i2c driver *does* still find it after all.
-But the difference is that the output from 'lsinput' has changed
-and no longer says "Hauppauge".  Which prevents the application from
-finding the remote control in the same way as before.
-
-I'll hack the application code here now to use the new output,
-but I wonder what the the thousands of other users will do when
-they first try 2.6.31 after release ?
-
-Cheers
