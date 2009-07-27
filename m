@@ -1,61 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.work.de ([212.12.32.49]:37403 "EHLO smtp.work.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751185AbZGaRBu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jul 2009 13:01:50 -0400
-Message-ID: <4A73237D.3050107@jusst.de>
-Date: Fri, 31 Jul 2009 19:01:49 +0200
-From: Julian Scheel <julian@jusst.de>
-MIME-Version: 1.0
-To: Alex Deucher <alexdeucher@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Fix lowband tuning with tda8261
-References: <4A731E8B.4030005@jusst.de> <a728f9f90907310957r5bb95eep65a7f0125c34374e@mail.gmail.com>
-In-Reply-To: <a728f9f90907310957r5bb95eep65a7f0125c34374e@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([192.100.122.230]:31554 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752004AbZG0PXb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Jul 2009 11:23:31 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv14 7/8] FM TX: si4713: Add Kconfig and Makefile entries
+Date: Mon, 27 Jul 2009 18:12:09 +0300
+Message-Id: <1248707530-4068-8-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1248707530-4068-7-git-send-email-eduardo.valentin@nokia.com>
+References: <1248707530-4068-1-git-send-email-eduardo.valentin@nokia.com>
+ <1248707530-4068-2-git-send-email-eduardo.valentin@nokia.com>
+ <1248707530-4068-3-git-send-email-eduardo.valentin@nokia.com>
+ <1248707530-4068-4-git-send-email-eduardo.valentin@nokia.com>
+ <1248707530-4068-5-git-send-email-eduardo.valentin@nokia.com>
+ <1248707530-4068-6-git-send-email-eduardo.valentin@nokia.com>
+ <1248707530-4068-7-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Alex Deucher schrieb:
-> On Fri, Jul 31, 2009 at 12:40 PM, Julian Scheel<julian@jusst.de> wrote:
->   
->> Attached is a patch which fixes tuning to low frequency channels with
->> stb0899+tda8261 cards like the KNC TV-Station DVB-S2.
->> The cause of the issue was a broken if construct, which should have been an
->> if/else if, so that the setting for the lowest matching frequency is
->> applied.
->>
->> Without this patch for example tuning to "arte" on Astra 19.2, 10744MHz
->> SR22000 failed most times and when it failed the communication between
->> driver and tda8261 was completely broken.
->> This problem disappears with the attached patch.
->>
->>     
->
-> Please replay with your Signed Off By.
->
-> Alex
->
->   
->> diff -r 6477aa1782d5 linux/drivers/media/dvb/frontends/tda8261.c
->> --- a/linux/drivers/media/dvb/frontends/tda8261.c       Tue Jul 21 09:17:24
->> 2009 -0300
->> +++ b/linux/drivers/media/dvb/frontends/tda8261.c       Fri Jul 31 18:36:07
->> 2009 +0200
->> @@ -136,9 +136,9 @@
->>
->>                if (frequency < 1450000)
->>                        buf[3] = 0x00;
->> -               if (frequency < 2000000)
->> +               else if (frequency < 2000000)
->>                        buf[3] = 0x40;
->> -               if (frequency < 2150000)
->> +               else if (frequency < 2150000)
->>                        buf[3] = 0x80;
->>
->>                /* Set params */
->>
->>
->>     
-Signed-off-by: Julian Scheel <julian@jusst.de>
+Simple add Makefile and Kconfig entries.
+
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ linux/drivers/media/radio/Kconfig  |   22 ++++++++++++++++++++++
+ linux/drivers/media/radio/Makefile |    2 ++
+ 2 files changed, 24 insertions(+), 0 deletions(-)
+
+diff --git a/linux/drivers/media/radio/Kconfig b/linux/drivers/media/radio/Kconfig
+index 3315cac..6c6a409 100644
+--- a/linux/drivers/media/radio/Kconfig
++++ b/linux/drivers/media/radio/Kconfig
+@@ -339,6 +339,28 @@ config RADIO_ZOLTRIX_PORT
+ 	help
+ 	  Enter the I/O port of your Zoltrix radio card.
+ 
++config I2C_SI4713
++	tristate "I2C driver for Silicon Labs Si4713 device"
++	depends on I2C && VIDEO_V4L2
++	---help---
++	  Say Y here if you want support to Si4713 I2C device.
++	  This device driver supports only i2c bus.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called si4713.
++
++config RADIO_SI4713
++	tristate "Silicon Labs Si4713 FM Radio Transmitter support"
++	depends on I2C && VIDEO_V4L2
++	---help---
++	  Say Y here if you want support to Si4713 FM Radio Transmitter.
++	  This device can transmit audio through FM. It can transmit
++	  EDS and EBDS signals as well. This module is the v4l2 radio
++	  interface for the i2c driver of this device.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called radio-si4713.
++
+ config USB_DSBR
+ 	tristate "D-Link/GemTek USB FM radio support"
+ 	depends on USB && VIDEO_V4L2
+diff --git a/linux/drivers/media/radio/Makefile b/linux/drivers/media/radio/Makefile
+index 0f2b35b..34ae761 100644
+--- a/linux/drivers/media/radio/Makefile
++++ b/linux/drivers/media/radio/Makefile
+@@ -15,6 +15,8 @@ obj-$(CONFIG_RADIO_ZOLTRIX) += radio-zoltrix.o
+ obj-$(CONFIG_RADIO_GEMTEK) += radio-gemtek.o
+ obj-$(CONFIG_RADIO_GEMTEK_PCI) += radio-gemtek-pci.o
+ obj-$(CONFIG_RADIO_TRUST) += radio-trust.o
++obj-$(CONFIG_I2C_SI4713) += si4713-i2c.o
++obj-$(CONFIG_RADIO_SI4713) += radio-si4713.o
+ obj-$(CONFIG_RADIO_MAESTRO) += radio-maestro.o
+ obj-$(CONFIG_USB_DSBR) += dsbr100.o
+ obj-$(CONFIG_USB_SI470X) += radio-si470x.o
+-- 
+1.6.2.GIT
+
