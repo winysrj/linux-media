@@ -1,187 +1,186 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.romerikebb.no ([217.212.249.2] helo=basement.romerikebb.no)
-	by mail.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <johan@henes.no>) id 1MP0ka-0001M2-4T
-	for linux-dvb@linuxtv.org; Thu, 09 Jul 2009 23:01:55 +0200
-Message-Id: <30AD329C-50B6-44EA-ACD3-ED90713AA769@henes.no>
-From: =?ISO-8859-1?Q?Johan_Hen=E6s?= <johan@henes.no>
+Received: from outbound1-1.us4.outblaze.com ([208.36.123.129])
+	by mail.linuxtv.org with esmtp (Exim 4.69)
+	(envelope-from <guzowskip@linuxmail.org>) id 1MVPic-0008FV-Ms
+	for linux-dvb@linuxtv.org; Mon, 27 Jul 2009 14:54:19 +0200
+Received: from wfilter3.us4.outblaze.com (wfilter3.us4.outblaze.com.int
+	[192.168.8.242])
+	by outbound1-1.us4.outblaze.com (Postfix) with ESMTP id 5AB537A15F2
+	for <linux-dvb@linuxtv.org>; Mon, 27 Jul 2009 12:51:13 +0000 (GMT)
+MIME-Version: 1.0
+From: "Paul Guzowski" <guzowskip@linuxmail.org>
 To: linux-dvb@linuxtv.org
-Mime-Version: 1.0 (Apple Message framework v935.3)
-Date: Thu, 9 Jul 2009 23:01:17 +0200
-Subject: [linux-dvb] TechnoTrend C-2300 and QAM 128
+Date: Mon, 27 Jul 2009 06:51:12 -0600
+Message-Id: <20090727125112.995151CE833@ws1-6.us4.outblaze.com>
+Subject: Re: [linux-dvb] DVB-C device
 Reply-To: linux-media@vger.kernel.org
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
 List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1718263050=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi !
+This is a multi-part message in MIME format.
 
-Recently I have bought three TechnoTrend C-2300 for use in my Mythtv- 
-system. Everything seemed to go smooth, but for a major share of the  
-channels I have problems getting a channel lock. (Or if I do on some  
-of them, I get a "distorted" image with lots of "bit errors"....
+--===============1718263050==
+Content-Transfer-Encoding: 7bit
+Content-Type: multipart/alternative; boundary="_----------=_124869907287561"
 
-Using the latest firmware for Linux : dvb-ttpci-01.fw-2622...
+This is a multi-part message in MIME format.
 
-After poking around the Internet I found that QAM 128 has been a  
-problem for TechnoTrend cards, and the funny thing is that my cable- 
-provider is using QAM 128 for all channels (including the ones that  
-works very well).
+--_----------=_124869907287561
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 
-As I experience problems with most of my channels I still thought  
-maybe this would be the problem. I haven't seen posts on the issue for  
-quite a while and realizing that the latest firmware available for  
-these cards is dated 2005, I wondered where I can find an updated  
-version or if anyone has a solution to my problem........
+  ----------------------------------------------------------------------
+  Alex,
 
-Best regards,
+  Not sure if it will meet your needs, but I am using a Pinnacle HDTV
+  Pro USB stick to watch television signals supplied by my cable
+  company's set top box.=A0 To do so, I'm using MPlayer running on Ubuntu
+  Jaunty.=A0 Pinnacle's PCTV business was sold to Hauppage but the stick
+  (or=A0 the Hauppage equivalent) is still available and quite
+  inexpensive (less than $50?).=A0 If this might work for you, I can pass
+  you more details via separate correspondence.
 
-johan
+  Paul in NW Florida
 
-----
+  Message: 1
+  Date: Mon, 27 Jul 2009 00:19:23 +0200
+  From: Alexander Saers
+  Subject: [linux-dvb] DVB-C usb device
+  To: linux-dvb@linuxtv.org
+  Message-ID:
+  <7606f7c10907261519s2fa5fe07oe5e0678f25293906@mail.gmail.com>
+  Content-Type: text/plain; charset=3D"iso-8859-1"
 
+  Hello
 
+  I'm looking for recommendation on external DVB-C devices. I'm planing
+  on
+  building a small system and need something that is none-pci. Some
+  month ago
+  i bought a Terratec Cinergy HTC USB XS HD card with the hope that a
+  driver
+  should soon be released. It never did. So is there anybody that has a
+  working dvb-c solution (preferable working with ubuntu kernel, but
+  that is
+  not a requirement).
 
-$ lspci -vvv:
-
-02:09.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-	Subsystem: Technotrend Systemtechnik GmbH Octal/Technotrend DVB-C for  
-iTV
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-  
-Stepping- SERR- FastB2B-
-	Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-  
-<TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (3750ns min, 9500ns max)
-	Interrupt: pin A routed to IRQ 21
-	Region 0: Memory at feaffc00 (32-bit, non-prefetchable) [size=512]
-
-02:0c.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-	Subsystem: Technotrend Systemtechnik GmbH Octal/Technotrend DVB-C for  
-iTV
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-  
-Stepping- SERR- FastB2B-
-	Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-  
-<TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (3750ns min, 9500ns max)
-	Interrupt: pin A routed to IRQ 22
-	Region 0: Memory at feaff400 (32-bit, non-prefetchable) [size=512]
-
-02:0d.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-	Subsystem: Technotrend Systemtechnik GmbH Octal/Technotrend DVB-C for  
-iTV
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-  
-Stepping- SERR- FastB2B-
-	Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-  
-<TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (3750ns min, 9500ns max)
-	Interrupt: pin A routed to IRQ 21
-	Region 0: Memory at feaff000 (32-bit, non-prefetchable) [size=512]
+  Br
+  Alexander Saers
+  -------------- next part --------------
+  An HTML attachment was scrubbed...
+  URL:
 
 
-Syslog :
+  ------------------------------
 
-Jul  9 19:18:48 xxxxxxx kernel: [   53.409368] saa7146: register  
-extension 'dvb'.
-Jul  9 19:18:48 xxxxxxx kernel: [   53.409449] ACPI: PCI Interrupt  
-0000:02:09.0[A] -> GSI 21 (level, low) -> IRQ 21
-Jul  9 19:18:48 xxxxxxx kernel: [   53.409492] saa7146: found saa7146  
-@ mem e09a6c00 (revision 1, irq 21) (0x13c2,0x000a).
-Jul  9 19:18:48 xxxxxxx kernel: [   55.952909] DVB: registering new  
-adapter (Technotrend/Hauppauge WinTV Nexus-CA rev1.X)
-Jul  9 19:18:48 xxxxxxx kernel: [   56.013623] adapter has MAC addr =  
-00:d0:5c:03:93:c2
-Jul  9 19:18:48 xxxxxxx kernel: [   56.244761] dvb-ttpci: gpioirq  
-unknown type=0 len=0
-Jul  9 19:18:48 xxxxxxx kernel: [   56.282309] dvb-ttpci: info @ card  
-0: firm f0240009, rtsl b0250018, vid 71010068, app
-80002622
-Jul  9 19:18:48 xxxxxxx kernel: [   56.282313] dvb-ttpci: firmware @  
-card 0 supports CI link layer interface
-Jul  9 19:18:48 xxxxxxx kernel: [   56.621915] dvb-ttpci: DVB-C analog  
-module @ card 0 detected, initializing MSP3415
-Jul  9 19:18:48 xxxxxxx kernel: [   56.733924] dvb_ttpci: saa7113 not  
-accessible.
-Jul  9 19:18:48 xxxxxxx kernel: [   56.831850] saa7146_vv: saa7146  
-(0): registered device video0 [v4l2]
-Jul  9 19:18:48 xxxxxxx kernel: [   56.831878] saa7146_vv: saa7146  
-(0): registered device vbi0 [v4l2]
-Jul  9 19:18:48 xxxxxxx kernel: [   56.897464] DVB: registering  
-frontend 0 (ST STV0297 DVB-C)...
-Jul  9 19:18:48 xxxxxxx kernel: [   56.897637] input: DVB on-card IR  
-receiver as /devices/pci0000:00/0000:00:1e.0/0000:02:09.0/input/input6
-Jul  9 19:18:48 xxxxxxx kernel: [   56.951177] dvb-ttpci: found  
-av7110-0.
+  _______________________________________________
+  linux-dvb mailing list
+  linux-dvb@linuxtv.org
+  http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
-Jul  9 19:18:48 xxxxxxx kernel: [   56.951255] saa7146: found saa7146  
-@ mem e0a6c400 (revision 1, irq 22) (0x13c2,0x000a).
-Jul  9 19:18:48 xxxxxxx kernel: [   56.965145] DVB: registering new  
-adapter (Technotrend/Hauppauge WinTV Nexus-CA rev1.X)
-Jul  9 19:18:48 xxxxxxx kernel: [   57.021978] adapter has MAC addr =  
-00:d0:5c:03:95:4d
-Jul  9 19:18:48 xxxxxxx kernel: [   57.253096] dvb-ttpci: gpioirq  
-unknown type=0 len=0
-Jul  9 19:18:48 xxxxxxx kernel: [   57.290649] dvb-ttpci: info @ card  
-1: firm f0240009, rtsl b0250018, vid 71010068, app 80002622
-Jul  9 19:18:48 xxxxxxx kernel: [   57.290653] dvb-ttpci: firmware @  
-card 1 supports CI link layer interface
-Jul  9 19:18:48 xxxxxxx kernel: [   57.630258] dvb-ttpci: DVB-C analog  
-module @ card 1 detected, initializing MSP3415
-Jul  9 19:18:48 xxxxxxx kernel: [   57.742249] dvb_ttpci: saa7113 not  
-accessible.
-Jul  9 19:18:48 xxxxxxx kernel: [   57.840242] saa7146_vv: saa7146  
-(1): registered device video1 [v4l2]
-Jul  9 19:18:48 xxxxxxx kernel: [   57.840271] saa7146_vv: saa7146  
-(1): registered device vbi1 [v4l2]
-Jul  9 19:18:48 xxxxxxx kernel: [   57.841111] DVB: registering  
-frontend 1 (ST STV0297 DVB-C)...
-Jul  9 19:18:48 xxxxxxx kernel: [   57.841295] input: DVB on-card IR  
-receiver as /devices/pci0000:00/0000:00:1e.0/0000:02:0c.0/input/input7
-Jul  9 19:18:48 xxxxxxx kernel: [   57.919590] dvb-ttpci: found  
-av7110-1.
+  End of linux-dvb Digest, Vol 54, Issue 17
+  *****************************************
 
-Jul  9 19:18:48 xxxxxxx kernel: [   57.919622] ACPI: PCI Interrupt  
-0000:02:0d.0[A] -> GSI 21 (level, low) -> IRQ 21
-Jul  9 19:18:48 xxxxxxx kernel: [   57.919661] saa7146: found saa7146  
-@ mem e0a8e000 (revision 1, irq 21) (0x13c2,0x000a).
-Jul  9 19:18:48 xxxxxxx kernel: [   57.934015] DVB: registering new  
-adapter (Technotrend/Hauppauge WinTV Nexus-CA rev1.X)
-Jul  9 19:18:48 xxxxxxx kernel: [   57.990392] adapter has MAC addr =  
-00:d0:5c:03:93:de
-Jul  9 19:18:48 xxxxxxx kernel: [   58.221518] dvb-ttpci: gpioirq  
-unknown type=0 len=0
-Jul  9 19:18:48 xxxxxxx kernel: [   58.259053] dvb-ttpci: info @ card  
-2: firm f0240009, rtsl b0250018, vid 71010068, app 80002622
-Jul  9 19:18:48 xxxxxxx kernel: [   58.259058] dvb-ttpci: firmware @  
-card 2 supports CI link layer interface
-Jul  9 19:18:48 xxxxxxx kernel: [   58.598657] dvb-ttpci: DVB-C analog  
-module @ card 2 detected, initializing MSP3415
-Jul  9 19:18:48 xxxxxxx kernel: [   58.710702] dvb_ttpci: saa7113 not  
-accessible.
-Jul  9 19:18:48 xxxxxxx kernel: [   58.808584] saa7146_vv: saa7146  
-(2): registered device video2 [v4l2]
-Jul  9 19:18:48 xxxxxxx kernel: [   58.808614] saa7146_vv: saa7146  
-(2): registered device vbi2 [v4l2]
-Jul  9 19:18:48 xxxxxxx kernel: [   58.809458] DVB: registering  
-frontend 2 (ST STV0297 DVB-C)...
-Jul  9 19:18:48 xxxxxxx kernel: [   58.809643] input: DVB on-card IR  
-receiver as /devices/pci0000:00/0000:00:1e.0/0000:02:0d.0/input/input8
-Jul  9 19:18:48 xxxxxxx kernel: [   58.878002] dvb-ttpci: found  
-av7110-2.
+--=20
+How Strong is Your Score?
+Click here to see yours for $0!
+By FreeCreditReport.com
+
+
+--_----------=_124869907287561
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="iso-8859-1"
+
+
+<div>
+<blockquote style=3D"border-left: 2px solid rgb(16, 16, 255); margin-left: =
+5px; padding-left: 5px;"><br>
+<br>
+<br>
+----------------------------------------------------------------------<br>
+Alex,<br><br>Not sure if it will meet your needs, but I am using a Pinnacle=
+ HDTV Pro USB stick to watch television signals supplied by my cable compan=
+y's set top box.&nbsp; To do so, I'm using MPlayer running on Ubuntu Jaunty=
+.&nbsp; Pinnacle's PCTV business was sold to Hauppage but the stick (or&nbs=
+p; the Hauppage equivalent) is still available and quite inexpensive (less =
+than $50?).&nbsp; If this might work for you, I can pass you more details v=
+ia separate correspondence.<br><br>Paul in NW Florida<br><br>
+Message: 1<br>
+Date: Mon, 27 Jul 2009 00:19:23 +0200<br>
+From: Alexander Saers <alex@saers.com><br>
+Subject: [linux-dvb] DVB-C usb device<br>
+To: linux-dvb@linuxtv.org<br>
+Message-ID:<br>
+	&lt;7606f7c10907261519s2fa5fe07oe5e0678f25293906@mail.gmail.com&gt;<br>
+Content-Type: text/plain; charset=3D"iso-8859-1"<br>
+<br>
+Hello<br>
+<br>
+I'm looking for recommendation on external DVB-C devices. I'm planing on<br>
+building a small system and need something that is none-pci. Some month ago=
+<br>
+i bought a Terratec Cinergy HTC USB XS HD card with the hope that a driver<=
+br>
+should soon be released. It never did. So is there anybody that has a<br>
+working dvb-c solution (preferable working with ubuntu kernel, but that is<=
+br>
+not a requirement).<br>
+<br>
+Br<br>
+Alexander Saers<br>
+-------------- next part --------------<br>
+An HTML attachment was scrubbed...<br>
+URL: <br>
+<http: www.linuxtv.org=3D"" pipermail=3D"" linux-dvb=3D"" attachments=3D"" =
+20090727=3D"" 3aa0e86c=3D"" attachment-0001.html=3D""><br>
+<br>
+------------------------------<br>
+<br>
+_______________________________________________<br>
+linux-dvb mailing list<br>
+linux-dvb@linuxtv.org<br>
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb<br>
+<br>
+End of linux-dvb Digest, Vol 54, Issue 17<br>
+*****************************************<br>
+</http:></alex@saers.com></blockquote>
+</div>
+<BR>
+
+--=20
+<div> <b>How Strong is Your Score? </b> <br>
+<a href=3D"http://ad.doubleclick.net/clk;216545038;39159097;q?http://www.fr=
+eecreditreport.com/pm/default.aspx?pagetypeid=3Dhomepage62&sc=3D669615&bcd=
+=3DFOOTER1" target=3D"_blank">Click here</a> to see yours for $0!<br>
+By <a href=3Dhttp://ad.doubleclick.net/clk;216545038;39159097;q?http://www.=
+freecreditreport.com/pm/default.aspx?pagetypeid=3Dhomepage62&sc=3D669615&bc=
+d=3DFOOTER1 target=3D._blank.>FreeCreditReport.com</a></div>
+
+--_----------=_124869907287561--
 
 
 
+--===============1718263050==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1718263050==--
