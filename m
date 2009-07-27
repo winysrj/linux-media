@@ -1,35 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57625 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752323AbZGWXBq (ORCPT
+Received: from mail-ew0-f226.google.com ([209.85.219.226]:49535 "EHLO
+	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754216AbZG0Nwz convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jul 2009 19:01:46 -0400
-Date: Thu, 23 Jul 2009 16:01:38 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: =?ISO-8859-1?Q?Bal=E1zs_H=E1morszky?= <balihb@gmail.com>
-Cc: bugzilla-daemon@bugzilla.kernel.org, mchehab@infradead.org,
-	linux-media@vger.kernel.org
-Subject: Re: [Bug 13708] Aiptek DV-T300 support is incomplete
-Message-Id: <20090723160138.83a3579e.akpm@linux-foundation.org>
-In-Reply-To: <5c3736670907201337n41f08957r94fcde4383dd74d9@mail.gmail.com>
-References: <bug-13708-12914@http.bugzilla.kernel.org/>
-	<200907201949.n6KJnOdY016111@demeter.kernel.org>
-	<5c3736670907201337n41f08957r94fcde4383dd74d9@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Mon, 27 Jul 2009 09:52:55 -0400
+Received: by ewy26 with SMTP id 26so3167404ewy.37
+        for <linux-media@vger.kernel.org>; Mon, 27 Jul 2009 06:52:54 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20090727125112.995151CE833@ws1-6.us4.outblaze.com>
+References: <20090727125112.995151CE833@ws1-6.us4.outblaze.com>
+Date: Mon, 27 Jul 2009 15:52:53 +0200
+Message-ID: <d9def9db0907270652r60b579d0v848d2760a82002bc@mail.gmail.com>
+Subject: Re: [linux-dvb] DVB-C device
+From: Markus Rechberger <mrechberger@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 20 Jul 2009 22:37:08 +0200
-Bal__zs H__morszky <balihb@gmail.com> wrote:
+On Mon, Jul 27, 2009 at 2:51 PM, Paul Guzowski<guzowskip@linuxmail.org> wrote:
+>
+>
+>
+> ----------------------------------------------------------------------
+> Alex,
+>
+> Not sure if it will meet your needs, but I am using a Pinnacle HDTV Pro USB
+> stick to watch television signals supplied by my cable company's set top
+> box.  To do so, I'm using MPlayer running on Ubuntu Jaunty.  Pinnacle's PCTV
+> business was sold to Hauppage but the stick (or  the Hauppage equivalent) is
+> still available and quite inexpensive (less than $50?).  If this might work
+> for you, I can pass you more details via separate correspondence.
+>
 
-> I don't have my kernel tree with me (I'm at vacation atm.). The patch
-> is made with only the -uN options, but I can make a new one on Friday
-> (if needed).
-> 
+That's ATSC/QAM64/QAM256(likely). Digital Cable in US.
+DVB-C is slightly different than that. Sundtek MediaTV Pro is fully
+supported in the DVB-C USB area.
 
-The patch doesn't apply to current kernels and fixing it looks non-trivial.
-
-There's no hurry - please email us a complete (tested, changelogged,
-signed-off) patch when you have time to get onto it, thanks.
+Best Regards,
+Markus
