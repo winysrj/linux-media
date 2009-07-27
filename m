@@ -1,58 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rtr.ca ([76.10.145.34]:35940 "EHLO mail.rtr.ca"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754296AbZGSNK0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jul 2009 09:10:26 -0400
-Message-ID: <4A631B41.5090301@rtr.ca>
-Date: Sun, 19 Jul 2009 09:10:25 -0400
-From: Mark Lord <lkml@rtr.ca>
-MIME-Version: 1.0
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org,
-	Jarod Wilson <jarod@redhat.com>, Mike Isely <isely@pobox.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Janne Grunau <j@jannau.net>
-Subject: Re: [PATCH 1/3] ir-kbd-i2c: Allow use of ir-kdb-i2c internal get_key
-   funcs and set ir_type
-References: <1247862585.10066.16.camel@palomino.walls.org>	<1247862937.10066.21.camel@palomino.walls.org>	<20090719144749.689c2b3a@hyperion.delvare>	<4A6316F9.4070109@rtr.ca> <20090719145513.0502e0c9@hyperion.delvare>
-In-Reply-To: <20090719145513.0502e0c9@hyperion.delvare>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([192.100.122.230]:31553 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752110AbZG0PXb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Jul 2009 11:23:31 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv14 2/8] v4l2: video device: Add V4L2_CTRL_CLASS_FM_TX controls
+Date: Mon, 27 Jul 2009 18:12:04 +0300
+Message-Id: <1248707530-4068-3-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1248707530-4068-2-git-send-email-eduardo.valentin@nokia.com>
+References: <1248707530-4068-1-git-send-email-eduardo.valentin@nokia.com>
+ <1248707530-4068-2-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jean Delvare wrote:
-> Hi Mark,
-> 
-> On Sun, 19 Jul 2009 08:52:09 -0400, Mark Lord wrote:
->> While you folks are looking into ir-kbd-i2c,
->> perhaps one of you will fix the regressions
->> introduced in 2.6.31-* ?
->>
->> The drive no longer detects/works with the I/R port on
->> the Hauppauge PVR-250 cards, which is a user-visible regression.
-> 
-> This is bad. If there a bugzilla entry? If not, where can I read more
-> details / get in touch with an affected user?
-..
+This patch adds a new class of extended controls. This class
+is intended to support FM Radio Modulators properties such as:
+rds, audio limiters, audio compression, pilot tone generation,
+tuning power levels and preemphasis properties.
 
-I imagine there will be thousands of affected users once the kernel
-is released, but for now I'll volunteer as a guinea-pig.
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ linux/include/linux/videodev2.h |   34 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 34 insertions(+), 0 deletions(-)
 
-It is difficult to test with 2.6.31 on the system at present, though,
-because that kernel also breaks other things that the MythTV box relies on,
-and the system is in regular use as our only PVR.
+diff --git a/linux/include/linux/videodev2.h b/linux/include/linux/videodev2.h
+index b17898c..c58d453 100644
+--- a/linux/include/linux/videodev2.h
++++ b/linux/include/linux/videodev2.h
+@@ -817,6 +817,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_CLASS_USER 0x00980000	/* Old-style 'user' controls */
+ #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
+ #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
++#define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
+ 
+ #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+ #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+@@ -1156,6 +1157,39 @@ enum  v4l2_exposure_auto_type {
+ 
+ #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
+ 
++/* FM Modulator class control IDs */
++#define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
++#define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
++
++#define V4L2_CID_RDS_TX_PI			(V4L2_CID_FM_TX_CLASS_BASE + 1)
++#define V4L2_CID_RDS_TX_PTY			(V4L2_CID_FM_TX_CLASS_BASE + 2)
++#define V4L2_CID_RDS_TX_DEVIATION		(V4L2_CID_FM_TX_CLASS_BASE + 3)
++#define V4L2_CID_RDS_TX_PS_NAME			(V4L2_CID_FM_TX_CLASS_BASE + 4)
++#define V4L2_CID_RDS_TX_RADIO_TEXT		(V4L2_CID_FM_TX_CLASS_BASE + 5)
++
++#define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 6)
++#define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 7)
++#define V4L2_CID_AUDIO_LIMITER_DEVIATION	(V4L2_CID_FM_TX_CLASS_BASE + 8)
++
++#define V4L2_CID_AUDIO_COMPRESSION_ENABLED	(V4L2_CID_FM_TX_CLASS_BASE + 9)
++#define V4L2_CID_AUDIO_COMPRESSION_GAIN		(V4L2_CID_FM_TX_CLASS_BASE + 10)
++#define V4L2_CID_AUDIO_COMPRESSION_THRESHOLD	(V4L2_CID_FM_TX_CLASS_BASE + 11)
++#define V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 12)
++#define V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 13)
++
++#define V4L2_CID_PILOT_TONE_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 14)
++#define V4L2_CID_PILOT_TONE_DEVIATION		(V4L2_CID_FM_TX_CLASS_BASE + 15)
++#define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FM_TX_CLASS_BASE + 16)
++
++#define V4L2_CID_FM_TX_PREEMPHASIS		(V4L2_CID_FM_TX_CLASS_BASE + 17)
++enum v4l2_preemphasis {
++	V4L2_PREEMPHASIS_DISABLED	= 0,
++	V4L2_PREEMPHASIS_50_uS		= 1,
++	V4L2_PREEMPHASIS_75_uS		= 2,
++};
++#define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 18)
++#define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 19)
++
+ /*
+  *	T U N I N G
+  */
+-- 
+1.6.2.GIT
 
-Right now, all I know is, that the PVR-250 IR port did not show up
-in /dev/input/ with 2.6.31 after loading ir_kbd_i2c.  But it does show
-up there with all previous kernels going back to the 2.6.1x days.
-
-So, to keep the pain level reasonable, perhaps you could send some
-debugging patches, and I'll apply those, reconfigure the machine for
-2.6.31 again, and collect some output for you.  And also perhaps try
-a few things locally as well to speed up the process.
-
-Okay?
-
-Thanks
