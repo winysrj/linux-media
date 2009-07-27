@@ -1,72 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay01.cambriumhosting.nl ([217.19.16.173]:48881 "EHLO
-	relay01.cambriumhosting.nl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751045AbZGJPkq (ORCPT
+Received: from best-of-bremen.com ([217.160.217.225]:37145 "HELO
+	p15135933.pureserver.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751596AbZG0TgZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jul 2009 11:40:46 -0400
-Message-ID: <4A5760FA.6080203@powercraft.nl>
-Date: Fri, 10 Jul 2009 17:40:42 +0200
-From: Jelle de Jong <jelledejong@powercraft.nl>
+	Mon, 27 Jul 2009 15:36:25 -0400
+From: Martin Konopka <martin.konopka@mknetz.de>
+To: hermann pitton <hermann-pitton@arcor.de>
+Subject: Re: Pinnacle PCTV 310i active antenna
+Date: Mon, 27 Jul 2009 21:36:19 +0200
+References: <200907011701.43079.martin.konopka@mknetz.de> <1246753081.822.16.camel@pc07.localdom.local>
+In-Reply-To: <1246753081.822.16.camel@pc07.localdom.local>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Antti Palosaari <crope@iki.fi>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Afatech AF9013 DVB-T not working with mplayer radio streams
-References: <4A4481AC.4050302@powercraft.nl> <4A4D34B3.8050605@iki.fi>	 <4A4E2B45.8080607@powercraft.nl>	 <829197380907091805h10bcf548kbf5435feeb30e067@mail.gmail.com>	 <4A572F7E.6010701@iki.fi> <829197380907100816o4a3daa22k78a424da5bebed1e@mail.gmail.com>
-In-Reply-To: <829197380907100816o4a3daa22k78a424da5bebed1e@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Disposition: inline
+Message-Id: <200907272136.19668.martin.konopka@mknetz.de>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
-> On Fri, Jul 10, 2009 at 8:09 AM, Antti Palosaari<crope@iki.fi> wrote:
->> af9013 is correct in my mind. af9013 will return -EINVAL (error invalid
->> value) in case of first garbage value met (maybe better to switch auto mode
->> when garbage value meet and print debug log?).
->>
->> Of course there should be at least debug printing to inform that... but fix
->> you suggest is better for compatibility. You can do that, it is ok for me.
-> 
-> From a purist standpoint, I agree that the application at fault, and
-> if it were some no-name application I would just say "fix the broken
-> application".  Except it's not a no-name application - it's mplayer.
-> 
-> Are you familiar with Postel's Law?
-> 
-> http://en.wikipedia.org/wiki/Postel%27s_Law
-> 
-> Saying "this demod is not going to work properly with all versions of
-> one of the most popular applications", especially when other demods
-> handle the condition gracefully, is the sort of thing that causes real
-> problems for the Linux community.
-> 
-> I'm not the maintainer for this demod, so I'm not the best person to
-> make such a fix.  I spent four hours and debugged the issue as a favor
-> to Jelle de Jong since he loaned me some hardware a couple of months
-> ago.  I guess I can make the fix, but it's just going to take away
-> from time better spent on things I am more qualified to work on.
-> 
-> Devin
-> 
+Hi Hermann,
 
-I agree with the arguments, I believe Antti did also and said to me he
-will try to work something out next week.
+I'm using kernel 2.6.28-11 on a mythbuntu distribution.  I tried to load the 
+drivers with the card=50 option and antenna_pwr=1.
 
-Antti if you can fix this issue and help in the future to make some
-signal strength API for application, like w_scan, you can keep the
-Realtek based dvb-t device I sent to you as a gift, some credits for me
-in patches would also be nice since it takes up a lot of time and money
-on my side to :D
+[ 8745.007384] saa7133[0]: subsystem: 11bd:002f, board: Pinnacle PCTV 300i 
+DVB-T + PAL [card=50,insmod option]
+[ 8745.007628] saa7133[0]: board init: gpio is 600c000
+[ 8745.007641] saa7133[0]: gpio: mode=0x0008000 in=0x6004000 out=0x0008000 
+[pre-init]
+[ 8745.148374] tuner' 1-004b: chip found @ 0x96 (saa7133[0])
 
-I tolled the mplayer people maybe 5 month's ago about this issue. They
-were quite simple I had 4 devices that worked with mplayer one did not
-the problem was with the device, they did not want to listen to the idea
-something was wrong with there mplayer. If somebody want to convince
-them with this new prove/research please do so, I let it rest.
+[..]
 
-Many thanks to Devin and Antti,
+[ 8802.196576] dvb_init() allocating 1 frontend
+[ 8802.196583] saa7133[0]/dvb: pinnacle 300i dvb setup
+[ 8802.196845] mt352_read_register: readreg error (reg=127, ret==-5)
+[ 8802.196953] saa7133[0]/dvb: frontend initialization failed
 
-Best regards,
+The antenna power is not activated. I then installed microsoft stuff. To my 
+horror it turned out that the active antenna switch is greyed out in 
+Pinnacle's TV application. 
 
-Jelle
+So the card obviously does not have an active antenna, although the manual 
+mentions it. Probably copy and paste from the 300i manual.
+
+Regards,
+
+Martin
+
+Am Sonntag, 5. Juli 2009 02:18:01 schrieben Sie:
+> Hi Martin,
+>
+> Am Mittwoch, den 01.07.2009, 17:01 +0200 schrieb Martin Konopka:
+> > Hi all,
+> >
+> > my Pinnacle 310i is working well with linux, except for the active
+> > antenna that is attached to it. I need it in order to watch some weaker
+> > channels. Is there any way to activate the antenna power of this card
+> > with recent drivers? The Windows software has an option to do that.
+>
+> on which kernel you are currently?
+>
+> We have some reports, that what was assumed to be support for an
+> additional LNA on it is broken on 2.6.26 and onwards, IIRC.
+>
+> There are no previous reports for such an active antenna switch for the
+> 310i I do believe, but Gerd had such an option for the earlier 300i.
+> (card=50)
+>
+> If you don't have any further details, like gpio settings reported from
+> DScaler's regspy, you might try to force the use of that card, nothing
+> won't work, but eventually you get voltage to the antenna. ("modinfo
+> saa7134-dvb")
+>
+> Cheers,
+> Hermann
+
+
