@@ -1,144 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-13.arcor-online.net ([151.189.21.53]:46618 "EHLO
-	mail-in-13.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751336AbZGMBML (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:29591 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755089AbZG0NyP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jul 2009 21:12:11 -0400
-Subject: Re: [RFC] SAA713x setting audio capture frequency (ALSA)
-From: hermann pitton <hermann-pitton@arcor.de>
-To: =?UTF-8?Q?Old=C5=99ich_Jedli=C4=8Dka?= <oldium.pro@seznam.cz>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <200907121948.39944.oldium.pro@seznam.cz>
-References: <200907121948.39944.oldium.pro@seznam.cz>
-Content-Type: text/plain; charset=UTF-8
-Date: Mon, 13 Jul 2009 03:06:41 +0200
-Message-Id: <1247447201.3235.38.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	Mon, 27 Jul 2009 09:54:15 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv13 3/8] v4l2: video device: Add FM TX controls default configurations
+Date: Mon, 27 Jul 2009 16:42:54 +0300
+Message-Id: <1248702179-10403-4-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1248702179-10403-3-git-send-email-eduardo.valentin@nokia.com>
+References: <1248702179-10403-1-git-send-email-eduardo.valentin@nokia.com>
+ <1248702179-10403-2-git-send-email-eduardo.valentin@nokia.com>
+ <1248702179-10403-3-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Oldřich,
+This patch adds basic configurations for FM TX extended controls.
+That includes controls names, menu strings, pointer identification,
+type classification and flags configuration.
 
-this needs to be looked up during day time, preferably with the register
-settings for all involved saa713x devices, which I do not have ...
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ linux/drivers/media/video/v4l2-common.c         |   50 +++++++++++++++++++++++
+ linux/drivers/media/video/v4l2-compat-ioctl32.c |    8 +++-
+ 2 files changed, 57 insertions(+), 1 deletions(-)
 
-Am Sonntag, den 12.07.2009, 19:48 +0200 schrieb Oldřich Jedlička:
-> Hi all,
-> 
-> I had a look at the audio code in saa7134 directory once again 
-> (saa7134-alsa.c and saa7134-tvaudio.c). It has one major problem - the 
-> frequency for SAA7134 isn't set during startup, only during the capture 
-> source change (that is another problem). But let's start from beginning, 
-> please comment what you find interresting, I will create a patch after the 
-> discussion for another discussion :-).
-
-;)
-
-> 1. SAA7133/SAA7135
-> 
-> SAA7133/SAA7135 always use DDEP (DemDec Easy Programming) mode which runs 
-> on 32kHz only. There is no need to change the frequency at all, so 
-> everything works except that the info coming from ALSA reports both 
-> frequencies 32kHz and 48kHz as available for recording. This can be easily 
-> changed in snd_card_saa7134_hw_params to report only 32kHz for 
-> SAA7133/SAA7135.
-
-So, for now, agreed. But you should try to talk to Ricardo and Hartmut
-in this case. I can tell you about the three years it did not work.
-
-> 2. SAA7134
-> 
-> SAA7134 is special in the way it programs the frequency by hand. It uses 32kHz 
-> DemDec mode for TV (DemDec works only in 32kHz mode), 32kHz for radio (this 
-> is locked), and 32kHz/48kHz for S-Video and Composite inputs. ALSA again 
-> reports both frequencies 32kHz and 48kHz as available for recording - this 
-> can be changed accordingly.
-
-Agreed.
-
-> The problem is that the frequency is never changed during inicialization like 
-> it was in OSS code (see 2.6.24 kernel, saa7134_oss_init1 calls mixer_recsrc). 
-> I think that this responsibility is now on the 
-> snd_card_saa7134_capture_prepare method - it should set the frequency in 
-> SAA7134_SIF_SAMPLE_FREQ register correctly, possibly also 
-> SAA7134_ANALOG_IO_SELECT. Note that the tvaudio's mute_input_7134 sets the 
-> frequency to 32kHz, this can be thrown away I think.
-
-Agreed. If any, that is the only "regression" to report compared to
-saa7134-oss.
-
-> I tried to set SAA7134_SIF_SAMPLE_FREQ in snd_card_saa7134_capture_prepare  
-> and the capturing works correctly with 48kHz from my digital camera (Composite 
-> input).
-
-OK, that should be previous behaviour then.
-
-> 3. Changing the capture source
-> 
-> The ALSA interface has three capture sources, all of them have left and right 
-> channels (boolean values) - LINE1, LINE2 and TV. The user can select any 
-> source - ALSA calls snd_saa7134_capsrc_put.
-
-Note, without looking any further, LINE1 and LINE2 are left/right
-_pairs_ of stereo inputs. In saa7134-oss it was needed to select them
-card specific.
-
-> The ALSA controls are not updated, so it is possible to select both LINE1 and 
-> LINE2 at the same time, but recording will use only one of them - the last 
-> changed control wins. Moreover the left/right selection doesn't make any 
-> difference, the code ignores it.
-
-For saa7133/35/31e that was exactly Hartmut's plan. You don't have to
-care to select the right inputs anymore. And with Ricardo exporting the
-mute symbol from saa7134-tvaudio to saa7134-alsa, you don't have to care
-for this either. (mythtv v4l1, except you do ambiguous stuff from user
-side)
-
-> Here comes also the frequency problem of SAA7134. If the user starts with 
-> LINE1 and 48kHz and tries to switch to TV, the frequency will change to 32kHz 
-> (DemDec mode) - the application will not know, I guess there will be some 
-> buffer underruns.
-
-Anyway, to switch to 32kHz for TV is right currently, but it doesn't
-stop since years, that it is claimed, more is possible. No proof for any
-standard yet and A2 and NICAM won't do at least.
-
-> Note that any change of capture source control is overriden by the call to 
-> snd_card_saa7134_capture_prepare (called by ALSA before the capture source is 
-> opened) that takes the current input as set by saa7134_tvaudio_setinput 
-> (called by v4l interface). I think this is actually expected behaviour and 
-> can stay as it is now.
-
-There are also cards with mpeg encoders and you can't just mute or do
-what you want.
-
-> 
-> The easiest solution would be to throw away the capture source control and let 
-> the capture source initialization on the snd_card_saa7134_capture_prepare 
-> method (the source would be controlled by saa7134_tvaudio_setinput only - 
-> through v4l interface only), or limit the frequency to 32kHz only so that any 
-> source can be freely selected on any SAA713x hardware.
-
-I'm not sure, in case we are talking about all sources, talk about the
-same things already. Also, you might have noticed or not, there are also
-mute calls depending on having a signal.
-
-> Any other ideas, comments, corrections (I could be wrong in what I wrote, I'm 
-> not the SAA713x programming expert!), suggestions?
-> 
-> Cheers,
-> Oldrich.
-
-Given the problems we had previously, I'm not right sure, if we really
-have some now at all, hm, 02:52 am ;)
-
-But you have at least some reaction ...
-
-Cheers,
-Hermann
-
-
-
+diff --git a/linux/drivers/media/video/v4l2-common.c b/linux/drivers/media/video/v4l2-common.c
+index 870dc20..9e1ae23 100644
+--- a/linux/drivers/media/video/v4l2-common.c
++++ b/linux/drivers/media/video/v4l2-common.c
+@@ -343,6 +343,12 @@ const char **v4l2_ctrl_get_menu(u32 id)
+ 		"Sepia",
+ 		NULL
+ 	};
++	static const char *fm_tx_preemphasis[] = {
++		"No preemphasis",
++		"50 useconds",
++		"75 useconds",
++		NULL,
++	};
+ 
+ 	switch (id) {
+ 		case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+@@ -381,6 +387,8 @@ const char **v4l2_ctrl_get_menu(u32 id)
+ 			return camera_exposure_auto;
+ 		case V4L2_CID_COLORFX:
+ 			return colorfx;
++		case V4L2_CID_FM_TX_PREEMPHASIS:
++			return fm_tx_preemphasis;
+ 		default:
+ 			return NULL;
+ 	}
+@@ -479,6 +487,28 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_ZOOM_CONTINUOUS:		return "Zoom, Continuous";
+ 	case V4L2_CID_PRIVACY:			return "Privacy";
+ 
++	/* FM Radio Modulator control */
++	case V4L2_CID_FM_TX_CLASS:		return "FM Radio Modulator Controls";
++	case V4L2_CID_RDS_TX_PI:		return "RDS Program ID";
++	case V4L2_CID_RDS_TX_PTY:		return "RDS Program Type";
++	case V4L2_CID_RDS_TX_DEVIATION:		return "RDS Signal Deviation";
++	case V4L2_CID_RDS_TX_PS_NAME:		return "RDS PS Name";
++	case V4L2_CID_RDS_TX_RADIO_TEXT:	return "RDS Radio Text";
++	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
++	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
++	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
++	case V4L2_CID_AUDIO_COMPRESSION_ENABLED: return "Audio Compression Feature Enabled";
++	case V4L2_CID_AUDIO_COMPRESSION_GAIN:	return "Audio Compression Gain";
++	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD: return "Audio Compression Threshold";
++	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME: return "Audio Compression Attack Time";
++	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME: return "Audio Compression Release Time";
++	case V4L2_CID_PILOT_TONE_ENABLED:	return "Pilot Tone Feature Enabled";
++	case V4L2_CID_PILOT_TONE_DEVIATION:	return "Pilot Tone Deviation";
++	case V4L2_CID_PILOT_TONE_FREQUENCY:	return "Pilot Tone Frequency";
++	case V4L2_CID_FM_TX_PREEMPHASIS:	return "Pre-emphasis settings";
++	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
++	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
++
+ 	default:
+ 		return NULL;
+ 	}
+@@ -511,6 +541,9 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
+ 	case V4L2_CID_EXPOSURE_AUTO_PRIORITY:
+ 	case V4L2_CID_FOCUS_AUTO:
+ 	case V4L2_CID_PRIVACY:
++	case V4L2_CID_AUDIO_LIMITER_ENABLED:
++	case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
++	case V4L2_CID_PILOT_TONE_ENABLED:
+ 		qctrl->type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		min = 0;
+ 		max = step = 1;
+@@ -539,12 +572,18 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
+ 	case V4L2_CID_MPEG_STREAM_VBI_FMT:
+ 	case V4L2_CID_EXPOSURE_AUTO:
+ 	case V4L2_CID_COLORFX:
++	case V4L2_CID_FM_TX_PREEMPHASIS:
+ 		qctrl->type = V4L2_CTRL_TYPE_MENU;
+ 		step = 1;
+ 		break;
++	case V4L2_CID_RDS_TX_PS_NAME:
++	case V4L2_CID_RDS_TX_RADIO_TEXT:
++		qctrl->type = V4L2_CTRL_TYPE_STRING;
++		break;
+ 	case V4L2_CID_USER_CLASS:
+ 	case V4L2_CID_CAMERA_CLASS:
+ 	case V4L2_CID_MPEG_CLASS:
++	case V4L2_CID_FM_TX_CLASS:
+ 		qctrl->type = V4L2_CTRL_TYPE_CTRL_CLASS;
+ 		qctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 		min = max = step = def = 0;
+@@ -573,6 +612,17 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
+ 	case V4L2_CID_BLUE_BALANCE:
+ 	case V4L2_CID_GAMMA:
+ 	case V4L2_CID_SHARPNESS:
++	case V4L2_CID_RDS_TX_DEVIATION:
++	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME:
++	case V4L2_CID_AUDIO_LIMITER_DEVIATION:
++	case V4L2_CID_AUDIO_COMPRESSION_GAIN:
++	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD:
++	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME:
++	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME:
++	case V4L2_CID_PILOT_TONE_DEVIATION:
++	case V4L2_CID_PILOT_TONE_FREQUENCY:
++	case V4L2_CID_TUNE_POWER_LEVEL:
++	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
+ 		qctrl->flags |= V4L2_CTRL_FLAG_SLIDER;
+ 		break;
+ 	case V4L2_CID_PAN_RELATIVE:
+diff --git a/linux/drivers/media/video/v4l2-compat-ioctl32.c b/linux/drivers/media/video/v4l2-compat-ioctl32.c
+index 991fca1..f24009a 100644
+--- a/linux/drivers/media/video/v4l2-compat-ioctl32.c
++++ b/linux/drivers/media/video/v4l2-compat-ioctl32.c
+@@ -620,7 +620,13 @@ static int ctrl_is_value64(u32 id)
+  * This information is used inside v4l2_compat_ioctl32. */
+ static int ctrl_is_pointer(u32 id)
+ {
+-	return 0;
++	switch (id) {
++	case V4L2_CID_RDS_TX_PS_NAME:
++	case V4L2_CID_RDS_TX_RADIO_TEXT:
++		return 1;
++	default:
++		return 0;
++	}
+ }
+ 
+ static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext_controls32 __user *up)
+-- 
+1.6.2.GIT
 
