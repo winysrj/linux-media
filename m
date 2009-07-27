@@ -1,134 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout4.freenet.de ([195.4.92.94]:60478 "EHLO mout4.freenet.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750970AbZGaNIi convert rfc822-to-8bit (ORCPT
+Received: from qw-out-2122.google.com ([74.125.92.27]:8430 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752587AbZG0SFB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jul 2009 09:08:38 -0400
-Received: from [195.4.92.17] (helo=7.mx.freenet.de)
-	by mout4.freenet.de with esmtpa (ID volkdir@freenet.de) (port 25) (Exim 4.69 #92)
-	id 1MWrqg-0005AP-8Y
-	for linux-media@vger.kernel.org; Fri, 31 Jul 2009 15:08:38 +0200
-Received: from web3.emo.freenet-rz.de ([194.97.107.236]:33083)
-	by 7.mx.freenet.de with esmtpa (ID volkdir@freenet.de) (port 25) (Exim 4.69 #93)
-	id 1MWrqg-0003GP-6L
-	for linux-media@vger.kernel.org; Fri, 31 Jul 2009 15:08:38 +0200
-Received: from localhost ([127.0.0.1] helo=emo.freenet.de)
-	by web3.emo.freenet-rz.de with esmtpa (Exim 4.69 1 (Panther_1))
-	id 1MWrqe-0006nj-38
-	for <linux-media@vger.kernel.org>; Fri, 31 Jul 2009 15:08:36 +0200
-Date: Fri, 31 Jul 2009 15:08:36 +0200
-From: volkdir@freenet.de
-Subject: FW: Problems with Geniatech Digistar
-To: linux-media@vger.kernel.org
+	Mon, 27 Jul 2009 14:05:01 -0400
+Received: by qw-out-2122.google.com with SMTP id 8so1723935qwh.37
+        for <linux-media@vger.kernel.org>; Mon, 27 Jul 2009 11:05:01 -0700 (PDT)
 MIME-Version: 1.0
-Message-Id: <804e4009d17267e3b0b3799135e1fec3@email.freenet.de>
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Date: Mon, 27 Jul 2009 14:05:01 -0400
+Message-ID: <de8cad4d0907271105o1ec1b425ocd903434aa39e2f5@mail.gmail.com>
+Subject: Warnings in Compile
+From: Brandon Jenkins <bcjenkins@tvwhere.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Greetings,
 
- > Hi,
- > 
- > 
- > 
- > I bought a very cheap satellite card, geniatech
-digistar
- > (20 EUR) and now I have some trouble with it.
- > 
- > In the linux tv wiki it is mentioned that the card
-should
- > work:
- > 
- > 
- > 
- >
-http://www.linuxtv.org/wiki/index.php/Geniatech_DVB-S_Digistar
- > 
- > 
- > 
- > Scanning for programs with scan
- > 
- > 
- > 
- > scan /usr/share/dvb/dvb-s/Astra-19.2E
->.szap/channels.conf
- > 
- > 
- > 
- > only get a subset what should be available. Some major
- > german channels (ARD, RTL, ...) are missing.
- > 
- > The channels reported by scan work normally, if I szap
-to
- > them and write them via dvbstrem to a file
- > 
- > szap -r "Sky Select" &
- > 
- > dvbstream 2815 -o >test.mpg
- > 
- > 
- > 
- > Putting the card into an windows xp box I see the
-missing
- > channels.
- > 
- > 
- > 
- > Connection a normal sat receiver to the same port of
-the
- > multiswitch shows all channels.
- > 
- > 
- > 
- > Any ideas what I can do to get it work?
- > 
- > 
- > 
- > Best regards,
- > 
- > Dirk
- > 
- > 
- > 
- > 
- > 
- > Here some data of my system:
- > 
- > 
- > 
- > Linux version 2.6.26-2-amd64 (Debian 2.6.26-17lenny1)
- > 
- > Asus Mainboard with AMD Athlon(tm) X2 Dual Core
-Processor
- > BE-2300 stepping 02
- > 
- > 
- > 
- > The card is autodetected with:
- > 
- > 202790] DVB: registering new adapter (cx88[0])
- > 202799] DVB: registering frontend 0 (Conexant
- > CX24123/CX24109)...
- > 470614] cx88/2: unregistering cx8802 driver, type: dvb
- > access: shared
- > 470623] cx88[0]/2: subsystem: 14f1:0084, board:
-Geniatech
- > DVB-S [card=52]
- > 180056] cx88/2: cx2388x dvb driver version 0.0.6 loaded
- > 180065] cx88/2: registering cx8802 driver, type: dvb
- > access: shared
- > 180069] cx88[0]/2: subsystem: 14f1:0084, board:
-Geniatech
- > DVB-S [card=52]
- > 180074] cx88[0]/2: cx2388x based DVB/ATSC card
- > 180552] CX24123: detected CX24123
+I received the following warnings while compiling a fresh pull today
+from v4l-dvb.
 
+  CC [M]  /root/drivers/v4l-dvb/v4l/pvrusb2-hdw.o
+/root/drivers/v4l-dvb/v4l/pvrusb2-hdw.c: In function 'pvr2_hdw_load_modules':
+/root/drivers/v4l-dvb/v4l/pvrusb2-hdw.c:2145: warning: format not a
+string literal and no format arguments
 
+  CC [M]  /root/drivers/v4l-dvb/v4l/pvrusb2-std.o
+/root/drivers/v4l-dvb/v4l/pvrusb2-std.c: In function 'pvr2_std_id_to_str':
+/root/drivers/v4l-dvb/v4l/pvrusb2-std.c:220: warning: format not a
+string literal and no format arguments
 
+  CC [M]  /root/drivers/v4l-dvb/v4l/zoran_card.o
+/root/drivers/v4l-dvb/v4l/zoran_card.c: In function 'zoran_probe':
+/root/drivers/v4l-dvb/v4l/zoran_card.c:1379: warning: format not a
+string literal and no format arguments
+/root/drivers/v4l-dvb/v4l/zoran_card.c:1391: warning: format not a
+string literal and no format arguments
 
+  CC [M]  /root/drivers/v4l-dvb/v4l/v4l2-common.o
+/root/drivers/v4l-dvb/v4l/v4l2-common.c: In function 'v4l2_i2c_new_subdev':
+/root/drivers/v4l-dvb/v4l/v4l2-common.c:835: warning: format not a
+string literal and no format arguments
+/root/drivers/v4l-dvb/v4l/v4l2-common.c: In function
+'v4l2_i2c_new_probed_subdev':
+/root/drivers/v4l-dvb/v4l/v4l2-common.c:908: warning: format not a
+string literal and no format arguments
+/root/drivers/v4l-dvb/v4l/v4l2-common.c: In function
+'v4l2_i2c_new_subdev_board':
+/root/drivers/v4l-dvb/v4l/v4l2-common.c:990: warning: format not a
+string literal and no format arguments
 
-Gratis: Jeden Monat 3 SMS versenden-
-Mit freenetMail - Ihrer kostenlose E-Mail-Adresse
-http://email.freenet.de/dienste/emailoffice/produktuebersicht/basic/sms/index.html?pid=6830
+  CC [M]  /root/drivers/v4l-dvb/v4l/tvaudio.o
+/root/drivers/v4l-dvb/v4l/tvaudio.c: In function 'tvaudio_probe':
+/root/drivers/v4l-dvb/v4l/tvaudio.c:2075: warning: format not a string
+literal and no format arguments
 
+  CC [M]  /root/drivers/v4l-dvb/v4l/cx2341x.o
+/root/drivers/v4l-dvb/v4l/cx2341x.c: In function 'cx2341x_ctrl_query_fill':
+/root/drivers/v4l-dvb/v4l/cx2341x.c:494: warning: format not a string
+literal and no format arguments
+
+This is running Ubuntu 9.0.4: Linux 2.6.28-11-server #42-Ubuntu SMP
+Fri Apr 17 02:45:36 UTC 2009 x86_64 GNU/Linux
+
+HIH,
+
+Brandon
