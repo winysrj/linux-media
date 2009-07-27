@@ -1,99 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.154]:26842 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754243AbZGJQjw (ORCPT
+Received: from smtp.nokia.com ([192.100.122.233]:30012 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754761AbZG0NyF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jul 2009 12:39:52 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so283272fga.17
-        for <linux-media@vger.kernel.org>; Fri, 10 Jul 2009 09:39:49 -0700 (PDT)
-Date: Fri, 10 Jul 2009 18:40:35 +0200
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Help on mapping Media Center remote
-From: Samuel Rakitnican <semirocket@gmail.com>
-Content-Type: text/plain; format=flowed; delsp=yes; charset=windows-1250
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Message-ID: <op.uwu1xurj80yj81@localhost>
+	Mon, 27 Jul 2009 09:54:05 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv13 8/8] FM TX: si4713: Add document file
+Date: Mon, 27 Jul 2009 16:42:59 +0300
+Message-Id: <1248702179-10403-9-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1248702179-10403-8-git-send-email-eduardo.valentin@nokia.com>
+References: <1248702179-10403-1-git-send-email-eduardo.valentin@nokia.com>
+ <1248702179-10403-2-git-send-email-eduardo.valentin@nokia.com>
+ <1248702179-10403-3-git-send-email-eduardo.valentin@nokia.com>
+ <1248702179-10403-4-git-send-email-eduardo.valentin@nokia.com>
+ <1248702179-10403-5-git-send-email-eduardo.valentin@nokia.com>
+ <1248702179-10403-6-git-send-email-eduardo.valentin@nokia.com>
+ <1248702179-10403-7-git-send-email-eduardo.valentin@nokia.com>
+ <1248702179-10403-8-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This patch adds a document file for si4713 device driver.
+It describes the driver interfaces and organization.
 
-With the huge help of Hermann, I managed to implement this remote with  
-it's new card Compro VideoMate Vista T750F card=169 (just a copy of T750  
-with a diff keymap). I successfully compiled v4l and managed to get this  
-remote to work.
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ linux/Documentation/video4linux/si4713.txt |  176 ++++++++++++++++++++++++++++
+ 1 files changed, 176 insertions(+), 0 deletions(-)
+ create mode 100644 linux/Documentation/video4linux/si4713.txt
 
-I need some help on mapping specific MCE buttons, since I don't know how  
-remotes on linux function, or how MCE function. I just ran into this  
-adventure, and stuck here.
+diff --git a/linux/Documentation/video4linux/si4713.txt b/linux/Documentation/video4linux/si4713.txt
+new file mode 100644
+index 0000000..68e3b0b
+--- /dev/null
++++ b/linux/Documentation/video4linux/si4713.txt
+@@ -0,0 +1,176 @@
++Driver for I2C radios for the Silicon Labs Si4713 FM Radio Transmitters
++
++Copyright (c) 2009 Nokia Corporation
++Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
++
++
++Information about the Device
++============================
++This chip is a Silicon Labs product. It is a I2C device, currently on 0x63 address.
++Basically, it has transmission and signal noise level measurement features.
++
++The Si4713 integrates transmit functions for FM broadcast stereo transmission.
++The chip also allows integrated receive power scanning to identify low signal
++power FM channels.
++
++The chip is programmed using commands and responses. There are also several
++properties which can change the behavior of this chip.
++
++Users must comply with local regulations on radio frequency (RF) transmission.
++
++Device driver description
++=========================
++There are two modules to handle this device. One is a I2C device driver
++and the other is a platform driver.
++
++The I2C device driver exports a v4l2-subdev interface to the kernel.
++All properties can also be accessed by v4l2 extended controls interface, by
++using the v4l2-subdev calls (g_ext_ctrls, s_ext_ctrls).
++
++The platform device driver exports a v4l2 radio device interface to user land.
++So, it uses the I2C device driver as a sub device in order to send the user
++commands to the actual device. Basically it is a wrapper to the I2C device driver.
++
++Applications can use v4l2 radio API to specify frequency of operation, mute state,
++etc. But mostly of its properties will be present in the extended controls.
++
++When the v4l2 mute property is set to 1 (true), the driver will turn the chip off.
++
++Properties description
++======================
++
++The properties can be accessed using v4l2 extended controls.
++Here is an output from v4l2-ctl util:
++/ # v4l2-ctl -d /dev/radio0 --all -L
++Driver Info:
++        Driver name   : radio-si4713
++        Card type     : Silicon Labs Si4713 Modulator
++        Bus info      :
++        Driver version: 0
++        Capabilities  : 0x00080800
++                RDS Output
++                Modulator
++Audio output: 0 (FM Modulator Audio Out)
++Frequency: 1408000 (88.000000 MHz)
++Video Standard = 0x00000000
++Modulator:
++        Name                 : FM Modulator
++        Capabilities         : 62.5 Hz stereo rds
++        Frequency range      : 76.0 MHz - 108.0 MHz
++        Subchannel modulation: stereo+rds
++
++User Controls
++
++                           mute (bool) : default=1 value=0
++
++FM Radio Modulator Controls
++
++                 rds_program_id (int)  : min=0 max=65535 step=1 default=0 value=0
++               rds_program_type (int)  : min=0 max=31 step=1 default=0 value=0
++           rds_signal_deviation (int)  : min=0 max=90000 step=10 default=200 value=200 flags=slider
++                    rds_ps_name (str)  : min=0 max=96 step=8 value='si4713  '
++                 rds_radio_text (str)  : min=0 max=384 step=32 value=''
++  audio_limiter_feature_enabled (bool) : default=1 value=1
++     audio_limiter_release_time (int)  : min=250 max=102390 step=50 default=5010 value=5010 flags=slider
++        audio_limiter_deviation (int)  : min=0 max=90000 step=10 default=66250 value=66250 flags=slider
++audio_compression_feature_enabl (bool) : default=1 value=1
++         audio_compression_gain (int)  : min=0 max=20 step=1 default=15 value=15 flags=slider
++    audio_compression_threshold (int)  : min=-40 max=0 step=1 default=-40 value=-40 flags=slider
++  audio_compression_attack_time (int)  : min=0 max=5000 step=500 default=0 value=0 flags=slider
++ audio_compression_release_time (int)  : min=100000 max=1000000 step=100000 default=1000000 value=1000000 flags=slider
++     pilot_tone_feature_enabled (bool) : default=1 value=1
++           pilot_tone_deviation (int)  : min=0 max=90000 step=10 default=6750 value=6750 flags=slider
++           pilot_tone_frequency (int)  : min=0 max=19000 step=1 default=19000 value=19000 flags=slider
++          pre_emphasis_settings (menu) : min=0 max=2 default=1 value=1
++               tune_power_level (int)  : min=0 max=120 step=1 default=88 value=88 flags=slider
++         tune_antenna_capacitor (int)  : min=0 max=191 step=1 default=0 value=74 flags=slider
++/ #
++
++Here is a summary of them:
++
++* Pilot is an audible tone sent by the device.
++
++pilot_frequency - Configures the frequency of the stereo pilot tone.
++pilot_deviation - Configures pilot tone frequency deviation level.
++pilot_enabled - Enables or disables the pilot tone feature.
++
++* The si4713 device is capable of applying audio compression to the transmitted signal.
++
++acomp_enabled - Enables or disables the audio dynamic range control feature.
++acomp_gain - Sets the gain for audio dynamic range control.
++acomp_threshold - Sets the threshold level for audio dynamic range control.
++acomp_attack_time - Sets the attack time for audio dynamic range control.
++acomp_release_time - Sets the release time for audio dynamic range control.
++
++* Limiter setups audio deviation limiter feature. Once a over deviation occurs,
++it is possible to adjust the front-end gain of the audio input and always
++prevent over deviation.
++
++limiter_enabled - Enables or disables the limiter feature.
++limiter_deviation - Configures audio frequency deviation level.
++limiter_release_time - Sets the limiter release time.
++
++* Tuning power
++
++power_level - Sets the output power level for signal transmission.
++antenna_capacitor - This selects the value of antenna tuning capacitor manually
++or automatically if set to zero.
++
++* RDS related
++
++rds_ps_name - Sets the RDS ps name field for transmission.
++rds_radio_text - Sets the RDS radio text for transmission.
++rds_pi - Sets the RDS PI field for transmission.
++rds_pty - Sets the RDS PTY field for transmission.
++
++* Region related
++
++preemphasis - sets the preemphasis to be applied for transmission.
++
++RNL
++===
++
++This device also has an interface to measure received noise level. To do that, you should
++ioctl the device node. Here is an code of example:
++
++int main (int argc, char *argv[])
++{
++        struct si4713_rnl rnl;
++        int fd = open("/dev/radio0", O_RDWR);
++        int rval;
++
++        if (argc < 2)
++                return -EINVAL;
++
++        if (fd < 0)
++                return fd;
++
++        sscanf(argv[1], "%d", &rnl.frequency);
++
++        rval = ioctl(fd, SI4713_IOC_MEASURE_RNL, &rnl);
++        if (rval < 0)
++                return rval;
++
++        printf("received noise level: %d\n", rnl.rnl);
++
++        close(fd);
++}
++
++The struct si4713_rnl and SI4713_IOC_MEASURE_RNL are defined under
++include/media/si4713.h.
++
++Stereo/Mono and RDS subchannels
++===============================
++
++The device can also be configured using the available sub channels for
++transmission. To do that use S/G_MODULATOR ioctl and configure txsubchans properly.
++Refer to v4l2-spec for proper use of this ioctl.
++
++Testing
++=======
++Testing is usually done with v4l2-ctl utility for managing FM tuner cards.
++The tool can be found in v4l-dvb repository under v4l2-apps/util directory.
++
++Example for setting rds ps name:
++# v4l2-ctl -d /dev/radio0 --set-ctrl=rds_ps_name="Dummy"
++
+-- 
+1.6.2.GIT
 
-Please, reply with missing values, correcting the wrong ones (if there are  
-any) so that I can finish keymap for this remote. Or with a hint what to  
-enter here.
-
-Thanks in advance
-
----------------------------------------
-
-Picture of the remote: http://i28.tinypic.com/1z5j500.jpg
-
-
-/*
-   Number in commment coresponds to remote button
-   found in mce.gif and T750F-ENG.pdf manual.
-*/
-
-	[ 0x1d ] = KEY_0,
-	[ 0x1e ] = KEY_1,
-	[ 0x1f ] = KEY_2,
-	[ 0x20 ] = KEY_3,
-	[ 0x21 ] = KEY_4,
-	[ 0x22 ] = KEY_5,
-	[ 0x23 ] = KEY_6,
-	[ 0x24 ] = KEY_7,
-	[ 0x25 ] = KEY_8,
-	[ 0x26 ] = KEY_9,
-
-	[ 0x01 ] = KEY_POWER,	// 10
-//	[ 0x31 ] =	/* 11 "Videos (MCE)"      */
-//	[ 0x33 ] =	/* 12 "Radio (MCE)"       */
-//	[ 0x2f ] =	/* 13 "Music (MCE)"       */
-//	[ 0x30 ] =	/* 14 "Pictures (MCE)"    */
-//	[ 0x2d ] =	/* 15 "Recorded TV (MCE)" */
-//	[ 0x17 ] =	/* 16 "MCE Guide"         */
-//	[ 0x2c ] =	/* 17 "Live TV (MCE)"     */
-//	[ 0x2b ] =	/* 18 "DVD Menu (MCE)"    */
-//	[ 0x32 ] =	/* 19 "DVD Sub (MCE)"     */
-	[ 0x11 ] = KEY_UP,	// 20
-	[ 0x13 ] = KEY_LEFT,	// 21
-	[ 0x12 ] = KEY_DOWN,	// 22
-	[ 0x14 ] = KEY_RIGHT,	// 23
-	[ 0x15 ] = KEY_OK,	// 24
-	[ 0x16 ] = KEY_BACK,	// 25
-//	[ 0x02 ] =		/* 26 "Media Center"      */
-//	[ 0x04 ] =		// 27  >> TV app in win goes fullscreen/restore, or in  
-manual says "More" for MCE
-	[ 0x05 ] = KEY_VOLUMEUP,	// 28
-	[ 0x06 ] = KEY_VOLUMEDOWN,	// 29
-	[ 0x03 ] = KEY_MUTE,		// 30
-	[ 0x07 ] = KEY_CHANNELUP,	// 31
-	[ 0x08 ] = KEY_CHANNELDOWN,	// 32
-	[ 0x0c ] = KEY_RECORD,	// 33
-	[ 0x0e ] = KEY_STOP,	// 34
-	[ 0x0a ] = KEY_REWIND,	// 35
-	[ 0x0b ] = KEY_PLAY,	// 36
-	[ 0x09 ] = KEY_FASTFORWARD,	// 37
-	[ 0x10 ] = KEY_PREVIOUSSONG,	/* 38 "Skip rewind"       */
-	[ 0x0d ] = KEY_PAUSE,		// 39
-	[ 0x0f ] = KEY_NEXTSONG,	/* 40 "Skip Forward"      */
-//	[ 0x2a ] =		/* 41 The "*" button      */
-//	[ 0x29 ] =		/* 42 The "#" button       */
-	[ 0x27 ] = KEY_CLEAR,	// 43
-//	[ 0x34 ] =		// 44   >> This one turn on/off TV app in win
-	[ 0x28 ] = KEY_ENTER,	// 45
-	[ 0x19 ] = KEY_RED,	// 46
-	[ 0x1a ] = KEY_GREEN,	// 47
-	[ 0x1b ] = KEY_YELLOW,	// 48
-	[ 0x1c ] = KEY_BLUE,	// 49
-	[ 0x18 ] = KEY_TEXT,	// 50 "Teletext on/off"
