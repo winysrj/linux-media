@@ -1,48 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:34891 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751021AbZGSJLD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jul 2009 05:11:03 -0400
-Date: Sun, 19 Jul 2009 11:11:45 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Brian Johnson <brijohn@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 0/2] gspca sn9c20x subdriver rev3
-Message-ID: <20090719111145.50db44ee@free.fr>
-In-Reply-To: <1247976652-17031-1-git-send-email-brijohn@gmail.com>
-References: <1247976652-17031-1-git-send-email-brijohn@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from smtp.nokia.com ([192.100.105.134]:18769 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752522AbZG0Lro (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Jul 2009 07:47:44 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv12 3/8] v4l2: video device: Add FM TX controls default configurations
+Date: Mon, 27 Jul 2009 14:36:26 +0300
+Message-Id: <1248694591-11590-4-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1248694591-11590-3-git-send-email-eduardo.valentin@nokia.com>
+References: <1248694591-11590-1-git-send-email-eduardo.valentin@nokia.com>
+ <1248694591-11590-2-git-send-email-eduardo.valentin@nokia.com>
+ <1248694591-11590-3-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 19 Jul 2009 00:10:50 -0400
-Brian Johnson <brijohn@gmail.com> wrote:
+This patch adds basic configurations for FM TX extended controls.
+That includes controls names, menu strings, pointer identification,
+type classification and flags configuration.
 
-> Ok this one just has the following minor changes:
-> 
-> * operations set/get_register in the sd descriptor only exist if
-> CONFIG_VIDEO_ADV_DEBUG is defined
-> * use lowercase letters in hexidecimal notation
-> * add new supported webcams to
-> linux/Documentation/video4linux/gspca.txt
-> * check for NULL after kmalloc when creating jpg_hdr
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ linux/drivers/media/video/v4l2-common.c         |   50 +++++++++++++++++++++++
+ linux/drivers/media/video/v4l2-compat-ioctl32.c |    8 +++-
+ 2 files changed, 57 insertions(+), 1 deletions(-)
 
-Hello, Brian and Mauro,
-
-I got the patches and sent a pull request. The changesets have a high
-priority.
-
-I just fixed a compilation warning issued when USB_GSPCA_SN9C20X_EVDEV
-was not set.
-
-Mauro, I could not update the maintainers list. Do you want Brian sends
-a new patch for that?
-
-Cheers.
-
+diff --git a/linux/drivers/media/video/v4l2-common.c b/linux/drivers/media/video/v4l2-common.c
+index 870dc20..9e1ae23 100644
+--- a/linux/drivers/media/video/v4l2-common.c
++++ b/linux/drivers/media/video/v4l2-common.c
+@@ -343,6 +343,12 @@ const char **v4l2_ctrl_get_menu(u32 id)
+ 		"Sepia",
+ 		NULL
+ 	};
++	static const char *fm_tx_preemphasis[] = {
++		"No preemphasis",
++		"50 useconds",
++		"75 useconds",
++		NULL,
++	};
+ 
+ 	switch (id) {
+ 		case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+@@ -381,6 +387,8 @@ const char **v4l2_ctrl_get_menu(u32 id)
+ 			return camera_exposure_auto;
+ 		case V4L2_CID_COLORFX:
+ 			return colorfx;
++		case V4L2_CID_FM_TX_PREEMPHASIS:
++			return fm_tx_preemphasis;
+ 		default:
+ 			return NULL;
+ 	}
+@@ -479,6 +487,28 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_ZOOM_CONTINUOUS:		return "Zoom, Continuous";
+ 	case V4L2_CID_PRIVACY:			return "Privacy";
+ 
++	/* FM Radio Modulator control */
++	case V4L2_CID_FM_TX_CLASS:		return "FM Radio Modulator Controls";
++	case V4L2_CID_RDS_TX_PI:		return "RDS Program ID";
++	case V4L2_CID_RDS_TX_PTY:		return "RDS Program Type";
++	case V4L2_CID_RDS_TX_DEVIATION:		return "RDS Signal Deviation";
++	case V4L2_CID_RDS_TX_PS_NAME:		return "RDS PS Name";
++	case V4L2_CID_RDS_TX_RADIO_TEXT:	return "RDS Radio Text";
++	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
++	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
++	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
++	case V4L2_CID_AUDIO_COMPRESSION_ENABLED: return "Audio Compression Feature Enabled";
++	case V4L2_CID_AUDIO_COMPRESSION_GAIN:	return "Audio Compression Gain";
++	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD: return "Audio Compression Threshold";
++	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME: return "Audio Compression Attack Time";
++	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME: return "Audio Compression Release Time";
++	case V4L2_CID_PILOT_TONE_ENABLED:	return "Pilot Tone Feature Enabled";
++	case V4L2_CID_PILOT_TONE_DEVIATION:	return "Pilot Tone Deviation";
++	case V4L2_CID_PILOT_TONE_FREQUENCY:	return "Pilot Tone Frequency";
++	case V4L2_CID_FM_TX_PREEMPHASIS:	return "Pre-emphasis settings";
++	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
++	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
++
+ 	default:
+ 		return NULL;
+ 	}
+@@ -511,6 +541,9 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
+ 	case V4L2_CID_EXPOSURE_AUTO_PRIORITY:
+ 	case V4L2_CID_FOCUS_AUTO:
+ 	case V4L2_CID_PRIVACY:
++	case V4L2_CID_AUDIO_LIMITER_ENABLED:
++	case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
++	case V4L2_CID_PILOT_TONE_ENABLED:
+ 		qctrl->type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		min = 0;
+ 		max = step = 1;
+@@ -539,12 +572,18 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
+ 	case V4L2_CID_MPEG_STREAM_VBI_FMT:
+ 	case V4L2_CID_EXPOSURE_AUTO:
+ 	case V4L2_CID_COLORFX:
++	case V4L2_CID_FM_TX_PREEMPHASIS:
+ 		qctrl->type = V4L2_CTRL_TYPE_MENU;
+ 		step = 1;
+ 		break;
++	case V4L2_CID_RDS_TX_PS_NAME:
++	case V4L2_CID_RDS_TX_RADIO_TEXT:
++		qctrl->type = V4L2_CTRL_TYPE_STRING;
++		break;
+ 	case V4L2_CID_USER_CLASS:
+ 	case V4L2_CID_CAMERA_CLASS:
+ 	case V4L2_CID_MPEG_CLASS:
++	case V4L2_CID_FM_TX_CLASS:
+ 		qctrl->type = V4L2_CTRL_TYPE_CTRL_CLASS;
+ 		qctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 		min = max = step = def = 0;
+@@ -573,6 +612,17 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
+ 	case V4L2_CID_BLUE_BALANCE:
+ 	case V4L2_CID_GAMMA:
+ 	case V4L2_CID_SHARPNESS:
++	case V4L2_CID_RDS_TX_DEVIATION:
++	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME:
++	case V4L2_CID_AUDIO_LIMITER_DEVIATION:
++	case V4L2_CID_AUDIO_COMPRESSION_GAIN:
++	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD:
++	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME:
++	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME:
++	case V4L2_CID_PILOT_TONE_DEVIATION:
++	case V4L2_CID_PILOT_TONE_FREQUENCY:
++	case V4L2_CID_TUNE_POWER_LEVEL:
++	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
+ 		qctrl->flags |= V4L2_CTRL_FLAG_SLIDER;
+ 		break;
+ 	case V4L2_CID_PAN_RELATIVE:
+diff --git a/linux/drivers/media/video/v4l2-compat-ioctl32.c b/linux/drivers/media/video/v4l2-compat-ioctl32.c
+index 991fca1..f24009a 100644
+--- a/linux/drivers/media/video/v4l2-compat-ioctl32.c
++++ b/linux/drivers/media/video/v4l2-compat-ioctl32.c
+@@ -620,7 +620,13 @@ static int ctrl_is_value64(u32 id)
+  * This information is used inside v4l2_compat_ioctl32. */
+ static int ctrl_is_pointer(u32 id)
+ {
+-	return 0;
++	switch (id) {
++	case V4L2_CID_RDS_TX_PS_NAME:
++	case V4L2_CID_RDS_TX_RADIO_TEXT:
++		return 1;
++	default:
++		return 0;
++	}
+ }
+ 
+ static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext_controls32 __user *up)
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+1.6.2.GIT
+
