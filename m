@@ -1,96 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:4852 "EHLO
-	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751605AbZGaLlE (ORCPT
+Received: from smtp.nokia.com ([192.100.122.233]:30018 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754965AbZG0NyJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jul 2009 07:41:04 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-Subject: Re: [RFC] Need comments for supplementing a new pixelformat in  videodev2.h
-Date: Fri, 31 Jul 2009 13:40:47 +0200
-Cc: v4l2_linux <linux-media@vger.kernel.org>, bill@thedirks.org,
-	dongsoo45.kim@samsung.com, jonghun.han@samsung.com,
-	Jinsung Yang <jsgood.yang@samsung.com>,
-	=?utf-8?q?=EA=B2=BD=EB=AF=BC?= <kyungmin.park@samsung.com>,
-	=?utf-8?q?=ED=98=95=EC=A4=80?= <riverful.kim@samsung.com>
-References: <5e9665e10907310022p45d32698pc9f10b1af0626b65@mail.gmail.com>
-In-Reply-To: <5e9665e10907310022p45d32698pc9f10b1af0626b65@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907311340.47400.hverkuil@xs4all.nl>
+	Mon, 27 Jul 2009 09:54:09 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv13 0/8] FM Transmitter (si4713) and another changes
+Date: Mon, 27 Jul 2009 16:42:51 +0300
+Message-Id: <1248702179-10403-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 31 July 2009 09:22:03 Dongsoo, Nathaniel Kim wrote:
-> Hello,
-> 
-> As the codec device of my new H/W I'm is giving output with Y and CbCr
-> as separated components which means it's just like other NV
-> pixelformats described in videodev2.h. However, there is a significant
-> difference in aligning each Y and CbCr components in memory.
-> 
-> Picking up the description from the user manual, it says
-> 
-> "Reference picture is always made in the tile mode memory structure.
-> Decoding reconstruction image is made in 64
-> pixels x 32 lines tiled mode. Encoding reconstruction image is made in
-> 16 pixels x 16 lines tiled mode."
-> 
-> Besides that, it totally looks like NV12 pixelformat.
-> S/W engineer from the vendor wants to call this as "NV12 tiled" which
-> can be considered as a tiled alignment of 64pixel X 32 lines of macro
-> blocks of each components.
-> 
-> So, is that just a NV12 or should be called as a new pixelformat?
+hello guys,
 
-No, that's a new pixelformat. It sounds very similar to the HM12 format
-which is also a tiled format. That format is described here:
+This is version 13 of this series.
 
-Documentation/video4linux/cx2341x/README.hm12
+A littler mistake was made on last one: wrong access to user
+pointers was being performed during string control manipulation.
+Also I forgot to update v4l2 specs.
 
-If I understand correctly then you actually have two different formats:
-one for encoding, one for decoding. In that case you also need to make
-two different pixelformats. Each pixelformat must map unambiguously to
-a specific format.
+Comments, as usual, are appreciated.
 
-> If that should be considered as a new pixelformat, how about the way like this:
-> 
-> #define V4L2_PIX_FMT_NV12T    v4l2_fourcc('T', 'V', '1', '2') /* 12
-> Y/CbCr 4:2:0 */
-
-Note that for each pixelformat you add you also need to add an entry to
-the v4l2 spec. Either make a new pixfmt-tv12.sgml file to document the format
-precisely (recommended if customers will need to know this information)
-or add a short entry to pixfmt.sgml that just refers to your driver.
-
-This is needed to make sure that the spec still can be build, otherwise
-you get an unresolved reference to the new pixelformat define.
-
-You can also consider adding support for converting this format to something
-more common to libv4lconvert. The tiled hm12 format is already handled there,
-so that code can be used as reference code (or even reused).
-
-Finally note that we do not add new pixel formats unless we also merge the
-driver that uses it at the same time or very soon afterwards.
-
-> 
-> Any comment will be appreciated.
-
-No problem!
-
-Regards,
-
-        Hans
-
-> Cheers,
-> 
-> Nate
-> 
+BR,
 
 
+Eduardo Valentin (8):
+  v4l2-subdev.h: Add g_modulator callbacks to subdev api
+  v4l2: video device: Add V4L2_CTRL_CLASS_FM_TX controls
+  v4l2: video device: Add FM TX controls default configurations
+  v4l2-spec: Add documentation description for FM TX extended control
+    class
+  FM TX: si4713: Add files to add radio interface for si4713
+  FM TX: si4713: Add files to handle si4713 i2c device
+  FM TX: si4713: Add Kconfig and Makefile entries
+  FM TX: si4713: Add document file
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+ linux/Documentation/video4linux/si4713.txt      |  176 ++
+ linux/drivers/media/radio/Kconfig               |   22 +
+ linux/drivers/media/radio/Makefile              |    2 +
+ linux/drivers/media/radio/radio-si4713.c        |  367 ++++
+ linux/drivers/media/radio/si4713-i2c.c          | 2065 +++++++++++++++++++++++
+ linux/drivers/media/radio/si4713-i2c.h          |  237 +++
+ linux/drivers/media/video/v4l2-common.c         |   50 +
+ linux/drivers/media/video/v4l2-compat-ioctl32.c |    8 +-
+ linux/include/linux/videodev2.h                 |   34 +
+ linux/include/media/radio-si4713.h              |   30 +
+ linux/include/media/si4713.h                    |   49 +
+ linux/include/media/v4l2-subdev.h               |    2 +
+ v4l2-spec/Makefile                              |    1 +
+ v4l2-spec/controls.sgml                         |  215 +++
+ 14 files changed, 3257 insertions(+), 1 deletions(-)
+ create mode 100644 linux/Documentation/video4linux/si4713.txt
+ create mode 100644 linux/drivers/media/radio/radio-si4713.c
+ create mode 100644 linux/drivers/media/radio/si4713-i2c.c
+ create mode 100644 linux/drivers/media/radio/si4713-i2c.h
+ create mode 100644 linux/include/media/radio-si4713.h
+ create mode 100644 linux/include/media/si4713.h
+
