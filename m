@@ -1,63 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:52516 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752827AbZGYNgI (ORCPT
+Received: from mail-ew0-f226.google.com ([209.85.219.226]:43374 "EHLO
+	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752240AbZG0Rub convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jul 2009 09:36:08 -0400
-Date: Sat, 25 Jul 2009 16:25:21 +0300
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: ext Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
-	"mchehab@infradead.org" <mchehab@infradead.org>,
-	"dougsland@gmail.com" <dougsland@gmail.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCHv10 6/8] FMTx: si4713: Add files to handle si4713 i2c
- device
-Message-ID: <20090725132521.GE10561@esdhcp037198.research.nokia.com>
-Reply-To: eduardo.valentin@nokia.com
-References: <1248453448-1668-1-git-send-email-eduardo.valentin@nokia.com>
- <200907251520.53119.hverkuil@xs4all.nl>
- <1FFEF31EBAA4F64B80D33027D4297760047DF3D655@NOK-EUMSG-02.mgdnok.nokia.com>
- <200907251533.55361.hverkuil@xs4all.nl>
+	Mon, 27 Jul 2009 13:50:31 -0400
+Received: by ewy26 with SMTP id 26so3364790ewy.37
+        for <linux-media@vger.kernel.org>; Mon, 27 Jul 2009 10:50:30 -0700 (PDT)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: linux-media@vger.kernel.org
+Subject: Re: TBS 8920 still fails to initialize - cx24116_readreg error
+Date: Mon, 27 Jul 2009 20:50:20 +0300
+Cc: Mark Zimmerman <markzimm@frii.com>
+References: <20090724023315.GA96337@io.frii.com> <200907261529.13781.liplianin@me.by> <20090727014316.GA97600@io.frii.com>
+In-Reply-To: <20090727014316.GA97600@io.frii.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: 8BIT
 Content-Disposition: inline
-In-Reply-To: <200907251533.55361.hverkuil@xs4all.nl>
+Message-Id: <200907272050.20827.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jul 25, 2009 at 03:33:55PM +0200, ext Hans Verkuil wrote:
-> On Saturday 25 July 2009 15:29:38 ext-Eero.Nurkkala@nokia.com wrote:
-> > 
-> > > I'm surprised at these MAX string lengths. Looking at the RDS standard it
-> > > seems that the max length for the PS_NAME is 8 and for RADIO_TEXT it is
-> > > either 32 (2A group) or 64 (2B group). I don't know which group the si4713
-> > > uses.
-> > > 
-> > > Can you clarify how this is used?
-> > > 
-> > > Regards,
-> > > 
-> > >         Hans
-> > 
-> > Well, PS_NAME can be 8 x n, but only 8 bytes are shown at once...
-> > so it keeps 'scrolling', or changes periodically. There's even commercial
-> > radio stations that do so.
-> 
-> And I'm assuming that the same is true for radio text. However, this behavior
-> contradicts the control description in the spec, so that should be clarified.
+On 27 июля 2009 04:43:16 Mark Zimmerman wrote:
+> On Sun, Jul 26, 2009 at 03:29:13PM +0300, Igor M. Liplianin wrote:
+> > On 25 ???? 2009 05:22:06 Mark Zimmerman wrote:
+> > > On Fri, Jul 24, 2009 at 07:06:11PM +0300, Igor M. Liplianin wrote:
+> > > > On 24 ???? 2009 05:33:15 Mark Zimmerman wrote:
+> > > > > Greetings:
+> > > > >
+> > > > > Using current current v4l-dvb drivers, I get the following in the
+> > > > > dmesg:
+> > > > >
+> > > > > cx88[1]/2: subsystem: 8920:8888, board: TBS 8920 DVB-S/S2 [card=72]
+> > > > > cx88[1]/2: cx2388x based DVB/ATSC card
+> > > > > cx8802_alloc_frontends() allocating 1 frontend(s)
+> > > > > cx24116_readreg: reg=0xff (error=-6)
+> > > > > cx24116_readreg: reg=0xfe (error=-6)
+> > > > > Invalid probe, probably not a CX24116 device
+> > > > > cx88[1]/2: frontend initialization failed
+> > > > > cx88[1]/2: dvb_register failed (err = -22)
+> > > > > cx88[1]/2: cx8802 probe failed, err = -22
+> > > > >
+> > > > > Does this mean that one of the chips on this card is different than
+> > > > > expected? How can I gather useful information about this?
+> > > >
+> > > > Hi
+> > > > You can try:
+> > > > http://www.tbsdtv.com/download/tbs6920_8920_v23_linux_x86_x64.rar
+> > >
+> > > This code did not compile as-is, but after I commented out some things
+> > > in drivers I do not need, I managed to build something. The TBS card
+> > > now seems to be initialized, but it also broke support for my DViCO
+> > > FusionHDTV7 Dual Express card, which also uses a cx23885.
+> > >
+> > > I am going to move this card to another machine that does not have any
+> > > other capture cards and repeat the process. This should make it easier
+> > > to know what the TBS card/driver is doing.
+> > >
+> > > I am assuming that you are interested in using me to gather
+> > > information to update the v4l-dvb drivers so that this card can be
+> > > supported properly. Is this correct?  Please let me know what I can do
+> > > to assist.
+> >
+> > I've changed tbs 8920 initialization in
+> > http://mercurial.intuxication.org/hg/s2-liplianin. I ask you to try it.
+> > If it works, then I will commit it to linuxv.
+> > Also pay attention to remote.
+>
+> Unfortunately, there appears to be no change:
+>
+> Just for reference, here is how it looks when using the drivers
+> compiled from the source in tbs6920_8920_v23_linux_x86_x64.rar:
+>
+> Also, here are the diffs of cx88-dvb.c between your version and the one
+> from the manufacturer.  I wonder if the magic number writes at line 1142
+> could be what makes it work. I can try adding them to your source if you
+> think it is advisable.
+It is advisable to try.
+I forgot about voltage control. It must preserve that "magic" number.
 
-Yes, I'll add a comment explaining this for those defines.
+http://mercurial.intuxication.org/hg/s2-liplianin/rev/b1ca288a0600 
 
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> -- 
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+> --- linux/drivers/media/video/cx88/cx88-dvb.c   2009-07-26
+> 18:00:00.000000000 -0600 +++
+> /home/mark/tbs8920/linux-s2api-tbs6920-8920-v23/linux/drivers/media/video/c
+>x88/cx88-dvb.c   2009-06-07 18:15:11.000000000 -0600 @@ -428,14 +428,17 @@
+>         switch (voltage) {
+>                 case SEC_VOLTAGE_13:
+>                         printk("LNB Voltage SEC_VOLTAGE_13\n");
+> -                       cx_write(MO_GP0_IO, 0x00006040);
+> +                       cx_set(MO_GP0_IO, 0x00006040);
+> +                       cx_clear(MO_GP0_IO, 0x00000020);
+>                         break;
+>                 case SEC_VOLTAGE_18:
+>                         printk("LNB Voltage SEC_VOLTAGE_18\n");
+> -                       cx_write(MO_GP0_IO, 0x00006060);
+> +                       cx_set(MO_GP0_IO, 0x00006020);
+> +                       cx_set(MO_GP0_IO, 0x00000040);
+>                         break;
+>                 case SEC_VOLTAGE_OFF:
+>                         printk("LNB Voltage SEC_VOLTAGE_off\n");
+> +                       cx_clear(MO_GP0_IO, 0x00000020);
+>                         break;
+>         }
+>
+> @@ -1142,6 +1144,15 @@
+>         case CX88_BOARD_TBS_8920:
+>         case CX88_BOARD_PROF_7300:
+>         case CX88_BOARD_SATTRADE_ST4200:
+> +               printk(KERN_INFO "%s() setup TBS8920\n", __func__);
+> +               cx_write(MO_GP0_IO, 0x00008000);
+> +               msleep(100);
+> +               cx_write(MO_SRST_IO, 0);
+> +               msleep(10);
+> +               cx_write(MO_GP0_IO, 0x00008080);
+> +               msleep(100);
+> +               cx_write(MO_SRST_IO, 1);
+> +               msleep(100);
+>                 fe0->dvb.frontend = dvb_attach(cx24116_attach,
+>                                                &hauppauge_hvr4000_config,
+>                                                &core->i2c_adap);
 
 -- 
-Eduardo Valentin
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
