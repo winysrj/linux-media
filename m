@@ -1,106 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52821 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755387AbZGGMjA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Jul 2009 08:39:00 -0400
-From: Chaithrika U S <chaithrika@ti.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, hverkuil@xs4all.nl,
-	davinci-linux-open-source@linux.davincidsp.com,
-	Chaithrika U S <chaithrika@ti.com>
-Subject: [PATCH]: v4l: DaVinci: DM646x: Updates to VPIF display driver
-Date: Tue,  7 Jul 2009 07:51:42 -0400
-Message-Id: <1246967503-8525-1-git-send-email-chaithrika@ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:19973 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752429AbZG0Lrk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Jul 2009 07:47:40 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv12 2/8] v4l2: video device: Add V4L2_CTRL_CLASS_FM_TX controls
+Date: Mon, 27 Jul 2009 14:36:25 +0300
+Message-Id: <1248694591-11590-3-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1248694591-11590-2-git-send-email-eduardo.valentin@nokia.com>
+References: <1248694591-11590-1-git-send-email-eduardo.valentin@nokia.com>
+ <1248694591-11590-2-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Minor fixes like change in the names of the standards,
-remove inclusion of version.h in the header file.
+This patch adds a new class of extended controls. This class
+is intended to support FM Radio Modulators properties such as:
+rds, audio limiters, audio compression, pilot tone generation,
+tuning power levels and preemphasis properties.
 
-Signed-off-by: Chaithrika U S <chaithrika@ti.com>
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 ---
-Applies to v4l-dvb repo
+ linux/include/linux/videodev2.h |   34 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 34 insertions(+), 0 deletions(-)
 
- drivers/media/video/davinci/vpif_display.c |   16 +++++-----------
- drivers/media/video/davinci/vpif_display.h |    1 -
- 2 files changed, 5 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
-index 969d4b3..0fba8d8 100644
---- a/drivers/media/video/davinci/vpif_display.c
-+++ b/drivers/media/video/davinci/vpif_display.c
-@@ -85,11 +85,11 @@ static struct device *vpif_dev;
+diff --git a/linux/include/linux/videodev2.h b/linux/include/linux/videodev2.h
+index b17898c..c58d453 100644
+--- a/linux/include/linux/videodev2.h
++++ b/linux/include/linux/videodev2.h
+@@ -817,6 +817,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_CLASS_USER 0x00980000	/* Old-style 'user' controls */
+ #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
+ #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
++#define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
  
- static const struct vpif_channel_config_params ch_params[] = {
- 	{
--		"NTSC", 720, 480, 30, 0, 1, 268, 1440, 1, 23, 263, 266,
-+		"NTSC_M", 720, 480, 30, 0, 1, 268, 1440, 1, 23, 263, 266,
- 		286, 525, 525, 0, 1, 0, V4L2_STD_525_60,
- 	},
- 	{
--		"PAL", 720, 576, 25, 0, 1, 280, 1440, 1, 23, 311, 313,
-+		"PAL_BDGHIK", 720, 576, 25, 0, 1, 280, 1440, 1, 23, 311, 313,
- 		336, 624, 625, 0, 1, 0, V4L2_STD_625_50,
- 	},
- };
-@@ -390,6 +390,7 @@ static int vpif_get_std_info(struct channel_obj *ch)
- 		config = &ch_params[index];
- 		if (config->stdid & std_info->stdid) {
- 			memcpy(std_info, config, sizeof(*config));
-+			std_info->stdid = vid_ch->stdid & config->stdid;
- 			break;
- 		}
- 	}
-@@ -997,6 +998,7 @@ static int vpif_s_std(struct file *file, void *priv, v4l2_std_id *std_id)
- 		return -EINVAL;
- 	}
+ #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+ #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+@@ -1156,6 +1157,39 @@ enum  v4l2_exposure_auto_type {
  
-+	*std_id = ch->vpifparams.std_info.stdid;
- 	if ((ch->vpifparams.std_info.width *
- 		ch->vpifparams.std_info.height * 2) >
- 		config_params.channel_bufsize[ch->channel_id]) {
-@@ -1395,7 +1397,7 @@ static int initialize_vpif(void)
- 	/* Allocate memory for six channel objects */
- 	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++) {
- 		vpif_obj.dev[i] =
--		    kmalloc(sizeof(struct channel_obj), GFP_KERNEL);
-+		    kzalloc(sizeof(struct channel_obj), GFP_KERNEL);
- 		/* If memory allocation fails, return error */
- 		if (!vpif_obj.dev[i]) {
- 			free_channel_objects_index = i;
-@@ -1511,20 +1513,12 @@ static __init int vpif_probe(struct platform_device *pdev)
- 		/* Initialize field of the channel objects */
- 		atomic_set(&ch->usrs, 0);
- 		for (k = 0; k < VPIF_NUMOBJECTS; k++) {
--			ch->common[k].numbuffers = 0;
- 			common = &ch->common[k];
--			common->io_usrs = 0;
--			common->started = 0;
- 			spin_lock_init(&common->irqlock);
- 			mutex_init(&common->lock);
--			common->numbuffers = 0;
- 			common->set_addr = NULL;
--			common->ytop_off = common->ybtm_off = 0;
--			common->ctop_off = common->cbtm_off = 0;
- 			common->cur_frm = common->next_frm = NULL;
--			memset(&common->fmt, 0, sizeof(common->fmt));
- 			common->numbuffers = config_params.numbuffers[k];
--
- 		}
- 		ch->initialized = 0;
- 		ch->channel_id = j;
-diff --git a/drivers/media/video/davinci/vpif_display.h b/drivers/media/video/davinci/vpif_display.h
-index a2a7cd1..14efb89 100644
---- a/drivers/media/video/davinci/vpif_display.h
-+++ b/drivers/media/video/davinci/vpif_display.h
-@@ -18,7 +18,6 @@
+ #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
  
- /* Header files */
- #include <linux/videodev2.h>
--#include <linux/version.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-device.h>
- #include <media/videobuf-core.h>
++/* FM Modulator class control IDs */
++#define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
++#define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
++
++#define V4L2_CID_RDS_TX_PI			(V4L2_CID_FM_TX_CLASS_BASE + 1)
++#define V4L2_CID_RDS_TX_PTY			(V4L2_CID_FM_TX_CLASS_BASE + 2)
++#define V4L2_CID_RDS_TX_DEVIATION		(V4L2_CID_FM_TX_CLASS_BASE + 3)
++#define V4L2_CID_RDS_TX_PS_NAME			(V4L2_CID_FM_TX_CLASS_BASE + 4)
++#define V4L2_CID_RDS_TX_RADIO_TEXT		(V4L2_CID_FM_TX_CLASS_BASE + 5)
++
++#define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 6)
++#define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 7)
++#define V4L2_CID_AUDIO_LIMITER_DEVIATION	(V4L2_CID_FM_TX_CLASS_BASE + 8)
++
++#define V4L2_CID_AUDIO_COMPRESSION_ENABLED	(V4L2_CID_FM_TX_CLASS_BASE + 9)
++#define V4L2_CID_AUDIO_COMPRESSION_GAIN		(V4L2_CID_FM_TX_CLASS_BASE + 10)
++#define V4L2_CID_AUDIO_COMPRESSION_THRESHOLD	(V4L2_CID_FM_TX_CLASS_BASE + 11)
++#define V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 12)
++#define V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 13)
++
++#define V4L2_CID_PILOT_TONE_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 14)
++#define V4L2_CID_PILOT_TONE_DEVIATION		(V4L2_CID_FM_TX_CLASS_BASE + 15)
++#define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FM_TX_CLASS_BASE + 16)
++
++#define V4L2_CID_FM_TX_PREEMPHASIS		(V4L2_CID_FM_TX_CLASS_BASE + 17)
++enum v4l2_preemphasis {
++	V4L2_PREEMPHASIS_DISABLED	= 0,
++	V4L2_PREEMPHASIS_50_uS		= 1,
++	V4L2_PREEMPHASIS_75_uS		= 2,
++};
++#define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 18)
++#define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 19)
++
+ /*
+  *	T U N I N G
+  */
 -- 
-1.5.6
+1.6.2.GIT
 
