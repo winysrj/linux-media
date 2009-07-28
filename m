@@ -1,40 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f196.google.com ([209.85.221.196]:52405 "EHLO
-	mail-qy0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750961AbZG3FqL (ORCPT
+Received: from mail-fx0-f216.google.com ([209.85.220.216]:50121 "EHLO
+	mail-fx0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752004AbZG1G4i (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2009 01:46:11 -0400
-Received: by qyk34 with SMTP id 34so558821qyk.33
-        for <linux-media@vger.kernel.org>; Wed, 29 Jul 2009 22:46:11 -0700 (PDT)
-MIME-Version: 1.0
-Date: Thu, 30 Jul 2009 00:46:11 -0500
-Message-ID: <e3538fbd0907292246k2c75a950u38c2c91d5190f4f7@mail.gmail.com>
-Subject: [PATCH] cx23885-417: fix setting tvnorms
-From: Joseph Yasi <joe.yasi@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Tue, 28 Jul 2009 02:56:38 -0400
+Received: by fxm12 with SMTP id 12so174685fxm.37
+        for <linux-media@vger.kernel.org>; Mon, 27 Jul 2009 23:56:37 -0700 (PDT)
+Date: Tue, 28 Jul 2009 16:48:50 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: linux-media@vger.kernel.org, video4linux-list@redhat.com
+Subject: [PATCH] Fix incorrect type of tuner for the BeholdTV H6 card.
+Message-ID: <20090728164850.16328d20@glory.loctelecom.ru>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/uVGqZVMN.OkJK5iFIZM2hae"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently, the VIDIOC_S_STD ioctl just returns -EINVAL regardless of
-the norm passed.  This patch sets cx23885_mpeg_template.tvnorms and
-cx23885_mpeg_template.current_norm so that the VIDIOC_S_STD will work.
+--MP_/uVGqZVMN.OkJK5iFIZM2hae
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Signed-off-by: Joseph A. Yasi <joe.yasi@gmail.com>
+Hi all
 
----
-diff -r ee6cf88cb5d3 linux/drivers/media/video/cx23885/cx23885-417.c
---- a/linux/drivers/media/video/cx23885/cx23885-417.c   Wed Jul 29
-01:42:02 2009 -0300
-+++ b/linux/drivers/media/video/cx23885/cx23885-417.c   Thu Jul 30
-00:38:14 2009 -0500
-@@ -1738,6 +1738,8 @@
-        .fops          = &mpeg_fops,
-        .ioctl_ops     = &mpeg_ioctl_ops,
-        .minor         = -1,
-+       .tvnorms       = CX23885_NORMS,
-+       .current_norm  = V4L2_STD_NTSC_M,
- };
+Define correct tuner in config. Radio now works fine.
 
- void cx23885_417_unregister(struct cx23885_dev *dev)
+diff -r f8f134705b65 linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Fri Jul 24 16:19:39 2009 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Tue Jul 28 14:54:29 2009 +1000
+@@ -4900,7 +4900,7 @@
+ 		/* Igor Kuznetsov <igk@igk.ru> */
+ 		.name           = "Beholder BeholdTV H6",
+ 		.audio_clock    = 0x00187de7,
+-		.tuner_type     = TUNER_PHILIPS_FMD1216ME_MK3,
++		.tuner_type     = TUNER_PHILIPS_FMD1216MEX_MK3,
+ 		.radio_type     = UNSET,
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+diff -r f8f134705b65 linux/drivers/media/video/saa7134/saa7134-dvb.c
+--- a/linux/drivers/media/video/saa7134/saa7134-dvb.c	Fri Jul 24 16:19:39 2009 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134-dvb.c	Tue Jul 28 14:54:29 2009 +1000
+@@ -1461,7 +1461,7 @@
+ 		if (fe0->dvb.frontend) {
+ 			dvb_attach(simple_tuner_attach, fe0->dvb.frontend,
+ 				   &dev->i2c_adap, 0x61,
+-				   TUNER_PHILIPS_FMD1216ME_MK3);
++				   TUNER_PHILIPS_FMD1216MEX_MK3);
+ 		}
+ 		break;
+ 	case SAA7134_BOARD_AVERMEDIA_A700_PRO:
+
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+
+With my best regards, Dmitry.
+
+--MP_/uVGqZVMN.OkJK5iFIZM2hae
+Content-Type: text/x-patch; name=h6_fix_tuner_type.patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=h6_fix_tuner_type.patch
+
+diff -r f8f134705b65 linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Fri Jul 24 16:19:39 2009 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Tue Jul 28 14:54:29 2009 +1000
+@@ -4900,7 +4900,7 @@
+ 		/* Igor Kuznetsov <igk@igk.ru> */
+ 		.name           = "Beholder BeholdTV H6",
+ 		.audio_clock    = 0x00187de7,
+-		.tuner_type     = TUNER_PHILIPS_FMD1216ME_MK3,
++		.tuner_type     = TUNER_PHILIPS_FMD1216MEX_MK3,
+ 		.radio_type     = UNSET,
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+diff -r f8f134705b65 linux/drivers/media/video/saa7134/saa7134-dvb.c
+--- a/linux/drivers/media/video/saa7134/saa7134-dvb.c	Fri Jul 24 16:19:39 2009 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134-dvb.c	Tue Jul 28 14:54:29 2009 +1000
+@@ -1461,7 +1461,7 @@
+ 		if (fe0->dvb.frontend) {
+ 			dvb_attach(simple_tuner_attach, fe0->dvb.frontend,
+ 				   &dev->i2c_adap, 0x61,
+-				   TUNER_PHILIPS_FMD1216ME_MK3);
++				   TUNER_PHILIPS_FMD1216MEX_MK3);
+ 		}
+ 		break;
+ 	case SAA7134_BOARD_AVERMEDIA_A700_PRO:
+
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+--MP_/uVGqZVMN.OkJK5iFIZM2hae--
