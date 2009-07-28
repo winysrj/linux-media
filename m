@@ -1,67 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:51931 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753571AbZGXQwu (ORCPT
+Received: from mail-bw0-f221.google.com ([209.85.218.221]:55630 "EHLO
+	mail-bw0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752572AbZG1KCB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2009 12:52:50 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCH 1/1] v4l2-ctl: Add G_MODULATOR before set/get frequency
-Date: Fri, 24 Jul 2009 19:42:12 +0300
-Message-Id: <1248453732-1966-1-git-send-email-eduardo.valentin@nokia.com>
+	Tue, 28 Jul 2009 06:02:01 -0400
+Received: by bwz21 with SMTP id 21so786224bwz.37
+        for <linux-media@vger.kernel.org>; Tue, 28 Jul 2009 03:02:00 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <8ec317d30907280257r487a0dceo9c1e4515f8ef8857@mail.gmail.com>
+References: <8ec317d30907280257r487a0dceo9c1e4515f8ef8857@mail.gmail.com>
+Date: Tue, 28 Jul 2009 11:02:00 +0100
+Message-ID: <8ec317d30907280302v174668dbqa9a350556a87854c@mail.gmail.com>
+Subject: Pinnacle 3010ix and SAA716x drivers
+From: Nick Spooner <nickspoon0@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As there can be modulator devices with get/set frequency
-callbacks, this patch adds support to them in v4l2-ctl utility.
+I have a Pinnacle 3010ix which I am trying to get to work under Linux.
+The chips it uses are the SAA7162 video decoder/analog
+demodulator/PCI-E controller, TDA8265A TV tuner (x2) and TDA10046A
+DVB-T demodulator (x2). So far I have managed to load the driver for
+this card (vendor 1131, product 7162, subsystem vendor 11bd, subsystem
+product 100), which is saa716x, compiled from
+http://www.jusst.de/hg/saa716x/.
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- v4l2-apps/util/v4l2-ctl.cpp |   10 +++++++++-
- 1 files changed, 9 insertions(+), 1 deletions(-)
+The current problem is that the TDA10046A driver (tda1004x) is
+reporting "Invalid tda1004x ID = 0xff. Can't proceed", which seems to
+indicate either a firmware problem (I am using the latest available
+firmware from the get-dvb-firmware script), or some kind of driver
+issue. The SAA7162 seems to be functional, and /dev/dvb shows adapter0
+and adapter1, under which are demux0, dvr0 and net0, but notably not
+frontend0, which suggests, as one might expect, that the frontend
+failed to initialise.
 
-diff --git a/v4l2-apps/util/v4l2-ctl.cpp b/v4l2-apps/util/v4l2-ctl.cpp
-index fc9e459..ff74177 100644
---- a/v4l2-apps/util/v4l2-ctl.cpp
-+++ b/v4l2-apps/util/v4l2-ctl.cpp
-@@ -1962,12 +1962,16 @@ int main(int argc, char **argv)
- 
- 	if (options[OptSetFreq]) {
- 		double fac = 16;
-+		struct v4l2_modulator mt;
- 
-+		memset(&mt, 0, sizeof(struct v4l2_modulator));
- 		if (doioctl(fd, VIDIOC_G_TUNER, &tuner, "VIDIOC_G_TUNER") == 0) {
- 			fac = (tuner.capability & V4L2_TUNER_CAP_LOW) ? 16000 : 16;
-+			vf.type = tuner.type;
-+		} else if (doioctl(fd, VIDIOC_G_MODULATOR, &mt, "VIDIOC_G_MODULATOR") == 0) {
-+			fac = (mt.capability & V4L2_TUNER_CAP_LOW) ? 16000 : 16;
- 		}
- 		vf.tuner = 0;
--		vf.type = tuner.type;
- 		vf.frequency = __u32(freq * fac);
- 		if (doioctl(fd, VIDIOC_S_FREQUENCY, &vf,
- 			"VIDIOC_S_FREQUENCY") == 0)
-@@ -2418,9 +2422,13 @@ set_vid_fmt_error:
- 
- 	if (options[OptGetFreq]) {
- 		double fac = 16;
-+		struct v4l2_modulator mt;
- 
-+		memset(&mt, 0, sizeof(struct v4l2_modulator));
- 		if (doioctl(fd, VIDIOC_G_TUNER, &tuner, "VIDIOC_G_TUNER") == 0) {
- 			fac = (tuner.capability & V4L2_TUNER_CAP_LOW) ? 16000 : 16;
-+		} else if (doioctl(fd, VIDIOC_G_MODULATOR, &mt, "VIDIOC_G_MODULATOR") == 0) {
-+			fac = (mt.capability & V4L2_TUNER_CAP_LOW) ? 16000 : 16;
- 		}
- 		vf.tuner = 0;
- 		if (doioctl(fd, VIDIOC_G_FREQUENCY, &vf, "VIDIOC_G_FREQUENCY") == 0)
--- 
-1.6.2.GIT
+Pertinent dmesg output as follows:
+[ 3163.548084] SAA716x Hybrid 0000:01:00.0: PCI INT A -> GSI 16
+(level, low) -> IRQ 16
+[ 3163.548093] SAA716x Hybrid 0000:01:00.0: setting latency timer to 64
+[ 3163.605331] DVB: registering new adapter (SAA716x dvb adapter)
+[ 3163.713096] Invalid tda1004x ID = 0xff. Can't proceed
+[ 3163.713104] DVB: registering new adapter (SAA716x dvb adapter)
+[ 3163.824165] Invalid tda1004x ID = 0xff. Can't proceed
 
+Any advice on getting the TDA1004A to work?
+
+Regards,
+Nick Spooner
