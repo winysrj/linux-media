@@ -1,136 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:1906 "EHLO
-	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751162AbZGYOPZ convert rfc822-to-8bit (ORCPT
+Received: from mail-in-01.arcor-online.net ([151.189.21.41]:57889 "EHLO
+	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752726AbZG1VKg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jul 2009 10:15:25 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: eduardo.valentin@nokia.com
-Subject: Re: [PATCHv10 8/8] FMTx: si4713: Add document file
-Date: Sat, 25 Jul 2009 16:15:06 +0200
-Cc: ext Mauro Carvalho Chehab <mchehab@infradead.org>,
-	ext Douglas Schilling Landgraf <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>
-References: <1248453448-1668-1-git-send-email-eduardo.valentin@nokia.com> <20090725131705.GC10561@esdhcp037198.research.nokia.com> <20090725134858.GF10561@esdhcp037198.research.nokia.com>
-In-Reply-To: <20090725134858.GF10561@esdhcp037198.research.nokia.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200907251615.06269.hverkuil@xs4all.nl>
+	Tue, 28 Jul 2009 17:10:36 -0400
+Subject: [PATCH] saa7134: fix the radio on Avermedia GO 007 FM
+From: hermann pitton <hermann-pitton@arcor.de>
+To: linux-media@vger.kernel.org
+Cc: Pham Thanh Nam <phamthanhnam.ptn@gmail.com>,
+	Laszlo Kustan <lkustan@gmail.com>
+Content-Type: multipart/mixed; boundary="=-8yQUkjRW39VDH/xdy1+z"
+Date: Tue, 28 Jul 2009 23:07:11 +0200
+Message-Id: <1248815231.3430.143.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 25 July 2009 15:48:58 Eduardo Valentin wrote:
-> On Sat, Jul 25, 2009 at 03:17:05PM +0200, Valentin Eduardo (Nokia-D/Helsinki) wrote:
-> > On Sat, Jul 25, 2009 at 03:25:25PM +0200, ext Hans Verkuil wrote:
-> > > On Friday 24 July 2009 18:37:28 Eduardo Valentin wrote:
-> > > > This patch adds a document file for si4713 device driver.
-> > > > It describes the driver interfaces and organization.
-> > > > 
-> > > > Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-> > > > ---
-> > > >  linux/Documentation/video4linux/si4713.txt |  175 ++++++++++++++++++++++++++++
-> > > >  1 files changed, 175 insertions(+), 0 deletions(-)
-> > > >  create mode 100644 linux/Documentation/video4linux/si4713.txt
-> > > > 
-> > > > diff --git a/linux/Documentation/video4linux/si4713.txt b/linux/Documentation/video4linux/si4713.txt
-> > > > new file mode 100644
-> > > > index 0000000..3843af5
-> > > > --- /dev/null
-> > > > +++ b/linux/Documentation/video4linux/si4713.txt
-> > > > @@ -0,0 +1,175 @@
-> > > > +Driver for I2C radios for the Silicon Labs Si4713 FM Radio Transmitters
-> > > > +
-> > > > +Copyright (c) 2009 Nokia Corporation
-> > > > +Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
-> > > > +
-> > > > +
-> > > > +Information about the Device
-> > > > +============================
-> > > > +This chip is a Silicon Labs product. It is a I2C device, currently on 0Ã—63 address.
-> > > > +Basically, it has transmission and signal noise level measurement features.
-> > > > +
-> > > > +The Si4713 integrates transmit functions for FM broadcast stereo transmission.
-> > > > +The chip also allows integrated receive power scanning to identify low signal
-> > > > +power FM channels.
-> > > > +
-> > > > +The chip is programmed using commands and responses. There are also several
-> > > > +properties which can change the behavior of this chip.
-> > > > +
-> > > > +Users must comply with local regulations on radio frequency (RF) transmission.
-> > > > +
-> > > > +Device driver description
-> > > > +=========================
-> > > > +There are two modules to handle this device. One is a I2C device driver
-> > > > +and the other is a platform driver.
-> > > > +
-> > > > +The I2C device driver exports a v4l2-subdev interface to the kernel.
-> > > > +All properties can also be accessed by v4l2 extended controls interface, by
-> > > > +using the v4l2-subdev calls (g_ext_ctrls, s_ext_ctrls).
-> > > > +
-> > > > +The platform device driver exports a v4l2 radio device interface to user land.
-> > > > +So, it uses the I2C device driver as a sub device in order to send the user
-> > > > +commands to the actual device. Basically it is a wrapper to the I2C device driver.
-> > > > +
-> > > > +Applications can use v4l2 radio API to specify frequency of operation, mute state,
-> > > > +etc. But mostly of its properties will be present in the extended controls.
-> > > > +
-> > > > +When the v4l2 mute property is set to 1 (true), the driver will turn the chip off.
-> > > > +
-> > > > +Properties description
-> > > > +======================
-> > > > +
-> > > > +The properties can be accessed using v4l2 extended controls.
-> > > > +Here is an output from v4l2-ctl util:
-> > > > +
-> > > > +# v4l2-ctl -d /dev/radio0 --all -l
-> > > > +Driver Info:
-> > > > +        Driver name   : radio-si4713
-> > > > +        Card type     : Silicon Labs Si4713 Modulator
-> > > > +        Bus info      : 
-> > > > +        Driver version: 0
-> > > > +        Capabilities  : 0x00080800
-> > > > +                RDS Output
-> > > > +                Modulator
-> > > > +Audio output: 0 (FM Modulator Audio Out)
-> > > > +Frequency: 1545600 (96.600000 MHz)
-> > > > +Video Standard = 0x00000000
-> > > > +Modulator:
-> > > > +        Name                 : FM Modulator
-> > > > +        Capabilities         : 62.5 Hz stereo rds 
-> > > > +        Frequency range      : 76.0 MHz - 108.0 MHz
-> > > > +        Available subchannels: mono rds 
-> > > > +
-> > > > +User Controls
-> > > > +
-> > > > +                           mute (bool) : default=1 value=0
-> > > > +
-> > > > +FM Radio Modulator Controls
-> > > > +
-> > > > +                 rds_program_id (int)  : min=0 max=65535 step=1 default=0 value=0
-> > > > +               rds_program_type (int)  : min=0 max=31 step=1 default=0 value=0
-> > > > +                    rds_ps_name (str)  : value='Si4713  ' len=1024
-> > > > +' len=1024       rds_radio_text (str)  : value='Si4713  
-> > > 
-> > > This doesn't look right. I think this output is from an old v4l2-ctl version.
-> > > I'd like to see this output anyway using the latest v4l2-ctl version as I
-> > > haven't been able to test it myself.
-> > 
-> > Yeah. My bad, forgot to update here. This is the output from the older version.
-> 
-> 
-> I've just checked that now v4l2-ctl does not report rds subchannel for txsubchannel.
-> Just to confirm this is something which is missing right?
 
-Yes, that was missing. I've just added it to my tree. Thanks for the report.
+--=-8yQUkjRW39VDH/xdy1+z
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Regards,
+We have support for radio on saa7133/35/31e cards with tda8290/8275(a)
+and 5.5MHz ceramic filter on the bridge chips since a while.
 
-	Hans
+It was previously not tested, if this card supports it too, but the old
+"ghost" radio with wrong filters doesn't work anymore.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Thanks go to Pham Thanh Nam and Laszlo Kustan for reporting it working
+on that input.
+
+Signed-off-by: hermann pitton <hermann-pitton@arcor.de>
+
+diff -r fd96af63f79b linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Fri Jun 19 19:56:56 2009 +0000
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Tue Jul 28 22:16:52 2009 +0200
+@@ -1633,7 +1633,7 @@
+ 		}},
+ 		.radio = {
+ 			.name = name_radio,
+-			.amux = LINE1,
++			.amux = TV,
+ 			.gpio = 0x00300001,
+ 		},
+ 		.mute = {
+
+
+
+--=-8yQUkjRW39VDH/xdy1+z
+Content-Disposition: inline; filename=saa7134_fix_radio_of_Avermedia-GO-007-FM.patch
+Content-Type: text/x-patch; name=saa7134_fix_radio_of_Avermedia-GO-007-FM.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+diff -r fd96af63f79b linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Fri Jun 19 19:56:56 2009 +0000
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Tue Jul 28 22:16:52 2009 +0200
+@@ -1633,7 +1633,7 @@
+ 		}},
+ 		.radio = {
+ 			.name = name_radio,
+-			.amux = LINE1,
++			.amux = TV,
+ 			.gpio = 0x00300001,
+ 		},
+ 		.mute = {
+
+--=-8yQUkjRW39VDH/xdy1+z--
+
