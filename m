@@ -1,45 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.225]:52654 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750844AbZGSS7F (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:37616 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752138AbZG1BH6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jul 2009 14:59:05 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so513916rvb.1
-        for <linux-media@vger.kernel.org>; Sun, 19 Jul 2009 11:59:04 -0700 (PDT)
-From: Brian Johnson <brijohn@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Brian Johnson <brijohn@gmail.com>
-Subject: [PATCH] Add gspca sn9c20x subdriver entry to MAINTAINERS file
-Date: Sun, 19 Jul 2009 14:58:56 -0400
-Message-Id: <1248029936-6888-1-git-send-email-brijohn@gmail.com>
+	Mon, 27 Jul 2009 21:07:58 -0400
+Date: Mon, 27 Jul 2009 22:07:53 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Matthias Schwarzott <zzam@gentoo.org>
+Cc: linux-media@vger.kernel.org, Trent Piepho <xyzzy@speakeasy.org>,
+	Andy Walls <awalls@radix.net>
+Subject: Re: lsmod path hardcoded in v4l/Makefile
+Message-ID: <20090727220753.092616bd@pedra.chehab.org>
+In-Reply-To: <200907210914.37819.zzam@gentoo.org>
+References: <200906221636.25006.zzam@gentoo.org>
+	<200906230950.26287.zzam@gentoo.org>
+	<Pine.LNX.4.58.0906231214360.6411@shell2.speakeasy.net>
+	<200907210914.37819.zzam@gentoo.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Brian Johnson <brijohn@gmail.com>
----
- MAINTAINERS |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+Em Tue, 21 Jul 2009 09:14:36 +0200
+Matthias Schwarzott <zzam@gentoo.org> escreveu:
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 18c3f0c..a28944f 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -2599,6 +2599,14 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
- S:	Maintained
- F:	drivers/media/video/gspca/pac207.c
  
-+GSPCA SN9C20X SUBDRIVER
-+P:	Brian Johnson
-+M:	brijohn@gmail.com
-+L:	linux-media@vger.kernel.org
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
-+S:	Maintained
-+F:	drivers/media/video/gspca/sn9c20x.c
-+
- GSPCA T613 SUBDRIVER
- P:	Leandro Costantino
- M:	lcostantino@gmail.com
--- 
-1.5.6.3
+> Hi Mauro!
+> 
+> is there any reason to not pull this besides time?
 
+Time is one reason, however, there's another:
+
+It is not a good idea to run as root. Most people compile everything
+with a normal user and then use "sudo" command to install/remove/insert
+modules. Unfortunately, depending on the distribution, sudo inherits PATH from
+the normal user, instead of root. Due to that, if you replace it for just
+lsmod, it will fail for people that don't use gentoo.
+
+Maybe good solution is to test if lsmod (and other similar tools) are at /sbin
+or /usr/sbin. 
+
+Alternatively, we can try to replace lsmod by something like (untested):
+
+v4l_modules := $(shell PATH=$PATH:/usr/local/sbin:/usr/sbin:/sbin lsmod|cut -d' ' -f1 ) $(patsubst %.ko,%,$(inst-m))
+
+> 
+> Regards
+> Matthias
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+
+Cheers,
+Mauro
