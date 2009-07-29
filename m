@@ -1,94 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:54799 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751467AbZGVOsK (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:45863 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752769AbZG2TEj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2009 10:48:10 -0400
-Date: Wed, 22 Jul 2009 11:48:01 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jelle de Jong <jelledejong@powercraft.nl>
-Cc: "linux-media@vger.kernel.org >> \"linux-media@vger.kernel.org\""
-	<linux-media@vger.kernel.org>
-Subject: Re: offering bounty for GPL'd dual em28xx support
-Message-ID: <20090722114801.6b4ea47d@pedra.chehab.org>
-In-Reply-To: <4A66E59E.9040502@powercraft.nl>
-References: <4A6666CC.7020008@eyemagnet.com>
-	<829197380907211842p4c9886a3q96a8b50e58e63cbf@mail.gmail.com>
-	<4A66E59E.9040502@powercraft.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Wed, 29 Jul 2009 15:04:39 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Subject: Re: How to save number of times using memcpy?
+Date: Wed, 29 Jul 2009 21:06:11 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
+	"v4l2_linux" <linux-media@vger.kernel.org>,
+	Dongsoo Kim <dongsoo45.kim@samsung.com>,
+	=?euc-kr?q?=B9=DA=B0=E6=B9=CE?= <kyungmin.park@samsung.com>,
+	"jm105.lee@samsung.com" <jm105.lee@samsung.com>,
+	=?euc-kr?q?=C0=CC=BC=BC=B9=AE?= <semun.lee@samsung.com>,
+	=?euc-kr?q?=B4=EB=C0=CE=B1=E2?= <inki.dae@samsung.com>,
+	=?euc-kr?q?=B1=E8=C7=FC=C1=D8?= <riverful.kim@samsung.com>
+References: <5e9665e10907271756l114f6e6ekeefa04d976b95c66@mail.gmail.com> <200907290926.41488.laurent.pinchart@skynet.be> <A69FA2915331DC488A831521EAE36FE401450FADF1@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE401450FADF1@dlee06.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="euc-kr"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200907292106.11862.laurent.pinchart@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 22 Jul 2009 12:10:38 +0200
-Jelle de Jong <jelledejong@powercraft.nl> escreveu:
+On Wednesday 29 July 2009 20:36:25 Karicheri, Muralidharan wrote:
+> <Snip>
+>
+> > > the details, but I think the strategy were to pass a parameter during
+> > > kernel boot, for it to reserve some amount of memory that would later be
+> > > claimed by the V4L device.
+> >
+> > It's actually a pretty common strategy for embedded hardware (the
+> > "general- purpose machine" case doesn't - for now - make much sense on an
+> > OMAP processor for instance). A memory chunk would be reserved at boot
+> > time at the end of the physical memory by passing the mem= parameter to
+> > the kernel. Video applications would then mmap() /dev/mem to access that
+> > memory (I'd have to check the details on that one, that's from my memory),
+> > and pass the pointer the the v4l2 driver using userptr I/O. This requires
+> > root privileges, and people usually don't care about that when the final
+> > application is a camera (usually embedded in some device like a media
+> > player, an IP camera, ...).
+>
+> Yes. This is exactly what we are doing in the case of davinci processors.
+> We have a kernel module that uses memory from the end of SDRAM space and
+> mmap it to application through a set of APIs. They allocate contiguous
+> memory pools and return the same to application through IOCTLs. I have
+> tested vpfe capture using this approach (but yet to push the same to v4l2
+> community for review). The same approach may be used across other platforms
+> as well. So doesn't it make sense to add this kernel module to the kernel
+> tree so that everyone can use it?
 
-> Devin Heitmueller wrote:
-> 
-> <snip>
-> 
-> > The issue occurs with various different drivers.  Basically the issue
-> > is the device attempts to reserve a certain amount of bandwidth on the
-> > USB bus for the isoc stream, and in the case of analog video at
-> > 640x480 this adds up to about 200Mbps.  As a result, connecting
-> > multiple devices can result in exceeding the available bandwidth on
-> > the USB bus.
-> > 
-> > Depending on your how many devices you are trying to connect, what
-> > your target capture resolution is, and whether you can put each device
-> > on its own USB bus will dictate what solution you can go with.
-> 
-> Hi all,
-> 
-> So I felt like doing  a field test, with my dvb-t test system.
-> 
-> Bus 001 Device 008: ID 2040:6502 Hauppauge WinTV HVR-900
-> Bus 001 Device 007: ID 2304:0226 Pinnacle Systems, Inc. [hex] PCTV 330e
-> Bus 001 Device 005: ID 0b05:173f ASUSTek Computer, Inc.
-> Bus 001 Device 003: ID 2304:0236 Pinnacle Systems, Inc. [hex]
-> Bus 001 Device 002: ID 15a4:9016
-> 
-> I have now three devices with dvb-t channels running with different
-> channels and audio on an atom based cpu without problems.
-> 
-> two:
-> dvb-usb-dib0700
-> 
-> and one:
-> dvb-usb-af9015
-> 
-> the dvb-usb-af9015 takes way more cpu interrupts because of the usb
-> block size.
-> 
-> prove:
-> http://imagebin.ca/img/xM9Q7_A.jpg
-> 
-> I will be demonstrating this at har2009 (see demonstration village)
-> 
-> Devin could you login onto the dvb-t test system and see if you can get
-> those em28xx device running with your new code?
-> 
-> I will probably make an other test system with some more cpu power to
-> see if even more usb devices are possible, or I may use my nice powerful
-> multiseat quad core system for it.
-> 
-> Best regards,
-> 
-> Jelle de Jong
+What's wrong with mmap()'ing /dev/mem ? Why do you need a special driver ?
 
-Jelle,
+Regards,
 
-DVB-T is less consuming than analog, since the streams are mpeg compressed. The
-issue with em28xx is that, on analog mode, all data come uncompressed. So, the
-worse case is a NTSC stream with 16 bit YUY2 frame with using 720x480x30x2 Mbps (e. g.
-207 Mbps) for the payload, plus some additional bandwidth for the transport
-headers. On HD, mpeg stream are up to 23 Mbps on DTV systems (ISDB full-seg is the
-worse case on DTV).
+Laurent Pinchart
 
-So, analog demands about 9x more bandwidth than digital at USB bus.
-
-
-
-Cheers,
-Mauro
