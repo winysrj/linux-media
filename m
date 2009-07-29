@@ -1,60 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [195.7.61.12] ([195.7.61.12]:55281 "EHLO killala.koala.ie"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1754742AbZGCQGH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Jul 2009 12:06:07 -0400
-Received: from [127.0.0.1] (killala.koala.ie [195.7.61.12])
-	(authenticated bits=0)
-	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id n63G68qC023375
-	for <linux-media@vger.kernel.org>; Fri, 3 Jul 2009 17:06:09 +0100
-Message-ID: <4A4E2C6E.3010707@koala.ie>
-Date: Fri, 03 Jul 2009 17:06:06 +0100
-From: Simon Kenyon <simon@koala.ie>
-MIME-Version: 1.0
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Call for testers: Terratec Cinergy T XS USB support
-References: <829197380906290700n16a0f4faxd29caa12587222f7@mail.gmail.com> <d9def9db0907030313t4ea3685m8f63981696d63c96@mail.gmail.com>
-In-Reply-To: <d9def9db0907030313t4ea3685m8f63981696d63c96@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from bombadil.infradead.org ([18.85.46.34]:57017 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750842AbZG2Dz6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jul 2009 23:55:58 -0400
+Date: Wed, 29 Jul 2009 00:55:51 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+Cc: v4l2_linux <linux-media@vger.kernel.org>,
+	Dongsoo Kim <dongsoo45.kim@samsung.com>,
+	=?UTF-8?B?67CV6rK966+8?= <kyungmin.park@samsung.com>,
+	jm105.lee@samsung.com,
+	=?UTF-8?B?7J207IS4?= =?UTF-8?B?66y4?= <semun.lee@samsung.com>,
+	=?UTF-8?B?64yA7J246riw?= <inki.dae@samsung.com>,
+	=?UTF-8?B?6rmA7ZiV7KSA?= <riverful.kim@samsung.com>
+Subject: Re: How to save number of times using memcpy?
+Message-ID: <20090729005551.79430fe5@pedra.chehab.org>
+In-Reply-To: <5e9665e10907282030i7d25c6e4se1d52eff321da8e3@mail.gmail.com>
+References: <5e9665e10907271756l114f6e6ekeefa04d976b95c66@mail.gmail.com>
+	<20090728003548.1a99224a@pedra.chehab.org>
+	<5e9665e10907282030i7d25c6e4se1d52eff321da8e3@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Markus Rechberger wrote:
-> Hi all,
->
-> On Mon, Jun 29, 2009 at 4:00 PM, Devin
-> Heitmueller<dheitmueller@kernellabs.com> wrote:
->   
->> Hello all,
->>
->> A few weeks ago, I did some work on support for the Terratec Cinergy T
->> XS USB product.  I successfully got the zl10353 version working and
->> issued a PULL request last week
->> (http://www.kernellabs.com/hg/~dheitmueller/em28xx-terratec-zl10353)
->>
->>     
->
-> There will be an alternative driver entirely in userspace available
-> which works across all major kernelversions and distributions. It will
-> support the old em28xx devices and handle audio routing for the most
-> popular TV applications directly.
->
-> This system makes compiling the drivers unnecessary across all
-> available linux systems between 2.6.15 and ongoing. This package also
-> allows commercial drivers from vendors, the API itself is almost the
-> same as the video4linux/linuxdvb API. Installing a driver takes less
-> than five seconds without having to take care about the kernel API or
-> having to set up a development system. Aside of that it's operating
-> system independent (working on Linux, MacOSX and FreeBSD).
-> I think this is the way to go for the future since it adds more
-> possibilities to the drivers, and it eases up and speeds up driver
-> development dramatically.
->
-> Best Regards,
-> Markus
->   
-ROTFLOL (well actually it was more like a rather bemused smile)
---
-simon
+Em Wed, 29 Jul 2009 12:30:19 +0900
+"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com> escreveu:
+
+> Sorry my bad. I missed something very important to explain my issue clear.
+> The thing is, I want to reserve specific amount of continuous physical
+> memory on machine initializing time. Therefor some multimedia
+> peripherals can be using this memory area exclusively.
+> That's what I was afraid of could not being adopted in main line kernel.
+
+In the past, some drivers used to do that, but this is also a source
+of problems, especially with general-purpose machines, where you're loosing
+memory that could otherwise be used by something else. I never tried to get the
+details, but I think the strategy were to pass a parameter during kernel boot,
+for it to reserve some amount of memory that would later be claimed by the V4L
+device.
+
+> And if I use reserved memory on purpose, I might have problem using
+> videobuf because it uses dma_alloc_coherent() anyway.
+
+It is a matter of testing and adjusting it, if needed. Feel free to propose
+improvements on it as needed.
+
+> > There's also an special type of transfer called overlay mode. On the overlay
+> > mode, the DMA transfers are mapped directly into the output device.
+> >
+> > In general, the drivers that implement overlay mode also mmap(), but this is
+> > done, on those drivers, via a separate DMA transfer.
+> >
+> > The applications that benefit with overlay mode, uses overlay for display and
+> > mmap for record, and may have different resolutions on each mode.
+> >
+> 
+> Yes I think if I'm getting right, I have similar feature which is
+> transferring data from camera interface to frame buffer with FIFO
+> pipeline.
+> And I consider this as an overlay feature.
+
+It seems so. By using overlay, you'll avoid memcpy the data.
+
+> I hope I could participate in cutting edge Linux technology with my works.
+> As far as I know, there are plenty of areas need to be improved for
+> camera devices in Linux kernel.
+
+Welcome to the team! For sure there are lots of work, especially when looking
+at embedded hardware needs. For a long time, most of V4L work were focused only
+on PC running at i386 architecture. Over the last years, some work is done to
+make it more generic and to enhance V4L to better support other architectures.
+
+
+
+Cheers,
+Mauro
