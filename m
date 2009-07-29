@@ -1,70 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35013 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751753AbZGTGJs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jul 2009 02:09:48 -0400
-From: "chaithrika" <chaithrika@ti.com>
-To: "'Russell King - ARM Linux'" <linux@arm.linux.org.uk>
-Cc: <linux-media@vger.kernel.org>, <mchehab@infradead.org>,
-	<hverkuil@xs4all.nl>,
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"'Brijesh Jadav'" <brijesh.j@ti.com>,
-	"'Kevin Hilman'" <khilman@deeprootsystems.com>
-References: <1246967577-8573-1-git-send-email-chaithrika@ti.com> <20090719104258.GR12062@n2100.arm.linux.org.uk>
-In-Reply-To: <20090719104258.GR12062@n2100.arm.linux.org.uk>
-Subject: RE: [PATCH v2] ARM: DaVinci: DM646x Video: Platform and board	specific setup
-Date: Mon, 20 Jul 2009 11:38:17 +0530
-Message-ID: <007d01ca0900$79b4c320$6d1e4960$@com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Language: en-us
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2977 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751110AbZG2S0G (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Jul 2009 14:26:06 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id n6TIQ5ZJ012275
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 29 Jul 2009 20:26:05 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 29 Jul 2009 20:26:05 +0200 (CEST)
+Message-Id: <200907291826.n6TIQ5ZJ012275@smtp-vbr4.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
+Results of the daily build of v4l-dvb:
 
-> -----Original Message-----
-> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> Sent: Sunday, July 19, 2009 4:13 PM
-> To: Chaithrika U S
-> Cc: linux-media@vger.kernel.org; mchehab@infradead.org;
-> hverkuil@xs4all.nl; davinci-linux-open-source@linux.davincidsp.com;
-> Manjunath Hadli; Brijesh Jadav; Kevin Hilman
-> Subject: Re: [PATCH v2] ARM: DaVinci: DM646x Video: Platform and board
-> specific setup
-> 
-> On Tue, Jul 07, 2009 at 07:52:57AM -0400, Chaithrika U S wrote:
-> > diff --git a/arch/arm/mach-davinci/include/mach/dm646x.h
-> b/arch/arm/mach-davinci/include/mach/dm646x.h
-> > index 0585484..1f247fb 100644
-> > --- a/arch/arm/mach-davinci/include/mach/dm646x.h
-> > +++ b/arch/arm/mach-davinci/include/mach/dm646x.h
-> > @@ -26,4 +26,28 @@ void __init dm646x_init(void);
-> >  void __init dm646x_init_mcasp0(struct snd_platform_data *pdata);
-> >  void __init dm646x_init_mcasp1(struct snd_platform_data *pdata);
-> >
-> > +void dm646x_video_init(void);
-> > +
-> > +struct vpif_output {
-> > +	u16 id;
-> > +	const char *name;
-> > +};
-> > +
-> > +struct subdev_info {
-> > +	unsigned short addr;
-> > +	const char *name;
-> > +};
-> 
-> 'subdev_info' is far too generic to have in platform header files.
-> Please rename this to at least vpif_subdev_info.
-> 
-> Other than that, patch looks fine.
+date:        Wed Jul 29 19:00:04 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12345:ee6cf88cb5d3
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-OK. I will post an updated patch soon.
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-rc3-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29.1-armv5-ixp: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-rc3-armv5-ixp: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-rc3-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: OK
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-rc3-i686: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-rc3-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-rc3-mips: WARNINGS
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29.1-powerpc64: OK
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-rc3-powerpc64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: OK
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-rc3-x86_64: OK
+sparse (linux-2.6.30): OK
+sparse (linux-2.6.31-rc3): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
-Regards,
-Chaithrika
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
