@@ -1,24 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n63KEpUF018578
-	for <video4linux-list@redhat.com>; Fri, 3 Jul 2009 16:14:51 -0400
-Received: from mail-qy0-f180.google.com (mail-qy0-f180.google.com
-	[209.85.221.180])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n63KEZPE004477
-	for <video4linux-list@redhat.com>; Fri, 3 Jul 2009 16:14:35 -0400
-Received: by qyk10 with SMTP id 10so1279519qyk.23
-	for <video4linux-list@redhat.com>; Fri, 03 Jul 2009 13:14:35 -0700 (PDT)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n6TF7OOF006423
+	for <video4linux-list@redhat.com>; Wed, 29 Jul 2009 11:07:24 -0400
+Received: from mail-gx0-f221.google.com (mail-gx0-f221.google.com
+	[209.85.217.221])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n6TF6GVg021151
+	for <video4linux-list@redhat.com>; Wed, 29 Jul 2009 11:07:09 -0400
+Received: by mail-gx0-f221.google.com with SMTP id 21so1535094gxk.3
+	for <video4linux-list@redhat.com>; Wed, 29 Jul 2009 08:07:09 -0700 (PDT)
+Message-ID: <4A706591.2090707@gmail.com>
+Date: Wed, 29 Jul 2009 11:06:57 -0400
+From: "buhochileno@gmail.com" <buhochileno@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <h2lgu9$r6b$1@ger.gmane.org>
-References: <h2lgu9$r6b$1@ger.gmane.org>
-Date: Fri, 3 Jul 2009 16:14:35 -0400
-Message-ID: <829197380907031314q4829787cu7d7c6cf35a006377@mail.gmail.com>
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Jim Henderson <hendersj@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+CC: V4L Mailing List <video4linux-list@redhat.com>
+References: <1244577481.32457.1319583459@webmail.messagingengine.com>	
+	<1246654555282-3203325.post@n2.nabble.com>	
+	<1246882966.1165.1323684945@webmail.messagingengine.com>	
+	<4A7058FA.4060409@gmail.com>	
+	<829197380907290734l175a2c18sc76ae82b1f5d2eb@mail.gmail.com>
+	<829197380907290742t678039al95c800e9a8c8c22e@mail.gmail.com>
+In-Reply-To: <829197380907290742t678039al95c800e9a8c8c22e@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Pinnacle 880e Development?
+Subject: Re: KWorld VS-USB2800D recognized as PointNix Intra-Oral Camera -
+ No 	Composite Input
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,52 +35,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Jul 3, 2009 at 1:59 PM, Jim Henderson<hendersj@gmail.com> wrote:
-> Hi,
+Hi Devin,
+Thanks for the quick reply..
+
+>> I can tell from the dmesg output that the code you are running in
+>> still very old.  The current code will now dump out the "Alternate
+>> Setting" lines and will identify the device as an "em28xx/saa713x
+>> reference design".
+>>     
 >
-> I thought I'd seen something on this list in the last couple of months
-> about development for the 880e moving forward - according to the wiki
-> support for this device is in "active development" - just wondering if
-> there's been any progress and if there are any drivers available for
-> testing yet?
+> Correction: I meant to say the "current code will *not* dump out"
+> instead of "will now dump out".
 >
-> Thanks,
+>   
+weird, I follow the exact instruction of the previous mail, also doing a 
+update at the v4l-dvb there is no update:
+shell> hg update
+0 files updated, 0 files merged, 0 files removed, 0 files unresolved
+
+> Also, rereading your email, are you sure the device has a tuner?  Do
+> you know what tuner chip it contains?  If not, can you send digital
+> photos of the PCB?
+>   
+Yeap, it have a turner becouse it is the robotis bioloid wireless camera 
+set, that have this receiver recognized as the PointNix... witch use 
+channels, 1, 2, 3. 4 to get the image wirelessly from the camera, no 
+idea about what turner chip it use, going to see if I can take some 
+photos of the PCB, but it is still with warrantie so I a little concern 
+about it...
+
+Mauricio
+
+> Devin
 >
-> Jim
-
-Hello Jim,
-
-I was doing the 880e support, but got sidetracked with the HVR-950q
-analog support.  In addition, the product got discontinued, I ran into
-licensing issues with ATI/AMD/Broadcom over the digital demodulator
-driver, and there were pretty much no other products out there that
-would have benefited from the saa7136 driver.
-
-In other words, it didn't make much sense to put more effort into a
-discontinued product where the chipset supported needed didn't help
-any other products.  My time is just better spent working on other
-things.
-
-I've had a couple of people ask about support for this device
-recently.  I pretty much had the analog video support working on all
-three inputs (tuner/composite/s-video), although the driver was
-nowhere near a state where it could be merged upstream.  I considered
-making the tree available in its current state, but I wasn't sure how
-useful it would be to people without the digital support and I hadn't
-gotten the audio working yet.
-
-If there were a developer experienced with v4l2 that had an active
-interest in doing the rest of the work, they can contact me and we
-might be able to work something out (although I cannot provide any of
-the datasheets since they are under NDA).
-
-There just aren't enough hours in the day....
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+>   
 
 --
 video4linux-list mailing list
