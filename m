@@ -1,117 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3742 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751387AbZGFSWD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jul 2009 14:22:03 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id n66IM12L040478
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 6 Jul 2009 20:22:05 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 6 Jul 2009 20:22:01 +0200 (CEST)
-Message-Id: <200907061822.n66IM12L040478@smtp-vbr4.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from bear.ext.ti.com ([192.94.94.41]:40961 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752764AbZG2Sgp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Jul 2009 14:36:45 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Laurent Pinchart <laurent.pinchart@skynet.be>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
+	v4l2_linux <linux-media@vger.kernel.org>,
+	Dongsoo Kim <dongsoo45.kim@samsung.com>,
+	=?ks_c_5601-1987?B?udqw5rnO?= <kyungmin.park@samsung.com>,
+	"jm105.lee@samsung.com" <jm105.lee@samsung.com>,
+	=?ks_c_5601-1987?B?wMy8vLmu?= <semun.lee@samsung.com>,
+	=?ks_c_5601-1987?B?tOvAzrHi?= <inki.dae@samsung.com>,
+	=?ks_c_5601-1987?B?sejH/MHY?= <riverful.kim@samsung.com>
+Date: Wed, 29 Jul 2009 13:36:25 -0500
+Subject: RE: How to save number of times using memcpy?
+Message-ID: <A69FA2915331DC488A831521EAE36FE401450FADF1@dlee06.ent.ti.com>
+References: <5e9665e10907271756l114f6e6ekeefa04d976b95c66@mail.gmail.com>
+ <5e9665e10907282030i7d25c6e4se1d52eff321da8e3@mail.gmail.com>
+ <20090729005551.79430fe5@pedra.chehab.org>
+ <200907290926.41488.laurent.pinchart@skynet.be>
+In-Reply-To: <200907290926.41488.laurent.pinchart@skynet.be>
+Content-Language: en-US
+Content-Type: text/plain; charset="ks_c_5601-1987"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
-
-Results of the daily build of v4l-dvb:
-
-date:        Mon Jul  6 19:00:06 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12211:c300798213a9
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
-
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc1-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.31-rc1-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.31-rc1-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-rc1-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc1-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-rc1-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-rc1-powerpc64: OK
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc1-x86_64: OK
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc1): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+DQoNCjxTbmlwPg0KPj4gdGhlIGRldGFpbHMsIGJ1dCBJIHRoaW5rIHRoZSBzdHJhdGVneSB3ZXJl
+IHRvIHBhc3MgYSBwYXJhbWV0ZXIgZHVyaW5nDQo+PiBrZXJuZWwgYm9vdCwgZm9yIGl0IHRvIHJl
+c2VydmUgc29tZSBhbW91bnQgb2YgbWVtb3J5IHRoYXQgd291bGQgbGF0ZXIgYmUNCj4+IGNsYWlt
+ZWQgYnkgdGhlIFY0TCBkZXZpY2UuDQo+DQo+SXQncyBhY3R1YWxseSBhIHByZXR0eSBjb21tb24g
+c3RyYXRlZ3kgZm9yIGVtYmVkZGVkIGhhcmR3YXJlICh0aGUgImdlbmVyYWwtDQo+cHVycG9zZSBt
+YWNoaW5lIiBjYXNlIGRvZXNuJ3QgLSBmb3Igbm93IC0gbWFrZSBtdWNoIHNlbnNlIG9uIGFuIE9N
+QVANCj5wcm9jZXNzb3INCj5mb3IgaW5zdGFuY2UpLiBBIG1lbW9yeSBjaHVuayB3b3VsZCBiZSBy
+ZXNlcnZlZCBhdCBib290IHRpbWUgYXQgdGhlIGVuZCBvZg0KPnRoZQ0KPnBoeXNpY2FsIG1lbW9y
+eSBieSBwYXNzaW5nIHRoZSBtZW09IHBhcmFtZXRlciB0byB0aGUga2VybmVsLiBWaWRlbw0KPmFw
+cGxpY2F0aW9ucyB3b3VsZCB0aGVuIG1tYXAoKSAvZGV2L21lbSB0byBhY2Nlc3MgdGhhdCBtZW1v
+cnkgKEknZCBoYXZlIHRvDQo+Y2hlY2sgdGhlIGRldGFpbHMgb24gdGhhdCBvbmUsIHRoYXQncyBm
+cm9tIG15IG1lbW9yeSksIGFuZCBwYXNzIHRoZSBwb2ludGVyDQo+dGhlIHRoZSB2NGwyIGRyaXZl
+ciB1c2luZyB1c2VycHRyIEkvTy4gVGhpcyByZXF1aXJlcyByb290IHByaXZpbGVnZXMsIGFuZA0K
+PnBlb3BsZSB1c3VhbGx5IGRvbid0IGNhcmUgYWJvdXQgdGhhdCB3aGVuIHRoZSBmaW5hbCBhcHBs
+aWNhdGlvbiBpcyBhIGNhbWVyYQ0KPih1c3VhbGx5IGVtYmVkZGVkIGluIHNvbWUgZGV2aWNlIGxp
+a2UgYSBtZWRpYSBwbGF5ZXIsIGFuIElQIGNhbWVyYSwgLi4uKS4NCj4NCj5SZWdhcmRzLA0KWWVz
+LiBUaGlzIGlzIGV4YWN0bHkgd2hhdCB3ZSBhcmUgZG9pbmcgaW4gdGhlIGNhc2Ugb2YgZGF2aW5j
+aSBwcm9jZXNzb3JzLiBXZSBoYXZlIGEga2VybmVsIG1vZHVsZSB0aGF0IHVzZXMgbWVtb3J5IGZy
+b20gdGhlIGVuZCBvZiBTRFJBTSBzcGFjZSBhbmQgbW1hcCBpdCB0byBhcHBsaWNhdGlvbiB0aHJv
+dWdoIGEgc2V0IG9mIEFQSXMuIFRoZXkgYWxsb2NhdGUgY29udGlndW91cyBtZW1vcnkgcG9vbHMg
+YW5kIHJldHVybiB0aGUgc2FtZSB0byBhcHBsaWNhdGlvbiB0aHJvdWdoIElPQ1RMcy4gSSBoYXZl
+IHRlc3RlZCB2cGZlIGNhcHR1cmUgdXNpbmcgdGhpcyBhcHByb2FjaCAoYnV0IHlldCB0byBwdXNo
+IHRoZSBzYW1lIHRvIHY0bDIgY29tbXVuaXR5IGZvciByZXZpZXcpLiBUaGUgc2FtZSBhcHByb2Fj
+aCBtYXkgYmUgdXNlZCBhY3Jvc3Mgb3RoZXIgcGxhdGZvcm1zIGFzIHdlbGwuIFNvIGRvZXNuJ3Qg
+aXQgbWFrZSBzZW5zZSB0byBhZGQgdGhpcyBrZXJuZWwgbW9kdWxlIHRvIHRoZSBrZXJuZWwgdHJl
+ZSBzbyB0aGF0IGV2ZXJ5b25lIGNhbiB1c2UgaXQ/DQoNCk11cmFsaQ0KPg0KPkxhdXJlbnQgUGlu
+Y2hhcnQNCj4NCj4tLQ0KPlRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBs
+aW5lICJ1bnN1YnNjcmliZSBsaW51eC1tZWRpYSIgaW4NCj50aGUgYm9keSBvZiBhIG1lc3NhZ2Ug
+dG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPk1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0
+dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0KDQo=
