@@ -1,129 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f214.google.com ([209.85.219.214]:52747 "EHLO
-	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751270AbZG3OqE convert rfc822-to-8bit (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:55976 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751524AbZG2OmT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2009 10:46:04 -0400
-Received: by ewy10 with SMTP id 10so799534ewy.37
-        for <linux-media@vger.kernel.org>; Thu, 30 Jul 2009 07:46:03 -0700 (PDT)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: linux-media@vger.kernel.org
-Subject: Re: TBS 8920 still fails to initialize - cx24116_readreg error
-Date: Thu, 30 Jul 2009 17:45:54 +0300
-Cc: Mark Zimmerman <markzimm@frii.com>
-References: <20090724023315.GA96337@io.frii.com> <200907300122.22215.liplianin@me.by> <20090730041707.GA38134@io.frii.com>
-In-Reply-To: <20090730041707.GA38134@io.frii.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="koi8-r"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200907301745.54939.liplianin@me.by>
+	Wed, 29 Jul 2009 10:42:19 -0400
+Date: Wed, 29 Jul 2009 11:42:11 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+Cc: acano@fastmail.fm, linux-media@vger.kernel.org
+Subject: Re: [PATCH] em28xx: enable usb audio for plextor px-tv100u
+Message-ID: <20090729114211.065ed01f@pedra.chehab.org>
+In-Reply-To: <7aa4c771a5b1cf3117cf9faf027cc05c.squirrel@webmail.xs4all.nl>
+References: <20090718173758.GA32708@localhost.localdomain>
+	<20090729000753.GA24496@localhost.localdomain>
+	<20090729015730.34ab86c6@pedra.chehab.org>
+	<200907290809.32089.hverkuil@xs4all.nl>
+	<20090729094009.6dc01728@pedra.chehab.org>
+	<7aa4c771a5b1cf3117cf9faf027cc05c.squirrel@webmail.xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 30 июля 2009 07:17:07 Mark Zimmerman wrote:
-> On Thu, Jul 30, 2009 at 01:22:21AM +0300, Igor M. Liplianin wrote:
-> > On 28 ???? 2009 04:21:54 Mark Zimmerman wrote:
-> > > On Mon, Jul 27, 2009 at 08:50:20PM +0300, Igor M. Liplianin wrote:
-> > > > On 27 ???? 2009 04:43:16 Mark Zimmerman wrote:
-> > > > > On Sun, Jul 26, 2009 at 03:29:13PM +0300, Igor M. Liplianin wrote:
-> > > > > > On 25 ???? 2009 05:22:06 Mark Zimmerman wrote:
-> > > > > > > On Fri, Jul 24, 2009 at 07:06:11PM +0300, Igor M. Liplianin wrote:
-> > > > > > > > On 24 ???? 2009 05:33:15 Mark Zimmerman wrote:
-> > > > > > > > > Greetings:
-> > > > > > > > >
-> > > > > > > > > Using current current v4l-dvb drivers, I get the following
-> > > > > > > > > in the dmesg:
-> > > > > > > > >
-> > > > > > > > > cx88[1]/2: subsystem: 8920:8888, board: TBS 8920 DVB-S/S2
-> > > > > > > > > [card=72] cx88[1]/2: cx2388x based DVB/ATSC card
-> > > > > > > > > cx8802_alloc_frontends() allocating 1 frontend(s)
-> > > > > > > > > cx24116_readreg: reg=0xff (error=-6)
-> > > > > > > > > cx24116_readreg: reg=0xfe (error=-6)
-> > > > > > > > > Invalid probe, probably not a CX24116 device
-> > > > > > > > > cx88[1]/2: frontend initialization failed
-> > > > > > > > > cx88[1]/2: dvb_register failed (err = -22)
-> > > > > > > > > cx88[1]/2: cx8802 probe failed, err = -22
-> > > > > > > > >
-> > > > > > > > > Does this mean that one of the chips on this card is
-> > > > > > > > > different than expected? How can I gather useful
-> > > > > > > > > information about this?
+Em Wed, 29 Jul 2009 15:14:22 +0200
+"Hans Verkuil" <hverkuil@xs4all.nl> escreveu:
+
+> 
+> > Em Wed, 29 Jul 2009 08:09:31 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 > >
-> > Please try attached patch against recent v4l-dvb.
-> > It does matter to set explicitly gpio0 value in cx88_board structure for
-> > TBS 8920 card.
+> >> On Wednesday 29 July 2009 06:57:30 Mauro Carvalho Chehab wrote:
+> >> > Em Tue, 28 Jul 2009 20:07:53 -0400
+> >> >
+> >> > acano@fastmail.fm escreveu:
+> >> > > On Mon, Jul 27, 2009 at 09:28:11PM -0300, Mauro Carvalho Chehab
+> >> wrote:
+> >> > > > Hi Acano,
+> >> > >
+> >> > > Tested-by: Angelo Cano <acano@fastmail.fm>
+> >> > >
+> >> > > works great
+> >> >
+> >> > Good!
+> >> >
+> >> > > > > +		/*FIXME hack to unmute usb audio stream */
+> >> > > > > +		em28xx_set_ctrl(dev, ctrl);
+> >> > > >
+> >> > > > Hmm... this function were removed. In thesis, you shouldn't need
+> >> to
+> >> > > > do anything to unmute.
+> >> > >
+> >> > > I still need it, see attachment.
+> >> > >
+> >> > > > Could you please try the enclosed patch and see if this is enough
+> >> to
+> >> > > > fix for Plextor? If so, please send me a Tested-by: tag for me to
+> >> add
+> >> > > > it at 2.6.31 fix patches.
+> >> > >
+> >> > > Like I said the patch works great, and also solves my audio volume
+> >> > > problem.  With your patch the volume is set to a sane value
+> >> > > (presumably 0db) and the distortion/clipping is gone.
+> >> > >
+> >> > > Thanks man.  The volume problem was driving me crazy.
+> >> >
+> >> > Ah, yes, there's a missing mute/unmute issue there. Instead of using
+> >> your
+> >> > code, I opted to duplicate part of ac97_set_ctrl code there.
+> >> >
+> >> > I opted to have a small duplicated code, but, IMO, it is now clearer
+> >> to
+> >> > see why we still need to call em28xx_audio_analog_set(). You will
+> >> notice
+> >> > that I've rearranged the place where I update volume and mute. The
+> >> > rationale is that v4l2_device_call_all() might eventually change a
+> >> value
+> >> > for volume/mute.
+> >> >
+> >> > Another reason is that, IMO, v4l2_device_call_all() should return
+> >> values.
+> >> > In the specific case of volume/mute, if the user tries to specify a
+> >> value
+> >> > outside the range, the -ERANGE should be returned.
+> >> >
+> >> > I've already committed the patches at the tree. Please double-check.
+> >> >
+> >> > Hans,
+> >> >
+> >> > we need to fix the returned error value for v4l2_device_call_all(). I
+> >> > know that this is an old issue that weren't changed by v4l dev/subdev
+> >> > conversion, but now it is easier for us to fix. The idea here is to be
+> >> > sure that, if a sub-driver with a proper handling for a function
+> >> returns
+> >> > an error value, this would be returned by v4l2_device_call_all().
+> >> Maybe
+> >> > we'll need to adjust some things at the sub-drivers.
+> >>
+> >> Use v4l2_device_call_until_err instead of v4l2_device_call_all. That
+> >> macro
+> >> checks for errors returned from the subdevs.
 > >
-> > Igor
+> > It doesn't work as expected. If I use it for queryctl, for example, it
+> > returns
+> > an empty set of controls. If I use it for g_ctrl, it returns:
 > >
+> > error 22 getting ctrl Brightness
+> > error 22 getting ctrl Contrast
+> > error 22 getting ctrl Saturation
+> > error 22 getting ctrl Hue
+> > error 22 getting ctrl Volume
+> > error 22 getting ctrl Balance
+> > error 22 getting ctrl Bass
+> > error 22 getting ctrl Treble
+> > error 22 getting ctrl Mute
+> > error 22 getting ctrl Loudness
 > >
+> > The issue here is we need something that discards errors for
+> > non-implemented
+> > controls.
 > >
-> > # HG changeset patch
-> > # User Igor M. Liplianin <liplianin@me.by>
-> > # Date 1248905908 -10800
-> > # Node ID d2dee95e2da26a145cca2d081be86793cc9b07ea
-> > # Parent  ee6cf88cb5d3faf861289fce0ef0385846adcc7c
-> > fix TBS 8920 card support
->
-> Looks good now. dmesg follows:
->
-> Linux video capture interface: v2.00
-> cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.7 loaded
-> cx88[0]: subsystem: 8920:8888, board: TBS 8920 DVB-S/S2
-> [card=72,autodetected], frontend(s): 1 cx88[0]: TV tuner type 4, Radio
-> tuner type -1
-> input: ImPS/2 Generic Wheel Mouse as
-> /devices/platform/i8042/serio1/input/input5 cx88/0: cx2388x v4l2 driver
-> version 0.0.7 loaded
-> cx88[0]/2: cx2388x 8802 Driver Manager
->   alloc irq_desc for 17 on cpu 0 node 0
->   alloc kstat_irqs on cpu 0 node 0
-> cx88-mpeg driver manager 0000:00:08.2: PCI INT A -> GSI 17 (level, low) ->
-> IRQ 17 cx88[0]/2: found at 0000:00:08.2, rev: 5, irq: 17, latency: 32,
-> mmio: 0xf9000000 IRQ 17/cx88[0]: IRQF_DISABLED is not guaranteed on shared
-> IRQs
-> cx8800 0000:00:08.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
-> cx88[0]/0: found at 0000:00:08.0, rev: 5, irq: 17, latency: 32, mmio:
-> 0xfa000000 IRQ 17/cx88[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-> cx88[0]/0: registered device video0 [v4l2]
-> cx88[0]/0: registered device vbi0
-> cx88/2: cx2388x dvb driver version 0.0.7 loaded
-> cx88/2: registering cx8802 driver, type: dvb access: shared
-> cx88[0]/2: subsystem: 8920:8888, board: TBS 8920 DVB-S/S2 [card=72]
-> cx88[0]/2: cx2388x based DVB/ATSC card
-> cx8802_alloc_frontends() allocating 1 frontend(s)
-> DVB: registering new adapter (cx88[0])
-> DVB: registering adapter 0 frontend 0 (Conexant CX24116/CX24118)...
->
-> ...
->
-> cx24116_firmware_ondemand: Waiting for firmware upload
-> (dvb-fe-cx24116.fw)... cx88-mpeg driver manager 0000:00:08.2: firmware:
-> requesting dvb-fe-cx24116.fw cx24116_firmware_ondemand: Waiting for
-> firmware upload(2)...
-> cx24116_load_firmware: FW version 1.23.86.1
-> cx24116_firmware_ondemand: Firmware upload complete
->
-> vtest$ ls -laR /dev/dvb
-> /dev/dvb:
-> total 0
-> drwxr-xr-x  3 root root   60 2009-07-29 21:13 .
-> drwxr-xr-x 18 root root 3480 2009-07-29 21:14 ..
-> drwxr-xr-x  2 root root  120 2009-07-29 21:13 adapter0
->
-> /dev/dvb/adapter0:
-> total 0
-> drwxr-xr-x 2 root root     120 2009-07-29 21:13 .
-> drwxr-xr-x 3 root root      60 2009-07-29 21:13 ..
-> crw-rw---- 1 root video 212, 1 2009-07-29 21:13 demux0
-> crw-rw---- 1 root video 212, 2 2009-07-29 21:13 dvr0
-> crw-rw---- 1 root video 212, 0 2009-07-29 21:13 frontend0
-> crw-rw---- 1 root video 212, 3 2009-07-29 21:13 net0
->
-> Thank you for working through this.
-> -- Mark
-So I will commit.
-Thank you for testing.
--- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+> > As the sub-drivers are returning -EINVAL for non-implemented controls (and
+> > probably other stuff that aren't implemented there), the function will not
+> > work
+> > for some ioctls.
+> >
+> > The proper fix seems to elect an error condition to be returned by driver
+> > when
+> > a function is not implemented, and such errors to be discarded by the
+> > macro.
+> >
+> > It seems that the proper error code for such case is this one:
+> >
+> > #define ENOSYS          38      /* Function not implemented */
+> 
+> You are right, this macro doesn't work for these control functions. It it
+> is possible to implement a define like ENOSYS, but I prefer to work on
+> generic control processing code that is embedded in the v4l2 framework. It
+> looks like I'll finally have time to work on that this weekend.
+
+
+I did some tests here: if we replace -EINVAL with -ENOIOCTLCMD, we can properly
+make v4l2_device_call_until_err() to work, fixing the lack of a proper error
+report at the drivers. This error code seems also appropriate for this case.
+
+This means several trivial patches on each v4l device driver, just replacing
+the error codes for 3 ioctl handlers (s_ctrl, g_ctrl, queryctrl).
+
+I'll try to write such patches for v4l devices, since I want to get rid of this
+bug on 2.6.31, at least on em28xx driver. If I have more time, I'll fix other
+bridge drivers as well.
+
+> Currently the control handling code in our v4l drivers is, to be blunt, a
+> pile of crap. And it is ideal to move this into the v4l2 framework since
+> 90% of this is common code.
+
+Hmm, except for a few places that still implement this at the old way, most of
+the common code is already at v4l2 core. So, I'm not sure what you're referring.
+
+Cheers,
+Mauro
