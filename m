@@ -1,65 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f210.google.com ([209.85.219.210]:64317 "EHLO
-	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752348AbZGAHad (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jul 2009 03:30:33 -0400
-Received: by ewy6 with SMTP id 6so863619ewy.37
-        for <linux-media@vger.kernel.org>; Wed, 01 Jul 2009 00:30:35 -0700 (PDT)
-Date: Wed, 1 Jul 2009 09:30:27 +0200 (CEST)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Andrej Falout <andrej@falout.org>
-cc: linux-media@vger.kernel.org
-Subject: Re: Digital Audio Broadcast (DAB) devices support
-In-Reply-To: <c21478f30906301936u40ac989fj9e2824b209ab2346@mail.gmail.com>
-Message-ID: <alpine.DEB.2.01.0907010911570.5262@ybpnyubfg.ybpnyqbznva>
-References: <c21478f30906301936u40ac989fj9e2824b209ab2346@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:38358 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753386AbZG2TMc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Jul 2009 15:12:32 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
+	v4l2_linux <linux-media@vger.kernel.org>,
+	Dongsoo Kim <dongsoo45.kim@samsung.com>,
+	=?ks_c_5601-1987?B?udqw5rnO?= <kyungmin.park@samsung.com>,
+	"jm105.lee@samsung.com" <jm105.lee@samsung.com>,
+	=?ks_c_5601-1987?B?wMy8vLmu?= <semun.lee@samsung.com>,
+	=?ks_c_5601-1987?B?tOvAzrHi?= <inki.dae@samsung.com>,
+	=?ks_c_5601-1987?B?sejH/MHY?= <riverful.kim@samsung.com>
+Date: Wed, 29 Jul 2009 14:12:16 -0500
+Subject: RE: How to save number of times using memcpy?
+Message-ID: <A69FA2915331DC488A831521EAE36FE401450FAE42@dlee06.ent.ti.com>
+References: <5e9665e10907271756l114f6e6ekeefa04d976b95c66@mail.gmail.com>
+ <200907290926.41488.laurent.pinchart@skynet.be>
+ <A69FA2915331DC488A831521EAE36FE401450FADF1@dlee06.ent.ti.com>
+ <200907292106.11862.laurent.pinchart@skynet.be>
+In-Reply-To: <200907292106.11862.laurent.pinchart@skynet.be>
+Content-Language: en-US
+Content-Type: text/plain; charset="ks_c_5601-1987"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 1 Jul 2009, Andrej Falout wrote:
-
-> Does V4L framework support DAB devices?
-
-Jein.  The V4L framework at present lacks some of what is needed
-to control and de-encode the Eureka 147 DAB/DAB+ family 
-broadcasts.
-
-However, there is at least one set of chipmaker's devices out
-there which can be used under Linux, making use of a vendor-
-supplied library to take care of the tuning and demultiplexing
-of one audio stream.  This chipmaker, Siano, is present in this
-forum, and either has already, or is in the progress of submitting
-patches to make it trivial to use their devices.  (I've stopped
-following closely)
-
-Search the list archives, as well as those of the original
-linux-dvb list, for pointers to their library and documentation,
-as well as to patches which I've successfully applied months ago.
-
-As far as devices with this family of chip, the only one I am
-aware of is the Terratec Cinergy Piranha, which I believe has
-been discontinued, and I'm not sure how widely through the world
-it has been available.  I don't know of others, and while I have
-read that at least one other chip manufacturer has a combination-
-format chipset in production, I don't know which products might
-contain it, or whether support under linux is possible.
-
-
-There is also a `dabusb' device available in the kernel, but
-this is for one particular device, and probably not that
-relevant to today's products.
-
-
-
-As far as extending the V4L framework to handle DAB, that will
-need someone far more familiar with the DAB family, and with the
-devices now available which can receive it, than I am.
-
-However, I can presently receive broadcasts under linux with the
-vendor-provided software, which is a start, and enough to keep
-me quiet.
-
-
-barry bouwsma
+DQoNCj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPkZyb206IExhdXJlbnQgUGluY2hhcnQg
+W21haWx0bzpsYXVyZW50LnBpbmNoYXJ0QHNreW5ldC5iZV0NCj5TZW50OiBXZWRuZXNkYXksIEp1
+bHkgMjksIDIwMDkgMzowNiBQTQ0KPlRvOiBLYXJpY2hlcmksIE11cmFsaWRoYXJhbg0KPkNjOiBN
+YXVybyBDYXJ2YWxobyBDaGVoYWI7IERvbmdzb28sIE5hdGhhbmllbCBLaW07IHY0bDJfbGludXg7
+IERvbmdzb28gS2ltOw0KPrnasOa5zjsgam0xMDUubGVlQHNhbXN1bmcuY29tOyDAzLy8ua47ILTr
+wM6x4jsgsejH/MHYDQo+U3ViamVjdDogUmU6IEhvdyB0byBzYXZlIG51bWJlciBvZiB0aW1lcyB1
+c2luZyBtZW1jcHk/DQo+DQo+T24gV2VkbmVzZGF5IDI5IEp1bHkgMjAwOSAyMDozNjoyNSBLYXJp
+Y2hlcmksIE11cmFsaWRoYXJhbiB3cm90ZToNCj4+IDxTbmlwPg0KPj4NCj4+ID4gPiB0aGUgZGV0
+YWlscywgYnV0IEkgdGhpbmsgdGhlIHN0cmF0ZWd5IHdlcmUgdG8gcGFzcyBhIHBhcmFtZXRlciBk
+dXJpbmcNCj4+ID4gPiBrZXJuZWwgYm9vdCwgZm9yIGl0IHRvIHJlc2VydmUgc29tZSBhbW91bnQg
+b2YgbWVtb3J5IHRoYXQgd291bGQgbGF0ZXINCj5iZQ0KPj4gPiA+IGNsYWltZWQgYnkgdGhlIFY0
+TCBkZXZpY2UuDQo+PiA+DQo+PiA+IEl0J3MgYWN0dWFsbHkgYSBwcmV0dHkgY29tbW9uIHN0cmF0
+ZWd5IGZvciBlbWJlZGRlZCBoYXJkd2FyZSAodGhlDQo+PiA+ICJnZW5lcmFsLSBwdXJwb3NlIG1h
+Y2hpbmUiIGNhc2UgZG9lc24ndCAtIGZvciBub3cgLSBtYWtlIG11Y2ggc2Vuc2Ugb24NCj5hbg0K
+Pj4gPiBPTUFQIHByb2Nlc3NvciBmb3IgaW5zdGFuY2UpLiBBIG1lbW9yeSBjaHVuayB3b3VsZCBi
+ZSByZXNlcnZlZCBhdCBib290DQo+PiA+IHRpbWUgYXQgdGhlIGVuZCBvZiB0aGUgcGh5c2ljYWwg
+bWVtb3J5IGJ5IHBhc3NpbmcgdGhlIG1lbT0gcGFyYW1ldGVyIHRvDQo+PiA+IHRoZSBrZXJuZWwu
+IFZpZGVvIGFwcGxpY2F0aW9ucyB3b3VsZCB0aGVuIG1tYXAoKSAvZGV2L21lbSB0byBhY2Nlc3MN
+Cj50aGF0DQo+PiA+IG1lbW9yeSAoSSdkIGhhdmUgdG8gY2hlY2sgdGhlIGRldGFpbHMgb24gdGhh
+dCBvbmUsIHRoYXQncyBmcm9tIG15DQo+bWVtb3J5KSwNCj4+ID4gYW5kIHBhc3MgdGhlIHBvaW50
+ZXIgdGhlIHRoZSB2NGwyIGRyaXZlciB1c2luZyB1c2VycHRyIEkvTy4gVGhpcw0KPnJlcXVpcmVz
+DQo+PiA+IHJvb3QgcHJpdmlsZWdlcywgYW5kIHBlb3BsZSB1c3VhbGx5IGRvbid0IGNhcmUgYWJv
+dXQgdGhhdCB3aGVuIHRoZQ0KPmZpbmFsDQo+PiA+IGFwcGxpY2F0aW9uIGlzIGEgY2FtZXJhICh1
+c3VhbGx5IGVtYmVkZGVkIGluIHNvbWUgZGV2aWNlIGxpa2UgYSBtZWRpYQ0KPj4gPiBwbGF5ZXIs
+IGFuIElQIGNhbWVyYSwgLi4uKS4NCj4+DQo+PiBZZXMuIFRoaXMgaXMgZXhhY3RseSB3aGF0IHdl
+IGFyZSBkb2luZyBpbiB0aGUgY2FzZSBvZiBkYXZpbmNpIHByb2Nlc3NvcnMuDQo+PiBXZSBoYXZl
+IGEga2VybmVsIG1vZHVsZSB0aGF0IHVzZXMgbWVtb3J5IGZyb20gdGhlIGVuZCBvZiBTRFJBTSBz
+cGFjZSBhbmQNCj4+IG1tYXAgaXQgdG8gYXBwbGljYXRpb24gdGhyb3VnaCBhIHNldCBvZiBBUElz
+LiBUaGV5IGFsbG9jYXRlIGNvbnRpZ3VvdXMNCj4+IG1lbW9yeSBwb29scyBhbmQgcmV0dXJuIHRo
+ZSBzYW1lIHRvIGFwcGxpY2F0aW9uIHRocm91Z2ggSU9DVExzLiBJIGhhdmUNCj4+IHRlc3RlZCB2
+cGZlIGNhcHR1cmUgdXNpbmcgdGhpcyBhcHByb2FjaCAoYnV0IHlldCB0byBwdXNoIHRoZSBzYW1l
+IHRvIHY0bDINCj4+IGNvbW11bml0eSBmb3IgcmV2aWV3KS4gVGhlIHNhbWUgYXBwcm9hY2ggbWF5
+IGJlIHVzZWQgYWNyb3NzIG90aGVyDQo+cGxhdGZvcm1zDQo+PiBhcyB3ZWxsLiBTbyBkb2Vzbid0
+IGl0IG1ha2Ugc2Vuc2UgdG8gYWRkIHRoaXMga2VybmVsIG1vZHVsZSB0byB0aGUga2VybmVsDQo+
+PiB0cmVlIHNvIHRoYXQgZXZlcnlvbmUgY2FuIHVzZSBpdD8NCj4NCj5XaGF0J3Mgd3Jvbmcgd2l0
+aCBtbWFwKCknaW5nIC9kZXYvbWVtID8gV2h5IGRvIHlvdSBuZWVkIGEgc3BlY2lhbCBkcml2ZXIg
+Pw0KPg0KQ291bGQgeW91IHBsZWFzZSBleHBsYWluIHRoaXM/IEkgYW0gbm90IHN1cmUgd2hhdCB5
+b3VyIHN1Z2dlc3Rpb24gaXMuDQo+UmVnYXJkcywNCj4NCj5MYXVyZW50IFBpbmNoYXJ0DQo+DQoN
+Cg==
