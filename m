@@ -1,61 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:42292 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754348AbZGXVu1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2009 17:50:27 -0400
-Date: Fri, 24 Jul 2009 14:48:06 -0700
-From: Greg KH <gregkh@suse.de>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES for 2.6.31] V4L/DVB fixes
-Message-ID: <20090724214806.GA7200@suse.de>
-References: <20090724144020.3f5a6bb7@pedra.chehab.org>
- <20090724205015.GA5889@suse.de>
- <829197380907241432m32bb6a51wc9b9bacce86e0c75@mail.gmail.com>
+Received: from perceval.irobotique.be ([92.243.18.41]:58575 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751505AbZG2HZQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Jul 2009 03:25:16 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: How to save number of times using memcpy?
+Date: Wed, 29 Jul 2009 09:26:40 +0200
+Cc: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
+	"v4l2_linux" <linux-media@vger.kernel.org>,
+	Dongsoo Kim <dongsoo45.kim@samsung.com>,
+	=?utf-8?q?=EB=B0=95=EA=B2=BD=EB=AF=BC?= <kyungmin.park@samsung.com>,
+	jm105.lee@samsung.com,
+	=?utf-8?q?=EC=9D=B4=EC=84=B8=EB=AC=B8?= <semun.lee@samsung.com>,
+	=?utf-8?q?=EB=8C=80=EC=9D=B8=EA=B8=B0?= <inki.dae@samsung.com>,
+	=?utf-8?q?=EA=B9=80=ED=98=95=EC=A4=80?= <riverful.kim@samsung.com>
+References: <5e9665e10907271756l114f6e6ekeefa04d976b95c66@mail.gmail.com> <5e9665e10907282030i7d25c6e4se1d52eff321da8e3@mail.gmail.com> <20090729005551.79430fe5@pedra.chehab.org>
+In-Reply-To: <20090729005551.79430fe5@pedra.chehab.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <829197380907241432m32bb6a51wc9b9bacce86e0c75@mail.gmail.com>
+Message-Id: <200907290926.41488.laurent.pinchart@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 24, 2009 at 05:32:23PM -0400, Devin Heitmueller wrote:
-> On Fri, Jul 24, 2009 at 4:50 PM, Greg KH<gregkh@suse.de> wrote:
-> > On Fri, Jul 24, 2009 at 02:40:20PM -0300, Mauro Carvalho Chehab wrote:
-> >> Linus,
-> >>
-> >> Please pull from:
-> >>         ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git for_linus
-> >>
-> >> This series adds a new gscpca sub-driver for sn9c20x webcams. There are several
-> >> popular webcam models supported by those Sonix/Microdia chips.
-> >>
-> >> Greg can remove some linuxdriverproject.org requests from the project Wiki
-> >> after this merge ;) Greg, for the USB ID details, you could take a look at
-> >> Documentation/video4linux/gspca.txt changes (32 USB ID's added) or at
-> >> http://linuxtv.org/wiki/index.php/Gspca. With this series, gspca alone supports
-> >> 660 different webcam models.
-> >
-> > That's great to see.  As it's a wiki, could someone who knows these ids
-> > go through and mark off those devices on the linuxdriverproject.org
-> > site?
-> >
-> > thanks,
-> >
-> > greg k-h
-> 
-> I looked at it a few weeks ago, and the V4L section is in pretty bad
-> shape.  Lots of the devices in "DriversNeeded" are now supported.
-> 
-> http://linuxdriverproject.org/twiki/bin/view/Main/DriversNeeded?sortcol=table;up=#Video_for_Linux_devices_Input
-> 
-> I'm going to try to take a pass over it in the next few days and do
-> some cleanup.
+On Wednesday 29 July 2009 05:55:51 Mauro Carvalho Chehab wrote:
+> Em Wed, 29 Jul 2009 12:30:19 +0900
+>
+> "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com> escreveu:
+> > Sorry my bad. I missed something very important to explain my issue
+> > clear. The thing is, I want to reserve specific amount of continuous
+> > physical memory on machine initializing time. Therefor some multimedia
+> > peripherals can be using this memory area exclusively.
+> > That's what I was afraid of could not being adopted in main line kernel.
+>
+> In the past, some drivers used to do that, but this is also a source
+> of problems, especially with general-purpose machines, where you're loosing
+> memory that could otherwise be used by something else. I never tried to get
+> the details, but I think the strategy were to pass a parameter during
+> kernel boot, for it to reserve some amount of memory that would later be
+> claimed by the V4L device.
 
-That would be much appreciated, thanks.
+It's actually a pretty common strategy for embedded hardware (the "general-
+purpose machine" case doesn't - for now - make much sense on an OMAP processor 
+for instance). A memory chunk would be reserved at boot time at the end of the 
+physical memory by passing the mem= parameter to the kernel. Video 
+applications would then mmap() /dev/mem to access that memory (I'd have to 
+check the details on that one, that's from my memory), and pass the pointer 
+the the v4l2 driver using userptr I/O. This requires root privileges, and 
+people usually don't care about that when the final application is a camera 
+(usually embedded in some device like a media player, an IP camera, ...).
 
-greg k-h
+Regards,
+
+Laurent Pinchart
+
