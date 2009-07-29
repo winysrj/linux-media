@@ -1,56 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f197.google.com ([209.85.210.197]:40426 "EHLO
-	mail-yx0-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751092AbZGVPGN (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:36931 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753953AbZG2Vhd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2009 11:06:13 -0400
-Received: by yxe35 with SMTP id 35so401547yxe.33
-        for <linux-media@vger.kernel.org>; Wed, 22 Jul 2009 08:06:13 -0700 (PDT)
+	Wed, 29 Jul 2009 17:37:33 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
+	v4l2_linux <linux-media@vger.kernel.org>,
+	Dongsoo Kim <dongsoo45.kim@samsung.com>,
+	=?ks_c_5601-1987?B?udqw5rnO?= <kyungmin.park@samsung.com>,
+	"jm105.lee@samsung.com" <jm105.lee@samsung.com>,
+	=?ks_c_5601-1987?B?wMy8vLmu?= <semun.lee@samsung.com>,
+	=?ks_c_5601-1987?B?tOvAzrHi?= <inki.dae@samsung.com>,
+	=?ks_c_5601-1987?B?sejH/MHY?= <riverful.kim@samsung.com>
+Date: Wed, 29 Jul 2009 16:37:16 -0500
+Subject: RE: How to save number of times using memcpy?
+Message-ID: <A69FA2915331DC488A831521EAE36FE401450FAF9A@dlee06.ent.ti.com>
+References: <5e9665e10907271756l114f6e6ekeefa04d976b95c66@mail.gmail.com>
+ <200907290926.41488.laurent.pinchart@skynet.be>
+ <A69FA2915331DC488A831521EAE36FE401450FADF1@dlee06.ent.ti.com>
+ <200907292106.11862.laurent.pinchart@skynet.be>
+In-Reply-To: <200907292106.11862.laurent.pinchart@skynet.be>
+Content-Language: en-US
+Content-Type: text/plain; charset="ks_c_5601-1987"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-In-Reply-To: <4A6729CF.8080804@powercraft.nl>
-References: <4A6666CC.7020008@eyemagnet.com>
-	 <829197380907211842p4c9886a3q96a8b50e58e63cbf@mail.gmail.com>
-	 <4A66E59E.9040502@powercraft.nl>
-	 <829197380907220748kab85c63g6ebbaad07084c255@mail.gmail.com>
-	 <4A6729CF.8080804@powercraft.nl>
-Date: Wed, 22 Jul 2009 11:06:12 -0400
-Message-ID: <829197380907220806p4ed7a02bw3beff7c6776a858a@mail.gmail.com>
-Subject: Re: offering bounty for GPL'd dual em28xx support
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Jelle de Jong <jelledejong@powercraft.nl>
-Cc: "linux-media@vger.kernel.org >> \"linux-media@vger.kernel.org\""
-	<linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 22, 2009 at 11:01 AM, Jelle de
-Jong<jelledejong@powercraft.nl> wrote:
-> Funky timing of those mails :D.
->
-> I saw only after sending my mail that Steve was talking about analog and
-> that this is indeed different. Dual analog tuner support should be
-> possible right? Maybe with some other analog usb chipsets? I don't know
-> what the usb blocksize is or if they are isochronous transfers or bulk
-> or control.
->
-> I assume the video must be uncompressed transferred over usb because the
-> decoding chip is on the usb device is not capable of doing compression
-> encoding after the analog video decoding? Are there usb devices that do
-> such tricks?
-
-There were older devices that did compression, mainly designed to fit
-the stream inside of 12Mbps USB.  However, they required onboard RAM
-to buffer the frame which added considerable cost (in addition to the
-overhead of doing the compression), and as a result pretty much all of
-the USB 2.0 designs I have seen do not do any on-chip compression.
-
-The example which comes to mind is the Hauppauge Win-TV USB which uses
-the usbvision chipset.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+TGF1cmVudCwNCg0KT2ssIG5vdyBJIHVuZGVyc3RhbmQgaG93IC9kZXYvbWVtIHdvcmtzLiBUaGlz
+IHNob3VsZCB3b3JrcyBhcyB3ZWxsLiBCdXQgb25lIG9mIG91ciBhcHBzIGVuZ2luZWVyIG1lbnRp
+b25lZCBzb21lIHByb2JsZW1zIGluIHVzaW5nIC9kZXYvbWVtIHJlbGF0ZWQgdG8gbW1hcC4gRGlk
+IHlvdSBlbmNvdW50ZXIgYW55IGlzc3VlcyB3aGlsZSB1c2luZyB0aGlzIG1ldGhvZD8NCg0KVGhl
+IGRyaXZlciBpcyBiYXNpY2FsbHkgd3JpdHRlbiB0byBhbGxvY2F0ZSBtdWx0aXBsZSBwb29scyBh
+bmQgYnVmZmVycyBwZXIgcG9vbCB0byBzYXRpc2ZpZXMgdmFyaW91cyBtZW1vcnkgYWxsb2NhdGlv
+biByZXF1aXJlbWVudHMgaW5zaWRlIG91ciBUSSBTREsuIA0KDQpNdXJhbGkgS2FyaWNoZXJpDQpT
+b2Z0d2FyZSBEZXNpZ24gRW5naW5lZXINClRleGFzIEluc3RydW1lbnRzIEluYy4NCkdlcm1hbnRv
+d24sIE1EIDIwODc0DQpQaG9uZSA6IDMwMS01MTUtMzczNg0KZW1haWw6IG0ta2FyaWNoZXJpMkB0
+aS5jb20NCg0KPi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+RnJvbTogTGF1cmVudCBQaW5j
+aGFydCBbbWFpbHRvOmxhdXJlbnQucGluY2hhcnRAc2t5bmV0LmJlXQ0KPlNlbnQ6IFdlZG5lc2Rh
+eSwgSnVseSAyOSwgMjAwOSAzOjA2IFBNDQo+VG86IEthcmljaGVyaSwgTXVyYWxpZGhhcmFuDQo+
+Q2M6IE1hdXJvIENhcnZhbGhvIENoZWhhYjsgRG9uZ3NvbywgTmF0aGFuaWVsIEtpbTsgdjRsMl9s
+aW51eDsgRG9uZ3NvbyBLaW07DQo+udqw5rnOOyBqbTEwNS5sZWVAc2Ftc3VuZy5jb207IMDMvLy5
+rjsgtOvAzrHiOyCx6Mf8wdgNCj5TdWJqZWN0OiBSZTogSG93IHRvIHNhdmUgbnVtYmVyIG9mIHRp
+bWVzIHVzaW5nIG1lbWNweT8NCj4NCj5PbiBXZWRuZXNkYXkgMjkgSnVseSAyMDA5IDIwOjM2OjI1
+IEthcmljaGVyaSwgTXVyYWxpZGhhcmFuIHdyb3RlOg0KPj4gPFNuaXA+DQo+Pg0KPj4gPiA+IHRo
+ZSBkZXRhaWxzLCBidXQgSSB0aGluayB0aGUgc3RyYXRlZ3kgd2VyZSB0byBwYXNzIGEgcGFyYW1l
+dGVyIGR1cmluZw0KPj4gPiA+IGtlcm5lbCBib290LCBmb3IgaXQgdG8gcmVzZXJ2ZSBzb21lIGFt
+b3VudCBvZiBtZW1vcnkgdGhhdCB3b3VsZCBsYXRlcg0KPmJlDQo+PiA+ID4gY2xhaW1lZCBieSB0
+aGUgVjRMIGRldmljZS4NCj4+ID4NCj4+ID4gSXQncyBhY3R1YWxseSBhIHByZXR0eSBjb21tb24g
+c3RyYXRlZ3kgZm9yIGVtYmVkZGVkIGhhcmR3YXJlICh0aGUNCj4+ID4gImdlbmVyYWwtIHB1cnBv
+c2UgbWFjaGluZSIgY2FzZSBkb2Vzbid0IC0gZm9yIG5vdyAtIG1ha2UgbXVjaCBzZW5zZSBvbg0K
+PmFuDQo+PiA+IE9NQVAgcHJvY2Vzc29yIGZvciBpbnN0YW5jZSkuIEEgbWVtb3J5IGNodW5rIHdv
+dWxkIGJlIHJlc2VydmVkIGF0IGJvb3QNCj4+ID4gdGltZSBhdCB0aGUgZW5kIG9mIHRoZSBwaHlz
+aWNhbCBtZW1vcnkgYnkgcGFzc2luZyB0aGUgbWVtPSBwYXJhbWV0ZXIgdG8NCj4+ID4gdGhlIGtl
+cm5lbC4gVmlkZW8gYXBwbGljYXRpb25zIHdvdWxkIHRoZW4gbW1hcCgpIC9kZXYvbWVtIHRvIGFj
+Y2Vzcw0KPnRoYXQNCj4+ID4gbWVtb3J5IChJJ2QgaGF2ZSB0byBjaGVjayB0aGUgZGV0YWlscyBv
+biB0aGF0IG9uZSwgdGhhdCdzIGZyb20gbXkNCj5tZW1vcnkpLA0KPj4gPiBhbmQgcGFzcyB0aGUg
+cG9pbnRlciB0aGUgdGhlIHY0bDIgZHJpdmVyIHVzaW5nIHVzZXJwdHIgSS9PLiBUaGlzDQo+cmVx
+dWlyZXMNCj4+ID4gcm9vdCBwcml2aWxlZ2VzLCBhbmQgcGVvcGxlIHVzdWFsbHkgZG9uJ3QgY2Fy
+ZSBhYm91dCB0aGF0IHdoZW4gdGhlDQo+ZmluYWwNCj4+ID4gYXBwbGljYXRpb24gaXMgYSBjYW1l
+cmEgKHVzdWFsbHkgZW1iZWRkZWQgaW4gc29tZSBkZXZpY2UgbGlrZSBhIG1lZGlhDQo+PiA+IHBs
+YXllciwgYW4gSVAgY2FtZXJhLCAuLi4pLg0KPj4NCj4+IFllcy4gVGhpcyBpcyBleGFjdGx5IHdo
+YXQgd2UgYXJlIGRvaW5nIGluIHRoZSBjYXNlIG9mIGRhdmluY2kgcHJvY2Vzc29ycy4NCj4+IFdl
+IGhhdmUgYSBrZXJuZWwgbW9kdWxlIHRoYXQgdXNlcyBtZW1vcnkgZnJvbSB0aGUgZW5kIG9mIFNE
+UkFNIHNwYWNlIGFuZA0KPj4gbW1hcCBpdCB0byBhcHBsaWNhdGlvbiB0aHJvdWdoIGEgc2V0IG9m
+IEFQSXMuIFRoZXkgYWxsb2NhdGUgY29udGlndW91cw0KPj4gbWVtb3J5IHBvb2xzIGFuZCByZXR1
+cm4gdGhlIHNhbWUgdG8gYXBwbGljYXRpb24gdGhyb3VnaCBJT0NUTHMuIEkgaGF2ZQ0KPj4gdGVz
+dGVkIHZwZmUgY2FwdHVyZSB1c2luZyB0aGlzIGFwcHJvYWNoIChidXQgeWV0IHRvIHB1c2ggdGhl
+IHNhbWUgdG8gdjRsMg0KPj4gY29tbXVuaXR5IGZvciByZXZpZXcpLiBUaGUgc2FtZSBhcHByb2Fj
+aCBtYXkgYmUgdXNlZCBhY3Jvc3Mgb3RoZXINCj5wbGF0Zm9ybXMNCj4+IGFzIHdlbGwuIFNvIGRv
+ZXNuJ3QgaXQgbWFrZSBzZW5zZSB0byBhZGQgdGhpcyBrZXJuZWwgbW9kdWxlIHRvIHRoZSBrZXJu
+ZWwNCj4+IHRyZWUgc28gdGhhdCBldmVyeW9uZSBjYW4gdXNlIGl0Pw0KPg0KPldoYXQncyB3cm9u
+ZyB3aXRoIG1tYXAoKSdpbmcgL2Rldi9tZW0gPyBXaHkgZG8geW91IG5lZWQgYSBzcGVjaWFsIGRy
+aXZlciA/DQo+DQo+UmVnYXJkcywNCj4NCj5MYXVyZW50IFBpbmNoYXJ0DQo+DQoNCg==
