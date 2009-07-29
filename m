@@ -1,118 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1465 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934501AbZGQSVP (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:33169 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751761AbZG2JVr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jul 2009 14:21:15 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id n6HILDsM093632
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 17 Jul 2009 20:21:14 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 17 Jul 2009 20:21:13 +0200 (CEST)
-Message-Id: <200907171821.n6HILDsM093632@smtp-vbr4.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Wed, 29 Jul 2009 05:21:47 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: linux-kernel@vger.kernel.org,
+	"v4l2_linux" <linux-media@vger.kernel.org>
+Subject: Is get_user_pages() enough to prevent pages from being swapped out ?
+Date: Wed, 29 Jul 2009 11:23:12 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200907291123.12811.laurent.pinchart@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi everybody,
 
-Results of the daily build of v4l-dvb:
+I'm trying to debug a video acquisition device driver and found myself having 
+to dive deep into the memory management subsystem.
 
-date:        Fri Jul 17 19:00:03 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12270:d754a2d5a376
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+The driver uses videobuf-dma-sg to manage video buffers. videobuf-dma-sg gets 
+pointers to buffers from userspace and calls get_user_pages() to retrieve the 
+list of pages underlying those buffers. The page list is used to build a 
+scatter-gather list that is given to the hardware. The device then performs 
+DMA directly to the memory.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc1-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.31-rc1-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.31-rc1-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-rc1-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc1-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-rc1-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-rc1-powerpc64: OK
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc1-x86_64: OK
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc1): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+Pages underlying the buffers must obviously not be swapped out during DMA. The 
+get_user_pages() (mm/memory.c) documentation seems to imply that returned 
+pages are pinned to memory (my understanding of "pinned" is that they will not 
+be swapped out):
 
-Detailed results are available here:
+/**
+ * get_user_pages() - pin user pages in memory
+ * @tsk:        task_struct of target task
+ * @mm:         mm_struct of target mm
+ * @start:      starting user address
+ * @len:        number of pages from start to pin
+ * @write:      whether pages will be written to by the caller
+ * @force:      whether to force write access even if user mapping is
+ *              readonly. This will result in the page being COWed even
+ *              in MAP_SHARED mappings. You do not want this.
+ * @pages:      array that receives pointers to the pages pinned.
+ *              Should be at least nr_pages long. Or NULL, if caller
+ *              only intends to ensure the pages are faulted in.
+ * @vmas:       array of pointers to vmas corresponding to each page.
+ *              Or NULL if the caller does not require them.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+However, all is seems to do for that purpose is incrementing the page 
+reference count using get_page().
 
-Full logs are available here:
+I had a look through the memory management subsystem code and it seems to me 
+that incrementing the reference count is not sufficient to make sure the page 
+won't be swapped out. To ensure that, it should instead be marked as 
+unevictable, either directly or by marking an associated VMA as VM_LOCKED. 
+This is what the mlock() syscall does, in addition to calling 
+get_user_pages().
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+The MM subsystem is quite complex and my understanding might not be correct, 
+so I'd appreciate if someone could shed light on the issue. Does 
+get_user_pages() really pin pages to memory and prevent them from being 
+swapped out in all circumstances ? If so, how does it do so ? If not, what's 
+the proper way to make sure the pages won't disappear during DMA ?
 
-The V4L2 specification from this daily build is here:
+Please CC me on answers.
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+Regards,
 
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+Laurent Pinchart
 
