@@ -1,69 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from server50105.uk2net.com ([83.170.97.106]:44074 "EHLO
-	mail.autotrain.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755296AbZGBNuA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jul 2009 09:50:00 -0400
-Date: Thu, 2 Jul 2009 14:50:02 +0100 (BST)
-From: Tim Williams <tmw@autotrain.org>
-To: linux-media@vger.kernel.org
-cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] USBVision device defaults
-In-Reply-To: <1246495183.4227.77.camel@palomino.walls.org>
-Message-ID: <alpine.LRH.2.00.0907021419270.988@server50105.uk2net.com>
-References: <alpine.LRH.2.00.0906261505320.14258@server50105.uk2net.com>  <1246275235.3917.12.camel@palomino.walls.org>  <alpine.LRH.2.00.0906291303170.29847@server50105.uk2net.com> <1246495183.4227.77.camel@palomino.walls.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Received: from bombadil.infradead.org ([18.85.46.34]:36139 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754668AbZG2MkR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Jul 2009 08:40:17 -0400
+Date: Wed, 29 Jul 2009 09:40:09 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: acano@fastmail.fm, linux-media@vger.kernel.org
+Subject: Re: [PATCH] em28xx: enable usb audio for plextor px-tv100u
+Message-ID: <20090729094009.6dc01728@pedra.chehab.org>
+In-Reply-To: <200907290809.32089.hverkuil@xs4all.nl>
+References: <20090718173758.GA32708@localhost.localdomain>
+	<20090729000753.GA24496@localhost.localdomain>
+	<20090729015730.34ab86c6@pedra.chehab.org>
+	<200907290809.32089.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 1 Jul 2009, Andy Walls wrote:
+Em Wed, 29 Jul 2009 08:09:31 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> It's unclear to me if the PowerOnAtOpen module parameter works properly
-> when set to 0.  It might actually prevent the automatic shutoff in 3
-> seconds if set to zero.
+> On Wednesday 29 July 2009 06:57:30 Mauro Carvalho Chehab wrote:
+> > Em Tue, 28 Jul 2009 20:07:53 -0400
+> >
+> > acano@fastmail.fm escreveu:
+> > > On Mon, Jul 27, 2009 at 09:28:11PM -0300, Mauro Carvalho Chehab wrote:
+> > > > Hi Acano,
+> > >
+> > > Tested-by: Angelo Cano <acano@fastmail.fm>
+> > >
+> > > works great
+> >
+> > Good!
+> >
+> > > > > +		/*FIXME hack to unmute usb audio stream */
+> > > > > +		em28xx_set_ctrl(dev, ctrl);
+> > > >
+> > > > Hmm... this function were removed. In thesis, you shouldn't need to
+> > > > do anything to unmute.
+> > >
+> > > I still need it, see attachment.
+> > >
+> > > > Could you please try the enclosed patch and see if this is enough to
+> > > > fix for Plextor? If so, please send me a Tested-by: tag for me to add
+> > > > it at 2.6.31 fix patches.
+> > >
+> > > Like I said the patch works great, and also solves my audio volume
+> > > problem.  With your patch the volume is set to a sane value
+> > > (presumably 0db) and the distortion/clipping is gone.
+> > >
+> > > Thanks man.  The volume problem was driving me crazy.
+> >
+> > Ah, yes, there's a missing mute/unmute issue there. Instead of using your
+> > code, I opted to duplicate part of ac97_set_ctrl code there.
+> >
+> > I opted to have a small duplicated code, but, IMO, it is now clearer to
+> > see why we still need to call em28xx_audio_analog_set(). You will notice
+> > that I've rearranged the place where I update volume and mute. The
+> > rationale is that v4l2_device_call_all() might eventually change a value
+> > for volume/mute.
+> >
+> > Another reason is that, IMO, v4l2_device_call_all() should return values.
+> > In the specific case of volume/mute, if the user tries to specify a value
+> > outside the range, the -ERANGE should be returned.
+> >
+> > I've already committed the patches at the tree. Please double-check.
+> >
+> > Hans,
+> >
+> > we need to fix the returned error value for v4l2_device_call_all(). I
+> > know that this is an old issue that weren't changed by v4l dev/subdev
+> > conversion, but now it is easier for us to fix. The idea here is to be
+> > sure that, if a sub-driver with a proper handling for a function returns
+> > an error value, this would be returned by v4l2_device_call_all(). Maybe
+> > we'll need to adjust some things at the sub-drivers.
+> 
+> Use v4l2_device_call_until_err instead of v4l2_device_call_all. That macro 
+> checks for errors returned from the subdevs.
 
-I hadn't spotted that option, it does seem to work and enables the device 
-to stay active after the programme using it has exited, preserving the 
-settings. With PowerOnAtOpen=0, using the normal unmodified driver, I can't 
-get a picture using either flash or kdetv. However, using my bodged driver 
-which forces use of the SVideo input, I can now get a colour picture in 
-flash by starting and exiting kdetv first. Odd, but it does at least 
-provide a workable solution to my problem.
+It doesn't work as expected. If I use it for queryctl, for example, it returns
+an empty set of controls. If I use it for g_ctrl, it returns:
 
-> Also, by inspection I think the driver has a bug you may be able to
-> exploit.  If you already have the driver open with an application,
-> trying to open it with another application will fail, but not before
-> reseting the poweroff timer back to three seconds.  So if you have an
-> app that attempts to open() and close() the usbvision device node every
-> 1 second, I think you can keep it from powering down and losing it's
-> settings.
->
-> Here's a useless little program to do just that.  Compile it and invoke
-> it as 'program-name /dev/video0'
+error 22 getting ctrl Brightness
+error 22 getting ctrl Contrast
+error 22 getting ctrl Saturation
+error 22 getting ctrl Hue
+error 22 getting ctrl Volume
+error 22 getting ctrl Balance
+error 22 getting ctrl Bass
+error 22 getting ctrl Treble
+error 22 getting ctrl Mute
+error 22 getting ctrl Loudness
 
-I gave the code a try, it works up to a point, I get a colour picture in 
-flash, but the picture is frozen. I suspect your programme is grabbing 
-the video device back from flash before I can kill it.
+The issue here is we need something that discards errors for non-implemented
+controls. 
 
-Thankyou for your help ! If anybody on this list decides to try and neaten 
-up the code for the usbvision driver, I'm happy to do a bit of testing 
-work (contant me on tmw@autotrain.org, I may not stay subscribed to this 
-email list permanantly).
+As the sub-drivers are returning -EINVAL for non-implemented controls (and
+probably other stuff that aren't implemented there), the function will not work
+for some ioctls.
 
-Tim W
+The proper fix seems to elect an error condition to be returned by driver when
+a function is not implemented, and such errors to be discarded by the macro.
 
--- 
-Tim Williams BSc MSc MBCS
-Euromotor Autotrain LLP
-58 Jacoby Place
-Priory Road
-Edgbaston
-Birmingham
-B5 7UW
-United Kingdom
+It seems that the proper error code for such case is this one:
 
-Web : http://www.autotrain.org
-Tel : +44 (0)121 414 2214
+#define ENOSYS          38      /* Function not implemented */
 
-EuroMotor-AutoTrain is a company registered in the UK, Registration
-number: OC317070.
+
+
+Cheers,
+Mauro
