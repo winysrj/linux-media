@@ -1,61 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197]:62030 "EHLO
-	mta2.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750994AbZG3Nl1 (ORCPT
+Received: from ey-out-2122.google.com ([74.125.78.24]:51768 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754650AbZG2Ncn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2009 09:41:27 -0400
-Received: from steven-toths-macbook-pro.local
- (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta2.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KNL0013DKP2EH40@mta2.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Thu, 30 Jul 2009 09:41:27 -0400 (EDT)
-Date: Thu, 30 Jul 2009 09:41:26 -0400
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: SAA7164 - Analogue Support on HVR devices
-In-reply-to: <4A719F82.3060202@hubstar.net>
-To: "l d one"@hubstar.net
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Message-id: <4A71A306.2070409@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <4A7176D4.2090401@nildram.co.uk> <4A719D9E.20803@kernellabs.com>
- <4A719F82.3060202@hubstar.net>
+	Wed, 29 Jul 2009 09:32:43 -0400
+Received: by ey-out-2122.google.com with SMTP id 9so198810eyd.37
+        for <linux-media@vger.kernel.org>; Wed, 29 Jul 2009 06:32:42 -0700 (PDT)
+Message-ID: <4A705028.80008@gmail.com>
+Date: Wed, 29 Jul 2009 15:35:36 +0200
+From: Roel Kluin <roel.kluin@gmail.com>
+MIME-Version: 1.0
+To: awalls@radix.net, ivtv-devel@ivtvdriver.org,
+	linux-media@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: [PATCH] cx18: Read buffer overflow
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 7/30/09 9:26 AM, ldone@hubstar.net wrote:
-> Steven Toth wrote:
->> On 7/30/09 6:32 AM, Lou Otway wrote:
->>> First I'd like to say thanks to the maintainers of the various HVR
->>> drivers, the amount of work that goes in is much appreciated.
->>>
->>> I notice from www.kernellabs.com that progress on the digital side for
->>> SAA7164 devices is going well and a stable driver is nearly ready.
->>>
->>> I, like many people, would really like to have analogue support for
->>> these devices, is there any news on when this functionality might be
->>> available?
->> Thank you.
->>
->> If you read back far enough with the SAA7164 related posts you'll see
->> that finalizing DTV is the primary focus, everything else is up for
->> review once this task is complete.
->>
->
-> Hi
-> I don't have this card, but I have some other hauppauge cards.
->
-> What is meant by analogue support?
->
->  From my perspective I understand if TV analogue is dropping priority but
-> for me the Composite/Svideo analogue on Hauppauge cards is more
-> important - since I use them to hook up to my Satellite boxes.
->
-> Do you count that as analogue too?
+The guard mistakenly tests against sizeof(freqs) instead of ARRAY_SIZE(freqs).
 
-Yes.
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+---
+Andy Walls wrote:
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+> The cx18 driver suffers from the exact same defect in cx18-controls.c.
+
+Thanks, if not already applied, here is it.
+
+diff --git a/drivers/media/video/ivtv/ivtv-controls.c b/drivers/media/video/ivtv/ivtv-controls.c
+index a3b77ed..4a9c8ce 100644
+--- a/drivers/media/video/ivtv/ivtv-controls.c
++++ b/drivers/media/video/ivtv/ivtv-controls.c
+@@ -17,6 +17,7 @@
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  */
++#include <linux/kernel.h>
+ 
+ #include "ivtv-driver.h"
+ #include "ivtv-cards.h"
+@@ -281,7 +282,7 @@ int ivtv_s_ext_ctrls(struct file *file, void *fh, struct v4l2_ext_controls *c)
+ 		idx = p.audio_properties & 0x03;
+ 		/* The audio clock of the digitizer must match the codec sample
+ 		   rate otherwise you get some very strange effects. */
+-		if (idx < sizeof(freqs))
++		if (idx < ARRAY_SIZE(freqs))
+ 			ivtv_call_all(itv, audio, s_clock_freq, freqs[idx]);
+ 		return err;
+ 	}
