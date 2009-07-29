@@ -1,114 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f226.google.com ([209.85.219.226]:50610 "EHLO
-	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753920AbZGWLdJ convert rfc822-to-8bit (ORCPT
+Received: from mail8.sea5.speakeasy.net ([69.17.117.10]:35957 "EHLO
+	mail8.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753321AbZG2XnG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jul 2009 07:33:09 -0400
-Received: by ewy26 with SMTP id 26so896794ewy.37
-        for <linux-media@vger.kernel.org>; Thu, 23 Jul 2009 04:33:07 -0700 (PDT)
+	Wed, 29 Jul 2009 19:43:06 -0400
+Date: Wed, 29 Jul 2009 16:43:05 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Dan Carpenter <error27@gmail.com>
+cc: mchehab@infradead.org, linux-media@vger.kernel.org
+Subject: Re: double unlock in bttv_poll() and in saa7134-video.c
+In-Reply-To: <alpine.DEB.2.00.0907191613250.12306@bicker>
+Message-ID: <Pine.LNX.4.58.0907291629210.11911@shell2.speakeasy.net>
+References: <alpine.DEB.2.00.0907191613250.12306@bicker>
 MIME-Version: 1.0
-In-Reply-To: <20090723111006.59010@gmx.net>
-References: <20090723111006.59010@gmx.net>
-Date: Thu, 23 Jul 2009 13:33:07 +0200
-Message-ID: <d9def9db0907230433ua9f567fm15e1794f6b87fdf1@mail.gmail.com>
-Subject: Re: [linux-dvb] Terratec Cinergy HTC USB XS HD
-From: Markus Rechberger <mrechberger@gmail.com>
-To: anderse@gmx.de
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 23, 2009 at 1:10 PM, <anderse@gmx.de> wrote:
->>On Sat, Jul 18, 2009 at 12:46 PM, Mario Fetka<mario.fe...@gmail.com> wrote:
->>> On Saturday, 18. July 2009 04:06:13 Alain Kalker wrote:
->>>> Op maandag 15-06-2009 om 22:36 uur [tijdzone +0200], schreef sacha:
->>>> > Hello
->>>> >
->>>> > Does anybody know if this devise will ever work with Linux?
->>>> > It was promised by one person last year the support will be available
->>>> > within months. One year has gone, nothing happens.
->>>> > Is there any alternatives to develop a driver for this devise aside from
->>>> > this person?
->>>>
->>>> Since there has been no answer to your question for some time, I think I
->>>> will step in.
->>>>
->>>> >From http://mcentral.de/wiki/index.php5/Terratec_HTC_XS , the future for
->>>>
->>>> a driver from Markus for this device does seem to look quite bleak.
->>>> However, from looking in the mailinglist archive I gather that Steven
->>>> Toth has offered to try getting it to work if someone is willing to
->>>> provide him with a device.
->>>> Maybe you two could get in contact.
->>>> I myself am also interested in a driver for this device but I haven't
->>>> got one yet.
->>>>
->>>> Kind regards,
->>>>
->>>> Alain
->>>>
->>> as far as i know there already exists a driver but it could not be published
->>> as it is based on the micronas refernce driver
->>>
->>> i think the problem is related to
->>>
->>> http://www.linuxtv.org/pipermail/linux-dvb/2008-December/030738.html
->>>
->>> but this new situation with
->>> http://www.tridentmicro.com/Product_drx_39xyK.asp
->>>
->>> can maby change something about this chip
->>>
->>> and it would be possible to get the rights to publish the driver under  gpl-2
->>>
->
->>This won't solve the issue that the AVFB4910 has been discontinued.
->>This affects FM Radio, Analogue TV, Composite and S-Video, that IC
->>didn't get bought by Trident.
->
->>regards,
->>Markus
->
-> Did Devin Heitmueller comment on that? AFAIK he already finished a driver for the DRX-3933J and I would think he might have interest to get in contact with trident in order of being allowed to publish his work.
-> Should be a rather small step compared to the work he has done so far.
-> And Trident has some history in cooperating together with XFree developers,
-> letting them develop graphics card drivers.
->
-> What about this AVFB4910? Is it possible to get a working DVB-C/DVB-T solution without getting in contact with this chip? And once this would be done, there should still be the option of reverse engineering the protocol of that one.
->
+On Sat, 25 Jul 2009, Dan Carpenter wrote:
+> My source code checker, smatch (http://repo.or.cz/w/smatch.git),
+> complains about a double unlock in bttv_poll() from
+> drivers/media/video/bt8xx/bttv-driver.c.  It unlocks on line 3190 and
+> again on 3201.
 
-For those who are interested in such a solution:
+How about this:
 
-http://support.sundtek.de/index.php/topic,2.0.html
+http://linuxtv.org/hg/~tap/bttv?cmd=changeset;node=35ddb77b68f8
 
-http://sundtek.de/shop/Digital-TV-Sticks/Sundtek-MediaTV-Pro.html
+diff -r fd96af63f79b -r 35ddb77b68f8 linux/drivers/media/video/bt8xx/bttv-driver.c
+--- a/linux/drivers/media/video/bt8xx/bttv-driver.c     Fri Jun 19 19:56:56 2009 +0000
++++ b/linux/drivers/media/video/bt8xx/bttv-driver.c     Wed Jul 29 16:33:45 2009 -0700
+@@ -3191,15 +3191,14 @@ static unsigned int bttv_poll(struct fil
+                return videobuf_poll_stream(file, &fh->vbi, wait);
+        }
 
-There's a fully supported solution available for Linux already, it
-also includes online Linux support. The installation of the drivers
-can't be easier.
++       mutex_lock(&fh->cap.vb_lock);
+        if (check_btres(fh,RESOURCE_VIDEO_STREAM)) {
+-               mutex_lock(&fh->cap.vb_lock);
+                /* streaming capture */
+                if (list_empty(&fh->cap.stream))
+                        goto err;
+                buf = list_entry(fh->cap.stream.next,struct bttv_buffer,vb.stream);
+        } else {
+                /* read() capture */
+-               mutex_lock(&fh->cap.vb_lock);
+                if (NULL == fh->cap.read_buf) {
+                        /* need to capture a new frame */
+                        if (locked_btres(fh->btv,RESOURCE_VIDEO_STREAM))
+@@ -3217,7 +3216,6 @@ static unsigned int bttv_poll(struct fil
+                        fh->cap.ops->buf_queue(&fh->cap,fh->cap.read_buf);
+                        fh->cap.read_off = 0;
+                }
+-               mutex_unlock(&fh->cap.vb_lock);
+                buf = (struct bttv_buffer*)fh->cap.read_buf;
+        }
 
-Best Regards,
-Markus
-
-> Meanwhile, Terratec has dicontinued the Cinergy HTC USB XS HD, but what about the H5? Does anyone know about its internals already?
->
-> AFAIK, these are still the only non-PCI DVB-C solutions on the market.
->
-> Hmm, did micronas give up this full range of products? Sold the 'interesting' part to trident and ceased production of everything else? Maybe half a year ago, they didn't want to disturb ongoing selling negotiations by giving away their intellectual property for free in parallel, and now, after all is settled, maybe they don't mind anymore.
-> So contacting those people again could be worth it, too.
->
-> best regards,
->
-> Raimund
->
->
-> --
-> Neu: GMX Doppel-FLAT mit Internet-Flatrate + Telefon-Flatrate
-> für nur 19,99 Euro/mtl.!* http://portal.gmx.net/de/go/dsl02
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
