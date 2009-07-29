@@ -1,135 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:59161 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753164AbZGEWhs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Jul 2009 18:37:48 -0400
-Date: Sun, 5 Jul 2009 19:37:43 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [GIT PATCHES for 2.6.31] V4L/DVB fixes
-Message-ID: <20090705193743.0a8ca7d5@pedra.chehab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from perceval.irobotique.be ([92.243.18.41]:51740 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754002AbZG2XFk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Jul 2009 19:05:40 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: How to save number of times using memcpy?
+Date: Thu, 30 Jul 2009 01:07:12 +0200
+Cc: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
+	"v4l2_linux" <linux-media@vger.kernel.org>,
+	Dongsoo Kim <dongsoo45.kim@samsung.com>,
+	=?utf-8?q?=C3=AB=C2=B0=E2=80=A2=C3=AA=C2=B2=C2=BD=C3=AB=C2=AF=C2=BC?=
+	<kyungmin.park@samsung.com>,
+	"jm105.lee@samsung.com" <jm105.lee@samsung.com>,
+	=?utf-8?q?=C3=AC=EF=BF=BD=C2=B4=C3=AC=E2=80=9E=C2=B8=C3=AB=C2=AC=C2=B8?=
+	<semun.lee@samsung.com>,
+	=?utf-8?q?=C3=AB=C5=92=E2=82=AC=C3=AC=EF=BF=BD=C2=B8=C3=AA=C2=B8=C2=B0?=
+	<inki.dae@samsung.com>,
+	=?utf-8?q?=C3=AA=C2=B9=E2=82=AC=C3=AD=CB=9C=E2=80=A2=C3=AC=C2=A4?=
+	 =?utf-8?q?=E2=82=AC?= <riverful.kim@samsung.com>
+References: <10799.62.70.2.252.1248852719.squirrel@webmail.xs4all.nl> <A69FA2915331DC488A831521EAE36FE401450FAE31@dlee06.ent.ti.com> <200907292352.00179.hverkuil@xs4all.nl>
+In-Reply-To: <200907292352.00179.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="windows-1252"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200907300107.13036.laurent.pinchart@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Linus,
+On Wednesday 29 July 2009 23:52:00 Hans Verkuil wrote:
+> On Wednesday 29 July 2009 21:06:17 Karicheri, Muralidharan wrote:
+> > Hans,
+> >
+> > >True. However, my experience is that this approach isn't needed in most
+> > >cases as long as the v4l driver is compiled into the kernel. In that
+> > > case it is called early enough in the boot sequence that there is still
+> > > enough unfragmented memory available. This should definitely be the
+> > > default case for drivers merged into v4l-dvb.
+> >
+> > In my understanding, the buffer is allocated in the video buffer layer
+> > when driver makes the videobuf_reqbufs() call.
+>
+> That depends completely on the driver implementation. In the case of the
+> davinci driver it will allocate memory for X buffers when the driver is
+> first initialized and it will use those when the application calls reqbufs.
+> If the app wants more than X buffers the driver will attempt to dynamically
+> allocate additional buffers, but those are usually hard to obtain.
+>
+> In my experience there is no problem for the driver to allocate the
+> required memory if it is done during driver initialization and if the
+> driver is compiled into the kernel.
+>
+> > Since this happens after
+> > the kernel is up, this is indeed a serious issue when we require HD
+> > resolution buffers. When I have tested vpfe capture from MT9T031 with
+> > 2048x1536 resolution buffer, the video buffer layer gives an oops due to
+> > failure to allocate buffer( I think video buffer layer is not handling
+> > error case when there are not enough buffers to allocate). Since buffer
+> > allocation happens very late (not at initialization), it is unlikely to
+> > succeed due to fragmentation issue.
+>
+> That is really a driver problem: omap should use the same allocation scheme
+> as davinci does. That works pretty reliably. Of course, if someone tries to
+> squeeze the last drop out of their system, then they still may have to use
+> nasty tricks to get it to work (like using the mem= kernel option). But
+> such tricks are a last resort in my opinion.
+>
+> > So I have added support for USERPTR
+> > IO in vpfe capture to handle high resolution capture. This requires a
+> > kernel module to allocate contiguous buffer and the same is returned to
+> > application using an IOCTL. The physical/logical address can then be
+> > given to driver through USERPTR IO.
+>
+> What exactly is the point of doing this? I gather it is used to pass the
+> same physical memory from e.g. a capture device to e.g. a resizer device,
+> right? Otherwise I see no benefit to doing this as opposed to regular mmap
+> I/O.
 
-Please pull from:
-        ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git for_linus
+This could be used in conjunction with reserved memory to allocate bug buffers 
+in userspace when not enough contiguous pages can be allocated from 
+kernelspace.
 
-For the following bug fixes:
+Assume a device with 128MB (0x08000000) of SDRAM, mapped in physical memory at 
+address 0x80000000. If you pass mem=80M to the kernel, a userspace process 
+could (with appropriate permissions, and assuming it actually works :-)) do
 
-   - v4l2 core: move V4L2_PIX_FMT_SGRBG8 to the proper place;
-   - vivi: bug: don't assume that S_STD will be called before streaming;
-   - ttpci: config TTPCI_EEPROM depends on I2C;
-   - soc_camera: Fix debug output of supported formats count and fix 
-	         missing clean up on error path;
-   - tuner-xc2028: Fix 7 MHz DVB-T;
-   - cx18: Update Yuan MPC-718 card entry with better information and guesses;
-   - cx23885: allow rf input path switching on the HVR1275;
-   - radio-si470x: fix lock imbalance;
-   - em28xx, fix lock imbalance.
+size_t length = 48 << 20;
+off_t address = 0x80000000 + (128 << 20) - (48 << 20);
 
-There's also a few changes at the dvb get firmware script:
-   - get_dvb_firmware: Add Yuan MPC718 MT352 DVB-T "firmware" extraction
-   - get_dvb_firmware: Correct errors in MPC718 firmware extraction logic
+fd = open("/dev/mem", O_RDWR);
+mem = mmap(NULL, length, PROT_READ | PROT_WRITE, MAP_SHARED, fd, address);
 
-A trivial board addition to an existing driver:
-   - cx18: Add DVB-T support for Yuan MPC-718 cards with an MT352 or ZL10353
+to get a pointer to 48MB area of reserved physical memory, and allocate big 
+USERPTR buffers from that.
 
-And a new webcam sensor driver, with the corresponding fixes on em28xx, 
-in order to properly support webcams:
+Regards,
 
-   - Add a driver for mt9v011 sensor;
-   - mt9v011: Some fixes at the register initialization table;
-   - mt9v011: CodingStyle fixes;
-   - mt9v011: properly calculate image resolution registers;
-   - mt9v011: let's stick with datasheet values where it works;
-   - em28xx: add support for Silvercrest Webcam;
-   - em28xx: add other video formats;
-   - em28xx: Fix tuning for Terratec Cinergy T XS USB (zl10353 version);
-   - em28xx-video: fix VIDIOC_G_FMT and VIDIOC_ENUMFMT with webcams;
-   - em28xx: fix webcam usage with different output formats;
-   - em28xx: Add autodetection code for Silvercrest 1.3 mpix.
+Laurent Pinchart
 
-Cheers,
-Mauro.
-
----
-
- Documentation/dvb/get_dvb_firmware          |   53 ++++-
- Documentation/video4linux/CARDLIST.em28xx   |    1 +
- drivers/media/common/tuners/tuner-xc2028.c  |   13 +-
- drivers/media/dvb/ttpci/Kconfig             |    1 +
- drivers/media/radio/radio-si470x.c          |    5 +-
- drivers/media/video/Kconfig                 |    8 +
- drivers/media/video/Makefile                |    1 +
- drivers/media/video/cx18/cx18-cards.c       |   34 ++-
- drivers/media/video/cx18/cx18-dvb.c         |  160 ++++++++++
- drivers/media/video/cx23885/cx23885-dvb.c   |   30 ++
- drivers/media/video/cx23885/cx23885.h       |    4 +
- drivers/media/video/em28xx/Kconfig          |    2 +
- drivers/media/video/em28xx/em28xx-cards.c   |   84 +++++-
- drivers/media/video/em28xx/em28xx-core.c    |   32 ++-
- drivers/media/video/em28xx/em28xx-dvb.c     |   28 ++-
- drivers/media/video/em28xx/em28xx-i2c.c     |    2 +-
- drivers/media/video/em28xx/em28xx-video.c   |   92 ++++--
- drivers/media/video/em28xx/em28xx.h         |    3 +
- drivers/media/video/gspca/stv06xx/stv06xx.h |    4 -
- drivers/media/video/mt9v011.c               |  431 +++++++++++++++++++++++++++
- drivers/media/video/mt9v011.h               |   35 +++
- drivers/media/video/soc_camera.c            |   12 +-
- drivers/media/video/vivi.c                  |   99 +++---
- include/linux/videodev2.h                   |    2 +
- include/media/v4l2-chip-ident.h             |    3 +
- 25 files changed, 1027 insertions(+), 112 deletions(-)
- create mode 100644 drivers/media/video/mt9v011.c
- create mode 100644 drivers/media/video/mt9v011.h
-
-Andy Walls (5):
-      V4L/DVB (12167): tuner-xc2028: Fix 7 MHz DVB-T
-      V4L/DVB (12180): cx18: Update Yuan MPC-718 card entry with better information and guesses
-      V4L/DVB (12181): get_dvb_firmware: Add Yuan MPC718 MT352 DVB-T "firmware" extraction
-      V4L/DVB (12182): cx18: Add DVB-T support for Yuan MPC-718 cards with an MT352 or ZL10353
-      V4L/DVB (12206): get_dvb_firmware: Correct errors in MPC718 firmware extraction logic
-
-Devin Heitmueller (1):
-      V4L/DVB (12156): em28xx: Fix tuning for Terratec Cinergy T XS USB (zl10353 version)
-
-Guennadi Liakhovetski (1):
-      V4L/DVB (12160): soc-camera: fix missing clean up on error path
-
-Hans Verkuil (1):
-      V4L/DVB (12153): ttpci: config TTPCI_EEPROM depends on I2C
-
-Jiri Slaby (2):
-      V4L/DVB (12202): em28xx, fix lock imbalance
-      V4L/DVB (12203): radio-si470x: fix lock imbalance
-
-Mauro Carvalho Chehab (12):
-      V4L/DVB (12134): vivi: bug: don't assume that S_STD will be called before streaming
-      V4L/DVB (12148): move V4L2_PIX_FMT_SGRBG8 to the proper place
-      V4L/DVB (12135): Add a driver for mt9v011 sensor
-      V4L/DVB (12136): mt9v011: Some fixes at the register initialization table
-      V4L/DVB (12137): mt9v011: CodingStyle fixes
-      V4L/DVB (12173): mt9v011: properly calculate image resolution registers
-      V4L/DVB (12174): mt9v011: let's stick with datasheet values where it works
-      V4L/DVB (12138): em28xx: add support for Silvercrest Webcam
-      V4L/DVB (12139): em28xx: add other video formats
-      V4L/DVB (12169): em28xx-video: fix VIDIOC_G_FMT and VIDIOC_ENUMFMT with webcams
-      V4L/DVB (12171): em28xx: fix webcam usage with different output formats
-      V4L/DVB (12172): em28xx: Add autodetection code for Silvercrest 1.3 mpix
-
-Michael Krufky (2):
-      V4L/DVB (12165): cx23885: override set_frontend to allow rf input path switching on the HVR1275
-      V4L/DVB (12166): cx23885: add FIXME comment above set_frontend override
-
-Stefan Herbrechtsmeier (1):
-      V4L/DVB (12159): soc_camera: Fix debug output of supported formats count
-
----------------------------------------------------
-V4L/DVB development is hosted at http://linuxtv.org
