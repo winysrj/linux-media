@@ -1,27 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n6UEWVTr017262
-	for <video4linux-list@redhat.com>; Thu, 30 Jul 2009 10:32:31 -0400
-Received: from mail-yw0-f199.google.com (mail-yw0-f199.google.com
-	[209.85.211.199])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n6UEWEjs008175
-	for <video4linux-list@redhat.com>; Thu, 30 Jul 2009 10:32:15 -0400
-Received: by ywh37 with SMTP id 37so747197ywh.28
-	for <video4linux-list@redhat.com>; Thu, 30 Jul 2009 07:32:14 -0700 (PDT)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n6TFL8Px021695
+	for <video4linux-list@redhat.com>; Wed, 29 Jul 2009 11:21:08 -0400
+Received: from mail-yx0-f194.google.com (mail-yx0-f194.google.com
+	[209.85.210.194])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n6TFKo2N022352
+	for <video4linux-list@redhat.com>; Wed, 29 Jul 2009 11:20:50 -0400
+Received: by yxe32 with SMTP id 32so3443037yxe.6
+	for <video4linux-list@redhat.com>; Wed, 29 Jul 2009 08:20:50 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <4A71ABDB.2070100@gmail.com>
+In-Reply-To: <4A706591.2090707@gmail.com>
 References: <1244577481.32457.1319583459@webmail.messagingengine.com>
+	<1246654555282-3203325.post@n2.nabble.com>
 	<1246882966.1165.1323684945@webmail.messagingengine.com>
 	<4A7058FA.4060409@gmail.com>
 	<829197380907290734l175a2c18sc76ae82b1f5d2eb@mail.gmail.com>
 	<829197380907290742t678039al95c800e9a8c8c22e@mail.gmail.com>
 	<4A706591.2090707@gmail.com>
-	<829197380907290820j2ed4d4a0ycdccf8ffebd992ca@mail.gmail.com>
-	<4A71A11A.8070903@gmail.com>
-	<829197380907300640g2b0df1ddm31cdef61c4565d25@mail.gmail.com>
-	<4A71ABDB.2070100@gmail.com>
-Date: Thu, 30 Jul 2009 10:32:14 -0400
-Message-ID: <829197380907300732q4cd9b684g8a6bc520f734ee0a@mail.gmail.com>
+Date: Wed, 29 Jul 2009 11:20:50 -0400
+Message-ID: <829197380907290820j2ed4d4a0ycdccf8ffebd992ca@mail.gmail.com>
 From: Devin Heitmueller <dheitmueller@kernellabs.com>
 To: "buhochileno@gmail.com" <buhochileno@gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
@@ -40,17 +37,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Jul 30, 2009 at 10:19 AM,
+On Wed, Jul 29, 2009 at 11:06 AM,
 buhochileno@gmail.com<buhochileno@gmail.com> wrote:
-> weird, trying this  v4l2-ctl -d /dev/video0 -i 1 tell me that it change the
-> input to "composite1", nevertheless xawtv, vlc or  ffplay start using
-> s-video  input, I'm doing something wrong?
+> weird, I follow the exact instruction of the previous mail, also doing a
+> update at the v4l-dvb there is no update:
+> shell> hg update
+> 0 files updated, 0 files merged, 0 files removed, 0 files unresolved
 
-Those apps probably explicitly set it to input zero then.  You are
-stuck either manually configuring those apps through whatever config
-files they use, or hacking the source to change the board order (which
-unfortunately would require you to recompile the source every time
-there is a kernel update.
+Ah, you must be a cvs or svn user.  With hg, running "hg update" from
+your working directory doesn't actually go to the server to download
+the latest code.  To update to the latest code, you would need to run:
+
+cd v4l-dvb
+hg pull http://linuxtv.org/hg/v4l-dvb
+hg update
+
+That said, I would suggest you just do a fresh clone and try again.
+If you want, you can send me the full output as an attachment
+off-list, and I can take a look and see if there are any obvious
+problems.
+
+>> Also, rereading your email, are you sure the device has a tuner?  Do
+>> you know what tuner chip it contains?  If not, can you send digital
+>> photos of the PCB?
+>>
+>
+> Yeap, it have a turner becouse it is the robotis bioloid wireless camera
+> set, that have this receiver recognized as the PointNix... witch use
+> channels, 1, 2, 3. 4 to get the image wirelessly from the camera, no idea
+> about what turner chip it use, going to see if I can take some photos of the
+> PCB, but it is still with warrantie so I a little concern about it...
+
+Can you send me a link to the webpage for the product?
 
 Devin
 
