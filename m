@@ -1,329 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56744 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752486AbZGTIwO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jul 2009 04:52:14 -0400
-From: Chaithrika U S <chaithrika@ti.com>
-To: linux@arm.linux.org.uk
-Cc: mchehab@infradead.org, hverkuil@xs4all.nl,
-	davinci-linux-open-source@linux.davincidsp.com,
-	linux-media@vger.kernel.org, Chaithrika U S <chaithrika@ti.com>,
-	Manjunath Hadli <mrh@ti.com>, Brijesh Jadav <brijesh.j@ti.com>,
-	Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH v3] ARM: DaVinci: DM646x Video: Platform and board specific setup
-Date: Mon, 20 Jul 2009 04:01:22 -0400
-Message-Id: <1248076882-18564-1-git-send-email-chaithrika@ti.com>
+Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:1176 "EHLO
+	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755373AbZG2NOb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Jul 2009 09:14:31 -0400
+Message-ID: <7aa4c771a5b1cf3117cf9faf027cc05c.squirrel@webmail.xs4all.nl>
+In-Reply-To: <20090729094009.6dc01728@pedra.chehab.org>
+References: <20090718173758.GA32708@localhost.localdomain>
+    <20090729000753.GA24496@localhost.localdomain>
+    <20090729015730.34ab86c6@pedra.chehab.org>
+    <200907290809.32089.hverkuil@xs4all.nl>
+    <20090729094009.6dc01728@pedra.chehab.org>
+Date: Wed, 29 Jul 2009 15:14:22 +0200
+Subject: Re: [PATCH] em28xx: enable usb audio for plextor px-tv100u
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: acano@fastmail.fm, linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Platform specific display device setup for DM646x EVM
 
-Add platform device and resource structures. Also define a platform specific
-clock setup function that can be accessed by the driver to configure the clock
-and CPLD.
+> Em Wed, 29 Jul 2009 08:09:31 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>
+>> On Wednesday 29 July 2009 06:57:30 Mauro Carvalho Chehab wrote:
+>> > Em Tue, 28 Jul 2009 20:07:53 -0400
+>> >
+>> > acano@fastmail.fm escreveu:
+>> > > On Mon, Jul 27, 2009 at 09:28:11PM -0300, Mauro Carvalho Chehab
+>> wrote:
+>> > > > Hi Acano,
+>> > >
+>> > > Tested-by: Angelo Cano <acano@fastmail.fm>
+>> > >
+>> > > works great
+>> >
+>> > Good!
+>> >
+>> > > > > +		/*FIXME hack to unmute usb audio stream */
+>> > > > > +		em28xx_set_ctrl(dev, ctrl);
+>> > > >
+>> > > > Hmm... this function were removed. In thesis, you shouldn't need
+>> to
+>> > > > do anything to unmute.
+>> > >
+>> > > I still need it, see attachment.
+>> > >
+>> > > > Could you please try the enclosed patch and see if this is enough
+>> to
+>> > > > fix for Plextor? If so, please send me a Tested-by: tag for me to
+>> add
+>> > > > it at 2.6.31 fix patches.
+>> > >
+>> > > Like I said the patch works great, and also solves my audio volume
+>> > > problem.  With your patch the volume is set to a sane value
+>> > > (presumably 0db) and the distortion/clipping is gone.
+>> > >
+>> > > Thanks man.  The volume problem was driving me crazy.
+>> >
+>> > Ah, yes, there's a missing mute/unmute issue there. Instead of using
+>> your
+>> > code, I opted to duplicate part of ac97_set_ctrl code there.
+>> >
+>> > I opted to have a small duplicated code, but, IMO, it is now clearer
+>> to
+>> > see why we still need to call em28xx_audio_analog_set(). You will
+>> notice
+>> > that I've rearranged the place where I update volume and mute. The
+>> > rationale is that v4l2_device_call_all() might eventually change a
+>> value
+>> > for volume/mute.
+>> >
+>> > Another reason is that, IMO, v4l2_device_call_all() should return
+>> values.
+>> > In the specific case of volume/mute, if the user tries to specify a
+>> value
+>> > outside the range, the -ERANGE should be returned.
+>> >
+>> > I've already committed the patches at the tree. Please double-check.
+>> >
+>> > Hans,
+>> >
+>> > we need to fix the returned error value for v4l2_device_call_all(). I
+>> > know that this is an old issue that weren't changed by v4l dev/subdev
+>> > conversion, but now it is easier for us to fix. The idea here is to be
+>> > sure that, if a sub-driver with a proper handling for a function
+>> returns
+>> > an error value, this would be returned by v4l2_device_call_all().
+>> Maybe
+>> > we'll need to adjust some things at the sub-drivers.
+>>
+>> Use v4l2_device_call_until_err instead of v4l2_device_call_all. That
+>> macro
+>> checks for errors returned from the subdevs.
+>
+> It doesn't work as expected. If I use it for queryctl, for example, it
+> returns
+> an empty set of controls. If I use it for g_ctrl, it returns:
+>
+> error 22 getting ctrl Brightness
+> error 22 getting ctrl Contrast
+> error 22 getting ctrl Saturation
+> error 22 getting ctrl Hue
+> error 22 getting ctrl Volume
+> error 22 getting ctrl Balance
+> error 22 getting ctrl Bass
+> error 22 getting ctrl Treble
+> error 22 getting ctrl Mute
+> error 22 getting ctrl Loudness
+>
+> The issue here is we need something that discards errors for
+> non-implemented
+> controls.
+>
+> As the sub-drivers are returning -EINVAL for non-implemented controls (and
+> probably other stuff that aren't implemented there), the function will not
+> work
+> for some ioctls.
+>
+> The proper fix seems to elect an error condition to be returned by driver
+> when
+> a function is not implemented, and such errors to be discarded by the
+> macro.
+>
+> It seems that the proper error code for such case is this one:
+>
+> #define ENOSYS          38      /* Function not implemented */
 
-Signed-off-by: Manjunath Hadli <mrh@ti.com>
-Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-Signed-off-by: Chaithrika U S <chaithrika@ti.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
-Applies to Davinci GIT tree. Minor updates like change in structure name-
-subdev_info to vpif_subdev_info and correction to VDD3P3V_VID_MASK value.
+You are right, this macro doesn't work for these control functions. It it
+is possible to implement a define like ENOSYS, but I prefer to work on
+generic control processing code that is embedded in the v4l2 framework. It
+looks like I'll finally have time to work on that this weekend.
 
- arch/arm/mach-davinci/board-dm646x-evm.c    |  125 +++++++++++++++++++++++++++
- arch/arm/mach-davinci/dm646x.c              |   62 +++++++++++++
- arch/arm/mach-davinci/include/mach/dm646x.h |   24 +++++
- 3 files changed, 211 insertions(+), 0 deletions(-)
+Currently the control handling code in our v4l drivers is, to be blunt, a
+pile of crap. And it is ideal to move this into the v4l2 framework since
+90% of this is common code.
 
-diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c b/arch/arm/mach-davinci/board-dm646x-evm.c
-index b1bf18c..8c88fd0 100644
---- a/arch/arm/mach-davinci/board-dm646x-evm.c
-+++ b/arch/arm/mach-davinci/board-dm646x-evm.c
-@@ -63,6 +63,19 @@
- #define DM646X_EVM_PHY_MASK		(0x2)
- #define DM646X_EVM_MDIO_FREQUENCY	(2200000) /* PHY bus frequency */
- 
-+#define VIDCLKCTL_OFFSET	(0x38)
-+#define VSCLKDIS_OFFSET		(0x6c)
-+
-+#define VCH2CLK_MASK		(BIT_MASK(10) | BIT_MASK(9) | BIT_MASK(8))
-+#define VCH2CLK_SYSCLK8		(BIT(9))
-+#define VCH2CLK_AUXCLK		(BIT(9) | BIT(8))
-+#define VCH3CLK_MASK		(BIT_MASK(14) | BIT_MASK(13) | BIT_MASK(12))
-+#define VCH3CLK_SYSCLK8		(BIT(13))
-+#define VCH3CLK_AUXCLK		(BIT(14) | BIT(13))
-+
-+#define VIDCH2CLK		(BIT(10))
-+#define VIDCH3CLK		(BIT(11))
-+
- static struct davinci_uart_config uart_config __initdata = {
- 	.enabled_uarts = (1 << 0),
- };
-@@ -288,6 +301,40 @@ static struct snd_platform_data dm646x_evm_snd_data[] = {
- 	},
- };
- 
-+static struct i2c_client *cpld_client;
-+
-+static int cpld_video_probe(struct i2c_client *client,
-+			const struct i2c_device_id *id)
-+{
-+	cpld_client = client;
-+	return 0;
-+}
-+
-+static int __devexit cpld_video_remove(struct i2c_client *client)
-+{
-+	cpld_client = NULL;
-+	return 0;
-+}
-+
-+static const struct i2c_device_id cpld_video_id[] = {
-+	{ "cpld_video", 0 },
-+	{ }
-+};
-+
-+static struct i2c_driver cpld_video_driver = {
-+	.driver = {
-+		.name	= "cpld_video",
-+	},
-+	.probe		= cpld_video_probe,
-+	.remove		= cpld_video_remove,
-+	.id_table	= cpld_video_id,
-+};
-+
-+static void evm_init_cpld(void)
-+{
-+	i2c_add_driver(&cpld_video_driver);
-+}
-+
- static struct i2c_board_info __initdata i2c_info[] =  {
- 	{
- 		I2C_BOARD_INFO("24c256", 0x50),
-@@ -300,6 +347,9 @@ static struct i2c_board_info __initdata i2c_info[] =  {
- 	{
- 		I2C_BOARD_INFO("cpld_reg0", 0x3a),
- 	},
-+	{
-+		I2C_BOARD_INFO("cpld_video", 0x3B),
-+	},
- };
- 
- static struct davinci_i2c_platform_data i2c_pdata = {
-@@ -307,11 +357,85 @@ static struct davinci_i2c_platform_data i2c_pdata = {
- 	.bus_delay      = 0 /* usec */,
- };
- 
-+static int set_vpif_clock(int mux_mode, int hd)
-+{
-+	int val = 0;
-+	int err = 0;
-+	unsigned int value;
-+	void __iomem *base = IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
-+
-+	if (!cpld_client)
-+		return -ENXIO;
-+
-+	/* disable the clock */
-+	value = __raw_readl(base + VSCLKDIS_OFFSET);
-+	value |= (VIDCH3CLK | VIDCH2CLK);
-+	__raw_writel(value, base + VSCLKDIS_OFFSET);
-+
-+	val = i2c_smbus_read_byte(cpld_client);
-+	if (val < 0)
-+		return val;
-+
-+	if (mux_mode == 1)
-+		val &= ~0x40;
-+	else
-+		val |= 0x40;
-+
-+	err = i2c_smbus_write_byte(cpld_client, val);
-+	if (err)
-+		return err;
-+
-+	value = __raw_readl(base + VIDCLKCTL_OFFSET);
-+	value &= ~(VCH2CLK_MASK);
-+	value &= ~(VCH3CLK_MASK);
-+
-+	if (hd >= 1)
-+		value |= (VCH2CLK_SYSCLK8 | VCH3CLK_SYSCLK8);
-+	else
-+		value |= (VCH2CLK_AUXCLK | VCH3CLK_AUXCLK);
-+
-+	__raw_writel(value, base + VIDCLKCTL_OFFSET);
-+
-+	/* enable the clock */
-+	value = __raw_readl(base + VSCLKDIS_OFFSET);
-+	value &= ~(VIDCH3CLK | VIDCH2CLK);
-+	__raw_writel(value, base + VSCLKDIS_OFFSET);
-+
-+	return 0;
-+}
-+
-+static const struct vpif_subdev_info dm646x_vpif_subdev[] = {
-+	{
-+		.addr	= 0x2A,
-+		.name	= "adv7343",
-+	},
-+	{
-+		.addr	= 0x2C,
-+		.name	= "ths7303",
-+	},
-+};
-+
-+static const char *output[] = {
-+	"Composite",
-+	"Component",
-+	"S-Video",
-+};
-+
-+static struct vpif_config dm646x_vpif_config = {
-+	.set_clock	= set_vpif_clock,
-+	.subdevinfo	= dm646x_vpif_subdev,
-+	.subdev_count	= ARRAY_SIZE(dm646x_vpif_subdev),
-+	.output		= output,
-+	.output_count	= ARRAY_SIZE(output),
-+	.card_name	= "DM646x EVM",
-+};
-+
- static void __init evm_init_i2c(void)
- {
- 	davinci_init_i2c(&i2c_pdata);
- 	i2c_add_driver(&dm6467evm_cpld_driver);
- 	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));
-+	evm_init_cpld();
- }
- 
- static void __init davinci_map_io(void)
-@@ -333,6 +457,7 @@ static __init void evm_init(void)
- 
- 	soc_info->emac_pdata->phy_mask = DM646X_EVM_PHY_MASK;
- 	soc_info->emac_pdata->mdio_max_freq = DM646X_EVM_MDIO_FREQUENCY;
-+	dm646x_setup_vpif(&dm646x_vpif_config);
- }
- 
- static __init void davinci_dm646x_evm_irq_init(void)
-diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-davinci/dm646x.c
-index 8fa2803..a9b20e5 100644
---- a/arch/arm/mach-davinci/dm646x.c
-+++ b/arch/arm/mach-davinci/dm646x.c
-@@ -32,6 +32,15 @@
- #include "clock.h"
- #include "mux.h"
- 
-+#define DAVINCI_VPIF_BASE       (0x01C12000)
-+#define VDD3P3V_PWDN_OFFSET	(0x48)
-+#define VSCLKDIS_OFFSET		(0x6C)
-+
-+#define VDD3P3V_VID_MASK	(BIT_MASK(3) | BIT_MASK(2) | BIT_MASK(1) |\
-+					BIT_MASK(0))
-+#define VSCLKDIS_MASK		(BIT_MASK(11) | BIT_MASK(10) | BIT_MASK(9) |\
-+					BIT_MASK(8))
-+
- /*
-  * Device specific clocks
-  */
-@@ -686,6 +695,37 @@ static struct platform_device dm646x_dit_device = {
- 	.id	= -1,
- };
- 
-+static u64 vpif_dma_mask = DMA_BIT_MASK(32);
-+
-+static struct resource vpif_resource[] = {
-+	{
-+		.start	= DAVINCI_VPIF_BASE,
-+		.end	= DAVINCI_VPIF_BASE + 0x03fff,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	{
-+		.start = IRQ_DM646X_VP_VERTINT2,
-+		.end   = IRQ_DM646X_VP_VERTINT2,
-+		.flags = IORESOURCE_IRQ,
-+	},
-+	{
-+		.start = IRQ_DM646X_VP_VERTINT3,
-+		.end   = IRQ_DM646X_VP_VERTINT3,
-+		.flags = IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct platform_device vpif_display_dev = {
-+	.name		= "vpif_display",
-+	.id		= -1,
-+	.dev		= {
-+			.dma_mask 		= &vpif_dma_mask,
-+			.coherent_dma_mask	= DMA_BIT_MASK(32),
-+	},
-+	.resource	= vpif_resource,
-+	.num_resources	= ARRAY_SIZE(vpif_resource),
-+};
-+
- /*----------------------------------------------------------------------*/
- 
- static struct map_desc dm646x_io_desc[] = {
-@@ -814,6 +854,28 @@ void __init dm646x_init_mcasp1(struct snd_platform_data *pdata)
- 	platform_device_register(&dm646x_dit_device);
- }
- 
-+void dm646x_setup_vpif(struct vpif_config *config)
-+{
-+	unsigned int value;
-+	void __iomem *base = IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
-+
-+	value = __raw_readl(base + VSCLKDIS_OFFSET);
-+	value &= ~VSCLKDIS_MASK;
-+	__raw_writel(value, base + VSCLKDIS_OFFSET);
-+
-+	value = __raw_readl(base + VDD3P3V_PWDN_OFFSET);
-+	value &= ~VDD3P3V_VID_MASK;
-+	__raw_writel(value, base + VDD3P3V_PWDN_OFFSET);
-+
-+	davinci_cfg_reg(DM646X_STSOMUX_DISABLE);
-+	davinci_cfg_reg(DM646X_STSIMUX_DISABLE);
-+	davinci_cfg_reg(DM646X_PTSOMUX_DISABLE);
-+	davinci_cfg_reg(DM646X_PTSIMUX_DISABLE);
-+
-+	vpif_display_dev.dev.platform_data = config;
-+	platform_device_register(&vpif_display_dev);
-+}
-+
- void __init dm646x_init(void)
- {
- 	davinci_common_init(&davinci_soc_info_dm646x);
-diff --git a/arch/arm/mach-davinci/include/mach/dm646x.h b/arch/arm/mach-davinci/include/mach/dm646x.h
-index feb1e02..1ac424c 100644
---- a/arch/arm/mach-davinci/include/mach/dm646x.h
-+++ b/arch/arm/mach-davinci/include/mach/dm646x.h
-@@ -29,4 +29,28 @@ void __init dm646x_init_ide(void);
- void __init dm646x_init_mcasp0(struct snd_platform_data *pdata);
- void __init dm646x_init_mcasp1(struct snd_platform_data *pdata);
- 
-+void dm646x_video_init(void);
-+
-+struct vpif_output {
-+	u16 id;
-+	const char *name;
-+};
-+
-+struct vpif_subdev_info {
-+	unsigned short addr;
-+	const char *name;
-+};
-+
-+struct vpif_config {
-+	int (*set_clock)(int, int);
-+	const struct subdev_info *subdevinfo;
-+	int subdev_count;
-+	const char **output;
-+	int output_count;
-+	const char *card_name;
-+};
-+
-+
-+void dm646x_setup_vpif(struct vpif_config *config);
-+
- #endif /* __ASM_ARCH_DM646X_H */
+Regards,
+
+        Hans
+
 -- 
-1.5.6
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
