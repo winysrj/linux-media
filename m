@@ -1,117 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.210.202]:41572 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752946AbZGVBm4 convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1623 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751543AbZG3Gbz convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jul 2009 21:42:56 -0400
-Received: by yxe40 with SMTP id 40so985451yxe.33
-        for <linux-media@vger.kernel.org>; Tue, 21 Jul 2009 18:42:56 -0700 (PDT)
+	Thu, 30 Jul 2009 02:31:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Subject: Re: How to save number of times using memcpy?
+Date: Thu, 30 Jul 2009 08:31:32 +0200
+Cc: Laurent Pinchart <laurent.pinchart@skynet.be>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
+	v4l2_linux <linux-media@vger.kernel.org>,
+	Dongsoo Kim <dongsoo45.kim@samsung.com>,
+	=?utf-8?q?=C3=AB=C2=B0=E2=80=A2=C3=AA=C2=B2=C2=BD=C3=AB=C2=AF=C2=BC?=
+	<kyungmin.park@samsung.com>,
+	"jm105.lee@samsung.com" <jm105.lee@samsung.com>,
+	=?utf-8?q?=C3=AC=EF=BF=BD=C2=B4=C3=AC=E2=80=9E=C2=B8=C3=AB=C2=AC=C2=B8?=
+	<semun.lee@samsung.com>,
+	=?utf-8?q?=C3=AB=C5=92=E2=82=AC=C3=AC=EF=BF=BD=C2=B8=C3=AA=C2=B8=C2=B0?=
+	<inki.dae@samsung.com>,
+	=?utf-8?q?=C3=AA=C2=B9=E2=82=AC=C3=AD=CB=9C=E2=80=A2=C3=AC=C2=A4?=
+	 =?utf-8?q?=E2=82=AC?= <riverful.kim@samsung.com>
+References: <10799.62.70.2.252.1248852719.squirrel@webmail.xs4all.nl> <200907292352.00179.hverkuil@xs4all.nl> <A69FA2915331DC488A831521EAE36FE401450FAFD0@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE401450FAFD0@dlee06.ent.ti.com>
 MIME-Version: 1.0
-In-Reply-To: <4A6666CC.7020008@eyemagnet.com>
-References: <4A6666CC.7020008@eyemagnet.com>
-Date: Tue, 21 Jul 2009 21:42:54 -0400
-Message-ID: <829197380907211842p4c9886a3q96a8b50e58e63cbf@mail.gmail.com>
-Subject: Re: offering bounty for GPL'd dual em28xx support
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Steve Castellotti <sc@eyemagnet.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200907300831.39579.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 21, 2009 at 9:09 PM, Steve Castellotti<sc@eyemagnet.com> wrote:
-> Hello everyone-
+On Thursday 30 July 2009 00:05:49 Karicheri, Muralidharan wrote:
+> Hans,
 >
-> † †Apologies in advance for spamming the list, but we're after adding dual
-> device support for the existing, GPL'd em28xx tuner driver currently in the
-> mainline Linux kernel. We do not have this development resource in house and
-> had hoped perhaps someone on the list might be capable and interested (or
-> able to point us in the appropriate direction).
->
->
-> † †By way of more detail, it seems that multiple times in the past, other
-> users have also requested this feature, but it is still not currently
-> available in the current GPL'd driver. For some time support may have been
-> present in the "em28xx-new" driver, provided by Markus Rechberger, but I
-> have since been told it is "discontinued, and does not compile anymore with
-> the latest kernels."
->
->
-> † †This message thread as recently as April 9th, 2009, seems to indicate
-> interest is still present at the community level, but no resolution was
-> reached by the tail of the conversation:
->
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg04245.html
->
->
-> † †Going further back, it does seem that the em28xx-new driver at one point
-> successfully addressed this issue, so supporting multiple devices should be
-> possible with driver modification:
->
-> http://mcentral.de/pipermail/em28xx/2008-November/002111.html
->
->
-> † †We can confirm that a development system running Fedora 11 with the
-> latest stable kernel (2.6.29.5-191.fc11.i686.PAE), with identical em28xx
-> devices connected still exhibits the error message "v4l2: ioctl queue buffer
-> failed: No space left on device" when attempting to display video input on
-> two identical em28xx devices simultaneously.
->
-> † †On the other hand, display is successful through either device when
-> trying to display individually (with both still connected).
->
->
-> † †We are a small company, which relies on the Linux platform for the core
-> of our products and services. Occasionally a situation presents itself for
-> us to contribute back to the Open Source community (in however small a
-> fashion), either by releasing existing code or contracting a small amount of
-> work to be performed and subsequently released under the GPL. This is one
-> such instance.
->
->
-> † †If anyone is interested in contributing such work and is prepared to
-> quote for what they feel their time would be worth, please do not hesitate
-> to contact me.
->
-> † †Again, apologies if this message appears to be a misuse of the mailing
-> list, hopefully our intentions are understandable!
->
->
-> Cheers
->
->
-> --
->
-> Steve Castellotti
-> sc@eyemagnet.com
-> Technical Director
-> Eyemagnet Limited
-> http://www.eyemagnet.com
+> I am bit confused about your usage of "davinci". Are you referring to
+> vpfe capture driver and dm6467 display driver vs OMAP ?
 
-Hello Steve,
+Yes, the dm6467 display driver (drivers/media/video/davinci/vpif_display.c).
 
-The issue occurs with various different drivers.  Basically the issue
-is the device attempts to reserve a certain amount of bandwidth on the
-USB bus for the isoc stream, and in the case of analog video at
-640x480 this adds up to about 200Mbps.  As a result, connecting
-multiple devices can result in exceeding the available bandwidth on
-the USB bus.
+That driver allocates buffers in the vpif_probe() function, and only if the 
+caller wants more buffers in REQBUFS will the driver attempt to allocate 
+additional buffers. Just look at the source.
 
-Depending on your how many devices you are trying to connect, what
-your target capture resolution is, and whether you can put each device
-on its own USB bus will dictate what solution you can go with.
+> I know at least 
+> in these drivers it doesn‚Äôt allocate buffer at init time, but only on
+> REQBUF. I need to add this support (buffer allocation at init time) in
+> the driver. One way to allocate buffer in driver at init time is to use
+> dma_declare_coherent_memory() and pass physical memory address (outside
+> the kernel memory space) to this API. I am not aware of any other way of
+> doing this. Please let me know If there are alternate ways of doing this.
+>
+> Also which OMAP file I can refer to understand the implementation you are
+> referring to?
 
-I've done a considerable amount of work with the mainline em28xx
-driver, so if you would like to discuss your desired configuration
-further and what we might be able to do to accommodate those
-requirements (including possibly optimizing the driver to better
-support more devices), feel free to email me off-list.
+See the path to the vpif_display.c source above (from our v4l-dvb 
+repository). That implementation will work fine as long as the driver is 
+compiled into the kernel and not as a module.
+
+There is one disadvantage, though: the memory allocated is rounded up by the 
+kernel to the next power of two. Depending on the precise number and size 
+of the buffers this might lead to wasted memory.
 
 Regards,
 
-Devin
+	Hans
+
+>
+> Murali Karicheri
+> Software Design Engineer
+> Texas Instruments Inc.
+> Germantown, MD 20874
+> email: m-karicheri2@ti.com
+>
+> >-----Original Message-----
+> >From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> >owner@vger.kernel.org] On Behalf Of Hans Verkuil
+> >Sent: Wednesday, July 29, 2009 5:52 PM
+> >To: Karicheri, Muralidharan
+> >Cc: Laurent Pinchart; Mauro Carvalho Chehab; Dongsoo, Nathaniel Kim;
+> >v4l2_linux; Dongsoo Kim; √´¬∞‚Ä¢√™¬≤¬Ω√´¬Ø¬º; jm105.lee@samsung.com; √¨ÔøΩ¬¥√¨‚Äû¬∏√´¬¨¬∏;
+> >√´≈í‚Ç¨√¨ÔøΩ¬∏√™¬∏¬∞; √™¬π‚Ç¨√≠Àú‚Ä¢√¨¬§‚Ç¨
+> >Subject: Re: How to save number of times using memcpy?
+> >
+> >On Wednesday 29 July 2009 21:06:17 Karicheri, Muralidharan wrote:
+> >> Hans,
+> >>
+> >> >True. However, my experience is that this approach isn't needed in
+> >> > most cases as long as the v4l driver is compiled into the kernel. In
+> >> > that case it is called early enough in the boot sequence that there
+> >> > is still enough unfragmented memory available. This should
+> >> > definitely be the default case for drivers merged into v4l-dvb.
+> >>
+> >> In my understanding, the buffer is allocated in the video buffer layer
+> >> when driver makes the videobuf_reqbufs() call.
+> >
+> >That depends completely on the driver implementation. In the case of the
+> >davinci driver it will allocate memory for X buffers when the driver is
+> >first initialized and it will use those when the application calls
+> > reqbufs. If the app wants more than X buffers the driver will attempt
+> > to dynamically allocate additional buffers, but those are usually hard
+> > to obtain.
+> >
+> >In my experience there is no problem for the driver to allocate the
+> >required
+> >memory if it is done during driver initialization and if the driver is
+> >compiled into the kernel.
+> >
+> >> Since this happens after
+> >> the kernel is up, this is indeed a serious issue when we require HD
+> >> resolution buffers. When I have tested vpfe capture from MT9T031 with
+> >> 2048x1536 resolution buffer, the video buffer layer gives an oops due
+> >> to failure to allocate buffer( I think video buffer layer is not
+> >> handling error case when there are not enough buffers to allocate).
+> >> Since buffer allocation happens very late (not at initialization), it
+> >> is unlikely to succeed due to fragmentation issue.
+> >
+> >That is really a driver problem: omap should use the same allocation
+> > scheme as davinci does. That works pretty reliably. Of course, if
+> > someone tries to squeeze the last drop out of their system, then they
+> > still may have to use nasty tricks to get it to work (like using the
+> > mem= kernel option). But such tricks are a last resort in my opinion.
+> >
+> >> So I have added support for USERPTR
+> >> IO in vpfe capture to handle high resolution capture. This requires a
+> >> kernel module to allocate contiguous buffer and the same is returned
+> >> to application using an IOCTL. The physical/logical address can then
+> >> be given to driver through USERPTR IO.
+> >
+> >What exactly is the point of doing this? I gather it is used to pass the
+> >same physical memory from e.g. a capture device to e.g. a resizer
+> > device, right? Otherwise I see no benefit to doing this as opposed to
+> > regular mmap I/O.
+> >
+> >Regards,
+> >
+> >	Hans
+> >
+> >> Another way this can be done, when using mmap IO, is to allocate
+> >> device memory (I have not tried it myself, but this seems to work in
+> >> SOC Camera drivers) using dma_declare_coherent_memory() (Thanks to
+> >> Guennadi Liakhovetski for the suggestion). This function takes
+> >> physical memory address outside the kernel memory space. Then when
+> >> dma_alloc_coherent() is called by video buffer layer, the buffer is
+> >> allocated from the above pre-allocated device memory and will succeed
+> >> always. But for this, the target architecture require support for
+> >> consistent memory allocation.
+> >>
+> >> Murali
+> >>
+> >> >Regards,
+> >> >
+> >> >        Hans
+> >> >
+> >> >--
+> >> >Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> >> >
+> >> >--
+> >> >To unsubscribe from this list: send the line "unsubscribe
+> >> > linux-media" in the body of a message to majordomo@vger.kernel.org
+> >> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> >> in the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> >--
+> >Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+> >--
+> >To unsubscribe from this list: send the line "unsubscribe linux-media"
+> > in the body of a message to majordomo@vger.kernel.org
+> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> ˇÙË∫{.n«+â∑üÆâ≠Ü+%äÀˇ±È›∂•äwˇ∫{.n«+â∑•ä{±˛gù
+>âØ‚ûÿ^nár°ˆ¶zÀÅÎhô®Ë≠⁄&£˚‡zø‰zπﬁó˙+Ä +zf£¢∑hÌØø
+Ìª≠Øø
+>Ì∫öàß~Ü≠Ü€iˇˇÔÅÍˇëÍÁz_ËÆÊj:+vâ®˛)ﬂ£¯m
+
+
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
