@@ -1,52 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:53489 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753321AbZG2WzA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jul 2009 18:55:00 -0400
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Subject: Re: How to save number of times using memcpy?
-Date: Thu, 30 Jul 2009 00:56:31 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
-	"v4l2_linux" <linux-media@vger.kernel.org>,
-	Dongsoo Kim <dongsoo45.kim@samsung.com>,
-	=?euc-kr?q?=B9=DA=B0=E6=B9=CE?= <kyungmin.park@samsung.com>,
-	"jm105.lee@samsung.com" <jm105.lee@samsung.com>,
-	=?euc-kr?q?=C0=CC=BC=BC=B9=AE?= <semun.lee@samsung.com>,
-	=?euc-kr?q?=B4=EB=C0=CE=B1=E2?= <inki.dae@samsung.com>,
-	=?euc-kr?q?=B1=E8=C7=FC=C1=D8?= <riverful.kim@samsung.com>
-References: <5e9665e10907271756l114f6e6ekeefa04d976b95c66@mail.gmail.com> <200907292106.11862.laurent.pinchart@skynet.be> <A69FA2915331DC488A831521EAE36FE401450FAF9A@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE401450FAF9A@dlee06.ent.ti.com>
+Received: from mail.gmx.net ([213.165.64.20]:45322 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750903AbZG3SXW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jul 2009 14:23:22 -0400
+Date: Thu, 30 Jul 2009 20:23:36 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Valentin Longchamp <valentin.longchamp@epfl.ch>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	"m-karicheri2@ti.com" <m-karicheri2@ti.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
+	Darius Augulis <augulis.darius@gmail.com>
+Subject: Re: [PATCH 0/4] soc-camera: cleanup + scaling / cropping API fix
+In-Reply-To: <4A71A159.60903@epfl.ch>
+Message-ID: <Pine.LNX.4.64.0907302019270.6813@axis700.grange>
+References: <Pine.LNX.4.64.0907291640010.4983@axis700.grange> <4A71A159.60903@epfl.ch>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="euc-kr"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907300056.32787.laurent.pinchart@skynet.be>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 29 July 2009 23:37:16 Karicheri, Muralidharan wrote:
-> Laurent,
->
-> Ok, now I understand how /dev/mem works. This should works as well. But one
-> of our apps engineer mentioned some problems in using /dev/mem related to
-> mmap. Did you encounter any issues while using this method?
+On Thu, 30 Jul 2009, Valentin Longchamp wrote:
 
-I haven't tried to myself, it's just an idea that I'm throwing in the 
-discussion.
+> Hi Guennadi,
+> 
+> Guennadi Liakhovetski wrote:
+> > Hi all
+> > 
+> > here goes a new iteration of the soc-camera scaling / cropping API
+> > compliance fix. In fact, this is only the first _complete_ one, the previous
+> > version only converted one platform - i.MX31 and one camera driver -
+> > MT9T031. This patch converts all soc-camera drivers. The most difficult one
+> > is the SuperH driver, since it is currently the only host driver
+> > implementing own scaling and cropping on top of those of sensor drivers. The
+> > first three patches in the series are purely cosmetic, unifying device
+> > objects, used in dev_dbg, dev_info... functions. These patches extend the
+> > patch series uploaded at
+> > http://download.open-technology.de/soc-camera/20090701/ with the actual
+> > scaling / cropping patch still in
+> > http://download.open-technology.de/testing/. The series is still based on
+> > the git://git.pengutronix.de/git/imx/linux-2.6.git (now gone) for-rmk
+> > branch, but the i.MX31 patches, that my patch-series depends on, are now in
+> > the mainline, so, I will be rebasing the stack soon. In the meantime, I'm
+> > afraid, it might require some fiddling to test the stack.
+> 
+> I'd love to give your patches a try. But the fiddling looks very hard for me
+> ... patch 0010 does not apply correctly for me, and a 130K patch to do by hand
+> is .. looooong.
 
-> The driver is basically written to allocate multiple pools and buffers per
-> pool to satisfies various memory allocation requirements inside our TI SDK.
+Ok, a rebased patch set is under 
 
-Are you referring to the cmemk driver ? It seems to really be a quick hack to 
-short-circuit all the Linux kernel memory management infrastructure and let 
-userspace allocate physical memory from a private pool of reserved SDRAM. I'd 
-be quite surprised if something like that ever ends up in mainline.
+http://download.open-technology.de/soc-camera/20090730/
 
-Regards,
+now based on 2.6.31-rc4. Notice, all patches are now in the above 
+directory, .../testing is empty again.
 
-Laurent Pinchart
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
