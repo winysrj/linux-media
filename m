@@ -1,24 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n63DsO2O020954
-	for <video4linux-list@redhat.com>; Fri, 3 Jul 2009 09:54:24 -0400
-Received: from mail-gx0-f221.google.com (mail-gx0-f221.google.com
-	[209.85.217.221])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n63Ds7l3029038
-	for <video4linux-list@redhat.com>; Fri, 3 Jul 2009 09:54:07 -0400
-Received: by gxk21 with SMTP id 21so1340909gxk.3
-	for <video4linux-list@redhat.com>; Fri, 03 Jul 2009 06:54:07 -0700 (PDT)
-Date: Fri, 3 Jul 2009 06:53:51 -0400
-From: Douglas Schilling Landgraf <dougsland@gmail.com>
-To: Hugo <hugo@digitalspirit.org>
-Message-ID: <20090703065351.3eb4a9c9@gmail.com>
-In-Reply-To: <4A4DCD9C.3090002@digitalspirit.org>
-References: <4A4DCD9C.3090002@digitalspirit.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n6UDiUSY031747
+	for <video4linux-list@redhat.com>; Thu, 30 Jul 2009 09:44:30 -0400
+Received: from mail-yw0-f199.google.com (mail-yw0-f199.google.com
+	[209.85.211.199])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n6UDiFvH005198
+	for <video4linux-list@redhat.com>; Thu, 30 Jul 2009 09:44:15 -0400
+Received: by ywh37 with SMTP id 37so696636ywh.28
+	for <video4linux-list@redhat.com>; Thu, 30 Jul 2009 06:44:15 -0700 (PDT)
+Message-ID: <4A71A3A4.4030000@gmail.com>
+Date: Thu, 30 Jul 2009 09:44:04 -0400
+From: "buhochileno@gmail.com" <buhochileno@gmail.com>
+MIME-Version: 1.0
+CC: V4L Mailing List <video4linux-list@redhat.com>
+References: <1244577481.32457.1319583459@webmail.messagingengine.com>	
+	<1246654555282-3203325.post@n2.nabble.com>	
+	<1246882966.1165.1323684945@webmail.messagingengine.com>	
+	<4A7058FA.4060409@gmail.com>	
+	<829197380907290734l175a2c18sc76ae82b1f5d2eb@mail.gmail.com>	
+	<829197380907290742t678039al95c800e9a8c8c22e@mail.gmail.com>	
+	<4A706591.2090707@gmail.com>	
+	<829197380907290820j2ed4d4a0ycdccf8ffebd992ca@mail.gmail.com>	
+	<4A71A11A.8070903@gmail.com>
+	<829197380907300640g2b0df1ddm31cdef61c4565d25@mail.gmail.com>
+In-Reply-To: <829197380907300640g2b0df1ddm31cdef61c4565d25@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: em28xx device problem since 2.6.30 kernel
+Subject: Re: KWorld VS-USB2800D recognized as PointNix Intra-Oral Camera -
+ No 	Composite Input
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,154 +39,31 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 03 Jul 2009 11:21:32 +0200
-Hugo <hugo@digitalspirit.org> wrote:
 
-> Hi,
-> 
-> I have a  em28xx based device : Pinnacle PCTV USB 2 worked great
-> before kernel 2.6.30
-> On 2.6.30 and 2.6.31 kernel, device don't work...
-> 
+>> As a aside note, and probably this was asked before, do you know any way to
+>> set witch input be used as defoult in a device?, in my case xawtv allways
+>> start trying to use the S-video input and I have to change to the composite
+>> one, I now that xawtv have a config file in witch I can set something like
+>> that, but that is just for xawtv, I mean a more permanent way, may be
+>> setting something in the driver?, some dirty cheat in the code? ,
+>>
+>>     
+> Well, if your device is always connected, you could do something like
+> run v4l2-ctl in a init script which sets the input.  Or if you don't
+>   
+Thanks a lot Devin, I going to try with v4l2-ctl never use that before...
+> care about using a custom compile of the v4l-dvb code, you can always
+> reorder the inputs in the board entry in em28xx-cards.c.
+>   
+thats the file :-) ...
+> Unfortunately, there is not currently any sort of modprobe option to
+> set the default device.
+>
+> Devin
+>   
 
-Could you please try the current em28xx code?
+Mauricio
 
-$ hg clone http://www.linuxtv.org/hg/v4l-dvb
-$ cd v4l-dvb
-$ make
-$ make rmmod
-$ make install
-$ modprobe em28xx
-
-Thanks,
-Douglas
-
-> dmesg :
-> 
-> [ 1822.572852] em28xx: New device Pinnacle Systems GmbH PCTV USB2 PAL
-> @ 480 Mbps (2304:0208, interface 0, class 0)
-> [ 1822.572856] em28xx #0: Identified as Pinnacle PCTV USB 2 (card=3)
-> [ 1822.573037] em28xx #0: chip ID is em2820
-> [ 1822.678037] em28xx #0: i2c eeprom 00: 1a eb 67 95 04 23 08 02 10 00
-> 1e 03 98 1e 6a 2e
-> [ 1822.678049] em28xx #0: i2c eeprom 10: 00 00 06 57 6e 00 00 00 8e 00
-> 00 00 07 00 00 00
-> [ 1822.678059] em28xx #0: i2c eeprom 20: 16 00 01 00 00 00 00 00 00 00
-> 00 00 00 00 00 00
-> [ 1822.678250] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 10 01
-> 00 00 00 00 00 00
-> [ 1822.678261] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00
-> 00 00 00 00 00 00
-> [ 1822.678271] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00
-> 00 00 00 00 00 00
-> [ 1822.678280] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00
-> 2e 03 50 00 69 00
-> [ 1822.678290] em28xx #0: i2c eeprom 70: 6e 00 6e 00 61 00 63 00 6c 00
-> 65 00 20 00 53 00
-> [ 1822.678300] em28xx #0: i2c eeprom 80: 79 00 73 00 74 00 65 00 6d 00
-> 73 00 20 00 47 00
-> [ 1822.678310] em28xx #0: i2c eeprom 90: 6d 00 62 00 48 00 00 00 1e 03
-> 50 00 43 00 54 00
-> [ 1822.678320] em28xx #0: i2c eeprom a0: 56 00 20 00 55 00 53 00 42 00
-> 32 00 20 00 50 00
-> [ 1822.678330] em28xx #0: i2c eeprom b0: 41 00 4c 00 00 00 06 03 31 00
-> 00 00 00 00 00 00
-> [ 1822.678339] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00
-> 00 00 00 00 00 00
-> [ 1822.678349] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00
-> 00 00 00 00 00 00
-> [ 1822.678359] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00
-> 00 00 00 00 00 00
-> [ 1822.678369] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 0e 5d
-> 62 39 03 c6 00 0b
-> [ 1822.678381] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash =
-> 0x1d1a34bf [ 1822.678383] em28xx #0: EEPROM info:
-> [ 1822.678385] em28xx #0:    AC97 audio (5 sample rates)
-> [ 1822.678386] em28xx #0:    500mA max power
-> [ 1822.678389] em28xx #0:    Table at 0x06, strings=0x1e98, 0x2e6a,
-> 0x0000 [ 1822.904387] saa7115 4-0025: saa7113 found (1f7113d0e100000)
-> @ 0x4a (em28xx #0)
-> [ 1823.274678] tuner 4-0043: chip found @ 0x86 (em28xx #0)
-> [ 1823.277509] tda9887 4-0043: creating new instance
-> [ 1823.277513] tda9887 4-0043: tda988[5/6/7] found
-> [ 1823.283317] tda9887 4-0043: destroying instance
-> [ 1823.287462] tuner-simple 4-0043: creating new instance
-> [ 1823.287466] tuner-simple 4-0043: type set to 38 (Philips PAL/SECAM
-> multi (FM1216ME MK3))
-> [ 1823.287474] BUG: unable to handle kernel NULL pointer dereference
-> at 00000020
-> [ 1823.287478] IP: [<f873ea02>] tda9887_set_params+0xd/0x2a [tda9887]
-> [ 1823.287486] *pde = 00000000
-> [ 1823.287489] Oops: 0002 [#1] PREEMPT SMP
-> [ 1823.287493] last sysfs file: /sys/module/v4l2_common/initstate
-> [ 1823.287495] Modules linked in: tuner_simple tuner_types tda9887
-> tda8290 tuner saa7115 em28xx(+) ir_common v4l2_common videobuf_vmalloc
-> videobuf_core tveeprom dvb_core nvidia(P) sco bnep rfcomm l2cap
-> snd_seq_dummy snd_seq_oss snd_seq_midi_event snd_seq snd_seq_device
-> snd_pcm_oss snd_mixer_oss ext4 jbd2 crc16 ide_cd_mod
-> snd_hda_codec_realtek snd_hda_intel snd_hda_codec snd_pcm snd_timer
-> btusb snd bluetooth soundcore pwc ftdi_sio usbserial floppy jmicron
-> ide_core r8169 videodev v4l1_compat snd_page_alloc
-> [ 1823.287535]
-> [ 1823.287538] Pid: 25833, comm: modprobe Tainted: P
-> (2.6.30.1 #4) EX58-UD5
-> [ 1823.287542] EIP: 0060:[<f873ea02>] EFLAGS: 00010283 CPU: 1
-> [ 1823.287546] EIP is at tda9887_set_params+0xd/0x2a [tda9887]
-> [ 1823.287549] EAX: f73bfc00 EBX: 00000000 ECX: 00000002 EDX: dab01c28
-> [ 1823.287552] ESI: f73bfc00 EDI: dab01c3c EBP: dab01bfc ESP: dab01bf8
-> [ 1823.287555]  DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
-> [ 1823.287558] Process modprobe (pid: 25833, ti=dab00000 task=f6b84020
-> task.ti=dab00000)
-> [ 1823.287561] Stack:
-> [ 1823.287562]  00000000 dab01c48 f86e33cf 00000005 00000000 00000000
-> dab01c28 dab01c44
-> [ 1823.287569]  f87bc774 f73bfc00 00000001 00000002 000002c0 00000002
-> 00000001 00000000
-> [ 1823.287575]  00000000 f87bc3c4 f73bfc00 f86e61bf dab01c80 f86e4da3
-> f7316938 f73bfc00
-> [ 1823.287583] Call Trace:
-> [ 1823.287585]  [<f86e33cf>] ? set_freq+0x220/0x267 [tuner]
-> [ 1823.287592]  [<f87bc774>] ? simple_tuner_attach+0x3b0/0x3bf
-> [tuner_simple]
-> [ 1823.287599]  [<f87bc3c4>] ? simple_tuner_attach+0x0/0x3bf
-> [tuner_simple] [ 1823.287605]  [<f86e4da3>] ? set_type+0x612/0x8de
-> [tuner] [ 1823.287611]  [<f86e55b5>] ? tuner_s_type_addr+0x86/0xd5
-> [tuner] [ 1823.287618]  [<f871f5cc>] ? em28xx_tuner_callback+0x0/0x21
-> [em28xx] [ 1823.287630]  [<f871f3ee>] ? em28xx_card_setup+0x656/0x834
-> [em28xx] [ 1823.287642]  [<c056a537>] ? printk+0xf/0x11
-> [ 1823.287648]  [<f871eb2b>] ? em28xx_i2c_register+0x324/0x365
-> [em28xx] [ 1823.287660]  [<f871f5cc>] ?
-> em28xx_tuner_callback+0x0/0x21 [em28xx] [ 1823.287671]
-> [<f8720086>] ? em28xx_usb_probe+0x564/0x6e2 [em28xx] [ 1823.287685]
-> [<c0428f96>] ? usb_probe_interface+0xe2/0x12b [ 1823.287691]
-> [<c03df78c>] ? driver_probe_device+0x79/0x105 [ 1823.287696]
-> [<c03df85b>] ? __driver_attach+0x43/0x5f [ 1823.287700]
-> [<c03df1a6>] ? bus_for_each_dev+0x3d/0x67 [ 1823.287705]
-> [<c03df665>] ? driver_attach+0x14/0x16 [ 1823.287709]  [<c03df818>] ?
-> __driver_attach+0x0/0x5f [ 1823.287713]  [<c03dec2b>] ?
-> bus_add_driver+0xfb/0x21f [ 1823.287717]  [<c03dfa9f>] ?
-> driver_register+0x8b/0xe8 [ 1823.287721]  [<c0237b9a>] ?
-> enqueue_entity+0x110/0x118 [ 1823.287726]  [<c0428d9f>] ?
-> usb_register_driver+0x66/0xc0 [ 1823.287731]  [<f8039018>] ?
-> em28xx_module_init+0x18/0x3c [em28xx] [ 1823.287740]  [<c0201137>] ?
-> do_one_initcall+0x4a/0x10c [ 1823.287745]  [<f8039000>] ?
-> em28xx_module_init+0x0/0x3c [em28xx] [ 1823.287754]  [<c02540d0>] ?
-> __blocking_notifier_call_chain+0x40/0x4c [ 1823.287760]
-> [<c02607f1>] ? sys_init_module+0x87/0x18b [ 1823.287765]
-> [<c021cb30>] ? sysenter_do_call+0x12/0x22 [ 1823.287771] Code: f6 ff
-> ff 31 c0 5d c3 8b 90 2c 02 00 00 55 89 e5 c7 42 20 00 00 00 80 e8 6a
-> f6 ff ff 5d c3 55 89 e5 53 8b 98 2c 02 00 00 8b 4a 04 <89> 4b 20 8b
-> 4a 08 89 4b 24 8b 4a 10 8b 52 0c 89 4b 2c 89 53 28 [ 1823.287807]
-> EIP: [<f873ea02>] tda9887_set_params+0xd/0x2a [tda9887] SS:ESP
-> 0068:dab01bf8 [ 1823.287814] CR2: 0000000000000020
-> [ 1823.287817] ---[ end trace b1fd98e6e01f3d35 ]---
-> 
-> 
-> Anynone have some idea ?
-> Thank you !
-> 
-> Regards
-> 
 
 --
 video4linux-list mailing list
