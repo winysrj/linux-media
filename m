@@ -1,35 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:42745 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755828AbZGNW2c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jul 2009 18:28:32 -0400
-Content-Type: text/plain; charset="iso-8859-1"
-Date: Wed, 15 Jul 2009 00:28:29 +0200
-From: "Hans Werner" <HWerner4@gmx.de>
-Message-ID: <20090714222829.51390@gmx.net>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1387 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750938AbZG3O0G (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jul 2009 10:26:06 -0400
+Message-ID: <de79b8390a2a633a34370bcc666d2914.squirrel@webmail.xs4all.nl>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE401450FB0C7@dlee06.ent.ti.com>
+References: <10799.62.70.2.252.1248852719.squirrel@webmail.xs4all.nl>
+    <200907292352.00179.hverkuil@xs4all.nl>
+    <A69FA2915331DC488A831521EAE36FE401450FAFD0@dlee06.ent.ti.com>
+    <200907300831.39579.hverkuil@xs4all.nl>
+    <A69FA2915331DC488A831521EAE36FE401450FB0C7@dlee06.ent.ti.com>
+Date: Thu, 30 Jul 2009 16:26:05 +0200
+Subject: RE: How to save number of times using memcpy?
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Cc: "Laurent Pinchart" <laurent.pinchart@skynet.be>,
+	"Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
+	"v4l2_linux" <linux-media@vger.kernel.org>,
+	"Dongsoo Kim" <dongsoo45.kim@samsung.com>,
+	=?iso-8859-1?Q?=C3=AB=C2=B0=E2=80=A2=C3=AA=C2=B2=C2=BD=C3=AB=C2=AF=C2?=
+	 =?iso-8859-1?Q?=BC?= <kyungmin.park@samsung.com>,
+	"jm105.lee@samsung.com" <jm105.lee@samsung.com>,
+	=?iso-8859-1?Q?=C3=AC=EF=BF=BD=C2=B4=C3=AC=E2=80=9E=C2=B8=C3=AB=C2=AC?=
+	 =?iso-8859-1?Q?=C2=B8?= <semun.lee@samsung.com>,
+	=?iso-8859-1?Q?=C3=AB=C5=92=E2=82=AC=C3=AC=EF=BF=BD=C2=B8=C3=AA=C2=B8?=
+	 =?iso-8859-1?Q?=C2=B0?= <inki.dae@samsung.com>,
+	=?iso-8859-1?Q?=C3=AA=C2=B9=E2=82=AC=C3=AD=CB=9C=E2=80=A2=C3=AC=C2=A4?=
+	 =?iso-8859-1?Q?=E2=82=AC?= <riverful.kim@samsung.com>
 MIME-Version: 1.0
-Subject: DiSEqC 2.x and HVR-4000
-To: linux-media@vger.kernel.org
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As far as I know the hardware of the Hauppauge HVR-4000 (cx24114 demod)
-supports DiSEqC 2.x, but there seems to be no implementation
-of diseqc_recv_slave_reply to obtain the messages from the slaves.
-DiSEqC 1.x works fine as far as I can tell.
 
-Grepping for slave_reply implementations in v4l-dvb only shows s5h1420, 
-stb0899, stv0900 and stv090x.
+> Hans,
+>
+> I don't see the code you are referring to. Here is the probe() from the
+> next branch of v4l-dvb. Could you point out the code that does the
+> allocation of frame buffers ? I had used this code as reference when
+> developing vpfe capture driver.
+>
+> Murali
 
-Can anyone help?
+My apologies, I got it mixed up with older versions of this driver. I see
+that it now uses videobuf-dma-contig. This is going to be a real problem
+since this makes it impossible (or at least very hard) to allocate memory
+up front. I'm no expert on videobuf, but this is something that should be
+addressed, especially in the dma-contig case.
 
-Thanks,
-Hans
+Regards,
 
+          Hans
 
 -- 
-Release early, release often.
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
-Neu: GMX Doppel-FLAT mit Internet-Flatrate + Telefon-Flatrate
-für nur 19,99 Euro/mtl.!* http://portal.gmx.net/de/go/dsl02
