@@ -1,86 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:39432 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751362AbZGXQsM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2009 12:48:12 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv10 0/8] FM Transmitter (si4713) and another changes
-Date: Fri, 24 Jul 2009 19:37:20 +0300
-Message-Id: <1248453448-1668-1-git-send-email-eduardo.valentin@nokia.com>
+Received: from mail.gmx.net ([213.165.64.20]:44757 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752071AbZG3KeH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jul 2009 06:34:07 -0400
+From: Tobias Lorenz <tobias.lorenz@gmx.net>
+To: Joonyoung Shim <jy0922.shim@samsung.com>
+Subject: Re: [PATCH v2 0/4] radio-si470x: separate usb and i2c interface
+Date: Thu, 30 Jul 2009 12:26:10 +0200
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	kyungmin.park@samsung.com, klimov.linux@gmail.com
+References: <4A5C137A.2010104@samsung.com>
+In-Reply-To: <4A5C137A.2010104@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200907301226.10965.tobias.lorenz@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello guys,
+Hi,
 
- Here is the version 10 of fm transmitter work.
+> I send the radio-si470x patches worked on http://linuxtv.org/hg/v4l-dvb.
+> The patches is updated to version 2.
 
- The difference between previous version is that now it is
-based only on http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-strctrl,
-which contains the string support for our extended control api.
+The patchset looks good. I'll give my feedback in the following mails.
 
-Also, I've added a new extended control on the fm tx class:
-rds deviation. This control was missing from previous versions.
-It used to be set to default value. But I believe it would be good
-to have it configurable.
+> Tobias informed me the base code for seperating at 
+> http://linuxtv.org/hg/~tlorenz/v4l-dvb of Tobias repository in above
+> mail, i based on it, but it cannot find now at Tobias repository.
 
-Another minor change is about s_frequency call back. In the
-conversion from sysfs to extended control only interfaces,
-I forgot to keep the range check. That was missing on version #9.
-Now it is back.
+Before sending a pull request, I usually clean up the archive from any other patches.
+But nevertheless, you and me still have the I2C patches. They now reached a quality to finally bring them in the kernel.
+Good work.
 
-I've removed the v4l2-ctl changes, as they are no longer needed
-due to last re-factoring which happened there. All ext controls
-seams to work with v4l2-ctl, including string ones.
+> The patch 1/4 is for separating common and usb code.
+> The patch 2/4 is about using dev_* macro instead of printk.
+> The patch 3/4 is about adding disconnect check function for i2c interface.
+> The patch 4/4 is for supporting si470x i2c interface.
 
-I've also updated the documentation, including the new control
-and the references for character encoding of ps name and radio text.
-
-Besides that, every thing is the same.
-
-There is a needed change in v4l2-ctl regarding set/get frequency.
-Nowadays, v4l2-ctl queries only the tuner and forgets about modulators.
-That I will send an initial proposal in a separated patch (I believe
-it is not related to this series anymore).
-
-BR,
-
-Eduardo Valentin (8):
-  v4l2-subdev.h: Add g_modulator callbacks to subdev api
-  v4l2: video device: Add V4L2_CTRL_CLASS_FM_TX controls
-  v4l2: video device: Add FM_TX controls default configurations
-  v4l2-spec: Add documentation description for FM TX extended control
-    class
-  FMTx: si4713: Add files to add radio interface for si4713
-  FMTx: si4713: Add files to handle si4713 i2c device
-  FMTx: si4713: Add Kconfig and Makefile entries
-  FMTx: si4713: Add document file
-
- linux/Documentation/video4linux/si4713.txt |  175 +++
- linux/drivers/media/radio/Kconfig          |   22 +
- linux/drivers/media/radio/Makefile         |    2 +
- linux/drivers/media/radio/radio-si4713.c   |  367 +++++
- linux/drivers/media/radio/si4713-i2c.c     | 2034 ++++++++++++++++++++++++++++
- linux/drivers/media/radio/si4713-i2c.h     |  228 ++++
- linux/drivers/media/video/v4l2-common.c    |   63 +-
- linux/include/linux/videodev2.h            |   34 +
- linux/include/media/radio-si4713.h         |   30 +
- linux/include/media/si4713.h               |   49 +
- linux/include/media/v4l2-subdev.h          |    2 +
- v4l2-spec/Makefile                         |    1 +
- v4l2-spec/controls.sgml                    |  210 +++
- 13 files changed, 3216 insertions(+), 1 deletions(-)
- create mode 100644 linux/Documentation/video4linux/si4713.txt
- create mode 100644 linux/drivers/media/radio/radio-si4713.c
- create mode 100644 linux/drivers/media/radio/si4713-i2c.c
- create mode 100644 linux/drivers/media/radio/si4713-i2c.h
- create mode 100644 linux/include/media/radio-si4713.h
- create mode 100644 linux/include/media/si4713.h
-
+Bye,
+Toby
