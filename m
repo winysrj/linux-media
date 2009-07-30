@@ -1,43 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:37239 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751106AbZGQU3i (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jul 2009 16:29:38 -0400
-Subject: [PATCH 0/3] ir-kbd-i2c, cx18: IR devices for CX23418 boards
-From: Andy Walls <awalls@radix.net>
-To: Jean Delvare <khali@linux-fr.org>, linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>, Mark Lord <lkml@rtr.ca>,
-	Mike Isely <isely@pobox.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Janne Grunau <j@jannau.net>
-Content-Type: text/plain
-Date: Fri, 17 Jul 2009 16:29:45 -0400
-Message-Id: <1247862585.10066.16.camel@palomino.walls.org>
-Mime-Version: 1.0
+Received: from fmmailgate02.web.de ([217.72.192.227]:54954 "EHLO
+	fmmailgate02.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751668AbZG3JtP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jul 2009 05:49:15 -0400
+Received: from smtp06.web.de (fmsmtp06.dlan.cinetic.de [172.20.5.172])
+	by fmmailgate02.web.de (Postfix) with ESMTP id 921F110EE94E4
+	for <linux-media@vger.kernel.org>; Thu, 30 Jul 2009 11:49:14 +0200 (CEST)
+Received: from [217.228.251.207] (helo=[172.16.99.2])
+	by smtp06.web.de with asmtp (TLSv1:AES256-SHA:256)
+	(WEB.DE 4.110 #277)
+	id 1MWSG9-0006gm-00
+	for linux-media@vger.kernel.org; Thu, 30 Jul 2009 11:49:13 +0200
+Message-ID: <4A716C96.1080404@magic.ms>
+Date: Thu, 30 Jul 2009 11:49:10 +0200
+From: emagick@magic.ms
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: Cinergy T2 stopped working with kernel 2.6.30
+References: <4A61FD76.8010409@magic.ms>
+In-Reply-To: <4A61FD76.8010409@magic.ms>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jean,
+The more I look into this problem the stranger it becomes. I've compiled
+the kernel for different CPUs:
 
-The following patch series is my preliminary cut at getting the cx18
-bridge driver supported IR devices set up properly by the cx18 driver to
-allow use by ir-kbd-i2c, lirc_i2c, lirc_pvr150, and lirc_zilog for both
-old and new (>= 2.6.30) kernels.
+                  |    mplayer               mythtv
+-----------------+--------------------------------------------
+CONFIG_M486      |    works                 works
+CONFIG_M586      |    works                 cannot tune
+CONFIG_MCORE2    |    cannot tune           cannot tune
 
-They are:
+These results are for my Atom N270 board. On my Core2 board, the Cinergy T2 works
+all the time.
 
-1/3: ir-kbd-i2c: Allow use of ir-kdb-i2c internal get_key funcs and set ir_type
-2/3: cx18: Add i2c initialization for Z8F0811/Hauppage IR transceivers
-3/3: ir-kbd-i2c: Add support for Z8F0811/Hauppage IR transceivers
+By applying -march=i486 and -march=i586 to individual source files, I found
+out that dvb_frontend.c is the culprit.
 
-Please take a look and tell me what's wrong.  I put specific points of
-concern I have before each patch.
+By editing the assembly output for dvb_frontend.c, I found out that only
+dvb_frontend_swzigzag_autotune() needs to be compiled with CONFIG_M486 to
+make the Cinergy T2 work, everything else can be compiled with CONFIG_M586.
 
-If this works for both ir-kbd-i2c and lirc_*, then I can add similar
-logic to fix up ivtv (at least for Zilog Z8 microcontroller IR devices).
+Both compiled versions of dvb_frontend_swzigzag_autotune() look OK (but I
+haven't yet strictly verified the assembly code). Anyway, nothing in that
+code should make a difference on N270 vs. Core, except for timing. Adding
+NOPs doesn't seem to make a difference.
 
-Regards,
-Andy
-
+Any ideas? Could this be a CPU bug?
