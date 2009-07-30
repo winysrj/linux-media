@@ -1,115 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:46450 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932489AbZGPPpN (ORCPT
+Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197]:49261 "EHLO
+	mta2.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751143AbZG3NS1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jul 2009 11:45:13 -0400
-Date: Thu, 16 Jul 2009 12:45:06 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Lamarque Vieira Souza <lamarque@gmail.com>
-Cc: Antoine Jacquet <royale@zerezo.com>, linux-media@vger.kernel.org,
-	video4linux-list@redhat.com
-Subject: Re: [PATCH] Implement V4L2_CAP_STREAMING for zr364xx driver
-Message-ID: <20090716124506.26e7e6b0@pedra.chehab.org>
-In-Reply-To: <200907152054.56581.lamarque@gmail.com>
-References: <200907152054.56581.lamarque@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Thu, 30 Jul 2009 09:18:27 -0400
+Received: from steven-toths-macbook-pro.local
+ (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta2.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KNL0010NJMMB130@mta2.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Thu, 30 Jul 2009 09:18:27 -0400 (EDT)
+Date: Thu, 30 Jul 2009 09:18:22 -0400
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: SAA7164 - Analogue Support on HVR devices
+In-reply-to: <4A7176D4.2090401@nildram.co.uk>
+To: lotway@nildram.co.uk
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Message-id: <4A719D9E.20803@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <4A7176D4.2090401@nildram.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 15 Jul 2009 20:54:55 -0300
-Lamarque Vieira Souza <lamarque@gmail.com> escreveu:
+On 7/30/09 6:32 AM, Lou Otway wrote:
+>
+> First I'd like to say thanks to the maintainers of the various HVR
+> drivers, the amount of work that goes in is much appreciated.
+>
+> I notice from www.kernellabs.com that progress on the digital side for
+> SAA7164 devices is going well and a stable driver is nearly ready.
+>
+> I, like many people, would really like to have analogue support for
+> these devices, is there any news on when this functionality might be
+> available?
 
-> This patch implements V4L2_CAP_STREAMING for the zr364xx driver, by
-> converting the driver to use videobuf. This version is synced with v4l-dvb as 
-> of 15/Jul/2009.
-> 
-> Tested with Creative PC-CAM 880.
-> 
-> It basically:
-> . implements V4L2_CAP_STREAMING using videobuf;
-> 
-> . re-implements V4L2_CAP_READWRITE using videobuf;
-> 
-> . copies cam->udev->product to the card field of the v4l2_capability struct.
-> That gives more information to the users about the webcam;
-> 
-> . moves the brightness setting code from before requesting a frame (in
-> read_frame) to the vidioc_s_ctrl ioctl. This way the brightness code is
-> executed only when the application requests a change in brightness and
-> not before every frame read;
-> 
-> . comments part of zr364xx_vidioc_try_fmt_vid_cap that says that Skype + 
-> libv4l do not work.
-> 
-> This patch fixes zr364xx for applications such as mplayer,
-> Kopete+libv4l and Skype+libv4l can make use of the webcam that comes
-> with zr364xx chip.
-> 
-> Signed-off-by: Lamarque V. Souza <lamarque@gmail.com>
-> ---
-> 
-> diff -r c300798213a9 linux/drivers/media/video/zr364xx.c
-> --- a/linux/drivers/media/video/zr364xx.c	Sun Jul 05 19:08:55 2009 -0300
-> +++ b/linux/drivers/media/video/zr364xx.c	Wed Jul 15 20:50:34 2009 -0300
-> @@ -1,5 +1,5 @@
->  /*
-> - * Zoran 364xx based USB webcam module version 0.72
-> + * Zoran 364xx based USB webcam module version 0.73
->   *
->   * Allows you to use your USB webcam with V4L2 applications
->   * This is still in heavy developpement !
-> @@ -10,6 +10,8 @@
->   * Heavily inspired by usb-skeleton.c, vicam.c, cpia.c and spca50x.c drivers
->   * V4L2 version inspired by meye.c driver
->   *
-> + * Some video buffer code by Lamarque based on s2255drv.c and vivi.c drivers.
-> + *
+Thank you.
 
-Maybe the better example for it is em28xx-video, where we firstly used videobuf
-on usb devices.
+If you read back far enough with the SAA7164 related posts you'll see that 
+finalizing DTV is the primary focus, everything else is up for review once this 
+task is complete.
 
-> +static void free_buffer(struct videobuf_queue *vq, struct zr364xx_buffer 
-> *buf)
-> +{
-> +	DBG("%s\n", __func__);
-> +
-> +	/*Lamarque: is this really needed? Sometimes this blocks rmmod forever
-> +	 * after running Skype on an AMD64 system. */
-> +	/*videobuf_waiton(&buf->vb, 0, 0);*/
-
-Answering to your note, take a look at em28xx-video implementation:
-
-        /* We used to wait for the buffer to finish here, but this didn't work
-           because, as we were keeping the state as VIDEOBUF_QUEUED,
-           videobuf_queue_cancel marked it as finished for us.
-           (Also, it could wedge forever if the hardware was misconfigured.)
-
-           This should be safe; by the time we get here, the buffer isn't
-           queued anymore. If we ever start marking the buffers as
-           VIDEOBUF_ACTIVE, it won't be, though.
-        */
-        spin_lock_irqsave(&dev->slock, flags);
-        if (dev->isoc_ctl.buf == buf)
-                dev->isoc_ctl.buf = NULL;
-        spin_unlock_irqrestore(&dev->slock, flags);
-
-> +	if (pipe_info->state != 0) {
-> +		if (usb_submit_urb(pipe_info->stream_urb, GFP_KERNEL))
-> +			dev_err(&cam->udev->dev, "error submitting urb\n");
-> +	} else {
-> +		DBG("read pipe complete state 0\n");
-> +	}
-
-Hmm...  for the usb_submit_urb() call that happens during IRQ context (while
-you're receiving stream), you need to use:
-        urb->status = usb_submit_urb(pipe_info->stream_urb, GFP_ATOMIC);
-
-otherwise, you may get the errors that Antoine is reporting
-
-
-
-Cheers,
-Mauro
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
