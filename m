@@ -1,29 +1,34 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n6OGAOKE009759
-	for <video4linux-list@redhat.com>; Fri, 24 Jul 2009 12:10:25 -0400
-Received: from mail-bw0-f216.google.com (mail-bw0-f216.google.com
-	[209.85.218.216])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n6OGA8Kv013856
-	for <video4linux-list@redhat.com>; Fri, 24 Jul 2009 12:10:08 -0400
-Received: by bwz12 with SMTP id 12so1493215bwz.3
-	for <video4linux-list@redhat.com>; Fri, 24 Jul 2009 09:10:08 -0700 (PDT)
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n6UFLNP8003734
+	for <video4linux-list@redhat.com>; Thu, 30 Jul 2009 11:21:24 -0400
+Received: from mail-yw0-f199.google.com (mail-yw0-f199.google.com
+	[209.85.211.199])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n6UFL85A026996
+	for <video4linux-list@redhat.com>; Thu, 30 Jul 2009 11:21:08 -0400
+Received: by ywh37 with SMTP id 37so801291ywh.28
+	for <video4linux-list@redhat.com>; Thu, 30 Jul 2009 08:21:08 -0700 (PDT)
+Message-ID: <4A71BA59.8030605@gmail.com>
+Date: Thu, 30 Jul 2009 11:20:57 -0400
+From: "buhochileno@gmail.com" <buhochileno@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20090724124825.672be2d3@pedra.chehab.org>
-References: <20090717174101.GB15611@vanheusden.com>
-	<20090723165929.64cf3933@pedra.chehab.org>
-	<20090723201823.GS11865@vanheusden.com>
-	<36c518800907240758k2a1d8e9btdd841323e4dc2492@mail.gmail.com>
-	<20090724150727.GB11865@vanheusden.com>
-	<20090724124825.672be2d3@pedra.chehab.org>
-Date: Fri, 24 Jul 2009 19:10:07 +0300
-Message-ID: <36c518800907240910m93f253cv19efbdf489e0fb1e@mail.gmail.com>
-From: vasaka@gmail.com
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: video4linux loopback device
+CC: V4L Mailing List <video4linux-list@redhat.com>
+References: <1244577481.32457.1319583459@webmail.messagingengine.com>	
+	<1246882966.1165.1323684945@webmail.messagingengine.com>	
+	<4A7058FA.4060409@gmail.com>	
+	<829197380907290734l175a2c18sc76ae82b1f5d2eb@mail.gmail.com>	
+	<829197380907290742t678039al95c800e9a8c8c22e@mail.gmail.com>	
+	<4A706591.2090707@gmail.com>	
+	<829197380907290820j2ed4d4a0ycdccf8ffebd992ca@mail.gmail.com>	
+	<4A71A11A.8070903@gmail.com>	
+	<829197380907300640g2b0df1ddm31cdef61c4565d25@mail.gmail.com>	
+	<4A71ABDB.2070100@gmail.com>
+	<829197380907300732q4cd9b684g8a6bc520f734ee0a@mail.gmail.com>
+In-Reply-To: <829197380907300732q4cd9b684g8a6bc520f734ee0a@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: Re: KWorld VS-USB2800D recognized as PointNix Intra-Oral Camera -
+ No 	Composite Input
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,67 +40,31 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Jul 24, 2009 at 6:48 PM, Mauro Carvalho
-Chehab<mchehab@infradead.org> wrote:
-> Em Fri, 24 Jul 2009 17:07:29 +0200
-> Folkert van Heusden <folkert@vanheusden.com> escreveu:
->
->> > >> > Any chance that the video4linux loopback device will be integrated in
->> > >> > the main video4linux distribution and included in the kernel?
->> > >> > http://www.lavrsen.dk/foswiki/bin/view/Motion/VideoFourLinuxLoopbackDevice
->> > >> > or
->> > >> > http://sourceforge.net/projects/v4l2vd/
->> > >> > or
->> > >> > http://code.google.com/p/v4l2loopback/
->> > >> > This enables userspace postprocessors to feed the altered stream to
->> > >> > applications like amsn and skype for videochats.
->> > >> If the postprocessor application is LGPL, the better is to add it at libv4l.
->> > >
->> > > I don't agree as the postprocessor implements fun-effects: warhol,
->> > > puzzle, circles, wobble, etc.
->> >
->> > and how one can make skype to get pictue from libv4l or alter the
->> > picture which application is getting through libv4l?
->> > again some proxy is needed here.
->>
->> Correct so we definately need some external video loopback device.
->> It gives as a much greater flexibility.
->
-> libv4l intercepts V4L2 calls by using LD_PRELOAD. Without it, skype doesn't
-> work with most of the cams, since it doesn't support several of the output
-> formats common on most cameras. I have lots of different webcam models here. I
-> think only one or two are directly supported by skype.
->
-> libv4l already have some postprocessor effects (currently limited to image
-> enhancements like auto-gain/auto-bright and similar stuff), but I don't see why
-> not adding there other effects including the fun ones.
->
-> Hans has several plans of improvements for it, including more post-processing
-> effects and the ability of duplicating a video to more than one application at
-> the same time.
->
-> The big problem with a v4l2 loopback is that you're adding something that it is
-> not proper to kernel, since it were not designed to be a proxy between two
-> userspace applications. This is the space where libraries were designed. Due to
-> that, you can affect the machine performance, due to the usage of kernel memory
-> barriers.
->
-> Also, you'll likely add extra buffering costs of copying control data and
-> stream mapping in order to access it  from/to kernel where you could just pass
-> a buffer between the effect processors and do a simple function call.
->
->
->
-> Cheers,
-> Mauro
->
 
-Sounds interesting. will libv4l have ability to provide video from
-sources other than v4l2 devices?
-One of the things I want to achieve is to provide talking head to
-video chatting programs instead of usual video stream.
+>> weird, trying this  v4l2-ctl -d /dev/video0 -i 1 tell me that it change the
+>> input to "composite1", nevertheless xawtv, vlc or  ffplay start using
+>> s-video  input, I'm doing something wrong?
+>>     
+>
+> Those apps probably explicitly set it to input zero then.  You are
+> stuck either manually configuring those apps through whatever config
+> files they use, or hacking the source to change the board order (which
+> unfortunately would require you to recompile the source every time
+> there is a kernel update.
+>   
+ok sure, but I'm looking something kind of weird with this driver, let 
+me explain, with a regular bttv card that I have here that it have 4 
+inputs, xawtv first start try to use lets says s-video, then I changed 
+to composite1, close xawtv and next time is set as default as composite1 
+(no xawtv config file), in that way if then I use vlc or ffplay they 
+take that input as default. But with this em28xx driver every time that 
+xawtv start it set to use the first input witch is s-video no matter to 
+what do I change the previous time...
 
-vasaka
+any ideas about why?, or it is just a different way that both drivers 
+handled this?
+
+Mauricio
 
 --
 video4linux-list mailing list
