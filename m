@@ -1,26 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.24]:52375 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750854AbZGLFc2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jul 2009 01:32:28 -0400
-Received: by qw-out-2122.google.com with SMTP id 9so618779qwb.37
-        for <linux-media@vger.kernel.org>; Sat, 11 Jul 2009 22:32:27 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <200907112113.42883.hverkuil@xs4all.nl>
-References: <5e9665e10907110402t4b5777abu5f02a44d609405b1@mail.gmail.com>
-	<200907112113.42883.hverkuil@xs4all.nl>
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-Date: Sun, 12 Jul 2009 14:32:07 +0900
-Message-ID: <5e9665e10907112232s32efed0eq2eb90c9f33647f6b@mail.gmail.com>
-Subject: Re: About v4l2 subdev s_config (for core) API?
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: v4l2_linux <linux-media@vger.kernel.org>,
-	=?UTF-8?B?6rmA7ZiV7KSA?= <riverful.kim@samsung.com>,
-	Dongsoo Kim <dongsoo45.kim@samsung.com>,
-	=?UTF-8?B?67CV6rK966+8?= <kyungmin.park@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail1.radix.net ([207.192.128.31]:48544 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752821AbZG3B3O (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Jul 2009 21:29:14 -0400
+Subject: Re: [PATCH] cx18: Read buffer overflow
+From: Andy Walls <awalls@radix.net>
+To: Roel Kluin <roel.kluin@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>
+In-Reply-To: <4A705028.80008@gmail.com>
+References: <4A705028.80008@gmail.com>
+Content-Type: text/plain
+Date: Wed, 29 Jul 2009 21:31:23 -0400
+Message-Id: <1248917483.20265.6.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
+
+On Wed, 2009-07-29 at 15:35 +0200, Roel Kluin wrote:
+> The guard mistakenly tests against sizeof(freqs) instead of ARRAY_SIZE(freqs).
+> 
+> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+> ---
+> Andy Walls wrote:
+> 
+> > The cx18 driver suffers from the exact same defect in cx18-controls.c.
+> 
+> Thanks, if not already applied, here is it.
+
+Thanks.  They've already made it to the main v4l-dvb repository
+ 
+http://linuxtv.org/hg/v4l-dvb/rev/83131c18cb5f
+http://linuxtv.org/hg/v4l-dvb/rev/f8c53e25ce11
+
+
+Regards,
+Andy
+
+> diff --git a/drivers/media/video/ivtv/ivtv-controls.c b/drivers/media/video/ivtv/ivtv-controls.c
+> index a3b77ed..4a9c8ce 100644
+> --- a/drivers/media/video/ivtv/ivtv-controls.c
+> +++ b/drivers/media/video/ivtv/ivtv-controls.c
+> @@ -17,6 +17,7 @@
+>      along with this program; if not, write to the Free Software
+>      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+>   */
+> +#include <linux/kernel.h>
+>  
+>  #include "ivtv-driver.h"
+>  #include "ivtv-cards.h"
+> @@ -281,7 +282,7 @@ int ivtv_s_ext_ctrls(struct file *file, void *fh, struct v4l2_ext_controls *c)
+>  		idx = p.audio_properties & 0x03;
+>  		/* The audio clock of the digitizer must match the codec sample
+>  		   rate otherwise you get some very strange effects. */
+> -		if (idx < sizeof(freqs))
+> +		if (idx < ARRAY_SIZE(freqs))
+>  			ivtv_call_all(itv, audio, s_clock_freq, freqs[idx]);
+>  		return err;
+>  	}
+> 
 
