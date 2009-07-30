@@ -1,46 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:61897 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933726AbZGQAI1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jul 2009 20:08:27 -0400
-Subject: Re: two instances of tvp514x module required for DM6467. Any
- suggestion?
-From: Andy Walls <awalls@radix.net>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE40144F1E560@dlee06.ent.ti.com>
-References: <A69FA2915331DC488A831521EAE36FE40144F1E560@dlee06.ent.ti.com>
-Content-Type: text/plain
-Date: Thu, 16 Jul 2009 20:10:24 -0400
-Message-Id: <1247789424.3163.21.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from relay1.sgi.com ([192.48.179.29]:44742 "EHLO relay.sgi.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751385AbZG3Ljx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jul 2009 07:39:53 -0400
+Date: Thu, 30 Jul 2009 06:39:51 -0500
+From: Robin Holt <holt@sgi.com>
+To: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Laurent Pinchart <laurent.pinchart@skynet.be>,
+	linux-kernel@vger.kernel.org,
+	v4l2_linux <linux-media@vger.kernel.org>
+Subject: Re: Is get_user_pages() enough to prevent pages from being swapped
+	out ?
+Message-ID: <20090730113951.GA2763@sgi.com>
+References: <200907291123.12811.laurent.pinchart@skynet.be> <Pine.LNX.4.64.0907291551050.16769@sister.anvils> <200907291741.52783.laurent.pinchart@skynet.be> <Pine.LNX.4.64.0907291653510.20238@sister.anvils>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0907291653510.20238@sister.anvils>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2009-07-16 at 10:32 -0500, Karicheri, Muralidharan wrote:
-> Hi,
-> 
-> I am working to add support for DM6467 capture driver. This evm has
-> two tvp5147 chips with different i2c addresses. So will I be able to
-> call v4l2_i2c_new_subdev_board() twice to have two instances of this
-> driver running? 
+> > On Wednesday 29 July 2009 17:26:11 Hugh Dickins wrote:
+...
+> > > On the other hand, despite the raised reference count, under memory
+> > > pressure that page might get unmapped from the user pagetable, and
+> > > might even be written out to swap in its half-dirty state (though
 
-Yes call it once for each device.
+One thing you did not mention in the above description is that the page
+is marked clean by the write-out to swap.  I am not sure I recall the
+method of mapping involved here, but it is necessary to ensure the page
+is marked dirty again before the driver releases it.  If the page is
+not marked dirty as part of your method of releasing it, the changes
+you have made between when the page was first written out and when you
+are freeing it will get lost.
 
-Technically there will only be one copy of the driver code in memory,
-but two distinct instances of data structures on which that code
-operates.
-
-
-
-> Murali Karicheri
-> Software Design Engineer
-> Texas Instruments Inc.
-> Germantown, MD 20874
-              ^^
-Another Marylander! :)
-
-Regards,
-Andy
-
+Thanks,
+Robin
