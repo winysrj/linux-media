@@ -1,278 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:58642 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751509AbZGYPId (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2147 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752068AbZG3GkF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jul 2009 11:08:33 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv11 4/8] v4l2-spec: Add documentation description for FM TX extended control class
-Date: Sat, 25 Jul 2009 17:57:38 +0300
-Message-Id: <1248533862-20860-5-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1248533862-20860-4-git-send-email-eduardo.valentin@nokia.com>
-References: <1248533862-20860-1-git-send-email-eduardo.valentin@nokia.com>
- <1248533862-20860-2-git-send-email-eduardo.valentin@nokia.com>
- <1248533862-20860-3-git-send-email-eduardo.valentin@nokia.com>
- <1248533862-20860-4-git-send-email-eduardo.valentin@nokia.com>
+	Thu, 30 Jul 2009 02:40:05 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] em28xx: enable usb audio for plextor px-tv100u
+Date: Thu, 30 Jul 2009 08:39:46 +0200
+Cc: acano@fastmail.fm, linux-media@vger.kernel.org
+References: <20090718173758.GA32708@localhost.localdomain> <cb2af7c6ef118cb5fe1fab2720ec7973.squirrel@webmail.xs4all.nl> <20090730000634.21fea61a@pedra.chehab.org>
+In-Reply-To: <20090730000634.21fea61a@pedra.chehab.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200907300839.46715.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This single patch adds documentation description for FM Modulator (FM TX)
-Extended Control Class and its Control IDs. The text was added under
-"Extended Controls" section.
+On Thursday 30 July 2009 05:06:34 Mauro Carvalho Chehab wrote:
+> Em Wed, 29 Jul 2009 17:08:31 +0200
+> "Hans Verkuil" <hverkuil@xs4all.nl> escreveu:
+> 
+> > > I did some tests here: if we replace -EINVAL with -ENOIOCTLCMD, we can
+> > > properly
+> > > make v4l2_device_call_until_err() to work, fixing the lack of a proper
+> > > error
+> > > report at the drivers. This error code seems also appropriate for this
+> > > case.
+> > 
+> > This is not sufficient: v4l2_device_call_until_err is not really suitable
+> > for this. 
+> 
+> Agreed. Yet, the tests helped to see what changes were needed.
+> 
+> >This would be better:
+> > 
+> > #define __v4l2_device_call_subdevs_ctrls(v4l2_dev, cond, o, f, args...) \
+> > ({                                                                      \
+> >         struct v4l2_subdev *sd;                                         \
+> >         long err = 0;                                                   \
+> >                                                                         \
+> >         list_for_each_entry(sd, &(v4l2_dev)->subdevs, list) {           \
+> >                 if ((cond) && sd->ops->o && sd->ops->o->f)              \
+> >                         err = sd->ops->o->f(sd , ##args);               \
+> >                 if (err && err != -ENOIOCTLCMD)                         \
+> 
+> No, this is not right. In the case of controls, it should be, instead:
+> 
+>                  if (err != -ENOIOCTLCMD)
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- v4l2-spec/Makefile      |    1 +
- v4l2-spec/controls.sgml |  210 +++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 211 insertions(+), 0 deletions(-)
+Indeed.
 
-diff --git a/v4l2-spec/Makefile b/v4l2-spec/Makefile
-index 4f11745..7a8d161 100644
---- a/v4l2-spec/Makefile
-+++ b/v4l2-spec/Makefile
-@@ -243,6 +243,7 @@ ENUMS = \
- 	v4l2_power_line_frequency \
- 	v4l2_priority \
- 	v4l2_tuner_type \
-+	v4l2_preemphasis \
- 
- STRUCTS = \
- 	v4l2_audio \
-diff --git a/v4l2-spec/controls.sgml b/v4l2-spec/controls.sgml
-index 8e0e024..791df4d 100644
---- a/v4l2-spec/controls.sgml
-+++ b/v4l2-spec/controls.sgml
-@@ -458,6 +458,12 @@ video is actually encoded into that format.</para>
-       <para>Unfortunately, the original control API lacked some
- features needed for these new uses and so it was extended into the
- (not terribly originally named) extended control API.</para>
-+
-+      <para>Even though the MPEG encoding API was the first effort
-+to use the Extended Control API, nowadays there are also other classes
-+of Extended Controls, such as Camera Controls and FM Transmitter Controls.
-+The Extended Controls API as well as all Extended Controls classes are
-+described in the following text.</para>
-     </section>
- 
-     <section>
-@@ -1815,6 +1821,210 @@ control must support read access and may support write access.</entry>
-       </tgroup>
-     </table>
-   </section>
-+
-+    <section id="fm-tx-controls">
-+      <title>FM Transmitter Control Reference</title>
-+
-+      <para>The FM Transmitter (FM_TX) class includes controls for common features of
-+FM transmissions capable devices. Currently this class includes parameters for audio
-+compression, pilot tone generation, audio deviation limiter, RDS transmission and
-+tuning power features.</para>
-+
-+      <table pgwide="1" frame="none" id="fm-tx-control-id">
-+      <title>FM_TX Control IDs</title>
-+
-+      <tgroup cols="4">
-+	<colspec colname="c1" colwidth="1*">
-+	<colspec colname="c2" colwidth="6*">
-+	<colspec colname="c3" colwidth="2*">
-+	<colspec colname="c4" colwidth="6*">
-+	<spanspec namest="c1" nameend="c2" spanname="id">
-+	<spanspec namest="c2" nameend="c4" spanname="descr">
-+	<thead>
-+	  <row>
-+	    <entry spanname="id" align="left">ID</entry>
-+	    <entry align="left">Type</entry>
-+	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
-+	  </row>
-+	</thead>
-+	<tbody valign="top">
-+	  <row><entry></entry></row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_FM_TX_CLASS</constant>&nbsp;</entry>
-+	    <entry>class</entry>
-+	  </row><row><entry spanname="descr">The FM_TX class
-+descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
-+description of this control class.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_RDS_TX_PI</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the RDS Programme Identification field
-+for transmission.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_RDS_TX_PTY</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the RDS Programme Type field for transmission.
-+This encodes up to 31 pre-defined programme types.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_RDS_TX_DEVIATION</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Configures RDS signal frequency deviation level in Hz.
-+The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_RDS_TX_PS_NAME</constant>&nbsp;</entry>
-+	    <entry>string</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the Programme Service name (PS_NAME) for transmission.
-+It is intended for static display on a receiver. It is the primary aid to listeners in programme service
-+identification and selection. The use of PS to transmit text other than a single eight character name is
-+not permitted.  In Annex E of <xref linkend="en50067">, the RDS specification,
-+there is a full description of the correct character encoding for Programme Service name strings.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_RDS_TX_RADIO_TEXT</constant>&nbsp;</entry>
-+	    <entry>string</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the Radio Text info for transmission. It is a textual description of
-+what is being broadcasted. RDS Radio Text can be applied when broadcaster wishes to transmit longer PS names,
-+programme-related information or any other text. In these cases, RadioText should be used in addition to
-+<constant>V4L2_CID_RDS_TX_PS_NAME</constant>. The encoding for Radio Text strings is also fully described
-+in Annex E of <xref linkend="en50067">.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_ENABLED</constant>&nbsp;</entry>
-+	    <entry>boolean</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Enables or disables the audio deviation limiter feature.
-+The limiter is useful when trying to maximize the audio volume, minimize receiver-generated
-+distortion and prevent overmodulation.
-+</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_RELEASE_TIME</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the audio deviation limiter feature release time.
-+Unit is in useconds. Step and range are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_DEVIATION</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Configures audio frequency deviation level in Hz.
-+The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_ENABLED</constant>&nbsp;</entry>
-+	    <entry>boolean</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Enables or disables the audio compression feature.
-+This feature amplifies signals below the threshold by a fixed gain and compresses audio
-+signals above the threshold by the ratio of Threshold/(Gain + Threshold).</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_GAIN</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the gain for audio compression feature. It is
-+a dB value. The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_THRESHOLD</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the threshold level for audio compression freature.
-+It is a dB value. The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the attack time for audio compression feature.
-+It is a useconds value. The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the release time for audio compression feature.
-+It is a useconds value. The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_ENABLED</constant>&nbsp;</entry>
-+	    <entry>boolean</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Enables or disables the pilot tone generation feature.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_DEVIATION</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Configures pilot tone frequency deviation level. Unit is
-+in Hz. The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_FREQUENCY</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Configures pilot tone frequency value. Unit is
-+in Hz. The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_FM_TX_PREEMPHASIS</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row id="v4l2-preemphasis"><entry spanname="descr">Configures the pre-emphasis value for broadcasting.
-+A pre-emphasis filter is applied to the broadcast to accentuate the high audio frequencies.
-+Depending on the region, a time constant of either 50 or 75 useconds is used. The enum&nbsp;v4l2_preemphasis
-+defines possible values for pre-emphasis. Here they are:</entry>
-+	</row><row>
-+	<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_PREEMPHASIS_DISABLED</constant>&nbsp;</entry>
-+		      <entry>No pre-emphasis is applied.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_PREEMPHASIS_50_uS</constant>&nbsp;</entry>
-+		      <entry>A pre-emphasis of 50 uS is used.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_PREEMPHASIS_75_uS</constant>&nbsp;</entry>
-+		      <entry>A pre-emphasis of 75 uS is used.</entry>
-+		    </row>
-+		  </tbody>
-+		</entrytbl>
-+
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_TUNE_POWER_LEVEL</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the output power level for signal transmission.
-+Unit is in dBuV. Range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_TUNE_ANTENNA_CAPACITOR</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">This selects the value of antenna tuning capacitor
-+manually or automatically if set to zero. Unit, range and step are driver-specific.</entry>
-+	  </row>
-+	  <row><entry></entry></row>
-+	</tbody>
-+      </tgroup>
-+      </table>
-+
-+<para>For more details about RDS specification, refer to
-+<xref linkend="en50067"> document, from CENELEC.</para>
-+    </section>
- </section>
- 
-   <!--
+> 
+> Also, such routine is has nothing specific for ctrls, so, the naming doesn't
+> look nice. I'll find a better name.
+
+I hacked it together on short notice, so feel to hack it some more :-)
+
+> 
+> >                         break;                                          \
+> >         }                                                               \
+> >         (err == -ENOIOCTLCMD) ? -EINVAL : err;                          \
+> > })
+> > 
+> > This way -EINVAL is returned if the control isn't handled anywhere.
+> 
+> Ok, but I'm in doubt if -EINVAL is the better return code on such case, but, in
+> order to not break backward compatibility, better to return -EINVAL.
+
+I'd love to be able to change the use of EINVAL for unknown controls. I think
+there are some other cases as well in the spec where EINVAL is incorrectly
+used. But that's almost impossible to change without breaking backwards
+compatibility.
+
+The only way I can think of doing this is by having the application explicitly
+request such changed behavior. But that's a very slippery slope to go on.
+
+Regards,
+
+	Hans
+
 -- 
-1.6.2.GIT
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
