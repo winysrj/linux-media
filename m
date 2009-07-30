@@ -1,91 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f193.google.com ([209.85.221.193]:41173 "EHLO
-	mail-qy0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753627AbZGBVS4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jul 2009 17:18:56 -0400
-Received: by qyk31 with SMTP id 31so2142071qyk.33
-        for <linux-media@vger.kernel.org>; Thu, 02 Jul 2009 14:18:59 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4A4D1DBD.4080607@powercraft.nl>
-References: <4A4481AC.4050302@powercraft.nl> <4A4A71B9.5010603@powercraft.nl>
-	 <4A4C7349.2080705@powercraft.nl>
-	 <829197380907020909s98d5a4s2d8fa1e145f2d64@mail.gmail.com>
-	 <4A4D1DBD.4080607@powercraft.nl>
-Date: Thu, 2 Jul 2009 17:18:58 -0400
-Message-ID: <829197380907021418x58c5e1c1q7976c47f9c17fddb@mail.gmail.com>
-Subject: Re: Afatech AF9013 DVB-T not working with mplayer radio streams
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Jelle de Jong <jelledejong@powercraft.nl>
+Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197]:62030 "EHLO
+	mta2.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750994AbZG3Nl1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jul 2009 09:41:27 -0400
+Received: from steven-toths-macbook-pro.local
+ (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta2.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KNL0013DKP2EH40@mta2.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Thu, 30 Jul 2009 09:41:27 -0400 (EDT)
+Date: Thu, 30 Jul 2009 09:41:26 -0400
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: SAA7164 - Analogue Support on HVR devices
+In-reply-to: <4A719F82.3060202@hubstar.net>
+To: "l d one"@hubstar.net
 Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Message-id: <4A71A306.2070409@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <4A7176D4.2090401@nildram.co.uk> <4A719D9E.20803@kernellabs.com>
+ <4A719F82.3060202@hubstar.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 2, 2009 at 4:51 PM, Jelle de Jong<jelledejong@powercraft.nl> wrote:
-> Devin Heitmueller wrote:
->> On Thu, Jul 2, 2009 at 4:43 AM, Jelle de Jong<jelledejong@powercraft.nl> wrote:
->>> Is there an other USB DVB-T device that works out of the box with the
->>> 2.9.30 kernel? Could somebody show me a link or name of this device so I
->>> can buy and test it?
+On 7/30/09 9:26 AM, ldone@hubstar.net wrote:
+> Steven Toth wrote:
+>> On 7/30/09 6:32 AM, Lou Otway wrote:
+>>> First I'd like to say thanks to the maintainers of the various HVR
+>>> drivers, the amount of work that goes in is much appreciated.
+>>>
+>>> I notice from www.kernellabs.com that progress on the digital side for
+>>> SAA7164 devices is going well and a stable driver is nearly ready.
+>>>
+>>> I, like many people, would really like to have analogue support for
+>>> these devices, is there any news on when this functionality might be
+>>> available?
+>> Thank you.
 >>
->> You might want to check out the WinTV-Ministick, which is both
->> currently available for sale and supported in Linux.
->>
->> http://www.hauppauge.co.uk/site/products/data_ministickhd.html
->>
->> Devin
+>> If you read back far enough with the SAA7164 related posts you'll see
+>> that finalizing DTV is the primary focus, everything else is up for
+>> review once this task is complete.
 >>
 >
-> Hi Devin,
+> Hi
+> I don't have this card, but I have some other hauppauge cards.
 >
-> Thanks for your response, I am kind of hitting a deadline next Tuesday.
-> I must a kind of working dvb-t system here. The af9013 will be a backup
-> plan.
+> What is meant by analogue support?
 >
-> So this is my local supplier. Can I ask you to just make a list of
-> product ids (ArtNr) and I will order them, if they do not work I will
-> sent them out to developers that volunteer:
+>  From my perspective I understand if TV analogue is dropping priority but
+> for me the Composite/Svideo analogue on Hauppauge cards is more
+> important - since I use them to hook up to my Satellite boxes.
 >
-> http://www.informatique.nl/cgi-bin/iqshop.cgi?M=ART&G=167
->
-> I am only interested in USB DVB-T devices. I will try to make the order
-> tomorrow morning.
->
-> Thanks in advance,
->
-> Cheers,
->
-> Jelle
+> Do you count that as analogue too?
 
-Jelle,
-
-Well, before I offer any suggestions, bear in mind that I actually
-don't use DVB-T and I don't have these products, so I cannot claim
-that they work from my own experience.
-
-Looking at the DVB-T USB entries in list you sent:
-
-the ASUS U3000 works according to the Wiki:
-
-http://linuxtv.org/wiki/index.php/ASUS_My_Cinema-U3000_Mini
-
->From the Hauppauge list, the any HVR-900 you would buy today would
-almost certainly be an "HVR-900 R2", which is known to not be
-supported in the current tree.
-
->From the Pinnacle list, I can tell you that both versions of the 340e
-are not supported (I am actively developing the xc4000 driver required
-for them this week).  According to the wiki, both the 72e and 73e do
-work:
-
-http://linuxtv.org/wiki/index.php/Pinnacle_PCTV_72e
-http://linuxtv.org/wiki/index.php/Pinnacle_PCTV_nano_Stick_%2873e%29
-
-I'm not familiar with the products from Plextor and Technisat.
-
-Devin
+Yes.
 
 -- 
-Devin J. Heitmueller - Kernel Labs
+Steven Toth - Kernel Labs
 http://www.kernellabs.com
