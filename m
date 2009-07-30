@@ -1,43 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:58656 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751509AbZGYPIl (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:40612 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750859AbZG3Ma5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jul 2009 11:08:41 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv11 1/8] v4l2-subdev.h: Add g_modulator callbacks to subdev api
-Date: Sat, 25 Jul 2009 17:57:35 +0300
-Message-Id: <1248533862-20860-2-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1248533862-20860-1-git-send-email-eduardo.valentin@nokia.com>
-References: <1248533862-20860-1-git-send-email-eduardo.valentin@nokia.com>
+	Thu, 30 Jul 2009 08:30:57 -0400
+Received: from epmmp1 (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0KNL00BYOHFKTZ@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 30 Jul 2009 21:30:56 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0KNL008S7HFK6B@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 30 Jul 2009 21:30:56 +0900 (KST)
+Date: Thu, 30 Jul 2009 21:30:56 +0900
+From: Joonyoung Shim <jy0922.shim@samsung.com>
+Subject: Re: [PATCH v2 0/4] radio-si470x: separate usb and i2c interface
+In-reply-to: <200907301226.10965.tobias.lorenz@gmx.net>
+To: Tobias Lorenz <tobias.lorenz@gmx.net>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	kyungmin.park@samsung.com, klimov.linux@gmail.com
+Message-id: <4A719280.3030306@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7BIT
+References: <4A5C137A.2010104@samsung.com>
+ <200907301226.10965.tobias.lorenz@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- linux/include/media/v4l2-subdev.h |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+Hi,
 
-diff --git a/linux/include/media/v4l2-subdev.h b/linux/include/media/v4l2-subdev.h
-index 89a39ce..d411345 100644
---- a/linux/include/media/v4l2-subdev.h
-+++ b/linux/include/media/v4l2-subdev.h
-@@ -137,6 +137,8 @@ struct v4l2_subdev_tuner_ops {
- 	int (*g_frequency)(struct v4l2_subdev *sd, struct v4l2_frequency *freq);
- 	int (*g_tuner)(struct v4l2_subdev *sd, struct v4l2_tuner *vt);
- 	int (*s_tuner)(struct v4l2_subdev *sd, struct v4l2_tuner *vt);
-+	int (*g_modulator)(struct v4l2_subdev *sd, struct v4l2_modulator *vm);
-+	int (*s_modulator)(struct v4l2_subdev *sd, struct v4l2_modulator *vm);
- 	int (*s_type_addr)(struct v4l2_subdev *sd, struct tuner_setup *type);
- 	int (*s_config)(struct v4l2_subdev *sd, const struct v4l2_priv_tun_config *config);
- 	int (*s_standby)(struct v4l2_subdev *sd);
--- 
-1.6.2.GIT
+On 7/30/2009 7:26 PM, Tobias Lorenz wrote:
+> Hi,
+> 
+>> I send the radio-si470x patches worked on http://linuxtv.org/hg/v4l-dvb.
+>> The patches is updated to version 2.
+> 
+> The patchset looks good. I'll give my feedback in the following mails.
+> 
+>> Tobias informed me the base code for seperating at 
+>> http://linuxtv.org/hg/~tlorenz/v4l-dvb of Tobias repository in above
+>> mail, i based on it, but it cannot find now at Tobias repository.
+> 
+> Before sending a pull request, I usually clean up the archive from any other patches.
+> But nevertheless, you and me still have the I2C patches. They now reached a quality to finally bring them in the kernel.
+> Good work.
+> 
+
+Thanks.
+
+I am concerned about one thing. I cannot test the si470x usb radio 
+driver because i don't have the si470x usb radio device, so i believe
+you would have probably tested it.
+
+>> The patch 1/4 is for separating common and usb code.
+>> The patch 2/4 is about using dev_* macro instead of printk.
+>> The patch 3/4 is about adding disconnect check function for i2c interface.
+>> The patch 4/4 is for supporting si470x i2c interface.
+> 
+> Bye,
+> Toby
+> 
 
