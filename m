@@ -1,25 +1,34 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n66CN6XO006093
-	for <video4linux-list@redhat.com>; Mon, 6 Jul 2009 08:23:06 -0400
-Received: from out2.smtp.messagingengine.com (out2.smtp.messagingengine.com
-	[66.111.4.26])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n66CMmYM029797
-	for <video4linux-list@redhat.com>; Mon, 6 Jul 2009 08:22:48 -0400
-Message-Id: <1246882966.1165.1323684945@webmail.messagingengine.com>
-From: "Kay Wrobel" <kwrobel@letterboxes.org>
-To: "buhochileno" <buhochileno@gmail.com>, "V4L Mailing List"
-	<video4linux-list@redhat.com>
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n6UFVOF8014755
+	for <video4linux-list@redhat.com>; Thu, 30 Jul 2009 11:31:24 -0400
+Received: from mail-yx0-f202.google.com (mail-yx0-f202.google.com
+	[209.85.210.202])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n6UFV8qh003565
+	for <video4linux-list@redhat.com>; Thu, 30 Jul 2009 11:31:08 -0400
+Received: by yxe40 with SMTP id 40so2721943yxe.23
+	for <video4linux-list@redhat.com>; Thu, 30 Jul 2009 08:31:07 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1246654555282-3203325.post@n2.nabble.com>
+In-Reply-To: <4A71BA59.8030605@gmail.com>
 References: <1244577481.32457.1319583459@webmail.messagingengine.com>
-	<1246654555282-3203325.post@n2.nabble.com>
-Date: Mon, 06 Jul 2009 07:22:46 -0500
-Cc: 
-Subject: Re: KWorld VS-USB2800D recognized as PointNix Intra-Oral Camera - No
- Composite Input
+	<829197380907290734l175a2c18sc76ae82b1f5d2eb@mail.gmail.com>
+	<829197380907290742t678039al95c800e9a8c8c22e@mail.gmail.com>
+	<4A706591.2090707@gmail.com>
+	<829197380907290820j2ed4d4a0ycdccf8ffebd992ca@mail.gmail.com>
+	<4A71A11A.8070903@gmail.com>
+	<829197380907300640g2b0df1ddm31cdef61c4565d25@mail.gmail.com>
+	<4A71ABDB.2070100@gmail.com>
+	<829197380907300732q4cd9b684g8a6bc520f734ee0a@mail.gmail.com>
+	<4A71BA59.8030605@gmail.com>
+Date: Thu, 30 Jul 2009 11:31:07 -0400
+Message-ID: <829197380907300831j65ec1800ke806667ba2d18290@mail.gmail.com>
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: "buhochileno@gmail.com" <buhochileno@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: V4L Mailing List <video4linux-list@redhat.com>
+Subject: Re: KWorld VS-USB2800D recognized as PointNix Intra-Oral Camera -
+	No Composite Input
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,132 +40,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Mauricio,
+On Thu, Jul 30, 2009 at 11:20 AM,
+buhochileno@gmail.com<buhochileno@gmail.com> wrote:
+> ok sure, but I'm looking something kind of weird with this driver, let me
+> explain, with a regular bttv card that I have here that it have 4 inputs,
+> xawtv first start try to use lets says s-video, then I changed to
+> composite1, close xawtv and next time is set as default as composite1 (no
+> xawtv config file), in that way if then I use vlc or ffplay they take that
+> input as default. But with this em28xx driver every time that xawtv start it
+> set to use the first input witch is s-video no matter to what do I change
+> the previous time...
+>
+> any ideas about why?, or it is just a different way that both drivers
+> handled this?
 
-Sorry for my late response. Yes, I was able to get it to work with the
-current version of v4l.
+Hmm..  I don't know.  I would have to look at the source code to answer that.
 
-I followed instructions given to my by Douglas Schilling:
-
-shell> hg clone http://www.linuxtv.org/hg/v4l-dvb
-shell> cd v4l-dvb
-shell> make
-shell> make unload
-shell> make install 
-shell> dmesg -c  (clear your dmesg)
-shell> modprobe em28xx 
-
-Kay
-
-On Fri, 03 Jul 2009 09:55 -0700, "buhochileno" <buhochileno@gmail.com>
-wrote:
-> 
-> 
-> 
-> Kay Wrobel wrote:
-> > 
-> > Hi video4linux list,
-> > 
-> > This may be something that has been asked in the past. I have a KWorld
-> > VS-USB2800D video capture device and my Ubuntu 9.04 Jaunty recognizes it
-> > as a PointNix Intra-Oral Camera. The only thing that works is the
-> > S-Video input. However, I'd like to use the Composite input (regular
-> > yellow RCA). So here's the dmesg:
-> > 
-> > [18325.975026] usb 3-2.2: USB disconnect, address 7
-> > [18406.553718] usb 3-2.2: new full speed USB device using uhci_hcd and
-> > address 8
-> > [18406.655706] usb 3-2.2: not running at top speed; connect to a high
-> > speed hub
-> > [18406.664296] usb 3-2.2: configuration #1 chosen from 1 choice
-> > [18406.666788] hub 3-2.2:1.0: USB hub found
-> > [18406.668783] hub 3-2.2:1.0: 4 ports detected
-> > [20149.760030] usb 1-6: new high speed USB device using ehci_hcd and
-> > address 5
-> > [20149.892966] usb 1-6: configuration #1 chosen from 1 choice
-> > [20149.954275] Linux video capture interface: v2.00
-> > [20149.964580] em28xx v4l2 driver version 0.1.0 loaded
-> > [20149.964632] em28xx new video device (eb1a:2860): interface 0, class
-> > 255
-> > [20149.964640] em28xx Doesn't have usb audio class
-> > [20149.964645] em28xx #0: Alternate settings: 8
-> > [20149.964649] em28xx #0: Alternate setting 0, max size= 0
-> > [20149.964653] em28xx #0: Alternate setting 1, max size= 0
-> > [20149.964657] em28xx #0: Alternate setting 2, max size= 1448
-> > [20149.964661] em28xx #0: Alternate setting 3, max size= 2048
-> > [20149.964666] em28xx #0: Alternate setting 4, max size= 2304
-> > [20149.964670] em28xx #0: Alternate setting 5, max size= 2580
-> > [20149.964674] em28xx #0: Alternate setting 6, max size= 2892
-> > [20149.964678] em28xx #0: Alternate setting 7, max size= 3072
-> > [20149.964926] em28xx #0: chip ID is em2860
-> > [20150.196540] em28xx #0: board has no eeprom
-> > [20150.210897] em28xx #0: found i2c device @ 0x4a [saa7113h]
-> > [20150.252142] em28xx #0: Your board has no unique USB ID.
-> > [20150.252150] em28xx #0: A hint were successfully done, based on i2c
-> > devicelist hash.
-> > [20150.252155] em28xx #0: This method is not 100% failproof.
-> > [20150.252160] em28xx #0: If the board were missdetected, please email
-> > this log to:
-> > [20150.252164] em28xx #0:       V4L Mailing List 
-> > <video4linux-list@redhat.com>
-> > [20150.252170] em28xx #0: Board detected as PointNix Intra-Oral Camera
-> > [20150.252175] em28xx #0: Registering snapshot button...
-> > [20150.252411] input: em28xx snapshot button as
-> > /devices/pci0000:00/0000:00:1d.7/usb1/1-6/input/input6
-> > [20150.643094] saa7115' 4-0025: saa7113 found (1f7113d0e100000) @ 0x4a
-> > (em28xx #0)
-> > [20151.920343] em28xx #0: V4L2 device registered as /dev/video0 and
-> > /dev/vbi0
-> > [20151.920351] em28xx #0: Found PointNix Intra-Oral Camera
-> > [20151.920395] usbcore: registered new interface driver em28xx
-> > [20151.927004] em28xx-audio.c: probing for em28x1 non standard usbaudio
-> > [20151.927009] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
-> > [20151.927534] Em28xx: Initialized (Em28xx Audio Extension) extension
-> > 
-> > Notice how it only generates /dev/video0 and /dev/vbi0. I would have
-> > expected to see two additional devices, like /dev/video1 and /dev/vbi1.
-> > 
-> > Maybe the detected Intra-Oral camera doesn't have that input, but the
-> > KWorld VS-USB2008D does. What can be done to make the driver recognize
-> > the Composite input correctly?
-> > 
-> > Thanks for any help...
-> > -- 
-> >   Kay Wrobel
-> >   kwrobel@letterboxes.org
-> > 
-> > -- 
-> > http://www.fastmail.fm - IMAP accessible web-mail
-> > 
-> > --
-> > video4linux-list mailing list
-> > Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> > https://www.redhat.com/mailman/listinfo/video4linux-list
-> > 
-> > 
-> 
-> Hi, I'm on the same situation, any sucess?
-> 
-> May be this is a v4l2 or ucv device...
-> 
-> Mauricio
-> 
-> -- 
-> View this message in context:
-> http://n2.nabble.com/KWorld-VS-USB2800D-recognized-as-PointNix-Intra-Oral-Camera---No-Composite-Input-tp3051767p3203325.html
-> Sent from the video4linux-list mailing list archive at Nabble.com.
-> 
-> --
-> video4linux-list mailing list
-> Unsubscribe
-> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
--- 
-  Kay Wrobel
-  kwrobel@letterboxes.org
+Devin
 
 -- 
-http://www.fastmail.fm - The professional email service
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
 
 --
 video4linux-list mailing list
