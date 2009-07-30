@@ -1,85 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([76.76.67.137]:4389 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754374AbZGSPH5 (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:49394 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751855AbZG3Oa1 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jul 2009 11:07:57 -0400
-Message-ID: <4A6336C6.8030807@mlbassoc.com>
-Date: Sun, 19 Jul 2009 09:07:50 -0600
-From: Gary Thomas <gary@mlbassoc.com>
+	Thu, 30 Jul 2009 10:30:27 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Laurent Pinchart <laurent.pinchart@skynet.be>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
+	v4l2_linux <linux-media@vger.kernel.org>,
+	Dongsoo Kim <dongsoo45.kim@samsung.com>,
+	=?Windows-1252?B?w6vCsOKAosOqwrLCvcOrwq/CvA==?=
+	<kyungmin.park@samsung.com>,
+	"jm105.lee@samsung.com" <jm105.lee@samsung.com>,
+	=?Windows-1252?B?w6zvv73CtMOs4oCewrjDq8Kswri=?=
+	<semun.lee@samsung.com>,
+	=?Windows-1252?B?w6vFkuKCrMOs77+9wrjDqsK4wrC=?=
+	<inki.dae@samsung.com>,
+	=?Windows-1252?B?w6rCueKCrMOty5zigKLDrMKk4oKs?=
+	<riverful.kim@samsung.com>
+Date: Thu, 30 Jul 2009 09:30:11 -0500
+Subject: RE: How to save number of times using memcpy?
+Message-ID: <A69FA2915331DC488A831521EAE36FE401450FB11F@dlee06.ent.ti.com>
+References: <10799.62.70.2.252.1248852719.squirrel@webmail.xs4all.nl>
+    <200907292352.00179.hverkuil@xs4all.nl>
+    <A69FA2915331DC488A831521EAE36FE401450FAFD0@dlee06.ent.ti.com>
+    <200907300831.39579.hverkuil@xs4all.nl>
+    <A69FA2915331DC488A831521EAE36FE401450FB0C7@dlee06.ent.ti.com>
+ <de79b8390a2a633a34370bcc666d2914.squirrel@webmail.xs4all.nl>
+In-Reply-To: <de79b8390a2a633a34370bcc666d2914.squirrel@webmail.xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Eino-Ville Talvala <talvala@stanford.edu>
-CC: Zach LeRoy <zleroy@rii.ricoh.com>,
-	"Aguirre Rodriguez, Sergio" <saaguirre@ti.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	linux-omap <linux-omap@vger.kernel.org>
-Subject: Re: Problems configuring OMAP35x ISP driver
-References: <15157053.23861247590158808.JavaMail.root@mailx.crc.ricoh.com> <4A5CBF3D.80002@stanford.edu>
-In-Reply-To: <4A5CBF3D.80002@stanford.edu>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Eino-Ville Talvala wrote:
-> Zach,
-> 
-> We've gotten a Aptina MT9P031 driver working with the latest ISP
-> patchset, both with YUV and RAW data.
-> I don't know what the problem might be with YUYV data - we get useful
-> YUYV data without any changes to the ISP defaults.
-> However, to request RAW data, that simply uses the CCDC and bypasses all
-> the processing in the ISP, request the pixelformat of
-> V4L2_PIX_FMT_SGRBG10.  This will give you two bytes per pixel, at least
-> in our case (although we have a 12-bit sensor cut down to 10 bits), so
-> be prepared to throw out every other byte.
-> 
-> Hope this helps,
-> 
-> Eino-Ville (Eddy) Talvala
-> Computer Graphics Lab
-> Stanford University
-> 
+Mauro,
 
-I've been working on this same issue, using a Micron MT9T001 sensor, without
-much success.  Could you share your tree and/or patches (against what?)??
-This would be most helpful.
+What do you suggest for this? Could we allocate coherent device memory using dma_declare_coherent_memory() ? This seems the only way to do it unless, video buffer layer does this when initializing the queue.
 
-Thanks
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+Phone : 301-515-3736
+email: m-karicheri2@ti.com
 
-> On 7/14/2009 9:49 AM, Zach LeRoy wrote:
->> Hello Sergio,
+>-----Original Message-----
+>From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>owner@vger.kernel.org] On Behalf Of Hans Verkuil
+>Sent: Thursday, July 30, 2009 10:26 AM
+>To: Karicheri, Muralidharan
+>Cc: Laurent Pinchart; Mauro Carvalho Chehab; Dongsoo, Nathaniel Kim;
+>v4l2_linux; Dongsoo Kim; ë°•ê²½ë¯¼; jm105.lee@samsung.com;
+>ì�´ì„¸ë¬¸; ëŒ€ì�¸ê¸°; ê¹€�˜•ì¤€
+>Subject: RE: How to save number of times using memcpy?
+>
+>
+>> Hans,
 >>
->> I spoke with you earlier about using the ISP and omap34xxcam drivers
->> with a micron mt9d111 SOC sensor.  I have since been able to take
->> pictures, but the sensor data is not making it through the ISP
->> data-path correctly.  I know the problem is in the ISP data-path
->> because I am configuring the sensor the exact same way as I have been
->> on my working PXA system.  I am expecting 4:2:2 packed YUV data, but
->> all of the U and V data is no more than 2 bits where it should be 8. 
->> I know the ISP has a lot of capabilities, but all I want to use it for
->> is grabbing 8-bit data from my sensor and putting it in a buffer
->> untouched using the CCDC interface (and of course clocking and
->> timing).  What are the key steps to take to get this type of
->> configuration?
+>> I don't see the code you are referring to. Here is the probe() from the
+>> next branch of v4l-dvb. Could you point out the code that does the
+>> allocation of frame buffers ? I had used this code as reference when
+>> developing vpfe capture driver.
 >>
->> Other Questions:
->>
->> Is there any processing done on YUV data in the ISP driver by default
->> that I am missing?
->> Has any one else experienced similar problems while adding new sensor
->> support?
->>
->> Any help here would be greatly appreciated.
->>
->> Thank you,
->>
->> Zach LeRoy
+>> Murali
+>
+>My apologies, I got it mixed up with older versions of this driver. I see
+>that it now uses videobuf-dma-contig. This is going to be a real problem
+>since this makes it impossible (or at least very hard) to allocate memory
+>up front. I'm no expert on videobuf, but this is something that should be
+>addressed, especially in the dma-contig case.
+>
+>Regards,
+>
+>          Hans
+>
+>--
+>Hans Verkuil - video4linux developer - sponsored by TANDBERG
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-
-
--- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
