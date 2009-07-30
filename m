@@ -1,118 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4785 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754155AbZGLSZ0 (ORCPT
+Received: from mk-filter-2-a-1.mail.uk.tiscali.com ([212.74.100.53]:43340 "EHLO
+	mk-filter-2-a-1.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753220AbZG3LtB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jul 2009 14:25:26 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id n6CIPOBO062548
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 12 Jul 2009 20:25:25 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 12 Jul 2009 20:25:24 +0200 (CEST)
-Message-Id: <200907121825.n6CIPOBO062548@smtp-vbr9.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Thu, 30 Jul 2009 07:49:01 -0400
+Date: Thu, 30 Jul 2009 12:48:56 +0100 (BST)
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+To: Robin Holt <holt@sgi.com>
+cc: Laurent Pinchart <laurent.pinchart@skynet.be>,
+	linux-kernel@vger.kernel.org,
+	v4l2_linux <linux-media@vger.kernel.org>
+Subject: Re: Is get_user_pages() enough to prevent pages from being swapped
+ out ?
+In-Reply-To: <20090730113951.GA2763@sgi.com>
+Message-ID: <Pine.LNX.4.64.0907301248090.27155@sister.anvils>
+References: <200907291123.12811.laurent.pinchart@skynet.be>
+ <Pine.LNX.4.64.0907291551050.16769@sister.anvils> <200907291741.52783.laurent.pinchart@skynet.be>
+ <Pine.LNX.4.64.0907291653510.20238@sister.anvils> <20090730113951.GA2763@sgi.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Thu, 30 Jul 2009, Robin Holt wrote:
+> > > On Wednesday 29 July 2009 17:26:11 Hugh Dickins wrote:
+> ...
+> > > > On the other hand, despite the raised reference count, under memory
+> > > > pressure that page might get unmapped from the user pagetable, and
+> > > > might even be written out to swap in its half-dirty state (though
+> 
+> One thing you did not mention in the above description is that the page
+> is marked clean by the write-out to swap.  I am not sure I recall the
+> method of mapping involved here, but it is necessary to ensure the page
+> is marked dirty again before the driver releases it.  If the page is
+> not marked dirty as part of your method of releasing it, the changes
+> you have made between when the page was first written out and when you
+> are freeing it will get lost.
 
-Results of the daily build of v4l-dvb:
+Yes indeed: thanks, Robin.
 
-date:        Sun Jul 12 19:00:07 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12236:d277b05c41fe
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
-
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc1-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.31-rc1-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.31-rc1-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-rc1-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc1-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-rc1-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-rc1-powerpc64: OK
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc1-x86_64: OK
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc1): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+Hugh
