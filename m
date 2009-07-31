@@ -1,45 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f184.google.com ([209.85.216.184]:37799 "EHLO
-	mail-px0-f184.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753105AbZGWWuQ (ORCPT
+Received: from fmmailgate01.web.de ([217.72.192.221]:53300 "EHLO
+	fmmailgate01.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752707AbZGaSpH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jul 2009 18:50:16 -0400
-Received: by pxi14 with SMTP id 14so50867pxi.33
-        for <linux-media@vger.kernel.org>; Thu, 23 Jul 2009 15:50:16 -0700 (PDT)
-From: Kevin Hilman <khilman@deeprootsystems.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>, hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com
-Subject: [PATCH] V4L/DVB: dm646x: fix DMA_nnBIT_MASK
-Date: Thu, 23 Jul 2009 15:50:13 -0700
-Message-Id: <1248389413-19366-1-git-send-email-khilman@deeprootsystems.com>
+	Fri, 31 Jul 2009 14:45:07 -0400
+Received: from smtp06.web.de (fmsmtp06.dlan.cinetic.de [172.20.5.172])
+	by fmmailgate01.web.de (Postfix) with ESMTP id 3073A10F2220A
+	for <linux-media@vger.kernel.org>; Fri, 31 Jul 2009 20:45:07 +0200 (CEST)
+Received: from [217.228.167.87] (helo=[172.16.99.2])
+	by smtp06.web.de with asmtp (TLSv1:AES256-SHA:256)
+	(WEB.DE 4.110 #277)
+	id 1MWx6H-00025q-00
+	for linux-media@vger.kernel.org; Fri, 31 Jul 2009 20:45:05 +0200
+Message-ID: <4A733BAB.6080305@magic.ms>
+Date: Fri, 31 Jul 2009 20:44:59 +0200
+From: emagick@magic.ms
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: Cinergy T2 stopped working with kernel 2.6.30
+References: <4A61FD76.8010409@magic.ms>
+In-Reply-To: <4A61FD76.8010409@magic.ms>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix deprecated use of DMA_nnBIT_MASK which now gives a compiler
-warning.
+I think I've found the problem:
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
-This compiler warning patch is on top of the master branch of Mauro's 
-linux-next tree.
+------------------------------------------------------------------------
+static int cinergyt2_fe_set_frontend(struct dvb_frontend *fe,
+				  struct dvb_frontend_parameters *fep)
+{
+	struct cinergyt2_fe_state *state = fe->demodulator_priv;
+	struct dvbt_set_parameters_msg param;
+	char result[2];
+	int err;
 
- arch/arm/mach-davinci/dm646x.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+	param.cmd = CINERGYT2_EP1_SET_TUNER_PARAMETERS;
+	param.tps = cpu_to_le16(compute_tps(fep));
+	param.freq = cpu_to_le32(fep->frequency / 1000);
+	param.bandwidth = 8 - fep->u.ofdm.bandwidth - BANDWIDTH_8_MHZ;
 
-diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-davinci/dm646x.c
-index 73a7e8b..8f38371 100644
---- a/arch/arm/mach-davinci/dm646x.c
-+++ b/arch/arm/mach-davinci/dm646x.c
-@@ -720,7 +720,7 @@ static struct platform_device vpif_display_dev = {
- 	.id		= -1,
- 	.dev		= {
- 			.dma_mask 		= &vpif_dma_mask,
--			.coherent_dma_mask	= DMA_32BIT_MASK,
-+			.coherent_dma_mask	= DMA_BIT_MASK(32),
- 	},
- 	.resource	= vpif_resource,
- 	.num_resources	= ARRAY_SIZE(vpif_resource),
--- 
-1.6.3.3
+	err = dvb_usb_generic_rw(state->d,
+			(char *)&param, sizeof(param),
+			result, sizeof(result), 0);
+------------------------------------------------------------------------
 
+As dvbt_set_parameters_msg is declared with __attribute__((packed)), its
+alignment is 8 bits.  In fact, cinergyt2_fe_set_frontend()'s param variable
+is not aligned on a 32-bit boundary. Note that param is passed to usb_bulk_msg().
+This seems to cause DMA problems on my hardware (Atom N270 + 945GSE + ICH7M).
+
+I hope that I'm not talking to a black hole.
