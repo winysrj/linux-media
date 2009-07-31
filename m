@@ -1,38 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cp-out7.libero.it ([212.52.84.107]:45727 "EHLO
-	cp-out7.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752344AbZHABnw (ORCPT
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:63145 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751338AbZGaTuY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jul 2009 21:43:52 -0400
-Received: from [192.168.1.21] (151.59.219.140) by cp-out7.libero.it (8.5.107) (authenticated as efa@iol.it)
-        id 4A700F430046EE0F for linux-media@vger.kernel.org; Sat, 1 Aug 2009 03:43:51 +0200
-Message-ID: <4A739DD6.8030504@iol.it>
-Date: Sat, 01 Aug 2009 03:43:50 +0200
-From: Valerio Messina <efa@iol.it>
-Reply-To: efa@iol.it
+	Fri, 31 Jul 2009 15:50:24 -0400
+Received: by bwz19 with SMTP id 19so1382312bwz.37
+        for <linux-media@vger.kernel.org>; Fri, 31 Jul 2009 12:50:24 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Terratec Cinergy HibridT XS
-References: <4A6F8AA5.3040900@iol.it>	 <829197380907281744o5c3a7eb7rd0d2cb8c53cd646f@mail.gmail.com>	 <4A7140DD.7040405@iol.it>	 <829197380907300533l488acd0bt2188c4c599417966@mail.gmail.com>	 <4A729117.6010001@iol.it> <829197380907310109r1ca7231cqd86803f0fe640904@mail.gmail.com>
-In-Reply-To: <829197380907310109r1ca7231cqd86803f0fe640904@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+In-Reply-To: <4A734A40.7040306@magic.ms>
+References: <4A61FD76.8010409@magic.ms> <4A733BAB.6080305@magic.ms>
+	 <4A734A40.7040306@magic.ms>
+Date: Fri, 31 Jul 2009 21:50:24 +0200
+Message-ID: <d9def9db0907311250r8507a38n1f703b7f74cd7b26@mail.gmail.com>
+Subject: Re: Cinergy T2 stopped working with kernel 2.6.30
+From: Markus Rechberger <mrechberger@gmail.com>
+To: emagick@magic.ms
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller ha scritto:
-> Ah, good news:  the patch I wrote that adds support for the remote
-> control is still around:
-> 
-> http://linuxtv.org/hg/~dheitmueller/v4l-dvb-terratec-xs/rev/92885f66ac68
-> 
-> I will prep this into a new tree and issue a pull request when I get
-> back in town on Sunday.
+On Fri, Jul 31, 2009 at 9:47 PM, <emagick@magic.ms> wrote:
+> Apparently, usb_bulk_msg() cannot be used with data on the stack:
+>
+> http://www.linuxtv.org/pipermail/linux-dvb/2008-August/028150.html
+> http://www.mail-archive.com/linux-usb-devel@lists.sourceforge.net/msg19158.html
+> --
 
-hi,
-I tried to apply the patch, recompile, install and reboot.
-Same results, IR does not send digit to text editor or Kaffeine.
+As far as I recall this has been documented for ages already...
+Although many people stumble over it... last but not least there's no reason to
+have USB drivers in the kernel anyway..
 
-What other can I do for further help/testing?
-
-Valerio
+Markus
