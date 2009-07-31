@@ -1,47 +1,142 @@
-Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n63Jr640029052
-	for <video4linux-list@redhat.com>; Fri, 3 Jul 2009 15:53:06 -0400
-Received: from insvr08.insite.com.br (insvr08.insite.com.br [66.135.42.188])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n63Jqo7F026372
-	for <video4linux-list@redhat.com>; Fri, 3 Jul 2009 15:52:50 -0400
-Received: from sk.insite.com.br (sk.insite.com.br [66.135.32.93])
-	by insvr08.insite.com.br (Postfix) with ESMTPS id 08ECB15E8305
-	for <video4linux-list@redhat.com>; Fri,  3 Jul 2009 16:52:50 -0300 (BRT)
-Received: from [201.82.105.195] (port=41679 helo=juba.localnet)
-	by sk.insite.com.br with esmtps (TLSv1:AES256-SHA:256) (Exim 4.69)
-	(envelope-from <diniz@wimobilis.com.br>) id 1MMooP-00017L-Gq
-	for video4linux-list@redhat.com; Fri, 03 Jul 2009 16:52:49 -0300
-From: Rafael Diniz <diniz@wimobilis.com.br>
-To: video4linux-list@redhat.com
-Date: Fri, 3 Jul 2009 16:57:51 -0300
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from mout5.freenet.de ([195.4.92.95])
+	by mail.linuxtv.org with esmtp (Exim 4.69)
+	(envelope-from <volkdir@freenet.de>) id 1MWrVk-0003RF-FZ
+	for linux-dvb@linuxtv.org; Fri, 31 Jul 2009 14:47:01 +0200
+Received: from [195.4.92.12] (helo=2.mx.freenet.de)
+	by mout5.freenet.de with esmtpa (ID volkdir@freenet.de) (port 25) (Exim
+	4.69 #92) id 1MWrVg-0008IE-UG
+	for linux-dvb@linuxtv.org; Fri, 31 Jul 2009 14:46:57 +0200
+Received: from web8.emo.freenet-rz.de ([194.97.107.224]:44297)
+	by 2.mx.freenet.de with esmtpa (ID volkdir@freenet.de) (port 25) (Exim
+	4.69 #93) id 1MWrVg-0001kq-Ox
+	for linux-dvb@linuxtv.org; Fri, 31 Jul 2009 14:46:56 +0200
+Received: from localhost ([127.0.0.1] helo=emo.freenet.de)
+	by web8.emo.freenet-rz.de with esmtpa (Exim 4.69 1 (Panther_1))
+	id 1MWrVa-0007Gr-7m
+	for <linux-dvb@linuxtv.org>; Fri, 31 Jul 2009 14:46:56 +0200
+Date: Fri, 31 Jul 2009 14:46:50 +0200
+From: volkdir@freenet.de
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Message-Id: <c20d709523f44d30842f03fc7fcf7d52@email.freenet.de>
+Subject: [linux-dvb] Problems with Geniatech Digistar
+Reply-To: linux-media@vger.kernel.org
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907031657.51308.diniz@wimobilis.com.br>
-Subject: capturing audio and video synced
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-List-ID: <video4linux-list@redhat.com>
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
 
-Hi people,
-I always have trouble in capturing audio and video in sync w/ v4l/alsa - 
-usually I have to manually adjust the offset between them.
-Do you have any tip about this linux behavior?
+Hi,
 
-Thanks,
-Rafael Diniz
 
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+
+I bought a very cheap satellite card, geniatech digistar
+(20 &#65533;) and now I have some trouble with it.
+
+In the linux tv wiki it is mentioned that the card should
+work:
+
+
+
+http://www.linuxtv.org/wiki/index.php/Geniatech_DVB-S_Digistar
+
+
+
+Scanning for programs with scan
+
+
+
+scan /usr/share/dvb/dvb-s/Astra-19.2E >.szap/channels.conf
+
+
+
+only get a subset what should be available. Some major
+german channels (ARD, RTL, ...) are missing.
+
+The channels reported by scan work normally, if I szap to
+them and write them via dvbstrem to a file
+
+szap -r "Sky Select" &
+
+dvbstream 2815 -o >test.mpg
+
+
+
+Putting the card into an windows xp box I see the missing
+channels.
+
+
+
+Connection a normal sat receiver to the same port of the
+multiswitch shows all channels.
+
+
+
+Any ideas what I can do to get it work?
+
+
+
+Best regards,
+
+Dirk
+
+
+
+
+
+Here some data of my system:
+
+
+
+Linux version 2.6.26-2-amd64 (Debian 2.6.26-17lenny1)
+
+Asus Mainboard with AMD Athlon(tm) X2 Dual Core Processor
+BE-2300 stepping 02
+
+
+
+The card is autodetected with:
+
+202790] DVB: registering new adapter (cx88[0])
+202799] DVB: registering frontend 0 (Conexant
+CX24123/CX24109)...
+470614] cx88/2: unregistering cx8802 driver, type: dvb
+access: shared
+470623] cx88[0]/2: subsystem: 14f1:0084, board: Geniatech
+DVB-S [card=52]
+180056] cx88/2: cx2388x dvb driver version 0.0.6 loaded
+180065] cx88/2: registering cx8802 driver, type: dvb
+access: shared
+180069] cx88[0]/2: subsystem: 14f1:0084, board: Geniatech
+DVB-S [card=52]
+180074] cx88[0]/2: cx2388x based DVB/ATSC card
+180552] CX24123: detected CX24123
+
+
+
+
+
+
+
+
+
+
+Heute schon ge"freeMail"t?
+Jetzt kostenlose E-Mail-Adresse sichern!
+http://email.freenet.de/dienste/emailoffice/produktuebersicht/basic/mail/index.html?pid=6831
+
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
