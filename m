@@ -1,66 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2587 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751952AbZGYQo4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jul 2009 12:44:56 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: eduardo.valentin@nokia.com
-Subject: Changes to the string control handling
-Date: Sat, 25 Jul 2009 18:44:44 +0200
-Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"mchehab@infradead.org" <mchehab@infradead.org>,
-	"dougsland@gmail.com" <dougsland@gmail.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <1248453448-1668-1-git-send-email-eduardo.valentin@nokia.com> <200907251639.18441.hverkuil@xs4all.nl> <20090725144127.GI10561@esdhcp037198.research.nokia.com>
-In-Reply-To: <20090725144127.GI10561@esdhcp037198.research.nokia.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Received: from eyemagnet.com ([202.160.117.202]:33246 "EHLO eyemagnet.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750865AbZGaXUQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Jul 2009 19:20:16 -0400
+Received: from [192.168.1.183] (adsl-76-199-64-226.dsl.pltn13.sbcglobal.net [76.199.64.226])
+	(using SSLv3 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by eyemagnet.com (Postfix) with ESMTP id CD9B88240
+	for <linux-media@vger.kernel.org>; Sat,  1 Aug 2009 11:20:15 +1200 (NZST)
+Subject: USB devices supporting raw or sliced VBI for closed captioning?
+From: Steve Castellotti <sc@eyemagnet.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain
+Date: Fri, 31 Jul 2009 16:20:37 -0700
+Message-Id: <1249082438.18313.30.camel@odyssey.sc.user.nz.vpn>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907251844.45017.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Eduardo,
 
-On Saturday 25 July 2009 16:41:27 Eduardo Valentin wrote:
-> On Sat, Jul 25, 2009 at 04:39:18PM +0200, ext Hans Verkuil wrote:
-> > If the string must be exactly 8 x n long, then I think that it is a good idea
-> > to start using the 'step' value of v4l2_queryctrl: this can be used to tell
-> > the application that string lengths should be a multiple of the step value.
-> > I've toyed with that idea before but I couldn't think of a good use case,
-> > but this might be it.
-> 
-> I think that would be good. It is a way to report to user land what can be
-> done in these cases which strings can be chopped in small pieces. Of course,
-> documenting this part it is appreciated.
+	I was wondering if anyone could please point me at a list or similar
+resource for USB capture devices which support raw (or sliced) VBI
+access for producing a closed caption transcript through software such
+as zbvi-ntsc-cc or ccextractor? Specifically I'm wanting a device
+capable of S-Video, Composite, or even Component input, not just ATSC,
+as most USB devices seem focused around these days.
 
-Ok, I've implemented this. While doing this I realized that I had to change
-a few things:
+	I've managed to get this working with various ivtv and saa713x based
+PCI devices, but aren't aware of any USB implementations of chipsets
+which use those drivers.
 
-1) the 'length' field in v4l2_ext_control has been renamed to 'size'. The
-name 'length' was too easy to confuse with 'string length' while in reality
-it referred to the memory size of the control payload. 'size' is more
-appropriate.
 
-2) the 'minimum' and 'maximum' fields of v4l2_queryctrl now return the min
-and max string lengths, i.e. *without* terminating zero. I realized that what
-VIDIOC_QUERYCTRL returns has nothing to do with how much memory to reserve
-for the string control. It is about the properties of the string itself
-and it is not normal to include the terminating zero when talking about a
-string length.
+	Searching online, I found this archived message:
 
-I've incorporated everything in my v4l-dvb-strctrl tree. I apologize for the
-fact that you have to make yet another series of patches, but these changes
-are typical when you start implementing and documenting a new feature for
-the first time.
+http://lists.zerezo.com/video4linux/msg16402.html
 
-Regards,
+which states:
 
-	Hans
+> some em2840 and newer devices are able to capture raw vbi in
+> linux (sliced vbi isn't possible yet)
+> em2820, em2800, em2750 do not support vbi at all.
+
+
+	Checking the em28xx driver homepage for recent models, I found this
+entry:
+
+http://mcentral.de/wiki/index.php5/Em2880
+
+> officially the em2880 is em2840 + DVB_T
+
+
+	which implies that not only is the "em2880" series a "newer" device,
+but it should in fact already contain the "em2840" chip specifically
+mentioned.
+
+
+	Later on that same page, in the list of devices:
+
+ATI/AMD TV Wonder 600
+
+
+	and on the manufacturer's page:
+
+http://ati.amd.com/products/tvwonder600/usb/index.html
+
+
+	Under the list of "Input Connectors":
+
+> S-video input with adapter
+
+
+
+	Picking up one of these devices, I attempted to tune into the S-Video
+feed and check the /dev/vbi0 device, but received the same error message
+as I do with all other em28xx devices encountered thus far:
+
+> Cannot capture vbi data with v4l interface:
+> /dev/vbi0 (AMD ATI TV Wonder HD 600) is not a raw vbi device.
+
+
+
+	Can anyone please point me in the right direction?
+
+	I would much prefer to be certain the next purchase is supported.
+
+
+
+Thanks!
+
+
+Steve
+
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+
+Steve Castellotti
+sc@eyemagnet.com
+Technical Director
+Eyemagnet Limited
+http://www.eyemagnet.com
+
