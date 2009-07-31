@@ -1,158 +1,264 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:31556 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752111AbZG0PXb (ORCPT
+Received: from fmmailgate01.web.de ([217.72.192.221]:55154 "EHLO
+	fmmailgate01.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751855AbZGaUHm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jul 2009 11:23:31 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv14 3/8] v4l2: video device: Add FM TX controls default configurations
-Date: Mon, 27 Jul 2009 18:12:05 +0300
-Message-Id: <1248707530-4068-4-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1248707530-4068-3-git-send-email-eduardo.valentin@nokia.com>
-References: <1248707530-4068-1-git-send-email-eduardo.valentin@nokia.com>
- <1248707530-4068-2-git-send-email-eduardo.valentin@nokia.com>
- <1248707530-4068-3-git-send-email-eduardo.valentin@nokia.com>
+	Fri, 31 Jul 2009 16:07:42 -0400
+Received: from smtp06.web.de (fmsmtp06.dlan.cinetic.de [172.20.5.172])
+	by fmmailgate01.web.de (Postfix) with ESMTP id 9B4C510F1C275
+	for <linux-media@vger.kernel.org>; Fri, 31 Jul 2009 22:07:42 +0200 (CEST)
+Received: from [217.228.167.87] (helo=[172.16.99.2])
+	by smtp06.web.de with asmtp (TLSv1:AES256-SHA:256)
+	(WEB.DE 4.110 #277)
+	id 1MWyOE-0002T2-00
+	for linux-media@vger.kernel.org; Fri, 31 Jul 2009 22:07:42 +0200
+Message-ID: <4A734F0A.4000600@magic.ms>
+Date: Fri, 31 Jul 2009 22:07:38 +0200
+From: emagick@magic.ms
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Patch for  stack/DMA problems in Cinergy T2 drivers
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds basic configurations for FM TX extended controls.
-That includes controls names, menu strings, pointer identification,
-type classification and flags configuration.
+There might be a more elegant solution, but this seems to work for me:
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- linux/drivers/media/video/v4l2-common.c         |   50 +++++++++++++++++++++++
- linux/drivers/media/video/v4l2-compat-ioctl32.c |    8 +++-
- 2 files changed, 57 insertions(+), 1 deletions(-)
+--- drivers/media/dvb/dvb-usb/cinergyT2-fe.c	2009-06-10 05:05:27.000000000 +0200
++++ drivers/media/dvb/dvb-usb/cinergyT2-fe.c	2009-07-31 22:02:48.000000000 +0200
+@@ -146,66 +146,103 @@
+  					fe_status_t *status)
+  {
+  	struct cinergyt2_fe_state *state = fe->demodulator_priv;
+-	struct dvbt_get_status_msg result;
+-	u8 cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
++	struct dvbt_get_status_msg *result;
++	static const u8 cmd0[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
++        u8 *cmd;
+  	int ret;
 
-diff --git a/linux/drivers/media/video/v4l2-common.c b/linux/drivers/media/video/v4l2-common.c
-index 870dc20..9e1ae23 100644
---- a/linux/drivers/media/video/v4l2-common.c
-+++ b/linux/drivers/media/video/v4l2-common.c
-@@ -343,6 +343,12 @@ const char **v4l2_ctrl_get_menu(u32 id)
- 		"Sepia",
- 		NULL
- 	};
-+	static const char *fm_tx_preemphasis[] = {
-+		"No preemphasis",
-+		"50 useconds",
-+		"75 useconds",
-+		NULL,
-+	};
- 
- 	switch (id) {
- 		case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-@@ -381,6 +387,8 @@ const char **v4l2_ctrl_get_menu(u32 id)
- 			return camera_exposure_auto;
- 		case V4L2_CID_COLORFX:
- 			return colorfx;
-+		case V4L2_CID_FM_TX_PREEMPHASIS:
-+			return fm_tx_preemphasis;
- 		default:
- 			return NULL;
- 	}
-@@ -479,6 +487,28 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_ZOOM_CONTINUOUS:		return "Zoom, Continuous";
- 	case V4L2_CID_PRIVACY:			return "Privacy";
- 
-+	/* FM Radio Modulator control */
-+	case V4L2_CID_FM_TX_CLASS:		return "FM Radio Modulator Controls";
-+	case V4L2_CID_RDS_TX_PI:		return "RDS Program ID";
-+	case V4L2_CID_RDS_TX_PTY:		return "RDS Program Type";
-+	case V4L2_CID_RDS_TX_DEVIATION:		return "RDS Signal Deviation";
-+	case V4L2_CID_RDS_TX_PS_NAME:		return "RDS PS Name";
-+	case V4L2_CID_RDS_TX_RADIO_TEXT:	return "RDS Radio Text";
-+	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
-+	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
-+	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
-+	case V4L2_CID_AUDIO_COMPRESSION_ENABLED: return "Audio Compression Feature Enabled";
-+	case V4L2_CID_AUDIO_COMPRESSION_GAIN:	return "Audio Compression Gain";
-+	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD: return "Audio Compression Threshold";
-+	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME: return "Audio Compression Attack Time";
-+	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME: return "Audio Compression Release Time";
-+	case V4L2_CID_PILOT_TONE_ENABLED:	return "Pilot Tone Feature Enabled";
-+	case V4L2_CID_PILOT_TONE_DEVIATION:	return "Pilot Tone Deviation";
-+	case V4L2_CID_PILOT_TONE_FREQUENCY:	return "Pilot Tone Frequency";
-+	case V4L2_CID_FM_TX_PREEMPHASIS:	return "Pre-emphasis settings";
-+	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
-+	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
-+
- 	default:
- 		return NULL;
- 	}
-@@ -511,6 +541,9 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
- 	case V4L2_CID_EXPOSURE_AUTO_PRIORITY:
- 	case V4L2_CID_FOCUS_AUTO:
- 	case V4L2_CID_PRIVACY:
-+	case V4L2_CID_AUDIO_LIMITER_ENABLED:
-+	case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
-+	case V4L2_CID_PILOT_TONE_ENABLED:
- 		qctrl->type = V4L2_CTRL_TYPE_BOOLEAN;
- 		min = 0;
- 		max = step = 1;
-@@ -539,12 +572,18 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
- 	case V4L2_CID_MPEG_STREAM_VBI_FMT:
- 	case V4L2_CID_EXPOSURE_AUTO:
- 	case V4L2_CID_COLORFX:
-+	case V4L2_CID_FM_TX_PREEMPHASIS:
- 		qctrl->type = V4L2_CTRL_TYPE_MENU;
- 		step = 1;
- 		break;
-+	case V4L2_CID_RDS_TX_PS_NAME:
-+	case V4L2_CID_RDS_TX_RADIO_TEXT:
-+		qctrl->type = V4L2_CTRL_TYPE_STRING;
-+		break;
- 	case V4L2_CID_USER_CLASS:
- 	case V4L2_CID_CAMERA_CLASS:
- 	case V4L2_CID_MPEG_CLASS:
-+	case V4L2_CID_FM_TX_CLASS:
- 		qctrl->type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		qctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
- 		min = max = step = def = 0;
-@@ -573,6 +612,17 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
- 	case V4L2_CID_BLUE_BALANCE:
- 	case V4L2_CID_GAMMA:
- 	case V4L2_CID_SHARPNESS:
-+	case V4L2_CID_RDS_TX_DEVIATION:
-+	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME:
-+	case V4L2_CID_AUDIO_LIMITER_DEVIATION:
-+	case V4L2_CID_AUDIO_COMPRESSION_GAIN:
-+	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD:
-+	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME:
-+	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME:
-+	case V4L2_CID_PILOT_TONE_DEVIATION:
-+	case V4L2_CID_PILOT_TONE_FREQUENCY:
-+	case V4L2_CID_TUNE_POWER_LEVEL:
-+	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
- 		qctrl->flags |= V4L2_CTRL_FLAG_SLIDER;
- 		break;
- 	case V4L2_CID_PAN_RELATIVE:
-diff --git a/linux/drivers/media/video/v4l2-compat-ioctl32.c b/linux/drivers/media/video/v4l2-compat-ioctl32.c
-index 991fca1..f24009a 100644
---- a/linux/drivers/media/video/v4l2-compat-ioctl32.c
-+++ b/linux/drivers/media/video/v4l2-compat-ioctl32.c
-@@ -620,7 +620,13 @@ static int ctrl_is_value64(u32 id)
-  * This information is used inside v4l2_compat_ioctl32. */
- static int ctrl_is_pointer(u32 id)
- {
--	return 0;
-+	switch (id) {
-+	case V4L2_CID_RDS_TX_PS_NAME:
-+	case V4L2_CID_RDS_TX_RADIO_TEXT:
-+		return 1;
-+	default:
-+		return 0;
-+	}
- }
- 
- static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext_controls32 __user *up)
--- 
-1.6.2.GIT
+-	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (u8 *)&result,
+-			sizeof(result), 0);
+-	if (ret < 0)
++        cmd = kmalloc(sizeof(cmd0), GFP_KERNEL);
++        if (!cmd) return -ENOMEM;
++        memcpy(cmd, cmd0, sizeof(cmd0));
++        result = kmalloc(sizeof(*result), GFP_KERNEL);
++        if (!result) {
++                kfree(cmd);
++                return -ENOMEM;
++        }
++	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd0), (u8 *)result,
++			sizeof(*result), 0);
++        kfree(cmd);
++	if (ret < 0) {
++                kfree(result);
+  		return ret;
++        }
+
+  	*status = 0;
+
+-	if (0xffff - le16_to_cpu(result.gain) > 30)
++	if (0xffff - le16_to_cpu(result->gain) > 30)
+  		*status |= FE_HAS_SIGNAL;
+-	if (result.lock_bits & (1 << 6))
++	if (result->lock_bits & (1 << 6))
+  		*status |= FE_HAS_LOCK;
+-	if (result.lock_bits & (1 << 5))
++	if (result->lock_bits & (1 << 5))
+  		*status |= FE_HAS_SYNC;
+-	if (result.lock_bits & (1 << 4))
++	if (result->lock_bits & (1 << 4))
+  		*status |= FE_HAS_CARRIER;
+-	if (result.lock_bits & (1 << 1))
++	if (result->lock_bits & (1 << 1))
+  		*status |= FE_HAS_VITERBI;
+
+  	if ((*status & (FE_HAS_CARRIER | FE_HAS_VITERBI | FE_HAS_SYNC)) !=
+  			(FE_HAS_CARRIER | FE_HAS_VITERBI | FE_HAS_SYNC))
+  		*status &= ~FE_HAS_LOCK;
+
++        kfree(result);
+  	return 0;
+  }
+
+  static int cinergyt2_fe_read_ber(struct dvb_frontend *fe, u32 *ber)
+  {
+  	struct cinergyt2_fe_state *state = fe->demodulator_priv;
+-	struct dvbt_get_status_msg status;
+-	char cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
++	struct dvbt_get_status_msg *status;
++	static const u8 cmd0[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
++        u8 *cmd;
+  	int ret;
+
+-	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (char *)&status,
+-				sizeof(status), 0);
+-	if (ret < 0)
++        cmd = kmalloc(sizeof(cmd0), GFP_KERNEL);
++        if (!cmd) return -ENOMEM;
++        memcpy(cmd, cmd0, sizeof(cmd0));
++        status = kmalloc(sizeof(*status), GFP_KERNEL);
++        if (!status) {
++                kfree(cmd);
++                return -ENOMEM;
++        }
++	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd0), (char *)status,
++				sizeof(*status), 0);
++        kfree(cmd);
++	if (ret < 0) {
++                kfree(status);
+  		return ret;
+-
+-	*ber = le32_to_cpu(status.viterbi_error_rate);
++        }
++	*ber = le32_to_cpu(status->viterbi_error_rate);
++        kfree(status);
+  	return 0;
+  }
+
+  static int cinergyt2_fe_read_unc_blocks(struct dvb_frontend *fe, u32 *unc)
+  {
+  	struct cinergyt2_fe_state *state = fe->demodulator_priv;
+-	struct dvbt_get_status_msg status;
+-	u8 cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
++	struct dvbt_get_status_msg *status;
++	static const u8 cmd0[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
++        u8 *cmd;
+  	int ret;
+
+-	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (u8 *)&status,
+-				sizeof(status), 0);
++        cmd = kmalloc(sizeof(cmd0), GFP_KERNEL);
++        if (!cmd) return -ENOMEM;
++        memcpy(cmd, cmd0, sizeof(cmd0));
++        status = kmalloc(sizeof(*status), GFP_KERNEL);
++        if (!status) {
++                kfree(cmd);
++                return -ENOMEM;
++        }
++	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd0), (u8 *)status,
++				sizeof(*status), 0);
++        kfree(cmd);
+  	if (ret < 0) {
++                kfree(status);
+  		err("cinergyt2_fe_read_unc_blocks() Failed! (Error=%d)\n",
+  			ret);
+  		return ret;
+  	}
+-	*unc = le32_to_cpu(status.uncorrected_block_count);
++	*unc = le32_to_cpu(status->uncorrected_block_count);
++        kfree(status);
+  	return 0;
+  }
+
+@@ -213,35 +250,59 @@
+  						u16 *strength)
+  {
+  	struct cinergyt2_fe_state *state = fe->demodulator_priv;
+-	struct dvbt_get_status_msg status;
+-	char cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
++	struct dvbt_get_status_msg *status;
++	static const u8 cmd0[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
++        u8 *cmd;
+  	int ret;
+
+-	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (char *)&status,
+-				sizeof(status), 0);
++        cmd = kmalloc(sizeof(cmd0), GFP_KERNEL);
++        if (!cmd) return -ENOMEM;
++        memcpy(cmd, cmd0, sizeof(cmd0));
++        status = kmalloc(sizeof(*status), GFP_KERNEL);
++        if (!status) {
++                kfree(cmd);
++                return -ENOMEM;
++        }
++	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd0), (char *)status,
++				sizeof(*status), 0);
++        kfree(cmd);
+  	if (ret < 0) {
++                kfree(status);
+  		err("cinergyt2_fe_read_signal_strength() Failed!"
+  			" (Error=%d)\n", ret);
+  		return ret;
+  	}
+-	*strength = (0xffff - le16_to_cpu(status.gain));
++	*strength = (0xffff - le16_to_cpu(status->gain));
++        kfree(status);
+  	return 0;
+  }
+
+  static int cinergyt2_fe_read_snr(struct dvb_frontend *fe, u16 *snr)
+  {
+  	struct cinergyt2_fe_state *state = fe->demodulator_priv;
+-	struct dvbt_get_status_msg status;
+-	char cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
++	struct dvbt_get_status_msg *status;
++	static const u8 cmd0[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
++        u8 *cmd;
+  	int ret;
+
+-	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (char *)&status,
+-				sizeof(status), 0);
++        cmd = kmalloc(sizeof(cmd0), GFP_KERNEL);
++        if (!cmd) return -ENOMEM;
++        memcpy(cmd, cmd0, sizeof(cmd0));
++        status = kmalloc(sizeof(*status), GFP_KERNEL);
++        if (!status) {
++                kfree(cmd);
++                return -ENOMEM;
++        }
++	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd0), (char *)status,
++				sizeof(*status), 0);
++        kfree(cmd);
+  	if (ret < 0) {
++                kfree(status);
+  		err("cinergyt2_fe_read_snr() Failed! (Error=%d)\n", ret);
+  		return ret;
+  	}
+-	*snr = (status.snr << 8) | status.snr;
++	*snr = (status->snr << 8) | status->snr;
++        kfree(status);
+  	return 0;
+  }
+
+@@ -267,19 +328,27 @@
+  				  struct dvb_frontend_parameters *fep)
+  {
+  	struct cinergyt2_fe_state *state = fe->demodulator_priv;
+-	struct dvbt_set_parameters_msg param;
+-	char result[2];
++        struct dvbt_set_parameters_msg *param;
++        char *result;
+  	int err;
+
+-	param.cmd = CINERGYT2_EP1_SET_TUNER_PARAMETERS;
+-	param.tps = cpu_to_le16(compute_tps(fep));
+-	param.freq = cpu_to_le32(fep->frequency / 1000);
+-	param.bandwidth = 8 - fep->u.ofdm.bandwidth - BANDWIDTH_8_MHZ;
+-
++        param = kmalloc(sizeof(*param), GFP_KERNEL);
++        if (!param) return -ENOMEM;
++	param->cmd = CINERGYT2_EP1_SET_TUNER_PARAMETERS;
++	param->tps = cpu_to_le16(compute_tps(fep));
++	param->freq = cpu_to_le32(fep->frequency / 1000);
++	param->bandwidth = 8 - fep->u.ofdm.bandwidth - BANDWIDTH_8_MHZ;
++        result = kmalloc(2, GFP_KERNEL);
++        if (!result) {
++                kfree(param);
++                return -ENOMEM;
++        }
+  	err = dvb_usb_generic_rw(state->d,
+-			(char *)&param, sizeof(param),
+-			result, sizeof(result), 0);
+-	if (err < 0)
++			(char *)param, sizeof(*param),
++                        result, 2, 0);
++        kfree(param);
++        kfree(result);
++        if (err < 0)
+  		err("cinergyt2_fe_set_frontend() Failed! err=%d\n", err);
+
+  	return (err < 0) ? err : 0;
 
