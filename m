@@ -1,106 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f226.google.com ([209.85.219.226]:42160 "EHLO
-	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751159AbZGTUhK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jul 2009 16:37:10 -0400
-Received: by ewy26 with SMTP id 26so2591162ewy.37
-        for <linux-media@vger.kernel.org>; Mon, 20 Jul 2009 13:37:08 -0700 (PDT)
+Received: from smtp3.epfl.ch ([128.178.224.226]:52083 "HELO smtp3.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751244AbZGaHqx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Jul 2009 03:46:53 -0400
+Message-ID: <4A72A16B.8070702@epfl.ch>
+Date: Fri, 31 Jul 2009 09:46:51 +0200
+From: Valentin Longchamp <valentin.longchamp@epfl.ch>
 MIME-Version: 1.0
-In-Reply-To: <200907201949.n6KJnOdY016111@demeter.kernel.org>
-References: <bug-13708-12914@http.bugzilla.kernel.org/>
-	 <200907201949.n6KJnOdY016111@demeter.kernel.org>
-Date: Mon, 20 Jul 2009 22:37:08 +0200
-Message-ID: <5c3736670907201337n41f08957r94fcde4383dd74d9@mail.gmail.com>
-Subject: Re: [Bug 13708] Aiptek DV-T300 support is incomplete
-From: =?ISO-8859-1?Q?Bal=E1zs_H=E1morszky?= <balihb@gmail.com>
-To: bugzilla-daemon@bugzilla.kernel.org, mchehab@infradead.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=0016364c78071426ae046f291a01
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	"m-karicheri2@ti.com" <m-karicheri2@ti.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
+	Darius Augulis <augulis.darius@gmail.com>
+Subject: Re: [PATCH 0/4] soc-camera: cleanup + scaling / cropping API fix
+References: <Pine.LNX.4.64.0907291640010.4983@axis700.grange> <4A71A159.60903@epfl.ch> <Pine.LNX.4.64.0907302019270.6813@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0907302019270.6813@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0016364c78071426ae046f291a01
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Guennadi Liakhovetski wrote:
+> On Thu, 30 Jul 2009, Valentin Longchamp wrote:
+> 
+>> Hi Guennadi,
+>>
+>> Guennadi Liakhovetski wrote:
+>>> Hi all
+>>>
+>>> here goes a new iteration of the soc-camera scaling / cropping API
+>>> compliance fix. In fact, this is only the first _complete_ one, the previous
+>>> version only converted one platform - i.MX31 and one camera driver -
+>>> MT9T031. This patch converts all soc-camera drivers. The most difficult one
+>>> is the SuperH driver, since it is currently the only host driver
+>>> implementing own scaling and cropping on top of those of sensor drivers. The
+>>> first three patches in the series are purely cosmetic, unifying device
+>>> objects, used in dev_dbg, dev_info... functions. These patches extend the
+>>> patch series uploaded at
+>>> http://download.open-technology.de/soc-camera/20090701/ with the actual
+>>> scaling / cropping patch still in
+>>> http://download.open-technology.de/testing/. The series is still based on
+>>> the git://git.pengutronix.de/git/imx/linux-2.6.git (now gone) for-rmk
+>>> branch, but the i.MX31 patches, that my patch-series depends on, are now in
+>>> the mainline, so, I will be rebasing the stack soon. In the meantime, I'm
+>>> afraid, it might require some fiddling to test the stack.
+>> I'd love to give your patches a try. But the fiddling looks very hard for me
+>> ... patch 0010 does not apply correctly for me, and a 130K patch to do by hand
+>> is .. looooong.
+> 
+> Ok, a rebased patch set is under 
+> 
+> http://download.open-technology.de/soc-camera/20090730/
+> 
+> now based on 2.6.31-rc4. Notice, all patches are now in the above 
+> directory, .../testing is empty again.
+> 
 
-I don't have my kernel tree with me (I'm at vacation atm.). The patch
-is made with only the -uN options, but I can make a new one on Friday
-(if needed).
+Thanks a lot Guennadi, I should come back with some feedback soon.
 
-Thanks for the help!
+Val
 
-On Mon, Jul 20, 2009 at 21:49, <bugzilla-daemon@bugzilla.kernel.org> wrote:
-> http://bugzilla.kernel.org/show_bug.cgi?id=3D13708
->
->
-> Andrew Morton <akpm@linux-foundation.org> changed:
->
-> =A0 =A0 =A0 =A0 =A0 What =A0 =A0|Removed =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 |Added
-> -------------------------------------------------------------------------=
----
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 CC| =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0|akpm@linux-foundation.org
->
->
->
->
-> --- Comment #2 from Andrew Morton <akpm@linux-foundation.org> =A02009-07-=
-20 19:49:22 ---
-> It's quite painful to handle patches via bugzilla. =A0Could you resend it=
- via
-> email please? =A0Documentation/SubmittingPatches has some details.
->
-> Suitable recipients are
->
-> Mauro Carvalho Chehab <mchehab@infradead.org>
-> Andrew Morton <akpm@linux-foundation.org>
-> linux-media@vger.kernel.org
->
-> Thanks.
->
-> --
-> Configure bugmail: http://bugzilla.kernel.org/userprefs.cgi?tab=3Demail
-> ------- You are receiving this mail because: -------
-> You reported the bug.
->
-
---0016364c78071426ae046f291a01
-Content-Type: text/x-diff; charset=US-ASCII; name="zr364xx.patch"
-Content-Disposition: attachment; filename="zr364xx.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fxdn7s1s0
-
-LS0tIHpyMzY0eHgtbmVtbXV4LWRlLXVqLTIuNi4zMC11cGdyYWRlLXV0YW4tMjAwOTA3MDQuYwky
-MDA5LTA3LTA0IDIzOjI5OjUxLjAwMDAwMDAwMCArMDIwMAorKysgenIzNjR4eC1uZW1tdXgtZGUt
-dWotMi42LjMwLXVwZ3JhZGUtZWxvdHQtMjAwOTA2MjcuYwkyMDA5LTA2LTI3IDE0OjM3OjUxLjAw
-MDAwMDAwMCArMDIwMApAQCAtNTksNiArNTksNyBAQAogI2RlZmluZSBNRVRIT0QwIDAKICNkZWZp
-bmUgTUVUSE9EMSAxCiAjZGVmaW5lIE1FVEhPRDIgMgorI2RlZmluZSBNRVRIT0QzIDMKIAogCiAv
-KiBNb2R1bGUgcGFyYW1ldGVycyAqLwpAQCAtOTUsNyArOTYsNyBAQAogCXtVU0JfREVWSUNFKDB4
-MDZkNiwgMHgwMDNiKSwgLmRyaXZlcl9pbmZvID0gTUVUSE9EMCB9LAogCXtVU0JfREVWSUNFKDB4
-MGExNywgMHgwMDRlKSwgLmRyaXZlcl9pbmZvID0gTUVUSE9EMiB9LAogCXtVU0JfREVWSUNFKDB4
-MDQxZSwgMHg0MDVkKSwgLmRyaXZlcl9pbmZvID0gTUVUSE9EMiB9LAotCXtVU0JfREVWSUNFKDB4
-MDhjYSwgMHgyMTAyKSwgLmRyaXZlcl9pbmZvID0gTUVUSE9EMiB9LAorCXtVU0JfREVWSUNFKDB4
-MDhjYSwgMHgyMTAyKSwgLmRyaXZlcl9pbmZvID0gTUVUSE9EMyB9LAogCXt9CQkJLyogVGVybWlu
-YXRpbmcgZW50cnkgKi8KIH07CiAKQEAgLTIxMyw3ICsyMTQsNyBAQAogfTsKIAogLyogaW5pdCB0
-YWJsZSAqLwotc3RhdGljIG1lc3NhZ2UgKmluaXRbM10gPSB7IG0wLCBtMSwgbTIgfTsKK3N0YXRp
-YyBtZXNzYWdlICppbml0WzRdID0geyBtMCwgbTEsIG0yLCBtMiB9OwogCiAKIC8qIEpQRUcgc3Rh
-dGljIGRhdGEgaW4gaGVhZGVyIChIdWZmbWFuIHRhYmxlLCBldGMpICovCkBAIC0zNDcsNiArMzQ4
-LDExIEBACiAJCQkgICAgY2FtLT5idWZmZXJbM10sIGNhbS0+YnVmZmVyWzRdLCBjYW0tPmJ1ZmZl
-cls1XSwKIAkJCSAgICBjYW0tPmJ1ZmZlcls2XSwgY2FtLT5idWZmZXJbN10sIGNhbS0+YnVmZmVy
-WzhdKTsKIAkJfSBlbHNlIHsKKwkJCWlmIChwdHIgKyBhY3R1YWxfbGVuZ3RoIC0ganBlZyA+IE1B
-WF9GUkFNRV9TSVpFKQorCQkJeworCQkJCURCRygiZnJhbWUgdG9vIGJpZyEiKTsKKwkJCQlyZXR1
-cm4gMDsKKwkJCX0KIAkJCW1lbWNweShwdHIsIGNhbS0+YnVmZmVyLCBhY3R1YWxfbGVuZ3RoKTsK
-IAkJCXB0ciArPSBhY3R1YWxfbGVuZ3RoOwogCQl9CkBAIC04NDcsNiArODUzLDIyIEBACiAJbTBk
-MVswXSA9IG1vZGU7CiAJbTFbMl0udmFsdWUgPSAweGYwMDAgKyBtb2RlOwogCW0yWzFdLnZhbHVl
-ID0gMHhmMDAwICsgbW9kZTsKKworCS8qIHNwZWNpYWwgY2FzZSBmb3IgTUVUSE9EMywgdGhlIG1v
-ZGVzIGFyZSBkaWZmZXJlbnQgKi8KKwlpZiAoY2FtLT5tZXRob2QgPT0gTUVUSE9EMykgeworCQlz
-d2l0Y2ggKG1vZGUpIHsKKwkJY2FzZSAxOgorCQkJbTJbMV0udmFsdWUgPSAweGYwMDAgKyA0Owor
-CQkJYnJlYWs7CisJCWNhc2UgMjoKKwkJCW0yWzFdLnZhbHVlID0gMHhmMDAwICsgMDsKKwkJCWJy
-ZWFrOworCQlkZWZhdWx0OgorCQkJbTJbMV0udmFsdWUgPSAweGYwMDAgKyAxOworCQkJYnJlYWs7
-CisJCX0KKwl9CisKIAloZWFkZXIyWzQzN10gPSBjYW0tPmhlaWdodCAvIDI1NjsKIAloZWFkZXIy
-WzQzOF0gPSBjYW0tPmhlaWdodCAlIDI1NjsKIAloZWFkZXIyWzQzOV0gPSBjYW0tPndpZHRoIC8g
-MjU2Owo=
---0016364c78071426ae046f291a01--
+-- 
+Valentin Longchamp, PhD Student, EPFL-STI-LSRO1
+valentin.longchamp@epfl.ch, Phone: +41216937827
+http://people.epfl.ch/valentin.longchamp
+MEA3485, Station 9, CH-1015 Lausanne
