@@ -1,103 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1136 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751117AbZGBS5O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jul 2009 14:57:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: m-karicheri2@ti.com
-Subject: Re: [PATCH 1/11 - v3] vpfe capture bridge driver for DM355 and DM6446
-Date: Thu, 2 Jul 2009 20:57:06 +0200
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com
-References: <1246554351-6191-1-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1246554351-6191-1-git-send-email-m-karicheri2@ti.com>
+Received: from mail-gx0-f213.google.com ([209.85.217.213]:55251 "EHLO
+	mail-gx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750863AbZGaIJT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Jul 2009 04:09:19 -0400
+Received: by gxk9 with SMTP id 9so3499970gxk.13
+        for <linux-media@vger.kernel.org>; Fri, 31 Jul 2009 01:09:19 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200907022057.06123.hverkuil@xs4all.nl>
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4A729117.6010001@iol.it>
+References: <4A6F8AA5.3040900@iol.it>
+	 <829197380907281744o5c3a7eb7rd0d2cb8c53cd646f@mail.gmail.com>
+	 <4A7140DD.7040405@iol.it>
+	 <829197380907300533l488acd0bt2188c4c599417966@mail.gmail.com>
+	 <4A729117.6010001@iol.it>
+Date: Fri, 31 Jul 2009 04:09:19 -0400
+Message-ID: <829197380907310109r1ca7231cqd86803f0fe640904@mail.gmail.com>
+Subject: Re: Terratec Cinergy HibridT XS
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: efa@iol.it
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 02 July 2009 19:05:51 m-karicheri2@ti.com wrote:
-> From: Muralidharan Karicheri <m-karicheri2@ti.com>
-> 
-> Re-sending to add description for VPFE_CMD_S_CCDC_RAW_PARAMS and
-> updating debug prints with \n and fixing an error coder ENOMEM
-> 
-> VPFE Capture bridge driver
-> 
-> This is version, v3 of vpfe capture bridge driver for doing video
-> capture on DM355 and DM6446 evms. The ccdc hw modules register with the
-> driver and are used for configuring the CCD Controller for a specific
-> decoder interface. The driver also registers the sub devices required
-> for a specific evm. More than one sub devices can be registered.
-> This allows driver to switch dynamically to capture video from
-> any sub device that is registered. Currently only one sub device
-> (tvp5146) is supported. But in future this driver is expected
-> to do capture from sensor devices such as Micron's MT9T001,MT9T031
-> and MT9P031 etc. The driver currently supports MMAP based IO.
-> 
-> Following are the updates based on review comments:-
-> 	1) clean up of setting bus parameters in ccdc
-> 	2) removed v4l2_routing structure type
-> 	3) module authors, description changes 
-> 	4) pixel aspect constants removed
-> 
-> Reviewed by: Hans Verkuil <hverkuil@xs4all.nl>
-> Reviewed by: Laurent Pinchart <laurent.pinchart@skynet.be>
-> Reviewed by: Alexey Klimov <klimov.linux@gmail.com>
-> 
-> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-> ---
-> Applies to v4l-dvb repository
-> 
->  drivers/media/video/davinci/vpfe_capture.c | 2136 ++++++++++++++++++++++++++++
->  include/media/davinci/vpfe_capture.h       |  194 +++
->  include/media/davinci/vpfe_types.h         |   51 +
->  3 files changed, 2381 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/davinci/vpfe_capture.c
->  create mode 100644 include/media/davinci/vpfe_capture.h
->  create mode 100644 include/media/davinci/vpfe_types.h
-> 
-> diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
+On Fri, Jul 31, 2009 at 2:37 AM, Valerio Messina<efa@iol.it> wrote:
+> Devin Heitmueller ha scritto:
+>>
+>> How are you testing the IR support?
+>
+> starting Kaffeine with a Digital TV channel, pressing numeric key of the
+> remote in front of IR receiver connected to Terratec Cinergy Hybrid T XS.
+>
+>> And are you using the Terratec
+>> remote control that came with the product?
+>
+> yes, the one showed in this picture:
+> http://www.terratec.it/prodotti/schede_tv/TerraTec%20Cinergy%20Hybrid%20T%20USB%20XS/CinergyHybridTUSBXSscope.jpg
+>
+>> Have you tried opening a
+>> text editor, hitting the "1" key, and seeing if the character appears?
+>
+> I tried last evening, and no, does not appear any digit.
+>
+> My lsusb ID is:
+> Bus 001 Device 007:
+> ID 0ccd:0042 TerraTec Electronic GmbH Cinergy Hybrid T XS
+>
+> Note: with Ubuntu 8.04 K2.6.24-21-generic the TV and IR always worked.
+> With Ubuntu 8.10 and kernel
+> 2.6.27.7-generic, 2.6.27.9-generic, 2.6.27.11-generic, 2.6.27-14-generic
+> I needed to add some media Kheaders, but then TV and IR always worked.
+> The problem appear just after upgrade to Ubuntu 9.04 kernel
+> 2.6.28-13-generic and happen the same for 2.6.28-14-generic
+>
+> Valerio
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-<snip>
+Ah, good news:  the patch I wrote that adds support for the remote
+control is still around:
 
-> +/**
-> + * VPFE_CMD_S_CCDC_RAW_PARAMS - Driver private IOCTL to set raw capture params
-> + * This ioctl is used to configure the ccdc module such as defect pixel
-> + * correction, color space conversion, culling etc. in raw capture mode.
-> + * TODO: This is to be split into multiple ioctls and also explore the
-> + * possibility of extending the v4l2 api to include them
-> + **/
-> +#define VPFE_CMD_S_CCDC_RAW_PARAMS _IOW('V', BASE_VIDIOC_PRIVATE + 1, \
-> +					void *)
-> +#endif				/* _DAVINCI_VPFE_H */
+http://linuxtv.org/hg/~dheitmueller/v4l-dvb-terratec-xs/rev/92885f66ac68
 
-I've only one request: can you add something along the lines of:
+I will prep this into a new tree and issue a pull request when I get
+back in town on Sunday.
 
-"This is an experimental ioctl that will change in future kernels.
-Use with care."
-
-And at the top add: "EXPERIMENTAL IOCTL"
-
-That way it is unambiguous that this will change. And it definitely has
-to change! On the other hand I can imagine that it is useful to have this
-available to experiment with. We have made experimental APIs before, so
-there is a precedent for this, as long as it is very clearly marked as
-experimental.
-
-In fact, it would be even better if there is a KERN_WARNING message issued
-mentioning the experimental status of this ioctl whenever it is used.
-
-If you can do this asap, then I'll merge everything tomorrow morning and
-make a new pull request for this.
-
-Regards,
-
-	Hans
+Devin
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
