@@ -1,30 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f185.google.com ([209.85.216.185]:37733 "EHLO
-	mail-px0-f185.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751609AbZGQD5o (ORCPT
+Received: from fmmailgate03.web.de ([217.72.192.234]:36551 "EHLO
+	fmmailgate03.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751368AbZGaIsF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jul 2009 23:57:44 -0400
-Received: by pxi15 with SMTP id 15so363559pxi.33
-        for <linux-media@vger.kernel.org>; Thu, 16 Jul 2009 20:57:44 -0700 (PDT)
-Subject: Re: AVerMedia AVerTV GO 007 FM, no radio sound (with routing
- enabled)
-From: Pham Thanh Nam <phamthanhnam.ptn@gmail.com>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: Laszlo Kustan <lkustan@gmail.com>, linux-media@vger.kernel.org
-In-Reply-To: <1247797282.3187.47.camel@pc07.localdom.local>
-References: <88b49f150907161417r7d487078h3e27b514cf8dd5cf@mail.gmail.com>
-	 <1247794346.3921.22.camel@AcerAspire4710>
-	 <1247797282.3187.47.camel@pc07.localdom.local>
-Content-Type: text/plain
-Date: Fri, 17 Jul 2009 10:57:38 +0700
-Message-Id: <1247803058.26678.2.camel@AcerAspire4710>
-Mime-Version: 1.0
+	Fri, 31 Jul 2009 04:48:05 -0400
+Received: from smtp06.web.de (fmsmtp06.dlan.cinetic.de [172.20.5.172])
+	by fmmailgate03.web.de (Postfix) with ESMTP id 480691091F148
+	for <linux-media@vger.kernel.org>; Fri, 31 Jul 2009 10:48:04 +0200 (CEST)
+Received: from [217.228.167.87] (helo=[172.16.99.2])
+	by smtp06.web.de with asmtp (TLSv1:AES256-SHA:256)
+	(WEB.DE 4.110 #277)
+	id 1MWnmV-0006Ar-00
+	for linux-media@vger.kernel.org; Fri, 31 Jul 2009 10:48:03 +0200
+Message-ID: <4A72AFC3.1060906@magic.ms>
+Date: Fri, 31 Jul 2009 10:48:03 +0200
+From: emagick@magic.ms
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: Cinergy T2 stopped working with kernel 2.6.30
+References: <4A61FD76.8010409@magic.ms> <4A72AEBE.9060800@magic.ms>
+In-Reply-To: <4A72AEBE.9060800@magic.ms>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
-So, should we add an option for this card? For example:
-modprobe saa7134 card=57 radioontv
-Regards
+I wrote:
+
+> Addendum: with 3 additional local variables and compiled for i486 mythweb fails to
+> tune, but mplayer can tune. Note that I mentioned cases where mplayer can tune but
+> mythweb fails to tune. Perhaps alignment in the user-mode stack is a factor.
+
+Oops, there was no instance of mythweb being able to tune, but mplayer not
+being able to tune. Sorry.
 
