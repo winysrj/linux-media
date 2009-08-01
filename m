@@ -1,56 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-1920.google.com ([74.125.78.149]:55544 "EHLO
-	ey-out-1920.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751874AbZGLUET (ORCPT
+Received: from cp-out7.libero.it ([212.52.84.107]:45727 "EHLO
+	cp-out7.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752344AbZHABnw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jul 2009 16:04:19 -0400
-Received: by ey-out-1920.google.com with SMTP id 3so361226eyh.36
-        for <linux-media@vger.kernel.org>; Sun, 12 Jul 2009 13:04:17 -0700 (PDT)
+	Fri, 31 Jul 2009 21:43:52 -0400
+Received: from [192.168.1.21] (151.59.219.140) by cp-out7.libero.it (8.5.107) (authenticated as efa@iol.it)
+        id 4A700F430046EE0F for linux-media@vger.kernel.org; Sat, 1 Aug 2009 03:43:51 +0200
+Message-ID: <4A739DD6.8030504@iol.it>
+Date: Sat, 01 Aug 2009 03:43:50 +0200
+From: Valerio Messina <efa@iol.it>
+Reply-To: efa@iol.it
 MIME-Version: 1.0
-Date: Sun, 12 Jul 2009 22:04:17 +0200
-Message-ID: <fc83472a0907121304v65e9a122n74c874134854ea9d@mail.gmail.com>
-Subject: DVB-T Initial scan file es-Vitoria-Gasteiz
-From: =?UTF-8?Q?David_Santamar=C3=ADa_Rogado?= <howl.nsp@gmail.com>
 To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=0016e655991ad767b1046e87b5d0
+Subject: Re: Terratec Cinergy HibridT XS
+References: <4A6F8AA5.3040900@iol.it>	 <829197380907281744o5c3a7eb7rd0d2cb8c53cd646f@mail.gmail.com>	 <4A7140DD.7040405@iol.it>	 <829197380907300533l488acd0bt2188c4c599417966@mail.gmail.com>	 <4A729117.6010001@iol.it> <829197380907310109r1ca7231cqd86803f0fe640904@mail.gmail.com>
+In-Reply-To: <829197380907310109r1ca7231cqd86803f0fe640904@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0016e655991ad767b1046e87b5d0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Devin Heitmueller ha scritto:
+> Ah, good news:  the patch I wrote that adds support for the remote
+> control is still around:
+> 
+> http://linuxtv.org/hg/~dheitmueller/v4l-dvb-terratec-xs/rev/92885f66ac68
+> 
+> I will prep this into a new tree and issue a pull request when I get
+> back in town on Sunday.
 
-Looking in the wiki I have seen that the nomenclature is country-town,
-if this could be the area covered this file can be es-Alava, =C3=81lava is
-the region, also, the complete name of the town is Vitoria-Gasteiz, if
-this broke the nomenclature of the file because the second '-' could
-be changed to es-Vitoria without problem because won't be confusion
-with another town in Spain.
+hi,
+I tried to apply the patch, recompile, install and reboot.
+Same results, IR does not send digit to text editor or Kaffeine.
 
---0016e655991ad767b1046e87b5d0
-Content-Type: application/octet-stream; name=es-Vitoria-Gasteiz
-Content-Disposition: attachment; filename=es-Vitoria-Gasteiz
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fx26uvos1
+What other can I do for further help/testing?
 
-IyBDaGFubmVsIG5hbWVzIGluIHVzZSBhdCAyMDA5LzA3LzEyLCBpbiBDaGFubmVsIDY2IFtmZmZl
-XSBpcyBhIHNjcmFtYmxlZCBjaGFubmVsLgojIEluIHRoZSBnZW5lcmF0ZWQgKmNoYW5uZWxzLmNv
-bmYgZmlsZSBjb3VsZCBiZSBuZWNlc2FyeSB0byBjaGFuZ2UgSW50ZXJlY29ub23DrWEsIFJhZGlv
-IEludGVyZWNvbm9tw61hLCBPTkRBIE1FTE9Ew41BIHRvIEludGVyZWNvbm9taWEsIFJhZGlvIElu
-dGVyZWNvbm9taWEsIE9OREEgTUVMT0RJQSBmb3IgVG90ZW0gdG8gd29yayB3ZWxsLgpUIDc3MDAw
-MDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FICAgICMgQ2FuYWwgNTg6IEVUQjEs
-IEVUQjIsIEVUQjMsIEVUQlNBVCwgRXVza2FkaSBJcnJhdGlhLCBHYXp0ZWEsIEVpVEIgSXJyYXRp
-YSwgUmFkaW8gRXVza2FkaSwgUmFkaW8gVml0b3JpYQpUIDgxMDAwMDAwMCA4TUh6IDIvMyBOT05F
-IFFBTTY0IDhrIDEvNCBOT05FICAgICMgQ2FuYWwgNjM6IExhIDEsIExhIDIsIDI0aCwgQ2xhbiwg
-Uk5FMSwgUk5FQywgUk5FMwpUIDgzNDAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBO
-T05FICAgICMgQ2FuYWwgNjY6IFRlbGVkZXBvcnRlLCBDYW5hbCBJbmdlbmllcmlhLCBWRU83LCBT
-T05ZIFRWIGVuIFZFTywgVGllbmRhIGVuIFZFTywgR1VJREUgUExVUyssIEludGVyZWNvbm9tw61h
-LCBSYWRpbyBJbnRlcmVjb25vbcOtYSwgW2ZmZmVdLCBSQURJTyBNQVJDQQpUIDg0MjAwMDAwMCA4
-TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FICAgICMgQ2FuYWwgNjc6IGxhU2V4dGEsIENV
-QVRSTywgQ05OKywgNDAgTEFUSU5PLCBDQU5BTCBDTFVCLCBTRVIsIDQwIFBSSU5DSVBBTEVTLCBD
-QURFTkEgRElBTApUIDg1MDAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FICAg
-ICMgQ2FuYWwgNjg6IFRlbGVjaW5jbywgRkRGLCBMYVNpZXRlLCBEaXNuZXkgQ2hhbm5lbCwgQ2lu
-Y29zaG9wClQgODU4MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS80IE5PTkUgICAgIyBD
-YW5hbCA2OTogQU5URU5BIDMsIEFOVEVOQS5ORU9YLCBBTlRFTkEuTk9WQSwgT05EQSBDRVJPLCBF
-VVJPUEEgRk0sIE9OREEgTUVMT0TDjUEsIEhPR0FSIDEwCg==
---0016e655991ad767b1046e87b5d0--
+Valerio
