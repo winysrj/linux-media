@@ -1,72 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39356 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932245AbZHQUFh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Aug 2009 16:05:37 -0400
-From: neilsikka@ti.com
-To: linux-media@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com
-Cc: khilman@deeprootsystems.com, hverkuil@xs4all.nl,
-	Neil Sikka <neilsikka@ti.com>
-Subject: [PATCH v1 4/4] Build system support for DM365 CCDC
-Date: Mon, 17 Aug 2009 16:05:29 -0400
-Message-Id: <1250539529-2702-5-git-send-email-neilsikka@ti.com>
-In-Reply-To: <1250539529-2702-4-git-send-email-neilsikka@ti.com>
-References: <1250539529-2702-1-git-send-email-neilsikka@ti.com>
- <1250539529-2702-2-git-send-email-neilsikka@ti.com>
- <1250539529-2702-3-git-send-email-neilsikka@ti.com>
- <1250539529-2702-4-git-send-email-neilsikka@ti.com>
+Received: from einhorn.in-berlin.de ([192.109.42.8]:46650 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750716AbZHALFj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Aug 2009 07:05:39 -0400
+Date: Sat, 1 Aug 2009 13:05:16 +0200 (CEST)
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: [PATCH 3/3] firedtv: combine some debug logging code
+To: Henrik Kurelid <henke@kurelid.se>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: linux-media@vger.kernel.org, linux1394-devel@lists.sourceforge.net
+In-Reply-To: <tkrat.301e627fc650b780@s5r6.in-berlin.de>
+Message-ID: <tkrat.fc1c1269de053cb2@s5r6.in-berlin.de>
+References: <2f15391f4f76f6a3126c0e8a9d61562c.squirrel@mail.kurelid.se>
+ <tkrat.54463abf6a774c27@s5r6.in-berlin.de>
+ <tkrat.2933b45909e8fb83@s5r6.in-berlin.de>
+ <tkrat.301e627fc650b780@s5r6.in-berlin.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; CHARSET=us-ascii
+Content-Disposition: INLINE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Neil Sikka <neilsikka@ti.com>
+Shrinks source and kernel object size a bit.
 
-This patch sets up the build system for DM365 VPFE support
-
-Reviewed-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-Mandatory-Reviewer: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Neil Sikka <neilsikka@ti.com>
+Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
 ---
-Applies to v4l-dvb linux-next repository
- drivers/media/video/Kconfig          |    9 +++++++++
- drivers/media/video/davinci/Makefile |    3 ++-
- 2 files changed, 11 insertions(+), 1 deletions(-)
+ drivers/media/dvb/firewire/firedtv-avc.c |  109 ++++++++++-------------
+ 1 file changed, 49 insertions(+), 60 deletions(-)
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 1fa3c87..e0dd402 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -578,6 +578,15 @@ config VIDEO_DM355_CCDC
- 	   To compile this driver as a module, choose M here: the
- 	   module will be called vpfe.
+Index: b/drivers/media/dvb/firewire/firedtv-avc.c
+===================================================================
+--- a/drivers/media/dvb/firewire/firedtv-avc.c
++++ b/drivers/media/dvb/firewire/firedtv-avc.c
+@@ -103,18 +103,19 @@ struct avc_response_frame {
  
-+config VIDEO_DM365_ISIF
-+	tristate "DM365 CCDC/ISIF HW module"
-+	depends on ARCH_DAVINCI_DM365 && VIDEO_VPFE_CAPTURE
-+	default y
-+	help
-+	   Enables DM365 ISIF hw module. This is the hardware module for
-+	   configuring ISIF in VPFE to capture Raw Bayer RGB data  from
-+	   a image sensor or YUV data from a YUV source.
+ static int avc_debug;
+ module_param_named(debug, avc_debug, int, 0644);
+-MODULE_PARM_DESC(debug, "Verbose logging bitmask (none (default) = 0"
+-	", FCP subaction(READ DESCRIPTOR) = "		__stringify(AVC_DEBUG_READ_DESCRIPTOR)
+-	", FCP subaction(DSIT) = "			__stringify(AVC_DEBUG_DSIT)
+-	", FCP subaction(REGISTER_REMOTE_CONTROL) = "	__stringify(AVC_DEBUG_REGISTER_REMOTE_CONTROL)
+-	", FCP subaction(LNB CONTROL) = "		__stringify(AVC_DEBUG_LNB_CONTROL)
+-	", FCP subaction(TUNE QPSK) = "			__stringify(AVC_DEBUG_TUNE_QPSK)
+-	", FCP subaction(TUNE QPSK2) = "		__stringify(AVC_DEBUG_TUNE_QPSK2)
+-	", FCP subaction(HOST2CA) = "			__stringify(AVC_DEBUG_HOST2CA)
+-	", FCP subaction(CA2HOST) = "			__stringify(AVC_DEBUG_CA2HOST)
+-	", Application sent PMT = "			__stringify(AVC_DEBUG_APPLICATION_PMT)
+-	", FCP payloads(for selected subactions) = "	__stringify(AVC_DEBUG_FCP_PAYLOADS)
+-	", or all = -1)");
++MODULE_PARM_DESC(debug, "Verbose logging (none = 0"
++	", FCP subactions"
++	": READ DESCRIPTOR = "		__stringify(AVC_DEBUG_READ_DESCRIPTOR)
++	", DSIT = "			__stringify(AVC_DEBUG_DSIT)
++	", REGISTER_REMOTE_CONTROL = "	__stringify(AVC_DEBUG_REGISTER_REMOTE_CONTROL)
++	", LNB CONTROL = "		__stringify(AVC_DEBUG_LNB_CONTROL)
++	", TUNE QPSK = "		__stringify(AVC_DEBUG_TUNE_QPSK)
++	", TUNE QPSK2 = "		__stringify(AVC_DEBUG_TUNE_QPSK2)
++	", HOST2CA = "			__stringify(AVC_DEBUG_HOST2CA)
++	", CA2HOST = "			__stringify(AVC_DEBUG_CA2HOST)
++	"; Application sent PMT = "	__stringify(AVC_DEBUG_APPLICATION_PMT)
++	", FCP payloads = "		__stringify(AVC_DEBUG_FCP_PAYLOADS)
++	", or a combination, or all = -1)");
+ 
+ static const char *debug_fcp_ctype(unsigned int ctype)
+ {
+@@ -135,71 +136,59 @@ static const char *debug_fcp_opcode(unsi
+ 				    const u8 *data, int length)
+ {
+ 	switch (opcode) {
+-	case AVC_OPCODE_VENDOR:			break;
+-	case AVC_OPCODE_READ_DESCRIPTOR:	return "ReadDescriptor";
+-	case AVC_OPCODE_DSIT:			return "DirectSelectInfo.Type";
+-	case AVC_OPCODE_DSD:			return "DirectSelectData";
+-	default:				return "?";
+-	}
+-
+-	if (length < 7 ||
+-	    data[3] != SFE_VENDOR_DE_COMPANYID_0 ||
+-	    data[4] != SFE_VENDOR_DE_COMPANYID_1 ||
+-	    data[5] != SFE_VENDOR_DE_COMPANYID_2)
+-		return "Vendor";
+-
+-	switch (data[6]) {
+-	case SFE_VENDOR_OPCODE_REGISTER_REMOTE_CONTROL:	return "RegisterRC";
+-	case SFE_VENDOR_OPCODE_LNB_CONTROL:		return "LNBControl";
+-	case SFE_VENDOR_OPCODE_TUNE_QPSK:		return "TuneQPSK";
+-	case SFE_VENDOR_OPCODE_TUNE_QPSK2:		return "TuneQPSK2";
+-	case SFE_VENDOR_OPCODE_HOST2CA:			return "Host2CA";
+-	case SFE_VENDOR_OPCODE_CA2HOST:			return "CA2Host";
+-	}
+-	return "Vendor";
+-}
+-
+-static int debug_fcp_opcode_flag_set(unsigned int opcode,
+-				     const u8 *data, int length)
+-{
+-	switch (opcode) {
+-	case AVC_OPCODE_VENDOR:			break;
+-	case AVC_OPCODE_READ_DESCRIPTOR:	return avc_debug & AVC_DEBUG_READ_DESCRIPTOR;
+-	case AVC_OPCODE_DSIT:			return avc_debug & AVC_DEBUG_DSIT;
+-	case AVC_OPCODE_DSD:			return avc_debug & AVC_DEBUG_DSD;
+-	default:				return 1;
++	case AVC_OPCODE_VENDOR:
++		break;
++	case AVC_OPCODE_READ_DESCRIPTOR:
++		return avc_debug & AVC_DEBUG_READ_DESCRIPTOR ?
++				"ReadDescriptor" : NULL;
++	case AVC_OPCODE_DSIT:
++		return avc_debug & AVC_DEBUG_DSIT ?
++				"DirectSelectInfo.Type" : NULL;
++	case AVC_OPCODE_DSD:
++		return avc_debug & AVC_DEBUG_DSD ? "DirectSelectData" : NULL;
++	default:
++		return "Unknown";
+ 	}
+ 
+ 	if (length < 7 ||
+ 	    data[3] != SFE_VENDOR_DE_COMPANYID_0 ||
+ 	    data[4] != SFE_VENDOR_DE_COMPANYID_1 ||
+ 	    data[5] != SFE_VENDOR_DE_COMPANYID_2)
+-		return 1;
++		return "Vendor/Unknown";
+ 
+ 	switch (data[6]) {
+-	case SFE_VENDOR_OPCODE_REGISTER_REMOTE_CONTROL:	return avc_debug & AVC_DEBUG_REGISTER_REMOTE_CONTROL;
+-	case SFE_VENDOR_OPCODE_LNB_CONTROL:		return avc_debug & AVC_DEBUG_LNB_CONTROL;
+-	case SFE_VENDOR_OPCODE_TUNE_QPSK:		return avc_debug & AVC_DEBUG_TUNE_QPSK;
+-	case SFE_VENDOR_OPCODE_TUNE_QPSK2:		return avc_debug & AVC_DEBUG_TUNE_QPSK2;
+-	case SFE_VENDOR_OPCODE_HOST2CA:			return avc_debug & AVC_DEBUG_HOST2CA;
+-	case SFE_VENDOR_OPCODE_CA2HOST:			return avc_debug & AVC_DEBUG_CA2HOST;
++	case SFE_VENDOR_OPCODE_REGISTER_REMOTE_CONTROL:
++		return avc_debug & AVC_DEBUG_REGISTER_REMOTE_CONTROL ?
++				"RegisterRC" : NULL;
++	case SFE_VENDOR_OPCODE_LNB_CONTROL:
++		return avc_debug & AVC_DEBUG_LNB_CONTROL ? "LNBControl" : NULL;
++	case SFE_VENDOR_OPCODE_TUNE_QPSK:
++		return avc_debug & AVC_DEBUG_TUNE_QPSK ? "TuneQPSK" : NULL;
++	case SFE_VENDOR_OPCODE_TUNE_QPSK2:
++		return avc_debug & AVC_DEBUG_TUNE_QPSK2 ? "TuneQPSK2" : NULL;
++	case SFE_VENDOR_OPCODE_HOST2CA:
++		return avc_debug & AVC_DEBUG_HOST2CA ? "Host2CA" : NULL;
++	case SFE_VENDOR_OPCODE_CA2HOST:
++		return avc_debug & AVC_DEBUG_CA2HOST ? "CA2Host" : NULL;
+ 	}
+-	return 1;
++	return "Vendor/Unknown";
+ }
+ 
+ static void debug_fcp(const u8 *data, int length)
+ {
+-	unsigned int subunit_type, subunit_id, op;
+-	const char *prefix = data[0] > 7 ? "FCP <- " : "FCP -> ";
++	unsigned int subunit_type, subunit_id, opcode;
++	const char *op, *prefix;
+ 
++	prefix       = data[0] > 7 ? "FCP <- " : "FCP -> ";
+ 	subunit_type = data[1] >> 3;
+-	subunit_id = data[1] & 7;
+-	op = subunit_type == 0x1e || subunit_id == 5 ? ~0 : data[2];
+-	if (debug_fcp_opcode_flag_set(op, data, length)) {
++	subunit_id   = data[1] & 7;
++	opcode       = subunit_type == 0x1e || subunit_id == 5 ? ~0 : data[2];
++	op           = debug_fcp_opcode(opcode, data, length);
 +
- source "drivers/media/video/bt8xx/Kconfig"
- 
- config VIDEO_PMS
-diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
-index f44cad2..5f4c830 100644
---- a/drivers/media/video/davinci/Makefile
-+++ b/drivers/media/video/davinci/Makefile
-@@ -8,8 +8,9 @@ obj-$(CONFIG_VIDEO_DAVINCI_VPIF) += vpif.o
- #DM646x EVM Display driver
- obj-$(CONFIG_DISPLAY_DAVINCI_DM646X_EVM) += vpif_display.o
- 
--# Capture: DM6446 and DM355
-+# Capture: DM6446, DM355, DM365
- obj-$(CONFIG_VIDEO_VPSS_SYSTEM) += vpss.o
- obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
- obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
- obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
-+obj-$(CONFIG_VIDEO_DM365_ISIF) += dm365_ccdc.o
++	if (op) {
+ 		printk(KERN_INFO "%ssu=%x.%x l=%d: %-8s - %s\n",
+ 		       prefix, subunit_type, subunit_id, length,
+-		       debug_fcp_ctype(data[0]),
+-		       debug_fcp_opcode(op, data, length));
++		       debug_fcp_ctype(data[0]), op);
+ 		if (avc_debug & AVC_DEBUG_FCP_PAYLOADS)
+ 			print_hex_dump(KERN_INFO, prefix, DUMP_PREFIX_NONE,
+ 				       16, 1, data, length, false);
+
 -- 
-1.6.0.4
+Stefan Richter
+-=====-==--= =--- ----=
+http://arcgraph.de/sr/
 
