@@ -1,77 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:2664 "EHLO
-	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751892AbZHMFpu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Aug 2009 01:45:50 -0400
-Message-ID: <065bfdd86fae05f6c3aa55b03651979a.squirrel@webmail.xs4all.nl>
-In-Reply-To: <!&!AAAAAAAAAAAYAAAAAAAAAMs7WpTkg9MRuRcAACHFyB/CgAAAEAAAACcjVxFMux1AotUWOp
- 7nrWEBAAAAAA==@coolrose.fsnet.co.uk>
-References: <!&!AAAAAAAAAAAYAAAAAAAAAMs7WpTkg9MRuRcAACHFyB/CgAAAEAAAAJQ52z3qEFtDsl72y5icHrgBAAAAAA==@coolrose.fsnet.co.uk>
-    <f554f7485cc95254484c951ed52cb7ba.squirrel@webmail.xs4all.nl>
-    <!&!AAAAAAAAAAAYAAAAAAAAAMs7WpTkg9MRuRcAACHFyB/CgAAAEAAAACcjVxFMux1AotUWOp7nrWEBAAAAAA==@coolrose.fsnet.co.uk>
-Date: Thu, 13 Aug 2009 07:45:49 +0200
-Subject: RE: [linux-dvb] TechnoTrend TT-connect S2-3650 CI
-From: "Niels Wagenaar" <n.wagenaar@xs4all.nl>
-To: "Christopher Thornley" <c.j.thornley@coolrose.fsnet.co.uk>
-Cc: n.wagenaar@xs4all.nl, linux-media@vger.kernel.org
-Reply-To: n.wagenaar@xs4all.nl
+Received: from mgw1.diku.dk ([130.225.96.91]:50559 "EHLO mgw1.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751095AbZHAI4c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 1 Aug 2009 04:56:32 -0400
+Date: Sat, 1 Aug 2009 10:53:38 +0200 (CEST)
+From: Julia Lawall <julia@diku.dk>
+To: frank@zago.net, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [PATCH 3/10] drivers/media/video/gspca: introduce missing kfree
+Message-ID: <Pine.LNX.4.64.0908011053140.23408@ask.diku.dk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Op Do, 13 augustus, 2009 01:30, schreef Christopher Thornley:
-> Hi,
-> I have now successfully installed the S2API and s2-liplianin (Thank for
-> the link Goga777)
->
-> -- SNIP --
->
-> I have tried to build (make) several versions of VDR from version 1.7.4 to
-> 1.7.8 but I am receiving the following error message which I don't know
-> what
-> to do to resolve this :-
->
-> system@Firefly:~/dvb/vdr-1.7.8$ make
-> g++ -g -O2 -Wall -Woverloaded-virtual -Wno-parentheses -c -DREMOTE_KBD
-> -DLIRC_DEVICE=\"/dev/lircd\" -DRCU_DEVICE=\"/dev/ttyS1\" -D_GNU_SOURCE
-> -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE
-> -DVIDEODIR=\"/video\" -DCONFDIR=\"/video\" -DPLUGINDIR=\"./PLUGINS/lib\"
-> -DLOCDIR=\"./locale\" -I/usr/include/freetype2 dvbdevice.c
-> dvbdevice.c: In constructor 'cDvbDevice::cDvbDevice(int)':
-> dvbdevice.c:487: error: 'FE_CAN_2G_MODULATION' was not declared in this
-> scope
-> make: *** [dvbdevice.o] Error 1
-> system@Firefly:~/dvb/vdr-1.7.8$
->
+From: Julia Lawall <julia@diku.dk>
 
-Edit Make.config in the VDR source directory and change the DVBDIR to the
-following:
+Error handling code following a kmalloc should free the allocated data.
 
-DVBDIR = /usr/local/src/s2-liplianin/linux
+The semantic match that finds the problem is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
 
-Change /usr/local/src/s2-liplianin to your location where you fetched
-s2-liplianin. Also you need to do an additional command before you can
-compile VDR. Go to the location where you have s2-liplianin (example: cd
-/usr/local/src/s2-liplianin) and use the following commands:
+// <smpl>
+@r exists@
+local idexpression x;
+statement S;
+expression E;
+identifier f,f1,l;
+position p1,p2;
+expression *ptr != NULL;
+@@
 
-cd linux/include/linux
-ln -s /usr/src/linux-headers-`uname -r`/include/linux/compiler.h ./
+x@p1 = \(kmalloc\|kzalloc\|kcalloc\)(...);
+...
+if (x == NULL) S
+<... when != x
+     when != if (...) { <+...x...+> }
+(
+x->f1 = E
+|
+ (x->f1 == NULL || ...)
+|
+ f(...,x->f1,...)
+)
+...>
+(
+ return \(0\|<+...x...+>\|ptr\);
+|
+ return@p2 ...;
+)
 
-Now go to the VDR source-folder. Do a make clean and do a make again. VDR
-should now compile like it should :)
+@script:python@
+p1 << r.p1;
+p2 << r.p2;
+@@
 
->
-> Many Thanks
-> Chris
+print "* file: %s kmalloc %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
+// </smpl>
 
-If you have any problems at all, the best option is to join the VDR
-mailinglist (vdr@linuxtv.org) since this mailinglist is for Linux media
-and not for VDR ;).
+Signed-off-by: Julia Lawall <julia@diku.dk>
+---
+ drivers/media/video/gspca/m5602/m5602_s5k83a.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-Regards,
-
-Niels Wagenaar
-
+diff --git a/drivers/media/video/gspca/m5602/m5602_s5k83a.c b/drivers/media/video/gspca/m5602/m5602_s5k83a.c
+index 7127321..6b89f33 100644
+--- a/drivers/media/video/gspca/m5602/m5602_s5k83a.c
++++ b/drivers/media/video/gspca/m5602/m5602_s5k83a.c
+@@ -178,8 +178,10 @@ sensor_found:
+ 
+ 	sens_priv->settings =
+ 	kmalloc(sizeof(s32)*ARRAY_SIZE(s5k83a_ctrls), GFP_KERNEL);
+-	if (!sens_priv->settings)
++	if (!sens_priv->settings) {
++		kfree(sens_priv);
+ 		return -ENOMEM;
++	}
+ 
+ 	sd->gspca_dev.cam.cam_mode = s5k83a_modes;
+ 	sd->gspca_dev.cam.nmodes = ARRAY_SIZE(s5k83a_modes);
