@@ -1,133 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mis07.de ([93.186.196.80]:36498 "EHLO mis07.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751193AbZHOSYj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Aug 2009 14:24:39 -0400
-Message-ID: <FC1FB0CA6E6842A49F5F5B383DF6D8B8@pcvirus>
-From: "Rath" <mailings@hardware-datenbank.de>
-To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-Cc: <linux-media@vger.kernel.org>
-References: <5F4AD632B3F24770A35CD99D34F06294@pcvirus> <5e9665e10908150253s5793a36eyd35dd06c6e5d94a8@mail.gmail.com>
-Subject: Re: V4L image grab
-Date: Sat, 15 Aug 2009 20:23:43 +0200
-MIME-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4480 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751887AbZHAS1s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Aug 2009 14:27:48 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id n71IRiKN031025
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 1 Aug 2009 20:27:48 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 1 Aug 2009 20:27:44 +0200 (CEST)
+Message-Id: <200908011827.n71IRiKN031025@smtp-vbr9.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With the example from the api specifications I get this output:
-root@beagleboard:~# ./capture -d /dev/video0
-....................................................................................................
-Where can I find the captured images?
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
------ Original Message ----- 
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-To: "Rath" <mailings@hardware-datenbank.de>
-Cc: <linux-media@vger.kernel.org>
-Sent: Saturday, August 15, 2009 11:53 AM
-Subject: Re: V4L image grab
+Results of the daily build of v4l-dvb:
 
+date:        Sat Aug  1 19:00:06 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12375:b15490457d60
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-On Sat, Aug 15, 2009 at 6:36 AM, Rath<mailings@hardware-datenbank.de> wrote:
-> Hi,
->
-> with this code from the internet I only get pictures with some undefined
-> pixels on the top and black pixels on the bottom.
->
-> Where's the problem? I only want a simple example for image captureing.
->
-> Here is the code:
->
-> #include <stdio.h>
-> #include <unistd.h>
-> #include <fcntl.h>
-> #include <sys/ioctl.h>
-> #include <libv4l1.h>
-> #include <linux/videodev.h>
->
-> #define GES_LAENGE (640*480)
->
-> unsigned char bild[GES_LAENGE];
->
-> int main()
-> {
-> int fd;
-> long laenge;
-> struct video_window video_win;
-> FILE *bilddatei;
->
-> if((fd = v4l1_open("/dev/video0", O_RDONLY)) == -1)
-> {
-> printf("Fehler beim Oeffnen von /dev/video0\r\n");
-> return 1;
-> }
-> if( v4l1_ioctl( fd, VIDIOCGWIN, &video_win) == -1)
-> {
-> printf("Fehler beim setzen der Einstellungen\r\n");
-> return 1;
-> }
-> laenge = video_win.width * video_win.height;
-> if( laenge > GES_LAENGE)
-> {
-> printf("Bild ist groesser als angegeben\r\n");
-> return 1;
-> }
->
->
-> if( v4l1_read( fd, bild, laenge) == -1)
-> {
-> printf("Auslesen der Kamera nicht möglch\r\n");
-> return 1;
-> }
-> if((bilddatei = fopen( "bild.ppm", "w+b")) == NULL)
-> {
-> printf("Konnte die datei zum schreiben nicht öffnen\r\n");
-> return 1;
-> }
-> v4l1_close(fd);
-> fprintf( bilddatei, "P6\n%d %d\n255\n",video_win.width,
-> video_win.height);
-> fwrite( bild, 1, video_win.width*video_win.height,bilddatei);
-> fclose(bilddatei);
-> return 0;
-> }
->
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-rc5-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.31-rc5-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.31-rc5-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-rc5-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-rc5-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-rc5-mips: WARNINGS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-rc5-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-rc5-x86_64: WARNINGS
+sparse (linux-2.6.30): OK
+sparse (linux-2.6.31-rc5): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
+Detailed results are available here:
 
-Hi Joern,
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-That code seems to be using v4l1 APIs. How about using current version
-of video4linux?
-You can find a simple example code at following document:
-http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec-single/v4l2.html#CAPTURE-EXAMPLE
+Full logs are available here:
 
-And about the weird image you got from the v4l1 example code, could be
-a pixelformat missmatch or just some noise fetched but I can't say any
-further without knowing your environment :-)
-Cheers,
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-Nate
+The V4L2 specification from this daily build is here:
 
-> Regards, Joern
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at http://vger.kernel.org/majordomo-info.html
->
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
 
+The DVB API specification from this daily build is here:
 
-
--- 
-=
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
