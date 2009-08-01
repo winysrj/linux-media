@@ -1,58 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4161 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752777AbZHaSEj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Aug 2009 14:04:39 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: hvr-1800 disabling audio on pvr-500?
-Date: Mon, 31 Aug 2009 20:04:38 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <86BDC1B0-F181-4D45-AD8D-2D836EE998CB@wilsonet.com>
-In-Reply-To: <86BDC1B0-F181-4D45-AD8D-2D836EE998CB@wilsonet.com>
+Received: from mail-ew0-f214.google.com ([209.85.219.214]:34449 "EHLO
+	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750698AbZHAMcd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Aug 2009 08:32:33 -0400
+Message-ID: <4A7435DD.8070801@gmail.com>
+Date: Sat, 01 Aug 2009 14:32:29 +0200
+From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200908312004.38112.hverkuil@xs4all.nl>
+To: Julia Lawall <julia@diku.dk>
+CC: frank@zago.net, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH 3/10] drivers/media/video/gspca: introduce missing kfree
+References: <Pine.LNX.4.64.0908011053140.23408@ask.diku.dk>
+In-Reply-To: <Pine.LNX.4.64.0908011053140.23408@ask.diku.dk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 31 August 2009 19:45:08 Jarod Wilson wrote:
-> Haven't verified this myself, but there's a bugzilla ticket filed w/ 
-> Red Hat, claiming that audio on a pvr-500 is disabled when its in the  
-> same system as an hvr-1800.
+Julia Lawall wrote:
+> From: Julia Lawall <julia@diku.dk>
 > 
-> https://bugzilla.redhat.com/show_bug.cgi?id=480728
+> Error handling code following a kmalloc should free the allocated data.
 > 
-> Nonsense? Already fixed? Report says it worked fine in 2.6.25, broke  
-> in 2.6.27, not sure if later kernels have been tried. If its already  
-> fixed, and someone happens to know the commit that fixed it, I'd  
-> appreciate a pointer...
+> The semantic match that finds the problem is as follows:
+> (http://www.emn.fr/x-info/coccinelle/)
 > 
+> // <smpl>
+> @r exists@
+> local idexpression x;
+> statement S;
+> expression E;
+> identifier f,f1,l;
+> position p1,p2;
+> expression *ptr != NULL;
+> @@
+> 
+> x@p1 = \(kmalloc\|kzalloc\|kcalloc\)(...);
+> ...
+> if (x == NULL) S
+> <... when != x
+>      when != if (...) { <+...x...+> }
+> (
+> x->f1 = E
+> |
+>  (x->f1 == NULL || ...)
+> |
+>  f(...,x->f1,...)
+> )
+> ...>
+> (
+>  return \(0\|<+...x...+>\|ptr\);
+> |
+>  return@p2 ...;
+> )
+> 
+> @script:python@
+> p1 << r.p1;
+> p2 << r.p2;
+> @@
+> 
+> print "* file: %s kmalloc %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
+> // </smpl>
+> 
+> Signed-off-by: Julia Lawall <julia@diku.dk>
 
-Urgh. cx25840_loadfw() in cx25840_firmware.c contains this code:
+Acked-by: Erik Andrén <erik.andren@gmail.com>
+> ---
+>  drivers/media/video/gspca/m5602/m5602_s5k83a.c |    4 +++-
+>  1 files changed, 3 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/gspca/m5602/m5602_s5k83a.c b/drivers/media/video/gspca/m5602/m5602_s5k83a.c
+> index 7127321..6b89f33 100644
+> --- a/drivers/media/video/gspca/m5602/m5602_s5k83a.c
+> +++ b/drivers/media/video/gspca/m5602/m5602_s5k83a.c
+> @@ -178,8 +178,10 @@ sensor_found:
+>  
+>  	sens_priv->settings =
+>  	kmalloc(sizeof(s32)*ARRAY_SIZE(s5k83a_ctrls), GFP_KERNEL);
+> -	if (!sens_priv->settings)
+> +	if (!sens_priv->settings) {
+> +		kfree(sens_priv);
+>  		return -ENOMEM;
+> +	}
+>  
+>  	sd->gspca_dev.cam.cam_mode = s5k83a_modes;
+>  	sd->gspca_dev.cam.nmodes = ARRAY_SIZE(s5k83a_modes);
+> --
 
-        if (state->is_cx23885)
-                firmware = FWFILE_CX23885;
-        else if (state->is_cx231xx)
-                firmware = FWFILE_CX231XX;
+Is this patch already merged into a tree that will be merged in the
+upstream one or should the v4l-dvb tree merge it?
 
-Unfortunately firmware is a global string module option, initially setup to
-contain the 'normal' cx25840 firmware name.
+Best regards,
+Erik
 
-So loading a cx23885 or a cx231xx will overwrite that string and if ivtv is
-loaded afterwards it tries to load the wrong firmware.
-
-Sigh...
-
-I'll see if I have time to fix this today or tomorrow.
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
