@@ -1,91 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44755 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752165AbZHMSvM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Aug 2009 14:51:12 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n7DIp8Ga011064
-	for <linux-media@vger.kernel.org>; Thu, 13 Aug 2009 13:51:13 -0500
-Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id n7DIp8J4027169
-	for <linux-media@vger.kernel.org>; Thu, 13 Aug 2009 13:51:08 -0500 (CDT)
-Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
-	by dlep20.itg.ti.com (8.12.11/8.12.11) with ESMTP id n7DIp8fR005489
-	for <linux-media@vger.kernel.org>; Thu, 13 Aug 2009 13:51:08 -0500 (CDT)
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Thu, 13 Aug 2009 13:51:06 -0500
-Subject: [RFC][PATCH] v4l2: Add other RAW Bayer 10bit component orders
-Message-ID: <A24693684029E5489D1D202277BE89444A7839B7@dlee02.ent.ti.com>
-Content-Language: en-US
-Content-Type: multipart/mixed;
-	boundary="_002_A24693684029E5489D1D202277BE89444A7839B7dlee02entticom_"
+Received: from einhorn.in-berlin.de ([192.109.42.8]:46654 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750753AbZHALGo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Aug 2009 07:06:44 -0400
+Date: Sat, 1 Aug 2009 13:04:06 +0200 (CEST)
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: [PATCH 2/3 update] firedtv: refine AVC debugging
+To: Henrik Kurelid <henke@kurelid.se>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: linux-media@vger.kernel.org, linux1394-devel@lists.sourceforge.net
+In-Reply-To: <tkrat.2933b45909e8fb83@s5r6.in-berlin.de>
+Message-ID: <tkrat.301e627fc650b780@s5r6.in-berlin.de>
+References: <2f15391f4f76f6a3126c0e8a9d61562c.squirrel@mail.kurelid.se>
+ <tkrat.54463abf6a774c27@s5r6.in-berlin.de>
+ <tkrat.2933b45909e8fb83@s5r6.in-berlin.de>
 MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; CHARSET=us-ascii
+Content-Disposition: INLINE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---_002_A24693684029E5489D1D202277BE89444A7839B7dlee02entticom_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+From: Henrik Kurelid <henke@kurelid.se>
 
-From: Sergio Aguirre <saaguirre@ti.com>
+The current AVC debugging can clog the log down a lot since many
+applications tend to check the signal strength very often.  This patch
+enables users to select which AVC messages to log using a bitmask.  In
+addition, it also enables the possibility to debug application PMTs sent
+to the driver.  This will be usable since the CA support is still poorly
+tested for lots of CAMs and CA systems.
 
-This helps clarifying different pattern orders for RAW Bayer 10 bit
-cases.
-
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+Signed-off-by: Henrik Kurelid <henrik@kurelid.se>
+Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
 ---
- include/linux/videodev2.h |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+Update (Stefan R):
+Remove pre 2.6.22 compatibility #ifdefs, small whitespace changes.
 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 9e66c50..8aa6255 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -327,6 +327,9 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B', 'A', '1', '0')
- /* 10bit raw bayer DPCM compressed to 8 bits */
- #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
-+#define V4L2_PIX_FMT_SRGGB10 v4l2_fourcc('R', 'G', '1', '0')
-+#define V4L2_PIX_FMT_SBGGR10 v4l2_fourcc('B', 'G', '1', '0')
-+#define V4L2_PIX_FMT_SGBRG10 v4l2_fourcc('G', 'B', '1', '0')
- #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG..=
- GRGR.. */
-=20
- /* compressed formats */
---=20
-1.6.3.2
+ drivers/media/dvb/firewire/firedtv-avc.c |   79 ++++++++++++++++++++---
+ 1 file changed, 67 insertions(+), 12 deletions(-)
 
+Index: b/drivers/media/dvb/firewire/firedtv-avc.c
+===================================================================
+--- a/drivers/media/dvb/firewire/firedtv-avc.c
++++ b/drivers/media/dvb/firewire/firedtv-avc.c
+@@ -89,14 +89,31 @@ struct avc_response_frame {
+ 	u8 operand[509];
+ };
+ 
+-#define AVC_DEBUG_FCP_SUBACTIONS	1
+-#define AVC_DEBUG_FCP_PAYLOADS		2
++#define AVC_DEBUG_READ_DESCRIPTOR              0x0001
++#define AVC_DEBUG_DSIT                         0x0002
++#define AVC_DEBUG_DSD                          0x0004
++#define AVC_DEBUG_REGISTER_REMOTE_CONTROL      0x0008
++#define AVC_DEBUG_LNB_CONTROL                  0x0010
++#define AVC_DEBUG_TUNE_QPSK                    0x0020
++#define AVC_DEBUG_TUNE_QPSK2                   0x0040
++#define AVC_DEBUG_HOST2CA                      0x0080
++#define AVC_DEBUG_CA2HOST                      0x0100
++#define AVC_DEBUG_APPLICATION_PMT              0x4000
++#define AVC_DEBUG_FCP_PAYLOADS                 0x8000
+ 
+ static int avc_debug;
+ module_param_named(debug, avc_debug, int, 0644);
+-MODULE_PARM_DESC(debug, "Verbose logging (default = 0"
+-	", FCP subactions = "	__stringify(AVC_DEBUG_FCP_SUBACTIONS)
+-	", FCP payloads = "	__stringify(AVC_DEBUG_FCP_PAYLOADS)
++MODULE_PARM_DESC(debug, "Verbose logging bitmask (none (default) = 0"
++	", FCP subaction(READ DESCRIPTOR) = "		__stringify(AVC_DEBUG_READ_DESCRIPTOR)
++	", FCP subaction(DSIT) = "			__stringify(AVC_DEBUG_DSIT)
++	", FCP subaction(REGISTER_REMOTE_CONTROL) = "	__stringify(AVC_DEBUG_REGISTER_REMOTE_CONTROL)
++	", FCP subaction(LNB CONTROL) = "		__stringify(AVC_DEBUG_LNB_CONTROL)
++	", FCP subaction(TUNE QPSK) = "			__stringify(AVC_DEBUG_TUNE_QPSK)
++	", FCP subaction(TUNE QPSK2) = "		__stringify(AVC_DEBUG_TUNE_QPSK2)
++	", FCP subaction(HOST2CA) = "			__stringify(AVC_DEBUG_HOST2CA)
++	", FCP subaction(CA2HOST) = "			__stringify(AVC_DEBUG_CA2HOST)
++	", Application sent PMT = "			__stringify(AVC_DEBUG_APPLICATION_PMT)
++	", FCP payloads(for selected subactions) = "	__stringify(AVC_DEBUG_FCP_PAYLOADS)
+ 	", or all = -1)");
+ 
+ static const char *debug_fcp_ctype(unsigned int ctype)
+@@ -142,26 +159,61 @@ static const char *debug_fcp_opcode(unsi
+ 	return "Vendor";
+ }
+ 
++static int debug_fcp_opcode_flag_set(unsigned int opcode,
++				     const u8 *data, int length)
++{
++	switch (opcode) {
++	case AVC_OPCODE_VENDOR:			break;
++	case AVC_OPCODE_READ_DESCRIPTOR:	return avc_debug & AVC_DEBUG_READ_DESCRIPTOR;
++	case AVC_OPCODE_DSIT:			return avc_debug & AVC_DEBUG_DSIT;
++	case AVC_OPCODE_DSD:			return avc_debug & AVC_DEBUG_DSD;
++	default:				return 1;
++	}
++
++	if (length < 7 ||
++	    data[3] != SFE_VENDOR_DE_COMPANYID_0 ||
++	    data[4] != SFE_VENDOR_DE_COMPANYID_1 ||
++	    data[5] != SFE_VENDOR_DE_COMPANYID_2)
++		return 1;
++
++	switch (data[6]) {
++	case SFE_VENDOR_OPCODE_REGISTER_REMOTE_CONTROL:	return avc_debug & AVC_DEBUG_REGISTER_REMOTE_CONTROL;
++	case SFE_VENDOR_OPCODE_LNB_CONTROL:		return avc_debug & AVC_DEBUG_LNB_CONTROL;
++	case SFE_VENDOR_OPCODE_TUNE_QPSK:		return avc_debug & AVC_DEBUG_TUNE_QPSK;
++	case SFE_VENDOR_OPCODE_TUNE_QPSK2:		return avc_debug & AVC_DEBUG_TUNE_QPSK2;
++	case SFE_VENDOR_OPCODE_HOST2CA:			return avc_debug & AVC_DEBUG_HOST2CA;
++	case SFE_VENDOR_OPCODE_CA2HOST:			return avc_debug & AVC_DEBUG_CA2HOST;
++	}
++	return 1;
++}
++
+ static void debug_fcp(const u8 *data, int length)
+ {
+ 	unsigned int subunit_type, subunit_id, op;
+ 	const char *prefix = data[0] > 7 ? "FCP <- " : "FCP -> ";
+ 
+-	if (avc_debug & AVC_DEBUG_FCP_SUBACTIONS) {
+-		subunit_type = data[1] >> 3;
+-		subunit_id = data[1] & 7;
+-		op = subunit_type == 0x1e || subunit_id == 5 ? ~0 : data[2];
++	subunit_type = data[1] >> 3;
++	subunit_id = data[1] & 7;
++	op = subunit_type == 0x1e || subunit_id == 5 ? ~0 : data[2];
++	if (debug_fcp_opcode_flag_set(op, data, length)) {
+ 		printk(KERN_INFO "%ssu=%x.%x l=%d: %-8s - %s\n",
+ 		       prefix, subunit_type, subunit_id, length,
+ 		       debug_fcp_ctype(data[0]),
+ 		       debug_fcp_opcode(op, data, length));
++		if (avc_debug & AVC_DEBUG_FCP_PAYLOADS)
++			print_hex_dump(KERN_INFO, prefix, DUMP_PREFIX_NONE,
++				       16, 1, data, length, false);
+ 	}
++}
+ 
+-	if (avc_debug & AVC_DEBUG_FCP_PAYLOADS)
+-		print_hex_dump(KERN_INFO, prefix, DUMP_PREFIX_NONE, 16, 1,
+-			       data, length, false);
++static void debug_pmt(char *msg, int length)
++{
++	printk(KERN_INFO "APP PMT -> l=%d\n", length);
++	print_hex_dump(KERN_INFO, "APP PMT -> ", DUMP_PREFIX_NONE,
++		       16, 1, msg, length, false);
+ }
+ 
++
+ static int __avc_write(struct firedtv *fdtv,
+ 		const struct avc_command_frame *c, struct avc_response_frame *r)
+ {
+@@ -983,6 +1035,9 @@ int avc_ca_pmt(struct firedtv *fdtv, cha
+ 	int es_info_length;
+ 	int crc32_csum;
+ 
++	if (unlikely(avc_debug & AVC_DEBUG_APPLICATION_PMT))
++		debug_pmt(msg, length);
++
+ 	memset(c, 0, sizeof(*c));
+ 
+ 	c->ctype   = AVC_CTYPE_CONTROL;
 
---_002_A24693684029E5489D1D202277BE89444A7839B7dlee02entticom_
-Content-Type: application/octet-stream;
-	name="0001-v4l2-Add-other-RAW-Bayer-10bit-component-orders.patch"
-Content-Description: 0001-v4l2-Add-other-RAW-Bayer-10bit-component-orders.patch
-Content-Disposition: attachment;
-	filename="0001-v4l2-Add-other-RAW-Bayer-10bit-component-orders.patch";
-	size=1135; creation-date="Wed, 12 Aug 2009 15:08:39 GMT";
-	modification-date="Wed, 12 Aug 2009 15:08:39 GMT"
-Content-Transfer-Encoding: base64
+-- 
+Stefan Richter
+-=====-==--= =--- ----=
+http://arcgraph.de/sr/
 
-RnJvbSA5YzBlMGVkMmM4YzVjZDg2YTVjZmViZjliNmU1Yzk2Mzk3YTcyMGQ2IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBTZXJnaW8gQWd1aXJyZSA8c2FhZ3VpcnJlQHRpLmNvbT4KRGF0
-ZTogTW9uLCAyOSBKdW4gMjAwOSAwODo1NTowMCAtMDUwMApTdWJqZWN0OiBbUEFUQ0ggMS8zXSB2
-NGwyOiBBZGQgb3RoZXIgUkFXIEJheWVyIDEwYml0IGNvbXBvbmVudCBvcmRlcnMKClRoaXMgaGVs
-cHMgY2xhcmlmeWluZyBkaWZmZXJlbnQgcGF0dGVybiBvcmRlcnMgZm9yIFJBVyBCYXllciAxMCBi
-aXQKY2FzZXMuCgpTaWduZWQtb2ZmLWJ5OiBTZXJnaW8gQWd1aXJyZSA8c2FhZ3VpcnJlQHRpLmNv
-bT4KLS0tCiBpbmNsdWRlL2xpbnV4L3ZpZGVvZGV2Mi5oIHwgICAgMyArKysKIDEgZmlsZXMgY2hh
-bmdlZCwgMyBpbnNlcnRpb25zKCspLCAwIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2luY2x1
-ZGUvbGludXgvdmlkZW9kZXYyLmggYi9pbmNsdWRlL2xpbnV4L3ZpZGVvZGV2Mi5oCmluZGV4IDll
-NjZjNTAuLjhhYTYyNTUgMTAwNjQ0Ci0tLSBhL2luY2x1ZGUvbGludXgvdmlkZW9kZXYyLmgKKysr
-IGIvaW5jbHVkZS9saW51eC92aWRlb2RldjIuaApAQCAtMzI3LDYgKzMyNyw5IEBAIHN0cnVjdCB2
-NGwyX3BpeF9mb3JtYXQgewogI2RlZmluZSBWNEwyX1BJWF9GTVRfU0dSQkcxMCB2NGwyX2ZvdXJj
-YygnQicsICdBJywgJzEnLCAnMCcpCiAvKiAxMGJpdCByYXcgYmF5ZXIgRFBDTSBjb21wcmVzc2Vk
-IHRvIDggYml0cyAqLwogI2RlZmluZSBWNEwyX1BJWF9GTVRfU0dSQkcxMERQQ004IHY0bDJfZm91
-cmNjKCdCJywgJ0QnLCAnMScsICcwJykKKyNkZWZpbmUgVjRMMl9QSVhfRk1UX1NSR0dCMTAgdjRs
-Ml9mb3VyY2MoJ1InLCAnRycsICcxJywgJzAnKQorI2RlZmluZSBWNEwyX1BJWF9GTVRfU0JHR1Ix
-MCB2NGwyX2ZvdXJjYygnQicsICdHJywgJzEnLCAnMCcpCisjZGVmaW5lIFY0TDJfUElYX0ZNVF9T
-R0JSRzEwIHY0bDJfZm91cmNjKCdHJywgJ0InLCAnMScsICcwJykKICNkZWZpbmUgVjRMMl9QSVhf
-Rk1UX1NCR0dSMTYgdjRsMl9mb3VyY2MoJ0InLCAnWScsICdSJywgJzInKSAvKiAxNiAgQkdCRy4u
-IEdSR1IuLiAqLwogCiAvKiBjb21wcmVzc2VkIGZvcm1hdHMgKi8KLS0gCjEuNi4zLjIKCg==
-
---_002_A24693684029E5489D1D202277BE89444A7839B7dlee02entticom_--
