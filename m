@@ -1,37 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.25]:2259 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753806AbZHMNGq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Aug 2009 09:06:46 -0400
-Received: by ey-out-2122.google.com with SMTP id 22so141337eye.37
-        for <linux-media@vger.kernel.org>; Thu, 13 Aug 2009 06:06:46 -0700 (PDT)
-Message-ID: <4A840FE0.80909@gmail.com>
-Date: Thu, 13 Aug 2009 15:06:40 +0200
-From: Claes Lindblom <claesl@gmail.com>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4848 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752485AbZHBJ3Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Aug 2009 05:29:16 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org,
+	Michael Krufky via Mercurial <mkrufky@kernellabs.com>
+Subject: Re: [linuxtv-commits] [hg:v4l-dvb] sms1xxx: fix broken Hauppauge devices
+Date: Sun, 2 Aug 2009 11:29:10 +0200
+References: <E1MX6O1-0008QJ-N4@mail.linuxtv.org>
+In-Reply-To: <E1MX6O1-0008QJ-N4@mail.linuxtv.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org, claesl@gmail.com
-Subject: DVB-S Unicable support in Linux
-References: <63dd345a0908130049y7f243726l7d6656c95a407e2@mail.gmail.com>
-In-Reply-To: <63dd345a0908130049y7f243726l7d6656c95a407e2@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200908021129.10292.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-I'm trying to find out if it's possible to use unicable with DVB-S/S2 
-cards and how it's
-supported in Linux DVB.
+On Saturday 01 August 2009 06:40:01 Patch from Michael Krufky wrote:
+> The patch number 12374 was added via Michael Krufky <mkrufky@kernellabs.com>
+> to http://linuxtv.org/hg/v4l-dvb master development tree.
+> 
+> Kernel patches in this development tree may be modified to be backward
+> compatible with older kernels. Compatibility modifications will be
+> removed before inclusion into the mainstream Kernel
+> 
+> If anyone has any objections, please let us know by sending a message to:
+> 	Linux Media Mailing List <linux-media@vger.kernel.org>
+> 
+> ------
+> 
+> From: Michael Krufky  <mkrufky@kernellabs.com>
+> sms1xxx: fix broken Hauppauge devices
+> 
+> 
+> The current GPIO configuration breaks all Hauppauge devices.
+> 
+> The code being removed affects Hauppauge devices only,
+> and is the cause of the breakage.
+> 
+> Priority: high
+> 
+> Signed-off-by: Michael Krufky <mkrufky@kernellabs.com>
 
-According to 
-http://en.wikipedia.org/wiki/Single_Cable_Distribution#Equipment it 
-might only need software changes to
-work. It seems to work with DiSEqC commands but I dont't know which 
-version of DisEqC that's required.
-It also seems like there are images for dreambox for unicable.
+Hi Mike,
 
-Does anyone know something about this?
+The daily build now has this warning:
 
-Regards
-Claes
+/marune/build/v4l-dvb-master/v4l/sms-cards.c: In function 'sms_board_event':
+/marune/build/v4l-dvb-master/v4l/sms-cards.c:120: warning: unused variable 'board'
+
+And 'board' is indeed no longer used. Can you make a patch fixing this?
+I suspect that it can just be removed.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
