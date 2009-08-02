@@ -1,325 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mp1-smtp-2.eutelia.it ([62.94.10.162]:59238 "EHLO
-	smtp.eutelia.it" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755895AbZHNL1g (ORCPT
+Received: from mail-in-01.arcor-online.net ([151.189.21.41]:57085 "EHLO
+	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750857AbZHBBCW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Aug 2009 07:27:36 -0400
-Message-ID: <4A854A08.507@email.it>
-Date: Fri, 14 Aug 2009 13:27:04 +0200
-From: xwang1976@email.it
-MIME-Version: 1.0
-To: Dainius Ridzevicius <ridzevicius@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: New device: Dikom DK-300 (maybe Kworld 323U rebranded)
-References: <9577d4e00908130614q1d8c2c60kdcf74d324c897572@mail.gmail.com>	 <4A84138A.3050909@email.it> <9577d4e00908130934k77fb2b2ag124da076f448b1be@mail.gmail.com> <4A854761.7080102@email.it>
-In-Reply-To: <4A854761.7080102@email.it>
-Content-Type: multipart/mixed;
- boundary="------------010105010109080003070904"
+	Sat, 1 Aug 2009 21:02:22 -0400
+Subject: Re: USB devices supporting raw or sliced VBI for closed captioning?
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Markus Rechberger <mrechberger@gmail.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Greg KH <gregkh@suse.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Steve Castellotti <sc@eyemagnet.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+In-Reply-To: <d9def9db0907311845r259b129em3bd89b7915718cd5@mail.gmail.com>
+References: <1249082438.18313.30.camel@odyssey.sc.user.nz.vpn>
+	 <d9def9db0907311845r259b129em3bd89b7915718cd5@mail.gmail.com>
+Content-Type: text/plain
+Date: Sun, 02 Aug 2009 02:49:19 +0200
+Message-Id: <1249174159.3255.13.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------010105010109080003070904
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
 
-I forgot to send the dmesg I have had using the latest kernel 
-(dmesg_dikom-dk300.txt) and the Dainius modified one 
-(dmesg_dikom-dk300-mod.txt).
-Xwang
+Am Samstag, den 01.08.2009, 03:45 +0200 schrieb Markus Rechberger:
+> Hi,
+> 
+> On Sat, Aug 1, 2009 at 1:20 AM, Steve Castellotti<sc@eyemagnet.com> wrote:
+> >
+> >        I was wondering if anyone could please point me at a list or similar
+> > resource for USB capture devices which support raw (or sliced) VBI
+> > access for producing a closed caption transcript through software such
+> > as zbvi-ntsc-cc or ccextractor? Specifically I'm wanting a device
+> > capable of S-Video, Composite, or even Component input, not just ATSC,
+> > as most USB devices seem focused around these days.
+> >
+> >        I've managed to get this working with various ivtv and saa713x based
+> > PCI devices, but aren't aware of any USB implementations of chipsets
+> > which use those drivers.
+> >
+> >
+> >        Searching online, I found this archived message:
+> >
+> > http://lists.zerezo.com/video4linux/msg16402.html
+> >
+> > which states:
+> >
+> >> some em2840 and newer devices are able to capture raw vbi in
+> >> linux (sliced vbi isn't possible yet)
+> >> em2820, em2800, em2750 do not support vbi at all.
+> >
+> >
+> >        Checking the em28xx driver homepage for recent models, I found this
+> > entry:
+> >
+> > http://mcentral.de/wiki/index.php5/Em2880
+> >
+> >> officially the em2880 is em2840 + DVB_T
+> >
+> >
+> >        which implies that not only is the "em2880" series a "newer" device,
+> > but it should in fact already contain the "em2840" chip specifically
+> > mentioned.
+> >
+> >
+> >        Later on that same page, in the list of devices:
+> >
+> > ATI/AMD TV Wonder 600
+> >
+> >
+> >        and on the manufacturer's page:
+> >
+> > http://ati.amd.com/products/tvwonder600/usb/index.html
+> >
+> >
+> >        Under the list of "Input Connectors":
+> >
+> >> S-video input with adapter
+> >
+> >
+> >
+> >        Picking up one of these devices, I attempted to tune into the S-Video
+> > feed and check the /dev/vbi0 device, but received the same error message
+> > as I do with all other em28xx devices encountered thus far:
+> >
+> >> Cannot capture vbi data with v4l interface:
+> >> /dev/vbi0 (AMD ATI TV Wonder HD 600) is not a raw vbi device.
+> >
+> >
+> >
+> >        Can anyone please point me in the right direction?
+> >
+> >        I would much prefer to be certain the next purchase is supported.
+> >
+> >
+> >
+> > Thanks!
+> >
+> 
+> we do support Raw VBI for our devices, Sundtek MediaTV Pro for closed
+> captioning.
+> Alternatively we also have full support for ATSC-analogTV USB devices
+> for the US market ([em288x]-[AVFB4910]-[Trident drx-J]-[tda18271]) the
+> european product which we are selling is also capable of decoding NTSC
+> closed caption.
+> 
+> http://sundtek.de/shop/Digital-TV-Sticks-oxid/Sundtek-MediaTV-Pro.html
+> (this is just the information about the
+> European/DVB-T/DVB-C/analogTV(raw VBI) device, we do not have the
+> US/ATSC/analogTV(rawVBI) product listed there, although we do offer it
+> to business customers) We support it from Linux 2.6.15 on.
+> 
+> Best Regards,
+> Markus Rechberger
 
-xwang1976@email.it ha scritto:
-> Hi to all!
-> I've bought this device because I've seen that it has a better digital 
-> tuner when compared with my empire dual pen usb device.
-> It does not work with the latest driver because there is no digital tv 
-> while analog tv works with audio (even if it is a bit noisy) using the 
-> start script I have attached, but when I search for analog tv channels 
-> using tvtime-scanner, the system hangs and I have to turn it off being 
-> alt+sys+REISUB unable to reboot the machine.
-> If I modify the driver as suggest by Dainius, the digital tv works 
-> perfectly, but analog audio disappears and the hangs when tuning 
-> analog channels persist.
-> Can you help me so that to have this device fully functional (I'll 
-> continue to test also the Empire one, but this is better)?
-> If you need it I can take an usbsnoop of the same device, but I don't 
-> know how to use it exactly.
-> I'll search if I find some howto.
-> Thank you,
-> Xwang
->
-> Dainius Ridzevicius ha scritto:
->> Hi,
->>
->> replace files in /v4l-dvb/linux/drivers/media/video/em28xx
->> with attached ones and make all v4l-dvb.
->> make && make install. Reboot to clean old modules.
->>
->> DVB-T on kwordl 323ur is working, watching TV for an hour now.
->>
->> regards,
->>
->>
->> On Thu, Aug 13, 2009 at 4:22 PM, <xwang1976@email.it 
->> <mailto:xwang1976@email.it>> wrote:
->>
->>     Yes,
->>     I'm still interested.
->>     I suppose it is the same device.
->>     In the next days I hope I will be able to take an usbsnoop of the
->>     device under windows xp.
->>     Meantime, I would like to test your drive.
->>     Regards,
->>     Xwang
->>
->>     Dainius Ridzevicius ha scritto:
->>
->>         Hello,
->>
->>         I have got Kworld 323UR hybrid tuner and managed to get dvb-t
->>         lock today, will do some more testing later, but I can email
->>         or post you a link for v4l-dvb sources changed by me (from
->>         todays mercurial) if You are still interested.
->>
->>         Regards,
->>         Dainius
->>
->>
->>         --         -----------------------------------------
->>
->>
->>
->>
->> -- 
->> -----------------------------------------
+Hi,
 
---------------010105010109080003070904
-Content-Type: text/plain;
- name="dmesg_dikom-dk300-mod.txt"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="dmesg_dikom-dk300-mod.txt"
+anything new about how to deal with commercial advertising on lists,
+depending totally on our source?
 
-ZG1lc2cgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgClsg
-IDEyMC42NDgxMzZdIHVzYiAyLTM6IG5ldyBoaWdoIHNwZWVkIFVTQiBkZXZpY2UgdXNpbmcg
-ZWhjaV9oY2QgYW5kIGFkZHJlc3MgNCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgIApbICAxMjAuNzg0MjE0XSB1c2IgMi0zOiBjb25maWd1cmF0aW9uICMx
-IGNob3NlbiBmcm9tIDEgY2hvaWNlICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKWyAgMTIwLjkxNDE3OF0gZW0yOHh4OiBO
-ZXcgZGV2aWNlIFVTQiAyODgzIERldmljZSBAIDQ4MCBNYnBzIChlYjFhOmUzMjMsIGludGVy
-ZmFjZSAwLCBjbGFzcyAwKSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgClsgIDEyMC45
-MTQzMjJdIGVtMjh4eCAjMDogY2hpcCBJRCBpcyBlbTI4ODIvZW0yODgzICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgIApbICAxMjEuMDQzMDgwXSBlbTI4eHggIzA6IGkyYyBlZXByb20gMDA6IDFhIGVi
-IDY3IDk1IDFhIGViIDIzIGUzIGQwIDEyIDVjIDAwIDZhIDIyIDAwIDAwICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAKWyAgMTIxLjA0MzEwMV0gZW0yOHh4ICMwOiBpMmMg
-ZWVwcm9tIDEwOiAwMCAwMCAwNCA1NyA0ZSAwNyAwMSAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
-MCAwMCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgClsgIDEyMS4wNDMxMjFd
-IGVtMjh4eCAjMDogaTJjIGVlcHJvbSAyMDogNDYgMDAgMDEgMDAgZjAgMTAgMDEgMDAgMDAg
-MDAgMDAgMDAgNWIgMWUgMDAgMDAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IApbICAxMjEuMDQzMTM5XSBlbTI4eHggIzA6IGkyYyBlZXByb20gMzA6IDAwIDAwIDIwIDQw
-IDIwIDgwIDAyIDIwIDAxIDAxIDAwIDAwIDAwIDAwIDAwIDAwICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAKWyAgMTIxLjA0MzE1OF0gZW0yOHh4ICMwOiBpMmMgZWVwcm9t
-IDQwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgClsgIDEyMS4wNDMxNzddIGVtMjh4
-eCAjMDogaTJjIGVlcHJvbSA1MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
-MDAgMDAgMDAgMDAgMDAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIApbICAx
-MjEuMDQzMTk1XSBlbTI4eHggIzA6IGkyYyBlZXByb20gNjA6IDAwIDAwIDAwIDAwIDAwIDAw
-IDAwIDAwIDAwIDAwIDIyIDAzIDU1IDAwIDUzIDAwICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAKWyAgMTIxLjA0MzIxNF0gZW0yOHh4ICMwOiBpMmMgZWVwcm9tIDcwOiA0
-MiAwMCAyMCAwMCAzMiAwMCAzOCAwMCAzOCAwMCAzMyAwMCAyMCAwMCA0NCAwMCAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgClsgIDEyMS4wNDMyMzJdIGVtMjh4eCAjMDog
-aTJjIGVlcHJvbSA4MDogNjUgMDAgNzYgMDAgNjkgMDAgNjMgMDAgNjUgMDAgMDAgMDAgMDAg
-MDAgMDAgMDAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIApbICAxMjEuMDQz
-MjUxXSBlbTI4eHggIzA6IGkyYyBlZXByb20gOTA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
-IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAKWyAgMTIxLjA0MzI2OV0gZW0yOHh4ICMwOiBpMmMgZWVwcm9tIGEwOiAwMCAwMCAw
-MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgClsgIDEyMS4wNDMyODddIGVtMjh4eCAjMDogaTJjIGVl
-cHJvbSBiMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
-MDAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIApbICAxMjEuMDQzMzA1XSBl
-bTI4eHggIzA6IGkyYyBlZXByb20gYzA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
-IDAwIDAwIDAwIDAwIDAwIDAwICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAK
-WyAgMTIxLjA0MzMyNF0gZW0yOHh4ICMwOiBpMmMgZWVwcm9tIGQwOiAwMCAwMCAwMCAwMCAw
-MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgClsgIDEyMS4wNDMzNDJdIGVtMjh4eCAjMDogaTJjIGVlcHJvbSBl
-MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIApbICAxMjEuMDQzMzYwXSBlbTI4eHgg
-IzA6IGkyYyBlZXByb20gZjA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
-IDAwIDAwIDAwIDAwICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKWyAgMTIx
-LjA0MzM4MV0gZW0yOHh4ICMwOiBFRVBST00gSUQ9IDB4OTU2N2ViMWEsIEVFUFJPTSBoYXNo
-ID0gMHg0ZTkxMzQ0MiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgClsgIDEyMS4wNDMzODVdIGVtMjh4eCAjMDogRUVQUk9NIGluZm86ICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIApbICAxMjEuMDQzMzg4XSBlbTI4eHggIzA6ICAg
-ICAgIEFDOTcgYXVkaW8gKDUgc2FtcGxlIHJhdGVzKSAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKWyAgMTIxLjA0MzM5
-MV0gZW0yOHh4ICMwOiAgICAgICA1MDBtQSBtYXggcG93ZXIgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgClsgIDEyMS4wNDMzOTVdIGVtMjh4eCAjMDogICAgICAgVGFibGUgYXQgMHgwNCwgc3Ry
-aW5ncz0weDIyNmEsIDB4MDAwMCwgMHgwMDAwICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIApbICAxMjEuMDQzNDAwXSBlbTI4eHggIzA6IElkZW50aWZp
-ZWQgYXMgS3dvcmxkIFZTLURWQi1UIDMyM1VSIChjYXJkPTU0KSAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKWyAgMTIxLjA0MzQwM10gZW0y
-OHh4ICMwOgpbICAxMjEuMDQzNDA1XQpbICAxMjEuMDQzNDA5XSBlbTI4eHggIzA6IFRoZSBz
-dXBwb3J0IGZvciB0aGlzIGJvYXJkIHdlcmVuJ3QgdmFsaWQgeWV0LgpbICAxMjEuMDQzNDEz
-XSBlbTI4eHggIzA6IFBsZWFzZSBzZW5kIGEgcmVwb3J0IG9mIGhhdmluZyB0aGlzIHdvcmtp
-bmcKWyAgMTIxLjA0MzQxN10gZW0yOHh4ICMwOiBub3QgdG8gVjRMIG1haWxpbmcgbGlzdCAo
-YW5kL29yIHRvIG90aGVyIGFkZHJlc3NlcykKWyAgMTIxLjA0MzQxOV0KWyAgMTIxLjA2NzI2
-NF0gdHZwNTE1MCA2LTAwNWM6IGNoaXAgZm91bmQgQCAweGI4IChlbTI4eHggIzApClsgIDEy
-MS4wNzUyNzddIHR1bmVyIDYtMDA2MTogY2hpcCBmb3VuZCBAIDB4YzIgKGVtMjh4eCAjMCkK
-WyAgMTIxLjEyOTIyMl0geGMyMDI4IDYtMDA2MTogY3JlYXRpbmcgbmV3IGluc3RhbmNlClsg
-IDEyMS4xMjkyMjldIHhjMjAyOCA2LTAwNjE6IHR5cGUgc2V0IHRvIFhDZWl2ZSB4YzIwMjgv
-eGMzMDI4IHR1bmVyClsgIDEyMS4xMjkyNDJdIHVzYiAyLTM6IGZpcm13YXJlOiByZXF1ZXN0
-aW5nIHhjMzAyOC12MjcuZncKWyAgMTIxLjE0NjgyMV0geGMyMDI4IDYtMDA2MTogTG9hZGlu
-ZyA4MCBmaXJtd2FyZSBpbWFnZXMgZnJvbSB4YzMwMjgtdjI3LmZ3LCB0eXBlOiB4YzIwMjgg
-ZmlybXdhcmUsIHZlciAyLjcKWyAgMTIxLjE5MjA3MV0geGMyMDI4IDYtMDA2MTogTG9hZGlu
-ZyBmaXJtd2FyZSBmb3IgdHlwZT1CQVNFIE1UUyAoNSksIGlkIDAwMDAwMDAwMDAwMDAwMDAu
-ClsgIDEyMi4xMzkwODZdIHhjMjAyOCA2LTAwNjE6IExvYWRpbmcgZmlybXdhcmUgZm9yIHR5
-cGU9TVRTICg0KSwgaWQgMDAwMDAwMDAwMDAwYjcwMC4KWyAgMTIyLjE1NDQ4Nl0geGMyMDI4
-IDYtMDA2MTogTG9hZGluZyBTQ09ERSBmb3IgdHlwZT1NVFMgTENEIE5PR0QgTU9OTyBJRiBT
-Q09ERSBIQVNfSUZfNDUwMCAoNjAwMmIwMDQpLCBpZCAwMDAwMDAwMDAwMDBiNzAwLgpbICAx
-MjIuMzM2MzMzXSBlbTI4eHggIzA6IENvbmZpZyByZWdpc3RlciByYXcgZGF0YTogMHhkMApb
-ICAxMjIuMzM3MDY2XSBlbTI4eHggIzA6IEFDOTcgdmVuZG9yIElEID0gMHhmZmZmZmZmZgpb
-ICAxMjIuMzM3NDM2XSBlbTI4eHggIzA6IEFDOTcgZmVhdHVyZXMgPSAweDZhOTAKWyAgMTIy
-LjMzNzQ0MV0gZW0yOHh4ICMwOiBFbXBpYSAyMDIgQUM5NyBhdWRpbyBwcm9jZXNzb3IgZGV0
-ZWN0ZWQKWyAgMTIyLjQzMjU4MF0gdHZwNTE1MCA2LTAwNWM6IHR2cDUxNTBhbTEgZGV0ZWN0
-ZWQuClsgIDEyMi41Mjg4MThdIGVtMjh4eCAjMDogdjRsMiBkcml2ZXIgdmVyc2lvbiAwLjEu
-MgpbICAxMjIuNTgyOTc3XSBlbTI4eHggIzA6IFY0TDIgZGV2aWNlIHJlZ2lzdGVyZWQgYXMg
-L2Rldi92aWRlbzEgYW5kIC9kZXYvdmJpMApbICAxMjIuNTk2MDU2XSB1c2Jjb3JlOiByZWdp
-c3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIGVtMjh4eApbICAxMjIuNTk2MDU5XSBlbTI4
-eHggZHJpdmVyIGxvYWRlZApbICAxMjIuNjA5NDczXSBlbTI4eHgtYXVkaW8uYzogcHJvYmlu
-ZyBmb3IgZW0yOHgxIG5vbiBzdGFuZGFyZCB1c2JhdWRpbwpbICAxMjIuNjA5NDc2XSBlbTI4
-eHgtYXVkaW8uYzogQ29weXJpZ2h0IChDKSAyMDA2IE1hcmt1cyBSZWNoYmVyZ2VyClsgIDEy
-Mi42MDk3MTBdIEVtMjh4eDogSW5pdGlhbGl6ZWQgKEVtMjh4eCBBdWRpbyBFeHRlbnNpb24p
-IGV4dGVuc2lvbgpbICAxMjIuNzgwMjE4XSB4YzIwMjggNi0wMDYxOiBhdHRhY2hpbmcgZXhp
-c3RpbmcgaW5zdGFuY2UKWyAgMTIyLjc4MDIyMF0geGMyMDI4IDYtMDA2MTogdHlwZSBzZXQg
-dG8gWENlaXZlIHhjMjAyOC94YzMwMjggdHVuZXIKWyAgMTIyLjc4MDIyMl0gZW0yOHh4ICMw
-LzI6IHhjMzAyOCBhdHRhY2hlZApbICAxMjIuNzgwMjI0XSBEVkI6IHJlZ2lzdGVyaW5nIG5l
-dyBhZGFwdGVyIChlbTI4eHggIzApClsgIDEyMi43ODAyMjZdIERWQjogcmVnaXN0ZXJpbmcg
-YWRhcHRlciAwIGZyb250ZW5kIDAgKFphcmxpbmsgWkwxMDM1MyBEVkItVCkuLi4KWyAgMTIy
-Ljc4MDQ3NV0gU3VjY2Vzc2Z1bGx5IGxvYWRlZCBlbTI4eHgtZHZiClsgIDEyMi43ODA0Nzdd
-IEVtMjh4eDogSW5pdGlhbGl6ZWQgKEVtMjh4eCBkdmIgRXh0ZW5zaW9uKSBleHRlbnNpb24K
-WyAgMTIyLjg1MzU0OV0gdHZwNTE1MCA2LTAwNWM6IHR2cDUxNTBhbTEgZGV0ZWN0ZWQuClsg
-IDEzNC44MjQwNTddIHhjMjAyOCA2LTAwNjE6IExvYWRpbmcgZmlybXdhcmUgZm9yIHR5cGU9
-QkFTRSBGOE1IWiBNVFMgKDcpLCBpZCAwMDAwMDAwMDAwMDAwMDAwLgpbICAxMzUuNzY2MDg5
-XSB4YzIwMjggNi0wMDYxOiBMb2FkaW5nIGZpcm13YXJlIGZvciB0eXBlPUQyNjIwIERUVjgg
-KDIwOCksIGlkIDAwMDAwMDAwMDAwMDAwMDAuClsgIDEzNS43Nzk3MDRdIHhjMjAyOCA2LTAw
-NjE6IExvYWRpbmcgU0NPREUgZm9yIHR5cGU9RFRWNyBEVFY3OCBEVFY4IERJQkNPTTUyIENI
-SU5BIFNDT0RFIEhBU19JRl81NDAwICg2NTAwMDM4MCksIGlkIDAwMDAwMDAwMDAwMDAwMDAu
-ClsgIDE1NC4xNjYwMTBdIHVzYiAyLTM6IFVTQiBkaXNjb25uZWN0LCBhZGRyZXNzIDQKWyAg
-MTU0LjE2NjQ3MV0gZW0yOHh4ICMwOiBkaXNjb25uZWN0aW5nIGVtMjh4eCAjMCB2aWRlbwpb
-ICAxNTQuMTY2NDc5XSBlbTI4eHggIzA6IFY0TDIgZGV2aWNlIC9kZXYvdmJpMCBkZXJlZ2lz
-dGVyZWQKWyAgMTU0LjE2NjU0OV0gZW0yOHh4ICMwOiBWNEwyIGRldmljZSAvZGV2L3ZpZGVv
-MSBkZXJlZ2lzdGVyZWQKWyAgMTU0LjE2NzcyNV0geGMyMDI4IDYtMDA2MTogZGVzdHJveWlu
-ZyBpbnN0YW5jZQo=
---------------010105010109080003070904
-Content-Type: text/plain;
- name="dmesg_dikom-dk300.txt"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="dmesg_dikom-dk300.txt"
+Please have a look.
 
-WzUxMTY3LjA5NjE0OF0gdXNiIDItMzogbmV3IGhpZ2ggc3BlZWQgVVNCIGRldmljZSB1c2lu
-ZyBlaGNpX2hjZCBhbmQgYWRkcmVzcyA2ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-Cls1MTE2Ny4yMzE2OThdIHVzYiAyLTM6IGNvbmZpZ3VyYXRpb24gIzEgY2hvc2VuIGZyb20g
-MSBjaG9pY2UgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IApbNTExNjcuMjMxODYyXSBlbTI4eHg6IE5ldyBkZXZpY2UgVVNCIDI4ODMgRGV2aWNlIEAg
-NDgwIE1icHMgKGViMWE6ZTMyMywgaW50ZXJmYWNlIDAsIGNsYXNzIDApICAgICAgICAgICAg
-ICAKWzUxMTY3LjIzMTg3MV0gZW0yOHh4ICMwOiBJZGVudGlmaWVkIGFzIEt3b3JsZCBWUy1E
-VkItVCAzMjNVUiAoY2FyZD01NCkgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgCls1MTE2Ny4yMzI5ODRdIGVtMjh4eCAjMDogY2hpcCBJRCBpcyBlbTI4ODIvZW0yODgz
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIApbNTExNjcuMzY0NTQ2XSBlbTI4eHggIzA6IGkyYyBlZXByb20gMDA6IDFhIGViIDY3
-IDk1IDFhIGViIDIzIGUzIGQwIDEyIDVjIDAwIDZhIDIyIDAwIDAwICAgICAgICAgICAgICAg
-ICAgICAKWzUxMTY3LjM2NDU1M10gZW0yOHh4ICMwOiBpMmMgZWVwcm9tIDEwOiAwMCAwMCAw
-NCA1NyA0ZSAwNyAwMSAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAgICAgICAgICAgICAg
-ICAgICAgCls1MTE2Ny4zNjQ1NjBdIGVtMjh4eCAjMDogaTJjIGVlcHJvbSAyMDogNDYgMDAg
-MDEgMDAgZjAgMTAgMDEgMDAgMDAgMDAgMDAgMDAgNWIgMWUgMDAgMDAgICAgICAgICAgICAg
-ICAgICAgIApbNTExNjcuMzY0NTY2XSBlbTI4eHggIzA6IGkyYyBlZXByb20gMzA6IDAwIDAw
-IDIwIDQwIDIwIDgwIDAyIDIwIDAxIDAxIDAwIDAwIDAwIDAwIDAwIDAwICAgICAgICAgICAg
-ICAgICAgICAKWzUxMTY3LjM2NDU3M10gZW0yOHh4ICMwOiBpMmMgZWVwcm9tIDQwOiAwMCAw
-MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMApbNTExNjcuMzY0
-NTc5XSBlbTI4eHggIzA6IGkyYyBlZXByb20gNTA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
-IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwCls1MTE2Ny4zNjQ1ODVdIGVtMjh4eCAjMDogaTJj
-IGVlcHJvbSA2MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMjIgMDMgNTUgMDAg
-NTMgMDAKWzUxMTY3LjM2NDU5MV0gZW0yOHh4ICMwOiBpMmMgZWVwcm9tIDcwOiA0MiAwMCAy
-MCAwMCAzMiAwMCAzOCAwMCAzOCAwMCAzMyAwMCAyMCAwMCA0NCAwMApbNTExNjcuMzY0NTk3
-XSBlbTI4eHggIzA6IGkyYyBlZXByb20gODA6IDY1IDAwIDc2IDAwIDY5IDAwIDYzIDAwIDY1
-IDAwIDAwIDAwIDAwIDAwIDAwIDAwCls1MTE2Ny4zNjQ2MDNdIGVtMjh4eCAjMDogaTJjIGVl
-cHJvbSA5MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
-MDAKWzUxMTY3LjM2NDYxMF0gZW0yOHh4ICMwOiBpMmMgZWVwcm9tIGEwOiAwMCAwMCAwMCAw
-MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMApbNTExNjcuMzY0NjE2XSBl
-bTI4eHggIzA6IGkyYyBlZXByb20gYjA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
-IDAwIDAwIDAwIDAwIDAwIDAwCls1MTE2Ny4zNjQ2MjJdIGVtMjh4eCAjMDogaTJjIGVlcHJv
-bSBjMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAK
-WzUxMTY3LjM2NDYyOF0gZW0yOHh4ICMwOiBpMmMgZWVwcm9tIGQwOiAwMCAwMCAwMCAwMCAw
-MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMApbNTExNjcuMzY0NjM0XSBlbTI4
-eHggIzA6IGkyYyBlZXByb20gZTA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
-IDAwIDAwIDAwIDAwIDAwCls1MTE2Ny4zNjQ2NDBdIGVtMjh4eCAjMDogaTJjIGVlcHJvbSBm
-MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAKWzUx
-MTY3LjM2NDY0N10gZW0yOHh4ICMwOiBFRVBST00gSUQ9IDB4OTU2N2ViMWEsIEVFUFJPTSBo
-YXNoID0gMHg0ZTkxMzQ0MgpbNTExNjcuMzY0NjQ5XSBlbTI4eHggIzA6IEVFUFJPTSBpbmZv
-OgpbNTExNjcuMzY0NjUwXSBlbTI4eHggIzA6ICAgICAgIEFDOTcgYXVkaW8gKDUgc2FtcGxl
-IHJhdGVzKQpbNTExNjcuMzY0NjUxXSBlbTI4eHggIzA6ICAgICAgIDUwMG1BIG1heCBwb3dl
-cgpbNTExNjcuMzY0NjUyXSBlbTI4eHggIzA6ICAgICAgIFRhYmxlIGF0IDB4MDQsIHN0cmlu
-Z3M9MHgyMjZhLCAweDAwMDAsIDB4MDAwMApbNTExNjcuMzY0NjU0XSBlbTI4eHggIzA6Cls1
-MTE2Ny4zNjQ2NTRdCls1MTE2Ny4zNjQ2NTZdIGVtMjh4eCAjMDogVGhlIHN1cHBvcnQgZm9y
-IHRoaXMgYm9hcmQgd2VyZW4ndCB2YWxpZCB5ZXQuCls1MTE2Ny4zNjQ2NThdIGVtMjh4eCAj
-MDogUGxlYXNlIHNlbmQgYSByZXBvcnQgb2YgaGF2aW5nIHRoaXMgd29ya2luZwpbNTExNjcu
-MzY0NjU5XSBlbTI4eHggIzA6IG5vdCB0byBWNEwgbWFpbGluZyBsaXN0IChhbmQvb3IgdG8g
-b3RoZXIgYWRkcmVzc2VzKQpbNTExNjcuMzY0NjU5XQpbNTExNjcuMzY3NDUxXSB0dnA1MTUw
-IDYtMDA1YzogY2hpcCBmb3VuZCBAIDB4YjggKGVtMjh4eCAjMCkKWzUxMTY3LjM3MTIxMl0g
-dHVuZXIgNi0wMDYxOiBjaGlwIGZvdW5kIEAgMHhjMiAoZW0yOHh4ICMwKQpbNTExNjcuMzcx
-MjgwXSB4YzIwMjggNi0wMDYxOiBjcmVhdGluZyBuZXcgaW5zdGFuY2UKWzUxMTY3LjM3MTI4
-Ml0geGMyMDI4IDYtMDA2MTogdHlwZSBzZXQgdG8gWENlaXZlIHhjMjAyOC94YzMwMjggdHVu
-ZXIKWzUxMTY3LjM3MTI4N10gdXNiIDItMzogZmlybXdhcmU6IHJlcXVlc3RpbmcgeGMzMDI4
-LXYyNy5mdwpbNTExNjcuMzc0ODU2XSB4YzIwMjggNi0wMDYxOiBMb2FkaW5nIDgwIGZpcm13
-YXJlIGltYWdlcyBmcm9tIHhjMzAyOC12MjcuZncsIHR5cGU6IHhjMjAyOCBmaXJtd2FyZSwg
-dmVyIDIuNwpbNTExNjcuNDIwMDYxXSB4YzIwMjggNi0wMDYxOiBMb2FkaW5nIGZpcm13YXJl
-IGZvciB0eXBlPUJBU0UgKDEpLCBpZCAwMDAwMDAwMDAwMDAwMDAwLgpbNTExNjguMzI5ODE5
-XSB4YzIwMjggNi0wMDYxOiBMb2FkaW5nIGZpcm13YXJlIGZvciB0eXBlPSgwKSwgaWQgMDAw
-MDAwMDAwMDAwYjcwMC4KWzUxMTY4LjM1MjU3NF0gU0NPREUgKDIwMDAwMDAwKSwgaWQgMDAw
-MDAwMDAwMDAwYjcwMDoKWzUxMTY4LjM1MjU4NF0geGMyMDI4IDYtMDA2MTogTG9hZGluZyBT
-Q09ERSBmb3IgdHlwZT1NT05PIFNDT0RFIEhBU19JRl80MzIwICg2MDAwODAwMCksIGlkIDAw
-MDAwMDAwMDAwMDgwMDAuCls1MTE2OC41NDEzMTVdIGVtMjh4eCAjMDogQ29uZmlnIHJlZ2lz
-dGVyIHJhdyBkYXRhOiAweGQwCls1MTE2OC41NDIwNTFdIGVtMjh4eCAjMDogQUM5NyB2ZW5k
-b3IgSUQgPSAweGZmZmZmZmZmCls1MTE2OC41NDI0MzNdIGVtMjh4eCAjMDogQUM5NyBmZWF0
-dXJlcyA9IDB4NmE5MApbNTExNjguNTQyNDM4XSBlbTI4eHggIzA6IEVtcGlhIDIwMiBBQzk3
-IGF1ZGlvIHByb2Nlc3NvciBkZXRlY3RlZApbNTExNjguNjQxNTQ5XSB0dnA1MTUwIDYtMDA1
-YzogdHZwNTE1MGFtMSBkZXRlY3RlZC4KWzUxMTY4Ljc0MDkzNV0gZW0yOHh4ICMwOiB2NGwy
-IGRyaXZlciB2ZXJzaW9uIDAuMS4yCls1MTE2OC44OTUwOTBdIGVtMjh4eCAjMDogVjRMMiBk
-ZXZpY2UgcmVnaXN0ZXJlZCBhcyAvZGV2L3ZpZGVvMSBhbmQgL2Rldi92YmkwCls1MTE2OC44
-OTUwOTddIGVtMjh4eC1hdWRpby5jOiBwcm9iaW5nIGZvciBlbTI4eDEgbm9uIHN0YW5kYXJk
-IHVzYmF1ZGlvCls1MTE2OC44OTUxMDFdIGVtMjh4eC1hdWRpby5jOiBDb3B5cmlnaHQgKEMp
-IDIwMDYgTWFya3VzIFJlY2hiZXJnZXIKWzUxMTY5LjExMjUzN10gdHZwNTE1MCA2LTAwNWM6
-IHR2cDUxNTBhbTEgZGV0ZWN0ZWQuIAo=
---------------010105010109080003070904--
+Cheers,
+Hermann
+
+
+
+
