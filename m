@@ -1,73 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52330 "EHLO bear.ext.ti.com"
+Received: from smtp.work.de ([212.12.32.49]:60880 "EHLO smtp.work.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750976AbZHQTau (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Aug 2009 15:30:50 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n7HJUk6Z010708
-	for <linux-media@vger.kernel.org>; Mon, 17 Aug 2009 14:30:51 -0500
-From: neilsikka@ti.com
-To: linux-media@vger.kernel.org, m-karicheri2@ti.com
-Cc: Neil Sikka <neilsikka@ti.com>
-Subject: [PATCH] Build system support for DM365 CCDC
-Date: Mon, 17 Aug 2009 15:30:44 -0400
-Message-Id: <1250537444-2077-5-git-send-email-neilsikka@ti.com>
-In-Reply-To: <1250537444-2077-4-git-send-email-neilsikka@ti.com>
-References: <1250537444-2077-1-git-send-email-neilsikka@ti.com>
- <1250537444-2077-2-git-send-email-neilsikka@ti.com>
- <1250537444-2077-3-git-send-email-neilsikka@ti.com>
- <1250537444-2077-4-git-send-email-neilsikka@ti.com>
+	id S1752476AbZHBPWv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 2 Aug 2009 11:22:51 -0400
+Received: from [127.0.0.2] (helo=juli-workstation.localnet)
+	by smtp.work.de with esmtpa (Exim 4.63)
+	(envelope-from <julian@jusst.de>)
+	id 1MXctd-0003zi-Pz
+	for linux-media@vger.kernel.org; Sun, 02 Aug 2009 17:22:49 +0200
+From: Julian Scheel <julian@jusst.de>
+To: linux-media@vger.kernel.org
+Subject: Re: stb0899 i2c communication broken after suspend
+Date: Sun, 2 Aug 2009 17:22:48 +0200
+References: <4A731F5D.7000904@jusst.de>
+In-Reply-To: <4A731F5D.7000904@jusst.de>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200908021722.48840.julian@jusst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Neil Sikka <neilsikka@ti.com>
+Am Freitag, 31. Juli 2009 18:44:13 schrieb Julian Scheel:
+> I made an interesting observation with the stb0899 drivers. If the
+> system was in suspend to ram state (no matter if dvb modules were
+> unloaded before or not) the i2c communication of stb0899 driver and
+> chipset seems to be somewhat broken. Tuning to dvb-s channels still
+> works as expected, but tuning to dvb-s2 channels is completely broken.
+> The system log shows this error on the first tuning approach:
+> stb0899_write_s2reg ERR (1), Device=[0xf3fc], Base Address=[0x00000460],
+> Offset=[0xf34c], Data=[0x00000000], status=-121
 
-This patch sets up the build system for DM365 VPFE support
+I actually played around a bit more and figured out, that after a reload of 
+the i2c_core module the s2 channels start working again after suspend. But as 
+this module is needed by many others (like nvidia, so X server has to be 
+stopped to unload it), it can't be simply reloaded.
+Now the question is whether the issue is in i2c_core itself or in the way that 
+stb0899-drivers use i2c_core. Especially I am wondering why only the s2 
+channels fail, isn't for the dvb-s2 channels i2c communication used as well?
 
-Reviewed-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-Mandatory-Reviewer: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Neil Sikka <neilsikka@ti.com>
----
-Applies to v4l-dvb linux-next repository
- drivers/media/video/Kconfig          |    9 +++++++++
- drivers/media/video/davinci/Makefile |    3 ++-
- 2 files changed, 11 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 1fa3c87..e0dd402 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -578,6 +578,15 @@ config VIDEO_DM355_CCDC
- 	   To compile this driver as a module, choose M here: the
- 	   module will be called vpfe.
- 
-+config VIDEO_DM365_ISIF
-+	tristate "DM365 CCDC/ISIF HW module"
-+	depends on ARCH_DAVINCI_DM365 && VIDEO_VPFE_CAPTURE
-+	default y
-+	help
-+	   Enables DM365 ISIF hw module. This is the hardware module for
-+	   configuring ISIF in VPFE to capture Raw Bayer RGB data  from
-+	   a image sensor or YUV data from a YUV source.
-+
- source "drivers/media/video/bt8xx/Kconfig"
- 
- config VIDEO_PMS
-diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
-index f44cad2..5f4c830 100644
---- a/drivers/media/video/davinci/Makefile
-+++ b/drivers/media/video/davinci/Makefile
-@@ -8,8 +8,9 @@ obj-$(CONFIG_VIDEO_DAVINCI_VPIF) += vpif.o
- #DM646x EVM Display driver
- obj-$(CONFIG_DISPLAY_DAVINCI_DM646X_EVM) += vpif_display.o
- 
--# Capture: DM6446 and DM355
-+# Capture: DM6446, DM355, DM365
- obj-$(CONFIG_VIDEO_VPSS_SYSTEM) += vpss.o
- obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
- obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
- obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
-+obj-$(CONFIG_VIDEO_DM365_ISIF) += dm365_ccdc.o
--- 
-1.6.0.4
-
+-Julian
