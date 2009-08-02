@@ -1,41 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.freakix.de ([89.238.65.154]:41196 "EHLO mail.freakix.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933427AbZHWOdc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2009 10:33:32 -0400
-Message-ID: <4A914B80.302@freakix.de>
-Date: Sun, 23 Aug 2009 16:00:32 +0200
-From: Norbert Weinhold <webmaster@freakix.de>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4924 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752552AbZHBJd1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Aug 2009 05:33:27 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org,
+	Jean-Francois Moine via Mercurial <moinejf@free.fr>
+Subject: Re: [linuxtv-commits] [hg:v4l-dvb] gspca - vc032x: H and V flip controls added for mi13x0_soc sensors.
+Date: Sun, 2 Aug 2009 11:33:25 +0200
+References: <E1MWegK-00046z-Si@mail.linuxtv.org>
+In-Reply-To: <E1MWegK-00046z-Si@mail.linuxtv.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Can't tune to DVB-S2 channels on floppydtv
-References: <4A908AC6.2080701@freakpixel.de> <200908230345.14069.hftom@free.fr>
-In-Reply-To: <200908230345.14069.hftom@free.fr>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200908021133.25624.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Christophe Thommeret schrieb:
-> Le Sunday 23 August 2009 02:18:14 Norbert Weinhold, vous avez écrit :
->> Hi,
->>
->> I have a floppyDTV S2 and I can't tune to dvb-s2 channels while normal
->> dvb-s channel work.
->>
->> Does anyone have a clue where the problem is.
+On Friday 31 July 2009 01:05:04 Patch from Jean-Francois Moine wrote:
+> The patch number 12354 was added via Jean-Francois Moine <moinejf@free.fr>
+> to http://linuxtv.org/hg/v4l-dvb master development tree.
 > 
-> Are you sure the driver supports S2 at all ?
+> Kernel patches in this development tree may be modified to be backward
+> compatible with older kernels. Compatibility modifications will be
+> removed before inclusion into the mainstream Kernel
+> 
+> If anyone has any objections, please let us know by sending a message to:
+> 	Linux Media Mailing List <linux-media@vger.kernel.org>
+> 
+> ------
+> 
+> From: Jean-Francois Moine  <moinejf@free.fr>
+> gspca - vc032x: H and V flip controls added for mi13x0_soc sensors.
+> 
+> 
+> Also, H/V flip default values adjusted according to the webcam IDs.
+> 
+> Priority: normal
+> 
+> Signed-off-by: Jean-Francois Moine <moinejf@free.fr>
+> 
+> 
+> ---
+> 
+>  linux/drivers/media/video/gspca/vc032x.c |  109 +++++++++++++----------
+>  1 file changed, 63 insertions(+), 46 deletions(-)
+> 
+> diff -r c9c025650ce7 -r 266dc538f544 linux/drivers/media/video/gspca/vc032x.c
+> --- a/linux/drivers/media/video/gspca/vc032x.c	Mon Jul 27 10:52:27 2009 +0200
+> +++ b/linux/drivers/media/video/gspca/vc032x.c	Mon Jul 27 11:00:03 2009 +0200
+> @@ -3121,33 +3127,44 @@
+>  	return 0;
+>  }
+>  
+> -/* for OV7660 and OV7670 only */
+> +/* some sensors only */
+>  static void sethvflip(struct gspca_dev *gspca_dev)
+>  {
+>  	struct sd *sd = (struct sd *) gspca_dev;
+> -	__u8 data;
+> +	u8 data[2], hflip, vflip;
+>  
+> +	hflip = sd->hflip;
+> +	if (sd->flags & FL_HFLIP)
+> +		hflip != hflip;
+> +	vflip = sd->vflip;
+> +	if (sd->flags & FL_VFLIP)
+> +		vflip != vflip;
 
-Not 100% but I thought so because i found the hardware under supported
-dvb-s2 devices. I wonder what is missing, because the card is doing all
-difficult stuff itself. Just send the frequency / transponder you want
-to receive you get the data if there is any reception at all.
+Hi Jean-Francois,
 
-After i had a look into the driver i saw that in the caps section 8psk
-is missing and there is possibly a second tune command.
+The daily build produces this warning:
 
-Has anyone a command list for this device?
+/marune/build/v4l-dvb-master/v4l/vc032x.c: In function 'sethvflip':
+/marune/build/v4l-dvb-master/v4l/vc032x.c:3138: warning: statement with no effect
+/marune/build/v4l-dvb-master/v4l/vc032x.c:3141: warning: statement with no effect
 
-Norbert
+And looking at the code those warnings are correct. I think you wanted to do
+'hflip = !hflip'.
+
+Can you take a look at this?
+
+Thanks,
+
+        Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
