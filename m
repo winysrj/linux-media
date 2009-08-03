@@ -1,85 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58932 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756805AbZHFXBb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Aug 2009 19:01:31 -0400
-Message-Id: <200908062301.n76N1KRK030169@imap1.linux-foundation.org>
-Subject: [patch 9/9] drivers/media/video/gspca: introduce missing kfree
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	julia@diku.dk, erik.andren@gmail.com
-From: akpm@linux-foundation.org
-Date: Thu, 06 Aug 2009 16:01:20 -0700
+Received: from mail-qy0-f196.google.com ([209.85.221.196]:35906 "EHLO
+	mail-qy0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754688AbZHCJRU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Aug 2009 05:17:20 -0400
+Received: by qyk34 with SMTP id 34so2759869qyk.33
+        for <linux-media@vger.kernel.org>; Mon, 03 Aug 2009 02:17:20 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <200908031052.59016.marek.vasut@gmail.com>
+References: <200908031031.00676.marek.vasut@gmail.com>
+	 <200908031052.59016.marek.vasut@gmail.com>
+Date: Mon, 3 Aug 2009 14:47:20 +0530
+Message-ID: <5d5443650908030217s124c49aeocb7478abc86fd4cc@mail.gmail.com>
+Subject: Re: [PATCH] Add RGB555X and RGB565X formats to pxa-camera
+From: Trilok Soni <soni.trilok@gmail.com>
+To: Marek Vasut <marek.vasut@gmail.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Eric Miao <eric.y.miao@gmail.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Julia Lawall <julia@diku.dk>
+Add linux-media ML.
 
-Error handling code following a kmalloc should free the allocated data.
+On Mon, Aug 3, 2009 at 2:22 PM, Marek Vasut<marek.vasut@gmail.com> wrote:
+> Dne Po 3. srpna 2009 10:31:00 Marek Vasut napsal(a):
+>> Hi!
+>>
+>> Eric, would you mind applying ?
+>
+> Argh, lack of sleep caused me to miss one part of the patch, sorry.
+>
+> >From 11b65f0580db188bd995eff25d35b92c556ad5a4 Mon Sep 17 00:00:00 2001
+> From: Marek Vasut <marek.vasut@gmail.com>
+> Date: Mon, 3 Aug 2009 10:27:57 +0200
+> Subject: [PATCH] Add RGB555X and RGB565X formats to pxa-camera
+>
+> Those formats are requiered on widely used OmniVision OV96xx cameras.
+> Those formats are nothing more then endian-swapped RGB555 and RGB565.
+>
+> Signed-off-by: Marek Vasut <marek.vasut@gmail.com>
+> ---
+>  drivers/media/video/pxa_camera.c |    6 ++++++
+>  1 files changed, 6 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/media/video/pxa_camera.c
+> b/drivers/media/video/pxa_camera.c
+> index 46e0d8a..3ebad1f 100644
+> --- a/drivers/media/video/pxa_camera.c
+> +++ b/drivers/media/video/pxa_camera.c
+> @@ -1145,10 +1145,12 @@ static int pxa_camera_set_bus_param(struct
+> soc_camera_device *icd, __u32 pixfmt)
+>                cicr1 |= CICR1_COLOR_SP_VAL(2);
+>                break;
+>        case V4L2_PIX_FMT_RGB555:
+> +       case V4L2_PIX_FMT_RGB555X:
+>                cicr1 |= CICR1_RGB_BPP_VAL(1) | CICR1_RGBT_CONV_VAL(2) |
+>                        CICR1_TBIT | CICR1_COLOR_SP_VAL(1);
+>                break;
+>        case V4L2_PIX_FMT_RGB565:
+> +       case V4L2_PIX_FMT_RGB565X:
+>                cicr1 |= CICR1_COLOR_SP_VAL(1) | CICR1_RGB_BPP_VAL(2);
+>                break;
+>        }
+> @@ -1222,6 +1224,8 @@ static int required_buswidth(const struct
+> soc_camera_data_format *fmt)
+>        case V4L2_PIX_FMT_YVYU:
+>        case V4L2_PIX_FMT_RGB565:
+>        case V4L2_PIX_FMT_RGB555:
+> +       case V4L2_PIX_FMT_RGB565X:
+> +       case V4L2_PIX_FMT_RGB555X:
+>                return 8;
+>        default:
+>                return fmt->depth;
+> @@ -1260,6 +1264,8 @@ static int pxa_camera_get_formats(struct
+> soc_camera_device *icd, int idx,
+>        case V4L2_PIX_FMT_YVYU:
+>        case V4L2_PIX_FMT_RGB565:
+>        case V4L2_PIX_FMT_RGB555:
+> +       case V4L2_PIX_FMT_RGB565X:
+> +       case V4L2_PIX_FMT_RGB555X:
+>                formats++;
+>                if (xlate) {
+>                        xlate->host_fmt = icd->formats + idx;
+> --
+> 1.6.3.3
+>
+>
+>
+> -------------------------------------------------------------------
+> List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
+> FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
+> Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
+>
 
-The semantic match that finds the problem is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
 
-// <smpl>
-@r exists@
-local idexpression x;
-statement S;
-expression E;
-identifier f,f1,l;
-position p1,p2;
-expression *ptr != NULL;
-@@
 
-x@p1 = \(kmalloc\|kzalloc\|kcalloc\)(...);
-...
-if (x == NULL) S
-<... when != x
-     when != if (...) { <+...x...+> }
-(
-x->f1 = E
-|
- (x->f1 == NULL || ...)
-|
- f(...,x->f1,...)
-)
-...>
-(
- return \(0\|<+...x...+>\|ptr\);
-|
- return@p2 ...;
-)
-
-@script:python@
-p1 << r.p1;
-p2 << r.p2;
-@@
-
-print "* file: %s kmalloc %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Acked-by: Erik Andren <erik.andren@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/media/video/gspca/m5602/m5602_s5k83a.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff -puN drivers/media/video/gspca/m5602/m5602_s5k83a.c~drivers-media-video-gspca-introduce-missing-kfree drivers/media/video/gspca/m5602/m5602_s5k83a.c
---- a/drivers/media/video/gspca/m5602/m5602_s5k83a.c~drivers-media-video-gspca-introduce-missing-kfree
-+++ a/drivers/media/video/gspca/m5602/m5602_s5k83a.c
-@@ -178,8 +178,10 @@ sensor_found:
- 
- 	sens_priv->settings =
- 	kmalloc(sizeof(s32)*ARRAY_SIZE(s5k83a_ctrls), GFP_KERNEL);
--	if (!sens_priv->settings)
-+	if (!sens_priv->settings) {
-+		kfree(sens_priv);
- 		return -ENOMEM;
-+	}
- 
- 	sd->gspca_dev.cam.cam_mode = s5k83a_modes;
- 	sd->gspca_dev.cam.nmodes = ARRAY_SIZE(s5k83a_modes);
-_
+-- 
+---Trilok Soni
+http://triloksoni.wordpress.com
+http://www.linkedin.com/in/triloksoni
