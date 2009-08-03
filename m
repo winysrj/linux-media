@@ -1,90 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f207.google.com ([209.85.219.207]:40714 "EHLO
-	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751293AbZHRTaY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2009 15:30:24 -0400
-Received: by ewy3 with SMTP id 3so1867710ewy.18
-        for <linux-media@vger.kernel.org>; Tue, 18 Aug 2009 12:30:24 -0700 (PDT)
-Date: Tue, 18 Aug 2009 21:30:18 +0200 (CEST)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: =?UTF-8?Q?P=C3=A1sztor_Szil=C3=A1rd?= <don@tricon.hu>
-cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Anysee E30 C Plus + MPEG-4?
-In-Reply-To: <20090818210107.2a6a5146.don@tricon.hu>
-Message-ID: <alpine.DEB.2.01.0908182107300.27276@ybpnyubfg.ybpnyqbznva>
-References: <20090818170820.3d999fb9.don@tricon.hu> <alpine.DEB.2.01.0908181959241.27276@ybpnyubfg.ybpnyqbznva> <20090818210107.2a6a5146.don@tricon.hu>
+Received: from cp-out2.libero.it ([212.52.84.102]:44405 "EHLO
+	cp-out2.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754040AbZHCVtc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Aug 2009 17:49:32 -0400
+Received: from libero.it (192.168.16.57) by cp-out2.libero.it (8.5.107)
+        id 4A728BA90024CEFC for linux-media@vger.kernel.org; Mon, 3 Aug 2009 23:49:30 +0200
+Date: Mon,  3 Aug 2009 23:49:30 +0200
+Message-Id: <KNTLYI$8BE453B10399D2D93F53606CF89555B9@libero.it>
+Subject: Issue with LifeView FlyDVB-T Duo CardBus.
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+From: "Francesco Marangoni" <fmarangoni@libero.it>
+To: "linux-media" <linux-media@vger.kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 18 Aug 2009, Pásztor Szilárd wrote:
+Dear sirs,
 
-> direction so I'm a step further now. With scan -vv I could find the video PIDs
-> for the HD channels and indeed they were missing in my channels.conf (values
-> were 0) as scan detected them as "OTHER", but with a "type 0x1b" addition with
-> which I don't know what to do for the time being...
+I'm not able to make my pcmcia LifeView DVB-T Duo Cardbus working on Ununtu 8.04 LTS kernel 2.6.24.24.
 
-Okay, so you are using a `channels.conf' file, which is used for
-tuning directly by `mplayer' into a particular service.
+The card seems to be detected but the DVB channel detection fails (using Kaffeine too).
 
-The `scan' utility you use does not recognise the H.264 video 
-service as a video stream, which is why you don't get that as
-your video PID.  A common problem, I would guess.
+Here the output of some commands: Can Youhelp me?
+
+francesco@ubuntu:~$ lspci
+00:00.0 Host bridge: Intel Corporation 440BX/ZX/DX - 82443BX/ZX/DX Host bridge (rev 03)
+00:01.0 PCI bridge: Intel Corporation 440BX/ZX/DX - 82443BX/ZX/DX AGP bridge (rev 03)
+00:07.0 Bridge: Intel Corporation 82371AB/EB/MB PIIX4 ISA (rev 02)
+00:07.1 IDE interface: Intel Corporation 82371AB/EB/MB PIIX4 IDE (rev 01)
+00:07.2 USB Controller: Intel Corporation 82371AB/EB/MB PIIX4 USB (rev 01)
+00:07.3 Bridge: Intel Corporation 82371AB/EB/MB PIIX4 ACPI (rev 03)
+00:0a.0 CardBus bridge: Texas Instruments PCI1420 PC card Cardbus Controller
+00:0a.1 CardBus bridge: Texas Instruments PCI1420 PC card Cardbus Controller
+00:0b.0 Ethernet controller: 3Com Corporation 3c556 Hurricane CardBus [Cyclone] (rev 10)
+00:0b.1 Communication controller: 3Com Corporation Mini PCI 56k Winmodem (rev 10)
+00:0d.0 Multimedia audio controller: ESS Technology ES1983S Maestro-3i PCI Audio Accelerator
+01:00.0 VGA compatible controller: ATI Technologies Inc Rage Mobility P/M AGP 2x (rev 64)
+02:00.0 Multimedia controller: Philips Semiconductors SAA7133/SAA7135 Video Broadcast Decoder (rev d0)
+
+francesco@ubuntu:~$ dmesg | grep saa | more
+[   46.176353] saa7130/34: v4l2 driver version 0.2.14 loaded
+[   46.176618] saa7133[0]: quirk: PCIPCI_NATOMA
+[   46.176628] saa7133[0]: found at 0000:02:00.0, rev: 208, irq: 10, latency: 0, mmio: 0x24000000
+[   46.176653] saa7133[0]: subsystem: 5168:0502, board: LifeView/Typhoon/Genius FlyDVB-T Duo Cardbus [card=60,insmod option]
+[   46.176681] saa7133[0]: board init: gpio is 8210000
+[   46.280562] saa7133[0]: i2c eeprom 00: 68 51 02 05 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+[   46.280587] saa7133[0]: i2c eeprom 10: 00 ff 22 0f ff 20 ff ff ff ff ff ff ff ff ff ff
+[   46.280607] saa7133[0]: i2c eeprom 20: 01 40 01 03 03 01 01 03 08 ff 01 aa ff ff ff ff
+[   46.280627] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+[   46.280646] saa7133[0]: i2c eeprom 40: ff 25 00 c0 ff 10 07 01 c2 96 00 16 22 15 ff ff
+[   46.280665] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+[   46.280685] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+[   46.280704] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+[   46.321890] saa7133[0]: registered device video0 [v4l2]
+[   46.321945] saa7133[0]: registered device vbi0
+[   46.321996] saa7133[0]: registered device radio0
+[   46.609615] saa7133[0]/dvb: no tda827x tuner found at addr: 60
+[   46.609624] DVB: registering new adapter (saa7133[0])
+[  238.981774] saa7133[0]: dsp access error
+[  238.981801] saa7133[0]: dsp access error
+[  238.981820] saa7133[0]: dsp access error
+[  238.981824] saa7133[0]: dsp access error
+[  238.981837] saa7133[0]: dsp access error
+[  238.981841] saa7133[0]: dsp access error
+[  238.981854] saa7133[0]: dsp access error
+[  238.981858] saa7133[0]: dsp access error
+[  238.981871] saa7133[0]: dsp access error
+[  238.981875] saa7133[0]: dsp access error
+[  238.981887] saa7133[0]: dsp access error
+[  238.981892] saa7133[0]: dsp access error
+[  238.981904] saa7133[0]: dsp access error
+[  238.981909] saa7133[0]: dsp access error
+[  238.981921] saa7133[0]: dsp access error
+[  238.981926] saa7133[0]: dsp access error
+[  238.981938] saa7133[0]: dsp access error
+[  238.981942] saa7133[0]: dsp access error
+[  238.981955] saa7133[0]: dsp access error
+[  238.981959] saa7133[0]: dsp access error
+[  238.981972] saa7133[0]/irq[10,76507]: r=0xffffffff s=0xffffffff DONE_RA0 DONE_RA1 DONE_RA2 DONE_RA3 AR PE PWR_ON RDCAP INT
+....
+[  238.993258] saa7133[0]: dsp access error
+[  238.993263] saa7133[0]: dsp access error
+[  238.993275] saa7133[0]: dsp access error
+[  238.993280] saa7133[0]: dsp access error
+[  238.993292] saa7133[0]: dsp access error
+[  238.993297] saa7133[0]: dsp access error
+[  238.993309] saa7133[0]: dsp access error
+[  238.993314] saa7133[0]: dsp access error
+[  238.993326] saa7133[0]: dsp access error
+[  238.993330] saa7133[0]: dsp access error
+[  238.993343] saa7133[0]: dsp access error
+[  238.993347] saa7133[0]: dsp access error
+[  238.993359] saa7133[0]/irq[10,76514]: r=0xffffffff s=0xffffffff DONE_RA0 DONE_RA1 DONE_RA2 DONE_RA3 AR PE PWR_ON RDCAP INT
+L FIDT MMC TRIG_ERR CONF_ERR LOAD_ERR GPIO16? GPIO18 GPIO22 GPIO23 | RA0=vbi,b,odd,15
+[  238.993385] saa7133[0]/irq: looping -- clearing PE (parity error!) enable bit
+[  640.875510] saa7133[0]: quirk: PCIPCI_NATOMA
+[  640.875520] saa7133[0]: found at 0000:02:00.0, rev: 208, irq: 10, latency: 0, mmio: 0x24000000
+[  640.875544] saa7133[0]: subsystem: 5168:0502, board: LifeView/Typhoon/Genius FlyDVB-T Duo Cardbus [card=60,insmod option]
+[  640.875577] saa7133[0]: board init: gpio is 8210000
+[  641.010947] saa7133[0]: i2c eeprom 00: 68 51 02 05 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+[  641.010978] saa7133[0]: i2c eeprom 10: 00 ff 22 0f ff 20 ff ff ff ff ff ff ff ff ff ff
+[  641.010997] saa7133[0]: i2c eeprom 20: 01 40 01 03 03 01 01 03 08 ff 01 aa ff ff ff ff
+[  641.011016] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+[  641.011034] saa7133[0]: i2c eeprom 40: ff 25 00 c0 ff 10 07 01 c2 96 00 16 22 15 ff ff
+[  641.011052] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+[  641.011070] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+[  641.011088] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+[  641.108271] saa7133[0]: registered device video0 [v4l2]
+[  641.108329] saa7133[0]: registered device vbi0
+[  641.108378] saa7133[0]: registered device radio0
+[  641.492916] saa7133[0]/dvb: no tda827x tuner found at addr: 60
+[  641.492925] DVB: registering new adapter (saa7133[0])
 
 
-> After adding the correct PID values, mplayer still can't demux the incoming
-> stream but the video is there, and with -dumpvideo a h264 elementary stream
-> gets produced in the file that can be played back if I specify -demuxer
-> h264es on the command line. What are beyond me now are:
-> 1) how can mplayer not demux the stream if it can dump the video out
-> (shouldn't a video dump involve a demux operation before all?)
+I did all is described in http://www.linuxtv.org/repo/ but this is the output of Make and Make install:
 
-`mplayer' does not (yet?) understand native H.264 video.  Whether
-this is purely an `mplayer' limitation, or something which also
-will affect other players, I cannot say -- I haven't looked into
-this.
+francesco@ubuntu:~/v4l-dvb$ make
+make -C /home/francesco/v4l-dvb/v4l 
+make[1]: Entering directory `/home/francesco/v4l-dvb/v4l'
+Updating/Creating .config
+Preparing to compile for kernel version 2.6.24
+File not found: /lib/modules/2.6.24-24-generic/build/.config at ./scripts/make_kconfig.pl line 32, <IN> line 4.
+make[1]: *** No rule to make target `.myconfig', needed by `config-compat.h'.  Stop.
+make[1]: Leaving directory `/home/francesco/v4l-dvb/v4l'
+make: *** [all] Error 2
 
-As a result, even if you have both the video and audio PIDs in
-your stream, you still need the additional PID from which 
-`mplayer' can get the needed identification of the video as H.264.
-This is found in the PMT PID (for BBC-HD in my example, 258 or
-whatever 3-digit PID was there -- my memory is going...)
+francesco@ubuntu:~/v4l-dvb$ make install
+make -C /home/francesco/v4l-dvb/v4l install
+make[1]: Entering directory `/home/francesco/v4l-dvb/v4l'
+-e 
+Removing obsolete files from /lib/modules/2.6.24-24-generic/kernel/drivers/media/video:
 
-I said it before and I'll say it again, what `mplayer' needs is
- -- I mean, I don't know if it would be possible for `mplayer' to
-identify the video as H.264, but for me, it needs this additional
-PID stream to do that.  That is something for the `mplayer' 
-developers or for someone more familiar with H.264 in DVB to
-answer.
+-e 
+Removing obsolete files from /lib/modules/2.6.24-24-generic/kernel/drivers/media/dvb/cinergyT2:
 
-I'm guessing your `channels.conf' file is simple with one field
-for video and one for audio, but no extra fields.  If this is the
-case, then what you will need to do as a test would be to write
-more of the stream to a file; the example I gave in my earlier
-reply for BBC-HD is what I pass to `dvbstream'.  Then `mplayer'
-should be able to play this file with no problems.
+-e 
+Removing obsolete files from /lib/modules/2.6.24-24-generic/kernel/drivers/media/dvb/frontends:
 
 
+Hmm... distro kernel with a non-standard place for module backports detected.
+Please always prefer to use vanilla upstream kernel with V4L/DVB
+I'll try to remove old/obsolete LUM files from /lib/modules/2.6.24-24-generic/ubuntu/media:
+Installing kernel modules under /lib/modules/2.6.24-24-generic/kernel/drivers/media/:
+/sbin/depmod -a 2.6.24-24-generic 
+FATAL: Could not open /lib/modules/2.6.24-24-generic/modules.dep.temp for writing: Permission denied
+make[1]: *** [media-install] Error 1
+make[1]: Leaving directory `/home/francesco/v4l-dvb/v4l'
+make: *** [install] Error 2
+francesco@ubuntu:~/v4l-dvb$ 
 
-> 2) is it a missing feature of mplayer that no metastream is processed that
-> would carry the necessary information about the muxed streams? It would be
+Any suggestions?
 
-Like I say, I don't know if the video stream alone contains the
-needed info that in theory `mplayer' could identify it as H.264.
-Although it is outside of your reception as is BBC-HD via 
-satellite, the british ITV HD service is broadcast as H.264 but
-without a stream identifying it as such.  As a result, I've had
-to hack `mplayer' to treat the video as such in order to be able
-to watch the recordings I've made.
-
-Note that my observations are made about `mplayer' from almost a
-year ago, and if there have been changes made since, such as a 
-more comprehensive `channels.conf' file, I'm not aware of them.
+Thanks.
 
 
-Hope this helps to understand your problem a bit better...
 
-barry bouwsma
