@@ -1,74 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:46532 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:43559 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751920AbZHZQyV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Aug 2009 12:54:21 -0400
-Date: Wed, 26 Aug 2009 18:54:36 +0200 (CEST)
+	id S1754771AbZHCMbJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Aug 2009 08:31:09 -0400
+Date: Mon, 3 Aug 2009 14:31:12 +0200 (CEST)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans de Goede <j.w.r.degoede@hhs.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: RE: [RFC] Pixel format definition on the "image" bus
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE40154E2C11B@dlee06.ent.ti.com>
-Message-ID: <Pine.LNX.4.64.0908261826110.7670@axis700.grange>
-References: <Pine.LNX.4.64.0908261452460.7670@axis700.grange>
- <A69FA2915331DC488A831521EAE36FE40154E2C11B@dlee06.ent.ti.com>
+To: Eric Miao <eric.y.miao@gmail.com>
+cc: Marek Vasut <marek.vasut@gmail.com>,
+	linux-arm-kernel@lists.arm.linux.org.uk,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mike Rapoport <mike@compulab.co.il>,
+	Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
+Subject: Re: [PATCH] Add RGB555X and RGB565X formats to pxa-camera
+In-Reply-To: <4A76CB7C.10401@gmail.com>
+Message-ID: <Pine.LNX.4.64.0908031415370.5310@axis700.grange>
+References: <200908031031.00676.marek.vasut@gmail.com> <4A76CB7C.10401@gmail.com>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 26 Aug 2009, Karicheri, Muralidharan wrote:
+On Mon, 3 Aug 2009, Eric Miao wrote:
 
+> Marek Vasut wrote:
+> > Hi!
+> > 
+> > Eric, would you mind applying ?
+> > 
+> > From 4dcbff010e996f4c6e5761b3c19f5d863ab51b39 Mon Sep 17 00:00:00 2001
+> > From: Marek Vasut <marek.vasut@gmail.com>
+> > Date: Mon, 3 Aug 2009 10:27:57 +0200
+> > Subject: [PATCH] Add RGB555X and RGB565X formats to pxa-camera
+> > 
+> > Those formats are requiered on widely used OmniVision OV96xx cameras.
+> > Those formats are nothing more then endian-swapped RGB555 and RGB565.
+> > 
+> > Signed-off-by: Marek Vasut <marek.vasut@gmail.com>
+> 
+> Acked-by: Eric Miao <eric.y.miao@gmail.com>
+> 
 > Guennadi,
 > 
-> How is this different from enum_fmt() sub device operation. The pixel 
-> format does specify how bridge device pack the data from sub device into 
-> memory
+> Would be better if this gets merged by you, thanks.
 
-Now, this is something I don't understand. .enum_fmt() from struct 
-v4l2_subdev_video_ops is a function, that a sink (bridge) driver calls 
-into a source. The data is provided by the source. It might well tell the 
-bridge driver what it can get from the data, but it doesn't tell it _how_ 
-to do it - how to pack data on the bus to get that format in memory. The 
-sensor just pushes its data out on the image bus over a serial / 8-bit / 
-9-bit / 10-bit / ... link. It's the sink's responsibility to recognise 
-what data format the source is providing on the bus and decide how to pack 
-it into memory. As I said, in principle you're right - we can agree to 
-just encode the complete data format into the format code, but this would 
-require us to write a decoder, which extracts the information I described 
-in the RFC from those codes - bits, packing, order... In fact, it might 
-indeed be better to write such a decoder once, than to make each source 
-driver provide all that data. Or we can provide macros like
+Indeed it would, and I do have a couple of questions to this and related 
+patches:
 
-#define V4L2_DATA_YUYV_2X8						\
-	{								\
-		.sourceformat		= V4L2_PIX_FMT_YUYV,		\
-		.pixelformat		= V4L2_PIX_FMT_YUYV,		\
-		.colorspace		= V4L2_COLORSPACE_JPEG,		\
-		.bits_per_sample	= 8,				\
-		.packing		= V4L2_DATA_PACKING_2X8,	\
-		.order			= V4L2_DATA_ORDER_LE,		\
-	}
+1. Marek, you're saying, you need these formats for the OV96xx camera. Yre 
+you using the patch from Stefan Herbrechtsmeier to support ov96xx or some 
+other?
 
-centrally to avoid errors, which would be easier, than a decoder but 
-occupy more RAM eventually. Also, I'm not sure we want to extend our 
-existing fourcc codes, that are designed to describe data in memory, with 
-all possible permutation of that format on the bus. So, we anyway would 
-need a second list of codes for the on-the-bus representations.
+2. Mike, while reviewing this patch I came across code in 
+pxa_camera_setup_cicr(), introduced by your earlier patch:
 
-> and describe the same to user space applications. Not sure why we 
-> need this.
+	case V4L2_PIX_FMT_RGB555:
+		cicr1 |= CICR1_RGB_BPP_VAL(1) | CICR1_RGBT_CONV_VAL(2) |
+			CICR1_TBIT | CICR1_COLOR_SP_VAL(1);
+		break;
 
-The thing is, that there's no 1-to-1 correspondence between data formats 
-in-memory and on-the-bus, so, just passing S_FMT, G_FMT, TRY_FMT, ENUM_FMT 
-unchanged to subdevice drivers doesn't quite work.
+Why are you enabling the RGB to RGBT conversion here unconditionally? 
+Generally, what are the advantages of configuring CICR1 for a specific RGB 
+format compared to using just a raw capture? Do I understand it right, 
+that ATM we are not using any of those features?
 
 Thanks
 Guennadi
+
+> 
+> > ---
+> >  drivers/media/video/pxa_camera.c |    4 ++++
+> >  1 files changed, 4 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/pxa_camera.c 
+> > b/drivers/media/video/pxa_camera.c
+> > index 46e0d8a..de0fc8a 100644
+> > --- a/drivers/media/video/pxa_camera.c
+> > +++ b/drivers/media/video/pxa_camera.c
+> > @@ -1222,6 +1222,8 @@ static int required_buswidth(const struct 
+> > soc_camera_data_format *fmt)
+> >  	case V4L2_PIX_FMT_YVYU:
+> >  	case V4L2_PIX_FMT_RGB565:
+> >  	case V4L2_PIX_FMT_RGB555:
+> > +	case V4L2_PIX_FMT_RGB565X:
+> > +	case V4L2_PIX_FMT_RGB555X:
+> >  		return 8;
+> >  	default:
+> >  		return fmt->depth;
+> > @@ -1260,6 +1262,8 @@ static int pxa_camera_get_formats(struct 
+> > soc_camera_device *icd, int idx,
+> >  	case V4L2_PIX_FMT_YVYU:
+> >  	case V4L2_PIX_FMT_RGB565:
+> >  	case V4L2_PIX_FMT_RGB555:
+> > +	case V4L2_PIX_FMT_RGB565X:
+> > +	case V4L2_PIX_FMT_RGB555X:
+> >  		formats++;
+> >  		if (xlate) {
+> >  			xlate->host_fmt = icd->formats + idx;
+> 
+
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Guennadi Liakhovetski
