@@ -1,78 +1,439 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f196.google.com ([209.85.221.196]:62627 "EHLO
-	mail-qy0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751575AbZHFIEf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2009 04:04:35 -0400
-MIME-Version: 1.0
-In-Reply-To: <200908040912.24718.hverkuil@xs4all.nl>
-References: <200908040912.24718.hverkuil@xs4all.nl>
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-Date: Thu, 6 Aug 2009 17:04:14 +0900
-Message-ID: <5e9665e10908060104i5c6073d5s1bd47dc47778aa55@mail.gmail.com>
-Subject: Re: Linux Plumbers Conference 2009: V4L2 API discussions
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com,
-	linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	eduardo.valentin@nokia.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from psmtp04.wxs.nl ([195.121.247.13]:45223 "EHLO psmtp04.wxs.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752491AbZHCV20 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Aug 2009 17:28:26 -0400
+Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
+ by psmtp04.wxs.nl
+ (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
+ with ESMTP id <0KNT00EJTKY7BZ@psmtp04.wxs.nl> for linux-media@vger.kernel.org;
+ Mon, 03 Aug 2009 23:28:02 +0200 (MEST)
+Date: Mon, 03 Aug 2009 23:27:09 +0200
+From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Subject: Re: [PATCH] Rework the RTL2831 remote control handler to reuse dibusb.
+In-reply-to: <3d374d00908021245g66fc66b1h66932f4844cb20b1@mail.gmail.com>
+To: Alistair Buxton <a.j.buxton@gmail.com>
+Cc: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
+Message-id: <4A77562D.6060001@hoogenraad.net>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <3d374d00908021245g66fc66b1h66932f4844cb20b1@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 4, 2009 at 4:12 PM, Hans Verkuil<hverkuil@xs4all.nl> wrote:
-> Hi all,
->
-> During this years Plumbers Conference I will be organizing a session (or
-> possibly more than one) on what sort of new V4L2 APIs are needed to
-> support the new SoC devices. These new APIs should also solve the problem
-> of how to find all the related alsa/fb/ir/dvb devices that a typical video
-> device might create.
->
-> A proposal was made about a year ago (note that this is a bit outdated
-> by now, but the basics are still valid):
->
-> http://www.archivum.info/video4linux-list%40redhat.com/2008-07/msg00371.html
->
-> In the past year the v4l2 core has evolved enough so that we can finally
-> start thinking about this for real.
->
-> I would like to know who will be attending this conference. I also urge
-> anyone who is working in this area and who wants to have a say in this to
-> attend the conference. The goal is to prepare a new RFC with a detailed
-> proposal on the new APIs that are needed to fully support all the new
-> SoCs. So the more input we get, the better the end-result will be.
->
-> Early-bird registration is still possible up to August 5th (that's
-> tomorrow :-) ).
->
-> Regards,
->
->        Hans
->
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
->
+Alistar:
 
-I've been hardly trying to attend the conference but I'm afraid not
-gonna make it.
-But going to try to arrange the characteristics of the H/W I'm working
-on in a brief document and also expected new V4P2 APIs. I'll let you
-know when I finish my documentation.
-I know this is a good chance to discuss about where the video4linux
-for SoC platforms to go and I'm desperately looking forward to
-participate. but my business trip depends on the approval of my boss.
-Thus I'm very disappointed that I can't make it.
-Cheers,
+Thanks a lot for this patch.
+I have never included a patch into the HG tree, so it will take a few 
+days to get this into the -r2 tree.
 
-Nate
+Can you also look at the way I set up a command-line switch for 
+switching remotes ?
+Is there a standard within the other drivers ?
+And should I write something in the Wiki ?
+
+Antti Palosaari offered help in july to get the includable tree 
+(front-end / back-end split) up and running. I haven't heard from him 
+since, so I cc him.
+
+Alistair Buxton wrote:
+> Hi. This patch is against the rtl2831-r2 tree.
+> 
+> This patch is really just a proof of concept, that the dibusb handler
+> code can handle the rtl2831 remote codes. I have both types of device
+> and noticed that the remotes are interchangable, and it turns out the
+> code tables are too, but for a quirk in the way the rtl driver looks
+> up the values (it uses the wrong fields in keybuf.)
+> 
+> Is there any progress on getting the rtl2831 driver ready for
+> inclusion into the mainline?
+> 
+> # HG changeset patch
+> # User Alistair Buxton <a.j.buxton@gmail.com>
+> # Date 1249239142 -3600
+> # Node ID 83476a81ce48824891f64cebfd293239acafc878
+> # Parent  1557237aa2ebb25d807e4af251fdf08b182660fb
+> RTL2831: Rework the RTL2831 remote control code to reuse the dibusb
+> remote control handler.
+> 
+> 1. Add the extra codes of the AzureWave AD-TU800 remote to the dibusb
+> code table. This remote
+> uses the same NEC codes as the dibusb remotes, but with extra buttons.
+> As a bonus, this makes the AzureWave remote work with dibusb devices too.
+> 
+> 2. Make rtd2831u_rc_query() use dvb_usb_nec_rc_key_to_event() instead
+> of it's own slightly
+> broken implementation.
+> 
+> 3. Fix up the Conceptronic keycode table. This is NEC compatible but
+> uses different codes to
+> the dibusb_rc_keys[]. The fields are switched around to make the table
+> compatible with
+> dvb_usb_nec_rc_key_to_event().
+> 
+> 4. Fudge the keybuf when using RC5 table.
+> 
+> 5. Fix all the drivers that use dibusb_rc_keys[] with the new length.
+> 
+> diff -r 1557237aa2eb -r 83476a81ce48
+> linux/drivers/media/dvb/dvb-usb/dibusb-common.c
+> --- a/linux/drivers/media/dvb/dvb-usb/dibusb-common.c	Tue May 19
+> 22:29:10 2009 +0200
+> +++ b/linux/drivers/media/dvb/dvb-usb/dibusb-common.c	Sun Aug 02
+> 19:52:22 2009 +0100
+> @@ -351,6 +351,31 @@
+>  	{ 0x00, 0x48, KEY_INFO }, /* Preview */
+>  	{ 0x00, 0x04, KEY_LIST }, /* RecordList */
+>  	{ 0x00, 0x0f, KEY_TEXT }, /* Teletext */
+> +	/* additional keys for the azurewave remote */
+> +	{ 0x00, 0x4a, KEY_UNKNOWN }, /* Clear */
+> +	{ 0x00, 0x13, KEY_BACK },
+> +	{ 0x00, 0x4b, KEY_UP },
+> +	{ 0x00, 0x51, KEY_DOWN },
+> +	{ 0x00, 0x4e, KEY_LEFT },
+> +	{ 0x00, 0x52, KEY_RIGHT },	
+> +	{ 0x00, 0x4f, KEY_ENTER },
+> +	{ 0x00, 0x4c, KEY_PAUSE },
+> +	{ 0x00, 0x41, KEY_PREVIOUSSONG }, /* |< */
+> +	{ 0x00, 0x42, KEY_NEXTSONG }, /* >| */
+> +	{ 0x00, 0x54, KEY_CAMERA }, /* capture (has picture of camera on it) */
+> +	{ 0x00, 0x50, KEY_UNKNOWN }, /* SAP */
+> +	{ 0x00, 0x47, KEY_UNKNOWN }, /* PIP */
+> +	{ 0x00, 0x4d, KEY_UNKNOWN }, /* fullscreen */
+> +	{ 0x00, 0x43, KEY_SUBTITLE },
+> +	{ 0x00, 0x49, KEY_UNKNOWN }, /* L/R */
+> +	{ 0x00, 0x07, KEY_POWER2 }, /* hibernate */
+> +	{ 0x00, 0x08, KEY_VIDEO_NEXT },
+> +	{ 0x00, 0x45, KEY_ZOOMIN },
+> +	{ 0x00, 0x46, KEY_ZOOMOUT },
+> +	{ 0x00, 0x18, KEY_RED },
+> +	{ 0x00, 0x53, KEY_GREEN },
+> +	{ 0x00, 0x5e, KEY_YELLOW },
+> +	{ 0x00, 0x5f, KEY_BLUE },
+>  	/* Key codes for the KWorld/ADSTech/JetWay remote. */
+>  	{ 0x86, 0x12, KEY_POWER },
+>  	{ 0x86, 0x0f, KEY_SELECT }, /* source */
+> diff -r 1557237aa2eb -r 83476a81ce48 linux/drivers/media/dvb/dvb-usb/dibusb-mb.c
+> --- a/linux/drivers/media/dvb/dvb-usb/dibusb-mb.c	Tue May 19 22:29:10 2009 +0200
+> +++ b/linux/drivers/media/dvb/dvb-usb/dibusb-mb.c	Sun Aug 02 19:52:22 2009 +0100
+> @@ -213,7 +213,7 @@
+> 
+>  	.rc_interval      = DEFAULT_RC_INTERVAL,
+>  	.rc_key_map       = dibusb_rc_keys,
+> -	.rc_key_map_size  = 111, /* wow, that is ugly ... I want to load it
+> to the driver dynamically */
+> +	.rc_key_map_size  = 135, /* wow, that is ugly ... I want to load it
+> to the driver dynamically */
+>  	.rc_query         = dibusb_rc_query,
+> 
+>  	.i2c_algo         = &dibusb_i2c_algo,
+> @@ -297,7 +297,7 @@
+> 
+>  	.rc_interval      = DEFAULT_RC_INTERVAL,
+>  	.rc_key_map       = dibusb_rc_keys,
+> -	.rc_key_map_size  = 111, /* wow, that is ugly ... I want to load it
+> to the driver dynamically */
+> +	.rc_key_map_size  = 135, /* wow, that is ugly ... I want to load it
+> to the driver dynamically */
+>  	.rc_query         = dibusb_rc_query,
+> 
+>  	.i2c_algo         = &dibusb_i2c_algo,
+> @@ -361,7 +361,7 @@
+> 
+>  	.rc_interval      = DEFAULT_RC_INTERVAL,
+>  	.rc_key_map       = dibusb_rc_keys,
+> -	.rc_key_map_size  = 111, /* wow, that is ugly ... I want to load it
+> to the driver dynamically */
+> +	.rc_key_map_size  = 135, /* wow, that is ugly ... I want to load it
+> to the driver dynamically */
+>  	.rc_query         = dibusb_rc_query,
+> 
+>  	.i2c_algo         = &dibusb_i2c_algo,
+> @@ -418,7 +418,7 @@
+> 
+>  	.rc_interval      = DEFAULT_RC_INTERVAL,
+>  	.rc_key_map       = dibusb_rc_keys,
+> -	.rc_key_map_size  = 111, /* wow, that is ugly ... I want to load it
+> to the driver dynamically */
+> +	.rc_key_map_size  = 135, /* wow, that is ugly ... I want to load it
+> to the driver dynamically */
+>  	.rc_query         = dibusb_rc_query,
+> 
+>  	.i2c_algo         = &dibusb_i2c_algo,
+> diff -r 1557237aa2eb -r 83476a81ce48 linux/drivers/media/dvb/dvb-usb/dibusb-mc.c
+> --- a/linux/drivers/media/dvb/dvb-usb/dibusb-mc.c	Tue May 19 22:29:10 2009 +0200
+> +++ b/linux/drivers/media/dvb/dvb-usb/dibusb-mc.c	Sun Aug 02 19:52:22 2009 +0100
+> @@ -81,7 +81,7 @@
+> 
+>  	.rc_interval      = DEFAULT_RC_INTERVAL,
+>  	.rc_key_map       = dibusb_rc_keys,
+> -	.rc_key_map_size  = 111, /* FIXME */
+> +	.rc_key_map_size  = 135, /* FIXME */
+>  	.rc_query         = dibusb_rc_query,
+> 
+>  	.i2c_algo         = &dibusb_i2c_algo,
+> diff -r 1557237aa2eb -r 83476a81ce48 linux/drivers/media/dvb/rtl2831/rtd2830u.c
+> --- a/linux/drivers/media/dvb/rtl2831/rtd2830u.c	Tue May 19 22:29:10 2009 +0200
+> +++ b/linux/drivers/media/dvb/rtl2831/rtd2830u.c	Sun Aug 02 19:52:22 2009 +0100
+> @@ -24,6 +24,7 @@
+> 
+>  #include "rtd2831u.h"
+>  #include "tuner_demod_io.h"
+> +#include "dibusb.h"
+> 
+>  DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+> 
+> @@ -58,45 +59,6 @@
+>  #define USB_EPA_CTL			0x0148
+>  /*(prev.line) epa contrl register */
+> 
+> -#ifdef RTL2831U_NEC_PROTOCOL
+> -static struct dvb_usb_rc_key rtd2831u_nec_keys[] = {
+> -	{0x03, 0xfc, KEY_1},
+> -	{0x01, 0xfe, KEY_2},
+> -	{0x06, 0xf9, KEY_3},
+> -	{0x09, 0xf6, KEY_4},
+> -	{0x1d, 0xe2, KEY_5},
+> -	{0x1f, 0xe0, KEY_6},
+> -	{0x0D, 0xf2, KEY_7},
+> -	{0x19, 0xe6, KEY_8},
+> -	{0x1b, 0xe4, KEY_9},
+> -	{0x15, 0xea, KEY_0},
+> -
+> -	{0x17, 0xe8, KEY_S},	/*show scan page */
+> -	{0x14, 0xeb, KEY_G},	/*start scan */
+> -	{0x1a, 0xe5, KEY_X},	/*stop scan */
+> -
+> -	{0x08, 0xf7, KEY_A},	/*de-interlace  ---> advance scanpage */
+> -
+> -	{0x0a, 0xf5, KEY_LEFT},	/*key_left */
+> -	{0x1e, 0xe1, KEY_RIGHT},	/*key_right */
+> -	{0x11, 0xee, KEY_BACKSPACE},	/*backspace */
+> -
+> -	{0x0a, 0xf5, KEY_VOLUMEDOWN},	/*vol- */
+> -	{0x1e, 0xe1, KEY_VOLUMEUP},	/*vol+ */
+> -	{0x10, 0xef, KEY_MUTE},	/*mute */
+> -
+> -	{0x05, 0xfa, KEY_CHANNELUP},	/*channel+ */
+> -	{0x02, 0xfd, KEY_CHANNELDOWN},	/*channel- */
+> -	{0x4f, 0xb0, KEY_LAST},	/*last channel */
+> -
+> -	{0x05, 0xfa, KEY_UP},	/*country + */
+> -	{0x02, 0xfd, KEY_DOWN},	/*country- */
+> -
+> -	{0x16, 0xe9, KEY_POWER},	/*End(poweroff) */
+> -	{0x4c, 0xb3, KEY_R},	/*Reboot  */
+> -};
+> -#endif
+> -
+>  #ifdef RTL2831U_RC5_PROTOCOL
+>  /* philip rc5 keys */
+>  static struct dvb_usb_rc_key rtd2831u_rc5_keys[] = {
+> @@ -137,28 +99,28 @@
+>  */
+> 
+>  static struct dvb_usb_rc_key rtd2831u_conceptronic_keys[] = {
+> -	{0x04, 0xfb, KEY_1},
+> -	{0x05, 0xfa, KEY_2},
+> -	{0x06, 0xf9, KEY_3},
+> -	{0x07, 0xf8, KEY_4},
+> -	{0x08, 0xf7, KEY_5},
+> -	{0x09, 0xf6, KEY_6},
+> -	{0x0a, 0xf5, KEY_7},
+> -	{0x1b, 0xe4, KEY_8},
+> -	{0x1f, 0xe0, KEY_9},
+> -	{0x0d, 0xf2, KEY_0},
+> +	{0x80, 0x04, KEY_1},
+> +	{0x80, 0x05, KEY_2},
+> +	{0x80, 0x06, KEY_3},
+> +	{0x80, 0x07, KEY_4},
+> +	{0x80, 0x08, KEY_5},
+> +	{0x80, 0x09, KEY_6},
+> +	{0x80, 0x0a, KEY_7},
+> +	{0x80, 0x1b, KEY_8},
+> +	{0x80, 0x1f, KEY_9},
+> +	{0x80, 0x0d, KEY_0},
+> 
+> -	{0x02, 0xfd, KEY_VOLUMEDOWN},	/*vol- */
+> -	{0x1a, 0xe5, KEY_VOLUMEUP},	/*vol+ */
+> -	{0x01, 0xfe, KEY_MUTE},	/*mute */
+> +	{0x80, 0x02, KEY_VOLUMEDOWN},	/*vol- */
+> +	{0x80, 0x1a, KEY_VOLUMEUP},	/*vol+ */
+> +	{0x80, 0x01, KEY_MUTE},	/*mute */
+> 
+> -	{0x1e, 0xe1, KEY_CHANNELUP},	/*channel+ */
+> -	{0x03, 0xfc, KEY_CHANNELDOWN},	/*channel- */
+> +	{0x80, 0x1e, KEY_CHANNELUP},	/*channel+ */
+> +	{0x80, 0x03, KEY_CHANNELDOWN},	/*channel- */
+> 
+> -	{0x12, 0xed, KEY_POWER},	/*End(poweroff) */
+> -	{0x0e, 0xf1, KEY_LAST},	/*last channel */
+> +	{0x80, 0x12, KEY_POWER},	/*End(poweroff) */
+> +	{0x80, 0x0e, KEY_LAST},	/*last channel */
+> 
+> -	{0x0c, 0xf3, KEY_ZOOM},	/* zoom was not assigned, now Z */
+> +	{0x80, 0x0c, KEY_ZOOM},	/* zoom was not assigned, now Z */
+>  };
+> 
+>  #endif
+> @@ -196,8 +158,8 @@
+>  	case RTL2831U_NEC_TYPE:
+>  		deb_info("Selected IR type 0x%02x\n", ir_protocol);
+>  		memcpy(reg_val, NEC_REG_VAL, sizeof(u8) * ARRAY_SIZE(reg_val));
+> -		d->props.rc_key_map = rtd2831u_nec_keys;
+> -		d->props.rc_key_map_size = ARRAY_SIZE(rtd2831u_nec_keys);
+> +		d->props.rc_key_map = dibusb_rc_keys;
+> +		d->props.rc_key_map_size = 135;
+>  		break;
+>  	case RTL2831U_RC5_TYPE:
+>  		deb_info("Selected IR type 0x%02x\n", ir_protocol);
+> @@ -237,47 +199,9 @@
+>  	return 1;
+>  }
+> 
+> -static int rtd2831u_rc_key_to_event(struct dvb_usb_device *d,
+> -				    u8 keybuf[4], u32 * event, int *state)
+> -{
+> -	int i;
+> -	struct dvb_usb_rc_key *keymap = d->props.rc_key_map;
+> -	*event = 0;
+> -	*state = REMOTE_NO_KEY_PRESSED;
+> -
+> -	switch (ir_protocol) {
+> -	case RTL2831U_RC5_TYPE:
+> -		keybuf[0] = (keybuf[0] & 0x00);
+> -		keybuf[1] = (keybuf[1] & 0x00);
+> -		keybuf[2] = (keybuf[2] & 0x00);
+> -		keybuf[3] = (keybuf[3] & 0xff);
+> -		break;
+> -	}
+> -
+> -/* deb_info("raw key code 0x%02x, 0x%02x, 0x%02x,
+> 0x%02x\n",keybuf[0], keybuf[1], keybuf[2], keybuf[3]); */
+> -	/* See if we can match the raw key code. */
+> -	for (i = 0; i < d->props.rc_key_map_size; i++)
+> -		if (keymap[i].custom == keybuf[2]
+> -		    && keymap[i].data == keybuf[3]) {
+> -			*event = keymap[i].event;
+> -			*state = REMOTE_KEY_PRESSED;
+> -			return 0;
+> -		}
+> -
+> -	if (*state != REMOTE_KEY_PRESSED) {
+> -		deb_info
+> -		    ("Unmatched raw key code 0x%02x, 0x%02x, 0x%02x, 0x%02x: please
+> try other setting for parameter ir_protocol\n",
+> -		     keybuf[0], keybuf[1], keybuf[2], keybuf[3]);
+> -	}
+> -
+> -	return 0;
+> -
+> -}
+> -
+>  static int rtd2831u_rc_query(struct dvb_usb_device *d, u32 * event, int *state)
+>  {
+> -	u8 key[4];
+> -	u8 b = 0xcc;
+> +	u8 key[5] = {0xcc, 0, 0, 0, 0};
+>  	struct rtl2831u_rc_state *p_rc_state = d->priv;
+> 
+>  	*event = 0;
+> @@ -290,21 +214,36 @@
+>  			goto error;
+>  	}
+> 
+> -	if (RTD2831_READ_BYTES(d, RTD2831U_SYS, IRRC_SR, &b, 1))
+> +	if (RTD2831_READ_BYTES(d, RTD2831U_SYS, IRRC_SR, &key[0], 1))
+>  		goto error;
+> 
+> -	if (b & 0x01) {
+> -		if (RTD2831_READ_BYTES(d, RTD2831U_SYS, IRRC_RP, key, 4))
+> +	if (key[0] & 0x01) {
+> +		if (RTD2831_READ_BYTES(d, RTD2831U_SYS, IRRC_RP, &key[1], 4))
+>  			goto error;
+> -		b = 0x01;
+> -		if (RTD2831_WRITE_BYTES(d, RTD2831U_SYS, IRRC_SR, &b, 1))
+> +		key[0] = 0x01;
+> +		if (RTD2831_WRITE_BYTES(d, RTD2831U_SYS, IRRC_SR, &key[0], 1))
+>  			goto error;
+> 
+>  		if (++p_rc_state->repeat_key_count <
+>  		    p_rc_state->rc_key_repeat_count)
+>  			return 0;	/*set two events to 1(repeat.....) */
+> 
+> -		rtd2831u_rc_key_to_event(d, key, event, state);
+> +		/* in the old code, keybuf was 4 bytes. in the dibusb, keybuf is 5 bytes.
+> +		   byte 0 is the cmd. bytes 1-4 are bytes 0-3 from the old.
+> +		   so we must switch around some bytes to make the rc5 table valid.
+> +		   This probably isn't necessary (can just fix the table instead)
+> +		   but I can't tell without the actual un-switched remote codes. */
+> +
+> +		switch (ir_protocol) {
+> +		case RTL2831U_RC5_TYPE:
+> +			key[1] = 0x00; // custom - 0 in rc5 table
+> +			key[2] = 0xff; // checksum/compliment of keybuf[1]
+> +			key[3] = (key[4] & 0xff); // data (need to move it)
+> +			key[4] = ~key[3];	// checksum/compliment
+> +			break;
+> +		}
+> +
+> +		dvb_usb_nec_rc_key_to_event(d, key, event, state);
+>  		p_rc_state->repeat_key_count = 0;
+>  /*(prev.line) reset counter to 0		 */
+>  	}
+> @@ -412,17 +351,16 @@
+> 
+>  	.rc_interval = 300,
+>  #ifdef RTL2831U_NEC_PROTOCOL
+> -	.rc_key_map = rtd2831u_nec_keys,
+> -	.rc_key_map_size = ARRAY_SIZE(rtd2831u_nec_keys),
+> -#else
+> -#ifdef RTL2831U_RC5_PROTOCOL
+> +	.rc_key_map = dibusb_rc_keys,
+> +	.rc_key_map_size = 135,
+> +#elif defined RTL2831U_RC5_PROTOCOL
+>  	.rc_key_map = rtd2831u_rc5_keys,
+>  	.rc_key_map_size = ARRAY_SIZE(rtd2831u_rc5_keys),
+>  #elif defined RTL2831U_CONCEPTRONIC_PROTOCOL
+>  	.rc_key_map = rtd2831u_conceptronic_keys,
+>  	.rc_key_map_size = ARRAY_SIZE(rtd2831u_conceptronic_keys),
+>  #endif
+> -#endif
+> +
+>  	.rc_query = rtd2831u_rc_query,
+> 
+>  	.num_device_descs = 8,
+> @@ -487,17 +425,15 @@
+> 
+>  	.rc_interval = 300,
+>  #ifdef RTL2831U_NEC_PROTOCOL
+> -	.rc_key_map = rtd2831u_nec_keys,
+> -	.rc_key_map_size = ARRAY_SIZE(rtd2831u_nec_keys),
+> -#else
+> -#ifdef RTL2831U_RC5_PROTOCOL
+> +	.rc_key_map = dibusb_rc_keys,
+> +	.rc_key_map_size = 135,
+> +#elif defined RTL2831U_RC5_PROTOCOL
+>  	.rc_key_map = rtd2831u_rc5_keys,
+>  	.rc_key_map_size = ARRAY_SIZE(rtd2831u_rc5_keys),
+>  #elif defined RTL2831U_CONCEPTRONIC_PROTOCOL
+>  	.rc_key_map = rtd2831u_conceptronic_keys,
+>  	.rc_key_map_size = ARRAY_SIZE(rtd2831u_conceptronic_keys),
+>  #endif
+> -#endif
+>  	.rc_query = rtd2831u_rc_query,
+> 
+>  	.num_device_descs = 5,
+> 
+> 
+> 
+> 
+> 
+
 
 -- 
-=
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
+Jan Hoogenraad
+Hoogenraad Interface Services
+Postbus 2717
+3500 GS Utrecht
