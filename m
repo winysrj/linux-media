@@ -1,170 +1,361 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:21699 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751407AbZHXJ5W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Aug 2009 05:57:22 -0400
-Received: by ey-out-2122.google.com with SMTP id 22so573413eye.37
-        for <linux-media@vger.kernel.org>; Mon, 24 Aug 2009 02:57:23 -0700 (PDT)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52488 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752019AbZHCDtQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 2 Aug 2009 23:49:16 -0400
+From: "chaithrika" <chaithrika@ti.com>
+To: "'Chaithrika U S'" <chaithrika@ti.com>, <linux@arm.linux.org.uk>
+Cc: <mchehab@infradead.org>, <hverkuil@xs4all.nl>,
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	<linux-media@vger.kernel.org>,
+	"'Brijesh Jadav'" <brijesh.j@ti.com>,
+	"'Kevin Hilman'" <khilman@deeprootsystems.com>
+References: <1248076882-18564-1-git-send-email-chaithrika@ti.com>
+In-Reply-To: <1248076882-18564-1-git-send-email-chaithrika@ti.com>
+Subject: RE: [PATCH v3] ARM: DaVinci: DM646x Video: Platform and board specific setup
+Date: Mon, 3 Aug 2009 09:17:06 +0530
+Message-ID: <00cb01ca13ed$12564120$3702c360$@com>
 MIME-Version: 1.0
-In-Reply-To: <829197380908211317k401b6b2etdb88a90e6e7e53fa@mail.gmail.com>
-References: <54b126f90908211227k78cfeebbqcee4da4958743a3b@mail.gmail.com>
-	 <829197380908211238i58670a12p39537af14dbfc009@mail.gmail.com>
-	 <54b126f90908211305j6911820es52c8ffc2be6b9667@mail.gmail.com>
-	 <829197380908211317k401b6b2etdb88a90e6e7e53fa@mail.gmail.com>
-Date: Mon, 24 Aug 2009 11:57:22 +0200
-Message-ID: <54b126f90908240257t362bf59byc0100bf6aa4b315b@mail.gmail.com>
-Subject: Re: detection of Empire Media Pen Dual TV
-From: Baggius <baggius@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
+Content-Language: en-us
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/8/21 Devin Heitmueller <dheitmueller@kernellabs.com>:
-> On Fri, Aug 21, 2009 at 4:05 PM, Baggius<baggius@gmail.com> wrote:
->> Hello Devin,
->> I have an Empire Media Pen Dual TV and it has same layout as Kworld dvb-t 310u.
->> while MSI Digivox A/D has "similar" layout and supports 1080i extra resolution,
->> as http://www.msi.com/index.php?func=proddesc&maincat_no=132&prod_no=626
->>
->> If you want I can capture usb device startup log using Usbsnoop/SniffUSB  ...
->> Giuseppe
+Mauro/Russell,
+
+The previous version (v2) of this patch is on the linux-next tree.
+This patch has some updates done on top of that patch. Should I
+post an incremental patch for those changes to the Linux-next tree?
+Please suggest.
+
+Regards,
+Chaithrika
+
+On Mon, Jul 20, 2009 at 13:31:22, Chaithrika U S wrote:
+> Platform specific display device setup for DM646x EVM
+> 
+> Add platform device and resource structures. Also define a platform
+specific
+> clock setup function that can be accessed by the driver to configure the
+clock
+> and CPLD.
+> 
+> Signed-off-by: Manjunath Hadli <mrh@ti.com>
+> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+> Signed-off-by: Chaithrika U S <chaithrika@ti.com>
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> ---
+> Applies to Davinci GIT tree. Minor updates like change in structure name-
+> subdev_info to vpif_subdev_info and correction to VDD3P3V_VID_MASK value.
+> 
+>  arch/arm/mach-davinci/board-dm646x-evm.c    |  125
++++++++++++++++++++++++++++
+>  arch/arm/mach-davinci/dm646x.c              |   62 +++++++++++++
+>  arch/arm/mach-davinci/include/mach/dm646x.h |   24 +++++
+>  3 files changed, 211 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c
+b/arch/arm/mach-davinci/board-dm646x-evm.c
+> index b1bf18c..8c88fd0 100644
+> --- a/arch/arm/mach-davinci/board-dm646x-evm.c
+> +++ b/arch/arm/mach-davinci/board-dm646x-evm.c
+> @@ -63,6 +63,19 @@
+>  #define DM646X_EVM_PHY_MASK		(0x2)
+>  #define DM646X_EVM_MDIO_FREQUENCY	(2200000) /* PHY bus frequency */
+>  
+> +#define VIDCLKCTL_OFFSET	(0x38)
+> +#define VSCLKDIS_OFFSET		(0x6c)
+> +
+> +#define VCH2CLK_MASK		(BIT_MASK(10) | BIT_MASK(9) | BIT_MASK(8))
+> +#define VCH2CLK_SYSCLK8		(BIT(9))
+> +#define VCH2CLK_AUXCLK		(BIT(9) | BIT(8))
+> +#define VCH3CLK_MASK		(BIT_MASK(14) | BIT_MASK(13) | BIT_MASK(12))
+> +#define VCH3CLK_SYSCLK8		(BIT(13))
+> +#define VCH3CLK_AUXCLK		(BIT(14) | BIT(13))
+> +
+> +#define VIDCH2CLK		(BIT(10))
+> +#define VIDCH3CLK		(BIT(11))
+> +
+>  static struct davinci_uart_config uart_config __initdata = {
+>  	.enabled_uarts = (1 << 0),
+>  };
+> @@ -288,6 +301,40 @@ static struct snd_platform_data dm646x_evm_snd_data[]
+= {
+>  	},
+>  };
+>  
+> +static struct i2c_client *cpld_client;
+> +
+> +static int cpld_video_probe(struct i2c_client *client,
+> +			const struct i2c_device_id *id)
+> +{
+> +	cpld_client = client;
+> +	return 0;
+> +}
+> +
+> +static int __devexit cpld_video_remove(struct i2c_client *client)
+> +{
+> +	cpld_client = NULL;
+> +	return 0;
+> +}
+> +
+> +static const struct i2c_device_id cpld_video_id[] = {
+> +	{ "cpld_video", 0 },
+> +	{ }
+> +};
+> +
+> +static struct i2c_driver cpld_video_driver = {
+> +	.driver = {
+> +		.name	= "cpld_video",
+> +	},
+> +	.probe		= cpld_video_probe,
+> +	.remove		= cpld_video_remove,
+> +	.id_table	= cpld_video_id,
+> +};
+> +
+> +static void evm_init_cpld(void)
+> +{
+> +	i2c_add_driver(&cpld_video_driver);
+> +}
+> +
+>  static struct i2c_board_info __initdata i2c_info[] =  {
+>  	{
+>  		I2C_BOARD_INFO("24c256", 0x50),
+> @@ -300,6 +347,9 @@ static struct i2c_board_info __initdata i2c_info[] =
+{
+>  	{
+>  		I2C_BOARD_INFO("cpld_reg0", 0x3a),
+>  	},
+> +	{
+> +		I2C_BOARD_INFO("cpld_video", 0x3B),
+> +	},
+>  };
+>  
+>  static struct davinci_i2c_platform_data i2c_pdata = {
+> @@ -307,11 +357,85 @@ static struct davinci_i2c_platform_data i2c_pdata =
+{
+>  	.bus_delay      = 0 /* usec */,
+>  };
+>  
+> +static int set_vpif_clock(int mux_mode, int hd)
+> +{
+> +	int val = 0;
+> +	int err = 0;
+> +	unsigned int value;
+> +	void __iomem *base = IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
+> +
+> +	if (!cpld_client)
+> +		return -ENXIO;
+> +
+> +	/* disable the clock */
+> +	value = __raw_readl(base + VSCLKDIS_OFFSET);
+> +	value |= (VIDCH3CLK | VIDCH2CLK);
+> +	__raw_writel(value, base + VSCLKDIS_OFFSET);
+> +
+> +	val = i2c_smbus_read_byte(cpld_client);
+> +	if (val < 0)
+> +		return val;
+> +
+> +	if (mux_mode == 1)
+> +		val &= ~0x40;
+> +	else
+> +		val |= 0x40;
+> +
+> +	err = i2c_smbus_write_byte(cpld_client, val);
+> +	if (err)
+> +		return err;
+> +
+> +	value = __raw_readl(base + VIDCLKCTL_OFFSET);
+> +	value &= ~(VCH2CLK_MASK);
+> +	value &= ~(VCH3CLK_MASK);
+> +
+> +	if (hd >= 1)
+> +		value |= (VCH2CLK_SYSCLK8 | VCH3CLK_SYSCLK8);
+> +	else
+> +		value |= (VCH2CLK_AUXCLK | VCH3CLK_AUXCLK);
+> +
+> +	__raw_writel(value, base + VIDCLKCTL_OFFSET);
+> +
+> +	/* enable the clock */
+> +	value = __raw_readl(base + VSCLKDIS_OFFSET);
+> +	value &= ~(VIDCH3CLK | VIDCH2CLK);
+> +	__raw_writel(value, base + VSCLKDIS_OFFSET);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct vpif_subdev_info dm646x_vpif_subdev[] = {
+> +	{
+> +		.addr	= 0x2A,
+> +		.name	= "adv7343",
+> +	},
+> +	{
+> +		.addr	= 0x2C,
+> +		.name	= "ths7303",
+> +	},
+> +};
+> +
+> +static const char *output[] = {
+> +	"Composite",
+> +	"Component",
+> +	"S-Video",
+> +};
+> +
+> +static struct vpif_config dm646x_vpif_config = {
+> +	.set_clock	= set_vpif_clock,
+> +	.subdevinfo	= dm646x_vpif_subdev,
+> +	.subdev_count	= ARRAY_SIZE(dm646x_vpif_subdev),
+> +	.output		= output,
+> +	.output_count	= ARRAY_SIZE(output),
+> +	.card_name	= "DM646x EVM",
+> +};
+> +
+>  static void __init evm_init_i2c(void)
+>  {
+>  	davinci_init_i2c(&i2c_pdata);
+>  	i2c_add_driver(&dm6467evm_cpld_driver);
+>  	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));
+> +	evm_init_cpld();
+>  }
+>  
+>  static void __init davinci_map_io(void)
+> @@ -333,6 +457,7 @@ static __init void evm_init(void)
+>  
+>  	soc_info->emac_pdata->phy_mask = DM646X_EVM_PHY_MASK;
+>  	soc_info->emac_pdata->mdio_max_freq = DM646X_EVM_MDIO_FREQUENCY;
+> +	dm646x_setup_vpif(&dm646x_vpif_config);
+>  }
+>  
+>  static __init void davinci_dm646x_evm_irq_init(void)
+> diff --git a/arch/arm/mach-davinci/dm646x.c
+b/arch/arm/mach-davinci/dm646x.c
+> index 8fa2803..a9b20e5 100644
+> --- a/arch/arm/mach-davinci/dm646x.c
+> +++ b/arch/arm/mach-davinci/dm646x.c
+> @@ -32,6 +32,15 @@
+>  #include "clock.h"
+>  #include "mux.h"
+>  
+> +#define DAVINCI_VPIF_BASE       (0x01C12000)
+> +#define VDD3P3V_PWDN_OFFSET	(0x48)
+> +#define VSCLKDIS_OFFSET		(0x6C)
+> +
+> +#define VDD3P3V_VID_MASK	(BIT_MASK(3) | BIT_MASK(2) | BIT_MASK(1) |\
+> +					BIT_MASK(0))
+> +#define VSCLKDIS_MASK		(BIT_MASK(11) | BIT_MASK(10) |
+BIT_MASK(9) |\
+> +					BIT_MASK(8))
+> +
+>  /*
+>   * Device specific clocks
+>   */
+> @@ -686,6 +695,37 @@ static struct platform_device dm646x_dit_device = {
+>  	.id	= -1,
+>  };
+>  
+> +static u64 vpif_dma_mask = DMA_BIT_MASK(32);
+> +
+> +static struct resource vpif_resource[] = {
+> +	{
+> +		.start	= DAVINCI_VPIF_BASE,
+> +		.end	= DAVINCI_VPIF_BASE + 0x03fff,
+> +		.flags	= IORESOURCE_MEM,
+> +	},
+> +	{
+> +		.start = IRQ_DM646X_VP_VERTINT2,
+> +		.end   = IRQ_DM646X_VP_VERTINT2,
+> +		.flags = IORESOURCE_IRQ,
+> +	},
+> +	{
+> +		.start = IRQ_DM646X_VP_VERTINT3,
+> +		.end   = IRQ_DM646X_VP_VERTINT3,
+> +		.flags = IORESOURCE_IRQ,
+> +	},
+> +};
+> +
+> +static struct platform_device vpif_display_dev = {
+> +	.name		= "vpif_display",
+> +	.id		= -1,
+> +	.dev		= {
+> +			.dma_mask 		= &vpif_dma_mask,
+> +			.coherent_dma_mask	= DMA_BIT_MASK(32),
+> +	},
+> +	.resource	= vpif_resource,
+> +	.num_resources	= ARRAY_SIZE(vpif_resource),
+> +};
+> +
 >
-> Hmmm...  Let's hold off on a usb capture for now.  Now that I
-> understand that you have the Empire board, I am looking at the dmesg
-> trace again and am a bit confused.  Do you happen to have a "card=49"
-> parameter in your modprobe configuration?  However, the code does
-> appear to also recognize the board as the Empire board (see the "Board
-> detected as Empire dual TV").
+/*----------------------------------------------------------------------*/
+>  
+>  static struct map_desc dm646x_io_desc[] = {
+> @@ -814,6 +854,28 @@ void __init dm646x_init_mcasp1(struct
+snd_platform_data *pdata)
+>  	platform_device_register(&dm646x_dit_device);
+>  }
+>  
+> +void dm646x_setup_vpif(struct vpif_config *config)
+> +{
+> +	unsigned int value;
+> +	void __iomem *base = IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
+> +
+> +	value = __raw_readl(base + VSCLKDIS_OFFSET);
+> +	value &= ~VSCLKDIS_MASK;
+> +	__raw_writel(value, base + VSCLKDIS_OFFSET);
+> +
+> +	value = __raw_readl(base + VDD3P3V_PWDN_OFFSET);
+> +	value &= ~VDD3P3V_VID_MASK;
+> +	__raw_writel(value, base + VDD3P3V_PWDN_OFFSET);
+> +
+> +	davinci_cfg_reg(DM646X_STSOMUX_DISABLE);
+> +	davinci_cfg_reg(DM646X_STSIMUX_DISABLE);
+> +	davinci_cfg_reg(DM646X_PTSOMUX_DISABLE);
+> +	davinci_cfg_reg(DM646X_PTSIMUX_DISABLE);
+> +
+> +	vpif_display_dev.dev.platform_data = config;
+> +	platform_device_register(&vpif_display_dev);
+> +}
+> +
+>  void __init dm646x_init(void)
+>  {
+>  	davinci_common_init(&davinci_soc_info_dm646x);
+> diff --git a/arch/arm/mach-davinci/include/mach/dm646x.h
+b/arch/arm/mach-davinci/include/mach/dm646x.h
+> index feb1e02..1ac424c 100644
+> --- a/arch/arm/mach-davinci/include/mach/dm646x.h
+> +++ b/arch/arm/mach-davinci/include/mach/dm646x.h
+> @@ -29,4 +29,28 @@ void __init dm646x_init_ide(void);
+>  void __init dm646x_init_mcasp0(struct snd_platform_data *pdata);
+>  void __init dm646x_init_mcasp1(struct snd_platform_data *pdata);
+>  
+> +void dm646x_video_init(void);
+> +
+> +struct vpif_output {
+> +	u16 id;
+> +	const char *name;
+> +};
+> +
+> +struct vpif_subdev_info {
+> +	unsigned short addr;
+> +	const char *name;
+> +};
+> +
+> +struct vpif_config {
+> +	int (*set_clock)(int, int);
+> +	const struct subdev_info *subdevinfo;
+> +	int subdev_count;
+> +	const char **output;
+> +	int output_count;
+> +	const char *card_name;
+> +};
+> +
+> +
+> +void dm646x_setup_vpif(struct vpif_config *config);
+> +
+>  #endif /* __ASM_ARCH_DM646X_H */
+> -- 
+> 1.5.6
+> 
 
-No, I havent' any card parameter in modprobe.conf, I commented out
-"options em28xx ..." line.
-Now some info on my system:
 
-Kernel is Linux box 2.6.29-sabayon #1 SMP Wed Aug 19 22:18:09 UTC 2009
-x86_64 Intel(R) Core(TM)2 Duo CPU T9300 @ 2.50GHz GenuineIntel
-GNU/Linux,
-
-Linux Distro is Sabayon 4.2 x86_64 Gnome edition, regularly updated,
-
-on Acer Aspire 5920G http://support.acer-euro.com/drivers/notebook/as_5920.html
-
->
-> I agree that something appears to be wrong.  I will have to take a
-> look at the code and see where the "Identified as" messages comes
-> from.
->
-> Devin
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
->
-
-Well, after some searches I got from web another eeprom contents,
-from a similar board, a Conitech CN610DVB-DT
-http://www.conitech.it/conitech/ita/prod.asp?cod=CN610DVB-DT
-and using rebuil_eeprom.pl
-generated .sh script to change my eeprom contents. Here both eeproms bytes:
-
-empire media pen dual tv eeprom contents (vid=eb1a pid=e310):
-[11196.181543] em28xx #0: i2c eeprom 00: 1a eb 67 95 1a eb 10 e3 d0 12
-5c 03 6a 22 00 00
-[11196.181559] em28xx #0: i2c eeprom 10: 00 00 04 57 4e 07 00 00 00 00
-00 00 00 00 00 00
-[11196.181572] em28xx #0: i2c eeprom 20: 46 00 01 00 f0 10 01 00 00 00
-00 00 5b 1e 00 00
-[11196.181585] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01
-00 00 00 00 00 00
-[11196.181598] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[11196.181610] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[11196.181622] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00
-22 03 55 00 53 00
-[11196.181635] em28xx #0: i2c eeprom 70: 42 00 20 00 32 00 38 00 38 00
-31 00 20 00 44 00
-[11196.181648] em28xx #0: i2c eeprom 80: 65 00 76 00 69 00 63 00 65 00
-00 00 00 00 00 00
-[11196.181660] em28xx #0: i2c eeprom 90: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[11196.181673] em28xx #0: i2c eeprom a0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[11196.181685] em28xx #0: i2c eeprom b0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[11196.181698] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[11196.181710] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[11196.181722] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[11196.181735] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-
-conitech cn610dvb-dt eeprom contents (vid=eb1a pid=2881):
-[  127.753053] em28xx #0: i2c eeprom 00: 1a eb 67 95 1a eb 81 28 58 12
-5c 03 6a 20 6a 00
-[  127.753073] em28xx #0: i2c eeprom 10: 00 00 04 57 64 57 00 00 60 f4
-00 00 02 02 00 00
-[  127.753090] em28xx #0: i2c eeprom 20: 56 00 01 00 00 00 01 00 b8 00
-00 00 5b 1e 00 00
-[  127.753107] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 10 01
-00 00 00 00 00 00
-[  127.753123] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[  127.753140] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[  127.753156] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 53 00
-[  127.753173] em28xx #0: i2c eeprom 70: 42 00 20 00 32 00 38 00 38 00
-31 00 20 00 56 00
-[  127.753189] em28xx #0: i2c eeprom 80: 69 00 64 00 65 00 6f 00 00 00
-00 00 00 00 00 00
-[  127.753206] em28xx #0: i2c eeprom 90: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[  127.753222] em28xx #0: i2c eeprom a0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[  127.753239] em28xx #0: i2c eeprom b0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[  127.753255] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[  127.753271] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[  127.753288] em28xx #0: i2c eeprom e0: 5a 00 55 aa e5 2b 59 03 00 17
-fc 01 00 00 00 00
-[  127.753305] em28xx #0: i2c eeprom f0: 00 00 00 01 00 00 00 00 00 00
-00 00 00 00 00 00
-
-wrote new eeprom, I used card=48 as em28xx parameter (kworld 310U) and
-analog part,
-WITH audio, was ALL working (both tv and audio/video input) with extra
-feature of usb power management,
-as dmesg told:
-[19178.415552] em28xx #0:       USB Remote wakeup capable
-
-Result was a less hot device :D
-
-To route audio from usb card to my audio card and launch tvtime I used
-this script:
-
---- begin of start-analog-tv.sh
-#!/bin/sh
-#-q
-# sudo apt-get install sox libsox-fmt-all
-#
-# start-tv.sh
-#
-#sox -c 2 -s -r 32000 -t ossdsp /dev/dsp1 -t ossdsp -r 32000 /dev/dsp &
-sox -c 2 -s -r 48000 -t alsa hw:1,0 -t alsa -r 48000 hw:0,0 &
-soxpid=$!
-sleep 0.5
-tvtime --device /dev/video1
-kill $soxpid
---- end of start-analog-tv.sh
-
-I hope this solution for this card can be useful to correct and fixes
-audio problems in v4l-dvb trunk device recognition
-routines
