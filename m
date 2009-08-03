@@ -1,77 +1,54 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from cpe.atm2-0-10473.boanxx12.customer.tele.dk ([80.160.58.50]
-	helo=cow.netcompartner.com)
-	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lth@cow.dk>) id 1MUDqD-0003pd-6y
-	for linux-dvb@linuxtv.org; Fri, 24 Jul 2009 08:01:13 +0200
-Received: from [218.111.43.50] (helo=ncpws04.netcompartner.com)
-	by cow.netcompartner.com with esmtpsa
-	(TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32) (Exim 4.69)
-	(envelope-from <lth@cow.dk>) id 1MUDq3-0002pS-JW
-	for linux-dvb@linuxtv.org; Fri, 24 Jul 2009 08:01:09 +0200
-From: Lars Boegild Thomsen <lth@cow.dk>
-To: linux-dvb@linuxtv.org
-Date: Fri, 24 Jul 2009 14:00:59 +0800
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200907241400.59944.lth@cow.dk>
-Subject: [linux-dvb] Hauppauge HVR-1200 - CX23885 - S-Video capture
-Reply-To: linux-media@vger.kernel.org
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
-List-ID: <linux-dvb@linuxtv.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp3-g21.free.fr ([212.27.42.3]:34834 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751980AbZHCGaW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Aug 2009 02:30:22 -0400
+Date: Mon, 3 Aug 2009 08:30:12 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Alexey Klimov <klimov.linux@gmail.com>
+Cc: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Andy Walls <awalls@radix.net>,
+	Linux Media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] to add support for certain Jeilin dual-mode cameras.
+Message-ID: <20090803083012.44da22ca@tele>
+In-Reply-To: <208cbae30908020625x400f6b3era5095c8bfc5c736b@mail.gmail.com>
+References: <20090418183124.1c9160e3@free.fr>
+	<alpine.LNX.2.00.0908011635020.26881@banach.math.auburn.edu>
+	<208cbae30908020625x400f6b3era5095c8bfc5c736b@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Sender: linux-media-owner@vger.kernel.org
+List-ID: <linux-media.vger.kernel.org>
 
-SSBoYXZlIGJlZW4gc3RydWdnbGluZyB3aXRoIExpbnV4IGRyaXZlcnMgZm9yIHRoZSBhYm92ZSBt
-ZW50aW9uZWQgY2FyZC4gCkRvaW5nIGFuIGxzcGNpIC12IHJlcG9ydHM6CgowMzowMC4wIE11bHRp
-bWVkaWEgdmlkZW8gY29udHJvbGxlcjogQ29uZXhhbnQgU3lzdGVtcywgSW5jLiBDWDIzODg1IFBD
-SQpWaWRlbyBhbmQgQXVkaW8gRGVjb2RlciAocmV2IDAyKQrCoCDCoCDCoCDCoCBTdWJzeXN0ZW06
-IEhhdXBwYXVnZSBjb21wdXRlciB3b3JrcyBJbmMuIERldmljZSA3MWQzCsKgIMKgIMKgIMKgIEZs
-YWdzOiBidXMgbWFzdGVyLCBmYXN0IGRldnNlbCwgbGF0ZW5jeSAwLCBJUlEgMTYKwqAgwqAgwqAg
-wqAgTWVtb3J5IGF0IGVmODAwMDAwICg2NC1iaXQsIG5vbi1wcmVmZXRjaGFibGUpIFtzaXplPTJN
-XQrCoCDCoCDCoCDCoCBDYXBhYmlsaXRpZXM6IFs0MF0gRXhwcmVzcyBFbmRwb2ludCwgTVNJIDAw
-CsKgIMKgIMKgIMKgIENhcGFiaWxpdGllczogWzgwXSBQb3dlciBNYW5hZ2VtZW50IHZlcnNpb24g
-MgrCoCDCoCDCoCDCoCBDYXBhYmlsaXRpZXM6IFs5MF0gVml0YWwgUHJvZHVjdCBEYXRhCsKgIMKg
-IMKgIMKgIENhcGFiaWxpdGllczogW2EwXSBNU0k6IEVuYWJsZS0gQ291bnQ9MS8xIE1hc2thYmxl
-LSA2NGJpdCsKwqAgwqAgwqAgwqAgQ2FwYWJpbGl0aWVzOiBbMTAwXSBBZHZhbmNlZCBFcnJvciBS
-ZXBvcnRpbmcKwqAgwqAgwqAgwqAgQ2FwYWJpbGl0aWVzOiBbMjAwXSBWaXJ0dWFsIENoYW5uZWwg
-PD8+CsKgIMKgIMKgIMKgIEtlcm5lbCBkcml2ZXIgaW4gdXNlOiBjeDIzODg1CsKgIMKgIMKgIMKg
-IEtlcm5lbCBtb2R1bGVzOiBjeDIzODg1CgpJIGhhdmUgYmVlbiBnb29nbGluZyBhIGxvdCBhbmQg
-SSBhbSBzb21ld2hhdCBjb25mdXNlZCBpZiB0aGUgY3VycmVudCBkcml2ZXJzCnN1cHBvcnRzIHZp
-ZGVvIGNhcHR1cmUgb24gdGhlIFMtVmlkZW8gY29ubmVjdG9yLiDCoE1vc3QgbWFpbGluZyBsaXN0
-IGVudHJpZXMKc2F5IHRoYXQgb25seSBkaWdpdGFsIGNhcHR1cmUgaXMgcG9zc2libGUsIGhvd2V2
-ZXIgSSBkaWQgbm90aWNlIHNvbWUKY2hhbmdlcyBpbiB0aGUgY3gyMzg4NS1jYXJkcy5jOgoKwqAg
-wqAgwqAgwqAgW0NYMjM4ODVfQk9BUkRfSEFVUFBBVUdFX0hWUjEyMDBdID0gewrCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCAubmFtZSDCoCDCoCDCoCDCoCDCoCA9ICJIYXVwcGF1Z2UgV2luVFYtSFZS
-MTIwMCIsCsKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5wb3J0YyDCoCDCoCDCoCDCoCDCoD0gQ1gy
-Mzg4NV9NUEVHX0RWQiwKwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgLmlucHV0IMKgIMKgIMKgIMKg
-IMKgPSB7ewrCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCAudHlwZSDCoCA9IENY
-MjM4ODVfVk1VWF9URUxFVklTSU9OLArCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCAudm11eCDCoCA9IDAsCsKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5ncGlv
-MCDCoD0gMHhmZjAwLArCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCB9LCB7CsKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIC50eXBlIMKgID0gQ1gyMzg4NV9WTVVYX0RFQlVHLArCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCAudm11eCDCoCA9IDAsCsKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5ncGlvMCDCoD0gMHhmZjAxLArCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCB9LCB7CsKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC50eXBl
-IMKgID0gQ1gyMzg4NV9WTVVYX0NPTVBPU0lURTEsCsKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIC52bXV4IMKgID0gMSwKwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgLmdwaW8wIMKgPSAweGZmMDIsCsKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIH0sIHsKwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgLnR5cGUgwqAgPSBDWDIzODg1X1ZNVVhfU1ZJ
-REVPLArCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCAudm11eCDCoCA9IDIsCsKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5ncGlvMCDCoD0gMHhmZjAyLArCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCB9IH0sCsKgIMKgIMKgIMKgIH0sCgpXaGljaCBzb3J0IG9mIGlu
-ZGljYXRlcyB0aGF0IHRoZSBkcml2ZXIgaXMgYXdhcmUgb2YgdGhlIGNvbm5lY3Rvci4gwqBDYW4K
-YW55Ym9keSBoZWxwIG1lIHdoYXQgaXMgdGhlIGN1cnJlbnQgc3RhdHVzIG9mIHRoaXMgZHJpdmVy
-L2NhcmQgY29tYmluYXRpb24/CgotLSAKTGFycwpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgdXNlcnMgbWFpbGluZyBsaXN0CkZvciBWNEwv
-RFZCIGRldmVsb3BtZW50LCBwbGVhc2UgdXNlIGluc3RlYWQgbGludXgtbWVkaWFAdmdlci5rZXJu
-ZWwub3JnCmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1i
-aW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+On Sun, 2 Aug 2009 17:25:29 +0400
+Alexey Klimov <klimov.linux@gmail.com> wrote:
+
+> > +       buffer = kmalloc(JEILINJ_MAX_TRANSFER, GFP_KERNEL |
+> > GFP_DMA);
+> > +       if (!buffer) {
+> > +               PDEBUG(D_ERR, "Couldn't allocate USB buffer");
+> > +               goto quit_stream;
+> > +       }  
+> 
+> This clean up on error path looks bad. On quit_stream you have:
+> 
+> > +quit_stream:
+> > +       mutex_lock(&gspca_dev->usb_lock);
+> > +       if (gspca_dev->present)
+> > +               jlj_stop(gspca_dev);
+> > +       mutex_unlock(&gspca_dev->usb_lock);
+> > +       kfree(buffer);  
+> 
+> kfree() tries to free null buffer after kmalloc for buffer failed.
+> Please, check if i'm not wrong.
+
+Hi Alexey,
+
+AFAIK, kfree() checks the pointer.
+
+Cheers.
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
