@@ -1,51 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([193.131.176.58]:52589 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752317AbZHKL5T (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2009 07:57:19 -0400
-Subject: Re: How to efficiently handle DMA and cache on ARMv7 ? (was "Is
-	get_user_pages() enough to prevent pages from being swapped out ?")
-From: Catalin Marinas <catalin.marinas@arm.com>
-To: David Xiao <dxiao@broadcom.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Ben Dooks <ben-linux@fluff.org>,
-	Hugh Dickins <hugh.dickins@tiscali.co.uk>,
-	Robin Holt <holt@sgi.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	v4l2_linux <linux-media@vger.kernel.org>,
-	"linux-arm-kernel@lists.arm.linux.org.uk"
-	<linux-arm-kernel@lists.arm.linux.org.uk>
-In-Reply-To: <1249624766.32621.61.camel@david-laptop>
-References: <200908061208.22131.laurent.pinchart@ideasonboard.com>
-	 <20090806114619.GW2080@trinity.fluff.org>
-	 <200908061506.23874.laurent.pinchart@ideasonboard.com>
-	 <1249584374.29182.20.camel@david-laptop>
-	 <20090806222543.GG31579@n2100.arm.linux.org.uk>
-	 <1249624766.32621.61.camel@david-laptop>
-Content-Type: text/plain
-Date: Tue, 11 Aug 2009 10:31:02 +0100
-Message-Id: <1249983062.27150.20.camel@pc1117.cambridge.arm.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4789 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750912AbZHCJ2Z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Aug 2009 05:28:25 -0400
+Message-ID: <9e1cb4ce313ea28894136a17cba44628.squirrel@webmail.xs4all.nl>
+In-Reply-To: <200908031047.02633.laurent.pinchart@ideasonboard.com>
+References: <4A76A227.20503@redhat.com>
+    <200908031047.02633.laurent.pinchart@ideasonboard.com>
+Date: Mon, 3 Aug 2009 11:28:04 +0200
+Subject: Re: RFC: distuingishing between hardware and emulated formats
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
+Cc: "Hans de Goede" <hdegoede@redhat.com>,
+	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
+	t.i.m@zen.co.uk
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2009-08-06 at 22:59 -0700, David Xiao wrote:
-> The V7 speculative prefetching will then probably apply to DMA coherency
-> issue in general, both kernel and user space DMAs. Could this be
-> addressed by inside the dma_unmap_sg/single() calling dma_cache_maint()
-> when the direction is DMA_FROM_DEVICE/DMA_BIDIRECTIONAL, to basically
-> invalidate the related cache lines in case any filled by prefetching?
-> Assuming dma_unmap_sg/single() is called after each DMA operation is
-> completed. 
 
-Theoretically, with speculative prefetching on ARMv7 and the FROM_DEVICE
-case we need to invalidate the corresponding D-cache lines both before
-and after the DMA transfer, i.e. in both dma_map_sg and dma_unmap_sg,
-otherwise there is a risk of stale data in the cache.
+> Hi Hans,
+>
+> On Monday 03 August 2009 10:39:03 Hans de Goede wrote:
+>> Hi All,
+>>
+>> The gstreamer folks have asked to add an API to libv4l2 so
+>> that they can distuingish between formats emulated by libv4l2
+>> and formats offered raw by the hardware.
+>>
+>> I think this is a usefull thing to do and I think this is best
+>> done by adding a new flag for the flags field of the
+>> v4l2_fmtdesc struct. So I would like to propose to add the
+>> following new flag to videodev2.h :
+>>
+>> #define V4L2_FMT_FLAG_EMULATED 0x0002
+>>
+>> And add the necessary documentation to the spec. The emulated term
+>> is what I've always been using in libv4l discussions for formats
+>> which are not offered native by the hardware but are offered by
+>> libv4l through conversion. If someone has a better name for the
+>> flag suggestions are welcome.
+
+Seems fine to me. I can't think of any objections.
+
+As an aside: perhaps it is a good idea to start documenting the libv4l in
+the spec as well.
+
+>
+> I'd go one step further and add a integer cost value instead of a flag.
+> The
+> purpose of distinguishes between native and emulated formats is to keep
+> the
+> end-to-end video cost (in terms of memory, CPU time, ...) as low as
+> possible.
+> If we later end up chaining several conversions in a row (JPEG -> YUV ->
+> RGB
+> for instance, although that might be a bad example) a cost value will help
+> applications select the best format depending on their needs and
+> capabilities.
+>
+> For instance, imagine we "emulate" YUV with a quite low cost and RGB with
+> a
+> quite high cost. If the application can use both YUV and RGB (let's say
+> for
+> display purpose) with equal costs, it will still want to select YUV.
+>
+> Now, the million dollar question is, how do we evaluate the cost value
+> incurred by a software conversion algorithm ?
+
+I don't think we should attempt to do things like this. I don't believe
+there is a need for it, and even if there is, then we really have no idea
+on how to represent such a cost. Having an emulated flag makes a lot of
+sense, but attempting to go any further with this seems premature at the
+least.
+
+Regards,
+
+       Hans
+
+>
+>> If you read this and even if your only thoughts are: seems ok to me,
+>> please reply saying so. It is very frustrating to suggest API additions
+>> and not get any feedback.
+>
+> Indeed. I'll remember that comment next time I send an RFC to linux-media
+> and
+> I'll of course expect you to answer ;-)
+>
+> Regards,
+>
+> Laurent Pinchart
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
 
 -- 
-Catalin
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
