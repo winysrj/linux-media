@@ -1,57 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2451 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751423AbZHJGH1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Aug 2009 02:07:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: chaithrika <chaithrika@ti.com>
-Subject: vpif_display.c bug
-Date: Mon, 10 Aug 2009 08:07:23 +0200
-Cc: linux-media@vger.kernel.org
+Received: from mx2.redhat.com ([66.187.237.31]:52299 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754222AbZHCIeW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Aug 2009 04:34:22 -0400
+Message-ID: <4A76A227.20503@redhat.com>
+Date: Mon, 03 Aug 2009 10:39:03 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: t.i.m@zen.co.uk
+Subject: RFC: distuingishing between hardware and emulated formats
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200908100807.23455.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Chaithrika,
+Hi All,
 
-This code in vpif_display.c is not correct:
+The gstreamer folks have asked to add an API to libv4l2 so
+that they can distuingish between formats emulated by libv4l2
+and formats offered raw by the hardware.
 
-        for (i = 0; i < subdev_count; i++) {
-                vpif_obj.sd[i] = v4l2_i2c_new_probed_subdev(&vpif_obj.v4l2_dev,
-                                                i2c_adap, subdevdata[i].name,
-                                                subdevdata[i].name,
-                                                &subdevdata[i].addr);
-                if (!vpif_obj.sd[i]) {
-                        vpif_err("Error registering v4l2 subdevice\n");
-                        goto probe_subdev_out;
-                }
+I think this is a usefull thing to do and I think this is best
+done by adding a new flag for the flags field of the
+v4l2_fmtdesc struct. So I would like to propose to add the
+following new flag to videodev2.h :
 
-                if (vpif_obj.sd[i])
-                        vpif_obj.sd[i]->grp_id = 1 << i;
-        }
+#define V4L2_FMT_FLAG_EMULATED 0x0002
 
-This: '&subdevdata[i].addr' should be: I2C_ADDRS(subdevdata[i].addr).
+And add the necessary documentation to the spec. The emulated term
+is what I've always been using in libv4l discussions for formats
+which are not offered native by the hardware but are offered by
+libv4l through conversion. If someone has a better name for the
+flag suggestions are welcome.
 
-The list of probe addresses must be terminated by I2C_CLIENT_END (= -1) and
-that isn't the case here.
-
-An alternative solution is to use v4l2_i2c_new_subdev, but then no probing
-will take place. But I think that you don't want probing at all since this
-address information comes from the platform data, so one can assume that
-that data is correct.
-
-Even better is to copy the implementation from vpfe_capture.c and to use
-v4l2_i2c_new_subdev_board().
+If you read this and even if your only thoughts are: seems ok to me,
+please reply saying so. It is very frustrating to suggest API additions
+and not get any feedback.
 
 Regards,
 
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Hans
