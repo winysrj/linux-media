@@ -1,80 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f228.google.com ([209.85.220.228]:34546 "EHLO
-	mail-fx0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753938AbZHJVxQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Aug 2009 17:53:16 -0400
-Received: by fxm28 with SMTP id 28so1191693fxm.17
-        for <linux-media@vger.kernel.org>; Mon, 10 Aug 2009 14:53:16 -0700 (PDT)
+Received: from compulab.co.il ([67.18.134.219]:58373 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754905AbZHCOCo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Aug 2009 10:02:44 -0400
+Message-ID: <4A76DF29.1050008@compulab.co.il>
+Date: Mon, 03 Aug 2009 15:59:21 +0300
+From: Mike Rapoport <mike@compulab.co.il>
 MIME-Version: 1.0
-In-Reply-To: <1249753564.15160.248.camel@tux.localhost>
-References: <1249753564.15160.248.camel@tux.localhost>
-Date: Mon, 10 Aug 2009 17:53:16 -0400
-Message-ID: <30353c3d0908101453w797f2a14ve54f434cfdb12849@mail.gmail.com>
-Subject: Re: [patch review 3/6] radio-mr800: no need to pass curfreq value to
-	amradio_setfreq()
-From: David Ellingsworth <david@identd.dyndns.org>
-To: Alexey Klimov <klimov.linux@gmail.com>
-Cc: Douglas Schilling Landgraf <dougsland@gmail.com>,
-	linux-media@vger.kernel.org
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Eric Miao <eric.y.miao@gmail.com>,
+	Marek Vasut <marek.vasut@gmail.com>,
+	linux-arm-kernel@lists.arm.linux.org.uk,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
+Subject: Re: [PATCH] Add RGB555X and RGB565X formats to pxa-camera
+References: <200908031031.00676.marek.vasut@gmail.com> <4A76CB7C.10401@gmail.com> <Pine.LNX.4.64.0908031415370.5310@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0908031415370.5310@axis700.grange>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Aug 8, 2009 at 1:46 PM, Alexey Klimov<klimov.linux@gmail.com> wrote:
-> Small cleanup of amradio_setfreq(). No need to pass radio->curfreq value
-> to this function.
->
-> Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
->
-> --
-> diff -r 5f3329bebfe4 linux/drivers/media/radio/radio-mr800.c
-> --- a/linux/drivers/media/radio/radio-mr800.c   Wed Jul 29 12:36:46 2009 +0400
-> +++ b/linux/drivers/media/radio/radio-mr800.c   Wed Jul 29 12:41:51 2009 +0400
-> @@ -202,11 +202,11 @@
->  }
->
->  /* set a frequency, freq is defined by v4l's TUNER_LOW, i.e. 1/16th kHz */
-> -static int amradio_setfreq(struct amradio_device *radio, int freq)
-> +static int amradio_setfreq(struct amradio_device *radio)
->  {
->        int retval;
->        int size;
-> -       unsigned short freq_send = 0x10 + (freq >> 3) / 25;
-> +       unsigned short freq_send = 0x10 + (radio->curfreq >> 3) / 25;
 
-I suspect there may be race conditions here. Once again you're reading
-a value without first acquiring the lock. Since this is another
-utility function, the lock should probably be held _before_ calling
-this function and any locking in this function should be removed.
-Adding a BUG_ON(!is_mutex_locked(&radio->lock)) should probably be
-added as well.
 
->
->        /* safety check */
->        if (radio->removed)
-> @@ -413,7 +413,7 @@
->        radio->curfreq = f->frequency;
->        mutex_unlock(&radio->lock);
->
-> -       retval = amradio_setfreq(radio, radio->curfreq);
-> +       retval = amradio_setfreq(radio);
->        if (retval < 0)
->                amradio_dev_warn(&radio->videodev->dev,
->                        "set frequency failed\n");
->
->
->
-> --
-> Best regards, Klimov Alexey
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Guennadi Liakhovetski wrote:
+> On Mon, 3 Aug 2009, Eric Miao wrote:
+> 
+>> Marek Vasut wrote:
+>>> Hi!
+>>>
+>>> Eric, would you mind applying ?
+>>>
+>>> From 4dcbff010e996f4c6e5761b3c19f5d863ab51b39 Mon Sep 17 00:00:00 2001
+>>> From: Marek Vasut <marek.vasut@gmail.com>
+>>> Date: Mon, 3 Aug 2009 10:27:57 +0200
+>>> Subject: [PATCH] Add RGB555X and RGB565X formats to pxa-camera
+>>>
+>>> Those formats are requiered on widely used OmniVision OV96xx cameras.
+>>> Those formats are nothing more then endian-swapped RGB555 and RGB565.
+>>>
+>>> Signed-off-by: Marek Vasut <marek.vasut@gmail.com>
+>> Acked-by: Eric Miao <eric.y.miao@gmail.com>
+>>
+>> Guennadi,
+>>
+>> Would be better if this gets merged by you, thanks.
+> 
+> Indeed it would, and I do have a couple of questions to this and related 
+> patches:
+> 
+> 1. Marek, you're saying, you need these formats for the OV96xx camera. Yre 
+> you using the patch from Stefan Herbrechtsmeier to support ov96xx or some 
+> other?
+> 
+> 2. Mike, while reviewing this patch I came across code in 
+> pxa_camera_setup_cicr(), introduced by your earlier patch:
+> 
+> 	case V4L2_PIX_FMT_RGB555:
+> 		cicr1 |= CICR1_RGB_BPP_VAL(1) | CICR1_RGBT_CONV_VAL(2) |
+> 			CICR1_TBIT | CICR1_COLOR_SP_VAL(1);
+> 		break;
+> 
+> Why are you enabling the RGB to RGBT conversion here unconditionally? 
+> Generally, what are the advantages of configuring CICR1 for a specific RGB 
+> format compared to using just a raw capture? Do I understand it right, 
+> that ATM we are not using any of those features?
 
-Regards,
+As far as I remember I've tried to overlay the captured imagery using pxa
+overlay1. Most probably it's left here after those tries.
 
-David Ellingsworth
+> Thanks
+> Guennadi
+> 
+>>> ---
+>>>  drivers/media/video/pxa_camera.c |    4 ++++
+>>>  1 files changed, 4 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/drivers/media/video/pxa_camera.c 
+>>> b/drivers/media/video/pxa_camera.c
+>>> index 46e0d8a..de0fc8a 100644
+>>> --- a/drivers/media/video/pxa_camera.c
+>>> +++ b/drivers/media/video/pxa_camera.c
+>>> @@ -1222,6 +1222,8 @@ static int required_buswidth(const struct 
+>>> soc_camera_data_format *fmt)
+>>>  	case V4L2_PIX_FMT_YVYU:
+>>>  	case V4L2_PIX_FMT_RGB565:
+>>>  	case V4L2_PIX_FMT_RGB555:
+>>> +	case V4L2_PIX_FMT_RGB565X:
+>>> +	case V4L2_PIX_FMT_RGB555X:
+>>>  		return 8;
+>>>  	default:
+>>>  		return fmt->depth;
+>>> @@ -1260,6 +1262,8 @@ static int pxa_camera_get_formats(struct 
+>>> soc_camera_device *icd, int idx,
+>>>  	case V4L2_PIX_FMT_YVYU:
+>>>  	case V4L2_PIX_FMT_RGB565:
+>>>  	case V4L2_PIX_FMT_RGB555:
+>>> +	case V4L2_PIX_FMT_RGB565X:
+>>> +	case V4L2_PIX_FMT_RGB555X:
+>>>  		formats++;
+>>>  		if (xlate) {
+>>>  			xlate->host_fmt = icd->formats + idx;
+> 
+> ---
+> Guennadi Liakhovetski
+> 
+
+-- 
+Sincerely yours,
+Mike.
+
