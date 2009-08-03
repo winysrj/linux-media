@@ -1,102 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4198 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755657AbZHYTRt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2009 15:17:49 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: Re: [PATCH v2] v4l: add new v4l2-subdev sensor operations, use skip_top_lines in soc-camera
-Date: Tue, 25 Aug 2009 21:17:45 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <Pine.LNX.4.64.0908251855160.4810@axis700.grange> <Pine.LNX.4.64.0908252021200.4810@axis700.grange> <A24693684029E5489D1D202277BE89444BC96E38@dlee02.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE89444BC96E38@dlee02.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200908252117.45230.hverkuil@xs4all.nl>
+Received: from bombadil.infradead.org ([18.85.46.34]:34962 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754315AbZHCMMj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Aug 2009 08:12:39 -0400
+Date: Mon, 3 Aug 2009 09:11:50 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: Alexey Klimov <klimov.linux@gmail.com>,
+	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Andy Walls <awalls@radix.net>,
+	Linux Media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] to add support for certain Jeilin dual-mode cameras.
+Message-ID: <20090803091150.29118ceb@pedra.chehab.org>
+In-Reply-To: <20090803083012.44da22ca@tele>
+References: <20090418183124.1c9160e3@free.fr>
+	<alpine.LNX.2.00.0908011635020.26881@banach.math.auburn.edu>
+	<208cbae30908020625x400f6b3era5095c8bfc5c736b@mail.gmail.com>
+	<20090803083012.44da22ca@tele>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 25 August 2009 21:00:19 Aguirre Rodriguez, Sergio Alberto wrote:
-> Guennadi,
-> 
-> Some comments I came across embedded below:
-> 
-> <snip>
-> 
-> > +
-> > +/**
-> > + * struct v4l2_subdev_sensor_ops - v4l2-subdev sensor operations
-> > + * @enum_framesizes: enumerate supported framesizes
-> > + * @enum_frameintervals: enumerate supported frame format intervals
-> > + * @skip_top_lines: number of lines at the top of the image to be
-> > skipped. This
-> > + *		    is needed for some sensors, that corrupt several top
-> > lines.
-> > + */
-> > +struct v4l2_subdev_sensor_ops {
-> >  	int (*enum_framesizes)(struct v4l2_subdev *sd, struct
-> > v4l2_frmsizeenum *fsize);
-> >  	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct
-> > v4l2_frmivalenum *fival);
-> > +	int (*skip_top_lines)(struct v4l2_subdev *sd, u32 *lines);
-> >  };
-> 
-> 1. I honestly find a bit misleading the skip_top_lines name, since that IMO could be misunderstood that the called function will DO skip lines in the sensor, which is not the intended response...
-> 
-> How about g_skip_top_lines, or get_skip_top_lines, or something that clarifies it's a "get information" abstraction interface?
+Em Mon, 3 Aug 2009 08:30:12 +0200
+Jean-Francois Moine <moinejf@free.fr> escreveu:
 
-Good point. g_skip_top_lines is a better choice.
-
+> On Sun, 2 Aug 2009 17:25:29 +0400
+> Alexey Klimov <klimov.linux@gmail.com> wrote:
 > 
-> 2. Why enumeration mechanisms are not longer needed for a video device? (You're removing them from video_ops)
-
-Because these ops are closely related to sensor devices. They do not normally
-apply to generic video devices. The addition of this new operation is a good
-moment to move all sensor-specific ops to this new sensor_ops struct.
-
-> 
-> 3. Wouldn't it be better to report a valid region, instead of just the top lines? I think that should be already covered by the driver reporting the valid size regions on enumeration, no?
-
-This has nothing to do with a valid region. No matter what region you capture,
-the first X lines will always be corrupt for some sensors. Something that
-clearly needs to be clarified in the comments.
-
-Regards,
-
-	Hans
-
-> 
-> Regards,
-> Sergio
-> 
+> > > +       buffer = kmalloc(JEILINJ_MAX_TRANSFER, GFP_KERNEL |
+> > > GFP_DMA);
+> > > +       if (!buffer) {
+> > > +               PDEBUG(D_ERR, "Couldn't allocate USB buffer");
+> > > +               goto quit_stream;
+> > > +       }  
 > > 
-> >  struct v4l2_subdev_ops {
-> > @@ -234,6 +245,7 @@ struct v4l2_subdev_ops {
-> >  	const struct v4l2_subdev_tuner_ops *tuner;
-> >  	const struct v4l2_subdev_audio_ops *audio;
-> >  	const struct v4l2_subdev_video_ops *video;
-> > +	const struct v4l2_subdev_sensor_ops *sensor;
-> >  };
+> > This clean up on error path looks bad. On quit_stream you have:
 > > 
-> >  #define V4L2_SUBDEV_NAME_SIZE 32
-> > --
-> > 1.6.2.4
+> > > +quit_stream:
+> > > +       mutex_lock(&gspca_dev->usb_lock);
+> > > +       if (gspca_dev->present)
+> > > +               jlj_stop(gspca_dev);
+> > > +       mutex_unlock(&gspca_dev->usb_lock);
+> > > +       kfree(buffer);  
 > > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > kfree() tries to free null buffer after kmalloc for buffer failed.
+> > Please, check if i'm not wrong.
 > 
+> Hi Alexey,
 > 
+> AFAIK, kfree() checks the pointer.
+
+Yeah. Theodore's code is ok. kfree(NULL) is legal.
+
 > 
+> Cheers.
 > 
 
 
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+
+Cheers,
+Mauro
