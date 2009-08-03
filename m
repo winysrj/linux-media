@@ -1,45 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41793 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751156AbZHSK2p (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Aug 2009 06:28:45 -0400
-Message-ID: <4A8BD3DB.1010704@iki.fi>
-Date: Wed, 19 Aug 2009 13:28:43 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: =?ISO-8859-1?Q?P=E1sztor_Szil=E1rd?= <don@tricon.hu>
-CC: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Anysee E30 C Plus + MPEG-4?
-References: <20090818170820.3d999fb9.don@tricon.hu>	<alpine.DEB.2.01.0908181959241.27276@ybpnyubfg.ybpnyqbznva>	<20090818210107.2a6a5146.don@tricon.hu>	<!&!AAAAAAAAAAAYAAAAAAAAACX9qQa/LtVPmfnAK0XM/DwChwAAEAAAAAZ+O15rAjRKhc61nu2RPHIBAAAAAA==@tv-numeric.com> <20090819094242.50ae2a03.don@tricon.hu>
-In-Reply-To: <20090819094242.50ae2a03.don@tricon.hu>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from bombadil.infradead.org ([18.85.46.34]:48424 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750890AbZHCFut (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Aug 2009 01:50:49 -0400
+Date: Mon, 3 Aug 2009 02:50:03 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "chaithrika" <chaithrika@ti.com>
+Cc: "'Chaithrika U S'" <chaithrika@ti.com>, <linux@arm.linux.org.uk>,
+	<hverkuil@xs4all.nl>,
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	<linux-media@vger.kernel.org>,
+	"'Brijesh Jadav'" <brijesh.j@ti.com>,
+	"'Kevin Hilman'" <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v3] ARM: DaVinci: DM646x Video: Platform and board
+ specific setup
+Message-ID: <20090803025003.56c6594d@pedra.chehab.org>
+In-Reply-To: <00cb01ca13ed$12564120$3702c360$@com>
+References: <1248076882-18564-1-git-send-email-chaithrika@ti.com>
+	<00cb01ca13ed$12564120$3702c360$@com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/19/2009 10:42 AM, Pásztor Szilárd wrote:
-> Thierry Lelegard:
->> Stream type 0x1B precisely means AVC / H.264 video stream (cf. ISO
->> 138181-1:2000/FDAM 3)
->>
->> Try VLC instead of mplayer. VLC does render H.264 HD video, provided you
->> have a (very) good CPU.
->
-> Thanks for the info. Anyway, mplayer also does render H.264 of course, it's
-> the stream that's not very cleverly muxed, it seems. And with mplayer I have
-> vdpau acceleration on my nvidia card that can render 1920x1080@50 fps in real
-> time.
+Em Mon, 3 Aug 2009 09:17:06 +0530
+"chaithrika" <chaithrika@ti.com> escreveu:
 
-Actually I met just similar case some months ago (I have also Anysee 
-E30C and fi-3ktv cable). Only audio no video. HD-video PIDs were 
-missing. I zapped to the channel and looked correct PIDs from dvbtraffic 
-traffic output and added those to the channels.conf. Mplayer and Totem 
-still resists to show video, but VLC does!
+> Mauro/Russell,
+> 
+> The previous version (v2) of this patch is on the linux-next tree.
+> This patch has some updates done on top of that patch. Should I
+> post an incremental patch for those changes to the Linux-next tree?
+> Please suggest.
+> 
+It is not needed. After having Russell ack, I'll just replace the old patch by the new one.
 
-After that I looked transmission parameters by using dvbsnoop and there 
-was H.262 (MPEG2) set those H.264 (MPEG4-AVC) channels. I think that was 
-reason for my problems.
 
-Antti
--- 
-http://palosaari.fi/
+
+Cheers,
+Mauro
