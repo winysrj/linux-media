@@ -1,53 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f214.google.com ([209.85.219.214]:42062 "EHLO
-	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932614AbZHDVq5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2009 17:46:57 -0400
-Received: by ewy10 with SMTP id 10so687618ewy.37
-        for <linux-media@vger.kernel.org>; Tue, 04 Aug 2009 14:46:56 -0700 (PDT)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Pete Hildebrandt <send2ph@googlemail.com>
-Subject: Re: [patch] Added Support for STK7700D (DVB)
-Date: Tue, 4 Aug 2009 23:46:51 +0200
-Cc: linux-media@vger.kernel.org
-References: <200908042138.11938.send2ph@googlemail.com>
-In-Reply-To: <200908042138.11938.send2ph@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200908042346.52257.pboettcher@kernellabs.com>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4347 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933026AbZHDS0O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2009 14:26:14 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id n74IQDOM030915
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 4 Aug 2009 20:26:13 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 4 Aug 2009 20:26:13 +0200 (CEST)
+Message-Id: <200908041826.n74IQDOM030915@smtp-vbr4.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pete,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-On Tuesday 04 August 2009 21:38:11 Pete Hildebrandt wrote:
-> Hello,
->
-> To this mail I attached two patch-files to add support for the STK7700D
-> USB-DVB-Device.
->
-> lsusb identifies it as:
-> idVendor           0x1164 YUAN High-Tech Development Co., Ltd
-> idProduct          0x1efc
->  iProduct                2 STK7700D
->
-> My two patches mainly just add the new product-ID.
->
-> I have tested the modification with the 2.6.28 and the 2.6.30 kernel. The
-> patches are for the 2.6.30 kernel.
->
-> The device is build into my laptop (Samsung R55-T5500) and works great
-> after applying the patches.
+Results of the daily build of v4l-dvb:
 
-I will apply your patches tomorrow, but before I need your Signed-off-by-line. 
-So something like that:
+date:        Tue Aug  4 19:00:02 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12375:b15490457d60
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Signed-off-by: Name <email>
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-rc5-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.31-rc5-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.31-rc5-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-rc5-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-rc5-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-rc5-mips: WARNINGS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-rc5-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-rc5-x86_64: WARNINGS
+sparse (linux-2.6.30): OK
+sparse (linux-2.6.31-rc5): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-thanks,
--- 
-Patrick Boettcher - Kernel Labs
-http://www.kernellabs.com
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
