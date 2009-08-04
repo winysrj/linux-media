@@ -1,291 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:39054 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751987AbZH0Js7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Aug 2009 05:48:59 -0400
-Date: Thu, 27 Aug 2009 11:49:01 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <j.w.r.degoede@hhs.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC] Pixel format definition on the "image" bus
-In-Reply-To: <2b7b07f52f0ab6fa4d3f1cacc19bf31f.squirrel@webmail.xs4all.nl>
-Message-ID: <Pine.LNX.4.64.0908271147280.4808@axis700.grange>
-References: <Pine.LNX.4.64.0908261452460.7670@axis700.grange>   
- <200908270851.27073.hverkuil@xs4all.nl>    <Pine.LNX.4.64.0908270857230.4808@axis700.grange>
-    <6d6c955a28219f061dd31af4e0473415.squirrel@webmail.xs4all.nl>   
- <Pine.LNX.4.64.0908271017280.4808@axis700.grange>
- <2b7b07f52f0ab6fa4d3f1cacc19bf31f.squirrel@webmail.xs4all.nl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-in-06.arcor-online.net ([151.189.21.46]:34261 "EHLO
+	mail-in-06.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932326AbZHDAhK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Aug 2009 20:37:10 -0400
+Subject: Re: Issue with LifeView FlyDVB-T Duo CardBus.
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Francesco Marangoni <fmarangoni@libero.it>
+Cc: linux-media <linux-media@vger.kernel.org>
+In-Reply-To: <KNTLYI$8BE453B10399D2D93F53606CF89555B9@libero.it>
+References: <KNTLYI$8BE453B10399D2D93F53606CF89555B9@libero.it>
+Content-Type: text/plain
+Date: Tue, 04 Aug 2009 02:21:38 +0200
+Message-Id: <1249345298.3258.8.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To help discussion a bit, here's a current example implementation of the 
-imagebus interface, still working to provide a working example.
+Hi Francesco,
 
-diff --git a/drivers/media/video/v4l2-imagebus.c b/drivers/media/video/v4l2-imagebus.c
-new file mode 100644
-index 0000000..d7ddf93
---- /dev/null
-+++ b/drivers/media/video/v4l2-imagebus.c
-@@ -0,0 +1,142 @@
-+/*
-+ * Image Bus API
-+ *
-+ * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-imagebus.h>
-+
-+static const struct v4l2_imgbus_pixelfmt imgbus_fmt[] = {
-+	[V4L2_IMGBUS_FMT_YUYV] = {
-+		.rawformat		= V4L2_PIX_FMT_YUYV,
-+		.colorspace		= V4L2_COLORSPACE_JPEG,
-+		.bits_per_sample	= 8,
-+		.packing		= V4L2_DATA_PACKING_2X8,
-+		.order			= V4L2_DATA_ORDER_LE,
-+	}, [V4L2_IMGBUS_FMT_YVYU] = {
-+		.rawformat		= V4L2_PIX_FMT_YVYU,
-+		.colorspace		= V4L2_COLORSPACE_JPEG,
-+		.bits_per_sample	= 8,
-+		.packing		= V4L2_DATA_PACKING_2X8,
-+		.order			= V4L2_DATA_ORDER_LE,
-+	}, [V4L2_IMGBUS_FMT_UYVY] = {
-+		.rawformat		= V4L2_PIX_FMT_UYVY,
-+		.colorspace		= V4L2_COLORSPACE_JPEG,
-+		.bits_per_sample	= 8,
-+		.packing		= V4L2_DATA_PACKING_2X8,
-+		.order			= V4L2_DATA_ORDER_LE,
-+	}, [V4L2_IMGBUS_FMT_VYUY] = {
-+		.rawformat		= V4L2_PIX_FMT_VYUY,
-+		.colorspace		= V4L2_COLORSPACE_JPEG,
-+		.bits_per_sample	= 8,
-+		.packing		= V4L2_DATA_PACKING_2X8,
-+		.order			= V4L2_DATA_ORDER_LE,
-+	}, [V4L2_IMGBUS_FMT_VYUY_SMPTE170M_8] = {
-+		.rawformat		= V4L2_PIX_FMT_VYUY,
-+		.colorspace		= V4L2_COLORSPACE_SMPTE170M,
-+		.bits_per_sample	= 8,
-+		.packing		= V4L2_DATA_PACKING_2X8,
-+		.order			= V4L2_DATA_ORDER_LE,
-+	}, [V4L2_IMGBUS_FMT_VYUY_SMPTE170M_16] = {
-+		.rawformat		= V4L2_PIX_FMT_VYUY,
-+		.colorspace		= V4L2_COLORSPACE_SMPTE170M,
-+		.bits_per_sample	= 16,
-+		.packing		= V4L2_DATA_PACKING_NONE,
-+		.order			= V4L2_DATA_ORDER_LE,
-+	}, [V4L2_IMGBUS_FMT_RGB555] = {
-+		.rawformat		= V4L2_PIX_FMT_RGB555,
-+		.colorspace		= V4L2_COLORSPACE_SRGB,
-+		.bits_per_sample	= 8,
-+		.packing		= V4L2_DATA_PACKING_2X8,
-+		.order			= V4L2_DATA_ORDER_LE,
-+	}, [V4L2_IMGBUS_FMT_RGB555X] = {
-+		.rawformat		= V4L2_PIX_FMT_RGB555X,
-+		.colorspace		= V4L2_COLORSPACE_SRGB,
-+		.bits_per_sample	= 8,
-+		.packing		= V4L2_DATA_PACKING_2X8,
-+		.order			= V4L2_DATA_ORDER_LE,
-+	}, [V4L2_IMGBUS_FMT_RGB565] = {
-+		.rawformat		= V4L2_PIX_FMT_RGB565,
-+		.colorspace		= V4L2_COLORSPACE_SRGB,
-+		.bits_per_sample	= 8,
-+		.packing		= V4L2_DATA_PACKING_2X8,
-+		.order			= V4L2_DATA_ORDER_LE,
-+	}, [V4L2_IMGBUS_FMT_RGB565X] = {
-+		.rawformat		= V4L2_PIX_FMT_RGB565X,
-+		.colorspace		= V4L2_COLORSPACE_SRGB,
-+		.bits_per_sample	= 8,
-+		.packing		= V4L2_DATA_PACKING_2X8,
-+		.order			= V4L2_DATA_ORDER_LE,
-+	}, [V4L2_IMGBUS_FMT_SBGGR8] = {
-+		.rawformat		= V4L2_PIX_FMT_SBGGR8,
-+		.colorspace		= V4L2_COLORSPACE_SRGB,
-+		.bits_per_sample	= 8,
-+		.packing		= V4L2_DATA_PACKING_NONE,
-+		.order			= V4L2_DATA_ORDER_LE,
-+	}, [V4L2_IMGBUS_FMT_SGBRG8] = {
-+		.rawformat		= V4L2_PIX_FMT_SGBRG8,
-+		.colorspace		= V4L2_COLORSPACE_SRGB,
-+		.bits_per_sample	= 8,
-+		.packing		= V4L2_DATA_PACKING_NONE,
-+		.order			= V4L2_DATA_ORDER_LE,
-+	}, [V4L2_IMGBUS_FMT_SGRBG8] = {
-+		.rawformat		= V4L2_PIX_FMT_SGRBG8,
-+		.colorspace		= V4L2_COLORSPACE_SRGB,
-+		.bits_per_sample	= 8,
-+		.packing		= V4L2_DATA_PACKING_NONE,
-+		.order			= V4L2_DATA_ORDER_LE,
-+	}, [V4L2_IMGBUS_FMT_SRGGB8] = {
-+		.rawformat		= V4L2_PIX_FMT_SRGGB8,
-+		.colorspace		= V4L2_COLORSPACE_SRGB,
-+		.bits_per_sample	= 8,
-+		.packing		= V4L2_DATA_PACKING_NONE,
-+		.order			= V4L2_DATA_ORDER_LE,
-+	}, [V4L2_IMGBUS_FMT_SGRBG10] = {
-+		.rawformat		= V4L2_PIX_FMT_SGRBG10,
-+		.colorspace		= V4L2_COLORSPACE_SRGB,
-+		.bits_per_sample	= 10,
-+		.packing		= V4L2_DATA_PACKING_EXTEND16,
-+		.order			= V4L2_DATA_ORDER_LE,
-+	}, [V4L2_IMGBUS_FMT_SBGGR16] = {
-+		.rawformat		= V4L2_PIX_FMT_SBGGR16,
-+		.colorspace		= V4L2_COLORSPACE_SRGB,
-+		.bits_per_sample	= 16,
-+		.packing		= V4L2_DATA_PACKING_NONE,
-+		.order			= V4L2_DATA_ORDER_LE,
-+	}, [V4L2_IMGBUS_FMT_GREY] = {
-+		.rawformat		= V4L2_PIX_FMT_GREY,
-+		.colorspace		= V4L2_COLORSPACE_JPEG,
-+		.bits_per_sample	= 8,
-+		.packing		= V4L2_DATA_PACKING_NONE,
-+		.order			= V4L2_DATA_ORDER_LE,
-+	}, [V4L2_IMGBUS_FMT_Y16] = {
-+		.rawformat		= V4L2_PIX_FMT_Y16,
-+		.colorspace		= V4L2_COLORSPACE_JPEG,
-+		.bits_per_sample	= 16,
-+		.packing		= V4L2_DATA_PACKING_NONE,
-+		.order			= V4L2_DATA_ORDER_LE,
-+	}, [V4L2_IMGBUS_FMT_Y10] = {
-+		.rawformat		= V4L2_PIX_FMT_Y10,
-+		.colorspace		= V4L2_COLORSPACE_JPEG,
-+		.bits_per_sample	= 10,
-+		.packing		= V4L2_DATA_PACKING_EXTEND16,
-+		.order			= V4L2_DATA_ORDER_LE,
-+	},
-+};
-+
-+const struct v4l2_imgbus_pixelfmt *v4l2_imgbus_get_fmtdesc(
-+	enum v4l2_imgbus_pixelcode code)
-+{
-+	if ((unsigned int)code > ARRAY_SIZE(imgbus_fmt))
-+		return NULL;
-+	return imgbus_fmt + code;
-+}
-+EXPORT_SYMBOL(v4l2_imgbus_get_fmtdesc);
-diff --git a/include/media/v4l2-imagebus.h b/include/media/v4l2-imagebus.h
-new file mode 100644
-index 0000000..0c38a95
---- /dev/null
-+++ b/include/media/v4l2-imagebus.h
-@@ -0,0 +1,65 @@
-+/*
-+ * Image Bus API header
-+ *
-+ * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef V4L2_IMGBUS_H
-+#define V4L2_IMGBUS_H
-+
-+enum v4l2_imgbus_packing {
-+	V4L2_IMGBUS_PACKING_NONE,
-+	V4L2_IMGBUS_PACKING_2X8,
-+	V4L2_IMGBUS_PACKING_EXTEND16,
-+};
-+
-+enum v4l2_imgbus_order {
-+	V4L2_IMGBUS_ORDER_LE,
-+	V4L2_IMGBUS_ORDER_BE,
-+};
-+
-+enum v4l2_imgbus_pixelcode {
-+	V4L2_IMGBUS_FMT_YUYV,
-+	V4L2_IMGBUS_FMT_YVYU,
-+	V4L2_IMGBUS_FMT_UYVY,
-+	V4L2_IMGBUS_FMT_VYUY,
-+	V4L2_IMGBUS_FMT_RGB555,
-+	V4L2_IMGBUS_FMT_RGB555X,
-+	V4L2_IMGBUS_FMT_RGB565,
-+	V4L2_IMGBUS_FMT_RGB565X,
-+	V4L2_IMGBUS_FMT_SBGGR8,
-+	V4L2_IMGBUS_FMT_SGBRG8,
-+	V4L2_IMGBUS_FMT_SGRBG8,
-+	V4L2_IMGBUS_FMT_SRGGB8,
-+	V4L2_IMGBUS_FMT_SGRBG10,
-+	V4L2_IMGBUS_FMT_SBGGR16,
-+	V4L2_IMGBUS_FMT_GREY,
-+	V4L2_IMGBUS_FMT_Y16,
-+	V4L2_IMGBUS_FMT_Y10,
-+};
-+
-+/**
-+ * struct v4l2_imgbus_pixelfmt - Data format on the image bus
-+ * @rawformat:		Fourcc code...
-+ * @colorspace:		and colorspace, that will be obtained if the data is
-+ *			stored in memory in the following way:
-+ * @bits_per_sample:	How many bits the bridge has to sample
-+ * @packing:		Type of sample-packing, that has to be used
-+ * @order:		Sample order when storing in memory
-+ */
-+struct v4l2_imgbus_pixelfmt {
-+	u32				rawformat;
-+	enum v4l2_colorspace		colorspace;
-+	enum v4l2_imgbus_packing	packing;
-+	enum v4l2_imgbus_order		order;
-+	u8				bits_per_sample;
-+};
-+
-+const struct v4l2_imgbus_pixelfmt *v4l2_imgbus_get_fmtdesc(
-+	enum v4l2_imgbus_pixelcode code);
-+
-+#endif
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 81b90d2..a70b164 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -22,6 +22,7 @@
- #define _V4L2_SUBDEV_H
- 
- #include <media/v4l2-common.h>
-+#include <media/v4l2-imgbus.h>
- 
- struct v4l2_device;
- struct v4l2_subdev;
-@@ -194,7 +195,7 @@ struct v4l2_subdev_audio_ops {
-    s_std_output: set v4l2_std_id for video OUTPUT devices. This is ignored by
- 	video input devices.
- 
--  s_crystal_freq: sets the frequency of the crystal used to generate the
-+   s_crystal_freq: sets the frequency of the crystal used to generate the
- 	clocks in Hz. An extra flags field allows device specific configuration
- 	regarding clock frequency dividers, etc. If not used, then set flags
- 	to 0. If the frequency is not supported, then -EINVAL is returned.
-@@ -204,6 +205,8 @@ struct v4l2_subdev_audio_ops {
- 
-    s_routing: see s_routing in audio_ops, except this version is for video
- 	devices.
-+
-+   enum_src_pixelfmt: enumerate pixel formats provided by a video data source
-  */
- struct v4l2_subdev_video_ops {
- 	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
-@@ -225,6 +228,8 @@ struct v4l2_subdev_video_ops {
- 	int (*s_crop)(struct v4l2_subdev *sd, struct v4l2_crop *crop);
- 	int (*g_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
- 	int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
-+	int (*enum_imgbus_pixelfmt)(struct v4l2_subdev *sd, int index,
-+				    enum v4l2_imgbus_pixelcode *code);
- };
- 
- /**
+Am Montag, den 03.08.2009, 23:49 +0200 schrieb Francesco Marangoni:
+> Dear sirs,
+> 
+> I'm not able to make my pcmcia LifeView DVB-T Duo Cardbus working on Ununtu 8.04 LTS kernel 2.6.24.24.
+> 
+> The card seems to be detected but the DVB channel detection fails (using Kaffeine too).
+> 
+> Here the output of some commands: Can Youhelp me?
+> 
+> francesco@ubuntu:~$ lspci
+> 00:00.0 Host bridge: Intel Corporation 440BX/ZX/DX - 82443BX/ZX/DX Host bridge (rev 03)
+> 00:01.0 PCI bridge: Intel Corporation 440BX/ZX/DX - 82443BX/ZX/DX AGP bridge (rev 03)
+> 00:07.0 Bridge: Intel Corporation 82371AB/EB/MB PIIX4 ISA (rev 02)
+> 00:07.1 IDE interface: Intel Corporation 82371AB/EB/MB PIIX4 IDE (rev 01)
+> 00:07.2 USB Controller: Intel Corporation 82371AB/EB/MB PIIX4 USB (rev 01)
+> 00:07.3 Bridge: Intel Corporation 82371AB/EB/MB PIIX4 ACPI (rev 03)
+> 00:0a.0 CardBus bridge: Texas Instruments PCI1420 PC card Cardbus Controller
+> 00:0a.1 CardBus bridge: Texas Instruments PCI1420 PC card Cardbus Controller
+> 00:0b.0 Ethernet controller: 3Com Corporation 3c556 Hurricane CardBus [Cyclone] (rev 10)
+> 00:0b.1 Communication controller: 3Com Corporation Mini PCI 56k Winmodem (rev 10)
+> 00:0d.0 Multimedia audio controller: ESS Technology ES1983S Maestro-3i PCI Audio Accelerator
+> 01:00.0 VGA compatible controller: ATI Technologies Inc Rage Mobility P/M AGP 2x (rev 64)
+> 02:00.0 Multimedia controller: Philips Semiconductors SAA7133/SAA7135 Video Broadcast Decoder (rev d0)
+> 
+> francesco@ubuntu:~$ dmesg | grep saa | more
+> [   46.176353] saa7130/34: v4l2 driver version 0.2.14 loaded
+> [   46.176618] saa7133[0]: quirk: PCIPCI_NATOMA
+> [   46.176628] saa7133[0]: found at 0000:02:00.0, rev: 208, irq: 10, latency: 0, mmio: 0x24000000
+> [   46.176653] saa7133[0]: subsystem: 5168:0502, board: LifeView/Typhoon/Genius FlyDVB-T Duo Cardbus [card=60,insmod option]
+> [   46.176681] saa7133[0]: board init: gpio is 8210000
+> [   46.280562] saa7133[0]: i2c eeprom 00: 68 51 02 05 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+> [   46.280587] saa7133[0]: i2c eeprom 10: 00 ff 22 0f ff 20 ff ff ff ff ff ff ff ff ff ff
+> [   46.280607] saa7133[0]: i2c eeprom 20: 01 40 01 03 03 01 01 03 08 ff 01 aa ff ff ff ff
+> [   46.280627] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> [   46.280646] saa7133[0]: i2c eeprom 40: ff 25 00 c0 ff 10 07 01 c2 96 00 16 22 15 ff ff
+> [   46.280665] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> [   46.280685] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> [   46.280704] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> [   46.321890] saa7133[0]: registered device video0 [v4l2]
+> [   46.321945] saa7133[0]: registered device vbi0
+> [   46.321996] saa7133[0]: registered device radio0
+> [   46.609615] saa7133[0]/dvb: no tda827x tuner found at addr: 60
+> [   46.609624] DVB: registering new adapter (saa7133[0])
+> [  238.981774] saa7133[0]: dsp access error
+> [  238.981801] saa7133[0]: dsp access error
+> [  238.981820] saa7133[0]: dsp access error
+> [  238.981824] saa7133[0]: dsp access error
+> [  238.981837] saa7133[0]: dsp access error
+> [  238.981841] saa7133[0]: dsp access error
+> [  238.981854] saa7133[0]: dsp access error
+> [  238.981858] saa7133[0]: dsp access error
+> [  238.981871] saa7133[0]: dsp access error
+> [  238.981875] saa7133[0]: dsp access error
+> [  238.981887] saa7133[0]: dsp access error
+> [  238.981892] saa7133[0]: dsp access error
+> [  238.981904] saa7133[0]: dsp access error
+> [  238.981909] saa7133[0]: dsp access error
+> [  238.981921] saa7133[0]: dsp access error
+> [  238.981926] saa7133[0]: dsp access error
+> [  238.981938] saa7133[0]: dsp access error
+> [  238.981942] saa7133[0]: dsp access error
+> [  238.981955] saa7133[0]: dsp access error
+> [  238.981959] saa7133[0]: dsp access error
+> [  238.981972] saa7133[0]/irq[10,76507]: r=0xffffffff s=0xffffffff DONE_RA0 DONE_RA1 DONE_RA2 DONE_RA3 AR PE PWR_ON RDCAP INT
+> ....
+> [  238.993258] saa7133[0]: dsp access error
+> [  238.993263] saa7133[0]: dsp access error
+> [  238.993275] saa7133[0]: dsp access error
+> [  238.993280] saa7133[0]: dsp access error
+> [  238.993292] saa7133[0]: dsp access error
+> [  238.993297] saa7133[0]: dsp access error
+> [  238.993309] saa7133[0]: dsp access error
+> [  238.993314] saa7133[0]: dsp access error
+> [  238.993326] saa7133[0]: dsp access error
+> [  238.993330] saa7133[0]: dsp access error
+> [  238.993343] saa7133[0]: dsp access error
+> [  238.993347] saa7133[0]: dsp access error
+> [  238.993359] saa7133[0]/irq[10,76514]: r=0xffffffff s=0xffffffff DONE_RA0 DONE_RA1 DONE_RA2 DONE_RA3 AR PE PWR_ON RDCAP INT
+> L FIDT MMC TRIG_ERR CONF_ERR LOAD_ERR GPIO16? GPIO18 GPIO22 GPIO23 | RA0=vbi,b,odd,15
+> [  238.993385] saa7133[0]/irq: looping -- clearing PE (parity error!) enable bit
+> [  640.875510] saa7133[0]: quirk: PCIPCI_NATOMA
+> [  640.875520] saa7133[0]: found at 0000:02:00.0, rev: 208, irq: 10, latency: 0, mmio: 0x24000000
+> [  640.875544] saa7133[0]: subsystem: 5168:0502, board: LifeView/Typhoon/Genius FlyDVB-T Duo Cardbus [card=60,insmod option]
+> [  640.875577] saa7133[0]: board init: gpio is 8210000
+> [  641.010947] saa7133[0]: i2c eeprom 00: 68 51 02 05 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+> [  641.010978] saa7133[0]: i2c eeprom 10: 00 ff 22 0f ff 20 ff ff ff ff ff ff ff ff ff ff
+> [  641.010997] saa7133[0]: i2c eeprom 20: 01 40 01 03 03 01 01 03 08 ff 01 aa ff ff ff ff
+> [  641.011016] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> [  641.011034] saa7133[0]: i2c eeprom 40: ff 25 00 c0 ff 10 07 01 c2 96 00 16 22 15 ff ff
+> [  641.011052] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> [  641.011070] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> [  641.011088] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> [  641.108271] saa7133[0]: registered device video0 [v4l2]
+> [  641.108329] saa7133[0]: registered device vbi0
+> [  641.108378] saa7133[0]: registered device radio0
+> [  641.492916] saa7133[0]/dvb: no tda827x tuner found at addr: 60
+> [  641.492925] DVB: registering new adapter (saa7133[0])
+> 
+> 
+> I did all is described in http://www.linuxtv.org/repo/ but this is the output of Make and Make install:
+> 
+> francesco@ubuntu:~/v4l-dvb$ make
+> make -C /home/francesco/v4l-dvb/v4l 
+> make[1]: Entering directory `/home/francesco/v4l-dvb/v4l'
+> Updating/Creating .config
+> Preparing to compile for kernel version 2.6.24
+> File not found: /lib/modules/2.6.24-24-generic/build/.config at ./scripts/make_kconfig.pl line 32, <IN> line 4.
+> make[1]: *** No rule to make target `.myconfig', needed by `config-compat.h'.  Stop.
+> make[1]: Leaving directory `/home/francesco/v4l-dvb/v4l'
+> make: *** [all] Error 2
+> 
+> francesco@ubuntu:~/v4l-dvb$ make install
+> make -C /home/francesco/v4l-dvb/v4l install
+> make[1]: Entering directory `/home/francesco/v4l-dvb/v4l'
+> -e 
+> Removing obsolete files from /lib/modules/2.6.24-24-generic/kernel/drivers/media/video:
+> 
+> -e 
+> Removing obsolete files from /lib/modules/2.6.24-24-generic/kernel/drivers/media/dvb/cinergyT2:
+> 
+> -e 
+> Removing obsolete files from /lib/modules/2.6.24-24-generic/kernel/drivers/media/dvb/frontends:
+> 
+> 
+> Hmm... distro kernel with a non-standard place for module backports detected.
+> Please always prefer to use vanilla upstream kernel with V4L/DVB
+> I'll try to remove old/obsolete LUM files from /lib/modules/2.6.24-24-generic/ubuntu/media:
+> Installing kernel modules under /lib/modules/2.6.24-24-generic/kernel/drivers/media/:
+> /sbin/depmod -a 2.6.24-24-generic 
+> FATAL: Could not open /lib/modules/2.6.24-24-generic/modules.dep.temp for writing: Permission denied
+> make[1]: *** [media-install] Error 1
+> make[1]: Leaving directory `/home/francesco/v4l-dvb/v4l'
+> make: *** [install] Error 2
+> francesco@ubuntu:~/v4l-dvb$ 
+> 
+> Any suggestions?
+> 
+> Thanks.
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+did it ever work for you or does it still on something?
+
+First impression is, that the tuner chip melt down.
+
+If the card was in for while, with the driver loaded, is it still very
+hot close to the antenna connector, if ejected then?
+
+The first generations of the tuner chips have been good enough to fry
+eggs on them.
+
+Cheers,
+Hermann
+
+
+
+
