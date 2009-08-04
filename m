@@ -1,65 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:34962 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754315AbZHCMMj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Aug 2009 08:12:39 -0400
-Date: Mon, 3 Aug 2009 09:11:50 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Alexey Klimov <klimov.linux@gmail.com>,
-	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	Andy Walls <awalls@radix.net>,
-	Linux Media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] to add support for certain Jeilin dual-mode cameras.
-Message-ID: <20090803091150.29118ceb@pedra.chehab.org>
-In-Reply-To: <20090803083012.44da22ca@tele>
-References: <20090418183124.1c9160e3@free.fr>
-	<alpine.LNX.2.00.0908011635020.26881@banach.math.auburn.edu>
-	<208cbae30908020625x400f6b3era5095c8bfc5c736b@mail.gmail.com>
-	<20090803083012.44da22ca@tele>
-Mime-Version: 1.0
+Received: from mail-gx0-f213.google.com ([209.85.217.213]:48186 "EHLO
+	mail-gx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753423AbZHDOd3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2009 10:33:29 -0400
+Received: by gxk9 with SMTP id 9so6864530gxk.13
+        for <linux-media@vger.kernel.org>; Tue, 04 Aug 2009 07:33:29 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4A78454B.309@ferrari3200.optiplex-networks.com>
+References: <4A782DC0.2080905@netscape.net>
+	 <829197380908040603l484a4c2el528fbeff937bc8b6@mail.gmail.com>
+	 <4A783459.6040507@netscape.net>
+	 <829197380908040623q40503e8ct1384d904f4139950@mail.gmail.com>
+	 <4A78454B.309@ferrari3200.optiplex-networks.com>
+Date: Tue, 4 Aug 2009 10:33:28 -0400
+Message-ID: <829197380908040733s4bbadf4bmcf009fc9004000a9@mail.gmail.com>
+Subject: Re: Hauppauge WinTV usb 1 not working?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Kaya Saman <kaya.saman@ferrari3200.optiplex-networks.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 3 Aug 2009 08:30:12 +0200
-Jean-Francois Moine <moinejf@free.fr> escreveu:
+On Tue, Aug 4, 2009 at 10:27 AM, Kaya
+Saman<kaya.saman@ferrari3200.optiplex-networks.com> wrote:
+> Hi Devin,
+>
+> sorry for the late reply had to go out to pick up some groceries!
+>
+> the link is here: http://www.hauppauge.com/site/support/support_usb.html
+>
+> It's the WinTV USB which has USB1.1 compliency and 640x480 res for tv
+> watching although can do full screen on it.
+>
+> Pre WinTV USB2 model :-)
 
-> On Sun, 2 Aug 2009 17:25:29 +0400
-> Alexey Klimov <klimov.linux@gmail.com> wrote:
-> 
-> > > +       buffer = kmalloc(JEILINJ_MAX_TRANSFER, GFP_KERNEL |
-> > > GFP_DMA);
-> > > +       if (!buffer) {
-> > > +               PDEBUG(D_ERR, "Couldn't allocate USB buffer");
-> > > +               goto quit_stream;
-> > > +       }  
-> > 
-> > This clean up on error path looks bad. On quit_stream you have:
-> > 
-> > > +quit_stream:
-> > > +       mutex_lock(&gspca_dev->usb_lock);
-> > > +       if (gspca_dev->present)
-> > > +               jlj_stop(gspca_dev);
-> > > +       mutex_unlock(&gspca_dev->usb_lock);
-> > > +       kfree(buffer);  
-> > 
-> > kfree() tries to free null buffer after kmalloc for buffer failed.
-> > Please, check if i'm not wrong.
-> 
-> Hi Alexey,
-> 
-> AFAIK, kfree() checks the pointer.
+Ok, so it is indeed very similar to the USB-live, but with a coax
+input I guess.  Well, what I said before still applies - the 640x480
+support was never added to the Linux driver for the usbvision chipset,
+and it doesn't surprise me that the driver performs poorly for you as
+it did for me with the USB-live.
 
-Yeah. Theodore's code is ok. kfree(NULL) is legal.
+The driver overall is a mess and I don't foresee anybody spending the
+cycles to clean it up.  Unless you can find someone willing to do the
+work I would suggest just getting a newer product.
 
-> 
-> Cheers.
-> 
+Devin
 
-
-
-
-Cheers,
-Mauro
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
