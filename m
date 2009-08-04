@@ -1,231 +1,303 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3474 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756349AbZHNGYj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Aug 2009 02:24:39 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Subject: Re: DM6467 VPIF adding support for HD resolution capture and display standards
-Date: Fri, 14 Aug 2009 08:24:35 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>, "Yin, Paul" <zhenyin@ti.com>
-References: <A69FA2915331DC488A831521EAE36FE401452885B1@dlee06.ent.ti.com> <200908120904.09140.hverkuil@xs4all.nl> <A69FA2915331DC488A831521EAE36FE40145289000@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE40145289000@dlee06.ent.ti.com>
+Received: from znsun1.ifh.de ([141.34.1.16]:43804 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753461AbZHDOTQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Aug 2009 10:19:16 -0400
+Date: Tue, 4 Aug 2009 16:19:05 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: olgrenie@dibcom.fr
+Subject: Re: RFC: adding ISDB-T/ISDB-Tsb to DVB-API 5
+In-Reply-To: <alpine.LRH.1.10.0908031943220.8512@pub1.ifh.de>
+Message-ID: <alpine.LRH.1.10.0908041617050.8512@pub1.ifh.de>
+References: <alpine.LRH.1.10.0908031943220.8512@pub1.ifh.de>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200908140824.36016.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 14 August 2009 00:10:00 Karicheri, Muralidharan wrote:
-> Hans,
-> 
-> Thanks for your quick reply on this. I need few clarification though.
-> 
-> >My proposal would be something like this:
-> >
-> >enum dv_preset {
-> >	V4L2_DV_CUSTOM,
-> >	V4L2_DV_720P24,
-> >	V4L2_DV_720P25,
-> >	V4L2_DV_720P30,
-> >	V4L2_DV_720P50,
-> >	V4L2_DV_720P60,
-> >	/* etc */
-> >};
-> >
-> How do you define preset? Can I call all BT656, BT1120 and VESA standard timing as presets? For example, if I have an Digital LCD panel that supports standard VESA timing, I would be able to define presets for them right? Similarly for BT656/BT1120.
+Hi again,
 
-Correct. Most apps will only deal with the common resolutions and you don't
-want to force them to know all the low-level timings. Instead you want them
-to present to the user a list of common formats supported by the card.
+I updated some things in the document, please use the following for your 
+comments:
 
-> 
-> >/* bt.656/bt.1120 timing data */
-> >struct bt_timings {
-> >	__u32 interlaced;
-> >	__u32 pixelclock;
-> Shouldn't this be in fractional form? how do we represent 74.25 MHz? 
+Version 1.2 - 2009-08-04
+========================
 
-We represent that as 74250000 :-) The unit is in Hz.
+Changelog
+=========
 
-A more interesting question is if we should make this a u64 to be prepared
-for frequencies >4GHz. Or am I paranoid?
+v1.2 - 2009-08-04
+- removed DTV_BANDWIDTH from being a necessary parameter - now optional
 
-> >	__u32 width, height;
-> >	__u32 polarities;
-> Is it a bit mask of polarities such as vsync, hsync etc?
+v1.1 - 2009-08-04
+- added DTV_FREQUENCY as a necessary parameter
 
-Yes.
+v1.0 - 2009-08-03
+- initial draft
 
-> In that case shouldn't it be a bit field (pol_hsync, pol_vsync etc) 
+Proposal
+========
 
-Bitfields cannot be used in public APIs: how bits are assigned in an integer
-is compiler dependent.
+This document describes shortly what are the possible parameters in the Linux
+DVB-API called "S2API" and now DVB API 5 in order to tune an ISDB-T/ISDB-Tsb
+demodulator:
 
-> >	__u32 hfrontporch, hsync, htotal;
-> What you mean by hsync? Is it hsync length?
+This ISDB-T/ISDB-Tsb API extension should reflect all information
+needed to tune any ISDB-T/ISDB-Tsb hardware. Of course it is possible
+that some very sophisticated devices won't need certain parameters to
+tune.
 
-Yes.
+The information given here should help application writers to know how
+to handle ISDB-T and ISDB-Tsb hardware using the Linux DVB-API.
 
-> then it should be better to call it sync_len right? 
+The details given here about ISDB-T and ISDB-Tsb are just enough to basically
+show the dependencies between the needed parameter values, but surely some
+information is left out. For more detailed information see the standard document:
+ARIB STD-B31 - "Transmission System for Digital Terrestrial Television
+Broadcasting".
 
-Hey, I just whipped this up quickly you know! :-)
+In order to read this document one has to know about the channel
+structure in ISDB-T and ISDB-Tsb. I.e. it has to be known to the
+reader that an ISDB-T channel consists of 13 segments, that it can
+have up to 3 layer sharing those segments, and so on.
 
-> All of these are in pixelclocks right?
+Parameters used by ISDB-T and ISDB-Tsb.
 
-Yes.
+Existing parameters
+===================
 
-> Why there is no backporch? Are you expecting it to be derived as htotal-hsync-width.   
+a) DTV_FREQUENCY
 
-Yes, we just derive it.
+Central frequency of the channel.
 
-> >	__u32 vfrontporch, vsync, vtotal;
-> Similar questions as above.
-> >	/* timings for bottom frame for interlaced formats */
-> >	__u32 il_hfrontporch, il_hsync, il_htotal;
-> >	__u32 il_vfrontporch, il_vsync, il_vtotal;
-> Looking at a typical vesa timing values, I don't see them defined separately for top and bottom fields. Is it for BT1120/BT656 and camera capture timing?
+For ISDB-T the channels are usally transmitted with an offset of 143kHz. E.g. a
+valid frequncy could be 474143 kHz. The stepping is bound to the bandwidth of
+the channel which is 6MHz.
 
-Front porch, sync length and htotal can be removed, but I think il_vtotal can
-be different from vtotal by one line so we should keep that one.
+As in ISDB-Tsb the channel consists of only one or three segments the
+frequency step is 429kHz, 3*429 respectively. As for ISDB-T the
+central frequency of the channel is expected.
 
-> 
-> here are the values I got when googled for "VGA industry standard" 640x480 pixel mode
-> 
-> General characteristics
-> 
-> Clock frequency 25.175 MHz
-> Line  frequency 31469 Hz
-> Field frequency 59.94 Hz
-> 
-> One line
-> 
->   8 pixels front porch
->  96 pixels horizontal sync
->  40 pixels back porch
->   8 pixels left border
+b) DTV_BANDWIDTH_HZ (optional)
 
-Note on these left/right border values: in practice I think these are always
-added to the front/back porch values. I don't think we should add them to the
-timings struct. Only 640x480 resolutions ever use these.
+Possible values:
 
-I've got access to the full VESA specs, so I have all the timings for the VESA
-modes.
+For ISDB-T it should be always 6000000Hz (6MHz)
+For ISDB-Tsb it can vary depending on the number of connected segments
 
-> 640 pixels video
->   8 pixels right border
-> ---
-> 800 pixels total per line
-> 
-> One field
-> 
->   2 lines front porch
->   2 lines vertical sync
->  25 lines back porch
->   8 lines top border
-> 480 lines video
->   8 lines bottom border
-> ---
-> 525 lines total per field              
-> 
-> Other details
-> 
-> Sync polarity: H negative, V negative
-> Scan type: non interlaced.
-> 
-> >	__u32 reserved[4];
-> >};
-> >
-> 
-> >enum dv_timings_type {
-> >	V4L2_DV_BT_656_1120,
-> Why combine BT656 and BT1120? They have different set of timing values. Also if custom timing to be allowed, shouldn't there be a type
-> V4L2_CUSTOM_TIMING as one of the type. So only then bt_timings values will be used.
+Note: Hardware specific values might be given here, but standard
+applications should not bother to set a value to this field as
+standard demods are ignoring it anyway.
 
-No. BT656 and BT1120 define how bitstreams for video are formatted. There is
-very little difference between the two. I would have to do research as to what
-exactly the differences are, but based on my experience so far I think there
-is no need to separate them.
+Bandwidth in ISDB-T is fixed (6MHz) or can be easily derived from
+other parameters (DTV_ISDBT_SB_SEGMENT_IDX,
+DTV_ISDBT_SB_SEGMENT_COUNT).
 
-Also note that both use the same timing parameters, so the custom settings are
-actually following the bt656/1120 timings.
+c) DTV_DELIVERY_SYSTEM
 
-> 
-> >};
-> VPIF supports SMPTE 296 mode in which different timing values are used than BT1120. So I see V4L2_DV_SMPTE_296 as well to begin with.
+Possible values: SYS_ISDBT
 
-Someone needs to put these standards next to one another and research what
-the differences are and whether those differences are enough to require
-adding a new type. Do you have access to those standards and can you go
-through them and see what the differences are exactly and whether those
-require adding a special type + associated timings struct?
+d) DTV_TRANSMISSION_MODE
 
-> >
-> >struct dv_timings {
-> >	enum dv_timings_type type;
-> >	union {
-> >		struct bt_timings bt;
-> >		__u32 reserved[32];
-> >	};
-> >};
-> >
-> >and ioctls:
-> >
-> >VIDIOC_S/G_DV_PRESET, VIDIOC_ENUM_DV_PRESETS and VIDIOC_S/G_DV_TIMINGS.
-> >
-> >I don't think we need to have ioctls to determine what custom timings
-> >are possible: if you are going to use that, then we can safely assume that
-> >you know what you are doing.
-> >
-> >There are some details to hammer out: what does G_DV_TIMINGS return if e.g.
-> >the 720P60 preset is active? Does it return the timings for 720P60 or the
-> >last
-> 
-> >set custom timings?
-> Why last set custom timing? If preset is used, then it should return preset timing which mostly will be standard timing values as defined in the respective standard, right?
+ISDB-T supports three carrier/symbol-size: 8K, 4K, 2K. It is called
+'mode' in the standard: Mode 1 is 2K, mode 2 is 4K, mode 3 is 8K
 
-My reasoning was that returning the preset timings would require that a driver
-will need to know those timings. For some hardware a programmer can just write
-a single 'standards' register and the hardware will do its own timings lookup.
-So in those cases a driver would need to keep a timings table around just for
-this API.
+Possible values: TRANSMISSION_MODE_2K, TRANSMISSION_MODE_8K,
+ 	 TRANSMISSION_MODE_AUTO, TRANSMISSION_MODE_4K
 
-It is also slightly cleaner since if a driver only supports presets, then there
-is no need for the DV_TIMINGS ioctls.
+If DTV_TRANSMISSION_MODE is set the TRANSMISSION_MODE_AUTO the
+hardware will try to find the correct FFT-size (if capable) and will
+use TMCC to fill in the missing parameters.
 
-Remember, this is just an initial API proposal that's quickly put together.
+TRANSMISSION_MODE_4K is added at the same time as the other new parameters.
 
-For one thing, for the presets we really want to put that in a struct:
+e) DTV_GUARD_INTERVAL
 
-struct v4l2_dv_preset {
-	__u32 preset;
-	__u32 reserved[4];
-};
+Possible values: GUARD_INTERVAL_1_32, GUARD_INTERVAL_1_16, GUARD_INTERVAL_1_8,
+ 	 GUARD_INTERVAL_1_4, GUARD_INTERVAL_AUTO
 
-And instead of an enum I would use a list of #defines for the preset IDs.
+If DTV_GUARD_INTERVAL is set the GUARD_INTERVAL_AUTO the hardware will
+try to find the correct guard interval (if capable) and will use TMCC to fill
+in the missing parameters.
 
-Using enum makes compat32 conversion harder (I believe they have different
-sizes under 32 vs 64 bits).
+New parameters
+==============
 
-The enum struct would be:
+1. DTV_ISDBT_PARTIAL_RECEPTION (1b)
 
-struct v4l2_dv_enum_preset {
-	__u32 preset;
-	char name[32];
-	__u32 reserved[4];
-};
+If DTV_ISDBT_SOUND_BROADCASTING is '0' this bit-field represents whether
+the channel is in partial reception mode or not.
 
-Where 'name' is the name of the preset.
+If '1' DTV_ISDBT_LAYERA_* values are assigned to the center segment and
+DTV_ISDBT_LAYERA_SEGMENT_COUNT has to be '1'.
 
-Regards,
+If in addition DTV_ISDBT_SOUND_BROADCASTING is '1'
+DTV_ISDBT_PARTIAL_RECEPTION represents whether this ISDB-Tsb channel
+is consisting of one segment and layer or three segments and two layers.
 
-       Hans
+Possible values: 0, 1, -1 (AUTO)
+
+2. DTV_ISDBT_SOUND_BROADCASTING (1b)
+
+This field represents whether the other DTV_ISDBT_*-parameters are
+referring to an ISDB-T and an ISDB-Tsb channel. (See also
+DTV_ISDBT_PARTIAL_RECEPTION).
+
+Possible values: 0, 1, -1 (AUTO)
+
+3. DTV_ISDBT_SB_SUBCHANNEL_ID
+
+This field only applies if DTV_ISDBT_SOUND_BROADCASTING is '1'.
+
+(Note of the author: This might not be the correct description of the
+  SUBCHANNEL-ID in all details, but it is my understanding of the technical
+  background needed to program a device)
+
+An ISDB-Tsb channel (1 or 3 segments) can be broadcasted alone or in a
+set of connected ISDB-Tsb channels. In this set of channels every
+channel can be received independently. The number of connected
+ISDB-Tsb segment can vary, e.g. depending on the frequency spectrum
+bandwidth available.
+
+Example: Assume 8 ISDB-Tsb connected segments are broadcasted. The
+broadcaster has several possibilities to put those channels in the
+air: Assuming a normal 13-segment ISDB-T spectrum he can align the 8
+segments from position 1-8 to 5-13 or anything in between.
+
+The underlying layer of segments are subchannels: each segment is
+consisting of several subchannels with a predefined IDs. A sub-channel
+is used to help the demodulator to synchronize on the channel.
+
+An ISDB-T channel is always centered over all sub-channels. As for
+the example above, in ISDB-Tsb it is no longer as simple as that.
+
+The DTV_ISDBT_SB_SUBCHANNEL_ID parameter is used to give the
+sub-channel ID of the segment to be demodulated.
+
+Possible values: 0 .. 41, -1 (AUTO)
+
+4. DTV_ISDBT_SB_SEGMENT_IDX
+
+This field only applies if DTV_ISDBT_SOUND_BROADCASTING is '1'.
+
+DTV_ISDBT_SB_SEGMENT_IDX gives the index of the segment to be
+demodulated for an ISDB-Tsb channel where several of them are
+transmitted in the connected manner.
+
+Possible values: 0 .. DTV_ISDBT_SB_SEGMENT_COUNT-1
+
+Note: This value cannot be determined by an automatic channel search.
+
+5. DTV_ISDBT_SB_SEGMENT_COUNT
+
+This field only applies if DTV_ISDBT_SOUND_BROADCASTING is '1'.
+
+DTV_ISDBT_SB_SEGMENT_COUNT gives the total count of connected ISDB-Tsb
+channels.
+
+Possible values: 1 .. 13
+
+Note: This value cannot be determined by an automatic channel search.
+
+6. Hierarchical layers
+
+ISDB-T channels can be coded hierarchically. As opposed to DVB-T in
+ISDB-T hierarchical layers can be decoded simultaneously. For that
+reason a ISDB-T demodulator has 3 viterbi and 3 reed-solomon-decoders.
+
+ISDB-T has 3 hierarchical layers which each can use a part of the
+available segments. The total number of segments over all layers has
+to 13 in ISDB-T.
+
+6.1 DTV_ISDBT_LAYER_ENABLED (3b)
+
+Hierarchical reception in ISDB-T is achieved by enabling or disabling
+layers in the decoding process. Setting all bits of
+DTV_ISDBT_LAYER_ENABLED to '1' forces all layers (if applicable) to be
+demodulated. This is the default.
+
+If the channel is in the partial reception mode
+(DTV_ISDBT_PARTIAL_RECEPTION=1) the central segment can be decoded
+independently of the other 12 segments. In that mode layer A has to
+have a SEGMENT_COUNT of 1.
+
+In ISDB-Tsb only layer A is used, it can be 1 or 3 in ISDB-Tsb
+according to DTV_ISDBT_PARTIAL_RECEPTION. SEGMENT_COUNT must be filled
+accordingly.
+
+Possible values: 0x1, 0x2, 0x4 (|-able)
+
+DTV_ISDBT_LAYER_ENABLED[0:0] - layer A
+DTV_ISDBT_LAYER_ENABLED[1:1] - layer B
+DTV_ISDBT_LAYER_ENABLED[2:2] - layer C
+DTV_ISDBT_LAYER_ENABLED[31:3] unused
+
+6.2 DTV_ISDBT_LAYER*_FEC
+
+Possible values: FEC_AUTO, FEC_1_2, FEC_2_3, FEC_3_4, FEC_5_6, FEC_7_8,
+
+6.3 DTV_ISDBT_LAYER*_MODULATION
+
+Possible values: QAM_AUTO, QPSK, QAM_16, QAM_64, DQPSK
+
+Note: If layer C is DQPSK layer B has to be DQPSK. If layer B is DQPSK
+and DTV_ISDBT_PARTIAL_RECEPTION=0 layer has to be DQPSK.
+
+6.4 DTV_ISDBT_LAYER*_SEGMENT_COUNT
+
+Possible values: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, -1 (AUTO)
+
+Note: Truth table for DTV_ISDBT_SOUND_BROADCASTING and
+DTV_ISDBT_PARTIAL_RECEPTION and LAYER*_SEGMENT_COUNT
+
+  PR | SB || layer A width | layer B width | layer C width | total
+----+----++---------------+---------------+---------------+-------
+   0 |  0 || 1 .. 13       | 1 .. 13       | 1..13         | 13
+   1 |  0 || 1             | 1 .. 13       | 1..13         | 13
+   0 |  1 || 1             | 0             | 0             | 1
+   1 |  1 || 1             | 2             | 0             | 3
 
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+6.5 DTV_ISDBT_LAYER*_TIME_INTERLEAVING
+
+Possible values: 0, 1, 2, 3, -1 (AUTO)
+
+Note: The real inter-leaver depth-names depend on the mode (fft-size); the values
+here are referring to what can be found in the TMCC-structure -
+independent of the mode.
+
+
+On Mon, 3 Aug 2009, Patrick Boettcher wrote:
+
+> Hi all,
+>
+> I'd like to request some comments about the extension of the DVB-API 5 to 
+> support ISDB-T and ISDB-Tsb. Some stubs in frontend.h and friends have been 
+> there since the beginning and now it's time to have real user-space support 
+> for that standard.
+>
+> I hope that we can finish the discussion of this RFC before the merge window 
+> of 2.6.32, so that it can be included then.
+>
+> The current version of the patches can be found here:
+>
+> http://linuxtv.org/hg/~pb/v4l-dvb/rev/eabb8cfcf32a
+>
+> Changelog:
+> This patch increments the DVB-API to version 5.1 in order to reflect the 
+> addition of ISDB-T and ISDB-Tsb on Linux' DVB-API.
+>
+> Changes in detail:
+> - added a small document to describe how to use the API to tune to an ISDB-T 
+> or ISDB-Tsb channel
+> - added necessary fields to dtv_frontend_cache
+> - added a smarter clear-cache function which resets all fields of the 
+> dtv_frontend_cache
+> - added a TRANSMISSION_MODE_4K to fe_transmit_mode_t
+>
+> I also added a document trying to descibe in short all the needed parameters 
+> (DTV_CMDs) for ISDB-T(sb) and how to use them. I'm inlining this document, as 
+> it is the base for the RFC as well:
+>
+> [..]
