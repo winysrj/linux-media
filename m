@@ -1,53 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:34074 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752486AbZHNCxK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Aug 2009 22:53:10 -0400
-Date: Thu, 13 Aug 2009 23:53:03 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Brandon Philips <brandon@ifup.org>
-Cc: linux-media@vger.kernel.org, jayakumar.lkml@gmail.com, mag@mag.cx
-Subject: Re: [PATCH] quickcam_messenger.c: add support for all quickcam
- Messengers of the same family
-Message-ID: <20090813235303.2ff66400@caramujo.chehab.org>
-In-Reply-To: <20090808012135.GA11251@jenkins.home.ifup.org>
-References: <20081202223854.GA5770@jenkins.ifup.org>
-	<20090808012135.GA11251@jenkins.home.ifup.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from fg-out-1718.google.com ([72.14.220.159]:47925 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932510AbZHDVXc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2009 17:23:32 -0400
+Received: by fg-out-1718.google.com with SMTP id e12so762386fga.17
+        for <linux-media@vger.kernel.org>; Tue, 04 Aug 2009 14:23:31 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <200908041312.52878.jareguero@telefonica.net>
+References: <8527bc070908040016x5d5ad15bk8c2ef6e99678f9e9@mail.gmail.com>
+	 <200908041312.52878.jareguero@telefonica.net>
+Date: Tue, 4 Aug 2009 23:23:31 +0200
+Message-ID: <8527bc070908041423p439f2d35y2e31014a10433c80@mail.gmail.com>
+Subject: Re: Noisy video with Avermedia AVerTV Digi Volar X HD (AF9015) and
+	mythbuntu 9.04
+From: Cyril Hansen <cyril.hansen@gmail.com>
+To: Jose Alberto Reguero <jareguero@telefonica.net>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Brandon,
+Thank you very much, your patch has fixed the issue i had using the
+firmware provided by mythbuntu.
 
-Em Fri, 7 Aug 2009 18:21:35 -0700
-Brandon Philips <brandon@ifup.org> escreveu:
+Maybe we should add this info to the LinuxTV wiki.
 
-> Hey Mauro-
-> 
-> I sent this patch long ago and it seemed to have gotten lost along the
-> way.
-> 
-> Jaya acked the patch so it is in my mercurial tree now:
-> 
->  http://ifup.org/hg/v4l-dvb/
->  http://ifup.org/hg/v4l-dvb/rev/335a6ccbacb3
-> 
-> Please pull the patch when you get a chance.
+Regards,
 
-Please add a [PULL] tag on pull requests, for it to be properly catched by my
-scripts.
+Cyril Hansen
 
-If you add [PATCH] instead, it will be moved to a special inbox that I
-generally read only when analyzing Patchwork queue. In this specific case, as
-your email doesn't have any patch, it will be silently ignored by Patchwork.
-So, sending it like this is close to send it to /dev/null :)
-
-Anyway, I've re-queued your pull request to my pile of pull's. I'll be handling
-it shortly.
-
-
-Cheers,
-Mauro
+2009/8/4 Jose Alberto Reguero <jareguero@telefonica.net>:
+> El Martes, 4 de Agosto de 2009, Cyril Hansen escribió:
+>> Hi all,
+>>
+>> I am trying to solve a noisy video issue with my new avermedia stick
+>> (AF9015). I am receiving french DVB signal, both SD and HD. Viewing SD
+>> is annoying, with the occasional video and audio quirk, and HD is
+>> almost unwatchable.
+>>
+>> The same usb stick with another computer and Vista gives a perfect
+>> image with absolutely no error from the same antenna.
+>>
+>> Yesterday I tried to update the drivers from the mercurial tree with no
+>> change.
+>>
+>> I noticed that the firmware available from the Net and Mythbuntu for
+>> the chip is quite old (2007 ?), so maybe this is the source of my
+>> problem. I am willing to try to use usbsnoop and the firmware cutter
+>> from
+>>
+>> http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_fi
+>>les/ if nobody has done it with a recent windows driver.
+>>
+>>
+>> I haven't found any parameter for the module dvb_usb_af9015 : Are they
+>> any than can be worth to try to fix my issue ?
+>>
+>>
+>> Thank you in advance,
+>>
+>> Cyril Hansen
+>> --
+>
+> I have problems with some hardware, and the buffersize when the buffersize is
+> not multiple of TS_PACKET_SIZE.
+>
+> You can try the attached patch.
+>
+> Jose Alberto
+>
+>
