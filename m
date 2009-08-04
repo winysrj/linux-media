@@ -1,56 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iw0-f204.google.com ([209.85.223.204]:48648 "EHLO
-	mail-iw0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754046AbZHTKV5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Aug 2009 06:21:57 -0400
-Received: by iwn42 with SMTP id 42so351229iwn.33
-        for <linux-media@vger.kernel.org>; Thu, 20 Aug 2009 03:21:58 -0700 (PDT)
+Received: from imr-ma06.mx.aol.com ([64.12.78.142]:62037 "EHLO
+	imr-ma06.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755458AbZHDMxj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2009 08:53:39 -0400
+Received: from imo-da01.mx.aol.com (imo-da01.mx.aol.com [205.188.169.199])
+	by imr-ma06.mx.aol.com (8.14.1/8.14.1) with ESMTP id n74Cl0Ml009838
+	for <linux-media@vger.kernel.org>; Tue, 4 Aug 2009 08:47:00 -0400
+Received: from samankaya@netscape.net
+	by imo-da01.mx.aol.com  (mail_out_v40_r1.5.) id x.c83.42316f56 (34942)
+	 for <linux-media@vger.kernel.org>; Tue, 4 Aug 2009 08:46:58 -0400 (EDT)
+Message-ID: <4A782DC0.2080905@netscape.net>
+Date: Tue, 04 Aug 2009 13:46:56 +0100
+From: Kaya Saman <SamanKaya@netscape.net>
 MIME-Version: 1.0
-In-Reply-To: <1250761934.6730.2.camel@McM>
-References: <1250679685.14727.14.camel@McM>
-	 <829197380908190642sfabee2ahe599dda1df39678c@mail.gmail.com>
-	 <1250701340.14727.28.camel@McM>
-	 <829197380908191016n8d7f21eq88ebe3a45816275b@mail.gmail.com>
-	 <1250761934.6730.2.camel@McM>
-Date: Thu, 20 Aug 2009 06:16:12 -0400
-Message-ID: <829197380908200316q6fadadbewff2bc3c9a512857b@mail.gmail.com>
-Subject: Re: USB Wintv HVR-900 Hauppauge
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Miguel <mcm@moviquity.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+Subject: Hauppauge WinTV usb 1 not working?
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 20, 2009 at 5:52 AM, Miguel<mcm@moviquity.com> wrote:
-> hi again Devin,
->
-> In this case, the guide :
-> http://www.linuxtv.org/wiki/index.php/Trident_TM6000#TM6000_based_Devices
-> should be work ?
->
-> I get some errors applying the patch:
->
-> mcm@McM:~/opt/hvr900/v4l-dvb$ patch -p1 < tm6000-makefile-dvb-tree.patch
-> patching file linux/drivers/media/video/Kconfig
-> Hunk #1 succeeded at 914 with fuzz 2 (offset 218 lines).
-> patching file linux/drivers/media/video/Makefile
-> Hunk #1 FAILED at 67.
-> 1 out of 1 hunk FAILED -- saving rejects to file
-> linux/drivers/media/video/Makefile.rej
->
-> could it be my problem here?
+Hi,
 
-No, that guide will not work for your device.  The HVR-900H uses the
-TM6010, not the TM6000, and as the Wiki states, the driver is
-completely broken:
+I hope I'm in the right place!!
 
-http://www.linuxtv.org/wiki/index.php/Trident_TM6000#TM6010_based_Devices
+I have a Hauppauge WinTV usb 1.1 tuner but I don't seem to be able to 
+get it working.
 
-Devin
+I am running Kubuntu 9.04 64-bit edition.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+The tuner detects in the kernel as:
+Bus 006 Device 002: ID 0573:4d22 Zoran Co. Personal Media Division 
+(Nogatech) Hauppauge WinTV-USB II (PAL) Model 566
+
+Using the USBVision driver.
+
+In the kernel using dmesg the tuner is detected as a WinTV Pro??
+
+I have tried various apps to watch tv including tvtime, xawtv, and Zapping.
+
+Running tvtime-scanner gives this output:
+
+Reading configuration from /etc/tvtime/tvtime.xml
+Reading configuration from /home/kaya/.tvtime/tvtime.xml
+Scanning using TV standard PAL.
+/home/kaya/.tvtime/stationlist.xml: No existing PAL station list "Custom".
+
+   Your capture card driver: USBVision [Hauppauge WinTV USB Pro (PAL 
+I)/6-2/2313]
+   does not support full size studio-quality images required by tvtime.
+   This is true for many low-quality webcams.  Please select a
+   different video device for tvtime to use with the command line
+   option --device.
+
+And xawtv and zapping seg fault each time I run them....??
+
+I have an ancient Hauppauge WinTV/Radio PCI card which uses the bttv 
+driver and xawtv works fine on it so I'm not sure why this one isn't 
+working.
+
+Can anyone help at all or suggest something??
+
+Many thanks,
+
+Kaya
+
+
