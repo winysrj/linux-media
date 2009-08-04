@@ -1,64 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:53525 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752565AbZHZSQC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Aug 2009 14:16:02 -0400
-Date: Wed, 26 Aug 2009 20:16:17 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] Document the new V4L2_CID_BAND_STOP_FILTER control
-Message-ID: <Pine.LNX.4.64.0908262014100.7670@axis700.grange>
+Received: from imr-ma02.mx.aol.com ([64.12.206.40]:49323 "EHLO
+	imr-ma02.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754830AbZHDOgY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2009 10:36:24 -0400
+Received: from imo-da02.mx.aol.com (imo-da02.mx.aol.com [205.188.169.200])
+	by imr-ma02.mx.aol.com (8.14.1/8.14.1) with ESMTP id n74EUArw004952
+	for <linux-media@vger.kernel.org>; Tue, 4 Aug 2009 10:30:10 -0400
+Received: from samankaya@netscape.net
+	by imo-da02.mx.aol.com  (mail_out_v40_r1.5.) id x.be1.60d7a5e6 (37253)
+	 for <linux-media@vger.kernel.org>; Tue, 4 Aug 2009 10:30:07 -0400 (EDT)
+Message-ID: <4A7845ED.4020801@netscape.net>
+Date: Tue, 04 Aug 2009 15:30:05 +0100
+From: Kaya Saman <SamanKaya@netscape.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: linux-media@vger.kernel.org
+Subject: [Fwd: Re: Hauppauge WinTV usb 1 not working?]
+Content-Type: multipart/mixed;
+ boundary="------------010307060806070103080907"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add V4L2 API documentation for the new V4L2_CID_BAND_STOP_FILTER control
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
-diff -r 3489b2efe4b0 v4l2-spec/controls.sgml
---- a/v4l2-spec/controls.sgml	Tue Aug 25 16:53:23 2009 +0200
-+++ b/v4l2-spec/controls.sgml	Wed Aug 26 19:59:36 2009 +0200
-@@ -1811,6 +1811,14 @@ device is not restricted to these method
- device is not restricted to these methods. Devices that implement the privacy
- control must support read access and may support write access.</entry>
- 	  </row>
-+
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_BAND_STOP_FILTER</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row><row><entry spanname="descr">Switch the band-stop filter of a
-+camera sensor on or off, or specify its strength. Such band-stop filters can
-+be used, for example, to filter out the fluorescent light component.</entry>
-+	  </row>
- 	  <row><entry></entry></row>
- 	</tbody>
-       </tgroup>
-diff -r 3489b2efe4b0 v4l2-spec/v4l2.sgml
---- a/v4l2-spec/v4l2.sgml	Tue Aug 25 16:53:23 2009 +0200
-+++ b/v4l2-spec/v4l2.sgml	Wed Aug 26 19:59:36 2009 +0200
-@@ -25,7 +25,7 @@
- <book id="v4l2spec">
-   <bookinfo>
-     <title>Video for Linux Two API Specification</title>
--    <subtitle>Revision 0.27</subtitle>
-+    <subtitle>Revision 0.28</subtitle>
- 
-     <authorgroup>
-       <author>
-@@ -142,6 +142,13 @@ structs, ioctls) must be noted in more d
- structs, ioctls) must be noted in more detail in the history chapter
- (compat.sgml), along with the possible impact on existing drivers and
- applications. -->
-+
-+      <revision>
-+	<revnumber>0.28</revnumber>
-+	<date>2009-08-26</date>
-+	<authorinitials>gl</authorinitials>
-+	<revremark>Added V4L2_CID_BAND_STOP_FILTER documentation.</revremark>
-+      </revision>
- 
-       <revision>
- 	<revnumber>0.27</revnumber>
+--------------010307060806070103080907
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Sorry I sent from wrong account please reply back here.....
+
+--------------010307060806070103080907
+Content-Type: message/rfc822;
+ name="Re: Hauppauge WinTV usb 1 not working?.eml"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="Re: Hauppauge WinTV usb 1 not working?.eml"
+
+Message-ID: <4A78454B.309@ferrari3200.optiplex-networks.com>
+Date: Tue, 04 Aug 2009 15:27:23 +0100
+From: Kaya Saman <kaya.saman@ferrari3200.optiplex-networks.com>
+User-Agent: Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.8.1.21) Gecko/20090303 SeaMonkey/1.1.15 (Ubuntu-1.1.15+nobinonly-0ubuntu2)
+MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Hauppauge WinTV usb 1 not working?
+References: <4A782DC0.2080905@netscape.net> <829197380908040603l484a4c2el528fbeff937bc8b6@mail.gmail.com> <4A783459.6040507@netscape.net> <829197380908040623q40503e8ct1384d904f4139950@mail.gmail.com>
+In-Reply-To: <829197380908040623q40503e8ct1384d904f4139950@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+
+Hi Devin,
+
+sorry for the late reply had to go out to pick up some groceries!
+
+the link is here: http://www.hauppauge.com/site/support/support_usb.html
+
+It's the WinTV USB which has USB1.1 compliency and 640x480 res for tv 
+watching although can do full screen on it.
+
+Pre WinTV USB2 model :-)
+
+-- Kaya
+
+
+
+
+--------------010307060806070103080907--
