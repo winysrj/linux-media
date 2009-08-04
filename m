@@ -1,143 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:23799 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933165AbZHHJTw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Aug 2009 05:19:52 -0400
-Date: Sat, 8 Aug 2009 12:07:22 +0300
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: ext Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
-	ext Mauro Carvalho Chehab <mchehab@infradead.org>,
-	ext Douglas Schilling Landgraf <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>
-Subject: Re: [PATCHv14 6/8] FM TX: si4713: Add files to handle si4713 i2c
- device
-Message-ID: <20090808090722.GA25264@esdhcp037198.research.nokia.com>
-Reply-To: eduardo.valentin@nokia.com
-References: <1248707530-4068-1-git-send-email-eduardo.valentin@nokia.com>
- <1248707530-4068-6-git-send-email-eduardo.valentin@nokia.com>
- <1248707530-4068-7-git-send-email-eduardo.valentin@nokia.com>
- <200908071351.36063.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <200908071351.36063.hverkuil@xs4all.nl>
+Received: from smtp-out113.alice.it ([85.37.17.113]:2109 "EHLO
+	smtp-out113.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753728AbZHDADK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Aug 2009 20:03:10 -0400
+Date: Tue, 4 Aug 2009 02:02:52 +0200
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <kernel@pengutronix.de>
+Subject: [BUG] pxa_camera: possible recursive locking detected
+Message-Id: <20090804020252.f33f481d.ospite@studenti.unina.it>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Tue__4_Aug_2009_02_02_53_+0200_gA9Gqs0vm5skKvey"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 07, 2009 at 01:51:36PM +0200, ext Hans Verkuil wrote:
-> Hi Eduardo,
-> 
-> Douglas pointed out to me that I hadn't reviewed this series yet.
-> 
-> That was mostly because it's pretty good as far as I'm concerned :-)
-> 
-> I do think one small thing should change:
-> 
-> On Monday 27 July 2009 17:12:08 Eduardo Valentin wrote:
-> > diff --git a/linux/drivers/media/radio/si4713-i2c.c b/linux/drivers/media/radio/si4713-i2c.c
-> 
-> <snip>
-> 
-> > +/* write string property */
-> > +static int si4713_write_econtrol_string(struct si4713_device *sdev,
-> > +				struct v4l2_ext_control *control)
-> > +{
-> > +	struct v4l2_queryctrl vqc;
-> > +	int len;
-> > +	s32 rval = 0;
-> > +
-> > +	vqc.id = control->id;
-> > +	rval = si4713_queryctrl(&sdev->sd, &vqc);
-> > +	if (rval < 0)
-> > +		goto exit;
-> > +
-> > +	switch (control->id) {
-> > +	case V4L2_CID_RDS_TX_PS_NAME: {
-> > +		char ps_name[MAX_RDS_PS_NAME + 1];
-> > +
-> > +		len = control->size - 1;
-> > +		if (len > MAX_RDS_PS_NAME)
-> > +			len = MAX_RDS_PS_NAME;
-> > +		rval = copy_from_user(ps_name, control->string, len);
-> > +		if (rval < 0)
-> > +			goto exit;
-> > +		ps_name[len] = '\0';
-> > +
-> > +		if (strlen(ps_name) % vqc.step) {
-> > +			rval = -EINVAL;
-> 
-> I think we should return -ERANGE instead. It makes more sense than -EINVAL,
-> since it is the string length that is out of bounds. -ERANGE is the expected
-> error code when the control boundary checks fail.
-> 
-> I know I said EINVAL before, but after thinking about it some more I've
-> reconsidered.
+--Signature=_Tue__4_Aug_2009_02_02_53_+0200_gA9Gqs0vm5skKvey
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+Hi,
 
-Hans, just to make sure in this point. Here I am returning EINVAL because
-the string length is not multiple of control step and not because it is greater
-than it is supposed to be. As discussed earlier, during control write, if
-the coming string value is larger than it was supposed to be, I'm shrinking it.
-See above lines. So the question is: should I return ERANGE when string length
-is not multiple of step?
+verified to be present in linux-2.6.31-rc5, here's some info dumped
+from RAM, since the machine hangs, sorry if it is not complete but I
+couldn't get anything better for now, nothing is printed on
+the screen.
 
-BR,
+The userspace app is capture-example from v4l2-apps/test
+and the command which should be triggering the bug is:
+   xioctl(fd, VIDIOC_STREAMON, &type)
 
-> 
-> > +			goto exit;
-> > +		}
-> > +
-> > +		rval = si4713_set_rds_ps_name(sdev, ps_name);
-> > +	}
-> > +		break;
-> > +
-> > +	case V4L2_CID_RDS_TX_RADIO_TEXT:{
-> > +		char radio_text[MAX_RDS_RADIO_TEXT + 1];
-> > +
-> > +		len = control->size - 1;
-> > +		if (len > MAX_RDS_RADIO_TEXT)
-> > +			len = MAX_RDS_RADIO_TEXT;
-> > +		rval = copy_from_user(radio_text, control->string, len);
-> > +		if (rval < 0)
-> > +			goto exit;
-> > +		radio_text[len] = '\0';
-> > +
-> > +		if (strlen(radio_text) % vqc.step) {
-> > +			rval = -EINVAL;
-> 
-> Ditto.
-> 
-> > +			goto exit;
-> > +		}
-> > +
-> > +		rval = si4713_set_rds_radio_text(sdev, radio_text);
-> > +	}
-> > +		break;
-> > +
-> > +	default:
-> > +		rval = -EINVAL;
-> > +		break;
-> > +	};
-> > +
-> > +exit:
-> > +	return rval;
-> > +}
-> 
-> Just change this and you can add
-> 
-> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
-> 
-> for the whole series.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> -- 
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+[ INFO: possible recursive locking detected ]
+2.6.31-rc5-ezxdev #53
+---------------------------------------------
+capture-example/967 is trying to acquire lock:
+  (&pcdev->lock {......}, at: [<c019e97c>] pxa_videobuf_queue+0x28/0xc4
+but task is already holding lock:
+  (&pcdev->lock {......}                     buf_streamon+0x40/0xc0
+other info that might help us debug this:
+held by capture-example/967:
+#0:   o_lock
+  soc_camera_streamon+0x40/0x70
+#1:     lock
+  videobuf_streamon+0x14/0xc0
+#2:=20
+     eobuf_streamon+0x40/0xc0
 
--- 
-Eduardo Valentin
+The stack backtrace I managed to get is even worse, something like:
+
+-----------------------------------
+stack backtrace: [<c002db8c>] 0x0/0xe0)=20
+idate_chain+0x5b0/0xd84)
+89.995951] [<c0064ac8>]=20
+e_chain+0x5b0/0xd84)=20
+5a60>]=20
+from [<c00668e8>]=20
+0x5c/0x70)
+00668e8>]=20
+_irqsave+0x4c/0x60)
+6230] [<c023cea4>]=20
+rqsave+0x4c/0x60)=20
+c>]=20
+eamon+0x70/0xc0)
+3] [<c0199b4c>]=20
+on+0x70/0xc0)=20
+(soc_camera_streamon+0x58/0x70)
+[   89.996488] [<c019ccc4>]=20
+soc_camera_streamon+0x58/0x70)=20
+rom [<c0191320>]=20
+tl+0x14e0/0x3404)
+-------------------------------------
+
+With another build with debug enabled I extracted this sequence:
+[  104.385424] camera 0-0: PXA Camera driver attached to camera 0
+[  104.385513] pxa27x-camera pxa27x-camera.0: Registered platform device at=
+ cc923d60 data c0316fe0
+[  104.385554] pxa27x-camera pxa27x-camera.0: pxa_camera_activate: Init gpi=
+os
+[  104.447596] camera 0-0: set width: 640 height: 480
+[  104.447642] camera 0-0: camera device open
+[  104.502178] camera 0-0: set width: 640 height: 480
+[  104.502663] camera 0-0: soc_camera_reqbufs: 1
+[  104.502725] camera 0-0: count=3D4, size=3D0
+[  104.508618] camera 0-0: mmap called, vma=3D0xcc07fc28
+[  104.508926] camera 0-0: vma start=3D0x40144000, size=3D614400, ret=3D0
+[  104.542879] camera 0-0: mmap called, vma=3D0xcc05b1d8
+[  104.542990] camera 0-0: vma start=3D0x401da000, size=3D614400, ret=3D0
+[  104.546148] camera 0-0: mmap called, vma=3D0xcc05b6a8
+[  104.546243] camera 0-0: vma start=3D0x40270000, size=3D614400, ret=3D0
+[  104.549401] camera 0-0: mmap called, vma=3D0xcc05b4f0
+[  104.549509] camera 0-0: vma start=3D0x40306000, size=3D614400, ret=3D0
+[  104.550380] camera 0-0: pxa_videobuf_prepare (vb=3D0xcc91e760) 0x4014400=
+0 614400
+[  104.714301] pxa27x-camera pxa27x-camera.0: DMA: sg_first=3Dcd83e000, sgl=
+en=3D150, ofs=3D0, dma.desc=3Dacb94000
+[  104.715766] camera 0-0: pxa_videobuf_prepare (vb=3D0xcc91e560) 0x401da00=
+0 614400
+[  104.782840] pxa27x-camera pxa27x-camera.0: DMA: sg_first=3Dcd852000, sgl=
+en=3D150, ofs=3D0, dma.desc=3Dacde7000
+[  104.783988] camera 0-0: pxa_videobuf_prepare (vb=3D0xcc91e660) 0x4027000=
+0 614400
+[  104.841132] pxa27x-camera pxa27x-camera.0: DMA: sg_first=3Dcd855000, sgl=
+en=3D150, ofs=3D0, dma.desc=3Dac090000
+[  104.863313] camera 0-0: pxa_videobuf_prepare (vb=3D0xcc91e860) 0x4030600=
+0 614400
+[  104.960047] pxa27x-camera pxa27x-camera.0: DMA: sg_first=3Dcd858000, sgl=
+en=3D150, ofs=3D0, dma.desc=3Dacdd2000
+[  104.960922] camera 0-0: soc_camera_streamon
+[  104.961840] camera 0-0: pxa_videobuf_queue (vb=3D0xcc91e760) 0x40144000 =
+614400 active=3D(null)
+
+maybe some more pxa_videobuf_queue lines are missing,
+but again I was not able to extract them from RAM.
+
+Thanks,
+   Antonio
+
+--=20
+Antonio Ospite
+http://ao2.it
+
+PGP public key ID: 0x4553B001
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing in e-mail?
+
+--Signature=_Tue__4_Aug_2009_02_02_53_+0200_gA9Gqs0vm5skKvey
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAkp3eq0ACgkQ5xr2akVTsAFoVACfVLygqrsnupS4wEMJQStkRSkk
+GrYAn0Pb1t2BRddNRjkMutTy1EVEVUap
+=eL7C
+-----END PGP SIGNATURE-----
+
+--Signature=_Tue__4_Aug_2009_02_02_53_+0200_gA9Gqs0vm5skKvey--
