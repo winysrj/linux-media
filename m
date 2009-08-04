@@ -1,54 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197]:56166 "EHLO
-	mta2.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932968AbZHZNN0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Aug 2009 09:13:26 -0400
-Received: from steven-toths-macbook-pro.local
- (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta2.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KOZ005NOJECR9M0@mta2.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Wed, 26 Aug 2009 09:13:26 -0400 (EDT)
-Date: Wed, 26 Aug 2009 09:13:24 -0400
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: Hauppauge 2250 - second tuner is only half working
-In-reply-to: <50410.76.104.173.166.1251253129.squirrel@www.cyberseth.com>
-To: seth@cyberseth.com
-Cc: Steve Harrington <steve@emel-harrington.net>,
-	linux-media@vger.kernel.org
-Message-id: <4A9534F4.8020503@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <283002305-1251239519-cardhu_decombobulator_blackberry.rim.net-845544064-@bxe1079.bisx.prod.on.blackberry>
- <4A946CB5.2010800@kernellabs.com> <4A947260.1040907@kernellabs.com>
- <4A947F89.3010705@kernellabs.com>
- <50410.76.104.173.166.1251253129.squirrel@www.cyberseth.com>
+Received: from mail.gmx.net ([213.165.64.20]:60020 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S932732AbZHDJbS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Aug 2009 05:31:18 -0400
+Date: Tue, 4 Aug 2009 11:31:24 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Antonio Ospite <ospite@studenti.unina.it>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] soc-camera: fix recursive locking in .buf_queue()
+In-Reply-To: <20090804111822.b7893079.ospite@studenti.unina.it>
+Message-ID: <Pine.LNX.4.64.0908041129340.4627@axis700.grange>
+References: <20090804020252.f33f481d.ospite@studenti.unina.it>
+ <Pine.LNX.4.64.0908041023450.4627@axis700.grange>
+ <20090804111822.b7893079.ospite@studenti.unina.it>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 8/25/09 10:18 PM, seth@cyberseth.com wrote:
-> Well my card is out the door already.  So it'll be a week or so till i can
-> try again. I'll give it a pretty thorough run down when i get the new
-> card, maybe I can dig up a repro.
->
-> This is probably just a red herring, but FWIW I had never cold booted the
-> machine (except monday morning when i yanked the card).  I warm booted
-> plenty, but i frequently would run full us-Cable scan's on both tuners.
-> Some time last week when repo's pushed out 2.6.28-15, i had at least one
-> warm boot in there where i had the modules/firmware missing.  I
-> reinstalled (dist-clean, make, make install), rebooted, and tried again
-> and found it was working (well, for a little while until that spontaneous
-> reboot).
+On Tue, 4 Aug 2009, Antonio Ospite wrote:
 
-Fair enough.
+> On Tue, 4 Aug 2009 10:30:47 +0200 (CEST)
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> 
+> > On Tue, 4 Aug 2009, Antonio Ospite wrote:
+> >
+> > > verified to be present in linux-2.6.31-rc5, here's some info dumped
+> > > from RAM, since the machine hangs, sorry if it is not complete but I
+> > > couldn't get anything better for now, nothing is printed on
+> > > the screen.
+> > 
+> > You're right, thanks for the report. Does the patch below fix the problem? 
+> > It only gets a bit tricky in mx3_camera.c, will have to test.
+> >
+> 
+> Yes, the patch fixes the problem. Many thanks.
+> 
+> The current patch applies with some fuzzes on vanilla kernels, and it
+> even FAILS to apply for drivers/media/video/sh_mobile_ceu_camera.c in
+> one hunk.
 
-Another user is preparing remote access so I can take a look at the problem 
-first hand. With any look we'll see the issue and have a patch by the time your 
-replacement board comes back.
+Yes, I'll produce one against vanilla for submission.
 
-- Steve
+> I hope that this one and also http://patchwork.kernel.org/patch/33960/
+> will hit mainline soon.
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Yes, I pushed that one already:
+
+http://linuxtv.org/hg/v4l-dvb/rev/ee62ab3076e1
+
+Will push this one too.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
