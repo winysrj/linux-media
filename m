@@ -1,138 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34039 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755487AbZHKWBG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2009 18:01:06 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Laurent Pinchart <laurent.pinchart@skynet.be>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
-	v4l2_linux <linux-media@vger.kernel.org>,
-	Dongsoo Kim <dongsoo45.kim@samsung.com>,
-	=?Windows-1252?B?w6vCsOKAosOqwrLCvcOrwq/CvA==?=
-	<kyungmin.park@samsung.com>,
-	"jm105.lee@samsung.com" <jm105.lee@samsung.com>,
-	=?Windows-1252?B?w6zvv73CtMOs4oCewrjDq8Kswri=?=
-	<semun.lee@samsung.com>,
-	=?Windows-1252?B?w6vFkuKCrMOs77+9wrjDqsK4wrC=?=
-	<inki.dae@samsung.com>,
-	=?Windows-1252?B?w6rCueKCrMOty5zigKLDrMKk4oKs?=
-	<riverful.kim@samsung.com>
-Date: Tue, 11 Aug 2009 17:00:43 -0500
-Subject: RE: How to save number of times using memcpy?
-Message-ID: <A69FA2915331DC488A831521EAE36FE40145288598@dlee06.ent.ti.com>
-References: <10799.62.70.2.252.1248852719.squirrel@webmail.xs4all.nl>
-    <200907292352.00179.hverkuil@xs4all.nl>
-    <A69FA2915331DC488A831521EAE36FE401450FAFD0@dlee06.ent.ti.com>
-    <200907300831.39579.hverkuil@xs4all.nl>
-    <A69FA2915331DC488A831521EAE36FE401450FB0C7@dlee06.ent.ti.com>
-    <de79b8390a2a633a34370bcc666d2914.squirrel@webmail.xs4all.nl>
-    <A69FA2915331DC488A831521EAE36FE401450FB11F@dlee06.ent.ti.com>
- <ecf13427a4977f3ca5e778a6152ad17f.squirrel@webmail.xs4all.nl>
-In-Reply-To: <ecf13427a4977f3ca5e778a6152ad17f.squirrel@webmail.xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-qy0-f196.google.com ([209.85.221.196]:35680 "EHLO
+	mail-qy0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933141AbZHED52 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2009 23:57:28 -0400
 MIME-Version: 1.0
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940432AF3AA3@dbde02.ent.ti.com>
+References: <200908040912.24718.hverkuil@xs4all.nl>
+	 <19F8576C6E063C45BE387C64729E73940432AF3A5D@dbde02.ent.ti.com>
+	 <A69FA2915331DC488A831521EAE36FE401451814F8@dlee06.ent.ti.com>
+	 <aec7e5c30908041931m2113cecerec2c732f8b5927ea@mail.gmail.com>
+	 <19F8576C6E063C45BE387C64729E73940432AF3AA3@dbde02.ent.ti.com>
+Date: Wed, 5 Aug 2009 12:57:28 +0900
+Message-ID: <aec7e5c30908042057u4c875382uec350737644ec25f@mail.gmail.com>
+Subject: Re: Linux Plumbers Conference 2009: V4L2 API discussions
+From: Magnus Damm <magnus.damm@gmail.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>,
+	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+On Wed, Aug 5, 2009 at 12:06 PM, Hiremath, Vaibhav<hvaibhav@ti.com> wrote:
+>> -----Original Message-----
+>> From: Magnus Damm [mailto:magnus.damm@gmail.com]
+>> Sent: Wednesday, August 05, 2009 8:01 AM
+>> To: Karicheri, Muralidharan
+>> Cc: Hiremath, Vaibhav; Hans Verkuil; linux-media@vger.kernel.org;
+>> davinci-linux-open-source@linux.davincidsp.com; linux-
+>> omap@vger.kernel.org; eduardo.valentin@nokia.com; Dongsoo, Nathaniel
+>> Kim
+>> Subject: Re: Linux Plumbers Conference 2009: V4L2 API discussions
+>>
+>> On Wed, Aug 5, 2009 at 5:14 AM, Karicheri,
+>> Muralidharan<m-karicheri2@ti.com> wrote:
+>> > 2) Previewer & Resizer driver. I am working with Vaibhav who had
+>> worked on an RFC for this. The previewer and resizer devices are
+>> doing memory to memory operations. Also should be flexible to use
+>> these hardware with capture driver to do on the fly preview and
+>> resize. The TI hardware is parameter intensive. We believe these
+>> parameters are to be exported to user space through IOCTLs and would
+>> require addition of new IOCTLs and extension of control IDs. We will
+>> be working with you on this as well.
+>>
+>> FWIW, for our SuperH Mobile devices we make use of UIO and user
+>> space
+>> libraries to support for our on-chip multimedia blocks. These blocks
+>> do scaling, rotation, color space conversion and hardware
+>> encode/decode of various formats including h264 and mpeg4 in HD
+>> resolution.
+>>
+>> Apart from UIO we use V4L2 for the camera capture interface driver
+>> sh_mobile_ceu_camera.c. It has support for on the fly color space
+>> conversion and scaling/cropping. The CEU driver is making use of
+>> videobuf-dma-contig.c and the USERPTR changes included in 2.6.31-rc
+>> gives the driver zero copy frame capture support.
+>>
+>> All of this is of course available upstream.
+> [Hiremath, Vaibhav] Thanks Magnus,
+>
+> I will definitely take reference from this device and driver code. I think now I have one more device which has similar capabilities. Can you please share or point me to the spec/TRM for SuperH Mobile device for my reference?
 
-Any suggestions on addressing this issue ?
+The multimedia software is used on a wide range of devices, so it's
+hard to come up with a specific device. Google may give you some
+examples.
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-new phone: 301-407-9583
-Old Phone : 301-515-3736 (will be deprecated)
-email: m-karicheri2@ti.com
+> Currently we are referring to Davinci, OMAP and Samsung S3C6400X devices, the user configurable/exported parameters are very different.
 
->-----Original Message-----
->From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->owner@vger.kernel.org] On Behalf Of Hans Verkuil
->Sent: Thursday, July 30, 2009 10:57 AM
->To: Karicheri, Muralidharan
->Cc: Laurent Pinchart; Mauro Carvalho Chehab; Dongsoo, Nathaniel Kim;
->v4l2_linux; Dongsoo Kim; ë°•ê²½ë¯¼; jm105.lee@samsung.com;
->ì�´ì„¸ë¬¸; ëŒ€ì�¸ê¸°; ê¹€�˜•ì¤€
->Subject: RE: How to save number of times using memcpy?
->
->
->> Mauro,
->>
->> What do you suggest for this? Could we allocate coherent device memory
->> using dma_declare_coherent_memory() ? This seems the only way to do it
->> unless, video buffer layer does this when initializing the queue.
->
->Or to be able to override the memory allocation in some way. Large
->contiguous buffers are hard to get once a system has been running for a
->while, so at least some buffers must be allocated up front and not on the
->first open() or VIDIOC_REQBUFS call. I'm surprised that this issue hasn't
->cropped up before.
->
->Regards,
->
->         Hans
->
->>
->> Murali Karicheri
->> Software Design Engineer
->> Texas Instruments Inc.
->> Germantown, MD 20874
->> Phone : 301-515-3736
->> email: m-karicheri2@ti.com
->>
->>>-----Original Message-----
->>>From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->>>owner@vger.kernel.org] On Behalf Of Hans Verkuil
->>>Sent: Thursday, July 30, 2009 10:26 AM
->>>To: Karicheri, Muralidharan
->>>Cc: Laurent Pinchart; Mauro Carvalho Chehab; Dongsoo, Nathaniel Kim;
->>>v4l2_linux; Dongsoo Kim; ë°•ê²½ë¯¼; jm105.lee@samsung.com;
->>>ì�´ì„¸ë¬¸; ëŒ€ì�¸ê¸°; ê¹€�˜•ì¤€
->>>Subject: RE: How to save number of times using memcpy?
->>>
->>>
->>>> Hans,
->>>>
->>>> I don't see the code you are referring to. Here is the probe() from the
->>>> next branch of v4l-dvb. Could you point out the code that does the
->>>> allocation of frame buffers ? I had used this code as reference when
->>>> developing vpfe capture driver.
->>>>
->>>> Murali
->>>
->>>My apologies, I got it mixed up with older versions of this driver. I see
->>>that it now uses videobuf-dma-contig. This is going to be a real problem
->>>since this makes it impossible (or at least very hard) to allocate memory
->>>up front. I'm no expert on videobuf, but this is something that should be
->>>addressed, especially in the dma-contig case.
->>>
->>>Regards,
->>>
->>>          Hans
->>>
->>>--
->>>Hans Verkuil - video4linux developer - sponsored by TANDBERG
->>>
->>>--
->>>To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>>the body of a message to majordomo@vger.kernel.org
->>>More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
->>
->
->
->--
->Hans Verkuil - video4linux developer - sponsored by TANDBERG
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This is why we do the most of the multimedia pipe line in user space
+using UIO . High level frameworks like gstreamer and openmax are
+suitable for this kind of stuff IMO.
 
+Cheers,
+
+/ magnus
