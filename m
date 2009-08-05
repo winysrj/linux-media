@@ -1,104 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:54672 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934160AbZHEO2f convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Aug 2009 10:28:35 -0400
-Date: Wed, 5 Aug 2009 11:27:35 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: efa@iol.it, linux-media@vger.kernel.org
-Subject: Re: Terratec Cinergy HibridT XS
-Message-ID: <20090805112735.41ad3b0f@pedra.chehab.org>
-In-Reply-To: <829197380908050627u892b526wc5fb8ef1f6be6b53@mail.gmail.com>
-References: <4A6F8AA5.3040900@iol.it>
-	<829197380907281744o5c3a7eb7rd0d2cb8c53cd646f@mail.gmail.com>
-	<4A7140DD.7040405@iol.it>
-	<829197380907300533l488acd0bt2188c4c599417966@mail.gmail.com>
-	<4A729117.6010001@iol.it>
-	<829197380907310109r1ca7231cqd86803f0fe640904@mail.gmail.com>
-	<4A739DD6.8030504@iol.it>
-	<829197380908032002v196384c9oa0aff78627959db@mail.gmail.com>
-	<4A79320B.7090401@iol.it>
-	<829197380908050627u892b526wc5fb8ef1f6be6b53@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail-qy0-f196.google.com ([209.85.221.196]:35937 "EHLO
+	mail-qy0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933165AbZHECb3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2009 22:31:29 -0400
+MIME-Version: 1.0
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE401451814F8@dlee06.ent.ti.com>
+References: <200908040912.24718.hverkuil@xs4all.nl>
+	 <19F8576C6E063C45BE387C64729E73940432AF3A5D@dbde02.ent.ti.com>
+	 <A69FA2915331DC488A831521EAE36FE401451814F8@dlee06.ent.ti.com>
+Date: Wed, 5 Aug 2009 11:31:29 +0900
+Message-ID: <aec7e5c30908041931m2113cecerec2c732f8b5927ea@mail.gmail.com>
+Subject: Re: Linux Plumbers Conference 2009: V4L2 API discussions
+From: Magnus Damm <magnus.damm@gmail.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>,
+	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 5 Aug 2009 09:27:13 -0400
-Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
+On Wed, Aug 5, 2009 at 5:14 AM, Karicheri,
+Muralidharan<m-karicheri2@ti.com> wrote:
+> 2) Previewer & Resizer driver. I am working with Vaibhav who had worked on an RFC for this. The previewer and resizer devices are doing memory to memory operations. Also should be flexible to use these hardware with capture driver to do on the fly preview and resize. The TI hardware is parameter intensive. We believe these parameters are to be exported to user space through IOCTLs and would require addition of new IOCTLs and extension of control IDs. We will be working with you on this as well.
 
-> On Wed, Aug 5, 2009 at 3:17 AM, Valerio Messina<efa@iol.it> wrote:
-> > Devin Heitmueller ha scritto:
-> >>
-> >> Please try the following:
-> >> hg clone http://kernellabs.com/hg/~dheitmueller/ttxs-remote
-> >> cd ttxs-remote
-> >> make
-> >> make install
-> >> reboot
-> >>
-> >> Then see if the remote control works.  If not, I will give you some
-> >> commands to turn on the logging.  This should work though since I had
-> >> tested it myself when I had the device in question a couple of weeks
-> >> ago.
-> >
-> > with this repository compiled, installed and after reboot, Kaffeine does not
-> > see at all the TV tuner.
-> > Logging instructions are always welcomed.
-> > Valerio
-> >
-> > dmesg report this log when I connect the USB tuner:
-> >
-> > Aug  5 08:46:31 01ath3200 kernel: [  365.276042] usb 1-3: new high speed USB
-> > device using ehci_hcd and address 4
-> > Aug  5 08:46:31 01ath3200 kernel: [  365.458835] usb 1-3: configuration #1
-> > chosen from 1 choice
-> > Aug  5 08:46:31 01ath3200 kernel: [  365.474488] Linux video capture
-> > interface: v2.00
-> > Aug  5 08:46:31 01ath3200 kernel: [  365.523111] em28xx: disagrees about
-> > version of symbol v4l_compat_translate_ioctl
-> > Aug  5 08:46:31 01ath3200 kernel: [  365.523122] em28xx: Unknown symbol
-> > v4l_compat_translate_ioctl
-> > Aug  5 08:46:31 01ath3200 kernel: [  365.525987] em28xx: disagrees about
-> > version of symbol video_unregister_device
-> > Aug  5 08:46:31 01ath3200 kernel: [  365.525992] em28xx: Unknown symbol
-> > video_unregister_device
-> > Aug  5 08:46:31 01ath3200 kernel: [  365.526369] em28xx: disagrees about
-> > version of symbol video_device_alloc
-> > Aug  5 08:46:31 01ath3200 kernel: [  365.526374] em28xx: Unknown symbol
-> > video_device_alloc
-> > Aug  5 08:46:31 01ath3200 kernel: [  365.526559] em28xx: disagrees about
-> > version of symbol video_register_device
-> > Aug  5 08:46:31 01ath3200 kernel: [  365.526564] em28xx: Unknown symbol
-> > video_register_device
-> > Aug  5 08:46:31 01ath3200 kernel: [  365.527584] em28xx: disagrees about
-> > version of symbol video_usercopy
-> > Aug  5 08:46:31 01ath3200 kernel: [  365.527589] em28xx: Unknown symbol
-> > video_usercopy
-> > Aug  5 08:46:31 01ath3200 kernel: [  365.527774] em28xx: disagrees about
-> > version of symbol video_device_release
-> > Aug  5 08:46:31 01ath3200 kernel: [  365.527779] em28xx: Unknown symbol
-> > video_device_release
-> > Aug  5 08:46:32 01ath3200 pulseaudio[4176]: alsa-util.c: Cannot find
-> > fallback mixer control "Mic" or mixer control is no combination of
-> > switch/volume.
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> 
-> Seems like your compile environment got messed up somehow.  Which
-> distro is this, and have you updated the kernel since checking out the
-> code?  It's also possible if you were playing around with the mcentral
-> repository that both versions of em28xx are still installed.
+FWIW, for our SuperH Mobile devices we make use of UIO and user space
+libraries to support for our on-chip multimedia blocks. These blocks
+do scaling, rotation, color space conversion and hardware
+encode/decode of various formats including h264 and mpeg4 in HD
+resolution.
 
-Try a make rminstall. This is required with Ubuntu, since it installs
-drivers/media at the wrong dir
+Apart from UIO we use V4L2 for the camera capture interface driver
+sh_mobile_ceu_camera.c. It has support for on the fly color space
+conversion and scaling/cropping. The CEU driver is making use of
+videobuf-dma-contig.c and the USERPTR changes included in 2.6.31-rc
+gives the driver zero copy frame capture support.
 
-
+All of this is of course available upstream.
 
 Cheers,
-Mauro
+
+/ magnus
