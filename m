@@ -1,41 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.170]:35682 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753129AbZHMXp6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Aug 2009 19:45:58 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so339477wfd.4
-        for <linux-media@vger.kernel.org>; Thu, 13 Aug 2009 16:45:59 -0700 (PDT)
-Date: Thu, 13 Aug 2009 16:45:19 -0700
-From: Brandon Philips <brandon@ifup.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org, jayakumar.lkml@gmail.com, mag@mag.cx
-Subject: Re: [PATCH] quickcam_messenger.c: add support for all quickcam
- Messengers of the same family
-Message-ID: <20090813234519.GF21546@jenkins.home.ifup.org>
-References: <20081202223854.GA5770@jenkins.ifup.org>
- <20090808012135.GA11251@jenkins.home.ifup.org>
+Received: from mail.cgspace.it ([213.215.240.19]:60359 "EHLO mail.cgspace.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933648AbZHEHYP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Aug 2009 03:24:15 -0400
+Message-ID: <4A79320B.7090401@iol.it>
+Date: Wed, 05 Aug 2009 09:17:31 +0200
+From: Valerio Messina <efa@iol.it>
+Reply-To: efa@iol.it
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20090808012135.GA11251@jenkins.home.ifup.org>
+To: linux-media@vger.kernel.org
+Subject: Re: Terratec Cinergy HibridT XS
+References: <4A6F8AA5.3040900@iol.it>	 <829197380907281744o5c3a7eb7rd0d2cb8c53cd646f@mail.gmail.com>	 <4A7140DD.7040405@iol.it>	 <829197380907300533l488acd0bt2188c4c599417966@mail.gmail.com>	 <4A729117.6010001@iol.it>	 <829197380907310109r1ca7231cqd86803f0fe640904@mail.gmail.com>	 <4A739DD6.8030504@iol.it> <829197380908032002v196384c9oa0aff78627959db@mail.gmail.com>
+In-Reply-To: <829197380908032002v196384c9oa0aff78627959db@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18:21 Fri 07 Aug 2009, Brandon Philips wrote:
-> I sent this patch long ago and it seemed to have gotten lost along the
-> way.
+Devin Heitmueller ha scritto:
+> Please try the following:
+> hg clone http://kernellabs.com/hg/~dheitmueller/ttxs-remote
+> cd ttxs-remote
+> make
+> make install
+> reboot
 > 
-> Jaya acked the patch so it is in my mercurial tree now:
-> 
->  http://ifup.org/hg/v4l-dvb/
->  http://ifup.org/hg/v4l-dvb/rev/335a6ccbacb3
-> 
-> Please pull the patch when you get a chance.
+> Then see if the remote control works.  If not, I will give you some
+> commands to turn on the logging.  This should work though since I had
+> tested it myself when I had the device in question a couple of weeks
+> ago.
 
-Is there something wrong with this patch? I see it still hasn't hit
-v4l-dvb.
+with this repository compiled, installed and after reboot, Kaffeine does 
+not see at all the TV tuner.
+Logging instructions are always welcomed.
+Valerio
 
-Thanks,
+dmesg report this log when I connect the USB tuner:
 
-	Brandon
+Aug  5 08:46:31 01ath3200 kernel: [  365.276042] usb 1-3: new high speed 
+USB device using ehci_hcd and address 4
+Aug  5 08:46:31 01ath3200 kernel: [  365.458835] usb 1-3: configuration 
+#1 chosen from 1 choice
+Aug  5 08:46:31 01ath3200 kernel: [  365.474488] Linux video capture 
+interface: v2.00
+Aug  5 08:46:31 01ath3200 kernel: [  365.523111] em28xx: disagrees about 
+version of symbol v4l_compat_translate_ioctl
+Aug  5 08:46:31 01ath3200 kernel: [  365.523122] em28xx: Unknown symbol 
+v4l_compat_translate_ioctl
+Aug  5 08:46:31 01ath3200 kernel: [  365.525987] em28xx: disagrees about 
+version of symbol video_unregister_device
+Aug  5 08:46:31 01ath3200 kernel: [  365.525992] em28xx: Unknown symbol 
+video_unregister_device
+Aug  5 08:46:31 01ath3200 kernel: [  365.526369] em28xx: disagrees about 
+version of symbol video_device_alloc
+Aug  5 08:46:31 01ath3200 kernel: [  365.526374] em28xx: Unknown symbol 
+video_device_alloc
+Aug  5 08:46:31 01ath3200 kernel: [  365.526559] em28xx: disagrees about 
+version of symbol video_register_device
+Aug  5 08:46:31 01ath3200 kernel: [  365.526564] em28xx: Unknown symbol 
+video_register_device
+Aug  5 08:46:31 01ath3200 kernel: [  365.527584] em28xx: disagrees about 
+version of symbol video_usercopy
+Aug  5 08:46:31 01ath3200 kernel: [  365.527589] em28xx: Unknown symbol 
+video_usercopy
+Aug  5 08:46:31 01ath3200 kernel: [  365.527774] em28xx: disagrees about 
+version of symbol video_device_release
+Aug  5 08:46:31 01ath3200 kernel: [  365.527779] em28xx: Unknown symbol 
+video_device_release
+Aug  5 08:46:32 01ath3200 pulseaudio[4176]: alsa-util.c: Cannot find 
+fallback mixer control "Mic" or mixer control is no combination of 
+switch/volume.
