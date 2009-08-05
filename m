@@ -1,254 +1,261 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.232]:60422 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751445AbZHNFW4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Aug 2009 01:22:56 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so383747rvb.1
-        for <linux-media@vger.kernel.org>; Thu, 13 Aug 2009 22:22:57 -0700 (PDT)
-Date: Thu, 13 Aug 2009 22:22:52 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH] pwc - fix few use-after-free and memory leaks
+Received: from cp-out2.libero.it ([212.52.84.102]:52446 "EHLO
+	cp-out2.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752201AbZHETvA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Aug 2009 15:51:00 -0400
+Date: Wed,  5 Aug 2009 21:50:58 +0200
+Message-Id: <KNX5SY$6C51C56E77BDD749002D37C1F5412E1A@libero.it>
+Subject: Re: Issue with LifeView FlyDVB-T Duo CardBus.
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Message-Id: <20090814055340.A2F9C526EC9@mailhub.coreip.homeip.net>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+From: "Francesco Marangoni" <fmarangoni@libero.it>
+To: "hermann-pitton" <hermann-pitton@arcor.de>
+Cc: "linux-media" <linux-media@vger.kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hermann,
 
-I just happen to peek inside the PWC driver and did not like what I saw
-there. Please consider applying the patch below.
+thankyou very much for your support. Do you have any suggestion for a light linux distribution with a recent and vanilla kernel. In the last month i tried TinyMe and Ubuntu Lite. Is it possible to install a recent vanilla kernel on the version of ubuntu lite i'm using?
+Thanks.
 
-Thanks!
+---------- Initial Header -----------
 
--- 
-Dmitry
-
-V4L/DVB: pwc - fix few use-after-free and memory leaks
-
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-
-It is not allowed to call input_free_device() after input_unregister_device()
-since input_dev structure is refcounted and will [most likely] be freed by
-input_unregister_device(). Also don't try accessing structure members after
-freeing the structure and correctly free resources in error unwinding path.
-
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
----
-
- drivers/media/video/pwc/pwc-if.c |   78 +++++++++++++++++---------------------
- drivers/media/video/pwc/pwc.h    |    1 
- 2 files changed, 36 insertions(+), 43 deletions(-)
+>From      : "hermann pitton" hermann-pitton@arcor.de
+To          : "Francesco Marangoni" fmarangoni@libero.it
+Cc          : "linux-media" linux-media@vger.kernel.org
+Date      : Tue, 04 Aug 2009 23:04:46 +0200
+Subject : Re: Issue with LifeView FlyDVB-T Duo CardBus.
 
 
-diff --git a/drivers/media/video/pwc/pwc-if.c b/drivers/media/video/pwc/pwc-if.c
-index 8d17cf6..f976df4 100644
---- a/drivers/media/video/pwc/pwc-if.c
-+++ b/drivers/media/video/pwc/pwc-if.c
-@@ -1057,7 +1057,8 @@ static int pwc_create_sysfs_files(struct video_device *vdev)
- 		goto err;
- 	if (pdev->features & FEATURE_MOTOR_PANTILT) {
- 		rc = device_create_file(&vdev->dev, &dev_attr_pan_tilt);
--		if (rc) goto err_button;
-+		if (rc)
-+			goto err_button;
- 	}
- 
- 	return 0;
-@@ -1072,6 +1073,7 @@ err:
- static void pwc_remove_sysfs_files(struct video_device *vdev)
- {
- 	struct pwc_device *pdev = video_get_drvdata(vdev);
-+
- 	if (pdev->features & FEATURE_MOTOR_PANTILT)
- 		device_remove_file(&vdev->dev, &dev_attr_pan_tilt);
- 	device_remove_file(&vdev->dev, &dev_attr_button);
-@@ -1229,13 +1231,11 @@ static void pwc_cleanup(struct pwc_device *pdev)
- 	video_unregister_device(pdev->vdev);
- 
- #ifdef CONFIG_USB_PWC_INPUT_EVDEV
--	if (pdev->button_dev) {
-+	if (pdev->button_dev)
- 		input_unregister_device(pdev->button_dev);
--		input_free_device(pdev->button_dev);
--		kfree(pdev->button_dev->phys);
--		pdev->button_dev = NULL;
--	}
- #endif
-+
-+	kfree(pdev);
- }
- 
- /* Note that all cleanup is done in the reverse order as in _open */
-@@ -1281,8 +1281,6 @@ static int pwc_video_close(struct file *file)
- 		PWC_DEBUG_OPEN("<< video_close() vopen=%d\n", pdev->vopen);
- 	} else {
- 		pwc_cleanup(pdev);
--		/* Free memory (don't set pdev to 0 just yet) */
--		kfree(pdev);
- 		/* search device_hint[] table if we occupy a slot, by any chance */
- 		for (hint = 0; hint < MAX_DEV_HINTS; hint++)
- 			if (device_hint[hint].pdev == pdev)
-@@ -1499,13 +1497,10 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
- 	struct usb_device *udev = interface_to_usbdev(intf);
- 	struct pwc_device *pdev = NULL;
- 	int vendor_id, product_id, type_id;
--	int i, hint, rc;
-+	int hint, rc;
- 	int features = 0;
- 	int video_nr = -1; /* default: use next available device */
- 	char serial_number[30], *name;
--#ifdef CONFIG_USB_PWC_INPUT_EVDEV
--	char *phys = NULL;
--#endif
- 
- 	vendor_id = le16_to_cpu(udev->descriptor.idVendor);
- 	product_id = le16_to_cpu(udev->descriptor.idProduct);
-@@ -1757,8 +1752,7 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
- 	pdev->vframes = default_fps;
- 	strcpy(pdev->serial, serial_number);
- 	pdev->features = features;
--	if (vendor_id == 0x046D && product_id == 0x08B5)
--	{
-+	if (vendor_id == 0x046D && product_id == 0x08B5) {
- 		/* Logitech QuickCam Orbit
- 		   The ranges have been determined experimentally; they may differ from cam to cam.
- 		   Also, the exact ranges left-right and up-down are different for my cam
-@@ -1780,8 +1774,8 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
- 	pdev->vdev = video_device_alloc();
- 	if (!pdev->vdev) {
- 		PWC_ERROR("Err, cannot allocate video_device struture. Failing probe.");
--		kfree(pdev);
--		return -ENOMEM;
-+		rc = -ENOMEM;
-+		goto err_free_mem;
- 	}
- 	memcpy(pdev->vdev, &pwc_template, sizeof(pwc_template));
- 	pdev->vdev->parent = &intf->dev;
-@@ -1806,25 +1800,23 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
- 	}
- 
- 	pdev->vdev->release = video_device_release;
--	i = video_register_device(pdev->vdev, VFL_TYPE_GRABBER, video_nr);
--	if (i < 0) {
--		PWC_ERROR("Failed to register as video device (%d).\n", i);
--		rc = i;
--		goto err;
--	}
--	else {
--		PWC_INFO("Registered as /dev/video%d.\n", pdev->vdev->num);
-+	rc = video_register_device(pdev->vdev, VFL_TYPE_GRABBER, video_nr);
-+	if (rc < 0) {
-+		PWC_ERROR("Failed to register as video device (%d).\n", rc);
-+		goto err_video_release;
- 	}
- 
-+	PWC_INFO("Registered as /dev/video%d.\n", pdev->vdev->num);
-+
- 	/* occupy slot */
- 	if (hint < MAX_DEV_HINTS)
- 		device_hint[hint].pdev = pdev;
- 
- 	PWC_DEBUG_PROBE("probe() function returning struct at 0x%p.\n", pdev);
--	usb_set_intfdata (intf, pdev);
-+	usb_set_intfdata(intf, pdev);
- 	rc = pwc_create_sysfs_files(pdev->vdev);
- 	if (rc)
--		goto err_unreg;
-+		goto err_video_unreg;
- 
- 	/* Set the leds off */
- 	pwc_set_leds(pdev, 0, 0);
-@@ -1835,16 +1827,16 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
- 	pdev->button_dev = input_allocate_device();
- 	if (!pdev->button_dev) {
- 		PWC_ERROR("Err, insufficient memory for webcam snapshot button device.");
--		return -ENOMEM;
-+		rc = -ENOMEM;
-+		pwc_remove_sysfs_files(pdev->vdev);
-+		goto err_video_unreg;
- 	}
- 
-+	usb_make_path(udev, pdev->button_phys, sizeof(pdev->button_phys));
-+	strlcat(pdev->button_phys, "/input0", sizeof(pdev->button_phys));
-+
- 	pdev->button_dev->name = "PWC snapshot button";
--	phys = kasprintf(GFP_KERNEL,"usb-%s-%s", pdev->udev->bus->bus_name, pdev->udev->devpath);
--	if (!phys) {
--		input_free_device(pdev->button_dev);
--		return -ENOMEM;
--	}
--	pdev->button_dev->phys = phys;
-+	pdev->button_dev->phys = pdev->button_phys;
- 	usb_to_input_id(pdev->udev, &pdev->button_dev->id);
- 	pdev->button_dev->dev.parent = &pdev->udev->dev;
- 	pdev->button_dev->evbit[0] = BIT_MASK(EV_KEY);
-@@ -1853,25 +1845,27 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
- 	rc = input_register_device(pdev->button_dev);
- 	if (rc) {
- 		input_free_device(pdev->button_dev);
--		kfree(pdev->button_dev->phys);
- 		pdev->button_dev = NULL;
--		return rc;
-+		pwc_remove_sysfs_files(pdev->vdev);
-+		goto err_video_unreg;
- 	}
- #endif
- 
- 	return 0;
- 
--err_unreg:
-+err_video_unreg:
- 	if (hint < MAX_DEV_HINTS)
- 		device_hint[hint].pdev = NULL;
- 	video_unregister_device(pdev->vdev);
--err:
--	video_device_release(pdev->vdev); /* Drip... drip... drip... */
--	kfree(pdev); /* Oops, no memory leaks please */
-+	pdev->vdev = NULL;	/* So we don't try to release it below */
-+err_video_release:
-+	video_device_release(pdev->vdev);
-+err_free_mem:
-+	kfree(pdev);
- 	return rc;
- }
- 
--/* The user janked out the cable... */
-+/* The user yanked out the cable... */
- static void usb_pwc_disconnect(struct usb_interface *intf)
- {
- 	struct pwc_device *pdev;
-@@ -1902,7 +1896,7 @@ static void usb_pwc_disconnect(struct usb_interface *intf)
- 	/* Alert waiting processes */
- 	wake_up_interruptible(&pdev->frameq);
- 	/* Wait until device is closed */
--	if(pdev->vopen) {
-+	if (pdev->vopen) {
- 		mutex_lock(&pdev->modlock);
- 		pdev->unplugged = 1;
- 		mutex_unlock(&pdev->modlock);
-@@ -1911,8 +1905,6 @@ static void usb_pwc_disconnect(struct usb_interface *intf)
- 		/* Device is closed, so we can safely unregister it */
- 		PWC_DEBUG_PROBE("Unregistering video device in disconnect().\n");
- 		pwc_cleanup(pdev);
--		/* Free memory (don't set pdev to 0 just yet) */
--		kfree(pdev);
- 
- disconnect_out:
- 		/* search device_hint[] table if we occupy a slot, by any chance */
-diff --git a/drivers/media/video/pwc/pwc.h b/drivers/media/video/pwc/pwc.h
-index 0b658de..57b22b0 100644
---- a/drivers/media/video/pwc/pwc.h
-+++ b/drivers/media/video/pwc/pwc.h
-@@ -259,6 +259,7 @@ struct pwc_device
-    int snapshot_button_status;		/* set to 1 when the user push the button, reset to 0 when this value is read */
- #ifdef CONFIG_USB_PWC_INPUT_EVDEV
-    struct input_dev *button_dev;	/* webcam snapshot button input */
-+   char button_phys[64];
- #endif
- 
-    /*** Misc. data ***/
+
+
+
+
+
+> 
+> Am Dienstag, den 04.08.2009, 09:02 +0200 schrieb Francesco Marangoni:
+> > Hi Hermann,
+> > 
+> > the card works fine on win2000 on another pc.
+> 
+> Ah, fine. Some of them have been reported to become very hot and finally
+> faulty. Maybe you could test it on this PC too with some LIVE linux
+> media.
+> 
+> > The pc with linux installed is a pentium 3 800 mhz with RAM 256 MB: I don't think it's a resources problem because when I launch channels scan ram used is always at 70 MB and CPU is at 25%. 
+> 
+> Should be enough. The NATOMA PCI to PCI quirk is enabled for some faulty
+> motherboards. Usually works then, but you seem to have still parity
+> errors.
+> 
+> > The card becomes warm after the use, but not hot.
+> 
+> The problem is, that at least the digital tuner is not detected. So it
+> is not usable and also not fully powered. Look more carefully at dmesg,
+> if the analog tuner is at least present. Your early version of the card
+> should also have a fan, IIRC.
+> 
+> > What dou You think about errors in compiling v4l-dvb?
+> 
+> http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+> 
+> You follow the instructions for Debian. As already printed, on Ubuntu
+> are some back ported media modules in unusual places. You need to be
+> root to get them removed or have to do it manually to avoid duplicate
+> modules. There have also been problems with an incompatible alsa version
+> there.
+> 
+> > And from output of dmesg | grep saa do You think the card has benn well detected or there is something wrong?
+> 
+> At least the digital tuner is not found at 0x60 and the card can't work.
+> 
+> Have you forced other cards previously, since it also should be auto
+> detected? Wrong tuner initialization code can make i2c unreliable.
+> 
+> You might try to unload the driver starting with saa7134-alsa and
+> saa7134-dvb, eject the card then and wait at least 30 seconds before you
+> give it another try.
+> 
+> You could also try to enable i2c_debug=1 for saa7134. Maybe more errors
+> become visible, dunno.
+> 
+> Cheers,
+> Hermann
+> 
+> 
+> > Thanks a lot for any suggetsion.
+> > 
+> > ---------- Initial Header -----------
+> > 
+> > >From      : "hermann pitton" hermann-pitton@arcor.de
+> > To          : "Francesco Marangoni" fmarangoni@libero.it
+> > Cc          : "linux-media" linux-media@vger.kernel.org
+> > Date      : Tue, 04 Aug 2009 02:21:38 +0200
+> > Subject : Re: Issue with LifeView FlyDVB-T Duo CardBus.
+> > 
+> > 
+> > 
+> > 
+> > 
+> > 
+> > 
+> > > Hi Francesco,
+> > > 
+> > > Am Montag, den 03.08.2009, 23:49 +0200 schrieb Francesco Marangoni:
+> > > > Dear sirs,
+> > > > 
+> > > > I'm not able to make my pcmcia LifeView DVB-T Duo Cardbus working on Ununtu 8.04 LTS kernel 2.6.24.24.
+> > > > 
+> > > > The card seems to be detected but the DVB channel detection fails (using Kaffeine too).
+> > > > 
+> > > > Here the output of some commands: Can Youhelp me?
+> > > > 
+> > > > francesco@ubuntu:~$ lspci
+> > > > 00:00.0 Host bridge: Intel Corporation 440BX/ZX/DX - 82443BX/ZX/DX Host bridge (rev 03)
+> > > > 00:01.0 PCI bridge: Intel Corporation 440BX/ZX/DX - 82443BX/ZX/DX AGP bridge (rev 03)
+> > > > 00:07.0 Bridge: Intel Corporation 82371AB/EB/MB PIIX4 ISA (rev 02)
+> > > > 00:07.1 IDE interface: Intel Corporation 82371AB/EB/MB PIIX4 IDE (rev 01)
+> > > > 00:07.2 USB Controller: Intel Corporation 82371AB/EB/MB PIIX4 USB (rev 01)
+> > > > 00:07.3 Bridge: Intel Corporation 82371AB/EB/MB PIIX4 ACPI (rev 03)
+> > > > 00:0a.0 CardBus bridge: Texas Instruments PCI1420 PC card Cardbus Controller
+> > > > 00:0a.1 CardBus bridge: Texas Instruments PCI1420 PC card Cardbus Controller
+> > > > 00:0b.0 Ethernet controller: 3Com Corporation 3c556 Hurricane CardBus [Cyclone] (rev 10)
+> > > > 00:0b.1 Communication controller: 3Com Corporation Mini PCI 56k Winmodem (rev 10)
+> > > > 00:0d.0 Multimedia audio controller: ESS Technology ES1983S Maestro-3i PCI Audio Accelerator
+> > > > 01:00.0 VGA compatible controller: ATI Technologies Inc Rage Mobility P/M AGP 2x (rev 64)
+> > > > 02:00.0 Multimedia controller: Philips Semiconductors SAA7133/SAA7135 Video Broadcast Decoder (rev d0)
+> > > > 
+> > > > francesco@ubuntu:~$ dmesg | grep saa | more
+> > > > [   46.176353] saa7130/34: v4l2 driver version 0.2.14 loaded
+> > > > [   46.176618] saa7133[0]: quirk: PCIPCI_NATOMA
+> > > > [   46.176628] saa7133[0]: found at 0000:02:00.0, rev: 208, irq: 10, latency: 0, mmio: 0x24000000
+> > > > [   46.176653] saa7133[0]: subsystem: 5168:0502, board: LifeView/Typhoon/Genius FlyDVB-T Duo Cardbus [card=60,insmod option]
+> > > > [   46.176681] saa7133[0]: board init: gpio is 8210000
+> > > > [   46.280562] saa7133[0]: i2c eeprom 00: 68 51 02 05 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+> > > > [   46.280587] saa7133[0]: i2c eeprom 10: 00 ff 22 0f ff 20 ff ff ff ff ff ff ff ff ff ff
+> > > > [   46.280607] saa7133[0]: i2c eeprom 20: 01 40 01 03 03 01 01 03 08 ff 01 aa ff ff ff ff
+> > > > [   46.280627] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > > [   46.280646] saa7133[0]: i2c eeprom 40: ff 25 00 c0 ff 10 07 01 c2 96 00 16 22 15 ff ff
+> > > > [   46.280665] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > > [   46.280685] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > > [   46.280704] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > > [   46.321890] saa7133[0]: registered device video0 [v4l2]
+> > > > [   46.321945] saa7133[0]: registered device vbi0
+> > > > [   46.321996] saa7133[0]: registered device radio0
+> > > > [   46.609615] saa7133[0]/dvb: no tda827x tuner found at addr: 60
+> > > > [   46.609624] DVB: registering new adapter (saa7133[0])
+> > > > [  238.981774] saa7133[0]: dsp access error
+> > > > [  238.981801] saa7133[0]: dsp access error
+> > > > [  238.981820] saa7133[0]: dsp access error
+> > > > [  238.981824] saa7133[0]: dsp access error
+> > > > [  238.981837] saa7133[0]: dsp access error
+> > > > [  238.981841] saa7133[0]: dsp access error
+> > > > [  238.981854] saa7133[0]: dsp access error
+> > > > [  238.981858] saa7133[0]: dsp access error
+> > > > [  238.981871] saa7133[0]: dsp access error
+> > > > [  238.981875] saa7133[0]: dsp access error
+> > > > [  238.981887] saa7133[0]: dsp access error
+> > > > [  238.981892] saa7133[0]: dsp access error
+> > > > [  238.981904] saa7133[0]: dsp access error
+> > > > [  238.981909] saa7133[0]: dsp access error
+> > > > [  238.981921] saa7133[0]: dsp access error
+> > > > [  238.981926] saa7133[0]: dsp access error
+> > > > [  238.981938] saa7133[0]: dsp access error
+> > > > [  238.981942] saa7133[0]: dsp access error
+> > > > [  238.981955] saa7133[0]: dsp access error
+> > > > [  238.981959] saa7133[0]: dsp access error
+> > > > [  238.981972] saa7133[0]/irq[10,76507]: r=0xffffffff s=0xffffffff DONE_RA0 DONE_RA1 DONE_RA2 DONE_RA3 AR PE PWR_ON RDCAP INT
+> > > > ....
+> > > > [  238.993258] saa7133[0]: dsp access error
+> > > > [  238.993263] saa7133[0]: dsp access error
+> > > > [  238.993275] saa7133[0]: dsp access error
+> > > > [  238.993280] saa7133[0]: dsp access error
+> > > > [  238.993292] saa7133[0]: dsp access error
+> > > > [  238.993297] saa7133[0]: dsp access error
+> > > > [  238.993309] saa7133[0]: dsp access error
+> > > > [  238.993314] saa7133[0]: dsp access error
+> > > > [  238.993326] saa7133[0]: dsp access error
+> > > > [  238.993330] saa7133[0]: dsp access error
+> > > > [  238.993343] saa7133[0]: dsp access error
+> > > > [  238.993347] saa7133[0]: dsp access error
+> > > > [  238.993359] saa7133[0]/irq[10,76514]: r=0xffffffff s=0xffffffff DONE_RA0 DONE_RA1 DONE_RA2 DONE_RA3 AR PE PWR_ON RDCAP INT
+> > > > L FIDT MMC TRIG_ERR CONF_ERR LOAD_ERR GPIO16? GPIO18 GPIO22 GPIO23 | RA0=vbi,b,odd,15
+> > > > [  238.993385] saa7133[0]/irq: looping -- clearing PE (parity error!) enable bit
+> > > > [  640.875510] saa7133[0]: quirk: PCIPCI_NATOMA
+> > > > [  640.875520] saa7133[0]: found at 0000:02:00.0, rev: 208, irq: 10, latency: 0, mmio: 0x24000000
+> > > > [  640.875544] saa7133[0]: subsystem: 5168:0502, board: LifeView/Typhoon/Genius FlyDVB-T Duo Cardbus [card=60,insmod option]
+> > > > [  640.875577] saa7133[0]: board init: gpio is 8210000
+> > > > [  641.010947] saa7133[0]: i2c eeprom 00: 68 51 02 05 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+> > > > [  641.010978] saa7133[0]: i2c eeprom 10: 00 ff 22 0f ff 20 ff ff ff ff ff ff ff ff ff ff
+> > > > [  641.010997] saa7133[0]: i2c eeprom 20: 01 40 01 03 03 01 01 03 08 ff 01 aa ff ff ff ff
+> > > > [  641.011016] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > > [  641.011034] saa7133[0]: i2c eeprom 40: ff 25 00 c0 ff 10 07 01 c2 96 00 16 22 15 ff ff
+> > > > [  641.011052] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > > [  641.011070] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > > [  641.011088] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > > [  641.108271] saa7133[0]: registered device video0 [v4l2]
+> > > > [  641.108329] saa7133[0]: registered device vbi0
+> > > > [  641.108378] saa7133[0]: registered device radio0
+> > > > [  641.492916] saa7133[0]/dvb: no tda827x tuner found at addr: 60
+> > > > [  641.492925] DVB: registering new adapter (saa7133[0])
+> > > > 
+> > > > 
+> > > > I did all is described in http://www.linuxtv.org/repo/ but this is the output of Make and Make install:
+> > > > 
+> > > > francesco@ubuntu:~/v4l-dvb$ make
+> > > > make -C /home/francesco/v4l-dvb/v4l 
+> > > > make[1]: Entering directory `/home/francesco/v4l-dvb/v4l'
+> > > > Updating/Creating .config
+> > > > Preparing to compile for kernel version 2.6.24
+> > > > File not found: /lib/modules/2.6.24-24-generic/build/.config at ./scripts/make_kconfig.pl line 32, <IN> line 4.
+> > > > make[1]: *** No rule to make target `.myconfig', needed by `config-compat.h'.  Stop.
+> > > > make[1]: Leaving directory `/home/francesco/v4l-dvb/v4l'
+> > > > make: *** [all] Error 2
+> > > > 
+> > > > francesco@ubuntu:~/v4l-dvb$ make install
+> > > > make -C /home/francesco/v4l-dvb/v4l install
+> > > > make[1]: Entering directory `/home/francesco/v4l-dvb/v4l'
+> > > > -e 
+> > > > Removing obsolete files from /lib/modules/2.6.24-24-generic/kernel/drivers/media/video:
+> > > > 
+> > > > -e 
+> > > > Removing obsolete files from /lib/modules/2.6.24-24-generic/kernel/drivers/media/dvb/cinergyT2:
+> > > > 
+> > > > -e 
+> > > > Removing obsolete files from /lib/modules/2.6.24-24-generic/kernel/drivers/media/dvb/frontends:
+> > > > 
+> > > > 
+> > > > Hmm... distro kernel with a non-standard place for module backports detected.
+> > > > Please always prefer to use vanilla upstream kernel with V4L/DVB
+> > > > I'll try to remove old/obsolete LUM files from /lib/modules/2.6.24-24-generic/ubuntu/media:
+> > > > Installing kernel modules under /lib/modules/2.6.24-24-generic/kernel/drivers/media/:
+> > > > /sbin/depmod -a 2.6.24-24-generic 
+> > > > FATAL: Could not open /lib/modules/2.6.24-24-generic/modules.dep.temp for writing: Permission denied
+> > > > make[1]: *** [media-install] Error 1
+> > > > make[1]: Leaving directory `/home/francesco/v4l-dvb/v4l'
+> > > > make: *** [install] Error 2
+> > > > francesco@ubuntu:~/v4l-dvb$ 
+> > > > 
+> > > > Any suggestions?
+> > > > 
+> > > > Thanks.
+> > > 
+> > > did it ever work for you or does it still on something?
+> > > 
+> > > First impression is, that the tuner chip melt down.
+> > > 
+> > > If the card was in for while, with the driver loaded, is it still very
+> > > hot close to the antenna connector, if ejected then?
+> > > 
+> > > The first generations of the tuner chips have been good enough to fry
+> > > eggs on them.
+> > > 
+> > > Cheers,
+> > > Hermann
+> > > 
+> 
+> 
+> 
+
