@@ -1,66 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:53207 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752374AbZHITPw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Aug 2009 15:15:52 -0400
-Date: Sun, 9 Aug 2009 21:16:55 +0200
-From: Markus Dahms <mad@automagically.de>
-To: linux-media@vger.kernel.org
-Subject: MSI DigiVOX mini II 3.0 (rtl2831u)
-Message-ID: <20090809211655.48b1ffbf@angua.madsworld.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from znsun1.ifh.de ([141.34.1.16]:42004 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933091AbZHEIfM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Aug 2009 04:35:12 -0400
+Date: Wed, 5 Aug 2009 09:51:22 +0200 (CEST)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Akihiro TSUKADA <tskd2@yahoo.co.jp>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	olgrenie@dibcom.fr
+Subject: Re: RFC: adding ISDB-T/ISDB-Tsb to DVB-API 5
+In-Reply-To: <4A78F3E6.2090708@yahoo.co.jp>
+Message-ID: <alpine.LRH.1.10.0908050945190.6890@pub1.ifh.de>
+References: <alpine.LRH.1.10.0908031943220.8512@pub1.ifh.de> <alpine.LRH.1.10.0908041617050.8512@pub1.ifh.de> <4A78F3E6.2090708@yahoo.co.jp>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi there,
+Hi Akihiro,
 
-I got the mentioned DVB-T USB stick and now try to get it working with
-Linux. What I found out so far (could not find much about this dongle):
+thanks for commenting.
 
-* image of PCB: http://automagically.de/images/msi_digivox_mini2_v3_01.jpg
-* RTL2832U DVB-T/USB chip
-* FCI FC2580 tuner chip (Win driver indicates it _may_ be compatible to
-  MT2266) - the default MXL5005 is most likely wrong
-* remote control (with NEC coding according to Win driver)
-* excerpt of kernel messages with USB VID/PID added to the
-  rtl2831-r2 driver below (and debug enabled)
+On Wed, 5 Aug 2009, Akihiro TSUKADA wrote:
 
-hopefully this helps to improve the driver...
+> Hi Patrick,
+>
+> Thank you for your effort to add support for ISDB-T/S.
+> I've skimmed through the ARIB standard before,
+> but it is too complicated for me to understand well enough.
+> So this is not a comment for the API extension itself,
+> but for the document part.
+>
+> Some of the parameters are currently (and probably will stay)
+> fixed or not used  according to the "operational guidelines".
 
-Markus
+Yeah, that's usually the case with complex standards. For DVB-T in theory 
+1500 parameter-combinations are possible, but only 5-10 different are used 
+in the world. (For ISDB-T the number of possible combinations are more 
+than 100000, iirc).
 
-PS: does anybody know why there are rtd2831u and haihua device lists in
-    rtd2830u.c, I could not really find a difference...
+> For example, DQPSK is not used at all (if I read correctly).
+> These guidelines are defined in ARIB TR-B14 for ISDB-T and
+> in ARIB TR-B15 for ISDB-S respectively.
 
-Aug  9 13:01:22 angua kernel: [ 9186.169355] dvb-usb: found a 'MSI DigiVOX mini II 3.0' in warm state.
-Aug  9 13:01:22 angua kernel: [ 9186.169373] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-Aug  9 13:01:22 angua kernel: [ 9186.171681] DVB: registering new adapter (MSI DigiVOX mini II 3.0)
-Aug  9 13:01:22 angua kernel: [ 9186.174120] +rtd2831u_fe_attach
-Aug  9 13:01:22 angua kernel: [ 9186.174203] -rtd2831u_fe_attach
-Aug  9 13:01:22 angua kernel: [ 9186.174212] DVB: registering adapter 1 frontend 0 (Realtek RTL2831 DVB-T)...
-Aug  9 13:01:22 angua kernel: [ 9186.174453] input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:12.2/usb1/1-6/input/input9
-Aug  9 13:01:22 angua kernel: [ 9186.174524] dvb-usb: schedule remote query interval to 300 msecs.
-Aug  9 13:01:22 angua kernel: [ 9186.174534] dvb-usb: MSI DigiVOX mini II 3.0 successfully initialized and connected.
-Aug  9 13:01:22 angua kernel: [ 9186.174588] usbcore: registered new interface driver dvb_usb_rtd2831u
-Aug  9 13:01:22 angua kernel: [ 9186.468036] Selected IR type 0x00
-Aug  9 13:01:22 angua kernel: [ 9186.492447] Selected IR type 0x00
-Aug  9 13:01:30 angua kernel: [ 9194.585514]  ########################## ver 0.5 rtd2830_init : init 
-Aug  9 13:01:30 angua kernel: [ 9194.587150] #####################################################TD2831_RMAP_INDEX_USB_STAT=0x3
-Aug  9 13:01:30 angua kernel: [ 9194.587156] HIGH SPEED
-Aug  9 13:01:30 angua kernel: [ 9194.595511] #####################################################RTD2831_RMAP_INDEX_SYS_GPO=0x18
-Aug  9 13:01:30 angua kernel: [ 9194.600389] #####################################################RTD2831_RMAP_INDEX_SYS_GPO=0x9
-Aug  9 13:01:30 angua kernel: [ 9194.606884] #####################################################RTD2831_RMAP_INDEX_SYS_GPO=0xd
-Aug  9 13:01:30 angua kernel: [ 9194.668393] rtd2831_tuner_register_read: ( offset , data ) = ( 0x0 , 0x0 ) size != -32 bytes 
-Aug  9 13:01:30 angua kernel: [ 9194.668414] This device has the MXL5005 onboard.....(Default)
-Aug  9 13:01:30 angua kernel: [ 9194.675514] rtd2831_tuner_register_write: ( offset , data ) = ( 0x9 , 0xb1 ) size != -32 bytes
-Aug  9 13:01:30 angua kernel: [ 9194.676191] + rtd2830_set_parameters
-Aug  9 13:01:30 angua kernel: [ 9194.776635] rtd2831_tuner_register_write: ( offset , data ) = ( 0x35 , 0x94 ) size != -32 bytes
-Aug  9 13:01:30 angua kernel: [ 9194.883622]   rtd2830_read_status ******FSM = 9 , ber = 19616******
-Aug  9 13:01:31 angua kernel: [ 9195.090595]   rtd2830_read_status ******FSM = 9 , ber = 19616******
-Aug  9 13:01:31 angua kernel: [ 9195.297452]   rtd2830_read_status ******FSM = 2 , ber = 19616******
-Aug  9 13:01:31 angua kernel: [ 9195.504428]   rtd2830_read_status ******FSM = 9 , ber = 19616******
-Aug  9 13:01:31 angua kernel: [ 9195.711414]   rtd2830_read_status ******FSM = 3 , ber = 19616******
-Aug  9 13:01:31 angua kernel: [ 9195.782901]   rtd2830_read_status ******FSM = 3 , ber = 19616******
-Aug  9 13:01:31 angua kernel: [ 9195.782909] + rtd2830_set_parameters
+Hmm, I'm actually not working on ISDB-S (Satelite), but on ISDB-Tsb 
+(sound-broadcasting or also known as 1seg) which is based on ISDB-T's 
+modulation principles (COFDM, segment etc).
+
+> So, including these two TRs (in additino to ARIB STD-B31)
+> as a reference in the document may help readers.
+
+I'll at TR-B14 only.
+
+thanks for the comments,
+--
+
+Patrick Boettcher - Kernel Labs
+http://www.kernellabs.com/
