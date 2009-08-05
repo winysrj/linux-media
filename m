@@ -1,119 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tanaris.0x539.de ([78.46.103.116]:33014 "EHLO tanaris.0x539.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933519AbZHWMuf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2009 08:50:35 -0400
-Received: from kelgar.0x539.de ([85.10.226.115])
-	by tanaris.0x539.de with esmtps (TLS1.0:RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69)
-	(envelope-from <pkern@kelgar.0x539.de>)
-	id 1MfCM5-0002NK-NV
-	for linux-media@vger.kernel.org; Sun, 23 Aug 2009 14:39:29 +0200
-Received: from pkern by kelgar.0x539.de with local (Exim 4.69)
-	(envelope-from <pkern@kelgar.0x539.de>)
-	id 1MfCM1-0006cl-KS
-	for linux-media@vger.kernel.org; Sun, 23 Aug 2009 14:39:25 +0200
-Date: Sun, 23 Aug 2009 14:39:25 +0200
-From: Philipp Kern <pkern@debian.org>
-To: linux-media@vger.kernel.org
-Subject: Suspend with saa7146/TT-Budget-C-CI PCI
-Message-ID: <20090823123925.GA24805@kelgar.0x539.de>
+Received: from mail-yw0-f183.google.com ([209.85.211.183]:49038 "EHLO
+	mail-yw0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752573AbZHEUWh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Aug 2009 16:22:37 -0400
+Received: by ywh13 with SMTP id 13so478459ywh.15
+        for <linux-media@vger.kernel.org>; Wed, 05 Aug 2009 13:22:37 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="7AUc2qLy4jB3hD7Z"
-Content-Disposition: inline
+In-Reply-To: <4A79E6B7.5090408@iol.it>
+References: <4A6F8AA5.3040900@iol.it> <4A739DD6.8030504@iol.it>
+	 <829197380908032002v196384c9oa0aff78627959db@mail.gmail.com>
+	 <4A79320B.7090401@iol.it>
+	 <829197380908050627u892b526wc5fb8ef1f6be6b53@mail.gmail.com>
+	 <4A79CEBD.1050909@iol.it>
+	 <829197380908051134x5fda787fx5bf9adf786aa739e@mail.gmail.com>
+	 <4A79E07F.1000301@iol.it>
+	 <829197380908051251x6996414ek951d259373401dd7@mail.gmail.com>
+	 <4A79E6B7.5090408@iol.it>
+Date: Wed, 5 Aug 2009 16:22:36 -0400
+Message-ID: <829197380908051322r1382d97dtd5e7a78f99438cc9@mail.gmail.com>
+Subject: Re: Terratec Cinergy HibridT XS
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: efa@iol.it
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wed, Aug 5, 2009 at 4:08 PM, Valerio Messina<efa@iol.it> wrote:
+> Devin Heitmueller ha scritto:
+>>
+>> I don't know what the process is for uninstalling the mcentral.de
+>> em28xx driver.  Probably involves removing that directory and
+>> re-running depmod or something.
+>
+> ok, I run:
+> $ sudo mv /lib/modules/2.6.28-14-generic/empia/ ~/temp
+> $ sudo depmod -a
+>
+> then connected the TVtuner, Kaffeine identify the TV tuner and the
+> video/audio is OK.
+> And now IR send digit to text editor and Kaffeine.
+>
+> thanks
+> Valerio
 
---7AUc2qLy4jB3hD7Z
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Great.  I'll get a PULL request issued so this can get into the
+mainline.  Thanks for testing.
 
-Hi,
+Devin
 
-I have to admit that this particular PCI card (see below for lspci) never
-came back properly from suspend.  Nowadays it no longer floods the kernel
-message buffer when coming back from sleep, but only if the PCI adapter
-is used afterwards and even then it now stops when I kill the application.
-So it's time to debug it a bit, I guess.
-
-When trying to use the DVB adapter from kaffeine after suspend I am greeted
-with this in dmesg:
-
-[ 3016.796083] stv0297_writereg: writereg error (reg == 0x80, val == 0x01, ret == -121)
-[ 3016.856103] stv0297_writereg: writereg error (reg == 0x80, val == 0x00, ret == -121)
-[ 3016.916111] stv0297_writereg: writereg error (reg == 0x81, val == 0x01, ret == -121)
-[ 3016.976091] stv0297_writereg: writereg error (reg == 0x81, val == 0x00, ret == -121)
-[ 3017.036114] stv0297_writereg: writereg error (reg == 0x00, val == 0x09, ret == -121)
-[ 3017.096109] stv0297_writereg: writereg error (reg == 0x01, val == 0x69, ret == -121)
-[ 3017.156112] stv0297_writereg: writereg error (reg == 0x03, val == 0x00, ret == -121)
-[ 3017.216121] stv0297_writereg: writereg error (reg == 0x04, val == 0x00, ret == -121)
-[ 3017.276112] stv0297_writereg: writereg error (reg == 0x07, val == 0x00, ret == -121)
-[ 3017.336123] stv0297_writereg: writereg error (reg == 0x08, val == 0x00, ret == -121)
-
-This looks very much like dvbc_philips_tdm1316l_inittab.  -121 suggests
-EREMOTEIO as failure reason.  I guess this means that the i2c device
-stopped accepting requests and needs a reset?
-
-The relevant frontend code is this:
-
-    ret = i2c_transfer(state->i2c, &msg, 1);
-
-    if (ret != 1)
-        dprintk("%s: writereg error (reg == 0x%02x, val == 0x%02x, "
-                "ret == %i)\n", __func__, reg, data, ret);
-
-Is it possible that the i2c adapter is only initialized on module insertion,
-but needs a reinit after coming back from suspend to clear this EREMOTEIO
-failure?
-
-Please Cc me on replies.
-
-Kind regards,
-Philipp Kern
-
-
-lspci -vv:
-
-03:07.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-	Subsystem: Technotrend Systemtechnik GmbH Device 1010
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
-	Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
-	Latency: 32 (3750ns min, 9500ns max)
-	Interrupt: pin A routed to IRQ 21
-	Region 0: Memory at fdcff000 (32-bit, non-prefetchable) [size=512]
-	Kernel driver in use: budget_ci dvb
-
-dmesg of saa7146 init:
-
-[   21.641493] saa7146: register extension 'budget_ci dvb'.
-[   21.641655]   alloc irq_desc for 21 on node 0
-[   21.641658]   alloc kstat_irqs on node 0
-[   21.641670] budget_ci dvb 0000:03:07.0: PCI INT A -> GSI 21 (level, low) -> IRQ 21
-[   21.641753] IRQ 21/: IRQF_DISABLED is not guaranteed on shared IRQs
-[   21.641819] saa7146: found saa7146 @ mem ffffc9000064e000 (revision 1, irq 21) (0x13c2,0x1010).
-[   21.641893] saa7146 (0): dma buffer size 192512
-[   21.641929] DVB: registering new adapter (TT-Budget-C-CI PCI)
-[   21.642072] input: HDA Digital PCBeep as /devices/pci0000:00/0000:00:14.2/input/input7
-[   21.646355] HDA Intel 0000:01:05.1: PCI INT B -> GSI 19 (level, low) -> IRQ 19
-[   21.646432] HDA Intel 0000:01:05.1: setting latency timer to 64
-[   21.677036] adapter has MAC addr = 00:d0:5c:04:78:43
-[   21.677407] input: Budget-CI dvb ir receiver saa7146 (0) as /devices/pci0000:00/0000:00:14.4/0000:03:07.0/input/input8
-[   21.932904] DVB: registering adapter 0 frontend 0 (ST STV0297 DVB-C)...
-
-
---7AUc2qLy4jB3hD7Z
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkqROHwACgkQ7Ro5M7LPzdhY+wCfbMgSZvgZGq1NxkeftzBmINeb
-JJYAn3rT11Qbw8Zl49VeBDQSCQmQCtu7
-=iUiC
------END PGP SIGNATURE-----
-
---7AUc2qLy4jB3hD7Z--
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
