@@ -1,94 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cp-out8.libero.it ([212.52.84.108]:57818 "EHLO
-	cp-out8.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751621AbZHES0H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Aug 2009 14:26:07 -0400
-Received: from [192.168.1.21] (151.59.219.5) by cp-out8.libero.it (8.5.107) (authenticated as efa@iol.it)
-        id 4A79A60C000356D4 for linux-media@vger.kernel.org; Wed, 5 Aug 2009 20:26:06 +0200
-Message-ID: <4A79CEBD.1050909@iol.it>
-Date: Wed, 05 Aug 2009 20:26:05 +0200
-From: Valerio Messina <efa@iol.it>
-Reply-To: efa@iol.it
+Received: from perceval.irobotique.be ([92.243.18.41]:50828 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934539AbZHEOgJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Aug 2009 10:36:09 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Subject: Re: Is get_user_pages() enough to prevent pages from being swapped out ?
+Date: Wed, 5 Aug 2009 16:37:57 +0200
+Cc: Robin Holt <holt@sgi.com>, linux-kernel@vger.kernel.org,
+	"v4l2_linux" <linux-media@vger.kernel.org>
+References: <200907291123.12811.laurent.pinchart@skynet.be> <20090730113951.GA2763@sgi.com> <Pine.LNX.4.64.0907301248090.27155@sister.anvils>
+In-Reply-To: <Pine.LNX.4.64.0907301248090.27155@sister.anvils>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Terratec Cinergy HibridT XS
-References: <4A6F8AA5.3040900@iol.it>	 <829197380907281744o5c3a7eb7rd0d2cb8c53cd646f@mail.gmail.com>	 <4A7140DD.7040405@iol.it>	 <829197380907300533l488acd0bt2188c4c599417966@mail.gmail.com>	 <4A729117.6010001@iol.it>	 <829197380907310109r1ca7231cqd86803f0fe640904@mail.gmail.com>	 <4A739DD6.8030504@iol.it>	 <829197380908032002v196384c9oa0aff78627959db@mail.gmail.com>	 <4A79320B.7090401@iol.it> <829197380908050627u892b526wc5fb8ef1f6be6b53@mail.gmail.com>
-In-Reply-To: <829197380908050627u892b526wc5fb8ef1f6be6b53@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200908051637.58276.laurent.pinchart@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
-> Which distro is this
+Hi Hugh,
 
-Ubuntu 9.04
-kernel 2.6.28-14-generic
+I've spent the last few days "playing" with get_user_pages() and mlock() and 
+got some interesting results. It turned out that cache coherency comes into 
+play at some point, making the overall problem more complex.
 
-> and have you updated the kernel since checking out the code?
+Here's my current setup:
 
-no
+- OMAP processor, based on an ARMv7 core
+- MMU and IOMMU
+- VIPT non-aliasing data cache
+- video capture driver that transfers data to memory using DMA
+- video capture application that pass userspace pointers to video buffers to 
+the driver
 
-> It's also possible if you were playing around with the mcentral
-> repository that both versions of em28xx are still installed.
+My goal is to make sure that, upon DMA completion, the correct data will be 
+available to the userspace application.
 
-Mauro Carvalho Chehab wrote:
-> Try a make rminstall. This is required with Ubuntu, since it installs
-> drivers/media at the wrong dir
+The first problem was to pin pages to memory, to make sure they will not be 
+freed when the DMA is in progress. videobug-dma-sg uses get_user_pages() for 
+that, and you nicely explained to me why this is enough.
 
-I disconnected the TV tuner, then
-$ sudo make unload
-$ sudo make rminstall
-in the three following subdirectories:
-v4l-dvb
-v4l-dvb-kernel  (mcentral hg copy)
-ttxs-remote
+The second problem is to ensure cache coherency. As the userspace application 
+will read data from the video buffers, those buffers will end up being cached 
+in the processor's data cache. The driver does need to invalidate the cache 
+before starting the DMA operation (userspace could in theory write to the 
+buffers, but the data will be overwritten by DMA anyway, so there's no need to 
+clean the cache).
 
-Then follow instructions from Devin:
-hg clone http://kernellabs.com/hg/~dheitmueller/ttxs-remote
-cd ttxs-remote
-make
-sudo make install
-reboot
+As the cache is of the VIPT (Virtual Index Physical Tag) type, cache 
+invalidation can either be done globally (in which case the cache is flushed 
+instead of being invalidated) or based on virtual addresses. In the last case 
+the processor will need to look physical addresses up, either in the TLB or 
+through hardware table walk.
 
-No error on compile and install time.
-But same results, Kaffeine do not see the TVtuner, and dmesg report this 
-on USB connect:
+I can see three solutions to the DMA/cache problem.
 
-Aug  5 20:12:16 01ath3200 kernel: [  182.312039] usb 1-3: new high speed 
-USB device using ehci_hcd and address 3
-Aug  5 20:12:16 01ath3200 kernel: [  182.497009] usb 1-3: configuration 
-#1 chosen from 1 choice
-Aug  5 20:12:16 01ath3200 kernel: [  182.622103] usbcore: registered new 
-interface driver snd-usb-audio
-Aug  5 20:12:17 01ath3200 kernel: [  182.810124] Linux video capture 
-interface: v2.00
-Aug  5 20:12:17 01ath3200 kernel: [  182.831714] em28xx: disagrees about 
-version of symbol v4l_compat_translate_ioctl
-Aug  5 20:12:17 01ath3200 kernel: [  182.831725] em28xx: Unknown symbol 
-v4l_compat_translate_ioctl
-Aug  5 20:12:17 01ath3200 kernel: [  182.835363] em28xx: disagrees about 
-version of symbol video_unregister_device
-Aug  5 20:12:17 01ath3200 kernel: [  182.835370] em28xx: Unknown symbol 
-video_unregister_device
-Aug  5 20:12:17 01ath3200 kernel: [  182.835754] em28xx: disagrees about 
-version of symbol video_device_alloc
-Aug  5 20:12:17 01ath3200 kernel: [  182.835759] em28xx: Unknown symbol 
-video_device_alloc
-Aug  5 20:12:17 01ath3200 kernel: [  182.835944] em28xx: disagrees about 
-version of symbol video_register_device
-Aug  5 20:12:17 01ath3200 kernel: [  182.835949] em28xx: Unknown symbol 
-video_register_device
-Aug  5 20:12:17 01ath3200 kernel: [  182.836988] em28xx: disagrees about 
-version of symbol video_usercopy
-Aug  5 20:12:17 01ath3200 kernel: [  182.836993] em28xx: Unknown symbol 
-video_usercopy
-Aug  5 20:12:17 01ath3200 kernel: [  182.837178] em28xx: disagrees about 
-version of symbol video_device_release
-Aug  5 20:12:17 01ath3200 kernel: [  182.837183] em28xx: Unknown symbol 
-video_device_release
-... (repeated 3 times)
-Aug  5 20:12:18 01ath3200 pulseaudio[4364]: alsa-util.c: Cannot find 
-fallback mixer control "Mic" or mixer control is no combination of 
-switch/volume.
+1. Flushing the whole data cache right before starting the DMA transfer. 
+There's no API for that in the ARM architecture, so a whole I+D cache is 
+required. This is quite costly, we're talking about around 30 flushes per 
+second, but it doesn't involve the MMU. That's the solution that I currently 
+use.
+
+2. Invalidating only the cache lines that store video buffer data. This 
+requires a TLB lookup or a hardware table walk, so the userspace application 
+MM context needs to be available (no problem there as where's flushing in 
+userspace context) and all pages need to be mapped properly. This can be a 
+problem as, as you pointed out, pages can still be unmapped from the userspace 
+context after get_user_pages() returns. I have experienced one oops due to a 
+kernel paging request failure:
+
+	Unable to handle kernel paging request at virtual address 44e12000
+	pgd = c8698000
+	[44e12000] *pgd=8a4fd031, *pte=8cfda1cd, *ppte=00000000
+	Internal error: Oops: 817 [#1] PREEMPT
+	PC is at v7_dma_inv_range+0x2c/0x44
+
+Fixing this requires more investigation, and I'm not sure how to proceed to 
+find out if the page fault is really caused by pages being unmapped from the 
+userspace context. Help would be appreciated.
+
+3. Mark the pages as non-cacheable. Depending on how the buffers are then used 
+by userspace, the additional cache misses might destroy any benefit I would 
+get from not flushing the cache before DMA. I'm not sure how to mark a bunch 
+of pages as non-cacheable though. What usually happens is that video drivers 
+allocate DMA-coherent memory themselves, but in this case I need to deal with 
+an arbitrary buffer allocated by userspace. If someone has any experience with 
+this, it would be appreciated.
+
+Regards,
+
+Laurent Pinchart
 
