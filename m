@@ -1,175 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.153]:29096 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750878AbZHKAr2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Aug 2009 20:47:28 -0400
-Received: by fg-out-1718.google.com with SMTP id e12so533752fga.17
-        for <linux-media@vger.kernel.org>; Mon, 10 Aug 2009 17:47:27 -0700 (PDT)
-Date: Tue, 11 Aug 2009 10:47:29 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: linux-media@vger.kernel.org, video4linux-list@redhat.com
-Subject: [PATH] Add RDS config for BeholdTV cards
-Message-ID: <20090811104729.4fe66a71@glory.loctelecom.ru>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/RNyOv2V0YQRN+P_QY8XA7DU"
+Received: from cp-out10.libero.it ([212.52.84.110]:52934 "EHLO
+	cp-out10.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753019AbZHEWtc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Aug 2009 18:49:32 -0400
+Received: from [192.168.1.21] (151.59.219.5) by cp-out10.libero.it (8.5.107) (authenticated as efa@iol.it)
+        id 4A7587E000520A69 for linux-media@vger.kernel.org; Thu, 6 Aug 2009 00:49:31 +0200
+Message-ID: <4A7A0C7A.3010806@iol.it>
+Date: Thu, 06 Aug 2009 00:49:30 +0200
+From: Valerio Messina <efa@iol.it>
+Reply-To: efa@iol.it
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: Terratec Cinergy HibridT XS
+References: <4A6F8AA5.3040900@iol.it> <4A79320B.7090401@iol.it>	 <829197380908050627u892b526wc5fb8ef1f6be6b53@mail.gmail.com>	 <4A79CEBD.1050909@iol.it>	 <829197380908051134x5fda787fx5bf9adf786aa739e@mail.gmail.com>	 <4A79E07F.1000301@iol.it>	 <829197380908051251x6996414ek951d259373401dd7@mail.gmail.com>	 <4A79E6B7.5090408@iol.it>	 <829197380908051322r1382d97dtd5e7a78f99438cc9@mail.gmail.com>	 <4A79FC43.6000402@iol.it> <829197380908051451j6590db20l7268d34bd4b8342a@mail.gmail.com>
+In-Reply-To: <829197380908051451j6590db20l7268d34bd4b8342a@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_/RNyOv2V0YQRN+P_QY8XA7DU
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Devin Heitmueller ha scritto:
+> On Wed, Aug 5, 2009 at 5:40 PM, Valerio Messina<efa@iol.it> wrote:
+>> 1 - On/off button on the IR as now, send a command to the desktop to start
+>> the shutdown, reboot, suspend or hybernate window. To me should send
+>> something to the active window only, like an ALT+F4 to close the windows
+>> (for example Kaffeine).
+> 
+> This is typically controlled by your application or the desktop
+> environment.  The on/off is mapped the same across all remote
+> controls.
 
-Hi All.
+and seems mapped the same on all applications
 
-Add config of RDS part for the BeholdTV tuners.
+> The map that I committed in does have all the keys mapped to input
+> event codes.  You would need to reconfigure your input subsystem to
+> point the event codes to some other function.
 
-diff -r e72c463783ab linux/drivers/media/video/saa7134/saa7134-cards.c
---- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Sat Aug 08 03:28:41 2009 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Tue Aug 11 05:37:18 2009 +1000
-@@ -4120,6 +4120,7 @@
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
-+		.rds_addr 	= 0x10,
- 		.tda9887_conf   = TDA9887_PRESENT,
- 		.gpiomask       = 0x00008000,
- 		.inputs         = {{
-@@ -4184,6 +4185,7 @@
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
-+		.rds_addr 	= 0x10,
- 		.tda9887_conf   = TDA9887_PRESENT,
- 		.gpiomask       = 0x00008000,
- 		.inputs         = {{
-@@ -4214,6 +4216,7 @@
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
-+		.rds_addr 	= 0x10,
- 		.tda9887_conf   = TDA9887_PRESENT,
- 		.gpiomask       = 0x00008000,
- 		.inputs         = {{
-@@ -4389,6 +4392,7 @@
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
-+		.rds_addr 	= 0x10,
- 		.tda9887_conf   = TDA9887_PRESENT,
- 		.inputs         = {{
- 			.name = name_tv,
-@@ -4417,6 +4421,7 @@
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
-+		.rds_addr 	= 0x10,
- 		.tda9887_conf   = TDA9887_PRESENT,
- 		.inputs         = {{
- 			.name = name_tv,
-@@ -4445,6 +4450,7 @@
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
-+		.rds_addr 	= 0x10,
- 		.tda9887_conf   = TDA9887_PRESENT,
- 		.inputs         = {{
- 			.name = name_tv,
-@@ -4473,6 +4479,7 @@
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
-+		.rds_addr 	= 0x10,
- 		.tda9887_conf   = TDA9887_PRESENT,
- 		.inputs         = {{
- 			.name = name_tv,
-@@ -4579,6 +4586,7 @@
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
-+		.rds_addr 	= 0x10,
- 		.empress_addr 	= 0x20,
- 		.tda9887_conf   = TDA9887_PRESENT,
- 		.inputs         = { {
+the channel up/down, EPG, Teletext and circled "i" on the remote does 
+nothing.
 
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
-
-
-With my best regards, Dmitry.
---MP_/RNyOv2V0YQRN+P_QY8XA7DU
-Content-Type: text/x-patch; name=beholdtv_rds.patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=beholdtv_rds.patch
-
-diff -r e72c463783ab linux/drivers/media/video/saa7134/saa7134-cards.c
---- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Sat Aug 08 03:28:41 2009 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Tue Aug 11 05:37:18 2009 +1000
-@@ -4120,6 +4120,7 @@
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
-+		.rds_addr 	= 0x10,
- 		.tda9887_conf   = TDA9887_PRESENT,
- 		.gpiomask       = 0x00008000,
- 		.inputs         = {{
-@@ -4184,6 +4185,7 @@
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
-+		.rds_addr 	= 0x10,
- 		.tda9887_conf   = TDA9887_PRESENT,
- 		.gpiomask       = 0x00008000,
- 		.inputs         = {{
-@@ -4214,6 +4216,7 @@
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
-+		.rds_addr 	= 0x10,
- 		.tda9887_conf   = TDA9887_PRESENT,
- 		.gpiomask       = 0x00008000,
- 		.inputs         = {{
-@@ -4389,6 +4392,7 @@
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
-+		.rds_addr 	= 0x10,
- 		.tda9887_conf   = TDA9887_PRESENT,
- 		.inputs         = {{
- 			.name = name_tv,
-@@ -4417,6 +4421,7 @@
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
-+		.rds_addr 	= 0x10,
- 		.tda9887_conf   = TDA9887_PRESENT,
- 		.inputs         = {{
- 			.name = name_tv,
-@@ -4445,6 +4450,7 @@
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
-+		.rds_addr 	= 0x10,
- 		.tda9887_conf   = TDA9887_PRESENT,
- 		.inputs         = {{
- 			.name = name_tv,
-@@ -4473,6 +4479,7 @@
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
-+		.rds_addr 	= 0x10,
- 		.tda9887_conf   = TDA9887_PRESENT,
- 		.inputs         = {{
- 			.name = name_tv,
-@@ -4579,6 +4586,7 @@
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
-+		.rds_addr 	= 0x10,
- 		.empress_addr 	= 0x20,
- 		.tda9887_conf   = TDA9887_PRESENT,
- 		.inputs         = { {
-
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
-
---MP_/RNyOv2V0YQRN+P_QY8XA7DU--
+Valerio
