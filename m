@@ -1,80 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60456 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750825AbZHKFZl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2009 01:25:41 -0400
-Date: Mon, 10 Aug 2009 22:25:17 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
+Received: from mail-ew0-f214.google.com ([209.85.219.214]:56109 "EHLO
+	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934138AbZHEK4L convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Aug 2009 06:56:11 -0400
+Received: by ewy10 with SMTP id 10so403ewy.37
+        for <linux-media@vger.kernel.org>; Wed, 05 Aug 2009 03:56:10 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <alpine.LRH.2.00.0908051054570.11085@server50105.uk2net.com>
+References: <42619c130908040607h13afb69exe74145cd4ec4fc1e@mail.gmail.com>
+	 <alpine.DEB.2.01.0908050244070.29385@ybpnyubfg.ybpnyqbznva>
+	 <42619c130908042315i11e84df1m462802482c4cbf79@mail.gmail.com>
+	 <alpine.LRH.2.00.0908051054570.11085@server50105.uk2net.com>
+Date: Wed, 5 Aug 2009 12:56:10 +0200
+Message-ID: <42619c130908050356i1ddb0b14p7f12966229cddbfd@mail.gmail.com>
+Subject: Re: [linux-dvb] Recieving DVB-C with DVB-T units
+From: =?ISO-8859-1?Q?Christian_Watteng=E5rd?= <cwattengard@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: bugzilla-daemon@bugzilla.kernel.org,
-	bugme-daemon@bugzilla.kernel.org, strakh@ispras.ru
-Subject: Re: [Bugme-new] [Bug 13951] New: in function device_authorization
- mutex is not released on error path.
-Message-Id: <20090810222517.aff70402.akpm@linux-foundation.org>
-In-Reply-To: <bug-13951-10286@http.bugzilla.kernel.org/>
-References: <bug-13951-10286@http.bugzilla.kernel.org/>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Cc: linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wed, Aug 5, 2009 at 11:59 AM, Tim Williams<tmw@autotrain.org> wrote:
+> On Wed, 5 Aug 2009, Christian Wattengård wrote:
+>
+>> Ok. Too bad. Then why are DVB-T units, that needs more technology,
+>> half the price of DVB-C units... Annoys me... :)
+>
+> That's probably down to economies of scale. Most people who have cable will
+> have been supplied with a receiver box by their cable company, so buying a
+> PCI/USB card for the computer will be an addtional option for most cable
+> users, that the majority don't want/need. Where as for DVB-T you pick your
+> own equipment at the shop, so you may well go for the PCI/USB adapter as the
+> first option.
 
-(switched to email.  Please respond via emailed reply-to-all, not via the
-bugzilla web interface).
+That beeing said. What is currently the cheapest availible, and
+supported, DVB-C USB/PCI unit availible?
+We have the Hauppauge 930c for 650 NOK here now (about €75), and I
+have seen the Satelco cards on dvbshop for €55. But the shipping to
+Norway from dvbshop (which I believe is in germany) is more than what
+makes it valuable.
 
-On Mon, 10 Aug 2009 08:16:08 GMT bugzilla-daemon@bugzilla.kernel.org wrote:
-
-> http://bugzilla.kernel.org/show_bug.cgi?id=13951
-> 
->            Summary: in function device_authorization mutex is not released
->                     on  error  path.
->            Product: Drivers
->            Version: 2.5
->     Kernel Version: 2.6.30
->           Platform: All
->         OS/Version: Linux
->               Tree: Mainline
->             Status: NEW
->           Severity: normal
->           Priority: P1
->          Component: Video(Other)
->         AssignedTo: drivers_video-other@kernel-bugs.osdl.org
->         ReportedBy: strakh@ispras.ru
->         Regression: No
-> 
-> 
-> In ./drivers/media/video/hdpvr/hdpvr-core.c in function 
-> device authorization: 
->                 If after mutex lock (line 4) usb control msg returns ret!=46 we go to 
-> label 
-> error. In this case before exit from function mutex must be         unlocked.
-> 
-> 01) static int device authorization(struct hdpvr device *dev)
-> 02) {
-> 03) ............
-> 04)             mutex lock(&dev->usbc mutex);                                                      
-> 05)            ret = usb control msg(dev->udev,
-> 06)                                              usb rcvctrlpipe(dev->udev, 0),
-> 07)                                             rcv request, 0x80 | request type,
-> 08)                                             0x0400, 0x0003,
-> 09)                                             dev->usbc buf, 46,10000);
-> 10)                      if (ret != 46) {
-> 11)                     v4l2 err(&dev->v4l2 dev,
-> 12)                                     "unexpected answer of status request, len %d\n", 
-> ret);
-> 13)                        goto error;
-> 14)            }
-> 15) .................
-> 16) error:
-> 17)
-> 18)            return retval;
-> 19) }
-> 
-
-Alexander, it would make life simpler if you were to just email patches
-which fix things like this!
-
-Thanks.
-
+-C-
