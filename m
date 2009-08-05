@@ -1,157 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:51584 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934011AbZHHLXV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Aug 2009 07:23:21 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv15 3/8] v4l2: video device: Add FM TX controls default configurations
-Date: Sat,  8 Aug 2009 14:10:28 +0300
-Message-Id: <1249729833-24975-4-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1249729833-24975-3-git-send-email-eduardo.valentin@nokia.com>
-References: <1249729833-24975-1-git-send-email-eduardo.valentin@nokia.com>
- <1249729833-24975-2-git-send-email-eduardo.valentin@nokia.com>
- <1249729833-24975-3-git-send-email-eduardo.valentin@nokia.com>
+Received: from mail-yw0-f183.google.com ([209.85.211.183]:55333 "EHLO
+	mail-yw0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751897AbZHETwF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Aug 2009 15:52:05 -0400
+Received: by ywh13 with SMTP id 13so452825ywh.15
+        for <linux-media@vger.kernel.org>; Wed, 05 Aug 2009 12:52:05 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4A79E07F.1000301@iol.it>
+References: <4A6F8AA5.3040900@iol.it> <4A729117.6010001@iol.it>
+	 <829197380907310109r1ca7231cqd86803f0fe640904@mail.gmail.com>
+	 <4A739DD6.8030504@iol.it>
+	 <829197380908032002v196384c9oa0aff78627959db@mail.gmail.com>
+	 <4A79320B.7090401@iol.it>
+	 <829197380908050627u892b526wc5fb8ef1f6be6b53@mail.gmail.com>
+	 <4A79CEBD.1050909@iol.it>
+	 <829197380908051134x5fda787fx5bf9adf786aa739e@mail.gmail.com>
+	 <4A79E07F.1000301@iol.it>
+Date: Wed, 5 Aug 2009 15:52:05 -0400
+Message-ID: <829197380908051252i7899adacr5750c3b4157a7b86@mail.gmail.com>
+Subject: Re: Terratec Cinergy HibridT XS
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: efa@iol.it
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds basic configurations for FM TX extended controls.
-That includes controls names, menu strings, pointer identification,
-type classification and flags configuration.
+On Wed, Aug 5, 2009 at 3:41 PM, Valerio Messina<efa@iol.it> wrote:
+> Devin Heitmueller ha scritto:
+>>
+>> Try running this:
+>>
+>> find /lib/modules/ -name "em28*"
+>>
+>> Then pastebin the output and send us a link.
+>
+> efa@01ath3200:~$ find /lib/modules/ -name "em28*"
+> /lib/modules/2.6.24-21-generic/empia/em28xx-audioep.ko
+> /lib/modules/2.6.24-21-generic/empia/em28xx-dvb.ko
+> /lib/modules/2.6.24-21-generic/empia/em28xx-cx25843.ko
+> /lib/modules/2.6.24-21-generic/empia/em28xx.ko
+> /lib/modules/2.6.24-21-generic/empia/em28xx-audio.ko
+> /lib/modules/2.6.24-21-generic/empia/em28xx-aad.ko
+> /lib/modules/2.6.27-14-generic/empia/em28xx-audioep.ko
+> /lib/modules/2.6.27-14-generic/empia/em28xx-dvb.ko
+> /lib/modules/2.6.27-14-generic/empia/em28xx-cx25843.ko
+> /lib/modules/2.6.27-14-generic/empia/em28xx.ko
+> /lib/modules/2.6.27-14-generic/empia/em28xx-audio.ko
+> /lib/modules/2.6.27-14-generic/empia/em28xx-aad.ko
+> /lib/modules/2.6.27-14-generic/kernel/drivers/media/video/em28xx
+> /lib/modules/2.6.27-14-generic/kernel/drivers/media/video/em28xx/em28xx-dvb.ko
+> /lib/modules/2.6.27-14-generic/kernel/drivers/media/video/em28xx/em28xx-alsa.ko
+> /lib/modules/2.6.27-14-generic/kernel/drivers/media/video/em28xx/em28xx.ko
+> /lib/modules/2.6.28-14-generic/empia/em28xx-audioep.ko
+> /lib/modules/2.6.28-14-generic/empia/em28xx-dvb.ko
+> /lib/modules/2.6.28-14-generic/empia/em28xx-cx25843.ko
+> /lib/modules/2.6.28-14-generic/empia/em28xx.ko
+> /lib/modules/2.6.28-14-generic/empia/em28xx-audio.ko
+> /lib/modules/2.6.28-14-generic/empia/em28xx-aad.ko
+> /lib/modules/2.6.28-14-generic/kernel/drivers/media/video/em28xx
+> /lib/modules/2.6.28-14-generic/kernel/drivers/media/video/em28xx/em28xx-dvb.ko
+> /lib/modules/2.6.28-14-generic/kernel/drivers/media/video/em28xx/em28xx-alsa.ko
+> /lib/modules/2.6.28-14-generic/kernel/drivers/media/video/em28xx/em28xx.ko
+> /lib/modules/2.6.28-13-generic/kernel/drivers/media/video/em28xx
+> /lib/modules/2.6.27-9-generic/empia/em28xx-audioep.ko
+> /lib/modules/2.6.27-9-generic/empia/em28xx-dvb.ko
+> /lib/modules/2.6.27-9-generic/empia/em28xx-cx25843.ko
+> /lib/modules/2.6.27-9-generic/empia/em28xx.ko
+> /lib/modules/2.6.27-9-generic/empia/em28xx-audio.ko
+> /lib/modules/2.6.27-9-generic/empia/em28xx-aad.ko
+> /lib/modules/2.6.27-11-generic/empia/em28xx-audioep.ko
+> /lib/modules/2.6.27-11-generic/empia/em28xx-dvb.ko
+> /lib/modules/2.6.27-11-generic/empia/em28xx-cx25843.ko
+> /lib/modules/2.6.27-11-generic/empia/em28xx.ko
+> /lib/modules/2.6.27-11-generic/empia/em28xx-audio.ko
+> /lib/modules/2.6.27-11-generic/empia/em28xx-aad.ko
+>
+> there's all the history of modules I compiled for past kernels, and that I
+> keep installed
+>
+>> Also send us the output of:
+>>
+>> uname -a
+>
+> efa@01ath3200:~$ uname -a
+> Linux 01ath3200 2.6.28-14-generic #47-Ubuntu SMP Sat Jul 25 00:28:35 UTC
+> 2009 i686 GNU/Linux
+>
+> the last stable from Ubuntu 9.04
+>
+> Valerio
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- linux/drivers/media/video/v4l2-common.c         |   50 +++++++++++++++++++++++
- linux/drivers/media/video/v4l2-compat-ioctl32.c |    8 +++-
- 2 files changed, 57 insertions(+), 1 deletions(-)
+Note: I meant to say "/lib/modules/2.6.28-14-generic/empia" instead of
+just /lib/modules/2.6.28-14-generic.
 
-diff --git a/linux/drivers/media/video/v4l2-common.c b/linux/drivers/media/video/v4l2-common.c
-index 870dc20..3e4737e 100644
---- a/linux/drivers/media/video/v4l2-common.c
-+++ b/linux/drivers/media/video/v4l2-common.c
-@@ -343,6 +343,12 @@ const char **v4l2_ctrl_get_menu(u32 id)
- 		"Sepia",
- 		NULL
- 	};
-+	static const char *fm_tx_preemphasis[] = {
-+		"No preemphasis",
-+		"50 useconds",
-+		"75 useconds",
-+		NULL,
-+	};
- 
- 	switch (id) {
- 		case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-@@ -381,6 +387,8 @@ const char **v4l2_ctrl_get_menu(u32 id)
- 			return camera_exposure_auto;
- 		case V4L2_CID_COLORFX:
- 			return colorfx;
-+		case V4L2_CID_FM_TX_PREEMPHASIS:
-+			return fm_tx_preemphasis;
- 		default:
- 			return NULL;
- 	}
-@@ -479,6 +487,28 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_ZOOM_CONTINUOUS:		return "Zoom, Continuous";
- 	case V4L2_CID_PRIVACY:			return "Privacy";
- 
-+	/* FM Radio Modulator control */
-+	case V4L2_CID_FM_TX_CLASS:		return "FM Radio Modulator Controls";
-+	case V4L2_CID_RDS_TX_DEVIATION:		return "RDS Signal Deviation";
-+	case V4L2_CID_RDS_TX_PI:		return "RDS Program ID";
-+	case V4L2_CID_RDS_TX_PTY:		return "RDS Program Type";
-+	case V4L2_CID_RDS_TX_PS_NAME:		return "RDS PS Name";
-+	case V4L2_CID_RDS_TX_RADIO_TEXT:	return "RDS Radio Text";
-+	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
-+	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
-+	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
-+	case V4L2_CID_AUDIO_COMPRESSION_ENABLED: return "Audio Compression Feature Enabled";
-+	case V4L2_CID_AUDIO_COMPRESSION_GAIN:	return "Audio Compression Gain";
-+	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD: return "Audio Compression Threshold";
-+	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME: return "Audio Compression Attack Time";
-+	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME: return "Audio Compression Release Time";
-+	case V4L2_CID_PILOT_TONE_ENABLED:	return "Pilot Tone Feature Enabled";
-+	case V4L2_CID_PILOT_TONE_DEVIATION:	return "Pilot Tone Deviation";
-+	case V4L2_CID_PILOT_TONE_FREQUENCY:	return "Pilot Tone Frequency";
-+	case V4L2_CID_FM_TX_PREEMPHASIS:	return "Pre-emphasis settings";
-+	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
-+	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
-+
- 	default:
- 		return NULL;
- 	}
-@@ -511,6 +541,9 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
- 	case V4L2_CID_EXPOSURE_AUTO_PRIORITY:
- 	case V4L2_CID_FOCUS_AUTO:
- 	case V4L2_CID_PRIVACY:
-+	case V4L2_CID_AUDIO_LIMITER_ENABLED:
-+	case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
-+	case V4L2_CID_PILOT_TONE_ENABLED:
- 		qctrl->type = V4L2_CTRL_TYPE_BOOLEAN;
- 		min = 0;
- 		max = step = 1;
-@@ -539,12 +572,18 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
- 	case V4L2_CID_MPEG_STREAM_VBI_FMT:
- 	case V4L2_CID_EXPOSURE_AUTO:
- 	case V4L2_CID_COLORFX:
-+	case V4L2_CID_FM_TX_PREEMPHASIS:
- 		qctrl->type = V4L2_CTRL_TYPE_MENU;
- 		step = 1;
- 		break;
-+	case V4L2_CID_RDS_TX_PS_NAME:
-+	case V4L2_CID_RDS_TX_RADIO_TEXT:
-+		qctrl->type = V4L2_CTRL_TYPE_STRING;
-+		break;
- 	case V4L2_CID_USER_CLASS:
- 	case V4L2_CID_CAMERA_CLASS:
- 	case V4L2_CID_MPEG_CLASS:
-+	case V4L2_CID_FM_TX_CLASS:
- 		qctrl->type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		qctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
- 		min = max = step = def = 0;
-@@ -573,6 +612,17 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
- 	case V4L2_CID_BLUE_BALANCE:
- 	case V4L2_CID_GAMMA:
- 	case V4L2_CID_SHARPNESS:
-+	case V4L2_CID_RDS_TX_DEVIATION:
-+	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME:
-+	case V4L2_CID_AUDIO_LIMITER_DEVIATION:
-+	case V4L2_CID_AUDIO_COMPRESSION_GAIN:
-+	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD:
-+	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME:
-+	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME:
-+	case V4L2_CID_PILOT_TONE_DEVIATION:
-+	case V4L2_CID_PILOT_TONE_FREQUENCY:
-+	case V4L2_CID_TUNE_POWER_LEVEL:
-+	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
- 		qctrl->flags |= V4L2_CTRL_FLAG_SLIDER;
- 		break;
- 	case V4L2_CID_PAN_RELATIVE:
-diff --git a/linux/drivers/media/video/v4l2-compat-ioctl32.c b/linux/drivers/media/video/v4l2-compat-ioctl32.c
-index fbe80bd..4fc05a0 100644
---- a/linux/drivers/media/video/v4l2-compat-ioctl32.c
-+++ b/linux/drivers/media/video/v4l2-compat-ioctl32.c
-@@ -616,7 +616,13 @@ struct v4l2_ext_controls32 {
-  * remove this note once the first value64 controls are added. */
- static inline int ctrl_is_value64(u32 id)
- {
--	return 0;
-+	switch (id) {
-+	case V4L2_CID_RDS_TX_PS_NAME:
-+	case V4L2_CID_RDS_TX_RADIO_TEXT:
-+		return 1;
-+	default:
-+		return 0;
-+	}
- }
- 
- /* Return non-zero if this control is a pointer type. Currently only
+Cheers,
+
+Devin
+
 -- 
-1.6.2.GIT
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
