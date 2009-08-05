@@ -1,124 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1317 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932367AbZHGLvu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2009 07:51:50 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCHv14 6/8] FM TX: si4713: Add files to handle si4713 i2c device
-Date: Fri, 7 Aug 2009 13:51:36 +0200
-Cc: "ext Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>
-References: <1248707530-4068-1-git-send-email-eduardo.valentin@nokia.com> <1248707530-4068-6-git-send-email-eduardo.valentin@nokia.com> <1248707530-4068-7-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1248707530-4068-7-git-send-email-eduardo.valentin@nokia.com>
+Received: from mail-yw0-f183.google.com ([209.85.211.183]:38484 "EHLO
+	mail-yw0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933904AbZHEN1O convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Aug 2009 09:27:14 -0400
+Received: by ywh13 with SMTP id 13so118850ywh.15
+        for <linux-media@vger.kernel.org>; Wed, 05 Aug 2009 06:27:14 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200908071351.36063.hverkuil@xs4all.nl>
+In-Reply-To: <4A79320B.7090401@iol.it>
+References: <4A6F8AA5.3040900@iol.it>
+	 <829197380907281744o5c3a7eb7rd0d2cb8c53cd646f@mail.gmail.com>
+	 <4A7140DD.7040405@iol.it>
+	 <829197380907300533l488acd0bt2188c4c599417966@mail.gmail.com>
+	 <4A729117.6010001@iol.it>
+	 <829197380907310109r1ca7231cqd86803f0fe640904@mail.gmail.com>
+	 <4A739DD6.8030504@iol.it>
+	 <829197380908032002v196384c9oa0aff78627959db@mail.gmail.com>
+	 <4A79320B.7090401@iol.it>
+Date: Wed, 5 Aug 2009 09:27:13 -0400
+Message-ID: <829197380908050627u892b526wc5fb8ef1f6be6b53@mail.gmail.com>
+Subject: Re: Terratec Cinergy HibridT XS
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: efa@iol.it
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Eduardo,
+On Wed, Aug 5, 2009 at 3:17 AM, Valerio Messina<efa@iol.it> wrote:
+> Devin Heitmueller ha scritto:
+>>
+>> Please try the following:
+>> hg clone http://kernellabs.com/hg/~dheitmueller/ttxs-remote
+>> cd ttxs-remote
+>> make
+>> make install
+>> reboot
+>>
+>> Then see if the remote control works.  If not, I will give you some
+>> commands to turn on the logging.  This should work though since I had
+>> tested it myself when I had the device in question a couple of weeks
+>> ago.
+>
+> with this repository compiled, installed and after reboot, Kaffeine does not
+> see at all the TV tuner.
+> Logging instructions are always welcomed.
+> Valerio
+>
+> dmesg report this log when I connect the USB tuner:
+>
+> Aug  5 08:46:31 01ath3200 kernel: [  365.276042] usb 1-3: new high speed USB
+> device using ehci_hcd and address 4
+> Aug  5 08:46:31 01ath3200 kernel: [  365.458835] usb 1-3: configuration #1
+> chosen from 1 choice
+> Aug  5 08:46:31 01ath3200 kernel: [  365.474488] Linux video capture
+> interface: v2.00
+> Aug  5 08:46:31 01ath3200 kernel: [  365.523111] em28xx: disagrees about
+> version of symbol v4l_compat_translate_ioctl
+> Aug  5 08:46:31 01ath3200 kernel: [  365.523122] em28xx: Unknown symbol
+> v4l_compat_translate_ioctl
+> Aug  5 08:46:31 01ath3200 kernel: [  365.525987] em28xx: disagrees about
+> version of symbol video_unregister_device
+> Aug  5 08:46:31 01ath3200 kernel: [  365.525992] em28xx: Unknown symbol
+> video_unregister_device
+> Aug  5 08:46:31 01ath3200 kernel: [  365.526369] em28xx: disagrees about
+> version of symbol video_device_alloc
+> Aug  5 08:46:31 01ath3200 kernel: [  365.526374] em28xx: Unknown symbol
+> video_device_alloc
+> Aug  5 08:46:31 01ath3200 kernel: [  365.526559] em28xx: disagrees about
+> version of symbol video_register_device
+> Aug  5 08:46:31 01ath3200 kernel: [  365.526564] em28xx: Unknown symbol
+> video_register_device
+> Aug  5 08:46:31 01ath3200 kernel: [  365.527584] em28xx: disagrees about
+> version of symbol video_usercopy
+> Aug  5 08:46:31 01ath3200 kernel: [  365.527589] em28xx: Unknown symbol
+> video_usercopy
+> Aug  5 08:46:31 01ath3200 kernel: [  365.527774] em28xx: disagrees about
+> version of symbol video_device_release
+> Aug  5 08:46:31 01ath3200 kernel: [  365.527779] em28xx: Unknown symbol
+> video_device_release
+> Aug  5 08:46:32 01ath3200 pulseaudio[4176]: alsa-util.c: Cannot find
+> fallback mixer control "Mic" or mixer control is no combination of
+> switch/volume.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-Douglas pointed out to me that I hadn't reviewed this series yet.
+Seems like your compile environment got messed up somehow.  Which
+distro is this, and have you updated the kernel since checking out the
+code?  It's also possible if you were playing around with the mcentral
+repository that both versions of em28xx are still installed.
 
-That was mostly because it's pretty good as far as I'm concerned :-)
-
-I do think one small thing should change:
-
-On Monday 27 July 2009 17:12:08 Eduardo Valentin wrote:
-> diff --git a/linux/drivers/media/radio/si4713-i2c.c b/linux/drivers/media/radio/si4713-i2c.c
-
-<snip>
-
-> +/* write string property */
-> +static int si4713_write_econtrol_string(struct si4713_device *sdev,
-> +				struct v4l2_ext_control *control)
-> +{
-> +	struct v4l2_queryctrl vqc;
-> +	int len;
-> +	s32 rval = 0;
-> +
-> +	vqc.id = control->id;
-> +	rval = si4713_queryctrl(&sdev->sd, &vqc);
-> +	if (rval < 0)
-> +		goto exit;
-> +
-> +	switch (control->id) {
-> +	case V4L2_CID_RDS_TX_PS_NAME: {
-> +		char ps_name[MAX_RDS_PS_NAME + 1];
-> +
-> +		len = control->size - 1;
-> +		if (len > MAX_RDS_PS_NAME)
-> +			len = MAX_RDS_PS_NAME;
-> +		rval = copy_from_user(ps_name, control->string, len);
-> +		if (rval < 0)
-> +			goto exit;
-> +		ps_name[len] = '\0';
-> +
-> +		if (strlen(ps_name) % vqc.step) {
-> +			rval = -EINVAL;
-
-I think we should return -ERANGE instead. It makes more sense than -EINVAL,
-since it is the string length that is out of bounds. -ERANGE is the expected
-error code when the control boundary checks fail.
-
-I know I said EINVAL before, but after thinking about it some more I've
-reconsidered.
-
-> +			goto exit;
-> +		}
-> +
-> +		rval = si4713_set_rds_ps_name(sdev, ps_name);
-> +	}
-> +		break;
-> +
-> +	case V4L2_CID_RDS_TX_RADIO_TEXT:{
-> +		char radio_text[MAX_RDS_RADIO_TEXT + 1];
-> +
-> +		len = control->size - 1;
-> +		if (len > MAX_RDS_RADIO_TEXT)
-> +			len = MAX_RDS_RADIO_TEXT;
-> +		rval = copy_from_user(radio_text, control->string, len);
-> +		if (rval < 0)
-> +			goto exit;
-> +		radio_text[len] = '\0';
-> +
-> +		if (strlen(radio_text) % vqc.step) {
-> +			rval = -EINVAL;
-
-Ditto.
-
-> +			goto exit;
-> +		}
-> +
-> +		rval = si4713_set_rds_radio_text(sdev, radio_text);
-> +	}
-> +		break;
-> +
-> +	default:
-> +		rval = -EINVAL;
-> +		break;
-> +	};
-> +
-> +exit:
-> +	return rval;
-> +}
-
-Just change this and you can add
-
-Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
-
-for the whole series.
-
-Regards,
-
-	Hans
+Devin
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
