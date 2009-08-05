@@ -1,41 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:38256 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752559AbZHHRT1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Aug 2009 13:19:27 -0400
-Received: by bwz19 with SMTP id 19so1947887bwz.37
-        for <linux-media@vger.kernel.org>; Sat, 08 Aug 2009 10:19:27 -0700 (PDT)
+Received: from znsun1.ifh.de ([141.34.1.16]:38565 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933555AbZHEIIF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Aug 2009 04:08:05 -0400
+Date: Wed, 5 Aug 2009 10:07:58 +0200 (CEST)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Akihiro TSUKADA <tskd2@yahoo.co.jp>, olgrenie@dibcom.fr
+Subject: Re: RFC: adding ISDB-T/ISDB-Tsb to DVB-API 5
+In-Reply-To: <alpine.LRH.1.10.0908050945190.6890@pub1.ifh.de>
+Message-ID: <alpine.LRH.1.10.0908051005160.6890@pub1.ifh.de>
+References: <alpine.LRH.1.10.0908031943220.8512@pub1.ifh.de> <alpine.LRH.1.10.0908041617050.8512@pub1.ifh.de> <4A78F3E6.2090708@yahoo.co.jp> <alpine.LRH.1.10.0908050945190.6890@pub1.ifh.de>
 MIME-Version: 1.0
-In-Reply-To: <cone.1249333423.954183.7968.500@leela.u7.se>
-References: <cone.1249333423.954183.7968.500@leela.u7.se>
-Date: Sat, 8 Aug 2009 19:19:27 +0200
-Message-ID: <19a3b7a80908081019r40af8d01ha37a92478558fe4e@mail.gmail.com>
-Subject: Re: Updated scanfile se-Ornskoldsvik_As
-From: Christoph Pfister <christophpfister@gmail.com>
-To: jonas@websystem.se
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/8/3  <jonas@websystem.se>:
-> Hi,
+On Wed, 5 Aug 2009, Patrick Boettcher wrote:
+>> For example, DQPSK is not used at all (if I read correctly).
+>> These guidelines are defined in ARIB TR-B14 for ISDB-T and
+>> in ARIB TR-B15 for ISDB-S respectively.
 >
-> Here is an updated scan file for se-Ornskoldsvik_As.
->
-> Added Teracom_Mux_5.
->
-> # Sweden - Örnsköldsvik/Ås
-> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-> T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-> T 474000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-> T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-> T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-> T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+> Hmm, I'm actually not working on ISDB-S (Satelite), but on ISDB-Tsb 
+> (sound-broadcasting or also known as 1seg) which is based on ISDB-T's
 
-Updated, thanks!
+Here I have to correct myself: 1seg is not the (commercial) name for 
+ISDB-Tsb, but for the ISDB-T central segment, which can be received 
+independently (Partial reception).
 
-> /Jonas
+--
 
-Christoph
+Patrick Boettcher - Kernel Labs
+http://www.kernellabs.com/
