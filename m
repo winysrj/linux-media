@@ -1,94 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:38503 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755325AbZHFNEW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2009 09:04:22 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Ben Dooks <ben-linux@fluff.org>
-Subject: Re: How to efficiently handle DMA and cache on ARMv7 ? (was "Is get_user_pages() enough to prevent pages from being swapped out ?")
-Date: Thu, 6 Aug 2009 15:06:23 +0200
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>,
-	Robin Holt <holt@sgi.com>, linux-kernel@vger.kernel.org,
-	"v4l2_linux" <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.arm.linux.org.uk
-References: <200908061208.22131.laurent.pinchart@ideasonboard.com> <20090806114619.GW2080@trinity.fluff.org>
-In-Reply-To: <20090806114619.GW2080@trinity.fluff.org>
+Received: from mp1-smtp-5.eutelia.it ([62.94.10.165]:55074 "EHLO
+	smtp.eutelia.it" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756006AbZHFPQv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2009 11:16:51 -0400
+Message-ID: <4A7AF3CF.3060803@email.it>
+Date: Thu, 06 Aug 2009 17:16:31 +0200
+From: xwang1976@email.it
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Douglas Schilling Landgraf <dougsland@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Issues with Empire Dual Pen: request for help and suggestions!!!
+References: <4A79EC82.4050902@email.it>	<4A7AE0B0.20507@email.it>	<829197380908060717ua009e78nc045f2940c7fc76e@mail.gmail.com> <20090806112317.21240b9c@gmail.com>
+In-Reply-To: <20090806112317.21240b9c@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200908061506.23874.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ben,
+Ok,
+I've made the change and now the digital tv works perfectly.
+So now I should test the analog tv, but I fear to have another kernel panic.
+Is there something I can do before testing so that to be sure that at 
+least all the file system are in a safety condition even if a kernel 
+panic happens.
+I'm wondering if it is the case, for example, to umount them and remount 
+in read only mode so that if I have to turn off the pc, nothing can be 
+corrupted (is it so?).
+What do you suggest?
+In case, how can I temporarly umount and remout the file systems in read 
+only mode? Should I use alt+sys+S followed by alt+sys+U? Can I use such 
+commands while I'm in KDE?
+Thank you,
+Xwang
 
-On Thursday 06 August 2009 13:46:19 Ben Dooks wrote:
-> On Thu, Aug 06, 2009 at 12:08:21PM +0200, Laurent Pinchart wrote:
-[snip]
-> >
-> > The second problem is to ensure cache coherency. As the userspace
-> > application will read data from the video buffers, those buffers will end
-> > up being cached in the processor's data cache. The driver does need to
-> > invalidate the cache before starting the DMA operation (userspace could
-> > in theory write to the buffers, but the data will be overwritten by DMA
-> > anyway, so there's no need to clean the cache).
+Douglas Schilling Landgraf ha scritto:
+> Hello Xwang,
 >
-> You'll need to clean the write buffers, otherwise the CPU may have data
-> queued that it has yet to write back to memory.
-
-Good points, thanks.
-
-> > As the cache is of the VIPT (Virtual Index Physical Tag) type, cache
-> > invalidation can either be done globally (in which case the cache is
-> > flushed instead of being invalidated) or based on virtual addresses. In
-> > the last case the processor will need to look physical addresses up,
-> > either in the TLB or through hardware table walk.
-> >
-> > I can see three solutions to the DMA/cache problem.
-> >
-> > 1. Flushing the whole data cache right before starting the DMA transfer.
-> > There's no API for that in the ARM architecture, so a whole I+D cache is
-> > required. This is quite costly, we're talking about around 30 flushes per
-> > second, but it doesn't involve the MMU. That's the solution that I
-> > currently use.
-> >
-> > 2. Invalidating only the cache lines that store video buffer data. This
-> > requires a TLB lookup or a hardware table walk, so the userspace
-> > application MM context needs to be available (no problem there as where's
-> > flushing in userspace context) and all pages need to be mapped properly.
-> > This can be a problem as, as Hugh pointed out, pages can still be
-> > unmapped from the userspace context after get_user_pages() returns. I
-> > have experienced one oops due to a kernel paging request failure:
+>        Could you please try the bellow suggestion? 
+> If you want I can make this change in my development tree and you can
+> test from there.
 >
-> If you already know the virtual addresses of the buffers, why do you need
-> a TLB lookup (or am I being dense here?)
-
-The virtual address is used to compute the cache lines index, and the physical 
-address is then used when comparing the cache line tag. So the processor (or 
-actually the CP15 coprocessor if I'm not wrong) does a TLB lookup to get the 
-physical address during cache invalidation/flushing.
-
-> >         Unable to handle kernel paging request at virtual address
-> > 44e12000 pgd = c8698000
-> >         [44e12000] *pgd=8a4fd031, *pte=8cfda1cd, *ppte=00000000
-> >         Internal error: Oops: 817 [#1] PREEMPT
-> >         PC is at v7_dma_inv_range+0x2c/0x44
-> >
-> > Fixing this requires more investigation, and I'm not sure how to proceed
-> > to find out if the page fault is really caused by pages being unmapped
-> > from the userspace context. Help would be appreciated.
-> >
-> > 3. Mark the pages as non-cacheable. Depending on how the buffers are then
-> > used by userspace, the additional cache misses might destroy any benefit
-> > I would get from not flushing the cache before DMA. I'm not sure how to
-> > mark a bunch of pages as non-cacheable though. What usually happens is
-> > that video drivers allocate DMA-coherent memory themselves, but in this
-> > case I need to deal with an arbitrary buffer allocated by userspace. If
-> > someone has any experience with this, it would be appreciated.
-
-Regards,
-
-Laurent Pinchart
-
+> Let me know the results
+>
+> Cheers,
+> Douglas
+>
+>  On Thu, 6 Aug 2009 10:17:28 -0400
+> Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
+>
+>   
+>> On Thu, Aug 6, 2009 at 9:54 AM, <xwang1976@email.it> wrote:
+>>     
+>>> Hi,
+>>> I want to inform you that thanks to Douglas Schilling Landgraf, the
+>>> first point (automatic recognition of the device when plugged in)
+>>> ha been resolved (using his development tree driver).
+>>> I've tried to scan for digital channels again and the result has
+>>> not changed but in the dmesg attached there are a lot of messages
+>>> created during the scan process. I hope they are useful to solve at
+>>> list the issue related with the digital scanning.
+>>> Thank you,
+>>> Xwang
+>>>       
+>> <snip>
+>>
+>> Yeah, I've seen that before.  Open up em28xx-dvb.c, and move the
+>> following:
+>>
+>> case EM2880_BOARD_EMPIRE_DUAL_TV:
+>>
+>> from line 402 to line 492.  So it should look like this:
+>>
+>> case EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900:
+>> case EM2880_BOARD_EMPIRE_DUAL_TV:
+>>       dvb->frontend = dvb_attach(zl10353_attach,
+>>
+>> &em28xx_zl10353_xc3028_no_i2c_gate,
+>>                                               dev->i2c_adap);
+>>
+>> Then unplug the device, recompile, reinstall and see if the dvb
+>> starts working.
+>>
+>> Devin
+>>
+>>     
+>
+>
+>   
