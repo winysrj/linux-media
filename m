@@ -1,51 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:35108 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750964AbZHWEwh (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58932 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756805AbZHFXBb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2009 00:52:37 -0400
-Received: by fxm17 with SMTP id 17so1002632fxm.37
-        for <linux-media@vger.kernel.org>; Sat, 22 Aug 2009 21:52:37 -0700 (PDT)
-Message-ID: <4A90CA6B.4080303@gmail.com>
-Date: Sun, 23 Aug 2009 06:49:47 +0200
-From: Markus Schuss <chaos.tugraz@gmail.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Technotrend TT-Connect S-2400
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Thu, 6 Aug 2009 19:01:31 -0400
+Message-Id: <200908062301.n76N1KRK030169@imap1.linux-foundation.org>
+Subject: [patch 9/9] drivers/media/video/gspca: introduce missing kfree
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
+	julia@diku.dk, erik.andren@gmail.com
+From: akpm@linux-foundation.org
+Date: Thu, 06 Aug 2009 16:01:20 -0700
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Julia Lawall <julia@diku.dk>
 
-i have some problems getting a technotrend tt-connect s-2400 usb dvb-s 
-card to work. the problem is not unknown (as mentioned at 
-http://lkml.org/lkml/2009/5/23/95) but i have no idea how to fix this. 
-(any help according to the remote of this card would also be appreciated)
+Error handling code following a kmalloc should free the allocated data.
 
-dmesg:
-usb 2-2.1: new high speed USB device using ehci_hcd and address 19
-usb 2-2.1: configuration #1 chosen from 1 choice
-dvb-usb: found a 'Technotrend TT-connect S-2400' in cold state, will try 
-to load a firmware
-usb 2-2.1: firmware: requesting dvb-usb-tt-s2400-01.fw
-dvb-usb: downloading firmware from file 'dvb-usb-tt-s2400-01.fw'
-usb 2-2.1: USB disconnect, address 19
-dvb-usb: generic DVB-USB module successfully deinitialized and 
-disconnected.
-usb 2-2.1: new high speed USB device using ehci_hcd and address 20
-usb 2-2.1: configuration #1 chosen from 1 choice
-dvb-usb: found a 'Technotrend TT-connect S-2400' in warm state.
-dvb-usb: will pass the complete MPEG2 transport stream to the software 
-demuxer.
-DVB: registering new adapter (Technotrend TT-connect S-2400)
-DVB: registering adapter 0 frontend 0 (Philips TDA10086 DVB-S)...
-LNBx2x attached on addr=8<3>dvb-usb: recv bulk message failed: -110
-ttusb2: there might have been an error during control message transfer. 
-(rlen = 0, was 0)
-dvb-usb: Technotrend TT-connect S-2400 successfully initialized and 
-connected.
+The semantic match that finds the problem is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
 
-Thanks,
-schuschu
+// <smpl>
+@r exists@
+local idexpression x;
+statement S;
+expression E;
+identifier f,f1,l;
+position p1,p2;
+expression *ptr != NULL;
+@@
+
+x@p1 = \(kmalloc\|kzalloc\|kcalloc\)(...);
+...
+if (x == NULL) S
+<... when != x
+     when != if (...) { <+...x...+> }
+(
+x->f1 = E
+|
+ (x->f1 == NULL || ...)
+|
+ f(...,x->f1,...)
+)
+...>
+(
+ return \(0\|<+...x...+>\|ptr\);
+|
+ return@p2 ...;
+)
+
+@script:python@
+p1 << r.p1;
+p2 << r.p2;
+@@
+
+print "* file: %s kmalloc %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Acked-by: Erik Andren <erik.andren@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/media/video/gspca/m5602/m5602_s5k83a.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff -puN drivers/media/video/gspca/m5602/m5602_s5k83a.c~drivers-media-video-gspca-introduce-missing-kfree drivers/media/video/gspca/m5602/m5602_s5k83a.c
+--- a/drivers/media/video/gspca/m5602/m5602_s5k83a.c~drivers-media-video-gspca-introduce-missing-kfree
++++ a/drivers/media/video/gspca/m5602/m5602_s5k83a.c
+@@ -178,8 +178,10 @@ sensor_found:
+ 
+ 	sens_priv->settings =
+ 	kmalloc(sizeof(s32)*ARRAY_SIZE(s5k83a_ctrls), GFP_KERNEL);
+-	if (!sens_priv->settings)
++	if (!sens_priv->settings) {
++		kfree(sens_priv);
+ 		return -ENOMEM;
++	}
+ 
+ 	sd->gspca_dev.cam.cam_mode = s5k83a_modes;
+ 	sd->gspca_dev.cam.nmodes = ARRAY_SIZE(s5k83a_modes);
+_
