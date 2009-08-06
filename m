@@ -1,32 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47124 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751434AbZHMSN1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Aug 2009 14:13:27 -0400
-Date: Thu, 13 Aug 2009 11:13:12 -0700 (PDT)
-From: Linus Torvalds <torvalds@linux-foundation.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-cc: Andrew Morton <akpm@linux-foundation.org>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES for 2.6.31] V4L/DVB fixes
-In-Reply-To: <20090812190523.75495888@caramujo.chehab.org>
-Message-ID: <alpine.LFD.2.01.0908131112220.28882@localhost.localdomain>
-References: <20090812190523.75495888@caramujo.chehab.org>
+Received: from imr-da01.mx.aol.com ([205.188.105.143]:36851 "EHLO
+	imr-da01.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753018AbZHFQMp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2009 12:12:45 -0400
+Message-ID: <4A7AFF73.5010305@netscape.net>
+Date: Thu, 06 Aug 2009 17:06:11 +0100
+From: Kaya Saman <SamanKaya@netscape.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Michael Krufky <mkrufky@kernellabs.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Hauppauge WinTV HVR-900HD support?
+References: <4A7AC430.4070505@netscape.net>	 <37219a840908060553g452266fdq5ea3814b4ce725bc@mail.gmail.com>	 <4A7AD57B.8020906@netscape.net>	 <37219a840908060619q7e41b024nf4e73b21843942c5@mail.gmail.com>	 <4A7ADBC2.6090908@netscape.net> <37219a840908060746n4eadfa20v8e5249a5ad90e8c@mail.gmail.com>
+In-Reply-To: <37219a840908060746n4eadfa20v8e5249a5ad90e8c@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+>
+> No, I recommended the HVR1900 because *IT* is fully supported, and is
+> *not* getting replaced.  HVR900 got replaced.  HVR1900 is not as large
+> as a set top box, but it is bigger than the usb sticks, and uses a
+> power brick, for the mpeg encoder.
+>
+> It is on the Hauppauge web site, you probably just overlooked it.
+>
+> -Mike
+>   
+Ok, now I am so sorry and I feel really silly but I can't find it.....
 
-On Wed, 12 Aug 2009, Mauro Carvalho Chehab wrote:
-> 
-> Please pull from:
->         ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git for_linus
+I have tried hauppauge.co.uk and under HVR-external all I get is 900HD, 
+900, and 1400:
 
-"Already up-to-date."
+http://www.hauppauge.co.uk/site/products/prods_hvr_external.html
 
-Forgot to push?
+now, I even did a search for the 1900 and found nothing on hauppauge 
+search link??? Sure it came up with the 1950 model but no 1900.
 
-		Linus
+On top of that I tried www.dabs.com and www.misco.co.uk both of which 
+have the 900 but no 1900.....
+
+am I missing something or have I just totally gone insane over the last 
+few hours???
+
+--K
