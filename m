@@ -1,28 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n7ACFNXb019345
-	for <video4linux-list@redhat.com>; Mon, 10 Aug 2009 08:15:23 -0400
-Received: from mail-fx0-f205.google.com (mail-fx0-f205.google.com
-	[209.85.220.205])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n7ACF6T9012348
-	for <video4linux-list@redhat.com>; Mon, 10 Aug 2009 08:15:06 -0400
-Received: by fxm1 with SMTP id 1so2106340fxm.7
-	for <video4linux-list@redhat.com>; Mon, 10 Aug 2009 05:15:05 -0700 (PDT)
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n768DT4a030571
+	for <video4linux-list@redhat.com>; Thu, 6 Aug 2009 04:13:29 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n768D7lb006647
+	for <video4linux-list@redhat.com>; Thu, 6 Aug 2009 04:13:08 -0400
+Date: Thu, 6 Aug 2009 10:13:13 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+In-Reply-To: <uy6pxephb.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0908061012310.4631@axis700.grange>
+References: <uy6pxephb.wl%morimoto.kuninori@renesas.com>
 MIME-Version: 1.0
-In-Reply-To: <20090810072513.GL6108@pengutronix.de>
-References: <eedb5540908060552n43021d5bla6ee655c294307eb@mail.gmail.com>
-	<20090807191809.GJ5842@pengutronix.de>
-	<9319940908091109l64530b9cgd2e305ea8127a35a@mail.gmail.com>
-	<eedb5540908092359g27e61389wad4a918f3339ae38@mail.gmail.com>
-	<20090810072513.GL6108@pengutronix.de>
-Date: Mon, 10 Aug 2009 08:15:05 -0400
-Message-ID: <9319940908100515w21d38a5bs6c6a552b07498fc4@mail.gmail.com>
-From: Derek Bouius <dbouius@gmail.com>
-To: Sascha Hauer <sha@pengutronix.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: soc-camera driver for i.MX27
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: V4L-Linux <video4linux-list@redhat.com>
+Subject: Re: [PATCH 1/2 v2] sh_mobile_ceu: add soft reset function
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,42 +26,98 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Aug 10, 2009 at 3:25 AM, Sascha Hauer<sha@pengutronix.de> wrote:
-> Hi,
->
-> On Mon, Aug 10, 2009 at 08:59:23AM +0200, javier Martin wrote:
->> Dear Derek,
->>
->> >> We have a driver for the phyCORE-i.MX27 board:
->> >> http://git.pengutronix.de/?p=phytec/linux-2.6.git;a=blob;f=drivers/media/video/mx27_camera.c;h=9e9f4426c3db890e6fc13130e047c65c073aa0b4;hb=refs/heads/phytec-master
->>
->> Thank you for the pointer to the patch.
->>
->> > I have just used this driver to interface to a soc imager (Aptina
->> > mt9p031) on the phyCORE-i.MX27 board. It works for acquiring a 640x480
->> > video stream quite reliably. I am currently working on getting it to
->> > be able to capture a full image frame (5MB) as well as various image
->> > sizes in between. I am running into out of memory issues with the
->> > dma_alloc_coherent() and not sure what the solution is yet.
->> >
->>
->> Maybe you are requesting too much contiguous memory. I don't remember
->> where that could be changed.
->
-> It's CONSISTENT_DMA_SIZE.
->
-That did the trick.
-Thanks, Derek
+On Thu, 6 Aug 2009, Kuninori Morimoto wrote:
 
+> 
+> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
 
-> Sascha
->
-> --
-> Pengutronix e.K.                           |                             |
-> Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-> Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-> Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
->
+Ok, I'm away for a week starting today, I'll have a look at your patches 
+after I come back then.
+
+Thanks
+Guennadi
+
+> ---
+> v1 -> v2
+> 
+> o it use msleep
+> o it judge in_atomic or not
+> 
+> it judge in_atomic because sh_mobile_ceu_soft_reset
+> will also be called from atomic.
+> 
+>  drivers/media/video/sh_mobile_ceu_camera.c |   36 ++++++++++++++++++++++++---
+>  1 files changed, 32 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+> index 0db88a5..3741ad6 100644
+> --- a/drivers/media/video/sh_mobile_ceu_camera.c
+> +++ b/drivers/media/video/sh_mobile_ceu_camera.c
+> @@ -135,6 +135,36 @@ static u32 ceu_read(struct sh_mobile_ceu_dev *priv, unsigned long reg_offs)
+>  	return ioread32(priv->base + reg_offs);
+>  }
+>  
+> +static void sh_mobile_ceu_soft_reset(struct sh_mobile_ceu_dev *pcdev)
+> +{
+> +	int t;
+> +	int atomic = in_atomic();
+> +
+> +	ceu_write(pcdev, CAPSR, 1 << 16); /* reset */
+> +
+> +	t = 10000;
+> +	while (t--) {
+> +		if (!(ceu_read(pcdev, CAPSR) & (1 << 16)))
+> +			break;
+> +
+> +		if (atomic)
+> +			cpu_relax();
+> +		else
+> +			msleep(1);
+> +	}
+> +
+> +	t = 10000;
+> +	while (t--) {
+> +		if (!(ceu_read(pcdev, CSTSR) & 1))
+> +			break;
+> +
+> +		if (atomic)
+> +			cpu_relax();
+> +		else
+> +			msleep(1);
+> +	}
+> +}
+> +
+>  /*
+>   *  Videobuf operations
+>   */
+> @@ -366,9 +396,7 @@ static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
+>  
+>  	clk_enable(pcdev->clk);
+>  
+> -	ceu_write(pcdev, CAPSR, 1 << 16); /* reset */
+> -	while (ceu_read(pcdev, CSTSR) & 1)
+> -		msleep(1);
+> +	sh_mobile_ceu_soft_reset(pcdev);
+>  
+>  	pcdev->icd = icd;
+>  err:
+> @@ -386,7 +414,7 @@ static void sh_mobile_ceu_remove_device(struct soc_camera_device *icd)
+>  
+>  	/* disable capture, disable interrupts */
+>  	ceu_write(pcdev, CEIER, 0);
+> -	ceu_write(pcdev, CAPSR, 1 << 16); /* reset */
+> +	sh_mobile_ceu_soft_reset(pcdev);
+>  
+>  	/* make sure active buffer is canceled */
+>  	spin_lock_irqsave(&pcdev->lock, flags);
+> -- 
+> 1.6.0.4
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
 
 --
 video4linux-list mailing list
