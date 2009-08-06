@@ -1,45 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f205.google.com ([209.85.217.205]:50488 "EHLO
-	mail-gx0-f205.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751283AbZHSRQW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Aug 2009 13:16:22 -0400
-Received: by gxk1 with SMTP id 1so6168241gxk.17
-        for <linux-media@vger.kernel.org>; Wed, 19 Aug 2009 10:16:23 -0700 (PDT)
+Received: from mail-yx0-f175.google.com ([209.85.210.175]:46777 "EHLO
+	mail-yx0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756029AbZHFPVI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2009 11:21:08 -0400
+Received: by yxe5 with SMTP id 5so1118959yxe.33
+        for <linux-media@vger.kernel.org>; Thu, 06 Aug 2009 08:21:08 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1250701340.14727.28.camel@McM>
-References: <1250679685.14727.14.camel@McM>
-	 <829197380908190642sfabee2ahe599dda1df39678c@mail.gmail.com>
-	 <1250701340.14727.28.camel@McM>
-Date: Wed, 19 Aug 2009 13:16:23 -0400
-Message-ID: <829197380908191016n8d7f21eq88ebe3a45816275b@mail.gmail.com>
-Subject: Re: USB Wintv HVR-900 Hauppauge
+In-Reply-To: <4A7AF3CF.3060803@email.it>
+References: <4A79EC82.4050902@email.it> <4A7AE0B0.20507@email.it>
+	 <829197380908060717ua009e78nc045f2940c7fc76e@mail.gmail.com>
+	 <20090806112317.21240b9c@gmail.com> <4A7AF3CF.3060803@email.it>
+Date: Thu, 6 Aug 2009 11:21:08 -0400
+Message-ID: <829197380908060821x6cfb60f0jd73e5f9b30c21569@mail.gmail.com>
+Subject: Re: Issues with Empire Dual Pen: request for help and suggestions!!!
 From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Miguel <mcm@moviquity.com>
-Cc: linux-media@vger.kernel.org
+To: xwang1976@email.it
+Cc: Douglas Schilling Landgraf <dougsland@gmail.com>,
+	linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 19, 2009 at 1:02 PM, Miguel<mcm@moviquity.com> wrote:
-> oh, what a shame, :-s
->
-> The USB id is:
->
-> Bus 001 Device 011: ID 2040:6600 Hauppauge
->
->
-> is this the version you commented that is not supported?
+On Thu, Aug 6, 2009 at 11:16 AM, <xwang1976@email.it> wrote:
+> Ok,
+> I've made the change and now the digital tv works perfectly.
+> So now I should test the analog tv, but I fear to have another kernel panic.
+> Is there something I can do before testing so that to be sure that at least
+> all the file system are in a safety condition even if a kernel panic
+> happens.
+> I'm wondering if it is the case, for example, to umount them and remount in
+> read only mode so that if I have to turn off the pc, nothing can be
+> corrupted (is it so?).
+> What do you suggest?
+> In case, how can I temporarly umount and remout the file systems in read
+> only mode? Should I use alt+sys+S followed by alt+sys+U? Can I use such
+> commands while I'm in KDE?
+> Thank you,
+> Xwang
 
-Ah, ok.  So you really do have an HVR-900H and not an HVR-900 (either
-R1 or R2).  Since this is the case, your device really is TM6000
-based, but that development tree has not been worked on in a very long
-time and is known to be broken.
+Glad to hear it's working now.  I will add the patch and issue a PULL
+request to get it into the mainline (I had to do this already for
+several other boards).
 
-Unfortunately, it is not clear when/if Mauro will ever get back to
-getting that bridge to a supported state (it hasn't had any active
-development in over nine months).
+Regarding your concerns on panic, as long as you have a modern
+filesystem like ext3, and you don't have alot of applications running
+which are doing writes, a panic is a pretty safe event.  I panic my
+machine many times a week and never have any problems.
+
+Cheers,
 
 Devin
 
