@@ -1,25 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n75Aclxp031863
-	for <video4linux-list@redhat.com>; Wed, 5 Aug 2009 06:38:47 -0400
-Received: from mail-qy0-f201.google.com (mail-qy0-f201.google.com
-	[209.85.221.201])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n75AcXWu010405
-	for <video4linux-list@redhat.com>; Wed, 5 Aug 2009 06:38:34 -0400
-Received: by qyk39 with SMTP id 39so5551898qyk.23
-	for <video4linux-list@redhat.com>; Wed, 05 Aug 2009 03:38:33 -0700 (PDT)
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n76FgT2N020539
+	for <video4linux-list@redhat.com>; Thu, 6 Aug 2009 11:42:29 -0400
+Received: from mail-ew0-f208.google.com (mail-ew0-f208.google.com
+	[209.85.219.208])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n76FgCVL003712
+	for <video4linux-list@redhat.com>; Thu, 6 Aug 2009 11:42:13 -0400
+Received: by ewy4 with SMTP id 4so1001390ewy.3
+	for <video4linux-list@redhat.com>; Thu, 06 Aug 2009 08:42:12 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <ubpmumuhg.wl%morimoto.kuninori@renesas.com>
-References: <ubpmumuhg.wl%morimoto.kuninori@renesas.com>
-Date: Wed, 5 Aug 2009 19:38:32 +0900
-Message-ID: <aec7e5c30908050338l2ae7bed2q6b2b35d0ff9084f7@mail.gmail.com>
-From: Magnus Damm <magnus.damm@gmail.com>
-To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+Date: Thu, 6 Aug 2009 17:42:12 +0200
+Message-ID: <eedb5540908060842rb7e2ac7g920310563fa8ddb4@mail.gmail.com>
+From: javier Martin <javier.martin@vista-silicon.com>
+To: video4linux-list@redhat.com
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: V4L-Linux <video4linux-list@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 1/2] sh_mobile_ceu: add soft reset function
+Content-Transfer-Encoding: 7bit
+Subject: H.264 format support?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,43 +27,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Morimoto-san,
+Hi,
+I have been reading formats supported in V4L2 api and I haven't found
+H.264 in compressed formats.
 
-On Wed, Aug 5, 2009 at 7:21 PM, Kuninori
-Morimoto<morimoto.kuninori@renesas.com> wrote:
-> +       while (t--) {
-> +               if (!(ceu_read(pcdev, CAPSR) & (1 << 16)))
-> +                       break;
-> +               cpu_relax();
-> +       }
-> +
-> +       t = 10000;
-> +       while (t--) {
-> +               if (!(ceu_read(pcdev, CSTSR) & 1))
-> +                       break;
-> +               cpu_relax();
-> +       }
-> +}
-> +
->  /*
->  *  Videobuf operations
->  */
-> @@ -366,9 +386,7 @@ static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
->
->        clk_enable(pcdev->clk);
->
-> -       ceu_write(pcdev, CAPSR, 1 << 16); /* reset */
-> -       while (ceu_read(pcdev, CSTSR) & 1)
-> -               msleep(1);
+Do you plan to add a define for this format? If not what would be the
+problem with it?
 
-So the original code is using msleep(1) for timing, but your new code
-does not have any delay in the loops. Please use some delay code in
-there so that the polling times out after a known amount of time. In
-this version the time depends on cpu speed which is not so good.
+Thank you.
 
-Thanks,
-
-/ magnus
+-- 
+Javier Martin
+Vista Silicon S.L.
+Universidad de Cantabria
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
 
 --
 video4linux-list mailing list
