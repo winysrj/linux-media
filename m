@@ -1,25 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n738eICO007159
-	for <video4linux-list@redhat.com>; Mon, 3 Aug 2009 04:40:18 -0400
-Received: from mail-bw0-f216.google.com (mail-bw0-f216.google.com
-	[209.85.218.216])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n738e4sG018297
-	for <video4linux-list@redhat.com>; Mon, 3 Aug 2009 04:40:05 -0400
-Received: by bwz12 with SMTP id 12so3088479bwz.3
-	for <video4linux-list@redhat.com>; Mon, 03 Aug 2009 01:40:04 -0700 (PDT)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n76JFsGZ032257
+	for <video4linux-list@redhat.com>; Thu, 6 Aug 2009 15:15:54 -0400
+Received: from partygirl.tmr.com (mail.tmr.com [64.65.253.246])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n76JFf1U032342
+	for <video4linux-list@redhat.com>; Thu, 6 Aug 2009 15:15:41 -0400
+Received: from partygirl.tmr.com (partygirl.tmr.com [127.0.0.1])
+	by partygirl.tmr.com (8.14.2/8.14.2) with ESMTP id n76JFe40017656
+	for <video4linux-list@redhat.com>; Thu, 6 Aug 2009 15:15:40 -0400
+Message-ID: <4A7B2BDB.5000906@tmr.com>
+Date: Thu, 06 Aug 2009 15:15:39 -0400
+From: Bill Davidsen <davidsen@tmr.com>
 MIME-Version: 1.0
-In-Reply-To: <4A769B2E.1050309@hhs.nl>
-References: <b7b14cbb0907271230s8aa78l76d73bf785331497@mail.gmail.com>
-	<4A769B2E.1050309@hhs.nl>
-Date: Mon, 3 Aug 2009 10:40:04 +0200
-Message-ID: <b7b14cbb0908030140t56dba238ic8958e0a383fa4a3@mail.gmail.com>
-From: Clinton Lee Taylor <clintonlee.taylor@gmail.com>
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Syntek Driver ...
+To: video4linux M/L <video4linux-list@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: Is there any working video capture card which works and is still
+ made?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,39 +28,30 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Greetings ...
+I have a lovely collection of capture cards which either don't work or 
+are no longer available new. Is there any such card?
 
-2009/8/3 Hans de Goede <j.w.r.degoede@hhs.nl>:
-> On 07/27/2009 09:30 PM, Clinton Lee Taylor wrote:
->>
->> Greetings ...
->>
->>  I was wondering if anybody has looked at the Syntek Driver stk11xx at
->> http://sourceforge.net/projects/syntekdriver/files/ ... This driver is
->> meant to have updates for the EasyCap USB video capture device ...
->> Would be great to have included in the main line Video4Linux and then
->> up stream Kernel ... Pretty please!!
->
-> Hi,
- Thanks for the reply ...
+Note: I can't tell a client to buy hardware on eBay, or to patch a 
+kernel, or commit to providing patched kernel... and we're in 
+Time-Warned land, where the signal is a mix of clear digital, 
+crypto-digital, and NTSC. I *can* tell someone to spend money to get 
+something supported, which they could buy in some small quantity.
 
-> 1) The video4linux-list@redhat.com list is no longer in use, please
->   resend your mail to Linux Media Mailing List <linux-media@vger.kernel.org>
- Okay, going to subscribe to this list tonight ...
+I would be happy with a box like the HDhomerun, which does a nice job on 
+the tiny list of clear digital signals, the Hauppauge HVR-2250 is ideal, 
+but doesn't work because the driver isn't in the kernel and the windows 
+stuff doesn't run on ndiswrapper (too complex to support anyway).
 
-> 2) Getting this driver upstream requires someone who owns the actual
-> hardware
->   to drive this, are you willing to do that ?
- I have this hardware and willing to try and test and report back, but
-I'm not a kernel programmer ... More an intergrator ... Have two
-options, either I could arrange a purchase of a unit for yourself,
-then you could test too, or I could test what ever you could debug, I
-see that you have many v4l devices already ... Would that be of any
-good?
+Any thoughts, or is it just not currently happening?
 
-Thanks
-Mailed
-LeeT
+-- 
+bill davidsen <davidsen@tmr.com>
+  CTO TMR Associates, Inc
+
+"You are disgraced professional losers. And by the way, give us our money back."
+    - Representative Earl Pomeroy,  Democrat of North Dakota
+on the A.I.G. executives who were paid bonuses  after a federal bailout.
+
 
 --
 video4linux-list mailing list
