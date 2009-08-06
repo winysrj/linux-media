@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.11])
-	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n7L90FMJ025280
-	for <video4linux-list@redhat.com>; Fri, 21 Aug 2009 05:00:15 -0400
-Received: from owa.mail24.ee (owa.mail24.ee [88.196.5.45])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n7L900vo005423
-	for <video4linux-list@redhat.com>; Fri, 21 Aug 2009 05:00:01 -0400
-From: Avo Aasma <Avo.Aasma@webit.ee>
-To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Date: Fri, 21 Aug 2009 11:59:57 +0300
-Message-ID: <CC0519432816B04CA17FCEC83F6D189061AF451633@ExchBE.Mail24.ee>
-Content-Language: en-US
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n76NNgY7030930
+	for <video4linux-list@redhat.com>; Thu, 6 Aug 2009 19:23:42 -0400
+Received: from mail-yw0-f197.google.com (mail-yw0-f197.google.com
+	[209.85.211.197])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n76NNOFp001892
+	for <video4linux-list@redhat.com>; Thu, 6 Aug 2009 19:23:24 -0400
+Received: by ywh35 with SMTP id 35so1580510ywh.19
+	for <video4linux-list@redhat.com>; Thu, 06 Aug 2009 16:23:24 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1257"
-Content-Transfer-Encoding: quoted-printable
-Subject: Error installing v4l driver
+In-Reply-To: <20090807005542.962158ltxqad3b0g@horde.phosco.info>
+References: <20090807005542.962158ltxqad3b0g@horde.phosco.info>
+Date: Thu, 6 Aug 2009 19:23:24 -0400
+Message-ID: <829197380908061623t3f35c75dwb7a22164278294bf@mail.gmail.com>
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: =?ISO-8859-1?Q?Andr=E9_Rothe?= <arothe@phosco.info>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: New device
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,44 +30,58 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
+On Thu, Aug 6, 2009 at 6:55 PM, André Rothe<arothe@phosco.info> wrote:
+> Hi,
+>
+> I have bought a new video grabber device. It is an USB device from Q-sonic.
+> The device is not successfully detected, so there is only an input=0
+> available, the S-Video connector. But I get only black-white video, the
+> other connector (Composite) delivers color video on Windows, but I cannot
+> switch the driver to it.
+>
+> em28xx v4l2 driver version 0.1.0 loaded
+> em28xx new video device (eb1a:2820): interface 0, class 255
+> em28xx Doesn't have usb audio class
+> em28xx #0: Alternate settings: 8
+> em28xx #0: Alternate setting 0, max size= 0
+> em28xx #0: Alternate setting 1, max size= 1024
+> em28xx #0: Alternate setting 2, max size= 1448
+> em28xx #0: Alternate setting 3, max size= 2048
+> em28xx #0: Alternate setting 4, max size= 2304
+> em28xx #0: Alternate setting 5, max size= 2580
+> em28xx #0: Alternate setting 6, max size= 2892
+> em28xx #0: Alternate setting 7, max size= 3072
+> em28xx #0: em28xx chip ID = 18
+> saa7115' 7-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
+> em28xx #0: found i2c device @ 0x4a [saa7113h]
+> em28xx #0: Your board has no unique USB ID.
+> em28xx #0: A hint were successfully done, based on i2c devicelist hash.
+> em28xx #0: This method is not 100% failproof.
+> em28xx #0: If the board were missdetected, please email this log to:
+> em28xx #0:      V4L Mailing List  <video4linux-list@redhat.com>
+> em28xx #0: Board detected as PointNix Intra-Oral Camera
+> em28xx #0: Registering snapshot button...
+> input: em28xx snapshot button as
+> /devices/pci0000:00/0000:00:1d.7/usb2/2-1/input/input9
+> em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
+> em28xx #0: Found PointNix Intra-Oral Camera
+> usbcore: registered new interface driver em28xx
+> em28xx-audio.c: probing for em28x1 non standard usbaudio
+> em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+> Em28xx: Initialized (Em28xx Audio Extension) extension
+>
+> Thank you
+> Andre
 
-I=92m using Ubuntu Jaunty 9.04 with kernel 2.6.28-15-generic. I=92m using M=
-ythTV with Hauppauge Nova-T 500 dual DVB card. After updating system with n=
-ew linux-headres, I should reinstall v4l driver in order to get IR receiver=
- to work. I have made this several times when linux-headers are updated wit=
-hout any problems.
-For reinstall I have used:
-hg pull
-hg update
-make clean
-rm v4l/.version
-make all
-sudo make install
+Install the latest v4l-dvb code and it should all start working:
 
-Now I get errors during command make all.
-Error is listed below.
+http://linuxtv.org/repo
 
-  CC [M]  /home/avo/v4l-dvb/v4l/stb6100.o
-/home/avo/v4l-dvb/v4l/stb6100.c: In function 'stb6100_set_frequency':
-/home/avo/v4l-dvb/v4l/stb6100.c:377: error: implicit declaration of functio=
-n 'DIV_ROUND_CLOSEST'
-make[3]: *** [/home/avo/v4l-dvb/v4l/stb6100.o] Error 1
-make[2]: *** [_module_/home/avo/v4l-dvb/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-headers-2.6.28-15-generic'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/home/avo/v4l-dvb/v4l'
-make: *** [all] Error 2
+Devin
 
-Can you help me to fix this problem?
-
-Regards,
-
-Avo Aasma, CISA
-Webit O=DC<http://www.webit.ee/>
-+372 50 34999
-MSN: avo.aasma@intral.net<mailto:avo.aasma@intral.net>
-Skype: avoaasma5272
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
 
 --
 video4linux-list mailing list
