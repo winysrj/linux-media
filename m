@@ -1,44 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.159]:56378 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751144AbZHGMHo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2009 08:07:44 -0400
-MIME-Version: 1.0
-In-Reply-To: <20090807095426.GI8725@shareable.org>
-References: <200908061208.22131.laurent.pinchart@ideasonboard.com>
-	 <20090806222543.GG31579@n2100.arm.linux.org.uk>
-	 <1249624766.32621.61.camel@david-laptop>
-	 <200908070958.31322.laurent.pinchart@ideasonboard.com>
-	 <20090807081041.GB18343@n2100.arm.linux.org.uk>
-	 <20090807095426.GI8725@shareable.org>
-Date: Fri, 7 Aug 2009 14:07:43 +0200
-Message-ID: <761ea48b0908070507n5c580455pb86e5240a7cf6c0c@mail.gmail.com>
-Subject: Re: How to efficiently handle DMA and cache on ARMv7 ? (was "Is
-	get_user_pages() enough to prevent pages from being swapped out ?")
-From: Laurent Desnogues <laurent.desnogues@gmail.com>
-To: Jamie Lokier <jamie@shareable.org>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	David Xiao <dxiao@broadcom.com>,
-	Ben Dooks <ben-linux@fluff.org>,
-	Hugh Dickins <hugh.dickins@tiscali.co.uk>,
-	Robin Holt <holt@sgi.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	v4l2_linux <linux-media@vger.kernel.org>,
-	"linux-arm-kernel@lists.arm.linux.org.uk"
-	<linux-arm-kernel@lists.arm.linux.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from comal.ext.ti.com ([198.47.26.152]:52997 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755984AbZHFPOf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2009 11:14:35 -0400
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+Date: Thu, 6 Aug 2009 10:18:15 -0500
+Subject: RE: Linux Plumbers Conference 2009: V4L2 API discussions
+Message-ID: <A24693684029E5489D1D202277BE89444A4D863C@dlee02.ent.ti.com>
+References: <200908040912.24718.hverkuil@xs4all.nl>
+ <19F8576C6E063C45BE387C64729E73940432AF3A5D@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940432AF3A5D@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 7, 2009 at 11:54 AM, Jamie Lokier<jamie@shareable.org> wrote:
->
-> 1. Does the architecture not prevent speculative instruction
-> prefetches from crossing a page boundary?  It would be handy under the
-> circumstances.
-
-There's no such restriction in ARMv7 architecture.
 
 
-Laurent
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Hiremath, Vaibhav
+> Sent: Tuesday, August 04, 2009 12:13 PM
+> To: Hans Verkuil; linux-media@vger.kernel.org
+> Cc: eduardo.valentin@nokia.com; davinci-linux-open-
+> source@linux.davincidsp.com; linux-omap@vger.kernel.org; Magnus Damm;
+> Dongsoo, Nathaniel Kim
+> Subject: RE: Linux Plumbers Conference 2009: V4L2 API discussions
+> 
+> 
+> 
+> > -----Original Message-----
+> > From: davinci-linux-open-source-bounces@linux.davincidsp.com
+> > [mailto:davinci-linux-open-source-bounces@linux.davincidsp.com] On
+> > Behalf Of Hans Verkuil
+> > Sent: Tuesday, August 04, 2009 12:42 PM
+> > To: linux-media@vger.kernel.org
+> > Cc: eduardo.valentin@nokia.com; davinci-linux-open-
+> > source@linux.davincidsp.com; linux-omap@vger.kernel.org; Magnus
+> > Damm; Dongsoo, Nathaniel Kim
+> > Subject: Linux Plumbers Conference 2009: V4L2 API discussions
+> >
+> > Hi all,
+> >
+> > During this years Plumbers Conference I will be organizing a session
+> > (or
+> > possibly more than one) on what sort of new V4L2 APIs are needed to
+> > support the new SoC devices. These new APIs should also solve the
+> > problem
+> > of how to find all the related alsa/fb/ir/dvb devices that a typical
+> > video
+> > device might create.
+> >
+> > A proposal was made about a year ago (note that this is a bit
+> > outdated
+> > by now, but the basics are still valid):
+> >
+> > http://www.archivum.info/video4linux-list%40redhat.com/2008-
+> > 07/msg00371.html
+> >
+> > In the past year the v4l2 core has evolved enough so that we can
+> > finally
+> > start thinking about this for real.
+> >
+> > I would like to know who will be attending this conference. I also
+> > urge
+> > anyone who is working in this area and who wants to have a say in
+> > this to
+> > attend the conference. The goal is to prepare a new RFC with a
+> > detailed
+> > proposal on the new APIs that are needed to fully support all the
+> > new
+> > SoCs. So the more input we get, the better the end-result will be.
+> >
+> [Hiremath, Vaibhav] Hi Hans,
+> 
+> I will be attending the conference and along with above mentioned RFC I
+> would want to discuss some of the open issues, forthcoming TI devices,
+> their complexity and required software interfaces (media processor (as you
+> mentioned above)) and similar stuff.
+
+Hans, Vaibhav,
+
+I'll be attending this conference too. I just got approval from my boss ;).
+
+I'm starting to take the v4l2_subdev migration task as a high priority now, since most of the stability related issues in some proprietary platform are gone now. :)
+
+Actually, I'm also interested on the discussions about the Preview/Resizer Wrappers.
+
+Meet you there.
+
+Regards,
+Sergio
+> 
+> 
+> I will work with you offline before sharing the details here with the
+> community.
+> 
+> Thanks,
+> Vaibhav Hiremath
+> 
+> > Early-bird registration is still possible up to August 5th (that's
+> > tomorrow :-) ).
+> >
+> > Regards,
+> >
+> > 	Hans
+> >
+> > --
+> > Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+> >
+> > _______________________________________________
+> > Davinci-linux-open-source mailing list
+> > Davinci-linux-open-source@linux.davincidsp.com
+> > http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-
+> > source
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
