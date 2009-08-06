@@ -1,75 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57959 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750805AbZHRVve convert rfc822-to-8bit (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42317 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756815AbZHFXBj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2009 17:51:34 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Date: Tue, 18 Aug 2009 16:51:06 -0500
-Subject: RE: [PATCH v1 - 1/5] DaVinci - restructuring code to support vpif
- capture driver
-Message-ID: <A69FA2915331DC488A831521EAE36FE401548C2135@dlee06.ent.ti.com>
-References: <1250283702-5582-1-git-send-email-m-karicheri2@ti.com>
-	<A69FA2915331DC488A831521EAE36FE40145300FC7@dlee06.ent.ti.com>
-	<200908180849.14003.hverkuil@xs4all.nl>
-	<200908180851.06222.hverkuil@xs4all.nl>
-	<A69FA2915331DC488A831521EAE36FE401548C1E27@dlee06.ent.ti.com>
- <20090818142817.26de0893@pedra.chehab.org>
-In-Reply-To: <20090818142817.26de0893@pedra.chehab.org>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Thu, 6 Aug 2009 19:01:39 -0400
+Message-Id: <200908062301.n76N1EGY029960@imap1.linux-foundation.org>
+Subject: [patch 2/9] drivers/media/video/cx88/cx88: add support for WinFast DTV2000H rev. J
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
+	vlasta.labsky@gmail.com, kraxel@bytesex.org
+From: akpm@linux-foundation.org
+Date: Thu, 06 Aug 2009 16:01:13 -0700
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+From: Vlastimil Labsky <vlasta.labsky@gmail.com>
 
-Here are the patches from Chaithrika that I am referring to.
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg08254.html
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg07676.html
+I updated and simplyfied patch from Zbynek Hrabovsky for recent kernel. 
+It enables autodetection of card, sound in analog TV , sound in FM radio
+and switching between antenna and cable RF input.  Radio tuner still
+doesn't work, I don't even know how it works.  Some guys wrote me that FM
+radio works with TV tuner used instead of radio part (symlink video0 ->
+radio0).
 
-Let me know once they are merged...
+Signed-off-by: Vlastimil Labsky <vlasta.labsky@gmail.com>
+Cc: Gerd Knorr <kraxel@bytesex.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-new phone: 301-407-9583
-Old Phone : 301-515-3736 (will be deprecated)
-email: m-karicheri2@ti.com
+ drivers/media/video/cx88/cx88-cards.c |   49 ++++++++++++++++++++++++
+ drivers/media/video/cx88/cx88-dvb.c   |    1 
+ drivers/media/video/cx88/cx88-input.c |    1 
+ drivers/media/video/cx88/cx88.h       |    1 
+ 4 files changed, 52 insertions(+)
 
->-----Original Message-----
->From: Mauro Carvalho Chehab [mailto:mchehab@infradead.org]
->Sent: Tuesday, August 18, 2009 1:28 PM
->To: Karicheri, Muralidharan
->Cc: Mauro Carvalho Chehab; linux-media@vger.kernel.org; davinci-linux-open-
->source@linux.davincidsp.com; khilman@deeprootsystems.com; Hans Verkuil
->Subject: Re: [PATCH v1 - 1/5] DaVinci - restructuring code to support vpif
->capture driver
->
->Em Tue, 18 Aug 2009 11:06:54 -0500
->"Karicheri, Muralidharan" <m-karicheri2@ti.com> escreveu:
->
->> Mauro,
->>
->> I need to send a set of patches for adding vpif capture driver. Currently
->the linux-next doesn't have the last patch from Chaithrika applied for vpif
->display. Is it possible to apply this asap so that I can create the vpif
->capture patch today?
->
->Sure. Could you please point me what's the patchwork ID(s)[1] of the patch
->you need
->me to apply at our development tree and at linux-next?
->	[1] http://patchwork.kernel.org/project/linux-media/list/
->
->Cheers,
->Mauro
-
+diff -puN drivers/media/video/cx88/cx88-cards.c~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j drivers/media/video/cx88/cx88-cards.c
+--- a/drivers/media/video/cx88/cx88-cards.c~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j
++++ a/drivers/media/video/cx88/cx88-cards.c
+@@ -1283,6 +1283,51 @@ static const struct cx88_board cx88_boar
+ 		},
+ 		.mpeg           = CX88_MPEG_DVB,
+ 	},
++	[CX88_BOARD_WINFAST_DTV2000H_J] = {
++		.name           = "WinFast DTV2000 H rev. J",
++		.tuner_type     = TUNER_PHILIPS_FMD1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.input          = {{
++			.type   = CX88_VMUX_TELEVISION,
++			.vmux   = 0,
++			.gpio0  = 0x00017300,
++			.gpio1  = 0x00008207,
++			.gpio2	= 0x00000000,
++			.gpio3  = 0x02000000,
++		},{
++			.type   = CX88_VMUX_TELEVISION,
++			.vmux   = 0,
++			.gpio0  = 0x00018300,
++			.gpio1  = 0x0000f207,
++			.gpio2	= 0x00017304,
++			.gpio3  = 0x02000000,
++		},{
++			.type   = CX88_VMUX_COMPOSITE1,
++			.vmux   = 1,
++			.gpio0  = 0x00018301,
++			.gpio1  = 0x0000f207,
++			.gpio2	= 0x00017304,
++			.gpio3  = 0x02000000,
++		},{
++			.type   = CX88_VMUX_SVIDEO,
++			.vmux   = 2,
++			.gpio0  = 0x00018301,
++			.gpio1  = 0x0000f207,
++			.gpio2	= 0x00017304,
++			.gpio3  = 0x02000000,
++		}},
++		.radio = {
++			 .type  = CX88_RADIO,
++			 .gpio0 = 0x00015702,
++			 .gpio1 = 0x0000f207,
++			 .gpio2 = 0x00015702,
++			 .gpio3 = 0x02000000,
++		},
++		.mpeg           = CX88_MPEG_DVB,
++	},
+ 	[CX88_BOARD_GENIATECH_DVBS] = {
+ 		.name          = "Geniatech DVB-S",
+ 		.tuner_type    = TUNER_ABSENT,
+@@ -2282,6 +2327,10 @@ static const struct cx88_subid cx88_subi
+ 		.subdevice = 0x665e,
+ 		.card      = CX88_BOARD_WINFAST_DTV2000H,
+ 	},{
++		.subvendor = 0x107d,
++		.subdevice = 0x6f2b,
++		.card      = CX88_BOARD_WINFAST_DTV2000H_J,
++	},{
+ 		.subvendor = 0x18ac,
+ 		.subdevice = 0xd800, /* FusionHDTV 3 Gold (original revision) */
+ 		.card      = CX88_BOARD_DVICO_FUSIONHDTV_3_GOLD_Q,
+diff -puN drivers/media/video/cx88/cx88-dvb.c~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j drivers/media/video/cx88/cx88-dvb.c
+--- a/drivers/media/video/cx88/cx88-dvb.c~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j
++++ a/drivers/media/video/cx88/cx88-dvb.c
+@@ -695,6 +695,7 @@ static int dvb_register(struct cx8802_de
+ 		}
+ 		break;
+ 	case CX88_BOARD_WINFAST_DTV2000H:
++	case CX88_BOARD_WINFAST_DTV2000H_J:
+ 	case CX88_BOARD_HAUPPAUGE_HVR1100:
+ 	case CX88_BOARD_HAUPPAUGE_HVR1100LP:
+ 	case CX88_BOARD_HAUPPAUGE_HVR1300:
+diff -puN drivers/media/video/cx88/cx88-input.c~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j drivers/media/video/cx88/cx88-input.c
+--- a/drivers/media/video/cx88/cx88-input.c~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j
++++ a/drivers/media/video/cx88/cx88-input.c
+@@ -225,6 +225,7 @@ int cx88_ir_init(struct cx88_core *core,
+ 		ir->sampling = 1;
+ 		break;
+ 	case CX88_BOARD_WINFAST_DTV2000H:
++	case CX88_BOARD_WINFAST_DTV2000H_J:
+ 	case CX88_BOARD_WINFAST_DTV1800H:
+ 		ir_codes = ir_codes_winfast;
+ 		ir->gpio_addr = MO_GP0_IO;
+diff -puN drivers/media/video/cx88/cx88.h~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j drivers/media/video/cx88/cx88.h
+--- a/drivers/media/video/cx88/cx88.h~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j
++++ a/drivers/media/video/cx88/cx88.h
+@@ -237,6 +237,7 @@ extern struct sram_channel cx88_sram_cha
+ #define CX88_BOARD_TERRATEC_CINERGY_HT_PCI_MKII 79
+ #define CX88_BOARD_HAUPPAUGE_IRONLY        80
+ #define CX88_BOARD_WINFAST_DTV1800H        81
++#define CX88_BOARD_WINFAST_DTV2000H_J      82
+ 
+ enum cx88_itype {
+ 	CX88_VMUX_COMPOSITE1 = 1,
+_
