@@ -1,88 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2565 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755256AbZHYRCI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2009 13:02:08 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] v4l: add new v4l2-subdev sensor operations, use skip_top_lines in soc-camera
-Date: Tue, 25 Aug 2009 19:02:03 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <Pine.LNX.4.64.0908251855160.4810@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0908251855160.4810@axis700.grange>
+Received: from znsun1.ifh.de ([141.34.1.16]:61629 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755360AbZHFMei (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 6 Aug 2009 08:34:38 -0400
+Date: Thu, 6 Aug 2009 14:34:23 +0200 (CEST)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Michael Krufky <mkrufky@kernellabs.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	olgrenie@dibcom.fr
+Subject: Re: RFC: adding ISDB-T/ISDB-Tsb to DVB-API 5
+In-Reply-To: <37219a840908051251g1ec47b6dx1d940862727a9c46@mail.gmail.com>
+Message-ID: <alpine.LRH.1.10.0908061258200.6890@pub1.ifh.de>
+References: <alpine.LRH.1.10.0908031943220.8512@pub1.ifh.de> <37219a840908051251g1ec47b6dx1d940862727a9c46@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200908251902.03790.hverkuil@xs4all.nl>
+Content-Type: MULTIPART/MIXED; BOUNDARY="579714831-1324370993-1249562063=:6890"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 25 August 2009 18:56:29 Guennadi Liakhovetski wrote:
-> Introduce new v4l2-subdev sensor operations, move .enum_framesizes() and
-> .enum_frameintervals() methods to it, add a new .skip_top_lines() method
-> and switch soc-camera to use it instead of .y_skip_top soc_camera_device
-> member, which can now be removed.
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
->  drivers/media/video/mt9m001.c             |   28 +++++++++++++++++++++-------
->  drivers/media/video/mt9m111.c             |    1 -
->  drivers/media/video/mt9t031.c             |    8 +++-----
->  drivers/media/video/mt9v022.c             |   28 +++++++++++++++++++++-------
->  drivers/media/video/pxa_camera.c          |    9 +++++++--
->  drivers/media/video/soc_camera_platform.c |    1 -
->  include/media/soc_camera.h                |    1 -
->  include/media/v4l2-subdev.h               |   11 +++++++++++
->  8 files changed, 63 insertions(+), 24 deletions(-)
-> 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-<snip>
+--579714831-1324370993-1249562063=:6890
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
 
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 89a39ce..169b336 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -225,8 +225,18 @@ struct v4l2_subdev_video_ops {
->  	int (*s_crop)(struct v4l2_subdev *sd, struct v4l2_crop *crop);
->  	int (*g_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
->  	int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
-> +};
-> +
-> +/**
-> + * struct v4l2_subdev_sensor_ops - v4l2-subdev sensor operations
-> + * @enum_framesizes: enumerate supported framesizes
-> + * @enum_frameintervals: enumerate supported frame format intervals
-> + * @skip_top_lines: number of lines at the top of the image to be skipped
+Hi Michael,
 
-You should add some comments here why this function is needed.
+thanks for your response.
 
-Other than that it's OK.
+On Wed, 5 Aug 2009, Michael Krufky wrote:
+> It's extremely exciting to finally see this surfacing to the mailing
+> lists -- It will be a great addition to linux-dvb to have support for
+> the ISDB digital standards.
 
-Regards,
+Thanks, but I have to say it again, as I said it to Akihiro already. Those 
+patches are not adding ISDB-S nor ISDB-C to the API. I'm not sure how 
+different ISDB-S and ISDB-C are compared to their corresponding DVB 
+pendants; however my patches are just adding support for ISDB-T and 
+ISDB-Tsb.
 
-	Hans
+> One thing that I see missing right now is userspace utilities.  Do you
+> have any plans to add ISDB scanning support to dvb-apps, and tuning
+> support to the *zap utility?  This would be the best way to get the
+> application developers started on incorporating ISDB support into the
+> apps shipping today.
 
-> + */
-> +struct v4l2_subdev_sensor_ops {
->  	int (*enum_framesizes)(struct v4l2_subdev *sd, struct v4l2_frmsizeenum *fsize);
->  	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct v4l2_frmivalenum *fival);
-> +	int (*skip_top_lines)(struct v4l2_subdev *sd, u32 *lines);
->  };
->  
->  struct v4l2_subdev_ops {
-> @@ -234,6 +244,7 @@ struct v4l2_subdev_ops {
->  	const struct v4l2_subdev_tuner_ops *tuner;
->  	const struct v4l2_subdev_audio_ops *audio;
->  	const struct v4l2_subdev_video_ops *video;
-> +	const struct v4l2_subdev_sensor_ops *sensor;
->  };
->  
->  #define V4L2_SUBDEV_NAME_SIZE 32
+Yeah this is in preparation. The scan works rather simply, as the section 
+tables are partially identical to the ones in DVB (there is an SDT for 
+service-names, there is a NIT, for network name) - so as a first shot it 
+should be sufficient to add ISDB-T initial tuning data parsing to scan; 
+this will also show how to tuning an ISDB-T channel.
 
+See attached for a first draft of the initial tuning data file for Tokyo.
 
+best regards,
+--
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Patrick Boettcher - Kernel Labs
+http://www.kernellabs.com/
+--579714831-1324370993-1249562063=:6890
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=jp-Tokyo
+Content-Transfer-Encoding: BASE64
+Content-Description: 
+Content-Disposition: attachment; filename=jp-Tokyo
+
+IyBsaXN0IG9mIElTREItVCBmcmVxdWVuY2llcyB1c2VkIGluIFRva3lvLCBK
+YXBhbiAoMjAwOS0wOC0wNikNCiMgaWRlbnRpZmllciAoSVQvSVNCKQ0KIyAg
+Y2VudHJhbC1mcmVxdWVuY3kNCiMgIHwgICAgICAgICAgdHJhbnNtaXNzaW9u
+LW1vZGUNCiMgIHwgICAgICAgICAgfCAgZ3VhcmQtaW50ZXJ2YWwNCiMgIHwg
+ICAgICAgICAgfCAgfCAgICBwYXJ0aWFsLXJlY2VwdGlvbi1iaXQNCiMgIHwg
+ICAgICAgICAgfCAgfCAgICB8IGMtcmF0ZSAoQSkNCiMgIHwgICAgICAgICAg
+fCAgfCAgICB8IHwgICAgICAgbW9kdWxhdGlvbiAoQSkNCiMgIHwgICAgICAg
+ICAgfCAgfCAgICB8IHwgICAgICAgfCAgICAgc2VnbWVudC1jb3VudCAoQSkN
+CiMgIHwgICAgICAgICAgfCAgfCAgICB8IHwgICAgICAgfCAgICAgfCAgaW50
+ZXJsZWF2aW5nIChBKQ0KIyAgfCAgICAgICAgICB8ICB8ICAgIHwgfCAgICAg
+ICB8ICAgICB8ICB8IGMtcmF0ZSAoQikNCiMgIHwgICAgICAgICAgfCAgfCAg
+ICB8IHwgICAgICAgfCAgICAgfCAgfCB8ICAgICAgICBtb2R1bGF0aW9uIChC
+KQ0KIyAgfCAgICAgICAgICB8ICB8ICAgIHwgfCAgICAgICB8ICAgICB8ICB8
+IHwgICAgICAgIHwgICAgIHNlZ21lbnQtY291bnQgKEIpDQojICB8ICAgICAg
+ICAgIHwgIHwgICAgfCB8ICAgICAgIHwgICAgIHwgIHwgfCAgICAgICAgfCAg
+ICAgfCAgaW50ZXJsZWF2aW5nIChCKQ0KIyAgfCAgICAgICAgICB8ICB8ICAg
+IHwgfCAgICAgICB8ICAgICB8ICB8IHwgICAgICAgIHwgICAgIHwgIHwgYy1y
+YXRlIChDKQ0KIyAgfCAgICAgICAgICB8ICB8ICAgIHwgfCAgICAgICB8ICAg
+ICB8ICB8IHwgICAgICAgIHwgICAgIHwgIHwgfCAgICAgICAgbW9kdWxhdGlv
+biAoQykNCiMgIHwgICAgICAgICAgfCAgfCAgICB8IHwgICAgICAgfCAgICAg
+fCAgfCB8ICAgICAgICB8ICAgICB8ICB8IHwgICAgICAgIHwgICAgc2VnbWVu
+dC1jb3VudCAoQykNCiMgIHwgICAgICAgICAgfCAgfCAgICB8IHwgICAgICAg
+fCAgICAgfCAgfCB8ICAgICAgICB8ICAgICB8ICB8IHwgICAgICAgIHwgICAg
+fCBpbnRlcmxlYXZpbmcgKEMpDQpJVCA1MTUxNDMwMDAgIDhLIDEvOCAgMSBG
+RUNfMl8zIFFQU0sgIDEgIDMgRkVDXzNfNCAgUUFNNjQgMTIgMiBGRUNfTk9O
+RSBBVVRPIDAgMCAgIyBUb2t5byBNZXRyb3BsaXRhbiBUVg0KSVQgNTIxMTQz
+MDAwICA4SyAxLzggIDEgRkVDXzJfMyBRUFNLICAxICAzIEZFQ18zXzQgIFFB
+TTY0IDEyIDIgRkVDX05PTkUgQVVUTyAwIDAgICMgRnVqaSBUVg0KSVQgNTI3
+MTQzMDAwICA4SyAxLzggIDEgRkVDXzJfMyBRUFNLICAxICAzIEZFQ18zXzQg
+IFFBTTY0IDEyIDIgRkVDX05PTkUgQVVUTyAwIDAgICMgVEJTIFRWDQpJVCA1
+MzMxNDMwMDAgIDhLIDEvOCAgMSBGRUNfMl8zIFFQU0sgIDEgIDMgRkVDXzNf
+NCAgUUFNNjQgMTIgMiBGRUNfTk9ORSBBVVRPIDAgMCAgIyBUViBUb2t5bw0K
+SVQgNTM5MTQzMDAwICA4SyAxLzggIDEgRkVDXzJfMyBRUFNLICAxICAzIEZF
+Q18zXzQgIFFBTTY0IDEyIDIgRkVDX05PTkUgQVVUTyAwIDAgICMgVFYgQXNh
+aGkNCklUIDU0NTE0MzAwMCAgOEsgMS84ICAxIEZFQ18yXzMgUVBTSyAgMSAg
+MyBGRUNfM180ICBRQU02NCAxMiAyIEZFQ19OT05FIEFVVE8gMCAwICAjIE5p
+aG9uIFRWDQpJVCA1NTExNDMwMDAgIDhLIDEvOCAgMSBGRUNfMl8zIFFQU0sg
+IDEgIDMgRkVDXzNfNCAgUUFNNjQgMTIgMiBGRUNfTk9ORSBBVVRPIDAgMCAg
+IyBOSEsgRWR1Y2F0aW9uDQpJVCA1NTcxNDMwMDAgIDhLIDEvOCAgMSBGRUNf
+Ml8zIFFQU0sgIDEgIDMgRkVDXzNfNCAgUUFNNjQgMTIgMiBGRUNfTk9ORSBB
+VVRPIDAgMCAgIyBOSEsgU29nbw0KSVQgNTYzMTQzMDAwICA4SyAxLzQgIDAg
+RkVDXzNfNCBRQU02NCAxMyAyIEZFQ19OT05FIEFVVE8gIDAgIDAgRkVDX05P
+TkUgQVVUTyAwIDAgICMgQnJvYWRjYXN0aW5nIFVuaXZlcnNpdHkNCg0KIyAg
+ZXhhbXBsZSBmb3IgSVNEQi1Uc2INCiMNCiMgIGlkZW50aWZpZXIgKElUL0lT
+QikNCiMgICAgY2VudHJhbC1mcmVxdWVuY3kNCiMgICAgfCAgICAgICAgIHRy
+YW5zbWlzc2lvbi1tb2RlDQojICAgIHwgICAgICAgICB8ICBndWFyZC1pbnRl
+cnZhbA0KIyAgICB8ICAgICAgICAgfCAgfCAgICBwYXJ0aWFsLXJlY2VwdGlv
+bi1iaXQNCiMgICAgfCAgICAgICAgIHwgIHwgICAgfCBzZWdtZW50LWlkeA0K
+IyAgICB8ICAgICAgICAgfCAgfCAgICB8IHwgc2VnbWVudC10b3RhbC1jb3Vu
+dA0KIyAgICB8ICAgICAgICAgfCAgfCAgICB8IHwgfCBzdWJjaGFubmVsX2lk
+DQojICAgIHwgICAgICAgICB8ICB8ICAgIHwgfCB8IHwgIGMtcmF0ZSAoQSkN
+CiMgICAgfCAgICAgICAgIHwgIHwgICAgfCB8IHwgfCAgfCAgICAgICBtb2R1
+bGF0aW9uIChBKQ0KIyAgICB8ICAgICAgICAgfCAgfCAgICB8IHwgfCB8ICB8
+ICAgICAgIHwgICAgc2VnbWVudC1jb3VudCAoQSkNCiMgICAgfCAgICAgICAg
+IHwgIHwgICAgfCB8IHwgfCAgfCAgICAgICB8ICAgIHwgaW50ZXJsZWF2aW5n
+IChBKQ0KIyAgICB8ICAgICAgICAgfCAgfCAgICB8IHwgfCB8ICB8ICAgICAg
+IHwgICAgfCB8IGMtcmF0ZSAoQikNCiMgICAgfCAgICAgICAgIHwgIHwgICAg
+fCB8IHwgfCAgfCAgICAgICB8ICAgIHwgfCB8ICAgICAgIG1vZHVsYXRpb24g
+KEIpDQojICAgIHwgICAgICAgICB8ICB8ICAgIHwgfCB8IHwgIHwgICAgICAg
+fCAgICB8IHwgfCAgICAgICB8ICAgICBzZWdtZW50LWNvdW50IChCKQ0KIyAg
+ICB8ICAgICAgICAgfCAgfCAgICB8IHwgfCB8ICB8ICAgICAgIHwgICAgfCB8
+IHwgICAgICAgfCAgICAgfCBpbnRlcmxlYXZpbmcgKEIpDQojSVNCIDE3MDAw
+MDAwMCA4SyAxLzMyIDAgMSA4IDIgIEZFQ18xXzIgUVBTSyAxIDAgRkVDX05P
+TkUgQVVUTyAwIDANCiNJU0IgMTcwNDI5MDAwIDhLIDEvMzIgMCAyIDggNiAg
+RkVDXzFfMiBRUFNLIDEgMCBGRUNfTk9ORSBBVVRPIDAgMA0KI0lTQiAxNzA4
+NjgwMDAgOEsgMS8zMiAwIDMgOCAxMCBGRUNfMV8yIFFQU0sgMSAwIEZFQ19O
+T05FIEFVVE8gMCAwDQojSVNCIDE3MTcyNjAwMCA4SyAxLzMyIDAgNSA4IDE4
+IEZFQ18xXzIgUVBTSyAxIDAgRkVDX05PTkUgQVVUTyAwIDANCiNJU0IgMTcy
+NTg0MDAwIDhLIDEvMzIgMCA3IDggMjYgRkVDXzFfMiBRUFNLIDEgMCBGRUNf
+MV8yICBRUFNLIDIgMA0KI0lTQiAxNzMwMTMwMDAgOEsgMS8zMiAwIDggOCAz
+MCBGRUNfMV8yIFFQU0sgMSAwIEZFQ19OT05FIEFVVE8gMCAwDQo=
+
+--579714831-1324370993-1249562063=:6890--
