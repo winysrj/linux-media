@@ -1,38 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f214.google.com ([209.85.219.214]:51190 "EHLO
-	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751046AbZHHRpc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Aug 2009 13:45:32 -0400
-Received: by ewy10 with SMTP id 10so2174216ewy.37
-        for <linux-media@vger.kernel.org>; Sat, 08 Aug 2009 10:45:32 -0700 (PDT)
-Subject: [patch review 0/6] radio-mr800
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Douglas Schilling Landgraf <dougsland@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Sat, 08 Aug 2009 21:44:18 +0400
-Message-Id: <1249753458.15160.234.camel@tux.localhost>
-Mime-Version: 1.0
+Received: from perceval.irobotique.be ([92.243.18.41]:38503 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755325AbZHFNEW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2009 09:04:22 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ben Dooks <ben-linux@fluff.org>
+Subject: Re: How to efficiently handle DMA and cache on ARMv7 ? (was "Is get_user_pages() enough to prevent pages from being swapped out ?")
+Date: Thu, 6 Aug 2009 15:06:23 +0200
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>,
+	Robin Holt <holt@sgi.com>, linux-kernel@vger.kernel.org,
+	"v4l2_linux" <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.arm.linux.org.uk
+References: <200908061208.22131.laurent.pinchart@ideasonboard.com> <20090806114619.GW2080@trinity.fluff.org>
+In-Reply-To: <20090806114619.GW2080@trinity.fluff.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200908061506.23874.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello all,
+Hi Ben,
 
-Here are some radio-mr800 patches against hg v4l-dvb tree.
-Patchset removes lock_kernel calls, fixes suspend/resume, cleanups,
-introduces status variable and redesigns users counter in driver.
+On Thursday 06 August 2009 13:46:19 Ben Dooks wrote:
+> On Thu, Aug 06, 2009 at 12:08:21PM +0200, Laurent Pinchart wrote:
+[snip]
+> >
+> > The second problem is to ensure cache coherency. As the userspace
+> > application will read data from the video buffers, those buffers will end
+> > up being cached in the processor's data cache. The driver does need to
+> > invalidate the cache before starting the DMA operation (userspace could
+> > in theory write to the buffers, but the data will be overwritten by DMA
+> > anyway, so there's no need to clean the cache).
+>
+> You'll need to clean the write buffers, otherwise the CPU may have data
+> queued that it has yet to write back to memory.
 
-As usual comments, remarks, ideas are more than welcome :)
+Good points, thanks.
 
-[1/6] radio-mr800: remove redundant lock/unlock_kernel
-[2/6] radio-mr800: cleanup of usb_amradio_open/close
-[3/6] radio-mr800: no need to pass curfreq value to amradio_setfreq()
-[4/6] radio-mr800: make radio->status variable
-[5/6] radio-mr800: update suspend/resume procedure
-[6/6] radio-mr800: redesign radio->users counter
+> > As the cache is of the VIPT (Virtual Index Physical Tag) type, cache
+> > invalidation can either be done globally (in which case the cache is
+> > flushed instead of being invalidated) or based on virtual addresses. In
+> > the last case the processor will need to look physical addresses up,
+> > either in the TLB or through hardware table walk.
+> >
+> > I can see three solutions to the DMA/cache problem.
+> >
+> > 1. Flushing the whole data cache right before starting the DMA transfer.
+> > There's no API for that in the ARM architecture, so a whole I+D cache is
+> > required. This is quite costly, we're talking about around 30 flushes per
+> > second, but it doesn't involve the MMU. That's the solution that I
+> > currently use.
+> >
+> > 2. Invalidating only the cache lines that store video buffer data. This
+> > requires a TLB lookup or a hardware table walk, so the userspace
+> > application MM context needs to be available (no problem there as where's
+> > flushing in userspace context) and all pages need to be mapped properly.
+> > This can be a problem as, as Hugh pointed out, pages can still be
+> > unmapped from the userspace context after get_user_pages() returns. I
+> > have experienced one oops due to a kernel paging request failure:
+>
+> If you already know the virtual addresses of the buffers, why do you need
+> a TLB lookup (or am I being dense here?)
 
+The virtual address is used to compute the cache lines index, and the physical 
+address is then used when comparing the cache line tag. So the processor (or 
+actually the CP15 coprocessor if I'm not wrong) does a TLB lookup to get the 
+physical address during cache invalidation/flushing.
 
--- 
-Best regards, Klimov Alexey
+> >         Unable to handle kernel paging request at virtual address
+> > 44e12000 pgd = c8698000
+> >         [44e12000] *pgd=8a4fd031, *pte=8cfda1cd, *ppte=00000000
+> >         Internal error: Oops: 817 [#1] PREEMPT
+> >         PC is at v7_dma_inv_range+0x2c/0x44
+> >
+> > Fixing this requires more investigation, and I'm not sure how to proceed
+> > to find out if the page fault is really caused by pages being unmapped
+> > from the userspace context. Help would be appreciated.
+> >
+> > 3. Mark the pages as non-cacheable. Depending on how the buffers are then
+> > used by userspace, the additional cache misses might destroy any benefit
+> > I would get from not flushing the cache before DMA. I'm not sure how to
+> > mark a bunch of pages as non-cacheable though. What usually happens is
+> > that video drivers allocate DMA-coherent memory themselves, but in this
+> > case I need to deal with an arbitrary buffer allocated by userspace. If
+> > someone has any experience with this, it would be appreciated.
+
+Regards,
+
+Laurent Pinchart
 
