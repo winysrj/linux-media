@@ -1,117 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3572 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751387AbZHBS0H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Aug 2009 14:26:07 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id n72IQ5Q0044196
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 2 Aug 2009 20:26:06 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 2 Aug 2009 20:26:05 +0200 (CEST)
-Message-Id: <200908021826.n72IQ5Q0044196@smtp-vbr7.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51515 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753360AbZHFXBV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 6 Aug 2009 19:01:21 -0400
+Message-Id: <200908062301.n76N1FSB029967@imap1.linux-foundation.org>
+Subject: [patch 3/9] media: strncpy does not null terminate string
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
+	roel.kluin@gmail.com
+From: akpm@linux-foundation.org
+Date: Thu, 06 Aug 2009 16:01:14 -0700
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Results of the daily build of v4l-dvb:
+strlcpy() will always null terminate the string.
 
-date:        Sun Aug  2 19:00:02 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12375:b15490457d60
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc5-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.31-rc5-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.31-rc5-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-rc5-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc5-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-rc5-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-rc5-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc5-x86_64: WARNINGS
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc5): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+ drivers/media/dvb/dvb-usb/dvb-usb-i2c.c |    2 +-
+ drivers/media/video/pwc/pwc-v4l.c       |    2 +-
+ drivers/media/video/zoran/zoran_card.c  |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+diff -puN drivers/media/dvb/dvb-usb/dvb-usb-i2c.c~media-strncpy-does-not-null-terminate-string drivers/media/dvb/dvb-usb/dvb-usb-i2c.c
+--- a/drivers/media/dvb/dvb-usb/dvb-usb-i2c.c~media-strncpy-does-not-null-terminate-string
++++ a/drivers/media/dvb/dvb-usb/dvb-usb-i2c.c
+@@ -19,7 +19,7 @@ int dvb_usb_i2c_init(struct dvb_usb_devi
+ 		return -EINVAL;
+ 	}
+ 
+-	strncpy(d->i2c_adap.name, d->desc->name, sizeof(d->i2c_adap.name));
++	strlcpy(d->i2c_adap.name, d->desc->name, sizeof(d->i2c_adap.name));
+ 	d->i2c_adap.class = I2C_CLASS_TV_DIGITAL,
+ 	d->i2c_adap.algo      = d->props.i2c_algo;
+ 	d->i2c_adap.algo_data = NULL;
+diff -puN drivers/media/video/pwc/pwc-v4l.c~media-strncpy-does-not-null-terminate-string drivers/media/video/pwc/pwc-v4l.c
+--- a/drivers/media/video/pwc/pwc-v4l.c~media-strncpy-does-not-null-terminate-string
++++ a/drivers/media/video/pwc/pwc-v4l.c
+@@ -1033,7 +1033,7 @@ long pwc_video_do_ioctl(struct file *fil
+ 			if (std->index != 0)
+ 				return -EINVAL;
+ 			std->id = V4L2_STD_UNKNOWN;
+-			strncpy(std->name, "webcam", sizeof(std->name));
++			strlcpy(std->name, "webcam", sizeof(std->name));
+ 			return 0;
+ 		}
+ 
+diff -puN drivers/media/video/zoran/zoran_card.c~media-strncpy-does-not-null-terminate-string drivers/media/video/zoran/zoran_card.c
+--- a/drivers/media/video/zoran/zoran_card.c~media-strncpy-does-not-null-terminate-string
++++ a/drivers/media/video/zoran/zoran_card.c
+@@ -1169,7 +1169,7 @@ zoran_setup_videocodec (struct zoran *zr
+ 	m->type = 0;
+ 
+ 	m->flags = CODEC_FLAG_ENCODER | CODEC_FLAG_DECODER;
+-	strncpy(m->name, ZR_DEVNAME(zr), sizeof(m->name));
++	strlcpy(m->name, ZR_DEVNAME(zr), sizeof(m->name));
+ 	m->data = zr;
+ 
+ 	switch (type)
+_
