@@ -1,48 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from skyboo.net ([82.160.187.4]:35116 "EHLO draco.skyboo.net"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750856AbZHILHO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Aug 2009 07:07:14 -0400
-Received: from manio ([10.1.0.2])
-	by draco.skyboo.net with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69)
-	(envelope-from <manio@skyboo.net>)
-	id 1Ma6F7-0003Dd-2A
-	for linux-media@vger.kernel.org; Sun, 09 Aug 2009 13:07:13 +0200
-Message-ID: <4A7E8121.4040406@skyboo.net>
-Date: Sun, 09 Aug 2009 09:56:17 +0200
-From: manio <manio@skyboo.net>
-MIME-Version: 1.0
+Received: from perceval.irobotique.be ([92.243.18.41]:37592 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750857AbZHFPHk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2009 11:07:40 -0400
+Received: from ravenclaw.localnet (unknown [192.100.124.156])
+	by perceval.irobotique.be (Postfix) with ESMTPSA id 0039835B38
+	for <linux-media@vger.kernel.org>; Thu,  6 Aug 2009 17:07:39 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: Re: SAA7146 / TT1.3 stream corruption
-References: <4A7471D2.3070004@skyboo.net>
-In-Reply-To: <4A7471D2.3070004@skyboo.net>
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Subject: [PATCH,RFC] Drop non-unlocked ioctl support in v4l2-dev.c
+Date: Thu, 6 Aug 2009 17:09:40 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200908061709.41211.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-manio wrote:
+Hi everybody,
 
- > Hello
- > I am using Technotrend Rev1.3 for many years. But last time
- > suddenly i find out strange problem. Seems that in some
- > circumstances the card can't decode stream from satellite properly.
- > I don't know for sure but it could be a driver problem, firmware
- > or even (worse) a hardware problem.
+this patch moves the BKL one level down by removing the non-unlocked ioctl in
+v4l2-dev.c and calling lock_kernel/unlock_kernel in the unlocked_ioctl handler
+if the driver only supports locked ioctl.
 
-Now i can reply myself to provide info for users with similar problem.
+Opinions/comments/applause/kicks ?
 
-The parameter which i need is:
-hw_sections=1
-When i load dvb_ttpci module with this parameter the stream is correct.
-Just by the way: people on DVBN forum has similar issues, but this
-parameter was not sufficient - they also need to write a patch for
-select pid ranges for providers (in their case: BEV and DN)
-More info on dvbn topics#: 42822 and 42653
+Regards,
 
-regards,
--- 
-manio
-jabber/e-mail: manio@skyboo.net
-http://manio.skyboo.net
+Laurent Pinchart
+
+diff -r 4533a406fddb linux/drivers/media/video/v4l2-dev.c
+--- a/linux/drivers/media/video/v4l2-dev.c	Thu Aug 06 16:41:17 2009 +0200
++++ b/linux/drivers/media/video/v4l2-dev.c	Thu Aug 06 17:04:37 2009 +0200
+@@ -25,6 +25,7 @@
+ #include <linux/init.h>
+ #include <linux/kmod.h>
+ #include <linux/slab.h>
++#include <linux/smp_lock.h>
+ #include <asm/uaccess.h>
+ #include <asm/system.h>
+ 
+@@ -211,28 +212,22 @@
+ 	return vdev->fops->poll(filp, poll);
+ }
+ 
+-static int v4l2_ioctl(struct inode *inode, struct file *filp,
+-		unsigned int cmd, unsigned long arg)
+-{
+-	struct video_device *vdev = video_devdata(filp);
+-
+-	if (!vdev->fops->ioctl)
+-		return -ENOTTY;
+-	/* Allow ioctl to continue even if the device was unregistered.
+-	   Things like dequeueing buffers might still be useful. */
+-	return vdev->fops->ioctl(filp, cmd, arg);
+-}
+-
+ static long v4l2_unlocked_ioctl(struct file *filp,
+ 		unsigned int cmd, unsigned long arg)
+ {
+ 	struct video_device *vdev = video_devdata(filp);
++	int ret = -ENOTTY;
+ 
+-	if (!vdev->fops->unlocked_ioctl)
+-		return -ENOTTY;
+ 	/* Allow ioctl to continue even if the device was unregistered.
+ 	   Things like dequeueing buffers might still be useful. */
+-	return vdev->fops->unlocked_ioctl(filp, cmd, arg);
++	if (vdev->fops->ioctl) {
++		lock_kernel();
++		ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
++		unlock_kernel();
++	} else if (vdev->fops->unlocked_ioctl)
++		ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
++
++	return ret;
+ }
+ 
+ #ifdef CONFIG_MMU
+@@ -320,22 +315,6 @@
+ 	.llseek = no_llseek,
+ };
+ 
+-static const struct file_operations v4l2_fops = {
+-	.owner = THIS_MODULE,
+-	.read = v4l2_read,
+-	.write = v4l2_write,
+-	.open = v4l2_open,
+-	.get_unmapped_area = v4l2_get_unmapped_area,
+-	.mmap = v4l2_mmap,
+-	.ioctl = v4l2_ioctl,
+-#ifdef CONFIG_COMPAT
+-	.compat_ioctl = v4l2_compat_ioctl32,
+-#endif
+-	.release = v4l2_release,
+-	.poll = v4l2_poll,
+-	.llseek = no_llseek,
+-};
+-
+ /**
+  * get_index - assign stream number based on parent device
+  * @vdev: video_device to assign index number to, vdev->parent should be assigned
+@@ -534,15 +513,9 @@
+ 		goto cleanup;
+ 	}
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 17)
+-	if (vdev->fops->unlocked_ioctl)
+-		vdev->cdev->ops = &v4l2_unlocked_fops;
+-	else
+-		vdev->cdev->ops = &v4l2_fops;
++	vdev->cdev->ops = &v4l2_unlocked_fops;
+ #else
+-	if (vdev->fops->unlocked_ioctl)
+-		vdev->cdev->ops = (struct file_operations *)&v4l2_unlocked_fops;
+-	else
+-		vdev->cdev->ops = (struct file_operations *)&v4l2_fops;
++	vdev->cdev->ops = (struct file_operations *)&v4l2_unlocked_fops;
+ #endif
+ 	vdev->cdev->owner = vdev->fops->owner;
+ 	ret = cdev_add(vdev->cdev, MKDEV(VIDEO_MAJOR, vdev->minor), 1);
+
