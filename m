@@ -1,26 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n7G8aCJJ002042
-	for <video4linux-list@redhat.com>; Sun, 16 Aug 2009 04:36:12 -0400
-Received: from smtp.bluecom.no (smtp.bluecom.no [193.75.75.28])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n7G8ZvHv005583
-	for <video4linux-list@redhat.com>; Sun, 16 Aug 2009 04:35:57 -0400
-Received: from localhost.localdomain (c7F6F47C1.dhcp.bluecom.no
-	[193.71.111.127])
-	by smtp.bluecom.no (Postfix) with ESMTP id 0A23415B4098
-	for <video4linux-list@redhat.com>;
-	Sun, 16 Aug 2009 10:35:22 +0200 (CEST)
-Message-ID: <4A87C4EC.6030309@ntnu.no>
-Date: Sun, 16 Aug 2009 10:35:56 +0200
-From: Haavard Holm <haavard.holm@ntnu.no>
-MIME-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n76Mu2dV014176
+	for <video4linux-list@redhat.com>; Thu, 6 Aug 2009 18:56:02 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n76MtlRQ018750
+	for <video4linux-list@redhat.com>; Thu, 6 Aug 2009 18:55:47 -0400
+Received: from wwwrun by mail.phosco.info with local (Exim 4.69)
+	(envelope-from <phosco@gmx.de>) id 1MZBs6-0001Ao-Sv
+	for video4linux-list@redhat.com; Fri, 07 Aug 2009 00:55:42 +0200
+Message-ID: <20090807005542.962158ltxqad3b0g@horde.phosco.info>
+Date: Fri, 07 Aug 2009 00:55:42 +0200
+From: =?utf-8?b?QW5kcsOp?= Rothe <arothe@phosco.info>
 To: video4linux-list@redhat.com
-References: <4A872D3F.6020003@ntnu.no>	<1250383433.28382.2.camel@localhost.localdomain>
-	<20090816080309.3f19a067@tele>
-In-Reply-To: <20090816080309.3f19a067@tele>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset=UTF-8;
+	DelSp="Yes";
+	format="flowed"
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-Subject: Re: Varying frame rate
+Subject: New device
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,41 +31,47 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 08/16/2009 08:03 AM, Jean-Francois Moine wrote:
-> On Sun, 16 Aug 2009 03:43:52 +0300
-> Maxim Levitsky<maximlevitsky@gmail.com>  wrote:
->
->    
->> On Sat, 2009-08-15 at 23:48 +0200, Haavard Holm wrote:
->>      
-> 	[snip]
->    
->>> My obeservation is : Depending on what my camera focus on, the
->>> framerate varies from 5 to 15 fps. I have tried several times, same
->>> result.
->>>        
-> 	[snip]
->    
->> I have observed similar issues with uvc camera on my aspire one (low
->> frame rate while the illumination is low)
->>
->> Probably this is a hardware issue, and maybe there is a control to
->> turn this off.
->>      
-> Hello,
->
-> The frame rate depends on the exposure time. If auto exposure is set,
-> you may have such a behaviour.
->    
+Hi,
 
- From a c-program - how do I turn off auto exposure ?
+I have bought a new video grabber device. It is an USB device from Q-sonic.
+The device is not successfully detected, so there is only an input=0  
+available, the S-Video connector. But I get only black-white video,  
+the other connector (Composite) delivers color video on Windows, but I  
+cannot switch the driver to it.
 
-Best
+em28xx v4l2 driver version 0.1.0 loaded
+em28xx new video device (eb1a:2820): interface 0, class 255
+em28xx Doesn't have usb audio class
+em28xx #0: Alternate settings: 8
+em28xx #0: Alternate setting 0, max size= 0
+em28xx #0: Alternate setting 1, max size= 1024
+em28xx #0: Alternate setting 2, max size= 1448
+em28xx #0: Alternate setting 3, max size= 2048
+em28xx #0: Alternate setting 4, max size= 2304
+em28xx #0: Alternate setting 5, max size= 2580
+em28xx #0: Alternate setting 6, max size= 2892
+em28xx #0: Alternate setting 7, max size= 3072
+em28xx #0: em28xx chip ID = 18
+saa7115' 7-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
+em28xx #0: found i2c device @ 0x4a [saa7113h]
+em28xx #0: Your board has no unique USB ID.
+em28xx #0: A hint were successfully done, based on i2c devicelist hash.
+em28xx #0: This method is not 100% failproof.
+em28xx #0: If the board were missdetected, please email this log to:
+em28xx #0: 	V4L Mailing List  <video4linux-list@redhat.com>
+em28xx #0: Board detected as PointNix Intra-Oral Camera
+em28xx #0: Registering snapshot button...
+input: em28xx snapshot button as  
+/devices/pci0000:00/0000:00:1d.7/usb2/2-1/input/input9
+em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
+em28xx #0: Found PointNix Intra-Oral Camera
+usbcore: registered new interface driver em28xx
+em28xx-audio.c: probing for em28x1 non standard usbaudio
+em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+Em28xx: Initialized (Em28xx Audio Extension) extension
 
-Håvard Holm
-> Best regards.
->
->    
+Thank you
+Andre
 
 --
 video4linux-list mailing list
