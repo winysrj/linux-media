@@ -1,118 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3491 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751105AbZHOSYS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Aug 2009 14:24:18 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id n7FIOI0H023952
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 15 Aug 2009 20:24:18 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 15 Aug 2009 20:24:18 +0200 (CEST)
-Message-Id: <200908151824.n7FIOI0H023952@smtp-vbr11.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from ey-out-2122.google.com ([74.125.78.24]:36012 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752958AbZHFMxZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2009 08:53:25 -0400
+Received: by ey-out-2122.google.com with SMTP id 9so337986eyd.37
+        for <linux-media@vger.kernel.org>; Thu, 06 Aug 2009 05:53:25 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4A7AC430.4070505@netscape.net>
+References: <4A7AC430.4070505@netscape.net>
+Date: Thu, 6 Aug 2009 08:53:25 -0400
+Message-ID: <37219a840908060553g452266fdq5ea3814b4ce725bc@mail.gmail.com>
+Subject: Re: Hauppauge WinTV HVR-900HD support?
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Kaya Saman <SamanKaya@netscape.net>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Kaya,
 
-Results of the daily build of v4l-dvb:
+On Thu, Aug 6, 2009 at 7:53 AM, Kaya Saman<SamanKaya@netscape.net> wrote:
+> Hi,
+>
+> in an earlier post I was responded to that my old WinTV USB 1 Tuner would
+> never work under Linux due to bad and complicated coding which (since no one
+> uses that tuner anymore) will never be looked at.
 
-date:        Sat Aug 15 19:00:03 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12453:ee300d3178c4
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+I don't think that's true -- I didn't see your earlier post, but I can
+only assume that your WinTV USB 1 Tuner uses the NT003 / NT004
+chipsets, supported by the usbvision driver -- did you try that?
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc5-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-rc5-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-rc5-armv5-omap2: OK
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-rc5-i686: OK
-linux-2.6.23.12-m32r: ERRORS
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc5-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-rc5-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-rc5-powerpc64: OK
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc5-x86_64: OK
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc5): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+> So I am in need of a new tuner!
 
-Detailed results are available here:
+Better off getting a new one anyway, since analog TV will disappear
+eventually and DTV is all that will be around.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+> This is a dilemma as I need analog TV.... since I will be using it for
+> watching stuff through a satellite receiver but also analog terrestrial TV
+> too as where I will be taking it to doesn't have digital TV at best the have
+> cable.
+>
+> I was considering going for the Hauppauge WinTV HVR-900HD. I am not sure if
+> it will be compatible though with the global regions I will use it in which
+> is UK that I know it has support for as I will buy from here which is PAL I
+> but then also Turkey which I think is PAL Beta if I'm not mistaken??
+>
+> More importantly though is it supported under Linux?? I use KUbuntu 9.04
+> which is pretty up to date. I am just a bit worried about this part since
+> the site says that as of June 2008 there is no support... of course we are
+> in August 2009 so maybe in a year it might have been integrated into the
+> later kernels??
+> Taken from here:
+> http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-900H
+>
+> What's everyone's verdict? Any suggestions would be great!
 
-Full logs are available here:
+The HVR-900H is currently *not* supported under Linux, and it does not
+seem that it will get such support anytime in the near future,
+unfortunately.  Please note, I am only speaking for the HVR-900H ...
+other flavors of the HVR900 are fully functional and supported, just
+not the "H" version.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+If you're looking for a well-supported USB hybrid device, I would
+recommend one of the standard "HVR-900" sticks, or even better, the
+HVR-1900 .  The HVR1900 is a usb device that does Digital DVB-T and
+analog (PAL / NTSC) both.  The analog side has a hardware mpeg encoder
+-- this is perfect if you intend to use the device for recordings.
+HVR1900 is fully supported under Linux.
 
-The V4L2 specification from this daily build is here:
+I hope this helps.
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+Regards,
 
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+Mike
