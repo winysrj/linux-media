@@ -1,99 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from b186.blue.fastwebserver.de ([62.141.42.186]:48003 "EHLO
-	mail.gw90.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758450AbZHRLHR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2009 07:07:17 -0400
-Subject: [Request for testing] new dib0700 code (was: Re: dib0700 diversity
- support)
-From: Paul Menzel <paulepanter@users.sourceforge.net>
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <alpine.LRH.1.10.0908181222400.7725@pub1.ifh.de>
-References: <1250177934.6590.120.camel@mattotaupa.wohnung.familie-menzel.net>
-	 <alpine.LRH.1.10.0908140947560.14872@pub3.ifh.de>
-	 <1250244562.5438.3.camel@mattotaupa.wohnung.familie-menzel.net>
-	 <alpine.LRH.1.10.0908181052400.7725@pub1.ifh.de>
-	 <1250590149.5938.33.camel@mattotaupa.wohnung.familie-menzel.net>
-	 <alpine.LRH.1.10.0908181222400.7725@pub1.ifh.de>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-wh4z08gQXWaFKjfvgZ5+"
-Date: Tue, 18 Aug 2009 13:07:10 +0200
-Message-Id: <1250593630.5938.75.camel@mattotaupa.wohnung.familie-menzel.net>
-Mime-Version: 1.0
+Received: from perceval.irobotique.be ([92.243.18.41]:44837 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751355AbZHFKGY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2009 06:06:24 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Subject: How to efficiently handle DMA and cache on ARMv7 ? (was "Is get_user_pages() enough to prevent pages from being swapped out ?")
+Date: Thu, 6 Aug 2009 12:08:21 +0200
+Cc: Robin Holt <holt@sgi.com>, linux-kernel@vger.kernel.org,
+	"v4l2_linux" <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.arm.linux.org.uk
+MIME-Version: 1.0
+Content-Disposition: inline
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200908061208.22131.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+[Resent with an updated subject, this time CC'ing linux-arm-kernel]
 
---=-wh4z08gQXWaFKjfvgZ5+
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+I've spent the last few days "playing" with get_user_pages() and mlock() and 
+got some interesting results. It turned out that cache coherency comes into 
+play at some point, making the overall problem more complex.
 
-Dear Patrick,
+Here's my current setup:
 
+- OMAP processor, based on an ARMv7 core
+- MMU and IOMMU
+- VIPT non-aliasing data cache
+- video capture driver that transfers data to memory using DMA
+- video capture application that pass userspace pointers to video buffers to 
+the driver
 
-Am Dienstag, den 18.08.2009, 12:27 +0200 schrieb Patrick Boettcher:
-> On Tue, 18 Aug 2009, Paul Menzel wrote:
-> > Am Dienstag, den 18.08.2009, 10:54 +0200 schrieb Patrick Boettcher:
-> >> On Fri, 14 Aug 2009, Paul Menzel wrote:
-> >>>> I'll post a request for testing soon.
-> >>>
-> >>> I am looking forward to it.
-> >>
-> >> Can you please try the drivers from here:
-> >> http://linuxtv.org/hg/~pb/v4l-dvb/
-> >
-> > I installed it as described in [1].
-> >
-> >        # clone
-> >        make
-> >        sudo make install
-> >        sudo make unload
-> >        # insert stick again
-> >
-> > [1] http://sidux.com/module-Wikula-history-tag-TerraTec.html
+My goal is to make sure that, upon DMA completion, the correct data will be 
+available to the userspace application.
 
-[=E2=80=A6]
+The first problem was to pin pages to memory, to make sure they will not be 
+freed when the DMA is in progress. videobug-dma-sg uses get_user_pages() for 
+that, and Hugh Dickins nicely explained to me why this is enough.
 
-> > Ok, I do not know how to test this objectively. Not knowing what how to
-> > do this, I just insert the console output of Kaffeine while scanning fo=
-r
-> > channels. See the end of this message.
+The second problem is to ensure cache coherency. As the userspace application 
+will read data from the video buffers, those buffers will end up being cached 
+in the processor's data cache. The driver does need to invalidate the cache 
+before starting the DMA operation (userspace could in theory write to the 
+buffers, but the data will be overwritten by DMA anyway, so there's no need to 
+clean the cache).
 
-Are those values showing the signal strength?
+As the cache is of the VIPT (Virtual Index Physical Tag) type, cache 
+invalidation can either be done globally (in which case the cache is flushed 
+instead of being invalidated) or based on virtual addresses. In the last case 
+the processor will need to look physical addresses up, either in the TLB or 
+through hardware table walk.
 
-> > In summary I would they I did not see any difference in quality between
-> > the two versions at a bad reception spot. I thought the signal bar
-> > showed values increased by 2?4 %, so a little bit better.
->=20
-> Can be weather conditions....
+I can see three solutions to the DMA/cache problem.
 
-I tested both version in a 30 minutes time frame.
+1. Flushing the whole data cache right before starting the DMA transfer. 
+There's no API for that in the ARM architecture, so a whole I+D cache is 
+required. This is quite costly, we're talking about around 30 flushes per 
+second, but it doesn't involve the MMU. That's the solution that I currently 
+use.
 
-> The SNR could give a clue how far you are away from receiving, but it is=20
-> currently not implemented.
->=20
-> I hate to request it, but can you try the windows driver with the device=20
-> without touching the antenna at that point. Like that we can exclude any
+2. Invalidating only the cache lines that store video buffer data. This 
+requires a TLB lookup or a hardware table walk, so the userspace application 
+MM context needs to be available (no problem there as where's flushing in 
+userspace context) and all pages need to be mapped properly. This can be a 
+problem as, as Hugh pointed out, pages can still be unmapped from the 
+userspace context after get_user_pages() returns. I have experienced one oops 
+due to a kernel paging request failure:
 
-Well, I cannot do it right now. But I can test it the Wednesday next
-week. I hope this is alright. Maybe some other people can test it
-sooner. (I therefore changed the subject.)
+        Unable to handle kernel paging request at virtual address 44e12000
+        pgd = c8698000
+        [44e12000] *pgd=8a4fd031, *pte=8cfda1cd, *ppte=00000000
+        Internal error: Oops: 817 [#1] PREEMPT
+        PC is at v7_dma_inv_range+0x2c/0x44
 
+Fixing this requires more investigation, and I'm not sure how to proceed to 
+find out if the page fault is really caused by pages being unmapped from the 
+userspace context. Help would be appreciated.
 
-Thanks,
+3. Mark the pages as non-cacheable. Depending on how the buffers are then used 
+by userspace, the additional cache misses might destroy any benefit I would 
+get from not flushing the cache before DMA. I'm not sure how to mark a bunch 
+of pages as non-cacheable though. What usually happens is that video drivers 
+allocate DMA-coherent memory themselves, but in this case I need to deal with 
+an arbitrary buffer allocated by userspace. If someone has any experience with 
+this, it would be appreciated.
 
-Paul
+Regards,
 
---=-wh4z08gQXWaFKjfvgZ5+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Dies ist ein digital signierter Nachrichtenteil
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEABECAAYFAkqKi14ACgkQPX1aK2wOHVjnxACZAXtnnKv316dqqmCs2DsQNqy8
-JEQAn0NBuB5WTnAdHM4cbx37PgDbM1iq
-=a2lS
------END PGP SIGNATURE-----
-
---=-wh4z08gQXWaFKjfvgZ5+--
+Laurent Pinchart
 
