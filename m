@@ -1,67 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:40818 "EHLO
+Received: from perceval.irobotique.be ([92.243.18.41]:53732 "EHLO
 	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754491AbZHCI5z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Aug 2009 04:57:55 -0400
+	with ESMTP id S1755970AbZHGKLm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2009 06:11:42 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: RFC: distuingishing between hardware and emulated formats
-Date: Mon, 3 Aug 2009 10:47:01 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	t.i.m@zen.co.uk
-References: <4A76A227.20503@redhat.com>
-In-Reply-To: <4A76A227.20503@redhat.com>
+To: Matthieu CASTET <matthieu.castet@parrot.com>
+Subject: Re: How to efficiently handle DMA and cache on ARMv7 ? (was "
+ =?iso-8859-1?q?Is=09get=5Fuser=5Fpages?=() enough to prevent pages from being swapped out ?")
+Date: Fri, 7 Aug 2009 12:13:48 +0200
+Cc: David Xiao <dxiao@broadcom.com>, Ben Dooks <ben-linux@fluff.org>,
+	Hugh Dickins <hugh.dickins@tiscali.co.uk>,
+	Robin Holt <holt@sgi.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"v4l2_linux" <linux-media@vger.kernel.org>,
+	"linux-arm-kernel@lists.arm.linux.org.uk"
+	<linux-arm-kernel@lists.arm.linux.org.uk>
+References: <200908061208.22131.laurent.pinchart@ideasonboard.com> <200908070929.53873.laurent.pinchart@ideasonboard.com> <4A7BE1E7.60203@parrot.com>
+In-Reply-To: <4A7BE1E7.60203@parrot.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Content-Disposition: inline
-Message-Id: <200908031047.02633.laurent.pinchart@ideasonboard.com>
+Message-Id: <200908071213.48523.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Monday 03 August 2009 10:39:03 Hans de Goede wrote:
-> Hi All,
+On Friday 07 August 2009 10:12:23 Matthieu CASTET wrote:
+> Laurent Pinchart a écrit :
+> > On Thursday 06 August 2009 20:46:14 David Xiao wrote:
+> >
+> > Think about the simple following use case. An application wants to
+> > display video it acquires from the device to the screen using Xv. The
+> > video buffer is allocated by Xv. Using the v4l2 user pointer streaming
+> > method, the device can DMA directly to the Xv buffer. Using
+> > driver-allocated buffers, a memcpy() is required between the v4l2 buffer
+> > and the Xv buffer.
 >
-> The gstreamer folks have asked to add an API to libv4l2 so
-> that they can distuingish between formats emulated by libv4l2
-> and formats offered raw by the hardware.
->
-> I think this is a usefull thing to do and I think this is best
-> done by adding a new flag for the flags field of the
-> v4l2_fmtdesc struct. So I would like to propose to add the
-> following new flag to videodev2.h :
->
-> #define V4L2_FMT_FLAG_EMULATED 0x0002
->
-> And add the necessary documentation to the spec. The emulated term
-> is what I've always been using in libv4l discussions for formats
-> which are not offered native by the hardware but are offered by
-> libv4l through conversion. If someone has a better name for the
-> flag suggestions are welcome.
+> v4l2 got an API (overlay IRRC) that allow drivers to write directly in
+> framebuffer memory.
 
-I'd go one step further and add a integer cost value instead of a flag. The 
-purpose of distinguishes between native and emulated formats is to keep the 
-end-to-end video cost (in terms of memory, CPU time, ...) as low as possible. 
-If we later end up chaining several conversions in a row (JPEG -> YUV -> RGB 
-for instance, although that might be a bad example) a cost value will help 
-applications select the best format depending on their needs and capabilities.
+That's right, but I was mostly using this as an example.
 
-For instance, imagine we "emulate" YUV with a quite low cost and RGB with a 
-quite high cost. If the application can use both YUV and RGB (let's say for 
-display purpose) with equal costs, it will still want to select YUV.
+> BTW Xv buffer is not always in video memory and the X driver can do a
+> memcpy.
 
-Now, the million dollar question is, how do we evaluate the cost value 
-incurred by a software conversion algorithm ?
-
-> If you read this and even if your only thoughts are: seems ok to me,
-> please reply saying so. It is very frustrating to suggest API additions
-> and not get any feedback.
-
-Indeed. I'll remember that comment next time I send an RFC to linux-media and 
-I'll of course expect you to answer ;-)
+Still, one less memcpy is better :-)
 
 Regards,
 
