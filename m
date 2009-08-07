@@ -1,66 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imr-da03.mx.aol.com ([205.188.105.145]:60785 "EHLO
-	imr-da03.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751109AbZH0PHz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Aug 2009 11:07:55 -0400
-Received: from imo-da02.mx.aol.com (imo-da02.mx.aol.com [205.188.169.200])
-	by imr-da03.mx.aol.com (8.14.1/8.14.1) with ESMTP id n7RF7t4N003131
-	for <linux-media@vger.kernel.org>; Thu, 27 Aug 2009 11:07:55 -0400
-Received: from td9678td@aim.com
-	by imo-da02.mx.aol.com  (mail_out_v42.5.) id x.cf6.5dce163a (45325)
-	 for <linux-media@vger.kernel.org>; Thu, 27 Aug 2009 11:07:53 -0400 (EDT)
-References: <8CBF51FEBA762B7-C3C-2EA6C@webmail-m076.sysops.aol.com>
-To: linux-media@vger.kernel.org
-Content-Transfer-Encoding: 7bit
-Subject: Re: [linux-dvb] Unsupported devices
-Date: Thu, 27 Aug 2009 11:07:36 -0400
-In-Reply-To: <8CBF51FEBA762B7-C3C-2EA6C@webmail-m076.sysops.aol.com>
+Received: from perceval.irobotique.be ([92.243.18.41]:51870 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757325AbZHGLBR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2009 07:01:17 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+Subject: Re: [PATCH,RFC] Drop non-unlocked ioctl support in v4l2-dev.c
+Date: Fri, 7 Aug 2009 13:03:22 +0200
+Cc: linux-media@vger.kernel.org
+References: <200908061709.41211.laurent.pinchart@ideasonboard.com> <eee1636b2ae21fc4189b27b511e7d22f.squirrel@webmail.xs4all.nl>
+In-Reply-To: <eee1636b2ae21fc4189b27b511e7d22f.squirrel@webmail.xs4all.nl>
 MIME-Version: 1.0
-From: td9678td@aim.com
-Content-Type: text/plain; charset="us-ascii"
-Message-Id: <8CBF53F3EE503D3-2AFC-1E13B@webmail-m079.sysops.aol.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200908071303.23217.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Hans,
 
-i have the same problem with a Compro T750. Maybe Vmware can emulate a
-pci device for the guest OS, and pass all the traffic to the real
-device.
+On Thursday 06 August 2009 17:16:08 Hans Verkuil wrote:
+> Hi Laurent,
+>
+> > Hi everybody,
+> >
+> > this patch moves the BKL one level down by removing the non-unlocked
+> > ioctl in v4l2-dev.c and calling lock_kernel/unlock_kernel in the
+> > unlocked_ioctl handler if the driver only supports locked ioctl.
+> >
+> > Opinions/comments/applause/kicks ?
+>
+> I've been thinking about this as well, and my idea was to properly
+> implement this by letting the v4l core serialize ioctls if the driver
+> doesn't do its own serialization (either through mutexes or lock_kernel).
 
+A v4l-specific (or even device-specific) mutex would of course be better than 
+the BKL.
 
+Are there file operations other than ioctl that are protected by the BKL ? 
+Blindly replacing the BKL by a mutex on ioctl would then introduce race 
+conditions.
 
+> The driver can just set a flag in video_device if it wants to do
+> serialization manually, otherwise the core will serialize using a mutex
+> and we should be able to completely remove the BKL from all v4l drivers.
 
------Original Message-----
-From: E.T. Anderson <firebringer11@hotmail.com>
-To: linux-dvb@linuxtv.org
-Sent: Tue, Aug 25, 2009 4:21 am
-Subject: [linux-dvb] Unsupported devices
+Whether the driver fills v4l2_operations::ioctl or 
+v4l2_operations::unlocked_ioctl can be considered as such a flag :-)
 
-I currently own both an Artec T14a tuner and OnAir HDTV-GT tuner.
+Many drivers are currently using the BKL in an unlocked_ioctl handler. I'm not 
+sure it would be a good idea to move the BKL back to the v4l2 core, as the 
+long term goal is to remove it completely and use fine-grain driver-level 
+locking.
 
-Both of these are ATSC tuners (I'm in the US).
+Regards,
 
-I'm not sure what I can do to help, but I'll put myself out there.
-
-
-E.T. Anderson
-
-firebringer11@hotmail.com
-
-(253) 347 - 5903_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
-
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
+Laurent Pinchart
 
