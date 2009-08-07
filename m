@@ -1,42 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.freakix.de ([89.238.65.154]:47309 "EHLO mail.freakix.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933742AbZHWPXc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2009 11:23:32 -0400
-Message-ID: <4A9158DE.9040901@freakpixel.de>
-Date: Sun, 23 Aug 2009 16:57:34 +0200
-From: Norbert Weinhold <linux-dvb@freakpixel.de>
+Received: from relay3.sgi.com ([192.48.156.57]:48856 "EHLO relay.sgi.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755786AbZHGNPH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Aug 2009 09:15:07 -0400
+Date: Fri, 7 Aug 2009 08:15:01 -0500
+From: Robin Holt <holt@sgi.com>
+To: Laurent Desnogues <laurent.desnogues@gmail.com>
+Cc: Jamie Lokier <jamie@shareable.org>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	David Xiao <dxiao@broadcom.com>,
+	Ben Dooks <ben-linux@fluff.org>,
+	Hugh Dickins <hugh.dickins@tiscali.co.uk>,
+	Robin Holt <holt@sgi.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	v4l2_linux <linux-media@vger.kernel.org>,
+	"linux-arm-kernel@lists.arm.linux.org.uk"
+	<linux-arm-kernel@lists.arm.linux.org.uk>
+Subject: Re: How to efficiently handle DMA and cache on ARMv7 ? (was "Is
+	get_user_pages() enough to prevent pages from being swapped out ?")
+Message-ID: <20090807131501.GD2763@sgi.com>
+References: <200908061208.22131.laurent.pinchart@ideasonboard.com> <20090806222543.GG31579@n2100.arm.linux.org.uk> <1249624766.32621.61.camel@david-laptop> <200908070958.31322.laurent.pinchart@ideasonboard.com> <20090807081041.GB18343@n2100.arm.linux.org.uk> <20090807095426.GI8725@shareable.org> <761ea48b0908070507n5c580455pb86e5240a7cf6c0c@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Can't tune to DVB-S2 channels on floppydtv
-References: <4A908AC6.2080701@freakpixel.de> <200908230345.14069.hftom@free.fr>
-In-Reply-To: <200908230345.14069.hftom@free.fr>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <761ea48b0908070507n5c580455pb86e5240a7cf6c0c@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Christophe Thommeret schrieb:
-> Le Sunday 23 August 2009 02:18:14 Norbert Weinhold, vous avez écrit :
->> Hi,
->>
->> I have a floppyDTV S2 and I can't tune to dvb-s2 channels while normal
->> dvb-s channel work.
->>
->> Does anyone have a clue where the problem is.
+On Fri, Aug 07, 2009 at 02:07:43PM +0200, Laurent Desnogues wrote:
+> On Fri, Aug 7, 2009 at 11:54 AM, Jamie Lokier<jamie@shareable.org> wrote:
+> >
+> > 1. Does the architecture not prevent speculative instruction
+> > prefetches from crossing a page boundary?  It would be handy under the
+> > circumstances.
 > 
-> Are you sure the driver supports S2 at all ?
+> There's no such restriction in ARMv7 architecture.
 
-Not 100% but I thought so because i found the hardware under supported
-dvb-s2 devices. I wonder what is missing, because the card is doing all
-difficult stuff itself. Just send the frequency / transponder you want
-to receive you get the data if there is any reception at all.
+Doesn't it prevent them for uncached areas?  I _THOUGHT_ there was an
+alloc_consistent (or something like that) call on ARM which gave you
+an uncached mapping where you could do DMA.  I also thought there was
+a dma_* set of functions which remapped as uncached before DMA begins
+and remapped as normal after DMA has been completed.
 
-After i had a look into the driver i saw that in the caps section 8psk
-is missing and there is possibly a second tune command.
+Sorry for the fuzzy recollection.  I am dredging from 2.6.21 timeframe.
 
-Has anyone a command list for this device?
-
-Norbert
-
+Robin
