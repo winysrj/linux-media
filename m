@@ -1,57 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f196.google.com ([209.85.221.196]:43446 "EHLO
-	mail-qy0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753260AbZHKWml (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2009 18:42:41 -0400
-Received: by qyk34 with SMTP id 34so3533501qyk.33
-        for <linux-media@vger.kernel.org>; Tue, 11 Aug 2009 15:42:42 -0700 (PDT)
-Date: Tue, 11 Aug 2009 15:42:32 -0400
-From: Douglas Schilling Landgraf <dougsland@gmail.com>
-To: xwang1976@email.it
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Issues with Empire Dual Pen: request for help and
- suggestions!!!
-Message-ID: <20090811154232.4ed8a1ba@gmail.com>
-In-Reply-To: <4A81E6C3.7010802@email.it>
-References: <4A79EC82.4050902@email.it>
-	<4A7AE0B0.20507@email.it>
-	<829197380908060717ua009e78nc045f2940c7fc76e@mail.gmail.com>
-	<20090806112317.21240b9c@gmail.com>
-	<4A7AF3CF.3060803@email.it>
-	<829197380908060821x6cfb60f0jd73e5f9b30c21569@mail.gmail.com>
-	<4A7B0333.1010901@email.it>
-	<4A81D38A.2050201@email.it>
-	<829197380908111334xf9a89b4gf2da1e4cc765b27b@mail.gmail.com>
-	<4A81E6C3.7010802@email.it>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-vw0-f172.google.com ([209.85.212.172]:55824 "EHLO
+	mail-vw0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750808AbZHGWgx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2009 18:36:53 -0400
+Received: by vws2 with SMTP id 2so1752267vws.4
+        for <linux-media@vger.kernel.org>; Fri, 07 Aug 2009 15:36:53 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <200908040912.24718.hverkuil@xs4all.nl>
+References: <200908040912.24718.hverkuil@xs4all.nl>
+Date: Fri, 7 Aug 2009 15:36:53 -0700
+Message-ID: <a3ef07920908071536w1af95ea5gd3e578f665ca6368@mail.gmail.com>
+Subject: Re: Linux Plumbers Conference 2009: V4L2 API discussions
+From: VDR User <user.vdr@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Xwang,
+It has been months now since the discussion about actually making (a
+unified) STR/SNR useful.  Is this going to be addressed at the
+conference?  It's one of those things that would be greatly useful for
+users/applications but seemingly has gotten neglected.
 
-On Tue, 11 Aug 2009 23:46:43 +0200
-xwang1976@email.it wrote:
-
-> Ok!
-> I've restored the eprom and now it is recognised again.
-
-Just to confirm, did you the rewrite_eeprom tool?
-
-> The only not working part is analog tv audio which doesn't work even
-> if I use the sox command.
-
-Ok.
-
-> >
-> > Douglas, in a few minutes I am leaving town for the next five days.
-> > Can you help Xwang out to restore his eeprom content using your
-> > tool?
-
-Sure Devin.
-
-Cheers,
-Douglas
+Regards,
+Derek
