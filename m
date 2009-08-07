@@ -1,182 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1276 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932493AbZHUUpG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Aug 2009 16:45:06 -0400
-Received: from durdane.lan (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id n7LKj65F031183
-	for <linux-media@vger.kernel.org>; Fri, 21 Aug 2009 22:45:06 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1317 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932367AbZHGLvu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2009 07:51:50 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
-Date: Fri, 21 Aug 2009 22:45:05 +0200
-References: <200908211817.n7LIHIqA054646@smtp-vbr4.xs4all.nl>
-In-Reply-To: <200908211817.n7LIHIqA054646@smtp-vbr4.xs4all.nl>
+To: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCHv14 6/8] FM TX: si4713: Add files to handle si4713 i2c device
+Date: Fri, 7 Aug 2009 13:51:36 +0200
+Cc: "ext Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>
+References: <1248707530-4068-1-git-send-email-eduardo.valentin@nokia.com> <1248707530-4068-6-git-send-email-eduardo.valentin@nokia.com> <1248707530-4068-7-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1248707530-4068-7-git-send-email-eduardo.valentin@nokia.com>
 MIME-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200908212245.05796.hverkuil@xs4all.nl>
+Message-Id: <200908071351.36063.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 21 August 2009 20:17:18 Hans Verkuil wrote:
-> This message is generated daily by a cron job that builds v4l-dvb for
-> the kernels and architectures in the list below.
+Hi Eduardo,
 
-Guys, I'm providing this service for a reason: please take a look at the 
-detailed log when you see errors or warnings.
+Douglas pointed out to me that I hadn't reviewed this series yet.
 
-This time round we have a compat error with DIV_ROUND_CLOSEST:
+That was mostly because it's pretty good as far as I'm concerned :-)
 
-v4l/stb6100.c: In function 'stb6100_set_frequency':
-v4l/stb6100.c:377: error: implicit declaration of 
-function 'DIV_ROUND_CLOSEST'
+I do think one small thing should change:
 
-Should be simple to fix. This macro appeared in 2.6.29 and so should be made 
-available in compat.h.
+On Monday 27 July 2009 17:12:08 Eduardo Valentin wrote:
+> diff --git a/linux/drivers/media/radio/si4713-i2c.c b/linux/drivers/media/radio/si4713-i2c.c
 
-I also get a large amount of errors on smssdio.c for kernels pre-2.6.24:
+<snip>
 
-v4l/smssdio.c:39:33: error: linux/mmc/sdio_func.h: No such file or directory
-v4l/smssdio.c:51: error: array type has incomplete element type
-v4l/smssdio.c:52: warning: implicit declaration of function 'SDIO_DEVICE'
-v4l/smssdio.c:53: error: field name not in record or union initializer
-v4l/smssdio.c:53: error: (near initialization for 'smssdio_ids')
+> +/* write string property */
+> +static int si4713_write_econtrol_string(struct si4713_device *sdev,
+> +				struct v4l2_ext_control *control)
+> +{
+> +	struct v4l2_queryctrl vqc;
+> +	int len;
+> +	s32 rval = 0;
+> +
+> +	vqc.id = control->id;
+> +	rval = si4713_queryctrl(&sdev->sd, &vqc);
+> +	if (rval < 0)
+> +		goto exit;
+> +
+> +	switch (control->id) {
+> +	case V4L2_CID_RDS_TX_PS_NAME: {
+> +		char ps_name[MAX_RDS_PS_NAME + 1];
+> +
+> +		len = control->size - 1;
+> +		if (len > MAX_RDS_PS_NAME)
+> +			len = MAX_RDS_PS_NAME;
+> +		rval = copy_from_user(ps_name, control->string, len);
+> +		if (rval < 0)
+> +			goto exit;
+> +		ps_name[len] = '\0';
+> +
+> +		if (strlen(ps_name) % vqc.step) {
+> +			rval = -EINVAL;
 
-This header appeared in 2.6.24 for the first time, so this driver shouldn't 
-be build on older kernel versions.
+I think we should return -ERANGE instead. It makes more sense than -EINVAL,
+since it is the string length that is out of bounds. -ERANGE is the expected
+error code when the control boundary checks fail.
 
-There is also a warning here:
+I know I said EINVAL before, but after thinking about it some more I've
+reconsidered.
 
-v4l/smssdio.c: In function 'smssdio_sendrequest':
-v4l/smssdio.c:81: warning: 'ret' may be used uninitialized in this function
+> +			goto exit;
+> +		}
+> +
+> +		rval = si4713_set_rds_ps_name(sdev, ps_name);
+> +	}
+> +		break;
+> +
+> +	case V4L2_CID_RDS_TX_RADIO_TEXT:{
+> +		char radio_text[MAX_RDS_RADIO_TEXT + 1];
+> +
+> +		len = control->size - 1;
+> +		if (len > MAX_RDS_RADIO_TEXT)
+> +			len = MAX_RDS_RADIO_TEXT;
+> +		rval = copy_from_user(radio_text, control->string, len);
+> +		if (rval < 0)
+> +			goto exit;
+> +		radio_text[len] = '\0';
+> +
+> +		if (strlen(radio_text) % vqc.step) {
+> +			rval = -EINVAL;
 
-The bttv driver has been broken for a loooong time for kernels <= 2.6.19:
+Ditto.
 
-v4l/bttv-driver.c:4635: warning: implicit declaration of 
-function 'PCI_VDEVICE'
-v4l/bttv-driver.c:4635: error: 'BROOKTREE' undeclared here (not in a 
-function)
+> +			goto exit;
+> +		}
+> +
+> +		rval = si4713_set_rds_radio_text(sdev, radio_text);
+> +	}
+> +		break;
+> +
+> +	default:
+> +		rval = -EINVAL;
+> +		break;
+> +	};
+> +
+> +exit:
+> +	return rval;
+> +}
 
-I don't care about anything pre-2.6.22, but since some people wanted it I've 
-kept compiling against these old kernels. But if nobody fixes this soon, 
-then I'm going to kill that off since I have better uses for those CPU 
-cycles.
+Just change this and you can add
 
-Bottom line: if you know that a change of yours was merged in v4l-dvb, and 
-you see errors or warnings appearing in the daily build, then take a look 
-if your change caused it, and if so, then please fix it asap.
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+
+for the whole series.
 
 Regards,
 
 	Hans
 
->
-> Results of the daily build of v4l-dvb:
->
-> date:        Fri Aug 21 19:00:07 CEST 2009
-> path:        http://www.linuxtv.org/hg/v4l-dvb
-> changeset:   12492:d0ec20a376fe
-> gcc version: gcc (GCC) 4.3.1
-> hardware:    x86_64
-> host os:     2.6.26
->
-> linux-2.6.22.19-armv5: OK
-> linux-2.6.23.12-armv5: OK
-> linux-2.6.24.7-armv5: OK
-> linux-2.6.25.11-armv5: OK
-> linux-2.6.26-armv5: OK
-> linux-2.6.27-armv5: OK
-> linux-2.6.28-armv5: OK
-> linux-2.6.29.1-armv5: OK
-> linux-2.6.30-armv5: OK
-> linux-2.6.31-rc5-armv5: OK
-> linux-2.6.27-armv5-ixp: ERRORS
-> linux-2.6.28-armv5-ixp: ERRORS
-> linux-2.6.29.1-armv5-ixp: OK
-> linux-2.6.30-armv5-ixp: OK
-> linux-2.6.31-rc5-armv5-ixp: OK
-> linux-2.6.28-armv5-omap2: ERRORS
-> linux-2.6.29.1-armv5-omap2: OK
-> linux-2.6.30-armv5-omap2: OK
-> linux-2.6.31-rc5-armv5-omap2: OK
-> linux-2.6.22.19-i686: ERRORS
-> linux-2.6.23.12-i686: ERRORS
-> linux-2.6.24.7-i686: ERRORS
-> linux-2.6.25.11-i686: ERRORS
-> linux-2.6.26-i686: ERRORS
-> linux-2.6.27-i686: ERRORS
-> linux-2.6.28-i686: ERRORS
-> linux-2.6.29.1-i686: WARNINGS
-> linux-2.6.30-i686: WARNINGS
-> linux-2.6.31-rc5-i686: OK
-> linux-2.6.23.12-m32r: ERRORS
-> linux-2.6.24.7-m32r: OK
-> linux-2.6.25.11-m32r: OK
-> linux-2.6.26-m32r: OK
-> linux-2.6.27-m32r: OK
-> linux-2.6.28-m32r: OK
-> linux-2.6.29.1-m32r: OK
-> linux-2.6.30-m32r: OK
-> linux-2.6.31-rc5-m32r: OK
-> linux-2.6.30-mips: WARNINGS
-> linux-2.6.31-rc5-mips: OK
-> linux-2.6.27-powerpc64: ERRORS
-> linux-2.6.28-powerpc64: ERRORS
-> linux-2.6.29.1-powerpc64: WARNINGS
-> linux-2.6.30-powerpc64: WARNINGS
-> linux-2.6.31-rc5-powerpc64: OK
-> linux-2.6.22.19-x86_64: ERRORS
-> linux-2.6.23.12-x86_64: ERRORS
-> linux-2.6.24.7-x86_64: ERRORS
-> linux-2.6.25.11-x86_64: ERRORS
-> linux-2.6.26-x86_64: ERRORS
-> linux-2.6.27-x86_64: ERRORS
-> linux-2.6.28-x86_64: ERRORS
-> linux-2.6.29.1-x86_64: WARNINGS
-> linux-2.6.30-x86_64: WARNINGS
-> linux-2.6.31-rc5-x86_64: OK
-> sparse (linux-2.6.30): OK
-> sparse (linux-2.6.31-rc5): OK
-> linux-2.6.16.61-i686: ERRORS
-> linux-2.6.17.14-i686: ERRORS
-> linux-2.6.18.8-i686: ERRORS
-> linux-2.6.19.5-i686: ERRORS
-> linux-2.6.20.21-i686: ERRORS
-> linux-2.6.21.7-i686: ERRORS
-> linux-2.6.16.61-x86_64: ERRORS
-> linux-2.6.17.14-x86_64: ERRORS
-> linux-2.6.18.8-x86_64: ERRORS
-> linux-2.6.19.5-x86_64: ERRORS
-> linux-2.6.20.21-x86_64: ERRORS
-> linux-2.6.21.7-x86_64: ERRORS
->
-> Detailed results are available here:
->
-> http://www.xs4all.nl/~hverkuil/logs/Friday.log
->
-> Full logs are available here:
->
-> http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
->
-> The V4L2 specification from this daily build is here:
->
-> http://www.xs4all.nl/~hverkuil/spec/v4l2.html
->
-> The DVB API specification from this daily build is here:
->
-> http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
