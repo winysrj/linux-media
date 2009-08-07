@@ -1,84 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:53498 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1756005AbZHYTWr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2009 15:22:47 -0400
-Date: Tue, 25 Aug 2009 21:22:37 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: RE: [PATCH v2] v4l: add new v4l2-subdev sensor operations, use
- skip_top_lines in soc-camera
-In-Reply-To: <A24693684029E5489D1D202277BE89444BC96E38@dlee02.ent.ti.com>
-Message-ID: <Pine.LNX.4.64.0908252112210.4810@axis700.grange>
-References: <Pine.LNX.4.64.0908251855160.4810@axis700.grange>
- <200908251902.03790.hverkuil@xs4all.nl> <Pine.LNX.4.64.0908252021200.4810@axis700.grange>
- <A24693684029E5489D1D202277BE89444BC96E38@dlee02.ent.ti.com>
+Received: from perceval.irobotique.be ([92.243.18.41]:51666 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757071AbZHGH4X (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2009 03:56:23 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "David Xiao" <dxiao@broadcom.com>
+Subject: Re: How to efficiently handle DMA and cache on ARMv7 ? (was "Is get_user_pages() enough to prevent pages from being swapped out ?")
+Date: Fri, 7 Aug 2009 09:58:30 +0200
+Cc: "Russell King - ARM Linux" <linux@arm.linux.org.uk>,
+	"Ben Dooks" <ben-linux@fluff.org>,
+	"Hugh Dickins" <hugh.dickins@tiscali.co.uk>,
+	"Robin Holt" <holt@sgi.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"v4l2_linux" <linux-media@vger.kernel.org>,
+	"linux-arm-kernel@lists.arm.linux.org.uk"
+	<linux-arm-kernel@lists.arm.linux.org.uk>
+References: <200908061208.22131.laurent.pinchart@ideasonboard.com> <20090806222543.GG31579@n2100.arm.linux.org.uk> <1249624766.32621.61.camel@david-laptop>
+In-Reply-To: <1249624766.32621.61.camel@david-laptop>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200908070958.31322.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 25 Aug 2009, Aguirre Rodriguez, Sergio Alberto wrote:
+On Friday 07 August 2009 07:59:26 David Xiao wrote:
+> On Thu, 2009-08-06 at 15:25 -0700, Russell King - ARM Linux wrote:
+> > As far as userspace DMA coherency, the only way you could do it with
+> > current kernel APIs is by using get_user_pages(), creating a scatterlist
+> > from those, and then passing it to dma_map_sg().  While the device has
+> > ownership of the SG, userspace must _not_ touch the buffer until after
+> > DMA has completed.
+> >
+> > However, that won't work with ARMv7's speculative prefetching.  I'm
+> > afraid with such things, DMA direct into userspace mappings becomes a
+> > _lot_ harder, and lets face it, lots of Linux drivers just aren't going
+> > to bother supporting this - we can't currently get agreement to have an
+> > API to map DMA coherent pages into userspace!
+>
+> The V7 speculative prefetching will then probably apply to DMA coherency
+> issue in general, both kernel and user space DMAs. Could this be
+> addressed by inside the dma_unmap_sg/single() calling dma_cache_maint()
+> when the direction is DMA_FROM_DEVICE/DMA_BIDIRECTIONAL, to basically
+> invalidate the related cache lines in case any filled by prefetching?
+> Assuming dma_unmap_sg/single() is called after each DMA operation is
+> completed.
 
-> Guennadi,
-> 
-> Some comments I came across embedded below:
-> 
-> <snip>
-> 
-> > +
-> > +/**
-> > + * struct v4l2_subdev_sensor_ops - v4l2-subdev sensor operations
-> > + * @enum_framesizes: enumerate supported framesizes
-> > + * @enum_frameintervals: enumerate supported frame format intervals
-> > + * @skip_top_lines: number of lines at the top of the image to be
-> > skipped. This
-> > + *		    is needed for some sensors, that corrupt several top
-> > lines.
-> > + */
-> > +struct v4l2_subdev_sensor_ops {
-> >  	int (*enum_framesizes)(struct v4l2_subdev *sd, struct
-> > v4l2_frmsizeenum *fsize);
-> >  	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct
-> > v4l2_frmivalenum *fival);
-> > +	int (*skip_top_lines)(struct v4l2_subdev *sd, u32 *lines);
-> >  };
-> 
-> 1. I honestly find a bit misleading the skip_top_lines name, since that 
-> IMO could be misunderstood that the called function will DO skip lines 
-> in the sensor, which is not the intended response...
-> 
-> How about g_skip_top_lines, or get_skip_top_lines, or something that 
-> clarifies it's a "get information" abstraction interface?
+Sorry about this, but I'm not sure to understand the speculative prefetching 
+cache issue completely.
 
-skip_top_lines was a suggestion of Hans, maybe you're right and 
-g_skip_top_lines better describes the purpose of this function, but since 
-Hans is the primary author and maintainer of this API, let's see what he 
-says.
+My understanding is that, even if userspace doesn't touch the DMA buffer while 
+DMA is in progress, it could still read from locations close to the buffer, 
+resulting in a speculative prefetch of data in the buffer. Those data would 
+then end up in the D-cache, and would not be coherent with what the device 
+transfers.
 
-> 2. Why enumeration mechanisms are not longer needed for a video device? 
-> (You're removing them from video_ops)
+If that's correct, how do we avoid the problem in the general case of DMA to 
+kernel-allocated buffers ?
 
-Also this was Hans' suggestion - he said, that they are only needed for 
-sensors.
+Regards,
 
-> 3. Wouldn't it be better to report a valid region, instead of just the 
-> top lines? I think that should be already covered by the driver 
-> reporting the valid size regions on enumeration, no?
+Laurent Pinchart
 
-No, this is something different. This is not the same as what cropcap 
-delivers. Some sensors (e.g., mt9v022) corrupt some (1 with mt9v022) top 
-lines, regardless what cropping you configure. So, you have to configure 
-your bridge (or an SoC camera host) to skip that many lines at the top of 
-an image. I am not sure whether all bridges can do this, fortunately, 
-PXA270 and i.MX31 (not yet implemented), to which I can connect mt9v022, 
-can do this.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
