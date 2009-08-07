@@ -1,59 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199]:43052 "EHLO
-	mta4.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932227AbZHYXXL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2009 19:23:11 -0400
-Received: from mbpwifi.kernelscience.com
- (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta4.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KOY00CRPGYOBUM0@mta4.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Tue, 25 Aug 2009 19:23:13 -0400 (EDT)
-Date: Tue, 25 Aug 2009 19:23:12 -0400
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: Hauppauge 2250 - second tuner is only half working
-In-reply-to: <4A946CB5.2010800@kernellabs.com>
-To: seth@cyberseth.com
-Cc: Steve Harrington <steve@Emel-Harrington.net>,
-	linux-media@vger.kernel.org
-Message-id: <4A947260.1040907@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <283002305-1251239519-cardhu_decombobulator_blackberry.rim.net-845544064-@bxe1079.bisx.prod.on.blackberry>
- <4A946CB5.2010800@kernellabs.com>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1300 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757025AbZHGLih (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2009 07:38:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH,RFC] Drop non-unlocked ioctl support in v4l2-dev.c
+Date: Fri, 7 Aug 2009 13:37:57 +0200
+Cc: linux-media@vger.kernel.org
+References: <200908061709.41211.laurent.pinchart@ideasonboard.com> <eee1636b2ae21fc4189b27b511e7d22f.squirrel@webmail.xs4all.nl> <200908071303.23217.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <200908071303.23217.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200908071337.57675.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 8/25/09 6:59 PM, Steven Toth wrote:
->> After reading Steven Toth's reply I tried adding 1 and then 2 2-way
->> splitters before the 2250 input. No joy. I also tried feeding the cable
->> directly into the 2250 with no splitters. Again - no joy.
->> Any other ideas?
->
-> Most likely this is dependent on what frequency the other tuner is tuned
-> to, especially since Seth indicated it worked for a short time. And,
-> again, I don't see the issue but two other people do.
->
-> RMA is probably not the answer.
->
-> When you next get a chance to test please use azap and keep track of
-> what frequency the first tuner is currently tuned to even if tuner#1 is
-> technically no longer streaming. I suspect varying the frequency on
-> tuner#1 will vary your test results.
->
+On Friday 07 August 2009 13:03:22 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Thursday 06 August 2009 17:16:08 Hans Verkuil wrote:
+> > Hi Laurent,
+> >
+> > > Hi everybody,
+> > >
+> > > this patch moves the BKL one level down by removing the non-unlocked
+> > > ioctl in v4l2-dev.c and calling lock_kernel/unlock_kernel in the
+> > > unlocked_ioctl handler if the driver only supports locked ioctl.
+> > >
+> > > Opinions/comments/applause/kicks ?
+> >
+> > I've been thinking about this as well, and my idea was to properly
+> > implement this by letting the v4l core serialize ioctls if the driver
+> > doesn't do its own serialization (either through mutexes or lock_kernel).
+> 
+> A v4l-specific (or even device-specific) mutex would of course be better than 
+> the BKL.
+> 
+> Are there file operations other than ioctl that are protected by the BKL ? 
+> Blindly replacing the BKL by a mutex on ioctl would then introduce race 
+> conditions.
 
-OK, I can repro the issue.
+I'd say that drivers that add sysfs or proc entries might be a problem, but
+there are few drivers that do that and I suspect that quite a few have their
+own locking.
 
-Tuning tuner 1 to 669 works, then tune tuner2 to 669 no lock. Set tuner #1 to 
-579 is locks, then tuner2 automatically also goes into lock.
+Allowing the mutex to be accessed from elsewhere would be a simple solution
+to this problem as all the sysfs/proc accesses can just attempt to get the
+lock first, thus doing proper serializing.
 
-So, it depends on where tuner#1 was previously tuned to.
+> > The driver can just set a flag in video_device if it wants to do
+> > serialization manually, otherwise the core will serialize using a mutex
+> > and we should be able to completely remove the BKL from all v4l drivers.
+> 
+> Whether the driver fills v4l2_operations::ioctl or 
+> v4l2_operations::unlocked_ioctl can be considered as such a flag :-)
 
-I'll look into this.
+Basically there are three situations:
 
-Save yourself the trouble of the RMA if it hasn't already shipped.
+1) unlocked_ioctl is set: in that case the driver takes care of all the
+locking.
+
+2) ioctl is set: in that case we keep the old BKL behavior.
+
+3) unlocked_ioctl is set together with a serialize flag in struct v4l2_device:
+in that case the v4l2 core will take care of most of the serialization for the
+driver.
+
+> Many drivers are currently using the BKL in an unlocked_ioctl handler. I'm not 
+> sure it would be a good idea to move the BKL back to the v4l2 core, as the 
+> long term goal is to remove it completely and use fine-grain driver-level 
+> locking.
+
+I agree with that. But I think the best approach to be able to remove the BKLs
+is to provide a good alternative. Doing proper locking in a driver is quite
+hard. Doing it in the v4l2 core is a lot easier to do right.
+
+If the relevant file_operations are properly serialized, then that will simplify
+drivers enormously. And it is also fairly easy to optimize certain ioctls:
+e.g. the VIDIOC_QUERYCAP ioctl does not normally need a lock since it does
+not access anything that needs to be protected. Intelligence like that can
+be enabled on demand by setting a flag as well.
+
+Basically I have no trust in device driver writers to do locking right, and
+yes, that includes myself. It's hard to be sure that you covered all your
+bases, especially for complicated drivers like most v4l drivers are.
+
+Letting the core do most of the heavy lifting, even if you get somewhat
+sub-optimal locking, is more than good enough in almost all cases.
+
+And I expect that it is definitely more than good enough for drivers that
+use the BKL.
+
+Regards,
+
+	Hans
 
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
