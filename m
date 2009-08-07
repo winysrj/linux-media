@@ -1,53 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iris.cdu.edu.au ([138.80.130.6]:34602 "HELO iris.cdu.edu.au"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751713AbZH2NvX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Aug 2009 09:51:23 -0400
-References: <1250177934.6590.120.camel@mattotaupa.wohnung.familie-menzel.net> <alpine.LRH.1.10.0908140947560.14872@pub3.ifh.de> <1250244562.5438.3.camel@mattotaupa.wohnung.familie-menzel.net> <alpine.LRH.1.10.0908181052400.7725@pub1.ifh.de> <1251042115.19935.16.camel@lychee.local> <4A9296D5.1070202@nildram.co.uk> <A971DB9B-7353-4BD1-AFF3-6B30239533DF@cdu.edu.au> <1251129649.5234.42.camel@acropora>
-Message-ID: <64BF8339-B3B1-4EDA-858A-42841A5D9722@cdu.edu.au>
-From: "Malcolm Caldwell" <Malcolm.Caldwell@cdu.edu.au>
-To: "Nicolas Will" <nico@youplala.net>
-In-Reply-To: <1251129649.5234.42.camel@acropora>
-Content-Type: text/plain;
-	format=flowed;
-	delsp=yes;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-MIME-Version: 1.0 (iPhone Mail 7A341)
-Subject: Re: Nova-TD-500 (84xxx) problems (was Re: dib0700 diversity support)
-Date: Sat, 29 Aug 2009 23:20:31 +0930
-Cc: <linux-media@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39273 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932903AbZHGTDt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2009 15:03:49 -0400
+Date: Fri, 7 Aug 2009 20:03:36 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Jamie Lokier <jamie@shareable.org>
+Cc: David Xiao <dxiao@broadcom.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Ben Dooks <ben-linux@fluff.org>,
+	Hugh Dickins <hugh.dickins@tiscali.co.uk>,
+	Robin Holt <holt@sgi.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	v4l2_linux <linux-media@vger.kernel.org>,
+	"linux-arm-kernel@lists.arm.linux.org.uk"
+	<linux-arm-kernel@lists.arm.linux.org.uk>
+Subject: Re: How to efficiently handle DMA and cache on ARMv7 ? (was "Is
+	get_user_pages() enough to prevent pages from being swapped out ?")
+Message-ID: <20090807190336.GB31543@n2100.arm.linux.org.uk>
+References: <200908061208.22131.laurent.pinchart@ideasonboard.com> <20090806114619.GW2080@trinity.fluff.org> <200908061506.23874.laurent.pinchart@ideasonboard.com> <1249584374.29182.20.camel@david-laptop> <20090806222543.GG31579@n2100.arm.linux.org.uk> <1249624766.32621.61.camel@david-laptop> <20090807102339.GK8725@shareable.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20090807102339.GK8725@shareable.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 25/08/2009, at 1:31, "Nicolas Will" <nico@youplala.net> wrote:
+On Fri, Aug 07, 2009 at 11:23:39AM +0100, Jamie Lokier wrote:
+> David Xiao wrote:
+> > > However, that won't work with ARMv7's speculative prefetching.  I'm
+> > > afraid with such things, DMA direct into userspace mappings becomes a
+> > > _lot_ harder, and lets face it, lots of Linux drivers just aren't going
+> > > to bother supporting this - we can't currently get agreement to have an
+> > > API to map DMA coherent pages into userspace!
+> > 
+> > The V7 speculative prefetching will then probably apply to DMA coherency
+> > issue in general, both kernel and user space DMAs. Could this be
+> > addressed by inside the dma_unmap_sg/single() calling dma_cache_maint()
+> > when the direction is DMA_FROM_DEVICE/DMA_BIDIRECTIONAL, to basically
+> > invalidate the related cache lines in case any filled by prefetching?
+> > Assuming dma_unmap_sg/single() is called after each DMA operation is
+> > completed. 
+> 
+> If it's possible, surely its essential because of O_DIRECT file and
+> block I/O?
 
-> On Tue, 2009-08-25 at 00:36 +0930, Malcolm Caldwell wrote:
->>> Have you tried adding:
->>>
->>> dvb_usb_dib0700.force_lna_activation=1
->>>
->>> to the modprobe options?
->>>
->>> The device I had wouldn't tune without this.
->>
->> I should have mentioned that I have tried this and buggy sfn
->> workaround for the relavent modules.
->
-> I have read that sometimes the problem is not a low signal, but too
-> strong a signal.
->
-> Have you tried placing an attenuator in front of the card?
-
-Ok, I have now tried an attenuator and it did not fix my problem, but  
-made the reception worse.
-
-
->
-> Nico
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux- 
-> media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The problem is that you require a _VIRTUAL_ address.  The unmap functions
+do not have that information passed to them, so we need some way of
+maintaining that or calculating it.  I've covered that issue in my
+postings this morning (please follow up there instead.)
