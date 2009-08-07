@@ -1,145 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpbg78.qq.com ([119.147.10.237]:50057 "HELO smtpbg78.qq.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755130AbZHTSCg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Aug 2009 14:02:36 -0400
-Received: from esmtpproxy (unknown [58.31.87.59])
-	by esmtp10.qq.com (ESMTP) with SMTP id 0
-	for <linux-media@vger.kernel.org>; Fri, 21 Aug 2009 01:54:40 +0800 (CST)
-Subject: [PATCH] em28xx: Add entry for GADMEI UTV330+ and related IR codec
-From: Shine Liu <shinel@foxmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Fri, 21 Aug 2009 01:54:39 +0800
-Message-Id: <1250790879.4644.33.camel@sl>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:41863 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757175AbZHGII2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2009 04:08:28 -0400
+Date: Fri, 7 Aug 2009 09:08:11 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: David Xiao <dxiao@broadcom.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Ben Dooks <ben-linux@fluff.org>,
+	Hugh Dickins <hugh.dickins@tiscali.co.uk>,
+	Robin Holt <holt@sgi.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	v4l2_linux <linux-media@vger.kernel.org>,
+	"linux-arm-kernel@lists.arm.linux.org.uk"
+	<linux-arm-kernel@lists.arm.linux.org.uk>
+Subject: Re: How to efficiently handle DMA and cache on ARMv7 ? (was "Is
+	get_user_pages() enough to prevent pages from being swapped out ?")
+Message-ID: <20090807080811.GA18343@n2100.arm.linux.org.uk>
+References: <200908061208.22131.laurent.pinchart@ideasonboard.com> <20090806114619.GW2080@trinity.fluff.org> <200908061506.23874.laurent.pinchart@ideasonboard.com> <1249584374.29182.20.camel@david-laptop> <20090806222543.GG31579@n2100.arm.linux.org.uk> <1249624766.32621.61.camel@david-laptop>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1249624766.32621.61.camel@david-laptop>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch to support for the GADMEI UTV330+ board. IR codec this board is
-also added.
+On Thu, Aug 06, 2009 at 10:59:26PM -0700, David Xiao wrote:
+> The V7 speculative prefetching will then probably apply to DMA coherency
+> issue in general, both kernel and user space DMAs. Could this be
+> addressed by inside the dma_unmap_sg/single() calling dma_cache_maint()
+> when the direction is DMA_FROM_DEVICE/DMA_BIDIRECTIONAL, to basically
+> invalidate the related cache lines in case any filled by prefetching?
+> Assuming dma_unmap_sg/single() is called after each DMA operation is
+> completed. 
 
-Based and tested on linux-2.6.31-rc6
+It's something that I was going to look at, and it's probably going to
+have to be something I do blind - I currently have no MPCore platform,
+and even if my Realview EB worked, it doesn't use DMA at all.
 
+However, it's not trivial - the unmap functions don't have all the
+necessary information.  dma_unmap_single() has the DMA address, which
+we can convert to the original virtual address via dma_to_virt().
+However, dma_unmap_page() can't translate back to a virtual page
+since we're missing some information there.
 
-Signed-off-by: Shine Liu <shinel@foxmail.com>
------------------------------------------------------------------------
-
---- a/drivers/media/video/em28xx/em28xx-cards.c	2009-08-14 06:43:34.000000000 +0800
-+++ b/drivers/media/video/em28xx/em28xx-cards.c	2009-08-21 01:31:23.000000000 +0800
-@@ -558,6 +558,28 @@
- 			.amux     = EM28XX_AMUX_LINE_IN,
- 		} },
- 	},
-+	[EM2861_BOARD_GADMEI_UTV330PLUS] = {
-+		.name         = "Gadmei UTV330+",
-+		.valid        = EM28XX_BOARD_NOT_VALIDATED,
-+		.tuner_type   = TUNER_TNF_5335MF,
-+		.tda9887_conf = TDA9887_PRESENT,
-+		.ir_codes     = ir_codes_gadimei_rm008z,
-+		.decoder      = EM28XX_SAA711X,
-+		.xclk         = EM28XX_XCLK_FREQUENCY_12MHZ,
-+		.input        = { {
-+			.type     = EM28XX_VMUX_TELEVISION,
-+			.vmux     = SAA7115_COMPOSITE2,
-+			.amux     = EM28XX_AMUX_VIDEO,
-+		}, {
-+			.type     = EM28XX_VMUX_COMPOSITE1,
-+			.vmux     = SAA7115_COMPOSITE0,
-+			.amux     = EM28XX_AMUX_LINE_IN,
-+		}, {
-+			.type     = EM28XX_VMUX_SVIDEO,
-+			.vmux     = SAA7115_SVIDEO3,
-+			.amux     = EM28XX_AMUX_LINE_IN,
-+		} },
-+	},
- 	[EM2860_BOARD_TERRATEC_HYBRID_XS] = {
- 		.name         = "Terratec Cinergy A Hybrid XS",
- 		.valid        = EM28XX_BOARD_NOT_VALIDATED,
-@@ -1551,7 +1573,7 @@
- 	{ USB_DEVICE(0xeb1a, 0x2860),
- 			.driver_info = EM2820_BOARD_UNKNOWN },
- 	{ USB_DEVICE(0xeb1a, 0x2861),
--			.driver_info = EM2820_BOARD_UNKNOWN },
-+			.driver_info = EM2861_BOARD_GADMEI_UTV330PLUS },
- 	{ USB_DEVICE(0xeb1a, 0x2870),
- 			.driver_info = EM2820_BOARD_UNKNOWN },
- 	{ USB_DEVICE(0xeb1a, 0x2881),
---- a/drivers/media/video/em28xx/em28xx.h	2009-08-14 06:43:34.000000000 +0800
-+++ b/drivers/media/video/em28xx/em28xx.h	2009-08-21 01:32:16.000000000 +0800
-@@ -108,6 +108,7 @@
- #define EM2882_BOARD_KWORLD_ATSC_315U		  69
- #define EM2882_BOARD_EVGA_INDTUBE		  70
- #define EM2820_BOARD_SILVERCREST_WEBCAM           71
-+#define EM2861_BOARD_GADMEI_UTV330PLUS		  72
- 
- /* Limits minimum and default number of buffers */
- #define EM28XX_MIN_BUF 4
---- a/drivers/media/common/ir-keymaps.c	2009-08-14 06:43:34.000000000 +0800
-+++ b/drivers/media/common/ir-keymaps.c	2009-08-21 01:38:25.000000000 +0800
-@@ -2773,3 +2773,46 @@
- 	[0x13] = KEY_CAMERA,
- };
- EXPORT_SYMBOL_GPL(ir_codes_evga_indtube);
-+
-+/* GADMEI UTV330+ RM008Z remote
-+   Shine Liu <shinel@foxmail.com> 
-+ */
-+IR_KEYTAB_TYPE ir_codes_gadmei_rm008z[IR_KEYTAB_SIZE] = {
-+	[ 0x14 ] = KEY_ESC,		/* POWER OFF */
-+	[ 0x0c ] = KEY_M,		/* MUTE */
-+
-+	[ 0x18 ] = KEY_PLAY,		/* TV */
-+	[ 0x0e ] = KEY_VIDEO,		/* AV */
-+	[ 0x0b ] = KEY_AUDIO,		/* SV */
-+	[ 0x0f ] = KEY_RADIO,		/* FM */
-+
-+	[ 0x00 ] = KEY_1,
-+	[ 0x01 ] = KEY_2,
-+	[ 0x02 ] = KEY_3,
-+	[ 0x03 ] = KEY_4,
-+	[ 0x04 ] = KEY_5,
-+	[ 0x05 ] = KEY_6,
-+	[ 0x06 ] = KEY_7,
-+	[ 0x07 ] = KEY_8,
-+	[ 0x08 ] = KEY_9,
-+	[ 0x09 ] = KEY_0,
-+	[ 0x0a ] = KEY_D,		/* OSD */
-+	[ 0x1c ] = KEY_BACKSPACE,	/* LAST */
-+
-+	[ 0x0d ] = KEY_PLAY,		/* PLAY */
-+	[ 0x1e ] = KEY_S,		/* SNAPSHOT */
-+	[ 0x1a ] = KEY_RECORD,		/* RECORD */
-+	[ 0x17 ] = KEY_STOP,		/* STOP */
-+
-+	[ 0x1f ] = KEY_UP,		/* UP */
-+	[ 0x44 ] = KEY_DOWN,		/* DOWN */
-+	[ 0x46 ] = KEY_TAB,		/* BACK */
-+	[ 0x4a ] = KEY_F,		/* FULLSECREEN */
-+	
-+	[ 0x10 ] = KEY_RIGHT,		/* VOLUMEUP */
-+	[ 0x11 ] = KEY_LEFT,		/* VOLUMEDOWN */
-+	[ 0x12 ] = KEY_UP,		/* CHANNELUP */
-+	[ 0x13 ] = KEY_DOWN,		/* CHANNELDOWN */
-+	[ 0x15 ] = KEY_ENTER,		/* OK */
-+};
-+EXPORT_SYMBOL_GPL(ir_codes_gadmei_rm008z);
---- a/include/media/ir-common.h	2009-08-14 06:43:34.000000000 +0800
-+++ b/include/media/ir-common.h	2009-08-21 01:41:01.000000000 +0800
-@@ -163,6 +163,7 @@
- extern IR_KEYTAB_TYPE ir_codes_kaiomy[IR_KEYTAB_SIZE];
- extern IR_KEYTAB_TYPE ir_codes_dm1105_nec[IR_KEYTAB_SIZE];
- extern IR_KEYTAB_TYPE ir_codes_evga_indtube[IR_KEYTAB_SIZE];
-+extern IR_KEYTAB_TYPE ir_codes_gadmei_rm008z[IR_KEYTAB_SIZE];
- 
- #endif
- 
---- a/Documentation/video4linux/CARDLIST.em28xx	2009-08-14 06:43:34.000000000 +0800
-+++ b/Documentation/video4linux/CARDLIST.em28xx	2009-08-21 01:45:35.000000000 +0800
-@@ -67,3 +67,4 @@
-  69 -> KWorld ATSC 315U HDTV TV Box             (em2882)        [eb1a:a313]
-  70 -> Evga inDtube                             (em2882)
-  71 -> Silvercrest Webcam 1.3mpix               (em2820/em2840)
-+ 72 -> Gadmei UTV330+                           (em2861)        [eb1a:2861]
-
+It bugs me that the DMA API is restrictive in the information which
+architectures can retain across a mapping which makes this non-trivial.
+Had I known of these issues when the DMA API was originally being
+discussed, I'd have suggested that we have an arch-specific dma_map
+struct which could contain whatever information was required, rather
+than requiring the driver to maintain the handle/size/direction/etc
+between each of the calls.  That would mean we could retain the virtual
+address/struct page rather than having to work it back in some way.
