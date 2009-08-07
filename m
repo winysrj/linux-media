@@ -1,66 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp07.bis.na.blackberry.com ([216.9.248.54]:51249 "EHLO
-	smtp07.bis.na.blackberry.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932166AbZHYWlv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2009 18:41:51 -0400
-Message-ID: <283002305-1251239519-cardhu_decombobulator_blackberry.rim.net-845544064-@bxe1079.bisx.prod.on.blackberry>
-Content-Transfer-Encoding: base64
-Reply-To: seth@cyberseth.com
-To: "Steve Harrington" <steve@Emel-Harrington.net>,
-	linux-media@vger.kernel.org
-Subject: Re: Hauppauge 2250 - second tuner is only half working
-From: seth@cyberseth.com
-Date: Tue, 25 Aug 2009 22:31:09 +0000
-Content-Type: text/plain
+Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:3377 "EHLO
+	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756035AbZHGPQ5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2009 11:16:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCHv14 2/8] v4l2: video device: Add V4L2_CTRL_CLASS_FM_TX controls
+Date: Fri, 7 Aug 2009 17:16:33 +0200
+Cc: "ext Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>
+References: <1248707530-4068-1-git-send-email-eduardo.valentin@nokia.com> <1248707530-4068-2-git-send-email-eduardo.valentin@nokia.com> <1248707530-4068-3-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1248707530-4068-3-git-send-email-eduardo.valentin@nokia.com>
 MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200908071716.34585.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SSBSTUEnZWQgdGhhdCB0dW5lciAtIGF3YWl0aW5nIGEgcmVwbGFjZW1lbnQuIEkgZm91bmQgdGhh
-dCBhZGRpbmcgYW5kL29yIHJlbW92aW5nIGFsbCBzcGxpdHRlcnMgbWFkZSBubyBkaWZmZXJlbmNl
-ICh3YXNuJ3QgYWJsZSB0byBnZXQgYSBob2xkIG9mIGEgcHJvcGVyIGF0dGVudWF0b3IgLSBkaWQg
-dHJ5IHRoZSBzcGxpdHRlciB3aXRoIGEgY2FwIG9uIG9uZSBzaWRlIG1ldGhvZCB3aXRob3V0IGx1
-Y2spLgoKSSBkaWQgZmluZCBzaG9ydGx5IGFmdGVyIGEga2VybmVsIHVwZ3JhZGUsIGEgZmV3IG1v
-ZHByb2JlcywgYSBjb3VwbGUgcmVib290cywgc29tZSBmaXJtd2FyZSBmaWxlIG1vdmVzLCBhbmQg
-YSBkaXN0LWNsZWFuICYgcmVidWlsZGluZyB0aGUgbW9kdWxlcyAtIHRoYXQgMm5kIHR1bmVyIHN0
-YXJ0ZWQgd29ya2luZyBmb3IgdGhlICJnYXAiIGZyZXF1ZW5jaWVzLiBJIGZpcmVkIHVwIG15dGh0
-diBhbmQgc3dpdGNoZWQgb3ZlciB0byB3YXRjaCB0aGUgc2Vjb25kIHR1bmVyIGFuZCBpdCB3YXMg
-d29ya2luZyBmaW5lIGZvciBhYm91dCAzMHMsIHRoZW4gdGhlIHN5c3RlbSBzcG9udGFuZW91c2x5
-IHJlYm9vdGVkLiBJIHBsYXllZCBhcm91bmQgYSBiaXQsIGJ1dCBhbGwgc3Vic2VxdWVudCBhdHRl
-bXB0cyB0byBnZXQgdGhlICJnYXAiIGZyZXF1ZW5jaWVzIHRvIHdvcmsgYWdhaW4gZmFpbGVkIChy
-aWdodCBiYWNrIHRvIHNhbWUgcHJvYmxlbSBhcyBiZWZvcmUgLSBpdCB3b24ndCBnZXQgYSBsb2Nr
-LCBidXQgZmlyc3QgdHVuZXIgd2FzIHdvcmtpbmcgZmluZSkuICBJIGRvbid0IGtub3cgaWYgaXQg
-d2FzIHNvbWV0aGluZyB3aXRoIHRoZSBzdGF0ZSBvZiBteSBzeXN0ZW0ganVzdCBhZnRlciBhIG5l
-dyBrZXJuZWwgd2FzIGluc3RhbGxlZCBvciBtYXliZSBpdCB3YXMganVzdCBjb2luY2lkZW5jZSAo
-bWF5YmUgdGhlIHNpZ25hbCBhdHRlbnVhdGlvbiB3YXMganVzdCByaWdodCBmb3IgYSBsaXR0bGUg
-Yml0IHRoZXJlKS4gRWl0aGVyIHdheSB0aGF0IHNwb250YW5lb3VzIHJlYm9vdCBzZWVtZWQgbGlr
-ZSBtYXliZSB0aGUgY2FyZCAvIHR1bmVyIGhhcmR3YXJlIGl0c2VsZiBtaWdodCBiZSBkZWZlY3Rp
-dmUuCgpJIHN0aWxsIGhhZCBhIGZldyBkYXlzIGxlZnQgdG8gbWFrZSBnb29kIG9uIG15IDMwIGRh
-eSB3YXJyYW50eSBzbyBJIGZpZ3VyZSBJJ2QgZ2l2ZSB0aGF0IGEgdHJ5LiBJJ2xsIGxldCB5b3Ug
-a25vdyBpbiBhIHdlZWsgb3Igc28gaWYgdGhlIG5ldyBjYXJkIGlzIGFueSBiZXR0ZXIuCgotU2V0
-aAoKLS0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tLQpGcm9tOiBTdGV2ZSBIYXJyaW5ndG9uClNl
-bmRlcjogbGludXgtbWVkaWEtb3duZXJAdmdlci5rZXJuZWwub3JnClRvOiBsaW51eC1tZWRpYUB2
-Z2VyLmtlcm5lbC5vcmcKU3ViamVjdDogUmU6IEhhdXBwYXVnZSAyMjUwIC0gc2Vjb25kIHR1bmVy
-IGlzIG9ubHkgaGFsZiB3b3JraW5nClNlbnQ6IEF1ZyAyNSwgMjAwOSAyOjAxIFBNCgpJIGhhdmUg
-dGhlIHNhbWUgcHJvYmxlbSBhcyBTZXRoLiAgTXkgc3lzdGVtIHdpbGwgdHVuZSBSRiBjaGFubmVs
-IDg1IGFuZCAKYmVsb3cgd2lsbCBub3QgdHVuZSBSRiBjaGFubmVsIDkxIGFuZCBhYm92ZSBvbiB0
-aGUgc2Vjb25kIHR1bmVyIG9ubHkuICAKRmlyc3QgdHVuZXIgd29ya3MgZmluZSBvbiBhbGwgY2hh
-bm5lbHMgYXMgZG9lcyB0aGUgUEMgSERUViA1NTAwIGFsc28gaW4gCnRoZSBzeXN0ZW0uICBNeSBu
-b3JtYWwgY29uZmlndXJhdGlvbiBpcyBhIDQtd2F5IHNwbGl0dGVyIGZyb20gdGhlIGNhYmxlIApp
-bnRvIHRoZSBob3VzZS4gIE9uZSBsZWcgZ29lcyB0byBhIDItd2F5IHRoYXQgZmVlZHMgdGhlIHR3
-byBjYXJkcyBpbiB0aGUgCnN5c3RlbS4gIFdpdGggdGhpcyBjb25maWd1cmF0aW9uIHRoZSBub3Jt
-YWwgcmVzdWx0IGlzOgoKRnJvbnRlbmQgL2Rldi9kdmIvYWRhcHRlcjIvZnJvbnRlbmQwIHR1bmVk
-IGluIDEgc2Vjb25kcy4KQ2hhbm5lbCA4MDogICAgU3RhbmRhcmQ9QVRTQywgTW9kdWxhdGlvbj1R
-QU1fMjU2CiAgICAgICBTTlI9MFgwMTcyLCBTSUdOQUw9MFgwMTcyCgpmb3IgY2hhbm5lbCA4MCBh
-bmQ6CgpVbmFibGUgdG8gc2V0IGZyb250ZW5kIC9kZXYvZHZiL2FkYXB0ZXIyL2Zyb250ZW5kMDpm
-cmVxdWVuY3k9NjY5MDAwMDAwLCAKbW9kdWxhdGlvbj1RQU1fMjU2Cgpmb3IgY2hhbm5lbCAxMDMu
-CgpBZnRlciByZWFkaW5nIFN0ZXZlbiBUb3RoJ3MgcmVwbHkgSSB0cmllZCBhZGRpbmcgMSBhbmQg
-dGhlbiAyIDItd2F5IApzcGxpdHRlcnMgYmVmb3JlIHRoZSAyMjUwIGlucHV0LiBObyBqb3kuICBJ
-IGFsc28gdHJpZWQgZmVlZGluZyB0aGUgY2FibGUgCmRpcmVjdGx5IGludG8gdGhlIDIyNTAgd2l0
-aCBubyBzcGxpdHRlcnMuICBBZ2FpbiAtIG5vIGpveS4KQW55IG90aGVyIGlkZWFzPwotLQpUbyB1
-bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGlu
-dXgtbWVkaWEiIGluCnRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJu
-ZWwub3JnCk1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFq
-b3Jkb21vLWluZm8uaHRtbAoKCg0KU2VudCB2aWEgQmxhY2tCZXJyeSBmcm9tIFQtTW9iaWxl
+On Monday 27 July 2009 17:12:04 Eduardo Valentin wrote:
+> This patch adds a new class of extended controls. This class
+> is intended to support FM Radio Modulators properties such as:
+> rds, audio limiters, audio compression, pilot tone generation,
+> tuning power levels and preemphasis properties.
+> 
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+> ---
+>  linux/include/linux/videodev2.h |   34 ++++++++++++++++++++++++++++++++++
+>  1 files changed, 34 insertions(+), 0 deletions(-)
+> 
+> diff --git a/linux/include/linux/videodev2.h b/linux/include/linux/videodev2.h
+> index b17898c..c58d453 100644
+> --- a/linux/include/linux/videodev2.h
+> +++ b/linux/include/linux/videodev2.h
+> @@ -817,6 +817,7 @@ struct v4l2_ext_controls {
+>  #define V4L2_CTRL_CLASS_USER 0x00980000	/* Old-style 'user' controls */
+>  #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
+>  #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
+> +#define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
+>  
+>  #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+>  #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+> @@ -1156,6 +1157,39 @@ enum  v4l2_exposure_auto_type {
+>  
+>  #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
+>  
+> +/* FM Modulator class control IDs */
+> +#define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
+> +#define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
+> +
+> +#define V4L2_CID_RDS_TX_PI			(V4L2_CID_FM_TX_CLASS_BASE + 1)
+> +#define V4L2_CID_RDS_TX_PTY			(V4L2_CID_FM_TX_CLASS_BASE + 2)
+> +#define V4L2_CID_RDS_TX_DEVIATION		(V4L2_CID_FM_TX_CLASS_BASE + 3)
+> +#define V4L2_CID_RDS_TX_PS_NAME			(V4L2_CID_FM_TX_CLASS_BASE + 4)
+> +#define V4L2_CID_RDS_TX_RADIO_TEXT		(V4L2_CID_FM_TX_CLASS_BASE + 5)
 
+I'd almost forgot about this: can you move V4L2_CID_RDS_TX_DEVIATION to the
+start of these RDS controls? All others are part of the RDS standard, while
+this one isn't. Any app enumerating these controls would get this deviation
+in between all the other RDS controls, which is a bit weird. It's better to
+give V4L2_CID_RDS_TX_DEVIATION the ID V4L2_CID_FM_TX_CLASS_BASE + 1 and move
+the others up accordingly. Don't forget to change the spec as well.
+
+Regards,
+
+	Hans
+
+> +
+> +#define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 6)
+> +#define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 7)
+> +#define V4L2_CID_AUDIO_LIMITER_DEVIATION	(V4L2_CID_FM_TX_CLASS_BASE + 8)
+> +
+> +#define V4L2_CID_AUDIO_COMPRESSION_ENABLED	(V4L2_CID_FM_TX_CLASS_BASE + 9)
+> +#define V4L2_CID_AUDIO_COMPRESSION_GAIN		(V4L2_CID_FM_TX_CLASS_BASE + 10)
+> +#define V4L2_CID_AUDIO_COMPRESSION_THRESHOLD	(V4L2_CID_FM_TX_CLASS_BASE + 11)
+> +#define V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 12)
+> +#define V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 13)
+> +
+> +#define V4L2_CID_PILOT_TONE_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 14)
+> +#define V4L2_CID_PILOT_TONE_DEVIATION		(V4L2_CID_FM_TX_CLASS_BASE + 15)
+> +#define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FM_TX_CLASS_BASE + 16)
+> +
+> +#define V4L2_CID_FM_TX_PREEMPHASIS		(V4L2_CID_FM_TX_CLASS_BASE + 17)
+> +enum v4l2_preemphasis {
+> +	V4L2_PREEMPHASIS_DISABLED	= 0,
+> +	V4L2_PREEMPHASIS_50_uS		= 1,
+> +	V4L2_PREEMPHASIS_75_uS		= 2,
+> +};
+> +#define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 18)
+> +#define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 19)
+> +
+>  /*
+>   *	T U N I N G
+>   */
+
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
