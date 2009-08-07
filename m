@@ -1,222 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:43634 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934010AbZHHLXW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Aug 2009 07:23:22 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv15 8/8] FM TX: si4713: Add document file
-Date: Sat,  8 Aug 2009 14:10:33 +0300
-Message-Id: <1249729833-24975-9-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1249729833-24975-8-git-send-email-eduardo.valentin@nokia.com>
-References: <1249729833-24975-1-git-send-email-eduardo.valentin@nokia.com>
- <1249729833-24975-2-git-send-email-eduardo.valentin@nokia.com>
- <1249729833-24975-3-git-send-email-eduardo.valentin@nokia.com>
- <1249729833-24975-4-git-send-email-eduardo.valentin@nokia.com>
- <1249729833-24975-5-git-send-email-eduardo.valentin@nokia.com>
- <1249729833-24975-6-git-send-email-eduardo.valentin@nokia.com>
- <1249729833-24975-7-git-send-email-eduardo.valentin@nokia.com>
- <1249729833-24975-8-git-send-email-eduardo.valentin@nokia.com>
+Received: from perceval.irobotique.be ([92.243.18.41]:59747 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755168AbZHGHqU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2009 03:46:20 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
+Subject: Re: How to efficiently handle DMA and cache on ARMv7 ? (was "Is get_user_pages() enough to prevent pages from being swapped out ?")
+Date: Fri, 7 Aug 2009 09:48:24 +0200
+Cc: David Xiao <dxiao@broadcom.com>, Ben Dooks <ben-linux@fluff.org>,
+	Hugh Dickins <hugh.dickins@tiscali.co.uk>,
+	Robin Holt <holt@sgi.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"v4l2_linux" <linux-media@vger.kernel.org>,
+	"linux-arm-kernel@lists.arm.linux.org.uk"
+	<linux-arm-kernel@lists.arm.linux.org.uk>
+References: <200908061208.22131.laurent.pinchart@ideasonboard.com> <1249584374.29182.20.camel@david-laptop> <20090806222543.GG31579@n2100.arm.linux.org.uk>
+In-Reply-To: <20090806222543.GG31579@n2100.arm.linux.org.uk>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200908070948.26389.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a document file for si4713 device driver.
-It describes the driver interfaces and organization.
+On Friday 07 August 2009 00:25:43 Russell King - ARM Linux wrote:
+>
+> As far as userspace DMA coherency, the only way you could do it with
+> current kernel APIs is by using get_user_pages(), creating a scatterlist
+> from those, and then passing it to dma_map_sg().  While the device has
+> ownership of the SG, userspace must _not_ touch the buffer until after
+> DMA has completed.
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- linux/Documentation/video4linux/si4713.txt |  176 ++++++++++++++++++++++++++++
- 1 files changed, 176 insertions(+), 0 deletions(-)
- create mode 100644 linux/Documentation/video4linux/si4713.txt
+If the buffers are going to be reused again and again, would it be possible to 
+mark the pages returned by get_user_pages() as non-cacheable instead ?
 
-diff --git a/linux/Documentation/video4linux/si4713.txt b/linux/Documentation/video4linux/si4713.txt
-new file mode 100644
-index 0000000..93ee8b9
---- /dev/null
-+++ b/linux/Documentation/video4linux/si4713.txt
-@@ -0,0 +1,176 @@
-+Driver for I2C radios for the Silicon Labs Si4713 FM Radio Transmitters
-+
-+Copyright (c) 2009 Nokia Corporation
-+Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
-+
-+
-+Information about the Device
-+============================
-+This chip is a Silicon Labs product. It is a I2C device, currently on 0x63 address.
-+Basically, it has transmission and signal noise level measurement features.
-+
-+The Si4713 integrates transmit functions for FM broadcast stereo transmission.
-+The chip also allows integrated receive power scanning to identify low signal
-+power FM channels.
-+
-+The chip is programmed using commands and responses. There are also several
-+properties which can change the behavior of this chip.
-+
-+Users must comply with local regulations on radio frequency (RF) transmission.
-+
-+Device driver description
-+=========================
-+There are two modules to handle this device. One is a I2C device driver
-+and the other is a platform driver.
-+
-+The I2C device driver exports a v4l2-subdev interface to the kernel.
-+All properties can also be accessed by v4l2 extended controls interface, by
-+using the v4l2-subdev calls (g_ext_ctrls, s_ext_ctrls).
-+
-+The platform device driver exports a v4l2 radio device interface to user land.
-+So, it uses the I2C device driver as a sub device in order to send the user
-+commands to the actual device. Basically it is a wrapper to the I2C device driver.
-+
-+Applications can use v4l2 radio API to specify frequency of operation, mute state,
-+etc. But mostly of its properties will be present in the extended controls.
-+
-+When the v4l2 mute property is set to 1 (true), the driver will turn the chip off.
-+
-+Properties description
-+======================
-+
-+The properties can be accessed using v4l2 extended controls.
-+Here is an output from v4l2-ctl util:
-+/ # v4l2-ctl -d /dev/radio0 --all -L
-+Driver Info:
-+        Driver name   : radio-si4713
-+        Card type     : Silicon Labs Si4713 Modulator
-+        Bus info      :
-+        Driver version: 0
-+        Capabilities  : 0x00080800
-+                RDS Output
-+                Modulator
-+Audio output: 0 (FM Modulator Audio Out)
-+Frequency: 1408000 (88.000000 MHz)
-+Video Standard = 0x00000000
-+Modulator:
-+        Name                 : FM Modulator
-+        Capabilities         : 62.5 Hz stereo rds
-+        Frequency range      : 76.0 MHz - 108.0 MHz
-+        Subchannel modulation: stereo+rds
-+
-+User Controls
-+
-+                           mute (bool) : default=1 value=0
-+
-+FM Radio Modulator Controls
-+
-+           rds_signal_deviation (int)  : min=0 max=90000 step=10 default=200 value=200 flags=slider
-+                 rds_program_id (int)  : min=0 max=65535 step=1 default=0 value=0
-+               rds_program_type (int)  : min=0 max=31 step=1 default=0 value=0
-+                    rds_ps_name (str)  : min=0 max=96 step=8 value='si4713  '
-+                 rds_radio_text (str)  : min=0 max=384 step=32 value=''
-+  audio_limiter_feature_enabled (bool) : default=1 value=1
-+     audio_limiter_release_time (int)  : min=250 max=102390 step=50 default=5010 value=5010 flags=slider
-+        audio_limiter_deviation (int)  : min=0 max=90000 step=10 default=66250 value=66250 flags=slider
-+audio_compression_feature_enabl (bool) : default=1 value=1
-+         audio_compression_gain (int)  : min=0 max=20 step=1 default=15 value=15 flags=slider
-+    audio_compression_threshold (int)  : min=-40 max=0 step=1 default=-40 value=-40 flags=slider
-+  audio_compression_attack_time (int)  : min=0 max=5000 step=500 default=0 value=0 flags=slider
-+ audio_compression_release_time (int)  : min=100000 max=1000000 step=100000 default=1000000 value=1000000 flags=slider
-+     pilot_tone_feature_enabled (bool) : default=1 value=1
-+           pilot_tone_deviation (int)  : min=0 max=90000 step=10 default=6750 value=6750 flags=slider
-+           pilot_tone_frequency (int)  : min=0 max=19000 step=1 default=19000 value=19000 flags=slider
-+          pre_emphasis_settings (menu) : min=0 max=2 default=1 value=1
-+               tune_power_level (int)  : min=0 max=120 step=1 default=88 value=88 flags=slider
-+         tune_antenna_capacitor (int)  : min=0 max=191 step=1 default=0 value=110 flags=slider
-+/ #
-+
-+Here is a summary of them:
-+
-+* Pilot is an audible tone sent by the device.
-+
-+pilot_frequency - Configures the frequency of the stereo pilot tone.
-+pilot_deviation - Configures pilot tone frequency deviation level.
-+pilot_enabled - Enables or disables the pilot tone feature.
-+
-+* The si4713 device is capable of applying audio compression to the transmitted signal.
-+
-+acomp_enabled - Enables or disables the audio dynamic range control feature.
-+acomp_gain - Sets the gain for audio dynamic range control.
-+acomp_threshold - Sets the threshold level for audio dynamic range control.
-+acomp_attack_time - Sets the attack time for audio dynamic range control.
-+acomp_release_time - Sets the release time for audio dynamic range control.
-+
-+* Limiter setups audio deviation limiter feature. Once a over deviation occurs,
-+it is possible to adjust the front-end gain of the audio input and always
-+prevent over deviation.
-+
-+limiter_enabled - Enables or disables the limiter feature.
-+limiter_deviation - Configures audio frequency deviation level.
-+limiter_release_time - Sets the limiter release time.
-+
-+* Tuning power
-+
-+power_level - Sets the output power level for signal transmission.
-+antenna_capacitor - This selects the value of antenna tuning capacitor manually
-+or automatically if set to zero.
-+
-+* RDS related
-+
-+rds_ps_name - Sets the RDS ps name field for transmission.
-+rds_radio_text - Sets the RDS radio text for transmission.
-+rds_pi - Sets the RDS PI field for transmission.
-+rds_pty - Sets the RDS PTY field for transmission.
-+
-+* Region related
-+
-+preemphasis - sets the preemphasis to be applied for transmission.
-+
-+RNL
-+===
-+
-+This device also has an interface to measure received noise level. To do that, you should
-+ioctl the device node. Here is an code of example:
-+
-+int main (int argc, char *argv[])
-+{
-+        struct si4713_rnl rnl;
-+        int fd = open("/dev/radio0", O_RDWR);
-+        int rval;
-+
-+        if (argc < 2)
-+                return -EINVAL;
-+
-+        if (fd < 0)
-+                return fd;
-+
-+        sscanf(argv[1], "%d", &rnl.frequency);
-+
-+        rval = ioctl(fd, SI4713_IOC_MEASURE_RNL, &rnl);
-+        if (rval < 0)
-+                return rval;
-+
-+        printf("received noise level: %d\n", rnl.rnl);
-+
-+        close(fd);
-+}
-+
-+The struct si4713_rnl and SI4713_IOC_MEASURE_RNL are defined under
-+include/media/si4713.h.
-+
-+Stereo/Mono and RDS subchannels
-+===============================
-+
-+The device can also be configured using the available sub channels for
-+transmission. To do that use S/G_MODULATOR ioctl and configure txsubchans properly.
-+Refer to v4l2-spec for proper use of this ioctl.
-+
-+Testing
-+=======
-+Testing is usually done with v4l2-ctl utility for managing FM tuner cards.
-+The tool can be found in v4l-dvb repository under v4l2-apps/util directory.
-+
-+Example for setting rds ps name:
-+# v4l2-ctl -d /dev/radio0 --set-ctrl=rds_ps_name="Dummy"
-+
--- 
-1.6.2.GIT
+Regards,
+
+Laurent Pinchart
 
