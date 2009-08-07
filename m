@@ -1,54 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f206.google.com ([209.85.219.206]:53991 "EHLO
-	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753155AbZH0VXB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Aug 2009 17:23:01 -0400
-Received: by ewy2 with SMTP id 2so1620788ewy.17
-        for <linux-media@vger.kernel.org>; Thu, 27 Aug 2009 14:23:02 -0700 (PDT)
-From: Eugene Yudin <eugene.yudin@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Fix working LifeView FlyVideo 3000 Card
-Date: Fri, 28 Aug 2009 01:37:44 +0400
-References: <200908280112.53765.Eugene.Yudin@gmail.com>
-In-Reply-To: <200908280112.53765.Eugene.Yudin@gmail.com>
+Received: from perceval.irobotique.be ([92.243.18.41]:38281 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933619AbZHGUJu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2009 16:09:50 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
+Subject: Re: How to efficiently handle DMA and cache on ARMv7 ? (was "Is get_user_pages() enough to prevent pages from being swapped out ?")
+Date: Fri, 7 Aug 2009 22:11:40 +0200
+Cc: Robin Holt <holt@sgi.com>,
+	Laurent Desnogues <laurent.desnogues@gmail.com>,
+	Jamie Lokier <jamie@shareable.org>,
+	David Xiao <dxiao@broadcom.com>,
+	Ben Dooks <ben-linux@fluff.org>,
+	Hugh Dickins <hugh.dickins@tiscali.co.uk>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"v4l2_linux" <linux-media@vger.kernel.org>,
+	"linux-arm-kernel@lists.arm.linux.org.uk"
+	<linux-arm-kernel@lists.arm.linux.org.uk>
+References: <200908061208.22131.laurent.pinchart@ideasonboard.com> <20090807131501.GD2763@sgi.com> <20090807190145.GA31543@n2100.arm.linux.org.uk>
+In-Reply-To: <20090807190145.GA31543@n2100.arm.linux.org.uk>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 8BIT
-Message-Id: <200908280137.44350.Eugene.Yudin@gmail.com>
+Content-Disposition: inline
+Message-Id: <200908072211.45283.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-В сообщении от Пятница 28 августа 2009 01:12:53 автор Eugene Yudin написал:
-> Fix this bug for this card and clones:
-> > Hi, for a couple of days now, my lifeview PCI hybrid card that worked
+On Friday 07 August 2009 21:01:45 Russell King - ARM Linux wrote:
+> On Fri, Aug 07, 2009 at 08:15:01AM -0500, Robin Holt wrote:
+> > On Fri, Aug 07, 2009 at 02:07:43PM +0200, Laurent Desnogues wrote:
+> > > On Fri, Aug 7, 2009 at 11:54 AM, Jamie Lokier<jamie@shareable.org> 
+wrote:
+> > > > 1. Does the architecture not prevent speculative instruction
+> > > > prefetches from crossing a page boundary?  It would be handy under
+> > > > the circumstances.
+> > >
+> > > There's no such restriction in ARMv7 architecture.
+> >
+> > Doesn't it prevent them for uncached areas?
 >
-> flawlessly for the last 2 years doesn't work. The problem is with the
-> driver from what I understand from the logs.
+> "Uncached areas" is very very fuzzy.  Are you talking about a non-cachable
+> memory mapping, or a strongly ordered mapping.
 >
-> > Today 23/8/2009 I tried the drivers within vanilla kernel 2.6.30.5 (i386
-> > and
->
-> amd64) and then separately latest mercurial snapshot. I always use latest
-> mercurial snapshot updating every time a new kernel is released.
->
-> > This card works within Windows XP. I also switched the PCI slot but that
->
-> didn't help.
->
-> Now all is working great.
-> Signed-off-by: Eugene Yudin <Eugene.Yudin@gmail.com>
-> Best Regards, Eugene.
->
-> diff -uprN a/linux/drivers/media/video/saa7134/saa7134-cards.c
-> b/linux/drivers/media/video/saa7134/saa7134-cards.c
-> ...
-Also tuner option is processed correctly. 
-It is important not to forget to specify in the "modprobe.conf":
-alias char-major-81 videodev 
-alias char-major-81-0 saa7134 
+> I'm afraid that we're going to have to require more precise use of language
+> to describe these things - wolley statements like "uncached areas" are now
+> just too ambiguous.
 
-This is the usual line of instructions, but nevertheless not all of them 
-should ...
+Ok. Maybe the kernel mapping from L_PTE_MT_UNCACHED to strongly ordered for 
+ARMv6 and up (not sure about how it worked for previous versions) brought some 
+confusion. I'll try to be more precise now.
+
+> > I _THOUGHT_ there was an alloc_consistent (or something like that) call on
+> > ARM which gave you an uncached mapping where you could do DMA.
+>
+> The dma_alloc_coherent() does _remap_ memory into a strongly ordered
+> mapping.  However, the fully cached mapping remains, which means that
+> the CPU can still speculatively prefetch from that memory.
+
+Does that mean that, in theory, all DMA transfers in the DMA_FROM_DEVICE 
+direction are currently broken on ARMv7 ?
+
+The ARM Architecture Reference Manual (ARM DDI 0100I) states that
+
+"• If the same memory locations are marked as having different memory types 
+(Normal, Device, or Strongly Ordered), for example by the use of synonyms in a 
+virtual to physical address mapping, UNPREDICTABLE behavior results.
+
+• If the same memory locations are marked as having different cacheable 
+attributes, for example by the use of synonyms in a virtual to physical 
+address mapping, UNPREDICTABLE behavior results."
+
+dma_alloc_coherent() ends up calling __dma_alloc(), which allocates pages 
+using alloc_pages(), flushes the data cache for the allocated virtual range 
+and then simply remaps the pages using PTEs previously allocated from the 
+kernel MM.
+
+This would be broken if a fully cached Normal mapping already existed for 
+those physical pages. You seem to imply that's the case, but I'm not sure to 
+understand why.
+
+> Since we map the fully cached mapping using section (or even supersection)
+> mappings for TLB efficiency, we can't change the memory type on a
+> per-page basis.
+>
+> > I also thought there was a dma_* set of functions which remapped as
+> > uncached before DMA begins and remapped as normal after DMA has been
+> > completed.
+>
+> You're talking about the deprecated DMA bounce code there.  It's
+> basically the same problem since it uses the dma_alloc_coherent()
+> interface to gain a source of DMA-able memory.
+
+Regards,
+
+Laurent Pinchart
 
