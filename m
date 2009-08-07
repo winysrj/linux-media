@@ -1,27 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n7A0W4C1030812
-	for <video4linux-list@redhat.com>; Sun, 9 Aug 2009 20:32:04 -0400
-Received: from mho-01-ewr.mailhop.org (mho-01-ewr.mailhop.org [204.13.248.71])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n7A0VnQJ005149
-	for <video4linux-list@redhat.com>; Sun, 9 Aug 2009 20:31:50 -0400
-Received: from c-24-63-249-206.hsd1.vt.comcast.net ([24.63.249.206]
-	helo=homer.edgehp.net)
-	by mho-01-ewr.mailhop.org with esmtpsa (TLSv1:CAMELLIA256-SHA:256)
-	(Exim 4.68) (envelope-from <DEPontius@edgehp.net>)
-	id 1MaInl-000LMl-Ly
-	for video4linux-list@redhat.com; Mon, 10 Aug 2009 00:31:49 +0000
-Received: from [192.168.154.40] (anastasia.edgehp.net [192.168.154.40])
-	by homer.edgehp.net (Postfix) with ESMTP id 2391E3AAF2
-	for <video4linux-list@redhat.com>; Sun,  9 Aug 2009 16:56:37 -0400 (EDT)
-Message-ID: <4A7F3813.3050101@edgehp.net>
-Date: Sun, 09 Aug 2009 16:56:51 -0400
-From: Dale Pontius <DEPontius@edgehp.net>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n77B4tcI003344
+	for <video4linux-list@redhat.com>; Fri, 7 Aug 2009 07:04:55 -0400
+Received: from mail-ew0-f208.google.com (mail-ew0-f208.google.com
+	[209.85.219.208])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n77B4d6o005918
+	for <video4linux-list@redhat.com>; Fri, 7 Aug 2009 07:04:39 -0400
+Received: by ewy4 with SMTP id 4so346912ewy.3
+	for <video4linux-list@redhat.com>; Fri, 07 Aug 2009 04:04:38 -0700 (PDT)
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
+In-Reply-To: <eedb5540908070303t325d8573o9b8b85301238ecd5@mail.gmail.com>
+References: <eedb5540908070134i3e94cddbv358ab6190b482715@mail.gmail.com>
+	<eedb5540908070303t325d8573o9b8b85301238ecd5@mail.gmail.com>
+Date: Fri, 7 Aug 2009 13:04:38 +0200
+Message-ID: <eedb5540908070404m51be7773t5537c9b9a1de1aa4@mail.gmail.com>
+From: javier Martin <javier.martin@vista-silicon.com>
+To: linux-arm-kernel@lists.arm.linux.org.uk
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: Status of cx18 drivers, mercurial vs in-kernel
+Cc: Russell King <linux@arm.linux.org.uk>, video4linux-list@redhat.com
+Subject: Re: [PATCH] MX2x: Add CSI platform device and resources.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,17 +31,98 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I've been running the cx18 drivers out of mercurial since getting my
-HVR-1600 running, almost a year ago.  As I see things, the driver is
-pretty mature now, and in fact I see commits for cx18 in 2.6.31 that are
-some of the last I saw going into the "regular" driver in mercurial.
-(I'm not counting the diagnostic work that has been going on in the last
-month or two, for one particular user.)
+This patch would we for the case that csi and prp are considered as a
+single device, which is the option I think it's more adjusted to the
+v4l capture model. It's like the i.mx31 case where CSI is integrate
+inside the IPU.
 
-Is it reasonable to go with the in-kernel cx18 driver when 2.6.31 goes
-stable, or is there still significant value with sticking with mercurial?
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+ arch/arm/mach-mx2/devices.c |   48 +++++++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-mx2/devices.h |    1 +
+ 2 files changed, 49 insertions(+), 0 deletions(-)
 
-Dale Pontius
+diff --git a/arch/arm/mach-mx2/devices.c b/arch/arm/mach-mx2/devices.c
+index 4e7feea..ac46a3a 100644
+--- a/arch/arm/mach-mx2/devices.c
++++ b/arch/arm/mach-mx2/devices.c
+@@ -39,6 +39,54 @@
+
+ #include "devices.h"
+
++
++static struct resource mxc_csi_prp_resources[] = {
++	[0] = {
++		.start  = CSI_BASE_ADDR,
++		.end    = CSI_BASE_ADDR + 0x1f,
++		.flags  = IORESOURCE_MEM,
++	},
++	[1] = {
++		.start	= EMMA_PRP_BASE_ADDR,
++		.end	= EMMA_PRP_BASE_ADDR + 0x83,
++		.flags	= IORESOURCE_MEM,
++	},
++	[2] = {
++		.start  = MXC_INT_CSI,
++		.end    = MXC_INT_CSI,
++		.flags  = IORESOURCE_IRQ,
++	},
++	[3] = {
++		.start	= MXC_INT_EMMAPRP,
++		.end	= MXC_INT_EMMAPRP,
++		.flags	= IORESOURCE_IRQ,
++	},
++	[4] = {
++		.start  = DMA_REQ_CSI_RX,
++		.end    = DMA_REQ_CSI_RX,
++		.flags  = IORESOURCE_DMA
++	},
++	[5] = {
++		.start  = DMA_REQ_CSI_STAT,
++		.end    = DMA_REQ_CSI_STAT,
++		.flags  = IORESOURCE_DMA
++	},
++};
++
++static u64 mxc_csi_prp_dmamask = 0xffffffffUL;
++
++struct platform_device mxc_csi_prp_device = {
++	.name           = "mxc-camera",
++	.id             = 0,
++	.dev		= {
++		.dma_mask = &mxc_csi_prp_dmamask,
++		.coherent_dma_mask = 0xffffffff,
++	},
++	.resource       = mxc_csi_prp_resources,
++	.num_resources  = ARRAY_SIZE(mxc_csi_prp_resources),
++};
++
++
+ /*
+  * Resource definition for the MXC IrDA
+  */
+diff --git a/arch/arm/mach-mx2/devices.h b/arch/arm/mach-mx2/devices.h
+index facb4d6..abeb2c9 100644
+--- a/arch/arm/mach-mx2/devices.h
++++ b/arch/arm/mach-mx2/devices.h
+@@ -1,3 +1,4 @@
++extern struct platform_device mxc_csi_prp_device;
+ extern struct platform_device mxc_gpt1;
+ extern struct platform_device mxc_gpt2;
+ extern struct platform_device mxc_gpt3;
+---
+Please comment.
+
+Thank you.
+-- 
+Javier Martin
+Vista Silicon S.L.
+Universidad de Cantabria
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
 
 --
 video4linux-list mailing list
