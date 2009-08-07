@@ -1,14 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from node6.gecad.com ([193.230.245.6])
+Received: from mail-vw0-f186.google.com ([209.85.212.186])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <eduard.budulea@axigen.com>) id 1Mi3GB-0006KJ-OB
-	for linux-dvb@linuxtv.org; Mon, 31 Aug 2009 11:33:12 +0200
-From: Eduard Budulea <eduard.budulea@axigen.com>
-To: linux-dvb@linuxtv.org
-Date: Mon, 31 Aug 2009 12:35:32 +0300
-Message-Id: <1251711332.3990.18.camel@edi-desktop>
-Mime-Version: 1.0
-Subject: [linux-dvb] saa 7162 chip, recording from s-video
+	(envelope-from <user.vdr@gmail.com>) id 1MZJVV-0000gn-0h
+	for linux-dvb@linuxtv.org; Fri, 07 Aug 2009 09:04:53 +0200
+Received: by vws16 with SMTP id 16so1336979vws.1
+	for <linux-dvb@linuxtv.org>; Fri, 07 Aug 2009 00:04:17 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4905EF08.6070405@gmail.com>
+References: <412bdbff0810171104ob627994me2876504b43c18d8@mail.gmail.com>
+	<49033440.6090609@gmx.de>
+	<3cc3561f0810270337h4c33dd80n9b779a8dc3c8f8ce@mail.gmail.com>
+	<20081027140348.GE9657@localhost>
+	<1225122896.3124.13.camel@palomino.walls.org>
+	<4905EF08.6070405@gmail.com>
+Date: Fri, 7 Aug 2009 00:04:17 -0700
+Message-ID: <a3ef07920908070004k583e5e1btee8ec3c01d8795c@mail.gmail.com>
+From: VDR User <user.vdr@gmail.com>
+To: "mailing list: linux-dvb" <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [RFC] SNR units in tuners
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -23,25 +32,12 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi, I have this card:Kworld DVB-T PE310.
-On a ubuntu 9.4 system with linux 2.6.28-15-generic.
-I've managed to compile and install the drivers from:
-http://www.jusst.de/hg/saa716x/
-I've added my pci id to the driver list (used atlantis config structure)
-I also added my tda10046 (actually my chips are tda 100046A, why the
-extra 0?) id (whitch is 0xFF, not 0x46) in tda10046_attach function.
-It kind of worked, because it has not crashed and the w_scan give output
-like is working.
-How ever, I don't know if in my region I have dvb-t.
-I have gotten this board because the motherboard has only pci express.
-What I want is to be able to record from an s-video source.
-It should be possible with this card.
-But the card does not export a /dev/videox file (no v4l?)
-It only creates /dev/dvb/adapterx thing.
-So how can I record s-video with this card?
+Is this topic going to be address at the upcoming Plumbers conference?
+ Several months have passed with seemingly no resolution or even any
+progress made even though getting this sorted out would provide a very
+useful tool.
 
-Thanks, I am willing to do testing for the driver development.
-
+-Derek
 
 _______________________________________________
 linux-dvb users mailing list
