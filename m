@@ -1,44 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3488 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933459AbZHHJE5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Aug 2009 05:04:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: VDR User <user.vdr@gmail.com>
-Subject: Re: Linux Plumbers Conference 2009: V4L2 API discussions
-Date: Sat, 8 Aug 2009 11:04:54 +0200
-Cc: linux-media@vger.kernel.org
-References: <200908040912.24718.hverkuil@xs4all.nl> <a3ef07920908071536w1af95ea5gd3e578f665ca6368@mail.gmail.com>
-In-Reply-To: <a3ef07920908071536w1af95ea5gd3e578f665ca6368@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Received: from mail-in-13.arcor-online.net ([151.189.21.53]:33764 "EHLO
+	mail-in-13.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755350AbZHHKoC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 8 Aug 2009 06:44:02 -0400
+Subject: Re: Direct v4l-dvb master commits
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <200908081055.25229.hverkuil@xs4all.nl>
+References: <829197380908051158i52af640cn1b87bfe90c0890b8@mail.gmail.com>
+	 <20090807132841.51372e65@caramujo.chehab.org>
+	 <200908081055.25229.hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Sat, 08 Aug 2009 12:41:14 +0200
+Message-Id: <1249728074.3265.16.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200908081104.54926.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 08 August 2009 00:36:53 VDR User wrote:
-> It has been months now since the discussion about actually making (a
-> unified) STR/SNR useful.  Is this going to be addressed at the
-> conference?  It's one of those things that would be greatly useful for
-> users/applications but seemingly has gotten neglected.
 
-I have no plans myself to discuss that during that conference. Someone else
-may bring it up of course, but I have insufficient knowledge about it to
-contribute much to such a discussion.
+Am Samstag, den 08.08.2009, 10:55 +0200 schrieb Hans Verkuil:
+> On Friday 07 August 2009 18:28:41 Mauro Carvalho Chehab wrote:
+> > Em Wed, 5 Aug 2009 14:58:23 -0400
+> > Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
+> > > On a related note, is there some rationale you can offer as to why you
+> > > are committing patches directly into the v4l-dvb mainline without any
+> > > peer review, unlike *every* other developer in the linuxtv project?  I
+> > > know it may seem redundant to you since you are the person acting on
+> > > the PULL requests, but it would provide an opportunity for the other
+> > > developers to offer comments on your patches *before* they go into the
+> > > mainline.
+> > 
+> > This were already answered on some previous msgs at the ML: hg commits mailing
+> > lists give the opportunity for people to review what were committed at the
+> > staging tree, since every patch is automatically mailbombed to the mailing
+> > list. The mainline tree is my -git. It is delayed over -hg to give opportunity
+> > for people to review the committed patches. Also, I'm not the kind of person
+> > that use to talk to himself. Starting sending pull requests from me to myself
+> > will probably get me a free ticket to a mental care services :-d
+> 
+> I have to say that I really disagree with that. The hg master v4l-dvb tree is
+> what everyone develops against. So when bad patches go in without having had
+> the opportunity for a review, then that will affect all of us.
+> 
+> There is also no way to remove such a broken patch from the master tree.
+> Once it is in it can only be removed by committing a revert patch.
+> 
+> Now, I have no problem with you committing trivial fixes directly into the
+> master repository, but anything non-trivial should also get the chance to
+> be reviewed by others. It's not talking to yourself, it's asking for a review
+> before you commit, just like we all do. Just post a pull request and if
+> there are no comments after 24 hours, then commit.
+> 
+> Two cases that come to mind that irritated me were the commit of the cx231xx
+> driver without subdev support out of nowhere a few months ago and your
+> addition of --get/set-param support in v4l2-ctl just a few days ago which had
+> several bugs (fixed in my pending v4l-dvb-misc tree).
+> 
+> If these commits were posted as pull requests then I would have reviewed them
+> first and any issues would have been fixed before they entered the master repo.
+> 
+> There is also the human factor to consider: it can be demotivating (or at
+> least irritating) if your own pull requests are still queued after several
+> days and you see the maintainer doing big commits out of the blue at the
+> same time.
+> 
+> Regards,
+> 
+> 	Hans
 
-Nor do I think that that is something that needs to be discussed there. This
-is something that can be discussed perfectly well here.
+Hi Hans,
 
-Basically things like this will not be fixed unless someone is willing to
-put in the hours to find a good solution and to implement it (or cajole people
-into doing it for you if you're not a programmer).
+for the cx231xx I can't tell, but the em28xx webcam stuff will probably
+soon have a separate repo before anything is pulled in again.
 
-Regards,
+Your v4l2-ctl fixes will go in without more work for you.
+Sorry, I saw too late, that you have a pull request already.
 
-	Hans
+It is just that, that some such cams arrive here by mail, includes
+private data of people not related to GNU/Linux, and we can make them
+work very quickly.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+It is stuff sold in huge masses since 2005, without any support until
+now.
+
+Likely we can get them all, but should be no further excuse for not
+having them better on a separate tree at first.
+
+With my other rants I'm also finished. I likely won't care for bugs on
+Hauppauge/Pinnacle products anymore and will have much more fun with
+linux again.
+
+Cheers,
+Hermann
+
+
+
+
+
+
