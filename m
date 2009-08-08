@@ -1,150 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57996 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752482AbZHKVBp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2009 17:01:45 -0400
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com, hverkuil@xs4all.nl,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH 2/4 - v2] V4L: ccdc driver - adding support for camera capture
-Date: Tue, 11 Aug 2009 17:01:39 -0400
-Message-Id: <1250024499-5087-1-git-send-email-m-karicheri2@ti.com>
+Received: from mail-ew0-f214.google.com ([209.85.219.214]:51190 "EHLO
+	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751809AbZHHRp7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Aug 2009 13:45:59 -0400
+Received: by mail-ew0-f214.google.com with SMTP id 10so2174216ewy.37
+        for <linux-media@vger.kernel.org>; Sat, 08 Aug 2009 10:46:00 -0700 (PDT)
+Subject: [patch review 2/6] radio-mr800: cleanup of usb_amradio_open/close
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Douglas Schilling Landgraf <dougsland@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain
+Date: Sat, 08 Aug 2009 21:46:00 +0400
+Message-Id: <1249753560.15160.247.camel@tux.localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+Patch removes functions that shouldn't be in usb_amradio_open/close:
+amradio_set_mute(), amradio_set_stereo(), amradio_setfreq().
 
-There was no comment against v1 of the patch. So no change in this file
+Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
 
-Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
-
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
-Applies to V4L-DVB linux-next repository
- drivers/media/video/davinci/dm355_ccdc.c  |   16 +++++++++++-----
- drivers/media/video/davinci/dm644x_ccdc.c |   13 +++++++++----
- include/media/davinci/dm355_ccdc.h        |    2 +-
- include/media/davinci/dm644x_ccdc.h       |    2 +-
- 4 files changed, 22 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/media/video/davinci/dm355_ccdc.c b/drivers/media/video/davinci/dm355_ccdc.c
-index 4629cab..4efffc2 100644
---- a/drivers/media/video/davinci/dm355_ccdc.c
-+++ b/drivers/media/video/davinci/dm355_ccdc.c
-@@ -92,7 +92,7 @@ static struct ccdc_params_raw ccdc_hw_params_raw = {
- 
- /* Object for CCDC ycbcr mode */
- static struct ccdc_params_ycbcr ccdc_hw_params_ycbcr = {
--	.win = CCDC_WIN_PAL,
-+	.win = CCDC_WIN_NTSC,
- 	.pix_fmt = CCDC_PIXFMT_YCBCR_8BIT,
- 	.frm_fmt = CCDC_FRMFMT_INTERLACED,
- 	.fid_pol = VPFE_PINPOL_POSITIVE,
-@@ -548,7 +548,7 @@ static int ccdc_config_vdfc(struct ccdc_vertical_dft *dfc)
-  */
- static void ccdc_config_csc(struct ccdc_csc *csc)
+--
+diff -r 34b4e5c9d5c2 linux/drivers/media/radio/radio-mr800.c
+--- a/linux/drivers/media/radio/radio-mr800.c	Wed Jul 29 10:44:51 2009 +0400
++++ b/linux/drivers/media/radio/radio-mr800.c	Wed Jul 29 12:36:37 2009 +0400
+@@ -538,29 +538,10 @@
+ static int usb_amradio_open(struct file *file)
  {
--	u32 val1, val2;
-+	u32 val1 = 0, val2;
- 	int i;
+ 	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
+-	int retval;
  
- 	if (!csc->enable)
-@@ -925,8 +925,11 @@ static int ccdc_set_hw_if_params(struct vpfe_hw_if_param *params)
- 		ccdc_hw_params_ycbcr.vd_pol = params->vdpol;
- 		ccdc_hw_params_ycbcr.hd_pol = params->hdpol;
- 		break;
-+	case VPFE_RAW_BAYER:
-+		ccdc_hw_params_raw.vd_pol = params->vdpol;
-+		ccdc_hw_params_raw.hd_pol = params->hdpol;
-+		break;
- 	default:
--		/* TODO add support for raw bayer here */
- 		return -EINVAL;
- 	}
+ 	radio->users = 1;
+ 	radio->muted = 1;
+ 
+-	retval = amradio_set_mute(radio, AMRADIO_START);
+-	if (retval < 0) {
+-		amradio_dev_warn(&radio->videodev->dev,
+-			"radio did not start up properly\n");
+-		radio->users = 0;
+-		return -EIO;
+-	}
+-
+-	retval = amradio_set_stereo(radio, WANT_STEREO);
+-	if (retval < 0)
+-		amradio_dev_warn(&radio->videodev->dev,
+-			"set stereo failed\n");
+-
+-	retval = amradio_setfreq(radio, radio->curfreq);
+-	if (retval < 0)
+-		amradio_dev_warn(&radio->videodev->dev,
+-			"set frequency failed\n");
+-
  	return 0;
-@@ -961,9 +964,12 @@ static struct ccdc_hw_device ccdc_hw_dev = {
+ }
  
- static int dm355_ccdc_init(void)
+@@ -568,7 +549,6 @@
+ static int usb_amradio_close(struct file *file)
  {
-+	int ret;
-+
- 	printk(KERN_NOTICE "dm355_ccdc_init\n");
--	if (vpfe_register_ccdc_device(&ccdc_hw_dev) < 0)
--		return -1;
-+	ret = vpfe_register_ccdc_device(&ccdc_hw_dev);
-+	if (ret < 0)
-+		return ret;
- 	printk(KERN_NOTICE "%s is registered with vpfe.\n",
- 		ccdc_hw_dev.name);
+ 	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
+-	int retval;
+ 
+ 	if (!radio)
+ 		return -ENODEV;
+@@ -577,13 +557,6 @@
+ 	radio->users = 0;
+ 	mutex_unlock(&radio->lock);
+ 
+-	if (!radio->removed) {
+-		retval = amradio_set_mute(radio, AMRADIO_STOP);
+-		if (retval < 0)
+-			amradio_dev_warn(&radio->videodev->dev,
+-				"amradio_stop failed\n");
+-	}
+-
  	return 0;
-diff --git a/drivers/media/video/davinci/dm644x_ccdc.c b/drivers/media/video/davinci/dm644x_ccdc.c
-index 2f19a91..5dff8d9 100644
---- a/drivers/media/video/davinci/dm644x_ccdc.c
-+++ b/drivers/media/video/davinci/dm644x_ccdc.c
-@@ -65,7 +65,7 @@ static struct ccdc_params_raw ccdc_hw_params_raw = {
- static struct ccdc_params_ycbcr ccdc_hw_params_ycbcr = {
- 	.pix_fmt = CCDC_PIXFMT_YCBCR_8BIT,
- 	.frm_fmt = CCDC_FRMFMT_INTERLACED,
--	.win = CCDC_WIN_PAL,
-+	.win = CCDC_WIN_NTSC,
- 	.fid_pol = VPFE_PINPOL_POSITIVE,
- 	.vd_pol = VPFE_PINPOL_POSITIVE,
- 	.hd_pol = VPFE_PINPOL_POSITIVE,
-@@ -825,8 +825,10 @@ static int ccdc_set_hw_if_params(struct vpfe_hw_if_param *params)
- 		ccdc_hw_params_ycbcr.vd_pol = params->vdpol;
- 		ccdc_hw_params_ycbcr.hd_pol = params->hdpol;
- 		break;
-+	case VPFE_RAW_BAYER:
-+		ccdc_hw_params_raw.vd_pol = params->vdpol;
-+		ccdc_hw_params_raw.hd_pol = params->hdpol;
- 	default:
--		/* TODO add support for raw bayer here */
- 		return -EINVAL;
- 	}
- 	return 0;
-@@ -861,9 +863,12 @@ static struct ccdc_hw_device ccdc_hw_dev = {
+ }
  
- static int dm644x_ccdc_init(void)
- {
-+	int ret;
-+
- 	printk(KERN_NOTICE "dm644x_ccdc_init\n");
--	if (vpfe_register_ccdc_device(&ccdc_hw_dev) < 0)
--		return -1;
-+	ret = vpfe_register_ccdc_device(&ccdc_hw_dev);
-+	if (ret < 0)
-+		return ret;
- 	printk(KERN_NOTICE "%s is registered with vpfe.\n",
- 		ccdc_hw_dev.name);
- 	return 0;
-diff --git a/include/media/davinci/dm355_ccdc.h b/include/media/davinci/dm355_ccdc.h
-index df8a7b1..9395900 100644
---- a/include/media/davinci/dm355_ccdc.h
-+++ b/include/media/davinci/dm355_ccdc.h
-@@ -254,7 +254,7 @@ struct ccdc_config_params_raw {
- #ifdef __KERNEL__
- #include <linux/io.h>
- 
--#define CCDC_WIN_PAL	{0, 0, 720, 576}
-+#define CCDC_WIN_NTSC	{0, 0, 720, 480}
- #define CCDC_WIN_VGA	{0, 0, 640, 480}
- 
- struct ccdc_params_ycbcr {
-diff --git a/include/media/davinci/dm644x_ccdc.h b/include/media/davinci/dm644x_ccdc.h
-index 3e178eb..e34a54a 100644
---- a/include/media/davinci/dm644x_ccdc.h
-+++ b/include/media/davinci/dm644x_ccdc.h
-@@ -131,7 +131,7 @@ struct ccdc_config_params_raw {
- #define NUM_EXTRALINES		8
- 
- /* settings for commonly used video formats */
--#define CCDC_WIN_PAL     {0, 0, 720, 576}
-+#define CCDC_WIN_NTSC     {0, 0, 720, 480}
- /* ntsc square pixel */
- #define CCDC_WIN_VGA	{0, 0, (640 + NUM_EXTRAPIXELS), (480 + NUM_EXTRALINES)}
- 
+
+
 -- 
-1.6.0.4
+Best regards, Klimov Alexey
 
