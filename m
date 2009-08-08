@@ -1,47 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:55329 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S932630AbZHDKDL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Aug 2009 06:03:11 -0400
-Date: Tue, 4 Aug 2009 12:03:18 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Antonio Ospite <ospite@studenti.unina.it>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] soc-camera: fix recursive locking in .buf_queue()
-In-Reply-To: <20090804115835.10204665.ospite@studenti.unina.it>
-Message-ID: <Pine.LNX.4.64.0908041202560.4627@axis700.grange>
-References: <20090804020252.f33f481d.ospite@studenti.unina.it>
- <Pine.LNX.4.64.0908041023450.4627@axis700.grange>
- <20090804111822.b7893079.ospite@studenti.unina.it>
- <Pine.LNX.4.64.0908041129340.4627@axis700.grange>
- <20090804115835.10204665.ospite@studenti.unina.it>
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:42441 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750799AbZHHVRF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Aug 2009 17:17:05 -0400
+Received: by bwz19 with SMTP id 19so2004477bwz.37
+        for <linux-media@vger.kernel.org>; Sat, 08 Aug 2009 14:17:05 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Date: Sat, 8 Aug 2009 22:17:05 +0100
+Message-ID: <408cc93f0908081417i4b812966xa817ed79d0390e45@mail.gmail.com>
+Subject: Hauppauge WinTV NOVA-T Model 18109
+From: Alex McManus <me@alexmcmanus.co.uk>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 4 Aug 2009, Antonio Ospite wrote:
-
-> On Tue, 4 Aug 2009 11:31:24 +0200 (CEST)
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> 
-> > On Tue, 4 Aug 2009, Antonio Ospite wrote:
-> > 
-> > > The current patch applies with some fuzzes on vanilla kernels, and it
-> > > even FAILS to apply for drivers/media/video/sh_mobile_ceu_camera.c in
-> > > one hunk.
-> > 
-> > Yes, I'll produce one against vanilla for submission.
-> > 
-> 
-> Just to make sure you notice: the now unused 'flags' variables can go
-> away as well.
-
-Sure, already gone in my local version:-)
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+SGksCgpJJ3ZlIHJlY2VudGx5IGJvdWdodCBhIERlbGwgU3R1ZGlvIFhQUyAxNiB3aXRoIGFuIGlu
+dGVncmF0ZWQgRFZCLVQKdHVuZXIuIFRoaXMgaXMgcmVwb3J0ZWQgYnkgV2luZG93cyBWaXN0YSB0
+byBiZSBhIEhhdXBwYXVnZSBXaW5UVgpOT1ZBLVQgTW9kZWwgMTgxMDkgZGV2aWNlLgoKSG93ZXZl
+ciwgaXQgaGFzbid0IGJlZW4gcmVjb2duaXplZCBieSBVYnVudHUgOS4wNCAoMi42LjI4LTE0LWdl
+bmVyaWMpLgpJdCBhcHBlYXJzIHRvIGJlIGEgVVNCIGRldmljZSwgYXMgbHN1c2IgLXYgc2hvd3Mg
+dGhlIGZvbGxvd2luZzoKCkJ1cyAwMDEgRGV2aWNlIDAwMjogSUQgMjA0MDoxODAxIEhhdXBwYXVn
+ZQpEZXZpY2UgRGVzY3JpcHRvcjoKoCBiTGVuZ3RooKCgoKCgoKCgoKCgoKCgIDE4CqAgYkRlc2Ny
+aXB0b3JUeXBloKCgoKCgoKAgMQqgIGJjZFVTQqCgoKCgoKCgoKCgoKCgIDIuMDAKoCBiRGV2aWNl
+Q2xhc3OgoKCgoKCgoKCgoCAwIChEZWZpbmVkIGF0IEludGVyZmFjZSBsZXZlbCkKoCBiRGV2aWNl
+U3ViQ2xhc3OgoKCgoKCgoCAwCqAgYkRldmljZVByb3RvY29soKCgoKCgoKAgMAqgIGJNYXhQYWNr
+ZXRTaXplMKCgoKCgoKAgNjQKoCBpZFZlbmRvcqCgoKCgoKCgoKAgMHgyMDQwIEhhdXBwYXVnZQqg
+IGlkUHJvZHVjdKCgoKCgoKCgoCAweDE4MDEKoCBiY2REZXZpY2WgoKCgoKCgoKCgoCAwLjAxCqAg
+aU1hbnVmYWN0dXJlcqCgoKCgoKCgoKAgMQqgIGlQcm9kdWN0oKCgoKCgoKCgoKCgoKCgIDIKoCBp
+U2VyaWFsoKCgoKCgoKCgoKCgoKCgoCAzCqAgYk51bUNvbmZpZ3VyYXRpb25zoKCgoKAgMQqgIENv
+bmZpZ3VyYXRpb24gRGVzY3JpcHRvcjoKoKCgIGJMZW5ndGigoKCgoKCgoKCgoKCgoKCgIDkKoKCg
+IGJEZXNjcmlwdG9yVHlwZaCgoKCgoKCgIDIKoKCgIHdUb3RhbExlbmd0aKCgoKCgoKCgoKAgMzIK
+oKCgIGJOdW1JbnRlcmZhY2VzoKCgoKCgoKCgIDEKoKCgIGJDb25maWd1cmF0aW9uVmFsdWWgoKCg
+IDEKoKCgIGlDb25maWd1cmF0aW9uoKCgoKCgoKCgIDAKoKCgIGJtQXR0cmlidXRlc6CgoKCgoKCg
+IDB4ODAKoKCgoKAgKEJ1cyBQb3dlcmVkKQqgoKAgTWF4UG93ZXKgoKCgoKCgoKCgoKCgIDUwMG1B
+CqCgoCBJbnRlcmZhY2UgRGVzY3JpcHRvcjoKoKCgoKAgYkxlbmd0aKCgoKCgoKCgoKCgoKCgoKAg
+OQqgoKCgoCBiRGVzY3JpcHRvclR5cGWgoKCgoKCgoCA0CqCgoKCgIGJJbnRlcmZhY2VOdW1iZXKg
+oKCgoKCgIDAKoKCgoKAgYkFsdGVybmF0ZVNldHRpbmegoKCgoKAgMAqgoKCgoCBiTnVtRW5kcG9p
+bnRzoKCgoKCgoKCgoCAyCqCgoKCgIGJJbnRlcmZhY2VDbGFzc6CgoKCgoCAyNTUgVmVuZG9yIFNw
+ZWNpZmljIENsYXNzCqCgoKCgIGJJbnRlcmZhY2VTdWJDbGFzc6CgoCAyNTUgVmVuZG9yIFNwZWNp
+ZmljIFN1YmNsYXNzCqCgoKCgIGJJbnRlcmZhY2VQcm90b2NvbKCgoCAyNTUgVmVuZG9yIFNwZWNp
+ZmljIFByb3RvY29sCqCgoKCgIGlJbnRlcmZhY2WgoKCgoKCgoKCgoKCgIDAKoKCgoKAgRW5kcG9p
+bnQgRGVzY3JpcHRvcjoKoKCgoKCgoCBiTGVuZ3RooKCgoKCgoKCgoKCgoKCgoCA3CqCgoKCgoKAg
+YkRlc2NyaXB0b3JUeXBloKCgoKCgoKAgNQqgoKCgoKCgIGJFbmRwb2ludEFkZHJlc3OgoKCgIDB4
+ODGgIEVQIDEgSU4KoKCgoKCgoCBibUF0dHJpYnV0ZXOgoKCgoKCgoKCgoCAyCqCgoKCgoKCgoCBU
+cmFuc2ZlciBUeXBloKCgoKCgoKCgoKAgQnVsawqgoKCgoKCgoKAgU3luY2ggVHlwZaCgoKCgoKCg
+oKCgoKCgIE5vbmUKoKCgoKCgoKCgIFVzYWdlIFR5cGWgoKCgoKCgoKCgoKCgoCBEYXRhCqCgoKCg
+oKAgd01heFBhY2tldFNpemWgoKCgIDB4MDIwMKAgMXggNTEyIGJ5dGVzCqCgoKCgoKAgYkludGVy
+dmFsoKCgoKCgoKCgoKCgoKAgMAqgoKCgoCBFbmRwb2ludCBEZXNjcmlwdG9yOgqgoKCgoKCgIGJM
+ZW5ndGigoKCgoKCgoKCgoKCgoKCgIDcKoKCgoKCgoCBiRGVzY3JpcHRvclR5cGWgoKCgoKCgoCA1
+CqCgoKCgoKAgYkVuZHBvaW50QWRkcmVzc6CgoKAgMHgwMqAgRVAgMiBPVVQKoKCgoKCgoCBibUF0
+dHJpYnV0ZXOgoKCgoKCgoKCgoCAyCqCgoKCgoKCgoCBUcmFuc2ZlciBUeXBloKCgoKCgoKCgoKAg
+QnVsawqgoKCgoKCgoKAgU3luY2ggVHlwZaCgoKCgoKCgoKCgoKCgIE5vbmUKoKCgoKCgoKCgIFVz
+YWdlIFR5cGWgoKCgoKCgoKCgoKCgoCBEYXRhCqCgoKCgoKAgd01heFBhY2tldFNpemWgoKCgIDB4
+MDIwMKAgMXggNTEyIGJ5dGVzCqCgoKCgoKAgYkludGVydmFsoKCgoKCgoKCgoKCgoKAgMApjYW4n
+dCBnZXQgZGV2aWNlIHF1YWxpZmllcjogT3BlcmF0aW9uIG5vdCBwZXJtaXR0ZWQKY2FuJ3QgZ2V0
+IGRlYnVnIGRlc2NyaXB0b3I6IE9wZXJhdGlvbiBub3QgcGVybWl0dGVkCmNhbm5vdCByZWFkIGRl
+dmljZSBzdGF0dXMsIE9wZXJhdGlvbiBub3QgcGVybWl0dGVkICgxKQoKSSd2ZSBub3QgYmVlbiBh
+YmxlIHRvIGZpbmQgYW55IGluZm9ybWF0aW9uIG9uIGhvdyBJIGNhbiBnZXQgdGhpcwpkZXZpY2Ug
+dG8gd29yayB1bmRlciBMaW51eCAtIGFueSBhZHZpY2Ugd291bGQgYmUgd2VsY29tZS4uIQoKVGhh
+bmtzLCBBbGV4Lgo=
