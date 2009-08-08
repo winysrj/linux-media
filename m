@@ -1,118 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4755 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752916AbZHXSa3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Aug 2009 14:30:29 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id n7OIUTdj067535
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 24 Aug 2009 20:30:30 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 24 Aug 2009 20:30:29 +0200 (CEST)
-Message-Id: <200908241830.n7OIUTdj067535@smtp-vbr15.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2591 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754904AbZHHIzf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Aug 2009 04:55:35 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Direct v4l-dvb master commits
+Date: Sat, 8 Aug 2009 10:55:24 +0200
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <829197380908051158i52af640cn1b87bfe90c0890b8@mail.gmail.com> <20090807132841.51372e65@caramujo.chehab.org>
+In-Reply-To: <20090807132841.51372e65@caramujo.chehab.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200908081055.25229.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Friday 07 August 2009 18:28:41 Mauro Carvalho Chehab wrote:
+> Em Wed, 5 Aug 2009 14:58:23 -0400
+> Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
+> > On a related note, is there some rationale you can offer as to why you
+> > are committing patches directly into the v4l-dvb mainline without any
+> > peer review, unlike *every* other developer in the linuxtv project?  I
+> > know it may seem redundant to you since you are the person acting on
+> > the PULL requests, but it would provide an opportunity for the other
+> > developers to offer comments on your patches *before* they go into the
+> > mainline.
+> 
+> This were already answered on some previous msgs at the ML: hg commits mailing
+> lists give the opportunity for people to review what were committed at the
+> staging tree, since every patch is automatically mailbombed to the mailing
+> list. The mainline tree is my -git. It is delayed over -hg to give opportunity
+> for people to review the committed patches. Also, I'm not the kind of person
+> that use to talk to himself. Starting sending pull requests from me to myself
+> will probably get me a free ticket to a mental care services :-d
 
-Results of the daily build of v4l-dvb:
+I have to say that I really disagree with that. The hg master v4l-dvb tree is
+what everyone develops against. So when bad patches go in without having had
+the opportunity for a review, then that will affect all of us.
 
-date:        Mon Aug 24 19:00:02 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12500:28f8b0ebd224
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+There is also no way to remove such a broken patch from the master tree.
+Once it is in it can only be removed by committing a revert patch.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc5-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-rc5-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-rc5-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-rc5-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc5-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-rc5-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-rc5-powerpc64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc5-x86_64: OK
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc5): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+Now, I have no problem with you committing trivial fixes directly into the
+master repository, but anything non-trivial should also get the chance to
+be reviewed by others. It's not talking to yourself, it's asking for a review
+before you commit, just like we all do. Just post a pull request and if
+there are no comments after 24 hours, then commit.
 
-Detailed results are available here:
+Two cases that come to mind that irritated me were the commit of the cx231xx
+driver without subdev support out of nowhere a few months ago and your
+addition of --get/set-param support in v4l2-ctl just a few days ago which had
+several bugs (fixed in my pending v4l-dvb-misc tree).
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+If these commits were posted as pull requests then I would have reviewed them
+first and any issues would have been fixed before they entered the master repo.
 
-Full logs are available here:
+There is also the human factor to consider: it can be demotivating (or at
+least irritating) if your own pull requests are still queued after several
+days and you see the maintainer doing big commits out of the blue at the
+same time.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+Regards,
 
-The V4L2 specification from this daily build is here:
+	Hans
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
