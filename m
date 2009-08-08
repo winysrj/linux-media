@@ -1,443 +1,451 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3906 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750802AbZHPHma (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Aug 2009 03:42:30 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] Document libv4l at V4L2 API specs
-Date: Sun, 16 Aug 2009 09:42:20 +0200
-Cc: linux-media@vger.kernel.org
-References: <20090815163726.5f4bae41@caramujo.chehab.org>
-In-Reply-To: <20090815163726.5f4bae41@caramujo.chehab.org>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200908160942.20256.hverkuil@xs4all.nl>
+Received: from smtp.nokia.com ([192.100.105.134]:51596 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934028AbZHHLXZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Aug 2009 07:23:25 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv15 5/8] FM TX: si4713: Add files to add radio interface for si4713
+Date: Sat,  8 Aug 2009 14:10:30 +0300
+Message-Id: <1249729833-24975-6-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1249729833-24975-5-git-send-email-eduardo.valentin@nokia.com>
+References: <1249729833-24975-1-git-send-email-eduardo.valentin@nokia.com>
+ <1249729833-24975-2-git-send-email-eduardo.valentin@nokia.com>
+ <1249729833-24975-3-git-send-email-eduardo.valentin@nokia.com>
+ <1249729833-24975-4-git-send-email-eduardo.valentin@nokia.com>
+ <1249729833-24975-5-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This patch adds files which creates the radio interface
+for si4713 FM transmitter (modulator) devices.
 
-I've done a quick review of the text. See comments below.
+In order to do the real access to device registers, this
+driver uses the v4l2 subdev interface exported by si4713 i2c driver.
 
-On Saturday 15 August 2009 21:37:26 Mauro Carvalho Chehab wrote:
-> Since applications aren't prepared to handle all V4L2 available formats,
-> an effort is done to have a library capable of understanding especially
-> the proprietary formats.
-> 
-> This patch documents this library, and adds v4l2grab.c as an example on
-> how to use it.
-> 
-> Parts of the text are based at the libv4l README file (c) by Hans de Goede.
-> 
-> Thanks to Hans de Goede <hdegoede@redhat.com> for his good work with libv4l.
-> 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> diff -r ee300d3178c4 .hgignore
-> --- a/.hgignore	Fri Aug 14 01:48:42 2009 -0300
-> +++ b/.hgignore	Sat Aug 15 16:32:08 2009 -0300
-> @@ -66,6 +66,8 @@
->  v4l2-spec/entities.sgml$
->  v4l2-spec/.*\.stamp$
->  v4l2-spec/indices.sgml$
-> +v4l2-spec/libv4l-fmt.sgml$
-> +v4l2-spec/v4l2grab.c.sgml$
->  v4l2-spec/v4l2-single$
->  v4l2-spec/v4l2$
->  v4l2-spec/v4l2.pdf$
-> diff -r ee300d3178c4 v4l2-apps/test/v4l2grab.c
-> --- a/v4l2-apps/test/v4l2grab.c	Fri Aug 14 01:48:42 2009 -0300
-> +++ b/v4l2-apps/test/v4l2grab.c	Sat Aug 15 16:32:08 2009 -0300
-> @@ -1,5 +1,5 @@
->  /* V4L2 video picture grabber
-> -   Copyright (C) 2006 Mauro Carvalho Chehab <mchehab@infradead.org>
-> +   Copyright (C) 2009 Mauro Carvalho Chehab <mchehab@infradead.org>
->  
->     This program is free software; you can redistribute it and/or modify
->     it under the terms of the GNU General Public License as published by
-> diff -r ee300d3178c4 v4l2-spec/Makefile
-> --- a/v4l2-spec/Makefile	Fri Aug 14 01:48:42 2009 -0300
-> +++ b/v4l2-spec/Makefile	Sat Aug 15 16:32:08 2009 -0300
-> @@ -5,6 +5,7 @@
->  SGMLS = \
->  	biblio.sgml \
->  	capture.c.sgml \
-> +	v4l2grab.c.sgml \
->  	common.sgml \
->  	compat.sgml \
->  	controls.sgml \
-> @@ -20,6 +21,7 @@
->  	dev-sliced-vbi.sgml \
->  	dev-teletext.sgml \
->  	driver.sgml \
-> +	libv4l.sgml \
->  	entities.sgml \
->  	fdl-appendix.sgml \
->  	func-close.sgml \
-> @@ -323,6 +325,12 @@
->  	-e "s/\(V4L2_PIX_FMT_[A-Z0-9_]\+\) /<link linkend=\"\1\">\1<\/link> /g" \
->  	-e ":a;s/\(linkend=\".*\)_\(.*\">\)/\1-\2/;ta"
->  
-> +libv4l-fmt.sgml:
-> +	cat ../v4l2-apps/libv4l/libv4lconvert/*.c| \
-> +	perl -ne 'if (m/(V4L2_PIX_FMT_[^\s\;\\)\,:]+)/) { printf "<link linkend=\"$$1\"><constant>$$1</constant></link>,\n"; };' \
-> +	|sort|uniq| \
-> +	sed  -e ":a;s/\(linkend=\".*\)_\(.*\">\)/\1-\2/;ta" > $@
-> +
->  capture.c.sgml: ../v4l2-apps/test/capture-example.c Makefile
->  	echo "<programlisting>" > $@
->  	expand --tabs=8 < $< | \
-> @@ -330,6 +338,13 @@
->  	  sed 's/i\.e\./&ie;/' >> $@
->  	echo "</programlisting>" >> $@
->  
-> +v4l2grab.c.sgml: ../v4l2-apps/test/v4l2grab.c Makefile
-> +	echo "<programlisting>" > $@
-> +	expand --tabs=8 < $< | \
-> +	  sed $(ESCAPE) $(DOCUMENTED) | \
-> +	  sed 's/i\.e\./&ie;/' >> $@
-> +	echo "</programlisting>" >> $@
-> +
->  videodev2.h.sgml: ../linux/include/linux/videodev2.h Makefile
->  	echo "<programlisting>" > $@
->  	expand --tabs=8 < $< | \
-> @@ -488,6 +503,7 @@
->  	rm -f *.stamp
->  	rm -f videodev2.h.sgml
->  	rm -f capture.c.sgml
-> +	rm -f v4l2grab.c.sgml
->  	rm -f capture
->  	rm -f indices.sgml entities.sgml
->  	rm -rf v4l2 v4l2-single v4l2.pdf
-> diff -r ee300d3178c4 v4l2-spec/libv4l.sgml
-> --- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-> +++ b/v4l2-spec/libv4l.sgml	Sat Aug 15 16:32:08 2009 -0300
-> @@ -0,0 +1,143 @@
-> +<title>Libv4l Userspace Library</title>
-> +<section id="libv4l-introduction">
-> +	<title>Introduction</title>
-> +
-> +	<para>libv4l is a collection of libraries which adds a thin abstraction
-> +layer on op of video4linux2 devices. The purpose of this (thin) layer is to make
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ linux/drivers/media/radio/radio-si4713.c |  367 ++++++++++++++++++++++++++++++
+ linux/include/media/radio-si4713.h       |   30 +++
+ 2 files changed, 397 insertions(+), 0 deletions(-)
+ create mode 100644 linux/drivers/media/radio/radio-si4713.c
+ create mode 100644 linux/include/media/radio-si4713.h
 
-"on top"
-
-> +it easy for application writers to support a wide variety of devices without
-> +having to write seperate code for different devices in the same class.</para>
-
-"separate"
-
-> +<para>An example of using libv4l is provided by
-> +<link linkend='v4l2grab-example'>v4l2grab</link>.
-> +</para>
-> +
-> +	<para>libv4l consists of 3 different libraries:</para>
-> +	<section>
-> +		<title>libv4lconvert</title>
-> +
-> +		<para>libv4lconvert is a library that converts different
-
-remove "different",
-
-> +several different pixelformats found at V4L2 drivers into a few common RGB and
-
-because it's here already ("several different").
-
-"found at" -> "found in"
-
-> +YUY formats.</para>
-> +		<para>It currently accepts the following V4L2 driver formats:
-> +<link linkend="V4L2-PIX-FMT-BGR24"><constant>V4L2_PIX_FMT_BGR24</constant></link>,
-> +<link linkend="V4L2-PIX-FMT-HM12"><constant>V4L2_PIX_FMT_HM12</constant></link>,
-> +<link linkend="V4L2-PIX-FMT-JPEG"><constant>V4L2_PIX_FMT_JPEG</constant></link>,
-> +<link linkend="V4L2-PIX-FMT-MJPEG"><constant>V4L2_PIX_FMT_MJPEG</constant></link>,
-> +<link linkend="V4L2-PIX-FMT-MR97310A"><constant>V4L2_PIX_FMT_MR97310A</constant></link>,
-> +<link linkend="V4L2-PIX-FMT-OV511"><constant>V4L2_PIX_FMT_OV511</constant></link>,
-> +<link linkend="V4L2-PIX-FMT-OV518"><constant>V4L2_PIX_FMT_OV518</constant></link>,
-> +<link linkend="V4L2-PIX-FMT-PAC207"><constant>V4L2_PIX_FMT_PAC207</constant></link>,
-> +<link linkend="V4L2-PIX-FMT-PJPG"><constant>V4L2_PIX_FMT_PJPG</constant></link>,
-> +<link linkend="V4L2-PIX-FMT-RGB24"><constant>V4L2_PIX_FMT_RGB24</constant></link>,
-> +<link linkend="V4L2-PIX-FMT-SBGGR8"><constant>V4L2_PIX_FMT_SBGGR8</constant></link>,
-> +<link linkend="V4L2-PIX-FMT-SGBRG8"><constant>V4L2_PIX_FMT_SGBRG8</constant></link>,
-> +<link linkend="V4L2-PIX-FMT-SGRBG8"><constant>V4L2_PIX_FMT_SGRBG8</constant></link>,
-> +<link linkend="V4L2-PIX-FMT-SN9C10X"><constant>V4L2_PIX_FMT_SN9C10X</constant></link>,
-> +<link linkend="V4L2-PIX-FMT-SN9C20X-I420"><constant>V4L2_PIX_FMT_SN9C20X_I420</constant></link>,
-> +<link linkend="V4L2-PIX-FMT-SPCA501"><constant>V4L2_PIX_FMT_SPCA501</constant></link>,
-> +<link linkend="V4L2-PIX-FMT-SPCA505"><constant>V4L2_PIX_FMT_SPCA505</constant></link>,
-> +<link linkend="V4L2-PIX-FMT-SPCA508"><constant>V4L2_PIX_FMT_SPCA508</constant></link>,
-> +<link linkend="V4L2-PIX-FMT-SPCA561"><constant>V4L2_PIX_FMT_SPCA561</constant></link>,
-> +<link linkend="V4L2-PIX-FMT-SQ905C"><constant>V4L2_PIX_FMT_SQ905C</constant></link>,
-> +<constant>V4L2_PIX_FMT_SRGGB8</constant>,
-> +<link linkend="V4L2-PIX-FMT-UYVY"><constant>V4L2_PIX_FMT_UYVY</constant></link>,
-> +<link linkend="V4L2-PIX-FMT-YUV420"><constant>V4L2_PIX_FMT_YUV420</constant></link>,
-> +<link linkend="V4L2-PIX-FMT-YUYV"><constant>V4L2_PIX_FMT_YUYV</constant></link>,
-> +<link linkend="V4L2-PIX-FMT-YVU420"><constant>V4L2_PIX_FMT_YVU420</constant></link>,
-> +and <link linkend="V4L2-PIX-FMT-YVYU"><constant>V4L2_PIX_FMT_YVYU</constant></link>.
-> +</para>
-> +		<para>Later on libv4lconvert was expanded to also be able to do
-> +various	video processing functions improve webcam video quality on a software
-
-"to improve"
-
-Remove "on a software basis"
-
-> +basis. The video processing is plit in to 2 parts: libv4lconvert/control and
-
-"split in two parts"
-
-> +libv4lconvert/processing.</para>
-> +
-> +		<para>The control part is used to offer video controls which can
-> +be used	to control he video processing functions made available by
-
-"control the video"
-
-> +	libv4lconvert/processing. These controls are stored application wide
-> +(untill	reboot) by using a persistent shared memory object.</para>
-
-"until reboot"
-
-> +
-> +		<para>libv4lconvert/processing offers the actual video
-> +processing functionality.</para>
-
-I hope that Hans or someone else can document the v4lconvert functions in
-detail in the future.
-
-> +	</section>
-> +	<section>
-> +		<title>libv4l1</title>
-> +		<para>This library offers functions that can by used to quickly
-
-"be used"
-
-> +make v4l1 applications work with v4l2 devices. These functions work exactly
-> +like the normal open/close/etc, except that libv4l1 does full emulation of
-> +the v4l1 api on top of v4l2 drivers, in case of v4l1 drivers it
-> +will just pass calls through.</para>
-> +		<para>Since those functions are emulations of the old V4L1 API,
-> +it shouldn't be used on new applications.</para>
-
-"used for"
-
-> +	</section>
-> +	<section>
-> +		<title>libv4l2</title>
-> +		<para>This library should be used on all modern V4L2 application
-
-"used for"
-
-> +		</para>
-> +		<para>It provides handles to call V4L2 open/ioctl/close/poll
-> +methods. Instead of just providing the raw output of the device, it enhances
-> +the calls in the sense that it will use libv4lconvert to provide more video
-> +formats and to enhance the image quality.</para>
-> +		<para>On most cases, libv4l2 just passes the calls directly
-
-"In most cases"
-
-> +through to the v4l2 driver, intercepting the calls to
-> +<link linkend='VIDIOC-G-FMT'><constant>VIDIOC_TRY_FMT</constant></link>,
-> +<link linkend='VIDIOC-G-FMT'><constant>VIDIOC_G_FMT</constant></link> and
-> +<link linkend='VIDIOC-G-FMT'><constant>VIDIOC_S_FMT</constant></link> in order
-> +to emulate the formats <link linkend="V4L2-PIX-FMT-BGR24"><constant>V4L2_PIX_FMT_BGR24</constant></link>,
-> +<link linkend="V4L2-PIX-FMT-RGB24"><constant>V4L2_PIX_FMT_RGB24</constant></link>,
-> +<link linkend="V4L2-PIX-FMT-YUV420"><constant>V4L2_PIX_FMT_YUV420</constant></link>,
-> +and <link linkend="V4L2-PIX-FMT-YVU420"><constant>V4L2_PIX_FMT_YVU420</constant></link>,
-> +if they aren't available at the driver.
-
-"in the driver"
-
-> +<link linkend='VIDIOC-ENUM-FMT'><constant>VIDIOC_ENUM_FMT</constant></link> keep
-> +enumerating the hardware supported formats.
-
-"keeps".
-
-Actually, you might want to rewrite this ENUM_FMT description, since I'm not
-quite sure what you want to say here. I think what you mean is something like
-this:
-
-"VIDIOC_ENUM_FMT still enumerates the hardware supported formats, but the
-emulated formats are added at the end."
-
-We should mention that ENUM_FRAMESIZES and ENUM_FRAMEINTERVALS are also
-intercepted.
-
-> +</para>
-> +		<section id="libv4l-ops">
-> +			<title>Libv4l device control functions</title>
-> +			<para>The common file operation methods are provided by
-> +libv4l. They work like the non-v4l2 ones:</para>
-
-"They work like the non-v4l2 ones:": That makes no sense to me, what does
-"non-v4l2" mean in this context?
-
-> +			<para>v4l2_open(const char *file, int oflag, ...) -
-> +operates like the standard <link linkend='func-open'>open()</link> function.
-> +</para>
-> +
-> +			<para>int v4l2_close(int fd) -
-> +operates like the standard <link linkend='func-close'>close()</link> function.
-> +</para>
-> +
-> +			<para>int v4l2_dup(int fd) -
-> +operates like the standard dup() function, duplicating a file handler.
-> +</para>
-> +
-> +			<para>int v4l2_ioctl (int fd, unsigned long int request, ...) -
-> +operates like the standard <link linkend='func-ioctl'>ioctl()</link> function.
-> +</para>
-> +
-> +			<para>int v4l2_read (int fd, void* buffer, size_t n) -
-> +operates like the standard <link linkend='func-read'>read()</link> function.
-> +</para>
-> +
-> +			<para>void v4l2_mmap(void *start, size_t length, int prot, int flags, int fd, int64_t offset); -
-> +operates like the standard <link linkend='func-mmap'>mmap()</link> function.
-> +</para>
-> +
-> +			<para>int v4l2_munmap(void *_start, size_t length); -
-> +operates like the standard <link linkend='func-munmap'>munmap()</link> function.
-> +</para>
-> +		</section>
-
-The description of v4l2_fd_open is missing.
-
-> +	</section>
-> +	<section>
-> +
-> +		<title>v4l1compat.so wrapper library</title>
-> +
-> +		<para>This library intercept calls to V4L2
-
-"intercepts"
-
-> +open/close/ioctl/mmap/mmunmap operations and redirects to the libv4lX
-
-"redirects them"
-
-> +counterparts, by using LD_PRELOAD=/usr/lib/v4l1compat.so.</para>
-> +		<para>It allows usage of binary legacy applications that
-> +still don't use libv4l.</para>
-
-Is this description really correct? Based on the name of the wrapper I would
-say that this is a library has something to do with V4L1 compatibility, yet
-the description makes no mention of that.
-
-> +	</section>
-> +
-> +</section>
-> +<!--
-> +Local Variables:
-> +mode: sgml
-> +sgml-parent-document: "v4l2.sgml"
-> +indent-tabs-mode: nil
-> +End:
-> +-->
-> diff -r ee300d3178c4 v4l2-spec/v4l2.sgml
-> --- a/v4l2-spec/v4l2.sgml	Fri Aug 14 01:48:42 2009 -0300
-> +++ b/v4l2-spec/v4l2.sgml	Sat Aug 15 16:32:08 2009 -0300
-> @@ -25,7 +25,7 @@
->  <book id="v4l2spec">
->    <bookinfo>
->      <title>Video for Linux Two API Specification</title>
-> -    <subtitle>Revision 0.26</subtitle>
-> +    <subtitle>Revision 0.27</subtitle>
->  
->      <authorgroup>
->        <author>
-> @@ -92,6 +92,18 @@
->        </author>
->      </authorgroup>
->  
-> +      <author>
-> +	<firstname>Mauro</firstname>
-> +	<surname>Carvalho Chehab</surname>
-> +	<contrib>Documented libv4l, designed and added v4l2grab example
-> +	</contrib>
-> +	<affiliation>
-> +	  <address>
-> +	    <email>mchehab@redhat.com</email>
-> +	  </address>
-> +	</affiliation>
-> +      </author>
-> +
->      <copyright>
->        <year>1999</year>
->        <year>2000</year>
-> @@ -105,12 +117,13 @@
->        <year>2008</year>
->        <year>2009</year>
->        <holder>Bill Dirks, Michael H. Schimek, Hans Verkuil, Martin
-> -Rubli, Andy Walls</holder>
-> +Rubli, Andy Walls, Mauro Carvalho Chehab</holder>
->      </copyright>
->  
->      <legalnotice>
->        <para>This document is copyrighted &copy; 1999-2009 by Bill
-> -Dirks, Michael H. Schimek, Hans Verkuil, Martin Rubli, and Andy Walls.</para>
-> +Dirks, Michael H. Schimek, Hans Verkuil, Martin Rubli, Andy Walls and
-> +Mauro Carvalho Chehab.</para>
->  
->        <para>Permission is granted to copy, distribute and/or modify
->  this document under the terms of the GNU Free Documentation License,
-> @@ -131,6 +144,13 @@
->  applications. -->
->  
->        <revision>
-> +	<revnumber>0.27</revnumber>
-> +	<date>2009-08-15</date>
-> +	<authorinitials>mcc</authorinitials>
-> +	<revremark>Added libv4l documentation and v4l2grab example.</revremark>
-> +      </revision>
-> +
-> +      <revision>
->  	<revnumber>0.26</revnumber>
->  	<date>2009-06-15</date>
->  	<authorinitials>hv</authorinitials>
-> @@ -471,6 +491,10 @@
->      &sub-driver;
->    </chapter>
->  
-> +  <chapter id="libv4l">
-> +    &sub-libv4l;
-> +  </chapter>
-> +
->    <chapter id="compat">
->      &sub-compat;
->    </chapter>
-> @@ -485,6 +509,14 @@
->      &sub-capture-c;
->    </appendix>
->  
-> +  <appendix id="v4l2grab-example">
-> +    <title>Video Grabber example using libv4l</title>
-> +    <para>This program demonstrates how to grab V4L2 images in ppm format by
-> +using libv4l handlers. The advantage is that this grabber can potentially work
-> +with any V4L2 driver.</para>
-> +    &sub-v4l2grab-c;
-> +  </appendix>
-> +
->    &sub-fdl-appendix;
->  
->    &sub-indices;
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-Very good to see this documented in the spec! Thanks for this work!
-
-Regards,
-
-	Hans
-
+diff --git a/linux/drivers/media/radio/radio-si4713.c b/linux/drivers/media/radio/radio-si4713.c
+new file mode 100644
+index 0000000..6bc22cd
+--- /dev/null
++++ b/linux/drivers/media/radio/radio-si4713.c
+@@ -0,0 +1,367 @@
++/*
++ * drivers/media/radio/radio-si4713.c
++ *
++ * Platform Driver for Silicon Labs Si4713 FM Radio Transmitter:
++ *
++ * Copyright (c) 2008 Instituto Nokia de Tecnologia - INdT
++ * Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/version.h>
++#include <linux/platform_device.h>
++#include <linux/i2c.h>
++#include <linux/videodev2.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-common.h>
++#include <media/v4l2-ioctl.h>
++#include <media/radio-si4713.h>
++
++/* module parameters */
++static int radio_nr = -1;	/* radio device minor (-1 ==> auto assign) */
++module_param(radio_nr, int, 0);
++MODULE_PARM_DESC(radio_nr,
++		 "Minor number for radio device (-1 ==> auto assign)");
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Eduardo Valentin <eduardo.valentin@nokia.com>");
++MODULE_DESCRIPTION("Platform driver for Si4713 FM Radio Transmitter");
++MODULE_VERSION("0.0.1");
++
++/* Driver state struct */
++struct radio_si4713_device {
++	struct v4l2_device		v4l2_dev;
++	struct video_device		*radio_dev;
++};
++
++/* radio_si4713_fops - file operations interface */
++static const struct v4l2_file_operations radio_si4713_fops = {
++	.owner		= THIS_MODULE,
++	.ioctl		= video_ioctl2,
++};
++
++/* Video4Linux Interface */
++static int radio_si4713_fill_audout(struct v4l2_audioout *vao)
++{
++	/* TODO: check presence of audio output */
++	strlcpy(vao->name, "FM Modulator Audio Out", 32);
++
++	return 0;
++}
++
++static int radio_si4713_enumaudout(struct file *file, void *priv,
++						struct v4l2_audioout *vao)
++{
++	return radio_si4713_fill_audout(vao);
++}
++
++static int radio_si4713_g_audout(struct file *file, void *priv,
++					struct v4l2_audioout *vao)
++{
++	int rval = radio_si4713_fill_audout(vao);
++
++	vao->index = 0;
++
++	return rval;
++}
++
++static int radio_si4713_s_audout(struct file *file, void *priv,
++					struct v4l2_audioout *vao)
++{
++	return vao->index ? -EINVAL : 0;
++}
++
++/* radio_si4713_querycap - query device capabilities */
++static int radio_si4713_querycap(struct file *file, void *priv,
++					struct v4l2_capability *capability)
++{
++	struct radio_si4713_device *rsdev;
++
++	rsdev = video_get_drvdata(video_devdata(file));
++
++	strlcpy(capability->driver, "radio-si4713", sizeof(capability->driver));
++	strlcpy(capability->card, "Silicon Labs Si4713 Modulator",
++				sizeof(capability->card));
++	capability->capabilities = V4L2_CAP_MODULATOR | V4L2_CAP_RDS_OUTPUT;
++
++	return 0;
++}
++
++/* radio_si4713_queryctrl - enumerate control items */
++static int radio_si4713_queryctrl(struct file *file, void *priv,
++						struct v4l2_queryctrl *qc)
++{
++	/* Must be sorted from low to high control ID! */
++	static const u32 user_ctrls[] = {
++		V4L2_CID_USER_CLASS,
++		V4L2_CID_AUDIO_MUTE,
++		0
++	};
++
++	/* Must be sorted from low to high control ID! */
++	static const u32 fmtx_ctrls[] = {
++		V4L2_CID_FM_TX_CLASS,
++		V4L2_CID_RDS_TX_DEVIATION,
++		V4L2_CID_RDS_TX_PI,
++		V4L2_CID_RDS_TX_PTY,
++		V4L2_CID_RDS_TX_PS_NAME,
++		V4L2_CID_RDS_TX_RADIO_TEXT,
++		V4L2_CID_AUDIO_LIMITER_ENABLED,
++		V4L2_CID_AUDIO_LIMITER_RELEASE_TIME,
++		V4L2_CID_AUDIO_LIMITER_DEVIATION,
++		V4L2_CID_AUDIO_COMPRESSION_ENABLED,
++		V4L2_CID_AUDIO_COMPRESSION_GAIN,
++		V4L2_CID_AUDIO_COMPRESSION_THRESHOLD,
++		V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME,
++		V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME,
++		V4L2_CID_PILOT_TONE_ENABLED,
++		V4L2_CID_PILOT_TONE_DEVIATION,
++		V4L2_CID_PILOT_TONE_FREQUENCY,
++		V4L2_CID_FM_TX_PREEMPHASIS,
++		V4L2_CID_TUNE_POWER_LEVEL,
++		V4L2_CID_TUNE_ANTENNA_CAPACITOR,
++		0
++	};
++	static const u32 *ctrl_classes[] = {
++		user_ctrls,
++		fmtx_ctrls,
++		NULL
++	};
++	struct radio_si4713_device *rsdev;
++
++	rsdev = video_get_drvdata(video_devdata(file));
++
++	qc->id = v4l2_ctrl_next(ctrl_classes, qc->id);
++	if (qc->id == 0)
++		return -EINVAL;
++
++	if (qc->id == V4L2_CID_USER_CLASS || qc->id == V4L2_CID_FM_TX_CLASS)
++		return v4l2_ctrl_query_fill(qc, 0, 0, 0, 0);
++
++	return v4l2_device_call_until_err(&rsdev->v4l2_dev, 0, core,
++						queryctrl, qc);
++}
++
++/*
++ * v4l2 ioctl call backs.
++ * we are just a wrapper for v4l2_sub_devs.
++ */
++static inline struct v4l2_device *get_v4l2_dev(struct file *file)
++{
++	return &((struct radio_si4713_device *)video_drvdata(file))->v4l2_dev;
++}
++
++static int radio_si4713_g_ext_ctrls(struct file *file, void *p,
++						struct v4l2_ext_controls *vecs)
++{
++	return v4l2_device_call_until_err(get_v4l2_dev(file), 0, core,
++							g_ext_ctrls, vecs);
++}
++
++static int radio_si4713_s_ext_ctrls(struct file *file, void *p,
++						struct v4l2_ext_controls *vecs)
++{
++	return v4l2_device_call_until_err(get_v4l2_dev(file), 0, core,
++							s_ext_ctrls, vecs);
++}
++
++static int radio_si4713_g_ctrl(struct file *file, void *p,
++						struct v4l2_control *vc)
++{
++	return v4l2_device_call_until_err(get_v4l2_dev(file), 0, core,
++							g_ctrl, vc);
++}
++
++static int radio_si4713_s_ctrl(struct file *file, void *p,
++						struct v4l2_control *vc)
++{
++	return v4l2_device_call_until_err(get_v4l2_dev(file), 0, core,
++							s_ctrl, vc);
++}
++
++static int radio_si4713_g_modulator(struct file *file, void *p,
++						struct v4l2_modulator *vm)
++{
++	return v4l2_device_call_until_err(get_v4l2_dev(file), 0, tuner,
++							g_modulator, vm);
++}
++
++static int radio_si4713_s_modulator(struct file *file, void *p,
++						struct v4l2_modulator *vm)
++{
++	return v4l2_device_call_until_err(get_v4l2_dev(file), 0, tuner,
++							s_modulator, vm);
++}
++
++static int radio_si4713_g_frequency(struct file *file, void *p,
++						struct v4l2_frequency *vf)
++{
++	return v4l2_device_call_until_err(get_v4l2_dev(file), 0, tuner,
++							g_frequency, vf);
++}
++
++static int radio_si4713_s_frequency(struct file *file, void *p,
++						struct v4l2_frequency *vf)
++{
++	return v4l2_device_call_until_err(get_v4l2_dev(file), 0, tuner,
++							s_frequency, vf);
++}
++
++static long radio_si4713_default(struct file *file, void *p, int cmd, void *arg)
++{
++	return v4l2_device_call_until_err(get_v4l2_dev(file), 0, core,
++							ioctl, cmd, arg);
++}
++
++static struct v4l2_ioctl_ops radio_si4713_ioctl_ops = {
++	.vidioc_enumaudout	= radio_si4713_enumaudout,
++	.vidioc_g_audout	= radio_si4713_g_audout,
++	.vidioc_s_audout	= radio_si4713_s_audout,
++	.vidioc_querycap	= radio_si4713_querycap,
++	.vidioc_queryctrl	= radio_si4713_queryctrl,
++	.vidioc_g_ext_ctrls	= radio_si4713_g_ext_ctrls,
++	.vidioc_s_ext_ctrls	= radio_si4713_s_ext_ctrls,
++	.vidioc_g_ctrl		= radio_si4713_g_ctrl,
++	.vidioc_s_ctrl		= radio_si4713_s_ctrl,
++	.vidioc_g_modulator	= radio_si4713_g_modulator,
++	.vidioc_s_modulator	= radio_si4713_s_modulator,
++	.vidioc_g_frequency	= radio_si4713_g_frequency,
++	.vidioc_s_frequency	= radio_si4713_s_frequency,
++	.vidioc_default		= radio_si4713_default,
++};
++
++/* radio_si4713_vdev_template - video device interface */
++static struct video_device radio_si4713_vdev_template = {
++	.fops			= &radio_si4713_fops,
++	.name			= "radio-si4713",
++	.release		= video_device_release,
++	.ioctl_ops		= &radio_si4713_ioctl_ops,
++};
++
++/* Platform driver interface */
++/* radio_si4713_pdriver_probe - probe for the device */
++static int radio_si4713_pdriver_probe(struct platform_device *pdev)
++{
++	struct radio_si4713_platform_data *pdata = pdev->dev.platform_data;
++	struct radio_si4713_device *rsdev;
++	struct i2c_adapter *adapter;
++	struct v4l2_subdev *sd;
++	int rval = 0;
++
++	if (!pdata) {
++		dev_err(&pdev->dev, "Cannot proceed without platform data.\n");
++		rval = -EINVAL;
++		goto exit;
++	}
++
++	rsdev = kzalloc(sizeof *rsdev, GFP_KERNEL);
++	if (!rsdev) {
++		dev_err(&pdev->dev, "Failed to alloc video device.\n");
++		rval = -ENOMEM;
++		goto exit;
++	}
++
++	rval = v4l2_device_register(&pdev->dev, &rsdev->v4l2_dev);
++	if (rval) {
++		dev_err(&pdev->dev, "Failed to register v4l2 device.\n");
++		goto free_rsdev;
++	}
++
++	adapter = i2c_get_adapter(pdata->i2c_bus);
++	if (!adapter) {
++		dev_err(&pdev->dev, "Cannot get i2c adapter %d\n",
++							pdata->i2c_bus);
++		rval = -ENODEV;
++		goto unregister_v4l2_dev;
++	}
++
++	sd = v4l2_i2c_new_subdev_board(&rsdev->v4l2_dev, adapter, "si4713_i2c",
++					pdata->subdev_board_info, NULL);
++	if (!sd) {
++		dev_err(&pdev->dev, "Cannot get v4l2 subdevice\n");
++		rval = -ENODEV;
++		goto unregister_v4l2_dev;
++	}
++
++	rsdev->radio_dev = video_device_alloc();
++	if (!rsdev->radio_dev) {
++		dev_err(&pdev->dev, "Failed to alloc video device.\n");
++		rval = -ENOMEM;
++		goto unregister_v4l2_dev;
++	}
++
++	memcpy(rsdev->radio_dev, &radio_si4713_vdev_template,
++			sizeof(radio_si4713_vdev_template));
++	video_set_drvdata(rsdev->radio_dev, rsdev);
++	if (video_register_device(rsdev->radio_dev, VFL_TYPE_RADIO, radio_nr)) {
++		dev_err(&pdev->dev, "Could not register video device.\n");
++		rval = -EIO;
++		goto free_vdev;
++	}
++	dev_info(&pdev->dev, "New device successfully probed\n");
++
++	goto exit;
++
++free_vdev:
++	video_device_release(rsdev->radio_dev);
++unregister_v4l2_dev:
++	v4l2_device_unregister(&rsdev->v4l2_dev);
++free_rsdev:
++	kfree(rsdev);
++exit:
++	return rval;
++}
++
++/* radio_si4713_pdriver_remove - remove the device */
++static int __exit radio_si4713_pdriver_remove(struct platform_device *pdev)
++{
++	struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
++	struct radio_si4713_device *rsdev = container_of(v4l2_dev,
++						struct radio_si4713_device,
++						v4l2_dev);
++
++	video_unregister_device(rsdev->radio_dev);
++	v4l2_device_unregister(&rsdev->v4l2_dev);
++	kfree(rsdev);
++
++	return 0;
++}
++
++static struct platform_driver radio_si4713_pdriver = {
++	.driver		= {
++		.name	= "radio-si4713",
++	},
++	.probe		= radio_si4713_pdriver_probe,
++	.remove         = __exit_p(radio_si4713_pdriver_remove),
++};
++
++/* Module Interface */
++static int __init radio_si4713_module_init(void)
++{
++	return platform_driver_register(&radio_si4713_pdriver);
++}
++
++static void __exit radio_si4713_module_exit(void)
++{
++	platform_driver_unregister(&radio_si4713_pdriver);
++}
++
++module_init(radio_si4713_module_init);
++module_exit(radio_si4713_module_exit);
++
+diff --git a/linux/include/media/radio-si4713.h b/linux/include/media/radio-si4713.h
+new file mode 100644
+index 0000000..f6aae29
+--- /dev/null
++++ b/linux/include/media/radio-si4713.h
+@@ -0,0 +1,30 @@
++/*
++ * include/media/radio-si4713.h
++ *
++ * Board related data definitions for Si4713 radio transmitter chip.
++ *
++ * Copyright (c) 2009 Nokia Corporation
++ * Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2. This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
++ *
++ */
++
++#ifndef RADIO_SI4713_H
++#define RADIO_SI4713_H
++
++#include <linux/i2c.h>
++
++#define SI4713_NAME "radio-si4713"
++
++/*
++ * Platform dependent definition
++ */
++struct radio_si4713_platform_data {
++	int i2c_bus;
++	struct i2c_board_info *subdev_board_info;
++};
++
++#endif /* ifndef RADIO_SI4713_H*/
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+1.6.2.GIT
+
