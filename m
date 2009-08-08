@@ -1,55 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:53255 "EHLO smtp4-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753883AbZHMNrb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Aug 2009 09:47:31 -0400
-Message-ID: <4A841969.9050209@zerezo.com>
-Date: Thu, 13 Aug 2009 15:47:21 +0200
-From: Antoine Jacquet <royale@zerezo.com>
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:38256 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752559AbZHHRT1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Aug 2009 13:19:27 -0400
+Received: by bwz19 with SMTP id 19so1947887bwz.37
+        for <linux-media@vger.kernel.org>; Sat, 08 Aug 2009 10:19:27 -0700 (PDT)
 MIME-Version: 1.0
-To: Roel Kluin <roel.kluin@gmail.com>
-CC: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH] zr364: wrong indexes
-References: <4A8151A1.2020103@gmail.com>
-In-Reply-To: <4A8151A1.2020103@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <cone.1249333423.954183.7968.500@leela.u7.se>
+References: <cone.1249333423.954183.7968.500@leela.u7.se>
+Date: Sat, 8 Aug 2009 19:19:27 +0200
+Message-ID: <19a3b7a80908081019r40af8d01ha37a92478558fe4e@mail.gmail.com>
+Subject: Re: Updated scanfile se-Ornskoldsvik_As
+From: Christoph Pfister <christophpfister@gmail.com>
+To: jonas@websystem.se
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+2009/8/3  <jonas@websystem.se>:
+> Hi,
+>
+> Here is an updated scan file for se-Ornskoldsvik_As.
+>
+> Added Teracom_Mux_5.
+>
+> # Sweden - Örnsköldsvik/Ås
+> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+> T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+> T 474000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+> T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+> T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+> T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
 
-You are right, thanks for fixing this bug.
-I have pushed your patch to my tree.
+Updated, thanks!
 
-Best regards,
+> /Jonas
 
-Antoine
-
-
-Roel Kluin wrote:
-> The order of indexes is reversed
-> 
-> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-> ---
-> Right?
-> 
-> diff --git a/drivers/media/video/zr364xx.c b/drivers/media/video/zr364xx.c
-> index fc976f4..2622a6e 100644
-> --- a/drivers/media/video/zr364xx.c
-> +++ b/drivers/media/video/zr364xx.c
-> @@ -695,7 +695,7 @@ static int zr364xx_release(struct file *file)
->  	for (i = 0; i < 2; i++) {
->  		err =
->  		    send_control_msg(udev, 1, init[cam->method][i].value,
-> -				     0, init[i][cam->method].bytes,
-> +				     0, init[cam->method][i].bytes,
->  				     init[cam->method][i].size);
->  		if (err < 0) {
->  			dev_err(&udev->dev, "error during release sequence\n");
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Christoph
