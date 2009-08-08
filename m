@@ -1,63 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51025 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751272AbZHZQFh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Aug 2009 12:05:37 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "santiago.nunez@ridgerun.com" <santiago.nunez@ridgerun.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Wed, 26 Aug 2009 11:05:22 -0500
-Subject: RE: Official/Staging git tree for v4l2?
-Message-ID: <A69FA2915331DC488A831521EAE36FE40154E2C0F5@dlee06.ent.ti.com>
-References: <4A954B35.3090902@ridgerun.com>
-In-Reply-To: <4A954B35.3090902@ridgerun.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:34783 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933658AbZHHJMo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Aug 2009 05:12:44 -0400
+Received: by bwz19 with SMTP id 19so1830505bwz.37
+        for <linux-media@vger.kernel.org>; Sat, 08 Aug 2009 02:12:44 -0700 (PDT)
 MIME-Version: 1.0
+Date: Sat, 8 Aug 2009 11:12:44 +0200
+Message-ID: <b7b14cbb0908080212q7985c060g4e2ef0879319786c@mail.gmail.com>
+Subject: Syntek Driver ...
+From: Clinton Lee Taylor <clintonlee.taylor@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The VPFE capture driver is currently available at
+Greetings ...
 
-http://www.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-next.git
+ Sorry if this has come through before, but I did not recieve a copy
+or a reply, so I'm assuming the orginal message did not get through
+... Or I'm been ignored ... ;-)
 
-I usually use this for creating my patches for V4L.
+ I was wondering if anybody has looked at the Syntek Driver stk11xx at
+http://sourceforge.net/projects/syntekdriver/files/ ...
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-email: m-karicheri2@ti.com
+This driver is meant to have updates for the EasyCap USB video capture
+device ...
 
->-----Original Message-----
->From: Santiago Nunez-Corrales [mailto:snunez@ridgerun.com]
->Sent: Wednesday, August 26, 2009 10:48 AM
->To: Linux Media Mailing List; Karicheri, Muralidharan
->Subject: Official/Staging git tree for v4l2?
->
->Good morning,
->
->
->I am currently giving support to the TV7002 driver in dm365 and need to
->add some extra controls and definitions in the v4l2 interface. What is
->the official or staging git tree I can clone for development? The kernel
->version is 2.6.31.
->
->
->Regards,
->
->
->--
->Santiago Nunez-Corrales, Eng.
->RidgeRun Engineering, LLC
->
->Guayabos, Curridabat
->San Jose, Costa Rica
->+(506) 2271 1487
->+(506) 8313 0536
->http://www.ridgerun.com
->
->
+http://www.product-reviews.net/2007/08/15/hands-on-with-the-easycap-capture-usb-20-video-adapter-with-audio/
 
+http://www.amazon.com/Audio-Creator-Capture-High-quality-Analog/dp/B001BWU8US
+
+Hans de Goede suggested I post here ... As was explained, I'm not a
+kernel programmer, but I do own one of these devices, so I can test,
+maybe compile code and maybe help debug stuff, but I don't have the
+skill to do much more than that ...
+
+Would be great to have included in the main line Video4Linux and then
+up stream Kernel ... Pretty please!!
+
+Thanks
+Mailed
+LeeT
