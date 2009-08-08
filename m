@@ -1,133 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.24]:50770 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753004AbZHQOug (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Aug 2009 10:50:36 -0400
-Received: by qw-out-2122.google.com with SMTP id 8so1000440qwh.37
-        for <linux-media@vger.kernel.org>; Mon, 17 Aug 2009 07:50:37 -0700 (PDT)
-Message-ID: <4A896E37.5010104@gmail.com>
-Date: Mon, 17 Aug 2009 16:50:31 +0200
-From: Ryan Raasch <ryan.raasch@gmail.com>
+Received: from eastrmmtao103.cox.net ([68.230.240.9]:62854 "EHLO
+	eastrmmtao103.cox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756865AbZHHAPI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2009 20:15:08 -0400
+Received: from eastrmimpo02.cox.net ([68.1.16.120])
+          by eastrmmtao103.cox.net
+          (InterMail vM.7.08.02.01 201-2186-121-102-20070209) with ESMTP
+          id <20090808001508.PEJP27176.eastrmmtao103.cox.net@eastrmimpo02.cox.net>
+          for <linux-media@vger.kernel.org>; Fri, 7 Aug 2009 20:15:08 -0400
+Message-ID: <98F27778E85D4EEB87540FBD5D29D993@flipsideprime>
+From: "Kevin Smith" <flipside@cox.net>
+To: <linux-media@vger.kernel.org>
+Subject: error in compiled v4l cx88_alsa
+Date: Fri, 7 Aug 2009 19:15:09 -0500
 MIME-Version: 1.0
-To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-CC: video4linux-list@redhat.com,
-	v4l2_linux <linux-media@vger.kernel.org>
-Subject: Re: framebuffer overlay
-References: <4A827C70.4090500@gmail.com> <5e9665e10908120143h268a7210kb6bfa215cbfbe6de@mail.gmail.com> 	<4A8283C9.6020105@gmail.com> <5e9665e10908120344v668331a9g3c470971a5da3ef0@mail.gmail.com>
-In-Reply-To: <5e9665e10908120344v668331a9g3c470971a5da3ef0@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have another question.
+cannot get sound working in compiled modules as follows.  Sound in DVB works 
+just not v4l (tvtime/myth) - thanks
 
-Has there been any discussion on any type of generic framebuffer v4l2 
-device (output device), like a gstreamer sink (like the soc_camera)?
+using
+v4l-dvb-0db4331fd64a modles and
+Aug  7 18:10:50 flipside kernel: xc5000: waiting for firmware upload 
+(dvb-fe-xc5000-1.6.114.fw)...
+Aug  7 18:10:50 flipside kernel: cx88-mpeg driver manager 0000:05:06.2: 
+firmware: requesting dvb-fe-xc5000-1.6.114.fw
+Aug  7 18:10:50 flipside kernel: xc5000: firmware uploading...
+Aug  7 18:10:50 flipside kernel: xc5000: firmware upload complete...
 
- From this perspective, when the frame buffer registers itself, it could 
-just *add* the capabilities, and allow the fb.c to handle many of the 
-logistics.
+Aug  7 18:10:50 flipside kernel: cx2388x alsa driver version 0.0.7 loaded
+Aug  7 18:11:42 flipside pulseaudio[4278]: alsa-source.c: ALSA woke us up to 
+read new data from the device, but there was actually nothing to read!
+Aug  7 18:11:42 flipside pulseaudio[4278]: alsa-source.c: Most likely this 
+is a bug in the ALSA driver 'cx88_alsa'. Please report this issue to the 
+ALSA developers.
+Aug  7 18:11:42 flipside pulseaudio[4278]: alsa-source.c: We were woken up 
+with POLLIN set -- however a subsequent snd_pcm_avail() returned 0 or 
+another value < min_avail.
 
-I am developing for a system where we do not use X and use the 
-framebuffer directly (E17). It would be nice to fit any of the 
-framebuffers into a *neat* v4l2 package for any app to use (gstreamer, 
-mplayer).
+more
 
-And with our camera, gstreamer, etc. could just be a command line away 
-from live streaming :)
+Aug  7 18:10:50 flipside kernel: cx88/2: cx2388x MPEG-TS Driver Manager 
+version 0.0.7 loaded
+Aug  7 18:10:50 flipside kernel: cx88[0]: subsystem: 11bd:0051, board: 
+Pinnacle PCTV HD 800i [card=58,autodetected], frontend(s): 1
+Aug  7 18:10:50 flipside kernel: cx88[0]: TV tuner type 76, Radio tuner 
+type -1
+Aug  7 18:10:50 flipside kernel: cx88/0: cx2388x v4l2 driver version 0.0.7 
+loaded
+Aug  7 18:10:50 flipside kernel: tuner 1-0064: chip found @ 0xc8 (cx88[0])
+Aug  7 18:10:50 flipside kernel: cx88[0]: Calling XC5000 callback
+Aug  7 18:10:50 flipside kernel: input: cx88 IR (Pinnacle PCTV HD 800i) as 
+/devices/pci0000:00/0000:00:13.1/0000:05:06.2/input/input6
+Aug  7 18:10:50 flipside kernel: cx88[0]/2: cx2388x 8802 Driver Manager
+Aug  7 18:10:50 flipside kernel: cx88-mpeg driver manager 0000:05:06.2: PCI 
+INT A -> GSI 16 (level, low) -> IRQ 16
+Aug  7 18:10:50 flipside kernel: cx88[0]/2: found at 0000:05:06.2, rev: 5, 
+irq: 16, latency: 64, mmio: 0xf9000000
+Aug  7 18:10:50 flipside kernel: IRQ 16/cx88[0]: IRQF_DISABLED is not 
+guaranteed on shared IRQs
+Aug  7 18:10:50 flipside kernel: cx88_audio 0000:05:06.1: PCI INT A -> GSI 
+16 (level, low) -> IRQ 16
+Aug  7 18:10:50 flipside kernel: IRQ 16/cx88[0]: IRQF_DISABLED is not 
+guaranteed on shared IRQs
+Aug  7 18:10:50 flipside kernel: cx88[0]/1: CX88x/0: ALSA support for 
+cx2388x boards
+Aug  7 18:10:50 flipside kernel: cx8800 0000:05:06.0: PCI INT A -> GSI 16 
+(level, low) -> IRQ 16
+Aug  7 18:10:50 flipside kernel: cx88[0]/0: found at 0000:05:06.0, rev: 5, 
+irq: 16, latency: 64, mmio: 0xfb000000
+Aug  7 18:10:50 flipside kernel: IRQ 16/cx88[0]: IRQF_DISABLED is not 
+guaranteed on shared IRQs
+Aug  7 18:10:50 flipside kernel: cx88[0]/0: registered device video0 [v4l2]
+Aug  7 18:10:50 flipside kernel: cx88[0]/0: registered device vbi0
+Aug  7 18:10:50 flipside kernel: cx88-mpeg driver manager 0000:05:06.2: 
+firmware: requesting dvb-fe-xc5000-1.6.114.fw
+Aug  7 18:10:50 flipside kernel: cx88/2: cx2388x dvb driver version 0.0.7 
+loaded
+Aug  7 18:10:50 flipside kernel: cx88/2: registering cx8802 driver, type: 
+dvb access: shared
+Aug  7 18:10:50 flipside kernel: cx88[0]/2: subsystem: 11bd:0051, board: 
+Pinnacle PCTV HD 800i [card=58]
+Aug  7 18:10:50 flipside kernel: cx88[0]/2: cx2388x based DVB/ATSC card
+Aug  7 18:10:50 flipside kernel: cx8802_alloc_frontends() allocating 1 
+frontend(s)
+Aug  7 18:10:50 flipside kernel: cx88[0]: Calling XC5000 callback
+Aug  7 18:10:50 flipside kernel: cx88[0]: Calling XC5000 callback
+Aug  7 18:10:50 flipside kernel: DVB: registering new adapter (cx88[0])
+Aug  7 18:11:42 flipside pulseaudio[4278]: alsa-source.c: Most likely this 
+is a bug in the ALSA driver 'cx88_alsa'. Please report this issue to the 
+ALSA developers.
+Aug  7 18:16:58 flipside kernel: cx88[0]: Calling XC5000 callback
+
+kernel
+2.6.29.6-217.2.3.fc11.i686.PAE #1 SMP
+
+04:01.0 Audio device: VIA Technologies, Inc. VT1708/A [Azalia HDAC] (VIA 
+High Definition Audio Controller) (rev 10)
+        Subsystem: ASUSTeK Computer Inc. Device 8249
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- 
+Stepping- SERR- FastB2B- DisINTx-
+        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- 
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 0, Cache Line Size: 64 bytes
+        Interrupt: pin A routed to IRQ 17
+        Region 0: Memory at f8efc000 (64-bit, non-prefetchable) [size=16K]
+        Capabilities: <access denied>
+        Kernel driver in use: HDA Intel
+        Kernel modules: snd-hda-intel
+
+05:06.0 Multimedia video controller: Conexant Systems, Inc. CX23880/1/2/3 
+PCI Video and Audio Decoder (rev 05)
+        Subsystem: Pinnacle Systems Inc. Device 0051
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr- 
+Stepping- SERR+ FastB2B- DisINTx-
+        Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- 
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 64 (5000ns min, 13750ns max), Cache Line Size: 64 bytes
+        Interrupt: pin A routed to IRQ 16
+        Region 0: Memory at fb000000 (32-bit, non-prefetchable) [size=16M]
+        Capabilities: <access denied>
+        Kernel driver in use: cx8800
+        Kernel modules: cx8800
+
+05:06.1 Multimedia controller: Conexant Systems, Inc. CX23880/1/2/3 PCI 
+Video and Audio Decoder [Audio Port] (rev 05)
+        Subsystem: Pinnacle Systems Inc. Device 0051
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr- 
+Stepping- SERR+ FastB2B- DisINTx-
+        Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- 
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 64 (1000ns min, 63750ns max), Cache Line Size: 64 bytes
+        Interrupt: pin A routed to IRQ 16
+        Region 0: Memory at fa000000 (32-bit, non-prefetchable) [size=16M]
+        Capabilities: <access denied>
+        Kernel driver in use: cx88_audio
+        Kernel modules: cx88-alsa
+
+05:06.2 Multimedia controller: Conexant Systems, Inc. CX23880/1/2/3 PCI 
+Video and Audio Decoder [MPEG Port] (rev 05)
+        Subsystem: Pinnacle Systems Inc. Device 0051
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr- 
+Stepping- SERR+ FastB2B- DisINTx-
+        Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- 
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 64 (1500ns min, 22000ns max), Cache Line Size: 64 bytes
+        Interrupt: pin A routed to IRQ 16
+        Region 0: Memory at f9000000 (32-bit, non-prefetchable) [size=16M]
+        Capabilities: <access denied>
+        Kernel driver in use: cx88-mpeg driver manager
+        Kernel modules: cx8802
 
 
+ 
 
-Thanks,
-Ryan
-
-Dongsoo, Nathaniel Kim wrote:
-> On Wed, Aug 12, 2009 at 5:56 PM, Ryan Raasch<ryan.raasch@gmail.com> wrote:
->> Thanks for the reply!
->>
->> Dongsoo, Nathaniel Kim wrote:
->>> On Wed, Aug 12, 2009 at 5:25 PM, Ryan Raasch<ryan.raasch@gmail.com> wrote:
->>>> Hello,
->>>>
->>>> I am trying to write a driver for a camera using the new soc_camera in
->>>> the
->>>> mainline kernel the output is the overlay framebuffer (pxa270) and i
->>>> would
->>>> like to use the overlay output feature of v4l2 framework, but the
->>>> framebuffer does not expose itself as a output device (not yet).
->>>>
->>> Hi Ryan,
->>>
->>> As far as I know the framebuffer of PXA2 even PXA3 can't be
->>> categorized in a overlay device.
->> The pxa2 and pxa3 both have 3 framebuffers (4 if hardware curser included).
->> There is the main fb, and 2 overlay framebuffers.
->>
->> The overlay 2 has hardware accelerated ycbcr decoding (which i use now with
->> a camera using dma). And the overlay 1 can be used only with the various
->> types of RGB.
->>
->> We have a solution which uses dma to copy the captured video from the camera
->> sensor (mmap'd), directly to the mmap'd memory of the overlay. All occuring
->> without user intervention.
->>
->>
->>> To be able to get used as overlay device by camera interface, I think
->>> there should be a direct FIFO between camera and framebuffer which
->>> means there is no need to copy memory from camera to fb. But
->>> unfortunately PXA architecture is not supporting this kind of feature.
->> With the above there is no need for FIFO, the dma is directly copying the
->> received camera data to the selected framebuffer.
->>
->> Ryan
->>
-> 
-> Cool.
-> So, that means you need a SoC hardware based reference code right?
-> (because pxa is also a SoC)
-> I think there is not so many choices that you can put on the table.
-> In my experience, OMP3 camera interface is supporting overlay feature
-> through omap_vout I guess. I think it is not obvious in SoC H/W
-> platform about *what is overlay device* and *how to use* them.
-> 
-> And about omap3 camera interface driver, it is not in the mainline
-> kernel yet. For the camera interface code you need to look into
-> Sakari's gitorious repository and for omap_vout you need to look for
-> Hardik's repository or any repository he is working on..I guess.
-> I'm also trying to figure out the best way to use overlay feature on
-> samsung's new cpu named S5PC1XX.
-> 
-> The most complicated part of this job is the whole thing is happening
-> in a single piece of chip and need to figure out the standardized way
-> for compatibility. I wish you luck :-)
-> Cheers,
-> 
-> Nate
-> 
->>> Cheers,
->>>
->>
->>> Nate
->>>
->>>> Are there any fb that i can use as an example for this?
->>>>
->>>> From looking at the driver code, it seems like the generic code of
->>>> fbmem.c
->>>> needs a v4l2 device. Is this in the right ballpark?
->>>>
->>>> Thanks,
->>>> Ryan
->>>>
->>>> --
->>>> video4linux-list mailing list
->>>> Unsubscribe
->>>> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->>>> https://www.redhat.com/mailman/listinfo/video4linux-list
->>>>
->>>
->>>
-> 
-> 
-> 
