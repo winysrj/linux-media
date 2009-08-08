@@ -1,64 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from quechua.inka.de ([193.197.184.2]:47755 "EHLO mail.inka.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752595AbZHIUca (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Aug 2009 16:32:30 -0400
-Date: Sun, 09 Aug 2009 22:13:12 +0200
-From: Olaf Titz <Olaf.Titz@inka.de>
-MIME-Version: 1.0
-To: moinejf@free.fr
-CC: linux-media@vger.kernel.org
-Subject: [PATCH] gspca: add g_std/s_std methods
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Message-ID: <E1MaElV-0004zK-7v@bigred.inka.de>
+Received: from smtp.nokia.com ([192.100.105.134]:51570 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933935AbZHHLXQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Aug 2009 07:23:16 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv15 1/8] v4l2-subdev.h: Add g_modulator callbacks to subdev api
+Date: Sat,  8 Aug 2009 14:10:26 +0300
+Message-Id: <1249729833-24975-2-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1249729833-24975-1-git-send-email-eduardo.valentin@nokia.com>
+References: <1249729833-24975-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some applications are unhappy about getting EINVAL errors for query/set
-TV standard operations, especially (or only?) when working over the
-v4l1compat.so bridge. This patch adds the appropriate methods to the
-gspca driver (claim to support all TV modes, setting TV mode does nothing).
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ linux/include/media/v4l2-subdev.h |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Signed-off-by: Olaf Titz <olaf@bigred.inka.de>
-
---- a/linux/drivers/media/video/gspca/gspca.c   Sat Aug 08 03:28:41 2009
--0300
-+++ b/linux/drivers/media/video/gspca/gspca.c   Sun Aug 09 22:00:03 2009
-+0200
-@@ -1249,6 +1249,7 @@
-        if (input->index != 0)
-                return -EINVAL;
-        input->type = V4L2_INPUT_TYPE_CAMERA;
-+       input->std = V4L2_STD_ALL;
-        input->status = gspca_dev->cam.input_flags;
-        strncpy(input->name, gspca_dev->sd_desc->name,
-                sizeof input->name);
-@@ -1624,6 +1625,17 @@
-        return ret;
- }
-
-+static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *norm)
-+{
-+       *norm = V4L2_STD_UNKNOWN;
-+       return 0;
-+}
-+
-+static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *norm)
-+{
-+       return 0;
-+}
-+
- /*
-  * wait for a video frame
-  *
-@@ -1958,6 +1970,8 @@
-        .vidioc_s_fmt_vid_cap   = vidioc_s_fmt_vid_cap,
-        .vidioc_streamon        = vidioc_streamon,
-        .vidioc_queryctrl       = vidioc_queryctrl,
-+       .vidioc_g_std           = vidioc_g_std,
-+       .vidioc_s_std           = vidioc_s_std,
-        .vidioc_g_ctrl          = vidioc_g_ctrl,
-        .vidioc_s_ctrl          = vidioc_s_ctrl,
-        .vidioc_g_audio         = vidioc_g_audio,
+diff --git a/linux/include/media/v4l2-subdev.h b/linux/include/media/v4l2-subdev.h
+index 89a39ce..d411345 100644
+--- a/linux/include/media/v4l2-subdev.h
++++ b/linux/include/media/v4l2-subdev.h
+@@ -137,6 +137,8 @@ struct v4l2_subdev_tuner_ops {
+ 	int (*g_frequency)(struct v4l2_subdev *sd, struct v4l2_frequency *freq);
+ 	int (*g_tuner)(struct v4l2_subdev *sd, struct v4l2_tuner *vt);
+ 	int (*s_tuner)(struct v4l2_subdev *sd, struct v4l2_tuner *vt);
++	int (*g_modulator)(struct v4l2_subdev *sd, struct v4l2_modulator *vm);
++	int (*s_modulator)(struct v4l2_subdev *sd, struct v4l2_modulator *vm);
+ 	int (*s_type_addr)(struct v4l2_subdev *sd, struct tuner_setup *type);
+ 	int (*s_config)(struct v4l2_subdev *sd, const struct v4l2_priv_tun_config *config);
+ 	int (*s_standby)(struct v4l2_subdev *sd);
+-- 
+1.6.2.GIT
 
