@@ -1,89 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f196.google.com ([209.85.221.196]:45519 "EHLO
-	mail-qy0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754124AbZHKXIL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2009 19:08:11 -0400
-Received: by qyk34 with SMTP id 34so3543455qyk.33
-        for <linux-media@vger.kernel.org>; Tue, 11 Aug 2009 16:08:12 -0700 (PDT)
-Date: Tue, 11 Aug 2009 16:08:06 -0400
-From: Douglas Schilling Landgraf <dougsland@gmail.com>
-To: xwang1976@email.it
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Issues with Empire Dual Pen: request for help and
- suggestions!!!
-Message-ID: <20090811160806.43a6dfd8@gmail.com>
-In-Reply-To: <4A81F5E1.9070709@email.it>
-References: <4A79EC82.4050902@email.it>
-	<4A7AE0B0.20507@email.it>
-	<829197380908060717ua009e78nc045f2940c7fc76e@mail.gmail.com>
-	<20090806112317.21240b9c@gmail.com>
-	<4A7AF3CF.3060803@email.it>
-	<829197380908060821x6cfb60f0jd73e5f9b30c21569@mail.gmail.com>
-	<4A7B0333.1010901@email.it>
-	<4A81D38A.2050201@email.it>
-	<829197380908111334xf9a89b4gf2da1e4cc765b27b@mail.gmail.com>
-	<4A81E6C3.7010802@email.it>
-	<20090811154232.4ed8a1ba@gmail.com>
-	<4A81F5E1.9070709@email.it>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([192.100.122.230]:23799 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933165AbZHHJTw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Aug 2009 05:19:52 -0400
+Date: Sat, 8 Aug 2009 12:07:22 +0300
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: ext Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
+	ext Mauro Carvalho Chehab <mchehab@infradead.org>,
+	ext Douglas Schilling Landgraf <dougsland@gmail.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>
+Subject: Re: [PATCHv14 6/8] FM TX: si4713: Add files to handle si4713 i2c
+ device
+Message-ID: <20090808090722.GA25264@esdhcp037198.research.nokia.com>
+Reply-To: eduardo.valentin@nokia.com
+References: <1248707530-4068-1-git-send-email-eduardo.valentin@nokia.com>
+ <1248707530-4068-6-git-send-email-eduardo.valentin@nokia.com>
+ <1248707530-4068-7-git-send-email-eduardo.valentin@nokia.com>
+ <200908071351.36063.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <200908071351.36063.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Xwang,
-
-On Wed, 12 Aug 2009 00:51:13 +0200
-xwang1976@email.it wrote:
-
-> I've used the rewrite_eeprom_v_1_4 which you send me 5 month ago when 
-> the eprom got corrupted for the first time.
-
-Great, now it's available at v4l-dvb tree.
-
-Anyway, now we need to check the audio issue.
-
-Thanks!
-Douglas
-
-> Xwang
+On Fri, Aug 07, 2009 at 01:51:36PM +0200, ext Hans Verkuil wrote:
+> Hi Eduardo,
 > 
-> Douglas Schilling Landgraf ha scritto:
-> > Hello Xwang,
-> >
-> > On Tue, 11 Aug 2009 23:46:43 +0200
-> > xwang1976@email.it wrote:
-> >
-> >   
-> >> Ok!
-> >> I've restored the eprom and now it is recognised again.
-> >>     
-> >
-> > Just to confirm, did you the rewrite_eeprom tool?
-> >
-> >   
-> >> The only not working part is analog tv audio which doesn't work
-> >> even if I use the sox command.
-> >>     
-> >
-> > Ok.
-> >
-> >   
-> >>> Douglas, in a few minutes I am leaving town for the next five
-> >>> days. Can you help Xwang out to restore his eeprom content using
-> >>> your tool?
-> >>>       
-> >
-> > Sure Devin.
-> >
-> > Cheers,
-> > Douglas
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe
-> > linux-media" in the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> >   
+> Douglas pointed out to me that I hadn't reviewed this series yet.
+> 
+> That was mostly because it's pretty good as far as I'm concerned :-)
+> 
+> I do think one small thing should change:
+> 
+> On Monday 27 July 2009 17:12:08 Eduardo Valentin wrote:
+> > diff --git a/linux/drivers/media/radio/si4713-i2c.c b/linux/drivers/media/radio/si4713-i2c.c
+> 
+> <snip>
+> 
+> > +/* write string property */
+> > +static int si4713_write_econtrol_string(struct si4713_device *sdev,
+> > +				struct v4l2_ext_control *control)
+> > +{
+> > +	struct v4l2_queryctrl vqc;
+> > +	int len;
+> > +	s32 rval = 0;
+> > +
+> > +	vqc.id = control->id;
+> > +	rval = si4713_queryctrl(&sdev->sd, &vqc);
+> > +	if (rval < 0)
+> > +		goto exit;
+> > +
+> > +	switch (control->id) {
+> > +	case V4L2_CID_RDS_TX_PS_NAME: {
+> > +		char ps_name[MAX_RDS_PS_NAME + 1];
+> > +
+> > +		len = control->size - 1;
+> > +		if (len > MAX_RDS_PS_NAME)
+> > +			len = MAX_RDS_PS_NAME;
+> > +		rval = copy_from_user(ps_name, control->string, len);
+> > +		if (rval < 0)
+> > +			goto exit;
+> > +		ps_name[len] = '\0';
+> > +
+> > +		if (strlen(ps_name) % vqc.step) {
+> > +			rval = -EINVAL;
+> 
+> I think we should return -ERANGE instead. It makes more sense than -EINVAL,
+> since it is the string length that is out of bounds. -ERANGE is the expected
+> error code when the control boundary checks fail.
+> 
+> I know I said EINVAL before, but after thinking about it some more I've
+> reconsidered.
 
+
+Hans, just to make sure in this point. Here I am returning EINVAL because
+the string length is not multiple of control step and not because it is greater
+than it is supposed to be. As discussed earlier, during control write, if
+the coming string value is larger than it was supposed to be, I'm shrinking it.
+See above lines. So the question is: should I return ERANGE when string length
+is not multiple of step?
+
+BR,
+
+> 
+> > +			goto exit;
+> > +		}
+> > +
+> > +		rval = si4713_set_rds_ps_name(sdev, ps_name);
+> > +	}
+> > +		break;
+> > +
+> > +	case V4L2_CID_RDS_TX_RADIO_TEXT:{
+> > +		char radio_text[MAX_RDS_RADIO_TEXT + 1];
+> > +
+> > +		len = control->size - 1;
+> > +		if (len > MAX_RDS_RADIO_TEXT)
+> > +			len = MAX_RDS_RADIO_TEXT;
+> > +		rval = copy_from_user(radio_text, control->string, len);
+> > +		if (rval < 0)
+> > +			goto exit;
+> > +		radio_text[len] = '\0';
+> > +
+> > +		if (strlen(radio_text) % vqc.step) {
+> > +			rval = -EINVAL;
+> 
+> Ditto.
+> 
+> > +			goto exit;
+> > +		}
+> > +
+> > +		rval = si4713_set_rds_radio_text(sdev, radio_text);
+> > +	}
+> > +		break;
+> > +
+> > +	default:
+> > +		rval = -EINVAL;
+> > +		break;
+> > +	};
+> > +
+> > +exit:
+> > +	return rval;
+> > +}
+> 
+> Just change this and you can add
+> 
+> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+> 
+> for the whole series.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+
+-- 
+Eduardo Valentin
