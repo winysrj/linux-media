@@ -1,61 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:51870 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757325AbZHGLBR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2009 07:01:17 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Subject: Re: [PATCH,RFC] Drop non-unlocked ioctl support in v4l2-dev.c
-Date: Fri, 7 Aug 2009 13:03:22 +0200
-Cc: linux-media@vger.kernel.org
-References: <200908061709.41211.laurent.pinchart@ideasonboard.com> <eee1636b2ae21fc4189b27b511e7d22f.squirrel@webmail.xs4all.nl>
-In-Reply-To: <eee1636b2ae21fc4189b27b511e7d22f.squirrel@webmail.xs4all.nl>
+Received: from mail.gmx.net ([213.165.64.20]:57020 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752011AbZHITwV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Aug 2009 15:52:21 -0400
+From: Tobias Lorenz <tobias.lorenz@gmx.net>
+To: Joonyoung Shim <jy0922.shim@samsung.com>
+Subject: Re: [PATCH v2 0/4] radio-si470x: separate usb and i2c interface
+Date: Sun, 9 Aug 2009 21:52:14 +0200
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	kyungmin.park@samsung.com, klimov.linux@gmail.com
+References: <4A5C137A.2010104@samsung.com> <200907301226.10965.tobias.lorenz@gmx.net> <4A719280.3030306@samsung.com>
+In-Reply-To: <4A719280.3030306@samsung.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200908071303.23217.laurent.pinchart@ideasonboard.com>
+Message-Id: <200908092152.15803.tobias.lorenz@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi,
 
-On Thursday 06 August 2009 17:16:08 Hans Verkuil wrote:
-> Hi Laurent,
->
-> > Hi everybody,
-> >
-> > this patch moves the BKL one level down by removing the non-unlocked
-> > ioctl in v4l2-dev.c and calling lock_kernel/unlock_kernel in the
-> > unlocked_ioctl handler if the driver only supports locked ioctl.
-> >
-> > Opinions/comments/applause/kicks ?
->
-> I've been thinking about this as well, and my idea was to properly
-> implement this by letting the v4l core serialize ioctls if the driver
-> doesn't do its own serialization (either through mutexes or lock_kernel).
+> I am concerned about one thing. I cannot test the si470x usb radio 
+> driver because i don't have the si470x usb radio device, so i believe
+> you would have probably tested it.
 
-A v4l-specific (or even device-specific) mutex would of course be better than 
-the BKL.
+It is working. I tested it with the most common radio applications and with some RDS decoders.
 
-Are there file operations other than ioctl that are protected by the BKL ? 
-Blindly replacing the BKL by a mutex on ioctl would then introduce race 
-conditions.
+As the I2C part is working, I will send Mauro a pull request.
 
-> The driver can just set a flag in video_device if it wants to do
-> serialization manually, otherwise the core will serialize using a mutex
-> and we should be able to completely remove the BKL from all v4l drivers.
+> >> The patch 1/4 is for separating common and usb code.
+> >> The patch 2/4 is about using dev_* macro instead of printk.
+> >> The patch 3/4 is about adding disconnect check function for i2c interface.
+> >> The patch 4/4 is for supporting si470x i2c interface.
 
-Whether the driver fills v4l2_operations::ioctl or 
-v4l2_operations::unlocked_ioctl can be considered as such a flag :-)
-
-Many drivers are currently using the BKL in an unlocked_ioctl handler. I'm not 
-sure it would be a good idea to move the BKL back to the v4l2 core, as the 
-long term goal is to remove it completely and use fine-grain driver-level 
-locking.
-
-Regards,
-
-Laurent Pinchart
-
+Bye,
+Toby
