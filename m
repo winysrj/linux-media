@@ -1,60 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f214.google.com ([209.85.219.214]:60451 "EHLO
-	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755005AbZHDGv3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2009 02:51:29 -0400
-Received: by ewy10 with SMTP id 10so89808ewy.37
-        for <linux-media@vger.kernel.org>; Mon, 03 Aug 2009 23:51:29 -0700 (PDT)
+Received: from quechua.inka.de ([193.197.184.2]:47755 "EHLO mail.inka.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752595AbZHIUca (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Aug 2009 16:32:30 -0400
+Date: Sun, 09 Aug 2009 22:13:12 +0200
+From: Olaf Titz <Olaf.Titz@inka.de>
 MIME-Version: 1.0
-In-Reply-To: <20090803083012.44da22ca@tele>
-References: <20090418183124.1c9160e3@free.fr>
-	 <alpine.LNX.2.00.0908011635020.26881@banach.math.auburn.edu>
-	 <208cbae30908020625x400f6b3era5095c8bfc5c736b@mail.gmail.com>
-	 <20090803083012.44da22ca@tele>
-Date: Tue, 4 Aug 2009 10:51:27 +0400
-Message-ID: <208cbae30908032351y52edb16du5548ea1de26f79da@mail.gmail.com>
-Subject: Re: [PATCH] to add support for certain Jeilin dual-mode cameras.
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	Andy Walls <awalls@radix.net>,
-	Linux Media <linux-media@vger.kernel.org>
+To: moinejf@free.fr
+CC: linux-media@vger.kernel.org
+Subject: [PATCH] gspca: add g_std/s_std methods
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
+Message-ID: <E1MaElV-0004zK-7v@bigred.inka.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 3, 2009 at 10:30 AM, Jean-Francois Moine<moinejf@free.fr> wrote:
-> On Sun, 2 Aug 2009 17:25:29 +0400
-> Alexey Klimov <klimov.linux@gmail.com> wrote:
->
->> > +       buffer = kmalloc(JEILINJ_MAX_TRANSFER, GFP_KERNEL |
->> > GFP_DMA);
->> > +       if (!buffer) {
->> > +               PDEBUG(D_ERR, "Couldn't allocate USB buffer");
->> > +               goto quit_stream;
->> > +       }
->>
->> This clean up on error path looks bad. On quit_stream you have:
->>
->> > +quit_stream:
->> > +       mutex_lock(&gspca_dev->usb_lock);
->> > +       if (gspca_dev->present)
->> > +               jlj_stop(gspca_dev);
->> > +       mutex_unlock(&gspca_dev->usb_lock);
->> > +       kfree(buffer);
->>
->> kfree() tries to free null buffer after kmalloc for buffer failed.
->> Please, check if i'm not wrong.
->
-> Hi Alexey,
->
-> AFAIK, kfree() checks the pointer.
->
-> Cheers.
+Some applications are unhappy about getting EINVAL errors for query/set
+TV standard operations, especially (or only?) when working over the
+v4l1compat.so bridge. This patch adds the appropriate methods to the
+gspca driver (claim to support all TV modes, setting TV mode does nothing).
 
-Yes, you're right. I checked the code in kfree().
-Sorry for doubts.
+Signed-off-by: Olaf Titz <olaf@bigred.inka.de>
 
--- 
-Best regards, Klimov Alexey
+--- a/linux/drivers/media/video/gspca/gspca.c   Sat Aug 08 03:28:41 2009
+-0300
++++ b/linux/drivers/media/video/gspca/gspca.c   Sun Aug 09 22:00:03 2009
++0200
+@@ -1249,6 +1249,7 @@
+        if (input->index != 0)
+                return -EINVAL;
+        input->type = V4L2_INPUT_TYPE_CAMERA;
++       input->std = V4L2_STD_ALL;
+        input->status = gspca_dev->cam.input_flags;
+        strncpy(input->name, gspca_dev->sd_desc->name,
+                sizeof input->name);
+@@ -1624,6 +1625,17 @@
+        return ret;
+ }
+
++static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *norm)
++{
++       *norm = V4L2_STD_UNKNOWN;
++       return 0;
++}
++
++static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *norm)
++{
++       return 0;
++}
++
+ /*
+  * wait for a video frame
+  *
+@@ -1958,6 +1970,8 @@
+        .vidioc_s_fmt_vid_cap   = vidioc_s_fmt_vid_cap,
+        .vidioc_streamon        = vidioc_streamon,
+        .vidioc_queryctrl       = vidioc_queryctrl,
++       .vidioc_g_std           = vidioc_g_std,
++       .vidioc_s_std           = vidioc_s_std,
+        .vidioc_g_ctrl          = vidioc_g_ctrl,
+        .vidioc_s_ctrl          = vidioc_s_ctrl,
+        .vidioc_g_audio         = vidioc_g_audio,
+
