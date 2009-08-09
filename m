@@ -1,79 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60694 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751389AbZHOTUz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Aug 2009 15:20:55 -0400
-Message-ID: <4A870A84.6060106@edgehp.net>
-Date: Sat, 15 Aug 2009 15:20:36 -0400
-From: Dale Pontius <DEPontius@edgehp.net>
+Received: from qw-out-2122.google.com ([74.125.92.26]:58482 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752078AbZHILN7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Aug 2009 07:13:59 -0400
+Received: by qw-out-2122.google.com with SMTP id 8so966885qwh.37
+        for <linux-media@vger.kernel.org>; Sun, 09 Aug 2009 04:14:00 -0700 (PDT)
 MIME-Version: 1.0
-To: Andy Walls <awalls@radix.net>
-CC: video4linux-list@redhat.com, linux-media@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org
-Subject: Re: Status of cx18 drivers, mercurial vs in-kernel
-References: <4A7F3813.3050101@edgehp.net> <1250344008.4039.20.camel@palomino.walls.org>
-In-Reply-To: <1250344008.4039.20.camel@palomino.walls.org>
+In-Reply-To: <200908091044.11020.hverkuil@xs4all.nl>
+References: <5e9665e10908090057n25103147s8b048bb0eb1d2d5b@mail.gmail.com>
+	<4A7E86DF.1070901@gmail.com> <200908091044.11020.hverkuil@xs4all.nl>
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+Date: Sun, 9 Aug 2009 20:13:40 +0900
+Message-ID: <5e9665e10908090413n39d960b0n1a327cf41274e8e4@mail.gmail.com>
+Subject: Re: About some sensor drivers in mc5602 gspca driver
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>,
+	v4l2_linux <linux-media@vger.kernel.org>, moinejf@free.fr,
+	=?UTF-8?B?64+Z7IiY?= <dongsoo45.kim@samsung.com>,
+	=?UTF-8?B?7ZiV7KSA?= <riverful.kim@samsung.com>,
+	=?UTF-8?B?6rK966+8?= <kyungmin.park@samsung.com>,
+	Hans de Goede <j.w.r.degoede@hhs.nl>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andy Walls wrote:
-> On Sun, 2009-08-09 at 16:56 -0400, Dale Pontius wrote:
->> I've been running the cx18 drivers out of mercurial since getting my
->> HVR-1600 running, almost a year ago.  As I see things, the driver is
->> pretty mature now, and in fact I see commits for cx18 in 2.6.31 that are
->> some of the last I saw going into the "regular" driver in mercurial.
->> (I'm not counting the diagnostic work that has been going on in the last
->> month or two, for one particular user.)
+2009/8/9 Hans Verkuil <hverkuil@xs4all.nl>:
+> On Sunday 09 August 2009 10:20:47 Erik Andrén wrote:
 >>
->> Is it reasonable to go with the in-kernel cx18 driver when 2.6.31 goes
->> stable, or is there still significant value with sticking with mercurial?
-> 
-> As long as 2.6.31. has the following changes, then go with 2.6.31:
-> 
-> 1. per stream queue mutex locks changed to per quueue spinlocks, and an
-> outgoing message work handling thread was added
-> 
-> 2. front end SIF audio AGC actually uses the SIF signal for setting the
-> SIF audio AGC
-> 
-> 3. Sliced VBI works and can be enabled for insertion into all MPEG II PS
-> type streams
-> 
-> These were that last major fixes I can think of that made a difference
-> for anyone.  I'd imagine they are all in 2.6.31 by now, but I haven't
-> checked.
-> 
-> I don't know of any existing major problems with the cx18 driver itself.
-> The bad problems that seems to crop up now are usuaully system level
-> issues: a vmalloc pool that is too small, sharing an interrupt line with
-> another linux driver that has an interrupt handler with a poor response
-> time, etc.
-> 
-> Future changes to the cx18 driver might include:
-> 
-> 1. MPEG Index support
-> 2. Dual-watch audio support
-> 3. Additional cards type or fixing up exsting broken entries 
-> 4. Sliced VBI in an MPEG TS stream (maybe)
-> 
+>> Dongsoo, Nathaniel Kim wrote:
+>> > Hello,
+>> >
+>> > It has been years I've working on linux multimedia drivers, but what a
+>> > shame I found that there were already sensor drivers that I've already
+>> > implemented. Precisely speaking, soc camera devices from Samsung named
+>> > s5k4aa* and s5k83a* were already in Linux kernel and even seems to
+>> > have been there for years.
+>> > But a thing that I'm curious is those drivers are totally mc602 and
+>> > gspca oriented. So some users who are intending to use those samsung
+>> > camera devices but not using gspca and mc5602 H/W have to figure out
+>> > another way.
+>> > As you know, the s5k* camera devices are actually ISP devices which
+>> > are made in SoC device and can be used independently with any kind of
+>> > ITU or MIPI supporting host devices.
+>> > However, I see that gspca and mc5602 have their own driver structure
+>> > so it seems to be tough to split out the sensor drivers from them.
+>> > So, how should we coordinate our drivers if a new s5k* driver is
+>> > getting adopted in the Linux kernel? different version of s5k* drivers
+>> > in gspca and subdev or gspca also is able to use subdev drivers?
+>> > I am very willing to contribute several drivers for s5k* soc camera
+>> > isp devices and in the middle of researching to prepare for
+>> > contribution those s5k* drivers popped up.
+>> > Please let me know whether it is arrangeable or not.
+>> > Cheers,
+>> >
+>>
+>> Hi Nathaniel,
+>> The sensor sharing question pops up now and then and I'm sure that
+>> if you search the mailing list archive you can find several threads
+>> discussing this.
+>> IIRC the main problem is that in an usb webcam consisting of a
+>> sensor and an usb bridge. The sensor is often configured in a very
+>> specific way tied to the particular usb bridge. It is also common
+>> that much of the initialization is reverse engineered and that we
+>> may have little or no understanding what we're actually doing.
+>> (Often just mimicing a windows webcam driver).
+>> I think the conclusion reached now is that it's not worth the effort
+>> considering that the sensors usually don't need that much setup to
+>> get working. Of course this may need to be reevaluated from time to
+>> time. If someone could device a clever solution I would be all for
+>> trying to create some kind of driver sharing.
+>
+> Basically any gspca driver that can set registers in the i2c device
+> (as opposed to only replaying USB commands) can be modified so the i2c
+> part can be split off into a regular sub-device driver. I've discussed
+> this in the past with Hans de Goede and that is definitely the way to go.
+>
+>> In the gspca-m5602-s5k* case everything is reverse-engineered, as I
+>> don't possess any datasheets of the ALi m5602 nor the s5k83a,
+>> s5k4aa. I would be much happy if you Samsung folks would be able to
+>> provide with me with datasheets for the s5k* sensors.
+>
+> Looking at the code I'd say that it should be possible to implement an
+> i2c_adapter in m5602_core.c, and when that's in place the various sensor
+> drivers can be gradually split off into generic subdev drivers. Which is
+> of course ever so much easier if the datasheets are available :-)
+>
+> For this particular bridge driver I strongly suggest that this approach
+> is taken since there are already duplicate sensor drivers here (mt9m111).
+>
 > Regards,
-> Andy
-> 
-> 
->> Dale Pontius
-> 
-> 
-The changes I see listed for 2.6.31 are:
-11864 Complete support for Sliced and Raw VBI for 625 line systems
-11950 Split LeadTek PVR2100 and DVR3100H into 2 separate card entries
-11951 Add DVB-T support for the Leadtek WinFast DVR3100H
-12182 Add DVB-T support for Yuan MPC-718 cards with an MT352 or...
+>
+>        Hans
+>
 
-This changelog appears to start with your #4, so I'm guessing that the
-older stuff is already committed.
+Hi Hans,
 
-Thanks,
-Dale
+I didn't know that there already have been a discussion. I'll google
+about that thread and go through.
+And thanks to your mail, I could find that there already existing
+duplicated drivers. I'll take that as a reference.
+BTW, I was strongly appealing my boss to let me attend the
+linuxplumber conf and I sense a slight possibility to go there. It's a
+progress :-). I'm looking forward to having approval.
+Cheers,
+
+Nate
+
+>>
+>> Best regards,
+>> Erik
+>>
+>> > Nate
+>> >
+>>
+>>
+>
+>
+>
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+>
+
+
+
+-- 
+=
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
