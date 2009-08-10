@@ -1,35 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:63559 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753181AbZHYKAj (ORCPT
+Received: from mail-fx0-f228.google.com ([209.85.220.228]:64201 "EHLO
+	mail-fx0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754080AbZHJWYU convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2009 06:00:39 -0400
-Received: by fxm17 with SMTP id 17so1952813fxm.37
-        for <linux-media@vger.kernel.org>; Tue, 25 Aug 2009 03:00:40 -0700 (PDT)
-Message-ID: <4A93B640.5080004@googlemail.com>
-Date: Tue, 25 Aug 2009 11:00:32 +0100
-From: Peter Brouwer <pb.maillists@googlemail.com>
+	Mon, 10 Aug 2009 18:24:20 -0400
+Received: by fxm28 with SMTP id 28so1203776fxm.17
+        for <linux-media@vger.kernel.org>; Mon, 10 Aug 2009 15:24:20 -0700 (PDT)
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Feature request: Kernel config option to enable/disable IR interface
- per adapter
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1249753576.15160.251.camel@tux.localhost>
+References: <1249753576.15160.251.camel@tux.localhost>
+Date: Mon, 10 Aug 2009 18:24:20 -0400
+Message-ID: <30353c3d0908101524y76bd9c3aq8aedf34fe3f3b3a6@mail.gmail.com>
+Subject: Re: [patch review 6/6] radio-mr800: redesign radio->users counter
+From: David Ellingsworth <david@identd.dyndns.org>
+To: Alexey Klimov <klimov.linux@gmail.com>
+Cc: Douglas Schilling Landgraf <dougsland@gmail.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+On Sat, Aug 8, 2009 at 1:46 PM, Alexey Klimov<klimov.linux@gmail.com> wrote:
+> Redesign radio->users counter. Don't allow more that 5 users on radio in
+> usb_amradio_open() and don't stop radio device if other userspace
+> application uses it in usb_amradio_close().
+>
+> Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+>
+> --
+> diff -r c2dd9da28106 linux/drivers/media/radio/radio-mr800.c
+> --- a/linux/drivers/media/radio/radio-mr800.c   Sat Aug 08 17:28:18 2009 +0400
+> +++ b/linux/drivers/media/radio/radio-mr800.c   Sat Aug 08 18:12:01 2009 +0400
+> @@ -540,7 +540,13 @@
+>  {
+>        struct amradio_device *radio = video_get_drvdata(video_devdata(file));
+>
+> -       radio->users = 1;
+> +       /* don't allow more than 5 users on radio */
+> +       if (radio->users > 4)
+> +               return -EBUSY;
 
-When dealing with multiple different adapters, it does not make sense to have 
-the IR interfaces of all adapters active.
-Like a DVB-T and a DVB sat adapter in one system.
+I agree with what the others have said regarding this.. there should
+be no such restriction here. The code is broken anyway as it doesn't
+acquire the lock before checking the number of active users. So
+technically, while you've tried to limit it to five, six, seven, or
+more users could gain access to it under the right conditions.
 
-It would not solve the issue when having multiple of the same adapters by that 
-is may be a next step to think about.
+> +
+> +       mutex_lock(&radio->lock);
+> +       radio->users++;
+> +       mutex_unlock(&radio->lock);
+>
+>        return 0;
+>  }
+> @@ -554,9 +560,20 @@
+>                return -ENODEV;
+>
+>        mutex_lock(&radio->lock);
+> -       radio->users = 0;
+> +       radio->users--;
+>        mutex_unlock(&radio->lock);
+>
+> +       /* In case several userspace applications opened the radio
+> +        * and one of them closes and stops it,
+> +        * we check if others use it and if they do we start the radio again. */
+> +       if (radio->users && radio->status == AMRADIO_STOP) {
 
-Regards
-Peter
+More locking issues here as well. Two competing opens might both see
+the status as stopped and both try to start the device.
 
-BTW: Is the following IR port patch for a Tevi S460 going to make it in the main 
-stream code base?
-http://patchwork.kernel.org/patch/14888/
+> +               int retval;
+> +               retval = amradio_set_mute(radio, AMRADIO_START);
+> +               if (retval < 0)
+> +                       dev_warn(&radio->videodev->dev,
+> +                               "amradio_start failed\n");
+> +       }
+> +
+>        return 0;
+>  }
+>
+
+Regards,
+
+David Ellingsworth
