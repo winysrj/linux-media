@@ -1,26 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.8])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n7Q08wSO018871
-	for <video4linux-list@redhat.com>; Tue, 25 Aug 2009 20:08:58 -0400
-Received: from mail-in-17.arcor-online.net (mail-in-17.arcor-online.net
-	[151.189.21.57])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n7Q08fWv030993
-	for <video4linux-list@redhat.com>; Tue, 25 Aug 2009 20:08:44 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Dmitri Belimov <d.belimov@gmail.com>
-In-Reply-To: <20090825154352.030299ba@glory.loctelecom.ru>
-References: <20090825154352.030299ba@glory.loctelecom.ru>
-Content-Type: text/plain
-Date: Wed, 26 Aug 2009 02:02:05 +0200
-Message-Id: <1251244925.3332.7.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org,
-	Michael Krufky <mkrufky@kernellabs.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: saa7134 and xc5000
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n7A71qbX027552
+	for <video4linux-list@redhat.com>; Mon, 10 Aug 2009 03:01:52 -0400
+Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de
+	[92.198.50.35])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n7A71Xf5010702
+	for <video4linux-list@redhat.com>; Mon, 10 Aug 2009 03:01:34 -0400
+Date: Mon, 10 Aug 2009 09:01:33 +0200
+From: Robert Schwebel <r.schwebel@pengutronix.de>
+To: javier Martin <javier.martin@vista-silicon.com>
+Message-ID: <20090810070133.GB13320@pengutronix.de>
+References: <eedb5540908060842rb7e2ac7g920310563fa8ddb4@mail.gmail.com>
+	<20090807192045.GK5842@pengutronix.de>
+	<eedb5540908092351v7b46b392i1a3c697a906c87dd@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+In-Reply-To: <eedb5540908092351v7b46b392i1a3c697a906c87dd@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: H.264 format support?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,36 +30,36 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Dmitry,
+On Mon, Aug 10, 2009 at 08:51:49AM +0200, javier Martin wrote:
+> > If I remember correctly, Freescale has H.264 encoding in the same
+> > package that also contains MPEG4 stuff, both as gstreamer plugins.
+>
+> Yes, I know Freescale has it integrated in the same package, but the
+> truth is that in V4L2 there is no definition for H264 output format.
+> That makes a little difficult for a driver which outputs H.264 to
+> enter mainline kernel. That is why I am asking for an H.264 output
+> format definition..
 
-Am Dienstag, den 25.08.2009, 15:43 +1000 schrieb Dmitri Belimov:
-> Hi All
-> 
-> Our company release new TV card based on the saa7134 and xc5000.
-> I write some code and now I can watch analog TV, video and audio is good.
-> 
-> For analog FM radio need switch input saa7134 to SIF and set SIF to 10.7MHz.
-> 
-> How to I can do it??
-> 
-> With my best regards, Dmitry.
+Well, that's why using gstreamer for the encoding stage looks like a
+good solution for me. If it needs something on the definition layer
+(i.e. new color space 4cc definitions etc) it is usually solvable.
 
-try to dig out the two old patches from Hartmut in 2006, when he first
-added radio IF support to saa7133/35/31e devices for the Philips silicon
-tuners and later also for stereo detection, to make the apps happy for
-auto scanning.
+> See V4L2 API spec:
+> http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec-single/v4l2.html#AEN5634
+>
+> > Check how it is integrated in OSELAS.Phytec-phyCORE-12-1:
+> > http://www.pengutronix.de/oselas/bsp/phytec/download/phyCORE/OSELAS.BSP-Phytec-phyCORE-12-1.tar.gz
+>
+> Thank you for the link, I will take a look at it.
 
-This should give you some guidance.
+Yup. If you are missing something, please ask back again.
 
-Let me know, if you should have problems to find them. I'll point you
-then.
-
-Cheers,
-Hermann
-
-
-
-
+rsc
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
 
 --
 video4linux-list mailing list
