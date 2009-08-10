@@ -1,118 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1560 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751451AbZH0SXE (ORCPT
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:42686 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753867AbZHJVnv convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Aug 2009 14:23:04 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id n7RIN3kU088706
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 27 Aug 2009 20:23:04 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 27 Aug 2009 20:23:03 +0200 (CEST)
-Message-Id: <200908271823.n7RIN3kU088706@smtp-vbr15.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Mon, 10 Aug 2009 17:43:51 -0400
+Received: by bwz19 with SMTP id 19so2843996bwz.37
+        for <linux-media@vger.kernel.org>; Mon, 10 Aug 2009 14:43:51 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1249753533.15160.241.camel@tux.localhost>
+References: <1249753533.15160.241.camel@tux.localhost>
+Date: Mon, 10 Aug 2009 17:43:51 -0400
+Message-ID: <30353c3d0908101443i1f2d82besc931ce5a2707e2d0@mail.gmail.com>
+Subject: Re: [patch review 1/6] radio-mr800: remove redundant
+	lock/unlock_kernel
+From: David Ellingsworth <david@identd.dyndns.org>
+To: Alexey Klimov <klimov.linux@gmail.com>
+Cc: Douglas Schilling Landgraf <dougsland@gmail.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Sat, Aug 8, 2009 at 1:45 PM, Alexey Klimov<klimov.linux@gmail.com> wrote:
+> Remove redundant lock/unlock_kernel() calls from usb_amradio_open/close
+> functions.
+>
+> Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+>
+> --
+> diff -r ee6cf88cb5d3 linux/drivers/media/radio/radio-mr800.c
+> --- a/linux/drivers/media/radio/radio-mr800.c   Wed Jul 29 01:42:02 2009 -0300
+> +++ b/linux/drivers/media/radio/radio-mr800.c   Wed Jul 29 10:44:02 2009 +0400
+> @@ -540,8 +540,6 @@
+>        struct amradio_device *radio = video_get_drvdata(video_devdata(file));
+>        int retval;
+>
+> -       lock_kernel();
+> -
 
-Results of the daily build of v4l-dvb:
+Maybe I'm missing something here, but the lock_kernel() call seems
+very necessary here since you're modifying the state of the driver
+without taking the driver's lock. Last I checked the v4l2 subsystem
+doesn't call open with it's lock held. So by removing these locks
+you've introduced a race condition between open and close.
 
-date:        Thu Aug 27 19:00:06 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12560:135c140b71de
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+>        radio->users = 1;
+>        radio->muted = 1;
+>
+> @@ -550,7 +548,6 @@
+>                amradio_dev_warn(&radio->videodev->dev,
+>                        "radio did not start up properly\n");
+>                radio->users = 0;
+> -               unlock_kernel();
+>                return -EIO;
+>        }
+>
+> @@ -564,7 +561,6 @@
+>                amradio_dev_warn(&radio->videodev->dev,
+>                        "set frequency failed\n");
+>
+> -       unlock_kernel();
+>        return 0;
+>  }
+>
+>
+>
+> --
+> Best regards, Klimov Alexey
+>
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc5-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-rc5-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-rc5-armv5-omap2: OK
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-rc5-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc5-m32r: OK
-linux-2.6.30-mips: ERRORS
-linux-2.6.31-rc5-mips: OK
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-rc5-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc5-x86_64: WARNINGS
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc5): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+Regards,
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+David Ellingsworth
