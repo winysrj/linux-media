@@ -1,83 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48331 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753832AbZHXWiE convert rfc822-to-8bit (ORCPT
+Received: from lider.pardus.org.tr ([193.140.100.216]:49208 "EHLO
+	lider.pardus.org.tr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751283AbZHJQGa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Aug 2009 18:38:04 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Kevin Hilman <khilman@deeprootsystems.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Date: Mon, 24 Aug 2009 17:37:36 -0500
-Subject: RE: [PATCH v1 - 1/5] DaVinci - restructuring code to support vpif
- capture driver
-Message-ID: <A69FA2915331DC488A831521EAE36FE40154CEAA34@dlee06.ent.ti.com>
-References: <1250283702-5582-1-git-send-email-m-karicheri2@ti.com>
-	<A69FA2915331DC488A831521EAE36FE40145300FC7@dlee06.ent.ti.com>
-	<200908180849.14003.hverkuil@xs4all.nl>
-	<200908180851.06222.hverkuil@xs4all.nl>
-	<A69FA2915331DC488A831521EAE36FE401548C1E27@dlee06.ent.ti.com>
-	<20090818142817.26de0893@pedra.chehab.org>
-	<A69FA2915331DC488A831521EAE36FE401548C23A5@dlee06.ent.ti.com>
-	<20090820013306.696e5dd9@pedra.chehab.org>
-	<A69FA2915331DC488A831521EAE36FE401548C2BFE@dlee06.ent.ti.com>
- <20090824000934.68b82d9c@pedra.chehab.org>
-In-Reply-To: <20090824000934.68b82d9c@pedra.chehab.org>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Mon, 10 Aug 2009 12:06:30 -0400
+Message-ID: <4A804585.9060908@pardus.org.tr>
+Date: Mon, 10 Aug 2009 19:06:29 +0300
+From: =?UTF-8?B?T3phbiDDh2HEn2xheWFu?= <ozan@pardus.org.tr>
 MIME-Version: 1.0
+To: Takashi Iwai <tiwai@suse.de>
+CC: alsa-devel@alsa-project.org, linux-media@vger.kernel.org
+Subject: Re: [alsa-devel] NULL pointer dereference in ALSA triggered	through
+ saa7134-alsa
+References: <4A8025BF.7030404@pardus.org.tr> <s5hab27n501.wl%tiwai@suse.de>	<4A803FDC.8070005@pardus.org.tr> <s5hocqnllcg.wl%tiwai@suse.de>
+In-Reply-To: <s5hocqnllcg.wl%tiwai@suse.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Kevin,
+Takashi Iwai wrote:
+> But /usr/include/sound isn't used for building kernel modules normally.
+> Unless any hack is added, these files have to be installed to the
+> kernel header directory.
+>   
 
-How do we handle this? 
-
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-new phone: 301-407-9583
-Old Phone : 301-515-3736 (will be deprecated)
-email: m-karicheri2@ti.com
-
->-----Original Message-----
->From: Mauro Carvalho Chehab [mailto:mchehab@infradead.org]
->Sent: Sunday, August 23, 2009 11:10 PM
->To: Karicheri, Muralidharan
->Cc: Kevin Hilman; Mauro Carvalho Chehab; linux-media@vger.kernel.org; Hans
->Verkuil
->Subject: Re: [PATCH v1 - 1/5] DaVinci - restructuring code to support vpif
->capture driver
->
->Em Thu, 20 Aug 2009 16:27:40 -0500
->"Karicheri, Muralidharan" <m-karicheri2@ti.com> escreveu:
->
->> Kevin & Mauro,
->>
->> Do I need to wait or this can be resolved by either of you for my work to
->proceed?
->
->Murali,
->
->If I fix your patch in order to apply it on my tree, backporting it to the
->old
->arch header files, we'll have merge troubles upstream, when Kevin merge his
->changes. It will also mean that he'll need to apply a diff patch on his
->tree,
->in order to convert the patch to the new headers, and that git bisect may
->break. I might merge his tree here, but this means that, if he needs to
->rebase
->his tree (and sometimes people need to rebase their linux-next trees), I'll
->have troubles here, and I'll loose my work.
->
->So, the better solution is if he could apply this specific patch, merging
->his
->tree upstream before your patches.
->
->Cheers,
->Mauro
-
+Ah you're right, I totally missed that one. Thanks, will try to
+workaround that.
