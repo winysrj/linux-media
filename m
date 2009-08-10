@@ -1,71 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f214.google.com ([209.85.219.214]:51190 "EHLO
-	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752716AbZHHRqO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Aug 2009 13:46:14 -0400
-Received: by mail-ew0-f214.google.com with SMTP id 10so2174216ewy.37
-        for <linux-media@vger.kernel.org>; Sat, 08 Aug 2009 10:46:15 -0700 (PDT)
-Subject: [patch review 6/6] radio-mr800: redesign radio->users counter
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Douglas Schilling Landgraf <dougsland@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Sat, 08 Aug 2009 21:46:16 +0400
-Message-Id: <1249753576.15160.251.camel@tux.localhost>
+Received: from rcsinet12.oracle.com ([148.87.113.124]:64714 "EHLO
+	rgminet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751797AbZHJXHQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Aug 2009 19:07:16 -0400
+Date: Mon, 10 Aug 2009 16:04:55 -0700
+From: Randy Dunlap <randy.dunlap@oracle.com>
+To: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-media@vger.kernel.org, akpm <akpm@linux-foundation.org>
+Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Uri Shkolnik <uris@siano-ms.com>
+Subject: [PATCH -next] dvb: siano uses/depends on INPUT
+Message-Id: <20090810160455.4f93ad60.randy.dunlap@oracle.com>
+In-Reply-To: <20090810203508.f3258129.sfr@canb.auug.org.au>
+References: <20090810203508.f3258129.sfr@canb.auug.org.au>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Redesign radio->users counter. Don't allow more that 5 users on radio in
-usb_amradio_open() and don't stop radio device if other userspace
-application uses it in usb_amradio_close().
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+siano uses input_*() functions so it should depend on INPUT
+to prevent build errors:
 
---
-diff -r c2dd9da28106 linux/drivers/media/radio/radio-mr800.c
---- a/linux/drivers/media/radio/radio-mr800.c	Sat Aug 08 17:28:18 2009 +0400
-+++ b/linux/drivers/media/radio/radio-mr800.c	Sat Aug 08 18:12:01 2009 +0400
-@@ -540,7 +540,13 @@
- {
- 	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
+ERROR: "input_event" [drivers/media/dvb/siano/sms1xxx.ko] undefined!
+ERROR: "input_register_device" [drivers/media/dvb/siano/sms1xxx.ko] undefined!
+ERROR: "input_free_device" [drivers/media/dvb/siano/sms1xxx.ko] undefined!
+ERROR: "input_unregister_device" [drivers/media/dvb/siano/sms1xxx.ko] undefined!
+ERROR: "input_allocate_device" [drivers/media/dvb/siano/sms1xxx.ko] undefined!
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Michael Krufky <mkrufky@linuxtv.org>
+Cc: Uri Shkolnik <uris@siano-ms.com>
+---
+ drivers/media/dvb/siano/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- linux-next-20090810.orig/drivers/media/dvb/siano/Kconfig
++++ linux-next-20090810/drivers/media/dvb/siano/Kconfig
+@@ -4,7 +4,7 @@
  
--	radio->users = 1;
-+	/* don't allow more than 5 users on radio */
-+	if (radio->users > 4)
-+		return -EBUSY;
-+
-+	mutex_lock(&radio->lock);
-+	radio->users++;
-+	mutex_unlock(&radio->lock);
- 
- 	return 0;
- }
-@@ -554,9 +560,20 @@
- 		return -ENODEV;
- 
- 	mutex_lock(&radio->lock);
--	radio->users = 0;
-+	radio->users--;
- 	mutex_unlock(&radio->lock);
- 
-+	/* In case several userspace applications opened the radio
-+	 * and one of them closes and stops it,
-+	 * we check if others use it and if they do we start the radio again. */
-+	if (radio->users && radio->status == AMRADIO_STOP) {
-+		int retval;
-+		retval = amradio_set_mute(radio, AMRADIO_START);
-+		if (retval < 0)
-+			dev_warn(&radio->videodev->dev,
-+				"amradio_start failed\n");
-+	}
-+
- 	return 0;
- }
+ config DVB_SIANO_SMS1XXX
+ 	tristate "Siano SMS1XXX USB dongle support"
+-	depends on DVB_CORE && USB
++	depends on DVB_CORE && USB && INPUT
+ 	---help---
+ 	  Choose Y here if you have a USB dongle with a SMS1XXX chipset.
  
 
 
--- 
-Best regards, Klimov Alexey
 
+---
+~Randy
+LPC 2009, Sept. 23-25, Portland, Oregon
+http://linuxplumbersconf.org/2009/
