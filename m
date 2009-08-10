@@ -1,48 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:37056 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752095AbZHaUQR (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:51575 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754974AbZHJPH5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Aug 2009 16:16:17 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] libv4l: add NULL pointer check
-Date: Mon, 31 Aug 2009 22:16:14 +0200
-Cc: =?iso-8859-1?q?N=E9meth_M=E1rton?= <nm127@freemail.hu>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-References: <4A9A3EB0.8060304@freemail.hu> <200908310852.38847.laurent.pinchart@ideasonboard.com> <20090831101932.526dfdbc@pedra.chehab.org>
-In-Reply-To: <20090831101932.526dfdbc@pedra.chehab.org>
+	Mon, 10 Aug 2009 11:07:57 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	"Subrahmanya, Chaithrika" <chaithrika@ti.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Mon, 10 Aug 2009 10:07:51 -0500
+Subject: RE: vpif_display.c bug
+Message-ID: <A69FA2915331DC488A831521EAE36FE401451FC39E@dlee06.ent.ti.com>
+References: <200908100807.23455.hverkuil@xs4all.nl>
+In-Reply-To: <200908100807.23455.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200908312216.14184.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 31 August 2009 15:19:32 Mauro Carvalho Chehab wrote:
-> Em Mon, 31 Aug 2009 08:52:38 +0200
->
-> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
-> > >  - dereferencing a NULL pointer is not always result segfault, see [1]
-> > > and [2]. So dereferencing a NULL pointer can be treated also as a
-> > > security risk.
->
-> From kernelspace drivers POV, any calls sending a NULL pointer should
-> result in an error as soon as possible, to avoid any security risks.
-> Currently, this check is left to the driver, but we should consider
-> implementing such control globally, at video_ioctl2 and at compat32 layer.
->
-> IMHO, libv4l should mimic the driver behavior of returning an error instead
-> of letting the application to segfault, since, on some critical
-> applications, like video-surveillance security systems, a segfault could be
-> very bad.
-
-And uncaught errors would be even better. A segfault will be noticed right 
-away, while an unhandled error code might slip through to the released 
-software. If a security-sensitive application passes a NULL pointer where it 
-shouldn't I'd rather see the development machine burst into flames instead of 
-silently ignoring the problem.
-
--- 
-Laurent Pinchart
+SGFucywNCg0KSSBoYXZlIGFscmVhZHkgY2hhbmdlZCB2NGwyX2kyY19uZXdfcHJvYmVkX3N1YmRl
+digpIHRvIHY0bDJfaTJjX25ld19zdWJkZXZfYm9hcmQoKSBpbiBteSBsYXRlc3QgcGF0Y2ggc2V0
+IGZvciBhZGRpbmcgdnBpZiBjYXB0dXJlIGRyaXZlciBmb3IgRE02NDY3IHRoYXQgeW91IGhhZCBy
+ZXZpZXdlZC4gSSB0aGluayB0aGlzIGNoYW5nZSBpcyBub3QgbmVlZGVkDQpvbmNlIHRoYXQgcGF0
+Y2ggaXMgYXBwbGllZC4NCg0KTXVyYWxpIEthcmljaGVyaQ0KU29mdHdhcmUgRGVzaWduIEVuZ2lu
+ZWVyDQpUZXhhcyBJbnN0cnVtZW50cyBJbmMuDQpHZXJtYW50b3duLCBNRCAyMDg3NA0KbmV3IHBo
+b25lOiAzMDEtNDA3LTk1ODMNCk9sZCBQaG9uZSA6IDMwMS01MTUtMzczNiAod2lsbCBiZSBkZXBy
+ZWNhdGVkKQ0KZW1haWw6IG0ta2FyaWNoZXJpMkB0aS5jb20NCg0KPi0tLS0tT3JpZ2luYWwgTWVz
+c2FnZS0tLS0tDQo+RnJvbTogbGludXgtbWVkaWEtb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWls
+dG86bGludXgtbWVkaWEtDQo+b3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgSGFu
+cyBWZXJrdWlsDQo+U2VudDogTW9uZGF5LCBBdWd1c3QgMTAsIDIwMDkgMjowNyBBTQ0KPlRvOiBT
+dWJyYWhtYW55YSwgQ2hhaXRocmlrYQ0KPkNjOiBsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcN
+Cj5TdWJqZWN0OiB2cGlmX2Rpc3BsYXkuYyBidWcNCj4NCj5IaSBDaGFpdGhyaWthLA0KPg0KPlRo
+aXMgY29kZSBpbiB2cGlmX2Rpc3BsYXkuYyBpcyBub3QgY29ycmVjdDoNCj4NCj4gICAgICAgIGZv
+ciAoaSA9IDA7IGkgPCBzdWJkZXZfY291bnQ7IGkrKykgew0KPiAgICAgICAgICAgICAgICB2cGlm
+X29iai5zZFtpXSA9DQo+djRsMl9pMmNfbmV3X3Byb2JlZF9zdWJkZXYoJnZwaWZfb2JqLnY0bDJf
+ZGV2LA0KPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGky
+Y19hZGFwLA0KPnN1YmRldmRhdGFbaV0ubmFtZSwNCj4gICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICBzdWJkZXZkYXRhW2ldLm5hbWUsDQo+ICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgJnN1YmRldmRhdGFbaV0uYWRkcik7
+DQo+ICAgICAgICAgICAgICAgIGlmICghdnBpZl9vYmouc2RbaV0pIHsNCj4gICAgICAgICAgICAg
+ICAgICAgICAgICB2cGlmX2VycigiRXJyb3IgcmVnaXN0ZXJpbmcgdjRsMiBzdWJkZXZpY2VcbiIp
+Ow0KPiAgICAgICAgICAgICAgICAgICAgICAgIGdvdG8gcHJvYmVfc3ViZGV2X291dDsNCj4gICAg
+ICAgICAgICAgICAgfQ0KPg0KPiAgICAgICAgICAgICAgICBpZiAodnBpZl9vYmouc2RbaV0pDQo+
+ICAgICAgICAgICAgICAgICAgICAgICAgdnBpZl9vYmouc2RbaV0tPmdycF9pZCA9IDEgPDwgaTsN
+Cj4gICAgICAgIH0NCj4NCj5UaGlzOiAnJnN1YmRldmRhdGFbaV0uYWRkcicgc2hvdWxkIGJlOiBJ
+MkNfQUREUlMoc3ViZGV2ZGF0YVtpXS5hZGRyKS4NCj4NCj5UaGUgbGlzdCBvZiBwcm9iZSBhZGRy
+ZXNzZXMgbXVzdCBiZSB0ZXJtaW5hdGVkIGJ5IEkyQ19DTElFTlRfRU5EICg9IC0xKSBhbmQNCj50
+aGF0IGlzbid0IHRoZSBjYXNlIGhlcmUuDQo+DQo+QW4gYWx0ZXJuYXRpdmUgc29sdXRpb24gaXMg
+dG8gdXNlIHY0bDJfaTJjX25ld19zdWJkZXYsIGJ1dCB0aGVuIG5vIHByb2JpbmcNCj53aWxsIHRh
+a2UgcGxhY2UuIEJ1dCBJIHRoaW5rIHRoYXQgeW91IGRvbid0IHdhbnQgcHJvYmluZyBhdCBhbGwg
+c2luY2UgdGhpcw0KPmFkZHJlc3MgaW5mb3JtYXRpb24gY29tZXMgZnJvbSB0aGUgcGxhdGZvcm0g
+ZGF0YSwgc28gb25lIGNhbiBhc3N1bWUgdGhhdA0KPnRoYXQgZGF0YSBpcyBjb3JyZWN0Lg0KPg0K
+PkV2ZW4gYmV0dGVyIGlzIHRvIGNvcHkgdGhlIGltcGxlbWVudGF0aW9uIGZyb20gdnBmZV9jYXB0
+dXJlLmMgYW5kIHRvIHVzZQ0KPnY0bDJfaTJjX25ld19zdWJkZXZfYm9hcmQoKS4NCj4NCj5SZWdh
+cmRzLA0KPg0KPglIYW5zDQo+DQo+LS0NCj5IYW5zIFZlcmt1aWwgLSB2aWRlbzRsaW51eCBkZXZl
+bG9wZXIgLSBzcG9uc29yZWQgYnkgVEFOREJFUkcgVGVsZWNvbQ0KPi0tDQo+VG8gdW5zdWJzY3Jp
+YmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LW1lZGlh
+IiBpbg0KPnRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3Jn
+DQo+TW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRv
+bW8taW5mby5odG1sDQoNCg==
