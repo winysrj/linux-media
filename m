@@ -1,60 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:54711
-	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750801AbZH0ROK (ORCPT
+Received: from smtp.nokia.com ([192.100.122.233]:19234 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753341AbZHJJ7N (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Aug 2009 13:14:10 -0400
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Input <linux-input@vger.kernel.org>
-Message-Id: <29D7CA0B-C3C6-4053-AD14-434C590DDC0A@wilsonet.com>
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Peter Brouwer <pb.maillists@googlemail.com>
-In-Reply-To: <4A96BD05.1080205@googlemail.com>
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0 (Apple Message framework v936)
-Subject: Re: [RFC] Infrared Keycode standardization
-Date: Thu, 27 Aug 2009 13:12:21 -0400
-References: <20090827045710.2d8a7010@pedra.chehab.org> <4A96BD05.1080205@googlemail.com>
+	Mon, 10 Aug 2009 05:59:13 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCH 1/1] si4713-i2c: Fix null pointer reference in probe
+Date: Mon, 10 Aug 2009 12:46:09 +0300
+Message-Id: <1249897569-24203-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Aug 27, 2009, at 1:06 PM, Peter Brouwer wrote:
+Remove reference to uninitialized v4l2_subdevice pointer
+in fail path of probe function.
 
-> Mauro Carvalho Chehab wrote:
->
-> Hi Mauro, All
->
-> Would it be an alternative to let lirc do the mapping and just let  
-> the driver pass the codes of the remote to the event port.
-> That way you do not need to patch the kernel for each new card/ 
-> remote that comes out.
-> Just release a different map file for lirc for the remote of choice.
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ linux/drivers/media/radio/si4713-i2c.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-But even if lirc is opening the event device, its worth standardizing  
-what keys send which event code. I still need to read over the entire  
-proposal, as well as some earlier related threads, been busy with  
-other things.
-
-Sidenote: someone (me) also needs to stop sloughing and submit lirc  
-drivers upstream again...
-
-
->> After years of analyzing the existing code and receiving/merging  
->> patches
->> related to IR, and taking a looking at the current scenario, it is  
->> clear to me
->> that something need to be done, in order to have some standard way  
->> to map and
->> to give precise key meanings for each used media keycode found on
->> include/linux/input.h.
-
-...
-
+diff --git a/linux/drivers/media/radio/si4713-i2c.c b/linux/drivers/media/radio/si4713-i2c.c
+index 116555c..e45d236 100644
+--- a/linux/drivers/media/radio/si4713-i2c.c
++++ b/linux/drivers/media/radio/si4713-i2c.c
+@@ -1976,7 +1976,7 @@ static int si4713_probe(struct i2c_client *client,
+ 
+ 	sdev->platform_data = client->dev.platform_data;
+ 	if (!sdev->platform_data) {
+-		v4l2_err(&sdev->sd, "No platform data registered.\n");
++		dev_err(&client->dev, "No platform data registered.\n");
+ 		rval = -ENODEV;
+ 		goto free_sdev;
+ 	}
 -- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
+1.6.2.GIT
 
