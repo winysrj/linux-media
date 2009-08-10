@@ -1,78 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:36100 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751085AbZHXEfF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Aug 2009 00:35:05 -0400
-Received: from list by lo.gmane.org with local (Exim 4.50)
-	id 1MfRGq-0006NG-3N
-	for linux-media@vger.kernel.org; Mon, 24 Aug 2009 06:35:04 +0200
-Received: from ppp226-9.static.internode.on.net ([59.167.226.9])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 24 Aug 2009 06:35:04 +0200
-Received: from malcolm.caldwell by ppp226-9.static.internode.on.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 24 Aug 2009 06:35:04 +0200
-To: linux-media@vger.kernel.org
-From: Malcolm Caldwell <malcolm.caldwell@cdu.edu.au>
-Subject: Nova-TD-500 (84xxx) problems (was Re: dib0700 diversity support)
-Date: Mon, 24 Aug 2009 01:11:55 +0930
-Message-ID: <1251042115.19935.16.camel@lychee.local>
-References: <1250177934.6590.120.camel@mattotaupa.wohnung.familie-menzel.net>
-	 <alpine.LRH.1.10.0908140947560.14872@pub3.ifh.de>
-	 <1250244562.5438.3.camel@mattotaupa.wohnung.familie-menzel.net>
-	 <alpine.LRH.1.10.0908181052400.7725@pub1.ifh.de>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <alpine.LRH.1.10.0908181052400.7725@pub1.ifh.de>
+Received: from mail-fx0-f228.google.com ([209.85.220.228]:34546 "EHLO
+	mail-fx0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753938AbZHJVxQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Aug 2009 17:53:16 -0400
+Received: by fxm28 with SMTP id 28so1191693fxm.17
+        for <linux-media@vger.kernel.org>; Mon, 10 Aug 2009 14:53:16 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1249753564.15160.248.camel@tux.localhost>
+References: <1249753564.15160.248.camel@tux.localhost>
+Date: Mon, 10 Aug 2009 17:53:16 -0400
+Message-ID: <30353c3d0908101453w797f2a14ve54f434cfdb12849@mail.gmail.com>
+Subject: Re: [patch review 3/6] radio-mr800: no need to pass curfreq value to
+	amradio_setfreq()
+From: David Ellingsworth <david@identd.dyndns.org>
+To: Alexey Klimov <klimov.linux@gmail.com>
+Cc: Douglas Schilling Landgraf <dougsland@gmail.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Please can someone help...
-
-I have been trying to get my nova-td-500 to work, but no matter what I
-try I get a substandard signal, with lots of errors.
-
-This is about the same as described elsewhere on this list.
-
-I tried this code (posted by Patrick Boettcher below), hoping it may be
-a little better but, so far, it has not improved things at all.
-
-I have even replaced the antenna on my roof, in the hope of getting a
-better signal, but I still get errors.
-
-I have tried the top, the bottom and both antenna connectors, but it
-does not seem to make much difference.
-
-Is there anything else I could try?  I really want a working system
-again. (I replaced an old buggy card with this one, not knowing it would
-be such a problem)
-
-
-On Tue, 2009-08-18 at 10:54 +0200, Patrick Boettcher wrote:
-> Hi Paul,
-> 
-> On Fri, 14 Aug 2009, Paul Menzel wrote:
-> >> I'll post a request for testing soon.
-> >
-> > I am looking forward to it.
-> 
-> Can you please try the drivers from here: 
-> http://linuxtv.org/hg/~pb/v4l-dvb/
-> 
-> In the best case they improve the situation for you. In the worst case 
-> (not wanted :) ) it will degrade.
-> 
+On Sat, Aug 8, 2009 at 1:46 PM, Alexey Klimov<klimov.linux@gmail.com> wrote:
+> Small cleanup of amradio_setfreq(). No need to pass radio->curfreq value
+> to this function.
+>
+> Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+>
 > --
-> 
-> Patrick
-> http://www.kernellabs.com/
+> diff -r 5f3329bebfe4 linux/drivers/media/radio/radio-mr800.c
+> --- a/linux/drivers/media/radio/radio-mr800.c   Wed Jul 29 12:36:46 2009 +0400
+> +++ b/linux/drivers/media/radio/radio-mr800.c   Wed Jul 29 12:41:51 2009 +0400
+> @@ -202,11 +202,11 @@
+>  }
+>
+>  /* set a frequency, freq is defined by v4l's TUNER_LOW, i.e. 1/16th kHz */
+> -static int amradio_setfreq(struct amradio_device *radio, int freq)
+> +static int amradio_setfreq(struct amradio_device *radio)
+>  {
+>        int retval;
+>        int size;
+> -       unsigned short freq_send = 0x10 + (freq >> 3) / 25;
+> +       unsigned short freq_send = 0x10 + (radio->curfreq >> 3) / 25;
+
+I suspect there may be race conditions here. Once again you're reading
+a value without first acquiring the lock. Since this is another
+utility function, the lock should probably be held _before_ calling
+this function and any locking in this function should be removed.
+Adding a BUG_ON(!is_mutex_locked(&radio->lock)) should probably be
+added as well.
+
+>
+>        /* safety check */
+>        if (radio->removed)
+> @@ -413,7 +413,7 @@
+>        radio->curfreq = f->frequency;
+>        mutex_unlock(&radio->lock);
+>
+> -       retval = amradio_setfreq(radio, radio->curfreq);
+> +       retval = amradio_setfreq(radio);
+>        if (retval < 0)
+>                amradio_dev_warn(&radio->videodev->dev,
+>                        "set frequency failed\n");
+>
+>
+>
+> --
+> Best regards, Klimov Alexey
+>
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
+Regards,
 
-
+David Ellingsworth
