@@ -1,67 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45743 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758203AbZHQXXP convert rfc822-to-8bit (ORCPT
+Received: from mail-pz0-f196.google.com ([209.85.222.196]:39329 "EHLO
+	mail-pz0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753216AbZHJVXK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Aug 2009 19:23:15 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
-Date: Mon, 17 Aug 2009 18:23:10 -0500
-Subject: RE: [PATCH v1 - 1/5] DaVinci - restructuring code to support vpif
- capture driver
-Message-ID: <A69FA2915331DC488A831521EAE36FE40145300FC7@dlee06.ent.ti.com>
-References: <1250283702-5582-1-git-send-email-m-karicheri2@ti.com>
- <200908172046.34453.hverkuil@xs4all.nl>
- <A69FA2915331DC488A831521EAE36FE40145300E82@dlee06.ent.ti.com>
- <200908172227.11300.hverkuil@xs4all.nl>
-In-Reply-To: <200908172227.11300.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Mon, 10 Aug 2009 17:23:10 -0400
+Received: by pzk34 with SMTP id 34so3086050pzk.4
+        for <linux-media@vger.kernel.org>; Mon, 10 Aug 2009 14:23:11 -0700 (PDT)
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com
+Subject: Re: [PATCH] V4L/DVB: dm646x: fix DMA_nnBIT_MASK
+References: <1248389413-19366-1-git-send-email-khilman@deeprootsystems.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Date: Mon, 10 Aug 2009 14:23:08 -0700
+In-Reply-To: <1248389413-19366-1-git-send-email-khilman@deeprootsystems.com> (Kevin Hilman's message of "Thu\, 23 Jul 2009 15\:50\:13 -0700")
+Message-ID: <87r5vjfjnn.fsf@deeprootsystems.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans,
+Kevin Hilman <khilman@deeprootsystems.com> writes:
 
-I have re-send vpfe capture patch. I will re-send vpif patches tomorrow.
+> Fix deprecated use of DMA_nnBIT_MASK which now gives a compiler
+> warning.
+>
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> ---
+> This compiler warning patch is on top of the master branch of Mauro's 
+> linux-next tree.
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-new phone: 301-407-9583
-Old Phone : 301-515-3736 (will be deprecated)
-email: m-karicheri2@ti.com
+Ping. 
 
->-----Original Message-----
->From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
->Sent: Monday, August 17, 2009 4:27 PM
->To: Karicheri, Muralidharan
->Cc: linux-media@vger.kernel.org; davinci-linux-open-
->source@linux.davincidsp.com; khilman@deeprootsystems.com
->Subject: Re: [PATCH v1 - 1/5] DaVinci - restructuring code to support vpif
->capture driver
->
->On Monday 17 August 2009 22:10:04 Karicheri, Muralidharan wrote:
->> Hans,
->>
->> Would you like the architecture specific changes against v4l-dvb linux-
->next tree or linux-davinci ? I will rework both the vpfe and vpif patches
->as per your comment.
->
->v4l-dvb linux-next. The current v4l-dvb at least compiles against that one,
->so
->that is the most appropriate tree to do the patches against.
->
->Regards,
->
->	Hans
->
->--
->Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+This is needed on top of the DaVinci changes queued in the master branch
+of Mauro's linux-next.git.
 
+Kevin
+
+>  arch/arm/mach-davinci/dm646x.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-davinci/dm646x.c
+> index 73a7e8b..8f38371 100644
+> --- a/arch/arm/mach-davinci/dm646x.c
+> +++ b/arch/arm/mach-davinci/dm646x.c
+> @@ -720,7 +720,7 @@ static struct platform_device vpif_display_dev = {
+>  	.id		= -1,
+>  	.dev		= {
+>  			.dma_mask 		= &vpif_dma_mask,
+> -			.coherent_dma_mask	= DMA_32BIT_MASK,
+> +			.coherent_dma_mask	= DMA_BIT_MASK(32),
+>  	},
+>  	.resource	= vpif_resource,
+>  	.num_resources	= ARRAY_SIZE(vpif_resource),
+> -- 
+> 1.6.3.3
