@@ -1,118 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2422 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751210AbZHRSYo (ORCPT
+Received: from mail-in-16.arcor-online.net ([151.189.21.56]:47284 "EHLO
+	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754759AbZHJAFb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2009 14:24:44 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id n7IIOifT084831
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 18 Aug 2009 20:24:45 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 18 Aug 2009 20:24:44 +0200 (CEST)
-Message-Id: <200908181824.n7IIOifT084831@smtp-vbr1.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Sun, 9 Aug 2009 20:05:31 -0400
+Subject: Re: Support for Items ITV-301
+From: hermann pitton <hermann-pitton@arcor.de>
+To: "Michael A. Fallavollita, Ph.D." <mikef@microtech.com>,
+	Andre Auzi <aauzi@users.sourceforge.net>
+Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org
+In-Reply-To: <1249806176.3300.29.camel@pc07.localdom.local>
+References: <4A7E5B1D.5060102@microtech.com>
+	 <1249806176.3300.29.camel@pc07.localdom.local>
+Content-Type: text/plain
+Date: Mon, 10 Aug 2009 02:04:08 +0200
+Message-Id: <1249862648.3296.36.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of v4l-dvb:
+Am Sonntag, den 09.08.2009, 10:22 +0200 schrieb hermann pitton:
+> Hi Michael,
+> 
+> Am Samstag, den 08.08.2009, 22:14 -0700 schrieb Michael A. Fallavollita,
+> Ph.D.:
+> > Hello to the list.
+> > 
+> > I bought a generic SAA7130 based card from ebay a while back.  After
+> > much research I have determined that it is an ITV-301.  I noticed in
+> > searching the archives of this list that a patch was posted by Andre
+> > Auzi a while back  but it doesn't appear that this card made it into the
+> > current source.  I was wondering if anyone has a current build of the 
+> > module that includes support for this device or perhaps can point me to 
+> > a supported card in the list that works.
+> > 
+> > Thanks.
+> > 
+> >     -- Mike
+> > 
+> > 
+> 
+> http://article.gmane.org/gmane.comp.video.video4linux/38064
+> 
+> how can you ever know, it is a ITV-301?
+> 
+> saa7133[0]: Huh, no eeprom present (err=-5)?
+> 
+> It can be anything with any tuner.
+> 
+> Likely this is why that patch never made it in.
+> 
+> The interesting lines are:
+> 
+> +                * saa7133[0]: board init: gpio is 4c04c00
+> +                * tuner' 2-0043: chip found @ 0x86 (saa7133[0])
+> 
+> Any such the same?
+> 
+> Have a look at saa7134-cards.c.
+> 
+> Anything with vmux = 3 and amux = LINE2 for TV and forced tuner=38
+> should work then for TV. Well, we have already a lot of duplicate code.
+> 
 
-date:        Tue Aug 18 19:00:03 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12458:3f7e382dfae5
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+looked closer to cards without eeprom.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc5-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-rc5-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-rc5-armv5-omap2: OK
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-rc5-i686: OK
-linux-2.6.23.12-m32r: ERRORS
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc5-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-rc5-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-rc5-powerpc64: OK
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc5-x86_64: OK
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc5): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+This Items ITV-301 seems to be identical with current Manli MTV301.
 
-Detailed results are available here:
+http://www.manli.com/eng_products_detail.php?pCatId=63&productId=105#
+http://pcgeneral.hu/images/itv301.jpg
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+Andre in his later patches uses also the IR configuration of prior Manli
+cards we have.
 
-Full logs are available here:
+The above card(s) use now saa7135 chips, the older ones we have saa7130.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+Because of that, there is a flaw in Andre's patch.
+He uses, like on saa7130 mono only chips, LINE2 input from tuner to the
+saa7135. This is only mono sound from the tuner.
 
-The V4L2 specification from this daily build is here:
+Instead amux = TV should be used to get stereo sound on that board.
+(Some older cards still have mono from tuner additionally in their
+configuration)
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+This, in combination with the Manli IR, the different audio clock
+compared to the Manli cards and the MK3 tuner would justify a new entry
+for the card I think.
 
-The DVB API specification from this daily build is here:
+Could you try, if .amux = TV works for Television?
 
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+Reworked patches must go to linux-media@vger.kernel.org
+
+This is the valid list now and "patchwork", patchwork.kernel.org for
+linux-media, tries to collect the patches from that list.
+
+Make sure to run "make checkpatch" before and send also as .patch
+attachment. Andre's mailer breaks the lines.
+
+I'm not sure for what that gpiomask is needed, but else you could try
+for now with
+
+"options saa7134 card=27 tuner=38 audio_clock_override=0x00187de7"
+
+That will also have only mono sound for Television.
+
+Cheers,
+Hermann
+
+
+
 
