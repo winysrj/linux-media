@@ -1,29 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n7BLmMZq003423
-	for <video4linux-list@redhat.com>; Tue, 11 Aug 2009 17:48:22 -0400
-Received: from partygirl.tmr.com (mail.tmr.com [64.65.253.246])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n7BLm8TD028078
-	for <video4linux-list@redhat.com>; Tue, 11 Aug 2009 17:48:08 -0400
-Received: from partygirl.tmr.com (partygirl.tmr.com [127.0.0.1])
-	by partygirl.tmr.com (8.14.2/8.14.2) with ESMTP id n7BLm7f5010693
-	for <video4linux-list@redhat.com>; Tue, 11 Aug 2009 17:48:07 -0400
-Message-ID: <4A81E717.1040509@tmr.com>
-Date: Tue, 11 Aug 2009 17:48:07 -0400
-From: Bill Davidsen <davidsen@tmr.com>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n7ACFNXb019345
+	for <video4linux-list@redhat.com>; Mon, 10 Aug 2009 08:15:23 -0400
+Received: from mail-fx0-f205.google.com (mail-fx0-f205.google.com
+	[209.85.220.205])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n7ACF6T9012348
+	for <video4linux-list@redhat.com>; Mon, 10 Aug 2009 08:15:06 -0400
+Received: by fxm1 with SMTP id 1so2106340fxm.7
+	for <video4linux-list@redhat.com>; Mon, 10 Aug 2009 05:15:05 -0700 (PDT)
 MIME-Version: 1.0
-CC: video4linux M/L <video4linux-list@redhat.com>
-References: <4A7B2BDB.5000906@tmr.com>	
-	<829197380908061221l54ba8f1pcbec404200ae6c93@mail.gmail.com>	
-	<4A7B37F9.8070905@tmr.com>	
-	<829197380908061318x5ee6ccfbn5d8890e98b6f6325@mail.gmail.com>	
-	<4A81AC59.5020306@tmr.com>
-	<829197380908111051v3e446534k73ae23883c510e65@mail.gmail.com>
-In-Reply-To: <829197380908111051v3e446534k73ae23883c510e65@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: Re: Is there any working video capture card which works and is still
- made?
+In-Reply-To: <20090810072513.GL6108@pengutronix.de>
+References: <eedb5540908060552n43021d5bla6ee655c294307eb@mail.gmail.com>
+	<20090807191809.GJ5842@pengutronix.de>
+	<9319940908091109l64530b9cgd2e305ea8127a35a@mail.gmail.com>
+	<eedb5540908092359g27e61389wad4a918f3339ae38@mail.gmail.com>
+	<20090810072513.GL6108@pengutronix.de>
+Date: Mon, 10 Aug 2009 08:15:05 -0400
+Message-ID: <9319940908100515w21d38a5bs6c6a552b07498fc4@mail.gmail.com>
+From: Derek Bouius <dbouius@gmail.com>
+To: Sascha Hauer <sha@pengutronix.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: soc-camera driver for i.MX27
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,75 +34,42 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Devin Heitmueller wrote:
-> On Tue, Aug 11, 2009 at 1:37 PM, Bill Davidsen<davidsen@tmr.com> wrote:
->   
->> Since you quoted the HVR-950Q as working, I tried one of those. Someone else
->> said the ATI HDTV-Wonder works. Neither do. I tried all of the programs
->> people swore work with these cards: tvtime, xawtv, cheese, and vlc. Mythtv
->> appears to need the whole system tuned to be a pvr, not the intent here,
->> users want to monitor CNN, MSNBC, and similar news or financial channels in
->> a window without needing to get a TV for each seat.
->>     
+On Mon, Aug 10, 2009 at 3:25 AM, Sascha Hauer<sha@pengutronix.de> wrote:
+> Hi,
 >
-> Well since I did the support for the HVR-950Q, I'm pretty sure it
-> works. :-)  With regards to the "ATI HDTV-Wonder" card you referred
-> to, there are many cards with that name, so you would need to be more
-> specific (providing a model number and bus type).  For example, I did
-> the work for the "ATI TV Wonder HD 600 USB".  For analog support, both
-> of the above cards work fine with tvtime.
+> On Mon, Aug 10, 2009 at 08:59:23AM +0200, javier Martin wrote:
+>> Dear Derek,
+>>
+>> >> We have a driver for the phyCORE-i.MX27 board:
+>> >> http://git.pengutronix.de/?p=phytec/linux-2.6.git;a=blob;f=drivers/media/video/mx27_camera.c;h=9e9f4426c3db890e6fc13130e047c65c073aa0b4;hb=refs/heads/phytec-master
+>>
+>> Thank you for the pointer to the patch.
+>>
+>> > I have just used this driver to interface to a soc imager (Aptina
+>> > mt9p031) on the phyCORE-i.MX27 board. It works for acquiring a 640x480
+>> > video stream quite reliably. I am currently working on getting it to
+>> > be able to capture a full image frame (5MB) as well as various image
+>> > sizes in between. I am running into out of memory issues with the
+>> > dma_alloc_coherent() and not sure what the solution is yet.
+>> >
+>>
+>> Maybe you are requesting too much contiguous memory. I don't remember
+>> where that could be changed.
 >
->   
-Do you have some particular application with which you think it "works?" 
-If by works you mean a /dv/video0 and /dev/dvb/* ar created and the 
-kernel log shows no errors, then it works. By works I mean there is some 
-application (I listed several) which actually has audio and video, and 
-the number of such I can identify is still zero. When analog cards were 
-being made virtually every application worked fine,
-
-> If you have a specific case that is causing you problems, please
-> provide details as to exactly which card you are trying to use, which
-> distro and application you are using, and what errors you are seeing
-> and we will see if we can help you debug your problem.  But saying
-> vague things like "nothing works" isn't really a constructive way to
-> improve your situation.
+> It's CONSISTENT_DMA_SIZE.
 >
->   
-I went out and got the HVR-950Q because you said it worked, as noted 
-above the kernel like it but nothing I can find will use it usefully, I 
-posted the lspci -vvvv for the ATI HDTV-Wonder, what exactly more do you 
-need to identify a specific card? This is the problem I've had for 
-years, that cards with the same part number aren't the same part. :-(
->> And after all that I am still at ground zero, not only nothing I would date
->> try to give to an end user, but nothing I want to use myself, tuning by
->> frequencies in MHz, good grief! The kernel loads drivers and makes entries
->> in /dev/dvb and/or /dev/videoN, but none of the software people suggested
->> does anything useful.
->>     
->
-> You only need to tune to something specifying MHz if you are using the
-> command line tools.  The GUI applications have built in mechanisms to
-> change channels.
->
-> I agree that there is plenty of room for improvement in the
-> application space.  Feel free to roll up your sleeves and help out
-> (that's how I got involved in the project, after all).  Given the
-> number of devices people are demanding support for, we are quite
-> understaffed and could use all the help we could get.
->
-> Devin
->
->   
+That did the trick.
+Thanks, Derek
 
 
--- 
-bill davidsen <davidsen@tmr.com>
-  CTO TMR Associates, Inc
-
-"You are disgraced professional losers. And by the way, give us our money back."
-    - Representative Earl Pomeroy,  Democrat of North Dakota
-on the A.I.G. executives who were paid bonuses  after a federal bailout.
-
+> Sascha
+>
+> --
+> Pengutronix e.K.                           |                             |
+> Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+> Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+> Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+>
 
 --
 video4linux-list mailing list
