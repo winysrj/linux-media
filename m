@@ -1,49 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:33369 "EHLO mail1.radix.net"
+Received: from comal.ext.ti.com ([198.47.26.152]:37051 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753301AbZHBSNE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 2 Aug 2009 14:13:04 -0400
-Subject: Re: correct implementation of FE_READ_UNCORRECTED_BLOCKS
-From: Andy Walls <awalls@radix.net>
-To: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <20090802175622.GB19034@moon>
-References: <20090802174836.GA19034@moon>  <20090802175622.GB19034@moon>
-Content-Type: text/plain
-Date: Sun, 02 Aug 2009 14:11:38 -0400
-Message-Id: <1249236698.2981.18.camel@morgan.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	id S1754742AbZHKVCE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Aug 2009 17:02:04 -0400
+From: m-karicheri2@ti.com
+To: linux-media@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com, hverkuil@xs4all.nl,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: [PATCH 3/4 - v2] V4L: ccdc driver - select MSP driver for CCDC input selection
+Date: Tue, 11 Aug 2009 17:01:58 -0400
+Message-Id: <1250024518-5118-1-git-send-email-m-karicheri2@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2009-08-02 at 20:56 +0300, Aleksandr V. Piskunov wrote:
-> Oops, sent it way too fast. Anyway.
-> 
-> DVB API documentation says:
-> "This ioctl call returns the number of uncorrected blocks detected by
-> the device driver during its lifetime.... Note that the counter will
-> wrap to zero after its maximum count has been reached."
-> 
-> Does it mean that correct implementation of frontend driver should
-> keep its own counter of UNC blocks and increment it every time hardware
-> reports such block?
+From: Muralidharan Karicheri <m-karicheri2@ti.com>
 
-No, but a frontend driver may wish to keep a software counter that is
-wider than the hardware register counter, in case the hardware register
-rolls over too frequently.
+There were no comments against v1 of this patch. So no change from v1 of the patch
 
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-> >From what I see, a lot of current frontend drivers simply dump a value
-> from some hardware register. For example zl10353 I got here reports 
-> some N unc blocks and then gets back to reporting zero.
+Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+---
+Applies to V4L-DVB linux-next repository
+ drivers/media/video/Kconfig |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-To support the use case of multiple user apps trying to collect UNC
-block statistics, the driver should not zero out the UNC block counter
-when read.  If the hardware zeros it automatically, then one probably
-should maintain a software counter in the driver.
-
-Regards,
-Andy
-
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 8460013..a70d75a 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -565,13 +565,15 @@ config VIDEO_DM355_CCDC
+ 	tristate "DM355 CCDC HW module"
+ 	depends on ARCH_DAVINCI_DM355 && VIDEO_VPFE_CAPTURE
+ 	select VIDEO_VPSS_SYSTEM
++	select MFD_DM355EVM_MSP
+ 	default y
+ 	help
+ 	   Enables DM355 CCD hw module. DM355 CCDC hw interfaces
+ 	   with decoder modules such as TVP5146 over BT656 or
+ 	   sensor module such as MT9T001 over a raw interface. This
+ 	   module configures the interface and CCDC/ISIF to do
+-	   video frame capture from a slave decoders
++	   video frame capture from a slave decoders. MFD_DM355EVM_MSP
++	   is enabled to select input to CCDC at run time.
+ 
+ 	   To compile this driver as a module, choose M here: the
+ 	   module will be called vpfe.
+-- 
+1.6.0.4
 
