@@ -1,64 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:39315 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751697AbZHYQBQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2009 12:01:16 -0400
-Date: Tue, 25 Aug 2009 13:01:12 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: lotway@nildram.co.uk
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: PVR-150, NMI causes reboot in expansion chassis
-Message-ID: <20090825130112.32f274d7@pedra.chehab.org>
-In-Reply-To: <4A93FE64.9060002@nildram.co.uk>
-References: <4A93FE64.9060002@nildram.co.uk>
+Received: from smtp3-g21.free.fr ([212.27.42.3]:57804 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754929AbZHKRmY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Aug 2009 13:42:24 -0400
+Date: Tue, 11 Aug 2009 19:42:15 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Olaf Titz <Olaf.Titz@inka.de>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] gspca: add g_std/s_std methods
+Message-ID: <20090811194215.0dd6e3f8@tele>
+In-Reply-To: <E1MaElV-0004zK-7v@bigred.inka.de>
+References: <E1MaElV-0004zK-7v@bigred.inka.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 25 Aug 2009 16:08:20 +0100
-Lou Otway <lotway@nildram.co.uk> escreveu:
+On Sun, 09 Aug 2009 22:13:12 +0200
+Olaf Titz <Olaf.Titz@inka.de> wrote:
 
-> Hi,
-> 
-> I've been running Hauppauge PVR-150 cards in an expansion chassis and 
-> seeing this kind of thing:
-> 
-> kernel: Uhhuh. NMI received for unknown reason 30 on CPU 0.
-> kernel: Do you have a strange power saving mode enabled?
-> kernel: Dazed and confused, but trying to continue
-> 
-> Or, on a different hardware type:
-> 
-> kernel: Uhhuh. NMI received for unknown reason b1 on CPU 0.
-> kernel: You have some hardware problem, likely on the PCI bus.
-> kernel: Dazed and confused, but trying to continue
-> 
-> When the cards are installed on a motherboard slot they're fine, but in 
-> expansion chassis they really don't work well. 	
-> 
-> The theory is that the DMA controller has some problems.
-> 
-> Is there anyone seeing similar issues? Suggestions for things to try to 
-> fix it would be most welcome.
+> Some applications are unhappy about getting EINVAL errors for
+> query/set TV standard operations, especially (or only?) when working
+> over the v4l1compat.so bridge. This patch adds the appropriate
+> methods to the gspca driver (claim to support all TV modes, setting
+> TV mode does nothing).
 
-The drivers/media drivers don't touch at the NMI controller, so I suspect that
-it is something at the PCI controller or at NMI level. 
+The vidioc_s_std() has been removed last month by Németh Márton
+according to the v4l2 API http://v4l2spec.bytesex.org/spec/x448.htm
 
-If you are using a distro-patched kernel, maybe the better is to open a ticket
-with your distribution ticket tracking system, since they may have some patches
-applied on their kernel that may have some patches touching at NMI and/or PCI.
-
-If you are otherwise using the upstream kernel, the better is to upgrade to the
-latest 2.6.30 kernel and test it again. In this case, if, with the latest
-kernel you're still suffering troubles, I suggest you to open a ticket at
-kernel.bugzilla.org and/or sending an email to LKML. Please report there enough
-details about your hardware and the kernel version you're using.
-
-
-
-
-Cheers,
-Mauro
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
