@@ -1,20 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-ew0-f228.google.com ([209.85.219.228])
+Received: from smtp5.freeserve.com ([193.252.22.128])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <cwattengard@gmail.com>) id 1MYZmx-0007l0-VC
-	for linux-dvb@linuxtv.org; Wed, 05 Aug 2009 08:15:52 +0200
-Received: by ewy28 with SMTP id 28so79158ewy.17
-	for <linux-dvb@linuxtv.org>; Tue, 04 Aug 2009 23:15:18 -0700 (PDT)
+	(envelope-from <c.j.thornley@coolrose.fsnet.co.uk>)
+	id 1MawAJ-0000xL-Ne
+	for linux-dvb@linuxtv.org; Tue, 11 Aug 2009 20:33:44 +0200
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf3409.me.freeserve.com (SMTP Server) with ESMTP id 169161C00083
+	for <linux-dvb@linuxtv.org>; Tue, 11 Aug 2009 20:33:05 +0200 (CEST)
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf3409.me.freeserve.com (SMTP Server) with ESMTP id 07ED31C00082
+	for <linux-dvb@linuxtv.org>; Tue, 11 Aug 2009 20:33:05 +0200 (CEST)
+Received: from SOL (unknown [91.109.64.68])
+	by mwinf3409.me.freeserve.com (SMTP Server) with ESMTP id 5EAC21C00081
+	for <linux-dvb@linuxtv.org>; Tue, 11 Aug 2009 20:33:04 +0200 (CEST)
+From: "Christopher Thornley" <c.j.thornley@coolrose.fsnet.co.uk>
+To: <linux-dvb@linuxtv.org>
+Date: Tue, 11 Aug 2009 19:32:51 +0100
+Message-ID: <!&!AAAAAAAAAAAYAAAAAAAAAMs7WpTkg9MRuRcAACHFyB/CgAAAEAAAAJQ52z3qEFtDsl72y5icHrgBAAAAAA==@coolrose.fsnet.co.uk>
 MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.01.0908050244070.29385@ybpnyubfg.ybpnyqbznva>
-References: <42619c130908040607h13afb69exe74145cd4ec4fc1e@mail.gmail.com>
-	<alpine.DEB.2.01.0908050244070.29385@ybpnyubfg.ybpnyqbznva>
-Date: Wed, 5 Aug 2009 08:15:18 +0200
-Message-ID: <42619c130908042315i11e84df1m462802482c4cbf79@mail.gmail.com>
-From: =?ISO-8859-1?Q?Christian_Watteng=E5rd?= <cwattengard@gmail.com>
-To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Recieving DVB-C with DVB-T units
+Subject: [linux-dvb] TechnoTrend TT-connect S2-3650 CI
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -23,46 +27,108 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2009/8/5 BOUWSMA Barry <freebeer.bouwsma@gmail.com>:
-> On Tue, 4 Aug 2009, Christian Watteng=E5rd wrote:
->
->> But after doing some research on Wikipedia and such, I can't figure
->> out why a DVB-T unit can't be easily modified to recieve DVB-C?
->> They use the same frequencies, the DVB-T specs support QAM (atleast low =
-QAM).
->> My specific cable network uses 64QAM which the specs apparently
->> supports... So where is the underlying problem?
->
-> Basically -- and I could well be wrong, DVB-T uses COFDM carrier
-> modulation, which DVB-C does not -- the DVB-T signal is composed
-> of several thousand carriers, while the DVB-C signal is a single
-> carrier modulated directly. =A0Thus, differently-able hardware is
-> needed facing the antenna.
+Hi,
+I was wondering if you could help me. I am fairly new to using Linux so be a
+bit patient with me and please explain things that might not be obvious to
+me.
 
-Ok. Too bad. Then why are DVB-T units, that needs more technology,
-half the price of DVB-C units... Annoys me... :)
+I have an "ASUS n80vc" Laptop which I have installed Ubuntu 9.04 Desktop
+64bit.
+I also have 2 USB DVB devices :-
 
-> Oh, shouldn't your gmail address be `cwattengaard' instead? =A0;-)
-> I ask having conditioned myself to type `Aarhus' and `Aalen' and
-> `Aargau', speaking them all the same, confusing the heck out of
-> the swiss...
+Technotrend tt-connect S2-3650 CI (DVB-S and DVB-S2)
+Technotrend tt-connect CT-3650 CI (DVB-T and DVB-C)
 
-I made a desicion a long time ago that when using my last-name for
-emails and such, I would just use a single 'a' instead of the
-"correct" internationalization which is 'aa'. Makes it easier to give
-people my email address when I dont have to say "wattengaaaaaaaard"
-just to emphasize the double 'a'.
+I am trying to get these to work with my machine.
 
-The '=E5' / 'aa' sound is pronounced like the first sound in the english
-word "all".
+I believe I need to some how to get these operating with something like
+MythTV or Video4Linux or VDR with a software decoder.
 
--C-
+So far I have tried to install a few packages via the synaptic installer but
+so far non have work successfully with my devices.
+
+I then did a little searching around and stumbled across this page
+http://www.linuxtv.org/wiki/index.php/TechnoTrend_TT-connect_S2-3650_CI
+
+I think these are drivers or interfaces for my devices.
+
+I have followed the instructions for both S2API and Multiproto.
+
+S2API installation seemed to be successful but I have no way of confirming
+this. I had to "Sudo insmod" the modules to install them. I am not to sure
+if they will survive a reboot or will I have to install them again. These
+appear to install without any complaints.
+
+Multiproto installation did not seem to be entirely successful. I followed
+the instructions but the modules are not found when I arrive at the insmod
+stage. I suspect they did not compile successfully. I am clueless as how to
+get these to work.
+
+This is the output I received from the make command and I am not sure if
+this will shed some light on the matter.
+
+system@Firefly:~/3650/multiproto$ make
+make -C /home/system/3650/multiproto/v4l 
+make[1]: Entering directory `/home/system/3650/multiproto/v4l'
+creating symbolic links...
+Kernel build directory is /lib/modules/2.6.28-14-generic/build
+make -C /lib/modules/2.6.28-14-generic/build
+SUBDIRS=/home/system/3650/multiproto/v4l  modules
+make[2]: Entering directory `/usr/src/linux-headers-2.6.28-14-generic'
+  CC [M]  /home/system/3650/multiproto/v4l/cx25840-core.o
+In file included from /home/system/3650/multiproto/v4l/cx25840-core.c:42:
+/home/system/3650/multiproto/v4l/../linux/include/media/v4l2-i2c-drv-legacy.
+h: In function 'v4l2_i2c_drv_init':
+/home/system/3650/multiproto/v4l/../linux/include/media/v4l2-i2c-drv-legacy.
+h:197: warning: assignment from incompatible pointer type
+/home/system/3650/multiproto/v4l/cx25840-core.c: At top level:
+/home/system/3650/multiproto/v4l/cx25840-core.c:71: error: conflicting type
+qualifiers for 'addr_data'
+/home/system/3650/multiproto/v4l/../linux/include/media/v4l2-i2c-drv-legacy.
+h:41: error: previous declaration of 'addr_data' was here
+make[3]: *** [/home/system/3650/multiproto/v4l/cx25840-core.o] Error 1
+make[2]: *** [_module_/home/system/3650/multiproto/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-headers-2.6.28-14-generic'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/home/system/3650/multiproto/v4l'
+make: *** [all] Error 2
+system@Firefly:~/3650/multiproto$ 
+
+I probably would like to get both the S2API and Multiprot methods working.
+
+The article also mentions that there is a "patched version of szap available
+(search mailing list). " I presume this is the correct place to look but
+some pointers and installation instructions would be helpful to me.
+
+If I get the S2API and Multiprot installed how do I use them to tune into,
+watch and download Mpeg Transport streams from DVB? Do they support multipul
+devices plugged in at once and the use of the CI interface?
+
+Any advise to the next stage would be gratefully appreciated.
+
+Many Thanks
+Chris
+
+
+
+
+
+
+               />      Christopher J. Thornley is cjt@coolrose.fsnet.co.uk
+  (           //------------------------------------------------------,
+ (*)OXOXOXOXO(*>=*=O=S=U=0=3=6=*=---------                             >
+  (           \\------------------------------------------------------'
+               \>       Home Page :-http://www.coolrose.fsnet.co.uk
+ 
+
+
+
 
 _______________________________________________
 linux-dvb users mailing list
