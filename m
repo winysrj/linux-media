@@ -1,51 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gw.Deuromedia.ro ([194.176.161.33]:45013 "HELO deuromedia.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1752252AbZHSOPi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Aug 2009 10:15:38 -0400
-Message-ID: <4A8C076C.8040109@deuromedia.com>
-Date: Wed, 19 Aug 2009 17:08:44 +0300
-From: Helmut Ungar <h.ungar@deuromedia.com>
-Reply-To: h.ungar@deuromedia.com
+Received: from mp1-smtp-6.eutelia.it ([62.94.10.166]:58830 "EHLO
+	smtp.eutelia.it" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753915AbZHKVq7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Aug 2009 17:46:59 -0400
+Message-ID: <4A81E6C3.7010802@email.it>
+Date: Tue, 11 Aug 2009 23:46:43 +0200
+From: xwang1976@email.it
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Manfred Petz <m.petz@deuromedia.com>,
-	Gerhard Achs <g.achs@deuromedia.com>
-Subject: V4L-DVB issue in systems with >4Gb RAM?
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Douglas Schilling Landgraf <dougsland@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Issues with Empire Dual Pen: request for help and suggestions!!!
+References: <4A79EC82.4050902@email.it> <4A7AE0B0.20507@email.it>	 <829197380908060717ua009e78nc045f2940c7fc76e@mail.gmail.com>	 <20090806112317.21240b9c@gmail.com> <4A7AF3CF.3060803@email.it>	 <829197380908060821x6cfb60f0jd73e5f9b30c21569@mail.gmail.com>	 <4A7B0333.1010901@email.it> <4A81D38A.2050201@email.it> <829197380908111334xf9a89b4gf2da1e4cc765b27b@mail.gmail.com>
+In-Reply-To: <829197380908111334xf9a89b4gf2da1e4cc765b27b@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Ok!
+I've restored the eprom and now it is recognised again.
+The only not working part is analog tv audio which doesn't work even if 
+I use the sox command.
+Thank you,
+Xwang
 
-Hi,
-
-we are experiencing a problem with the V4L-DVB drivers.
-It seems that when the system has over 4Gb the drivers
-do no longer work properly. Either nothing or rubbish 
-comes out of them, although tuning using szap seems to
-work. If we force the system to use only 4Gb by appending
-mem=4GB as a kernel parameter things are working like a
-charm.
-
-Our setup:
-Dell 2850 server with a Magma PCI extender. There are 6 
-DVB boards in the machine: 5 KNC TV STAR DVB-S and 
-1 Hauppauge Nova-S-Plus DVB-S.
-The system has 8GB of RAM and runs an up-to-date Centos5.3, 
-kernel 2.6.18-128.4.1.el5 x86_64. 
-The V4L-DVB driver we are using is v4l-dvb-2009.08.18.tar.bz2
-On this setup some of the KNC boards are working, the Hauppauge
-does not. In a similar setup where we have only KNCs none
-of them is working unless you force the system to use 4Gb of 
-the available memory.
-
-I would like to know if this is a known issue and if so
-what can be done to fix/work around the problem.
-
-Any help/suggestion/hint is highly welcome.
-Thanks in advance! 
-
-Kind regards,
-Helmut
-
+Devin Heitmueller ha scritto:
+> On Tue, Aug 11, 2009 at 4:24 PM, <xwang1976@email.it> wrote:
+>   
+>> Hi to all!
+>> I don't know why, but today my device has changed its EEPROM hash to the
+>> following value 0x396a0441
+>> as you can see from the attached dmesg.
+>> So it is not recognized anymore.
+>> Is there something that can cause such a change?
+>> I suspect it is not the first time that the eprom hash of this device
+>> change.
+>> Can you help me?
+>> Xwang
+>>
+>> PS Meantime I will change the hash and test if the device work again.
+>>     
+>
+> Comparing the two eeprom dumps (the one from your previous email
+> versus the one you just sent), it would appear that something resulted
+> in the value 0xFF written to offset 0xF0.  What were you doing
+> immediately prior to the failure?  I'm not sure how we could have
+> gotten into this state.
+>
+> Douglas, in a few minutes I am leaving town for the next five days.
+> Can you help Xwang out to restore his eeprom content using your tool?
+>
+> Devin
+>
+>   
