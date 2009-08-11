@@ -1,24 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp5.freeserve.com ([193.252.22.128])
+Received: from wf-out-1314.google.com ([209.85.200.175])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <c.j.thornley@coolrose.fsnet.co.uk>)
-	id 1MawAJ-0000xL-Ne
-	for linux-dvb@linuxtv.org; Tue, 11 Aug 2009 20:33:44 +0200
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf3409.me.freeserve.com (SMTP Server) with ESMTP id 169161C00083
-	for <linux-dvb@linuxtv.org>; Tue, 11 Aug 2009 20:33:05 +0200 (CEST)
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf3409.me.freeserve.com (SMTP Server) with ESMTP id 07ED31C00082
-	for <linux-dvb@linuxtv.org>; Tue, 11 Aug 2009 20:33:05 +0200 (CEST)
-Received: from SOL (unknown [91.109.64.68])
-	by mwinf3409.me.freeserve.com (SMTP Server) with ESMTP id 5EAC21C00081
-	for <linux-dvb@linuxtv.org>; Tue, 11 Aug 2009 20:33:04 +0200 (CEST)
-From: "Christopher Thornley" <c.j.thornley@coolrose.fsnet.co.uk>
-To: <linux-dvb@linuxtv.org>
-Date: Tue, 11 Aug 2009 19:32:51 +0100
-Message-ID: <!&!AAAAAAAAAAAYAAAAAAAAAMs7WpTkg9MRuRcAACHFyB/CgAAAEAAAAJQ52z3qEFtDsl72y5icHrgBAAAAAA==@coolrose.fsnet.co.uk>
+	(envelope-from <tim@dockerz.net>) id 1MaqrJ-0003Fv-9r
+	for linux-dvb@linuxtv.org; Tue, 11 Aug 2009 14:53:46 +0200
+Received: by wf-out-1314.google.com with SMTP id 28so1317106wff.17
+	for <linux-dvb@linuxtv.org>; Tue, 11 Aug 2009 05:53:41 -0700 (PDT)
+Message-ID: <4A8169D0.3030008@dockerz.net>
+Date: Tue, 11 Aug 2009 13:53:36 +0100
+From: Tim Docker <tim@dockerz.net>
 MIME-Version: 1.0
-Subject: [linux-dvb] TechnoTrend TT-connect S2-3650 CI
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] problem: Hauppauge Nova TD500
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -27,107 +19,127 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
 Hi,
-I was wondering if you could help me. I am fairly new to using Linux so be a
-bit patient with me and please explain things that might not be obvious to
-me.
 
-I have an "ASUS n80vc" Laptop which I have installed Ubuntu 9.04 Desktop
-64bit.
-I also have 2 USB DVB devices :-
+I'm trying to diagnose a problem with a mythtv setup based upon a 
+hauppauge nova td 500. I've had the setup for some months - it seemed to 
+work reasonably reliably initially, but over the last few weeks I've had 
+consistent problems with the tuner card entering a state where it is 
+unable to receive a signal. I was seeing multiple errors via dmesg of 
+the form:
 
-Technotrend tt-connect S2-3650 CI (DVB-S and DVB-S2)
-Technotrend tt-connect CT-3650 CI (DVB-T and DVB-C)
+[27317.617958] DiB0070 I2C write failed
 
-I am trying to get these to work with my machine.
+Web trawling suggested that this could be resolved with an updated 
+driver - I did this yesterday, with the latest version from mercurial, 
+obtained and built as per the instructions here:
 
-I believe I need to some how to get these operating with something like
-MythTV or Video4Linux or VDR with a software decoder.
-
-So far I have tried to install a few packages via the synaptic installer but
-so far non have work successfully with my devices.
-
-I then did a little searching around and stumbled across this page
-http://www.linuxtv.org/wiki/index.php/TechnoTrend_TT-connect_S2-3650_CI
-
-I think these are drivers or interfaces for my devices.
-
-I have followed the instructions for both S2API and Multiproto.
-
-S2API installation seemed to be successful but I have no way of confirming
-this. I had to "Sudo insmod" the modules to install them. I am not to sure
-if they will survive a reboot or will I have to install them again. These
-appear to install without any complaints.
-
-Multiproto installation did not seem to be entirely successful. I followed
-the instructions but the modules are not found when I arrive at the insmod
-stage. I suspect they did not compile successfully. I am clueless as how to
-get these to work.
-
-This is the output I received from the make command and I am not sure if
-this will shed some light on the matter.
-
-system@Firefly:~/3650/multiproto$ make
-make -C /home/system/3650/multiproto/v4l 
-make[1]: Entering directory `/home/system/3650/multiproto/v4l'
-creating symbolic links...
-Kernel build directory is /lib/modules/2.6.28-14-generic/build
-make -C /lib/modules/2.6.28-14-generic/build
-SUBDIRS=/home/system/3650/multiproto/v4l  modules
-make[2]: Entering directory `/usr/src/linux-headers-2.6.28-14-generic'
-  CC [M]  /home/system/3650/multiproto/v4l/cx25840-core.o
-In file included from /home/system/3650/multiproto/v4l/cx25840-core.c:42:
-/home/system/3650/multiproto/v4l/../linux/include/media/v4l2-i2c-drv-legacy.
-h: In function 'v4l2_i2c_drv_init':
-/home/system/3650/multiproto/v4l/../linux/include/media/v4l2-i2c-drv-legacy.
-h:197: warning: assignment from incompatible pointer type
-/home/system/3650/multiproto/v4l/cx25840-core.c: At top level:
-/home/system/3650/multiproto/v4l/cx25840-core.c:71: error: conflicting type
-qualifiers for 'addr_data'
-/home/system/3650/multiproto/v4l/../linux/include/media/v4l2-i2c-drv-legacy.
-h:41: error: previous declaration of 'addr_data' was here
-make[3]: *** [/home/system/3650/multiproto/v4l/cx25840-core.o] Error 1
-make[2]: *** [_module_/home/system/3650/multiproto/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-headers-2.6.28-14-generic'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/home/system/3650/multiproto/v4l'
-make: *** [all] Error 2
-system@Firefly:~/3650/multiproto$ 
-
-I probably would like to get both the S2API and Multiprot methods working.
-
-The article also mentions that there is a "patched version of szap available
-(search mailing list). " I presume this is the correct place to look but
-some pointers and installation instructions would be helpful to me.
-
-If I get the S2API and Multiprot installed how do I use them to tune into,
-watch and download Mpeg Transport streams from DVB? Do they support multipul
-devices plugged in at once and the use of the CI interface?
-
-Any advise to the next stage would be gratefully appreciated.
-
-Many Thanks
-Chris
+http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers 
 
 
+I installed this over the top of the 2.6.27-14-generic kernel from the 
+mythbuntu distribution, and manually installed the 1.20 firmware.
+
+In 24 uptime hours I haven't seen any I2C errors, but unfortunately, it 
+has still entered some state where I can't received a signal. 
+Mysteriously, there doesn't appear to be any relevant errors or messages 
+in dmesg. From the log snippet below, you can see that no signal is 
+being returned by tzap, but if I unload and reload the modules, 
+everything comes back to life.
+
+I'd really appreciate any tips or pointers on what might be going wrong 
+here.
+
+Thanks,
+
+Tim
+
+------- snippet showing dmesg dvb related output at boot -----------------
+
+[   11.935560] dib0700: loaded with support for 9 different device-types
+[   11.935760] dvb-usb: found a 'Hauppauge Nova-TD-500 (84xxx)' in cold 
+state, will try to load a firmware
+[   11.935763] firmware: requesting dvb-usb-dib0700-1.20.fw
+[   11.986891] phy0: Selected rate control algorithm 'pid'
+[   12.153734] dvb-usb: downloading firmware from file 
+'dvb-usb-dib0700-1.20.fw'
+[   12.204961] Broadcom 43xx driver loaded [ Features: PLR, Firmware-ID: 
+FW13 ]
+[   12.361320] dib0700: firmware started successfully.
+[   12.864020] dvb-usb: found a 'Hauppauge Nova-TD-500 (84xxx)' in warm 
+state.
+[   12.864066] dvb-usb: will pass the complete MPEG2 transport stream to 
+the software demuxer.
+[   12.864233] DVB: registering new adapter (Hauppauge Nova-TD-500 (84xxx))
+[   13.087819] DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
+[   13.263971] DiB0070: successfully identified
+[   13.263975] dvb-usb: will pass the complete MPEG2 transport stream to 
+the software demuxer.
+[   13.264166] DVB: registering new adapter (Hauppauge Nova-TD-500 (84xxx))
+[   13.402995] DVB: registering adapter 1 frontend 0 (DiBcom 7000PC)...
+[   13.584024] DiB0070: successfully identified
+[   13.584099] input: IR-receiver inside an USB DVB receiver as 
+/devices/pci0000:00/0000:00:0a.0/0000:01:07.2/usb3/3-1/input/input5
+[   13.596142] dvb-usb: schedule remote query interval to 50 msecs.
+[   13.596148] dvb-usb: Hauppauge Nova-TD-500 (84xxx) successfully 
+initialized and connected.
+[   13.596297] usbcore: registered new interface driver dvb_usb_dib0700
 
 
+------ history showing no-signal and recovery by reloading -----------
 
-
-               />      Christopher J. Thornley is cjt@coolrose.fsnet.co.uk
-  (           //------------------------------------------------------,
- (*)OXOXOXOXO(*>=*=O=S=U=0=3=6=*=---------                             >
-  (           \\------------------------------------------------------'
-               \>       Home Page :-http://www.coolrose.fsnet.co.uk
- 
-
-
+timd@dkz-mythtv:~$ sudo tzap -r -c ~/.tzap/channels.conf "ABC1"
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+tuning to 226500000 Hz
+video pid 0x0200, audio pid 0x028a
+status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 | 
+status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 | 
+status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 | 
+status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 | 
+status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 | 
+status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 | 
+status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 | 
+status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 | 
+status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 | 
+status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 | 
+status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 | 
+status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 | 
+status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 | 
+status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 | ^C
+timd@dkz-mythtv:~$ sudo rmmod dib7000p dib7000m dib3000mc dib0070 
+dvb_usb_dib0700
+ERROR: Module dib7000p is in use by dvb_usb_dib0700
+ERROR: Module dib7000m is in use by dvb_usb_dib0700
+ERROR: Module dib3000mc is in use by dvb_usb_dib0700
+ERROR: Module dib0070 is in use by dvb_usb_dib0700
+timd@dkz-mythtv:~$ sudo rmmod dib7000p dib7000m dib3000mc dib0070 
+dvb_usb_dib0700
+ERROR: Module dvb_usb_dib0700 does not exist in /proc/modules
+imd@dkz-mythtv:~$ sudo modprobe dvb-usb-dib0700
+timd@dkz-mythtv:~$ sudo tzap -r -c ~/.tzap/channels.conf "ABC1"
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+tuning to 226500000 Hz
+video pid 0x0200, audio pid 0x028a
+status 1f | signal a89f | snr 0000 | ber 001fffff | unc 00000215 | 
+FE_HAS_LOCK
+status 1f | signal a8c3 | snr 0000 | ber 00000710 | unc 00000000 | 
+FE_HAS_LOCK
+status 1f | signal a8ac | snr 0000 | ber 00000480 | unc 00000000 | 
+FE_HAS_LOCK
+status 1f | signal a8e8 | snr 0000 | ber 000004b0 | unc 00000000 | 
+FE_HAS_LOCK
+status 1f | signal a8d8 | snr 0000 | ber 00000420 | unc 00000000 | 
+FE_HAS_LOCK
+status 1f | signal a8bc | snr 0000 | ber 000003c0 | unc 00000000 | 
+FE_HAS_LOCK
+status 1f | signal a8d0 | snr 0000 | ber 000005b0 | unc 00000000 | 
+FE_HAS_LOCK
 
 
 _______________________________________________
