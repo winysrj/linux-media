@@ -1,61 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:35857 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751902AbZH1HCI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Aug 2009 03:02:08 -0400
-Received: from lyakh (helo=localhost)
-	by axis700.grange with local-esmtp (Exim 4.63)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1MgvTP-0001GI-BW
-	for linux-media@vger.kernel.org; Fri, 28 Aug 2009 09:02:11 +0200
-Date: Fri, 28 Aug 2009 09:02:11 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] soc-camera: remove now unneeded subdevice group ID assignments
-Message-ID: <Pine.LNX.4.64.0908280900370.4462@axis700.grange>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42009 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751847AbZHKWRl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Aug 2009 18:17:41 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "'Hans Verkuil'" <hverkuil@xs4all.nl>,
+	"Jadav, Brijesh R" <brijesh.j@ti.com>, "Yin, Paul" <zhenyin@ti.com>
+Date: Tue, 11 Aug 2009 17:17:38 -0500
+Subject: DM6467 VPIF adding support for HD resolution capture and display
+ standards
+Message-ID: <A69FA2915331DC488A831521EAE36FE401452885B1@dlee06.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since we are not using v4l2_device_call_* calls any more, we don't need to
-initialise subdevice .grp_id any more. This also fixes compiler warnings on
-64-bit platforms.
+Hi Hans,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+We need to add support for HD resolutions capture and display in our DM6467 vpif drivers. The vpif display driver is already part of V4L-DVB linux-next
+repository and capture driver is being reviewed. The next phase of our developments involve adding following HD resolutions for capture and display
+drivers:-
 
-I'm not expecting big problems with this one, so, unless anyone shouts 
-I'll be pushing this out in the next couple of hours.
+720p@60, 720P@50, 1080i@30, 1080i@25.
 
- drivers/media/video/soc_camera.c          |    1 -
- drivers/media/video/soc_camera_platform.c |    1 -
- 2 files changed, 0 insertions(+), 2 deletions(-)
+We will also need to add EDTV resolutions such as 480p@30 & 576p25.
 
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index 0863361..0ebd72d 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -858,7 +858,6 @@ static int soc_camera_init_i2c(struct soc_camera_device *icd,
- 		goto ei2cnd;
- 	}
- 
--	subdev->grp_id = (__u32)icd;
- 	client = subdev->priv;
- 
- 	/* Use to_i2c_client(dev) to recover the i2c client */
-diff --git a/drivers/media/video/soc_camera_platform.c b/drivers/media/video/soc_camera_platform.c
-index 8b1c735..c7c9151 100644
---- a/drivers/media/video/soc_camera_platform.c
-+++ b/drivers/media/video/soc_camera_platform.c
-@@ -136,7 +136,6 @@ static int soc_camera_platform_probe(struct platform_device *pdev)
- 
- 	v4l2_subdev_init(&priv->subdev, &platform_subdev_ops);
- 	v4l2_set_subdevdata(&priv->subdev, p);
--	priv->subdev.grp_id = (__u32)icd;
- 	strncpy(priv->subdev.name, dev_name(&pdev->dev), V4L2_SUBDEV_NAME_SIZE);
- 
- 	ret = v4l2_device_register_subdev(&ici->v4l2_dev, &priv->subdev);
--- 
-1.6.2.4
+As you can see these standards are not currently available in videodev2.h. In the media controller RFC that you have proposed, this issue is being addressed. I am referring it at 
+
+http://www.archivum.info/video4linux-list@redhat.com/2008-07/00371/RFC:_Add_support_to_query_and_change_connections_inside_a_media_device
+
+
+Here is the description from the RFC....
+
+<Snip>
+In practice I would propose extending the v4l2_std_id with the common HDTV
+formats, that will take care for most use cases. In addition a new ioctl has
+to be introduced: VIDIOC_S_TIMINGS. This allows you to either specify a
+v4l2_std_id or a full set of timings (front porch, back porch, sync width,
+etc.). It should be extendable so that we can add additional timing formats
+in the future.
+
+The digital format of the data from the media processor to the encoders can
+be set by calling S_STD or S_TIMINGS on the media processor device.
+.......
+
+Looks like we could extend the S_STD with new HD standards mentioned above.
+Please let us know you latest thoughts on this so that we can send patches
+to enhance the standards. As you might know, this is very critical for our developments.
+
+Thanks and regards, 
+
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+email: m-karicheri2@ti.com
 
