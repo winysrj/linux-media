@@ -1,91 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:55370 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751587AbZH3XPK convert rfc822-to-8bit (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:48267 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751909AbZHKMXB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Aug 2009 19:15:10 -0400
-Date: Sun, 30 Aug 2009 20:15:05 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Steven Toth <stoth@kernellabs.com>
-Cc: Konstantin Dimitrov <kosio.dimitrov@gmail.com>,
-	linux-media@vger.kernel.org, bob@turbosight.com
-Subject: Re: [PATCH] cx23885: fix support for TBS 6920 card
-Message-ID: <20090830201505.064c2144@pedra.chehab.org>
-In-Reply-To: <8103ad500908200838v3b456052re0f3a17b06b523f@mail.gmail.com>
-References: <20090819232002.a941c388.kosio.dimitrov@gmail.com>
-	<4A8D4984.4000309@kernellabs.com>
-	<8103ad500908200838v3b456052re0f3a17b06b523f@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Tue, 11 Aug 2009 08:23:01 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
+Subject: Re: [PATCH] V4L: videobuf-core.c VIDIOC_QBUF should return video buffer flags
+Date: Tue, 11 Aug 2009 12:29:36 +0200
+Cc: linux-media@vger.kernel.org, sailus@maxwell.research.nokia.com,
+	"Zutshi Vimarsh (Nokia-D/Helsinki)" <vimarsh.zutshi@nokia.com>,
+	Lasse.Laukkanen@digia.com
+References: <200908102037.40140.tuukka.o.toivonen@nokia.com>
+In-Reply-To: <200908102037.40140.tuukka.o.toivonen@nokia.com>
+MIME-Version: 1.0
+Message-Id: <200908111229.36230.laurent.pinchart@ideasonboard.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steven,
+On Monday 10 August 2009 19:37:40 Tuukka.O Toivonen wrote:
+> When user space queues a buffer using VIDIOC_QBUF, the kernel
+> should set flags to V4L2_BUF_FLAG_QUEUED in struct v4l2_buffer.
+> videobuf_qbuf() was missing a call to videobuf_status() which does
+> that. This patch adds the proper function call.
+>
+> Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
 
-As I'm understanding that you're reveiwing it, I'm marking this patch as such
-at Patchwork.
+I was a bit surprised, as I didn't think VIDIOC_QBUF was supposed to update 
+the buffer structure, but according to the v4l2 spec it is.
 
-Cheers,
-Mauro.
+However, I don't think calling videobuf_status() is the right thing to do. It 
+will update fields that don't make sense at this point, such as 
+v4l2_buffer::timestamp.
 
-Em Thu, 20 Aug 2009 18:38:46 +0300
-Konstantin Dimitrov <kosio.dimitrov@gmail.com> escreveu:
+Thanks Tuukka for finding this, I'll update the UVC video driver 
+accordingly :-)
 
-> On Thu, Aug 20, 2009 at 4:03 PM, Steven Toth<stoth@kernellabs.com> wrote:
-> > On 8/19/09 7:20 PM, Konstantin Dimitrov wrote:
-> >>
-> >> fix: GPIO initialization for TBS 6920
-> >> fix: wrong I2C address for demod on TBS 6920
-> >> fix: wrong I2C bus number for demod on TBS 6920
-> >> fix: wrong "gen_ctrl_val" value for TS1 port on TBS 6920 (and some other
-> >> cards)
-> >> add: module_param "lnb_pwr_ctrl" as option to choose between "type 0" and
-> >> "type 1" of LNB power control (two TBS 6920 boards no matter that they are
-> >> marked as the same hardware revision may have different types of LNB power
-> >> control)
-> >> fix: LNB power control function for type 0 doesn't preserve the previous
-> >> GPIO state, which is critical
-> >> add: LNB power control function for type 1
-> >>
-> >> Signed-off-by: Bob Liu<bob@turbosight.com>
-> >> Signed-off-by: Konstantin Dimitrov<kosio.dimitrov@gmail.com>
-> > Hmm. A custom hanging off of a gpio to something that looks like an i2c
-> > power control device. I want to review some of these generic (and
-> > no-so-generic) changes before we merge this patch.
-> >
-> > Is the datasheet for the LNB power control device available to the public?
-> > I'd like to understand some of the register details.
-> 
-> the datasheet is not available at least to me and i don't know any
-> more details. the code in question was given to me by the author under
-> GPLv2 license and that's why i put it in separate file
-> "tbs_lnb_pwr.c".
-> 
-> also, the cards that use this type of LNB power control, which i
-> called for short "type 1", have the same device IDs as the one that
-> don't use it and use "type 0" of LNB power control instead.
-> 
-> --konstantin
-> 
-> >
-> > Thanks,
-> >
-> > --
-> > Steven Toth - Kernel Labs
-> > http://www.kernellabs.com
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  drivers/media/video/videobuf-core.c |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/media/video/videobuf-core.c
+> b/drivers/media/video/videobuf-core.c index b7b0584..d212710 100644
+> --- a/drivers/media/video/videobuf-core.c
+> +++ b/drivers/media/video/videobuf-core.c
+> @@ -565,6 +565,8 @@ int videobuf_qbuf(struct videobuf_queue *q,
+>  		spin_unlock_irqrestore(q->irqlock, flags);
+>  	}
+>  	dprintk(1, "qbuf: succeded\n");
+> +	memset(b, 0, sizeof(*b));
+> +	videobuf_status(q, b, buf, q->type);
+>  	retval = 0;
+>  	wake_up_interruptible_sync(&q->wait);
 
-
-
-
-Cheers,
-Mauro
+-- 
+Laurent Pinchart
