@@ -1,99 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f207.google.com ([209.85.219.207]:42383 "EHLO
-	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752690AbZHVRoa (ORCPT
+Received: from quechua.inka.de ([193.197.184.2]:34829 "EHLO mail.inka.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755039AbZHKSla convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Aug 2009 13:44:30 -0400
-Received: by ewy3 with SMTP id 3so1389848ewy.18
-        for <linux-media@vger.kernel.org>; Sat, 22 Aug 2009 10:44:31 -0700 (PDT)
-Message-ID: <4A902E56.9000604@gmail.com>
-Date: Sat, 22 Aug 2009 19:43:50 +0200
-From: Pablo Castellano <pablog.ubuntu@gmail.com>
+	Tue, 11 Aug 2009 14:41:30 -0400
+Date: Tue, 11 Aug 2009 20:41:25 +0200
+From: Olaf Titz <Olaf.Titz@inka.de>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: mchehab@infradead.org
-Subject: [PATCH] Add remote support to cph03x bttv card
-Content-Type: multipart/mixed;
- boundary="------------070000070806020602060604"
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] gspca: add g_std/s_std methods
+References: <E1MaElV-0004zK-7v@bigred.inka.de> <20090811194215.0dd6e3f8@tele>
+In-Reply-To: <20090811194215.0dd6e3f8@tele>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+Message-ID: <E1MawHl-0000H5-MA@bigred.inka.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------070000070806020602060604
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Jean-Francois Moine wrote:
 
-Hello kernel developers.
-I found a bug report from an user in launchpad. I just copy it here. It
-includes patch.
+> The vidioc_s_std() has been removed last month by Németh Márton
+> according to the v4l2 API http://v4l2spec.bytesex.org/spec/x448.htm
 
-I don't own the necessary hardware to test it but the patch looks trivial.
+Ah, I see. This is a recent change, which explains why it has not come
+up earlier :-)
+The standard clearly states that my change is incorrect, but then
+v4l1-compat.c is wrong in how it implements v4l_compat_get_input_info()
+and v4l1_compat_set_input(). These calls query rsp. set video input and
+standard in one call, and there is no special provision for webcams in
+http://v4l2spec.bytesex.org/spec/x309.htm, so these calls should not
+fail. IOW, something like this would be in order instead (untested):
 
-I'm not subscribed to this list, so please CC me. Thanks!
+--- a/linux/drivers/media/video/v4l1-compat.c   Sat Aug 08 03:28:41 2009
+-0300
++++ b/linux/drivers/media/video/v4l1-compat.c   Tue Aug 11 20:30:47 2009
++0200
+@@ -540,7 +540,7 @@
+ {
+        long err;
+        struct v4l2_input       input2;
+-       v4l2_std_id             sid;
++       v4l2_std_id             sid = V4L2_STD_UNKNOWN;
 
-Here is the text:
+        memset(&input2, 0, sizeof(input2));
+        input2.index = chan->channel;
+@@ -566,19 +566,21 @@
+                break;
+        }
+        chan->norm = 0;
+-       err = drv(file, VIDIOC_G_STD, &sid);
+-       if (err < 0)
+-               dprintk("VIDIOCGCHAN / VIDIOC_G_STD: %ld\n", err);
+-       if (err == 0) {
+-               if (sid & V4L2_STD_PAL)
+-                       chan->norm = VIDEO_MODE_PAL;
+-               if (sid & V4L2_STD_NTSC)
+-                       chan->norm = VIDEO_MODE_NTSC;
+-               if (sid & V4L2_STD_SECAM)
+-                       chan->norm = VIDEO_MODE_SECAM;
+-               if (sid == V4L2_STD_ALL)
+-                       chan->norm = VIDEO_MODE_AUTO;
+-       }
++        {
++                int err2 = drv(file, VIDIOC_G_STD, &sid);
++                if (err2 < 0)
++                        dprintk("VIDIOCGCHAN / VIDIOC_G_STD: %ld\n", err2);
++                if (err2 == 0) {
++                        if (sid & V4L2_STD_PAL)
++                                chan->norm = VIDEO_MODE_PAL;
++                        if (sid & V4L2_STD_NTSC)
++                                chan->norm = VIDEO_MODE_NTSC;
++                        if (sid & V4L2_STD_SECAM)
++                                chan->norm = VIDEO_MODE_SECAM;
++                        if (sid == V4L2_STD_ALL)
++                                chan->norm = VIDEO_MODE_AUTO;
++                }
++        }
+ done:
+        return err;
+ }
+@@ -609,9 +611,9 @@
+                break;
+        }
+        if (0 != sid) {
+-               err = drv(file, VIDIOC_S_STD, &sid);
+-               if (err < 0)
+-                       dprintk("VIDIOCSCHAN / VIDIOC_S_STD: %ld\n", err);
++               int err2 = drv(file, VIDIOC_S_STD, &sid);
++               if (err2 < 0)
++                       dprintk("VIDIOCSCHAN / VIDIOC_S_STD: %ld\n", err2);
+        }
+        return err;
+ }
 
+I'm not sure if v4l1_compat_get_tuner() needs this kind of change too.
 
-"""
-remote control for my tv card doesnt work
+We also should keep the input->std = V4L2_STD_ALL; because an
+application may bomb with something like "Invalid standard PAL, valid
+choices are:" (empty). This (and the EINVAL) breaks at least ekiga 2
+with the v4l1 module (which is what Ubuntu has) run over
+libv4l1compat.so. (Ekiga 3 with the v4l2 module does work.) It also
+breaks xawtv, the canonical v4l test app...
 
-I have Askey CPH03x TV Capturer.
-When I load bttv module with "card=59" option which is proper for this
-tv card,
-I can watch tv with sound but my remote control doesnt work. There is no ir
-event in /proc/bus/input/device .
-When bttv module is loaded with "card=137" option remote control works very
-well.
+Olaf
 
-$ cat /proc/bus/input/devices
-.......
-........
-: Bus=0001 Vendor=109e Product=0350 Version=0001
-N: Name="bttv IR (card=137)"
-P: Phys=pci-0000:00:0d.0/ir0
-S: Sysfs=/devices/pci0000:00/0000:00:0d.0/input/input144
-U: Uniq=
-H: Handlers=kbd event6
-B: EV=100003
-B: KEY=2c0814 100004 0 0 0 4 2008000 2090 2001 1e0000 4400 0 ffc
-
-Unfortunately there is no sound.
-"""
-
-https://bugs.launchpad.net/ubuntu/+bug/239733
-http://bugzilla.kernel.org/show_bug.cgi?id=11995
-
--- 
-Regards, Pablo.
-
---------------070000070806020602060604
-Content-Type: text/plain;
- name="kernel_add_remote_support_for_cph03x.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="kernel_add_remote_support_for_cph03x.diff"
-
-diff -Nurp linux-source-2.6.27/drivers/media/video/bt8xx.old/bttv-cards.c linux-source-2.6.27/drivers/media/video/bt8xx/bttv-cards.c
---- linux-source-2.6.27/drivers/media/video/bt8xx.old/bttv-cards.c	2008-11-09 18:05:17.000000000 +0100
-+++ linux-source-2.6.27/drivers/media/video/bt8xx/bttv-cards.c	2008-11-09 18:05:46.000000000 +0100
-@@ -1362,6 +1362,7 @@ struct tvcard bttv_tvcards[] = {
- 		.tuner_type	= TUNER_TEMIC_PAL,
- 		.tuner_addr	= ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
-+		.has_remote	= 1,
- 	},
- 
- 	/* ---- card 0x3c ---------------------------------- */
-diff -Nurp linux-source-2.6.27/drivers/media/video/bt8xx.old/bttv-input.c linux-source-2.6.27/drivers/media/video/bt8xx/bttv-input.c
---- linux-source-2.6.27/drivers/media/video/bt8xx.old/bttv-input.c	2008-11-09 18:05:17.000000000 +0100
-+++ linux-source-2.6.27/drivers/media/video/bt8xx/bttv-input.c	2008-11-09 18:05:39.000000000 +0100
-@@ -260,6 +260,7 @@ int bttv_input_init(struct bttv *btv)
- 		ir->mask_keyup   = 0x008000;
- 		ir->polling      = 50; // ms
- 		break;
-+	case BTTV_BOARD_ASKEY_CPH03X:
- 	case BTTV_BOARD_CONCEPTRONIC_CTVFMI2:
- 	case BTTV_BOARD_CONTVFMI:
- 		ir_codes         = ir_codes_pixelview;
-
---------------070000070806020602060604--
