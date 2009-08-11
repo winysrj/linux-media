@@ -1,88 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50446 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750904AbZHQTo6 convert rfc822-to-8bit (ORCPT
+Received: from mail-ew0-f214.google.com ([209.85.219.214]:36170 "EHLO
+	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752975AbZHKMEo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Aug 2009 15:44:58 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
-Date: Mon, 17 Aug 2009 14:44:51 -0500
-Subject: RE: [PATCH v1 - 1/5] DaVinci - restructuring code to support vpif
- capture driver
-Message-ID: <A69FA2915331DC488A831521EAE36FE40145300E33@dlee06.ent.ti.com>
-References: <1250283702-5582-1-git-send-email-m-karicheri2@ti.com>
- <200908151409.44219.hverkuil@xs4all.nl>
- <A69FA2915331DC488A831521EAE36FE40145300B49@dlee06.ent.ti.com>
- <200908172046.34453.hverkuil@xs4all.nl>
-In-Reply-To: <200908172046.34453.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Tue, 11 Aug 2009 08:04:44 -0400
+Message-ID: <4A8151A1.2020103@gmail.com>
+Date: Tue, 11 Aug 2009 13:10:25 +0200
+From: Roel Kluin <roel.kluin@gmail.com>
 MIME-Version: 1.0
+To: Antoine Jacquet <royale@zerezo.com>, linux-usb@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: [PATCH] zr364: wrong indexes
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans,
+The order of indexes is reversed
 
-Ok. I will rework the patch and send you the same.
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+---
+Right?
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-new phone: 301-407-9583
-Old Phone : 301-515-3736 (will be deprecated)
-email: m-karicheri2@ti.com
-
->-----Original Message-----
->From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
->Sent: Monday, August 17, 2009 2:47 PM
->To: Karicheri, Muralidharan
->Cc: linux-media@vger.kernel.org; davinci-linux-open-
->source@linux.davincidsp.com; khilman@deeprootsystems.com
->Subject: Re: [PATCH v1 - 1/5] DaVinci - restructuring code to support vpif
->capture driver
->
->On Monday 17 August 2009 16:52:20 Karicheri, Muralidharan wrote:
->> Hans,
->>
->> They are applied against davinci tree (also mentioned in the patch).
->General procedure what I follow is to create platform code against davinci
->tree and v4l patches against v4l-dvb linux-next tree. The architecture part
->of linux-next is not up to date.
->>
->> Davinci tree is at
->>
->> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-davinci.git
->
->I must have missed the mention of this tree.
->
->I have a problem, though, as the current v4l-dvb repository doesn't compile
->against the linux-davinci git tree. And the only way I can get it to
->compile
->is to apply all five patches first.
->
->However, the whole tree should still compile after each patch is applied.
->And
->that goes wrong with your second patch where the Kconfig and Makefile are
->modified when the new sources aren't even added yet!
->
->What I would like to see is a patch series that starts with one patch that
->makes the current v4l-dvb tree compile again, then the arch patch is added,
->then a series of v4l-dvb patches in such an order that everything compiles
->after each step.
->
->Merging this is already complicated enough without breaking compilation in
->this way.
->
->Regards,
->
->	Hans
->
->--
->Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
-
+diff --git a/drivers/media/video/zr364xx.c b/drivers/media/video/zr364xx.c
+index fc976f4..2622a6e 100644
+--- a/drivers/media/video/zr364xx.c
++++ b/drivers/media/video/zr364xx.c
+@@ -695,7 +695,7 @@ static int zr364xx_release(struct file *file)
+ 	for (i = 0; i < 2; i++) {
+ 		err =
+ 		    send_control_msg(udev, 1, init[cam->method][i].value,
+-				     0, init[i][cam->method].bytes,
++				     0, init[cam->method][i].bytes,
+ 				     init[cam->method][i].size);
+ 		if (err < 0) {
+ 			dev_err(&udev->dev, "error during release sequence\n");
