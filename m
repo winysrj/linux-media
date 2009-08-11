@@ -1,34 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.8])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n7JIrKJY005256
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <video4linux-list@redhat.com>; Wed, 19 Aug 2009 14:53:20 -0400
-Received: from mail-yx0-f202.google.com (mail-yx0-f202.google.com
-	[209.85.210.202])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n7JIr6x5016960
-	for <video4linux-list@redhat.com>; Wed, 19 Aug 2009 14:53:07 -0400
-Received: by yxe40 with SMTP id 40so6062794yxe.23
-	for <video4linux-list@redhat.com>; Wed, 19 Aug 2009 11:53:06 -0700 (PDT)
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n7BHbllQ025631
+	for <video4linux-list@redhat.com>; Tue, 11 Aug 2009 13:37:47 -0400
+Received: from partygirl.tmr.com (mail.tmr.com [64.65.253.246])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n7BHbTjT006806
+	for <video4linux-list@redhat.com>; Tue, 11 Aug 2009 13:37:30 -0400
+Received: from partygirl.tmr.com (partygirl.tmr.com [127.0.0.1])
+	by partygirl.tmr.com (8.14.2/8.14.2) with ESMTP id n7BHbT6b010114
+	for <video4linux-list@redhat.com>; Tue, 11 Aug 2009 13:37:29 -0400
+Message-ID: <4A81AC59.5020306@tmr.com>
+Date: Tue, 11 Aug 2009 13:37:29 -0400
+From: Bill Davidsen <davidsen@tmr.com>
 MIME-Version: 1.0
-In-Reply-To: <4A81E717.1040509@tmr.com>
-References: <4A7B2BDB.5000906@tmr.com>
-	<829197380908061221l54ba8f1pcbec404200ae6c93@mail.gmail.com>
-	<4A7B37F9.8070905@tmr.com>
+To: video4linux M/L <video4linux-list@redhat.com>
+References: <4A7B2BDB.5000906@tmr.com>	<829197380908061221l54ba8f1pcbec404200ae6c93@mail.gmail.com>	<4A7B37F9.8070905@tmr.com>
 	<829197380908061318x5ee6ccfbn5d8890e98b6f6325@mail.gmail.com>
-	<4A81AC59.5020306@tmr.com>
-	<829197380908111051v3e446534k73ae23883c510e65@mail.gmail.com>
-	<4A81E717.1040509@tmr.com>
-Date: Wed, 19 Aug 2009 14:53:05 -0400
-Message-ID: <829197380908191153w2dff4df7x16300553c733e0a8@mail.gmail.com>
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Bill Davidsen <davidsen@tmr.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux M/L <video4linux-list@redhat.com>
-Subject: Re: Is there any working video capture card which works and is
-	still made?
+In-Reply-To: <829197380908061318x5ee6ccfbn5d8890e98b6f6325@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: Re: Is there any working video capture card which works and is  
+ still made?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -40,68 +31,65 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Aug 11, 2009 at 5:48 PM, Bill Davidsen<davidsen@tmr.com> wrote:
-> Do you have some particular application with which you think it "works?" If
-> by works you mean a /dv/video0 and /dev/dvb/* ar created and the kernel log
-> shows no errors, then it works. By works I mean there is some application (I
-> listed several) which actually has audio and video, and the number of such I
-> can identify is still zero. When analog cards were being made virtually
-> every application worked fine,
+I thank all the folks who wrote me directly, but... see below.
 
-There's no need to be patronizing.  Since the 950q support required me
-to add around 3000 lines to the codebase, I am quite capable of
-distinguishing the difference between a /dev/video0 device file being
-created and a product actually working.  That sort of attitude might
-be appropriate when dealing with tech support for a company you just
-gave money to, but probably isn't the best approach to get help from a
-group of volunteer developers.
-
-Regarding apps that are known to work:  tvtime.  mplayer.  I don't
-"think" it works.  I *know* it works, at least in my environment as
-well as several dozen other users who have done testing and provided
-feedback.
-
-Since you are comparing against older devices where you believed
-"every application worked fine", I am sure you are aware that all the
-applications have issues with audio on raw analog capture devices, and
-that the way it is dealt with varies by application.  Tvtime doesn't
-support it at all - you have to run tvtime in conjunction with
-arecord/aplay in a separate window.  mplayer allows you to specify the
-location of the ALSA record device as a command line argument.  None
-of this is specific to newer devices as the apps have the same
-problems with older devices as well.
-
->> If you have a specific case that is causing you problems, please
->> provide details as to exactly which card you are trying to use, which
->> distro and application you are using, and what errors you are seeing
->> and we will see if we can help you debug your problem.  But saying
->> vague things like "nothing works" isn't really a constructive way to
->> improve your situation.
+Devin Heitmueller wrote:
+> On Thu, Aug 6, 2009 at 4:07 PM, Bill Davidsen<davidsen@tmr.com> wrote:
+>> Though I covered that, the signal of interest is clear QAM and NTSC
+>> (analog). I haven't seem any cards for busses other than PCI or PCIe, USB is
+>> only on a dongle (AFAIK). If I could pass access to the bus back to a VM I
+>> could just run XP under KVM, but that's not exactly supported, either.
+> 
+> Well, I'm not sure you really answered the question.  What bus type
+> specifically are you looking for?  For PCI you can go with HVR-1600 or
+> PCTV 800i.  For USB you can get HVR-950q or HVR-1950 if you want an
+> onboard MPEG encoder.  There are lots of products which are currently
+> supported.  A good amount of this also depends on which distro and
+> version you are interested in (since that effects which kernel it is
+> up to relative to when support was added for products).
+> 
+> Have you looked at the product matrices on the Wiki:
+> 
+> http://linuxtv.org/wiki/index.php/ATSC_USB_Devices
+> http://linuxtv.org/wiki/index.php/ATSC_PCI_Cards
+> http://linuxtv.org/wiki/index.php/ATSC_PCIe_Cards
+> 
+>> I was hoping someone would pop up with a solution like a dual mode HDhomerun
+>> or slingshot, too much to hope.
 >>
->>
->
-> I went out and got the HVR-950Q because you said it worked, as noted above
-> the kernel like it but nothing I can find will use it usefully, I posted the
-> lspci -vvvv for the ATI HDTV-Wonder, what exactly more do you need to
-> identify a specific card? This is the problem I've had for years, that cards
-> with the same part number aren't the same part. :-(
+>>> Might also be nice what your large collection is composed of, since we
+>>> might be able to get some of them to work.
+>>>
+Since you quoted the HVR-950Q as working, I tried one of those. Someone else 
+said the ATI HDTV-Wonder works. Neither do. I tried all of the programs people 
+swore work with these cards: tvtime, xawtv, cheese, and vlc. Mythtv appears to 
+need the whole system tuned to be a pvr, not the intent here, users want to 
+monitor CNN, MSNBC, and similar news or financial channels in a window without 
+needing to get a TV for each seat.
 
-I'm making an active effort to understand what is unique about your
-environment so we can figure out why it doesn't work for you while so
-many others are reporting success.  I just double checked the thread
-and don't see the lspci output for the ATI card as you suggested.  Did
-you post it on some other thread of discussion?
+And after all that I am still at ground zero, not only nothing I would date try 
+to give to an end user, but nothing I want to use myself, tuning by frequencies 
+in MHz, good grief! The kernel loads drivers and makes entries in /dev/dvb 
+and/or /dev/videoN, but none of the software people suggested does anything useful.
 
-It's probably also worth mentioning that the 950q analog support was
-added recently (March), so if your distro is too old it will not be in
-there yet (in which case you won't see the /dev/video0 device at all).
-
-Devin
+>> Nothing with a driver, unfortunately, and much of it obsolete by this time,
+>> ie. driver now but out of production. When the FCC stopped approving
+>> non-digital cards a lot of stuff went off the market. I'd go with a mix of
+>> analog card and HDhomerun if I had to.
+> 
+> Well, the notion of "nothing with a driver" is pretty subjective.  We
+> are adding driver support for products all the time, and if you threw
+> out a list of product names they might now be supported or could be
+> supported with minimal effort.
+> 
+> Devin
+> 
 
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Bill Davidsen <davidsen@tmr.com>
+   "We have more to fear from the bungling of the incompetent than from
+the machinations of the wicked."  - from Slashdot
 
 --
 video4linux-list mailing list
