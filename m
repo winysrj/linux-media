@@ -1,56 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2846 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751214AbZHQTEP (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3449 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753688AbZHKS0I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Aug 2009 15:04:15 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [Q] sensors, corrupting the top line
-Date: Mon, 17 Aug 2009 21:04:14 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <Pine.LNX.4.64.0908171040310.4449@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0908171040310.4449@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200908172104.14321.hverkuil@xs4all.nl>
+	Tue, 11 Aug 2009 14:26:08 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id n7BIQ7jt052791
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 11 Aug 2009 20:26:07 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 11 Aug 2009 20:26:07 +0200 (CEST)
+Message-Id: <200908111826.n7BIQ7jt052791@smtp-vbr13.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: OK, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 17 August 2009 12:09:12 Guennadi Liakhovetski wrote:
-> Hi Hans, all
-> 
-> In soc-camera since its first version we have a parameter "y_skip_top", 
-> which the sensor uses to tell the host (bridge) driver "I am sending you 
-> that many lines more than what is requested, and you should drop those 
-> lines from the top of the image." I never investigated this in detail, 
-> originally this was a "strong tip" that the top line is always corrupted. 
-> Now I did investigate it a bit by setting this parameter to 0 and looking 
-> what the sensors actually produce. I am working with four sensor: mt9m001, 
-> mt9v022, mt9t031 and ov7725, of which only the first two had that 
-> parameter set to 1 from the beginning, the others didn't have it and also 
-> showed no signs of a problem. mt9m001 (monochrome) doesn't have the 
-> problem either, but mt9v022 does. It does indeed deliver the first line 
-> with "randomly" coloured pixels. Notice - this is not the top line of the 
-> sensor, this is the first read-out line, independent of the cropping 
-> position. So, it seems we do indeed need a way to handle such sensors. Do 
-> you have a suggestion for a meaningful v4l2-subdev API for this?
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Hmm, I think that the best way is to make a struct v4l2_subdev_sensor_ops,
-move the enum_framesizes/intervals from the video_ops to the sensor_ops
-(since these are only used by sensors AFAIK), and add a new op to
-sensor_ops: int (*skip_top_lines)(struct v4l2_subdev *sd, u32 *lines).
+Results of the daily build of v4l-dvb:
 
-When we add the op to set the bus_params, then that can be added to
-sensor_ops as well. I've always thought that we need sensor-specifc ops
-eventually and this is a good reason to do so.
+date:        Tue Aug 11 19:00:10 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12447:d2843f5f8fde
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Regards,
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-rc5-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29.1-armv5-ixp: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-rc5-armv5-ixp: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-rc5-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: OK
+linux-2.6.30-i686: OK
+linux-2.6.31-rc5-i686: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-rc5-m32r: OK
+linux-2.6.30-mips: OK
+linux-2.6.31-rc5-mips: OK
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29.1-powerpc64: OK
+linux-2.6.30-powerpc64: OK
+linux-2.6.31-rc5-powerpc64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: OK
+linux-2.6.30-x86_64: OK
+linux-2.6.31-rc5-x86_64: OK
+sparse (linux-2.6.30): OK
+sparse (linux-2.6.31-rc5): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
-	Hans
+Detailed results are available here:
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
