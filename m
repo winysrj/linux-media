@@ -1,55 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:39372 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932494AbZHUXZA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Aug 2009 19:25:00 -0400
-Date: Fri, 21 Aug 2009 20:24:52 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Andy Walls <awalls@radix.net>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS,
- 2.6.16-2.6.21: ERRORS
-Message-ID: <20090821202452.6f4c3b24@pedra.chehab.org>
-In-Reply-To: <1250892645.3159.3.camel@palomino.walls.org>
-References: <200908211817.n7LIHIqA054646@smtp-vbr4.xs4all.nl>
-	<200908212245.05796.hverkuil@xs4all.nl>
-	<1250892645.3159.3.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mx2.redhat.com ([66.187.237.31]:38253 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753144AbZHLHxD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Aug 2009 03:53:03 -0400
+Received: from int-mx2.corp.redhat.com (int-mx2.corp.redhat.com [172.16.27.26])
+	by mx2.redhat.com (8.13.8/8.13.8) with ESMTP id n7C7r3Ei027869
+	for <linux-media@vger.kernel.org>; Wed, 12 Aug 2009 03:53:03 -0400
+Received: from ns3.rdu.redhat.com (ns3.rdu.redhat.com [10.11.255.199])
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n7C7r2Sw017291
+	for <linux-media@vger.kernel.org>; Wed, 12 Aug 2009 03:53:02 -0400
+Received: from localhost.localdomain (vpn-12-6.rdu.redhat.com [10.11.12.6])
+	by ns3.rdu.redhat.com (8.13.8/8.13.8) with ESMTP id n7C7r1JF002570
+	for <linux-media@vger.kernel.org>; Wed, 12 Aug 2009 03:53:02 -0400
+Message-ID: <4A827613.2060908@hhs.nl>
+Date: Wed, 12 Aug 2009 09:58:11 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: linuxtv.org wiki: V4L2_Userspace_Library hopelessly out of date
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 21 Aug 2009 18:10:45 -0400
-Andy Walls <awalls@radix.net> escreveu:
+Hi,
 
-> > Guys, I'm providing this service for a reason: please take a look at the 
-> > detailed log when you see errors or warnings.
-> > 
-> > This time round we have a compat error with DIV_ROUND_CLOSEST:
-> > 
-> > v4l/stb6100.c: In function 'stb6100_set_frequency':
-> > v4l/stb6100.c:377: error: implicit declaration of 
-> > function 'DIV_ROUND_CLOSEST'
-> > 
-> > Should be simple to fix. This macro appeared in 2.6.29 and so should be made 
-> > available in compat.h.
-> 
-At the days I'm preparing some upstream patches, it is not rare to have some
-backport breakage, since lots of patches are merged, including, on some cases,
-some upstream patches that need extra backport.
+Can someone please kill:
+http://linuxtv.org/wiki/index.php/V4L2_Userspace_Library
 
-I intend to finish sync -hg and -git this weekend, so, I'll be fixing the remaining backport issues.
+It still talks about the old complex proxy device and daemon
+using plans for a V4L2_Userspace_Library, now that we have
+libv4l this is pretty much obsolete.
 
-> A patch for this one was submitted to the list earlier today:
-> 
-> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/9142
-> 
-> (though not because I saw it in the logs).
+Yes having a new wiki page for libv4l would be great! Sorry
+-ENOTIME, but anyone can do this, the README of libv4l should
+make for a good start.
 
-I saw that. It will be merged as well.
+Regards,
 
-
-Cheers,
-Mauro
+Hans
