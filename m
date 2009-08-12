@@ -1,68 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imr-ma06.mx.aol.com ([64.12.78.142]:62037 "EHLO
-	imr-ma06.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755458AbZHDMxj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2009 08:53:39 -0400
-Received: from imo-da01.mx.aol.com (imo-da01.mx.aol.com [205.188.169.199])
-	by imr-ma06.mx.aol.com (8.14.1/8.14.1) with ESMTP id n74Cl0Ml009838
-	for <linux-media@vger.kernel.org>; Tue, 4 Aug 2009 08:47:00 -0400
-Received: from samankaya@netscape.net
-	by imo-da01.mx.aol.com  (mail_out_v40_r1.5.) id x.c83.42316f56 (34942)
-	 for <linux-media@vger.kernel.org>; Tue, 4 Aug 2009 08:46:58 -0400 (EDT)
-Message-ID: <4A782DC0.2080905@netscape.net>
-Date: Tue, 04 Aug 2009 13:46:56 +0100
-From: Kaya Saman <SamanKaya@netscape.net>
+Received: from jordan.toaster.net ([69.36.241.228]:1481 "EHLO
+	jordan.toaster.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751802AbZHLV4S (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Aug 2009 17:56:18 -0400
+Message-ID: <4A833A39.2000305@toaster.net>
+Date: Wed, 12 Aug 2009 14:55:05 -0700
+From: Sean <knife@toaster.net>
 MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: Hauppauge WinTV usb 1 not working?
+CC: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: capture-example.c crash on close_device()
+References: <4A79E6A3.7050508@toaster.net>
+In-Reply-To: <4A79E6A3.7050508@toaster.net>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hans,
 
-I hope I'm in the right place!!
+What do you think is causing this? pac207 driver.
 
-I have a Hauppauge WinTV usb 1.1 tuner but I don't seem to be able to 
-get it working.
+Sean
 
-I am running Kubuntu 9.04 64-bit edition.
-
-The tuner detects in the kernel as:
-Bus 006 Device 002: ID 0573:4d22 Zoran Co. Personal Media Division 
-(Nogatech) Hauppauge WinTV-USB II (PAL) Model 566
-
-Using the USBVision driver.
-
-In the kernel using dmesg the tuner is detected as a WinTV Pro??
-
-I have tried various apps to watch tv including tvtime, xawtv, and Zapping.
-
-Running tvtime-scanner gives this output:
-
-Reading configuration from /etc/tvtime/tvtime.xml
-Reading configuration from /home/kaya/.tvtime/tvtime.xml
-Scanning using TV standard PAL.
-/home/kaya/.tvtime/stationlist.xml: No existing PAL station list "Custom".
-
-   Your capture card driver: USBVision [Hauppauge WinTV USB Pro (PAL 
-I)/6-2/2313]
-   does not support full size studio-quality images required by tvtime.
-   This is true for many low-quality webcams.  Please select a
-   different video device for tvtime to use with the command line
-   option --device.
-
-And xawtv and zapping seg fault each time I run them....??
-
-I have an ancient Hauppauge WinTV/Radio PCI card which uses the bttv 
-driver and xawtv works fine on it so I'm not sure why this one isn't 
-working.
-
-Can anyone help at all or suggest something??
-
-Many thanks,
-
-Kaya
-
-
+Sean wrote:
+> Hi,
+>
+> I have compiled kernel 2.6.30 from kernel.org, and I have also 
+> compiled capture-example.c from the mercurial depository. These work 
+> on laptop hardware, but on my DM&P e-box 2300SX (with vortex86 cpu), 
+> capture-example.c crashes the system. Complete lockup, no keyboard, 
+> etc. I turned on all debuging in gspca_main, i.e. options gspca_main 
+> debug=0x1FF. I also put print statements in capture-example.c in 
+> main() before each function call. Here is the output below. Has anyone 
+> had this problem?
+>
+> -------
+> # capture-example -r
+> <snip>
+> gspca: packet [28] o:28644 l:126
+> gspca: add t:2 l:126
+> gspca: packet [31] o:31713 l:630
+> pac207: SOF found, bytes to analyze: 630. Frame starts at byte #19
+> gspca: add t:3 l:14
+> gspca: frame complete len:26496 q:1 i:0 o:1
+> gspca: add t:1 l:0
+> gspca: add t:2 l:600
+> gspca: poll
+> gspca: read (202752)
+> gspca: dqbuf
+> gspca: frame wait q:1 i:0 o:0
+> gspca: autogain: lum: 252, desired: 102, steps: 5
+> gspca: dqbuf 1
+> gspca: qbuf 1
+> gspca: qbuf q:0 i:0 o:0
+> .stop_capturing()
+> uninit_device()
+> close_device()
+> gspca: capture-example close
+> gspca: kill transfer
+> gspca: isoc irq
+> gspca: isoc irq
+> gspca: isoc irq
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
