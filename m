@@ -1,53 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1470 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932494AbZHDHMh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2009 03:12:37 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: Linux Plumbers Conference 2009: V4L2 API discussions
-Date: Tue, 4 Aug 2009 09:12:24 +0200
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
-	eduardo.valentin@nokia.com
+Received: from qw-out-2122.google.com ([74.125.92.26]:19998 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932515AbZHLKoZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Aug 2009 06:44:25 -0400
+Received: by qw-out-2122.google.com with SMTP id 8so1638954qwh.37
+        for <linux-media@vger.kernel.org>; Wed, 12 Aug 2009 03:44:25 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+In-Reply-To: <4A8283C9.6020105@gmail.com>
+References: <4A827C70.4090500@gmail.com> <5e9665e10908120143h268a7210kb6bfa215cbfbe6de@mail.gmail.com>
+	<4A8283C9.6020105@gmail.com>
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+Date: Wed, 12 Aug 2009 19:44:05 +0900
+Message-ID: <5e9665e10908120344v668331a9g3c470971a5da3ef0@mail.gmail.com>
+Subject: Re: framebuffer overlay
+To: Ryan Raasch <ryan.raasch@gmail.com>
+Cc: video4linux-list@redhat.com,
+	v4l2_linux <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200908040912.24718.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On Wed, Aug 12, 2009 at 5:56 PM, Ryan Raasch<ryan.raasch@gmail.com> wrote:
+> Thanks for the reply!
+>
+> Dongsoo, Nathaniel Kim wrote:
+>>
+>> On Wed, Aug 12, 2009 at 5:25 PM, Ryan Raasch<ryan.raasch@gmail.com> wrote:
+>>>
+>>> Hello,
+>>>
+>>> I am trying to write a driver for a camera using the new soc_camera in
+>>> the
+>>> mainline kernel the output is the overlay framebuffer (pxa270) and i
+>>> would
+>>> like to use the overlay output feature of v4l2 framework, but the
+>>> framebuffer does not expose itself as a output device (not yet).
+>>>
+>> Hi Ryan,
+>>
+>> As far as I know the framebuffer of PXA2 even PXA3 can't be
+>> categorized in a overlay device.
+>
+> The pxa2 and pxa3 both have 3 framebuffers (4 if hardware curser included).
+> There is the main fb, and 2 overlay framebuffers.
+>
+> The overlay 2 has hardware accelerated ycbcr decoding (which i use now with
+> a camera using dma). And the overlay 1 can be used only with the various
+> types of RGB.
+>
+> We have a solution which uses dma to copy the captured video from the camera
+> sensor (mmap'd), directly to the mmap'd memory of the overlay. All occuring
+> without user intervention.
+>
+>
+>> To be able to get used as overlay device by camera interface, I think
+>> there should be a direct FIFO between camera and framebuffer which
+>> means there is no need to copy memory from camera to fb. But
+>> unfortunately PXA architecture is not supporting this kind of feature.
+>
+> With the above there is no need for FIFO, the dma is directly copying the
+> received camera data to the selected framebuffer.
+>
+> Ryan
+>
 
-During this years Plumbers Conference I will be organizing a session (or
-possibly more than one) on what sort of new V4L2 APIs are needed to
-support the new SoC devices. These new APIs should also solve the problem
-of how to find all the related alsa/fb/ir/dvb devices that a typical video
-device might create.
+Cool.
+So, that means you need a SoC hardware based reference code right?
+(because pxa is also a SoC)
+I think there is not so many choices that you can put on the table.
+In my experience, OMP3 camera interface is supporting overlay feature
+through omap_vout I guess. I think it is not obvious in SoC H/W
+platform about *what is overlay device* and *how to use* them.
 
-A proposal was made about a year ago (note that this is a bit outdated
-by now, but the basics are still valid):
+And about omap3 camera interface driver, it is not in the mainline
+kernel yet. For the camera interface code you need to look into
+Sakari's gitorious repository and for omap_vout you need to look for
+Hardik's repository or any repository he is working on..I guess.
+I'm also trying to figure out the best way to use overlay feature on
+samsung's new cpu named S5PC1XX.
 
-http://www.archivum.info/video4linux-list%40redhat.com/2008-07/msg00371.html
+The most complicated part of this job is the whole thing is happening
+in a single piece of chip and need to figure out the standardized way
+for compatibility. I wish you luck :-)
+Cheers,
 
-In the past year the v4l2 core has evolved enough so that we can finally
-start thinking about this for real.
+Nate
 
-I would like to know who will be attending this conference. I also urge
-anyone who is working in this area and who wants to have a say in this to
-attend the conference. The goal is to prepare a new RFC with a detailed
-proposal on the new APIs that are needed to fully support all the new
-SoCs. So the more input we get, the better the end-result will be.
+>> Cheers,
+>>
+>
+>
+>> Nate
+>>
+>>> Are there any fb that i can use as an example for this?
+>>>
+>>> From looking at the driver code, it seems like the generic code of
+>>> fbmem.c
+>>> needs a v4l2 device. Is this in the right ballpark?
+>>>
+>>> Thanks,
+>>> Ryan
+>>>
+>>> --
+>>> video4linux-list mailing list
+>>> Unsubscribe
+>>> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+>>> https://www.redhat.com/mailman/listinfo/video4linux-list
+>>>
+>>
+>>
+>>
+>
 
-Early-bird registration is still possible up to August 5th (that's
-tomorrow :-) ).
 
-Regards,
-
-	Hans
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+=
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
