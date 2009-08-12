@@ -1,118 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2429 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752993AbZHLS1u (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2009 14:27:50 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id n7CIRnBY009943
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 12 Aug 2009 20:27:50 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 12 Aug 2009 20:27:49 +0200 (CEST)
-Message-Id: <200908121827.n7CIRnBY009943@smtp-vbr9.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from www.youplala.net ([88.191.51.216]:39824 "EHLO mail.youplala.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752745AbZHLOHH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Aug 2009 10:07:07 -0400
+Received: from [10.11.11.141] (host81-151-5-7.range81-151.btcentralplus.com [81.151.5.7])
+	by mail.youplala.net (Postfix) with ESMTPSA id 4D5E1D880C7
+	for <linux-media@vger.kernel.org>; Wed, 12 Aug 2009 16:06:55 +0200 (CEST)
+Subject: Re: [linux-dvb] problem: Hauppauge Nova TD500
+From: Nicolas Will <nico@youplala.net>
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
+In-Reply-To: <CE7D00C2-9D6E-4DF9-A82A-9DA270CD22E9@dockerz.net>
+References: <4A8169D0.3030008@dockerz.net>
+	 <1249996315.30127.3.camel@youkaida>
+	 <CE7D00C2-9D6E-4DF9-A82A-9DA270CD22E9@dockerz.net>
+Content-Type: text/plain
+Date: Wed, 12 Aug 2009 15:06:48 +0100
+Message-Id: <1250086008.4732.1.camel@youkaida>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Wed, 2009-08-12 at 23:04 +1000, Tim Docker wrote:
+> On 11/08/2009, at 11:11 PM, Nicolas Will wrote:
+> 
+> > On Tue, 2009-08-11 at 13:53 +0100, Tim Docker wrote:
+> >> Hi,
+> >>
+> >> I'm trying to diagnose a problem with a mythtv setup based upon a
+> >> hauppauge nova td 500. I've had the setup for some months - it
+> seemed
+> >> to
+> >> work reasonably reliably initially, but over the last few weeks
+> I've
+> >> had
+> >> consistent problems with the tuner card entering a state where it
+> is
+> >> unable to receive a signal.
+> 
+> > This problem is most probably caused by the tuner being in USB
+> suspend
+> > when MythTV wants to use it too quickly.
+> >
+> > Either disable usb suspend in your kernel, or tell mythtv to take
+> wait
+> > some more before tuning.
+> >
+> > I told MythTV to wait some more, and all is fine.
+> >
+> >
+> http://www.youplala.net/linux/home-theater-pc#toc-not-losing-one-of-the-nova-t-500s-tuners
+> 
+> Thanks - I've make the changes, and it's survived the first 24
+> hours,  
+> which is an improvement. Time will tell if the problem has really
+> gone.
 
-Results of the daily build of v4l-dvb:
+It should be.
 
-date:        Wed Aug 12 19:00:04 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12447:d2843f5f8fde
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+My system has been up for more than 14 days, since the last kernel
+update that required a reboot.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc5-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-rc5-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-rc5-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: OK
-linux-2.6.30-i686: OK
-linux-2.6.31-rc5-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc5-m32r: OK
-linux-2.6.30-mips: OK
-linux-2.6.31-rc5-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29.1-powerpc64: OK
-linux-2.6.30-powerpc64: OK
-linux-2.6.31-rc5-powerpc64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc5-x86_64: OK
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc5): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+Before that it was up for more than a month.
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+Nico
 
