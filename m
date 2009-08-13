@@ -1,39 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-01.arcor-online.net ([151.189.21.41]:60835 "EHLO
-	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750848AbZH1BDY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Aug 2009 21:03:24 -0400
-Subject: Re: [PATCH] Add support for RoverMedia TV Link Pro FM v2
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Eugene Yudin <eugene.yudin@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <1251415468.3742.12.camel@pc07.localdom.local>
-References: <200908272104.59221.Eugene.Yudin@gmail.com>
-	 <200908280059.03966.Eugene.Yudin@gmail.com>
-	 <1251415468.3742.12.camel@pc07.localdom.local>
-Content-Type: text/plain
-Date: Fri, 28 Aug 2009 02:54:03 +0200
-Message-Id: <1251420843.3674.3.camel@pc07.localdom.local>
-Mime-Version: 1.0
+Received: from smtp4-g21.free.fr ([212.27.42.4]:53255 "EHLO smtp4-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753883AbZHMNrb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Aug 2009 09:47:31 -0400
+Message-ID: <4A841969.9050209@zerezo.com>
+Date: Thu, 13 Aug 2009 15:47:21 +0200
+From: Antoine Jacquet <royale@zerezo.com>
+MIME-Version: 1.0
+To: Roel Kluin <roel.kluin@gmail.com>
+CC: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] zr364: wrong indexes
+References: <4A8151A1.2020103@gmail.com>
+In-Reply-To: <4A8151A1.2020103@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-...
+Hi,
+
+You are right, thanks for fixing this bug.
+I have pushed your patch to my tree.
+
+Best regards,
+
+Antoine
+
+
+Roel Kluin wrote:
+> The order of indexes is reversed
 > 
-> Compared to the original tuner and the known clones, the FMD will have
-> missing channels and a grainy picture on very low VHF channels. Since
-> you don't have such an FMD, likely you can't realize that.
-
-For the record.
-
-Sorry, was of cause meant the other way round.
-
-You will see this on tuner=38 like types and not on the FMD.
-The genuine FMD can also be identified by its radio and tda9887
-initialization behavior.
-
-Hermann
-
+> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+> ---
+> Right?
+> 
+> diff --git a/drivers/media/video/zr364xx.c b/drivers/media/video/zr364xx.c
+> index fc976f4..2622a6e 100644
+> --- a/drivers/media/video/zr364xx.c
+> +++ b/drivers/media/video/zr364xx.c
+> @@ -695,7 +695,7 @@ static int zr364xx_release(struct file *file)
+>  	for (i = 0; i < 2; i++) {
+>  		err =
+>  		    send_control_msg(udev, 1, init[cam->method][i].value,
+> -				     0, init[i][cam->method].bytes,
+> +				     0, init[cam->method][i].bytes,
+>  				     init[cam->method][i].size);
+>  		if (err < 0) {
+>  			dev_err(&udev->dev, "error during release sequence\n");
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
