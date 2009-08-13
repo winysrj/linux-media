@@ -1,67 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-07.arcor-online.net ([151.189.21.47]:49370 "EHLO
-	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932977AbZHVWf3 (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2304 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752210AbZHMS2E (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Aug 2009 18:35:29 -0400
-Subject: Re: x3m_HPC2000
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Daniel Senftleben <danprem@gmx.net>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <200908221231.30130.danprem@gmx.net>
-References: <200908221231.30130.danprem@gmx.net>
-Content-Type: text/plain
-Date: Sun, 23 Aug 2009 00:33:21 +0200
-Message-Id: <1250980401.5983.23.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 13 Aug 2009 14:28:04 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id n7DIS3hg098506
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 13 Aug 2009 20:28:03 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 13 Aug 2009 20:28:03 +0200 (CEST)
+Message-Id: <200908131828.n7DIS3hg098506@smtp-vbr8.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daniel,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Am Samstag, den 22.08.2009, 12:31 +0200 schrieb Daniel Senftleben:
-[snip]
-> 
-> G'day all
-> 
-> I've bought myself the "HPC2000 hybrid tv pci card" for one reason because x3m 
-> said it supports linux.. well, it never worked for me (now I'm at Suse 11.1 
-> 64bit and I used to use the prior Suse versions) and now I stumbled across 
-> your wiki and saw my card under the "Currently Unsupported DVB-T PCI cards"..  
-> way to go :-/ So now I subscribed to the list to help get this card working! 
-> How can I help?
-> (but please be easy on me - it's the first time I try help "officials" ;-))
-> 
+Results of the daily build of v4l-dvb:
 
-I'm not very close to that card currently, but from the wiki it seems
-your best chance is to try with recent mercurial v4l-dvb cx88xx card=63.
+date:        Thu Aug 13 19:00:05 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12447:d2843f5f8fde
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Devin had some important regression fixes about three weeks back.
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-rc5-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29.1-armv5-ixp: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-rc5-armv5-ixp: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-rc5-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: OK
+linux-2.6.30-i686: OK
+linux-2.6.31-rc5-i686: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-rc5-m32r: OK
+linux-2.6.30-mips: OK
+linux-2.6.31-rc5-mips: OK
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29.1-powerpc64: OK
+linux-2.6.30-powerpc64: OK
+linux-2.6.31-rc5-powerpc64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: OK
+linux-2.6.30-x86_64: OK
+linux-2.6.31-rc5-x86_64: OK
+sparse (linux-2.6.30): OK
+sparse (linux-2.6.31-rc5): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
-The wiki link to the x3m linux driver doesn't work currently, so I had
-only a look at the Geniatech stuff.
+Detailed results are available here:
 
-There seem to be already several revisions of that card and clones.
-The X3M with version 1.11.
-http://www.linuxtv.org/wiki/images/3/37/Hpc2000.jpg
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-And LifeView with a revision 1.00 calling it "not only TV".
-http://www.lifeview.hk/dbimages/document/12%5Clv3h_all.jpg
+Full logs are available here:
 
-Here we seem to see it with a sticker "LV3H" over the revision printing.
-That one has the same PCI subsystem like the Geniatech X8000 MT.
-http://www.lowlevel.cz/log/pivot/entry.php?id=117
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-Always try to provide links, even to our own wiki and at least relevant
-parts of "dmesg" for all card related stuff.
+The V4L2 specification from this daily build is here:
 
-I honestly had no idea in the beginning about what you might be talking
-at all, just some decent echos in memory.
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
 
-Good Luck,
-Hermann
+The DVB API specification from this daily build is here:
 
-
-
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
