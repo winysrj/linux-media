@@ -1,47 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-07.arcor-online.net ([151.189.21.47]:36830 "EHLO
-	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750756AbZHWWaz (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:59878 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752549AbZHMSRO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2009 18:30:55 -0400
-Subject: Re: [linux-dvb] Lifeview hybrid saa7134 driver not working anymore
-From: hermann pitton <hermann-pitton@arcor.de>
-To: linux-media@vger.kernel.org, scoop_yo@freemail.gr
-Cc: linux-dvb@linuxtv.org
-In-Reply-To: <4a9157b68b09b3.99825026@freemail.gr>
-References: <4a9157b68b09b3.99825026@freemail.gr>
-Content-Type: text/plain
-Date: Mon, 24 Aug 2009 00:27:27 +0200
-Message-Id: <1251066447.3244.5.camel@pc07.localdom.local>
+	Thu, 13 Aug 2009 14:17:14 -0400
+Date: Thu, 13 Aug 2009 15:17:13 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Igor M. Liplianin" <liplianin@me.by>
+Cc: mo.ucina@gmail.com, linux-media@vger.kernel.org,
+	"Jan D. Louw" <jd.louw@mweb.co.za>
+Subject: Re: [linux-dvb] Support for Compro VideoMate S350
+Message-ID: <20090813151713.2b94f373@caramujo.chehab.org>
+In-Reply-To: <200906231804.28893.liplianin@me.by>
+References: <81c0b0550905250703o786a2a65ib757287da841dc11@mail.gmail.com>
+	<200906201633.58431.liplianin@me.by>
+	<4A40C81E.7070304@gmail.com>
+	<200906231804.28893.liplianin@me.by>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi scoop,
+Em Tue, 23 Jun 2009 18:04:28 +0300
+"Igor M. Liplianin" <liplianin@me.by> escreveu:
 
-Am Sonntag, den 23.08.2009, 17:52 +0300 schrieb scoop_yo@freemail.gr:
-> Hi, for a couple of days now, my lifeview PCI hybrid card that worked flawlessly for the last 2 years doesn't work. The problem is with the driver from what I understand from the logs.
+> On 23 June 2009 15:18:38 O&M Ugarcina wrote:
+> > Thanks for that Igor,
+> >
+> > I have just pulled the latest hg and tried to apply patches . Patches
+> > 12094 and 12095 went in with no problem . However patch 12096 failed
+> > with this output :
+> >
+> > [root@localhost v4l-dvb]# patch -p1 < 12096.patch
+> > patching file linux/drivers/media/common/ir-keymaps.c
+> > Hunk #1 FAILED at 2800.
+> > 1 out of 1 hunk FAILED -- saving rejects to file
+> > linux/drivers/media/common/ir-keymaps.c.rej
+> > patching file linux/drivers/media/video/saa7134/Kconfig
+> > patching file linux/drivers/media/video/saa7134/saa7134-cards.c
+> > patching file linux/drivers/media/video/saa7134/saa7134-dvb.c
+> > patching file linux/drivers/media/video/saa7134/saa7134-input.c
+> > patching file linux/drivers/media/video/saa7134/saa7134.h
+> > patching file linux/include/media/ir-common.h
+> > Hunk #1 FAILED at 162.
+> > 1 out of 1 hunk FAILED -- saving rejects to file
+> > linux/include/media/ir-common.h.rej
+> > [root@localhost v4l-dvb]#
+> >
 > 
-> Today 23/8/2009 I tried the drivers within vanilla kernel 2.6.30.5 (i386 and amd64) and then separately latest mercurial snapshot. I always use latest mercurial snapshot updating every time a new kernel is released.
-> This card works within Windows XP. I also switched the PCI slot but that didn't help.
-> 
-> For the driver, I issued the command:
-> 
-> modprobe saa7134 i2c_debug=1 i2c_scan=1 disable_ir=1
-> 
-> I attached the log because it's kinda big for posting it on the message.
-> For any ideas or suggestions I am here available for testing them. :)
-> 
+> I recreate last patch just now.
 
-the report is at least fine.
+Igor,
 
-An i2c device, working over years on 0x10, vanished mysteriously.
+As this patch seems to depend on a new demod not yet merged, I'll assume that
+this patch is an RFC. Please send me a pull request when you have it ready for
+upstream.
 
-I guess you don't have much better options here than to try, if it comes
-back with any combination of either most triggering it or not at all ...
+
+
 
 Cheers,
-Hermann
-
-
+Mauro
