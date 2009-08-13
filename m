@@ -1,45 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45018 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756790AbZHFXB1 (ORCPT
+Received: from idcmail-mo2no.shaw.ca ([64.59.134.9]:50817 "EHLO
+	idcmail-mo2no.shaw.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751542AbZHME5j (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Aug 2009 19:01:27 -0400
-Message-Id: <200908062301.n76N1IE5030049@imap1.linux-foundation.org>
-Subject: [patch 7/9] stk-webcam: read buffer overflow
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	roel.kluin@gmail.com, hverkuil@xs4all.nl, xyzzy@speakeasy.org
-From: akpm@linux-foundation.org
-Date: Thu, 06 Aug 2009 16:01:18 -0700
+	Thu, 13 Aug 2009 00:57:39 -0400
+From: Thomas Fjellstrom <tfjellstrom@shaw.ca>
+Reply-To: tfjellstrom@shaw.ca
+To: linux-media@vger.kernel.org
+Subject: KWorld UB435-Q support?
+Date: Wed, 12 Aug 2009 22:57:39 -0600
+MIME-Version: 1.0
+Message-Id: <200908122257.39484.tfjellstrom@shaw.ca>
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Roel Kluin <roel.kluin@gmail.com>
+I stupidly bought the KWorld UB435-Q usb ATSC tuner thinking it was supported 
+under linux, and it turns out it isn't. I'm wondering what it would take to 
+get it supported. It seems like all of the main chips it uses are supported, 
+but the glue code is missing.
 
-It tested the value of stk_sizes[i].m before checking whether i was in range.
+I have some C (10 years) programming experience, and have wanted to contribute 
+to the linux kernel for quite a while, now I have a good excuse ;)
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Trent Piepho <xyzzy@speakeasy.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+Would anyone be willing to point me in the right direction?
 
- drivers/media/video/stk-webcam.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+(sorry if this is a dupe)
 
-diff -puN drivers/media/video/stk-webcam.c~stk-webcam-read-buffer-overflow drivers/media/video/stk-webcam.c
---- a/drivers/media/video/stk-webcam.c~stk-webcam-read-buffer-overflow
-+++ a/drivers/media/video/stk-webcam.c
-@@ -1050,8 +1050,8 @@ static int stk_setup_format(struct stk_c
- 		depth = 1;
- 	else
- 		depth = 2;
--	while (stk_sizes[i].m != dev->vsettings.mode
--			&& i < ARRAY_SIZE(stk_sizes))
-+	while (i < ARRAY_SIZE(stk_sizes) &&
-+			stk_sizes[i].m != dev->vsettings.mode)
- 		i++;
- 	if (i == ARRAY_SIZE(stk_sizes)) {
- 		STK_ERROR("Something is broken in %s\n", __func__);
-_
+-- 
+Thomas Fjellstrom
+tfjellstrom@shaw.ca
