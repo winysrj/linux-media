@@ -1,191 +1,254 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:53684 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751421AbZH3WTf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Aug 2009 18:19:35 -0400
-Date: Mon, 31 Aug 2009 00:19:38 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>,
-	Laurent Pinchart <laurent.pinchart@skynet.be>
-Subject: Re: RFC: bus configuration setup for sub-devices
-In-Reply-To: <200908291631.13696.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.0908300109490.16132@axis700.grange>
-References: <200908291631.13696.hverkuil@xs4all.nl>
+Received: from rv-out-0506.google.com ([209.85.198.232]:60422 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751445AbZHNFW4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Aug 2009 01:22:56 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so383747rvb.1
+        for <linux-media@vger.kernel.org>; Thu, 13 Aug 2009 22:22:57 -0700 (PDT)
+Date: Thu, 13 Aug 2009 22:22:52 -0700
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH] pwc - fix few use-after-free and memory leaks
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Message-Id: <20090814055340.A2F9C526EC9@mailhub.coreip.homeip.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 29 Aug 2009, Hans Verkuil wrote:
+Hi Mauro,
 
-> Hi all,
-> 
-> This is an updated RFC on how to setup the bus for sub-devices.
-> 
-> It is based on work from Guennadi and Muralidharan.
-> 
-> The problem is that both sub-devices and bridge devices have to configure
-> their bus correctly so that they can talk to one another. We need a
-> standard way of configuring such busses.
-> 
-> The soc-camera driver did this by auto-negotiation. For several reasons (see
-> the threads on bus parameters in the past) I thought that that was not a good
-> idea. After talking this over last week with Guennadi we agreed that we would
-> configure busses directly rather than negotiate the bus configuration. It was
-> a very pleasant meeting (Hans de Goede, Laurent Pinchart, Guennadi Liakhovetski
-> and myself) and something that we should repeat. Face-to-face meetings make
-> it so much faster to come to a decision on difficult problems.
-> 
-> My last proposal merged subdev and bridge parameters into one struct, thus
-> completely describing the bus setup. I realized that there is a problem with
-> that if you have to define the bus for sub-devices that are in the middle of
-> a chain: e.g. a sensor sends its video to a image processing subdev and from
-> there it goes to the bridge. You have to be able to specify both the source and
-> sink part of each bus for that image processing subdev.
-> 
-> It's much easier to do that by keeping the source and sink bus config
-> separate.
-> 
-> Here is my new proposal:
-> 
-> /*
->  * Some sub-devices are connected to the host/bridge device through a bus that
->  * carries the clock, vsync, hsync and data. Some interfaces such as BT.656
->  * carries the sync embedded in the data whereas others have separate lines
->  * carrying the sync signals.
->  */
-> struct v4l2_bus_config {
->         /* embedded sync, set this when sync is embedded in the data stream */
->         unsigned embedded_sync:1;
->         /* master or slave */
->         unsigned is_master:1;
+I just happen to peek inside the PWC driver and did not like what I saw
+there. Please consider applying the patch below.
 
-Up to now I usually saw the master-slave relationship defined as per 
-whether the protocol is "master" or "slave," which always was used from 
-the PoV of the bridge. I.e., even in a camera datasheet a phrase like 
-"supports master-parallel mode" means supports a mode in which the bridge 
-is a master and the camera is a slave. So, maybe it is better instead of a 
-.is_master flag to use a .master_mode flag?
+Thanks!
 
-Besides, aren't there any other bus synchronisation models apart from
+-- 
+Dmitry
 
-data + master clock + pixel clock + hsync + vsync
-and
-data + master clock + pixel clock + embedded sync
+V4L/DVB: pwc - fix few use-after-free and memory leaks
 
-? For example, we should be able to specify, that field is not connected?
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-> 
->         /* bus width */
->         unsigned width:8;
->         /* 0 - active low, 1 - active high */
->         unsigned pol_vsync:1;
->         /* 0 - active low, 1 - active high */
->         unsigned pol_hsync:1;
->         /* 0 - low to high, 1 - high to low */
->         unsigned pol_field:1;
->         /* 0 - sample at falling edge, 1 - sample at rising edge */
->         unsigned edge_pclock:1;
->         /* 0 - active low, 1 - active high */
->         unsigned pol_data:1;
-> };
-> 
-> It's all bitfields, so it is a very compact representation.
-> 
-> In video_ops we add two new functions:
-> 
->      int (*s_source_bus_config)(struct v4l2_subdev *sd, const struct v4l2_bus_config *bus);
->      int (*s_sink_bus_config)(struct v4l2_subdev *sd, const struct v4l2_bus_config *bus);
-> 
-> Actually, if there are no subdevs that can act as sinks then we should omit
-> s_sink_bus_config for now.
-> 
-> In addition, I think we need to require that at the start of the s_*_bus_config
-> implementation in the host or subdev there should be a standard comment
-> block describing the possible combinations supported by the hardware:
-> 
-> /* This hardware supports the following bus settings:
-> 
->    widths: 8/16
->    syncs: embedded or separate
->    bus master: slave
->    vsync polarity: 0/1
->    hsync polarity: 0/1
->    field polarity: not applicable
->    sampling edge pixelclock: 0/1
->    data polarity: 1
->  */
-> 
-> This should make it easy for implementers to pick a valid set of bus
-> parameters.
-> 
-> Eagle-eyed observers will note that the bus type field has disappeared from
-> this proposal. The problem with that is that I have no clue what it is supposed
-> to do. Is there more than one bus that can be set up? In that case it is not a
-> bus type but a bus ID. Or does it determine that type of data that is being
-> transported over the bus? In that case it does not belong here, since that is
-> something for a s_fmt type API.
-> 
-> This particular API should just setup the physical bus. Nothing more, IMHO.
-> 
-> Please let me know if I am missing something here.
-> 
-> Guennadi, from our meeting I understood that you also want a way provide
-> an offset in case the data is actually only on some pins (e.g. the lower
-> or upper X pins are always 0). I don't think it is hard to provide support
-> for that in this API by adding an offset field or something like that.
-> 
-> Can you give me a pointer to the actual place where that is needed? Possibly
-> also with references to datasheets? I'd like to understand this better.
+It is not allowed to call input_free_device() after input_unregister_device()
+since input_dev structure is refcounted and will [most likely] be freed by
+input_unregister_device(). Also don't try accessing structure members after
+freeing the structure and correctly free resources in error unwinding path.
 
-I'll just describe to you the cases, where we need this:
-
-1. PXA270 SoC Quick Capture Interface has 10 data lines (D9...D0) and can 
-sample in raw (parallel) mode 8, 9, or 10 bits of data. However, when 
-configured to capture fewer than 10 bits of data it sample not the most 
-significant lines (D9...D1 or D9...D2), but the least significant ones.
-
-2. i.MX31 SoC Camera Sensor Interface has 15 data lines (D14...D0) and can 
-sample in raw (parallel) mode 8, 10, or 15 lines of data. Thereby it 
-sample the most significant lines.
-
-3. MT9M001 and MT9V022 sensors have 10 lines of data and always deliver 10 
-bits of data. When directly connected D0-D0...D9-D9 to the PXA270 you can 
-only sample 10 bits and not 8 bits. When similarly connected to i.MX31 
-D0-D6...D9-D15 you can seamlessly configure the SoC to either capture 8 or 
-10 bits of data - both will work.
-
-4. Creative hardware engineers have supplied both these cameras with an 
-i2c switch, that can switch the 8 most significant data lines of the 
-sensor to the least significant lines of the interface to work with 
-PXA270.
-
-5. The current soc-camera solution for this situation seems pretty clean: 
-we provide an optional callback into platform code to query bus 
-parameters. On boards, using such a camera with an i2c switch this 
-function returns to the sensor "you can support 8 and 10 bit modes." On 
-PXA270 boards, using such a camera without a switch this function is 
-either not implemented at all, or it returns the default "you can only 
-provide 10 bits." Then there is another callback to actually switch 
-between low and high lines by operating the I2C switch. And a third 
-callback to release i2c switch resources. On i.MX31 you would implement 
-the query callback as "yes, you can support 8 and 10 bits," and the switch 
-callback as a dummy (or not implement at all) because you don't have to 
-switch anything on i.MX31.
-
-> Sakari, this proposal is specific to parallel busses. I understood that Nokia
-> also has to deal with serial busses. Can you take a look at this proposal with
-> a serial bus in mind?
-> 
-> This bus config stuff has been in limbo for too long, so I'd like to come
-> to a conclusion and implementation in 1-2 weeks.
-
-Thanks
-Guennadi
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+
+ drivers/media/video/pwc/pwc-if.c |   78 +++++++++++++++++---------------------
+ drivers/media/video/pwc/pwc.h    |    1 
+ 2 files changed, 36 insertions(+), 43 deletions(-)
+
+
+diff --git a/drivers/media/video/pwc/pwc-if.c b/drivers/media/video/pwc/pwc-if.c
+index 8d17cf6..f976df4 100644
+--- a/drivers/media/video/pwc/pwc-if.c
++++ b/drivers/media/video/pwc/pwc-if.c
+@@ -1057,7 +1057,8 @@ static int pwc_create_sysfs_files(struct video_device *vdev)
+ 		goto err;
+ 	if (pdev->features & FEATURE_MOTOR_PANTILT) {
+ 		rc = device_create_file(&vdev->dev, &dev_attr_pan_tilt);
+-		if (rc) goto err_button;
++		if (rc)
++			goto err_button;
+ 	}
+ 
+ 	return 0;
+@@ -1072,6 +1073,7 @@ err:
+ static void pwc_remove_sysfs_files(struct video_device *vdev)
+ {
+ 	struct pwc_device *pdev = video_get_drvdata(vdev);
++
+ 	if (pdev->features & FEATURE_MOTOR_PANTILT)
+ 		device_remove_file(&vdev->dev, &dev_attr_pan_tilt);
+ 	device_remove_file(&vdev->dev, &dev_attr_button);
+@@ -1229,13 +1231,11 @@ static void pwc_cleanup(struct pwc_device *pdev)
+ 	video_unregister_device(pdev->vdev);
+ 
+ #ifdef CONFIG_USB_PWC_INPUT_EVDEV
+-	if (pdev->button_dev) {
++	if (pdev->button_dev)
+ 		input_unregister_device(pdev->button_dev);
+-		input_free_device(pdev->button_dev);
+-		kfree(pdev->button_dev->phys);
+-		pdev->button_dev = NULL;
+-	}
+ #endif
++
++	kfree(pdev);
+ }
+ 
+ /* Note that all cleanup is done in the reverse order as in _open */
+@@ -1281,8 +1281,6 @@ static int pwc_video_close(struct file *file)
+ 		PWC_DEBUG_OPEN("<< video_close() vopen=%d\n", pdev->vopen);
+ 	} else {
+ 		pwc_cleanup(pdev);
+-		/* Free memory (don't set pdev to 0 just yet) */
+-		kfree(pdev);
+ 		/* search device_hint[] table if we occupy a slot, by any chance */
+ 		for (hint = 0; hint < MAX_DEV_HINTS; hint++)
+ 			if (device_hint[hint].pdev == pdev)
+@@ -1499,13 +1497,10 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
+ 	struct usb_device *udev = interface_to_usbdev(intf);
+ 	struct pwc_device *pdev = NULL;
+ 	int vendor_id, product_id, type_id;
+-	int i, hint, rc;
++	int hint, rc;
+ 	int features = 0;
+ 	int video_nr = -1; /* default: use next available device */
+ 	char serial_number[30], *name;
+-#ifdef CONFIG_USB_PWC_INPUT_EVDEV
+-	char *phys = NULL;
+-#endif
+ 
+ 	vendor_id = le16_to_cpu(udev->descriptor.idVendor);
+ 	product_id = le16_to_cpu(udev->descriptor.idProduct);
+@@ -1757,8 +1752,7 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
+ 	pdev->vframes = default_fps;
+ 	strcpy(pdev->serial, serial_number);
+ 	pdev->features = features;
+-	if (vendor_id == 0x046D && product_id == 0x08B5)
+-	{
++	if (vendor_id == 0x046D && product_id == 0x08B5) {
+ 		/* Logitech QuickCam Orbit
+ 		   The ranges have been determined experimentally; they may differ from cam to cam.
+ 		   Also, the exact ranges left-right and up-down are different for my cam
+@@ -1780,8 +1774,8 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
+ 	pdev->vdev = video_device_alloc();
+ 	if (!pdev->vdev) {
+ 		PWC_ERROR("Err, cannot allocate video_device struture. Failing probe.");
+-		kfree(pdev);
+-		return -ENOMEM;
++		rc = -ENOMEM;
++		goto err_free_mem;
+ 	}
+ 	memcpy(pdev->vdev, &pwc_template, sizeof(pwc_template));
+ 	pdev->vdev->parent = &intf->dev;
+@@ -1806,25 +1800,23 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
+ 	}
+ 
+ 	pdev->vdev->release = video_device_release;
+-	i = video_register_device(pdev->vdev, VFL_TYPE_GRABBER, video_nr);
+-	if (i < 0) {
+-		PWC_ERROR("Failed to register as video device (%d).\n", i);
+-		rc = i;
+-		goto err;
+-	}
+-	else {
+-		PWC_INFO("Registered as /dev/video%d.\n", pdev->vdev->num);
++	rc = video_register_device(pdev->vdev, VFL_TYPE_GRABBER, video_nr);
++	if (rc < 0) {
++		PWC_ERROR("Failed to register as video device (%d).\n", rc);
++		goto err_video_release;
+ 	}
+ 
++	PWC_INFO("Registered as /dev/video%d.\n", pdev->vdev->num);
++
+ 	/* occupy slot */
+ 	if (hint < MAX_DEV_HINTS)
+ 		device_hint[hint].pdev = pdev;
+ 
+ 	PWC_DEBUG_PROBE("probe() function returning struct at 0x%p.\n", pdev);
+-	usb_set_intfdata (intf, pdev);
++	usb_set_intfdata(intf, pdev);
+ 	rc = pwc_create_sysfs_files(pdev->vdev);
+ 	if (rc)
+-		goto err_unreg;
++		goto err_video_unreg;
+ 
+ 	/* Set the leds off */
+ 	pwc_set_leds(pdev, 0, 0);
+@@ -1835,16 +1827,16 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
+ 	pdev->button_dev = input_allocate_device();
+ 	if (!pdev->button_dev) {
+ 		PWC_ERROR("Err, insufficient memory for webcam snapshot button device.");
+-		return -ENOMEM;
++		rc = -ENOMEM;
++		pwc_remove_sysfs_files(pdev->vdev);
++		goto err_video_unreg;
+ 	}
+ 
++	usb_make_path(udev, pdev->button_phys, sizeof(pdev->button_phys));
++	strlcat(pdev->button_phys, "/input0", sizeof(pdev->button_phys));
++
+ 	pdev->button_dev->name = "PWC snapshot button";
+-	phys = kasprintf(GFP_KERNEL,"usb-%s-%s", pdev->udev->bus->bus_name, pdev->udev->devpath);
+-	if (!phys) {
+-		input_free_device(pdev->button_dev);
+-		return -ENOMEM;
+-	}
+-	pdev->button_dev->phys = phys;
++	pdev->button_dev->phys = pdev->button_phys;
+ 	usb_to_input_id(pdev->udev, &pdev->button_dev->id);
+ 	pdev->button_dev->dev.parent = &pdev->udev->dev;
+ 	pdev->button_dev->evbit[0] = BIT_MASK(EV_KEY);
+@@ -1853,25 +1845,27 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
+ 	rc = input_register_device(pdev->button_dev);
+ 	if (rc) {
+ 		input_free_device(pdev->button_dev);
+-		kfree(pdev->button_dev->phys);
+ 		pdev->button_dev = NULL;
+-		return rc;
++		pwc_remove_sysfs_files(pdev->vdev);
++		goto err_video_unreg;
+ 	}
+ #endif
+ 
+ 	return 0;
+ 
+-err_unreg:
++err_video_unreg:
+ 	if (hint < MAX_DEV_HINTS)
+ 		device_hint[hint].pdev = NULL;
+ 	video_unregister_device(pdev->vdev);
+-err:
+-	video_device_release(pdev->vdev); /* Drip... drip... drip... */
+-	kfree(pdev); /* Oops, no memory leaks please */
++	pdev->vdev = NULL;	/* So we don't try to release it below */
++err_video_release:
++	video_device_release(pdev->vdev);
++err_free_mem:
++	kfree(pdev);
+ 	return rc;
+ }
+ 
+-/* The user janked out the cable... */
++/* The user yanked out the cable... */
+ static void usb_pwc_disconnect(struct usb_interface *intf)
+ {
+ 	struct pwc_device *pdev;
+@@ -1902,7 +1896,7 @@ static void usb_pwc_disconnect(struct usb_interface *intf)
+ 	/* Alert waiting processes */
+ 	wake_up_interruptible(&pdev->frameq);
+ 	/* Wait until device is closed */
+-	if(pdev->vopen) {
++	if (pdev->vopen) {
+ 		mutex_lock(&pdev->modlock);
+ 		pdev->unplugged = 1;
+ 		mutex_unlock(&pdev->modlock);
+@@ -1911,8 +1905,6 @@ static void usb_pwc_disconnect(struct usb_interface *intf)
+ 		/* Device is closed, so we can safely unregister it */
+ 		PWC_DEBUG_PROBE("Unregistering video device in disconnect().\n");
+ 		pwc_cleanup(pdev);
+-		/* Free memory (don't set pdev to 0 just yet) */
+-		kfree(pdev);
+ 
+ disconnect_out:
+ 		/* search device_hint[] table if we occupy a slot, by any chance */
+diff --git a/drivers/media/video/pwc/pwc.h b/drivers/media/video/pwc/pwc.h
+index 0b658de..57b22b0 100644
+--- a/drivers/media/video/pwc/pwc.h
++++ b/drivers/media/video/pwc/pwc.h
+@@ -259,6 +259,7 @@ struct pwc_device
+    int snapshot_button_status;		/* set to 1 when the user push the button, reset to 0 when this value is read */
+ #ifdef CONFIG_USB_PWC_INPUT_EVDEV
+    struct input_dev *button_dev;	/* webcam snapshot button input */
++   char button_phys[64];
+ #endif
+ 
+    /*** Misc. data ***/
