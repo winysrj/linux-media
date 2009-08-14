@@ -1,71 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f183.google.com ([209.85.212.183]:58897 "EHLO
-	mail-vw0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755950AbZHFU3R (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2009 16:29:17 -0400
-Received: by vws13 with SMTP id 13so1071790vws.22
-        for <linux-media@vger.kernel.org>; Thu, 06 Aug 2009 13:29:17 -0700 (PDT)
-MIME-Version: 1.0
-Date: Thu, 6 Aug 2009 16:29:17 -0400
-Message-ID: <c4aed99f0908061329h1485053cr7ac2b0319218e138@mail.gmail.com>
-Subject: sn9c20x driver seems ok, but no video
-From: Chris Hallinan <challinan@gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:56960 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754689AbZHNVCm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Aug 2009 17:02:42 -0400
+From: m-karicheri2@ti.com
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Cc: davinci-linux-open-source@linux.davincidsp.com, hverkuil@xs4all.nl,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: [PATCH v1 - 5/5] V4L : vpif display - updates to support vpif capture on DM6467
+Date: Fri, 14 Aug 2009 17:02:35 -0400
+Message-Id: <1250283755-5700-1-git-send-email-m-karicheri2@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi folks,
+From: Muralidharan Karicheri <m-karicheri2@ti.com>
 
-Trying to get a usb webcam based on SN9C20x driver working on Ubuntu.
+The structure name for vpif display driver changed since it was not unique. So this
+update is done to reflect the same. Also removed the code related to register
+address space iomap. Uses v4l2_i2c_new_subdev_board() instead of
+v4l2_i2c_new_probed_subdev() so that platform data can be added for subdevice
+configuration for polarities.
 
-Loading the module, everything looks good (log output trimmed for easy reading):
+This has incorporated comments against version v0 of the patch series.
 
- kernel: usb 7-3: new high speed USB device using ehci_hcd and address 4
- kernel: usb 7-3: configuration #1 chosen from 1 choice
- kernel: sn9c20x: SN9C20X USB 2.0 Webcam - 0C45:628F plugged-in.
- kernel: sn9c20x: Detected OV9650 Sensor.
- kernel: sn9c20x: Webcam device 0C45:628F is now controlling video
-device /dev/video0
- kernel: input: SN9C20X Webcam as /class/input/input10
- kernel: sn9c20x: No ack from I2C slave 0x30 for write to address 0x17
- kernel: sn9c20x: Using yuv420 output format
+NOTE: This patch is dependent on the patch from Chaithrika for vpif display.
 
-However, I've tried several different apps (cheese, Xsane, gstreamer,
-etc) but cannot
-see any video output.  I confess to being completely ignorant on
-issues video, etc. :)
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-If I type 'cat /dev/video0 >j.dump', the green LED on camera comes on,
-and j.dump is filled with binary data.
+Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+---
+Applies to V4L-DVB linux-next repository
+ drivers/media/video/davinci/vpif_display.c |   52 +++++++--------------------
+ 1 files changed, 14 insertions(+), 38 deletions(-)
 
-However, gst-launch shows this:
-# gst-launch-0.10 v4l2src ! ffmpegcolorspace ! ximagesink
-Setting pipeline to PAUSED ...
-ERROR: Pipeline doesn't want to pause.
-WARNING: from element /pipeline0/v4l2src0: Failed to get current input
-on device '/dev/video0'. May be it is a radio device
-Additional debug info:
-v4l2_calls.c(756): gst_v4l2_get_input (): /pipeline0/v4l2src0: system
-error: Invalid argument
-ERROR: from element /pipeline0/v4l2src0: Could not negotiate format
-Additional debug info:
-gstbasesrc.c(2387): gst_base_src_start (): /pipeline0/v4l2src0:
-Check your filtered caps, if any
-Setting pipeline to NULL ...
-FREEING pipeline ...
-
-I'm running Ubuntu Jaunty kernel (2.6.28) with Hardy userland.
-
-Any input/pointers would be most appreciated!  And if there is a
-better list to post such a question, I'd appreciate it.  I posted on
-microdia@googlegroups.com, but that list hasn't had a single message
-in more than 24 hours!
-
-Thanks,
-
-Chris
-
+diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
+index 969d4b3..ccc38b3 100644
+--- a/drivers/media/video/davinci/vpif_display.c
++++ b/drivers/media/video/davinci/vpif_display.c
+@@ -683,7 +683,7 @@ static int vpif_release(struct file *filep)
+ static int vpif_querycap(struct file *file, void  *priv,
+ 				struct v4l2_capability *cap)
+ {
+-	struct vpif_config *config = vpif_dev->platform_data;
++	struct vpif_display_config *config = vpif_dev->platform_data;
+ 
+ 	cap->version = VPIF_DISPLAY_VERSION_CODE;
+ 	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
+@@ -1053,7 +1053,7 @@ static int vpif_streamon(struct file *file, void *priv,
+ 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+ 	struct channel_obj *oth_ch = vpif_obj.dev[!ch->channel_id];
+ 	struct vpif_params *vpif = &ch->vpifparams;
+-	struct vpif_config *vpif_config_data =
++	struct vpif_display_config *vpif_config_data =
+ 					vpif_dev->platform_data;
+ 	unsigned long addr = 0;
+ 	int ret = 0;
+@@ -1239,7 +1239,7 @@ static int vpif_enum_output(struct file *file, void *fh,
+ 				struct v4l2_output *output)
+ {
+ 
+-	struct vpif_config *config = vpif_dev->platform_data;
++	struct vpif_display_config *config = vpif_dev->platform_data;
+ 
+ 	if (output->index >= config->output_count) {
+ 		vpif_dbg(1, debug, "Invalid output index\n");
+@@ -1422,10 +1422,10 @@ vpif_init_free_channel_objects:
+  */
+ static __init int vpif_probe(struct platform_device *pdev)
+ {
+-	const struct subdev_info *subdevdata;
++	struct vpif_subdev_info *subdevdata;
+ 	int i, j = 0, k, q, m, err = 0;
+ 	struct i2c_adapter *i2c_adap;
+-	struct vpif_config *config;
++	struct vpif_display_config *config;
+ 	struct common_obj *common;
+ 	struct channel_obj *ch;
+ 	struct video_device *vfd;
+@@ -1433,30 +1433,14 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 	int subdev_count;
+ 
+ 	vpif_dev = &pdev->dev;
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res) {
+-		v4l2_err(vpif_dev->driver,
+-				"Error getting platform resource\n");
+-		return -ENOENT;
+-	}
+ 
+-	if (!request_mem_region(res->start, res->end - res->start + 1,
+-						vpif_dev->driver->name)) {
+-		v4l2_err(vpif_dev->driver, "VPIF: failed request_mem_region\n");
+-		return -ENXIO;
+-	}
++	err = initialize_vpif();
+ 
+-	vpif_base = ioremap_nocache(res->start, res->end - res->start + 1);
+-	if (!vpif_base) {
+-		v4l2_err(vpif_dev->driver, "Unable to ioremap VPIF reg\n");
+-		err = -ENXIO;
+-		goto resource_exit;
++	if (err) {
++		v4l2_err(vpif_dev->driver, "Error initializing vpif\n");
++		return err;
+ 	}
+ 
+-	vpif_base_addr_init(vpif_base);
+-
+-	initialize_vpif();
+-
+ 	err = v4l2_device_register(vpif_dev, &vpif_obj.v4l2_dev);
+ 	if (err) {
+ 		v4l2_err(vpif_dev->driver, "Error registering v4l2 device\n");
+@@ -1489,7 +1473,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 				video_device_release(ch->video_dev);
+ 			}
+ 			err = -ENOMEM;
+-			goto video_dev_alloc_exit;
++			goto vpif_int_err;
+ 		}
+ 
+ 		/* Initialize field of video device */
+@@ -1566,10 +1550,11 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	for (i = 0; i < subdev_count; i++) {
+-		vpif_obj.sd[i] = v4l2_i2c_new_probed_subdev(&vpif_obj.v4l2_dev,
++		vpif_obj.sd[i] = v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
+ 						i2c_adap, subdevdata[i].name,
+-						subdevdata[i].name,
+-						&subdevdata[i].addr);
++						&subdevdata[i].board_info,
++						NULL);
++
+ 		if (!vpif_obj.sd[i]) {
+ 			vpif_err("Error registering v4l2 subdevice\n");
+ 			goto probe_subdev_out;
+@@ -1599,12 +1584,6 @@ vpif_int_err:
+ 		res = platform_get_resource(pdev, IORESOURCE_IRQ, k-1);
+ 		m = res->end;
+ 	}
+-video_dev_alloc_exit:
+-	iounmap(vpif_base);
+-resource_exit:
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	release_mem_region(res->start, res->end - res->start + 1);
+-
+ 	return err;
+ }
+ 
+@@ -1666,9 +1645,6 @@ static void vpif_cleanup(void)
+ 		i++;
+ 	}
+ 
+-	iounmap(vpif_base);
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	release_mem_region(res->start, res->end - res->start + 1);
+ 	platform_driver_unregister(&vpif_driver);
+ 	kfree(vpif_obj.sd);
+ 	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++)
 -- 
-Life is like Linux - it never stands still.
+1.6.0.4
+
