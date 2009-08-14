@@ -1,67 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from blu0-omc2-s19.blu0.hotmail.com ([65.55.111.94]:15377 "EHLO
-	blu0-omc2-s19.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753054AbZHKREv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2009 13:04:51 -0400
-Message-ID: <BLU0-SMTP36E4E04B3A0F5308D899C298070@phx.gbl>
-Subject: gspca: Trust webcam WB 300P ID 093a:2608 doesn't work
-From: Claudio Chimera <ckhmer1l@live.it>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain
-Date: Tue, 11 Aug 2009 19:04:33 +0200
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from comal.ext.ti.com ([198.47.26.152]:41130 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754684AbZHNVBg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Aug 2009 17:01:36 -0400
+From: m-karicheri2@ti.com
+To: linux-media@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	khilman@deeprootsystems.com, hverkuil@xs4all.nl,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: [PATCH v1 0/5] V4L: vpif_capture driver for DM6467
+Date: Fri, 14 Aug 2009 17:01:29 -0400
+Message-Id: <1250283689-5554-1-git-send-email-m-karicheri2@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-I'm trying to use the Trust webcam WB 300P (ID 093a:2608 ) unsuccessful.
+From: Muralidharan Karicheri <m-karicheri2@ti.com>
 
-The complete lsusb command is following:
+This patch series add support for VPIF Capture Driver on DM6467.
+VPIF (Video Port Interface) has two channels for capture video
+or Raw image data. Currently only video capture is supported
+using TVP5147 on each of the channel. That means two simultaneous
+capture of NTSC/PAL video is possible using this driver.
 
-Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 003 Device 002: ID 093a:2608 Pixart Imaging, Inc. 
-Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+This has incorporated comments received against version v0 of the
+patch series
 
-When I use amsn, I can select the webcam but I get an error (unable to
-capture ...)
+Following are the patches in this series:-
 
-The /var/log/message is following:
+1) DaVinci - re-structuring code to support vpif capture driver
+2) V4L : vpif capture - Kconfig and Makefile changes
+3) V4L : vpif_capture driver for DM6467
+4) V4L : vpif updates for DM6467 vpif capture driver
+5) V4L : vpif display - updates to support vpif capture on DM6467
 
+NOTE: All patches are to be applied before build.
 
-Aug 11 18:35:06 cchi-desktop kernel: [ 3447.714061] usb 1-2.4: new full
-speed USB device using ehci_hcd and address 3
-Aug 11 18:35:06 cchi-desktop kernel: [ 3447.836067] usb 1-2.4:
-configuration #1 chosen from 1 choice
-Aug 11 18:35:06 cchi-desktop kernel: [ 3448.112057] gspca: main v2.3.0
-registered
-Aug 11 18:35:06 cchi-desktop kernel: [ 3448.170206] gspca: probing
-093a:2608
-Aug 11 18:35:06 cchi-desktop kernel: [ 3448.180041] gspca: probe ok
-Aug 11 18:35:06 cchi-desktop kernel: [ 3448.180041] gspca: probing
-093a:2608
-Aug 11 18:35:06 cchi-desktop kernel: [ 3448.180041] gspca: probing
-093a:2608
-Aug 11 18:35:06 cchi-desktop kernel: [ 3448.180041] usbcore: registered
-new interface driver pac7311
-Aug 11 18:35:06 cchi-desktop kernel: [ 3448.180041] pac7311: registered
-Aug 11 18:35:07 cchi-desktop kernel: [ 3448.724060] usbcore: registered
-new interface driver snd-usb-audio
-Aug 11 18:35:08 cchi-desktop pulseaudio[3943]: alsa-util.c: Device hw:2
-doesn't support 44100 Hz, changed to 16000 Hz.
-Aug 11 18:35:08 cchi-desktop pulseaudio[3943]: alsa-util.c: Device hw:2
-doesn't support 2 channels, changed to 1.
+Mandatory reviewers : Hans Verkuil <hverkuil@xs4all.nl> for V4L tree
+                      Kevin Hilman <khilman@deeprootsystems.com> for DaVinci tree
 
-
-Aug 11 18:44:25 cchi-desktop kernel: [ 4007.040063] gspca:
-usb_submit_urb [0] err -28
-Aug 11 18:44:40 cchi-desktop kernel: [ 4022.040062] gspca:
-usb_submit_urb [0] err -28
-
-Thanks
-Claudio
-
-
+Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
