@@ -1,34 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:38565 "EHLO znsun1.ifh.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933555AbZHEIIF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Aug 2009 04:08:05 -0400
-Date: Wed, 5 Aug 2009 10:07:58 +0200 (CEST)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Akihiro TSUKADA <tskd2@yahoo.co.jp>, olgrenie@dibcom.fr
-Subject: Re: RFC: adding ISDB-T/ISDB-Tsb to DVB-API 5
-In-Reply-To: <alpine.LRH.1.10.0908050945190.6890@pub1.ifh.de>
-Message-ID: <alpine.LRH.1.10.0908051005160.6890@pub1.ifh.de>
-References: <alpine.LRH.1.10.0908031943220.8512@pub1.ifh.de> <alpine.LRH.1.10.0908041617050.8512@pub1.ifh.de> <4A78F3E6.2090708@yahoo.co.jp> <alpine.LRH.1.10.0908050945190.6890@pub1.ifh.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:44975
+	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754792AbZHNOHT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Aug 2009 10:07:19 -0400
+Cc: linux-media@vger.kernel.org
+Message-Id: <86D220D2-D88C-44F9-8650-D782CC5284EE@wilsonet.com>
+From: Jarod Wilson <jarod@wilsonet.com>
+To: tfjellstrom@shaw.ca
+In-Reply-To: <200908132312.50010.tfjellstrom@shaw.ca>
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0 (Apple Message framework v936)
+Subject: Re: KWorld UB435-Q support?
+Date: Fri, 14 Aug 2009 10:07:06 -0400
+References: <200908122253.12021.tfjellstrom@shaw.ca> <88086BD2-53BB-4095-A927-0DFB25F8BD59@wilsonet.com> <200908132312.50010.tfjellstrom@shaw.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 5 Aug 2009, Patrick Boettcher wrote:
->> For example, DQPSK is not used at all (if I read correctly).
->> These guidelines are defined in ARIB TR-B14 for ISDB-T and
->> in ARIB TR-B15 for ISDB-S respectively.
+On Aug 14, 2009, at 1:12 AM, Thomas Fjellstrom wrote:
+
+> On Thu August 13 2009, Jarod Wilson wrote:
+>> On Aug 13, 2009, at 12:53 AM, Thomas Fjellstrom wrote:
+>>> I stupidly bought the KWorld UB435-Q usb ATSC tuner thinking it was
+>>> supported
+>>> under linux, and it turns out it isn't. I'm wondering what it would
+>>> take to
+>>> get it supported. It seems like all of the main chips it uses are
+>>> supported,
+>>> but the glue code is missing.
+>>>
+>>> I have some C (10 years) programming experience, and have wanted to
+>>> contribute
+>>> to the linux kernel for quite a while, now I have a good excuse ;)
+>>>
+>>> Would anyone be willing to point me in the right direction?
+>>
+>> The UB435-Q is a rebadge of the revision B 340U, which is an em2870
+>> bridge, lgdt3304 demodulator and an nxp tda18271hd/c2 tuner. Its got
+>> the same device ID and everything. I've got a rev A 340U, the only
+>> difference being that it has an nxp tda18271hd/c1 tuner (also same
+>> device ID). I *had* it working just fine until the stick up and died
+>> on me, before I could push the code for merge, but its still floating
+>> about. It wasn't quite working with a c2 device, but that could have
+>> been a device problem (these are quite franky, cheap and poorly made
+>> devices, imo). It could also be that the code ate both sticks and  
+>> will
+>> pickle yours as well.
+>>
+>> With that caveat emptor, here's where the tree that should at least
+>> get you 95% of the way there with that stick resides:
+>>
+>> http://www.kernellabs.com/hg/~mkrufky/lgdt3304-3/
+>>
+>> The last two patches are the relevant ones. They add lgdt3304 demod
+>> support to the lgdt3305 driver (because the current lgdt3304 driver
+>> is, um, lacking) and then add the bits to wire up the stick.
 >
-> Hmm, I'm actually not working on ISDB-S (Satelite), but on ISDB-Tsb 
-> (sound-broadcasting or also known as 1seg) which is based on ISDB-T's
+> Hi, thanks for the tips. I've applied the last two patches to v4l  
+> "tip", a few
+> hunks failed, but I managed to apply them by hand, though possibly not
+> correctly as I can't seem to find a program that thinks the /dev/ 
+> video0 device
+> that pops up is valid. One app claims there is no input on /dev/ 
+> video0, and
+> others just get "select timeouts" and such (also errors regarding  
+> formats and
+> whatnot).
 
-Here I have to correct myself: 1seg is not the (commercial) name for 
-ISDB-Tsb, but for the ISDB-T central segment, which can be received 
-independently (Partial reception).
+These sticks are digital-only. Its a driver shortcoming that the  
+*analog* /dev/video0 device is being created. You need to be hitting / 
+dev/dvb/adapterX/*, not /dev/video0. See http://linuxtv.org/wiki/index.php/Testing_your_DVB_device
 
---
+-- 
+Jarod Wilson
+jarod@wilsonet.com
 
-Patrick Boettcher - Kernel Labs
-http://www.kernellabs.com/
+
+
