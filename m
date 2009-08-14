@@ -1,92 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.youplala.net ([88.191.51.216]:56780 "EHLO mail.youplala.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753750AbZHRKhP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2009 06:37:15 -0400
-Received: from [134.32.138.65] (unknown [134.32.138.65])
-	by mail.youplala.net (Postfix) with ESMTPSA id B4E7ED880C8
-	for <linux-media@vger.kernel.org>; Tue, 18 Aug 2009 12:36:59 +0200 (CEST)
-Message-ID: <4A8A844B.4020701@youplala.net>
-Date: Tue, 18 Aug 2009 11:36:59 +0100
-From: Nicolas Will <nico@youplala.net>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: dib0700 diversity support
-References: <1250177934.6590.120.camel@mattotaupa.wohnung.familie-menzel.net>  <alpine.LRH.1.10.0908140947560.14872@pub3.ifh.de> <1250244562.5438.3.camel@mattotaupa.wohnung.familie-menzel.net> <alpine.LRH.1.10.0908181052400.7725@pub1.ifh.de> <4A8A6FBB.6020007@youplala.net> <alpine.LRH.1.10.0908181158160.7725@pub1.ifh.de>
-In-Reply-To: <alpine.LRH.1.10.0908181158160.7725@pub1.ifh.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from bombadil.infradead.org ([18.85.46.34]:34074 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752486AbZHNCxK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Aug 2009 22:53:10 -0400
+Date: Thu, 13 Aug 2009 23:53:03 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Brandon Philips <brandon@ifup.org>
+Cc: linux-media@vger.kernel.org, jayakumar.lkml@gmail.com, mag@mag.cx
+Subject: Re: [PATCH] quickcam_messenger.c: add support for all quickcam
+ Messengers of the same family
+Message-ID: <20090813235303.2ff66400@caramujo.chehab.org>
+In-Reply-To: <20090808012135.GA11251@jenkins.home.ifup.org>
+References: <20081202223854.GA5770@jenkins.ifup.org>
+	<20090808012135.GA11251@jenkins.home.ifup.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patrick Boettcher wrote:
-> Hi Nicolas,
->
-> On Tue, 18 Aug 2009, Nicolas Will wrote:
->
->> Patrick Boettcher wrote:
->>> Hi Paul,
->>>
->>> On Fri, 14 Aug 2009, Paul Menzel wrote:
->>>>> I'll post a request for testing soon.
->>>>
->>>> I am looking forward to it.
->>>
->>> Can you please try the drivers from here: 
->>> http://linuxtv.org/hg/~pb/v4l-dvb/
->>>
->>> In the best case they improve the situation for you. In the worst 
->>> case (not wanted :) ) it will degrade. 
->>
->> Hi Patrick,
->>
->> Could you give us a summary of what changes are included in you tree, 
->> what we should expect, what we should test for and report on?
->
-> Yeah, sorry, I'm not very professional:
+Hi Brandon,
 
-booooo! ;o)
+Em Fri, 7 Aug 2009 18:21:35 -0700
+Brandon Philips <brandon@ifup.org> escreveu:
 
->
-> Let's list first the commits:
->
-> DiB8000: fix channel search parameter initialization
-> DiB0700: add support for STK807XP and STK807XPVR
-> DiB8000: added support for DiBcom ISDB-T/ISDB-Tsb demodulator DiB8000
-> DiB0070: Indenting driver with indent -linux
-> DiB0070: Update to latest internal release
->
-> As you can see, there are a lot of new things, the most important for 
-> users of existing devices is the 'DiB0070: Update to latest internal 
-> release' . This change should improve reception conditions for devices 
-> based on the DiB0070-tuner (DiB7070P e.g) .
+> Hey Mauro-
+> 
+> I sent this patch long ago and it seemed to have gotten lost along the
+> way.
+> 
+> Jaya acked the patch so it is in my mercurial tree now:
+> 
+>  http://ifup.org/hg/v4l-dvb/
+>  http://ifup.org/hg/v4l-dvb/rev/335a6ccbacb3
+> 
+> Please pull the patch when you get a chance.
 
-Fine.
+Please add a [PULL] tag on pull requests, for it to be properly catched by my
+scripts.
 
-Now, how do I measure this objectively so that I can give you meaningful 
-results (before/after)?
+If you add [PATCH] instead, it will be moved to a special inbox that I
+generally read only when analyzing Patchwork queue. In this specific case, as
+your email doesn't have any patch, it will be silently ignored by Patchwork.
+So, sending it like this is close to send it to /dev/null :)
 
-My system is currntly working fine, using a hg clone from quite a few 
-months ago, so if things are not directly visible...
-
->
-> We tried this driver with our reference boards and it works well, but 
-> sometimes DiBcom's customers are adding things, DiBcom is not really 
-> aware of. That's why there is a risk that it breaks supports for some 
-> cards. 
-
-Well, breakage is easier to notice!
-
-I can test on the Nova-T 500.
-
-nico@favia:~$ lsmod | grep dib
-dvb_usb_dib0700        54536  16
-dib7000p               27400  1 dvb_usb_dib0700
-dib7000m               24964  1 dvb_usb_dib0700
-dvb_usb                27148  2 dvb_usb_dtt200u,dvb_usb_dib0700
-dib3000mc              22280  3 dvb_usb_dib0700
-dibx000_common         12292  3 dib7000p,dib7000m,dib3000mc
-dib0070                16772  1 dvb_usb_dib0700
+Anyway, I've re-queued your pull request to my pile of pull's. I'll be handling
+it shortly.
 
 
-Nico
+Cheers,
+Mauro
