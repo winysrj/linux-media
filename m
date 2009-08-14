@@ -1,43 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:56171 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753249AbZH1VEp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Aug 2009 17:04:45 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Dotan Cohen <dotancohen@gmail.com>
-Subject: Re: Using MSI StarCam 370i Webcam with Kubuntu Linux
-Date: Fri, 28 Aug 2009 23:07:10 +0200
-Cc: linux-media@vger.kernel.org
-References: <880dece00908281140r16385c1fr476b18f2fcfe3c1b@mail.gmail.com>
-In-Reply-To: <880dece00908281140r16385c1fr476b18f2fcfe3c1b@mail.gmail.com>
+Received: from mis07.de ([93.186.196.80]:42448 "EHLO mis07.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756075AbZHNVgj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Aug 2009 17:36:39 -0400
+Received: from pcvirus (p5DC8FB2A.dip.t-dialin.net [93.200.251.42])
+	by mis07.de (Postfix) with ESMTPA id E97B2144E01C
+	for <linux-media@vger.kernel.org>; Fri, 14 Aug 2009 23:36:24 +0200 (CEST)
+Message-ID: <5F4AD632B3F24770A35CD99D34F06294@pcvirus>
+From: "Rath" <mailings@hardware-datenbank.de>
+To: <linux-media@vger.kernel.org>
+Subject: V4L image grab
+Date: Fri, 14 Aug 2009 23:36:16 +0200
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200908282307.10120.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 28 August 2009 20:40:38 Dotan Cohen wrote:
-> I have the MSI StarCam 370i Webcam and I have trying to use it with
-> Kubuntu Linux 9.04 Jaunty. According to this page, "The StarCam 370i
-> is compliant with UVC, USB video class":
-> http://gadgets.softpedia.com/gadgets/Computer-Peripherals/The-MSI-StarCam-3
->70i-3105.html
+Hi,
 
-[snip]
+with this code from the internet I only get pictures with some undefined 
+pixels on the top and black pixels on the bottom.
 
-> jaunty2@laptop:~$ dmesg | tail
-> [ 2777.811972] sn9c102: V4L2 driver for SN9C1xx PC Camera Controllers
-> v1:1.47pre49
-> [ 2777.814989] usb 2-1: SN9C105 PC Camera Controller detected (vid:pid
-> 0x0C45:0x60FC)
+Where's the problem? I only want a simple example for image captureing.
 
-There might be different StarCam 370i models out there. Yours is definitely 
-not UVC compliant.
+Here is the code:
 
--- 
-Regards,
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <libv4l1.h>
+#include <linux/videodev.h>
 
-Laurent Pinchart
+#define GES_LAENGE (640*480)
+
+unsigned char  bild[GES_LAENGE];
+
+int main()
+{
+        int fd;
+        long laenge;
+        struct video_window video_win;
+        FILE *bilddatei;
+
+        if((fd = v4l1_open("/dev/video0", O_RDONLY)) == -1)
+        {
+                printf("Fehler beim Oeffnen von /dev/video0\r\n");
+                return 1;
+        }
+        if( v4l1_ioctl( fd, VIDIOCGWIN, &video_win) == -1)
+        {
+                printf("Fehler beim setzen der Einstellungen\r\n");
+                return 1;
+        }
+        laenge = video_win.width * video_win.height;
+        if( laenge > GES_LAENGE)
+        {
+                printf("Bild ist groesser als angegeben\r\n");
+                return 1;
+        }
+
+
+        if( v4l1_read( fd, bild, laenge) == -1)
+        {
+                printf("Auslesen der Kamera nicht möglch\r\n");
+                return 1;
+        }
+        if((bilddatei = fopen( "bild.ppm", "w+b")) == NULL)
+        {
+                printf("Konnte die datei zum schreiben nicht öffnen\r\n");
+                return 1;
+        }
+        v4l1_close(fd);
+        fprintf( bilddatei, "P6\n%d %d\n255\n",video_win.width,
+video_win.height);
+        fwrite( bild, 1, video_win.width*video_win.height,bilddatei);
+        fclose(bilddatei);
+        return 0;
+}
+
+Regards, Joern 
+
