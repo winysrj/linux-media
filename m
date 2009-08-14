@@ -1,65 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.seznam.cz ([77.75.72.43]:35683 "EHLO smtp.seznam.cz"
+Received: from mx2.redhat.com ([66.187.237.31]:55097 "EHLO mx2.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751325AbZHRTY5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2009 15:24:57 -0400
-From: =?utf-8?q?Old=C5=99ich_Jedli=C4=8Dka?= <oldium.pro@seznam.cz>
-To: LMML <linux-media@vger.kernel.org>
-Subject: [PATCH] Report only 32kHz for ALSA
-Date: Tue, 18 Aug 2009 21:24:54 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	hermann pitton <hermann-pitton@arcor.de>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200908182124.54739.oldium.pro@seznam.cz>
+	id S1753094AbZHNCx3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Aug 2009 22:53:29 -0400
+Date: Thu, 13 Aug 2009 23:53:24 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [GIT PATCHES for 2.6.31] V4L/DVB fixes
+Message-ID: <20090813235324.5b6352b9@caramujo.chehab.org>
+In-Reply-To: <alpine.LFD.2.01.0908131112220.28882@localhost.localdomain>
+References: <20090812190523.75495888@caramujo.chehab.org>
+	<alpine.LFD.2.01.0908131112220.28882@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are several reasons:
+Em Thu, 13 Aug 2009 11:13:12 -0700 (PDT)
+Linus Torvalds <torvalds@linux-foundation.org> escreveu:
 
- - SAA7133/35 uses DDEP (DemDec Easy Programming mode), which works in 32kHz
-   only
- - SAA7134 for TV mode uses DemDec mode (32kHz)
- - Radio works in 32kHz only
- - When recording 48kHz from Line1/Line2, switching of capture source to TV
-   means switching to 32kHz without any frequency translation
+> 
+> 
+> On Wed, 12 Aug 2009, Mauro Carvalho Chehab wrote:
+> > 
+> > Please pull from:
+> >         ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git for_linus
+> 
+> "Already up-to-date."
+> 
+> Forgot to push?
 
-Signed-off-by: Oldřich Jedlička <oldium.pro@seznam.cz>
+Yeah, sorry. I just pushed it, with the same content as previously described.
+Could you please pull it?
 
-diff --git a/linux/drivers/media/video/saa7134/saa7134-alsa.c b/linux/drivers/media/video/saa7134/saa7134-alsa.c
-index c09ec3e..504186a 100644
---- a/linux/drivers/media/video/saa7134/saa7134-alsa.c
-+++ b/linux/drivers/media/video/saa7134/saa7134-alsa.c
-@@ -440,6 +440,16 @@ snd_card_saa7134_capture_pointer(struct snd_pcm_substream * substream)
- 
- /*
-  * ALSA hardware capabilities definition
-+ *
-+ *  Report only 32kHz for ALSA:
-+ *
-+ *  - SAA7133/35 uses DDEP (DemDec Easy Programming mode), which works in 32kHz
-+ *    only
-+ *  - SAA7134 for TV mode uses DemDec mode (32kHz)
-+ *  - Radio works in 32kHz only
-+ *  - When recording 48kHz from Line1/Line2, switching of capture source to TV
-+ *    means
-+ *    switching to 32kHz without any frequency translation
-  */
- 
- static struct snd_pcm_hardware snd_card_saa7134_capture =
-@@ -453,9 +463,9 @@ static struct snd_pcm_hardware snd_card_saa7134_capture =
- 				SNDRV_PCM_FMTBIT_U8 | \
- 				SNDRV_PCM_FMTBIT_U16_LE | \
- 				SNDRV_PCM_FMTBIT_U16_BE,
--	.rates =		SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_48000,
-+	.rates =		SNDRV_PCM_RATE_32000,
- 	.rate_min =		32000,
--	.rate_max =		48000,
-+	.rate_max =		32000,
- 	.channels_min =		1,
- 	.channels_max =		2,
- 	.buffer_bytes_max =	(256*1024),
+-- 
+
+Cheers,
+Mauro
