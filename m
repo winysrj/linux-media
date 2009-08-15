@@ -1,58 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3181 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751238AbZHQSqk (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3491 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751105AbZHOSYS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Aug 2009 14:46:40 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Subject: Re: [PATCH v1 - 1/5] DaVinci - restructuring code to support vpif capture driver
-Date: Mon, 17 Aug 2009 20:46:34 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
-References: <1250283702-5582-1-git-send-email-m-karicheri2@ti.com> <200908151409.44219.hverkuil@xs4all.nl> <A69FA2915331DC488A831521EAE36FE40145300B49@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE40145300B49@dlee06.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200908172046.34453.hverkuil@xs4all.nl>
+	Sat, 15 Aug 2009 14:24:18 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id n7FIOI0H023952
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 15 Aug 2009 20:24:18 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 15 Aug 2009 20:24:18 +0200 (CEST)
+Message-Id: <200908151824.n7FIOI0H023952@smtp-vbr11.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 17 August 2009 16:52:20 Karicheri, Muralidharan wrote:
-> Hans,
-> 
-> They are applied against davinci tree (also mentioned in the patch). General procedure what I follow is to create platform code against davinci tree and v4l patches against v4l-dvb linux-next tree. The architecture part of linux-next is not up to date.
-> 
-> Davinci tree is at
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-davinci.git
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-I must have missed the mention of this tree.
+Results of the daily build of v4l-dvb:
 
-I have a problem, though, as the current v4l-dvb repository doesn't compile
-against the linux-davinci git tree. And the only way I can get it to compile
-is to apply all five patches first.
+date:        Sat Aug 15 19:00:03 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12453:ee300d3178c4
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-However, the whole tree should still compile after each patch is applied. And
-that goes wrong with your second patch where the Kconfig and Makefile are
-modified when the new sources aren't even added yet!
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-rc5-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29.1-armv5-ixp: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-rc5-armv5-ixp: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-rc5-armv5-omap2: OK
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-rc5-i686: OK
+linux-2.6.23.12-m32r: ERRORS
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-rc5-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-rc5-mips: OK
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-rc5-powerpc64: OK
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-rc5-x86_64: OK
+sparse (linux-2.6.30): OK
+sparse (linux-2.6.31-rc5): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-What I would like to see is a patch series that starts with one patch that
-makes the current v4l-dvb tree compile again, then the arch patch is added,
-then a series of v4l-dvb patches in such an order that everything compiles
-after each step.
+Detailed results are available here:
 
-Merging this is already complicated enough without breaking compilation in
-this way.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-Regards,
+Full logs are available here:
 
-	Hans
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
