@@ -1,164 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56960 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754689AbZHNVCm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Aug 2009 17:02:42 -0400
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com, hverkuil@xs4all.nl,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH v1 - 5/5] V4L : vpif display - updates to support vpif capture on DM6467
-Date: Fri, 14 Aug 2009 17:02:35 -0400
-Message-Id: <1250283755-5700-1-git-send-email-m-karicheri2@ti.com>
+Received: from mail00a.mail.t-online.hu ([84.2.40.5]:54415 "EHLO
+	mail00a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750744AbZHOHBB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Aug 2009 03:01:01 -0400
+Message-ID: <4A865B7A.7010208@freemail.hu>
+Date: Sat, 15 Aug 2009 08:53:46 +0200
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+MIME-Version: 1.0
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+CC: =?UTF-8?B?SmVhbi1GcmFuw6dvaXMgTW9pbmU=?= <moinejf@free.fr>,
+	linux-media@vger.kernel.org
+Subject: libv4l: problem with 2x downscaling + Labtec Webcam 2200
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+Hello Hans,
 
-The structure name for vpif display driver changed since it was not unique. So this
-update is done to reflect the same. Also removed the code related to register
-address space iomap. Uses v4l2_i2c_new_subdev_board() instead of
-v4l2_i2c_new_probed_subdev() so that platform data can be added for subdevice
-configuration for polarities.
+I am using your libv4l 0.6.0 [1] together with the driver gspca_pac7311
+from Linux kernel 2.6.31-rc4 and with Labtec Webcam 2200 hardware [2]. I
+am using the svv.c [3] to display the webcam image.
 
-This has incorporated comments against version v0 of the patch series.
+When I'm using the webcam in 640x480 the image is displayed correctly.
+However, when I set the resolution to 320x240, the image is not correct:
+the image contains horizontal lines and doubled vertically. I guess the
+conversion from 640x480 is not done just the pixels are shown as it would
+be 320x240.
 
-NOTE: This patch is dependent on the patch from Chaithrika for vpif display.
+$ ./svv -f 320x240
+raw pixfmt: PJPG 640x480
+pixfmt: RGB3 320x240
+mmap method
 
-Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+What do you think the problem could be?
 
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
-Applies to V4L-DVB linux-next repository
- drivers/media/video/davinci/vpif_display.c |   52 +++++++--------------------
- 1 files changed, 14 insertions(+), 38 deletions(-)
+References:
+[1] libv4l
+http://freshmeat.net/projects/libv4l
 
-diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
-index 969d4b3..ccc38b3 100644
---- a/drivers/media/video/davinci/vpif_display.c
-+++ b/drivers/media/video/davinci/vpif_display.c
-@@ -683,7 +683,7 @@ static int vpif_release(struct file *filep)
- static int vpif_querycap(struct file *file, void  *priv,
- 				struct v4l2_capability *cap)
- {
--	struct vpif_config *config = vpif_dev->platform_data;
-+	struct vpif_display_config *config = vpif_dev->platform_data;
- 
- 	cap->version = VPIF_DISPLAY_VERSION_CODE;
- 	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
-@@ -1053,7 +1053,7 @@ static int vpif_streamon(struct file *file, void *priv,
- 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
- 	struct channel_obj *oth_ch = vpif_obj.dev[!ch->channel_id];
- 	struct vpif_params *vpif = &ch->vpifparams;
--	struct vpif_config *vpif_config_data =
-+	struct vpif_display_config *vpif_config_data =
- 					vpif_dev->platform_data;
- 	unsigned long addr = 0;
- 	int ret = 0;
-@@ -1239,7 +1239,7 @@ static int vpif_enum_output(struct file *file, void *fh,
- 				struct v4l2_output *output)
- {
- 
--	struct vpif_config *config = vpif_dev->platform_data;
-+	struct vpif_display_config *config = vpif_dev->platform_data;
- 
- 	if (output->index >= config->output_count) {
- 		vpif_dbg(1, debug, "Invalid output index\n");
-@@ -1422,10 +1422,10 @@ vpif_init_free_channel_objects:
-  */
- static __init int vpif_probe(struct platform_device *pdev)
- {
--	const struct subdev_info *subdevdata;
-+	struct vpif_subdev_info *subdevdata;
- 	int i, j = 0, k, q, m, err = 0;
- 	struct i2c_adapter *i2c_adap;
--	struct vpif_config *config;
-+	struct vpif_display_config *config;
- 	struct common_obj *common;
- 	struct channel_obj *ch;
- 	struct video_device *vfd;
-@@ -1433,30 +1433,14 @@ static __init int vpif_probe(struct platform_device *pdev)
- 	int subdev_count;
- 
- 	vpif_dev = &pdev->dev;
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res) {
--		v4l2_err(vpif_dev->driver,
--				"Error getting platform resource\n");
--		return -ENOENT;
--	}
- 
--	if (!request_mem_region(res->start, res->end - res->start + 1,
--						vpif_dev->driver->name)) {
--		v4l2_err(vpif_dev->driver, "VPIF: failed request_mem_region\n");
--		return -ENXIO;
--	}
-+	err = initialize_vpif();
- 
--	vpif_base = ioremap_nocache(res->start, res->end - res->start + 1);
--	if (!vpif_base) {
--		v4l2_err(vpif_dev->driver, "Unable to ioremap VPIF reg\n");
--		err = -ENXIO;
--		goto resource_exit;
-+	if (err) {
-+		v4l2_err(vpif_dev->driver, "Error initializing vpif\n");
-+		return err;
- 	}
- 
--	vpif_base_addr_init(vpif_base);
--
--	initialize_vpif();
--
- 	err = v4l2_device_register(vpif_dev, &vpif_obj.v4l2_dev);
- 	if (err) {
- 		v4l2_err(vpif_dev->driver, "Error registering v4l2 device\n");
-@@ -1489,7 +1473,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 				video_device_release(ch->video_dev);
- 			}
- 			err = -ENOMEM;
--			goto video_dev_alloc_exit;
-+			goto vpif_int_err;
- 		}
- 
- 		/* Initialize field of video device */
-@@ -1566,10 +1550,11 @@ static __init int vpif_probe(struct platform_device *pdev)
- 	}
- 
- 	for (i = 0; i < subdev_count; i++) {
--		vpif_obj.sd[i] = v4l2_i2c_new_probed_subdev(&vpif_obj.v4l2_dev,
-+		vpif_obj.sd[i] = v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
- 						i2c_adap, subdevdata[i].name,
--						subdevdata[i].name,
--						&subdevdata[i].addr);
-+						&subdevdata[i].board_info,
-+						NULL);
-+
- 		if (!vpif_obj.sd[i]) {
- 			vpif_err("Error registering v4l2 subdevice\n");
- 			goto probe_subdev_out;
-@@ -1599,12 +1584,6 @@ vpif_int_err:
- 		res = platform_get_resource(pdev, IORESOURCE_IRQ, k-1);
- 		m = res->end;
- 	}
--video_dev_alloc_exit:
--	iounmap(vpif_base);
--resource_exit:
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	release_mem_region(res->start, res->end - res->start + 1);
--
- 	return err;
- }
- 
-@@ -1666,9 +1645,6 @@ static void vpif_cleanup(void)
- 		i++;
- 	}
- 
--	iounmap(vpif_base);
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	release_mem_region(res->start, res->end - res->start + 1);
- 	platform_driver_unregister(&vpif_driver);
- 	kfree(vpif_obj.sd);
- 	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++)
--- 
-1.6.0.4
+[2] Labtec Webcam 2200
+http://labtec.com/index.cfm/service/listing/EUR/EN,crid=68,crid2=1764
 
+[3] svv.c
+http://moinejf.free.fr/svv.c
+
+
+$ v4l-info
+
+### v4l2 device info [/dev/video0] ###
+general info
+    VIDIOC_QUERYCAP
+        driver                  : "pac7311"
+        card                    : "USB Camera (093a:2626)"
+        bus_info                : "usb-0000:00:10.1-1"
+        version                 : 2.6.0
+        capabilities            : 0x5000001 [VIDEO_CAPTURE,READWRITE,STREAMING]
+
+standards
+
+inputs
+    VIDIOC_ENUMINPUT(0)
+        index                   : 0
+        name                    : "pac7311"
+        type                    : CAMERA
+        audioset                : 0
+        tuner                   : 0
+        std                     : 0x0 []
+        status                  : 0x0 []
+
+video capture
+    VIDIOC_ENUM_FMT(0,VIDEO_CAPTURE)
+        index                   : 0
+        type                    : VIDEO_CAPTURE
+        flags                   : 0
+        description             : "PJPG"
+        pixelformat             : 0x47504a50 [PJPG]
+    VIDIOC_G_FMT(VIDEO_CAPTURE)
+        type                    : VIDEO_CAPTURE
+        fmt.pix.width           : 640
+        fmt.pix.height          : 480
+        fmt.pix.pixelformat     : 0x47504a50 [PJPG]
+        fmt.pix.field           : NONE
+        fmt.pix.bytesperline    : 640
+        fmt.pix.sizeimage       : 115790
+        fmt.pix.colorspace      : JPEG
+        fmt.pix.priv            : 0
+
+controls
+    VIDIOC_QUERYCTRL(BASE+0)
+        id                      : 9963776
+        type                    : INTEGER
+        name                    : "Brightness"
+        minimum                 : 0
+        maximum                 : 32
+        step                    : 1
+        default_value           : 16
+        flags                   : 0
+    VIDIOC_QUERYCTRL(BASE+1)
+        id                      : 9963777
+        type                    : INTEGER
+        name                    : "Contrast"
+        minimum                 : 0
+        maximum                 : 255
+        step                    : 1
+        default_value           : 127
+        flags                   : 0
+    VIDIOC_QUERYCTRL(BASE+2)
+        id                      : 9963778
+        type                    : INTEGER
+        name                    : "Saturation"
+        minimum                 : 0
+        maximum                 : 255
+        step                    : 1
+        default_value           : 127
+        flags                   : 0
+
+### video4linux device info [/dev/video0] ###
+general info
+    VIDIOCGCAP
+        name                    : "USB Camera (093a:2626)"
+        type                    : 0x1 [CAPTURE]
+        channels                : 1
+        audios                  : 0
+        maxwidth                : 640
+        maxheight               : 480
+        minwidth                : 48
+        minheight               : 32
+
+channels
+    VIDIOCGCHAN(0)
+        channel                 : 0
+        name                    : "pac7311"
+        tuners                  : 0
+        flags                   : 0x0 []
+        type                    : CAMERA
+        norm                    : 0
+
+tuner
+ioctl VIDIOCGTUNER: Invalid argument
+
+audio
+    VIDIOCGAUDIO
+        audio                   : 0
+        volume                  : 0
+        bass                    : 0
+        treble                  : 0
+
+picture
+    VIDIOCGPICT
+        brightness              : 32768
+        hue                     : 0
+        colour                  : 32639
+        contrast                : 32639
+        whiteness               : 0
+        depth                   : 8
+        palette                 : unknown
+
+buffer
+ioctl VIDIOCGFBUF: Invalid argument
+
+window
+    VIDIOCGWIN
+        x                       : 0
+        y                       : 0
+        width                   : 640
+        height                  : 480
+        chromakey               : 0
+        flags                   : 0
+
+Regards,
+
+	Márton Németh
