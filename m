@@ -1,81 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46139 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752853AbZHTVet convert rfc822-to-8bit (ORCPT
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60694 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751389AbZHOTUz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Aug 2009 17:34:49 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: David Brownell <david-b@pacbell.net>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Thu, 20 Aug 2009 16:34:35 -0500
-Subject: RE: [PATCH 3/5 - v3] DaVinci: platform changes to support vpfe
- camera capture
-Message-ID: <A69FA2915331DC488A831521EAE36FE401548C2C09@dlee06.ent.ti.com>
-References: <1250551146-32543-1-git-send-email-m-karicheri2@ti.com>
- <200908191404.16404.david-b@pacbell.net>
-In-Reply-To: <200908191404.16404.david-b@pacbell.net>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+	Sat, 15 Aug 2009 15:20:55 -0400
+Message-ID: <4A870A84.6060106@edgehp.net>
+Date: Sat, 15 Aug 2009 15:20:36 -0400
+From: Dale Pontius <DEPontius@edgehp.net>
 MIME-Version: 1.0
+To: Andy Walls <awalls@radix.net>
+CC: video4linux-list@redhat.com, linux-media@vger.kernel.org,
+	ivtv-devel@ivtvdriver.org
+Subject: Re: Status of cx18 drivers, mercurial vs in-kernel
+References: <4A7F3813.3050101@edgehp.net> <1250344008.4039.20.camel@palomino.walls.org>
+In-Reply-To: <1250344008.4039.20.camel@palomino.walls.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-David,
+Andy Walls wrote:
+> On Sun, 2009-08-09 at 16:56 -0400, Dale Pontius wrote:
+>> I've been running the cx18 drivers out of mercurial since getting my
+>> HVR-1600 running, almost a year ago.  As I see things, the driver is
+>> pretty mature now, and in fact I see commits for cx18 in 2.6.31 that are
+>> some of the last I saw going into the "regular" driver in mercurial.
+>> (I'm not counting the diagnostic work that has been going on in the last
+>> month or two, for one particular user.)
+>>
+>> Is it reasonable to go with the in-kernel cx18 driver when 2.6.31 goes
+>> stable, or is there still significant value with sticking with mercurial?
+> 
+> As long as 2.6.31. has the following changes, then go with 2.6.31:
+> 
+> 1. per stream queue mutex locks changed to per quueue spinlocks, and an
+> outgoing message work handling thread was added
+> 
+> 2. front end SIF audio AGC actually uses the SIF signal for setting the
+> SIF audio AGC
+> 
+> 3. Sliced VBI works and can be enabled for insertion into all MPEG II PS
+> type streams
+> 
+> These were that last major fixes I can think of that made a difference
+> for anyone.  I'd imagine they are all in 2.6.31 by now, but I haven't
+> checked.
+> 
+> I don't know of any existing major problems with the cx18 driver itself.
+> The bad problems that seems to crop up now are usuaully system level
+> issues: a vmalloc pool that is too small, sharing an interrupt line with
+> another linux driver that has an interrupt handler with a poor response
+> time, etc.
+> 
+> Future changes to the cx18 driver might include:
+> 
+> 1. MPEG Index support
+> 2. Dual-watch audio support
+> 3. Additional cards type or fixing up exsting broken entries 
+> 4. Sliced VBI in an MPEG TS stream (maybe)
+> 
+> Regards,
+> Andy
+> 
+> 
+>> Dale Pontius
+> 
+> 
+The changes I see listed for 2.6.31 are:
+11864 Complete support for Sliced and Raw VBI for 625 line systems
+11950 Split LeadTek PVR2100 and DVR3100H into 2 separate card entries
+11951 Add DVB-T support for the Leadtek WinFast DVR3100H
+12182 Add DVB-T support for Yuan MPC-718 cards with an MT352 or...
 
-Agree. I had posted a query and the suggestion I got was to use the patch for i2c mux support to implement this cleanly. But I didn't hear any plan to add this patch to upstream. This patch is already merged to v4l-dvb. I will work on a separate patch to move this code to a daughter card specific code.
+This changelog appears to start with your #4, so I'm guessing that the
+older stuff is already committed.
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-new phone: 301-407-9583
-Old Phone : 301-515-3736 (will be deprecated)
-email: m-karicheri2@ti.com
-
->-----Original Message-----
->From: David Brownell [mailto:david-b@pacbell.net]
->Sent: Wednesday, August 19, 2009 5:04 PM
->To: davinci-linux-open-source@linux.davincidsp.com
->Cc: Karicheri, Muralidharan; linux-media@vger.kernel.org
->Subject: Re: [PATCH 3/5 - v3] DaVinci: platform changes to support vpfe
->camera capture
->
->On Monday 17 August 2009, m-karicheri2@ti.com wrote:
->>  static struct i2c_board_info dm355evm_i2c_info[] = {
->>         {       I2C_BOARD_INFO("dm355evm_msp", 0x25),
->>                 .platform_data = dm355evm_mmcsd_gpios,
->>         },
->> +       {
->> +               I2C_BOARD_INFO("PCA9543A", 0x73),
->> +       },
->>         /* { plus irq  }, */
->>         /* { I2C_BOARD_INFO("tlv320aic3x", 0x1b), }, */
->>  };
->
->The DM355 EVM board has no PCA9543A I2C multiplexor
->chip, so this is not a good approach to use.  (*)
->
->If I understand correctly you are configuring some
->particular add-on board, which uses a chip like that.
->There are at least two such boards today, yes?  And
->potentially more.  Don't preclude (or complicate)
->use of different boards...
->
->The scalable approach is to have a file for each
->daughtercard, and Kconfig options to enable the
->support for those cards.  The EVM board init code
->might call a dm355evm_card_init() routine, and
->provide a weak binding for it which would be
->overridden by the
->
->- Dave
->
->(*) Separate issue:  there's ongoing work to get the
->    I2C stack to support such chips in generic ways;
->    you should plan to use that work, which ISTR wasn't
->    too far from being mergeable.
->
-
+Thanks,
+Dale
