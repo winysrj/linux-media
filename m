@@ -1,46 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:8148 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932476AbZHDHQx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2009 03:16:53 -0400
-Received: by fg-out-1718.google.com with SMTP id e12so623153fga.17
-        for <linux-media@vger.kernel.org>; Tue, 04 Aug 2009 00:16:52 -0700 (PDT)
-MIME-Version: 1.0
-Date: Tue, 4 Aug 2009 09:16:52 +0200
-Message-ID: <8527bc070908040016x5d5ad15bk8c2ef6e99678f9e9@mail.gmail.com>
-Subject: Noisy video with Avermedia AVerTV Digi Volar X HD (AF9015) and
-	mythbuntu 9.04
-From: Cyril Hansen <cyril.hansen@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([18.85.46.34]:47711 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753638AbZHPCht convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Aug 2009 22:37:49 -0400
+Date: Sat, 15 Aug 2009 23:37:44 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Rath" <mailings@hardware-datenbank.de>
+Cc: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
+	<linux-media@vger.kernel.org>
+Subject: Re: V4L image grab
+Message-ID: <20090815233744.5a03e364@caramujo.chehab.org>
+In-Reply-To: <FC1FB0CA6E6842A49F5F5B383DF6D8B8@pcvirus>
+References: <5F4AD632B3F24770A35CD99D34F06294@pcvirus>
+	<5e9665e10908150253s5793a36eyd35dd06c6e5d94a8@mail.gmail.com>
+	<FC1FB0CA6E6842A49F5F5B383DF6D8B8@pcvirus>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Em Sat, 15 Aug 2009 20:23:43 +0200
+"Rath" <mailings@hardware-datenbank.de> escreveu:
 
-I am trying to solve a noisy video issue with my new avermedia stick
-(AF9015). I am receiving french DVB signal, both SD and HD. Viewing SD
-is annoying, with the occasional video and audio quirk, and HD is
-almost unwatchable.
+> With the example from the api specifications I get this output:
+> root@beagleboard:~# ./capture -d /dev/video0
+> ....................................................................................................
+> Where can I find the captured images?
 
-The same usb stick with another computer and Vista gives a perfect
-image with absolutely no error from the same antenna.
+It would better to use v4l2grab instead.
+> 
+> ----- Original Message ----- 
+> From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+> To: "Rath" <mailings@hardware-datenbank.de>
+> Cc: <linux-media@vger.kernel.org>
+> Sent: Saturday, August 15, 2009 11:53 AM
+> Subject: Re: V4L image grab
+> 
+> 
+> On Sat, Aug 15, 2009 at 6:36 AM, Rath<mailings@hardware-datenbank.de> wrote:
+> > Hi,
+> >
+> > with this code from the internet I only get pictures with some undefined
+> > pixels on the top and black pixels on the bottom.
+> >
+> > Where's the problem? I only want a simple example for image captureing.
+> >
+> > Here is the code:
+> >
+> > #include <stdio.h>
+> > #include <unistd.h>
+> > #include <fcntl.h>
+> > #include <sys/ioctl.h>
+> > #include <libv4l1.h>
+> > #include <linux/videodev.h>
+> >
+> > #define GES_LAENGE (640*480)
+> >
+> > unsigned char bild[GES_LAENGE];
+> >
+> > int main()
+> > {
+> > int fd;
+> > long laenge;
+> > struct video_window video_win;
+> > FILE *bilddatei;
+> >
+> > if((fd = v4l1_open("/dev/video0", O_RDONLY)) == -1)
+> > {
+> > printf("Fehler beim Oeffnen von /dev/video0\r\n");
+> > return 1;
+> > }
+> > if( v4l1_ioctl( fd, VIDIOCGWIN, &video_win) == -1)
+> > {
+> > printf("Fehler beim setzen der Einstellungen\r\n");
+> > return 1;
+> > }
+> > laenge = video_win.width * video_win.height;
+> > if( laenge > GES_LAENGE)
+> > {
+> > printf("Bild ist groesser als angegeben\r\n");
+> > return 1;
+> > }
+> >
+> >
+> > if( v4l1_read( fd, bild, laenge) == -1)
+> > {
+> > printf("Auslesen der Kamera nicht möglch\r\n");
+> > return 1;
+> > }
+> > if((bilddatei = fopen( "bild.ppm", "w+b")) == NULL)
+> > {
+> > printf("Konnte die datei zum schreiben nicht öffnen\r\n");
+> > return 1;
+> > }
+> > v4l1_close(fd);
+> > fprintf( bilddatei, "P6\n%d %d\n255\n",video_win.width,
+> > video_win.height);
+> > fwrite( bild, 1, video_win.width*video_win.height,bilddatei);
+> > fclose(bilddatei);
+> > return 0;
+> > }
+> >
+> 
+> 
+> Hi Joern,
+> 
+> That code seems to be using v4l1 APIs. How about using current version
+> of video4linux?
+> You can find a simple example code at following document:
+> http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec-single/v4l2.html#CAPTURE-EXAMPLE
+> 
+> And about the weird image you got from the v4l1 example code, could be
+> a pixelformat missmatch or just some noise fetched but I can't say any
+> further without knowing your environment :-)
+> Cheers,
+> 
+> Nate
+> 
+> > Regards, Joern
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at http://vger.kernel.org/majordomo-info.html
+> >
+> 
+> 
+> 
 
-Yesterday I tried to update the drivers from the mercurial tree with no change.
-
-I noticed that the firmware available from the Net and Mythbuntu for
-the chip is quite old (2007 ?), so maybe this is the source of my
-problem. I am willing to try to use usbsnoop and the firmware cutter
-from
- http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/
-if nobody has done it with a recent windows driver.
 
 
-I haven't found any parameter for the module dvb_usb_af9015 : Are they
-any than can be worth to try to fix my issue ?
 
-
-Thank you in advance,
-
-Cyril Hansen
+Cheers,
+Mauro
