@@ -1,72 +1,443 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:46866 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751081AbZH0H5P (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3906 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750802AbZHPHma (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Aug 2009 03:57:15 -0400
-Date: Thu, 27 Aug 2009 04:57:10 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Input <linux-input@vger.kernel.org>
-Subject: [RFC] Infrared Keycode standardization
-Message-ID: <20090827045710.2d8a7010@pedra.chehab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Sun, 16 Aug 2009 03:42:30 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] Document libv4l at V4L2 API specs
+Date: Sun, 16 Aug 2009 09:42:20 +0200
+Cc: linux-media@vger.kernel.org
+References: <20090815163726.5f4bae41@caramujo.chehab.org>
+In-Reply-To: <20090815163726.5f4bae41@caramujo.chehab.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200908160942.20256.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After years of analyzing the existing code and receiving/merging patches
-related to IR, and taking a looking at the current scenario, it is clear to me
-that something need to be done, in order to have some standard way to map and
-to give precise key meanings for each used media keycode found on
-include/linux/input.h.
+Hi Mauro,
 
-Just as an example, I've parsed the bigger keymap file we have
-(linux/media/common/ir-common.c). Most IR's have less than 40 keys, most are
-common between several different models. Yet, we've got almost 500 different
-mappings there (and I removed from my parser all the "obvious" keys that there
-weren't any comment about what is labeled for that key on the IR).
+I've done a quick review of the text. See comments below.
 
-The same key name is mapped differently, depending only at the wish of the
-patch author, as shown at:
+On Saturday 15 August 2009 21:37:26 Mauro Carvalho Chehab wrote:
+> Since applications aren't prepared to handle all V4L2 available formats,
+> an effort is done to have a library capable of understanding especially
+> the proprietary formats.
+> 
+> This patch documents this library, and adds v4l2grab.c as an example on
+> how to use it.
+> 
+> Parts of the text are based at the libv4l README file (c) by Hans de Goede.
+> 
+> Thanks to Hans de Goede <hdegoede@redhat.com> for his good work with libv4l.
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> diff -r ee300d3178c4 .hgignore
+> --- a/.hgignore	Fri Aug 14 01:48:42 2009 -0300
+> +++ b/.hgignore	Sat Aug 15 16:32:08 2009 -0300
+> @@ -66,6 +66,8 @@
+>  v4l2-spec/entities.sgml$
+>  v4l2-spec/.*\.stamp$
+>  v4l2-spec/indices.sgml$
+> +v4l2-spec/libv4l-fmt.sgml$
+> +v4l2-spec/v4l2grab.c.sgml$
+>  v4l2-spec/v4l2-single$
+>  v4l2-spec/v4l2$
+>  v4l2-spec/v4l2.pdf$
+> diff -r ee300d3178c4 v4l2-apps/test/v4l2grab.c
+> --- a/v4l2-apps/test/v4l2grab.c	Fri Aug 14 01:48:42 2009 -0300
+> +++ b/v4l2-apps/test/v4l2grab.c	Sat Aug 15 16:32:08 2009 -0300
+> @@ -1,5 +1,5 @@
+>  /* V4L2 video picture grabber
+> -   Copyright (C) 2006 Mauro Carvalho Chehab <mchehab@infradead.org>
+> +   Copyright (C) 2009 Mauro Carvalho Chehab <mchehab@infradead.org>
+>  
+>     This program is free software; you can redistribute it and/or modify
+>     it under the terms of the GNU General Public License as published by
+> diff -r ee300d3178c4 v4l2-spec/Makefile
+> --- a/v4l2-spec/Makefile	Fri Aug 14 01:48:42 2009 -0300
+> +++ b/v4l2-spec/Makefile	Sat Aug 15 16:32:08 2009 -0300
+> @@ -5,6 +5,7 @@
+>  SGMLS = \
+>  	biblio.sgml \
+>  	capture.c.sgml \
+> +	v4l2grab.c.sgml \
+>  	common.sgml \
+>  	compat.sgml \
+>  	controls.sgml \
+> @@ -20,6 +21,7 @@
+>  	dev-sliced-vbi.sgml \
+>  	dev-teletext.sgml \
+>  	driver.sgml \
+> +	libv4l.sgml \
+>  	entities.sgml \
+>  	fdl-appendix.sgml \
+>  	func-close.sgml \
+> @@ -323,6 +325,12 @@
+>  	-e "s/\(V4L2_PIX_FMT_[A-Z0-9_]\+\) /<link linkend=\"\1\">\1<\/link> /g" \
+>  	-e ":a;s/\(linkend=\".*\)_\(.*\">\)/\1-\2/;ta"
+>  
+> +libv4l-fmt.sgml:
+> +	cat ../v4l2-apps/libv4l/libv4lconvert/*.c| \
+> +	perl -ne 'if (m/(V4L2_PIX_FMT_[^\s\;\\)\,:]+)/) { printf "<link linkend=\"$$1\"><constant>$$1</constant></link>,\n"; };' \
+> +	|sort|uniq| \
+> +	sed  -e ":a;s/\(linkend=\".*\)_\(.*\">\)/\1-\2/;ta" > $@
+> +
+>  capture.c.sgml: ../v4l2-apps/test/capture-example.c Makefile
+>  	echo "<programlisting>" > $@
+>  	expand --tabs=8 < $< | \
+> @@ -330,6 +338,13 @@
+>  	  sed 's/i\.e\./&ie;/' >> $@
+>  	echo "</programlisting>" >> $@
+>  
+> +v4l2grab.c.sgml: ../v4l2-apps/test/v4l2grab.c Makefile
+> +	echo "<programlisting>" > $@
+> +	expand --tabs=8 < $< | \
+> +	  sed $(ESCAPE) $(DOCUMENTED) | \
+> +	  sed 's/i\.e\./&ie;/' >> $@
+> +	echo "</programlisting>" >> $@
+> +
+>  videodev2.h.sgml: ../linux/include/linux/videodev2.h Makefile
+>  	echo "<programlisting>" > $@
+>  	expand --tabs=8 < $< | \
+> @@ -488,6 +503,7 @@
+>  	rm -f *.stamp
+>  	rm -f videodev2.h.sgml
+>  	rm -f capture.c.sgml
+> +	rm -f v4l2grab.c.sgml
+>  	rm -f capture
+>  	rm -f indices.sgml entities.sgml
+>  	rm -rf v4l2 v4l2-single v4l2.pdf
+> diff -r ee300d3178c4 v4l2-spec/libv4l.sgml
+> --- /dev/null	Thu Jan 01 00:00:00 1970 +0000
+> +++ b/v4l2-spec/libv4l.sgml	Sat Aug 15 16:32:08 2009 -0300
+> @@ -0,0 +1,143 @@
+> +<title>Libv4l Userspace Library</title>
+> +<section id="libv4l-introduction">
+> +	<title>Introduction</title>
+> +
+> +	<para>libv4l is a collection of libraries which adds a thin abstraction
+> +layer on op of video4linux2 devices. The purpose of this (thin) layer is to make
 
-	http://linuxtv.org/wiki/index.php/Ir-common.c
+"on top"
 
-It doesn't come by surprise, but currently, almost all media player
-applications don't care to properly map all those keys.
+> +it easy for application writers to support a wide variety of devices without
+> +having to write seperate code for different devices in the same class.</para>
 
-I've tried to find comments and/or descriptions about each media keys defined
-at input.h without success. Just a few keys are commented at the file itself.
-(or maybe I've just seek them at the wrong places).
+"separate"
 
-So, I took the initiative of doing a proposition for standardizing those keys
-at:
+> +<para>An example of using libv4l is provided by
+> +<link linkend='v4l2grab-example'>v4l2grab</link>.
+> +</para>
+> +
+> +	<para>libv4l consists of 3 different libraries:</para>
+> +	<section>
+> +		<title>libv4lconvert</title>
+> +
+> +		<para>libv4lconvert is a library that converts different
 
-	http://linuxtv.org/wiki/index.php/Proposal
+remove "different",
 
-While I tried to use the most common binding for a key, sometimes the "commonly
-used" one is so weird that I've used a different key mapping.
+> +several different pixelformats found at V4L2 drivers into a few common RGB and
 
-Please, don't take it as a finished proposal. For sure we need to adjust it.
-Being it at wiki provides a way for people to edit, add comments and propose
-additional keycode matches.
+because it's here already ("several different").
 
-Also, there are several keys found on just one IR that didn't match any existing
-keycode. So, I just decided to keep those outside the table, for now, to focus
-on the mostly used ones.
+"found at" -> "found in"
 
-That's said, please review my proposal. Feel free to update the proposal and
-the current status if you think it is pertinent for this discussion.
+> +YUY formats.</para>
+> +		<para>It currently accepts the following V4L2 driver formats:
+> +<link linkend="V4L2-PIX-FMT-BGR24"><constant>V4L2_PIX_FMT_BGR24</constant></link>,
+> +<link linkend="V4L2-PIX-FMT-HM12"><constant>V4L2_PIX_FMT_HM12</constant></link>,
+> +<link linkend="V4L2-PIX-FMT-JPEG"><constant>V4L2_PIX_FMT_JPEG</constant></link>,
+> +<link linkend="V4L2-PIX-FMT-MJPEG"><constant>V4L2_PIX_FMT_MJPEG</constant></link>,
+> +<link linkend="V4L2-PIX-FMT-MR97310A"><constant>V4L2_PIX_FMT_MR97310A</constant></link>,
+> +<link linkend="V4L2-PIX-FMT-OV511"><constant>V4L2_PIX_FMT_OV511</constant></link>,
+> +<link linkend="V4L2-PIX-FMT-OV518"><constant>V4L2_PIX_FMT_OV518</constant></link>,
+> +<link linkend="V4L2-PIX-FMT-PAC207"><constant>V4L2_PIX_FMT_PAC207</constant></link>,
+> +<link linkend="V4L2-PIX-FMT-PJPG"><constant>V4L2_PIX_FMT_PJPG</constant></link>,
+> +<link linkend="V4L2-PIX-FMT-RGB24"><constant>V4L2_PIX_FMT_RGB24</constant></link>,
+> +<link linkend="V4L2-PIX-FMT-SBGGR8"><constant>V4L2_PIX_FMT_SBGGR8</constant></link>,
+> +<link linkend="V4L2-PIX-FMT-SGBRG8"><constant>V4L2_PIX_FMT_SGBRG8</constant></link>,
+> +<link linkend="V4L2-PIX-FMT-SGRBG8"><constant>V4L2_PIX_FMT_SGRBG8</constant></link>,
+> +<link linkend="V4L2-PIX-FMT-SN9C10X"><constant>V4L2_PIX_FMT_SN9C10X</constant></link>,
+> +<link linkend="V4L2-PIX-FMT-SN9C20X-I420"><constant>V4L2_PIX_FMT_SN9C20X_I420</constant></link>,
+> +<link linkend="V4L2-PIX-FMT-SPCA501"><constant>V4L2_PIX_FMT_SPCA501</constant></link>,
+> +<link linkend="V4L2-PIX-FMT-SPCA505"><constant>V4L2_PIX_FMT_SPCA505</constant></link>,
+> +<link linkend="V4L2-PIX-FMT-SPCA508"><constant>V4L2_PIX_FMT_SPCA508</constant></link>,
+> +<link linkend="V4L2-PIX-FMT-SPCA561"><constant>V4L2_PIX_FMT_SPCA561</constant></link>,
+> +<link linkend="V4L2-PIX-FMT-SQ905C"><constant>V4L2_PIX_FMT_SQ905C</constant></link>,
+> +<constant>V4L2_PIX_FMT_SRGGB8</constant>,
+> +<link linkend="V4L2-PIX-FMT-UYVY"><constant>V4L2_PIX_FMT_UYVY</constant></link>,
+> +<link linkend="V4L2-PIX-FMT-YUV420"><constant>V4L2_PIX_FMT_YUV420</constant></link>,
+> +<link linkend="V4L2-PIX-FMT-YUYV"><constant>V4L2_PIX_FMT_YUYV</constant></link>,
+> +<link linkend="V4L2-PIX-FMT-YVU420"><constant>V4L2_PIX_FMT_YVU420</constant></link>,
+> +and <link linkend="V4L2-PIX-FMT-YVYU"><constant>V4L2_PIX_FMT_YVYU</constant></link>.
+> +</para>
+> +		<para>Later on libv4lconvert was expanded to also be able to do
+> +various	video processing functions improve webcam video quality on a software
 
-I'm not currently proposing to create any new keycode, but it probably makes
-sense to create a few ones, like KEY_PIP (for picture in picture).
+"to improve"
 
-If we can go to a common sense, I intend to add it into a chapter at V4L2 API,
-in order to be used by both driver and userspace developers, submit some
-patches to fix some mappings and to add the proper comments to input.h.
+Remove "on a software basis"
 
-Comments?
+> +basis. The video processing is plit in to 2 parts: libv4lconvert/control and
 
-Cheers,
-Mauro
+"split in two parts"
+
+> +libv4lconvert/processing.</para>
+> +
+> +		<para>The control part is used to offer video controls which can
+> +be used	to control he video processing functions made available by
+
+"control the video"
+
+> +	libv4lconvert/processing. These controls are stored application wide
+> +(untill	reboot) by using a persistent shared memory object.</para>
+
+"until reboot"
+
+> +
+> +		<para>libv4lconvert/processing offers the actual video
+> +processing functionality.</para>
+
+I hope that Hans or someone else can document the v4lconvert functions in
+detail in the future.
+
+> +	</section>
+> +	<section>
+> +		<title>libv4l1</title>
+> +		<para>This library offers functions that can by used to quickly
+
+"be used"
+
+> +make v4l1 applications work with v4l2 devices. These functions work exactly
+> +like the normal open/close/etc, except that libv4l1 does full emulation of
+> +the v4l1 api on top of v4l2 drivers, in case of v4l1 drivers it
+> +will just pass calls through.</para>
+> +		<para>Since those functions are emulations of the old V4L1 API,
+> +it shouldn't be used on new applications.</para>
+
+"used for"
+
+> +	</section>
+> +	<section>
+> +		<title>libv4l2</title>
+> +		<para>This library should be used on all modern V4L2 application
+
+"used for"
+
+> +		</para>
+> +		<para>It provides handles to call V4L2 open/ioctl/close/poll
+> +methods. Instead of just providing the raw output of the device, it enhances
+> +the calls in the sense that it will use libv4lconvert to provide more video
+> +formats and to enhance the image quality.</para>
+> +		<para>On most cases, libv4l2 just passes the calls directly
+
+"In most cases"
+
+> +through to the v4l2 driver, intercepting the calls to
+> +<link linkend='VIDIOC-G-FMT'><constant>VIDIOC_TRY_FMT</constant></link>,
+> +<link linkend='VIDIOC-G-FMT'><constant>VIDIOC_G_FMT</constant></link> and
+> +<link linkend='VIDIOC-G-FMT'><constant>VIDIOC_S_FMT</constant></link> in order
+> +to emulate the formats <link linkend="V4L2-PIX-FMT-BGR24"><constant>V4L2_PIX_FMT_BGR24</constant></link>,
+> +<link linkend="V4L2-PIX-FMT-RGB24"><constant>V4L2_PIX_FMT_RGB24</constant></link>,
+> +<link linkend="V4L2-PIX-FMT-YUV420"><constant>V4L2_PIX_FMT_YUV420</constant></link>,
+> +and <link linkend="V4L2-PIX-FMT-YVU420"><constant>V4L2_PIX_FMT_YVU420</constant></link>,
+> +if they aren't available at the driver.
+
+"in the driver"
+
+> +<link linkend='VIDIOC-ENUM-FMT'><constant>VIDIOC_ENUM_FMT</constant></link> keep
+> +enumerating the hardware supported formats.
+
+"keeps".
+
+Actually, you might want to rewrite this ENUM_FMT description, since I'm not
+quite sure what you want to say here. I think what you mean is something like
+this:
+
+"VIDIOC_ENUM_FMT still enumerates the hardware supported formats, but the
+emulated formats are added at the end."
+
+We should mention that ENUM_FRAMESIZES and ENUM_FRAMEINTERVALS are also
+intercepted.
+
+> +</para>
+> +		<section id="libv4l-ops">
+> +			<title>Libv4l device control functions</title>
+> +			<para>The common file operation methods are provided by
+> +libv4l. They work like the non-v4l2 ones:</para>
+
+"They work like the non-v4l2 ones:": That makes no sense to me, what does
+"non-v4l2" mean in this context?
+
+> +			<para>v4l2_open(const char *file, int oflag, ...) -
+> +operates like the standard <link linkend='func-open'>open()</link> function.
+> +</para>
+> +
+> +			<para>int v4l2_close(int fd) -
+> +operates like the standard <link linkend='func-close'>close()</link> function.
+> +</para>
+> +
+> +			<para>int v4l2_dup(int fd) -
+> +operates like the standard dup() function, duplicating a file handler.
+> +</para>
+> +
+> +			<para>int v4l2_ioctl (int fd, unsigned long int request, ...) -
+> +operates like the standard <link linkend='func-ioctl'>ioctl()</link> function.
+> +</para>
+> +
+> +			<para>int v4l2_read (int fd, void* buffer, size_t n) -
+> +operates like the standard <link linkend='func-read'>read()</link> function.
+> +</para>
+> +
+> +			<para>void v4l2_mmap(void *start, size_t length, int prot, int flags, int fd, int64_t offset); -
+> +operates like the standard <link linkend='func-mmap'>mmap()</link> function.
+> +</para>
+> +
+> +			<para>int v4l2_munmap(void *_start, size_t length); -
+> +operates like the standard <link linkend='func-munmap'>munmap()</link> function.
+> +</para>
+> +		</section>
+
+The description of v4l2_fd_open is missing.
+
+> +	</section>
+> +	<section>
+> +
+> +		<title>v4l1compat.so wrapper library</title>
+> +
+> +		<para>This library intercept calls to V4L2
+
+"intercepts"
+
+> +open/close/ioctl/mmap/mmunmap operations and redirects to the libv4lX
+
+"redirects them"
+
+> +counterparts, by using LD_PRELOAD=/usr/lib/v4l1compat.so.</para>
+> +		<para>It allows usage of binary legacy applications that
+> +still don't use libv4l.</para>
+
+Is this description really correct? Based on the name of the wrapper I would
+say that this is a library has something to do with V4L1 compatibility, yet
+the description makes no mention of that.
+
+> +	</section>
+> +
+> +</section>
+> +<!--
+> +Local Variables:
+> +mode: sgml
+> +sgml-parent-document: "v4l2.sgml"
+> +indent-tabs-mode: nil
+> +End:
+> +-->
+> diff -r ee300d3178c4 v4l2-spec/v4l2.sgml
+> --- a/v4l2-spec/v4l2.sgml	Fri Aug 14 01:48:42 2009 -0300
+> +++ b/v4l2-spec/v4l2.sgml	Sat Aug 15 16:32:08 2009 -0300
+> @@ -25,7 +25,7 @@
+>  <book id="v4l2spec">
+>    <bookinfo>
+>      <title>Video for Linux Two API Specification</title>
+> -    <subtitle>Revision 0.26</subtitle>
+> +    <subtitle>Revision 0.27</subtitle>
+>  
+>      <authorgroup>
+>        <author>
+> @@ -92,6 +92,18 @@
+>        </author>
+>      </authorgroup>
+>  
+> +      <author>
+> +	<firstname>Mauro</firstname>
+> +	<surname>Carvalho Chehab</surname>
+> +	<contrib>Documented libv4l, designed and added v4l2grab example
+> +	</contrib>
+> +	<affiliation>
+> +	  <address>
+> +	    <email>mchehab@redhat.com</email>
+> +	  </address>
+> +	</affiliation>
+> +      </author>
+> +
+>      <copyright>
+>        <year>1999</year>
+>        <year>2000</year>
+> @@ -105,12 +117,13 @@
+>        <year>2008</year>
+>        <year>2009</year>
+>        <holder>Bill Dirks, Michael H. Schimek, Hans Verkuil, Martin
+> -Rubli, Andy Walls</holder>
+> +Rubli, Andy Walls, Mauro Carvalho Chehab</holder>
+>      </copyright>
+>  
+>      <legalnotice>
+>        <para>This document is copyrighted &copy; 1999-2009 by Bill
+> -Dirks, Michael H. Schimek, Hans Verkuil, Martin Rubli, and Andy Walls.</para>
+> +Dirks, Michael H. Schimek, Hans Verkuil, Martin Rubli, Andy Walls and
+> +Mauro Carvalho Chehab.</para>
+>  
+>        <para>Permission is granted to copy, distribute and/or modify
+>  this document under the terms of the GNU Free Documentation License,
+> @@ -131,6 +144,13 @@
+>  applications. -->
+>  
+>        <revision>
+> +	<revnumber>0.27</revnumber>
+> +	<date>2009-08-15</date>
+> +	<authorinitials>mcc</authorinitials>
+> +	<revremark>Added libv4l documentation and v4l2grab example.</revremark>
+> +      </revision>
+> +
+> +      <revision>
+>  	<revnumber>0.26</revnumber>
+>  	<date>2009-06-15</date>
+>  	<authorinitials>hv</authorinitials>
+> @@ -471,6 +491,10 @@
+>      &sub-driver;
+>    </chapter>
+>  
+> +  <chapter id="libv4l">
+> +    &sub-libv4l;
+> +  </chapter>
+> +
+>    <chapter id="compat">
+>      &sub-compat;
+>    </chapter>
+> @@ -485,6 +509,14 @@
+>      &sub-capture-c;
+>    </appendix>
+>  
+> +  <appendix id="v4l2grab-example">
+> +    <title>Video Grabber example using libv4l</title>
+> +    <para>This program demonstrates how to grab V4L2 images in ppm format by
+> +using libv4l handlers. The advantage is that this grabber can potentially work
+> +with any V4L2 driver.</para>
+> +    &sub-v4l2grab-c;
+> +  </appendix>
+> +
+>    &sub-fdl-appendix;
+>  
+>    &sub-indices;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+Very good to see this documented in the spec! Thanks for this work!
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
