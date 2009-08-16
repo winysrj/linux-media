@@ -1,137 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42317 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756815AbZHFXBj (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:41748 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755552AbZHPX3y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Aug 2009 19:01:39 -0400
-Message-Id: <200908062301.n76N1EGY029960@imap1.linux-foundation.org>
-Subject: [patch 2/9] drivers/media/video/cx88/cx88: add support for WinFast DTV2000H rev. J
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	vlasta.labsky@gmail.com, kraxel@bytesex.org
-From: akpm@linux-foundation.org
-Date: Thu, 06 Aug 2009 16:01:13 -0700
+	Sun, 16 Aug 2009 19:29:54 -0400
+Date: Sun, 16 Aug 2009 20:29:49 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Document libv4l at V4L2 API specs
+Message-ID: <20090816202949.436c49ca@caramujo.chehab.org>
+In-Reply-To: <200908160942.20256.hverkuil@xs4all.nl>
+References: <20090815163726.5f4bae41@caramujo.chehab.org>
+	<200908160942.20256.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vlastimil Labsky <vlasta.labsky@gmail.com>
+Hi Hans,
 
-I updated and simplyfied patch from Zbynek Hrabovsky for recent kernel. 
-It enables autodetection of card, sound in analog TV , sound in FM radio
-and switching between antenna and cable RF input.  Radio tuner still
-doesn't work, I don't even know how it works.  Some guys wrote me that FM
-radio works with TV tuner used instead of radio part (symlink video0 ->
-radio0).
+Em Sun, 16 Aug 2009 09:42:20 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Signed-off-by: Vlastimil Labsky <vlasta.labsky@gmail.com>
-Cc: Gerd Knorr <kraxel@bytesex.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+> Hi Mauro,
+> 
+> I've done a quick review of the text. See comments below.
 
- drivers/media/video/cx88/cx88-cards.c |   49 ++++++++++++++++++++++++
- drivers/media/video/cx88/cx88-dvb.c   |    1 
- drivers/media/video/cx88/cx88-input.c |    1 
- drivers/media/video/cx88/cx88.h       |    1 
- 4 files changed, 52 insertions(+)
+Thank you for the review! I've addressed your points. I'll commit it. Later, it
+can improved as needed.
 
-diff -puN drivers/media/video/cx88/cx88-cards.c~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j drivers/media/video/cx88/cx88-cards.c
---- a/drivers/media/video/cx88/cx88-cards.c~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j
-+++ a/drivers/media/video/cx88/cx88-cards.c
-@@ -1283,6 +1283,51 @@ static const struct cx88_board cx88_boar
- 		},
- 		.mpeg           = CX88_MPEG_DVB,
- 	},
-+	[CX88_BOARD_WINFAST_DTV2000H_J] = {
-+		.name           = "WinFast DTV2000 H rev. J",
-+		.tuner_type     = TUNER_PHILIPS_FMD1216ME_MK3,
-+		.radio_type     = UNSET,
-+		.tuner_addr     = ADDR_UNSET,
-+		.radio_addr     = ADDR_UNSET,
-+		.tda9887_conf   = TDA9887_PRESENT,
-+		.input          = {{
-+			.type   = CX88_VMUX_TELEVISION,
-+			.vmux   = 0,
-+			.gpio0  = 0x00017300,
-+			.gpio1  = 0x00008207,
-+			.gpio2	= 0x00000000,
-+			.gpio3  = 0x02000000,
-+		},{
-+			.type   = CX88_VMUX_TELEVISION,
-+			.vmux   = 0,
-+			.gpio0  = 0x00018300,
-+			.gpio1  = 0x0000f207,
-+			.gpio2	= 0x00017304,
-+			.gpio3  = 0x02000000,
-+		},{
-+			.type   = CX88_VMUX_COMPOSITE1,
-+			.vmux   = 1,
-+			.gpio0  = 0x00018301,
-+			.gpio1  = 0x0000f207,
-+			.gpio2	= 0x00017304,
-+			.gpio3  = 0x02000000,
-+		},{
-+			.type   = CX88_VMUX_SVIDEO,
-+			.vmux   = 2,
-+			.gpio0  = 0x00018301,
-+			.gpio1  = 0x0000f207,
-+			.gpio2	= 0x00017304,
-+			.gpio3  = 0x02000000,
-+		}},
-+		.radio = {
-+			 .type  = CX88_RADIO,
-+			 .gpio0 = 0x00015702,
-+			 .gpio1 = 0x0000f207,
-+			 .gpio2 = 0x00015702,
-+			 .gpio3 = 0x02000000,
-+		},
-+		.mpeg           = CX88_MPEG_DVB,
-+	},
- 	[CX88_BOARD_GENIATECH_DVBS] = {
- 		.name          = "Geniatech DVB-S",
- 		.tuner_type    = TUNER_ABSENT,
-@@ -2282,6 +2327,10 @@ static const struct cx88_subid cx88_subi
- 		.subdevice = 0x665e,
- 		.card      = CX88_BOARD_WINFAST_DTV2000H,
- 	},{
-+		.subvendor = 0x107d,
-+		.subdevice = 0x6f2b,
-+		.card      = CX88_BOARD_WINFAST_DTV2000H_J,
-+	},{
- 		.subvendor = 0x18ac,
- 		.subdevice = 0xd800, /* FusionHDTV 3 Gold (original revision) */
- 		.card      = CX88_BOARD_DVICO_FUSIONHDTV_3_GOLD_Q,
-diff -puN drivers/media/video/cx88/cx88-dvb.c~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j drivers/media/video/cx88/cx88-dvb.c
---- a/drivers/media/video/cx88/cx88-dvb.c~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j
-+++ a/drivers/media/video/cx88/cx88-dvb.c
-@@ -695,6 +695,7 @@ static int dvb_register(struct cx8802_de
- 		}
- 		break;
- 	case CX88_BOARD_WINFAST_DTV2000H:
-+	case CX88_BOARD_WINFAST_DTV2000H_J:
- 	case CX88_BOARD_HAUPPAUGE_HVR1100:
- 	case CX88_BOARD_HAUPPAUGE_HVR1100LP:
- 	case CX88_BOARD_HAUPPAUGE_HVR1300:
-diff -puN drivers/media/video/cx88/cx88-input.c~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j drivers/media/video/cx88/cx88-input.c
---- a/drivers/media/video/cx88/cx88-input.c~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j
-+++ a/drivers/media/video/cx88/cx88-input.c
-@@ -225,6 +225,7 @@ int cx88_ir_init(struct cx88_core *core,
- 		ir->sampling = 1;
- 		break;
- 	case CX88_BOARD_WINFAST_DTV2000H:
-+	case CX88_BOARD_WINFAST_DTV2000H_J:
- 	case CX88_BOARD_WINFAST_DTV1800H:
- 		ir_codes = ir_codes_winfast;
- 		ir->gpio_addr = MO_GP0_IO;
-diff -puN drivers/media/video/cx88/cx88.h~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j drivers/media/video/cx88/cx88.h
---- a/drivers/media/video/cx88/cx88.h~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j
-+++ a/drivers/media/video/cx88/cx88.h
-@@ -237,6 +237,7 @@ extern struct sram_channel cx88_sram_cha
- #define CX88_BOARD_TERRATEC_CINERGY_HT_PCI_MKII 79
- #define CX88_BOARD_HAUPPAUGE_IRONLY        80
- #define CX88_BOARD_WINFAST_DTV1800H        81
-+#define CX88_BOARD_WINFAST_DTV2000H_J      82
- 
- enum cx88_itype {
- 	CX88_VMUX_COMPOSITE1 = 1,
-_
+> > +		<para>libv4lconvert/processing offers the actual video
+> > +processing functionality.</para>
+> 
+> I hope that Hans or someone else can document the v4lconvert functions in
+> detail in the future.
+
+Yes, that would be great.
+
+> > +<link linkend='VIDIOC-ENUM-FMT'><constant>VIDIOC_ENUM_FMT</constant></link> keep
+> > +enumerating the hardware supported formats.
+> 
+> "keeps".
+> 
+> Actually, you might want to rewrite this ENUM_FMT description, since I'm not
+> quite sure what you want to say here. I think what you mean is something like
+> this:
+>
+> "VIDIOC_ENUM_FMT still enumerates the hardware supported formats, but the
+> emulated formats are added at the end."
+
+Ok, I changed it to:
+
+VIDIOC_ENUM_FMT keeps enumerating the hardware supported formats, plus the
+emulated formats offered by libv4l at the end.
+
+> The description of v4l2_fd_open is missing.
+
+Added, together with the get/set control functions.
+
+> > +counterparts, by using LD_PRELOAD=/usr/lib/v4l1compat.so.</para>
+> > +		<para>It allows usage of binary legacy applications that
+> > +still don't use libv4l.</para>
+> 
+> Is this description really correct? Based on the name of the wrapper I would
+> say that this is a library has something to do with V4L1 compatibility, yet
+> the description makes no mention of that.
+
+It also emulates V4L1 calls. Changed it to:
+
+This library intercepts calls to 
+open/close/ioctl/mmap/mmunmap operations and redirects them to the libv4l
+counterparts, by using LD_PRELOAD=/usr/lib/v4l1compat.so. It also
+emulates V4L1 calls via V4L2 API.
+
+
+
+Cheers,
+Mauro
