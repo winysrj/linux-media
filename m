@@ -1,53 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:43593 "EHLO znsun1.ifh.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752791AbZHRKsP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2009 06:48:15 -0400
-Date: Tue, 18 Aug 2009 12:48:11 +0200 (CEST)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Nicolas Will <nico@youplala.net>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: dib0700 diversity support
-In-Reply-To: <4A8A8603.1080006@youplala.net>
-Message-ID: <alpine.LRH.1.10.0908181247020.7725@pub1.ifh.de>
-References: <1250177934.6590.120.camel@mattotaupa.wohnung.familie-menzel.net>  <alpine.LRH.1.10.0908140947560.14872@pub3.ifh.de> <1250244562.5438.3.camel@mattotaupa.wohnung.familie-menzel.net> <alpine.LRH.1.10.0908181052400.7725@pub1.ifh.de>
- <4A8A6FBB.6020007@youplala.net> <alpine.LRH.1.10.0908181158160.7725@pub1.ifh.de> <4A8A844B.4020701@youplala.net> <alpine.LRH.1.10.0908181240350.7725@pub1.ifh.de> <4A8A8603.1080006@youplala.net>
+Received: from mail-fx0-f215.google.com ([209.85.220.215]:56284 "EHLO
+	mail-fx0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752363AbZHQVUk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Aug 2009 17:20:40 -0400
+Received: by fxm11 with SMTP id 11so14996fxm.39
+        for <linux-media@vger.kernel.org>; Mon, 17 Aug 2009 14:20:40 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+In-Reply-To: <37219a840908171359m152363a2ub377abe6e27ff237@mail.gmail.com>
+References: <bc18792f0908171325s391d9e36nb0ce20f40017678@mail.gmail.com>
+	 <37219a840908171359m152363a2ub377abe6e27ff237@mail.gmail.com>
+Date: Mon, 17 Aug 2009 16:20:39 -0500
+Message-ID: <bc18792f0908171420x3a395795r5cd4afba05e32df4@mail.gmail.com>
+Subject: Re: [linux-dvb] au0828: experimental support for Syntek Teledongle
+	[05e1:0400]
+From: Malcolm Lewis <coyoteuser@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 18 Aug 2009, Nicolas Will wrote:
-
-> Patrick Boettcher wrote:
->> On Tue, 18 Aug 2009, Nicolas Will wrote:
->>>> This change should improve reception conditions for devices based on the 
->>>> DiB0070-tuner (DiB7070P e.g) .
->>> 
->>>> 
->>>> We tried this driver with our reference boards and it works well, but 
->>>> sometimes DiBcom's customers are adding things, DiBcom is not really 
->>>> aware of. That's why there is a risk that it breaks supports for some 
->>>> cards. 
->>> 
->>> Well, breakage is easier to notice!
->>> 
->>> I can test on the Nova-T 500.
->> 
->> For you _nothing_ should change.
->> 
->> The Nova-T is using dib3000mc+mt2060.
->> 
->> If it does not work for you any longer, something else is broken.
->> If it works better for you, it's simply magic. 
-> Well then, I'll step out of the way and leave the testing to relevant people!
+On Mon, Aug 17, 2009 at 3:59 PM, Michael Krufky<mkrufky@kernellabs.com> wrote:
+> On Mon, Aug 17, 2009 at 4:25 PM, Malcolm Lewis<coyoteuser@gmail.com> wrote:
+>> Hi
+>> I've been using the patches from
+>> http://linuxtv.org/hg/~mkrufky/teledongle/rev/676e2f4475ed
+>> on a Sabrent device in openSuSE and SLED, during testing with the
+>> milestone 5 release of
+>> 11.2 and kernel version 2.6.31-rc5-git3-2-desktop there needs to be
+>> some changes to the
+>> au0828-cards.c patch to enable building a kmp module;
+>>
+>> --- au0828-cards.c    2009-08-12 18:16:39.435886920 -0500
+>> +++ au0828-cards.c.orig    2009-08-12 18:28:22.176126368 -0500
+>> @@ -116,6 +116,12 @@
+>>          .tuner_addr = ADDR_UNSET,
+>>          .i2c_clk_divider = AU0828_I2C_CLK_250KHZ,
+>>      },
+>> +    [AU0828_BOARD_SYNTEK_TELEDONGLE] = {
+>> +        .name = "Syntek Teledongle [EXPERIMENTAL]",
+>> +         .tuner_type = UNSET,
+>> +        .tuner_addr = ADDR_UNSET,
+>> +        .i2c_clk_divider = AU0828_I2C_CLK_250KHZ,
+>> +    },
+>>  };
+>>
+>>  /* Tuner callback function for au0828 boards. Currently only needed
+>> @@ -248,6 +254,7 @@
+>>      case AU0828_BOARD_HAUPPAUGE_HVR950Q:
+>>      case AU0828_BOARD_HAUPPAUGE_HVR950Q_MXL:
+>>      case AU0828_BOARD_HAUPPAUGE_WOODBURY:
+>> +    case AU0828_BOARD_SYNTEK_TELEDONGLE: /* FIXME */
+>>          /* GPIO's
+>>           * 4 - CS5340
+>>           * 5 - AU8522 Demodulator
+>> @@ -325,6 +332,8 @@
+>>          .driver_info = AU0828_BOARD_HAUPPAUGE_HVR950Q_MXL },
+>>      { USB_DEVICE(0x2040, 0x8200),
+>>          .driver_info = AU0828_BOARD_HAUPPAUGE_WOODBURY },
+>> +    { USB_DEVICE(0x05e1, 0x0400),
+>> +                .driver_info = AU0828_BOARD_SYNTEK_TELEDONGLE },
+>>      { },
+>>  };
+>>
+>>
+>> There are two versions I'm building and src for both can be found here;
+>> http://download.opensuse.org/repositories/home:/malcolmlewis/
 >
-> So why does dib0070 appear in my lsmod?
+>
+> Malcolm,
+>
+> I would strongly advise against distributing packages based on these
+> patches... This code was never merged into the master branch because
+> it has potential to break devices at the hardware level, and it will
+> create a support nightmare, based on the fact that there are multiple
+> UNLIKE devices that use the same USB ID but actually contain different
+> hardware components.  As the patch may enable support for ONE of the
+> variations, nobody has ever verified that the GPIO programming is safe
+> to use, and there is no way to prevent the potentially harmful code
+> from running on the wrong device.
+>
+> I, personally, do not want the responsibility of explaining to users
+> that their usb sticks may be damaged because of code that got merged
+> into the kernel -- that's why the code is in a separate repository
+> until the issues can be dealt with.  In general, users know that if
+> they have to manually apply patches themselves, that they are doing so
+> at their own risk.
+>
+> If you succeed in getting your device to work, please let me know -- I
+> will be very interested to hear about it.
+>
+> Good Luck,
+>
+> Mike
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+Hi Mike
+Ahh, OK :) I can confirm I've had no issues using it with smplayer on
+openSuSE 11.0, openSuSE 11.1 and openSuSE 11.2 M5 i586 (ViA Artigo and
+ASUS 1000HE) and SLED 11 x86_64 (home build AMD 4400 X2 system).
+System tunes into FTA HDTV great, have scan in different areas and all
+scanned channels found have worked. (I'm in Mississippi)
 
-Because the dib0700 is using it for some layouts it supports. And it 
-requires all modules to be loaded in case such a device is plugged.
+I'm happy to do further testing if you can advise on what is required.
 
---
-
-Patrick Boettcher - Kernel Labs
-http://www.kernellabs.com/
+-- 
+Cheers
+Malcolm
