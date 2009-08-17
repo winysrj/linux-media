@@ -1,95 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52473 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38867 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933089AbZHDRNt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2009 13:13:49 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
+	id S1758199AbZHQXWX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Aug 2009 19:22:23 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
 	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>,
-	"davinci-linux-open-source@linux.davincidsp.com"
+CC: "davinci-linux-open-source@linux.davincidsp.com"
 	<davinci-linux-open-source@linux.davincidsp.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-Date: Tue, 4 Aug 2009 22:43:29 +0530
-Subject: RE: Linux Plumbers Conference 2009: V4L2 API discussions
-Message-ID: <19F8576C6E063C45BE387C64729E73940432AF3A5D@dbde02.ent.ti.com>
-References: <200908040912.24718.hverkuil@xs4all.nl>
-In-Reply-To: <200908040912.24718.hverkuil@xs4all.nl>
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
+Date: Mon, 17 Aug 2009 18:22:18 -0500
+Subject: RE: [PATCH 1/5 - v3] Adding new fields to add the vpfe capture
+ enhancements
+Message-ID: <A69FA2915331DC488A831521EAE36FE40145300FC6@dlee06.ent.ti.com>
+References: <1250551116-32485-1-git-send-email-m-karicheri2@ti.com>
+In-Reply-To: <1250551116-32485-1-git-send-email-m-karicheri2@ti.com>
 Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Please ignore this since v4l prefix is missing in the subject.
 
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+new phone: 301-407-9583
+Old Phone : 301-515-3736 (will be deprecated)
+email: m-karicheri2@ti.com
 
-> -----Original Message-----
-> From: davinci-linux-open-source-bounces@linux.davincidsp.com
-> [mailto:davinci-linux-open-source-bounces@linux.davincidsp.com] On
-> Behalf Of Hans Verkuil
-> Sent: Tuesday, August 04, 2009 12:42 PM
-> To: linux-media@vger.kernel.org
-> Cc: eduardo.valentin@nokia.com; davinci-linux-open-
-> source@linux.davincidsp.com; linux-omap@vger.kernel.org; Magnus
-> Damm; Dongsoo, Nathaniel Kim
-> Subject: Linux Plumbers Conference 2009: V4L2 API discussions
-> 
-> Hi all,
-> 
-> During this years Plumbers Conference I will be organizing a session
-> (or
-> possibly more than one) on what sort of new V4L2 APIs are needed to
-> support the new SoC devices. These new APIs should also solve the
-> problem
-> of how to find all the related alsa/fb/ir/dvb devices that a typical
-> video
-> device might create.
-> 
-> A proposal was made about a year ago (note that this is a bit
-> outdated
-> by now, but the basics are still valid):
-> 
-> http://www.archivum.info/video4linux-list%40redhat.com/2008-
-> 07/msg00371.html
-> 
-> In the past year the v4l2 core has evolved enough so that we can
-> finally
-> start thinking about this for real.
-> 
-> I would like to know who will be attending this conference. I also
-> urge
-> anyone who is working in this area and who wants to have a say in
-> this to
-> attend the conference. The goal is to prepare a new RFC with a
-> detailed
-> proposal on the new APIs that are needed to fully support all the
-> new
-> SoCs. So the more input we get, the better the end-result will be.
-> 
-[Hiremath, Vaibhav] Hi Hans,
+>-----Original Message-----
+>From: Karicheri, Muralidharan
+>Sent: Monday, August 17, 2009 7:19 PM
+>To: linux-media@vger.kernel.org
+>Cc: davinci-linux-open-source@linux.davincidsp.com; hverkuil@xs4all.nl;
+>Karicheri, Muralidharan
+>Subject: [PATCH 1/5 - v3] Adding new fields to add the vpfe capture
+>enhancements
+>
+>From: Muralidharan Karicheri <m-karicheri2@ti.com>
+>
+>Restructured the patch to apply cleanly. This will allow compilation after
+>applying each patch. To do this existing fields in the header files are
+>retained and removed later when the new fields are used.
+>
+>Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+>
+>Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+>---
+>Applies to V4L-DVB linux-next repository
+> include/media/davinci/vpfe_capture.h |   27 ++++++++++++++++++++++++---
+> 1 files changed, 24 insertions(+), 3 deletions(-)
+>
+>diff --git a/include/media/davinci/vpfe_capture.h
+>b/include/media/davinci/vpfe_capture.h
+>index 71d8982..196245e 100644
+>--- a/include/media/davinci/vpfe_capture.h
+>+++ b/include/media/davinci/vpfe_capture.h
+>@@ -47,6 +47,8 @@ struct vpfe_pixel_format {
+> 	struct v4l2_fmtdesc fmtdesc;
+> 	/* bytes per pixel */
+> 	int bpp;
+>+	/* decoder format */
+>+	u32 subdev_pix_fmt;
+> };
+>
+> struct vpfe_std_info {
+>@@ -61,9 +63,16 @@ struct vpfe_route {
+> 	u32 output;
+> };
+>
+>+enum vpfe_subdev_id {
+>+	VPFE_SUBDEV_TVP5146 = 1,
+>+	VPFE_SUBDEV_MT9T031 = 2
+>+};
+>+
+> struct vpfe_subdev_info {
+>-	/* Sub device name */
+>+	/* Deprecated. Will be removed in the next patch */
+> 	char name[32];
+>+	/* Sub device module name */
+>+	char module_name[32];
+> 	/* Sub device group id */
+> 	int grp_id;
+> 	/* Number of inputs supported */
+>@@ -72,12 +81,16 @@ struct vpfe_subdev_info {
+> 	struct v4l2_input *inputs;
+> 	/* Sub dev routing information for each input */
+> 	struct vpfe_route *routes;
+>-	/* check if sub dev supports routing */
+>-	int can_route;
+> 	/* ccdc bus/interface configuration */
+> 	struct vpfe_hw_if_param ccdc_if_params;
+> 	/* i2c subdevice board info */
+> 	struct i2c_board_info board_info;
+>+	/* Is this a camera sub device ? */
+>+	unsigned is_camera:1;
+>+	/* check if sub dev supports routing */
+>+	unsigned can_route:1;
+>+	/* registered ? */
+>+	unsigned registered:1;
+> };
+>
+> struct vpfe_config {
+>@@ -92,6 +105,12 @@ struct vpfe_config {
+> 	/* vpfe clock */
+> 	struct clk *vpssclk;
+> 	struct clk *slaveclk;
+>+	/* setup function for the input path */
+>+	int (*setup_input)(enum vpfe_subdev_id id);
+>+	/* number of clocks */
+>+	int num_clocks;
+>+	/* clocks used for vpfe capture */
+>+	char *clocks[];
+> };
+>
+> struct vpfe_device {
+>@@ -102,6 +121,8 @@ struct vpfe_device {
+> 	struct v4l2_subdev **sd;
+> 	/* vpfe cfg */
+> 	struct vpfe_config *cfg;
+>+	/* clock ptrs for vpfe capture */
+>+	struct clk **clks;
+> 	/* V4l2 device */
+> 	struct v4l2_device v4l2_dev;
+> 	/* parent device */
+>--
+>1.6.0.4
 
-I will be attending the conference and along with above mentioned RFC I would want to discuss some of the open issues, forthcoming TI devices, their complexity and required software interfaces (media processor (as you mentioned above)) and similar stuff. 
-
-I will work with you offline before sharing the details here with the community.
-
-Thanks,
-Vaibhav Hiremath
-
-> Early-bird registration is still possible up to August 5th (that's
-> tomorrow :-) ).
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
-> 
-> _______________________________________________
-> Davinci-linux-open-source mailing list
-> Davinci-linux-open-source@linux.davincidsp.com
-> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-
-> source
