@@ -1,149 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from CPE-124-190-210-80.vic.bigpond.net.au ([124.190.210.80]:45469
-	"EHLO cobra.jamesawebb.dyndns.org" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932390AbZHDKYa (ORCPT
+Received: from jim.sh ([75.150.123.25]:60612 "EHLO psychosis.jim.sh"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751961AbZHQRzu convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Aug 2009 06:24:30 -0400
-Subject: [PATCH] Support for Kaiser Baas ExpressCard Dual HD Tuner
-From: James A Webb <jamesawebb@gmail.com>
-To: V4L Group <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-Nk0JXnYsVfLD3q2Rk+G5"
-Date: Mon, 03 Aug 2009 12:59:38 +1000
-Message-Id: <1249268378.3519.49.camel@cobra.jamesawebb.dyndns.org>
-Mime-Version: 1.0
+	Mon, 17 Aug 2009 13:55:50 -0400
+Date: Mon, 17 Aug 2009 13:47:44 -0400
+From: Jim Paris <jim@jtan.com>
+To: linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: ov534 + ov772x (playstation eye) broken in 2.6.30
+Message-ID: <20090817174744.GA11933@psychosis.jim.sh>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
---=-Nk0JXnYsVfLD3q2Rk+G5
-Content-Type: multipart/mixed; boundary="=-eAHFD5ISI9rzJaIkYcal"
+Commit 84fbdf87ab8eaa4eaefb317a7eb437cd4d3d0ebf:
+  "V4L/DVB (11105): gspca - ov534: Adjust the packet scan function"
+broke the gspca ov534 driver for the Playstation Eye in 2.6.30.
 
+Commit c874f3aa7e66158dccb2b9f3cfc46c65af6c223d:
+  "V4L/DVB (11973): gspca - ov534: Do the ov772x work again."
+fixes it for 2.6.31, but this leaves 2.6.30 users out in the cold.
 
---=-eAHFD5ISI9rzJaIkYcal
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+I'd like to submit the fix to the -stable team in hopes that it can
+get included in 2.6.30.6.  Unfortunately 84fbdf87 depends on earlier
+patches.  The below patch is similar to 84fbdf87 but applies to
+2.6.30.5.  Does this look acceptable?
 
-Second attempt to support recently purchased Kaiser Baas ExpressCard
-Dual HD Tuner.  The card is reported as YUAN High-Tech Development Co.,
-Ltd STK7700D (lsusb -v attached).
+-jim
 
-Err, I don't (yet) have a Developer's Certificate of Origin.  Would this
-mean that someone will (eventually) commit the patch on my behalf?
+>From 8dc9e3749ccb3f500fb8597454561ce18bf39cec Mon Sep 17 00:00:00 2001
+From: Jim Paris <jim@jtan.com>
+Date: Mon, 17 Aug 2009 13:45:00 -0400
+Subject: [PATCH] gspca - ov534: Fix ov772x
 
-Signed-off-by: James A Webb <jamesawebb@gmail.com>
+The scan of the image packets of the sensor ov772x was broken when
+the sensor ov965x was added.
 
+[ Based on upstream 84fbdf87, reworked for v2.6.30.5 ]
 
---=-eAHFD5ISI9rzJaIkYcal
-Content-Disposition: attachment; filename="patch"
-Content-Type: text/x-patch; name="patch"; charset="UTF-8"
-Content-Transfer-Encoding: base64
+Signed-off-by: Jim Paris <jim@jtan.com>
+---
+ drivers/media/video/gspca/ov534.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-ZGlmZiAtciBiMTU0OTA0NTdkNjAgbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kaWIw
-NzAwX2RldmljZXMuYw0KLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kaWIw
-NzAwX2RldmljZXMuYwlTYXQgQXVnIDAxIDAxOjM4OjAxIDIwMDkgLTAzMDANCisrKyBiL2xpbnV4
-L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZGliMDcwMF9kZXZpY2VzLmMJTW9uIEF1ZyAwMyAx
-MjoxMTo0OSAyMDA5ICsxMDAwDQpAQCAtMTUwMSw2ICsxNTAxLDcgQEANCiAJeyBVU0JfREVWSUNF
-KFVTQl9WSURfTEVBRFRFSywgICBVU0JfUElEX1dJTkZBU1RfRFRWX0RPTkdMRV9IKSB9LA0KIAl7
-IFVTQl9ERVZJQ0UoVVNCX1ZJRF9URVJSQVRFQywJVVNCX1BJRF9URVJSQVRFQ19UMykgfSwNCiAJ
-eyBVU0JfREVWSUNFKFVTQl9WSURfVEVSUkFURUMsCVVTQl9QSURfVEVSUkFURUNfVDUpIH0sDQor
-CXsgVVNCX0RFVklDRShVU0JfVklEX1lVQU4sCVVTQl9QSURfRElCQ09NX1NUSzc3MDBEWSkgfSwN
-CiAJeyAwIH0JCS8qIFRlcm1pbmF0aW5nIGVudHJ5ICovDQogfTsNCiBNT0RVTEVfREVWSUNFX1RB
-QkxFKHVzYiwgZGliMDcwMF91c2JfaWRfdGFibGUpOw0KQEAgLTE2MjgsNyArMTYyOSw3IEBADQog
-CQkJfQ0KIAkJfSwNCiANCi0JCS5udW1fZGV2aWNlX2Rlc2NzID0gNCwNCisJCS5udW1fZGV2aWNl
-X2Rlc2NzID0gNSwNCiAJCS5kZXZpY2VzID0gew0KIAkJCXsgICAiUGlubmFjbGUgUENUViAyMDAw
-ZSIsDQogCQkJCXsgJmRpYjA3MDBfdXNiX2lkX3RhYmxlWzExXSwgTlVMTCB9LA0KQEAgLTE2NDYs
-NiArMTY0NywxMCBAQA0KIAkJCQl7ICZkaWIwNzAwX3VzYl9pZF90YWJsZVsxNF0sIE5VTEwgfSwN
-CiAJCQkJeyBOVUxMIH0sDQogCQkJfSwNCisJCQl7ICAgIllVQU4gSGlnaC1UZWNoIERpQmNvbSBT
-VEs3NzAwRCIsDQorCQkJCXsgJmRpYjA3MDBfdXNiX2lkX3RhYmxlWzU0XSwgTlVMTCB9LA0KKwkJ
-CQl7IE5VTEwgfSwNCisJCQl9LA0KIA0KIAkJfSwNCiANCmRpZmYgLXIgYjE1NDkwNDU3ZDYwIGxp
-bnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZHZiLXVzYi1pZHMuaA0KLS0tIGEvbGludXgv
-ZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kdmItdXNiLWlkcy5oCVNhdCBBdWcgMDEgMDE6Mzg6
-MDEgMjAwOSAtMDMwMA0KKysrIGIvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kdmIt
-dXNiLWlkcy5oCU1vbiBBdWcgMDMgMTI6MTE6NDkgMjAwOSArMTAwMA0KQEAgLTkxLDYgKzkxLDcg
-QEANCiAjZGVmaW5lIFVTQl9QSURfRElCQ09NX1NUSzc3MDBQCQkJCTB4MWUxNA0KICNkZWZpbmUg
-VVNCX1BJRF9ESUJDT01fU1RLNzcwMFBfUEMJCQkweDFlNzgNCiAjZGVmaW5lIFVTQl9QSURfRElC
-Q09NX1NUSzc3MDBECQkJCTB4MWVmMA0KKyNkZWZpbmUgVVNCX1BJRF9ESUJDT01fU1RLNzcwMERZ
-CQkJMHgxZThjDQogI2RlZmluZSBVU0JfUElEX0RJQkNPTV9TVEs3NzAwX1U3MDAwCQkJMHg3MDAx
-DQogI2RlZmluZSBVU0JfUElEX0RJQkNPTV9TVEs3MDcwUAkJCQkweDFlYmMNCiAjZGVmaW5lIFVT
-Ql9QSURfRElCQ09NX1NUSzcwNzBQRAkJCTB4MWViZQ0K
-
-
---=-eAHFD5ISI9rzJaIkYcal
-Content-Disposition: attachment; filename="lsusb.txt"
-Content-Type: text/plain; name="lsusb.txt"; charset="UTF-8"
-Content-Transfer-Encoding: base64
-
-QnVzIDAwMSBEZXZpY2UgMDA0OiBJRCAxMTY0OjFlOGMgWVVBTiBIaWdoLVRlY2ggRGV2ZWxvcG1l
-bnQgQ28uLCBMdGQgDQpEZXZpY2UgRGVzY3JpcHRvcjoNCiAgYkxlbmd0aCAgICAgICAgICAgICAg
-ICAxOA0KICBiRGVzY3JpcHRvclR5cGUgICAgICAgICAxDQogIGJjZFVTQiAgICAgICAgICAgICAg
-IDIuMDANCiAgYkRldmljZUNsYXNzICAgICAgICAgICAgMCAoRGVmaW5lZCBhdCBJbnRlcmZhY2Ug
-bGV2ZWwpDQogIGJEZXZpY2VTdWJDbGFzcyAgICAgICAgIDAgDQogIGJEZXZpY2VQcm90b2NvbCAg
-ICAgICAgIDAgDQogIGJNYXhQYWNrZXRTaXplMCAgICAgICAgNjQNCiAgaWRWZW5kb3IgICAgICAg
-ICAgIDB4MTE2NCBZVUFOIEhpZ2gtVGVjaCBEZXZlbG9wbWVudCBDby4sIEx0ZA0KICBpZFByb2R1
-Y3QgICAgICAgICAgMHgxZThjIA0KICBiY2REZXZpY2UgICAgICAgICAgICAxLjAwDQogIGlNYW51
-ZmFjdHVyZXIgICAgICAgICAgIDEgWVVBTlJEDQogIGlQcm9kdWN0ICAgICAgICAgICAgICAgIDIg
-U1RLNzcwMEQNCiAgaVNlcmlhbCAgICAgICAgICAgICAgICAgMyAwMDAwMDAwMDAxDQogIGJOdW1D
-b25maWd1cmF0aW9ucyAgICAgIDENCiAgQ29uZmlndXJhdGlvbiBEZXNjcmlwdG9yOg0KICAgIGJM
-ZW5ndGggICAgICAgICAgICAgICAgIDkNCiAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICAyDQog
-ICAgd1RvdGFsTGVuZ3RoICAgICAgICAgICA0Ng0KICAgIGJOdW1JbnRlcmZhY2VzICAgICAgICAg
-IDENCiAgICBiQ29uZmlndXJhdGlvblZhbHVlICAgICAxDQogICAgaUNvbmZpZ3VyYXRpb24gICAg
-ICAgICAgMCANCiAgICBibUF0dHJpYnV0ZXMgICAgICAgICAweGEwDQogICAgICAoQnVzIFBvd2Vy
-ZWQpDQogICAgICBSZW1vdGUgV2FrZXVwDQogICAgTWF4UG93ZXIgICAgICAgICAgICAgIDUwMG1B
-DQogICAgSW50ZXJmYWNlIERlc2NyaXB0b3I6DQogICAgICBiTGVuZ3RoICAgICAgICAgICAgICAg
-ICA5DQogICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA0DQogICAgICBiSW50ZXJmYWNlTnVt
-YmVyICAgICAgICAwDQogICAgICBiQWx0ZXJuYXRlU2V0dGluZyAgICAgICAwDQogICAgICBiTnVt
-RW5kcG9pbnRzICAgICAgICAgICA0DQogICAgICBiSW50ZXJmYWNlQ2xhc3MgICAgICAgMjU1IFZl
-bmRvciBTcGVjaWZpYyBDbGFzcw0KICAgICAgYkludGVyZmFjZVN1YkNsYXNzICAgICAgMCANCiAg
-ICAgIGJJbnRlcmZhY2VQcm90b2NvbCAgICAgIDAgDQogICAgICBpSW50ZXJmYWNlICAgICAgICAg
-ICAgICAwIA0KICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoNCiAgICAgICAgYkxlbmd0aCAgICAg
-ICAgICAgICAgICAgNw0KICAgICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA1DQogICAgICAg
-IGJFbmRwb2ludEFkZHJlc3MgICAgIDB4MDEgIEVQIDEgT1VUDQogICAgICAgIGJtQXR0cmlidXRl
-cyAgICAgICAgICAgIDINCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgQnVsaw0K
-ICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25lDQogICAgICAgICAgVXNhZ2Ug
-VHlwZSAgICAgICAgICAgICAgIERhdGENCiAgICAgICAgd01heFBhY2tldFNpemUgICAgIDB4MDIw
-MCAgMXggNTEyIGJ5dGVzDQogICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgIDENCiAgICAg
-IEVuZHBvaW50IERlc2NyaXB0b3I6DQogICAgICAgIGJMZW5ndGggICAgICAgICAgICAgICAgIDcN
-CiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQ0KICAgICAgICBiRW5kcG9pbnRBZGRy
-ZXNzICAgICAweDgxICBFUCAxIElODQogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAgICAgIDIN
-CiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgQnVsaw0KICAgICAgICAgIFN5bmNo
-IFR5cGUgICAgICAgICAgICAgICBOb25lDQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAg
-ICAgIERhdGENCiAgICAgICAgd01heFBhY2tldFNpemUgICAgIDB4MDIwMCAgMXggNTEyIGJ5dGVz
-DQogICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgIDENCiAgICAgIEVuZHBvaW50IERlc2Ny
-aXB0b3I6DQogICAgICAgIGJMZW5ndGggICAgICAgICAgICAgICAgIDcNCiAgICAgICAgYkRlc2Ny
-aXB0b3JUeXBlICAgICAgICAgNQ0KICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgyICBF
-UCAyIElODQogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAgICAgIDINCiAgICAgICAgICBUcmFu
-c2ZlciBUeXBlICAgICAgICAgICAgQnVsaw0KICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAg
-ICAgICBOb25lDQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGENCiAgICAg
-ICAgd01heFBhY2tldFNpemUgICAgIDB4MDIwMCAgMXggNTEyIGJ5dGVzDQogICAgICAgIGJJbnRl
-cnZhbCAgICAgICAgICAgICAgIDENCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6DQogICAgICAg
-IGJMZW5ndGggICAgICAgICAgICAgICAgIDcNCiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAg
-ICAgNQ0KICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgzICBFUCAzIElODQogICAgICAg
-IGJtQXR0cmlidXRlcyAgICAgICAgICAgIDINCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAg
-ICAgICAgQnVsaw0KICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25lDQogICAg
-ICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGENCiAgICAgICAgd01heFBhY2tldFNp
-emUgICAgIDB4MDIwMCAgMXggNTEyIGJ5dGVzDQogICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAg
-ICAgIDENCkRldmljZSBRdWFsaWZpZXIgKGZvciBvdGhlciBkZXZpY2Ugc3BlZWQpOg0KICBiTGVu
-Z3RoICAgICAgICAgICAgICAgIDEwDQogIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDYNCiAgYmNk
-VVNCICAgICAgICAgICAgICAgMi4wMA0KICBiRGV2aWNlQ2xhc3MgICAgICAgICAgICAwIChEZWZp
-bmVkIGF0IEludGVyZmFjZSBsZXZlbCkNCiAgYkRldmljZVN1YkNsYXNzICAgICAgICAgMCANCiAg
-YkRldmljZVByb3RvY29sICAgICAgICAgMCANCiAgYk1heFBhY2tldFNpemUwICAgICAgICA2NA0K
-ICBiTnVtQ29uZmlndXJhdGlvbnMgICAgICAxDQpEZXZpY2UgU3RhdHVzOiAgICAgMHgwMDAwDQog
-IChCdXMgUG93ZXJlZCkNCg==
-
-
---=-eAHFD5ISI9rzJaIkYcal--
-
---=-Nk0JXnYsVfLD3q2Rk+G5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEABECAAYFAkp2UpoACgkQagqR2mFibuYa6wCffq7Ld2UETM6IOXZ+HWAH1Efm
-HOAAn14+4vux4APYiVqw3tmQqJ1+eosw
-=O+em
------END PGP SIGNATURE-----
-
---=-Nk0JXnYsVfLD3q2Rk+G5--
+diff --git a/drivers/media/video/gspca/ov534.c b/drivers/media/video/gspca/ov534.c
+index 19e0bc6..504f849 100644
+--- a/drivers/media/video/gspca/ov534.c
++++ b/drivers/media/video/gspca/ov534.c
+@@ -832,9 +832,11 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev, struct gspca_frame *frame,
+ 	__u32 this_pts;
+ 	u16 this_fid;
+ 	int remaining_len = len;
++	int payload_len;
+ 
++	payload_len = (sd->sensor == SENSOR_OV772X) ? 2048 : 2040;
+ 	do {
+-		len = min(remaining_len, 2040);		/*fixme: was 2048*/
++		len = min(remaining_len, payload_len);
+ 
+ 		/* Payloads are prefixed with a UVC-style header.  We
+ 		   consider a frame to start when the FID toggles, or the PTS
+-- 
+1.5.6.5
