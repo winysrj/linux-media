@@ -1,79 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f214.google.com ([209.85.219.214]:50694 "EHLO
-	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751328AbZHII2O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Aug 2009 04:28:14 -0400
-Received: by ewy10 with SMTP id 10so2412035ewy.37
-        for <linux-media@vger.kernel.org>; Sun, 09 Aug 2009 01:28:13 -0700 (PDT)
-Message-ID: <4A7E8899.7080206@gmail.com>
-Date: Sun, 09 Aug 2009 10:28:09 +0200
-From: =?UTF-8?B?RXJpayBBbmRyw6lu?= <erik.andren@gmail.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: About some sensor drivers in mc5602 gspca driver
-References: <5e9665e10908090057n25103147s8b048bb0eb1d2d5b@mail.gmail.com> <4A7E86DF.1070901@gmail.com>
-In-Reply-To: <4A7E86DF.1070901@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from bear.ext.ti.com ([192.94.94.41]:52330 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750976AbZHQTau (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Aug 2009 15:30:50 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n7HJUk6Z010708
+	for <linux-media@vger.kernel.org>; Mon, 17 Aug 2009 14:30:51 -0500
+From: neilsikka@ti.com
+To: linux-media@vger.kernel.org, m-karicheri2@ti.com
+Cc: Neil Sikka <neilsikka@ti.com>
+Subject: [PATCH] Build system support for DM365 CCDC
+Date: Mon, 17 Aug 2009 15:30:44 -0400
+Message-Id: <1250537444-2077-5-git-send-email-neilsikka@ti.com>
+In-Reply-To: <1250537444-2077-4-git-send-email-neilsikka@ti.com>
+References: <1250537444-2077-1-git-send-email-neilsikka@ti.com>
+ <1250537444-2077-2-git-send-email-neilsikka@ti.com>
+ <1250537444-2077-3-git-send-email-neilsikka@ti.com>
+ <1250537444-2077-4-git-send-email-neilsikka@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Erik Andrén wrote:
-> 
-> Dongsoo, Nathaniel Kim wrote:
->> Hello,
->>
->> It has been years I've working on linux multimedia drivers, but what a
->> shame I found that there were already sensor drivers that I've already
->> implemented. Precisely speaking, soc camera devices from Samsung named
->> s5k4aa* and s5k83a* were already in Linux kernel and even seems to
->> have been there for years.
->> But a thing that I'm curious is those drivers are totally mc602 and
->> gspca oriented. So some users who are intending to use those samsung
->> camera devices but not using gspca and mc5602 H/W have to figure out
->> another way.
->> As you know, the s5k* camera devices are actually ISP devices which
->> are made in SoC device and can be used independently with any kind of
->> ITU or MIPI supporting host devices.
->> However, I see that gspca and mc5602 have their own driver structure
->> so it seems to be tough to split out the sensor drivers from them.
->> So, how should we coordinate our drivers if a new s5k* driver is
->> getting adopted in the Linux kernel? different version of s5k* drivers
->> in gspca and subdev or gspca also is able to use subdev drivers?
->> I am very willing to contribute several drivers for s5k* soc camera
->> isp devices and in the middle of researching to prepare for
->> contribution those s5k* drivers popped up.
->> Please let me know whether it is arrangeable or not.
->> Cheers,
->>
-> 
-> Hi Nathaniel,
-> The sensor sharing question pops up now and then and I'm sure that
-> if you search the mailing list archive you can find several threads
-> discussing this.
-> IIRC the main problem is that in an usb webcam consisting of a
-> sensor and an usb bridge. The sensor is often configured in a very
-> specific way tied to the particular usb bridge. It is also common
-> that much of the initialization is reverse engineered and that we
-> may have little or no understanding what we're actually doing.
-> (Often just mimicing a windows webcam driver).
-> I think the conclusion reached now is that it's not worth the effort
-> considering that the sensors usually don't need that much setup to
-> get working. Of course this may need to be reevaluated from time to
-> time. If someone could device a clever solution I would be all for
-> trying to create some kind of driver sharing.
-> 
-> In the gspca-m5602-s5k* case everything is reverse-engineered, as I
-> don't possess any datasheets of the ALi m5602 nor the s5k83a,
-> s5k4aa. I would be much happy if you Samsung folks would be able to
-> provide with me with datasheets for the s5k* sensors.
-> 
-> Best regards,
-> Erik
-> 
-Resending due to UTF-8 fail.
+From: Neil Sikka <neilsikka@ti.com>
 
+This patch sets up the build system for DM365 VPFE support
 
->> Nate
->>
-> 
+Reviewed-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Mandatory-Reviewer: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Neil Sikka <neilsikka@ti.com>
+---
+Applies to v4l-dvb linux-next repository
+ drivers/media/video/Kconfig          |    9 +++++++++
+ drivers/media/video/davinci/Makefile |    3 ++-
+ 2 files changed, 11 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 1fa3c87..e0dd402 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -578,6 +578,15 @@ config VIDEO_DM355_CCDC
+ 	   To compile this driver as a module, choose M here: the
+ 	   module will be called vpfe.
+ 
++config VIDEO_DM365_ISIF
++	tristate "DM365 CCDC/ISIF HW module"
++	depends on ARCH_DAVINCI_DM365 && VIDEO_VPFE_CAPTURE
++	default y
++	help
++	   Enables DM365 ISIF hw module. This is the hardware module for
++	   configuring ISIF in VPFE to capture Raw Bayer RGB data  from
++	   a image sensor or YUV data from a YUV source.
++
+ source "drivers/media/video/bt8xx/Kconfig"
+ 
+ config VIDEO_PMS
+diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
+index f44cad2..5f4c830 100644
+--- a/drivers/media/video/davinci/Makefile
++++ b/drivers/media/video/davinci/Makefile
+@@ -8,8 +8,9 @@ obj-$(CONFIG_VIDEO_DAVINCI_VPIF) += vpif.o
+ #DM646x EVM Display driver
+ obj-$(CONFIG_DISPLAY_DAVINCI_DM646X_EVM) += vpif_display.o
+ 
+-# Capture: DM6446 and DM355
++# Capture: DM6446, DM355, DM365
+ obj-$(CONFIG_VIDEO_VPSS_SYSTEM) += vpss.o
+ obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
+ obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
+ obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
++obj-$(CONFIG_VIDEO_DM365_ISIF) += dm365_ccdc.o
+-- 
+1.6.0.4
+
