@@ -1,70 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from jim.sh ([75.150.123.25]:60612 "EHLO psychosis.jim.sh"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53554 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751961AbZHQRzu convert rfc822-to-8bit (ORCPT
+	id S1751742AbZHQUKK convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Aug 2009 13:55:50 -0400
-Date: Mon, 17 Aug 2009 13:47:44 -0400
-From: Jim Paris <jim@jtan.com>
-To: linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: ov534 + ov772x (playstation eye) broken in 2.6.30
-Message-ID: <20090817174744.GA11933@psychosis.jim.sh>
+	Mon, 17 Aug 2009 16:10:10 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+Date: Mon, 17 Aug 2009 15:10:04 -0500
+Subject: RE: [PATCH v1 - 1/5] DaVinci - restructuring code to support vpif
+ capture driver
+Message-ID: <A69FA2915331DC488A831521EAE36FE40145300E82@dlee06.ent.ti.com>
+References: <1250283702-5582-1-git-send-email-m-karicheri2@ti.com>
+ <200908151409.44219.hverkuil@xs4all.nl>
+ <A69FA2915331DC488A831521EAE36FE40145300B49@dlee06.ent.ti.com>
+ <200908172046.34453.hverkuil@xs4all.nl>
+In-Reply-To: <200908172046.34453.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hans,
 
-Commit 84fbdf87ab8eaa4eaefb317a7eb437cd4d3d0ebf:
-  "V4L/DVB (11105): gspca - ov534: Adjust the packet scan function"
-broke the gspca ov534 driver for the Playstation Eye in 2.6.30.
+Would you like the architecture specific changes against v4l-dvb linux-next tree or linux-davinci ? I will rework both the vpfe and vpif patches as per your comment.
 
-Commit c874f3aa7e66158dccb2b9f3cfc46c65af6c223d:
-  "V4L/DVB (11973): gspca - ov534: Do the ov772x work again."
-fixes it for 2.6.31, but this leaves 2.6.30 users out in the cold.
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+new phone: 301-407-9583
+Old Phone : 301-515-3736 (will be deprecated)
+email: m-karicheri2@ti.com
 
-I'd like to submit the fix to the -stable team in hopes that it can
-get included in 2.6.30.6.  Unfortunately 84fbdf87 depends on earlier
-patches.  The below patch is similar to 84fbdf87 but applies to
-2.6.30.5.  Does this look acceptable?
+>-----Original Message-----
+>From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+>Sent: Monday, August 17, 2009 2:47 PM
+>To: Karicheri, Muralidharan
+>Cc: linux-media@vger.kernel.org; davinci-linux-open-
+>source@linux.davincidsp.com; khilman@deeprootsystems.com
+>Subject: Re: [PATCH v1 - 1/5] DaVinci - restructuring code to support vpif
+>capture driver
+>
+>On Monday 17 August 2009 16:52:20 Karicheri, Muralidharan wrote:
+>> Hans,
+>>
+>> They are applied against davinci tree (also mentioned in the patch).
+>General procedure what I follow is to create platform code against davinci
+>tree and v4l patches against v4l-dvb linux-next tree. The architecture part
+>of linux-next is not up to date.
+>>
+>> Davinci tree is at
+>>
+>> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-davinci.git
+>
+>I must have missed the mention of this tree.
+>
+>I have a problem, though, as the current v4l-dvb repository doesn't compile
+>against the linux-davinci git tree. And the only way I can get it to
+>compile
+>is to apply all five patches first.
+>
+>However, the whole tree should still compile after each patch is applied.
+>And
+>that goes wrong with your second patch where the Kconfig and Makefile are
+>modified when the new sources aren't even added yet!
+>
+>What I would like to see is a patch series that starts with one patch that
+>makes the current v4l-dvb tree compile again, then the arch patch is added,
+>then a series of v4l-dvb patches in such an order that everything compiles
+>after each step.
+>
+>Merging this is already complicated enough without breaking compilation in
+>this way.
+>
+>Regards,
+>
+>	Hans
+>
+>--
+>Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
--jim
-
->From 8dc9e3749ccb3f500fb8597454561ce18bf39cec Mon Sep 17 00:00:00 2001
-From: Jim Paris <jim@jtan.com>
-Date: Mon, 17 Aug 2009 13:45:00 -0400
-Subject: [PATCH] gspca - ov534: Fix ov772x
-
-The scan of the image packets of the sensor ov772x was broken when
-the sensor ov965x was added.
-
-[ Based on upstream 84fbdf87, reworked for v2.6.30.5 ]
-
-Signed-off-by: Jim Paris <jim@jtan.com>
----
- drivers/media/video/gspca/ov534.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/gspca/ov534.c b/drivers/media/video/gspca/ov534.c
-index 19e0bc6..504f849 100644
---- a/drivers/media/video/gspca/ov534.c
-+++ b/drivers/media/video/gspca/ov534.c
-@@ -832,9 +832,11 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev, struct gspca_frame *frame,
- 	__u32 this_pts;
- 	u16 this_fid;
- 	int remaining_len = len;
-+	int payload_len;
- 
-+	payload_len = (sd->sensor == SENSOR_OV772X) ? 2048 : 2040;
- 	do {
--		len = min(remaining_len, 2040);		/*fixme: was 2048*/
-+		len = min(remaining_len, payload_len);
- 
- 		/* Payloads are prefixed with a UVC-style header.  We
- 		   consider a frame to start when the FID toggles, or the PTS
--- 
-1.5.6.5
