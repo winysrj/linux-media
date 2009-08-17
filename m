@@ -1,245 +1,83 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52681 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754233AbZHQTeq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Aug 2009 15:34:46 -0400
-From: neilsikka@ti.com
-To: linux-media@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com
-Cc: khilman@deeprootsystems.com, hverkuil@xs4all.nl,
-	Neil Sikka <neilsikka@ti.com>
-Subject: [PATCH] DM365 Platform support for VPFE
-Date: Mon, 17 Aug 2009 15:34:36 -0400
-Message-Id: <1250537679-2239-2-git-send-email-neilsikka@ti.com>
-In-Reply-To: <1250537679-2239-1-git-send-email-neilsikka@ti.com>
-References: <1250537679-2239-1-git-send-email-neilsikka@ti.com>
-Sender: linux-media-owner@vger.kernel.org
-List-ID: <linux-media.vger.kernel.org>
+Return-path: <video4linux-list-bounces@redhat.com>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n7HDsQ34014422
+	for <video4linux-list@redhat.com>; Mon, 17 Aug 2009 09:54:26 -0400
+Received: from tomts35-srv.bellnexxia.net (tomts35.bellnexxia.net
+	[209.226.175.109])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n7HDs6nS024116
+	for <video4linux-list@redhat.com>; Mon, 17 Aug 2009 09:54:06 -0400
+Received: from toip52-bus.srvr.bell.ca ([67.69.240.55])
+	by tomts35-srv.bellnexxia.net
+	(InterMail vM.5.01.06.13 201-253-122-130-113-20050324) with ESMTP id
+	<20090817135405.OTN8518.tomts35-srv.bellnexxia.net@toip52-bus.srvr.bell.ca>
+	for <video4linux-list@redhat.com>; Mon, 17 Aug 2009 09:54:05 -0400
+From: Jonathan Lafontaine <jlafontaine@ctecworld.com>
+To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Date: Mon, 17 Aug 2009 09:52:28 -0400
+Message-ID: <09CD2F1A09A6ED498A24D850EB1012081B1E6D55F8@Colmatec004.COLMATEC.INT>
+References: <4A872D3F.6020003@ntnu.no>
+	<1250383433.28382.2.camel@localhost.localdomain>
+	<20090816080309.3f19a067@tele>
+	<4A87C4EC.6030309@ntnu.no>,<20090816110953.1d1074bb@tele>
+In-Reply-To: <20090816110953.1d1074bb@tele>
+Content-Language: fr-CA
+Content-Type: text/plain; charset="iso-8859-1"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: RE : Varying frame rate
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+List-ID: <video4linux-list@redhat.com>
 
-From: Neil Sikka <neilsikka@ti.com>
+Hi, I want to know what is the new procedure or 
 
-This has platform and board setup changes to support the vpfe capture
-driver for DM365 EVMs.
+email adress for the new V4L newsletter?
+________________________________________
+De : video4linux-list-bounces@redhat.com [video4linux-list-bounces@redhat.com] de la part de Jean-Francois Moine [moinejf@free.fr]
+Date d'envoi : 16 août 2009 05:09
+À : video4linux-list@redhat.com
+Objet : Re: Varying frame rate
 
-Reviewed-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-Mandatory-Reviewer: Hans Verkuil <hverkuil@xs4all.nl>
-Mandatory-Reviewer: Kevin Hilman <khilman@deeprootsystems.com>
-Signed-off-by: Neil Sikka <neilsikka@ti.com>
----
-Applies to Kevin Hilman's linux-davinci repository
- arch/arm/mach-davinci/board-dm365-evm.c    |   71 ++++++++++++++++++++++++++++
- arch/arm/mach-davinci/dm365.c              |   68 ++++++++++++++++++++++++++
- arch/arm/mach-davinci/include/mach/dm365.h |    2 +
- 3 files changed, 141 insertions(+), 0 deletions(-)
+On Sun, 16 Aug 2009 10:35:56 +0200
+Haavard Holm <haavard.holm@ntnu.no> wrote:
+        [snip]
+> > The frame rate depends on the exposure time. If auto exposure is
+> > set, you may have such a behaviour.
+> >
+>
+>  From a c-program - how do I turn off auto exposure ?
 
-diff --git a/arch/arm/mach-davinci/board-dm365-evm.c b/arch/arm/mach-davinci/board-dm365-evm.c
-index f6adf79..757ad13 100644
---- a/arch/arm/mach-davinci/board-dm365-evm.c
-+++ b/arch/arm/mach-davinci/board-dm365-evm.c
-@@ -38,6 +38,8 @@
- #include <mach/common.h>
- #include <mach/mmc.h>
- #include <mach/nand.h>
-+#include <linux/videodev2.h>
-+#include <media/tvp514x.h>
- 
- 
- static inline int have_imager(void)
-@@ -98,6 +100,11 @@ static inline int have_tvp7002(void)
- 
- static void __iomem *cpld;
- 
-+static struct tvp514x_platform_data tvp5146_pdata = {
-+       .clk_polarity = 0,
-+       .hs_polarity = 1,
-+       .vs_polarity = 1
-+};
- 
- /* NOTE:  this is geared for the standard config, with a socketed
-  * 2 GByte Micron NAND (MT29F16G08FAA) using 128KB sectors.  If you
-@@ -210,6 +217,68 @@ static int cpld_mmc_get_ro(int module)
- 	return !!(__raw_readb(cpld + CPLD_CARDSTAT) & BIT(module ? 5 : 1));
- }
- 
-+#define TVP514X_STD_ALL        (V4L2_STD_NTSC | V4L2_STD_PAL)
-+/* Inputs available at the TVP5146 */
-+static struct v4l2_input tvp5146_inputs[] = {
-+	{
-+		.index = 0,
-+		.name = "Composite",
-+		.type = V4L2_INPUT_TYPE_CAMERA,
-+		.std = TVP514X_STD_ALL,
-+	},
-+	{
-+		.index = 1,
-+		.name = "S-Video",
-+		.type = V4L2_INPUT_TYPE_CAMERA,
-+		.std = TVP514X_STD_ALL,
-+	},
-+};
-+
-+/*
-+ * this is the route info for connecting each input to decoder
-+ * ouput that goes to vpfe. There is a one to one correspondence
-+ * with tvp5146_inputs
-+ */
-+static struct vpfe_route tvp5146_routes[] = {
-+	{
-+		.input = INPUT_CVBS_VI2B,
-+		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
-+	},
-+{
-+		.input = INPUT_SVIDEO_VI2C_VI1C,
-+		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
-+	},
-+};
-+
-+static struct vpfe_subdev_info vpfe_sub_devs[] = {
-+{
-+		.module_name = "tvp5146",
-+		.grp_id = 0,
-+		.num_inputs = ARRAY_SIZE(tvp5146_inputs),
-+		.inputs = tvp5146_inputs,
-+		.routes = tvp5146_routes,
-+		.can_route = 1,
-+		.ccdc_if_params = {
-+			.if_type = VPFE_BT656,
-+			.hdpol = VPFE_PINPOL_POSITIVE,
-+			.vdpol = VPFE_PINPOL_POSITIVE,
-+		},
-+		.board_info = {
-+			I2C_BOARD_INFO("tvp5146", 0x5d),
-+			.platform_data = &tvp5146_pdata,
-+		},
-+	}
-+};
-+
-+static struct vpfe_config vpfe_cfg = {
-+       .num_subdevs = ARRAY_SIZE(vpfe_sub_devs),
-+       .sub_devs = vpfe_sub_devs,
-+       .card_name = "DM365 EVM",
-+       .ccdc = "DM365 ISIF",
-+       .num_clocks = 1,
-+       .clocks = {"vpss_master"},
-+};
-+
- static struct davinci_mmc_config dm365evm_mmc_config = {
- 	.get_cd		= cpld_mmc_get_cd,
- 	.get_ro		= cpld_mmc_get_ro,
-@@ -461,6 +530,8 @@ static struct davinci_uart_config uart_config __initdata = {
- 
- static void __init dm365_evm_map_io(void)
- {
-+	/* setup input configuration for VPFE input devices */
-+	dm365_set_vpfe_config(&vpfe_cfg);
- 	dm365_init();
- }
- 
-diff --git a/arch/arm/mach-davinci/dm365.c b/arch/arm/mach-davinci/dm365.c
-index f8bac94..aa432d4 100644
---- a/arch/arm/mach-davinci/dm365.c
-+++ b/arch/arm/mach-davinci/dm365.c
-@@ -904,6 +904,62 @@ void __init dm365_init(void)
- 	davinci_common_init(&davinci_soc_info_dm365);
- }
- 
-+static struct resource dm365_vpss_resources[] = {
-+	{
-+		/* VPSS ISP5 Base address */
-+		.name           = "vpss",
-+		.start          = 0x01c70000,
-+		.end            = 0x01c70000 + 0xff,
-+		.flags          = IORESOURCE_MEM,
-+	},
-+	{
-+		/* VPSS CLK Base address */
-+		.name           = "vpss",
-+		.start          = 0x01c70200,
-+		.end            = 0x01c70200 + 0xff,
-+		.flags          = IORESOURCE_MEM,
-+	},
-+};
-+
-+static struct platform_device dm365_vpss_device = {
-+       .name                   = "vpss",
-+       .id                     = -1,
-+       .dev.platform_data      = "dm365_vpss",
-+       .num_resources          = ARRAY_SIZE(dm365_vpss_resources),
-+       .resource               = dm365_vpss_resources,
-+};
-+
-+static struct resource vpfe_resources[] = {
-+	{
-+		.start          = IRQ_VDINT0,
-+		.end            = IRQ_VDINT0,
-+		.flags          = IORESOURCE_IRQ,
-+	},
-+	{
-+		.start          = IRQ_VDINT1,
-+		.end            = IRQ_VDINT1,
-+		.flags          = IORESOURCE_IRQ,
-+	},
-+	/* ISIF Base address */
-+	{
-+		.start          = 0x01c71000,
-+		.end            = 0x01c71000 + 0x1ff,
-+		.flags          = IORESOURCE_MEM,
-+	},
-+};
-+
-+static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
-+static struct platform_device vpfe_capture_dev = {
-+	.name           = CAPTURE_DRV_NAME,
-+	.id             = -1,
-+	.num_resources  = ARRAY_SIZE(vpfe_resources),
-+	.resource       = vpfe_resources,
-+	.dev = {
-+		.dma_mask               = &vpfe_capture_dma_mask,
-+		.coherent_dma_mask      = DMA_BIT_MASK(32),
-+	},
-+};
-+
- static int __init dm365_init_devices(void)
- {
- 	if (!cpu_is_davinci_dm365())
-@@ -913,6 +969,18 @@ static int __init dm365_init_devices(void)
- 	platform_device_register(&dm365_edma_device);
- 	platform_device_register(&dm365_emac_device);
- 
-+	/*
-+	* setup Mux configuration for vpfe input and register
-+	* vpfe capture platform device
-+	*/
-+	platform_device_register(&dm365_vpss_device);
-+	platform_device_register(&vpfe_capture_dev);
-+
- 	return 0;
- }
- postcore_initcall(dm365_init_devices);
-+
-+void dm365_set_vpfe_config(struct vpfe_config *cfg)
-+{
-+       vpfe_capture_dev.dev.platform_data = cfg;
-+}
-diff --git a/arch/arm/mach-davinci/include/mach/dm365.h b/arch/arm/mach-davinci/include/mach/dm365.h
-index 09db434..2fbead2 100644
---- a/arch/arm/mach-davinci/include/mach/dm365.h
-+++ b/arch/arm/mach-davinci/include/mach/dm365.h
-@@ -15,6 +15,7 @@
- 
- #include <linux/platform_device.h>
- #include <mach/hardware.h>
-+#include <media/davinci/vpfe_capture.h>
- #include <mach/emac.h>
- 
- #define DM365_EMAC_BASE			(0x01D07000)
-@@ -25,5 +26,6 @@
- #define DM365_EMAC_CNTRL_RAM_SIZE	(0x2000)
- 
- void __init dm365_init(void);
-+void dm365_set_vpfe_config(struct vpfe_config *cfg);
- 
- #endif /* __ASM_ARCH_DM365_H */
--- 
-1.6.0.4
+You may do it by the VIDIOC_S_CTRL ioctl (look at
+v4l2-apps/util/v4l2-ctl.cpp in the LinuxTv mercurial main repository)
 
+Otherwise, by program, I know about v4l2ucp or vlc (1.0.x).
+
+Best regards.
+
+--
+Ken ar c'hentañ |             ** Breizh ha Linux atav! **
+Jef             |               http://moinejf.free.fr/
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
+
+--
+
+This message has been verified by LastSpam (http://www.lastspam.com) eMail security service, provided by SoluLAN
+Ce courriel a ete verifie par le service de securite pour courriels LastSpam (http://www.lastspam.com), fourni par SoluLAN (http://www.solulan.com)
+www.solulan.com
+
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
