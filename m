@@ -1,67 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.26]:47817 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750780AbZHILEP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Aug 2009 07:04:15 -0400
-Received: by ey-out-2122.google.com with SMTP id 9so741258eyd.37
-        for <linux-media@vger.kernel.org>; Sun, 09 Aug 2009 04:04:15 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <200908091019.10222.hverkuil@xs4all.nl>
-References: <1249753576.15160.251.camel@tux.localhost>
-	 <208cbae30908081208o5a048fb0qdd6c356b0c6d3eb9@mail.gmail.com>
-	 <4A7DDD1C.1030906@gmx.de> <200908091019.10222.hverkuil@xs4all.nl>
-Date: Sun, 9 Aug 2009 15:04:15 +0400
-Message-ID: <208cbae30908090404h3f03dc5fk10bfdc8ae3eb9f04@mail.gmail.com>
-Subject: Re: [patch review 6/6] radio-mr800: redesign radio->users counter
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: wk <handygewinnspiel@gmx.de>, Trent Piepho <xyzzy@speakeasy.org>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from devils.ext.ti.com ([198.47.26.153]:47863 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751182AbZHQXSw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Aug 2009 19:18:52 -0400
+From: m-karicheri2@ti.com
+To: linux-media@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com, hverkuil@xs4all.nl,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: [PATCH 2/5 - v3] V4L: ccdc driver - select MSP driver for CCDC input selection
+Date: Mon, 17 Aug 2009 19:18:47 -0400
+Message-Id: <1250551127-32512-1-git-send-email-m-karicheri2@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Aug 9, 2009 at 12:19 PM, Hans Verkuil<hverkuil@xs4all.nl> wrote:
-> On Saturday 08 August 2009 22:16:28 wk wrote:
->> Alexey Klimov schrieb:
->> > On Sat, Aug 8, 2009 at 10:01 PM, Trent Piepho<xyzzy@speakeasy.org> wrote:
->> >
->> >> On Sat, 8 Aug 2009, Alexey Klimov wrote:
->> >>
->> >>> Redesign radio->users counter. Don't allow more that 5 users on radio in
->> >>>
->> >> Why?
->> >>
->> >
->> > Well, v4l2 specs says that multiple opens are optional. Honestly, i
->> > think that five userspace applications open /dev/radio is enough. Btw,
->> > if too many userspace applications opened radio that means that
->> > something wrong happened in userspace. And driver can handle such
->> > situation by disallowing new open calls(returning EBUSY). I can't
->> > imagine user that runs more than five mplayers or gnomeradios, or
->> > kradios and so on.
->> >
->> > Am i totally wrong here?
->> >
->> > Thanks.
->> >
->
-> Exactly. It's an artificial restriction that serves no purpose. Also
-> remember that apps can open a radio device just to do e.g. a QUERYCAP
-> or something like that. It does not necessarily has to be an mplayer
-> or gnomeradio.
->
-> Regards,
->
->        Hans
->
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+From: Muralidharan Karicheri <m-karicheri2@ti.com>
 
-Ok, i'll update the patch.
-Idea initially came in mind from gspca.c.
+Just being recreated to apply cleanly and compile.
 
+There were no comments against v1 of this patch. So no change from v1/v2 of the patch
+
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+
+Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+---
+Applies to V4L-DVB linux-next repository
+ drivers/media/video/Kconfig |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index e8a6e4d..1fa3c87 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -565,13 +565,15 @@ config VIDEO_DM355_CCDC
+ 	tristate "DM355 CCDC HW module"
+ 	depends on ARCH_DAVINCI_DM355 && VIDEO_VPFE_CAPTURE
+ 	select VIDEO_VPSS_SYSTEM
++	select MFD_DM355EVM_MSP
+ 	default y
+ 	help
+ 	   Enables DM355 CCD hw module. DM355 CCDC hw interfaces
+ 	   with decoder modules such as TVP5146 over BT656 or
+ 	   sensor module such as MT9T001 over a raw interface. This
+ 	   module configures the interface and CCDC/ISIF to do
+-	   video frame capture from a slave decoders
++	   video frame capture from a slave decoders. MFD_DM355EVM_MSP
++	   is enabled to select input to CCDC at run time.
+ 
+ 	   To compile this driver as a module, choose M here: the
+ 	   module will be called vpfe.
 -- 
-Best regards, Klimov Alexey
+1.6.0.4
+
