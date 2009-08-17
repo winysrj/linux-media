@@ -1,50 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01a.mail.t-online.hu ([84.2.40.6]:58044 "EHLO
-	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753648AbZH3OsW (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4834 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757926AbZHQU1N (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Aug 2009 10:48:22 -0400
-Message-ID: <4A9A9133.10504@freemail.hu>
-Date: Sun, 30 Aug 2009 16:48:19 +0200
-From: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+	Mon, 17 Aug 2009 16:27:13 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Subject: Re: [PATCH v1 - 1/5] DaVinci - restructuring code to support vpif capture driver
+Date: Mon, 17 Aug 2009 22:27:11 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+References: <1250283702-5582-1-git-send-email-m-karicheri2@ti.com> <200908172046.34453.hverkuil@xs4all.nl> <A69FA2915331DC488A831521EAE36FE40145300E82@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40145300E82@dlee06.ent.ti.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: hermann pitton <hermann-pitton@arcor.de>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Pinnacle Hybrid Pro Stick (320e)?
-References: <4A913AB8.5060604@freemail.hu>	 <1251032765.4905.19.camel@pc07.localdom.local>	 <4A9140A7.6020402@freemail.hu>	 <1251033530.4905.25.camel@pc07.localdom.local>	 <829197380908230629w62399f3cicd2dd9a9f2c6aeab@mail.gmail.com>	 <4A9A27DD.3020807@freemail.hu> <829197380908300707u29463ae0j66cfc1ee2f1d5d47@mail.gmail.com>
-In-Reply-To: <829197380908300707u29463ae0j66cfc1ee2f1d5d47@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200908172227.11300.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller worte:
-> 2009/8/30 Németh Márton <nm127@freemail.hu>:
->> Devin Heitmueller wrote:
->>> I committed some changes to get this board working a few weeks ago.  I
->>> will check your dmesg output and see if the changes missed the merge
->>> window.  It's possible the changes didn't make it in time for 2.6.31,
->>> so I will have to check.
->> I tried the following software setup with Pinnacle Hybrid Pro Stick (320e)
->> (USB ID: eb1a:2881): Linux kernel 2.6.31-rc7 updated with the
->> http://linuxtv.org/hg/v4l-dvb repository at version 12564:6f58a5d8c7c6.
->>
->> When I plug the device I still get the following message:
->>
-> <snip>
+On Monday 17 August 2009 22:10:04 Karicheri, Muralidharan wrote:
+> Hans,
 > 
-> The changes have not gone upstream yet.  Mauro wrote some code for a
-> potential firmware extract script, but it doesn't work yet.
-> 
-> I've been tied up in another project, so I haven't gotten back to it.
-> I know I keep dragging this out, but given my current workload I
-> probably won't get the work done for the next couple of weeks.
+> Would you like the architecture specific changes against v4l-dvb linux-next tree or linux-davinci ? I will rework both the vpfe and vpif patches as per your comment.
 
-OK, no problem. I just wanted to know whether I can test or try something
-myself.
+v4l-dvb linux-next. The current v4l-dvb at least compiles against that one, so
+that is the most appropriate tree to do the patches against.
 
 Regards,
 
-	Márton Németh
+	Hans
 
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
