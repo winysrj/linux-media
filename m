@@ -1,75 +1,266 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-14.arcor-online.net ([151.189.21.54]:54402 "EHLO
-	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750948AbZHRXWT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2009 19:22:19 -0400
-Subject: Re: [PATCH] Report only 32kHz for ALSA
-From: hermann pitton <hermann-pitton@arcor.de>
-To: =?UTF-8?Q?Old=C5=99ich_Jedli=C4=8Dka?= <oldium.pro@seznam.cz>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <200908182124.54739.oldium.pro@seznam.cz>
-References: <200908182124.54739.oldium.pro@seznam.cz>
-Content-Type: text/plain; charset=UTF-8
-Date: Wed, 19 Aug 2009 01:16:38 +0200
-Message-Id: <1250637398.3813.4.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37996 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758230AbZHQXTM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Aug 2009 19:19:12 -0400
+From: m-karicheri2@ti.com
+To: linux-media@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com, hverkuil@xs4all.nl,
+	khilman@deeprootsystems.com,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: [PATCH 3/5 - v3] DaVinci: platform changes to support vpfe camera capture Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Date: Mon, 17 Aug 2009 19:19:06 -0400
+Message-Id: <1250551146-32543-1-git-send-email-m-karicheri2@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Muralidharan Karicheri <m-karicheri2@ti.com>
 
-Am Dienstag, den 18.08.2009, 21:24 +0200 schrieb Oldřich Jedlička:
-> There are several reasons:
-> 
->  - SAA7133/35 uses DDEP (DemDec Easy Programming mode), which works in 32kHz
->    only
->  - SAA7134 for TV mode uses DemDec mode (32kHz)
->  - Radio works in 32kHz only
->  - When recording 48kHz from Line1/Line2, switching of capture source to TV
->    means switching to 32kHz without any frequency translation
-> 
-> Signed-off-by: Oldřich Jedlička <oldium.pro@seznam.cz>
+Recreating the patch to apply cleanly and compile.
 
-As discussed previously, this is an improvement within our current chip
-specific capabilities. Thanks.
+There were no comments against v1 of this patch. So no change from v1/v2 of this patch
 
-Acked-by: hermann pitton <hermann-pitton@arcor.de>
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-> diff --git a/linux/drivers/media/video/saa7134/saa7134-alsa.c b/linux/drivers/media/video/saa7134/saa7134-alsa.c
-> index c09ec3e..504186a 100644
-> --- a/linux/drivers/media/video/saa7134/saa7134-alsa.c
-> +++ b/linux/drivers/media/video/saa7134/saa7134-alsa.c
-> @@ -440,6 +440,16 @@ snd_card_saa7134_capture_pointer(struct snd_pcm_substream * substream)
->  
->  /*
->   * ALSA hardware capabilities definition
-> + *
-> + *  Report only 32kHz for ALSA:
-> + *
-> + *  - SAA7133/35 uses DDEP (DemDec Easy Programming mode), which works in 32kHz
-> + *    only
-> + *  - SAA7134 for TV mode uses DemDec mode (32kHz)
-> + *  - Radio works in 32kHz only
-> + *  - When recording 48kHz from Line1/Line2, switching of capture source to TV
-> + *    means
-> + *    switching to 32kHz without any frequency translation
->   */
->  
->  static struct snd_pcm_hardware snd_card_saa7134_capture =
-> @@ -453,9 +463,9 @@ static struct snd_pcm_hardware snd_card_saa7134_capture =
->  				SNDRV_PCM_FMTBIT_U8 | \
->  				SNDRV_PCM_FMTBIT_U16_LE | \
->  				SNDRV_PCM_FMTBIT_U16_BE,
-> -	.rates =		SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_48000,
-> +	.rates =		SNDRV_PCM_RATE_32000,
->  	.rate_min =		32000,
-> -	.rate_max =		48000,
-> +	.rate_max =		32000,
->  	.channels_min =		1,
->  	.channels_max =		2,
->  	.buffer_bytes_max =	(256*1024),
-> --
+Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+---
+Applies to V4L-DVB linux-next repository
+ arch/arm/mach-davinci/board-dm355-evm.c  |  140 +++++++++++++++++++++++++++++-
+ arch/arm/mach-davinci/board-dm644x-evm.c |    6 +-
+ 2 files changed, 140 insertions(+), 6 deletions(-)
 
+diff --git a/arch/arm/mach-davinci/board-dm355-evm.c b/arch/arm/mach-davinci/board-dm355-evm.c
+index 605bf03..8f2842a 100644
+--- a/arch/arm/mach-davinci/board-dm355-evm.c
++++ b/arch/arm/mach-davinci/board-dm355-evm.c
+@@ -24,6 +24,7 @@
+ #include <media/tvp514x.h>
+ #include <linux/spi/spi.h>
+ #include <linux/spi/eeprom.h>
++#include <linux/i2c/dm355evm_msp.h>
+ 
+ #include <asm/setup.h>
+ #include <asm/mach-types.h>
+@@ -136,14 +137,58 @@ static void dm355evm_mmcsd_gpios(unsigned gpio)
+ 	dm355evm_mmc_gpios = gpio;
+ }
+ 
++#define PCA9543A_I2C_ADDR       (0x73)
++
++static struct i2c_client *pca9543a;
++
++static int pca9543a_probe(struct i2c_client *client,
++		const struct i2c_device_id *id)
++{
++	pca9543a = client;
++	return 0;
++}
++
++static int pca9543a_remove(struct i2c_client *client)
++{
++	pca9543a = NULL;
++	return 0;
++}
++
++static const struct i2c_device_id pca9543a_ids[] = {
++	{ "PCA9543A", 0, },
++	{ /* end of list */ },
++};
++
++/* This is for i2c driver for the MT9T031 header i2c switch */
++static struct i2c_driver pca9543a_driver = {
++	.driver.name	= "PCA9543A",
++	.id_table	= pca9543a_ids,
++	.probe		= pca9543a_probe,
++	.remove		= pca9543a_remove,
++};
++
+ static struct i2c_board_info dm355evm_i2c_info[] = {
+ 	{	I2C_BOARD_INFO("dm355evm_msp", 0x25),
+ 		.platform_data = dm355evm_mmcsd_gpios,
+ 	},
++	{
++		I2C_BOARD_INFO("PCA9543A", 0x73),
++	},
+ 	/* { plus irq  }, */
+ 	/* { I2C_BOARD_INFO("tlv320aic3x", 0x1b), }, */
+ };
+ 
++/* have_sensor() - Check if we have support for sensor interface */
++static inline int have_sensor(void)
++{
++#if defined(CONFIG_SOC_CAMERA_MT9T031) || \
++    defined(CONFIG_SOC_CAMERA_MT9T031_MODULE)
++	return 1;
++#else
++	return 0;
++#endif
++}
++
+ static void __init evm_init_i2c(void)
+ {
+ 	davinci_init_i2c(&i2c_pdata);
+@@ -151,7 +196,8 @@ static void __init evm_init_i2c(void)
+ 	gpio_request(5, "dm355evm_msp");
+ 	gpio_direction_input(5);
+ 	dm355evm_i2c_info[0].irq = gpio_to_irq(5);
+-
++	if (have_sensor())
++		i2c_add_driver(&pca9543a_driver);
+ 	i2c_register_board_info(1, dm355evm_i2c_info,
+ 			ARRAY_SIZE(dm355evm_i2c_info));
+ }
+@@ -180,6 +226,72 @@ static struct platform_device dm355evm_dm9000 = {
+ 	.num_resources	= ARRAY_SIZE(dm355evm_dm9000_rsrc),
+ };
+ 
++/**
++ * dm355_enable_i2c_switch() - Enable/Disable I2C switch PCA9543A for sensor
++ * @en: enable/disbale flag
++ */
++static int dm355evm_enable_i2c_switch(int en)
++{
++	static char val = 1;
++	int status;
++	struct i2c_msg msg = {
++			.flags = 0,
++			.len = 1,
++			.buf = &val,
++		};
++
++	if (!en)
++		val = 0;
++
++	if (!pca9543a)
++		return -ENXIO;
++
++	msg.addr = pca9543a->addr;
++	/* turn i2c switch, pca9543a, on/off */
++	status = i2c_transfer(pca9543a->adapter, &msg, 1);
++	return status;
++}
++
++/**
++ * dm355evm_setup_video_input() - setup video data path and i2c
++ * @id: sub device id
++ */
++static int dm355evm_setup_video_input(enum vpfe_subdev_id id)
++{
++	int ret;
++
++	switch (id) {
++	case VPFE_SUBDEV_MT9T031:
++	{
++		ret = dm355evm_msp_write(MSP_VIDEO_IMAGER,
++					 DM355EVM_MSP_VIDEO_IN);
++		if (ret >= 0)
++			ret = dm355evm_enable_i2c_switch(1);
++		else
++			/* switch off i2c switch since we failed */
++			ret = dm355evm_enable_i2c_switch(0);
++		break;
++	}
++	case VPFE_SUBDEV_TVP5146:
++	{
++		ret = dm355evm_msp_write(0, DM355EVM_MSP_VIDEO_IN);
++		break;
++	}
++	default:
++		return -EINVAL;
++	}
++	return (ret >= 0 ? 0 : ret);
++}
++
++/* Input available at the mt9t031 */
++static struct v4l2_input mt9t031_inputs[] = {
++	{
++		.index = 0,
++		.name = "Camera",
++		.type = V4L2_INPUT_TYPE_CAMERA,
++	}
++};
++
+ static struct tvp514x_platform_data tvp5146_pdata = {
+ 	.clk_polarity = 0,
+ 	.hs_polarity = 1,
+@@ -203,7 +315,7 @@ static struct v4l2_input tvp5146_inputs[] = {
+ 	},
+ };
+ 
+-/*
++/**
+  * this is the route info for connecting each input to decoder
+  * ouput that goes to vpfe. There is a one to one correspondence
+  * with tvp5146_inputs
+@@ -221,8 +333,8 @@ static struct vpfe_route tvp5146_routes[] = {
+ 
+ static struct vpfe_subdev_info vpfe_sub_devs[] = {
+ 	{
+-		.name = "tvp5146",
+-		.grp_id = 0,
++		.module_name = TVP514X_MODULE_NAME,
++		.grp_id = VPFE_SUBDEV_TVP5146,
+ 		.num_inputs = ARRAY_SIZE(tvp5146_inputs),
+ 		.inputs = tvp5146_inputs,
+ 		.routes = tvp5146_routes,
+@@ -236,6 +348,23 @@ static struct vpfe_subdev_info vpfe_sub_devs[] = {
+ 			I2C_BOARD_INFO("tvp5146", 0x5d),
+ 			.platform_data = &tvp5146_pdata,
+ 		},
++	},
++	{
++		.module_name = "mt9t031",
++		.is_camera = 1,
++		.grp_id = VPFE_SUBDEV_MT9T031,
++		.num_inputs = ARRAY_SIZE(mt9t031_inputs),
++		.inputs = mt9t031_inputs,
++		.ccdc_if_params = {
++			.if_type = VPFE_RAW_BAYER,
++			.hdpol = VPFE_PINPOL_POSITIVE,
++			.vdpol = VPFE_PINPOL_POSITIVE,
++		},
++		.board_info = {
++			I2C_BOARD_INFO("mt9t031", 0x5d),
++			/* this is for PCLK rising edge */
++			.platform_data = (void *)1,
++		},
+ 	}
+ };
+ 
+@@ -244,6 +373,9 @@ static struct vpfe_config vpfe_cfg = {
+ 	.sub_devs = vpfe_sub_devs,
+ 	.card_name = "DM355 EVM",
+ 	.ccdc = "DM355 CCDC",
++	.num_clocks = 2,
++	.clocks = {"vpss_master", "vpss_slave"},
++	.setup_input = dm355evm_setup_video_input,
+ };
+ 
+ static struct platform_device *davinci_evm_devices[] __initdata = {
+diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
+index 151a622..1679a24 100644
+--- a/arch/arm/mach-davinci/board-dm644x-evm.c
++++ b/arch/arm/mach-davinci/board-dm644x-evm.c
+@@ -237,8 +237,8 @@ static struct vpfe_route tvp5146_routes[] = {
+ 
+ static struct vpfe_subdev_info vpfe_sub_devs[] = {
+ 	{
+-		.name = "tvp5146",
+-		.grp_id = 0,
++		.module_name = TVP514X_MODULE_NAME,
++		.grp_id = VPFE_SUBDEV_TVP5146,
+ 		.num_inputs = ARRAY_SIZE(tvp5146_inputs),
+ 		.inputs = tvp5146_inputs,
+ 		.routes = tvp5146_routes,
+@@ -260,6 +260,8 @@ static struct vpfe_config vpfe_cfg = {
+ 	.sub_devs = vpfe_sub_devs,
+ 	.card_name = "DM6446 EVM",
+ 	.ccdc = "DM6446 CCDC",
++	.num_clocks = 2,
++	.clocks = {"vpss_master", "vpss_slave"},
+ };
+ 
+ static struct platform_device rtc_dev = {
+-- 
+1.6.0.4
 
