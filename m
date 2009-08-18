@@ -1,80 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5868 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753367AbZHZVZY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Aug 2009 17:25:24 -0400
-Date: Wed, 26 Aug 2009 18:25:18 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Eduardo Valentin via Mercurial <eduardo.valentin@nokia.com>
-Subject: Re: [linuxtv-commits] [hg:v4l-dvb] FM TX: si4713: Add files to
- handle si4713 i2c device
-Message-ID: <20090826182518.6c879078@pedra.chehab.org>
-In-Reply-To: <200908262243.34015.hverkuil@xs4all.nl>
-References: <E1MgOf7-0004mc-Pr@mail.linuxtv.org>
-	<200908262243.34015.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4860 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750829AbZHRGt0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Aug 2009 02:49:26 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Subject: Re: [PATCH v1 - 1/5] DaVinci - restructuring code to support vpif capture driver
+Date: Tue, 18 Aug 2009 08:49:13 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+References: <1250283702-5582-1-git-send-email-m-karicheri2@ti.com> <200908172227.11300.hverkuil@xs4all.nl> <A69FA2915331DC488A831521EAE36FE40145300FC7@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40145300FC7@dlee06.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200908180849.14003.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 26 Aug 2009 22:43:33 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Tuesday 18 August 2009 01:23:10 Karicheri, Muralidharan wrote:
+> Hans,
+> 
+> I have re-send vpfe capture patch. I will re-send vpif patches tomorrow.
 
-> On Wednesday 26 August 2009 22:00:05 Patch from Eduardo Valentin wrote:
-> > The patch number 12552 was added via Mauro Carvalho Chehab <mchehab@redhat.com>
-> > to http://linuxtv.org/hg/v4l-dvb master development tree.
-> > 
-> > Kernel patches in this development tree may be modified to be backward
-> > compatible with older kernels. Compatibility modifications will be
-> > removed before inclusion into the mainstream Kernel
-> > 
-> > If anyone has any objections, please let us know by sending a message to:
-> > 	Linux Media Mailing List <linux-media@vger.kernel.org>
-> > 
-> > ------
-> > 
-> > From: Eduardo Valentin  <eduardo.valentin@nokia.com>
-> > FM TX: si4713: Add files to handle si4713 i2c device
-> > 
-> > 
-> > This patch adds files to control si4713 devices.
-> > Internal functions to control device properties
-> > and initialization procedures are into these files.
-> > Also, a v4l2 subdev interface is also exported.
-> > This way other drivers can use this as v4l2 i2c subdevice.
-> > 
-> > Priority: normal
-> > 
-> > Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-> > Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> > 
-> > 
-> > ---
-> > 
-> >  linux/linux/drivers/media/radio/si4713-i2c.c | 2067 +++++++++++++++++++
-> >  linux/linux/drivers/media/radio/si4713-i2c.h |  237 ++
-> >  linux/linux/include/media/si4713.h           |   49 
-> 
-> linux/linux/drivers? These files ended up in the wrong place!
-> 
-> Something went very wrong when merging these files...
+These patches apply fine. I'll merge them in my v4l-dvb-dm646x tree tonight.
 
-Argh! It seems that there's a bug when creating new files with mailimport
-script.
+Thanks!
 
-Well, I'll move them to the proper place and fix the -git patches.
+	Hans
+
 > 
-> Regards,
+> Murali Karicheri
+> Software Design Engineer
+> Texas Instruments Inc.
+> Germantown, MD 20874
+> new phone: 301-407-9583
+> Old Phone : 301-515-3736 (will be deprecated)
+> email: m-karicheri2@ti.com
 > 
-> 	Hans
+> >-----Original Message-----
+> >From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> >Sent: Monday, August 17, 2009 4:27 PM
+> >To: Karicheri, Muralidharan
+> >Cc: linux-media@vger.kernel.org; davinci-linux-open-
+> >source@linux.davincidsp.com; khilman@deeprootsystems.com
+> >Subject: Re: [PATCH v1 - 1/5] DaVinci - restructuring code to support vpif
+> >capture driver
+> >
+> >On Monday 17 August 2009 22:10:04 Karicheri, Muralidharan wrote:
+> >> Hans,
+> >>
+> >> Would you like the architecture specific changes against v4l-dvb linux-
+> >next tree or linux-davinci ? I will rework both the vpfe and vpif patches
+> >as per your comment.
+> >
+> >v4l-dvb linux-next. The current v4l-dvb at least compiles against that one,
+> >so
+> >that is the most appropriate tree to do the patches against.
+> >
+> >Regards,
+> >
+> >	Hans
+> >
+> >--
+> >Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 > 
+> 
+> 
+> 
+
 
 
 -- 
-
-Cheers,
-Mauro
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
