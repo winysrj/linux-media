@@ -1,16 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.155])
+Received: from tricon.hu ([195.70.57.4])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <chaos.tugraz@gmail.com>) id 1MbqKJ-00089Q-Jy
-	for linux-dvb@linuxtv.org; Fri, 14 Aug 2009 08:31:48 +0200
-Received: by fg-out-1718.google.com with SMTP id 13so283991fge.2
-	for <linux-dvb@linuxtv.org>; Thu, 13 Aug 2009 23:31:43 -0700 (PDT)
-Message-ID: <4A8504BE.5010406@gmail.com>
-Date: Fri, 14 Aug 2009 08:31:26 +0200
-From: Markus Schuss <chaos.tugraz@gmail.com>
-MIME-Version: 1.0
+	(envelope-from <don@tricon.hu>) id 1MdQJE-0000aT-7W
+	for linux-dvb@linuxtv.org; Tue, 18 Aug 2009 17:09:13 +0200
+Received: from axe.evosoft.hu (shell.vz [192.168.10.70])
+	by tricon.hu (Postfix) with ESMTP id F3A2481A101
+	for <linux-dvb@linuxtv.org>; Tue, 18 Aug 2009 17:08:09 +0200 (CEST)
+Date: Tue, 18 Aug 2009 17:08:20 +0200
+From: =?ISO-8859-2?Q?P=E1sztor_Szil=E1rd?= <don@tricon.hu>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Technotrend TT-Connect S-2400
+Message-Id: <20090818170820.3d999fb9.don@tricon.hu>
+Mime-Version: 1.0
+Subject: [linux-dvb] Anysee E30 C Plus + MPEG-4?
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -19,46 +20,48 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
 Hi,
 
-i have some problems getting a technotrend tt-connect s-2400 usb dvb-s 
-card to work. the problem is not unknown (as mentioned at 
-http://lkml.org/lkml/2009/5/23/95) but i have no idea how to fix this. 
-(any help according to the remote of this card would also be appreciated)
+I recently got the USB DVB-C tuner mentioned in the subject.
+Everything seems to work fine, except that the MPEG-4 HD channels have no
+video, only sound. Regular SD channels broadcasted in MPEG-2 are flawless.
 
-dmesg:
-usb 2-2.1: new high speed USB device using ehci_hcd and address 19
-usb 2-2.1: configuration #1 chosen from 1 choice
-dvb-usb: found a 'Technotrend TT-connect S-2400' in cold state, will try 
-to load a firmware
-usb 2-2.1: firmware: requesting dvb-usb-tt-s2400-01.fw
-dvb-usb: downloading firmware from file 'dvb-usb-tt-s2400-01.fw'
-usb 2-2.1: USB disconnect, address 19
-dvb-usb: generic DVB-USB module successfully deinitialized and 
-disconnected.
-usb 2-2.1: new high speed USB device using ehci_hcd and address 20
-usb 2-2.1: configuration #1 chosen from 1 choice
-dvb-usb: found a 'Technotrend TT-connect S-2400' in warm state.
-dvb-usb: will pass the complete MPEG2 transport stream to the software 
-demuxer.
-DVB: registering new adapter (Technotrend TT-connect S-2400)
-DVB: registering adapter 0 frontend 0 (Philips TDA10086 DVB-S)...
-LNBx2x attached on addr=8<3>dvb-usb: recv bulk message failed: -110
-ttusb2: there might have been an error during control message transfer. 
-(rlen = 0, was 0)
-dvb-usb: Technotrend TT-connect S-2400 successfully initialized and 
-connected.
+The tuner can receive MPEG-4 streams; decoder is not built in but Mplayer
+would do the job if it could get the data. I have also tried in Window$ and HD
+channels are working properly.
 
-Thanks,
-schuschu
+I used w_scan to scan through the channels and it found almost everything that
+the Win scanner did (one block is missing in linux though, probably due to
+different scanning parameters needed but the win one is dumb and won't tell me
+any useful information).
 
+My kernel: 2.6.30.5
 
+Excerpt from dmesg:
+dvb-usb: found a 'Anysee DVB USB2.0' in warm state.
+dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+DVB: registering new adapter (Anysee DVB USB2.0)
+anysee: firmware version:0.1.2 hardware id:15
+DVB: registering adapter 0 frontend 0 (Philips TDA10023 DVB-C)...
+input: IR-receiver inside an USB DVB receiver as /class/input/input3
+dvb-usb: schedule remote query interval to 200 msecs.
+dvb-usb: Anysee DVB USB2.0 successfully initialized and connected.
+
+Any ideas on how I could start with my investigations? I took a quick peek
+into the driver source but no story of mpeg 2/4 differences there.
+
+regards,
+s.
+
+        ---------------------------------------------------------------
+        |  Make it idiot proof and someone will make a better idiot.  |
+        ---------------------------------------------------------------
 
 _______________________________________________
 linux-dvb users mailing list
