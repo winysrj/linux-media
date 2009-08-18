@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.partofus.org ([87.106.139.108] helo=srvopt.partofus.org)
+Received: from email.brin.com ([208.89.164.15])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <newsletter@team-erdle.de>) id 1MeZNB-000650-77
-	for linux-dvb@linuxtv.org; Fri, 21 Aug 2009 21:02:01 +0200
-Received: from localhost (localhost [127.0.0.1])
-	by srvopt.partofus.org (Postfix) with ESMTP id EF6BA2CB6EAA3
-	for <linux-dvb@linuxtv.org>; Fri, 21 Aug 2009 21:01:27 +0200 (CEST)
-Message-Id: <B1DC5D7C-7607-4691-9A39-A88BA4DECDC4@team-erdle.de>
-From: Christoph Erdle <newsletter@team-erdle.de>
-To: linux-dvb@linuxtv.org
-Mime-Version: 1.0 (Apple Message framework v936)
-Date: Fri, 21 Aug 2009 21:01:21 +0200
-Subject: [linux-dvb] Driver for Mystique SaTix-SX
+	(envelope-from <lanceb@brin.com>) id 1MdRPd-0005lL-KV
+	for linux-dvb@linuxtv.org; Tue, 18 Aug 2009 18:19:54 +0200
+Received: from email.brin.com (email.brin.com [172.19.1.12])
+	by email.brin.com (Postfix) with ESMTP id 3AADD7D0001
+	for <linux-dvb@linuxtv.org>; Tue, 18 Aug 2009 10:19:19 -0600 (MDT)
+From: "Lance Badger" <lanceb@brin.com>
+To: <linux-dvb@linuxtv.org>
+Date: Tue, 18 Aug 2009 10:19:19 -0600 (MDT)
+Message-ID: <005501ca201f$a4596f00$ed0c4d00$@com>
+MIME-Version: 1.0
+Content-Language: en-us
+Subject: [linux-dvb] SIOCSIFFLAGS: Cannot assign requested address
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -20,100 +21,227 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"; DelSp="yes"
+Content-Type: multipart/mixed; boundary="===============2031873163=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+This is a multi-part message in MIME format.
 
-Hi list,
+--===============2031873163==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0056_01CA1FED.59BEFF00"
+Content-Language: en-us
 
-I'm having problems getting a DVB-S card labeled "Mystique SaTix-SX"  
-to run. According to the manufacturer (www.mystique-tv.de) all their  
-cards are supported by the linux dvb drivers.
+This is a multi-part message in MIME format.
 
-But I can't get this one to work.
+------=_NextPart_000_0056_01CA1FED.59BEFF00
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-lspci collected the following information about the card:
+I have been using DVB-S with the old Hauppauge NOVA-S card and everything
+has been working great. I was forced to move to Hauppauge new card
+Nova-S-Plus 92001 Rev C1B1 using Fedora 10 2.6.27.24-170.2.68.fc10.i686.
 
-#lspci -nvv
-[...]
-01:09.0 Multimedia controller [0480]: Philips Semiconductors SAA7146  
-[1131:7146] (rev 01)
-	Subsystem: KNC One Device [1894:0054]
-	Flags: bus master, medium devsel, latency 123, IRQ 11
-	Memory at fc005800 (32-bit, non-prefetchable) [size=512]
-[...]
+ 
 
-So I think this means that the card is actually a clone of some card  
-from KNC One (I think it's the TV Star DVB-S one).
+Using the linux dvbapps. Here is my dvbnet script 
 
-A quick grep in the source delivered:
+ 
 
-# grep -R "0x1894" *
-drivers/media/dvb/ttpci/budget-av.c:		if (saa->pci->subsystem_vendor  
-== 0x1894) {
-drivers/media/dvb/ttpci/budget-av.c:	MAKE_EXTENSION_PCI(knc1s, 0x1894,  
-0x0010),
-drivers/media/dvb/ttpci/budget-av.c:	MAKE_EXTENSION_PCI(knc1sp,  
-0x1894, 0x0011),
-drivers/media/dvb/ttpci/budget-av.c:	MAKE_EXTENSION_PCI(kncxs, 0x1894,  
-0x0014),
-drivers/media/dvb/ttpci/budget-av.c:	MAKE_EXTENSION_PCI(knc1spx4,  
-0x1894, 0x0015),
-drivers/media/dvb/ttpci/budget-av.c:	MAKE_EXTENSION_PCI(kncxs, 0x1894,  
-0x0016),
-drivers/media/dvb/ttpci/budget-av.c:	MAKE_EXTENSION_PCI(knc1s2,  
-0x1894, 0x0018),
-drivers/media/dvb/ttpci/budget-av.c:	MAKE_EXTENSION_PCI(knc1s2,  
-0x1894, 0x0019),
-drivers/media/dvb/ttpci/budget-av.c:	MAKE_EXTENSION_PCI(sates2,  
-0x1894, 0x001d),
-drivers/media/dvb/ttpci/budget-av.c:	MAKE_EXTENSION_PCI(satewpls,  
-0x1894, 0x001e),
-drivers/media/dvb/ttpci/budget-av.c:	MAKE_EXTENSION_PCI(satewpls1,  
-0x1894, 0x001a),
-drivers/media/dvb/ttpci/budget-av.c:	MAKE_EXTENSION_PCI(satewps,  
-0x1894, 0x001b),
-drivers/media/dvb/ttpci/budget-av.c:	MAKE_EXTENSION_PCI(satewplc,  
-0x1894, 0x002a),
-drivers/media/dvb/ttpci/budget-av.c:	MAKE_EXTENSION_PCI(satewcmk3,  
-0x1894, 0x002c),
-drivers/media/dvb/ttpci/budget-av.c:	MAKE_EXTENSION_PCI(satewt,  
-0x1894, 0x003a),
-drivers/media/dvb/ttpci/budget-av.c:	MAKE_EXTENSION_PCI(knc1c, 0x1894,  
-0x0020),
-drivers/media/dvb/ttpci/budget-av.c:	MAKE_EXTENSION_PCI(knc1cp,  
-0x1894, 0x0021),
-drivers/media/dvb/ttpci/budget-av.c:	MAKE_EXTENSION_PCI(knc1cmk3,  
-0x1894, 0x0022),
-drivers/media/dvb/ttpci/budget-av.c:	MAKE_EXTENSION_PCI(knc1cpmk3,  
-0x1894, 0x0023),
-drivers/media/dvb/ttpci/budget-av.c:	MAKE_EXTENSION_PCI(knc1t, 0x1894,  
-0x0030),
-drivers/media/dvb/ttpci/budget-av.c:	MAKE_EXTENSION_PCI(knc1tp,  
-0x1894, 0x0031),
-drivers/media/video/saa7134/saa7134-cards.c:		.subvendor    = 0x1894,
-drivers/media/video/saa7134/saa7134-cards.c:		.subvendor    = 0x1894,
+PID=0x40E
 
-So it seems this card is not supported at the time as I don't see any  
-SubID of 0x0054. How can I help to get this one supported?
+DEV_NAME=dvb0_0
 
-Thanks for your help,
-Chris
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (Darwin)
+IP_ADDR=10.30.3.80
 
-iEYEARECAAYFAkqO7wIACgkQqqYbNmv9eYnaMACgg9SenBUdGy8DtvZIyG1+i5TU
-rVgAn3PTbfxIFRgWQKRO2QzSsEY8VzHT
-=FYci
------END PGP SIGNATURE-----
+ 
+
+/root/dvbapps/util/dvbnet/dvbnet -p $PID
+
+/sbin/ifconfig dvb0_0 10.30.3.80 promisc;
+
+ 
+
+When I execute it my interface (dvb0_0) is created, but I get an error
+(SIOCSIFFLAGS: Cannot assign requested address
+
+) when it binds an address to the interfance.
+
+ 
+
+DVB Network Interface Manager
+
+Version 1.1.0-TVF (Build Wed Mar 11 10:24:03 PM 2009)
+
+Copyright (C) 2003, TV Files S.p.A
+
+ 
+
+Device: /dev/dvb/adapter0/net0
+
+Status: device dvb0_0 for pid 1038 created successfully.
+
+SIOCSIFFLAGS: Cannot assign requested address
+
+ 
+
+Why would this script work fine with my old Nova-S card, but not with the
+new Nova-S-Plus card.  
+
+ 
+
+Has anyone else run in to this problem? 
+
+
+------=_NextPart_000_0056_01CA1FED.59BEFF00
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns:v=3D"urn:schemas-microsoft-com:vml" =
+xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
+xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
+xmlns:m=3D"http://schemas.microsoft.com/office/2004/12/omml" =
+xmlns=3D"http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Dus-ascii">
+<meta name=3DGenerator content=3D"Microsoft Word 12 (filtered medium)">
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+a:link, span.MsoHyperlink
+	{mso-style-priority:99;
+	color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{mso-style-priority:99;
+	color:purple;
+	text-decoration:underline;}
+span.EmailStyle17
+	{mso-style-type:personal-compose;
+	font-family:"Calibri","sans-serif";
+	color:windowtext;}
+.MsoChpDefault
+	{mso-style-type:export-only;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.0in 1.0in 1.0in;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+<!--[if gte mso 9]><xml>
+ <o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <o:shapelayout v:ext=3D"edit">
+  <o:idmap v:ext=3D"edit" data=3D"1" />
+ </o:shapelayout></xml><![endif]-->
+</head>
+
+<body lang=3DEN-US link=3Dblue vlink=3Dpurple>
+
+<div class=3DSection1>
+
+<p class=3DMsoNormal>I have been using DVB-S with the old Hauppauge =
+NOVA-S card
+and everything has been working great. I was forced to move to Hauppauge =
+new
+card Nova-S-Plus 92001 Rev C1B1 using Fedora 10 =
+2.6.27.24-170.2.68.fc10.i686.<o:p></o:p></p>
+
+<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoNormal>Using the linux dvbapps. Here is my dvbnet script =
+<o:p></o:p></p>
+
+<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoNormal>PID=3D0x40E<o:p></o:p></p>
+
+<p class=3DMsoNormal>DEV_NAME=3Ddvb0_0<o:p></o:p></p>
+
+<p class=3DMsoNormal>IP_ADDR=3D10.30.3.80<o:p></o:p></p>
+
+<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoNormal>/root/dvbapps/util/dvbnet/dvbnet -p =
+$PID<o:p></o:p></p>
+
+<p class=3DMsoNormal>/sbin/ifconfig dvb0_0 10.30.3.80 =
+promisc;<o:p></o:p></p>
+
+<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoNormal>When I execute it my interface (dvb0_0) is created, =
+but I
+get an error (SIOCSIFFLAGS: Cannot assign requested =
+address<o:p></o:p></p>
+
+<p class=3DMsoNormal>) when it binds an address to the =
+interfance.<o:p></o:p></p>
+
+<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoNormal>DVB Network Interface Manager<o:p></o:p></p>
+
+<p class=3DMsoNormal>Version 1.1.0-TVF (Build Wed Mar 11 10:24:03 PM =
+2009)<o:p></o:p></p>
+
+<p class=3DMsoNormal>Copyright (C) 2003, TV Files S.p.A<o:p></o:p></p>
+
+<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoNormal>Device: /dev/dvb/adapter0/net0<o:p></o:p></p>
+
+<p class=3DMsoNormal>Status: device dvb0_0 for pid 1038 created =
+successfully.<o:p></o:p></p>
+
+<p class=3DMsoNormal>SIOCSIFFLAGS: Cannot assign requested =
+address<o:p></o:p></p>
+
+<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoNormal>Why would this script work fine with my old Nova-S =
+card, but
+not with the new Nova-S-Plus card.&nbsp; <o:p></o:p></p>
+
+<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoNormal>Has anyone else run in to this problem? =
+<o:p></o:p></p>
+
+</div>
+
+</body>
+
+</html>
+
+------=_NextPart_000_0056_01CA1FED.59BEFF00--
+
+
+--===============2031873163==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============2031873163==--
