@@ -1,41 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:49789 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933958AbZHWNcM (ORCPT
+Received: from comal.ext.ti.com ([198.47.26.152]:37284 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751385AbZHRQHX convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2009 09:32:12 -0400
-Received: by mail-bw0-f219.google.com with SMTP id 19so1085352bwz.37
-        for <linux-media@vger.kernel.org>; Sun, 23 Aug 2009 06:32:14 -0700 (PDT)
+	Tue, 18 Aug 2009 12:07:23 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Date: Tue, 18 Aug 2009 11:06:54 -0500
+Subject: RE: [PATCH v1 - 1/5] DaVinci - restructuring code to support vpif
+ capture driver
+Message-ID: <A69FA2915331DC488A831521EAE36FE401548C1E27@dlee06.ent.ti.com>
+References: <1250283702-5582-1-git-send-email-m-karicheri2@ti.com>
+ <A69FA2915331DC488A831521EAE36FE40145300FC7@dlee06.ent.ti.com>
+ <200908180849.14003.hverkuil@xs4all.nl>
+ <200908180851.06222.hverkuil@xs4all.nl>
+In-Reply-To: <200908180851.06222.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-In-Reply-To: <4A911AB0.2040800@email.it>
-References: <9577d4e00908130614q1d8c2c60kdcf74d324c897572@mail.gmail.com>
-	 <4A84138A.3050909@email.it>
-	 <9577d4e00908130934k77fb2b2ag124da076f448b1be@mail.gmail.com>
-	 <4A854761.7080102@email.it> <4A854A08.507@email.it>
-	 <4A85D05E.9040307@email.it> <4A8D03A5.8060605@email.it>
-	 <4A911AB0.2040800@email.it>
-Date: Sun, 23 Aug 2009 09:32:13 -0400
-Message-ID: <829197380908230632h37fdbbd6s46b516192f9370b0@mail.gmail.com>
-Subject: Re: New device: Dikom DK-300 (maybe Kworld 323U rebranded)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: xwang1976@email.it
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Aug 23, 2009 at 6:32 AM, <xwang1976@email.it> wrote:
-> Is there any news?
-> Xwang
+Mauro,
+
+I need to send a set of patches for adding vpif capture driver. Currently the linux-next doesn't have the last patch from Chaithrika applied for vpif display. Is it possible to apply this asap so that I can create the vpif capture patch today?
+
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+new phone: 301-407-9583
+Old Phone : 301-515-3736 (will be deprecated)
+email: m-karicheri2@ti.com
+
+>-----Original Message-----
+>From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+>Sent: Tuesday, August 18, 2009 2:51 AM
+>To: Karicheri, Muralidharan
+>Cc: linux-media@vger.kernel.org; davinci-linux-open-
+>source@linux.davincidsp.com; khilman@deeprootsystems.com
+>Subject: Re: [PATCH v1 - 1/5] DaVinci - restructuring code to support vpif
+>capture driver
 >
-> xwang1976@email.it ha scritto:
+>On Tuesday 18 August 2009 08:49:13 Hans Verkuil wrote:
+>> On Tuesday 18 August 2009 01:23:10 Karicheri, Muralidharan wrote:
+>> > Hans,
+>> >
+>> > I have re-send vpfe capture patch. I will re-send vpif patches tomorrow.
+>>
+>> These patches apply fine. I'll merge them in my v4l-dvb-dm646x tree
+>tonight.
+>
+>Oops, wrong tree. It's v4l-dvb-vpif.
+>
+>Regards,
+>
+>	Hans
+>
+>--
+>Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
-Sorry, no news yet.  I've been out of town for the last couple of days
-and swamped with another project.  I'm hoping to get to it soon.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
