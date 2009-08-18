@@ -1,77 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:36012 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752958AbZHFMxZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2009 08:53:25 -0400
-Received: by ey-out-2122.google.com with SMTP id 9so337986eyd.37
-        for <linux-media@vger.kernel.org>; Thu, 06 Aug 2009 05:53:25 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4A7AC430.4070505@netscape.net>
-References: <4A7AC430.4070505@netscape.net>
-Date: Thu, 6 Aug 2009 08:53:25 -0400
-Message-ID: <37219a840908060553g452266fdq5ea3814b4ce725bc@mail.gmail.com>
-Subject: Re: Hauppauge WinTV HVR-900HD support?
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Kaya Saman <SamanKaya@netscape.net>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-ew0-f207.google.com ([209.85.219.207]:41039 "EHLO
+	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751863AbZHRUcG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Aug 2009 16:32:06 -0400
+Received: by ewy3 with SMTP id 3so1910113ewy.18
+        for <linux-media@vger.kernel.org>; Tue, 18 Aug 2009 13:32:05 -0700 (PDT)
+Subject: Winfast TV USB 2
+From: Marc Arndt <arndt.marc@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain
+Date: Tue, 18 Aug 2009 22:31:55 +0200
+Message-Id: <1250627515.8322.2.camel@marc-desktop>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Kaya,
+Good day,
 
-On Thu, Aug 6, 2009 at 7:53 AM, Kaya Saman<SamanKaya@netscape.net> wrote:
-> Hi,
->
-> in an earlier post I was responded to that my old WinTV USB 1 Tuner would
-> never work under Linux due to bad and complicated coding which (since no one
-> uses that tuner anymore) will never be looked at.
+I see the following when I plug in my Winfast TV USB 2 card, can you
+please assist? The correct card is card 7
 
-I don't think that's true -- I didn't see your earlier post, but I can
-only assume that your WinTV USB 1 Tuner uses the NT003 / NT004
-chipsets, supported by the usbvision driver -- did you try that?
+Sincerely,
 
-> So I am in need of a new tuner!
+Marc
 
-Better off getting a new one anyway, since analog TV will disappear
-eventually and DTV is all that will be around.
 
-> This is a dilemma as I need analog TV.... since I will be using it for
-> watching stuff through a satellite receiver but also analog terrestrial TV
-> too as where I will be taking it to doesn't have digital TV at best the have
-> cable.
->
-> I was considering going for the Hauppauge WinTV HVR-900HD. I am not sure if
-> it will be compatible though with the global regions I will use it in which
-> is UK that I know it has support for as I will buy from here which is PAL I
-> but then also Turkey which I think is PAL Beta if I'm not mistaken??
->
-> More importantly though is it supported under Linux?? I use KUbuntu 9.04
-> which is pretty up to date. I am just a bit worried about this part since
-> the site says that as of June 2008 there is no support... of course we are
-> in August 2009 so maybe in a year it might have been integrated into the
-> later kernels??
-> Taken from here:
-> http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-900H
->
-> What's everyone's verdict? Any suggestions would be great!
+[ 1162.712014] usb 1-9: new high speed USB device using ehci_hcd and
+address 13
+[ 1162.844616] usb 1-9: configuration #1 chosen from 1 choice
+[ 1162.844693] em28xx: New device @ 480 Mbps (eb1a:2800, interface 0,
+class 0)
+[ 1162.844784] em28xx #0: em28xx chip ID = 2
+[ 1162.996010] em28xx #0: board has no eeprom
+[ 1162.996016] em28xx #0: Identified as Unknown EM2800 video grabber
+(card=0)
+[ 1172.224012] em28xx #0: Your board has no unique USB ID and thus need
+a hint to be detected.
+[ 1172.224019] em28xx #0: You may try to use card=<n> insmod option to
+workaround that.
+[ 1172.224021] em28xx #0: Please send an email with this log to:
+[ 1172.224024] em28xx #0: 	V4L Mailing List
+<linux-media@vger.kernel.org>
+[ 1172.224027] em28xx #0: Board eeprom hash is 0x00000000
+[ 1172.224029] em28xx #0: Board i2c devicelist hash is 0x1b800080
+[ 1172.224032] em28xx #0: Here is a list of valid choices for the
+card=<n> insmod option:
+[ 1172.224036] em28xx #0:     card=0 -> Unknown EM2800 video grabber
+[ 1172.224038] em28xx #0:     card=1 -> Unknown EM2750/28xx video
+grabber
+[ 1172.224041] em28xx #0:     card=2 -> Terratec Cinergy 250 USB
+[ 1172.224043] em28xx #0:     card=3 -> Pinnacle PCTV USB 2
+[ 1172.224046] em28xx #0:     card=4 -> Hauppauge WinTV USB 2
+[ 1172.224048] em28xx #0:     card=5 -> MSI VOX USB 2.0
+[ 1172.224051] em28xx #0:     card=6 -> Terratec Cinergy 200 USB
+[ 1172.224053] em28xx #0:     card=7 -> Leadtek Winfast USB II
 
-The HVR-900H is currently *not* supported under Linux, and it does not
-seem that it will get such support anytime in the near future,
-unfortunately.  Please note, I am only speaking for the HVR-900H ...
-other flavors of the HVR900 are fully functional and supported, just
-not the "H" version.
 
-If you're looking for a well-supported USB hybrid device, I would
-recommend one of the standard "HVR-900" sticks, or even better, the
-HVR-1900 .  The HVR1900 is a usb device that does Digital DVB-T and
-analog (PAL / NTSC) both.  The analog side has a hardware mpeg encoder
--- this is perfect if you intend to use the device for recordings.
-HVR1900 is fully supported under Linux.
-
-I hope this helps.
-
-Regards,
-
-Mike
