@@ -1,40 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198]:56391 "EHLO
-	mta3.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934123AbZHHM7Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Aug 2009 08:59:24 -0400
-Received: from mbpwifi.kernelscience.com
- (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta3.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KO2007KO6R0SYE0@mta3.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Sat, 08 Aug 2009 08:59:24 -0400 (EDT)
-Date: Sat, 08 Aug 2009 08:59:24 -0400
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: Linux Plumbers Conference 2009: V4L2 API discussions
-In-reply-to: <a3ef07920908071536w1af95ea5gd3e578f665ca6368@mail.gmail.com>
-To: VDR User <user.vdr@gmail.com>
-Cc: linux-media@vger.kernel.org
-Message-id: <4A7D76AC.40803@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <200908040912.24718.hverkuil@xs4all.nl>
- <a3ef07920908071536w1af95ea5gd3e578f665ca6368@mail.gmail.com>
+Received: from smtp.seznam.cz ([77.75.72.43]:35683 "EHLO smtp.seznam.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751325AbZHRTY5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Aug 2009 15:24:57 -0400
+From: =?utf-8?q?Old=C5=99ich_Jedli=C4=8Dka?= <oldium.pro@seznam.cz>
+To: LMML <linux-media@vger.kernel.org>
+Subject: [PATCH] Report only 32kHz for ALSA
+Date: Tue, 18 Aug 2009 21:24:54 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	hermann pitton <hermann-pitton@arcor.de>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200908182124.54739.oldium.pro@seznam.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 8/7/09 6:36 PM, VDR User wrote:
-> It has been months now since the discussion about actually making (a
-> unified) STR/SNR useful.  Is this going to be addressed at the
-> conference?  It's one of those things that would be greatly useful for
-> users/applications but seemingly has gotten neglected.
->
-> Regards,
-> Derek
+There are several reasons:
 
-I'm reasonably sure I'll be attending, in which case I'd like to raise this for 
-discussion and generate a proposal.
+ - SAA7133/35 uses DDEP (DemDec Easy Programming mode), which works in 32kHz
+   only
+ - SAA7134 for TV mode uses DemDec mode (32kHz)
+ - Radio works in 32kHz only
+ - When recording 48kHz from Line1/Line2, switching of capture source to TV
+   means switching to 32kHz without any frequency translation
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Signed-off-by: Oldřich Jedlička <oldium.pro@seznam.cz>
+
+diff --git a/linux/drivers/media/video/saa7134/saa7134-alsa.c b/linux/drivers/media/video/saa7134/saa7134-alsa.c
+index c09ec3e..504186a 100644
+--- a/linux/drivers/media/video/saa7134/saa7134-alsa.c
++++ b/linux/drivers/media/video/saa7134/saa7134-alsa.c
+@@ -440,6 +440,16 @@ snd_card_saa7134_capture_pointer(struct snd_pcm_substream * substream)
+ 
+ /*
+  * ALSA hardware capabilities definition
++ *
++ *  Report only 32kHz for ALSA:
++ *
++ *  - SAA7133/35 uses DDEP (DemDec Easy Programming mode), which works in 32kHz
++ *    only
++ *  - SAA7134 for TV mode uses DemDec mode (32kHz)
++ *  - Radio works in 32kHz only
++ *  - When recording 48kHz from Line1/Line2, switching of capture source to TV
++ *    means
++ *    switching to 32kHz without any frequency translation
+  */
+ 
+ static struct snd_pcm_hardware snd_card_saa7134_capture =
+@@ -453,9 +463,9 @@ static struct snd_pcm_hardware snd_card_saa7134_capture =
+ 				SNDRV_PCM_FMTBIT_U8 | \
+ 				SNDRV_PCM_FMTBIT_U16_LE | \
+ 				SNDRV_PCM_FMTBIT_U16_BE,
+-	.rates =		SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_48000,
++	.rates =		SNDRV_PCM_RATE_32000,
+ 	.rate_min =		32000,
+-	.rate_max =		48000,
++	.rate_max =		32000,
+ 	.channels_min =		1,
+ 	.channels_max =		2,
+ 	.buffer_bytes_max =	(256*1024),
