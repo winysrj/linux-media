@@ -1,48 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:52018 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753073AbZHHUQc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Aug 2009 16:16:32 -0400
-Message-ID: <4A7DDD1C.1030906@gmx.de>
-Date: Sat, 08 Aug 2009 22:16:28 +0200
-From: wk <handygewinnspiel@gmx.de>
+Received: from fmmailgate03.web.de ([217.72.192.234]:45576 "EHLO
+	fmmailgate03.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754329AbZHRPdO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Aug 2009 11:33:14 -0400
+Received: from smtp08.web.de (fmsmtp08.dlan.cinetic.de [172.20.5.216])
+	by fmmailgate03.web.de (Postfix) with ESMTP id F096810E0F4D4
+	for <linux-media@vger.kernel.org>; Tue, 18 Aug 2009 17:33:14 +0200 (CEST)
+Received: from [77.25.177.7] (helo=mouldy.stevens.mnet-online.de)
+	by smtp08.web.de with asmtp (TLSv1:AES256-SHA:256)
+	(WEB.DE 4.110 #314)
+	id 1MdQgU-0003rY-00
+	for linux-media@vger.kernel.org; Tue, 18 Aug 2009 17:33:14 +0200
+From: Andrew Stevens <andrew.stevens@mnet-online.de>
+Reply-To: andrew.stevens@mnet-online.de
+To: linux-media@vger.kernel.org
+Subject: CX24123 no FE_HAS_LOCK/tuning failed
+Date: Tue, 18 Aug 2009 17:33:38 +0200
 MIME-Version: 1.0
-To: Alexey Klimov <klimov.linux@gmail.com>
-CC: Trent Piepho <xyzzy@speakeasy.org>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [patch review 6/6] radio-mr800: redesign radio->users counter
-References: <1249753576.15160.251.camel@tux.localhost>	 <Pine.LNX.4.58.0908081101310.11911@shell2.speakeasy.net> <208cbae30908081208o5a048fb0qdd6c356b0c6d3eb9@mail.gmail.com>
-In-Reply-To: <208cbae30908081208o5a048fb0qdd6c356b0c6d3eb9@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200908181733.38583.andrew.stevens@mnet-online.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Alexey Klimov schrieb:
-> On Sat, Aug 8, 2009 at 10:01 PM, Trent Piepho<xyzzy@speakeasy.org> wrote:
->   
->> On Sat, 8 Aug 2009, Alexey Klimov wrote:
->>     
->>> Redesign radio->users counter. Don't allow more that 5 users on radio in
->>>       
->> Why?
->>     
->
-> Well, v4l2 specs says that multiple opens are optional. Honestly, i
-> think that five userspace applications open /dev/radio is enough. Btw,
-> if too many userspace applications opened radio that means that
-> something wrong happened in userspace. And driver can handle such
-> situation by disallowing new open calls(returning EBUSY). I can't
-> imagine user that runs more than five mplayers or gnomeradios, or
-> kradios and so on.
->
-> Am i totally wrong here?
->
-> Thanks.
->   
-"I can't imagine.." Funny answer, reminds at the 640kB limit of old 
-computers.. :)
-But if there's no real technical restriction, the driver should not 
-restrict access a device at all.
+Hi John, Rex,
+
+As an extra data-point: John's patch worked fine for me (Quad LNB with 
+integrated switch for Astra-28.2E).  I'd really like to build on John's patch
+to work up a full fix.
+
+To do this I'm trying to track down a cx24123 datasheet.  I don't suppose 
+either of you guys has a pdf?
+
+cheers,
+
+	Andrew
+
 
