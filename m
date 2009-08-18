@@ -1,57 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:35771 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754383AbZHKXPC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2009 19:15:02 -0400
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: linux-media@vger.kernel.org
-To: manio <manio@skyboo.net>
-Subject: Re: SAA7146 / TT1.3 stream corruption
-Date: Wed, 12 Aug 2009 01:14:32 +0200
-Cc: linux-media@vger.kernel.org
-References: <4A7471D2.3070004@skyboo.net> <4A7E8121.4040406@skyboo.net>
-In-Reply-To: <4A7E8121.4040406@skyboo.net>
+Received: from www.youplala.net ([88.191.51.216]:56780 "EHLO mail.youplala.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753750AbZHRKhP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Aug 2009 06:37:15 -0400
+Received: from [134.32.138.65] (unknown [134.32.138.65])
+	by mail.youplala.net (Postfix) with ESMTPSA id B4E7ED880C8
+	for <linux-media@vger.kernel.org>; Tue, 18 Aug 2009 12:36:59 +0200 (CEST)
+Message-ID: <4A8A844B.4020701@youplala.net>
+Date: Tue, 18 Aug 2009 11:36:59 +0100
+From: Nicolas Will <nico@youplala.net>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: dib0700 diversity support
+References: <1250177934.6590.120.camel@mattotaupa.wohnung.familie-menzel.net>  <alpine.LRH.1.10.0908140947560.14872@pub3.ifh.de> <1250244562.5438.3.camel@mattotaupa.wohnung.familie-menzel.net> <alpine.LRH.1.10.0908181052400.7725@pub1.ifh.de> <4A8A6FBB.6020007@youplala.net> <alpine.LRH.1.10.0908181158160.7725@pub1.ifh.de>
+In-Reply-To: <alpine.LRH.1.10.0908181158160.7725@pub1.ifh.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200908120114.33077@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Patrick Boettcher wrote:
+> Hi Nicolas,
+>
+> On Tue, 18 Aug 2009, Nicolas Will wrote:
+>
+>> Patrick Boettcher wrote:
+>>> Hi Paul,
+>>>
+>>> On Fri, 14 Aug 2009, Paul Menzel wrote:
+>>>>> I'll post a request for testing soon.
+>>>>
+>>>> I am looking forward to it.
+>>>
+>>> Can you please try the drivers from here: 
+>>> http://linuxtv.org/hg/~pb/v4l-dvb/
+>>>
+>>> In the best case they improve the situation for you. In the worst 
+>>> case (not wanted :) ) it will degrade. 
+>>
+>> Hi Patrick,
+>>
+>> Could you give us a summary of what changes are included in you tree, 
+>> what we should expect, what we should test for and report on?
+>
+> Yeah, sorry, I'm not very professional:
 
-manio wrote:
-> manio wrote:
-> 
->  > Hello
->  > I am using Technotrend Rev1.3 for many years. But last time
->  > suddenly i find out strange problem. Seems that in some
->  > circumstances the card can't decode stream from satellite properly.
->  > I don't know for sure but it could be a driver problem, firmware
->  > or even (worse) a hardware problem.
-> 
-> Now i can reply myself to provide info for users with similar problem.
-> 
-> The parameter which i need is:
-> hw_sections=1
-> When i load dvb_ttpci module with this parameter the stream is correct.
-> Just by the way: people on DVBN forum has similar issues, but this
-> parameter was not sufficient - they also need to write a patch for
-> select pid ranges for providers (in their case: BEV and DN)
-> More info on dvbn topics#: 42822 and 42653
+booooo! ;o)
 
-If you have very good soldering skills, there is the ultimate solution
-for all kinds of stream corruption with full-featured cards:
-http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+>
+> Let's list first the commits:
+>
+> DiB8000: fix channel search parameter initialization
+> DiB0700: add support for STK807XP and STK807XPVR
+> DiB8000: added support for DiBcom ISDB-T/ISDB-Tsb demodulator DiB8000
+> DiB0070: Indenting driver with indent -linux
+> DiB0070: Update to latest internal release
+>
+> As you can see, there are a lot of new things, the most important for 
+> users of existing devices is the 'DiB0070: Update to latest internal 
+> release' . This change should improve reception conditions for devices 
+> based on the DiB0070-tuner (DiB7070P e.g) .
 
-CU
-Oliver
+Fine.
 
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+Now, how do I measure this objectively so that I can give you meaningful 
+results (before/after)?
+
+My system is currntly working fine, using a hg clone from quite a few 
+months ago, so if things are not directly visible...
+
+>
+> We tried this driver with our reference boards and it works well, but 
+> sometimes DiBcom's customers are adding things, DiBcom is not really 
+> aware of. That's why there is a risk that it breaks supports for some 
+> cards. 
+
+Well, breakage is easier to notice!
+
+I can test on the Nova-T 500.
+
+nico@favia:~$ lsmod | grep dib
+dvb_usb_dib0700        54536  16
+dib7000p               27400  1 dvb_usb_dib0700
+dib7000m               24964  1 dvb_usb_dib0700
+dvb_usb                27148  2 dvb_usb_dtt200u,dvb_usb_dib0700
+dib3000mc              22280  3 dvb_usb_dib0700
+dibx000_common         12292  3 dib7000p,dib7000m,dib3000mc
+dib0070                16772  1 dvb_usb_dib0700
+
+
+Nico
