@@ -1,55 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39104 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754328AbZHQUD1 convert rfc822-to-8bit (ORCPT
+Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197]:33990 "EHLO
+	mta2.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755022AbZHRMX3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Aug 2009 16:03:27 -0400
-From: "Sikka, Neil" <neilsikka@ti.com>
-To: "Sikka, Neil" <neilsikka@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>
-CC: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
-Date: Mon, 17 Aug 2009 15:03:20 -0500
-Subject: RE: [PATCH v1 0/4] Adding capture support for DM365 device
-Message-ID: <A69FA2915331DC488A831521EAE36FE40145300E72@dlee06.ent.ti.com>
-References: <1250537679-2239-1-git-send-email-neilsikka@ti.com>
-In-Reply-To: <1250537679-2239-1-git-send-email-neilsikka@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Tue, 18 Aug 2009 08:23:29 -0400
+Received: from mbpwifi.kernelscience.com
+ (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta2.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KOK00LZZNQRXN80@mta2.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Tue, 18 Aug 2009 08:23:15 -0400 (EDT)
+Date: Tue, 18 Aug 2009 08:23:15 -0400
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: Hauppauge 2250 - second tuner is only half working
+In-reply-to: <35375.76.104.173.166.1250492844.squirrel@www.cyberseth.com>
+To: seth@cyberseth.com
+Cc: linux-media@vger.kernel.org
+Message-id: <4A8A9D33.5050505@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <35375.76.104.173.166.1250492844.squirrel@www.cyberseth.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Please disregard the previous patch. I am sending one with corrected Subject fields.
+> I'd really appreciate any help or guidance on this problem as i'm fully
+> perplexed by it.
 
------Original Message-----
-From: Sikka, Neil 
-Sent: Monday, August 17, 2009 3:35 PM
-To: linux-media@vger.kernel.org; davinci-linux-open-source@linux.davincidsp.com
-Cc: khilman@deeprootsystems.com; hverkuil@xs4all.nl; Sikka, Neil
-Subject: [PATCH v1 0/4] Adding capture support for DM365 device
+Hey Seth,
 
-From: Neil Sikka <neilsikka@ti.com>
+I ran the same tests on my cable system (channel 103) on 669Mhz and had no 
+issue, and my snr's reported as (0x172 and 0x17c).
 
-This patch series adds support for the VPSS capture on the DM365 SOC.
-Specifically, it supports the CCDC/ISIF module. This code has been tested and
-works with the TVP5146 decoder (using the tvp514x driver). During testing of
-this code, the NTSC capture format was used. This patch depends on previous
-other patches contributed by Muralidharan Karicheri. Please see the individual
-patch notes for dependency details. The patches contained in this patch set are:
+One possibility is that you're overwhelming the frontend. Try adding a small 
+mount of attenuation to the signal for test purposes.
 
-1) DM365 Platform support for VPFE-additions to the DM365 SOC files
-2) DM365 VPSS support-additions to the VPSS.h and VPSS.c files
-3) CCDC support on DM365-the actual DM365 CCDC driver and its supporting files
+Hard to believe but this is where I'd start looking.
 
-NOTE: All patches are to be applied before build.
-
-Mandatory reviewers:
-Hans Verkuil <hverkuil@xs4all.nl> for V4L tree
-Kevin Hilman <khilman@deeprootsystems.com> for DaVinci tree
-
-Reviewed-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-Signed-off-by: Neil Sikka <neilsikka@ti.com>
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
