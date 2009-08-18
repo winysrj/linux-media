@@ -1,332 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54612 "EHLO bear.ext.ti.com"
+Received: from www.youplala.net ([88.191.51.216]:32797 "EHLO mail.youplala.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754144AbZHEFOe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Aug 2009 01:14:34 -0400
-From: Chaithrika U S <chaithrika@ti.com>
-To: rmk@arm.linux.org.uk
-Cc: mchehab@infradead.org, hverkuil@xs4all.nl,
-	linux-media@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com,
-	linux@arm.linux.org.uk, Chaithrika U S <chaithrika@ti.com>,
-	Manjunath Hadli <mrh@ti.com>, Brijesh Jadav <brijesh.j@ti.com>,
-	Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH] Subject: [PATCH v4] ARM: DaVinci: DM646x Video: Platform and board specific setup
-Date: Wed,  5 Aug 2009 10:41:54 -0400
-Message-Id: <1249483314-9406-1-git-send-email-chaithrika@ti.com>
+	id S1753804AbZHRKon (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Aug 2009 06:44:43 -0400
+Received: from [134.32.138.65] (unknown [134.32.138.65])
+	by mail.youplala.net (Postfix) with ESMTPSA id EEE38D880C8
+	for <linux-media@vger.kernel.org>; Tue, 18 Aug 2009 12:44:19 +0200 (CEST)
+Message-ID: <4A8A8603.1080006@youplala.net>
+Date: Tue, 18 Aug 2009 11:44:19 +0100
+From: Nicolas Will <nico@youplala.net>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: dib0700 diversity support
+References: <1250177934.6590.120.camel@mattotaupa.wohnung.familie-menzel.net>  <alpine.LRH.1.10.0908140947560.14872@pub3.ifh.de> <1250244562.5438.3.camel@mattotaupa.wohnung.familie-menzel.net> <alpine.LRH.1.10.0908181052400.7725@pub1.ifh.de> <4A8A6FBB.6020007@youplala.net> <alpine.LRH.1.10.0908181158160.7725@pub1.ifh.de> <4A8A844B.4020701@youplala.net> <alpine.LRH.1.10.0908181240350.7725@pub1.ifh.de>
+In-Reply-To: <alpine.LRH.1.10.0908181240350.7725@pub1.ifh.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Platform specific display device setup for DM646x EVM
+Patrick Boettcher wrote:
+> On Tue, 18 Aug 2009, Nicolas Will wrote:
+>>> This change should improve reception conditions for devices based on 
+>>> the DiB0070-tuner (DiB7070P e.g) .
+>>
+>>>
+>>> We tried this driver with our reference boards and it works well, 
+>>> but sometimes DiBcom's customers are adding things, DiBcom is not 
+>>> really aware of. That's why there is a risk that it breaks supports 
+>>> for some cards. 
+>>
+>> Well, breakage is easier to notice!
+>>
+>> I can test on the Nova-T 500.
+>
+> For you _nothing_ should change.
+>
+> The Nova-T is using dib3000mc+mt2060.
+>
+> If it does not work for you any longer, something else is broken.
+> If it works better for you, it's simply magic. 
+Well then, I'll step out of the way and leave the testing to relevant 
+people!
 
-Add platform device and resource structures. Also define a platform specific
-clock setup function that can be accessed by the driver to configure the clock
-and CPLD.
+So why does dib0070 appear in my lsmod?
 
-Signed-off-by: Manjunath Hadli <mrh@ti.com>
-Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-Signed-off-by: Chaithrika U S <chaithrika@ti.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
-Applies to Davinci GIT tree. Minor updates like change in structure name-
-subdev_info to vpif_subdev_info and correction to VDD3P3V_VID_MASK value.
-
-Signed-off-by: Chaithrika U S <chaithrika@ti.com>
----
- arch/arm/mach-davinci/board-dm646x-evm.c    |  125 +++++++++++++++++++++++++++
- arch/arm/mach-davinci/dm646x.c              |   62 +++++++++++++
- arch/arm/mach-davinci/include/mach/dm646x.h |   24 +++++
- 3 files changed, 211 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c b/arch/arm/mach-davinci/board-dm646x-evm.c
-index b1bf18c..8c88fd0 100644
---- a/arch/arm/mach-davinci/board-dm646x-evm.c
-+++ b/arch/arm/mach-davinci/board-dm646x-evm.c
-@@ -63,6 +63,19 @@
- #define DM646X_EVM_PHY_MASK		(0x2)
- #define DM646X_EVM_MDIO_FREQUENCY	(2200000) /* PHY bus frequency */
- 
-+#define VIDCLKCTL_OFFSET	(0x38)
-+#define VSCLKDIS_OFFSET		(0x6c)
-+
-+#define VCH2CLK_MASK		(BIT_MASK(10) | BIT_MASK(9) | BIT_MASK(8))
-+#define VCH2CLK_SYSCLK8		(BIT(9))
-+#define VCH2CLK_AUXCLK		(BIT(9) | BIT(8))
-+#define VCH3CLK_MASK		(BIT_MASK(14) | BIT_MASK(13) | BIT_MASK(12))
-+#define VCH3CLK_SYSCLK8		(BIT(13))
-+#define VCH3CLK_AUXCLK		(BIT(14) | BIT(13))
-+
-+#define VIDCH2CLK		(BIT(10))
-+#define VIDCH3CLK		(BIT(11))
-+
- static struct davinci_uart_config uart_config __initdata = {
- 	.enabled_uarts = (1 << 0),
- };
-@@ -288,6 +301,40 @@ static struct snd_platform_data dm646x_evm_snd_data[] = {
- 	},
- };
- 
-+static struct i2c_client *cpld_client;
-+
-+static int cpld_video_probe(struct i2c_client *client,
-+			const struct i2c_device_id *id)
-+{
-+	cpld_client = client;
-+	return 0;
-+}
-+
-+static int __devexit cpld_video_remove(struct i2c_client *client)
-+{
-+	cpld_client = NULL;
-+	return 0;
-+}
-+
-+static const struct i2c_device_id cpld_video_id[] = {
-+	{ "cpld_video", 0 },
-+	{ }
-+};
-+
-+static struct i2c_driver cpld_video_driver = {
-+	.driver = {
-+		.name	= "cpld_video",
-+	},
-+	.probe		= cpld_video_probe,
-+	.remove		= cpld_video_remove,
-+	.id_table	= cpld_video_id,
-+};
-+
-+static void evm_init_cpld(void)
-+{
-+	i2c_add_driver(&cpld_video_driver);
-+}
-+
- static struct i2c_board_info __initdata i2c_info[] =  {
- 	{
- 		I2C_BOARD_INFO("24c256", 0x50),
-@@ -300,6 +347,9 @@ static struct i2c_board_info __initdata i2c_info[] =  {
- 	{
- 		I2C_BOARD_INFO("cpld_reg0", 0x3a),
- 	},
-+	{
-+		I2C_BOARD_INFO("cpld_video", 0x3B),
-+	},
- };
- 
- static struct davinci_i2c_platform_data i2c_pdata = {
-@@ -307,11 +357,85 @@ static struct davinci_i2c_platform_data i2c_pdata = {
- 	.bus_delay      = 0 /* usec */,
- };
- 
-+static int set_vpif_clock(int mux_mode, int hd)
-+{
-+	int val = 0;
-+	int err = 0;
-+	unsigned int value;
-+	void __iomem *base = IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
-+
-+	if (!cpld_client)
-+		return -ENXIO;
-+
-+	/* disable the clock */
-+	value = __raw_readl(base + VSCLKDIS_OFFSET);
-+	value |= (VIDCH3CLK | VIDCH2CLK);
-+	__raw_writel(value, base + VSCLKDIS_OFFSET);
-+
-+	val = i2c_smbus_read_byte(cpld_client);
-+	if (val < 0)
-+		return val;
-+
-+	if (mux_mode == 1)
-+		val &= ~0x40;
-+	else
-+		val |= 0x40;
-+
-+	err = i2c_smbus_write_byte(cpld_client, val);
-+	if (err)
-+		return err;
-+
-+	value = __raw_readl(base + VIDCLKCTL_OFFSET);
-+	value &= ~(VCH2CLK_MASK);
-+	value &= ~(VCH3CLK_MASK);
-+
-+	if (hd >= 1)
-+		value |= (VCH2CLK_SYSCLK8 | VCH3CLK_SYSCLK8);
-+	else
-+		value |= (VCH2CLK_AUXCLK | VCH3CLK_AUXCLK);
-+
-+	__raw_writel(value, base + VIDCLKCTL_OFFSET);
-+
-+	/* enable the clock */
-+	value = __raw_readl(base + VSCLKDIS_OFFSET);
-+	value &= ~(VIDCH3CLK | VIDCH2CLK);
-+	__raw_writel(value, base + VSCLKDIS_OFFSET);
-+
-+	return 0;
-+}
-+
-+static const struct vpif_subdev_info dm646x_vpif_subdev[] = {
-+	{
-+		.addr	= 0x2A,
-+		.name	= "adv7343",
-+	},
-+	{
-+		.addr	= 0x2C,
-+		.name	= "ths7303",
-+	},
-+};
-+
-+static const char *output[] = {
-+	"Composite",
-+	"Component",
-+	"S-Video",
-+};
-+
-+static struct vpif_config dm646x_vpif_config = {
-+	.set_clock	= set_vpif_clock,
-+	.subdevinfo	= dm646x_vpif_subdev,
-+	.subdev_count	= ARRAY_SIZE(dm646x_vpif_subdev),
-+	.output		= output,
-+	.output_count	= ARRAY_SIZE(output),
-+	.card_name	= "DM646x EVM",
-+};
-+
- static void __init evm_init_i2c(void)
- {
- 	davinci_init_i2c(&i2c_pdata);
- 	i2c_add_driver(&dm6467evm_cpld_driver);
- 	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));
-+	evm_init_cpld();
- }
- 
- static void __init davinci_map_io(void)
-@@ -333,6 +457,7 @@ static __init void evm_init(void)
- 
- 	soc_info->emac_pdata->phy_mask = DM646X_EVM_PHY_MASK;
- 	soc_info->emac_pdata->mdio_max_freq = DM646X_EVM_MDIO_FREQUENCY;
-+	dm646x_setup_vpif(&dm646x_vpif_config);
- }
- 
- static __init void davinci_dm646x_evm_irq_init(void)
-diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-davinci/dm646x.c
-index 8fa2803..a9b20e5 100644
---- a/arch/arm/mach-davinci/dm646x.c
-+++ b/arch/arm/mach-davinci/dm646x.c
-@@ -32,6 +32,15 @@
- #include "clock.h"
- #include "mux.h"
- 
-+#define DAVINCI_VPIF_BASE       (0x01C12000)
-+#define VDD3P3V_PWDN_OFFSET	(0x48)
-+#define VSCLKDIS_OFFSET		(0x6C)
-+
-+#define VDD3P3V_VID_MASK	(BIT_MASK(3) | BIT_MASK(2) | BIT_MASK(1) |\
-+					BIT_MASK(0))
-+#define VSCLKDIS_MASK		(BIT_MASK(11) | BIT_MASK(10) | BIT_MASK(9) |\
-+					BIT_MASK(8))
-+
- /*
-  * Device specific clocks
-  */
-@@ -686,6 +695,37 @@ static struct platform_device dm646x_dit_device = {
- 	.id	= -1,
- };
- 
-+static u64 vpif_dma_mask = DMA_BIT_MASK(32);
-+
-+static struct resource vpif_resource[] = {
-+	{
-+		.start	= DAVINCI_VPIF_BASE,
-+		.end	= DAVINCI_VPIF_BASE + 0x03fff,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	{
-+		.start = IRQ_DM646X_VP_VERTINT2,
-+		.end   = IRQ_DM646X_VP_VERTINT2,
-+		.flags = IORESOURCE_IRQ,
-+	},
-+	{
-+		.start = IRQ_DM646X_VP_VERTINT3,
-+		.end   = IRQ_DM646X_VP_VERTINT3,
-+		.flags = IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct platform_device vpif_display_dev = {
-+	.name		= "vpif_display",
-+	.id		= -1,
-+	.dev		= {
-+			.dma_mask 		= &vpif_dma_mask,
-+			.coherent_dma_mask	= DMA_BIT_MASK(32),
-+	},
-+	.resource	= vpif_resource,
-+	.num_resources	= ARRAY_SIZE(vpif_resource),
-+};
-+
- /*----------------------------------------------------------------------*/
- 
- static struct map_desc dm646x_io_desc[] = {
-@@ -814,6 +854,28 @@ void __init dm646x_init_mcasp1(struct snd_platform_data *pdata)
- 	platform_device_register(&dm646x_dit_device);
- }
- 
-+void dm646x_setup_vpif(struct vpif_config *config)
-+{
-+	unsigned int value;
-+	void __iomem *base = IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
-+
-+	value = __raw_readl(base + VSCLKDIS_OFFSET);
-+	value &= ~VSCLKDIS_MASK;
-+	__raw_writel(value, base + VSCLKDIS_OFFSET);
-+
-+	value = __raw_readl(base + VDD3P3V_PWDN_OFFSET);
-+	value &= ~VDD3P3V_VID_MASK;
-+	__raw_writel(value, base + VDD3P3V_PWDN_OFFSET);
-+
-+	davinci_cfg_reg(DM646X_STSOMUX_DISABLE);
-+	davinci_cfg_reg(DM646X_STSIMUX_DISABLE);
-+	davinci_cfg_reg(DM646X_PTSOMUX_DISABLE);
-+	davinci_cfg_reg(DM646X_PTSIMUX_DISABLE);
-+
-+	vpif_display_dev.dev.platform_data = config;
-+	platform_device_register(&vpif_display_dev);
-+}
-+
- void __init dm646x_init(void)
- {
- 	davinci_common_init(&davinci_soc_info_dm646x);
-diff --git a/arch/arm/mach-davinci/include/mach/dm646x.h b/arch/arm/mach-davinci/include/mach/dm646x.h
-index feb1e02..792c226 100644
---- a/arch/arm/mach-davinci/include/mach/dm646x.h
-+++ b/arch/arm/mach-davinci/include/mach/dm646x.h
-@@ -29,4 +29,28 @@ void __init dm646x_init_ide(void);
- void __init dm646x_init_mcasp0(struct snd_platform_data *pdata);
- void __init dm646x_init_mcasp1(struct snd_platform_data *pdata);
- 
-+void dm646x_video_init(void);
-+
-+struct vpif_output {
-+	u16 id;
-+	const char *name;
-+};
-+
-+struct vpif_subdev_info {
-+	unsigned short addr;
-+	const char *name;
-+};
-+
-+struct vpif_config {
-+	int (*set_clock)(int, int);
-+	const struct vpif_subdev_info *subdevinfo;
-+	int subdev_count;
-+	const char **output;
-+	int output_count;
-+	const char *card_name;
-+};
-+
-+
-+void dm646x_setup_vpif(struct vpif_config *config);
-+
- #endif /* __ASM_ARCH_DM646X_H */
--- 
-1.5.6
-
+Nico
