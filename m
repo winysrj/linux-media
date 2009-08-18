@@ -1,64 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1174 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752184AbZHaOot (ORCPT
+Received: from mail-ew0-f207.google.com ([209.85.219.207]:40714 "EHLO
+	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751293AbZHRTaY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Aug 2009 10:44:49 -0400
-Message-ID: <42d1ca6a2d2f29851cc1ea228bbc7121.squirrel@webmail.xs4all.nl>
-In-Reply-To: <20090831100855.677d16d6@pedra.chehab.org>
-References: <4A52E897.8000607@freemail.hu> <4A910C42.5000001@freemail.hu>
-    <20090830234114.16b90c36@pedra.chehab.org>
-    <200908310858.24763.laurent.pinchart@ideasonboard.com>
-    <f37f7dc3d82cf5482ba08b90bde4795c.squirrel@webmail.xs4all.nl>
-    <20090831100855.677d16d6@pedra.chehab.org>
-Date: Mon, 31 Aug 2009 16:44:20 +0200
-Subject: Re: [RESEND][PATCH 1/2] v4l2: modify the webcam video standard  
- handling
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	=?iso-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>,
-	"Jean-Francois Moine" <moinejf@free.fr>,
-	"Thomas Kaiser" <thomas@kaiser-linux.li>,
-	linux-media@vger.kernel.org, "LKML" <linux-kernel@vger.kernel.org>
+	Tue, 18 Aug 2009 15:30:24 -0400
+Received: by ewy3 with SMTP id 3so1867710ewy.18
+        for <linux-media@vger.kernel.org>; Tue, 18 Aug 2009 12:30:24 -0700 (PDT)
+Date: Tue, 18 Aug 2009 21:30:18 +0200 (CEST)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: =?UTF-8?Q?P=C3=A1sztor_Szil=C3=A1rd?= <don@tricon.hu>
+cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Anysee E30 C Plus + MPEG-4?
+In-Reply-To: <20090818210107.2a6a5146.don@tricon.hu>
+Message-ID: <alpine.DEB.2.01.0908182107300.27276@ybpnyubfg.ybpnyqbznva>
+References: <20090818170820.3d999fb9.don@tricon.hu> <alpine.DEB.2.01.0908181959241.27276@ybpnyubfg.ybpnyqbznva> <20090818210107.2a6a5146.don@tricon.hu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, 18 Aug 2009, Pásztor Szilárd wrote:
 
-> Em Mon, 31 Aug 2009 09:33:23 +0200
-> "Hans Verkuil" <hverkuil@xs4all.nl> escreveu:
->
->> > TV standards only apply to analog video. Let's simply not use it for
->> > digital
->> > video. We don't expect drivers to implement VIDIOC_[GS]_JPEGCOMP with
->> fake
->> > values when they don't support JPEG compression, so we should not
->> expect
->> > them
->> > to implement VIDIOC_[GS]_STD when they don't support analog TV.
->>
->> Exactly. Work is underway to add an API for HDTV and similar digital
->> video
->> formats. But we should just freeze the v4l2_std_id API and only use it
->> for
->> the analog PAL/NTSC/SECAM type formats. This nicely corresponds with the
->> underlying standards as those have been frozen as well.
->
-> Could you please point the thread where this API is being discussed
+> direction so I'm a step further now. With scan -vv I could find the video PIDs
+> for the HD channels and indeed they were missing in my channels.conf (values
+> were 0) as scan detected them as "OTHER", but with a "type 0x1b" addition with
+> which I don't know what to do for the time being...
 
-Sure, here is the thread:
+Okay, so you are using a `channels.conf' file, which is used for
+tuning directly by `mplayer' into a particular service.
 
-http://osdir.com/ml/linux-media/2009-08/msg00452.html
+The `scan' utility you use does not recognise the H.264 video 
+service as a video stream, which is why you don't get that as
+your video PID.  A common problem, I would guess.
 
-It's currently just brainstorming and not an official RFC.
 
-Regards,
+> After adding the correct PID values, mplayer still can't demux the incoming
+> stream but the video is there, and with -dumpvideo a h264 elementary stream
+> gets produced in the file that can be played back if I specify -demuxer
+> h264es on the command line. What are beyond me now are:
+> 1) how can mplayer not demux the stream if it can dump the video out
+> (shouldn't a video dump involve a demux operation before all?)
 
-         Hans
+`mplayer' does not (yet?) understand native H.264 video.  Whether
+this is purely an `mplayer' limitation, or something which also
+will affect other players, I cannot say -- I haven't looked into
+this.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+As a result, even if you have both the video and audio PIDs in
+your stream, you still need the additional PID from which 
+`mplayer' can get the needed identification of the video as H.264.
+This is found in the PMT PID (for BBC-HD in my example, 258 or
+whatever 3-digit PID was there -- my memory is going...)
 
+I said it before and I'll say it again, what `mplayer' needs is
+ -- I mean, I don't know if it would be possible for `mplayer' to
+identify the video as H.264, but for me, it needs this additional
+PID stream to do that.  That is something for the `mplayer' 
+developers or for someone more familiar with H.264 in DVB to
+answer.
+
+I'm guessing your `channels.conf' file is simple with one field
+for video and one for audio, but no extra fields.  If this is the
+case, then what you will need to do as a test would be to write
+more of the stream to a file; the example I gave in my earlier
+reply for BBC-HD is what I pass to `dvbstream'.  Then `mplayer'
+should be able to play this file with no problems.
+
+
+
+> 2) is it a missing feature of mplayer that no metastream is processed that
+> would carry the necessary information about the muxed streams? It would be
+
+Like I say, I don't know if the video stream alone contains the
+needed info that in theory `mplayer' could identify it as H.264.
+Although it is outside of your reception as is BBC-HD via 
+satellite, the british ITV HD service is broadcast as H.264 but
+without a stream identifying it as such.  As a result, I've had
+to hack `mplayer' to treat the video as such in order to be able
+to watch the recordings I've made.
+
+Note that my observations are made about `mplayer' from almost a
+year ago, and if there have been changes made since, such as a 
+more comprehensive `channels.conf' file, I'm not aware of them.
+
+
+Hope this helps to understand your problem a bit better...
+
+barry bouwsma
