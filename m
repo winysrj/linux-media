@@ -1,47 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.245]:9445 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750736AbZHRUkj (ORCPT
+Received: from mail-in-14.arcor-online.net ([151.189.21.54]:54402 "EHLO
+	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750948AbZHRXWT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2009 16:40:39 -0400
-Received: by an-out-0708.google.com with SMTP id d40so3555044and.1
-        for <linux-media@vger.kernel.org>; Tue, 18 Aug 2009 13:40:40 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1250627515.8322.2.camel@marc-desktop>
-References: <1250627515.8322.2.camel@marc-desktop>
-Date: Tue, 18 Aug 2009 16:40:40 -0400
-Message-ID: <829197380908181340i15f86cf5n99fc5757d8fff7b8@mail.gmail.com>
-Subject: Re: Winfast TV USB 2
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Marc Arndt <arndt.marc@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Tue, 18 Aug 2009 19:22:19 -0400
+Subject: Re: [PATCH] Report only 32kHz for ALSA
+From: hermann pitton <hermann-pitton@arcor.de>
+To: =?UTF-8?Q?Old=C5=99ich_Jedli=C4=8Dka?= <oldium.pro@seznam.cz>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <200908182124.54739.oldium.pro@seznam.cz>
+References: <200908182124.54739.oldium.pro@seznam.cz>
+Content-Type: text/plain; charset=UTF-8
+Date: Wed, 19 Aug 2009 01:16:38 +0200
+Message-Id: <1250637398.3813.4.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 18, 2009 at 4:31 PM, Marc Arndt<arndt.marc@gmail.com> wrote:
-> Good day,
->
-> I see the following when I plug in my Winfast TV USB 2 card, can you
-> please assist? The correct card is card 7
->
-> Sincerely,
->
-> Marc
 
-Hello Marc,
+Am Dienstag, den 18.08.2009, 21:24 +0200 schrieb Oldřich Jedlička:
+> There are several reasons:
+> 
+>  - SAA7133/35 uses DDEP (DemDec Easy Programming mode), which works in 32kHz
+>    only
+>  - SAA7134 for TV mode uses DemDec mode (32kHz)
+>  - Radio works in 32kHz only
+>  - When recording 48kHz from Line1/Line2, switching of capture source to TV
+>    means switching to 32kHz without any frequency translation
+> 
+> Signed-off-by: Oldřich Jedlička <oldium.pro@seznam.cz>
 
-Do you actually know that the card=7 modprobe option works?  The
-device profile for card 7 has a valid USB ID (0413:6023), suggesting
-that you might have a different version of the board.
+As discussed previously, this is an improvement within our current chip
+specific capabilities. Thanks.
 
-Can you take the unit apart and take some hi-resolution pictures of
-the PCB?  That will tell us whether it is actually the same hardware.
+Acked-by: hermann pitton <hermann-pitton@arcor.de>
 
-Devin
+> diff --git a/linux/drivers/media/video/saa7134/saa7134-alsa.c b/linux/drivers/media/video/saa7134/saa7134-alsa.c
+> index c09ec3e..504186a 100644
+> --- a/linux/drivers/media/video/saa7134/saa7134-alsa.c
+> +++ b/linux/drivers/media/video/saa7134/saa7134-alsa.c
+> @@ -440,6 +440,16 @@ snd_card_saa7134_capture_pointer(struct snd_pcm_substream * substream)
+>  
+>  /*
+>   * ALSA hardware capabilities definition
+> + *
+> + *  Report only 32kHz for ALSA:
+> + *
+> + *  - SAA7133/35 uses DDEP (DemDec Easy Programming mode), which works in 32kHz
+> + *    only
+> + *  - SAA7134 for TV mode uses DemDec mode (32kHz)
+> + *  - Radio works in 32kHz only
+> + *  - When recording 48kHz from Line1/Line2, switching of capture source to TV
+> + *    means
+> + *    switching to 32kHz without any frequency translation
+>   */
+>  
+>  static struct snd_pcm_hardware snd_card_saa7134_capture =
+> @@ -453,9 +463,9 @@ static struct snd_pcm_hardware snd_card_saa7134_capture =
+>  				SNDRV_PCM_FMTBIT_U8 | \
+>  				SNDRV_PCM_FMTBIT_U16_LE | \
+>  				SNDRV_PCM_FMTBIT_U16_BE,
+> -	.rates =		SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_48000,
+> +	.rates =		SNDRV_PCM_RATE_32000,
+>  	.rate_min =		32000,
+> -	.rate_max =		48000,
+> +	.rate_max =		32000,
+>  	.channels_min =		1,
+>  	.channels_max =		2,
+>  	.buffer_bytes_max =	(256*1024),
+> --
 
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
