@@ -1,20 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n768DT4a030571
-	for <video4linux-list@redhat.com>; Thu, 6 Aug 2009 04:13:29 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n768D7lb006647
-	for <video4linux-list@redhat.com>; Thu, 6 Aug 2009 04:13:08 -0400
-Date: Thu, 6 Aug 2009 10:13:13 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-In-Reply-To: <uy6pxephb.wl%morimoto.kuninori@renesas.com>
-Message-ID: <Pine.LNX.4.64.0908061012310.4631@axis700.grange>
-References: <uy6pxephb.wl%morimoto.kuninori@renesas.com>
+Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.8])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n7JITqFu026246
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <video4linux-list@redhat.com>; Wed, 19 Aug 2009 14:29:52 -0400
+Received: from partygirl.tmr.com (mail.tmr.com [64.65.253.246])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n7JITaGD012811
+	for <video4linux-list@redhat.com>; Wed, 19 Aug 2009 14:29:37 -0400
+Received: from partygirl.tmr.com (partygirl.tmr.com [127.0.0.1])
+	by partygirl.tmr.com (8.14.2/8.14.2) with ESMTP id n7JITZAS005485
+	for <video4linux-list@redhat.com>; Wed, 19 Aug 2009 14:29:36 -0400
+Message-ID: <4A8C448F.5020203@tmr.com>
+Date: Wed, 19 Aug 2009 14:29:35 -0400
+From: Bill Davidsen <davidsen@tmr.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: V4L-Linux <video4linux-list@redhat.com>
-Subject: Re: [PATCH 1/2 v2] sh_mobile_ceu: add soft reset function
+To: video4linux M/L <video4linux-list@redhat.com>
+References: <4A7B2BDB.5000906@tmr.com>	<829197380908061221l54ba8f1pcbec404200ae6c93@mail.gmail.com>	<4A7B37F9.8070905@tmr.com>	<829197380908061318x5ee6ccfbn5d8890e98b6f6325@mail.gmail.com>	<4A81AC59.5020306@tmr.com>
+	<829197380908111051v3e446534k73ae23883c510e65@mail.gmail.com>
+In-Reply-To: <829197380908111051v3e446534k73ae23883c510e65@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: Re: Is there any working video capture card which works and is  
+ still made?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,98 +34,62 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 6 Aug 2009, Kuninori Morimoto wrote:
+Devin Heitmueller wrote:
+> On Tue, Aug 11, 2009 at 1:37 PM, Bill Davidsen<davidsen@tmr.com> wrote:
+>> Since you quoted the HVR-950Q as working, I tried one of those. Someone else
+>> said the ATI HDTV-Wonder works. Neither do. I tried all of the programs
+>> people swore work with these cards: tvtime, xawtv, cheese, and vlc. Mythtv
+>> appears to need the whole system tuned to be a pvr, not the intent here,
+>> users want to monitor CNN, MSNBC, and similar news or financial channels in
+>> a window without needing to get a TV for each seat.
+> 
+> Well since I did the support for the HVR-950Q, I'm pretty sure it
+> works. :-)  With regards to the "ATI HDTV-Wonder" card you referred
+> to, there are many cards with that name, so you would need to be more
+> specific (providing a model number and bus type).  For example, I did
+> the work for the "ATI TV Wonder HD 600 USB".  For analog support, both
+> of the above cards work fine with tvtime.
+> 
+> If you have a specific case that is causing you problems, please
+> provide details as to exactly which card you are trying to use, which
+> distro and application you are using, and what errors you are seeing
+> and we will see if we can help you debug your problem.  But saying
+> vague things like "nothing works" isn't really a constructive way to
+> improve your situation.
+> 
+No, it was actually a clue, but everyone assumed it was just a failure to give 
+details. Today I found (looking for something else) that the issue seems to be 
+with the recent Fedora PAE kernels, both F11 release and the F12 pre-release on 
+rawhide. Using a non-PAE kernel causes the cards and dongles to suddenly show 
+video instead of "no signal." Of course I lose most of my RAM with that setup, 
+not a happy situation.
 
-> 
-> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+The ATI HDTV Wonder now gets signal for the NTSC channels, but no sound. I think 
+I need to find an app which can use the digital sound, or populate the header 
+for a cable similar to that used by a CD analog feed.
 
-Ok, I'm away for a week starting today, I'll have a look at your patches 
-after I come back then.
+> You only need to tune to something specifying MHz if you are using the
+> command line tools.  The GUI applications have built in mechanisms to
+> change channels.
+> 
+Can you name "the GUI applications" since none of the ones I've found which even 
+claim to work with digital has a functional tuner. Note, there is a bug in the 
+Intel video driver, I can't use xine, if that's the only one, it kills X on 
+start every time, although I'm assured it will be fixed.
 
-Thanks
-Guennadi
+> I agree that there is plenty of room for improvement in the
+> application space.  Feel free to roll up your sleeves and help out
+> (that's how I got involved in the project, after all).  Given the
+> number of devices people are demanding support for, we are quite
+> understaffed and could use all the help we could get.
+> 
+Rather than a new device (the HVR-2500 would have been nice) I'd like to find 
+something which works now and is still made.
 
-> ---
-> v1 -> v2
-> 
-> o it use msleep
-> o it judge in_atomic or not
-> 
-> it judge in_atomic because sh_mobile_ceu_soft_reset
-> will also be called from atomic.
-> 
->  drivers/media/video/sh_mobile_ceu_camera.c |   36 ++++++++++++++++++++++++---
->  1 files changed, 32 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-> index 0db88a5..3741ad6 100644
-> --- a/drivers/media/video/sh_mobile_ceu_camera.c
-> +++ b/drivers/media/video/sh_mobile_ceu_camera.c
-> @@ -135,6 +135,36 @@ static u32 ceu_read(struct sh_mobile_ceu_dev *priv, unsigned long reg_offs)
->  	return ioread32(priv->base + reg_offs);
->  }
->  
-> +static void sh_mobile_ceu_soft_reset(struct sh_mobile_ceu_dev *pcdev)
-> +{
-> +	int t;
-> +	int atomic = in_atomic();
-> +
-> +	ceu_write(pcdev, CAPSR, 1 << 16); /* reset */
-> +
-> +	t = 10000;
-> +	while (t--) {
-> +		if (!(ceu_read(pcdev, CAPSR) & (1 << 16)))
-> +			break;
-> +
-> +		if (atomic)
-> +			cpu_relax();
-> +		else
-> +			msleep(1);
-> +	}
-> +
-> +	t = 10000;
-> +	while (t--) {
-> +		if (!(ceu_read(pcdev, CSTSR) & 1))
-> +			break;
-> +
-> +		if (atomic)
-> +			cpu_relax();
-> +		else
-> +			msleep(1);
-> +	}
-> +}
-> +
->  /*
->   *  Videobuf operations
->   */
-> @@ -366,9 +396,7 @@ static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
->  
->  	clk_enable(pcdev->clk);
->  
-> -	ceu_write(pcdev, CAPSR, 1 << 16); /* reset */
-> -	while (ceu_read(pcdev, CSTSR) & 1)
-> -		msleep(1);
-> +	sh_mobile_ceu_soft_reset(pcdev);
->  
->  	pcdev->icd = icd;
->  err:
-> @@ -386,7 +414,7 @@ static void sh_mobile_ceu_remove_device(struct soc_camera_device *icd)
->  
->  	/* disable capture, disable interrupts */
->  	ceu_write(pcdev, CEIER, 0);
-> -	ceu_write(pcdev, CAPSR, 1 << 16); /* reset */
-> +	sh_mobile_ceu_soft_reset(pcdev);
->  
->  	/* make sure active buffer is canceled */
->  	spin_lock_irqsave(&pcdev->lock, flags);
-> -- 
-> 1.6.0.4
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Bill Davidsen <davidsen@tmr.com>
+   "We have more to fear from the bungling of the incompetent than from
+the machinations of the wicked."  - from Slashdot
 
 --
 video4linux-list mailing list
