@@ -1,52 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f207.google.com ([209.85.219.207]:46625 "EHLO
-	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750743AbZHRTKg convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4629 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751026AbZHSSYz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2009 15:10:36 -0400
-Received: by ewy3 with SMTP id 3so1853652ewy.18
-        for <linux-media@vger.kernel.org>; Tue, 18 Aug 2009 12:10:37 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20090818210107.2a6a5146.don@tricon.hu>
-References: <20090818170820.3d999fb9.don@tricon.hu>
-	 <alpine.DEB.2.01.0908181959241.27276@ybpnyubfg.ybpnyqbznva>
-	 <20090818210107.2a6a5146.don@tricon.hu>
-Date: Tue, 18 Aug 2009 21:10:37 +0200
-Message-ID: <d9def9db0908181210k20054201je2270a13446cc92d@mail.gmail.com>
-Subject: Re: [linux-dvb] Anysee E30 C Plus + MPEG-4?
-From: Markus Rechberger <mrechberger@gmail.com>
+	Wed, 19 Aug 2009 14:24:55 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id n7JIOtdE066738
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 19 Aug 2009 20:24:55 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 19 Aug 2009 20:24:55 +0200 (CEST)
+Message-Id: <200908191824.n7JIOtdE066738@smtp-vbr13.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/8/18 Pásztor Szilárd <don@tricon.hu>:
-> Thanks for the comprehensive answer.
-> Mr. Thommeret's hint about the missing video PID pushed me into the right
-> direction so I'm a step further now. With scan -vv I could find the video PIDs
-> for the HD channels and indeed they were missing in my channels.conf (values
-> were 0) as scan detected them as "OTHER", but with a "type 0x1b" addition with
-> which I don't know what to do for the time being...
->
-> After adding the correct PID values, mplayer still can't demux the incoming
-> stream but the video is there, and with -dumpvideo a h264 elementary stream
-> gets produced in the file that can be played back if I specify -demuxer
-> h264es on the command line. What are beyond me now are:
-> 1) how can mplayer not demux the stream if it can dump the video out
-> (shouldn't a video dump involve a demux operation before all?)
-> 2) is it a missing feature of mplayer that no metastream is processed that
-> would carry the necessary information about the muxed streams? It would be
-> adequate for me if I could specify a demuxer to use but it seems impossible in
-> just one step - which I currently don't understand because an elementary
-> stream is dumped as video.
->
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-You might try: dvbstream -o 8192 | mplayer -cache 10240 -
+Results of the daily build of v4l-dvb:
 
-this forwards the entire stream to mplayer, you can switch the
-channels with [tab]
+date:        Wed Aug 19 19:00:02 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12458:3f7e382dfae5
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Regards,
-Markus
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-rc5-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29.1-armv5-ixp: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-rc5-armv5-ixp: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-rc5-armv5-omap2: OK
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-rc5-i686: OK
+linux-2.6.23.12-m32r: ERRORS
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-rc5-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-rc5-mips: OK
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-rc5-powerpc64: OK
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-rc5-x86_64: OK
+sparse (linux-2.6.30): OK
+sparse (linux-2.6.31-rc5): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
