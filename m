@@ -1,45 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:40439 "EHLO smtp3-g21.free.fr"
+Received: from ogre.sisk.pl ([217.79.144.158]:33822 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752485AbZHBKOO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 2 Aug 2009 06:14:14 -0400
-Date: Sun, 2 Aug 2009 12:14:01 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [linuxtv-commits] [hg:v4l-dvb] gspca - vc032x: H and V flip
- controls added for mi13x0_soc sensors.
-Message-ID: <20090802121401.665c4613@tele>
-In-Reply-To: <200908021133.25624.hverkuil@xs4all.nl>
-References: <E1MWegK-00046z-Si@mail.linuxtv.org>
-	<200908021133.25624.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+	id S1753114AbZHSVhU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Aug 2009 17:37:20 -0400
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: linux-next: suspend tree build warnings
+Date: Wed, 19 Aug 2009 23:38:03 +0200
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	pm list <linux-pm@lists.linux-foundation.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+References: <20090819172419.2cf53008.sfr@canb.auug.org.au>
+In-Reply-To: <20090819172419.2cf53008.sfr@canb.auug.org.au>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <200908192338.03910.rjw@sisk.pl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2 Aug 2009 11:33:25 +0200
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
+On Wednesday 19 August 2009, Stephen Rothwell wrote:
+> Hi Rafael,
 
-> he daily build produces this warning:
+Hi,
+
+> Today's linux-next build (x86_64 allmodconfig) produced these warnings:
 > 
-> /marune/build/v4l-dvb-master/v4l/vc032x.c: In function 'sethvflip':
-> /marune/build/v4l-dvb-master/v4l/vc032x.c:3138: warning: statement
-> with no effect /marune/build/v4l-dvb-master/v4l/vc032x.c:3141:
-> warning: statement with no effect
+> drivers/media/dvb/frontends/dib7000p.c: In function ‘dib7000p_i2c_enumeration’:
+> drivers/media/dvb/frontends/dib7000p.c:1315: warning: the frame size of 2256 bytes is larger than 2048 bytes
+> drivers/media/dvb/frontends/dib3000mc.c: In function ‘dib3000mc_i2c_enumeration’:
+> drivers/media/dvb/frontends/dib3000mc.c:853: warning: the frame size of 2160 bytes is larger than 2048 bytes
 > 
-> And looking at the code those warnings are correct. I think you
-> wanted to do 'hflip = !hflip'.
-> 
-> Can you take a look at this?
+> Introduced by commit 99307958cc9c1b0b2e0dad4bbefdafaf9ac5a681 ("PM:
+> Introduce core framework for run-time PM of I/O devices (rev. 17)").
 
-Hi Hans,
+Well.
 
-Sorry, I did not see that. It is fixed.
+This commit increases the size of struct device quite a bit and both of the
+drivers above create a "state" object on the stack that contains struct device
+among other things.
 
-Many thanks.
+I think they should allocate these objects using kmalloc() and I don't know
+what I can do about this, really.  Maybe except for modifying the drivers to
+use kmalloc().
 
--- 
-Ken ar c'henta�	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Thanks,
+Rafael
