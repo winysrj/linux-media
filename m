@@ -1,32 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bay0-omc3-s27.bay0.hotmail.com ([65.54.246.227]:30682 "EHLO
-	bay0-omc3-s27.bay0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752463AbZHaNhV convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Aug 2009 09:37:21 -0400
-Message-ID: <COL0-DAV71608B4BDC4C3B032E628B2F20@phx.gbl>
-From: "Marco Berizzi" <pupilla@hotmail.com>
-To: <linux-media@vger.kernel.org>
-Subject: hauppauge wintv hvr 2200 and transport stream
-Date: Mon, 31 Aug 2009 15:27:58 +0200
+Received: from qmta12.emeryville.ca.mail.comcast.net ([76.96.27.227]:36874
+	"EHLO QMTA12.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752427AbZHSOMo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Aug 2009 10:12:44 -0400
+Message-ID: <41128.76.104.173.166.1250691148.squirrel@www.cyberseth.com>
+In-Reply-To: <4A8A9D33.5050505@kernellabs.com>
+References: <35375.76.104.173.166.1250492844.squirrel@www.cyberseth.com>
+    <4A8A9D33.5050505@kernellabs.com>
+Date: Wed, 19 Aug 2009 07:12:28 -0700 (PDT)
+Subject: Re: Hauppauge 2250 - second tuner is only half working
+From: seth@cyberseth.com
+To: "Steven Toth" <stoth@kernellabs.com>
+Cc: seth@cyberseth.com, linux-media@vger.kernel.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello everybody.
-I'm evaluating a dvb-t card for linux.
-I would like to know if with the above
-card is possible to save the entire mpeg
-transport stream.
-Also I don't unstand what does mean 'dual
-tuners'. Can I watch two different dvb-t
-channel? Or only one analog and one dvb-t?
-Or 2 dvb-t plus 2 analog?
-Any experience with this device?
+>> I'd really appreciate any help or guidance on this problem as i'm fully
+>> perplexed by it.
+>
+> Hey Seth,
+>
+> I ran the same tests on my cable system (channel 103) on 669Mhz and had no
+> issue, and my snr's reported as (0x172 and 0x17c).
+>
+> One possibility is that you're overwhelming the frontend. Try adding a
+> small
+> mount of attenuation to the signal for test purposes.
+>
+> Hard to believe but this is where I'd start looking.
+>
+> --
+> Steven Toth - Kernel Labs
+> http://www.kernellabs.com
+>
+>
 
-PS: Is possible to see with xine/vlc/mplayer
-a dvb-t/h264 stream with this card?
+Thank you for reply!  Hearing that the same frequency works on another
+card is pretty positive confirmation in my mind that this is a
+hardware/setup issue.  I tried stopping by a local radio shack last night,
+but wouldn't you know they no longer carried simple attenuators.  Looks
+like i'll be picking one up online (or maybe ill lookup a schematic online
+and try building a simple one).
 
-TIA
+On a side note - Thank you very much for hacking on the saa7164 - other
+than this frequency glitch its been working great for me!
