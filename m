@@ -1,22 +1,34 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n798R9nq001743
-	for <video4linux-list@redhat.com>; Sun, 9 Aug 2009 04:27:09 -0400
-Received: from mail-in-09.arcor-online.net (mail-in-09.arcor-online.net
-	[151.189.21.49])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n798QoHc003792
-	for <video4linux-list@redhat.com>; Sun, 9 Aug 2009 04:26:51 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: "Michael A. Fallavollita, Ph.D." <mikef@microtech.com>
-In-Reply-To: <4A7E5B1D.5060102@microtech.com>
-References: <4A7E5B1D.5060102@microtech.com>
-Content-Type: text/plain
-Date: Sun, 09 Aug 2009 10:22:56 +0200
-Message-Id: <1249806176.3300.29.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Support for Items ITV-301
+Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.11])
+	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n7JJ0b0Y014189
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <video4linux-list@redhat.com>; Wed, 19 Aug 2009 15:00:37 -0400
+Received: from mail-yx0-f202.google.com (mail-yx0-f202.google.com
+	[209.85.210.202])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n7JJ0NK7028861
+	for <video4linux-list@redhat.com>; Wed, 19 Aug 2009 15:00:23 -0400
+Received: by yxe40 with SMTP id 40so6069161yxe.23
+	for <video4linux-list@redhat.com>; Wed, 19 Aug 2009 12:00:23 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4A8C448F.5020203@tmr.com>
+References: <4A7B2BDB.5000906@tmr.com>
+	<829197380908061221l54ba8f1pcbec404200ae6c93@mail.gmail.com>
+	<4A7B37F9.8070905@tmr.com>
+	<829197380908061318x5ee6ccfbn5d8890e98b6f6325@mail.gmail.com>
+	<4A81AC59.5020306@tmr.com>
+	<829197380908111051v3e446534k73ae23883c510e65@mail.gmail.com>
+	<4A8C448F.5020203@tmr.com>
+Date: Wed, 19 Aug 2009 15:00:22 -0400
+Message-ID: <829197380908191200u147b4c39r281e642e3ca05a7c@mail.gmail.com>
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Bill Davidsen <davidsen@tmr.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: video4linux M/L <video4linux-list@redhat.com>
+Subject: Re: Is there any working video capture card which works and is
+	still made?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,55 +40,67 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Michael,
+On Wed, Aug 19, 2009 at 2:29 PM, Bill Davidsen<davidsen@tmr.com> wrote:
+> No, it was actually a clue, but everyone assumed it was just a failure to
+> give details. Today I found (looking for something else) that the issue
+> seems to be with the recent Fedora PAE kernels, both F11 release and the F12
+> pre-release on rawhide. Using a non-PAE kernel causes the cards and dongles
+> to suddenly show video instead of "no signal." Of course I lose most of my
+> RAM with that setup, not a happy situation.
 
-Am Samstag, den 08.08.2009, 22:14 -0700 schrieb Michael A. Fallavollita,
-Ph.D.:
-> Hello to the list.
-> 
-> I bought a generic SAA7130 based card from ebay a while back.  After
-> much research I have determined that it is an ITV-301.  I noticed in
-> searching the archives of this list that a patch was posted by Andre
-> Auzi a while back  but it doesn't appear that this card made it into the
-> current source.  I was wondering if anyone has a current build of the 
-> module that includes support for this device or perhaps can point me to 
-> a supported card in the list that works.
-> 
-> Thanks.
-> 
->     -- Mike
-> 
-> 
+Interesting.  I am not sure how much testing is done with PAE kernels.
+ Can you elaborate as to which cards started working as a result of
+switching to the non-PAE kernel, as this might help us narrow down
+whether the problem is with a specific driver or with the v4l2
+framework code shared by all the drivers?
 
-http://article.gmane.org/gmane.comp.video.video4linux/38064
+> The ATI HDTV Wonder now gets signal for the NTSC channels, but no sound. I
+> think I need to find an app which can use the digital sound, or populate the
+> header for a cable similar to that used by a CD analog feed.
 
-how can you ever know, it is a ITV-301?
+See the previous email I sent in regards to this.   The apps typically
+don't know how to find the audio device on raw video capture products.
 
-saa7133[0]: Huh, no eeprom present (err=-5)?
+>> You only need to tune to something specifying MHz if you are using the
+>> command line tools.  The GUI applications have built in mechanisms to
+>> change channels.
+>>
+> Can you name "the GUI applications" since none of the ones I've found which
+> even claim to work with digital has a functional tuner. Note, there is a bug
+> in the Intel video driver, I can't use xine, if that's the only one, it
+> kills X on start every time, although I'm assured it will be fixed.
 
-It can be anything with any tuner.
+This depends on what you mean by "digital".  If when you say
+"digital", you mean ATSC/QAM, then I can tell you that most of the
+apps out there are designed for either analog or digital but not both.
+ Mplayer and MythTV do support both ATSC/QAM as well as analog.  Apps
+like tvtime only support analog.
 
-Likely this is why that patch never made it in.
+>> I agree that there is plenty of room for improvement in the
+>> application space.  Feel free to roll up your sleeves and help out
+>> (that's how I got involved in the project, after all).  Given the
+>> number of devices people are demanding support for, we are quite
+>> understaffed and could use all the help we could get.
+>>
+> Rather than a new device (the HVR-2500 would have been nice) I'd like to
+> find something which works now and is still made.
 
-The interesting lines are:
+I was referring to the state of the various analog applications as
+opposed to the device driver support.  Most of the drivers themselves
+are fine but the usability of the applications makes it a rather high
+barrier to entry for inexperienced users.  I certainly had similar
+frustrations when I was tried to watch TV with my first tuner.
 
-+                * saa7133[0]: board init: gpio is 4c04c00
-+                * tuner' 2-0043: chip found @ 0x86 (saa7133[0])
+I assumed you were referring to the HVR-2250 when you said "HVR-2500".
+ Note that the 2250 does not have any analog support at all in the
+Linux driver (in case you felt inclined to pick one up and were
+expecting it to work).
 
-Any such the same?
+Devin
 
-Have a look at saa7134-cards.c.
-
-Anything with vmux = 3 and amux = LINE2 for TV and forced tuner=38
-should work then for TV. Well, we have already a lot of duplicate code.
-
-Cheers,
-Hermann
-
-
-
-
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
 
 --
 video4linux-list mailing list
