@@ -1,88 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59793 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932792AbZHDUky convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2009 16:40:54 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "Subrahmanya, Chaithrika" <chaithrika@ti.com>,
-	"'Mauro Carvalho Chehab'" <mchehab@infradead.org>
-CC: "davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"linux@arm.linux.org.uk" <linux@arm.linux.org.uk>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 4 Aug 2009 15:40:28 -0500
-Subject: RE: [PATCH v3] ARM: DaVinci: DM646x Video: Platform and board
-	specific setup
-Message-ID: <A69FA2915331DC488A831521EAE36FE4014518153A@dlee06.ent.ti.com>
-References: <1248076882-18564-1-git-send-email-chaithrika@ti.com>
-	<00cb01ca13ed$12564120$3702c360$@com>
-	<20090803025003.56c6594d@pedra.chehab.org>
- <00fe01ca141c$93d01d50$bb7057f0$@com>
-In-Reply-To: <00fe01ca141c$93d01d50$bb7057f0$@com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-gx0-f205.google.com ([209.85.217.205]:45984 "EHLO
+	mail-gx0-f205.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752637AbZHSQcu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Aug 2009 12:32:50 -0400
+Received: by gxk1 with SMTP id 1so6128692gxk.17
+        for <linux-media@vger.kernel.org>; Wed, 19 Aug 2009 09:32:51 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <4A8C2611.9050002@nildram.co.uk>
+References: <4A8C2611.9050002@nildram.co.uk>
+Date: Wed, 19 Aug 2009 12:32:50 -0400
+Message-ID: <829197380908190932v4bc1e06eofc82c7fef03ee02d@mail.gmail.com>
+Subject: Re: Problem with Hauppauge Nova-500
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: lotway@nildram.co.uk
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Chaithrika,
+On Wed, Aug 19, 2009 at 12:19 PM, Lou Otway<lotway@nildram.co.uk> wrote:
+> Hi there,
+>
+> I have a Hauppauge Nova-T 500 that is displaying some odd behaviour.
+>
+> Often the device fails to tune after rebooting the host machine, due to a
+> failure to load firmware.
+>
+> when the firmware fails to load, dmesg shows:
+>
+> dib0700: loaded with support for 9 different device-types
+> dvb-usb: found a 'Hauppauge Nova-T 500 Dual DVB-T' in cold state, will try
+> to load a firmware
+> dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
+> dib0700: firmware download failed at 7 with -22
+> usbcore: registered new interface driver dvb_usb_dib0700
+>
+> When firmware loading is successful I see:
+>
+> dib0700: loaded with support for 9 different device-types
+> dvb-usb: found a 'Hauppauge Nova-T 500 Dual DVB-T' in warm state.
+> dvb-usb: will pass the complete MPEG2 transport stream to the software
+> demuxer.
+> DVB: registering new adapter (Hauppauge Nova-T 500 Dual DVB-T)
+> DVB: registering adapter 1 frontend 0 (DiBcom 3000MC/P)...
+> MT2060: successfully identified (IF1 = 1242)
+> dvb-usb: will pass the complete MPEG2 transport stream to the software
+> demuxer.
+> DVB: registering new adapter (Hauppauge Nova-T 500 Dual DVB-T)
+> DVB: registering adapter 2 frontend 0 (DiBcom 3000MC/P)...
+> MT2060: successfully identified (IF1 = 1233)
+> input: IR-receiver inside an USB DVB receiver as /class/input/input7
+> dvb-usb: schedule remote query interval to 50 msecs.
+> dvb-usb: Hauppauge Nova-T 500 Dual DVB-T successfully initialized and
+> connected.
+> usbcore: registered new interface driver dvb_usb_dib0700
+>
+> Powering down the host machine seems to help as, so far, I have 100% success
+> when restarting this way, whereas after reboot the success is much lower,
+> firmware failing to load maybe 50% of the time.
+>
+> Has anyone seen this behaviour before, any advice on what the cause might
+> be?
+>
+> Many thanks,
+>
+> Lou
 
-Could you send the patches inline to Russell King rmk@arm.linux.org.uk? This was what Mauro had suggested to me.
+Hello Lou,
 
-We need to get a resolution on this quickly since I have some patches waiting to be submitted against display driver and would like to base it on your patches. 
+Yes, this is a known issue with the Nova-T 500 that others have
+reported.  We believe it has something to do with the onboard Via USB
+host controller on the board.  A user mailed me a card and it is out
+being repaired, but hopefully when it comes back I will be able to
+track down the problem.
 
-Regards,
+Cheers,
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-new phone: 301-407-9583
-Old Phone : 301-515-3736 (will be deprecated)
-email: m-karicheri2@ti.com
+Devin
 
->-----Original Message-----
->From: davinci-linux-open-source-bounces@linux.davincidsp.com
->[mailto:davinci-linux-open-source-bounces@linux.davincidsp.com] On Behalf
->Of Subrahmanya, Chaithrika
->Sent: Monday, August 03, 2009 5:27 AM
->To: 'Mauro Carvalho Chehab'
->Cc: davinci-linux-open-source@linux.davincidsp.com; linux@arm.linux.org.uk;
->linux-media@vger.kernel.org
->Subject: RE: [PATCH v3] ARM: DaVinci: DM646x Video: Platform and board
->specific setup
->
->Mauro,
->
->OK. Thank you for taking care of this.
->
->On Mon, Aug 03, 2009 at 11:20:03, Mauro Carvalho Chehab wrote:
->> Em Mon, 3 Aug 2009 09:17:06 +0530
->> "chaithrika" <chaithrika@ti.com> escreveu:
->>
->> > Mauro/Russell,
->> >
->> > The previous version (v2) of this patch is on the linux-next tree.
->> > This patch has some updates done on top of that patch. Should I post
->> > an incremental patch for those changes to the Linux-next tree?
->> > Please suggest.
->> >
->> It is not needed. After having Russell ack, I'll just replace the old
->patch by the new one.
->>
->>
->>
->> Cheers,
->> Mauro
->>
->
->
->Regards,
->Chaithrika
->
->
->_______________________________________________
->Davinci-linux-open-source mailing list
->Davinci-linux-open-source@linux.davincidsp.com
->http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
