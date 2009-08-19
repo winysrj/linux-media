@@ -1,119 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1778 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753722AbZH3SXx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Aug 2009 14:23:53 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id n7UINriZ055687
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 30 Aug 2009 20:23:54 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 30 Aug 2009 20:23:53 +0200 (CEST)
-Message-Id: <200908301823.n7UINriZ055687@smtp-vbr1.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from jim.sh ([75.150.123.25]:54961 "EHLO psychosis.jim.sh"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753173AbZHSVrO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Aug 2009 17:47:14 -0400
+From: Jim Paris <jim@jtan.com>
+To: stable@kernel.org
+Cc: linux-media@vger.kernel.org, Jim Paris <jim@jtan.com>
+Subject: [PATCH] gspca - ov534: Fix ov772x
+Date: Wed, 19 Aug 2009 17:46:18 -0400
+Message-Id: <1250718378-25759-1-git-send-email-jim@jtan.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+The scan of the image packets of the sensor ov772x was broken when
+the sensor ov965x was added.
 
-Results of the daily build of v4l-dvb:
+[ Based on upstream c874f3aa, modified slightly for v2.6.30.5 ]
 
-date:        Sun Aug 30 19:00:02 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12564:6f58a5d8c7c6
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Signed-off-by: Jim Paris <jim@jtan.com>
+Acked-by: Jean-Francois Moine <moinejf@free.fr>
+---
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc8-armv5: OK
-linux-2.6.31-rc8-armv5-davinci: ERRORS
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-rc8-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-rc8-armv5-omap2: OK
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-rc8-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc8-m32r: OK
-linux-2.6.30-mips: ERRORS
-linux-2.6.31-rc8-mips: OK
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-rc8-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc8-x86_64: WARNINGS
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc8): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+Hi,
 
-Detailed results are available here:
+Commit 84fbdf87ab8eaa4eaefb317a7eb437cd4d3d0ebf:
+  "V4L/DVB (11105): gspca - ov534: Adjust the packet scan function"
+broke the gspca ov534 driver for the Playstation Eye in 2.6.30.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+Commit c874f3aa7e66158dccb2b9f3cfc46c65af6c223d:
+  "V4L/DVB (11973): gspca - ov534: Do the ov772x work again."
+fixed it for 2.6.31.
 
-Full logs are available here:
+c874f3aa depends on earlier patches, so this is a functionally
+equivalent version for 2.6.30.x.  With this patch, the Playstation Eye
+camera works again.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+Please consider for 2.6.30.6.
 
-The V4L2 specification from this daily build is here:
+Thanks,
+-jim
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
 
-The DVB API specification from this daily build is here:
+ drivers/media/video/gspca/ov534.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+diff --git a/drivers/media/video/gspca/ov534.c b/drivers/media/video/gspca/ov534.c
+index 19e0bc6..504f849 100644
+--- a/drivers/media/video/gspca/ov534.c
++++ b/drivers/media/video/gspca/ov534.c
+@@ -832,9 +832,11 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev, struct gspca_frame *frame,
+ 	__u32 this_pts;
+ 	u16 this_fid;
+ 	int remaining_len = len;
++	int payload_len;
+ 
++	payload_len = (sd->sensor == SENSOR_OV772X) ? 2048 : 2040;
+ 	do {
+-		len = min(remaining_len, 2040);		/*fixme: was 2048*/
++		len = min(remaining_len, payload_len);
+ 
+ 		/* Payloads are prefixed with a UVC-style header.  We
+ 		   consider a frame to start when the FID toggles, or the PTS
+-- 
+1.5.6.5
 
