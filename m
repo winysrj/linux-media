@@ -1,44 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imr-da05.mx.aol.com ([205.188.105.147]:61142 "EHLO
-	imr-da05.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751528AbZHFUkb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2009 16:40:31 -0400
-Message-ID: <4A7B3FAF.6080109@netscape.net>
-Date: Thu, 06 Aug 2009 21:40:15 +0100
-From: Kaya Saman <SamanKaya@netscape.net>
+Received: from mail-gx0-f205.google.com ([209.85.217.205]:64522 "EHLO
+	mail-gx0-f205.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750815AbZHSEQt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Aug 2009 00:16:49 -0400
+Received: by gxk1 with SMTP id 1so5695723gxk.17
+        for <linux-media@vger.kernel.org>; Tue, 18 Aug 2009 21:16:50 -0700 (PDT)
 MIME-Version: 1.0
-To: Michael Krufky <mkrufky@kernellabs.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Hauppauge WinTV HVR-900HD support?
-References: <4A7AC430.4070505@netscape.net>	 <37219a840908060553g452266fdq5ea3814b4ce725bc@mail.gmail.com>	 <4A7AD57B.8020906@netscape.net>	 <37219a840908060619q7e41b024nf4e73b21843942c5@mail.gmail.com>	 <4A7ADBC2.6090908@netscape.net>	 <37219a840908060746n4eadfa20v8e5249a5ad90e8c@mail.gmail.com>	 <4A7AFF73.5010305@netscape.net> <37219a840908061121s141a40e9j3f990a41da2cd52b@mail.gmail.com>
-In-Reply-To: <37219a840908061121s141a40e9j3f990a41da2cd52b@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+From: treblid <treblid@gmail.com>
+Date: Wed, 19 Aug 2009 12:09:24 +0800
+Message-ID: <941593fd0908182109p22e5e5f0i6959369c9ac7c12f@mail.gmail.com>
+Subject: help: Can't get DViCO FusionHDTV DVB-T Dual Digital 4 to work with
+	new kernels
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Been grappling with this problem for a while now..
+I am using stock linux kernel 2.6.28.9 together with Mythtv (SVN trunk)
 
->
-> #1) http://www.hauppauge.de/de/index.htm  (scroll down to middle of the page)
->
-> #2) http://www.hauppauge.de/de/site/products/data_hvr1900.html
->
-> #3) http://www.hauppauge.com/site/press/presspictures/HVR-1900_German_1251.jpg
->
-> #4) http://www.hauppauge.com/site/press/presspictures/HVR-1900_4lang_1179.png
->
-> #5)  http://www.hauppauge.com/site/support/linux.html
->
-> -Mike
->   
+For some reason I cannot use 2.6.29.x or 2.6.30.x (latest version I
+tried is 2.6.30.5).
 
-Ok so from this it seems the the 1900 isn't available in the UK where I 
-am based!
+Everytime i start mythbackend, the console is littered with the
+following messages, and the keyboard input freezes sporadically.
+the messages as below:
 
-As I said before the HVR 900 does seem supported and it is readily 
-available from any UK retailer so it might be a better option just as 
-it's less hassle so I don't need to buy from Germany.
+dvb-usb: recv bulk message failed: -110
+cxusb: i2c read failed
 
-Interesting......
+i googled for a solution and it seems some got around this by inserted
+the IR receiver, I tried but it still doesn't work.
 
---Kaya
+is this a mythtv problem or cxusb issue?
+
+Please help, any pointers appreciated.
+
+regards,
