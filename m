@@ -1,118 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2304 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752210AbZHMS2E (ORCPT
+Received: from mail-yx0-f175.google.com ([209.85.210.175]:50385 "EHLO
+	mail-yx0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751636AbZHSNmB convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Aug 2009 14:28:04 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id n7DIS3hg098506
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 13 Aug 2009 20:28:03 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 13 Aug 2009 20:28:03 +0200 (CEST)
-Message-Id: <200908131828.n7DIS3hg098506@smtp-vbr8.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
+	Wed, 19 Aug 2009 09:42:01 -0400
+Received: by yxe5 with SMTP id 5so5392834yxe.33
+        for <linux-media@vger.kernel.org>; Wed, 19 Aug 2009 06:42:02 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1250679685.14727.14.camel@McM>
+References: <1250679685.14727.14.camel@McM>
+Date: Wed, 19 Aug 2009 09:42:01 -0400
+Message-ID: <829197380908190642sfabee2ahe599dda1df39678c@mail.gmail.com>
+Subject: Re: USB Wintv HVR-900 Hauppauge
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Miguel <mcm@moviquity.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Wed, Aug 19, 2009 at 7:01 AM, Miguel<mcm@moviquity.com> wrote:
+>
+> Hello,
+>
+> I am trying to set up the dvb-t device in my ubuntu 9.04.
+> As far as i can see , this device has tm6000 chipset but I don't get it
+> works. I have followed the guide of tvlinux.org:
+> http://www.linuxtv.org/wiki/index.php/Trident_TM6000#TM6000_based_Devices
+>
+> I have compile v4l-dvb, make, and make install and it seems that the
+> modules are loaded:
+>
+>
+> em28xx                 90668  0
+> ir_common              57732  1 em28xx
+> v4l2_common            25600  1 em28xx
+> videobuf_vmalloc       14724  1 em28xx
+> videobuf_core          26244  2 em28xx,videobuf_vmalloc
+> tveeprom               20228  1 em28xx
+> videodev               44832  3 em28xx,v4l2_common,uvcvideo
+>
+>
+> But by the moment, I don't know which driver  I should you. Actually,
+> when I switch the usb wintv on , my so doesn't recognize it:
+>
+> [11107.449900] usb 1-3: new high speed USB device using ehci_hcd and
+> address 8
+> [11107.593094] usb 1-3: configuration #1 chosen from 1 choice
+>
+>
+> how can I get this device run?
+>
+> thank you in advance.
+>
+> Miguel
 
-Results of the daily build of v4l-dvb:
+Hello Miguel,
 
-date:        Thu Aug 13 19:00:05 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12447:d2843f5f8fde
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Can you confirm the exact model number of the device (or provide the
+USB ID)?  I suspect you probably have what is often referred to as an
+HVR-900 R2, which is not currently supported under Linux.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc5-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-rc5-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-rc5-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: OK
-linux-2.6.30-i686: OK
-linux-2.6.31-rc5-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc5-m32r: OK
-linux-2.6.30-mips: OK
-linux-2.6.31-rc5-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29.1-powerpc64: OK
-linux-2.6.30-powerpc64: OK
-linux-2.6.31-rc5-powerpc64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-x86_64: OK
-linux-2.6.31-rc5-x86_64: OK
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc5): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+I've got it working here but still need to write the firmware extract
+script so I can release it, but the work has been delayed due to other
+priorities.
 
-Detailed results are available here:
+Cheers,
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+Devin
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
