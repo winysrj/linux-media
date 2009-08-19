@@ -1,43 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:52299 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754222AbZHCIeW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Aug 2009 04:34:22 -0400
-Message-ID: <4A76A227.20503@redhat.com>
-Date: Mon, 03 Aug 2009 10:39:03 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from gw.Deuromedia.ro ([194.176.161.33]:45013 "HELO deuromedia.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1752252AbZHSOPi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Aug 2009 10:15:38 -0400
+Message-ID: <4A8C076C.8040109@deuromedia.com>
+Date: Wed, 19 Aug 2009 17:08:44 +0300
+From: Helmut Ungar <h.ungar@deuromedia.com>
+Reply-To: h.ungar@deuromedia.com
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: t.i.m@zen.co.uk
-Subject: RFC: distuingishing between hardware and emulated formats
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Manfred Petz <m.petz@deuromedia.com>,
+	Gerhard Achs <g.achs@deuromedia.com>
+Subject: V4L-DVB issue in systems with >4Gb RAM?
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
 
-The gstreamer folks have asked to add an API to libv4l2 so
-that they can distuingish between formats emulated by libv4l2
-and formats offered raw by the hardware.
+Hi,
 
-I think this is a usefull thing to do and I think this is best
-done by adding a new flag for the flags field of the
-v4l2_fmtdesc struct. So I would like to propose to add the
-following new flag to videodev2.h :
+we are experiencing a problem with the V4L-DVB drivers.
+It seems that when the system has over 4Gb the drivers
+do no longer work properly. Either nothing or rubbish 
+comes out of them, although tuning using szap seems to
+work. If we force the system to use only 4Gb by appending
+mem=4GB as a kernel parameter things are working like a
+charm.
 
-#define V4L2_FMT_FLAG_EMULATED 0x0002
+Our setup:
+Dell 2850 server with a Magma PCI extender. There are 6 
+DVB boards in the machine: 5 KNC TV STAR DVB-S and 
+1 Hauppauge Nova-S-Plus DVB-S.
+The system has 8GB of RAM and runs an up-to-date Centos5.3, 
+kernel 2.6.18-128.4.1.el5 x86_64. 
+The V4L-DVB driver we are using is v4l-dvb-2009.08.18.tar.bz2
+On this setup some of the KNC boards are working, the Hauppauge
+does not. In a similar setup where we have only KNCs none
+of them is working unless you force the system to use 4Gb of 
+the available memory.
 
-And add the necessary documentation to the spec. The emulated term
-is what I've always been using in libv4l discussions for formats
-which are not offered native by the hardware but are offered by
-libv4l through conversion. If someone has a better name for the
-flag suggestions are welcome.
+I would like to know if this is a known issue and if so
+what can be done to fix/work around the problem.
 
-If you read this and even if your only thoughts are: seems ok to me,
-please reply saying so. It is very frustrating to suggest API additions
-and not get any feedback.
+Any help/suggestion/hint is highly welcome.
+Thanks in advance! 
 
-Regards,
+Kind regards,
+Helmut
 
-Hans
