@@ -1,50 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.234]:23475 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752130AbZHLNEe (ORCPT
+Received: from mail-iw0-f204.google.com ([209.85.223.204]:48648 "EHLO
+	mail-iw0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754046AbZHTKV5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2009 09:04:34 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so1239426rvb.5
-        for <linux-media@vger.kernel.org>; Wed, 12 Aug 2009 06:04:35 -0700 (PDT)
+	Thu, 20 Aug 2009 06:21:57 -0400
+Received: by iwn42 with SMTP id 42so351229iwn.33
+        for <linux-media@vger.kernel.org>; Thu, 20 Aug 2009 03:21:58 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1250761934.6730.2.camel@McM>
+References: <1250679685.14727.14.camel@McM>
+	 <829197380908190642sfabee2ahe599dda1df39678c@mail.gmail.com>
+	 <1250701340.14727.28.camel@McM>
+	 <829197380908191016n8d7f21eq88ebe3a45816275b@mail.gmail.com>
+	 <1250761934.6730.2.camel@McM>
+Date: Thu, 20 Aug 2009 06:16:12 -0400
+Message-ID: <829197380908200316q6fadadbewff2bc3c9a512857b@mail.gmail.com>
+Subject: Re: USB Wintv HVR-900 Hauppauge
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Miguel <mcm@moviquity.com>
 Cc: linux-media@vger.kernel.org
-Message-Id: <CE7D00C2-9D6E-4DF9-A82A-9DA270CD22E9@dockerz.net>
-From: Tim Docker <tim@dockerz.net>
-To: Nicolas Will <nico@youplala.net>
-In-Reply-To: <1249996315.30127.3.camel@youkaida>
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0 (Apple Message framework v935.3)
-Subject: Re: [linux-dvb] problem: Hauppauge Nova TD500
-Date: Wed, 12 Aug 2009 23:04:29 +1000
-References: <4A8169D0.3030008@dockerz.net> <1249996315.30127.3.camel@youkaida>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-On 11/08/2009, at 11:11 PM, Nicolas Will wrote:
-
-> On Tue, 2009-08-11 at 13:53 +0100, Tim Docker wrote:
->> Hi,
->>
->> I'm trying to diagnose a problem with a mythtv setup based upon a
->> hauppauge nova td 500. I've had the setup for some months - it seemed
->> to
->> work reasonably reliably initially, but over the last few weeks I've
->> had
->> consistent problems with the tuner card entering a state where it is
->> unable to receive a signal.
-
-> This problem is most probably caused by the tuner being in USB suspend
-> when MythTV wants to use it too quickly.
+On Thu, Aug 20, 2009 at 5:52 AM, Miguel<mcm@moviquity.com> wrote:
+> hi again Devin,
 >
-> Either disable usb suspend in your kernel, or tell mythtv to take wait
-> some more before tuning.
+> In this case, the guide :
+> http://www.linuxtv.org/wiki/index.php/Trident_TM6000#TM6000_based_Devices
+> should be work ?
 >
-> I told MythTV to wait some more, and all is fine.
+> I get some errors applying the patch:
 >
-> http://www.youplala.net/linux/home-theater-pc#toc-not-losing-one-of-the-nova-t-500s-tuners
+> mcm@McM:~/opt/hvr900/v4l-dvb$ patch -p1 < tm6000-makefile-dvb-tree.patch
+> patching file linux/drivers/media/video/Kconfig
+> Hunk #1 succeeded at 914 with fuzz 2 (offset 218 lines).
+> patching file linux/drivers/media/video/Makefile
+> Hunk #1 FAILED at 67.
+> 1 out of 1 hunk FAILED -- saving rejects to file
+> linux/drivers/media/video/Makefile.rej
+>
+> could it be my problem here?
 
-Thanks - I've make the changes, and it's survived the first 24 hours,  
-which is an improvement. Time will tell if the problem has really gone.
+No, that guide will not work for your device.  The HVR-900H uses the
+TM6010, not the TM6000, and as the Wiki states, the driver is
+completely broken:
 
-Tim
+http://www.linuxtv.org/wiki/index.php/Trident_TM6000#TM6010_based_Devices
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
