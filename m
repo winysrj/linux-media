@@ -1,138 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:61629 "EHLO znsun1.ifh.de"
+Received: from mx1.redhat.com ([209.132.183.28]:61258 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755360AbZHFMei (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Aug 2009 08:34:38 -0400
-Date: Thu, 6 Aug 2009 14:34:23 +0200 (CEST)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Michael Krufky <mkrufky@kernellabs.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	olgrenie@dibcom.fr
-Subject: Re: RFC: adding ISDB-T/ISDB-Tsb to DVB-API 5
-In-Reply-To: <37219a840908051251g1ec47b6dx1d940862727a9c46@mail.gmail.com>
-Message-ID: <alpine.LRH.1.10.0908061258200.6890@pub1.ifh.de>
-References: <alpine.LRH.1.10.0908031943220.8512@pub1.ifh.de> <37219a840908051251g1ec47b6dx1d940862727a9c46@mail.gmail.com>
+	id S1753939AbZHTKU3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Aug 2009 06:20:29 -0400
+Message-ID: <4A8D24B2.4080408@redhat.com>
+Date: Thu, 20 Aug 2009 12:25:54 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="579714831-1324370993-1249562063=:6890"
+To: Claudio Chimera <ckhmer1l@live.it>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: gspca: Trust webcam WB 300P ID 093a:2608 doesn't work
+References: <BLU0-SMTP36E4E04B3A0F5308D899C298070@phx.gbl>	 <4A82D783.1050308@redhat.com> <BLU0-SMTP52D1EF7122E378A1BDB89A98020@phx.gbl>
+In-Reply-To: <BLU0-SMTP52D1EF7122E378A1BDB89A98020@phx.gbl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi,
 
---579714831-1324370993-1249562063=:6890
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+On 08/14/2009 04:00 PM, Claudio Chimera wrote:
+> Hello Hans,
+> thanks for your reply.
+> I've connected only the webcam, no other devices.
+> I've tried to connect via un USB HUB but the result is always the same:
+>
+> Aug 14 15:56:50 cchi-desktop kernel: [ 8434.924045] gspca:
+> usb_submit_urb [0] err -28
+>
 
-Hi Michael,
+Then you most likely still have something using usb bandwidth
+maybe some integrated pheriphial ?
+What is the output of lsusb?
 
-thanks for your response.
+Regards,
 
-On Wed, 5 Aug 2009, Michael Krufky wrote:
-> It's extremely exciting to finally see this surfacing to the mailing
-> lists -- It will be a great addition to linux-dvb to have support for
-> the ISDB digital standards.
+Hans
 
-Thanks, but I have to say it again, as I said it to Akihiro already. Those 
-patches are not adding ISDB-S nor ISDB-C to the API. I'm not sure how 
-different ISDB-S and ISDB-C are compared to their corresponding DVB 
-pendants; however my patches are just adding support for ISDB-T and 
-ISDB-Tsb.
 
-> One thing that I see missing right now is userspace utilities.  Do you
-> have any plans to add ISDB scanning support to dvb-apps, and tuning
-> support to the *zap utility?  This would be the best way to get the
-> application developers started on incorporating ISDB support into the
-> apps shipping today.
-
-Yeah this is in preparation. The scan works rather simply, as the section 
-tables are partially identical to the ones in DVB (there is an SDT for 
-service-names, there is a NIT, for network name) - so as a first shot it 
-should be sufficient to add ISDB-T initial tuning data parsing to scan; 
-this will also show how to tuning an ISDB-T channel.
-
-See attached for a first draft of the initial tuning data file for Tokyo.
-
-best regards,
---
-
-Patrick Boettcher - Kernel Labs
-http://www.kernellabs.com/
---579714831-1324370993-1249562063=:6890
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name=jp-Tokyo
-Content-Transfer-Encoding: BASE64
-Content-Description: 
-Content-Disposition: attachment; filename=jp-Tokyo
-
-IyBsaXN0IG9mIElTREItVCBmcmVxdWVuY2llcyB1c2VkIGluIFRva3lvLCBK
-YXBhbiAoMjAwOS0wOC0wNikNCiMgaWRlbnRpZmllciAoSVQvSVNCKQ0KIyAg
-Y2VudHJhbC1mcmVxdWVuY3kNCiMgIHwgICAgICAgICAgdHJhbnNtaXNzaW9u
-LW1vZGUNCiMgIHwgICAgICAgICAgfCAgZ3VhcmQtaW50ZXJ2YWwNCiMgIHwg
-ICAgICAgICAgfCAgfCAgICBwYXJ0aWFsLXJlY2VwdGlvbi1iaXQNCiMgIHwg
-ICAgICAgICAgfCAgfCAgICB8IGMtcmF0ZSAoQSkNCiMgIHwgICAgICAgICAg
-fCAgfCAgICB8IHwgICAgICAgbW9kdWxhdGlvbiAoQSkNCiMgIHwgICAgICAg
-ICAgfCAgfCAgICB8IHwgICAgICAgfCAgICAgc2VnbWVudC1jb3VudCAoQSkN
-CiMgIHwgICAgICAgICAgfCAgfCAgICB8IHwgICAgICAgfCAgICAgfCAgaW50
-ZXJsZWF2aW5nIChBKQ0KIyAgfCAgICAgICAgICB8ICB8ICAgIHwgfCAgICAg
-ICB8ICAgICB8ICB8IGMtcmF0ZSAoQikNCiMgIHwgICAgICAgICAgfCAgfCAg
-ICB8IHwgICAgICAgfCAgICAgfCAgfCB8ICAgICAgICBtb2R1bGF0aW9uIChC
-KQ0KIyAgfCAgICAgICAgICB8ICB8ICAgIHwgfCAgICAgICB8ICAgICB8ICB8
-IHwgICAgICAgIHwgICAgIHNlZ21lbnQtY291bnQgKEIpDQojICB8ICAgICAg
-ICAgIHwgIHwgICAgfCB8ICAgICAgIHwgICAgIHwgIHwgfCAgICAgICAgfCAg
-ICAgfCAgaW50ZXJsZWF2aW5nIChCKQ0KIyAgfCAgICAgICAgICB8ICB8ICAg
-IHwgfCAgICAgICB8ICAgICB8ICB8IHwgICAgICAgIHwgICAgIHwgIHwgYy1y
-YXRlIChDKQ0KIyAgfCAgICAgICAgICB8ICB8ICAgIHwgfCAgICAgICB8ICAg
-ICB8ICB8IHwgICAgICAgIHwgICAgIHwgIHwgfCAgICAgICAgbW9kdWxhdGlv
-biAoQykNCiMgIHwgICAgICAgICAgfCAgfCAgICB8IHwgICAgICAgfCAgICAg
-fCAgfCB8ICAgICAgICB8ICAgICB8ICB8IHwgICAgICAgIHwgICAgc2VnbWVu
-dC1jb3VudCAoQykNCiMgIHwgICAgICAgICAgfCAgfCAgICB8IHwgICAgICAg
-fCAgICAgfCAgfCB8ICAgICAgICB8ICAgICB8ICB8IHwgICAgICAgIHwgICAg
-fCBpbnRlcmxlYXZpbmcgKEMpDQpJVCA1MTUxNDMwMDAgIDhLIDEvOCAgMSBG
-RUNfMl8zIFFQU0sgIDEgIDMgRkVDXzNfNCAgUUFNNjQgMTIgMiBGRUNfTk9O
-RSBBVVRPIDAgMCAgIyBUb2t5byBNZXRyb3BsaXRhbiBUVg0KSVQgNTIxMTQz
-MDAwICA4SyAxLzggIDEgRkVDXzJfMyBRUFNLICAxICAzIEZFQ18zXzQgIFFB
-TTY0IDEyIDIgRkVDX05PTkUgQVVUTyAwIDAgICMgRnVqaSBUVg0KSVQgNTI3
-MTQzMDAwICA4SyAxLzggIDEgRkVDXzJfMyBRUFNLICAxICAzIEZFQ18zXzQg
-IFFBTTY0IDEyIDIgRkVDX05PTkUgQVVUTyAwIDAgICMgVEJTIFRWDQpJVCA1
-MzMxNDMwMDAgIDhLIDEvOCAgMSBGRUNfMl8zIFFQU0sgIDEgIDMgRkVDXzNf
-NCAgUUFNNjQgMTIgMiBGRUNfTk9ORSBBVVRPIDAgMCAgIyBUViBUb2t5bw0K
-SVQgNTM5MTQzMDAwICA4SyAxLzggIDEgRkVDXzJfMyBRUFNLICAxICAzIEZF
-Q18zXzQgIFFBTTY0IDEyIDIgRkVDX05PTkUgQVVUTyAwIDAgICMgVFYgQXNh
-aGkNCklUIDU0NTE0MzAwMCAgOEsgMS84ICAxIEZFQ18yXzMgUVBTSyAgMSAg
-MyBGRUNfM180ICBRQU02NCAxMiAyIEZFQ19OT05FIEFVVE8gMCAwICAjIE5p
-aG9uIFRWDQpJVCA1NTExNDMwMDAgIDhLIDEvOCAgMSBGRUNfMl8zIFFQU0sg
-IDEgIDMgRkVDXzNfNCAgUUFNNjQgMTIgMiBGRUNfTk9ORSBBVVRPIDAgMCAg
-IyBOSEsgRWR1Y2F0aW9uDQpJVCA1NTcxNDMwMDAgIDhLIDEvOCAgMSBGRUNf
-Ml8zIFFQU0sgIDEgIDMgRkVDXzNfNCAgUUFNNjQgMTIgMiBGRUNfTk9ORSBB
-VVRPIDAgMCAgIyBOSEsgU29nbw0KSVQgNTYzMTQzMDAwICA4SyAxLzQgIDAg
-RkVDXzNfNCBRQU02NCAxMyAyIEZFQ19OT05FIEFVVE8gIDAgIDAgRkVDX05P
-TkUgQVVUTyAwIDAgICMgQnJvYWRjYXN0aW5nIFVuaXZlcnNpdHkNCg0KIyAg
-ZXhhbXBsZSBmb3IgSVNEQi1Uc2INCiMNCiMgIGlkZW50aWZpZXIgKElUL0lT
-QikNCiMgICAgY2VudHJhbC1mcmVxdWVuY3kNCiMgICAgfCAgICAgICAgIHRy
-YW5zbWlzc2lvbi1tb2RlDQojICAgIHwgICAgICAgICB8ICBndWFyZC1pbnRl
-cnZhbA0KIyAgICB8ICAgICAgICAgfCAgfCAgICBwYXJ0aWFsLXJlY2VwdGlv
-bi1iaXQNCiMgICAgfCAgICAgICAgIHwgIHwgICAgfCBzZWdtZW50LWlkeA0K
-IyAgICB8ICAgICAgICAgfCAgfCAgICB8IHwgc2VnbWVudC10b3RhbC1jb3Vu
-dA0KIyAgICB8ICAgICAgICAgfCAgfCAgICB8IHwgfCBzdWJjaGFubmVsX2lk
-DQojICAgIHwgICAgICAgICB8ICB8ICAgIHwgfCB8IHwgIGMtcmF0ZSAoQSkN
-CiMgICAgfCAgICAgICAgIHwgIHwgICAgfCB8IHwgfCAgfCAgICAgICBtb2R1
-bGF0aW9uIChBKQ0KIyAgICB8ICAgICAgICAgfCAgfCAgICB8IHwgfCB8ICB8
-ICAgICAgIHwgICAgc2VnbWVudC1jb3VudCAoQSkNCiMgICAgfCAgICAgICAg
-IHwgIHwgICAgfCB8IHwgfCAgfCAgICAgICB8ICAgIHwgaW50ZXJsZWF2aW5n
-IChBKQ0KIyAgICB8ICAgICAgICAgfCAgfCAgICB8IHwgfCB8ICB8ICAgICAg
-IHwgICAgfCB8IGMtcmF0ZSAoQikNCiMgICAgfCAgICAgICAgIHwgIHwgICAg
-fCB8IHwgfCAgfCAgICAgICB8ICAgIHwgfCB8ICAgICAgIG1vZHVsYXRpb24g
-KEIpDQojICAgIHwgICAgICAgICB8ICB8ICAgIHwgfCB8IHwgIHwgICAgICAg
-fCAgICB8IHwgfCAgICAgICB8ICAgICBzZWdtZW50LWNvdW50IChCKQ0KIyAg
-ICB8ICAgICAgICAgfCAgfCAgICB8IHwgfCB8ICB8ICAgICAgIHwgICAgfCB8
-IHwgICAgICAgfCAgICAgfCBpbnRlcmxlYXZpbmcgKEIpDQojSVNCIDE3MDAw
-MDAwMCA4SyAxLzMyIDAgMSA4IDIgIEZFQ18xXzIgUVBTSyAxIDAgRkVDX05P
-TkUgQVVUTyAwIDANCiNJU0IgMTcwNDI5MDAwIDhLIDEvMzIgMCAyIDggNiAg
-RkVDXzFfMiBRUFNLIDEgMCBGRUNfTk9ORSBBVVRPIDAgMA0KI0lTQiAxNzA4
-NjgwMDAgOEsgMS8zMiAwIDMgOCAxMCBGRUNfMV8yIFFQU0sgMSAwIEZFQ19O
-T05FIEFVVE8gMCAwDQojSVNCIDE3MTcyNjAwMCA4SyAxLzMyIDAgNSA4IDE4
-IEZFQ18xXzIgUVBTSyAxIDAgRkVDX05PTkUgQVVUTyAwIDANCiNJU0IgMTcy
-NTg0MDAwIDhLIDEvMzIgMCA3IDggMjYgRkVDXzFfMiBRUFNLIDEgMCBGRUNf
-MV8yICBRUFNLIDIgMA0KI0lTQiAxNzMwMTMwMDAgOEsgMS8zMiAwIDggOCAz
-MCBGRUNfMV8yIFFQU0sgMSAwIEZFQ19OT05FIEFVVE8gMCAwDQo=
-
---579714831-1324370993-1249562063=:6890--
+> This web-cam is never worked using Linux, but it is reported full
+> working.
+>
+> Thanks
+> Claudio
+>
+> Il giorno mer, 12/08/2009 alle 16.53 +0200, Hans de Goede ha scritto:
+>> Hi,
+>>
+>> You are trying to use the webcam on the same usb root controller
+>> as an usb-audio device and there is not enough bandwidth for both,
+>> try removing the usb audio device.
+>>
+>> Regards,
+>>
+>> Hans
+>>
+>>
+>> On 08/11/2009 07:04 PM, Claudio Chimera wrote:
+>>> Hello,
+>>> I'm trying to use the Trust webcam WB 300P (ID 093a:2608 ) unsuccessful.
+>>>
+>>> The complete lsusb command is following:
+>>>
+>>> Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+>>> Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+>>> Bus 003 Device 002: ID 093a:2608 Pixart Imaging, Inc.
+>>> Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+>>> Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+>>>
+>>> When I use amsn, I can select the webcam but I get an error (unable to
+>>> capture ...)
+>>>
+>>> The /var/log/message is following:
+>>>
+>>>
+>>> Aug 11 18:35:06 cchi-desktop kernel: [ 3447.714061] usb 1-2.4: new full
+>>> speed USB device using ehci_hcd and address 3
+>>> Aug 11 18:35:06 cchi-desktop kernel: [ 3447.836067] usb 1-2.4:
+>>> configuration #1 chosen from 1 choice
+>>> Aug 11 18:35:06 cchi-desktop kernel: [ 3448.112057] gspca: main v2.3.0
+>>> registered
+>>> Aug 11 18:35:06 cchi-desktop kernel: [ 3448.170206] gspca: probing
+>>> 093a:2608
+>>> Aug 11 18:35:06 cchi-desktop kernel: [ 3448.180041] gspca: probe ok
+>>> Aug 11 18:35:06 cchi-desktop kernel: [ 3448.180041] gspca: probing
+>>> 093a:2608
+>>> Aug 11 18:35:06 cchi-desktop kernel: [ 3448.180041] gspca: probing
+>>> 093a:2608
+>>> Aug 11 18:35:06 cchi-desktop kernel: [ 3448.180041] usbcore: registered
+>>> new interface driver pac7311
+>>> Aug 11 18:35:06 cchi-desktop kernel: [ 3448.180041] pac7311: registered
+>>> Aug 11 18:35:07 cchi-desktop kernel: [ 3448.724060] usbcore: registered
+>>> new interface driver snd-usb-audio
+>>> Aug 11 18:35:08 cchi-desktop pulseaudio[3943]: alsa-util.c: Device hw:2
+>>> doesn't support 44100 Hz, changed to 16000 Hz.
+>>> Aug 11 18:35:08 cchi-desktop pulseaudio[3943]: alsa-util.c: Device hw:2
+>>> doesn't support 2 channels, changed to 1.
+>>>
+>>>
+>>> Aug 11 18:44:25 cchi-desktop kernel: [ 4007.040063] gspca:
+>>> usb_submit_urb [0] err -28
+>>> Aug 11 18:44:40 cchi-desktop kernel: [ 4022.040062] gspca:
+>>> usb_submit_urb [0] err -28
+>>>
+>>> Thanks
+>>> Claudio
+>>>
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
