@@ -1,46 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:45999 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755647AbZHYWYy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2009 18:24:54 -0400
-Received: by fxm17 with SMTP id 17so2503824fxm.37
-        for <linux-media@vger.kernel.org>; Tue, 25 Aug 2009 15:24:55 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4A94612A.2070705@iki.fi>
-References: <8527bc070908040016x5d5ad15bk8c2ef6e99678f9e9@mail.gmail.com>
-	 <200908041312.52878.jareguero@telefonica.net>
-	 <8527bc070908041423p439f2d35y2e31014a10433c80@mail.gmail.com>
-	 <200908042348.58148.jareguero@telefonica.net>
-	 <4A945CA4.6010402@iki.fi>
-	 <829197380908251501l7731536bg79dd8595cd7ce50d@mail.gmail.com>
-	 <4A94612A.2070705@iki.fi>
-Date: Tue, 25 Aug 2009 18:24:55 -0400
-Message-ID: <829197380908251524m66bc9a46i5428bdc28ecab153@mail.gmail.com>
-Subject: Re: Noisy video with Avermedia AVerTV Digi Volar X HD (AF9015) and
-	mythbuntu 9.04
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Jose Alberto Reguero <jareguero@telefonica.net>,
-	linux-media@vger.kernel.org,
-	Michael Krufky <mkrufky@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail1.radix.net ([207.192.128.31]:38674 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752525AbZHTAr1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Aug 2009 20:47:27 -0400
+Subject: Re: linux-next: suspend tree build warnings
+From: Andy Walls <awalls@radix.net>
+To: Greg KH <greg@kroah.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	pm list <linux-pm@lists.linux-foundation.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+In-Reply-To: <20090819233601.GA2875@kroah.com>
+References: <20090819172419.2cf53008.sfr@canb.auug.org.au>
+	 <200908192338.03910.rjw@sisk.pl>  <20090819233601.GA2875@kroah.com>
+Content-Type: text/plain; charset=utf-8
+Date: Wed, 19 Aug 2009 20:44:16 -0400
+Message-Id: <1250729056.2716.37.camel@morgan.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 25, 2009 at 6:09 PM, Antti Palosaari<crope@iki.fi> wrote:
-> If demod (and tuner) is powered off by bridge (.power_ctrl) that's not
-> possible. Is there way to call bridge .power_ctrl to wake up demod and
-> tuner? I added param for demdod state to track sleep/wake state and return 0
-> in sleep case. But that does not sounds good solution...
+On Wed, 2009-08-19 at 16:36 -0700, Greg KH wrote:
+> On Wed, Aug 19, 2009 at 11:38:03PM +0200, Rafael J. Wysocki wrote:
+> > On Wednesday 19 August 2009, Stephen Rothwell wrote:
+> > > Hi Rafael,
+> > 
+> > Hi,
+> > 
+> > > Today's linux-next build (x86_64 allmodconfig) produced these warnings:
+> > > 
+> > > drivers/media/dvb/frontends/dib7000p.c: In function ‘dib7000p_i2c_enumeration’:
+> > > drivers/media/dvb/frontends/dib7000p.c:1315: warning: the frame size of 2256 bytes is larger than 2048 bytes
+> > > drivers/media/dvb/frontends/dib3000mc.c: In function ‘dib3000mc_i2c_enumeration’:
+> > > drivers/media/dvb/frontends/dib3000mc.c:853: warning: the frame size of 2160 bytes is larger than 2048 bytes
+> > > 
+> > > Introduced by commit 99307958cc9c1b0b2e0dad4bbefdafaf9ac5a681 ("PM:
+> > > Introduce core framework for run-time PM of I/O devices (rev. 17)").
+> > 
+> > Well.
+> > 
+> > This commit increases the size of struct device quite a bit and both of the
+> > drivers above create a "state" object on the stack that contains struct device
+> > among other things.
+> 
+> Ick.  struct device should _never_ be on the stack, why would this code
+> want to do such a thing?
 
-Michael Krufky actually put together some patches to allow the bridge
-to intercept frontend calls, which would allow for things like power
-management.  I don't know if they've been merged yet.
+It appears that the state object is a dummy being used to detect and
+twiddle some identical chips on the i2c bus.  The functions called only
+use the "i2c_adapter" and "cfg" member of the dummy state object, but
+those functions want that state object as an input argument.
 
-Devin
+<obvious>
+The simplest fix is dynamic allocation of the dummy state object with
+kmalloc() and then to free it before exiting the function.
+</obvious>
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Regards,
+Andy
+
+
+> thanks,
+> 
+> greg k-h
+
+
