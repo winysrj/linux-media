@@ -1,120 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f207.google.com ([209.85.219.207]:34115 "EHLO
-	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753029AbZHXT4K convert rfc822-to-8bit (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:46139 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752853AbZHTVet convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Aug 2009 15:56:10 -0400
-Received: by ewy3 with SMTP id 3so2725965ewy.18
-        for <linux-media@vger.kernel.org>; Mon, 24 Aug 2009 12:56:10 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1250992448.3262.11.camel@pc07.localdom.local>
-References: <1250812164.3249.18.camel@pc07.localdom.local>
-	 <1250992448.3262.11.camel@pc07.localdom.local>
-Date: Mon, 24 Aug 2009 15:56:06 -0400
-Message-ID: <37219a840908241256w100e810eva46bf31fa77b2d3c@mail.gmail.com>
-Subject: Re: [PATCH] saa7134: start to investigate the LNA mess on 310i and
-	hvr1110 products
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 20 Aug 2009 17:34:49 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: David Brownell <david-b@pacbell.net>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Thu, 20 Aug 2009 16:34:35 -0500
+Subject: RE: [PATCH 3/5 - v3] DaVinci: platform changes to support vpfe
+ camera capture
+Message-ID: <A69FA2915331DC488A831521EAE36FE401548C2C09@dlee06.ent.ti.com>
+References: <1250551146-32543-1-git-send-email-m-karicheri2@ti.com>
+ <200908191404.16404.david-b@pacbell.net>
+In-Reply-To: <200908191404.16404.david-b@pacbell.net>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hermann,
+David,
 
-On Sat, Aug 22, 2009 at 9:54 PM, hermann pitton<hermann-pitton@arcor.de> wrote:
+Agree. I had posted a query and the suggestion I got was to use the patch for i2c mux support to implement this cleanly. But I didn't hear any plan to add this patch to upstream. This patch is already merged to v4l-dvb. I will work on a separate patch to move this code to a daughter card specific code.
+
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+new phone: 301-407-9583
+Old Phone : 301-515-3736 (will be deprecated)
+email: m-karicheri2@ti.com
+
+>-----Original Message-----
+>From: David Brownell [mailto:david-b@pacbell.net]
+>Sent: Wednesday, August 19, 2009 5:04 PM
+>To: davinci-linux-open-source@linux.davincidsp.com
+>Cc: Karicheri, Muralidharan; linux-media@vger.kernel.org
+>Subject: Re: [PATCH 3/5 - v3] DaVinci: platform changes to support vpfe
+>camera capture
 >
-> Am Freitag, den 21.08.2009, 01:49 +0200 schrieb hermann pitton:
->> There is a great maintenance mess for those devices currently.
->>
->> All attempts, to get some further information out of those assumed to be
->> closest to the above manufactures, failed.
->>
->> Against any previous advice, newer products with an additional LNA,
->> which needs to be configured correctly, have been added and we can't
->> make any difference to previous products without LNA.
->>
->> Even more, the type of LNA configuration, either over tuner gain or some
->> on the analog IF demodulator, conflicts within this two devices itself.
->>
->> Since we never had a chance, to see such devices with all details
->> reported to our lists, but might still be able to make eventually a
->> difference, to get out of that mess, we should prefer to start exactly
->> where it started.
+>On Monday 17 August 2009, m-karicheri2@ti.com wrote:
+>>  static struct i2c_board_info dm355evm_i2c_info[] = {
+>>         {       I2C_BOARD_INFO("dm355evm_msp", 0x25),
+>>                 .platform_data = dm355evm_mmcsd_gpios,
+>>         },
+>> +       {
+>> +               I2C_BOARD_INFO("PCA9543A", 0x73),
+>> +       },
+>>         /* { plus irq  }, */
+>>         /* { I2C_BOARD_INFO("tlv320aic3x", 0x1b), }, */
+>>  };
 >
-> Mauro, Douglas,
+>The DM355 EVM board has no PCA9543A I2C multiplexor
+>chip, so this is not a good approach to use.  (*)
 >
-> just mark it as an RFC.
+>If I understand correctly you are configuring some
+>particular add-on board, which uses a chip like that.
+>There are at least two such boards today, yes?  And
+>potentially more.  Don't preclude (or complicate)
+>use of different boards...
 >
-> Seems i lose any interest to follow up such further.
+>The scalable approach is to have a file for each
+>daughtercard, and Kconfig options to enable the
+>support for those cards.  The EVM board init code
+>might call a dm355evm_card_init() routine, and
+>provide a weak binding for it which would be
+>overridden by the
 >
-> Never allow any guys to go out into the wild, ending up with that I have
-> to read their personal web blogs ..., out of lists.
+>- Dave
 >
-> Cheers,
-> Hermann
->
->
->> Signed-off-by: hermann pitton <hermann-pitton@arcor.de>iff -r d0ec20a376fe linux/drivers/media/video/saa7134/saa7134-cards.c
->> --- a/linux/drivers/media/video/saa7134/saa7134-cards.c       Thu Aug 20
->> 01:30:58 2009 +0000
->> +++ b/linux/drivers/media/video/saa7134/saa7134-cards.c       Fri Aug 21
->> 01:28:37 2009 +0200
->> @@ -3242,7 +3242,7 @@
->>               .radio_type     = UNSET,
->>               .tuner_addr     = ADDR_UNSET,
->>               .radio_addr     = ADDR_UNSET,
->> -             .tuner_config   = 1,
->> +             .tuner_config   = 0,
->>               .mpeg           = SAA7134_MPEG_DVB,
->>               .gpiomask       = 0x000200000,
->>               .inputs         = {{
->> @@ -3346,7 +3346,7 @@
->>               .radio_type     = UNSET,
->>               .tuner_addr     = ADDR_UNSET,
->>               .radio_addr     = ADDR_UNSET,
->> -             .tuner_config   = 1,
->> +             .tuner_config   = 0,
->>               .mpeg           = SAA7134_MPEG_DVB,
->>               .gpiomask       = 0x0200100,
->>               .inputs         = {{
->> diff -r d0ec20a376fe linux/drivers/media/video/saa7134/saa7134-dvb.c
->> --- a/linux/drivers/media/video/saa7134/saa7134-dvb.c Thu Aug 20
->> 01:30:58 2009 +0000
->> +++ b/linux/drivers/media/video/saa7134/saa7134-dvb.c Fri Aug 21
->> 01:28:37 2009 +0200
->> @@ -1144,12 +1144,12 @@
->>               break;
->>       case SAA7134_BOARD_PINNACLE_PCTV_310i:
->>               if (configure_tda827x_fe(dev, &pinnacle_pctv_310i_config,
->> -                                      &tda827x_cfg_1) < 0)
->> +                                      &tda827x_cfg_0) < 0)
->>                       goto dettach_frontend;
->>               break;
->>       case SAA7134_BOARD_HAUPPAUGE_HVR1110:
->>               if (configure_tda827x_fe(dev, &hauppauge_hvr_1110_config,
->> -                                      &tda827x_cfg_1) < 0)
->> +                                      &tda827x_cfg_0) < 0)
->>                       goto dettach_frontend;
->>               break;
->>       case SAA7134_BOARD_HAUPPAUGE_HVR1150:
->>
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>(*) Separate issue:  there's ongoing work to get the
+>    I2C stack to support such chips in generic ways;
+>    you should plan to use that work, which ISTR wasn't
+>    too far from being mergeable.
 >
 
-
-NACK.
-
-Please do not change the LNA configuration for the HVR1110 -- I cannot
-speak for the PCTV device, but I looked at the schematics for the
-HVR1110 -- the LNA configuration should not be changed.
-
-Regards,
-
-Mike
