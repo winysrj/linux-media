@@ -1,177 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-06.arcor-online.net ([151.189.21.46]:34261 "EHLO
-	mail-in-06.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932326AbZHDAhK (ORCPT
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:47028 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755165AbZHTSMo convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Aug 2009 20:37:10 -0400
-Subject: Re: Issue with LifeView FlyDVB-T Duo CardBus.
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Francesco Marangoni <fmarangoni@libero.it>
-Cc: linux-media <linux-media@vger.kernel.org>
-In-Reply-To: <KNTLYI$8BE453B10399D2D93F53606CF89555B9@libero.it>
-References: <KNTLYI$8BE453B10399D2D93F53606CF89555B9@libero.it>
-Content-Type: text/plain
-Date: Tue, 04 Aug 2009 02:21:38 +0200
-Message-Id: <1249345298.3258.8.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 20 Aug 2009 14:12:44 -0400
+Received: by bwz19 with SMTP id 19so69800bwz.37
+        for <linux-media@vger.kernel.org>; Thu, 20 Aug 2009 11:12:44 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1250790879.4644.33.camel@sl>
+References: <1250790879.4644.33.camel@sl>
+Date: Thu, 20 Aug 2009 14:12:43 -0400
+Message-ID: <829197380908201112m2c6fac29ve62d3e2bdf035bf2@mail.gmail.com>
+Subject: Re: [PATCH] em28xx: Add entry for GADMEI UTV330+ and related IR codec
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Shine Liu <shinel@foxmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Francesco,
+On Thu, Aug 20, 2009 at 1:54 PM, Shine Liu<shinel@foxmail.com> wrote:
+> Patch to support for the GADMEI UTV330+ board. IR codec this board is
+> also added.
+>
+> Based and tested on linux-2.6.31-rc6
+>
+>
+> Signed-off-by: Shine Liu <shinel@foxmail.com>
+> -----------------------------------------------------------------------
+>
+> --- a/drivers/media/video/em28xx/em28xx-cards.c 2009-08-14 06:43:34.000000000 +0800
+> +++ b/drivers/media/video/em28xx/em28xx-cards.c 2009-08-21 01:31:23.000000000 +0800
+> @@ -558,6 +558,28 @@
+>                        .amux     = EM28XX_AMUX_LINE_IN,
+>                } },
+>        },
+> +       [EM2861_BOARD_GADMEI_UTV330PLUS] = {
+> +               .name         = "Gadmei UTV330+",
+> +               .valid        = EM28XX_BOARD_NOT_VALIDATED,
+> +               .tuner_type   = TUNER_TNF_5335MF,
+> +               .tda9887_conf = TDA9887_PRESENT,
+> +               .ir_codes     = ir_codes_gadimei_rm008z,
+> +               .decoder      = EM28XX_SAA711X,
+> +               .xclk         = EM28XX_XCLK_FREQUENCY_12MHZ,
+> +               .input        = { {
+> +                       .type     = EM28XX_VMUX_TELEVISION,
+> +                       .vmux     = SAA7115_COMPOSITE2,
+> +                       .amux     = EM28XX_AMUX_VIDEO,
+> +               }, {
+> +                       .type     = EM28XX_VMUX_COMPOSITE1,
+> +                       .vmux     = SAA7115_COMPOSITE0,
+> +                       .amux     = EM28XX_AMUX_LINE_IN,
+> +               }, {
+> +                       .type     = EM28XX_VMUX_SVIDEO,
+> +                       .vmux     = SAA7115_SVIDEO3,
+> +                       .amux     = EM28XX_AMUX_LINE_IN,
+> +               } },
+> +       },
+>        [EM2860_BOARD_TERRATEC_HYBRID_XS] = {
+>                .name         = "Terratec Cinergy A Hybrid XS",
+>                .valid        = EM28XX_BOARD_NOT_VALIDATED,
+> @@ -1551,7 +1573,7 @@
+>        { USB_DEVICE(0xeb1a, 0x2860),
+>                        .driver_info = EM2820_BOARD_UNKNOWN },
+>        { USB_DEVICE(0xeb1a, 0x2861),
+> -                       .driver_info = EM2820_BOARD_UNKNOWN },
+> +                       .driver_info = EM2861_BOARD_GADMEI_UTV330PLUS },
+>        { USB_DEVICE(0xeb1a, 0x2870),
+>                        .driver_info = EM2820_BOARD_UNKNOWN },
+>        { USB_DEVICE(0xeb1a, 0x2881),
+> --- a/drivers/media/video/em28xx/em28xx.h       2009-08-14 06:43:34.000000000 +0800
+> +++ b/drivers/media/video/em28xx/em28xx.h       2009-08-21 01:32:16.000000000 +0800
+> @@ -108,6 +108,7 @@
+>  #define EM2882_BOARD_KWORLD_ATSC_315U            69
+>  #define EM2882_BOARD_EVGA_INDTUBE                70
+>  #define EM2820_BOARD_SILVERCREST_WEBCAM           71
+> +#define EM2861_BOARD_GADMEI_UTV330PLUS           72
+>
+>  /* Limits minimum and default number of buffers */
+>  #define EM28XX_MIN_BUF 4
+> --- a/drivers/media/common/ir-keymaps.c 2009-08-14 06:43:34.000000000 +0800
+> +++ b/drivers/media/common/ir-keymaps.c 2009-08-21 01:38:25.000000000 +0800
+> @@ -2773,3 +2773,46 @@
+>        [0x13] = KEY_CAMERA,
+>  };
+>  EXPORT_SYMBOL_GPL(ir_codes_evga_indtube);
+> +
+> +/* GADMEI UTV330+ RM008Z remote
+> +   Shine Liu <shinel@foxmail.com>
+> + */
+> +IR_KEYTAB_TYPE ir_codes_gadmei_rm008z[IR_KEYTAB_SIZE] = {
+> +       [ 0x14 ] = KEY_ESC,             /* POWER OFF */
+> +       [ 0x0c ] = KEY_M,               /* MUTE */
+> +
+> +       [ 0x18 ] = KEY_PLAY,            /* TV */
+> +       [ 0x0e ] = KEY_VIDEO,           /* AV */
+> +       [ 0x0b ] = KEY_AUDIO,           /* SV */
+> +       [ 0x0f ] = KEY_RADIO,           /* FM */
+> +
+> +       [ 0x00 ] = KEY_1,
+> +       [ 0x01 ] = KEY_2,
+> +       [ 0x02 ] = KEY_3,
+> +       [ 0x03 ] = KEY_4,
+> +       [ 0x04 ] = KEY_5,
+> +       [ 0x05 ] = KEY_6,
+> +       [ 0x06 ] = KEY_7,
+> +       [ 0x07 ] = KEY_8,
+> +       [ 0x08 ] = KEY_9,
+> +       [ 0x09 ] = KEY_0,
+> +       [ 0x0a ] = KEY_D,               /* OSD */
+> +       [ 0x1c ] = KEY_BACKSPACE,       /* LAST */
+> +
+> +       [ 0x0d ] = KEY_PLAY,            /* PLAY */
+> +       [ 0x1e ] = KEY_S,               /* SNAPSHOT */
+> +       [ 0x1a ] = KEY_RECORD,          /* RECORD */
+> +       [ 0x17 ] = KEY_STOP,            /* STOP */
+> +
+> +       [ 0x1f ] = KEY_UP,              /* UP */
+> +       [ 0x44 ] = KEY_DOWN,            /* DOWN */
+> +       [ 0x46 ] = KEY_TAB,             /* BACK */
+> +       [ 0x4a ] = KEY_F,               /* FULLSECREEN */
+> +
+> +       [ 0x10 ] = KEY_RIGHT,           /* VOLUMEUP */
+> +       [ 0x11 ] = KEY_LEFT,            /* VOLUMEDOWN */
+> +       [ 0x12 ] = KEY_UP,              /* CHANNELUP */
+> +       [ 0x13 ] = KEY_DOWN,            /* CHANNELDOWN */
+> +       [ 0x15 ] = KEY_ENTER,           /* OK */
+> +};
+> +EXPORT_SYMBOL_GPL(ir_codes_gadmei_rm008z);
+> --- a/include/media/ir-common.h 2009-08-14 06:43:34.000000000 +0800
+> +++ b/include/media/ir-common.h 2009-08-21 01:41:01.000000000 +0800
+> @@ -163,6 +163,7 @@
+>  extern IR_KEYTAB_TYPE ir_codes_kaiomy[IR_KEYTAB_SIZE];
+>  extern IR_KEYTAB_TYPE ir_codes_dm1105_nec[IR_KEYTAB_SIZE];
+>  extern IR_KEYTAB_TYPE ir_codes_evga_indtube[IR_KEYTAB_SIZE];
+> +extern IR_KEYTAB_TYPE ir_codes_gadmei_rm008z[IR_KEYTAB_SIZE];
+>
+>  #endif
+>
+> --- a/Documentation/video4linux/CARDLIST.em28xx 2009-08-14 06:43:34.000000000 +0800
+> +++ b/Documentation/video4linux/CARDLIST.em28xx 2009-08-21 01:45:35.000000000 +0800
+> @@ -67,3 +67,4 @@
+>  69 -> KWorld ATSC 315U HDTV TV Box             (em2882)        [eb1a:a313]
+>  70 -> Evga inDtube                             (em2882)
+>  71 -> Silvercrest Webcam 1.3mpix               (em2820/em2840)
+> + 72 -> Gadmei UTV330+                           (em2861)        [eb1a:2861]
 
-Am Montag, den 03.08.2009, 23:49 +0200 schrieb Francesco Marangoni:
-> Dear sirs,
-> 
-> I'm not able to make my pcmcia LifeView DVB-T Duo Cardbus working on Ununtu 8.04 LTS kernel 2.6.24.24.
-> 
-> The card seems to be detected but the DVB channel detection fails (using Kaffeine too).
-> 
-> Here the output of some commands: Can Youhelp me?
-> 
-> francesco@ubuntu:~$ lspci
-> 00:00.0 Host bridge: Intel Corporation 440BX/ZX/DX - 82443BX/ZX/DX Host bridge (rev 03)
-> 00:01.0 PCI bridge: Intel Corporation 440BX/ZX/DX - 82443BX/ZX/DX AGP bridge (rev 03)
-> 00:07.0 Bridge: Intel Corporation 82371AB/EB/MB PIIX4 ISA (rev 02)
-> 00:07.1 IDE interface: Intel Corporation 82371AB/EB/MB PIIX4 IDE (rev 01)
-> 00:07.2 USB Controller: Intel Corporation 82371AB/EB/MB PIIX4 USB (rev 01)
-> 00:07.3 Bridge: Intel Corporation 82371AB/EB/MB PIIX4 ACPI (rev 03)
-> 00:0a.0 CardBus bridge: Texas Instruments PCI1420 PC card Cardbus Controller
-> 00:0a.1 CardBus bridge: Texas Instruments PCI1420 PC card Cardbus Controller
-> 00:0b.0 Ethernet controller: 3Com Corporation 3c556 Hurricane CardBus [Cyclone] (rev 10)
-> 00:0b.1 Communication controller: 3Com Corporation Mini PCI 56k Winmodem (rev 10)
-> 00:0d.0 Multimedia audio controller: ESS Technology ES1983S Maestro-3i PCI Audio Accelerator
-> 01:00.0 VGA compatible controller: ATI Technologies Inc Rage Mobility P/M AGP 2x (rev 64)
-> 02:00.0 Multimedia controller: Philips Semiconductors SAA7133/SAA7135 Video Broadcast Decoder (rev d0)
-> 
-> francesco@ubuntu:~$ dmesg | grep saa | more
-> [   46.176353] saa7130/34: v4l2 driver version 0.2.14 loaded
-> [   46.176618] saa7133[0]: quirk: PCIPCI_NATOMA
-> [   46.176628] saa7133[0]: found at 0000:02:00.0, rev: 208, irq: 10, latency: 0, mmio: 0x24000000
-> [   46.176653] saa7133[0]: subsystem: 5168:0502, board: LifeView/Typhoon/Genius FlyDVB-T Duo Cardbus [card=60,insmod option]
-> [   46.176681] saa7133[0]: board init: gpio is 8210000
-> [   46.280562] saa7133[0]: i2c eeprom 00: 68 51 02 05 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
-> [   46.280587] saa7133[0]: i2c eeprom 10: 00 ff 22 0f ff 20 ff ff ff ff ff ff ff ff ff ff
-> [   46.280607] saa7133[0]: i2c eeprom 20: 01 40 01 03 03 01 01 03 08 ff 01 aa ff ff ff ff
-> [   46.280627] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> [   46.280646] saa7133[0]: i2c eeprom 40: ff 25 00 c0 ff 10 07 01 c2 96 00 16 22 15 ff ff
-> [   46.280665] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> [   46.280685] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> [   46.280704] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> [   46.321890] saa7133[0]: registered device video0 [v4l2]
-> [   46.321945] saa7133[0]: registered device vbi0
-> [   46.321996] saa7133[0]: registered device radio0
-> [   46.609615] saa7133[0]/dvb: no tda827x tuner found at addr: 60
-> [   46.609624] DVB: registering new adapter (saa7133[0])
-> [  238.981774] saa7133[0]: dsp access error
-> [  238.981801] saa7133[0]: dsp access error
-> [  238.981820] saa7133[0]: dsp access error
-> [  238.981824] saa7133[0]: dsp access error
-> [  238.981837] saa7133[0]: dsp access error
-> [  238.981841] saa7133[0]: dsp access error
-> [  238.981854] saa7133[0]: dsp access error
-> [  238.981858] saa7133[0]: dsp access error
-> [  238.981871] saa7133[0]: dsp access error
-> [  238.981875] saa7133[0]: dsp access error
-> [  238.981887] saa7133[0]: dsp access error
-> [  238.981892] saa7133[0]: dsp access error
-> [  238.981904] saa7133[0]: dsp access error
-> [  238.981909] saa7133[0]: dsp access error
-> [  238.981921] saa7133[0]: dsp access error
-> [  238.981926] saa7133[0]: dsp access error
-> [  238.981938] saa7133[0]: dsp access error
-> [  238.981942] saa7133[0]: dsp access error
-> [  238.981955] saa7133[0]: dsp access error
-> [  238.981959] saa7133[0]: dsp access error
-> [  238.981972] saa7133[0]/irq[10,76507]: r=0xffffffff s=0xffffffff DONE_RA0 DONE_RA1 DONE_RA2 DONE_RA3 AR PE PWR_ON RDCAP INT
-> ....
-> [  238.993258] saa7133[0]: dsp access error
-> [  238.993263] saa7133[0]: dsp access error
-> [  238.993275] saa7133[0]: dsp access error
-> [  238.993280] saa7133[0]: dsp access error
-> [  238.993292] saa7133[0]: dsp access error
-> [  238.993297] saa7133[0]: dsp access error
-> [  238.993309] saa7133[0]: dsp access error
-> [  238.993314] saa7133[0]: dsp access error
-> [  238.993326] saa7133[0]: dsp access error
-> [  238.993330] saa7133[0]: dsp access error
-> [  238.993343] saa7133[0]: dsp access error
-> [  238.993347] saa7133[0]: dsp access error
-> [  238.993359] saa7133[0]/irq[10,76514]: r=0xffffffff s=0xffffffff DONE_RA0 DONE_RA1 DONE_RA2 DONE_RA3 AR PE PWR_ON RDCAP INT
-> L FIDT MMC TRIG_ERR CONF_ERR LOAD_ERR GPIO16? GPIO18 GPIO22 GPIO23 | RA0=vbi,b,odd,15
-> [  238.993385] saa7133[0]/irq: looping -- clearing PE (parity error!) enable bit
-> [  640.875510] saa7133[0]: quirk: PCIPCI_NATOMA
-> [  640.875520] saa7133[0]: found at 0000:02:00.0, rev: 208, irq: 10, latency: 0, mmio: 0x24000000
-> [  640.875544] saa7133[0]: subsystem: 5168:0502, board: LifeView/Typhoon/Genius FlyDVB-T Duo Cardbus [card=60,insmod option]
-> [  640.875577] saa7133[0]: board init: gpio is 8210000
-> [  641.010947] saa7133[0]: i2c eeprom 00: 68 51 02 05 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
-> [  641.010978] saa7133[0]: i2c eeprom 10: 00 ff 22 0f ff 20 ff ff ff ff ff ff ff ff ff ff
-> [  641.010997] saa7133[0]: i2c eeprom 20: 01 40 01 03 03 01 01 03 08 ff 01 aa ff ff ff ff
-> [  641.011016] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> [  641.011034] saa7133[0]: i2c eeprom 40: ff 25 00 c0 ff 10 07 01 c2 96 00 16 22 15 ff ff
-> [  641.011052] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> [  641.011070] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> [  641.011088] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> [  641.108271] saa7133[0]: registered device video0 [v4l2]
-> [  641.108329] saa7133[0]: registered device vbi0
-> [  641.108378] saa7133[0]: registered device radio0
-> [  641.492916] saa7133[0]/dvb: no tda827x tuner found at addr: 60
-> [  641.492925] DVB: registering new adapter (saa7133[0])
-> 
-> 
-> I did all is described in http://www.linuxtv.org/repo/ but this is the output of Make and Make install:
-> 
-> francesco@ubuntu:~/v4l-dvb$ make
-> make -C /home/francesco/v4l-dvb/v4l 
-> make[1]: Entering directory `/home/francesco/v4l-dvb/v4l'
-> Updating/Creating .config
-> Preparing to compile for kernel version 2.6.24
-> File not found: /lib/modules/2.6.24-24-generic/build/.config at ./scripts/make_kconfig.pl line 32, <IN> line 4.
-> make[1]: *** No rule to make target `.myconfig', needed by `config-compat.h'.  Stop.
-> make[1]: Leaving directory `/home/francesco/v4l-dvb/v4l'
-> make: *** [all] Error 2
-> 
-> francesco@ubuntu:~/v4l-dvb$ make install
-> make -C /home/francesco/v4l-dvb/v4l install
-> make[1]: Entering directory `/home/francesco/v4l-dvb/v4l'
-> -e 
-> Removing obsolete files from /lib/modules/2.6.24-24-generic/kernel/drivers/media/video:
-> 
-> -e 
-> Removing obsolete files from /lib/modules/2.6.24-24-generic/kernel/drivers/media/dvb/cinergyT2:
-> 
-> -e 
-> Removing obsolete files from /lib/modules/2.6.24-24-generic/kernel/drivers/media/dvb/frontends:
-> 
-> 
-> Hmm... distro kernel with a non-standard place for module backports detected.
-> Please always prefer to use vanilla upstream kernel with V4L/DVB
-> I'll try to remove old/obsolete LUM files from /lib/modules/2.6.24-24-generic/ubuntu/media:
-> Installing kernel modules under /lib/modules/2.6.24-24-generic/kernel/drivers/media/:
-> /sbin/depmod -a 2.6.24-24-generic 
-> FATAL: Could not open /lib/modules/2.6.24-24-generic/modules.dep.temp for writing: Permission denied
-> make[1]: *** [media-install] Error 1
-> make[1]: Leaving directory `/home/francesco/v4l-dvb/v4l'
-> make: *** [install] Error 2
-> francesco@ubuntu:~/v4l-dvb$ 
-> 
-> Any suggestions?
-> 
-> Thanks.
+Hello Shine,
 
-did it ever work for you or does it still on something?
+This patch has a problem.  Your change makes it so that any device
+that uses the default Empia USB ID will become the Gademi board, which
+will cause breakage.
 
-First impression is, that the tuner chip melt down.
+When vendors don't assign their own USB ID, we rely on either the
+eeprom has or i2c_hash field to make the assignment.  You will need to
+add an entry to the i2c_hash list in order for your patch to be
+accepted upstream.
 
-If the card was in for while, with the driver loaded, is it still very
-hot close to the antenna connector, if ejected then?
+Also, you have the .valid field set to indicate the board is not
+validated.  Since presumably you have tested the product with your
+patch, this field should not be set.
 
-The first generations of the tuner chips have been good enough to fry
-eggs on them.
+Once those two issues are addressed, I don't see any reason this can't
+be accepted upstream.
 
 Cheers,
-Hermann
+
+Devin
 
 
-
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
