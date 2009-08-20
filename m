@@ -1,55 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from server50105.uk2net.com ([83.170.97.106]:39239 "EHLO
-	mail.autotrain.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933188AbZHEJ7i (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Aug 2009 05:59:38 -0400
-Date: Wed, 5 Aug 2009 10:59:37 +0100 (BST)
-From: Tim Williams <tmw@autotrain.org>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2451 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755031AbZHTSPv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Aug 2009 14:15:51 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id n7KIFptd030764
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 20 Aug 2009 20:15:52 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 20 Aug 2009 20:15:51 +0200 (CEST)
+Message-Id: <200908201815.n7KIFptd030764@smtp-vbr16.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Recieving DVB-C with DVB-T units
-In-Reply-To: <42619c130908042315i11e84df1m462802482c4cbf79@mail.gmail.com>
-Message-ID: <alpine.LRH.2.00.0908051054570.11085@server50105.uk2net.com>
-References: <42619c130908040607h13afb69exe74145cd4ec4fc1e@mail.gmail.com> <alpine.DEB.2.01.0908050244070.29385@ybpnyubfg.ybpnyqbznva> <42619c130908042315i11e84df1m462802482c4cbf79@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-2050145233-1249466377=:11085"
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
---8323328-2050145233-1249466377=:11085
-Content-Type: TEXT/PLAIN; charset=iso-8859-1; format=flowed
-Content-Transfer-Encoding: 8BIT
+Results of the daily build of v4l-dvb:
 
-On Wed, 5 Aug 2009, Christian Wattengård wrote:
+date:        Thu Aug 20 19:00:07 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12492:d0ec20a376fe
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-> Ok. Too bad. Then why are DVB-T units, that needs more technology,
-> half the price of DVB-C units... Annoys me... :)
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-rc5-armv5: OK
+linux-2.6.27-armv5-ixp: ERRORS
+linux-2.6.28-armv5-ixp: ERRORS
+linux-2.6.29.1-armv5-ixp: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-rc5-armv5-ixp: OK
+linux-2.6.28-armv5-omap2: ERRORS
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-rc5-armv5-omap2: OK
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: ERRORS
+linux-2.6.27-i686: ERRORS
+linux-2.6.28-i686: ERRORS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-rc5-i686: OK
+linux-2.6.23.12-m32r: ERRORS
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-rc5-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-rc5-mips: OK
+linux-2.6.27-powerpc64: ERRORS
+linux-2.6.28-powerpc64: ERRORS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-rc5-powerpc64: OK
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: ERRORS
+linux-2.6.27-x86_64: ERRORS
+linux-2.6.28-x86_64: ERRORS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-rc5-x86_64: OK
+sparse (linux-2.6.30): OK
+sparse (linux-2.6.31-rc5): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-That's probably down to economies of scale. Most people who have cable 
-will have been supplied with a receiver box by their cable company, so 
-buying a PCI/USB card for the computer will be an addtional option for 
-most cable users, that the majority don't want/need. Where as for DVB-T 
-you pick your own equipment at the shop, so you may well go for 
-the PCI/USB adapter as the first option.
+Detailed results are available here:
 
-Tim W
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
--- 
-Tim Williams BSc MSc MBCS
-Euromotor Autotrain LLP
-58 Jacoby Place
-Priory Road
-Edgbaston
-Birmingham
-B5 7UW
-United Kingdom
+Full logs are available here:
 
-Web : http://www.autotrain.org
-Tel : +44 (0)121 414 2214
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-EuroMotor-AutoTrain is a company registered in the UK, Registration
-number: OC317070.
---8323328-2050145233-1249466377=:11085--
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
