@@ -1,84 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.25]:28760 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751771AbZHYJWr convert rfc822-to-8bit (ORCPT
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:42818 "EHLO
+	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750945AbZHTPiq convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2009 05:22:47 -0400
-Received: by ey-out-2122.google.com with SMTP id 22so776008eye.37
-        for <linux-media@vger.kernel.org>; Tue, 25 Aug 2009 02:22:47 -0700 (PDT)
+	Thu, 20 Aug 2009 11:38:46 -0400
+Received: by fxm17 with SMTP id 17so523309fxm.37
+        for <linux-media@vger.kernel.org>; Thu, 20 Aug 2009 08:38:47 -0700 (PDT)
 MIME-Version: 1.0
-Date: Tue, 25 Aug 2009 13:22:47 +0400
-Message-ID: <b6837d750908250222q98f34adgb80ff36d91c421b5@mail.gmail.com>
-Subject: Prolems with RoverMedia Tv Link Pro(LifeView FlyVIDEO3000) and recent
-	kernels
-From: =?KOI8-R?B?5dfHxc7JyiDgxMnO?= <eugene.yudin@gmail.com>
-To: linux-media@vger.kernel.org
+In-Reply-To: <4A8D4984.4000309@kernellabs.com>
+References: <20090819232002.a941c388.kosio.dimitrov@gmail.com>
+	 <4A8D4984.4000309@kernellabs.com>
+Date: Thu, 20 Aug 2009 18:38:46 +0300
+Message-ID: <8103ad500908200838v3b456052re0f3a17b06b523f@mail.gmail.com>
+Subject: Re: [PATCH] cx23885: fix support for TBS 6920 card
+From: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+To: Steven Toth <stoth@kernellabs.com>
+Cc: linux-media@vger.kernel.org, bob@turbosight.com
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Sorry my bad english. I have tv-tuner card RoverMedia TV Link Pro FM.
-Help me, please.
+On Thu, Aug 20, 2009 at 4:03 PM, Steven Toth<stoth@kernellabs.com> wrote:
+> On 8/19/09 7:20 PM, Konstantin Dimitrov wrote:
+>>
+>> fix: GPIO initialization for TBS 6920
+>> fix: wrong I2C address for demod on TBS 6920
+>> fix: wrong I2C bus number for demod on TBS 6920
+>> fix: wrong "gen_ctrl_val" value for TS1 port on TBS 6920 (and some other
+>> cards)
+>> add: module_param "lnb_pwr_ctrl" as option to choose between "type 0" and
+>> "type 1" of LNB power control (two TBS 6920 boards no matter that they are
+>> marked as the same hardware revision may have different types of LNB power
+>> control)
+>> fix: LNB power control function for type 0 doesn't preserve the previous
+>> GPIO state, which is critical
+>> add: LNB power control function for type 1
+>>
+>> Signed-off-by: Bob Liu<bob@turbosight.com>
+>> Signed-off-by: Konstantin Dimitrov<kosio.dimitrov@gmail.com>
+>
+> I got a weird HTML related email bounce from vger when I responded
+> originally to this via gmail. Maybe this time via thunderbird will bring
+> success.
+>
+> ...
+>
+> Hmm. A custom hanging off of a gpio to something that looks like an i2c
+> power control device. I want to review some of these generic (and
+> no-so-generic) changes before we merge this patch.
+>
+> Is the datasheet for the LNB power control device available to the public?
+> I'd like to understand some of the register details.
 
-This card is a clone of LifeView FlyVIDEO3000 with Philips FMD1216ME
-MK3 Hybrid Tuner(card=2 and tuner=63).
-All work greatly before upgrating to kernel 2.6.30. My tvtime don't
-showing any channels. Look like module saa7134 ignore tuner setting.
-Radio also don't working. Later I'm build latest v4l-dvb driver from
-hg, but i have similar results.
+the datasheet is not available at least to me and i don't know any
+more details. the code in question was given to me by the author under
+GPLv2 license and that's why i put it in separate file
+"tbs_lnb_pwr.c".
 
-For now my distrubutive is Arch Linux. At the past i used ubuntu and i
-have similar problems with kernel 2.6.30.
+also, the cards that use this type of LNB power control, which i
+called for short "type 1", have the same device IDs as the one that
+don't use it and use "type 0" of LNB power control instead.
 
-A'm loading module as:
-[eugene@arch ~]$ sudo modprobe saa7134 tuner=63 card=2 alsa=0 secam=dk
+--konstantin
 
-My system:
-[eugene@arch ~]$ uname -a
-Linux arch 2.6.30-ARCH #1 SMP PREEMPT Mon Aug 17 18:04:53 CEST 2009
-i686 AMD Athlon(tm) XP 2800+ AuthenticAMD GNU/Linux
-
-My dmesg:
-[eugene@arch ~]$ dmesg | grep saa
-saa7130/34: v4l2 driver version 0.2.15 loaded
-saa7134[0]: found at 0000:01:07.0, rev: 1, irq: 19, latency: 32, mmio:
-0xea000000
-saa7134[0]: subsystem: 19d1:0138, board: LifeView FlyVIDEO3000
-[card=2,insmod option]
-saa7134[0]: board init: gpio is 39000
-saa7134[0]: there are different flyvideo cards with different tuners
-saa7134[0]: out there, you might have to use the tuner=<nr> insmod
-saa7134[0]: option to override the default value.
-input: saa7134 IR (LifeView FlyVIDEO30 as
-/devices/pci0000:00/0000:00:08.0/0000:01:07.0/input/input7
-IRQ 19/saa7134[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-saa7134[0]: i2c eeprom 00: d1 19 38 01 10 28 ff ff ff ff ff ff ff ff ff ff
-saa7134[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-tuner 2-0043: chip found @ 0x86 (saa7134[0])
-saa7134[0]: registered device video0 [v4l2]
-saa7134[0]: registered device vbi0
-saa7134[0]: registered device radio0
-
-[eugene@arch ~]$ lspci
-01:07.0 Multimedia controller: Philips Semiconductors
-SAA7134/SAA7135HL Video Broadcast Decoder (rev 01)
-
-Similar situations are listed at at
-http://linuxforum.ru/index.php?showtopic=94769 at russian language.
-
-With Best regards, Eugene
+>
+> Thanks,
+>
+> --
+> Steven Toth - Kernel Labs
+> http://www.kernellabs.com
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
