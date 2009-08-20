@@ -1,72 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:51571 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933836AbZHHLXQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Aug 2009 07:23:16 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv15 0/8] FM Transmitter (si4713) and another changes
-Date: Sat,  8 Aug 2009 14:10:25 +0300
-Message-Id: <1249729833-24975-1-git-send-email-eduardo.valentin@nokia.com>
+Received: from znsun1.ifh.de ([141.34.1.16]:56767 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752984AbZHTHDG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Aug 2009 03:03:06 -0400
+Date: Thu, 20 Aug 2009 09:01:44 +0200 (CEST)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Andy Walls <awalls@radix.net>
+cc: Greg KH <greg@kroah.com>, "Rafael J. Wysocki" <rjw@sisk.pl>,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	pm list <linux-pm@lists.linux-foundation.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: Re: linux-next: suspend tree build warnings
+In-Reply-To: <1250729056.2716.37.camel@morgan.walls.org>
+Message-ID: <alpine.LRH.1.10.0908200859060.7249@pub3.ifh.de>
+References: <20090819172419.2cf53008.sfr@canb.auug.org.au>  <200908192338.03910.rjw@sisk.pl>  <20090819233601.GA2875@kroah.com> <1250729056.2716.37.camel@morgan.walls.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello guys,
+Hi,
 
-Here is v15 of first FM TX driver.
+On Wed, 19 Aug 2009, Andy Walls wrote:
+>> Ick.  struct device should _never_ be on the stack, why would this code
+>> want to do such a thing?
 
-Changes from v14 are:
-- Use proper errno in string control handling (change from EINVAL to ERANGE)
-- Change ordering of RDS_TX controls. DEVIATION is now first control. This
-was updated in videodev2.h, platform driver and documentation.
-- Added FM TX class reference in vidioc-g-ext-ctrls.sgml
-- Fixed a null pointer reference in I2C driver, in one of its error paths
-inside probe function.
-- Propagation of errno is now done properly for s/g_ext_ctrls
+When you are doing a thing it does not necessarily you know that you're 
+doing it.
 
-As usual, comments are wellcome !
+> It appears that the state object is a dummy being used to detect and
+> twiddle some identical chips on the i2c bus.  The functions called only
+> use the "i2c_adapter" and "cfg" member of the dummy state object, but
+> those functions want that state object as an input argument.
+>
+> <obvious>
+> The simplest fix is dynamic allocation of the dummy state object with
+> kmalloc() and then to free it before exiting the function.
+> </obvious>
 
-Thanks you all for the good reviewing work.
+Even more obvious: Fix the function with simpler code to do the same 
+thing.
 
-BR,
+I will try to fetch some time from somewhere to work on it.
 
-Eduardo Valentin (8):
-  v4l2-subdev.h: Add g_modulator callbacks to subdev api
-  v4l2: video device: Add V4L2_CTRL_CLASS_FM_TX controls
-  v4l2: video device: Add FM TX controls default configurations
-  v4l2-spec: Add documentation description for FM TX extended control
-    class
-  FM TX: si4713: Add files to add radio interface for si4713
-  FM TX: si4713: Add files to handle si4713 i2c device
-  FM TX: si4713: Add Kconfig and Makefile entries
-  FM TX: si4713: Add document file
+--
 
- linux/Documentation/video4linux/si4713.txt      |  176 ++
- linux/drivers/media/radio/Kconfig               |   22 +
- linux/drivers/media/radio/Makefile              |    2 +
- linux/drivers/media/radio/radio-si4713.c        |  367 ++++
- linux/drivers/media/radio/si4713-i2c.c          | 2067 +++++++++++++++++++++++
- linux/drivers/media/radio/si4713-i2c.h          |  237 +++
- linux/drivers/media/video/v4l2-common.c         |   50 +
- linux/drivers/media/video/v4l2-compat-ioctl32.c |    8 +-
- linux/include/linux/videodev2.h                 |   34 +
- linux/include/media/radio-si4713.h              |   30 +
- linux/include/media/si4713.h                    |   49 +
- linux/include/media/v4l2-subdev.h               |    2 +
- v4l2-spec/Makefile                              |    1 +
- v4l2-spec/controls.sgml                         |  215 +++
- v4l2-spec/vidioc-g-ext-ctrls.sgml               |    7 +
- 15 files changed, 3266 insertions(+), 1 deletions(-)
- create mode 100644 linux/Documentation/video4linux/si4713.txt
- create mode 100644 linux/drivers/media/radio/radio-si4713.c
- create mode 100644 linux/drivers/media/radio/si4713-i2c.c
- create mode 100644 linux/drivers/media/radio/si4713-i2c.h
- create mode 100644 linux/include/media/radio-si4713.h
- create mode 100644 linux/include/media/si4713.h
-
+Patrick 
+http://www.kernellabs.com/
