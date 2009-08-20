@@ -1,66 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:45755 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750778AbZHaJ5C (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Aug 2009 05:57:02 -0400
-Date: Mon, 31 Aug 2009 11:57:11 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <j.w.r.degoede@hhs.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC] Pixel format definition on the "image" bus
-In-Reply-To: <3e6334da11a2c64cce09bf694dc3b29a.squirrel@webmail.xs4all.nl>
-Message-ID: <Pine.LNX.4.64.0908311149400.4189@axis700.grange>
-References: <Pine.LNX.4.64.0908261452460.7670@axis700.grange>   
- <200908270851.27073.hverkuil@xs4all.nl>    <Pine.LNX.4.64.0908270857230.4808@axis700.grange>
-    <6d6c955a28219f061dd31af4e0473415.squirrel@webmail.xs4all.nl>   
- <Pine.LNX.4.64.0908271017280.4808@axis700.grange>   
- <2b7b07f52f0ab6fa4d3f1cacc19bf31f.squirrel@webmail.xs4all.nl>   
- <Pine.LNX.4.64.0908311113520.4189@axis700.grange>
- <3e6334da11a2c64cce09bf694dc3b29a.squirrel@webmail.xs4all.nl>
+Received: from mail-ew0-f207.google.com ([209.85.219.207]:60446 "EHLO
+	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754292AbZHTWQl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Aug 2009 18:16:41 -0400
+Received: by ewy3 with SMTP id 3so248681ewy.18
+        for <linux-media@vger.kernel.org>; Thu, 20 Aug 2009 15:16:42 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <4A8C076C.8040109@deuromedia.com>
+References: <4A8C076C.8040109@deuromedia.com>
+Date: Thu, 20 Aug 2009 18:16:41 -0400
+Message-ID: <37219a840908201516p23f5164fs98ad7f8267362d85@mail.gmail.com>
+Subject: Re: V4L-DVB issue in systems with >4Gb RAM?
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: h.ungar@deuromedia.com
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Manfred Petz <m.petz@deuromedia.com>,
+	Gerhard Achs <g.achs@deuromedia.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 31 Aug 2009, Hans Verkuil wrote:
+On Wed, Aug 19, 2009 at 10:08 AM, Helmut Ungar<h.ungar@deuromedia.com> wrote:
+>
+> Hi,
+>
+> we are experiencing a problem with the V4L-DVB drivers.
+> It seems that when the system has over 4Gb the drivers
+> do no longer work properly. Either nothing or rubbish comes out of them,
+> although tuning using szap seems to
+> work. If we force the system to use only 4Gb by appending
+> mem=4GB as a kernel parameter things are working like a
+> charm.
+>
+> Our setup:
+> Dell 2850 server with a Magma PCI extender. There are 6 DVB boards in the
+> machine: 5 KNC TV STAR DVB-S and 1 Hauppauge Nova-S-Plus DVB-S.
+> The system has 8GB of RAM and runs an up-to-date Centos5.3, kernel
+> 2.6.18-128.4.1.el5 x86_64. The V4L-DVB driver we are using is
+> v4l-dvb-2009.08.18.tar.bz2
+> On this setup some of the KNC boards are working, the Hauppauge
+> does not. In a similar setup where we have only KNCs none
+> of them is working unless you force the system to use 4Gb of the available
+> memory.
+>
+> I would like to know if this is a known issue and if so
+> what can be done to fix/work around the problem.
+>
+> Any help/suggestion/hint is highly welcome.
+> Thanks in advance!
+> Kind regards,
+> Helmut
 
-> 
-> > On Thu, 27 Aug 2009, Hans Verkuil wrote:
-> >
-> >> It's my opinion that we have to be careful in trying to be too
-> >> intelligent. There is simply too much variation in hardware out there to
-> >> ever hope to be able to do that.
-> >
-> > An opinion has been expressed, that my proposed API was too complex, that,
-> > for example, the .packing parameter was not needed. Just to give an
-> > argument, why it is indeed needed, OMAP 3 can pack raw 10, 12, (and 14?)
-> > bit data in two ways in RAM, so, a sensor would use the .packing parameter
-> > to specify how its data has to be arranged in RAM to produce a specific
-> > fourcc code.
-> 
-> One thing that I do not understand in your proposal: how would a sensor
-> know how its data is going to be arranged in RAM? It knows nothing about
-> that. It can just transport the image data over the data pins in a certain
-> number of formats, but how those are eventually arranged in RAM is
-> something that only the bridge driver will know.
-> 
-> A sensor should tell how its data is transported over the data pins, not
-> what it will look like in RAM.
+I have a server with three cx23885-based PCI-E boards, one of them
+single tuner, the other two with dual tuners.  This server has 8G RAM.
+ The single tuner is a Hauppauge board and the dual tuners are DViCO
+boards.  (I chose this setup for maximum tuner capacity and brand
+diversity for the sake of testing -- I plan to replace the DViCO
+boards with two HVR2250's)
 
-Yes, in a way. We agree, that we describe the data from the sensor on the 
-image bus with a unique ID (data format code enum), right? Now, what does 
-this ID tell us? It should tell us what we can get from this format in 
-RAM, right? Since codes are unique, this information should be globally 
-available. That's why I'm decoding format codes into (RAM) format 
-descriptors centrally in v4l2-imagebus.c. And then hosts can use those 
-descriptors to decide which packing to use to obtain the required fourcc 
-in RAM.
+So, in summary, my 8G system has five digital tuners and I am not
+experiencing the problems that you report.  I doubt the issue is
+within the v4l-dvb subsystem.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Good luck,
+
+Mike Krufky
