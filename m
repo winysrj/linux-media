@@ -1,111 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f173.google.com ([209.85.211.173]:38424 "EHLO
-	mail-yw0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759159AbZHROHE convert rfc822-to-8bit (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:45754 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755174AbZHTV2R convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2009 10:07:04 -0400
-Received: by ywh3 with SMTP id 3so5174121ywh.22
-        for <linux-media@vger.kernel.org>; Tue, 18 Aug 2009 07:07:05 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20090818110041.GA14710@linuxtv.org>
-References: <bc18792f0908171325s391d9e36nb0ce20f40017678@mail.gmail.com>
-	 <37219a840908171359m152363a2ub377abe6e27ff237@mail.gmail.com>
-	 <20090818110041.GA14710@linuxtv.org>
-Date: Tue, 18 Aug 2009 10:07:04 -0400
-Message-ID: <829197380908180707r3aba262fie192090c653c42be@mail.gmail.com>
-Subject: Re: [linux-dvb] au0828: experimental support for Syntek Teledongle
-	[05e1:0400]
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: linux-media@vger.kernel.org
-Cc: Michael Krufky <mkrufky@kernellabs.com>, linux-dvb@linuxtv.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 20 Aug 2009 17:28:17 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Date: Thu, 20 Aug 2009 16:27:40 -0500
+Subject: RE: [PATCH v1 - 1/5] DaVinci - restructuring code to support vpif
+ capture driver
+Message-ID: <A69FA2915331DC488A831521EAE36FE401548C2BFE@dlee06.ent.ti.com>
+References: <1250283702-5582-1-git-send-email-m-karicheri2@ti.com>
+	<A69FA2915331DC488A831521EAE36FE40145300FC7@dlee06.ent.ti.com>
+	<200908180849.14003.hverkuil@xs4all.nl>
+	<200908180851.06222.hverkuil@xs4all.nl>
+	<A69FA2915331DC488A831521EAE36FE401548C1E27@dlee06.ent.ti.com>
+	<20090818142817.26de0893@pedra.chehab.org>
+	<A69FA2915331DC488A831521EAE36FE401548C23A5@dlee06.ent.ti.com>
+ <20090820013306.696e5dd9@pedra.chehab.org>
+In-Reply-To: <20090820013306.696e5dd9@pedra.chehab.org>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 18, 2009 at 7:00 AM, Johannes Stezenbach<js@linuxtv.org> wrote:
-> I would be interested to know if someone _actually_ managed
-> to break their hardware by using buggy drivers.
+Kevin & Mauro,
 
-The short answer is *absolutely*.
+Do I need to wait or this can be resolved by either of you for my work to proceed?
 
-/me takes off "driver developer hat" and puts on "hardware developer hat"
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+new phone: 301-407-9583
+Old Phone : 301-515-3736 (will be deprecated)
+email: m-karicheri2@ti.com
 
-In a world of flash, eeproms, and software programmable clocks, there
-are all sorts of ways where a driver bug can damage the hardware.
-Looking for some simple examples?
+>-----Original Message-----
+>From: Mauro Carvalho Chehab [mailto:mchehab@infradead.org]
+>Sent: Thursday, August 20, 2009 12:33 AM
+>To: Karicheri, Muralidharan; Kevin Hilman
+>Cc: Karicheri, Muralidharan; Mauro Carvalho Chehab; linux-
+>media@vger.kernel.org; khilman@deeprootsystems.com; Hans Verkuil
+>Subject: Re: [PATCH v1 - 1/5] DaVinci - restructuring code to support vpif
+>capture driver
+>
+>Em Wed, 19 Aug 2009 10:32:07 -0500
+>"Karicheri, Muralidharan" <m-karicheri2@ti.com> escreveu:
+>
+>> Mauro,
+>>
+>> Kevin has approved the architecture part of this patch. When can I expect
+>these to be merged to linux-next?
+>>
+>> Thanks.
+>>
+>> Murali Karicheri
+>> Software Design Engineer
+>> Texas Instruments Inc.
+>> Germantown, MD 20874
+>> email: m-karicheri2@ti.com
+>>
+>> >-----Original Message-----
+>> >From: Karicheri, Muralidharan
+>> >Sent: Tuesday, August 18, 2009 5:51 PM
+>> >To: 'Mauro Carvalho Chehab'
+>> >Cc: Mauro Carvalho Chehab; linux-media@vger.kernel.org; davinci-linux-
+>open-
+>> >source@linux.davincidsp.com; khilman@deeprootsystems.com; Hans Verkuil
+>> >Subject: RE: [PATCH v1 - 1/5] DaVinci - restructuring code to support
+>vpif
+>> >capture driver
+>> >
+>> >Mauro,
+>> >
+>> >Here are the patches from Chaithrika that I am referring to.
+>> >http://www.mail-archive.com/linux-media@vger.kernel.org/msg08254.html
+>
+>There's something wrong with this patch:
+>
+>$ patch -p1 -i 12453a.patch
+>patching file arch/arm/mach-davinci/board-dm646x-evm.c
+>Reversed (or previously applied) patch detected!  Assume -R? [n] y
+>Hunk #1 succeeded at 52 (offset -11 lines).
+>Hunk #2 succeeded at 218 with fuzz 1 (offset -70 lines).
+>Hunk #3 succeeded at 286 with fuzz 2 (offset -14 lines).
+>Hunk #4 FAILED at 293.
+>Hunk #5 succeeded at 254 (offset -79 lines).
+>1 out of 5 hunks FAILED -- saving rejects to file arch/arm/mach-
+>davinci/board-dm646x-evm.c.rej
+>patching file arch/arm/mach-davinci/dm646x.c
+>Hunk #1 succeeded at 40 with fuzz 2 (offset 8 lines).
+>Hunk #2 succeeded at 550 with fuzz 1 (offset -145 lines).
+>Hunk #3 succeeded at 866 with fuzz 1 (offset 12 lines).
+>patching file arch/arm/mach-davinci/include/mach/dm646x.h
+>Hunk #1 succeeded at 47 with fuzz 2 (offset 18 lines).
+>
+>It seems that this patch is not based on my linux-next -git tree. Probably,
+>this patch is dependent on some patch at Kevin tree.
+>
+>Kevin,
+>
+>As this patch touches only arch/arm/ stuff, I suspect that we'll have less
+>conflicts if you could merge this one. From my side:
+>
+>Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>
+>> >http://www.mail-archive.com/linux-media@vger.kernel.org/msg07676.html
+>
+>Hmm... the second patch shows that bisect will be broken with the platform
+>changes. This patch should be fold with the one that renamed the field, or
+>before Kconfig/Makefile changes.
+>
+>I've applied this one on my tree, just before the Kbuild patch.
+>
+>Due to the DaVinci dependency order, I'll need to hold the DaVinci patches
+>at
+>the next upstream window to happen after Russell/Kevin trees, to avoid
+>bisect
+>troubles
+>
+>
+>
+>Cheers,
+>Mauro
 
-1.  Think of the "overclocking" community and what happens when they
-reconfigure a GPU's software controlled clock to perform beyond its
-maximum expected rating without extra cooling.
-
-2.  Think of all the reports of corrupted eeproms you read about on
-the mailing list.  Sure, in many cases a good developer can hack a way
-to reprogram the eeprom in software, but in many cases the board won't
-even come up, so you end up with an RMA.  It's not "damaged" in the
-more traditional sense, but the net effect is the same - the board is
-rendered inoperable and has to be sent back to the manufacturer.
-
-3.  Try loading the xc3028 tuner firmware onto the low power version
-of the chip (xc3028l).  It took me a minute before I realized the
-smell of burning plastic was coming from my tuner.
-
-Don't get me wrong, in many cases things can be designed into the
-hardware to mitigate the effects of software bugs.  In any hardware
-design, your goal is to minimize the return rate, so you build
-failsafes for the most likely to occur problems.  However, in many
-cases this adds additional cost to the BOM, and you make educated
-decisions about the probability of certain classes of failure and
-instead build the reliability into the driver instead (making sure
-that the Windows driver can *never* put the hardware into a state).  A
-random open source developer doesn't know what these sorts of
-decisions were, and would not be able to replicate the corresponding
-checks in a Linux driver.
-
-4.  Ever see a user complaint of how a tuner runs "hot" under Linux
-compared to the same device running under Windows?  Almost certainly
-an improperly GPIO configuration which resulted in a condition such as
-having the digital demod powered on at the same time as the analog
-decoder.  Sure, it will work for a while but you're running the device
-outside of the expected thermal profile and shortening the life of the
-hardware.
-
-The above are just a few *simple* examples.  The nastier ones are
-often too difficult to explain in less than fifty words.
-
-> IANAL but
-> I think that consumer electronics hardware which can be damaged by
-> software is broken by design.  A vendor selling such hardware is
-> stupid because people would return the broken hardware and get
-> a replacement.  I don't see how a vendor could proof that the device
-> was not damaged by an obscure bug in the Windows driver to get
-> around their responsibility to replace broken hardware within
-> the warranty period.
-
-Yeah, you're right.  Usually they cannot tell right away and will
-perform an RMA.  And the board will end up on a lab bench with a
-hardware engineering isolating which component failed, and then
-working with the driver developer trying to figure out how the hell
-their Windows driver put the board in such a state.  The risk of
-trusting some random Linux developer's driver work is a reason why
-some vendors don't want to support Linux.  If I were a vendor, and I
-endorsed a Linux driver written by someone without the appropriate
-knowledge of the hardware, I could end up with large number of product
-returns, and I would incur the cost of those losses.
-
-Also, in many cases the board doesn't burn out immediately.  But
-because of crappy drivers it takes three or four months to burn out,
-and the result is a board that is designed to run without problems for
-tens of thousands of hours dies in a significantly shorter time.
-
-Good device driver developers realize and accept this risk whenever
-they attempt to write a reverse engineered driver.   I certainly don't
-want to discourage people from learning how to write Linux drivers for
-tuners, but caveat emptor - you can end up permanently damaging your
-hardware.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
