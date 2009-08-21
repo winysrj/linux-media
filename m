@@ -1,34 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fmmailgate03.web.de ([217.72.192.234]:57019 "EHLO
-	fmmailgate03.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751568AbZHANXa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Aug 2009 09:23:30 -0400
-Received: from smtp08.web.de (fmsmtp08.dlan.cinetic.de [172.20.5.216])
-	by fmmailgate03.web.de (Postfix) with ESMTP id 3F9F6109505A8
-	for <linux-media@vger.kernel.org>; Sat,  1 Aug 2009 15:23:30 +0200 (CEST)
-Received: from [217.228.207.67] (helo=[172.16.99.2])
-	by smtp08.web.de with asmtp (TLSv1:AES256-SHA:256)
-	(WEB.DE 4.110 #277)
-	id 1MXEYc-0004ry-00
-	for linux-media@vger.kernel.org; Sat, 01 Aug 2009 15:23:30 +0200
-Message-ID: <4A7441CE.5000200@magic.ms>
-Date: Sat, 01 Aug 2009 15:23:26 +0200
-From: emagick@magic.ms
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:45453 "EHLO
+	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752033AbZHUDDq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Aug 2009 23:03:46 -0400
+Received: by fxm17 with SMTP id 17so260905fxm.37
+        for <linux-media@vger.kernel.org>; Thu, 20 Aug 2009 20:03:46 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Patch for  stack/DMA problems in Cinergy T2 drivers (2)
-References: <4A735330.1000406@magic.ms> <20090731214046.GA28139@linuxtv.org> <4A73FC6F.8000709@magic.ms>
-In-Reply-To: <4A73FC6F.8000709@magic.ms>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+In-Reply-To: <1250822966.5248.6.camel@shinel>
+References: <1250822966.5248.6.camel@shinel>
+Date: Thu, 20 Aug 2009 23:03:46 -0400
+Message-ID: <829197380908202003o2c72c0a4m50fd5e5bbdb1b1d9@mail.gmail.com>
+Subject: Re: [PATCH] em28xx: Don't call em28xx_ir_init when disable_ir is true
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: shinel@foxmail.com
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I've found another bug in the Cinergy T2 driver: originally (ie, e.g. in
-kernel 2.6.23), the structure containing "struct dvbt_set_parameters_msg param"
-was allocated with kzalloc, now "struct dvbt_set_parameters_msg param" lives
-on the stack. However, the "flags" member of that structure is not initialized
-to zero (as was done by kzalloc)!
+On Thu, Aug 20, 2009 at 10:49 PM, Shine Liu<shinel@foxmail.com> wrote:
+> I think we should call em28xx_ir_init(dev) when disable_ir is true.
+> Following patch will fix the bug.
+>
+> Cheers,
+>
+> Shine
 
--emagick
+Yeah, this looks reasonable.  I must have just accidentally cut the
+code when I refactored the onboard IR support (as opposed to external
+i2c IR).
 
+In reality I really should take another pass over how the IR registers
+are configured since currently we rely on the XCLK field definition in
+the board configuration to setup the IR, which prevents you from
+switching remote control modes between NEC/RC5/RC6, etc.
+
+Reviewed-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+
+Thanks,
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
