@@ -1,282 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f206.google.com ([209.85.219.206]:57644 "EHLO
-	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1749667AbZHZEBr (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:34173 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752379AbZHUGHy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Aug 2009 00:01:47 -0400
-Received: by ewy2 with SMTP id 2so1052619ewy.17
-        for <linux-media@vger.kernel.org>; Tue, 25 Aug 2009 21:01:47 -0700 (PDT)
-Date: Wed, 26 Aug 2009 14:01:12 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: linux-media@vger.kernel.org, video4linux-list@redhat.com
-Subject: [PATH] Add support BeholdTV X7 card
-Message-ID: <20090826140112.33c3bad6@glory.loctelecom.ru>
+	Fri, 21 Aug 2009 02:07:54 -0400
+Date: Fri, 21 Aug 2009 03:07:49 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Miguel <mcm@moviquity.com>, linux-media@vger.kernel.org
+Subject: Re: USB Wintv HVR-900 Hauppauge
+Message-ID: <20090821030749.372093bd@pedra.chehab.org>
+In-Reply-To: <829197380908191016n8d7f21eq88ebe3a45816275b@mail.gmail.com>
+References: <1250679685.14727.14.camel@McM>
+	<829197380908190642sfabee2ahe599dda1df39678c@mail.gmail.com>
+	<1250701340.14727.28.camel@McM>
+	<829197380908191016n8d7f21eq88ebe3a45816275b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_//cQs0aKmVloJpJ0r=B1N6ak"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_//cQs0aKmVloJpJ0r=B1N6ak
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Em Wed, 19 Aug 2009 13:16:23 -0400
+Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
 
-Hi 
+> Unfortunately, it is not clear when/if Mauro will ever get back to
+> getting that bridge to a supported state (it hasn't had any active
+> development in over nine months).
 
-Add support our new TV card based on xc5000 and saa7134. Analog TV works well.
+This is a recorrent question, already discussed at the ML. Probably, I should
+update the wiki.
 
-diff -r 28f8b0ebd224 linux/drivers/media/video/saa7134/saa7134-cards.c
---- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Sun Aug 23 13:55:25 2009 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Wed Aug 26 08:52:37 2009 +1000
-@@ -32,6 +32,7 @@
- #include <media/tveeprom.h>
- #include "tea5767.h"
- #include "tda18271.h"
-+#include "xc5000.h"
- 
- /* commly used strings */
- static char name_mute[]    = "mute";
-@@ -5182,6 +5183,34 @@
- 			.amux	= LINE1
- 		} },
- 	},
-+	[SAA7134_BOARD_BEHOLD_X7] = {
-+		/* Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com> */
-+		.name           = "Beholder BeholdTV X7",
-+		.audio_clock    = 0x00187de7,
-+		.tuner_type     = TUNER_XC5000,
-+		.radio_type     = UNSET,
-+		.tuner_addr     = ADDR_UNSET,
-+		.radio_addr     = ADDR_UNSET,
-+		.inputs         = { {
-+			.name = name_tv,
-+			.vmux = 2,
-+			.amux = TV,
-+			.tv   = 1,
-+		}, {
-+			.name = name_comp1,
-+			.vmux = 0,
-+			.amux = LINE1,
-+		}, {
-+			.name = name_svideo,
-+			.vmux = 9,
-+			.amux = LINE1,
-+		} },
-+		.radio = {
-+			.name = name_radio,
-+			.amux = TV,
-+		},
-+	},
-+
- };
- 
- const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);
-@@ -6295,6 +6324,12 @@
- 		.subvendor    = 0x185b,
- 		.subdevice    = 0xc900,
- 		.driver_data  = SAA7134_BOARD_VIDEOMATE_S350,
-+	}, {
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-+		.subvendor    = 0x5ace, /* Beholder Intl. Ltd. */
-+		.subdevice    = 0x7595,
-+		.driver_data  = SAA7134_BOARD_BEHOLD_X7,
- 	}, {
- 		/* --- boards without eeprom + subsystem ID --- */
- 		.vendor       = PCI_VENDOR_ID_PHILIPS,
-@@ -6418,11 +6453,20 @@
- 	return -EINVAL;
- }
- 
--#if 0
-+#if 1
- static int saa7134_xc5000_callback(struct saa7134_dev *dev,
- 				   int command, int arg)
- {
- 	switch (dev->board) {
-+	case SAA7134_BOARD_BEHOLD_X7:
-+		if (command == XC5000_TUNER_RESET) {
-+		/* Down and UP pheripherial RESET pin for reset all chips */
-+			saa_writeb(SAA7134_SPECIAL_MODE, 0x00);
-+			msleep(10);
-+			saa_writeb(SAA7134_SPECIAL_MODE, 0x01);
-+			msleep(10);
-+		}
-+		break;
- 	default:
- 		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2, 0x06e20000, 0x06e20000);
- 		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x06a20000, 0x06a20000);
-@@ -6533,7 +6577,7 @@
- 			return saa7134_tda8290_callback(dev, command, arg);
- 		case TUNER_XC2028:
- 			return saa7134_xc2028_callback(dev, command, arg);
--#if 0
-+#if 1
- 		case TUNER_XC5000:
- 			return saa7134_xc5000_callback(dev, command, arg);
- #endif
-@@ -6788,6 +6832,7 @@
- 	case SAA7134_BOARD_BEHOLD_M63:
- 	case SAA7134_BOARD_BEHOLD_M6_EXTRA:
- 	case SAA7134_BOARD_BEHOLD_H6:
-+	case SAA7134_BOARD_BEHOLD_X7:
- 		dev->has_remote = SAA7134_REMOTE_I2C;
- 		break;
- 	case SAA7134_BOARD_AVERMEDIA_A169_B:
-diff -r 28f8b0ebd224 linux/drivers/media/video/saa7134/saa7134-input.c
---- a/linux/drivers/media/video/saa7134/saa7134-input.c	Sun Aug 23 13:55:25 2009 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-input.c	Wed Aug 26 08:52:37 2009 +1000
-@@ -854,6 +854,7 @@
- 	case SAA7134_BOARD_BEHOLD_M63:
- 	case SAA7134_BOARD_BEHOLD_M6_EXTRA:
- 	case SAA7134_BOARD_BEHOLD_H6:
-+	case SAA7134_BOARD_BEHOLD_X7:
- #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 30)
- 		snprintf(ir->c.name, sizeof(ir->c.name), "BeholdTV");
- 		ir->get_key   = get_key_beholdm6xx;
-diff -r 28f8b0ebd224 linux/drivers/media/video/saa7134/saa7134.h
---- a/linux/drivers/media/video/saa7134/saa7134.h	Sun Aug 23 13:55:25 2009 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134.h	Wed Aug 26 08:52:37 2009 +1000
-@@ -294,6 +294,7 @@
- #define SAA7134_BOARD_BEHOLD_609RDS_MK3     167
- #define SAA7134_BOARD_BEHOLD_609RDS_MK5     168
- #define SAA7134_BOARD_VIDEOMATE_S350        169
-+#define SAA7134_BOARD_BEHOLD_X7             170
- 
- #define SAA7134_MAXBOARDS 32
- #define SAA7134_INPUT_MAX 8
+The driver is still on my TODO list. I intend to return back to it, but this is
+not on my current top priorities. Those chips are very buggy and they behave
+badly if the driver doesn't do exactly the same thing as the original one (it
+starts to loose frames). I suspect that this is a firmware bug at
+tm6000/tm6010, although I'm not sure. Maybe the conversion of the driver to the
+new i2c approach could help to fix this issue, since this will avoid sending
+probing packets at i2c bus. Also, on all tests we've done so far, it can't
+reliably read data from an i2c device. This prevents that tools like scan to
+properly detect the signal strength of a channel. You can't even be sure if
+xc3028 firmware were successfully loaded on this device, due to this issue.
 
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+It is important to notice that the vendor (Trident) doesn't seem to want
+helping with open source development. I tried during 2007 and 2008 to get their
+help by opening docs to me, via Linux Foundation NDA program, without success.
+Currently, they are refusing so far to help with their demod DRX-K line that
+they acquired from Micronas (as pointed at http://linux.terratec.de/tv_en.html).
+
+In brief, while I want to fix the driver issues, I recommend to avoid
+buying any devices with tm5600/tm6000/tm6010 (and DRX demod) chips. There are
+other offers at the market with drivers that work properly, including some
+nice HVR devices that are fully supported.
 
 
-With my best regards, Dmitry.
 
---MP_//cQs0aKmVloJpJ0r=B1N6ak
-Content-Type: text/x-patch; name=behold_x7.diff
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=behold_x7.diff
-
-diff -r 28f8b0ebd224 linux/drivers/media/video/saa7134/saa7134-cards.c
---- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Sun Aug 23 13:55:25 2009 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Wed Aug 26 08:52:37 2009 +1000
-@@ -32,6 +32,7 @@
- #include <media/tveeprom.h>
- #include "tea5767.h"
- #include "tda18271.h"
-+#include "xc5000.h"
- 
- /* commly used strings */
- static char name_mute[]    = "mute";
-@@ -5182,6 +5183,34 @@
- 			.amux	= LINE1
- 		} },
- 	},
-+	[SAA7134_BOARD_BEHOLD_X7] = {
-+		/* Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com> */
-+		.name           = "Beholder BeholdTV X7",
-+		.audio_clock    = 0x00187de7,
-+		.tuner_type     = TUNER_XC5000,
-+		.radio_type     = UNSET,
-+		.tuner_addr     = ADDR_UNSET,
-+		.radio_addr     = ADDR_UNSET,
-+		.inputs         = { {
-+			.name = name_tv,
-+			.vmux = 2,
-+			.amux = TV,
-+			.tv   = 1,
-+		}, {
-+			.name = name_comp1,
-+			.vmux = 0,
-+			.amux = LINE1,
-+		}, {
-+			.name = name_svideo,
-+			.vmux = 9,
-+			.amux = LINE1,
-+		} },
-+		.radio = {
-+			.name = name_radio,
-+			.amux = TV,
-+		},
-+	},
-+
- };
- 
- const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);
-@@ -6295,6 +6324,12 @@
- 		.subvendor    = 0x185b,
- 		.subdevice    = 0xc900,
- 		.driver_data  = SAA7134_BOARD_VIDEOMATE_S350,
-+	}, {
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-+		.subvendor    = 0x5ace, /* Beholder Intl. Ltd. */
-+		.subdevice    = 0x7595,
-+		.driver_data  = SAA7134_BOARD_BEHOLD_X7,
- 	}, {
- 		/* --- boards without eeprom + subsystem ID --- */
- 		.vendor       = PCI_VENDOR_ID_PHILIPS,
-@@ -6418,11 +6453,20 @@
- 	return -EINVAL;
- }
- 
--#if 0
-+#if 1
- static int saa7134_xc5000_callback(struct saa7134_dev *dev,
- 				   int command, int arg)
- {
- 	switch (dev->board) {
-+	case SAA7134_BOARD_BEHOLD_X7:
-+		if (command == XC5000_TUNER_RESET) {
-+		/* Down and UP pheripherial RESET pin for reset all chips */
-+			saa_writeb(SAA7134_SPECIAL_MODE, 0x00);
-+			msleep(10);
-+			saa_writeb(SAA7134_SPECIAL_MODE, 0x01);
-+			msleep(10);
-+		}
-+		break;
- 	default:
- 		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2, 0x06e20000, 0x06e20000);
- 		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x06a20000, 0x06a20000);
-@@ -6533,7 +6577,7 @@
- 			return saa7134_tda8290_callback(dev, command, arg);
- 		case TUNER_XC2028:
- 			return saa7134_xc2028_callback(dev, command, arg);
--#if 0
-+#if 1
- 		case TUNER_XC5000:
- 			return saa7134_xc5000_callback(dev, command, arg);
- #endif
-@@ -6788,6 +6832,7 @@
- 	case SAA7134_BOARD_BEHOLD_M63:
- 	case SAA7134_BOARD_BEHOLD_M6_EXTRA:
- 	case SAA7134_BOARD_BEHOLD_H6:
-+	case SAA7134_BOARD_BEHOLD_X7:
- 		dev->has_remote = SAA7134_REMOTE_I2C;
- 		break;
- 	case SAA7134_BOARD_AVERMEDIA_A169_B:
-diff -r 28f8b0ebd224 linux/drivers/media/video/saa7134/saa7134-input.c
---- a/linux/drivers/media/video/saa7134/saa7134-input.c	Sun Aug 23 13:55:25 2009 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-input.c	Wed Aug 26 08:52:37 2009 +1000
-@@ -854,6 +854,7 @@
- 	case SAA7134_BOARD_BEHOLD_M63:
- 	case SAA7134_BOARD_BEHOLD_M6_EXTRA:
- 	case SAA7134_BOARD_BEHOLD_H6:
-+	case SAA7134_BOARD_BEHOLD_X7:
- #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 30)
- 		snprintf(ir->c.name, sizeof(ir->c.name), "BeholdTV");
- 		ir->get_key   = get_key_beholdm6xx;
-diff -r 28f8b0ebd224 linux/drivers/media/video/saa7134/saa7134.h
---- a/linux/drivers/media/video/saa7134/saa7134.h	Sun Aug 23 13:55:25 2009 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134.h	Wed Aug 26 08:52:37 2009 +1000
-@@ -294,6 +294,7 @@
- #define SAA7134_BOARD_BEHOLD_609RDS_MK3     167
- #define SAA7134_BOARD_BEHOLD_609RDS_MK5     168
- #define SAA7134_BOARD_VIDEOMATE_S350        169
-+#define SAA7134_BOARD_BEHOLD_X7             170
- 
- #define SAA7134_MAXBOARDS 32
- #define SAA7134_INPUT_MAX 8
-
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
-
---MP_//cQs0aKmVloJpJ0r=B1N6ak--
+Cheers,
+Mauro
