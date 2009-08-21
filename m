@@ -1,53 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:53732 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755970AbZHGKLm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2009 06:11:42 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Matthieu CASTET <matthieu.castet@parrot.com>
-Subject: Re: How to efficiently handle DMA and cache on ARMv7 ? (was "
- =?iso-8859-1?q?Is=09get=5Fuser=5Fpages?=() enough to prevent pages from being swapped out ?")
-Date: Fri, 7 Aug 2009 12:13:48 +0200
-Cc: David Xiao <dxiao@broadcom.com>, Ben Dooks <ben-linux@fluff.org>,
-	Hugh Dickins <hugh.dickins@tiscali.co.uk>,
-	Robin Holt <holt@sgi.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"v4l2_linux" <linux-media@vger.kernel.org>,
-	"linux-arm-kernel@lists.arm.linux.org.uk"
-	<linux-arm-kernel@lists.arm.linux.org.uk>
-References: <200908061208.22131.laurent.pinchart@ideasonboard.com> <200908070929.53873.laurent.pinchart@ideasonboard.com> <4A7BE1E7.60203@parrot.com>
-In-Reply-To: <4A7BE1E7.60203@parrot.com>
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:36519 "EHLO
+	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932371AbZHUUR1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Aug 2009 16:17:27 -0400
+Received: by fxm17 with SMTP id 17so643631fxm.37
+        for <linux-media@vger.kernel.org>; Fri, 21 Aug 2009 13:17:26 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+In-Reply-To: <54b126f90908211305j6911820es52c8ffc2be6b9667@mail.gmail.com>
+References: <54b126f90908211227k78cfeebbqcee4da4958743a3b@mail.gmail.com>
+	 <829197380908211238i58670a12p39537af14dbfc009@mail.gmail.com>
+	 <54b126f90908211305j6911820es52c8ffc2be6b9667@mail.gmail.com>
+Date: Fri, 21 Aug 2009 16:17:26 -0400
+Message-ID: <829197380908211317k401b6b2etdb88a90e6e7e53fa@mail.gmail.com>
+Subject: Re: detection of Empire Media Pen Dual TV
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Baggius <baggius@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200908071213.48523.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 07 August 2009 10:12:23 Matthieu CASTET wrote:
-> Laurent Pinchart a écrit :
-> > On Thursday 06 August 2009 20:46:14 David Xiao wrote:
-> >
-> > Think about the simple following use case. An application wants to
-> > display video it acquires from the device to the screen using Xv. The
-> > video buffer is allocated by Xv. Using the v4l2 user pointer streaming
-> > method, the device can DMA directly to the Xv buffer. Using
-> > driver-allocated buffers, a memcpy() is required between the v4l2 buffer
-> > and the Xv buffer.
+On Fri, Aug 21, 2009 at 4:05 PM, Baggius<baggius@gmail.com> wrote:
+> Hello Devin,
+> I have an Empire Media Pen Dual TV and it has same layout as Kworld dvb-t 310u.
+> while MSI Digivox A/D has "similar" layout and supports 1080i extra resolution,
+> as http://www.msi.com/index.php?func=proddesc&maincat_no=132&prod_no=626
 >
-> v4l2 got an API (overlay IRRC) that allow drivers to write directly in
-> framebuffer memory.
+> If you want I can capture usb device startup log using Usbsnoop/SniffUSB  ...
+> Giuseppe
 
-That's right, but I was mostly using this as an example.
+Hmmm...  Let's hold off on a usb capture for now.  Now that I
+understand that you have the Empire board, I am looking at the dmesg
+trace again and am a bit confused.  Do you happen to have a "card=49"
+parameter in your modprobe configuration?  However, the code does
+appear to also recognize the board as the Empire board (see the "Board
+detected as Empire dual TV").
 
-> BTW Xv buffer is not always in video memory and the X driver can do a
-> memcpy.
+I agree that something appears to be wrong.  I will have to take a
+look at the code and see where the "Identified as" messages comes
+from.
 
-Still, one less memcpy is better :-)
+Devin
 
-Regards,
-
-Laurent Pinchart
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
