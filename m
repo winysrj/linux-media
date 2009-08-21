@@ -1,127 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-16.arcor-online.net ([151.189.21.56]:46874 "EHLO
-	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751790AbZHRAHw (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:35588 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751897AbZHUFJi convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Aug 2009 20:07:52 -0400
-Subject: Re: Pinnacle 300i antenna power kernel oops
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Martin Konopka <martin.konopka@mknetz.de>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <200908161153.25302.martin.konopka@mknetz.de>
-References: <200908161153.25302.martin.konopka@mknetz.de>
-Content-Type: text/plain
-Date: Tue, 18 Aug 2009 02:04:13 +0200
-Message-Id: <1250553853.5821.22.camel@pc07.localdom.local>
+	Fri, 21 Aug 2009 01:09:38 -0400
+Date: Fri, 21 Aug 2009 02:09:29 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: h.ungar@deuromedia.com
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Michael Krufky <mkrufky@kernellabs.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Manfred Petz <m.petz@deuromedia.com>,
+	Gerhard Achs <g.achs@deuromedia.com>
+Subject: Re: V4L-DVB issue in systems with >4Gb RAM?
+Message-ID: <20090821020929.0e6b8853@pedra.chehab.org>
+In-Reply-To: <829197380908201529u4a41c87akf685bc599e481c41@mail.gmail.com>
+References: <4A8C076C.8040109@deuromedia.com>
+	<37219a840908201516p23f5164fs98ad7f8267362d85@mail.gmail.com>
+	<829197380908201529u4a41c87akf685bc599e481c41@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Martin,
+Hi Helmut,
 
-Am Sonntag, den 16.08.2009, 11:53 +0200 schrieb Martin Konopka:
-> Hi,
+Em Thu, 20 Aug 2009 18:29:15 -0400
+Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
+
+> On Thu, Aug 20, 2009 at 6:16 PM, Michael Krufky<mkrufky@kernellabs.com> wrote:
+> > I have a server with three cx23885-based PCI-E boards, one of them
+> > single tuner, the other two with dual tuners.  This server has 8G RAM.
+> >  The single tuner is a Hauppauge board and the dual tuners are DViCO
+> > boards.  (I chose this setup for maximum tuner capacity and brand
+> > diversity for the sake of testing -- I plan to replace the DViCO
+> > boards with two HVR2250's)
+> >
+> > So, in summary, my 8G system has five digital tuners and I am not
+> > experiencing the problems that you report.  I doubt the issue is
+> > within the v4l-dvb subsystem.
+> >
+> > Good luck,
+> >
+> > Mike Krufky
 > 
-> after my failed attempts to activate the external antenna power on an Pinnacle 
-> 310i, I bought a 300i. When I load the module saa7134_dvb with the option 
-> antenna_pwr = 1 I can indeed measure a voltage at the HF-Socket. But when my 
-> tv application tries to access the DVB device, I get a kernel oops. I have 
-> attached the log messages below. I'm using kernel 2.6.28-11-generic SMP 
-> i686 .
-> 
-> The card works perfectly when the antenna power is disabled.
-> 
-> Thanks for your help!
-> 
-> Martin
+> Someone on v4l yesterday similarly reported a case where the driver
+> only started to work when switched from the PAE kernel to the non-PAE.
+>  Perhaps the two issues are related.
 
+PAE kernel only affects i386 kernels. AFAIK, non-PAE kernels support only 3 Gb
+of memory for normal usage, plus 1 Gb for some types of in-kernel memory usage.
+As you mentioned that you're using kernel 2.6.18-128.4.1.el5 on x86_64, this
+shouldn't be the problem.
 
-did not try to analyze the oops yet, but since the driver code for this
-card is unchanged since years, I suspect it happens on a higher level.
+I suspect that your issue is related with backporting v4l/dvb to RHEL5 kernel.
+The way backport is handled at the subsystem, there are no warranties that you
+won't experience any troubles, since there aren't any regression tests and the
+priority is to support the latest development kernel. The only test done is
+compilation test (and, eventually, a quick test with one of the supported
+boards).
 
-You might try, if it still happens with recent v4l-dvb stuff.
+The task of carefully handle driver backports is an important contribution made
+by the distros at the Linux ecosystem. It isn't (and never was) the intention
+of the backport patches at v4l-dvb to replace the distros paper.
 
-In that case, Michael Krufky eventually can confirm it, since he is the
-only one active on the lists currently having such a card.
+In a matter of fact, some of recent kernel internal API changes on some kernel
+subsystems affected a lot v4l/dvb drivers, being very hard and complex to fully
+support all kernel versions. Also, a few applied changes assumes that certain
+bug fixes where applied on some other areas of the kernel in order to work
+properly. Yet, even without those patches, for an eventual user, in general,
+the driver works good enough for them. 
 
-Depending on what other stuff he is working on, this might be still time
-consuming and an annoyance for him, but maybe he will have a look ;)
+However, I suspect that, if you're running a RHEL5 kernel, on a machine with
+8GB of RAM and 3 PCIe cx23885 cards, probably streaming regularly, your change
+of hitting one of those bugs is high.
 
-Btw, I received an used Pinnacle 310i this afternoon, since I'm a little
-bit stuffed with mysteries on such.
-
-First impression on recent:
-
-The massive silver remote works, sometimes the driver fails to read the
-eeprom on load. Else, it has 100% the same reception quality for analog
-TV and DVB-T like all my other cards with tda8275a and without LNA
-support and is totally stable.
-
-I suspect now, that it is like on the HVR1110s currently, that we might
-have already different models with and without LNA there too.
+So, If you have RHEL5 support, I suggest that you should address those issues
+via their support channels for they to investigate further and apply the
+relevant patches that are affecting your environment
 
 Cheers,
-Hermann
-
-> 
-> [   22.556260] BUG: unable to handle kernel paging request at f84b92d0
-> [   22.556349] IP: [<f7e8341a>] pinnacle_antenna_pwr+0xda/0x140 [saa7134_dvb]
-> [   22.556412] *pde = 35d3f067 *pte = 00000000
-> [   22.556416] Oops: 0000 [#1] SMP
-> [   22.556500] last sysfs file: /sys/devices/virtual/net/pan0/flags
-> [   22.556532] Dumping ftrace buffer:
-> [   22.556563]    (ftrace buffer empty)
-> [   22.556592] Modules linked in: bridge stp bnep video output input_polldev 
-> nfsd auth_rpcgss exportfs nfs lockd nfs_acl sunrpc xfs it87 hwmon_vid lp 
-> mt352 saa7134_dvb videobuf_dvb dvb_core saa7134_alsa mt20xx tea5767 tda9887 
-> tda8290 tuner snd_seq_dummy snd_seq_oss snd_hda_intel snd_seq_midi saa7134 
-> snd_rawmidi snd_seq_midi_event snd_pcm_oss snd_mixer_oss ir_common snd_pcm 
-> videodev snd_seq fglrx(P) v4l1_compat compat_ioctl32 agpgart snd_seq_device 
-> snd_timer ppdev pcspkr i2c_piix4 v4l2_common videobuf_dma_sg videobuf_core 
-> tveeprom shpchp snd soundcore snd_page_alloc parport_pc parport usbhid floppy 
-> ohci1394 r8169 mii ieee1394 fbcon tileblit font bitblit softcursor
-> [   22.558582]
-> [   22.558612] Pid: 3361, comm: kdvb-ad-0-fe-0 Tainted: P           
-> (2.6.28-11-generic #42-Ubuntu) System Product Name
-> [   22.558646] EIP: 0060:[<f7e8341a>] EFLAGS: 00010282 CPU: 1
-> [   22.558678] EIP is at pinnacle_antenna_pwr+0xda/0x140 [saa7134_dvb]
-> [   22.558710] EAX: f84b92d0 EBX: f5dd3000 ECX: 0165f000 EDX: 0000001b
-> [   22.558741] ESI: f5dd3000 EDI: f5dd3140 EBP: f5f4fe9c ESP: f5f4fe84
-> [   22.558772]  DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
-> [   22.558803] Process kdvb-ad-0-fe-0 (pid: 3361, ti=f5f4e000 task=f5a0d7f0 
-> task.ti=f5f4e000)
-> [   22.558837] Stack:
-> [   22.558867]  c03e7a3d 00000001 f5f4fed0 f5c4d404 f5c4d404 f5dd3000 f5f4feec 
-> f7e837af
-> [   22.559090]  00000000 00000003 000025a0 c012888f f5a0d7f0 f5b48c90 f5f4fee4 
-> c0102ab7
-> [   22.559369]  f5a0db2c c1e18280 f5f4feec 00000043 c1e10002 f5f4fedc f1007100 
-> fffff1cc
-> [   22.559677] Call Trace:
-> [   22.559707]  [<c03e7a3d>] ? i2c_transfer+0x6d/0x90
-> [   22.559770]  [<f7e837af>] ? mt352_pinnacle_tuner_set_params+0xcf/0xe0 
-> [saa7134_dvb]
-> [   22.559834]  [<c012888f>] ? dequeue_task+0xcf/0x130
-> [   22.559894]  [<c0102ab7>] ? __switch_to+0xb7/0x1a0
-> [   22.559954]  [<f7e9a3b8>] ? mt352_set_parameters+0x2d8/0x410 [mt352]
-> [   22.560020]  [<c0122d58>] ? default_spin_lock_flags+0x8/0x10
-> [   22.560081]  [<c0502c0e>] ? _spin_lock_irqsave+0x2e/0x40
-> [   22.560142]  [<f7f0c871>] ? dvb_frontend_swzigzag_autotune+0xc1/0x240 
-> [dvb_core]
-> [   22.560202]  [<c05016e6>] ? schedule_timeout+0x86/0xe0
-> [   22.560202]  [<c0143db0>] ? process_timeout+0x0/0x10
-> [   22.560202]  [<f7f0d6e1>] ? dvb_frontend_swzigzag+0x221/0x270 [dvb_core]
-> [   22.560202]  [<f7f0e037>] ? dvb_frontend_thread+0x397/0x440 [dvb_core]
-> [   22.560202]  [<c014ecb0>] ? autoremove_wake_function+0x0/0x50
-> [   22.560202]  [<f7f0dca0>] ? dvb_frontend_thread+0x0/0x440 [dvb_core]
-> [   22.560202]  [<c014e90c>] ? kthread+0x3c/0x70
-> [   22.560202]  [<c014e8d0>] ? kthread+0x0/0x70
-> [   22.560202]  [<c0105477>] ? kernel_thread_helper+0x7/0x10
-> [   22.560202] Code: c8 8b 93 20 01 00 00 81 c2 b4 01 00 00 8b 02 0d 00 00 00 
-> 10 89 02 b8 c6 a7 00 00 e8 91 96 44 c8 8b 83 20 01 00 00 05 d0 06 00 00 <8b> 
-> 30 a1 88 7f e8 f7 81 e6 00 00 00 08 85 c0 75 22 85 f6 75 15
-> [   22.560202] EIP: [<f7e8341a>] pinnacle_antenna_pwr+0xda/0x140 [saa7134_dvb] 
-> SS:ESP 0068:f5f4fe84
-
-
+Mauro
