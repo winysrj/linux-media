@@ -1,41 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197]:33990 "EHLO
-	mta2.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755022AbZHRMX3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2009 08:23:29 -0400
-Received: from mbpwifi.kernelscience.com
- (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta2.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KOK00LZZNQRXN80@mta2.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Tue, 18 Aug 2009 08:23:15 -0400 (EDT)
-Date: Tue, 18 Aug 2009 08:23:15 -0400
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: Hauppauge 2250 - second tuner is only half working
-In-reply-to: <35375.76.104.173.166.1250492844.squirrel@www.cyberseth.com>
-To: seth@cyberseth.com
-Cc: linux-media@vger.kernel.org
-Message-id: <4A8A9D33.5050505@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <35375.76.104.173.166.1250492844.squirrel@www.cyberseth.com>
+Received: from mail.gmx.net ([213.165.64.20]:36468 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1755451AbZHVKdY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Aug 2009 06:33:24 -0400
+From: Daniel Senftleben <danprem@gmx.net>
+To: linux-media@vger.kernel.org
+Subject: x3m_HPC2000
+Date: Sat, 22 Aug 2009 12:31:30 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200908221231.30130.danprem@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> I'd really appreciate any help or guidance on this problem as i'm fully
-> perplexed by it.
+Hi
+I just sent this mail, but that "ML is deprecated" :-(
+So here goes to the alternative address given in the mail:
 
-Hey Seth,
 
-I ran the same tests on my cable system (channel 103) on 669Mhz and had no 
-issue, and my snr's reported as (0x172 and 0x17c).
+----------  Weitergeleitete Nachricht  ----------
 
-One possibility is that you're overwhelming the frontend. Try adding a small 
-mount of attenuation to the signal for test purposes.
+Betreff: x3m_HPC2000
+Datum: Samstag, 22. August 2009
+Von: Daniel S <danprem@gmx.net>
+An: linux-dvb@linuxtv.org
 
-Hard to believe but this is where I'd start looking.
+G'day all
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+I've bought myself the "HPC2000 hybrid tv pci card" for one reason because x3m 
+said it supports linux.. well, it never worked for me (now I'm at Suse 11.1 
+64bit and I used to use the prior Suse versions) and now I stumbled across 
+your wiki and saw my card under the "Currently Unsupported DVB-T PCI cards"..  
+way to go :-/ So now I subscribed to the list to help get this card working! 
+How can I help?
+(but please be easy on me - it's the first time I try help "officials" ;-))
+
+-------------------------------------------------------------
