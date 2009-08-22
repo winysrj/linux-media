@@ -1,159 +1,307 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail00a.mail.t-online.hu ([84.2.40.5]:56774 "EHLO
-	mail00a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751799AbZH3HS4 (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2547 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750772AbZHVHmT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Aug 2009 03:18:56 -0400
-Message-ID: <4A9A27DD.3020807@freemail.hu>
-Date: Sun, 30 Aug 2009 09:18:53 +0200
-From: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+	Sat, 22 Aug 2009 03:42:19 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andy Walls <awalls@radix.net>
+Subject: Re: [RFC] v4l2_subdev_ir_ops
+Date: Sat, 22 Aug 2009 09:42:16 +0200
+Cc: linux-media@vger.kernel.org
+References: <1250906940.3159.20.camel@palomino.walls.org>
+In-Reply-To: <1250906940.3159.20.camel@palomino.walls.org>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: hermann pitton <hermann-pitton@arcor.de>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Pinnacle Hybrid Pro Stick (320e)?
-References: <4A913AB8.5060604@freemail.hu>	 <1251032765.4905.19.camel@pc07.localdom.local>	 <4A9140A7.6020402@freemail.hu>	 <1251033530.4905.25.camel@pc07.localdom.local> <829197380908230629w62399f3cicd2dd9a9f2c6aeab@mail.gmail.com>
-In-Reply-To: <829197380908230629w62399f3cicd2dd9a9f2c6aeab@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200908220942.16919.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
-> I committed some changes to get this board working a few weeks ago.  I
-> will check your dmesg output and see if the changes missed the merge
-> window.  It's possible the changes didn't make it in time for 2.6.31,
-> so I will have to check.
+On Saturday 22 August 2009 04:09:00 Andy Walls wrote:
+> In the course of implementing code to run the Consumer IR circuitry in
+> the CX2584[0123] chip and similar cores, I need to add
+> v4l2_subdev_ir_ops for manipulating the device and fetch and send data.
+>
+> In line below is a proposal at what I think those subdev ops might be.
+> Feel free to take shots at it.
+>
+> The insipration for these comes from two sources, the LIRC v0.8.5 source
+> code and what the CX2584x chip is capable of doing:
+>
+> http://prdownloads.sourceforge.net/lirc/lirc-0.8.5.tar.bz2
+> http://dl.ivtvdriver.org/datasheets/video/cx25840.pdf
+>
+> Note the Consumer IR in the CX2584x can theoretically measure
+> unmodulated marks and spaces with a resolution of 37.037... ns (1/27
+> MHz), hence the references to nanoseconds in the proposal below.  Most
+> IR devices use pulses on the order of microseconds in real life.
 
-I tried the following software setup with Pinnacle Hybrid Pro Stick (320e)
-(USB ID: eb1a:2881): Linux kernel 2.6.31-rc7 updated with the
-http://linuxtv.org/hg/v4l-dvb repository at version 12564:6f58a5d8c7c6.
+Hi Andy,
 
-When I plug the device I still get the following message:
+My first impressions are that you are trying to do too much here. What you 
+want is a simple API to access an IR transmitter or receiver. These devices 
+do not care about lirc or any other high-level APIs. All they need 
+basically are a setup command and read/write commands. There is probably no 
+need for querying capabilities since the flow of information in V4L2 is 
+usually the other way around:
 
-[  111.681186] usb 4-3: new high speed USB device using ehci_hcd and address 3
-[  111.803542] usb 4-3: configuration #1 chosen from 1 choice
-[  112.196629] Linux video capture interface: v2.00
-[  112.376039] em28xx: New device USB 2881 Video @ 480 Mbps (eb1a:2881, interface 0, class 0)
-[  112.377937] em28xx #0: chip ID is em2882/em2883
-[  112.383927] usbcore: registered new interface driver snd-usb-audio
-[  112.460285] em28xx #0: i2c eeprom 00: 1a eb 67 95 1a eb 81 28 58 12 5c 00 6a 20 6a 00
-[  112.460308] em28xx #0: i2c eeprom 10: 00 00 04 57 64 57 00 00 60 f4 00 00 02 02 00 00
-[  112.460326] em28xx #0: i2c eeprom 20: 56 00 01 00 00 00 02 00 b8 00 00 00 5b 1e 00 00
-[  112.460343] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 10 02 00 00 00 00 00 00
-[  112.460360] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[  112.460377] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[  112.460393] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 20 03 55 00 53 00
-[  112.460410] em28xx #0: i2c eeprom 70: 42 00 20 00 32 00 38 00 38 00 31 00 20 00 56 00
-[  112.460426] em28xx #0: i2c eeprom 80: 69 00 64 00 65 00 6f 00 00 00 00 00 00 00 00 00
-[  112.460443] em28xx #0: i2c eeprom 90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[  112.460460] em28xx #0: i2c eeprom a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[  112.460476] em28xx #0: i2c eeprom b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[  112.460493] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[  112.460509] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[  112.460526] em28xx #0: i2c eeprom e0: 5a 00 55 aa cb 73 57 03 00 17 d4 01 00 00 00 00
-[  112.460543] em28xx #0: i2c eeprom f0: 02 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00
-[  112.460561] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0xc49e2420
-[  112.460564] em28xx #0: EEPROM info:
-[  112.460567] em28xx #0:	AC97 audio (5 sample rates)
-[  112.460570] em28xx #0:	USB Remote wakeup capable
-[  112.460573] em28xx #0:	500mA max power
-[  112.460577] em28xx #0:	Table at 0x04, strings=0x206a, 0x006a, 0x0000
-[  112.466288] em28xx #0: Identified as Unknown EM2750/28xx video grabber (card=1)
-[  112.499766] em28xx #0: found i2c device @ 0xa0 [eeprom]
-[  112.505263] em28xx #0: found i2c device @ 0xb8 [tvp5150a]
-[  112.507760] em28xx #0: found i2c device @ 0xc2 [tuner (analog)]
-[  112.520001] em28xx #0: Your board has no unique USB ID and thus need a hint to be detected.
-[  112.520239] em28xx #0: You may try to use card=<n> insmod option to workaround that.
-[  112.520244] em28xx #0: Please send an email with this log to:
-[  112.520247] em28xx #0: 	V4L Mailing List <linux-media@vger.kernel.org>
-[  112.520251] em28xx #0: Board eeprom hash is 0xc49e2420
-[  112.520254] em28xx #0: Board i2c devicelist hash is 0x27e10080
-[  112.520257] em28xx #0: Here is a list of valid choices for the card=<n> insmod option:
-[  112.520262] em28xx #0:     card=0 -> Unknown EM2800 video grabber
-[  112.520266] em28xx #0:     card=1 -> Unknown EM2750/28xx video grabber
-[  112.520269] em28xx #0:     card=2 -> Terratec Cinergy 250 USB
-[  112.520273] em28xx #0:     card=3 -> Pinnacle PCTV USB 2
-[  112.520276] em28xx #0:     card=4 -> Hauppauge WinTV USB 2
-[  112.520279] em28xx #0:     card=5 -> MSI VOX USB 2.0
-[  112.520283] em28xx #0:     card=6 -> Terratec Cinergy 200 USB
-[  112.520286] em28xx #0:     card=7 -> Leadtek Winfast USB II
-[  112.520290] em28xx #0:     card=8 -> Kworld USB2800
-[  112.520293] em28xx #0:     card=9 -> Pinnacle Dazzle DVC 90/100/101/107 / Kaiser Baas Video to DVD maker
-[  112.520297] em28xx #0:     card=10 -> Hauppauge WinTV HVR 900
-[  112.520301] em28xx #0:     card=11 -> Terratec Hybrid XS
-[  112.520304] em28xx #0:     card=12 -> Kworld PVR TV 2800 RF
-[  112.520308] em28xx #0:     card=13 -> Terratec Prodigy XS
-[  112.520311] em28xx #0:     card=14 -> SIIG AVTuner-PVR / Pixelview Prolink PlayTV USB 2.0
-[  112.520315] em28xx #0:     card=15 -> V-Gear PocketTV
-[  112.520318] em28xx #0:     card=16 -> Hauppauge WinTV HVR 950
-[  112.520322] em28xx #0:     card=17 -> Pinnacle PCTV HD Pro Stick
-[  112.520325] em28xx #0:     card=18 -> Hauppauge WinTV HVR 900 (R2)
-[  112.520329] em28xx #0:     card=19 -> EM2860/SAA711X Reference Design
-[  112.520332] em28xx #0:     card=20 -> AMD ATI TV Wonder HD 600
-[  112.520336] em28xx #0:     card=21 -> eMPIA Technology, Inc. GrabBeeX+ Video Encoder
-[  112.520340] em28xx #0:     card=22 -> EM2710/EM2750/EM2751 webcam grabber
-[  112.520343] em28xx #0:     card=23 -> Huaqi DLCW-130
-[  112.520346] em28xx #0:     card=24 -> D-Link DUB-T210 TV Tuner
-[  112.520350] em28xx #0:     card=25 -> Gadmei UTV310
-[  112.520353] em28xx #0:     card=26 -> Hercules Smart TV USB 2.0
-[  112.520356] em28xx #0:     card=27 -> Pinnacle PCTV USB 2 (Philips FM1216ME)
-[  112.520360] em28xx #0:     card=28 -> Leadtek Winfast USB II Deluxe
-[  112.520364] em28xx #0:     card=29 -> <NULL>
-[  112.520367] em28xx #0:     card=30 -> Videology 20K14XUSB USB2.0
-[  112.520370] em28xx #0:     card=31 -> Usbgear VD204v9
-[  112.520374] em28xx #0:     card=32 -> Supercomp USB 2.0 TV
-[  112.520377] em28xx #0:     card=33 -> <NULL>
-[  112.520380] em28xx #0:     card=34 -> Terratec Cinergy A Hybrid XS
-[  112.520384] em28xx #0:     card=35 -> Typhoon DVD Maker
-[  112.520387] em28xx #0:     card=36 -> NetGMBH Cam
-[  112.520390] em28xx #0:     card=37 -> Gadmei UTV330
-[  112.520393] em28xx #0:     card=38 -> Yakumo MovieMixer
-[  112.520397] em28xx #0:     card=39 -> KWorld PVRTV 300U
-[  112.520400] em28xx #0:     card=40 -> Plextor ConvertX PX-TV100U
-[  112.520403] em28xx #0:     card=41 -> Kworld 350 U DVB-T
-[  112.520407] em28xx #0:     card=42 -> Kworld 355 U DVB-T
-[  112.520410] em28xx #0:     card=43 -> Terratec Cinergy T XS
-[  112.520413] em28xx #0:     card=44 -> Terratec Cinergy T XS (MT2060)
-[  112.520417] em28xx #0:     card=45 -> Pinnacle PCTV DVB-T
-[  112.520420] em28xx #0:     card=46 -> Compro, VideoMate U3
-[  112.520424] em28xx #0:     card=47 -> KWorld DVB-T 305U
-[  112.520427] em28xx #0:     card=48 -> KWorld DVB-T 310U
-[  112.520430] em28xx #0:     card=49 -> MSI DigiVox A/D
-[  112.520433] em28xx #0:     card=50 -> MSI DigiVox A/D II
-[  112.520437] em28xx #0:     card=51 -> Terratec Hybrid XS Secam
-[  112.520440] em28xx #0:     card=52 -> DNT DA2 Hybrid
-[  112.520444] em28xx #0:     card=53 -> Pinnacle Hybrid Pro
-[  112.520447] em28xx #0:     card=54 -> Kworld VS-DVB-T 323UR
-[  112.520450] em28xx #0:     card=55 -> Terratec Hybrid XS (em2882)
-[  112.520454] em28xx #0:     card=56 -> Pinnacle Hybrid Pro (2)
-[  112.520457] em28xx #0:     card=57 -> Kworld PlusTV HD Hybrid 330
-[  112.520461] em28xx #0:     card=58 -> Compro VideoMate ForYou/Stereo
-[  112.520465] em28xx #0:     card=59 -> <NULL>
-[  112.520468] em28xx #0:     card=60 -> Hauppauge WinTV HVR 850
-[  112.520471] em28xx #0:     card=61 -> Pixelview PlayTV Box 4 USB 2.0
-[  112.520475] em28xx #0:     card=62 -> Gadmei TVR200
-[  112.520478] em28xx #0:     card=63 -> Kaiomy TVnPC U2
-[  112.520481] em28xx #0:     card=64 -> Easy Cap Capture DC-60
-[  112.520485] em28xx #0:     card=65 -> IO-DATA GV-MVP/SZ
-[  112.520488] em28xx #0:     card=66 -> Empire dual TV
-[  112.520491] em28xx #0:     card=67 -> Terratec Grabby
-[  112.520495] em28xx #0:     card=68 -> Terratec AV350
-[  112.520498] em28xx #0:     card=69 -> KWorld ATSC 315U HDTV TV Box
-[  112.520501] em28xx #0:     card=70 -> Evga inDtube
-[  112.520505] em28xx #0:     card=71 -> Silvercrest Webcam 1.3mpix
-[  112.520760] em28xx #0: Config register raw data: 0x58
-[  112.530630] em28xx #0: AC97 vendor ID = 0x7eb07eb0
-[  112.531000] em28xx #0: AC97 features = 0x7eb0
-[  112.531497] em28xx #0: Unknown AC97 audio processor detected!
-[  112.554574] em28xx #0: v4l2 driver version 0.1.2
-[  112.592340] em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
-[  112.598179] usbcore: registered new interface driver em28xx
-[  112.598234] em28xx driver loaded
+if you know the card, then you know the remote, then you know the settings, 
+then you can tell the IR module. Based on just the IR module you cannot 
+know what the IR timings/modulation etc. will be.
 
-What should be the next step to get this device working?
+If there is a demonstrable need to get some capabilities for lirc, then I 
+would also suggest to combine them all into one g_caps call that returns 
+all caps in a struct. Much easier than breaking it all up in small 
+functions.
+
+Don't use is_ns BTW, just do everything in ns. I don't see any problem with 
+that.
+
+Making a set of ops for IR support is a very good idea, but I think you need 
+to actually implement and use it in a driver first. Just the plain act of 
+implementing something will show you what the strenghts and weaknesses of 
+an API are and will help you prototype a better solution.
+
+Remember that this subdev API is an internal API. It was *designed* for 
+change. So it is perfectly reasonable to start off with a subset and extend 
+and modify it over time. What I do not want to see are unused ops. So 
+everything in there also has to be used somewhere (or known to be used very 
+soon).
+
+Regarding interrupt handlers: there is a notify callback in v4l2_device that 
+could be used for that purpose as well, rather than setting up separate 
+callback functions. Whether that's a good idea or not depends on the way it 
+will actually be used. So when you are working on actual code you can try 
+each approach and see which works best.
 
 Regards,
 
-	Márton Németh
+	Hans
 
+>
+> Regards,
+> Andy
+>
+> diff -r 44282114d1e3 linux/include/media/v4l2-subdev.h
+> --- a/linux/include/media/v4l2-subdev.h	Fri Aug 21 13:26:01 2009 -0400
+> +++ b/linux/include/media/v4l2-subdev.h	Fri Aug 21 21:51:52 2009 -0400
+> @@ -229,11 +229,206 @@
+>  	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct
+> v4l2_frmivalenum *fival); };
+>
+> +/*
+> +   interrupt_service_routine: Called by the bridge chip's interrupt
+> service +	handler, when an IR interrupt status has be raised due to this
+> subdev, +	so that this subdev can handle the details.  It may schedule
+> work to be +	performed later.  It must not sleep.  *Called from an IRQ
+> context*. +
+> +   g_features: Return IR features supported by this device.  Intended to
+> be +	used to support the LIRC_GET_FEATURES ioctl() and to return the same
+> +	flags.
+> +
+> +   g_code_length: Return the cooked IR code length.  Intended to be used
+> to +	support the LIRC_GET_LENGTH ioctl(), returning the length of a code
+> +	in bits.  Currently only used in lirc for the LIRC_MODE_LIRCCODE. +
+> +   [rt]x_s_notify_callback: Allows the subdev caller to set a callback
+> for +	notification of events due to the IR recevier or transmitter.
+> +
+> +   rx_read_pulse_widths: Reads received data in the form of consective
+> space and +	mark pulse widths in microseconds, or nanoseconds if in_ns is
+> true.  The +	semantics are similar to a non-blocking read() call.
+> +
+> +   tx_write_pulse_widths: Reads received data in the form of consective
+> mark and +	space pulse widths in microseconds, or nanoseconds if in_ns is
+> true. +	The semantics are similar to a non-blocking write() call.
+> +
+> +   rx_read: Reads received codes or other non-pulse width data.
+> +	The semantics are similar to a non-blocking read() call.
+> +
+> +   tx_write: Writes codes or other non-pulse width data to transmit.
+> +	The semantics are similar to a non-blocking write() call.
+> +
+> +   [rt]x_enable: enable or disable the receiver or transmitter using or
+> +	preserving the current setting.
+> +
+> +   [rt]x_shutdown: disable the receiver or transmitter and adjust all
+> setting +	to shut off or slow down hardware and disable interrupts.
+> +
+> +   [rt]x_s_interrupt_enable: enable or diable the receiver or
+> transmitter +	interrupts.
+> +
+> +   rx_s_demodulation: enable demodulation of received pulses from a
+> carrier or +	disable demodulation and read "baseband" light pulses.
+> +
+> +   rx_g_demodulation: query if demodulation of received pulses from a
+> carrier is +	enabled.
+> +
+> +   tx_s_modulation: enable modulation of transmitted pulses onto a
+> carrier or +	disable modulation and transmit "baseband" light pulses.
+> +
+> +   tx_g_modulation: query if modulation of transmitted pulses onto a
+> carrier is +	enabled.
+> +
+> +   rx_s_noise_filter: set the threshold pulse width for a received pulse
+> to be +	considered valid and not a glitch or noise.  A value of 0
+> disables the +	noise filter.
+> +
+> +   rx_g_noise_filter: query the threshold pulse width for a received
+> pulse to be +	considered valid and not a glitch or noise.  A value of 0
+> means the +	noise filter is disabled.
+> +
+> +   [rt]x_s_max_pulse_width: sets the max valid pulse width expected to
+> be +	received or transmitted, when receiving or transmitting baseband
+> pulses, +	in order to optimize the pulse width timer's resolution.  This
+> call will +	likely have the side effect of disabling
+> demodulation/modulation of +	pulses from/onto a carrier.
+> +
+> +   [rt]x_g_max_pulse_width: gets the max valid pulse width expected to
+> be +	received or transmitted, when receiving or transmitting baseband
+> pulses. +	This call should return error if demodulation/modulation of
+> +	pulses from/onto a carrier is enabled.
+> +
+> +   [rt]x_[sg]_lirc_mode: Set or get the LIRC "mode" for the receiver or
+> +	transmitter.  Intended to support the LIRC_{SET,GET}_{REC,SEND}_MODE
+> +	ioctl() calls.
+> +
+> +   [rt]x_[sg]_carrier: Set or get the carrier frequency for the receiver
+> or +	transmitter.  Frequency is in Hz.  Hardware limitations may
+> +	mean the actual frequency set varies from the desired frequency.  The
+> +	_g_ calls should return the precise frequency set.  The _s_ calls will
+> +	have the side effect of enabling demodulation/modulation when the
+> +	freq is not 0, and disabling demodulation/modulation when the
+> +	freq is 0.  These calls can also be used to support the
+> +	LIRC_{SET,GET}_{REC,SEND}_CARRIER ioctl() calls.
+> +
+> +   rx_s_carrier_range: Set a window of expected carrier frequencies for
+> the +	receiver.  Intended to support the LIRC_SET_REC_CARRIER_RANGE
+> ioctl(). +	Due to hardware limitations, the full range may not be
+> supportable and +	the center of the supportable range may not be at the
+> exact center of +	the desired range.
+> +
+> +   [rt]x_[sg]_duty_cycle: Set or get the carrier duty cycle for the
+> receiver or +	transmitter.  Hardware limitations may mean the actual duty
+> cycle set +	varies from the desired duty_cycle.  The _g_ calls should
+> return the +	precise duty cycle set.  These calls can also be used to
+> +	support the LIRC_{SET,GET}_{REC,SEND}_DUTY_CYCLE ioctl() calls.
+> +
+> +   rx_s_duty_cycle_range: Set a window of expected received carrier duty
+> cycles +	Intended to support the LIRC_SET_REC_DUTY_CYCLE_RANGE ioctl().
+> +	Due to hardware limitations, the full range may not be supportable and
+> +	the center of the supportable range may not be at the exact center of
+> +	the desired range.
+> +
+> +   rx_g_resolution: get the pulse measurment resolution of the receiver.
+> +	Intended to support the LIRC_GET_REC_RESOLUTION ioctl().
+> +
+> +   tx_s_mask: set the mask of enabled transmitters for devices that have
+> +	more than one trasnmitter.  Intended to support the
+> +	LIRC_SET_TRANSMITTER_MASK ioctl().
+> + */
+> +enum v4l2_subdev_ir_event {
+> +	V4L2_SUBDEV_IR_RX_DATA_READY     = 0,
+> +	V4L2_SUBDEV_IR_TX_READY_FOR_DATA = 1,
+> +};
+> +
+> +typedef int (*v4l2_subdev_ir_notify_callback)(void *priv,
+> +					      struct v4l2_subdev *sd,
+> +					      enum v4l2_subdev_ir_event event);
+> +
+> +struct v4l2_subdev_ir_ops {
+> +	/* Common to receiver and transmitter */
+> +	int (*interrupt_service_routine)(struct v4l2_subdev *sd,
+> +						u32 status, bool *handled);
+> +
+> +	/* LIRC ioctl inspired calls */
+> +	int (*g_features)(struct v4l2_subdev *sd, u32 *features);
+> +	int (*g_code_length)(struct v4l2_subdev *sd, u32 *bits);
+> +
+> +	/* Receiver */
+> +	int (*rx_s_notify_callback)(struct v4l2_subdev *sd,
+> +					v4l2_subdev_ir_notify_callback callback,
+> +					void *priv);
+> +
+> +	int (*rx_read_pulse_widths)(struct v4l2_subdev *sd, u32 *widths,
+> +					size_t count, bool in_ns, ssize_t *num);
+> +	int (*rx_read)(struct v4l2_subdev *sd, u8 *buf, size_t count,
+> +				ssize_t *num);
+> +
+> +	int (*rx_enable)(struct v4l2_subdev *sd, bool enable);
+> +	int (*rx_shutdown)(struct v4l2_subdev *sd);
+> +
+> +	int (*rx_s_interrupt_enable)(struct v4l2_subdev *sd, bool enable);
+> +	int (*rx_s_demodulation)(struct v4l2_subdev *sd, bool enable);
+> +	int (*rx_s_noise_filter)(struct v4l2_subdev *sd, u32 min_width_ns);
+> +	int (*rx_s_max_pulse_width)(struct v4l2_subdev *sd, u64 max_width_ns);
+> +
+> +	int (*rx_g_demodulation)(struct v4l2_subdev *sd, bool *enabled);
+> +	int (*rx_g_noise_filter)(struct v4l2_subdev *sd, u32 *min_width_ns);
+> +	int (*rx_g_max_pulse_width)(struct v4l2_subdev *sd, u64 *max_width_ns);
+> +
+> +	/* LIRC receiver ioctl inspired calls */
+> +	int (*rx_s_lirc_mode)(struct v4l2_subdev *sd, u32 mode);
+> +	int (*rx_s_carrier)(struct v4l2_subdev *sd, u32 freq);
+> +	int (*rx_s_carrier_range)(struct v4l2_subdev *sd,
+> +					u32 lower, u32 upper);
+> +	int (*rx_s_duty_cycle)(struct v4l2_subdev *sd, u32 duty_cycle);
+> +	int (*rx_s_duty_cycle_range)(struct v4l2_subdev *sd,
+> +					u32 lower, u32 upper);
+> +
+> +	int (*rx_g_lirc_mode)(struct v4l2_subdev *sd, u32 *mode);
+> +	int (*rx_g_carrier)(struct v4l2_subdev *sd, u32 *freq);
+> +	int (*rx_g_duty_cycle)(struct v4l2_subdev *sd, u32 *duty_cycle);
+> +	int (*rx_g_resolution)(struct v4l2_subdev *sd, u32 *nsec);
+> +
+> +	/* Transmitter */
+> +	int (*tx_s_notify_callback)(struct v4l2_subdev *sd,
+> +					v4l2_subdev_ir_notify_callback callback,
+> +					void *priv);
+> +
+> +	int (*tx_write_pulse_widths)(struct v4l2_subdev *sd, u32 *widths,
+> +					size_t count, bool in_ns, ssize_t *num);
+> +	int (*tx_write)(struct v4l2_subdev *sd, u8 *buf, size_t count,
+> +				ssize_t *num);
+> +
+> +	int (*tx_enable)(struct v4l2_subdev *sd, bool enable);
+> +	int (*tx_shutdown)(struct v4l2_subdev *sd);
+> +
+> +	int (*tx_s_interrupt_enable)(struct v4l2_subdev *sd, bool enable);
+> +	int (*tx_s_modulation)(struct v4l2_subdev *sd, bool enable);
+> +	int (*tx_s_max_pulse_width)(struct v4l2_subdev *sd, u64 max_width_ns);
+> +
+> +	int (*tx_g_modulation)(struct v4l2_subdev *sd, bool *enabled);
+> +	int (*tx_g_max_pulse_width)(struct v4l2_subdev *sd, u64 *max_width_ns);
+> +
+> +	/* LIRC transmitter ioctl inspired calls */
+> +	int (*tx_s_lirc_mode)(struct v4l2_subdev *sd, u32 mode);
+> +	int (*tx_s_carrier)(struct v4l2_subdev *sd, u32 freq);
+> +	int (*tx_s_duty_cycle)(struct v4l2_subdev *sd, u32 duty_cycle);
+> +	int (*tx_s_mask)(struct v4l2_subdev *sd, u32 enabled_transmitters);
+> +
+> +	int (*tx_g_lirc_mode)(struct v4l2_subdev *sd, u32 *mode);
+> +	int (*tx_g_carrier)(struct v4l2_subdev *sd, u32 *freq);
+> +	int (*tx_g_duty_cycle)(struct v4l2_subdev *sd, u32 *duty_cycle);
+> +};
+> +
+>  struct v4l2_subdev_ops {
+>  	const struct v4l2_subdev_core_ops  *core;
+>  	const struct v4l2_subdev_tuner_ops *tuner;
+>  	const struct v4l2_subdev_audio_ops *audio;
+>  	const struct v4l2_subdev_video_ops *video;
+> +	const struct v4l2_subdev_ir_ops    *ir;
+>  };
+>
+>  #define V4L2_SUBDEV_NAME_SIZE 32
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
