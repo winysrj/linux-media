@@ -1,77 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:16503 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752840AbZHJJkK (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.156]:59508 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932761AbZHVVrq convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Aug 2009 05:40:10 -0400
-Subject: Re: [PATCHv15 6/8] FM TX: si4713: Add files to handle si4713 i2c
- device
-From: m7aalton <matti.j.aaltonen@nokia.com>
-Reply-To: matti.j.aaltonen@nokia.com
-To: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>
-Cc: ext Hans Verkuil <hverkuil@xs4all.nl>,
-	ext Mauro Carvalho Chehab <mchehab@infradead.org>,
-	ext Douglas Schilling Landgraf <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>
-In-Reply-To: <1249729833-24975-7-git-send-email-eduardo.valentin@nokia.com>
-References: <1249729833-24975-1-git-send-email-eduardo.valentin@nokia.com>
-	 <1249729833-24975-2-git-send-email-eduardo.valentin@nokia.com>
-	 <1249729833-24975-3-git-send-email-eduardo.valentin@nokia.com>
-	 <1249729833-24975-4-git-send-email-eduardo.valentin@nokia.com>
-	 <1249729833-24975-5-git-send-email-eduardo.valentin@nokia.com>
-	 <1249729833-24975-6-git-send-email-eduardo.valentin@nokia.com>
-	 <1249729833-24975-7-git-send-email-eduardo.valentin@nokia.com>
-Content-Type: text/plain
-Date: Mon, 10 Aug 2009 12:39:50 +0300
-Message-Id: <1249897190.31807.120.camel@masi.ntc.nokia.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sat, 22 Aug 2009 17:47:46 -0400
+Received: by fg-out-1718.google.com with SMTP id e12so342944fga.17
+        for <linux-media@vger.kernel.org>; Sat, 22 Aug 2009 14:47:47 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <dd7c97280908221309h404b9003i22226329e6fc856a@mail.gmail.com>
+References: <dd7c97280908221309h404b9003i22226329e6fc856a@mail.gmail.com>
+Date: Sat, 22 Aug 2009 17:47:46 -0400
+Message-ID: <829197380908221447x1c738c52m98793c6a552db1d6@mail.gmail.com>
+Subject: Re: [linux-dvb] (no subject)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+On Sat, Aug 22, 2009 at 4:09 PM, Atlanta Geek<atlantageek@gmail.com> wrote:
+> Using the linuxtv-dvb-apps
+> I find scan generates a file with only six parameters per digital
+> channel when generating  the channels.conf file.
+> However czap requires 8 parameters.
+> This is for a cable network.
+> Does anyone have any suggestions.
+>
+> --
+> http://www.atlantageek.com
 
-On Sat, 2009-08-08 at 13:10 +0200, Valentin Eduardo (Nokia-D/Helsinki)
-wrote:
+Well, given your name and resume, I'm assuming that "atlantageek"
+means "Atlanta, Georgia".  In which case, for digital tuning you use
+azap (azap is used for both over-the-air ATSC as well as cable QAM).
+When doing a scan for cable, you will typically use the scan file
+us-Cable-Standard-center-frequencies-QAM256.
 
-...
+Cheers,
 
-> +/*
-> + * I2C driver interface
-> + */
-> +/* si4713_probe - probe for the device */
-> +static int si4713_probe(struct i2c_client *client,
-> +                                       const struct i2c_device_id *id)
-> +{
-> +       struct si4713_device *sdev;
-> +       int rval;
-> +
-> +       sdev = kzalloc(sizeof *sdev, GFP_KERNEL);
-> +       if (!sdev) {
-> +               dev_err(&client->dev, "Failed to alloc video device.\n");
-> +               rval = -ENOMEM;
-> +               goto exit;
-> +       }
-> +
-> +       sdev->platform_data = client->dev.platform_data;
-> +       if (!sdev->platform_data) {
-> +               v4l2_err(&sdev->sd, "No platform data registered.\n");
-                           ^^^^^^^^^
-It looks like sdev-sd is still uninitialized here... 
+Devin
 
-> +               rval = -ENODEV;
-> +               goto free_sdev;
-> +       }
-> +
-> +       v4l2_i2c_subdev_init(&sdev->sd, client, &si4713_subdev_ops);
-                               ^^^^^^^^^^
-> +
-
-B.R.
-Matti
-
-
-
-
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
