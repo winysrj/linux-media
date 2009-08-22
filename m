@@ -1,16 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.25])
-	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <cwattengard@gmail.com>) id 1MYJk0-0007pk-O9
-	for linux-dvb@linuxtv.org; Tue, 04 Aug 2009 15:07:45 +0200
-Received: by ey-out-2122.google.com with SMTP id 9so976938eyd.17
-	for <linux-dvb@linuxtv.org>; Tue, 04 Aug 2009 06:07:41 -0700 (PDT)
-MIME-Version: 1.0
-Date: Tue, 4 Aug 2009 15:07:40 +0200
-Message-ID: <42619c130908040607h13afb69exe74145cd4ec4fc1e@mail.gmail.com>
-From: =?ISO-8859-1?Q?Christian_Watteng=E5rd?= <cwattengard@gmail.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by mail.linuxtv.org with smtp (Exim 4.69)
+	(envelope-from <danprem@gmx.net>) id 1Menog-0005rq-Oy
+	for linux-dvb@linuxtv.org; Sat, 22 Aug 2009 12:27:30 +0200
+From: Daniel Senftleben <danprem@gmx.net>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Recieving DVB-C with DVB-T units
+Date: Sat, 22 Aug 2009 12:24:54 +0200
+MIME-Version: 1.0
+Message-Id: <200908221224.54484.danprem@gmx.net>
+Subject: [linux-dvb] x3m_HPC2000
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -25,20 +23,15 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This has probably been asked before, and it's probably a stupid question.
+G'day all
 
-But after doing some research on Wikipedia and such, I can't figure
-out why a DVB-T unit can't be easily modified to recieve DVB-C?
-They use the same frequencies, the DVB-T specs support QAM (atleast low QAM).
-My specific cable network uses 64QAM which the specs apparently
-supports... So where is the underlying problem?
-
-Could somebody be so nice as to explain to me? :)
-
-Oh... And hi, I'm Christian, I'm from Norway, and this is my first
-post to the list :)
-
--C-
+I've bought myself the "HPC2000 hybrid tv pci card" for one reason because x3m 
+said it supports linux.. well, it never worked for me (now I'm at Suse 11.1 
+64bit and I used to use the prior Suse versions) and now I stumbled across 
+your wiki and saw my card under the "Currently Unsupported DVB-T PCI cards"..  
+way to go :-/ So now I subscribed to the list to help get this card working! 
+How can I help?
+(but please be easy on me - it's the first time I try help "officials" ;-))
 
 _______________________________________________
 linux-dvb users mailing list
