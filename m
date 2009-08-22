@@ -1,57 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp110.sbc.mail.gq1.yahoo.com ([67.195.14.95]:25231 "HELO
-	smtp110.sbc.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750953AbZHTBEL (ORCPT
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:36980 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933166AbZHVGsu convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Aug 2009 21:04:11 -0400
-From: David Brownell <david-b@pacbell.net>
-To: davinci-linux-open-source@linux.davincidsp.com
-Subject: Re: [PATCH 3/5 - v3] DaVinci: platform changes to support vpfe camera capture
-Date: Wed, 19 Aug 2009 14:04:16 -0700
-Cc: m-karicheri2@ti.com, linux-media@vger.kernel.org
-References: <1250551146-32543-1-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1250551146-32543-1-git-send-email-m-karicheri2@ti.com>
+	Sat, 22 Aug 2009 02:48:50 -0400
+Received: by bwz19 with SMTP id 19so755856bwz.37
+        for <linux-media@vger.kernel.org>; Fri, 21 Aug 2009 23:48:50 -0700 (PDT)
+From: Marek Vasut <marek.vasut@gmail.com>
+To: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Eric Miao <eric.y.miao@gmail.com>
+Subject: [PATCH 1/3] Add RGB555X and RGB565X formats to pxa-camera
+Date: Sat, 22 Aug 2009 08:48:26 +0200
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
-Content-Disposition: inline
-Message-Id: <200908191404.16404.david-b@pacbell.net>
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <200908220848.26702.marek.vasut@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 17 August 2009, m-karicheri2@ti.com wrote:
->  static struct i2c_board_info dm355evm_i2c_info[] = {
->         {       I2C_BOARD_INFO("dm355evm_msp", 0x25),
->                 .platform_data = dm355evm_mmcsd_gpios,
->         },
-> +       {
-> +               I2C_BOARD_INFO("PCA9543A", 0x73),
-> +       },
->         /* { plus irq  }, */
->         /* { I2C_BOARD_INFO("tlv320aic3x", 0x1b), }, */
->  };
+>From 287b146839e3f96b34336f40e1ab7b154cd58a64 Mon Sep 17 00:00:00 2001
+From: Marek Vasut <marek.vasut@gmail.com>
+Date: Sat, 22 Aug 2009 05:13:22 +0200
+Subject: [PATCH 1/3] Add RGB555X and RGB565X formats to pxa-camera
 
-The DM355 EVM board has no PCA9543A I2C multiplexor
-chip, so this is not a good approach to use.  (*)
+Those formats are requiered on widely used OmniVision OV96xx cameras.
+Those formats are nothing more then endian-swapped RGB555 and RGB565.
 
-If I understand correctly you are configuring some
-particular add-on board, which uses a chip like that.
-There are at least two such boards today, yes?  And
-potentially more.  Don't preclude (or complicate)
-use of different boards...
+Signed-off-by: Marek Vasut <marek.vasut@gmail.com>
+---
+ drivers/media/video/pxa_camera.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-The scalable approach is to have a file for each
-daughtercard, and Kconfig options to enable the
-support for those cards.  The EVM board init code
-might call a dm355evm_card_init() routine, and
-provide a weak binding for it which would be
-overridden by the 
-
-- Dave
-
-(*) Separate issue:  there's ongoing work to get the
-    I2C stack to support such chips in generic ways;
-    you should plan to use that work, which ISTR wasn't
-    too far from being mergeable.
-
+diff --git a/drivers/media/video/pxa_camera.c 
+b/drivers/media/video/pxa_camera.c
+index 7c86ef9..ef5d293 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -1110,10 +1110,12 @@ static void pxa_camera_setup_cicr(struct 
+soc_camera_device *icd,
+ 		cicr1 |= CICR1_COLOR_SP_VAL(2);
+ 		break;
+ 	case V4L2_PIX_FMT_RGB555:
++	case V4L2_PIX_FMT_RGB555X:
+ 		cicr1 |= CICR1_RGB_BPP_VAL(1) | CICR1_RGBT_CONV_VAL(2) |
+ 			CICR1_TBIT | CICR1_COLOR_SP_VAL(1);
+ 		break;
+ 	case V4L2_PIX_FMT_RGB565:
++	case V4L2_PIX_FMT_RGB565X:
+ 		cicr1 |= CICR1_COLOR_SP_VAL(1) | CICR1_RGB_BPP_VAL(2);
+ 		break;
+ 	}
+@@ -1240,6 +1242,8 @@ static int required_buswidth(const struct 
+soc_camera_data_format *fmt)
+ 	case V4L2_PIX_FMT_YVYU:
+ 	case V4L2_PIX_FMT_RGB565:
+ 	case V4L2_PIX_FMT_RGB555:
++	case V4L2_PIX_FMT_RGB565X:
++	case V4L2_PIX_FMT_RGB555X:
+ 		return 8;
+ 	default:
+ 		return fmt->depth;
+@@ -1289,6 +1293,8 @@ static int pxa_camera_get_formats(struct 
+soc_camera_device *icd, int idx,
+ 	case V4L2_PIX_FMT_YVYU:
+ 	case V4L2_PIX_FMT_RGB565:
+ 	case V4L2_PIX_FMT_RGB555:
++	case V4L2_PIX_FMT_RGB565X:
++	case V4L2_PIX_FMT_RGB555X:
+ 		formats++;
+ 		if (xlate) {
+ 			xlate->host_fmt = icd->formats + idx;
+-- 
+1.6.3.3
