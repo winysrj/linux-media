@@ -1,59 +1,251 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:34173 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752379AbZHUGHy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Aug 2009 02:07:54 -0400
-Date: Fri, 21 Aug 2009 03:07:49 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Miguel <mcm@moviquity.com>, linux-media@vger.kernel.org
-Subject: Re: USB Wintv HVR-900 Hauppauge
-Message-ID: <20090821030749.372093bd@pedra.chehab.org>
-In-Reply-To: <829197380908191016n8d7f21eq88ebe3a45816275b@mail.gmail.com>
-References: <1250679685.14727.14.camel@McM>
-	<829197380908190642sfabee2ahe599dda1df39678c@mail.gmail.com>
-	<1250701340.14727.28.camel@McM>
-	<829197380908191016n8d7f21eq88ebe3a45816275b@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from crow.cadsoft.de ([217.86.189.86]:59967 "EHLO raven.cadsoft.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933649AbZHWN2l (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Aug 2009 09:28:41 -0400
+Received: from [192.168.100.10] (hawk.cadsoft.de [192.168.100.10])
+	by raven.cadsoft.de (8.14.3/8.14.3) with ESMTP id n7NDB0Dv013600
+	for <linux-media@vger.kernel.org>; Sun, 23 Aug 2009 15:11:00 +0200
+Message-ID: <4A913FE4.8040003@cadsoft.de>
+Date: Sun, 23 Aug 2009 15:11:00 +0200
+From: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: [DVB] Sticky module dvb_pll
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 19 Aug 2009 13:16:23 -0400
-Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
+When I use the latest driver from http://linuxtv.org/hg/v4l-dvb (4d727d223236)
+and load all the modules I need, as in
 
-> Unfortunately, it is not clear when/if Mauro will ever get back to
-> getting that bridge to a supported state (it hasn't had any active
-> development in over nine months).
+/sbin/modprobe firmware_class
+/sbin/modprobe i2c-core
+/sbin/insmod ./v4l1-compat.ko
+/sbin/insmod ./cx24113.ko
+/sbin/insmod ./s5h1420.ko
+/sbin/insmod ./videobuf-core.ko
+/sbin/insmod ./ttpci-eeprom.ko
+/sbin/insmod ./cx24123.ko
+/sbin/insmod ./saa7146.ko
+/sbin/insmod ./videodev.ko
+/sbin/insmod ./videobuf-dma-sg.ko
+/sbin/insmod ./saa7146_vv.ko
+/sbin/insmod ./mt352.ko
+/sbin/insmod ./ves1x93.ko
+/sbin/insmod ./dvb-core.ko
+/sbin/insmod ./stv0299.ko
+/sbin/insmod ./dvb-ttpci.ko
+/sbin/insmod ./budget-core.ko
+/sbin/insmod ./budget.ko
+/sbin/insmod ./b2c2-flexcop.ko
+/sbin/insmod ./b2c2-flexcop-pci.ko
 
-This is a recorrent question, already discussed at the ML. Probably, I should
-update the wiki.
+lsmod shows
 
-The driver is still on my TODO list. I intend to return back to it, but this is
-not on my current top priorities. Those chips are very buggy and they behave
-badly if the driver doesn't do exactly the same thing as the original one (it
-starts to loose frames). I suspect that this is a firmware bug at
-tm6000/tm6010, although I'm not sure. Maybe the conversion of the driver to the
-new i2c approach could help to fix this issue, since this will avoid sending
-probing packets at i2c bus. Also, on all tests we've done so far, it can't
-reliably read data from an i2c device. This prevents that tools like scan to
-properly detect the signal strength of a channel. You can't even be sure if
-xc3028 firmware were successfully loaded on this device, due to this issue.
+Module                  Size  Used by
+dvb_pll                16392  1
+b2c2_flexcop_pci       14484  0
+b2c2_flexcop           37004  1 b2c2_flexcop_pci
+budget                 21508  0
+budget_core            15748  1 budget
+dvb_ttpci             351180  0
+stv0299                14984  1
+dvb_core               95724  5 b2c2_flexcop,budget,budget_core,dvb_ttpci,stv0299
+ves1x93                10884  2
+mt352                  10756  1
+saa7146_vv             52352  1 dvb_ttpci
+videobuf_dma_sg        18948  1 saa7146_vv
+videodev               44704  1 saa7146_vv
+saa7146                23816  4 budget,budget_core,dvb_ttpci,saa7146_vv
+cx24123                18824  1 b2c2_flexcop
+ttpci_eeprom            6656  2 budget_core,dvb_ttpci
+videobuf_core          23556  2 saa7146_vv,videobuf_dma_sg
+s5h1420                16388  1 b2c2_flexcop
+cx24113                12420  1 b2c2_flexcop
+v4l1_compat            18052  1 videodev
+w83781d                34984  0
+hwmon_vid               7040  1 w83781d
+iptable_filter          7552  0
+ip_tables              17936  1 iptable_filter
+ip6_tables             19088  0
+x_tables               21380  2 ip_tables,ip6_tables
+nfs                   266964  1
+lockd                  72312  2 nfs
+nfs_acl                 7680  1 nfs
+sunrpc                197372  13 nfs,lockd,nfs_acl
+af_packet              26368  0
+fuse                   54044  1
+loop                   23044  0
+dm_mod                 66388  0
+ppdev                  13060  0
+rtc_cmos               14752  0
+rtc_core               24860  1 rtc_cmos
+rtc_lib                 7040  1 rtc_core
+parport_pc             42428  0
+parport                40660  2 ppdev,parport_pc
+8139too                30976  0
+sr_mod                 21160  0
+cdrom                  38300  1 sr_mod
+i2c_ali1535            11268  0
+8139cp                 27392  0
+i2c_ali15x3            12036  0
+firmware_class         13696  3 b2c2_flexcop,budget,dvb_ttpci
+ali_agp                11136  1
+mii                     9600  2 8139too,8139cp
+shpchp                 37780  0
+i2c_core               28820  15 dvb_pll,b2c2_flexcop,budget,budget_core,dvb_ttpci,stv0299,ves1x93,mt352,cx24123,ttpci_eeprom,s5h1420,cx24113,w83781d,i2c_ali1535,i2c_ali15x3
+agpgart                38580  1 ali_agp
+pci_hotplug            33828  1 shpchp
+alim7101_wdt           11928  0
+sg                     39732  0
+sd_mod                 33048  4
+ohci_hcd               27396  0
+usbcore               152268  2 ohci_hcd
+edd                    14152  0
+ext3                  143880  2
+mbcache                13060  1 ext3
+jbd                    61216  1 ext3
+pata_ali               15620  3
+libata                164316  1 pata_ali
+scsi_mod              156404  4 sr_mod,sg,sd_mod,libata
+dock                   15248  1 libata
 
-It is important to notice that the vendor (Trident) doesn't seem to want
-helping with open source development. I tried during 2007 and 2008 to get their
-help by opening docs to me, via Linux Foundation NDA program, without success.
-Currently, they are refusing so far to help with their demod DRX-K line that
-they acquired from Micronas (as pointed at http://linux.terratec.de/tv_en.html).
+If immediately after that I do
 
-In brief, while I want to fix the driver issues, I recommend to avoid
-buying any devices with tm5600/tm6000/tm6010 (and DRX demod) chips. There are
-other offers at the market with drivers that work properly, including some
-nice HVR devices that are fully supported.
+/sbin/rmmod dvb_ttpci
+/sbin/rmmod saa7146_vv
+/sbin/rmmod budget
+/sbin/rmmod b2c2_flexcop_pci
+/sbin/rmmod budget_core
+/sbin/rmmod stv0299
+/sbin/rmmod b2c2_flexcop
+/sbin/rmmod videodev
+/sbin/rmmod videobuf_dma_sg
+/sbin/rmmod cx24113
+/sbin/rmmod saa7146
+/sbin/rmmod ttpci_eeprom
+/sbin/rmmod ves1x93
+/sbin/rmmod s5h1420
+/sbin/rmmod mt352
+/sbin/rmmod v4l1_compat
+/sbin/rmmod dvb_core
+/sbin/rmmod dvb_pll
+ERROR: Module dvb_pll is in use
+/sbin/rmmod videobuf_core
+/sbin/rmmod cx24123
+
+I get an error when trying to rmmod dvb_pll.
+lsmod then shows
+
+Module                  Size  Used by
+dvb_pll                16392  1
+w83781d                34984  0
+hwmon_vid               7040  1 w83781d
+iptable_filter          7552  0
+ip_tables              17936  1 iptable_filter
+ip6_tables             19088  0
+x_tables               21380  2 ip_tables,ip6_tables
+nfs                   266964  1
+lockd                  72312  2 nfs
+nfs_acl                 7680  1 nfs
+sunrpc                197372  13 nfs,lockd,nfs_acl
+af_packet              26368  0
+fuse                   54044  1
+loop                   23044  0
+dm_mod                 66388  0
+ppdev                  13060  0
+rtc_cmos               14752  0
+rtc_core               24860  1 rtc_cmos
+rtc_lib                 7040  1 rtc_core
+parport_pc             42428  0
+parport                40660  2 ppdev,parport_pc
+8139too                30976  0
+sr_mod                 21160  0
+cdrom                  38300  1 sr_mod
+i2c_ali1535            11268  0
+8139cp                 27392  0
+i2c_ali15x3            12036  0
+firmware_class         13696  0
+ali_agp                11136  1
+mii                     9600  2 8139too,8139cp
+shpchp                 37780  0
+i2c_core               28820  4 dvb_pll,w83781d,i2c_ali1535,i2c_ali15x3
+agpgart                38580  1 ali_agp
+pci_hotplug            33828  1 shpchp
+alim7101_wdt           11928  0
+sg                     39732  0
+sd_mod                 33048  4
+ohci_hcd               27396  0
+usbcore               152268  2 ohci_hcd
+edd                    14152  0
+ext3                  143880  2
+mbcache                13060  1 ext3
+jbd                    61216  1 ext3
+pata_ali               15620  3
+libata                164316  1 pata_ali
+scsi_mod              156404  4 sr_mod,sg,sd_mod,libata
+dock                   15248  1 libata
+
+Only an explicit
+
+rmmod -f dvb_pll
+
+removes the dvb_pll module and lsmod goes to
+
+Module                  Size  Used by
+w83781d                34984  0
+hwmon_vid               7040  1 w83781d
+iptable_filter          7552  0
+ip_tables              17936  1 iptable_filter
+ip6_tables             19088  0
+x_tables               21380  2 ip_tables,ip6_tables
+nfs                   266964  1
+lockd                  72312  2 nfs
+nfs_acl                 7680  1 nfs
+sunrpc                197372  13 nfs,lockd,nfs_acl
+af_packet              26368  0
+fuse                   54044  1
+loop                   23044  0
+dm_mod                 66388  0
+ppdev                  13060  0
+rtc_cmos               14752  0
+rtc_core               24860  1 rtc_cmos
+rtc_lib                 7040  1 rtc_core
+parport_pc             42428  0
+parport                40660  2 ppdev,parport_pc
+8139too                30976  0
+sr_mod                 21160  0
+cdrom                  38300  1 sr_mod
+i2c_ali1535            11268  0
+8139cp                 27392  0
+i2c_ali15x3            12036  0
+firmware_class         13696  0
+ali_agp                11136  1
+mii                     9600  2 8139too,8139cp
+shpchp                 37780  0
+i2c_core               28820  3 w83781d,i2c_ali1535,i2c_ali15x3
+agpgart                38580  1 ali_agp
+pci_hotplug            33828  1 shpchp
+alim7101_wdt           11928  0
+sg                     39732  0
+sd_mod                 33048  4
+ohci_hcd               27396  0
+usbcore               152268  2 ohci_hcd
+edd                    14152  0
+ext3                  143880  2
+mbcache                13060  1 ext3
+jbd                    61216  1 ext3
+pata_ali               15620  3
+libata                164316  1 pata_ali
+scsi_mod              156404  4 sr_mod,sg,sd_mod,libata
+dock                   15248  1 libata
 
 
+Is this normal behavior, or should dvb_pll be removed with a
+plain rmmod?
 
-Cheers,
-Mauro
+
+Klaus
+
