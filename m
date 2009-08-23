@@ -1,49 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f196.google.com ([209.85.221.196]:35937 "EHLO
-	mail-qy0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933165AbZHECb3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2009 22:31:29 -0400
+Received: from mail.gmx.net ([213.165.64.20]:48691 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1755923AbZHWKVQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Aug 2009 06:21:16 -0400
+From: Daniel Senftleben <danprem@gmx.net>
+To: linux-media@vger.kernel.org
+Subject: x3m_HPC2000 infos
+Date: Sun, 23 Aug 2009 12:19:18 +0200
 MIME-Version: 1.0
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE401451814F8@dlee06.ent.ti.com>
-References: <200908040912.24718.hverkuil@xs4all.nl>
-	 <19F8576C6E063C45BE387C64729E73940432AF3A5D@dbde02.ent.ti.com>
-	 <A69FA2915331DC488A831521EAE36FE401451814F8@dlee06.ent.ti.com>
-Date: Wed, 5 Aug 2009 11:31:29 +0900
-Message-ID: <aec7e5c30908041931m2113cecerec2c732f8b5927ea@mail.gmail.com>
-Subject: Re: Linux Plumbers Conference 2009: V4L2 API discussions
-From: Magnus Damm <magnus.damm@gmail.com>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>,
-	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200908231219.18706.danprem@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 5, 2009 at 5:14 AM, Karicheri,
-Muralidharan<m-karicheri2@ti.com> wrote:
-> 2) Previewer & Resizer driver. I am working with Vaibhav who had worked on an RFC for this. The previewer and resizer devices are doing memory to memory operations. Also should be flexible to use these hardware with capture driver to do on the fly preview and resize. The TI hardware is parameter intensive. We believe these parameters are to be exported to user space through IOCTLs and would require addition of new IOCTLs and extension of control IDs. We will be working with you on this as well.
+Ok, I'll try giving some more infos.
 
-FWIW, for our SuperH Mobile devices we make use of UIO and user space
-libraries to support for our on-chip multimedia blocks. These blocks
-do scaling, rotation, color space conversion and hardware
-encode/decode of various formats including h264 and mpeg4 in HD
-resolution.
+lspci:
 
-Apart from UIO we use V4L2 for the camera capture interface driver
-sh_mobile_ceu_camera.c. It has support for on the fly color space
-conversion and scaling/cropping. The CEU driver is making use of
-videobuf-dma-contig.c and the USERPTR changes included in 2.6.31-rc
-gives the driver zero copy frame capture support.
+02:06.0 Multimedia video controller: Conexant Systems, Inc. CX23880/1/2/3 PCI 
+Video and Audio Decoder (rev 05)
+02:06.1 Multimedia controller: Conexant Systems, Inc. CX23880/1/2/3 PCI Video 
+and Audio Decoder [Audio Port] (rev 05)
+02:06.2 Multimedia controller: Conexant Systems, Inc. CX23880/1/2/3 PCI Video 
+and Audio Decoder [MPEG Port] (rev 05)
 
-All of this is of course available upstream.
+-----------------------------
 
-Cheers,
+dmesg | grep cx88:
 
-/ magnus
+cx88/0: cx2388x v4l2 driver version 0.0.6 loaded                                            
+cx8800 0000:02:06.0: PCI INT A -> GSI 20 (level, low) -> IRQ 20                             
+cx88[0]: subsystem: 14f1:8852, board: UNKNOWN/GENERIC [card=0,insmod option]                
+cx88[0]: TV tuner type 71, Radio tuner type -1                                              
+cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
+cx88_alsa: disagrees about version of symbol snd_ctl_add                                    
+cx88_alsa: Unknown symbol snd_ctl_add                                                       
+cx88_alsa: disagrees about version of symbol snd_pcm_new                                    
+cx88_alsa: Unknown symbol snd_pcm_new
+cx88_alsa: disagrees about version of symbol snd_card_register
+cx88_alsa: Unknown symbol snd_card_register
+cx88_alsa: disagrees about version of symbol snd_card_free
+cx88_alsa: Unknown symbol snd_card_free
+cx88_alsa: disagrees about version of symbol snd_ctl_new1
+cx88_alsa: Unknown symbol snd_ctl_new1
+cx88_alsa: Unknown symbol snd_card_new
+cx88_alsa: disagrees about version of symbol snd_ctl_boolean_mono_info
+cx88_alsa: Unknown symbol snd_ctl_boolean_mono_info
+cx88_alsa: disagrees about version of symbol snd_pcm_lib_ioctl
+cx88_alsa: Unknown symbol snd_pcm_lib_ioctl
+cx88_alsa: disagrees about version of symbol snd_pcm_hw_constraint_pow2
+cx88_alsa: Unknown symbol snd_pcm_hw_constraint_pow2
+cx88_alsa: disagrees about version of symbol snd_pcm_set_ops
+cx88_alsa: Unknown symbol snd_pcm_set_ops
+cx88_alsa: disagrees about version of symbol snd_pcm_period_elapsed
+cx88_alsa: Unknown symbol snd_pcm_period_elapsed
+cx88[0]: Test OK
+tuner' 1-0061: chip found @ 0xc2 (cx88[0])
+cx88[0]: Asking xc2028/3028 to load firmware xc3028-v27.fw
+cx88[0]/0: found at 0000:02:06.0, rev: 5, irq: 20, latency: 32, mmio: 
+0xf9000000
+cx88[0]/0: registered device video0 [v4l2]
+cx88[0]/0: registered device vbi0
+cx88[0]/2: cx2388x 8802 Driver Manager
+
+--------------------------
+
+lsmod | grep cx88:
+
+cx8802                 17356  0
+cx8800                 35156  0
+cx88xx                 72040  2 cx8802,cx8800
+ir_common              43340  1 cx88xx
+i2c_algo_bit            7004  1 cx88xx
+compat_ioctl32          8504  1 cx8800
+videodev               35328  5 saa7146_vv,tuner,cx8800,cx88xx,compat_ioctl32
+tveeprom               13724  1 cx88xx
+v4l2_common            12600  2 tuner,cx8800
+btcx_risc               5152  3 cx8802,cx8800,cx88xx
+videobuf_dma_sg        14332  4 saa7146_vv,cx8802,cx8800,cx88xx
+videobuf_core          20748  5 
+saa7146_vv,cx8802,cx8800,cx88xx,videobuf_dma_sg
+i2c_core               35312  53 
+zl10353,ves1x93,ves1820,tua6100,tda826x,tda8083,tda10086,tda1004x,tda10048,tda10023,tda10021,stv0299,stv0297,sp887x,sp8870,s5h1420,s5h1411,s5h1409,or51211,or51132,nxt6000,nxt200x,mt352,mt312,lnbp21,lgdt330x,l64781,itd1000,isl6421,isl6405,dvb_pll,drx397xD,dib7000p,dib7000m,dib3000mc,dibx000_common,dib3000mb,dib0070,cx24123,cx24110,cx22702,cx22700,bcm3510,au8522,dvb_ttpci,ttpci_eeprom,tuner_xc2028,tuner,cx88xx,i2c_algo_bit,tveeprom,v4l2_common,i2c_piix4
+
+-----------------------
+
+I'm not sure what yast did as I tried to get the card working, but it looks a 
+bit messed up to me.. But it was able to load a driver and some modules, but 
+I'm not able to unload the modules to get the v4l module compiled myself like 
+you suggested (using these instuctions: 
+http://linuxtv.org/wiki/index.php/How_to_Obtain%2C_Build_and_Install_V4L-
+DVB_Device_Drivers). The modules "are in use" and i get errors while 
+compiling..
+Shall I try cleaning up a bit and remove the driver installed by yast, or do 
+you see another way. Whats cx88_alsa here for?
+Thanks
