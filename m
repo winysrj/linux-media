@@ -1,343 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proxy1.bredband.net ([195.54.101.71]:35458 "EHLO
-	proxy1.bredband.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751292AbZHKSJn (ORCPT
+Received: from mail-in-04.arcor-online.net ([151.189.21.44]:54524 "EHLO
+	mail-in-04.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933497AbZHWLmg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2009 14:09:43 -0400
-Received: from iph2.telenor.se (195.54.127.133) by proxy1.bredband.net (7.3.140.3)
-        id 49F5A1520292E6F8 for linux-media@vger.kernel.org; Tue, 11 Aug 2009 20:09:42 +0200
-Message-ID: <4A81B3E5.2040300@mocean-labs.com>
-Date: Tue, 11 Aug 2009 20:09:41 +0200
-From: =?ISO-8859-1?Q?Richard_R=F6jfors?=
-	<richard.rojfors@mocean-labs.com>
-MIME-Version: 1.0
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"mchehab@infradead.org" <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [patch v2 1/1] video: initial support for ADV7180
-References: <4A8182D8.5080802@mocean-labs.com> <19F8576C6E063C45BE387C64729E73940432B7A12F@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940432B7A12F@dbde02.ent.ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+	Sun, 23 Aug 2009 07:42:36 -0400
+Subject: Re: x3m_HPC2000 infos
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Daniel Senftleben <danprem@gmx.net>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <200908231219.18706.danprem@gmx.net>
+References: <200908231219.18706.danprem@gmx.net>
+Content-Type: text/plain
+Date: Sun, 23 Aug 2009 13:39:55 +0200
+Message-Id: <1251027595.3853.8.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 8/11/09 7:09 PM, Hiremath, Vaibhav wrote:
->> -----Original Message-----
->> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->> owner@vger.kernel.org] On Behalf Of Richard Röjfors
->> Sent: Tuesday, August 11, 2009 8:10 PM
->> To: linux-media@vger.kernel.org
->> Cc: Andrew Morton; mchehab@infradead.org; Hans Verkuil
->> Subject: [patch v2 1/1] video: initial support for ADV7180
->>
->> This is an initial driver for Analog Devices ADV7180 Video Decoder.
->>
->> So far it only supports setting the chip in autodetect mode and
->> query
->> the detected standard.
->>
->> Signed-off-by: Richard Röjfors<richard.rojfors.ext@mocean-labs.com>
->> ---
->> diff --git a/drivers/media/video/Kconfig
->> b/drivers/media/video/Kconfig
->> index 84b6fc1..ac9f636 100644
->> --- a/drivers/media/video/Kconfig
->> +++ b/drivers/media/video/Kconfig
->> @@ -265,6 +265,15 @@ config VIDEO_SAA6588
->>
->>    comment "Video decoders"
->>
->> +config VIDEO_ADV7180
->> +	tristate "Analog Devices ADV7180 decoder"
->> +	depends on VIDEO_V4L2&&  I2C
->> +	---help---
->> +	  Support for the Analog Devices ADV7180 video decoder.
->> +
->> +	  To compile this driver as a module, choose M here: the
->> +	  module will be called adv7180.
->> +
->>    config VIDEO_BT819
->>    	tristate "BT819A VideoStream decoder"
->>    	depends on VIDEO_V4L2&&  I2C
->> diff --git a/drivers/media/video/Makefile
->> b/drivers/media/video/Makefile
->> index 9f2e321..aac0884 100644
->> --- a/drivers/media/video/Makefile
->> +++ b/drivers/media/video/Makefile
->> @@ -45,6 +45,7 @@ obj-$(CONFIG_VIDEO_SAA7185) += saa7185.o
->>    obj-$(CONFIG_VIDEO_SAA7191) += saa7191.o
->>    obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
->>    obj-$(CONFIG_VIDEO_ADV7175) += adv7175.o
->> +obj-$(CONFIG_VIDEO_ADV7180) += adv7180.o
->>    obj-$(CONFIG_VIDEO_ADV7343) += adv7343.o
->>    obj-$(CONFIG_VIDEO_VPX3220) += vpx3220.o
->>    obj-$(CONFIG_VIDEO_BT819) += bt819.o
->> diff --git a/drivers/media/video/adv7180.c
->> b/drivers/media/video/adv7180.c
->> new file mode 100644
->> index 0000000..6607321
->> --- /dev/null
->> +++ b/drivers/media/video/adv7180.c
->> @@ -0,0 +1,202 @@
->> +/*
->> + * adv7180.c Analog Devices ADV7180 video decoder driver
->> + * Copyright (c) 2009 Intel Corporation
->> + *
->> + * This program is free software; you can redistribute it and/or
->> modify
->> + * it under the terms of the GNU General Public License version 2
->> as
->> + * published by the Free Software Foundation.
->> + *
->> + * This program is distributed in the hope that it will be useful,
->> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> + * GNU General Public License for more details.
->> + *
->> + * You should have received a copy of the GNU General Public
->> License
->> + * along with this program; if not, write to the Free Software
->> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
->> + */
->> +
->> +#include<linux/module.h>
->> +#include<linux/init.h>
->> +#include<linux/errno.h>
->> +#include<linux/kernel.h>
->> +#include<linux/interrupt.h>
->> +#include<linux/i2c.h>
->> +#include<linux/i2c-id.h>
->> +#include<media/v4l2-ioctl.h>
->> +#include<linux/videodev2.h>
->> +#include<media/v4l2-device.h>
->> +#include<media/v4l2-chip-ident.h>
->> +
-> [Hiremath, Vaibhav] I believe there is no dependency between header files, separate them like -
->
-> #include<linu/....>
-> <one line gap>
-> #include<media/....>
->
->> +#define DRIVER_NAME "adv7180"
->> +
->> +#define ADV7180_INPUT_CONTROL_REG	0x00
->> +#define ADV7180_INPUT_CONTROL_PAL_BG_NTSC_J_SECAM	0x00
->> +#define ADV7180_AUTODETECT_ENABLE_REG	0x07
->> +#define ADV7180_AUTODETECT_DEFAULT	0x7f
->> +
->> +
->> +#define ADV7180_STATUS1_REG 0x10
->> +#define ADV7180_STATUS1_AUTOD_MASK 0x70
->> +#define ADV7180_STATUS1_AUTOD_NTSM_M_J	0x00
->> +#define ADV7180_STATUS1_AUTOD_NTSC_4_43 0x10
->> +#define ADV7180_STATUS1_AUTOD_PAL_M	0x20
->> +#define ADV7180_STATUS1_AUTOD_PAL_60	0x30
->> +#define ADV7180_STATUS1_AUTOD_PAL_B_G	0x40
->> +#define ADV7180_STATUS1_AUTOD_SECAM	0x50
->> +#define ADV7180_STATUS1_AUTOD_PAL_COMB	0x60
->> +#define ADV7180_STATUS1_AUTOD_SECAM_525	0x70
->> +
->> +#define ADV7180_IDENT_REG 0x11
->> +#define ADV7180_ID_7180 0x18
->> +
->> +
->> +struct adv7180_state {
->> +	struct v4l2_subdev sd;
->> +};
->> +
->> +static v4l2_std_id determine_norm(struct i2c_client *client)
->> +{
->> +	u8 status1 = i2c_smbus_read_byte_data(client,
->> ADV7180_STATUS1_REG);
->> +
->> +	switch (status1&  ADV7180_STATUS1_AUTOD_MASK) {
->> +	case ADV7180_STATUS1_AUTOD_NTSM_M_J:
->> +		return V4L2_STD_NTSC_M_JP;
->> +	case ADV7180_STATUS1_AUTOD_NTSC_4_43:
->> +		return V4L2_STD_NTSC_443;
->> +	case ADV7180_STATUS1_AUTOD_PAL_M:
->> +		return V4L2_STD_PAL_M;
->> +	case ADV7180_STATUS1_AUTOD_PAL_60:
->> +		return V4L2_STD_PAL_60;
->> +	case ADV7180_STATUS1_AUTOD_PAL_B_G:
->> +		return V4L2_STD_PAL;
->> +	case ADV7180_STATUS1_AUTOD_SECAM:
->> +		return V4L2_STD_SECAM;
->> +	case ADV7180_STATUS1_AUTOD_PAL_COMB:
->> +		return V4L2_STD_PAL_Nc | V4L2_STD_PAL_N;
->> +	case ADV7180_STATUS1_AUTOD_SECAM_525:
->> +		return V4L2_STD_SECAM;
->> +	default:
->> +		return V4L2_STD_UNKNOWN;
->> +	}
->> +}
->> +
->> +static inline struct adv7180_state *to_state(struct v4l2_subdev
->> *sd)
->> +{
->> +	return container_of(sd, struct adv7180_state, sd);
->> +}
->> +
->> +static int adv7180_querystd(struct v4l2_subdev *sd, v4l2_std_id
->> *std)
->> +{
->> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
->> +
->> +	*(v4l2_std_id *)std = determine_norm(client);
->> +	return 0;
->> +}
->> +
->> +static int adv7180_g_chip_ident(struct v4l2_subdev *sd,
->> +	struct v4l2_dbg_chip_ident *chip)
->> +{
->> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
->> +
->> +	return v4l2_chip_ident_i2c_client(client, chip,
->> V4L2_IDENT_ADV7180, 0);
->> +}
->> +
->> +static const struct v4l2_subdev_video_ops adv7180_video_ops = {
->> +	.querystd = adv7180_querystd,
->> +};
->> +
->> +static const struct v4l2_subdev_core_ops adv7180_core_ops = {
->> +	.g_chip_ident = adv7180_g_chip_ident,
->> +};
->> +
->> +static const struct v4l2_subdev_ops adv7180_ops = {
->> +	.core =&adv7180_core_ops,
->> +	.video =&adv7180_video_ops,
->> +};
->> +
->> +/*
->> + * Generic i2c probe
->> + * concerning the addresses: i2c wants 7 bit (without the r/w bit),
->> so
->> '>>1'
->> + */
->> +
->> +static int adv7180_probe(struct i2c_client *client,
->> +			const struct i2c_device_id *id)
->> +{
->> +	struct adv7180_state *state;
->> +	struct v4l2_subdev *sd;
->> +	int ret;
->> +
->> +	/* Check if the adapter supports the needed features */
->> +	if (!i2c_check_functionality(client->adapter,
->> I2C_FUNC_SMBUS_BYTE_DATA))
->> +		return -EIO;
->> +
->> +	v4l_info(client, "chip found @ 0x%02x (%s)\n",
->> +			client->addr<<  1, client->adapter->name);
->> +
->> +	state = kzalloc(sizeof(struct adv7180_state), GFP_KERNEL);
->> +	if (state == NULL)
->> +		return -ENOMEM;
->> +	sd =&state->sd;
->> +	v4l2_i2c_subdev_init(sd, client,&adv7180_ops);
->> +
->> +	/* Initialize adv7180 */
->> +	/* enable autodetection */
->> +	ret = i2c_smbus_write_byte_data(client,
->> ADV7180_INPUT_CONTROL_REG,
->> +		ADV7180_INPUT_CONTROL_PAL_BG_NTSC_J_SECAM);
->> +	if (ret>  0)
->> +		ret = i2c_smbus_write_byte_data(client,
->> +			ADV7180_AUTODETECT_ENABLE_REG,
->> +			ADV7180_AUTODETECT_DEFAULT);
->> +	if (ret<  0) {
->> +		printk(KERN_ERR DRIVER_NAME
->> +			": Failed to communicate to chip: %d\n", ret);
->> +		return ret;
-> [Hiremath, Vaibhav] Memory leak here, you are returning without freeing memory for state.
 
-True, will update.
+Am Sonntag, den 23.08.2009, 12:19 +0200 schrieb Daniel Senftleben:
+> Ok, I'll try giving some more infos.
+> 
+> lspci:
+> 
+> 02:06.0 Multimedia video controller: Conexant Systems, Inc. CX23880/1/2/3 PCI 
+> Video and Audio Decoder (rev 05)
+> 02:06.1 Multimedia controller: Conexant Systems, Inc. CX23880/1/2/3 PCI Video 
+> and Audio Decoder [Audio Port] (rev 05)
+> 02:06.2 Multimedia controller: Conexant Systems, Inc. CX23880/1/2/3 PCI Video 
+> and Audio Decoder [MPEG Port] (rev 05)
+> 
+> -----------------------------
+> 
+> dmesg | grep cx88:
+> 
+> cx88/0: cx2388x v4l2 driver version 0.0.6 loaded                                            
+> cx8800 0000:02:06.0: PCI INT A -> GSI 20 (level, low) -> IRQ 20                             
+> cx88[0]: subsystem: 14f1:8852, board: UNKNOWN/GENERIC [card=0,insmod option]
 
->> +	}
-> [Hiremath, Vaibhav] No need for 2 if loops, implement something -
->
-> ret = i2c_smbus_write_byte_data(client, ADV7180_INPUT_CONTROL_REG,
-> 				ADV7180_INPUT_CONTROL_PAL_BG_NTSC_J_SECAM);
-> if (ret<  0) {
-> 	printk(KERN_ERR DRIVER_NAME ": Failed to communicate to chip: %d\n", ret);
-> return ret;
-> }
->
-> return i2c_smbus_write_byte_data(client,ADV7180_AUTODETECT_ENABLE_REG, 				ADV7180_AUTODETECT_DEFAULT);
+Looks good so far ;)
 
-If this one fails, we leak memory :-)
+>                
+> cx88[0]: TV tuner type 71, Radio tuner type -1                                              
+> cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
+> cx88_alsa: disagrees about version of symbol snd_ctl_add                                    
+> cx88_alsa: Unknown symbol snd_ctl_add                                                       
+> cx88_alsa: disagrees about version of symbol snd_pcm_new                                    
+> cx88_alsa: Unknown symbol snd_pcm_new
+> cx88_alsa: disagrees about version of symbol snd_card_register
+> cx88_alsa: Unknown symbol snd_card_register
+> cx88_alsa: disagrees about version of symbol snd_card_free
+> cx88_alsa: Unknown symbol snd_card_free
+> cx88_alsa: disagrees about version of symbol snd_ctl_new1
+> cx88_alsa: Unknown symbol snd_ctl_new1
+> cx88_alsa: Unknown symbol snd_card_new
+> cx88_alsa: disagrees about version of symbol snd_ctl_boolean_mono_info
+> cx88_alsa: Unknown symbol snd_ctl_boolean_mono_info
+> cx88_alsa: disagrees about version of symbol snd_pcm_lib_ioctl
+> cx88_alsa: Unknown symbol snd_pcm_lib_ioctl
+> cx88_alsa: disagrees about version of symbol snd_pcm_hw_constraint_pow2
+> cx88_alsa: Unknown symbol snd_pcm_hw_constraint_pow2
+> cx88_alsa: disagrees about version of symbol snd_pcm_set_ops
+> cx88_alsa: Unknown symbol snd_pcm_set_ops
+> cx88_alsa: disagrees about version of symbol snd_pcm_period_elapsed
+> cx88_alsa: Unknown symbol snd_pcm_period_elapsed
+> cx88[0]: Test OK
+> tuner' 1-0061: chip found @ 0xc2 (cx88[0])
+> cx88[0]: Asking xc2028/3028 to load firmware xc3028-v27.fw
+> cx88[0]/0: found at 0000:02:06.0, rev: 5, irq: 20, latency: 32, mmio: 
+> 0xf9000000
+> cx88[0]/0: registered device video0 [v4l2]
+> cx88[0]/0: registered device vbi0
+> cx88[0]/2: cx2388x 8802 Driver Manager
+> 
+> --------------------------
+> 
+> lsmod | grep cx88:
+> 
+> cx8802                 17356  0
+> cx8800                 35156  0
+> cx88xx                 72040  2 cx8802,cx8800
+> ir_common              43340  1 cx88xx
+> i2c_algo_bit            7004  1 cx88xx
+> compat_ioctl32          8504  1 cx8800
+> videodev               35328  5 saa7146_vv,tuner,cx8800,cx88xx,compat_ioctl32
+> tveeprom               13724  1 cx88xx
+> v4l2_common            12600  2 tuner,cx8800
+> btcx_risc               5152  3 cx8802,cx8800,cx88xx
+> videobuf_dma_sg        14332  4 saa7146_vv,cx8802,cx8800,cx88xx
+> videobuf_core          20748  5 
+> saa7146_vv,cx8802,cx8800,cx88xx,videobuf_dma_sg
+> i2c_core               35312  53 
+> zl10353,ves1x93,ves1820,tua6100,tda826x,tda8083,tda10086,tda1004x,tda10048,tda10023,tda10021,stv0299,stv0297,sp887x,sp8870,s5h1420,s5h1411,s5h1409,or51211,or51132,nxt6000,nxt200x,mt352,mt312,lnbp21,lgdt330x,l64781,itd1000,isl6421,isl6405,dvb_pll,drx397xD,dib7000p,dib7000m,dib3000mc,dibx000_common,dib3000mb,dib0070,cx24123,cx24110,cx22702,cx22700,bcm3510,au8522,dvb_ttpci,ttpci_eeprom,tuner_xc2028,tuner,cx88xx,i2c_algo_bit,tveeprom,v4l2_common,i2c_piix4
+> 
+> -----------------------
+> 
+> I'm not sure what yast did as I tried to get the card working, but it looks a 
+> bit messed up to me.. But it was able to load a driver and some modules, but 
+> I'm not able to unload the modules to get the v4l module compiled myself like 
+> you suggested (using these instuctions: 
+> http://linuxtv.org/wiki/index.php/How_to_Obtain%2C_Build_and_Install_V4L-
+> DVB_Device_Drivers). The modules "are in use" and i get errors while 
+> compiling..
+> Shall I try cleaning up a bit and remove the driver installed by yast, or do 
+> you see another way. Whats cx88_alsa here for?
+> Thanks
 
->
->
->> +
->> +	return 0;
->> +}
->> +
->> +static int adv7180_remove(struct i2c_client *client)
->> +{
->> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
->> +
->> +	v4l2_device_unregister_subdev(sd);
->> +	kfree(to_state(sd));
->> +	return 0;
->> +}
->> +
->> +static const struct i2c_device_id adv7180_id[] = {
->> +	{DRIVER_NAME, 0},
->> +	{},
->> +};
->> +
->> +MODULE_DEVICE_TABLE(i2c, adv7180_id);
->> +
->> +static struct i2c_driver adv7180_driver = {
->> +	.driver = {
->> +		.owner	= THIS_MODULE,
->> +		.name	= DRIVER_NAME,
->> +	},
->> +	.probe		= adv7180_probe,
->> +	.remove		= adv7180_remove,
->> +	.id_table	= adv7180_id,
->> +};
->> +
->> +static __init int adv7180_init(void)
->> +{
->> +	return i2c_add_driver(&adv7180_driver);
->> +}
->> +
->> +static __exit void adv7180_exit(void)
->> +{
->> +	i2c_del_driver(&adv7180_driver);
->> +}
->> +
->> +module_init(adv7180_init);
->> +module_exit(adv7180_exit);
->> +
->> +MODULE_DESCRIPTION("Analog Devices ADV7180 video decoder driver");
->> +MODULE_AUTHOR("Mocean Laboratories");
->> +MODULE_LICENSE("GPL v2");
->> +
->> diff --git a/include/media/v4l2-chip-ident.h
->> b/include/media/v4l2-chip-ident.h
->> index 11a4a2d..3d2884b 100644
->> --- a/include/media/v4l2-chip-ident.h
->> +++ b/include/media/v4l2-chip-ident.h
->> @@ -131,6 +131,9 @@ enum {
->>    	/* module adv7175: just ident 7175 */
->>    	V4L2_IDENT_ADV7175 = 7175,
->>
->> +	/* module adv7180: just ident 7180 */
->> +	V4L2_IDENT_ADV7180 = 7180,
->> +
->>    	/* module saa7185: just ident 7185 */
->>    	V4L2_IDENT_SAA7185 = 7185,
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-
->> media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+You need to get rid of all old media modules and have to replace them
+with current v4l-dvb stuff to have eventually a chance.
+
+On top of mercurial v4l-dvb you can try make rmmod twice and make
+rminstall, don't bother to delete the complete media folder in your
+kernels /lib/modules... tree, with "make install" you will get it back.
+(does also depmod -a for the new modules)
+
+If there should be modules left on unusual places, "modprobe -v" should
+show those, also any remaining options forced by yast, but I'm not on
+such currently.
+
+If you did not make sure to unload all old modules previously, reboot.
+
+Cheeers,
+Hermann
+
 
