@@ -1,63 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:52146 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753800AbZHGQ2Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2009 12:28:16 -0400
-Date: Fri, 7 Aug 2009 13:28:41 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx: fix: some webcams don't have audio inputs
-Message-ID: <20090807132841.51372e65@caramujo.chehab.org>
-In-Reply-To: <829197380908051158i52af640cn1b87bfe90c0890b8@mail.gmail.com>
-References: <829197380908051158i52af640cn1b87bfe90c0890b8@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:46659 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933192AbZHWAhb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Aug 2009 20:37:31 -0400
+Received: by bwz19 with SMTP id 19so966506bwz.37
+        for <linux-media@vger.kernel.org>; Sat, 22 Aug 2009 17:37:32 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4fab9a6f0908221732g8e061f3t8fc871c3a0b36337@mail.gmail.com>
+References: <4fab9a6f0908221729n5410920fmd38bace3070105a3@mail.gmail.com>
+	 <4fab9a6f0908221732g8e061f3t8fc871c3a0b36337@mail.gmail.com>
+Date: Sat, 22 Aug 2009 20:37:31 -0400
+Message-ID: <829197380908221737h46f028ffu9b7a3b1e260f8c22@mail.gmail.com>
+Subject: Re: Kernel oops with em28xx device
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Fau <dalamenona@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 5 Aug 2009 14:58:23 -0400
-Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
+On Sat, Aug 22, 2009 at 8:32 PM, Fau<dalamenona@gmail.com> wrote:
+> Greetings,
+> I have an USB TV adapter identified as Hauppauge WinTV HVR 900 (R2) (card=18)
+> and I'm using Fedora 11 with linux kernel vanilla 2.6.30.5 (the last
+> stable as writing).
+>
+> Following the manual at http://www.linuxtv.org/wiki/index.php/Em28xx_devices
+> i've extracted and copied xc3028-v27.fw in /lib/firware then i
+> compiled (make/make install) a freshly cloned v4l-dvb
+>
+> Now when the device is plugged there is a kernel oops, I'm missing
+> something or is it a bug?
+> In attachment the relevant part of dmesg,
+> thank you in advance for any help,
 
-> Hello Mauro,
-> 
-> I just noticed this patch:
-> 
-> em28xx: fix: some webcams don't have audio inputs
-> http://linuxtv.org/hg/v4l-dvb/rev/fe5eeff6644d
-> 
-> I have to wonder what the EM28XX_R00_CHIPCFG contained on this
-> particular device, since this cause should have already been handled
-> by the elseif() block on line 507:
-> 
-> } else if ((cfg & EM28XX_CHIPCFG_AUDIOMASK) == 0x00) {
->     /* The device doesn't have vendor audio at all */
->    dev->has_alsa_audio = 0;
->    dev->audio_mode.has_audio = 0;
->    return 0;
-> }
+I should probably also point out that the DVB support is known to not
+work with that board (I've been working on the problem).
 
-Good point. I'll double check. I need one webcam with an integrated mic to be
-sure if R00 has the proper value on webcams.
+Devin
 
-> On a related note, is there some rationale you can offer as to why you
-> are committing patches directly into the v4l-dvb mainline without any
-> peer review, unlike *every* other developer in the linuxtv project?  I
-> know it may seem redundant to you since you are the person acting on
-> the PULL requests, but it would provide an opportunity for the other
-> developers to offer comments on your patches *before* they go into the
-> mainline.
-
-This were already answered on some previous msgs at the ML: hg commits mailing
-lists give the opportunity for people to review what were committed at the
-staging tree, since every patch is automatically mailbombed to the mailing
-list. The mainline tree is my -git. It is delayed over -hg to give opportunity
-for people to review the committed patches. Also, I'm not the kind of person
-that use to talk to himself. Starting sending pull requests from me to myself
-will probably get me a free ticket to a mental care services :-d
-
-
-
-Cheers,
-Mauro
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
