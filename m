@@ -1,123 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:54785 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750933AbZHERl6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Aug 2009 13:41:58 -0400
-Date: Wed, 5 Aug 2009 19:42:11 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Valentin Longchamp <valentin.longchamp@epfl.ch>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	"m-karicheri2@ti.com" <m-karicheri2@ti.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
-	Darius Augulis <augulis.darius@gmail.com>
-Subject: Re: [PATCH 0/4] soc-camera: cleanup + scaling / cropping API fix
-In-Reply-To: <4A798F05.808@epfl.ch>
-Message-ID: <Pine.LNX.4.64.0908051604220.5802@axis700.grange>
-References: <Pine.LNX.4.64.0907291640010.4983@axis700.grange> <4A71A159.60903@epfl.ch>
- <Pine.LNX.4.64.0907302019270.6813@axis700.grange> <4A798F05.808@epfl.ch>
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:36757 "EHLO
+	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932414AbZHWAcZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Aug 2009 20:32:25 -0400
+Received: by fxm17 with SMTP id 17so970721fxm.37
+        for <linux-media@vger.kernel.org>; Sat, 22 Aug 2009 17:32:26 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <4fab9a6f0908221729n5410920fmd38bace3070105a3@mail.gmail.com>
+References: <4fab9a6f0908221729n5410920fmd38bace3070105a3@mail.gmail.com>
+Date: Sun, 23 Aug 2009 02:32:26 +0200
+Message-ID: <4fab9a6f0908221732g8e061f3t8fc871c3a0b36337@mail.gmail.com>
+Subject: Kernel oops with em28xx device
+From: Fau <dalamenona@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=001517478d804d16f30471c43c44
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 5 Aug 2009, Valentin Longchamp wrote:
+--001517478d804d16f30471c43c44
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-> I have some feedback with your patches. I have tried to add support for my
-> platform by doing the same as you did for pcm037. However it does not work. I
-> have applied your patches directly on 2.6.31-rc4.
-> 
-> The first problem is that in order to be able to probe the camera correctly, I
-> cannot have mt9t031 built as module and not loaded at this time. This
-> certainly is not critcal for the time being, but it should be  handled
-> correctly later (the error comes from v4l2_i2c_new_subdev_board -called from
-> soc_camera_init_i2c - that does not create the subdev with the module not
-> loaded - kernel boot).
+Greetings,
+I have an USB TV adapter identified as Hauppauge WinTV HVR 900 (R2) (card=18)
+and I'm using Fedora 11 with linux kernel vanilla 2.6.30.5 (the last
+stable as writing).
 
-The behaviour, imposed by v4l2-subdev is as follows:
-1. your i2c adapter driver must be loaded before your camera host driver 
-(mx3_camera)
-2. when you load the camera host driver, the camera (sensor) driver should 
-either already be loaded, or it will be loaded automatically - if your 
-user-space supports this.
+Following the manual at http://www.linuxtv.org/wiki/index.php/Em28xx_devices
+i've extracted and copied xc3028-v27.fw in /lib/firware then i
+compiled (make/make install) a freshly cloned v4l-dvb
 
-> The second and bigger problem is that even if I can register everything on the
-> system (/dev/video0 gets created), when I try to access it, I get a device or
-> resourse busy error.
-> 
-> Kernel log (end):
-> 
-> > Freescale High-Speed USB SOC Device Controller driver (Apr 20, 2007)
-> > Platform driver 'fsl-usb2-udc' needs updating - please use dev_pm_ops
-> > i2c /dev entries driver
-> > Linux video capture interface: v2.00
-> > camera 0-0: Probing 0-0
-> > mx3-camera mx3-camera.0: MX3 Camera driver attached to camera 0
-> > mt9t031 0-005d: Detected a MT9T031 chip ID 1621
-> > mx3-camera mx3-camera.0: MX3 Camera driver detached from camera 0
-> > i.MX SDHC driver
-> > i.MX SDHC driver
-> > TCP cubic registered
-> > NET: Registered protocol family 17
-> > RPC: Registered udp transport module.
-> > RPC: Registered tcp transport module.
-> > VFP support v0.3: implementor 41 architecture 1 part 20 variant b rev 2
-> > Waiting for root device /dev/mmcblk0p1...
-> > mmc0: new SD card at address b368
-> > mmcblk0: mmc0:b368 NCard 1.85 GiB  mmcblk0: p1
-> > EXT2-fs warning: mounting unchecked fs, running e2fsck is recommended
-> > VFS: Mounted root (ext2 filesystem) on device 179:1.
-> > Freeing init memory: 100K
-> 
-> 
-> > root@mx31moboard:~# ./gst.sh Setting pipeline to PAUSED ...
-> > mx3-camera mx3-camera.0: MX3 Camera driver attached to camera 0
-> > mx3-camera mx3-camera.0: MX3 Camera driver detached from camera 0
-> > ERROR: Pipeline doesn't want to pause.
-> > ERROR: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0: Could not
-> > open .
-> > Additional debug info:
-> > v4l2_calls.c(477): gst_v4l2_open ():
-> > /GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
-> > system error: Device or resource busy
-> > Setting pipeline to NULL ...
-> > Freeing pipeline ...
-> 
-> I have noticed that using the old way of doing the things (without v4lsubdev
-> support, using some code that works with 2.6.30), it does not work either with
-> 2.6.31-rc4 (same device or resource busy). So maybe am I missing something
-> here already. Here is the "log":
-> 
-> > root@mx31moboard:~# insmod modules/mt9t031.ko camera 0-0: MX3 Camera driver
-> > attached to camera 0
-> > camera 0-0: Detected a MT9T031 chip ID 1621
-> > camera 0-0: MX3 Camera driver detached from camera 0
-> > root@mx31moboard:~# camera 0-0: MX3 Camera driver attached to camera 0
-> > camera 0-0: MX3 Camera driver detached from camera 0
+Now when the device is plugged there is a kernel oops, I'm missing
+something or is it a bug?
+In attachment the relevant part of dmesg,
+thank you in advance for any help,
 
-This is strange. As I said above, mt9t031 should either be loaded before 
-mx3-camera, or it would be loaded automatically, are you sure your insmod 
-actually worked? can it be that your old module has been loaded instead or 
-something like that?
+--
+Fab
 
-> > root@mx31moboard:~# ./gst.sh Setting pipeline to PAUSED ...
-> > camera 0-0: MX3 Camera driver attached to camera 0
-> > camera 0-0: MX3 Camera driver detached from camera 0
-> > ERROR: Pipeline doesn't want to pause.
-> > ERROR: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0: Could not
-> > open .
-> > Additional debug info:
-> > v4l2_calls.c(477): gst_v4l2_open ():
-> > /GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
-> > system error: Device or resource busy
-> > Setting pipeline to NULL ...
-> > Freeing pipeline ...
+--001517478d804d16f30471c43c44
+Content-Type: text/plain; charset=US-ASCII; name="dmesg.txt"
+Content-Disposition: attachment; filename="dmesg.txt"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fyp1j97m0
 
-This is indeed strange. works for me (tm). Verify your modules. (I am away 
-next week starting tomorrow, so, you have enough time to check this:-))
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
+WyAgMjI5LjgwMzU4Ml0gdXNiIHVzYjE6IHVzYiByZXN1bWUKWyAgMjI5LjgwMzU4OV0gZWhjaV9o
+Y2QgMDAwMDowMDowMy4zOiByZXN1bWUgcm9vdCBodWIKWyAgMjI5LjgyMzAyMF0gaHViIDEtMDox
+LjA6IGh1Yl9yZXN1bWUKWyAgMjI5LjgyMzA0NF0gZWhjaV9oY2QgMDAwMDowMDowMy4zOiBHZXRT
+dGF0dXMgcG9ydCA0IHN0YXR1cyAwMDE4MDMgUE9XRVIgc2lnPWogQ1NDIENPTk5FQ1QKWyAgMjI5
+LjgyMzA1MF0gaHViIDEtMDoxLjA6IHBvcnQgNDogc3RhdHVzIDA1MDEgY2hhbmdlIDAwMDEKWyAg
+MjI5LjkyNDAzMl0gaHViIDEtMDoxLjA6IHN0YXRlIDcgcG9ydHMgNiBjaGcgMDAxMCBldnQgMDAw
+MApbICAyMjkuOTI0MDQyXSBodWIgMS0wOjEuMDogcG9ydCA0LCBzdGF0dXMgMDUwMSwgY2hhbmdl
+IDAwMDAsIDQ4MCBNYi9zClsgIDIyOS45NzUzMThdIGVoY2lfaGNkIDAwMDA6MDA6MDMuMzogcG9y
+dCA0IGhpZ2ggc3BlZWQKWyAgMjI5Ljk3NTMyNV0gZWhjaV9oY2QgMDAwMDowMDowMy4zOiBHZXRT
+dGF0dXMgcG9ydCA0IHN0YXR1cyAwMDEwMDUgUE9XRVIgc2lnPXNlMCBQRSBDT05ORUNUClsgIDIz
+MC4wMjYwMjVdIHVzYiAxLTQ6IG5ldyBoaWdoIHNwZWVkIFVTQiBkZXZpY2UgdXNpbmcgZWhjaV9o
+Y2QgYW5kIGFkZHJlc3MgMgpbICAyMzAuMDc3MzAxXSBlaGNpX2hjZCAwMDAwOjAwOjAzLjM6IHBv
+cnQgNCBoaWdoIHNwZWVkClsgIDIzMC4wNzczMDhdIGVoY2lfaGNkIDAwMDA6MDA6MDMuMzogR2V0
+U3RhdHVzIHBvcnQgNCBzdGF0dXMgMDAxMDA1IFBPV0VSIHNpZz1zZTAgUEUgQ09OTkVDVApbICAy
+MzAuMTQwNTUxXSB1c2IgMS00OiBkZWZhdWx0IGxhbmd1YWdlIDB4MDQwOQpbICAyMzAuMTQ1NDI3
+XSB1c2IgMS00OiBOZXcgVVNCIGRldmljZSBmb3VuZCwgaWRWZW5kb3I9MjA0MCwgaWRQcm9kdWN0
+PTY1MDIKWyAgMjMwLjE0NTQzMV0gdXNiIDEtNDogTmV3IFVTQiBkZXZpY2Ugc3RyaW5nczogTWZy
+PTAsIFByb2R1Y3Q9MSwgU2VyaWFsTnVtYmVyPTIKWyAgMjMwLjE0NTQzNl0gdXNiIDEtNDogUHJv
+ZHVjdDogV2luVFYgSFZSLTkwMApbICAyMzAuMTQ1NDM5XSB1c2IgMS00OiBTZXJpYWxOdW1iZXI6
+IDQwMjg1MjMzNjAKWyAgMjMwLjE0NTU1M10gdXNiIDEtNDogdWV2ZW50ClsgIDIzMC4xNDU1ODBd
+IHVzYiAxLTQ6IHVzYl9wcm9iZV9kZXZpY2UKWyAgMjMwLjE0NTU4NV0gdXNiIDEtNDogY29uZmln
+dXJhdGlvbiAjMSBjaG9zZW4gZnJvbSAxIGNob2ljZQpbICAyMzAuMTQ3ODA2XSB1c2IgMS00OiB1
+ZXZlbnQKWyAgMjMwLjE0ODM1M10gdXNiIDEtNDogYWRkaW5nIDEtNDoxLjAgKGNvbmZpZyAjMSwg
+aW50ZXJmYWNlIDApClsgIDIzMC4xNDgzOTVdIHVzYiAxLTQ6MS4wOiB1ZXZlbnQKWyAgMjMwLjE0
+ODYyM10gZHJpdmVycy91c2IvY29yZS9pbm9kZS5jOiBjcmVhdGluZyBmaWxlICcwMDInClsgIDIz
+MS4yMjI2MTZdIExpbnV4IHZpZGVvIGNhcHR1cmUgaW50ZXJmYWNlOiB2Mi4wMApbICAyMzEuMjk1
+NjQ3XSBlbTI4eHggMS00OjEuMDogdXNiX3Byb2JlX2ludGVyZmFjZQpbICAyMzEuMjk1NjUzXSBl
+bTI4eHggMS00OjEuMDogdXNiX3Byb2JlX2ludGVyZmFjZSAtIGdvdCBpZApbICAyMzEuMjk1NjYx
+XSBlbTI4eHg6IE5ldyBkZXZpY2UgV2luVFYgSFZSLTkwMCBAIDQ4MCBNYnBzICgyMDQwOjY1MDIs
+IGludGVyZmFjZSAwLCBjbGFzcyAwKQpbICAyMzEuMjk1ODY4XSBlbTI4eHggIzA6IGNoaXAgSUQg
+aXMgZW0yODgyL2VtMjg4MwpbICAyMzEuNDMzODM3XSBlbTI4eHggIzA6IGkyYyBlZXByb20gMDA6
+IDFhIGViIDY3IDk1IDQwIDIwIDAyIDY1IGQwIDEyIDVjIDAzIDgyIDFlIDZhIDE4ClsgIDIzMS40
+MzM4NTJdIGVtMjh4eCAjMDogaTJjIGVlcHJvbSAxMDogMDAgMDAgMjQgNTcgNjYgMDcgMDEgMDAg
+MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAKWyAgMjMxLjQzMzg2NV0gZW0yOHh4ICMwOiBpMmMgZWVw
+cm9tIDIwOiA0NiAwMCAwMSAwMCBmMCAxMCAwMiAwMCBiOCAwMCAwMCAwMCA1YiBlMCAwMCAwMApb
+ICAyMzEuNDMzODc4XSBlbTI4eHggIzA6IGkyYyBlZXByb20gMzA6IDAwIDAwIDIwIDQwIDIwIDZl
+IDAyIDIwIDEwIDAxIDAxIDAxIDAwIDAwIDAwIDAwClsgIDIzMS40MzM4OTBdIGVtMjh4eCAjMDog
+aTJjIGVlcHJvbSA0MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMDAKWyAgMjMxLjQzMzkwM10gZW0yOHh4ICMwOiBpMmMgZWVwcm9tIDUwOiAwMCAwMCAwMCAw
+MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMApbICAyMzEuNDMzOTE1XSBlbTI4
+eHggIzA6IGkyYyBlZXByb20gNjA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDE4IDAz
+IDM0IDAwIDMwIDAwClsgIDIzMS40MzM5MjhdIGVtMjh4eCAjMDogaTJjIGVlcHJvbSA3MDogMzIg
+MDAgMzggMDAgMzUgMDAgMzIgMDAgMzMgMDAgMzMgMDAgMzYgMDAgMzAgMDAKWyAgMjMxLjQzMzk0
+MF0gZW0yOHh4ICMwOiBpMmMgZWVwcm9tIDgwOiAwMCAwMCAxZSAwMyA1NyAwMCA2OSAwMCA2ZSAw
+MCA1NCAwMCA1NiAwMCAyMCAwMApbICAyMzEuNDMzOTUzXSBlbTI4eHggIzA6IGkyYyBlZXByb20g
+OTA6IDQ4IDAwIDU2IDAwIDUyIDAwIDJkIDAwIDM5IDAwIDMwIDAwIDMwIDAwIDAwIDAwClsgIDIz
+MS40MzM5NjZdIGVtMjh4eCAjMDogaTJjIGVlcHJvbSBhMDogODQgMTIgMDAgMDAgMDUgNTAgMWEg
+N2YgZDQgNzggMjMgZmEgZmQgZDAgMjggODkKWyAgMjMxLjQzMzk3OF0gZW0yOHh4ICMwOiBpMmMg
+ZWVwcm9tIGIwOiBmZiAwMCAwMCAwMCAwNCA4NCAwYSAwMCAwMSAwMSAyMCA3NyAwMCA0MCA2MCA2
+MwpbICAyMzEuNDMzOTkxXSBlbTI4eHggIzA6IGkyYyBlZXByb20gYzA6IDFlIGYwIDc0IDAyIDAx
+IDAwIDAxIDc5IDY5IDAwIDAwIDAwIDAwIDAwIDAwIDAwClsgIDIzMS40MzQwMTRdIGVtMjh4eCAj
+MDogaTJjIGVlcHJvbSBkMDogODQgMTIgMDAgMDAgMDUgNTAgMWEgN2YgZDQgNzggMjMgZmEgZmQg
+ZDAgMjggODkKWyAgMjMxLjQzNDAyN10gZW0yOHh4ICMwOiBpMmMgZWVwcm9tIGUwOiBmZiAwMCAw
+MCAwMCAwNCA4NCAwYSAwMCAwMSAwMSAyMCA3NyAwMCA0MCA2MCA2MwpbICAyMzEuNDM0MDQwXSBl
+bTI4eHggIzA6IGkyYyBlZXByb20gZjA6IDFlIGYwIDc0IDAyIDAxIDAwIDAxIDc5IDY5IDAwIDAw
+IDAwIDAwIDAwIDAwIDAwClsgIDIzMS40MzQwNTVdIGVtMjh4eCAjMDogRUVQUk9NIElEPSAweDk1
+NjdlYjFhLCBFRVBST00gaGFzaCA9IDB4YzMzNzNmZGQKWyAgMjMxLjQzNDA1OF0gZW0yOHh4ICMw
+OiBFRVBST00gaW5mbzoKWyAgMjMxLjQzNDA2MV0gZW0yOHh4ICMwOglBQzk3IGF1ZGlvICg1IHNh
+bXBsZSByYXRlcykKWyAgMjMxLjQzNDA2M10gZW0yOHh4ICMwOgk1MDBtQSBtYXggcG93ZXIKWyAg
+MjMxLjQzNDA2N10gZW0yOHh4ICMwOglUYWJsZSBhdCAweDI0LCBzdHJpbmdzPTB4MWU4MiwgMHgx
+ODZhLCAweDAwMDAKWyAgMjMxLjQzNDgzNl0gZW0yOHh4ICMwOiBJZGVudGlmaWVkIGFzIEhhdXBw
+YXVnZSBXaW5UViBIVlIgOTAwIChSMikgKGNhcmQ9MTgpClsgIDIzMS40MzYzODddIHR2ZWVwcm9t
+IDEtMDA1MDogSGF1cHBhdWdlIG1vZGVsIDY1MDE4LCByZXYgQjJDMCwgc2VyaWFsIyAxOTkxNTIw
+ClsgIDIzMS40MzYzOTNdIHR2ZWVwcm9tIDEtMDA1MDogdHVuZXIgbW9kZWwgaXMgWGNlaXZlIFhD
+MzAyOCAoaWR4IDEyMCwgdHlwZSA3MSkKWyAgMjMxLjQzNjM5OF0gdHZlZXByb20gMS0wMDUwOiBU
+ViBzdGFuZGFyZHMgUEFMKEIvRykgUEFMKEkpIFBBTChEL0QxL0spIEFUU0MvRFZCIERpZ2l0YWwg
+KGVlcHJvbSAweGQ0KQpbICAyMzEuNDM2NDAzXSB0dmVlcHJvbSAxLTAwNTA6IGF1ZGlvIHByb2Nl
+c3NvciBpcyBOb25lIChpZHggMCkKWyAgMjMxLjQzNjQwN10gdHZlZXByb20gMS0wMDUwOiBoYXMg
+cmFkaW8KWyAgMjMxLjQ0MTM3OF0gdHZwNTE1MCAxLTAwNWM6IGNoaXAgZm91bmQgQCAweGI4IChl
+bTI4eHggIzApClsgIDIzMS40NDk2NDddIHR1bmVyIDEtMDA2MTogY2hpcCBmb3VuZCBAIDB4YzIg
+KGVtMjh4eCAjMCkKWyAgMjMxLjQ3NDQ1NF0geGMyMDI4IDEtMDA2MTogY3JlYXRpbmcgbmV3IGlu
+c3RhbmNlClsgIDIzMS40NzQ0NTldIHhjMjAyOCAxLTAwNjE6IHR5cGUgc2V0IHRvIFhDZWl2ZSB4
+YzIwMjgveGMzMDI4IHR1bmVyClsgIDIzMS40NzQ0NzNdIHVzYiAxLTQ6IGZpcm13YXJlOiByZXF1
+ZXN0aW5nIHhjMzAyOC12MjcuZncKWyAgMjMxLjU4Mzk4Ml0geGMyMDI4IDEtMDA2MTogTG9hZGlu
+ZyA4MCBmaXJtd2FyZSBpbWFnZXMgZnJvbSB4YzMwMjgtdjI3LmZ3LCB0eXBlOiB4YzIwMjggZmly
+bXdhcmUsIHZlciAyLjcKWyAgMjMxLjYxNzAyMF0geGMyMDI4IDEtMDA2MTogTG9hZGluZyBmaXJt
+d2FyZSBmb3IgdHlwZT1CQVNFIE1UUyAoNSksIGlkIDAwMDAwMDAwMDAwMDAwMDAuClsgIDIzMi40
+NzgyOTFdIHhjMjAyOCAxLTAwNjE6IExvYWRpbmcgZmlybXdhcmUgZm9yIHR5cGU9TVRTICg0KSwg
+aWQgMDAwMDAwMDAwMDAwYjcwMC4KWyAgMjMyLjQ5MjY2MF0geGMyMDI4IDEtMDA2MTogTG9hZGlu
+ZyBTQ09ERSBmb3IgdHlwZT1NVFMgTENEIE5PR0QgTU9OTyBJRiBTQ09ERSBIQVNfSUZfNDUwMCAo
+NjAwMmIwMDQpLCBpZCAwMDAwMDAwMDAwMDBiNzAwLgpbICAyMzIuNjUyMTYzXSBpbnB1dDogZW0y
+OHh4IElSIChlbTI4eHggIzApIGFzIC9kZXZpY2VzL3BjaTAwMDA6MDAvMDAwMDowMDowMy4zL3Vz
+YjEvMS00L2lucHV0L2lucHV0NgpbICAyMzIuNjUyNTEyXSBlbTI4eHggIzA6IENvbmZpZyByZWdp
+c3RlciByYXcgZGF0YTogMHhkMApbICAyMzIuNjUzNTA2XSBlbTI4eHggIzA6IEFDOTcgdmVuZG9y
+IElEID0gMHhmZmZmZmZmZgpbICAyMzIuNjUzODg0XSBlbTI4eHggIzA6IEFDOTcgZmVhdHVyZXMg
+PSAweDZhOTAKWyAgMjMyLjY1Mzg4OF0gZW0yOHh4ICMwOiBFbXBpYSAyMDIgQUM5NyBhdWRpbyBw
+cm9jZXNzb3IgZGV0ZWN0ZWQKWyAgMjMyLjY1ODIyMF0gdXNiIDEtNDogdWV2ZW50ClsgIDIzMi42
+NTgyODRdIHVzYiB1c2IxOiB1ZXZlbnQKWyAgMjMyLjcwMjg5MV0gQlVHOiB1bmFibGUgdG8gaGFu
+ZGxlIGtlcm5lbCBOVUxMIHBvaW50ZXIgZGVyZWZlcmVuY2UgYXQgMDAwMDAwMDIKWyAgMjMyLjcw
+MjkwNV0gSVA6IFs8YzEyNjczMjQ+XSBpMmNfbWFzdGVyX3NlbmQrMHhhLzB4NDMKWyAgMjMyLjcw
+MjkyMV0gKnBkZSA9IDAwMDAwMDAwIApbICAyMzIuNzAyOTI2XSBPb3BzOiAwMDAwIFsjMV0gU01Q
+IApbICAyMzIuNzAyOTMxXSBsYXN0IHN5c2ZzIGZpbGU6IC9zeXMvZGV2aWNlcy9wY2kwMDAwOjAw
+LzAwMDA6MDA6MDMuMy91c2IxLzEtNC9pbnB1dC9pbnB1dDYvY2FwYWJpbGl0aWVzL3N3ClsgIDIz
+Mi43MDI5MzddIE1vZHVsZXMgbGlua2VkIGluOiB0dW5lcl94YzIwMjggdHVuZXIgdHZwNTE1MCBl
+bTI4eHgoKykgaXJfY29tbW9uIHY0bDJfY29tbW9uIHZpZGVvZGV2IHY0bDFfY29tcGF0IHZpZGVv
+YnVmX3ZtYWxsb2MgdmlkZW9idWZfY29yZSB0dmVlcHJvbSBicmlkZ2Ugc3RwIGJuZXAgc2NvIGwy
+Y2FwIGJsdWV0b290aCBwNF9jbG9ja21vZCBzcGVlZHN0ZXBfbGliIHNuZF9pbnRlbDh4MCBzbmRf
+aW50ZWw4eDBtIHNuZF9hYzk3X2NvZGVjIGF0aDVrIHNpczkwMCBhYzk3X2J1cyBzaXNfYWdwIGky
+Y19zaXM5NnggbWlpIHdtaSBwYXRhX3NpcyBbbGFzdCB1bmxvYWRlZDogc2NzaV93YWl0X3NjYW5d
+ClsgIDIzMi43MDI5NzRdIApbICAyMzIuNzAyOTc5XSBQaWQ6IDIxOTgsIGNvbW06IG1vZHByb2Jl
+IE5vdCB0YWludGVkICgyLjYuMzAuNS1mYWIgIzEpIEFzcGlyZSAzNTAwICAgICAKWyAgMjMyLjcw
+Mjk4NF0gRUlQOiAwMDYwOls8YzEyNjczMjQ+XSBFRkxBR1M6IDAwMDEwMjgyIENQVTogMApbICAy
+MzIuNzAyOTg4XSBFSVAgaXMgYXQgaTJjX21hc3Rlcl9zZW5kKzB4YS8weDQzClsgIDIzMi43MDI5
+OTJdIEVBWDogMDAwMDAwMDAgRUJYOiAwMDAwMDAwMiBFQ1g6IDAwMDAwMDAyIEVEWDogZjY1M2Jj
+ZmUKWyAgMjMyLjcwMjk5Nl0gRVNJOiAwMDAwMDAwMCBFREk6IDAwMDAwMDMwIEVCUDogZjY1M2Jj
+ZjQgRVNQOiBmNjUzYmNlMApbICAyMzIuNzAzMDAwXSAgRFM6IDAwN2IgRVM6IDAwN2IgRlM6IDAw
+ZDggR1M6IDAwMzMgU1M6IDAwNjgKWyAgMjMyLjcwMzAwNV0gUHJvY2VzcyBtb2Rwcm9iZSAocGlk
+OiAyMTk4LCB0aT1mNjUzYTAwMCB0YXNrPWY3Mzc5ODYwIHRhc2sudGk9ZjY1M2EwMDApClsgIDIz
+Mi43MDMwMDZdIFN0YWNrOgpbICAyMzIuNzAzMDA2XSAgMDAwMDAwNDIgZjY1M2JkMDAgZmEzNmFm
+NWUgZjY1MDRmNjAgMDAwMDAwMDAgZjY1M2JkMGMgZmEzODMxM2YgMzAwMjAwMDAKWyAgMjMyLjcw
+MzAwNl0gIGY2NTA0ZjYwIDAwMDAwMDAwIDAwMDAwMDMwIGY2NTNiZDIwIGZhMzgzNjdlIGY2NTA0
+ZjYwIGY2NGVjODAwIGZhMzgzNmMzClsgIDIzMi43MDMwMDZdICBmNjUzYmQyOCBmYTM4MzZkMSBm
+NjUzYmQ0NCBmYTM2YThmNyAwMDAwMDAwMCBmNjRlYzgzMCBmNjRlYzgwMCAwMDAwMDAwMApbICAy
+MzIuNzAzMDA2XSBDYWxsIFRyYWNlOgpbICAyMzIuNzAzMDA2XSAgWzxmYTM2YWY1ZT5dID8gZW0y
+OHh4X3dyaXRlX3JlZ3MrMHgxYS8weDRjIFtlbTI4eHhdClsgIDIzMi43MDMwMDZdICBbPGZhMzgz
+MTNmPl0gPyB0dnA1MTUwX3dyaXRlKzB4NDcvMHg2ZiBbdHZwNTE1MF0KWyAgMjMyLjcwMzAwNl0g
+IFs8ZmEzODM2N2U+XSA/IHR2cDUxNTBfc2VsbXV4KzB4NjcvMHhhYyBbdHZwNTE1MF0KWyAgMjMy
+LjcwMzAwNl0gIFs8ZmEzODM2YzM+XSA/IHR2cDUxNTBfc19yb3V0aW5nKzB4MC8weDEyIFt0dnA1
+MTUwXQpbICAyMzIuNzAzMDA2XSAgWzxmYTM4MzZkMT5dID8gdHZwNTE1MF9zX3JvdXRpbmcrMHhl
+LzB4MTIgW3R2cDUxNTBdClsgIDIzMi43MDMwMDZdICBbPGZhMzZhOGY3Pl0gPyBlbTI4eHhfd2Fr
+ZV9pMmMrMHg2Yi8weGFhIFtlbTI4eHhdClsgIDIzMi43MDMwMDZdICBbPGZhMzZhNzM0Pl0gPyBl
+bTI4eHhfdXNiX3Byb2JlKzB4NmEzLzB4N2ZiIFtlbTI4eHhdClsgIDIzMi43MDMwMDZdICBbPGMx
+MjNhYmVkPl0gPyB1c2JfcHJvYmVfaW50ZXJmYWNlKzB4MTEwLzB4MTU2ClsgIDIzMi43MDMwMDZd
+ICBbPGMxMWVkMTRiPl0gPyBkcml2ZXJfcHJvYmVfZGV2aWNlKzB4NzkvMHhlZApbICAyMzIuNzAz
+MDA2XSAgWzxjMTFlZDIwMj5dID8gX19kcml2ZXJfYXR0YWNoKzB4NDMvMHg1ZgpbICAyMzIuNzAz
+MDA2XSAgWzxjMTFlY2EwND5dID8gYnVzX2Zvcl9lYWNoX2RldisweDNkLzB4NjcKWyAgMjMyLjcw
+MzAwNl0gIFs8YzExZWQwMjQ+XSA/IGRyaXZlcl9hdHRhY2grMHgxNC8weDE2ClsgIDIzMi43MDMw
+MDZdICBbPGMxMWVkMWJmPl0gPyBfX2RyaXZlcl9hdHRhY2grMHgwLzB4NWYKWyAgMjMyLjcwMzAw
+Nl0gIFs8YzExZWNkYTk+XSA/IGJ1c19hZGRfZHJpdmVyKzB4OGYvMHgxYmEKWyAgMjMyLjcwMzAw
+Nl0gIFs8YzExNTVlYzg+XSA/IGtzZXRfZmluZF9vYmorMHgyMy8weDRlClsgIDIzMi43MDMwMDZd
+ICBbPGMxMWVkNDJmPl0gPyBkcml2ZXJfcmVnaXN0ZXIrMHg3OS8weGUwClsgIDIzMi43MDMwMDZd
+ICBbPGMxMjNhOWJkPl0gPyB1c2JfcmVnaXN0ZXJfZHJpdmVyKzB4NjYvMHhjMApbICAyMzIuNzAz
+MDA2XSAgWzxmYTM3YTAxOD5dID8gZW0yOHh4X21vZHVsZV9pbml0KzB4MTgvMHgzYyBbZW0yOHh4
+XQpbICAyMzIuNzAzMDA2XSAgWzxjMTAwMTEzNz5dID8gZG9fb25lX2luaXRjYWxsKzB4NGEvMHgx
+MTUKWyAgMjMyLjcwMzAwNl0gIFs8ZmEzN2EwMDA+XSA/IGVtMjh4eF9tb2R1bGVfaW5pdCsweDAv
+MHgzYyBbZW0yOHh4XQpbICAyMzIuNzAzMDA2XSAgWzxjMTNhMjhjZT5dID8gbm90aWZpZXJfY2Fs
+bF9jaGFpbisweDI2LzB4NDgKWyAgMjMyLjcwMzAwNl0gIFs8YzEwM2M4MjE+XSA/IF9fYmxvY2tp
+bmdfbm90aWZpZXJfY2FsbF9jaGFpbisweDQwLzB4NGMKWyAgMjMyLjcwMzAwNl0gIFs8YzEwNDk3
+ZjM+XSA/IHN5c19pbml0X21vZHVsZSsweDg2LzB4MThiClsgIDIzMi43MDMwMDZdICBbPGMxMDAz
+MGQ0Pl0gPyBzeXNlbnRlcl9kb19jYWxsKzB4MTIvMHgyOApbICAyMzIuNzAzMDA2XSBDb2RlOiBm
+MCA4MyBlMCAxMCA4MyBjOCAwMSA2NiA4OSA0NSBlZSA4OSBmMCBlOCBkNyBmNiBmZiBmZiA4MyBm
+OCAwMSAwZiA0NSBkOCA4MyBjNCAwYyA4OSBkOCA1YiA1ZSA1ZCBjMyA1NSA4OSBlNSA1NiA1MyA4
+OSBjYiA4MyBlYyAwYyA8NjY+IDhiIDQ4IDAyIDhiIDcwIDE4IDY2IDg5IDRkIGVjIDhiIDAwIGI5
+IDAxIDAwIDAwIDAwIDg5IDU1IGY0IApbICAyMzIuNzAzMDA2XSBFSVA6IFs8YzEyNjczMjQ+XSBp
+MmNfbWFzdGVyX3NlbmQrMHhhLzB4NDMgU1M6RVNQIDAwNjg6ZjY1M2JjZTAKWyAgMjMyLjcwMzAw
+Nl0gQ1IyOiAwMDAwMDAwMDAwMDAwMDAyClsgIDIzMi43MDMzMjddIC0tLVsgZW5kIHRyYWNlIGI4
+ZWExM2I4ZWY2MmIzNmIgXS0tLQo=
+--001517478d804d16f30471c43c44--
