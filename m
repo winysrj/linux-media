@@ -1,134 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38867 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758199AbZHQXWX convert rfc822-to-8bit (ORCPT
+Received: from mail01a.mail.t-online.hu ([84.2.40.6]:52016 "EHLO
+	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755873AbZHWJap (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Aug 2009 19:22:23 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
-Date: Mon, 17 Aug 2009 18:22:18 -0500
-Subject: RE: [PATCH 1/5 - v3] Adding new fields to add the vpfe capture
- enhancements
-Message-ID: <A69FA2915331DC488A831521EAE36FE40145300FC6@dlee06.ent.ti.com>
-References: <1250551116-32485-1-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1250551116-32485-1-git-send-email-m-karicheri2@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Sun, 23 Aug 2009 05:30:45 -0400
+Message-ID: <4A910C42.5000001@freemail.hu>
+Date: Sun, 23 Aug 2009 11:30:42 +0200
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Thomas Kaiser <thomas@kaiser-linux.li>,
+	linux-media@vger.kernel.org
+CC: LKML <linux-kernel@vger.kernel.org>
+Subject: [RESEND][PATCH 1/2] v4l2: modify the webcam video standard handling
+References: <4A52E897.8000607@freemail.hu>
+In-Reply-To: <4A52E897.8000607@freemail.hu>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Please ignore this since v4l prefix is missing in the subject.
+From: Márton Németh <nm127@freemail.hu>
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-new phone: 301-407-9583
-Old Phone : 301-515-3736 (will be deprecated)
-email: m-karicheri2@ti.com
+Change the handling of the case when vdev->tvnorms == 0.
 
->-----Original Message-----
->From: Karicheri, Muralidharan
->Sent: Monday, August 17, 2009 7:19 PM
->To: linux-media@vger.kernel.org
->Cc: davinci-linux-open-source@linux.davincidsp.com; hverkuil@xs4all.nl;
->Karicheri, Muralidharan
->Subject: [PATCH 1/5 - v3] Adding new fields to add the vpfe capture
->enhancements
+Quote from V4L2 API specification, rev. 0.24 [1]:
+> Special rules apply to USB cameras where the notion of video
+> standards makes little sense. More generally any capture device,
+> output devices accordingly, which is
 >
->From: Muralidharan Karicheri <m-karicheri2@ti.com>
+> * incapable of capturing fields or frames at the nominal rate
+>   of the video standard, or
+> * where timestamps refer to the instant the field or frame was
+>   received by the driver, not the capture time, or
+> * where sequence numbers refer to the frames received by the
+>   driver, not the captured frames.
 >
->Restructured the patch to apply cleanly. This will allow compilation after
->applying each patch. To do this existing fields in the header files are
->retained and removed later when the new fields are used.
->
->Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
->
->Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
->---
->Applies to V4L-DVB linux-next repository
-> include/media/davinci/vpfe_capture.h |   27 ++++++++++++++++++++++++---
-> 1 files changed, 24 insertions(+), 3 deletions(-)
->
->diff --git a/include/media/davinci/vpfe_capture.h
->b/include/media/davinci/vpfe_capture.h
->index 71d8982..196245e 100644
->--- a/include/media/davinci/vpfe_capture.h
->+++ b/include/media/davinci/vpfe_capture.h
->@@ -47,6 +47,8 @@ struct vpfe_pixel_format {
-> 	struct v4l2_fmtdesc fmtdesc;
-> 	/* bytes per pixel */
-> 	int bpp;
->+	/* decoder format */
->+	u32 subdev_pix_fmt;
-> };
->
-> struct vpfe_std_info {
->@@ -61,9 +63,16 @@ struct vpfe_route {
-> 	u32 output;
-> };
->
->+enum vpfe_subdev_id {
->+	VPFE_SUBDEV_TVP5146 = 1,
->+	VPFE_SUBDEV_MT9T031 = 2
->+};
->+
-> struct vpfe_subdev_info {
->-	/* Sub device name */
->+	/* Deprecated. Will be removed in the next patch */
-> 	char name[32];
->+	/* Sub device module name */
->+	char module_name[32];
-> 	/* Sub device group id */
-> 	int grp_id;
-> 	/* Number of inputs supported */
->@@ -72,12 +81,16 @@ struct vpfe_subdev_info {
-> 	struct v4l2_input *inputs;
-> 	/* Sub dev routing information for each input */
-> 	struct vpfe_route *routes;
->-	/* check if sub dev supports routing */
->-	int can_route;
-> 	/* ccdc bus/interface configuration */
-> 	struct vpfe_hw_if_param ccdc_if_params;
-> 	/* i2c subdevice board info */
-> 	struct i2c_board_info board_info;
->+	/* Is this a camera sub device ? */
->+	unsigned is_camera:1;
->+	/* check if sub dev supports routing */
->+	unsigned can_route:1;
->+	/* registered ? */
->+	unsigned registered:1;
-> };
->
-> struct vpfe_config {
->@@ -92,6 +105,12 @@ struct vpfe_config {
-> 	/* vpfe clock */
-> 	struct clk *vpssclk;
-> 	struct clk *slaveclk;
->+	/* setup function for the input path */
->+	int (*setup_input)(enum vpfe_subdev_id id);
->+	/* number of clocks */
->+	int num_clocks;
->+	/* clocks used for vpfe capture */
->+	char *clocks[];
-> };
->
-> struct vpfe_device {
->@@ -102,6 +121,8 @@ struct vpfe_device {
-> 	struct v4l2_subdev **sd;
-> 	/* vpfe cfg */
-> 	struct vpfe_config *cfg;
->+	/* clock ptrs for vpfe capture */
->+	struct clk **clks;
-> 	/* V4l2 device */
-> 	struct v4l2_device v4l2_dev;
-> 	/* parent device */
->--
->1.6.0.4
+> Here the driver shall set the std field of struct v4l2_input
+> and struct v4l2_output to zero, the VIDIOC_G_STD, VIDIOC_S_STD,
+> VIDIOC_QUERYSTD and VIDIOC_ENUMSTD ioctls shall return the
+> EINVAL error code.
 
+The changeset was tested together with v4l-test 0.19 [2] with
+gspca_sunplus driver together with Trust 610 LCD POWERC@M ZOOM and
+with gspca_pac7311 together with Labtec Webcam 2200.
+
+References:
+[1] V4L2 API specification, revision 0.24
+    http://v4l2spec.bytesex.org/spec/x448.htm
+
+[2] v4l-test: Test environment for Video For Linux Two API
+    http://v4l-test.sourceforge.net/
+
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+diff -upr linux-2.6.31-rc7.orig/drivers/media/video/v4l2-dev.c linux-2.6.31-rc7/drivers/media/video/v4l2-dev.c
+--- linux-2.6.31-rc7.orig/drivers/media/video/v4l2-dev.c	2009-08-23 07:36:09.000000000 +0200
++++ linux-2.6.31-rc7/drivers/media/video/v4l2-dev.c	2009-08-23 10:47:03.000000000 +0200
+@@ -396,6 +396,11 @@ int video_register_device_index(struct v
+ 	if (!vdev->release)
+ 		return -EINVAL;
+
++	/* if no video standards are supported then no need to get and set
++	   them: they will never be called */
++	WARN_ON(!vdev->tvnorms && vdev->ioctl_ops->vidioc_g_std);
++	WARN_ON(!vdev->tvnorms && vdev->ioctl_ops->vidioc_s_std);
++
+ 	/* Part 1: check device type */
+ 	switch (type) {
+ 	case VFL_TYPE_GRABBER:
+diff -upr linux-2.6.31-rc7.orig/drivers/media/video/v4l2-ioctl.c linux-2.6.31-rc7/drivers/media/video/v4l2-ioctl.c
+--- linux-2.6.31-rc7.orig/drivers/media/video/v4l2-ioctl.c	2009-08-23 07:36:09.000000000 +0200
++++ linux-2.6.31-rc7/drivers/media/video/v4l2-ioctl.c	2009-08-23 10:50:08.000000000 +0200
+@@ -1077,14 +1077,17 @@ static long __video_do_ioctl(struct file
+ 	{
+ 		v4l2_std_id *id = arg;
+
+-		ret = 0;
+-		/* Calls the specific handler */
+-		if (ops->vidioc_g_std)
+-			ret = ops->vidioc_g_std(file, fh, id);
+-		else if (vfd->current_norm)
+-			*id = vfd->current_norm;
+-		else
+-			ret = -EINVAL;
++		/* Check if any standard is supported */
++		if (vfd->tvnorms) {
++			ret = 0;
++			/* Calls the specific handler */
++			if (ops->vidioc_g_std)
++				ret = ops->vidioc_g_std(file, fh, id);
++			else if (vfd->current_norm)
++				*id = vfd->current_norm;
++			else
++				ret = -EINVAL;
++		}
+
+ 		if (!ret)
+ 			dbgarg(cmd, "std=0x%08Lx\n", (long long unsigned)*id);
+@@ -1097,7 +1100,7 @@ static long __video_do_ioctl(struct file
+ 		dbgarg(cmd, "std=%08Lx\n", (long long unsigned)*id);
+
+ 		norm = (*id) & vfd->tvnorms;
+-		if (vfd->tvnorms && !norm)	/* Check if std is supported */
++		if (!norm)	/* Check if std is supported */
+ 			break;
+
+ 		/* Calls the specific handler */
