@@ -1,48 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34740 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750970AbZHaPMn convert rfc822-to-8bit (ORCPT
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:33142 "EHLO
+	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932421AbZHWBGZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Aug 2009 11:12:43 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Laurent Pinchart <laurent.pinchart@skynet.be>
-Date: Mon, 31 Aug 2009 10:12:31 -0500
-Subject: RE: RFC: bus configuration setup for sub-devices
-Message-ID: <A69FA2915331DC488A831521EAE36FE40154EDC439@dlee06.ent.ti.com>
-References: <200908291631.13696.hverkuil@xs4all.nl>
-    <Pine.LNX.4.64.0908300109490.16132@axis700.grange>
-    <200908310823.29158.hverkuil@xs4all.nl>
-    <A69FA2915331DC488A831521EAE36FE40154EDC3DC@dlee06.ent.ti.com>
- <3b674866ac8647a2fddfa9e3cee94cdb.squirrel@webmail.xs4all.nl>
-In-Reply-To: <3b674866ac8647a2fddfa9e3cee94cdb.squirrel@webmail.xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Sat, 22 Aug 2009 21:06:25 -0400
+Received: by fxm17 with SMTP id 17so975234fxm.37
+        for <linux-media@vger.kernel.org>; Sat, 22 Aug 2009 18:06:25 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <829197380908221737h46f028ffu9b7a3b1e260f8c22@mail.gmail.com>
+References: <4fab9a6f0908221729n5410920fmd38bace3070105a3@mail.gmail.com>
+	 <4fab9a6f0908221732g8e061f3t8fc871c3a0b36337@mail.gmail.com>
+	 <829197380908221737h46f028ffu9b7a3b1e260f8c22@mail.gmail.com>
+Date: Sun, 23 Aug 2009 03:06:25 +0200
+Message-ID: <4fab9a6f0908221806k408047e6s83aa5c3902255eaa@mail.gmail.com>
+Subject: Re: Kernel oops with em28xx device
+From: Fau <dalamenona@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
+2009/8/23 Devin Heitmueller <dheitmueller@kernellabs.com>:
+> On Sat, Aug 22, 2009 at 8:32 PM, Fau<dalamenona@gmail.com> wrote:
+>> Greetings,
+>> I have an USB TV adapter identified as Hauppauge WinTV HVR 900 (R2) (card=18)
+>> and I'm using Fedora 11 with linux kernel vanilla 2.6.30.5 (the last
+>> stable as writing).
 >>
->> Master/Slave is always confusing to me. In VPFE, it can act as master
->> (when it output sync signal and pixel clock) and slave (when it get sync
->> signal from sensor/decoder). We use VPFE as slave and sensor/decoder will
->> provide the pixel clock and sync signal. Please confirm if this is what
->> master_mode flag means.
+>> Following the manual at http://www.linuxtv.org/wiki/index.php/Em28xx_devices
+>> i've extracted and copied xc3028-v27.fw in /lib/firware then i
+>> compiled (make/make install) a freshly cloned v4l-dvb
+>>
+>> Now when the device is plugged there is a kernel oops, I'm missing
+>> something or is it a bug?
+>> In attachment the relevant part of dmesg,
+>> thank you in advance for any help,
 >
->That's correct: the master provides the pixel clock signal. I'm not sure
->if it also means that the syncs are provided by the master. Do you know?
-Yes. Both hsync and vsync signals can be output from VPFE. So also field id signal. But I don't know if any customer is using it that way.
+> I should probably also point out that the DVB support is known to not
+> work with that board (I've been working on the problem).
 >
->Regards,
+> Devin
 >
->         Hans
->
->--
->Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
 >
 
+Hi Devin,
+in primis thank you for your help, it's a strange thing that the DVB
+is not working,
+in the past i used the em28xx-new and it worked very well, even for the DVB-T
+but now the mercurial repository is empty and the mailing list is
+dead, don't know what happened,
+anyway if you need some testing just ask,
+thank you again,
+
+--
+FaB
