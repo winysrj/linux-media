@@ -1,110 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01a.mail.t-online.hu ([84.2.40.6]:52016 "EHLO
-	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755873AbZHWJap (ORCPT
+Received: from mail00a.mail.t-online.hu ([84.2.40.5]:53565 "EHLO
+	mail00a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933540AbZHWNJ0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2009 05:30:45 -0400
-Message-ID: <4A910C42.5000001@freemail.hu>
-Date: Sun, 23 Aug 2009 11:30:42 +0200
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+	Sun, 23 Aug 2009 09:09:26 -0400
+Received: from [192.168.1.69] (dsl5402AB39.pool.t-online.hu [84.2.171.57])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail00a.mail.t-online.hu (Postfix) with ESMTPSA id 0D399267718
+	for <linux-media@vger.kernel.org>; Sun, 23 Aug 2009 15:06:44 +0200 (CEST)
+Message-ID: <4A913F86.7040704@freemail.hu>
+Date: Sun, 23 Aug 2009 15:09:26 +0200
+From: =?ISO-8859-2?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Thomas Kaiser <thomas@kaiser-linux.li>,
-	linux-media@vger.kernel.org
-CC: LKML <linux-kernel@vger.kernel.org>
-Subject: [RESEND][PATCH 1/2] v4l2: modify the webcam video standard handling
-References: <4A52E897.8000607@freemail.hu>
-In-Reply-To: <4A52E897.8000607@freemail.hu>
-Content-Type: text/plain; charset=UTF-8
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: libv4l: zoom, pan and tilt?
+Content-Type: text/plain; charset=ISO-8859-2
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+Hi,
 
-Change the handling of the case when vdev->tvnorms == 0.
+I am using lib4l to get access to my camera from Flash. I get the pictures
+right. In Flash the usual used resolution is as low as 320x240.
 
-Quote from V4L2 API specification, rev. 0.24 [1]:
-> Special rules apply to USB cameras where the notion of video
-> standards makes little sense. More generally any capture device,
-> output devices accordingly, which is
->
-> * incapable of capturing fields or frames at the nominal rate
->   of the video standard, or
-> * where timestamps refer to the instant the field or frame was
->   received by the driver, not the capture time, or
-> * where sequence numbers refer to the frames received by the
->   driver, not the captured frames.
->
-> Here the driver shall set the std field of struct v4l2_input
-> and struct v4l2_output to zero, the VIDIOC_G_STD, VIDIOC_S_STD,
-> VIDIOC_QUERYSTD and VIDIOC_ENUMSTD ioctls shall return the
-> EINVAL error code.
+I have a 1.3MegaPixel webcam which means it could do 1280x1024 resolution. The
+problem with this webcam is that it has a fixed focus and the objects which
+are too close to the camera are not sharp enough. This brakes some barcode
+reader applications such as http://en.barcodepedia.com/ or
+http://www.gurulib.com/_scripts/barcode/gurulib_barcode.html .
 
-The changeset was tested together with v4l-test 0.19 [2] with
-gspca_sunplus driver together with Trust 610 LCD POWERC@M ZOOM and
-with gspca_pac7311 together with Labtec Webcam 2200.
+My idea would be to add support for creating 320x240 by not just downscaling
+the image but doing digital
+ - zooming (with controls V4L2_CID_ZOOM_ABSOLUTE, V4L2_CID_ZOOM_RELATIVE and
+   V4L2_CID_ZOOM_CONTINUOUS)
+ - panning (controls V4L2_CID_PAN_RELATIVE, V4L2_CID_PAN_ABSOLUTE
+   and V4L2_CID_PAN_RESET) and
+ - tilting (controls V4L2_CID_TILT_RELATIVE, V4L2_CID_TILT_ABSOLUTE and
+   V4L2_CID_TILT_RESET)
+based on a higher resolution image. In this case the object could be in the sharp
+range in focus and the mentioned applications could work.
 
-References:
-[1] V4L2 API specification, revision 0.24
-    http://v4l2spec.bytesex.org/spec/x448.htm
+What do you think, is it possible to implement such functionality in libv4l?
 
-[2] v4l-test: Test environment for Video For Linux Two API
-    http://v4l-test.sourceforge.net/
+Regards,
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
-diff -upr linux-2.6.31-rc7.orig/drivers/media/video/v4l2-dev.c linux-2.6.31-rc7/drivers/media/video/v4l2-dev.c
---- linux-2.6.31-rc7.orig/drivers/media/video/v4l2-dev.c	2009-08-23 07:36:09.000000000 +0200
-+++ linux-2.6.31-rc7/drivers/media/video/v4l2-dev.c	2009-08-23 10:47:03.000000000 +0200
-@@ -396,6 +396,11 @@ int video_register_device_index(struct v
- 	if (!vdev->release)
- 		return -EINVAL;
-
-+	/* if no video standards are supported then no need to get and set
-+	   them: they will never be called */
-+	WARN_ON(!vdev->tvnorms && vdev->ioctl_ops->vidioc_g_std);
-+	WARN_ON(!vdev->tvnorms && vdev->ioctl_ops->vidioc_s_std);
-+
- 	/* Part 1: check device type */
- 	switch (type) {
- 	case VFL_TYPE_GRABBER:
-diff -upr linux-2.6.31-rc7.orig/drivers/media/video/v4l2-ioctl.c linux-2.6.31-rc7/drivers/media/video/v4l2-ioctl.c
---- linux-2.6.31-rc7.orig/drivers/media/video/v4l2-ioctl.c	2009-08-23 07:36:09.000000000 +0200
-+++ linux-2.6.31-rc7/drivers/media/video/v4l2-ioctl.c	2009-08-23 10:50:08.000000000 +0200
-@@ -1077,14 +1077,17 @@ static long __video_do_ioctl(struct file
- 	{
- 		v4l2_std_id *id = arg;
-
--		ret = 0;
--		/* Calls the specific handler */
--		if (ops->vidioc_g_std)
--			ret = ops->vidioc_g_std(file, fh, id);
--		else if (vfd->current_norm)
--			*id = vfd->current_norm;
--		else
--			ret = -EINVAL;
-+		/* Check if any standard is supported */
-+		if (vfd->tvnorms) {
-+			ret = 0;
-+			/* Calls the specific handler */
-+			if (ops->vidioc_g_std)
-+				ret = ops->vidioc_g_std(file, fh, id);
-+			else if (vfd->current_norm)
-+				*id = vfd->current_norm;
-+			else
-+				ret = -EINVAL;
-+		}
-
- 		if (!ret)
- 			dbgarg(cmd, "std=0x%08Lx\n", (long long unsigned)*id);
-@@ -1097,7 +1100,7 @@ static long __video_do_ioctl(struct file
- 		dbgarg(cmd, "std=%08Lx\n", (long long unsigned)*id);
-
- 		norm = (*id) & vfd->tvnorms;
--		if (vfd->tvnorms && !norm)	/* Check if std is supported */
-+		if (!norm)	/* Check if std is supported */
- 			break;
-
- 		/* Calls the specific handler */
+	M�rton N�meth
