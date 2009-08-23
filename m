@@ -1,393 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44642 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751412AbZHRV7I convert rfc822-to-8bit (ORCPT
+Received: from mp1-smtp-6.eutelia.it ([62.94.10.166]:41986 "EHLO
+	smtp.eutelia.it" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755895AbZHWKdB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2009 17:59:08 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "rmk@arm.linux.org.uk" <rmk@arm.linux.org.uk>,
-	"linux@arm.linux.org.uk" <linux@arm.linux.org.uk>
-CC: "mchehab@infradead.org" <mchehab@infradead.org>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"'Kevin Hilman'" <khilman@deeprootsystems.com>
-Date: Tue, 18 Aug 2009 16:58:48 -0500
-Subject: RE: [PATCH v4] ARM: DaVinci: DM646x Video: Platform and board
- specific setup
-Message-ID: <A69FA2915331DC488A831521EAE36FE401548C213E@dlee06.ent.ti.com>
-References: <1249483662-9589-1-git-send-email-chaithrika@ti.com>
- <008c01ca158e$9ffbf770$dff3e650$@com>
-In-Reply-To: <008c01ca158e$9ffbf770$dff3e650$@com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Sun, 23 Aug 2009 06:33:01 -0400
+Received: from [192.168.1.170] (ip-173-14.sn3.eutelia.it [213.136.173.14])
+	by smtp.eutelia.it (Eutelia) with ESMTP id DD35654C899
+	for <linux-media@vger.kernel.org>; Sun, 23 Aug 2009 12:32:52 +0200 (CEST)
+Message-ID: <4A911AB0.2040800@email.it>
+Date: Sun, 23 Aug 2009 12:32:16 +0200
+From: xwang1976@email.it
 MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: New device: Dikom DK-300 (maybe Kworld 323U rebranded)
+References: <9577d4e00908130614q1d8c2c60kdcf74d324c897572@mail.gmail.com>	 <4A84138A.3050909@email.it> <9577d4e00908130934k77fb2b2ag124da076f448b1be@mail.gmail.com> <4A854761.7080102@email.it> <4A854A08.507@email.it> <4A85D05E.9040307@email.it> <4A8D03A5.8060605@email.it>
+In-Reply-To: <4A8D03A5.8060605@email.it>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Russell,
+Is there any news?
+Xwang
 
-Could you please ack this patch from Chaithrika if you agree with these changes?
-
-I have another set of patches waiting to be submitted and is dependent on this patch. So you response will be helpful to speed up the process.
-
-Regards,
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-email: m-karicheri2@ti.com
-
->-----Original Message-----
->From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->owner@vger.kernel.org] On Behalf Of Subrahmanya, Chaithrika
->Sent: Wednesday, August 05, 2009 1:36 AM
->To: Subrahmanya, Chaithrika; rmk@arm.linux.org.uk; linux@arm.linux.org.uk
->Cc: mchehab@infradead.org; hverkuil@xs4all.nl; linux-media@vger.kernel.org;
->davinci-linux-open-source@linux.davincidsp.com; 'Manjunath Hadli'; Jadav,
->Brijesh R; 'Kevin Hilman'
->Subject: RE: [PATCH v4] ARM: DaVinci: DM646x Video: Platform and board
->specific setup
->
->Russell,
->
->Requesting your ack on this patch.
->
->Regards,
->Chaithrika
->
->On Wed, Aug 05, 2009 at 20:17:42, Chaithrika U S wrote:
->> Platform specific display device setup for DM646x EVM
+xwang1976@email.it ha scritto:
+> Hi to all,
+> I would like to know if the usbsnoop I have done under windows xp is ok 
+> or if, otherwise, I have to do something different when opening the 
+> video application under windows xp (I've opened it in analogical mode. 
+> Should I open it also in digital tv mode?).
+> Till sunday I can take usbsnoopes of the device using my brother pc.
+> After such date I've to wait two weeks.
+> Thank you,
+> Xwang
+> 
+> xwang1976@email.it ha scritto:
+>> This is the link to the usbsnoop I've done under windows xp:
+>> http://rapidshare.com/files/267432234/UsbSnoop2.zip.html
+>> I hope it is useful to:
+>> 1) understand if the dikom DK-300 is really a rebranded kworld 323u
+>> 2)resolve the analog tv issues (kernel panic while scanning channels 
+>> and absence of audio)
+>> Thank you,
+>> Xwang
 >>
->> Add platform device and resource structures. Also define a platform
->specific
->> clock setup function that can be accessed by the driver to configure the
->clock
->> and CPLD.
+>> xwang1976@email.it ha scritto:
+>>> I forgot to send the dmesg I have had using the latest kernel 
+>>> (dmesg_dikom-dk300.txt) and the Dainius modified one 
+>>> (dmesg_dikom-dk300-mod.txt).
+>>> Xwang
+>>>
+>>> xwang1976@email.it ha scritto:
+>>>> Hi to all!
+>>>> I've bought this device because I've seen that it has a better 
+>>>> digital tuner when compared with my empire dual pen usb device.
+>>>> It does not work with the latest driver because there is no digital 
+>>>> tv while analog tv works with audio (even if it is a bit noisy) 
+>>>> using the start script I have attached, but when I search for analog 
+>>>> tv channels using tvtime-scanner, the system hangs and I have to 
+>>>> turn it off being alt+sys+REISUB unable to reboot the machine.
+>>>> If I modify the driver as suggest by Dainius, the digital tv works 
+>>>> perfectly, but analog audio disappears and the hangs when tuning 
+>>>> analog channels persist.
+>>>> Can you help me so that to have this device fully functional (I'll 
+>>>> continue to test also the Empire one, but this is better)?
+>>>> If you need it I can take an usbsnoop of the same device, but I 
+>>>> don't know how to use it exactly.
+>>>> I'll search if I find some howto.
+>>>> Thank you,
+>>>> Xwang
+>>>>
+>>>> Dainius Ridzevicius ha scritto:
+>>>>> Hi,
+>>>>>
+>>>>> replace files in /v4l-dvb/linux/drivers/media/video/em28xx
+>>>>> with attached ones and make all v4l-dvb.
+>>>>> make && make install. Reboot to clean old modules.
+>>>>>
+>>>>> DVB-T on kwordl 323ur is working, watching TV for an hour now.
+>>>>>
+>>>>> regards,
+>>>>>
+>>>>>
+>>>>> On Thu, Aug 13, 2009 at 4:22 PM, <xwang1976@email.it 
+>>>>> <mailto:xwang1976@email.it>> wrote:
+>>>>>
+>>>>>     Yes,
+>>>>>     I'm still interested.
+>>>>>     I suppose it is the same device.
+>>>>>     In the next days I hope I will be able to take an usbsnoop of the
+>>>>>     device under windows xp.
+>>>>>     Meantime, I would like to test your drive.
+>>>>>     Regards,
+>>>>>     Xwang
+>>>>>
+>>>>>     Dainius Ridzevicius ha scritto:
+>>>>>
+>>>>>         Hello,
+>>>>>
+>>>>>         I have got Kworld 323UR hybrid tuner and managed to get dvb-t
+>>>>>         lock today, will do some more testing later, but I can email
+>>>>>         or post you a link for v4l-dvb sources changed by me (from
+>>>>>         todays mercurial) if You are still interested.
+>>>>>
+>>>>>         Regards,
+>>>>>         Dainius
+>>>>>
+>>>>>
+>>>>>         --         -----------------------------------------
+>>>>>
+>>>>>
+>>>>>
+>>>>>
+>>>>> -- 
+>>>>> -----------------------------------------
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >>
->> Signed-off-by: Manjunath Hadli <mrh@ti.com>
->> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
->> Signed-off-by: Chaithrika U S <chaithrika@ti.com>
->> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
->> ---
->> Applies to Davinci GIT tree. Minor updates like change in structure name-
->> subdev_info to vpif_subdev_info and correction to VDD3P3V_VID_MASK value.
->>
->>  arch/arm/mach-davinci/board-dm646x-evm.c    |  125
->+++++++++++++++++++++++++++
->>  arch/arm/mach-davinci/dm646x.c              |   62 +++++++++++++
->>  arch/arm/mach-davinci/include/mach/dm646x.h |   24 +++++
->>  3 files changed, 211 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c
->b/arch/arm/mach-davinci/board-dm646x-evm.c
->> index b1bf18c..8c88fd0 100644
->> --- a/arch/arm/mach-davinci/board-dm646x-evm.c
->> +++ b/arch/arm/mach-davinci/board-dm646x-evm.c
->> @@ -63,6 +63,19 @@
->>  #define DM646X_EVM_PHY_MASK		(0x2)
->>  #define DM646X_EVM_MDIO_FREQUENCY	(2200000) /* PHY bus frequency */
->>
->> +#define VIDCLKCTL_OFFSET	(0x38)
->> +#define VSCLKDIS_OFFSET		(0x6c)
->> +
->> +#define VCH2CLK_MASK		(BIT_MASK(10) | BIT_MASK(9) | BIT_MASK(8))
->> +#define VCH2CLK_SYSCLK8		(BIT(9))
->> +#define VCH2CLK_AUXCLK		(BIT(9) | BIT(8))
->> +#define VCH3CLK_MASK		(BIT_MASK(14) | BIT_MASK(13) | BIT_MASK(12))
->> +#define VCH3CLK_SYSCLK8		(BIT(13))
->> +#define VCH3CLK_AUXCLK		(BIT(14) | BIT(13))
->> +
->> +#define VIDCH2CLK		(BIT(10))
->> +#define VIDCH3CLK		(BIT(11))
->> +
->>  static struct davinci_uart_config uart_config __initdata = {
->>  	.enabled_uarts = (1 << 0),
->>  };
->> @@ -288,6 +301,40 @@ static struct snd_platform_data
->dm646x_evm_snd_data[]
->= {
->>  	},
->>  };
->>
->> +static struct i2c_client *cpld_client;
->> +
->> +static int cpld_video_probe(struct i2c_client *client,
->> +			const struct i2c_device_id *id)
->> +{
->> +	cpld_client = client;
->> +	return 0;
->> +}
->> +
->> +static int __devexit cpld_video_remove(struct i2c_client *client)
->> +{
->> +	cpld_client = NULL;
->> +	return 0;
->> +}
->> +
->> +static const struct i2c_device_id cpld_video_id[] = {
->> +	{ "cpld_video", 0 },
->> +	{ }
->> +};
->> +
->> +static struct i2c_driver cpld_video_driver = {
->> +	.driver = {
->> +		.name	= "cpld_video",
->> +	},
->> +	.probe		= cpld_video_probe,
->> +	.remove		= cpld_video_remove,
->> +	.id_table	= cpld_video_id,
->> +};
->> +
->> +static void evm_init_cpld(void)
->> +{
->> +	i2c_add_driver(&cpld_video_driver);
->> +}
->> +
->>  static struct i2c_board_info __initdata i2c_info[] =  {
->>  	{
->>  		I2C_BOARD_INFO("24c256", 0x50),
->> @@ -300,6 +347,9 @@ static struct i2c_board_info __initdata i2c_info[] =
->{
->>  	{
->>  		I2C_BOARD_INFO("cpld_reg0", 0x3a),
->>  	},
->> +	{
->> +		I2C_BOARD_INFO("cpld_video", 0x3B),
->> +	},
->>  };
->>
->>  static struct davinci_i2c_platform_data i2c_pdata = {
->> @@ -307,11 +357,85 @@ static struct davinci_i2c_platform_data i2c_pdata =
->{
->>  	.bus_delay      = 0 /* usec */,
->>  };
->>
->> +static int set_vpif_clock(int mux_mode, int hd)
->> +{
->> +	int val = 0;
->> +	int err = 0;
->> +	unsigned int value;
->> +	void __iomem *base = IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
->> +
->> +	if (!cpld_client)
->> +		return -ENXIO;
->> +
->> +	/* disable the clock */
->> +	value = __raw_readl(base + VSCLKDIS_OFFSET);
->> +	value |= (VIDCH3CLK | VIDCH2CLK);
->> +	__raw_writel(value, base + VSCLKDIS_OFFSET);
->> +
->> +	val = i2c_smbus_read_byte(cpld_client);
->> +	if (val < 0)
->> +		return val;
->> +
->> +	if (mux_mode == 1)
->> +		val &= ~0x40;
->> +	else
->> +		val |= 0x40;
->> +
->> +	err = i2c_smbus_write_byte(cpld_client, val);
->> +	if (err)
->> +		return err;
->> +
->> +	value = __raw_readl(base + VIDCLKCTL_OFFSET);
->> +	value &= ~(VCH2CLK_MASK);
->> +	value &= ~(VCH3CLK_MASK);
->> +
->> +	if (hd >= 1)
->> +		value |= (VCH2CLK_SYSCLK8 | VCH3CLK_SYSCLK8);
->> +	else
->> +		value |= (VCH2CLK_AUXCLK | VCH3CLK_AUXCLK);
->> +
->> +	__raw_writel(value, base + VIDCLKCTL_OFFSET);
->> +
->> +	/* enable the clock */
->> +	value = __raw_readl(base + VSCLKDIS_OFFSET);
->> +	value &= ~(VIDCH3CLK | VIDCH2CLK);
->> +	__raw_writel(value, base + VSCLKDIS_OFFSET);
->> +
->> +	return 0;
->> +}
->> +
->> +static const struct vpif_subdev_info dm646x_vpif_subdev[] = {
->> +	{
->> +		.addr	= 0x2A,
->> +		.name	= "adv7343",
->> +	},
->> +	{
->> +		.addr	= 0x2C,
->> +		.name	= "ths7303",
->> +	},
->> +};
->> +
->> +static const char *output[] = {
->> +	"Composite",
->> +	"Component",
->> +	"S-Video",
->> +};
->> +
->> +static struct vpif_config dm646x_vpif_config = {
->> +	.set_clock	= set_vpif_clock,
->> +	.subdevinfo	= dm646x_vpif_subdev,
->> +	.subdev_count	= ARRAY_SIZE(dm646x_vpif_subdev),
->> +	.output		= output,
->> +	.output_count	= ARRAY_SIZE(output),
->> +	.card_name	= "DM646x EVM",
->> +};
->> +
->>  static void __init evm_init_i2c(void)
->>  {
->>  	davinci_init_i2c(&i2c_pdata);
->>  	i2c_add_driver(&dm6467evm_cpld_driver);
->>  	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));
->> +	evm_init_cpld();
->>  }
->>
->>  static void __init davinci_map_io(void)
->> @@ -333,6 +457,7 @@ static __init void evm_init(void)
->>
->>  	soc_info->emac_pdata->phy_mask = DM646X_EVM_PHY_MASK;
->>  	soc_info->emac_pdata->mdio_max_freq = DM646X_EVM_MDIO_FREQUENCY;
->> +	dm646x_setup_vpif(&dm646x_vpif_config);
->>  }
->>
->>  static __init void davinci_dm646x_evm_irq_init(void)
->> diff --git a/arch/arm/mach-davinci/dm646x.c
->b/arch/arm/mach-davinci/dm646x.c
->> index 8fa2803..a9b20e5 100644
->> --- a/arch/arm/mach-davinci/dm646x.c
->> +++ b/arch/arm/mach-davinci/dm646x.c
->> @@ -32,6 +32,15 @@
->>  #include "clock.h"
->>  #include "mux.h"
->>
->> +#define DAVINCI_VPIF_BASE       (0x01C12000)
->> +#define VDD3P3V_PWDN_OFFSET	(0x48)
->> +#define VSCLKDIS_OFFSET		(0x6C)
->> +
->> +#define VDD3P3V_VID_MASK	(BIT_MASK(3) | BIT_MASK(2) | BIT_MASK(1) |\
->> +					BIT_MASK(0))
->> +#define VSCLKDIS_MASK		(BIT_MASK(11) | BIT_MASK(10) |
->BIT_MASK(9) |\
->> +					BIT_MASK(8))
->> +
->>  /*
->>   * Device specific clocks
->>   */
->> @@ -686,6 +695,37 @@ static struct platform_device dm646x_dit_device = {
->>  	.id	= -1,
->>  };
->>
->> +static u64 vpif_dma_mask = DMA_BIT_MASK(32);
->> +
->> +static struct resource vpif_resource[] = {
->> +	{
->> +		.start	= DAVINCI_VPIF_BASE,
->> +		.end	= DAVINCI_VPIF_BASE + 0x03fff,
->> +		.flags	= IORESOURCE_MEM,
->> +	},
->> +	{
->> +		.start = IRQ_DM646X_VP_VERTINT2,
->> +		.end   = IRQ_DM646X_VP_VERTINT2,
->> +		.flags = IORESOURCE_IRQ,
->> +	},
->> +	{
->> +		.start = IRQ_DM646X_VP_VERTINT3,
->> +		.end   = IRQ_DM646X_VP_VERTINT3,
->> +		.flags = IORESOURCE_IRQ,
->> +	},
->> +};
->> +
->> +static struct platform_device vpif_display_dev = {
->> +	.name		= "vpif_display",
->> +	.id		= -1,
->> +	.dev		= {
->> +			.dma_mask 		= &vpif_dma_mask,
->> +			.coherent_dma_mask	= DMA_BIT_MASK(32),
->> +	},
->> +	.resource	= vpif_resource,
->> +	.num_resources	= ARRAY_SIZE(vpif_resource),
->> +};
->> +
->>
->/*----------------------------------------------------------------------*/
->>
->>  static struct map_desc dm646x_io_desc[] = {
->> @@ -814,6 +854,28 @@ void __init dm646x_init_mcasp1(struct
->snd_platform_data *pdata)
->>  	platform_device_register(&dm646x_dit_device);
->>  }
->>
->> +void dm646x_setup_vpif(struct vpif_config *config)
->> +{
->> +	unsigned int value;
->> +	void __iomem *base = IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
->> +
->> +	value = __raw_readl(base + VSCLKDIS_OFFSET);
->> +	value &= ~VSCLKDIS_MASK;
->> +	__raw_writel(value, base + VSCLKDIS_OFFSET);
->> +
->> +	value = __raw_readl(base + VDD3P3V_PWDN_OFFSET);
->> +	value &= ~VDD3P3V_VID_MASK;
->> +	__raw_writel(value, base + VDD3P3V_PWDN_OFFSET);
->> +
->> +	davinci_cfg_reg(DM646X_STSOMUX_DISABLE);
->> +	davinci_cfg_reg(DM646X_STSIMUX_DISABLE);
->> +	davinci_cfg_reg(DM646X_PTSOMUX_DISABLE);
->> +	davinci_cfg_reg(DM646X_PTSIMUX_DISABLE);
->> +
->> +	vpif_display_dev.dev.platform_data = config;
->> +	platform_device_register(&vpif_display_dev);
->> +}
->> +
->>  void __init dm646x_init(void)
->>  {
->>  	davinci_common_init(&davinci_soc_info_dm646x);
->> diff --git a/arch/arm/mach-davinci/include/mach/dm646x.h
->b/arch/arm/mach-davinci/include/mach/dm646x.h
->> index feb1e02..792c226 100644
->> --- a/arch/arm/mach-davinci/include/mach/dm646x.h
->> +++ b/arch/arm/mach-davinci/include/mach/dm646x.h
->> @@ -29,4 +29,28 @@ void __init dm646x_init_ide(void);
->>  void __init dm646x_init_mcasp0(struct snd_platform_data *pdata);
->>  void __init dm646x_init_mcasp1(struct snd_platform_data *pdata);
->>
->> +void dm646x_video_init(void);
->> +
->> +struct vpif_output {
->> +	u16 id;
->> +	const char *name;
->> +};
->> +
->> +struct vpif_subdev_info {
->> +	unsigned short addr;
->> +	const char *name;
->> +};
->> +
->> +struct vpif_config {
->> +	int (*set_clock)(int, int);
->> +	const struct vpif_subdev_info *subdevinfo;
->> +	int subdev_count;
->> +	const char **output;
->> +	int output_count;
->> +	const char *card_name;
->> +};
->> +
->> +
->> +void dm646x_setup_vpif(struct vpif_config *config);
->> +
->>  #endif /* __ASM_ARCH_DM646X_H */
->> --
->> 1.5.6
->>
->
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
