@@ -1,240 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:3487 "EHLO
-	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751604AbZH0IGo (ORCPT
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:51253 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932767AbZHWAfz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Aug 2009 04:06:44 -0400
-Message-ID: <6d6c955a28219f061dd31af4e0473415.squirrel@webmail.xs4all.nl>
-In-Reply-To: <Pine.LNX.4.64.0908270857230.4808@axis700.grange>
-References: <Pine.LNX.4.64.0908261452460.7670@axis700.grange>
-    <200908270851.27073.hverkuil@xs4all.nl>
-    <Pine.LNX.4.64.0908270857230.4808@axis700.grange>
-Date: Thu, 27 Aug 2009 10:06:43 +0200
-Subject: Re: [RFC] Pixel format definition on the "image" bus
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-Cc: "Linux Media Mailing List" <linux-media@vger.kernel.org>,
-	"Hans de Goede" <j.w.r.degoede@hhs.nl>,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
+	Sat, 22 Aug 2009 20:35:55 -0400
+Received: by bwz19 with SMTP id 19so966254bwz.37
+        for <linux-media@vger.kernel.org>; Sat, 22 Aug 2009 17:35:56 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+In-Reply-To: <4fab9a6f0908221732g8e061f3t8fc871c3a0b36337@mail.gmail.com>
+References: <4fab9a6f0908221729n5410920fmd38bace3070105a3@mail.gmail.com>
+	 <4fab9a6f0908221732g8e061f3t8fc871c3a0b36337@mail.gmail.com>
+Date: Sat, 22 Aug 2009 20:35:56 -0400
+Message-ID: <829197380908221735o4f0d13e0qede088161bf3f1be@mail.gmail.com>
+Subject: Re: Kernel oops with em28xx device
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Fau <dalamenona@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-> On Thu, 27 Aug 2009, Hans Verkuil wrote:
+On Sat, Aug 22, 2009 at 8:32 PM, Fau<dalamenona@gmail.com> wrote:
+> Greetings,
+> I have an USB TV adapter identified as Hauppauge WinTV HVR 900 (R2) (card=18)
+> and I'm using Fedora 11 with linux kernel vanilla 2.6.30.5 (the last
+> stable as writing).
 >
->> On Wednesday 26 August 2009 16:39:16 Guennadi Liakhovetski wrote:
->> > Hi all
->> >
->> > With the ability to arbitrarily combine (video) data sources and sinks
->> we
->> > have to be able to suitably configure both parties. This includes
->> setting
->> > bus parameters, which is discussed elsewhere, and selecting a data
->> format,
->> > which is discussed in this RFC.
->> >
->> > Video data, coming from a source (e.g., a camera sensor) to a sink
->> (e.g.,
->> > a bridge) can be processed in two ways: (1) as raw data, and (2) as
->> > formatted data.
->> >
->> > Definition 1: Raw Data Sampling means storing frames, consisting of a
->> > certain number of lines, consisting of a certain number of samples
->> (which
->> > may or may not represent pixels) in memory. Each sample contains a
->> certain
->> > number of bits of useful information, multiple samples can be packed
->> > together according to some rule.
->> >
->> > In case (1) the sink has no specific knowledge about the format, so it
->> can
->> > only sample data on its data bus and store it in memory in some
->> specific
->> > manner. This "manner" is completely defined by the following three
->> > parameters: (a) how many bits are sampled, (b) in which order they
->> will be
->> > stored in memory, (c) how samples have to be packed. To provide such
->> "raw"
->> > data to the user the bridge driver also has to know what format the
->> data
->> > represents if stored in memory as required by the source.
->> >
->> > In case (2) the sink "knows" this specific format and can handle it
->> > accordingly, e.g., convert to some other format.
->> >
->> > It is therefore proposed to describe a data format on-the-bus using
->> the
->> > following parameters:
->> >
->> > enum V4L2_DATA_PACKING {
->> > 	V4L2_DATA_PACKING_NONE	= 0,
->> > };
->> >
->> > enum V4L2_DATA_ORDER {
->> > 	V4L2_DATA_ORDER_LE	= 0,
->> > 	V4L2_DATA_ORDER_BE	= 1,
->> > };
->> >
->> > /**
->> >  * struct v4l2_subdev_bus_pixelfmt - Data format on the image bus
->> >  * @sourceformat:	Format identification for sinks, capable to process
->> this
->> >  *			specific format
->> >  * @pixelformat:	Fourcc code...
->> >  * @colorspace:		and colorspace, that will be obtained if the data is
->> >  *			stored in memory in the following way:
->> >  * @bits_per_sample:	How many bits the bridge has to sample
->> >  * @packing:		Type of sample-packing, that has to be used
->> >  * @order:		Sample order when storing in memory
->> >  */
->> > struct v4l2_subdev_bus_pixelfmt {
->> > 	u32			sourceformat;
->> > 	u32			pixelformat;
->> > 	enum v4l2_colorspace	colorspace;
->> > 	int			index;
->> > 	u8			bits_per_sample;
->> > 	enum V4L2_DATA_PACKING	packing;
->> > 	enum V4L2_DATA_ORDER	order;
->> > };
->> >
->> > The .sourceformat field above is a new enumeration, similar to
->> currently
->> > defined in include/linux/videodev2.h fourcc codes, but combining the
->> > fourcc, bits-per-sample, packing and order information in one. If an
->> > existing Fourcc code already uniquely defines this combination, the
->> new
->> > code might coincide with it. In principle, this code is redundant,
->> because
->> > the data format is completely described by the "raw" parameters, but
->> it
->> > can be useful for some (simple) source-sink combinations.
->> >
->> > The sink driver can then use the following new method from struct
->> > v4l2_subdev_video_ops:
->> >
->> > int (*enum_bus_pixelfmt)(struct v4l2_subdev *sd,
->> > 			 const struct v4l2_subdev_bus_pixelfmt **fmt);
->> >
->> > to enumerate formats, provided by the source and to decide, which of
->> them
->> > it can support in raw mode, which as formatted data, and which of them
->> it
->> > cannot support at all, e.g., because it does not support the requested
->> > packing type. This enumeration can either take place upon reception of
->> a
->> > S_FMT ioctl, or during probing to build a list of formats, that this
->> > specific source-sink pair can provide to the user.
->> >
->> > Comments welcome.
->>
->> Hi Guennadi,
->>
->> This seems way too complicated to me. The original approach you took in
->> soc_camera (just a fourcc code and the colorspace) seems fine to me (and
->> colorspace is probably not even needed). The sensor supports X formats,
->> the
->> sink supports Y sensor formats and knows how to map those to the actual
->> formats as are returned by VIDIOC_ENUM_FMT. So a pointer to a list of
->> supported
->> fourcc codes is probably all you need.
+> Following the manual at http://www.linuxtv.org/wiki/index.php/Em28xx_devices
+> i've extracted and copied xc3028-v27.fw in /lib/firware then i
+> compiled (make/make install) a freshly cloned v4l-dvb
 >
-> Unfortunately, even the current soc-camera approach with its
-> format-enumeration and -conversion API is not enough. As I explained
-> above, there are two ways you can handle source's data: "cooked" and
-> "raw." The "cooked" way is simple - the sink knows exactly this specific
-> format and knows how to deal with it. Every sink has a final number of
-> such natively supported formats, so, that's just a switch-case statement
-> in each sink driver, that is specific to each sink hardware, and that you
-> cannot avoid.
->
-> It's the "raw" or "pass-through" mode that is difficult. It is used, when
-> the sink does not have any specific knowledge about this format, but can
-> pack data into RAM in some way, or, hopefully, in a number of ways, among
-> which we can choose. The source "knows" what data it is delivering, and,
-> in principle, how this data has to be packed in RAM to provide some
-> meaningful user format. Now, we have to pass this information on to the
-> sink driver to tell it "if you configure the source to deliver the raw
-> format X, and then configure your bus in a way Y and pack the data into
-> RAM in a way Z, you get as RAM user format W." So, my proposal is - during
-> probing, the sink enumerates all raw formats, provided by the source,
-> accepts those formats, that it can process natively ("cooked" mode), and
-> verifies if it can be configured to bus configuration Y and can perform
-> packing Z, if so, it adds format W to the list of supported formats. Do
-> you see an easier way to do this? I'm currently trying to port one driver
-> combination to this scheme, I'll post a patch, hopefully, later today.
+> Now when the device is plugged there is a kernel oops, I'm missing
+> something or is it a bug?
+> In attachment the relevant part of dmesg,
+> thank you in advance for any help,
 
-I'm not so keen on attempting to negotiate things that probably are
-impossible to negotiate anyway. (You may have noticed that before :-) )
+Hmm...   Does it happen consistently, or is it something that only
+happens sometimes?  Can you try it five or six times (rebooting
+between each oops), and see if it occurs every time?
 
-One approach would be to make this mapping part of the platform data that
-is passed to the bridge driver.
+I did some testing with that board a couple of weeks ago and it was
+working fine, so I'm not sure what is unique about your environment.
 
-For a 'normal' PCI or USB driver information like this would be contained
-in the bridge driver. Here you have a generic bridge driver intended to
-work with different SoCs, so now that information has to move to the
-platform data. That's the only place where you know exactly how to setup
-these things.
-
-So you would end up with a list of config items:
-
-<user fourcc>, <bridge fourcc>, <sensor fourcc>, <bus config>
-
-And the platform data of each sensor device would have such a list.
-
-So the bridge driver knows that VIDIOC_ENUMFMT can give <user fourcc> back
-to the user, and if the user selects that, then it has to setup the bridge
-using <bridge fourcc> and the sensor using <sensor fourcc>, and the bus as
-<bus config>.
-
-This is just a high level view as I don't have time to go into this in
-detail, but I think this is a reasonable approach. It's really no
-different to what the PCI and USB drivers are doing, except formalized for
-the generic case.
-
-Regards,
-
-        Hans
-
->
->> But I also have other questions that need to be answered:
->>
->> 1) Isn't there a relationship between the supported sensor formats and
->> the
->> bus configuration? E.g. the davinci dm646x has two bus modes on its
->> capture
->> port: either embedded syncs or separate syncs. Depending on the mode it
->> can
->> capture different formats.
->
-> Yes, sure, the sink driver has to check, if it supports bus configuration
-> "Y" - see above.
->
->> 2) What will the relationship be between this functionality and how the
->> enum/try/g/s_fmt subdev ops are currently used? Perhaps we should switch
->> everything over to this new API? I think there are only three subdev
->> drivers
->> that use these fmt ops, so it wouldn't be too hard to change them if we
->> decide
->> to do so.
->
-> Yes, I think so.
->
->> I'm definitely going to think about this some more when I work on the
->> bus
->> config RFC this weekend.
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
->
-
+Devin
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
