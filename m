@@ -1,54 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imr-ma05.mx.aol.com ([64.12.100.31]:44270 "EHLO
-	imr-ma05.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755657AbZHFNeO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2009 09:34:14 -0400
-Message-ID: <4A7ADBC2.6090908@netscape.net>
-Date: Thu, 06 Aug 2009 14:33:54 +0100
-From: Kaya Saman <SamanKaya@netscape.net>
+Received: from mail.freakix.de ([89.238.65.154]:41196 "EHLO mail.freakix.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933427AbZHWOdc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Aug 2009 10:33:32 -0400
+Message-ID: <4A914B80.302@freakix.de>
+Date: Sun, 23 Aug 2009 16:00:32 +0200
+From: Norbert Weinhold <webmaster@freakix.de>
 MIME-Version: 1.0
-To: Michael Krufky <mkrufky@kernellabs.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Hauppauge WinTV HVR-900HD support?
-References: <4A7AC430.4070505@netscape.net>	 <37219a840908060553g452266fdq5ea3814b4ce725bc@mail.gmail.com>	 <4A7AD57B.8020906@netscape.net> <37219a840908060619q7e41b024nf4e73b21843942c5@mail.gmail.com>
-In-Reply-To: <37219a840908060619q7e41b024nf4e73b21843942c5@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+CC: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Can't tune to DVB-S2 channels on floppydtv
+References: <4A908AC6.2080701@freakpixel.de> <200908230345.14069.hftom@free.fr>
+In-Reply-To: <200908230345.14069.hftom@free.fr>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Michael Krufky wrote:
->
->
->
-> HVR1400 is expresscard.
->
-> HVR1900 is usb2.  HVR1950 is the NTSC/ATSC/QAM version of the HVR1900.
->  (HVR1900 is PAL/DVB-T, but can also do NTSC, and other analog
-> standards)
->
-> HVR1900 is the one I am recommending for you.  Maybe the website
-> you're looking at needs updating -- the HVR1900 has been available
-> already for quite some time.
->
-> Regards,
->
-> Mike
->   
+Christophe Thommeret schrieb:
+> Le Sunday 23 August 2009 02:18:14 Norbert Weinhold, vous avez écrit :
+>> Hi,
+>>
+>> I have a floppyDTV S2 and I can't tune to dvb-s2 channels while normal
+>> dvb-s channel work.
+>>
+>> Does anyone have a clue where the problem is.
+> 
+> Are you sure the driver supports S2 at all ?
 
-Thanks Mike, I managed to find it finally on Amazon.co.uk which claimed 
-that it was available from June 2007!
+Not 100% but I thought so because i found the hardware under supported
+dvb-s2 devices. I wonder what is missing, because the card is doing all
+difficult stuff itself. Just send the frequency / transponder you want
+to receive you get the data if there is any reception at all.
 
-That might explain why it's not on the Hauppauge website as it is most 
-likely getting replaced....
+After i had a look into the driver i saw that in the caps section 8psk
+is missing and there is possibly a second tune command.
 
-I actually expected this to be one of those cute USB keys but this thing 
-resembles a set top box :-)
+Has anyone a command list for this device?
 
-I think the WinTV HVR-900 maybe a better option as it is supported. I am 
-guessing that this is the same thing as the H model without the HD support?
-
-It maybe ok what do you think?? Also you can use this with a remote too 
-can't you??
-
-Kaya
+Norbert
