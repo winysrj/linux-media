@@ -1,105 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-13.arcor-online.net ([151.189.21.53]:33764 "EHLO
-	mail-in-13.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755350AbZHHKoC (ORCPT
+Received: from mail-vw0-f172.google.com ([209.85.212.172]:33451 "EHLO
+	mail-vw0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755840AbZHWHrP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Aug 2009 06:44:02 -0400
-Subject: Re: Direct v4l-dvb master commits
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <200908081055.25229.hverkuil@xs4all.nl>
-References: <829197380908051158i52af640cn1b87bfe90c0890b8@mail.gmail.com>
-	 <20090807132841.51372e65@caramujo.chehab.org>
-	 <200908081055.25229.hverkuil@xs4all.nl>
-Content-Type: text/plain
-Date: Sat, 08 Aug 2009 12:41:14 +0200
-Message-Id: <1249728074.3265.16.camel@pc07.localdom.local>
-Mime-Version: 1.0
+	Sun, 23 Aug 2009 03:47:15 -0400
+Received: by vws2 with SMTP id 2so1374973vws.4
+        for <linux-media@vger.kernel.org>; Sun, 23 Aug 2009 00:47:16 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4A908AC6.2080701@freakpixel.de>
+References: <4A908AC6.2080701@freakpixel.de>
+Date: Sun, 23 Aug 2009 00:47:16 -0700
+Message-ID: <a3ef07920908230047na330c4dme618bd9f8a1fbac7@mail.gmail.com>
+Subject: Re: [linux-dvb] Can't tune to DVB-S2 channels on floppydtv
+From: VDR User <user.vdr@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sat, Aug 22, 2009 at 5:18 PM, Norbert
+Weinhold<linux-dvb@freakpixel.de> wrote:
+> Hi,
+>
+> I have a floppyDTV S2 and I can't tune to dvb-s2 channels while normal
+> dvb-s channel work.
+>
+> Does anyone have a clue where the problem is.
 
-Am Samstag, den 08.08.2009, 10:55 +0200 schrieb Hans Verkuil:
-> On Friday 07 August 2009 18:28:41 Mauro Carvalho Chehab wrote:
-> > Em Wed, 5 Aug 2009 14:58:23 -0400
-> > Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
-> > > On a related note, is there some rationale you can offer as to why you
-> > > are committing patches directly into the v4l-dvb mainline without any
-> > > peer review, unlike *every* other developer in the linuxtv project?  I
-> > > know it may seem redundant to you since you are the person acting on
-> > > the PULL requests, but it would provide an opportunity for the other
-> > > developers to offer comments on your patches *before* they go into the
-> > > mainline.
-> > 
-> > This were already answered on some previous msgs at the ML: hg commits mailing
-> > lists give the opportunity for people to review what were committed at the
-> > staging tree, since every patch is automatically mailbombed to the mailing
-> > list. The mainline tree is my -git. It is delayed over -hg to give opportunity
-> > for people to review the committed patches. Also, I'm not the kind of person
-> > that use to talk to himself. Starting sending pull requests from me to myself
-> > will probably get me a free ticket to a mental care services :-d
-> 
-> I have to say that I really disagree with that. The hg master v4l-dvb tree is
-> what everyone develops against. So when bad patches go in without having had
-> the opportunity for a review, then that will affect all of us.
-> 
-> There is also no way to remove such a broken patch from the master tree.
-> Once it is in it can only be removed by committing a revert patch.
-> 
-> Now, I have no problem with you committing trivial fixes directly into the
-> master repository, but anything non-trivial should also get the chance to
-> be reviewed by others. It's not talking to yourself, it's asking for a review
-> before you commit, just like we all do. Just post a pull request and if
-> there are no comments after 24 hours, then commit.
-> 
-> Two cases that come to mind that irritated me were the commit of the cx231xx
-> driver without subdev support out of nowhere a few months ago and your
-> addition of --get/set-param support in v4l2-ctl just a few days ago which had
-> several bugs (fixed in my pending v4l-dvb-misc tree).
-> 
-> If these commits were posted as pull requests then I would have reviewed them
-> first and any issues would have been fixed before they entered the master repo.
-> 
-> There is also the human factor to consider: it can be demotivating (or at
-> least irritating) if your own pull requests are still queued after several
-> days and you see the maintainer doing big commits out of the blue at the
-> same time.
-> 
-> Regards,
-> 
-> 	Hans
-
-Hi Hans,
-
-for the cx231xx I can't tell, but the em28xx webcam stuff will probably
-soon have a separate repo before anything is pulled in again.
-
-Your v4l2-ctl fixes will go in without more work for you.
-Sorry, I saw too late, that you have a pull request already.
-
-It is just that, that some such cams arrive here by mail, includes
-private data of people not related to GNU/Linux, and we can make them
-work very quickly.
-
-It is stuff sold in huge masses since 2005, without any support until
-now.
-
-Likely we can get them all, but should be no further excuse for not
-having them better on a separate tree at first.
-
-With my other rants I'm also finished. I likely won't care for bugs on
-Hauppauge/Pinnacle products anymore and will have much more fun with
-linux again.
-
-Cheers,
-Hermann
-
-
-
-
-
-
+I know a few people who have tried dvb-s2 v4l and all of them have had
+problems.  From what I've been told, S2 is a total mess and has a ton
+of things that need to be fixed.  I'm sure someone will crawl out of
+the woodwork and state how awesome it is however so take everything
+with a grain of salt and let your own experience tell you the truth.
