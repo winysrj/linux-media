@@ -1,52 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:56767 "EHLO znsun1.ifh.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752984AbZHTHDG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Aug 2009 03:03:06 -0400
-Date: Thu, 20 Aug 2009 09:01:44 +0200 (CEST)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Andy Walls <awalls@radix.net>
-cc: Greg KH <greg@kroah.com>, "Rafael J. Wysocki" <rjw@sisk.pl>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	pm list <linux-pm@lists.linux-foundation.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: linux-next: suspend tree build warnings
-In-Reply-To: <1250729056.2716.37.camel@morgan.walls.org>
-Message-ID: <alpine.LRH.1.10.0908200859060.7249@pub3.ifh.de>
-References: <20090819172419.2cf53008.sfr@canb.auug.org.au>  <200908192338.03910.rjw@sisk.pl>  <20090819233601.GA2875@kroah.com> <1250729056.2716.37.camel@morgan.walls.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Received: from mail-in-14.arcor-online.net ([151.189.21.54]:51943 "EHLO
+	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933423AbZHWB4f (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Aug 2009 21:56:35 -0400
+Received: from mail-in-06-z2.arcor-online.net (mail-in-06-z2.arcor-online.net [151.189.8.18])
+	by mx.arcor.de (Postfix) with ESMTP id 76C2E28ACB3
+	for <linux-media@vger.kernel.org>; Sun, 23 Aug 2009 03:56:35 +0200 (CEST)
+Received: from mail-in-13.arcor-online.net (mail-in-13.arcor-online.net [151.189.21.53])
+	by mail-in-06-z2.arcor-online.net (Postfix) with ESMTP id 6D39A5BE50
+	for <linux-media@vger.kernel.org>; Sun, 23 Aug 2009 03:56:35 +0200 (CEST)
+Received: from [192.168.178.24] (pD9E12FAC.dip0.t-ipconnect.de [217.225.47.172])
+	(Authenticated sender: hermann-pitton@arcor.de)
+	by mail-in-13.arcor-online.net (Postfix) with ESMTPSA id 438D42BAA99
+	for <linux-media@vger.kernel.org>; Sun, 23 Aug 2009 03:56:35 +0200 (CEST)
+Subject: Re: [PATCH] saa7134: start to investigate the LNA mess on 310i and
+	hvr1110 products
+From: hermann pitton <hermann-pitton@arcor.de>
+To: linux-media@vger.kernel.org
+In-Reply-To: <1250812164.3249.18.camel@pc07.localdom.local>
+References: <1250812164.3249.18.camel@pc07.localdom.local>
+Content-Type: text/plain
+Date: Sun, 23 Aug 2009 03:54:08 +0200
+Message-Id: <1250992448.3262.11.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
 
-On Wed, 19 Aug 2009, Andy Walls wrote:
->> Ick.  struct device should _never_ be on the stack, why would this code
->> want to do such a thing?
+Am Freitag, den 21.08.2009, 01:49 +0200 schrieb hermann pitton:
+> There is a great maintenance mess for those devices currently.
+> 
+> All attempts, to get some further information out of those assumed to be
+> closest to the above manufactures, failed.
+> 
+> Against any previous advice, newer products with an additional LNA,
+> which needs to be configured correctly, have been added and we can't
+> make any difference to previous products without LNA.
+> 
+> Even more, the type of LNA configuration, either over tuner gain or some
+> on the analog IF demodulator, conflicts within this two devices itself.
+> 
+> Since we never had a chance, to see such devices with all details
+> reported to our lists, but might still be able to make eventually a
+> difference, to get out of that mess, we should prefer to start exactly
+> where it started.
 
-When you are doing a thing it does not necessarily you know that you're 
-doing it.
+Mauro, Douglas,
 
-> It appears that the state object is a dummy being used to detect and
-> twiddle some identical chips on the i2c bus.  The functions called only
-> use the "i2c_adapter" and "cfg" member of the dummy state object, but
-> those functions want that state object as an input argument.
->
-> <obvious>
-> The simplest fix is dynamic allocation of the dummy state object with
-> kmalloc() and then to free it before exiting the function.
-> </obvious>
+just mark it as an RFC.
 
-Even more obvious: Fix the function with simpler code to do the same 
-thing.
+Seems i lose any interest to follow up such further.
 
-I will try to fetch some time from somewhere to work on it.
+Never allow any guys to go out into the wild, ending up with that I have
+to read their personal web blogs ..., out of lists.
 
---
+Cheers,
+Hermann
 
-Patrick 
-http://www.kernellabs.com/
+
+> Signed-off-by: hermann pitton <hermann-pitton@arcor.de>iff -r d0ec20a376fe linux/drivers/media/video/saa7134/saa7134-cards.c
+> --- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Thu Aug 20
+> 01:30:58 2009 +0000
+> +++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Fri Aug 21
+> 01:28:37 2009 +0200
+> @@ -3242,7 +3242,7 @@
+>  		.radio_type     = UNSET,
+>  		.tuner_addr     = ADDR_UNSET,
+>  		.radio_addr     = ADDR_UNSET,
+> -		.tuner_config   = 1,
+> +		.tuner_config   = 0,
+>  		.mpeg           = SAA7134_MPEG_DVB,
+>  		.gpiomask       = 0x000200000,
+>  		.inputs         = {{
+> @@ -3346,7 +3346,7 @@
+>  		.radio_type     = UNSET,
+>  		.tuner_addr     = ADDR_UNSET,
+>  		.radio_addr     = ADDR_UNSET,
+> -		.tuner_config   = 1,
+> +		.tuner_config   = 0,
+>  		.mpeg           = SAA7134_MPEG_DVB,
+>  		.gpiomask       = 0x0200100,
+>  		.inputs         = {{
+> diff -r d0ec20a376fe linux/drivers/media/video/saa7134/saa7134-dvb.c
+> --- a/linux/drivers/media/video/saa7134/saa7134-dvb.c	Thu Aug 20
+> 01:30:58 2009 +0000
+> +++ b/linux/drivers/media/video/saa7134/saa7134-dvb.c	Fri Aug 21
+> 01:28:37 2009 +0200
+> @@ -1144,12 +1144,12 @@
+>  		break;
+>  	case SAA7134_BOARD_PINNACLE_PCTV_310i:
+>  		if (configure_tda827x_fe(dev, &pinnacle_pctv_310i_config,
+> -					 &tda827x_cfg_1) < 0)
+> +					 &tda827x_cfg_0) < 0)
+>  			goto dettach_frontend;
+>  		break;
+>  	case SAA7134_BOARD_HAUPPAUGE_HVR1110:
+>  		if (configure_tda827x_fe(dev, &hauppauge_hvr_1110_config,
+> -					 &tda827x_cfg_1) < 0)
+> +					 &tda827x_cfg_0) < 0)
+>  			goto dettach_frontend;
+>  		break;
+>  	case SAA7134_BOARD_HAUPPAUGE_HVR1150:
+> 
+
