@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.freakix.de ([89.238.65.154])
+Received: from mail-in-04.arcor-online.net ([151.189.21.44])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <linux-dvb@freakpixel.de>) id 1Mf0n2-0008KM-5k
-	for linux-dvb@linuxtv.org; Sun, 23 Aug 2009 02:18:32 +0200
-Received: from [192.168.50.157] (f053013122.adsl.alicedsl.de [78.53.13.122])
-	by mail.freakix.de (Postfix) with ESMTP id 09CA2726A1
-	for <linux-dvb@linuxtv.org>; Sun, 23 Aug 2009 02:18:23 +0200 (CEST)
-Message-ID: <4A908AC6.2080701@freakpixel.de>
-Date: Sun, 23 Aug 2009 02:18:14 +0200
-From: Norbert Weinhold <linux-dvb@freakpixel.de>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Can't tune to DVB-S2 channels on floppydtv
+	(envelope-from <hermann-pitton@arcor.de>) id 1MfXKo-0000uK-2X
+	for linux-dvb@linuxtv.org; Mon, 24 Aug 2009 13:03:34 +0200
+From: hermann pitton <hermann-pitton@arcor.de>
+To: scoop_yo@freemail.gr
+In-Reply-To: <4a922c13705bb1.13585078@freemail.gr>
+References: <1251066447.3244.5.camel@pc07.localdom.local>
+	<4a922c13705bb1.13585078@freemail.gr>
+Date: Mon, 24 Aug 2009 12:58:49 +0200
+Message-Id: <1251111529.3256.33.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Lifeview hybrid saa7134 driver not working anymore
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -26,16 +27,34 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
 
-I have a floppyDTV S2 and I can't tune to dvb-s2 channels while normal
-dvb-s channel work.
+Am Montag, den 24.08.2009, 08:58 +0300 schrieb scoop_yo@freemail.gr:
+> Considering your reply, I started today by changing the card to all PCI slots and powering on and off the machine each time, until when I put the card to the bottom PCI it worked again ! Then I tried all other slots again and it was working this time. That is some weird card behaviour !
 
-Does anyone have a clue where the problem is.
+It is still a very unpleasant situation for all involved, for you of
+course in the first place.
 
-Thanks,
+But until it should not be a single problem report anymore,for now it
+is, we have good reasons, to start questioning about the PSU in use and
+its current shape, the mobo distributing the voltage further, and in the
+end too, if something like a capacitor on the card itself starts
+leaking.
 
-Norbert
+After all that, unfortunately, programming still can be a point, of
+course, but it did not change within that driver since long.
+
+However, others operating on a higher level, can
+introduce_something/clear/fail_at_all on such too.
+
+If you can't get out of that random, but windows always works, I guess
+we have a performance problem on your hardware ;)
+
+Cheers,
+Hermann
+
+
+
+
 
 _______________________________________________
 linux-dvb users mailing list
