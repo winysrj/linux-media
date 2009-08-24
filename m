@@ -1,59 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f213.google.com ([209.85.217.213]:36675 "EHLO
-	mail-gx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753964AbZHJWjA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Aug 2009 18:39:00 -0400
-Received: by gxk9 with SMTP id 9so4603972gxk.13
-        for <linux-media@vger.kernel.org>; Mon, 10 Aug 2009 15:39:01 -0700 (PDT)
+Received: from kroah.org ([198.145.64.141]:33046 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752858AbZHXQRm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Aug 2009 12:17:42 -0400
+Date: Mon, 24 Aug 2009 09:16:14 -0700
+From: Greg KH <greg@kroah.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans de Goede <j.w.r.degoede@hhs.nl>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: How to handle devices sitting on multiple busses ?
+Message-ID: <20090824161614.GA7893@kroah.com>
+References: <200908241357.44562.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <4A809EE7.10009@email.it>
-References: <4A79EC82.4050902@email.it> <4A809EE7.10009@email.it>
-Date: Mon, 10 Aug 2009 18:39:01 -0400
-Message-ID: <829197380908101539m48f17c69n119cb52f636502ab@mail.gmail.com>
-Subject: Re: New device: Dikom DK-300 (maybe Kworld 323U rebranded)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: xwang1976@email.it
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <200908241357.44562.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 10, 2009 at 6:27 PM, <xwang1976@email.it> wrote:
-> Hi,
-> my brother has brought a Dikom DK-300 usb hybrid tv receiver.
-> He will use it under windows, but I've tried it with the latest v4l-dvb
-> driver and I've discovered that it works well as analog tv (video and audio
-> work using the sox command to send audio from /dev/dsp1 to /dev/dsp).
-> The digital tv doesn't work (in kaffeine the digital tv icon is not
-> present).
-> I post the dmesg obtained connecting the device.
-> If you want I can test for the next 10 days.
-> Thank you,
-> Xwang
->
-<snip>
+On Mon, Aug 24, 2009 at 01:57:44PM +0200, Laurent Pinchart wrote:
+> Hi Greg,
+> 
+> while working on video input support for embedded platforms a few developers 
+> including myself ran independently into a Linux device model issue. We all 
+> came up with hackish solutions that we are not very happy with, and we'd like 
+> to fix this in a clean way.
+> 
+> The problem comes from devices sitting on multiple busses, a situation 
+> commonly found with video sensors connected to an embedded System on Chip 
+> (SoC). The sensor is controlled through an I2C bus and sends video data on a 
+> parallel video bus, connected to a camera controller usually referred as an 
+> Image Signal Processor (ISP), Video Processing Front End (VPFE), CCD 
+> Controller (CCDC) or simply a bridge.
+> 
+> The bridge and the I2C master controller on the SoC are completely independent 
+> from each other. The I2C master controller is not dedicated to the video 
+> function and is often used to communication with non-video I2C devices.
+> 
+> Unfortunately, on the sensor side, I2C and video bus are not independent. The 
+> I2C slave controller usually requires an external clock to be present, and the 
+> clock is usually provided on the video bus by the SoC bridge.
+> 
+> As the bridge and I2C master live their own life in the Linux device tree, 
+> they are initialized, suspended, resumed and destroyed independently. The 
+> sensor being an I2C slave device, Linux initializes it after the I2C master 
+> device is initialized, but doesn't ensure that the bridge is initialized first 
+> as well. A similar problem occurs during suspend/resume, as the I2C slave 
+> needs to be suspended before and resumed after the video bridge.
+> 
+> Have you ever encountered such a situation before ?
 
-Hello Xwang,
+No, not really.
 
-In order to add support for the digital side of the device, we would
-need to know which demodulator chip is in the device (which you could
-get by opening it up).
+> Is there a clean way for a device to have multiple parents, or do you
+> have plans for such a possibility in the future ?
 
-Alternatively, if you can get a SniffUSB 2.0 capture under Windows,
-from the time the device is plugged in, until after the device is
-tuned to a digital station, we can probably extrapolate which demod it
-has.  We're going to need the Windows USB trace anyway in order to
-identify what the proper GPIO configuration is.
+I do not know of any future plans to support something like this in the
+driver core code, sorry.
 
-Personally, I'm not confident I will be able to debug this issue
-within the next ten days (I'm about to leave town for the next six
-days and I'm already swamped with other work), although some other
-developer may be willing to step in and lend a hand.
+> I would be willing to give an implementation a try if you can provide
+> me with some guidelines.
 
-Devin
+Hm, I really don't know of any guidelines I can provide, as I've never
+thought about this before :)
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+I really don't know what to suggest at the moment, sorry.
+
+greg k-h
