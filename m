@@ -1,45 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:34783 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933658AbZHHJMo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Aug 2009 05:12:44 -0400
-Received: by bwz19 with SMTP id 19so1830505bwz.37
-        for <linux-media@vger.kernel.org>; Sat, 08 Aug 2009 02:12:44 -0700 (PDT)
+Received: from comal.ext.ti.com ([198.47.26.152]:48331 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753832AbZHXWiE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Aug 2009 18:38:04 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Date: Mon, 24 Aug 2009 17:37:36 -0500
+Subject: RE: [PATCH v1 - 1/5] DaVinci - restructuring code to support vpif
+ capture driver
+Message-ID: <A69FA2915331DC488A831521EAE36FE40154CEAA34@dlee06.ent.ti.com>
+References: <1250283702-5582-1-git-send-email-m-karicheri2@ti.com>
+	<A69FA2915331DC488A831521EAE36FE40145300FC7@dlee06.ent.ti.com>
+	<200908180849.14003.hverkuil@xs4all.nl>
+	<200908180851.06222.hverkuil@xs4all.nl>
+	<A69FA2915331DC488A831521EAE36FE401548C1E27@dlee06.ent.ti.com>
+	<20090818142817.26de0893@pedra.chehab.org>
+	<A69FA2915331DC488A831521EAE36FE401548C23A5@dlee06.ent.ti.com>
+	<20090820013306.696e5dd9@pedra.chehab.org>
+	<A69FA2915331DC488A831521EAE36FE401548C2BFE@dlee06.ent.ti.com>
+ <20090824000934.68b82d9c@pedra.chehab.org>
+In-Reply-To: <20090824000934.68b82d9c@pedra.chehab.org>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Date: Sat, 8 Aug 2009 11:12:44 +0200
-Message-ID: <b7b14cbb0908080212q7985c060g4e2ef0879319786c@mail.gmail.com>
-Subject: Syntek Driver ...
-From: Clinton Lee Taylor <clintonlee.taylor@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Greetings ...
+Kevin,
 
- Sorry if this has come through before, but I did not recieve a copy
-or a reply, so I'm assuming the orginal message did not get through
-... Or I'm been ignored ... ;-)
+How do we handle this? 
 
- I was wondering if anybody has looked at the Syntek Driver stk11xx at
-http://sourceforge.net/projects/syntekdriver/files/ ...
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+new phone: 301-407-9583
+Old Phone : 301-515-3736 (will be deprecated)
+email: m-karicheri2@ti.com
 
-This driver is meant to have updates for the EasyCap USB video capture
-device ...
+>-----Original Message-----
+>From: Mauro Carvalho Chehab [mailto:mchehab@infradead.org]
+>Sent: Sunday, August 23, 2009 11:10 PM
+>To: Karicheri, Muralidharan
+>Cc: Kevin Hilman; Mauro Carvalho Chehab; linux-media@vger.kernel.org; Hans
+>Verkuil
+>Subject: Re: [PATCH v1 - 1/5] DaVinci - restructuring code to support vpif
+>capture driver
+>
+>Em Thu, 20 Aug 2009 16:27:40 -0500
+>"Karicheri, Muralidharan" <m-karicheri2@ti.com> escreveu:
+>
+>> Kevin & Mauro,
+>>
+>> Do I need to wait or this can be resolved by either of you for my work to
+>proceed?
+>
+>Murali,
+>
+>If I fix your patch in order to apply it on my tree, backporting it to the
+>old
+>arch header files, we'll have merge troubles upstream, when Kevin merge his
+>changes. It will also mean that he'll need to apply a diff patch on his
+>tree,
+>in order to convert the patch to the new headers, and that git bisect may
+>break. I might merge his tree here, but this means that, if he needs to
+>rebase
+>his tree (and sometimes people need to rebase their linux-next trees), I'll
+>have troubles here, and I'll loose my work.
+>
+>So, the better solution is if he could apply this specific patch, merging
+>his
+>tree upstream before your patches.
+>
+>Cheers,
+>Mauro
 
-http://www.product-reviews.net/2007/08/15/hands-on-with-the-easycap-capture-usb-20-video-adapter-with-audio/
-
-http://www.amazon.com/Audio-Creator-Capture-High-quality-Analog/dp/B001BWU8US
-
-Hans de Goede suggested I post here ... As was explained, I'm not a
-kernel programmer, but I do own one of these devices, so I can test,
-maybe compile code and maybe help debug stuff, but I don't have the
-skill to do much more than that ...
-
-Would be great to have included in the main line Video4Linux and then
-up stream Kernel ... Pretty please!!
-
-Thanks
-Mailed
-LeeT
