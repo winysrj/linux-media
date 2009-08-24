@@ -1,195 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:36757 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932414AbZHWAcZ (ORCPT
+Received: from ey-out-2122.google.com ([74.125.78.27]:21699 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751407AbZHXJ5W (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Aug 2009 20:32:25 -0400
-Received: by fxm17 with SMTP id 17so970721fxm.37
-        for <linux-media@vger.kernel.org>; Sat, 22 Aug 2009 17:32:26 -0700 (PDT)
+	Mon, 24 Aug 2009 05:57:22 -0400
+Received: by ey-out-2122.google.com with SMTP id 22so573413eye.37
+        for <linux-media@vger.kernel.org>; Mon, 24 Aug 2009 02:57:23 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <4fab9a6f0908221729n5410920fmd38bace3070105a3@mail.gmail.com>
-References: <4fab9a6f0908221729n5410920fmd38bace3070105a3@mail.gmail.com>
-Date: Sun, 23 Aug 2009 02:32:26 +0200
-Message-ID: <4fab9a6f0908221732g8e061f3t8fc871c3a0b36337@mail.gmail.com>
-Subject: Kernel oops with em28xx device
-From: Fau <dalamenona@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=001517478d804d16f30471c43c44
+In-Reply-To: <829197380908211317k401b6b2etdb88a90e6e7e53fa@mail.gmail.com>
+References: <54b126f90908211227k78cfeebbqcee4da4958743a3b@mail.gmail.com>
+	 <829197380908211238i58670a12p39537af14dbfc009@mail.gmail.com>
+	 <54b126f90908211305j6911820es52c8ffc2be6b9667@mail.gmail.com>
+	 <829197380908211317k401b6b2etdb88a90e6e7e53fa@mail.gmail.com>
+Date: Mon, 24 Aug 2009 11:57:22 +0200
+Message-ID: <54b126f90908240257t362bf59byc0100bf6aa4b315b@mail.gmail.com>
+Subject: Re: detection of Empire Media Pen Dual TV
+From: Baggius <baggius@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---001517478d804d16f30471c43c44
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+2009/8/21 Devin Heitmueller <dheitmueller@kernellabs.com>:
+> On Fri, Aug 21, 2009 at 4:05 PM, Baggius<baggius@gmail.com> wrote:
+>> Hello Devin,
+>> I have an Empire Media Pen Dual TV and it has same layout as Kworld dvb-t 310u.
+>> while MSI Digivox A/D has "similar" layout and supports 1080i extra resolution,
+>> as http://www.msi.com/index.php?func=proddesc&maincat_no=132&prod_no=626
+>>
+>> If you want I can capture usb device startup log using Usbsnoop/SniffUSB  ...
+>> Giuseppe
+>
+> Hmmm...  Let's hold off on a usb capture for now.  Now that I
+> understand that you have the Empire board, I am looking at the dmesg
+> trace again and am a bit confused.  Do you happen to have a "card=49"
+> parameter in your modprobe configuration?  However, the code does
+> appear to also recognize the board as the Empire board (see the "Board
+> detected as Empire dual TV").
 
-Greetings,
-I have an USB TV adapter identified as Hauppauge WinTV HVR 900 (R2) (card=18)
-and I'm using Fedora 11 with linux kernel vanilla 2.6.30.5 (the last
-stable as writing).
+No, I havent' any card parameter in modprobe.conf, I commented out
+"options em28xx ..." line.
+Now some info on my system:
 
-Following the manual at http://www.linuxtv.org/wiki/index.php/Em28xx_devices
-i've extracted and copied xc3028-v27.fw in /lib/firware then i
-compiled (make/make install) a freshly cloned v4l-dvb
+Kernel is Linux box 2.6.29-sabayon #1 SMP Wed Aug 19 22:18:09 UTC 2009
+x86_64 Intel(R) Core(TM)2 Duo CPU T9300 @ 2.50GHz GenuineIntel
+GNU/Linux,
 
-Now when the device is plugged there is a kernel oops, I'm missing
-something or is it a bug?
-In attachment the relevant part of dmesg,
-thank you in advance for any help,
+Linux Distro is Sabayon 4.2 x86_64 Gnome edition, regularly updated,
 
---
-Fab
+on Acer Aspire 5920G http://support.acer-euro.com/drivers/notebook/as_5920.html
 
---001517478d804d16f30471c43c44
-Content-Type: text/plain; charset=US-ASCII; name="dmesg.txt"
-Content-Disposition: attachment; filename="dmesg.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fyp1j97m0
+>
+> I agree that something appears to be wrong.  I will have to take a
+> look at the code and see where the "Identified as" messages comes
+> from.
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+>
 
-WyAgMjI5LjgwMzU4Ml0gdXNiIHVzYjE6IHVzYiByZXN1bWUKWyAgMjI5LjgwMzU4OV0gZWhjaV9o
-Y2QgMDAwMDowMDowMy4zOiByZXN1bWUgcm9vdCBodWIKWyAgMjI5LjgyMzAyMF0gaHViIDEtMDox
-LjA6IGh1Yl9yZXN1bWUKWyAgMjI5LjgyMzA0NF0gZWhjaV9oY2QgMDAwMDowMDowMy4zOiBHZXRT
-dGF0dXMgcG9ydCA0IHN0YXR1cyAwMDE4MDMgUE9XRVIgc2lnPWogQ1NDIENPTk5FQ1QKWyAgMjI5
-LjgyMzA1MF0gaHViIDEtMDoxLjA6IHBvcnQgNDogc3RhdHVzIDA1MDEgY2hhbmdlIDAwMDEKWyAg
-MjI5LjkyNDAzMl0gaHViIDEtMDoxLjA6IHN0YXRlIDcgcG9ydHMgNiBjaGcgMDAxMCBldnQgMDAw
-MApbICAyMjkuOTI0MDQyXSBodWIgMS0wOjEuMDogcG9ydCA0LCBzdGF0dXMgMDUwMSwgY2hhbmdl
-IDAwMDAsIDQ4MCBNYi9zClsgIDIyOS45NzUzMThdIGVoY2lfaGNkIDAwMDA6MDA6MDMuMzogcG9y
-dCA0IGhpZ2ggc3BlZWQKWyAgMjI5Ljk3NTMyNV0gZWhjaV9oY2QgMDAwMDowMDowMy4zOiBHZXRT
-dGF0dXMgcG9ydCA0IHN0YXR1cyAwMDEwMDUgUE9XRVIgc2lnPXNlMCBQRSBDT05ORUNUClsgIDIz
-MC4wMjYwMjVdIHVzYiAxLTQ6IG5ldyBoaWdoIHNwZWVkIFVTQiBkZXZpY2UgdXNpbmcgZWhjaV9o
-Y2QgYW5kIGFkZHJlc3MgMgpbICAyMzAuMDc3MzAxXSBlaGNpX2hjZCAwMDAwOjAwOjAzLjM6IHBv
-cnQgNCBoaWdoIHNwZWVkClsgIDIzMC4wNzczMDhdIGVoY2lfaGNkIDAwMDA6MDA6MDMuMzogR2V0
-U3RhdHVzIHBvcnQgNCBzdGF0dXMgMDAxMDA1IFBPV0VSIHNpZz1zZTAgUEUgQ09OTkVDVApbICAy
-MzAuMTQwNTUxXSB1c2IgMS00OiBkZWZhdWx0IGxhbmd1YWdlIDB4MDQwOQpbICAyMzAuMTQ1NDI3
-XSB1c2IgMS00OiBOZXcgVVNCIGRldmljZSBmb3VuZCwgaWRWZW5kb3I9MjA0MCwgaWRQcm9kdWN0
-PTY1MDIKWyAgMjMwLjE0NTQzMV0gdXNiIDEtNDogTmV3IFVTQiBkZXZpY2Ugc3RyaW5nczogTWZy
-PTAsIFByb2R1Y3Q9MSwgU2VyaWFsTnVtYmVyPTIKWyAgMjMwLjE0NTQzNl0gdXNiIDEtNDogUHJv
-ZHVjdDogV2luVFYgSFZSLTkwMApbICAyMzAuMTQ1NDM5XSB1c2IgMS00OiBTZXJpYWxOdW1iZXI6
-IDQwMjg1MjMzNjAKWyAgMjMwLjE0NTU1M10gdXNiIDEtNDogdWV2ZW50ClsgIDIzMC4xNDU1ODBd
-IHVzYiAxLTQ6IHVzYl9wcm9iZV9kZXZpY2UKWyAgMjMwLjE0NTU4NV0gdXNiIDEtNDogY29uZmln
-dXJhdGlvbiAjMSBjaG9zZW4gZnJvbSAxIGNob2ljZQpbICAyMzAuMTQ3ODA2XSB1c2IgMS00OiB1
-ZXZlbnQKWyAgMjMwLjE0ODM1M10gdXNiIDEtNDogYWRkaW5nIDEtNDoxLjAgKGNvbmZpZyAjMSwg
-aW50ZXJmYWNlIDApClsgIDIzMC4xNDgzOTVdIHVzYiAxLTQ6MS4wOiB1ZXZlbnQKWyAgMjMwLjE0
-ODYyM10gZHJpdmVycy91c2IvY29yZS9pbm9kZS5jOiBjcmVhdGluZyBmaWxlICcwMDInClsgIDIz
-MS4yMjI2MTZdIExpbnV4IHZpZGVvIGNhcHR1cmUgaW50ZXJmYWNlOiB2Mi4wMApbICAyMzEuMjk1
-NjQ3XSBlbTI4eHggMS00OjEuMDogdXNiX3Byb2JlX2ludGVyZmFjZQpbICAyMzEuMjk1NjUzXSBl
-bTI4eHggMS00OjEuMDogdXNiX3Byb2JlX2ludGVyZmFjZSAtIGdvdCBpZApbICAyMzEuMjk1NjYx
-XSBlbTI4eHg6IE5ldyBkZXZpY2UgV2luVFYgSFZSLTkwMCBAIDQ4MCBNYnBzICgyMDQwOjY1MDIs
-IGludGVyZmFjZSAwLCBjbGFzcyAwKQpbICAyMzEuMjk1ODY4XSBlbTI4eHggIzA6IGNoaXAgSUQg
-aXMgZW0yODgyL2VtMjg4MwpbICAyMzEuNDMzODM3XSBlbTI4eHggIzA6IGkyYyBlZXByb20gMDA6
-IDFhIGViIDY3IDk1IDQwIDIwIDAyIDY1IGQwIDEyIDVjIDAzIDgyIDFlIDZhIDE4ClsgIDIzMS40
-MzM4NTJdIGVtMjh4eCAjMDogaTJjIGVlcHJvbSAxMDogMDAgMDAgMjQgNTcgNjYgMDcgMDEgMDAg
-MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAKWyAgMjMxLjQzMzg2NV0gZW0yOHh4ICMwOiBpMmMgZWVw
-cm9tIDIwOiA0NiAwMCAwMSAwMCBmMCAxMCAwMiAwMCBiOCAwMCAwMCAwMCA1YiBlMCAwMCAwMApb
-ICAyMzEuNDMzODc4XSBlbTI4eHggIzA6IGkyYyBlZXByb20gMzA6IDAwIDAwIDIwIDQwIDIwIDZl
-IDAyIDIwIDEwIDAxIDAxIDAxIDAwIDAwIDAwIDAwClsgIDIzMS40MzM4OTBdIGVtMjh4eCAjMDog
-aTJjIGVlcHJvbSA0MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
-MDAgMDAKWyAgMjMxLjQzMzkwM10gZW0yOHh4ICMwOiBpMmMgZWVwcm9tIDUwOiAwMCAwMCAwMCAw
-MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMApbICAyMzEuNDMzOTE1XSBlbTI4
-eHggIzA6IGkyYyBlZXByb20gNjA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDE4IDAz
-IDM0IDAwIDMwIDAwClsgIDIzMS40MzM5MjhdIGVtMjh4eCAjMDogaTJjIGVlcHJvbSA3MDogMzIg
-MDAgMzggMDAgMzUgMDAgMzIgMDAgMzMgMDAgMzMgMDAgMzYgMDAgMzAgMDAKWyAgMjMxLjQzMzk0
-MF0gZW0yOHh4ICMwOiBpMmMgZWVwcm9tIDgwOiAwMCAwMCAxZSAwMyA1NyAwMCA2OSAwMCA2ZSAw
-MCA1NCAwMCA1NiAwMCAyMCAwMApbICAyMzEuNDMzOTUzXSBlbTI4eHggIzA6IGkyYyBlZXByb20g
-OTA6IDQ4IDAwIDU2IDAwIDUyIDAwIDJkIDAwIDM5IDAwIDMwIDAwIDMwIDAwIDAwIDAwClsgIDIz
-MS40MzM5NjZdIGVtMjh4eCAjMDogaTJjIGVlcHJvbSBhMDogODQgMTIgMDAgMDAgMDUgNTAgMWEg
-N2YgZDQgNzggMjMgZmEgZmQgZDAgMjggODkKWyAgMjMxLjQzMzk3OF0gZW0yOHh4ICMwOiBpMmMg
-ZWVwcm9tIGIwOiBmZiAwMCAwMCAwMCAwNCA4NCAwYSAwMCAwMSAwMSAyMCA3NyAwMCA0MCA2MCA2
-MwpbICAyMzEuNDMzOTkxXSBlbTI4eHggIzA6IGkyYyBlZXByb20gYzA6IDFlIGYwIDc0IDAyIDAx
-IDAwIDAxIDc5IDY5IDAwIDAwIDAwIDAwIDAwIDAwIDAwClsgIDIzMS40MzQwMTRdIGVtMjh4eCAj
-MDogaTJjIGVlcHJvbSBkMDogODQgMTIgMDAgMDAgMDUgNTAgMWEgN2YgZDQgNzggMjMgZmEgZmQg
-ZDAgMjggODkKWyAgMjMxLjQzNDAyN10gZW0yOHh4ICMwOiBpMmMgZWVwcm9tIGUwOiBmZiAwMCAw
-MCAwMCAwNCA4NCAwYSAwMCAwMSAwMSAyMCA3NyAwMCA0MCA2MCA2MwpbICAyMzEuNDM0MDQwXSBl
-bTI4eHggIzA6IGkyYyBlZXByb20gZjA6IDFlIGYwIDc0IDAyIDAxIDAwIDAxIDc5IDY5IDAwIDAw
-IDAwIDAwIDAwIDAwIDAwClsgIDIzMS40MzQwNTVdIGVtMjh4eCAjMDogRUVQUk9NIElEPSAweDk1
-NjdlYjFhLCBFRVBST00gaGFzaCA9IDB4YzMzNzNmZGQKWyAgMjMxLjQzNDA1OF0gZW0yOHh4ICMw
-OiBFRVBST00gaW5mbzoKWyAgMjMxLjQzNDA2MV0gZW0yOHh4ICMwOglBQzk3IGF1ZGlvICg1IHNh
-bXBsZSByYXRlcykKWyAgMjMxLjQzNDA2M10gZW0yOHh4ICMwOgk1MDBtQSBtYXggcG93ZXIKWyAg
-MjMxLjQzNDA2N10gZW0yOHh4ICMwOglUYWJsZSBhdCAweDI0LCBzdHJpbmdzPTB4MWU4MiwgMHgx
-ODZhLCAweDAwMDAKWyAgMjMxLjQzNDgzNl0gZW0yOHh4ICMwOiBJZGVudGlmaWVkIGFzIEhhdXBw
-YXVnZSBXaW5UViBIVlIgOTAwIChSMikgKGNhcmQ9MTgpClsgIDIzMS40MzYzODddIHR2ZWVwcm9t
-IDEtMDA1MDogSGF1cHBhdWdlIG1vZGVsIDY1MDE4LCByZXYgQjJDMCwgc2VyaWFsIyAxOTkxNTIw
-ClsgIDIzMS40MzYzOTNdIHR2ZWVwcm9tIDEtMDA1MDogdHVuZXIgbW9kZWwgaXMgWGNlaXZlIFhD
-MzAyOCAoaWR4IDEyMCwgdHlwZSA3MSkKWyAgMjMxLjQzNjM5OF0gdHZlZXByb20gMS0wMDUwOiBU
-ViBzdGFuZGFyZHMgUEFMKEIvRykgUEFMKEkpIFBBTChEL0QxL0spIEFUU0MvRFZCIERpZ2l0YWwg
-KGVlcHJvbSAweGQ0KQpbICAyMzEuNDM2NDAzXSB0dmVlcHJvbSAxLTAwNTA6IGF1ZGlvIHByb2Nl
-c3NvciBpcyBOb25lIChpZHggMCkKWyAgMjMxLjQzNjQwN10gdHZlZXByb20gMS0wMDUwOiBoYXMg
-cmFkaW8KWyAgMjMxLjQ0MTM3OF0gdHZwNTE1MCAxLTAwNWM6IGNoaXAgZm91bmQgQCAweGI4IChl
-bTI4eHggIzApClsgIDIzMS40NDk2NDddIHR1bmVyIDEtMDA2MTogY2hpcCBmb3VuZCBAIDB4YzIg
-KGVtMjh4eCAjMCkKWyAgMjMxLjQ3NDQ1NF0geGMyMDI4IDEtMDA2MTogY3JlYXRpbmcgbmV3IGlu
-c3RhbmNlClsgIDIzMS40NzQ0NTldIHhjMjAyOCAxLTAwNjE6IHR5cGUgc2V0IHRvIFhDZWl2ZSB4
-YzIwMjgveGMzMDI4IHR1bmVyClsgIDIzMS40NzQ0NzNdIHVzYiAxLTQ6IGZpcm13YXJlOiByZXF1
-ZXN0aW5nIHhjMzAyOC12MjcuZncKWyAgMjMxLjU4Mzk4Ml0geGMyMDI4IDEtMDA2MTogTG9hZGlu
-ZyA4MCBmaXJtd2FyZSBpbWFnZXMgZnJvbSB4YzMwMjgtdjI3LmZ3LCB0eXBlOiB4YzIwMjggZmly
-bXdhcmUsIHZlciAyLjcKWyAgMjMxLjYxNzAyMF0geGMyMDI4IDEtMDA2MTogTG9hZGluZyBmaXJt
-d2FyZSBmb3IgdHlwZT1CQVNFIE1UUyAoNSksIGlkIDAwMDAwMDAwMDAwMDAwMDAuClsgIDIzMi40
-NzgyOTFdIHhjMjAyOCAxLTAwNjE6IExvYWRpbmcgZmlybXdhcmUgZm9yIHR5cGU9TVRTICg0KSwg
-aWQgMDAwMDAwMDAwMDAwYjcwMC4KWyAgMjMyLjQ5MjY2MF0geGMyMDI4IDEtMDA2MTogTG9hZGlu
-ZyBTQ09ERSBmb3IgdHlwZT1NVFMgTENEIE5PR0QgTU9OTyBJRiBTQ09ERSBIQVNfSUZfNDUwMCAo
-NjAwMmIwMDQpLCBpZCAwMDAwMDAwMDAwMDBiNzAwLgpbICAyMzIuNjUyMTYzXSBpbnB1dDogZW0y
-OHh4IElSIChlbTI4eHggIzApIGFzIC9kZXZpY2VzL3BjaTAwMDA6MDAvMDAwMDowMDowMy4zL3Vz
-YjEvMS00L2lucHV0L2lucHV0NgpbICAyMzIuNjUyNTEyXSBlbTI4eHggIzA6IENvbmZpZyByZWdp
-c3RlciByYXcgZGF0YTogMHhkMApbICAyMzIuNjUzNTA2XSBlbTI4eHggIzA6IEFDOTcgdmVuZG9y
-IElEID0gMHhmZmZmZmZmZgpbICAyMzIuNjUzODg0XSBlbTI4eHggIzA6IEFDOTcgZmVhdHVyZXMg
-PSAweDZhOTAKWyAgMjMyLjY1Mzg4OF0gZW0yOHh4ICMwOiBFbXBpYSAyMDIgQUM5NyBhdWRpbyBw
-cm9jZXNzb3IgZGV0ZWN0ZWQKWyAgMjMyLjY1ODIyMF0gdXNiIDEtNDogdWV2ZW50ClsgIDIzMi42
-NTgyODRdIHVzYiB1c2IxOiB1ZXZlbnQKWyAgMjMyLjcwMjg5MV0gQlVHOiB1bmFibGUgdG8gaGFu
-ZGxlIGtlcm5lbCBOVUxMIHBvaW50ZXIgZGVyZWZlcmVuY2UgYXQgMDAwMDAwMDIKWyAgMjMyLjcw
-MjkwNV0gSVA6IFs8YzEyNjczMjQ+XSBpMmNfbWFzdGVyX3NlbmQrMHhhLzB4NDMKWyAgMjMyLjcw
-MjkyMV0gKnBkZSA9IDAwMDAwMDAwIApbICAyMzIuNzAyOTI2XSBPb3BzOiAwMDAwIFsjMV0gU01Q
-IApbICAyMzIuNzAyOTMxXSBsYXN0IHN5c2ZzIGZpbGU6IC9zeXMvZGV2aWNlcy9wY2kwMDAwOjAw
-LzAwMDA6MDA6MDMuMy91c2IxLzEtNC9pbnB1dC9pbnB1dDYvY2FwYWJpbGl0aWVzL3N3ClsgIDIz
-Mi43MDI5MzddIE1vZHVsZXMgbGlua2VkIGluOiB0dW5lcl94YzIwMjggdHVuZXIgdHZwNTE1MCBl
-bTI4eHgoKykgaXJfY29tbW9uIHY0bDJfY29tbW9uIHZpZGVvZGV2IHY0bDFfY29tcGF0IHZpZGVv
-YnVmX3ZtYWxsb2MgdmlkZW9idWZfY29yZSB0dmVlcHJvbSBicmlkZ2Ugc3RwIGJuZXAgc2NvIGwy
-Y2FwIGJsdWV0b290aCBwNF9jbG9ja21vZCBzcGVlZHN0ZXBfbGliIHNuZF9pbnRlbDh4MCBzbmRf
-aW50ZWw4eDBtIHNuZF9hYzk3X2NvZGVjIGF0aDVrIHNpczkwMCBhYzk3X2J1cyBzaXNfYWdwIGky
-Y19zaXM5NnggbWlpIHdtaSBwYXRhX3NpcyBbbGFzdCB1bmxvYWRlZDogc2NzaV93YWl0X3NjYW5d
-ClsgIDIzMi43MDI5NzRdIApbICAyMzIuNzAyOTc5XSBQaWQ6IDIxOTgsIGNvbW06IG1vZHByb2Jl
-IE5vdCB0YWludGVkICgyLjYuMzAuNS1mYWIgIzEpIEFzcGlyZSAzNTAwICAgICAKWyAgMjMyLjcw
-Mjk4NF0gRUlQOiAwMDYwOls8YzEyNjczMjQ+XSBFRkxBR1M6IDAwMDEwMjgyIENQVTogMApbICAy
-MzIuNzAyOTg4XSBFSVAgaXMgYXQgaTJjX21hc3Rlcl9zZW5kKzB4YS8weDQzClsgIDIzMi43MDI5
-OTJdIEVBWDogMDAwMDAwMDAgRUJYOiAwMDAwMDAwMiBFQ1g6IDAwMDAwMDAyIEVEWDogZjY1M2Jj
-ZmUKWyAgMjMyLjcwMjk5Nl0gRVNJOiAwMDAwMDAwMCBFREk6IDAwMDAwMDMwIEVCUDogZjY1M2Jj
-ZjQgRVNQOiBmNjUzYmNlMApbICAyMzIuNzAzMDAwXSAgRFM6IDAwN2IgRVM6IDAwN2IgRlM6IDAw
-ZDggR1M6IDAwMzMgU1M6IDAwNjgKWyAgMjMyLjcwMzAwNV0gUHJvY2VzcyBtb2Rwcm9iZSAocGlk
-OiAyMTk4LCB0aT1mNjUzYTAwMCB0YXNrPWY3Mzc5ODYwIHRhc2sudGk9ZjY1M2EwMDApClsgIDIz
-Mi43MDMwMDZdIFN0YWNrOgpbICAyMzIuNzAzMDA2XSAgMDAwMDAwNDIgZjY1M2JkMDAgZmEzNmFm
-NWUgZjY1MDRmNjAgMDAwMDAwMDAgZjY1M2JkMGMgZmEzODMxM2YgMzAwMjAwMDAKWyAgMjMyLjcw
-MzAwNl0gIGY2NTA0ZjYwIDAwMDAwMDAwIDAwMDAwMDMwIGY2NTNiZDIwIGZhMzgzNjdlIGY2NTA0
-ZjYwIGY2NGVjODAwIGZhMzgzNmMzClsgIDIzMi43MDMwMDZdICBmNjUzYmQyOCBmYTM4MzZkMSBm
-NjUzYmQ0NCBmYTM2YThmNyAwMDAwMDAwMCBmNjRlYzgzMCBmNjRlYzgwMCAwMDAwMDAwMApbICAy
-MzIuNzAzMDA2XSBDYWxsIFRyYWNlOgpbICAyMzIuNzAzMDA2XSAgWzxmYTM2YWY1ZT5dID8gZW0y
-OHh4X3dyaXRlX3JlZ3MrMHgxYS8weDRjIFtlbTI4eHhdClsgIDIzMi43MDMwMDZdICBbPGZhMzgz
-MTNmPl0gPyB0dnA1MTUwX3dyaXRlKzB4NDcvMHg2ZiBbdHZwNTE1MF0KWyAgMjMyLjcwMzAwNl0g
-IFs8ZmEzODM2N2U+XSA/IHR2cDUxNTBfc2VsbXV4KzB4NjcvMHhhYyBbdHZwNTE1MF0KWyAgMjMy
-LjcwMzAwNl0gIFs8ZmEzODM2YzM+XSA/IHR2cDUxNTBfc19yb3V0aW5nKzB4MC8weDEyIFt0dnA1
-MTUwXQpbICAyMzIuNzAzMDA2XSAgWzxmYTM4MzZkMT5dID8gdHZwNTE1MF9zX3JvdXRpbmcrMHhl
-LzB4MTIgW3R2cDUxNTBdClsgIDIzMi43MDMwMDZdICBbPGZhMzZhOGY3Pl0gPyBlbTI4eHhfd2Fr
-ZV9pMmMrMHg2Yi8weGFhIFtlbTI4eHhdClsgIDIzMi43MDMwMDZdICBbPGZhMzZhNzM0Pl0gPyBl
-bTI4eHhfdXNiX3Byb2JlKzB4NmEzLzB4N2ZiIFtlbTI4eHhdClsgIDIzMi43MDMwMDZdICBbPGMx
-MjNhYmVkPl0gPyB1c2JfcHJvYmVfaW50ZXJmYWNlKzB4MTEwLzB4MTU2ClsgIDIzMi43MDMwMDZd
-ICBbPGMxMWVkMTRiPl0gPyBkcml2ZXJfcHJvYmVfZGV2aWNlKzB4NzkvMHhlZApbICAyMzIuNzAz
-MDA2XSAgWzxjMTFlZDIwMj5dID8gX19kcml2ZXJfYXR0YWNoKzB4NDMvMHg1ZgpbICAyMzIuNzAz
-MDA2XSAgWzxjMTFlY2EwND5dID8gYnVzX2Zvcl9lYWNoX2RldisweDNkLzB4NjcKWyAgMjMyLjcw
-MzAwNl0gIFs8YzExZWQwMjQ+XSA/IGRyaXZlcl9hdHRhY2grMHgxNC8weDE2ClsgIDIzMi43MDMw
-MDZdICBbPGMxMWVkMWJmPl0gPyBfX2RyaXZlcl9hdHRhY2grMHgwLzB4NWYKWyAgMjMyLjcwMzAw
-Nl0gIFs8YzExZWNkYTk+XSA/IGJ1c19hZGRfZHJpdmVyKzB4OGYvMHgxYmEKWyAgMjMyLjcwMzAw
-Nl0gIFs8YzExNTVlYzg+XSA/IGtzZXRfZmluZF9vYmorMHgyMy8weDRlClsgIDIzMi43MDMwMDZd
-ICBbPGMxMWVkNDJmPl0gPyBkcml2ZXJfcmVnaXN0ZXIrMHg3OS8weGUwClsgIDIzMi43MDMwMDZd
-ICBbPGMxMjNhOWJkPl0gPyB1c2JfcmVnaXN0ZXJfZHJpdmVyKzB4NjYvMHhjMApbICAyMzIuNzAz
-MDA2XSAgWzxmYTM3YTAxOD5dID8gZW0yOHh4X21vZHVsZV9pbml0KzB4MTgvMHgzYyBbZW0yOHh4
-XQpbICAyMzIuNzAzMDA2XSAgWzxjMTAwMTEzNz5dID8gZG9fb25lX2luaXRjYWxsKzB4NGEvMHgx
-MTUKWyAgMjMyLjcwMzAwNl0gIFs8ZmEzN2EwMDA+XSA/IGVtMjh4eF9tb2R1bGVfaW5pdCsweDAv
-MHgzYyBbZW0yOHh4XQpbICAyMzIuNzAzMDA2XSAgWzxjMTNhMjhjZT5dID8gbm90aWZpZXJfY2Fs
-bF9jaGFpbisweDI2LzB4NDgKWyAgMjMyLjcwMzAwNl0gIFs8YzEwM2M4MjE+XSA/IF9fYmxvY2tp
-bmdfbm90aWZpZXJfY2FsbF9jaGFpbisweDQwLzB4NGMKWyAgMjMyLjcwMzAwNl0gIFs8YzEwNDk3
-ZjM+XSA/IHN5c19pbml0X21vZHVsZSsweDg2LzB4MThiClsgIDIzMi43MDMwMDZdICBbPGMxMDAz
-MGQ0Pl0gPyBzeXNlbnRlcl9kb19jYWxsKzB4MTIvMHgyOApbICAyMzIuNzAzMDA2XSBDb2RlOiBm
-MCA4MyBlMCAxMCA4MyBjOCAwMSA2NiA4OSA0NSBlZSA4OSBmMCBlOCBkNyBmNiBmZiBmZiA4MyBm
-OCAwMSAwZiA0NSBkOCA4MyBjNCAwYyA4OSBkOCA1YiA1ZSA1ZCBjMyA1NSA4OSBlNSA1NiA1MyA4
-OSBjYiA4MyBlYyAwYyA8NjY+IDhiIDQ4IDAyIDhiIDcwIDE4IDY2IDg5IDRkIGVjIDhiIDAwIGI5
-IDAxIDAwIDAwIDAwIDg5IDU1IGY0IApbICAyMzIuNzAzMDA2XSBFSVA6IFs8YzEyNjczMjQ+XSBp
-MmNfbWFzdGVyX3NlbmQrMHhhLzB4NDMgU1M6RVNQIDAwNjg6ZjY1M2JjZTAKWyAgMjMyLjcwMzAw
-Nl0gQ1IyOiAwMDAwMDAwMDAwMDAwMDAyClsgIDIzMi43MDMzMjddIC0tLVsgZW5kIHRyYWNlIGI4
-ZWExM2I4ZWY2MmIzNmIgXS0tLQo=
---001517478d804d16f30471c43c44--
+Well, after some searches I got from web another eeprom contents,
+from a similar board, a Conitech CN610DVB-DT
+http://www.conitech.it/conitech/ita/prod.asp?cod=CN610DVB-DT
+and using rebuil_eeprom.pl
+generated .sh script to change my eeprom contents. Here both eeproms bytes:
+
+empire media pen dual tv eeprom contents (vid=eb1a pid=e310):
+[11196.181543] em28xx #0: i2c eeprom 00: 1a eb 67 95 1a eb 10 e3 d0 12
+5c 03 6a 22 00 00
+[11196.181559] em28xx #0: i2c eeprom 10: 00 00 04 57 4e 07 00 00 00 00
+00 00 00 00 00 00
+[11196.181572] em28xx #0: i2c eeprom 20: 46 00 01 00 f0 10 01 00 00 00
+00 00 5b 1e 00 00
+[11196.181585] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01
+00 00 00 00 00 00
+[11196.181598] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00
+[11196.181610] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00
+[11196.181622] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00
+22 03 55 00 53 00
+[11196.181635] em28xx #0: i2c eeprom 70: 42 00 20 00 32 00 38 00 38 00
+31 00 20 00 44 00
+[11196.181648] em28xx #0: i2c eeprom 80: 65 00 76 00 69 00 63 00 65 00
+00 00 00 00 00 00
+[11196.181660] em28xx #0: i2c eeprom 90: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00
+[11196.181673] em28xx #0: i2c eeprom a0: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00
+[11196.181685] em28xx #0: i2c eeprom b0: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00
+[11196.181698] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00
+[11196.181710] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00
+[11196.181722] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00
+[11196.181735] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00
+
+conitech cn610dvb-dt eeprom contents (vid=eb1a pid=2881):
+[  127.753053] em28xx #0: i2c eeprom 00: 1a eb 67 95 1a eb 81 28 58 12
+5c 03 6a 20 6a 00
+[  127.753073] em28xx #0: i2c eeprom 10: 00 00 04 57 64 57 00 00 60 f4
+00 00 02 02 00 00
+[  127.753090] em28xx #0: i2c eeprom 20: 56 00 01 00 00 00 01 00 b8 00
+00 00 5b 1e 00 00
+[  127.753107] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 10 01
+00 00 00 00 00 00
+[  127.753123] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00
+[  127.753140] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00
+[  127.753156] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 53 00
+[  127.753173] em28xx #0: i2c eeprom 70: 42 00 20 00 32 00 38 00 38 00
+31 00 20 00 56 00
+[  127.753189] em28xx #0: i2c eeprom 80: 69 00 64 00 65 00 6f 00 00 00
+00 00 00 00 00 00
+[  127.753206] em28xx #0: i2c eeprom 90: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00
+[  127.753222] em28xx #0: i2c eeprom a0: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00
+[  127.753239] em28xx #0: i2c eeprom b0: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00
+[  127.753255] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00
+[  127.753271] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00
+[  127.753288] em28xx #0: i2c eeprom e0: 5a 00 55 aa e5 2b 59 03 00 17
+fc 01 00 00 00 00
+[  127.753305] em28xx #0: i2c eeprom f0: 00 00 00 01 00 00 00 00 00 00
+00 00 00 00 00 00
+
+wrote new eeprom, I used card=48 as em28xx parameter (kworld 310U) and
+analog part,
+WITH audio, was ALL working (both tv and audio/video input) with extra
+feature of usb power management,
+as dmesg told:
+[19178.415552] em28xx #0:       USB Remote wakeup capable
+
+Result was a less hot device :D
+
+To route audio from usb card to my audio card and launch tvtime I used
+this script:
+
+--- begin of start-analog-tv.sh
+#!/bin/sh
+#-q
+# sudo apt-get install sox libsox-fmt-all
+#
+# start-tv.sh
+#
+#sox -c 2 -s -r 32000 -t ossdsp /dev/dsp1 -t ossdsp -r 32000 /dev/dsp &
+sox -c 2 -s -r 48000 -t alsa hw:1,0 -t alsa -r 48000 hw:0,0 &
+soxpid=$!
+sleep 0.5
+tvtime --device /dev/video1
+kill $soxpid
+--- end of start-analog-tv.sh
+
+I hope this solution for this card can be useful to correct and fixes
+audio problems in v4l-dvb trunk device recognition
+routines
