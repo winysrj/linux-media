@@ -1,127 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.26]:19998 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932515AbZHLKoZ (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:47106 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932209AbZHYXOV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2009 06:44:25 -0400
-Received: by qw-out-2122.google.com with SMTP id 8so1638954qwh.37
-        for <linux-media@vger.kernel.org>; Wed, 12 Aug 2009 03:44:25 -0700 (PDT)
+	Tue, 25 Aug 2009 19:14:21 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "David Xiao" <dxiao@broadcom.com>
+Subject: Re: How to efficiently handle DMA and cache on ARMv7 ? (was "Is get_user_pages() enough to prevent pages from being swapped out ?")
+Date: Wed, 26 Aug 2009 01:17:27 +0200
+Cc: "Steven Walter" <stevenrwalter@gmail.com>,
+	"Russell King - ARM Linux" <linux@arm.linux.org.uk>,
+	"Ben Dooks" <ben-linux@fluff.org>,
+	"Hugh Dickins" <hugh.dickins@tiscali.co.uk>,
+	"Robin Holt" <holt@sgi.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"v4l2_linux" <linux-media@vger.kernel.org>,
+	"linux-arm-kernel@lists.arm.linux.org.uk"
+	<linux-arm-kernel@lists.arm.linux.org.uk>
+References: <200908061208.22131.laurent.pinchart@ideasonboard.com> <e06498070908250553h5971102x6da7004495abb911@mail.gmail.com> <1251237768.8877.26.camel@david-laptop>
+In-Reply-To: <1251237768.8877.26.camel@david-laptop>
 MIME-Version: 1.0
-In-Reply-To: <4A8283C9.6020105@gmail.com>
-References: <4A827C70.4090500@gmail.com> <5e9665e10908120143h268a7210kb6bfa215cbfbe6de@mail.gmail.com>
-	<4A8283C9.6020105@gmail.com>
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-Date: Wed, 12 Aug 2009 19:44:05 +0900
-Message-ID: <5e9665e10908120344v668331a9g3c470971a5da3ef0@mail.gmail.com>
-Subject: Re: framebuffer overlay
-To: Ryan Raasch <ryan.raasch@gmail.com>
-Cc: video4linux-list@redhat.com,
-	v4l2_linux <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <200908260117.27180.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 12, 2009 at 5:56 PM, Ryan Raasch<ryan.raasch@gmail.com> wrote:
-> Thanks for the reply!
+On Wednesday 26 August 2009 00:02:48 David Xiao wrote:
+> On Tue, 2009-08-25 at 05:53 -0700, Steven Walter wrote:
+> > On Thu, Aug 6, 2009 at 6:25 PM, Russell King - ARM
+> > Linux<linux@arm.linux.org.uk> wrote:
+> > [...]
+> >
+> > > As far as userspace DMA coherency, the only way you could do it with
+> > > current kernel APIs is by using get_user_pages(), creating a
+> > > scatterlist from those, and then passing it to dma_map_sg().  While the
+> > > device has ownership of the SG, userspace must _not_ touch the buffer
+> > > until after DMA has completed.
+> >
+> > [...]
+> >
+> > Would that work on a processor with VIVT caches?  It seems not.  In
+> > particular, dma_map_page uses page_address to get a virtual address to
+> > pass to map_single().  map_single() in turn uses this address to
+> > perform cache maintenance.  Since page_address() returns the kernel
+> > virtual address, I don't see how any cache-lines for the userspace
+> > virtual address would get invalidated (for the DMA_FROM_DEVICE case).
+> >
+> > If that's true, then what is the correct way to allow DMA to/from a
+> > userspace buffer with a VIVT cache?  If not true, what am I missing?
 >
-> Dongsoo, Nathaniel Kim wrote:
->>
->> On Wed, Aug 12, 2009 at 5:25 PM, Ryan Raasch<ryan.raasch@gmail.com> wrote:
->>>
->>> Hello,
->>>
->>> I am trying to write a driver for a camera using the new soc_camera in
->>> the
->>> mainline kernel the output is the overlay framebuffer (pxa270) and i
->>> would
->>> like to use the overlay output feature of v4l2 framework, but the
->>> framebuffer does not expose itself as a output device (not yet).
->>>
->> Hi Ryan,
->>
->> As far as I know the framebuffer of PXA2 even PXA3 can't be
->> categorized in a overlay device.
->
-> The pxa2 and pxa3 both have 3 framebuffers (4 if hardware curser included).
-> There is the main fb, and 2 overlay framebuffers.
->
-> The overlay 2 has hardware accelerated ycbcr decoding (which i use now with
-> a camera using dma). And the overlay 1 can be used only with the various
-> types of RGB.
->
-> We have a solution which uses dma to copy the captured video from the camera
-> sensor (mmap'd), directly to the mmap'd memory of the overlay. All occuring
-> without user intervention.
->
->
->> To be able to get used as overlay device by camera interface, I think
->> there should be a direct FIFO between camera and framebuffer which
->> means there is no need to copy memory from camera to fb. But
->> unfortunately PXA architecture is not supporting this kind of feature.
->
-> With the above there is no need for FIFO, the dma is directly copying the
-> received camera data to the selected framebuffer.
->
-> Ryan
->
+> page_address() is basically returning page->virtual, which records the
+> virtual/physical mapping for both user/kernel space; and what only
+> matters there is highmem or not.
 
-Cool.
-So, that means you need a SoC hardware based reference code right?
-(because pxa is also a SoC)
-I think there is not so many choices that you can put on the table.
-In my experience, OMP3 camera interface is supporting overlay feature
-through omap_vout I guess. I think it is not obvious in SoC H/W
-platform about *what is overlay device* and *how to use* them.
-
-And about omap3 camera interface driver, it is not in the mainline
-kernel yet. For the camera interface code you need to look into
-Sakari's gitorious repository and for omap_vout you need to look for
-Hardik's repository or any repository he is working on..I guess.
-I'm also trying to figure out the best way to use overlay feature on
-samsung's new cpu named S5PC1XX.
-
-The most complicated part of this job is the whole thing is happening
-in a single piece of chip and need to figure out the standardized way
-for compatibility. I wish you luck :-)
-Cheers,
-
-Nate
-
->> Cheers,
->>
->
->
->> Nate
->>
->>> Are there any fb that i can use as an example for this?
->>>
->>> From looking at the driver code, it seems like the generic code of
->>> fbmem.c
->>> needs a v4l2 device. Is this in the right ballpark?
->>>
->>> Thanks,
->>> Ryan
->>>
->>> --
->>> video4linux-list mailing list
->>> Unsubscribe
->>> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->>> https://www.redhat.com/mailman/listinfo/video4linux-list
->>>
->>
->>
->>
->
-
-
+I'm not sure to get it. Are you implying that a physical page will then be 
+mapped to the same address in all contexts (kernelspace and userspace 
+processes) ? Is that even possible ? And if not, how could page->virtual store 
+both the initial kernel map and all the userspace mappings ?
 
 -- 
-=
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
+Laurent Pinchart
