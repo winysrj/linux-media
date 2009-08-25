@@ -1,127 +1,355 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4658 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752277AbZHLHEQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2009 03:04:16 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Subject: Re: DM6467 VPIF adding support for HD resolution capture and display standards
-Date: Wed, 12 Aug 2009 09:04:09 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>, "Yin, Paul" <zhenyin@ti.com>
-References: <A69FA2915331DC488A831521EAE36FE401452885B1@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE401452885B1@dlee06.ent.ti.com>
+Received: from mail.gmx.net ([213.165.64.20]:49791 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754992AbZHYQ4P (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Aug 2009 12:56:15 -0400
+Date: Tue, 25 Aug 2009 18:56:29 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] v4l: add new v4l2-subdev sensor operations, use skip_top_lines
+ in soc-camera
+Message-ID: <Pine.LNX.4.64.0908251855160.4810@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200908120904.09140.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 12 August 2009 00:17:38 Karicheri, Muralidharan wrote:
-> Hi Hans,
-> 
-> We need to add support for HD resolutions capture and display in our DM6467 vpif drivers. The vpif display driver is already part of V4L-DVB linux-next
-> repository and capture driver is being reviewed. The next phase of our developments involve adding following HD resolutions for capture and display
-> drivers:-
-> 
-> 720p@60, 720P@50, 1080i@30, 1080i@25.
-> 
-> We will also need to add EDTV resolutions such as 480p@30 & 576p25.
-> 
-> As you can see these standards are not currently available in videodev2.h. In the media controller RFC that you have proposed, this issue is being addressed. I am referring it at 
-> 
-> http://www.archivum.info/video4linux-list@redhat.com/2008-07/00371/RFC:_Add_support_to_query_and_change_connections_inside_a_media_device
-> 
-> 
-> Here is the description from the RFC....
-> 
-> <Snip>
-> In practice I would propose extending the v4l2_std_id with the common HDTV
-> formats, that will take care for most use cases. In addition a new ioctl has
-> to be introduced: VIDIOC_S_TIMINGS. This allows you to either specify a
-> v4l2_std_id or a full set of timings (front porch, back porch, sync width,
-> etc.). It should be extendable so that we can add additional timing formats
-> in the future.
-> 
-> The digital format of the data from the media processor to the encoders can
-> be set by calling S_STD or S_TIMINGS on the media processor device.
-> .......
-> 
-> Looks like we could extend the S_STD with new HD standards mentioned above.
-> Please let us know you latest thoughts on this so that we can send patches
-> to enhance the standards. As you might know, this is very critical for our developments.
+Introduce new v4l2-subdev sensor operations, move .enum_framesizes() and
+.enum_frameintervals() methods to it, add a new .skip_top_lines() method
+and switch soc-camera to use it instead of .y_skip_top soc_camera_device
+member, which can now be removed.
 
-Hmm, that RFC is rather outdated in this respect. My latest thoughts about this
-is that we should not touch G/S_STD and v4l2_std_id at all. These deal with
-broadcast TV standards, and those standards have been frozen.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/mt9m001.c             |   28 +++++++++++++++++++++-------
+ drivers/media/video/mt9m111.c             |    1 -
+ drivers/media/video/mt9t031.c             |    8 +++-----
+ drivers/media/video/mt9v022.c             |   28 +++++++++++++++++++++-------
+ drivers/media/video/pxa_camera.c          |    9 +++++++--
+ drivers/media/video/soc_camera_platform.c |    1 -
+ include/media/soc_camera.h                |    1 -
+ include/media/v4l2-subdev.h               |   11 +++++++++++
+ 8 files changed, 63 insertions(+), 24 deletions(-)
 
-These new resolutions deal with digital video only (there is no audio component
-as is the case with v4l2_std_id).
-
-The HDTV standards are merely a subset of what can be supported: e.g. the dm6467
-also supports all the VESA and SDTV standards and also custom timings (that's
-what I use at work).
-
-Just the combined number of standards for HDTV/SDTV/VESA is huge, so using
-bitmasks to define the standard is never going to work.
-
-My proposal would be something like this:
-
-enum dv_preset {
-	V4L2_DV_CUSTOM,
-	V4L2_DV_720P24,
-	V4L2_DV_720P25,
-	V4L2_DV_720P30,
-	V4L2_DV_720P50,
-	V4L2_DV_720P60,
-	/* etc */
-};
-
-/* bt.656/bt.1120 timing data */
-struct bt_timings {
-	__u32 interlaced;
-	__u32 pixelclock;
-	__u32 width, height;
-	__u32 polarities;
-	__u32 hfrontporch, hsync, htotal;
-	__u32 vfrontporch, vsync, vtotal;
-	/* timings for bottom frame for interlaced formats */
-	__u32 il_hfrontporch, il_hsync, il_htotal;
-	__u32 il_vfrontporch, il_vsync, il_vtotal;
-	__u32 reserved[4];
-};
-
-enum dv_timings_type {
-	V4L2_DV_BT_656_1120,
-};
-
-struct dv_timings {
-	enum dv_timings_type type;
-	union {
-		struct bt_timings bt;
-		__u32 reserved[32];
-	};
-};
-
-and ioctls:
-
-VIDIOC_S/G_DV_PRESET, VIDIOC_ENUM_DV_PRESETS and VIDIOC_S/G_DV_TIMINGS.
-
-I don't think we need to have ioctls to determine what custom timings
-are possible: if you are going to use that, then we can safely assume that
-you know what you are doing.
-
-There are some details to hammer out: what does G_DV_TIMINGS return if e.g.
-the 720P60 preset is active? Does it return the timings for 720P60 or the last
-set custom timings?
-
-Regards,
-
-	Hans
-
+diff --git a/drivers/media/video/mt9m001.c b/drivers/media/video/mt9m001.c
+index 45388d2..bc98635 100644
+--- a/drivers/media/video/mt9m001.c
++++ b/drivers/media/video/mt9m001.c
+@@ -82,6 +82,7 @@ struct mt9m001 {
+ 	int model;	/* V4L2_IDENT_MT9M001* codes from v4l2-chip-ident.h */
+ 	unsigned int gain;
+ 	unsigned int exposure;
++	unsigned short y_skip_top;	/* Lines to skip at the top */
+ 	unsigned char autoexposure;
+ };
+ 
+@@ -222,7 +223,7 @@ static int mt9m001_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+ 	soc_camera_limit_side(&rect.top, &rect.height,
+ 		     MT9M001_ROW_SKIP, MT9M001_MIN_HEIGHT, MT9M001_MAX_HEIGHT);
+ 
+-	total_h = rect.height + icd->y_skip_top + vblank;
++	total_h = rect.height + mt9m001->y_skip_top + vblank;
+ 
+ 	/* Blanking and start values - default... */
+ 	ret = reg_write(client, MT9M001_HORIZONTAL_BLANKING, hblank);
+@@ -239,7 +240,7 @@ static int mt9m001_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+ 		ret = reg_write(client, MT9M001_WINDOW_WIDTH, rect.width - 1);
+ 	if (!ret)
+ 		ret = reg_write(client, MT9M001_WINDOW_HEIGHT,
+-				rect.height + icd->y_skip_top - 1);
++				rect.height + mt9m001->y_skip_top - 1);
+ 	if (!ret && mt9m001->autoexposure) {
+ 		ret = reg_write(client, MT9M001_SHUTTER_WIDTH, total_h);
+ 		if (!ret) {
+@@ -327,13 +328,13 @@ static int mt9m001_s_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
+ static int mt9m001_try_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
+ {
+ 	struct i2c_client *client = sd->priv;
+-	struct soc_camera_device *icd = client->dev.platform_data;
++	struct mt9m001 *mt9m001 = to_mt9m001(client);
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+ 
+ 	v4l_bound_align_image(&pix->width, MT9M001_MIN_WIDTH,
+ 		MT9M001_MAX_WIDTH, 1,
+-		&pix->height, MT9M001_MIN_HEIGHT + icd->y_skip_top,
+-		MT9M001_MAX_HEIGHT + icd->y_skip_top, 0, 0);
++		&pix->height, MT9M001_MIN_HEIGHT + mt9m001->y_skip_top,
++		MT9M001_MAX_HEIGHT + mt9m001->y_skip_top, 0, 0);
+ 
+ 	if (pix->pixelformat == V4L2_PIX_FMT_SBGGR8 ||
+ 	    pix->pixelformat == V4L2_PIX_FMT_SBGGR16)
+@@ -552,7 +553,7 @@ static int mt9m001_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+ 		if (ctrl->value) {
+ 			const u16 vblank = 25;
+ 			unsigned int total_h = mt9m001->rect.height +
+-				icd->y_skip_top + vblank;
++				mt9m001->y_skip_top + vblank;
+ 			if (reg_write(client, MT9M001_SHUTTER_WIDTH,
+ 				      total_h) < 0)
+ 				return -EIO;
+@@ -655,6 +656,14 @@ static void mt9m001_video_remove(struct soc_camera_device *icd)
+ 		icl->free_bus(icl);
+ }
+ 
++static int mt9m001_skip_top_lines(struct v4l2_subdev *sd, u32 *lines)
++{
++	struct i2c_client *client = sd->priv;
++	struct mt9m001 *mt9m001 = to_mt9m001(client);
++
++	return mt9m001->y_skip_top;
++}
++
+ static struct v4l2_subdev_core_ops mt9m001_subdev_core_ops = {
+ 	.g_ctrl		= mt9m001_g_ctrl,
+ 	.s_ctrl		= mt9m001_s_ctrl,
+@@ -675,9 +684,14 @@ static struct v4l2_subdev_video_ops mt9m001_subdev_video_ops = {
+ 	.cropcap	= mt9m001_cropcap,
+ };
+ 
++static struct v4l2_subdev_sensor_ops mt9m001_subdev_sensor_ops = {
++	.skip_top_lines	= mt9m001_skip_top_lines,
++};
++
+ static struct v4l2_subdev_ops mt9m001_subdev_ops = {
+ 	.core	= &mt9m001_subdev_core_ops,
+ 	.video	= &mt9m001_subdev_video_ops,
++	.sensor	= &mt9m001_subdev_sensor_ops,
+ };
+ 
+ static int mt9m001_probe(struct i2c_client *client,
+@@ -714,8 +728,8 @@ static int mt9m001_probe(struct i2c_client *client,
+ 
+ 	/* Second stage probe - when a capture adapter is there */
+ 	icd->ops		= &mt9m001_ops;
+-	icd->y_skip_top		= 0;
+ 
++	mt9m001->y_skip_top	= 0;
+ 	mt9m001->rect.left	= MT9M001_COLUMN_SKIP;
+ 	mt9m001->rect.top	= MT9M001_ROW_SKIP;
+ 	mt9m001->rect.width	= MT9M001_MAX_WIDTH;
+diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+index 90da699..30db625 100644
+--- a/drivers/media/video/mt9m111.c
++++ b/drivers/media/video/mt9m111.c
+@@ -1019,7 +1019,6 @@ static int mt9m111_probe(struct i2c_client *client,
+ 
+ 	/* Second stage probe - when a capture adapter is there */
+ 	icd->ops		= &mt9m111_ops;
+-	icd->y_skip_top		= 0;
+ 
+ 	mt9m111->rect.left	= MT9M111_MIN_DARK_COLS;
+ 	mt9m111->rect.top	= MT9M111_MIN_DARK_ROWS;
+diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
+index 6966f64..57e04e9 100644
+--- a/drivers/media/video/mt9t031.c
++++ b/drivers/media/video/mt9t031.c
+@@ -301,9 +301,9 @@ static int mt9t031_set_params(struct soc_camera_device *icd,
+ 		ret = reg_write(client, MT9T031_WINDOW_WIDTH, rect->width - 1);
+ 	if (ret >= 0)
+ 		ret = reg_write(client, MT9T031_WINDOW_HEIGHT,
+-				rect->height + icd->y_skip_top - 1);
++				rect->height - 1);
+ 	if (ret >= 0 && mt9t031->autoexposure) {
+-		unsigned int total_h = rect->height + icd->y_skip_top + vblank;
++		unsigned int total_h = rect->height + vblank;
+ 		ret = set_shutter(client, total_h);
+ 		if (ret >= 0) {
+ 			const u32 shutter_max = MT9T031_MAX_HEIGHT + vblank;
+@@ -656,8 +656,7 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+ 		if (ctrl->value) {
+ 			const u16 vblank = MT9T031_VERTICAL_BLANK;
+ 			const u32 shutter_max = MT9T031_MAX_HEIGHT + vblank;
+-			unsigned int total_h = mt9t031->rect.height +
+-				icd->y_skip_top + vblank;
++			unsigned int total_h = mt9t031->rect.height + vblank;
+ 
+ 			if (set_shutter(client, total_h) < 0)
+ 				return -EIO;
+@@ -773,7 +772,6 @@ static int mt9t031_probe(struct i2c_client *client,
+ 
+ 	/* Second stage probe - when a capture adapter is there */
+ 	icd->ops		= &mt9t031_ops;
+-	icd->y_skip_top		= 0;
+ 
+ 	mt9t031->rect.left	= MT9T031_COLUMN_SKIP;
+ 	mt9t031->rect.top	= MT9T031_ROW_SKIP;
+diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
+index 995607f..fb4c92f 100644
+--- a/drivers/media/video/mt9v022.c
++++ b/drivers/media/video/mt9v022.c
+@@ -97,6 +97,7 @@ struct mt9v022 {
+ 	__u32 fourcc;
+ 	int model;	/* V4L2_IDENT_MT9V022* codes from v4l2-chip-ident.h */
+ 	u16 chip_control;
++	unsigned short y_skip_top;	/* Lines to skip at the top */
+ };
+ 
+ static struct mt9v022 *to_mt9v022(const struct i2c_client *client)
+@@ -287,10 +288,10 @@ static int mt9v022_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+ 	if (ret >= 0) {
+ 		if (ret & 1) /* Autoexposure */
+ 			ret = reg_write(client, MT9V022_MAX_TOTAL_SHUTTER_WIDTH,
+-					rect.height + icd->y_skip_top + 43);
++					rect.height + mt9v022->y_skip_top + 43);
+ 		else
+ 			ret = reg_write(client, MT9V022_TOTAL_SHUTTER_WIDTH,
+-					rect.height + icd->y_skip_top + 43);
++					rect.height + mt9v022->y_skip_top + 43);
+ 	}
+ 	/* Setup frame format: defaults apart from width and height */
+ 	if (!ret)
+@@ -309,7 +310,7 @@ static int mt9v022_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+ 		ret = reg_write(client, MT9V022_WINDOW_WIDTH, rect.width);
+ 	if (!ret)
+ 		ret = reg_write(client, MT9V022_WINDOW_HEIGHT,
+-				rect.height + icd->y_skip_top);
++				rect.height + mt9v022->y_skip_top);
+ 
+ 	if (ret < 0)
+ 		return ret;
+@@ -410,6 +411,7 @@ static int mt9v022_s_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
+ static int mt9v022_try_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
+ {
+ 	struct i2c_client *client = sd->priv;
++	struct mt9v022 *mt9v022 = to_mt9v022(client);
+ 	struct soc_camera_device *icd = client->dev.platform_data;
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+ 	int align = pix->pixelformat == V4L2_PIX_FMT_SBGGR8 ||
+@@ -417,8 +419,8 @@ static int mt9v022_try_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
+ 
+ 	v4l_bound_align_image(&pix->width, MT9V022_MIN_WIDTH,
+ 		MT9V022_MAX_WIDTH, align,
+-		&pix->height, MT9V022_MIN_HEIGHT + icd->y_skip_top,
+-		MT9V022_MAX_HEIGHT + icd->y_skip_top, align, 0);
++		&pix->height, MT9V022_MIN_HEIGHT + mt9v022->y_skip_top,
++		MT9V022_MAX_HEIGHT + mt9v022->y_skip_top, align, 0);
+ 
+ 	return 0;
+ }
+@@ -787,6 +789,14 @@ static void mt9v022_video_remove(struct soc_camera_device *icd)
+ 		icl->free_bus(icl);
+ }
+ 
++static int mt9v022_skip_top_lines(struct v4l2_subdev *sd, u32 *lines)
++{
++	struct i2c_client *client = sd->priv;
++	struct mt9v022 *mt9v022 = to_mt9v022(client);
++
++	return mt9v022->y_skip_top;
++}
++
+ static struct v4l2_subdev_core_ops mt9v022_subdev_core_ops = {
+ 	.g_ctrl		= mt9v022_g_ctrl,
+ 	.s_ctrl		= mt9v022_s_ctrl,
+@@ -807,9 +817,14 @@ static struct v4l2_subdev_video_ops mt9v022_subdev_video_ops = {
+ 	.cropcap	= mt9v022_cropcap,
+ };
+ 
++static struct v4l2_subdev_sensor_ops mt9v022_subdev_sensor_ops = {
++	.skip_top_lines	= mt9v022_skip_top_lines,
++};
++
+ static struct v4l2_subdev_ops mt9v022_subdev_ops = {
+ 	.core	= &mt9v022_subdev_core_ops,
+ 	.video	= &mt9v022_subdev_video_ops,
++	.sensor	= &mt9v022_subdev_sensor_ops,
+ };
+ 
+ static int mt9v022_probe(struct i2c_client *client,
+@@ -851,8 +866,7 @@ static int mt9v022_probe(struct i2c_client *client,
+ 	 * MT9V022 _really_ corrupts the first read out line.
+ 	 * TODO: verify on i.MX31
+ 	 */
+-	icd->y_skip_top		= 1;
+-
++	mt9v022->y_skip_top	= 1;
+ 	mt9v022->rect.left	= MT9V022_COLUMN_SKIP;
+ 	mt9v022->rect.top	= MT9V022_ROW_SKIP;
+ 	mt9v022->rect.width	= MT9V022_MAX_WIDTH;
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index 6952e96..db9245d 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -1050,8 +1050,13 @@ static void pxa_camera_setup_cicr(struct soc_camera_device *icd,
+ {
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+ 	struct pxa_camera_dev *pcdev = ici->priv;
++	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+ 	unsigned long dw, bpp;
+-	u32 cicr0, cicr1, cicr2, cicr3, cicr4 = 0;
++	u32 cicr0, cicr1, cicr2, cicr3, cicr4 = 0, y_skip_top;
++	int ret = v4l2_subdev_call(sd, sensor, skip_top_lines, &y_skip_top);
++
++	if (ret < 0)
++		y_skip_top = 0;
+ 
+ 	/* Datawidth is now guaranteed to be equal to one of the three values.
+ 	 * We fix bit-per-pixel equal to data-width... */
+@@ -1117,7 +1122,7 @@ static void pxa_camera_setup_cicr(struct soc_camera_device *icd,
+ 
+ 	cicr2 = 0;
+ 	cicr3 = CICR3_LPF_VAL(icd->user_height - 1) |
+-		CICR3_BFW_VAL(min((unsigned short)255, icd->y_skip_top));
++		CICR3_BFW_VAL(min((unsigned short)255, y_skip_top));
+ 	cicr4 |= pcdev->mclk_divisor;
+ 
+ 	__raw_writel(cicr1, pcdev->base + CICR1);
+diff --git a/drivers/media/video/soc_camera_platform.c b/drivers/media/video/soc_camera_platform.c
+index 1b6dd02..8b1c735 100644
+--- a/drivers/media/video/soc_camera_platform.c
++++ b/drivers/media/video/soc_camera_platform.c
+@@ -128,7 +128,6 @@ static int soc_camera_platform_probe(struct platform_device *pdev)
+ 	/* Set the control device reference */
+ 	dev_set_drvdata(&icd->dev, &pdev->dev);
+ 
+-	icd->y_skip_top		= 0;
+ 	icd->ops		= &soc_camera_platform_ops;
+ 
+ 	ici = to_soc_camera_host(icd->dev.parent);
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index c5afc8c..218639f 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -24,7 +24,6 @@ struct soc_camera_device {
+ 	struct device *pdev;		/* Platform device */
+ 	s32 user_width;
+ 	s32 user_height;
+-	unsigned short y_skip_top;	/* Lines to skip at the top */
+ 	unsigned char iface;		/* Host number */
+ 	unsigned char devnum;		/* Device number per host */
+ 	unsigned char buswidth;		/* See comment in .c */
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 89a39ce..169b336 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -225,8 +225,18 @@ struct v4l2_subdev_video_ops {
+ 	int (*s_crop)(struct v4l2_subdev *sd, struct v4l2_crop *crop);
+ 	int (*g_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
+ 	int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
++};
++
++/**
++ * struct v4l2_subdev_sensor_ops - v4l2-subdev sensor operations
++ * @enum_framesizes: enumerate supported framesizes
++ * @enum_frameintervals: enumerate supported frame format intervals
++ * @skip_top_lines: number of lines at the top of the image to be skipped
++ */
++struct v4l2_subdev_sensor_ops {
+ 	int (*enum_framesizes)(struct v4l2_subdev *sd, struct v4l2_frmsizeenum *fsize);
+ 	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct v4l2_frmivalenum *fival);
++	int (*skip_top_lines)(struct v4l2_subdev *sd, u32 *lines);
+ };
+ 
+ struct v4l2_subdev_ops {
+@@ -234,6 +244,7 @@ struct v4l2_subdev_ops {
+ 	const struct v4l2_subdev_tuner_ops *tuner;
+ 	const struct v4l2_subdev_audio_ops *audio;
+ 	const struct v4l2_subdev_video_ops *video;
++	const struct v4l2_subdev_sensor_ops *sensor;
+ };
+ 
+ #define V4L2_SUBDEV_NAME_SIZE 32
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+1.6.2.4
+
