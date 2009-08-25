@@ -1,35 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cp-out8.libero.it ([212.52.84.108]:60330 "EHLO
-	cp-out8.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752491AbZHBJVh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Aug 2009 05:21:37 -0400
-Received: from [192.168.1.21] (151.59.218.5) by cp-out8.libero.it (8.5.107) (authenticated as efa@iol.it)
-        id 4A5EF75101B858CB for linux-media@vger.kernel.org; Sun, 2 Aug 2009 11:21:36 +0200
-Message-ID: <4A755AA3.4040000@iol.it>
-Date: Sun, 02 Aug 2009 11:21:39 +0200
-From: Valerio Messina <efa@iol.it>
-Reply-To: efa@iol.it
+Received: from smtp07.bis.na.blackberry.com ([216.9.248.54]:51249 "EHLO
+	smtp07.bis.na.blackberry.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932166AbZHYWlv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Aug 2009 18:41:51 -0400
+Message-ID: <283002305-1251239519-cardhu_decombobulator_blackberry.rim.net-845544064-@bxe1079.bisx.prod.on.blackberry>
+Content-Transfer-Encoding: base64
+Reply-To: seth@cyberseth.com
+To: "Steve Harrington" <steve@Emel-Harrington.net>,
+	linux-media@vger.kernel.org
+Subject: Re: Hauppauge 2250 - second tuner is only half working
+From: seth@cyberseth.com
+Date: Tue, 25 Aug 2009 22:31:09 +0000
+Content-Type: text/plain
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Terratec Cinergy HibridT XS
-References: <4A6F8AA5.3040900@iol.it> <829197380907281744o5c3a7eb7rd0d2cb8c53cd646f@mail.gmail.com> <4A7140DD.7040405@iol.it>
-In-Reply-To: <4A7140DD.7040405@iol.it>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Valerio Messina ha scritto:
-> I do not know if is correct that linuxtv.org link to a web site with 
-> unsupported product/commercial.
-> Please change the link in page:
-> http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_Hybrid_T_USB_XS
+SSBSTUEnZWQgdGhhdCB0dW5lciAtIGF3YWl0aW5nIGEgcmVwbGFjZW1lbnQuIEkgZm91bmQgdGhh
+dCBhZGRpbmcgYW5kL29yIHJlbW92aW5nIGFsbCBzcGxpdHRlcnMgbWFkZSBubyBkaWZmZXJlbmNl
+ICh3YXNuJ3QgYWJsZSB0byBnZXQgYSBob2xkIG9mIGEgcHJvcGVyIGF0dGVudWF0b3IgLSBkaWQg
+dHJ5IHRoZSBzcGxpdHRlciB3aXRoIGEgY2FwIG9uIG9uZSBzaWRlIG1ldGhvZCB3aXRob3V0IGx1
+Y2spLgoKSSBkaWQgZmluZCBzaG9ydGx5IGFmdGVyIGEga2VybmVsIHVwZ3JhZGUsIGEgZmV3IG1v
+ZHByb2JlcywgYSBjb3VwbGUgcmVib290cywgc29tZSBmaXJtd2FyZSBmaWxlIG1vdmVzLCBhbmQg
+YSBkaXN0LWNsZWFuICYgcmVidWlsZGluZyB0aGUgbW9kdWxlcyAtIHRoYXQgMm5kIHR1bmVyIHN0
+YXJ0ZWQgd29ya2luZyBmb3IgdGhlICJnYXAiIGZyZXF1ZW5jaWVzLiBJIGZpcmVkIHVwIG15dGh0
+diBhbmQgc3dpdGNoZWQgb3ZlciB0byB3YXRjaCB0aGUgc2Vjb25kIHR1bmVyIGFuZCBpdCB3YXMg
+d29ya2luZyBmaW5lIGZvciBhYm91dCAzMHMsIHRoZW4gdGhlIHN5c3RlbSBzcG9udGFuZW91c2x5
+IHJlYm9vdGVkLiBJIHBsYXllZCBhcm91bmQgYSBiaXQsIGJ1dCBhbGwgc3Vic2VxdWVudCBhdHRl
+bXB0cyB0byBnZXQgdGhlICJnYXAiIGZyZXF1ZW5jaWVzIHRvIHdvcmsgYWdhaW4gZmFpbGVkIChy
+aWdodCBiYWNrIHRvIHNhbWUgcHJvYmxlbSBhcyBiZWZvcmUgLSBpdCB3b24ndCBnZXQgYSBsb2Nr
+LCBidXQgZmlyc3QgdHVuZXIgd2FzIHdvcmtpbmcgZmluZSkuICBJIGRvbid0IGtub3cgaWYgaXQg
+d2FzIHNvbWV0aGluZyB3aXRoIHRoZSBzdGF0ZSBvZiBteSBzeXN0ZW0ganVzdCBhZnRlciBhIG5l
+dyBrZXJuZWwgd2FzIGluc3RhbGxlZCBvciBtYXliZSBpdCB3YXMganVzdCBjb2luY2lkZW5jZSAo
+bWF5YmUgdGhlIHNpZ25hbCBhdHRlbnVhdGlvbiB3YXMganVzdCByaWdodCBmb3IgYSBsaXR0bGUg
+Yml0IHRoZXJlKS4gRWl0aGVyIHdheSB0aGF0IHNwb250YW5lb3VzIHJlYm9vdCBzZWVtZWQgbGlr
+ZSBtYXliZSB0aGUgY2FyZCAvIHR1bmVyIGhhcmR3YXJlIGl0c2VsZiBtaWdodCBiZSBkZWZlY3Rp
+dmUuCgpJIHN0aWxsIGhhZCBhIGZldyBkYXlzIGxlZnQgdG8gbWFrZSBnb29kIG9uIG15IDMwIGRh
+eSB3YXJyYW50eSBzbyBJIGZpZ3VyZSBJJ2QgZ2l2ZSB0aGF0IGEgdHJ5LiBJJ2xsIGxldCB5b3Ug
+a25vdyBpbiBhIHdlZWsgb3Igc28gaWYgdGhlIG5ldyBjYXJkIGlzIGFueSBiZXR0ZXIuCgotU2V0
+aAoKLS0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tLQpGcm9tOiBTdGV2ZSBIYXJyaW5ndG9uClNl
+bmRlcjogbGludXgtbWVkaWEtb3duZXJAdmdlci5rZXJuZWwub3JnClRvOiBsaW51eC1tZWRpYUB2
+Z2VyLmtlcm5lbC5vcmcKU3ViamVjdDogUmU6IEhhdXBwYXVnZSAyMjUwIC0gc2Vjb25kIHR1bmVy
+IGlzIG9ubHkgaGFsZiB3b3JraW5nClNlbnQ6IEF1ZyAyNSwgMjAwOSAyOjAxIFBNCgpJIGhhdmUg
+dGhlIHNhbWUgcHJvYmxlbSBhcyBTZXRoLiAgTXkgc3lzdGVtIHdpbGwgdHVuZSBSRiBjaGFubmVs
+IDg1IGFuZCAKYmVsb3cgd2lsbCBub3QgdHVuZSBSRiBjaGFubmVsIDkxIGFuZCBhYm92ZSBvbiB0
+aGUgc2Vjb25kIHR1bmVyIG9ubHkuICAKRmlyc3QgdHVuZXIgd29ya3MgZmluZSBvbiBhbGwgY2hh
+bm5lbHMgYXMgZG9lcyB0aGUgUEMgSERUViA1NTAwIGFsc28gaW4gCnRoZSBzeXN0ZW0uICBNeSBu
+b3JtYWwgY29uZmlndXJhdGlvbiBpcyBhIDQtd2F5IHNwbGl0dGVyIGZyb20gdGhlIGNhYmxlIApp
+bnRvIHRoZSBob3VzZS4gIE9uZSBsZWcgZ29lcyB0byBhIDItd2F5IHRoYXQgZmVlZHMgdGhlIHR3
+byBjYXJkcyBpbiB0aGUgCnN5c3RlbS4gIFdpdGggdGhpcyBjb25maWd1cmF0aW9uIHRoZSBub3Jt
+YWwgcmVzdWx0IGlzOgoKRnJvbnRlbmQgL2Rldi9kdmIvYWRhcHRlcjIvZnJvbnRlbmQwIHR1bmVk
+IGluIDEgc2Vjb25kcy4KQ2hhbm5lbCA4MDogICAgU3RhbmRhcmQ9QVRTQywgTW9kdWxhdGlvbj1R
+QU1fMjU2CiAgICAgICBTTlI9MFgwMTcyLCBTSUdOQUw9MFgwMTcyCgpmb3IgY2hhbm5lbCA4MCBh
+bmQ6CgpVbmFibGUgdG8gc2V0IGZyb250ZW5kIC9kZXYvZHZiL2FkYXB0ZXIyL2Zyb250ZW5kMDpm
+cmVxdWVuY3k9NjY5MDAwMDAwLCAKbW9kdWxhdGlvbj1RQU1fMjU2Cgpmb3IgY2hhbm5lbCAxMDMu
+CgpBZnRlciByZWFkaW5nIFN0ZXZlbiBUb3RoJ3MgcmVwbHkgSSB0cmllZCBhZGRpbmcgMSBhbmQg
+dGhlbiAyIDItd2F5IApzcGxpdHRlcnMgYmVmb3JlIHRoZSAyMjUwIGlucHV0LiBObyBqb3kuICBJ
+IGFsc28gdHJpZWQgZmVlZGluZyB0aGUgY2FibGUgCmRpcmVjdGx5IGludG8gdGhlIDIyNTAgd2l0
+aCBubyBzcGxpdHRlcnMuICBBZ2FpbiAtIG5vIGpveS4KQW55IG90aGVyIGlkZWFzPwotLQpUbyB1
+bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGlu
+dXgtbWVkaWEiIGluCnRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJu
+ZWwub3JnCk1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFq
+b3Jkb21vLWluZm8uaHRtbAoKCg0KU2VudCB2aWEgQmxhY2tCZXJyeSBmcm9tIFQtTW9iaWxl
 
-take note that also the page at:
-http://www.linuxtv.org/wiki/index.php/TerraTec
-three "with a patch" link to:
-http://mcentral.de/wiki/index.php/Em2880
-where its links, say (Pinnacle, Hauppauge, Terratec) are all unsupported 
-device, but sundtek.
-
-Valerio
