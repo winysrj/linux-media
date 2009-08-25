@@ -1,94 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:44837 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751355AbZHFKGY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2009 06:06:24 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Subject: How to efficiently handle DMA and cache on ARMv7 ? (was "Is get_user_pages() enough to prevent pages from being swapped out ?")
-Date: Thu, 6 Aug 2009 12:08:21 +0200
-Cc: Robin Holt <holt@sgi.com>, linux-kernel@vger.kernel.org,
-	"v4l2_linux" <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.arm.linux.org.uk
-MIME-Version: 1.0
-Content-Disposition: inline
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200908061208.22131.laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2952 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755600AbZHYSaj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Aug 2009 14:30:39 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id n7PIUdZG036605
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 25 Aug 2009 20:30:39 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 25 Aug 2009 20:30:39 +0200 (CEST)
+Message-Id: <200908251830.n7PIUdZG036605@smtp-vbr1.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[Resent with an updated subject, this time CC'ing linux-arm-kernel]
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-I've spent the last few days "playing" with get_user_pages() and mlock() and 
-got some interesting results. It turned out that cache coherency comes into 
-play at some point, making the overall problem more complex.
+Results of the daily build of v4l-dvb:
 
-Here's my current setup:
+date:        Tue Aug 25 19:00:03 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12500:28f8b0ebd224
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-- OMAP processor, based on an ARMv7 core
-- MMU and IOMMU
-- VIPT non-aliasing data cache
-- video capture driver that transfers data to memory using DMA
-- video capture application that pass userspace pointers to video buffers to 
-the driver
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-rc5-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29.1-armv5-ixp: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-rc5-armv5-ixp: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-rc5-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-rc5-i686: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-rc5-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-rc5-mips: OK
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-rc5-powerpc64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-rc5-x86_64: OK
+sparse (linux-2.6.30): OK
+sparse (linux-2.6.31-rc5): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
-My goal is to make sure that, upon DMA completion, the correct data will be 
-available to the userspace application.
+Detailed results are available here:
 
-The first problem was to pin pages to memory, to make sure they will not be 
-freed when the DMA is in progress. videobug-dma-sg uses get_user_pages() for 
-that, and Hugh Dickins nicely explained to me why this is enough.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-The second problem is to ensure cache coherency. As the userspace application 
-will read data from the video buffers, those buffers will end up being cached 
-in the processor's data cache. The driver does need to invalidate the cache 
-before starting the DMA operation (userspace could in theory write to the 
-buffers, but the data will be overwritten by DMA anyway, so there's no need to 
-clean the cache).
+Full logs are available here:
 
-As the cache is of the VIPT (Virtual Index Physical Tag) type, cache 
-invalidation can either be done globally (in which case the cache is flushed 
-instead of being invalidated) or based on virtual addresses. In the last case 
-the processor will need to look physical addresses up, either in the TLB or 
-through hardware table walk.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
-I can see three solutions to the DMA/cache problem.
+The V4L2 specification from this daily build is here:
 
-1. Flushing the whole data cache right before starting the DMA transfer. 
-There's no API for that in the ARM architecture, so a whole I+D cache is 
-required. This is quite costly, we're talking about around 30 flushes per 
-second, but it doesn't involve the MMU. That's the solution that I currently 
-use.
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
 
-2. Invalidating only the cache lines that store video buffer data. This 
-requires a TLB lookup or a hardware table walk, so the userspace application 
-MM context needs to be available (no problem there as where's flushing in 
-userspace context) and all pages need to be mapped properly. This can be a 
-problem as, as Hugh pointed out, pages can still be unmapped from the 
-userspace context after get_user_pages() returns. I have experienced one oops 
-due to a kernel paging request failure:
+The DVB API specification from this daily build is here:
 
-        Unable to handle kernel paging request at virtual address 44e12000
-        pgd = c8698000
-        [44e12000] *pgd=8a4fd031, *pte=8cfda1cd, *ppte=00000000
-        Internal error: Oops: 817 [#1] PREEMPT
-        PC is at v7_dma_inv_range+0x2c/0x44
-
-Fixing this requires more investigation, and I'm not sure how to proceed to 
-find out if the page fault is really caused by pages being unmapped from the 
-userspace context. Help would be appreciated.
-
-3. Mark the pages as non-cacheable. Depending on how the buffers are then used 
-by userspace, the additional cache misses might destroy any benefit I would 
-get from not flushing the cache before DMA. I'm not sure how to mark a bunch 
-of pages as non-cacheable though. What usually happens is that video drivers 
-allocate DMA-coherent memory themselves, but in this case I need to deal with 
-an arbitrary buffer allocated by userspace. If someone has any experience with 
-this, it would be appreciated.
-
-Regards,
-
-Laurent Pinchart
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
