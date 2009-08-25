@@ -1,48 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.youplala.net ([88.191.51.216]:32797 "EHLO mail.youplala.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753804AbZHRKon (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2009 06:44:43 -0400
-Received: from [134.32.138.65] (unknown [134.32.138.65])
-	by mail.youplala.net (Postfix) with ESMTPSA id EEE38D880C8
-	for <linux-media@vger.kernel.org>; Tue, 18 Aug 2009 12:44:19 +0200 (CEST)
-Message-ID: <4A8A8603.1080006@youplala.net>
-Date: Tue, 18 Aug 2009 11:44:19 +0100
-From: Nicolas Will <nico@youplala.net>
+Received: from perceval.irobotique.be ([92.243.18.41]:33438 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756048AbZHYTok (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Aug 2009 15:44:40 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v2] v4l: add new v4l2-subdev sensor operations, use skip_top_lines in soc-camera
+Date: Tue, 25 Aug 2009 21:47:49 +0200
+Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <Pine.LNX.4.64.0908251855160.4810@axis700.grange> <A24693684029E5489D1D202277BE89444BC96E38@dlee02.ent.ti.com> <200908252117.45230.hverkuil@xs4all.nl>
+In-Reply-To: <200908252117.45230.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: dib0700 diversity support
-References: <1250177934.6590.120.camel@mattotaupa.wohnung.familie-menzel.net>  <alpine.LRH.1.10.0908140947560.14872@pub3.ifh.de> <1250244562.5438.3.camel@mattotaupa.wohnung.familie-menzel.net> <alpine.LRH.1.10.0908181052400.7725@pub1.ifh.de> <4A8A6FBB.6020007@youplala.net> <alpine.LRH.1.10.0908181158160.7725@pub1.ifh.de> <4A8A844B.4020701@youplala.net> <alpine.LRH.1.10.0908181240350.7725@pub1.ifh.de>
-In-Reply-To: <alpine.LRH.1.10.0908181240350.7725@pub1.ifh.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <200908252147.49843.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patrick Boettcher wrote:
-> On Tue, 18 Aug 2009, Nicolas Will wrote:
->>> This change should improve reception conditions for devices based on 
->>> the DiB0070-tuner (DiB7070P e.g) .
->>
->>>
->>> We tried this driver with our reference boards and it works well, 
->>> but sometimes DiBcom's customers are adding things, DiBcom is not 
->>> really aware of. That's why there is a risk that it breaks supports 
->>> for some cards. 
->>
->> Well, breakage is easier to notice!
->>
->> I can test on the Nova-T 500.
+On Tuesday 25 August 2009 21:17:45 Hans Verkuil wrote:
+> On Tuesday 25 August 2009 21:00:19 Aguirre Rodriguez, Sergio Alberto wrote:
+> > Guennadi,
+> >
+> > Some comments I came across embedded below:
+> >
+> > <snip>
+> >
+> > > +
+> > > +/**
+> > > + * struct v4l2_subdev_sensor_ops - v4l2-subdev sensor operations
+> > > + * @enum_framesizes: enumerate supported framesizes
+> > > + * @enum_frameintervals: enumerate supported frame format intervals
+> > > + * @skip_top_lines: number of lines at the top of the image to be
+> > > skipped. This
+> > > + *		    is needed for some sensors, that corrupt several top
+> > > lines.
+> > > + */
+> > > +struct v4l2_subdev_sensor_ops {
+> > >  	int (*enum_framesizes)(struct v4l2_subdev *sd, struct
+> > > v4l2_frmsizeenum *fsize);
+> > >  	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct
+> > > v4l2_frmivalenum *fival);
+> > > +	int (*skip_top_lines)(struct v4l2_subdev *sd, u32 *lines);
+> > >  };
+> >
+> > 1. I honestly find a bit misleading the skip_top_lines name, since that
+> > IMO could be misunderstood that the called function will DO skip lines in
+> > the sensor, which is not the intended response...
+> >
+> > How about g_skip_top_lines, or get_skip_top_lines, or something that
+> > clarifies it's a "get information" abstraction interface?
 >
-> For you _nothing_ should change.
+> Good point. g_skip_top_lines is a better choice.
 >
-> The Nova-T is using dib3000mc+mt2060.
+> > 2. Why enumeration mechanisms are not longer needed for a video device?
+> > (You're removing them from video_ops)
 >
-> If it does not work for you any longer, something else is broken.
-> If it works better for you, it's simply magic. 
-Well then, I'll step out of the way and leave the testing to relevant 
-people!
+> Because these ops are closely related to sensor devices. They do not
+> normally apply to generic video devices. The addition of this new operation
+> is a good moment to move all sensor-specific ops to this new sensor_ops
+> struct.
+>
+> > 3. Wouldn't it be better to report a valid region, instead of just the
+> > top lines? I think that should be already covered by the driver reporting
+> > the valid size regions on enumeration, no?
+>
+> This has nothing to do with a valid region. No matter what region you
+> capture, the first X lines will always be corrupt for some sensors.
+> Something that clearly needs to be clarified in the comments.
 
-So why does dib0070 appear in my lsmod?
+Could such sensors corrupt the bottom Y lines too, and maybe some columns on 
+the sides ? In that case a "non-corrupted" region would make sense (but would 
+be more difficult to handle).
 
-Nico
+-- 
+Regards,
+
+Laurent Pinchart
