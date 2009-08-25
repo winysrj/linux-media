@@ -1,100 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:65499 "EHLO
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:65219 "EHLO
 	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753334AbZHBTBT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Aug 2009 15:01:19 -0400
-Received: by fxm17 with SMTP id 17so2297272fxm.37
-        for <linux-media@vger.kernel.org>; Sun, 02 Aug 2009 12:01:19 -0700 (PDT)
-Date: Sun, 2 Aug 2009 22:01:19 +0300
-From: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: Re: correct implementation of FE_READ_UNCORRECTED_BLOCKS
-Message-ID: <20090802190119.GA19717@moon>
-References: <20090802174836.GA19034@moon> <20090802175622.GB19034@moon> <1249236698.2981.18.camel@morgan.walls.org>
+	with ESMTP id S1756221AbZHYWBl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Aug 2009 18:01:41 -0400
+Received: by fxm17 with SMTP id 17so2493939fxm.37
+        for <linux-media@vger.kernel.org>; Tue, 25 Aug 2009 15:01:42 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1249236698.2981.18.camel@morgan.walls.org>
+In-Reply-To: <4A945CA4.6010402@iki.fi>
+References: <8527bc070908040016x5d5ad15bk8c2ef6e99678f9e9@mail.gmail.com>
+	 <200908041312.52878.jareguero@telefonica.net>
+	 <8527bc070908041423p439f2d35y2e31014a10433c80@mail.gmail.com>
+	 <200908042348.58148.jareguero@telefonica.net>
+	 <4A945CA4.6010402@iki.fi>
+Date: Tue, 25 Aug 2009 18:01:42 -0400
+Message-ID: <829197380908251501l7731536bg79dd8595cd7ce50d@mail.gmail.com>
+Subject: Re: Noisy video with Avermedia AVerTV Digi Volar X HD (AF9015) and
+	mythbuntu 9.04
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Jose Alberto Reguero <jareguero@telefonica.net>,
+	Cyril Hansen <cyril.hansen@gmail.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Aug 02, 2009 at 02:11:38PM -0400, Andy Walls wrote:
-> On Sun, 2009-08-02 at 20:56 +0300, Aleksandr V. Piskunov wrote:
-> > Oops, sent it way too fast. Anyway.
-> > 
-> > DVB API documentation says:
-> > "This ioctl call returns the number of uncorrected blocks detected by
-> > the device driver during its lifetime.... Note that the counter will
-> > wrap to zero after its maximum count has been reached."
-> > 
-> > Does it mean that correct implementation of frontend driver should
-> > keep its own counter of UNC blocks and increment it every time hardware
-> > reports such block?
-> 
-> No, but a frontend driver may wish to keep a software counter that is
-> wider than the hardware register counter, in case the hardware register
-> rolls over too frequently.
-> 
-> 
-> > >From what I see, a lot of current frontend drivers simply dump a value
-> > from some hardware register. For example zl10353 I got here reports 
-> > some N unc blocks and then gets back to reporting zero.
-> 
-> To support the use case of multiple user apps trying to collect UNC
-> block statistics, the driver should not zero out the UNC block counter
-> when read.  If the hardware zeros it automatically, then one probably
-> should maintain a software counter in the driver.
-> 
+On Tue, Aug 25, 2009 at 5:50 PM, Antti Palosaari<crope@iki.fi> wrote:
+> USB2.0 BULK stream .buffersize is currently 512 and your patch increases it
+> to the 65424. I don't know how this value should be determined. I have set
+> it as small as it is working and usually it is 512 used almost every driver.
+> 511 will not work (if not USB1.1 configured to the endpoints).
+>
+> ****
+>
+> Could someone point out how correct BULK buffersize should be determined? I
+> have thought that many many times...
 
-Here is a patch that makes zl10353 a bit more DVB API compliant:
-FE_READ_UNCORRECTED_BLOCKS - keep a counter of UNC blocks
-FE_GET_FRONTEND - return last set frequency instead of zero
+Usually I do a sniffusb capture of the Windows driver and use whatever
+they are using.
 
-Signed-off-by: Aleksandr V. Piskunov <alexandr.v.piskunov@gmail.com>
+>
+> ****
+>
+> Also one other question; if demod is powered off and some IOCTL is coming -
+> like FE_GET_FRONTEND - how that should be handled? v4l-dvb -framework does
+> not look whether or not demod is sleeping and forwards that query to the
+> demod which cannot answer it.
 
+In other demods, whenever the set_frontend call comes in the driver
+check to see if the device is asleep and wakes it up on demand.  On
+some demods, you can query a register to get the power state.  In
+other cases you have to manually keep track of whether you previously
+put the demod to sleep using the demod's state structure.
 
---- v4l-dvb/linux/drivers/media/dvb/frontends/zl10353.c.orig    2009-08-02 15:38:28.133464216 +0300
-+++ v4l-dvb/linux/drivers/media/dvb/frontends/zl10353.c 2009-08-02 16:03:00.305465369 +0300
-@@ -39,6 +39,8 @@ struct zl10353_state {
-        struct zl10353_config config;
- 
-        enum fe_bandwidth bandwidth;
-+       u32 ucblocks;
-+       u32 frequency;
- };
- 
- static int debug;
-@@ -204,6 +206,8 @@ static int zl10353_set_parameters(struct
-        u16 tps = 0;
-        struct dvb_ofdm_parameters *op = &param->u.ofdm;
- 
-+       state->frequency = param->frequency;
-+
-        zl10353_single_write(fe, RESET, 0x80);
-        udelay(200);
-        zl10353_single_write(fe, 0xEA, 0x01);
-@@ -469,7 +473,7 @@ static int zl10353_get_parameters(struct
-                break;
-        }
- 
--       param->frequency = 0;
-+       param->frequency = state->frequency;
-        op->bandwidth = state->bandwidth;
-        param->inversion = INVERSION_AUTO;
- 
-@@ -549,9 +553,13 @@ static int zl10353_read_snr(struct dvb_f
- static int zl10353_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
- {
-        struct zl10353_state *state = fe->demodulator_priv;
-+       u32 ubl = 0;
-+
-+       ubl = zl10353_read_register(state, RS_UBC_1) << 8 |
-+             zl10353_read_register(state, RS_UBC_0);
- 
--       *ucblocks = zl10353_read_register(state, RS_UBC_1) << 8 |
--                   zl10353_read_register(state, RS_UBC_0);
-+       state->ucblocks += ubl;
-+       *ucblocks = state->ucblocks;
- 
-        return 0;
- }
+Chers,
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
