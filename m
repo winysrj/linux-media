@@ -1,41 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:38253 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753144AbZHLHxD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2009 03:53:03 -0400
-Received: from int-mx2.corp.redhat.com (int-mx2.corp.redhat.com [172.16.27.26])
-	by mx2.redhat.com (8.13.8/8.13.8) with ESMTP id n7C7r3Ei027869
-	for <linux-media@vger.kernel.org>; Wed, 12 Aug 2009 03:53:03 -0400
-Received: from ns3.rdu.redhat.com (ns3.rdu.redhat.com [10.11.255.199])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n7C7r2Sw017291
-	for <linux-media@vger.kernel.org>; Wed, 12 Aug 2009 03:53:02 -0400
-Received: from localhost.localdomain (vpn-12-6.rdu.redhat.com [10.11.12.6])
-	by ns3.rdu.redhat.com (8.13.8/8.13.8) with ESMTP id n7C7r1JF002570
-	for <linux-media@vger.kernel.org>; Wed, 12 Aug 2009 03:53:02 -0400
-Message-ID: <4A827613.2060908@hhs.nl>
-Date: Wed, 12 Aug 2009 09:58:11 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Received: from smtpout09-01.prod.mesa1.secureserver.net ([64.202.165.14]:39895
+	"HELO smtpout09.prod.mesa1.secureserver.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S932134AbZHYVGY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Aug 2009 17:06:24 -0400
+Message-ID: <4A945126.5070102@Emel-Harrington.net>
+Date: Tue, 25 Aug 2009 14:01:26 -0700
+From: Steve Harrington <steve@Emel-Harrington.net>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: linuxtv.org wiki: V4L2_Userspace_Library hopelessly out of date
+To: linux-media@vger.kernel.org
+Subject: Re: Hauppauge 2250 - second tuner is only half working
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+I have the same problem as Seth.  My system will tune RF channel 85 and 
+below will not tune RF channel 91 and above on the second tuner only.  
+First tuner works fine on all channels as does the PC HDTV 5500 also in 
+the system.  My normal configuration is a 4-way splitter from the cable 
+into the house.  One leg goes to a 2-way that feeds the two cards in the 
+system.  With this configuration the normal result is:
 
-Can someone please kill:
-http://linuxtv.org/wiki/index.php/V4L2_Userspace_Library
+Frontend /dev/dvb/adapter2/frontend0 tuned in 1 seconds.
+Channel 80:    Standard=ATSC, Modulation=QAM_256
+       SNR=0X0172, SIGNAL=0X0172
 
-It still talks about the old complex proxy device and daemon
-using plans for a V4L2_Userspace_Library, now that we have
-libv4l this is pretty much obsolete.
+for channel 80 and:
 
-Yes having a new wiki page for libv4l would be great! Sorry
--ENOTIME, but anyone can do this, the README of libv4l should
-make for a good start.
+Unable to set frontend /dev/dvb/adapter2/frontend0:frequency=669000000, 
+modulation=QAM_256
 
-Regards,
+for channel 103.
 
-Hans
+After reading Steven Toth's reply I tried adding 1 and then 2 2-way 
+splitters before the 2250 input. No joy.  I also tried feeding the cable 
+directly into the 2250 with no splitters.  Again - no joy.
+Any other ideas?
