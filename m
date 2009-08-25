@@ -1,15 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Message-ID: <4A769B2E.1050309@hhs.nl>
-Date: Mon, 03 Aug 2009 10:09:18 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Received: from mx1.redhat.com (ext-mx10.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.14])
+	by int-mx06.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n7P056Sb025398
+	for <video4linux-list@redhat.com>; Mon, 24 Aug 2009 20:05:06 -0400
+Received: from mail05do.versatel.de (mail05do.versatel.de [89.245.129.25])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n7P04qSS024241
+	for <video4linux-list@redhat.com>; Mon, 24 Aug 2009 20:04:53 -0400
+Received: from unknown (HELO sammy)
+	(postbox.thomasf@versanet.de@[88.130.190.71])
+	(envelope-sender <postbox.thomasf@versanet.de>)
+	by mail05do.versatel.de (qmail-ldap-1.03) with SMTP
+	for <video4linux-list@redhat.com>; 25 Aug 2009 00:04:50 -0000
+Date: Tue, 25 Aug 2009 02:04:48 +0200
+From: Fiedler Thomas <postbox.thomasf@versanet.de>
+To: video4linux-list@redhat.com
+Message-Id: <1251158688.2481.1@sammy>
 MIME-Version: 1.0
-To: Clinton Lee Taylor <clintonlee.taylor@gmail.com>
-References: <b7b14cbb0907271230s8aa78l76d73bf785331497@mail.gmail.com>
-In-Reply-To: <b7b14cbb0907271230s8aa78l76d73bf785331497@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Syntek Driver ...
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+Subject: CI works not on Terratec Cinergy S2 PCI HD
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -21,30 +32,23 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 07/27/2009 09:30 PM, Clinton Lee Taylor wrote:
-> Greetings ...
->
->   I was wondering if anybody has looked at the Syntek Driver stk11xx at
-> http://sourceforge.net/projects/syntekdriver/files/ ... This driver is
-> meant to have updates for the EasyCap USB video capture device ...
-> Would be great to have included in the main line Video4Linux and then
-> up stream Kernel ... Pretty please!!
->
-> Mailed
-> LeeT
->
 
-Hi,
+Hello all
 
-1) The video4linux-list@redhat.com list is no longer in use, please
-    resend your mail to Linux Media Mailing List <linux-media@vger.kernel.org>
+My Terratec Cinergy S2 PCI HD works perfektly by the liplianin Driver 
+with Kernel 2.6.30.4 on Debian/Lenny and VDR.
+Except the CI Reader 
 
-2) Getting this driver upstream requires someone who owns the actual hardware
-    to drive this, are you willing to do that ?
+The Message iss "dvb_ca_adapter 0: Invalid PC Card inserted 
 
-Regards,
+The CI Modules is a Alphacrypt and Alphacrypt Light and a Alphacrypt 
+Twin.
+The Error Message comms by all Modules.
 
-Hans
+Iss this a principle Bug at the Moment?
+
+Greeting and sorry for my English 
+Thomas from Germany
 
 --
 video4linux-list mailing list
