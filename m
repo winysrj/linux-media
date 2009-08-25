@@ -1,47 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3669 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752847AbZHOMJx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Aug 2009 08:09:53 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: m-karicheri2@ti.com
-Subject: Re: [PATCH v1 - 1/5] DaVinci - restructuring code to support vpif capture driver
-Date: Sat, 15 Aug 2009 14:09:43 +0200
-Cc: linux-media@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com,
-	khilman@deeprootsystems.com
-References: <1250283702-5582-1-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1250283702-5582-1-git-send-email-m-karicheri2@ti.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:57794 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753923AbZHYBFh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Aug 2009 21:05:37 -0400
+Message-ID: <4A9338E2.2070701@iki.fi>
+Date: Tue, 25 Aug 2009 04:05:38 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+To: linux-media@vger.kernel.org
+CC: linux-dvb@linuxtv.org, Benjamin Larsson <banan@ludd.ltu.se>
+Subject: Re: [linux-dvb] Anysee E30 Combo Plus startup mode
+References: <7606f7c10908210621r77acf304g1c921396a566399a@mail.gmail.com>
+In-Reply-To: <7606f7c10908210621r77acf304g1c921396a566399a@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200908151409.44219.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 14 August 2009 23:01:41 m-karicheri2@ti.com wrote:
-> From: Muralidharan Karicheri <m-karicheri2@ti.com>
-> 
-> This patch makes the following changes:-
-> 	1) Modify vpif_subdev_info to add board_info, routing information
-> 	   and vpif interface configuration. Remove addr since it is
-> 	   part of board_info
-> 	 
-> 	2) Add code to setup channel mode and input decoder path for
-> 	   vpif capture driver
-> 
-> Also incorporated comments against version v0 of the patch series and
-> added a spinlock to protect writes to common registers
+On 08/21/2009 04:21 PM, Alexander Saers wrote:
+> Hello
+>
+> I have a Anysee E30 Combo Plus USB device. It's capable of both DVB-C and
+> DVB-T. I currently use the device with ubuntu 9.04 64bit with mythtv. I have
+> problem with selction of mode for the device
+>
+> The following way i can get DVB-T
+> 1. Power up computer with E30 Combo Plus connected.
+> 2. run dmesg
 
-A quick question: against which git tree are these arch changes applied?
-I've lost track of that :-)
+>
+> Anyone experienced this problem? It would be nice to run DVB-C without
+> having to disconnect and connect hardware.
 
-Regards,
+You are not alone.
+Looks like it is GPIO related problem. I don't have currently that device...
+It is a little bit hard to fix without knowing exactly how GPIO pins are 
+connected in each device. There is too many different hardware revisions 
+with different GPIOs, fix one break the other.
 
-	Hans
+ From the anysee.c code you can find following entry:
 
+	/* Try to attach demodulator in following order:
+	      model      demod     hw  firmware
+	   1. E30        MT352     02  0.2.1
+	   2. E30        ZL10353   02  0.2.1
+	   3. E30 Combo  ZL10353   0f  0.1.2    DVB-T/C combo
+	   4. E30 Plus   ZL10353   06  0.1.0
+	   5. E30C Plus  TDA10023  0a  0.1.0    rev 0.2
+	      E30C Plus  TDA10023  0f  0.1.2    rev 0.4
+	      E30 Combo  TDA10023  0f  0.1.2    DVB-T/C combo
+	*/
+
+Antti
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+http://palosaari.fi/
