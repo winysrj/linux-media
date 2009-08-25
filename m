@@ -1,72 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54184 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933792AbZHGU2l (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2009 16:28:41 -0400
-Date: Fri, 7 Aug 2009 21:28:29 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Robin Holt <holt@sgi.com>,
-	Laurent Desnogues <laurent.desnogues@gmail.com>,
-	Jamie Lokier <jamie@shareable.org>,
-	David Xiao <dxiao@broadcom.com>,
-	Ben Dooks <ben-linux@fluff.org>,
-	Hugh Dickins <hugh.dickins@tiscali.co.uk>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	v4l2_linux <linux-media@vger.kernel.org>,
-	"linux-arm-kernel@lists.arm.linux.org.uk"
-	<linux-arm-kernel@lists.arm.linux.org.uk>
-Subject: Re: How to efficiently handle DMA and cache on ARMv7 ? (was "Is
-	get_user_pages() enough to prevent pages from being swapped out ?")
-Message-ID: <20090807202829.GF31543@n2100.arm.linux.org.uk>
-References: <200908061208.22131.laurent.pinchart@ideasonboard.com> <20090807131501.GD2763@sgi.com> <20090807190145.GA31543@n2100.arm.linux.org.uk> <200908072211.45283.laurent.pinchart@ideasonboard.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:50148 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752672AbZHYVu2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Aug 2009 17:50:28 -0400
+Message-ID: <4A945CA4.6010402@iki.fi>
+Date: Wed, 26 Aug 2009 00:50:28 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <200908072211.45283.laurent.pinchart@ideasonboard.com>
+To: Jose Alberto Reguero <jareguero@telefonica.net>
+CC: Cyril Hansen <cyril.hansen@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: Noisy video with Avermedia AVerTV Digi Volar X HD (AF9015) and
+ mythbuntu 9.04
+References: <8527bc070908040016x5d5ad15bk8c2ef6e99678f9e9@mail.gmail.com> <200908041312.52878.jareguero@telefonica.net> <8527bc070908041423p439f2d35y2e31014a10433c80@mail.gmail.com> <200908042348.58148.jareguero@telefonica.net>
+In-Reply-To: <200908042348.58148.jareguero@telefonica.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 07, 2009 at 10:11:40PM +0200, Laurent Pinchart wrote:
-> Ok. Maybe the kernel mapping from L_PTE_MT_UNCACHED to strongly ordered for 
-> ARMv6 and up (not sure about how it worked for previous versions) brought some 
-> confusion. I'll try to be more precise now.
+On 08/05/2009 12:48 AM, Jose Alberto Reguero wrote:
+>>> I have problems with some hardware, and the buffersize when the
+>>> buffersize is not multiple of TS_PACKET_SIZE.
 
-It's something we should correct.
+USB2.0 BULK stream .buffersize is currently 512 and your patch increases 
+it to the 65424. I don't know how this value should be determined. I 
+have set it as small as it is working and usually it is 512 used almost 
+every driver. 511 will not work (if not USB1.1 configured to the endpoints).
 
-> Does that mean that, in theory, all DMA transfers in the DMA_FROM_DEVICE 
-> direction are currently broken on ARMv7 ?
+****
 
-Technically, yes.  I haven't had a stream of bug reports which tends
-to suggest that either the speculation isn't that aggressive in current
-silicon, or we're just lucky so far.
+Could someone point out how correct BULK buffersize should be 
+determined? I have thought that many many times...
 
-> The ARM Architecture Reference Manual (ARM DDI 0100I) states that
+****
 
-Bear in mind that DDI0100 is out of date now.  There's a different
-document number for it (I forget what it is.)
+Also one other question; if demod is powered off and some IOCTL is 
+coming - like FE_GET_FRONTEND - how that should be handled? v4l-dvb 
+-framework does not look whether or not demod is sleeping and forwards 
+that query to the demod which cannot answer it.
 
-> "• If the same memory locations are marked as having different memory types 
-> (Normal, Device, or Strongly Ordered), for example by the use of synonyms in a 
-> virtual to physical address mapping, UNPREDICTABLE behavior results.
-> 
-> • If the same memory locations are marked as having different cacheable 
-> attributes, for example by the use of synonyms in a virtual to physical 
-> address mapping, UNPREDICTABLE behavior results."
+regards
+Antti
 
-Both of these we end up doing.  The current position is "yes, umm, we're
-not sure what we can do about that"... which also happens to be mine as
-well.  Currently, my best solution is to go for minimal lowmem and
-maximal highmem - so _everything_ gets mapped in on an as required
-basis.
 
-> This would be broken if a fully cached Normal mapping already existed for 
-> those physical pages. You seem to imply that's the case, but I'm not sure to 
-> understand why.
-
-The kernel direct mapping maps all system (low) memory with normal
-memory cacheable attributes.
-
-So using vmalloc, dma_alloc_coherent, using pages in userspace all
-create duplicate mappings of pages.
+-- 
+http://palosaari.fi/
