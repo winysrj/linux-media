@@ -1,24 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.5])
-	by int-mx06.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n7QAwnZu022091
-	for <video4linux-list@redhat.com>; Wed, 26 Aug 2009 06:58:49 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n7QAwYah016994
-	for <video4linux-list@redhat.com>; Wed, 26 Aug 2009 06:58:34 -0400
-Date: Wed, 26 Aug 2009 12:58:40 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-In-Reply-To: <uhbvuhn8f.wl%morimoto.kuninori@renesas.com>
-Message-ID: <Pine.LNX.4.64.0908261257030.6737@axis700.grange>
-References: <u1vnorpbi.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0908261053050.5167@axis700.grange>
-	<uhbvuhn8f.wl%morimoto.kuninori@renesas.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: V4L-Linux <video4linux-list@redhat.com>
-Subject: Re: [PATCH 1/2 v3] sh_mobile_ceu: add soft reset function
+Received: from mx1.redhat.com (ext-mx10.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.14])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n7P5i9ik030682
+	for <video4linux-list@redhat.com>; Tue, 25 Aug 2009 01:44:09 -0400
+Received: from mail-ew0-f211.google.com (mail-ew0-f211.google.com
+	[209.85.219.211])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n7P5hteZ006214
+	for <video4linux-list@redhat.com>; Tue, 25 Aug 2009 01:43:55 -0400
+Received: by ewy7 with SMTP id 7so3015066ewy.7
+	for <video4linux-list@redhat.com>; Mon, 24 Aug 2009 22:43:54 -0700 (PDT)
+Date: Tue, 25 Aug 2009 15:43:52 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: hermann pitton <hermann-pitton@arcor.de>, Michael Krufky
+	<mkrufky@kernellabs.com>, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	video4linux-list@redhat.com, linux-dvb@linuxtv.org
+Message-ID: <20090825154352.030299ba@glory.loctelecom.ru>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: 
+Subject: saa7134 and xc5000
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,29 +32,16 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 26 Aug 2009, Kuninori Morimoto wrote:
+Hi All
 
-> 
-> Dear Guennadi
-> 
-> > I've updated both your patches on the top of my current tree and slightly 
-> > cleaned them up - mainly multi-line comments. Also fixed one error in 
-> > sh_mobile_ceu_add_device() (see below). Please, check if the stack at 
-> > http://download.open-technology.de/soc-camera/20090826/ looks ok and still 
-> > works for you. As usual, you find instructions on which tree and branch to 
-> > use in 0000-base.
-> 
-> Thank you for your hard work.
-> It looks OK for me.
-> But I wounder that does your and Paul's git can merge correctly ?
-> I can find Magnus patch on sh_mobile_ceu_camera.c in latest Paul's git
+Our company release new TV card based on the saa7134 and xc5000.
+I write some code and now I can watch analog TV, video and audio is good.
 
-That will be handled when the time comes:-)
+For analog FM radio need switch input saa7134 to SIF and set SIF to 10.7MHz.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
+How to I can do it??
+
+With my best regards, Dmitry.
 
 --
 video4linux-list mailing list
