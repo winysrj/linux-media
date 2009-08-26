@@ -1,62 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from idcmail-mo1so.shaw.ca ([24.71.223.10]:48539 "EHLO
-	idcmail-mo1so.shaw.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751439AbZHRGoc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2009 02:44:32 -0400
-From: Thomas Fjellstrom <tfjellstrom@shaw.ca>
-Reply-To: tfjellstrom@shaw.ca
-To: linux-media@vger.kernel.org
-Subject: Re: KWorld UB435-Q support?
-Date: Tue, 18 Aug 2009 00:45:10 -0600
-Cc: Jarod Wilson <jarod@wilsonet.com>
-References: <200908122253.12021.tfjellstrom@shaw.ca> <200908171328.08301.tfjellstrom@shaw.ca> <41D273E7-E1A0-4086-A03E-9BFD32DF23C6@wilsonet.com>
-In-Reply-To: <41D273E7-E1A0-4086-A03E-9BFD32DF23C6@wilsonet.com>
+Received: from mms2.broadcom.com ([216.31.210.18]:2389 "EHLO mms2.broadcom.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751553AbZHZRWW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Aug 2009 13:22:22 -0400
+Subject: Re: How to efficiently handle DMA and cache on ARMv7 ? (was
+ "Is get_user_pages() enough to prevent pages from being swapped out ?")
+From: "David Xiao" <dxiao@broadcom.com>
+To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
+cc: "Steven Walter" <stevenrwalter@gmail.com>,
+	"Russell King - ARM Linux" <linux@arm.linux.org.uk>,
+	"Ben Dooks" <ben-linux@fluff.org>,
+	"Hugh Dickins" <hugh.dickins@tiscali.co.uk>,
+	"Robin Holt" <holt@sgi.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	v4l2_linux <linux-media@vger.kernel.org>,
+	"linux-arm-kernel@lists.arm.linux.org.uk"
+	<linux-arm-kernel@lists.arm.linux.org.uk>
+In-Reply-To: <200908260117.27180.laurent.pinchart@ideasonboard.com>
+References: <200908061208.22131.laurent.pinchart@ideasonboard.com>
+ <e06498070908250553h5971102x6da7004495abb911@mail.gmail.com>
+ <1251237768.8877.26.camel@david-laptop>
+ <200908260117.27180.laurent.pinchart@ideasonboard.com>
+Date: Wed, 26 Aug 2009 10:22:11 -0700
+Message-ID: <1251307331.9535.16.camel@david-laptop>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Message-Id: <200908180045.11071.tfjellstrom@shaw.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon August 17 2009, Jarod Wilson wrote:
-> On Aug 17, 2009, at 3:28 PM, Thomas Fjellstrom wrote:
-> > Yeah, I've had absolutely no luck with it so far, and have returned
-> > it :(
-> > given your experience, and mine combined, I don't think its worth
-> > the time to
-> > fix it. Especially since I can't even tune a channel on the darn
-> > thing in any
-> > OS I have access to.
->
-> Now, did you try it with some other OS before trying it under Linux,
-> and it failed to work, or did you only try other OS after trying under
-> Linux w/that tree? There's some concern that perhaps the stick might
-> be getting neutered on the Linux side by an incorrect gpio setting or
-> something... But my stick worked (flaky usb connection aside) for
-> quite some time before it stopped working, even with lots of
-> unplugging and replugging over several days while working on the
-> driver...
+On Tue, 2009-08-25 at 16:17 -0700, Laurent Pinchart wrote:
+> On Wednesday 26 August 2009 00:02:48 David Xiao wrote:
+> > On Tue, 2009-08-25 at 05:53 -0700, Steven Walter wrote:
+> > > On Thu, Aug 6, 2009 at 6:25 PM, Russell King - ARM
+> > > Linux<linux@arm.linux.org.uk> wrote:
+> > > [...]
+> > >
+> > > > As far as userspace DMA coherency, the only way you could do it with
+> > > > current kernel APIs is by using get_user_pages(), creating a
+> > > > scatterlist from those, and then passing it to dma_map_sg().  While the
+> > > > device has ownership of the SG, userspace must _not_ touch the buffer
+> > > > until after DMA has completed.
+> > >
+> > > [...]
+> > >
+> > > Would that work on a processor with VIVT caches?  It seems not.  In
+> > > particular, dma_map_page uses page_address to get a virtual address to
+> > > pass to map_single().  map_single() in turn uses this address to
+> > > perform cache maintenance.  Since page_address() returns the kernel
+> > > virtual address, I don't see how any cache-lines for the userspace
+> > > virtual address would get invalidated (for the DMA_FROM_DEVICE case).
+> > >
+> > > If that's true, then what is the correct way to allow DMA to/from a
+> > > userspace buffer with a VIVT cache?  If not true, what am I missing?
+> >
+> > page_address() is basically returning page->virtual, which records the
+> > virtual/physical mapping for both user/kernel space; and what only
+> > matters there is highmem or not.
+> 
+> I'm not sure to get it. Are you implying that a physical page will then be 
+> mapped to the same address in all contexts (kernelspace and userspace 
+> processes) ? Is that even possible ? And if not, how could page->virtual store 
+> both the initial kernel map and all the userspace mappings ?
+> 
+Sorry for the confusion, page_address() indeed only returns kernel
+virtual address; and in order to support VIVT cache maintenance for the
+user space mappings, the dma_map_sg/dma_map_page() functions or even the
+struct scatterlist do seem to have to be modified to pass in virtual
+address, I think.
 
-I may have plugged it in in linux before windows, but at that point I didn't 
-have the drivers for linux installed, so I doubt incorrect gpio settings could 
-have damaged it.
+David
 
-> > It did indeed have trouble keeping a connection, but when ever it lost
-> > connection, I got that message. And the driver is pretty much stuck.
-> > can't
-> > rmmod it, and it won't redetect the stick, so every single time it
-> > looses
-> > connection, I have to reboot. Hardly a good way to work.
->
-> Indeed. I wonder if there are bad solder joints in these, or what?...
-> Mine's dead, yours is dead, Mike Krufky had to RMA his first one and
-> his second one seems it might be dead too... :\
 
-I dunno, but I'm thinking of just getting a HVR 1800 or similar. Go with my 
-two PVR 150's that work flawlessly.
-
--- 
-Thomas Fjellstrom
-tfjellstrom@shaw.ca
