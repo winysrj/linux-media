@@ -1,61 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mp1-smtp-6.eutelia.it ([62.94.10.166]:32789 "EHLO
-	smtp.eutelia.it" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754187AbZHKWva (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2009 18:51:30 -0400
-Message-ID: <4A81F5E1.9070709@email.it>
-Date: Wed, 12 Aug 2009 00:51:13 +0200
-From: xwang1976@email.it
-MIME-Version: 1.0
-To: Douglas Schilling Landgraf <dougsland@gmail.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Issues with Empire Dual Pen: request for help and suggestions!!!
-References: <4A79EC82.4050902@email.it>	<4A7AE0B0.20507@email.it>	<829197380908060717ua009e78nc045f2940c7fc76e@mail.gmail.com>	<20090806112317.21240b9c@gmail.com>	<4A7AF3CF.3060803@email.it>	<829197380908060821x6cfb60f0jd73e5f9b30c21569@mail.gmail.com>	<4A7B0333.1010901@email.it>	<4A81D38A.2050201@email.it>	<829197380908111334xf9a89b4gf2da1e4cc765b27b@mail.gmail.com>	<4A81E6C3.7010802@email.it> <20090811154232.4ed8a1ba@gmail.com>
-In-Reply-To: <20090811154232.4ed8a1ba@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mail1.radix.net ([207.192.128.31]:40380 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753523AbZHZX2a (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Aug 2009 19:28:30 -0400
+Subject: Re: [linux-dvb] Can ir polling be turned off in cx88 module for
+ Leadtek 1000DTV card?
+From: Andy Walls <awalls@radix.net>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+In-Reply-To: <357341.28380.qm@web112510.mail.gq1.yahoo.com>
+References: <357341.28380.qm@web112510.mail.gq1.yahoo.com>
+Content-Type: text/plain
+Date: Wed, 26 Aug 2009 19:30:02 -0400
+Message-Id: <1251329402.5232.6.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I've used the rewrite_eeprom_v_1_4 which you send me 5 month ago when 
-the eprom got corrupted for the first time.
-Xwang
+On Wed, 2009-08-26 at 07:33 -0700, Dalton Harvie wrote:
+> Hi,
+> 
+> I'm no expert with this stuff but have been using mythtv under ubuntu
+> for a while.  Lately the machine became quite sluggish.
+> 
+> I have two Leadtek 1000DTV cards and a usb remote in a ubuntu 8.04
+> (2.6.24-24-generic) machine with the standard packaged kernel.
+> 
+> >From /var/log/dmesg
+> [   56.656386] cx88[0]: subsystem: 107d:665f, board: WinFast DTV1000-T
+> [card=35,autodetected]
+> 
+> 
+> I installed powertop and found that there were 500 wakeups/s occuring
+> from `run_workqueue (ir_timer)' which I assume is to do with polling
+> the built in remote receiver on these tuner cards.  I no longer use
+> these Leadtek remotes, instead using a mceusb type one - so would like
+> to stop this polling.
+> 
+> I tried a hack with my limited c knowledge - I edited cx88-input.c to
+> remove all references to the DTV1000 card (two places) and recompiled
+> the modules.  Now the rapid polling has gone.  The reponse of the new
+> mceusb remote seems to be much better now too.  The problem is that I
+> don't want to have to recompile these modules each time there is an
+> update package to the kernel available.
+> 
+> My question is - is there any way to stop this polling without having
+> to recompile the modules?  Some option to pass to them maybe?
 
-Douglas Schilling Landgraf ha scritto:
-> Hello Xwang,
->
-> On Tue, 11 Aug 2009 23:46:43 +0200
-> xwang1976@email.it wrote:
->
->   
->> Ok!
->> I've restored the eprom and now it is recognised again.
->>     
->
-> Just to confirm, did you the rewrite_eeprom tool?
->
->   
->> The only not working part is analog tv audio which doesn't work even
->> if I use the sox command.
->>     
->
-> Ok.
->
->   
->>> Douglas, in a few minutes I am leaving town for the next five days.
->>> Can you help Xwang out to restore his eeprom content using your
->>> tool?
->>>       
->
-> Sure Devin.
->
-> Cheers,
-> Douglas
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->   
+
+No. No.
+
+>   If there isn't, would it be a good idea?
+
+Maybe.
+
+> Thanks for any help.
+
+
+Try this.  It adds a module option "noir" that accepts an array of
+int's.  For a 0, that card's IR is set up as normal; for a 1, that
+card's IR is not initialized.
+
+	# modprobe cx88 noir=1,1
+
+Regards,
+Andy
+
+
+cx88: Add module option for disabling IR
+
+If an IR receiver isn't in use, there's no need to incurr the penalties
+for polling.
+
+Reported-by: Dalton Harvie <dalton_harvie@yahoo.com.au>
+Signed-off-by: Andy Walls <awalls@radix.net>
+
+diff -r 28f8b0ebd224 linux/drivers/media/video/cx88/cx88-cards.c
+--- a/linux/drivers/media/video/cx88/cx88-cards.c	Sun Aug 23 13:55:25 2009 -0300
++++ b/linux/drivers/media/video/cx88/cx88-cards.c	Wed Aug 26 19:23:17 2009 -0400
+@@ -32,14 +32,17 @@
+ static unsigned int tuner[] = {[0 ... (CX88_MAXBOARDS - 1)] = UNSET };
+ static unsigned int radio[] = {[0 ... (CX88_MAXBOARDS - 1)] = UNSET };
+ static unsigned int card[]  = {[0 ... (CX88_MAXBOARDS - 1)] = UNSET };
++static unsigned int noir[]  = {[0 ... (CX88_MAXBOARDS - 1)] = UNSET };
+ 
+ module_param_array(tuner, int, NULL, 0444);
+ module_param_array(radio, int, NULL, 0444);
+ module_param_array(card,  int, NULL, 0444);
++module_param_array(noir,  int, NULL, 0444);
+ 
+ MODULE_PARM_DESC(tuner,"tuner type");
+ MODULE_PARM_DESC(radio,"radio tuner type");
+ MODULE_PARM_DESC(card,"card type");
++MODULE_PARM_DESC(noir, "disable IR (default: 0, IR enabled)");
+ 
+ static unsigned int latency = UNSET;
+ module_param(latency,int,0444);
+@@ -3490,7 +3493,8 @@
+ 	}
+ 
+ 	cx88_card_setup(core);
+-	cx88_ir_init(core, pci);
++	if (!noir[core->nr])
++		cx88_ir_init(core, pci);
+ 
+ 	return core;
+ }
+
+
