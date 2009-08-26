@@ -1,138 +1,387 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:37829 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750757AbZH1OF6 convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1146 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754576AbZHZGm7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Aug 2009 10:05:58 -0400
-Date: Fri, 28 Aug 2009 11:05:53 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Ville =?ISO-8859-1?B?U3lyauRs5A==?= <syrjala@sci.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Input <linux-input@vger.kernel.org>
-Subject: Re: [RFC] Infrared Keycode standardization
-Message-ID: <20090828110553.674b97fc@pedra.chehab.org>
-In-Reply-To: <200908280000.54986.jarod@wilsonet.com>
-References: <20090827045710.2d8a7010@pedra.chehab.org>
-	<20090827185853.0aa2de76@pedra.chehab.org>
-	<829197380908271506i251b47caoe8c08d483e78e938@mail.gmail.com>
-	<200908280000.54986.jarod@wilsonet.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Wed, 26 Aug 2009 02:42:59 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v3] v4l: add new v4l2-subdev sensor operations, use g_skip_top_lines in soc-camera
+Date: Wed, 26 Aug 2009 08:42:55 +0200
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <Pine.LNX.4.64.0908251855160.4810@axis700.grange> <200908252147.49843.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.0908260838551.5167@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0908260838551.5167@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200908260842.55751.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 28 Aug 2009 00:00:54 -0400
-Jarod Wilson <jarod@wilsonet.com> escreveu:
-
-> On Thursday 27 August 2009 18:06:51 Devin Heitmueller wrote:
-> > On Thu, Aug 27, 2009 at 5:58 PM, Mauro Carvalho
-> > Chehab<mchehab@infradead.org> wrote:
-> > > Em Thu, 27 Aug 2009 21:36:36 +0300
-> > > Ville Syrjälä <syrjala@sci.fi> escreveu:
-> > >
-> > >
-> > >> I welcome this effort. It would be nice to have some kind of consistent
-> > >> behaviour between devices. But just limiting the effort to IR devices
-> > >> doesn't make sense. It shouldn't matter how the device is connected.
-> > >
-> > > Agreed.
-> > >
-> > >>
-> > >> FASTWORWARD,REWIND,FORWARD and BACK aren't very clear. To me it would
-> > >> make most sense if FASTFORWARD and REWIND were paired and FORWARD and
-> > >> BACK were paired. I actually have those two a bit confused in
-> > >> ati_remote2 too where I used FASTFORWARD and BACK. I suppose it should
-> > >> be REWIND instead.
-> > >
-> > > Makes sense. I updated it at the wiki. I also tried to group the keycodes by
-> > > function there.
-> > >
-> > >> Also I should probably use ZOOM for the maximize/restore button (it's
-> > >> FRONT now), and maybe SETUP instead of ENTER for another. It has a
-> > >> picture of a checkbox, Windows software apparently shows a setup menu
-> > >> when it's pressed.
-> > >>
-> > >> There are also a couple of buttons where no keycode really seems to
-> > >> match. One is the mouse button drag. I suppose I could implement the
-> > >> drag lock feature in the driver but I'm not sure if that's a good idea.
-> > >> It would make that button special and unmappable. Currently I have that
-> > >> mapped to EDIT IIRC.
-> > >
-> > > I'm not sure what we should do with those buttons.
-> > >
-> > > Probably, the most complete IR spec is the RC5 codes:
-> > >        http://c6000.spectrumdigital.com/davincievm/revf/files/msp430/rc5_codes.pdf
-> > > (not sure if this table is complete or accurate, but on a search I did
-> > > today, this is the one that gave me a better documentation)
-> > >
-> > > I suspect that, after solving the most used cases, we'll need to take a better look on it,
-> > > identifying the missing cases of the real implementations and add them to input.h.
-> > >
-> > >> The other oddball button has a picture of a stopwatch (I think, it's
-> > >> not very clear). Currently it uses COFFEE, but maybe TIMER or something
-> > >> like that should be added. The Windows software's manual just say it
-> > >> toggles TV-on-demand, but I have no idea what that actually is.
-> > >
-> > > Hmm... Maybe TV-on-demand is another name for pay-per-view?
-> > >
-> > >
-> > >
-> > > Cheers,
-> > > Mauro
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > >
-> > 
-> > Since we're on the topic of IR support, there are probably a couple of
-> > other things we may want to be thinking about if we plan on
-> > refactoring the API at all:
-> > 
-> > 1.  The fact that for RC5 remote controls, the tables in ir-keymaps.c
-> > only have the second byte.  In theory, they should have both bytes
-> > since the vendor byte helps prevents receiving spurious commands from
-> > unrelated remote controls.  We should include the ability to "ignore
-> > the vendor byte" so we can continue to support all the remotes
-> > currently in the ir-keymaps.c where we don't know what the vendor byte
-> > should contain.
-> > 
-> > 2..  The fact that the current API provides no real way to change the
-> > mode of operation for the IR receiver, for those receivers that
-> > support multiple modes (NEC/RC5/RC6).  While you have the ability to
-> > change the mapping table from userland via the keytable program, there
-> > is currently no way to tell the IR receiver which mode to operate in.
-> > 
-> > One would argue that the above keymaps structure should include new
-> > fields to indicate what type of remote it is (NEC/RC5/RC6 etc), as
-> > well as field to indicate that the vendor codes are absent from the
-> > key mapping for that remote).  Given this, I can change the dib0700
-> > and em28xx IR receivers to automatically set the IR capture mode
-> > appropriate based on which remote is in the device profile.
+On Wednesday 26 August 2009 08:41:00 Guennadi Liakhovetski wrote:
+> Introduce new v4l2-subdev sensor operations, move .enum_framesizes() and
+> .enum_frameintervals() methods to it, add a new .g_skip_top_lines() method
+> and switch soc-camera to use it instead of .y_skip_top soc_camera_device
+> member, which can now be removed.
 > 
-> Jon Smirl actually wrote some fully functional proof-of-concept IR
-> handling code about a year ago, that included auto-detection and auto
-> decoding of several protocols. Perhaps some of that is relevant and
-> reusable here? (I still have a copy of the tree here somewhere...)
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+> 
+> Changes since v2: renamed skip_top_lines into g_skip_top_lines, made 
+> explanation comment hopefully clearer.
+> 
+>  drivers/media/video/mt9m001.c             |   30 ++++++++++++++++++++------
+>  drivers/media/video/mt9m111.c             |    1 -
+>  drivers/media/video/mt9t031.c             |    8 ++----
+>  drivers/media/video/mt9v022.c             |   32 ++++++++++++++++++++--------
+>  drivers/media/video/pxa_camera.c          |    9 ++++++-
+>  drivers/media/video/soc_camera_platform.c |    1 -
+>  include/media/soc_camera.h                |    1 -
+>  include/media/v4l2-subdev.h               |   13 +++++++++++
+>  8 files changed, 69 insertions(+), 26 deletions(-)
+> 
+> diff --git a/drivers/media/video/mt9m001.c b/drivers/media/video/mt9m001.c
+> index 45388d2..17be2d4 100644
+> --- a/drivers/media/video/mt9m001.c
+> +++ b/drivers/media/video/mt9m001.c
+> @@ -82,6 +82,7 @@ struct mt9m001 {
+>  	int model;	/* V4L2_IDENT_MT9M001* codes from v4l2-chip-ident.h */
+>  	unsigned int gain;
+>  	unsigned int exposure;
+> +	unsigned short y_skip_top;	/* Lines to skip at the top */
+>  	unsigned char autoexposure;
+>  };
+>  
+> @@ -222,7 +223,7 @@ static int mt9m001_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+>  	soc_camera_limit_side(&rect.top, &rect.height,
+>  		     MT9M001_ROW_SKIP, MT9M001_MIN_HEIGHT, MT9M001_MAX_HEIGHT);
+>  
+> -	total_h = rect.height + icd->y_skip_top + vblank;
+> +	total_h = rect.height + mt9m001->y_skip_top + vblank;
+>  
+>  	/* Blanking and start values - default... */
+>  	ret = reg_write(client, MT9M001_HORIZONTAL_BLANKING, hblank);
+> @@ -239,7 +240,7 @@ static int mt9m001_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+>  		ret = reg_write(client, MT9M001_WINDOW_WIDTH, rect.width - 1);
+>  	if (!ret)
+>  		ret = reg_write(client, MT9M001_WINDOW_HEIGHT,
+> -				rect.height + icd->y_skip_top - 1);
+> +				rect.height + mt9m001->y_skip_top - 1);
+>  	if (!ret && mt9m001->autoexposure) {
+>  		ret = reg_write(client, MT9M001_SHUTTER_WIDTH, total_h);
+>  		if (!ret) {
+> @@ -327,13 +328,13 @@ static int mt9m001_s_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
+>  static int mt9m001_try_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
+>  {
+>  	struct i2c_client *client = sd->priv;
+> -	struct soc_camera_device *icd = client->dev.platform_data;
+> +	struct mt9m001 *mt9m001 = to_mt9m001(client);
+>  	struct v4l2_pix_format *pix = &f->fmt.pix;
+>  
+>  	v4l_bound_align_image(&pix->width, MT9M001_MIN_WIDTH,
+>  		MT9M001_MAX_WIDTH, 1,
+> -		&pix->height, MT9M001_MIN_HEIGHT + icd->y_skip_top,
+> -		MT9M001_MAX_HEIGHT + icd->y_skip_top, 0, 0);
+> +		&pix->height, MT9M001_MIN_HEIGHT + mt9m001->y_skip_top,
+> +		MT9M001_MAX_HEIGHT + mt9m001->y_skip_top, 0, 0);
+>  
+>  	if (pix->pixelformat == V4L2_PIX_FMT_SBGGR8 ||
+>  	    pix->pixelformat == V4L2_PIX_FMT_SBGGR16)
+> @@ -552,7 +553,7 @@ static int mt9m001_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+>  		if (ctrl->value) {
+>  			const u16 vblank = 25;
+>  			unsigned int total_h = mt9m001->rect.height +
+> -				icd->y_skip_top + vblank;
+> +				mt9m001->y_skip_top + vblank;
+>  			if (reg_write(client, MT9M001_SHUTTER_WIDTH,
+>  				      total_h) < 0)
+>  				return -EIO;
+> @@ -655,6 +656,16 @@ static void mt9m001_video_remove(struct soc_camera_device *icd)
+>  		icl->free_bus(icl);
+>  }
+>  
+> +static int mt9m001_g_skip_top_lines(struct v4l2_subdev *sd, u32 *lines)
+> +{
+> +	struct i2c_client *client = sd->priv;
+> +	struct mt9m001 *mt9m001 = to_mt9m001(client);
+> +
+> +	*lines = mt9m001->y_skip_top;
+> +
+> +	return 0;
+> +}
+> +
+>  static struct v4l2_subdev_core_ops mt9m001_subdev_core_ops = {
+>  	.g_ctrl		= mt9m001_g_ctrl,
+>  	.s_ctrl		= mt9m001_s_ctrl,
+> @@ -675,9 +686,14 @@ static struct v4l2_subdev_video_ops mt9m001_subdev_video_ops = {
+>  	.cropcap	= mt9m001_cropcap,
+>  };
+>  
+> +static struct v4l2_subdev_sensor_ops mt9m001_subdev_sensor_ops = {
+> +	.g_skip_top_lines	= mt9m001_g_skip_top_lines,
+> +};
+> +
+>  static struct v4l2_subdev_ops mt9m001_subdev_ops = {
+>  	.core	= &mt9m001_subdev_core_ops,
+>  	.video	= &mt9m001_subdev_video_ops,
+> +	.sensor	= &mt9m001_subdev_sensor_ops,
+>  };
+>  
+>  static int mt9m001_probe(struct i2c_client *client,
+> @@ -714,8 +730,8 @@ static int mt9m001_probe(struct i2c_client *client,
+>  
+>  	/* Second stage probe - when a capture adapter is there */
+>  	icd->ops		= &mt9m001_ops;
+> -	icd->y_skip_top		= 0;
+>  
+> +	mt9m001->y_skip_top	= 0;
+>  	mt9m001->rect.left	= MT9M001_COLUMN_SKIP;
+>  	mt9m001->rect.top	= MT9M001_ROW_SKIP;
+>  	mt9m001->rect.width	= MT9M001_MAX_WIDTH;
+> diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+> index 90da699..30db625 100644
+> --- a/drivers/media/video/mt9m111.c
+> +++ b/drivers/media/video/mt9m111.c
+> @@ -1019,7 +1019,6 @@ static int mt9m111_probe(struct i2c_client *client,
+>  
+>  	/* Second stage probe - when a capture adapter is there */
+>  	icd->ops		= &mt9m111_ops;
+> -	icd->y_skip_top		= 0;
+>  
+>  	mt9m111->rect.left	= MT9M111_MIN_DARK_COLS;
+>  	mt9m111->rect.top	= MT9M111_MIN_DARK_ROWS;
+> diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
+> index 6966f64..57e04e9 100644
+> --- a/drivers/media/video/mt9t031.c
+> +++ b/drivers/media/video/mt9t031.c
+> @@ -301,9 +301,9 @@ static int mt9t031_set_params(struct soc_camera_device *icd,
+>  		ret = reg_write(client, MT9T031_WINDOW_WIDTH, rect->width - 1);
+>  	if (ret >= 0)
+>  		ret = reg_write(client, MT9T031_WINDOW_HEIGHT,
+> -				rect->height + icd->y_skip_top - 1);
+> +				rect->height - 1);
+>  	if (ret >= 0 && mt9t031->autoexposure) {
+> -		unsigned int total_h = rect->height + icd->y_skip_top + vblank;
+> +		unsigned int total_h = rect->height + vblank;
+>  		ret = set_shutter(client, total_h);
+>  		if (ret >= 0) {
+>  			const u32 shutter_max = MT9T031_MAX_HEIGHT + vblank;
+> @@ -656,8 +656,7 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+>  		if (ctrl->value) {
+>  			const u16 vblank = MT9T031_VERTICAL_BLANK;
+>  			const u32 shutter_max = MT9T031_MAX_HEIGHT + vblank;
+> -			unsigned int total_h = mt9t031->rect.height +
+> -				icd->y_skip_top + vblank;
+> +			unsigned int total_h = mt9t031->rect.height + vblank;
+>  
+>  			if (set_shutter(client, total_h) < 0)
+>  				return -EIO;
+> @@ -773,7 +772,6 @@ static int mt9t031_probe(struct i2c_client *client,
+>  
+>  	/* Second stage probe - when a capture adapter is there */
+>  	icd->ops		= &mt9t031_ops;
+> -	icd->y_skip_top		= 0;
+>  
+>  	mt9t031->rect.left	= MT9T031_COLUMN_SKIP;
+>  	mt9t031->rect.top	= MT9T031_ROW_SKIP;
+> diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
+> index 995607f..b71898f 100644
+> --- a/drivers/media/video/mt9v022.c
+> +++ b/drivers/media/video/mt9v022.c
+> @@ -97,6 +97,7 @@ struct mt9v022 {
+>  	__u32 fourcc;
+>  	int model;	/* V4L2_IDENT_MT9V022* codes from v4l2-chip-ident.h */
+>  	u16 chip_control;
+> +	unsigned short y_skip_top;	/* Lines to skip at the top */
+>  };
+>  
+>  static struct mt9v022 *to_mt9v022(const struct i2c_client *client)
+> @@ -265,7 +266,6 @@ static int mt9v022_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+>  	struct i2c_client *client = sd->priv;
+>  	struct mt9v022 *mt9v022 = to_mt9v022(client);
+>  	struct v4l2_rect rect = a->c;
+> -	struct soc_camera_device *icd = client->dev.platform_data;
+>  	int ret;
+>  
+>  	/* Bayer format - even size lengths */
+> @@ -287,10 +287,10 @@ static int mt9v022_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+>  	if (ret >= 0) {
+>  		if (ret & 1) /* Autoexposure */
+>  			ret = reg_write(client, MT9V022_MAX_TOTAL_SHUTTER_WIDTH,
+> -					rect.height + icd->y_skip_top + 43);
+> +					rect.height + mt9v022->y_skip_top + 43);
+>  		else
+>  			ret = reg_write(client, MT9V022_TOTAL_SHUTTER_WIDTH,
+> -					rect.height + icd->y_skip_top + 43);
+> +					rect.height + mt9v022->y_skip_top + 43);
+>  	}
+>  	/* Setup frame format: defaults apart from width and height */
+>  	if (!ret)
+> @@ -309,7 +309,7 @@ static int mt9v022_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+>  		ret = reg_write(client, MT9V022_WINDOW_WIDTH, rect.width);
+>  	if (!ret)
+>  		ret = reg_write(client, MT9V022_WINDOW_HEIGHT,
+> -				rect.height + icd->y_skip_top);
+> +				rect.height + mt9v022->y_skip_top);
+>  
+>  	if (ret < 0)
+>  		return ret;
+> @@ -410,15 +410,15 @@ static int mt9v022_s_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
+>  static int mt9v022_try_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
+>  {
+>  	struct i2c_client *client = sd->priv;
+> -	struct soc_camera_device *icd = client->dev.platform_data;
+> +	struct mt9v022 *mt9v022 = to_mt9v022(client);
+>  	struct v4l2_pix_format *pix = &f->fmt.pix;
+>  	int align = pix->pixelformat == V4L2_PIX_FMT_SBGGR8 ||
+>  		pix->pixelformat == V4L2_PIX_FMT_SBGGR16;
+>  
+>  	v4l_bound_align_image(&pix->width, MT9V022_MIN_WIDTH,
+>  		MT9V022_MAX_WIDTH, align,
+> -		&pix->height, MT9V022_MIN_HEIGHT + icd->y_skip_top,
+> -		MT9V022_MAX_HEIGHT + icd->y_skip_top, align, 0);
+> +		&pix->height, MT9V022_MIN_HEIGHT + mt9v022->y_skip_top,
+> +		MT9V022_MAX_HEIGHT + mt9v022->y_skip_top, align, 0);
+>  
+>  	return 0;
+>  }
+> @@ -787,6 +787,16 @@ static void mt9v022_video_remove(struct soc_camera_device *icd)
+>  		icl->free_bus(icl);
+>  }
+>  
+> +static int mt9v022_g_skip_top_lines(struct v4l2_subdev *sd, u32 *lines)
+> +{
+> +	struct i2c_client *client = sd->priv;
+> +	struct mt9v022 *mt9v022 = to_mt9v022(client);
+> +
+> +	*lines = mt9v022->y_skip_top;
+> +
+> +	return 0;
+> +}
+> +
+>  static struct v4l2_subdev_core_ops mt9v022_subdev_core_ops = {
+>  	.g_ctrl		= mt9v022_g_ctrl,
+>  	.s_ctrl		= mt9v022_s_ctrl,
+> @@ -807,9 +817,14 @@ static struct v4l2_subdev_video_ops mt9v022_subdev_video_ops = {
+>  	.cropcap	= mt9v022_cropcap,
+>  };
+>  
+> +static struct v4l2_subdev_sensor_ops mt9v022_subdev_sensor_ops = {
+> +	.g_skip_top_lines	= mt9v022_g_skip_top_lines,
+> +};
+> +
+>  static struct v4l2_subdev_ops mt9v022_subdev_ops = {
+>  	.core	= &mt9v022_subdev_core_ops,
+>  	.video	= &mt9v022_subdev_video_ops,
+> +	.sensor	= &mt9v022_subdev_sensor_ops,
+>  };
+>  
+>  static int mt9v022_probe(struct i2c_client *client,
+> @@ -851,8 +866,7 @@ static int mt9v022_probe(struct i2c_client *client,
+>  	 * MT9V022 _really_ corrupts the first read out line.
+>  	 * TODO: verify on i.MX31
+>  	 */
+> -	icd->y_skip_top		= 1;
+> -
+> +	mt9v022->y_skip_top	= 1;
+>  	mt9v022->rect.left	= MT9V022_COLUMN_SKIP;
+>  	mt9v022->rect.top	= MT9V022_ROW_SKIP;
+>  	mt9v022->rect.width	= MT9V022_MAX_WIDTH;
+> diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+> index 6952e96..a68de31 100644
+> --- a/drivers/media/video/pxa_camera.c
+> +++ b/drivers/media/video/pxa_camera.c
+> @@ -1050,8 +1050,13 @@ static void pxa_camera_setup_cicr(struct soc_camera_device *icd,
+>  {
+>  	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+>  	struct pxa_camera_dev *pcdev = ici->priv;
+> +	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+>  	unsigned long dw, bpp;
+> -	u32 cicr0, cicr1, cicr2, cicr3, cicr4 = 0;
+> +	u32 cicr0, cicr1, cicr2, cicr3, cicr4 = 0, y_skip_top;
+> +	int ret = v4l2_subdev_call(sd, sensor, g_skip_top_lines, &y_skip_top);
+> +
+> +	if (ret < 0)
+> +		y_skip_top = 0;
+>  
+>  	/* Datawidth is now guaranteed to be equal to one of the three values.
+>  	 * We fix bit-per-pixel equal to data-width... */
+> @@ -1117,7 +1122,7 @@ static void pxa_camera_setup_cicr(struct soc_camera_device *icd,
+>  
+>  	cicr2 = 0;
+>  	cicr3 = CICR3_LPF_VAL(icd->user_height - 1) |
+> -		CICR3_BFW_VAL(min((unsigned short)255, icd->y_skip_top));
+> +		CICR3_BFW_VAL(min((unsigned short)255, y_skip_top));
+>  	cicr4 |= pcdev->mclk_divisor;
+>  
+>  	__raw_writel(cicr1, pcdev->base + CICR1);
+> diff --git a/drivers/media/video/soc_camera_platform.c b/drivers/media/video/soc_camera_platform.c
+> index 1b6dd02..8b1c735 100644
+> --- a/drivers/media/video/soc_camera_platform.c
+> +++ b/drivers/media/video/soc_camera_platform.c
+> @@ -128,7 +128,6 @@ static int soc_camera_platform_probe(struct platform_device *pdev)
+>  	/* Set the control device reference */
+>  	dev_set_drvdata(&icd->dev, &pdev->dev);
+>  
+> -	icd->y_skip_top		= 0;
+>  	icd->ops		= &soc_camera_platform_ops;
+>  
+>  	ici = to_soc_camera_host(icd->dev.parent);
+> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+> index c5afc8c..218639f 100644
+> --- a/include/media/soc_camera.h
+> +++ b/include/media/soc_camera.h
+> @@ -24,7 +24,6 @@ struct soc_camera_device {
+>  	struct device *pdev;		/* Platform device */
+>  	s32 user_width;
+>  	s32 user_height;
+> -	unsigned short y_skip_top;	/* Lines to skip at the top */
+>  	unsigned char iface;		/* Host number */
+>  	unsigned char devnum;		/* Device number per host */
+>  	unsigned char buswidth;		/* See comment in .c */
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 89a39ce..81b90d2 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -225,8 +225,20 @@ struct v4l2_subdev_video_ops {
+>  	int (*s_crop)(struct v4l2_subdev *sd, struct v4l2_crop *crop);
+>  	int (*g_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
+>  	int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
+> +};
+> +
+> +/**
+> + * struct v4l2_subdev_sensor_ops - v4l2-subdev sensor operations
+> + * @enum_framesizes: enumerate supported framesizes
+> + * @enum_frameintervals: enumerate supported frame format intervals
+> + * @g_skip_top_lines: number of lines at the top of the image to be skipped.
+> + *		      This is needed for some sensors, that always corrupt
+> + *		      several top lines of the output image.
+> + */
+> +struct v4l2_subdev_sensor_ops {
+>  	int (*enum_framesizes)(struct v4l2_subdev *sd, struct v4l2_frmsizeenum *fsize);
+>  	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct v4l2_frmivalenum *fival);
+> +	int (*g_skip_top_lines)(struct v4l2_subdev *sd, u32 *lines);
+>  };
+>  
+>  struct v4l2_subdev_ops {
+> @@ -234,6 +246,7 @@ struct v4l2_subdev_ops {
+>  	const struct v4l2_subdev_tuner_ops *tuner;
+>  	const struct v4l2_subdev_audio_ops *audio;
+>  	const struct v4l2_subdev_video_ops *video;
+> +	const struct v4l2_subdev_sensor_ops *sensor;
+>  };
+>  
+>  #define V4L2_SUBDEV_NAME_SIZE 32
 
-Yes, it seems interesting. We may try to merge his code at ir-functions.
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-> I've been toying with the notion of extending the input device support
-> that was added to the lirc_imon driver a bit ago, and add a full key
-> map that delivers events (we already do this for mouse functionality),
-> but include the ability to also use the remote and/or receiver in a
-> raw IR mode with lircd. Wouldn't be terribly difficult I think to do
-> something similar for the standard MCE remotes and receivers... Just
-> a simple matter of some time and some code. Unfortunately, I'm a bit
-> short on the time part right now...
+Regards,
 
-Interesting. This could work fine with the IR's that are directly connected to
-a GPIO pin at the MCE receivers.
+	Hans
 
-
-
-Cheers,
-Mauro
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
