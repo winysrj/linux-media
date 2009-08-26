@@ -1,144 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:44406 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751387AbZH2Q5m convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Aug 2009 12:57:42 -0400
-Received: by fg-out-1718.google.com with SMTP id 22so206725fge.1
-        for <linux-media@vger.kernel.org>; Sat, 29 Aug 2009 09:57:41 -0700 (PDT)
+Received: from mail.gmx.net ([213.165.64.20]:55079 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750747AbZHZOjF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Aug 2009 10:39:05 -0400
+Date: Wed, 26 Aug 2009 16:39:16 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans de Goede <j.w.r.degoede@hhs.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC] Pixel format definition on the "image" bus
+Message-ID: <Pine.LNX.4.64.0908261452460.7670@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <4A982F5D.6070904@kaiser-linux.li>
-References: <880dece00908281140r16385c1fr476b18f2fcfe3c1b@mail.gmail.com>
-	 <4A982F5D.6070904@kaiser-linux.li>
-Date: Sat, 29 Aug 2009 19:57:41 +0300
-Message-ID: <880dece00908290957q473e3a8o822042b2721de170@mail.gmail.com>
-Subject: Re: Using MSI StarCam 370i Webcam with Kubuntu Linux
-From: Dotan Cohen <dotancohen@gmail.com>
-To: Thomas Kaiser <v4l@kaiser-linux.li>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/8/28 Thomas Kaiser <v4l@kaiser-linux.li>:
-> On 08/28/2009 08:40 PM, Dotan Cohen wrote:
->>
->> I have the MSI StarCam 370i Webcam and I have trying to use it with
->> Kubuntu Linux 9.04 Jaunty. According to this page, "The StarCam 370i
->> is compliant with UVC, USB video class":
->>
->> http://gadgets.softpedia.com/gadgets/Computer-Peripherals/The-MSI-StarCam-370i-3105.html
->>
->> According to the Linux UVC driver and tools download page, "Linux
->> 2.6.26 and newer includes the Linux UVC driver natively" which is nice
->> as I am on a higher version:
->> $ uname -r
->> 2.6.28-15-generic
->>
->> However, plugging in the webcam and testing with camorama, cheese, and
->> luvcview led me to no results:
->>
->> jaunty2@laptop:~$ luvcview -f yuv
->> luvcview 0.2.4
->>
->> SDL information:
->>  Video driver: x11
->>  A window manager is available
->> Device information:
->>  Device path:  /dev/video0
->> Stream settings:
->> ERROR: Requested frame format YUYV is not available and no fallback
->> format was found.
->>  Init v4L2 failed !! exit fatal
->> jaunty2@laptop:~$ luvcview -f uyvy
->> luvcview 0.2.4
->>
->> SDL information:
->>  Video driver: x11
->>  A window manager is available
->> Device information:
->>  Device path:  /dev/video0
->> Stream settings:
->> ERROR: Requested frame format UYVY is not available and no fallback
->> format was found.
->>  Init v4L2 failed !! exit fatal
->> jaunty2@laptop:~$ luvcview
->> luvcview 0.2.4
->>
->> SDL information:
->>  Video driver: x11
->>  A window manager is available
->> Device information:
->>  Device path:  /dev/video0
->> Stream settings:
->> ERROR: Requested frame format MJPG is not available and no fallback
->> format was found.
->>  Init v4L2 failed !! exit fatal
->>
->>
->> Some more details:
->>
->> jaunty2@laptop:~$ ls /dev/vi*
->> /dev/video0
->> jaunty2@laptop:~$ dmesg | tail
->> [ 2777.811972] sn9c102: V4L2 driver for SN9C1xx PC Camera Controllers
->> v1:1.47pre49
->> [ 2777.814989] usb 2-1: SN9C105 PC Camera Controller detected (vid:pid
->> 0x0C45:0x60FC)
->> [ 2777.842123] usb 2-1: HV7131R image sensor detected
->> [ 2778.185108] usb 2-1: Initialization succeeded
->> [ 2778.185220] usb 2-1: V4L2 device registered as /dev/video0
->> [ 2778.185225] usb 2-1: Optional device control through 'sysfs'
->> interface disabled
->> [ 2778.185283] usbcore: registered new interface driver sn9c102
->> [ 2778.216691] usbcore: registered new interface driver snd-usb-audio
->> [ 2778.218738] usbcore: registered new interface driver sonixj
->> [ 2778.218745] sonixj: registered
->> jaunty2@laptop:~$ lsusb
->> Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
->> Bus 005 Device 002: ID 413c:8126 Dell Computer Corp. Wireless 355
->> Bluetooth
->> Bus 005 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
->> Bus 004 Device 004: ID 045e:0040 Microsoft Corp. Wheel Mouse Optical
->> Bus 004 Device 003: ID 045e:00db Microsoft Corp. Natural Ergonomic
->> Keyboard 4000 V1.0
->> Bus 004 Device 002: ID 05e3:0604 Genesys Logic, Inc. USB 1.1 Hub
->> Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
->> Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
->> Bus 002 Device 002: ID 0c45:60fc Microdia PC Camera with Mic (SN9C105)
->> Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
->> jaunty2@laptop:~$
->>
->>
->>
->> Anything missing? What should I do? Thanks in advance!
->
-> Hello Dotan, me again ;-)
->
-> Looks like your cam is detected, but does not provide a good frame format.
-> You my have to use libv4l to convert to a know format.
->
-> See: http://hansdegoede.livejournal.com/7622.html
->
+Hi all
 
-Thanks. I will go through that tomorrow, but in the meantime I got a
-strange result. Despite the fact  that this is a 32 bit Kubuntu
-install, I got these results from the tests at the beginning of the
-page:
+With the ability to arbitrarily combine (video) data sources and sinks we 
+have to be able to suitably configure both parties. This includes setting 
+bus parameters, which is discussed elsewhere, and selecting a data format, 
+which is discussed in this RFC.
 
-jaunty2@laptop:~$ ls -d /usr/lib64
-/usr/lib64
-jaunty2@laptop:~$ ls -d /usr/lib32
-ls: cannot access /usr/lib32: No such file or directory
-jaunty2@laptop:~$
+Video data, coming from a source (e.g., a camera sensor) to a sink (e.g., 
+a bridge) can be processed in two ways: (1) as raw data, and (2) as 
+formatted data.
 
+Definition 1: Raw Data Sampling means storing frames, consisting of a 
+certain number of lines, consisting of a certain number of samples (which 
+may or may not represent pixels) in memory. Each sample contains a certain 
+number of bits of useful information, multiple samples can be packed 
+together according to some rule.
 
-According to what is written, with those results I should use the
-Fedora multilib instructions. Does that not sound unusual?
+In case (1) the sink has no specific knowledge about the format, so it can 
+only sample data on its data bus and store it in memory in some specific 
+manner. This "manner" is completely defined by the following three 
+parameters: (a) how many bits are sampled, (b) in which order they will be 
+stored in memory, (c) how samples have to be packed. To provide such "raw" 
+data to the user the bridge driver also has to know what format the data 
+represents if stored in memory as required by the source.
 
--- 
-Dotan Cohen
+In case (2) the sink "knows" this specific format and can handle it 
+accordingly, e.g., convert to some other format.
 
-http://what-is-what.com
-http://gibberish.co.il
+It is therefore proposed to describe a data format on-the-bus using the 
+following parameters:
+
+enum V4L2_DATA_PACKING {
+	V4L2_DATA_PACKING_NONE	= 0,
+};
+
+enum V4L2_DATA_ORDER {
+	V4L2_DATA_ORDER_LE	= 0,
+	V4L2_DATA_ORDER_BE	= 1,
+};
+
+/**
+ * struct v4l2_subdev_bus_pixelfmt - Data format on the image bus
+ * @sourceformat:	Format identification for sinks, capable to process this
+ *			specific format
+ * @pixelformat:	Fourcc code...
+ * @colorspace:		and colorspace, that will be obtained if the data is
+ *			stored in memory in the following way:
+ * @bits_per_sample:	How many bits the bridge has to sample
+ * @packing:		Type of sample-packing, that has to be used
+ * @order:		Sample order when storing in memory
+ */
+struct v4l2_subdev_bus_pixelfmt {
+	u32			sourceformat;
+	u32			pixelformat;
+	enum v4l2_colorspace	colorspace;
+	int			index;
+	u8			bits_per_sample;
+	enum V4L2_DATA_PACKING	packing;
+	enum V4L2_DATA_ORDER	order;
+};
+
+The .sourceformat field above is a new enumeration, similar to currently 
+defined in include/linux/videodev2.h fourcc codes, but combining the 
+fourcc, bits-per-sample, packing and order information in one. If an 
+existing Fourcc code already uniquely defines this combination, the new 
+code might coincide with it. In principle, this code is redundant, because 
+the data format is completely described by the "raw" parameters, but it 
+can be useful for some (simple) source-sink combinations.
+
+The sink driver can then use the following new method from struct 
+v4l2_subdev_video_ops:
+
+int (*enum_bus_pixelfmt)(struct v4l2_subdev *sd,
+			 const struct v4l2_subdev_bus_pixelfmt **fmt);
+
+to enumerate formats, provided by the source and to decide, which of them 
+it can support in raw mode, which as formatted data, and which of them it 
+cannot support at all, e.g., because it does not support the requested 
+packing type. This enumeration can either take place upon reception of a 
+S_FMT ioctl, or during probing to build a list of formats, that this 
+specific source-sink pair can provide to the user.
+
+Comments welcome.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
