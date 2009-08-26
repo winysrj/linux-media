@@ -1,85 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f177.google.com ([209.85.211.177]:50681 "EHLO
-	mail-yw0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932161AbZHDNDN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2009 09:03:13 -0400
-Received: by ywh7 with SMTP id 7so5054076ywh.21
-        for <linux-media@vger.kernel.org>; Tue, 04 Aug 2009 06:03:13 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4A782DC0.2080905@netscape.net>
-References: <4A782DC0.2080905@netscape.net>
-Date: Tue, 4 Aug 2009 09:03:12 -0400
-Message-ID: <829197380908040603l484a4c2el528fbeff937bc8b6@mail.gmail.com>
-Subject: Re: Hauppauge WinTV usb 1 not working?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Kaya Saman <SamanKaya@netscape.net>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from bear.ext.ti.com ([192.94.94.41]:46731 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1749667AbZHZQUh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Aug 2009 12:20:37 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans de Goede <j.w.r.degoede@hhs.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date: Wed, 26 Aug 2009 11:20:24 -0500
+Subject: RE: [RFC] Pixel format definition on the "image" bus
+Message-ID: <A69FA2915331DC488A831521EAE36FE40154E2C11B@dlee06.ent.ti.com>
+References: <Pine.LNX.4.64.0908261452460.7670@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0908261452460.7670@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 4, 2009 at 8:46 AM, Kaya Saman<SamanKaya@netscape.net> wrote:
-> Hi,
->
-> I hope I'm in the right place!!
->
-> I have a Hauppauge WinTV usb 1.1 tuner but I don't seem to be able to get it
-> working.
->
-> I am running Kubuntu 9.04 64-bit edition.
->
-> The tuner detects in the kernel as:
-> Bus 006 Device 002: ID 0573:4d22 Zoran Co. Personal Media Division
-> (Nogatech) Hauppauge WinTV-USB II (PAL) Model 566
->
-> Using the USBVision driver.
->
-> In the kernel using dmesg the tuner is detected as a WinTV Pro??
->
-> I have tried various apps to watch tv including tvtime, xawtv, and Zapping.
->
-> Running tvtime-scanner gives this output:
->
-> Reading configuration from /etc/tvtime/tvtime.xml
-> Reading configuration from /home/kaya/.tvtime/tvtime.xml
-> Scanning using TV standard PAL.
-> /home/kaya/.tvtime/stationlist.xml: No existing PAL station list "Custom".
->
->  Your capture card driver: USBVision [Hauppauge WinTV USB Pro (PAL
-> I)/6-2/2313]
->  does not support full size studio-quality images required by tvtime.
->  This is true for many low-quality webcams.  Please select a
->  different video device for tvtime to use with the command line
->  option --device.
->
-> And xawtv and zapping seg fault each time I run them....??
->
-> I have an ancient Hauppauge WinTV/Radio PCI card which uses the bttv driver
-> and xawtv works fine on it so I'm not sure why this one isn't working.
->
-> Can anyone help at all or suggest something??
->
-> Many thanks,
->
-> Kaya
+Guennadi,
 
-I can indeed confirm what you are seeing.  I tried out the device a
-few months ago and hit the same results. The maximum capture
-resolution is 320x200 so it won't work for tvtime, and I did hit
-intermittent segfaults with other apps.
+How is this different from enum_fmt() sub device operation. The pixel format does specify how bridge device pack the data from sub device into memory
+and describe the same to user space applications. Not sure why we need this.
 
-Note that zapping will not work since the device does not have an
-onboard tuner.  It only has composite and s-video inputs.
 
-The chipset in question does have support for 640x480, but the driver
-never had the support added.  The device is pretty ancient so I didn't
-have the time to invest in cleaning up all the bugs I found (and newer
-USB2 based devices are so cheap I didn't think it was worth the
-effort).
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+email: m-karicheri2@ti.com
 
-Devin
+>-----Original Message-----
+>From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>owner@vger.kernel.org] On Behalf Of Guennadi Liakhovetski
+>Sent: Wednesday, August 26, 2009 10:39 AM
+>To: Linux Media Mailing List
+>Cc: Hans Verkuil; Hans de Goede; Laurent Pinchart
+>Subject: [RFC] Pixel format definition on the "image" bus
+>
+>Hi all
+>
+>With the ability to arbitrarily combine (video) data sources and sinks we
+>have to be able to suitably configure both parties. This includes setting
+>bus parameters, which is discussed elsewhere, and selecting a data format,
+>which is discussed in this RFC.
+>
+>Video data, coming from a source (e.g., a camera sensor) to a sink (e.g.,
+>a bridge) can be processed in two ways: (1) as raw data, and (2) as
+>formatted data.
+>
+>Definition 1: Raw Data Sampling means storing frames, consisting of a
+>certain number of lines, consisting of a certain number of samples (which
+>may or may not represent pixels) in memory. Each sample contains a certain
+>number of bits of useful information, multiple samples can be packed
+>together according to some rule.
+>
+>In case (1) the sink has no specific knowledge about the format, so it can
+>only sample data on its data bus and store it in memory in some specific
+>manner. This "manner" is completely defined by the following three
+>parameters: (a) how many bits are sampled, (b) in which order they will be
+>stored in memory, (c) how samples have to be packed. To provide such "raw"
+>data to the user the bridge driver also has to know what format the data
+>represents if stored in memory as required by the source.
+>
+>In case (2) the sink "knows" this specific format and can handle it
+>accordingly, e.g., convert to some other format.
+>
+>It is therefore proposed to describe a data format on-the-bus using the
+>following parameters:
+>
+>enum V4L2_DATA_PACKING {
+>	V4L2_DATA_PACKING_NONE	= 0,
+>};
+>
+>enum V4L2_DATA_ORDER {
+>	V4L2_DATA_ORDER_LE	= 0,
+>	V4L2_DATA_ORDER_BE	= 1,
+>};
+>
+>/**
+> * struct v4l2_subdev_bus_pixelfmt - Data format on the image bus
+> * @sourceformat:	Format identification for sinks, capable to process this
+> *			specific format
+> * @pixelformat:	Fourcc code...
+> * @colorspace:		and colorspace, that will be obtained if the data
+>is
+> *			stored in memory in the following way:
+> * @bits_per_sample:	How many bits the bridge has to sample
+> * @packing:		Type of sample-packing, that has to be used
+> * @order:		Sample order when storing in memory
+> */
+>struct v4l2_subdev_bus_pixelfmt {
+>	u32			sourceformat;
+>	u32			pixelformat;
+>	enum v4l2_colorspace	colorspace;
+>	int			index;
+>	u8			bits_per_sample;
+>	enum V4L2_DATA_PACKING	packing;
+>	enum V4L2_DATA_ORDER	order;
+>};
+>
+>The .sourceformat field above is a new enumeration, similar to currently
+>defined in include/linux/videodev2.h fourcc codes, but combining the
+>fourcc, bits-per-sample, packing and order information in one. If an
+>existing Fourcc code already uniquely defines this combination, the new
+>code might coincide with it. In principle, this code is redundant, because
+>the data format is completely described by the "raw" parameters, but it
+>can be useful for some (simple) source-sink combinations.
+>
+>The sink driver can then use the following new method from struct
+>v4l2_subdev_video_ops:
+>
+>int (*enum_bus_pixelfmt)(struct v4l2_subdev *sd,
+>			 const struct v4l2_subdev_bus_pixelfmt **fmt);
+>
+>to enumerate formats, provided by the source and to decide, which of them
+>it can support in raw mode, which as formatted data, and which of them it
+>cannot support at all, e.g., because it does not support the requested
+>packing type. This enumeration can either take place upon reception of a
+>S_FMT ioctl, or during probing to build a list of formats, that this
+>specific source-sink pair can provide to the user.
+>
+>Comments welcome.
+>
+>Thanks
+>Guennadi
+>---
+>Guennadi Liakhovetski, Ph.D.
+>Freelance Open-Source Software Developer
+>http://www.open-technology.de/
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
