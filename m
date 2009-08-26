@@ -1,47 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:42420 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754500AbZHaGhi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Aug 2009 02:37:38 -0400
-Date: Mon, 31 Aug 2009 08:37:31 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES for 2.6.31] V4L/DVB fixes
-Message-ID: <20090831083731.5c08d3ec@tele>
-In-Reply-To: <20090831023331.3dd6f6b9@pedra.chehab.org>
-References: <20090831023331.3dd6f6b9@pedra.chehab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from qmta05.emeryville.ca.mail.comcast.net ([76.96.30.48]:37608 "EHLO
+	QMTA05.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751289AbZHZCTM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Aug 2009 22:19:12 -0400
+Message-ID: <50410.76.104.173.166.1251253129.squirrel@www.cyberseth.com>
+In-Reply-To: <4A947F89.3010705@kernellabs.com>
+References: <283002305-1251239519-cardhu_decombobulator_blackberry.rim.net-845544064-@bxe1079.bisx.prod.on.blackberry>
+    <4A946CB5.2010800@kernellabs.com> <4A947260.1040907@kernellabs.com>
+    <4A947F89.3010705@kernellabs.com>
+Date: Tue, 25 Aug 2009 19:18:49 -0700 (PDT)
+Subject: Re: Hauppauge 2250 - second tuner is only half working
+From: seth@cyberseth.com
+To: "Steven Toth" <stoth@kernellabs.com>
+Cc: seth@cyberseth.com, "Steve Harrington" <steve@emel-harrington.net>,
+	linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 31 Aug 2009 02:33:31 -0300
-Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+Well my card is out the door already.  So it'll be a week or so till i can
+try again. I'll give it a pretty thorough run down when i get the new
+card, maybe I can dig up a repro.
 
-> Please pull from:
->         ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
-> for_linus
-> 
-> For the following fixes:
-> 
->    - fixes detection of cameras with MT9M111 on em28xx;
->    - fixes LNA and LED with Hauppauge devices on sms1xx;
->    - fixes SDIO compilation on Siano;
->    - zr364: fix wrong indexes;
->    - em28xx: Don't call em28xx_ir_init when IR is disabled;
->    - gspca - sn9c20x: Fix gscpa sn9c20x build errors;
->    - usb_af9015: fix an Oops on hotplugging with 2.6.31-rc5-git3;
->    - MAINTAINERS: Update gspca sn9c20x name style.
+This is probably just a red herring, but FWIW I had never cold booted the
+machine (except monday morning when i yanked the card).  I warm booted
+plenty, but i frequently would run full us-Cable scan's on both tuners. 
+Some time last week when repo's pushed out 2.6.28-15, i had at least one
+warm boot in there where i had the modules/firmware missing.  I
+reinstalled (dist-clean, make, make install), rebooted, and tried again
+and found it was working (well, for a little while until that spontaneous
+reboot).
 
-Hi Mauro,
+-Seth
 
-I'd be glad to have the other high priority changeset in the new kernel
-(gspca - sonixj: Do the ov7660 sensor work again). Is it possible?
+> On 8/25/09 7:23 PM, Steven Toth wrote:
+>
+> I was able to repro the issue once however during patching the issue went
+> away,
+> never to return - regardless of whether the patch was active or not. I
+> even ran
+> a series of cold boots to try and repro the behavior but I cannot.
+>
+> I have seen the issue and I believe it exists, I just cannot get a
+> reliable repro.
+>
+> If you can test tuner 1 on selected frequencies then test tuner 2 always
+> against
+> channel 103 (669MHz) and find a reliable repro case then I'll take another
+> look.
+>
+> Annoying.
+>
+> --
+> Steven Toth - Kernel Labs
+> http://www.kernellabs.com
+>
+>
 
-Cheers.
-
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
