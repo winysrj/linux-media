@@ -1,83 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f214.google.com ([209.85.219.214]:55542 "EHLO
-	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932130AbZHLI4o (ORCPT
+Received: from smtp.bredband2.com ([83.219.192.166]:49032 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757390AbZHZOEb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2009 04:56:44 -0400
-Received: by ewy10 with SMTP id 10so4382034ewy.37
-        for <linux-media@vger.kernel.org>; Wed, 12 Aug 2009 01:56:44 -0700 (PDT)
-Message-ID: <4A8283C9.6020105@gmail.com>
-Date: Wed, 12 Aug 2009 10:56:41 +0200
-From: Ryan Raasch <ryan.raasch@gmail.com>
+	Wed, 26 Aug 2009 10:04:31 -0400
+Received: from yoshi.upcore.net (c-83-233-110-151.cust.bredband2.com [83.233.110.151])
+	by smtp.bredband2.com (Postfix) with ESMTPA id DCA0CAE591
+	for <linux-media@vger.kernel.org>; Wed, 26 Aug 2009 15:53:59 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by yoshi.upcore.net (Postfix) with ESMTP id B13C2C000140
+	for <linux-media@vger.kernel.org>; Wed, 26 Aug 2009 15:53:59 +0200 (CEST)
+Received: from yoshi.upcore.net ([127.0.0.1])
+	by localhost (mail.upcore.net [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id GCx35wRuHt5z for <linux-media@vger.kernel.org>;
+	Wed, 26 Aug 2009 15:53:57 +0200 (CEST)
+Received: from [IPv6:2001:470:9168:1:21b:fcff:fee1:7d85] (unknown [IPv6:2001:470:9168:1:21b:fcff:fee1:7d85])
+	by yoshi.upcore.net (Postfix) with ESMTPSA id 360F7C000128
+	for <linux-media@vger.kernel.org>; Wed, 26 Aug 2009 15:53:57 +0200 (CEST)
+Message-ID: <4A953E52.4020300@upcore.net>
+Date: Wed, 26 Aug 2009 15:53:22 +0200
+From: Magnus Nilsson <magnus@upcore.net>
 MIME-Version: 1.0
-To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-CC: video4linux-list@redhat.com,
-	v4l2_linux <linux-media@vger.kernel.org>
-Subject: Re: framebuffer overlay
-References: <4A827C70.4090500@gmail.com> <5e9665e10908120143h268a7210kb6bfa215cbfbe6de@mail.gmail.com>
-In-Reply-To: <5e9665e10908120143h268a7210kb6bfa215cbfbe6de@mail.gmail.com>
+To: linux-media@vger.kernel.org
+Subject: Azurewave AD-CP400 (Twinhan VP-2040 DVB-C)
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks for the reply!
+Hello,
 
-Dongsoo, Nathaniel Kim wrote:
-> On Wed, Aug 12, 2009 at 5:25 PM, Ryan Raasch<ryan.raasch@gmail.com> wrote:
->> Hello,
->>
->> I am trying to write a driver for a camera using the new soc_camera in the
->> mainline kernel the output is the overlay framebuffer (pxa270) and i would
->> like to use the overlay output feature of v4l2 framework, but the
->> framebuffer does not expose itself as a output device (not yet).
->>
-> Hi Ryan,
-> 
-> As far as I know the framebuffer of PXA2 even PXA3 can't be
-> categorized in a overlay device.
+I've two identical cards of this model, with the sticker on the tuner 
+saying:
+3139 147 24321G#
+CU1216LS/AGIGH-3
+SW21 0717
+MADE IN INDONESIA
 
-The pxa2 and pxa3 both have 3 framebuffers (4 if hardware curser 
-included). There is the main fb, and 2 overlay framebuffers.
+I've been trying as few different kernels, with the current one being 
+2.6.30-5.
+As far as I can understand these cards have the tda10023 frontend. 
+However, when trying s2-liplianin through opensascng (using cardsharing, 
+which I can't do without) the machine completely locks up. If I try 
+without sasc, and just point mythtv to devices 0 and 1, it doesn't seem 
+to hang but then I can only watch FTA channels.
 
-The overlay 2 has hardware accelerated ycbcr decoding (which i use now 
-with a camera using dma). And the overlay 1 can be used only with the 
-various types of RGB.
+I've also tried mantis-v4l, which for some strange reason detects the 
+tda10021 frontend instead of tda10023, hence it doesn't achieve a lock 
+at all.
 
-We have a solution which uses dma to copy the captured video from the 
-camera sensor (mmap'd), directly to the mmap'd memory of the overlay. 
-All occuring without user intervention.
-
-
-> To be able to get used as overlay device by camera interface, I think
-> there should be a direct FIFO between camera and framebuffer which
-> means there is no need to copy memory from camera to fb. But
-> unfortunately PXA architecture is not supporting this kind of feature.
-
-With the above there is no need for FIFO, the dma is directly copying 
-the received camera data to the selected framebuffer.
-
-Ryan
-
-> Cheers,
-> 
-
-
-> Nate
-> 
->> Are there any fb that i can use as an example for this?
->>
->> From looking at the driver code, it seems like the generic code of fbmem.c
->> needs a v4l2 device. Is this in the right ballpark?
->>
->> Thanks,
->> Ryan
->>
->> --
->> video4linux-list mailing list
->> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->> https://www.redhat.com/mailman/listinfo/video4linux-list
->>
-> 
-> 
-> 
+Any ideas?
