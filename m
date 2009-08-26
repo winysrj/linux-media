@@ -1,78 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01d.mail.t-online.hu ([84.2.42.6]:51789 "EHLO
-	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751102AbZHaUgm (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:55123 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751312AbZHZTRU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Aug 2009 16:36:42 -0400
-Message-ID: <4A9C3458.8050304@freemail.hu>
-Date: Mon, 31 Aug 2009 22:36:40 +0200
-From: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+	Wed, 26 Aug 2009 15:17:20 -0400
+Received: from localhost ([127.0.0.1] ident=martin)
+	by egon.zuhause with esmtp (Exim 4.69)
+	(envelope-from <linux@martin-kittel.de>)
+	id 1MgNzk-0002Mo-Nj
+	for linux-media@vger.kernel.org; Wed, 26 Aug 2009 21:17:20 +0200
+Message-ID: <4A958A40.8010001@martin-kittel.de>
+Date: Wed, 26 Aug 2009 21:17:20 +0200
+From: Martin Kittel <linux@martin-kittel.de>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] libv4l: add NULL pointer check
-References: <4A9A3EB0.8060304@freemail.hu> <200908310852.38847.laurent.pinchart@ideasonboard.com> <20090831101932.526dfdbc@pedra.chehab.org> <200908312216.14184.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <200908312216.14184.laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: HVR 1300: DVB channel lock problems since 2.6.28
+References: <loom.20090825T192551-363@post.gmane.org> <4A944ACA.5010800@hubstar.net>
+In-Reply-To: <4A944ACA.5010800@hubstar.net>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart wrote:
-> On Monday 31 August 2009 15:19:32 Mauro Carvalho Chehab wrote:
->> Em Mon, 31 Aug 2009 08:52:38 +0200
->>
->> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
->>>>  - dereferencing a NULL pointer is not always result segfault, see [1]
->>>> and [2]. So dereferencing a NULL pointer can be treated also as a
->>>> security risk.
->> From kernelspace drivers POV, any calls sending a NULL pointer should
->> result in an error as soon as possible, to avoid any security risks.
->> Currently, this check is left to the driver, but we should consider
->> implementing such control globally, at video_ioctl2 and at compat32 layer.
->>
->> IMHO, libv4l should mimic the driver behavior of returning an error instead
->> of letting the application to segfault, since, on some critical
->> applications, like video-surveillance security systems, a segfault could be
->> very bad.
+ldone@hubstar.net wrote:
 > 
-> And uncaught errors would be even better. A segfault will be noticed right 
-> away, while an unhandled error code might slip through to the released 
-> software. If a security-sensitive application passes a NULL pointer where it 
-> shouldn't I'd rather see the development machine burst into flames instead of 
-> silently ignoring the problem.
+> Have you tried Kaffeine, and scan to see what they get?
 
-I have an example. Let's imagine the following code:
+Thanks for the pointer. I tried kaffeine (0.8.7) today and it looks a
+bit better with this on 2.6.31-rc7.
+While a scan with mythTV comes up with no stations found at all,
+kaffeine still finds some of the tv stations. But instead of the 27
+stations I get with both mythTV and kaffeine on 2.6.26, kaffeine finds
+only 15 stations with 2.6.31-rc7. Tuning to those then often at first
+results in a 'could not get lock error', and succeeds on the second try.
+So part of the blame might be put on mythTV but I think there is still a
+problem with the driver.
 
-    struct v4l2_capability* cap;
+> 
+> You have a firmware error in the log you posted,
 
-    cap = malloc(sizeof(*cap));
-    ret = ioctl(f, VIDIOC_QUERYCAP, cap);
-    if (ret == -1) {
-        /* error handling */
-    }
+I don't think it is a real error but just the information that the
+firmware is still missing and will be requested (and the upload was
+successful:
 
-Does this code contain implementation problem? Yes, the value of cap should
-be checked whether it is NULL or not.
-
-Will this code cause problem? Most of the time not, only in case of low
-memory condition, thus this implementation problem will usually not detected
-if the ioctl() caused segfault on NULL pointers.
-
-One more thing I would like to mention on this topic. This is coming from
-the C language which does not contain structured exception handling as for
-example Java has with its exception handling capability. The usual way to
-signal errors is through the return value. This is what a C programmer learns
-and this is what she or he expects. The signals as segfault is out of the
-scope of the C language.
-
-Regards,
-
-	Márton Németh
+[    6.256335] cx88[0]/2-bb: Firmware and/or mailbox pointer not
+initialized or corrupted
+[    6.260536] cx88-mpeg driver manager 0000:01:07.2: firmware:
+requesting v4l-cx2341x-enc.fw
+...
+[    8.789850] cx88[0]/2-bb: Firmware upload successful.
+[    8.798164] cx88[0]/2-bb: Firmware version is 0x02060039
+[    8.804732] cx88[0]/2: registered device video1 [mpeg]
 
 
+> You could also pull down the latest firmware files
+> http://www.linuxtv.org/downloads/firmware/
+> I think from memory you need 3 of them.
+
+To be on the safe side, I added all v4l-cx* images from that site but
+the one I actually needed (v4l-cx2341x-enc.fw) is not available there.
 
 
+So in summary, it still seems to me there is a problem with the driver
+because I cannot get all channels with kaffeine either.
 
+Best wishes,
+
+Martin
 
