@@ -1,59 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:42004 "EHLO znsun1.ifh.de"
+Received: from mx1.redhat.com ([209.132.183.28]:4285 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933091AbZHEIfM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Aug 2009 04:35:12 -0400
-Date: Wed, 5 Aug 2009 09:51:22 +0200 (CEST)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Akihiro TSUKADA <tskd2@yahoo.co.jp>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	olgrenie@dibcom.fr
-Subject: Re: RFC: adding ISDB-T/ISDB-Tsb to DVB-API 5
-In-Reply-To: <4A78F3E6.2090708@yahoo.co.jp>
-Message-ID: <alpine.LRH.1.10.0908050945190.6890@pub1.ifh.de>
-References: <alpine.LRH.1.10.0908031943220.8512@pub1.ifh.de> <alpine.LRH.1.10.0908041617050.8512@pub1.ifh.de> <4A78F3E6.2090708@yahoo.co.jp>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+	id S1751843AbZHZRXs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Aug 2009 13:23:48 -0400
+Date: Wed, 26 Aug 2009 14:23:43 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	DaVinci <davinci-linux-open-source@linux.davincidsp.com>
+Subject: Re: davinci vs. v4l2: lots of conflicts in merge for linux-next
+Message-ID: <20090826142343.7e71d4b2@pedra.chehab.org>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40154E2C0E7@dlee06.ent.ti.com>
+References: <636c5030908260200t1d2182a8oabf6b61d31b1849b@mail.gmail.com>
+	<A69FA2915331DC488A831521EAE36FE40154E2C0E7@dlee06.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Akihiro,
+Em Wed, 26 Aug 2009 11:00:22 -0500
+"Karicheri, Muralidharan" <m-karicheri2@ti.com> escreveu:
 
-thanks for commenting.
+> Kevin,
+> 
+> Ok, I see you have merged vpif capture architecture part to master branch
+> of davinci. 
+> 
+> So what you are suggesting is to remove all vpif/vpfe patches from arch/arm/davinci of v4l linux-next tree (So I guess this is what Mauro should do on linux-next). So architecture part of all future video patches are to be re-created and re-submitted based on davinci-next and will be merged only to davinci tree and Mauro will merge the v4l part.
 
-On Wed, 5 Aug 2009, Akihiro TSUKADA wrote:
+I'll drop those patches from my tree.
 
-> Hi Patrick,
->
-> Thank you for your effort to add support for ISDB-T/S.
-> I've skimmed through the ARIB standard before,
-> but it is too complicated for me to understand well enough.
-> So this is not a comment for the API extension itself,
-> but for the document part.
->
-> Some of the parameters are currently (and probably will stay)
-> fixed or not used  according to the "operational guidelines".
+> Kevin & Mauro,
+> 
+> So only concern I have is that these patches may not compile (either architecture part or v4l part) until the counter part becomes available on the tree. Is this fine? 
 
-Yeah, that's usually the case with complex standards. For DVB-T in theory 
-1500 parameter-combinations are possible, but only 5-10 different are used 
-in the world. (For ISDB-T the number of possible combinations are more 
-than 100000, iirc).
+The strategy we use for solving those troubles is to move the Kbuild patches
+that adds the compilation for the driver to be merged at the end of the series.
+If, without this patch, the kernel will keep compiling, everything is fine.
 
-> For example, DQPSK is not used at all (if I read correctly).
-> These guidelines are defined in ARIB TR-B14 for ISDB-T and
-> in ARIB TR-B15 for ISDB-S respectively.
-
-Hmm, I'm actually not working on ISDB-S (Satelite), but on ISDB-Tsb 
-(sound-broadcasting or also known as 1seg) which is based on ISDB-T's 
-modulation principles (COFDM, segment etc).
-
-> So, including these two TRs (in additino to ARIB STD-B31)
-> as a reference in the document may help readers.
-
-I'll at TR-B14 only.
-
-thanks for the comments,
---
-
-Patrick Boettcher - Kernel Labs
-http://www.kernellabs.com/
+Cheers,
+Mauro
