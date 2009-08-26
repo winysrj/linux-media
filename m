@@ -1,26 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n76JP5g8006845
-	for <video4linux-list@redhat.com>; Thu, 6 Aug 2009 15:25:05 -0400
-Received: from mail-fx0-f205.google.com (mail-fx0-f205.google.com
-	[209.85.220.205])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n76JOr76009660
-	for <video4linux-list@redhat.com>; Thu, 6 Aug 2009 15:24:53 -0400
-Received: by fxm1 with SMTP id 1so704566fxm.7
-	for <video4linux-list@redhat.com>; Thu, 06 Aug 2009 12:24:52 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <829197380908061221l54ba8f1pcbec404200ae6c93@mail.gmail.com>
-References: <4A7B2BDB.5000906@tmr.com>
-	<829197380908061221l54ba8f1pcbec404200ae6c93@mail.gmail.com>
-Date: Thu, 6 Aug 2009 15:24:52 -0400
-Message-ID: <8fbac5ca0908061224w66046fb8ydf4bffd49d3103f6@mail.gmail.com>
-From: Boris Epstein <borepstein@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux M/L <video4linux-list@redhat.com>
-Subject: Re: Is there any working video capture card which works and is
-	still made?
+Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.8])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n7Q08wSO018871
+	for <video4linux-list@redhat.com>; Tue, 25 Aug 2009 20:08:58 -0400
+Received: from mail-in-17.arcor-online.net (mail-in-17.arcor-online.net
+	[151.189.21.57])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n7Q08fWv030993
+	for <video4linux-list@redhat.com>; Tue, 25 Aug 2009 20:08:44 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Dmitri Belimov <d.belimov@gmail.com>
+In-Reply-To: <20090825154352.030299ba@glory.loctelecom.ru>
+References: <20090825154352.030299ba@glory.loctelecom.ru>
+Content-Type: text/plain
+Date: Wed, 26 Aug 2009 02:02:05 +0200
+Message-Id: <1251244925.3332.7.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org,
+	Michael Krufky <mkrufky@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: saa7134 and xc5000
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,60 +32,36 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Aug 6, 2009 at 3:21 PM, Devin
-Heitmueller<dheitmueller@kernellabs.com> wrote:
-> On Thu, Aug 6, 2009 at 3:15 PM, Bill Davidsen<davidsen@tmr.com> wrote:
->> I have a lovely collection of capture cards which either don't work or are
->> no longer available new. Is there any such card?
->>
->> Note: I can't tell a client to buy hardware on eBay, or to patch a kernel,
->> or commit to providing patched kernel... and we're in Time-Warned land,
->> where the signal is a mix of clear digital, crypto-digital, and NTSC. I
->> *can* tell someone to spend money to get something supported, which they
->> could buy in some small quantity.
->>
->> I would be happy with a box like the HDhomerun, which does a nice job on the
->> tiny list of clear digital signals, the Hauppauge HVR-2250 is ideal, but
->> doesn't work because the driver isn't in the kernel and the windows stuff
->> doesn't run on ndiswrapper (too complex to support anyway).
->>
->> Any thoughts, or is it just not currently happening?
->>
->> --
->> bill davidsen <davidsen@tmr.com>
->>  CTO TMR Associates, Inc
->>
->> "You are disgraced professional losers. And by the way, give us our money
->> back."
->>   - Representative Earl Pomeroy,  Democrat of North Dakota
->> on the A.I.G. executives who were paid bonuses  after a federal bailout.
->
-> There are lots of cards that work.  The big questions lie in what bus
-> type you need (USB/PCI/PCIe), and what featureset (ATSC, ClearQAM,
-> analog, IR, etc.)
->
-> Might also be nice what your large collection is composed of, since we
-> might be able to get some of them to work.
->
-> Devin
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
->
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
+Hi Dmitry,
 
-Good points Devin!
+Am Dienstag, den 25.08.2009, 15:43 +1000 schrieb Dmitri Belimov:
+> Hi All
+> 
+> Our company release new TV card based on the saa7134 and xc5000.
+> I write some code and now I can watch analog TV, video and audio is good.
+> 
+> For analog FM radio need switch input saa7134 to SIF and set SIF to 10.7MHz.
+> 
+> How to I can do it??
+> 
+> With my best regards, Dmitry.
 
-Actually come to think of it - it is the chipset that determines
-compatibility hence there may be many cards sharing the same chipset
-that ought to work.
+try to dig out the two old patches from Hartmut in 2006, when he first
+added radio IF support to saa7133/35/31e devices for the Philips silicon
+tuners and later also for stereo detection, to make the apps happy for
+auto scanning.
 
-Boris.
+This should give you some guidance.
+
+Let me know, if you should have problems to find them. I'll point you
+then.
+
+Cheers,
+Hermann
+
+
+
+
 
 --
 video4linux-list mailing list
