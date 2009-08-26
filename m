@@ -1,115 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58219 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750904AbZHKLvG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2009 07:51:06 -0400
-From: "chaithrika" <chaithrika@ti.com>
-To: "'Karicheri, Muralidharan'" <m-karicheri2@ti.com>,
-	"'Hans Verkuil'" <hverkuil@xs4all.nl>
-Cc: <linux-media@vger.kernel.org>
-References: <200908100807.23455.hverkuil@xs4all.nl> <024e01ca19b9$36c64c90$a452e5b0$@com> <A69FA2915331DC488A831521EAE36FE401451FC3A4@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE401451FC3A4@dlee06.ent.ti.com>
-Subject: RE: vpif_display.c bug
-Date: Tue, 11 Aug 2009 15:21:40 +0530
-Message-ID: <02c501ca1a69$53513680$f9f3a380$@com>
+Received: from mail.gmx.net ([213.165.64.20]:46532 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751920AbZHZQyV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Aug 2009 12:54:21 -0400
+Date: Wed, 26 Aug 2009 18:54:36 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans de Goede <j.w.r.degoede@hhs.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: RE: [RFC] Pixel format definition on the "image" bus
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40154E2C11B@dlee06.ent.ti.com>
+Message-ID: <Pine.LNX.4.64.0908261826110.7670@axis700.grange>
+References: <Pine.LNX.4.64.0908261452460.7670@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE40154E2C11B@dlee06.ent.ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Content-Language: en-us
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 10, 2009 at 20:39:05, Karicheri, Muralidharan wrote:
-> Chaithrika,
-> 
-> No need to change this since this is already corrected as part of my vpif capture patch set that I had submitted for review. I had mentioned this to Hans as well.
-> 
-Murali,
+On Wed, 26 Aug 2009, Karicheri, Muralidharan wrote:
 
-Thank you for correcting this bug in your patch set. 
-
-Regards, 
-Chaithrika
-
-> Murali Karicheri
-> Software Design Engineer
-> Texas Instruments Inc.
-> Germantown, MD 20874
-> new phone: 301-407-9583
-> Old Phone : 301-515-3736 (will be deprecated)
-> email: m-karicheri2@ti.com
+> Guennadi,
 > 
-> >-----Original Message-----
-> >From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> >owner@vger.kernel.org] On Behalf Of Subrahmanya, Chaithrika
-> >Sent: Monday, August 10, 2009 8:51 AM
-> >To: 'Hans Verkuil'
-> >Cc: linux-media@vger.kernel.org
-> >Subject: RE: vpif_display.c bug
-> >
-> >On Mon, Aug 10, 2009 at 11:37:23, Hans Verkuil wrote:
-> >> Hi Chaithrika,
-> >>
-> >> This code in vpif_display.c is not correct:
-> >>
-> >>         for (i = 0; i < subdev_count; i++) {
-> >>                 vpif_obj.sd[i] =
-> >v4l2_i2c_new_probed_subdev(&vpif_obj.v4l2_dev,
-> >>                                                 i2c_adap,
-> >subdevdata[i].name,
-> >>                                                 subdevdata[i].name,
-> >>                                                 &subdevdata[i].addr);
-> >>                 if (!vpif_obj.sd[i]) {
-> >>                         vpif_err("Error registering v4l2 subdevice\n");
-> >>                         goto probe_subdev_out;
-> >>                 }
-> >>
-> >>                 if (vpif_obj.sd[i])
-> >>                         vpif_obj.sd[i]->grp_id = 1 << i;
-> >>         }
-> >>
-> >> This: '&subdevdata[i].addr' should be: I2C_ADDRS(subdevdata[i].addr).
-> >>
-> >> The list of probe addresses must be terminated by I2C_CLIENT_END (= -1)
-> >and
-> >> that isn't the case here.
-> >>
-> >> An alternative solution is to use v4l2_i2c_new_subdev, but then no
-> >probing
-> >> will take place. But I think that you don't want probing at all since
-> >this
-> >> address information comes from the platform data, so one can assume that
-> >> that data is correct.
-> >>
-> >> Even better is to copy the implementation from vpfe_capture.c and to use
-> >> v4l2_i2c_new_subdev_board().
-> >>
-> >
-> >Hans,
-> >Thank you for the suggestions.
-> >I will look into this and submit a patch to correct this bug.
-> >
-> >Regards,
-> >Chaithrika
-> >
-> >> Regards,
-> >>
-> >> 	Hans
-> >>
-> >> --
-> >> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
-> >>
-> >
-> >
-> >
-> >
-> >--
-> >To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> >the body of a message to majordomo@vger.kernel.org
-> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+> How is this different from enum_fmt() sub device operation. The pixel 
+> format does specify how bridge device pack the data from sub device into 
+> memory
 
+Now, this is something I don't understand. .enum_fmt() from struct 
+v4l2_subdev_video_ops is a function, that a sink (bridge) driver calls 
+into a source. The data is provided by the source. It might well tell the 
+bridge driver what it can get from the data, but it doesn't tell it _how_ 
+to do it - how to pack data on the bus to get that format in memory. The 
+sensor just pushes its data out on the image bus over a serial / 8-bit / 
+9-bit / 10-bit / ... link. It's the sink's responsibility to recognise 
+what data format the source is providing on the bus and decide how to pack 
+it into memory. As I said, in principle you're right - we can agree to 
+just encode the complete data format into the format code, but this would 
+require us to write a decoder, which extracts the information I described 
+in the RFC from those codes - bits, packing, order... In fact, it might 
+indeed be better to write such a decoder once, than to make each source 
+driver provide all that data. Or we can provide macros like
 
+#define V4L2_DATA_YUYV_2X8						\
+	{								\
+		.sourceformat		= V4L2_PIX_FMT_YUYV,		\
+		.pixelformat		= V4L2_PIX_FMT_YUYV,		\
+		.colorspace		= V4L2_COLORSPACE_JPEG,		\
+		.bits_per_sample	= 8,				\
+		.packing		= V4L2_DATA_PACKING_2X8,	\
+		.order			= V4L2_DATA_ORDER_LE,		\
+	}
+
+centrally to avoid errors, which would be easier, than a decoder but 
+occupy more RAM eventually. Also, I'm not sure we want to extend our 
+existing fourcc codes, that are designed to describe data in memory, with 
+all possible permutation of that format on the bus. So, we anyway would 
+need a second list of codes for the on-the-bus representations.
+
+> and describe the same to user space applications. Not sure why we 
+> need this.
+
+The thing is, that there's no 1-to-1 correspondence between data formats 
+in-memory and on-the-bus, so, just passing S_FMT, G_FMT, TRY_FMT, ENUM_FMT 
+unchanged to subdevice drivers doesn't quite work.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
