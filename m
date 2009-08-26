@@ -1,70 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out112.alice.it ([85.37.17.112]:2460 "EHLO
-	smtp-out112.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755324AbZHDJ7E (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2009 05:59:04 -0400
-Date: Tue, 4 Aug 2009 11:58:35 +0200
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] soc-camera: fix recursive locking in .buf_queue()
-Message-Id: <20090804115835.10204665.ospite@studenti.unina.it>
-In-Reply-To: <Pine.LNX.4.64.0908041129340.4627@axis700.grange>
-References: <20090804020252.f33f481d.ospite@studenti.unina.it>
-	<Pine.LNX.4.64.0908041023450.4627@axis700.grange>
-	<20090804111822.b7893079.ospite@studenti.unina.it>
-	<Pine.LNX.4.64.0908041129340.4627@axis700.grange>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Tue__4_Aug_2009_11_58_35_+0200_epUXCrMkpQP3fvt4"
+Received: from mail.navvo.net ([74.208.67.6]:34924 "EHLO mail.navvo.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751793AbZHZQkX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Aug 2009 12:40:23 -0400
+Message-ID: <4A956575.4080207@ridgerun.com>
+Date: Wed, 26 Aug 2009 10:40:21 -0600
+From: Santiago Nunez-Corrales <snunez@ridgerun.com>
+Reply-To: santiago.nunez@ridgerun.com
+MIME-Version: 1.0
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <4A954B35.3090902@ridgerun.com> <A69FA2915331DC488A831521EAE36FE40154E2C0F5@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40154E2C0F5@dlee06.ent.ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: Re: Official/Staging git tree for v4l2?
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Signature=_Tue__4_Aug_2009_11_58_35_+0200_epUXCrMkpQP3fvt4
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thanks.
 
-On Tue, 4 Aug 2009 11:31:24 +0200 (CEST)
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+I get the following error after doing a git clone:
 
-> On Tue, 4 Aug 2009, Antonio Ospite wrote:
->=20
-> > The current patch applies with some fuzzes on vanilla kernels, and it
-> > even FAILS to apply for drivers/media/video/sh_mobile_ceu_camera.c in
-> > one hunk.
->=20
-> Yes, I'll produce one against vanilla for submission.
->=20
+git clone 
+http://www.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-next.git
+Initialized empty Git repository in 
+/home/snunez/Projects/git_trees/mchehab/linux-next/.git/
+Getting alternates list for 
+http://www.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-next.git
+Also look at 
+http://www.kernel.org/pub/scm/linux/kernel/git/sfr/linux-next.git/
+Getting pack list for 
+http://www.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-next.git
+Getting index for pack 9b00cd8cdc6dc894f442e67243d48a667ac0bf0c
+Getting index for pack 4a4e3c3d379a1f1ce18d16e93523a7cd1753655e
+Getting index for pack 9c4fc44de8cf7d89f78e57e232c81a6c54685276
+Getting pack 9c4fc44de8cf7d89f78e57e232c81a6c54685276
+ which contains 6f5ee0854a60eceedda876a44f00d9daf9616e06
+walk 6f5ee0854a60eceedda876a44f00d9daf9616e06
+Getting pack list for 
+http://www.kernel.org/pub/scm/linux/kernel/git/sfr/linux-next.git/
+Getting index for pack 510b239769ca73da4b7c208359adefc418e453ce
+error: Unable to find dcd94dbdaff452b95d4ba11fdbf853b5bda8e6e7 under 
+http://www.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-next.git
+Cannot obtain needed object dcd94dbdaff452b95d4ba11fdbf853b5bda8e6e7
+while processing commit 6f5ee0854a60eceedda876a44f00d9daf9616e06.
+fatal: Fetch failed.
 
-Just to make sure you notice: the now unused 'flags' variables can go
-away as well.
 
-Thanks,
-   Antonio
+Karicheri, Muralidharan wrote:
+> The VPFE capture driver is currently available at
+>
+> http://www.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-next.git
+>
+> I usually use this for creating my patches for V4L.
+>
+> Murali Karicheri
+> Software Design Engineer
+> Texas Instruments Inc.
+> Germantown, MD 20874
+> email: m-karicheri2@ti.com
+>
+>   
+>> -----Original Message-----
+>> From: Santiago Nunez-Corrales [mailto:snunez@ridgerun.com]
+>> Sent: Wednesday, August 26, 2009 10:48 AM
+>> To: Linux Media Mailing List; Karicheri, Muralidharan
+>> Subject: Official/Staging git tree for v4l2?
+>>
+>> Good morning,
+>>
+>>
+>> I am currently giving support to the TV7002 driver in dm365 and need to
+>> add some extra controls and definitions in the v4l2 interface. What is
+>> the official or staging git tree I can clone for development? The kernel
+>> version is 2.6.31.
+>>
+>>
+>> Regards,
+>>
+>>
+>> --
+>> Santiago Nunez-Corrales, Eng.
+>> RidgeRun Engineering, LLC
+>>
+>> Guayabos, Curridabat
+>> San Jose, Costa Rica
+>> +(506) 2271 1487
+>> +(506) 8313 0536
+>> http://www.ridgerun.com
+>>
+>>
+>>     
+>
+>   
 
---=20
-Antonio Ospite
-http://ao2.it
 
-PGP public key ID: 0x4553B001
+-- 
+Santiago Nunez-Corrales, Eng.
+RidgeRun Engineering, LLC
 
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
-A: Top-posting.
-Q: What is the most annoying thing in e-mail?
+Guayabos, Curridabat
+San Jose, Costa Rica
++(506) 2271 1487
++(506) 8313 0536
+http://www.ridgerun.com
 
---Signature=_Tue__4_Aug_2009_11_58_35_+0200_epUXCrMkpQP3fvt4
-Content-Type: application/pgp-signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkp4BksACgkQ5xr2akVTsAGAcgCdHgCZaFpSZpdibq1bUzMajifc
-RScAn3Eh88G06GKL2/GG/L2jmjLqZDzH
-=ejyv
------END PGP SIGNATURE-----
-
---Signature=_Tue__4_Aug_2009_11_58_35_+0200_epUXCrMkpQP3fvt4--
