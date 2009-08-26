@@ -1,41 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mp1-smtp-6.eutelia.it ([62.94.10.166]:54152 "EHLO
-	smtp.eutelia.it" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751715AbZHEU4p (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Aug 2009 16:56:45 -0400
-Received: from [192.168.1.170] (ip-173-192.sn3.eutelia.it [213.136.173.192])
-	by smtp.eutelia.it (Eutelia) with ESMTP id B237A54B561
-	for <linux-media@vger.kernel.org>; Wed,  5 Aug 2009 22:33:20 +0200 (CEST)
-Message-ID: <4A79EC82.4050902@email.it>
-Date: Wed, 05 Aug 2009 22:33:06 +0200
-From: xwang1976@email.it
+Received: from mail.gmx.net ([213.165.64.20]:34259 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751648AbZHZSNa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Aug 2009 14:13:30 -0400
+Date: Wed, 26 Aug 2009 20:13:46 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans de Goede <j.w.r.degoede@hhs.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: RE: [RFC] Pixel format definition on the "image" bus
+In-Reply-To: <Pine.LNX.4.64.0908261826110.7670@axis700.grange>
+Message-ID: <Pine.LNX.4.64.0908262003310.7670@axis700.grange>
+References: <Pine.LNX.4.64.0908261452460.7670@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE40154E2C11B@dlee06.ent.ti.com>
+ <Pine.LNX.4.64.0908261826110.7670@axis700.grange>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Issues with Empire Dual Pen: request for help and suggestions!!!
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wed, 26 Aug 2009, Guennadi Liakhovetski wrote:
 
-Hi to all,
-I've an Empire Dual Pen usb device.
-Up to now I've used Markus driver, but now I've tried to switch to the 
-v4l-dvb driver.
-However I've the following issues:
-1) the card is  not recognized automatically so I've to modprobe the 
-em28xx module with the parameter card=66
-2) when scanning for analog tv channels with tvtime-scanner, the system 
-hangs and since  the alt+Sys+REISUB procedure does not help, I have to 
-turn off the pc (very, very, very bad)
-3) digital tv channels are not tuned by kaffeine (SNR value is always zero).
-So the device is not usable.
-Can it be fixed or is it better to buy an already supported device? 
-Inthe second case which device can you suggest me? Is this device:
-http://www.terratec.net/en/products/technical-data/produkte_technische_daten_en_87128.html 
+> On Wed, 26 Aug 2009, Karicheri, Muralidharan wrote:
+> 
+> > Guennadi,
+> > 
+> > How is this different from enum_fmt() sub device operation. The pixel 
+> > format does specify how bridge device pack the data from sub device into 
+> > memory
+> 
+> Now, this is something I don't understand. .enum_fmt() from struct 
+> v4l2_subdev_video_ops is a function, that a sink (bridge) driver calls 
+> into a source. The data is provided by the source. It might well tell the 
+> bridge driver what it can get from the data, but it doesn't tell it _how_ 
+> to do it - how to pack data on the bus to get that format in memory. The 
+> sensor just pushes its data out on the image bus over a serial / 8-bit / 
+> 9-bit / 10-bit / ... link. It's the sink's responsibility to recognise 
+> what data format the source is providing on the bus and decide how to pack 
+> it into memory. As I said, in principle you're right - we can agree to 
+> just encode the complete data format into the format code, but this would 
+> require us to write a decoder, which extracts the information I described 
+> in the RFC from those codes - bits, packing, order... In fact, it might 
+> indeed be better to write such a decoder once, than to make each source 
+> driver provide all that data.
 
-supported by the latest v4l drivers.
-Thank you for your help,
-Xwang
+I think, best would be to define these new on-the-bus data format codes as 
+simple indices, define a const array of struct v4l2_subdev_bus_pixelfmt, 
+e.g., in drivers/media/video/v4l2-device.c and a function that just 
+returns a pointer to the indexed struct.
 
-PS: I live in Italy and I use kubuntu 9.04 amd64
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
