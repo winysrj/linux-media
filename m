@@ -1,261 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cp-out2.libero.it ([212.52.84.102]:52446 "EHLO
-	cp-out2.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752201AbZHETvA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Aug 2009 15:51:00 -0400
-Date: Wed,  5 Aug 2009 21:50:58 +0200
-Message-Id: <KNX5SY$6C51C56E77BDD749002D37C1F5412E1A@libero.it>
-Subject: Re: Issue with LifeView FlyDVB-T Duo CardBus.
+Received: from acoma.photonsoftware.net ([65.254.60.10]:33336 "EHLO
+	acoma.photonsoftware.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751466AbZHZUXT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Aug 2009 16:23:19 -0400
+Message-ID: <4A9599B6.7050803@hubstar.net>
+Date: Wed, 26 Aug 2009 21:23:18 +0100
+From: "ldone@hubstar.net" <ldone@hubstar.net>
+Reply-To: "l d one"@hubstar.net
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-From: "Francesco Marangoni" <fmarangoni@libero.it>
-To: "hermann-pitton" <hermann-pitton@arcor.de>
-Cc: "linux-media" <linux-media@vger.kernel.org>
+To: Martin Kittel <linux@martin-kittel.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: HVR 1300: DVB channel lock problems since 2.6.28
+References: <loom.20090825T192551-363@post.gmane.org> <4A944ACA.5010800@hubstar.net> <4A958A40.8010001@martin-kittel.de>
+In-Reply-To: <4A958A40.8010001@martin-kittel.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hermann,
 
-thankyou very much for your support. Do you have any suggestion for a light linux distribution with a recent and vanilla kernel. In the last month i tried TinyMe and Ubuntu Lite. Is it possible to install a recent vanilla kernel on the version of ubuntu lite i'm using?
-Thanks.
+Another suggestion, in mythtv, try increasing the signal something
+timeout - I think the default is 1500ms.
 
----------- Initial Header -----------
-
->From      : "hermann pitton" hermann-pitton@arcor.de
-To          : "Francesco Marangoni" fmarangoni@libero.it
-Cc          : "linux-media" linux-media@vger.kernel.org
-Date      : Tue, 04 Aug 2009 23:04:46 +0200
-Subject : Re: Issue with LifeView FlyDVB-T Duo CardBus.
+Or scan  has an option -5 (I think -- sorry its been a while and my box
+is recording) that increases the time wait before giving up.
 
 
 
 
 
-
-
-> 
-> Am Dienstag, den 04.08.2009, 09:02 +0200 schrieb Francesco Marangoni:
-> > Hi Hermann,
-> > 
-> > the card works fine on win2000 on another pc.
-> 
-> Ah, fine. Some of them have been reported to become very hot and finally
-> faulty. Maybe you could test it on this PC too with some LIVE linux
-> media.
-> 
-> > The pc with linux installed is a pentium 3 800 mhz with RAM 256 MB: I don't think it's a resources problem because when I launch channels scan ram used is always at 70 MB and CPU is at 25%. 
-> 
-> Should be enough. The NATOMA PCI to PCI quirk is enabled for some faulty
-> motherboards. Usually works then, but you seem to have still parity
-> errors.
-> 
-> > The card becomes warm after the use, but not hot.
-> 
-> The problem is, that at least the digital tuner is not detected. So it
-> is not usable and also not fully powered. Look more carefully at dmesg,
-> if the analog tuner is at least present. Your early version of the card
-> should also have a fan, IIRC.
-> 
-> > What dou You think about errors in compiling v4l-dvb?
-> 
-> http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
-> 
-> You follow the instructions for Debian. As already printed, on Ubuntu
-> are some back ported media modules in unusual places. You need to be
-> root to get them removed or have to do it manually to avoid duplicate
-> modules. There have also been problems with an incompatible alsa version
-> there.
-> 
-> > And from output of dmesg | grep saa do You think the card has benn well detected or there is something wrong?
-> 
-> At least the digital tuner is not found at 0x60 and the card can't work.
-> 
-> Have you forced other cards previously, since it also should be auto
-> detected? Wrong tuner initialization code can make i2c unreliable.
-> 
-> You might try to unload the driver starting with saa7134-alsa and
-> saa7134-dvb, eject the card then and wait at least 30 seconds before you
-> give it another try.
-> 
-> You could also try to enable i2c_debug=1 for saa7134. Maybe more errors
-> become visible, dunno.
-> 
-> Cheers,
-> Hermann
-> 
-> 
-> > Thanks a lot for any suggetsion.
-> > 
-> > ---------- Initial Header -----------
-> > 
-> > >From      : "hermann pitton" hermann-pitton@arcor.de
-> > To          : "Francesco Marangoni" fmarangoni@libero.it
-> > Cc          : "linux-media" linux-media@vger.kernel.org
-> > Date      : Tue, 04 Aug 2009 02:21:38 +0200
-> > Subject : Re: Issue with LifeView FlyDVB-T Duo CardBus.
-> > 
-> > 
-> > 
-> > 
-> > 
-> > 
-> > 
-> > > Hi Francesco,
-> > > 
-> > > Am Montag, den 03.08.2009, 23:49 +0200 schrieb Francesco Marangoni:
-> > > > Dear sirs,
-> > > > 
-> > > > I'm not able to make my pcmcia LifeView DVB-T Duo Cardbus working on Ununtu 8.04 LTS kernel 2.6.24.24.
-> > > > 
-> > > > The card seems to be detected but the DVB channel detection fails (using Kaffeine too).
-> > > > 
-> > > > Here the output of some commands: Can Youhelp me?
-> > > > 
-> > > > francesco@ubuntu:~$ lspci
-> > > > 00:00.0 Host bridge: Intel Corporation 440BX/ZX/DX - 82443BX/ZX/DX Host bridge (rev 03)
-> > > > 00:01.0 PCI bridge: Intel Corporation 440BX/ZX/DX - 82443BX/ZX/DX AGP bridge (rev 03)
-> > > > 00:07.0 Bridge: Intel Corporation 82371AB/EB/MB PIIX4 ISA (rev 02)
-> > > > 00:07.1 IDE interface: Intel Corporation 82371AB/EB/MB PIIX4 IDE (rev 01)
-> > > > 00:07.2 USB Controller: Intel Corporation 82371AB/EB/MB PIIX4 USB (rev 01)
-> > > > 00:07.3 Bridge: Intel Corporation 82371AB/EB/MB PIIX4 ACPI (rev 03)
-> > > > 00:0a.0 CardBus bridge: Texas Instruments PCI1420 PC card Cardbus Controller
-> > > > 00:0a.1 CardBus bridge: Texas Instruments PCI1420 PC card Cardbus Controller
-> > > > 00:0b.0 Ethernet controller: 3Com Corporation 3c556 Hurricane CardBus [Cyclone] (rev 10)
-> > > > 00:0b.1 Communication controller: 3Com Corporation Mini PCI 56k Winmodem (rev 10)
-> > > > 00:0d.0 Multimedia audio controller: ESS Technology ES1983S Maestro-3i PCI Audio Accelerator
-> > > > 01:00.0 VGA compatible controller: ATI Technologies Inc Rage Mobility P/M AGP 2x (rev 64)
-> > > > 02:00.0 Multimedia controller: Philips Semiconductors SAA7133/SAA7135 Video Broadcast Decoder (rev d0)
-> > > > 
-> > > > francesco@ubuntu:~$ dmesg | grep saa | more
-> > > > [   46.176353] saa7130/34: v4l2 driver version 0.2.14 loaded
-> > > > [   46.176618] saa7133[0]: quirk: PCIPCI_NATOMA
-> > > > [   46.176628] saa7133[0]: found at 0000:02:00.0, rev: 208, irq: 10, latency: 0, mmio: 0x24000000
-> > > > [   46.176653] saa7133[0]: subsystem: 5168:0502, board: LifeView/Typhoon/Genius FlyDVB-T Duo Cardbus [card=60,insmod option]
-> > > > [   46.176681] saa7133[0]: board init: gpio is 8210000
-> > > > [   46.280562] saa7133[0]: i2c eeprom 00: 68 51 02 05 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
-> > > > [   46.280587] saa7133[0]: i2c eeprom 10: 00 ff 22 0f ff 20 ff ff ff ff ff ff ff ff ff ff
-> > > > [   46.280607] saa7133[0]: i2c eeprom 20: 01 40 01 03 03 01 01 03 08 ff 01 aa ff ff ff ff
-> > > > [   46.280627] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > > > [   46.280646] saa7133[0]: i2c eeprom 40: ff 25 00 c0 ff 10 07 01 c2 96 00 16 22 15 ff ff
-> > > > [   46.280665] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > > > [   46.280685] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > > > [   46.280704] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > > > [   46.321890] saa7133[0]: registered device video0 [v4l2]
-> > > > [   46.321945] saa7133[0]: registered device vbi0
-> > > > [   46.321996] saa7133[0]: registered device radio0
-> > > > [   46.609615] saa7133[0]/dvb: no tda827x tuner found at addr: 60
-> > > > [   46.609624] DVB: registering new adapter (saa7133[0])
-> > > > [  238.981774] saa7133[0]: dsp access error
-> > > > [  238.981801] saa7133[0]: dsp access error
-> > > > [  238.981820] saa7133[0]: dsp access error
-> > > > [  238.981824] saa7133[0]: dsp access error
-> > > > [  238.981837] saa7133[0]: dsp access error
-> > > > [  238.981841] saa7133[0]: dsp access error
-> > > > [  238.981854] saa7133[0]: dsp access error
-> > > > [  238.981858] saa7133[0]: dsp access error
-> > > > [  238.981871] saa7133[0]: dsp access error
-> > > > [  238.981875] saa7133[0]: dsp access error
-> > > > [  238.981887] saa7133[0]: dsp access error
-> > > > [  238.981892] saa7133[0]: dsp access error
-> > > > [  238.981904] saa7133[0]: dsp access error
-> > > > [  238.981909] saa7133[0]: dsp access error
-> > > > [  238.981921] saa7133[0]: dsp access error
-> > > > [  238.981926] saa7133[0]: dsp access error
-> > > > [  238.981938] saa7133[0]: dsp access error
-> > > > [  238.981942] saa7133[0]: dsp access error
-> > > > [  238.981955] saa7133[0]: dsp access error
-> > > > [  238.981959] saa7133[0]: dsp access error
-> > > > [  238.981972] saa7133[0]/irq[10,76507]: r=0xffffffff s=0xffffffff DONE_RA0 DONE_RA1 DONE_RA2 DONE_RA3 AR PE PWR_ON RDCAP INT
-> > > > ....
-> > > > [  238.993258] saa7133[0]: dsp access error
-> > > > [  238.993263] saa7133[0]: dsp access error
-> > > > [  238.993275] saa7133[0]: dsp access error
-> > > > [  238.993280] saa7133[0]: dsp access error
-> > > > [  238.993292] saa7133[0]: dsp access error
-> > > > [  238.993297] saa7133[0]: dsp access error
-> > > > [  238.993309] saa7133[0]: dsp access error
-> > > > [  238.993314] saa7133[0]: dsp access error
-> > > > [  238.993326] saa7133[0]: dsp access error
-> > > > [  238.993330] saa7133[0]: dsp access error
-> > > > [  238.993343] saa7133[0]: dsp access error
-> > > > [  238.993347] saa7133[0]: dsp access error
-> > > > [  238.993359] saa7133[0]/irq[10,76514]: r=0xffffffff s=0xffffffff DONE_RA0 DONE_RA1 DONE_RA2 DONE_RA3 AR PE PWR_ON RDCAP INT
-> > > > L FIDT MMC TRIG_ERR CONF_ERR LOAD_ERR GPIO16? GPIO18 GPIO22 GPIO23 | RA0=vbi,b,odd,15
-> > > > [  238.993385] saa7133[0]/irq: looping -- clearing PE (parity error!) enable bit
-> > > > [  640.875510] saa7133[0]: quirk: PCIPCI_NATOMA
-> > > > [  640.875520] saa7133[0]: found at 0000:02:00.0, rev: 208, irq: 10, latency: 0, mmio: 0x24000000
-> > > > [  640.875544] saa7133[0]: subsystem: 5168:0502, board: LifeView/Typhoon/Genius FlyDVB-T Duo Cardbus [card=60,insmod option]
-> > > > [  640.875577] saa7133[0]: board init: gpio is 8210000
-> > > > [  641.010947] saa7133[0]: i2c eeprom 00: 68 51 02 05 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
-> > > > [  641.010978] saa7133[0]: i2c eeprom 10: 00 ff 22 0f ff 20 ff ff ff ff ff ff ff ff ff ff
-> > > > [  641.010997] saa7133[0]: i2c eeprom 20: 01 40 01 03 03 01 01 03 08 ff 01 aa ff ff ff ff
-> > > > [  641.011016] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > > > [  641.011034] saa7133[0]: i2c eeprom 40: ff 25 00 c0 ff 10 07 01 c2 96 00 16 22 15 ff ff
-> > > > [  641.011052] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > > > [  641.011070] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > > > [  641.011088] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > > > [  641.108271] saa7133[0]: registered device video0 [v4l2]
-> > > > [  641.108329] saa7133[0]: registered device vbi0
-> > > > [  641.108378] saa7133[0]: registered device radio0
-> > > > [  641.492916] saa7133[0]/dvb: no tda827x tuner found at addr: 60
-> > > > [  641.492925] DVB: registering new adapter (saa7133[0])
-> > > > 
-> > > > 
-> > > > I did all is described in http://www.linuxtv.org/repo/ but this is the output of Make and Make install:
-> > > > 
-> > > > francesco@ubuntu:~/v4l-dvb$ make
-> > > > make -C /home/francesco/v4l-dvb/v4l 
-> > > > make[1]: Entering directory `/home/francesco/v4l-dvb/v4l'
-> > > > Updating/Creating .config
-> > > > Preparing to compile for kernel version 2.6.24
-> > > > File not found: /lib/modules/2.6.24-24-generic/build/.config at ./scripts/make_kconfig.pl line 32, <IN> line 4.
-> > > > make[1]: *** No rule to make target `.myconfig', needed by `config-compat.h'.  Stop.
-> > > > make[1]: Leaving directory `/home/francesco/v4l-dvb/v4l'
-> > > > make: *** [all] Error 2
-> > > > 
-> > > > francesco@ubuntu:~/v4l-dvb$ make install
-> > > > make -C /home/francesco/v4l-dvb/v4l install
-> > > > make[1]: Entering directory `/home/francesco/v4l-dvb/v4l'
-> > > > -e 
-> > > > Removing obsolete files from /lib/modules/2.6.24-24-generic/kernel/drivers/media/video:
-> > > > 
-> > > > -e 
-> > > > Removing obsolete files from /lib/modules/2.6.24-24-generic/kernel/drivers/media/dvb/cinergyT2:
-> > > > 
-> > > > -e 
-> > > > Removing obsolete files from /lib/modules/2.6.24-24-generic/kernel/drivers/media/dvb/frontends:
-> > > > 
-> > > > 
-> > > > Hmm... distro kernel with a non-standard place for module backports detected.
-> > > > Please always prefer to use vanilla upstream kernel with V4L/DVB
-> > > > I'll try to remove old/obsolete LUM files from /lib/modules/2.6.24-24-generic/ubuntu/media:
-> > > > Installing kernel modules under /lib/modules/2.6.24-24-generic/kernel/drivers/media/:
-> > > > /sbin/depmod -a 2.6.24-24-generic 
-> > > > FATAL: Could not open /lib/modules/2.6.24-24-generic/modules.dep.temp for writing: Permission denied
-> > > > make[1]: *** [media-install] Error 1
-> > > > make[1]: Leaving directory `/home/francesco/v4l-dvb/v4l'
-> > > > make: *** [install] Error 2
-> > > > francesco@ubuntu:~/v4l-dvb$ 
-> > > > 
-> > > > Any suggestions?
-> > > > 
-> > > > Thanks.
-> > > 
-> > > did it ever work for you or does it still on something?
-> > > 
-> > > First impression is, that the tuner chip melt down.
-> > > 
-> > > If the card was in for while, with the driver loaded, is it still very
-> > > hot close to the antenna connector, if ejected then?
-> > > 
-> > > The first generations of the tuner chips have been good enough to fry
-> > > eggs on them.
-> > > 
-> > > Cheers,
-> > > Hermann
-> > > 
-> 
-> 
-> 
+Martin Kittel wrote:
+> ldone@hubstar.net wrote:
+>   
+>> Have you tried Kaffeine, and scan to see what they get?
+>>     
+>
+> Thanks for the pointer. I tried kaffeine (0.8.7) today and it looks a
+> bit better with this on 2.6.31-rc7.
+> While a scan with mythTV comes up with no stations found at all,
+> kaffeine still finds some of the tv stations. But instead of the 27
+> stations I get with both mythTV and kaffeine on 2.6.26, kaffeine finds
+> only 15 stations with 2.6.31-rc7. Tuning to those then often at first
+> results in a 'could not get lock error', and succeeds on the second try.
+> So part of the blame might be put on mythTV but I think there is still a
+> problem with the driver.
+>
+>   
+>> You have a firmware error in the log you posted,
+>>     
+>
+> I don't think it is a real error but just the information that the
+> firmware is still missing and will be requested (and the upload was
+> successful:
+>
+> [    6.256335] cx88[0]/2-bb: Firmware and/or mailbox pointer not
+> initialized or corrupted
+> [    6.260536] cx88-mpeg driver manager 0000:01:07.2: firmware:
+> requesting v4l-cx2341x-enc.fw
+> ...
+> [    8.789850] cx88[0]/2-bb: Firmware upload successful.
+> [    8.798164] cx88[0]/2-bb: Firmware version is 0x02060039
+> [    8.804732] cx88[0]/2: registered device video1 [mpeg]
+>
+>
+>   
+>> You could also pull down the latest firmware files
+>> http://www.linuxtv.org/downloads/firmware/
+>> I think from memory you need 3 of them.
+>>     
+>
+> To be on the safe side, I added all v4l-cx* images from that site but
+> the one I actually needed (v4l-cx2341x-enc.fw) is not available there.
+>
+>
+> So in summary, it still seems to me there is a problem with the driver
+> because I cannot get all channels with kaffeine either.
+>
+> Best wishes,
+>
+> Martin
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>   
 
