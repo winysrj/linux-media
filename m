@@ -1,66 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from jim.sh ([75.150.123.25]:51870 "EHLO psychosis.jim.sh"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751183AbZH2QcR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Aug 2009 12:32:17 -0400
-Date: Sat, 29 Aug 2009 12:32:12 -0400
-From: Jim Paris <jim@jtan.com>
-To: Antonio Ospite <ospite@studenti.unina.it>
-Cc: Tim Bird <tim.bird@am.sony.com>, linux-media@vger.kernel.org,
-	moinejf@free.fr
-Subject: Re: [Fwd: How to debug problem with Playstation Eye webcam?]
-Message-ID: <20090829163211.GA23792@psychosis.jim.sh>
-References: <1251508203.3200.34.camel@palomino.walls.org> <20090829173527.5cb7fb76.ospite@studenti.unina.it>
+Received: from mail.gmx.net ([213.165.64.20]:53525 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752565AbZHZSQC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Aug 2009 14:16:02 -0400
+Date: Wed, 26 Aug 2009 20:16:17 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] Document the new V4L2_CID_BAND_STOP_FILTER control
+Message-ID: <Pine.LNX.4.64.0908262014100.7670@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20090829173527.5cb7fb76.ospite@studenti.unina.it>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Antonio Ospite wrote:
-> > -------- Forwarded Message --------
-> > From: Tim Bird <tim.bird@am.sony.com>
-> 
-> > I'm trying to get a Playstation Eye webcam working under a new install of
-> > Fedora 11 and not having much luck.
-> > 
-> > I'm running a stock Fedora kernel (2.6.29.4).
-> >
-> 
-> Hi Tim,
-> 
-> before doing any further investigation about code in 2.6.29.4, forgive
-> the silly question: is using a more recent kernel/driver an option for
-> you?
-> I've just tried latest code from v4l-dvb and it "just works" with the
-> applications I use. You can get the mercurial repository here
-> http://linuxtv.org/hg/v4l-dvb
-> 
-> I know that there was a regression in 2.6.30 (not sure about 2.6.29.4)
-> and a patch has been sent by Jim Paris to fix it, I don't know if it is
-> already in a 2.6.30.x release, tho. The change is this one:
-> http://patchwork.kernel.org/patch/42114/
+Add V4L2 API documentation for the new V4L2_CID_BAND_STOP_FILTER control
 
-I believe 2.6.29.4 should be okay.  However, the Fedora folks might
-have pulled some newer patches which also added the bug.  You might
-try a stock 2.6.29.4 kernel instead of Fedora's, or just apply the
-patch that Antonio refers to (if thta's the problem).
-
-If your kernel does have the same bug, the symptoms would be as you
-described, with the camera's red LED turning on during an attempted
-capture.  Do you get the red LED?
-
-You would also probably see the same problem, regardless of kernel
-version, if the camera were connected to a full-speed instead of
-high-speed USB port.
-
-> I tested the driver with "mplayer" and "luvcview" during development,
-> and I am now using it with "cheese", I've never run v4l-test.
-
-Agreed.  luvcview is probably the easiest to test with, and I can
-provide command lines for mplayer, ffmpeg, etc, if necessary.
-
--jim
-
-
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+diff -r 3489b2efe4b0 v4l2-spec/controls.sgml
+--- a/v4l2-spec/controls.sgml	Tue Aug 25 16:53:23 2009 +0200
++++ b/v4l2-spec/controls.sgml	Wed Aug 26 19:59:36 2009 +0200
+@@ -1811,6 +1811,14 @@ device is not restricted to these method
+ device is not restricted to these methods. Devices that implement the privacy
+ control must support read access and may support write access.</entry>
+ 	  </row>
++
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_BAND_STOP_FILTER</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row><row><entry spanname="descr">Switch the band-stop filter of a
++camera sensor on or off, or specify its strength. Such band-stop filters can
++be used, for example, to filter out the fluorescent light component.</entry>
++	  </row>
+ 	  <row><entry></entry></row>
+ 	</tbody>
+       </tgroup>
+diff -r 3489b2efe4b0 v4l2-spec/v4l2.sgml
+--- a/v4l2-spec/v4l2.sgml	Tue Aug 25 16:53:23 2009 +0200
++++ b/v4l2-spec/v4l2.sgml	Wed Aug 26 19:59:36 2009 +0200
+@@ -25,7 +25,7 @@
+ <book id="v4l2spec">
+   <bookinfo>
+     <title>Video for Linux Two API Specification</title>
+-    <subtitle>Revision 0.27</subtitle>
++    <subtitle>Revision 0.28</subtitle>
+ 
+     <authorgroup>
+       <author>
+@@ -142,6 +142,13 @@ structs, ioctls) must be noted in more d
+ structs, ioctls) must be noted in more detail in the history chapter
+ (compat.sgml), along with the possible impact on existing drivers and
+ applications. -->
++
++      <revision>
++	<revnumber>0.28</revnumber>
++	<date>2009-08-26</date>
++	<authorinitials>gl</authorinitials>
++	<revremark>Added V4L2_CID_BAND_STOP_FILTER documentation.</revremark>
++      </revision>
+ 
+       <revision>
+ 	<revnumber>0.27</revnumber>
