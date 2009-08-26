@@ -1,86 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1220 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755724AbZHMUXQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Aug 2009 16:23:16 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: Re: [RFC][PATCH] v4l2: Add other RAW Bayer 10bit component orders
-Date: Thu, 13 Aug 2009 22:23:09 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <A24693684029E5489D1D202277BE89444A7839B7@dlee02.ent.ti.com> <A24693684029E5489D1D202277BE89444A7839CC@dlee02.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE89444A7839CC@dlee02.ent.ti.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:58119 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932143AbZHZLJM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Aug 2009 07:09:12 -0400
+Message-ID: <4A9517D6.1070405@iki.fi>
+Date: Wed, 26 Aug 2009 14:09:10 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Jose Alberto Reguero <jareguero@telefonica.net>,
+	linux-media@vger.kernel.org,
+	Michael Krufky <mkrufky@kernellabs.com>
+Subject: Re: Noisy video with Avermedia AVerTV Digi Volar X HD (AF9015) and
+ 	mythbuntu 9.04
+References: <8527bc070908040016x5d5ad15bk8c2ef6e99678f9e9@mail.gmail.com>	 <200908041312.52878.jareguero@telefonica.net>	 <8527bc070908041423p439f2d35y2e31014a10433c80@mail.gmail.com>	 <200908042348.58148.jareguero@telefonica.net>	 <4A945CA4.6010402@iki.fi>	 <829197380908251501l7731536bg79dd8595cd7ce50d@mail.gmail.com>	 <4A94612A.2070705@iki.fi> <829197380908251524m66bc9a46i5428bdc28ecab153@mail.gmail.com> <4A9467CF.2070207@iki.fi>
+In-Reply-To: <4A9467CF.2070207@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200908132223.09322.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 13 August 2009 20:58:59 Aguirre Rodriguez, Sergio Alberto wrote:
-> 
-> > -----Original Message-----
-> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> > owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio Alberto
-> > Sent: Thursday, August 13, 2009 1:51 PM
-> > To: linux-media@vger.kernel.org
-> > Subject: [RFC][PATCH] v4l2: Add other RAW Bayer 10bit component orders
-> > 
-> > From: Sergio Aguirre <saaguirre@ti.com>
-> > 
-> > This helps clarifying different pattern orders for RAW Bayer 10 bit
-> > cases.
-> 
-> My intention with this patch is to help sensor drivers letting know the userspace (or a v4l2_device master) the exact order of components a sensor is outputting...
-> 
-> Please share your comments/thoughts/kicks :)
+On 08/26/2009 01:38 AM, Antti Palosaari wrote:
+> On 08/26/2009 01:24 AM, Devin Heitmueller wrote:
+>> On Tue, Aug 25, 2009 at 6:09 PM, Antti Palosaari<crope@iki.fi> wrote:
+>>> If demod (and tuner) is powered off by bridge (.power_ctrl) that's not
+>>> possible. Is there way to call bridge .power_ctrl to wake up demod and
+>>> tuner? I added param for demdod state to track sleep/wake state and
+>>> return 0
+>>> in sleep case. But that does not sounds good solution...
+>>
+>> Michael Krufky actually put together some patches to allow the bridge
+>> to intercept frontend calls, which would allow for things like power
+>> management. I don't know if they've been merged yet.
+>
+> OK, lets see.
+>
+> I wonder why v4l-dvb -framework even allows IOCTLs when device is
+> powered off. This sounds like wrong functionality from my sight. Why not
+> to power on device before all IOCTL request. Some IOCTLs like
+> SET_FRONTEND will of course power on device but most not.
 
-Adding new pixel formats require that the v4l2-spec is also updated, otherwise
-it will fail to build.
+Probably it is better and easier to left all parts of the device powered 
+on always to fulfil all IOCTL request.
 
-It may be a good idea anyway to document these formats there.
+I know it is a little bit stupid to keep device always powered, keep it 
+consuming power and hotter...
 
-Regards,
-
-	Hans
-
-> 
-> Regards,
-> Sergio
-> > 
-> > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> > ---
-> >  include/linux/videodev2.h |    3 +++
-> >  1 files changed, 3 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > index 9e66c50..8aa6255 100644
-> > --- a/include/linux/videodev2.h
-> > +++ b/include/linux/videodev2.h
-> > @@ -327,6 +327,9 @@ struct v4l2_pix_format {
-> >  #define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B', 'A', '1', '0')
-> >  /* 10bit raw bayer DPCM compressed to 8 bits */
-> >  #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
-> > +#define V4L2_PIX_FMT_SRGGB10 v4l2_fourcc('R', 'G', '1', '0')
-> > +#define V4L2_PIX_FMT_SBGGR10 v4l2_fourcc('B', 'G', '1', '0')
-> > +#define V4L2_PIX_FMT_SGBRG10 v4l2_fourcc('G', 'B', '1', '0')
-> >  #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16
-> > BGBG.. GRGR.. */
-> > 
-> >  /* compressed formats */
-> > --
-> > 1.6.3.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
-
+Antti
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+http://palosaari.fi/
