@@ -1,33 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from av12-2-sn2.hy.skanova.net ([81.228.8.186]:53697 "EHLO
-	av12-2-sn2.hy.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752931AbZHKPOA (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:50913 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751461AbZH0Tc3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2009 11:14:00 -0400
-Message-ID: <4A8182D4.2040100@mocean-labs.com>
-Date: Tue, 11 Aug 2009 16:40:20 +0200
-From: =?ISO-8859-1?Q?Richard_R=F6jfors?=
-	<richard.rojfors.ext@mocean-labs.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Cc: Andrew Morton <akpm@linux-foundation.org>, mchehab@infradead.org,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [patch v2 0/1] video: initial support for ADV7180
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	Thu, 27 Aug 2009 15:32:29 -0400
+Date: Thu, 27 Aug 2009 16:32:24 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Peter Brouwer <pb.maillists@googlemail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Input <linux-input@vger.kernel.org>
+Subject: Re: [RFC] Infrared Keycode standardization
+Message-ID: <20090827163224.445e5610@pedra.chehab.org>
+In-Reply-To: <829197380908271017x4247a550t44155a46c7e23c79@mail.gmail.com>
+References: <20090827045710.2d8a7010@pedra.chehab.org>
+	<4A96BD05.1080205@googlemail.com>
+	<829197380908271017x4247a550t44155a46c7e23c79@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a an updated version of my previous patch.
+Em Thu, 27 Aug 2009 13:17:57 -0400
+Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
 
-Hans: I have updated the patch according to you feedback (almost). 
-Thanks for the feedback btw.
-  * I left the state struct even though it only contains the subdev, 
-it's for the future when more functions are added in.
-  * I left the function for checking the norm, also for the future it's 
-for instance possible to get interrupts when the norm is changed, a 
-schedule work or equal could then use this function too.
+> On Thu, Aug 27, 2009 at 1:06 PM, Peter
+> Brouwer<pb.maillists@googlemail.com> wrote:
+> > Mauro Carvalho Chehab wrote:
+> >
+> > Hi Mauro, All
+> >
+> > Would it be an alternative to let lirc do the mapping and just let the
+> > driver pass the codes of the remote to the event port.
 
-And yes, Mocean laboratories is the author while it's copyrighted to Intel.
+For most devices, this is already allowed, via the standard
+EVIOCGKEYCODE/EVIOCSKEYCODE ioctl. 
 
---Richard
+There's a small application showing how to change the keycodes. It is called
+"keytable", and it is avalable at v4l2-apps/util directory at our development
+tree:
+	http://linuxtv.org/hg/v4l-dvb
+
+Yet, there are some DVB-only devices that use a different way to support event
+interface that doesn't allow userspace to replace the IR tables. I've looked on
+the dvb-usb code recently. While a patch for it is not trivial, it shouldn't be
+that hard to change it to support the key GET/SET ioctls, but a patch for it
+requires some care, since it will touch on several different places and drivers.
+
+I'll probably try to address this later.
+
+Cheers,
+Mauro
