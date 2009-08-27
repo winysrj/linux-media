@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from router.gangkast.nl ([82.95.231.74] helo=mail.gangkast.nl)
+Received: from imr-ma01.mx.aol.com ([64.12.206.39])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <expires-jan10@gangkast.nl>) id 1MaFuY-0003Nq-EP
-	for linux-dvb@linuxtv.org; Sun, 09 Aug 2009 23:26:38 +0200
-Received: from [192.168.101.150] (dhcp-150.gangkast.int [192.168.101.150])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mail.gangkast.nl (Postfix) with ESMTPSA id 993B4506EE
-	for <linux-dvb@linuxtv.org>; Sun,  9 Aug 2009 23:25:59 +0200 (CEST)
-Message-ID: <4A7F3EE9.3080506@gangkast.nl>
-Date: Sun, 09 Aug 2009 23:26:01 +0200
-From: Martijn <expires-jan10@gangkast.nl>
+	(envelope-from <td9678td@aim.com>) id 1Mgd5h-0004tI-J2
+	for linux-dvb@linuxtv.org; Thu, 27 Aug 2009 13:24:30 +0200
+References: <BLU0-SMTP560DB1555A2D1180B62CA7B0F80@phx.gbl>
+To: linux-dvb@linuxtv.org, firebringer11@hotmail.com
+Date: Thu, 27 Aug 2009 07:23:22 -0400
+In-Reply-To: <BLU0-SMTP560DB1555A2D1180B62CA7B0F80@phx.gbl>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] diseqc 2.0 on stb0899 / pctv452e (TT S2-3xxx and the
-	likes)
+From: td9678td@aim.com
+Message-Id: <8CBF51FEBA762B7-C3C-2EA6C@webmail-m076.sysops.aol.com>
+Subject: Re: [linux-dvb] Unsupported devices
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -29,34 +25,38 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi All,
+Hi,
 
-This has been addressed before, but I cannot find any specifics on the 
-list or on the net in general regarding.
+i have the same problem with a Compro T750. Maybe Vmware can emulate a 
+pci device for the guest OS, and pass all the traffic to the real 
+device.
 
-I'm trying to get a Spaun SAR 411F switch to work with a TT S2-3650. The 
-SAR only talks diseqc 2.0 according to the specs and works perfectly on 
-an Nexus-S setup. When I try to scan through the switch using the 
-S2-3650 (old dvbscan or the new scan-s2 utility) nothing happens (tuning 
-status == 0x00), whilst a direct connection /without the switch/ pose no 
-problem at all.
 
-When I go through the s2-liplianin dvb drivers I noticed the DiSEqC 2.0 
-freq marker in the stb0899_priv.h header file. Also according to the 
-STB0899 datasheet DiSEqC 2.0 is supported. Does this mean that the 
-pctv452e driver does not implement the 2.0 specifications? I have seen 
-the S2-3650 work through a DiSEqC 1.0 switch without any problems.
 
-Could someone shed some light on this matter? Am I missing something 
-here? Perhaps the pragmatic approach would be to change the switch 
-albeit a fine one.
 
-thank in advance,
-regards,
-Martijn
+-----Original Message-----
+From: E.T. Anderson <firebringer11@hotmail.com>
+To: linux-dvb@linuxtv.org
+Sent: Tue, Aug 25, 2009 4:21 am
+Subject: [linux-dvb] Unsupported devices
 
--- 
-31.69 nHz = once a year
+I currently own both an Artec T14a tuner and OnAir HDTV-GT tuner.
+
+Both of these are ATSC tuners (I'm in the US).
+
+I'm not sure what I can do to help, but I'll put myself out there.
+
+
+E.T. Anderson
+
+firebringer11@hotmail.com
+
+(253) 347 - 5903_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
 
 
 _______________________________________________
