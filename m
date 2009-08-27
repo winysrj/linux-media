@@ -1,105 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:44696 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751137AbZHTEdi (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4160 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751832AbZH0Inx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Aug 2009 00:33:38 -0400
-Date: Thu, 20 Aug 2009 01:33:06 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v1 - 1/5] DaVinci - restructuring code to support vpif
- capture driver
-Message-ID: <20090820013306.696e5dd9@pedra.chehab.org>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE401548C23A5@dlee06.ent.ti.com>
-References: <1250283702-5582-1-git-send-email-m-karicheri2@ti.com>
-	<A69FA2915331DC488A831521EAE36FE40145300FC7@dlee06.ent.ti.com>
-	<200908180849.14003.hverkuil@xs4all.nl>
-	<200908180851.06222.hverkuil@xs4all.nl>
-	<A69FA2915331DC488A831521EAE36FE401548C1E27@dlee06.ent.ti.com>
-	<20090818142817.26de0893@pedra.chehab.org>
-	<A69FA2915331DC488A831521EAE36FE401548C23A5@dlee06.ent.ti.com>
-Mime-Version: 1.0
+	Thu, 27 Aug 2009 04:43:53 -0400
+Message-ID: <2b7b07f52f0ab6fa4d3f1cacc19bf31f.squirrel@webmail.xs4all.nl>
+In-Reply-To: <Pine.LNX.4.64.0908271017280.4808@axis700.grange>
+References: <Pine.LNX.4.64.0908261452460.7670@axis700.grange>
+    <200908270851.27073.hverkuil@xs4all.nl>
+    <Pine.LNX.4.64.0908270857230.4808@axis700.grange>
+    <6d6c955a28219f061dd31af4e0473415.squirrel@webmail.xs4all.nl>
+    <Pine.LNX.4.64.0908271017280.4808@axis700.grange>
+Date: Thu, 27 Aug 2009 10:43:51 +0200
+Subject: Re: [RFC] Pixel format definition on the "image" bus
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+Cc: "Linux Media Mailing List" <linux-media@vger.kernel.org>,
+	"Hans de Goede" <j.w.r.degoede@hhs.nl>,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 19 Aug 2009 10:32:07 -0500
-"Karicheri, Muralidharan" <m-karicheri2@ti.com> escreveu:
 
-> Mauro,
-> 
-> Kevin has approved the architecture part of this patch. When can I expect these to be merged to linux-next?
-> 
-> Thanks.
-> 
-> Murali Karicheri
-> Software Design Engineer
-> Texas Instruments Inc.
-> Germantown, MD 20874
-> email: m-karicheri2@ti.com
-> 
-> >-----Original Message-----
-> >From: Karicheri, Muralidharan
-> >Sent: Tuesday, August 18, 2009 5:51 PM
-> >To: 'Mauro Carvalho Chehab'
-> >Cc: Mauro Carvalho Chehab; linux-media@vger.kernel.org; davinci-linux-open-
-> >source@linux.davincidsp.com; khilman@deeprootsystems.com; Hans Verkuil
-> >Subject: RE: [PATCH v1 - 1/5] DaVinci - restructuring code to support vpif
-> >capture driver
-> >
-> >Mauro,
-> >
-> >Here are the patches from Chaithrika that I am referring to.
-> >http://www.mail-archive.com/linux-media@vger.kernel.org/msg08254.html
+> On Thu, 27 Aug 2009, Hans Verkuil wrote:
+>
+>> > Unfortunately, even the current soc-camera approach with its
+>> > format-enumeration and -conversion API is not enough. As I explained
+>> > above, there are two ways you can handle source's data: "cooked" and
+>> > "raw." The "cooked" way is simple - the sink knows exactly this
+>> specific
+>> > format and knows how to deal with it. Every sink has a final number of
+>> > such natively supported formats, so, that's just a switch-case
+>> statement
+>> > in each sink driver, that is specific to each sink hardware, and that
+>> you
+>> > cannot avoid.
+>> >
+>> > It's the "raw" or "pass-through" mode that is difficult. It is used,
+>> when
+>> > the sink does not have any specific knowledge about this format, but
+>> can
+>> > pack data into RAM in some way, or, hopefully, in a number of ways,
+>> among
+>> > which we can choose. The source "knows" what data it is delivering,
+>> and,
+>> > in principle, how this data has to be packed in RAM to provide some
+>> > meaningful user format. Now, we have to pass this information on to
+>> the
+>> > sink driver to tell it "if you configure the source to deliver the raw
+>> > format X, and then configure your bus in a way Y and pack the data
+>> into
+>> > RAM in a way Z, you get as RAM user format W." So, my proposal is -
+>> during
+>> > probing, the sink enumerates all raw formats, provided by the source,
+>> > accepts those formats, that it can process natively ("cooked" mode),
+>> and
+>> > verifies if it can be configured to bus configuration Y and can
+>> perform
+>> > packing Z, if so, it adds format W to the list of supported formats.
+>> Do
+>> > you see an easier way to do this? I'm currently trying to port one
+>> driver
+>> > combination to this scheme, I'll post a patch, hopefully, later today.
+>>
+>> I'm not so keen on attempting to negotiate things that probably are
+>> impossible to negotiate anyway. (You may have noticed that before :-) )
+>
+> I bought your argument about subtle image corruption that might be
+> difficult to debug back to a wrongly chosen signal polarity and / or
+> sensing edge. Now, what's your argument for this one apart from being "not
+> so keen?" Being not keen doesn't seem a sufficient argument to me for
+> turning platform data into trash-bins.
+>
+> Example: currently a combination SuperH CEU platform with a OV772x camera
+> sensor connected can provide 11 output formats. There are at least two
+> such boards currently in the mainline with the same bus configuration. Do
+> you want to exactly reproduce these 11 entries in these two boards? What
+> about other boards?
+>
+>> One approach would be to make this mapping part of the platform data
+>> that
+>> is passed to the bridge driver.
+>>
+>> For a 'normal' PCI or USB driver information like this would be
+>> contained
+>> in the bridge driver. Here you have a generic bridge driver intended to
+>> work with different SoCs, so now that information has to move to the
+>> platform data. That's the only place where you know exactly how to setup
+>> these things.
+>>
+>> So you would end up with a list of config items:
+>>
+>> <user fourcc>, <bridge fourcc>, <sensor fourcc>, <bus config>
+>>
+>> And the platform data of each sensor device would have such a list.
+>>
+>> So the bridge driver knows that VIDIOC_ENUMFMT can give <user fourcc>
+>> back
+>> to the user, and if the user selects that, then it has to setup the
+>> bridge
+>> using <bridge fourcc> and the sensor using <sensor fourcc>, and the bus
+>> as
+>> <bus config>.
+>>
+>> This is just a high level view as I don't have time to go into this in
+>> detail, but I think this is a reasonable approach. It's really no
+>> different to what the PCI and USB drivers are doing, except formalized
+>> for
+>> the generic case.
+>
+> Please, give me a valid reason, why this cannot be auto-enumerated.
 
-There's something wrong with this patch:
+For example a sensor connected to an fpga (doing e.g. color space
+conversion or some other type of image processing/image improvement) which
+in turn is connected to the bridge.
 
-$ patch -p1 -i 12453a.patch
-patching file arch/arm/mach-davinci/board-dm646x-evm.c
-Reversed (or previously applied) patch detected!  Assume -R? [n] y
-Hunk #1 succeeded at 52 (offset -11 lines).
-Hunk #2 succeeded at 218 with fuzz 1 (offset -70 lines).
-Hunk #3 succeeded at 286 with fuzz 2 (offset -14 lines).
-Hunk #4 FAILED at 293.
-Hunk #5 succeeded at 254 (offset -79 lines).
-1 out of 5 hunks FAILED -- saving rejects to file arch/arm/mach-davinci/board-dm646x-evm.c.rej
-patching file arch/arm/mach-davinci/dm646x.c
-Hunk #1 succeeded at 40 with fuzz 2 (offset 8 lines).
-Hunk #2 succeeded at 550 with fuzz 1 (offset -145 lines).
-Hunk #3 succeeded at 866 with fuzz 1 (offset 12 lines).
-patching file arch/arm/mach-davinci/include/mach/dm646x.h
-Hunk #1 succeeded at 47 with fuzz 2 (offset 18 lines).
+How you setup the sensor and how you setup the bridge might not have an
+obvious 1-to-1 mapping. While I have not seen setups like this for
+sensors, I have seen them for video encoder devices.
 
-It seems that this patch is not based on my linux-next -git tree. Probably,
-this patch is dependent on some patch at Kevin tree.
+You assume that a sensor is connected directly to a bridge, but that
+assumption is simply not true. There may be all sorts of ICs in between.
 
-Kevin,
+One alternative is to have two approaches: a simple one where you just try
+to match what the sensor can do and what the bridge can accept, and one
+where you can override it from the platform data.
 
-As this patch touches only arch/arm/ stuff, I suspect that we'll have less
-conflicts if you could merge this one. From my side:
+The latter does not actually have to be implemented as long as there are
+no boards that need that, but it should be designed in such a way that it
+is easy to implement it later.
 
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+It's my opinion that we have to be careful in trying to be too
+intelligent. There is simply too much variation in hardware out there to
+ever hope to be able to do that.
 
-> >http://www.mail-archive.com/linux-media@vger.kernel.org/msg07676.html
+Regards,
 
-Hmm... the second patch shows that bisect will be broken with the platform
-changes. This patch should be fold with the one that renamed the field, or
-before Kconfig/Makefile changes.
+          Hans
 
-I've applied this one on my tree, just before the Kbuild patch.
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
-Due to the DaVinci dependency order, I'll need to hold the DaVinci patches at
-the next upstream window to happen after Russell/Kevin trees, to avoid bisect
-troubles
-
-
-
-Cheers,
-Mauro
