@@ -1,83 +1,129 @@
-Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n76D9v5S001086
-	for <video4linux-list@redhat.com>; Thu, 6 Aug 2009 09:09:57 -0400
-Received: from tomts52-srv.bellnexxia.net (tomts52-srv.bellnexxia.net
-	[209.226.175.177])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n76D9bq5013110
-	for <video4linux-list@redhat.com>; Thu, 6 Aug 2009 09:09:37 -0400
-From: Jonathan Lafontaine <jlafontaine@ctecworld.com>
-To: javier Martin <javier.martin@vista-silicon.com>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Date: Thu, 6 Aug 2009 09:06:55 -0400
-Message-ID: <09CD2F1A09A6ED498A24D850EB1012081B1E6D55E8@Colmatec004.COLMATEC.INT>
-References: <eedb5540908060552n43021d5bla6ee655c294307eb@mail.gmail.com>
-In-Reply-To: <eedb5540908060552n43021d5bla6ee655c294307eb@mail.gmail.com>
-Content-Language: fr-CA
-Content-Type: text/plain; charset="iso-8859-1"
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from blu0-omc3-s29.blu0.hotmail.com ([65.55.116.104])
+	by mail.linuxtv.org with esmtp (Exim 4.69)
+	(envelope-from <firebringer11@hotmail.com>) id 1Mggps-0004jk-9I
+	for linux-dvb@linuxtv.org; Thu, 27 Aug 2009 17:24:24 +0200
+Message-ID: <BLU0-SMTP59399FA7FFA6A192E55BD4B0F60@phx.gbl>
+From: "E.T. Anderson" <firebringer11@hotmail.com>
+To: td9678td@aim.com
+Date: Thu, 27 Aug 2009 08:23:46 -0700
+References: <BLU0-SMTP560DB1555A2D1180B62CA7B0F80@phx.gbl>
+	<8CBF51FEBA762B7-C3C-2EA6C@webmail-m076.sysops.aol.com>
+In-Reply-To: <8CBF51FEBA762B7-C3C-2EA6C@webmail-m076.sysops.aol.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: RE : soc-camera driver for i.MX27
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-List-ID: <video4linux-list@redhat.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Unsupported devices
+Reply-To: linux-media@vger.kernel.org
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============1357811606=="
+Mime-version: 1.0
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
 
-did u have a look at linux tv repositories ?
+--===============1357811606==
+Content-Type: multipart/alternative;
+  boundary="Boundary-01=_CUqlKbp2I0VOiDh"
+Content-Transfer-Encoding: 7bit
 
-http://linuxtv.org/
+--Boundary-01=_CUqlKbp2I0VOiDh
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-heres is hte wiki go start there, and finsh on another site to complete.. 
-with the inside links
+If Linux is the host OS, it might still need a driver to know what it's 
+passing to the card. (This is just speculation though, I'm not a developer)
 
-http://linuxtv.org/v4lwiki/index.php/Main_Page
+Besides which, my computer has enough power to decode HD video from the card, 
+but it doesn't have enough power to run a virtual OS and decode HD video.
 
+E.T. Anderson
+firebringer11@hotmail.com
+(253) 347 - 5903
 
-________________________________________
-De : video4linux-list-bounces@redhat.com [video4linux-list-bounces@redhat.com] de la part de javier Martin [javier.martin@vista-silicon.com]
-Date d'envoi : 6 août 2009 08:52
-À : video4linux-list@redhat.com
-Cc : Guennadi Liakhovetski
-Objet : soc-camera driver for i.MX27
+>Hi,
 
-Hi,
-we are trying to develop a soc-camera host driver for the i.MX27 cpu
-and include it in mainline kernel.
-We have read that there is an out-of-tree patch for this. Maybe if
-someone could point us to it we could use as a base for our
-development.
-
-Thank you.
---
-Javier Martin
-Vista Silicon S.L.
-Universidad de Cantabria
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
-
---
-
-This message has been verified by LastSpam (http://www.lastspam.com) eMail security service, provided by SoluLAN
-Ce courriel a ete verifie par le service de securite pour courriels LastSpam (http://www.lastspam.com), fourni par SoluLAN (http://www.solulan.com)
-www.solulan.com
+i have the same problem with a Compro T750. Maybe Vmware can emulate a 
+pci device for the guest OS, and pass all the traffic to the real 
+device.
 
 
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+
+
+-----Original Message-----
+From: E.T. Anderson <firebringer11@hotmail.com>
+To: linux-dvb@linuxtv.org
+Sent: Tue, Aug 25, 2009 4:21 am
+Subject: [linux-dvb] Unsupported devices
+
+I currently own both an Artec T14a tuner and OnAir HDTV-GT tuner.
+
+Both of these are ATSC tuners (I'm in the US).
+
+I'm not sure what I can do to help, but I'll put myself out there.
+
+
+E.T. Anderson
+
+firebringer11@hotmail.com
+
+(253) 347 - 5903_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+
+
+
+--Boundary-01=_CUqlKbp2I0VOiDh
+Content-Type: text/html;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'DejaVu Sans'; font-size:10pt; font-weight:400; font-style:normal;">If Linux is the host OS, it might still need a driver to know what it's passing to the card. (This is just speculation though, I'm not a developer)<br>
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>Besides which, my computer has enough power to decode HD video from the card, but it doesn't have enough power to run a virtual OS and decode HD video.<br /><br>
+<span style=" font-weight:600;">E.T. Anderson</span><br>
+firebringer11@hotmail.com<br>
+(253) 347 - 5903<br>
+<br />&gt;Hi,<br>
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>i have the same problem with a Compro T750. Maybe Vmware can emulate a <br>
+pci device for the guest OS, and pass all the traffic to the real <br>
+device.<br>
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p><p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p><p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p><p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>-----Original Message-----<br>
+From: E.T. Anderson &lt;firebringer11@hotmail.com&gt;<br>
+To: linux-dvb@linuxtv.org<br>
+Sent: Tue, Aug 25, 2009 4:21 am<br>
+Subject: [linux-dvb] Unsupported devices<br>
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>I currently own both an Artec T14a tuner and OnAir HDTV-GT tuner.<br>
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>Both of these are ATSC tuners (I'm in the US).<br>
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>I'm not sure what I can do to help, but I'll put myself out there.<br>
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p><p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>E.T. Anderson<br>
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>firebringer11@hotmail.com<br>
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>(253) 347 - 5903_______________________________________________<br>
+linux-dvb users mailing list<br>
+For V4L/DVB development, please use instead linux-media@vger.kernel.org<br>
+linux-dvb@linuxtv.org<br>
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb<br>
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p><p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p><p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p><p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p></body></html>
+--Boundary-01=_CUqlKbp2I0VOiDh--
+
+
+--===============1357811606==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1357811606==--
