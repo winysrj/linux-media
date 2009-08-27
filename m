@@ -1,295 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f214.google.com ([209.85.219.214]:64322 "EHLO
-	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751246AbZHETv1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Aug 2009 15:51:27 -0400
-Received: by ewy10 with SMTP id 10so262420ewy.37
-        for <linux-media@vger.kernel.org>; Wed, 05 Aug 2009 12:51:26 -0700 (PDT)
+Received: from mail.gmx.net ([213.165.64.20]:40888 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750906AbZH0HOe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Aug 2009 03:14:34 -0400
+Date: Thu, 27 Aug 2009 09:14:36 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans de Goede <j.w.r.degoede@hhs.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC] Pixel format definition on the "image" bus
+In-Reply-To: <200908270851.27073.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.0908270857230.4808@axis700.grange>
+References: <Pine.LNX.4.64.0908261452460.7670@axis700.grange>
+ <200908270851.27073.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <alpine.LRH.1.10.0908031943220.8512@pub1.ifh.de>
-References: <alpine.LRH.1.10.0908031943220.8512@pub1.ifh.de>
-Date: Wed, 5 Aug 2009 15:51:25 -0400
-Message-ID: <37219a840908051251g1ec47b6dx1d940862727a9c46@mail.gmail.com>
-Subject: Re: RFC: adding ISDB-T/ISDB-Tsb to DVB-API 5
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Patrick Boettcher <patrick.boettcher@desy.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	olgrenie@dibcom.fr
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 3, 2009 at 1:53 PM, Patrick
-Boettcher<patrick.boettcher@desy.de> wrote:
-> Hi all,
->
-> I'd like to request some comments about the extension of the DVB-API 5 to
-> support ISDB-T and ISDB-Tsb. Some stubs in frontend.h and friends have been
-> there since the beginning and now it's time to have real user-space support
-> for that standard.
->
-> I hope that we can finish the discussion of this RFC before the merge window
-> of 2.6.32, so that it can be included then.
->
-> The current version of the patches can be found here:
->
-> http://linuxtv.org/hg/~pb/v4l-dvb/rev/eabb8cfcf32a
->
-> Changelog:
-> This patch increments the DVB-API to version 5.1 in order to reflect the
-> addition of ISDB-T and ISDB-Tsb on Linux' DVB-API.
->
-> Changes in detail:
-> - added a small document to describe how to use the API to tune to an ISDB-T
-> or ISDB-Tsb channel
-> - added necessary fields to dtv_frontend_cache
-> - added a smarter clear-cache function which resets all fields of the
-> dtv_frontend_cache
-> - added a TRANSMISSION_MODE_4K to fe_transmit_mode_t
->
-> I also added a document trying to descibe in short all the needed parameters
-> (DTV_CMDs) for ISDB-T(sb) and how to use them. I'm inlining this document,
-> as it is the base for the RFC as well:
->
-> (Disclaimer: ISDB-T and ISDB-Tsb is relative complex from the parameters
-> point of view compared to DVB-T and for me the standard-document was not
-> making things very easy for me as a software-writer. Please don't blame me
-> for so many additions)
->
-> -----------------
-> This document describes shortly what are the possible parameters in
-> the Linux DVB-API called "S2API" in order to tune an ISDB-T/ISDB-Tsb
-> demodulator:
->
-> This ISDB-T/ISDB-Tsb API extension should reflect all information
-> needed to tune any ISDB-T/ISDB-Tsb hardware. Of course it is possible
-> that some very sophisticated devices won't need certain parameters to
-> tune.
->
-> The information given here should help application writers to know how
-> to handle ISDB-T and ISDB-Tsb hardware using the Linux DVB-API.
->
-> The details given here about ISDB-T and ISDB-Tsb are just enough to
-> basically
-> show the dependencies between the needed parameter values, but surely some
-> information is left out. For more detailed information see the standard
-> document:
-> ARIB STD-B31 - "Transmission System for Digital Terrestrial Television
-> Broadcasting".
->
-> In order to read this document one has to know about the channel
-> structure in ISDB-T and ISDB-Tsb. I.e. it has to be known to the
-> reader that an ISDB-T channel consists of 13 segments, that it can
-> have up to 3 layer sharing those segments, and so on.
->
-> Parameters used by ISDB-T and ISDB-Tsb.
->
-> Existing parameters
-> ===================
->
-> a) DTV_BANDCOUNT_HZ
->
-> Help the front-end, for example, to set up base-band-filters.
->
-> Possible values:
->
-> For ISDB-T it should be always 6000000Hz (6MHz)
-> For ISDB-Tsb it can vary depending on the number of connected segments
->
-> b) DTV_DELIVERY_SYSTEM
->
-> Possible values: SYS_ISDBT
->
-> c) DTV_TRANSMISSION_MODE
->
-> ISDB-T supports three carrier/symbol-size: 8K, 4K, 2K. It is called
-> 'mode' in the standard: Mode 1 is 2K, mode 2 is 4K, mode 3 is 8K
->
-> Possible values: TRANSMISSION_MODE_2K, TRANSMISSION_MODE_8K,
->         TRANSMISSION_MODE_AUTO, TRANSMISSION_MODE_4K
->
-> If DTV_TRANSMISSION_MODE is set the TRANSMISSION_MODE_AUTO the
-> hardware will try to find the correct FFT-size (if capable) and use
-> the TMCC to fill in the missing parameters.
->
-> TRANSMISSION_MODE_4K is added at the same time as the other new parameters.
->
-> d) DTV_GUARD_INTERVAL
->
-> Possible values: GUARD_INTERVAL_1_32, GUARD_INTERVAL_1_16,
-> GUARD_INTERVAL_1_8,
->         GUARD_INTERVAL_1_4, GUARD_INTERVAL_AUTO
->
-> If DTV_GUARD_INTERVAL is set the GUARD_INTERVAL_AUTO the hardware will
-> try to find the correct guard interval (if capable) and use the TMCC to fill
-> in the missing parameters.
->
-> New parameters
-> ==============
->
-> 1. DTV_ISDBT_PARTIAL_RECEPTION (1b)
->
-> If DTV_ISDBT_SOUND_BROADCASTING is '0' this bit-field represents whether
-> the channel is in partial reception mode or not.
->
-> If '1' DTV_ISDBT_LAYERA_* values are assigned to the center segment and
-> DTV_ISDBT_LAYERA_SEGMENT_COUNT has to be '1'.
->
-> If in addition DTV_ISDBT_SOUND_BROADCASTING is '1'
-> DTV_ISDBT_PARTIAL_RECEPTION represents whether this ISDB-Tsb channel
-> is consisting of one segment and layer or three segments and two layers.
->
-> Possible values: 0, 1, -1 (AUTO)
->
-> 2. DTV_ISDBT_SOUND_BROADCASTING (1b)
->
-> This field represents whether the other DTV_ISDBT_*-parameters are
-> referring to an ISDB-T and an ISDB-Tsb channel. (See also
-> DTV_ISDBT_PARTIAL_RECEPTION).
->
-> Possible values: 0, 1, -1 (AUTO)
->
-> 3. DTV_ISDBT_SB_SUBCHANNEL_ID
->
-> This field only applies if DTV_ISDBT_SOUND_BROADCASTING is '1'.
->
-> (Note of the author: This might not be the correct description of the
->  SUBCHANNEL-ID in all details, but it is my understanding of the technical
->  background needed to program a device)
->
-> An ISDB-Tsb channel (1 or 3 segments) can be broadcasted alone or in a
-> set of connected ISDB-Tsb channels. In this set of channels every
-> channel can be received independently. The number of connected
-> ISDB-Tsb segment can vary, e.g. depending on the frequency spectrum
-> bandwidth available.
->
-> Example: Assume 8 ISDB-Tsb connected segments are broadcasted. The
-> broadcaster has several possibilities to put those channels in the
-> air: Assuming a normal 13-segment ISDB-T spectrum he can align the 8
-> segments from position 1-8 to 5-13 or anything in between.
->
-> The underlying layer of segments are subchannels: each segment is
-> consisting of several subchannels with a predefined IDs. A sub-channel
-> is used to help the demodulator to synchronize on the channel.
->
-> An ISDB-T channel is always centered over all sub-channels. As for
-> the example above, in ISDB-Tsb it is no longer as simple as that.
->
-> The DTV_ISDBT_SB_SUBCHANNEL_ID parameter is used to give the
-> sub-channel ID of the segment to be demodulated.
->
-> Possible values: 0 .. 41, -1 (AUTO)
->
-> 4. DTV_ISDBT_SB_SEGMENT_IDX
->
-> This field only applies if DTV_ISDBT_SOUND_BROADCASTING is '1'.
->
-> DTV_ISDBT_SB_SEGMENT_IDX gives the index of the segment to be
-> demodulated for an ISDB-Tsb channel where several of them are
-> transmitted in the connected manner.
->
-> Possible values: 0 .. DTV_ISDBT_SB_SEGMENT_COUNT-1
->
-> Note: This value cannot be determined by an automatic channel search.
->
-> 5. DTV_ISDBT_SB_SEGMENT_COUNT
->
-> This field only applies if DTV_ISDBT_SOUND_BROADCASTING is '1'.
->
-> DTV_ISDBT_SB_SEGMENT_COUNT gives the total count of connected ISDB-Tsb
-> channels.
->
-> Possible values: 1 .. 13
->
-> Note: This value cannot be determined by an automatic channel search.
->
-> 6. Hierarchical layers
->
-> ISDB-T channels can be coded hierarchically. As opposed to DVB-T in
-> ISDB-T hierarchical layers can be decoded simultaneously. For that
-> reason a ISDB-T demodulator has 3 viterbi and 3 reed-solomon-decoders.
->
-> ISDB-T has 3 hierarchical layers which each can use a part of the
-> available segments. The total number of segments over all layers has
-> to 13 in ISDB-T.
->
-> 6.1 DTV_ISDBT_LAYER_ENABLED (3b)
->
-> Hierarchical reception in ISDB-T is achieved by enabling or disabling
-> layers in the decoding process. Setting all bits of
-> DTV_ISDBT_LAYER_ENABLED to '1' forces all layers (if applicable) to be
-> demodulated. This is the default.
->
-> If the channel is in the partial reception mode
-> (DTV_ISDBT_PARTIAL_RECEPTION=1) the central segment can be decoded
-> independently of the other 12 segments. In that mode layer A has to
-> have a SEGMENT_COUNT of 1.
->
-> In ISDB-Tsb only layer A is used, it can be 1 or 3 in ISDB-Tsb
-> according to DTV_ISDBT_PARTIAL_RECEPTION. SEGMENT_COUNT must be filled
-> accordingly.
->
-> Possible values: 0x1, 0x2, 0x4 (|-able)
->
-> DTV_ISDBT_LAYER_ENABLED[0:0] - layer A
-> DTV_ISDBT_LAYER_ENABLED[1:1] - layer B
-> DTV_ISDBT_LAYER_ENABLED[2:2] - layer C
-> DTV_ISDBT_LAYER_ENABLED[31:3] unused
->
-> 6.2 DTV_ISDBT_LAYER*_FEC
->
-> Possible values: FEC_AUTO, FEC_1_2, FEC_2_3, FEC_3_4, FEC_5_6, FEC_7_8,
->
-> 6.3 DTV_ISDBT_LAYER*_MODULATION
->
-> Possible values: QAM_AUTO, DQPSK, QAM_16, QAM_64, DQPSK
->
-> Note: If layer C is DQPSK layer B has to be DQPSK. If layer B is DQPSK
-> and DTV_ISDBT_PARTIAL_RECEPTION=0 layer has to be DQPSK.
->
-> 6.4 DTV_ISDBT_LAYER*_SEGMENT_COUNT
->
-> Possible values: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, -1 (AUTO)
->
-> Note: Truth table for DTV_ISDBT_SOUND_BROADCASTING and
-> DTV_ISDBT_PARTIAL_RECEPTION and LAYER*_SEGMENT_COUNT
->
->  PR | SB || layer A width | layer B width | layer C width | total
-> ----+----++---------------+---------------+---------------+-------
->  0 |  0 || 1 .. 13       | 1 .. 13       | 1..13         | 13
->  1 |  0 || 1             | 1 .. 13       | 1..13         | 13
->  0 |  1 || 1             | 0             | 0             | 1
->  1 |  1 || 1             | 2             | 0             | 3
->
->
-> 6.5 DTV_ISDBT_LAYER*_TIME_INTERLEAVING
->
-> Possible values: 0, 1, 2, 3, -1 (AUTO)
->
-> Note: The real inter-leaver depth-names depend on the mode (fft-size); the
-> values
-> here are referring to what can be found in the TMCC-structure -
-> independent of the mode.
->
-> -----------------
->
->
-> thanks for the feedback in advance,
-> Patrick.
+On Thu, 27 Aug 2009, Hans Verkuil wrote:
 
-Patrick,
+> On Wednesday 26 August 2009 16:39:16 Guennadi Liakhovetski wrote:
+> > Hi all
+> > 
+> > With the ability to arbitrarily combine (video) data sources and sinks we 
+> > have to be able to suitably configure both parties. This includes setting 
+> > bus parameters, which is discussed elsewhere, and selecting a data format, 
+> > which is discussed in this RFC.
+> > 
+> > Video data, coming from a source (e.g., a camera sensor) to a sink (e.g., 
+> > a bridge) can be processed in two ways: (1) as raw data, and (2) as 
+> > formatted data.
+> > 
+> > Definition 1: Raw Data Sampling means storing frames, consisting of a 
+> > certain number of lines, consisting of a certain number of samples (which 
+> > may or may not represent pixels) in memory. Each sample contains a certain 
+> > number of bits of useful information, multiple samples can be packed 
+> > together according to some rule.
+> > 
+> > In case (1) the sink has no specific knowledge about the format, so it can 
+> > only sample data on its data bus and store it in memory in some specific 
+> > manner. This "manner" is completely defined by the following three 
+> > parameters: (a) how many bits are sampled, (b) in which order they will be 
+> > stored in memory, (c) how samples have to be packed. To provide such "raw" 
+> > data to the user the bridge driver also has to know what format the data 
+> > represents if stored in memory as required by the source.
+> > 
+> > In case (2) the sink "knows" this specific format and can handle it 
+> > accordingly, e.g., convert to some other format.
+> > 
+> > It is therefore proposed to describe a data format on-the-bus using the 
+> > following parameters:
+> > 
+> > enum V4L2_DATA_PACKING {
+> > 	V4L2_DATA_PACKING_NONE	= 0,
+> > };
+> > 
+> > enum V4L2_DATA_ORDER {
+> > 	V4L2_DATA_ORDER_LE	= 0,
+> > 	V4L2_DATA_ORDER_BE	= 1,
+> > };
+> > 
+> > /**
+> >  * struct v4l2_subdev_bus_pixelfmt - Data format on the image bus
+> >  * @sourceformat:	Format identification for sinks, capable to process this
+> >  *			specific format
+> >  * @pixelformat:	Fourcc code...
+> >  * @colorspace:		and colorspace, that will be obtained if the data is
+> >  *			stored in memory in the following way:
+> >  * @bits_per_sample:	How many bits the bridge has to sample
+> >  * @packing:		Type of sample-packing, that has to be used
+> >  * @order:		Sample order when storing in memory
+> >  */
+> > struct v4l2_subdev_bus_pixelfmt {
+> > 	u32			sourceformat;
+> > 	u32			pixelformat;
+> > 	enum v4l2_colorspace	colorspace;
+> > 	int			index;
+> > 	u8			bits_per_sample;
+> > 	enum V4L2_DATA_PACKING	packing;
+> > 	enum V4L2_DATA_ORDER	order;
+> > };
+> > 
+> > The .sourceformat field above is a new enumeration, similar to currently 
+> > defined in include/linux/videodev2.h fourcc codes, but combining the 
+> > fourcc, bits-per-sample, packing and order information in one. If an 
+> > existing Fourcc code already uniquely defines this combination, the new 
+> > code might coincide with it. In principle, this code is redundant, because 
+> > the data format is completely described by the "raw" parameters, but it 
+> > can be useful for some (simple) source-sink combinations.
+> > 
+> > The sink driver can then use the following new method from struct 
+> > v4l2_subdev_video_ops:
+> > 
+> > int (*enum_bus_pixelfmt)(struct v4l2_subdev *sd,
+> > 			 const struct v4l2_subdev_bus_pixelfmt **fmt);
+> > 
+> > to enumerate formats, provided by the source and to decide, which of them 
+> > it can support in raw mode, which as formatted data, and which of them it 
+> > cannot support at all, e.g., because it does not support the requested 
+> > packing type. This enumeration can either take place upon reception of a 
+> > S_FMT ioctl, or during probing to build a list of formats, that this 
+> > specific source-sink pair can provide to the user.
+> > 
+> > Comments welcome.
+> 
+> Hi Guennadi,
+> 
+> This seems way too complicated to me. The original approach you took in
+> soc_camera (just a fourcc code and the colorspace) seems fine to me (and
+> colorspace is probably not even needed). The sensor supports X formats, the
+> sink supports Y sensor formats and knows how to map those to the actual
+> formats as are returned by VIDIOC_ENUM_FMT. So a pointer to a list of supported
+> fourcc codes is probably all you need.
 
-It's extremely exciting to finally see this surfacing to the mailing
-lists -- It will be a great addition to linux-dvb to have support for
-the ISDB digital standards.
+Unfortunately, even the current soc-camera approach with its 
+format-enumeration and -conversion API is not enough. As I explained 
+above, there are two ways you can handle source's data: "cooked" and 
+"raw." The "cooked" way is simple - the sink knows exactly this specific 
+format and knows how to deal with it. Every sink has a final number of 
+such natively supported formats, so, that's just a switch-case statement 
+in each sink driver, that is specific to each sink hardware, and that you 
+cannot avoid.
 
-One thing that I see missing right now is userspace utilities.  Do you
-have any plans to add ISDB scanning support to dvb-apps, and tuning
-support to the *zap utility?  This would be the best way to get the
-application developers started on incorporating ISDB support into the
-apps shipping today.
+It's the "raw" or "pass-through" mode that is difficult. It is used, when 
+the sink does not have any specific knowledge about this format, but can 
+pack data into RAM in some way, or, hopefully, in a number of ways, among 
+which we can choose. The source "knows" what data it is delivering, and, 
+in principle, how this data has to be packed in RAM to provide some 
+meaningful user format. Now, we have to pass this information on to the 
+sink driver to tell it "if you configure the source to deliver the raw 
+format X, and then configure your bus in a way Y and pack the data into 
+RAM in a way Z, you get as RAM user format W." So, my proposal is - during 
+probing, the sink enumerates all raw formats, provided by the source, 
+accepts those formats, that it can process natively ("cooked" mode), and 
+verifies if it can be configured to bus configuration Y and can perform 
+packing Z, if so, it adds format W to the list of supported formats. Do 
+you see an easier way to do this? I'm currently trying to port one driver 
+combination to this scheme, I'll post a patch, hopefully, later today.
 
-Regards,
+> But I also have other questions that need to be answered:
+> 
+> 1) Isn't there a relationship between the supported sensor formats and the
+> bus configuration? E.g. the davinci dm646x has two bus modes on its capture
+> port: either embedded syncs or separate syncs. Depending on the mode it can
+> capture different formats.
 
-Mike
+Yes, sure, the sink driver has to check, if it supports bus configuration 
+"Y" - see above.
+
+> 2) What will the relationship be between this functionality and how the
+> enum/try/g/s_fmt subdev ops are currently used? Perhaps we should switch
+> everything over to this new API? I think there are only three subdev drivers
+> that use these fmt ops, so it wouldn't be too hard to change them if we decide
+> to do so.
+
+Yes, I think so.
+
+> I'm definitely going to think about this some more when I work on the bus
+> config RFC this weekend.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
