@@ -1,97 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mgw2.diku.dk ([130.225.96.92]:35519 "EHLO mgw2.diku.dk"
+Received: from mail1.radix.net ([207.192.128.31]:52588 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750890AbZHBGXS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 2 Aug 2009 02:23:18 -0400
-Date: Sun, 2 Aug 2009 08:20:04 +0200 (CEST)
-From: Julia Lawall <julia@diku.dk>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-Cc: linux-media@vger.kernel.org, linux-uvc-devel@lists.berlios.de,
-	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH 2/5] drivers/media/video/uvc: Use DIV_ROUND_CLOSEST
-In-Reply-To: <200908012223.52022.laurent.pinchart@skynet.be>
-Message-ID: <Pine.LNX.4.64.0908020818540.15557@ask.diku.dk>
-References: <Pine.LNX.4.64.0908012148420.25693@ask.diku.dk>
- <200908012223.52022.laurent.pinchart@skynet.be>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	id S1752298AbZH0KMg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Aug 2009 06:12:36 -0400
+Subject: Re: [linux-dvb] Can ir polling be turned off in cx88 module for
+ Leadtek 1000DTV card?
+From: Andy Walls <awalls@radix.net>
+To: danieltaylor@acm.org
+Cc: linux-media@vger.kernel.org, Dan Taylor <dan.taylor2@ca.rr.com>
+In-Reply-To: <4A961F36.2060907@ca.rr.com>
+References: <357341.28380.qm@web112510.mail.gq1.yahoo.com>
+	 <1251329402.5232.6.camel@palomino.walls.org>
+	 <Pine.LNX.4.58.0908262102280.11911@shell2.speakeasy.net>
+	 <4A961F36.2060907@ca.rr.com>
+Content-Type: text/plain
+Date: Thu, 27 Aug 2009 06:15:03 -0400
+Message-Id: <1251368103.17460.2.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 1 Aug 2009, Laurent Pinchart wrote:
-
-> On Saturday 01 August 2009 21:49:04 Julia Lawall wrote:
-> > From: Julia Lawall <julia@diku.dk>
-> >
-> > The kernel.h macro DIV_ROUND_CLOSEST performs the computation (x + d/2)/d
-> > but is perhaps more readable.
-> >
-> > The semantic patch that makes this change is as follows:
-> > (http://www.emn.fr/x-info/coccinelle/)
-> >
-> > // <smpl>
-> > @haskernel@
-> > @@
-> >
-> > #include <linux/kernel.h>
-> >
-> > @depends on haskernel@
-> > expression x,__divisor;
-> > @@
-> >
-> > - (((x) + ((__divisor) / 2)) / (__divisor))
-> > + DIV_ROUND_CLOSEST(x,__divisor)
-> > // </smpl>
-> >
-> > Signed-off-by: Julia Lawall <julia@diku.dk>
-> >
-> > ---
-> >  drivers/media/video/uvc/uvc_v4l2.c  |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/drivers/media/video/uvc/uvc_v4l2.c
-> > b/drivers/media/video/uvc/uvc_v4l2.c index 87cb9cc..6edaaf6 100644
-> > --- a/drivers/media/video/uvc/uvc_v4l2.c
-> > +++ b/drivers/media/video/uvc/uvc_v4l2.c
-> > @@ -95,7 +95,7 @@ static __u32 uvc_try_frame_interval(struct uvc_frame
-> > *frame, __u32 interval) const __u32 max = frame->dwFrameInterval[1];
-> >  		const __u32 step = frame->dwFrameInterval[2];
-> >
-> > -		interval = min + (interval - min + step/2) / step * step;
-> > +		interval = min + DIV_ROUND_CLOSEST(interval-min, step) * step;
-> >  		if (interval > max)
-> >  			interval = max;
-> >  	}
+On Wed, 2009-08-26 at 22:52 -0700, Dan Taylor wrote:
 > 
-> The purpose of the above code is to clamp the interval value to the [min, max] 
-> range at round it to the closest multiple of step. Other drivers might need 
-> similar code. Do you think it might be useful to introduce a clamp_step macro 
-> for this ?
+> Trent Piepho wrote:
+> > On Wed, 26 Aug 2009, Andy Walls wrote:
+> >> On Wed, 2009-08-26 at 07:33 -0700, Dalton Harvie wrote:
+> >>>   If there isn't, would it be a good idea?
+> >> Maybe.
+> >>
+> >>> Thanks for any help.
+> >>
+> >> Try this.  It adds a module option "noir" that accepts an array of
+> >> int's.  For a 0, that card's IR is set up as normal; for a 1, that
+> >> card's IR is not initialized.
+> >>
+> >> 	# modprobe cx88 noir=1,1
+> > 
+> > I think this is a good idea.  I was going to do someting similar
+> > to stop the excessive irqs from my cx88 cards, which don't
+> > even have remote receivers.
+> > 
+> > I haven't tried, but maybe it is possible to only turn on polling when the
+> > event device is opened.
+> 
+> Excellent idea.  I did something similar for a pseudo-SCSI device, where I
+> only polled if there was a command outstanding.
+> 
+> If no one else wants to take it on, I have a pcHDTV-3000 and -5000 and can
+> get a Leadtek something to work with.
 
-I tried searching for the following:
 
-@@
-expression interval, min, max, step, E;
-@@
+I don't have any hardware that uses the cx88 driver, so I'm certainly
+not the right person to muck with it.
 
-* interval = min + (interval - min + step/2) / step * step;
-  ... when != interval = E
-* if (interval > max)
-  { ...
-     interval = max;
-  ... }
+Have at it!
 
-@@
-expression interval, min, max, step, E;
-@@
+Regards,
+Andy
 
-* interval = min + DIV_ROUND_CLOSEST(interval-min, step) * step;
-  ... when != interval = E
-* if (interval > max) { ...
-     interval = max;
-  ... }
 
-and the only occurrence I found was the code above.  Perhaps there is some 
-other way in which the pattern would appear?
 
-julia
