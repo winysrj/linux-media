@@ -1,243 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-09.arcor-online.net ([151.189.21.49]:32787 "EHLO
-	mail-in-09.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932416AbZHDVV7 (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:47030 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753065AbZH0WEA convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Aug 2009 17:21:59 -0400
-Subject: Re: Issue with LifeView FlyDVB-T Duo CardBus.
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Francesco Marangoni <fmarangoni@libero.it>
-Cc: linux-media <linux-media@vger.kernel.org>
-In-Reply-To: <KNUBJR$8288486206C8D52D23C09DCC0F568E3D@libero.it>
-References: <KNUBJR$8288486206C8D52D23C09DCC0F568E3D@libero.it>
-Content-Type: text/plain
-Date: Tue, 04 Aug 2009 23:04:46 +0200
-Message-Id: <1249419886.3530.45.camel@pc07.localdom.local>
+	Thu, 27 Aug 2009 18:04:00 -0400
+Date: Thu, 27 Aug 2009 19:03:56 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Ville =?ISO-8859-1?B?U3lyauRs5A==?= <syrjala@sci.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Input <linux-input@vger.kernel.org>
+Subject: Re: [RFC] Infrared Keycode standardization
+Message-ID: <20090827190356.6f8ac17b@pedra.chehab.org>
+In-Reply-To: <20090827204731.14035526EC9@mailhub.coreip.homeip.net>
+References: <20090827045710.2d8a7010@pedra.chehab.org>
+	<20090827183636.GG26702@sci.fi>
+	<20090827204731.14035526EC9@mailhub.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Thu, 27 Aug 2009 13:15:12 -0700
+Dmitry Torokhov <dmitry.torokhov@gmail.com> escreveu:
 
-Am Dienstag, den 04.08.2009, 09:02 +0200 schrieb Francesco Marangoni:
-> Hi Hermann,
+> On Thu, Aug 27, 2009 at 09:36:36PM +0300, Ville Syrjälä wrote:
+> > On Thu, Aug 27, 2009 at 04:57:10AM -0300, Mauro Carvalho Chehab wrote:
+> > > After years of analyzing the existing code and receiving/merging patches
+> > > related to IR, and taking a looking at the current scenario, it is clear to me
+> > > that something need to be done, in order to have some standard way to map and
+> > > to give precise key meanings for each used media keycode found on
+> > > include/linux/input.h.
+> > > 
+> > > Just as an example, I've parsed the bigger keymap file we have
+> > > (linux/media/common/ir-common.c). Most IR's have less than 40 keys, most are
+> > > common between several different models. Yet, we've got almost 500 different
+> > > mappings there (and I removed from my parser all the "obvious" keys that there
+> > > weren't any comment about what is labeled for that key on the IR).
+> > > 
+> > > The same key name is mapped differently, depending only at the wish of the
+> > > patch author, as shown at:
+> > > 
+> > > 	http://linuxtv.org/wiki/index.php/Ir-common.c
+> > > 
+> > > It doesn't come by surprise, but currently, almost all media player
+> > > applications don't care to properly map all those keys.
+> > > 
+> > > I've tried to find comments and/or descriptions about each media keys defined
+> > > at input.h without success. Just a few keys are commented at the file itself.
+> > > (or maybe I've just seek them at the wrong places).
+> > > 
+> > > So, I took the initiative of doing a proposition for standardizing those keys
+> > > at:
+> > > 
+> > > 	http://linuxtv.org/wiki/index.php/Proposal
+> > 
+> > I welcome this effort. It would be nice to have some kind of consistent
+> > behaviour between devices. But just limiting the effort to IR devices
+> > doesn't make sense. It shouldn't matter how the device is connected.
+> > 
+> > FASTWORWARD,REWIND,FORWARD and BACK aren't very clear. To me it would
+> > make most sense if FASTFORWARD and REWIND were paired and FORWARD and
+> > BACK were paired. I actually have those two a bit confused in
+> > ati_remote2 too where I used FASTFORWARD and BACK. I suppose it should
+> > be REWIND instead.
+> > 
+> > Also I should probably use ZOOM for the maximize/restore button (it's
+> > FRONT now), and maybe SETUP instead of ENTER for another. It has a
+> > picture of a checkbox, Windows software apparently shows a setup menu
+> > when it's pressed.
+> > 
+> > There are also a couple of buttons where no keycode really seems to
+> > match. One is the mouse button drag. I suppose I could implement the
+> > drag lock feature in the driver but I'm not sure if that's a good idea.
+> > It would make that button special and unmappable. Currently I have that
+> > mapped to EDIT IIRC.
 > 
-> the card works fine on win2000 on another pc.
+> Unmappable keys should probably emit KEY_UNKNOWN. When I last talked
+> with Richard Hughes there was an idea that userspace may detect
+> KEY_UNKNOWN and alert user that key needs to be mapped since it lacks
+> standard assignment. EV_MSC/MSC_SCAN was supposed to aid in fuguring out
+> what key it was so that usersoace can issue proper EVIOCSKEYCODE...
 
-Ah, fine. Some of them have been reported to become very hot and finally
-faulty. Maybe you could test it on this PC too with some LIVE linux
-media.
+This seems to be a good idea, for those keys that aren't at rc5 spec.
 
-> The pc with linux installed is a pentium 3 800 mhz with RAM 256 MB: I don't think it's a resources problem because when I launch channels scan ram used is always at 70 MB and CPU is at 25%. 
+> > 
+> > The other oddball button has a picture of a stopwatch (I think, it's
+> > not very clear). Currently it uses COFFEE, but maybe TIMER or something
+> > like that should be added. The Windows software's manual just say it
+> > toggles TV-on-demand, but I have no idea what that actually is.
+> > 
+> 
+> I'd start by looking at HID usage tables and borrowing [missing]
+> definitions from there. Patches commenting on intended use of input
+> keycodes are always welcome.
 
-Should be enough. The NATOMA PCI to PCI quirk is enabled for some faulty
-motherboards. Usually works then, but you seem to have still parity
-errors.
+After we've agreed on a common base, I'll send a patch documenting the keys as
+used on IR. It would be good if you could take some time and see if I'm not
+abusing of any key at the current proposal[1]. Some of the used keys may
+already be mapped to do something else at kde, gnome or x11.
 
-> The card becomes warm after the use, but not hot.
+[1] http://linuxtv.org/wiki/index.php/Proposal
 
-The problem is, that at least the digital tuner is not detected. So it
-is not usable and also not fully powered. Look more carefully at dmesg,
-if the analog tuner is at least present. Your early version of the card
-should also have a fan, IIRC.
 
-> What dou You think about errors in compiling v4l-dvb?
-
-http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
-
-You follow the instructions for Debian. As already printed, on Ubuntu
-are some back ported media modules in unusual places. You need to be
-root to get them removed or have to do it manually to avoid duplicate
-modules. There have also been problems with an incompatible alsa version
-there.
-
-> And from output of dmesg | grep saa do You think the card has benn well detected or there is something wrong?
-
-At least the digital tuner is not found at 0x60 and the card can't work.
-
-Have you forced other cards previously, since it also should be auto
-detected? Wrong tuner initialization code can make i2c unreliable.
-
-You might try to unload the driver starting with saa7134-alsa and
-saa7134-dvb, eject the card then and wait at least 30 seconds before you
-give it another try.
-
-You could also try to enable i2c_debug=1 for saa7134. Maybe more errors
-become visible, dunno.
 
 Cheers,
-Hermann
-
-
-> Thanks a lot for any suggetsion.
-> 
-> ---------- Initial Header -----------
-> 
-> >From      : "hermann pitton" hermann-pitton@arcor.de
-> To          : "Francesco Marangoni" fmarangoni@libero.it
-> Cc          : "linux-media" linux-media@vger.kernel.org
-> Date      : Tue, 04 Aug 2009 02:21:38 +0200
-> Subject : Re: Issue with LifeView FlyDVB-T Duo CardBus.
-> 
-> 
-> 
-> 
-> 
-> 
-> 
-> > Hi Francesco,
-> > 
-> > Am Montag, den 03.08.2009, 23:49 +0200 schrieb Francesco Marangoni:
-> > > Dear sirs,
-> > > 
-> > > I'm not able to make my pcmcia LifeView DVB-T Duo Cardbus working on Ununtu 8.04 LTS kernel 2.6.24.24.
-> > > 
-> > > The card seems to be detected but the DVB channel detection fails (using Kaffeine too).
-> > > 
-> > > Here the output of some commands: Can Youhelp me?
-> > > 
-> > > francesco@ubuntu:~$ lspci
-> > > 00:00.0 Host bridge: Intel Corporation 440BX/ZX/DX - 82443BX/ZX/DX Host bridge (rev 03)
-> > > 00:01.0 PCI bridge: Intel Corporation 440BX/ZX/DX - 82443BX/ZX/DX AGP bridge (rev 03)
-> > > 00:07.0 Bridge: Intel Corporation 82371AB/EB/MB PIIX4 ISA (rev 02)
-> > > 00:07.1 IDE interface: Intel Corporation 82371AB/EB/MB PIIX4 IDE (rev 01)
-> > > 00:07.2 USB Controller: Intel Corporation 82371AB/EB/MB PIIX4 USB (rev 01)
-> > > 00:07.3 Bridge: Intel Corporation 82371AB/EB/MB PIIX4 ACPI (rev 03)
-> > > 00:0a.0 CardBus bridge: Texas Instruments PCI1420 PC card Cardbus Controller
-> > > 00:0a.1 CardBus bridge: Texas Instruments PCI1420 PC card Cardbus Controller
-> > > 00:0b.0 Ethernet controller: 3Com Corporation 3c556 Hurricane CardBus [Cyclone] (rev 10)
-> > > 00:0b.1 Communication controller: 3Com Corporation Mini PCI 56k Winmodem (rev 10)
-> > > 00:0d.0 Multimedia audio controller: ESS Technology ES1983S Maestro-3i PCI Audio Accelerator
-> > > 01:00.0 VGA compatible controller: ATI Technologies Inc Rage Mobility P/M AGP 2x (rev 64)
-> > > 02:00.0 Multimedia controller: Philips Semiconductors SAA7133/SAA7135 Video Broadcast Decoder (rev d0)
-> > > 
-> > > francesco@ubuntu:~$ dmesg | grep saa | more
-> > > [   46.176353] saa7130/34: v4l2 driver version 0.2.14 loaded
-> > > [   46.176618] saa7133[0]: quirk: PCIPCI_NATOMA
-> > > [   46.176628] saa7133[0]: found at 0000:02:00.0, rev: 208, irq: 10, latency: 0, mmio: 0x24000000
-> > > [   46.176653] saa7133[0]: subsystem: 5168:0502, board: LifeView/Typhoon/Genius FlyDVB-T Duo Cardbus [card=60,insmod option]
-> > > [   46.176681] saa7133[0]: board init: gpio is 8210000
-> > > [   46.280562] saa7133[0]: i2c eeprom 00: 68 51 02 05 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
-> > > [   46.280587] saa7133[0]: i2c eeprom 10: 00 ff 22 0f ff 20 ff ff ff ff ff ff ff ff ff ff
-> > > [   46.280607] saa7133[0]: i2c eeprom 20: 01 40 01 03 03 01 01 03 08 ff 01 aa ff ff ff ff
-> > > [   46.280627] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > > [   46.280646] saa7133[0]: i2c eeprom 40: ff 25 00 c0 ff 10 07 01 c2 96 00 16 22 15 ff ff
-> > > [   46.280665] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > > [   46.280685] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > > [   46.280704] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > > [   46.321890] saa7133[0]: registered device video0 [v4l2]
-> > > [   46.321945] saa7133[0]: registered device vbi0
-> > > [   46.321996] saa7133[0]: registered device radio0
-> > > [   46.609615] saa7133[0]/dvb: no tda827x tuner found at addr: 60
-> > > [   46.609624] DVB: registering new adapter (saa7133[0])
-> > > [  238.981774] saa7133[0]: dsp access error
-> > > [  238.981801] saa7133[0]: dsp access error
-> > > [  238.981820] saa7133[0]: dsp access error
-> > > [  238.981824] saa7133[0]: dsp access error
-> > > [  238.981837] saa7133[0]: dsp access error
-> > > [  238.981841] saa7133[0]: dsp access error
-> > > [  238.981854] saa7133[0]: dsp access error
-> > > [  238.981858] saa7133[0]: dsp access error
-> > > [  238.981871] saa7133[0]: dsp access error
-> > > [  238.981875] saa7133[0]: dsp access error
-> > > [  238.981887] saa7133[0]: dsp access error
-> > > [  238.981892] saa7133[0]: dsp access error
-> > > [  238.981904] saa7133[0]: dsp access error
-> > > [  238.981909] saa7133[0]: dsp access error
-> > > [  238.981921] saa7133[0]: dsp access error
-> > > [  238.981926] saa7133[0]: dsp access error
-> > > [  238.981938] saa7133[0]: dsp access error
-> > > [  238.981942] saa7133[0]: dsp access error
-> > > [  238.981955] saa7133[0]: dsp access error
-> > > [  238.981959] saa7133[0]: dsp access error
-> > > [  238.981972] saa7133[0]/irq[10,76507]: r=0xffffffff s=0xffffffff DONE_RA0 DONE_RA1 DONE_RA2 DONE_RA3 AR PE PWR_ON RDCAP INT
-> > > ....
-> > > [  238.993258] saa7133[0]: dsp access error
-> > > [  238.993263] saa7133[0]: dsp access error
-> > > [  238.993275] saa7133[0]: dsp access error
-> > > [  238.993280] saa7133[0]: dsp access error
-> > > [  238.993292] saa7133[0]: dsp access error
-> > > [  238.993297] saa7133[0]: dsp access error
-> > > [  238.993309] saa7133[0]: dsp access error
-> > > [  238.993314] saa7133[0]: dsp access error
-> > > [  238.993326] saa7133[0]: dsp access error
-> > > [  238.993330] saa7133[0]: dsp access error
-> > > [  238.993343] saa7133[0]: dsp access error
-> > > [  238.993347] saa7133[0]: dsp access error
-> > > [  238.993359] saa7133[0]/irq[10,76514]: r=0xffffffff s=0xffffffff DONE_RA0 DONE_RA1 DONE_RA2 DONE_RA3 AR PE PWR_ON RDCAP INT
-> > > L FIDT MMC TRIG_ERR CONF_ERR LOAD_ERR GPIO16? GPIO18 GPIO22 GPIO23 | RA0=vbi,b,odd,15
-> > > [  238.993385] saa7133[0]/irq: looping -- clearing PE (parity error!) enable bit
-> > > [  640.875510] saa7133[0]: quirk: PCIPCI_NATOMA
-> > > [  640.875520] saa7133[0]: found at 0000:02:00.0, rev: 208, irq: 10, latency: 0, mmio: 0x24000000
-> > > [  640.875544] saa7133[0]: subsystem: 5168:0502, board: LifeView/Typhoon/Genius FlyDVB-T Duo Cardbus [card=60,insmod option]
-> > > [  640.875577] saa7133[0]: board init: gpio is 8210000
-> > > [  641.010947] saa7133[0]: i2c eeprom 00: 68 51 02 05 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
-> > > [  641.010978] saa7133[0]: i2c eeprom 10: 00 ff 22 0f ff 20 ff ff ff ff ff ff ff ff ff ff
-> > > [  641.010997] saa7133[0]: i2c eeprom 20: 01 40 01 03 03 01 01 03 08 ff 01 aa ff ff ff ff
-> > > [  641.011016] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > > [  641.011034] saa7133[0]: i2c eeprom 40: ff 25 00 c0 ff 10 07 01 c2 96 00 16 22 15 ff ff
-> > > [  641.011052] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > > [  641.011070] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > > [  641.011088] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > > [  641.108271] saa7133[0]: registered device video0 [v4l2]
-> > > [  641.108329] saa7133[0]: registered device vbi0
-> > > [  641.108378] saa7133[0]: registered device radio0
-> > > [  641.492916] saa7133[0]/dvb: no tda827x tuner found at addr: 60
-> > > [  641.492925] DVB: registering new adapter (saa7133[0])
-> > > 
-> > > 
-> > > I did all is described in http://www.linuxtv.org/repo/ but this is the output of Make and Make install:
-> > > 
-> > > francesco@ubuntu:~/v4l-dvb$ make
-> > > make -C /home/francesco/v4l-dvb/v4l 
-> > > make[1]: Entering directory `/home/francesco/v4l-dvb/v4l'
-> > > Updating/Creating .config
-> > > Preparing to compile for kernel version 2.6.24
-> > > File not found: /lib/modules/2.6.24-24-generic/build/.config at ./scripts/make_kconfig.pl line 32, <IN> line 4.
-> > > make[1]: *** No rule to make target `.myconfig', needed by `config-compat.h'.  Stop.
-> > > make[1]: Leaving directory `/home/francesco/v4l-dvb/v4l'
-> > > make: *** [all] Error 2
-> > > 
-> > > francesco@ubuntu:~/v4l-dvb$ make install
-> > > make -C /home/francesco/v4l-dvb/v4l install
-> > > make[1]: Entering directory `/home/francesco/v4l-dvb/v4l'
-> > > -e 
-> > > Removing obsolete files from /lib/modules/2.6.24-24-generic/kernel/drivers/media/video:
-> > > 
-> > > -e 
-> > > Removing obsolete files from /lib/modules/2.6.24-24-generic/kernel/drivers/media/dvb/cinergyT2:
-> > > 
-> > > -e 
-> > > Removing obsolete files from /lib/modules/2.6.24-24-generic/kernel/drivers/media/dvb/frontends:
-> > > 
-> > > 
-> > > Hmm... distro kernel with a non-standard place for module backports detected.
-> > > Please always prefer to use vanilla upstream kernel with V4L/DVB
-> > > I'll try to remove old/obsolete LUM files from /lib/modules/2.6.24-24-generic/ubuntu/media:
-> > > Installing kernel modules under /lib/modules/2.6.24-24-generic/kernel/drivers/media/:
-> > > /sbin/depmod -a 2.6.24-24-generic 
-> > > FATAL: Could not open /lib/modules/2.6.24-24-generic/modules.dep.temp for writing: Permission denied
-> > > make[1]: *** [media-install] Error 1
-> > > make[1]: Leaving directory `/home/francesco/v4l-dvb/v4l'
-> > > make: *** [install] Error 2
-> > > francesco@ubuntu:~/v4l-dvb$ 
-> > > 
-> > > Any suggestions?
-> > > 
-> > > Thanks.
-> > 
-> > did it ever work for you or does it still on something?
-> > 
-> > First impression is, that the tuner chip melt down.
-> > 
-> > If the card was in for while, with the driver loaded, is it still very
-> > hot close to the antenna connector, if ejected then?
-> > 
-> > The first generations of the tuner chips have been good enough to fry
-> > eggs on them.
-> > 
-> > Cheers,
-> > Hermann
-> > 
-
-
+Mauro
