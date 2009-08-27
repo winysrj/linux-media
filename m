@@ -1,140 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46731 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1749667AbZHZQUh convert rfc822-to-8bit (ORCPT
+Received: from mail-ew0-f206.google.com ([209.85.219.206]:62929 "EHLO
+	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750801AbZH0RGS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Aug 2009 12:20:37 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans de Goede <j.w.r.degoede@hhs.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Date: Wed, 26 Aug 2009 11:20:24 -0500
-Subject: RE: [RFC] Pixel format definition on the "image" bus
-Message-ID: <A69FA2915331DC488A831521EAE36FE40154E2C11B@dlee06.ent.ti.com>
-References: <Pine.LNX.4.64.0908261452460.7670@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0908261452460.7670@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Thu, 27 Aug 2009 13:06:18 -0400
+Message-ID: <4A96BD05.1080205@googlemail.com>
+Date: Thu, 27 Aug 2009 18:06:13 +0100
+From: Peter Brouwer <pb.maillists@googlemail.com>
 MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Input <linux-input@vger.kernel.org>
+Subject: Re: [RFC] Infrared Keycode standardization
+References: <20090827045710.2d8a7010@pedra.chehab.org>
+In-Reply-To: <20090827045710.2d8a7010@pedra.chehab.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi,
+Mauro Carvalho Chehab wrote:
 
-How is this different from enum_fmt() sub device operation. The pixel format does specify how bridge device pack the data from sub device into memory
-and describe the same to user space applications. Not sure why we need this.
+Hi Mauro, All
 
+Would it be an alternative to let lirc do the mapping and just let the driver 
+pass the codes of the remote to the event port.
+That way you do not need to patch the kernel for each new card/remote that comes 
+out.
+Just release a different map file for lirc for the remote of choice.
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-email: m-karicheri2@ti.com
-
->-----Original Message-----
->From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->owner@vger.kernel.org] On Behalf Of Guennadi Liakhovetski
->Sent: Wednesday, August 26, 2009 10:39 AM
->To: Linux Media Mailing List
->Cc: Hans Verkuil; Hans de Goede; Laurent Pinchart
->Subject: [RFC] Pixel format definition on the "image" bus
->
->Hi all
->
->With the ability to arbitrarily combine (video) data sources and sinks we
->have to be able to suitably configure both parties. This includes setting
->bus parameters, which is discussed elsewhere, and selecting a data format,
->which is discussed in this RFC.
->
->Video data, coming from a source (e.g., a camera sensor) to a sink (e.g.,
->a bridge) can be processed in two ways: (1) as raw data, and (2) as
->formatted data.
->
->Definition 1: Raw Data Sampling means storing frames, consisting of a
->certain number of lines, consisting of a certain number of samples (which
->may or may not represent pixels) in memory. Each sample contains a certain
->number of bits of useful information, multiple samples can be packed
->together according to some rule.
->
->In case (1) the sink has no specific knowledge about the format, so it can
->only sample data on its data bus and store it in memory in some specific
->manner. This "manner" is completely defined by the following three
->parameters: (a) how many bits are sampled, (b) in which order they will be
->stored in memory, (c) how samples have to be packed. To provide such "raw"
->data to the user the bridge driver also has to know what format the data
->represents if stored in memory as required by the source.
->
->In case (2) the sink "knows" this specific format and can handle it
->accordingly, e.g., convert to some other format.
->
->It is therefore proposed to describe a data format on-the-bus using the
->following parameters:
->
->enum V4L2_DATA_PACKING {
->	V4L2_DATA_PACKING_NONE	= 0,
->};
->
->enum V4L2_DATA_ORDER {
->	V4L2_DATA_ORDER_LE	= 0,
->	V4L2_DATA_ORDER_BE	= 1,
->};
->
->/**
-> * struct v4l2_subdev_bus_pixelfmt - Data format on the image bus
-> * @sourceformat:	Format identification for sinks, capable to process this
-> *			specific format
-> * @pixelformat:	Fourcc code...
-> * @colorspace:		and colorspace, that will be obtained if the data
->is
-> *			stored in memory in the following way:
-> * @bits_per_sample:	How many bits the bridge has to sample
-> * @packing:		Type of sample-packing, that has to be used
-> * @order:		Sample order when storing in memory
-> */
->struct v4l2_subdev_bus_pixelfmt {
->	u32			sourceformat;
->	u32			pixelformat;
->	enum v4l2_colorspace	colorspace;
->	int			index;
->	u8			bits_per_sample;
->	enum V4L2_DATA_PACKING	packing;
->	enum V4L2_DATA_ORDER	order;
->};
->
->The .sourceformat field above is a new enumeration, similar to currently
->defined in include/linux/videodev2.h fourcc codes, but combining the
->fourcc, bits-per-sample, packing and order information in one. If an
->existing Fourcc code already uniquely defines this combination, the new
->code might coincide with it. In principle, this code is redundant, because
->the data format is completely described by the "raw" parameters, but it
->can be useful for some (simple) source-sink combinations.
->
->The sink driver can then use the following new method from struct
->v4l2_subdev_video_ops:
->
->int (*enum_bus_pixelfmt)(struct v4l2_subdev *sd,
->			 const struct v4l2_subdev_bus_pixelfmt **fmt);
->
->to enumerate formats, provided by the source and to decide, which of them
->it can support in raw mode, which as formatted data, and which of them it
->cannot support at all, e.g., because it does not support the requested
->packing type. This enumeration can either take place upon reception of a
->S_FMT ioctl, or during probing to build a list of formats, that this
->specific source-sink pair can provide to the user.
->
->Comments welcome.
->
->Thanks
->Guennadi
->---
->Guennadi Liakhovetski, Ph.D.
->Freelance Open-Source Software Developer
->http://www.open-technology.de/
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Peter
+> After years of analyzing the existing code and receiving/merging patches
+> related to IR, and taking a looking at the current scenario, it is clear to me
+> that something need to be done, in order to have some standard way to map and
+> to give precise key meanings for each used media keycode found on
+> include/linux/input.h.
+> 
+> Just as an example, I've parsed the bigger keymap file we have
+> (linux/media/common/ir-common.c). Most IR's have less than 40 keys, most are
+> common between several different models. Yet, we've got almost 500 different
+> mappings there (and I removed from my parser all the "obvious" keys that there
+> weren't any comment about what is labeled for that key on the IR).
+> 
+> The same key name is mapped differently, depending only at the wish of the
+> patch author, as shown at:
+> 
+> 	http://linuxtv.org/wiki/index.php/Ir-common.c
+> 
+> It doesn't come by surprise, but currently, almost all media player
+> applications don't care to properly map all those keys.
+> 
+> I've tried to find comments and/or descriptions about each media keys defined
+> at input.h without success. Just a few keys are commented at the file itself.
+> (or maybe I've just seek them at the wrong places).
+> 
+> So, I took the initiative of doing a proposition for standardizing those keys
+> at:
+> 
+> 	http://linuxtv.org/wiki/index.php/Proposal
+> 
+> While I tried to use the most common binding for a key, sometimes the "commonly
+> used" one is so weird that I've used a different key mapping.
+> 
+> Please, don't take it as a finished proposal. For sure we need to adjust it.
+> Being it at wiki provides a way for people to edit, add comments and propose
+> additional keycode matches.
+> 
+> Also, there are several keys found on just one IR that didn't match any existing
+> keycode. So, I just decided to keep those outside the table, for now, to focus
+> on the mostly used ones.
+> 
+> That's said, please review my proposal. Feel free to update the proposal and
+> the current status if you think it is pertinent for this discussion.
+> 
+> I'm not currently proposing to create any new keycode, but it probably makes
+> sense to create a few ones, like KEY_PIP (for picture in picture).
+> 
+> If we can go to a common sense, I intend to add it into a chapter at V4L2 API,
+> in order to be used by both driver and userspace developers, submit some
+> patches to fix some mappings and to add the proper comments to input.h.
+> 
+> Comments?
+> 
+> Cheers,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
