@@ -1,118 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2952 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755600AbZHYSaj (ORCPT
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:52072 "EHLO
+	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753213AbZH0Vn4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2009 14:30:39 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id n7PIUdZG036605
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 25 Aug 2009 20:30:39 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 25 Aug 2009 20:30:39 +0200 (CEST)
-Message-Id: <200908251830.n7PIUdZG036605@smtp-vbr1.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
+	Thu, 27 Aug 2009 17:43:56 -0400
+Date: Thu, 27 Aug 2009 23:43:40 +0200
+To: "Linux Media Mailing List" <linux-media@vger.kernel.org>
+Subject: Re: [RFC] Infrared Keycode standardization
+From: semiRocket <semirocket@gmail.com>
+Cc: "Linux Input" <linux-input@vger.kernel.org>
+Content-Type: text/plain; format=flowed; delsp=yes; charset=iso-8859-2
+Message-ID: <op.uzcbwtd53xmt7q@crni>
+MIME-Version: 1.0
+References: <20090827045710.2d8a7010@pedra.chehab.org>
+ <4A96BD05.1080205@googlemail.com>
+In-Reply-To: <4A96BD05.1080205@googlemail.com>
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Thu, 27 Aug 2009 19:06:13 +0200, Peter Brouwer
+<pb.maillists@googlemail.com> wrote:
 
-Results of the daily build of v4l-dvb:
+>> After years of analyzing the existing code and receiving/merging patches
+>> related to IR, and taking a looking at the current scenario, it is  
+>> clear to me
+>> that something need to be done, in order to have some standard way to  
+>> map and
+>> to give precise key meanings for each used media keycode found on
+>> include/linux/input.h.
 
-date:        Tue Aug 25 19:00:03 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12500:28f8b0ebd224
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+<snip>
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc5-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-rc5-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-rc5-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-rc5-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc5-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-rc5-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-rc5-powerpc64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc5-x86_64: OK
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc5): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+Hi all,
 
-Detailed results are available here:
+Some end user thoughts, perhaps unwelcome but here it goes :)
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+I think that standardization of buttons is really needed that application
+programmers can relly on, for example I see this like following:
 
-Full logs are available here:
+I think that specific MCE compatible buttons need to be implemented that
+are specific on most todays remotes. And I imagine a Linux Media Center
+that works out-of-the-box. I plug in my Linux supported card, point my
+remote and press Media center button which runs media center application.
+Because it's standard and that's applications programers implemeted it as
+key that triggers their app. If press Videos button on my remote, the app
+switches to videos directory, because it's standard, and most remotes have
+it, etc.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+http://www.spinics.net/lists/linux-media/msg07705.html
 
-The V4L2 specification from this daily build is here:
+And thinking of that, I have configuring nothing, it's already configured
+because of standardization of buttons. And, if some advanced user doesn't
+like this behavior, he can always tamper configuration files to suite his
+need.
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+Forgive me if I'm missing something, as I don't know how it all works
+together, but I think you've figured out the point of the meaning :).
 
-The DVB API specification from this daily build is here:
+I also welcome this effort.
 
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+Cheers,
+Samuel
 
+
+-- 
+Using Opera's revolutionary e-mail client: http://www.opera.com/mail/
