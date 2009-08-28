@@ -1,63 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:42441 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750799AbZHHVRF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Aug 2009 17:17:05 -0400
-Received: by bwz19 with SMTP id 19so2004477bwz.37
-        for <linux-media@vger.kernel.org>; Sat, 08 Aug 2009 14:17:05 -0700 (PDT)
+Received: from fg-out-1718.google.com ([72.14.220.152]:16976 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751970AbZH1Skh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Aug 2009 14:40:37 -0400
+Received: by fg-out-1718.google.com with SMTP id 22so76643fge.1
+        for <linux-media@vger.kernel.org>; Fri, 28 Aug 2009 11:40:38 -0700 (PDT)
 MIME-Version: 1.0
-Date: Sat, 8 Aug 2009 22:17:05 +0100
-Message-ID: <408cc93f0908081417i4b812966xa817ed79d0390e45@mail.gmail.com>
-Subject: Hauppauge WinTV NOVA-T Model 18109
-From: Alex McManus <me@alexmcmanus.co.uk>
+Date: Fri, 28 Aug 2009 21:40:38 +0300
+Message-ID: <880dece00908281140r16385c1fr476b18f2fcfe3c1b@mail.gmail.com>
+Subject: Using MSI StarCam 370i Webcam with Kubuntu Linux
+From: Dotan Cohen <dotancohen@gmail.com>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGksCgpJJ3ZlIHJlY2VudGx5IGJvdWdodCBhIERlbGwgU3R1ZGlvIFhQUyAxNiB3aXRoIGFuIGlu
-dGVncmF0ZWQgRFZCLVQKdHVuZXIuIFRoaXMgaXMgcmVwb3J0ZWQgYnkgV2luZG93cyBWaXN0YSB0
-byBiZSBhIEhhdXBwYXVnZSBXaW5UVgpOT1ZBLVQgTW9kZWwgMTgxMDkgZGV2aWNlLgoKSG93ZXZl
-ciwgaXQgaGFzbid0IGJlZW4gcmVjb2duaXplZCBieSBVYnVudHUgOS4wNCAoMi42LjI4LTE0LWdl
-bmVyaWMpLgpJdCBhcHBlYXJzIHRvIGJlIGEgVVNCIGRldmljZSwgYXMgbHN1c2IgLXYgc2hvd3Mg
-dGhlIGZvbGxvd2luZzoKCkJ1cyAwMDEgRGV2aWNlIDAwMjogSUQgMjA0MDoxODAxIEhhdXBwYXVn
-ZQpEZXZpY2UgRGVzY3JpcHRvcjoKoCBiTGVuZ3RooKCgoKCgoKCgoKCgoKCgIDE4CqAgYkRlc2Ny
-aXB0b3JUeXBloKCgoKCgoKAgMQqgIGJjZFVTQqCgoKCgoKCgoKCgoKCgIDIuMDAKoCBiRGV2aWNl
-Q2xhc3OgoKCgoKCgoKCgoCAwIChEZWZpbmVkIGF0IEludGVyZmFjZSBsZXZlbCkKoCBiRGV2aWNl
-U3ViQ2xhc3OgoKCgoKCgoCAwCqAgYkRldmljZVByb3RvY29soKCgoKCgoKAgMAqgIGJNYXhQYWNr
-ZXRTaXplMKCgoKCgoKAgNjQKoCBpZFZlbmRvcqCgoKCgoKCgoKAgMHgyMDQwIEhhdXBwYXVnZQqg
-IGlkUHJvZHVjdKCgoKCgoKCgoCAweDE4MDEKoCBiY2REZXZpY2WgoKCgoKCgoKCgoCAwLjAxCqAg
-aU1hbnVmYWN0dXJlcqCgoKCgoKCgoKAgMQqgIGlQcm9kdWN0oKCgoKCgoKCgoKCgoKCgIDIKoCBp
-U2VyaWFsoKCgoKCgoKCgoKCgoKCgoCAzCqAgYk51bUNvbmZpZ3VyYXRpb25zoKCgoKAgMQqgIENv
-bmZpZ3VyYXRpb24gRGVzY3JpcHRvcjoKoKCgIGJMZW5ndGigoKCgoKCgoKCgoKCgoKCgIDkKoKCg
-IGJEZXNjcmlwdG9yVHlwZaCgoKCgoKCgIDIKoKCgIHdUb3RhbExlbmd0aKCgoKCgoKCgoKAgMzIK
-oKCgIGJOdW1JbnRlcmZhY2VzoKCgoKCgoKCgIDEKoKCgIGJDb25maWd1cmF0aW9uVmFsdWWgoKCg
-IDEKoKCgIGlDb25maWd1cmF0aW9uoKCgoKCgoKCgIDAKoKCgIGJtQXR0cmlidXRlc6CgoKCgoKCg
-IDB4ODAKoKCgoKAgKEJ1cyBQb3dlcmVkKQqgoKAgTWF4UG93ZXKgoKCgoKCgoKCgoKCgIDUwMG1B
-CqCgoCBJbnRlcmZhY2UgRGVzY3JpcHRvcjoKoKCgoKAgYkxlbmd0aKCgoKCgoKCgoKCgoKCgoKAg
-OQqgoKCgoCBiRGVzY3JpcHRvclR5cGWgoKCgoKCgoCA0CqCgoKCgIGJJbnRlcmZhY2VOdW1iZXKg
-oKCgoKCgIDAKoKCgoKAgYkFsdGVybmF0ZVNldHRpbmegoKCgoKAgMAqgoKCgoCBiTnVtRW5kcG9p
-bnRzoKCgoKCgoKCgoCAyCqCgoKCgIGJJbnRlcmZhY2VDbGFzc6CgoKCgoCAyNTUgVmVuZG9yIFNw
-ZWNpZmljIENsYXNzCqCgoKCgIGJJbnRlcmZhY2VTdWJDbGFzc6CgoCAyNTUgVmVuZG9yIFNwZWNp
-ZmljIFN1YmNsYXNzCqCgoKCgIGJJbnRlcmZhY2VQcm90b2NvbKCgoCAyNTUgVmVuZG9yIFNwZWNp
-ZmljIFByb3RvY29sCqCgoKCgIGlJbnRlcmZhY2WgoKCgoKCgoKCgoKCgIDAKoKCgoKAgRW5kcG9p
-bnQgRGVzY3JpcHRvcjoKoKCgoKCgoCBiTGVuZ3RooKCgoKCgoKCgoKCgoKCgoCA3CqCgoKCgoKAg
-YkRlc2NyaXB0b3JUeXBloKCgoKCgoKAgNQqgoKCgoKCgIGJFbmRwb2ludEFkZHJlc3OgoKCgIDB4
-ODGgIEVQIDEgSU4KoKCgoKCgoCBibUF0dHJpYnV0ZXOgoKCgoKCgoKCgoCAyCqCgoKCgoKCgoCBU
-cmFuc2ZlciBUeXBloKCgoKCgoKCgoKAgQnVsawqgoKCgoKCgoKAgU3luY2ggVHlwZaCgoKCgoKCg
-oKCgoKCgIE5vbmUKoKCgoKCgoKCgIFVzYWdlIFR5cGWgoKCgoKCgoKCgoKCgoCBEYXRhCqCgoKCg
-oKAgd01heFBhY2tldFNpemWgoKCgIDB4MDIwMKAgMXggNTEyIGJ5dGVzCqCgoKCgoKAgYkludGVy
-dmFsoKCgoKCgoKCgoKCgoKAgMAqgoKCgoCBFbmRwb2ludCBEZXNjcmlwdG9yOgqgoKCgoKCgIGJM
-ZW5ndGigoKCgoKCgoKCgoKCgoKCgIDcKoKCgoKCgoCBiRGVzY3JpcHRvclR5cGWgoKCgoKCgoCA1
-CqCgoKCgoKAgYkVuZHBvaW50QWRkcmVzc6CgoKAgMHgwMqAgRVAgMiBPVVQKoKCgoKCgoCBibUF0
-dHJpYnV0ZXOgoKCgoKCgoKCgoCAyCqCgoKCgoKCgoCBUcmFuc2ZlciBUeXBloKCgoKCgoKCgoKAg
-QnVsawqgoKCgoKCgoKAgU3luY2ggVHlwZaCgoKCgoKCgoKCgoKCgIE5vbmUKoKCgoKCgoKCgIFVz
-YWdlIFR5cGWgoKCgoKCgoKCgoKCgoCBEYXRhCqCgoKCgoKAgd01heFBhY2tldFNpemWgoKCgIDB4
-MDIwMKAgMXggNTEyIGJ5dGVzCqCgoKCgoKAgYkludGVydmFsoKCgoKCgoKCgoKCgoKAgMApjYW4n
-dCBnZXQgZGV2aWNlIHF1YWxpZmllcjogT3BlcmF0aW9uIG5vdCBwZXJtaXR0ZWQKY2FuJ3QgZ2V0
-IGRlYnVnIGRlc2NyaXB0b3I6IE9wZXJhdGlvbiBub3QgcGVybWl0dGVkCmNhbm5vdCByZWFkIGRl
-dmljZSBzdGF0dXMsIE9wZXJhdGlvbiBub3QgcGVybWl0dGVkICgxKQoKSSd2ZSBub3QgYmVlbiBh
-YmxlIHRvIGZpbmQgYW55IGluZm9ybWF0aW9uIG9uIGhvdyBJIGNhbiBnZXQgdGhpcwpkZXZpY2Ug
-dG8gd29yayB1bmRlciBMaW51eCAtIGFueSBhZHZpY2Ugd291bGQgYmUgd2VsY29tZS4uIQoKVGhh
-bmtzLCBBbGV4Lgo=
+I have the MSI StarCam 370i Webcam and I have trying to use it with
+Kubuntu Linux 9.04 Jaunty. According to this page, "The StarCam 370i
+is compliant with UVC, USB video class":
+http://gadgets.softpedia.com/gadgets/Computer-Peripherals/The-MSI-StarCam-370i-3105.html
+
+According to the Linux UVC driver and tools download page, "Linux
+2.6.26 and newer includes the Linux UVC driver natively" which is nice
+as I am on a higher version:
+$ uname -r
+2.6.28-15-generic
+
+However, plugging in the webcam and testing with camorama, cheese, and
+luvcview led me to no results:
+
+jaunty2@laptop:~$ luvcview -f yuv
+luvcview 0.2.4
+
+SDL information:
+ Video driver: x11
+ A window manager is available
+Device information:
+ Device path:  /dev/video0
+Stream settings:
+ERROR: Requested frame format YUYV is not available and no fallback
+format was found.
+ Init v4L2 failed !! exit fatal
+jaunty2@laptop:~$ luvcview -f uyvy
+luvcview 0.2.4
+
+SDL information:
+ Video driver: x11
+ A window manager is available
+Device information:
+ Device path:  /dev/video0
+Stream settings:
+ERROR: Requested frame format UYVY is not available and no fallback
+format was found.
+ Init v4L2 failed !! exit fatal
+jaunty2@laptop:~$ luvcview
+luvcview 0.2.4
+
+SDL information:
+ Video driver: x11
+ A window manager is available
+Device information:
+ Device path:  /dev/video0
+Stream settings:
+ERROR: Requested frame format MJPG is not available and no fallback
+format was found.
+ Init v4L2 failed !! exit fatal
+
+
+Some more details:
+
+jaunty2@laptop:~$ ls /dev/vi*
+/dev/video0
+jaunty2@laptop:~$ dmesg | tail
+[ 2777.811972] sn9c102: V4L2 driver for SN9C1xx PC Camera Controllers
+v1:1.47pre49
+[ 2777.814989] usb 2-1: SN9C105 PC Camera Controller detected (vid:pid
+0x0C45:0x60FC)
+[ 2777.842123] usb 2-1: HV7131R image sensor detected
+[ 2778.185108] usb 2-1: Initialization succeeded
+[ 2778.185220] usb 2-1: V4L2 device registered as /dev/video0
+[ 2778.185225] usb 2-1: Optional device control through 'sysfs'
+interface disabled
+[ 2778.185283] usbcore: registered new interface driver sn9c102
+[ 2778.216691] usbcore: registered new interface driver snd-usb-audio
+[ 2778.218738] usbcore: registered new interface driver sonixj
+[ 2778.218745] sonixj: registered
+jaunty2@laptop:~$ lsusb
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 005 Device 002: ID 413c:8126 Dell Computer Corp. Wireless 355 Bluetooth
+Bus 005 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 004 Device 004: ID 045e:0040 Microsoft Corp. Wheel Mouse Optical
+Bus 004 Device 003: ID 045e:00db Microsoft Corp. Natural Ergonomic
+Keyboard 4000 V1.0
+Bus 004 Device 002: ID 05e3:0604 Genesys Logic, Inc. USB 1.1 Hub
+Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 002 Device 002: ID 0c45:60fc Microdia PC Camera with Mic (SN9C105)
+Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+jaunty2@laptop:~$
+
+
+
+Anything missing? What should I do? Thanks in advance!
+
+
+
+-- 
+Dotan Cohen
+
+http://what-is-what.com
+http://gibberish.co.il
