@@ -1,309 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41572 "EHLO bear.ext.ti.com"
+Received: from mail.navvo.net ([74.208.67.6]:35262 "EHLO mail.navvo.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756522AbZHFXEl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Aug 2009 19:04:41 -0400
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com, hverkuil@xs4all.nl,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH v0 2/5] V4L : vpif updates for DM6467 vpif capture driver
-Date: Thu,  6 Aug 2009 19:04:36 -0400
-Message-Id: <1249599876-21721-1-git-send-email-m-karicheri2@ti.com>
+	id S1751075AbZH1Xui (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Aug 2009 19:50:38 -0400
+From: santiago.nunez@ridgerun.com
+To: m-karicheri2@ti.com
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	linux-media@vger.kernel.org, todd.fischer@ridgerun.com,
+	diego.dompe@ridgerun.com, clark.becker@ridgerun.com,
+	nsnehaprabha@ti.com,
+	Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+Date: Fri, 28 Aug 2009 17:26:56 -0600
+Message-Id: <1251502016-14808-1-git-send-email-santiago.nunez@ridgerun.com>
+Subject: [PATCH 1/6] Updated Support for TVP7002 in v4l2 definitions
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
 
-Following changes done for vpif driver to support vpif capture:-
-	1) Current version of display driver defined vpif register
-	   space as part for vpif display platform driver resource
-	   This is not correct since vpif is common across capture
-	   and display drivers. So the resource iomap function is
-	   moved to this module
-	2) Since there are common registers, a spinlock is added for
-	   mutual exclusion.
+This patch provides required std and control definitions in TVP7002
+within v4l2. Removed HD definitions.
 
-NOTE: This is only for review. Final patch for merge will be sent later
-This patch is dependent on the patch from Chaithrika for vpif display
-
-Mandatory reviewer: Hans Verkuil <hverkuil@xs4all.nl>
-
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
 ---
- drivers/media/video/davinci/vpif.c |   76 ++++++++++++++++++++++++++++++++---
- drivers/media/video/davinci/vpif.h |   48 ++++++++++++++---------
- 2 files changed, 98 insertions(+), 26 deletions(-)
+ include/linux/videodev2.h       |   25 +++++++++++++++++++++++++
+ include/media/v4l2-chip-ident.h |    3 +++
+ 2 files changed, 28 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/davinci/vpif.c b/drivers/media/video/davinci/vpif.c
-index aa77126..3b8eac3 100644
---- a/drivers/media/video/davinci/vpif.c
-+++ b/drivers/media/video/davinci/vpif.c
-@@ -19,7 +19,11 @@
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 74f1687..685bc7e 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1147,6 +1147,31 @@ enum  v4l2_exposure_auto_type {
  
- #include <linux/init.h>
- #include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/spinlock.h>
- #include <linux/kernel.h>
-+#include <linux/io.h>
-+#include <mach/hardware.h>
+ #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
  
- #include "vpif.h"
++
++/* tvp7002 control IDs*/
++#define V4L2_CID_TVP7002_BASE			V4L2_CTRL_CLASS_DECODER
++#define V4L2_CID_TVP7002_COARSE_GAIN_R		(V4L2_CID_TVP7002_BASE + 1)
++#define V4L2_CID_TVP7002_COARSE_GAIN_G		(V4L2_CID_TVP7002_BASE + 2)
++#define V4L2_CID_TVP7002_COARSE_GAIN_B		(V4L2_CID_TVP7002_BASE + 3)
++#define V4L2_CID_TVP7002_FINE_GAIN_R		(V4L2_CID_TVP7002_BASE + 4)
++#define V4L2_CID_TVP7002_FINE_GAIN_G		(V4L2_CID_TVP7002_BASE + 5)
++#define V4L2_CID_TVP7002_FINE_GAIN_B		(V4L2_CID_TVP7002_BASE + 6)
++#define V4L2_CID_TVP7002_B_CLAMP		(V4L2_CID_TVP7002_BASE + 7)
++#define V4L2_CID_TVP7002_G_CLAMP		(V4L2_CID_TVP7002_BASE + 8)
++#define V4L2_CID_TVP7002_R_CLAMP		(V4L2_CID_TVP7002_BASE + 9)
++#define V4L2_CID_TVP7002_CLAMP_OFF_EN		(V4L2_CID_TVP7002_BASE + 10)
++#define V4L2_CID_TVP7002_FCTCA			(V4L2_CID_PRIVATE_BASE + 11)
++#define V4L2_CID_TVP7002_F_CLAMP_GB		(V4L2_CID_TVP7002_BASE + 12)
++#define V4L2_CID_TVP7002_F_CLAMP_R		(V4L2_CID_TVP7002_BASE + 13)
++#define V4L2_CID_TVP7002_CLAMP_START		(V4L2_CID_TVP7002_BASE + 14)
++#define V4L2_CID_TVP7002_CLAMP_W		(V4L2_CID_TVP7002_BASE + 15)
++#define V4L2_CID_TVP7002_B_COARSE_OFF		(V4L2_CID_TVP7002_BASE + 16)
++#define V4L2_CID_TVP7002_G_COARSE_OFF		(V4L2_CID_TVP7002_BASE + 17)
++#define V4L2_CID_TVP7002_R_COARSE_OFF		(V4L2_CID_TVP7002_BASE + 18)
++#define V4L2_CID_TVP7002_B_FINE_OFF		(V4L2_CID_TVP7002_BASE + 19)
++#define V4L2_CID_TVP7002_G_FINE_OFF		(V4L2_CID_TVP7002_BASE + 20)
++#define V4L2_CID_TVP7002_R_FINE_OFF		(V4L2_CID_TVP7002_BASE + 21)
++
+ /*
+  *	T U N I N G
+  */
+diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
+index 56b31cb..14c83b5 100644
+--- a/include/media/v4l2-chip-ident.h
++++ b/include/media/v4l2-chip-ident.h
+@@ -129,6 +129,9 @@ enum {
+ 	V4L2_IDENT_SAA6752HS = 6752,
+ 	V4L2_IDENT_SAA6752HS_AC3 = 6753,
  
-@@ -31,6 +35,12 @@ MODULE_LICENSE("GPL");
- #define VPIF_CH2_MAX_MODES	(15)
- #define VPIF_CH3_MAX_MODES	(02)
- 
-+static resource_size_t	res_len;
-+static struct resource	*res;
-+spinlock_t vpif_lock;
++	/* module tvp7002: just ident 7002 */
++	V4L2_IDENT_TVP7002 = 7002,
 +
-+void __iomem *vpif_base;
-+
- static inline void vpif_wr_bit(u32 reg, u32 bit, u32 val)
- {
- 	if (val)
-@@ -151,17 +161,17 @@ static void config_vpif_params(struct vpif_params *vpifparams,
- 		else if (config->capture_format) {
- 			/* Set the polarity of various pins */
- 			vpif_wr_bit(reg, VPIF_CH_FID_POLARITY_BIT,
--					vpifparams->params.raw_params.fid_pol);
-+					vpifparams->iface.fid_pol);
- 			vpif_wr_bit(reg, VPIF_CH_V_VALID_POLARITY_BIT,
--					vpifparams->params.raw_params.vd_pol);
-+					vpifparams->iface.vd_pol);
- 			vpif_wr_bit(reg, VPIF_CH_H_VALID_POLARITY_BIT,
--					vpifparams->params.raw_params.hd_pol);
-+					vpifparams->iface.hd_pol);
- 
- 			value = regr(reg);
- 			/* Set data width */
- 			value &= ((~(unsigned int)(0x3)) <<
- 					VPIF_CH_DATA_WIDTH_BIT);
--			value |= ((vpifparams->params.raw_params.data_sz) <<
-+			value |= ((vpifparams->params.data_sz) <<
- 						     VPIF_CH_DATA_WIDTH_BIT);
- 			regw(value, reg);
- 		}
-@@ -227,8 +237,60 @@ int vpif_channel_getfid(u8 channel_id)
- }
- EXPORT_SYMBOL(vpif_channel_getfid);
- 
--void vpif_base_addr_init(void __iomem *base)
-+static int __init vpif_probe(struct platform_device *pdev)
-+{
-+	int status = 0;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res)
-+		return -ENOENT;
-+
-+	res_len = res->end - res->start + 1;
-+
-+	res = request_mem_region(res->start, res_len, res->name);
-+	if (!res)
-+		return -EBUSY;
-+
-+	vpif_base = ioremap(res->start, res_len);
-+	if (!vpif_base) {
-+		status = -EBUSY;
-+		goto fail;
-+	}
-+
-+	spin_lock_init(&vpif_lock);
-+	dev_info(&pdev->dev, "vpif probe success\n");
-+	return 0;
-+
-+fail:
-+	release_mem_region(res->start, res_len);
-+	return status;
-+}
-+
-+static int vpif_remove(struct platform_device *pdev)
- {
--	vpif_base = base;
-+	iounmap(vpif_base);
-+	release_mem_region(res->start, res_len);
-+	return 0;
- }
--EXPORT_SYMBOL(vpif_base_addr_init);
-+
-+static struct platform_driver vpif_driver = {
-+	.driver = {
-+		.name	= "vpif",
-+		.owner = THIS_MODULE,
-+	},
-+	.remove = __devexit_p(vpif_remove),
-+	.probe = vpif_probe,
-+};
-+
-+static void vpif_exit(void)
-+{
-+	platform_driver_unregister(&vpif_driver);
-+}
-+
-+static int __init vpif_init(void)
-+{
-+	return platform_driver_register(&vpif_driver);
-+}
-+subsys_initcall(vpif_init);
-+module_exit(vpif_exit);
-+
-diff --git a/drivers/media/video/davinci/vpif.h b/drivers/media/video/davinci/vpif.h
-index fca26dc..188841b 100644
---- a/drivers/media/video/davinci/vpif.h
-+++ b/drivers/media/video/davinci/vpif.h
-@@ -19,6 +19,7 @@
- #include <linux/io.h>
- #include <linux/videodev2.h>
- #include <mach/hardware.h>
-+#include <mach/dm646x.h>
- 
- /* Maximum channel allowed */
- #define VPIF_NUM_CHANNELS		(4)
-@@ -26,7 +27,9 @@
- #define VPIF_DISPLAY_NUM_CHANNELS	(2)
- 
- /* Macros to read/write registers */
--static void __iomem *vpif_base;
-+extern void __iomem *vpif_base;
-+extern spinlock_t vpif_lock;
-+
- #define regr(reg)               readl((reg) + vpif_base)
- #define regw(value, reg)        writel(value, (reg + vpif_base))
- 
-@@ -280,6 +283,10 @@ static inline void enable_channel1(int enable)
- /* inline function to enable interrupt for channel0 */
- static inline void channel0_intr_enable(int enable)
- {
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&vpif_lock, flags);
-+
- 	if (enable) {
- 		regw((regr(VPIF_INTEN) | 0x10), VPIF_INTEN);
- 		regw((regr(VPIF_INTEN_SET) | 0x10), VPIF_INTEN_SET);
-@@ -292,11 +299,16 @@ static inline void channel0_intr_enable(int enable)
- 		regw((regr(VPIF_INTEN_SET) | VPIF_INTEN_FRAME_CH0),
- 							VPIF_INTEN_SET);
- 	}
-+	spin_unlock_irqrestore(&vpif_lock, flags);
- }
- 
- /* inline function to enable interrupt for channel1 */
- static inline void channel1_intr_enable(int enable)
- {
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&vpif_lock, flags);
-+
- 	if (enable) {
- 		regw((regr(VPIF_INTEN) | 0x10), VPIF_INTEN);
- 		regw((regr(VPIF_INTEN_SET) | 0x10), VPIF_INTEN_SET);
-@@ -309,6 +321,7 @@ static inline void channel1_intr_enable(int enable)
- 		regw((regr(VPIF_INTEN_SET) | VPIF_INTEN_FRAME_CH1),
- 							VPIF_INTEN_SET);
- 	}
-+	spin_unlock_irqrestore(&vpif_lock, flags);
- }
- 
- /* inline function to set buffer addresses in case of Y/C non mux mode */
-@@ -431,6 +444,10 @@ static inline void enable_channel3(int enable)
- /* inline function to enable interrupt for channel2 */
- static inline void channel2_intr_enable(int enable)
- {
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&vpif_lock, flags);
-+
- 	if (enable) {
- 		regw((regr(VPIF_INTEN) | 0x10), VPIF_INTEN);
- 		regw((regr(VPIF_INTEN_SET) | 0x10), VPIF_INTEN_SET);
-@@ -442,11 +459,16 @@ static inline void channel2_intr_enable(int enable)
- 		regw((regr(VPIF_INTEN_SET) | VPIF_INTEN_FRAME_CH2),
- 							VPIF_INTEN_SET);
- 	}
-+	spin_unlock_irqrestore(&vpif_lock, flags);
- }
- 
- /* inline function to enable interrupt for channel3 */
- static inline void channel3_intr_enable(int enable)
- {
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&vpif_lock, flags);
-+
- 	if (enable) {
- 		regw((regr(VPIF_INTEN) | 0x10), VPIF_INTEN);
- 		regw((regr(VPIF_INTEN_SET) | 0x10), VPIF_INTEN_SET);
-@@ -459,6 +481,7 @@ static inline void channel3_intr_enable(int enable)
- 		regw((regr(VPIF_INTEN_SET) | VPIF_INTEN_FRAME_CH3),
- 							VPIF_INTEN_SET);
- 	}
-+	spin_unlock_irqrestore(&vpif_lock, flags);
- }
- 
- /* inline function to enable raw vbi data for channel2 */
-@@ -571,7 +594,7 @@ struct vpif_channel_config_params {
- 	v4l2_std_id stdid;
- };
- 
--struct vpif_interface;
-+struct vpif_video_params;
- struct vpif_params;
- struct vpif_vbi_params;
- 
-@@ -579,13 +602,6 @@ int vpif_set_video_params(struct vpif_params *vpifparams, u8 channel_id);
- void vpif_set_vbi_display_params(struct vpif_vbi_params *vbiparams,
- 							u8 channel_id);
- int vpif_channel_getfid(u8 channel_id);
--void vpif_base_addr_init(void __iomem *base);
--
--/* Enumerated data types */
--enum vpif_capture_pinpol {
--	VPIF_CAPTURE_PINPOL_SAME	= 0,
--	VPIF_CAPTURE_PINPOL_INVERT	= 1
--};
- 
- enum data_size {
- 	_8BITS = 0,
-@@ -593,13 +609,6 @@ enum data_size {
- 	_12BITS,
- };
- 
--struct vpif_capture_params_raw {
--	enum data_size data_sz;
--	enum vpif_capture_pinpol fid_pol;
--	enum vpif_capture_pinpol vd_pol;
--	enum vpif_capture_pinpol hd_pol;
--};
--
- /* Structure for vpif parameters for raw vbi data */
- struct vpif_vbi_params {
- 	__u32 hstart0;  /* Horizontal start of raw vbi data for first field */
-@@ -613,18 +622,19 @@ struct vpif_vbi_params {
- };
- 
- /* structure for vpif parameters */
--struct vpif_interface {
-+struct vpif_video_params {
- 	__u8 storage_mode;	/* Indicates field or frame mode */
- 	unsigned long hpitch;
- 	v4l2_std_id stdid;
- };
- 
- struct vpif_params {
--	struct vpif_interface video_params;
-+	struct vpif_interface iface;
-+	struct vpif_video_params video_params;
- 	struct vpif_channel_config_params std_info;
- 	union param {
- 		struct vpif_vbi_params	vbi_params;
--		struct vpif_capture_params_raw	raw_params;
-+		enum data_size data_sz;
- 	} params;
- };
+ 	/* module adv7170: just ident 7170 */
+ 	V4L2_IDENT_ADV7170 = 7170,
  
 -- 
 1.6.0.4
