@@ -1,117 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2342 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752707AbZHHS0A (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Aug 2009 14:26:00 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id n78IPx6H012745
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 8 Aug 2009 20:26:00 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 8 Aug 2009 20:25:59 +0200 (CEST)
-Message-Id: <200908081826.n78IPx6H012745@smtp-vbr16.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
+Received: from mail.gmx.net ([213.165.64.20]:35857 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751902AbZH1HCI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Aug 2009 03:02:08 -0400
+Received: from lyakh (helo=localhost)
+	by axis700.grange with local-esmtp (Exim 4.63)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1MgvTP-0001GI-BW
+	for linux-media@vger.kernel.org; Fri, 28 Aug 2009 09:02:11 +0200
+Date: Fri, 28 Aug 2009 09:02:11 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] soc-camera: remove now unneeded subdevice group ID assignments
+Message-ID: <Pine.LNX.4.64.0908280900370.4462@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Since we are not using v4l2_device_call_* calls any more, we don't need to
+initialise subdevice .grp_id any more. This also fixes compiler warnings on
+64-bit platforms.
 
-Results of the daily build of v4l-dvb:
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-date:        Sat Aug  8 19:00:04 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12407:e72c463783ab
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+I'm not expecting big problems with this one, so, unless anyone shouts 
+I'll be pushing this out in the next couple of hours.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc5-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-rc5-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-rc5-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: OK
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-rc5-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc5-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-rc5-mips: WARNINGS
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29.1-powerpc64: OK
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-rc5-powerpc64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc5-x86_64: OK
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc5): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+ drivers/media/video/soc_camera.c          |    1 -
+ drivers/media/video/soc_camera_platform.c |    1 -
+ 2 files changed, 0 insertions(+), 2 deletions(-)
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index 0863361..0ebd72d 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -858,7 +858,6 @@ static int soc_camera_init_i2c(struct soc_camera_device *icd,
+ 		goto ei2cnd;
+ 	}
+ 
+-	subdev->grp_id = (__u32)icd;
+ 	client = subdev->priv;
+ 
+ 	/* Use to_i2c_client(dev) to recover the i2c client */
+diff --git a/drivers/media/video/soc_camera_platform.c b/drivers/media/video/soc_camera_platform.c
+index 8b1c735..c7c9151 100644
+--- a/drivers/media/video/soc_camera_platform.c
++++ b/drivers/media/video/soc_camera_platform.c
+@@ -136,7 +136,6 @@ static int soc_camera_platform_probe(struct platform_device *pdev)
+ 
+ 	v4l2_subdev_init(&priv->subdev, &platform_subdev_ops);
+ 	v4l2_set_subdevdata(&priv->subdev, p);
+-	priv->subdev.grp_id = (__u32)icd;
+ 	strncpy(priv->subdev.name, dev_name(&pdev->dev), V4L2_SUBDEV_NAME_SIZE);
+ 
+ 	ret = v4l2_device_register_subdev(&ici->v4l2_dev, &priv->subdev);
+-- 
+1.6.2.4
 
