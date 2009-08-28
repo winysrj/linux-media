@@ -1,94 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from b186.blue.fastwebserver.de ([62.141.42.186]:48885 "EHLO
-	mail.gw90.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751248AbZH0L3F (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Aug 2009 07:29:05 -0400
-Received: from f053036086.adsl.alicedsl.de ([78.53.36.86] helo=[192.168.178.25])
-	by mail.gw90.de with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69)
-	(envelope-from <paulepanter@users.sourceforge.net>)
-	id 1MgdA8-0004ha-1d
-	for linux-media@vger.kernel.org; Thu, 27 Aug 2009 11:29:04 +0000
-Subject: Compile modules on 64-bit Linux kernel system for 686 Linux kernel
-From: Paul Menzel <paulepanter@users.sourceforge.net>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-zYBYshO5CIEM/s0x4B4K"
-Date: Thu, 27 Aug 2009 13:28:57 +0200
-Message-Id: <1251372537.5593.22.camel@mattotaupa.wohnung.familie-menzel.net>
-Mime-Version: 1.0
+Received: from mail-ew0-f206.google.com ([209.85.219.206]:62273 "EHLO
+	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751943AbZH1PQg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Aug 2009 11:16:36 -0400
+Received: by ewy2 with SMTP id 2so2216312ewy.17
+        for <linux-media@vger.kernel.org>; Fri, 28 Aug 2009 08:16:37 -0700 (PDT)
+From: Eugene Yudin <eugene.yudin@gmail.com>
+To: hermann pitton <hermann-pitton@arcor.de>
+Subject: Re: [PATCH] Add support for RoverMedia TV Link Pro FM v3
+Date: Fri, 28 Aug 2009 19:17:22 +0400
+Cc: linux-media@vger.kernel.org
+References: <200908272104.59221.Eugene.Yudin@gmail.com> <1251420843.3674.3.camel@pc07.localdom.local> <200908281846.01964.Eugene.Yudin@gmail.com>
+In-Reply-To: <200908281846.01964.Eugene.Yudin@gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <200908281917.23079.Eugene.Yudin@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+В сообщении от Пятница 28 августа 2009 18:46:01 автор Eugene Yudin написал:
+> Updated patch is at the end of letter. I also checked the auto-detection.
+> It works correctly with this "modprobe.conf":
+> alias char-major-81 videodev
+> alias char-major-81-0 saa7134
+> options saa7134 i2c_scan=1
 
---=-zYBYshO5CIEM/s0x4B4K
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Sorry, I'm a little confused. Tuner working great with:
+> alias char-major-81 videodev
+> alias char-major-81-0 saa7134
+> options saa7134 secam=dk
 
-Hi guys,
+Dmesg:
+saa7130/34: v4l2 driver version 0.2.15 loaded
+saa7134 0000:01:07.0: PCI INT A -> Link[APC4] -> GSI 19 (level, high) -> IRQ 
+19
+saa7134[0]: found at 0000:01:07.0, rev: 1, irq: 19, latency: 32, mmio: 
+0xea000000
+saa7134[0]: subsystem: 19d1:0138, board: RoverMedia TV Link Pro FM 
+[card=170,autodetected]
+saa7134[0]: board init: gpio is 3b000                                                     
+input: saa7134 IR (RoverMedia TV Link  as 
+/devices/pci0000:00/0000:00:08.0/0000:01:07.0/input/input6                                                                                      
+IRQ 19/saa7134[0]: IRQF_DISABLED is not guaranteed on shared IRQs                            
+saa7134[0]: i2c eeprom 00: d1 19 38 01 10 28 ff ff ff ff ff ff ff ff ff ff                   
+saa7134[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[0]: i2c scan: found device @ 0x86  [tda9887]
+saa7134[0]: i2c scan: found device @ 0xa0  [eeprom]
+saa7134[0]: i2c scan: found device @ 0xc2  [???]
+tuner 2-0043: chip found @ 0x86 (saa7134[0])
+tuner 2-0061: chip found @ 0xc2 (saa7134[0])
+saa7134[0]: registered device video0 [v4l2]
+saa7134[0]: registered device vbi0
+saa7134[0]: registered device radio0
+saa7134 ALSA driver for DMA sound loaded
+IRQ 19/saa7134[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+saa7134[0]/alsa: saa7134[0] at 0xea000000 irq 19 registered as card -1
 
-( please CC )
-
-
-I am running Debian Sid/unstable with a 32-bit userspace with a 64-bit
-kernel [1]. I want to compile the v4l-dvb modules for a 686 kernel [2]
-on this system.
-
-I installed the header files for the 686 kernel [3], but running
-
-$ ARCH=3D686 make
-make -C /tmp/v4l-dvb/v4l=20
-make[1]: Entering directory `/tmp/v4l-dvb/v4l'
-perl
-scripts/make_config_compat.pl /lib/modules/2.6.30-1-amd64/source ./.myconfi=
-g ./config-compat.h
-creating symbolic links...
-make -C firmware prep
-make[2]: Entering directory `/tmp/v4l-dvb/v4l/firmware'
-make[2]: Leaving directory `/tmp/v4l-dvb/v4l/firmware'
-make -C firmware
-make[2]: Entering directory `/tmp/v4l-dvb/v4l/firmware'
-  CC  ihex2fw
-Generating vicam/firmware.fw
-Generating dabusb/firmware.fw
-Generating dabusb/bitstream.bin
-Generating ttusb-budget/dspbootcode.bin
-Generating cpia2/stv0672_vp4.bin
-Generating av7110/bootcode.bin
-make[2]: Leaving directory `/tmp/v4l-dvb/v4l/firmware'
-Kernel build directory is /lib/modules/2.6.30-1-amd64/build
-make -C /lib/modules/2.6.30-1-amd64/build SUBDIRS=3D/tmp/v4l-dvb/v4l
-modules
-make[2]: Entering directory `/usr/src/linux-headers-2.6.30-1-amd64'
-[=E2=80=A6]
-
-still uses the 64-bit modules in /lib/modules/2.6.30-1-amd64 and the
-files in /usr/src/linux-headers-2.6.30-1-amd64.
-
-I do not even know if this is the correct way.
-
-Can someone of you please enlighten me?
-
-
-Thanks,
-
-Paul
-
-
-[1] http://packages.debian.org/de/sid/linux-image-2.6.30-1-amd64
-[2] http://packages.debian.org/de/sid/linux-image-2.6.30-1-686
-[3] http://packages.debian.org/de/sid/linux-headers-2.6.30-1-686
-
---=-zYBYshO5CIEM/s0x4B4K
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Dies ist ein digital signierter Nachrichtenteil
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEABECAAYFAkqWbfkACgkQPX1aK2wOHVh22wCdEx/nuLPO3MiGskPF2D6dcUk+
-7e4An0MNeL2r10eX1Edg1IDtYfeTrAaZ
-=fszL
------END PGP SIGNATURE-----
-
---=-zYBYshO5CIEM/s0x4B4K--
+It also determined correctly with setting i2c_scan = 1, but seems to be using 
+some other tuner.
 
