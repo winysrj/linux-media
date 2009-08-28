@@ -1,117 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4480 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751887AbZHAS1s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Aug 2009 14:27:48 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id n71IRiKN031025
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 1 Aug 2009 20:27:48 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 1 Aug 2009 20:27:44 +0200 (CEST)
-Message-Id: <200908011827.n71IRiKN031025@smtp-vbr9.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
+Received: from mx1.redhat.com ([209.132.183.28]:21602 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750896AbZH1GgH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Aug 2009 02:36:07 -0400
+Message-ID: <4A977BB6.5040101@redhat.com>
+Date: Fri, 28 Aug 2009 08:39:50 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Brandon Philips <brandon@ifup.org>
+Subject: RFC: video device (stream) sharing
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi All,
 
-Results of the daily build of v4l-dvb:
+This has been discussed before and this is something Brandon and I would like
+to discuss further at plumbers, so here is a first braindump, note that this
+braindump is purely mine and not Brandon's in any way.
 
-date:        Sat Aug  1 19:00:06 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12375:b15490457d60
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+The basic idea is to have some sort of userspace proxy process which allows
+sharing for example a webcam between 2 devices. For me there are 2 major
+criteria which need to be matched to be able to do this:
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc5-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.31-rc5-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.31-rc5-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-rc5-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc5-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-rc5-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-rc5-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc5-x86_64: WARNINGS
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc5): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+1) No (as in 0) functionality regressions for the single use case, iow when
+    only one app opens the device everything should work as before
 
-Detailed results are available here:
+2) No significant performance regressions for the single use case. Sure this
+    may be a bit slower, but not much!
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+2) Will require some trickery with shared memory, etc. But the real hard problem
+here is 1), so I will purely focus on 1) now.
 
-Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+My initial idea to solve 1) is that as soon as an application does anything
+remotely stream (capture) related even something such as enum_fmt, it becomes the
+stream owner. The stream owner is allowed to do everything. Any second application
+which also wants to capture will only be shown the resolution and format currently
+selected by the stream owner.
 
-The V4L2 specification from this daily build is here:
+And here we immediately hit a problem. Imagine the following:
+1) The user starts cheese at 640x480
+2) The user starts application foo, which only sees 640x480 to and thus
+    starts capturing at 640x480
+3) The user changes the resolution in cheese to 320x240
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+Now we've got a problem, because cheese is allowed to do this, but we need 640x480
+for application foo -> fail. And I'm not even talking about possible races when
+cheese has become the stream owner, but has not yet choosen its format to stream in,
+etc.
 
-The DVB API specification from this daily build is here:
 
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+So the whole stream owner concept does not work. Instead, what would probably work, is
+the following:
+-limit the amount of reported supported formats (enum fmt) to formats which we can create
+  by conversion from native formats
+-report the full list of supported resolutions to all applications
+-capture at the highest resolution requested by any of the applications
+-downsample for applications which want a lower resolution
 
+
+So this is how I suggest to handle this.
+
+Regards,
+
+Hans
