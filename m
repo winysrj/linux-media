@@ -1,55 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f183.google.com ([209.85.211.183]:49038 "EHLO
-	mail-yw0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752573AbZHEUWh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Aug 2009 16:22:37 -0400
-Received: by ywh13 with SMTP id 13so478459ywh.15
-        for <linux-media@vger.kernel.org>; Wed, 05 Aug 2009 13:22:37 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4A79E6B7.5090408@iol.it>
-References: <4A6F8AA5.3040900@iol.it> <4A739DD6.8030504@iol.it>
-	 <829197380908032002v196384c9oa0aff78627959db@mail.gmail.com>
-	 <4A79320B.7090401@iol.it>
-	 <829197380908050627u892b526wc5fb8ef1f6be6b53@mail.gmail.com>
-	 <4A79CEBD.1050909@iol.it>
-	 <829197380908051134x5fda787fx5bf9adf786aa739e@mail.gmail.com>
-	 <4A79E07F.1000301@iol.it>
-	 <829197380908051251x6996414ek951d259373401dd7@mail.gmail.com>
-	 <4A79E6B7.5090408@iol.it>
-Date: Wed, 5 Aug 2009 16:22:36 -0400
-Message-ID: <829197380908051322r1382d97dtd5e7a78f99438cc9@mail.gmail.com>
-Subject: Re: Terratec Cinergy HibridT XS
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: efa@iol.it
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from bombadil.infradead.org ([18.85.46.34]:46430 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751484AbZH1Dqf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Aug 2009 23:46:35 -0400
+Date: Fri, 28 Aug 2009 00:46:28 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Ville =?ISO-8859-1?B?U3lyauRs5A==?= <syrjala@sci.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Input <linux-input@vger.kernel.org>
+Subject: Re: [RFC] Infrared Keycode standardization
+Message-ID: <20090828004628.06f34d12@pedra.chehab.org>
+In-Reply-To: <829197380908271506i251b47caoe8c08d483e78e938@mail.gmail.com>
+References: <20090827045710.2d8a7010@pedra.chehab.org>
+	<20090827183636.GG26702@sci.fi>
+	<20090827185853.0aa2de76@pedra.chehab.org>
+	<829197380908271506i251b47caoe8c08d483e78e938@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 5, 2009 at 4:08 PM, Valerio Messina<efa@iol.it> wrote:
-> Devin Heitmueller ha scritto:
->>
->> I don't know what the process is for uninstalling the mcentral.de
->> em28xx driver.  Probably involves removing that directory and
->> re-running depmod or something.
->
-> ok, I run:
-> $ sudo mv /lib/modules/2.6.28-14-generic/empia/ ~/temp
-> $ sudo depmod -a
->
-> then connected the TVtuner, Kaffeine identify the TV tuner and the
-> video/audio is OK.
-> And now IR send digit to text editor and Kaffeine.
->
-> thanks
-> Valerio
+Em Thu, 27 Aug 2009 18:06:51 -0400
+Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
 
-Great.  I'll get a PULL request issued so this can get into the
-mainline.  Thanks for testing.
+> Since we're on the topic of IR support, there are probably a couple of
+> other things we may want to be thinking about if we plan on
+> refactoring the API at all:
+> 
+> 1.  The fact that for RC5 remote controls, the tables in ir-keymaps.c
+> only have the second byte.  In theory, they should have both bytes
+> since the vendor byte helps prevents receiving spurious commands from
+> unrelated remote controls.  We should include the ability to "ignore
+> the vendor byte" so we can continue to support all the remotes
+> currently in the ir-keymaps.c where we don't know what the vendor byte
+> should contain.
 
-Devin
+This were done due to at least two reasons:
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1) Several boards uses a few GPIO bits (in general 7 or less bits) for IR.
+There's one logic at ir-common.ko to convert a 32 bits GPIO read into a 7 bits
+scancode.
+
+2) In order to properly support the default EVIOCGKEYCODE/EVIOCSKEYCODE
+handlers, we need to have keycode table, where the scan code is the index. So,
+if we use 14 bits for it, this means that this table would reserve 16384 bytes,
+and will probably a very few of those bytes (on a IR with 64 keys, it would
+need only 64 entries).
+
+As it seems that there are some ways to replace the default
+getkeycode/setkeycode handlers, I suspect that we can get rid of this limitation.
+
+I'll do some tests here with a dib0700 and an em28xx devices.
+
+> 2..  The fact that the current API provides no real way to change the
+> mode of operation for the IR receiver, for those receivers that
+> support multiple modes (NEC/RC5/RC6).  While you have the ability to
+> change the mapping table from userland via the keytable program, there
+> is currently no way to tell the IR receiver which mode to operate in.
+
+In this case, we'll need to have a set of new ioctls at the event interface, to
+allow enum/get/set the IR protocol type(s) per event device.
+
+> One would argue that the above keymaps structure should include new
+> fields to indicate what type of remote it is (NEC/RC5/RC6 etc), as
+> well as field to indicate that the vendor codes are absent from the
+> key mapping for that remote).  Given this, I can change the dib0700
+> and em28xx IR receivers to automatically set the IR capture mode
+> appropriate based on which remote is in the device profile.
+
+Let's go step by step. Adding the ability of dynamically change the type of
+remote will likely cause major changes at the GPIO polling code, since we'll
+need to move some code from bttv and saa7134 into ir-functions.c and rework on
+it. We'll probably end by converting the remaining polling code to use high
+precision timers as we've done with cx88.
+
+So, we need a sort of TODO list for IR changes. A start point (on a random
+order) would be something like:
+
+1) Standardize the keycodes;
+2) Implement a v4l handler for EVIOCGKEYCODE/EVIOCSKEYCODE;
+3) use a different arrangement for IR tables to not spend 16 K for IR table,
+yet allowing RC5 full table;
+4) Use the common IR framework at the dvb drivers with their own iplementation;
+5) Allow getkeycode/setkeycode to work with the dvb framework using the new
+methods;
+6) implement new event ioctls (EVIOEPROTO/EVIOGPROTO/EVIOSPROTO ?), to allow
+enumerating/getting/setting the IR protocol types;
+7) Change the non-gpio drivers to support IR protocol type;
+8) Create a gpio handler that supports changing the protocol type;
+9) Migrate the remaining drivers to the new gpio handler methods;
+10) Merge pertinent lirc drivers;
+11) Add missing keys at input.h.
+
+
+
+Cheers,
+Mauro
