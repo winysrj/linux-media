@@ -1,330 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46540 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755608AbZHEFUU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Aug 2009 01:20:20 -0400
-From: Chaithrika U S <chaithrika@ti.com>
-To: rmk@arm.linux.org.uk
-Cc: mchehab@infradead.org, hverkuil@xs4all.nl,
-	linux-media@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com,
-	Chaithrika U S <chaithrika@ti.com>,
-	Manjunath Hadli <mrh@ti.com>, Brijesh Jadav <brijesh.j@ti.com>,
-	Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH v4] ARM: DaVinci: DM646x Video: Platform and board specific setup
-Date: Wed,  5 Aug 2009 10:47:42 -0400
-Message-Id: <1249483662-9589-1-git-send-email-chaithrika@ti.com>
+Received: from mail-ew0-f206.google.com ([209.85.219.206]:61836 "EHLO
+	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751377AbZH2MZM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Aug 2009 08:25:12 -0400
+Received: by ewy2 with SMTP id 2so2814679ewy.17
+        for <linux-media@vger.kernel.org>; Sat, 29 Aug 2009 05:25:12 -0700 (PDT)
+From: Eugene Yudin <eugene.yudin@gmail.com>
+To: hermann pitton <hermann-pitton@arcor.de>
+Subject: [PATCH] Add support for RoverMedia TV Link Pro FM
+Date: Sat, 29 Aug 2009 16:32:11 +0400
+Cc: linux-media@vger.kernel.org
+References: <200908272104.59221.Eugene.Yudin@gmail.com> <1251492543.9277.23.camel@pc07.localdom.local> <200908291613.16863.Eugene.Yudin@gmail.com>
+In-Reply-To: <200908291613.16863.Eugene.Yudin@gmail.com>
+MIME-Version: 1.0
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_L/RmK466SjMJtCD"
+Message-Id: <200908291632.11813.Eugene.Yudin@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Platform specific display device setup for DM646x EVM
+--Boundary-00=_L/RmK466SjMJtCD
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 
-Add platform device and resource structures. Also define a platform specific
-clock setup function that can be accessed by the driver to configure the clock
-and CPLD.
+This patch add support for RoverMedia TV Link Pro FM (LR138 REV:I) card based 
+on saa7134.
 
-Signed-off-by: Manjunath Hadli <mrh@ti.com>
-Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-Signed-off-by: Chaithrika U S <chaithrika@ti.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
-Applies to Davinci GIT tree. Minor updates like change in structure name-
-subdev_info to vpif_subdev_info and correction to VDD3P3V_VID_MASK value.
+Signed-off-by: Eugene Yudin <Eugene.Yudin@gmail.com>
 
- arch/arm/mach-davinci/board-dm646x-evm.c    |  125 +++++++++++++++++++++++++++
- arch/arm/mach-davinci/dm646x.c              |   62 +++++++++++++
- arch/arm/mach-davinci/include/mach/dm646x.h |   24 +++++
- 3 files changed, 211 insertions(+), 0 deletions(-)
+Best Regards,
+Eugene
 
-diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c b/arch/arm/mach-davinci/board-dm646x-evm.c
-index b1bf18c..8c88fd0 100644
---- a/arch/arm/mach-davinci/board-dm646x-evm.c
-+++ b/arch/arm/mach-davinci/board-dm646x-evm.c
-@@ -63,6 +63,19 @@
- #define DM646X_EVM_PHY_MASK		(0x2)
- #define DM646X_EVM_MDIO_FREQUENCY	(2200000) /* PHY bus frequency */
- 
-+#define VIDCLKCTL_OFFSET	(0x38)
-+#define VSCLKDIS_OFFSET		(0x6c)
-+
-+#define VCH2CLK_MASK		(BIT_MASK(10) | BIT_MASK(9) | BIT_MASK(8))
-+#define VCH2CLK_SYSCLK8		(BIT(9))
-+#define VCH2CLK_AUXCLK		(BIT(9) | BIT(8))
-+#define VCH3CLK_MASK		(BIT_MASK(14) | BIT_MASK(13) | BIT_MASK(12))
-+#define VCH3CLK_SYSCLK8		(BIT(13))
-+#define VCH3CLK_AUXCLK		(BIT(14) | BIT(13))
-+
-+#define VIDCH2CLK		(BIT(10))
-+#define VIDCH3CLK		(BIT(11))
-+
- static struct davinci_uart_config uart_config __initdata = {
- 	.enabled_uarts = (1 << 0),
- };
-@@ -288,6 +301,40 @@ static struct snd_platform_data dm646x_evm_snd_data[] = {
+--Boundary-00=_L/RmK466SjMJtCD
+Content-Type: text/x-patch;
+  charset="UTF-8";
+  name="saa7134_support-Rovermedia-TV-Link-Pro-FM.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="saa7134_support-Rovermedia-TV-Link-Pro-FM.patch"
+
+diff -r ad2f24d34b83 linux/Documentation/video4linux/CARDLIST.saa7134
+--- a/linux/Documentation/video4linux/CARDLIST.saa7134	Fri Aug 28 04:12:06 2009 -0300
++++ b/linux/Documentation/video4linux/CARDLIST.saa7134	Sat Aug 29 15:53:10 2009 +0400
+@@ -168,3 +168,4 @@
+ 167 -> Beholder BeholdTV 609 RDS                [5ace:6092]
+ 168 -> Beholder BeholdTV 609 RDS                [5ace:6093]
+ 169 -> Compro VideoMate S350/S300               [185b:c900]
++170 -> RoverMedia TV Link Pro FM                [19d1:0138]
+diff -r ad2f24d34b83 linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Fri Aug 28 04:12:06 2009 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Sat Aug 29 15:53:10 2009 +0400
+@@ -5182,6 +5182,56 @@
+ 			.amux	= LINE1
+ 		} },
  	},
++	[SAA7134_BOARD_ROVERMEDIA_LINK_PRO_FM] = {
++		/* RoverMedia TV Link Pro FM (LR138 REV:I) */
++		/* Eugene Yudin <Eugene.Yudin@gmail.com> */
++		.name		= "RoverMedia TV Link Pro FM",
++		.audio_clock	= 0x00200000,
++		.tuner_type	= TUNER_PHILIPS_FM1216ME_MK3, /* TCL MFPE05 2 */
++		.radio_type     = UNSET,
++		.tuner_addr	= ADDR_UNSET,
++		.radio_addr	= ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.gpiomask       = 0xe000,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 1,
++			.amux = TV,
++			.gpio = 0x8000,
++			.tv   = 1,
++		},{
++			.name = name_tv_mono,
++			.vmux = 1,
++			.amux = LINE2,
++			.gpio = 0x0000,
++			.tv   = 1,
++		},{
++			.name = name_comp1,
++			.vmux = 0,
++			.amux = LINE2,
++			.gpio = 0x4000,
++		},{
++			.name = name_comp2,
++			.vmux = 3,
++			.amux = LINE2,
++			.gpio = 0x4000,
++		},{
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE2,
++			.gpio = 0x4000,
++		}},
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++			.gpio = 0x2000,
++		},
++		.mute = {
++			.name = name_mute,
++			.amux = TV,
++			.gpio = 0x8000,
++		},
++	},
  };
  
-+static struct i2c_client *cpld_client;
-+
-+static int cpld_video_probe(struct i2c_client *client,
-+			const struct i2c_device_id *id)
-+{
-+	cpld_client = client;
-+	return 0;
-+}
-+
-+static int __devexit cpld_video_remove(struct i2c_client *client)
-+{
-+	cpld_client = NULL;
-+	return 0;
-+}
-+
-+static const struct i2c_device_id cpld_video_id[] = {
-+	{ "cpld_video", 0 },
-+	{ }
-+};
-+
-+static struct i2c_driver cpld_video_driver = {
-+	.driver = {
-+		.name	= "cpld_video",
-+	},
-+	.probe		= cpld_video_probe,
-+	.remove		= cpld_video_remove,
-+	.id_table	= cpld_video_id,
-+};
-+
-+static void evm_init_cpld(void)
-+{
-+	i2c_add_driver(&cpld_video_driver);
-+}
-+
- static struct i2c_board_info __initdata i2c_info[] =  {
- 	{
- 		I2C_BOARD_INFO("24c256", 0x50),
-@@ -300,6 +347,9 @@ static struct i2c_board_info __initdata i2c_info[] =  {
- 	{
- 		I2C_BOARD_INFO("cpld_reg0", 0x3a),
- 	},
-+	{
-+		I2C_BOARD_INFO("cpld_video", 0x3B),
-+	},
- };
+ const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);
+@@ -6296,6 +6346,12 @@
+ 		.subdevice    = 0xc900,
+ 		.driver_data  = SAA7134_BOARD_VIDEOMATE_S350,
+ 	}, {
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
++		.subvendor    = 0x19d1, /* RoverMedia */
++		.subdevice    = 0x0138, /* LifeView FlyTV Prime30 OEM */
++		.driver_data  = SAA7134_BOARD_ROVERMEDIA_LINK_PRO_FM,
++	}, {
+ 		/* --- boards without eeprom + subsystem ID --- */
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+@@ -6656,6 +6712,7 @@
+ 	case SAA7134_BOARD_REAL_ANGEL_220:
+ 	case SAA7134_BOARD_KWORLD_PLUS_TV_ANALOG:
+ 	case SAA7134_BOARD_AVERMEDIA_GO_007_FM_PLUS:
++	case SAA7134_BOARD_ROVERMEDIA_LINK_PRO_FM:
+ 		dev->has_remote = SAA7134_REMOTE_GPIO;
+ 		break;
+ 	case SAA7134_BOARD_FLYDVBS_LR300:
+diff -r ad2f24d34b83 linux/drivers/media/video/saa7134/saa7134-input.c
+--- a/linux/drivers/media/video/saa7134/saa7134-input.c	Fri Aug 28 04:12:06 2009 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134-input.c	Sat Aug 29 15:53:10 2009 +0400
+@@ -456,6 +456,7 @@
+ 	case SAA7134_BOARD_FLYVIDEO3000:
+ 	case SAA7134_BOARD_FLYTVPLATINUM_FM:
+ 	case SAA7134_BOARD_FLYTVPLATINUM_MINI2:
++	case SAA7134_BOARD_ROVERMEDIA_LINK_PRO_FM:
+ 		ir_codes     = ir_codes_flyvideo;
+ 		mask_keycode = 0xEC00000;
+ 		mask_keydown = 0x0040000;
+diff -r ad2f24d34b83 linux/drivers/media/video/saa7134/saa7134.h
+--- a/linux/drivers/media/video/saa7134/saa7134.h	Fri Aug 28 04:12:06 2009 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134.h	Sat Aug 29 15:53:10 2009 +0400
+@@ -294,6 +294,7 @@
+ #define SAA7134_BOARD_BEHOLD_609RDS_MK3     167
+ #define SAA7134_BOARD_BEHOLD_609RDS_MK5     168
+ #define SAA7134_BOARD_VIDEOMATE_S350        169
++#define SAA7134_BOARD_ROVERMEDIA_LINK_PRO_FM     170
  
- static struct davinci_i2c_platform_data i2c_pdata = {
-@@ -307,11 +357,85 @@ static struct davinci_i2c_platform_data i2c_pdata = {
- 	.bus_delay      = 0 /* usec */,
- };
- 
-+static int set_vpif_clock(int mux_mode, int hd)
-+{
-+	int val = 0;
-+	int err = 0;
-+	unsigned int value;
-+	void __iomem *base = IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
-+
-+	if (!cpld_client)
-+		return -ENXIO;
-+
-+	/* disable the clock */
-+	value = __raw_readl(base + VSCLKDIS_OFFSET);
-+	value |= (VIDCH3CLK | VIDCH2CLK);
-+	__raw_writel(value, base + VSCLKDIS_OFFSET);
-+
-+	val = i2c_smbus_read_byte(cpld_client);
-+	if (val < 0)
-+		return val;
-+
-+	if (mux_mode == 1)
-+		val &= ~0x40;
-+	else
-+		val |= 0x40;
-+
-+	err = i2c_smbus_write_byte(cpld_client, val);
-+	if (err)
-+		return err;
-+
-+	value = __raw_readl(base + VIDCLKCTL_OFFSET);
-+	value &= ~(VCH2CLK_MASK);
-+	value &= ~(VCH3CLK_MASK);
-+
-+	if (hd >= 1)
-+		value |= (VCH2CLK_SYSCLK8 | VCH3CLK_SYSCLK8);
-+	else
-+		value |= (VCH2CLK_AUXCLK | VCH3CLK_AUXCLK);
-+
-+	__raw_writel(value, base + VIDCLKCTL_OFFSET);
-+
-+	/* enable the clock */
-+	value = __raw_readl(base + VSCLKDIS_OFFSET);
-+	value &= ~(VIDCH3CLK | VIDCH2CLK);
-+	__raw_writel(value, base + VSCLKDIS_OFFSET);
-+
-+	return 0;
-+}
-+
-+static const struct vpif_subdev_info dm646x_vpif_subdev[] = {
-+	{
-+		.addr	= 0x2A,
-+		.name	= "adv7343",
-+	},
-+	{
-+		.addr	= 0x2C,
-+		.name	= "ths7303",
-+	},
-+};
-+
-+static const char *output[] = {
-+	"Composite",
-+	"Component",
-+	"S-Video",
-+};
-+
-+static struct vpif_config dm646x_vpif_config = {
-+	.set_clock	= set_vpif_clock,
-+	.subdevinfo	= dm646x_vpif_subdev,
-+	.subdev_count	= ARRAY_SIZE(dm646x_vpif_subdev),
-+	.output		= output,
-+	.output_count	= ARRAY_SIZE(output),
-+	.card_name	= "DM646x EVM",
-+};
-+
- static void __init evm_init_i2c(void)
- {
- 	davinci_init_i2c(&i2c_pdata);
- 	i2c_add_driver(&dm6467evm_cpld_driver);
- 	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));
-+	evm_init_cpld();
- }
- 
- static void __init davinci_map_io(void)
-@@ -333,6 +457,7 @@ static __init void evm_init(void)
- 
- 	soc_info->emac_pdata->phy_mask = DM646X_EVM_PHY_MASK;
- 	soc_info->emac_pdata->mdio_max_freq = DM646X_EVM_MDIO_FREQUENCY;
-+	dm646x_setup_vpif(&dm646x_vpif_config);
- }
- 
- static __init void davinci_dm646x_evm_irq_init(void)
-diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-davinci/dm646x.c
-index 8fa2803..a9b20e5 100644
---- a/arch/arm/mach-davinci/dm646x.c
-+++ b/arch/arm/mach-davinci/dm646x.c
-@@ -32,6 +32,15 @@
- #include "clock.h"
- #include "mux.h"
- 
-+#define DAVINCI_VPIF_BASE       (0x01C12000)
-+#define VDD3P3V_PWDN_OFFSET	(0x48)
-+#define VSCLKDIS_OFFSET		(0x6C)
-+
-+#define VDD3P3V_VID_MASK	(BIT_MASK(3) | BIT_MASK(2) | BIT_MASK(1) |\
-+					BIT_MASK(0))
-+#define VSCLKDIS_MASK		(BIT_MASK(11) | BIT_MASK(10) | BIT_MASK(9) |\
-+					BIT_MASK(8))
-+
- /*
-  * Device specific clocks
-  */
-@@ -686,6 +695,37 @@ static struct platform_device dm646x_dit_device = {
- 	.id	= -1,
- };
- 
-+static u64 vpif_dma_mask = DMA_BIT_MASK(32);
-+
-+static struct resource vpif_resource[] = {
-+	{
-+		.start	= DAVINCI_VPIF_BASE,
-+		.end	= DAVINCI_VPIF_BASE + 0x03fff,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	{
-+		.start = IRQ_DM646X_VP_VERTINT2,
-+		.end   = IRQ_DM646X_VP_VERTINT2,
-+		.flags = IORESOURCE_IRQ,
-+	},
-+	{
-+		.start = IRQ_DM646X_VP_VERTINT3,
-+		.end   = IRQ_DM646X_VP_VERTINT3,
-+		.flags = IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct platform_device vpif_display_dev = {
-+	.name		= "vpif_display",
-+	.id		= -1,
-+	.dev		= {
-+			.dma_mask 		= &vpif_dma_mask,
-+			.coherent_dma_mask	= DMA_BIT_MASK(32),
-+	},
-+	.resource	= vpif_resource,
-+	.num_resources	= ARRAY_SIZE(vpif_resource),
-+};
-+
- /*----------------------------------------------------------------------*/
- 
- static struct map_desc dm646x_io_desc[] = {
-@@ -814,6 +854,28 @@ void __init dm646x_init_mcasp1(struct snd_platform_data *pdata)
- 	platform_device_register(&dm646x_dit_device);
- }
- 
-+void dm646x_setup_vpif(struct vpif_config *config)
-+{
-+	unsigned int value;
-+	void __iomem *base = IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
-+
-+	value = __raw_readl(base + VSCLKDIS_OFFSET);
-+	value &= ~VSCLKDIS_MASK;
-+	__raw_writel(value, base + VSCLKDIS_OFFSET);
-+
-+	value = __raw_readl(base + VDD3P3V_PWDN_OFFSET);
-+	value &= ~VDD3P3V_VID_MASK;
-+	__raw_writel(value, base + VDD3P3V_PWDN_OFFSET);
-+
-+	davinci_cfg_reg(DM646X_STSOMUX_DISABLE);
-+	davinci_cfg_reg(DM646X_STSIMUX_DISABLE);
-+	davinci_cfg_reg(DM646X_PTSOMUX_DISABLE);
-+	davinci_cfg_reg(DM646X_PTSIMUX_DISABLE);
-+
-+	vpif_display_dev.dev.platform_data = config;
-+	platform_device_register(&vpif_display_dev);
-+}
-+
- void __init dm646x_init(void)
- {
- 	davinci_common_init(&davinci_soc_info_dm646x);
-diff --git a/arch/arm/mach-davinci/include/mach/dm646x.h b/arch/arm/mach-davinci/include/mach/dm646x.h
-index feb1e02..792c226 100644
---- a/arch/arm/mach-davinci/include/mach/dm646x.h
-+++ b/arch/arm/mach-davinci/include/mach/dm646x.h
-@@ -29,4 +29,28 @@ void __init dm646x_init_ide(void);
- void __init dm646x_init_mcasp0(struct snd_platform_data *pdata);
- void __init dm646x_init_mcasp1(struct snd_platform_data *pdata);
- 
-+void dm646x_video_init(void);
-+
-+struct vpif_output {
-+	u16 id;
-+	const char *name;
-+};
-+
-+struct vpif_subdev_info {
-+	unsigned short addr;
-+	const char *name;
-+};
-+
-+struct vpif_config {
-+	int (*set_clock)(int, int);
-+	const struct vpif_subdev_info *subdevinfo;
-+	int subdev_count;
-+	const char **output;
-+	int output_count;
-+	const char *card_name;
-+};
-+
-+
-+void dm646x_setup_vpif(struct vpif_config *config);
-+
- #endif /* __ASM_ARCH_DM646X_H */
--- 
-1.5.6
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
 
+--Boundary-00=_L/RmK466SjMJtCD--
