@@ -1,63 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:52436 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752539AbZHEUjK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Aug 2009 16:39:10 -0400
-From: Pete Hildebrandt <send2ph@googlemail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [patch] Added Support for STK7700D (DVB)
-Date: Wed, 5 Aug 2009 22:39:07 +0200
-Cc: Patrick Boettcher <pboettcher@kernellabs.com>
-References: <200908042138.11938.send2ph@googlemail.com> <alpine.LRH.1.10.0908051650360.6890@pub1.ifh.de>
-In-Reply-To: <alpine.LRH.1.10.0908051650360.6890@pub1.ifh.de>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from iris.cdu.edu.au ([138.80.130.6]:34602 "HELO iris.cdu.edu.au"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751713AbZH2NvX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Aug 2009 09:51:23 -0400
+References: <1250177934.6590.120.camel@mattotaupa.wohnung.familie-menzel.net> <alpine.LRH.1.10.0908140947560.14872@pub3.ifh.de> <1250244562.5438.3.camel@mattotaupa.wohnung.familie-menzel.net> <alpine.LRH.1.10.0908181052400.7725@pub1.ifh.de> <1251042115.19935.16.camel@lychee.local> <4A9296D5.1070202@nildram.co.uk> <A971DB9B-7353-4BD1-AFF3-6B30239533DF@cdu.edu.au> <1251129649.5234.42.camel@acropora>
+Message-ID: <64BF8339-B3B1-4EDA-858A-42841A5D9722@cdu.edu.au>
+From: "Malcolm Caldwell" <Malcolm.Caldwell@cdu.edu.au>
+To: "Nicolas Will" <nico@youplala.net>
+In-Reply-To: <1251129649.5234.42.camel@acropora>
+Content-Type: text/plain;
+	format=flowed;
+	delsp=yes;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200908052239.07581.send2ph@googlemail.com>
+MIME-Version: 1.0 (iPhone Mail 7A341)
+Subject: Re: Nova-TD-500 (84xxx) problems (was Re: dib0700 diversity support)
+Date: Sat, 29 Aug 2009 23:20:31 +0930
+Cc: <linux-media@vger.kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Patrick,
+On 25/08/2009, at 1:31, "Nicolas Will" <nico@youplala.net> wrote:
 
-Am Mittwoch 05 August 2009 schrieb Patrick Boettcher:
-> Hi Pete,
+> On Tue, 2009-08-25 at 00:36 +0930, Malcolm Caldwell wrote:
+>>> Have you tried adding:
+>>>
+>>> dvb_usb_dib0700.force_lna_activation=1
+>>>
+>>> to the modprobe options?
+>>>
+>>> The device I had wouldn't tune without this.
+>>
+>> I should have mentioned that I have tried this and buggy sfn
+>> workaround for the relavent modules.
 >
-> On Tue, 4 Aug 2009, Pete Hildebrandt wrote:
-> > Hello,
-> >
-> > To this mail I attached two patch-files to add support for the STK7700D
-> > USB-DVB-Device.
-> >
-> > lsusb identifies it as:
-> > idVendor           0x1164 YUAN High-Tech Development Co., Ltd
-> > idProduct          0x1efc
-> > iProduct                2 STK7700D
-> >
-> > My two patches mainly just add the new product-ID.
-> >
-> > I have tested the modification with the 2.6.28 and the 2.6.30 kernel. The
-> > patches are for the 2.6.30 kernel.
-> >
-> > The device is build into my laptop (Samsung R55-T5500) and works great
-> > after applying the patches.
+> I have read that sometimes the problem is not a low signal, but too
+> strong a signal.
 >
-> OK, I applied the patch and send the pull request to Mauro.
+> Have you tried placing an attenuator in front of the card?
+
+Ok, I have now tried an attenuator and it did not fix my problem, but  
+made the reception worse.
+
+
 >
-> Can you please check whether everything went well (I needed to merge
-> manually)?
-
-I checked and everything went well.
-
-> In the future please use the v4l-dvb repository to apply your changes.
-> This has several advantages: e.g. it is much easier to merge the patches
-> for me, and it is simpler for you to try things as you don't need to use
-> the kernel-build-environment to test the stuff etc.
-
-Thanks for the advise, I will keep that in mind for the future.
-
-Thanks
-Pete
-
-
+> Nico
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux- 
+> media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
