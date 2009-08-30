@@ -1,68 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51656 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754960AbZHJPJL (ORCPT
+Received: from mail-ew0-f206.google.com ([209.85.219.206]:49884 "EHLO
+	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753665AbZH3X6B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Aug 2009 11:09:11 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "Subrahmanya, Chaithrika" <chaithrika@ti.com>,
-	"'Hans Verkuil'" <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Mon, 10 Aug 2009 10:09:05 -0500
-Subject: RE: vpif_display.c bug
-Message-ID: <A69FA2915331DC488A831521EAE36FE401451FC3A4@dlee06.ent.ti.com>
-References: <200908100807.23455.hverkuil@xs4all.nl>
- <024e01ca19b9$36c64c90$a452e5b0$@com>
-In-Reply-To: <024e01ca19b9$36c64c90$a452e5b0$@com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+	Sun, 30 Aug 2009 19:58:01 -0400
+Received: by ewy2 with SMTP id 2so3578220ewy.17
+        for <linux-media@vger.kernel.org>; Sun, 30 Aug 2009 16:58:02 -0700 (PDT)
+Message-ID: <4A9B1203.8000709@gmail.com>
+Date: Mon, 31 Aug 2009 05:27:55 +0530
+From: Sudipto Sarkar <xtremethegreat1@gmail.com>
 MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: HP VGA Cam.
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Q2hhaXRocmlrYSwNCg0KTm8gbmVlZCB0byBjaGFuZ2UgdGhpcyBzaW5jZSB0aGlzIGlzIGFscmVh
-ZHkgY29ycmVjdGVkIGFzIHBhcnQgb2YgbXkgdnBpZiBjYXB0dXJlIHBhdGNoIHNldCB0aGF0IEkg
-aGFkIHN1Ym1pdHRlZCBmb3IgcmV2aWV3LiBJIGhhZCBtZW50aW9uZWQgdGhpcyB0byBIYW5zIGFz
-IHdlbGwuDQoNCk11cmFsaSBLYXJpY2hlcmkNClNvZnR3YXJlIERlc2lnbiBFbmdpbmVlcg0KVGV4
-YXMgSW5zdHJ1bWVudHMgSW5jLg0KR2VybWFudG93biwgTUQgMjA4NzQNCm5ldyBwaG9uZTogMzAx
-LTQwNy05NTgzDQpPbGQgUGhvbmUgOiAzMDEtNTE1LTM3MzYgKHdpbGwgYmUgZGVwcmVjYXRlZCkN
-CmVtYWlsOiBtLWthcmljaGVyaTJAdGkuY29tDQoNCj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0t
-LQ0KPkZyb206IGxpbnV4LW1lZGlhLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4
-LW1lZGlhLQ0KPm93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIFN1YnJhaG1hbnlh
-LCBDaGFpdGhyaWthDQo+U2VudDogTW9uZGF5LCBBdWd1c3QgMTAsIDIwMDkgODo1MSBBTQ0KPlRv
-OiAnSGFucyBWZXJrdWlsJw0KPkNjOiBsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcNCj5TdWJq
-ZWN0OiBSRTogdnBpZl9kaXNwbGF5LmMgYnVnDQo+DQo+T24gTW9uLCBBdWcgMTAsIDIwMDkgYXQg
-MTE6Mzc6MjMsIEhhbnMgVmVya3VpbCB3cm90ZToNCj4+IEhpIENoYWl0aHJpa2EsDQo+Pg0KPj4g
-VGhpcyBjb2RlIGluIHZwaWZfZGlzcGxheS5jIGlzIG5vdCBjb3JyZWN0Og0KPj4NCj4+ICAgICAg
-ICAgZm9yIChpID0gMDsgaSA8IHN1YmRldl9jb3VudDsgaSsrKSB7DQo+PiAgICAgICAgICAgICAg
-ICAgdnBpZl9vYmouc2RbaV0gPQ0KPnY0bDJfaTJjX25ld19wcm9iZWRfc3ViZGV2KCZ2cGlmX29i
-ai52NGwyX2RldiwNCj4+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgIGkyY19hZGFwLA0KPnN1YmRldmRhdGFbaV0ubmFtZSwNCj4+ICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHN1YmRldmRhdGFbaV0ubmFtZSwNCj4+
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICZzdWJkZXZk
-YXRhW2ldLmFkZHIpOw0KPj4gICAgICAgICAgICAgICAgIGlmICghdnBpZl9vYmouc2RbaV0pIHsN
-Cj4+ICAgICAgICAgICAgICAgICAgICAgICAgIHZwaWZfZXJyKCJFcnJvciByZWdpc3RlcmluZyB2
-NGwyIHN1YmRldmljZVxuIik7DQo+PiAgICAgICAgICAgICAgICAgICAgICAgICBnb3RvIHByb2Jl
-X3N1YmRldl9vdXQ7DQo+PiAgICAgICAgICAgICAgICAgfQ0KPj4NCj4+ICAgICAgICAgICAgICAg
-ICBpZiAodnBpZl9vYmouc2RbaV0pDQo+PiAgICAgICAgICAgICAgICAgICAgICAgICB2cGlmX29i
-ai5zZFtpXS0+Z3JwX2lkID0gMSA8PCBpOw0KPj4gICAgICAgICB9DQo+Pg0KPj4gVGhpczogJyZz
-dWJkZXZkYXRhW2ldLmFkZHInIHNob3VsZCBiZTogSTJDX0FERFJTKHN1YmRldmRhdGFbaV0uYWRk
-cikuDQo+Pg0KPj4gVGhlIGxpc3Qgb2YgcHJvYmUgYWRkcmVzc2VzIG11c3QgYmUgdGVybWluYXRl
-ZCBieSBJMkNfQ0xJRU5UX0VORCAoPSAtMSkNCj5hbmQNCj4+IHRoYXQgaXNuJ3QgdGhlIGNhc2Ug
-aGVyZS4NCj4+DQo+PiBBbiBhbHRlcm5hdGl2ZSBzb2x1dGlvbiBpcyB0byB1c2UgdjRsMl9pMmNf
-bmV3X3N1YmRldiwgYnV0IHRoZW4gbm8NCj5wcm9iaW5nDQo+PiB3aWxsIHRha2UgcGxhY2UuIEJ1
-dCBJIHRoaW5rIHRoYXQgeW91IGRvbid0IHdhbnQgcHJvYmluZyBhdCBhbGwgc2luY2UNCj50aGlz
-DQo+PiBhZGRyZXNzIGluZm9ybWF0aW9uIGNvbWVzIGZyb20gdGhlIHBsYXRmb3JtIGRhdGEsIHNv
-IG9uZSBjYW4gYXNzdW1lIHRoYXQNCj4+IHRoYXQgZGF0YSBpcyBjb3JyZWN0Lg0KPj4NCj4+IEV2
-ZW4gYmV0dGVyIGlzIHRvIGNvcHkgdGhlIGltcGxlbWVudGF0aW9uIGZyb20gdnBmZV9jYXB0dXJl
-LmMgYW5kIHRvIHVzZQ0KPj4gdjRsMl9pMmNfbmV3X3N1YmRldl9ib2FyZCgpLg0KPj4NCj4NCj5I
-YW5zLA0KPlRoYW5rIHlvdSBmb3IgdGhlIHN1Z2dlc3Rpb25zLg0KPkkgd2lsbCBsb29rIGludG8g
-dGhpcyBhbmQgc3VibWl0IGEgcGF0Y2ggdG8gY29ycmVjdCB0aGlzIGJ1Zy4NCj4NCj5SZWdhcmRz
-LA0KPkNoYWl0aHJpa2ENCj4NCj4+IFJlZ2FyZHMsDQo+Pg0KPj4gCUhhbnMNCj4+DQo+PiAtLQ0K
-Pj4gSGFucyBWZXJrdWlsIC0gdmlkZW80bGludXggZGV2ZWxvcGVyIC0gc3BvbnNvcmVkIGJ5IFRB
-TkRCRVJHIFRlbGVjb20NCj4+DQo+DQo+DQo+DQo+DQo+LS0NCj5UbyB1bnN1YnNjcmliZSBmcm9t
-IHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtbWVkaWEiIGluDQo+
-dGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcNCj5Nb3Jl
-IG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZv
-Lmh0bWwNCg0K
+Jean-Francois Moine wrote:
+> On Sun, 30 Aug 2009 17:16:56 +0530
+> Sudipto Sarkar <xtremethegreat1@gmail.com> wrote:
+>
+>  
+>> I'm trying to write a driver for the HP VGA camera. USB ID:
+>> 15b8:6002. The sensor is 7131r, and the bridge is probably vc0323
+>> (although the inf says it's vc0326). It's inf is the same inf which
+>> includes the po1200 sensor, which was added in December last year
+>> (The HP 2.0 Megapixel camera). I am trying to use usbsnoop in a
+>> windows installation, but the log size just does not cease to come to
+>> a halt (as is specified in the microdia site), thereby leaving me
+>> unable to snoop the init sequence. What might be wrong?
+>>
+>> Also, is this the same sensor as hv7131r, as in vc032x.c?
+>>     
+>
+> Hello Sudipto,
+>
+> Did you try the last gspca v2 from my test repository? As there is a
+> probe sequence in the vc032x subdriver, the kernel log should contain
+> the sensor name. What is it? If you cannot get images, may you tell me
+> what is wrong? (does 'svv' display some image? does 'svv -rg' create a
+> raw image? what are the last kernel messages? ...)
+>
+> Best regards.
+>
+>   
+The kernel doesn't identify the video device at all. It however 
+identifies the mic in it. I get the following for this from dmesg:
+
+[  930.236048] usb 1-3: new high speed USB device using ehci_hcd and 
+address 2
+[  930.468474] usb 1-3: configuration #1 chosen from 1 choice
+[  932.135471] usbcore: registered new interface driver snd-usb-audio
+
+
+And of course there is no video device, so svv says:
+
+Cannot identify '/dev/video0': 2, No such file or directory
+
+However, I had edited the huge matrices (which I suppose are the URBs) 
+for hv7131r and replaced that with the one written in the inf file. That 
+works, but the brightness is very low, so that the camera works only 
+when pointed to the bulb. Should I try that one with svv? btw, I used 
+cheese to test the driver, that I'd made then.
+
