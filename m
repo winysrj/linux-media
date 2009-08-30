@@ -1,54 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:60551 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753902AbZHSXjm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Aug 2009 19:39:42 -0400
-Date: Wed, 19 Aug 2009 16:36:01 -0700
-From: Greg KH <greg@kroah.com>
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	pm list <linux-pm@lists.linux-foundation.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: linux-next: suspend tree build warnings
-Message-ID: <20090819233601.GA2875@kroah.com>
-References: <20090819172419.2cf53008.sfr@canb.auug.org.au>
- <200908192338.03910.rjw@sisk.pl>
+Received: from mail01a.mail.t-online.hu ([84.2.40.6]:58044 "EHLO
+	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753648AbZH3OsW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Aug 2009 10:48:22 -0400
+Message-ID: <4A9A9133.10504@freemail.hu>
+Date: Sun, 30 Aug 2009 16:48:19 +0200
+From: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: hermann pitton <hermann-pitton@arcor.de>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Pinnacle Hybrid Pro Stick (320e)?
+References: <4A913AB8.5060604@freemail.hu>	 <1251032765.4905.19.camel@pc07.localdom.local>	 <4A9140A7.6020402@freemail.hu>	 <1251033530.4905.25.camel@pc07.localdom.local>	 <829197380908230629w62399f3cicd2dd9a9f2c6aeab@mail.gmail.com>	 <4A9A27DD.3020807@freemail.hu> <829197380908300707u29463ae0j66cfc1ee2f1d5d47@mail.gmail.com>
+In-Reply-To: <829197380908300707u29463ae0j66cfc1ee2f1d5d47@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <200908192338.03910.rjw@sisk.pl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 19, 2009 at 11:38:03PM +0200, Rafael J. Wysocki wrote:
-> On Wednesday 19 August 2009, Stephen Rothwell wrote:
-> > Hi Rafael,
+Devin Heitmueller worte:
+> 2009/8/30 Németh Márton <nm127@freemail.hu>:
+>> Devin Heitmueller wrote:
+>>> I committed some changes to get this board working a few weeks ago.  I
+>>> will check your dmesg output and see if the changes missed the merge
+>>> window.  It's possible the changes didn't make it in time for 2.6.31,
+>>> so I will have to check.
+>> I tried the following software setup with Pinnacle Hybrid Pro Stick (320e)
+>> (USB ID: eb1a:2881): Linux kernel 2.6.31-rc7 updated with the
+>> http://linuxtv.org/hg/v4l-dvb repository at version 12564:6f58a5d8c7c6.
+>>
+>> When I plug the device I still get the following message:
+>>
+> <snip>
 > 
-> Hi,
+> The changes have not gone upstream yet.  Mauro wrote some code for a
+> potential firmware extract script, but it doesn't work yet.
 > 
-> > Today's linux-next build (x86_64 allmodconfig) produced these warnings:
-> > 
-> > drivers/media/dvb/frontends/dib7000p.c: In function â€˜dib7000p_i2c_enumerationâ€™:
-> > drivers/media/dvb/frontends/dib7000p.c:1315: warning: the frame size of 2256 bytes is larger than 2048 bytes
-> > drivers/media/dvb/frontends/dib3000mc.c: In function â€˜dib3000mc_i2c_enumerationâ€™:
-> > drivers/media/dvb/frontends/dib3000mc.c:853: warning: the frame size of 2160 bytes is larger than 2048 bytes
-> > 
-> > Introduced by commit 99307958cc9c1b0b2e0dad4bbefdafaf9ac5a681 ("PM:
-> > Introduce core framework for run-time PM of I/O devices (rev. 17)").
-> 
-> Well.
-> 
-> This commit increases the size of struct device quite a bit and both of the
-> drivers above create a "state" object on the stack that contains struct device
-> among other things.
+> I've been tied up in another project, so I haven't gotten back to it.
+> I know I keep dragging this out, but given my current workload I
+> probably won't get the work done for the next couple of weeks.
 
-Ick.  struct device should _never_ be on the stack, why would this code
-want to do such a thing?
+OK, no problem. I just wanted to know whether I can test or try something
+myself.
 
-thanks,
+Regards,
 
-greg k-h
+	Márton Németh
+
