@@ -1,59 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ozgw.promptu.com ([203.144.27.9]:3383 "EHLO
-	surfers.oz.promptu.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753431AbZHSXU0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Aug 2009 19:20:26 -0400
-Date: Thu, 20 Aug 2009 09:20:21 +1000
-From: Bob Hepple <bhepple@promptu.com>
-To: treblid <treblid@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: help: Can't get DViCO FusionHDTV DVB-T Dual Digital 4 to work
- with new kernels
-Message-Id: <20090820092021.66df84be.bhepple@promptu.com>
-In-Reply-To: <941593fd0908191550vcc2ee17tfbffd06dfa91eb34@mail.gmail.com>
-References: <941593fd0908182109p22e5e5f0i6959369c9ac7c12f@mail.gmail.com>
-	<20090819170231.a411e47a.bhepple@promptu.com>
-	<941593fd0908191550vcc2ee17tfbffd06dfa91eb34@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mis07.de ([93.186.196.80]:39853 "EHLO mis07.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753466AbZH3NII (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Aug 2009 09:08:08 -0400
+Received: from pcvirus (p5DC8F776.dip.t-dialin.net [93.200.247.118])
+	by mis07.de (Postfix) with ESMTPA id 17924144E022
+	for <linux-media@vger.kernel.org>; Sun, 30 Aug 2009 15:08:04 +0200 (CEST)
+Message-ID: <27AACDFC886B44FEA173C0F23613BD3D@pcvirus>
+From: "rath" <mailings@hardware-datenbank.de>
+To: <linux-media@vger.kernel.org>
+Subject: V4L2 webcam image grab
+Date: Sun, 30 Aug 2009 15:07:51 +0200
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0030_01CA2983.A4EFE440"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 20 Aug 2009 06:50:25 +0800
-treblid <treblid@gmail.com> wrote:
+This is a multi-part message in MIME format.
 
-> On Wed, Aug 19, 2009 at 3:02 PM, Bob Hepple<bhepple@promptu.com> wrote:
-> > 2.6.27 worked for me - exact same board (ignoring revisions - mine is
-> > an older board, rev.1, I think)
-> Mine is rev 1 too, I think.. :p
-> 
-> > 2.6.28 and up failed for me in exactly this manner. Same with a
-> > head-of-tree v4l-dvb 'hg clone'
-> >
-> > AFAICT it's a v4l-dvb driver problem - at least no-one here refutes it
-> > since I reported it here on 20090615.
-> cool at least I'm not alone.. is this error related to the IR
-> receiver?  coz I noticed the IR receiver is detected for 1 tuner and
-> not the other.
-> 
+------=_NextPart_000_0030_01CA2983.A4EFE440
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 
-I don't _think_ it's anything to do with the IR. Mind you, I don't use
-the IR at all (I prefer using a bluetooth mini-keyboard for mythTV -
-the IR remote provided with the DViCO doesn't have enough
-functions/buttons for me).
+Hi,
 
-Anne Aileus also confirmed the regression on 20090727 and offered to do
-some tests if someone could provide guidance. Haven't heard any more on
-that thread so far.
+I tried to write a simple program which reads a webcam out and saves the
+picture in a file. The camera is a Philips SPC1030NC with the uvc driver.
 
-Cheers
+But the program doesn't work. The pictures look like the image [1] and
+I get this output from my program, which is attached:
+
+        Width: 640 Height: 480 Pixelformat: 1196444237
+        libv4lconvert: Error decompressing JPEG: fill_nbits error: need 2 
+more bits
+        Fertig!
+
+What have I to change in my program?
+
+Regards, Joern
+
+[1] http://royalclan.de/files/forum/webcam_image.ppm 
+
+------=_NextPart_000_0030_01CA2983.A4EFE440
+Content-Type: text/plain;
+	format=flowed;
+	name="ppm_webcam_grab.c";
+	reply-type=original
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename="ppm_webcam_grab.c"
+
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <stdlib.h>
+//#include <libv4l1.h>
+#include <libv4l2.h>
+//#include <linux/videodev.h>
+#include <linux/videodev2.h>
 
 
-Bob
+
+int main()
+{
+	struct v4l2_format format;
+	char *data;
+	int fd;
 
 
--- 
-Bob Hepple <bhepple@promptu.com>
-ph: 07-5584-5908 Fx: 07-5575-9550
+	fd =3D v4l2_open("/dev/video0", O_RDWR);
+
+	//Einstelllungen auslesen
+	format.type =3D V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	if(v4l2_ioctl(fd,VIDIOC_G_FMT, &format)<0){
+		printf("Error getting Camera info");
+	}
+
+	printf("Width: %d Height: %d Pixelformat: %d\r\n", =
+format.fmt.pix.width, format.fmt.pix.height, =
+format.fmt.pix.pixelformat);
+
+	format.fmt.pix.width=3D640;
+	format.fmt.pix.height=3D480;
+	format.fmt.pix.pixelformat=3DV4L2_PIX_FMT_RGB24;
+
+	//Werte setzen
+	if(v4l2_ioctl(fd, VIDIOC_S_FMT, &format)<0){
+		printf("Error setting Camera settings");
+	}
+
+	//Speicher f=C3=BCr Bild reservieren
+	data =3D malloc((format.fmt.pix.sizeimage*3));
+	if(data=3D=3DNULL){
+		printf("Error getting space for image");
+		return 1;
+	}
+
+	//Bild einlesen
+	if(v4l2_read(fd, data, format.fmt.pix.sizeimage*3) < 0){
+		printf("v4l2_read() returned error \r\n");
+	}
+
+	//Ausgabedatei =C3=B6ffnen + Header schreiben
+	FILE * img =3D fopen("webcam_image.ppm","w");
+	fprintf(img, "P6\n%d %d\n255\n",format.fmt.pix.width, =
+format.fmt.pix.height);
+
+	fwrite(data, (format.fmt.pix.sizeimage*3),1, img);
+
+	fclose(img);
+	v4l2_close(fd);
+
+	printf("Fertig!\r\n");
+
+    return 0;
+}
+
+------=_NextPart_000_0030_01CA2983.A4EFE440--
+
