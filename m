@@ -1,53 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.158]:17601 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751763AbZHTStr convert rfc822-to-8bit (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:55370 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751587AbZH3XPK convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Aug 2009 14:49:47 -0400
-Received: by fg-out-1718.google.com with SMTP id e12so62592fga.17
-        for <linux-media@vger.kernel.org>; Thu, 20 Aug 2009 11:49:47 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1250793946.4644.45.camel@sl>
-References: <1250790879.4644.33.camel@sl>
-	 <829197380908201112m2c6fac29ve62d3e2bdf035bf2@mail.gmail.com>
-	 <1250793946.4644.45.camel@sl>
-Date: Thu, 20 Aug 2009 14:49:47 -0400
-Message-ID: <829197380908201149v58d69300kb607abbc16671eca@mail.gmail.com>
-Subject: Re: [PATCH] em28xx: Add entry for GADMEI UTV330+ and related IR codec
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Shine Liu <shinel@foxmail.com>
-Cc: linux-media@vger.kernel.org
+	Sun, 30 Aug 2009 19:15:10 -0400
+Date: Sun, 30 Aug 2009 20:15:05 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Steven Toth <stoth@kernellabs.com>
+Cc: Konstantin Dimitrov <kosio.dimitrov@gmail.com>,
+	linux-media@vger.kernel.org, bob@turbosight.com
+Subject: Re: [PATCH] cx23885: fix support for TBS 6920 card
+Message-ID: <20090830201505.064c2144@pedra.chehab.org>
+In-Reply-To: <8103ad500908200838v3b456052re0f3a17b06b523f@mail.gmail.com>
+References: <20090819232002.a941c388.kosio.dimitrov@gmail.com>
+	<4A8D4984.4000309@kernellabs.com>
+	<8103ad500908200838v3b456052re0f3a17b06b523f@mail.gmail.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 20, 2009 at 2:45 PM, Shine Liu<shinel@foxmail.com> wrote:
->
->
-> Hi Devin,
->
-> Thanks for your suggestion. From the dmesg, I got the information:
->
-> em28xx #0: Board i2c devicelist hash is 0x4ba50080
->
-> I've regenerated the patch used the i2c hash value 0x4ba50080.
->
-> |-------------------------------------------------------------------|
-> |Sorry for the last wrong mail, "ir_codes_gadimei_rm008z" should be |
-> |"ir_codes_gadmei_rm008z". This patch is correct.                   |
-> |-------------------------------------------------------------------|
->
-> Best regard,
->
-> Shine
+Hi Steven,
 
-Looks good to me:
+As I'm understanding that you're reveiwing it, I'm marking this patch as such
+at Patchwork.
 
-Reviewed-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cheers,
+Mauro.
 
-Devin
+Em Thu, 20 Aug 2009 18:38:46 +0300
+Konstantin Dimitrov <kosio.dimitrov@gmail.com> escreveu:
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+> On Thu, Aug 20, 2009 at 4:03 PM, Steven Toth<stoth@kernellabs.com> wrote:
+> > On 8/19/09 7:20 PM, Konstantin Dimitrov wrote:
+> >>
+> >> fix: GPIO initialization for TBS 6920
+> >> fix: wrong I2C address for demod on TBS 6920
+> >> fix: wrong I2C bus number for demod on TBS 6920
+> >> fix: wrong "gen_ctrl_val" value for TS1 port on TBS 6920 (and some other
+> >> cards)
+> >> add: module_param "lnb_pwr_ctrl" as option to choose between "type 0" and
+> >> "type 1" of LNB power control (two TBS 6920 boards no matter that they are
+> >> marked as the same hardware revision may have different types of LNB power
+> >> control)
+> >> fix: LNB power control function for type 0 doesn't preserve the previous
+> >> GPIO state, which is critical
+> >> add: LNB power control function for type 1
+> >>
+> >> Signed-off-by: Bob Liu<bob@turbosight.com>
+> >> Signed-off-by: Konstantin Dimitrov<kosio.dimitrov@gmail.com>
+> > Hmm. A custom hanging off of a gpio to something that looks like an i2c
+> > power control device. I want to review some of these generic (and
+> > no-so-generic) changes before we merge this patch.
+> >
+> > Is the datasheet for the LNB power control device available to the public?
+> > I'd like to understand some of the register details.
+> 
+> the datasheet is not available at least to me and i don't know any
+> more details. the code in question was given to me by the author under
+> GPLv2 license and that's why i put it in separate file
+> "tbs_lnb_pwr.c".
+> 
+> also, the cards that use this type of LNB power control, which i
+> called for short "type 1", have the same device IDs as the one that
+> don't use it and use "type 0" of LNB power control instead.
+> 
+> --konstantin
+> 
+> >
+> > Thanks,
+> >
+> > --
+> > Steven Toth - Kernel Labs
+> > http://www.kernellabs.com
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+
+Cheers,
+Mauro
