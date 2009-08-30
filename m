@@ -1,361 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52488 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752019AbZHCDtQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 2 Aug 2009 23:49:16 -0400
-From: "chaithrika" <chaithrika@ti.com>
-To: "'Chaithrika U S'" <chaithrika@ti.com>, <linux@arm.linux.org.uk>
-Cc: <mchehab@infradead.org>, <hverkuil@xs4all.nl>,
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	<linux-media@vger.kernel.org>,
-	"'Brijesh Jadav'" <brijesh.j@ti.com>,
-	"'Kevin Hilman'" <khilman@deeprootsystems.com>
-References: <1248076882-18564-1-git-send-email-chaithrika@ti.com>
-In-Reply-To: <1248076882-18564-1-git-send-email-chaithrika@ti.com>
-Subject: RE: [PATCH v3] ARM: DaVinci: DM646x Video: Platform and board specific setup
-Date: Mon, 3 Aug 2009 09:17:06 +0530
-Message-ID: <00cb01ca13ed$12564120$3702c360$@com>
+Received: from mail.gmx.net ([213.165.64.20]:53684 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751421AbZH3WTf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Aug 2009 18:19:35 -0400
+Date: Mon, 31 Aug 2009 00:19:38 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>,
+	Laurent Pinchart <laurent.pinchart@skynet.be>
+Subject: Re: RFC: bus configuration setup for sub-devices
+In-Reply-To: <200908291631.13696.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.0908300109490.16132@axis700.grange>
+References: <200908291631.13696.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-Content-Language: en-us
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro/Russell,
+On Sat, 29 Aug 2009, Hans Verkuil wrote:
 
-The previous version (v2) of this patch is on the linux-next tree.
-This patch has some updates done on top of that patch. Should I
-post an incremental patch for those changes to the Linux-next tree?
-Please suggest.
+> Hi all,
+> 
+> This is an updated RFC on how to setup the bus for sub-devices.
+> 
+> It is based on work from Guennadi and Muralidharan.
+> 
+> The problem is that both sub-devices and bridge devices have to configure
+> their bus correctly so that they can talk to one another. We need a
+> standard way of configuring such busses.
+> 
+> The soc-camera driver did this by auto-negotiation. For several reasons (see
+> the threads on bus parameters in the past) I thought that that was not a good
+> idea. After talking this over last week with Guennadi we agreed that we would
+> configure busses directly rather than negotiate the bus configuration. It was
+> a very pleasant meeting (Hans de Goede, Laurent Pinchart, Guennadi Liakhovetski
+> and myself) and something that we should repeat. Face-to-face meetings make
+> it so much faster to come to a decision on difficult problems.
+> 
+> My last proposal merged subdev and bridge parameters into one struct, thus
+> completely describing the bus setup. I realized that there is a problem with
+> that if you have to define the bus for sub-devices that are in the middle of
+> a chain: e.g. a sensor sends its video to a image processing subdev and from
+> there it goes to the bridge. You have to be able to specify both the source and
+> sink part of each bus for that image processing subdev.
+> 
+> It's much easier to do that by keeping the source and sink bus config
+> separate.
+> 
+> Here is my new proposal:
+> 
+> /*
+>  * Some sub-devices are connected to the host/bridge device through a bus that
+>  * carries the clock, vsync, hsync and data. Some interfaces such as BT.656
+>  * carries the sync embedded in the data whereas others have separate lines
+>  * carrying the sync signals.
+>  */
+> struct v4l2_bus_config {
+>         /* embedded sync, set this when sync is embedded in the data stream */
+>         unsigned embedded_sync:1;
+>         /* master or slave */
+>         unsigned is_master:1;
 
-Regards,
-Chaithrika
+Up to now I usually saw the master-slave relationship defined as per 
+whether the protocol is "master" or "slave," which always was used from 
+the PoV of the bridge. I.e., even in a camera datasheet a phrase like 
+"supports master-parallel mode" means supports a mode in which the bridge 
+is a master and the camera is a slave. So, maybe it is better instead of a 
+.is_master flag to use a .master_mode flag?
 
-On Mon, Jul 20, 2009 at 13:31:22, Chaithrika U S wrote:
-> Platform specific display device setup for DM646x EVM
-> 
-> Add platform device and resource structures. Also define a platform
-specific
-> clock setup function that can be accessed by the driver to configure the
-clock
-> and CPLD.
-> 
-> Signed-off-by: Manjunath Hadli <mrh@ti.com>
-> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-> Signed-off-by: Chaithrika U S <chaithrika@ti.com>
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
-> Applies to Davinci GIT tree. Minor updates like change in structure name-
-> subdev_info to vpif_subdev_info and correction to VDD3P3V_VID_MASK value.
-> 
->  arch/arm/mach-davinci/board-dm646x-evm.c    |  125
-+++++++++++++++++++++++++++
->  arch/arm/mach-davinci/dm646x.c              |   62 +++++++++++++
->  arch/arm/mach-davinci/include/mach/dm646x.h |   24 +++++
->  3 files changed, 211 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c
-b/arch/arm/mach-davinci/board-dm646x-evm.c
-> index b1bf18c..8c88fd0 100644
-> --- a/arch/arm/mach-davinci/board-dm646x-evm.c
-> +++ b/arch/arm/mach-davinci/board-dm646x-evm.c
-> @@ -63,6 +63,19 @@
->  #define DM646X_EVM_PHY_MASK		(0x2)
->  #define DM646X_EVM_MDIO_FREQUENCY	(2200000) /* PHY bus frequency */
->  
-> +#define VIDCLKCTL_OFFSET	(0x38)
-> +#define VSCLKDIS_OFFSET		(0x6c)
-> +
-> +#define VCH2CLK_MASK		(BIT_MASK(10) | BIT_MASK(9) | BIT_MASK(8))
-> +#define VCH2CLK_SYSCLK8		(BIT(9))
-> +#define VCH2CLK_AUXCLK		(BIT(9) | BIT(8))
-> +#define VCH3CLK_MASK		(BIT_MASK(14) | BIT_MASK(13) | BIT_MASK(12))
-> +#define VCH3CLK_SYSCLK8		(BIT(13))
-> +#define VCH3CLK_AUXCLK		(BIT(14) | BIT(13))
-> +
-> +#define VIDCH2CLK		(BIT(10))
-> +#define VIDCH3CLK		(BIT(11))
-> +
->  static struct davinci_uart_config uart_config __initdata = {
->  	.enabled_uarts = (1 << 0),
->  };
-> @@ -288,6 +301,40 @@ static struct snd_platform_data dm646x_evm_snd_data[]
-= {
->  	},
->  };
->  
-> +static struct i2c_client *cpld_client;
-> +
-> +static int cpld_video_probe(struct i2c_client *client,
-> +			const struct i2c_device_id *id)
-> +{
-> +	cpld_client = client;
-> +	return 0;
-> +}
-> +
-> +static int __devexit cpld_video_remove(struct i2c_client *client)
-> +{
-> +	cpld_client = NULL;
-> +	return 0;
-> +}
-> +
-> +static const struct i2c_device_id cpld_video_id[] = {
-> +	{ "cpld_video", 0 },
-> +	{ }
-> +};
-> +
-> +static struct i2c_driver cpld_video_driver = {
-> +	.driver = {
-> +		.name	= "cpld_video",
-> +	},
-> +	.probe		= cpld_video_probe,
-> +	.remove		= cpld_video_remove,
-> +	.id_table	= cpld_video_id,
-> +};
-> +
-> +static void evm_init_cpld(void)
-> +{
-> +	i2c_add_driver(&cpld_video_driver);
-> +}
-> +
->  static struct i2c_board_info __initdata i2c_info[] =  {
->  	{
->  		I2C_BOARD_INFO("24c256", 0x50),
-> @@ -300,6 +347,9 @@ static struct i2c_board_info __initdata i2c_info[] =
-{
->  	{
->  		I2C_BOARD_INFO("cpld_reg0", 0x3a),
->  	},
-> +	{
-> +		I2C_BOARD_INFO("cpld_video", 0x3B),
-> +	},
->  };
->  
->  static struct davinci_i2c_platform_data i2c_pdata = {
-> @@ -307,11 +357,85 @@ static struct davinci_i2c_platform_data i2c_pdata =
-{
->  	.bus_delay      = 0 /* usec */,
->  };
->  
-> +static int set_vpif_clock(int mux_mode, int hd)
-> +{
-> +	int val = 0;
-> +	int err = 0;
-> +	unsigned int value;
-> +	void __iomem *base = IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
-> +
-> +	if (!cpld_client)
-> +		return -ENXIO;
-> +
-> +	/* disable the clock */
-> +	value = __raw_readl(base + VSCLKDIS_OFFSET);
-> +	value |= (VIDCH3CLK | VIDCH2CLK);
-> +	__raw_writel(value, base + VSCLKDIS_OFFSET);
-> +
-> +	val = i2c_smbus_read_byte(cpld_client);
-> +	if (val < 0)
-> +		return val;
-> +
-> +	if (mux_mode == 1)
-> +		val &= ~0x40;
-> +	else
-> +		val |= 0x40;
-> +
-> +	err = i2c_smbus_write_byte(cpld_client, val);
-> +	if (err)
-> +		return err;
-> +
-> +	value = __raw_readl(base + VIDCLKCTL_OFFSET);
-> +	value &= ~(VCH2CLK_MASK);
-> +	value &= ~(VCH3CLK_MASK);
-> +
-> +	if (hd >= 1)
-> +		value |= (VCH2CLK_SYSCLK8 | VCH3CLK_SYSCLK8);
-> +	else
-> +		value |= (VCH2CLK_AUXCLK | VCH3CLK_AUXCLK);
-> +
-> +	__raw_writel(value, base + VIDCLKCTL_OFFSET);
-> +
-> +	/* enable the clock */
-> +	value = __raw_readl(base + VSCLKDIS_OFFSET);
-> +	value &= ~(VIDCH3CLK | VIDCH2CLK);
-> +	__raw_writel(value, base + VSCLKDIS_OFFSET);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct vpif_subdev_info dm646x_vpif_subdev[] = {
-> +	{
-> +		.addr	= 0x2A,
-> +		.name	= "adv7343",
-> +	},
-> +	{
-> +		.addr	= 0x2C,
-> +		.name	= "ths7303",
-> +	},
-> +};
-> +
-> +static const char *output[] = {
-> +	"Composite",
-> +	"Component",
-> +	"S-Video",
-> +};
-> +
-> +static struct vpif_config dm646x_vpif_config = {
-> +	.set_clock	= set_vpif_clock,
-> +	.subdevinfo	= dm646x_vpif_subdev,
-> +	.subdev_count	= ARRAY_SIZE(dm646x_vpif_subdev),
-> +	.output		= output,
-> +	.output_count	= ARRAY_SIZE(output),
-> +	.card_name	= "DM646x EVM",
-> +};
-> +
->  static void __init evm_init_i2c(void)
->  {
->  	davinci_init_i2c(&i2c_pdata);
->  	i2c_add_driver(&dm6467evm_cpld_driver);
->  	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));
-> +	evm_init_cpld();
->  }
->  
->  static void __init davinci_map_io(void)
-> @@ -333,6 +457,7 @@ static __init void evm_init(void)
->  
->  	soc_info->emac_pdata->phy_mask = DM646X_EVM_PHY_MASK;
->  	soc_info->emac_pdata->mdio_max_freq = DM646X_EVM_MDIO_FREQUENCY;
-> +	dm646x_setup_vpif(&dm646x_vpif_config);
->  }
->  
->  static __init void davinci_dm646x_evm_irq_init(void)
-> diff --git a/arch/arm/mach-davinci/dm646x.c
-b/arch/arm/mach-davinci/dm646x.c
-> index 8fa2803..a9b20e5 100644
-> --- a/arch/arm/mach-davinci/dm646x.c
-> +++ b/arch/arm/mach-davinci/dm646x.c
-> @@ -32,6 +32,15 @@
->  #include "clock.h"
->  #include "mux.h"
->  
-> +#define DAVINCI_VPIF_BASE       (0x01C12000)
-> +#define VDD3P3V_PWDN_OFFSET	(0x48)
-> +#define VSCLKDIS_OFFSET		(0x6C)
-> +
-> +#define VDD3P3V_VID_MASK	(BIT_MASK(3) | BIT_MASK(2) | BIT_MASK(1) |\
-> +					BIT_MASK(0))
-> +#define VSCLKDIS_MASK		(BIT_MASK(11) | BIT_MASK(10) |
-BIT_MASK(9) |\
-> +					BIT_MASK(8))
-> +
->  /*
->   * Device specific clocks
->   */
-> @@ -686,6 +695,37 @@ static struct platform_device dm646x_dit_device = {
->  	.id	= -1,
->  };
->  
-> +static u64 vpif_dma_mask = DMA_BIT_MASK(32);
-> +
-> +static struct resource vpif_resource[] = {
-> +	{
-> +		.start	= DAVINCI_VPIF_BASE,
-> +		.end	= DAVINCI_VPIF_BASE + 0x03fff,
-> +		.flags	= IORESOURCE_MEM,
-> +	},
-> +	{
-> +		.start = IRQ_DM646X_VP_VERTINT2,
-> +		.end   = IRQ_DM646X_VP_VERTINT2,
-> +		.flags = IORESOURCE_IRQ,
-> +	},
-> +	{
-> +		.start = IRQ_DM646X_VP_VERTINT3,
-> +		.end   = IRQ_DM646X_VP_VERTINT3,
-> +		.flags = IORESOURCE_IRQ,
-> +	},
-> +};
-> +
-> +static struct platform_device vpif_display_dev = {
-> +	.name		= "vpif_display",
-> +	.id		= -1,
-> +	.dev		= {
-> +			.dma_mask 		= &vpif_dma_mask,
-> +			.coherent_dma_mask	= DMA_BIT_MASK(32),
-> +	},
-> +	.resource	= vpif_resource,
-> +	.num_resources	= ARRAY_SIZE(vpif_resource),
-> +};
-> +
->
-/*----------------------------------------------------------------------*/
->  
->  static struct map_desc dm646x_io_desc[] = {
-> @@ -814,6 +854,28 @@ void __init dm646x_init_mcasp1(struct
-snd_platform_data *pdata)
->  	platform_device_register(&dm646x_dit_device);
->  }
->  
-> +void dm646x_setup_vpif(struct vpif_config *config)
-> +{
-> +	unsigned int value;
-> +	void __iomem *base = IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
-> +
-> +	value = __raw_readl(base + VSCLKDIS_OFFSET);
-> +	value &= ~VSCLKDIS_MASK;
-> +	__raw_writel(value, base + VSCLKDIS_OFFSET);
-> +
-> +	value = __raw_readl(base + VDD3P3V_PWDN_OFFSET);
-> +	value &= ~VDD3P3V_VID_MASK;
-> +	__raw_writel(value, base + VDD3P3V_PWDN_OFFSET);
-> +
-> +	davinci_cfg_reg(DM646X_STSOMUX_DISABLE);
-> +	davinci_cfg_reg(DM646X_STSIMUX_DISABLE);
-> +	davinci_cfg_reg(DM646X_PTSOMUX_DISABLE);
-> +	davinci_cfg_reg(DM646X_PTSIMUX_DISABLE);
-> +
-> +	vpif_display_dev.dev.platform_data = config;
-> +	platform_device_register(&vpif_display_dev);
-> +}
-> +
->  void __init dm646x_init(void)
->  {
->  	davinci_common_init(&davinci_soc_info_dm646x);
-> diff --git a/arch/arm/mach-davinci/include/mach/dm646x.h
-b/arch/arm/mach-davinci/include/mach/dm646x.h
-> index feb1e02..1ac424c 100644
-> --- a/arch/arm/mach-davinci/include/mach/dm646x.h
-> +++ b/arch/arm/mach-davinci/include/mach/dm646x.h
-> @@ -29,4 +29,28 @@ void __init dm646x_init_ide(void);
->  void __init dm646x_init_mcasp0(struct snd_platform_data *pdata);
->  void __init dm646x_init_mcasp1(struct snd_platform_data *pdata);
->  
-> +void dm646x_video_init(void);
-> +
-> +struct vpif_output {
-> +	u16 id;
-> +	const char *name;
-> +};
-> +
-> +struct vpif_subdev_info {
-> +	unsigned short addr;
-> +	const char *name;
-> +};
-> +
-> +struct vpif_config {
-> +	int (*set_clock)(int, int);
-> +	const struct subdev_info *subdevinfo;
-> +	int subdev_count;
-> +	const char **output;
-> +	int output_count;
-> +	const char *card_name;
-> +};
-> +
-> +
-> +void dm646x_setup_vpif(struct vpif_config *config);
-> +
->  #endif /* __ASM_ARCH_DM646X_H */
-> -- 
-> 1.5.6
-> 
+Besides, aren't there any other bus synchronisation models apart from
 
+data + master clock + pixel clock + hsync + vsync
+and
+data + master clock + pixel clock + embedded sync
 
+? For example, we should be able to specify, that field is not connected?
+
+> 
+>         /* bus width */
+>         unsigned width:8;
+>         /* 0 - active low, 1 - active high */
+>         unsigned pol_vsync:1;
+>         /* 0 - active low, 1 - active high */
+>         unsigned pol_hsync:1;
+>         /* 0 - low to high, 1 - high to low */
+>         unsigned pol_field:1;
+>         /* 0 - sample at falling edge, 1 - sample at rising edge */
+>         unsigned edge_pclock:1;
+>         /* 0 - active low, 1 - active high */
+>         unsigned pol_data:1;
+> };
+> 
+> It's all bitfields, so it is a very compact representation.
+> 
+> In video_ops we add two new functions:
+> 
+>      int (*s_source_bus_config)(struct v4l2_subdev *sd, const struct v4l2_bus_config *bus);
+>      int (*s_sink_bus_config)(struct v4l2_subdev *sd, const struct v4l2_bus_config *bus);
+> 
+> Actually, if there are no subdevs that can act as sinks then we should omit
+> s_sink_bus_config for now.
+> 
+> In addition, I think we need to require that at the start of the s_*_bus_config
+> implementation in the host or subdev there should be a standard comment
+> block describing the possible combinations supported by the hardware:
+> 
+> /* This hardware supports the following bus settings:
+> 
+>    widths: 8/16
+>    syncs: embedded or separate
+>    bus master: slave
+>    vsync polarity: 0/1
+>    hsync polarity: 0/1
+>    field polarity: not applicable
+>    sampling edge pixelclock: 0/1
+>    data polarity: 1
+>  */
+> 
+> This should make it easy for implementers to pick a valid set of bus
+> parameters.
+> 
+> Eagle-eyed observers will note that the bus type field has disappeared from
+> this proposal. The problem with that is that I have no clue what it is supposed
+> to do. Is there more than one bus that can be set up? In that case it is not a
+> bus type but a bus ID. Or does it determine that type of data that is being
+> transported over the bus? In that case it does not belong here, since that is
+> something for a s_fmt type API.
+> 
+> This particular API should just setup the physical bus. Nothing more, IMHO.
+> 
+> Please let me know if I am missing something here.
+> 
+> Guennadi, from our meeting I understood that you also want a way provide
+> an offset in case the data is actually only on some pins (e.g. the lower
+> or upper X pins are always 0). I don't think it is hard to provide support
+> for that in this API by adding an offset field or something like that.
+> 
+> Can you give me a pointer to the actual place where that is needed? Possibly
+> also with references to datasheets? I'd like to understand this better.
+
+I'll just describe to you the cases, where we need this:
+
+1. PXA270 SoC Quick Capture Interface has 10 data lines (D9...D0) and can 
+sample in raw (parallel) mode 8, 9, or 10 bits of data. However, when 
+configured to capture fewer than 10 bits of data it sample not the most 
+significant lines (D9...D1 or D9...D2), but the least significant ones.
+
+2. i.MX31 SoC Camera Sensor Interface has 15 data lines (D14...D0) and can 
+sample in raw (parallel) mode 8, 10, or 15 lines of data. Thereby it 
+sample the most significant lines.
+
+3. MT9M001 and MT9V022 sensors have 10 lines of data and always deliver 10 
+bits of data. When directly connected D0-D0...D9-D9 to the PXA270 you can 
+only sample 10 bits and not 8 bits. When similarly connected to i.MX31 
+D0-D6...D9-D15 you can seamlessly configure the SoC to either capture 8 or 
+10 bits of data - both will work.
+
+4. Creative hardware engineers have supplied both these cameras with an 
+i2c switch, that can switch the 8 most significant data lines of the 
+sensor to the least significant lines of the interface to work with 
+PXA270.
+
+5. The current soc-camera solution for this situation seems pretty clean: 
+we provide an optional callback into platform code to query bus 
+parameters. On boards, using such a camera with an i2c switch this 
+function returns to the sensor "you can support 8 and 10 bit modes." On 
+PXA270 boards, using such a camera without a switch this function is 
+either not implemented at all, or it returns the default "you can only 
+provide 10 bits." Then there is another callback to actually switch 
+between low and high lines by operating the I2C switch. And a third 
+callback to release i2c switch resources. On i.MX31 you would implement 
+the query callback as "yes, you can support 8 and 10 bits," and the switch 
+callback as a dummy (or not implement at all) because you don't have to 
+switch anything on i.MX31.
+
+> Sakari, this proposal is specific to parallel busses. I understood that Nokia
+> also has to deal with serial busses. Can you take a look at this proposal with
+> a serial bus in mind?
+> 
+> This bus config stuff has been in limbo for too long, so I'd like to come
+> to a conclusion and implementation in 1-2 weeks.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
