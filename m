@@ -1,53 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f183.google.com ([209.85.211.183]:56823 "EHLO
-	mail-yw0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750867AbZHFBnv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Aug 2009 21:43:51 -0400
-Received: by ywh13 with SMTP id 13so700900ywh.15
-        for <linux-media@vger.kernel.org>; Wed, 05 Aug 2009 18:43:51 -0700 (PDT)
+Received: from mail00d.mail.t-online.hu ([84.2.42.5]:56123 "EHLO
+	mail00d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750990AbZH3GaD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Aug 2009 02:30:03 -0400
+Message-ID: <4A9A1AB6.2050801@freemail.hu>
+Date: Sun, 30 Aug 2009 08:22:46 +0200
+From: =?ISO-8859-2?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
 MIME-Version: 1.0
-In-Reply-To: <4A7A0C7A.3010806@iol.it>
-References: <4A6F8AA5.3040900@iol.it> <4A79CEBD.1050909@iol.it>
-	 <829197380908051134x5fda787fx5bf9adf786aa739e@mail.gmail.com>
-	 <4A79E07F.1000301@iol.it>
-	 <829197380908051251x6996414ek951d259373401dd7@mail.gmail.com>
-	 <4A79E6B7.5090408@iol.it>
-	 <829197380908051322r1382d97dtd5e7a78f99438cc9@mail.gmail.com>
-	 <4A79FC43.6000402@iol.it>
-	 <829197380908051451j6590db20l7268d34bd4b8342a@mail.gmail.com>
-	 <4A7A0C7A.3010806@iol.it>
-Date: Wed, 5 Aug 2009 21:43:51 -0400
-Message-ID: <829197380908051843w20ee2953qa638e01cdf8729a3@mail.gmail.com>
-Subject: Re: Terratec Cinergy HibridT XS
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: efa@iol.it
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Michel Xhaard <mxhaard@users.sourceforge.net>
+CC: V4L Mailing List <linux-media@vger.kernel.org>,
+	=?ISO-8859-2?Q?N=E9me?= =?ISO-8859-2?Q?th_M=E1rton?=
+	<nm127@freemail.hu>
+Subject: gspca_sunplus: problem with brightness control
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 5, 2009 at 6:49 PM, Valerio Messina<efa@iol.it> wrote:
->> The map that I committed in does have all the keys mapped to input
->> event codes.  You would need to reconfigure your input subsystem to
->> point the event codes to some other function.
->
-> the channel up/down, EPG, Teletext and circled "i" on the remote does
-> nothing.
+Hi,
 
-They do "nothing", but that is the application's fault and not the
-driver's.  When pressing the channel up key, the driver generates a
-keyboard event called KEY_CHANNELUP, and the application has to have
-that mapped to the correct shortcut.  Likewise, channel down, epg, and
-the "i" generate KEY_CHANNELDOWN, KEY_EPG, and KEY_INFO.
+I am using a "Trust 610 LCD Powerc@m Zoom" device in webcam mode
+(USB ID=06d6:0031). I am running Linux 2.6.31-rc7 updated with the
+http://linuxtv.org/hg/v4l-dvb repository at version 12564:6f58a5d8c7c6.
 
-Kaffeine 1.0pre1 appears to have some new infrastructure for assigning
-events to shortcuts (see the menu item "Settings->Configure
-Shortcuts"), however it doesn't appear to work correctly in all cases.
- Not that this is surprising for a prerelease.
+When I start watching to the webcam picture and change the brightness
+value then I get the following result. The possible brigthness values
+are between 0 and 255.
 
-Devin
+for i in $(seq 0 255); do echo $i; v4lctl bright $i; done
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+0: average image
+ |
+ | lighter images
+ v
+127: the most light image
+ |
+ | "jump" in brightness
+ v
+128: the most dark image
+ |
+ | lighter images
+ v
+255: average image
+
+It seems to me that the values 128...255 are really negative numbers, so
+the possible range should be between -128...127 (two's complement representation)
+in case of this webcam.
+
+Note that the contrast and color controls does not have any jump in
+the range 0...255.
+
+Regards,
+
+	Márton Németh
