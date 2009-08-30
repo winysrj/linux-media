@@ -1,85 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:51714 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752526AbZHDTiM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2009 15:38:12 -0400
-From: Pete Hildebrandt <send2ph@googlemail.com>
+Received: from mail-ew0-f206.google.com ([209.85.219.206]:35263 "EHLO
+	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752356AbZH3H3l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Aug 2009 03:29:41 -0400
+Received: by ewy2 with SMTP id 2so3199524ewy.17
+        for <linux-media@vger.kernel.org>; Sun, 30 Aug 2009 00:29:42 -0700 (PDT)
+Date: Sun, 30 Aug 2009 09:29:40 +0200
+From: tartifola@gmail.com
 To: linux-media@vger.kernel.org
-Subject: [patch] Added Support for STK7700D (DVB)
-Date: Tue, 4 Aug 2009 21:38:11 +0200
-MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_j4IeKyyCu12e2Rh"
-Message-Id: <200908042138.11938.send2ph@googlemail.com>
+Subject: Lenovo compact cam 17ef:4802
+Message-Id: <20090830092940.73393e46.tartifola@gmail.com>
+Reply-To: tartifola@gmail.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Boundary-00=_j4IeKyyCu12e2Rh
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-Hello,
+Hi,
+I'm experiencing problems with a Lenovo compact USB cam. I'm using Gentoo
+with kernel 2.6.30-gentoo-r4. I tried to use the built-in modules and
+also with gspca-af183a871db8 form linuxTV with the same result. It
+seems that the cam is correctly recognized
 
-To this mail I attached two patch-files to add support for the STK7700D
-USB-DVB-Device.
+>dmesg
+Linux video capture interface: v2.00
+gspca: main v2.6.0 registered
+gspca: probing 17ef:4802
+vc032x: check sensor header 20
+vc032x: Sensor ID 143a (3)
+vc032x: Find Sensor MI1310_SOC
+gspca: probe ok
+usbcore: registered new interface driver vc032x
+vc032x: registered
 
-lsusb identifies it as:
-idVendor           0x1164 YUAN High-Tech Development Co., Ltd
-idProduct          0x1efc
- iProduct                2 STK7700D
+However when I try to use it, for example, with cheese I get this error
 
-My two patches mainly just add the new product-ID.
+>cheese                                          
+(cheese:21741): GStreamer-WARNING **: pad source:src returned caps which are not a real subset of its template caps
+libv4l2: error dequeuing buf: Input/output error
+libv4l2: error dequeuing buf: Input/output error
+libv4l2: error dequeuing buf: Input/output error
+libv4l2: error dequeuing buf: Input/output error
+libv4l2: error dequeuing buf: Input/output error
+libv4l2: error dequeuing buf: Input/output error
 
-I have tested the modification with the 2.6.28 and the 2.6.30 kernel. The
-patches are for the 2.6.30 kernel.
+Essentially Cheese does not show any available resolutions. Problems
+also with xawtv
 
-The device is build into my laptop (Samsung R55-T5500) and works great after
-applying the patches.
+>xawtv
+This is xawtv-3.95, running on Linux/i686 (2.6.30-gentoo-r4)
+WARNING: v4l-conf is compiled without DGA support.
+/dev/video0 [v4l2]: no overlay support
+v4l-conf had some trouble, trying to continue anyway
+Warning: Cannot convert string "-*-ledfixed-medium-r-*--39-*-*-*-c-*-*-*" to type FontStruct
+no way to get: 384x288 32 bit TrueColor (LE: bgr-)
 
-Bye
-Pete
+and a similar issue with mplayer
 
---Boundary-00=_j4IeKyyCu12e2Rh
-Content-Type: text/x-diff;
-  charset="us-ascii";
-  name="patch_dib0700-devices_c.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="patch_dib0700-devices_c.patch"
+Any help to debug my problem?
+Thanks in advance
 
-LS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kaWIwNzAwX2RldmljZXMuYwky
-MDA5LTA1LTI1IDIxOjUwOjA5LjAwMDAwMDAwMCArMDIwMAorKysgYi9saW51eC9kcml2ZXJzL21l
-ZGlhL2R2Yi9kdmItdXNiL2RpYjA3MDBfZGV2aWNlcy5jCTIwMDktMDYtMTEgMTg6MDg6MDQuMDAw
-MDAwMDAwICswMjAwCkBAIC0xNDkzLDYgKzE0OTMsNyBAQAogCXsgVVNCX0RFVklDRShVU0JfVklE
-X0hBVVBQQVVHRSwgVVNCX1BJRF9IQVVQUEFVR0VfVElHRVJfQVRTQ19CMjEwKSB9LAogCXsgVVNC
-X0RFVklDRShVU0JfVklEX1lVQU4sCVVTQl9QSURfWVVBTl9NQzc3MCkgfSwKIAl7IFVTQl9ERVZJ
-Q0UoVVNCX1ZJRF9FTEdBVE8sCVVTQl9QSURfRUxHQVRPX0VZRVRWX0RUVCkgfSwKKy8qIDUwICov
-eyBVU0JfREVWSUNFKFVTQl9WSURfWVVBTiwgICAgICBVU0JfUElEX1lVQU5fU1RLNzcwMEQpIH0s
-CiAJeyAwIH0JCS8qIFRlcm1pbmF0aW5nIGVudHJ5ICovCiB9OwogTU9EVUxFX0RFVklDRV9UQUJM
-RSh1c2IsIGRpYjA3MDBfdXNiX2lkX3RhYmxlKTsKQEAgLTE4MTIsNyArMTgxMyw3IEBACiAJCQl9
-LAogCQl9LAogCi0JCS5udW1fZGV2aWNlX2Rlc2NzID0gNywKKwkJLm51bV9kZXZpY2VfZGVzY3Mg
-PSA4LAogCQkuZGV2aWNlcyA9IHsKIAkJCXsgICAiVGVycmF0ZWMgQ2luZXJneSBIVCBVU0IgWEUi
-LAogCQkJCXsgJmRpYjA3MDBfdXNiX2lkX3RhYmxlWzI3XSwgTlVMTCB9LApAQCAtMTg0Miw2ICsx
-ODQzLDExIEBACiAJCQkJeyAmZGliMDcwMF91c2JfaWRfdGFibGVbNDhdLCBOVUxMIH0sCiAJCQkJ
-eyBOVUxMIH0sCiAJCQl9LAorCQkJeyAgICJZVUFOIEhpZ2gtVGVjaCBTVEs3NzAwRCIsCisJCQkJ
-eyAmZGliMDcwMF91c2JfaWRfdGFibGVbNTBdLCBOVUxMIH0sCisJCQkJeyBOVUxMIH0sCisJCQl9
-LAorCiAJCX0sCiAJCS5yY19pbnRlcnZhbCAgICAgID0gREVGQVVMVF9SQ19JTlRFUlZBTCwKIAkJ
-LnJjX2tleV9tYXAgICAgICAgPSBkaWIwNzAwX3JjX2tleXMsCg==
---Boundary-00=_j4IeKyyCu12e2Rh
-Content-Type: text/x-diff;
-  charset="us-ascii";
-  name="patch_dvb-usb-ids_h.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="patch_dvb-usb-ids_h.patch"
-
-LS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kdmItdXNiLWlkcy5oCTIwMDkt
-MDUtMjUgMjE6NTA6MDkuMDAwMDAwMDAwICswMjAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEv
-ZHZiL2R2Yi11c2IvZHZiLXVzYi1pZHMuaAkyMDA5LTA2LTIzIDE5OjM0OjIwLjAwMDAwMDAwMCAr
-MDIwMApAQCAtMjQ1LDYgKzI0NSw3IEBACiAjZGVmaW5lIFVTQl9QSURfWVVBTl9TVEs3NzAwUEgJ
-CQkJMHgxZjA4CiAjZGVmaW5lIFVTQl9QSURfWVVBTl9QRDM3OFMJCQkJMHgyZWRjCiAjZGVmaW5l
-IFVTQl9QSURfWVVBTl9NQzc3MAkJCQkweDA4NzEKKyNkZWZpbmUgVVNCX1BJRF9ZVUFOX1NUSzc3
-MDBECQkJCTB4MWVmYwogI2RlZmluZSBVU0JfUElEX0RXMjEwMgkJCQkJMHgyMTAyCiAjZGVmaW5l
-IFVTQl9QSURfWFRFTlNJT05TX1hEXzM4MAkJCTB4MDM4MQogI2RlZmluZSBVU0JfUElEX1RFTEVT
-VEFSX1NUQVJTVElDS18yCQkJMHg4MDAwCg==
---Boundary-00=_j4IeKyyCu12e2Rh--
