@@ -1,46 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:46659 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933192AbZHWAhb (ORCPT
+Received: from mail00a.mail.t-online.hu ([84.2.40.5]:49645 "EHLO
+	mail00a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750796AbZH3FvJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Aug 2009 20:37:31 -0400
-Received: by bwz19 with SMTP id 19so966506bwz.37
-        for <linux-media@vger.kernel.org>; Sat, 22 Aug 2009 17:37:32 -0700 (PDT)
+	Sun, 30 Aug 2009 01:51:09 -0400
+Message-ID: <4A9A134B.3030406@freemail.hu>
+Date: Sun, 30 Aug 2009 07:51:07 +0200
+From: =?ISO-8859-2?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
 MIME-Version: 1.0
-In-Reply-To: <4fab9a6f0908221732g8e061f3t8fc871c3a0b36337@mail.gmail.com>
-References: <4fab9a6f0908221729n5410920fmd38bace3070105a3@mail.gmail.com>
-	 <4fab9a6f0908221732g8e061f3t8fc871c3a0b36337@mail.gmail.com>
-Date: Sat, 22 Aug 2009 20:37:31 -0400
-Message-ID: <829197380908221737h46f028ffu9b7a3b1e260f8c22@mail.gmail.com>
-Subject: Re: Kernel oops with em28xx device
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Fau <dalamenona@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: V4L Mailing List <linux-media@vger.kernel.org>
+CC: =?ISO-8859-2?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+Subject: [PATCH] v4l2: fix typos in INSTALL
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Aug 22, 2009 at 8:32 PM, Fau<dalamenona@gmail.com> wrote:
-> Greetings,
-> I have an USB TV adapter identified as Hauppauge WinTV HVR 900 (R2) (card=18)
-> and I'm using Fedora 11 with linux kernel vanilla 2.6.30.5 (the last
-> stable as writing).
->
-> Following the manual at http://www.linuxtv.org/wiki/index.php/Em28xx_devices
-> i've extracted and copied xc3028-v27.fw in /lib/firware then i
-> compiled (make/make install) a freshly cloned v4l-dvb
->
-> Now when the device is plugged there is a kernel oops, I'm missing
-> something or is it a bug?
-> In attachment the relevant part of dmesg,
-> thank you in advance for any help,
+From: Márton Németh <nm127@freemail.hu>
 
-I should probably also point out that the DVB support is known to not
-work with that board (I've been working on the problem).
+Fix some typos in INSTALL documentation coming from http://linuxtv.org/hg/v4l-dvb .
 
-Devin
+Priority: low
+Signed-off-by: Márton Németh <nm127@freemai.hu>
+---
+diff -r 6f58a5d8c7c6 INSTALL
+--- a/INSTALL	Sat Aug 29 09:01:54 2009 -0300
++++ b/INSTALL	Sun Aug 30 07:45:10 2009 +0200
+@@ -1,7 +1,7 @@
+ Mauro Carvalho Chehab                                   2006 Apr 26
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+ V4L/DVB building procedures are based at the use of Makefile rules.
+-Those rules are close tho the ones at Linux Kernel, to allow an easier
++Those rules are close to the ones at Linux Kernel, to allow an easier
+ usage.
+
+ =======================================================================
+@@ -9,7 +9,7 @@
+ 	make all
+ ======================================================================
+
+-For those that may want more than just build all stuff there are some
++For those who may want more than just build all stuff there are some
+ other interesting parameters to make:
+
+ ======================
