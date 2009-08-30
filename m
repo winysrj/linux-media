@@ -1,66 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f206.google.com ([209.85.219.206]:49884 "EHLO
-	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753665AbZH3X6B (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Aug 2009 19:58:01 -0400
-Received: by ewy2 with SMTP id 2so3578220ewy.17
-        for <linux-media@vger.kernel.org>; Sun, 30 Aug 2009 16:58:02 -0700 (PDT)
-Message-ID: <4A9B1203.8000709@gmail.com>
-Date: Mon, 31 Aug 2009 05:27:55 +0530
-From: Sudipto Sarkar <xtremethegreat1@gmail.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: HP VGA Cam.
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp3-g21.free.fr ([212.27.42.3]:45158 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753928AbZH3SnW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Aug 2009 14:43:22 -0400
+Date: Sun, 30 Aug 2009 20:43:15 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Dotan Cohen <dotancohen@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Using MSI StarCam 370i Webcam with Kubuntu Linux
+Message-ID: <20090830204315.515e98af@tele>
+In-Reply-To: <880dece00908281140r16385c1fr476b18f2fcfe3c1b@mail.gmail.com>
+References: <880dece00908281140r16385c1fr476b18f2fcfe3c1b@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jean-Francois Moine wrote:
-> On Sun, 30 Aug 2009 17:16:56 +0530
-> Sudipto Sarkar <xtremethegreat1@gmail.com> wrote:
->
->  
->> I'm trying to write a driver for the HP VGA camera. USB ID:
->> 15b8:6002. The sensor is 7131r, and the bridge is probably vc0323
->> (although the inf says it's vc0326). It's inf is the same inf which
->> includes the po1200 sensor, which was added in December last year
->> (The HP 2.0 Megapixel camera). I am trying to use usbsnoop in a
->> windows installation, but the log size just does not cease to come to
->> a halt (as is specified in the microdia site), thereby leaving me
->> unable to snoop the init sequence. What might be wrong?
->>
->> Also, is this the same sensor as hv7131r, as in vc032x.c?
->>     
->
-> Hello Sudipto,
->
-> Did you try the last gspca v2 from my test repository? As there is a
-> probe sequence in the vc032x subdriver, the kernel log should contain
-> the sensor name. What is it? If you cannot get images, may you tell me
-> what is wrong? (does 'svv' display some image? does 'svv -rg' create a
-> raw image? what are the last kernel messages? ...)
->
-> Best regards.
->
->   
-The kernel doesn't identify the video device at all. It however 
-identifies the mic in it. I get the following for this from dmesg:
+On Fri, 28 Aug 2009 21:40:38 +0300
+Dotan Cohen <dotancohen@gmail.com> wrote:
 
-[  930.236048] usb 1-3: new high speed USB device using ehci_hcd and 
-address 2
-[  930.468474] usb 1-3: configuration #1 chosen from 1 choice
-[  932.135471] usbcore: registered new interface driver snd-usb-audio
+> I have the MSI StarCam 370i Webcam and I have trying to use it with
+> Kubuntu Linux 9.04 Jaunty. According to this page, "The StarCam 370i
+> is compliant with UVC, USB video class":
+> http://gadgets.softpedia.com/gadgets/Computer-Peripherals/The-MSI-StarCam-370i-3105.html
+> 
+> According to the Linux UVC driver and tools download page, "Linux
+> 2.6.26 and newer includes the Linux UVC driver natively" which is nice
+> as I am on a higher version:
+> $ uname -r
+> 2.6.28-15-generic
+> 
+> However, plugging in the webcam and testing with camorama, cheese, and
+> luvcview led me to no results:
+	[snip]
+> jaunty2@laptop:~$ dmesg | tail
+> [ 2777.811972] sn9c102: V4L2 driver for SN9C1xx PC Camera Controllers
+> v1:1.47pre49
+> [ 2777.814989] usb 2-1: SN9C105 PC Camera Controller detected (vid:pid
+> 0x0C45:0x60FC)
+> [ 2777.842123] usb 2-1: HV7131R image sensor detected
+> [ 2778.185108] usb 2-1: Initialization succeeded
+> [ 2778.185220] usb 2-1: V4L2 device registered as /dev/video0
+> [ 2778.185225] usb 2-1: Optional device control through 'sysfs'
+> interface disabled
+> [ 2778.185283] usbcore: registered new interface driver sn9c102
+> [ 2778.216691] usbcore: registered new interface driver snd-usb-audio
+> [ 2778.218738] usbcore: registered new interface driver sonixj
+> [ 2778.218745] sonixj: registered
+	[snip]
+> Anything missing? What should I do? Thanks in advance!
 
+Hello Dotan,
 
-And of course there is no video device, so svv says:
+Your webcam is not UVC compliant. One problem may be the fact that it is
+handled by 2 drivers: sn9c102 and gspca/sonixj. In both cases, the
+driver gives JPEG images. These ones are not handled natively by some
+applications as luvcview which knows only about MJPG. You have to use
+the wrapper of the v4l2 library to make them work.
 
-Cannot identify '/dev/video0': 2, No such file or directory
+Regards.
 
-However, I had edited the huge matrices (which I suppose are the URBs) 
-for hv7131r and replaced that with the one written in the inf file. That 
-works, but the brightness is very low, so that the camera works only 
-when pointed to the bulb. Should I try that one with svv? btw, I used 
-cheese to test the driver, that I'd made then.
-
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
