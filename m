@@ -1,70 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from jordan.toaster.net ([69.36.241.228]:1481 "EHLO
-	jordan.toaster.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751802AbZHLV4S (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:39503 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754216AbZH3XHr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2009 17:56:18 -0400
-Message-ID: <4A833A39.2000305@toaster.net>
-Date: Wed, 12 Aug 2009 14:55:05 -0700
-From: Sean <knife@toaster.net>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: capture-example.c crash on close_device()
-References: <4A79E6A3.7050508@toaster.net>
-In-Reply-To: <4A79E6A3.7050508@toaster.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	Sun, 30 Aug 2009 19:07:47 -0400
+Date: Sun, 30 Aug 2009 20:07:42 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
+	linux-media@vger.kernel.org, sailus@maxwell.research.nokia.com,
+	"Zutshi Vimarsh (Nokia-D/Helsinki)" <vimarsh.zutshi@nokia.com>,
+	Lasse.Laukkanen@digia.com
+Subject: Re: [PATCH] V4L: videobuf-core.c VIDIOC_QBUF should return video
+ buffer flags
+Message-ID: <20090830200742.62ae4a87@pedra.chehab.org>
+In-Reply-To: <200908111229.36230.laurent.pinchart@ideasonboard.com>
+References: <200908102037.40140.tuukka.o.toivonen@nokia.com>
+	<200908111229.36230.laurent.pinchart@ideasonboard.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans,
+Em Tue, 11 Aug 2009 12:29:36 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-What do you think is causing this? pac207 driver.
+> On Monday 10 August 2009 19:37:40 Tuukka.O Toivonen wrote:
+> > When user space queues a buffer using VIDIOC_QBUF, the kernel
+> > should set flags to V4L2_BUF_FLAG_QUEUED in struct v4l2_buffer.
+> > videobuf_qbuf() was missing a call to videobuf_status() which does
+> > that. This patch adds the proper function call.
+> >
+> > Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
+> 
+> I was a bit surprised, as I didn't think VIDIOC_QBUF was supposed to update 
+> the buffer structure, but according to the v4l2 spec it is.
+> 
+> However, I don't think calling videobuf_status() is the right thing to do. It 
+> will update fields that don't make sense at this point, such as 
+> v4l2_buffer::timestamp.
+> 
+> Thanks Tuukka for finding this, I'll update the UVC video driver 
+> accordingly :-)
 
-Sean
+Tuukka,
 
-Sean wrote:
-> Hi,
->
-> I have compiled kernel 2.6.30 from kernel.org, and I have also 
-> compiled capture-example.c from the mercurial depository. These work 
-> on laptop hardware, but on my DM&P e-box 2300SX (with vortex86 cpu), 
-> capture-example.c crashes the system. Complete lockup, no keyboard, 
-> etc. I turned on all debuging in gspca_main, i.e. options gspca_main 
-> debug=0x1FF. I also put print statements in capture-example.c in 
-> main() before each function call. Here is the output below. Has anyone 
-> had this problem?
->
-> -------
-> # capture-example -r
-> <snip>
-> gspca: packet [28] o:28644 l:126
-> gspca: add t:2 l:126
-> gspca: packet [31] o:31713 l:630
-> pac207: SOF found, bytes to analyze: 630. Frame starts at byte #19
-> gspca: add t:3 l:14
-> gspca: frame complete len:26496 q:1 i:0 o:1
-> gspca: add t:1 l:0
-> gspca: add t:2 l:600
-> gspca: poll
-> gspca: read (202752)
-> gspca: dqbuf
-> gspca: frame wait q:1 i:0 o:0
-> gspca: autogain: lum: 252, desired: 102, steps: 5
-> gspca: dqbuf 1
-> gspca: qbuf 1
-> gspca: qbuf q:0 i:0 o:0
-> .stop_capturing()
-> uninit_device()
-> close_device()
-> gspca: capture-example close
-> gspca: kill transfer
-> gspca: isoc irq
-> gspca: isoc irq
-> gspca: isoc irq
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Could you please update your patch to take Laurent's comments into
+consideration
+
+
+
+Cheers,
+Mauro
