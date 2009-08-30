@@ -1,65 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.25]:2934 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751234AbZHFOqD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2009 10:46:03 -0400
-Received: by ey-out-2122.google.com with SMTP id 9so357753eyd.37
-        for <linux-media@vger.kernel.org>; Thu, 06 Aug 2009 07:46:03 -0700 (PDT)
+Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:4744 "EHLO
+	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751240AbZH3Tfj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Aug 2009 15:35:39 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: Re: bus configuration setup for sub-devices
+Date: Sun, 30 Aug 2009 21:35:34 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	Laurent Pinchart <laurent.pinchart@skynet.be>
+References: <200908291631.13696.hverkuil@xs4all.nl> <19F8576C6E063C45BE387C64729E73940436A4A771@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940436A4A771@dbde02.ent.ti.com>
 MIME-Version: 1.0
-In-Reply-To: <4A7ADBC2.6090908@netscape.net>
-References: <4A7AC430.4070505@netscape.net>
-	 <37219a840908060553g452266fdq5ea3814b4ce725bc@mail.gmail.com>
-	 <4A7AD57B.8020906@netscape.net>
-	 <37219a840908060619q7e41b024nf4e73b21843942c5@mail.gmail.com>
-	 <4A7ADBC2.6090908@netscape.net>
-Date: Thu, 6 Aug 2009 10:46:03 -0400
-Message-ID: <37219a840908060746n4eadfa20v8e5249a5ad90e8c@mail.gmail.com>
-Subject: Re: Hauppauge WinTV HVR-900HD support?
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Kaya Saman <SamanKaya@netscape.net>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200908302135.34617.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 6, 2009 at 9:33 AM, Kaya Saman<SamanKaya@netscape.net> wrote:
-> Michael Krufky wrote:
->>
->>
->>
->> HVR1400 is expresscard.
->>
->> HVR1900 is usb2.  HVR1950 is the NTSC/ATSC/QAM version of the HVR1900.
->>  (HVR1900 is PAL/DVB-T, but can also do NTSC, and other analog
->> standards)
->>
->> HVR1900 is the one I am recommending for you.  Maybe the website
->> you're looking at needs updating -- the HVR1900 has been available
->> already for quite some time.
->>
->> Regards,
->>
->> Mike
->>
->
-> Thanks Mike, I managed to find it finally on Amazon.co.uk which claimed that
-> it was available from June 2007!
->
-> That might explain why it's not on the Hauppauge website as it is most
-> likely getting replaced....
->
-> I actually expected this to be one of those cute USB keys but this thing
-> resembles a set top box :-)
->
-> I think the WinTV HVR-900 maybe a better option as it is supported. I am
-> guessing that this is the same thing as the H model without the HD support?
+On Sunday 30 August 2009 17:46:36 Hiremath, Vaibhav wrote:
+> > -----Original Message-----
 
-No, I recommended the HVR1900 because *IT* is fully supported, and is
-*not* getting replaced.  HVR900 got replaced.  HVR1900 is not as large
-as a set top box, but it is bigger than the usb sticks, and uses a
-power brick, for the mpeg encoder.
+<snip>
 
-It is on the Hauppauge web site, you probably just overlooked it.
+> > 
+> > /*
+> >  * Some sub-devices are connected to the host/bridge device through
+> > a bus that
+> >  * carries the clock, vsync, hsync and data. Some interfaces such as
+> > BT.656
+> >  * carries the sync embedded in the data whereas others have
+> > separate lines
+> >  * carrying the sync signals.
+> >  */
+> > struct v4l2_bus_config {
+> >         /* embedded sync, set this when sync is embedded in the data
+> > stream */
+> >         unsigned embedded_sync:1;
+> >         /* master or slave */
+> >         unsigned is_master:1;
+> > 
+> >         /* bus width */
+> >         unsigned width:8;
+> >         /* 0 - active low, 1 - active high */
+> >         unsigned pol_vsync:1;
+> >         /* 0 - active low, 1 - active high */
+> >         unsigned pol_hsync:1;
+> >         /* 0 - low to high, 1 - high to low */
+> >         unsigned pol_field:1;
+> >         /* 0 - sample at falling edge, 1 - sample at rising edge */
+> >         unsigned edge_pclock:1;
+> >         /* 0 - active low, 1 - active high */
+> >         unsigned pol_data:1;
+> > };
+> > 
+> > It's all bitfields, so it is a very compact representation.
+> > 
+> [Hiremath, Vaibhav] If I understand correctly, all the above data will come to host/bridge driver from board file, right?
 
--Mike
+Yes, that's correct.
+
+Regards,
+
+	Hans
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
