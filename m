@@ -1,117 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mp1-smtp-5.eutelia.it ([62.94.10.165]:49260 "EHLO
-	smtp.eutelia.it" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750806AbZHTIFe (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2596 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751211AbZHaHdn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Aug 2009 04:05:34 -0400
-Received: from [192.168.1.170] (ip-173-14.sn3.eutelia.it [213.136.173.14])
-	by smtp.eutelia.it (Eutelia) with ESMTP id 0034A103AA9
-	for <linux-media@vger.kernel.org>; Thu, 20 Aug 2009 10:05:26 +0200 (CEST)
-Message-ID: <4A8D03A5.8060605@email.it>
-Date: Thu, 20 Aug 2009 10:04:53 +0200
-From: xwang1976@email.it
+	Mon, 31 Aug 2009 03:33:43 -0400
+Message-ID: <f37f7dc3d82cf5482ba08b90bde4795c.squirrel@webmail.xs4all.nl>
+In-Reply-To: <200908310858.24763.laurent.pinchart@ideasonboard.com>
+References: <4A52E897.8000607@freemail.hu> <4A910C42.5000001@freemail.hu>
+    <20090830234114.16b90c36@pedra.chehab.org>
+    <200908310858.24763.laurent.pinchart@ideasonboard.com>
+Date: Mon, 31 Aug 2009 09:33:23 +0200
+Subject: Re: [RESEND][PATCH 1/2] v4l2: modify the webcam video standard
+ handling
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
+Cc: "Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	=?iso-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	"Thomas Kaiser" <thomas@kaiser-linux.li>,
+	linux-media@vger.kernel.org, "LKML" <linux-kernel@vger.kernel.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: New device: Dikom DK-300 (maybe Kworld 323U rebranded)
-References: <9577d4e00908130614q1d8c2c60kdcf74d324c897572@mail.gmail.com>	 <4A84138A.3050909@email.it> <9577d4e00908130934k77fb2b2ag124da076f448b1be@mail.gmail.com> <4A854761.7080102@email.it> <4A854A08.507@email.it> <4A85D05E.9040307@email.it>
-In-Reply-To: <4A85D05E.9040307@email.it>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi to all,
-I would like to know if the usbsnoop I have done under windows xp is ok 
-or if, otherwise, I have to do something different when opening the 
-video application under windows xp (I've opened it in analogical mode. 
-Should I open it also in digital tv mode?).
-Till sunday I can take usbsnoopes of the device using my brother pc.
-After such date I've to wait two weeks.
-Thank you,
-Xwang
 
-xwang1976@email.it ha scritto:
-> This is the link to the usbsnoop I've done under windows xp:
-> http://rapidshare.com/files/267432234/UsbSnoop2.zip.html
-> I hope it is useful to:
-> 1) understand if the dikom DK-300 is really a rebranded kworld 323u
-> 2)resolve the analog tv issues (kernel panic while scanning channels and 
-> absence of audio)
-> Thank you,
-> Xwang
-> 
-> xwang1976@email.it ha scritto:
->> I forgot to send the dmesg I have had using the latest kernel 
->> (dmesg_dikom-dk300.txt) and the Dainius modified one 
->> (dmesg_dikom-dk300-mod.txt).
->> Xwang
+> Hi Mauro,
+>
+> On Monday 31 August 2009 04:41:14 Mauro Carvalho Chehab wrote:
+>> Hi Németh,
 >>
->> xwang1976@email.it ha scritto:
->>> Hi to all!
->>> I've bought this device because I've seen that it has a better 
->>> digital tuner when compared with my empire dual pen usb device.
->>> It does not work with the latest driver because there is no digital 
->>> tv while analog tv works with audio (even if it is a bit noisy) using 
->>> the start script I have attached, but when I search for analog tv 
->>> channels using tvtime-scanner, the system hangs and I have to turn it 
->>> off being alt+sys+REISUB unable to reboot the machine.
->>> If I modify the driver as suggest by Dainius, the digital tv works 
->>> perfectly, but analog audio disappears and the hangs when tuning 
->>> analog channels persist.
->>> Can you help me so that to have this device fully functional (I'll 
->>> continue to test also the Empire one, but this is better)?
->>> If you need it I can take an usbsnoop of the same device, but I don't 
->>> know how to use it exactly.
->>> I'll search if I find some howto.
->>> Thank you,
->>> Xwang
->>>
->>> Dainius Ridzevicius ha scritto:
->>>> Hi,
->>>>
->>>> replace files in /v4l-dvb/linux/drivers/media/video/em28xx
->>>> with attached ones and make all v4l-dvb.
->>>> make && make install. Reboot to clean old modules.
->>>>
->>>> DVB-T on kwordl 323ur is working, watching TV for an hour now.
->>>>
->>>> regards,
->>>>
->>>>
->>>> On Thu, Aug 13, 2009 at 4:22 PM, <xwang1976@email.it 
->>>> <mailto:xwang1976@email.it>> wrote:
->>>>
->>>>     Yes,
->>>>     I'm still interested.
->>>>     I suppose it is the same device.
->>>>     In the next days I hope I will be able to take an usbsnoop of the
->>>>     device under windows xp.
->>>>     Meantime, I would like to test your drive.
->>>>     Regards,
->>>>     Xwang
->>>>
->>>>     Dainius Ridzevicius ha scritto:
->>>>
->>>>         Hello,
->>>>
->>>>         I have got Kworld 323UR hybrid tuner and managed to get dvb-t
->>>>         lock today, will do some more testing later, but I can email
->>>>         or post you a link for v4l-dvb sources changed by me (from
->>>>         todays mercurial) if You are still interested.
->>>>
->>>>         Regards,
->>>>         Dainius
->>>>
->>>>
->>>>         --         -----------------------------------------
->>>>
->>>>
->>>>
->>>>
->>>> -- 
->>>> -----------------------------------------
-> -- 
+>> Em Sun, 23 Aug 2009 11:30:42 +0200
+>>
+>> Németh Márton <nm127@freemail.hu> escreveu:
+>> > From: Márton Németh <nm127@freemail.hu>
+>> >
+>> > Change the handling of the case when vdev->tvnorms == 0.
+>>
+>> This patch (together with a few others related to tvnorms and camera
+>> drivers) reopens an old discussion: should webcams report a tvnorm?
+>>
+>> There's no easy answer for it since:
+>>
+>> 1) removing support for VIDIOC_G_STD/VIDIOC_S_STD causes regressions,
+>> since
+>> some userspace apps stops working;
+>
+> Then those applications don't work with the uvcvideo driver in the first
+> place. This is getting less and less common :-)
+>
+>> 2) It is a common scenario to use cameras connected to some capture only
+>> devices like several bttv boards used on surveillance systems. Those
+>> drivers report STD, since they are used also on TV;
+>>
+>> 3) There are even some devices that allows cameras to be connected to
+>> one
+>> input and TV on another input. This is another case were the driver will
+>> report a TV std;
+>
+> TV standards are ill-named, they are actually analog standards.
+> VIDIOC_[GS]_STD are perfectly valid for capture devices with analog
+> inputs,
+> even if they don't use a TV tuner.
+>
+>> 4) Most webcam formats are based on ITU-T formats designed to be
+>> compatible
+>> with TV (formats like CIF and like 640x480 - and their
+>> multiple/sub-multiples);
+>
+> Even HD formats still have roots in the analog TV world. It's a real mess.
+> Nonetheless, even if the actual frame size is compatible with TV, there is
+> simply no concept of PAL/NTSC for webcams.
+>
+>> 5) There are formats that weren't originated from TV on some digital
+>> webcams, so, for those formats, it makes no sense to report an existing
+>> std.
+>>
+>> Once people proposed to create an special format for those cases
+>> (V4L2_STD_DIGITAL or something like that), but, after lots of
+>> discussions,
+>> no changes were done at API nor at the drivers.
+>
+> TV standards only apply to analog video. Let's simply not use it for
+> digital
+> video. We don't expect drivers to implement VIDIOC_[GS]_JPEGCOMP with fake
+> values when they don't support JPEG compression, so we should not expect
+> them
+> to implement VIDIOC_[GS]_STD when they don't support analog TV.
+
+Exactly. Work is underway to add an API for HDTV and similar digital video
+formats. But we should just freeze the v4l2_std_id API and only use it for
+the analog PAL/NTSC/SECAM type formats. This nicely corresponds with the
+underlying standards as those have been frozen as well.
+
+Regards,
+
+        Hans
+
+>
+>> While we don't have an agreement on this, I don't think we should apply
+>> a
+>> patch like this.
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+> --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
