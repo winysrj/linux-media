@@ -1,95 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from queueout04-winn.ispmail.ntl.com ([81.103.221.58]:31223 "EHLO
-	queueout04-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751050AbZHaDu4 (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:42489 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753068AbZHaNDm convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Aug 2009 23:50:56 -0400
-Received: from aamtaout04-winn.ispmail.ntl.com ([81.103.221.35])
-          by mtaout01-winn.ispmail.ntl.com
-          (InterMail vM.7.08.04.00 201-2186-134-20080326) with ESMTP
-          id <20090831034400.VBFC6742.mtaout01-winn.ispmail.ntl.com@aamtaout04-winn.ispmail.ntl.com>
-          for <linux-media@vger.kernel.org>;
-          Mon, 31 Aug 2009 04:44:00 +0100
-Received: from cpc3-bagu5-0-0-cust11.bagu.cable.ntl.com ([62.254.12.12])
-          by aamtaout04-winn.ispmail.ntl.com
-          (InterMail vG.2.02.00.01 201-2161-120-102-20060912) with ESMTP
-          id <20090831034400.OHXE22934.aamtaout04-winn.ispmail.ntl.com@cpc3-bagu5-0-0-cust11.bagu.cable.ntl.com>
-          for <linux-media@vger.kernel.org>;
-          Mon, 31 Aug 2009 04:44:00 +0100
-Date: Mon, 31 Aug 2009 04:43:54 +0100
-From: david may <david.may10@ntlworld.com>
-Message-ID: <91194789.20090831044354@ntlworld.com>
-To: linux-media@vger.kernel.org
-Subject: what is the current status of the DVB-T2 supply chain for the UK ?
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+	Mon, 31 Aug 2009 09:03:42 -0400
+Date: Mon, 31 Aug 2009 10:03:32 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: =?ISO-8859-1?B?TultZXRoIE3hcnRvbg==?= <nm127@freemail.hu>,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	Thomas Kaiser <thomas@kaiser-linux.li>,
+	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [RESEND][PATCH 1/2] v4l2: modify the webcam video standard
+ handling
+Message-ID: <20090831100332.2176c7c4@pedra.chehab.org>
+In-Reply-To: <200908310858.24763.laurent.pinchart@ideasonboard.com>
+References: <4A52E897.8000607@freemail.hu>
+	<4A910C42.5000001@freemail.hu>
+	<20090830234114.16b90c36@pedra.chehab.org>
+	<200908310858.24763.laurent.pinchart@ideasonboard.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello everyone.
+Em Mon, 31 Aug 2009 08:58:24 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-its been a while since i had need to post anything but iv got a very
-serious problem as to the status of the current status of the DVB-T2 supply chain for the UK ?
+> Hi Mauro,
+> 
+> On Monday 31 August 2009 04:41:14 Mauro Carvalho Chehab wrote:
+> > Hi Németh,
+> >
+> > Em Sun, 23 Aug 2009 11:30:42 +0200
+> >
+> > Németh Márton <nm127@freemail.hu> escreveu:
+> > > From: Márton Németh <nm127@freemail.hu>
+> > >
+> > > Change the handling of the case when vdev->tvnorms == 0.
+> >
+> > This patch (together with a few others related to tvnorms and camera
+> > drivers) reopens an old discussion: should webcams report a tvnorm?
+> >
+> > There's no easy answer for it since:
+> >
+> > 1) removing support for VIDIOC_G_STD/VIDIOC_S_STD causes regressions, since
+> > some userspace apps stops working;
+> 
+> Then those applications don't work with the uvcvideo driver in the first 
+> place. This is getting less and less common :-)
 
-there doesn't seem to be any, and if anyone knows what's happening, then
-its the linux DVB-T guys  ;)
+Good to know. Yet, removing VIDIOC_[GS]_STD will break a behavior used on
+webcams for a long time. One thing is to accept new webcam drivers without it.
+This can be done (and were already done, when we accepted uvc). A separate
+issue is to change the behavior of the userspace API on existing drivers.
 
-December 2nd 2009, see below, is not very far away now, and  considering that the UK
-Freeview HD will be transmitted using DVB-T2 it seems we in the UK have
-a potential problem.
+> > 2) It is a common scenario to use cameras connected to some capture only
+> > devices like several bttv boards used on surveillance systems. Those
+> > drivers report STD, since they are used also on TV;
+> >
+> > 3) There are even some devices that allows cameras to be connected to one
+> > input and TV on another input. This is another case were the driver will
+> > report a TV std;
+> 
+> TV standards are ill-named, they are actually analog standards. 
+> VIDIOC_[GS]_STD are perfectly valid for capture devices with analog inputs, 
+> even if they don't use a TV tuner.
 
- there doesn't seem to be anything advertised here to buy, and no
- PCI(-E)or USB2 sticks with DVB-T2 chipsets/SOC included that i can
- find.
+It is not that simple. In general, at the bridge chip, all inputs are digital.
+The analog to digital conversion is done by a separate chip on most devices,
+and there are some boards where you have, for example, digital sensors
+connected to it.
 
- if the worlds OEMs are to be ready for that UK market and date,
- then it seems they Must be in full manufacture by now or
-already available on the shelf some were.
+> > 4) Most webcam formats are based on ITU-T formats designed to be compatible
+> > with TV (formats like CIF and like 640x480 - and their
+> > multiple/sub-multiples);
+> 
+> Even HD formats still have roots in the analog TV world. It's a real mess. 
+> Nonetheless, even if the actual frame size is compatible with TV, there is 
+> simply no concept of PAL/NTSC for webcams.
 
-has anyone here got any information regarding the potential
-availability of such USB2 DVB-T2 sticks for PC use and whats the
-status of any drivers and support code for that? if any.
+Ok, but still it is possible to use V4L2_STD_525_60 and V4L2_STD_625_50 when all
+you need is to set the number of lines and the basis of the sampling rate.
+There is also V4L2_STD_UNKNOWN standard used on some drivers.
 
- but i really do hope someone here is already working with something
- we can put in and directly use in the UK with these BBC HD AVC DVB-T2
- finally going mainstream with the winterhill NW transmitter switch
- on.
+> > 5) There are formats that weren't originated from TV on some digital
+> > webcams, so, for those formats, it makes no sense to report an existing
+> > std.
+> >
+> > Once people proposed to create an special format for those cases
+> > (V4L2_STD_DIGITAL or something like that), but, after lots of discussions,
+> > no changes were done at API nor at the drivers.
+> 
+> TV standards only apply to analog video. Let's simply not use it for digital 
+> video. We don't expect drivers to implement VIDIOC_[GS]_JPEGCOMP with fake 
+> values when they don't support JPEG compression, so we should not expect them 
+> to implement VIDIOC_[GS]_STD when they don't support analog TV.
 
-http://www.bbc.co.uk/blogs/bbcinternet/2009/06/whats_happening_with_freeview.html
-Graham Plumb, the Head of Distribution Technology, BBC Operations Group.
+If you look at the tree, several drivers that returns compressed formats
+implements those ioctls. This is even required on several cases, where you may
+have an analog TV connected on it.
 
-"17:00 UK time, Wednesday, 24 June 2009
-[The Editor: In our recent open post we had several questions about the
-roll-out of Freeview HD.
+That's said, I understand your arguments that implementing [G/S]_STD is
+senseless on almost all camera drivers, since it won't actually control
+anything. So, IMO, a good compromise is to keep the existing implementation on
+the legacy drivers [1], but think twice before implementing
+it on a new driver.
 
-This is the first post on the blog from Graham Plumb, Head of Distribution Technology,
-BBC Operations Group.]
+[1] We could eventually drop it even for the existing drivers, provided that the
+ioctl won't control anything at the device and that we properly document it in
+Documentation/feature-removal-schedule.txt, giving enough time for the remaining
+userspace apps and distros to change to the new behavior.
 
-The plan is still to launch Freeview HD on December 2nd at the Winter Hill transmitter
-serving Manchester and Liverpool.
+> > While we don't have an agreement on this, I don't think we should apply a
+> > patch like this.
 
-The plan has always been to roll Freeview HD out around the country following switchover and
-Winter Hill was selected as the first achievable transmitter.
 
-There will need to be a retrospective upgrade of regions that have already switched.
 
-The originally mentioned date of November came from the fact that Winter Hill starts to switch over in November.
-But it was quickly realised that the BBC's second Multiplex (Mux B) that is being converted for Freeview HD
-actually switches over on 2nd December at Winter Hill.
-
-The March 2010 date in the Ofcom document is simply the last backstop date by when Winter Hill
-has to be on air to comply with our licence conditions.
-
-They've built in a contingency (as already happens in switchover licences).
-
-The BBC has been working on plans to deliver early upgrades to some stations (serving high populations)
-that are late in the switchover programme and would otherwise have to wait long for Freeview HD.
-..."
-
-  
-
--- 
-Best regards,
- david                          mailto:david.may10@ ntlworld.com.invalid
-
+Cheers,
+Mauro
