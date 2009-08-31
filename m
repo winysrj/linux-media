@@ -1,55 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out003.kontent.com ([81.88.40.217]:35505 "EHLO
-	smtp-out003.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753075AbZHSTk7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Aug 2009 15:40:59 -0400
-From: Oliver Neukum <oliver@neukum.org>
-To: linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
-	Alan Stern <stern@rowland.harvard.edu>
-Subject: [patch]remove unnecessary power management primitive in stk-webcam
-Date: Wed, 19 Aug 2009 21:41:59 +0200
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Received: from mx1.redhat.com ([209.132.183.28]:19964 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751582AbZHaCSb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Aug 2009 22:18:31 -0400
+Date: Sun, 30 Aug 2009 23:18:23 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Shine Liu <shinel@foxmail.com>
+Cc: dougsland@redhat.com, dheitmueller@kernellabs.com,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] [Updated] em28xx: Add entry for GADMEI UTV330+ and
+ related IR keymap
+Message-ID: <20090830231823.0156f3bc@pedra.chehab.org>
+In-Reply-To: <1251648356.1388.33.camel@sl>
+References: <1251647815.1388.28.camel@sl>
+	<1251648356.1388.33.camel@sl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200908192141.59722.oliver@neukum.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch removes an unneeded power management primitive.
-Power management is automatically enabled as probe ends.
+Em Mon, 31 Aug 2009 00:05:56 +0800
+Shine Liu <shinel@foxmail.com> escreveu:
 
-Signed-off-by: Oliver Neukum <oliver@neukum.org>
+> On Sun, 2009-08-30 at 23:56 +0800, Shine Liu wrote:
+> > Several days ago, I posted a patch named "em28xx: Add entry for GADMEI
+> > UTV330+ and related IR codec" and this patch has been merged into
+> > http://linuxtv.org/hg/~dougsland/v4l-dvb/rev/93337af98bcb but not
+> > included in Mauro's tree yet.
+> > 
+> > The patch added a section in ir-keymap which can be used by GADMEI 3xx
+> > series cards. But it includes some KEY_[A-Z] keys known by Tvtime. I
+> > updated this patch to use the standard media key definition recommanded
+> > by Mauro.
 
-Hi,
+It were still using a few wrong key bindings. I fixed it and applied the patch.
 
-please accept this patch for the next merge window, as this
-patch changes no functionality and removes a primitive that
-won't be supported in the new generic framework.
+That's said, maybe we need a patch to tvtime and other applications that don't
+accept some keys, like channel up/down and key_power2.
 
-	Regards
-		Oliver
-
---
-
-commit eeada72856087eb90e8649692b75e5b875ba051d
-Author: Oliver Neukum <oliver@neukum.org>
-Date:   Wed Aug 19 20:31:56 2009 +0200
-
-    usb: remove unneeded power management primitive
-
-diff --git a/drivers/media/video/stk-webcam.c b/drivers/media/video/stk-webcam.c
-index b154bd9..0b996ea 100644
---- a/drivers/media/video/stk-webcam.c
-+++ b/drivers/media/video/stk-webcam.c
-@@ -1400,7 +1400,6 @@ static int stk_camera_probe(struct usb_interface *interface,
- 	}
- 
- 	stk_create_sysfs_files(&dev->vdev);
--	usb_autopm_enable(dev->interface);
- 
- 	return 0;
- 
-
+Cheers,
+Mauro
