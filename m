@@ -1,23 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx03.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.7])
+Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.5])
 	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n7R9HaS1016677
-	for <video4linux-list@redhat.com>; Thu, 27 Aug 2009 05:17:36 -0400
-Received: from mail-px0-f184.google.com (mail-px0-f184.google.com
-	[209.85.216.184])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n7R9HQpG001390
-	for <video4linux-list@redhat.com>; Thu, 27 Aug 2009 05:17:26 -0400
-Received: by pxi14 with SMTP id 14so911416pxi.19
-	for <video4linux-list@redhat.com>; Thu, 27 Aug 2009 02:17:25 -0700 (PDT)
-MIME-Version: 1.0
-Date: Thu, 27 Aug 2009 14:47:25 +0530
-Message-ID: <ecf74bb50908270217i6327d76ta1d9ed91adf9577d@mail.gmail.com>
-From: Vinay Verma <vinayverma@gmail.com>
+	id n7VECm1H016567
+	for <video4linux-list@redhat.com>; Mon, 31 Aug 2009 10:12:48 -0400
+Received: from mail05do.versatel.de (mail05do.versatel.de [89.245.129.25])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n7VECZcv007344
+	for <video4linux-list@redhat.com>; Mon, 31 Aug 2009 10:12:36 -0400
+Received: from unknown (HELO sammy)
+	(postbox.thomasf@versanet.de@[89.246.210.180])
+	(envelope-sender <postbox.thomasf@versanet.de>)
+	by mail05do.versatel.de (qmail-ldap-1.03) with SMTP
+	for <video4linux-list@redhat.com>; 31 Aug 2009 14:12:32 -0000
+Date: Mon, 31 Aug 2009 16:12:30 +0200
+From: Fiedler Thomas <postbox.thomasf@versanet.de>
 To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Subject: V4l2 Overlay/Preview
+Message-Id: <1251727950.2564.0@sammy>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+Subject: CI works not on Terratec Cinergy S2 PCI HD
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,16 +32,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
 
-Is there a sample v4l2 overlay/preview driver like there is for capture
-(VIVI).
-Or does anyone know about a minimum functionality v4l2 overlay/preview
-driver, which can be easily be modified as per our device.
+Hello all
 
-I am stuck with this overlay feature, any help is highly appreciated.
+My Terratec Cinergy S2 PCI HD works perfektly by the liplianin Driver 
+with Kernel 2.6.30.4 on Debian/Lenny and VDR.
+Except the CI Reader 
 
-Vinay
+The Message iss "dvb_ca_adapter 0: Invalid PC Card inserted 
+
+The CI Modules is a Alphacrypt and Alphacrypt Light and a Alphacrypt 
+Twin.
+The Error Message comms by all Modules.
+
+Iss this a principle Bug at the Moment?
+
+Greeting and sorry for my English 
+Thomas from Germany
+
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
