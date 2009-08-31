@@ -1,42 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bar.sig21.net ([80.81.252.164]:50305 "EHLO bar.sig21.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758714AbZHRLAq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2009 07:00:46 -0400
-Date: Tue, 18 Aug 2009 13:00:41 +0200
-From: Johannes Stezenbach <js@linuxtv.org>
-To: Michael Krufky <mkrufky@kernellabs.com>
-Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] au0828: experimental support for Syntek Teledongle
- [05e1:0400]
-Message-ID: <20090818110041.GA14710@linuxtv.org>
-References: <bc18792f0908171325s391d9e36nb0ce20f40017678@mail.gmail.com>
- <37219a840908171359m152363a2ub377abe6e27ff237@mail.gmail.com>
+Received: from mail.gmx.net ([213.165.64.20]:41285 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753414AbZHaJV7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Aug 2009 05:21:59 -0400
+Date: Mon, 31 Aug 2009 11:22:07 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans de Goede <j.w.r.degoede@hhs.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC] Pixel format definition on the "image" bus
+In-Reply-To: <2b7b07f52f0ab6fa4d3f1cacc19bf31f.squirrel@webmail.xs4all.nl>
+Message-ID: <Pine.LNX.4.64.0908311113520.4189@axis700.grange>
+References: <Pine.LNX.4.64.0908261452460.7670@axis700.grange>   
+ <200908270851.27073.hverkuil@xs4all.nl>    <Pine.LNX.4.64.0908270857230.4808@axis700.grange>
+    <6d6c955a28219f061dd31af4e0473415.squirrel@webmail.xs4all.nl>   
+ <Pine.LNX.4.64.0908271017280.4808@axis700.grange>
+ <2b7b07f52f0ab6fa4d3f1cacc19bf31f.squirrel@webmail.xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <37219a840908171359m152363a2ub377abe6e27ff237@mail.gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 17, 2009 at 04:59:42PM -0400, Michael Krufky wrote:
-> 
-> variations, nobody has ever verified that the GPIO programming is safe
-> to use, and there is no way to prevent the potentially harmful code
-> from running on the wrong device.
-> 
-> I, personally, do not want the responsibility of explaining to users
-> that their usb sticks may be damaged because of code that got merged
+On Thu, 27 Aug 2009, Hans Verkuil wrote:
 
-I would be interested to know if someone _actually_ managed
-to break their hardware by using buggy drivers.  IANAL but
-I think that consumer electronics hardware which can be damaged by
-software is broken by design.  A vendor selling such hardware is
-stupid because people would return the broken hardware and get
-a replacement.  I don't see how a vendor could proof that the device
-was not damaged by an obscure bug in the Windows driver to get
-around their responsibility to replace broken hardware within
-the warranty period.
+> It's my opinion that we have to be careful in trying to be too
+> intelligent. There is simply too much variation in hardware out there to
+> ever hope to be able to do that.
 
+An opinion has been expressed, that my proposed API was too complex, that, 
+for example, the .packing parameter was not needed. Just to give an 
+argument, why it is indeed needed, OMAP 3 can pack raw 10, 12, (and 14?) 
+bit data in two ways in RAM, so, a sensor would use the .packing parameter 
+to specify how its data has to be arranged in RAM to produce a specific 
+fourcc code.
 
-Johannes
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
