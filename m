@@ -1,90 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:37259 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755634AbZHQAd6 (ORCPT
+Received: from queueout04-winn.ispmail.ntl.com ([81.103.221.58]:31223 "EHLO
+	queueout04-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751050AbZHaDu4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Aug 2009 20:33:58 -0400
-Date: Sun, 16 Aug 2009 21:33:50 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Brandon Philips <brandon@ifup.org>
-Cc: linux-media@vger.kernel.org, jayakumar.lkml@gmail.com, mag@mag.cx,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] quickcam_messenger.c: add support for all quickcam
- Messengers of the same family
-Message-ID: <20090816213350.2cee217b@caramujo.chehab.org>
-In-Reply-To: <20090808012135.GA11251@jenkins.home.ifup.org>
-References: <20081202223854.GA5770@jenkins.ifup.org>
-	<20090808012135.GA11251@jenkins.home.ifup.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Sun, 30 Aug 2009 23:50:56 -0400
+Received: from aamtaout04-winn.ispmail.ntl.com ([81.103.221.35])
+          by mtaout01-winn.ispmail.ntl.com
+          (InterMail vM.7.08.04.00 201-2186-134-20080326) with ESMTP
+          id <20090831034400.VBFC6742.mtaout01-winn.ispmail.ntl.com@aamtaout04-winn.ispmail.ntl.com>
+          for <linux-media@vger.kernel.org>;
+          Mon, 31 Aug 2009 04:44:00 +0100
+Received: from cpc3-bagu5-0-0-cust11.bagu.cable.ntl.com ([62.254.12.12])
+          by aamtaout04-winn.ispmail.ntl.com
+          (InterMail vG.2.02.00.01 201-2161-120-102-20060912) with ESMTP
+          id <20090831034400.OHXE22934.aamtaout04-winn.ispmail.ntl.com@cpc3-bagu5-0-0-cust11.bagu.cable.ntl.com>
+          for <linux-media@vger.kernel.org>;
+          Mon, 31 Aug 2009 04:44:00 +0100
+Date: Mon, 31 Aug 2009 04:43:54 +0100
+From: david may <david.may10@ntlworld.com>
+Message-ID: <91194789.20090831044354@ntlworld.com>
+To: linux-media@vger.kernel.org
+Subject: what is the current status of the DVB-T2 supply chain for the UK ?
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 7 Aug 2009 18:21:35 -0700
-Brandon Philips <brandon@ifup.org> escreveu:
+Hello everyone.
 
-> Hey Mauro-
-> 
-> I sent this patch long ago and it seemed to have gotten lost along the
-> way.
-> 
-> Jaya acked the patch so it is in my mercurial tree now:
-> 
->  http://ifup.org/hg/v4l-dvb/
->  http://ifup.org/hg/v4l-dvb/rev/335a6ccbacb3
-> 
-> Please pull the patch when you get a chance.
+its been a while since i had need to post anything but iv got a very
+serious problem as to the status of the current status of the DVB-T2 supply chain for the UK ?
 
-> Index: linux-2.6/drivers/media/video/usbvideo/quickcam_messenger.c
+there doesn't seem to be any, and if anyone knows what's happening, then
+its the linux DVB-T guys  ;)
 
->  static struct usb_device_id qcm_table [] = {
-> -	{ USB_DEVICE(USB_LOGITECH_VENDOR_ID, USB_QCM_PRODUCT_ID) },
-> +	{ USB_DEVICE(0x046D, 0x08F0) },         /* QuickCam Messenger */
-> +	{ USB_DEVICE(0x046D, 0x08F5) },         /* QuickCam Communicate */
-> +	{ USB_DEVICE(0x046D, 0x08F6) },         /* QuickCam Messenger (new) */
-> +	{ USB_DEVICE(0x046D, 0x08DA) },         /* QuickCam Messenger (new) */
+December 2nd 2009, see below, is not very far away now, and  considering that the UK
+Freeview HD will be transmitted using DVB-T2 it seems we in the UK have
+a potential problem.
 
-Hmm... this module is obsolete, as I explained at:
-	http://lkml.org/lkml/2009/6/23/56
+ there doesn't seem to be anything advertised here to buy, and no
+ PCI(-E)or USB2 sticks with DVB-T2 chipsets/SOC included that i can
+ find.
 
-There's also a patch proposing its removal for 2.6.32:
-	http://patchwork.kernel.org/patch/33734/
+ if the worlds OEMs are to be ready for that UK market and date,
+ then it seems they Must be in full manufacture by now or
+already available on the shelf some were.
 
-(somehow, it seems that this were incorrectly unqueued. I'll add it on my next
-upstream series of patches)
+has anyone here got any information regarding the potential
+availability of such USB2 DVB-T2 sticks for PC use and whats the
+status of any drivers and support code for that? if any.
 
-As support for QuickCam were already added at gspca and this module is V4L1, it
-will be soon deprecated/removed from kernel. So, it would be good to test if
-all those variants are supported by stv06xx.c. From its table, we have:
+ but i really do hope someone here is already working with something
+ we can put in and directly use in the UK with these BBC HD AVC DVB-T2
+ finally going mainstream with the winterhill NW transmitter switch
+ on.
 
-static const __devinitdata struct usb_device_id device_table[] = {
-        /* QuickCam Express */
-        {USB_DEVICE(0x046d, 0x0840), .driver_info = BRIDGE_STV600 },
-        /* LEGO cam / QuickCam Web */
-        {USB_DEVICE(0x046d, 0x0850), .driver_info = BRIDGE_STV610 },
-        /* Dexxa WebCam USB */
-        {USB_DEVICE(0x046d, 0x0870), .driver_info = BRIDGE_STV602 },
-        /* QuickCam Messenger */
-        {USB_DEVICE(0x046D, 0x08F0), .driver_info = BRIDGE_ST6422 },
-        /* QuickCam Communicate */
-        {USB_DEVICE(0x046D, 0x08F5), .driver_info = BRIDGE_ST6422 },
-        /* QuickCam Messenger (new) */
-        {USB_DEVICE(0x046D, 0x08F6), .driver_info = BRIDGE_ST6422 },
-        /* QuickCam Messenger (new) */
-        {USB_DEVICE(0x046D, 0x08DA), .driver_info = BRIDGE_ST6422 },
-        {}
+http://www.bbc.co.uk/blogs/bbcinternet/2009/06/whats_happening_with_freeview.html
+Graham Plumb, the Head of Distribution Technology, BBC Operations Group.
 
-So, I suspect that everything is there already.
+"17:00 UK time, Wednesday, 24 June 2009
+[The Editor: In our recent open post we had several questions about the
+roll-out of Freeview HD.
 
-Jaya,
+This is the first post on the blog from Graham Plumb, Head of Distribution Technology,
+BBC Operations Group.]
 
-Could you please check if stv06xx.c is properly working with those devices?
-Feel free to submit patches improving it, if needed.
+The plan is still to launch Freeview HD on December 2nd at the Winter Hill transmitter
+serving Manchester and Liverpool.
 
---
+The plan has always been to roll Freeview HD out around the country following switchover and
+Winter Hill was selected as the first achievable transmitter.
 
+There will need to be a retrospective upgrade of regions that have already switched.
 
+The originally mentioned date of November came from the fact that Winter Hill starts to switch over in November.
+But it was quickly realised that the BBC's second Multiplex (Mux B) that is being converted for Freeview HD
+actually switches over on 2nd December at Winter Hill.
 
-Cheers,
-Mauro
+The March 2010 date in the Ofcom document is simply the last backstop date by when Winter Hill
+has to be on air to comply with our licence conditions.
+
+They've built in a contingency (as already happens in switchover licences).
+
+The BBC has been working on plans to deliver early upgrades to some stations (serving high populations)
+that are late in the switchover programme and would otherwise have to wait long for Freeview HD.
+..."
+
+  
+
+-- 
+Best regards,
+ david                          mailto:david.may10@ ntlworld.com.invalid
+
