@@ -1,82 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.navvo.net ([74.208.67.6]:35262 "EHLO mail.navvo.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751075AbZH1Xui (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Aug 2009 19:50:38 -0400
-From: santiago.nunez@ridgerun.com
-To: m-karicheri2@ti.com
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	linux-media@vger.kernel.org, todd.fischer@ridgerun.com,
-	diego.dompe@ridgerun.com, clark.becker@ridgerun.com,
-	nsnehaprabha@ti.com,
-	Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-Date: Fri, 28 Aug 2009 17:26:56 -0600
-Message-Id: <1251502016-14808-1-git-send-email-santiago.nunez@ridgerun.com>
-Subject: [PATCH 1/6] Updated Support for TVP7002 in v4l2 definitions
+Received: from mail01d.mail.t-online.hu ([84.2.42.6]:51789 "EHLO
+	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751102AbZHaUgm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Aug 2009 16:36:42 -0400
+Message-ID: <4A9C3458.8050304@freemail.hu>
+Date: Mon, 31 Aug 2009 22:36:40 +0200
+From: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] libv4l: add NULL pointer check
+References: <4A9A3EB0.8060304@freemail.hu> <200908310852.38847.laurent.pinchart@ideasonboard.com> <20090831101932.526dfdbc@pedra.chehab.org> <200908312216.14184.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <200908312216.14184.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+Laurent Pinchart wrote:
+> On Monday 31 August 2009 15:19:32 Mauro Carvalho Chehab wrote:
+>> Em Mon, 31 Aug 2009 08:52:38 +0200
+>>
+>> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+>>>>  - dereferencing a NULL pointer is not always result segfault, see [1]
+>>>> and [2]. So dereferencing a NULL pointer can be treated also as a
+>>>> security risk.
+>> From kernelspace drivers POV, any calls sending a NULL pointer should
+>> result in an error as soon as possible, to avoid any security risks.
+>> Currently, this check is left to the driver, but we should consider
+>> implementing such control globally, at video_ioctl2 and at compat32 layer.
+>>
+>> IMHO, libv4l should mimic the driver behavior of returning an error instead
+>> of letting the application to segfault, since, on some critical
+>> applications, like video-surveillance security systems, a segfault could be
+>> very bad.
+> 
+> And uncaught errors would be even better. A segfault will be noticed right 
+> away, while an unhandled error code might slip through to the released 
+> software. If a security-sensitive application passes a NULL pointer where it 
+> shouldn't I'd rather see the development machine burst into flames instead of 
+> silently ignoring the problem.
 
-This patch provides required std and control definitions in TVP7002
-within v4l2. Removed HD definitions.
+I have an example. Let's imagine the following code:
 
-Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
----
- include/linux/videodev2.h       |   25 +++++++++++++++++++++++++
- include/media/v4l2-chip-ident.h |    3 +++
- 2 files changed, 28 insertions(+), 0 deletions(-)
+    struct v4l2_capability* cap;
 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 74f1687..685bc7e 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1147,6 +1147,31 @@ enum  v4l2_exposure_auto_type {
- 
- #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
- 
-+
-+/* tvp7002 control IDs*/
-+#define V4L2_CID_TVP7002_BASE			V4L2_CTRL_CLASS_DECODER
-+#define V4L2_CID_TVP7002_COARSE_GAIN_R		(V4L2_CID_TVP7002_BASE + 1)
-+#define V4L2_CID_TVP7002_COARSE_GAIN_G		(V4L2_CID_TVP7002_BASE + 2)
-+#define V4L2_CID_TVP7002_COARSE_GAIN_B		(V4L2_CID_TVP7002_BASE + 3)
-+#define V4L2_CID_TVP7002_FINE_GAIN_R		(V4L2_CID_TVP7002_BASE + 4)
-+#define V4L2_CID_TVP7002_FINE_GAIN_G		(V4L2_CID_TVP7002_BASE + 5)
-+#define V4L2_CID_TVP7002_FINE_GAIN_B		(V4L2_CID_TVP7002_BASE + 6)
-+#define V4L2_CID_TVP7002_B_CLAMP		(V4L2_CID_TVP7002_BASE + 7)
-+#define V4L2_CID_TVP7002_G_CLAMP		(V4L2_CID_TVP7002_BASE + 8)
-+#define V4L2_CID_TVP7002_R_CLAMP		(V4L2_CID_TVP7002_BASE + 9)
-+#define V4L2_CID_TVP7002_CLAMP_OFF_EN		(V4L2_CID_TVP7002_BASE + 10)
-+#define V4L2_CID_TVP7002_FCTCA			(V4L2_CID_PRIVATE_BASE + 11)
-+#define V4L2_CID_TVP7002_F_CLAMP_GB		(V4L2_CID_TVP7002_BASE + 12)
-+#define V4L2_CID_TVP7002_F_CLAMP_R		(V4L2_CID_TVP7002_BASE + 13)
-+#define V4L2_CID_TVP7002_CLAMP_START		(V4L2_CID_TVP7002_BASE + 14)
-+#define V4L2_CID_TVP7002_CLAMP_W		(V4L2_CID_TVP7002_BASE + 15)
-+#define V4L2_CID_TVP7002_B_COARSE_OFF		(V4L2_CID_TVP7002_BASE + 16)
-+#define V4L2_CID_TVP7002_G_COARSE_OFF		(V4L2_CID_TVP7002_BASE + 17)
-+#define V4L2_CID_TVP7002_R_COARSE_OFF		(V4L2_CID_TVP7002_BASE + 18)
-+#define V4L2_CID_TVP7002_B_FINE_OFF		(V4L2_CID_TVP7002_BASE + 19)
-+#define V4L2_CID_TVP7002_G_FINE_OFF		(V4L2_CID_TVP7002_BASE + 20)
-+#define V4L2_CID_TVP7002_R_FINE_OFF		(V4L2_CID_TVP7002_BASE + 21)
-+
- /*
-  *	T U N I N G
-  */
-diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
-index 56b31cb..14c83b5 100644
---- a/include/media/v4l2-chip-ident.h
-+++ b/include/media/v4l2-chip-ident.h
-@@ -129,6 +129,9 @@ enum {
- 	V4L2_IDENT_SAA6752HS = 6752,
- 	V4L2_IDENT_SAA6752HS_AC3 = 6753,
- 
-+	/* module tvp7002: just ident 7002 */
-+	V4L2_IDENT_TVP7002 = 7002,
-+
- 	/* module adv7170: just ident 7170 */
- 	V4L2_IDENT_ADV7170 = 7170,
- 
--- 
-1.6.0.4
+    cap = malloc(sizeof(*cap));
+    ret = ioctl(f, VIDIOC_QUERYCAP, cap);
+    if (ret == -1) {
+        /* error handling */
+    }
+
+Does this code contain implementation problem? Yes, the value of cap should
+be checked whether it is NULL or not.
+
+Will this code cause problem? Most of the time not, only in case of low
+memory condition, thus this implementation problem will usually not detected
+if the ioctl() caused segfault on NULL pointers.
+
+One more thing I would like to mention on this topic. This is coming from
+the C language which does not contain structured exception handling as for
+example Java has with its exception handling capability. The usual way to
+signal errors is through the return value. This is what a C programmer learns
+and this is what she or he expects. The signals as segfault is out of the
+scope of the C language.
+
+Regards,
+
+	Márton Németh
+
+
+
+
+
 
