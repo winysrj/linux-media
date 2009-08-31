@@ -1,97 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:33916 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750985AbZH0IZd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Aug 2009 04:25:33 -0400
-Date: Thu, 27 Aug 2009 10:25:34 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <j.w.r.degoede@hhs.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC] Pixel format definition on the "image" bus
-In-Reply-To: <6d6c955a28219f061dd31af4e0473415.squirrel@webmail.xs4all.nl>
-Message-ID: <Pine.LNX.4.64.0908271017280.4808@axis700.grange>
-References: <Pine.LNX.4.64.0908261452460.7670@axis700.grange>   
- <200908270851.27073.hverkuil@xs4all.nl>    <Pine.LNX.4.64.0908270857230.4808@axis700.grange>
- <6d6c955a28219f061dd31af4e0473415.squirrel@webmail.xs4all.nl>
+Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:1869 "EHLO
+	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752646AbZHaGXe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Aug 2009 02:23:34 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: RFC: bus configuration setup for sub-devices
+Date: Mon, 31 Aug 2009 08:23:29 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>,
+	Laurent Pinchart <laurent.pinchart@skynet.be>
+References: <200908291631.13696.hverkuil@xs4all.nl> <Pine.LNX.4.64.0908300109490.16132@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0908300109490.16132@axis700.grange>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200908310823.29158.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 27 Aug 2009, Hans Verkuil wrote:
+On Monday 31 August 2009 00:19:38 Guennadi Liakhovetski wrote:
+> On Sat, 29 Aug 2009, Hans Verkuil wrote:
+> 
+> > Hi all,
+> > 
+> > This is an updated RFC on how to setup the bus for sub-devices.
+> > 
+> > It is based on work from Guennadi and Muralidharan.
+> > 
+> > The problem is that both sub-devices and bridge devices have to configure
+> > their bus correctly so that they can talk to one another. We need a
+> > standard way of configuring such busses.
+> > 
+> > The soc-camera driver did this by auto-negotiation. For several reasons (see
+> > the threads on bus parameters in the past) I thought that that was not a good
+> > idea. After talking this over last week with Guennadi we agreed that we would
+> > configure busses directly rather than negotiate the bus configuration. It was
+> > a very pleasant meeting (Hans de Goede, Laurent Pinchart, Guennadi Liakhovetski
+> > and myself) and something that we should repeat. Face-to-face meetings make
+> > it so much faster to come to a decision on difficult problems.
+> > 
+> > My last proposal merged subdev and bridge parameters into one struct, thus
+> > completely describing the bus setup. I realized that there is a problem with
+> > that if you have to define the bus for sub-devices that are in the middle of
+> > a chain: e.g. a sensor sends its video to a image processing subdev and from
+> > there it goes to the bridge. You have to be able to specify both the source and
+> > sink part of each bus for that image processing subdev.
+> > 
+> > It's much easier to do that by keeping the source and sink bus config
+> > separate.
+> > 
+> > Here is my new proposal:
+> > 
+> > /*
+> >  * Some sub-devices are connected to the host/bridge device through a bus that
+> >  * carries the clock, vsync, hsync and data. Some interfaces such as BT.656
+> >  * carries the sync embedded in the data whereas others have separate lines
+> >  * carrying the sync signals.
+> >  */
+> > struct v4l2_bus_config {
+> >         /* embedded sync, set this when sync is embedded in the data stream */
+> >         unsigned embedded_sync:1;
+> >         /* master or slave */
+> >         unsigned is_master:1;
+> 
+> Up to now I usually saw the master-slave relationship defined as per 
+> whether the protocol is "master" or "slave," which always was used from 
+> the PoV of the bridge. I.e., even in a camera datasheet a phrase like 
+> "supports master-parallel mode" means supports a mode in which the bridge 
+> is a master and the camera is a slave. So, maybe it is better instead of a 
+> .is_master flag to use a .master_mode flag?
 
-> > Unfortunately, even the current soc-camera approach with its
-> > format-enumeration and -conversion API is not enough. As I explained
-> > above, there are two ways you can handle source's data: "cooked" and
-> > "raw." The "cooked" way is simple - the sink knows exactly this specific
-> > format and knows how to deal with it. Every sink has a final number of
-> > such natively supported formats, so, that's just a switch-case statement
-> > in each sink driver, that is specific to each sink hardware, and that you
-> > cannot avoid.
-> >
-> > It's the "raw" or "pass-through" mode that is difficult. It is used, when
-> > the sink does not have any specific knowledge about this format, but can
-> > pack data into RAM in some way, or, hopefully, in a number of ways, among
-> > which we can choose. The source "knows" what data it is delivering, and,
-> > in principle, how this data has to be packed in RAM to provide some
-> > meaningful user format. Now, we have to pass this information on to the
-> > sink driver to tell it "if you configure the source to deliver the raw
-> > format X, and then configure your bus in a way Y and pack the data into
-> > RAM in a way Z, you get as RAM user format W." So, my proposal is - during
-> > probing, the sink enumerates all raw formats, provided by the source,
-> > accepts those formats, that it can process natively ("cooked" mode), and
-> > verifies if it can be configured to bus configuration Y and can perform
-> > packing Z, if so, it adds format W to the list of supported formats. Do
-> > you see an easier way to do this? I'm currently trying to port one driver
-> > combination to this scheme, I'll post a patch, hopefully, later today.
-> 
-> I'm not so keen on attempting to negotiate things that probably are
-> impossible to negotiate anyway. (You may have noticed that before :-) )
+Sounds reasonable. I'll check a few datasheets myself to see what terminology
+they use.
 
-I bought your argument about subtle image corruption that might be 
-difficult to debug back to a wrongly chosen signal polarity and / or 
-sensing edge. Now, what's your argument for this one apart from being "not 
-so keen?" Being not keen doesn't seem a sufficient argument to me for 
-turning platform data into trash-bins.
+> Besides, aren't there any other bus synchronisation models apart from
+> 
+> data + master clock + pixel clock + hsync + vsync
+> and
+> data + master clock + pixel clock + embedded sync
+> 
+> ? For example, we should be able to specify, that field is not connected?
 
-Example: currently a combination SuperH CEU platform with a OV772x camera 
-sensor connected can provide 11 output formats. There are at least two 
-such boards currently in the mainline with the same bus configuration. Do 
-you want to exactly reproduce these 11 entries in these two boards? What 
-about other boards?
+Ah yes, the field ID pin. Very good point, that pin should be added. I've
+never seen other pins used, though. We'll tackle that as we encounter them.
 
-> One approach would be to make this mapping part of the platform data that
-> is passed to the bridge driver.
 > 
-> For a 'normal' PCI or USB driver information like this would be contained
-> in the bridge driver. Here you have a generic bridge driver intended to
-> work with different SoCs, so now that information has to move to the
-> platform data. That's the only place where you know exactly how to setup
-> these things.
+> > 
+> >         /* bus width */
+> >         unsigned width:8;
+> >         /* 0 - active low, 1 - active high */
+> >         unsigned pol_vsync:1;
+> >         /* 0 - active low, 1 - active high */
+> >         unsigned pol_hsync:1;
+> >         /* 0 - low to high, 1 - high to low */
+> >         unsigned pol_field:1;
+> >         /* 0 - sample at falling edge, 1 - sample at rising edge */
+> >         unsigned edge_pclock:1;
+> >         /* 0 - active low, 1 - active high */
+> >         unsigned pol_data:1;
+> > };
+> > 
+> > It's all bitfields, so it is a very compact representation.
+> > 
+> > In video_ops we add two new functions:
+> > 
+> >      int (*s_source_bus_config)(struct v4l2_subdev *sd, const struct v4l2_bus_config *bus);
+> >      int (*s_sink_bus_config)(struct v4l2_subdev *sd, const struct v4l2_bus_config *bus);
+> > 
+> > Actually, if there are no subdevs that can act as sinks then we should omit
+> > s_sink_bus_config for now.
+> > 
+> > In addition, I think we need to require that at the start of the s_*_bus_config
+> > implementation in the host or subdev there should be a standard comment
+> > block describing the possible combinations supported by the hardware:
+> > 
+> > /* This hardware supports the following bus settings:
+> > 
+> >    widths: 8/16
+> >    syncs: embedded or separate
+> >    bus master: slave
+> >    vsync polarity: 0/1
+> >    hsync polarity: 0/1
+> >    field polarity: not applicable
+> >    sampling edge pixelclock: 0/1
+> >    data polarity: 1
+> >  */
+> > 
+> > This should make it easy for implementers to pick a valid set of bus
+> > parameters.
+> > 
+> > Eagle-eyed observers will note that the bus type field has disappeared from
+> > this proposal. The problem with that is that I have no clue what it is supposed
+> > to do. Is there more than one bus that can be set up? In that case it is not a
+> > bus type but a bus ID. Or does it determine that type of data that is being
+> > transported over the bus? In that case it does not belong here, since that is
+> > something for a s_fmt type API.
+> > 
+> > This particular API should just setup the physical bus. Nothing more, IMHO.
+> > 
+> > Please let me know if I am missing something here.
+> > 
+> > Guennadi, from our meeting I understood that you also want a way provide
+> > an offset in case the data is actually only on some pins (e.g. the lower
+> > or upper X pins are always 0). I don't think it is hard to provide support
+> > for that in this API by adding an offset field or something like that.
+> > 
+> > Can you give me a pointer to the actual place where that is needed? Possibly
+> > also with references to datasheets? I'd like to understand this better.
 > 
-> So you would end up with a list of config items:
+> I'll just describe to you the cases, where we need this:
 > 
-> <user fourcc>, <bridge fourcc>, <sensor fourcc>, <bus config>
+> 1. PXA270 SoC Quick Capture Interface has 10 data lines (D9...D0) and can 
+> sample in raw (parallel) mode 8, 9, or 10 bits of data. However, when 
+> configured to capture fewer than 10 bits of data it sample not the most 
+> significant lines (D9...D1 or D9...D2), but the least significant ones.
 > 
-> And the platform data of each sensor device would have such a list.
+> 2. i.MX31 SoC Camera Sensor Interface has 15 data lines (D14...D0) and can 
+> sample in raw (parallel) mode 8, 10, or 15 lines of data. Thereby it 
+> sample the most significant lines.
 > 
-> So the bridge driver knows that VIDIOC_ENUMFMT can give <user fourcc> back
-> to the user, and if the user selects that, then it has to setup the bridge
-> using <bridge fourcc> and the sensor using <sensor fourcc>, and the bus as
-> <bus config>.
+> 3. MT9M001 and MT9V022 sensors have 10 lines of data and always deliver 10 
+> bits of data. When directly connected D0-D0...D9-D9 to the PXA270 you can 
+> only sample 10 bits and not 8 bits. When similarly connected to i.MX31 
+> D0-D6...D9-D15 you can seamlessly configure the SoC to either capture 8 or 
+> 10 bits of data - both will work.
 > 
-> This is just a high level view as I don't have time to go into this in
-> detail, but I think this is a reasonable approach. It's really no
-> different to what the PCI and USB drivers are doing, except formalized for
-> the generic case.
+> 4. Creative hardware engineers have supplied both these cameras with an 
+> i2c switch, that can switch the 8 most significant data lines of the 
+> sensor to the least significant lines of the interface to work with 
+> PXA270.
+> 
+> 5. The current soc-camera solution for this situation seems pretty clean: 
+> we provide an optional callback into platform code to query bus 
+> parameters. On boards, using such a camera with an i2c switch this 
+> function returns to the sensor "you can support 8 and 10 bit modes." On 
+> PXA270 boards, using such a camera without a switch this function is 
+> either not implemented at all, or it returns the default "you can only 
+> provide 10 bits." Then there is another callback to actually switch 
+> between low and high lines by operating the I2C switch. And a third 
+> callback to release i2c switch resources. On i.MX31 you would implement 
+> the query callback as "yes, you can support 8 and 10 bits," and the switch 
+> callback as a dummy (or not implement at all) because you don't have to 
+> switch anything on i.MX31.
 
-Please, give me a valid reason, why this cannot be auto-enumerated.
+I understand why you would need this information when you are negotiating
+the bus config, but in the new situation you would just set up the bus to
+fixed values. Do you still need this information outside of the current
+auto-negotiation code?
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
