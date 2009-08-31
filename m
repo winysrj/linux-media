@@ -1,56 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57794 "EHLO mail.kapsi.fi"
+Received: from comal.ext.ti.com ([198.47.26.152]:39541 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753923AbZHYBFh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Aug 2009 21:05:37 -0400
-Message-ID: <4A9338E2.2070701@iki.fi>
-Date: Tue, 25 Aug 2009 04:05:38 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S1754282AbZHaU1N convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Aug 2009 16:27:13 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n7VKRAvQ022903
+	for <linux-media@vger.kernel.org>; Mon, 31 Aug 2009 15:27:15 -0500
+Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id n7VKR9mo005813
+	for <linux-media@vger.kernel.org>; Mon, 31 Aug 2009 15:27:09 -0500 (CDT)
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep20.itg.ti.com (8.12.11/8.12.11) with ESMTP id n7VKR9hm008748
+	for <linux-media@vger.kernel.org>; Mon, 31 Aug 2009 15:27:09 -0500 (CDT)
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Mon, 31 Aug 2009 15:27:08 -0500
+Subject: RE: Behavior of ENUM_STD/G_STD ioctl
+Message-ID: <A69FA2915331DC488A831521EAE36FE40154EDC7B0@dlee06.ent.ti.com>
+References: <19F8576C6E063C45BE387C64729E73940436A4A9FF@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940436A4A9FF@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: linux-dvb@linuxtv.org, Benjamin Larsson <banan@ludd.ltu.se>
-Subject: Re: [linux-dvb] Anysee E30 Combo Plus startup mode
-References: <7606f7c10908210621r77acf304g1c921396a566399a@mail.gmail.com>
-In-Reply-To: <7606f7c10908210621r77acf304g1c921396a566399a@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/21/2009 04:21 PM, Alexander Saers wrote:
-> Hello
+Vaibhav,
+
+A minor correction....
+
+
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+new phone: 301-407-9583
+Old Phone : 301-515-3736 (will be deprecated)
+email: m-karicheri2@ti.com
+
+>-----Original Message-----
+>From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>owner@vger.kernel.org] On Behalf Of Hiremath, Vaibhav
+>Sent: Monday, August 31, 2009 2:26 PM
+>To: linux-media@vger.kernel.org
+>Subject: Behavior of ENUM_STD/G_STD ioctl
 >
-> I have a Anysee E30 Combo Plus USB device. It's capable of both DVB-C and
-> DVB-T. I currently use the device with ubuntu 9.04 64bit with mythtv. I have
-> problem with selction of mode for the device
+>Hi,
 >
-> The following way i can get DVB-T
-> 1. Power up computer with E30 Combo Plus connected.
-> 2. run dmesg
-
+>I am working on OMAP3517 which has CCDC module which is almost similar to
+>Davinci (DM6446). I have ported davinci capture driver (Submitted by
+>Murali) to OMAP3517, and I am almost done with it, except some hardware
+>related issues (which requires some follow-ups with HW team).
 >
-> Anyone experienced this problem? It would be nice to run DVB-C without
-> having to disconnect and connect hardware.
+>During this I came across one observation, in vpfe_camera.c file which is
 
-You are not alone.
-Looks like it is GPIO related problem. I don't have currently that device...
-It is a little bit hard to fix without knowing exactly how GPIO pins are 
-connected in each device. There is too many different hardware revisions 
-with different GPIOs, fix one break the other.
 
- From the anysee.c code you can find following entry:
+should be read as vpfe_capture.c
 
-	/* Try to attach demodulator in following order:
-	      model      demod     hw  firmware
-	   1. E30        MT352     02  0.2.1
-	   2. E30        ZL10353   02  0.2.1
-	   3. E30 Combo  ZL10353   0f  0.1.2    DVB-T/C combo
-	   4. E30 Plus   ZL10353   06  0.1.0
-	   5. E30C Plus  TDA10023  0a  0.1.0    rev 0.2
-	      E30C Plus  TDA10023  0f  0.1.2    rev 0.4
-	      E30 Combo  TDA10023  0f  0.1.2    DVB-T/C combo
-	*/
+>bridge driver assumes the default standard without looking/referring to
+>underneath sub-device (It choose index 0 in the v4l2_std array maintained
+>by bridge driver). If I understand correctly as per V4L2 Spec, the driver
+>does not need to implement enum_std/g_std callback functions, since V4L2
+>layer handles this and returns these fields respectively.
+>
+>Now the question I have here is, how enum_std/g_std, to be more specific
+>tvnorm/current_norm should be handled by driver?
+>
+>1) During probe (or open) bridge driver should get the current standard
+>which is being active from the underneath sub-device and update the fields
+>tvnorm/current_norm accordingly. After that whenever application call
+>enum_std/g_std the V4L2 layer can handle it and for s_std anyway bridge
+>driver passing it to sub device.
+>
+>2) Application must call s_std and that's where all the path will get
+>synchronized (what sub-device has with what V4L2 layer has against bridge
+>driver)
+>
+>I believe driver should follow option 1, especially in our case (TVP5146
+>video decoder) where it has a capability to lock the signal and return the
+>status of detected standard.
+>
+>Can anybody conform how this should be handled?
+>
+>Thanks,
+>Vaibhav
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Antti
--- 
-http://palosaari.fi/
