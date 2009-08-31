@@ -1,55 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f213.google.com ([209.85.217.213]:46783 "EHLO
-	mail-gx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753651AbZHKUeo (ORCPT
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4974 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751580AbZHaRXF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2009 16:34:44 -0400
-Received: by gxk9 with SMTP id 9so5468169gxk.13
-        for <linux-media@vger.kernel.org>; Tue, 11 Aug 2009 13:34:45 -0700 (PDT)
+	Mon, 31 Aug 2009 13:23:05 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Subject: Re: bus configuration setup for sub-devices
+Date: Mon, 31 Aug 2009 19:23:00 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@skynet.be>
+References: <200908291631.13696.hverkuil@xs4all.nl> <A69FA2915331DC488A831521EAE36FE40154EDC3D5@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40154EDC3D5@dlee06.ent.ti.com>
 MIME-Version: 1.0
-In-Reply-To: <4A81D38A.2050201@email.it>
-References: <4A79EC82.4050902@email.it> <4A7AE0B0.20507@email.it>
-	 <829197380908060717ua009e78nc045f2940c7fc76e@mail.gmail.com>
-	 <20090806112317.21240b9c@gmail.com> <4A7AF3CF.3060803@email.it>
-	 <829197380908060821x6cfb60f0jd73e5f9b30c21569@mail.gmail.com>
-	 <4A7B0333.1010901@email.it> <4A81D38A.2050201@email.it>
-Date: Tue, 11 Aug 2009 16:34:44 -0400
-Message-ID: <829197380908111334xf9a89b4gf2da1e4cc765b27b@mail.gmail.com>
-Subject: Re: Issues with Empire Dual Pen: request for help and suggestions!!!
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: xwang1976@email.it
-Cc: Douglas Schilling Landgraf <dougsland@gmail.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200908311923.00585.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 11, 2009 at 4:24 PM, <xwang1976@email.it> wrote:
-> Hi to all!
-> I don't know why, but today my device has changed its EEPROM hash to the
-> following value 0x396a0441
-> as you can see from the attached dmesg.
-> So it is not recognized anymore.
-> Is there something that can cause such a change?
-> I suspect it is not the first time that the eprom hash of this device
-> change.
-> Can you help me?
-> Xwang
->
-> PS Meantime I will change the hash and test if the device work again.
+On Monday 31 August 2009 16:42:28 Karicheri, Muralidharan wrote:
+> Hans,
+> >
+> >My last proposal merged subdev and bridge parameters into one struct, thus
+> >completely describing the bus setup. I realized that there is a problem
+> >with
+> >that if you have to define the bus for sub-devices that are in the middle
+> >of
+> >a chain: e.g. a sensor sends its video to a image processing subdev and
+> >from
+> >there it goes to the bridge. You have to be able to specify both the source
+> >and
+> >sink part of each bus for that image processing subdev.
+> 
+> In the above, what you mean by image processing subdev? In the case of DM6446/DM355/DM365, here is the connection
+> 
+> Image sensor/ video decoder -> ccdc -> ipipe/preview engine/resizer -> SDRAM. 
+> In this scenario, ipipe, preview engine and resizer are image processing hardware which are managed by bridge device. So we have just source sub device and bridge device. Which hardware supports the image processing sub device?
 
-Comparing the two eeprom dumps (the one from your previous email
-versus the one you just sent), it would appear that something resulted
-in the value 0xFF written to offset 0xF0.  What were you doing
-immediately prior to the failure?  I'm not sure how we could have
-gotten into this state.
+We actually do have image processing subdevs: upd64031a.c and upd64083.c.
+These are only used on TV capture cards, though. It is probably more likely
+to see fpgas between a sensor and a bridge where the fpga does the image
+processing. So yes, they do exist and I want to be at least prepared for this.
 
-Douglas, in a few minutes I am leaving town for the next five days.
-Can you help Xwang out to restore his eeprom content using your tool?
+> 
+> >
+> >Eagle-eyed observers will note that the bus type field has disappeared from
+> >this proposal. The problem with that is that I have no clue what it is
+> >supposed
+> >to do. Is there more than one bus that can be set up? In that case it is
+> >not a
+> >bus type but a bus ID. Or does it determine that type of data that is being
+> >transported over the bus? In that case it does not belong here, since that
+> >is
+> 
+> At the bridge device, for configuring CCDC, the hardware needs to know if the bus is having raw bayer data or YCbCr data. Similarly, if the bus is YCbCr, the data bus can carry Y and CbCr muxed over 8 lines or dedicated Y lines and CbCr muxed over other 8 lines. Also Y and CbCr can be swapped. How do we convey this information without bus type? May be another field is required in addition to bus type to convey swapped state.
 
-Devin
+That is part of the proposal that Guennadi is working on: setting up the
+format of the data being transferred over the bus. This bus config proposal
+deals with the bus itself, not what is being transported over the bus.
+
+One very valid question is whether these two shouldn't be combined. I don't
+know the answer to that question, though.
+
+> 
+> For raw data processing, for example, MT9T031 sensor output 10 bits and MT9P031 outputs 12 bits. DM365 IPIPE handles 12 bits and DM365 IPIPE 10 bits. So in EVM the 10 bits (upper 10 bits for MT9P031)are connected to data 11-2. so bits 0-1 are pulled low. It is required to specify this information in the bus structure. If offset is suggested for this, it could be used to specify it. So in this case offset is related to LSB? So for the above case it is 2 meaning bit2 starts with real data and bit 0 - 1 are zeros. Please confirm.
+
+That was the idea, but I see no point in specifying this. Why would the DM365
+care about that? I have yet to see a use-case where you really need this info.
+
+Regards,
+
+	Hans
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
