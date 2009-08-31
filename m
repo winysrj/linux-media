@@ -1,113 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:58373 "EHLO compulab.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754905AbZHCOCo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Aug 2009 10:02:44 -0400
-Message-ID: <4A76DF29.1050008@compulab.co.il>
-Date: Mon, 03 Aug 2009 15:59:21 +0300
-From: Mike Rapoport <mike@compulab.co.il>
+Received: from smtp.nokia.com ([192.100.122.233]:19098 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751309AbZHaL7P (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Aug 2009 07:59:15 -0400
+From: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH take 2] V4L: videobuf-core.c VIDIOC_QBUF should return video buffer flags
+Date: Mon, 31 Aug 2009 14:58:54 +0300
+Cc: sailus@maxwell.research.nokia.com,
+	ext Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	ext Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Eric Miao <eric.y.miao@gmail.com>,
-	Marek Vasut <marek.vasut@gmail.com>,
-	linux-arm-kernel@lists.arm.linux.org.uk,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
-Subject: Re: [PATCH] Add RGB555X and RGB565X formats to pxa-camera
-References: <200908031031.00676.marek.vasut@gmail.com> <4A76CB7C.10401@gmail.com> <Pine.LNX.4.64.0908031415370.5310@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0908031415370.5310@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200908311458.54406.tuukka.o.toivonen@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+When user space queues a buffer using VIDIOC_QBUF, the kernel
+should set flags in struct v4l2_buffer as specified in the V4L2
+documentation.
+---
+ drivers/media/video/videobuf-core.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
-
-Guennadi Liakhovetski wrote:
-> On Mon, 3 Aug 2009, Eric Miao wrote:
-> 
->> Marek Vasut wrote:
->>> Hi!
->>>
->>> Eric, would you mind applying ?
->>>
->>> From 4dcbff010e996f4c6e5761b3c19f5d863ab51b39 Mon Sep 17 00:00:00 2001
->>> From: Marek Vasut <marek.vasut@gmail.com>
->>> Date: Mon, 3 Aug 2009 10:27:57 +0200
->>> Subject: [PATCH] Add RGB555X and RGB565X formats to pxa-camera
->>>
->>> Those formats are requiered on widely used OmniVision OV96xx cameras.
->>> Those formats are nothing more then endian-swapped RGB555 and RGB565.
->>>
->>> Signed-off-by: Marek Vasut <marek.vasut@gmail.com>
->> Acked-by: Eric Miao <eric.y.miao@gmail.com>
->>
->> Guennadi,
->>
->> Would be better if this gets merged by you, thanks.
-> 
-> Indeed it would, and I do have a couple of questions to this and related 
-> patches:
-> 
-> 1. Marek, you're saying, you need these formats for the OV96xx camera. Yre 
-> you using the patch from Stefan Herbrechtsmeier to support ov96xx or some 
-> other?
-> 
-> 2. Mike, while reviewing this patch I came across code in 
-> pxa_camera_setup_cicr(), introduced by your earlier patch:
-> 
-> 	case V4L2_PIX_FMT_RGB555:
-> 		cicr1 |= CICR1_RGB_BPP_VAL(1) | CICR1_RGBT_CONV_VAL(2) |
-> 			CICR1_TBIT | CICR1_COLOR_SP_VAL(1);
-> 		break;
-> 
-> Why are you enabling the RGB to RGBT conversion here unconditionally? 
-> Generally, what are the advantages of configuring CICR1 for a specific RGB 
-> format compared to using just a raw capture? Do I understand it right, 
-> that ATM we are not using any of those features?
-
-As far as I remember I've tried to overlay the captured imagery using pxa
-overlay1. Most probably it's left here after those tries.
-
-> Thanks
-> Guennadi
-> 
->>> ---
->>>  drivers/media/video/pxa_camera.c |    4 ++++
->>>  1 files changed, 4 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/drivers/media/video/pxa_camera.c 
->>> b/drivers/media/video/pxa_camera.c
->>> index 46e0d8a..de0fc8a 100644
->>> --- a/drivers/media/video/pxa_camera.c
->>> +++ b/drivers/media/video/pxa_camera.c
->>> @@ -1222,6 +1222,8 @@ static int required_buswidth(const struct 
->>> soc_camera_data_format *fmt)
->>>  	case V4L2_PIX_FMT_YVYU:
->>>  	case V4L2_PIX_FMT_RGB565:
->>>  	case V4L2_PIX_FMT_RGB555:
->>> +	case V4L2_PIX_FMT_RGB565X:
->>> +	case V4L2_PIX_FMT_RGB555X:
->>>  		return 8;
->>>  	default:
->>>  		return fmt->depth;
->>> @@ -1260,6 +1262,8 @@ static int pxa_camera_get_formats(struct 
->>> soc_camera_device *icd, int idx,
->>>  	case V4L2_PIX_FMT_YVYU:
->>>  	case V4L2_PIX_FMT_RGB565:
->>>  	case V4L2_PIX_FMT_RGB555:
->>> +	case V4L2_PIX_FMT_RGB565X:
->>> +	case V4L2_PIX_FMT_RGB555X:
->>>  		formats++;
->>>  		if (xlate) {
->>>  			xlate->host_fmt = icd->formats + idx;
-> 
-> ---
-> Guennadi Liakhovetski
-> 
-
+diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
+index b7b0584..1322056 100644
+--- a/drivers/media/video/videobuf-core.c
++++ b/drivers/media/video/videobuf-core.c
+@@ -477,6 +477,7 @@ int videobuf_qbuf(struct videobuf_queue *q,
+ 	struct videobuf_buffer *buf;
+ 	enum v4l2_field field;
+ 	unsigned long flags = 0;
++	__u32 buffer_flags = b->flags;
+ 	int retval;
+ 
+ 	MAGIC_CHECK(q->int_ops->magic, MAGIC_QTYPE_OPS);
+@@ -531,6 +532,8 @@ int videobuf_qbuf(struct videobuf_queue *q,
+ 				   "but buffer addr is zero!\n");
+ 			goto done;
+ 		}
++		buffer_flags |= V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_QUEUED;
++		buffer_flags &= ~V4L2_BUF_FLAG_DONE;
+ 		break;
+ 	case V4L2_MEMORY_USERPTR:
+ 		if (b->length < buf->bsize) {
+@@ -541,6 +544,8 @@ int videobuf_qbuf(struct videobuf_queue *q,
+ 		    buf->baddr != b->m.userptr)
+ 			q->ops->buf_release(q, buf);
+ 		buf->baddr = b->m.userptr;
++		buffer_flags |= V4L2_BUF_FLAG_QUEUED;
++		buffer_flags &= ~(V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_DONE);
+ 		break;
+ 	case V4L2_MEMORY_OVERLAY:
+ 		buf->boff = b->m.offset;
+@@ -564,6 +569,8 @@ int videobuf_qbuf(struct videobuf_queue *q,
+ 		q->ops->buf_queue(q, buf);
+ 		spin_unlock_irqrestore(q->irqlock, flags);
+ 	}
++
++	b->flags = buffer_flags;
+ 	dprintk(1, "qbuf: succeded\n");
+ 	retval = 0;
+ 	wake_up_interruptible_sync(&q->wait);
 -- 
-Sincerely yours,
-Mike.
+1.5.4.3
 
