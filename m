@@ -1,117 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3597 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751355AbZHESZx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Aug 2009 14:25:53 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id n75IPmcN057713
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 5 Aug 2009 20:25:53 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 5 Aug 2009 20:25:48 +0200 (CEST)
-Message-Id: <200908051825.n75IPmcN057713@smtp-vbr13.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
+Received: from smtp3-g21.free.fr ([212.27.42.3]:42420 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754500AbZHaGhi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Aug 2009 02:37:38 -0400
+Date: Mon, 31 Aug 2009 08:37:31 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [GIT PATCHES for 2.6.31] V4L/DVB fixes
+Message-ID: <20090831083731.5c08d3ec@tele>
+In-Reply-To: <20090831023331.3dd6f6b9@pedra.chehab.org>
+References: <20090831023331.3dd6f6b9@pedra.chehab.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Mon, 31 Aug 2009 02:33:31 -0300
+Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
 
-Results of the daily build of v4l-dvb:
+> Please pull from:
+>         ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
+> for_linus
+> 
+> For the following fixes:
+> 
+>    - fixes detection of cameras with MT9M111 on em28xx;
+>    - fixes LNA and LED with Hauppauge devices on sms1xx;
+>    - fixes SDIO compilation on Siano;
+>    - zr364: fix wrong indexes;
+>    - em28xx: Don't call em28xx_ir_init when IR is disabled;
+>    - gspca - sn9c20x: Fix gscpa sn9c20x build errors;
+>    - usb_af9015: fix an Oops on hotplugging with 2.6.31-rc5-git3;
+>    - MAINTAINERS: Update gspca sn9c20x name style.
 
-date:        Wed Aug  5 19:00:06 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12389:cec212c01ed1
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Hi Mauro,
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc5-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-rc5-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-rc5-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: OK
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-rc5-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc5-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-rc5-mips: WARNINGS
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29.1-powerpc64: OK
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-rc5-powerpc64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc5-x86_64: OK
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc5): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+I'd be glad to have the other high priority changeset in the new kernel
+(gspca - sonixj: Do the ov7660 sensor work again). Is it possible?
 
-Detailed results are available here:
+Cheers.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
