@@ -1,61 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp20.orange.fr ([80.12.242.26]:37906 "EHLO smtp20.orange.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751217AbZHRQUL convert rfc822-to-8bit (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:37056 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752095AbZHaUQR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2009 12:20:11 -0400
-From: Christophe Thommeret <hftom@free.fr>
-To: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Anysee E30 C Plus + MPEG-4?
-Date: Tue, 18 Aug 2009 18:20:24 +0200
-References: <20090818170820.3d999fb9.don@tricon.hu>
-In-Reply-To: <20090818170820.3d999fb9.don@tricon.hu>
+	Mon, 31 Aug 2009 16:16:17 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] libv4l: add NULL pointer check
+Date: Mon, 31 Aug 2009 22:16:14 +0200
+Cc: =?iso-8859-1?q?N=E9meth_M=E1rton?= <nm127@freemail.hu>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+References: <4A9A3EB0.8060304@freemail.hu> <200908310852.38847.laurent.pinchart@ideasonboard.com> <20090831101932.526dfdbc@pedra.chehab.org>
+In-Reply-To: <20090831101932.526dfdbc@pedra.chehab.org>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200908181820.24506.hftom@free.fr>
+Content-Transfer-Encoding: 7bit
+Message-Id: <200908312216.14184.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le Tuesday 18 August 2009 17:08:20 Pásztor Szilárd, vous avez écrit :
-> Hi,
+On Monday 31 August 2009 15:19:32 Mauro Carvalho Chehab wrote:
+> Em Mon, 31 Aug 2009 08:52:38 +0200
 >
-> I recently got the USB DVB-C tuner mentioned in the subject.
-> Everything seems to work fine, except that the MPEG-4 HD channels have no
-> video, only sound. Regular SD channels broadcasted in MPEG-2 are flawless.
+> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+> > >  - dereferencing a NULL pointer is not always result segfault, see [1]
+> > > and [2]. So dereferencing a NULL pointer can be treated also as a
+> > > security risk.
 >
-> The tuner can receive MPEG-4 streams; decoder is not built in but Mplayer
-> would do the job if it could get the data. I have also tried in Window$ and
-> HD channels are working properly.
+> From kernelspace drivers POV, any calls sending a NULL pointer should
+> result in an error as soon as possible, to avoid any security risks.
+> Currently, this check is left to the driver, but we should consider
+> implementing such control globally, at video_ioctl2 and at compat32 layer.
 >
-> I used w_scan to scan through the channels and it found almost everything
-> that the Win scanner did (one block is missing in linux though, probably
-> due to different scanning parameters needed but the win one is dumb and
-> won't tell me any useful information).
->
-> My kernel: 2.6.30.5
->
-> Excerpt from dmesg:
-> dvb-usb: found a 'Anysee DVB USB2.0' in warm state.
-> dvb-usb: will pass the complete MPEG2 transport stream to the software
-> demuxer. DVB: registering new adapter (Anysee DVB USB2.0)
-> anysee: firmware version:0.1.2 hardware id:15
-> DVB: registering adapter 0 frontend 0 (Philips TDA10023 DVB-C)...
-> input: IR-receiver inside an USB DVB receiver as /class/input/input3
-> dvb-usb: schedule remote query interval to 200 msecs.
-> dvb-usb: Anysee DVB USB2.0 successfully initialized and connected.
->
-> Any ideas on how I could start with my investigations? I took a quick peek
-> into the driver source but no story of mpeg 2/4 differences there.
+> IMHO, libv4l should mimic the driver behavior of returning an error instead
+> of letting the application to segfault, since, on some critical
+> applications, like video-surveillance security systems, a segfault could be
+> very bad.
 
-Not a driver issue.
-Maybe mplayer doesn't autodetect h264, or maybe the h264 stream's pid is 
-missing in your channels.conf
-
+And uncaught errors would be even better. A segfault will be noticed right 
+away, while an unhandled error code might slip through to the released 
+software. If a security-sensitive application passes a NULL pointer where it 
+shouldn't I'd rather see the development machine burst into flames instead of 
+silently ignoring the problem.
 
 -- 
-Christophe Thommeret
-
-
+Laurent Pinchart
