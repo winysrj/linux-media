@@ -1,51 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.235]:49874 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933111AbZHVTKn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Aug 2009 15:10:43 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so483522rvb.1
-        for <linux-media@vger.kernel.org>; Sat, 22 Aug 2009 12:10:45 -0700 (PDT)
-Date: Sat, 22 Aug 2009 15:10:31 -0400
-From: James Blanford <jhblanford@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: Exposure set bug in stv06xx driver
-Message-ID: <20090822151031.52a0f1e6@blackbart.localnet.prv>
-Mime-Version: 1.0
+Received: from bay0-omc3-s27.bay0.hotmail.com ([65.54.246.227]:30682 "EHLO
+	bay0-omc3-s27.bay0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752463AbZHaNhV convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Aug 2009 09:37:21 -0400
+Message-ID: <COL0-DAV71608B4BDC4C3B032E628B2F20@phx.gbl>
+From: "Marco Berizzi" <pupilla@hotmail.com>
+To: <linux-media@vger.kernel.org>
+Subject: hauppauge wintv hvr 2200 and transport stream
+Date: Mon, 31 Aug 2009 15:27:58 +0200
+MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Quickcam Express 046d:0840
+Hello everybody.
+I'm evaluating a dvb-t card for linux.
+I would like to know if with the above
+card is possible to save the entire mpeg
+transport stream.
+Also I don't unstand what does mean 'dual
+tuners'. Can I watch two different dvb-t
+channel? Or only one analog and one dvb-t?
+Or 2 dvb-t plus 2 analog?
+Any experience with this device?
 
-Driver versions:  v 2.60 from 2.6.31-rc6 and v 2.70 from 
-gspca-c9f3938870ab
+PS: Is possible to see with xine/vlc/mplayer
+a dvb-t/h264 stream with this card?
 
-Problem:  Overexposure and horizontal orange lines in cam image.
-Exposure and gain controls in gqcam and v4l2ucp do not work.  By
-varying the default exposure and gain settings in stv06xx.h, the lines
-can be orange and/or blue, moving or stationary or a fine grid.
-
-Workaround:  Using the tool set_cam_exp, any exposure setting removes
-the visual artefacts and reduces the image brightness for a given 
-set of gain and exposure settings.
-
-By default:
-
-Aug 21 14:22:02 blackbart kernel: STV06xx: Writing exposure 5000,
-rowexp 0, srowexp 0
-
-Note what happens when I set the default exposure to 1000:
-
-Aug 21 20:44:23 blackbart kernel: STV06xx: Writing exposure 1000,
-rowexp 0, srowexp 139438350
-
-By the way, is there any possibility of enabling autogain?
-
-Thanks for your interest,
-
-   -  Jim
-
--- 
-There are two kinds of people.  The innocent and the living.
+TIA
