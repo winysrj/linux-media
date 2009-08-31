@@ -1,67 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f214.google.com ([209.85.219.214]:63393 "EHLO
-	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751552AbZHFSV1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2009 14:21:27 -0400
-Received: by ewy10 with SMTP id 10so995796ewy.37
-        for <linux-media@vger.kernel.org>; Thu, 06 Aug 2009 11:21:26 -0700 (PDT)
+Received: from perceval.irobotique.be ([92.243.18.41]:41929 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753422AbZHaGtI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Aug 2009 02:49:08 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: =?iso-8859-2?q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+Subject: Re: [PATCH] libv4l: add NULL pointer check
+Date: Mon, 31 Aug 2009 08:52:38 +0200
+Cc: V4L Mailing List <linux-media@vger.kernel.org>
+References: <4A9A3EB0.8060304@freemail.hu> <200908302333.20933.laurent.pinchart@ideasonboard.com> <4A9B64E0.9040003@freemail.hu>
+In-Reply-To: <4A9B64E0.9040003@freemail.hu>
 MIME-Version: 1.0
-In-Reply-To: <4A7AFF73.5010305@netscape.net>
-References: <4A7AC430.4070505@netscape.net>
-	 <37219a840908060553g452266fdq5ea3814b4ce725bc@mail.gmail.com>
-	 <4A7AD57B.8020906@netscape.net>
-	 <37219a840908060619q7e41b024nf4e73b21843942c5@mail.gmail.com>
-	 <4A7ADBC2.6090908@netscape.net>
-	 <37219a840908060746n4eadfa20v8e5249a5ad90e8c@mail.gmail.com>
-	 <4A7AFF73.5010305@netscape.net>
-Date: Thu, 6 Aug 2009 14:21:24 -0400
-Message-ID: <37219a840908061121s141a40e9j3f990a41da2cd52b@mail.gmail.com>
-Subject: Re: Hauppauge WinTV HVR-900HD support?
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Kaya Saman <SamanKaya@netscape.net>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 8BIT
+Message-Id: <200908310852.38847.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 6, 2009 at 12:06 PM, Kaya Saman<SamanKaya@netscape.net> wrote:
+On Monday 31 August 2009 07:51:28 Németh Márton wrote:
+> Laurent Pinchart wrote:
+> > On Sunday 30 August 2009 10:56:16 Németh Márton wrote:
+> > > From: Márton Németh <nm127@freemail.hu>
+> > >
+> > > Add NULL pointer check before the pointers are dereferenced.
+> >
+> > Applications are not supposed to pass NULL pointers to those functions.
+> > It would be an API violation. Instead of silently failing a segfault is
+> > better.
 >
->>
->> No, I recommended the HVR1900 because *IT* is fully supported, and is
->> *not* getting replaced.  HVR900 got replaced.  HVR1900 is not as large
->> as a set top box, but it is bigger than the usb sticks, and uses a
->> power brick, for the mpeg encoder.
->>
->> It is on the Hauppauge web site, you probably just overlooked it.
->>
->> -Mike
->>
->
-> Ok, now I am so sorry and I feel really silly but I can't find it.....
->
-> I have tried hauppauge.co.uk and under HVR-external all I get is 900HD, 900,
-> and 1400:
->
-> http://www.hauppauge.co.uk/site/products/prods_hvr_external.html
->
-> now, I even did a search for the 1900 and found nothing on hauppauge search
-> link??? Sure it came up with the 1950 model but no 1900.
->
-> On top of that I tried www.dabs.com and www.misco.co.uk both of which have
-> the 900 but no 1900.....
->
-> am I missing something or have I just totally gone insane over the last few
-> hours???
+> Actually we cannot speak about API violation because the behaviour when
+> passing NULL pointer as ioctl() argument is not defined as of V4L2 API
+> revision 0.29 available from http://linuxtv.org/hg/v4l-dvb/ . The current
+> implemention in Linux in kernel space is to return -EACCESS.
 
-#1) http://www.hauppauge.de/de/index.htm  (scroll down to middle of the page)
+Then let's just add a "passing a NULL pointer results in undefined behaviour" 
+to the spec.
 
-#2) http://www.hauppauge.de/de/site/products/data_hvr1900.html
+> I don't really agree with the segfault behaviour, because:
+>
+>  - currently there is a different behaviour when just using the V4L2
+>    interface and using the libv4l2 0.6.0. When using the kernel interface
+>    it is an error in kernelspace if a NULL pointer is dereferenced, thus
+>    kernel will return -EACCESS. When the libv4l2 0.6.0 is used then the
+>    behaviour changes: currently there is a segfault instead of getting
+>    a return value -1 and errno=EACCESS.
 
-#3) http://www.hauppauge.com/site/press/presspictures/HVR-1900_German_1251.jpg
+Right. And I see no problem there. Applications must not pass NULL pointers to 
+the V4L2 ioctls. Period.
 
-#4) http://www.hauppauge.com/site/press/presspictures/HVR-1900_4lang_1179.png
+>  - the segfault normally results that the whole calling process is
+>    killed. If there is a complex software like a browser, it is not
+>    very user friendly that the whole software crashes just because an
+>    implementation error in the V4L2 handling code.
 
-#5)  http://www.hauppauge.com/site/support/linux.html
+An implementation error in the application. And a pretty serious one, that 
+needs to be caught as soon as possible. A segfault will make the error pretty 
+obvious.
 
--Mike
+>  - currently a lot of V4L2 API ioctls() return -EINVAL or -EFAULT when
+>    passing NULL pointer as a parameter depending on whether the given
+>    ioctl is not supported at all or it is supported but there is a problem
+>    with the passed pointer, respectively. The use case for this would be
+>    that an application could easily scan for the supported and not
+>    supported V4L2 ioctls.
+
+Applications must not do that. The V4L2 spec doesn't prevent side effects to 
+calling ioctls with a NULL pointer.
+
+>  - dereferencing a NULL pointer is not always result segfault, see [1] and
+>    [2]. So dereferencing a NULL pointer can be treated also as a security
+>    risk.
+
+Only if the application explicitly maps a page to virtual address zero on a 
+system where the minimum mmap address was set to zero by the administrator. 
+Let's be honest, this is a bit akin to make sterile gun bullets to avoid 
+infections when someone shots himself in the head. Might be valid in theory, 
+but a bit pointless :-)
+
+>  - the patch I sent is only checking the pointer just before it is
+>    dereferenced. When the libv4l just passes the pointer value to the
+>    ioctl() then there is no additional check: this situation will be
+>    handled in kernel space.
+
+Applications must not pass NULL pointer to libv4l, so libv4l simply doesn't 
+need to check for that case.
+
+> These are my arguments. I am open to listen to your arguments.
+>
+> I think that the final solution could be that the V4L2 API specification
+> defines what shall happen when NULL pointer is passed as an ioctl()
+> argument.
+>
+> References:
+> [1] Jonathan Corbet: Fun with NULL pointers, part 1 (July 20, 2009)
+>     http://lwn.net/Articles/342330/
+>
+> [2] Jonathan Corbet: Fun with NULL pointers, part 2
+>     http://lwn.net/Articles/342420/
+
+-- 
+Regards,
+
+Laurent Pinchart
