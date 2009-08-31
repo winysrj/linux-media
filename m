@@ -1,19 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.moviquity.com ([213.134.42.80])
+Received: from mtaout01-winn.ispmail.ntl.com ([81.103.221.47])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <mcm@moviquity.com>) id 1MdihU-0006Gu-15
-	for linux-dvb@linuxtv.org; Wed, 19 Aug 2009 12:47:28 +0200
-Received: from [192.168.3.64] (80.Red-80-38-94.staticIP.rima-tde.net
-	[80.38.94.80]) (Authenticated sender: mcm)
-	by mail.moviquity.com (Postfix) with ESMTPSA id 0B71B520203
-	for <linux-dvb@linuxtv.org>; Wed, 19 Aug 2009 12:46:50 +0200 (CEST)
-From: Miguel <mcm@moviquity.com>
+	(envelope-from <david.may10@ntlworld.com>) id 1MhvmI-0001mY-Nc
+	for linux-dvb@linuxtv.org; Mon, 31 Aug 2009 03:33:51 +0200
+Received: from aamtaout03-winn.ispmail.ntl.com ([81.103.221.35])
+	by mtaout01-winn.ispmail.ntl.com
+	(InterMail vM.7.08.04.00 201-2186-134-20080326) with ESMTP id
+	<20090831013310.UPNK6742.mtaout01-winn.ispmail.ntl.com@aamtaout03-winn.ispmail.ntl.com>
+	for <linux-dvb@linuxtv.org>; Mon, 31 Aug 2009 02:33:10 +0100
+Received: from cpc3-bagu5-0-0-cust11.bagu.cable.ntl.com ([62.254.12.12])
+	by aamtaout03-winn.ispmail.ntl.com
+	(InterMail vG.2.02.00.01 201-2161-120-102-20060912) with ESMTP id
+	<20090831013310.XOFR2093.aamtaout03-winn.ispmail.ntl.com@cpc3-bagu5-0-0-cust11.bagu.cable.ntl.com>
+	for <linux-dvb@linuxtv.org>; Mon, 31 Aug 2009 02:33:10 +0100
+Date: Mon, 31 Aug 2009 02:33:04 +0100
+From: david may <david.may10@ntlworld.com>
+Message-ID: <1952743797.20090831023304@ntlworld.com>
 To: linux-dvb@linuxtv.org
-Date: Wed, 19 Aug 2009 12:45:07 +0200
-Message-Id: <1250678707.14727.12.camel@McM>
-Mime-Version: 1.0
-Subject: [linux-dvb] USB Wintv HVR-900 Hauppauge
-Reply-To: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Subject: [linux-dvb] what is the current status of the DVB-T2 supply chain
+	for the UK ?
+Reply-To: linux-media@vger.kernel.org, david may <david.may10@ntlworld.com>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,114 +28,81 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0058816796=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hello everyone.
 
---===============0058816796==
-Content-Type: multipart/alternative; boundary="=-xlJvuyNlv9c46ZdEeI68"
+its been a while since i had need to post anything but iv got a very
+serious problem as to the status of the current status of the DVB-T2 supply chain for the UK ?
 
+there doesn't seem to be any, and if anyone knows what's happening, then
+its the linux DVB-T guys  ;)
 
---=-xlJvuyNlv9c46ZdEeI68
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+December 2nd 2009, see below, is not very far away now, and  considering that the UK
+Freeview HD will be transmitted using DVB-T2 it seems we in the UK have
+a potential problem.
 
+ there doesn't seem to be anything advertised here to buy, and no
+ PCI(-E)or USB2 sticks with DVB-T2 chipsets/SOC included that i can
+ find.
 
-Hello,
+ if the worlds OEMs are to be ready for that UK market and date,
+ then it seems they Must be in full manufacture by now or
+already available on the shelf some were.
 
-I am trying to set up the dvb-t device in my ubuntu 9.04.
-As far as i can see , this device has tm6000 chipset but I don't get it
-works. I have followed the guide of tvlinux.org:
-http://www.linuxtv.org/wiki/index.php/Trident_TM6000#TM6000_based_Devices
+has anyone here got any information regarding the potential
+availability of such USB2 DVB-T2 sticks for PC use and whats the
+status of any drivers and support code for that? if any.
 
-I have compile v4l-dvb, make, and make install and it seems that the
-modules are loaded:
+ but i really do hope someone here is already working with something
+ we can put in and directly use in the UK with these BBC HD AVC DVB-T2
+ finally going mainstream with the winterhill NW transmitter switch
+ on.
 
+http://www.bbc.co.uk/blogs/bbcinternet/2009/06/whats_happening_with_freeview.html
+Graham Plumb, the Head of Distribution Technology, BBC Operations Group.
 
-em28xx                 90668  0 
-ir_common              57732  1 em28xx
-v4l2_common            25600  1 em28xx
-videobuf_vmalloc       14724  1 em28xx
-videobuf_core          26244  2 em28xx,videobuf_vmalloc
-tveeprom               20228  1 em28xx
-videodev               44832  3 em28xx,v4l2_common,uvcvideo
+"17:00 UK time, Wednesday, 24 June 2009
+[The Editor: In our recent open post we had several questions about the
+roll-out of Freeview HD.
 
+This is the first post on the blog from Graham Plumb, Head of Distribution Technology,
+BBC Operations Group.]
 
-But by the moment, I don't know which driver  I should you. Actually,
-when I switch the usb wintv on , my so doesn't recognize it:
+The plan is still to launch Freeview HD on December 2nd at the Winter Hill transmitter
+serving Manchester and Liverpool.
 
-[11107.449900] usb 1-3: new high speed USB device using ehci_hcd and
-address 8
-[11107.593094] usb 1-3: configuration #1 chosen from 1 choice
+The plan has always been to roll Freeview HD out around the country following switchover and
+Winter Hill was selected as the first achievable transmitter.
 
+There will need to be a retrospective upgrade of regions that have already switched.
 
-how can I get this device run?
+The originally mentioned date of November came from the fact that Winter Hill starts to switch over in November.
+But it was quickly realised that the BBC's second Multiplex (Mux B) that is being converted for Freeview HD
+actually switches over on 2nd December at Winter Hill.
 
-thank you in advance.
+The March 2010 date in the Ofcom document is simply the last backstop date by when Winter Hill
+has to be on air to comply with our licence conditions.
 
-Miguel
+They've built in a contingency (as already happens in switchover licences).
 
+The BBC has been working on plans to deliver early upgrades to some stations (serving high populations)
+that are late in the switchover programme and would otherwise have to wait long for Freeview HD.
+..."
 
---=-xlJvuyNlv9c46ZdEeI68
-Content-Type: text/html; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+  
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 TRANSITIONAL//EN">
-<HTML>
-<HEAD>
-  <META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=UTF-8">
-  <META NAME="GENERATOR" CONTENT="GtkHTML/3.26.0">
-</HEAD>
-<BODY>
-<BR>
-Hello,<BR>
-<BR>
-I am trying to set up the dvb-t device in my ubuntu 9.04.<BR>
-As far as i can see , this device has tm6000 chipset but I don't get it works. I have followed the guide of tvlinux.org: <A HREF="http://www.linuxtv.org/wiki/index.php/Trident_TM6000#TM6000_based_Devices">http://www.linuxtv.org/wiki/index.php/Trident_TM6000#TM6000_based_Devices</A><BR>
-<BR>
-I have compile v4l-dvb, make, and make install and it seems that the modules are loaded:<BR>
-<BR>
-<BR>
-em28xx&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 90668&nbsp; 0 <BR>
-ir_common&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 57732&nbsp; 1 em28xx<BR>
-v4l2_common&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 25600&nbsp; 1 em28xx<BR>
-videobuf_vmalloc&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 14724&nbsp; 1 em28xx<BR>
-videobuf_core&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 26244&nbsp; 2 em28xx,videobuf_vmalloc<BR>
-tveeprom&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 20228&nbsp; 1 em28xx<BR>
-videodev&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 44832&nbsp; 3 em28xx,v4l2_common,uvcvideo<BR>
-<BR>
-<BR>
-But by the moment, I don't know which driver&nbsp; I should you. Actually, when I switch the usb wintv on , my so doesn't recognize it:<BR>
-<BR>
-[11107.449900] usb 1-3: new high speed USB device using ehci_hcd and address 8<BR>
-[11107.593094] usb 1-3: configuration #1 chosen from 1 choice<BR>
-<BR>
-<BR>
-how can I get this device run?<BR>
-<BR>
-thank you in advance.<BR>
-<BR>
-Miguel<BR>
-<BR>
-</BODY>
-</HTML>
+-- 
+Best regards,
+ david                          mailto:david.may10@ ntlworld.com.invalid
 
---=-xlJvuyNlv9c46ZdEeI68--
-
-
-
---===============0058816796==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0058816796==--
