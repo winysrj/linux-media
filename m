@@ -1,63 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mms1.broadcom.com ([216.31.210.17]:1603 "EHLO mms1.broadcom.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34740 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753476AbZHKSXS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2009 14:23:18 -0400
-Subject: Re: How to efficiently handle DMA and cache on ARMv7 ? (was
- "Is get_user_pages() enough to prevent pages from being swapped out ?")
-From: "David Xiao" <dxiao@broadcom.com>
-To: "Catalin Marinas" <catalin.marinas@arm.com>
-cc: "Russell King - ARM Linux" <linux@arm.linux.org.uk>,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Ben Dooks" <ben-linux@fluff.org>,
-	"Hugh Dickins" <hugh.dickins@tiscali.co.uk>,
-	"Robin Holt" <holt@sgi.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	v4l2_linux <linux-media@vger.kernel.org>,
-	"linux-arm-kernel@lists.arm.linux.org.uk"
-	<linux-arm-kernel@lists.arm.linux.org.uk>
-In-Reply-To: <1249983062.27150.20.camel@pc1117.cambridge.arm.com>
-References: <200908061208.22131.laurent.pinchart@ideasonboard.com>
- <20090806114619.GW2080@trinity.fluff.org>
- <200908061506.23874.laurent.pinchart@ideasonboard.com>
- <1249584374.29182.20.camel@david-laptop>
- <20090806222543.GG31579@n2100.arm.linux.org.uk>
- <1249624766.32621.61.camel@david-laptop>
- <1249983062.27150.20.camel@pc1117.cambridge.arm.com>
-Date: Tue, 11 Aug 2009 11:23:10 -0700
-Message-ID: <1250014990.14439.4.camel@david-laptop>
+	id S1750970AbZHaPMn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Aug 2009 11:12:43 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@skynet.be>
+Date: Mon, 31 Aug 2009 10:12:31 -0500
+Subject: RE: RFC: bus configuration setup for sub-devices
+Message-ID: <A69FA2915331DC488A831521EAE36FE40154EDC439@dlee06.ent.ti.com>
+References: <200908291631.13696.hverkuil@xs4all.nl>
+    <Pine.LNX.4.64.0908300109490.16132@axis700.grange>
+    <200908310823.29158.hverkuil@xs4all.nl>
+    <A69FA2915331DC488A831521EAE36FE40154EDC3DC@dlee06.ent.ti.com>
+ <3b674866ac8647a2fddfa9e3cee94cdb.squirrel@webmail.xs4all.nl>
+In-Reply-To: <3b674866ac8647a2fddfa9e3cee94cdb.squirrel@webmail.xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2009-08-11 at 02:31 -0700, Catalin Marinas wrote:
-> On Thu, 2009-08-06 at 22:59 -0700, David Xiao wrote:
-> > The V7 speculative prefetching will then probably apply to DMA coherency
-> > issue in general, both kernel and user space DMAs. Could this be
-> > addressed by inside the dma_unmap_sg/single() calling dma_cache_maint()
-> > when the direction is DMA_FROM_DEVICE/DMA_BIDIRECTIONAL, to basically
-> > invalidate the related cache lines in case any filled by prefetching?
-> > Assuming dma_unmap_sg/single() is called after each DMA operation is
-> > completed. 
-> 
-> Theoretically, with speculative prefetching on ARMv7 and the FROM_DEVICE
-> case we need to invalidate the corresponding D-cache lines both before
-> and after the DMA transfer, i.e. in both dma_map_sg and dma_unmap_sg,
-> otherwise there is a risk of stale data in the cache.
-> 
-The dma_map_sg() code is already calling dma_cache_maint() to invalidate
-the cache lines in the DMA_FROM_DEVICE/DMA_BIDIRECTIONAL direction
-cases. And the suggestion was to do something similar in dma_unmap_sg()
-case to deal with the speculative prefetching on ARMv7, and Russel has
-other postings talking about the details of this in terms of
-feasibility/etc.
 
-Furthermore, duplicate MMU mappings in the kernel bring more twists to
-this problem as explained in this email chain as well, especially in the
-case of DMA-coherent memory (dma_alloc_coherent()).
-
-David   
-
+>>
+>> Master/Slave is always confusing to me. In VPFE, it can act as master
+>> (when it output sync signal and pixel clock) and slave (when it get sync
+>> signal from sensor/decoder). We use VPFE as slave and sensor/decoder will
+>> provide the pixel clock and sync signal. Please confirm if this is what
+>> master_mode flag means.
+>
+>That's correct: the master provides the pixel clock signal. I'm not sure
+>if it also means that the syncs are provided by the master. Do you know?
+Yes. Both hsync and vsync signals can be output from VPFE. So also field id signal. But I don't know if any customer is using it that way.
+>
+>Regards,
+>
+>         Hans
+>
+>--
+>Hans Verkuil - video4linux developer - sponsored by TANDBERG
+>
 
