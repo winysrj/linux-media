@@ -1,117 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4023 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756571AbZINSOl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Sep 2009 14:14:41 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id n8EIEhT0052989
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 14 Sep 2009 20:14:43 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 14 Sep 2009 20:14:43 +0200 (CEST)
-Message-Id: <200909141814.n8EIEhT0052989@smtp-vbr11.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39325 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754744AbZIAN2r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2009 09:28:47 -0400
+Date: Tue, 1 Sep 2009 14:28:24 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Steven Walter <stevenrwalter@gmail.com>
+Cc: David Xiao <dxiao@broadcom.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Ben Dooks <ben-linux@fluff.org>,
+	Hugh Dickins <hugh.dickins@tiscali.co.uk>,
+	Robin Holt <holt@sgi.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	v4l2_linux <linux-media@vger.kernel.org>,
+	"linux-arm-kernel@lists.arm.linux.org.uk"
+	<linux-arm-kernel@lists.arm.linux.org.uk>
+Subject: Re: How to efficiently handle DMA and cache on ARMv7 ? (was "Is
+	get_user_pages() enough to prevent pages from being swapped out ?")
+Message-ID: <20090901132824.GN19719@n2100.arm.linux.org.uk>
+References: <200908061208.22131.laurent.pinchart@ideasonboard.com> <20090806114619.GW2080@trinity.fluff.org> <200908061506.23874.laurent.pinchart@ideasonboard.com> <1249584374.29182.20.camel@david-laptop> <20090806222543.GG31579@n2100.arm.linux.org.uk> <e06498070908250553h5971102x6da7004495abb911@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <e06498070908250553h5971102x6da7004495abb911@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Tue, Aug 25, 2009 at 08:53:29AM -0400, Steven Walter wrote:
+> On Thu, Aug 6, 2009 at 6:25 PM, Russell King - ARM
+> Linux<linux@arm.linux.org.uk> wrote:
+> [...]
+> > As far as userspace DMA coherency, the only way you could do it with
+> > current kernel APIs is by using get_user_pages(), creating a scatterlist
+> > from those, and then passing it to dma_map_sg().  While the device has
+> > ownership of the SG, userspace must _not_ touch the buffer until after
+> > DMA has completed.
+> [...]
+> 
+> Would that work on a processor with VIVT caches?  It seems not.  In
+> particular, dma_map_page uses page_address to get a virtual address to
+> pass to map_single().  map_single() in turn uses this address to
+> perform cache maintenance.  Since page_address() returns the kernel
+> virtual address, I don't see how any cache-lines for the userspace
+> virtual address would get invalidated (for the DMA_FROM_DEVICE case).
 
-Results of the daily build of v4l-dvb:
+You are correct.
 
-date:        Mon Sep 14 19:00:06 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12849:71dec186cdae
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+> If that's true, then what is the correct way to allow DMA to/from a
+> userspace buffer with a VIVT cache?  If not true, what am I missing?
 
-linux-2.6.22.19-armv5: WARNINGS
-linux-2.6.23.12-armv5: ERRORS
-linux-2.6.24.7-armv5: ERRORS
-linux-2.6.25.11-armv5: ERRORS
-linux-2.6.26-armv5: ERRORS
-linux-2.6.27-armv5: ERRORS
-linux-2.6.28-armv5: ERRORS
-linux-2.6.29.1-armv5: ERRORS
-linux-2.6.30-armv5: ERRORS
-linux-2.6.31-armv5: OK
-linux-2.6.27-armv5-ixp: ERRORS
-linux-2.6.28-armv5-ixp: ERRORS
-linux-2.6.29.1-armv5-ixp: ERRORS
-linux-2.6.30-armv5-ixp: ERRORS
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: ERRORS
-linux-2.6.29.1-armv5-omap2: ERRORS
-linux-2.6.30-armv5-omap2: ERRORS
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: ERRORS
-linux-2.6.27-i686: ERRORS
-linux-2.6.28-i686: ERRORS
-linux-2.6.29.1-i686: ERRORS
-linux-2.6.30-i686: ERRORS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.30-mips: ERRORS
-linux-2.6.31-mips: OK
-linux-2.6.27-powerpc64: ERRORS
-linux-2.6.28-powerpc64: ERRORS
-linux-2.6.29.1-powerpc64: ERRORS
-linux-2.6.30-powerpc64: ERRORS
-linux-2.6.31-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: ERRORS
-linux-2.6.27-x86_64: ERRORS
-linux-2.6.28-x86_64: ERRORS
-linux-2.6.29.1-x86_64: ERRORS
-linux-2.6.30-x86_64: ERRORS
-linux-2.6.31-x86_64: WARNINGS
-sparse (linux-2.6.31): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+I don't think you read what I said (but I've also forgotten what I did
+say).
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+To put it simply, the kernel does not support DMA direct from userspace
+pages.  Solutions which have been proposed in the past only work with a
+sub-set of conditions (such as the one above only works with VIPT
+caches.)
