@@ -1,208 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f172.google.com ([209.85.221.172]:50386 "EHLO
-	mail-qy0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754620AbZILOuC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Sep 2009 10:50:02 -0400
-Received: by mail-qy0-f172.google.com with SMTP id 2so1629968qyk.21
-        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 07:50:06 -0700 (PDT)
-Message-ID: <4AABB511.7060705@gmail.com>
-Date: Sat, 12 Sep 2009 10:49:53 -0400
-From: David Ellingsworth <david@identd.dyndns.org>
-Reply-To: david@identd.dyndns.org
+Received: from mail00d.mail.t-online.hu ([84.2.42.5]:52319 "EHLO
+	mail00d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751483AbZIASkd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2009 14:40:33 -0400
+Message-ID: <4A9D6A99.6050707@freemail.hu>
+Date: Tue, 01 Sep 2009 20:40:25 +0200
+From: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org, klimov.linux@gmail.com
-Subject: [RFC/RFT 07/10] radio-mr800: remove device removed indicator
-Content-Type: multipart/mixed;
- boundary="------------040401090809060102030706"
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: Michel Xhaard <mxhaard@users.sourceforge.net>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: gspca_sunplus: problem with brightness control
+References: <4A9A1AB6.2050801@freemail.hu> <20090831112827.567a0a1f@tele>
+In-Reply-To: <20090831112827.567a0a1f@tele>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------040401090809060102030706
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi,
 
- From a9b0a308892919514efc692f2a0e28b80ea304ac Mon Sep 17 00:00:00 2001
-From: David Ellingsworth <david@identd.dyndns.org>
-Date: Sat, 12 Sep 2009 01:22:57 -0400
-Subject: [PATCH 07/10] mr800: remove device removed indicator
+Jean-Francois Moine wrote:
+> On Sun, 30 Aug 2009 08:22:46 +0200
+> Németh Márton <nm127@freemail.hu> wrote:
+> 
+>> I am using a "Trust 610 LCD Powerc@m Zoom" device in webcam mode
+>> (USB ID=06d6:0031). I am running Linux 2.6.31-rc7 updated with the
+>> http://linuxtv.org/hg/v4l-dvb repository at version
+>> 12564:6f58a5d8c7c6.
+>>
+>> When I start watching to the webcam picture and change the brightness
+>> value then I get the following result. The possible brigthness values
+>> are between 0 and 255.
+> 	[snip]
+>
+> I fixed this problem in my test repository. As I did some other changes
+> in sunplus.c, may you check if everything works for you?
 
-Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
----
- drivers/media/radio/radio-mr800.c |   20 ++++++++------------
- 1 files changed, 8 insertions(+), 12 deletions(-)
+I tested the version "12663:7f68f4e03299" from
+http://linuxtv.org/hg/~jfrancois/gspca/ . The picture is still OK, the
+brightness, contrast and color contrast are working correctly now as
+expected. I have done the tests with "Trust 610 LCD Powerc@m Zoom" device
+in webcam mode (USB ID=06d6:0031).
 
-diff --git a/drivers/media/radio/radio-mr800.c 
-b/drivers/media/radio/radio-mr800.c
-index 71d15ba..9fd2342 100644
---- a/drivers/media/radio/radio-mr800.c
-+++ b/drivers/media/radio/radio-mr800.c
-@@ -137,7 +137,6 @@ struct amradio_device {
-     int curfreq;
-     int stereo;
-     int users;
--    int removed;
-     int muted;
- };
- 
-@@ -270,7 +269,7 @@ static void usb_amradio_disconnect(struct 
-usb_interface *intf)
-     struct amradio_device *radio = usb_get_intfdata(intf);
- 
-     mutex_lock(&radio->lock);
--    radio->removed = 1;
-+    radio->usbdev = NULL;
-     mutex_unlock(&radio->lock);
- 
-     usb_set_intfdata(intf, NULL);
-@@ -488,7 +487,7 @@ static int usb_amradio_open(struct file *file)
- 
-     mutex_lock(&radio->lock);
- 
--    if (radio->removed) {
-+    if (!radio->usbdev) {
-         retval = -EIO;
-         goto unlock;
-     }
-@@ -528,19 +527,17 @@ static int usb_amradio_close(struct file *file)
- 
-     mutex_lock(&radio->lock);
- 
--    if (radio->removed) {
-+    if (!radio->usbdev) {
-         retval = -EIO;
-         goto unlock;
-     }
- 
-     radio->users = 0;
- 
--    if (!radio->removed) {
--        retval = amradio_set_mute(radio, AMRADIO_STOP);
--        if (retval < 0)
--            amradio_dev_warn(&radio->videodev.dev,
--                "amradio_stop failed\n");
--    }
-+    retval = amradio_set_mute(radio, AMRADIO_STOP);
-+    if (retval < 0)
-+        amradio_dev_warn(&radio->videodev.dev,
-+            "amradio_stop failed\n");
- 
- unlock:
-     mutex_unlock(&radio->lock);
-@@ -555,7 +552,7 @@ static long usb_amradio_ioctl(struct file *file, 
-unsigned int cmd,
- 
-     mutex_lock(&radio->lock);
- 
--    if (radio->removed) {
-+    if (!radio->usbdev) {
-         retval = -EIO;
-         goto unlock;
-     }
-@@ -673,7 +670,6 @@ static int usb_amradio_probe(struct usb_interface *intf,
-     radio->videodev.ioctl_ops = &usb_amradio_ioctl_ops;
-     radio->videodev.release = usb_amradio_video_device_release;
- 
--    radio->removed = 0;
-     radio->users = 0;
-     radio->usbdev = interface_to_usbdev(intf);
-     radio->curfreq = 95.16 * FREQ_MUL;
--- 
-1.6.3.3
+Thank you for your work!
+
+Regards,
+
+	Márton Németh
 
 
---------------040401090809060102030706
-Content-Type: text/x-diff;
- name="0007-mr800-remove-device-removed-indicator.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="0007-mr800-remove-device-removed-indicator.patch"
-
->From a9b0a308892919514efc692f2a0e28b80ea304ac Mon Sep 17 00:00:00 2001
-From: David Ellingsworth <david@identd.dyndns.org>
-Date: Sat, 12 Sep 2009 01:22:57 -0400
-Subject: [PATCH 07/10] mr800: remove device removed indicator
-
-Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
----
- drivers/media/radio/radio-mr800.c |   20 ++++++++------------
- 1 files changed, 8 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
-index 71d15ba..9fd2342 100644
---- a/drivers/media/radio/radio-mr800.c
-+++ b/drivers/media/radio/radio-mr800.c
-@@ -137,7 +137,6 @@ struct amradio_device {
- 	int curfreq;
- 	int stereo;
- 	int users;
--	int removed;
- 	int muted;
- };
- 
-@@ -270,7 +269,7 @@ static void usb_amradio_disconnect(struct usb_interface *intf)
- 	struct amradio_device *radio = usb_get_intfdata(intf);
- 
- 	mutex_lock(&radio->lock);
--	radio->removed = 1;
-+	radio->usbdev = NULL;
- 	mutex_unlock(&radio->lock);
- 
- 	usb_set_intfdata(intf, NULL);
-@@ -488,7 +487,7 @@ static int usb_amradio_open(struct file *file)
- 
- 	mutex_lock(&radio->lock);
- 
--	if (radio->removed) {
-+	if (!radio->usbdev) {
- 		retval = -EIO;
- 		goto unlock;
- 	}
-@@ -528,19 +527,17 @@ static int usb_amradio_close(struct file *file)
- 
- 	mutex_lock(&radio->lock);
- 
--	if (radio->removed) {
-+	if (!radio->usbdev) {
- 		retval = -EIO;
- 		goto unlock;
- 	}
- 
- 	radio->users = 0;
- 
--	if (!radio->removed) {
--		retval = amradio_set_mute(radio, AMRADIO_STOP);
--		if (retval < 0)
--			amradio_dev_warn(&radio->videodev.dev,
--				"amradio_stop failed\n");
--	}
-+	retval = amradio_set_mute(radio, AMRADIO_STOP);
-+	if (retval < 0)
-+		amradio_dev_warn(&radio->videodev.dev,
-+			"amradio_stop failed\n");
- 
- unlock:
- 	mutex_unlock(&radio->lock);
-@@ -555,7 +552,7 @@ static long usb_amradio_ioctl(struct file *file, unsigned int cmd,
- 
- 	mutex_lock(&radio->lock);
- 
--	if (radio->removed) {
-+	if (!radio->usbdev) {
- 		retval = -EIO;
- 		goto unlock;
- 	}
-@@ -673,7 +670,6 @@ static int usb_amradio_probe(struct usb_interface *intf,
- 	radio->videodev.ioctl_ops = &usb_amradio_ioctl_ops;
- 	radio->videodev.release = usb_amradio_video_device_release;
- 
--	radio->removed = 0;
- 	radio->users = 0;
- 	radio->usbdev = interface_to_usbdev(intf);
- 	radio->curfreq = 95.16 * FREQ_MUL;
--- 
-1.6.3.3
-
-
---------------040401090809060102030706--
