@@ -1,87 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:41775 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752286AbZIEJuV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Sep 2009 05:50:21 -0400
-Received: by fxm17 with SMTP id 17so1127298fxm.37
-        for <linux-media@vger.kernel.org>; Sat, 05 Sep 2009 02:50:22 -0700 (PDT)
-From: Marek Vasut <marek.vasut@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] Add RGB555X and RGB565X formats to pxa-camera
-Date: Sat, 5 Sep 2009 11:49:56 +0200
-Cc: Eric Miao <eric.y.miao@gmail.com>,
-	linux-arm-kernel@lists.arm.linux.org.uk,
-	"Russell King - ARM Linux" <linux@arm.linux.org.uk>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mike Rapoport <mike@compulab.co.il>,
-	Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>,
-	linux-arm-kernel@lists.infradead.org
-References: <200908031031.00676.marek.vasut@gmail.com> <200909050926.48309.marek.vasut@gmail.com> <Pine.LNX.4.64.0909051037300.4670@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0909051037300.4670@axis700.grange>
+Received: from perceval.irobotique.be ([92.243.18.41]:48819 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754757AbZIANoX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2009 09:44:23 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
+Subject: Re: How to efficiently handle DMA and cache on ARMv7 ? (was "Is get_user_pages() enough to prevent pages from being swapped out ?")
+Date: Tue, 1 Sep 2009 15:43:48 +0200
+Cc: Steven Walter <stevenrwalter@gmail.com>,
+	David Xiao <dxiao@broadcom.com>,
+	Ben Dooks <ben-linux@fluff.org>,
+	Hugh Dickins <hugh.dickins@tiscali.co.uk>,
+	Robin Holt <holt@sgi.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"v4l2_linux" <linux-media@vger.kernel.org>,
+	"linux-arm-kernel@lists.arm.linux.org.uk"
+	<linux-arm-kernel@lists.arm.linux.org.uk>
+References: <200908061208.22131.laurent.pinchart@ideasonboard.com> <e06498070908250553h5971102x6da7004495abb911@mail.gmail.com> <20090901132824.GN19719@n2100.arm.linux.org.uk>
+In-Reply-To: <20090901132824.GN19719@n2100.arm.linux.org.uk>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <200909051149.56343.marek.vasut@gmail.com>
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200909011543.48439.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dne So 5. září 2009 10:55:55 Guennadi Liakhovetski napsal(a):
-> On Sat, 5 Sep 2009, Marek Vasut wrote:
-> > > > >  drivers/media/video/pxa_camera.c |    4 ++++
-> > > > >  1 files changed, 4 insertions(+), 0 deletions(-)
-> > > > >
-> > > > > diff --git a/drivers/media/video/pxa_camera.c
-> > > > > b/drivers/media/video/pxa_camera.c
-> > > > > index 46e0d8a..de0fc8a 100644
-> > > > > --- a/drivers/media/video/pxa_camera.c
-> > > > > +++ b/drivers/media/video/pxa_camera.c
-> > > > > @@ -1222,6 +1222,8 @@ static int required_buswidth(const struct
-> > > > > soc_camera_data_format *fmt)
-> > > > >  	case V4L2_PIX_FMT_YVYU:
-> > > > >  	case V4L2_PIX_FMT_RGB565:
-> > > > >  	case V4L2_PIX_FMT_RGB555:
-> > > > > +	case V4L2_PIX_FMT_RGB565X:
-> > > > > +	case V4L2_PIX_FMT_RGB555X:
-> > > > >  		return 8;
-> > > > >  	default:
-> > > > >  		return fmt->depth;
-> > > > > @@ -1260,6 +1262,8 @@ static int pxa_camera_get_formats(struct
-> > > > > soc_camera_device *icd, int idx,
-> > > > >  	case V4L2_PIX_FMT_YVYU:
-> > > > >  	case V4L2_PIX_FMT_RGB565:
-> > > > >  	case V4L2_PIX_FMT_RGB555:
-> > > > > +	case V4L2_PIX_FMT_RGB565X:
-> > > > > +	case V4L2_PIX_FMT_RGB555X:
-> > > > >  		formats++;
-> > > > >  		if (xlate) {
-> > > > >  			xlate->host_fmt = icd->formats + idx;
+On Tuesday 01 September 2009 15:28:24 Russell King - ARM Linux wrote:
+> On Tue, Aug 25, 2009 at 08:53:29AM -0400, Steven Walter wrote:
+> > On Thu, Aug 6, 2009 at 6:25 PM, Russell King - ARM
+> > Linux<linux@arm.linux.org.uk> wrote:
+> > [...]
 > >
-> > What should we do with this patch? Any updates? I spoke to Guennadi and
-> > he thinks it's not a good idea to apply it (as pxaqci doesnt support
-> > those formats). But to my understanding, those formats are endian-swapped
-> > versions of the other ones without X at the end so there shouldnt be a
-> > problem with it.
+> > > As far as userspace DMA coherency, the only way you could do it with
+> > > current kernel APIs is by using get_user_pages(), creating a
+> > > scatterlist from those, and then passing it to dma_map_sg().  While the
+> > > device has ownership of the SG, userspace must _not_ touch the buffer
+> > > until after DMA has completed.
+> >
+> > [...]
+> >
+> > Would that work on a processor with VIVT caches?  It seems not.  In
+> > particular, dma_map_page uses page_address to get a virtual address to
+> > pass to map_single().  map_single() in turn uses this address to
+> > perform cache maintenance.  Since page_address() returns the kernel
+> > virtual address, I don't see how any cache-lines for the userspace
+> > virtual address would get invalidated (for the DMA_FROM_DEVICE case).
 >
-> Marek, please, look in PXA270 datasheet. To support a specific pixel
-> format means, e.g., to be able to process it further, according to this
-> format's particular colour component ordering. Process further can mean
-> convert to another format, extract various information from the data
-> (statistics, etc.)... Now RGB555 looks like (from wikipedia)
+> You are correct.
 >
-> 15  14  13  12  11  10  09  08  07  06  05  04  03  02  01  00
-> R4  R3  R2  R1  R0  G4  G3  G2  G1  G1  B4  B3  B2  B1  B1  --
+> > If that's true, then what is the correct way to allow DMA to/from a
+> > userspace buffer with a VIVT cache?  If not true, what am I missing?
 >
-> (Actually, I thought bit 15 was unused, but it doesn't matter for this
-> discussion.) Now, imagine what happens if you swap the two bytes. I don't
-> think the PXA will still be able to meaningfully process that format.
+> I don't think you read what I said (but I've also forgotten what I did
+> say).
 >
+> To put it simply, the kernel does not support DMA direct from userspace
+> pages.  Solutions which have been proposed in the past only work with a
+> sub-set of conditions (such as the one above only works with VIPT
+> caches.)
 
-Not on the pxa side, but on the camera side -- Bs and Rs swapped in the diagram 
-above.
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
+I might be missing something obvious, but I fail to see how VIVT caches could 
+work at all with multiple mappings. If a kernel-allocated buffer is DMA'ed to, 
+we certainly want to invalidate all cache lines that store buffer data. As the 
+cache doesn't care about physical addresses we thus need to invalidate all 
+virtual mappings for the buffer. If the buffer is mmap'ed in userspace I don't 
+see how that would be done.
+
+-- 
+Laurent Pinchart
