@@ -1,56 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2a.orange.fr ([80.12.242.140]:56265 "EHLO smtp2a.orange.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751162AbZIIO5p (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Sep 2009 10:57:45 -0400
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2a24.orange.fr (SMTP Server) with ESMTP id 634EF80000B8
-	for <linux-media@vger.kernel.org>; Wed,  9 Sep 2009 16:57:44 +0200 (CEST)
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2a24.orange.fr (SMTP Server) with ESMTP id 56A1980000E3
-	for <linux-media@vger.kernel.org>; Wed,  9 Sep 2009 16:57:44 +0200 (CEST)
-Received: from [192.168.1.11] (ANantes-551-1-42-204.w86-214.abo.wanadoo.fr [86.214.145.204])
-	by mwinf2a24.orange.fr (SMTP Server) with ESMTP id CAFB480000B8
-	for <linux-media@vger.kernel.org>; Wed,  9 Sep 2009 16:57:43 +0200 (CEST)
-Message-ID: <4AA7C266.3000509@gmail.com>
-Date: Wed, 09 Sep 2009 16:57:42 +0200
-From: Morvan Le Meut <mlemeut@gmail.com>
-MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: (Saa7134) Re: ADS-Tech Instant TV PCI, no remote support
-References: <4AA53C05.10203@gmail.com> <4AA61508.9040506@gmail.com> <op.uzxmzlj86dn9rq@crni> <4AA62C38.3050208@gmail.com> <4AA63434.1010709@gmail.com> <4AA683BD.6070601@gmail.com> <4AA695EE.70800@gmail.com> <4AA767F2.50702@gmail.com> <op.uzzfgyvj3xmt7q@crni> <4AA77240.2040504@gmail.com> <4AA77683.7010201@gmail.com>
-In-Reply-To: <4AA77683.7010201@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3526 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751902AbZIASYA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2009 14:24:00 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id n81IO1vZ018121
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 1 Sep 2009 20:24:01 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 1 Sep 2009 20:24:01 +0200 (CEST)
+Message-Id: <200909011824.n81IO1vZ018121@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-just out of curiosity, what's the difference between
-"case SAA7134_BOARD_ADS_INSTANT_TV:
-        dev->has_remote = SAA7134_REMOTE_GPIO;
-        break; "
-and
-"case SAA7134_BOARD_FLYDVBS_LR300:
-        saa_writeb(SAA7134_GPIO_GPMODE3, 0x80);
-        saa_writeb(SAA7134_GPIO_GPSTATUS2, 0x40);
-        dev->has_remote = SAA7134_REMOTE_GPIO;
-        break; "
-?
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-could it be that the repeating keys come from not using that saa_writeb 
-thing ?
+Results of the daily build of v4l-dvb:
 
-Morvan Le Meut a écrit :
-> wait, from that webpage, the gpio would be different for each key, 
-> independently from the mask, so my previous attempt with ir_debug=1 
-> means that the gpio itself is read incorrectly .. :(
->
->
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+date:        Tue Sep  1 19:00:07 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12614:fd679bbd8bb3
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-rc8-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29.1-armv5-ixp: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-rc8-armv5-ixp: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-rc8-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-rc8-i686: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-rc8-m32r: OK
+linux-2.6.30-mips: ERRORS
+linux-2.6.31-rc8-mips: OK
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-rc8-powerpc64: OK
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-rc8-x86_64: OK
+sparse (linux-2.6.30): OK
+sparse (linux-2.6.31-rc8): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
