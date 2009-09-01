@@ -1,57 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:53781 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752420AbZI1SfA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Sep 2009 14:35:00 -0400
-Received: from list by lo.gmane.org with local (Exim 4.50)
-	id 1MsL3v-0002uH-8Y
-	for linux-media@vger.kernel.org; Mon, 28 Sep 2009 20:35:03 +0200
-Received: from j215101.upc-j.chello.nl ([24.132.215.101])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 28 Sep 2009 20:35:03 +0200
-Received: from dick by j215101.upc-j.chello.nl with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 28 Sep 2009 20:35:03 +0200
-To: linux-media@vger.kernel.org
-From: Dick <dick@mrns.nl>
-Subject: em28xx #0: =?utf-8?b?dmlkaW9jX3NfZm10X3ZpZF9jYXA=?= queue busy
-Date: Mon, 28 Sep 2009 18:25:01 +0000 (UTC)
-Message-ID: <loom.20090928T201911-109@post.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4781 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752863AbZIAHAF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2009 03:00:05 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: problem building v4l2-spec from docbook source
+Date: Tue, 1 Sep 2009 08:59:33 +0200
+Cc: "William M. Brack" <wbrack@mmm.com.hk>,
+	"V4L Mailing List" <linux-media@vger.kernel.org>,
+	=?iso-8859-1?q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+References: <4A9A3650.3000106@freemail.hu> <20090831135237.64d9442d@pedra.chehab.org> <20090831213531.4eb2c10a@pedra.chehab.org>
+In-Reply-To: <20090831213531.4eb2c10a@pedra.chehab.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200909010859.34027.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On Tuesday 01 September 2009 02:35:31 Mauro Carvalho Chehab wrote:
+> Em Mon, 31 Aug 2009 13:52:37 -0300
+> Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
+> 
+> > Hmm.. maybe Debian docbook packages have some issues with old versions of DocBook?
+> > Anyway, we should upgrade to XML 4.1.2 to use the same DocBook version as used on kernel.
+> > Also, as kernel uses xmlto, I'm working on a patch to port it to the same version/tools
+> > used on kernel. This will make easier for a future integration of the documentation at the
+> > kernel tree.
+> 
+> As promised, I just committed a changeset that upgraded the DocBook version. It
+> will now prefer to use xmlto, since, on my tests, it seemed more reliable than
+> docbook, for html targets. Unfortunately, it didn't work fine for pdf target,
+> so, it will keep using docbook (in fact db2pdf) for generating the pdf version.
+> 
+> Please test. It everything is fine, IMO, we should consider the inclusion of
+> the V4L2 API on kernel (or at least, some parts of the API - since the
+> "changes" chapter doesn't seem much relevant to be on kernel).
 
-I'm trying to use my TerraTec Grabby (em2860 using em28xx module, tip v4l-dvb
-sources). Everything works using mplayer.
+Hi Mauro,
 
-Now I'd like to use the USB videograbber from gstreamer 0.10.24 but I get the
-following error in dmesg:
+I did a quick test of the html output and it seems that table handling is
+hit and miss: e.g. see section 1.9.5.1. In other cases there is very little
+space between columns, e.g. section 3.5, table 3.3.
 
-em28xx #0: vidioc_s_fmt_vid_cap queue busy
+Regarding pdf: do we really want to keep that? The output never looked good.
+I wouldn't shed a tear if we dropped pdf support.
 
-And gstreamer tells me:
-# gst-launch -v v4lsrc
-Setting pipeline to PAUSED ...
-Pipeline is live and does not need PREROLL ...
-ERROR: from element /GstPipeline:pipeline0/GstV4lSrc:v4lsrc0: No supported
-formats found
-Additional debug info:
-gstbasesrc.c(2475): gst_base_src_default_negotiate ():
-/GstPipeline:pipeline0/GstV4lSrc:v4lsrc0:
-This element did not produce valid caps
-ERROR: pipeline doesn't want to preroll.
-Setting pipeline to PAUSED ...
-Setting pipeline to READY ...
-Setting pipeline to NULL ...
-Freeing pipeline ...
+I would also suggest to either remove the revision and changes sections or
+move it to a ChangeLog file instead. Now that we have the spec under revision
+control I do not see much benefit. The only reason why we still need something
+like that is that it provides a log of when certain functionality first
+appeared. A ChangeLog would do just as well.
 
-Does someone know what might be wrong?
+Regards,
 
-Thanks in advance,
-Dick
+	Hans
 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
