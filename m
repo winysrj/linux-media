@@ -1,289 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:15620 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754556AbZILOto (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Sep 2009 10:49:44 -0400
-Received: by qw-out-2122.google.com with SMTP id 9so632979qwb.37
-        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 07:49:47 -0700 (PDT)
-Message-ID: <4AABB503.5030902@gmail.com>
-Date: Sat, 12 Sep 2009 10:49:39 -0400
-From: David Ellingsworth <david@identd.dyndns.org>
-Reply-To: david@identd.dyndns.org
+Received: from perceval.irobotique.be ([92.243.18.41]:59225 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753487AbZIAI4Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2009 04:56:16 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
+Subject: Re: [PATCH take 2] V4L: videobuf-core.c VIDIOC_QBUF should return video buffer flags
+Date: Tue, 1 Sep 2009 10:56:19 +0200
+Cc: linux-media@vger.kernel.org, sailus@maxwell.research.nokia.com,
+	ext Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <200908311458.54406.tuukka.o.toivonen@nokia.com>
+In-Reply-To: <200908311458.54406.tuukka.o.toivonen@nokia.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org, klimov.linux@gmail.com
-Subject: [RFC/RFT 05/10] radio-mr800: simplify access to amradio_device
-Content-Type: multipart/mixed;
- boundary="------------020508010401060503010505"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200909011056.19731.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------020508010401060503010505
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Monday 31 August 2009 13:58:54 Tuukka.O Toivonen wrote:
+> When user space queues a buffer using VIDIOC_QBUF, the kernel
+> should set flags in struct v4l2_buffer as specified in the V4L2
+> documentation.
 
- From 762337020b7744f791fc02fff7eb983e3e4a2346 Mon Sep 17 00:00:00 2001
-From: David Ellingsworth <david@identd.dyndns.org>
-Date: Sat, 12 Sep 2009 00:45:28 -0400
-Subject: [PATCH 05/10] mr800: simplify access to amradio_device
+You forgot your SoB line.
 
-Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
----
- drivers/media/radio/radio-mr800.c |   23 +++++++++++++----------
- 1 files changed, 13 insertions(+), 10 deletions(-)
+> ---
+>  drivers/media/video/videobuf-core.c |    7 +++++++
+>  1 files changed, 7 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/media/video/videobuf-core.c
+> b/drivers/media/video/videobuf-core.c index b7b0584..1322056 100644
+> --- a/drivers/media/video/videobuf-core.c
+> +++ b/drivers/media/video/videobuf-core.c
+> @@ -477,6 +477,7 @@ int videobuf_qbuf(struct videobuf_queue *q,
+>  	struct videobuf_buffer *buf;
+>  	enum v4l2_field field;
+>  	unsigned long flags = 0;
+> +	__u32 buffer_flags = b->flags;
 
-diff --git a/drivers/media/radio/radio-mr800.c 
-b/drivers/media/radio/radio-mr800.c
-index fb99c6b..7305c96 100644
---- a/drivers/media/radio/radio-mr800.c
-+++ b/drivers/media/radio/radio-mr800.c
-@@ -141,6 +141,8 @@ struct amradio_device {
-     int muted;
- };
- 
-+#define vdev_to_amradio(r) container_of(r, struct amradio_device, videodev)
-+
- /* USB Device ID List */
- static struct usb_device_id usb_amradio_device_table[] = {
-     {USB_DEVICE_AND_INTERFACE_INFO(USB_AMRADIO_VENDOR, USB_AMRADIO_PRODUCT,
-@@ -280,7 +282,7 @@ static void usb_amradio_disconnect(struct 
-usb_interface *intf)
- static int vidioc_querycap(struct file *file, void *priv,
-                     struct v4l2_capability *v)
- {
--    struct amradio_device *radio = video_drvdata(file);
-+    struct amradio_device *radio = file->private_data;
- 
-     strlcpy(v->driver, "radio-mr800", sizeof(v->driver));
-     strlcpy(v->card, "AverMedia MR 800 USB FM Radio", sizeof(v->card));
-@@ -294,7 +296,7 @@ static int vidioc_querycap(struct file *file, void 
-*priv,
- static int vidioc_g_tuner(struct file *file, void *priv,
-                 struct v4l2_tuner *v)
- {
--    struct amradio_device *radio = video_get_drvdata(video_devdata(file));
-+    struct amradio_device *radio = file->private_data;
-     int retval;
- 
-     mutex_lock(&radio->lock);
-@@ -345,7 +347,7 @@ unlock:
- static int vidioc_s_tuner(struct file *file, void *priv,
-                 struct v4l2_tuner *v)
- {
--    struct amradio_device *radio = video_get_drvdata(video_devdata(file));
-+    struct amradio_device *radio = file->private_data;
-     int retval;
- 
-     mutex_lock(&radio->lock);
-@@ -388,7 +390,7 @@ unlock:
- static int vidioc_s_frequency(struct file *file, void *priv,
-                 struct v4l2_frequency *f)
- {
--    struct amradio_device *radio = video_get_drvdata(video_devdata(file));
-+    struct amradio_device *radio = file->private_data;
-     int retval;
- 
-     mutex_lock(&radio->lock);
-@@ -415,7 +417,7 @@ unlock:
- static int vidioc_g_frequency(struct file *file, void *priv,
-                 struct v4l2_frequency *f)
- {
--    struct amradio_device *radio = video_get_drvdata(video_devdata(file));
-+    struct amradio_device *radio = file->private_data;
-     int retval = 0;
- 
-     mutex_lock(&radio->lock);
-@@ -450,7 +452,7 @@ static int vidioc_queryctrl(struct file *file, void 
-*priv,
- static int vidioc_g_ctrl(struct file *file, void *priv,
-                 struct v4l2_control *ctrl)
- {
--    struct amradio_device *radio = video_get_drvdata(video_devdata(file));
-+    struct amradio_device *radio = file->private_data;
-     int retval = -EINVAL;
- 
-     mutex_lock(&radio->lock);
-@@ -477,7 +479,7 @@ unlock:
- static int vidioc_s_ctrl(struct file *file, void *priv,
-                 struct v4l2_control *ctrl)
- {
--    struct amradio_device *radio = video_get_drvdata(video_devdata(file));
-+    struct amradio_device *radio = file->private_data;
-     int retval = -EINVAL;
- 
-     mutex_lock(&radio->lock);
-@@ -550,7 +552,7 @@ static int vidioc_s_input(struct file *filp, void 
-*priv, unsigned int i)
- /* open device - amradio_start() and amradio_setfreq() */
- static int usb_amradio_open(struct file *file)
- {
--    struct amradio_device *radio = video_get_drvdata(video_devdata(file));
-+    struct amradio_device *radio = vdev_to_amradio(video_devdata(file));
-     int retval = 0;
- 
-     mutex_lock(&radio->lock);
-@@ -560,6 +562,7 @@ static int usb_amradio_open(struct file *file)
-         goto unlock;
-     }
- 
-+    file->private_data = radio;
-     radio->users = 1;
-     radio->muted = 1;
- 
-@@ -589,7 +592,7 @@ unlock:
- /*close device */
- static int usb_amradio_close(struct file *file)
- {
--    struct amradio_device *radio = video_get_drvdata(video_devdata(file));
-+    struct amradio_device *radio = file->private_data;
-     int retval = 0;
- 
-     mutex_lock(&radio->lock);
-@@ -674,7 +677,7 @@ static const struct v4l2_ioctl_ops 
-usb_amradio_ioctl_ops = {
- 
- static void usb_amradio_video_device_release(struct video_device *videodev)
- {
--    struct amradio_device *radio = video_get_drvdata(videodev);
-+    struct amradio_device *radio = vdev_to_amradio(videodev);
- 
-     v4l2_device_unregister(&radio->v4l2_dev);
- 
+Is that safe ? What if userspace sets bogus flags ? What about hardcoding the 
+flags to V4L2_BUF_FLAG_QUEUED (| V4L2_BUF_FLAG_MAPPED when buf->map is not 
+NULL) instead, like videobuf_status does ?
+
+>  	int retval;
+>
+>  	MAGIC_CHECK(q->int_ops->magic, MAGIC_QTYPE_OPS);
+> @@ -531,6 +532,8 @@ int videobuf_qbuf(struct videobuf_queue *q,
+>  				   "but buffer addr is zero!\n");
+>  			goto done;
+>  		}
+> +		buffer_flags |= V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_QUEUED;
+> +		buffer_flags &= ~V4L2_BUF_FLAG_DONE;
+>  		break;
+>  	case V4L2_MEMORY_USERPTR:
+>  		if (b->length < buf->bsize) {
+> @@ -541,6 +544,8 @@ int videobuf_qbuf(struct videobuf_queue *q,
+>  		    buf->baddr != b->m.userptr)
+>  			q->ops->buf_release(q, buf);
+>  		buf->baddr = b->m.userptr;
+> +		buffer_flags |= V4L2_BUF_FLAG_QUEUED;
+> +		buffer_flags &= ~(V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_DONE);
+>  		break;
+>  	case V4L2_MEMORY_OVERLAY:
+>  		buf->boff = b->m.offset;
+> @@ -564,6 +569,8 @@ int videobuf_qbuf(struct videobuf_queue *q,
+>  		q->ops->buf_queue(q, buf);
+>  		spin_unlock_irqrestore(q->irqlock, flags);
+>  	}
+> +
+> +	b->flags = buffer_flags;
+>  	dprintk(1, "qbuf: succeded\n");
+>  	retval = 0;
+>  	wake_up_interruptible_sync(&q->wait);
+
 -- 
-1.6.3.3
-
-
---------------020508010401060503010505
-Content-Type: text/x-diff;
- name="0005-mr800-simplify-access-to-amradio_device.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="0005-mr800-simplify-access-to-amradio_device.patch"
-
->From 762337020b7744f791fc02fff7eb983e3e4a2346 Mon Sep 17 00:00:00 2001
-From: David Ellingsworth <david@identd.dyndns.org>
-Date: Sat, 12 Sep 2009 00:45:28 -0400
-Subject: [PATCH 05/10] mr800: simplify access to amradio_device
-
-Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
----
- drivers/media/radio/radio-mr800.c |   23 +++++++++++++----------
- 1 files changed, 13 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
-index fb99c6b..7305c96 100644
---- a/drivers/media/radio/radio-mr800.c
-+++ b/drivers/media/radio/radio-mr800.c
-@@ -141,6 +141,8 @@ struct amradio_device {
- 	int muted;
- };
- 
-+#define vdev_to_amradio(r) container_of(r, struct amradio_device, videodev)
-+
- /* USB Device ID List */
- static struct usb_device_id usb_amradio_device_table[] = {
- 	{USB_DEVICE_AND_INTERFACE_INFO(USB_AMRADIO_VENDOR, USB_AMRADIO_PRODUCT,
-@@ -280,7 +282,7 @@ static void usb_amradio_disconnect(struct usb_interface *intf)
- static int vidioc_querycap(struct file *file, void *priv,
- 					struct v4l2_capability *v)
- {
--	struct amradio_device *radio = video_drvdata(file);
-+	struct amradio_device *radio = file->private_data;
- 
- 	strlcpy(v->driver, "radio-mr800", sizeof(v->driver));
- 	strlcpy(v->card, "AverMedia MR 800 USB FM Radio", sizeof(v->card));
-@@ -294,7 +296,7 @@ static int vidioc_querycap(struct file *file, void *priv,
- static int vidioc_g_tuner(struct file *file, void *priv,
- 				struct v4l2_tuner *v)
- {
--	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
-+	struct amradio_device *radio = file->private_data;
- 	int retval;
- 
- 	mutex_lock(&radio->lock);
-@@ -345,7 +347,7 @@ unlock:
- static int vidioc_s_tuner(struct file *file, void *priv,
- 				struct v4l2_tuner *v)
- {
--	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
-+	struct amradio_device *radio = file->private_data;
- 	int retval;
- 
- 	mutex_lock(&radio->lock);
-@@ -388,7 +390,7 @@ unlock:
- static int vidioc_s_frequency(struct file *file, void *priv,
- 				struct v4l2_frequency *f)
- {
--	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
-+	struct amradio_device *radio = file->private_data;
- 	int retval;
- 
- 	mutex_lock(&radio->lock);
-@@ -415,7 +417,7 @@ unlock:
- static int vidioc_g_frequency(struct file *file, void *priv,
- 				struct v4l2_frequency *f)
- {
--	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
-+	struct amradio_device *radio = file->private_data;
- 	int retval = 0;
- 
- 	mutex_lock(&radio->lock);
-@@ -450,7 +452,7 @@ static int vidioc_queryctrl(struct file *file, void *priv,
- static int vidioc_g_ctrl(struct file *file, void *priv,
- 				struct v4l2_control *ctrl)
- {
--	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
-+	struct amradio_device *radio = file->private_data;
- 	int retval = -EINVAL;
- 
- 	mutex_lock(&radio->lock);
-@@ -477,7 +479,7 @@ unlock:
- static int vidioc_s_ctrl(struct file *file, void *priv,
- 				struct v4l2_control *ctrl)
- {
--	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
-+	struct amradio_device *radio = file->private_data;
- 	int retval = -EINVAL;
- 
- 	mutex_lock(&radio->lock);
-@@ -550,7 +552,7 @@ static int vidioc_s_input(struct file *filp, void *priv, unsigned int i)
- /* open device - amradio_start() and amradio_setfreq() */
- static int usb_amradio_open(struct file *file)
- {
--	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
-+	struct amradio_device *radio = vdev_to_amradio(video_devdata(file));
- 	int retval = 0;
- 
- 	mutex_lock(&radio->lock);
-@@ -560,6 +562,7 @@ static int usb_amradio_open(struct file *file)
- 		goto unlock;
- 	}
- 
-+	file->private_data = radio;
- 	radio->users = 1;
- 	radio->muted = 1;
- 
-@@ -589,7 +592,7 @@ unlock:
- /*close device */
- static int usb_amradio_close(struct file *file)
- {
--	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
-+	struct amradio_device *radio = file->private_data;
- 	int retval = 0;
- 
- 	mutex_lock(&radio->lock);
-@@ -674,7 +677,7 @@ static const struct v4l2_ioctl_ops usb_amradio_ioctl_ops = {
- 
- static void usb_amradio_video_device_release(struct video_device *videodev)
- {
--	struct amradio_device *radio = video_get_drvdata(videodev);
-+	struct amradio_device *radio = vdev_to_amradio(videodev);
- 
- 	v4l2_device_unregister(&radio->v4l2_dev);
- 
--- 
-1.6.3.3
-
-
---------------020508010401060503010505--
+Laurent Pinchart
