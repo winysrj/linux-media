@@ -1,141 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2f.orange.fr ([80.12.242.151]:50855 "EHLO smtp2f.orange.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751292AbZIHQSG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Sep 2009 12:18:06 -0400
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2f14.orange.fr (SMTP Server) with ESMTP id E874080000A2
-	for <linux-media@vger.kernel.org>; Tue,  8 Sep 2009 18:18:06 +0200 (CEST)
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2f14.orange.fr (SMTP Server) with ESMTP id DB01A80000A7
-	for <linux-media@vger.kernel.org>; Tue,  8 Sep 2009 18:18:06 +0200 (CEST)
-Received: from [192.168.1.11] (ANantes-551-1-19-82.w92-135.abo.wanadoo.fr [92.135.50.82])
-	by mwinf2f14.orange.fr (SMTP Server) with ESMTP id 7730A80000A2
-	for <linux-media@vger.kernel.org>; Tue,  8 Sep 2009 18:18:06 +0200 (CEST)
-Message-ID: <4AA683BD.6070601@gmail.com>
-Date: Tue, 08 Sep 2009 18:18:05 +0200
-From: Morvan Le Meut <mlemeut@gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:33198 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750938AbZIADQi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Aug 2009 23:16:38 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 1 Sep 2009 08:46:28 +0530
+Subject: RE: Behavior of ENUM_STD/G_STD ioctl
+Message-ID: <19F8576C6E063C45BE387C64729E73940436A4AA1D@dbde02.ent.ti.com>
+References: <19F8576C6E063C45BE387C64729E73940436A4A9FF@dbde02.ent.ti.com>
+ <200908312243.50089.hverkuil@xs4all.nl>
+In-Reply-To: <200908312243.50089.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: (Saa7134) Re: ADS-Tech Instant TV PCI, no remote support
-References: <4AA53C05.10203@gmail.com> <4AA61508.9040506@gmail.com> <op.uzxmzlj86dn9rq@crni> <4AA62C38.3050208@gmail.com> <4AA63434.1010709@gmail.com>
-In-Reply-To: <4AA63434.1010709@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Morvan Le Meut a écrit :
-> Morvan Le Meut a écrit :
->> Samuel Rakitnican a écrit :
->>> On Tue, 08 Sep 2009 10:25:44 +0200, Morvan Le Meut 
->>> <mlemeut@gmail.com> wrote:
->>>
->>>> Morvan Le Meut a écrit :
->>>>> Hello all
->>>>> This is an old card i bough by error ( wanted the DVB-T version ) 
->>>>> but i tried it and i see a small problem :
->>>>> The remote isn't supported. ( If it is, i wonder why my computer 
->>>>> don't see it )
->>>>>
->>>>> I found an old patch to add remote support to it here :
->>>>>
->>>>> http://tfpsly.free.fr/Files/Instant_TV_PCI_remote/saa7134_patch_for_AdsInstantTVPCI.gz 
->>>>> ( The webpage talking about it is 
->>>>> http://tfpsly.free.fr/francais/index.html?url=http://tfpsly.free.fr/Files/Instant_TV_PCI_remote/index.html 
->>>>> in french )
->>>>>
->>>>> But since i found out long ago that i shouldn't even think of 
->>>>> altering a source file, could someone adapt that old patch to 
->>>>> correct this ? ( should be quick, i guess )
->>>>>
->>>>> Thanks.
->>>>>
->>>>>
->>>>> -- To unsubscribe from this list: send the line "unsubscribe 
->>>>> linux-media" in
->>>>> the body of a message to majordomo@vger.kernel.org
->>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>>
->>>> Well, i'm trying it myself ( by hand, since the patch looks old ) :
->>>> adding
->>>> case SAA7134_BOARD_ADS_INSTANT_TV: at line 6659 in saa7134-cards.c
->>>> (before "dev->has_remote = SAA7134_REMOTE_GPIO;" )
->>>> is that correct ?
->>>> but from the diff file i should add what seems to be the remote 
->>>> keycode in saa7134-input.c
->>>> "+static IR_KEYTAB_TYPE AdsInstantTvPci_codes[IR_KEYTAB_SIZE] = {
->>>> +    // Buttons are in the top to bottom physical order
->>>> +    // Some buttons return the same raw code, so they are 
->>>> currently disabled
->>>> +    [ 127] = KEY_FINANCE,   // "release all keys" code - prevent 
->>>> repeating enlessly a key
->>>> +   +    [ 27 ] = KEY_POWER,"
->>>> ( and so on )
->>>>  Since i didn't see other keycodes for the other cards, i guess 
->>>> this is wrong, so where should i add them ?
->>>> ( i barely understand what i am doing right now :p )
->>>>
->>>> Thanks
->>>
->>> Hi Morvan,
->>>
->>> I'm not a developer, however I've done someting similar in the past...
->>>
->>> This "keycodes" looks pretty strange to me, but then again I'm not a 
->>> developer.
->>>
->>> Just add it by hand and compile it, and install it.
->>>
->>> After successful load of all new modules, you should get some 
->>> response in terminal, or in dmesg output like "Unknown key..." if 
->>> keymap table is wrong by pressing buttons on remote. If this gpio's 
->>> are correct:
->>>
->>> +        mask_keycode = 0xffffff;
->>> +        mask_keyup   = 0xffffff;
->>> +        mask_keydown = 0xffffff;
->>> +        polling      = 50; // ms
->>>
->> Still working on it, i found out where thoses keycodes should go :
->> ir-keymaps.c
->> i'm not a developer either, but i tried to learn C a few years ago
->> so i'm not completly lost, i just can't understand what all that code 
->> is doing ...
->> But it is strange that such an old card had this lack of remote 
->> support go unnoticed.
->>
->> ( I really have no luck when it come to TV cards : first, my PC Basic 
->> EC168 card ( tnt usb basic v5 ) doesn't work where it should, then my 
->> HVR-1120 works but not with mythtv and now the remote i wanted to use 
->> isn't supported :D )
->>
->>
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe 
->> linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> /home/momo/TNT/v4l-dvb/v4l/saa7134-input.c: In function
-> 'saa7134_input_init1':
-> /home/momo/TNT/v4l-dvb/v4l/saa7134-input.c:655: error:
-> 'AdsInstantTvPci_codes' undeclared (first use in this function)
->
-> guess i missed something, i'll have to wait for someone to correct it :)
->
->
->
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-Since it doesn't work with thoses keycodes, i'm trying it with 
-"ir_codes_adstech_dvb_t_pci". I'm sure it won't work ( it would be toot 
-easy otherwise :D ) but since the remote looks the same ...
-If by chance it work, i'll try to better document what i did for someone 
-to write a patch. ( Or at least, to serve as a reminder the next time 
-i'll encounter the problem :) )
 
+> -----Original Message-----
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> Sent: Tuesday, September 01, 2009 2:14 AM
+> To: Hiremath, Vaibhav
+> Cc: linux-media@vger.kernel.org
+> Subject: Re: Behavior of ENUM_STD/G_STD ioctl
+> 
+> On Monday 31 August 2009 20:26:29 Hiremath, Vaibhav wrote:
+> > Hi,
+> >
+> > I am working on OMAP3517 which has CCDC module which is almost
+> similar to Davinci (DM6446). I have ported davinci capture driver
+> (Submitted by Murali) to OMAP3517, and I am almost done with it,
+> except some hardware related issues (which requires some follow-ups
+> with HW team).
+> >
+> > During this I came across one observation, in vpfe_camera.c file
+> which is bridge driver assumes the default standard without
+> looking/referring to underneath sub-device (It choose index 0 in the
+> v4l2_std array maintained by bridge driver). If I understand
+> correctly as per V4L2 Spec, the driver does not need to implement
+> enum_std/g_std callback functions, since V4L2 layer handles this and
+> returns these fields respectively.
+> 
+> enum_std is handled by the core based on the tvnorms field. I
+> strongly
+> recommend implementing g_std at all times rather than using the
+> default g_std
+> handling. The v4l core is not smart enough to know that video and
+> vbi device
+> nodes share the same std, so changing the std on a video node will
+> leave it
+> unchanged on the vbi node. Much better to do it yourself.
+> 
+> So don't set current_norm and supply a g_std instead.
+> 
+[Hiremath, Vaibhav] Understood and agreed.
+
+> >
+> > Now the question I have here is, how enum_std/g_std, to be more
+> specific tvnorm/current_norm should be handled by driver?
+> >
+> > 1) During probe (or open) bridge driver should get the current
+> standard which is being active from the underneath sub-device and
+> update the fields tvnorm/current_norm accordingly. After that
+> whenever application call enum_std/g_std the V4L2 layer can handle
+> it and for s_std anyway bridge driver passing it to sub device.
+> >
+> > 2) Application must call s_std and that's where all the path will
+> get synchronized (what sub-device has with what V4L2 layer has
+> against bridge driver)
+> >
+> > I believe driver should follow option 1, especially in our case
+> (TVP5146 video decoder) where it has a capability to lock the signal
+> and return the status of detected standard.
+> >
+> > Can anybody conform how this should be handled?
+> 
+> There is no common method to decide on the initial standard. In many
+> cases the
+> hardware is standard specific: i.e. it either supports PAL/SECAM or
+> NTSC. This
+> is normally decided by the tuner since most tuners are either
+> PAL/SECAM or NTSC
+> but not both. In that case you pick NTSC-M or PAL-BGH as initial
+> standard,
+> depending on the installed tuner.
+> 
+> If there is no tuner or if it is a world-wide tuner, then most just
+> pick a
+> standard. Generally based on whether the developer lives in the US
+> or in
+> Europe :-)
+> 
+> I don't believe that any driver attempts to query the standard on an
+> input,
+> but that would be OK too, although it is perhaps a bit over the top.
+[Hiremath, Vaibhav] Hans, I agree with the point that we should assume one default and expects application to call s_std, but I think more or less that should be driver by how much capability your tuner/decoder provides.
+But in cases where you have tuner/decoder which can detect the standard over input then why not to use that feature. And if there is not standard detected any way we fall down to default standard.
+
+With this we can make sure that V4L2 layer (tvnorms/current_norms), bridge driver and tuner/decoder are talking on same detected standard from beginning itself.
+
+Thanks,
+Vaibhav
+
+> And if
+> it doesn't find a signal there then you still need to make a
+> basically random
+> choice.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
