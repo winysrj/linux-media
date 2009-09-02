@@ -1,108 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ip78-183-211-87.adsl2.static.versatel.nl ([87.211.183.78]:39278
-	"EHLO god.dyndns.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752168AbZINAPC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2009 20:15:02 -0400
-Date: Mon, 14 Sep 2009 02:14:47 +0200
-From: spam@systol-ng.god.lan
-To: Michael Krufky <mkrufky@kernellabs.com>
-Cc: Henk.Vergonet@gmail.com, linux-media@vger.kernel.org
-Subject: [PATCH] tda18271 add FM filter selction + minor fixes
-Message-ID: <20090914001447.GA15770@systol-ng.god.lan>
-Reply-To: Henk.Vergonet@gmail.com
-References: <13c90c570909070123r2ba1f5f6w2b288703f5e98738@mail.gmail.com> <13c90c570909070127j11ae6ee2w2aa677529096f820@mail.gmail.com> <20090907124934.GA8339@systol-ng.god.lan> <37219a840909070718q47890f5bgbf76a00ea8826880@mail.gmail.com> <20090907151809.GA12556@systol-ng.god.lan> <37219a840909070912h3678fb2cm94102d7437bec5df@mail.gmail.com> <20090908212733.GA19438@systol-ng.god.lan> <37219a840909081457u610b9c65le6141e79567ab629@mail.gmail.com> <20090909140147.GA24722@systol-ng.god.lan> <303a8ee30909090808u46acfb49l760d660f8a28f503@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:59842 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752407AbZIBOYr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Sep 2009 10:24:47 -0400
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
+	Laurent Pinchart <laurent.pinchart@skynet.be>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Date: Wed, 2 Sep 2009 09:28:42 -0500
+Subject: RE: [PATCH 1/3] v4l: Add a 10-bit monochrome and missing 8- and
+ 10-bit Bayer fourcc codes
+Message-ID: <A24693684029E5489D1D202277BE89444BFBB05C@dlee02.ent.ti.com>
+References: <Pine.LNX.4.64.0909021416520.6326@axis700.grange>
+ <Pine.LNX.4.64.0909021429000.6326@axis700.grange>
+ <A24693684029E5489D1D202277BE89444BFBAF90@dlee02.ent.ti.com>
+ <Pine.LNX.4.64.0909021538390.6326@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0909021538390.6326@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="EVF5PPMfhYS0aIcm"
-Content-Disposition: inline
-In-Reply-To: <303a8ee30909090808u46acfb49l760d660f8a28f503@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---EVF5PPMfhYS0aIcm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
+> -----Original Message-----
+> From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+> Sent: Wednesday, September 02, 2009 8:41 AM
+> To: Aguirre Rodriguez, Sergio Alberto
+> Cc: Linux Media Mailing List; Hans Verkuil; Paulius Zaleckas; Robert
+> Jarzmik; Kuninori Morimoto; Laurent Pinchart; Karicheri, Muralidharan
+> Subject: RE: [PATCH 1/3] v4l: Add a 10-bit monochrome and missing 8- and
+> 10-bit Bayer fourcc codes
+> 
+> On Wed, 2 Sep 2009, Aguirre Rodriguez, Sergio Alberto wrote:
+> 
+> >
+> >
+> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> > owner@vger.kernel.org] On Behalf Of Guennadi Liakhovetski
+> > Sent: Wednesday, September 02, 2009 7:34 AM
+> > >
+> > > The 16-bit monochrome fourcc code has been previously abused for a 10-
+> bit
+> > > format, add a new 10-bit code instead. Also add missing 8- and 10-bit
+> > > Bayer
+> > > fourcc codes for completeness.
+> > >
+> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > ---
+> > >
+> > > Indeed, this is not directly related to the image-bus API, but I'd
+> like to
+> > > have these codes available for completeness and also to stop abusing
+> > > 16-bit codes for 10-bit formats.
+> > >
+> > >  include/linux/videodev2.h |    7 ++++++-
+> > >  1 files changed, 6 insertions(+), 1 deletions(-)
+> > >
+> > > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > > index 9d9a615..ffea559 100644
+> > > --- a/include/linux/videodev2.h
+> > > +++ b/include/linux/videodev2.h
+> > > @@ -293,6 +293,7 @@ struct v4l2_pix_format {
+> > >
+> > >  /* Grey formats */
+> > >  #define V4L2_PIX_FMT_GREY    v4l2_fourcc('G', 'R', 'E', 'Y') /*  8
+> > > Greyscale     */
+> > > +#define V4L2_PIX_FMT_Y10     v4l2_fourcc('Y', '1', '0', ' ') /* 10
+> > > Greyscale     */
+> > >  #define V4L2_PIX_FMT_Y16     v4l2_fourcc('Y', '1', '6', ' ') /* 16
+> > > Greyscale     */
+> > >
+> > >  /* Palette formats */
+> > > @@ -328,7 +329,11 @@ struct v4l2_pix_format {
+> > >  #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B', 'A', '8', '1') /*  8
+> > > BGBG.. GRGR.. */
+> > >  #define V4L2_PIX_FMT_SGBRG8  v4l2_fourcc('G', 'B', 'R', 'G') /*  8
+> > > GBGB.. RGRG.. */
+> > >  #define V4L2_PIX_FMT_SGRBG8  v4l2_fourcc('G', 'R', 'B', 'G') /*  8
+> > > GRGR.. BGBG.. */
+> > > -#define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B', 'A', '1', '0') /* 10bit
+> raw
+> > > bayer */
+> > > +#define V4L2_PIX_FMT_SRGGB8  v4l2_fourcc('R', 'G', 'G', 'B') /*  8
+> > > RGRG.. GBGB.. */
+> > > +#define V4L2_PIX_FMT_SBGGR10 v4l2_fourcc('B', 'G', '1', '0') /* 10
+> > > BGBG.. GRGR.. */
+> > > +#define V4L2_PIX_FMT_SGBRG10 v4l2_fourcc('G', 'B', '1', '0') /* 10
+> > > GBGB.. RGRG.. */
+> > > +#define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B', 'A', '1', '0') /* 10
+> > > GRGR.. BGBG.. */
+> > > +#define V4L2_PIX_FMT_SRGGB10 v4l2_fourcc('R', 'G', '1', '0') /* 10
+> > > RGRG.. GBGB.. */
+> >
+> > I tried adding these same RAW Bayer 10-bit codes, but I missed
+> > documentation changes. (Perhaphs you should do the same)
+> 
+> Indeed, I forgot about it, sorry:-( I can mention in a next revision, that
+> you posted an earlier version of this patch, and will add documentation as
+> Hans commented on your patch.
 
-This patch adds support for FM filter selection. The tda18271 has two rf
-inputs RF_IN (45-864 MHz) and FM_IN (65-108 MHz). The code automatically
-enables the antialiasing filter for radio reception and depending on the
-FM input selected configures EB23 register.
+Hey, no problem. For me its better if you can do that for me :)
 
-Additional fixes:
-- Fixed the temerature comensation, see revision history of TDA18271HD_4
-  spec.
-- Minor cosmetic change in the tda18271_rf_band[]
-- Fixed one value and removed a duplicate in tda18271_cid_target[]
+I'll add my Signed-off-by in the next revision of this patch (if you want to, of course).
 
-Signed-off-by: Henk.Vergonet@gmail.com
+Regards,
+Sergio
+> 
+> Thanks
+> Guennadi
+> 
+> > Actually, you responded on that thread :)
+> > 	http://www.spinics.net/lists/linux-media/msg08882.html
+> >
+> > I had to postpone that patch, since I'm currently being dragged to some
+> > internal high priority issues. But if you can do it, I'm ok with that :)
+> >
+> > Regards,
+> > Sergio
+> >
+> > >  	/* 10bit raw bayer DPCM compressed to 8 bits */
+> > >  #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
+> > >  	/*
+> > > --
+> > > 1.6.2.4
+> 
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
 
-
---EVF5PPMfhYS0aIcm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=tda18271-add-FM-filter-selection
-
-diff -r 2b49813f8482 linux/drivers/media/common/tuners/tda18271-fe.c
---- a/linux/drivers/media/common/tuners/tda18271-fe.c	Thu Sep 03 09:06:34 2009 -0300
-+++ b/linux/drivers/media/common/tuners/tda18271-fe.c	Mon Sep 14 01:45:49 2009 +0200
-@@ -99,6 +99,22 @@
- 	if (tda_fail(ret))
- 		goto fail;
- 
-+	/* update FM filter selection */
-+	if (map->std == 0) {
-+		/* std == FM radio */
-+		regs[R_EB23] |=  0x06; /* 1.5 Mhz cut-off freq */
-+	} else if (map->fm_rfn) {
-+		/* antenna FM_IN, std != FM radio */
-+		regs[R_EB23] |=  0x04; /* set FORCELP */
-+		regs[R_EB23] &= ~0x02; /* clear LP_FC */
-+	} else {
-+		/* antenna RF_IN, std != FM radio */
-+		regs[R_EB23] &= ~0x06; /* clear FORCELP, LP_FC */
-+	}
-+	ret = tda18271_write_regs(fe, R_EB23, 1);
-+	if (tda_fail(ret))
-+		goto fail;
-+
- 	/* --------------------------------------------------------------- */
- 
- 	/* disable Power Level Indicator */
-@@ -272,7 +288,7 @@
- 	tda18271_lookup_map(fe, RF_CAL_DC_OVER_DT, &freq, &dc_over_dt);
- 
- 	/* calculate temperature compensation */
--	rfcal_comp = dc_over_dt * (tm_current - priv->tm_rfcal);
-+	rfcal_comp = dc_over_dt * (tm_current - priv->tm_rfcal) / 1000;
- 
- 	regs[R_EB14] = approx + rfcal_comp;
- 	ret = tda18271_write_regs(fe, R_EB14, 1);
-diff -r 2b49813f8482 linux/drivers/media/common/tuners/tda18271-maps.c
---- a/linux/drivers/media/common/tuners/tda18271-maps.c	Thu Sep 03 09:06:34 2009 -0300
-+++ b/linux/drivers/media/common/tuners/tda18271-maps.c	Mon Sep 14 01:45:49 2009 +0200
-@@ -229,8 +229,8 @@
- static struct tda18271_map tda18271_rf_band[] = {
- 	{ .rfmax =  47900, .val = 0x00 },
- 	{ .rfmax =  61100, .val = 0x01 },
-+	{ .rfmax = 121200, .val = 0x02 },
- /*	{ .rfmax = 152600, .val = 0x02 }, */
--	{ .rfmax = 121200, .val = 0x02 },
- 	{ .rfmax = 164700, .val = 0x03 },
- 	{ .rfmax = 203500, .val = 0x04 },
- 	{ .rfmax = 457800, .val = 0x05 },
-@@ -962,10 +962,10 @@
- static struct tda18271_cid_target_map tda18271_cid_target[] = {
- 	{ .rfmax =  46000, .target = 0x04, .limit =  1800 },
- 	{ .rfmax =  52200, .target = 0x0a, .limit =  1500 },
--	{ .rfmax =  79100, .target = 0x01, .limit =  4000 },
-+	{ .rfmax =  70100, .target = 0x01, .limit =  4000 },
-+/*	{ .rfmax =  79100, .target = 0x01, .limit =  4000 },	*/
- 	{ .rfmax = 136800, .target = 0x18, .limit =  4000 },
- 	{ .rfmax = 156700, .target = 0x18, .limit =  4000 },
--	{ .rfmax = 156700, .target = 0x18, .limit =  4000 },
- 	{ .rfmax = 186250, .target = 0x0a, .limit =  4000 },
- 	{ .rfmax = 230000, .target = 0x0a, .limit =  4000 },
- 	{ .rfmax = 345000, .target = 0x18, .limit =  4000 },
-
---EVF5PPMfhYS0aIcm--
