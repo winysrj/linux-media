@@ -1,97 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:36755 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750717AbZIXEpg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Sep 2009 00:45:36 -0400
-Date: Wed, 23 Sep 2009 23:45:40 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: dean <dean@sensoray.com>
-cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] s2255drv: Don't conditionalize video buffer completion
- on waiting processes
-In-Reply-To: <4ABAADEF.1030309@sensoray.com>
-Message-ID: <alpine.DEB.1.10.0909232341010.4579@cnc.isely.net>
-References: <alpine.DEB.1.10.0909231603210.29815@cnc.isely.net> <4ABAADEF.1030309@sensoray.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:39129 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752012AbZIBNlU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Sep 2009 09:41:20 -0400
+Date: Wed, 2 Sep 2009 15:41:29 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
+	Laurent Pinchart <laurent.pinchart@skynet.be>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Subject: RE: [PATCH 1/3] v4l: Add a 10-bit monochrome and missing 8- and
+ 10-bit Bayer fourcc codes
+In-Reply-To: <A24693684029E5489D1D202277BE89444BFBAF90@dlee02.ent.ti.com>
+Message-ID: <Pine.LNX.4.64.0909021538390.6326@axis700.grange>
+References: <Pine.LNX.4.64.0909021416520.6326@axis700.grange>
+ <Pine.LNX.4.64.0909021429000.6326@axis700.grange>
+ <A24693684029E5489D1D202277BE89444BFBAF90@dlee02.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 23 Sep 2009, dean wrote:
-
-> This seems ok.  This portion of code was based on vivi.c, so that might be
-> checked also.
-
-Yes, after seeing the mention of vivi in this driver I looked at vivi.c 
-and saw the same construct there.  Though I'm willing to bet that it's 
-just as incorrect there as it was here, I haven't tested or otherwise 
-used vivi so I wasn't prepared to recommend a patch for it as well.
-
-Probably vivi should be fixed, since it is after all intended as a model 
-for other v4l driver developers.  (And are there any other drivers based 
-on vivi which have inherited this bug as well?)
-
-  -Mike
-
+On Wed, 2 Sep 2009, Aguirre Rodriguez, Sergio Alberto wrote:
 
 > 
 > 
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Guennadi Liakhovetski
+> Sent: Wednesday, September 02, 2009 7:34 AM
+> > 
+> > The 16-bit monochrome fourcc code has been previously abused for a 10-bit
+> > format, add a new 10-bit code instead. Also add missing 8- and 10-bit
+> > Bayer
+> > fourcc codes for completeness.
+> > 
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > ---
+> > 
+> > Indeed, this is not directly related to the image-bus API, but I'd like to
+> > have these codes available for completeness and also to stop abusing
+> > 16-bit codes for 10-bit formats.
+> > 
+> >  include/linux/videodev2.h |    7 ++++++-
+> >  1 files changed, 6 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > index 9d9a615..ffea559 100644
+> > --- a/include/linux/videodev2.h
+> > +++ b/include/linux/videodev2.h
+> > @@ -293,6 +293,7 @@ struct v4l2_pix_format {
+> > 
+> >  /* Grey formats */
+> >  #define V4L2_PIX_FMT_GREY    v4l2_fourcc('G', 'R', 'E', 'Y') /*  8
+> > Greyscale     */
+> > +#define V4L2_PIX_FMT_Y10     v4l2_fourcc('Y', '1', '0', ' ') /* 10
+> > Greyscale     */
+> >  #define V4L2_PIX_FMT_Y16     v4l2_fourcc('Y', '1', '6', ' ') /* 16
+> > Greyscale     */
+> > 
+> >  /* Palette formats */
+> > @@ -328,7 +329,11 @@ struct v4l2_pix_format {
+> >  #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B', 'A', '8', '1') /*  8
+> > BGBG.. GRGR.. */
+> >  #define V4L2_PIX_FMT_SGBRG8  v4l2_fourcc('G', 'B', 'R', 'G') /*  8
+> > GBGB.. RGRG.. */
+> >  #define V4L2_PIX_FMT_SGRBG8  v4l2_fourcc('G', 'R', 'B', 'G') /*  8
+> > GRGR.. BGBG.. */
+> > -#define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B', 'A', '1', '0') /* 10bit raw
+> > bayer */
+> > +#define V4L2_PIX_FMT_SRGGB8  v4l2_fourcc('R', 'G', 'G', 'B') /*  8
+> > RGRG.. GBGB.. */
+> > +#define V4L2_PIX_FMT_SBGGR10 v4l2_fourcc('B', 'G', '1', '0') /* 10
+> > BGBG.. GRGR.. */
+> > +#define V4L2_PIX_FMT_SGBRG10 v4l2_fourcc('G', 'B', '1', '0') /* 10
+> > GBGB.. RGRG.. */
+> > +#define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B', 'A', '1', '0') /* 10
+> > GRGR.. BGBG.. */
+> > +#define V4L2_PIX_FMT_SRGGB10 v4l2_fourcc('R', 'G', '1', '0') /* 10
+> > RGRG.. GBGB.. */
 > 
-> Mike Isely wrote:
-> > # HG changeset patch
-> > # User Mike Isely <isely@pobox.com>
-> > # Date 1253739604 18000
-> > # Node ID 522a74147753ba59c7f45e368439928090a286f2
-> > # Parent  e349075171ddf939381fad432c23c1269abc4899
-> > s2255drv: Don't conditionalize video buffer completion on waiting processes
-> > 
-> > From: Mike Isely <isely@pobox.com>
-> > 
-> > The s2255 driver had logic which aborted processing of a video frame
-> > if there was no process waiting on the video buffer in question.  That
-> > simply doesn't work when the application is doing things in an
-> > asynchronous manner.  If the application went to the trouble to queue
-> > the buffer in the first place, then the driver should always attempt
-> > to complete it - even if the application at that moment has its
-> > attention turned elsewhere.  Applications which always blocked waiting
-> > for I/O on the capture device would not have been affected by this.
-> > Applications which *mostly* blocked waiting for I/O on the capture
-> > device probably only would have been somewhat affected (frame lossage,
-> > at a rate which goes up as the application blocks less).  Applications
-> > which never blocked on the capture device (e.g. polling only) however
-> > would never have been able to receive any video frames, since in that
-> > case this "is anyone waiting on this?" check on the buffer never would
-> > have evalutated true.  This patch just deletes that harmful check
-> > against the buffer's wait queue.
-> > 
-> > Priority: high
-> > 
-> > Signed-off-by: Mike Isely <isely@pobox.com>
-> > 
-> > diff -r e349075171dd -r 522a74147753 linux/drivers/media/video/s2255drv.c
-> > --- a/linux/drivers/media/video/s2255drv.c	Mon Sep 21 10:42:22 2009 -0500
-> > +++ b/linux/drivers/media/video/s2255drv.c	Wed Sep 23 16:00:04 2009 -0500
-> > @@ -599,11 +599,6 @@
-> >  	buf = list_entry(dma_q->active.next,
-> >  			 struct s2255_buffer, vb.queue);
-> >  -	if (!waitqueue_active(&buf->vb.done)) {
-> > -		/* no one active */
-> > -		rc = -1;
-> > -		goto unlock;
-> > -	}
-> >  	list_del(&buf->vb.queue);
-> >  	do_gettimeofday(&buf->vb.ts);
-> >  	dprintk(100, "[%p/%d] wakeup\n", buf, buf->vb.i);
-> > 
-> > 
-> >   
-> 
-> 
+> I tried adding these same RAW Bayer 10-bit codes, but I missed 
+> documentation changes. (Perhaphs you should do the same)
 
--- 
+Indeed, I forgot about it, sorry:-( I can mention in a next revision, that 
+you posted an earlier version of this patch, and will add documentation as 
+Hans commented on your patch.
 
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+Thanks
+Guennadi
+
+> Actually, you responded on that thread :)
+> 	http://www.spinics.net/lists/linux-media/msg08882.html
+> 
+> I had to postpone that patch, since I'm currently being dragged to some 
+> internal high priority issues. But if you can do it, I'm ok with that :)
+> 
+> Regards,
+> Sergio
+> 
+> >  	/* 10bit raw bayer DPCM compressed to 8 bits */
+> >  #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
+> >  	/*
+> > --
+> > 1.6.2.4
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
