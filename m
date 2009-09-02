@@ -1,78 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1812 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751947AbZIXFly (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Sep 2009 01:41:54 -0400
-Received: from pao.localnet (72-254-98-227.client.stsn.net [72.254.98.227])
-	(authenticated bits=0)
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id n8O5ft0x015287
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 24 Sep 2009 07:41:57 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: V4L-DVB Summit Day 1
-Date: Wed, 23 Sep 2009 22:39:19 -0700
+Received: from smtp27.orange.fr ([80.12.242.95]:31500 "EHLO smtp27.orange.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751709AbZIBTeL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Sep 2009 15:34:11 -0400
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2714.orange.fr (SMTP Server) with ESMTP id 6E3461C000A8
+	for <linux-media@vger.kernel.org>; Wed,  2 Sep 2009 21:34:12 +0200 (CEST)
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2714.orange.fr (SMTP Server) with ESMTP id 60C7B1C00051
+	for <linux-media@vger.kernel.org>; Wed,  2 Sep 2009 21:34:12 +0200 (CEST)
+Received: from [192.168.1.11] (ANantes-551-1-19-82.w92-135.abo.wanadoo.fr [92.135.50.82])
+	by mwinf2714.orange.fr (SMTP Server) with ESMTP id 0E4571C000A8
+	for <linux-media@vger.kernel.org>; Wed,  2 Sep 2009 21:34:11 +0200 (CEST)
+Message-ID: <4A9EC8B3.10904@gmail.com>
+Date: Wed, 02 Sep 2009 21:34:11 +0200
+From: Morvan Le Meut <mlemeut@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+To: linux-media@vger.kernel.org
+Subject: (EC168) PC Basic TNT USB Basic V5 ( France ) recognized but no channel
+ tuning
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200909232239.20105.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hello
+I've just bough that and it seems that the EC168 driver can't work with
+it ( yet )
+The PCB identifies itself as a ForwardVideo "EzTV818_D.". Work with a
+EC168 and a MXL5003S ( no doubt about it, but it is barely legible, and
+since i've no camera, no PCB picture available ). ( and the EC168BDA.bin
+firmware is provided on the CD )
 
-As most of you know I organized a v4l-dvb summit (well, really a v4l2 summit 
-as there were no dvb topics to discuss) during the Linux Plumbers Conference 
-in Portland. This summit will take all three days of this conference, and I 
-intend to make a short report at the end of each day.
+A typical dmesg for it :
 
-First of all I want to thank everyone who attended this first day of the 
-summit: we had a great turn-out with seven core v4l-dvb developers, three TI 
-engineers, two Nokia engineers, two engineers from Samsung and an Intel 
-engineer. I know I've forgotten someone, I'll try to fix that tomorrow.
 
-But it meant that the main SoC vendors with complex video hardware were well 
-represented.
+[19715.764919] usb 2-1.1: new high speed USB device using ehci_hcd and
+address 8
+[19715.873356] usb 2-1.1: configuration #1 chosen from 1 choice
+[19715.878085] dvb-usb: found a 'E3C EC168 DVB-T USB2.0 reference
+design' in cold state, will try to load a firmware
+[19715.878096] firmware: requesting dvb-usb-ec168.fw
+[19715.929889] dvb-usb: downloading firmware from file 'dvb-usb-ec168.fw'
+[19715.985884] dvb-usb: found a 'E3C EC168 DVB-T USB2.0 reference
+design' in warm state.
+[19715.985958] dvb-usb: will pass the complete MPEG2 transport stream to
+the software demuxer.
+[19715.986487] DVB: registering new adapter (E3C EC168 DVB-T USB2.0
+reference design)
+[19715.986931] DVB: registering adapter 1 frontend 0 (E3C EC100 DVB-T)...
+[19715.987045] MXL5005S: Attached at address 0xc6
+[19715.987052] dvb-usb: E3C EC168 DVB-T USB2.0 reference design
+successfully initialized and connected.
+[19716.004730] dvb-usb: found a 'E3C EC168 DVB-T USB2.0 reference
+design' in warm state.
+[19716.004799] dvb-usb: will pass the complete MPEG2 transport stream to
+the software demuxer.
+[19716.010131] DVB: registering new adapter (E3C EC168 DVB-T USB2.0
+reference design)
+[19716.010499] DVB: registering adapter 2 frontend 0 (E3C EC100 DVB-T)...
+[19716.010612] MXL5005S: Attached at address 0xc6
+[19716.010619] dvb-usb: E3C EC168 DVB-T USB2.0 reference design
+successfully initialized and connected.
+[19716.010729] usb 2-1.1: New USB device found, idVendor=18b4,
+idProduct=1001
+[19716.010733] usb 2-1.1: New USB device strings: Mfr=0, Product=0,
+SerialNumber=0
 
-The summit started off with an overview of the proposed media controller and 
-an overview of the features of several SoCs to give an idea of what sort of 
-complexity has to be supported in the future. I'll try to get some of the 
-presentations up on my site. Unfortunately, not all presentations can be made 
-public. The main message that came across though is that these complex devices 
-with big pipelines, scalers, composers, colorspace converters, etc. require a 
-completely new way of working.
+To be perfectly honest a previous attempt didn't have the "New USB
+device" at the end, but the result was the same : no tuning possible (
+"WARNING: >>> tuning failed!!!" ) even if there is a device file for it
+in /dev/ ( on a Linux debian 2.6.26-2-686 #1 SMP Fri Aug 14 01:27:18 UTC
+2009 i686 GNU/Linux with V4L/DVB driver using mercurial ). I've checked
+the antenna cable  ( my old Intuix S800 work perfectly in the same setup
+but it does not have a remote :) )
 
-While we did discuss the concepts of the media controller, we did not go into 
-much detail: that is scheduled for Thursday.
 
-In the afternoon we discussed the proposed timings API. There was no 
-opposition to this API. The idea I had to also use this for sensor setup 
-turned out to be based on a misconception on how the S_FMT relates to sensors. 
-ENUM_FRAMESIZES basically gives you the possible resolutions that the scaler 
-hidden inside the bridge can scale the native sensor resolution. It does not 
-enumerate the various native sensor resolutions, since there is only one. So 
-S_FMT really sets up the scaler.
+Thanks for any info/tips.
 
-So we can proceed with the timings RFC and hopefully have this implemented for 
-2.6.33.
 
-Next was the event API proposal: this caused some more discussions, in 
-particular since the original RFC had no provision for (un)subscribing to 
-events. The idea is that we want to subscribe to events on a per-filehandle 
-basis. The core framework can keep track of events and distribute them to 
-filehandles that 'listen' to them. So this RFC will clearly need to go to at 
-least one revision.
 
-That was also a good point to stop for the day and head out to get free beer 
-and food :-)
-
-Scheduled for Thursday is a discussion of the proposed memory pool and 
-continued media controller discussions.
-
-Regards,
-
-        Hans
