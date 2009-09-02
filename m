@@ -1,64 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4781 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752863AbZIAHAF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2009 03:00:05 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: problem building v4l2-spec from docbook source
-Date: Tue, 1 Sep 2009 08:59:33 +0200
-Cc: "William M. Brack" <wbrack@mmm.com.hk>,
-	"V4L Mailing List" <linux-media@vger.kernel.org>,
-	=?iso-8859-1?q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-References: <4A9A3650.3000106@freemail.hu> <20090831135237.64d9442d@pedra.chehab.org> <20090831213531.4eb2c10a@pedra.chehab.org>
-In-Reply-To: <20090831213531.4eb2c10a@pedra.chehab.org>
+Received: from ppsw-5.csi.cam.ac.uk ([131.111.8.135]:39729 "EHLO
+	ppsw-5.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753113AbZIBSgZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Sep 2009 14:36:25 -0400
+Message-ID: <4A9EBB30.8020801@cam.ac.uk>
+Date: Wed, 02 Sep 2009 19:36:32 +0100
+From: Jonathan Cameron <jic23@cam.ac.uk>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: soc-camera: Handling hardware reset?
+References: <4A9D6B98.5090003@cam.ac.uk> <Pine.LNX.4.64.0909021755391.6326@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0909021755391.6326@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200909010859.34027.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 01 September 2009 02:35:31 Mauro Carvalho Chehab wrote:
-> Em Mon, 31 Aug 2009 13:52:37 -0300
-> Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
+Guennadi Liakhovetski wrote:
+> On Tue, 1 Sep 2009, Jonathan Cameron wrote:
 > 
-> > Hmm.. maybe Debian docbook packages have some issues with old versions of DocBook?
-> > Anyway, we should upgrade to XML 4.1.2 to use the same DocBook version as used on kernel.
-> > Also, as kernel uses xmlto, I'm working on a patch to port it to the same version/tools
-> > used on kernel. This will make easier for a future integration of the documentation at the
-> > kernel tree.
+>> Dear all,
+>>
+>> With an ov7670 I have been using soc_camera_link.reset to pass in board specific
+>> hardware reset of the sensor. (Is this a correct usage? The reset must occur
+>> before the chip is used.)
+>>
+>> Unfortunately this function is called on every initialization of the camera
+>> (so on probe and before taking images). Basically any call to open()
+>>
+>> This would be fine if the v4l2_subdev_core_ops.init  was called after every
+>> call of this (ensuring valid state post reset). 
+>>
+>> Previously I was using the soc_camera_ops.init to call the core init function
+>> thus putting the register values back before capturing, but now it's gone from
+>> the interface.
+>>
+>> What is the right way to do this?
 > 
-> As promised, I just committed a changeset that upgraded the DocBook version. It
-> will now prefer to use xmlto, since, on my tests, it seemed more reliable than
-> docbook, for html targets. Unfortunately, it didn't work fine for pdf target,
-> so, it will keep using docbook (in fact db2pdf) for generating the pdf version.
+> The idea is, that we're trying to save power, as long as noone is using 
+> the camera, i.e., between the last close and the next open. But some 
+> boards might not implement the power callback, so, to make the situation 
+> equal for all, we also added a reset call on every first open. So, this is 
+> exactly your case. Imagine, your camera driver has to work on a platform, 
+> where power callbacks are implemented. So, in your .s_fmt() (or the new 
+> .s_imgbus_fmt()) method, which is always called on the first open, you 
+> have to be able to configure the chip after a fresh power-on.
+In general that seems sensible.
+
+I haven't looked at your imgbus patches yet (will do in a few days).
+
+I've copied in those who might have an opinion on adding a rewrite
+of all registers to s_fmt.  Current aim is to keep changes needed for
+soc-camera support to an absolute minimum as I don't have access to
+the other hardware that uses this driver.  So Jonathan / Hans,
+would adding a call to ov7670_init inside s_fmt be alright with you?
+
+The solution works, but seems like overkill to me, if soc-camera is
+going to make a call to reset whilst other users don't then things
+are going to get a little unpredictable.
+
 > 
-> Please test. It everything is fine, IMO, we should consider the inclusion of
-> the V4L2 API on kernel (or at least, some parts of the API - since the
-> "changes" chapter doesn't seem much relevant to be on kernel).
+> (isn't this a job for runtime-pm?...)
+Probably, but in that case you would have relevant call back in place
+to ensure that all relevant registers were in place (rather than putting
+it in the fmt setting code). I'm guessing moving over to that might leave
+a lot of broken drivers.
 
-Hi Mauro,
+For reference, current patch (against v4l-next of yesterday) is below.
 
-I did a quick test of the html output and it seems that table handling is
-hit and miss: e.g. see section 1.9.5.1. In other cases there is very little
-space between columns, e.g. section 3.5, table 3.3.
+Thanks,
 
-Regarding pdf: do we really want to keep that? The output never looked good.
-I wouldn't shed a tear if we dropped pdf support.
+Jonathan
 
-I would also suggest to either remove the revision and changes sections or
-move it to a ChangeLog file instead. Now that we have the spec under revision
-control I do not see much benefit. The only reason why we still need something
-like that is that it provides a log of when certain functionality first
-appeared. A ChangeLog would do just as well.
+---
 
-Regards,
+diff --git a/drivers/media/video/ov7670.c b/drivers/media/video/ov7670.c
+index 0e2184e..3f80932 100644
+--- a/drivers/media/video/ov7670.c
++++ b/drivers/media/video/ov7670.c
+@@ -19,6 +19,7 @@
+ #include <media/v4l2-chip-ident.h>
+ #include <media/v4l2-i2c-drv.h>
+ 
++#include <media/soc_camera.h>
+ 
+ MODULE_AUTHOR("Jonathan Corbet <corbet@lwn.net>");
+ MODULE_DESCRIPTION("A low-level driver for OmniVision ov7670 sensors");
+@@ -745,6 +746,10 @@ static int ov7670_s_fmt(struct v4l2_subdev *sd, struct v4l2_format *fmt)
+ 	struct ov7670_info *info = to_state(sd);
+ 	unsigned char com7, clkrc = 0;
+ 
++	ret = ov7670_init(sd, 0);
++	if (ret)
++		return ret;
++
+ 	ret = ov7670_try_fmt_internal(sd, fmt, &ovfmt, &wsize);
+ 	if (ret)
+ 		return ret;
+@@ -1239,6 +1244,43 @@ static const struct v4l2_subdev_ops ov7670_ops = {
+ };
+ 
+ /* ----------------------------------------------------------------------- */
++#ifdef CONFIG_SOC_CAMERA
++static unsigned long ov7670_soc_query_bus_param(struct soc_camera_device *icd)
++{
++	struct soc_camera_link *icl = to_soc_camera_link(icd);
++
++	unsigned long flags = SOCAM_PCLK_SAMPLE_RISING | SOCAM_MASTER |
++		SOCAM_VSYNC_ACTIVE_HIGH | SOCAM_HSYNC_ACTIVE_HIGH |
++		SOCAM_DATAWIDTH_8 | SOCAM_DATA_ACTIVE_HIGH;
++
++	return soc_camera_apply_sensor_flags(icl, flags);
++}
++
++/* This device only supports one bus option */
++static int ov7670_soc_set_bus_param(struct soc_camera_device *icd,
++				    unsigned long flags)
++{
++	return 0;
++}
++
++static struct soc_camera_ops ov7670_soc_ops = {
++	.set_bus_param = ov7670_soc_set_bus_param,
++	.query_bus_param = ov7670_soc_query_bus_param,
++};
++
++#define SETFOURCC(type) .name = (#type), .fourcc = (V4L2_PIX_FMT_ ## type)
++static const struct soc_camera_data_format ov7670_soc_fmt_lists[] = {
++	{
++		SETFOURCC(YUYV),
++		.depth = 16,
++		.colorspace = V4L2_COLORSPACE_JPEG,
++	}, {
++		SETFOURCC(RGB565),
++		.depth = 16,
++		.colorspace = V4L2_COLORSPACE_SRGB,
++	},
++};
++#endif
+ 
+ static int ov7670_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
+@@ -1246,7 +1288,18 @@ static int ov7670_probe(struct i2c_client *client,
+ 	struct v4l2_subdev *sd;
+ 	struct ov7670_info *info;
+ 	int ret;
++#ifdef CONFIG_SOC_CAMERA
++	struct soc_camera_device *icd = client->dev.platform_data;
+ 
++	if (!icd) {
++		dev_err(&client->dev, "OV7670: missing soc-camera data!\n");
++		return -EINVAL;
++	}
++
++	icd->ops = &ov7670_soc_ops;
++	icd->formats = ov7670_soc_fmt_lists;
++	icd->num_formats = ARRAY_SIZE(ov7670_soc_fmt_lists);
++#endif
+ 	info = kzalloc(sizeof(struct ov7670_info), GFP_KERNEL);
+ 	if (info == NULL)
+ 		return -ENOMEM;
 
-	Hans
 
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
