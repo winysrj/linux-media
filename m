@@ -1,54 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp122.mail.ukl.yahoo.com ([77.238.184.53]:32496 "HELO
-	smtp122.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752978AbZIQRYW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Sep 2009 13:24:22 -0400
-Message-ID: <4AB270C8.1070107@yahoo.it>
-Date: Thu, 17 Sep 2009 19:24:24 +0200
-From: SebaX75 <sebax75@yahoo.it>
-MIME-Version: 1.0
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3559 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752540AbZIBSYB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Sep 2009 14:24:01 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id n82IO1KG099343
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 2 Sep 2009 20:24:02 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 2 Sep 2009 20:24:01 +0200 (CEST)
+Message-Id: <200909021824.n82IO1KG099343@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: Tuning problem during scan with Pinnacle Hybrid Stick 320E (em28xx)
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-I've identified a problem, but after an IRC session 
-(http://linuxtv.org/irc/v4l/index.php?date=2009-09-16) with Devin 
-Heitmueller, he he did not understand what happens to my adapter, and no 
-others seems to have reported this problem.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-My configuration is Fedora 11 with kernel 2.6.30.5-43.fc11.i686.PAE and 
-latest v4l-dvb tree; the adapter is a Pinnacle Dazzle Hybrid Stick 320E 
-(EEPROM-ID=0x9567eb1a, EEPROM-hash=0xb8846b20).
+Results of the daily build of v4l-dvb:
 
-The problem is that the adapter isn't able to performe a full scan 
-searching for all channel, but it's able to tune (if trasmission are 
-present) and scan only the first MUX, all MUX that follow this are not 
-tunable. It is like the adapter, after first tuning attemp, remain 
-locked and can't tune to other frequency or receive anymore data from 
-aerial signal.
+date:        Wed Sep  2 19:00:03 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12614:fd679bbd8bb3
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-At http://pastebin.com/f75008ea6 is possible to see dmesg during various 
-operation with tuner_xc2028 debug enabled:
-* 1-178 - insert of device;
-* 180-514 - first tuning section (only first MUX, at 474MHz, was tuned, 
-nothing for 482 or 514MHz);
-* 516-803 - second tuning section (only first MUX, at 514MHz, was tuned, 
-nothing for 482 or 474MHz).
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-rc8-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29.1-armv5-ixp: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-rc8-armv5-ixp: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-rc8-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-rc8-i686: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-rc8-m32r: OK
+linux-2.6.30-mips: ERRORS
+linux-2.6.31-rc8-mips: OK
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-rc8-powerpc64: OK
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-rc8-x86_64: OK
+sparse (linux-2.6.30): OK
+sparse (linux-2.6.31-rc8): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-With the support of Devin Heitmueller, I've tried to enable debug of 
-zl10353 too, but he has not seen anything useful to solve the problem 
-and he has told to me that is necessary to found someone to add a bunch 
-of printk() statements, and try to figure out what is going on.
+Detailed results are available here:
 
-Now I need to know if there are other people who have the same problem 
-or if there is someone who can provide support to better identify the 
-problem and correct it. Logically I'll do all test required and 
-necessary to solve this.
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-Thanks to all for attention,
-Sebastian
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
