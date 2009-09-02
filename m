@@ -1,38 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:47789 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753102AbZIBSML (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Sep 2009 14:12:11 -0400
-Received: by fg-out-1718.google.com with SMTP id 22so473454fge.1
-        for <linux-media@vger.kernel.org>; Wed, 02 Sep 2009 11:12:13 -0700 (PDT)
-Message-ID: <4A9EB592.1030909@gmail.com>
-Date: Thu, 03 Sep 2009 04:12:34 +1000
-From: Jed <jedi.theone@gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43469 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752417AbZIBOQ0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Sep 2009 10:16:26 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
+	Laurent Pinchart <laurent.pinchart@skynet.be>
+Date: Wed, 2 Sep 2009 09:16:08 -0500
+Subject: RE: [PATCH 0/3] image-bus API
+Message-ID: <A69FA2915331DC488A831521EAE36FE40154EDD0A0@dlee06.ent.ti.com>
+References: <Pine.LNX.4.64.0909021416520.6326@axis700.grange>
+ <3747ed57da74762bdc7c7bda3cad06ea.squirrel@webmail.xs4all.nl>
+In-Reply-To: <3747ed57da74762bdc7c7bda3cad06ea.squirrel@webmail.xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-To: VDR User <user.vdr@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: SAA716x driver module
-References: <18203149.1251714450755.JavaMail.root@ctps3>	 <4A9BDDAC.8060304@gmail.com> <a3ef07920908310830w343c3f81g6212d7bcf75858c5@mail.gmail.com>
-In-Reply-To: <a3ef07920908310830w343c3f81g6212d7bcf75858c5@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hans,
 
-> On Mon, Aug 31, 2009 at 7:26 AM, jed<jedi.theone@gmail.com> wrote:
->   
->> Can someone please advise if the SAA716x driver module:
->> http://www.linuxtv.org/wiki/index.php/NXP_SAA716x#Driver_Development
->> Is now ready for SAA7162 devices:
->> http://www.linuxtv.org/wiki/index.php/Saa7162_devices
->>     
+I haven't had time to follow through the discussion completely and to investigate if it can be used for vpfe capture. Definitely need more
+time before it should be accepted.
+
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+new phone: 301-407-9583
+Old Phone : 301-515-3736 (will be deprecated)
+email: m-karicheri2@ti.com
+
+>-----Original Message-----
+>From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+>Sent: Wednesday, September 02, 2009 9:50 AM
+>To: Guennadi Liakhovetski
+>Cc: Linux Media Mailing List; Paulius Zaleckas; Robert Jarzmik; Kuninori
+>Morimoto; Laurent Pinchart; Karicheri, Muralidharan
+>Subject: Re: [PATCH 0/3] image-bus API
 >
-> AFAIK Manu Abraham's driver is the most developed and it doesn't even tune yet.  
-Actually this appears to suggest otherwise...
-http://jusst.de/hg/saa716x/
-Can anybody comment? Manu preferably! :-D
-
-Cheers,
-Jed
+>
+>> Hi all
+>>
+>> Now that we definitely know on the OMAP 3 example, that a parameter like
+>> "packing" is indeed needed to fully describe video on-the-bus data, I
+>> haven't heard any more objections against my proposed API, so, this
+>> version could well be for inclusion.
+>
+>A bit too optimistic I am afraid. I simply haven't had the time to look at
+>this in detail :-(
+>
+>I fear that it won't be until the weekend of September 12th before I have
+>the time to sit down and fully research this.
+>
+>Regards,
+>
+>         Hans
+>
+>> Of course, if there are improvement
+>> suggestions, we can address them. I am CC-ing people, that took part in
+>> discussing the RFC for this API (sent exactly a week ago:-)), and also
+>> authors of drivers and systems that I cannot test myself. Specifically, I
+>> only compile-tested the mx1_camera, and mt9m111 drivers, also would be
+>> good to test on the ap325rxa SuperH platform. Notice, it looks like the
+>> soc_camera_platform driver is currently broken, I am open for suggestions
+>> regarding what we should do with it - deprecate and schedule for removal,
+>> mark as broken, or fix:-)
+>>
+>> Thanks
+>> Guennadi
+>> ---
+>> Guennadi Liakhovetski, Ph.D.
+>> Freelance Open-Source Software Developer
+>> http://www.open-technology.de/
+>>
+>
+>
+>--
+>Hans Verkuil - video4linux developer - sponsored by TANDBERG
+>
 
