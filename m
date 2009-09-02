@@ -1,242 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fmmailgate09.web.de ([217.72.192.184]:60521 "EHLO
-	fmmailgate09.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751950AbZICNMh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Sep 2009 09:12:37 -0400
-Received: from web.de
-	by fmmailgate09.web.de (Postfix) with SMTP id 30BD42B1D797
-	for <linux-media@vger.kernel.org>; Thu,  3 Sep 2009 15:12:39 +0200 (CEST)
-Date: Thu, 03 Sep 2009 15:12:37 +0200
-Message-Id: <312196303@web.de>
+Received: from claranet-outbound-smtp06.uk.clara.net ([195.8.89.39]:42331 "EHLO
+	claranet-outbound-smtp06.uk.clara.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752959AbZIBTfY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Sep 2009 15:35:24 -0400
+Message-ID: <4A9E9E08.7090104@onelan.com>
+Date: Wed, 02 Sep 2009 17:32:08 +0100
+From: Simon Farnsworth <simon.farnsworth@onelan.com>
 MIME-Version: 1.0
-From: Andreas Golat <androgo@web.de>
-To: linux-media@vger.kernel.org
-Subject: =?iso-8859-15?Q?[DVB]_Problems_with_TerraTec_Cinergy_T_USB_XE_(af9005,?=
- =?iso-8859-15?Q?_mt2060_problem=3F)?=
-Content-Type: multipart/mixed;
- boundary="=-------------1251983559210147219"
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: j.w.r.degoede@hhs.nl
+Subject: libv4l2 and the Hauppauge HVR1600 (cx18 driver) not working well
+ together
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
-
---=-------------1251983559210147219
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: quoted-printable
-
 Hello,
 
-I have some trouble with a Cinergy T USB XE stick. As I saw a lot of peopl=
-e
-saying, it runs, so I thought it could be a problem that should be reporte=
-d.
+I'm in the process of reworking Xine's input_v4l to use libv4l2, so that
+  it gets the benefit of all the work done on modern cards and webcams,
+and I've hit a stumbling block.
 
-I'm runnung opensuse 11.1 (2.6.27.29) with the newest v4l-driver, download=
-ed
-some minutes ago with mercurial. The firmware is from http://ventoso.org/l=
-uca/af9005/ (tried both)
+I have a Hauppauge HVR1600 for NTSC and ATSC support, and it appears to
+simply not work with libv4l2, due to lack of mmap support. My code works
+adequately (modulo a nice pile of bugs) with a HVR1110r3, so it appears
+to be driver level.
 
-After inserting the stick I get the following message:
----
-usb 6-1: new full speed USB device using uhci=5Fhcd and address 2
-usb 6-1: configuration #1 chosen from 1 choice
-usb 6-1: New USB device found, idVendor=3D0ccd, idProduct=3D0055
-usb 6-1: New USB device strings: Mfr=3D1, Product=3D2, SerialNumber=3D0
-usb 6-1: Product: Cinergy T USB XE
-usb 6-1: Manufacturer: AFA
-dvb-usb: found a 'TerraTec Cinergy T USB XE' in cold state, will try to lo=
-ad a firmware
-firmware: requesting af9005.fw
-dvb-usb: downloading firmware from file 'af9005.fw'
-dvb-usb: found a 'TerraTec Cinergy T USB XE' in warm state.
-dvb-usb: will use the device's hardware PID filter (table count: 32).
-DVB: registering new adapter (TerraTec Cinergy T USB XE)
-DVB: registering adapter 0 frontend 0 (AF9005 USB DVB-T)...
-dvb-usb: TerraTec Cinergy T USB XE successfully initialized and connected.=
+Which is the better route to handling this; adding code to input_v4l to
+use libv4lconvert when mmap isn't available, or converting the cx18
+driver to use mmap?
 
-usbcore: registered new interface driver dvb=5Fusb=5Faf9005
----
+If it's a case of converting the cx18 driver, how would I go about doing
+that? I have no experience of the driver, so I'm not sure what I'd have
+to do - noting that if I break the existing read() support, other users
+will get upset.
 
-After starting kaffeine I first get this message from the tuner:
----
-MT2060: successfully identified (IF1 =3D 1228)
----
+-- 
+Advice appreciated,
 
-After some seconds (kaffeine says nothing - no screen, nothing) I get
-the errormessage in the file kernelmessage-after-kaffeine.txt / or
-http://pastebin.com/m7c7257a6
+Simon Farnsworth
 
-Then the dvb-stuff seems to hang. Cant reconnect or unload the driver.
-After disconnecting the stick I get the message in the file=20
-kernelmessage-after-disconnect.txt / or http://pastebin.com/m35b32ad7
-
-
-After a reboot I also tried to test the stick with "scan -c" but I get the=
- message:
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-WARNING: filter timeout pid 0x0011
-WARNING: filter timeout pid 0x0000
-dumping lists (0 services)
-Done.
-
-
-Someone can help me=3F  Is it a problem with the drvier or perhaps something=
- else=3F
-
-Regards - Andr.
-
-=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F
-GRATIS f=FCr alle WEB.DE-Nutzer: Die maxdome Movie-FLAT!
-Jetzt freischalten unter http://movieflat.web.de
-
-
---=-------------1251983559210147219
-Content-Type: application/octet-stream;
- name="kernelmessage-after-disconnect.txt"
-Content-Disposition: attachment;
- filename="kernelmessage-after-disconnect.txt"
-Content-Transfer-Encoding: base64
-
-dXNiIDYtMTogVVNCIGRpc2Nvbm5lY3QsIGFkZHJlc3MgMgpnZW5lcmFsIHByb3RlY3Rpb24g
-ZmF1bHQ6IDAwMDAgWzJdIFNNUApsYXN0IHN5c2ZzIGZpbGU6IC9zeXMvZGV2aWNlcy9zeXN0
-ZW0vY3B1L2NwdTEvY2FjaGUvaW5kZXgyL3NoYXJlZF9jcHVfbWFwCkNQVSAwCk1vZHVsZXMg
-bGlua2VkIGluOiBtdDIwNjAoTikgaHNvKE4pIHJma2lsbCB1c2Jfc3RvcmFnZSBkdmJfdXNi
-X2FmOTAwNV9yZW1vdGUoTikgZHZiX3VzYl9hZjkwMDUoTikgZHZiX3VzYihOKSBkdmJfY29y
-ZShOKSBpMmNfY29yZSB4dF90Y3B1ZHAgeHRfcGt0dHlwZSBpcHRfTE9HIHh0X2xpbWl0IGk5
-MTUgZHJtIHNuZF9wY21fb3NzIHNuZF9taXhlcl9vc3MgYmluZm10X21pc2Mgc25kX3NlcSBz
-bmRfc2VxX2RldmljZSB4dF9OT1RSQUNLIGlwdF9SRUpFQ1QgeHRfc3RhdGUgaXB0YWJsZV9y
-YXcgaXB0YWJsZV9maWx0ZXIgbmZfY29ubnRyYWNrX25ldGJpb3NfbnMgY3B1ZnJlcV9jb25z
-ZXJ2YXRpdmUgbmZfY29ubnRyYWNrX2lwdjQgY3B1ZnJlcV91c2Vyc3BhY2UgY3B1ZnJlcV9w
-b3dlcnNhdmUgbmZfY29ubnRyYWNrIGlwX3RhYmxlcyBhY3BpX2NwdWZyZXEgaXA2X3RhYmxl
-cyB4X3RhYmxlcyBtaWNyb2NvZGUgZnVzZSBkbV9jcnlwdCBsb29wIGRtX21vZCBpZGVfY3Mg
-YXJjNCBlY2IgY3J5cHRvX2Jsa2NpcGhlciBwYXRhX3BjbWNpYSBpd2xhZ24oTikgaXdsY29y
-ZShOKSBsZWRfY2xhc3MgcGNtY2lhIHNuZF9oZGFfaW50ZWwgbWFjODAyMTEoTikgc25kX3Bj
-bSBwcGRldiBzZGhjaV9wY2kgb2hjaTEzOTQgdmlkZW8geWVudGFfc29ja2V0IHJpY29oX21t
-YyBwYXJwb3J0X3BjIGNmZzgwMjExKE4pIHNkaGNpIHNuZF90aW1lciBpZWVlMTM5NCBvdXRw
-dXQgaXJkYSBpVENPX3dkdCBtbWNfY29yZSB3bWkgcmZraWxsX2JhY2twb3J0KE4pIHNyX21v
-ZCBzZXJpb19yYXcgam95ZGV2IGNvbnRhaW5lciBidXR0b24gYmF0dGVyeSBhYyBzbmRfcGFn
-ZV9hbGxvYyByc3JjX25vbnN0YXRpYyBpVENPX3ZlbmRvcl9zdXBwb3J0IHNuZF9od2RlcCBy
-dGNfY21vcyBlMTAwMGUgcGFycG9ydCBwY21jaWFfY29yZSBydGNfY29yZSBzbmQgcnRjX2xp
-YiBjcmNfY2NpdHQgc2cgcGNzcGtyIGNkcm9tIHNvdW5kY29yZSBpbnRlbF9hZ3Agc2RfbW9k
-IGNyY190MTBkaWYgZWhjaV9oY2QgdWhjaV9oY2QgdXNiY29yZSBlZGQgZXh0MyBtYmNhY2hl
-IGpiZCBmYW4gaWRlX3BjaV9nZW5lcmljIHBpaXggaWRlX2NvcmUgYXRhX2dlbmVyaWMgYXRh
-X3BpaXggdGhlcm1hbCBwcm9jZXNzb3IgdGhlcm1hbF9zeXMgaHdtb24gYWhjaSBsaWJhdGEg
-c2NzaV9tb2QgZG9jawpTdXBwb3J0ZWQ6IE5vClBpZDogMjg1LCBjb21tOiBraHViZCBUYWlu
-dGVkOiBHICAgICAgRCAgIDIuNi4yNy4yOS0wLjEtZGVmYXVsdCAjMQpSSVA6IDAwMTA6Wzxm
-ZmZmZmZmZjgwMjM1ZDIyPl0gIFs8ZmZmZmZmZmY4MDIzNWQyMj5dIHRyeV90b193YWtlX3Vw
-KzB4NGIvMHgyNDkKUlNQOiAwMDE4OmZmZmY4ODAwN2QwYjVhZDAgIEVGTEFHUzogMDAwMTAy
-MDIKUkFYOiAzZDNkM2QzZDNkM2QzZDNkIFJCWDogZmZmZjg4MDA1Mjk4YTM4MCBSQ1g6IDAw
-MDAwMDAwMDAwMDAwMDAKUkRYOiBmZmZmZmZmZjgwYTQzMDgwIFJTSTogMDAwMDAwMDAwMDAw
-MDAwZiBSREk6IGZmZmY4ODAwNTI5OGEzODAKUkJQOiBmZmZmODgwMDdkMGI1YjEwIFIwODog
-MDAwMDAwMDAwMDAwMDAwMCBSMDk6IGZmZmY4ODAwN2QwYjViYjAKUjEwOiAwMDAwMDAwMDAw
-MDAwMDAwIFIxMTogZmZmZmZmZmZhMDRlYWUzOCBSMTI6IDAwMDAwMDAwMDAwMDAwMDEKUjEz
-OiAwMDAwMDAwMDAwMDAwMDBmIFIxNDogZmZmZmZmZmZhMDRlYWUzOCBSMTU6IDAwMDAwMDAw
-MDAwMDAwMDAKRlM6ICAwMDAwMDAwMDAwMDAwMDAwKDAwMDApIEdTOmZmZmZmZmZmODBhNDMw
-ODAoMDAwMCkga25sR1M6MDAwMDAwMDAwMDAwMDAwMApDUzogIDAwMTAgRFM6IDAwMTggRVM6
-IDAwMTggQ1IwOiAwMDAwMDAwMDgwMDUwMDNiCkNSMjogMDAwMDdmY2VlMTM4YjAwMCBDUjM6
-IDAwMDAwMDAwNjI0MjMwMDAgQ1I0OiAwMDAwMDAwMDAwMDAwNmUwCkRSMDogMDAwMDAwMDAw
-MDAwMDAwMCBEUjE6IDAwMDAwMDAwMDAwMDAwMDAgRFIyOiAwMDAwMDAwMDAwMDAwMDAwCkRS
-MzogMDAwMDAwMDAwMDAwMDAwMCBEUjY6IDAwMDAwMDAwZmZmZjBmZjAgRFI3OiAwMDAwMDAw
-MDAwMDAwNDAwClByb2Nlc3Mga2h1YmQgKHBpZDogMjg1LCB0aHJlYWRpbmZvIGZmZmY4ODAw
-N2QwYjQwMDAsIHRhc2sgZmZmZjg4MDA3ZDAwODQ0MCkKU3RhY2s6ICBmZmZmODgwMDdkMGI1
-YjIwIDAwMDAwMDAwODAwMDAwMDAgZmZmZjg4MDA3ZDBkZjQ0OCBmZmZmODgwMDUyOThhMzkw
-CiAwMDAwMDAwMDAwMDAwMDAxIGZmZmY4ODAwNjkwM2U2NDggZmZmZmZmZmZhMDRlYWUzOCAw
-MDAwMDAwMDAwMDAwMDAwCiBmZmZmODgwMDUyOThhMzgwIGZmZmZmZmZmODAyNGZhYmQgZmZm
-Zjg4MDA1NWMzMDE1MCBmZmZmODgwMDU1OGQzMDAwCkNhbGwgVHJhY2U6CiBbPGZmZmZmZmZm
-ODAyNGZhYmQ+XSBrdGhyZWFkX3N0b3ArMHg0Mi8weDgzCiBbPGZmZmZmZmZmYTA0Y2EzNzk+
-XSBkdmJfZnJvbnRlbmRfc3RvcCsweDQ0LzB4OTQgW2R2Yl9jb3JlXQogWzxmZmZmZmZmZmEw
-NGNhNDBiPl0gZHZiX3VucmVnaXN0ZXJfZnJvbnRlbmQrMHg0Mi8weGVlIFtkdmJfY29yZV0K
-IFs8ZmZmZmZmZmZhMDRkZGUzOT5dIGR2Yl91c2JfYWRhcHRlcl9mcm9udGVuZF9leGl0KzB4
-MTUvMHgyNSBbZHZiX3VzYl0KIFs8ZmZmZmZmZmZhMDRkZDNlOD5dIGR2Yl91c2JfZXhpdCsw
-eDU0LzB4ZGUgW2R2Yl91c2JdCiBbPGZmZmZmZmZmYTA0ZGQ0YWY+XSBkdmJfdXNiX2Rldmlj
-ZV9leGl0KzB4M2QvMHg0ZiBbZHZiX3VzYl0KIFs8ZmZmZmZmZmZhMDBmZmJkNT5dIHVzYl91
-bmJpbmRfaW50ZXJmYWNlKzB4NWMvMHhiNyBbdXNiY29yZV0KIFs8ZmZmZmZmZmY4MDNlNmMw
-MT5dIF9fZGV2aWNlX3JlbGVhc2VfZHJpdmVyKzB4OTUvMHhiYQogWzxmZmZmZmZmZjgwM2U2
-Y2YyPl0gZGV2aWNlX3JlbGVhc2VfZHJpdmVyKzB4MjEvMHgyZAogWzxmZmZmZmZmZjgwM2U2
-MjY0Pl0gYnVzX3JlbW92ZV9kZXZpY2UrMHhlYi8weDExNQogWzxmZmZmZmZmZjgwM2U0ODAw
-Pl0gZGV2aWNlX2RlbCsweDEyYi8weDFiYgogWzxmZmZmZmZmZmEwMGZjZmU5Pl0gdXNiX2Rp
-c2FibGVfZGV2aWNlKzB4MTUxLzB4MWQ1IFt1c2Jjb3JlXQogWzxmZmZmZmZmZmEwMGY4OGE5
-Pl0gdXNiX2Rpc2Nvbm5lY3QrMHgxMzMvMHgxZTMgW3VzYmNvcmVdCiBbPGZmZmZmZmZmYTAw
-ZjhmODc+XSBodWJfcG9ydF9jb25uZWN0X2NoYW5nZSsweDFjNS8weDhiNyBbdXNiY29yZV0K
-IFs8ZmZmZmZmZmZhMDBmOWQxZj5dIGh1Yl9ldmVudHMrMHg2YTYvMHg4YTMgW3VzYmNvcmVd
-CiBbPGZmZmZmZmZmYTAwZjlmNGE+XSBodWJfdGhyZWFkKzB4MmUvMHgxYTAgW3VzYmNvcmVd
-CiBbPGZmZmZmZmZmODAyNGZhNGY+XSBrdGhyZWFkKzB4NDcvMHg3MwogWzxmZmZmZmZmZjgw
-MjBjZjc5Pl0gY2hpbGRfcmlwKzB4YS8weDExCgoKQ29kZTogMTUgYzQgOWIgNzIgMDAgZjYg
-YzIgNDAgNDQgMGYgNDQgZjggODAgZTYgMDggNzQgNGEgNDggOGIgMTUgMzkgODEgNjkgMDAg
-NDggOGIgNDcgMDggNjUgOGIgMGMgMjUgMjQgMDAgMDAgMDAgNDggNjMgYzkgNDggOGIgMTQg
-Y2EgPDhiPiA3MCAxYyA0OCBjNyBjMCA4MCAzNiBhMyA4MCA0OCAwMyA0MiAwOCA0OCA4YiBi
-OCAzOCAwOCAwMCAwMApSSVAgIFs8ZmZmZmZmZmY4MDIzNWQyMj5dIHRyeV90b193YWtlX3Vw
-KzB4NGIvMHgyNDkKIFJTUCA8ZmZmZjg4MDA3ZDBiNWFkMD4KLS0tWyBlbmQgdHJhY2UgZWY4
-YjNjNGNhNDRhMWE2MCBdLS0tCgo=
-
---=-------------1251983559210147219
-Content-Type: application/octet-stream;
- name="kernelmessage-after-kaffeine.txt"
-Content-Disposition: attachment;
- filename="kernelmessage-after-kaffeine.txt"
-Content-Transfer-Encoding: base64
-
-QlVHOiB1bmFibGUgdG8gaGFuZGxlIGtlcm5lbCBOVUxMIHBvaW50ZXIgZGVyZWZlcmVuY2Ug
-YXQgMDAwMDAwMDAwMDAwMDAwMApJUDogWzxmZmZmZmZmZmEwNTFmMWVjPl0gbXQyMDYwX3Nl
-dF9wYXJhbXMrMHg0MC8weDJiMyBbbXQyMDYwXQpQR0QgN2MwMWYwNjcgUFVEIDdjMGI1MDY3
-IFBNRCAwCk9vcHM6IDAwMDAgWzFdIFNNUApsYXN0IHN5c2ZzIGZpbGU6IC9zeXMvZGV2aWNl
-cy9zeXN0ZW0vY3B1L2NwdTEvY2FjaGUvaW5kZXgyL3NoYXJlZF9jcHVfbWFwCkNQVSAwCk1v
-ZHVsZXMgbGlua2VkIGluOiBtdDIwNjAoTikgaHNvKE4pIHJma2lsbCB1c2Jfc3RvcmFnZSBk
-dmJfdXNiX2FmOTAwNV9yZW1vdGUoTikgZHZiX3VzYl9hZjkwMDUoTikgZHZiX3VzYihOKSBk
-dmJfY29yZShOKSBpMmNfY29yZSB4dF90Y3B1ZHAgeHRfcGt0dHlwZSBpcHRfTE9HIHh0X2xp
-bWl0IGk5MTUgZHJtIHNuZF9wY21fb3NzIHNuZF9taXhlcl9vc3MgYmluZm10X21pc2Mgc25k
-X3NlcSBzbmRfc2VxX2RldmljZSB4dF9OT1RSQUNLIGlwdF9SRUpFQ1QgeHRfc3RhdGUgaXB0
-YWJsZV9yYXcgaXB0YWJsZV9maWx0ZXIgbmZfY29ubnRyYWNrX25ldGJpb3NfbnMgY3B1ZnJl
-cV9jb25zZXJ2YXRpdmUgbmZfY29ubnRyYWNrX2lwdjQgY3B1ZnJlcV91c2Vyc3BhY2UgY3B1
-ZnJlcV9wb3dlcnNhdmUgbmZfY29ubnRyYWNrIGlwX3RhYmxlcyBhY3BpX2NwdWZyZXEgaXA2
-X3RhYmxlcyB4X3RhYmxlcyBtaWNyb2NvZGUgZnVzZSBkbV9jcnlwdCBsb29wIGRtX21vZCBp
-ZGVfY3MgYXJjNCBlY2IgY3J5cHRvX2Jsa2NpcGhlciBwYXRhX3BjbWNpYSBpd2xhZ24oTikg
-aXdsY29yZShOKSBsZWRfY2xhc3MgcGNtY2lhIHNuZF9oZGFfaW50ZWwgbWFjODAyMTEoTikg
-c25kX3BjbSBwcGRldiBzZGhjaV9wY2kgb2hjaTEzOTQgdmlkZW8geWVudGFfc29ja2V0IHJp
-Y29oX21tYyBwYXJwb3J0X3BjIGNmZzgwMjExKE4pIHNkaGNpIHNuZF90aW1lciBpZWVlMTM5
-NCBvdXRwdXQgaXJkYSBpVENPX3dkdCBtbWNfY29yZSB3bWkgcmZraWxsX2JhY2twb3J0KE4p
-IHNyX21vZCBzZXJpb19yYXcgam95ZGV2IGNvbnRhaW5lciBidXR0b24gYmF0dGVyeSBhYyBz
-bmRfcGFnZV9hbGxvYyByc3JjX25vbnN0YXRpYyBpVENPX3ZlbmRvcl9zdXBwb3J0IHNuZF9o
-d2RlcCBydGNfY21vcyBlMTAwMGUgcGFycG9ydCBwY21jaWFfY29yZSBydGNfY29yZSBzbmQg
-cnRjX2xpYiBjcmNfY2NpdHQgc2cgcGNzcGtyIGNkcm9tIHNvdW5kY29yZSBpbnRlbF9hZ3Ag
-c2RfbW9kIGNyY190MTBkaWYgZWhjaV9oY2QgdWhjaV9oY2QgdXNiY29yZSBlZGQgZXh0MyBt
-YmNhY2hlIGpiZCBmYW4gaWRlX3BjaV9nZW5lcmljIHBpaXggaWRlX2NvcmUgYXRhX2dlbmVy
-aWMgYXRhX3BpaXggdGhlcm1hbCBwcm9jZXNzb3IgdGhlcm1hbF9zeXMgaHdtb24gYWhjaSBs
-aWJhdGEgc2NzaV9tb2QgZG9jawpTdXBwb3J0ZWQ6IE5vClBpZDogNTA1MCwgY29tbToga2R2
-Yi1hZC0wLWZlLTAgVGFpbnRlZDogRyAgICAgICAgICAyLjYuMjcuMjktMC4xLWRlZmF1bHQg
-IzEKUklQOiAwMDEwOls8ZmZmZmZmZmZhMDUxZjFlYz5dICBbPGZmZmZmZmZmYTA1MWYxZWM+
-XSBtdDIwNjBfc2V0X3BhcmFtcysweDQwLzB4MmIzIFttdDIwNjBdClJTUDogMDAxODpmZmZm
-ODgwMDUyOThkZDgwICBFRkxBR1M6IDAwMDEwMjQ2ClJBWDogMDAwMDAwMDAwMDAwMDAwMCBS
-Qlg6IGZmZmY4ODAwNTU4ZDNjNTAgUkNYOiBmZmZmODgwMDUyOThkZGEwClJEWDogMDAwMDAw
-MDIwMDAwMDBjMCBSU0k6IGZmZmY4ODAwNTI5OGRjYWYgUkRJOiBmZmZmODgwMDY5MDNlZDMw
-ClJCUDogMDAwMDAwMDAwMDAwYTMwNCBSMDg6IGZmZmY4ODAwNTI5OGMwMDAgUjA5OiBmZmZm
-ODgwMDAxMDNmNzIwClIxMDogMDAwMDAwMDAwMDAwMDAwMCBSMTE6IDAwMDAwMDAwZmZmZmM3
-ODAgUjEyOiAwMDAwMDAwMDAwMDAwMDAwClIxMzogZmZmZjg4MDA1NThkM2MwMCBSMTQ6IGZm
-ZmZmZmZmYTA0ZTdjNWEgUjE1OiBmZmZmODgwMDU1OWE5YWEwCkZTOiAgMDAwMDAwMDAwMDAw
-MDAwMCgwMDAwKSBHUzpmZmZmZmZmZjgwYTQzMDgwKDAwMDApIGtubEdTOjAwMDAwMDAwMDAw
-MDAwMDAKQ1M6ICAwMDEwIERTOiAwMDE4IEVTOiAwMDE4IENSMDogMDAwMDAwMDA4MDA1MDAz
-YgpDUjI6IDAwMDAwMDAwMDAwMDAwMDAgQ1IzOiAwMDAwMDAwMDdjYzZmMDAwIENSNDogMDAw
-MDAwMDAwMDAwMDZlMApEUjA6IDAwMDAwMDAwMDAwMDAwMDAgRFIxOiAwMDAwMDAwMDAwMDAw
-MDAwIERSMjogMDAwMDAwMDAwMDAwMDAwMApEUjM6IDAwMDAwMDAwMDAwMDAwMDAgRFI2OiAw
-MDAwMDAwMGZmZmYwZmYwIERSNzogMDAwMDAwMDAwMDAwMDQwMApQcm9jZXNzIGtkdmItYWQt
-MC1mZS0wIChwaWQ6IDUwNTAsIHRocmVhZGluZm8gZmZmZjg4MDA1Mjk4YzAwMCwgdGFzayBm
-ZmZmODgwMDUyOThhMzgwKQpTdGFjazogIGZmZmYwMDAxMDAwMTAwYzAgZmZmZjg4MDA1NTlh
-OWFiYSBmZmZmODgwMDU1OWE5YWEwIDAwMDAwNGNjYTA1MWY2MWYKIDAwMDAwMDAwMDAwMGZm
-MGMgMDAwMDAwMDAwMDAwMDAwMCA2M2NlODgwMDU1OGQzYzAwIDAwMDAwMDAwMDAwMDAwY2MK
-IDAwMDAwMDAwMDAwMGEzMDQgMDAwMDAwMDAwMDAwMDAwMCBmZmZmODgwMDU1OGQzYzAwIGZm
-ZmZmZmZmYTA0ZTdjNWEKQ2FsbCBUcmFjZToKIFs8ZmZmZmZmZmZhMDRlNzYxYT5dIGFmOTAw
-NV9mZV9pbml0KzB4ODBmLzB4ODU1IFtkdmJfdXNiX2FmOTAwNV0KIFs8ZmZmZmZmZmZhMDRk
-ZGY5NT5dIGR2Yl91c2JfZmVfd2FrZXVwKzB4MzIvMHgzOCBbZHZiX3VzYl0KIFs8ZmZmZmZm
-ZmZhMDRjOWU2Yj5dIGR2Yl9mcm9udGVuZF9pbml0KzB4M2UvMHg4MSBbZHZiX2NvcmVdCiBb
-PGZmZmZmZmZmYTA0Y2FjNTk+XSBkdmJfZnJvbnRlbmRfdGhyZWFkKzB4ODMvMHg2MmMgW2R2
-Yl9jb3JlXQogWzxmZmZmZmZmZjgwMjRmYTRmPl0ga3RocmVhZCsweDQ3LzB4NzMKIFs8ZmZm
-ZmZmZmY4MDIwY2Y3OT5dIGNoaWxkX3JpcCsweGEvMHgxMQoKCkNvZGU6IDQ4IDgzIGVjIDM4
-IDRjIDhiIGJmIGQwIDAyIDAwIDAwIDQ4IDhkIDc0IDI0IDIwIDQxIDBmIGI3IDQ3IDE4IDRj
-IDg5IGZmIGM2CjQ0IDI0IDIwIDBjIGM2IDQ0IDI0IDIxIGZmIDg5IDQ0IDI0IDFjIGU4IDUx
-IGZlIGZmIGZmIDw0MT4gOGIgMTQgMjQgYjkgZTggMDMgMDAKMDAgODkKIGQwIDMxIGQyIGY3
-IGYxIDg5IGM1IDMxIGMwIDgzIGJiClJJUCAgWzxmZmZmZmZmZmEwNTFmMWVjPl0gbXQyMDYw
-X3NldF9wYXJhbXMrMHg0MC8weDJiMyBbbXQyMDYwXQogUlNQIDxmZmZmODgwMDUyOThkZDgw
-PgpDUjI6IDAwMDAwMDAwMDAwMDAwMDAKLS0tWyBlbmQgdHJhY2UgZWY4YjNjNGNhNDRhMWE2
-MCBdLS0tCgo=
-
---=-------------1251983559210147219--
