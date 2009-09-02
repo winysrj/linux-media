@@ -1,100 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:29397 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754935AbZIAOVS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Sep 2009 10:21:18 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Janne Grunau <j@jannau.net>
-Subject: [PATCH] hdpvr: i2c fixups for fully functional IR support
-Date: Tue, 1 Sep 2009 10:19:35 -0400
-Cc: linux-media@vger.kernel.org
+Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:2216 "EHLO
+	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751326AbZIBNu0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Sep 2009 09:50:26 -0400
+Message-ID: <3747ed57da74762bdc7c7bda3cad06ea.squirrel@webmail.xs4all.nl>
+In-Reply-To: <Pine.LNX.4.64.0909021416520.6326@axis700.grange>
+References: <Pine.LNX.4.64.0909021416520.6326@axis700.grange>
+Date: Wed, 2 Sep 2009 15:50:19 +0200
+Subject: Re: [PATCH 0/3] image-bus API
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+Cc: "Linux Media Mailing List" <linux-media@vger.kernel.org>,
+	"Paulius Zaleckas" <paulius.zaleckas@teltonika.lt>,
+	"Robert Jarzmik" <robert.jarzmik@free.fr>,
+	"Kuninori Morimoto" <morimoto.kuninori@renesas.com>,
+	"Laurent Pinchart" <laurent.pinchart@skynet.be>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200909011019.35798.jarod@redhat.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch is against http://hg.jannau.net/hdpvr/
 
-1) Adds support for building hdpvr i2c support when i2c is built as a
-module (based on work by David Engel on the mythtv-users list)
+> Hi all
+>
+> Now that we definitely know on the OMAP 3 example, that a parameter like
+> "packing" is indeed needed to fully describe video on-the-bus data, I
+> haven't heard any more objections against my proposed API, so, this
+> version could well be for inclusion.
 
-2) Refines the hdpvr_i2c_write() success check (based on a thread in
-the sagetv forums)
+A bit too optimistic I am afraid. I simply haven't had the time to look at
+this in detail :-(
 
-With this patch in place, and the latest lirc_zilog driver in my lirc
-git tree, the IR part in my hdpvr works perfectly, both for reception
-and transmitting.
+I fear that it won't be until the weekend of September 12th before I have
+the time to sit down and fully research this.
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
+Regards,
 
----
- Makefile     |    4 +---
- hdpvr-core.c |    4 ++--
- hdpvr-i2c.c  |    5 ++++-
- 3 files changed, 7 insertions(+), 6 deletions(-)
+         Hans
 
-diff -r d49772394029 linux/drivers/media/video/hdpvr/Makefile
---- a/linux/drivers/media/video/hdpvr/Makefile	Sun Apr 05 21:15:57 2009 +0200
-+++ b/linux/drivers/media/video/hdpvr/Makefile	Tue Sep 01 10:12:59 2009 -0400
-@@ -1,6 +1,4 @@
--hdpvr-objs	:= hdpvr-control.o hdpvr-core.o hdpvr-video.o
--
--hdpvr-$(CONFIG_I2C) += hdpvr-i2c.o
-+hdpvr-objs	:= hdpvr-control.o hdpvr-core.o hdpvr-i2c.o hdpvr-video.o
- 
- obj-$(CONFIG_VIDEO_HDPVR) += hdpvr.o
- 
-diff -r d49772394029 linux/drivers/media/video/hdpvr/hdpvr-core.c
---- a/linux/drivers/media/video/hdpvr/hdpvr-core.c	Sun Apr 05 21:15:57 2009 +0200
-+++ b/linux/drivers/media/video/hdpvr/hdpvr-core.c	Tue Sep 01 10:12:59 2009 -0400
-@@ -362,7 +362,7 @@
- 		goto error;
- 	}
- 
--#ifdef CONFIG_I2C
-+#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
- 	retval = hdpvr_register_i2c_adapter(dev);
- 	if (retval < 0) {
- 		v4l2_err(&dev->v4l2_dev, "registering i2c adapter failed\n");
-@@ -413,7 +413,7 @@
- 	mutex_unlock(&dev->io_mutex);
- 
- 	/* deregister I2C adapter */
--#ifdef CONFIG_I2C
-+#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
- 	mutex_lock(&dev->i2c_mutex);
- 	if (dev->i2c_adapter)
- 		i2c_del_adapter(dev->i2c_adapter);
-diff -r d49772394029 linux/drivers/media/video/hdpvr/hdpvr-i2c.c
---- a/linux/drivers/media/video/hdpvr/hdpvr-i2c.c	Sun Apr 05 21:15:57 2009 +0200
-+++ b/linux/drivers/media/video/hdpvr/hdpvr-i2c.c	Tue Sep 01 10:12:59 2009 -0400
-@@ -10,6 +10,7 @@
-  *
-  */
- 
-+#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
- #include <linux/i2c.h>
- 
- #include "hdpvr.h"
-@@ -67,7 +68,7 @@
- 			      REQTYPE_I2C_WRITE_STAT, CTRL_READ_REQUEST,
- 			      0, 0, buf, 2, 1000);
- 
--	if (ret == 2)
-+	if ((ret == 2) && (buf[1] == (len - 1)))
- 		ret = 0;
- 	else if (ret >= 0)
- 		ret = -EIO;
-@@ -164,3 +165,5 @@
- error:
- 	return retval;
- }
-+
-+#endif /* CONFIG_I2C */
+> Of course, if there are improvement
+> suggestions, we can address them. I am CC-ing people, that took part in
+> discussing the RFC for this API (sent exactly a week ago:-)), and also
+> authors of drivers and systems that I cannot test myself. Specifically, I
+> only compile-tested the mx1_camera, and mt9m111 drivers, also would be
+> good to test on the ap325rxa SuperH platform. Notice, it looks like the
+> soc_camera_platform driver is currently broken, I am open for suggestions
+> regarding what we should do with it - deprecate and schedule for removal,
+> mark as broken, or fix:-)
+>
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+>
+
 
 -- 
-Jarod Wilson
-jarod@redhat.com
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
