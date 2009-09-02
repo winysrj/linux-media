@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-yx0-f171.google.com ([209.85.210.171])
+Received: from [89.221.175.11] (helo=cp1smtp.www1.dk)
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <mhaugstrup@gmail.com>) id 1MrhFi-0001Zg-UI
-	for linux-dvb@linuxtv.org; Sun, 27 Sep 2009 02:04:36 +0200
-Received: by yxe1 with SMTP id 1so4295020yxe.3
-	for <linux-dvb@linuxtv.org>; Sat, 26 Sep 2009 17:04:00 -0700 (PDT)
+	(envelope-from <thomas@rokamp.dk>) id 1MioCE-0007hN-Gu
+	for linux-dvb@linuxtv.org; Wed, 02 Sep 2009 13:40:16 +0200
+Received: from localhost (unknown [89.221.175.57])
+	by cp1smtp.www1.dk (Postfix) with ESMTP id 94A227056A
+	for <linux-dvb@linuxtv.org>; Wed,  2 Sep 2009 13:39:50 +0200 (CEST)
 MIME-Version: 1.0
-Date: Sun, 27 Sep 2009 02:04:00 +0200
-Message-ID: <9597d9450909261704g64fadcd1vab84fb5be1d11308@mail.gmail.com>
-From: Mikkel Haugstrup <mhaugstrup@gmail.com>
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] AF9035 + FC0011 Tuner
-Reply-To: linux-media@vger.kernel.org
+Message-ID: <54953.1251891572@rokamp.dk>
+To: <linux-dvb@linuxtv.org>
+Date: Wed, 02 Sep 2009 13:39:32 +0200
+From: Thomas Rokamp <thomas@rokamp.dk>
+Subject: [linux-dvb] Problems with Hauppauge Nova-T USB2
+Reply-To: linux-media@vger.kernel.org, thomas@rokamp.dk
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,60 +26,82 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+(sorry if you already got this mail, I think I had sent it to the wrong list to begin with)
+
 Hi
 
-Purchased a cheap DVB-T usb stick because i was under the impression
-it would work under linux, but sadly the hardware revision has been
-bumped. The card is labeled Greentek DTVR-1, and thru disassembly i
-can visually identify the demod as a Afatech AF9035 and the tuner to
-be a Fiti-power FC0011.
+I have found my old Hauppauge Nova-T USB2 box. It's the old revision, with and USB ID 9301.
+I'm struggling to get it to work correctly under linux (Ubuntu Intrepid 2.6.27-11-server). So far all I have read and tried has been without success.
 
-Im running a Ubuntu 9.04 amd64 with latest kernel (2.6.28-15)
+I'm running the latest checked out v4l-dvb drivers (using hg).
 
-Initially i've tried to compile a custom kernel using the patches
-supplied to/by Terratec. In short I followed the Method B described
-here: http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_T_Stick.
+I have tested the box on the same location using windows, and "everything works fine".
 
-After a reboot I've the following when doing a dmesg:
-mhj@mhj-laptop:~/Desktop$ dmesg | grep 9035
-[   15.944874] af9035: tuner ID:40 not supported, please report!
-[   15.944902] usbcore: registered new interface driver dvb_usb_af9035
+My setup is a bit odd though. I have TV supplied from my local cable company, yet they have decided to supply the DVB signal using DVB-T. I guess it's because most of the TV's where I live supports DVB-T only. The signal is provided through the same plu in the wall as the old analog signal, though this should not be a problem, it works in windows.
 
-As nothing turns up under /dev/dvb I guess I still lack support for
-the FC0011 tuner, so I went on and examined the rar file from method C
-which seems to contain some source code for the FC0011 tuner. The
-AF903x_SRC.tar.gz seems only to include precompiled versions but the
-src rpm also seems to contain source code.
+I have tried various tools from dvb-apps, the output supplied further down...
 
-mhj@mhj-laptop:~/Desktop/Linux_PC_AF9035_Afatech_2008.12.17/Linux-64bit_AF9035_20081217$
-ls AF903x_SRC/*Fiti* -1
-AF903x_SRC/Fitipower_FC0011.h
-AF903x_SRC/Fitipower_FC0011.o
-AF903x_SRC/Fitipower_FC0011_Script.h
+dmesg | grep dvb:
+(I'm quite sure the MAC address it suggest is random upon each boot, which sounds like trouble to me)
 
-mhj@mhj-laptop:~/Desktop/Linux_PC_AF9035_Afatech_2008.12.17/Linux-64bit_AF9035_20081217$
-ls AF903x-64bit-2.0-1.src/AF903x_SRC/*Fiti* -1
-AF903x-64bit-2.0-1.src/AF903x_SRC/Fitipower_FC0011.c
-AF903x-64bit-2.0-1.src/AF903x_SRC/Fitipower_FC0011.h
-AF903x-64bit-2.0-1.src/AF903x_SRC/Fitipower_FC0011.o
-AF903x-64bit-2.0-1.src/AF903x_SRC/Fitipower_FC0011_Script.h
+dvb-usb: found a 'Hauppauge WinTV-NOVA-T usb2' in cold state, will try to load a firmware
+firmware: requesting dvb-usb-nova-t-usb2-02.fw
+dvb-usb: downloading firmware from file 'dvb-usb-nova-t-usb2-02.fw'
+usbcore: registered new interface driver dvb_usb_nova_t_usb2
+dvb-usb: generic DVB-USB module successfully deinitialized and disconnected.
+dvb-usb: found a 'Hauppauge WinTV-NOVA-T usb2' in warm state.
+dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+dvb-usb: MAC address: f5c9c8e4
+dvb-usb: schedule remote query interval to 100 msecs.
+dvb-usb: Hauppauge WinTV-NOVA-T usb2 successfully initialized and connected.
+
+Using 'scan' I have come to a channel.conf file, out of which I have added just one line to channels.conf:
+X:722000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_5_6:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:513:644:905
+
+Using the above channels.conf file as input to tzap, I get the following lines:
+
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+reading channels from file '.tzap/channels.conf'
+tuning to 722000000 Hz
+video pid 0x0201, audio pid 0x0284
+status 1f | signal 7bd3 | snr 0000 | ber 001fffff | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 7b94 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 7b7d | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 7b77 | snr 0000 | ber 00000090 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 7b79 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 7b70 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+
+As you can see from above, the signal-to-noise ratio is, well... bad. I was hoping (according to my readings) a value much higher.
+
+Trying to record something with dvbstream:
+dvbstream -n 5 -qam 64 -gi 16 -cr 5_6 -crlp 5_6 -bw 8 -tm 2 -hy NONE -f 722000000 513 644 -o > test.mpg
+dvbstream v0.6 - (C) Dave Chapman 2001-2004
+Released under the GPL.
+Latest version available from http://www.linuxstb.org/
+Tuning to 722000000 Hz
+Using DVB card "DiBcom 3000MC/P", freq=722000000
+tuning DVB-T (in United Kingdom) to 722000000 Hz, Bandwidth: 8
+Getting frontend status
+Event: Frequency: 722000000
+Bit error rate: 2097151
+Signal strength: 31503
+SNR: 0
+UNC: 0
+FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI FE_HAS_SYNC
+dvbstream will stop after 5 seconds (0 minutes)
+Output to stdout
+Streaming 3 streams
+Caught signal 1 - closing cleanly.
 
 
-mhj@mhj-laptop:~/Desktop/Linux_PC_AF9035_Afatech_2008.12.17/Linux-64bit_AF9035_20081217$
-cat ReadMe.txt | grep FC0011
-	2.Tuner support: NXP18291, MT2266, TUA9001 and FC0011 are supported.
+This 'test.mpg' output file, however, shows no video at all, despite it actually containing data. VLC reports 'nothing to play'.
 
-I have yet to make it compile succesfully on Ubuntu 9.04, was hoping
-to get some pointers on how to do it, the wiki mentions that kernels
-from 2.6.17-27 is supported, so my questions are.
-Have anyone successfully used the AF9035+FC0011 combo under Ubuntu
-9.04? Any other linux? Did you use the above code?
 
-If all no, could anybody give pointers on how to go ahead and try to
-make it work?
+Any help at this point would be highly appreciated :-)
 
-Kind regards
-Mikkel
+Best regards,
+Thomas Rokamp
+ 
 
 _______________________________________________
 linux-dvb users mailing list
