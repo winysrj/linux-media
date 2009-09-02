@@ -1,46 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from colin.muc.de ([193.149.48.1]:2819 "EHLO mail.muc.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754200AbZIDIht (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Sep 2009 04:37:49 -0400
-Date: Fri, 4 Sep 2009 10:29:56 +0200
-From: Harald Milz <hm@seneca.muc.de>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TechnoTrend TT-connect S2-3650 CI
-Message-ID: <20090904082956.GB7618@seneca.muc.de>
-References: <!&!AAAAAAAAAAAYAAAAAAAAAMs7WpTkg9MRuRcAACHFyB/CgAAAEAAAAJQ52z3qEFtDsl72y5icHrgBAAAAAA==@coolrose.fsnet.co.uk> <200908122130.15270.jens.nixdorf@gmx.de>
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:38520 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755532AbZIBBxg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2009 21:53:36 -0400
+Received: by bwz19 with SMTP id 19so423212bwz.37
+        for <linux-media@vger.kernel.org>; Tue, 01 Sep 2009 18:53:37 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <200908122130.15270.jens.nixdorf@gmx.de>
+In-Reply-To: <20090902113705.168af9f0@glory.loctelecom.ru>
+References: <20090902113705.168af9f0@glory.loctelecom.ru>
+Date: Tue, 1 Sep 2009 21:53:36 -0400
+Message-ID: <829197380909011853i4ca0445btf7ecd2fab8738dee@mail.gmail.com>
+Subject: Re: [PATCH] Add FM radio for the XC5000
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Dmitri Belimov <d.belimov@gmail.com>
+Cc: linux-media@vger.kernel.org, video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 12, 2009 at 09:30:15PM +0200, Jens Nixdorf wrote:
-> As Niels told you already, you cant use both types of driver. I own the 
-> same DVB-S2-Box from Technotrend and i'm using it with VDR 1.7.0 in 
-> ubuntu 9.04. I was following the wiki for installing s2-liplianin-
-> drivers, and since this time the box is running including its CI. 
+On Tue, Sep 1, 2009 at 9:37 PM, Dmitri Belimov<d.belimov@gmail.com> wrote:
+> Hi All
+>
+> Add FM radio for the xc5000 silicon tuner chip.
+>
+> diff -r 28f8b0ebd224 linux/drivers/media/common/tuners/xc5000.c
+> --- a/linux/drivers/media/common/tuners/xc5000.c        Sun Aug 23 13:55:25 2009 -0300
+> +++ b/linux/drivers/media/common/tuners/xc5000.c        Wed Sep 02 06:32:12 2009 +1000
+> @@ -747,14 +747,11 @@
+>        return ret;
+>  }
+>
+> -static int xc5000_set_analog_params(struct dvb_frontend *fe,
+> +static int xc5000_set_tv_freq(struct dvb_frontend *fe,
+>        struct analog_parameters *params)
+>  {
+>        struct xc5000_priv *priv = fe->tuner_priv;
+>        int ret;
+> -
+> -       if (xc5000_is_firmware_loaded(fe) != XC_RESULT_SUCCESS)
+> -               xc_load_fw_and_init_tuner(fe);
+>
+>        dprintk(1, "%s() frequency=%d (in units of 62.5khz)\n",
+>                __func__, params->frequency);
+> @@ -834,6 +831,67 @@
+>
+>        return 0;
+>  }
+> +
+> +static int xc5000_set_radio_freq(struct dvb_frontend *fe,
+> +       struct analog_parameters *params)
+> +{
+> +       struct xc5000_priv *priv = fe->tuner_priv;
+> +       int ret = -EINVAL;
+> +
+> +       dprintk(1, "%s() frequency=%d (in units of khz)\n",
+> +               __func__, params->frequency);
+> +
+> +       priv->freq_hz = params->frequency * 125 / 2;
+> +
+> +       priv->rf_mode = XC_RF_MODE_AIR;
+> +
+> +       ret = xc_SetTVStandard(priv,
+> +               XC5000_Standard[FM_Radio_INPUT1].VideoMode,
+> +               XC5000_Standard[FM_Radio_INPUT1].AudioMode);
+> +
+> +       if (ret != XC_RESULT_SUCCESS) {
+> +               printk(KERN_ERR "xc5000: xc_SetTVStandard failed\n");
+> +               return -EREMOTEIO;
+> +       }
+> +
+> +       ret = xc_SetSignalSource(priv, priv->rf_mode);
+> +       if (ret != XC_RESULT_SUCCESS) {
+> +               printk(KERN_ERR
+> +                       "xc5000: xc_SetSignalSource(%d) failed\n",
+> +                       priv->rf_mode);
+> +               return -EREMOTEIO;
+> +       }
+> +
+> +       xc_tune_channel(priv, priv->freq_hz, XC_TUNE_ANALOG);
+> +
+> +       return 0;
+> +}
+> +
+> +static int xc5000_set_analog_params(struct dvb_frontend *fe,
+> +                            struct analog_parameters *params)
+> +{
+> +       struct xc5000_priv *priv = fe->tuner_priv;
+> +       int ret = -EINVAL;
+> +
+> +       if (priv->i2c_props.adap == NULL)
+> +               return -EINVAL;
+> +
+> +       if (xc5000_is_firmware_loaded(fe) != XC_RESULT_SUCCESS)
+> +               xc_load_fw_and_init_tuner(fe);
+> +
+> +       switch (params->mode) {
+> +       case V4L2_TUNER_RADIO:
+> +               ret = xc5000_set_radio_freq(fe, params);
+> +               break;
+> +       case V4L2_TUNER_ANALOG_TV:
+> +       case V4L2_TUNER_DIGITAL_TV:
+> +               ret = xc5000_set_tv_freq(fe, params);
+> +               break;
+> +       }
+> +
+> +       return ret;
+> +}
+> +
+>
+>  static int xc5000_get_frequency(struct dvb_frontend *fe, u32 *freq)
+>  {
+>
+> Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+>
+> With my best regards, Dmitry.
 
-Mine as well under openSUSE 11.1. The part should definitely get the
-"supported" status. I figure the s2-liaplianin tree need to me merged into the
-official tree then. As the S2-3200 card which is technically very similar
-except for the USB interface is officially supported in kernel 2.6.29, a
-respective hint should be added to the Wiki. I may test a 2.6.29 kernel for
-openSUSE 11.1 today and give some feedback. 
+Hello Dmitri,
 
-Same for the S2-3600 which is technically identical except for the CI. 
+A few comments;
 
-Any idea if the Satelco part
-(http://www.amazon.de/SATELCO-EasyWatch-HDTV-USB-DVB-S2/dp/B000X1C02W) is a
-OEM part of the S2-3650? 
+I don't think the code should have FM1 hard-coded as the only valid
+input.  You should probably add a parameter to the xc500_config struct
+to specify which FM input to use (so the person defining the board
+profile can define which input is appropriate).
 
-> Maybe there could be some optimization (the log is full with some 
-> bandwisth-messages from the stb6100-part), but it works at least good 
-> enough for me.
+Does the signal lock register actually work for FM?  I assume it does,
+but I'm not sure.
 
-"modprobe ... verbose=0"  helps. 
+Also, I would probably have him move the setting of priv->rf_mode
+further down in the function.  That way it the xc5000_priv struct
+won't get out of sync with the actual state of the device if the call
+to xc_SetTVStandard() fails.
+
+Other than those two things though it looks ok at first glance.
+
+Devin
 
 -- 
-Save the Whales -- Harpoon a Honda.
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
