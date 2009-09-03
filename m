@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from colin.muc.de ([193.149.48.1] helo=mail.muc.de ident=qmailr)
+Received: from node6.gecad.com ([193.230.245.6])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <hm@seneca.muc.de>) id 1MnS2J-0005QM-Nd
-	for linux-dvb@linuxtv.org; Tue, 15 Sep 2009 09:01:12 +0200
-Date: Tue, 15 Sep 2009 08:41:15 +0200
-From: Harald Milz <hm@seneca.muc.de>
-To: linux-dvb@linuxtv.org
-Message-ID: <20090915064115.GA20603@seneca.muc.de>
-References: <8CB2022318A0220-1E84-15EE@WEBMAIL-MZ13.sysops.aol.com>
-	<20090914101458.GA18504@seneca.muc.de>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20090914101458.GA18504@seneca.muc.de>
-Subject: Re: [linux-dvb] Need help with TT S2-3650 w/ s2-liplianin
+	(envelope-from <eduard.budulea@axigen.com>) id 1MjBWW-0000Sk-Ji
+	for linux-dvb@linuxtv.org; Thu, 03 Sep 2009 14:34:45 +0200
+From: Eduard Budulea <eduard.budulea@axigen.com>
+To: Jed <jedi.theone@gmail.com>
+In-Reply-To: <4A9FAC48.90309@gmail.com>
+References: <18203149.1251714450755.JavaMail.root@ctps3>	
+	<4A9FAC48.90309@gmail.com>
+Date: Thu, 03 Sep 2009 15:36:47 +0300
+Message-Id: <1251981407.3990.82.camel@edi-desktop>
+Mime-Version: 1.0
+Cc: Linux DVB <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] saa 7162 chip, recording from s-video
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -27,71 +27,114 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, Sep 14, 2009 at 12:14:58PM +0200, Harald Milz wrote:
-> Sep 14 11:52:03 seneca kernel: pctv452e_power_ctrl: 0
-> Sep 14 11:52:21 seneca kernel: usbcore: deregistering interface driver pctv452e
-> Sep 14 11:52:21 seneca kernel: dvb-usb: bulk message failed: -22 (5/0)
-> Sep 14 11:52:21 seneca kernel: pctv452e: CI error -22; AA 1F 46 -> AA 1F 46.
-> Sep 14 11:52:21 seneca kernel: dvb-usb: bulk message failed: -22 (5/-30719)
-> Sep 14 11:52:21 seneca kernel: pctv452e: CI error -22; AA 20 46 -> AA 20 46.
-> Sep 14 11:52:21 seneca kernel: dvb-usb: bulk message failed: -22 (11/-30719)
-> Sep 14 11:52:21 seneca kernel: pctv452e: I2C error -22; AA 21  10 04 00 -> AA 21  10 04 00.
-> Sep 14 11:52:21 seneca kernel: dvb-usb: bulk message failed: -22 (10/-30719)
-> Sep 14 11:52:21 seneca kernel: pctv452e: I2C error -22; AA 22  D0 03 00 -> AA 22  D0 03 00.
+On Thu, 2009-09-03 at 21:45 +1000, Jed wrote:
+> Hi Eduard,
+> 
+> This is not really helping you but I was wondering if you could
+> possibly help me?
+> 
+> I have the QuattroS: 
+> http://www.linuxtv.org/wiki/index.php/Saa7162_devices#DNTV_PCI_Express_cards
+This looks like the same layout so who knows? worth a try.
+> 
+> It is from the same family of devices as your card, my questions are
+> in-line...
+> 
+> ----Mensaje original----
+> De: eduard.budulea@axigen.com
+> Recibido: 31/08/2009 11:35
+> Para: <linux-dvb@linuxtv.org>
+> Asunto: [linux-dvb] saa 7162 chip, recording from s-video
+> 
+> Hi, I have this card:Kworld DVB-T PE310.
+> On a ubuntu 9.4 system with linux 2.6.28-15-generic.
+> I've managed to compile and install the drivers from:
+> http://www.jusst.de/hg/saa716x/
+> 
+> Did you rely on the instructions in the wiki to do this? If not could
+> you briefly outline what you did?
+I found no wiki.
+So what I did:
+* take the latest bz2 from the site http://www.jusst.de/hg/saa716x/
+* install the linux-headers.
+* extract the bz2 in folder, let's say "saaSrc" (this is a placeholder).
+* run make in saaSrc.
+* it will give an error that it does not find
+http://linuxtv.org/hg/v4l-dvb/file/2b49813f8482/linux/drivers/media/dvb/frontends/stv6110x_priv.h
+and
+http://linuxtv.org/hg/v4l-dvb/file/2b49813f8482/linux/drivers/media/dvb/frontends/stv6110x_reg.h
+and
+http://linuxtv.org/hg/v4l-dvb/file/2b49813f8482/linux/drivers/media/dvb/frontends/stv6110x.h
+and
+http://linuxtv.org/hg/v4l-dvb/file/2b49813f8482/linux/drivers/media/dvb/frontends/stv6110x.c
+* put the missing files.
+* and it should compile.
+* make install
+* now be prepare to reboot because the driver does not cleanly remove
+itself on rmmod.
+* modprobe the saa716x_hybrid with verbose (I've put 100) and debug
+(I've put 1) and saa716x_core with debug (I've put 1).
+* It will probably say nothing to the dmesg because you don't have the
+card id put in the sources.
+* To put in the sources you have to add a MAKE_ENTRY (@
+saa716x_hybrid.c:595).
 
-Today, after stopping VDR I get loads and loads of
+Here you see the atlantis structure.
+>From what I see there are diferent config paths depending of the board.
+Atlantis is the nxp reference board so I used it (cloned the MAKE_ENTY
+and give the pciIds of my card).
 
-Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 68  D0 03 00 -> AA 68  D0 03 00.
-Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/0)
-Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 69  D0 02 00 -> AA 69  D0 02 00.
-Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
-Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 6A  D0 02 00 -> AA 6A  D0 02 00.
-Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (10/-30719)
-Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 6B  D0 03 00 -> AA 6B  D0 03 00.
-Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
-Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 6C  D0 02 00 -> AA 6C  D0 02 00.
-Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (10/-30719)
-Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 6D  D0 03 00 -> AA 6D  D0 03 00.
-Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (10/-30719)
-Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 6E  D0 03 00 -> AA 6E  D0 03 00.
-Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
-Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 6F  D0 02 00 -> AA 6F  D0 02 00.
-Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
-Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 70  D0 02 00 -> AA 70  D0 02 00.
-Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
-Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 71  D0 02 00 -> AA 71  D0 02 00.
-Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
-Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 72  D0 02 00 -> AA 72  D0 02 00.
-Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
-Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 73  D0 02 00 -> AA 73  D0 02 00.
-Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
-Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 74  D0 02 00 -> AA 74  D0 02 00.
-Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
-Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 75  D0 02 00 -> AA 75  D0 02 00.
-Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
-Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 76  D0 02 00 -> AA 76  D0 02 00.
-Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
-Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 77  D0 02 00 -> AA 77  D0 02 00.
-Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
-Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 78  D0 02 00 -> AA 78  D0 02 00.
-Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
+* compile and install and do the modprobe again (now it will load the
+driver but if the id is not 46 then it will report what id is that is
+wrong) the id is the id of the tda 100046a chip (2 of them) at my board
+it was 0xff
+* the tda error print is from tda1004x.c:1361.
+* I have added at the if my id also so that the error will not happen.
+* compile install modprobe.
+* after that I had the /dev/dvb/adapter{0,1} folders.
 
+Hope it will work for you.
 
-The module cannot be unloaded: 
+> 
+> I've added my pci id to the driver list (used atlantis config
+> structure)
+> I also added my tda10046 (actually my chips are tda 100046A, why the
+> extra 0?) id (whitch is 0xFF, not 0x46) in tda10046_attach function.
+> 
+> I think I understand what you're saying here, but how do I determine
+> what my PCI & TDA100046A ID's are?
+> And what do you mean by Atlantis Config Structure?
+> 
+> It kind of worked, because it has not crashed and the w_scan give
+> output like is working.
+> However, I don't know if in my region I have dvb-t.
+> 
+> I have DVB-T in my area so I can confirm that it works if you help me
+> with those prior steps! :-D 
+> 
+> What I want is to be able to record from an s-video source.
+> It should be possible with this card.
+> But the card does not export a /dev/videox file (no v4l?)
+> It only creates /dev/dvb/adapterx thing.
+> So how can I record s-video with this card?
+> 
+> I am interested in testing AV-in too, so any tips there would also be
+> greatly appreciated!
 
-dvb_usb_pctv452e       23052  18
+The idea that I have is not an easy one. Fist if the streaming is
+working. I want to find out the control register that will comute the
+chip from dvb stream to AV one and hopefully at /dev/dvb/adapter0/demux0
+I'll get the video stream. After that I have to write a v4l2 driver to
+do that.
 
-hg clone of Sep 13, 2009. 
+Have fun.
 
-What can be done here?
+> 
+> 
+> Most Sincerely,
+> Jed
+> 
 
-
--- 
-Linus:	I guess it's wrong always to be worrying about tomorrow.  Maybe
-	we should think only about today.
-Charlie Brown:
-	No, that's giving up.  I'm still hoping that yesterday will get
-	better.
 
 _______________________________________________
 linux-dvb users mailing list
