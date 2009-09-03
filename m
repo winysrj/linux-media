@@ -1,68 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:56622 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758900AbZIGGHY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Sep 2009 02:07:24 -0400
-Date: Mon, 7 Sep 2009 03:06:52 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Michael Krufky <mkrufky@kernellabs.com>
-Cc: linuxtv-commits@linuxtv.org, Jarod Wilson <jarod@wilsonet.com>,
-	Hans Verkuil via Mercurial <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [linuxtv-commits] [hg:v4l-dvb] cx25840: fix determining the
- firmware name
-Message-ID: <20090907030652.04e2d2a3@caramujo.chehab.org>
-In-Reply-To: <37219a840909062220p3ae71dc0t4df96fd140c5c7b4@mail.gmail.com>
-References: <E1MiTfS-0001LQ-SU@mail.linuxtv.org>
-	<37219a840909041105u7fe714aala56893566d93cdc3@mail.gmail.com>
-	<20090907021002.2f4d3a57@caramujo.chehab.org>
-	<37219a840909062220p3ae71dc0t4df96fd140c5c7b4@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from ziczac-stoffe.de ([85.10.211.186]:1957 "EHLO
+	mail.ziczac-stoffe.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754857AbZICSio (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Sep 2009 14:38:44 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mail.ziczac-stoffe.de (Postfix) with ESMTP id 87F5E3E3A39
+	for <linux-media@vger.kernel.org>; Thu,  3 Sep 2009 20:17:53 +0200 (CEST)
+Received: from mail.ziczac-stoffe.de ([127.0.0.1])
+	by localhost (localhost.localdomain [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id d4-N8y-XAwa0 for <linux-media@vger.kernel.org>;
+	Thu,  3 Sep 2009 20:17:39 +0200 (CEST)
+Received: from gw.ziczac-stoffe.local (p54B3EEAC.dip.t-dialin.net [84.179.238.172])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(Client CN "gw.ziczac-stoffe.local", Issuer "ziczac-stoffe.de Server CA" (verified OK))
+	by mail.ziczac-stoffe.de (Postfix) with ESMTP id 500413E21EA
+	for <linux-media@vger.kernel.org>; Thu,  3 Sep 2009 20:17:39 +0200 (CEST)
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by gw.ziczac-stoffe.local (Postfix) with ESMTP id 77DC4403F
+	for <linux-media@vger.kernel.org>; Thu,  3 Sep 2009 20:17:37 +0200 (CEST)
+Received: from gw.ziczac-stoffe.local ([127.0.0.1])
+	by localhost (gw.ziczac-stoffe.local [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 6+OX-YYbPHLG for <linux-media@vger.kernel.org>;
+	Thu,  3 Sep 2009 20:17:37 +0200 (CEST)
+Date: Thu, 3 Sep 2009 20:17:36 +0200
+From: Mario Neudeck <mario.neudeck@ziczac-stoffe.de>
+To: linux-media@vger.kernel.org
+Subject: Terratec Cinergy T USB XXS
+Message-ID: <20090903181736.GH14422@gw.ziczac-stoffe.local>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 7 Sep 2009 01:20:33 -0400
-Michael Krufky <mkrufky@kernellabs.com> escreveu:
+Hello,
 
-> On Mon, Sep 7, 2009 at 1:10 AM, Mauro Carvalho
-> Chehab<mchehab@infradead.org> wrote:
-> > Em Fri, 4 Sep 2009 14:05:31 -0400
-> > Michael Krufky <mkrufky@kernellabs.com> escreveu:
-> >
-> >> Mauro,
-> >>
-> >> This fix should really go to Linus before 2.6.31 is released, if
-> >> possible.  It also should be backported to stable, but I need it in
-> >> Linus' tree before it will be accepted into -stable.
-> >>
-> >> Do you think you can slip this in before the weekend?  As I
-> >> understand, Linus plans to release 2.6.31 on Saturday, September 5th.
-> >>
-> >> If you dont have time for it, please let me know and I will send it in myself.
-> >>
-> >
-> > This patch doesn't apply upstream:
-> >
-> > $ patch -p1 -i 12613.patch
-> > patching file drivers/media/video/cx25840/cx25840-firmware.c
-> > Hunk #5 FAILED at 107.
-> > 1 out of 5 hunks FAILED -- saving rejects to file drivers/media/video/cx25840/cx25840-firmware.c.re
-> 
-> 
-> OK, this is going to need a manual backport.  This does fix an issue
-> in 2.6.31, and actually affects all kernels since the appearance of
-> the cx23885 driver, but I can wait until you push it to Linus in the
-> 2.6.32 merge window, then I'll backport & test it for -stable.
+I have some trouble with a Cinergy T USB XXS stick. As described on
+http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_T_USB_XXS the
+stick should work. But my device comes with USB-ID 0ccd:00ab and not
+with USB-ID 0ccd:0078 (linuxtv.org). 
+I'm using firmware dvb-usb-dib0700-1.10.fw.
 
-Ok. I think I asked you once, but let me re-ask again: from what I was told, the
-latest cx25840 firmware (the one that Conexant give us the distribution rights)
-seems to be common to several cx25840-based chips. It would be really good if
-we can test it with all devices, especially since distros will add it on their
-firmware packages, as they are at the firmware -git
+The kernelmodul is loaded:
+ [223.409297] dib0700: loaded with support for 7 different device-types
 
+The next step should loading the firmware like that:
+ [ 223.409638] dvb-usb: found a 'Terratec Cinergy T USB XXS' in cold
+state, will try to load a firmware.
 
+But nothing happens. Because of that there is no /dev/dvb.
 
-Cheers,
-Mauro
+modinfo dvb_usb_dib0700 gives this information:
+...
+filename:
+/lib/modules/2.6.26-2-openvz-686/kernel/drivers/media/dvb/dvb-usb/dvb-usb-dib0700.ko
+...
+
+Does anyone have some information to get the stick work. Maybe it is
+unsupported because of the differnt USB-ID ?
+
+Thanks for help,
+Mario
