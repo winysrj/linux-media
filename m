@@ -1,158 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01a.mail.t-online.hu ([84.2.40.6]:59689 "EHLO
-	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754291AbZIKSRx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2009 14:17:53 -0400
-Message-ID: <4AAA944F.1090701@freemail.hu>
-Date: Fri, 11 Sep 2009 20:17:51 +0200
-From: =?ISO-8859-2?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+Received: from fmmailgate09.web.de ([217.72.192.184]:60521 "EHLO
+	fmmailgate09.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751950AbZICNMh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Sep 2009 09:12:37 -0400
+Received: from web.de
+	by fmmailgate09.web.de (Postfix) with SMTP id 30BD42B1D797
+	for <linux-media@vger.kernel.org>; Thu,  3 Sep 2009 15:12:39 +0200 (CEST)
+Date: Thu, 03 Sep 2009 15:12:37 +0200
+Message-Id: <312196303@web.de>
 MIME-Version: 1.0
-To: Thomas Kaiser <thomas@kaiser-linux.li>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Luc Saillard <luc@saillard.org>
-CC: V4L Mailing List <linux-media@vger.kernel.org>,
-	=?ISO-8859-2?Q?N=E9me?= =?ISO-8859-2?Q?th_M=E1rton?=
-	<nm127@freemail.hu>
-Subject: Re: image quality of Labtec Webcam 2200
-References: <4AA9F7A0.5080802@freemail.hu>
-In-Reply-To: <4AA9F7A0.5080802@freemail.hu>
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 8bit
+From: Andreas Golat <androgo@web.de>
+To: linux-media@vger.kernel.org
+Subject: =?iso-8859-15?Q?[DVB]_Problems_with_TerraTec_Cinergy_T_USB_XE_(af9005,?=
+ =?iso-8859-15?Q?_mt2060_problem=3F)?=
+Content-Type: multipart/mixed;
+ boundary="=-------------1251983559210147219"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Márton Németh wrote:
-> Hi,
-> 
-> I have a Labtec Webcam 2200 and I have problems with the image quality
-> with Linux 2.6.31 + libv4l 0.6.1. I made some experiments and stored
-> each captured image as raw data and when libv4l was able to convert
-> then I also stored the result as bmp.
-> 
-> You can find my results at http://v4l-test.sourceforge.net/results/test-20090911/index.html
-> There are three types of problems:
->  a) Sometimes the picture contains a 8x8 pixel error, like in image #9
->     http://v4l-test.sourceforge.net/results/test-20090911/index.html#img00009
->  b) Sometimes the brightness of the half picture is changed, like in
->     images #7, #36 and #37
->     http://v4l-test.sourceforge.net/results/test-20090911/index.html#img00007
->     http://v4l-test.sourceforge.net/results/test-20090911/index.html#img00036
->     http://v4l-test.sourceforge.net/results/test-20090911/index.html#img00037
->  c) Sometimes the libv4l cannot convert the raw image and the errno
->     is set to EAGAIN (11), for example image #1, #2 and #3
-> 
-> Do you know how can I fix these problems?
+This is a multi-part message in MIME format.
 
-I investigated the c) point a little bit. When I get a negative return value
-from the v4lconvert_convert() function then I print out the error message what the
-v4lconvert_get_error_message() function returns. With the result log file
-I executed a "grep v4l-convert |sort |uniq" command. All the error messages are
-coming from the tinyjpeg.c (Small jpeg decoder library):
+--=-------------1251983559210147219
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: quoted-printable
 
-v4l-convert: error decompressing JPEG: error: more then 63 AC components (65) in huffman unit
-v4l-convert: error decompressing JPEG: error: more then 63 AC components (66) in huffman unit
-v4l-convert: error decompressing JPEG: error: more then 63 AC components (67) in huffman unit
-v4l-convert: error decompressing JPEG: error: more then 63 AC components (68) in huffman unit
-v4l-convert: error decompressing JPEG: error: more then 63 AC components (69) in huffman unit
-v4l-convert: error decompressing JPEG: error: more then 63 AC components (70) in huffman unit
-v4l-convert: error decompressing JPEG: error: more then 63 AC components (71) in huffman unit
-v4l-convert: error decompressing JPEG: error: more then 63 AC components (72) in huffman unit
-v4l-convert: error decompressing JPEG: error: more then 63 AC components (73) in huffman unit
-v4l-convert: error decompressing JPEG: error: more then 63 AC components (75) in huffman unit
-v4l-convert: error decompressing JPEG: error: more then 63 AC components (76) in huffman unit
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x00
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x01
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x02
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x04
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x08
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x09
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x0a
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x10
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x12
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x14
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x1a
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x1b
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x1c
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x1f
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x80
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x82
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x87
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x88
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x89
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x8a
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x8b
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x8c
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x8d
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x8e
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x8f
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x90
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x91
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x92
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x93
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x94
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x95
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x96
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x97
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x99
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x9b
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x9c
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x9d
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x9e
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x9f
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xa3
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xa5
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xa6
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xa7
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xa9
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xaa
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xab
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xad
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xaf
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xb3
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xb5
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xb7
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xb8
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xb9
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xbc
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xbd
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xbe
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xbf
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xc0
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xc4
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xc6
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xc7
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xc9
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xcb
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xcc
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xcf
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xd1
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xd2
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xd3
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xd4
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xdc
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xdf
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xe5
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xe7
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xe8
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xea
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xeb
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xec
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xf0
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xf2
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xf4
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xf5
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xf8
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xf9
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xfa
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xfc
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xfe
-v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xff
-v4l-convert: error decompressing JPEG: Pixart JPEG error, stream does not end with EOF marker
-v4l-convert: error decompressing JPEG: unknown huffman code: 0000ff81
-v4l-convert: error decompressing JPEG: unknown huffman code: 0000ffec
-v4l-convert: error decompressing JPEG: unknown huffman code: 0000ffff
+Hello,
 
-Regards,
+I have some trouble with a Cinergy T USB XE stick. As I saw a lot of peopl=
+e
+saying, it runs, so I thought it could be a problem that should be reporte=
+d.
 
-	Márton Németh
+I'm runnung opensuse 11.1 (2.6.27.29) with the newest v4l-driver, download=
+ed
+some minutes ago with mercurial. The firmware is from http://ventoso.org/l=
+uca/af9005/ (tried both)
+
+After inserting the stick I get the following message:
+---
+usb 6-1: new full speed USB device using uhci=5Fhcd and address 2
+usb 6-1: configuration #1 chosen from 1 choice
+usb 6-1: New USB device found, idVendor=3D0ccd, idProduct=3D0055
+usb 6-1: New USB device strings: Mfr=3D1, Product=3D2, SerialNumber=3D0
+usb 6-1: Product: Cinergy T USB XE
+usb 6-1: Manufacturer: AFA
+dvb-usb: found a 'TerraTec Cinergy T USB XE' in cold state, will try to lo=
+ad a firmware
+firmware: requesting af9005.fw
+dvb-usb: downloading firmware from file 'af9005.fw'
+dvb-usb: found a 'TerraTec Cinergy T USB XE' in warm state.
+dvb-usb: will use the device's hardware PID filter (table count: 32).
+DVB: registering new adapter (TerraTec Cinergy T USB XE)
+DVB: registering adapter 0 frontend 0 (AF9005 USB DVB-T)...
+dvb-usb: TerraTec Cinergy T USB XE successfully initialized and connected.=
+
+usbcore: registered new interface driver dvb=5Fusb=5Faf9005
+---
+
+After starting kaffeine I first get this message from the tuner:
+---
+MT2060: successfully identified (IF1 =3D 1228)
+---
+
+After some seconds (kaffeine says nothing - no screen, nothing) I get
+the errormessage in the file kernelmessage-after-kaffeine.txt / or
+http://pastebin.com/m7c7257a6
+
+Then the dvb-stuff seems to hang. Cant reconnect or unload the driver.
+After disconnecting the stick I get the message in the file=20
+kernelmessage-after-disconnect.txt / or http://pastebin.com/m35b32ad7
+
+
+After a reboot I also tried to test the stick with "scan -c" but I get the=
+ message:
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+WARNING: filter timeout pid 0x0011
+WARNING: filter timeout pid 0x0000
+dumping lists (0 services)
+Done.
+
+
+Someone can help me=3F  Is it a problem with the drvier or perhaps something=
+ else=3F
+
+Regards - Andr.
+
+=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F
+GRATIS f=FCr alle WEB.DE-Nutzer: Die maxdome Movie-FLAT!
+Jetzt freischalten unter http://movieflat.web.de
+
+
+--=-------------1251983559210147219
+Content-Type: application/octet-stream;
+ name="kernelmessage-after-disconnect.txt"
+Content-Disposition: attachment;
+ filename="kernelmessage-after-disconnect.txt"
+Content-Transfer-Encoding: base64
+
+dXNiIDYtMTogVVNCIGRpc2Nvbm5lY3QsIGFkZHJlc3MgMgpnZW5lcmFsIHByb3RlY3Rpb24g
+ZmF1bHQ6IDAwMDAgWzJdIFNNUApsYXN0IHN5c2ZzIGZpbGU6IC9zeXMvZGV2aWNlcy9zeXN0
+ZW0vY3B1L2NwdTEvY2FjaGUvaW5kZXgyL3NoYXJlZF9jcHVfbWFwCkNQVSAwCk1vZHVsZXMg
+bGlua2VkIGluOiBtdDIwNjAoTikgaHNvKE4pIHJma2lsbCB1c2Jfc3RvcmFnZSBkdmJfdXNi
+X2FmOTAwNV9yZW1vdGUoTikgZHZiX3VzYl9hZjkwMDUoTikgZHZiX3VzYihOKSBkdmJfY29y
+ZShOKSBpMmNfY29yZSB4dF90Y3B1ZHAgeHRfcGt0dHlwZSBpcHRfTE9HIHh0X2xpbWl0IGk5
+MTUgZHJtIHNuZF9wY21fb3NzIHNuZF9taXhlcl9vc3MgYmluZm10X21pc2Mgc25kX3NlcSBz
+bmRfc2VxX2RldmljZSB4dF9OT1RSQUNLIGlwdF9SRUpFQ1QgeHRfc3RhdGUgaXB0YWJsZV9y
+YXcgaXB0YWJsZV9maWx0ZXIgbmZfY29ubnRyYWNrX25ldGJpb3NfbnMgY3B1ZnJlcV9jb25z
+ZXJ2YXRpdmUgbmZfY29ubnRyYWNrX2lwdjQgY3B1ZnJlcV91c2Vyc3BhY2UgY3B1ZnJlcV9w
+b3dlcnNhdmUgbmZfY29ubnRyYWNrIGlwX3RhYmxlcyBhY3BpX2NwdWZyZXEgaXA2X3RhYmxl
+cyB4X3RhYmxlcyBtaWNyb2NvZGUgZnVzZSBkbV9jcnlwdCBsb29wIGRtX21vZCBpZGVfY3Mg
+YXJjNCBlY2IgY3J5cHRvX2Jsa2NpcGhlciBwYXRhX3BjbWNpYSBpd2xhZ24oTikgaXdsY29y
+ZShOKSBsZWRfY2xhc3MgcGNtY2lhIHNuZF9oZGFfaW50ZWwgbWFjODAyMTEoTikgc25kX3Bj
+bSBwcGRldiBzZGhjaV9wY2kgb2hjaTEzOTQgdmlkZW8geWVudGFfc29ja2V0IHJpY29oX21t
+YyBwYXJwb3J0X3BjIGNmZzgwMjExKE4pIHNkaGNpIHNuZF90aW1lciBpZWVlMTM5NCBvdXRw
+dXQgaXJkYSBpVENPX3dkdCBtbWNfY29yZSB3bWkgcmZraWxsX2JhY2twb3J0KE4pIHNyX21v
+ZCBzZXJpb19yYXcgam95ZGV2IGNvbnRhaW5lciBidXR0b24gYmF0dGVyeSBhYyBzbmRfcGFn
+ZV9hbGxvYyByc3JjX25vbnN0YXRpYyBpVENPX3ZlbmRvcl9zdXBwb3J0IHNuZF9od2RlcCBy
+dGNfY21vcyBlMTAwMGUgcGFycG9ydCBwY21jaWFfY29yZSBydGNfY29yZSBzbmQgcnRjX2xp
+YiBjcmNfY2NpdHQgc2cgcGNzcGtyIGNkcm9tIHNvdW5kY29yZSBpbnRlbF9hZ3Agc2RfbW9k
+IGNyY190MTBkaWYgZWhjaV9oY2QgdWhjaV9oY2QgdXNiY29yZSBlZGQgZXh0MyBtYmNhY2hl
+IGpiZCBmYW4gaWRlX3BjaV9nZW5lcmljIHBpaXggaWRlX2NvcmUgYXRhX2dlbmVyaWMgYXRh
+X3BpaXggdGhlcm1hbCBwcm9jZXNzb3IgdGhlcm1hbF9zeXMgaHdtb24gYWhjaSBsaWJhdGEg
+c2NzaV9tb2QgZG9jawpTdXBwb3J0ZWQ6IE5vClBpZDogMjg1LCBjb21tOiBraHViZCBUYWlu
+dGVkOiBHICAgICAgRCAgIDIuNi4yNy4yOS0wLjEtZGVmYXVsdCAjMQpSSVA6IDAwMTA6Wzxm
+ZmZmZmZmZjgwMjM1ZDIyPl0gIFs8ZmZmZmZmZmY4MDIzNWQyMj5dIHRyeV90b193YWtlX3Vw
+KzB4NGIvMHgyNDkKUlNQOiAwMDE4OmZmZmY4ODAwN2QwYjVhZDAgIEVGTEFHUzogMDAwMTAy
+MDIKUkFYOiAzZDNkM2QzZDNkM2QzZDNkIFJCWDogZmZmZjg4MDA1Mjk4YTM4MCBSQ1g6IDAw
+MDAwMDAwMDAwMDAwMDAKUkRYOiBmZmZmZmZmZjgwYTQzMDgwIFJTSTogMDAwMDAwMDAwMDAw
+MDAwZiBSREk6IGZmZmY4ODAwNTI5OGEzODAKUkJQOiBmZmZmODgwMDdkMGI1YjEwIFIwODog
+MDAwMDAwMDAwMDAwMDAwMCBSMDk6IGZmZmY4ODAwN2QwYjViYjAKUjEwOiAwMDAwMDAwMDAw
+MDAwMDAwIFIxMTogZmZmZmZmZmZhMDRlYWUzOCBSMTI6IDAwMDAwMDAwMDAwMDAwMDEKUjEz
+OiAwMDAwMDAwMDAwMDAwMDBmIFIxNDogZmZmZmZmZmZhMDRlYWUzOCBSMTU6IDAwMDAwMDAw
+MDAwMDAwMDAKRlM6ICAwMDAwMDAwMDAwMDAwMDAwKDAwMDApIEdTOmZmZmZmZmZmODBhNDMw
+ODAoMDAwMCkga25sR1M6MDAwMDAwMDAwMDAwMDAwMApDUzogIDAwMTAgRFM6IDAwMTggRVM6
+IDAwMTggQ1IwOiAwMDAwMDAwMDgwMDUwMDNiCkNSMjogMDAwMDdmY2VlMTM4YjAwMCBDUjM6
+IDAwMDAwMDAwNjI0MjMwMDAgQ1I0OiAwMDAwMDAwMDAwMDAwNmUwCkRSMDogMDAwMDAwMDAw
+MDAwMDAwMCBEUjE6IDAwMDAwMDAwMDAwMDAwMDAgRFIyOiAwMDAwMDAwMDAwMDAwMDAwCkRS
+MzogMDAwMDAwMDAwMDAwMDAwMCBEUjY6IDAwMDAwMDAwZmZmZjBmZjAgRFI3OiAwMDAwMDAw
+MDAwMDAwNDAwClByb2Nlc3Mga2h1YmQgKHBpZDogMjg1LCB0aHJlYWRpbmZvIGZmZmY4ODAw
+N2QwYjQwMDAsIHRhc2sgZmZmZjg4MDA3ZDAwODQ0MCkKU3RhY2s6ICBmZmZmODgwMDdkMGI1
+YjIwIDAwMDAwMDAwODAwMDAwMDAgZmZmZjg4MDA3ZDBkZjQ0OCBmZmZmODgwMDUyOThhMzkw
+CiAwMDAwMDAwMDAwMDAwMDAxIGZmZmY4ODAwNjkwM2U2NDggZmZmZmZmZmZhMDRlYWUzOCAw
+MDAwMDAwMDAwMDAwMDAwCiBmZmZmODgwMDUyOThhMzgwIGZmZmZmZmZmODAyNGZhYmQgZmZm
+Zjg4MDA1NWMzMDE1MCBmZmZmODgwMDU1OGQzMDAwCkNhbGwgVHJhY2U6CiBbPGZmZmZmZmZm
+ODAyNGZhYmQ+XSBrdGhyZWFkX3N0b3ArMHg0Mi8weDgzCiBbPGZmZmZmZmZmYTA0Y2EzNzk+
+XSBkdmJfZnJvbnRlbmRfc3RvcCsweDQ0LzB4OTQgW2R2Yl9jb3JlXQogWzxmZmZmZmZmZmEw
+NGNhNDBiPl0gZHZiX3VucmVnaXN0ZXJfZnJvbnRlbmQrMHg0Mi8weGVlIFtkdmJfY29yZV0K
+IFs8ZmZmZmZmZmZhMDRkZGUzOT5dIGR2Yl91c2JfYWRhcHRlcl9mcm9udGVuZF9leGl0KzB4
+MTUvMHgyNSBbZHZiX3VzYl0KIFs8ZmZmZmZmZmZhMDRkZDNlOD5dIGR2Yl91c2JfZXhpdCsw
+eDU0LzB4ZGUgW2R2Yl91c2JdCiBbPGZmZmZmZmZmYTA0ZGQ0YWY+XSBkdmJfdXNiX2Rldmlj
+ZV9leGl0KzB4M2QvMHg0ZiBbZHZiX3VzYl0KIFs8ZmZmZmZmZmZhMDBmZmJkNT5dIHVzYl91
+bmJpbmRfaW50ZXJmYWNlKzB4NWMvMHhiNyBbdXNiY29yZV0KIFs8ZmZmZmZmZmY4MDNlNmMw
+MT5dIF9fZGV2aWNlX3JlbGVhc2VfZHJpdmVyKzB4OTUvMHhiYQogWzxmZmZmZmZmZjgwM2U2
+Y2YyPl0gZGV2aWNlX3JlbGVhc2VfZHJpdmVyKzB4MjEvMHgyZAogWzxmZmZmZmZmZjgwM2U2
+MjY0Pl0gYnVzX3JlbW92ZV9kZXZpY2UrMHhlYi8weDExNQogWzxmZmZmZmZmZjgwM2U0ODAw
+Pl0gZGV2aWNlX2RlbCsweDEyYi8weDFiYgogWzxmZmZmZmZmZmEwMGZjZmU5Pl0gdXNiX2Rp
+c2FibGVfZGV2aWNlKzB4MTUxLzB4MWQ1IFt1c2Jjb3JlXQogWzxmZmZmZmZmZmEwMGY4OGE5
+Pl0gdXNiX2Rpc2Nvbm5lY3QrMHgxMzMvMHgxZTMgW3VzYmNvcmVdCiBbPGZmZmZmZmZmYTAw
+ZjhmODc+XSBodWJfcG9ydF9jb25uZWN0X2NoYW5nZSsweDFjNS8weDhiNyBbdXNiY29yZV0K
+IFs8ZmZmZmZmZmZhMDBmOWQxZj5dIGh1Yl9ldmVudHMrMHg2YTYvMHg4YTMgW3VzYmNvcmVd
+CiBbPGZmZmZmZmZmYTAwZjlmNGE+XSBodWJfdGhyZWFkKzB4MmUvMHgxYTAgW3VzYmNvcmVd
+CiBbPGZmZmZmZmZmODAyNGZhNGY+XSBrdGhyZWFkKzB4NDcvMHg3MwogWzxmZmZmZmZmZjgw
+MjBjZjc5Pl0gY2hpbGRfcmlwKzB4YS8weDExCgoKQ29kZTogMTUgYzQgOWIgNzIgMDAgZjYg
+YzIgNDAgNDQgMGYgNDQgZjggODAgZTYgMDggNzQgNGEgNDggOGIgMTUgMzkgODEgNjkgMDAg
+NDggOGIgNDcgMDggNjUgOGIgMGMgMjUgMjQgMDAgMDAgMDAgNDggNjMgYzkgNDggOGIgMTQg
+Y2EgPDhiPiA3MCAxYyA0OCBjNyBjMCA4MCAzNiBhMyA4MCA0OCAwMyA0MiAwOCA0OCA4YiBi
+OCAzOCAwOCAwMCAwMApSSVAgIFs8ZmZmZmZmZmY4MDIzNWQyMj5dIHRyeV90b193YWtlX3Vw
+KzB4NGIvMHgyNDkKIFJTUCA8ZmZmZjg4MDA3ZDBiNWFkMD4KLS0tWyBlbmQgdHJhY2UgZWY4
+YjNjNGNhNDRhMWE2MCBdLS0tCgo=
+
+--=-------------1251983559210147219
+Content-Type: application/octet-stream;
+ name="kernelmessage-after-kaffeine.txt"
+Content-Disposition: attachment;
+ filename="kernelmessage-after-kaffeine.txt"
+Content-Transfer-Encoding: base64
+
+QlVHOiB1bmFibGUgdG8gaGFuZGxlIGtlcm5lbCBOVUxMIHBvaW50ZXIgZGVyZWZlcmVuY2Ug
+YXQgMDAwMDAwMDAwMDAwMDAwMApJUDogWzxmZmZmZmZmZmEwNTFmMWVjPl0gbXQyMDYwX3Nl
+dF9wYXJhbXMrMHg0MC8weDJiMyBbbXQyMDYwXQpQR0QgN2MwMWYwNjcgUFVEIDdjMGI1MDY3
+IFBNRCAwCk9vcHM6IDAwMDAgWzFdIFNNUApsYXN0IHN5c2ZzIGZpbGU6IC9zeXMvZGV2aWNl
+cy9zeXN0ZW0vY3B1L2NwdTEvY2FjaGUvaW5kZXgyL3NoYXJlZF9jcHVfbWFwCkNQVSAwCk1v
+ZHVsZXMgbGlua2VkIGluOiBtdDIwNjAoTikgaHNvKE4pIHJma2lsbCB1c2Jfc3RvcmFnZSBk
+dmJfdXNiX2FmOTAwNV9yZW1vdGUoTikgZHZiX3VzYl9hZjkwMDUoTikgZHZiX3VzYihOKSBk
+dmJfY29yZShOKSBpMmNfY29yZSB4dF90Y3B1ZHAgeHRfcGt0dHlwZSBpcHRfTE9HIHh0X2xp
+bWl0IGk5MTUgZHJtIHNuZF9wY21fb3NzIHNuZF9taXhlcl9vc3MgYmluZm10X21pc2Mgc25k
+X3NlcSBzbmRfc2VxX2RldmljZSB4dF9OT1RSQUNLIGlwdF9SRUpFQ1QgeHRfc3RhdGUgaXB0
+YWJsZV9yYXcgaXB0YWJsZV9maWx0ZXIgbmZfY29ubnRyYWNrX25ldGJpb3NfbnMgY3B1ZnJl
+cV9jb25zZXJ2YXRpdmUgbmZfY29ubnRyYWNrX2lwdjQgY3B1ZnJlcV91c2Vyc3BhY2UgY3B1
+ZnJlcV9wb3dlcnNhdmUgbmZfY29ubnRyYWNrIGlwX3RhYmxlcyBhY3BpX2NwdWZyZXEgaXA2
+X3RhYmxlcyB4X3RhYmxlcyBtaWNyb2NvZGUgZnVzZSBkbV9jcnlwdCBsb29wIGRtX21vZCBp
+ZGVfY3MgYXJjNCBlY2IgY3J5cHRvX2Jsa2NpcGhlciBwYXRhX3BjbWNpYSBpd2xhZ24oTikg
+aXdsY29yZShOKSBsZWRfY2xhc3MgcGNtY2lhIHNuZF9oZGFfaW50ZWwgbWFjODAyMTEoTikg
+c25kX3BjbSBwcGRldiBzZGhjaV9wY2kgb2hjaTEzOTQgdmlkZW8geWVudGFfc29ja2V0IHJp
+Y29oX21tYyBwYXJwb3J0X3BjIGNmZzgwMjExKE4pIHNkaGNpIHNuZF90aW1lciBpZWVlMTM5
+NCBvdXRwdXQgaXJkYSBpVENPX3dkdCBtbWNfY29yZSB3bWkgcmZraWxsX2JhY2twb3J0KE4p
+IHNyX21vZCBzZXJpb19yYXcgam95ZGV2IGNvbnRhaW5lciBidXR0b24gYmF0dGVyeSBhYyBz
+bmRfcGFnZV9hbGxvYyByc3JjX25vbnN0YXRpYyBpVENPX3ZlbmRvcl9zdXBwb3J0IHNuZF9o
+d2RlcCBydGNfY21vcyBlMTAwMGUgcGFycG9ydCBwY21jaWFfY29yZSBydGNfY29yZSBzbmQg
+cnRjX2xpYiBjcmNfY2NpdHQgc2cgcGNzcGtyIGNkcm9tIHNvdW5kY29yZSBpbnRlbF9hZ3Ag
+c2RfbW9kIGNyY190MTBkaWYgZWhjaV9oY2QgdWhjaV9oY2QgdXNiY29yZSBlZGQgZXh0MyBt
+YmNhY2hlIGpiZCBmYW4gaWRlX3BjaV9nZW5lcmljIHBpaXggaWRlX2NvcmUgYXRhX2dlbmVy
+aWMgYXRhX3BpaXggdGhlcm1hbCBwcm9jZXNzb3IgdGhlcm1hbF9zeXMgaHdtb24gYWhjaSBs
+aWJhdGEgc2NzaV9tb2QgZG9jawpTdXBwb3J0ZWQ6IE5vClBpZDogNTA1MCwgY29tbToga2R2
+Yi1hZC0wLWZlLTAgVGFpbnRlZDogRyAgICAgICAgICAyLjYuMjcuMjktMC4xLWRlZmF1bHQg
+IzEKUklQOiAwMDEwOls8ZmZmZmZmZmZhMDUxZjFlYz5dICBbPGZmZmZmZmZmYTA1MWYxZWM+
+XSBtdDIwNjBfc2V0X3BhcmFtcysweDQwLzB4MmIzIFttdDIwNjBdClJTUDogMDAxODpmZmZm
+ODgwMDUyOThkZDgwICBFRkxBR1M6IDAwMDEwMjQ2ClJBWDogMDAwMDAwMDAwMDAwMDAwMCBS
+Qlg6IGZmZmY4ODAwNTU4ZDNjNTAgUkNYOiBmZmZmODgwMDUyOThkZGEwClJEWDogMDAwMDAw
+MDIwMDAwMDBjMCBSU0k6IGZmZmY4ODAwNTI5OGRjYWYgUkRJOiBmZmZmODgwMDY5MDNlZDMw
+ClJCUDogMDAwMDAwMDAwMDAwYTMwNCBSMDg6IGZmZmY4ODAwNTI5OGMwMDAgUjA5OiBmZmZm
+ODgwMDAxMDNmNzIwClIxMDogMDAwMDAwMDAwMDAwMDAwMCBSMTE6IDAwMDAwMDAwZmZmZmM3
+ODAgUjEyOiAwMDAwMDAwMDAwMDAwMDAwClIxMzogZmZmZjg4MDA1NThkM2MwMCBSMTQ6IGZm
+ZmZmZmZmYTA0ZTdjNWEgUjE1OiBmZmZmODgwMDU1OWE5YWEwCkZTOiAgMDAwMDAwMDAwMDAw
+MDAwMCgwMDAwKSBHUzpmZmZmZmZmZjgwYTQzMDgwKDAwMDApIGtubEdTOjAwMDAwMDAwMDAw
+MDAwMDAKQ1M6ICAwMDEwIERTOiAwMDE4IEVTOiAwMDE4IENSMDogMDAwMDAwMDA4MDA1MDAz
+YgpDUjI6IDAwMDAwMDAwMDAwMDAwMDAgQ1IzOiAwMDAwMDAwMDdjYzZmMDAwIENSNDogMDAw
+MDAwMDAwMDAwMDZlMApEUjA6IDAwMDAwMDAwMDAwMDAwMDAgRFIxOiAwMDAwMDAwMDAwMDAw
+MDAwIERSMjogMDAwMDAwMDAwMDAwMDAwMApEUjM6IDAwMDAwMDAwMDAwMDAwMDAgRFI2OiAw
+MDAwMDAwMGZmZmYwZmYwIERSNzogMDAwMDAwMDAwMDAwMDQwMApQcm9jZXNzIGtkdmItYWQt
+MC1mZS0wIChwaWQ6IDUwNTAsIHRocmVhZGluZm8gZmZmZjg4MDA1Mjk4YzAwMCwgdGFzayBm
+ZmZmODgwMDUyOThhMzgwKQpTdGFjazogIGZmZmYwMDAxMDAwMTAwYzAgZmZmZjg4MDA1NTlh
+OWFiYSBmZmZmODgwMDU1OWE5YWEwIDAwMDAwNGNjYTA1MWY2MWYKIDAwMDAwMDAwMDAwMGZm
+MGMgMDAwMDAwMDAwMDAwMDAwMCA2M2NlODgwMDU1OGQzYzAwIDAwMDAwMDAwMDAwMDAwY2MK
+IDAwMDAwMDAwMDAwMGEzMDQgMDAwMDAwMDAwMDAwMDAwMCBmZmZmODgwMDU1OGQzYzAwIGZm
+ZmZmZmZmYTA0ZTdjNWEKQ2FsbCBUcmFjZToKIFs8ZmZmZmZmZmZhMDRlNzYxYT5dIGFmOTAw
+NV9mZV9pbml0KzB4ODBmLzB4ODU1IFtkdmJfdXNiX2FmOTAwNV0KIFs8ZmZmZmZmZmZhMDRk
+ZGY5NT5dIGR2Yl91c2JfZmVfd2FrZXVwKzB4MzIvMHgzOCBbZHZiX3VzYl0KIFs8ZmZmZmZm
+ZmZhMDRjOWU2Yj5dIGR2Yl9mcm9udGVuZF9pbml0KzB4M2UvMHg4MSBbZHZiX2NvcmVdCiBb
+PGZmZmZmZmZmYTA0Y2FjNTk+XSBkdmJfZnJvbnRlbmRfdGhyZWFkKzB4ODMvMHg2MmMgW2R2
+Yl9jb3JlXQogWzxmZmZmZmZmZjgwMjRmYTRmPl0ga3RocmVhZCsweDQ3LzB4NzMKIFs8ZmZm
+ZmZmZmY4MDIwY2Y3OT5dIGNoaWxkX3JpcCsweGEvMHgxMQoKCkNvZGU6IDQ4IDgzIGVjIDM4
+IDRjIDhiIGJmIGQwIDAyIDAwIDAwIDQ4IDhkIDc0IDI0IDIwIDQxIDBmIGI3IDQ3IDE4IDRj
+IDg5IGZmIGM2CjQ0IDI0IDIwIDBjIGM2IDQ0IDI0IDIxIGZmIDg5IDQ0IDI0IDFjIGU4IDUx
+IGZlIGZmIGZmIDw0MT4gOGIgMTQgMjQgYjkgZTggMDMgMDAKMDAgODkKIGQwIDMxIGQyIGY3
+IGYxIDg5IGM1IDMxIGMwIDgzIGJiClJJUCAgWzxmZmZmZmZmZmEwNTFmMWVjPl0gbXQyMDYw
+X3NldF9wYXJhbXMrMHg0MC8weDJiMyBbbXQyMDYwXQogUlNQIDxmZmZmODgwMDUyOThkZDgw
+PgpDUjI6IDAwMDAwMDAwMDAwMDAwMDAKLS0tWyBlbmQgdHJhY2UgZWY4YjNjNGNhNDRhMWE2
+MCBdLS0tCgo=
+
+--=-------------1251983559210147219--
