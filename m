@@ -1,61 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:21643 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751073AbZIUGFO (ORCPT
+Received: from claranet-outbound-smtp03.uk.clara.net ([195.8.89.36]:60584 "EHLO
+	claranet-outbound-smtp03.uk.clara.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754749AbZICJRc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Sep 2009 02:05:14 -0400
-Date: Mon, 21 Sep 2009 09:05:02 +0300
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: ext Huang Weiyi <weiyi.huang@gmail.com>
-Cc: "mchehab@infradead.org" <mchehab@infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/9] V4L/DVB: si4713: remove unused #include
- <linux/version.h>
-Message-ID: <20090921060502.GA27861@esdhcp037198.research.nokia.com>
-Reply-To: eduardo.valentin@nokia.com
-References: <1253106375-2636-1-git-send-email-weiyi.huang@gmail.com>
+	Thu, 3 Sep 2009 05:17:32 -0400
+Message-ID: <4A9F89AD.7030106@onelan.com>
+Date: Thu, 03 Sep 2009 10:17:33 +0100
+From: Simon Farnsworth <simon.farnsworth@onelan.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1253106375-2636-1-git-send-email-weiyi.huang@gmail.com>
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: libv4l2 and the Hauppauge HVR1600 (cx18 driver) not working well
+ together
+References: <4A9E9E08.7090104@onelan.com> <4A9EAF07.3040303@hhs.nl>
+In-Reply-To: <4A9EAF07.3040303@hhs.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-
-On Wed, Sep 16, 2009 at 03:06:15PM +0200, ext Huang Weiyi wrote:
-> Remove unused #include <linux/version.h>('s) in
->   drivers/media/radio/radio-si4713.c
+Hans de Goede wrote:
+> Hi,
 > 
-> Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
-
-This might be late, but I'm add my ack here.
-
-Acked-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-
-> ---
->  drivers/media/radio/radio-si4713.c |    1 -
->  1 files changed, 0 insertions(+), 1 deletions(-)
+> On 09/02/2009 06:32 PM, Simon Farnsworth wrote:
+>> I have a Hauppauge HVR1600 for NTSC and ATSC support, and it appears to
+>> simply not work with libv4l2, due to lack of mmap support. My code works
+>> adequately (modulo a nice pile of bugs) with a HVR1110r3, so it appears
+>> to be driver level.
+>>
+>> Which is the better route to handling this; adding code to input_v4l to
+>> use libv4lconvert when mmap isn't available, or converting the cx18
+>> driver to use mmap?
+>>
 > 
-> diff --git a/drivers/media/radio/radio-si4713.c b/drivers/media/radio/radio-si4713.c
-> index 65c14b7..170bbe5 100644
-> --- a/drivers/media/radio/radio-si4713.c
-> +++ b/drivers/media/radio/radio-si4713.c
-> @@ -24,7 +24,6 @@
->  #include <linux/kernel.h>
->  #include <linux/module.h>
->  #include <linux/init.h>
-> -#include <linux/version.h>
->  #include <linux/platform_device.h>
->  #include <linux/i2c.h>
->  #include <linux/videodev2.h>
-> -- 
-> 1.6.1.3
+> Or modify libv4l2 to also handle devices which can only do read. There have
+> been some changes to libv4l2 recently which would make doing that feasible.
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Roughly what would I need to do to libv4l2?
 
+I can see four new cases to handle:
+
+1) driver supports read(), client wants read(), format supported by
+both. Just pass read() through to the driver.
+
+2) driver supports read(), client wants mmap(), format supported by
+both. Allocate buffers when REQBUFs happens, handle QBUF and DQBUF by
+read()ing frame size chunks into the buffer at the head of the internal
+queue when a DQBUF happens, and passing it back out.
+
+3) As 1, but needs conversion. read() into a temporary buffer, convert
+with libv4lconvert (I think this needs a secondary buffer), and supply
+data from the secondary buffer to read()
+
+4) As 2, but needs conversion. Change DQBUF handling to read() frame
+size chunks into a temporary buffer, then use libv4lconvert to copy
+those chunks from the temporary buffer into the buffer you're about to
+pass out.
+
+Have I missed anything?
+
+>> If it's a case of converting the cx18 driver, how would I go about doing
+>> that? I have no experience of the driver, so I'm not sure what I'd have
+>> to do - noting that if I break the existing read() support, other users
+>> will get upset.
+> 
+> I don't believe that modifying the driver is the answer, we need to either
+> fix this at the libv4l or xine level.
+> 
+> I wonder though, doesn't the cx18 offer any format that xine can handle
+> directly?
+> 
+Not sensibly; it offers HM12 only, and Xine needs an RGB format, YV12,
+or YUYV. With a lot of rework, I could have the cx18 encode video to
+MPEG-2, then have Xine decode the resulting MPEG-2 stream, but this
+seems like overkill for uncompressed video. I could also teach Xine to
+handle HM12 natively, but that would duplicate effort already done in
+libv4l2 and libv4lconvert, which seems a bit silly to me.
 -- 
-Eduardo Valentin
+Simon Farnsworth
+
