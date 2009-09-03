@@ -1,34 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f210.google.com ([209.85.218.210]:44943 "EHLO
-	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751709AbZI1PYL (ORCPT
+Received: from smtp126.rog.mail.re2.yahoo.com ([206.190.53.31]:28567 "HELO
+	smtp126.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754574AbZICGee (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Sep 2009 11:24:11 -0400
-Received: by bwz6 with SMTP id 6so1339211bwz.37
-        for <linux-media@vger.kernel.org>; Mon, 28 Sep 2009 08:24:14 -0700 (PDT)
+	Thu, 3 Sep 2009 02:34:34 -0400
+Message-ID: <4A9F61E2.5010302@rogers.com>
+Date: Thu, 03 Sep 2009 02:27:46 -0400
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-In-Reply-To: <4AC0D05D.4060304@gmail.com>
-References: <4AC0D05D.4060304@gmail.com>
-Date: Mon, 28 Sep 2009 11:24:13 -0400
-Message-ID: <829197380909280824q487c3effp64914d8430f16092@mail.gmail.com>
-Subject: Re: [PATCH 2/2] em28xx: Convert printks to em28xx_err and em28xx_info
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: rosset.filipe@gmail.com
-Cc: linux-media@vger.kernel.org,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Peter Brouwer <pb.maillists@googlemail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Should I see a videoN and audioN in /dev/dvb/adapterN??
+References: <4A9E5B88.50001@googlemail.com>
+In-Reply-To: <4A9E5B88.50001@googlemail.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 28, 2009 at 11:03 AM, Filipe Rosset <rosset.filipe@gmail.com> wrote:
+Peter Brouwer wrote:
+> I am using a S460 Tevii ( Cx88) and a nova T 500 card.
+> I see three adapter directories ( T 500 is dual tuner).
+> Each has demux0 frontend0 net0 and dvr0
+>
+> Should I not see a video0 and audio0 in each of them too?
+> I see one /dev/video0 and one /dev/vbi0 that seems to belong to the
+> S460 card
 >
 
-You should use the em28xx_errdev() instead of em28xx_err() if your
-intent is to insert "dev->name" in front of the message.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+See here: http://www.linuxtv.org/wiki/index.php/Device_nodes
