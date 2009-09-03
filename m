@@ -1,73 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:38228 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750887AbZILNl4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Sep 2009 09:41:56 -0400
-Received: by bwz19 with SMTP id 19so1288799bwz.37
-        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 06:41:58 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20090912103111.7afffb2d@caramujo.chehab.org>
-References: <200909120021.48353.hverkuil@xs4all.nl>
-	 <20090912103111.7afffb2d@caramujo.chehab.org>
-Date: Sat, 12 Sep 2009 09:41:58 -0400
-Message-ID: <829197380909120641w66f8d092yfd307186da20edc2@mail.gmail.com>
-Subject: Re: Media controller: sysfs vs ioctl
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2573 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756108AbZICSXw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Sep 2009 14:23:52 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id n83INrvY053891
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 3 Sep 2009 20:23:53 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 3 Sep 2009 20:23:53 +0200 (CEST)
+Message-Id: <200909031823.n83INrvY053891@smtp-vbr14.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Sep 12, 2009 at 9:31 AM, Mauro Carvalho Chehab
-<mchehab@infradead.org> wrote:
-> True. Choosing the better approach is very important since, once merged, we'll
-> need to stick it for a very long time.
->
-> I saw your proposal of a ioctl-only implementation for the media control. It is
-> important to have a sysfs implementation also to compare. I can do it.
->
-> However, we are currently in the middle of a merge window, and this one will
-> require even more time than usual, since we have 2 series of patches for
-> soc_camera and for DaVinci/OMAP that depends on arm and omap architecture merge.
->
-> Also, there are some pending merges that requires some time to analyze, like
-> the ISDB-T/ISDB-S patches and API changes that were proposed for 2.6.32, that
-> requiring the analysis of both Japanese and Brazilian specs and do some
-> tests, and the tuner changes for better handling the i2c gates, and the V4L and
-> DVB specs that we can now merge upstream, as both got converted to DocBook XML
-> 4.1.2 (the same version used upstream).
->
-> So, during the next two weeks, we'll have enough fun to handle, in order to get
-> our patches merged for 2.6.32. So, unfortunately, I'm afraid that we'll need to
-> give a break on those discussions until the end of the merge window, focusing
-> on merging the patches we have for 2.6.32.
->
->
-> Cheers,
-> Mauro
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Mauro,
+Results of the daily build of v4l-dvb:
 
-I respectfully disagree.  The original version of this RFC has been
-pending for almost a year now.  Hans has written a prototype
-implementation.  We should strive to get this locked down by the LPC
-conference.
+date:        Thu Sep  3 19:00:04 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12615:2b49813f8482
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-I think we all know that you are busy, but this conversation needs to
-continue even if you personally do not have the cycles to give it your
-full attention.
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-rc8-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29.1-armv5-ixp: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-rc8-armv5-ixp: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-rc8-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-rc8-i686: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-rc8-m32r: OK
+linux-2.6.30-mips: ERRORS
+linux-2.6.31-rc8-mips: OK
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-rc8-powerpc64: OK
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-rc8-x86_64: OK
+sparse (linux-2.6.30): OK
+sparse (linux-2.6.31-rc8): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-There is finally some real momentum behind this initiative, and the
-lack of this functionality is crippling usability for many, many
-users.  "Hi I a new user to tvtime.  I can see analog tv with tvtime,
-but how do I make audio work?"
+Detailed results are available here:
 
-Let's finally put this issue to rest.
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-Devin
+Full logs are available here:
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
