@@ -1,60 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx7.zte.com.cn ([202.103.147.169]:34678 "EHLO mx7.zte.com.cn"
+Received: from mail1.radix.net ([207.192.128.31]:46583 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750901AbZIVF6U (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2009 01:58:20 -0400
-In-Reply-To: <20090922015333.2fe70e98@pedra.chehab.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org
-Subject: re: Re: how to develop driver for cy7c68013(fx2 lp)?
-MIME-Version: 1.0
-Message-ID: <OFA2190736.178E50BE-ON48257639.001FAFA7-48257639.0020E884@zte.com.cn>
-From: liu.yaojin@zte.com.cn
-Date: Tue, 22 Sep 2009 13:55:53 +0800
-Content-Type: text/plain; charset="GB2312"
-Content-Transfer-Encoding: base64
+	id S1754986AbZICLY5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Sep 2009 07:24:57 -0400
+Subject: Re: libv4l2 and the Hauppauge HVR1600 (cx18 driver) not working
+	well together
+From: Andy Walls <awalls@radix.net>
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+Cc: Simon Farnsworth <simon.farnsworth@onelan.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <4A9FA681.5070100@hhs.nl>
+References: <4A9E9E08.7090104@onelan.com> <4A9EAF07.3040303@hhs.nl>
+	 <4A9F89AD.7030106@onelan.com> <4A9F9006.6020203@hhs.nl>
+	 <4A9F98BA.3010001@onelan.com> <4A9F9C5F.9000007@onelan.com>
+	 <4A9FA681.5070100@hhs.nl>
+Content-Type: text/plain
+Date: Thu, 03 Sep 2009 07:23:28 -0400
+Message-Id: <1251977008.22279.17.camel@morgan.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-aGksTWF1cm86DQogdGhhbmtzIGZvciByZXBseWluZy4NCmkgYW0gbm90IHN1cmUgdGhlIGR0diBh
-cGkgY2FuIGJlIHVzZWQgaW4gbXkgcHJvamVjdC5iZWNhdXNlIGNtbWIncyANCnByb3RvY29sIGlz
-IGRpZmZlcmVudCB0byBkbWIgOigNCg0KaW4gV2luZG93cywgd2UgZG93bmxvYWQgZmlybXdhcmUg
-dXNpbmcgd2luZG93cyBkcml2ZXIsY29uZmlnIGZ4MiBhcyBidWxrIA0KdHJhbnNmZXIsYW5kIHJl
-YWQgdGhlIFRTIHN0cmVhbSxmaW5hbGx5IGRlY29kZSBpdCBhbmQgZGlzcGxheS4NCkkgYWxzbyBy
-ZWFkIHRoaXMgcG9zdDogImh0dHA6Ly93d3cubGludXhqb3VybmFsLmNvbS9hcnRpY2xlLzc0NjYi
-LS0tLQ0KV3JpdGluZyBhIFJlYWwgRHJpdmVyoapJbiBVc2VyIFNwYWNlLg0KaWYgaSBqdXN0IHdh
-bnQgdG8gcmVhZCB0aGUgdHMgc3RyZWFtLHNob3VsZCBpIHVzZSB0aGlzIG1ldGhvZD8gb3IgYW5v
-dGhlciANCndheT8NCg0KDQoNCg0KDQpNYXVybyBDYXJ2YWxobyBDaGVoYWIgPG1jaGVoYWJAaW5m
-cmFkZWFkLm9yZz4gDQoyMDA5LTA5LTIyIDEyOjUzDQoNCsrVvP7Iyw0KbGl1Lnlhb2ppbkB6dGUu
-Y29tLmNuDQqzrcvNDQpsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcNCtb3zOINClJlOiBob3cg
-dG8gZGV2ZWxvcCBkcml2ZXIgZm9yIGN5N2M2ODAxMyhmeDIgbHApPw0KDQoNCg0KDQoNCg0KSGkg
-TGl1LA0KDQpFbSBUdWUsIDIyIFNlcCAyMDA5IDEwOjQ3OjE4ICswODAwDQpsaXUueWFvamluQHp0
-ZS5jb20uY24gZXNjcmV2ZXU6DQoNCj4gaGksYWxsOg0KPiAgIGkgaGF2ZSBhIGNtbWIgdXNiIGNh
-cmQsYmFzZWQgb24gZngyIGxwLm15IGtlcm5lbCB2ZXJzaW9uIGlzIDIuNi4yNC43LmkgDQoNCj4g
-YWxyZWFkeSByZWFkIHNvbWUgc291cmNlIGluIC9kcml2ZXIvdXNiL21pc2MgYW5kIA0KPiAvZHJp
-dmVyL21lZGlhL2R2Yi9kdmItdXNiLCBhbmQgc3RpbGwgaGF2ZSBubyBpZGVhIGhvdyB0byB3cml0
-ZSB0aGUgDQpkcml2ZXIgDQo+IC5jb3VsZCB5b3Ugc2hvdyBtZSBob3cgdG8gZG8gaXQ/DQo+IG1h
-eWJlIGkganVzdCB3YW50IHRvIHJlYWQvd3JpdGUgY3k3YzY4MDEzIGNvcnJlbnRseSxhbmQgbm90
-IG5lZWQgdjRsMiANCmFwaSANCj4gOikNCj4gdGhhbmtzLg0KDQpJZiB0aGUgZHJpdmVyIHdpbGwg
-c3VwcG9ydCBqdXN0IGRpZ2l0YWwgVFYsIHlvdSBkb24ndCBuZWVkIFY0TDIgQVBJLCBqdXN0IA0K
-RFZCDQpBUEkuIFRoZSBsYXRlc3QgdmVyc2lvbiBvZiB0aGUgQVBJJ3MgYXJlIGF0Og0KDQogICAg
-ICAgICAgICAgICAgIGh0dHA6Ly9saW51eHR2Lm9yZy9kb3dubG9hZHMvdjRsLWR2Yi1hcGlzLw0K
-DQpJbiBvcmRlciB0byBzdGFydCwgeW91IG5lZWQgZmlyc3QgdG8gdW5kZXJzdGFuZCB0aGUgQVBJ
-LiBUaGVuLCB5b3UnbGwgbmVlZCANCnRvDQpnZXQgb25lIGRyaXZlciBhcyBhbiBleGFtcGxlIChm
-b3IgZXhhbXBsZSwgY3h1c2IuYyAtIGlmIHRoZSBkZXZpY2UgaXMgDQpVU0IpLiANCg0KSWYgdGhl
-IGRyaXZlciBhbHNvIHN1cHBvcnRzIGFuYWxvZyBUViwgdGhlbiB0aGUgYmV0dGVyIGlzIHRvIHVz
-ZSBhIGRyaXZlciANCnRoYXQNCnN1cHBvcnRzIGJvdGggQVBJJ3MsIGxpa2UgZW0yOHh4DQoNCg0K
-DQpDaGVlcnMsDQpNYXVybw0KDQoNCg0KDQoNCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQpaVEUgSW5mb3JtYXRpb24gU2VjdXJpdHkgTm90
-aWNlOiBUaGUgaW5mb3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMgbWFpbCBpcyBzb2xlbHkgcHJv
-cGVydHkgb2YgdGhlIHNlbmRlcidzIG9yZ2FuaXphdGlvbi4gVGhpcyBtYWlsIGNvbW11bmljYXRp
-b24gaXMgY29uZmlkZW50aWFsLiBSZWNpcGllbnRzIG5hbWVkIGFib3ZlIGFyZSBvYmxpZ2F0ZWQg
-dG8gbWFpbnRhaW4gc2VjcmVjeSBhbmQgYXJlIG5vdCBwZXJtaXR0ZWQgdG8gZGlzY2xvc2UgdGhl
-IGNvbnRlbnRzIG9mIHRoaXMgY29tbXVuaWNhdGlvbiB0byBvdGhlcnMuDQpUaGlzIGVtYWlsIGFu
-ZCBhbnkgZmlsZXMgdHJhbnNtaXR0ZWQgd2l0aCBpdCBhcmUgY29uZmlkZW50aWFsIGFuZCBpbnRl
-bmRlZCBzb2xlbHkgZm9yIHRoZSB1c2Ugb2YgdGhlIGluZGl2aWR1YWwgb3IgZW50aXR5IHRvIHdo
-b20gdGhleSBhcmUgYWRkcmVzc2VkLiBJZiB5b3UgaGF2ZSByZWNlaXZlZCB0aGlzIGVtYWlsIGlu
-IGVycm9yIHBsZWFzZSBub3RpZnkgdGhlIG9yaWdpbmF0b3Igb2YgdGhlIG1lc3NhZ2UuIEFueSB2
-aWV3cyBleHByZXNzZWQgaW4gdGhpcyBtZXNzYWdlIGFyZSB0aG9zZSBvZiB0aGUgaW5kaXZpZHVh
-bCBzZW5kZXIuDQpUaGlzIG1lc3NhZ2UgaGFzIGJlZW4gc2Nhbm5lZCBmb3IgdmlydXNlcyBhbmQg
-U3BhbSBieSBaVEUgQW50aS1TcGFtIHN5c3RlbS4NCg==
+On Thu, 2009-09-03 at 13:20 +0200, Hans de Goede wrote:
+> Hans Verkuil,
+> 
+> I think we have found a bug in the read() implementation of the cx18
+> driver, see below.
+> 
+> 
+> Hi all,
+> 
+> On 09/03/2009 12:37 PM, Simon Farnsworth wrote:
+> > Simon Farnsworth wrote:
+> >> Hans de Goede wrote:
+> >>> Ok,
+> >>>
+> >>> That was even easier then I thought it would be. Attached is a
+> >>> patch (against libv4l-0.6.1), which implements 1) and 3) from
+> >>> above.
+> >>>
+> >> I applied it to a clone of your HG repository, and had to make a
+> >> minor change to get it to compile. I've attached the updated patch.
+> >>
+> >> It looks like the read() from the card isn't reading entire frames
+> >> ata a time - I'm using a piece of test gear that I have to return in
+> >> a couple of hours to send colourbars to it, and I'm seeing bad
+> >> colour, and the picture moving across the screen. I'll try and chase
+> >> this, see whether there's something obviously wrong.
+> >>
+> > There is indeed something obviously wrong; at line 315 of libv4l2.c, we
+> > expand the buffer we read into, then ask for that many bytes.
+> >
+> 
+> Ah, actually this is a driver bug, not a libv4l2 bug, but I'll fix things
+> in libv4l to work around it for now.
+> 
+> read() should always return an entire frame (or as much of it as will fit
+> and throw away the rest). Think for example of jpeg streams, where the
+> exact size of the image isn't known by the client (as it differs from frame
+> to frame). dest_fmt.fmt.pix.sizeimage purely is an upper limit, and so
+> is the value passed in to read(), the driver itself should clamp it so
+> that it returns exactly one frame (for formats which are frame based).
+> 
+> The page alignment (2 pages on i386 / one on x86_64) is done because some
+> drivers internally use page aligned buffer sizes and thus for example with
+> jpeg streams, can have frames queued for read() slightly bigger then
+> dest_fmt.fmt.pix.sizeimage, but when this happens that is really a driver bug,
+> because as said dest_fmt.fmt.pix.sizeimage should report an upper limit
+> of the the frame sizes to be expected. I'll remove the align workaround, as
+> that bug is much less likely to be hit (and probably easier to fix at the
+> driver level) then the issue we're now seeing with read().
+
+
+Hans and Hans,
+
+I'll have time to look into this on Friday and see what can be done.
+
+Hans de Goede,
+
+I may ask for more information/explanation later.
+
+Regards,
+Andy
+
+
+> Regards,
+> 
+> Hans
+
+
