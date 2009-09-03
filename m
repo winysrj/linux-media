@@ -1,110 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:40870 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754898AbZJAASa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Sep 2009 20:18:30 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH 6/9] drivers/media/video/uvc: Use %pUr to print UUIDs
-Date: Thu, 1 Oct 2009 02:20:17 +0200
-Cc: linux-kernel@vger.kernel.org,
-	Adrian Hunter <adrian.hunter@nokia.com>,
-	Alex Elder <aelder@sgi.com>,
-	Artem Bityutskiy <dedekind@infradead.org>,
-	Christoph Hellwig <hch@lst.de>,
-	Harvey Harrison <harvey.harrison@gmail.com>,
-	Huang Ying <ying.huang@intel.com>, Ingo Molnar <mingo@elte.hu>,
-	Jeff Garzik <jgarzik@redhat.com>,
-	Matt Mackall <mpm@selenic.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Neil Brown <neilb@suse.de>,
-	Steven Whitehouse <swhiteho@redhat.com>,
-	xfs-masters@oss.sgi.com, linux-media@vger.kernel.org
-References: <cover.1254193019.git.joe@perches.com> <111526fa2ce7f728d1f81465a00859c1780f0607.1254193019.git.joe@perches.com>
-In-Reply-To: <111526fa2ce7f728d1f81465a00859c1780f0607.1254193019.git.joe@perches.com>
+Received: from mail00a.mail.t-online.hu ([84.2.40.5]:61335 "EHLO
+	mail00a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754214AbZICFXs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Sep 2009 01:23:48 -0400
+Message-ID: <4A9F52E1.7030004@freemail.hu>
+Date: Thu, 03 Sep 2009 07:23:45 +0200
+From: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200910010220.17534.laurent.pinchart@ideasonboard.com>
+To: "William M. Brack" <wbrack@mmm.com.hk>
+CC: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: problem building v4l2-spec from docbook source
+References: <4A9A3650.3000106@freemail.hu> <d88b96090d4bf9d9d152db5645149594.squirrel@delightful.com.hk>
+In-Reply-To: <d88b96090d4bf9d9d152db5645149594.squirrel@delightful.com.hk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Joe,
+William M. Brack wrote:
+> Németh Márton wrote:
+>> Hi,
+>>
+>> I get the source from http://linuxtv.org/hg/v4l-dvb repository and I
+>> am now
+>> at version 12564:6f58a5d8c7c6. When I try to build the human readable
+>> version
+>> of the V4L2 specification I get some error message:
+>>
+>> $ make v4l2-spec
+>> [...]
+>> Using catalogs: /etc/sgml/catalog
+>> Using stylesheet:
+>> /usr/src/linuxtv.org/v4l-dvb/v4l2-spec/custom.dsl#html
+>> Working on: /usr/src/linuxtv.org/v4l-dvb/v4l2-spec/v4l2.sgml
+>> openjade:/usr/src/linuxtv.org/v4l-dvb/v4l2-spec/v4l2.sgml:1:55:W:
+>> cannot generate system identifier for public text "-//OASIS//DTD
+>> DocBook V3.1//EN"
+>> openjade:/usr/src/linuxtv.org/v4l-dvb/v4l2-spec/v4l2.sgml:23:0:E:
+>> reference to entity "BOOK" for which no system identifier could be
+>> generated
+>> openjade:/usr/src/linuxtv.org/v4l-dvb/v4l2-spec/v4l2.sgml:1:0: entity
+>> was defined here
+>> openjade:/usr/src/linuxtv.org/v4l-dvb/v4l2-spec/v4l2.sgml:23:0:E: DTD
+>> did not contain element declaration for document type name
+>> openjade:/usr/src/linuxtv.org/v4l-dvb/v4l2-spec/v4l2.sgml:25:9:E:
+>> there is no attribute "ID"
+>> openjade:/usr/src/linuxtv.org/v4l-dvb/v4l2-spec/v4l2.sgml:25:19:E:
+>> element "BOOK" undefined
+> <snip>
+>> openjade:/usr/src/linuxtv.org/v4l-dvb/v4l2-spec/v4l2.sgml:367:11:E:
+>> element "REVREMARK" undefined
+>> openjade:I: maximum number of errors (200) reached; change with -E
+>> option
+>> make[2]: *** [html-single-build.stamp] Error 8
+>> make[2]: Leaving directory `/usr/src/linuxtv.org/v4l-dvb/v4l2-spec'
+>> make[1]: *** [v4l2-spec] Error 2
+>> make[1]: Leaving directory `/usr/src/linuxtv.org/v4l-dvb/v4l'
+>> make: *** [v4l2-spec] Error 2
+>>
+>> I am running Debian 5.0 with docbook-utils package version 0.6.14-1.1.
+>> Any idea how to fix this?
+>
+> It appears you are missing one or more of the packages involved in the
+> sgml catalog for docbook.  My first guess would be the sgml-common
+> package; my second guess would be docbook-dtds.  After that, it gets
+> more complicated - can you confirm you have those two and still have
+> the problem?
 
-thanks for the patch. A few comments below.
+Unfortunately the sgml-common and the docbook-dtds are not installed and
+I cannot install them on Debian because they are not found:
+http://packages.debian.org/search?keywords=sgml-common&searchon=names&suite=stable&section=all
+http://packages.debian.org/search?suite=stable&section=all&arch=any&searchon=names&keywords=docbook-dtds
 
-On Tuesday 29 September 2009 07:01:08 Joe Perches wrote:
-> Signed-off-by: Joe Perches <joe@perches.com>
-> ---
->  drivers/media/video/uvc/uvc_ctrl.c   |   69 ++++++++++++++++------------------
->  drivers/media/video/uvc/uvc_driver.c |    7 +--
->  drivers/media/video/uvc/uvcvideo.h   |   10 -----
->  3 files changed, 35 insertions(+), 51 deletions(-)
-> 
-> diff --git a/drivers/media/video/uvc/uvc_ctrl.c
->  b/drivers/media/video/uvc/uvc_ctrl.c index c3225a5..2959e46 100644
-> --- a/drivers/media/video/uvc/uvc_ctrl.c
-> +++ b/drivers/media/video/uvc/uvc_ctrl.c
-> @@ -1093,8 +1093,8 @@ int uvc_xu_ctrl_query(struct uvc_video_chain *chain,
-> 
->  	if (!found) {
->  		uvc_trace(UVC_TRACE_CONTROL,
-> -			"Control " UVC_GUID_FORMAT "/%u not found.\n",
-> -			UVC_GUID_ARGS(entity->extension.guidExtensionCode),
-> +			"Control %pUr/%u not found.\n",
-> +			entity->extension.guidExtensionCode,
->  			xctrl->selector);
+In the meantime I updated to version "12614:fd679bbd8bb3" and now I get
+a different error message:
 
-Could you try to cut long statements in as few lines as possible ? This one
-would become
+| $ make v4l2-spec
+| [...]
+| Using catalogs: /etc/sgml/catalog
+| Using stylesheet: /usr/src/linuxtv.org/v4l-dvb/v4l2-spec/custom.dsl#html
+| Working on: /usr/src/linuxtv.org/v4l-dvb/v4l2-spec/v4l2.sgml
+| openjade:/usr/src/linuxtv.org/v4l-dvb/v4l2-spec/./remote_controllers.sgml:21:27:E: there is no attribute "Role"
+| make[2]: *** [html-single-build.stamp] Error 8
+| make[2]: Leaving directory `/usr/src/linuxtv.org/v4l-dvb/v4l2-spec'
+| make[1]: *** [v4l2-spec] Error 2
+| make[1]: Leaving directory `/usr/src/linuxtv.org/v4l-dvb/v4l'
+| make: *** [v4l2-spec] Error 2
 
-		uvc_trace(UVC_TRACE_CONTROL, "Control %pUr/%u not found.\n",
-			  entity->extension.guidExtensionCode, xctrl->selector);
+I have the following sgml and docbook related packages installed:
 
-There are a few others that should be changed as well. If you prefer I can
-apply the patch through my tree (after the printk patch goes in of course)
-and handle that myself.
+ii  libsgmls-perl                        1.03ii-32                      Perl modules for processing SGML parser outp
+ii  sgml-base                            1.26                           SGML infrastructure and SGML catalog file su
+ii  sgml-data                            2.0.3                          common SGML and XML data
+ii  sgmlspl                              1.03ii-32                      SGMLS-based example Perl script for processi
+ii  docbook-defguide                     2.0.17+svn7549-3               DocBook: The Definitive Guide - HTML version
+ii  docbook-dsssl                        1.79-6                         modular DocBook DSSSL stylesheets, for print
+ii  docbook-utils                        0.6.14-1.1                     Convert Docbook files to other formats (HTML
+ii  docbook-xml                          4.5-6                          standard XML documentation system, for softw
 
-[snip]
-
->  		flags = info->flags;
->  		if (((flags & UVC_CONTROL_GET_CUR) && !(inf & (1 << 0))) ||
->  		    ((flags & UVC_CONTROL_SET_CUR) && !(inf & (1 << 1)))) {
-> -			uvc_trace(UVC_TRACE_CONTROL, "Control "
-> -				UVC_GUID_FORMAT "/%u flags don't match "
-> -				"supported operations.\n",
-> -				UVC_GUID_ARGS(info->entity), info->selector);
-> +			uvc_trace(UVC_TRACE_CONTROL,
-> +				  "Control %pUr/%u flags don't match supported operations.\n",
-> +				  info->entity, info->selector);
-
-This doesn't fit the 80 columns limit. Please run checkpatch.pl on your patches.
-
-[snip]
-
-> diff --git a/drivers/media/video/uvc/uvc_driver.c
->  b/drivers/media/video/uvc/uvc_driver.c index 8756be5..647d0a2 100644
-> --- a/drivers/media/video/uvc/uvc_driver.c
-> +++ b/drivers/media/video/uvc/uvc_driver.c
-> @@ -328,11 +328,10 @@ static int uvc_parse_format(struct uvc_device *dev,
->  				sizeof format->name);
->  			format->fcc = fmtdesc->fcc;
->  		} else {
-> -			uvc_printk(KERN_INFO, "Unknown video format "
-> -				UVC_GUID_FORMAT "\n",
-> -				UVC_GUID_ARGS(&buffer[5]));
-> +			uvc_printk(KERN_INFO, "Unknown video format %pUr\n",
-> +				   &buffer[5]);
->  			snprintf(format->name, sizeof format->name,
-> -				UVC_GUID_FORMAT, UVC_GUID_ARGS(&buffer[5]));
-> +				 "%pUr", &Buffer[5]);
-
-Should be &buffer[5], not &Buffer[5]. You haven't compiled the patch, have
-you ? :-)
-
--- 
 Regards,
 
-Laurent Pinchart
+	Márton Németh
+
