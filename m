@@ -1,39 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2.shareable.org ([80.68.89.115]:40204 "EHLO
-	mail2.shareable.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751160AbZIEPXF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Sep 2009 11:23:05 -0400
-Date: Sat, 5 Sep 2009 16:22:51 +0100
-From: Jamie Lokier <jamie@shareable.org>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Marek Vasut <marek.vasut@gmail.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	linux-arm-kernel@lists.infradead.org,
-	Mike Rapoport <mike@compulab.co.il>,
-	Eric Miao <eric.y.miao@gmail.com>,
-	linux-arm-kernel@lists.arm.linux.org.uk,
-	Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Add RGB555X and RGB565X formats to pxa-camera
-Message-ID: <20090905152251.GL24516@shareable.org>
-References: <200908031031.00676.marek.vasut@gmail.com> <4A76CB7C.10401@gmail.com> <Pine.LNX.4.64.0908031415370.5310@axis700.grange> <200909050926.48309.marek.vasut@gmail.com> <Pine.LNX.4.64.0909051037300.4670@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0909051037300.4670@axis700.grange>
+Received: from mail.redflag-linux.com ([219.237.229.196]:51381 "EHLO
+	mail.redflag-linux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753985AbZICCqQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Sep 2009 22:46:16 -0400
+Subject: 
+From: Shine Liu <liuxian@redflag-linux.com>
+To: uris@siano-ms.com
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain
+Date: Thu, 03 Sep 2009 10:15:34 +0800
+Message-Id: <1251944134.5100.7.camel@shinel>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski wrote:
- Now RGB555 looks like (from wikipedia)
-> 
-> 15  14  13  12  11  10  09  08  07  06  05  04  03  02  01  00
-> R4  R3  R2  R1  R0  G4  G3  G2  G1  G1  B4  B3  B2  B1  B1  --
-> 
-> (Actually, I thought bit 15 was unused, but it doesn't matter for this 
-> discussion.)
+Hi Uri,
 
-You are right: sometimes RGB555 means bit 15 is unused.  Wikipedia
-isn't always right.
+I have a Siano USB MDTV Dongle which use the SMS1182(maybe SMS1180)
+chipset for CMMB. I was about to write drive for it under Linux, but I
+found some SMS messages I can't recognise: SMS messages with header
+0x026a, 0x026b, 0x026f, 0x028d, 0x028e, 0x0300 and 0x0301. These
+messages should be for CMMB. I want to know the messages format and what
+these header ID mean but I can't find these definations in current siano
+source code. Could you give me some help on this?
 
--- Jamie
+Best regards,
+
+Shine
+
+
+
+
