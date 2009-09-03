@@ -1,56 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo-p05-ob.rzone.de ([81.169.146.182]:19030 "EHLO
-	mo-p05-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751049AbZIOI3J (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2009 04:29:09 -0400
-Message-ID: <4AAF5056.8000001@nt.tu-darmstadt.de>
-Date: Tue, 15 Sep 2009 10:29:10 +0200
-From: Vladimir Pantelic <pan@nt.tu-darmstadt.de>
+Received: from znsun1.ifh.de ([141.34.1.16]:64721 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754528AbZICHDj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Sep 2009 03:03:39 -0400
+Date: Thu, 3 Sep 2009 09:03:32 +0200 (CEST)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Thomas Rokamp <thomas@rokamp.dk>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Problems with Hauppauge Nova-T USB2
+In-Reply-To: <4A9EB417.5040409@rokamp.dk>
+Message-ID: <alpine.LRH.1.10.0909030851490.3802@pub6.ifh.de>
+References: <41138.1251890451@rokamp.dk> <alpine.LRH.1.10.0909021905001.3802@pub6.ifh.de> <4A9EB032.7000503@rokamp.dk> <alpine.LRH.1.10.0909021957400.3802@pub6.ifh.de> <4A9EB417.5040409@rokamp.dk>
 MIME-Version: 1.0
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>
-Subject: Re: RFC: V4L - Support for video timings at the input/output interface
-References: <A69FA2915331DC488A831521EAE36FE401550D0F8E@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE401550D0F8E@dlee06.ent.ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Karicheri, Muralidharan wrote:
+On Wed, 2 Sep 2009, Thomas Rokamp wrote:
+>> wget http://phail.dk/test01.mpg
+>> mplayer test01.mpg
+>> 
+>> and I see a nice star animation looks like Eurosport .
+>> 
+>>> http://phail.dk/test02.mpg
+>> 
+>> doing the same thing with this file:
+>> 
+>> It show Melzer vs. Safin playing Tennis at the US Open on Eurosport.
+>> 
+>> Something's wrong with your mplayer/vlc/libffmpeg or whatever, definitely 
+>> not a problem of driver or reception.
+>
+> Yikes... well, thanks for that information. Been trying on two machines, 
+> windows + linux, and no result.
+> What player are you using? Any special codec?
 
-<snip>
-> Open issues
-> -----------
->
-> 1.How to handle an HDMI transmitter? It can be put in two different modes: DVI compatible
-> or HDMI compatible. Some of the choices are
-> 	a) enumerate them as two different outputs when enumerating.
->          b) adding a status bit on the input.
->          c) change it using a control
->
-> 2. Detecting whether there is an analog or digital signal on an DVI-I input:
-> 	a) add new status field value for v4l2_input ?
-> 	   #define  V4L2_IN_ST_DVI_ANALOG_DETECTED    0x10000000
-> 	   #define  V4L2_IN_ST_DVI_DITIGITAL_DETECTED 0x20000000
->
-> 3. Detecting an EDID.
-> 	a) adding a status field in v4l2_output and two new ioctls that can
->           set the EDID for an input or retrieve it for an output. It should
->           also be added as an input/output capability.
->
-> 4. ATSC bits in v4l2_std_id: how are they used? Are they used at all for
->     that matter?
->
->
-> 6. HDMI requires additional investigation. HDMI defines a whole bunch of
->     infoframe fields. Most of these can probably be exported as controls?? Is
->     HDMI audio handled by alsa?
+mplayer and no special codec:
 
-7. how does this interface/co-exist with something like DSS2 on the omap3?
+When I'm running mplayer it shows that:
 
-who will "own" e.g. HDMI setup, DSS2 or V4L2?
+TS file format detected.
+VIDEO MPEG2(pid=513) AUDIO MPA(pid=644) NO SUBS (yet)!  PROGRAM N. 0
+VIDEO:  MPEG2  704x576  (aspect 2)  25.000 fps  10000.0 kbps (1250.0 
+kbyte/s)
+==========================================================================
+Opening video decoder: [mpegpes] MPEG 1/2 Video passthrough
+VDec: vo config request - 704 x 576 (preferred colorspace: Mpeg PES)
+Could not find matching colorspace - retrying with -vf scale...
+Opening video filter: [scale]
+The selected video_out device is incompatible with this codec.
+Try adding the scale filter, e.g. -vf spp,scale instead of -vf spp.
+VDecoder init failed :(
+Opening video decoder: [libmpeg2] MPEG 1/2 Video decoder libmpeg2-v0.4.0b
+Selected video codec: [mpeg12] vfm: libmpeg2 (MPEG-1 or 2 (libmpeg2))
+==========================================================================
+==========================================================================
+Opening audio decoder: [mp3lib] MPEG layer-2, layer-3
+AUDIO: 48000 Hz, 2 ch, s16le, 192.0 kbit/12.50% (ratio: 24000->192000)
+Selected audio codec: [mp3] afm: mp3lib (mp3lib MPEG layer-2, layer-3)
+==========================================================================
 
+It looks quite standard to me.
+
+--
+
+Patrick Boettcher - Kernel Labs
+http://www.kernellabs.com/
