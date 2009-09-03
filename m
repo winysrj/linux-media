@@ -1,133 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from m4.goneo.de ([82.100.220.86]:62430 "EHLO m4.goneo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752782AbZIOSuf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2009 14:50:35 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by scan.goneo.de (Postfix) with ESMTP id 3FF4CA6665B
-	for <linux-media@vger.kernel.org>; Tue, 15 Sep 2009 20:50:38 +0200 (CEST)
-Received: from m4.goneo.de ([127.0.0.1])
-	by localhost (m4.goneo.de [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id HC9eD62oaz3s for <linux-media@vger.kernel.org>;
-	Tue, 15 Sep 2009 20:50:38 +0200 (CEST)
-Received: from [192.168.2.32] (localhost [127.0.0.1])
-	by m4-smtp.goneo.de (Postfix) with ESMTPA id 09C5FA66652
-	for <linux-media@vger.kernel.org>; Tue, 15 Sep 2009 20:50:37 +0200 (CEST)
-To: linux-media@vger.kernel.org
-Subject: Re: MSI Digivox Micro HD support?
-Content-Disposition: inline
-From: "Roman v. Gemmeren" <roman@hasnoname.de>
-Date: Tue, 15 Sep 2009 20:50:32 +0200
+Received: from claranet-outbound-smtp00.uk.clara.net ([195.8.89.33]:41775 "EHLO
+	claranet-outbound-smtp00.uk.clara.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754821AbZICKVs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Sep 2009 06:21:48 -0400
+Message-ID: <4A9F98BA.3010001@onelan.com>
+Date: Thu, 03 Sep 2009 11:21:46 +0100
+From: Simon Farnsworth <simon.farnsworth@onelan.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200909152050.32487.roman@hasnoname.de>
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: libv4l2 and the Hauppauge HVR1600 (cx18 driver) not working well
+ together
+References: <4A9E9E08.7090104@onelan.com> <4A9EAF07.3040303@hhs.nl> <4A9F89AD.7030106@onelan.com> <4A9F9006.6020203@hhs.nl>
+In-Reply-To: <4A9F9006.6020203@hhs.nl>
+Content-Type: multipart/mixed;
+ boundary="------------010705080202000803020101"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This is a multi-part message in MIME format.
+--------------010705080202000803020101
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Am Tuesday 15 September 2009 20:31:29 schrieben Sie:
-> On 09/15/2009 08:32 PM, Roman v. Gemmeren wrote:
-> > hi list,
-> >
-> > i just bought the above mentioned DVBT-Stick after my terratec prodigy
-> > died (from overheating i guess).
-> > I remembered sth. about digivox being supported, but i found only drivers
-> > for the "Digivox Mini II 3.0" which don't seem to recognize that stick at
-> > all.
-> >
-> > Anyone got that card working? If it is just the usb-id which is missing,
-> > how /where would i add that to the source?
->
-> Just do lsusb -vvd USB:ID and post here. From that we usually can say
-> which chips are used and correct driver needed for device. Also you can
-> look driver .inf file, driver filenames, look strings from driver, look
-> sniff or open the box to identify chips.
->
-> Antti
-This is the output for the Stick:
+Hans de Goede wrote:
+> Ok,
+> 
+> That was even easier then I thought it would be. Attached is a patch
+> (against libv4l-0.6.1), which implements 1) and 3) from above.
+> 
+I applied it to a clone of your HG repository, and had to make a minor
+change to get it to compile. I've attached the updated patch.
 
-root@Seth:~strowi/tmp> lsusb -vvd 1ba6:0001
+It looks like the read() from the card isn't reading entire frames ata a
+time - I'm using a piece of test gear that I have to return in a couple
+of hours to send colourbars to it, and I'm seeing bad colour, and the
+picture moving across the screen. I'll try and chase this, see whether
+there's something obviously wrong.
 
-Bus 001 Device 005: ID 1ba6:0001
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass          255 Vendor Specific Class
-  bDeviceSubClass       255 Vendor Specific Subclass
-  bDeviceProtocol       255 Vendor Specific Protocol
-  bMaxPacketSize0        64
-  idVendor           0x1ba6
-  idProduct          0x0001
-  bcdDevice            1.00
-  iManufacturer           1 Abilis Systems
-  iProduct                2 ATon2 DVB Receiver
-  iSerial                 3 0001
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength           39
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          0
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              300mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           3
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass          255 Vendor Specific Class
-  bDeviceSubClass       255 Vendor Specific Subclass
-  bDeviceProtocol       255 Vendor Specific Protocol
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
+The repository I went against was http://linuxtv.org/hg/~hgoede/libv4l/
+identified as:
+$ hg identify
+c51a90c0f62f+ tip
 
-greetings,
-Roman
+-- 
+Simon Farnsworth
+
+
+--------------010705080202000803020101
+Content-Type: text/plain;
+ name="diff"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="diff"
+
+ZGlmZiAtciBjNTFhOTBjMGY2MmYgdjRsMi1hcHBzL2xpYnY0bC9saWJ2NGwyL2xpYnY0bDIu
+YwotLS0gYS92NGwyLWFwcHMvbGlidjRsL2xpYnY0bDIvbGlidjRsMi5jCVR1ZSBTZXAgMDEg
+MTA6MDM6MjcgMjAwOSArMDIwMAorKysgYi92NGwyLWFwcHMvbGlidjRsL2xpYnY0bDIvbGli
+djRsMi5jCVRodSBTZXAgMDMgMTE6MTc6MDUgMjAwOSArMDEwMApAQCAtNTI2LDEwICs1MjYs
+OSBAQAogICAgIHJldHVybiAtMTsKICAgfQogCi0gIC8qIHdlIG9ubHkgYWRkIGZ1bmN0aW9u
+YWxpdHkgZm9yIHZpZGVvIGNhcHR1cmUgZGV2aWNlcywgYW5kIHdlIGRvIG5vdAotICAgICBo
+YW5kbGUgZGV2aWNlcyB3aGljaCBkb24ndCBkbyBtbWFwICovCisgIC8qIHdlIG9ubHkgYWRk
+IGZ1bmN0aW9uYWxpdHkgZm9yIHZpZGVvIGNhcHR1cmUgZGV2aWNlcyAqLwogICBpZiAoIShj
+YXAuY2FwYWJpbGl0aWVzICYgVjRMMl9DQVBfVklERU9fQ0FQVFVSRSkgfHwKLSAgICAgICEo
+Y2FwLmNhcGFiaWxpdGllcyAmIFY0TDJfQ0FQX1NUUkVBTUlORykpCisgICAgICAhKGNhcC5j
+YXBhYmlsaXRpZXMgJiAoVjRMMl9DQVBfU1RSRUFNSU5HfFY0TDJfQ0FQX1JFQURXUklURSkp
+KQogICAgIHJldHVybiBmZDsKIAogICAvKiBHZXQgY3VycmVudCBjYW0gZm9ybWF0ICovCkBA
+IC01NjQsNiArNTYzLDggQEAKICAgZGV2aWNlc1tpbmRleF0uZmxhZ3MgPSB2NGwyX2ZsYWdz
+OwogICBpZiAoY2FwLmNhcGFiaWxpdGllcyAmIFY0TDJfQ0FQX1JFQURXUklURSkKICAgICBk
+ZXZpY2VzW2luZGV4XS5mbGFncyB8PSBWNEwyX1NVUFBPUlRTX1JFQUQ7CisgIGlmICghKGNh
+cC5jYXBhYmlsaXRpZXMgJiBWNEwyX0NBUF9TVFJFQU1JTkcpKQorICAgIGRldmljZXNbaW5k
+ZXhdLmZsYWdzIHw9IFY0TDJfVVNFX1JFQURfRk9SX1JFQUQ7CiAgIGlmICghc3RyY21wKChj
+aGFyICopY2FwLmRyaXZlciwgInV2Y3ZpZGVvIikpCiAgICAgZGV2aWNlc1tpbmRleF0uZmxh
+Z3MgfD0gVjRMMl9JU19VVkM7CiAgIGRldmljZXNbaW5kZXhdLm9wZW5fY291bnQgPSAxOwpA
+QCAtNTcxLDcgKzU3Miw3IEBACiAgIGRldmljZXNbaW5kZXhdLmRlc3RfZm10ID0gZm10Owog
+CiAgIC8qIFdoZW4gYSB1c2VyIGRvZXMgYSB0cnlfZm10IHdpdGggdGhlIGN1cnJlbnQgZGVz
+dF9mbXQgYW5kIHRoZSBkZXN0X2ZtdAotICAgICBpcyBhIHN1cHBvcnRlZCBvbmUgd2Ugd2ls
+bCBhbGlnbiB0aGUgcmVzdWx1dGlvbiAoc2VlIHRyeV9mbXQgZm9yIHdoeSkuCisgICAgIGlz
+IGEgc3VwcG9ydGVkIG9uZSB3ZSB3aWxsIGFsaWduIHRoZSByZXNvbHV0aW9uIChzZWUgdHJ5
+X2ZtdCBmb3Igd2h5KS4KICAgICAgRG8gdGhlIHNhbWUgaGVyZSBub3csIHNvIHRoYXQgYSB0
+cnlfZm10IG9uIHRoZSByZXN1bHQgb2YgYSBnZXRfZm10IGRvbmUKICAgICAgaW1tZWRpYXRl
+bHkgYWZ0ZXIgb3BlbiBsZWF2ZXMgdGhlIGZtdCB1bmNoYW5nZWQuICovCiAgIGlmICh2NGxj
+b252ZXJ0X3N1cHBvcnRlZF9kc3RfZm9ybWF0KAo=
+--------------010705080202000803020101--
