@@ -1,68 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:34625 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1758982AbZIGGWS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Sep 2009 02:22:18 -0400
-Date: Mon, 7 Sep 2009 08:22:22 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Marek Vasut <marek.vasut@gmail.com>
-cc: Eric Miao <eric.y.miao@gmail.com>,
-	linux-arm-kernel@lists.arm.linux.org.uk,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mike Rapoport <mike@compulab.co.il>,
-	Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH] Add RGB555X and RGB565X formats to pxa-camera
-In-Reply-To: <200909070646.04642.marek.vasut@gmail.com>
-Message-ID: <Pine.LNX.4.64.0909070818480.4822@axis700.grange>
-References: <200908031031.00676.marek.vasut@gmail.com>
- <200909061951.44629.marek.vasut@gmail.com> <Pine.LNX.4.64.0909062004160.10484@axis700.grange>
- <200909070646.04642.marek.vasut@gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: 8BIT
+Received: from mail1.radix.net ([207.192.128.31]:46921 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752346AbZICLiv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Sep 2009 07:38:51 -0400
+Subject: Re: Audio on cx18 based cards (Hauppauge HVR1600)
+From: Andy Walls <awalls@radix.net>
+To: Simon Farnsworth <simon.farnsworth@onelan.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <4A9FA529.9030707@onelan.com>
+References: <4A9FA529.9030707@onelan.com>
+Content-Type: text/plain
+Date: Thu, 03 Sep 2009 07:37:24 -0400
+Message-Id: <1251977844.22279.28.camel@morgan.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 7 Sep 2009, Marek Vasut wrote:
-
-> Dne Ne 6. září 2009 20:15:17 Guennadi Liakhovetski napsal(a):
-> > On Sun, 6 Sep 2009, Marek Vasut wrote:
-> > > Dne Ne 6. září 2009 18:52:55 Guennadi Liakhovetski napsal(a):
-> > > > On Sun, 6 Sep 2009, Marek Vasut wrote:
-> > > > > Ah damn, I see what you mean. What the camera does is it swaps the
-> > > > > RED and BLUE channel:
-> > > > > 15  14  13  12  11  10  09  08  07  06  05  04  03  02  01  00
-> > > > > B4  B3  B2  B1  B0  G4  G3  G2  G1  G1  R4  R3  R2  R1  R1  --
-> > > > > so it's more a BGR555/565 then. I had to patch fswebcam for this.
-> > > >
-> > > > Ok, this is, of course, something different. In this case you,
-> > > > probably, could deceive the PXA to handle blue as red and the other way
-> > > > round, but still, I would prefer not to do that. Hence my suggestion
-> > > > remains - pass these formats as raw data.
-> > >
-> > > Which is bogus from the camera point of view.
-> >
-> > Not at all. This just means: the subdevice provides a pixel format, that
-> > the bridge (PXA) knows nothing specific about, but it can just pass it
-> > one-to-one (as raw data) to the user - don't see anything bogus in this.
-> > Different bridges have support for different pixel colour formats, but, I
-> > think, all bridges can pass data as raw (pass-through). Some bridges can
-> > _only_ do this, so, this is actually the default video-capture mode.
+On Thu, 2009-09-03 at 12:14 +0100, Simon Farnsworth wrote:
+> Hello,
 > 
-> But then you'll have to tell your software how to process the raw data (in what 
-> format they are). If there was this RGB565X passthrough support, the software 
-> could at least check if you are not forcing it to process nonsense.
+> I'm trying to make a Hauppauge HVR1600 (using the cx18 driver) work well
+> with Xine; Hans de Goede has sorted out the video side of the card for
+> me, and I now need to get the audio side cleared up.
+> 
+> I'm used to cards like the Hauppauge HVR1110, which exports an ALSA
+> interface for audio capture; the HVR1600 doesn't do this. Instead, it
+> exports a "video" device, /dev/video24 that appears to have some
+> variation on PCM audio on it instead of video.
 
-There's no difference for user-space software. It requests BGR555 it gets 
-BGR555 back, because that's the information the pxa driver will find in 
-this format descriptor: if you take this data and put it in RAM in a 
-certain way, you get BGR555.
+Yes, it's PCM straight from the capture unit in the CX23418.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+
+
+> How should I handle this in Xine's input_v4l.c? Should the driver be
+> changed to use ALSA?
+
+It would be nice to have.  Your the first person to really need it.  The
+end result can be ported to ivtv too.
+
+
+>  If not, how do I detect this case, and how should I
+> configure the PCM audio device?
+
+It can be configured with the V4L2 control ioctl()s.  It should the be a
+case of making select() and read() calls.
+
+
+> If the driver needs modifying, I can do this, but I'll need an
+> explanation of how to do so without breaking things for other people -
+> I've not done much with ALSA drivers or with V4L2 drivers.
+
+The skeleton of cx18-alsa support is almost done, but the heavy lifting
+is not.
+
+http://linuxtv.org/hg/~awalls/mc-lab
+
+I'll push any uncommitted changes I have lying around to that repo
+tonight.
+
+
+Regards,
+Andy
+
+
