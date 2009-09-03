@@ -1,57 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:42758 "EHLO
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:39070 "EHLO
 	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750722AbZIEURB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Sep 2009 16:17:01 -0400
-Received: by bwz19 with SMTP id 19so895390bwz.37
-        for <linux-media@vger.kernel.org>; Sat, 05 Sep 2009 13:17:02 -0700 (PDT)
+	with ESMTP id S932384AbZICWut convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Sep 2009 18:50:49 -0400
+Received: by bwz19 with SMTP id 19so308771bwz.37
+        for <linux-media@vger.kernel.org>; Thu, 03 Sep 2009 15:50:50 -0700 (PDT)
+From: =?utf-8?q?Micha=C5=82?= <mishaaq@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: saa716x driver and support Leadtek Winfast ExDTV 2300H
+Date: Fri, 4 Sep 2009 00:52:13 +0200
 MIME-Version: 1.0
-In-Reply-To: <4A9EB592.1030909@gmail.com>
-References: <18203149.1251714450755.JavaMail.root@ctps3>
-	 <4A9BDDAC.8060304@gmail.com>
-	 <a3ef07920908310830w343c3f81g6212d7bcf75858c5@mail.gmail.com>
-	 <4A9EB592.1030909@gmail.com>
-Date: Sun, 6 Sep 2009 00:17:02 +0400
-Message-ID: <1a297b360909051317h1a29fda8w391fa94651fc101d@mail.gmail.com>
-Subject: Re: SAA716x driver module
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Jed <jedi.theone@gmail.com>
-Cc: VDR User <user.vdr@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <200909040052.13834.mishaaq@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi,
+Recently I've found that saa716x driver is done (almost?), so I wanted to 
+check it on my express card tuner: Leadtek Winfast ExDTV 2300H. I've compiled 
+it and modprobe'd, but, unfortunately, it didn't worked - nothing happend. I 
+assume that this card is not supported by this card yet. Is there any chance 
+to change it?
 
-On Wed, Sep 2, 2009 at 10:12 PM, Jed<jedi.theone@gmail.com> wrote:
->
->> On Mon, Aug 31, 2009 at 7:26 AM, jed<jedi.theone@gmail.com> wrote:
->>
->>>
->>> Can someone please advise if the SAA716x driver module:
->>> http://www.linuxtv.org/wiki/index.php/NXP_SAA716x#Driver_Development
->>> Is now ready for SAA7162 devices:
->>> http://www.linuxtv.org/wiki/index.php/Saa7162_devices
->>>
->>
->> AFAIK Manu Abraham's driver is the most developed and it doesn't even tune
->> yet.
->
-> Actually this appears to suggest otherwise...
-> http://jusst.de/hg/saa716x/
-> Can anybody comment? Manu preferably! :-D
+card specification:
+http://www.leadtek.com.tw/eng/tv_tuner/specification.asp?pronameid=428&lineid=6&act=2
 
+uname -a:
+Linux compal 2.6.28-15-generic #49-Ubuntu SMP Tue Aug 18 18:40:08 UTC 2009 
+i686 GNU/Linux
 
-Sorry about the long delay in the reply being out of station, with a
-large mailbox to be processed.
+lspci -vvv:
+06:00.0 Multimedia controller: Philips Semiconductors Device 7160 (rev 03)
+        Subsystem: LeadTek Research Inc. Device 6645                      
+        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- 
+Stepping- SERR+ FastB2B- DisINTx-
+        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- 
+<TAbort- <MAbort- >SERR- <PERR- INTx- 
+        Latency: 0, Cache Line Size: 64 bytes                                                                
+        Interrupt: pin A routed to IRQ 7                                                                     
+        Region 0: Memory at f4000000 (64-bit, non-prefetchable) [size=1M]                                    
+        Capabilities: [40] Message Signalled Interrupts: Mask- 64bit+ 
+Queue=0/5 Enable-                      
+                Address: 0000000000000000  Data: 0000                                                        
+        Capabilities: [50] Express (v1) Endpoint, MSI 00                                                     
+                DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s <256ns, 
+L1 <1us                       
+                        ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-                                      
+                DevCtl: Report errors: Correctable- Non-Fatal- Fatal- 
+Unsupported-                           
+                        RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop-                                         
+                        MaxPayload 128 bytes, MaxReadReq 128 bytes                                           
+                DevSta: CorrErr- UncorrErr+ FatalErr- UnsuppReq+ AuxPwr- 
+TransPend-                          
+                LnkCap: Port #1, Speed 2.5GT/s, Width x1, ASPM L0s L1, Latency 
+L0 <4us, L1 <64us             
+                        ClockPM- Suprise- LLActRep- BwNot-                                                   
+                LnkCtl: ASPM Disabled; RCB 128 bytes Disabled- Retrain- 
+CommClk-                             
+                        ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-                                       
+                LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk- 
+DLActive- BWMgmt- ABWMgmt-           
+        Capabilities: [74] Power Management version 2                                                        
+                Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA 
+PME(D0+,D1+,D2+,D3hot-,D3cold-)                   
+                Status: D0 PME-Enable- DSel=0 DScale=0 PME-                                                  
+        Capabilities: [80] Vendor Specific Information <?>                                                   
+        Capabilities: [100] Vendor Specific Information <?>
 
-The saa716x driver currently has been tested only on the Technotrend
-TT S2 6400 Dual DVB-S2  Premium (a card with H.264 Hardware decoder
-and HDMI output and other nice features) for very basic functionality
-(tune + stream capture) as of now.
-
-A lot of stuff is still pending.
+There isn't any entries in dmesg about this card or modprobe'd driver.
 
 Regards,
-Manu
+Michał
