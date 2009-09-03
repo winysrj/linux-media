@@ -1,117 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2044 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751429AbZIMRtG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2009 13:49:06 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id n8DHn7F4023455
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 13 Sep 2009 19:49:08 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 13 Sep 2009 19:49:07 +0200 (CEST)
-Message-Id: <200909131749.n8DHn7F4023455@smtp-vbr9.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from bombadil.infradead.org ([18.85.46.34]:49130 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754733AbZICMJZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Sep 2009 08:09:25 -0400
+Date: Thu, 3 Sep 2009 09:08:47 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: =?ISO-8859-1?B?TultZXRoIE3hcnRvbg==?= <nm127@freemail.hu>,
+	"William M. Brack" <wbrack@mmm.com.hk>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: problem building v4l2-spec from docbook source
+Message-ID: <20090903090847.4aeef6cc@pedra.chehab.org>
+In-Reply-To: <20090903085455.176f4df3@pedra.chehab.org>
+References: <4A9A3650.3000106@freemail.hu>
+	<d88b96090d4bf9d9d152db5645149594.squirrel@delightful.com.hk>
+	<4A9F52E1.7030004@freemail.hu>
+	<20090903085455.176f4df3@pedra.chehab.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Em Thu, 3 Sep 2009 08:54:55 -0300
+Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
 
-Results of the daily build of v4l-dvb:
+> Em Thu, 03 Sep 2009 07:23:45 +0200
+> Németh Márton <nm127@freemail.hu> escreveu:
+> 
+> 
+> Try to replace "Role" to "role". Maybe it is just another case where you need to use lowercase with some xml engines.
 
-date:        Sun Sep 13 19:00:10 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12757:bd45a3a75049
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Ok, I just added a patch that does this to remote_controllers.sgml:
 
-linux-2.6.22.19-armv5: WARNINGS
-linux-2.6.23.12-armv5: ERRORS
-linux-2.6.24.7-armv5: ERRORS
-linux-2.6.25.11-armv5: ERRORS
-linux-2.6.26-armv5: ERRORS
-linux-2.6.27-armv5: ERRORS
-linux-2.6.28-armv5: ERRORS
-linux-2.6.29.1-armv5: ERRORS
-linux-2.6.30-armv5: ERRORS
-linux-2.6.31-armv5: OK
-linux-2.6.27-armv5-ixp: ERRORS
-linux-2.6.28-armv5-ixp: ERRORS
-linux-2.6.29.1-armv5-ixp: ERRORS
-linux-2.6.30-armv5-ixp: ERRORS
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: ERRORS
-linux-2.6.29.1-armv5-omap2: ERRORS
-linux-2.6.30-armv5-omap2: ERRORS
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: ERRORS
-linux-2.6.27-i686: ERRORS
-linux-2.6.28-i686: ERRORS
-linux-2.6.29.1-i686: ERRORS
-linux-2.6.30-i686: ERRORS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.30-mips: ERRORS
-linux-2.6.31-mips: OK
-linux-2.6.27-powerpc64: ERRORS
-linux-2.6.28-powerpc64: ERRORS
-linux-2.6.29.1-powerpc64: ERRORS
-linux-2.6.30-powerpc64: ERRORS
-linux-2.6.31-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: ERRORS
-linux-2.6.27-x86_64: ERRORS
-linux-2.6.28-x86_64: ERRORS
-linux-2.6.29.1-x86_64: ERRORS
-linux-2.6.30-x86_64: ERRORS
-linux-2.6.31-x86_64: WARNINGS
-sparse (linux-2.6.31): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+-<row><entry><emphasis Role="bold">Miscelaneous keys</emphasis></entry></row>
++<row><entry><emphasis role="bold">Miscelaneous keys</emphasis></entry></row>
 
-Detailed results are available here:
+changeset:   12615:2b49813f8482
+tag:         tip
+user:        Mauro Carvalho Chehab <mchehab@redhat.com>
+date:        Thu Sep 03 09:06:34 2009 -0300
+summary:     v4l2-spec: Fix xmlto compilation with some versions of the tool
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+Please see if this fixes the issue.
 
-Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+Cheers,
+Mauro
