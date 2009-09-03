@@ -1,33 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49366 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755925AbZIUMf5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Sep 2009 08:35:57 -0400
-Message-ID: <4AB77329.5000405@iki.fi>
-Date: Mon, 21 Sep 2009 15:35:53 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from Siano-NV.ser.netvision.net.il ([199.203.99.233]:18447 "EHLO
+	Siano-NV.ser.netvision.net.il" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750718AbZICMYN convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Sep 2009 08:24:13 -0400
+Content-class: urn:content-classes:message
 MIME-Version: 1.0
-To: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
-CC: Roman <lists@hasnoname.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: MSI Digivox mini III Remote Control
-References: <200909202026.27086.lists@hasnoname.de> <20090921081933.GA29884@moon> <200909211253.49766.lists@hasnoname.de> <20090921115122.GA2269@moon>
-In-Reply-To: <20090921115122.GA2269@moon>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Subject: RE: [DVB] Siano: Request help for some unkown SMS message header ID and format
+Date: Thu, 3 Sep 2009 15:10:25 +0300
+Message-ID: <3E442BA883529143B4AB72530285FC5D02075EE5@s-mail.siano-ms.ent>
+In-Reply-To: <1251944381.5100.9.camel@shinel>
+From: "Yaron Magber" <yaronm@siano-ms.com>
+To: "Shine Liu" <liuxian@redflag-linux.com>
+Cc: <linux-media@vger.kernel.org>, "Udi Atar" <udia@siano-ms.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/21/2009 02:51 PM, Aleksandr V. Piskunov wrote:
-> Just grab that patch and apply it to the current vl4-dvb, no need to mess
-> with old repository.
-> http://linuxtv.org/hg/~anttip/af9015-digivox3_remote/raw-rev/914ded6d921d
+Hi Shine,
 
-With this patch remote will not work most likely. But after adding that 
-patch you should see remote events dumped to the /var/log/messages when 
-key is pressed. I need to know which key gives which code. After that I 
-can add correct key mappings to the driver.
+In general, Uri does not work for Siano anymore, so Linux related issues
+can be directed to Udi (CC).
 
-Antti
--- 
-http://palosaari.fi/
+For the issue you raise below:
+Operating SMS1180 CMMB requires a user mode host stack, on top of the
+driver. CMMB has a proprietary data format, proprietary control table
+etc. It is not based on MPEG2 transport steam live DVB-T or ISDB-T.
+
+Regards,
+Yaron
+
+-----Original Message-----
+From: Shine Liu [mailto:liuxian@redflag-linux.com] 
+Sent: Thursday, September 03, 2009 5:20 AM
+To: Uri Shkolnik
+Cc: linux-media@vger.kernel.org
+Subject: [DVB] Siano: Request help for some unkown SMS message header ID
+and format
+
+Hi Uri,
+
+I have a Siano USB MDTV Dongle which use the SMS1182(maybe SMS1180)
+chipset for CMMB. I was about to write drive for it under Linux, but I
+found some SMS messages I can't recognise: SMS messages with header
+0x026a, 0x026b, 0x026f, 0x028d, 0x028e, 0x0300 and 0x0301. These
+messages should be for CMMB. I want to know the messages format and what
+these header ID mean but I can't find these definations in current siano
+source code. Could you give me some help on this?
+
+Best regards,
+
+Shine
+
+
+
+
