@@ -1,86 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:58079 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754010AbZIKVi2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2009 17:38:28 -0400
-Date: Fri, 11 Sep 2009 18:37:58 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: RFCv2: Media controller proposal
-Message-ID: <20090911183758.31184072@caramujo.chehab.org>
-In-Reply-To: <200909112215.15155.hverkuil@xs4all.nl>
-References: <200909100913.09065.hverkuil@xs4all.nl>
-	<200909112123.44778.hverkuil@xs4all.nl>
-	<20090911165937.776a638d@caramujo.chehab.org>
-	<200909112215.15155.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:35309
+	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754156AbZICD27 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Sep 2009 23:28:59 -0400
+Message-ID: <4A9F38EE.7020104@wilsonet.com>
+Date: Wed, 02 Sep 2009 23:33:02 -0400
+From: Jarod Wilson <jarod@wilsonet.com>
+MIME-Version: 1.0
+To: Andy Walls <awalls@radix.net>
+CC: Jarod Wilson <jarod@redhat.com>, Janne Grunau <j@jannau.net>,
+	linux-media@vger.kernel.org,
+	Brandon Jenkins <bcjenkins@tvwhere.com>
+Subject: Re: [PATCH] hdpvr: i2c fixups for fully functional IR support
+References: <200909011019.35798.jarod@redhat.com> <1251855051.3926.34.camel@palomino.walls.org> <4A9DE5FE.8060409@wilsonet.com>
+In-Reply-To: <4A9DE5FE.8060409@wilsonet.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 11 Sep 2009 22:15:15 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On 09/01/2009 11:26 PM, Jarod Wilson wrote:
+> On 09/01/2009 09:30 PM, Andy Walls wrote:
+>> On Tue, 2009-09-01 at 10:19 -0400, Jarod Wilson wrote:
+>>> Patch is against http://hg.jannau.net/hdpvr/
+>>>
+>>> 1) Adds support for building hdpvr i2c support when i2c is built as a
+>>> module (based on work by David Engel on the mythtv-users list)
+>>>
+>>> 2) Refines the hdpvr_i2c_write() success check (based on a thread in
+>>> the sagetv forums)
+>>>
+>>> With this patch in place, and the latest lirc_zilog driver in my lirc
+>>> git tree, the IR part in my hdpvr works perfectly, both for reception
+>>> and transmitting.
+>>>
+>>> Signed-off-by: Jarod Wilson<jarod@redhat.com>
+>>
+>> Jarod,
+>>
+>> I recall a problem Brandon Jenkins had from last year, that when I2C was
+>> enabled in hdpvr, his machine with multiple HVR-1600s and an HD-PVR
+>> would produce a kernel oops.
+>>
+>> Have you tested this on a machine with both an HVR-1600 and HD-PVR
+>> installed?
+>
+> Hrm, no, haven't tested it with such a setup, don't have an HVR-1600. I
+> do have an HVR-1250 that I think might suffice for testing though, if
+> I'm thinking clearly.
 
-> On Friday 11 September 2009 21:59:37 Mauro Carvalho Chehab wrote:
-> > Em Fri, 11 Sep 2009 21:23:44 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > 
-> > > > In the case of resizer, I don't see why this can't be implemented as an ioctl
-> > > > over /dev/video device.
-> > > 
-> > > Well, no. Not in general. There are two problems. The first problem occurs if
-> > > you have multiple instances of a resizer (OK, not likely, but you *can* have
-> > > multiple video encoders or decoders or sensors). If all you have is the
-> > > streaming device node, then you cannot select to which resizer (or video
-> > > encoder) the ioctl should go. The media controller allows you to select the
-> > > recipient of the ioctl explicitly. Thus providing the control that these
-> > > applications need.
-> > 
-> > This case doesn't apply, since, if you have multiple encoders and/or decoders,
-> > you'll also have multiple /dev/video instances. All you need is to call it at
-> > the right device you need to control. Am I missing something here?
-> 
-> Typical use-case: two video decoders feed video into a composer that combines
-> the two (e.g. for PiP) and streams the result to one video node.
-> 
-> Now you want to change e.g. the contrast on one of those video decoders. That's
-> not going to be possible using /dev/video.
+Hrm. A brief google search suggests the 1250 IR part isn't enabled. I 
+see a number of i2c devices in i2cdetect -l output, but none that say 
+anything about IR... I could just plug the hdpvr in there and see what 
+happens, I suppose...
 
-On your above example, each video decoder will need a /dev/video, and also the
-video composer. 
+> Ugh. And I just noticed that while everything works swimmingly with a
+> 2.6.30 kernel base, the i2c changes in 2.6.31 actually break it, so
+> there's gonna be at least one more patch coming... I'm an idjit for not
+> testing w/2.6.31 before sending this in, I *knew* there were major i2c
+> changes to account for... (Its actually the hdpvr driver oopsing, before
+> one even tries loading lirc_zilog).
 
-So, if you want to control the first decoder, you'll use /dev/video0. If you
-want to control the second, /dev/video1, and the mux, /dev/video2.
+Getting closer. The hdpvr driver is no longer oopsing, and lirc_zilog 
+binds correctly. Transmit and receive are working too, but there's still 
+an oops on module unload I'm tracking down. Should be able to finish 
+sorting it all out tomorrow and get patches into the mail.
 
-The topology will be properly described at the media controller sysfs nodes.
-
-> 
-> > > The second problem is that this will pollute the 'namespace' of a v4l device
-> > > node. Device drivers need to pass all those private ioctls to the right
-> > > sub-device. But they shouldn't have to care about that. If someone wants to
-> > > tweak the resizer (e.g. scaling coefficients), then pass it straight to the
-> > > resizer component.
-> > 
-> > Sorry, I missed your point here
-> 
-> Example: a sub-device can produce certain statistics. You want to have an
-> ioctl to obtain those statistics. If you call that through /dev/videoX, then
-> that main driver has to handle that ioctl in vidioc_default and pass it on
-> to the right subdev. So you have to write that vidioc_default handler,
-> know about the sub-devices that you have and which sub-device is linked to
-> the device node. You really don't want to have to do that. Especially not
-> when you are dealing with i2c devices that are loaded from platform code.
-> If a video encoder supports private ioctls, then an omap3 driver doesn't
-> want to know about that. Oh, and before you ask: just broadcasting that
-> ioctl is not a solution if you have multiple identical video encoders.
-
-This can be as easy as reading from /sys/class/media/dsp:stat0/stats
-
-
-Cheers,
-Mauro
+-- 
+Jarod Wilson
+jarod@wilsonet.com
