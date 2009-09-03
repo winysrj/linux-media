@@ -1,45 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.158]:37208 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752826AbZIOVix convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2009 17:38:53 -0400
-Received: by fg-out-1718.google.com with SMTP id 22so1006320fge.1
-        for <linux-media@vger.kernel.org>; Tue, 15 Sep 2009 14:38:55 -0700 (PDT)
-From: Marek Vasut <marek.vasut@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: V4L2: Add a v4l2-subdev (soc-camera) driver for OmniVision OV9640 sensor
-Date: Tue, 15 Sep 2009 23:38:28 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <200908220850.07435.marek.vasut@gmail.com> <200909150006.00150.marek.vasut@gmail.com> <Pine.LNX.4.64.0909152150090.4640@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0909152150090.4640@axis700.grange>
+Received: from mail-yw0-f188.google.com ([209.85.211.188]:43748 "EHLO
+	mail-yw0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754330AbZICF7y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Sep 2009 01:59:54 -0400
+Received: by ywh26 with SMTP id 26so2322876ywh.5
+        for <linux-media@vger.kernel.org>; Wed, 02 Sep 2009 22:59:56 -0700 (PDT)
+Message-ID: <4A9F5B73.8060004@gmail.com>
+Date: Thu, 03 Sep 2009 16:00:19 +1000
+From: Jed <jedi.theone@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <200909152338.28109.marek.vasut@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: PCI/e with dual DVB-T + AV-in?
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dne Út 15. září 2009 21:55:32 Guennadi Liakhovetski napsal(a):
-> On Tue, 15 Sep 2009, Marek Vasut wrote:
-> > Just briefly skimmed over it. Ok then, that diff seems fine. I assume the
-> > imagebus will fix the rgb issues anyway.
-> 
-> Sorry, have to ask to make quite sure - so, you're ok with me pushing that
-> patch as it was in the mail - not just the diff but also the patch header?
-> And no, imagebus cannot fix the problem automagically - until we know for
-> sure what those formats are. So, someone will have to test the driver
-> again.
+Hi Ya'll,
 
-Yeah, I'll eventually fix it if you broke something. btw. I know what those 
-formats are, I was able to get both YUV and RGB encoded data from it.
+Going on response levels thus far I'm not expecting much :-D but I was 
+wondering if someone could possibly help me out here.
 
-> 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> 
+Is there anything with half-decent driver support that is PCI/e, and has 
+dual DVB-T + A/V-in?*
+As a bonus it would be dual Hybrid and have hardware encode, but I 
+wouldn't expect either to work at this stage.
+
+I'm still trawling through mail-lists & wiki's etc, so I may yet find 
+the best solution, but I was hoping some might already know.
+Any advice or even just a response to chastise me is greatly 
+appreciated!  :-D
+
+Cheers,
+Jed
+*Is HVR-2200 the only option?
+  I wish there was something with better AV-in but it might end-up being 
+my final choice.
