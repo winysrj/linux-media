@@ -1,65 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from h1622217.stratoserver.net ([85.214.125.154]:55612 "EHLO
-	h1622217.stratoserver.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757722AbZIRSn7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Sep 2009 14:43:59 -0400
-Received: from [192.168.1.127] (p50902768.dip.t-dialin.net [80.144.39.104])
-	by h1622217.stratoserver.net (Postfix) with ESMTPSA id 8CF2669D4059
-	for <linux-media@vger.kernel.org>; Fri, 18 Sep 2009 20:33:23 +0200 (CEST)
-Subject: Incorrectly detected em28xx device
-From: Matthias =?ISO-8859-1?Q?Bl=E4sing?= <mblaesing@doppel-helix.eu>
-To: linux-media@vger.kernel.org
+Received: from mail1.radix.net ([207.192.128.31]:46181 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752247AbZICLHy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Sep 2009 07:07:54 -0400
+Subject: Re: libv4l2 and the Hauppauge HVR1600 (cx18 driver) not working
+	well together
+From: Andy Walls <awalls@radix.net>
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+Cc: Simon Farnsworth <simon.farnsworth@onelan.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <4A9EAF07.3040303@hhs.nl>
+References: <4A9E9E08.7090104@onelan.com>  <4A9EAF07.3040303@hhs.nl>
 Content-Type: text/plain
-Date: Fri, 18 Sep 2009 20:33:21 +0200
-Message-Id: <1253298801.19044.5.camel@prometheus>
+Date: Thu, 03 Sep 2009 07:06:18 -0400
+Message-Id: <1251975978.22279.8.camel@morgan.walls.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Wed, 2009-09-02 at 19:44 +0200, Hans de Goede wrote: 
+> Hi,
+> 
+> On 09/02/2009 06:32 PM, Simon Farnsworth wrote:
+> > Hello,
+> >
+> > I'm in the process of reworking Xine's input_v4l to use libv4l2, so that
+> >    it gets the benefit of all the work done on modern cards and webcams,
+> > and I've hit a stumbling block.
+> >
+> > I have a Hauppauge HVR1600 for NTSC and ATSC support, and it appears to
+> > simply not work with libv4l2, due to lack of mmap support. My code works
+> > adequately (modulo a nice pile of bugs) with a HVR1110r3, so it appears
+> > to be driver level.
+> >
+> > Which is the better route to handling this; adding code to input_v4l to
+> > use libv4lconvert when mmap isn't available, or converting the cx18
+> > driver to use mmap?
+> >
+> 
+> Or modify libv4l2 to also handle devices which can only do read. There have
+> been some changes to libv4l2 recently which would make doing that feasible.
+> 
+> > If it's a case of converting the cx18 driver, how would I go about doing
+> > that? I have no experience of the driver, so I'm not sure what I'd have
+> > to do - noting that if I break the existing read() support, other users
+> > will get upset.
 
-when I plugin my usb video grabber, it is misdetected (this email is the
-reaction to the request in the module output):
+Modifying the cx18 driver to support mmap would be time consuming and
+non-trivial.  Since cx18 is a rework of the ivtv driver, you will have
+the same problem with ivtv and PVR-150's and PVR-500's.
 
-Sep 18 20:27:19 prometheus kernel: [15016.458509] em28xx: New device @ 480 Mbps (eb1a:2860, interface 0, class 0)
-Sep 18 20:27:19 prometheus kernel: [15016.458516] em28xx #0: Identified as Unknown EM2750/28xx video grabber (card=1)
-Sep 18 20:27:19 prometheus kernel: [15016.458563] em28xx #0: chip ID is em2860
-Sep 18 20:27:19 prometheus kernel: [15016.548934] em28xx #0: board has no eeprom
-Sep 18 20:27:19 prometheus kernel: [15016.562331] em28xx #0: found i2c device @ 0x4a [saa7113h]
-Sep 18 20:27:19 prometheus kernel: [15016.595202] em28xx #0: Your board has no unique USB ID.
-Sep 18 20:27:19 prometheus kernel: [15016.595207] em28xx #0: A hint were successfully done, based on i2c devicelist hash.
-Sep 18 20:27:19 prometheus kernel: [15016.595209] em28xx #0: This method is not 100% failproof.
-Sep 18 20:27:19 prometheus kernel: [15016.595210] em28xx #0: If the board were missdetected, please email this log to:
-Sep 18 20:27:19 prometheus kernel: [15016.595212] em28xx #0: ^IV4L Mailing List  <linux-media@vger.kernel.org>
-Sep 18 20:27:19 prometheus kernel: [15016.595214] em28xx #0: Board detected as PointNix Intra-Oral Camera
-Sep 18 20:27:19 prometheus kernel: [15016.595217] em28xx #0: Registering snapshot button...
-Sep 18 20:27:19 prometheus kernel: [15016.595289] input: em28xx snapshot button as /devices/pci0000:00/0000:00:1a.7/usb1/1-5/1-5.4/input/input19
-Sep 18 20:27:20 prometheus kernel: [15016.980420] saa7115 0-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
-Sep 18 20:27:21 prometheus kernel: [15017.696774] em28xx #0: Config register raw data: 0x00
-Sep 18 20:27:21 prometheus kernel: [15017.696777] em28xx #0: No AC97 audio processor
-Sep 18 20:27:21 prometheus kernel: [15017.796516] em28xx #0: v4l2 driver version 0.1.2
-Sep 18 20:27:21 prometheus kernel: [15018.076600] em28xx #0: V4L2 device registered as /dev/video1 and /dev/vbi0
-Sep 18 20:27:21 prometheus kernel: [15018.076630] usbcore: registered new interface driver em28xx
-Sep 18 20:27:21 prometheus kernel: [15018.076633] em28xx driver loaded
+Implementing mmap() in these drivers for MPEG PS and TS streams would be
+interesting, because of the MPEG frames have variable length, not a
+fixed length.  Since MPEG compressed video is the main format for which
+people purchase a CX2341[568] based board for analog TV, mmap() mode
+doesn't have a big payoff.
 
-The correct functionality can be accessed, when explicitly called with
-card=35 as paramter:
+The CX2341[568] can output YUV video in the HM12 format, so mmap() may
+make sense for that.  The challenges: implementing a {cx18,ivtv}-alsa
+module to provide ALSA PCM nodes instead of /dev/video24 PCM audio; and
+switching the primary stream handling and queuing used by the drivers
+internally to be different for different stream types (YUV/mmap,
+MPEG/read, and PCM/read but V4L2 and ALSA).
 
-[ 1014.939536] em28xx: New device @ 480 Mbps (eb1a:2860, interface 0, class 0)
-[ 1014.939549] em28xx #0: Identified as Typhoon DVD Maker (card=35)
-[ 1014.939734] em28xx #0: chip ID is em2860
-[ 1015.029084] em28xx #0: board has no eeprom
-[ 1015.393031] saa7115 0-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
-[ 1016.100782] em28xx #0: Config register raw data: 0x00
-[ 1016.100789] em28xx #0: No AC97 audio processor
-[ 1016.204578] em28xx #0: v4l2 driver version 0.1.2
-[ 1016.484275] em28xx #0: V4L2 device registered as /dev/video1 and /dev/vbi0
+But I suspect no user pays for the extra cost of the CX2341[568]
+hardware MPEG encoder, if the user primarily wants uncompressed YUV
+video as their main format.
 
-It would be very nice, if this could be auto-detected. If you need more information, please CC me.
 
-Greetings
+> I don't believe that modifying the driver is the answer, we need to either
+> fix this at the libv4l or xine level.
+> 
+> I wonder though, doesn't the cx18 offer any format that xine can handle
+> directly?
 
-Matthias
+The CX2341[568] can output a DVD compatible MPEG-2 PS, if the default
+MPEG-2 PS is something xine can't handle.
+
+
+> As stated libv4l2 currently does not support devices that cannot do read,
+> what this comes down to in practice (or should, if not that is a bug), is
+> that it passes all calls directly to the driver. So if the driver has any
+> pixfmt's xine can handle directly things should work fine.
+
+The cx18 and ivtv drivers report 2 video capture pixel formats:
+
+        static struct v4l2_fmtdesc formats[] = {
+                { 0, V4L2_BUF_TYPE_VIDEO_CAPTURE, 0,
+                  "HM12 (YUV 4:1:1)", V4L2_PIX_FMT_HM12, { 0, 0, 0, 0 }
+                },
+                { 1, V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FMT_FLAG_COMPRESSED,
+                  "MPEG", V4L2_PIX_FMT_MPEG, { 0, 0, 0, 0 }
+                }
+        };
+
+
+But MPEG controls can be used to select the exact format of the MPEG
+stream, including an MPEG-2 TS in the case of the CX23418.
+
+
+Regards,
+Andy
+
+> Regards,
+> 
+> Hans
+
 
