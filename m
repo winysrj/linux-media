@@ -1,82 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4353 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753660AbZILLNu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Sep 2009 07:13:50 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Markus Rechberger <mrechberger@gmail.com>
-Subject: Re: Initial media controller implementation
-Date: Sat, 12 Sep 2009 13:13:50 +0200
-Cc: linux-media@vger.kernel.org
-References: <200909121257.28522.hverkuil@xs4all.nl> <d9def9db0909120405n277ad8e0r85ea82d877bc53f8@mail.gmail.com>
-In-Reply-To: <d9def9db0909120405n277ad8e0r85ea82d877bc53f8@mail.gmail.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:58217 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753586AbZICIgZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Sep 2009 04:36:25 -0400
+Date: Thu, 3 Sep 2009 09:36:00 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Imre Deak <imre.deak@nokia.com>
+Cc: ext Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Steven Walter <stevenrwalter@gmail.com>,
+	David Xiao <dxiao@broadcom.com>,
+	Ben Dooks <ben-linux@fluff.org>,
+	Hugh Dickins <hugh.dickins@tiscali.co.uk>,
+	Robin Holt <holt@sgi.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	v4l2_linux <linux-media@vger.kernel.org>,
+	"linux-arm-kernel@lists.arm.linux.org.uk"
+	<linux-arm-kernel@lists.arm.linux.org.uk>
+Subject: Re: How to efficiently handle DMA and cache on ARMv7 ? (was "Is
+	get_user_pages() enough to prevent pages from being swapped out ?")
+Message-ID: <20090903083600.GA7235@n2100.arm.linux.org.uk>
+References: <200908061208.22131.laurent.pinchart@ideasonboard.com> <e06498070908250553h5971102x6da7004495abb911@mail.gmail.com> <20090901132824.GN19719@n2100.arm.linux.org.uk> <200909011543.48439.laurent.pinchart@ideasonboard.com> <20090902151044.GG30183@localhost>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Message-Id: <200909121313.50084.hverkuil@xs4all.nl>
+In-Reply-To: <20090902151044.GG30183@localhost>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 12 September 2009 13:05:14 Markus Rechberger wrote:
-> Hi,
-> 
-> On Sat, Sep 12, 2009 at 12:57 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > Rather than writing long mails on what a media controller is and what it can
-> > do, I thought that I could just as well implement it.
-> >
-> > So in 4 hours I implemented pretty much all of the media controller
-> > functionality. The main missing features are the ability to register non-v4l
-> > device nodes so that they can be enumerated and setting controls private to
-> > a sub-device. For that I should first finish the control handling framework.
-> >
-> > The datastructures and naming conventions needs to be cleaned up, and it
-> > needs some tweaking, but I'd say this is pretty much the way I want it.
-> >
-> > The code is available here:
-> >
-> > http://linuxtv.org/hg/~hverkuil/v4l-dvb-mc/
-> >
-> > It includes a v4l2-mc utility in v4l2-apps/util that has the
-> > --show-topology option that enumerates all nodes and subdev. Currently any
-> > registered subdevs and v4l device nodes are already automatically added.
-> > Obviously, there are no links setup between them, that would require work
-> > in the drivers.
-> >
-> > Total diffstat:
-> >
-> >  b/linux/include/media/v4l2-mc.h         |   54 +++++
-> >  b/v4l2-apps/util/v4l2-mc.cpp            |  325 ++++++++++++++++++++++++++++++++
-> >  linux/drivers/media/video/v4l2-dev.c    |   15 +
-> >  linux/drivers/media/video/v4l2-device.c |  265 +++++++++++++++++++++++++-
-> >  linux/include/linux/videodev2.h         |   74 +++++++
-> >  linux/include/media/v4l2-dev.h          |    6
-> >  linux/include/media/v4l2-device.h       |   23 +-
-> >  linux/include/media/v4l2-subdev.h       |   11 -
-> >  v4l2-apps/util/Makefile                 |    2
-> >  9 files changed, 762 insertions(+), 13 deletions(-)
-> >
-> > Ignoring the new utility that's just 435 lines of core code.
-> >
-> > Now try this with sysfs. Brrr.
-> >
-> 
-> please even more important when doing this push out a proper
-> documentation for it,
-> The s2api is a mess seen from the documentation people need to hack
-> existing code in order
-> to figure out how to use it it seems. v4l2/(incomplete)linuxdvb v3 API
-> are still the best references
-> to start with right now.
+On Wed, Sep 02, 2009 at 06:10:44PM +0300, Imre Deak wrote:
+> To my understanding buffers returned by dma_alloc_*, kmalloc, vmalloc
+> are ok:
 
-It will obviously be documented extensively when/if this becomes official.
-Right now it is an initial implementation people can play with.
+For dma_map_*, the only pages/addresses which are valid to pass are
+those returned by get_free_pages() or kmalloc.  Everything else is
+not permitted.
 
-Regards,
+Use of vmalloc'd and dma_alloc_* pages with the dma_map_* APIs is invalid
+use of the DMA API.  See the notes in the DMA-mapping.txt document
+against "dma_map_single".
 
-         Hans
+> For user mappings I think you'd have to do an additional flush for
+> the direct mapping, while the user mapping is flushed in dma_map_*.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+I will not accept a patch which adds flushing of anything other than
+the kernel direct mapping in the dma_map_* functions, so please find
+a different approach.
