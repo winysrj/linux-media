@@ -1,136 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from joe.mail.tiscali.it ([213.205.33.54]:39453 "EHLO
-	joe.mail.tiscali.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752495AbZIXSHQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Sep 2009 14:07:16 -0400
-Received: from [192.168.0.60] (78.14.37.86) by joe.mail.tiscali.it (8.0.022)
-        id 49EC55CD046725B3 for linux-media@vger.kernel.org; Thu, 24 Sep 2009 20:07:18 +0200
-Message-ID: <4ABBB515.2010208@email.it>
-Date: Thu, 24 Sep 2009 20:06:13 +0200
-From: xwang1976@email.it
+Received: from mail-ew0-f206.google.com ([209.85.219.206]:59245 "EHLO
+	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757173AbZIDSFd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Sep 2009 14:05:33 -0400
+Received: by ewy2 with SMTP id 2so655973ewy.17
+        for <linux-media@vger.kernel.org>; Fri, 04 Sep 2009 11:05:34 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: New device: Dikom DK-300 (maybe Kworld 323U rebranded)
-References: <9577d4e00908130614q1d8c2c60kdcf74d324c897572@mail.gmail.com>	 <4A84138A.3050909@email.it> <9577d4e00908130934k77fb2b2ag124da076f448b1be@mail.gmail.com> <4A854761.7080102@email.it> <4A854A08.507@email.it> <4A85D05E.9040307@email.it> <4A8D03A5.8060605@email.it> <4A911AB0.2040800@email.it>
-In-Reply-To: <4A911AB0.2040800@email.it>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <E1MiTfS-0001LQ-SU@mail.linuxtv.org>
+References: <E1MiTfS-0001LQ-SU@mail.linuxtv.org>
+Date: Fri, 4 Sep 2009 14:05:31 -0400
+Message-ID: <37219a840909041105u7fe714aala56893566d93cdc3@mail.gmail.com>
+Subject: Re: [linuxtv-commits] [hg:v4l-dvb] cx25840: fix determining the
+	firmware name
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linuxtv-commits@linuxtv.org, Jarod Wilson <jarod@wilsonet.com>,
+	Hans Verkuil via Mercurial <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The rapidshare link is no more accessible.
-Do you want me to put that file online again?
-Xwang
+Mauro,
 
-xwang1976@email.it ha scritto:
-> Is there any news?
-> Xwang
-> 
-> xwang1976@email.it ha scritto:
->> Hi to all,
->> I would like to know if the usbsnoop I have done under windows xp is 
->> ok or if, otherwise, I have to do something different when opening the 
->> video application under windows xp (I've opened it in analogical mode. 
->> Should I open it also in digital tv mode?).
->> Till sunday I can take usbsnoopes of the device using my brother pc.
->> After such date I've to wait two weeks.
->> Thank you,
->> Xwang
->>
->> xwang1976@email.it ha scritto:
->>> This is the link to the usbsnoop I've done under windows xp:
->>> http://rapidshare.com/files/267432234/UsbSnoop2.zip.html
->>> I hope it is useful to:
->>> 1) understand if the dikom DK-300 is really a rebranded kworld 323u
->>> 2)resolve the analog tv issues (kernel panic while scanning channels 
->>> and absence of audio)
->>> Thank you,
->>> Xwang
->>>
->>> xwang1976@email.it ha scritto:
->>>> I forgot to send the dmesg I have had using the latest kernel 
->>>> (dmesg_dikom-dk300.txt) and the Dainius modified one 
->>>> (dmesg_dikom-dk300-mod.txt).
->>>> Xwang
->>>>
->>>> xwang1976@email.it ha scritto:
->>>>> Hi to all!
->>>>> I've bought this device because I've seen that it has a better 
->>>>> digital tuner when compared with my empire dual pen usb device.
->>>>> It does not work with the latest driver because there is no digital 
->>>>> tv while analog tv works with audio (even if it is a bit noisy) 
->>>>> using the start script I have attached, but when I search for 
->>>>> analog tv channels using tvtime-scanner, the system hangs and I 
->>>>> have to turn it off being alt+sys+REISUB unable to reboot the machine.
->>>>> If I modify the driver as suggest by Dainius, the digital tv works 
->>>>> perfectly, but analog audio disappears and the hangs when tuning 
->>>>> analog channels persist.
->>>>> Can you help me so that to have this device fully functional (I'll 
->>>>> continue to test also the Empire one, but this is better)?
->>>>> If you need it I can take an usbsnoop of the same device, but I 
->>>>> don't know how to use it exactly.
->>>>> I'll search if I find some howto.
->>>>> Thank you,
->>>>> Xwang
->>>>>
->>>>> Dainius Ridzevicius ha scritto:
->>>>>> Hi,
->>>>>>
->>>>>> replace files in /v4l-dvb/linux/drivers/media/video/em28xx
->>>>>> with attached ones and make all v4l-dvb.
->>>>>> make && make install. Reboot to clean old modules.
->>>>>>
->>>>>> DVB-T on kwordl 323ur is working, watching TV for an hour now.
->>>>>>
->>>>>> regards,
->>>>>>
->>>>>>
->>>>>> On Thu, Aug 13, 2009 at 4:22 PM, <xwang1976@email.it 
->>>>>> <mailto:xwang1976@email.it>> wrote:
->>>>>>
->>>>>>     Yes,
->>>>>>     I'm still interested.
->>>>>>     I suppose it is the same device.
->>>>>>     In the next days I hope I will be able to take an usbsnoop of the
->>>>>>     device under windows xp.
->>>>>>     Meantime, I would like to test your drive.
->>>>>>     Regards,
->>>>>>     Xwang
->>>>>>
->>>>>>     Dainius Ridzevicius ha scritto:
->>>>>>
->>>>>>         Hello,
->>>>>>
->>>>>>         I have got Kworld 323UR hybrid tuner and managed to get dvb-t
->>>>>>         lock today, will do some more testing later, but I can email
->>>>>>         or post you a link for v4l-dvb sources changed by me (from
->>>>>>         todays mercurial) if You are still interested.
->>>>>>
->>>>>>         Regards,
->>>>>>         Dainius
->>>>>>
->>>>>>
->>>>>>         --         -----------------------------------------
->>>>>>
->>>>>>
->>>>>>
->>>>>>
->>>>>> -- 
->>>>>> -----------------------------------------
->>> -- 
->>> To unsubscribe from this list: send the line "unsubscribe 
->>> linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+This fix should really go to Linus before 2.6.31 is released, if
+possible.  It also should be backported to stable, but I need it in
+Linus' tree before it will be accepted into -stable.
+
+Do you think you can slip this in before the weekend?  As I
+understand, Linus plans to release 2.6.31 on Saturday, September 5th.
+
+If you dont have time for it, please let me know and I will send it in myself.
+
+Thanks & regards,
+
+Mike Krufky
+
+On Tue, Sep 1, 2009 at 9:45 AM, Patch from Hans
+Verkuil<hg-commit@linuxtv.org> wrote:
+> The patch number 12613 was added via Hans Verkuil <hverkuil@xs4all.nl>
+> to http://linuxtv.org/hg/v4l-dvb master development tree.
+>
+> Kernel patches in this development tree may be modified to be backward
+> compatible with older kernels. Compatibility modifications will be
+> removed before inclusion into the mainstream Kernel
+>
+> If anyone has any objections, please let us know by sending a message to:
+>        Linux Media Mailing List <linux-media@vger.kernel.org>
+>
+> ------
+>
+> From: Hans Verkuil  <hverkuil@xs4all.nl>
+> cx25840: fix determining the firmware name
+>
+>
+> Depending on the model there are three different firmwares to choose from.
+> Unfortunately if a cx23885 is loaded first, then the global firmware name
+> is overwritten with that firmware and if ivtv is loaded next, then it
+> tries to load the wrong firmware. In addition, the original approach would
+> also overwrite any firmware that the user specified explicitly.
+>
+> Priority: normal
+>
+> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+> CC: Jarod Wilson <jarod@wilsonet.com>
+>
+>
+> ---
+>
+>  linux/drivers/media/video/cx25840/cx25840-firmware.c |   35 ++++++-----
+>  1 file changed, 22 insertions(+), 13 deletions(-)
+>
+> diff -r f69cb015dc77 -r 36a81289010d linux/drivers/media/video/cx25840/cx25840-firmware.c
+> --- a/linux/drivers/media/video/cx25840/cx25840-firmware.c      Mon Aug 31 22:21:04 2009 +0200
+> +++ b/linux/drivers/media/video/cx25840/cx25840-firmware.c      Mon Aug 31 22:57:52 2009 +0200
+> @@ -24,10 +24,6 @@
+>
+>  #include "cx25840-core.h"
+>
+> -#define FWFILE "v4l-cx25840.fw"
+> -#define FWFILE_CX23885 "v4l-cx23885-avcore-01.fw"
+> -#define FWFILE_CX231XX "v4l-cx231xx-avcore-01.fw"
+> -
+>  /*
+>  * Mike Isely <isely@pobox.com> - The FWSEND parameter controls the
+>  * size of the firmware chunks sent down the I2C bus to the chip.
+> @@ -41,11 +37,11 @@
+>
+>  #define FWDEV(x) &((x)->dev)
+>
+> -static char *firmware = FWFILE;
+> +static char *firmware = "";
+>
+>  module_param(firmware, charp, 0444);
+>
+> -MODULE_PARM_DESC(firmware, "Firmware image [default: " FWFILE "]");
+> +MODULE_PARM_DESC(firmware, "Firmware image to load");
+>
+>  static void start_fw_load(struct i2c_client *client)
+>  {
+> @@ -66,6 +62,19 @@
+>        cx25840_write(client, 0x803, 0x03);
+>  }
+>
+> +static const char *get_fw_name(struct i2c_client *client)
+> +{
+> +       struct cx25840_state *state = to_state(i2c_get_clientdata(client));
+> +
+> +       if (firmware[0])
+> +               return firmware;
+> +       if (state->is_cx23885)
+> +               return "v4l-cx23885-avcore-01.fw";
+> +       if (state->is_cx231xx)
+> +               return "v4l-cx231xx-avcore-01.fw";
+> +       return "v4l-cx25840.fw";
+> +}
+> +
+>  static int check_fw_load(struct i2c_client *client, int size)
+>  {
+>        /* DL_ADDR_HB DL_ADDR_LB */
+> @@ -73,11 +82,13 @@
+>        s |= cx25840_read(client, 0x800);
+>
+>        if (size != s) {
+> -               v4l_err(client, "firmware %s load failed\n", firmware);
+> +               v4l_err(client, "firmware %s load failed\n",
+> +                               get_fw_name(client));
+>                return -EINVAL;
+>        }
+>
+> -       v4l_info(client, "loaded %s firmware (%d bytes)\n", firmware, size);
+> +       v4l_info(client, "loaded %s firmware (%d bytes)\n",
+> +                       get_fw_name(client), size);
+>        return 0;
+>  }
+>
+> @@ -97,26 +108,24 @@
+>        const struct firmware *fw = NULL;
+>        u8 buffer[FWSEND];
+>        const u8 *ptr;
+> +       const char *fwname = get_fw_name(client);
+>        int size, retval;
+>        int MAX_BUF_SIZE = FWSEND;
+>        u32 gpio_oe = 0, gpio_da = 0;
+>
+>        if (state->is_cx23885) {
+> -               firmware = FWFILE_CX23885;
+>                /* Preserve the GPIO OE and output bits */
+>                gpio_oe = cx25840_read(client, 0x160);
+>                gpio_da = cx25840_read(client, 0x164);
+>        }
+> -       else if (state->is_cx231xx)
+> -               firmware = FWFILE_CX231XX;
+>
+>        if ((state->is_cx231xx) && MAX_BUF_SIZE > 16) {
+>                v4l_err(client, " Firmware download size changed to 16 bytes max length\n");
+>                MAX_BUF_SIZE = 16;  /* cx231xx cannot accept more than 16 bytes at a time */
+>        }
+>
+> -       if (request_firmware(&fw, firmware, FWDEV(client)) != 0) {
+> -               v4l_err(client, "unable to open firmware %s\n", firmware);
+> +       if (request_firmware(&fw, fwname, FWDEV(client)) != 0) {
+> +               v4l_err(client, "unable to open firmware %s\n", fwname);
+>                return -EINVAL;
+>        }
+>
+>
+>
+> ---
+>
+> Patch is available at: http://linuxtv.org/hg/v4l-dvb/rev/36a81289010d614758a64bd757ee37c8c154ad4b
+>
+> _______________________________________________
+> linuxtv-commits mailing list
+> linuxtv-commits@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linuxtv-commits
+>
