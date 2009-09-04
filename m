@@ -1,61 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f210.google.com ([209.85.218.210]:53464 "EHLO
-	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753335AbZIVXrJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2009 19:47:09 -0400
-Received: by bwz6 with SMTP id 6so182761bwz.37
-        for <linux-media@vger.kernel.org>; Tue, 22 Sep 2009 16:47:11 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:56991 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752651AbZIDPLY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Sep 2009 11:11:24 -0400
+Message-ID: <4AA12E17.4080006@iki.fi>
+Date: Fri, 04 Sep 2009 18:11:19 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <20090922091235.GA10335@zverina>
-References: <20090913193118.GA12659@zverina> <20090921204418.GA19119@zverina>
-	 <829197380909211349r68b92b3em577c02d0dee9e4fc@mail.gmail.com>
-	 <20090921221505.GA5187@zverina>
-	 <829197380909211529r7ff7eab0nccc8d5fd55516ca2@mail.gmail.com>
-	 <20090922091235.GA10335@zverina>
-Date: Tue, 22 Sep 2009 19:47:11 -0400
-Message-ID: <829197380909221647p33236306ked2137a35707646d@mail.gmail.com>
-Subject: Re: Questions about Terratec Hybrid XS (em2882) [0ccd:005e]
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Michael Krufky <mkrufky@kernellabs.com>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [RFC] Allow bridge drivers to have better control over DVB frontend
+ 	operations
+References: <37219a840909012132l6c04af65hddecd2d52e196bcb@mail.gmail.com>
+In-Reply-To: <37219a840909012132l6c04af65hddecd2d52e196bcb@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 22, 2009 at 5:12 AM, Uros Vampl <mobile.leecher@gmail.com> wrote:
-> On 21.09.09 18:29, Devin Heitmueller wrote:
->> On Mon, Sep 21, 2009 at 6:15 PM, Uros Vampl <mobile.leecher@gmail.com> wrote:
->> > I tried arecord/aplay and sox with tvtime, and also mplayer (which
->> > has
->> > built-in audio support). I know about these tricks, I've used them
->> > successfully with Markus' em28xx-new driver. But with v4l-dvb it's as I
->> > said, audio is there but it's extremely quiet. If you have suggestions
->> > how I should try to diagnoze this, I'm all ears.
->> >
->> > Regards,
->> > Uroš
->>
->> If the audio is present but very quiet, then it's probably some issue
->> you are having with your mixer.  I would check your ALSA and
->> PulseAudio configuration (in particular the mixer volume controls).
->>
->> Devin
+On 09/02/2009 07:32 AM, Michael Krufky wrote:
+> Over the course of the past year, a number of developers have
+> expressed a need for giving the bridge drivers better control over
+> dvb_frontend operations.  Specifically, there is a need for the bridge
+> driver to receive a DVB frontend IOCTL and have the opportunity to
+> allow or deny the IOCTL to proceed, as resources permit.
 >
-> No PulseAudio here. And I've played plenty with the ALSA mixer, all the
-> sliders that are there.
+> For instance, in the case of a hybrid device, only the bridge driver
+> knows whether the analog functionality is presently being used.  If
+> the driver is currently in analog mode, serving video frames, the
+> driver will have a chance to deny the DVB frontend ioctl request
+> before dvb-core passes the request on to the frontend driver,
+> potentially damaging the analog video stream already in progress.
 >
-> Using em28xx-new instead of v4l-dvb, all else being equal, tv volume is
-> fine. So there's gotta be a difference somewhere in the way em28xx-new
-> sets up audio compared to how v4l-dvb does it.
+> In some cases, the bridge driver might have to perform a setup
+> operation to use a feature specific to the device.  For instance, the
+> bridge device may be in a low powered state - this new capability
+> allows the driver to wake up before passing the command on to the
+> frontend driver.  This new feature will allow LinuxTV developers to
+> finally get working on actual power management support within the
+> v4l/dvb subsystem, without the fear of breaking devices with hybrid
+> analog / digital functionality.
+>
+> In other cases, there may be situations in which multiple RF
+> connectors are available to the tuner, but only the bridge driver will
+> be aware of this, as this type of thing is specific to the device's
+> hardware implementation.  As there are many tuners capable of multiple
+> RF spigots, not all devices actually employ this feature - only the
+> bridge driver knows what implementations support such features, and
+> how to enable / disable them.
+>
+> The possibilities are endless.  I actually did all the heavy lifting
+> involved in this a few months ago, but haven't had a moment to write
+> up this RFC until now.
+>
+> The change to dvb-core that allows this new functionality is posted to
+> my development repository on kernellabs.com.  I have also included an
+> example of how this can be used on a digital tuner board with multiple
+> RF inputs.  The multiple RF input switching is already supported in
+> today's code, but I promised Mauro that I would present a better
+> method of doing this before the upcoming merge window.  For your
+> review and comments, please take a look at the topmost changesets,
+> starting with "create a standard method for dvb adapter drivers to
+> override frontend ioctls":
+>
+> http://kernellabs.com/hg/~mkrufky/fe_ioctl_override
 
-Interesting.  Have you tried the A/V inputs (as opposed to the tuner)?
- That might help us identify whether it's an issue with the xc3028
-tuner chip extracting the audio carrier or whether it's something
-about the way we are programming the emp202.
+Idea looks very good! I tested one DVB USB device need blocking IOCTLs 
+when demod and tuner are power save and didn't saw functionality problems.
 
-Devin
+However, it was a little bit hard to add callback to DVB USB driver. 
+Could that callback be added to the struct dvb_usb_adapter_properties 
+for simplify things? I have feeling that this callback will be useful 
+most DVb USB devices - setting GPIOs and clock settings for power save.
 
+Name fe_ioctl_override sounds like whole IOCTL will be replaced with new 
+one which is not true. Still, I don't know which could be better name.
+
+Antti
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+http://palosaari.fi/
