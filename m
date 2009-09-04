@@ -1,84 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:38455 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752198AbZILTzR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Sep 2009 15:55:17 -0400
-Received: by bwz19 with SMTP id 19so1392271bwz.37
-        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 12:55:20 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4AABB520.9030805@gmail.com>
-References: <4AABB520.9030805@gmail.com>
-Date: Sat, 12 Sep 2009 15:55:19 -0400
-Message-ID: <30353c3d0909121255w1449c059n27f356b030df1b6a@mail.gmail.com>
-Subject: Re: [RFC/RFT 09/10] radio-mr800: preserve radio state during
-	suspend/resume
-From: David Ellingsworth <david@identd.dyndns.org>
-To: linux-media@vger.kernel.org, klimov.linux@gmail.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail1.radix.net ([207.192.128.31]:37453 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932566AbZIDDMS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Sep 2009 23:12:18 -0400
+Subject: Re: libv4l2 and the Hauppauge HVR1600 (cx18 driver) not working
+ well together
+From: Andy Walls <awalls@radix.net>
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+Cc: Simon Farnsworth <simon.farnsworth@onelan.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <4A9FA681.5070100@hhs.nl>
+References: <4A9E9E08.7090104@onelan.com> <4A9EAF07.3040303@hhs.nl>
+	 <4A9F89AD.7030106@onelan.com> <4A9F9006.6020203@hhs.nl>
+	 <4A9F98BA.3010001@onelan.com> <4A9F9C5F.9000007@onelan.com>
+	 <4A9FA681.5070100@hhs.nl>
+Content-Type: text/plain
+Date: Thu, 03 Sep 2009 23:14:42 -0400
+Message-Id: <1252034082.7203.15.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Sep 12, 2009 at 10:50 AM, David Ellingsworth
-<david@identd.dyndns.org> wrote:
-> From 31243088bd32d5568f06f2044f8ff782641e16b5 Mon Sep 17 00:00:00 2001
-> From: David Ellingsworth <david@identd.dyndns.org>
-> Date: Sat, 12 Sep 2009 02:05:57 -0400
-> Subject: [PATCH 09/10] mr800: preserve radio state during suspend/resume
->
-> Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
-> ---
-> drivers/media/radio/radio-mr800.c |   17 +++++++++++------
-> 1 files changed, 11 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/media/radio/radio-mr800.c
-> b/drivers/media/radio/radio-mr800.c
-> index 11db6ea..10bed62 100644
-> --- a/drivers/media/radio/radio-mr800.c
-> +++ b/drivers/media/radio/radio-mr800.c
-> @@ -574,9 +574,12 @@ static int usb_amradio_suspend(struct usb_interface
-> *intf, pm_message_t message)
->
->    mutex_lock(&radio->lock);
->
-> -    retval = amradio_set_mute(radio, AMRADIO_STOP);
-> -    if (retval < 0)
-> -        dev_warn(&intf->dev, "amradio_stop failed\n");
-> +    if (!radio->muted) {
-> +        retval = amradio_set_mute(radio, AMRADIO_STOP);
-> +        if (retval < 0)
-> +            dev_warn(&intf->dev, "amradio_stop failed\n");
-> +        radio->muted = 0;
-> +    }
->
->    dev_info(&intf->dev, "going into suspend..\n");
->
-> @@ -592,9 +595,11 @@ static int usb_amradio_resume(struct usb_interface
-> *intf)
->
->    mutex_lock(&radio->lock);
->
-> -    retval = amradio_set_mute(radio, AMRADIO_START);
-> -    if (retval < 0)
-> -        dev_warn(&intf->dev, "amradio_start failed\n");
-> +    if (!radio->muted) {
-> +        retval = amradio_set_mute(radio, AMRADIO_START);
-> +        if (retval < 0)
-> +            dev_warn(&intf->dev, "amradio_start failed\n");
-> +    }
->
->    dev_info(&intf->dev, "coming out of suspend..\n");
->
-> --
-> 1.6.3.3
->
->
+On Thu, 2009-09-03 at 13:20 +0200, Hans de Goede wrote:
+> Hans Verkuil,
+> 
+> I think we have found a bug in the read() implementation of the cx18
+> driver, see below.
+> 
+> 
+> Hi all,
+> 
+> On 09/03/2009 12:37 PM, Simon Farnsworth wrote:
+> > Simon Farnsworth wrote:
+> >> Hans de Goede wrote:
+> >>> Ok,
+> >>>
+> >>> That was even easier then I thought it would be. Attached is a
+> >>> patch (against libv4l-0.6.1), which implements 1) and 3) from
+> >>> above.
+> >>>
+> >> I applied it to a clone of your HG repository, and had to make a
+> >> minor change to get it to compile. I've attached the updated patch.
+> >>
+> >> It looks like the read() from the card isn't reading entire frames
+> >> ata a time - I'm using a piece of test gear that I have to return in
+> >> a couple of hours to send colourbars to it, and I'm seeing bad
+> >> colour, and the picture moving across the screen. I'll try and chase
+> >> this, see whether there's something obviously wrong.
+> >>
+> > There is indeed something obviously wrong; at line 315 of libv4l2.c, we
+> > expand the buffer we read into, then ask for that many bytes.
+> >
 
-I'm going to rework this patch as well. I think the driver needs to do
-more than just turn the radio back on. It should also restore the set
-frequency and stereo mode.
+Hans de Goede,
+
+> Ah, actually this is a driver bug,
+
+I agree.
+
+>  not a libv4l2 bug, but I'll fix things
+> in libv4l to work around it for now.
+
+OK, thanks.
+
+> read() should always return an entire frame (or as much of it as will fit
+
+I agree
+
+> and throw away the rest).
+
+That sounds fine to me.
+
+
+Hans and Hans,
+
+The V4L2 spec for the read() call seems unlcear to me:
+
+"Return Value
+On success, the number of bytes read is returned. It is not an error if
+this number is smaller than the number of bytes requested, or the amount
+of data required for one frame. This may happen for example because
+read() was interrupted by a signal. On error, -1 is returned, and the
+errno variable is set appropriately. In this case the next read will
+start at the beginning of a new frame."
+
+To me, the spec only says the remainder of a frame is thrown away when
+read() exits with an error.
+
+
+BTW, should select() return "data available", if less than one whole
+frame is available?  It can happen if the buffers we give to the CX23418
+firmware don't exactly match the YUV framesize.  The V4l2 spec for the
+read() call seems to imply that read() should block (or return with
+EAGAIN) until at least one whole frame is available.  Is that correct?
+
 
 Regards,
+Andy
 
-David Ellingsworth
+>  Think for example of jpeg streams, where the
+> exact size of the image isn't known by the client (as it differs from frame
+> to frame). dest_fmt.fmt.pix.sizeimage purely is an upper limit, and so
+> is the value passed in to read(), the driver itself should clamp it so
+> that it returns exactly one frame (for formats which are frame based).
+> 
+> The page alignment (2 pages on i386 / one on x86_64) is done because some
+> drivers internally use page aligned buffer sizes and thus for example with
+> jpeg streams, can have frames queued for read() slightly bigger then
+> dest_fmt.fmt.pix.sizeimage, but when this happens that is really a driver bug,
+> because as said dest_fmt.fmt.pix.sizeimage should report an upper limit
+> of the the frame sizes to be expected. I'll remove the align workaround, as
+> that bug is much less likely to be hit (and probably easier to fix at the
+> driver level) then the issue we're now seeing with read().
+> 
+> Regards,
+> 
+> Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
