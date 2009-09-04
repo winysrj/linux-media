@@ -1,66 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-05.arcor-online.net ([151.189.21.45]:38322 "EHLO
-	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753790AbZIMX1N (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2009 19:27:13 -0400
-Subject: Re: Pinnacle PCTV 310i active antenna
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Martin Konopka <martin.konopka@mknetz.de>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <200909131637.12483.martin.konopka@mknetz.de>
-References: <200907011701.43079.martin.konopka@mknetz.de>
-	 <200908281827.58036.martin.konopka@mknetz.de>
-	 <1251589115.26402.11.camel@pc07.localdom.local>
-	 <200909131637.12483.martin.konopka@mknetz.de>
-Content-Type: text/plain
-Date: Mon, 14 Sep 2009 01:22:51 +0200
-Message-Id: <1252884171.4318.58.camel@pc07.localdom.local>
-Mime-Version: 1.0
+Received: from [193.252.22.190] ([193.252.22.190]:30370 "EHLO
+	smtp6.freeserve.com" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S933051AbZIDJPn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Sep 2009 05:15:43 -0400
+From: "Chris Thornley" <C.J.Thornley@coolrose.fsnet.co.uk>
+To: <linux-media@vger.kernel.org>
+Cc: <linux-dvb@linuxtv.org>
+References: <!&!AAAAAAAAAAAYAAAAAAAAAMs7WpTkg9MRuRcAACHFyB/CgAAAEAAAAJQ52z3qEFtDsl72y5icHrgBAAAAAA==@coolrose.fsnet.co.uk> <200908122130.15270.jens.nixdorf@gmx.de> <20090904082956.GB7618@seneca.muc.de>
+In-Reply-To: <20090904082956.GB7618@seneca.muc.de>
+Subject: RE: [linux-dvb] TechnoTrend TT-connect S2-3650 CI
+Date: Fri, 4 Sep 2009 10:15:16 +0100
+Message-ID: <!&!AAAAAAAAAAAYAAAAAAAAAMs7WpTkg9MRuRcAACHFyB/CgAAAEAAAABC/vOiiinVFtYa9GtWASsoBAAAAAA==@coolrose.fsnet.co.uk>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Martin,
+ 
+There's still no fully working driver for the TT-connectR CT-3650 CI DVB-C
+and DVB-T which is very similar to the TT-connect S2-3650 CI. 
+Is anyone working on getting this USB device to correctly work with the
+driver and successfully tune into channels or is this problem being ignored
+in the hope it will go away?
 
-Am Sonntag, den 13.09.2009, 16:37 +0200 schrieb Martin Konopka:
-> Hi Hermann,
-> 
-> thank you, the patch for the antenna power is working for me with the latest 
-> mercurial tree. I'm now able to receive additional weak channels. On the 
-> contrary a channel close by with a very strong signal disappeared. The 
-> stand-alone receiver with antenna power that I have can receive both channels 
-> at the same time.
+Thanks
+Chris
 
-thanks for your testing!
-
-On many demods it is already reported, that a too strong signal might
-need attenuation. 
-
-With the mix of different transmitters we now have, more established by
-means to serve federal states instead of having an over all concept, I
-don't wonder to get such a report now too the first time.
-
-It likely needs some RFC to think about all possible combinations of
-LNAs and active antenna support and how best to deal with it.
-
-Cheers,
-Hermann
+               />      Christopher J. Thornley is cjt@coolrose.fsnet.co.uk
+  (           //------------------------------------------------------,
+ (*)OXOXOXOXO(*>=*=O=S=U=0=3=6=*=---------                             >
+  (           \\------------------------------------------------------'
+               \>       Home Page :-http://www.coolrose.fsnet.co.uk
+ 
+-----Original Message-----
+From: linux-media-owner@vger.kernel.org
+[mailto:linux-media-owner@vger.kernel.org] On Behalf Of Harald Milz
+Sent: 04 September 2009 09:30
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TechnoTrend TT-connect S2-3650 CI
 
 
-> Am Sonntag, 30. August 2009 01:38:35 schrieb hermann pitton:
-> > A testhack, not a clean implementation, is attached and should give you
-> > voltage to the active antenna when using DVB-T.
-> >
-> > BTW, the radio seems to be broken since some weeks.
-> > It is not by that patch here.
-> >
-> > Cheers,
-> > Hermann
-> >
-> 
-> 
-> Cheers,
-> 
-> Martin
+On Wed, Aug 12, 2009 at 09:30:15PM +0200, Jens Nixdorf wrote:
+> As Niels told you already, you cant use both types of driver. I own 
+> the same DVB-S2-Box from Technotrend and i'm using it with VDR 1.7.0 
+> in ubuntu 9.04. I was following the wiki for installing s2-liplianin- 
+> drivers, and since this time the box is running including its CI.
+
+Mine as well under openSUSE 11.1. The part should definitely get the
+"supported" status. I figure the s2-liaplianin tree need to me merged into
+the official tree then. As the S2-3200 card which is technically very
+similar except for the USB interface is officially supported in kernel
+2.6.29, a respective hint should be added to the Wiki. I may test a 2.6.29
+kernel for openSUSE 11.1 today and give some feedback. 
+
+Same for the S2-3600 which is technically identical except for the CI. 
+
+Any idea if the Satelco part
+(http://www.amazon.de/SATELCO-EasyWatch-HDTV-USB-DVB-S2/dp/B000X1C02W) is a
+OEM part of the S2-3650? 
+
+> Maybe there could be some optimization (the log is full with some 
+> bandwisth-messages from the stb6100-part), but it works at least good 
+> enough for me.
+
+"modprobe ... verbose=0"  helps. 
+
+--
+Save the Whales -- Harpoon a Honda.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
+the body of a message to majordomo@vger.kernel.org More majordomo info at
+http://vger.kernel.org/majordomo-info.html
+
+
 
