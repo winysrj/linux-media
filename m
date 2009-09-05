@@ -1,117 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3730 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758085AbZIFS2M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2009 14:28:12 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id n86ISDm2000810
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 6 Sep 2009 20:28:13 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 6 Sep 2009 20:28:13 +0200 (CEST)
-Message-Id: <200909061828.n86ISDm2000810@smtp-vbr1.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail.gmx.net ([213.165.64.20]:38467 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751053AbZIEUTm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Sep 2009 16:19:42 -0400
+Date: Sat, 5 Sep 2009 22:19:42 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Marek Vasut <marek.vasut@gmail.com>
+cc: Eric Miao <eric.y.miao@gmail.com>,
+	linux-arm-kernel@lists.arm.linux.org.uk,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mike Rapoport <mike@compulab.co.il>,
+	Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH] Add RGB555X and RGB565X formats to pxa-camera
+In-Reply-To: <200909051149.56343.marek.vasut@gmail.com>
+Message-ID: <Pine.LNX.4.64.0909052219030.4670@axis700.grange>
+References: <200908031031.00676.marek.vasut@gmail.com>
+ <200909050926.48309.marek.vasut@gmail.com> <Pine.LNX.4.64.0909051037300.4670@axis700.grange>
+ <200909051149.56343.marek.vasut@gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Sat, 5 Sep 2009, Marek Vasut wrote:
 
-Results of the daily build of v4l-dvb:
+> Dne So 5. září 2009 10:55:55 Guennadi Liakhovetski napsal(a):
+> > On Sat, 5 Sep 2009, Marek Vasut wrote:
+> > > > > >  drivers/media/video/pxa_camera.c |    4 ++++
+> > > > > >  1 files changed, 4 insertions(+), 0 deletions(-)
+> > > > > >
+> > > > > > diff --git a/drivers/media/video/pxa_camera.c
+> > > > > > b/drivers/media/video/pxa_camera.c
+> > > > > > index 46e0d8a..de0fc8a 100644
+> > > > > > --- a/drivers/media/video/pxa_camera.c
+> > > > > > +++ b/drivers/media/video/pxa_camera.c
+> > > > > > @@ -1222,6 +1222,8 @@ static int required_buswidth(const struct
+> > > > > > soc_camera_data_format *fmt)
+> > > > > >  	case V4L2_PIX_FMT_YVYU:
+> > > > > >  	case V4L2_PIX_FMT_RGB565:
+> > > > > >  	case V4L2_PIX_FMT_RGB555:
+> > > > > > +	case V4L2_PIX_FMT_RGB565X:
+> > > > > > +	case V4L2_PIX_FMT_RGB555X:
+> > > > > >  		return 8;
+> > > > > >  	default:
+> > > > > >  		return fmt->depth;
+> > > > > > @@ -1260,6 +1262,8 @@ static int pxa_camera_get_formats(struct
+> > > > > > soc_camera_device *icd, int idx,
+> > > > > >  	case V4L2_PIX_FMT_YVYU:
+> > > > > >  	case V4L2_PIX_FMT_RGB565:
+> > > > > >  	case V4L2_PIX_FMT_RGB555:
+> > > > > > +	case V4L2_PIX_FMT_RGB565X:
+> > > > > > +	case V4L2_PIX_FMT_RGB555X:
+> > > > > >  		formats++;
+> > > > > >  		if (xlate) {
+> > > > > >  			xlate->host_fmt = icd->formats + idx;
+> > >
+> > > What should we do with this patch? Any updates? I spoke to Guennadi and
+> > > he thinks it's not a good idea to apply it (as pxaqci doesnt support
+> > > those formats). But to my understanding, those formats are endian-swapped
+> > > versions of the other ones without X at the end so there shouldnt be a
+> > > problem with it.
+> >
+> > Marek, please, look in PXA270 datasheet. To support a specific pixel
+> > format means, e.g., to be able to process it further, according to this
+> > format's particular colour component ordering. Process further can mean
+> > convert to another format, extract various information from the data
+> > (statistics, etc.)... Now RGB555 looks like (from wikipedia)
+> >
+> > 15  14  13  12  11  10  09  08  07  06  05  04  03  02  01  00
+> > R4  R3  R2  R1  R0  G4  G3  G2  G1  G1  B4  B3  B2  B1  B1  --
+> >
+> > (Actually, I thought bit 15 was unused, but it doesn't matter for this
+> > discussion.) Now, imagine what happens if you swap the two bytes. I don't
+> > think the PXA will still be able to meaningfully process that format.
+> >
+> 
+> Not on the pxa side, but on the camera side -- Bs and Rs swapped in the diagram 
+> above.
 
-date:        Sun Sep  6 19:00:03 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12615:2b49813f8482
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+And then? Are you trying to tell me, that the PXA then swaps them back?...
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc8-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-rc8-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-rc8-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-rc8-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc8-m32r: OK
-linux-2.6.30-mips: ERRORS
-linux-2.6.31-rc8-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-rc8-powerpc64: OK
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc8-x86_64: OK
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc8): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
