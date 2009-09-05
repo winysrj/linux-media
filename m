@@ -1,77 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:55600 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752291AbZIRTBB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Sep 2009 15:01:01 -0400
-Received: by fxm17 with SMTP id 17so917673fxm.37
-        for <linux-media@vger.kernel.org>; Fri, 18 Sep 2009 12:01:04 -0700 (PDT)
+Received: from mail.gmx.net ([213.165.64.20]:47774 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751750AbZIEWFM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Sep 2009 18:05:12 -0400
+Date: Sun, 6 Sep 2009 00:05:14 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Marek Vasut <marek.vasut@gmail.com>
+cc: Eric Miao <eric.y.miao@gmail.com>,
+	linux-arm-kernel@lists.arm.linux.org.uk,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mike Rapoport <mike@compulab.co.il>,
+	Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH] Add RGB555X and RGB565X formats to pxa-camera
+In-Reply-To: <200909052317.24048.marek.vasut@gmail.com>
+Message-ID: <Pine.LNX.4.64.0909052358080.4670@axis700.grange>
+References: <200908031031.00676.marek.vasut@gmail.com>
+ <200909051149.56343.marek.vasut@gmail.com> <Pine.LNX.4.64.0909052219030.4670@axis700.grange>
+ <200909052317.24048.marek.vasut@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1253298801.19044.5.camel@prometheus>
-References: <1253298801.19044.5.camel@prometheus>
-Date: Fri, 18 Sep 2009 15:01:03 -0400
-Message-ID: <829197380909181201w6ad9da3cide3c8825c421edfe@mail.gmail.com>
-Subject: Re: Incorrectly detected em28xx device
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: =?ISO-8859-1?Q?Matthias_Bl=E4sing?= <mblaesing@doppel-helix.eu>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/9/18 Matthias Bl�sing <mblaesing@doppel-helix.eu>:
-> Hello,
->
-> when I plugin my usb video grabber, it is misdetected (this email is the
-> reaction to the request in the module output):
->
-> Sep 18 20:27:19 prometheus kernel: [15016.458509] em28xx: New device @ 480 Mbps (eb1a:2860, interface 0, class 0)
-> Sep 18 20:27:19 prometheus kernel: [15016.458516] em28xx #0: Identified as Unknown EM2750/28xx video grabber (card=1)
-> Sep 18 20:27:19 prometheus kernel: [15016.458563] em28xx #0: chip ID is em2860
-> Sep 18 20:27:19 prometheus kernel: [15016.548934] em28xx #0: board has no eeprom
-> Sep 18 20:27:19 prometheus kernel: [15016.562331] em28xx #0: found i2c device @ 0x4a [saa7113h]
-> Sep 18 20:27:19 prometheus kernel: [15016.595202] em28xx #0: Your board has no unique USB ID.
-> Sep 18 20:27:19 prometheus kernel: [15016.595207] em28xx #0: A hint were successfully done, based on i2c devicelist hash.
-> Sep 18 20:27:19 prometheus kernel: [15016.595209] em28xx #0: This method is not 100% failproof.
-> Sep 18 20:27:19 prometheus kernel: [15016.595210] em28xx #0: If the board were missdetected, please email this log to:
-> Sep 18 20:27:19 prometheus kernel: [15016.595212] em28xx #0: ^IV4L Mailing List �<linux-media@vger.kernel.org>
-> Sep 18 20:27:19 prometheus kernel: [15016.595214] em28xx #0: Board detected as PointNix Intra-Oral Camera
-> Sep 18 20:27:19 prometheus kernel: [15016.595217] em28xx #0: Registering snapshot button...
-> Sep 18 20:27:19 prometheus kernel: [15016.595289] input: em28xx snapshot button as /devices/pci0000:00/0000:00:1a.7/usb1/1-5/1-5.4/input/input19
-> Sep 18 20:27:20 prometheus kernel: [15016.980420] saa7115 0-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
-> Sep 18 20:27:21 prometheus kernel: [15017.696774] em28xx #0: Config register raw data: 0x00
-> Sep 18 20:27:21 prometheus kernel: [15017.696777] em28xx #0: No AC97 audio processor
-> Sep 18 20:27:21 prometheus kernel: [15017.796516] em28xx #0: v4l2 driver version 0.1.2
-> Sep 18 20:27:21 prometheus kernel: [15018.076600] em28xx #0: V4L2 device registered as /dev/video1 and /dev/vbi0
-> Sep 18 20:27:21 prometheus kernel: [15018.076630] usbcore: registered new interface driver em28xx
-> Sep 18 20:27:21 prometheus kernel: [15018.076633] em28xx driver loaded
->
-> The correct functionality can be accessed, when explicitly called with
-> card=35 as paramter:
->
-> [ 1014.939536] em28xx: New device @ 480 Mbps (eb1a:2860, interface 0, class 0)
-> [ 1014.939549] em28xx #0: Identified as Typhoon DVD Maker (card=35)
-> [ 1014.939734] em28xx #0: chip ID is em2860
-> [ 1015.029084] em28xx #0: board has no eeprom
-> [ 1015.393031] saa7115 0-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
-> [ 1016.100782] em28xx #0: Config register raw data: 0x00
-> [ 1016.100789] em28xx #0: No AC97 audio processor
-> [ 1016.204578] em28xx #0: v4l2 driver version 0.1.2
-> [ 1016.484275] em28xx #0: V4L2 device registered as /dev/video1 and /dev/vbi0
->
-> It would be very nice, if this could be auto-detected. If you need more information, please CC me.
->
-> Greetings
->
-> Matthias
+On Sat, 5 Sep 2009, Marek Vasut wrote:
 
-Hi Matthias,
+> Dne So 5. září 2009 22:19:42 Guennadi Liakhovetski napsal(a):
+> > On Sat, 5 Sep 2009, Marek Vasut wrote:
+> > > Dne So 5. září 2009 10:55:55 Guennadi Liakhovetski napsal(a):
+> > > >
+> > > > Marek, please, look in PXA270 datasheet. To support a specific pixel
+> > > > format means, e.g., to be able to process it further, according to this
+> > > > format's particular colour component ordering. Process further can mean
+> > > > convert to another format, extract various information from the data
+> > > > (statistics, etc.)... Now RGB555 looks like (from wikipedia)
+> > > >
+> > > > 15  14  13  12  11  10  09  08  07  06  05  04  03  02  01  00
+> > > > R4  R3  R2  R1  R0  G4  G3  G2  G1  G1  B4  B3  B2  B1  B1  --
+> > > >
+> > > > (Actually, I thought bit 15 was unused, but it doesn't matter for this
+> > > > discussion.) Now, imagine what happens if you swap the two bytes. I
+> > > > don't think the PXA will still be able to meaningfully process that
+> > > > format.
+> > >
+> > > Not on the pxa side, but on the camera side -- Bs and Rs swapped in the
+> > > diagram above.
+> >
+> > And then? Are you trying to tell me, that the PXA then swaps them back?...
+> 
+> No, the software has to do it then, I'm trying to tell you that it has nothing 
+> to do with PXA (as PXA really doesnt care if the channel is actually blue or 
+> red).
 
-I fixed this a couple of months ago.  Just update to the latest v4l-dvb tree.
+Of course it does. I asked you to swap the above two bytes, you would get 
+this:
 
-Devin
+15  14  13  12  11  10  09  08  07  06  05  04  03  02  01  00
+G1  G0  B4  B3  B2  B1  B0  --  R4  R3  R2  R1  R0  G4  G3  G2  
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+and PXA would still inerpret this as 
+
+R4  R3  R2  R1  R0  G4  G3  G2  G1  G0  B4  B3  B2  B1  B0  --
+
+i.e., it would take bits
+
+R2 R1 R0 G4 G3
+
+for blue, bits
+
+B1 B0 -- R4 R3
+
+for green, and bits
+
+G1 G0 B4 B3 B2
+
+as red. Which, as you see, makes no sense. That's why I'm saying, that it 
+doesn't support this format, and we can only pass it through as raw data.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
