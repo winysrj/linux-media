@@ -1,121 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:56541 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751258AbZIJJdd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Sep 2009 05:33:33 -0400
-Message-ID: <4AA8C7F3.9090609@nildram.co.uk>
-Date: Thu, 10 Sep 2009 10:33:39 +0100
-From: Lou Otway <lotway@nildram.co.uk>
-Reply-To: lotway@nildram.co.uk
+Received: from mail-yx0-f175.google.com ([209.85.210.175]:65234 "EHLO
+	mail-yx0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751160AbZIEQYV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Sep 2009 12:24:21 -0400
+Received: by yxe5 with SMTP id 5so3767531yxe.33
+        for <linux-media@vger.kernel.org>; Sat, 05 Sep 2009 09:24:24 -0700 (PDT)
+Message-ID: <4AA290CF.5000806@gmail.com>
+Date: Sun, 06 Sep 2009 02:24:47 +1000
+From: Jed <jedi.theone@gmail.com>
 MIME-Version: 1.0
-To: Eduard Huguet <eduardhc@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Nova-T 500 Dual DVB-T and h.264
-References: <4AA7AE23.2040601@nildram.co.uk>	 <loom.20090909T195347-576@post.gmane.org>	 <4AA8B235.3050407@nildram.co.uk>	 <617be8890909100110jaaedf51h637d114d30382b99@mail.gmail.com>	 <4AA8C07C.9030804@nildram.co.uk> <617be8890909100217y1c13cdfbw7d95e1f714549b71@mail.gmail.com>
-In-Reply-To: <617be8890909100217y1c13cdfbw7d95e1f714549b71@mail.gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: generic question
+References: <4AA28EBB.5070401@gmail.com>
+In-Reply-To: <4AA28EBB.5070401@gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Eduard Huguet wrote:
-> 2009/9/10 Lou Otway <lotway@nildram.co.uk>:
->> Eduard Huguet wrote:
->>> 2009/9/10 Lou Otway <lotway@nildram.co.uk>:
->>>> Eduard Huguet wrote:
->>>>> Lou Otway <lotway <at> nildram.co.uk> writes:
->>>>>
->>>>>> Hi,
->>>>>>
->>>>>> Does anyone have experience of using the Hauppuage Nova-T 500 with
->>>>>> DVB-T
->>>>>> broadcasts with h.264 and AAC audio?
->>>>>>
->>>>>> DTT in New Zealand uses these formats and I'm seeing poor performance
->>>>>> from the Nova-T card. My thinking is that it was probably not conceived
->>>>>> for
->>>>>> dealing with dual h264 streams.
->>>>>>
->>>>>> Has the PCIe HVR-2200 been tested with dual h.264? I was wondering if
->>>>>> this card might have better performance.
->>>>>>
->>>>>> Thanks,
->>>>>>
->>>>>> Lou
->>>>> Hi,    AFAIK the card just tunes to the desired frequency, applies
->>>>> configured
->>>>> filters (to select the desired station through its PID number), and
->>>>> handles the
->>>>> received transport stream to the calling application. It's up to the
->>>>> lastest to
->>>>> properly decode it. Check that the software you are using is properly
->>>>> capable of
->>>>> decoding this kind of content.
->>>>>
->>>>> Best regards,  Eduard Huguet
->>>> Hi,
->>>>
->>>> the problem isn't to do with playback as I have another type of adapter
->>>> card
->>>> that creates a TS, from the same mux, that is played back with no
->>>> problem.
->>>>
->>>> It seems that the problem only happens when using the Nova-T card.
->>>>
->>>> DTT in NZ has services with 1080i video format, I'm not sure that there
->>>> are
->>>> many other places in the world where 1080i h.264 content is broadcast
->>>> using
->>>> DVB-T, hence I was thinking that this combination may not have been well
->>>> tested.
->>>>
->>>> Thanks,
->>>>
->>>> Lou
->>>>
->>> I don't know how this it works in NZ. Here in Spain there is at least
->>> one station (TVC's 3HD) emitting HD content through TDT, and it works
->>> flawlessly with a Nova-T 500 (as I have one). I'm not sure if contents
->>> are 1080 or 720, though.
->>>
->>> There were some problems watching these channels through MythTV, but
->>> they were definitely decoding related. With current MythTV trunk they
->>> are fine.
->>>
->>> Anyway, as I said before, theoretically a DVB card doesn't know what
->>> kind of streams contains the signal it tunes. Decoding & parsing is
->>> handled by the app.
->>>
->>> Best regards,
->>>  Eduard Huguet
->>> --
->> I'm not using MythTV or any other type of Media playing application.
->>
->> In any case, I see very different performance between the two different
->> types of card, when presented with the same input.
->>
->> I'll gather some more data, if I can draw any new conclusions I'll update
->> the list.
->>
->> Best,
->>
->> Lou
->>
->>
->>
-> 
-> Maybe it's a problem of tuner sensibility. Is the low noise amplifier
-> (LNA) activated for the Nova-T card?
-> regards
->   Eduard
-> --
+Actually I just realised...
 
-That's something I hadn't considered. I'll check but I thought that the 
-LNA was only applicable to the Nova-TD 500 (which has 2xRF inputs)?
+I think when the system reboots it will only load the modules it needs 
+from /lib/modules/[kernel version]/kernel/drivers/media...
+It won't load everything in that directory into the kernel/memory right?
 
-Does the Nova-T 500, with only a single RF input have the LNA?
+So the only reason one might want to use "make menuconfig"; is to 
+prevent irrelevant compiled modules ending up in...
+/lib/modules/[kernel version]/kernel/drivers/media
 
-Thanks,
+Feel free to correct if this understanding is wrong.
 
-Lou
+Cheers
+
+Jed wrote:
+> I installed _all_ dvb-v4l modules after compiling latest source 
+> because at the time I couldn't use "make menuconfig" (didn't have 
+> ncurses installed)
+> Is there a way I can retrospectively remove some compiled/installed 
+> modules so that I'm only using the ones I need?
+> I only need modules associated with: 
+> http://www.linuxtv.org/wiki/index.php/Saa7162_devices#DNTV_PCI_Express_cards 
+>
+>
+> Cheers,
+> Jed
+>
+
