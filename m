@@ -1,67 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:1030 "EHLO
-	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752393AbZIKU3q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2009 16:29:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: RFCv2: Media controller proposal
-Date: Fri, 11 Sep 2009 22:29:41 +0200
-Cc: linux-media@vger.kernel.org
-References: <200909100913.09065.hverkuil@xs4all.nl> <200909112108.14033.hverkuil@xs4all.nl> <20090911165403.0d1b872d@caramujo.chehab.org>
-In-Reply-To: <20090911165403.0d1b872d@caramujo.chehab.org>
+Received: from mail.gmx.net ([213.165.64.20]:40158 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751151AbZIEIzs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 5 Sep 2009 04:55:48 -0400
+Date: Sat, 5 Sep 2009 10:55:55 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Marek Vasut <marek.vasut@gmail.com>
+cc: Eric Miao <eric.y.miao@gmail.com>,
+	linux-arm-kernel@lists.arm.linux.org.uk,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mike Rapoport <mike@compulab.co.il>,
+	Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH] Add RGB555X and RGB565X formats to pxa-camera
+In-Reply-To: <200909050926.48309.marek.vasut@gmail.com>
+Message-ID: <Pine.LNX.4.64.0909051037300.4670@axis700.grange>
+References: <200908031031.00676.marek.vasut@gmail.com> <4A76CB7C.10401@gmail.com>
+ <Pine.LNX.4.64.0908031415370.5310@axis700.grange> <200909050926.48309.marek.vasut@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200909112229.41357.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 11 September 2009 21:54:03 Mauro Carvalho Chehab wrote:
-> Em Fri, 11 Sep 2009 21:08:13 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Sat, 5 Sep 2009, Marek Vasut wrote:
 
-<snip>
-
-> > OK, so instead we require an application to construct a file containing a new
-> > topology, write something to a sysfs file, require code in the v4l core to load
-> > and parse that file, then find out which links have changed (since you really
-> > don't want to set all the links: there can be many, many links, believe me on
-> > that), and finally call the driver to tell it to change those links.
+> > > >  drivers/media/video/pxa_camera.c |    4 ++++
+> > > >  1 files changed, 4 insertions(+), 0 deletions(-)
+> > > >
+> > > > diff --git a/drivers/media/video/pxa_camera.c
+> > > > b/drivers/media/video/pxa_camera.c
+> > > > index 46e0d8a..de0fc8a 100644
+> > > > --- a/drivers/media/video/pxa_camera.c
+> > > > +++ b/drivers/media/video/pxa_camera.c
+> > > > @@ -1222,6 +1222,8 @@ static int required_buswidth(const struct
+> > > > soc_camera_data_format *fmt)
+> > > >  	case V4L2_PIX_FMT_YVYU:
+> > > >  	case V4L2_PIX_FMT_RGB565:
+> > > >  	case V4L2_PIX_FMT_RGB555:
+> > > > +	case V4L2_PIX_FMT_RGB565X:
+> > > > +	case V4L2_PIX_FMT_RGB555X:
+> > > >  		return 8;
+> > > >  	default:
+> > > >  		return fmt->depth;
+> > > > @@ -1260,6 +1262,8 @@ static int pxa_camera_get_formats(struct
+> > > > soc_camera_device *icd, int idx,
+> > > >  	case V4L2_PIX_FMT_YVYU:
+> > > >  	case V4L2_PIX_FMT_RGB565:
+> > > >  	case V4L2_PIX_FMT_RGB555:
+> > > > +	case V4L2_PIX_FMT_RGB565X:
+> > > > +	case V4L2_PIX_FMT_RGB555X:
+> > > >  		formats++;
+> > > >  		if (xlate) {
+> > > >  			xlate->host_fmt = icd->formats + idx;
 > 
-> As I said before, the design should take into account how frequent are those
-> changes. If they are very infrequent, this approach works, and offers one
-> advantage: the topology will survive to application crashes and warm/cold
-> reboots. If the changes are frequent, an approach like the audio
-> user_pin_configs work better (see my previous email - note that this approach
-> can be used for atomic operations if needed). You add at a sysfs node just the
-> dynamic changes you need. We may even have both ways, as alsa seems to have
-> (init_pin_configs and user_pin_configs).
+> What should we do with this patch? Any updates? I spoke to Guennadi and he 
+> thinks it's not a good idea to apply it (as pxaqci doesnt support those 
+> formats). But to my understanding, those formats are endian-swapped versions of 
+> the other ones without X at the end so there shouldnt be a problem with it.
 
-How frequent those changes are will depend entirely on the application.
-Never underestimate the creativity of the end-users :-)
+Marek, please, look in PXA270 datasheet. To support a specific pixel 
+format means, e.g., to be able to process it further, according to this 
+format's particular colour component ordering. Process further can mean 
+convert to another format, extract various information from the data 
+(statistics, etc.)... Now RGB555 looks like (from wikipedia)
 
-I think that a good worst case guideline would be 60 times per second.
-Say for a surveillance type application that switches between video decoders
-for each frame. Or some 3D type application that switches between two
-sensors for each frame.
+15  14  13  12  11  10  09  08  07  06  05  04  03  02  01  00
+R4  R3  R2  R1  R0  G4  G3  G2  G1  G1  B4  B3  B2  B1  B1  --
 
-Of course, in the future you might want to get 3D done at 60 fps, meaning
-that you have to switch between sensors 120 times per second.
+(Actually, I thought bit 15 was unused, but it doesn't matter for this 
+discussion.) Now, imagine what happens if you swap the two bytes. I don't 
+think the PXA will still be able to meaningfully process that format.
 
-One problem with media boards is that it is very hard to predict how they
-will be used and what they will be capable of in the future.
-
-Note that I am pretty sure that no application wants to have a media
-board boot into an unpredicable initial topology. That would make life
-very difficult for them.
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
