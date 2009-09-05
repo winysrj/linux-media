@@ -1,70 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4734 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754232AbZIQGeg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Sep 2009 02:34:36 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Subject: Re: RFCv2: Media controller proposal
-Date: Thu, 17 Sep 2009 08:34:23 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <200909100913.09065.hverkuil@xs4all.nl> <20090916175043.0d462a18@pedra.chehab.org> <A69FA2915331DC488A831521EAE36FE40155157118@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE40155157118@dlee06.ent.ti.com>
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:61507 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751089AbZIEUi7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Sep 2009 16:38:59 -0400
+Received: by bwz19 with SMTP id 19so901080bwz.37
+        for <linux-media@vger.kernel.org>; Sat, 05 Sep 2009 13:39:01 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200909170834.23449.hverkuil@xs4all.nl>
+In-Reply-To: <20090820001056.ar4ux62tx0coo0gs@webmail1.abo.fi>
+References: <20090820001056.ar4ux62tx0coo0gs@webmail1.abo.fi>
+Date: Sat, 5 Sep 2009 22:39:01 +0200
+Message-ID: <bcb3ef430909051339n4d2abbdexba0af1b029a5fedd@mail.gmail.com>
+Subject: Re: Terratec Cinergy C HD tuning problems
+From: MartinG <gronslet@gmail.com>
+To: dsjoblom@abo.fi
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 17 September 2009 00:28:38 Karicheri, Muralidharan wrote:
-> >
-> >> And as I explained above, a v4l2_subdev just implements an interface. It
-> >has
-> >> no relation to devices. And yes, I'm beginning to agree with you that
-> >subdevice
-> >> was a bad name because it suggested something that it simply isn't.
-> >>
-> >> That said, I also see some advantages in doing this. For statistics or
-> >> histogram sub-devices you can implement a read() call to read the data
-> >> instead of using ioctl. It is more flexible in that respect.
-> >
-> >I think this will be more flexible and will be less complex than creating a
-> >proxy
-> >device. For example, as you'll be directly addressing a device, you don't
-> >need to
-> >have any locking to avoid the risk that different threads accessing
-> >different
-> >sub-devices at the same time would result on a command sending to the wrong
-> >device.
-> >So, both kernel driver and userspace app can be simpler.
-> 
-> 
-> Not really. User application trying to parse the output of a histogram which
-> really will about 4K in size as described by Laurent. Imagine application does lot of parsing to decode the values thrown by the sysfs. Again on different platform, they can be different formats. With ioctl, each of these platforms provides api to access them and it is much simpler to use. Same for configuring IPIPE on DM355/DM365 where there are hundreds of parameters and write a lot of code in sysfs to parse each of these variables. I can see it as a nightmare for user space library or application developer.
+On Wed, Aug 19, 2009 at 11:10 PM, <dsjoblom@abo.fi> wrote:
+> I'm having some problems with my Terratec Cinergy C PCI DVB-C card.
+> ...
+> /var/log/syslog (when tuning stops working):
+>...
+> kernel: [55168.360122] mantis_ack_wait (0): Slave RACK Fail !
 
-I believe Mauro was talking about normal device nodes, not sysfs.
+Hi, I have the same problem:
+Terratec Cinergy HD DVB-C PCI
+Twinhan Technology Co. Ltd Mantis DTV PCI Bridge Controller [Ver 1.0] (rev 01)
+VP-2040 PCI DVB-C device
+TDA10023
 
-What is a bit more complex in Mauro's scheme is that to get hold of the right
-device node needed to access a sub-device you will need to first get the
-subdev's entity information from the media controller, then go to libudev to
-translate major/minor numbers to an actual device path, and then open that.
+MythTV chokes after a while because of the error described above.
+Also, when I use w_scan, it is not able to scan (tune) for new
+channels.
 
-On the other hand, we will have a library available to do this.
+Similar problem is mentioned here:
+http://thread.gmane.org/gmane.linux.drivers.dvb/47829
 
-On balance I think that the kernel implementation will be more complex by
-creating device nodes, although not by much, and that userspace will be
-slightly simpler in the case of using the same mc filehandle in a multi-
-threaded application.
+These are my bits:
+s2-liplianin from http://mercurial.intuxication.org/hg/s2-liplianin (03 Jun)
+kernel-2.6.29.6-217.2.16.fc11.x86_64
 
-Regards,
+Any hints on how to get this working appreciated. Removing and
+reinserting the mantis module doesn't seem to help for me.
 
-	Hans
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+-MartinG
