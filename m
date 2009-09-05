@@ -1,58 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2b.orange.fr ([80.12.242.146]:49966 "EHLO smtp2b.orange.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751347AbZIIIbp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Sep 2009 04:31:45 -0400
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2b21.orange.fr (SMTP Server) with ESMTP id BC92A7000093
-	for <linux-media@vger.kernel.org>; Wed,  9 Sep 2009 10:31:47 +0200 (CEST)
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2b21.orange.fr (SMTP Server) with ESMTP id B00447000082
-	for <linux-media@vger.kernel.org>; Wed,  9 Sep 2009 10:31:47 +0200 (CEST)
-Received: from [192.168.1.11] (ANantes-551-1-19-82.w92-135.abo.wanadoo.fr [92.135.50.82])
-	by mwinf2b21.orange.fr (SMTP Server) with ESMTP id 375367000093
-	for <linux-media@vger.kernel.org>; Wed,  9 Sep 2009 10:31:47 +0200 (CEST)
-Message-ID: <4AA767F2.50702@gmail.com>
-Date: Wed, 09 Sep 2009 10:31:46 +0200
-From: Morvan Le Meut <mlemeut@gmail.com>
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:41775 "EHLO
+	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752286AbZIEJuV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Sep 2009 05:50:21 -0400
+Received: by fxm17 with SMTP id 17so1127298fxm.37
+        for <linux-media@vger.kernel.org>; Sat, 05 Sep 2009 02:50:22 -0700 (PDT)
+From: Marek Vasut <marek.vasut@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] Add RGB555X and RGB565X formats to pxa-camera
+Date: Sat, 5 Sep 2009 11:49:56 +0200
+Cc: Eric Miao <eric.y.miao@gmail.com>,
+	linux-arm-kernel@lists.arm.linux.org.uk,
+	"Russell King - ARM Linux" <linux@arm.linux.org.uk>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mike Rapoport <mike@compulab.co.il>,
+	Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>,
+	linux-arm-kernel@lists.infradead.org
+References: <200908031031.00676.marek.vasut@gmail.com> <200909050926.48309.marek.vasut@gmail.com> <Pine.LNX.4.64.0909051037300.4670@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0909051037300.4670@axis700.grange>
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: (Saa7134) Re: ADS-Tech Instant TV PCI, no remote support
-References: <4AA53C05.10203@gmail.com> <4AA61508.9040506@gmail.com> <op.uzxmzlj86dn9rq@crni> <4AA62C38.3050208@gmail.com> <4AA63434.1010709@gmail.com> <4AA683BD.6070601@gmail.com> <4AA695EE.70800@gmail.com>
-In-Reply-To: <4AA695EE.70800@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <200909051149.56343.marek.vasut@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Morvan Le Meut a �crit :
-> i can use the remote now ( using devinput in lirc ) but a few quirks 
-> remains :
-> - dmesg gives a lot of "saa7134 IR (ADS Tech Instant TV: unknown key: 
-> key=0x7f raw=0x7f down=1"
-> - in irw most keys are misidentified ( Power as RECORD, Mute as Menu, 
-> Down as DVD and DVD is correctly identified )
+Dne So 5. září 2009 10:55:55 Guennadi Liakhovetski napsal(a):
+> On Sat, 5 Sep 2009, Marek Vasut wrote:
+> > > > >  drivers/media/video/pxa_camera.c |    4 ++++
+> > > > >  1 files changed, 4 insertions(+), 0 deletions(-)
+> > > > >
+> > > > > diff --git a/drivers/media/video/pxa_camera.c
+> > > > > b/drivers/media/video/pxa_camera.c
+> > > > > index 46e0d8a..de0fc8a 100644
+> > > > > --- a/drivers/media/video/pxa_camera.c
+> > > > > +++ b/drivers/media/video/pxa_camera.c
+> > > > > @@ -1222,6 +1222,8 @@ static int required_buswidth(const struct
+> > > > > soc_camera_data_format *fmt)
+> > > > >  	case V4L2_PIX_FMT_YVYU:
+> > > > >  	case V4L2_PIX_FMT_RGB565:
+> > > > >  	case V4L2_PIX_FMT_RGB555:
+> > > > > +	case V4L2_PIX_FMT_RGB565X:
+> > > > > +	case V4L2_PIX_FMT_RGB555X:
+> > > > >  		return 8;
+> > > > >  	default:
+> > > > >  		return fmt->depth;
+> > > > > @@ -1260,6 +1262,8 @@ static int pxa_camera_get_formats(struct
+> > > > > soc_camera_device *icd, int idx,
+> > > > >  	case V4L2_PIX_FMT_YVYU:
+> > > > >  	case V4L2_PIX_FMT_RGB565:
+> > > > >  	case V4L2_PIX_FMT_RGB555:
+> > > > > +	case V4L2_PIX_FMT_RGB565X:
+> > > > > +	case V4L2_PIX_FMT_RGB555X:
+> > > > >  		formats++;
+> > > > >  		if (xlate) {
+> > > > >  			xlate->host_fmt = icd->formats + idx;
+> >
+> > What should we do with this patch? Any updates? I spoke to Guennadi and
+> > he thinks it's not a good idea to apply it (as pxaqci doesnt support
+> > those formats). But to my understanding, those formats are endian-swapped
+> > versions of the other ones without X at the end so there shouldnt be a
+> > problem with it.
 >
-> i guess using ir_codes_adstech_dvb_t_pci was not such a bright idea 
-> after all :p
-> ( i included a full dmesg output )
+> Marek, please, look in PXA270 datasheet. To support a specific pixel
+> format means, e.g., to be able to process it further, according to this
+> format's particular colour component ordering. Process further can mean
+> convert to another format, extract various information from the data
+> (statistics, etc.)... Now RGB555 looks like (from wikipedia)
 >
-> For now, it is enough work on my part, i'll try to correct those 
-> keycodes later. It is amazing what you can do even when you don't 
-> understand most of it :D .
-Working on it, but i don't think everything is correct : some totaly 
-unrelated keys have the same keycode.
-For example Jump and  Volume+ or Search and Volume-.
+> 15  14  13  12  11  10  09  08  07  06  05  04  03  02  01  00
+> R4  R3  R2  R1  R0  G4  G3  G2  G1  G1  B4  B3  B2  B1  B1  --
+>
+> (Actually, I thought bit 15 was unused, but it doesn't matter for this
+> discussion.) Now, imagine what happens if you swap the two bytes. I don't
+> think the PXA will still be able to meaningfully process that format.
+>
 
-Beside, i keep getting "
-Sep  9 10:17:16 debian kernel: [ 2029.892014] saa7134 IR (ADS Tech 
-Instant TV: unknown key: key=0x7f raw=0x7f down=0
-Sep  9 10:17:16 debian kernel: [ 2029.944029] saa7134 IR (ADS Tech 
-Instant TV: unknown key: key=0x7f raw=0x7f down=1"
-for each recognized keypress
-
-I'll need a lot of help there : i don't know what to do.
-
- 
-
-
+Not on the pxa side, but on the camera side -- Bs and Rs swapped in the diagram 
+above.
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
