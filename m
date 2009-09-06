@@ -1,34 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.redflag-linux.com ([219.237.229.196]:51381 "EHLO
-	mail.redflag-linux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753985AbZICCqQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Sep 2009 22:46:16 -0400
-Subject: 
-From: Shine Liu <liuxian@redflag-linux.com>
-To: uris@siano-ms.com
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Thu, 03 Sep 2009 10:15:34 +0800
-Message-Id: <1251944134.5100.7.camel@shinel>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:46075 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1758089AbZIFSPE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2009 14:15:04 -0400
+Date: Sun, 6 Sep 2009 20:15:17 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Marek Vasut <marek.vasut@gmail.com>
+cc: Eric Miao <eric.y.miao@gmail.com>,
+	linux-arm-kernel@lists.arm.linux.org.uk,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mike Rapoport <mike@compulab.co.il>,
+	Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH] Add RGB555X and RGB565X formats to pxa-camera
+In-Reply-To: <200909061951.44629.marek.vasut@gmail.com>
+Message-ID: <Pine.LNX.4.64.0909062004160.10484@axis700.grange>
+References: <200908031031.00676.marek.vasut@gmail.com>
+ <200909060550.23681.marek.vasut@gmail.com> <Pine.LNX.4.64.0909061755020.10484@axis700.grange>
+ <200909061951.44629.marek.vasut@gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Uri,
+On Sun, 6 Sep 2009, Marek Vasut wrote:
 
-I have a Siano USB MDTV Dongle which use the SMS1182(maybe SMS1180)
-chipset for CMMB. I was about to write drive for it under Linux, but I
-found some SMS messages I can't recognise: SMS messages with header
-0x026a, 0x026b, 0x026f, 0x028d, 0x028e, 0x0300 and 0x0301. These
-messages should be for CMMB. I want to know the messages format and what
-these header ID mean but I can't find these definations in current siano
-source code. Could you give me some help on this?
+> Dne Ne 6. září 2009 18:52:55 Guennadi Liakhovetski napsal(a):
+> > On Sun, 6 Sep 2009, Marek Vasut wrote:
+> > > Ah damn, I see what you mean. What the camera does is it swaps the RED
+> > > and BLUE channel:
+> > > 15  14  13  12  11  10  09  08  07  06  05  04  03  02  01  00
+> > > B4  B3  B2  B1  B0  G4  G3  G2  G1  G1  R4  R3  R2  R1  R1  --
+> > > so it's more a BGR555/565 then. I had to patch fswebcam for this.
+> >
+> > Ok, this is, of course, something different. In this case you, probably,
+> > could deceive the PXA to handle blue as red and the other way round, but
+> > still, I would prefer not to do that. Hence my suggestion remains - pass
+> > these formats as raw data.
+> >
+> Which is bogus from the camera point of view.
 
-Best regards,
+Not at all. This just means: the subdevice provides a pixel format, that 
+the bridge (PXA) knows nothing specific about, but it can just pass it 
+one-to-one (as raw data) to the user - don't see anything bogus in this. 
+Different bridges have support for different pixel colour formats, but, I 
+think, all bridges can pass data as raw (pass-through). Some bridges can 
+_only_ do this, so, this is actually the default video-capture mode.
 
-Shine
-
-
-
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
