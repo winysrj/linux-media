@@ -1,86 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:60534 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755669AbZIJNjC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Sep 2009 09:39:02 -0400
-Received: by bwz19 with SMTP id 19so89621bwz.37
-        for <linux-media@vger.kernel.org>; Thu, 10 Sep 2009 06:39:04 -0700 (PDT)
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:48959 "EHLO
+	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752123AbZIFUwh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2009 16:52:37 -0400
+Received: by fxm17 with SMTP id 17so1654385fxm.37
+        for <linux-media@vger.kernel.org>; Sun, 06 Sep 2009 13:52:39 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <18737.168.87.60.62.1252586475.squirrel@wm.feuersaenger.de>
-References: <18737.168.87.60.62.1252586475.squirrel@wm.feuersaenger.de>
-Date: Thu, 10 Sep 2009 09:39:03 -0400
-Message-ID: <829197380909100639m52cbd9ao4892ed6194ffbd50@mail.gmail.com>
-Subject: Re: Problems with Haupauge WinTV-HVR 900
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: =?ISO-8859-1?Q?Martin_Feuers=E4nger?= <m@feuersaenger.de>
+In-Reply-To: <4A956124.5070902@upcore.net>
+References: <4A953E52.4020300@upcore.net> <4A956124.5070902@upcore.net>
+Date: Sun, 6 Sep 2009 22:52:38 +0200
+Message-ID: <bcb3ef430909061352v202d5b6fy3c668b64966a2848@mail.gmail.com>
+Subject: Re: Azurewave AD-CP400 (Twinhan VP-2040 DVB-C)
+From: MartinG <gronslet@gmail.com>
+To: Magnus Nilsson <magnus@upcore.net>
 Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/9/10 Martin Feuersänger <m@feuersaenger.de>:
-> Hi list,
->
-> I own the above TV USB stick (the 2040:6500 version, which is revision 1
-> of the model)since a while now but didn't use it for several months (and
-> kernel versions) now. It used to work in previous kernel versions.
->
-> I guess that quite some things have changed in the kernel modules since
-> last time I used the stick. From my previous usage I still had the
-> xc3023_*.i2c.fw files hanging around in /lib/firmware but they seem
-> obsolete now. So I followed the firmware extraction information (which was
-> new to me) at http://www.linuxtv.org/wiki/index.php/Xceive_XC3028/XC2028
-> where it is claimed that the extracted firmware should "work with a large
-> number of boards from different manufacturers."
->
-> However, I seem to have problems. Right now I'm running
-> 2.6.30-4.slh.2-sidux-686 kernel version (provided by the sidux team) and
-> when plugging in the stick I get
->
-> xc2028 0-0061: creating new instance
-> xc2028 0-0061: type set to XCeive xc2028/xc3028 tuner
-> i2c-adapter i2c-0: firmware: requesting xc3028-v27.fw
-> xc2028 0-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028
-> firmware,
-> ver 2.7
-> xc2028 0-0061: Loading firmware for type=BASE MTS (5), id 0000000000000000.
-> xc2028 0-0061: Loading firmware for type=MTS (4), id ffffffffffffffff.
-> xc2028 0-0061: attaching existing instance
-> xc2028 0-0061: type set to XCeive xc2028/xc3028 tuner
->
-> (Full dmesg output can be seen at http://pastebin.com/f148257f6)
->
-> When I try to do something with the stick I get error messages saying
-> "Incorrect readback of firmware version."
->
-> From googleing I found that other people with the same device for the
-> type=MTS have a line with a different id, i.e.
->
-> xc2028 0-0061: Loading firmware for type=MTS (4), id 000000000000b700.
->
-> I hope that someone on this list can identify what problem I have/what I
-> do wrong.
->
-> Thanks in advance!
->
->  Martin
+On Wed, Aug 26, 2009 at 6:21 PM, Magnus Nilsson<magnus@upcore.net> wrote:
+> Nevermind this for the time being...all is pointing to open-sasc-ng being
+> the culprit here...
 
-Hello Martin,
+Just to add a datapoint - I have the same problem: I can't seem to
+successfully scan for channels. I've taken open-sasc-ng out of the
+equation by simply not loading the loopback device and scan directly
+on the true frontend.
+These are my bits:
+Terratec Cinergy C HD PCI
+kernel 2.6.29.6-217.2.16.fc11.x86_64
+s2-liplianin from http://mercurial.intuxication.org/hg/s2-liplianin
+Currently:
+changeset:   12465:096aa4559b71
+tag:         tip
+user:        Igor M. Liplianin <liplianin@me.by>
+date:        Sat Sep 05 20:26:33 2009 +0300
 
-There was a regression with the HVR-900 that exhibited this behavior,
-for which my fix was merged on July 15th.
+dmesg when "modprobe mantis"
+Sep  6 22:33:52 localhost kernel: Mantis 0000:04:00.0: PCI INT A ->
+GSI 16 (level, low) -> IRQ 16
+Sep  6 22:33:52 localhost kernel: irq: 16, latency: 64
+Sep  6 22:33:52 localhost kernel: memory: 0xfdfff000, mmio: 0xffffc20023906000
+Sep  6 22:33:52 localhost kernel: found a VP-2040 PCI DVB-C device on (04:00.0),
+Sep  6 22:33:52 localhost kernel:    Mantis Rev 1 [153b:1178], irq:
+16, latency: 64
+Sep  6 22:33:52 localhost kernel:    memory: 0xfdfff000, mmio:
+0xffffc20023906000
+Sep  6 22:33:52 localhost kernel:    MAC Address=[00:08:ca:1d:bd:a6]
+Sep  6 22:33:52 localhost kernel: mantis_alloc_buffers (0):
+DMA=0xcc0d0000 cpu=0xffff8800cc0d0000 size=65536
+Sep  6 22:33:52 localhost kernel: mantis_alloc_buffers (0):
+RISC=0xa85ce000 cpu=0xffff8800a85ce000 size=1000
+Sep  6 22:33:52 localhost kernel: DVB: registering new adapter (Mantis
+dvb adapter)
+Sep  6 22:33:52 localhost kernel: mantis_frontend_init (0): Probing
+for CU1216 (DVB-C)
+Sep  6 22:33:52 localhost kernel: TDA10023: i2c-addr = 0x0c, id = 0x7d
+Sep  6 22:33:52 localhost kernel: mantis_frontend_init (0): found
+Philips CU1216 DVB-C frontend (TDA10023) @ 0x0c
+Sep  6 22:33:52 localhost kernel: mantis_frontend_init (0): Mantis
+DVB-C Philips CU1216 frontend attach success
+Sep  6 22:33:52 localhost kernel: DVB: registering adapter 0 frontend
+0 (Philips TDA10023 DVB-C)...
+Sep  6 22:33:52 localhost kernel: mantis_ca_init (0): Registering EN50221 device
+Sep  6 22:33:52 localhost kernel: mantis_ca_init (0): Registered EN50221 device
+Sep  6 22:33:52 localhost kernel: mantis_hif_init (0): Adapter(0)
+Initializing Mantis Host Interface
+Sep  6 22:33:52 localhost kernel: input: Mantis VP-2040 IR Receiver as
+/devices/virtual/input/input11
+Sep  6 22:33:53 localhost kernel: Mantis VP-2040 IR Receiver: unknown
+key: key=0x00 raw=0x00 down=1
+Sep  6 22:33:53 localhost kernel: Mantis VP-2040 IR Receiver: unknown
+key: key=0x00 raw=0x00 down=0
 
-Please update to the latest v4l-dvb code and that should address your
-issue.  Instructions below:
+lspci -v
+04:00.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV
+PCI Bridge Controller [Ver 1.0] (rev 01)
+        Subsystem: TERRATEC Electronic GmbH Device 1178
+        Flags: bus master, medium devsel, latency 64, IRQ 16
+        Memory at fdfff000 (32-bit, prefetchable) [size=4K]
+        Kernel driver in use: Mantis
+        Kernel modules: mantis
 
-http://linuxtv.org/repo
+I have also tried the mantis module from v4l-dvb without success. The
+card is then recognized as TDA10021 instead of TDA10023, just as you
+describe.
 
-Cheers,
+Typically, I have to do "modprobe -r mantis;modprobe mantis" right
+before I try to scan (with w_scan, scandvb og mythtv) in order to get
+any channels at all. But the joy doesn't last for long, and I get
+stuff like
+kernel: mantis_ack_wait (0): Slave RACK Fail !
+in /var/log/messages.
 
-Devin
+I guess the problems mentioned in the following post are related:
+ Subject: Terratec Cinergy C HD tuning problems
+ Date: 2009-08-19 21:10:56 GMT
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Hope we can find a solution to this!
+
+best,
+MartinG
