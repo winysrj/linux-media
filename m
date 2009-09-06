@@ -1,58 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f218.google.com ([209.85.220.218]:51792 "EHLO
-	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751319AbZIWV1x (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Sep 2009 17:27:53 -0400
-Received: by fxm18 with SMTP id 18so970847fxm.17
-        for <linux-media@vger.kernel.org>; Wed, 23 Sep 2009 14:27:56 -0700 (PDT)
+Received: from mail.gmx.net ([213.165.64.20]:52912 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1758021AbZIFQwm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 6 Sep 2009 12:52:42 -0400
+Date: Sun, 6 Sep 2009 18:52:55 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Marek Vasut <marek.vasut@gmail.com>
+cc: Eric Miao <eric.y.miao@gmail.com>,
+	linux-arm-kernel@lists.arm.linux.org.uk,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mike Rapoport <mike@compulab.co.il>,
+	Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH] Add RGB555X and RGB565X formats to pxa-camera
+In-Reply-To: <200909060550.23681.marek.vasut@gmail.com>
+Message-ID: <Pine.LNX.4.64.0909061755020.10484@axis700.grange>
+References: <200908031031.00676.marek.vasut@gmail.com>
+ <200909052317.24048.marek.vasut@gmail.com> <Pine.LNX.4.64.0909052358080.4670@axis700.grange>
+ <200909060550.23681.marek.vasut@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20090923192810.GA4653@moon>
-References: <20090921223751.GA1303@moon>
-	 <20090921215238.2e189d60@pedra.chehab.org>
-	 <20090923192810.GA4653@moon>
-Date: Wed, 23 Sep 2009 17:27:56 -0400
-Message-ID: <829197380909231427n1fa9374djf01d06f7c1a682c1@mail.gmail.com>
-Subject: Re: xc2028 sound carrier detection
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 23, 2009 at 3:28 PM, Aleksandr V. Piskunov
-<aleksandr.v.piskunov@gmail.com> wrote:
-> Mmm, tested that tuner under windows, it autodetects all 3 sound carrier sub-
-> standards instantly: PAL-BG, PAL-DK, PAL-I.
->
-> In order to test, I connected ancient Panasonic VCR that has a built-in tuner
-> and can output video to RF-OUT on fixed frequency using PAL standard. Sound
-> carrier frequency can be choosen using hardware switch BG, DK or I.
->
-> So under windows: tuner produces clear audio in BG, DK and I, hardware switch
-> can be toggled on fly, audio never stops, only a few miliseconds of static on
-> switch.
->
-> Under linux: audio only works if driver is set to use specific audio carrier
-> sub-standard AND same is selected on PVR. (not to mention extremely unreliable
-> PAL-DK detection by cx25843, only works 50% of times, but thats another issue)
->
-> Either a more generic firmware exists can be uploaded on xc2028.. or several
-> can be uploaded at once. Any xc2028 gurus out there?
+On Sun, 6 Sep 2009, Marek Vasut wrote:
 
-It's possible that perhaps the Windows driver is relying on the
-cx25843 standard detection and then using that to load the appropriate
-firmware on the 3028.
+> Ah damn, I see what you mean. What the camera does is it swaps the RED and BLUE 
+> channel:
+> 15  14  13  12  11  10  09  08  07  06  05  04  03  02  01  00
+> B4  B3  B2  B1  B0  G4  G3  G2  G1  G1  R4  R3  R2  R1  R1  --
+> so it's more a BGR555/565 then. I had to patch fswebcam for this.
 
-I can confirm though Mauro's assertion that the 3028 does use
-different firmware depending on the selected audio standard.  You
-might want to try to get a capture of the device under Windows and see
-what firmware gets loaded.
+Ok, this is, of course, something different. In this case you, probably, 
+could deceive the PXA to handle blue as red and the other way round, but 
+still, I would prefer not to do that. Hence my suggestion remains - pass 
+these formats as raw data.
 
-Devin
+The only case when you might want to put the PXA into RGB555 mode, while 
+feeding BGR555 to it, is you want to use the QCI to set the transparency 
+bit for you. But we currently do not support this any way, not in a 
+configurable way at least. You would need to implement some sort of a 
+"global (one-bit) alpha" control for pxa_camera to use this. Any need for 
+this?
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
