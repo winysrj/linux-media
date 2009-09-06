@@ -1,83 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4542 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752116AbZIYHN7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Sep 2009 03:13:59 -0400
-Received: from webmail.xs4all.nl (dovemail1.xs4all.nl [194.109.26.3])
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id n8P7Dwkq029362
-	for <linux-media@vger.kernel.org>; Fri, 25 Sep 2009 09:14:02 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Message-ID: <40e7bbfbf781ac7bdda6757a1292fe45.squirrel@webmail.xs4all.nl>
-Date: Fri, 25 Sep 2009 09:14:02 +0200
-Subject: V4L-DVB Summit Day 2
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "v4l-dvb" <linux-media@vger.kernel.org>
+Received: from forward11.yandex.ru ([95.108.130.93]:33565 "EHLO
+	forward11.yandex.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752749AbZIFPkC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2009 11:40:02 -0400
+Received: from smtp11.yandex.ru (smtp11.yandex.ru [95.108.130.67])
+	by forward11.yandex.ru (Yandex) with ESMTP id A171CF484CF
+	for <linux-media@vger.kernel.org>; Sun,  6 Sep 2009 19:33:48 +0400 (MSD)
+Received: from [94.179.128.234] (234-128-179-94.pool.ukrtel.net [94.179.128.234])
+	by smtp11.yandex.ru (Yandex) with ESMTPSA id 228066730079
+	for <linux-media@vger.kernel.org>; Sun,  6 Sep 2009 19:33:46 +0400 (MSD)
+Message-ID: <4AA3D64E.3070203@yandex.ru>
+Date: Sun, 06 Sep 2009 18:33:34 +0300
+From: geroin22 <geroin22@yandex.ru>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: linux-media@vger.kernel.org
+Subject: [PATCH] Add support for Compro VideoMate E800 (DVB-T part only)
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
 
-A quick update on day 2 of the summit.
 
-We started off with a discussion on the memory pool API. It was soon
-obvious that we really should attempt to make this a global memory pool as
-opposed to one pool per device. If it is global then we can do some really
-fancy stuff that would be hard to do otherwise.
 
-What also became clear quite soon is that a lot more research is needed in
-how to allocate and keep track of the memory and how to handle caches etc.
+Nothing new, just adding Compro VideoMate E800 (DVB-T part only).
+Tested with Ubuntu 9.04 kernel 2.6.28 work well.
 
-We got some info from Samsung as well on how they solved this issue. We
-will need to look at this in more detail. I will make two presentations
-from Samsung available on my website later.
+diff -Naur a/linux/Documentation/video4linux/CARDLIST.cx23885 
+b/linux/Documentation/video4linux/CARDLIST.cx23885
+--- a/linux/Documentation/video4linux/CARDLIST.cx23885	2009-09-01 
+16:43:46.000000000 +0300
++++ b/linux/Documentation/video4linux/CARDLIST.cx23885	2009-09-06 
+15:37:13.373793025 +0300
+@@ -23,3 +23,4 @@
+  22 -> Mygica X8506 DMB-TH                                 [14f1:8651]
+  23 -> Magic-Pro ProHDTV Extreme 2                         [14f1:8657]
+  24 -> Hauppauge WinTV-HVR1850                             [0070:8541]
++ 25 -> Compro VideoMate E800                               [1858:e800]
+diff -Naur a/linux/drivers/media/video/cx23885/cx23885-cards.c 
+b/linux/drivers/media/video/cx23885/cx23885-cards.c
+--- a/linux/drivers/media/video/cx23885/cx23885-cards.c	2009-09-01 
+16:43:46.000000000 +0300
++++ b/linux/drivers/media/video/cx23885/cx23885-cards.c	2009-09-06 
+15:35:23.434293199 +0300
+@@ -211,6 +211,10 @@
+ 		.portb		= CX23885_MPEG_ENCODER,
+ 		.portc		= CX23885_MPEG_DVB,
+ 	},
++        [CX23885_BOARD_COMPRO_VIDEOMATE_E800] = {
++		.name		= "Compro VideoMate E800",
++		.portc		= CX23885_MPEG_DVB,
++	},
+ };
+ const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
 
-After discussing the memory pool API we continued with the Media Controller.
+@@ -342,6 +346,10 @@
+ 		.subvendor = 0x0070,
+ 		.subdevice = 0x8541,
+ 		.card      = CX23885_BOARD_HAUPPAUGE_HVR1850,
++        }, {
++		.subvendor = 0x1858,
++		.subdevice = 0xe800,
++		.card      = CX23885_BOARD_COMPRO_VIDEOMATE_E800,
+ 	},
+ };
+ const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
+@@ -537,6 +545,7 @@
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1500Q:
+ 	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
+ 	case CX23885_BOARD_COMPRO_VIDEOMATE_E650F:
++        case CX23885_BOARD_COMPRO_VIDEOMATE_E800:
+ 		/* Tuner Reset Command */
+ 		bitmask = 0x04;
+ 		break;
+@@ -688,6 +697,7 @@
+ 		break;
+ 	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
+ 	case CX23885_BOARD_COMPRO_VIDEOMATE_E650F:
++        case CX23885_BOARD_COMPRO_VIDEOMATE_E800:
+ 		/* GPIO-2  xc3028 tuner reset */
 
-Some conclusions:
+ 		/* The following GPIO's are on the internal AVCore (cx25840) */
+@@ -912,6 +922,7 @@
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1255:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1210:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1850:
++        case CX23885_BOARD_COMPRO_VIDEOMATE_E800:
+ 	default:
+ 		ts2->gen_ctrl_val  = 0xc; /* Serial bus + punctured clock */
+ 		ts2->ts_clk_en_val = 0x1; /* Enable TS_CLK */
+@@ -928,6 +939,7 @@
+ 	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
+ 	case CX23885_BOARD_COMPRO_VIDEOMATE_E650F:
+ 	case CX23885_BOARD_NETUP_DUAL_DVBS2_CI:
++        case CX23885_BOARD_COMPRO_VIDEOMATE_E800:
+ 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+ 				&dev->i2c_bus[2].i2c_adap,
+ 				"cx25840", "cx25840", 0x88 >> 1, NULL);
+diff -Naur a/linux/drivers/media/video/cx23885/cx23885-dvb.c 
+b/linux/drivers/media/video/cx23885/cx23885-dvb.c
+--- a/linux/drivers/media/video/cx23885/cx23885-dvb.c	2009-09-01 
+16:43:46.000000000 +0300
++++ b/linux/drivers/media/video/cx23885/cx23885-dvb.c	2009-09-06 
+16:09:17.154602943 +0300
+@@ -744,6 +744,7 @@
+ 	}
+ 	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
+ 	case CX23885_BOARD_COMPRO_VIDEOMATE_E650F:
++        case CX23885_BOARD_COMPRO_VIDEOMATE_E800:
+ 		i2c_bus = &dev->i2c_bus[0];
 
-- Everyone likes that concept of the media controller.
+ 		fe0->dvb.frontend = dvb_attach(zl10353_attach,
+diff -Naur a/linux/drivers/media/video/cx23885/cx23885.h 
+b/linux/drivers/media/video/cx23885/cx23885.h
+--- a/linux/drivers/media/video/cx23885/cx23885.h	2009-09-01 
+16:43:46.000000000 +0300
++++ b/linux/drivers/media/video/cx23885/cx23885.h	2009-09-06 
+15:36:40.229792022 +0300
+@@ -79,6 +79,7 @@
+ #define CX23885_BOARD_MYGICA_X8506             22
+ #define CX23885_BOARD_MAGICPRO_PROHDTVE2       23
+ #define CX23885_BOARD_HAUPPAUGE_HVR1850        24
++#define CX23885_BOARD_COMPRO_VIDEOMATE_E800    25
 
-- Nobody likes using sysfs for link enumeration and setting (sorry Mauro
-:-) )
+ #define GPIO_0 0x00000001
+ #define GPIO_1 0x00000002
 
-- We do need to introduce something like a group ID in the entity
-information to group related entities together. The idea is that
-application can use that ID to discover which video node is associated
-with which audio node.
-
-- In order to allow data to flow between two endpoints the dataformat
-needs to be setup correctly. This needs to be set for both endpoints as
-that is the most general solution. But in 99% if not all cases the
-dataformat will be the same for both endpoints. So initially the API will
-set the dataformat for both endpoints at the same time for ease of use.
-
-- Currently the entity has a 'descr' field that contains what is
-effectively tooltip-type information about the entity. This is better
-handled as a string control of that entity.
-
-- Rather than using the mc to select a 'target' subdev and pass ioctls on
-to that, we decided that creating a node for each sub-device is better.
-But only if there is anything to control for that sub-device.
-
-- We agreed that the basic premise should be to keep the driver for a SoC
-as simple as possible, and to move a lot of the intelligence in setting up
-the SoC to SoC-specific userspace libraries. So the driver in the kernel
-is responsible for programming the various sub-devices and buffer I/O,
-while configuring the various sub-devices into a working pipeline is the
-job of the userspace library. This prevents the kernel driver from
-becoming a mess.
-
-Obviously, nothing is final, but all of these points should appear in
-future RFCs for further discussion on the mailinglists.
-
-Regards,
-
-         Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
