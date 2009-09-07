@@ -1,51 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37250 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753111AbZISKvM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Sep 2009 06:51:12 -0400
-Message-ID: <4AB4B79C.7000802@iki.fi>
-Date: Sat, 19 Sep 2009 13:51:08 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from [90.185.159.143] ([90.185.159.143]:36181 "EHLO
+	cow.netcompartner.com" rhost-flags-FAIL-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751372AbZIGELf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Sep 2009 00:11:35 -0400
+Received: from [218.111.43.50] (helo=ncpws04.localnet)
+	by cow.netcompartner.com with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <lth@cow.dk>)
+	id 1MkUxe-00018N-7e
+	for linux-media@vger.kernel.org; Mon, 07 Sep 2009 05:32:19 +0200
+From: Lars Boegild Thomsen <lth@cow.dk>
+To: linux-media@vger.kernel.org
+Subject: Hauppauge HVR-1200 - CX23885 - S-Video capture
+Date: Mon, 7 Sep 2009 11:31:26 +0800
 MIME-Version: 1.0
-To: Bert Haverkamp <bert@bertenselena.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: usb dvb-c tuner status
-References: <1e68a10b0908150515l217126f7j41e15ece329176e1@mail.gmail.com> <1e68a10b0909182348v2026a57dsc877a8c5c1e9289f@mail.gmail.com>
-In-Reply-To: <1e68a10b0909182348v2026a57dsc877a8c5c1e9289f@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: multipart/signed;
+  boundary="nextPart1801923.iUODcCTqC6";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
+Message-Id: <200909071131.32045.lth@cow.dk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/19/2009 09:48 AM, Bert Haverkamp wrote:
-> Hello all,
->
-> A while back I asked about supported USB dvb-c devices.
-> Meanwhile my search continued and I have extended my list of available devices.
-> Unfortunately, none of them currently are supported by linux.
->
-> Does anyone have viable solution for me?
->
-> - Technotrend CT 1200 which is an old device, hard to get.
-> - Technotrend CT-3650 for which there is one report that dvb-c works
-> with a patch,(is this already in-tree?), but dvb-t and CI not
->   - Sundtek MediaTV Pro for which a closed source driver exists. I
-> don't want to go that way.
->   Terratec Cinergy Hybrid H5  which seems to be troubled with a driver
-> for a drx-k or drx-j chip.
-> - Pinnacle 340e, depends on the xc4000 chip, under development by Devin.
-> - Hauppauge WinTV HVR-930C, also drx-j based as far as I can see
+--nextPart1801923.iUODcCTqC6
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Anysee E30C Plus
-Anysee E30 Combo (DVB-T/DVB-C)
-Reddo DVB-C USB BOx (I just added, goes to 2.6.32)
+I have been struggling with Linux drivers for the above mentioned card.=20
+Doing an lspci -v reports:
 
-All those are using Philips TDA10023 demod, which seems to be almost 
-only solution currently for open Linux DVB-C. Anysee contains also 
-smartcard reader which is not supported (it is not CAM, just reader). 
-Unfortunately market situation for those devices is currently few EU 
-countries or Finland only.
+03:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI
+Video and Audio Decoder (rev 02)
+        Subsystem: Hauppauge computer works Inc. Device 71d3
+        Flags: bus master, fast devsel, latency 0, IRQ 16
+        Memory at ef800000 (64-bit, non-prefetchable) [size=3D2M]
+        Capabilities: [40] Express Endpoint, MSI 00
+        Capabilities: [80] Power Management version 2
+        Capabilities: [90] Vital Product Data
+        Capabilities: [a0] MSI: Enable- Count=3D1/1 Maskable- 64bit+
+        Capabilities: [100] Advanced Error Reporting
+        Capabilities: [200] Virtual Channel <?>
+        Kernel driver in use: cx23885
+        Kernel modules: cx23885
 
-Antti
--- 
-http://palosaari.fi/
+I have been googling a lot and I am somewhat confused if the current drivers
+supports video capture on the S-Video connector.  Most mailing list entries
+say that only digital capture is possible, however I did notice some
+changes in the cx23885-cards.c:
+
+        [CX23885_BOARD_HAUPPAUGE_HVR1200] =3D {
+                .name           =3D "Hauppauge WinTV-HVR1200",
+                .portc          =3D CX23885_MPEG_DVB,
+                .input          =3D {{
+                        .type   =3D CX23885_VMUX_TELEVISION,
+                        .vmux   =3D 0,
+                        .gpio0  =3D 0xff00,
+                }, {
+                        .type   =3D CX23885_VMUX_DEBUG,
+                        .vmux   =3D 0,
+                        .gpio0  =3D 0xff01,
+                }, {
+                        .type   =3D CX23885_VMUX_COMPOSITE1,
+                        .vmux   =3D 1,
+                        .gpio0  =3D 0xff02,
+                }, {
+                        .type   =3D CX23885_VMUX_SVIDEO,
+                        .vmux   =3D 2,
+                        .gpio0  =3D 0xff02,
+                } },
+        },
+
+Which sort of indicates that the driver is aware of the connector.  Can
+anybody help me what is the current status of this driver/card combination?
+
+So - in short - I am currently only interested in capturing analog video fr=
+om the s-video connector (it comes from a satbox).  Is that in any way poss=
+ible with this card?
+
+=2D-
+Lars
+
+--nextPart1801923.iUODcCTqC6
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEABECAAYFAkqkfo8ACgkQeHBusRfrogUI3QCgmI77zWb6toz2Uq3PRavfeslV
+tuAAn0IzKviuhbLsZA7pH1d9iwWuevcj
+=6T+Q
+-----END PGP SIGNATURE-----
+
+--nextPart1801923.iUODcCTqC6--
