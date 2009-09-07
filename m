@@ -1,102 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet12.oracle.com ([141.146.126.234]:48600 "EHLO
-	acsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752462AbZIVVgJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2009 17:36:09 -0400
-Date: Tue, 22 Sep 2009 14:36:01 -0700
-From: Randy Dunlap <randy.dunlap@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: lkml <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org
-Subject: Re: docbooks fatal build error (v4l & dvb)
-Message-Id: <20090922143601.f5953a04.randy.dunlap@oracle.com>
-In-Reply-To: <20090922182827.3d844748@pedra.chehab.org>
-References: <20090922124248.59e57b55.randy.dunlap@oracle.com>
-	<20090922182827.3d844748@pedra.chehab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:44047 "EHLO
+	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752649AbZIGLyH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Sep 2009 07:54:07 -0400
+Received: by fxm17 with SMTP id 17so1931056fxm.37
+        for <linux-media@vger.kernel.org>; Mon, 07 Sep 2009 04:54:08 -0700 (PDT)
+From: Marek Vasut <marek.vasut@gmail.com>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: Re: [PATCH] Add RGB555X and RGB565X formats to pxa-camera
+Date: Mon, 7 Sep 2009 13:53:42 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Eric Miao <eric.y.miao@gmail.com>,
+	linux-arm-kernel@lists.arm.linux.org.uk,
+	"Russell King - ARM Linux" <linux@arm.linux.org.uk>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mike Rapoport <mike@compulab.co.il>,
+	Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>,
+	linux-arm-kernel@lists.infradead.org
+References: <200908031031.00676.marek.vasut@gmail.com> <200909071050.11531.marek.vasut@gmail.com> <m2iqfvkqbl.fsf@arbois.toulouse.it.atosorigin.com>
+In-Reply-To: <m2iqfvkqbl.fsf@arbois.toulouse.it.atosorigin.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <200909071353.43080.marek.vasut@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 22 Sep 2009 18:28:27 -0300 Mauro Carvalho Chehab wrote:
+Dne Po 7. září 2009 12:21:50 Robert Jarzmik napsal(a):
+> Marek Vasut <marek.vasut@gmail.com> writes:
+> > How's it supposed to get BGR555 if the pxa-camera doesnt support that ?
+> > Will the v4l2 layer convert it or something ?
+>
+> In pxa_camera.c, function pxa_camera_get_formats() :
+> >         default:
+> >                 /* Generic pass-through */
+> >                 formats++;
+> >                 if (xlate) {
+> >                         xlate->host_fmt = icd->formats + idx;
+> >                         xlate->cam_fmt = icd->formats + idx;
+> >                         xlate->buswidth = icd->formats[idx].depth;
+> >                         xlate++;
+> >                         dev_dbg(ici->dev,
+> >                                 "Providing format %s in pass-through
+> > mode\n", icd->formats[idx].name);
+> >                 }
+> >         }
+>
+> "Pass-through" means that if a sensors provides a cc, ie. BGR555 for
+> example, the bridge (pxa_camera) will "forward" to RAM the image in the
+> very same cc (ie. BGR555). In that case, the bridge is a dummy "sensor to
+> RAM" bus translator if you prefer.
+>
+> Marek, you should activate debug trace and watch for yourself. You can
+> trust Guennadi, when he says it will work, well ... it will work.
+>
+> If it's out of technical curiousity, check the function above.  If you're
+> even more curious, there was a thread in linux-media about "RFC: bus
+> configuration setup for sub-devices", a very interesting one, especially
+> considering the "pass-through" issue.
 
-> Hi Randy,
-> 
-> Em Tue, 22 Sep 2009 12:42:48 -0700
-> Randy Dunlap <randy.dunlap@oracle.com> escreveu:
-> 
-> > 2.6.31-git11:  this prevents other docbooks from being built.
-> > 
-> > mkdir -p /linux-2.6.31-git11/Documentation/DocBook/media/
-> > cp /linux-2.6.31-git11/Documentation/DocBook/dvb/*.png /linux-2.6.31-git11/Documentation/DocBook/v4l/*.gif /linux-2.6.31-git11/Documentation/DocBook/media/
-> > cp: cannot stat `/linux-2.6.31-git11/Documentation/DocBook/dvb/*.png': No such file or directory
-> > cp: cannot stat `/linux-2.6.31-git11/Documentation/DocBook/v4l/*.gif': No such file or directory
-> > make[1]: *** [media] Error 1
-> 
-> 
-> Hmm... here, it is working fine. I've did it on a newer tree, cloned from Linus
-> one. This is the last patch on it:
-
-OK, it's probably just because I used a git snapshot (-git11).
-Sorry for the noise.
-
-
-> commit 7fa07729e439a6184bd824746d06a49cca553f15
-> Merge: 991d79b a8f90e9
-> Author: Linus Torvalds <torvalds@linux-foundation.org>
-> Date:   Tue Sep 22 08:11:04 2009 -0700
-> 
-> 
-> $ make htmldocs
-> mkdir -p /home/v4l/tokernel/wrk/linux-2.6/Documentation/DocBook/media/
-> cp /home/v4l/tokernel/wrk/linux-2.6/Documentation/DocBook/dvb/*.png /home/v4l/tokernel/wrk/linux-2.6/Documentation/DocBook/v4l/*.gif /home/v4l/tokernel/wrk/linux-2.6/Documentation/DocBook/media/
-> rm -rf Documentation/DocBook/index.html && echo '<h1>Linux Kernel HTML
-> Documentation</h1>' >> Documentation/DocBook/index.html && echo '<h2>Kernel
-> Version: 2.6.31</h2>' >> Documentation/DocBook/index.html && cat
-> Documentation/DocBook/alsa-driver-api.html
-> Documentation/DocBook/debugobjects.html
-> Documentation/DocBook/device-drivers.html
-> Documentation/DocBook/deviceiobook.html Documentation/DocBook/filesystems.html
-> Documentation/DocBook/gadget.html Documentation/DocBook/genericirq.html
-> Documentation/DocBook/kernel-api.html Documentation/DocBook/kernel-hacking.html
-> Documentation/DocBook/kernel-locking.html Documentation/DocBook/kgdb.html
-> Documentation/DocBook/libata.html Documentation/DocBook/librs.html
-> Documentation/DocBook/lsm.html Documentation/DocBook/mac80211.html
-> Documentation/DocBook/mcabook.html Documentation/DocBook/media.html
-> Documentation/DocBook/mtdnand.html Documentation/DocBook/networking.html
-> Documentation/DocBook/procfs-guide.html Documentation/DocBook/rapidio.html
-> Documentation/DocBook/regulator.html Documentation/DocBook/s390-drivers.html
-> Documentation/DocBook/scsi.html Documentation/DocBook/sh.html
-> Documentation/DocBook/tracepoint.html Documentation/DocBook/uio-howto.html
-> Documentation/DocBook/usb.html
-> Documentation/DocBook/writing-an-alsa-driver.html
-> Documentation/DocBook/writing_usb_driver.html
-> Documentation/DocBook/z8530book.html >> Documentation/DocBook/index.html
-> 
-> I also double checked that the files are there:
-> 
-> $ git log Documentation/DocBook/v4l/fieldseq_bt.gif
-> commit 8e080c2e6cadada82a6b520e0c23a1cb974822d5
-> Author: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Date:   Sun Sep 13 22:16:04 2009 -0300
-> 
->     V4L/DVB (12761): DocBook: add media API specs
-> 
->     The V4L and DVB API's are there for a long time. however, up to now,
->     no efforts were done to merge them to kernel DocBook.
-> 
->     This patch adds the current versions of the specs as an unique compendium.
-> 
->     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> 
-> 
-> 
-> 
-> Cheers,
-> Mauro
-
-
----
-~Randy
+That one should work for RGB565X ? (the piece of code you posted ?) It's 
+interesting it didnt work for me ... ok, I'll take it it works then, whatever. 
+I'll test it again when I have time.
+>
+> Cheers.
+>
+> --
+> Robert
