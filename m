@@ -1,61 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:36125 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750842AbZIJP0L (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Sep 2009 11:26:11 -0400
-Received: by fxm17 with SMTP id 17so177271fxm.37
-        for <linux-media@vger.kernel.org>; Thu, 10 Sep 2009 08:26:13 -0700 (PDT)
+Received: from ip78-183-211-87.adsl2.static.versatel.nl ([87.211.183.78]:55289
+	"EHLO god.dyndns.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750844AbZIGM7o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Sep 2009 08:59:44 -0400
+Date: Mon, 7 Sep 2009 14:49:34 +0200
+From: spam@systol-ng.god.lan
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Add support for Zolid Hybrid PCI card
+Message-ID: <20090907124934.GA8339@systol-ng.god.lan>
+References: <13c90c570909070123r2ba1f5f6w2b288703f5e98738@mail.gmail.com> <13c90c570909070127j11ae6ee2w2aa677529096f820@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4AA911B6.2040301@iki.fi>
-References: <62013cda0909091443g72ebdf1bge3994b545a86c854@mail.gmail.com>
-	 <829197380909091459x5367e95dnbd15f23e8377cf33@mail.gmail.com>
-	 <20090910091400.GA15105@moon>
-	 <d9def9db0909100358o14f07362n550b95a033c8a798@mail.gmail.com>
-	 <20090910124549.GA18426@moon> <20090910124807.GB18426@moon>
-	 <4AA8FB2F.2040504@iki.fi> <20090910134139.GA20149@moon>
-	 <4AA9038B.8090404@iki.fi> <4AA911B6.2040301@iki.fi>
-Date: Thu, 10 Sep 2009 11:26:13 -0400
-Message-ID: <829197380909100826i3e2f8315yd6a0258f38a6c7b9@mail.gmail.com>
-Subject: Re: LinuxTV firmware blocks all wireless connections / traffic
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>,
-	Markus Rechberger <mrechberger@gmail.com>,
-	Clinton Meyer <clintonmeyer22@gmail.com>,
-	Linux Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/mixed; boundary="cWoXeonUoKmBZSoM"
+Content-Disposition: inline
+In-Reply-To: <13c90c570909070127j11ae6ee2w2aa677529096f820@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 10, 2009 at 10:48 AM, Antti Palosaari<crope@iki.fi> wrote:
-> Here it is, USB2.0 URB is now about 16k both af9015 and ce6230 devices.
-> Now powertop shows only about 220 wakeups on my computer for the both
-> sticks.
-> Please test and tell what powertop says:
-> http://linuxtv.org/hg/~anttip/urb_size/
->
-> I wonder if we can decide what URB size DVB USB drivers should follow and
-> even add new module param for overriding driver default.
->
-> Antti
-> --
-> http://palosaari.fi/
->
 
-Hello Antti,
+--cWoXeonUoKmBZSoM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-The URB size is something that varies on a device-by-device basis,
-depending on the bridge chipset.   There really is no
-"one-size-fits-all" value you can assume.
+Hmm gmail front-end encoded the attachment as binary, retry.... 
+----- snip -----
 
-I usually take a look at a USB trace of the device under Windows, and
-then use the same value.
+This patch adds support for Zolid Hybrid TV card. The results are
+pretty encouraging DVB reception and analog TV reception are confirmed
+to work. Might still need to find the GPIO pin that switches AGC on
+the TDA18271 for even better reception.
 
-Cheers,
+see:
+http://linuxtv.org/wiki/index.php/Zolid_Hybrid_TV_Tuner
+for more information.
 
-Devin
+Signed-off-by: Henk.Vergonet@gmail.com
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+
+--cWoXeonUoKmBZSoM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="Zolid_Hybrid_PCI.patch"
+
+diff -r 2b49813f8482 linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Thu Sep 03 09:06:34 2009 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Mon Sep 07 00:16:24 2009 +0200
+@@ -3521,6 +3521,35 @@
+ 			.gpio = 0x0800100, /* GPIO 23 HI for FM */
+ 		},
+ 	},
++	[SAA7134_BOARD_ZOLID_HYBRID_PCI] = {
++		.name           = "NXP Europa DVB-T hybrid reference design",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_TDA8290,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tuner_config   = 3,
++		.mpeg           = SAA7134_MPEG_DVB,
++		.ts_type	= SAA7134_MPEG_TS_PARALLEL,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 1,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 0,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 6,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = TV,
++		},
++	},
+ 	[SAA7134_BOARD_CINERGY_HT_PCMCIA] = {
+ 		.name           = "Terratec Cinergy HT PCMCIA",
+ 		.audio_clock    = 0x00187de7,
+@@ -6429,6 +6458,12 @@
+ 		.subdevice    = 0x0138, /* LifeView FlyTV Prime30 OEM */
+ 		.driver_data  = SAA7134_BOARD_ROVERMEDIA_LINK_PRO_FM,
+ 	}, {
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
++		.subvendor    = PCI_VENDOR_ID_PHILIPS,
++		.subdevice    = 0x2004,
++		.driver_data  = SAA7134_BOARD_ZOLID_HYBRID_PCI,
++	}, {
+ 		/* --- boards without eeprom + subsystem ID --- */
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+@@ -6655,6 +6690,7 @@
+ 	switch (dev->board) {
+ 	case SAA7134_BOARD_HAUPPAUGE_HVR1150:
+ 	case SAA7134_BOARD_HAUPPAUGE_HVR1120:
++	case SAA7134_BOARD_ZOLID_HYBRID_PCI:
+ 		/* tda8290 + tda18271 */
+ 		ret = saa7134_tda8290_18271_callback(dev, command, arg);
+ 		break;
+diff -r 2b49813f8482 linux/drivers/media/video/saa7134/saa7134-dvb.c
+--- a/linux/drivers/media/video/saa7134/saa7134-dvb.c	Thu Sep 03 09:06:34 2009 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134-dvb.c	Mon Sep 07 00:16:24 2009 +0200
+@@ -1125,6 +1125,13 @@
+ 			goto dettach_frontend;
+ 		break;
+ 	case SAA7134_BOARD_HAUPPAUGE_HVR1120:
++	case SAA7134_BOARD_ZOLID_HYBRID_PCI:
++		/* match interface type of SAA713x and TDA10048 */
++                if (saa7134_boards[dev->board].ts_type == SAA7134_MPEG_TS_PARALLEL) {
++			hcw_tda10048_config.output_mode = TDA10048_PARALLEL_OUTPUT;
++		} else {
++			hcw_tda10048_config.output_mode = TDA10048_SERIAL_OUTPUT;
++		}
+ 		fe0->dvb.frontend = dvb_attach(tda10048_attach,
+ 					       &hcw_tda10048_config,
+ 					       &dev->i2c_adap);
+diff -r 2b49813f8482 linux/drivers/media/video/saa7134/saa7134.h
+--- a/linux/drivers/media/video/saa7134/saa7134.h	Thu Sep 03 09:06:34 2009 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134.h	Mon Sep 07 00:16:24 2009 +0200
+@@ -297,6 +297,7 @@
+ #define SAA7134_BOARD_AVERMEDIA_STUDIO_505  170
+ #define SAA7134_BOARD_BEHOLD_X7             171
+ #define SAA7134_BOARD_ROVERMEDIA_LINK_PRO_FM 172
++#define SAA7134_BOARD_ZOLID_HYBRID_PCI		173
+ 
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
+
+--cWoXeonUoKmBZSoM--
