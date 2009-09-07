@@ -1,160 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway16.websitewelcome.com ([69.56.239.11]:51479 "HELO
-	gateway16.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1758462AbZIRS35 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Sep 2009 14:29:57 -0400
-Received: from [66.15.212.169] (port=30667 helo=[10.140.5.16])
-	by gator886.hostgator.com with esmtpsa (SSLv3:AES256-SHA:256)
-	(Exim 4.69)
-	(envelope-from <pete@sensoray.com>)
-	id 1Moi71-0002e1-Hk
-	for linux-media@vger.kernel.org; Fri, 18 Sep 2009 13:23:15 -0500
-Subject: [PATCH 3/9] go7007: Fix mpeg controls
-From: Pete <pete@sensoray.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain
-Date: Fri, 18 Sep 2009 11:23:19 -0700
-Message-Id: <1253298199.4314.567.camel@pete-desktop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp4-g21.free.fr ([212.27.42.4]:34525 "EHLO smtp4-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752672AbZIGKWE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Sep 2009 06:22:04 -0400
+To: Marek Vasut <marek.vasut@gmail.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Eric Miao <eric.y.miao@gmail.com>,
+	linux-arm-kernel@lists.arm.linux.org.uk,
+	"Russell King - ARM Linux" <linux@arm.linux.org.uk>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mike Rapoport <mike@compulab.co.il>,
+	Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH] Add RGB555X and RGB565X formats to pxa-camera
+References: <200908031031.00676.marek.vasut@gmail.com>
+	<200909070646.04642.marek.vasut@gmail.com>
+	<Pine.LNX.4.64.0909070818480.4822@axis700.grange>
+	<200909071050.11531.marek.vasut@gmail.com>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Mon, 07 Sep 2009 12:21:50 +0200
+In-Reply-To: <200909071050.11531.marek.vasut@gmail.com> (Marek Vasut's message of "Mon\, 7 Sep 2009 10\:50\:11 +0200")
+Message-ID: <m2iqfvkqbl.fsf@arbois.toulouse.it.atosorigin.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-MPEG controls were disabled by Mauro's ioctl conversion patch.  They are now
-re-enabled and cleaned up.
+Marek Vasut <marek.vasut@gmail.com> writes:
 
-Priority: normal
+> How's it supposed to get BGR555 if the pxa-camera doesnt support that ? Will the 
+> v4l2 layer convert it or something ?
 
-Signed-off-by: Pete Eberlein <pete@sensoray.com>
+In pxa_camera.c, function pxa_camera_get_formats() :
+>         default:
+>                 /* Generic pass-through */
+>                 formats++;
+>                 if (xlate) {
+>                         xlate->host_fmt = icd->formats + idx;
+>                         xlate->cam_fmt = icd->formats + idx;
+>                         xlate->buswidth = icd->formats[idx].depth;
+>                         xlate++;
+>                         dev_dbg(ici->dev,
+>                                 "Providing format %s in pass-through mode\n",
+>                                 icd->formats[idx].name);
+>                 }
+>         }
 
-diff -r 19c623143852 -r e9801d1d9c6c linux/drivers/staging/go7007/go7007-v4l2.c
---- a/linux/drivers/staging/go7007/go7007-v4l2.c	Fri Sep 18 10:22:27 2009 -0700
-+++ b/linux/drivers/staging/go7007/go7007-v4l2.c	Fri Sep 18 10:26:12 2009 -0700
-@@ -383,13 +383,10 @@
- 	}
- 	return 0;
- }
-+#endif
- 
--static int mpeg_queryctrl(u32 id, struct v4l2_queryctrl *ctrl)
-+static int mpeg_queryctrl(struct v4l2_queryctrl *ctrl)
- {
--	static const u32 user_ctrls[] = {
--		V4L2_CID_USER_CLASS,
--		0
--	};
- 	static const u32 mpeg_ctrls[] = {
- 		V4L2_CID_MPEG_CLASS,
- 		V4L2_CID_MPEG_STREAM_TYPE,
-@@ -401,26 +398,15 @@
- 		0
- 	};
- 	static const u32 *ctrl_classes[] = {
--		user_ctrls,
- 		mpeg_ctrls,
- 		NULL
- 	};
- 
--	/* The ctrl may already contain the queried i2c controls,
--	 * query the mpeg controls if the existing ctrl id is
--	 * greater than the next mpeg ctrl id.
--	 */
--	id = v4l2_ctrl_next(ctrl_classes, id);
--	if (id >= ctrl->id && ctrl->name[0])
--		return 0;
--
--	memset(ctrl, 0, sizeof(*ctrl));
--	ctrl->id = id;
-+	ctrl->id = v4l2_ctrl_next(ctrl_classes, ctrl->id);
- 
- 	switch (ctrl->id) {
--	case V4L2_CID_USER_CLASS:
- 	case V4L2_CID_MPEG_CLASS:
--		return v4l2_ctrl_query_fill_std(ctrl);
-+		return v4l2_ctrl_query_fill(ctrl, 0, 0, 0, 0);
- 	case V4L2_CID_MPEG_STREAM_TYPE:
- 		return v4l2_ctrl_query_fill(ctrl,
- 				V4L2_MPEG_STREAM_TYPE_MPEG2_DVD,
-@@ -437,20 +423,21 @@
- 				V4L2_MPEG_VIDEO_ASPECT_16x9, 1,
- 				V4L2_MPEG_VIDEO_ASPECT_1x1);
- 	case V4L2_CID_MPEG_VIDEO_GOP_SIZE:
-+		return v4l2_ctrl_query_fill(ctrl, 0, 34, 1, 15);
- 	case V4L2_CID_MPEG_VIDEO_GOP_CLOSURE:
--		return v4l2_ctrl_query_fill_std(ctrl);
-+		return v4l2_ctrl_query_fill(ctrl, 0, 1, 1, 0);
- 	case V4L2_CID_MPEG_VIDEO_BITRATE:
- 		return v4l2_ctrl_query_fill(ctrl,
- 				64000,
- 				10000000, 1,
--				9800000);
-+				1500000);
- 	default:
--		break;
-+		return -EINVAL;
- 	}
--	return -EINVAL;
-+	return 0;
- }
- 
--static int mpeg_s_control(struct v4l2_control *ctrl, struct go7007 *go)
-+static int mpeg_s_ctrl(struct v4l2_control *ctrl, struct go7007 *go)
- {
- 	/* pretty sure we can't change any of these while streaming */
- 	if (go->streaming)
-@@ -528,6 +515,8 @@
- 		}
- 		break;
- 	case V4L2_CID_MPEG_VIDEO_GOP_SIZE:
-+		if (ctrl->value < 0 || ctrl->value > 34)
-+			return -EINVAL;
- 		go->gop_size = ctrl->value;
- 		break;
- 	case V4L2_CID_MPEG_VIDEO_GOP_CLOSURE:
-@@ -547,7 +536,7 @@
- 	return 0;
- }
- 
--static int mpeg_g_control(struct v4l2_control *ctrl, struct go7007 *go)
-+static int mpeg_g_ctrl(struct v4l2_control *ctrl, struct go7007 *go)
- {
- 	switch (ctrl->id) {
- 	case V4L2_CID_MPEG_STREAM_TYPE:
-@@ -600,7 +589,6 @@
- 	}
- 	return 0;
- }
--#endif
- 
- static int vidioc_querycap(struct file *file, void  *priv,
- 					struct v4l2_capability *cap)
-@@ -996,7 +984,7 @@
- 
- 	i2c_clients_command(&go->i2c_adapter, VIDIOC_QUERYCTRL, query);
- 
--	return (!query->name[0]) ? -EINVAL : 0;
-+	return (!query->name[0]) ? mpeg_queryctrl(query) : 0;
- }
- 
- static int vidioc_g_ctrl(struct file *file, void *priv,
-@@ -1013,7 +1001,7 @@
- 	query.id = ctrl->id;
- 	i2c_clients_command(&go->i2c_adapter, VIDIOC_QUERYCTRL, &query);
- 	if (query.name[0] == 0)
--		return -EINVAL;
-+		return mpeg_g_ctrl(ctrl, go);
- 	i2c_clients_command(&go->i2c_adapter, VIDIOC_G_CTRL, ctrl);
- 
- 	return 0;
-@@ -1033,7 +1021,7 @@
- 	query.id = ctrl->id;
- 	i2c_clients_command(&go->i2c_adapter, VIDIOC_QUERYCTRL, &query);
- 	if (query.name[0] == 0)
--		return -EINVAL;
-+		return mpeg_s_ctrl(ctrl, go);
- 	i2c_clients_command(&go->i2c_adapter, VIDIOC_S_CTRL, ctrl);
- 
- 	return 0;
+"Pass-through" means that if a sensors provides a cc, ie. BGR555 for example,
+the bridge (pxa_camera) will "forward" to RAM the image in the very same cc
+(ie. BGR555). In that case, the bridge is a dummy "sensor to RAM" bus translator
+if you prefer.
 
+Marek, you should activate debug trace and watch for yourself. You can trust
+Guennadi, when he says it will work, well ... it will work.
 
+If it's out of technical curiousity, check the function above.  If you're even
+more curious, there was a thread in linux-media about "RFC: bus configuration
+setup for sub-devices", a very interesting one, especially considering the
+"pass-through" issue.
+
+Cheers.
+
+--
+Robert
