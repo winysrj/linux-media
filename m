@@ -1,63 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web24712.mail.ird.yahoo.com ([212.82.104.185]:25880 "HELO
-	web24712.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751030AbZIZMCp convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Sep 2009 08:02:45 -0400
-Message-ID: <462146.41730.qm@web24712.mail.ird.yahoo.com>
-Date: Sat, 26 Sep 2009 11:56:08 +0000 (GMT)
-From: Alistair Thomas <astavale@yahoo.co.uk>
-Subject: No sound on Pinnacle PCTV Studio/Rave card - fixed with tda9887 and tuner module settings
-To: linux-media@vger.kernel.org
+Received: from mail-ew0-f206.google.com ([209.85.219.206]:61741 "EHLO
+	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753399AbZIGOU1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Sep 2009 10:20:27 -0400
+Received: by ewy2 with SMTP id 2so2085995ewy.17
+        for <linux-media@vger.kernel.org>; Mon, 07 Sep 2009 07:20:27 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <13c90c570909070123r2ba1f5f6w2b288703f5e98738@mail.gmail.com>
+References: <13c90c570909070123r2ba1f5f6w2b288703f5e98738@mail.gmail.com>
+Date: Mon, 7 Sep 2009 10:20:26 -0400
+Message-ID: <37219a840909070720r6feb05e2yd9172c65bb7d0fd3@mail.gmail.com>
+Subject: Re: [linux-dvb] [PATCH] Add support for Zolid Hybrid PCI card
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Henk <henk.vergonet@gmail.com>
+Cc: Linux DVB Mailing List <linux-dvb@linuxtv.org>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Apologies, I sent this from a bad email address at first.
 
-Each time I update Fedora I lose these settings:
+On Mon, Sep 7, 2009 at 4:23 AM, Henk<henk.vergonet@gmail.com> wrote:
+> This patch adds support for Zolid Hybrid TV card. The results are
+> pretty encouraging DVB reception and analog TV reception are confirmed
+> to work. Might still need to find the GPIO pin that switches AGC on
+> the TDA18271.
+>
+> see:
+> http://linuxtv.org/wiki/index.php/Zolid_Hybrid_TV_Tuner
+> for more information.
+>
+> Signed-off-by: Henk.Vergonet@gmail.com
 
-options tda9887 qss=0
-options tuner pal=i
+Henk, thanks for your contribution, but this patch has problems.  This
+should NOT be merged as it is here.  Please see below:
 
-Who would be able to include these settings automatically within these modules?
+#1) It's just a copy of the HVR1120 configuration.  There tuner_config
+= 3 value is definitely wrong for your board.  To prove my point,
+notice that you added a case for your board to the switch..case block
+in saa7134_tda8290_callback.  This will cause
+saa7134_tda8290_18271_callback to get called, then the default case
+will do nothing and the entire thing was a no-op.
 
-Thanks for any help
+The correct value for your board for tuner_config is 0.  Always try
+the defaults before blindly copying somebody else's configuration.
 
-Alistair Thomas
+#2) Card description reads, "NXP Europa DVB-T hybrid reference design"
+but the card ID is SAA7134_BOARD_ZOLID_HYBRID_PCI.  I suggest to pick
+one name for the sake of clarity, specifically, the actual board name.
+ Feel free to indicate that it is based on a reference design in
+comments.
 
-PCI card details from dmesg:
+#3) The change in saa7134-dvb will prevent an HVR1120 and your Zolid
+board from working together in the same PC.  Please create a new case
+block for the Zolid board, and create a new configuration structure
+for the tda10048 -- do not edit the value of static structures
+on-the-fly, and dont alter configuration of cards other than that of
+the board that you are adding today.
 
-bttv: driver version 0.9.18 loaded
-bttv: using 8 buffers with 2080k (520 pages) each for capture
-bttv: Bt8xx card found (0).
-ACPI: PCI Interrupt Link [APC3] enabled at IRQ 18
-bttv 0000:01:06.0: PCI INT A -> Link[APC3] -> GSI 18 (level, high) -> IRQ 18
-bttv0: Bt878 (rev 17) at 0000:01:06.0, irq: 18, latency: 32, mmio: 0xc2000000
-bttv0: detected: Pinnacle PCTV [card=39], PCI subsystem ID is 11bd:0012
-bttv0: using: Pinnacle PCTV Studio/Rave [card=39,autodetected]
-IRQ 18/bttv0: IRQF_DISABLED is not guaranteed on shared IRQs
-bttv0: gpio: en=00000000, out=00000000 in=00ffffff [init]
-bttv0: i2c: checking for MSP34xx @ 0x80... not found
-bttv0: pinnacle/mt: id=1 info="PAL / mono" radio=no
-bttv0: tuner type=33
-intel8x0_measure_ac97_clock: measured 53024 usecs (2576 samples)
-intel8x0: clocking to 47425
-usbcore: registered new interface driver snd-usb-audio
-firewire_core: created device fw0: GUID 00301b301baf5073, S400
-tuner 2-0043: chip found @ 0x86 (bt878 #0 [sw])
-tda9887 2-0043: creating new instance
-tda9887 2-0043: tda988[5/6/7] found
-Chip ID is not zero. It is not a TEA5767
-tuner 2-0060: chip found @ 0xc0 (bt878 #0 [sw])
-mt20xx 2-0060: microtune: companycode=3cbf part=42 rev=22
-mt20xx 2-0060: microtune MT2050 found, OK
-bttv0: audio absent, no audio device found!
-bttv0: registered device video0
-bttv0: registered device vbi0
-bttv0: PLL: 28636363 => 35468950 .. ok
+#4) Does your card have a saa7131 on it or some other saa713x variant?
+Is there actually a tda8290 present on the board?  Does the
+tda8290_attach function sucess or fail?  Please send in a dmesg
+snippit of the board functioning with your next patch.
 
+#5)  Aren't there multiple versions of this board using different
+steppings of the tda18271 tuner?  This I am not sure of, but I do
+recall having issues bringing up the Zolid board months ago -- is this
+actually working for you?
 
-      
+After you resubmit a cleaned up patch, we should see if anybody else
+out there can test this for you.  A dmesg snippit of the board's
+driver output would be nice.
+
+Cheers,
+
+Mike
