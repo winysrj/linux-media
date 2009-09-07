@@ -1,87 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:36572 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752808AbZINQdF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Sep 2009 12:33:05 -0400
-Date: Mon, 14 Sep 2009 13:32:29 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Peter J. Olson" <peterjolson@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Compile error when I get to snd-go7007.c
-Message-ID: <20090914133229.7dc1b9c4@pedra.chehab.org>
-In-Reply-To: <64a476a80909140818y7d29fb0w84f247e4de702a30@mail.gmail.com>
-References: <64a476a80909140736k159fddffle1d6ccbcaa3cecfb@mail.gmail.com>
-	<64a476a80909140739h6612ce69u2819335f7ea2c758@mail.gmail.com>
-	<64a476a80909140804s34ebd140r7934f46fb2150364@mail.gmail.com>
-	<64a476a80909140810j2c23a11fp994c6278ec01829a@mail.gmail.com>
-	<64a476a80909140818y7d29fb0w84f247e4de702a30@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:63670 "EHLO
+	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754141AbZIGSec (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Sep 2009 14:34:32 -0400
+Received: by fxm17 with SMTP id 17so2154054fxm.37
+        for <linux-media@vger.kernel.org>; Mon, 07 Sep 2009 11:34:33 -0700 (PDT)
+Message-ID: <4AA55237.7020507@googlemail.com>
+Date: Mon, 07 Sep 2009 19:34:31 +0100
+From: Peter Brouwer <pb.maillists@googlemail.com>
+MIME-Version: 1.0
+To: Michael Krufky <mkrufky@kernellabs.com>
+CC: "H. Willstrand" <h.willstrand@gmail.com>,
+	Randy Dunlap <randy.dunlap@gmail.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: ML delivery failures
+References: <957e58a90909070935i5b74559cl34e18c5fac835f2d@mail.gmail.com>	 <37219a840909070952j19148dabwa47439ef91f5fb99@mail.gmail.com>	 <175f5a0f0909071037q38659691q1e2da8845bbfaf0@mail.gmail.com> <303a8ee30909071059x189c420er34c7d53959b9fa87@mail.gmail.com>
+In-Reply-To: <303a8ee30909071059x189c420er34c7d53959b9fa87@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 14 Sep 2009 10:18:42 -0500
-"Peter J. Olson" <peterjolson@gmail.com> escreveu:
+Michael Krufky wrote:
+> On Mon, Sep 7, 2009 at 1:37 PM, H. Willstrand<h.willstrand@gmail.com> wrote:
+>> On Mon, Sep 7, 2009 at 6:52 PM, Michael Krufky<mkrufky@kernellabs.com> wrote:
+>>> On Mon, Sep 7, 2009 at 12:35 PM, Randy Dunlap<randy.dunlap@gmail.com> wrote:
+>>>> On Mon, 07 Sep 2009 09:20:02 -0400 Steven Toth wrote:
+>>>>
+>>>>> Hi,
+>>>>>
+>>>>> I have the traffic from this list going to a gmail account. I normally use
+>>>>> thunderbird to respond to emails and never have issues posting to the ML.
+>>>>>
+>>>>> If I'm away from thunderbird and try to respond via the google apps gmail
+>>>>> interface my mails always get bounced from vger's mail daemon, claiming that the
+>>>>> message has a html sub-part, and is considered spam or an outlook virus - thus
+>>>>> rejected.
+>>>>>
+>>>>> It's happened a few times, again today when responding to Simon's comment about
+>>>>> the relationship between the 716x and the 7162 driver.
+>>>>>
+>>>>> I don't see any obvious 'use-non-html' formatting setting in gmail.
+>>>> In a compose window, just below "Attach a file", click on
+>>>> "Plain text".  [testing:  sent from gmail like that]
+>>>>
+>>>>> Perhaps someone else has seen this issue or knows of a workaround?
+>>>>>
+>>>>> Comments / feedback appreciated.
+>>>>
+>>>> ---
+>>>> ~Randy
+>>>> LPC 2009, Sept. 23-25, Portland, Oregon
+>>>> http://linuxplumbersconf.org/2009/
+>>> At this point, I use *only* gmail to respond to mailing list posts.
+>>>
+>>> Steve, I have the same problem that you are complaining about when I
+>>> use the kernellabs / gmail interface.  It's probably some issue with
+>>> google labs.  My regular gmail account works fine -- I just change the
+>>> reply-to to my kernellabs email account.
+>>>
+>>> -Mike
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>> In gmail, go to settings, choose tab General, and click on: "Use
+>> default text encoding for outgoing messages"
+>>
+>> //HW
+>>
+> 
+> I already have that setting enabled.  I think that was the default,
+> actually.  I'm replying from my kernellabs interface right now, lets
+> see if the list bounces it.
 
-> Hey all,
-> 
-> I have a Mythbuntu 8.10 system w/ a pctv 800i (pci card) and a pctv hd
-> stick (800e). Had both running just fine for about 8 months... then
-> the stick stopped working.  Or rather, it works but wont pick up a
-> signal.
-> 
-> I decided I would update my system a little and figure out what broke
-> my 800e. I updated my kernel and went to recompile v4l-dvb and got
-> this error:
-> 
->   CC [M]  /home/mythbox/Firmware/v4l-dvb/v4l/snd-go7007.o
-> 
-> /home/mythbox/Firmware/v4l-dvb/v4l/snd-go7007.c: In function 'go7007_snd_init':
-> 
-> /home/mythbox/Firmware/v4l-dvb/v4l/snd-go7007.c:251: error: implicit
-> declaration of function 'snd_card_create'
-> 
-> make[3]: *** [/home/mythbox/Firmware/v4l-dvb/v4l/snd-go7007.o] Error 1
-> 
-> make[2]: *** [_module_/home/mythbox/Firmware/v4l-dvb/v4l] Error 2
-> 
-> make[2]: Leaving directory `/usr/src/linux-headers-2.6.28-15-generic'
-> 
-> make[1]: *** [default] Error 2
-> 
-> make[1]: Leaving directory `/home/mythbox/Firmware/v4l-dvb/v4l'
-> 
-> make: *** [all] Error 2
-> 
-> I was using the old copy of v4l I had so I thought it might have been
-> the new kernel fighting w/ the old v4l. So I updated v4l (did a pull
-> via hg)... same error.
-> 
-> I dinked w/ it for a long time and finally gave up and upgraded to
-> 9.0.4. Same error, now neither of my cards will work (brutal!)  My
-> 800i is acting like the 800e was.  I can see the card in mythbackend
-> setup but always gets no signal in mythtv.
-> 
-> I dont even know what the snd-go7007 would go with... I dont even have
-> that type of hardware (i dont think).
-> 
-> Anyone have any ideas?
+I noticed that the mail handler of the alias does not seem to like gmail.com, I 
+use googlemail.com for my e-mail address.
 
-Probably, it is incompatible with your kernel version. Just update and do a
-"make allmodconfig". Then, try to compile again. I've disabled by the default
-the compilation of the staging drivers.
+Peter
 > 
-> Thanks,
-> Peter
+> -Mike
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-
-
-
-Cheers,
-Mauro
