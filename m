@@ -1,94 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mgw1.diku.dk ([130.225.96.91]:53023 "EHLO mgw1.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750882AbZIOJyf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2009 05:54:35 -0400
-Date: Tue, 15 Sep 2009 11:54:36 +0200 (CEST)
-From: Julia Lawall <julia@diku.dk>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH 2/8] drivers/media/video/uvc: introduce missing kfree
-In-Reply-To: <200909151144.57816.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.0909151153570.8549@pc-004.diku.dk>
-References: <Pine.LNX.4.64.0909111821010.10552@pc-004.diku.dk>
- <200909132239.21806.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.0909132254430.31000@ask.diku.dk>
- <200909151144.57816.laurent.pinchart@ideasonboard.com>
+Received: from smtp.bredband2.com ([83.219.192.166]:49340 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752204AbZIGJkY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Sep 2009 05:40:24 -0400
+Message-ID: <4AA4D4F1.4060308@upcore.net>
+Date: Mon, 07 Sep 2009 11:40:01 +0200
+From: Magnus Nilsson <magnus@upcore.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: MartinG <gronslet@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Azurewave AD-CP400 (Twinhan VP-2040 DVB-C)
+References: <4A953E52.4020300@upcore.net> <4A956124.5070902@upcore.net> <bcb3ef430909061352v202d5b6fy3c668b64966a2848@mail.gmail.com>
+In-Reply-To: <bcb3ef430909061352v202d5b6fy3c668b64966a2848@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Julia Lawall <julia@diku.dk>
+MartinG wrote:
+> On Wed, Aug 26, 2009 at 6:21 PM, Magnus Nilsson<magnus@upcore.net> wrote:
+>> Nevermind this for the time being...all is pointing to open-sasc-ng being
+>> the culprit here...
+> 
+> Just to add a datapoint - I have the same problem: I can't seem to
+> successfully scan for channels. I've taken open-sasc-ng out of the
+> equation by simply not loading the loopback device and scan directly
+> on the true frontend.
+> These are my bits:
+> Terratec Cinergy C HD PCI
+> kernel 2.6.29.6-217.2.16.fc11.x86_64
+> s2-liplianin from http://mercurial.intuxication.org/hg/s2-liplianin
+> Currently:
+> changeset:   12465:096aa4559b71
+> tag:         tip
+> user:        Igor M. Liplianin <liplianin@me.by>
+> date:        Sat Sep 05 20:26:33 2009 +0300
+> 
+> dmesg when "modprobe mantis"
+> Sep  6 22:33:52 localhost kernel: Mantis 0000:04:00.0: PCI INT A ->
+> GSI 16 (level, low) -> IRQ 16
+> Sep  6 22:33:52 localhost kernel: irq: 16, latency: 64
+> Sep  6 22:33:52 localhost kernel: memory: 0xfdfff000, mmio: 0xffffc20023906000
+> Sep  6 22:33:52 localhost kernel: found a VP-2040 PCI DVB-C device on (04:00.0),
+> Sep  6 22:33:52 localhost kernel:    Mantis Rev 1 [153b:1178], irq:
+> 16, latency: 64
+> Sep  6 22:33:52 localhost kernel:    memory: 0xfdfff000, mmio:
+> 0xffffc20023906000
+> Sep  6 22:33:52 localhost kernel:    MAC Address=[00:08:ca:1d:bd:a6]
+> Sep  6 22:33:52 localhost kernel: mantis_alloc_buffers (0):
+> DMA=0xcc0d0000 cpu=0xffff8800cc0d0000 size=65536
+> Sep  6 22:33:52 localhost kernel: mantis_alloc_buffers (0):
+> RISC=0xa85ce000 cpu=0xffff8800a85ce000 size=1000
+> Sep  6 22:33:52 localhost kernel: DVB: registering new adapter (Mantis
+> dvb adapter)
+> Sep  6 22:33:52 localhost kernel: mantis_frontend_init (0): Probing
+> for CU1216 (DVB-C)
+> Sep  6 22:33:52 localhost kernel: TDA10023: i2c-addr = 0x0c, id = 0x7d
+> Sep  6 22:33:52 localhost kernel: mantis_frontend_init (0): found
+> Philips CU1216 DVB-C frontend (TDA10023) @ 0x0c
+> Sep  6 22:33:52 localhost kernel: mantis_frontend_init (0): Mantis
+> DVB-C Philips CU1216 frontend attach success
+> Sep  6 22:33:52 localhost kernel: DVB: registering adapter 0 frontend
+> 0 (Philips TDA10023 DVB-C)...
+> Sep  6 22:33:52 localhost kernel: mantis_ca_init (0): Registering EN50221 device
+> Sep  6 22:33:52 localhost kernel: mantis_ca_init (0): Registered EN50221 device
+> Sep  6 22:33:52 localhost kernel: mantis_hif_init (0): Adapter(0)
+> Initializing Mantis Host Interface
+> Sep  6 22:33:52 localhost kernel: input: Mantis VP-2040 IR Receiver as
+> /devices/virtual/input/input11
+> Sep  6 22:33:53 localhost kernel: Mantis VP-2040 IR Receiver: unknown
+> key: key=0x00 raw=0x00 down=1
+> Sep  6 22:33:53 localhost kernel: Mantis VP-2040 IR Receiver: unknown
+> key: key=0x00 raw=0x00 down=0
+> 
+> lspci -v
+> 04:00.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV
+> PCI Bridge Controller [Ver 1.0] (rev 01)
+>         Subsystem: TERRATEC Electronic GmbH Device 1178
+>         Flags: bus master, medium devsel, latency 64, IRQ 16
+>         Memory at fdfff000 (32-bit, prefetchable) [size=4K]
+>         Kernel driver in use: Mantis
+>         Kernel modules: mantis
+> 
+> I have also tried the mantis module from v4l-dvb without success. The
+> card is then recognized as TDA10021 instead of TDA10023, just as you
+> describe.
+> 
+> Typically, I have to do "modprobe -r mantis;modprobe mantis" right
+> before I try to scan (with w_scan, scandvb og mythtv) in order to get
+> any channels at all. But the joy doesn't last for long, and I get
+> stuff like
+> kernel: mantis_ack_wait (0): Slave RACK Fail !
+> in /var/log/messages.
+> 
+> I guess the problems mentioned in the following post are related:
+>  Subject: Terratec Cinergy C HD tuning problems
+>  Date: 2009-08-19 21:10:56 GMT
+> 
+> Hope we can find a solution to this!
+> 
+> best,
+> MartinG
 
-Move the kzalloc and associated test after the stream/query test, to avoid
-the need to free the allocated if the stream/query test fails.
+I actually found what my problem was. It seems that open-sasc-ng has a 
+weird bug, which means you can't tell it to log to a logfile by using 
+the --log argument.
 
-The semantic match that finds the problem is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
+If I remove the '--log /var/log/open-sasc-ng.log' argument and instead 
+lets it log directly to syslog, it works fine. I'm using syslog-ng, so 
+it's not a problem directing all open-sasc-ng log traffic to a specific 
+logfile anyway.
 
-// <smpl>
-@r exists@
-local idexpression x;
-statement S;
-expression E;
-identifier f,f1,l;
-position p1,p2;
-expression *ptr != NULL;
-@@
-
-x@p1 = \(kmalloc\|kzalloc\|kcalloc\)(...);
-...
-if (x == NULL) S
-<... when != x
-     when != if (...) { <+...x...+> }
-(
-x->f1 = E
-|
- (x->f1 == NULL || ...)
-|
- f(...,x->f1,...)
-)
-...>
-(
- return \(0\|<+...x...+>\|ptr\);
-|
- return@p2 ...;
-)
-
-@script:python@
-p1 << r.p1;
-p2 << r.p2;
-@@
-
-print "* file: %s kmalloc %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
----
- drivers/media/video/uvc/uvc_video.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/video/uvc/uvc_video.c b/drivers/media/video/uvc/uvc_video.c
-index 5b757f3..2f2971a 100644
---- a/drivers/media/video/uvc/uvc_video.c
-+++ b/drivers/media/video/uvc/uvc_video.c
-@@ -124,13 +124,13 @@ static int uvc_get_video_ctrl(struct uvc_streaming *stream,
- 	int ret;
- 
- 	size = stream->dev->uvc_version >= 0x0110 ? 34 : 26;
-+	if ((stream->dev->quirks & UVC_QUIRK_PROBE_DEF) && query == UVC_GET_DEF)
-+		return -EIO;
-+
- 	data = kmalloc(size, GFP_KERNEL);
- 	if (data == NULL)
- 		return -ENOMEM;
- 
--	if ((stream->dev->quirks & UVC_QUIRK_PROBE_DEF) && query == UVC_GET_DEF)
--		return -EIO;
--
- 	ret = __uvc_query_ctrl(stream->dev, query, 0, stream->intfnum,
- 		probe ? UVC_VS_PROBE_CONTROL : UVC_VS_COMMIT_CONTROL, data,
- 		size, UVC_CTRL_STREAMING_TIMEOUT);
+//Magnus
