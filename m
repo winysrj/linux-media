@@ -1,134 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:15620 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754637AbZILOuO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Sep 2009 10:50:14 -0400
-Received: by qw-out-2122.google.com with SMTP id 9so632979qwb.37
-        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 07:50:18 -0700 (PDT)
-Message-ID: <4AABB520.9030805@gmail.com>
-Date: Sat, 12 Sep 2009 10:50:08 -0400
-From: David Ellingsworth <david@identd.dyndns.org>
-Reply-To: david@identd.dyndns.org
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org, klimov.linux@gmail.com
-Subject: [RFC/RFT 09/10] radio-mr800: preserve radio state during suspend/resume
-Content-Type: multipart/mixed;
- boundary="------------040600020708040902030708"
+Received: from bombadil.infradead.org ([18.85.46.34]:39569 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758922AbZIGGhF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Sep 2009 02:37:05 -0400
+Received: from 200-158-183-225.dsl.telesp.net.br ([200.158.183.225] helo=caramujo.chehab.org)
+	by bombadil.infradead.org with esmtpsa (Exim 4.69 #1 (Red Hat Linux))
+	id 1MkXqc-0002Zo-H2
+	for linux-media@vger.kernel.org; Mon, 07 Sep 2009 06:37:07 +0000
+Date: Mon, 7 Sep 2009 03:36:38 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: linux-media@vger.kernel.org
+Subject: [RFC PATCH] DVB API conversion to DocBook XML 4.1.2 format
+Message-ID: <20090907033638.1524f2bf@caramujo.chehab.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------040600020708040902030708
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+I've sent a patch earlier today with the DocBook conversion of the DVB API
+specs.
 
- From 31243088bd32d5568f06f2044f8ff782641e16b5 Mon Sep 17 00:00:00 2001
-From: David Ellingsworth <david@identd.dyndns.org>
-Date: Sat, 12 Sep 2009 02:05:57 -0400
-Subject: [PATCH 09/10] mr800: preserve radio state during suspend/resume
+However, it seems that the size is just too big for it to be accepted 
+by vger.
 
-Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+So, instead of a patch, I'm creating a dvb-specs temporary tree with the 4
+conversion patches from LaTex do DocBook:
+	http://linuxtv.org/hg/~mchehab/dvb-specs
+
+The description of the resulting changeset is given bellow.
+
+Please review.
+
+Have fun!
+Mauro
+
 ---
- drivers/media/radio/radio-mr800.c |   17 +++++++++++------
- 1 files changed, 11 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/radio/radio-mr800.c 
-b/drivers/media/radio/radio-mr800.c
-index 11db6ea..10bed62 100644
---- a/drivers/media/radio/radio-mr800.c
-+++ b/drivers/media/radio/radio-mr800.c
-@@ -574,9 +574,12 @@ static int usb_amradio_suspend(struct usb_interface 
-*intf, pm_message_t message)
- 
-     mutex_lock(&radio->lock);
- 
--    retval = amradio_set_mute(radio, AMRADIO_STOP);
--    if (retval < 0)
--        dev_warn(&intf->dev, "amradio_stop failed\n");
-+    if (!radio->muted) {
-+        retval = amradio_set_mute(radio, AMRADIO_STOP);
-+        if (retval < 0)
-+            dev_warn(&intf->dev, "amradio_stop failed\n");
-+        radio->muted = 0;
-+    }
- 
-     dev_info(&intf->dev, "going into suspend..\n");
- 
-@@ -592,9 +595,11 @@ static int usb_amradio_resume(struct usb_interface 
-*intf)
- 
-     mutex_lock(&radio->lock);
- 
--    retval = amradio_set_mute(radio, AMRADIO_START);
--    if (retval < 0)
--        dev_warn(&intf->dev, "amradio_start failed\n");
-+    if (!radio->muted) {
-+        retval = amradio_set_mute(radio, AMRADIO_START);
-+        if (retval < 0)
-+            dev_warn(&intf->dev, "amradio_start failed\n");
-+    }
- 
-     dev_info(&intf->dev, "coming out of suspend..\n");
- 
--- 
-1.6.3.3
+Converts DVB Version 3 API specification to DocBook XML 4.1.2 format
+
+As kernel documentation and V4L2 API docs are using DocBook XML 4.1.2,
+convert also the DVB spec into DocBook.
+
+There are some advantages of using DocBook format over LaTex:
+
+1) The Makefile can generate not only pdf, but also single and a multiple files
+html, being easier to integrate it on websites;
+
+2) In the future, it can be used to also generate man pages;
+
+3) It is possible to share parts of the book with kernel and between V4L2 and
+DVB API's;
+
+4) Developers now can use just one language for working with DVB API, V4L2 API
+and other kernel documents;
+
+5) With the docbook version, just one set of documentation application sets is needed
+to generate both DVB and V4L2 API's;
+
+6) By using some easy scripts (like what is present at v4l2-spec/Makefile), it
+will be possible to include some example files from the development tree
+directly from a c file;
+
+7) It will be possible to add some scripts to validate if API changes done at the
+DVB core code weren't integrated at the API spec (like what's already done with V4L2
+controls and formats).
+
+For now, this patchset doesn't remove the LaTex docs, nor brings any
+improvement at the spec or at its format. It 
+
+It is just a conversion done by using
+htlatex, several perl parsing scripts and some manual work to fix some conflicts and to
+make DocBook compile. There are spaces for more improvements to be done.
+
+Comments?
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
 
---------------040600020708040902030708
-Content-Type: text/x-diff;
- name="0009-mr800-preserve-radio-state-during-suspend-resume.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename*0="0009-mr800-preserve-radio-state-during-suspend-resume.patch"
-
->From 31243088bd32d5568f06f2044f8ff782641e16b5 Mon Sep 17 00:00:00 2001
-From: David Ellingsworth <david@identd.dyndns.org>
-Date: Sat, 12 Sep 2009 02:05:57 -0400
-Subject: [PATCH 09/10] mr800: preserve radio state during suspend/resume
-
-Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
----
- drivers/media/radio/radio-mr800.c |   17 +++++++++++------
- 1 files changed, 11 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
-index 11db6ea..10bed62 100644
---- a/drivers/media/radio/radio-mr800.c
-+++ b/drivers/media/radio/radio-mr800.c
-@@ -574,9 +574,12 @@ static int usb_amradio_suspend(struct usb_interface *intf, pm_message_t message)
- 
- 	mutex_lock(&radio->lock);
- 
--	retval = amradio_set_mute(radio, AMRADIO_STOP);
--	if (retval < 0)
--		dev_warn(&intf->dev, "amradio_stop failed\n");
-+	if (!radio->muted) {
-+		retval = amradio_set_mute(radio, AMRADIO_STOP);
-+		if (retval < 0)
-+			dev_warn(&intf->dev, "amradio_stop failed\n");
-+		radio->muted = 0;
-+	}
- 
- 	dev_info(&intf->dev, "going into suspend..\n");
- 
-@@ -592,9 +595,11 @@ static int usb_amradio_resume(struct usb_interface *intf)
- 
- 	mutex_lock(&radio->lock);
- 
--	retval = amradio_set_mute(radio, AMRADIO_START);
--	if (retval < 0)
--		dev_warn(&intf->dev, "amradio_start failed\n");
-+	if (!radio->muted) {
-+		retval = amradio_set_mute(radio, AMRADIO_START);
-+		if (retval < 0)
-+			dev_warn(&intf->dev, "amradio_start failed\n");
-+	}
- 
- 	dev_info(&intf->dev, "coming out of suspend..\n");
- 
--- 
-1.6.3.3
 
 
---------------040600020708040902030708--
+
+
+Cheers,
+Mauro
