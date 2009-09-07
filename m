@@ -1,236 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail00d.mail.t-online.hu ([84.2.42.5]:59659 "EHLO
-	mail00d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750966AbZILS0i (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Sep 2009 14:26:38 -0400
-Message-ID: <4AABE7D0.6030308@freemail.hu>
-Date: Sat, 12 Sep 2009 20:26:24 +0200
-From: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-MIME-Version: 1.0
-To: leandro Costantino <lcostantino@gmail.com>
-CC: Thomas Kaiser <thomas@kaiser-linux.li>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Luc Saillard <luc@saillard.org>,
-	V4L Mailing List <linux-media@vger.kernel.org>,
-	=?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-Subject: Re: image quality of Labtec Webcam 2200
-References: <4AA9F7A0.5080802@freemail.hu> <4AAA944F.1090701@freemail.hu>	 <c2fe070d0909111741l21120025v3f45eb8566d27c7a@mail.gmail.com>	 <4AAB3CB5.7090106@freemail.hu> <c2fe070d0909120751o2c4122c1r8607f37e65b41377@mail.gmail.com>
-In-Reply-To: <c2fe070d0909120751o2c4122c1r8607f37e65b41377@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from bombadil.infradead.org ([18.85.46.34]:52112 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752270AbZIGVhM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Sep 2009 17:37:12 -0400
+Date: Mon, 7 Sep 2009 18:36:32 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Michael Krufky <mkrufky@kernellabs.com>
+Cc: Andy Walls <awalls@radix.net>, linuxtv-commits@linuxtv.org,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Hans Verkuil via Mercurial <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [linuxtv-commits] [hg:v4l-dvb] cx25840: fix determining the
+ firmware name
+Message-ID: <20090907183632.195dc3e5@caramujo.chehab.org>
+In-Reply-To: <37219a840909070925k25ed146bn9c3725596c9490b9@mail.gmail.com>
+References: <E1MiTfS-0001LQ-SU@mail.linuxtv.org>
+	<37219a840909041105u7fe714aala56893566d93cdc3@mail.gmail.com>
+	<20090907021002.2f4d3a57@caramujo.chehab.org>
+	<37219a840909062220p3ae71dc0t4df96fd140c5c7b4@mail.gmail.com>
+	<20090907030652.04e2d2a3@caramujo.chehab.org>
+	<1252340384.3146.52.camel@palomino.walls.org>
+	<37219a840909070925k25ed146bn9c3725596c9490b9@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-leandro Costantino wrote:
-> Nice, i will take a look.
-> Anyway, be aware, that the "conversion error", is something expected
-> on pac7311, in fact, Hans have commented that on the libv4lconvert.
-> ......
->     if (result) {
->         /* Pixart webcam's seem to regulary generate corrupt frames, which
->            are best thrown away to avoid flashes in the video stream. Tell
->            the upper layer this is an intermediate fault and it should try
->            again with a new buffer by setting errno to EAGAIN */
->         if (src_pix_fmt == V4L2_PIX_FMT_PJPG ||
->             data->flags & V4LCONVERT_IS_SN9C20X) {
->           V4LCONVERT_ERR("decompressing JPEG: %s",
->             tinyjpeg_get_errorstring(data->jdec));
->           errno = EAGAIN;
->           return -1;
-> ........
-> That's the result of the EAGAIN.
+Em Mon, 7 Sep 2009 12:25:15 -0400
+Michael Krufky <mkrufky@kernellabs.com> escreveu:
 
-The corrupted data coming from the device would be one reason. An other reason
-could be the limitation of the libv4l 0.6.1 that it cannot understand the raw data
-coming from the webcam. Maybe the raw data does not fulfill the JPEG specification
-but still could have some meaning -- which we don't understand at the moment. The
-different types of error messages mean for me that at least some of them could be
-solved (i.e. "unknown huffman code").
+> On Mon, Sep 7, 2009 at 12:19 PM, Andy Walls<awalls@radix.net> wrote:
+> > On Mon, 2009-09-07 at 03:06 -0300, Mauro Carvalho Chehab wrote:
+> >> Em Mon, 7 Sep 2009 01:20:33 -0400
+> >> Michael Krufky <mkrufky@kernellabs.com> escreveu:
+> >>
+> >> > On Mon, Sep 7, 2009 at 1:10 AM, Mauro Carvalho
+> >> > Chehab<mchehab@infradead.org> wrote:
+> >> > > Em Fri, 4 Sep 2009 14:05:31 -0400
+> >> > > Michael Krufky <mkrufky@kernellabs.com> escreveu:
+> >> > >
+> >> > >> Mauro,
+> >> > >>
+> >> > >> This fix should really go to Linus before 2.6.31 is released, if
+> >> > >> possible. Â It also should be backported to stable, but I need it in
+> >> > >> Linus' tree before it will be accepted into -stable.
+> >> > >>
+> >> > >> Do you think you can slip this in before the weekend? Â As I
+> >> > >> understand, Linus plans to release 2.6.31 on Saturday, September 5th.
+> >> > >>
+> >> > >> If you dont have time for it, please let me know and I will send it in myself.
+> >> > >>
+> >> > >
+> >> > > This patch doesn't apply upstream:
+> >> > >
+> >> > > $ patch -p1 -i 12613.patch
+> >> > > patching file drivers/media/video/cx25840/cx25840-firmware.c
+> >> > > Hunk #5 FAILED at 107.
+> >> > > 1 out of 5 hunks FAILED -- saving rejects to file drivers/media/video/cx25840/cx25840-firmware.c.re
+> >> >
+> >> >
+> >> > OK, this is going to need a manual backport. Â This does fix an issue
+> >> > in 2.6.31, and actually affects all kernels since the appearance of
+> >> > the cx23885 driver, but I can wait until you push it to Linus in the
+> >> > 2.6.32 merge window, then I'll backport & test it for -stable.
+> >>
+> >> Ok. I think I asked you once, but let me re-ask again: from what I was told, the
+> >> latest cx25840 firmware (the one that Conexant give us the distribution rights)
+> >> seems to be common to several cx25840-based chips.
+> >
+> > Well, I know they are all very similar. Â I also know that the firmware
+> > for the CX23418's integrated A/V Core *is different* from the
+> > CX2584[0123]'s firmware. Â The differences are subtle, but it is
+> > different. Â For example, compare
+> > cx25840/cx25840-core.c:log_audio_status() with
+> > cx18/cx18-av-core.c:log_audio_status().
+> >
+> > I know the CX23418 A/V Core firmware isn't at issue with this change,
+> > but the situation between the CX2584[0123], CX2388[578], and CX2310[12]
+> > firmwares is likely similar.
+> >
+> > Even if the firmwares are identical now, there is nothting inhbiting
+> > Conexant from releasing firmware fixes for the CX2310[12] that are not
+> > applicable to, and just wrong for, the CX25843 for example.
+> >
+> >
+> >> Â It would be really good if
+> >> we can test it with all devices, especially since distros will add it on their
+> >> firmware packages, as they are at the firmware -git
+> >
+> > Working through the set of test vectors, that includes all the Worldwide
+> > audio standards, while looking for subtle differences or malfunctions,
+> > is likely more work than any perceived savings of using a single
+> > firmware image. Â How can anyone even tell if anything is misdetected
+> > without professional TV standards signal generation equipment? Â What if
+> > using the wrong firmware introduces only an intermittent audio standard
+> > misdetection on that core?
+> >
+> > I'll assert we'll never be able to declare a reasonable testing success
+> > for using an audio standard autodetection firmware not specifically
+> > designated by Conexant to be for a particular Conexant A/V digitizer
+> > core. Â The core always ends up with subtle differences when integrated
+> > into another chip.
+> >
+> > I suppose one exception is if a "cmp" of two officially designated
+> > firmware images show the images as being identical, then obviously that
+> > images can be shared between those cores.
+> >
+> >
+> > I assume licensing is really the issue here. Â It is unfortunate.
+> > However, in my opinion, it is better for the user to know that his
+> > device is "broken" until he fetches the right firmware, than to spend
+> > hours debugging mystery audio problems because the user thinks he is
+> > using the "right" firmware when he is not.
+> >
+> > Oh well, I'll stop rambling now...
+> >
+> > Regards,
+> > Andy
+> 
+> Thanks, Andy -- That's exactly what I wanted to say, but you found the
+> words before I did.
+> 
+> I haven't played much with the cx231xx stuff yet to be able to
+> comment, but I already know for a fact that there is some stuff in the
+> cx23885 version of the firmware that does not apply to the other
+> variants.
+> 
+> While you might be able to make a device work by using the wrong
+> firmware, it wont necessarily work for all permutations of that
+> device, and wont necessarily support all features.
 
-> About, the half brightness picture, did that happens when autogain is off?
+The point is that there are three _identical_ firmwares, officially released by
+Conexant, with different names, for the same driver. To be worse, on some
+places, different versions than the last official set is being used. IMO, using
+a different version than the last official one can be the real cause of
+troubles that such patch wants to address.
 
-Yes, I tried to switch the "Auto Gain" control off before starting a measurement.
-The half brightness pictures appears time to time.
+I never said we should try to use a different firmware than what's provided by
+the manufacturer. I'm saying just the reverse: let's trust on the firmwares
+provided by them, but, as we found that there are different versions on it,
+we need to rename them to be sure that the right firmware version will be used.
 
-Regards,
+Also, while we have identical firmwares, we should identify identical firmwares
+identically.
 
-	Márton Németh
+> Best off to leave it as-is.  Do not attempt to merge the firmware's
+> into one.  Let the device driver maintainer make that decision.  If
+> the cx231xx driver were compatible with the default cx25840 firmware,
+> then they wouldn't have created a new filename for it.  cx23885
+> certainly needs a newer version of the firmware, which happens to be
+> backwards compatible with the older cx25840 parts, but just as Andy
+> mentioned, who is to say that a newer firmware might not come out that
+> causes problem with legacy components?
 
-> Best Regards
-> On Sat, Sep 12, 2009 at 2:16 AM, Németh Márton <nm127@freemail.hu> wrote:
->> Hello,
->>
->> thank you for looking at this topic.
->>
->> leandro Costantino wrote:
->>>> Hi ,
->>>> i tested it with 2.6.31-rc9 & libvl 0.6.1 + svv  and cannot reproduce.
->>>>
->>>> 301147.626826] gspca: probing 093a:2626
->>>> [301147.641578] gspca: probe ok
->>>> [301147.641607] gspca: probing 093a:2626
->>>> [301147.641770] gspca: probing 093a:2626
->>>> [301147.641829] usbcore: registered new interface driver pac7311
->>>> [301147.641835] pac7311: registered
->> I have the same dmesg output. My Labtec Webcam 2200 has the following labels
->> on the cable:
->>
->> M/N: V-UCE52
->> P/N: 860-000073
->> PID: CE73902
->>
->> Maybe there is more than one revision of the Labtec Webcam 2200 and I have
->> one with a different hardware/firmware inside?
->>
->>>> Could you try testing with svv.c app?
->> I used a bit modified svv.c to create the measurement result. The
->> modifications are to create the output HTML report and save the raw
->> and the BMP images. The display is not correct because I changed
->> the format from V4L2_PIX_FMT_RGB24 to V4L2_PIX_FMT_BGR24 to easily
->> save the result to BMP. The source code quality is not the best,
->> I am sorry about that, but I can still attach my source code which I
->> modified a little bit since my last report.
->>
->>>> pd: quality is not the best, but works ok. Seem that the format is not
->>>> the proper or expected "pjpeg" on your streaming.
->> Do you think about USB transfer problem?
->>
->> Regards,
->>
->>        Márton Németh
->>
->>>> 2009/9/11 Németh Márton <nm127@freemail.hu>:
->>>>>> Márton Németh wrote:
->>>>>>>> Hi,
->>>>>>>>
->>>>>>>> I have a Labtec Webcam 2200 and I have problems with the image quality
->>>>>>>> with Linux 2.6.31 + libv4l 0.6.1. I made some experiments and stored
->>>>>>>> each captured image as raw data and when libv4l was able to convert
->>>>>>>> then I also stored the result as bmp.
->>>>>>>>
->>>>>>>> You can find my results at http://v4l-test.sourceforge.net/results/test-20090911/index.html
->>>>>>>> There are three types of problems:
->>>>>>>>  a) Sometimes the picture contains a 8x8 pixel error, like in image #9
->>>>>>>>     http://v4l-test.sourceforge.net/results/test-20090911/index.html#img00009
->>>>>>>>  b) Sometimes the brightness of the half picture is changed, like in
->>>>>>>>     images #7, #36 and #37
->>>>>>>>     http://v4l-test.sourceforge.net/results/test-20090911/index.html#img00007
->>>>>>>>     http://v4l-test.sourceforge.net/results/test-20090911/index.html#img00036
->>>>>>>>     http://v4l-test.sourceforge.net/results/test-20090911/index.html#img00037
->>>>>>>>  c) Sometimes the libv4l cannot convert the raw image and the errno
->>>>>>>>     is set to EAGAIN (11), for example image #1, #2 and #3
->>>>>>>>
->>>>>>>> Do you know how can I fix these problems?
->>>>>> I investigated the c) point a little bit. When I get a negative return value
->>>>>> from the v4lconvert_convert() function then I print out the error message what the
->>>>>> v4lconvert_get_error_message() function returns. With the result log file
->>>>>> I executed a "grep v4l-convert |sort |uniq" command. All the error messages are
->>>>>> coming from the tinyjpeg.c (Small jpeg decoder library):
->>>>>>
->>>>>> v4l-convert: error decompressing JPEG: error: more then 63 AC components (65) in huffman unit
->>>>>> v4l-convert: error decompressing JPEG: error: more then 63 AC components (66) in huffman unit
->>>>>> v4l-convert: error decompressing JPEG: error: more then 63 AC components (67) in huffman unit
->>>>>> v4l-convert: error decompressing JPEG: error: more then 63 AC components (68) in huffman unit
->>>>>> v4l-convert: error decompressing JPEG: error: more then 63 AC components (69) in huffman unit
->>>>>> v4l-convert: error decompressing JPEG: error: more then 63 AC components (70) in huffman unit
->>>>>> v4l-convert: error decompressing JPEG: error: more then 63 AC components (71) in huffman unit
->>>>>> v4l-convert: error decompressing JPEG: error: more then 63 AC components (72) in huffman unit
->>>>>> v4l-convert: error decompressing JPEG: error: more then 63 AC components (73) in huffman unit
->>>>>> v4l-convert: error decompressing JPEG: error: more then 63 AC components (75) in huffman unit
->>>>>> v4l-convert: error decompressing JPEG: error: more then 63 AC components (76) in huffman unit
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x00
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x01
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x02
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x04
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x08
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x09
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x0a
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x10
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x12
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x14
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x1a
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x1b
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x1c
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x1f
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x80
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x82
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x87
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x88
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x89
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x8a
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x8b
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x8c
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x8d
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x8e
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x8f
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x90
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x91
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x92
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x93
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x94
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x95
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x96
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x97
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x99
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x9b
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x9c
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x9d
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x9e
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x9f
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xa3
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xa5
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xa6
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xa7
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xa9
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xaa
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xab
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xad
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xaf
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xb3
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xb5
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xb7
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xb8
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xb9
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xbc
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xbd
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xbe
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xbf
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xc0
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xc4
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xc6
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xc7
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xc9
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xcb
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xcc
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xcf
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xd1
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xd2
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xd3
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xd4
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xdc
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xdf
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xe5
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xe7
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xe8
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xea
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xeb
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xec
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xf0
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xf2
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xf4
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xf5
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xf8
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xf9
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xfa
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xfc
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xfe
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xff
->>>>>> v4l-convert: error decompressing JPEG: Pixart JPEG error, stream does not end with EOF marker
->>>>>> v4l-convert: error decompressing JPEG: unknown huffman code: 0000ff81
->>>>>> v4l-convert: error decompressing JPEG: unknown huffman code: 0000ffec
->>>>>> v4l-convert: error decompressing JPEG: unknown huffman code: 0000ffff
->>>>>>
->>>>>> Regards,
->>>>>>
->>>>>>        Márton Németh
+>From what we know:
+a9f8f5d901a7fb42f552e1ee6384f3bb  v4l-cx231xx-avcore-01.fw
+a9f8f5d901a7fb42f552e1ee6384f3bb  v4l-cx23885-avcore-01.fw
+a9f8f5d901a7fb42f552e1ee6384f3bb  v4l-cx23885-enc.fw
+dadb79e9904fc8af96e8111d9cb59320  v4l-cx25840.fw
+
+cx23885-enc, cx23885-avcore1 and cx231xx-avcore-01 are just three different
+names for the same firmware. So, while Conexant doesn't ship a different
+firmware for one of those devices, IMO, we should rename all of them to one
+unique name, adding a version note after the name. 
+
+So, if Conexant provides us some revision tag, the better is to use it:
+
+v4l-cx25840 ===> cx25840-x0.y0.z0.fw	(dadb79e9904fc8af96e8111d9cb59320)
+v4l-cx23*   ===> cx23xxx-x1.y1.z1.fw	(a9f8f5d901a7fb42f552e1ee6384f3bb)
+
+(being x0.y0.z0 and x1.y1.z1 the revision marks from the manufacturer)
+
+As a fallback alternative, we could add a "yearmonth" tag at the end of the
+firmware name, being the date where Conexant sent us the firmware. 
+
+So, as we've received this firmware in Mar, 18 2009, we could name them as:
+
+v4l-cx25840 ===> cx25840-200903.fw	(dadb79e9904fc8af96e8111d9cb59320)
+v4l-cx23*   ===> cx23xxx-200903.fw	(a9f8f5d901a7fb42f552e1ee6384f3bb)
+
+
+
+Cheers,
+Mauro
