@@ -1,71 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:48819 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754757AbZIANoX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2009 09:44:23 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
-Subject: Re: How to efficiently handle DMA and cache on ARMv7 ? (was "Is get_user_pages() enough to prevent pages from being swapped out ?")
-Date: Tue, 1 Sep 2009 15:43:48 +0200
-Cc: Steven Walter <stevenrwalter@gmail.com>,
-	David Xiao <dxiao@broadcom.com>,
-	Ben Dooks <ben-linux@fluff.org>,
-	Hugh Dickins <hugh.dickins@tiscali.co.uk>,
-	Robin Holt <holt@sgi.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"v4l2_linux" <linux-media@vger.kernel.org>,
-	"linux-arm-kernel@lists.arm.linux.org.uk"
-	<linux-arm-kernel@lists.arm.linux.org.uk>
-References: <200908061208.22131.laurent.pinchart@ideasonboard.com> <e06498070908250553h5971102x6da7004495abb911@mail.gmail.com> <20090901132824.GN19719@n2100.arm.linux.org.uk>
-In-Reply-To: <20090901132824.GN19719@n2100.arm.linux.org.uk>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200909011543.48439.laurent.pinchart@ideasonboard.com>
+Received: from bombadil.infradead.org ([18.85.46.34]:42890 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750844AbZIGMx6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Sep 2009 08:53:58 -0400
+Date: Mon, 7 Sep 2009 09:53:26 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+Cc: Michael Krufky <mkrufky@kernellabs.com>,
+	linuxtv-commits@linuxtv.org, Jarod Wilson <jarod@wilsonet.com>,
+	Hans Verkuil via Mercurial <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mike Isely <isely@isely.net>
+Subject: Re: [linuxtv-commits] [hg:v4l-dvb] cx25840: fix determining the
+ firmware name
+Message-ID: <20090907095326.3cb7a3d0@caramujo.chehab.org>
+In-Reply-To: <8103ad500909070044r3a04d36bu80e65357ceaf533@mail.gmail.com>
+References: <E1MiTfS-0001LQ-SU@mail.linuxtv.org>
+	<37219a840909041105u7fe714aala56893566d93cdc3@mail.gmail.com>
+	<20090907021002.2f4d3a57@caramujo.chehab.org>
+	<37219a840909062220p3ae71dc0t4df96fd140c5c7b4@mail.gmail.com>
+	<20090907030652.04e2d2a3@caramujo.chehab.org>
+	<8103ad500909070044r3a04d36bu80e65357ceaf533@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 01 September 2009 15:28:24 Russell King - ARM Linux wrote:
-> On Tue, Aug 25, 2009 at 08:53:29AM -0400, Steven Walter wrote:
-> > On Thu, Aug 6, 2009 at 6:25 PM, Russell King - ARM
-> > Linux<linux@arm.linux.org.uk> wrote:
-> > [...]
-> >
-> > > As far as userspace DMA coherency, the only way you could do it with
-> > > current kernel APIs is by using get_user_pages(), creating a
-> > > scatterlist from those, and then passing it to dma_map_sg().  While the
-> > > device has ownership of the SG, userspace must _not_ touch the buffer
-> > > until after DMA has completed.
-> >
-> > [...]
-> >
-> > Would that work on a processor with VIVT caches?  It seems not.  In
-> > particular, dma_map_page uses page_address to get a virtual address to
-> > pass to map_single().  map_single() in turn uses this address to
-> > perform cache maintenance.  Since page_address() returns the kernel
-> > virtual address, I don't see how any cache-lines for the userspace
-> > virtual address would get invalidated (for the DMA_FROM_DEVICE case).
->
-> You are correct.
->
-> > If that's true, then what is the correct way to allow DMA to/from a
-> > userspace buffer with a VIVT cache?  If not true, what am I missing?
->
-> I don't think you read what I said (but I've also forgotten what I did
-> say).
->
-> To put it simply, the kernel does not support DMA direct from userspace
-> pages.  Solutions which have been proposed in the past only work with a
-> sub-set of conditions (such as the one above only works with VIPT
-> caches.)
+Em Mon, 7 Sep 2009 10:44:11 +0300
+Konstantin Dimitrov <kosio.dimitrov@gmail.com> escreveu:
 
-I might be missing something obvious, but I fail to see how VIVT caches could 
-work at all with multiple mappings. If a kernel-allocated buffer is DMA'ed to, 
-we certainly want to invalidate all cache lines that store buffer data. As the 
-cache doesn't care about physical addresses we thus need to invalidate all 
-virtual mappings for the buffer. If the buffer is mmap'ed in userspace I don't 
-see how that would be done.
+> On Mon, Sep 7, 2009 at 9:06 AM, Mauro Carvalho
+> Chehab<mchehab@infradead.org> wrote:
+> > Em Mon, 7 Sep 2009 01:20:33 -0400
+> > Michael Krufky <mkrufky@kernellabs.com> escreveu:
+> >
+> >> On Mon, Sep 7, 2009 at 1:10 AM, Mauro Carvalho
+> >> Chehab<mchehab@infradead.org> wrote:
+> >> > Em Fri, 4 Sep 2009 14:05:31 -0400
+> >> > Michael Krufky <mkrufky@kernellabs.com> escreveu:
+> >> >
+> >> >> Mauro,
+> >> >>
+> >> >> This fix should really go to Linus before 2.6.31 is released, if
+> >> >> possible.  It also should be backported to stable, but I need it in
+> >> >> Linus' tree before it will be accepted into -stable.
+> >> >>
+> >> >> Do you think you can slip this in before the weekend?  As I
+> >> >> understand, Linus plans to release 2.6.31 on Saturday, September 5th.
+> >> >>
+> >> >> If you dont have time for it, please let me know and I will send it in myself.
+> >> >>
+> >> >
+> >> > This patch doesn't apply upstream:
+> >> >
+> >> > $ patch -p1 -i 12613.patch
+> >> > patching file drivers/media/video/cx25840/cx25840-firmware.c
+> >> > Hunk #5 FAILED at 107.
+> >> > 1 out of 5 hunks FAILED -- saving rejects to file drivers/media/video/cx25840/cx25840-firmware.c.re
+> >>
+> >>
+> >> OK, this is going to need a manual backport.  This does fix an issue
+> >> in 2.6.31, and actually affects all kernels since the appearance of
+> >> the cx23885 driver, but I can wait until you push it to Linus in the
+> >> 2.6.32 merge window, then I'll backport & test it for -stable.
+> >
+> > Ok. I think I asked you once, but let me re-ask again: from what I was told, the
+> > latest cx25840 firmware (the one that Conexant give us the distribution rights)
+> > seems to be common to several cx25840-based chips. It would be really good if
+> 
+> i also noticed that 3 firmwares with different file names and used by
+> different drivers:
+> 
+> - "v4l-cx23418-dig.fw" used by "cx18" driver, available here:
+> http://dl.ivtvdriver.org/ivtv/firmware/cx18-firmware.tar.gz 
 
--- 
-Laurent Pinchart
+Conexant sent me in March a set of firmwares, that are available at both
+firmware -git tree and at:
+	http://linuxtv.org/downloads/firmware/
+
+They sent it together with the distribution rights as stated at the README file.
+
+However, the firmware versions have a different md5sum:
+
+a9f8f5d901a7fb42f552e1ee6384f3bb  v4l-cx231xx-avcore-01.fw
+a9f8f5d901a7fb42f552e1ee6384f3bb  v4l-cx23885-avcore-01.fw
+a9f8f5d901a7fb42f552e1ee6384f3bb  v4l-cx23885-enc.fw
+
+(the three above are the same firmware and are 3 different names supported at
+cx23885 driver)
+
+dadb79e9904fc8af96e8111d9cb59320  v4l-cx25840.fw
+
+This one is different.
+
+Maybe a better strategy would be to name the firmware by versions, since maybe
+the differences are just the firmware version for each.
+
+> and includes notice about distribution permission from Conexant too
+> 
+> - "v4l-cx23885-avcore-01.fw" used by "cx23885" driver
+> 
+> - "v4l-cx25840.fw" used by "cx25840" driver
+> 
+> have exactly the same md5sum: b3704908fd058485f3ef136941b2e513 and
+> actually are the same firmware.
+
+Yes. That's the point. So, a patch like this is incomplete  or useless due to
+one of the reasons bellow:
+
+1) the firmware doesn't work with some devices that could require a different version;
+
+2) some earlier steppings of some chips require a different firmware;
+
+3) Some of the firmwares supplied by the vendor are incorrect;
+
+4) The new firmware works fine with all devices.
+
+So, we need to test the firmware with md5sum: b3704908fd058485f3ef136941b2e513
+with all device types to be sure and to provide the proper fix that could
+require renaming some of those firmwares or just use one firmware name for all.
+
+I remember I asked both Mikes (Michael Krufky and Mike Isely) on March for some
+tests with the new firmware. I'm not sure if they had some time for testing it.
+
+It would be interesting the feedback also from the users to report if the
+March, 2009 firmwares work with their devices and, if not, what firmwares work.
+
+Cheers,
+Mauro
