@@ -1,35 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:55419 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754194AbZIJUaP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Sep 2009 16:30:15 -0400
-Received: by fxm17 with SMTP id 17so389650fxm.37
-        for <linux-media@vger.kernel.org>; Thu, 10 Sep 2009 13:30:17 -0700 (PDT)
+Received: from mail.fouter.net ([87.194.154.38]:49717 "EHLO mail.fouter.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750780AbZIGTbp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Sep 2009 15:31:45 -0400
+Received: from mail.fouter.net (localhost [127.0.0.1])
+	by mail.fouter.net (Postfix at FouterNet) with ESMTP id D48B04102
+	for <linux-media@vger.kernel.org>; Mon,  7 Sep 2009 20:23:44 +0100 (BST)
+Received: from [192.168.46.100] (penguin.lingbrae [192.168.46.100])
+	by mail.fouter.net (Postfix at FouterNet) with ESMTPSA id 9363B40C4
+	for <linux-media@vger.kernel.org>; Mon,  7 Sep 2009 20:23:44 +0100 (BST)
+Message-ID: <4AA55DC0.1010907@fouter.net>
+Date: Mon, 07 Sep 2009 20:23:44 +0100
+From: Dick Middleton <dick@fouter.net>
+Reply-To: dick@fouter.net
 MIME-Version: 1.0
-Date: Thu, 10 Sep 2009 22:30:17 +0200
-Message-ID: <3c031ccc0909101330p47b355e1vc95938ccbf99df90@mail.gmail.com>
-Subject: TeVii S650 DVB-S2 USB und s2-liplianin drivers
-From: crow <crow@linux.org.ba>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Subject: Terratec Cinergy T USB XXS
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi,
-I tried today s2-liplianin drivers with tevii s650 and vdr cant lock
-any channels with this error msg:
 
-<---snip---->
-<6>stv0900_search: <7><6>Search Fail
-stv0900_read_status: <7>DEMOD LOCK FAIL
-stv0900_read_status: <7>DEMOD LOCK FAIL
-<6>stb0900_set_property(..)
-<6>stv0900_set_tone: On
-<---snip--->
+	Just bought one of these.  It has USB ID: 0xcccd:0x00ab which is not the same 
+product code as mentioned in the wiki 0xcccd:0x0078.
 
-Then i found from old installation compiled drivers from rev12458 and
-installed it and everything work fine
-(s2-liplianin-hg-12458-1-i686.pkg.tar.gz).
+This difference prevents driver from recognising the device.
 
-I am on archlinux x86 with 2.6.30.5-1 kernel
+I see there are others on this list with the same problem.
+
+Does anybody know anything about this and what can be done to get it to work?
+
+Dick
+
+
