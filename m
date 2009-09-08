@@ -1,61 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:45588 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932543AbZINSMw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Sep 2009 14:12:52 -0400
-Date: Mon, 14 Sep 2009 15:12:16 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [ANOUNCE] Staging trees at V4L/DVB trees
-Message-ID: <20090914151216.5a29a171@pedra.chehab.org>
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940436BA556F@dbde02.ent.ti.com>
-References: <20090913210841.6a4db925@caramujo.chehab.org>
-	<19F8576C6E063C45BE387C64729E73940436BA556F@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-ew0-f206.google.com ([209.85.219.206]:35482 "EHLO
+	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752540AbZIHNFN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Sep 2009 09:05:13 -0400
+MIME-Version: 1.0
+In-Reply-To: <20090903083600.GA7235@n2100.arm.linux.org.uk>
+References: <200908061208.22131.laurent.pinchart@ideasonboard.com>
+	 <e06498070908250553h5971102x6da7004495abb911@mail.gmail.com>
+	 <20090901132824.GN19719@n2100.arm.linux.org.uk>
+	 <200909011543.48439.laurent.pinchart@ideasonboard.com>
+	 <20090902151044.GG30183@localhost>
+	 <20090903083600.GA7235@n2100.arm.linux.org.uk>
+Date: Tue, 8 Sep 2009 09:05:14 -0400
+Message-ID: <e06498070909080605sf11681en7ac55ddc024332e4@mail.gmail.com>
+Subject: Re: How to efficiently handle DMA and cache on ARMv7 ? (was "Is
+	get_user_pages() enough to prevent pages from being swapped out ?")
+From: Steven Walter <stevenrwalter@gmail.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Imre Deak <imre.deak@nokia.com>,
+	ext Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	David Xiao <dxiao@broadcom.com>,
+	Ben Dooks <ben-linux@fluff.org>,
+	Hugh Dickins <hugh.dickins@tiscali.co.uk>,
+	Robin Holt <holt@sgi.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	v4l2_linux <linux-media@vger.kernel.org>,
+	"linux-arm-kernel@lists.arm.linux.org.uk"
+	<linux-arm-kernel@lists.arm.linux.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 14 Sep 2009 22:51:44 +0530
-"Hiremath, Vaibhav" <hvaibhav@ti.com> escreveu:
+On Thu, Sep 3, 2009 at 4:36 AM, Russell King - ARM
+Linux<linux@arm.linux.org.uk> wrote:
+> On Wed, Sep 02, 2009 at 06:10:44PM +0300, Imre Deak wrote:
+>> To my understanding buffers returned by dma_alloc_*, kmalloc, vmalloc
+>> are ok:
+>
+> For dma_map_*, the only pages/addresses which are valid to pass are
+> those returned by get_free_pages() or kmalloc.  Everything else is
+> not permitted.
+>
+> Use of vmalloc'd and dma_alloc_* pages with the dma_map_* APIs is invalid
+> use of the DMA API.  See the notes in the DMA-mapping.txt document
+> against "dma_map_single".
 
-> > -----Original Message-----
-> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> > owner@vger.kernel.org] On Behalf Of Mauro Carvalho Chehab
-> > Sent: Monday, September 14, 2009 5:39 AM
-> > To: linux-media@vger.kernel.org
-> > Subject: [ANOUNCE] Staging trees at V4L/DVB trees
-> > 
-> > Probably some of you already noticed that we're creating some
-> > staging trees at
-> > V4L/DVB trees.
-> > 
-> > There are currently 2 staging trees:
-> > 
-> > 1) /linux/drivers/staging - With drivers that aren't ready yet for
-> > merge, needing
-> > help for being finished.
-> > 
-> [Hiremath, Vaibhav] Hi Mauro,
-> 
-> As you know I am also working on OMAP3 V4L2 display driver and posted initial patches (Posted by myself and Hardik Shah) to the community which went through couple of review cycles. Since it was having dependency on DSS2 library being developed by and at Nokia (Tomi) we decided to wait for it to be accepted. 
-> 
-> Now DSS2 has already being submitted to the community and will make his way to mainline soon. 
-> 
-> Do you want me to submit the OMAP3 DSS driver for staging tree, this would be really good candidate for this. I will make sure that it stays updated and tested till DSS2 gets accepted.
-> 
-> Please let me know your inputs, if you feel it should be done then I will submit patch tomorrow as soon as I get into office.
+Actually, DMA-mapping.txt seems to explicitly say that it's allowed to
+use pages allocated by vmalloc:
 
-Hmm... if it has dependency with another tree, this may be a problem since my
-intention is to merge the three drivers we have currently at kernel
-drivers/staging (in fact two of them, since go7007 is already there), but, if
-they compile fine, even without DSS2 library (is it a kernel library?), then,
-that's fine for staging.
+"It is possible to DMA to the _underlying_ memory mapped into a
+vmalloc() area, but this requires walking page tables to get the
+physical addresses, and then translating each of those pages back to a
+kernel address using something like __va()."
 
+>> For user mappings I think you'd have to do an additional flush for
+>> the direct mapping, while the user mapping is flushed in dma_map_*.
+>
+> I will not accept a patch which adds flushing of anything other than
+> the kernel direct mapping in the dma_map_* functions, so please find
+> a different approach.
 
-
-Cheers,
-Mauro
+What's the concern here?  Just the performance overhead of the checks
+and additional flushes?  It seems much more desirable for the
+dma_map_* API to take care of potential cache aliases than to require
+every driver to manage it for itself.  After all, part of the purpose
+of the DMA API is to manage the cache maintenance around DMAs in an
+architecture-independent way.
+-- 
+-Steven Walter <stevenrwalter@gmail.com>
