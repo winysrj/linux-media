@@ -1,41 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:20584 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754455AbZILOsw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Sep 2009 10:48:52 -0400
-Received: by qw-out-2122.google.com with SMTP id 9so632867qwb.37
-        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 07:48:56 -0700 (PDT)
-Message-ID: <4AABB4C5.5020507@gmail.com>
-Date: Sat, 12 Sep 2009 10:48:37 -0400
-From: David Ellingsworth <david@identd.dyndns.org>
-Reply-To: david@identd.dyndns.org
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:64209 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753296AbZIHNlg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Sep 2009 09:41:36 -0400
+Received: by bwz19 with SMTP id 19so2203817bwz.37
+        for <linux-media@vger.kernel.org>; Tue, 08 Sep 2009 06:41:38 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org, klimov.linux@gmail.com
-Subject: [RFC/RFT 0/10] radio-mr800 patch series
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <200909080837.31989.hverkuil@xs4all.nl>
+References: <200909080837.31989.hverkuil@xs4all.nl>
+Date: Tue, 8 Sep 2009 09:41:38 -0400
+Message-ID: <829197380909080641q3ff2cd15r6150d36f2a4ee809@mail.gmail.com>
+Subject: Re: Volunteer for V4L2+Audio at Plumbers Conference?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-What follow is a series of patches to clean up the radio-mr800 driver. I 
-do _not_ have access to this device so these patches need to be tested. 
-These patches should apply to Mauro's git tree and against the 2.6.31 
-release kernel. The patches in this series are as follows:
+On Tue, Sep 8, 2009 at 2:37 AM, Hans Verkuil<hverkuil@xs4all.nl> wrote:
+> Hi all,
+>
+> I'm looking for a v4l-dvb developer who is at the Plumbers Conference to
+> attend the audio miniconference on Wednesday morning (see schedule here:
+> http://linuxplumbersconf.org/2009/schedule/) and to discuss ways of
+> synchronizing video and audio.
+>
+> I won't have time for that myself, and I also know very little about alsa.
+> But this is an open topic that we need to do something about and this
+> conference is a good place for that.
+>
+> Regards,
+>
+>        Hans
 
-1. radio-mr800: implement proper locking
-2. radio-mr800: simplify video_device allocation
-3. radio-mr800: simplify error paths in usb probe callback
-4. radio-mr800: remove an unnecessary local variable
-5. radio-mr800: simplify access to amradio_device
-6. radio-mr800: simplify locking in ioctl callbacks
-7. radio-mr800: remove device-removed indicator
-8. radio-mr800: turn radio on during first open and off during last close
-9. radio-mr800: preserve radio-state during suspend/resume
-10. radio-mr800: fix potential use after free
+Hello Hans,
 
-Each individual patch will follow in a separate email.
+I will be attending the audio seminars, since I have a keen interest
+in finally getting the audio and video streams properly associated for
+raw analog video (so that applications such as tvtime will work
+out-of-the-box).
 
-Regards,
+I would be happy to meet up with you afterward and share my notes.
 
-David Ellingsworth
+Cheers,
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
