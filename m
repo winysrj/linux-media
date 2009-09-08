@@ -1,45 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:35940 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754555AbZIANba (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2009 09:31:30 -0400
-Date: Tue, 1 Sep 2009 14:31:11 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: David Xiao <dxiao@broadcom.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Steven Walter <stevenrwalter@gmail.com>,
-	Ben Dooks <ben-linux@fluff.org>,
-	Hugh Dickins <hugh.dickins@tiscali.co.uk>,
-	Robin Holt <holt@sgi.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	v4l2_linux <linux-media@vger.kernel.org>,
-	"linux-arm-kernel@lists.arm.linux.org.uk"
-	<linux-arm-kernel@lists.arm.linux.org.uk>
-Subject: Re: How to efficiently handle DMA and cache on ARMv7 ? (was "Is
-	get_user_pages() enough to prevent pages from being swapped out ?")
-Message-ID: <20090901133110.GO19719@n2100.arm.linux.org.uk>
-References: <200908061208.22131.laurent.pinchart@ideasonboard.com> <e06498070908250553h5971102x6da7004495abb911@mail.gmail.com> <1251237768.8877.26.camel@david-laptop> <200908260117.27180.laurent.pinchart@ideasonboard.com> <1251307331.9535.16.camel@david-laptop>
+Received: from smtp28.orange.fr ([80.12.242.100]:3258 "EHLO smtp28.orange.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752734AbZIHIZq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Sep 2009 04:25:46 -0400
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2813.orange.fr (SMTP Server) with ESMTP id 4675E80000A6
+	for <linux-media@vger.kernel.org>; Tue,  8 Sep 2009 10:25:45 +0200 (CEST)
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2813.orange.fr (SMTP Server) with ESMTP id 3AE6180000AB
+	for <linux-media@vger.kernel.org>; Tue,  8 Sep 2009 10:25:45 +0200 (CEST)
+Received: from [192.168.1.11] (ANantes-551-1-19-82.w92-135.abo.wanadoo.fr [92.135.50.82])
+	by mwinf2813.orange.fr (SMTP Server) with ESMTP id 0F6BC80000A6
+	for <linux-media@vger.kernel.org>; Tue,  8 Sep 2009 10:25:45 +0200 (CEST)
+Message-ID: <4AA61508.9040506@gmail.com>
+Date: Tue, 08 Sep 2009 10:25:44 +0200
+From: Morvan Le Meut <mlemeut@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1251307331.9535.16.camel@david-laptop>
+To: linux-media@vger.kernel.org
+Subject: (Saa7134) Re: ADS-Tech Instant TV PCI, no remote support
+References: <4AA53C05.10203@gmail.com>
+In-Reply-To: <4AA53C05.10203@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 26, 2009 at 10:22:11AM -0700, David Xiao wrote:
-> Sorry for the confusion, page_address() indeed only returns kernel
-> virtual address; and in order to support VIVT cache maintenance for the
-> user space mappings, the dma_map_sg/dma_map_page() functions or even the
-> struct scatterlist do seem to have to be modified to pass in virtual
-> address, I think.
+Morvan Le Meut a écrit :
+> Hello all
+> This is an old card i bough by error ( wanted the DVB-T version ) but 
+> i tried it and i see a small problem :
+> The remote isn't supported. ( If it is, i wonder why my computer don't 
+> see it )
+>
+> I found an old patch to add remote support to it here :
+>
+> http://tfpsly.free.fr/Files/Instant_TV_PCI_remote/saa7134_patch_for_AdsInstantTVPCI.gz 
+>
+> ( The webpage talking about it is 
+> http://tfpsly.free.fr/francais/index.html?url=http://tfpsly.free.fr/Files/Instant_TV_PCI_remote/index.html 
+> in french )
+>
+> But since i found out long ago that i shouldn't even think of altering 
+> a source file, could someone adapt that old patch to correct this ? ( 
+> should be quick, i guess )
+>
+> Thanks.
+>
+>
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+Well, i'm trying it myself ( by hand, since the patch looks old ) :
+adding
+case SAA7134_BOARD_ADS_INSTANT_TV: at line 6659 in saa7134-cards.c
+(before "dev->has_remote = SAA7134_REMOTE_GPIO;" )
+is that correct ?
+but from the diff file i should add what seems to be the remote keycode 
+in saa7134-input.c
+"+static IR_KEYTAB_TYPE AdsInstantTvPci_codes[IR_KEYTAB_SIZE] = {
++    // Buttons are in the top to bottom physical order
++    // Some buttons return the same raw code, so they are currently 
+disabled
++    [ 127] = KEY_FINANCE,   // "release all keys" code - prevent 
+repeating enlessly a key
++   
++    [ 27 ] = KEY_POWER,"
+( and so on )
+ Since i didn't see other keycodes for the other cards, i guess this is 
+wrong, so where should i add them ?
+( i barely understand what i am doing right now :p )
 
-That's the wrong answer.  When DMA happens (and therefore these functions
-are called) the userspace context could already have been switched away,
-which means that any userspace address information is useless.
+Thanks
 
-Adding support to the existing DMA API functions so they can be used for
-userspace mapped pages is simply the wrong approach - most users of those
-functions are not concerned with userspace mapped pages at all, and adding
-that burden onto all those users is clearly sub-optimal.
 
-The right answer?  I don't think there is one (see my previous mail.)
