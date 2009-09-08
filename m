@@ -1,26 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx05.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.9])
-	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n8FGlTJ2004681
-	for <video4linux-list@redhat.com>; Tue, 15 Sep 2009 12:47:29 -0400
-Received: from mail-px0-f135.google.com (mail-px0-f135.google.com
-	[209.85.216.135])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n8FGlEJk031889
-	for <video4linux-list@redhat.com>; Tue, 15 Sep 2009 12:47:14 -0400
-Received: by pxi41 with SMTP id 41so375272pxi.30
-	for <video4linux-list@redhat.com>; Tue, 15 Sep 2009 09:47:13 -0700 (PDT)
+Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.5])
+	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n883XjcP025820
+	for <video4linux-list@redhat.com>; Mon, 7 Sep 2009 23:33:45 -0400
+Received: from mail-bw0-f209.google.com (mail-bw0-f209.google.com
+	[209.85.218.209])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n883XSLo029302
+	for <video4linux-list@redhat.com>; Mon, 7 Sep 2009 23:33:29 -0400
+Received: by bwz5 with SMTP id 5so2308874bwz.3
+	for <video4linux-list@redhat.com>; Mon, 07 Sep 2009 20:33:28 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20090915161531.GA3013@michaelblizek.twilightparadox.com>
-References: <25f5fcff0909150109s4a4b3f40tcab41dc78834006e@mail.gmail.com>
-	<20090915161531.GA3013@michaelblizek.twilightparadox.com>
-Date: Tue, 15 Sep 2009 22:17:13 +0530
-Message-ID: <25f5fcff0909150947k68699266q782647ed8b319397@mail.gmail.com>
-From: Niamathullah sharief <newbiesha@gmail.com>
-To: Michael Blizek <michi1@michaelblizek.twilightparadox.com>
+Date: Tue, 8 Sep 2009 00:33:28 -0300
+Message-ID: <fa40cc720909072033l5ec82188va19da7b06b943fa2@mail.gmail.com>
+From: Guilherme Raymo Longo <grlongo.ireland@gmail.com>
+To: video4linux-list@redhat.com
 Content-Type: text/plain; charset=ISO-8859-1
-Cc: kernelnewbies@nl.linux.org, video4linux-list@redhat.com
-Subject: Re: Missing main function
+Subject: VIDIOC_QUERYCAP: Invalid argument - app from scratch for an USB
+	GENIUS videoCAM Look 310p
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,73 +29,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-No actually i disabled the entire "gspca" in kernel config before compiling
-the kernel. The folder contains
+Good morning gentleman.
 
-* conex.c**
-*
-*etoms.c*
-*finepix.c*
-*gspca.c*
-*gspca.h*
-*jpeg.h*
-*Kconfig*
-*Makefile*
-*mars.c*
-*mr97310a.c*
-*ov519.c*
-*ov534.c*
-*pac207.c*
-*pac3711.c*
-*pac_common.h*
-*sonixb.c*
-*sonixj.c*
-*spca500.c*
-*spca501.c*
-*spca505.c*
-*spca506.c*
-*spca508.c*
-*spca561.c*
-*sq905.c*
-*sq905c.c*
-*stk014.c*
-*sunplus.c*
-*t613.c*
-*tv8532.c*
-*vc032x.c*
-*zc3xx.c*
-*zc3xx-reg.h*
+I am building my first driver from scratch and I am hanving a hard time
+trying to figure all the steps I have to follow to get to what I need to
+achieve.
 
-  This are the files in that folder which i disabled. In this gspca.c
-program the main function is missing.
+What I am trying to do now is to develop a application to activate my webcam
+and to start capturing!
 
-On Tue, Sep 15, 2009 at 9:45 PM, Michael Blizek <
-michi1@michaelblizek.twilightparadox.com> wrote:
+I am getting the following error trying to query the capabilities:
 
-> Hi!
->
-> On 13:39 Tue 15 Sep     , Niamathullah sharief wrote:
-> > Hi friends,
-> >    I am having the video drivers..ie "gspca.c, v4l1.compat.c,
-> v4l2-device.c,
-> > v4l2-ioctl.c,v4l2-dev.c".
-> >    When i tried to read all this programs but i didn't find main function
-> in
-> > any programs.
-> >    I don't know how this programs works. From where is the main function
-> for
-> > this programs.
-> >    I took this drivers from Version 2.6.30 kernel. Kindly help me.
->
-> You might be looking for "module_init". It defines a function which is
-> executed on kernel boot or module load time.
->
->        -Michi
-> --
-> programing a layer 3+4 network protocol for mesh networks
-> see http://michaelblizek.twilightparadox.com
->
->
+VIDIOC_QUERYCAP: Invalid argument
+
+I am implementing the video capturing interface and that is what I have got
+so far:
+http://pastebin.com/m4b5bdd36
+
+Could I get some help from here??
+My webcam is an usb Genius videoCAM look 310p
+I am using Slackware 13 and v4l2 api that I am following from here:
+http://v4l2spec.bytesex.org/spec/
+
+It works great on amsn and others applications so I presume I can develop I
+application to make it work!
+
+Thanks all in advanced!
+Guilherme Longo
+Software deloper
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
