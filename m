@@ -1,78 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:43135 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753005AbZIGMJy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Sep 2009 08:09:54 -0400
-Date: Mon, 7 Sep 2009 14:10:04 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Marek Vasut <marek.vasut@gmail.com>
-cc: Robert Jarzmik <robert.jarzmik@free.fr>,
-	Eric Miao <eric.y.miao@gmail.com>,
-	linux-arm-kernel@lists.arm.linux.org.uk,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mike Rapoport <mike@compulab.co.il>,
-	Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH] Add RGB555X and RGB565X formats to pxa-camera
-In-Reply-To: <200909071353.43080.marek.vasut@gmail.com>
-Message-ID: <Pine.LNX.4.64.0909071407530.6597@axis700.grange>
-References: <200908031031.00676.marek.vasut@gmail.com>
- <200909071050.11531.marek.vasut@gmail.com> <m2iqfvkqbl.fsf@arbois.toulouse.it.atosorigin.com>
- <200909071353.43080.marek.vasut@gmail.com>
+Received: from smtp2f.orange.fr ([80.12.242.151]:50855 "EHLO smtp2f.orange.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751292AbZIHQSG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Sep 2009 12:18:06 -0400
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2f14.orange.fr (SMTP Server) with ESMTP id E874080000A2
+	for <linux-media@vger.kernel.org>; Tue,  8 Sep 2009 18:18:06 +0200 (CEST)
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2f14.orange.fr (SMTP Server) with ESMTP id DB01A80000A7
+	for <linux-media@vger.kernel.org>; Tue,  8 Sep 2009 18:18:06 +0200 (CEST)
+Received: from [192.168.1.11] (ANantes-551-1-19-82.w92-135.abo.wanadoo.fr [92.135.50.82])
+	by mwinf2f14.orange.fr (SMTP Server) with ESMTP id 7730A80000A2
+	for <linux-media@vger.kernel.org>; Tue,  8 Sep 2009 18:18:06 +0200 (CEST)
+Message-ID: <4AA683BD.6070601@gmail.com>
+Date: Tue, 08 Sep 2009 18:18:05 +0200
+From: Morvan Le Meut <mlemeut@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: (Saa7134) Re: ADS-Tech Instant TV PCI, no remote support
+References: <4AA53C05.10203@gmail.com> <4AA61508.9040506@gmail.com> <op.uzxmzlj86dn9rq@crni> <4AA62C38.3050208@gmail.com> <4AA63434.1010709@gmail.com>
+In-Reply-To: <4AA63434.1010709@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 7 Sep 2009, Marek Vasut wrote:
+Morvan Le Meut a écrit :
+> Morvan Le Meut a écrit :
+>> Samuel Rakitnican a écrit :
+>>> On Tue, 08 Sep 2009 10:25:44 +0200, Morvan Le Meut 
+>>> <mlemeut@gmail.com> wrote:
+>>>
+>>>> Morvan Le Meut a écrit :
+>>>>> Hello all
+>>>>> This is an old card i bough by error ( wanted the DVB-T version ) 
+>>>>> but i tried it and i see a small problem :
+>>>>> The remote isn't supported. ( If it is, i wonder why my computer 
+>>>>> don't see it )
+>>>>>
+>>>>> I found an old patch to add remote support to it here :
+>>>>>
+>>>>> http://tfpsly.free.fr/Files/Instant_TV_PCI_remote/saa7134_patch_for_AdsInstantTVPCI.gz 
+>>>>> ( The webpage talking about it is 
+>>>>> http://tfpsly.free.fr/francais/index.html?url=http://tfpsly.free.fr/Files/Instant_TV_PCI_remote/index.html 
+>>>>> in french )
+>>>>>
+>>>>> But since i found out long ago that i shouldn't even think of 
+>>>>> altering a source file, could someone adapt that old patch to 
+>>>>> correct this ? ( should be quick, i guess )
+>>>>>
+>>>>> Thanks.
+>>>>>
+>>>>>
+>>>>> -- To unsubscribe from this list: send the line "unsubscribe 
+>>>>> linux-media" in
+>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>>
+>>>> Well, i'm trying it myself ( by hand, since the patch looks old ) :
+>>>> adding
+>>>> case SAA7134_BOARD_ADS_INSTANT_TV: at line 6659 in saa7134-cards.c
+>>>> (before "dev->has_remote = SAA7134_REMOTE_GPIO;" )
+>>>> is that correct ?
+>>>> but from the diff file i should add what seems to be the remote 
+>>>> keycode in saa7134-input.c
+>>>> "+static IR_KEYTAB_TYPE AdsInstantTvPci_codes[IR_KEYTAB_SIZE] = {
+>>>> +    // Buttons are in the top to bottom physical order
+>>>> +    // Some buttons return the same raw code, so they are 
+>>>> currently disabled
+>>>> +    [ 127] = KEY_FINANCE,   // "release all keys" code - prevent 
+>>>> repeating enlessly a key
+>>>> +   +    [ 27 ] = KEY_POWER,"
+>>>> ( and so on )
+>>>>  Since i didn't see other keycodes for the other cards, i guess 
+>>>> this is wrong, so where should i add them ?
+>>>> ( i barely understand what i am doing right now :p )
+>>>>
+>>>> Thanks
+>>>
+>>> Hi Morvan,
+>>>
+>>> I'm not a developer, however I've done someting similar in the past...
+>>>
+>>> This "keycodes" looks pretty strange to me, but then again I'm not a 
+>>> developer.
+>>>
+>>> Just add it by hand and compile it, and install it.
+>>>
+>>> After successful load of all new modules, you should get some 
+>>> response in terminal, or in dmesg output like "Unknown key..." if 
+>>> keymap table is wrong by pressing buttons on remote. If this gpio's 
+>>> are correct:
+>>>
+>>> +        mask_keycode = 0xffffff;
+>>> +        mask_keyup   = 0xffffff;
+>>> +        mask_keydown = 0xffffff;
+>>> +        polling      = 50; // ms
+>>>
+>> Still working on it, i found out where thoses keycodes should go :
+>> ir-keymaps.c
+>> i'm not a developer either, but i tried to learn C a few years ago
+>> so i'm not completly lost, i just can't understand what all that code 
+>> is doing ...
+>> But it is strange that such an old card had this lack of remote 
+>> support go unnoticed.
+>>
+>> ( I really have no luck when it come to TV cards : first, my PC Basic 
+>> EC168 card ( tnt usb basic v5 ) doesn't work where it should, then my 
+>> HVR-1120 works but not with mythtv and now the remote i wanted to use 
+>> isn't supported :D )
+>>
+>>
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe 
+>> linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+> /home/momo/TNT/v4l-dvb/v4l/saa7134-input.c: In function
+> 'saa7134_input_init1':
+> /home/momo/TNT/v4l-dvb/v4l/saa7134-input.c:655: error:
+> 'AdsInstantTvPci_codes' undeclared (first use in this function)
+>
+> guess i missed something, i'll have to wait for someone to correct it :)
+>
+>
+>
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+Since it doesn't work with thoses keycodes, i'm trying it with 
+"ir_codes_adstech_dvb_t_pci". I'm sure it won't work ( it would be toot 
+easy otherwise :D ) but since the remote looks the same ...
+If by chance it work, i'll try to better document what i did for someone 
+to write a patch. ( Or at least, to serve as a reminder the next time 
+i'll encounter the problem :) )
 
-> Dne Po 7. zÃ¡Å™Ã­ 2009 12:21:50 Robert Jarzmik napsal(a):
-> > Marek Vasut <marek.vasut@gmail.com> writes:
-> > > How's it supposed to get BGR555 if the pxa-camera doesnt support that ?
-> > > Will the v4l2 layer convert it or something ?
-> >
-> > In pxa_camera.c, function pxa_camera_get_formats() :
-> > >         default:
-> > >                 /* Generic pass-through */
-> > >                 formats++;
-> > >                 if (xlate) {
-> > >                         xlate->host_fmt = icd->formats + idx;
-> > >                         xlate->cam_fmt = icd->formats + idx;
-> > >                         xlate->buswidth = icd->formats[idx].depth;
-> > >                         xlate++;
-> > >                         dev_dbg(ici->dev,
-> > >                                 "Providing format %s in pass-through
-> > > mode\n", icd->formats[idx].name);
-> > >                 }
-> > >         }
-> >
-> > "Pass-through" means that if a sensors provides a cc, ie. BGR555 for
-> > example, the bridge (pxa_camera) will "forward" to RAM the image in the
-> > very same cc (ie. BGR555). In that case, the bridge is a dummy "sensor to
-> > RAM" bus translator if you prefer.
-> >
-> > Marek, you should activate debug trace and watch for yourself. You can
-> > trust Guennadi, when he says it will work, well ... it will work.
-> >
-> > If it's out of technical curiousity, check the function above.  If you're
-> > even more curious, there was a thread in linux-media about "RFC: bus
-> > configuration setup for sub-devices", a very interesting one, especially
-> > considering the "pass-through" issue.
-> 
-> That one should work for RGB565X ? (the piece of code you posted ?) It's 
-> interesting it didnt work for me ... ok, I'll take it it works then, whatever. 
-> I'll test it again when I have time.
 
-No, that one cannot work with rgb565x or any other format, not supported 
-by pxa directly and not complying to bus-width = bit-depth. But it will 
-work with the new imagebus API. Either see my explanations in a previous 
-mail, or check the patches I posted recently to the list.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
