@@ -1,27 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.5])
-	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n8BC7UJN004335
-	for <video4linux-list@redhat.com>; Fri, 11 Sep 2009 08:07:30 -0400
-Received: from mail-px0-f135.google.com (mail-px0-f135.google.com
-	[209.85.216.135])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n8BC7Kup011896
-	for <video4linux-list@redhat.com>; Fri, 11 Sep 2009 08:07:20 -0400
-Received: by pxi41 with SMTP id 41so81798pxi.30
-	for <video4linux-list@redhat.com>; Fri, 11 Sep 2009 05:07:20 -0700 (PDT)
+Received: from mx1.redhat.com (ext-mx09.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.13])
+	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n88IU0JR022219
+	for <video4linux-list@redhat.com>; Tue, 8 Sep 2009 14:30:00 -0400
+Received: from QMTA05.emeryville.ca.mail.comcast.net
+	(qmta05.emeryville.ca.mail.comcast.net [76.96.30.48])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n88IThZv025155
+	for <video4linux-list@redhat.com>; Tue, 8 Sep 2009 14:29:43 -0400
+Date: Tue, 8 Sep 2009 13:29:40 -0500 (CDT)
+From: rray_1@comcast.net
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+In-Reply-To: <829197380909081122r70f857bbr2b4369a2ab8d91f5@mail.gmail.com>
+Message-ID: <alpine.LRH.2.00.0909081327170.4833@rray2>
+References: <alpine.LRH.2.00.0909081237170.4833@rray2>
+	<4AA69AC6.8020103@swartzlander.org>
+	<829197380909081122r70f857bbr2b4369a2ab8d91f5@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <b89eadb20909110234v2b8ee579nc19eed163cc77463@mail.gmail.com>
-References: <25f5fcff0909110020m56f881d0q383aae1f5226476@mail.gmail.com>
-	<b89eadb20909110234v2b8ee579nc19eed163cc77463@mail.gmail.com>
-Date: Fri, 11 Sep 2009 17:37:19 +0530
-Message-ID: <25f5fcff0909110507y635aa97eg1d599710372a6e9e@mail.gmail.com>
-From: Niamathullah sharief <newbiesha@gmail.com>
-To: Steven Yao <yaohaiping.linux@gmail.com>
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: quoted-printable
-Cc: kernelnewbies@nl.linux.org, video4linux-list@redhat.com
-Subject: Re: About Webcam module
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: video4linux-list@redhat.com
+Subject: Re: NTSC/ATSC device recommendation
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,83 +31,47 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-No i am getting the following error
+On Tue, 8 Sep 2009, Devin Heitmueller wrote:
 
-root@sharief-desktop:/home/sharief# rmmod gspca_zc3xx
->
-ERROR: Module gspca_zc3xx is in use
->
-root@sharief-desktop:/home/sharief# rmmod gspca_main
->
-ERROR: Module gspca_main is in use by gspca_zc3xx
->
-root@sharief-desktop:/home/sharief#
-
-
-So i am confused how to check.
-if i check through "module -d "modulename". I am following things
-
-sharief@sharief-desktop:~$ modinfo -d gspca_zc3xx
->
-GSPCA ZC03xx/VC3xx USB Camera Driver
->
-sharief@sharief-desktop:~$ modinfo -d gspca_main
->
-GSPCA USB Camera Driver
->
-sharief@sharief-desktop:~$ modinfo -d videodev
->
-Device registrar for Video4Linux drivers v2
->
-sharief@sharief-desktop:~$ modinfo -d v4l1_compat
->
-v4l(1) compatibility layer for v4l2 drivers.
->
-sharief@sharief-desktop:~$
->
-
-So first two things are showing as camera driver. bur how it is possible.
-kindly help me
-
->
-
-
->
-> 2009/9/11 Steven Yao <yaohaiping.linux@gmail.com>
-
-> Hi Niamathullah sharief=A3=AC
->
->    i think you can use rmmod  to test which module is exactly for your
-> webcam.
->
-> Best regards
-> Steven Yao
->
-> 2009/9/11 Niamathullah sharief <newbiesha@gmail.com>
->
->> Hi friends,
->>    I have some doubts in video device driver. I have an Creative webcam
->> with me. After inserting the webcam i have seen the following modules
->> installed
->>
->> Module              Size       Used by
+> On Tue, Sep 8, 2009 at 1:56 PM, Ben Swartzlander<ben@swartzlander.org> wrote:
+>> rray_1@comcast.net wrote:
 >>>
->> gspca_zc3xx   55936      0
+>>> I would like to purchase a NTSC/ATSC device that is functional under Linux
+>>> MY only requirement is receiving FTA broadcast
+>>> Would y'all recommend a USB device or better to stick with a pci device
+>>> I have followed this list and have only become more confused
 >>>
->> gspca_main    29312       1   gspca_zc3xx
->>>
->> videodev        41344       1   gspca_main
->>>
->> v4l1_compat  22404       1   videodev
+>>> Thanks
+>>> Richard
 >>
+>> I have 2 Hauppauge WinTV-HVR-850 USB sticks in my MythTV box (Ubuntu 8.04).
+>> USB is preferable to PCI for all kinds of reasons. I bought mine here:
+>> http://www.newegg.com/Product/Product.aspx?Item=N82E16815116031
 >>
->> I dont know which module is exactly for my webcam? i am seeing 5 extra
->> module installed after inserting my webcam. I am confused. Can anyone he=
-lp
->> me?
+>> Note that if you go with this device, you'll need to manually add the
+>> firmware to your /lib/firmware directory. You can get the firmware here:
+>> http://www.steventoth.net/linux/xc5000/
 >>
+>> There are plenty of other supported devices though. When I was doing my
+>> research, this page was an extremely useful resource for Linux ATSC
+>> hardware: http://www.linuxtv.org/wiki/index.php/ATSC_Devices
 >>
+>> -Ben
 >
+> I'm really familiar with the HVR-850, and figured it would be worth
+> mentioning that the HVR-850 only very recently got analog support in
+> the Linux driver, and it has some issues with MythTV in particular
+> (which I haven't had a chance to fix yet).  So if you're planning on
+> doing analog with MythTV, that may not be a good device to go with
+> right now.
+>
+
+Thanks, that is the kind of info I was hoping for
+There are still low power analog stations in my area
+I would like a device that can reliably receive analog and digital
+
+Richard
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
