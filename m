@@ -1,16 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-ew0-f223.google.com ([209.85.219.223])
+Received: from mail-fx0-f228.google.com ([209.85.220.228])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <neonmann@gmail.com>) id 1MmPzu-0001Ee-OF
-	for linux-dvb@linuxtv.org; Sat, 12 Sep 2009 12:38:27 +0200
-Received: by ewy23 with SMTP id 23so1656012ewy.26
-	for <linux-dvb@linuxtv.org>; Sat, 12 Sep 2009 03:37:53 -0700 (PDT)
-Message-ID: <4AAB79F3.2040504@gmail.com>
-Date: Sat, 12 Sep 2009 12:37:39 +0200
-From: Juan Luis <neonmann@gmail.com>
-MIME-Version: 1.0
+	(envelope-from <spongelavapaul@googlemail.com>) id 1Ml01Z-0001Y9-UD
+	for linux-dvb@linuxtv.org; Tue, 08 Sep 2009 14:42:18 +0200
+Received: by fxm28 with SMTP id 28so1879977fxm.17
+	for <linux-dvb@linuxtv.org>; Tue, 08 Sep 2009 05:41:44 -0700 (PDT)
+Message-Id: <8138A3AA-5665-4A05-93F7-7A68D58E3E77@googlemail.com>
+From: Paul Thomas <spongelavapaul@googlemail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Using a CI/CAM module
+Mime-Version: 1.0 (Apple Message framework v936)
+Date: Tue, 8 Sep 2009 13:41:40 +0100
+Subject: [linux-dvb] Access to raw transport stream
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -19,17 +19,21 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"; DelSp="yes"
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi!
+Hi,
 
-I own a Hauppauge WinTV nova T, a USB stick-like tuner. My question is:
-Is possible to use a Common interface module with my PC own pcmcia slot?
-and if it could be done, which software could do it?
+I'm trying to decide what DVB-T card to get and I can't work out how  
+to tell if I'll be able to record entire transport streams (i.e.  
+without any demux). Could someone give me a recommendation please?  
+esp. will the Hauppage HVR-1200 let me do this?
+
+thanks,
+Paul.
 
 _______________________________________________
 linux-dvb users mailing list
