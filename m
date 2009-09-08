@@ -1,175 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:43324 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751038AbZIRIiL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Sep 2009 04:38:11 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [RFC] Global video buffers pool
-Date: Fri, 18 Sep 2009 10:39:17 +0200
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Cohen David Abraham <david.cohen@nokia.com>,
-	=?iso-8859-1?q?Koskip=E4=E4_Antti_Jussi_Petteri?=
-	<antti.koskipaa@nokia.com>,
-	"Zutshi Vimarsh (Nokia-D-MSW/Helsinki)" <vimarsh.zutshi@nokia.com>,
-	stefan.kost@nokia.com
-References: <200909161746.39754.laurent.pinchart@ideasonboard.com> <200909172319.24703.hverkuil@xs4all.nl> <20090917194542.5df9c65b@pedra.chehab.org>
-In-Reply-To: <20090917194542.5df9c65b@pedra.chehab.org>
+Received: from service2.sh.cvut.cz ([147.32.127.218]:55927 "EHLO
+	service2.sh.cvut.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754305AbZIHKcg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Sep 2009 06:32:36 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by service2.sh.cvut.cz (Postfix) with ESMTP id 04D6A3BFAC
+	for <linux-media@vger.kernel.org>; Tue,  8 Sep 2009 12:00:07 +0200 (CEST)
+Received: from service2.sh.cvut.cz ([127.0.0.1])
+	by localhost (service2.sh.cvut.cz [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 32311-01 for <linux-media@vger.kernel.org>;
+	Tue, 8 Sep 2009 11:59:59 +0200 (CEST)
+Received: from mykubuntu.localnet (unknown [217.11.226.9])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by service2.sh.cvut.cz (Postfix) with ESMTP id CAD823BF9E
+	for <linux-media@vger.kernel.org>; Tue,  8 Sep 2009 11:59:59 +0200 (CEST)
+To: linux-media@vger.kernel.org
+Subject: [PATCH] fix saa7134-input.c for IR controller over i2c
+From: =?utf-8?q?Luk=C3=A1=C5=A1_Karas?= <lukas.karas@centrum.cz>
+Date: Tue, 8 Sep 2009 11:59:58 +0200
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <200909181039.18012.laurent.pinchart@ideasonboard.com>
+Message-Id: <200909081159.58745.lukas.karas@centrum.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi All, 
+I have DVB card with IR controller connected over i2c bus (this card is 
+supported by module saa7134). This IR controller work mostly fine, bud when I 
+execute 
+rmmod ir-kbd-i2c and modprobe ir-kbd-i2c again, IR controller stops working.
+I found problem in aa7134-input.c, metod saa7134_probe_i2c_ir. 
 
-thanks for the review. A few comments.
+Please, see this:
 
-On Friday 18 September 2009 00:45:42 Mauro Carvalho Chehab wrote:
-> Em Thu, 17 Sep 2009 23:19:24 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+struct IR_i2c_init_data init_data; // inicialize init_data as local variable
+...
+info.platform_data = &init_data; // put pointer to local variable to 
+		// platform_data
+...
+i2c_new_device(&dev->i2c_adap, &info); // publish this for other modules
+...
+} // end of function, so kernel can use memory used for local variable again
 
-[snip]
+Here is my patch for fix this problem:
 
-> > > 4) As you've mentioned, a global set of buffers seem to be the better
-> > > alternative. This means that V4L2 core will take care of controlling
-> > > the pool, instead of leaving this task to the drivers. This makes
-> > > easier to have a boot-time parameter specifying the size of the memory
-> > > pool and will optimize memory usage. We may even have a Kconfig var
-> > > specifying the default size of the memory pool (although this is not
-> > > really needed, since new kernels allow specifying default line command
-> > > parameters).
-> >
-> > Different devices may have quite different buffer requirements (size,
-> > number of buffers). Would it be safe to have them all allocated from a
-> > global pool? I do not feel confident myself that I understand all the
-> > implications of a global pool or whether you actually always want that.
-> 
-> This is a problem with the pool concept. Even having the same driver,
->  you'll still be needing different resolutions, frame rates, formats and
->  bits per pixel on each /dev/video interface.
+Signed-off-by: Lukas Karas <lukas.karas@centrum.cz>
+--- ./video.2b49813f8482/saa7134/saa7134-input.c	2009-09-03 12:06:34.000000000 
++0200
++++ video/saa7134/saa7134-input.c	2009-09-07 00:51:46.000000000 +0200
+@@ -742,7 +808,7 @@ void saa7134_probe_i2c_ir(struct saa7134
+ {
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
+ 	struct i2c_board_info info;
+-	struct IR_i2c_init_data init_data;
++	struct IR_i2c_init_data *init_data;
+ 	const unsigned short addr_list[] = {
+ 		0x7a, 0x47, 0x71, 0x2d,
+ 		I2C_CLIENT_END
+@@ -770,7 +836,8 @@ void saa7134_probe_i2c_ir(struct saa7134
 
-That's right (the frame rate doesn't matter though), but not different memory 
-type (low-mem, non-cacheable, contiguous, ...) requirements. The only thing 
-that matters in the end is the number of buffers and their size. The pool 
-doesn't care about the formats and resolutions separately.
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
+ 	memset(&info, 0, sizeof(struct i2c_board_info));
+-	memset(&init_data, 0, sizeof(struct IR_i2c_init_data));
++	init_data = kzalloc(sizeof(struct IR_i2c_init_data), GFP_KERNEL);
+ 	strlcpy(info.type, "ir_video", I2C_NAME_SIZE);
 
->  I'm not sure how to deal.
+ #endif
+@@ -780,15 +847,15 @@ void saa7134_probe_i2c_ir(struct saa7134
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 30)
+ 		snprintf(ir->c.name, sizeof(ir->c.name), "Pinnacle PCTV");
+ #else
+-		init_data.name = "Pinnacle PCTV";
++		init_data->name = "Pinnacle PCTV";
+ #endif
+ 		if (pinnacle_remote == 0) {
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 30)
+ 			ir->get_key   = get_key_pinnacle_color;
+ 			ir->ir_codes = &ir_codes_pinnacle_color_table;
+ #else
+-			init_data.get_key = get_key_pinnacle_color;
+-			init_data.ir_codes = &ir_codes_pinnacle_color_table;
++			init_data->get_key = get_key_pinnacle_color;
++			init_data->ir_codes = &ir_codes_pinnacle_color_table;
+ 			info.addr = 0x47;
+ #endif
+ 		} else {
+@@ -796,8 +863,8 @@ void saa7134_probe_i2c_ir(struct saa7134
+ 			ir->get_key   = get_key_pinnacle_grey;
+ 			ir->ir_codes = &ir_codes_pinnacle_grey_table;
+ #else
+-			init_data.get_key = get_key_pinnacle_grey;
+-			init_data.ir_codes = &ir_codes_pinnacle_grey_table;
++			init_data->get_key = get_key_pinnacle_grey;
++			init_data->ir_codes = &ir_codes_pinnacle_grey_table;
+ 			info.addr = 0x47;
+ #endif
+ 		}
+@@ -808,9 +875,9 @@ void saa7134_probe_i2c_ir(struct saa7134
+ 		ir->get_key   = get_key_purpletv;
+ 		ir->ir_codes  = &ir_codes_purpletv_table;
+ #else
+-		init_data.name = "Purple TV";
+-		init_data.get_key = get_key_purpletv;
+-		init_data.ir_codes = &ir_codes_purpletv_table;
++		init_data->name = "Purple TV";
++		init_data->get_key = get_key_purpletv;
++		init_data->ir_codes = &ir_codes_purpletv_table;
+ #endif
+ 		break;
+ 	case SAA7134_BOARD_MSI_TVATANYWHERE_PLUS:
+@@ -819,9 +886,9 @@ void saa7134_probe_i2c_ir(struct saa7134
+ 		ir->get_key  = get_key_msi_tvanywhere_plus;
+ 		ir->ir_codes = &ir_codes_msi_tvanywhere_plus_table;
+ #else
+-		init_data.name = "MSI TV@nywhere Plus";
+-		init_data.get_key = get_key_msi_tvanywhere_plus;
+-		init_data.ir_codes = &ir_codes_msi_tvanywhere_plus_table;
++		init_data->name = "MSI TV@nywhere Plus";
++		init_data->get_key = get_key_msi_tvanywhere_plus;
++		init_data->ir_codes = &ir_codes_msi_tvanywhere_plus_table;
+ 		info.addr = 0x30;
+ 		/* MSI TV@nywhere Plus controller doesn't seem to
+ 		   respond to probes unless we read something from
+@@ -839,9 +906,9 @@ void saa7134_probe_i2c_ir(struct saa7134
+ 		ir->get_key   = get_key_hvr1110;
+ 		ir->ir_codes  = &ir_codes_hauppauge_new_table;
+ #else
+-		init_data.name = "HVR 1110";
+-		init_data.get_key = get_key_hvr1110;
+-		init_data.ir_codes = &ir_codes_hauppauge_new_table;
++		init_data->name = "HVR 1110";
++		init_data->get_key = get_key_hvr1110;
++		init_data->ir_codes = &ir_codes_hauppauge_new_table;
+ #endif
+ 		break;
+ 	case SAA7134_BOARD_BEHOLD_607FM_MK3:
+@@ -862,9 +929,21 @@ void saa7134_probe_i2c_ir(struct saa7134
+ 		ir->get_key   = get_key_beholdm6xx;
+ 		ir->ir_codes  = &ir_codes_behold_table;
+ #else
+-		init_data.name = "BeholdTV";
+-		init_data.get_key = get_key_beholdm6xx;
+-		init_data.ir_codes = &ir_codes_behold_table;
++		init_data->name = "BeholdTV";
++		init_data->get_key = get_key_beholdm6xx;
++		init_data->ir_codes = &ir_codes_behold_table;
+ #endif
+ 		break;
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 30)
+@@ -879,8 +958,9 @@ void saa7134_probe_i2c_ir(struct saa7134
+ 	}
 
-My idea was to have several groups of video buffers. You could allocate on 
-"large" group of low-resolution buffers for video preview, and a "small" group 
-of high-resolution buffers for still image capture. Video devices could then 
-pick buffers from one of those groups depending on their needs.
-
->  Maybe we'll need to allocate the buffers considering the worse case that
->  can be passed to the driver. For example, in the case of a kernel
->  parameter, it could be something like:
-> 	videobuf=buffers=32,size=256K
-> To allocate 32 buffers with 256K each. This way, even if application asks
->  for a smaller buffer, it will keep reserving 256K for each buffer. If bad
->  specified, memory will be wasted, but the memory will be there.
-> Eventually, after allocating that memory, some API could be provided for
-> example to rearrange the allocated space into 64 x 128K.
-
-We still need separate groups, otherwise we will waste too much memory. 5MP 
-sensors are common today, and the size will probably grow in the years to 
-come. We can't allocate 32 5MP buffers on an embedded system.
-
-> > > 5) The step to have a a global-wide video buffers pool allocation, as
-> > > you mentioned at the RFC, is to make sure that all drivers will use
-> > > v4l2 framework to allocate memory. So, this means porting a few drivers
-> > > (ivtv, uvcvideo, cx18 and gspca) to use videobuf. As videobuf already
-> > > supports all sorts of different memory types and configs (contig and
-> > > Scatter/Gather DMA, vmalloced buffers, mmap, userptr, read, overlay
-> > > modes), it should fits well on the needs.
-> >
-> > Why would I want to change ivtv for this? In fact, I see no reason to
-> > modify any of the existing drivers. A mc-wide or global memory pool is
-> > only of interest for very complex devices where you want to pass buffers
-> > around between various sub-devices (and possibly to other media devices
-> > or DSPs). And yes, they probably will have to use the framework in order
-> > to be able to coordinate these pools properly.
-> 
-> The issue here is not necessarely related to device complexity. It can be
-> motivated by other factors, for example:
-> 
-> 	- arch's with non-coherent cache;
-> 	- devices that aren't capable of doing DMA scatter/gather;
-> 	- high memory fragmentation.
-> 
-> Just as an example, I used an old laptop with "only" 256 Mb of ram, running
->  a new distro, when I started developing the tm6000 drivers. On that
->  hardware, I was needing buffers of about 600 KB each. It were very common
->  to not be able to allocate such buffers there, due to high memory
->  fragmentation, since the USB driver were trying to allocate a continuous
->  buffer on that hardware.
-> 
-> So, the same argument we used with the EMBEEDED Kconfig option also applies
->  here: it is not everything black or white. For example, surveillance
->  systems need to be very reliable. So, the possibility of allocating memory
->  during boot will help them.
-> 
-> Just to take a random real usecase, David Liontooth mentioned recently at
->  the ML his intention of maybe using ivtv hardware to capture TV signals at
->  remote locations, having the hardware minimally assisted. He mention the
->  needs of capturing data continuously for 15 hours. That means that the
->  machine will likely close devices and reopen once a day, during years. In
->  such application, a video buffer pool will for sure reduce the risk of
->  memory fragmentation on such systems, giving more reliability to the
->  system, especially if the hardware it will use requires continuous
->  buffers.
-> 
-> So, while I agree that it is not a mandatory requirement to port the
->  existing drivers to benefit with the memory pool, by not doing it, those
->  drivers will be less reliable than the other drivers on professional
->  usage.
-
-Good point. No need to be too clever though. I think that the memory pool 
-concept can be restricted to use cases where the user knows in advance what's 
-going to happen with the hardware. A video monitoring system is one of them, a 
-digital camera is another one. In those cases the system designer knows what 
-resolutions will be streamed at, and how many buffers will be needed. This 
-information can come from userspace or the kernel command line, and the memory 
-pool won't need to become a complete memory management system. An application 
-that wants to use buffers from the pool will the explicitly which set of 
-buffers it wants to use.
-
-> > > 6) As videobuf uses a common method of allocating memory, and all
-> > > memory requests passes via videobuf-core (videobuf_alloc function), the
-> > > implementation of a global-wide set of videobuffer means to touch on
-> > > just one function there, at the abstraction layer, and to double check
-> > > at the videobuf-dma-sg/videobuf-vmalloc/videobuf-contig if they don't
-> > > call directly their own allocation methods. If they do, a simple change
-> > > would be needed.
-> > >
-> > > 7) IMO, the better interface for it is to add some sysfs attributes to
-> > > media class, providing there the means to control the video buffer
-> > > pools. If the size of a video buffer pool is set to zero, it will use
-> > > normal memory allocation. Otherwise, it will work at the "pool mode".
-> >
-> > Or you use the existing API to request either MEMORY_MMAP or
-> > MEMORY_POOL_MMAP. So much cleaner than creating some random sysfs
-> > attribute.
-> 
-> The existing V4L2 API applies over a /dev/video device, not at videobuf or
->  V4L2 core level. As we want this at a core level, we need to apply it on a
->  different place.
-
-VIDIOC_REQBUFS/VIDIOC_QBUF/VIDIOC_DQBUF on the /dev/video device will need to 
-tell the driver to use buffers from the pool, so a new memory type is needed.
-
-> > > 8) By using videobuf, we can also export usage statistics via debugfs,
-> > > providing runtime statistics about how many memory is being used by
-> > > what drivers and /dev devices.
-> >
-> > Wouldn't procfs be more appropriate? I don't think debugfs is very
-> > common.
-> 
-> perf counters, strace, and other advanced monitoring tools use debugfs.
-
--- 
-Laurent Pinchart
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
+-	if (init_data.name)
+-		info.platform_data = &init_data;
++	if (init_data->name)
++		info.platform_data = init_data;
+ 	/* No need to probe if address is known */
+ 	if (info.addr) {
+ 		i2c_new_device(&dev->i2c_adap, &info);
