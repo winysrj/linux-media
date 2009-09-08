@@ -1,27 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx08.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.12])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n88AGUoO009347
-	for <video4linux-list@redhat.com>; Tue, 8 Sep 2009 06:16:30 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n88AGFdq003794
-	for <video4linux-list@redhat.com>; Tue, 8 Sep 2009 06:16:16 -0400
-Date: Tue, 8 Sep 2009 12:16:17 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-In-Reply-To: <uzl95vjum.wl%morimoto.kuninori@renesas.com>
-Message-ID: <Pine.LNX.4.64.0909081214040.4550@axis700.grange>
-References: <ueiqiw6mn.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0909080931160.4550@axis700.grange>
-	<u1vmhx20t.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0909081057570.4550@axis700.grange>
-	<uzl95vjum.wl%morimoto.kuninori@renesas.com>
+Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.5])
+	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n88HjP2L011184
+	for <video4linux-list@redhat.com>; Tue, 8 Sep 2009 13:45:25 -0400
+Received: from QMTA05.westchester.pa.mail.comcast.net
+	(qmta05.westchester.pa.mail.comcast.net [76.96.62.48])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n88HjCU0021933
+	for <video4linux-list@redhat.com>; Tue, 8 Sep 2009 13:45:13 -0400
+Received: from rray2 (rray2 [127.0.0.1])
+	by rray2.comcast.net (8.13.8/8.13.8) with ESMTP id n88Hj7bK001691
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <video4linux-list@redhat.com>; Tue, 8 Sep 2009 12:45:11 -0500
+Date: Tue, 8 Sep 2009 12:45:07 -0500 (CDT)
+From: rray_1@comcast.net
+To: video4linux-list@redhat.com
+Message-ID: <alpine.LRH.2.00.0909081237170.4833@rray2>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: V4L-Linux <video4linux-list@redhat.com>
-Subject: Re: [PATCH 1/4] soc-camera: tw9910: hsync_ctrl can control from
- platform
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+Subject: NTSC/ATSC device recommendation
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,26 +30,13 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 8 Sep 2009, Kuninori Morimoto wrote:
-
-> > Hm, I don't think this has anything to do with the LCD size. What happens 
-> > if you use a "wrong" HSYNC start? Are you testing both migor and your new 
-> > system with the same signal source?
-> 
-> Now I try to use current v4l2-linux-next git.
-> Does tw9910 on MigoR works well ?
-> It doesn't work for me now.
-
-What problem are you getting? Not sure if there has been an issue, in any 
-case it would be better, if you could base on v4l2-linux-next plus my 
-imagebus patches. In that state tw9910 should work.
+I would like to purchase a NTSC/ATSC device that is functional under Linux
+MY only requirement is receiving FTA broadcast
+Would y'all recommend a USB device or better to stick with a pci device
+I have followed this list and have only become more confused
 
 Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Richard
 
 --
 video4linux-list mailing list
