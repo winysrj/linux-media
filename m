@@ -1,97 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f185.google.com ([209.85.221.185]:34967 "EHLO
-	mail-qy0-f185.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754053AbZIMD3L (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Sep 2009 23:29:11 -0400
-Received: by qyk15 with SMTP id 15so1729687qyk.15
-        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 20:29:13 -0700 (PDT)
-Message-ID: <4AAC658E.80401@gmail.com>
-Date: Sat, 12 Sep 2009 23:22:54 -0400
-From: David Ellingsworth <david@identd.dyndns.org>
-Reply-To: david@identd.dyndns.org
+Received: from mail-qy0-f181.google.com ([209.85.221.181]:45716 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751584AbZIHUEW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Sep 2009 16:04:22 -0400
+Received: by qyk11 with SMTP id 11so3103886qyk.1
+        for <linux-media@vger.kernel.org>; Tue, 08 Sep 2009 13:04:25 -0700 (PDT)
+Message-ID: <4AA6B8E0.9070009@gmail.com>
+Date: Wed, 09 Sep 2009 06:04:48 +1000
+From: Jed <jedi.theone@gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org, klimov.linux@gmail.com
-Subject: [RFC/RFT 11/14] radio-mr800: fix behavior of set_stereo function
-Content-Type: multipart/mixed;
- boundary="------------020403060102000800060302"
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: PCI/e with dual DVB-T + AV-in?
+References: <4A9F5B73.8060004@gmail.com> <4A9FFD29.7090607@gmail.com> <37219a840909031126w2cbde9e2ld3cbffe8dfa64353@mail.gmail.com> <4AA0A317.6030605@gmail.com> <4AA54D9F.7060301@gmail.com>
+In-Reply-To: <4AA54D9F.7060301@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------020403060102000800060302
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 
- From 8c441616f67011244cb15bc1a3dda6fd8706ecd2 Mon Sep 17 00:00:00 2001
-From: David Ellingsworth <david@identd.dyndns.org>
-Date: Sat, 12 Sep 2009 16:04:44 -0400
-Subject: [PATCH 08/14] mr800: fix potential use after free
+>>>>> Hi Ya'll,
+>>>>>
+>>>>> Going on response levels thus far I'm not expecting much :-D but I 
+>>>>> was
+>>>>> wondering if someone could possibly help me out here.
+>>>>>
+>>>>> Is there anything with half-decent driver support that is PCI/e, 
+>>>>> and has
+>>>>> dual DVB-T + A/V-in?*
+>>>>> As a bonus it would be dual Hybrid and have hardware encode, but I
+>>>>> wouldn't expect either to work at this stage.
+>>>>>
+>>>>> I'm still trawling through mail-lists & wiki's etc, so I may yet 
+>>>>> find the
+>>>>> best solution, but I was hoping some might already know.
+>>>>> Any advice or even just a response to chastise me is greatly 
+>>>>> appreciated!
+>>>>>  :-D
+>>>>>
+>>>>> Cheers,
+>>>>> Jed
+>>>>> *Is HVR-2200 the only option?
+>>>>>  I wish there was something with better AV-in but it might end-up 
+>>>>> being my
+>>>>> final choice.
+>>>>>
+>>>>>
+>>>>>       
+>>>> Jed wrote:
+>>>> I've stopped looking for an alternative card, going to have a crack at
+>>>> getting my 7162-based device working.
+>>>> Still, any suggestions in the meantime are most welcome! I've also 
+>>>> decided
+>>>> AV-in isn't that important...
+>>>> So just a known, nicely working PCI/e + dual DVB-T card, having the 
+>>>> other
+>>>> features is nice but they needn't be working yet.
+>>>>
+>>>> Wish me luck!   :-D
+>>>>
+>>>>     
+>>>
+>>> HVR2200 is in well supported now for digital-only.  It is a dual tuner
+>>> board using a PCI-E interface.  It has A/V capabilities that are not
+>>> *yet* supported in Linux.  Don't know when A/V will be supported, but
+>>> it will probably happen, eventually.
+>>>
+>>> It is a dual hybrid, and it does do hardware encode.  (although not
+>>> yet in Linux)  This probably is the device for you.
+>>>
+>>> To follow the development more closely, see the blog on kernellabs.com
+>>> I hope this helps.
+>>>
+>>> Regards,
+>>> Mike
+>
+> Hi saa7164 devs, once(if) the software support is in place for A/V-in...
+> Do you know if it'd be possible to bypass hw encode and dump 
+> uncompressed HD/SD with this card?
+> Or is it limited hardware-wise to even do this?
+>
+> Cheers,
+> Jed
+Hi, could I possibly get a response to this please?
 
-Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
----
- drivers/media/radio/radio-mr800.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+Cheers,
+Jed
 
-diff --git a/drivers/media/radio/radio-mr800.c 
-b/drivers/media/radio/radio-mr800.c
-index 9fd2342..87b58e3 100644
---- a/drivers/media/radio/radio-mr800.c
-+++ b/drivers/media/radio/radio-mr800.c
-@@ -274,7 +274,6 @@ static void usb_amradio_disconnect(struct 
-usb_interface *intf)
- 
-     usb_set_intfdata(intf, NULL);
-     video_unregister_device(&radio->videodev);
--    v4l2_device_disconnect(&radio->v4l2_dev);
- }
- 
- /* vidioc_querycap - query device capabilities */
--- 
-1.6.3.3
-
-
---------------020403060102000800060302
-Content-Type: text/x-diff;
- name="0011-mr800-fix-behavior-of-set_stereo-function.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename*0="0011-mr800-fix-behavior-of-set_stereo-function.patch"
-
->From ea0c11ec6706fbd0777b0147da8a8a827a537699 Mon Sep 17 00:00:00 2001
-From: David Ellingsworth <david@identd.dyndns.org>
-Date: Sat, 12 Sep 2009 22:00:29 -0400
-Subject: [PATCH 11/14] mr800: fix behavior of set_stereo function
-
-Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
----
- drivers/media/radio/radio-mr800.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
-index dbf0dbb..8fc413d 100644
---- a/drivers/media/radio/radio-mr800.c
-+++ b/drivers/media/radio/radio-mr800.c
-@@ -252,12 +252,13 @@ static int amradio_set_stereo(struct amradio_device *radio, char argument)
- 	retval = usb_bulk_msg(radio->usbdev, usb_sndintpipe(radio->usbdev, 2),
- 		(void *) (radio->buffer), BUFFER_LENGTH, &size, USB_TIMEOUT);
- 
--	if (retval < 0 || size != BUFFER_LENGTH) {
--		radio->stereo = -1;
-+	if (retval < 0 || size != BUFFER_LENGTH)
- 		return retval;
--	}
- 
--	radio->stereo = 1;
-+	if (argument == WANT_STEREO)
-+		radio->stereo = 1;
-+	else
-+		radio->stereo = 0;
- 
- 	return retval;
- }
--- 
-1.6.3.3
-
-
---------------020403060102000800060302--
