@@ -1,117 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2961 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757166AbZIDSYI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Sep 2009 14:24:08 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id n84IO9tX022554
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 4 Sep 2009 20:24:09 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 4 Sep 2009 20:24:09 +0200 (CEST)
-Message-Id: <200909041824.n84IO9tX022554@smtp-vbr6.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from smtp2f.orange.fr ([80.12.242.150]:42327 "EHLO smtp2f.orange.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753796AbZIHKEl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Sep 2009 06:04:41 -0400
+Message-ID: <4AA62C38.3050208@gmail.com>
+Date: Tue, 08 Sep 2009 12:04:40 +0200
+From: Morvan Le Meut <mlemeut@gmail.com>
+MIME-Version: 1.0
+To: Samuel Rakitnican <samuel.rakitnican@gmail.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: (Saa7134) Re: ADS-Tech Instant TV PCI, no remote support
+References: <4AA53C05.10203@gmail.com> <4AA61508.9040506@gmail.com> <op.uzxmzlj86dn9rq@crni>
+In-Reply-To: <op.uzxmzlj86dn9rq@crni>
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Samuel Rakitnican a écrit :
+> On Tue, 08 Sep 2009 10:25:44 +0200, Morvan Le Meut <mlemeut@gmail.com> 
+> wrote:
+>
+>> Morvan Le Meut a écrit :
+>>> Hello all
+>>> This is an old card i bough by error ( wanted the DVB-T version ) 
+>>> but i tried it and i see a small problem :
+>>> The remote isn't supported. ( If it is, i wonder why my computer 
+>>> don't see it )
+>>>
+>>> I found an old patch to add remote support to it here :
+>>>
+>>> http://tfpsly.free.fr/Files/Instant_TV_PCI_remote/saa7134_patch_for_AdsInstantTVPCI.gz 
+>>> ( The webpage talking about it is 
+>>> http://tfpsly.free.fr/francais/index.html?url=http://tfpsly.free.fr/Files/Instant_TV_PCI_remote/index.html 
+>>> in french )
+>>>
+>>> But since i found out long ago that i shouldn't even think of 
+>>> altering a source file, could someone adapt that old patch to 
+>>> correct this ? ( should be quick, i guess )
+>>>
+>>> Thanks.
+>>>
+>>>
+>>> -- To unsubscribe from this list: send the line "unsubscribe 
+>>> linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>> Well, i'm trying it myself ( by hand, since the patch looks old ) :
+>> adding
+>> case SAA7134_BOARD_ADS_INSTANT_TV: at line 6659 in saa7134-cards.c
+>> (before "dev->has_remote = SAA7134_REMOTE_GPIO;" )
+>> is that correct ?
+>> but from the diff file i should add what seems to be the remote 
+>> keycode in saa7134-input.c
+>> "+static IR_KEYTAB_TYPE AdsInstantTvPci_codes[IR_KEYTAB_SIZE] = {
+>> +    // Buttons are in the top to bottom physical order
+>> +    // Some buttons return the same raw code, so they are currently 
+>> disabled
+>> +    [ 127] = KEY_FINANCE,   // "release all keys" code - prevent 
+>> repeating enlessly a key
+>> +   +    [ 27 ] = KEY_POWER,"
+>> ( and so on )
+>>  Since i didn't see other keycodes for the other cards, i guess this 
+>> is wrong, so where should i add them ?
+>> ( i barely understand what i am doing right now :p )
+>>
+>> Thanks
+>
+> Hi Morvan,
+>
+> I'm not a developer, however I've done someting similar in the past...
+>
+> This "keycodes" looks pretty strange to me, but then again I'm not a 
+> developer.
+>
+> Just add it by hand and compile it, and install it.
+>
+> After successful load of all new modules, you should get some response 
+> in terminal, or in dmesg output like "Unknown key..." if keymap table 
+> is wrong by pressing buttons on remote. If this gpio's are correct:
+>
+> +        mask_keycode = 0xffffff;
+> +        mask_keyup   = 0xffffff;
+> +        mask_keydown = 0xffffff;
+> +        polling      = 50; // ms
+>
+Still working on it, i found out where thoses keycodes should go :
+ir-keymaps.c
+i'm not a developer either, but i tried to learn C a few years ago
+so i'm not completly lost, i just can't understand what all that code is 
+doing ...
+But it is strange that such an old card had this lack of remote support 
+go unnoticed.
 
-Results of the daily build of v4l-dvb:
+( I really have no luck when it come to TV cards : first, my PC Basic 
+EC168 card ( tnt usb basic v5 ) doesn't work where it should, then my 
+HVR-1120 works but not with mythtv and now the remote i wanted to use 
+isn't supported :D )
 
-date:        Fri Sep  4 19:00:03 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12615:2b49813f8482
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
-
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc8-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-rc8-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-rc8-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-rc8-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc8-m32r: OK
-linux-2.6.30-mips: ERRORS
-linux-2.6.31-rc8-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-rc8-powerpc64: OK
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc8-x86_64: OK
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc8): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
