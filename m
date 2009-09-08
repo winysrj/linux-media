@@ -1,25 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx02.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.6])
+Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.11])
 	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n8GHjMaa009622
-	for <video4linux-list@redhat.com>; Wed, 16 Sep 2009 13:45:22 -0400
-Received: from relay2.ptmail.sapo.pt (relay1.ptmail.sapo.pt [212.55.154.21])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n8GHjAgL013018
-	for <video4linux-list@redhat.com>; Wed, 16 Sep 2009 13:45:11 -0400
-Received: from unknown (HELO [10.231.11.40])
-	(paulojlfreitas@sapo.pt@[193.136.205.253])
-	(envelope-sender <paulojlfreitas@sapo.pt>)
-	by mta14 (qmail-ldap-1.03) with AES256-SHA encrypted SMTP
-	for <video4linux-list@redhat.com>; 16 Sep 2009 17:03:20 -0000
-From: Paulo Freitas <paulojlfreitas@sapo.pt>
+	id n88De8QK003347
+	for <video4linux-list@redhat.com>; Tue, 8 Sep 2009 09:40:08 -0400
+Received: from alquanto.nextra.it (alquanto.nextra.it [193.43.2.90])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n88Ddsil020675
+	for <video4linux-list@redhat.com>; Tue, 8 Sep 2009 09:39:56 -0400
+Received: from becar.it (becaboj0.customer.nettuno.it [130.186.216.1])
+	by alquanto.nextra.it (8.9.3/8.9.3/NETTuno 5.0) with ESMTP id PAA14277
+	for <video4linux-list@redhat.com>;
+	Tue, 8 Sep 2009 15:39:53 +0200 (MET DST)
+Message-ID: <4AA65E79.4050500@becar.it>
+Date: Tue, 08 Sep 2009 15:39:05 +0200
+From: Fabrizio Bandiera <fabrizio.bandiera@becar.it>
+MIME-Version: 1.0
 To: video4linux-list@redhat.com
-Content-Type: text/plain
-Date: Wed, 16 Sep 2009 18:08:12 +0100
-Message-Id: <1253120892.3669.11.camel@paulo-desktop>
-Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: Create a /dev/video0 file and write directly into it images
+Subject: USB Camera and Linux for ARM
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,18 +30,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi everyone,
+I'm using USB WebCam in Linux ARM-based evaulation board: i have 2 of 
+them, AT91SAM9263EK (Atmel) and iMX27 (Freescale).
 
-I have an Ethernet Camera, from Prosilica, and I need to somehow emulate
-this camera in a /dev/video0 file. My idea is, mount a driver file using
-'makedev', pick up images from the camera and write them into
-the /dev/video0 file. You know how V4L can be used to write images
-in /dev/video files? I don't know if it is needed to use makedev
-probably not. Any suggestion is welcome.
+Thank to your patch now i don't have any oops when i start capturing 
+images.
 
-Thank you for your help.
-Best regards, Paulo Freitas.
+The problem is: the images i'm capturing from USB Camera are always 
+broken as if some data packet coming from the camera is missed.
 
+I'm using a cross compiled software to grab images using mapped buffer 
+and read method but results are the same.
+
+I tested 2 cameras: Philps SPC200 and Videology based on a em2820 chip. 
+They work well in my Ubuntu PC
+
+I tested kernel 2.6.27 for AT91SAM and 2.6.22 for iMX27
+
+Any idea?
+
+-- 
+--------------------------------------------------
+
+Ing. Fabrizio BANDIERA
+
+Becar srl (gruppo BEGHELLI)
+Viale della Pace 1
+40050 Monteveglio (Bologna)
+
+Tel.  051-6702242
+Fax   051-6702186
+Cell. 335-7000409
 
 
 --
