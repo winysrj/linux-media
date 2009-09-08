@@ -1,27 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.11])
-	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n8EITIR6012088
-	for <video4linux-list@redhat.com>; Mon, 14 Sep 2009 14:29:18 -0400
-Received: from smtp3-g21.free.fr (smtp3-g21.free.fr [212.27.42.3])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n8EIT17P029125
-	for <video4linux-list@redhat.com>; Mon, 14 Sep 2009 14:29:05 -0400
-Date: Mon, 14 Sep 2009 20:28:55 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Niamathullah sharief <newbiesha@gmail.com>
-Message-ID: <20090914202855.61b5e8ea@tele>
-In-Reply-To: <25f5fcff0909141100m49db178cu178801a4d4fd5976@mail.gmail.com>
-References: <25f5fcff0909110020m56f881d0q383aae1f5226476@mail.gmail.com>
-	<b89eadb20909110234v2b8ee579nc19eed163cc77463@mail.gmail.com>
-	<25f5fcff0909110507y635aa97eg1d599710372a6e9e@mail.gmail.com>
-	<20090912082426.2dfba603@tele>
-	<25f5fcff0909141100m49db178cu178801a4d4fd5976@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: kernelnewbies@nl.linux.org, video4linux-list@redhat.com
-Subject: Re: About Webcam module
+Received: from mx1.redhat.com (ext-mx10.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.14])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n887W3IA006613
+	for <video4linux-list@redhat.com>; Tue, 8 Sep 2009 03:32:03 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n887VmAS008851
+	for <video4linux-list@redhat.com>; Tue, 8 Sep 2009 03:31:49 -0400
+Date: Tue, 8 Sep 2009 09:31:48 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+In-Reply-To: <ueiqiw6mn.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0909080931160.4550@axis700.grange>
+References: <ueiqiw6mn.wl%morimoto.kuninori@renesas.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: V4L-Linux <video4linux-list@redhat.com>
+Subject: Re: [PATCH 1/4] soc-camera: tw9910: hsync_ctrl can control from
+ platform
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,56 +29,130 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 14 Sep 2009 23:30:27 +0530
-Niamathullah sharief <newbiesha@gmail.com> wrote:
+Hi Morimoto-san
 
-> Here i am facing a new problem. I tried to compile and install the
-> gspca_main and gspca_zc3xx modules separately. I compiled them
-> successfully. but i am getting error when inserting that modules
+Before reviewing the code - why is this needed?
+
+Thanks
+Guennadi
+
+On Tue, 8 Sep 2009, Kuninori Morimoto wrote:
+
 > 
+> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> ---
+>  drivers/media/video/tw9910.c |   31 ++++++++++++++-----------------
+>  include/media/tw9910.h       |    2 ++
+>  2 files changed, 16 insertions(+), 17 deletions(-)
 > 
-> root@sharief-desktop:/home/sharief/Desktop/video/gspca# insmod
-> > gspca_zc3xx.ko
-> >
-> insmod: error inserting 'gspca_zc3xx.ko': -1 Unknown symbol in module
-> >
-> root@sharief-desktop:/home/sharief/Desktop/video/gspca# insmod
-> gspca_main.ko
-> >
-> >
-> insmod: error inserting 'gspca_main.ko': -1 Unknown symbol in module
-> >
+> diff --git a/drivers/media/video/tw9910.c b/drivers/media/video/tw9910.c
+> index e41eb9c..79ba997 100644
+> --- a/drivers/media/video/tw9910.c
+> +++ b/drivers/media/video/tw9910.c
+> @@ -192,6 +192,10 @@
+>  #define RTSEL_FIELD 0x06 /* 0110 = FIELD */
+>  #define RTSEL_RTCO  0x07 /* 0111 = RTCO ( Real Time Control ) */
+>  
+> +/* HSYNC default */
+> +#define HSTART 0x0160
+> +#define HEND   0x0300
+> +
+>  /*
+>   * structure
+>   */
+> @@ -216,11 +220,6 @@ struct tw9910_cropping_ctrl {
+>  	u16 hactive;
+>  };
+>  
+> -struct tw9910_hsync_ctrl {
+> -	u16 start;
+> -	u16 end;
+> -};
+> -
+>  struct tw9910_priv {
+>  	struct v4l2_subdev                subdev;
+>  	struct tw9910_video_info       *info;
+> @@ -346,11 +345,6 @@ static const struct tw9910_cropping_ctrl tw9910_cropping_ctrl = {
+>  	.hactive = 0x02D0,
+>  };
+>  
+> -static const struct tw9910_hsync_ctrl tw9910_hsync_ctrl = {
+> -	.start = 0x0260,
+> -	.end   = 0x0300,
+> -};
+> -
+>  /*
+>   * general function
+>   */
+> @@ -417,19 +411,19 @@ static int tw9910_set_cropping(struct i2c_client *client,
+>  }
+>  
+>  static int tw9910_set_hsync(struct i2c_client *client,
+> -			    const struct tw9910_hsync_ctrl *hsync)
+> +			    const u16 start, const u16 end)
+>  {
+>  	int ret;
+>  
+>  	/* bit 10 - 3 */
+>  	ret = i2c_smbus_write_byte_data(client, HSGEGIN,
+> -					(hsync->start & 0x07F8) >> 3);
+> +					(start & 0x07F8) >> 3);
+>  	if (ret < 0)
+>  		return ret;
+>  
+>  	/* bit 10 - 3 */
+>  	ret = i2c_smbus_write_byte_data(client, HSEND,
+> -					(hsync->end & 0x07F8) >> 3);
+> +					(end & 0x07F8) >> 3);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> @@ -439,9 +433,9 @@ static int tw9910_set_hsync(struct i2c_client *client,
+>  		return ret;
+>  
+>  	ret = i2c_smbus_write_byte_data(client, HSLOWCTL,
+> -					(ret & 0x88)                 |
+> -					(hsync->start & 0x0007) << 4 |
+> -					(hsync->end   & 0x0007));
+> +					(ret   & 0x88)        |
+> +					(start & 0x0007) << 4 |
+> +					(end   & 0x0007));
+>  
+>  	return ret;
+>  }
+> @@ -697,7 +691,10 @@ static int tw9910_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+>  	/*
+>  	 * set hsync
+>  	 */
+> -	ret = tw9910_set_hsync(client, &tw9910_hsync_ctrl);
+> +	ret = tw9910_set_hsync(client,
+> +			       HSTART + priv->info->start_offset,
+> +			       HEND   + priv->info->end_offset);
+> +
+>  	if (ret < 0)
+>  		goto tw9910_set_fmt_error;
+>  
+> diff --git a/include/media/tw9910.h b/include/media/tw9910.h
+> index 73231e7..6ddb654 100644
+> --- a/include/media/tw9910.h
+> +++ b/include/media/tw9910.h
+> @@ -33,6 +33,8 @@ struct tw9910_video_info {
+>  	unsigned long          buswidth;
+>  	enum tw9910_mpout_pin  mpout;
+>  	struct soc_camera_link link;
+> +	u16 start_offset;
+> +	u16 end_offset;
+>  };
+>  
+>  
+> -- 
+> 1.6.0.4
 > 
-> I think this both modules what some other modules to get insert in to
-> kernel...But i am sure about that modules. Can anyone help me?
 
-Indeed, the 2 modules videodev and v4l1_compat must be loaded prior to
-load first gspca_main and then gspca_zc3xx, as shown by lsmod (below).
-
-Usually, insmod is not directly used. You must use modprobe which looks
-at the symbols and loads the required modules.
-
-> On Sat, Sep 12, 2009 at 11:54 AM, Jean-Francois Moine
-> <moinejf@free.fr>wrote:
-> > 
-> > So, your driver is gspca_zc3xx. Then, this module uses the gspca
-> > framework, i.e it calls functions of the module gspca_main. This
-> > last one calls functions of the common video module videodev. Then
-> > again, if v4l1 compatibility is enabled, videodev calls functions
-> > of v4l1_compat.
-> >
-> > lsmod shows all that directly:
-> >
-> > Module              Size   Used by
-> > gspca_zc3xx        55936   0
-> > gspca_main         29312   1   gspca_zc3xx
-> > videodev           41344   1   gspca_main
-> > v4l1_compat        22404   1   videodev
-
-
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
 
 --
 video4linux-list mailing list
