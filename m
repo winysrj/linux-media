@@ -1,39 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.26]:32658 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751541AbZINNcH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Sep 2009 09:32:07 -0400
-Received: by qw-out-2122.google.com with SMTP id 9so952122qwb.37
-        for <linux-media@vger.kernel.org>; Mon, 14 Sep 2009 06:32:10 -0700 (PDT)
+Received: from mail-qy0-f192.google.com ([209.85.221.192]:42136 "EHLO
+	mail-qy0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751543AbZIIMxc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Sep 2009 08:53:32 -0400
+Received: by qyk30 with SMTP id 30so3518151qyk.5
+        for <linux-media@vger.kernel.org>; Wed, 09 Sep 2009 05:53:35 -0700 (PDT)
+Date: Wed, 9 Sep 2009 14:53:29 +0200
+From: Domenico Andreoli <cavokz@gmail.com>
+To: Linux-media <linux-media@vger.kernel.org>
+Cc: Stefan Sassenberg <stefan.sassenberg@gmx.de>
+Subject: Re: xf86-video-v4l
+Message-ID: <20090909125329.GA4465@raptus.dandreoli.com>
+References: <4A7E8593.2030500@gmx.de>
+ <4AA72C6D.7030706@rogers.com>
 MIME-Version: 1.0
-In-Reply-To: <4AAD9732.9060003@wilsonet.com>
-References: <200909011019.35798.jarod@redhat.com>
-	 <1251855051.3926.34.camel@palomino.walls.org>
-	 <de8cad4d0909131023t7103b446sf6b20889567556ee@mail.gmail.com>
-	 <6EBCDFA3-FAAA-4757-97B6-9CF3442FE920@wilsonet.com>
-	 <20090913221314.GA11178@aniel.lan> <4AAD9732.9060003@wilsonet.com>
-Date: Mon, 14 Sep 2009 09:32:10 -0400
-Message-ID: <de8cad4d0909140632g7e20d501p6ae3d68e5cd30c21@mail.gmail.com>
-Subject: Re: [PATCH] hdpvr: i2c fixups for fully functional IR support
-From: Brandon Jenkins <bcjenkins@tvwhere.com>
-To: Janne Grunau <j@jannau.net>, Andy Walls <awalls@radix.net>,
-	Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4AA72C6D.7030706@rogers.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Driver build procedure used:
+hi,
 
-Cloned http://hg.jannau.net/hdpvr
-Pulled http://linuxtv.org/hg/v4l-dvb/
-Pulled http://linuxtv.org/hg/~awalls/v4l-dvb/
+On Wed, Sep 09, 2009 at 12:17:49AM -0400, CityK wrote:
+> Stefan Sassenberg wrote:
+> >
+> > what does the xf86-video-v4l driver do? I think I know the purpose of
+> > xf86-video-<graphics_card> drivers, but I don't know what the -v4l
+> > does. How is it used?
+> 
+> Anyway, in answer to your question:
+> * from the command line, type "man v4l"
+> Then supplement that info with the following points taken from the V4L2
+> API
 
-This should bring in all changes for HDPVR and CX18.
+i think he knows also what v4l is about. he was asking which kind of
+support is given to X through this driver, something i'm also curious
+to know.
 
-What specifically would you like me to test? I can't reload the
-modules until the kids are done watching TV. :)
+cheers,
+Domenico
 
-Thanks,
-
-Brandon
+-----[ Domenico Andreoli, aka cavok
+ --[ http://www.dandreoli.com/gpgkey.asc
+   ---[ 3A0F 2F80 F79C 678A 8936  4FEE 0677 9033 A20E BC50
