@@ -1,85 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mgw2.diku.dk ([130.225.96.92]:42670 "EHLO mgw2.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754694AbZIKQVR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2009 12:21:17 -0400
-Date: Fri, 11 Sep 2009 18:21:18 +0200 (CEST)
-From: Julia Lawall <julia@diku.dk>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@skynet.be>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [PATCH 2/8] drivers/media/video/uvc: introduce missing kfree
-Message-ID: <Pine.LNX.4.64.0909111821010.10552@pc-004.diku.dk>
+Received: from ey-out-2122.google.com ([74.125.78.27]:14966 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753006AbZIIPMm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Sep 2009 11:12:42 -0400
+Received: by ey-out-2122.google.com with SMTP id 25so1252530eya.19
+        for <linux-media@vger.kernel.org>; Wed, 09 Sep 2009 08:12:45 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <20090909125329.GA4465@raptus.dandreoli.com>
+References: <4A7E8593.2030500@gmx.de> <4AA72C6D.7030706@rogers.com>
+	 <20090909125329.GA4465@raptus.dandreoli.com>
+Date: Wed, 9 Sep 2009 11:12:45 -0400
+Message-ID: <37219a840909090812l5f7fd650k20126cb2b47380f2@mail.gmail.com>
+Subject: Re: xf86-video-v4l
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Linux-media <linux-media@vger.kernel.org>,
+	Stefan Sassenberg <stefan.sassenberg@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Julia Lawall <julia@diku.dk>
+On Wed, Sep 9, 2009 at 8:53 AM, Domenico Andreoli<cavokz@gmail.com> wrote:
+> hi,
+>
+> On Wed, Sep 09, 2009 at 12:17:49AM -0400, CityK wrote:
+>> Stefan Sassenberg wrote:
+>> >
+>> > what does the xf86-video-v4l driver do? I think I know the purpose of
+>> > xf86-video-<graphics_card> drivers, but I don't know what the -v4l
+>> > does. How is it used?
+>>
+>> Anyway, in answer to your question:
+>> * from the command line, type "man v4l"
+>> Then supplement that info with the following points taken from the V4L2
+>> API
+>
+> i think he knows also what v4l is about. he was asking which kind of
+> support is given to X through this driver, something i'm also curious
+> to know.
+>
+> cheers,
+> Domenico
 
-Error handling code following kmalloc should free the allocated data.
+Domenico,
 
-The semantic match that finds the problem is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
+Try "man v4l" as CityK suggested -- you will find that he did in fact
+answer the question appropriately.
 
-// <smpl>
-@r exists@
-local idexpression x;
-statement S;
-expression E;
-identifier f,f1,l;
-position p1,p2;
-expression *ptr != NULL;
-@@
-
-x@p1 = \(kmalloc\|kzalloc\|kcalloc\)(...);
-...
-if (x == NULL) S
-<... when != x
-     when != if (...) { <+...x...+> }
-(
-x->f1 = E
-|
- (x->f1 == NULL || ...)
-|
- f(...,x->f1,...)
-)
-...>
-(
- return \(0\|<+...x...+>\|ptr\);
-|
- return@p2 ...;
-)
-
-@script:python@
-p1 << r.p1;
-p2 << r.p2;
-@@
-
-print "* file: %s kmalloc %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
----
- drivers/media/video/uvc/uvc_video.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/video/uvc/uvc_video.c b/drivers/media/video/uvc/uvc_video.c
-index 5b757f3..ce2c484 100644
---- a/drivers/media/video/uvc/uvc_video.c
-+++ b/drivers/media/video/uvc/uvc_video.c
-@@ -128,8 +128,11 @@ static int uvc_get_video_ctrl(struct uvc_streaming *stream,
- 	if (data == NULL)
- 		return -ENOMEM;
- 
--	if ((stream->dev->quirks & UVC_QUIRK_PROBE_DEF) && query == UVC_GET_DEF)
--		return -EIO;
-+	if ((stream->dev->quirks & UVC_QUIRK_PROBE_DEF) &&
-+			query == UVC_GET_DEF) {
-+		ret = -EIO;
-+		goto out;
-+	}
- 
- 	ret = __uvc_query_ctrl(stream->dev, query, 0, stream->intfnum,
- 		probe ? UVC_VS_PROBE_CONTROL : UVC_VS_COMMIT_CONTROL, data,
+-Mike
