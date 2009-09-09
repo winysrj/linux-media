@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-fx0-f228.google.com ([209.85.220.228])
+Received: from mail-yw0-f174.google.com ([209.85.211.174])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <dehqan65@gmail.com>) id 1MoIAd-0005LU-Fx
-	for linux-dvb@linuxtv.org; Thu, 17 Sep 2009 16:41:15 +0200
-Received: by fxm28 with SMTP id 28so77067fxm.17
-	for <linux-dvb@linuxtv.org>; Thu, 17 Sep 2009 07:40:42 -0700 (PDT)
+	(envelope-from <david.whyte@gmail.com>) id 1MlCZp-0008Ud-Ro
+	for linux-dvb@linuxtv.org; Wed, 09 Sep 2009 04:06:30 +0200
+Received: by ywh4 with SMTP id 4so915425ywh.1
+	for <linux-dvb@linuxtv.org>; Tue, 08 Sep 2009 19:05:55 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20090917084341.GQ11042@www.viadmin.org>
-References: <20090916143456.GP11042@www.viadmin.org>
-	<924321.77581.qm@web53201.mail.re2.yahoo.com>
-	<20090917084341.GQ11042@www.viadmin.org>
-Date: Thu, 17 Sep 2009 19:10:41 +0430
-Message-ID: <267bb6670909170740j593f0526i7aad6e985ec4eb4@mail.gmail.com>
-From: a dehqan <dehqan65@gmail.com>
+Date: Wed, 9 Sep 2009 12:05:55 +1000
+Message-ID: <5df807700909081905hee100f3ia5dfed3604015a7f@mail.gmail.com>
+From: David Whyte <david.whyte@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Best USB or PCMCIA DVB card for linux users ?
+Subject: [linux-dvb] saa7134 tuner doesn't work after warm-reboot
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -23,134 +19,118 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1096004304=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1096004304==
-Content-Type: multipart/alternative; boundary=0016364176fbf65d930473c6ff1d
+My brothers mythTV setup currently consists of one MBE with 2x DVB-T
+tuners in.
 
---0016364176fbf65d930473c6ff1d
-Content-Type: text/plain; charset=ISO-8859-1
+Both tuners are from identical Medion PCs and report the following
+from dmesg when booted...
 
-In The Name Of God
- Good day everyone ;
-Thanks a lot for your attentions ;
-Question was about DVB-S2 ;
-And laptop has PCMCIA Typ II und ExpressCard Slot
+mythtv-user@mythBE1:~$ dmesg | grep -i dvb
+[   62.626167] saa7134[0] Board has DVB-T
+[   63.405856] saa7134[1] Board has DVB-T
+[   63.933725] DVB: registering new adapter (saa7134[0])
+[   63.933729] DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
+[   66.281192] DVB: registering new adapter (saa7134[1])
+[   66.281197] DVB: registering frontend 1 (Philips TDA10046H DVB-T)...
 
-Regards dehqan
+My brother lives in an area that suffers very short power-outages if
+there is a storm or whatever and I have noticed that after such an
+event, he loses the ability to record TV from both tuners and
+generally only one will work.  I am never sure if it is always the
+same tuner that as busted since I don't know which is dvb0 or dvb1 at
+any point in time.
 
+To correct this, I remote into the server and issue a 'halt', get him
+to unplug it from the wall then press the power button on the front of
+the machine, re-plug it into the wall and boot up the server.  Then
+both tuners are working fine.
 
-On Thu, Sep 17, 2009 at 1:13 PM, H. Langos <henrik-dvb@prak.org> wrote:
+I understand the best way around this might be a UPS, but I don't have
+the ability to get one at the moment, though it will be his next
+purchase.
 
-> Hi Emanoil and dehqan,
->
-> On Wed, Sep 16, 2009 at 08:00:37AM -0700, Emanoil Kotsev wrote:
-> > --- On Wed, 9/16/09, H. Langos <henrik-dvb@prak.org> wrote:
-> > > On Wed, Sep 16, 2009 at 12:42:38AM +0430, a dehqan wrote:
-> > > >
-> > > > What is The best USB or PCMCIA DVB card for linux users ?
-> > >
-> > > Is it DVB-S(2)/C/T or ATCS ?
-> >
-> > He's asking for DVB-T advice
-> >
->
-> Ok. In that case I guess I can help a little.
->
-> I own five different DVB-T USB devices and depending on your priorities
-> I'd recommend
->
-> * For areas with weak reception: Fujitsu-Siemens DVB-T Mobile TV Tuner
->  (not the new "slim" version but the old clunky one)
->
-> * For USB 1.1 compatibility: Toshiba USB DVB-T Tuner PX1211E-1TVD
->  (also sold under a lot of other names)
->
-> * For features and looks: TerraTec Cinergy XXS
->
-> Naturally my experience is limited to the devices I own and other devices
-> may be far better.
->
-> If you are interested in system load than I'd point you to my small load
-> comparison here: http://www.linuxtv.org/wiki/index.php/User:Hlangos
->
-> cheers
-> -henrik
->
->
+In the meantime I was wandering if anyone had any suggestions for
+getting around this problem.  For my tuners that used to suffer a
+similar problem (but which are different tuners) I had to add some
+lines to rc.local to remove the dvb modules and then re-insert them
+and this seemed to work.  There are a number of similar posts in the
+archives like this.  I have tried this for the saa7134 modules but to
+no avail.
 
---0016364176fbf65d930473c6ff1d
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+The following output is for reference:
+mythtv-user@mythBE1:~$ lsmod | grep -i saa
+saa7134_dvb            21516  0
+videobuf_dvb            7812  1 saa7134_dvb
+dvb_core               80636  2 saa7134_dvb,videobuf_dvb
+saa7134               143828  1 saa7134_dvb
+videodev               35072  2 saa7134,tuner
+compat_ioctl32          2304  1 saa7134
+v4l2_common            12672  2 saa7134,tuner
+videobuf_dma_sg        14980  2 saa7134_dvb,saa7134
+videobuf_core          19716  3 videobuf_dvb,saa7134,videobuf_dma_sg
+ir_kbd_i2c             11152  1 saa7134
+ir_common              40580  2 saa7134,ir_kbd_i2c
+tveeprom               13444  1 saa7134
+i2c_core               24832  12
+saa7134_dvb,saa7134,tda1004x,tuner_simple,tda9887,tda8290,tuner,v4l2_common,ir_kbd_i2c,tveeprom,i2c_i810,i2c_algo_bit
+mythtv-user@mythBE1:~$
 
-<div dir=3D"ltr">In The Name Of God<br>=A0Good day everyone ;<br>Thanks a l=
-ot for your attentions ;<br>Question was about DVB-S2 ;<br>And laptop has P=
-CMCIA Typ II und ExpressCard Slot <br><br>Regards dehqan<br><br><br><div cl=
-ass=3D"gmail_quote">
-On Thu, Sep 17, 2009 at 1:13 PM, H. Langos <span dir=3D"ltr">&lt;<a href=3D=
-"mailto:henrik-dvb@prak.org">henrik-dvb@prak.org</a>&gt;</span> wrote:<br><=
-blockquote class=3D"gmail_quote" style=3D"border-left: 1px solid rgb(204, 2=
-04, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-Hi Emanoil and dehqan,<br>
-<div class=3D"im"><br>
-On Wed, Sep 16, 2009 at 08:00:37AM -0700, Emanoil Kotsev wrote:<br>
-&gt; --- On Wed, 9/16/09, H. Langos &lt;<a href=3D"mailto:henrik-dvb@prak.o=
-rg">henrik-dvb@prak.org</a>&gt; wrote:<br>
-</div><div class=3D"im">&gt; &gt; On Wed, Sep 16, 2009 at 12:42:38AM +0430,=
- a dehqan wrote:<br>
-&gt; &gt; &gt;<br>
-</div><div class=3D"im">&gt; &gt; &gt; What is The best USB or PCMCIA DVB c=
-ard for linux users ?<br>
-&gt; &gt;<br>
-</div><div class=3D"im">&gt; &gt; Is it DVB-S(2)/C/T or ATCS ?<br>
-&gt;<br>
-&gt; He&#39;s asking for DVB-T advice<br>
-&gt;<br>
-<br>
-</div>Ok. In that case I guess I can help a little.<br>
-<br>
-I own five different DVB-T USB devices and depending on your priorities<br>
-I&#39;d recommend<br>
-<br>
-* For areas with weak reception: Fujitsu-Siemens DVB-T Mobile TV Tuner<br>
- =A0(not the new &quot;slim&quot; version but the old clunky one)<br>
-<br>
-* For USB 1.1 compatibility: Toshiba USB DVB-T Tuner PX1211E-1TVD<br>
- =A0(also sold under a lot of other names)<br>
-<br>
-* For features and looks: TerraTec Cinergy XXS<br>
-<br>
-Naturally my experience is limited to the devices I own and other devices<b=
-r>
-may be far better.<br>
-<br>
-If you are interested in system load than I&#39;d point you to my small loa=
-d<br>
-comparison here: <a href=3D"http://www.linuxtv.org/wiki/index.php/User:Hlan=
-gos" target=3D"_blank">http://www.linuxtv.org/wiki/index.php/User:Hlangos</=
-a><br>
-<br>
-cheers<br>
--henrik<br>
-<br>
-</blockquote></div><br></div>
+mythtv-user@mythBE1:~$ cat /etc/rc.local
+#!/bin/sh -e
+#
+# rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+#
+# In order to enable or disable this script just change the execution
+# bits.
+#
+# By default this script does nothing.
 
---0016364176fbf65d930473c6ff1d--
+/sbin/rmmod saa7134_dvb saa7134 videobuf_dvb dvb_core
 
+/sbin/modprobe saa7134_dvb
 
---===============1096004304==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+exit 0
+mythtv-user@mythBE1:~$
+
+The machine is a Pentium 4 running Ubuntu Hardy:
+mythtv-user@mythBE1:~$ uname -r
+2.6.24-24-generic
+mythtv-user@mythBE1:~$
+
+mythtv-user@mythBE1:~$ modinfo saa7134_dvb
+filename:       /lib/modules/2.6.24-24-generic/updates/dkms/saa7134-dvb.ko
+license:        GPL
+author:         Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]
+srcversion:     C8C85F1BA098BDF283F1975
+depends:        saa7134,dvb-core,videobuf-dvb,videobuf-dma-sg,i2c-core
+vermagic:       2.6.24-24-generic SMP mod_unload 586
+parm:           antenna_pwr:enable antenna power (Pinnacle 300i) (int)
+parm:           use_frontend:for cards with multiple frontends (0:
+terrestrial, 1: satellite) (int)
+parm:           debug:Turn on/off module debugging (default:off). (int)
+parm:           adapter_nr:DVB adapter numbers (array of short)
+mythtv-user@mythBE1:~$
+
+Similar bug in launchpad, but no saa7134_also module is loaded for these cards.
+https://bugs.launchpad.net/ubuntu/+source/linux/+bug/349537
+
+Any help is greatly appreciated.
+
+Regards,
+Whytey
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1096004304==--
