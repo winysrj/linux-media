@@ -1,54 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:40043 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751547AbZINQT7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Sep 2009 12:19:59 -0400
+Received: from mail-ew0-f206.google.com ([209.85.219.206]:39947 "EHLO
+	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752809AbZIITkN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Sep 2009 15:40:13 -0400
+Received: by ewy2 with SMTP id 2so4030823ewy.17
+        for <linux-media@vger.kernel.org>; Wed, 09 Sep 2009 12:40:15 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <200909141730.40467.baeckham@gmx.net>
-References: <200909141730.40467.baeckham@gmx.net>
-Date: Mon, 14 Sep 2009 17:20:00 +0100
-Message-ID: <9b2b86520909140920y293a2a72lc369340a0f823970@mail.gmail.com>
-Subject: Re: parameter for module gspca_sn9c20x
-From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-To: baeckham@gmx.net
-Cc: linux-modules <linux-modules@vger.kernel.org>,
-	linux-media@vger.kernel.org,
-	linux-kernel <linux-kernel@vger.kernel.org>
+In-Reply-To: <829197380909091209x382089beqe805bf2b0895a67f@mail.gmail.com>
+References: <200909091814.10092.animatrix30@gmail.com>
+	 <829197380909090919o613827d0ye00cbfe3bde888ed@mail.gmail.com>
+	 <d9def9db0909091202x64b54600s4c499f0f4042a8e6@mail.gmail.com>
+	 <829197380909091209x382089beqe805bf2b0895a67f@mail.gmail.com>
+Date: Wed, 9 Sep 2009 21:40:15 +0200
+Message-ID: <d9def9db0909091240l43c71dccke6877648d5076950@mail.gmail.com>
+Subject: Re: Invalid module format
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Edouard Marquez <animatrix30@gmail.com>,
+	linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[CC linux-media]  The linux-modules list is for the program "modprobe"
-etc, not the actual kernel drivers.
+On Wed, Sep 9, 2009 at 9:09 PM, Devin
+Heitmueller<dheitmueller@kernellabs.com> wrote:
+> On Wed, Sep 9, 2009 at 3:02 PM, Markus Rechberger<mrechberger@gmail.com> wrote:
+>> this is not true my old driver which is not available anymore did not
+>> ship any other modules aside the em28xx driver itself.
+>> This is a video4linux issue and has nothing to do with it.
+>>
+>> Best Regards,
+>> Markus
+>>
+>
+> Hello Marks,
+>
+> While it is true that your driver did not include anything other than
+> em28xx, I assume it is compiled against a certain set of v4l2 headers,
+> and if those headers change (such as changes to data structures), then
+> the em28xx modules you distributed would not work with that version of
+> the v4l2 modules.
 
-On 9/14/09, baeckham@gmx.net <baeckham@gmx.net> wrote:
-> I have a built-in webcam in my laptop: 0c45:624f Microdia PC Camera
-> (SN9C201)
->
-> Till today I used the driver from [groups.google.de] to make it work.
-> But now I found the driver in the 2.6.31 kernel:
->
-> 	 gspca_sn9c20x
->
-> Unfortunately I have to flip the image vertically so it is displayed right,
-> otherwise it is upside-
-> down.
->
-> With the google-groups-driver I had to use the parameter vflip=1 to flip the
-> image. But with the
-> kernel module gspca_sn9c20x this is not working:
->
-> # modprobe gspca_sn9c20x vflip=1
-> FATAL: Error inserting gspca_sn9c20x
-> (/lib/modules/2.6.31/kernel/drivers/media/video/gspca/gspca_sn9c20x.ko):
-> Unknown symbol in module,
-> or unknown parameter (see dmesg)
->
-> Does anyone know how to flip the image?
+I stopped the work at around Oct last year, 2.6.27 is the latest
+kernel which is supposed to be supported with it.
+Although since there are some bad bugs in it which I've been told by
+the manufacturer afterwards I do not recommend
+to use it either it shortens the lifetime of most devices... Best is
+to stick with windows unless the manufacturer and
+chipdesigners support a driver.
 
-All I can say is it doesn't appear to be a module parameter, because
-there aren't any module parameters in the mainline driver :-).
+WARNING: Error inserting videobuf_core (/lib/modules/2.6.30-tuxonice-
+r5/kernel/drivers/media/video/videobuf-core.ko): Invalid module format
 
-Regards
-Alan
+this is something that cannot be caused by the em28xx work, it's any
+other messy issue
+with the v4l2 kernel API.
+
+Markus
+
+> If he wants to use your driver, I would assume he would need to
+> reinstall the stock kernel (overwriting whatever locally built version
+> of v4l-dvb he previously installed).
+>
+> Cheers,
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+>
