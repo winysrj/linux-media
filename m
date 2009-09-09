@@ -1,63 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ip78-183-211-87.adsl2.static.versatel.nl ([87.211.183.78]:36129
-	"EHLO god.dyndns.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751868AbZIXVcn (ORCPT
+Received: from smtp128.rog.mail.re2.yahoo.com ([206.190.53.33]:21970 "HELO
+	smtp128.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750815AbZIIElq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Sep 2009 17:32:43 -0400
-Date: Thu, 24 Sep 2009 23:32:24 +0200
-From: spam@systol-ng.god.lan
-To: Michael Krufky <mkrufky@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/4] Zolid Hybrid PCI card add AGC control
-Message-ID: <20090924213223.GA13550@systol-ng.god.lan>
-Reply-To: Henk.Vergonet@gmail.com
-References: <20090922210915.GD8661@systol-ng.god.lan> <37219a840909241155h1b809877mf7ae1807e34a2f87@mail.gmail.com>
+	Wed, 9 Sep 2009 00:41:46 -0400
+Message-ID: <4AA7320B.5040502@rogers.com>
+Date: Wed, 09 Sep 2009 00:41:47 -0400
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <37219a840909241155h1b809877mf7ae1807e34a2f87@mail.gmail.com>
+To: Ben Swartzlander <ben@swartzlander.org>
+CC: rray_1@comcast.net, video4linux-list@redhat.com,
+	Linux-media <linux-media@vger.kernel.org>
+Subject: Re: NTSC/ATSC device recommendation
+References: <alpine.LRH.2.00.0909081237170.4833@rray2> <4AA69AC6.8020103@swartzlander.org>
+In-Reply-To: <4AA69AC6.8020103@swartzlander.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 24, 2009 at 02:55:42PM -0400, Michael Krufky wrote:
-> 
-> Henk,
-> 
-> This is *very* interesting...  Have you taken a scope to the board to
-> measure AGC interference?   This seems to be *very* similar to
-> Hauppauge's design for the HVR1120 and HVR1150 boards, which are
-> actually *not* based on any reference design.
+Ben Swartzlander wrote:
+> rray_1@comcast.net wrote:
+>> I would like to purchase a NTSC/ATSC device that is functional under
+>> Linux
+>> MY only requirement is receiving FTA broadcast
+>> Would y'all recommend a USB device or better to stick with a pci device
+>> I have followed this list and have only become more confused
+>>
+>> Thanks
+>> Richard
+>
+> I have 2 Hauppauge WinTV-HVR-850 USB sticks in my MythTV box (Ubuntu
+> 8.04). USB is preferable to PCI for all kinds of reasons. I bought
+> mine here:
+> http://www.newegg.com/Product/Product.aspx?Item=N82E16815116031
+>
+> Note that if you go with this device, you'll need to manually add the
+> firmware to your /lib/firmware directory. You can get the firmware
+> here: http://www.steventoth.net/linux/xc5000/
+>
+> There are plenty of other supported devices though. When I was doing
+> my research, this page was an extremely useful resource for Linux ATSC
+> hardware: http://www.linuxtv.org/wiki/index.php/ATSC_Devices
 
-Yes a scope would be nice!
+That last comment made me happy to know.
 
-No I traced some pins with a ohm meter. After some gpio togling and measuring
-the voltage on the hc4052 I found out the s0 and s1 pins.
+Anyway, please note that this mailing list is pretty much deprecated in
+favour of the LMML (which I've cc'ed in this reply).
 
-For the dvb reception I looked at the BER (bit-error-rate) using tzap it
-seemed to drop from 8000 or so to 4000 when using gpio21 = 1.
-Analog reception is a no-go in this mode it only works when gpio21 = 0.
-
-FM radio seemed a (little) bit better when using fm_rfn = 0 and the
-1.5Mhz antialiasing filter enabled. But its all somewhat subjective I
-must admit.
-
-> 
-> I have no problems with this patch, but I would be interested to hear
-> that you can prove it is actually needed by using a scope.  If you
-> don't have a scope, I understand....  but this certainly peaks my
-> interest.
-> 
-> Do you have schematics of that board?
-
-Nope, I will update the wiki with a few drawings that I have been able
-to figure out.
-
-Thanks for the support!
-
-regards,
-henk
-
-BTW Currently the card is for sale in the Aldi for 28.99 euros if
-someone is interested and in the proximity of Holland ;).
-
-> 
