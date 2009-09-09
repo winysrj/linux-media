@@ -1,185 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f206.google.com ([209.85.219.206]:56026 "EHLO
-	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753172AbZIJK6F convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Sep 2009 06:58:05 -0400
-Received: by ewy2 with SMTP id 2so239467ewy.17
-        for <linux-media@vger.kernel.org>; Thu, 10 Sep 2009 03:58:07 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20090910091400.GA15105@moon>
-References: <62013cda0909091443g72ebdf1bge3994b545a86c854@mail.gmail.com>
-	 <829197380909091459x5367e95dnbd15f23e8377cf33@mail.gmail.com>
-	 <20090910091400.GA15105@moon>
-Date: Thu, 10 Sep 2009 12:58:07 +0200
-Message-ID: <d9def9db0909100358o14f07362n550b95a033c8a798@mail.gmail.com>
-Subject: Re: LinuxTV firmware blocks all wireless connections / traffic
-From: Markus Rechberger <mrechberger@gmail.com>
-To: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Clinton Meyer <clintonmeyer22@gmail.com>,
-	Linux Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-out28.alice.it ([85.33.2.28]:1238 "EHLO
+	smtp-out28.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753602AbZIIXgf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Sep 2009 19:36:35 -0400
+Date: Thu, 10 Sep 2009 01:36:07 +0200
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: James Blanford <jhblanford@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: gspca stv06xx performance regression - request for testing
+Message-Id: <20090910013607.b277b0cc.ospite@studenti.unina.it>
+In-Reply-To: <20090909181139.06ab4ed5@blackbart.localnet.prv>
+References: <20090909181139.06ab4ed5@blackbart.localnet.prv>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Thu__10_Sep_2009_01_36_07_+0200_sp_e_hsb+EX3Luu1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 10, 2009 at 11:14 AM, Aleksandr V. Piskunov
-<aleksandr.v.piskunov@gmail.com> wrote:
-> On Wed, Sep 09, 2009 at 05:59:07PM -0400, Devin Heitmueller wrote:
->> On Wed, Sep 9, 2009 at 5:43 PM, Clinton Meyer<clintonmeyer22@gmail.com> wrote:
->> > Purchased a Hauppauge WinTV-HVR-950Q USB Hybrid TV stick to capture ATSC OTA TV.
->> >
->> > Am running MEPIS 8.06 on all three machines, Debian 5 Lenny based, KDE
->> > 3.5.10, kernel 2.6.27-1-mepis-smp
->> >
->> > All three machines now have wireless blocked, either do not connect or
->> > all packets dropped/blocked if a connection is made.
->> >
->> > Used the resources from LinuxTV (dot) org
->> >
->> > to get it working, they are referenced and posted as follows:
->> >  linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-950Q#Firmware
->> >
->> > ******** *********** **********
->> >  Quote:
->> > In order to use the LinuxTV driver, you need to download and install
->> > the firmware for the xc5000.
->> >
->> > Quote:
->> > wget  ... steventoth (dot) net/linux/xc50...25271_WHQL (dot) zip
->> > wget ... steventoth (dot) net/linux/xc5000/extract (dot) sh
->> >  sh extract (dot) sh
->> > cp dvb-fe-xc5000-1.1 (dot) fw /lib/firmware
->> > :Unquote
->> >
->> > Note: Though the usual directory location in which the firmware file
->> > is placed is /lib/firmware, this may differ in the case of some
->> > distros; consult your distro's documentation for the appropriate
->> > location.
->> >
->> > The firmware will be added lazily (on-demand) when you first use the driver.
->> > Drivers
->> >
->> > The xc5000 driver needed for this WinTV-HVR-950Q is already part of
->> > the latest Linux kernel (part of v4l-dvb drivers).
->> >
->> > Analog support was merged into the mainline v4l-dvb tree on March 18, 2009.
->> > :Unquote
->> > ******** *********** ********** ******** *********** **********
->> > So on Saturday I got this up and running... and Sunday morning
->> > recorded one show successfully that had set up on a timer.
->> >
->> > Then set up three consecutive shows for the afternoon.
->> > They were all part of a series on the same channel. Here are the results:
->> >
->> >     * Show A, 2.5 hours long, 13.2gb file size, appears to be OK.
->> >     * Show B, 2.0 hours long, 3.7gb file size, appears to be OK.
->> >      * Show C, supposed to be 2.0 hours long, result was 2.7gb file
->> > size, about the first hour is missing.
->> >
->> > At about this point, I lost wireless internet connectivity on TV
->> > recording laptop. Machine sees the access point, but won't connect.
->> >
->> > Went to my main desktop where i had first worked with this Hauppauge
->> > WinTV-HVR-950Q USB Hybrid TV stick and that machine also lost
->> > internet, even though it was right next to AP and got a very good
->> > signal.
->> >
->> > Thought it was maybe the AP, so switched it out for a working spare.
->> >  Same results.
->> > Packed up laptop and a spare laptop, along with a MEPIS 8.06 LiveCD
->> > and an 8.06 Live USB stick and hit the road to go to a reliable high
->> > speed wifi spot.
->> > Same results... changins ISPs resulted in the same issues.
->> >  Also same ting happened with the spare laptop, an IBM T43 Thinkpad I
->> > had also done the "wget ... steventoth (dot)
->> > net/linux/xc5000/HVR-12x0-14x0-17x0_1_25_25271_WHQL (dot) zip"
->> > firmware thing to.
->> >
->> > Was able to get one machine, while running a LIVE USB session, to
->> > connect, but zero packets received.. ALL were blocked. The connection
->> > information said ALL packets were dropped.
->> >  None of the two other machines connected to wireless on a LiveCD or
->> > LiveUSB thing too
->> > Three machines. All different brands (HP, Dell, and IBM) with
->> > different wifi cards. All three see the access point ESSID, but none
->> > connect.
->> >
->> > This does not *feel* good. What got flashed? Can this be resolved?
->> >
->> > Came home. No difference. Grabbed a laptop that i had NOT done the
->> > firmware thing to and that is what I am using to write this. Hooked
->> > right up to the AP.
->> >
->> > Please help... that is too much hardware disabled for me to think calmly.
->> > I'd really like to make the USB tv tuner work... what a great way to
->> > PVR / DVR, but I need wireless.
->> >
->> > Can provide any details requested to drive this towards a fix!
->> >
->> > Thank you,
->> > Clinton
->> > --
->> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> > the body of a message to majordomo@vger.kernel.org
->> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> >
->>
->> Hello Clinton,
->>
->> That is indeed curious.  It's hard to imagine how there could be
->> interference between the V4L subsystem and the wireless subsystem,
->> short of hitting some sort of timing condition on crappy wireless
->> drivers.
->>
->> Here are a few questions:
->>
->> 1.  You specified you followed the instructions for the firmware, but
->> are you running the current v4l-dvb code, or are you just using
->> whatever came with your Debian kernel?  If you're actually using the
->> 1.1 Xceive firmware, I'm assuming you're still using the old code.
->>
->> 2.  How reproducible is this?  Does it occur even if the device is
->> connected but you do not attempt any capturing with the device?  Does
->> it always drop out while capturing?
->>
->> 3.  What type of wireless cards are you using?  Are they implemented
->> over PCI, or USB?  If the wireless cards are USB based, perhaps there
->> is some sort of USB bandwidth issue.
->>
->> 4.  Are you actively watching the programs you are capturing?  Or are
->> you just saving the content to disk?  What application are you using
->> to capture the ATSC video?
->>
->> Devin
->>
->> --
->> Devin J. Heitmueller - Kernel Labs
->> http://www.kernellabs.com
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> Not sure if its the same issue, but on some USB chipsets/motherboards there
-> definitely are problems with two or more bandwidth-demanding cards like
-> tuners, wireless sticks, etc. Either its a dvb-usb subsystem issue or lower
-> level usb problem, who knows.
->
-> See this for details, very similar case: usb wifi dongle + usb digital tuner.
-> https://bugs.launchpad.net/ubuntu/+source/linux/+bug/256492
->
-> My problem also described in that bug report, got all the hardware and 100%
-> reproducible situation, would be nice if somebody helps to debug it.
+--Signature=_Thu__10_Sep_2009_01_36_07_+0200_sp_e_hsb+EX3Luu1
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-can you also test this with Windows on the same board?
+On Wed, 9 Sep 2009 18:11:39 -0400
+James Blanford <jhblanford@gmail.com> wrote:
 
-So far I got one report about the Zotac ION Board having such issues
-although I'm
-quite sure to be able to fix up that issue on it. I hope I won't have
-to deal with
-further boards...
+> Howdy folks,
+>=20
+> Now that I have my old quickcam express working, I can confirm that the
+> frame rate is half what it was with the old out-of-tree driver.  The
+> gspca driver is throwing out every other frame.  When a frame is
+> completed, a new frame is started with a new frame buffer that passes
+> the test for being properly queued.  But after the first packet is
+> analysed by the subdriver, the exact same test fails and the entire
+> frame is marked for discard.
+>=20
 
-Best Regards,
-Markus
+I also have a QuickCam Express, the one with pb0100 sensor.
+It is slow indeed, but I can't really make a comparison with the old
+driver.
+
+> I'm hoping someone has a few minutes to make a little patch, run the
+> cam for a couple seconds and look at the debug log.  Any comments are
+> welcome as well.
+>=20
+
+I get some discarded frames with stv06xx , but not as regularly as you.
+Also, no discarded frames with ov534 subdriver.
+
+Here's the log:
+
+[55231.009253] gspca: main v2.7.0 registered
+[55231.011569] STV06xx: Probing for a stv06xx device
+[55231.011575] gspca: probing 046d:0840
+[55231.011582] STV06xx: Configuring camera
+[55231.024510] STV06xx: Photobit pb0100 sensor detected
+[55231.024517] STV06xx: Initializing camera
+[55231.310369] gspca: probe ok
+[55231.310408] usbcore: registered new interface driver STV06xx
+[55231.310413] STV06xx: registered
+[55445.692828] Frame alloc
+[55446.298735] New frame - first packet
+[55446.426667] Frame completed
+[55446.426674] New frame - first packet
+[55446.426677] Frame marked for discard
+[55446.554582] New frame - first packet
+[55446.714487] Frame completed
+[55446.714495] New frame - first packet
+[55446.874375] Frame completed
+[55446.874383] New frame - first packet
+[55447.034246] Frame completed
+[55447.034253] New frame - first packet
+[55447.194141] Frame completed
+[55447.194150] New frame - first packet
+[55447.354020] Frame completed
+[55447.354027] New frame - first packet
+[55447.354029] Frame marked for discard
+[55447.481948] New frame - first packet
+[55447.641846] Frame completed
+[55447.641853] New frame - first packet
+[55447.801725] Frame completed
+[55447.801732] New frame - first packet
+[55447.961596] Frame completed
+[55447.961603] New frame - first packet
+[55448.121467] Frame completed
+[55448.121474] New frame - first packet
+[55448.281355] Frame completed
+[55448.281363] New frame - first packet
+[55448.409305] Frame completed
+[55448.409313] New frame - first packet
+[55448.569191] Frame completed
+[55448.569199] New frame - first packet
+[55448.729067] Frame completed
+[55448.729075] New frame - first packet
+[55448.888939] Frame completed
+[55448.888946] New frame - first packet
+[55449.048822] Frame completed
+[55449.048830] New frame - first packet
+[55449.208710] Frame completed
+[55449.208717] New frame - first packet
+[55449.336668] Frame completed
+[55449.336675] New frame - first packet
+[55449.496532] Frame completed
+[55449.496540] New frame - first packet
+[55449.656421] Frame completed
+[55449.656429] New frame - first packet
+[55449.816286] Frame completed
+[55449.816294] New frame - first packet
+[55449.976166] Frame completed
+[55449.976173] New frame - first packet
+[55449.976175] Frame marked for discard
+[55450.136047] New frame - first packet
+
+--=20
+Antonio Ospite
+http://ao2.it
+
+PGP public key ID: 0x4553B001
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing in e-mail?
+
+--Signature=_Thu__10_Sep_2009_01_36_07_+0200_sp_e_hsb+EX3Luu1
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAkqoO+cACgkQ5xr2akVTsAH9lQCcD7nYaT2KLcK8gG0J77tkcmKc
+iEYAn00X2mV31UBVhRzMkME1SlA1kLSM
+=kzsG
+-----END PGP SIGNATURE-----
+
+--Signature=_Thu__10_Sep_2009_01_36_07_+0200_sp_e_hsb+EX3Luu1--
