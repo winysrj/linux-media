@@ -1,81 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56991 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752651AbZIDPLY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Sep 2009 11:11:24 -0400
-Message-ID: <4AA12E17.4080006@iki.fi>
-Date: Fri, 04 Sep 2009 18:11:19 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Michael Krufky <mkrufky@kernellabs.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [RFC] Allow bridge drivers to have better control over DVB frontend
- 	operations
-References: <37219a840909012132l6c04af65hddecd2d52e196bcb@mail.gmail.com>
-In-Reply-To: <37219a840909012132l6c04af65hddecd2d52e196bcb@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from smtp.nokia.com ([192.100.105.134]:57914 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752188AbZIINDP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Sep 2009 09:03:15 -0400
+Subject: Re: [PATCHv15 7/8] FM TX: si4713: Add Kconfig and Makefile entries
+From: m7aalton <matti.j.aaltonen@nokia.com>
+Reply-To: matti.j.aaltonen@nokia.com
+To: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>
+Cc: ext Hans Verkuil <hverkuil@xs4all.nl>,
+	ext Mauro Carvalho Chehab <mchehab@infradead.org>,
+	ext Douglas Schilling Landgraf <dougsland@gmail.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>
+In-Reply-To: <1249729833-24975-8-git-send-email-eduardo.valentin@nokia.com>
+References: <1249729833-24975-1-git-send-email-eduardo.valentin@nokia.com>
+	 <1249729833-24975-2-git-send-email-eduardo.valentin@nokia.com>
+	 <1249729833-24975-3-git-send-email-eduardo.valentin@nokia.com>
+	 <1249729833-24975-4-git-send-email-eduardo.valentin@nokia.com>
+	 <1249729833-24975-5-git-send-email-eduardo.valentin@nokia.com>
+	 <1249729833-24975-6-git-send-email-eduardo.valentin@nokia.com>
+	 <1249729833-24975-7-git-send-email-eduardo.valentin@nokia.com>
+	 <1249729833-24975-8-git-send-email-eduardo.valentin@nokia.com>
+Content-Type: text/plain
+Date: Wed, 09 Sep 2009 16:02:51 +0300
+Message-Id: <1252501371.19083.99.camel@masi.ntc.nokia.com>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/02/2009 07:32 AM, Michael Krufky wrote:
-> Over the course of the past year, a number of developers have
-> expressed a need for giving the bridge drivers better control over
-> dvb_frontend operations.  Specifically, there is a need for the bridge
-> driver to receive a DVB frontend IOCTL and have the opportunity to
-> allow or deny the IOCTL to proceed, as resources permit.
->
-> For instance, in the case of a hybrid device, only the bridge driver
-> knows whether the analog functionality is presently being used.  If
-> the driver is currently in analog mode, serving video frames, the
-> driver will have a chance to deny the DVB frontend ioctl request
-> before dvb-core passes the request on to the frontend driver,
-> potentially damaging the analog video stream already in progress.
->
-> In some cases, the bridge driver might have to perform a setup
-> operation to use a feature specific to the device.  For instance, the
-> bridge device may be in a low powered state - this new capability
-> allows the driver to wake up before passing the command on to the
-> frontend driver.  This new feature will allow LinuxTV developers to
-> finally get working on actual power management support within the
-> v4l/dvb subsystem, without the fear of breaking devices with hybrid
-> analog / digital functionality.
->
-> In other cases, there may be situations in which multiple RF
-> connectors are available to the tuner, but only the bridge driver will
-> be aware of this, as this type of thing is specific to the device's
-> hardware implementation.  As there are many tuners capable of multiple
-> RF spigots, not all devices actually employ this feature - only the
-> bridge driver knows what implementations support such features, and
-> how to enable / disable them.
->
-> The possibilities are endless.  I actually did all the heavy lifting
-> involved in this a few months ago, but haven't had a moment to write
-> up this RFC until now.
->
-> The change to dvb-core that allows this new functionality is posted to
-> my development repository on kernellabs.com.  I have also included an
-> example of how this can be used on a digital tuner board with multiple
-> RF inputs.  The multiple RF input switching is already supported in
-> today's code, but I promised Mauro that I would present a better
-> method of doing this before the upcoming merge window.  For your
-> review and comments, please take a look at the topmost changesets,
-> starting with "create a standard method for dvb adapter drivers to
-> override frontend ioctls":
->
-> http://kernellabs.com/hg/~mkrufky/fe_ioctl_override
+On Sat, 2009-08-08 at 13:10 +0200, Valentin Eduardo (Nokia-D/Helsinki)
+wrote:
+> Simple add Makefile and Kconfig entries.
+> 
 
-Idea looks very good! I tested one DVB USB device need blocking IOCTLs 
-when demod and tuner are power save and didn't saw functionality problems.
+...
 
-However, it was a little bit hard to add callback to DVB USB driver. 
-Could that callback be added to the struct dvb_usb_adapter_properties 
-for simplify things? I have feeling that this callback will be useful 
-most DVb USB devices - setting GPIOs and clock settings for power save.
+> +	  Say Y here if you want support to Si4713 FM Radio Transmitter.
+> +	  This device can transmit audio through FM. It can transmit
+> +	  EDS and EBDS signals as well. This module is the v4l2 radio
+            ^^^     ^^^^
 
-Name fe_ioctl_override sounds like whole IOCTL will be replaced with new 
-one which is not true. Still, I don't know which could be better name.
+These should be RDS and RBDS?
 
-Antti
--- 
-http://palosaari.fi/
+Cheers,
+Matti A.
+
+
