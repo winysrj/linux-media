@@ -1,80 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2398 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751249AbZIAIzc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2009 04:55:32 -0400
-Message-ID: <61a1e1ecfcace9d2a452fa8de0521ab9.squirrel@webmail.xs4all.nl>
-In-Reply-To: <200909011049.15964.laurent.pinchart@ideasonboard.com>
-References: <4A9A3650.3000106@freemail.hu>
-    <20090831213531.4eb2c10a@pedra.chehab.org>
-    <200909010859.34027.hverkuil@xs4all.nl>
-    <200909011049.15964.laurent.pinchart@ideasonboard.com>
-Date: Tue, 1 Sep 2009 10:55:10 +0200
-Subject: Re: problem building v4l2-spec from docbook source
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
-Cc: "Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	"William M. Brack" <wbrack@mmm.com.hk>,
-	"V4L Mailing List" <linux-media@vger.kernel.org>,
-	=?iso-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+Received: from smtp27.orange.fr ([80.12.242.96]:27381 "EHLO smtp27.orange.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752415AbZIIVAw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Sep 2009 17:00:52 -0400
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2726.orange.fr (SMTP Server) with ESMTP id 81E201C00097
+	for <linux-media@vger.kernel.org>; Wed,  9 Sep 2009 23:00:54 +0200 (CEST)
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2726.orange.fr (SMTP Server) with ESMTP id 716B81C00092
+	for <linux-media@vger.kernel.org>; Wed,  9 Sep 2009 23:00:54 +0200 (CEST)
+Received: from [192.168.1.11] (ANantes-551-1-42-204.w86-214.abo.wanadoo.fr [86.214.145.204])
+	by mwinf2726.orange.fr (SMTP Server) with ESMTP id F1E6D1C00097
+	for <linux-media@vger.kernel.org>; Wed,  9 Sep 2009 23:00:53 +0200 (CEST)
+Message-ID: <4AA81785.5000806@gmail.com>
+Date: Wed, 09 Sep 2009 23:00:53 +0200
+From: Morvan Le Meut <mlemeut@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: (Saa7134) Re: ADS-Tech Instant TV PCI, no remote support
+References: <4AA53C05.10203@gmail.com> <4AA61508.9040506@gmail.com> <op.uzxmzlj86dn9rq@crni> <4AA62C38.3050208@gmail.com> <4AA63434.1010709@gmail.com> <4AA683BD.6070601@gmail.com> <4AA695EE.70800@gmail.com> <4AA767F2.50702@gmail.com> <op.uzzfgyvj3xmt7q@crni> <4AA77240.2040504@gmail.com> <4AA77683.7010201@gmail.com> <4AA7C266.3000509@gmail.com> <op.uzzz96se6dn9rq@crni> <4AA7E166.7030906@gmail.com>
+In-Reply-To: <4AA7E166.7030906@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+I don't know if i mentioned it before but something i find strange is " 
+saa7134 IR (ADS Tech Instant TV: unknown key: key=0x00 raw=0x00 down=1" 
+as soon as the module is loaded.
 
-> On Tuesday 01 September 2009 08:59:33 Hans Verkuil wrote:
->> On Tuesday 01 September 2009 02:35:31 Mauro Carvalho Chehab wrote:
->> > Em Mon, 31 Aug 2009 13:52:37 -0300
->> >
->> > Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
->> > > Hmm.. maybe Debian docbook packages have some issues with old
->> versions
->> > > of DocBook? Anyway, we should upgrade to XML 4.1.2 to use the same
->> > > DocBook version as used on kernel. Also, as kernel uses xmlto, I'm
->> > > working on a patch to port it to the same version/tools used on
->> kernel.
->> > > This will make easier for a future integration of the documentation
->> at
->> > > the kernel tree.
->> >
->> > As promised, I just committed a changeset that upgraded the DocBook
->> > version. It will now prefer to use xmlto, since, on my tests, it
->> seemed
->> > more reliable than docbook, for html targets. Unfortunately, it didn't
->> > work fine for pdf target, so, it will keep using docbook (in fact
->> db2pdf)
->> > for generating the pdf version.
->> >
->> > Please test. It everything is fine, IMO, we should consider the
->> inclusion
->> > of the V4L2 API on kernel (or at least, some parts of the API - since
->> the
->> > "changes" chapter doesn't seem much relevant to be on kernel).
->>
->> Hi Mauro,
->>
->> I did a quick test of the html output and it seems that table handling
->> is
->> hit and miss: e.g. see section 1.9.5.1. In other cases there is very
->> little
->> space between columns, e.g. section 3.5, table 3.3.
->>
->> Regarding pdf: do we really want to keep that? The output never looked
->> good. I wouldn't shed a tear if we dropped pdf support.
+
+Morvan Le Meut a écrit :
+> i did try it ( well, i left the keyup and keydown part and i also 
+> tried it by setting it to 0 ) but the gpio still repeat 
+> ("saa7133[0]/ir: build_key gpio=0x1b mask=0x0 data=0" for Power and 
+> Record, each followed by gpio=7f ).
+> Which is why i believe i am missing part of that code ( got the dvb-t 
+> version too on another computer, and given the software used, there 
+> should be no duplicate keys ).
+> I guess i will have to wait for someone to solve the problem. I can at 
+> least use the remote in a "broken" way.
 >
-> Can't we fix it to make it look good instead ? :-)
+>
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-I suspect that that is quite difficult: the core problem are some very
-wide tables that are cut off on the right hand side if I am not mistaken.
 
-Of course, if someone wants to take this on...
 
-Regards,
-
-         Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
