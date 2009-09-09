@@ -1,97 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:39915 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753598AbZIJTjS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Sep 2009 15:39:18 -0400
-Received: by fxm17 with SMTP id 17so356044fxm.37
-        for <linux-media@vger.kernel.org>; Thu, 10 Sep 2009 12:39:20 -0700 (PDT)
-Date: Thu, 10 Sep 2009 22:39:16 +0300
-From: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
-To: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Markus Rechberger <mrechberger@gmail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Clinton Meyer <clintonmeyer22@gmail.com>,
-	Linux Media <linux-media@vger.kernel.org>
-Subject: Re: LinuxTV firmware blocks all wireless connections / traffic
-Message-ID: <20090910193916.GA4923@moon>
-References: <829197380909091459x5367e95dnbd15f23e8377cf33@mail.gmail.com> <20090910091400.GA15105@moon> <d9def9db0909100358o14f07362n550b95a033c8a798@mail.gmail.com> <20090910124549.GA18426@moon> <20090910124807.GB18426@moon> <4AA8FB2F.2040504@iki.fi> <20090910134139.GA20149@moon> <4AA9038B.8090404@iki.fi> <4AA911B6.2040301@iki.fi> <20090910171631.GA4423@moon>
+Received: from fg-out-1718.google.com ([72.14.220.154]:27058 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752617AbZIITJu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Sep 2009 15:09:50 -0400
+Received: by fg-out-1718.google.com with SMTP id 22so1399888fge.1
+        for <linux-media@vger.kernel.org>; Wed, 09 Sep 2009 12:09:53 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20090910171631.GA4423@moon>
+In-Reply-To: <d9def9db0909091202x64b54600s4c499f0f4042a8e6@mail.gmail.com>
+References: <200909091814.10092.animatrix30@gmail.com>
+	 <829197380909090919o613827d0ye00cbfe3bde888ed@mail.gmail.com>
+	 <d9def9db0909091202x64b54600s4c499f0f4042a8e6@mail.gmail.com>
+Date: Wed, 9 Sep 2009 15:09:52 -0400
+Message-ID: <829197380909091209x382089beqe805bf2b0895a67f@mail.gmail.com>
+Subject: Re: Invalid module format
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Markus Rechberger <mrechberger@gmail.com>
+Cc: Edouard Marquez <animatrix30@gmail.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 10, 2009 at 08:16:31PM +0300, Aleksandr V. Piskunov wrote:
-> On Thu, Sep 10, 2009 at 05:48:22PM +0300, Antti Palosaari wrote:
-> > On 09/10/2009 04:47 PM, Antti Palosaari wrote:
-> >> Aleksandr V. Piskunov wrote:
-> >>> On Thu, Sep 10, 2009 at 04:12:15PM +0300, Antti Palosaari wrote:
-> >>>> Aleksandr V. Piskunov wrote:
-> >>>>>> Here is a test case:
-> >>>>>> Two DVB-T USB adapters, dvb_usb_af9015 and dvb_usb_af9015.
-> >>>>>> Different tuners,
-> >>>>> Err, make it: dvb_usb_af9015 and dvb_usb_ce6230
-> >>>> Those both uses currently too small bulk urbs, only 512 bytes. I have
-> >>>> asked suitable bulk urb size for ~20mbit/sec usb2.0 stream, but
-> >>>> no-one have answered yet (search ml back week or two). I think will
-> >>>> increase those to the 8k to reduce load.
-> >>>>
-> >>>
-> >>> Nice, I'm ready to test if such change helps.
-> >>
-> >> OK, I will make test version in couple of hours.
-> >
-> > Here it is, USB2.0 URB is now about 16k both af9015 and ce6230 devices.
-> > Now powertop shows only about 220 wakeups on my computer for the both  
-> > sticks.
-> > Please test and tell what powertop says:
-> > http://linuxtv.org/hg/~anttip/urb_size/
-> >
-> > I wonder if we can decide what URB size DVB USB drivers should follow  
-> > and even add new module param for overriding driver default.
-> 
-> Thanks, Antti!
-> 
-> Tested your branch on affected system.
-> 
-> Load definitely went down, from ~7000 wakeups to ~250 for each tuner
-> according to powertop.
-> Both tuners still working ok if not used simultaneously or if used the
-> same time on different USB controllers.
-> 
-> Bad news are that original problem still persists: putting both tuners
-> on same USB controller and zapping simultaneously corrupts stream.
-> Interesting observation: no matter in what sequence tuners are connected
-> (i.e. become adapter0 or adapter1), af9015 stream always gets heavily
-> distorted, visually mplayer picture becomes like 80% corrupted with
-> random color blocks and pixels, sound becomes a mess. At the same time
-> ce6230 gets slight corruption, a few discolored blocks at the time and
-> sound hickups.
-> 
-> Anyway, will try to do a few more tests:
-> 1) Two usb flash drives on same controller calculating md5sum of 
-> big .iso file, to check if it is/isn't dvb-usb problem.
-> 2) Will see if same issue persists on another PC with same motherboard
-> (slightly different revision) to rule out hardware issues. If I manage
-> to wire antenna there, that is...
+On Wed, Sep 9, 2009 at 3:02 PM, Markus Rechberger<mrechberger@gmail.com> wrote:
+> this is not true my old driver which is not available anymore did not
+> ship any other modules aside the em28xx driver itself.
+> This is a video4linux issue and has nothing to do with it.
+>
+> Best Regards,
+> Markus
+>
 
-Ok, two USB flash drives on same controller, no problem when bulk reading
-from both at the same time, no speed drops, no corruption.
+Hello Marks,
 
-Now if I plug ce6230 tuner, zap to channel and then start reading from 
-flash drive:
-* slightly corrupted TS stream
-* flash drive read getting starved on bandwidth, speed drops from 10 MB/s
-  to ~7 MB/s
+While it is true that your driver did not include anything other than
+em28xx, I assume it is compiled against a certain set of v4l2 headers,
+and if those headers change (such as changes to data structures), then
+the em28xx modules you distributed would not work with that version of
+the v4l2 modules.
 
-If I plug af9015 tuner, zap and read from flash
-* heavy corruption of TS stream
-* flash drive read speed drops from 10 MB/s to 2(!) MB/s
+If he wants to use your driver, I would assume he would need to
+reinstall the stock kernel (overwriting whatever locally built version
+of v4l-dvb he previously installed).
 
-Now I don't really know the USB protocol under-the-hood details, all the
-different types of bandwidth, reservation and so on. But shouldn't one
-480 Mbit/sec controller handle rather large number of digital tuners, each
-pushing 20-25 Mbit/sec max, even considering all the overhead?
+Cheers,
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
