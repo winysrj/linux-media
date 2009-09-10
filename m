@@ -1,29 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f206.google.com ([209.85.219.206]:41818 "EHLO
-	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751695AbZIBLsX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Sep 2009 07:48:23 -0400
-Received: by ewy2 with SMTP id 2so712868ewy.17
-        for <linux-media@vger.kernel.org>; Wed, 02 Sep 2009 04:48:24 -0700 (PDT)
-Message-ID: <4A9E5B88.50001@googlemail.com>
-Date: Wed, 02 Sep 2009 12:48:24 +0100
-From: Peter Brouwer <pb.maillists@googlemail.com>
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:39915 "EHLO
+	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753598AbZIJTjS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Sep 2009 15:39:18 -0400
+Received: by fxm17 with SMTP id 17so356044fxm.37
+        for <linux-media@vger.kernel.org>; Thu, 10 Sep 2009 12:39:20 -0700 (PDT)
+Date: Thu, 10 Sep 2009 22:39:16 +0300
+From: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
+To: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Markus Rechberger <mrechberger@gmail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Clinton Meyer <clintonmeyer22@gmail.com>,
+	Linux Media <linux-media@vger.kernel.org>
+Subject: Re: LinuxTV firmware blocks all wireless connections / traffic
+Message-ID: <20090910193916.GA4923@moon>
+References: <829197380909091459x5367e95dnbd15f23e8377cf33@mail.gmail.com> <20090910091400.GA15105@moon> <d9def9db0909100358o14f07362n550b95a033c8a798@mail.gmail.com> <20090910124549.GA18426@moon> <20090910124807.GB18426@moon> <4AA8FB2F.2040504@iki.fi> <20090910134139.GA20149@moon> <4AA9038B.8090404@iki.fi> <4AA911B6.2040301@iki.fi> <20090910171631.GA4423@moon>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Should I see a videoN and audioN in /dev/dvb/adapterN??
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20090910171631.GA4423@moon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+On Thu, Sep 10, 2009 at 08:16:31PM +0300, Aleksandr V. Piskunov wrote:
+> On Thu, Sep 10, 2009 at 05:48:22PM +0300, Antti Palosaari wrote:
+> > On 09/10/2009 04:47 PM, Antti Palosaari wrote:
+> >> Aleksandr V. Piskunov wrote:
+> >>> On Thu, Sep 10, 2009 at 04:12:15PM +0300, Antti Palosaari wrote:
+> >>>> Aleksandr V. Piskunov wrote:
+> >>>>>> Here is a test case:
+> >>>>>> Two DVB-T USB adapters, dvb_usb_af9015 and dvb_usb_af9015.
+> >>>>>> Different tuners,
+> >>>>> Err, make it: dvb_usb_af9015 and dvb_usb_ce6230
+> >>>> Those both uses currently too small bulk urbs, only 512 bytes. I have
+> >>>> asked suitable bulk urb size for ~20mbit/sec usb2.0 stream, but
+> >>>> no-one have answered yet (search ml back week or two). I think will
+> >>>> increase those to the 8k to reduce load.
+> >>>>
+> >>>
+> >>> Nice, I'm ready to test if such change helps.
+> >>
+> >> OK, I will make test version in couple of hours.
+> >
+> > Here it is, USB2.0 URB is now about 16k both af9015 and ce6230 devices.
+> > Now powertop shows only about 220 wakeups on my computer for the both  
+> > sticks.
+> > Please test and tell what powertop says:
+> > http://linuxtv.org/hg/~anttip/urb_size/
+> >
+> > I wonder if we can decide what URB size DVB USB drivers should follow  
+> > and even add new module param for overriding driver default.
+> 
+> Thanks, Antti!
+> 
+> Tested your branch on affected system.
+> 
+> Load definitely went down, from ~7000 wakeups to ~250 for each tuner
+> according to powertop.
+> Both tuners still working ok if not used simultaneously or if used the
+> same time on different USB controllers.
+> 
+> Bad news are that original problem still persists: putting both tuners
+> on same USB controller and zapping simultaneously corrupts stream.
+> Interesting observation: no matter in what sequence tuners are connected
+> (i.e. become adapter0 or adapter1), af9015 stream always gets heavily
+> distorted, visually mplayer picture becomes like 80% corrupted with
+> random color blocks and pixels, sound becomes a mess. At the same time
+> ce6230 gets slight corruption, a few discolored blocks at the time and
+> sound hickups.
+> 
+> Anyway, will try to do a few more tests:
+> 1) Two usb flash drives on same controller calculating md5sum of 
+> big .iso file, to check if it is/isn't dvb-usb problem.
+> 2) Will see if same issue persists on another PC with same motherboard
+> (slightly different revision) to rule out hardware issues. If I manage
+> to wire antenna there, that is...
 
-I am using a S460 Tevii ( Cx88) and a nova T 500 card.
-I see three adapter directories ( T 500 is dual tuner).
-Each has demux0 frontend0 net0 and dvr0
+Ok, two USB flash drives on same controller, no problem when bulk reading
+from both at the same time, no speed drops, no corruption.
 
-Should I not see a video0 and audio0 in each of them too?
-I see one /dev/video0 and one /dev/vbi0 that seems to belong to the S460 card
+Now if I plug ce6230 tuner, zap to channel and then start reading from 
+flash drive:
+* slightly corrupted TS stream
+* flash drive read getting starved on bandwidth, speed drops from 10 MB/s
+  to ~7 MB/s
 
-Regard
-Peter
+If I plug af9015 tuner, zap and read from flash
+* heavy corruption of TS stream
+* flash drive read speed drops from 10 MB/s to 2(!) MB/s
+
+Now I don't really know the USB protocol under-the-hood details, all the
+different types of bandwidth, reservation and so on. But shouldn't one
+480 Mbit/sec controller handle rather large number of digital tuners, each
+pushing 20-25 Mbit/sec max, even considering all the overhead?
