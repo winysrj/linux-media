@@ -1,90 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp112.mail.ukl.yahoo.com ([77.238.184.50]:30217 "HELO
-	smtp112.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1759068AbZIPNPc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Sep 2009 09:15:32 -0400
-Message-ID: <4AB0E373.3080307@yahoo.it>
-Date: Wed, 16 Sep 2009 15:09:07 +0200
-From: SebaX75 <sebax75@yahoo.it>
+Received: from znsun1.ifh.de ([141.34.1.16]:53213 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751725AbZIJPpN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Sep 2009 11:45:13 -0400
+Date: Thu, 10 Sep 2009 17:44:57 +0200 (CEST)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
+cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Heinrich Langos <henrik-vdr@prak.org>
+Subject: Re: DVB USB stream parameters
+In-Reply-To: <4AA26587.7000506@iki.fi>
+Message-ID: <alpine.LRH.1.10.0909101651400.5940@pub3.ifh.de>
+References: <4AA26587.7000506@iki.fi>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Pinnacle 320e (em28xx/xc2028): scan finds just first
- channel
-References: <4AAB74BC.9050508@pragl.cz> <829197380909120633o8b9e0e2i2b1295cc054afc14@mail.gmail.com>
-In-Reply-To: <829197380909120633o8b9e0e2i2b1295cc054afc14@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/09/2009 15:33, Devin Heitmueller has wrote:
-> On Sat, Sep 12, 2009 at 6:15 AM, Miroslav Pragl - mailing lists
-> <lists.subscriber@pragl.cz>  wrote:
->> Hello,
->> I've compiled and installed latest v4l-dvb and dvb-apps, extracted xceive
->> firmware, so far so good. Distro is Fedora 11, x64 (2.6.30.5-43.fc11.x86_64)
->>
->> Unfortunately scan finds only the first channel:
-> <snip>
->
-> Hello Miroslav,
->
-> Are you absolutely sure you installed the latest code, including "make
-> unload" to unload the currently running modules?  I fixed this exact
-> regression back in June, so I would be extremely surprised if you are
-> really seeing this in the latest code.
->
-> I would suggest using the following commands, and then reboot:
->
-> <unplug device>
-> hg clone http://linuxtv.org/hg/v4l-dvb
-> cd v4l-dvb
-> make&&  make install&&  make unload
-> reboot
-> <plug in device>
->
-> Then see if it still happens.
->
-> Cheers,
->
-> Devin
->
+Hi Antti,
 
-Hi Devin,
-I'm the person that has joined yesterday night on IRC channel to talk 
-with you about this post.
+sorry for answering with delay.
 
-During July, I've already talked with you about a problem 
-(http://www.mail-archive.com/linux-media@vger.kernel.org/msg07728.html), 
-but I was new and not very able to do debug and explain the problem with 
-good test case.
-After two months of tests and 3 adapters used (Hauppauge Nova-T, a china 
-generic Intel CE9500B1 and Pinnable Hybrid Stick 320E 
-EEPROM-ID=0x9567eb1a, EEPROM-hash=0xb8846b20 - only this one don't 
-work), I've more information for you.
+On Sat, 5 Sep 2009, Antti Palosaari wrote:
 
-My configuration is very similar to Miroslav, Fedora 11 with kernel 
-2.6.30.5-43.fc11.i686.PAE; v4l-dvb tree downloaded yesterday 
-(15/09/2009) and I use scandvb to scan the channels. I've tryed your 
-repository too, em28xx-vbi3, but it seems the same. The driver compile 
-without problem, the system is rebooted every time I recompile it, 
-modules are inserted without options and dmesg doesn't show any errors 
-(http://pastebin.com/f340bf982).
+> What are preferred BULK stream parameters, .count and .buffersize?
+>
+> for USB2.0?
+> for USB1.1?
+>
+> buffersize, which is URB size, have great effect to system load. For example 
+> 512 bytes generates about 10x more wakeups than 5120. It is quite clear that 
+> 512 is too small for whole DVB stream. I did some test and looks like all 
+> USB2.0 devices I have here allow x512 or x188 sizes.
+> Heinrich Langos did some measurements and results can be seen here:
+> http://www.linuxtv.org/wiki/index.php/User:Hlangos
+>
+> In my understanding we should found some balance between URB size and 
+> transferred stream bandwidth. For example DVB-T stream, when common 
+> transmission parameters are used, is more than 20Mbit/sec.
+>
+> There is also USB bridge chips which does have two or more different standard 
+> frontends needed different stream bandwidths.
+>
+> Should we add new module param for override module default?
+>
+> a800        BULK  7x 4096= 28672
+> af9005      BULK 10x 4096= 40960 USB1.1 BUGFIX: x512=>x188
+> af9015      BULK  6x 3072=  3072 BUGFIX: x512=>x188
+> anysee      BULK  8x  512=  4096
+> ce6230      BULK  6x  512=  3072
+> cinergyT2   BULK  5x  512=  2560
+> cxusb       BULK  5x 8192= 40960
+> cxusb       BULK  7x 4096= 28672
+> dib0700     BULK  4x39480=157920 210x188 !!HUGE!!
+> dibusb-mb   BULK  7x 4096= 28672  56x512
+> dibusb-mc   BULK  7x 4096= 28672
+> digitv      BULK  7x 4096= 28672
+> dtt200u     BULK  7x 4096= 28672
+> dtv5100     BULK  8x 4096= 32768
+> dw2102      BULK  8x 4096= 32768
+> gl861       BULK  7x  512=  3584
+> gp8psk      BULK  7x 8192= 57344
+> m920x       BULK  8x  512=  4096
+> m920x       BULK  8x16384=131072 256x512 !!HUGE!!
+> nova-t-usb2 BULK  7x 4096= 28672
+> opera1      BULK 10x 4096= 40960
+> umt-010     BULK 10x  512=  5120
+> vp702x      BULK 10x 4096= 40960
+> vp7045      BULK  7x 4096= 28672
+>
+> au6610      ISOC  5 frames 40 size 942
+> ttusb2      ISOC  5 frames  4 size 942
 
-Now the problem, very similar to Miroslav if MUX transmit only one 
-channel; during tuning, the DVB-T stop on first MUX tuned and all MUX 
-found after this one are not tuned and channels are not recognized.
-During tests, I've seen that if I change the MUX order in input file for 
-scandvb, I can get channels list tuned from first MUX... after more 
-tuning sessions to compile the list, the problem persist during normal 
-view of transmission...
+I don't know exactly why (the USB/HW background for that is not present in 
+my brain), but at some point having less than 39480B for one (high-level) 
+URB for the dib0700 resulted in never having any URB returning from the 
+USB stack. I chose 4 of them because .. I don't remember. It seems even 1 
+is working.
 
-If you need more info ask to me, I'll be very happy to help you; if for 
-you is useful, I've saved a tuning session with usbsnoop from windows 
-and I've not done this for linux, but if you need it I can do (I need 
-some time to do this because I don't know where to start).
+I remember someone telling me that this is due to something in the 
+firmware. I need to wait for some people to be back from whereever they 
+are to know exactly what's going on (that's why I haven't responded yet).
 
-Thanks for your support,
-Sebastian
+
+--
+
+Patrick 
+http://www.kernellabs.com/
