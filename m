@@ -1,39 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33906 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753432AbZIDNC7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Sep 2009 09:02:59 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n84D2vEX000443
-	for <linux-media@vger.kernel.org>; Fri, 4 Sep 2009 08:03:02 -0500
-Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id n84D2udA011427
-	for <linux-media@vger.kernel.org>; Fri, 4 Sep 2009 08:02:56 -0500 (CDT)
-Received: from dsbe71.ent.ti.com (localhost [127.0.0.1])
-	by dlep20.itg.ti.com (8.12.11/8.12.11) with ESMTP id n84D2upD007819
-	for <linux-media@vger.kernel.org>; Fri, 4 Sep 2009 08:02:56 -0500 (CDT)
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Fri, 4 Sep 2009 08:03:00 -0500
-Subject: Handling second output from vpfe capture  - Any suggestion ?
-Message-ID: <A69FA2915331DC488A831521EAE36FE40154FACF34@dlee06.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:42604 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752353AbZIJIKs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Sep 2009 04:10:48 -0400
+Received: by bwz19 with SMTP id 19so969323bwz.37
+        for <linux-media@vger.kernel.org>; Thu, 10 Sep 2009 01:10:50 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <4AA8B235.3050407@nildram.co.uk>
+References: <4AA7AE23.2040601@nildram.co.uk>
+	 <loom.20090909T195347-576@post.gmane.org>
+	 <4AA8B235.3050407@nildram.co.uk>
+Date: Thu, 10 Sep 2009 10:10:49 +0200
+Message-ID: <617be8890909100110jaaedf51h637d114d30382b99@mail.gmail.com>
+Subject: Re: Nova-T 500 Dual DVB-T and h.264
+From: Eduard Huguet <eduardhc@gmail.com>
+To: lotway@nildram.co.uk
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+2009/9/10 Lou Otway <lotway@nildram.co.uk>:
+> Eduard Huguet wrote:
+>>
+>> Lou Otway <lotway <at> nildram.co.uk> writes:
+>>
+>>> Hi,
+>>>
+>>> Does anyone have experience of using the Hauppuage Nova-T 500 with DVB-T
+>>> broadcasts with h.264 and AAC audio?
+>>>
+>>> DTT in New Zealand uses these formats and I'm seeing poor performance
+>>> from the Nova-T card. My thinking is that it was probably not conceived for
+>>> dealing with dual h264 streams.
+>>>
+>>> Has the PCIe HVR-2200 been tested with dual h.264? I was wondering if
+>>> this card might have better performance.
+>>>
+>>> Thanks,
+>>>
+>>> Lou
+>>
+>>
+>> Hi,    AFAIK the card just tunes to the desired frequency, applies
+>> configured
+>> filters (to select the desired station through its PID number), and
+>> handles the
+>> received transport stream to the calling application. It's up to the
+>> lastest to
+>> properly decode it. Check that the software you are using is properly
+>> capable of
+>> decoding this kind of content.
+>>
+>> Best regards,  Eduard Huguet
+>
+>
+> Hi,
+>
+> the problem isn't to do with playback as I have another type of adapter card
+> that creates a TS, from the same mux, that is played back with no problem.
+>
+> It seems that the problem only happens when using the Nova-T card.
+>
+> DTT in NZ has services with 1080i video format, I'm not sure that there are
+> many other places in the world where 1080i h.264 content is broadcast using
+> DVB-T, hence I was thinking that this combination may not have been well
+> tested.
+>
+> Thanks,
+>
+> Lou
+>
+>
+>
+>
+>
 
-I am working on to add additional capabilities to vpfe capture driver to allow capture two frames simultaneously for each received frame from the input video decoder or sensor device. This is done using the IPIPE and Resizer hw available in DM355. In our internal release this is done by configuring IPIPE to receive from directly from CCDC and then passing it to 
-the Resizer. Resizer has two outputs that operates on the same input frame. One output is usually used for capturing full resolution frame and the other is limited to output VGA or less resolution frames. Typically this will be useful for previewing the video on a smaller LCD screen using the second output while using the full resolution frame for encoding.
+I don't know how this it works in NZ. Here in Spain there is at least
+one station (TVC's 3HD) emitting HD content through TDT, and it works
+flawlessly with a Nova-T 500 (as I have one). I'm not sure if contents
+are 1080 or 720, though.
 
-Since input frame is same for both these inputs, we had implemented using a bigger capture buffer that can hold both the frames. The second frame is captured at the end of the first frame. This allowed us to DQBUF both frames simultaneously. But we used proprietary IOCTL to change the output size or format. I think a better alternative is to implement another Queue in the vpfe capture that can take a V4L2_BUF_TYPE_PRIVATE. This will allow me to configure the output format of second output independently for the second output. Looking at the v4l2-ioctl.c there is support for this buffer type. But this buffer type is not used by any driver and I am not sure if this will work or is the right approach to deal with this problem. Any suggestion here? 
+There were some problems watching these channels through MythTV, but
+they were definitely decoding related. With current MythTV trunk they
+are fine.
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-email: m-karicheri2@ti.com
+Anyway, as I said before, theoretically a DVB card doesn't know what
+kind of streams contains the signal it tunes. Decoding & parsing is
+handled by the app.
 
+Best regards,
+  Eduard Huguet
