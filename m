@@ -1,59 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp27.orange.fr ([80.12.242.95]:11908 "EHLO smtp27.orange.fr"
+Received: from feuersaenger.de ([77.37.20.51]:48662 "EHLO mail.feuersaenger.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752929AbZICFkE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Sep 2009 01:40:04 -0400
-Message-ID: <4A9F56B4.9000809@gmail.com>
-Date: Thu, 03 Sep 2009 07:40:04 +0200
-From: Morvan Le Meut <mlemeut@gmail.com>
+	id S1752865AbZIJNXg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Sep 2009 09:23:36 -0400
+Received: from www-data by mail.feuersaenger.de with local (Exim 4.69)
+	(envelope-from <m@feuersaenger.de>)
+	id 1Mlixf-0005We-JL
+	for linux-media@vger.kernel.org; Thu, 10 Sep 2009 14:41:15 +0200
+Message-ID: <18737.168.87.60.62.1252586475.squirrel@wm.feuersaenger.de>
+Date: Thu, 10 Sep 2009 14:41:15 +0200 (CEST)
+Subject: Problems with Haupauge WinTV-HVR 900
+From: Martin =?iso-8859-1?Q?Feuers=E4nger?= <m@feuersaenger.de>
+To: linux-media@vger.kernel.org
 MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: (EC168) PC Basic TNT USB Basic V5 ( France ) recognized but no
- channel tuning
-References: <4A9EC8B3.10904@gmail.com> <4A9EEBB2.60709@iki.fi>	 <4A9EF92B.2000506@gmail.com> <1251933172.3253.14.camel@pc07.localdom.local>
-In-Reply-To: <1251933172.3253.14.camel@pc07.localdom.local>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hermann pitton a écrit :
-> Hi Morvan,
->
-> HVR 1100 and HVR 1110 are totally different boards.
->
-> How does GNU/Linux detect the board on your recent kernel?
->
-> Sorry, I might be in delay reading previous messages.
->
-> Even on the HVR 1110 we have unclear situations, concerning that some of
-> them might have an additional LowNoiseAmplifier, which needs to be
-> configured correctly, and others not.
->
-> It might even be the case, that there are at least three different types
-> of such LNAs recently, and we don't know how to detect them.
->
-> All needing a different setup.
->
-> Please copy/paste device related dmesg output.
->
-> I still have not give up on it, that we might be able to identify those
-> different devices in the future.
->
-> Until somebody tells me better ...
->
-> Cheers,
-> Hermann
->
->
->   
-it is a 1110 one ( triangular shaped ) but it may be a new design or 
-something else. I don't have it here for the moment so i can't give 
-exact info but i tried the "card=104" and "card=156" options ( no 
-autodetection )  with no result ( analog TV and DVB  didn't work ).
- ( In the meantime, it's back in its box, waiting for a day where it 
-will work with my mythbuntu box :) )
+Hi list,
 
+I own the above TV USB stick (the 2040:6500 version, which is revision 1
+of the model)since a while now but didn't use it for several months (and
+kernel versions) now. It used to work in previous kernel versions.
 
+I guess that quite some things have changed in the kernel modules since
+last time I used the stick. From my previous usage I still had the
+xc3023_*.i2c.fw files hanging around in /lib/firmware but they seem
+obsolete now. So I followed the firmware extraction information (which was
+new to me) at http://www.linuxtv.org/wiki/index.php/Xceive_XC3028/XC2028
+where it is claimed that the extracted firmware should "work with a large
+number of boards from different manufacturers."
+
+However, I seem to have problems. Right now I'm running
+2.6.30-4.slh.2-sidux-686 kernel version (provided by the sidux team) and
+when plugging in the stick I get
+
+xc2028 0-0061: creating new instance
+xc2028 0-0061: type set to XCeive xc2028/xc3028 tuner
+i2c-adapter i2c-0: firmware: requesting xc3028-v27.fw
+xc2028 0-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028
+firmware,
+ver 2.7
+xc2028 0-0061: Loading firmware for type=BASE MTS (5), id 0000000000000000.
+xc2028 0-0061: Loading firmware for type=MTS (4), id ffffffffffffffff.
+xc2028 0-0061: attaching existing instance
+xc2028 0-0061: type set to XCeive xc2028/xc3028 tuner
+
+(Full dmesg output can be seen at http://pastebin.com/f148257f6)
+
+When I try to do something with the stick I get error messages saying
+"Incorrect readback of firmware version."
+
+>From googleing I found that other people with the same device for the
+type=MTS have a line with a different id, i.e.
+
+xc2028 0-0061: Loading firmware for type=MTS (4), id 000000000000b700.
+
+I hope that someone on this list can identify what problem I have/what I
+do wrong.
+
+Thanks in advance!
+
+  Martin
 
