@@ -1,48 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:44869 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758175AbZIRUOB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Sep 2009 16:14:01 -0400
-Date: Fri, 18 Sep 2009 17:13:24 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Akihiro TSUKADA <tskd2@yahoo.co.jp>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] dvb: add driver for 774 Friio White USB ISDB-T receiver
-Message-ID: <20090918171324.055006ed@pedra.chehab.org>
-In-Reply-To: <4A937927.9050409@yahoo.co.jp>
-References: <4A937927.9050409@yahoo.co.jp>
+Received: from fifo99.com ([67.223.236.141]:34977 "EHLO fifo99.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751258AbZIJOsT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Sep 2009 10:48:19 -0400
+Subject: Re: [PATCH] fix lock imbalances in /drivers/media/video/cafe_ccic.c
+From: Daniel Walker <dwalker@fifo99.com>
+To: iceberg <strakh@ispras.ru>
+Cc: Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+In-Reply-To: <200909101837.34472.strakh@ispras.ru>
+References: <200909101837.34472.strakh@ispras.ru>
+Content-Type: text/plain
+Date: Thu, 10 Sep 2009 07:48:44 -0700
+Message-Id: <1252594124.30578.181.camel@desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 25 Aug 2009 14:39:51 +0900
-Akihiro TSUKADA <tskd2@yahoo.co.jp> escreveu:
+On Thu, 2009-09-10 at 18:37 +0000, iceberg wrote:
+> In ./drivers/media/video/cafe_ccic.c, in function cafe_pci_probe: 
+> Mutex must be unlocked before exit
+> 	1. On paths starting with mutex lock in line 1912, then continuing in lines: 
+> 1929, 1936 (goto unreg) and 1940 (goto iounmap) . 
+> 	2. On path starting in line 1971 mutex lock, and then continuing in line 1978 
+> (goto out_smbus) mutex.
+> 
+> Fix lock imbalances in function cafe_pci_probe.
+> Found by Linux Driver Verification project.
 
-> From: Akihiro Tsukada <tskd2@yahoo.co.jp>
-> 
-> This patch adds driver for 774 Friio White, ISDB-T USB receiver
-> 
-> Friio White is an USB 2.0 ISDB-T receiver. (http://www.friio.com/)
-> The device has a GL861 chip and a Comtech JDVBT90502 canned tuner module.
-> This driver ignores all the frontend_parameters except frequency,
-> as ISDB-T shares the same parameter configuration across the country
-> and thus the device can work like an intelligent one.
-> 
-> As this device does not include a CAM nor hardware descrambling feature,
-> the driver passes through scrambled TS streams.
-> 
-> There is Friio Black, a variant for ISDB-S, which shares the same USB
-> Vendor/Product ID with White, but it is not supported in this driver.
-> They should be identified in the initialization sequence,
-> but this feature is not tested.
-> 
+Could you run this through checkpatch and fix any issues you find? It
+looks like you need to use tabs for indentation in a couple places.
 
-Committed, thanks. It would be good if you could add support for ISDB-T API [1] at the driver.
+Daniel
 
-[1] http://linuxtv.org/downloads/v4l-dvb-apis/ch09s03.html
-
-Cheers,
-Mauro
