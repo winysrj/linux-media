@@ -1,47 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:58217 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753586AbZICIgZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Sep 2009 04:36:25 -0400
-Date: Thu, 3 Sep 2009 09:36:00 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Imre Deak <imre.deak@nokia.com>
-Cc: ext Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Steven Walter <stevenrwalter@gmail.com>,
-	David Xiao <dxiao@broadcom.com>,
-	Ben Dooks <ben-linux@fluff.org>,
-	Hugh Dickins <hugh.dickins@tiscali.co.uk>,
-	Robin Holt <holt@sgi.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	v4l2_linux <linux-media@vger.kernel.org>,
-	"linux-arm-kernel@lists.arm.linux.org.uk"
-	<linux-arm-kernel@lists.arm.linux.org.uk>
-Subject: Re: How to efficiently handle DMA and cache on ARMv7 ? (was "Is
-	get_user_pages() enough to prevent pages from being swapped out ?")
-Message-ID: <20090903083600.GA7235@n2100.arm.linux.org.uk>
-References: <200908061208.22131.laurent.pinchart@ideasonboard.com> <e06498070908250553h5971102x6da7004495abb911@mail.gmail.com> <20090901132824.GN19719@n2100.arm.linux.org.uk> <200909011543.48439.laurent.pinchart@ideasonboard.com> <20090902151044.GG30183@localhost>
+Received: from comal.ext.ti.com ([198.47.26.152]:33453 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753043AbZIJTTa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Sep 2009 15:19:30 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Patrick Boettcher <pboettcher@kernellabs.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Thu, 10 Sep 2009 14:19:25 -0500
+Subject: RE: RFCv2: Media controller proposal
+Message-ID: <A69FA2915331DC488A831521EAE36FE401550D0691@dlee06.ent.ti.com>
+References: <200909100913.09065.hverkuil@xs4all.nl>
+    <alpine.LRH.1.10.0909101001390.5940@pub3.ifh.de>
+    <1ceb929cb176ac6272ff94a6dcd47b6d.squirrel@webmail.xs4all.nl>
+    <alpine.LRH.1.10.0909101604280.5940@pub3.ifh.de>
+ <2830b427fef295eeb166dbd2065392ce.squirrel@webmail.xs4all.nl>
+In-Reply-To: <2830b427fef295eeb166dbd2065392ce.squirrel@webmail.xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20090902151044.GG30183@localhost>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 02, 2009 at 06:10:44PM +0300, Imre Deak wrote:
-> To my understanding buffers returned by dma_alloc_*, kmalloc, vmalloc
-> are ok:
+Hans,
 
-For dma_map_*, the only pages/addresses which are valid to pass are
-those returned by get_free_pages() or kmalloc.  Everything else is
-not permitted.
+I haven't gone through the RFC, but thought will respond to the below comment.
 
-Use of vmalloc'd and dma_alloc_* pages with the dma_map_* APIs is invalid
-use of the DMA API.  See the notes in the DMA-mapping.txt document
-against "dma_map_single".
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+new phone: 301-407-9583
+Old Phone : 301-515-3736 (will be deprecated)
+email: m-karicheri2@ti.com
 
-> For user mappings I think you'd have to do an additional flush for
-> the direct mapping, while the user mapping is flushed in dma_map_*.
+>>>
+>>> I may be mistaken, but I don't believe soundcards have this same
+>>> complexity are media board.
+>>
+>> When I launch alsa-mixer I see 4 input devices where I can select 4
+>> difference sources. This gives 16 combinations which is enough for me to
+>> call it 'complex' .
+>>
+>>>> Could entities not be completely addressed (configuration ioctls)
+>>>> through
+>>>> the mc-node?
+>>>
+>>> Not sure what you mean.
+>>
+>> Instead of having a device node for each entity, the ioctls for each
+>> entities are done on the media controller-node address an entity by ID.
+>
+>I definitely don't want to go there. Use device nodes (video, fb, alsa,
+>dvb, etc) for streaming the actual media as we always did and use the
+>media controller for controlling the board. It keeps everything nicely
+>separate and clean.
+>
 
-I will not accept a patch which adds flushing of anything other than
-the kernel direct mapping in the dma_map_* functions, so please find
-a different approach.
+
+What you mean by controlling the board?
+
+We have currently ported DMxxx VPBE display drivers to 2.6.31 (Not submitted yet to mainline). In our current implementation, the output and standard/mode are controlled through sysfs because it is a common functionality affecting both v4l and FBDev framebuffer devices. Traditional applications such x-windows should be able to stream video/graphics to VPBE output. V4l2 applications should be able to stream video. Both these devices needs to know the display parameters such as frame buffer resolution, field etc that are to be configured in the video or osd layers in VPBE to output frames to the encoder that is driving the output. So to stream, first the output and mode/standard are selected using sysfs command and then the application is started. Following scenarios are supported by VPBE display drivers in our internal release:-
+
+1)Traditional FBDev applications (x-window) can be run using OSD device. Allows changing mode/standards at the output using fbset command.
+
+2)v4l2 driver doesn't provide s_output/s_std support since it is done through sysfs. 
+
+3)Applications that requires to stream both graphics and video to the output uses both FBDev and V4l2 devices. So these application first set the output and mode/standard using sysfs, before doing io operations with these devices.
+
+There is an encoder manager to which all available encoders  registers (using internally developed interface) and based on commands received at Fbdev/sysfs interfaces, the current encoder is selected by the encoder manager and current standard is selected. The encoder manager provides API to retrieve current timing information from the current encoder. FBDev and V4L2 drivers uses this API to configure OSD/video layers for streaming.
+
+As you can see, controlling output/mode is a common function required for both v4l2 and FBDev devices. 
+
+One way to do this to modify the encoder manager such that it load up the encoder sub devices. This will allow our customers to migrate to this driver on GIT kernel with minimum effort. If v4l2 display bridge driver load up the sub devices, it will make FBDev driver useless unless media controller has some way to handle this scenario. Any idea if media controller RFC address this? I will go over the RFC in details, but if you have a ready answer, let me know.
+
+Thanks
+>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
