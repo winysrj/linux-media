@@ -1,97 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from em002a.cxnet.dk ([87.72.115.243]:50595 "EHLO em002a.cxnet.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752445AbZIBSWI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Sep 2009 14:22:08 -0400
-Message-ID: <4A9EB032.7000503@rokamp.dk>
-Date: Wed, 02 Sep 2009 19:49:38 +0200
-From: Thomas Rokamp <thomas@rokamp.dk>
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:39158 "EHLO
+	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753185AbZIJUpH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Sep 2009 16:45:07 -0400
+Received: by fxm17 with SMTP id 17so398911fxm.37
+        for <linux-media@vger.kernel.org>; Thu, 10 Sep 2009 13:45:09 -0700 (PDT)
 MIME-Version: 1.0
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Problems with Hauppauge Nova-T USB2
-References: <41138.1251890451@rokamp.dk> <alpine.LRH.1.10.0909021905001.3802@pub6.ifh.de>
-In-Reply-To: <alpine.LRH.1.10.0909021905001.3802@pub6.ifh.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4AA961BF.2040308@iki.fi>
+References: <62013cda0909091443g72ebdf1bge3994b545a86c854@mail.gmail.com>
+	 <20090910134139.GA20149@moon> <4AA9038B.8090404@iki.fi>
+	 <4AA911B6.2040301@iki.fi>
+	 <829197380909100826i3e2f8315yd6a0258f38a6c7b9@mail.gmail.com>
+	 <4AA92160.5080200@iki.fi>
+	 <829197380909100912xdb34da0s55587f6fe9c0f1d5@mail.gmail.com>
+	 <4AA92DF6.80107@iki.fi>
+	 <829197380909101017w17645c56te9fe829b59812800@mail.gmail.com>
+	 <4AA961BF.2040308@iki.fi>
+Date: Thu, 10 Sep 2009 16:45:08 -0400
+Message-ID: <829197380909101345p3cacde38u4cd50c42cabb5f48@mail.gmail.com>
+Subject: Re: LinuxTV firmware blocks all wireless connections / traffic
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>,
+	Markus Rechberger <mrechberger@gmail.com>,
+	Clinton Meyer <clintonmeyer22@gmail.com>,
+	Linux Media <linux-media@vger.kernel.org>,
+	Heinrich Langos <henrik-vdr@prak.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Patrick
+On Thu, Sep 10, 2009 at 4:29 PM, Antti Palosaari<crope@iki.fi> wrote:
+> Eh, not all needed, but we need some kind of rule of thumb which URB size is
+> suitable for bandwidth used. 512, 8k, 16k etc. It is not wise at all set it
+> to only 512 bytes when streaming whole TS example 22Mbit/sec. I have tested
+> Anysee (Cypress FX2), AF9015, CE6230, RTL2831U and all those allowed to set
+> URB rather freely.
 
-Patrick Boettcher wrote:
-> Hi Thomas,
->
-> Ignore the SNR value. It is forced to 0000 even if the SNR is good 
-> (enough). This is a missing feature in the DiBx000-drivers (x < 8).
->
-> Beside that, everything looks fine: locks are there, signal is 
-> mid-range (~60 dBm I would estimate). ber = 0 and unc = 0, that means 
-> no problem on the demodulator side.
->
-> How did you get the channels.conf? How do you know the video and audio 
-> PID is correct?
->
-> Did you try to run scan or w_scan?
-I used w_scan to get the the channels.conf file. I dont have the 
-transponder data, so 'scan' is of no use. Unless I extract them from the 
-output of w_scan, in which case the to generated files are identical on 
-the numbers.
-X:722000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_5_6:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:513:644:905
->
->> [..[
->> This 'test.mpg' output file, however, shows no video at all, despite 
->> it actually containing data. VLC reports 'nothing to play'.
->
-> What's the size of this file? (Should be ~1MB per second max on a very 
-> good MPEG2-stream) Maybe you're receiving H264... then it can be more 
-> and some versions of mplayer and vlc may not play it, because they are 
-> not able to detect that it is H264 + AAC without stream-meta-data 
-> (PAT, PMT).
-The file varies in size, from around 3MB to around 7MB for the 5 seconds.
+If you want to pick bridges that are important to you and take the
+time to optimize them better, by all means be my guest.  This is the
+sort of thing that would have to be discussed with the individual
+maintainers of those bridges, so you can understand what logic was
+used in making the original decision (ensuring the original logic was
+not done to work around some bug, etc).
 
-I have no idea if the PIDs are the correct ones, but at least they match 
-the output from dvbsnoop:
+> I haven't seen yet device which forces to use just one
+> size - though it is possible there is.
 
-dvbsnoop -s pidscan
----------------------------------------------------------
-Transponder PID-Scan...
----------------------------------------------------------
-PID found:    0 (0x0000)  [SECTION: Program Association Table (PAT)]
-PID found:  110 (0x006e)  [PS/PES: ITU-T Rec. H.262 | ISO/IEC 13818-2 or 
-ISO/IEC 11172-2 video stream]
-PID found:  120 (0x0078)  [PS/PES: ISO/IEC 13818-3 or ISO/IEC 11172-3 
-audio stream]
-PID found:  130 (0x0082)  [PS/PES: private_stream_1]
-PID found:  131 (0x0083)  [unknown]
-PID found:  257 (0x0101)  [SECTION: Program Map Table (PMT)]
-PID found:  259 (0x0103)  [SECTION: Program Map Table (PMT)]
-PID found:  260 (0x0104)  [SECTION: Program Map Table (PMT)]
-PID found:  261 (0x0105)  [SECTION: Program Map Table (PMT)]
-PID found:  301 (0x012d)  [PS/PES: private_stream_1]
-PID found:  512 (0x0200)  [PS/PES: ITU-T Rec. H.262 | ISO/IEC 13818-2 or 
-ISO/IEC 11172-2 video stream]
-PID found:  513 (0x0201)  [PS/PES: ITU-T Rec. H.262 | ISO/IEC 13818-2 or 
-ISO/IEC 11172-2 video stream]
-PID found:  640 (0x0280)  [PS/PES: ISO/IEC 13818-3 or ISO/IEC 11172-3 
-audio stream]
-PID found:  644 (0x0284)  [PS/PES: ISO/IEC 13818-3 or ISO/IEC 11172-3 
-audio stream]
-PID found: 1200 (0x04b0)  [PS/PES: ITU-T Rec. H.262 | ISO/IEC 13818-2 or 
-ISO/IEC 11172-2 video stream]
-PID found: 1201 (0x04b1)  [PS/PES: ISO/IEC 13818-3 or ISO/IEC 11172-3 
-audio stream]
-PID found: 5008 (0x1390)  [PS/PES: private_stream_1]
-PID found: 5009 (0x1391)  [PS/PES: private_stream_1]
-PID found: 8180 (0x1ff4)  [unknown]
-PID found: 8191 (0x1fff)  [stuffing]
+Well, it depends on the chip.  Selecting too small a value can result
+in packets getting dropped (this was a problem on em28xx until I fixed
+it a few months ago).
 
+> And no datasheet even needed, you can
+> see from debug log or error code if URB is not suitable.
 
-If it can be any help, I have uploaded 2 test files
-(both made with "dvbstream -n 5 -qam 64 -gi 16 -cr 5_6 -crlp 5_6 -bw 8 
--tm 2 -hy NONE -f 722000000 513 644 -o > testX.mpg")
+Well, this assumes the bridge fails gracefully, returning a failure.
+Take Patrick's example, where the device returns success but then
+proceed to not send back any URBs.
 
-http://phail.dk/test01.mpg
-http://phail.dk/test02.mpg
+> Why not set it some good value when possible? And also adding module
+> parameter which overrides driver default is not hard to add, just look value
+> user gives as param and round it to nearest suitable one.
 
-/Thomas
+Frankly, I'm not really confident this provides much value.  End-users
+should not really be playing around with these sorts of settings.  If
+the values are wrong, a patch should be submitted and the maintainer
+should fix the driver.
+
+Cheers,
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
