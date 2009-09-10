@@ -1,54 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f210.google.com ([209.85.218.210]:47813 "EHLO
-	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751473AbZI1QXQ (ORCPT
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:49486 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752787AbZIJMr5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Sep 2009 12:23:16 -0400
-Received: by bwz6 with SMTP id 6so1384074bwz.37
-        for <linux-media@vger.kernel.org>; Mon, 28 Sep 2009 09:23:19 -0700 (PDT)
+	Thu, 10 Sep 2009 08:47:57 -0400
+Received: by bwz19 with SMTP id 19so53784bwz.37
+        for <linux-media@vger.kernel.org>; Thu, 10 Sep 2009 05:47:58 -0700 (PDT)
+Date: Thu, 10 Sep 2009 15:48:07 +0300
+From: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
+To: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
+Cc: Markus Rechberger <mrechberger@gmail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Clinton Meyer <clintonmeyer22@gmail.com>,
+	Linux Media <linux-media@vger.kernel.org>
+Subject: Re: LinuxTV firmware blocks all wireless connections / traffic
+Message-ID: <20090910124807.GB18426@moon>
+References: <62013cda0909091443g72ebdf1bge3994b545a86c854@mail.gmail.com> <829197380909091459x5367e95dnbd15f23e8377cf33@mail.gmail.com> <20090910091400.GA15105@moon> <d9def9db0909100358o14f07362n550b95a033c8a798@mail.gmail.com> <20090910124549.GA18426@moon>
 MIME-Version: 1.0
-In-Reply-To: <4AC0E21F.1000301@gmail.com>
-References: <4AC0D05D.4060304@gmail.com>
-	 <829197380909280824q487c3effp64914d8430f16092@mail.gmail.com>
-	 <4AC0E21F.1000301@gmail.com>
-Date: Mon, 28 Sep 2009 12:23:19 -0400
-Message-ID: <829197380909280923r28452c44j610ffdcccf3f5d38@mail.gmail.com>
-Subject: Re: [PATCH 2/2] em28xx: Convert printks to em28xx_err and em28xx_info
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: rosset.filipe@gmail.com
-Cc: linux-media@vger.kernel.org,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20090910124549.GA18426@moon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 28, 2009 at 12:19 PM, Filipe Rosset <rosset.filipe@gmail.com> wrote:
-> Em 28-09-2009 12:24, Devin Heitmueller escreveu:
->> On Mon, Sep 28, 2009 at 11:03 AM, Filipe Rosset <rosset.filipe@gmail.com> wrote:
->>>
->>
->> You should use the em28xx_errdev() instead of em28xx_err() if your
->> intent is to insert "dev->name" in front of the message.
->>
->> Devin
->>
->
-> OK, modified patch.
->
-> Filipe
->
+> 
+> Here is a test case:
+> Two DVB-T USB adapters, dvb_usb_af9015 and dvb_usb_af9015. Different tuners,
 
-Filipe,
-
-Your updated patch is going to effectively print dev->name twice.
-Please look at the definition of em28xx_errdev() and resubmit an
-updated patch that takes this into account.
-
-Thanks,
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Err, make it: dvb_usb_af9015 and dvb_usb_ce6230
