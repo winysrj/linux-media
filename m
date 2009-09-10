@@ -1,63 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:64656 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752740AbZIERy2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Sep 2009 13:54:28 -0400
-Received: by fxm17 with SMTP id 17so1269811fxm.37
-        for <linux-media@vger.kernel.org>; Sat, 05 Sep 2009 10:54:29 -0700 (PDT)
-Message-ID: <4AA2A5D3.2060508@googlemail.com>
-Date: Sat, 05 Sep 2009 18:54:27 +0100
-From: Peter Brouwer <pb.maillists@googlemail.com>
+Received: from mail-ew0-f206.google.com ([209.85.219.206]:39785 "EHLO
+	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752940AbZIJHOe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Sep 2009 03:14:34 -0400
+Received: by ewy2 with SMTP id 2so99383ewy.17
+        for <linux-media@vger.kernel.org>; Thu, 10 Sep 2009 00:14:36 -0700 (PDT)
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"William M. Brack" <wbrack@mmm.com.hk>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: problem building v4l2-spec from docbook source
-References: <4A9A3650.3000106@freemail.hu>	<d88b96090d4bf9d9d152db5645149594.squirrel@delightful.com.hk>	<4A9F52E1.7030004@freemail.hu>	<20090903085455.176f4df3@pedra.chehab.org> <20090903090847.4aeef6cc@pedra.chehab.org> <4AA12791.7070103@freemail.hu>
-In-Reply-To: <4AA12791.7070103@freemail.hu>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1252507872.29643.330.camel@alkaloid.netup.ru>
+References: <1252507872.29643.330.camel@alkaloid.netup.ru>
+Date: Thu, 10 Sep 2009 09:14:36 +0200
+Message-ID: <42619c130909100014hdd80d02y43f8a7120548332@mail.gmail.com>
+Subject: Re: [linux-dvb] NetUP Dual DVB-T/C-CI RF PCI-E x1
+From: =?ISO-8859-1?Q?Christian_Watteng=E5rd?= <cwattengard@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org, aospan@netup.ru
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Is it possible to create a link on the linuxtv.org website to the latest dvb and 
-v4l spec in pdf?
-For dvb the v3 is still on the documentation page.
+This sounds promising. I hope you are not going to price yourselves
+completely out as a few other DVB-C suppliers have done.
+If the price is right (around the same as a normal DVB-T tuner ~$65),
+it definitely sounds interesting.
 
-Peter
-Németh Márton wrote:
-> Mauro Carvalho Chehab wrote:
->> Em Thu, 3 Sep 2009 08:54:55 -0300
->> Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
->>
->>> Em Thu, 03 Sep 2009 07:23:45 +0200
->>> Németh Márton <nm127@freemail.hu> escreveu:
->>>
->>>
->>> Try to replace "Role" to "role". Maybe it is just another case where you need to use lowercase with some xml engines.
->> Ok, I just added a patch that does this to remote_controllers.sgml:
->>
->> -<row><entry><emphasis Role="bold">Miscelaneous keys</emphasis></entry></row>
->> +<row><entry><emphasis role="bold">Miscelaneous keys</emphasis></entry></row>
->>
->> changeset:   12615:2b49813f8482
->> tag:         tip
->> user:        Mauro Carvalho Chehab <mchehab@redhat.com>
->> date:        Thu Sep 03 09:06:34 2009 -0300
->> summary:     v4l2-spec: Fix xmlto compilation with some versions of the tool
->>
->> Please see if this fixes the issue.
-> 
-> Thanks, now the "make v4l2-spec" successfully build the html documentation
-> on my computer.
-> 
-> Regards,
-> 
-> 	Márton Németh
+When you say it supports two transponders, is this also true on DVB-C
+only... As in DVB-C + DVB-C channel...
+If this is the case then I only need 3 cards to cover all the
+interesting channels in my cable network ;)
+I CAN TIMESHIFT THE WORLD!!! MUHAHAHAhaha... *cough*
+
+But seriously... This sounds very interesting.
+
+Christian from Norway...
+
+On Wed, Sep 9, 2009 at 4:51 PM, Abylai Ospan <aospan@netup.ru> wrote:
+> Hello,
+>
+> We have designed NetUP Dual NetUP Dual DVB-T/C-CI RF PCI-E x1 card. A short
+> description is available in wiki - http://linuxtv.org/wiki/index.php/NetUP_Dual_DVB_T_C_CI_RF
+>
+> Features:
+> * PCI-e x1
+> * Supports two DVB-T/DVB-C transponders simultaneously
+> * Supports two analog audio/video channels simultaneously
+> * Independent descrambling of two transponders
+> * Hardware PID filtering
+>
+> Now we have started the work on the driver for Linux. The following  components used in this card already have their code for Linux published:
+> * Conexant CX23885, CX25840
+> * Xceive XC5000 silicon TV tuner
+>
+> We are working on the code for the following components:
+> * STM STV0367 low-power and ultra-compact combo DVB-T/C single-chip receiver
+> * Altera FPGA for Common Interafce.
+>
+> We have developed FPGA firmware for CI (according to PCMCIA/en50221). Also we are doing "hardware" PID filtering. It's fast and very flexible. JTAG is used for firmware uploading into FPGA -
+> this part contains "JAM player" from Altera for processing JAM STAPL Byte-Code (.jbc files).
+>
+> The resulting code will be published under GPL after receiving permissions from IC vendors.
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+> Abylai Ospan <aospan@netup.ru>
+> NetUP Inc.
+>
+> P.S.
+> We will show this card at the upcoming IBC exhibition ( stand IP402 ).
+>
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
