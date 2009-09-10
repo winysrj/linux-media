@@ -1,116 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway06.websitewelcome.com ([67.18.1.11]:50042 "HELO
-	gateway06.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1757592AbZIRSuP (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:56541 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751258AbZIJJdd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Sep 2009 14:50:15 -0400
-Received: from [66.15.212.169] (port=30683 helo=[10.140.5.16])
-	by gator886.hostgator.com with esmtpsa (SSLv3:AES256-SHA:256)
-	(Exim 4.69)
-	(envelope-from <pete@sensoray.com>)
-	id 1Moi7H-0002n2-VM
-	for linux-media@vger.kernel.org; Fri, 18 Sep 2009 13:23:32 -0500
-Subject: [PATCH 8/9] go7007: convert printks to v4l2_info
-From: Pete <pete@sensoray.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain
-Date: Fri, 18 Sep 2009 11:23:35 -0700
-Message-Id: <1253298215.4314.572.camel@pete-desktop>
-Mime-Version: 1.0
+	Thu, 10 Sep 2009 05:33:33 -0400
+Message-ID: <4AA8C7F3.9090609@nildram.co.uk>
+Date: Thu, 10 Sep 2009 10:33:39 +0100
+From: Lou Otway <lotway@nildram.co.uk>
+Reply-To: lotway@nildram.co.uk
+MIME-Version: 1.0
+To: Eduard Huguet <eduardhc@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Nova-T 500 Dual DVB-T and h.264
+References: <4AA7AE23.2040601@nildram.co.uk>	 <loom.20090909T195347-576@post.gmane.org>	 <4AA8B235.3050407@nildram.co.uk>	 <617be8890909100110jaaedf51h637d114d30382b99@mail.gmail.com>	 <4AA8C07C.9030804@nildram.co.uk> <617be8890909100217y1c13cdfbw7d95e1f714549b71@mail.gmail.com>
+In-Reply-To: <617be8890909100217y1c13cdfbw7d95e1f714549b71@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use v4l2_info and v4l2_err where appropriate.
+Eduard Huguet wrote:
+> 2009/9/10 Lou Otway <lotway@nildram.co.uk>:
+>> Eduard Huguet wrote:
+>>> 2009/9/10 Lou Otway <lotway@nildram.co.uk>:
+>>>> Eduard Huguet wrote:
+>>>>> Lou Otway <lotway <at> nildram.co.uk> writes:
+>>>>>
+>>>>>> Hi,
+>>>>>>
+>>>>>> Does anyone have experience of using the Hauppuage Nova-T 500 with
+>>>>>> DVB-T
+>>>>>> broadcasts with h.264 and AAC audio?
+>>>>>>
+>>>>>> DTT in New Zealand uses these formats and I'm seeing poor performance
+>>>>>> from the Nova-T card. My thinking is that it was probably not conceived
+>>>>>> for
+>>>>>> dealing with dual h264 streams.
+>>>>>>
+>>>>>> Has the PCIe HVR-2200 been tested with dual h.264? I was wondering if
+>>>>>> this card might have better performance.
+>>>>>>
+>>>>>> Thanks,
+>>>>>>
+>>>>>> Lou
+>>>>> Hi,    AFAIK the card just tunes to the desired frequency, applies
+>>>>> configured
+>>>>> filters (to select the desired station through its PID number), and
+>>>>> handles the
+>>>>> received transport stream to the calling application. It's up to the
+>>>>> lastest to
+>>>>> properly decode it. Check that the software you are using is properly
+>>>>> capable of
+>>>>> decoding this kind of content.
+>>>>>
+>>>>> Best regards,  Eduard Huguet
+>>>> Hi,
+>>>>
+>>>> the problem isn't to do with playback as I have another type of adapter
+>>>> card
+>>>> that creates a TS, from the same mux, that is played back with no
+>>>> problem.
+>>>>
+>>>> It seems that the problem only happens when using the Nova-T card.
+>>>>
+>>>> DTT in NZ has services with 1080i video format, I'm not sure that there
+>>>> are
+>>>> many other places in the world where 1080i h.264 content is broadcast
+>>>> using
+>>>> DVB-T, hence I was thinking that this combination may not have been well
+>>>> tested.
+>>>>
+>>>> Thanks,
+>>>>
+>>>> Lou
+>>>>
+>>> I don't know how this it works in NZ. Here in Spain there is at least
+>>> one station (TVC's 3HD) emitting HD content through TDT, and it works
+>>> flawlessly with a Nova-T 500 (as I have one). I'm not sure if contents
+>>> are 1080 or 720, though.
+>>>
+>>> There were some problems watching these channels through MythTV, but
+>>> they were definitely decoding related. With current MythTV trunk they
+>>> are fine.
+>>>
+>>> Anyway, as I said before, theoretically a DVB card doesn't know what
+>>> kind of streams contains the signal it tunes. Decoding & parsing is
+>>> handled by the app.
+>>>
+>>> Best regards,
+>>>  Eduard Huguet
+>>> --
+>> I'm not using MythTV or any other type of Media playing application.
+>>
+>> In any case, I see very different performance between the two different
+>> types of card, when presented with the same input.
+>>
+>> I'll gather some more data, if I can draw any new conclusions I'll update
+>> the list.
+>>
+>> Best,
+>>
+>> Lou
+>>
+>>
+>>
+> 
+> Maybe it's a problem of tuner sensibility. Is the low noise amplifier
+> (LNA) activated for the Nova-T card?
+> regards
+>   Eduard
+> --
 
-Priority: normal
+That's something I hadn't considered. I'll check but I thought that the 
+LNA was only applicable to the Nova-TD 500 (which has 2xRF inputs)?
 
-Signed-off-by: Pete Eberlein <pete@sensoray.com>
+Does the Nova-T 500, with only a single RF input have the LNA?
 
-diff -r beaab56c3599 -r 1cb2c7d3fa12 linux/drivers/staging/go7007/go7007-driver.c
---- a/linux/drivers/staging/go7007/go7007-driver.c	Fri Sep 18 10:40:54 2009 -0700
-+++ b/linux/drivers/staging/go7007/go7007-driver.c	Fri Sep 18 10:59:26 2009 -0700
-@@ -49,7 +49,7 @@
- 	go->hpi_ops->read_interrupt(go);
- 	if (wait_event_timeout(go->interrupt_waitq,
- 				go->interrupt_available, 5*HZ) < 0) {
--		printk(KERN_ERR "go7007: timeout waiting for read interrupt\n");
-+		v4l2_err(go->video_dev, "timeout waiting for read interrupt\n");
- 		return -1;
- 	}
- 	if (!go->interrupt_available)
-@@ -97,13 +97,12 @@
- 	u16 intr_val, intr_data;
- 
- 	if (request_firmware(&fw_entry, fw_name, go->dev)) {
--		printk(KERN_ERR
--			"go7007: unable to load firmware from file \"%s\"\n",
--			fw_name);
-+		v4l2_err(go, "unable to load firmware from file "
-+			"\"%s\"\n", fw_name);
- 		return -1;
- 	}
- 	if (fw_entry->size < 16 || memcmp(fw_entry->data, "WISGO7007FW", 11)) {
--		printk(KERN_ERR "go7007: file \"%s\" does not appear to be "
-+		v4l2_err(go, "file \"%s\" does not appear to be "
- 				"go7007 firmware\n", fw_name);
- 		release_firmware(fw_entry);
- 		return -1;
-@@ -111,7 +110,7 @@
- 	fw_len = fw_entry->size - 16;
- 	bounce = kmalloc(fw_len, GFP_KERNEL);
- 	if (bounce == NULL) {
--		printk(KERN_ERR "go7007: unable to allocate %d bytes for "
-+		v4l2_err(go, "unable to allocate %d bytes for "
- 				"firmware transfer\n", fw_len);
- 		release_firmware(fw_entry);
- 		return -1;
-@@ -122,7 +121,7 @@
- 			go7007_send_firmware(go, bounce, fw_len) < 0 ||
- 			go7007_read_interrupt(go, &intr_val, &intr_data) < 0 ||
- 			(intr_val & ~0x1) != 0x5a5a) {
--		printk(KERN_ERR "go7007: error transferring firmware\n");
-+		v4l2_err(go, "error transferring firmware\n");
- 		rv = -1;
- 	}
- 	kfree(bounce);
-@@ -316,7 +315,7 @@
- 
- 	if (go7007_send_firmware(go, fw, fw_len) < 0 ||
- 			go7007_read_interrupt(go, &intr_val, &intr_data) < 0) {
--		printk(KERN_ERR "go7007: error transferring firmware\n");
-+		v4l2_err(go->video_dev, "error transferring firmware\n");
- 		rv = -1;
- 		goto start_error;
- 	}
-@@ -325,7 +324,7 @@
- 	go->parse_length = 0;
- 	go->seen_frame = 0;
- 	if (go7007_stream_start(go) < 0) {
--		printk(KERN_ERR "go7007: error starting stream transfer\n");
-+		v4l2_err(go->video_dev, "error starting stream transfer\n");
- 		rv = -1;
- 		goto start_error;
- 	}
-@@ -421,7 +420,7 @@
- 	for (i = 0; i < length; ++i) {
- 		if (go->active_buf != NULL &&
- 			    go->active_buf->bytesused >= GO7007_BUF_SIZE - 3) {
--			printk(KERN_DEBUG "go7007: dropping oversized frame\n");
-+			v4l2_info(go->video_dev, "dropping oversized frame\n");
- 			go->active_buf->offset -= go->active_buf->bytesused;
- 			go->active_buf->bytesused = 0;
- 			go->active_buf->modet_active = 0;
-@@ -669,8 +668,8 @@
- 		if (i2c_del_adapter(&go->i2c_adapter) == 0)
- 			go->i2c_adapter_online = 0;
- 		else
--			printk(KERN_ERR
--				"go7007: error removing I2C adapter!\n");
-+			v4l2_err(go->video_dev,
-+				"error removing I2C adapter!\n");
- 	}
- 
- 	if (go->audio_enabled)
+Thanks,
 
-
+Lou
