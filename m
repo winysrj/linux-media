@@ -1,75 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:50030 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751598AbZIUUJk (ORCPT
+Received: from hrndva-omtalb.mail.rr.com ([71.74.56.122]:37495 "EHLO
+	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753316AbZIJTFf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Sep 2009 16:09:40 -0400
-Date: Mon, 21 Sep 2009 21:09:23 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Eric Miao <eric.y.miao@gmail.com>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-kernel@vger.kernel.org,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Paul Mundt <lethal@linux-sh.org>,
-	Magnus Damm <magnus.damm@gmail.com>
-Subject: Re: What's inside the pxa tree for this merge window
-Message-ID: <20090921200923.GF30821@n2100.arm.linux.org.uk>
-References: <f17812d70909100446h17a1903fy74941945dbfc6943@mail.gmail.com> <1253256227.4407.7.camel@pc-matejk> <20090918074551.GA26058@n2100.arm.linux.org.uk> <Pine.LNX.4.64.0909212111490.17328@axis700.grange>
+	Thu, 10 Sep 2009 15:05:35 -0400
+Date: Thu, 10 Sep 2009 15:05:37 -0400
+From: Steven Rostedt <rostedt@goodmis.org>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: iceberg <strakh@ispras.ru>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] fix lock imbalances in /drivers/media/video/cafe_ccic.c
+Message-ID: <20090910190537.GA10904@goodmis.org>
+References: <200909101837.34472.strakh@ispras.ru>
+ <20090910093003.194c300f@bike.lwn.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0909212111490.17328@axis700.grange>
+In-Reply-To: <20090910093003.194c300f@bike.lwn.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 21, 2009 at 09:19:46PM +0200, Guennadi Liakhovetski wrote:
-> On Fri, 18 Sep 2009, Russell King - ARM Linux wrote:
+On Thu, Sep 10, 2009 at 09:30:03AM -0600, Jonathan Corbet wrote:
+> On Thu, 10 Sep 2009 18:37:34 +0000
+> iceberg <strakh@ispras.ru> wrote:
 > 
-> > On Fri, Sep 18, 2009 at 08:43:47AM +0200, Matej Kenda wrote:
-> > > On Thu, 2009-09-10 at 19:46 +0800, Eric Miao wrote:
-> > > > Here's the preview of request-pull result, please let me know if there
-> > > > is anything missed, thanks.
-> > > > 
-> > > > URL: git://git.kernel.org/pub/scm/linux/kernel/git/ycmiao/pxa-linux-2.6.git
-> > > > 
-> > > > 
-> > > > Matej Kenda (2):
-> > > >       [ARM] pxa: add support for the IskraTel XCEP board
-> > > >       [ARM] pxa: add defconfig for IskraTel XCEP board
-> > > 
-> > > Eric, what is the current status of this request? Do I need to repost
-> > > the patches to included into 2.6.32?
-> > > 
-> > > Russell discarded them from his patch system, because they are on your
-> > > list.
-> > 
-> > I discarded them _because_ Eric handled them, which is what I said in the
-> > comments when I discarded them.
+> > In ./drivers/media/video/cafe_ccic.c, in function cafe_pci_probe: 
+> > Mutex must be unlocked before exit
+> > 	1. On paths starting with mutex lock in line 1912, then continuing in lines: 
+> > 1929, 1936 (goto unreg) and 1940 (goto iounmap) . 
+> > 	2. On path starting in line 1971 mutex lock, and then continuing in line 1978 
+> > (goto out_smbus) mutex.
 > 
-> Ok, I did do my best to get patches in the right order in the mainline, 
-> but it all failed. AFAICS, v4l and sh are already in the mainline with a 
-> _wrongly_ resolved mefge conflict, which, most likely, breaks the 
-> sh_mobile_ceu_camera.c driver, and the three PXA platforms, patches for 
-> which should have been applied before both those trees and still haven't 
-> been applied are broken until the patches do get in and the later those 
-> patches get applied the longer the interval with the broken for them 
-> bisection is going to be.
+> That's a definite bug, but I hate all those unlocks in the error
+> branches.  As it happens, we don't really need the mutex until the
+> device has been exposed to the rest of the kernel, so I propose the
+> following as a better patch.
+> 
+> Thanks for pointing this out,
 
-Meanwhile I have to consider that we have several bug fixes outstanding,
-and since I can't send Linus a pull request every day (max once a week)
-I have to be very careful about when I send stuff.
+Actually, for something like this, I would put the mutex_unlock in the error path,
+and just add a local variable to tell that it is locked.
 
-So I only get _two_ opportunities during a merge window to send a pull
-request.
+	int is_locked = 0;
 
-I'm going to wait until tomorrow before sending my final pull for this
-window, which is the penultimate day before the window closes.
+[...]
 
-Don't blame me for these delays - it's not my choice to impose such
-delays.  I'd really like to fix those broken platforms right now.  I
-just can't do so without causing additional delays for other issues.
-Blame Linus for imposing the "max one pull a week" rule on me.
+	mutex_lock(&cam->s_mutex);
+	is_locked = 1;
+
+[...]
+
+	mutex_unlock(&cam->s_mutex);
+	is_locked = 0;
+
+[...]
+
+out_iounmap:
+	pci_iounmap(pdev, cam->regs);
+	if (is_locked)
+		mutex_unlock(&cam->s_mutex);
+out_free:
+
+[...]
+
+Or something similar. I hate the multiple unlocks too.
+
+-- Steve
+
+> 
+> jon
+> 
+> ---
+> Fix a mutex leak
+> 
+> Certain error exits from cafe_pci_probe() can leave the camera mutex
+> locked.  For much of the time, we didn't need the mutex anyway; take it out
+> and add an unlock in the path where it is needed.
+> 
+> Reported-by: Alexander Strakh <strakh@ispras.ru>
+> Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+> ---
+>  drivers/media/video/cafe_ccic.c |    3 +--
+>  1 files changed, 1 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/video/cafe_ccic.c b/drivers/media/video/cafe_ccic.c
+> index c4d181d..0f62b5e 100644
+> --- a/drivers/media/video/cafe_ccic.c
+> +++ b/drivers/media/video/cafe_ccic.c
+> @@ -1909,7 +1909,6 @@ static int cafe_pci_probe(struct pci_dev *pdev,
+>  		goto out_free;
+>  
+>  	mutex_init(&cam->s_mutex);
+> -	mutex_lock(&cam->s_mutex);
+>  	spin_lock_init(&cam->dev_lock);
+>  	cam->state = S_NOTREADY;
+>  	cafe_set_config_needed(cam, 1);
+> @@ -1949,7 +1948,6 @@ static int cafe_pci_probe(struct pci_dev *pdev,
+>  	 * because the sensor could attach in this call chain, leading to
+>  	 * unsightly deadlocks.
+>  	 */
+> -	mutex_unlock(&cam->s_mutex);  /* attach can deadlock */
+>  	ret = cafe_smbus_setup(cam);
+>  	if (ret)
+>  		goto out_freeirq;
+> @@ -1991,6 +1989,7 @@ static int cafe_pci_probe(struct pci_dev *pdev,
+>  	return 0;
+>  
+>  out_smbus:
+> +	mutex_unlock(&cam->s_mutex);
+>  	cafe_smbus_shutdown(cam);
+>  out_freeirq:
+>  	cafe_ctlr_power_down(cam);
+> -- 
+> 1.6.2.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
