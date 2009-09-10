@@ -1,55 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:42286 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934593AbZIEAVU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Sep 2009 20:21:20 -0400
-Message-Id: <20090905001455.863242923@mini.kroah.org>
-Date: Fri, 04 Sep 2009 17:14:30 -0700
-From: Greg KH <gregkh@suse.de>
-To: linux-kernel@vger.kernel.org, stable@kernel.org
-Cc: stable-review@kernel.org, torvalds@linux-foundation.org,
-	akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk,
-	Jim Paris <jim@jtan.com>, linux-media@vger.kernel.org,
-	Jean-Francois Moine <moinejf@free.fr>
-Subject: [patch 55/71] gspca - ov534: Fix ov772x
-References: <20090905001335.106974681@mini.kroah.org>
-Content-Disposition: inline; filename=gspca-ov534-fix-ov772x.patch
-In-Reply-To: <20090905001824.GA18171@kroah.com>
+Received: from moutng.kundenserver.de ([212.227.126.186]:49918 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752145AbZIJQSY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Sep 2009 12:18:24 -0400
+Message-ID: <4AA926AC.20206@nildram.co.uk>
+Date: Thu, 10 Sep 2009 17:17:48 +0100
+From: Lou Otway <lotway@nildram.co.uk>
+Reply-To: lotway@nildram.co.uk
+MIME-Version: 1.0
+To: =?ISO-8859-1?Q?Christian_Watteng=E5rd?= <cwattengard@gmail.com>
+CC: linux-media@vger.kernel.org, linux-dvb@linuxtv.org, aospan@netup.ru
+Subject: Re: [linux-dvb] NetUP Dual DVB-T/C-CI RF PCI-E x1
+References: <1252507872.29643.330.camel@alkaloid.netup.ru> <42619c130909100014hdd80d02y43f8a7120548332@mail.gmail.com>
+In-Reply-To: <42619c130909100014hdd80d02y43f8a7120548332@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2.6.30-stable review patch.  If anyone has any objections, please let us know.
+Christian Wattengård wrote:
+> This sounds promising. I hope you are not going to price yourselves
+> completely out as a few other DVB-C suppliers have done.
+> If the price is right (around the same as a normal DVB-T tuner ~$65),
+> it definitely sounds interesting.
+> 
+> When you say it supports two transponders, is this also true on DVB-C
+> only... As in DVB-C + DVB-C channel...
+> If this is the case then I only need 3 cards to cover all the
+> interesting channels in my cable network ;)
+> I CAN TIMESHIFT THE WORLD!!! MUHAHAHAhaha... *cough*
+> 
+> But seriously... This sounds very interesting.
+> 
+> Christian from Norway...
+> 
+> On Wed, Sep 9, 2009 at 4:51 PM, Abylai Ospan <aospan@netup.ru> wrote:
+>> Hello,
+>>
+>> We have designed NetUP Dual NetUP Dual DVB-T/C-CI RF PCI-E x1 card. A short
+>> description is available in wiki - http://linuxtv.org/wiki/index.php/NetUP_Dual_DVB_T_C_CI_RF
+>>
+>> Features:
+>> * PCI-e x1
+>> * Supports two DVB-T/DVB-C transponders simultaneously
+>> * Supports two analog audio/video channels simultaneously
+>> * Independent descrambling of two transponders
+>> * Hardware PID filtering
+>>
+>> Now we have started the work on the driver for Linux. The following  components used in this card already have their code for Linux published:
+>> * Conexant CX23885, CX25840
+>> * Xceive XC5000 silicon TV tuner
+>>
+>> We are working on the code for the following components:
+>> * STM STV0367 low-power and ultra-compact combo DVB-T/C single-chip receiver
+>> * Altera FPGA for Common Interafce.
+>>
+>> We have developed FPGA firmware for CI (according to PCMCIA/en50221). Also we are doing "hardware" PID filtering. It's fast and very flexible. JTAG is used for firmware uploading into FPGA -
+>> this part contains "JAM player" from Altera for processing JAM STAPL Byte-Code (.jbc files).
+>>
+>> The resulting code will be published under GPL after receiving permissions from IC vendors.
+>>
+>> --
+>> Abylai Ospan <aospan@netup.ru>
+>> NetUP Inc.
+>>
+>> P.S.
+>> We will show this card at the upcoming IBC exhibition ( stand IP402 ).
+>>
 
-------------------
-From: Jean-Francois Moine <moinejf@free.fr>
+The Netup dual DVB-S2 card was around $1000, I doubt the Dual DVB-T will 
+be an order of magnitude less expensive.
 
-The scan of the image packets of the sensor ov772x was broken when
-the sensor ov965x was added.
+I'd be interested to know how many they've sold, it seems overpriced to me.
 
-[ Based on upstream c874f3aa, modified slightly for v2.6.30.5 ]
+BRs,
 
-Signed-off-by: Jim Paris <jim@jtan.com>
-Acked-by: Jean-Francois Moine <moinejf@free.fr>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
----
- drivers/media/video/gspca/ov534.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
---- a/drivers/media/video/gspca/ov534.c
-+++ b/drivers/media/video/gspca/ov534.c
-@@ -832,9 +832,11 @@ static void sd_pkt_scan(struct gspca_dev
- 	__u32 this_pts;
- 	u16 this_fid;
- 	int remaining_len = len;
-+	int payload_len;
- 
-+	payload_len = (sd->sensor == SENSOR_OV772X) ? 2048 : 2040;
- 	do {
--		len = min(remaining_len, 2040);		/*fixme: was 2048*/
-+		len = min(remaining_len, payload_len);
- 
- 		/* Payloads are prefixed with a UVC-style header.  We
- 		   consider a frame to start when the FID toggles, or the PTS
-
+Lou
 
