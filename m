@@ -1,138 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:36688 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758016AbZIFQBC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2009 12:01:02 -0400
-Received: by fxm17 with SMTP id 17so1562169fxm.37
-        for <linux-media@vger.kernel.org>; Sun, 06 Sep 2009 09:01:03 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:49504 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750858AbZIJQtA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Sep 2009 12:49:00 -0400
+Message-ID: <4AA92DF6.80107@iki.fi>
+Date: Thu, 10 Sep 2009 19:48:54 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <4AA3D64E.3070203@yandex.ru>
-References: <4AA3D64E.3070203@yandex.ru>
-Date: Sun, 6 Sep 2009 12:01:03 -0400
-Message-ID: <a728f9f90909060901r5e714825kae88bacdeeadd158@mail.gmail.com>
-Subject: Re: [PATCH] Add support for Compro VideoMate E800 (DVB-T part only)
-From: Alex Deucher <alexdeucher@gmail.com>
-To: geroin22 <geroin22@yandex.ru>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>,
+	Markus Rechberger <mrechberger@gmail.com>,
+	Clinton Meyer <clintonmeyer22@gmail.com>,
+	Linux Media <linux-media@vger.kernel.org>
+Subject: Re: LinuxTV firmware blocks all wireless connections / traffic
+References: <62013cda0909091443g72ebdf1bge3994b545a86c854@mail.gmail.com>	 <d9def9db0909100358o14f07362n550b95a033c8a798@mail.gmail.com>	 <20090910124549.GA18426@moon> <20090910124807.GB18426@moon>	 <4AA8FB2F.2040504@iki.fi> <20090910134139.GA20149@moon>	 <4AA9038B.8090404@iki.fi> <4AA911B6.2040301@iki.fi>	 <829197380909100826i3e2f8315yd6a0258f38a6c7b9@mail.gmail.com>	 <4AA92160.5080200@iki.fi> <829197380909100912xdb34da0s55587f6fe9c0f1d5@mail.gmail.com>
+In-Reply-To: <829197380909100912xdb34da0s55587f6fe9c0f1d5@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Sep 6, 2009 at 11:33 AM, geroin22<geroin22@yandex.ru> wrote:
->
->
->
-> Nothing new, just adding Compro VideoMate E800 (DVB-T part only).
-> Tested with Ubuntu 9.04 kernel 2.6.28 work well.
->
+Devin Heitmueller wrote:
+> On Thu, Sep 10, 2009 at 11:55 AM, Antti Palosaari<crope@iki.fi> wrote:
+>> Devin Heitmueller wrote:
+>>> The URB size is something that varies on a device-by-device basis,
+>>> depending on the bridge chipset.   There really is no
+>>> "one-size-fits-all" value you can assume.
+>> I doubt no. I tested last week rather many USB chips and all I tested
+>> allowed to set it as x188 or x512 bytes. If it is set something than chip
+>> does not like it will give errors or packets that are not as large as
+>> requested. You can test that easily, look dvb-usb module debug uxfer and use
+>> powertop.
+>>
+>>> I usually take a look at a USB trace of the device under Windows, and
+>>> then use the same value.
+>> I have seen logs where different sizes of urbs used even same chip.
+> 
+> Yes, the URB size can change depending on who wrote the driver, or
+> what the required throughput is.  For example, the em28xx has a
+> different URB size depending on whether the target application is
+> 19Mbps ATSC or 38Mbps QAM.  That just reinforces what I'm saying - the
+> size selected in many cases is determined by the requirements of the
+> chipset.
 
-Please add your Signed-off-by.
+Yes thats just what I tried to say for. Look my previous thread where 
+all currently sizes are listed. We need to define suitable values that 
+are used. For example USB2.0 DVB-C, DVB-T, ATSC and same values for 
+USB1.1 too. And stream size can vary much depending used transmission 
+parameters too but I think such kind resolution logic is not needed.
 
-> diff -Naur a/linux/Documentation/video4linux/CARDLIST.cx23885
-> b/linux/Documentation/video4linux/CARDLIST.cx23885
-> --- a/linux/Documentation/video4linux/CARDLIST.cx23885  2009-09-01
-> 16:43:46.000000000 +0300
-> +++ b/linux/Documentation/video4linux/CARDLIST.cx23885  2009-09-06
-> 15:37:13.373793025 +0300
-> @@ -23,3 +23,4 @@
->  22 -> Mygica X8506 DMB-TH                                 [14f1:8651]
->  23 -> Magic-Pro ProHDTV Extreme 2                         [14f1:8657]
->  24 -> Hauppauge WinTV-HVR1850                             [0070:8541]
-> + 25 -> Compro VideoMate E800                               [1858:e800]
-> diff -Naur a/linux/drivers/media/video/cx23885/cx23885-cards.c
-> b/linux/drivers/media/video/cx23885/cx23885-cards.c
-> --- a/linux/drivers/media/video/cx23885/cx23885-cards.c 2009-09-01
-> 16:43:46.000000000 +0300
-> +++ b/linux/drivers/media/video/cx23885/cx23885-cards.c 2009-09-06
-> 15:35:23.434293199 +0300
-> @@ -211,6 +211,10 @@
->                .portb          = CX23885_MPEG_ENCODER,
->                .portc          = CX23885_MPEG_DVB,
->        },
-> +        [CX23885_BOARD_COMPRO_VIDEOMATE_E800] = {
-> +               .name           = "Compro VideoMate E800",
-> +               .portc          = CX23885_MPEG_DVB,
-> +       },
-> };
-> const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
->
-> @@ -342,6 +346,10 @@
->                .subvendor = 0x0070,
->                .subdevice = 0x8541,
->                .card      = CX23885_BOARD_HAUPPAUGE_HVR1850,
-> +        }, {
-> +               .subvendor = 0x1858,
-> +               .subdevice = 0xe800,
-> +               .card      = CX23885_BOARD_COMPRO_VIDEOMATE_E800,
->        },
-> };
-> const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
-> @@ -537,6 +545,7 @@
->        case CX23885_BOARD_HAUPPAUGE_HVR1500Q:
->        case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
->        case CX23885_BOARD_COMPRO_VIDEOMATE_E650F:
-> +        case CX23885_BOARD_COMPRO_VIDEOMATE_E800:
->                /* Tuner Reset Command */
->                bitmask = 0x04;
->                break;
-> @@ -688,6 +697,7 @@
->                break;
->        case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
->        case CX23885_BOARD_COMPRO_VIDEOMATE_E650F:
-> +        case CX23885_BOARD_COMPRO_VIDEOMATE_E800:
->                /* GPIO-2  xc3028 tuner reset */
->
->                /* The following GPIO's are on the internal AVCore (cx25840)
-> */
-> @@ -912,6 +922,7 @@
->        case CX23885_BOARD_HAUPPAUGE_HVR1255:
->        case CX23885_BOARD_HAUPPAUGE_HVR1210:
->        case CX23885_BOARD_HAUPPAUGE_HVR1850:
-> +        case CX23885_BOARD_COMPRO_VIDEOMATE_E800:
->        default:
->                ts2->gen_ctrl_val  = 0xc; /* Serial bus + punctured clock */
->                ts2->ts_clk_en_val = 0x1; /* Enable TS_CLK */
-> @@ -928,6 +939,7 @@
->        case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
->        case CX23885_BOARD_COMPRO_VIDEOMATE_E650F:
->        case CX23885_BOARD_NETUP_DUAL_DVBS2_CI:
-> +        case CX23885_BOARD_COMPRO_VIDEOMATE_E800:
->                dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
->                                &dev->i2c_bus[2].i2c_adap,
->                                "cx25840", "cx25840", 0x88 >> 1, NULL);
-> diff -Naur a/linux/drivers/media/video/cx23885/cx23885-dvb.c
-> b/linux/drivers/media/video/cx23885/cx23885-dvb.c
-> --- a/linux/drivers/media/video/cx23885/cx23885-dvb.c   2009-09-01
-> 16:43:46.000000000 +0300
-> +++ b/linux/drivers/media/video/cx23885/cx23885-dvb.c   2009-09-06
-> 16:09:17.154602943 +0300
-> @@ -744,6 +744,7 @@
->        }
->        case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
->        case CX23885_BOARD_COMPRO_VIDEOMATE_E650F:
-> +        case CX23885_BOARD_COMPRO_VIDEOMATE_E800:
->                i2c_bus = &dev->i2c_bus[0];
->
->                fe0->dvb.frontend = dvb_attach(zl10353_attach,
-> diff -Naur a/linux/drivers/media/video/cx23885/cx23885.h
-> b/linux/drivers/media/video/cx23885/cx23885.h
-> --- a/linux/drivers/media/video/cx23885/cx23885.h       2009-09-01
-> 16:43:46.000000000 +0300
-> +++ b/linux/drivers/media/video/cx23885/cx23885.h       2009-09-06
-> 15:36:40.229792022 +0300
-> @@ -79,6 +79,7 @@
-> #define CX23885_BOARD_MYGICA_X8506             22
-> #define CX23885_BOARD_MAGICPRO_PROHDTVE2       23
-> #define CX23885_BOARD_HAUPPAUGE_HVR1850        24
-> +#define CX23885_BOARD_COMPRO_VIDEOMATE_E800    25
->
-> #define GPIO_0 0x00000001
-> #define GPIO_1 0x00000002
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Currently there is almost everything between 512 to 65k used for DVB-T 
+that makes huge difference to load device causing.
+
+Does anyone know if there is some table which says what are good USB 
+transmission parameters for each bandwidth needed?
+
+> Making it some multiple of 188 for DVB is logical since that's the
+> MPEG packet size.  That seems pretty common in the bridges I have
+> worked with.
+> 
+> Devin
+
+
+Antti
+-- 
+http://palosaari.fi/
