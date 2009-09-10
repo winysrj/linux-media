@@ -1,56 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198]:52443 "EHLO
-	mta3.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757723AbZIRS0I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Sep 2009 14:26:08 -0400
-Received: from steven-toths-macbook-pro.local
- (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta3.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KQ6005H4J7DVU41@mta3.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Fri, 18 Sep 2009 14:26:02 -0400 (EDT)
-Date: Fri, 18 Sep 2009 14:26:02 -0400
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: Hw capabilities of the HVR-2200
-In-reply-to: <4AB3CDC2.20505@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Jed <jedi.theone@gmail.com>
-Message-id: <4AB3D0BA.1010609@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <4AAF568D.1070308@gmail.com> <4AB3B43A.2030103@gmail.com>
- <4AB3B947.1040202@kernellabs.com> <4AB3C17D.1030300@gmail.com>
- <4AB3C8E5.4010700@kernellabs.com> <4AB3CDC2.20505@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:47978 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752450AbZIJNsC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Sep 2009 09:48:02 -0400
+Message-ID: <4AA9038B.8090404@iki.fi>
+Date: Thu, 10 Sep 2009 16:47:55 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
+CC: Markus Rechberger <mrechberger@gmail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Clinton Meyer <clintonmeyer22@gmail.com>,
+	Linux Media <linux-media@vger.kernel.org>
+Subject: Re: LinuxTV firmware blocks all wireless connections / traffic
+References: <62013cda0909091443g72ebdf1bge3994b545a86c854@mail.gmail.com> <829197380909091459x5367e95dnbd15f23e8377cf33@mail.gmail.com> <20090910091400.GA15105@moon> <d9def9db0909100358o14f07362n550b95a033c8a798@mail.gmail.com> <20090910124549.GA18426@moon> <20090910124807.GB18426@moon> <4AA8FB2F.2040504@iki.fi> <20090910134139.GA20149@moon>
+In-Reply-To: <20090910134139.GA20149@moon>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 9/18/09 2:13 PM, Jed wrote:
->>>>>> 2) Component input for the A/V-in
->>>>
->>>> Yes, this exists on the HVR2250 product only.
->>>
->>> Ah shite, are you sure?
->>> If you look at the specs for the reference card it was there, did they
->>> take it out at the last minute?
+Aleksandr V. Piskunov wrote:
+> On Thu, Sep 10, 2009 at 04:12:15PM +0300, Antti Palosaari wrote:
+>> Aleksandr V. Piskunov wrote:
+>>>> Here is a test case:
+>>>> Two DVB-T USB adapters, dvb_usb_af9015 and dvb_usb_af9015. Different tuners,
+>>> Err, make it: dvb_usb_af9015 and dvb_usb_ce6230
+>> Those both uses currently too small bulk urbs, only 512 bytes. I have  
+>> asked suitable bulk urb size for ~20mbit/sec usb2.0 stream, but no-one  
+>> have answered yet (search ml back week or two). I think will increase  
+>> those to the 8k to reduce load.
 >>
->> It's not feature Hauppauge supports on the HVR2200 today. I have a
->> suspicion this may change but I'm neither confirming, denying or
->> announcing anything. It would make sense to officially support
->> component cables on the HVR2200 since the silicon supports it. If/when
->> it does I'm sure it will be mentioned in the forums or on the HVR2200
->> product packaging.
->
-> So I garner from that, that you don't intend to add support for anything
-> (including extra encoding abilities that they don't support in Windows)
-> unless Hauppauge officially does?
+> 
+> Nice, I'm ready to test if such change helps.
 
-No, I was referring specifically to your component 'are you sure?' question.
+OK, I will make test version in couple of hours.
 
-I've said many times on and off this mailing list that I'd like to add support 
-for all of the encoder a/v codecs, regardless of the windows driver and it's 
-capabilities. Timeframe for this is unknown.
+> Does USB subsystem provide any way to monitor current raw USB data transfer rate?
 
+I don't if there is tool for raw data analysis, but for DVB devices you 
+can use dvbtraffic tool.
+
+Antti
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+http://palosaari.fi/
