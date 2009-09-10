@@ -1,99 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:56637 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753838AbZITI5Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Sep 2009 04:57:24 -0400
-Date: Sun, 20 Sep 2009 10:57:34 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Magnus Damm <damm@igel.co.jp>
-Subject: Re: Diffs between our tree and upstream
-In-Reply-To: <20090919091644.0219cfba@pedra.chehab.org>
-Message-ID: <Pine.LNX.4.64.0909201053530.332@axis700.grange>
-References: <20090919010602.7e8f2df2@pedra.chehab.org>
- <20090919091644.0219cfba@pedra.chehab.org>
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:45648 "EHLO
+	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752545AbZIJQM1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Sep 2009 12:12:27 -0400
+Received: by fxm17 with SMTP id 17so212307fxm.37
+        for <linux-media@vger.kernel.org>; Thu, 10 Sep 2009 09:12:29 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <4AA92160.5080200@iki.fi>
+References: <62013cda0909091443g72ebdf1bge3994b545a86c854@mail.gmail.com>
+	 <d9def9db0909100358o14f07362n550b95a033c8a798@mail.gmail.com>
+	 <20090910124549.GA18426@moon> <20090910124807.GB18426@moon>
+	 <4AA8FB2F.2040504@iki.fi> <20090910134139.GA20149@moon>
+	 <4AA9038B.8090404@iki.fi> <4AA911B6.2040301@iki.fi>
+	 <829197380909100826i3e2f8315yd6a0258f38a6c7b9@mail.gmail.com>
+	 <4AA92160.5080200@iki.fi>
+Date: Thu, 10 Sep 2009 12:12:29 -0400
+Message-ID: <829197380909100912xdb34da0s55587f6fe9c0f1d5@mail.gmail.com>
+Subject: Re: LinuxTV firmware blocks all wireless connections / traffic
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>,
+	Markus Rechberger <mrechberger@gmail.com>,
+	Clinton Meyer <clintonmeyer22@gmail.com>,
+	Linux Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro
+On Thu, Sep 10, 2009 at 11:55 AM, Antti Palosaari<crope@iki.fi> wrote:
+> Devin Heitmueller wrote:
+>>
+>> The URB size is something that varies on a device-by-device basis,
+>> depending on the bridge chipset.   There really is no
+>> "one-size-fits-all" value you can assume.
+>
+> I doubt no. I tested last week rather many USB chips and all I tested
+> allowed to set it as x188 or x512 bytes. If it is set something than chip
+> does not like it will give errors or packets that are not as large as
+> requested. You can test that easily, look dvb-usb module debug uxfer and use
+> powertop.
+>
+>> I usually take a look at a USB trace of the device under Windows, and
+>> then use the same value.
+>
+> I have seen logs where different sizes of urbs used even same chip.
 
-On Sat, 19 Sep 2009, Mauro Carvalho Chehab wrote:
+Yes, the URB size can change depending on who wrote the driver, or
+what the required throughput is.  For example, the em28xx has a
+different URB size depending on whether the target application is
+19Mbps ATSC or 38Mbps QAM.  That just reinforces what I'm saying - the
+size selected in many cases is determined by the requirements of the
+chipset.
 
-> Em Sat, 19 Sep 2009 01:06:02 -0300
-> Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
-> 
-> > Hi Guennadi,
-> > 
-> > I'm about to send our pull request.
-> > 
-> > While doing my last checks, I noticed a difference between our tree and
-> > upstream. I'm not sure what happens. Could you please check?
-> > 
-> > The enclosed patch is the diff from upstream to -hg.
-> 
-> Ok, I discovered the cause of the conflict: 
-> 	git patch 6d1386c6b8db54ac8d94c01194e0c27cd538532b were applied before the
-> soc_camera conversion to v4l dev/subdev.
-> 
-> I've applied the patch on our development tree. Still, we have a few diffs,
-> probably meaning that I solved it at the wrong way at git.
+Making it some multiple of 188 for DVB is logical since that's the
+MPEG packet size.  That seems pretty common in the bridges I have
+worked with.
 
-No, please, don't change anything in our trees. Pual should have pushed 
-his tree after v4l to Linus, but he has done it before. The idea is we 
-should push our tree as is and then solve the conflict on merge. That 
-should be easy. But if you start patching the v4l tree, that can make 
-things much more complicated. BTW, your patch below is not the correct 
-fix.
+Devin
 
-Thanks
-Guennadi
-
-> 
-> Please let me know what would be the proper way to fix it: by keeping
-> clk_enable/clk_disable (so reverting part of Magnus changes),
-> or by using, instead pm_runtime_get_sync/pm_runtime_put_sync.
-> 
-> I guess the latter is the proper fix, but, as both use API's that are sh
-> specific, the better is if you could point me the right way.
-> 
-> Cheers,
-> Mauro.
-> 
-> diff -upr oldtree/drivers/media/video/sh_mobile_ceu_camera.c /home/v4l/tokernel/wrk/linux-next/drivers/media/video/sh_mobile_ceu_camera.c
-> --- oldtree/drivers/media/video/sh_mobile_ceu_camera.c	2009-09-19 09:08:13.000000000 -0300
-> +++ /home/v4l/tokernel/wrk/linux-next/drivers/media/video/sh_mobile_ceu_camera.c	2009-09-19 01:35:28.000000000 -0300
-> @@ -404,7 +404,7 @@ static int sh_mobile_ceu_add_device(stru
->  		 "SuperH Mobile CEU driver attached to camera %d\n",
->  		 icd->devnum);
->  
-> -	pm_runtime_get_sync(ici->dev);
-> +	clk_enable(pcdev->clk);
->  
->  	ceu_write(pcdev, CAPSR, 1 << 16); /* reset */
->  	while (ceu_read(pcdev, CSTSR) & 1)
-> @@ -438,7 +438,7 @@ static void sh_mobile_ceu_remove_device(
->  	}
->  	spin_unlock_irqrestore(&pcdev->lock, flags);
->  
-> -	pm_runtime_put_sync(ici->dev);
-> +	clk_disable(pcdev->clk);
->  
->  	dev_info(icd->dev.parent,
->  		 "SuperH Mobile CEU driver detached from camera %d\n",
-> 
-> 
-> 
-> 
-> 
-> 
-> Cheers,
-> Mauro
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
