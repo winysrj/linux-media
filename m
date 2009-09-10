@@ -1,72 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:52278 "EHLO cnc.isely.net"
+Received: from smtp.ispras.ru ([83.149.198.201]:52963 "EHLO smtp.ispras.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751767AbZIWVGx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Sep 2009 17:06:53 -0400
-Date: Wed, 23 Sep 2009 16:06:57 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: Dean Anderson <dean@sensoray.com>
-cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Mike Isely <isely@isely.net>
-Subject: [PATCH] s2255drv: Don't conditionalize video buffer completion on
- waiting processes
-Message-ID: <alpine.DEB.1.10.0909231603210.29815@cnc.isely.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	id S1751525AbZIJPEq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Sep 2009 11:04:46 -0400
+Content-Disposition: inline
+From: iceberg <strakh@ispras.ru>
+To: Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] fix lock imbalances in /drivers/media/video/cafe_ccic.c
+Date: Thu, 10 Sep 2009 18:37:34 +0000
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <200909101837.34472.strakh@ispras.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-# HG changeset patch
-# User Mike Isely <isely@pobox.com>
-# Date 1253739604 18000
-# Node ID 522a74147753ba59c7f45e368439928090a286f2
-# Parent  e349075171ddf939381fad432c23c1269abc4899
-s2255drv: Don't conditionalize video buffer completion on waiting processes
+In ./drivers/media/video/cafe_ccic.c, in function cafe_pci_probe: 
+Mutex must be unlocked before exit
+	1. On paths starting with mutex lock in line 1912, then continuing in lines: 
+1929, 1936 (goto unreg) and 1940 (goto iounmap) . 
+	2. On path starting in line 1971 mutex lock, and then continuing in line 1978 
+(goto out_smbus) mutex.
 
-From: Mike Isely <isely@pobox.com>
+Fix lock imbalances in function cafe_pci_probe.
+Found by Linux Driver Verification project.
 
-The s2255 driver had logic which aborted processing of a video frame
-if there was no process waiting on the video buffer in question.  That
-simply doesn't work when the application is doing things in an
-asynchronous manner.  If the application went to the trouble to queue
-the buffer in the first place, then the driver should always attempt
-to complete it - even if the application at that moment has its
-attention turned elsewhere.  Applications which always blocked waiting
-for I/O on the capture device would not have been affected by this.
-Applications which *mostly* blocked waiting for I/O on the capture
-device probably only would have been somewhat affected (frame lossage,
-at a rate which goes up as the application blocks less).  Applications
-which never blocked on the capture device (e.g. polling only) however
-would never have been able to receive any video frames, since in that
-case this "is anyone waiting on this?" check on the buffer never would
-have evalutated true.  This patch just deletes that harmful check
-against the buffer's wait queue.
+Signed-off-by: Alexander Strakh <strakh@ispras.ru>
 
-Priority: high
+---
+diff --git a/./a/drivers/media/video/cafe_ccic.c 
+b/./b/drivers/media/video/cafe_ccic.c
+index c4d181d..2987433 100644
+--- a/./a/drivers/media/video/cafe_ccic.c
++++ b/./b/drivers/media/video/cafe_ccic.c
+@@ -1925,19 +1925,24 @@ static int cafe_pci_probe(struct pci_dev *pdev,
+         * Get set up on the PCI bus.
+         */
+        ret = pci_enable_device(pdev);
+-       if (ret)
++       if (ret) {
++               mutex_unlock(&cam->s_mutex);
+                goto out_unreg;
++       }
+        pci_set_master(pdev);
 
-Signed-off-by: Mike Isely <isely@pobox.com>
+        ret = -EIO;
+        cam->regs = pci_iomap(pdev, 0, 0);
+        if (! cam->regs) {
+                printk(KERN_ERR "Unable to ioremap cafe-ccic regs\n");
++               mutex_unlock(&cam->s_mutex);
+                goto out_unreg;
+        }
+        ret = request_irq(pdev->irq, cafe_irq, IRQF_SHARED, "cafe-ccic", cam);
+-       if (ret)
++       if (ret) {
++               mutex_unlock(&cam->s_mutex);
+                goto out_iounmap;
++       }
+        /*
+         * Initialize the controller and leave it powered up.  It will
+         * stay that way until the sensor driver shows up.
+@@ -1974,8 +1979,10 @@ static int cafe_pci_probe(struct pci_dev *pdev,
+ /*     cam->vdev.debug = V4L2_DEBUG_IOCTL_ARG;*/
+        cam->vdev.v4l2_dev = &cam->v4l2_dev;
+        ret = video_register_device(&cam->vdev, VFL_TYPE_GRABBER, -1);
+-       if (ret)
++       if (ret) {
++               mutex_unlock(&cam->s_mutex);
+                goto out_smbus;
++       }
+        video_set_drvdata(&cam->vdev, cam);
 
-diff -r e349075171dd -r 522a74147753 linux/drivers/media/video/s2255drv.c
---- a/linux/drivers/media/video/s2255drv.c	Mon Sep 21 10:42:22 2009 -0500
-+++ b/linux/drivers/media/video/s2255drv.c	Wed Sep 23 16:00:04 2009 -0500
-@@ -599,11 +599,6 @@
- 	buf = list_entry(dma_q->active.next,
- 			 struct s2255_buffer, vb.queue);
- 
--	if (!waitqueue_active(&buf->vb.done)) {
--		/* no one active */
--		rc = -1;
--		goto unlock;
--	}
- 	list_del(&buf->vb.queue);
- 	do_gettimeofday(&buf->vb.ts);
- 	dprintk(100, "[%p/%d] wakeup\n", buf, buf->vb.i);
+        /*
 
-
--- 
-
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
