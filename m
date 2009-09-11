@@ -1,118 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:54037 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752242AbZIZULP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Sep 2009 16:11:15 -0400
-Subject: Re: [PATCH] cx25840 6.5MHz carrier detection fixes
-From: Andy Walls <awalls@radix.net>
-To: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>,
-	hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <20090925211621.GA15452@moon>
-References: <20090925211621.GA15452@moon>
-Content-Type: text/plain
-Date: Sat, 26 Sep 2009 16:12:59 -0400
-Message-Id: <1253995979.3156.31.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail01d.mail.t-online.hu ([84.2.42.6]:50110 "EHLO
+	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751144AbZIKHJW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Sep 2009 03:09:22 -0400
+Message-ID: <4AA9F7A0.5080802@freemail.hu>
+Date: Fri, 11 Sep 2009 09:09:20 +0200
+From: =?ISO-8859-2?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+MIME-Version: 1.0
+To: Thomas Kaiser <thomas@kaiser-linux.li>,
+	Jean-Francois Moine <moinejf@free.fr>
+CC: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: image quality of Labtec Webcam 2200
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2009-09-26 at 00:16 +0300, Aleksandr V. Piskunov wrote:
-> cx25840:
-> Disable 6.5MHz carrier autodetection for PAL, always assume its DK.
-> Only try to autodetect 6.5MHz carrier for SECAM if user accepts both
-> system DK and L.
-> 
-> Signed-off-by: Aleksandr V. Piskunov <alexandr.v.piskunov@gmail.com>
+Hi,
 
-Aleksandr,
+I have a Labtec Webcam 2200 and I have problems with the image quality
+with Linux 2.6.31 + libv4l 0.6.1. I made some experiments and stored
+each captured image as raw data and when libv4l was able to convert
+then I also stored the result as bmp.
 
-I would like a little more time to look at your patch.
+You can find my results at http://v4l-test.sourceforge.net/results/test-20090911/index.html
+There are three types of problems:
+ a) Sometimes the picture contains a 8x8 pixel error, like in image #9
+    http://v4l-test.sourceforge.net/results/test-20090911/index.html#img00009
+ b) Sometimes the brightness of the half picture is changed, like in
+    images #7, #36 and #37
+    http://v4l-test.sourceforge.net/results/test-20090911/index.html#img00007
+    http://v4l-test.sourceforge.net/results/test-20090911/index.html#img00036
+    http://v4l-test.sourceforge.net/results/test-20090911/index.html#img00037
+ c) Sometimes the libv4l cannot convert the raw image and the errno
+    is set to EAGAIN (11), for example image #1, #2 and #3
 
-However, in the mean time, could you test the DK vs. L autodetection,
-without your patch, using the cx25840 firmware in
-
-http://dl.ivtvdriver.org/ivtv/firmware/ivtv-firmware-20070217.tar.gz
-
-?
-
-The MD5 sum of that firmware is:
-
-$ md5sum /lib/firmware/v4l-cx25840.fw 
-99836e41ccb28c7b373e87686f93712a  /lib/firmware/v4l-cx25840.fw
-
-The cx25840 firmware in
-
-http://dl.ivtvdriver.org/ivtv/firmware/ivtv-firmware-20080701.tar.gz
-http://dl.ivtvdriver.org/ivtv/firmware/ivtv-firmware.tar.gz
-
-is probably wrong to use for the CX2584[0123] chips as it it actually
-CX23148 A/V core firmware - very similar but not the same.
-
-
-Hans or Axel,
-
-Could one of you put the correct v4l-cx25840.fw image found in 
-
-http://dl.ivtvdriver.org/ivtv/firmware/ivtv-firmware-20070217.tar.gz
-
-in the archive at:
-
-http://dl.ivtvdriver.org/ivtv/firmware/ivtv-firmware.tar.gz
-
-?
-
-The v4l-cx25840.fw image currently in that archive, which is actually
-for the CX23418, is not good to use with CX2584[0123].
-
+Do you know how can I fix these problems?
 
 Regards,
-Andy
 
-
-> diff --git a/linux/drivers/media/video/cx25840/cx25840-core.c b/linux/drivers/media/video/cx25840/cx25840-core.c
-> --- a/linux/drivers/media/video/cx25840/cx25840-core.c
-> +++ b/linux/drivers/media/video/cx25840/cx25840-core.c
-> @@ -647,13 +647,30 @@
->                 }
->                 cx25840_write(client, 0x80b, 0x00);
->         } else if (std & V4L2_STD_PAL) {
-> -               /* Follow tuner change procedure for PAL */
-> +               /* Autodetect audio standard and audio system */
->                 cx25840_write(client, 0x808, 0xff);
-> -               cx25840_write(client, 0x80b, 0x10);
-> +               /* Since system PAL-L is pretty much non-existant and
-> +                  not used by any public broadcast network, force
-> +                  6.5 MHz carrier to be interpreted as System DK,
-> +                  this avoids DK audio detection instability */
-> +               cx25840_write(client, 0x80b, 0x00);
->         } else if (std & V4L2_STD_SECAM) {
-> -               /* Select autodetect for SECAM */
-> +               /* Autodetect audio standard and audio system */
->                 cx25840_write(client, 0x808, 0xff);
-> -               cx25840_write(client, 0x80b, 0x10);
-> +               /* If only one of SECAM-DK / SECAM-L is required, then force
-> +                  6.5MHz carrier, else autodetect it */
-> +               if ((std & V4L2_STD_SECAM_DK) &&
-> +                   !(std & (V4L2_STD_SECAM_L | V4L2_STD_SECAM_LC))) {
-> +                       /* 6.5 MHz carrier to be interpreted as System DK */
-> +                       cx25840_write(client, 0x80b, 0x00);
-> +               } else if (!(std & V4L2_STD_SECAM_DK) &&
-> +                          (std & (V4L2_STD_SECAM_L | V4L2_STD_SECAM_LC))) {
-> +                       /* 6.5 MHz carrier to be interpreted as System L */
-> +                       cx25840_write(client, 0x80b, 0x08);
-> +               } else {
-> +                       /* 6.5 MHz carrier to be autodetected */
-> +                       cx25840_write(client, 0x80b, 0x10);
-> +               }
->         }
-> 
->         cx25840_and_or(client, 0x810, ~0x01, 0);
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+	Márton Németh
