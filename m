@@ -1,88 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200]:40559 "EHLO
-	mta5.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751383AbZIHQYj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Sep 2009 12:24:39 -0400
-Received: from steven-toths-macbook-pro.local
- (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta5.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KPN00F5YUX4NMT0@mta5.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Tue, 08 Sep 2009 12:24:41 -0400 (EDT)
-Date: Tue, 08 Sep 2009 12:24:40 -0400
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: [linuxtv-commits] [hg:v4l-dvb] cx25840: fix determining the
- firmware name
-In-reply-to: <1252377042.321.57.camel@morgan.walls.org>
-To: Andy Walls <awalls@radix.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Michael Krufky <mkrufky@kernellabs.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Hans Verkuil via Mercurial <hverkuil@xs4all.nl>,
+Received: from devils.ext.ti.com ([198.47.26.153]:44436 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752404AbZIKG0G convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Sep 2009 02:26:06 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>
+CC: Patrick Boettcher <pboettcher@kernellabs.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-id: <4AA68548.2000508@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <E1MiTfS-0001LQ-SU@mail.linuxtv.org>
- <37219a840909041105u7fe714aala56893566d93cdc3@mail.gmail.com>
- <20090907021002.2f4d3a57@caramujo.chehab.org>
- <37219a840909062220p3ae71dc0t4df96fd140c5c7b4@mail.gmail.com>
- <20090907030652.04e2d2a3@caramujo.chehab.org>
- <1252340384.3146.52.camel@palomino.walls.org>
- <37219a840909070925k25ed146bn9c3725596c9490b9@mail.gmail.com>
- <20090907183632.195dc3e5@caramujo.chehab.org>
- <37219a840909071521j67e9c3d6h1e9b2e1a8ded45cd@mail.gmail.com>
- <20090907194007.37c222cc@caramujo.chehab.org>
- <303a8ee30909071822jfa6c932i41f3dc3a97684b2c@mail.gmail.com>
- <1252377042.321.57.camel@morgan.walls.org>
+Date: Fri, 11 Sep 2009 11:56:04 +0530
+Subject: RE: RFCv2: Media controller proposal
+Message-ID: <19F8576C6E063C45BE387C64729E73940436BA505A@dbde02.ent.ti.com>
+References: <200909100913.09065.hverkuil@xs4all.nl>
+ <2830b427fef295eeb166dbd2065392ce.squirrel@webmail.xs4all.nl>
+ <A69FA2915331DC488A831521EAE36FE401550D0691@dlee06.ent.ti.com>
+ <200909102227.12340.hverkuil@xs4all.nl>
+In-Reply-To: <200909102227.12340.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> What is the exact benefit we're after here by making things common
-> between all these cores?  Code reuse is not a benefit, if it leads to
-> more expensive maintenance.
 
-We'll, it diverged for the 23885 because the register addressed change for some 
-registers, it's not the same part. Certainly for the video decoder, not 
-necessarily for the audio encoder.
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Hans Verkuil
+> Sent: Friday, September 11, 2009 1:57 AM
+> To: Karicheri, Muralidharan
+> Cc: Patrick Boettcher; Linux Media Mailing List
+> Subject: Re: RFCv2: Media controller proposal
+> 
+> On Thursday 10 September 2009 21:19:25 Karicheri, Muralidharan
+> wrote:
+> > Hans,
+> >
+> > I haven't gone through the RFC, but thought will respond to the
+> below comment.
+> >
+> > Murali Karicheri
+> > Software Design Engineer
+> > Texas Instruments Inc.
+> > Germantown, MD 20874
+> > new phone: 301-407-9583
+> > Old Phone : 301-515-3736 (will be deprecated)
+> > email: m-karicheri2@ti.com
+> >
+> > >>>
+> > >>> I may be mistaken, but I don't believe soundcards have this
+> same
+> > >>> complexity are media board.
+> > >>
+> > >> When I launch alsa-mixer I see 4 input devices where I can
+> select 4
+> > >> difference sources. This gives 16 combinations which is enough
+> for me to
+> > >> call it 'complex' .
+> > >>
+> > >>>> Could entities not be completely addressed (configuration
+> ioctls)
+> > >>>> through
+> > >>>> the mc-node?
+> > >>>
+> > >>> Not sure what you mean.
+> > >>
+> > >> Instead of having a device node for each entity, the ioctls for
+> each
+> > >> entities are done on the media controller-node address an
+> entity by ID.
+> > >
+> > >I definitely don't want to go there. Use device nodes (video, fb,
+> alsa,
+> > >dvb, etc) for streaming the actual media as we always did and use
+> the
+> > >media controller for controlling the board. It keeps everything
+> nicely
+> > >separate and clean.
+> > >
+> >
+> >
+> > What you mean by controlling the board?
+> 
+> In general: the media controller can do anything except streaming.
+> However,
+> that is an extreme position and in practice all the usual ioctls
+> should
+> remain supported by the video device nodes.
+> 
+> > We have currently ported DMxxx VPBE display drivers to 2.6.31 (Not
+> submitted yet to mainline). In our current implementation, the
+> output and standard/mode are controlled through sysfs because it is
+> a common functionality affecting both v4l and FBDev framebuffer
+> devices. Traditional applications such x-windows should be able to
+> stream video/graphics to VPBE output. V4l2 applications should be
+> able to stream video. Both these devices needs to know the display
+> parameters such as frame buffer resolution, field etc that are to be
+> configured in the video or osd layers in VPBE to output frames to
+> the encoder that is driving the output. So to stream, first the
+> output and mode/standard are selected using sysfs command and then
+> the application is started. Following scenarios are supported by
+> VPBE display drivers in our internal release:-
+> >
+> > 1)Traditional FBDev applications (x-window) can be run using OSD
+> device. Allows changing mode/standards at the output using fbset
+> command.
+> >
+> > 2)v4l2 driver doesn't provide s_output/s_std support since it is
+> done through sysfs.
+> >
+> > 3)Applications that requires to stream both graphics and video to
+> the output uses both FBDev and V4l2 devices. So these application
+> first set the output and mode/standard using sysfs, before doing io
+> operations with these devices.
+> 
+> I don't understand this approach. I'm no expert on the fb API but as
+> far as I
+> know the V4L2 API allows a lot more precision over the video timings
+> (esp. with
+> the new API you are working on). Furthermore, I assume it is
+> possible to use
+> the DMxxx without an OSD, right?
+> 
+> This is very similar to the ivtv and ivtvfb drivers: if the
+> framebuffer is in
+> use, then you cannot change the output standard (you'll get an EBUSY
+> error)
+> through a video device node.
+> 
+[Hiremath, Vaibhav] Framebuffer always be in use till the point you don't call FBIO_BLANK ioctl.
 
-I know Andy knows this, I'm just pointing it out for the record.
+> That's exactly what you would expect. If the framebuffer isn't used,
+> then you
+> can just use the normal V4L2 API to change the output standard.
+> 
+> In practice, I think that you can only change the resolution in the
+> FB API.
+> Not things like the framerate, let alone precise pixelclock, porch
+> and sync
+> widths.
+> 
+> Much better to let the two cooperate: you can use both APIs, but you
+> can't
+> change the resolution in the fb if streaming is going on, and you
+> can't
+> change the output standard of a video device node if that changes
+> the
+> resolution while the framebuffer is in used.
+> 
+[Hiremath, Vaibhav] To overcome this we brought in or rely on SYSFS interface, same is applicable to OMAP devices.
 
-This, coupled with the 'don't screw up other boards' approach leads to a unified 
-driver, not so much internally.
+We are using SYSFS interface for all common features like Standard/output selection, etc...
 
-The 25840 driver does 'just enough' to get by, Andy has taken it to the next 
-level and done the stuff that I should have done for the cx23885 merge (although 
-I did 'just enough' to get by).
+I believe media controller will play some role here.
 
-The notion of flexible clocks pays big dividends thanks to Andy, but is largely 
-a positive change that falls outside of this discussion topic (firmware filename).
+Thanks,
+Vaibhav 
 
->
-> I had considered moving the cx18-av code from the cx18 module into the
-> cx25840 module, but could never find a reason to undertake all the work.
-> Memory footprint isn't a good reason: desktop PC memory is cheap and
-> embedded systems would likely only use one type of card anyway.  The
-> return on investment seems like it would be less than 0.
+> No need for additional sysfs entries.
+> 
+> >
+> > There is an encoder manager to which all available encoders
+> registers (using internally developed interface) and based on
+> commands received at Fbdev/sysfs interfaces, the current encoder is
+> selected by the encoder manager and current standard is selected.
+> The encoder manager provides API to retrieve current timing
+> information from the current encoder. FBDev and V4L2 drivers uses
+> this API to configure OSD/video layers for streaming.
+> >
+> > As you can see, controlling output/mode is a common function
+> required for both v4l2 and FBDev devices.
+> >
+> > One way to do this to modify the encoder manager such that it load
+> up the encoder sub devices. This will allow our customers to migrate
+> to this driver on GIT kernel with minimum effort. If v4l2 display
+> bridge driver load up the sub devices, it will make FBDev driver
+> useless unless media controller has some way to handle this
+> scenario. Any idea if media controller RFC address this? I will go
+> over the RFC in details, but if you have a ready answer, let me
+> know.
+> 
+> I don't think this has anything to do with the media controller. It
+> sounds
+> more like a driver design issue to me.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-
+> media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Hmm. You should check out the cx23102 driver, whole crap, massive cx25840 
-overlap, massive superset in terms of functionality.
-
->
-> OK.  I'm done ranting...
-
-A great pity, you were getting me fired up along the same train of thought :)
-
-Andy, you have the support and full access to the resources of KernelLabs if you 
-need help (directly or indirectly) with regression testing. Your work is very 
-positive and a much needed overhaul.
-
-Mauro, my pitch: Let's leave the firmwares unique for the time being, which 
-indeed they are. So, leave the firmware detection code as is, it's working for 
-everyone. Let's rethink this discussion after Andy's massive patch series. It 
-sounds like the cx25840 driver is 'getting a new owner' and we'll look at the 
-driver differently once the overhaul is complete.
-
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
