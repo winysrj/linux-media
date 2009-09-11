@@ -1,87 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:47774 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751750AbZIEWFM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Sep 2009 18:05:12 -0400
-Date: Sun, 6 Sep 2009 00:05:14 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Marek Vasut <marek.vasut@gmail.com>
-cc: Eric Miao <eric.y.miao@gmail.com>,
-	linux-arm-kernel@lists.arm.linux.org.uk,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mike Rapoport <mike@compulab.co.il>,
-	Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH] Add RGB555X and RGB565X formats to pxa-camera
-In-Reply-To: <200909052317.24048.marek.vasut@gmail.com>
-Message-ID: <Pine.LNX.4.64.0909052358080.4670@axis700.grange>
-References: <200908031031.00676.marek.vasut@gmail.com>
- <200909051149.56343.marek.vasut@gmail.com> <Pine.LNX.4.64.0909052219030.4670@axis700.grange>
- <200909052317.24048.marek.vasut@gmail.com>
+Received: from mail-out.m-online.net ([212.18.0.10]:43580 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751627AbZIKM7Z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Sep 2009 08:59:25 -0400
+Received: from mail01.m-online.net (mail.m-online.net [192.168.3.149])
+	by mail-out.m-online.net (Postfix) with ESMTP id 09A951C001BA
+	for <linux-media@vger.kernel.org>; Fri, 11 Sep 2009 14:59:27 +0200 (CEST)
+Received: from localhost (dynscan2.mnet-online.de [192.168.1.215])
+	by mail.m-online.net (Postfix) with ESMTP id 6B19C9029B
+	for <linux-media@vger.kernel.org>; Fri, 11 Sep 2009 14:59:27 +0200 (CEST)
+Received: from mail.mnet-online.de ([192.168.3.149])
+	by localhost (dynscan2.mnet-online.de [192.168.1.215]) (amavisd-new, port 10024)
+	with ESMTP id EdV1SsnglzCU for <linux-media@vger.kernel.org>;
+	Fri, 11 Sep 2009 14:59:25 +0200 (CEST)
+Received: from gauss.x.fun (ppp-88-217-127-74.dynamic.mnet-online.de [88.217.127.74])
+	by mail.nefkom.net (Postfix) with ESMTP
+	for <linux-media@vger.kernel.org>; Fri, 11 Sep 2009 14:59:25 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by gauss.x.fun (Postfix) with ESMTP id 233F3DCC8F
+	for <linux-media@vger.kernel.org>; Fri, 11 Sep 2009 14:59:25 +0200 (CEST)
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-media@vger.kernel.org
+Subject: Hyperlinks in linuxtv.org mercurial RSS feeds broken
+Date: Fri, 11 Sep 2009 14:59:22 +0200
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200909111459.23662.zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 5 Sep 2009, Marek Vasut wrote:
+Hi there!
 
-> Dne So 5. září 2009 22:19:42 Guennadi Liakhovetski napsal(a):
-> > On Sat, 5 Sep 2009, Marek Vasut wrote:
-> > > Dne So 5. září 2009 10:55:55 Guennadi Liakhovetski napsal(a):
-> > > >
-> > > > Marek, please, look in PXA270 datasheet. To support a specific pixel
-> > > > format means, e.g., to be able to process it further, according to this
-> > > > format's particular colour component ordering. Process further can mean
-> > > > convert to another format, extract various information from the data
-> > > > (statistics, etc.)... Now RGB555 looks like (from wikipedia)
-> > > >
-> > > > 15  14  13  12  11  10  09  08  07  06  05  04  03  02  01  00
-> > > > R4  R3  R2  R1  R0  G4  G3  G2  G1  G1  B4  B3  B2  B1  B1  --
-> > > >
-> > > > (Actually, I thought bit 15 was unused, but it doesn't matter for this
-> > > > discussion.) Now, imagine what happens if you swap the two bytes. I
-> > > > don't think the PXA will still be able to meaningfully process that
-> > > > format.
-> > >
-> > > Not on the pxa side, but on the camera side -- Bs and Rs swapped in the
-> > > diagram above.
-> >
-> > And then? Are you trying to tell me, that the PXA then swaps them back?...
-> 
-> No, the software has to do it then, I'm trying to tell you that it has nothing 
-> to do with PXA (as PXA really doesnt care if the channel is actually blue or 
-> red).
+After having reported this some weeks ago, the hyperlinks in the linuxtv.org 
+mercurial RSS feeds are still broken.
 
-Of course it does. I asked you to swap the above two bytes, you would get 
-this:
+In this feed: http://linuxtv.org/hg/v4l-dvb?cmd=changelog;style=rss
+a link looks like this:
+http://linuxtv.orghttp//linuxtv.org/hg/v4l-dvb/rev/13c47deee3b1
 
-15  14  13  12  11  10  09  08  07  06  05  04  03  02  01  00
-G1  G0  B4  B3  B2  B1  B0  --  R4  R3  R2  R1  R0  G4  G3  G2  
-
-and PXA would still inerpret this as 
-
-R4  R3  R2  R1  R0  G4  G3  G2  G1  G0  B4  B3  B2  B1  B0  --
-
-i.e., it would take bits
-
-R2 R1 R0 G4 G3
-
-for blue, bits
-
-B1 B0 -- R4 R3
-
-for green, and bits
-
-G1 G0 B4 B3 B2
-
-as red. Which, as you see, makes no sense. That's why I'm saying, that it 
-doesn't support this format, and we can only pass it through as raw data.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Regards
+Matthias
