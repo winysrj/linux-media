@@ -1,87 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f216.google.com ([209.85.220.216]:42983 "EHLO
-	mail-fx0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751234AbZIULvO (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:58079 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754010AbZIKVi2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Sep 2009 07:51:14 -0400
-Received: by fxm12 with SMTP id 12so2111034fxm.18
-        for <linux-media@vger.kernel.org>; Mon, 21 Sep 2009 04:51:17 -0700 (PDT)
-Date: Mon, 21 Sep 2009 14:51:22 +0300
-From: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
-To: Roman <lists@hasnoname.de>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: MSI Digivox mini III Remote Control
-Message-ID: <20090921115122.GA2269@moon>
-References: <200909202026.27086.lists@hasnoname.de> <20090921081933.GA29884@moon> <200909211253.49766.lists@hasnoname.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <200909211253.49766.lists@hasnoname.de>
+	Fri, 11 Sep 2009 17:38:28 -0400
+Date: Fri, 11 Sep 2009 18:37:58 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: RFCv2: Media controller proposal
+Message-ID: <20090911183758.31184072@caramujo.chehab.org>
+In-Reply-To: <200909112215.15155.hverkuil@xs4all.nl>
+References: <200909100913.09065.hverkuil@xs4all.nl>
+	<200909112123.44778.hverkuil@xs4all.nl>
+	<20090911165937.776a638d@caramujo.chehab.org>
+	<200909112215.15155.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Just grab that patch and apply it to the current vl4-dvb, no need to mess
-with old repository.
-http://linuxtv.org/hg/~anttip/af9015-digivox3_remote/raw-rev/914ded6d921d
+Em Fri, 11 Sep 2009 22:15:15 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Now if the current tree doesn't compile, thats another issue, probably
-something with kernel headers, etc.
+> On Friday 11 September 2009 21:59:37 Mauro Carvalho Chehab wrote:
+> > Em Fri, 11 Sep 2009 21:23:44 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > 
+> > > > In the case of resizer, I don't see why this can't be implemented as an ioctl
+> > > > over /dev/video device.
+> > > 
+> > > Well, no. Not in general. There are two problems. The first problem occurs if
+> > > you have multiple instances of a resizer (OK, not likely, but you *can* have
+> > > multiple video encoders or decoders or sensors). If all you have is the
+> > > streaming device node, then you cannot select to which resizer (or video
+> > > encoder) the ioctl should go. The media controller allows you to select the
+> > > recipient of the ioctl explicitly. Thus providing the control that these
+> > > applications need.
+> > 
+> > This case doesn't apply, since, if you have multiple encoders and/or decoders,
+> > you'll also have multiple /dev/video instances. All you need is to call it at
+> > the right device you need to control. Am I missing something here?
+> 
+> Typical use-case: two video decoders feed video into a composer that combines
+> the two (e.g. for PiP) and streams the result to one video node.
+> 
+> Now you want to change e.g. the contrast on one of those video decoders. That's
+> not going to be possible using /dev/video.
 
-Actually thats interesting, I will test it on 64-bit Windows 7 when I get
-home, will RMA that stick if remote doesn't work.
+On your above example, each video decoder will need a /dev/video, and also the
+video composer. 
 
-As for channel switching, it's most likely a tv viewing software issue, 
-buffering or something like that. For me this tuner locks to transponder
-in aprox. 1 second.
+So, if you want to control the first decoder, you'll use /dev/video0. If you
+want to control the second, /dev/video1, and the mux, /dev/video2.
 
-On Mon, Sep 21, 2009 at 12:53:49PM +0200, Roman wrote:
-> Hi,
+The topology will be properly described at the media controller sysfs nodes.
+
 > 
-> thx for the tip, i jusst tested it on Windows 7 and i was amazed....
-> Not only the remote worked perfectly out of the box, also the software used 
-> (some media-center from ArcSoft), worked flawless. (I last used a Hauppauge 
-> TV-Card about 2 years ago on windows).
-> One thing to note is the channel switching was a LOT faster (max. 1sec.) than 
-> on linux (sometimes > 5sec.).
+> > > The second problem is that this will pollute the 'namespace' of a v4l device
+> > > node. Device drivers need to pass all those private ioctls to the right
+> > > sub-device. But they shouldn't have to care about that. If someone wants to
+> > > tweak the resizer (e.g. scaling coefficients), then pass it straight to the
+> > > resizer component.
+> > 
+> > Sorry, I missed your point here
 > 
-> Anyway, the remote works on windows, no i am trying to compile the mentioned 
-> repository, but it seems to fail compiling.
-> I already sent a mail to the msi-support...
-> 
-> #------
-> make[2]: Entering directory `/home/strowi/src/zen-sources'
->   CC [M]  /home/strowi/src/af9015-digivox3_remote/v4l/au0828-cards.o
-> In file included from /home/strowi/src/af9015-digivox3_remote/v4l/dmxdev.h:33,
->                  from /home/strowi/src/af9015-digivox3_remote/v4l/au0828.h:29,
->                  
-> from /home/strowi/src/af9015-digivox3_remote/v4l/au0828-cards.c:22:
-> /home/strowi/src/af9015-digivox3_remote/v4l/compat.h:385: error: redefinition 
-> of 'usb_endpoint_type'
-> include/linux/usb/ch9.h:377: error: previous definition of 'usb_endpoint_type' 
-> was here
-> make[3]: *** [/home/strowi/src/af9015-digivox3_remote/v4l/au0828-cards.o] 
-> Error 1
-> #------
-> 
-> Am Monday 21 September 2009 10:19:33 schrieb Aleksandr V. Piskunov:
-> > Well, it seems there is a patch for Digivox mini III remote control at
-> > http://linuxtv.org/hg/~anttip/af9015-digivox3_remote/, perhaps Antti
-> > can tell you more about it.
-> >
-> > I got this tuner, and no, IR receiver doesn't work for me, it doesn't
-> > even work in WinXP with bundled drivers and software, tested with
-> > USB snoop, no reaction to keypresses. Maybe a hardware defect at
-> > receiver part, maybe something is missing in a firmware, no idea.
-> >
-> > So check it on some Windows system first, then try patch..
-> >
-> 
-> greetings,
-> Roman
-> -- 
-> Iron Law of Distribution:
-> 	Them that has, gets.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Example: a sub-device can produce certain statistics. You want to have an
+> ioctl to obtain those statistics. If you call that through /dev/videoX, then
+> that main driver has to handle that ioctl in vidioc_default and pass it on
+> to the right subdev. So you have to write that vidioc_default handler,
+> know about the sub-devices that you have and which sub-device is linked to
+> the device node. You really don't want to have to do that. Especially not
+> when you are dealing with i2c devices that are loaded from platform code.
+> If a video encoder supports private ioctls, then an omap3 driver doesn't
+> want to know about that. Oh, and before you ask: just broadcasting that
+> ioctl is not a solution if you have multiple identical video encoders.
+
+This can be as easy as reading from /sys/class/media/dsp:stat0/stats
+
+
+Cheers,
+Mauro
