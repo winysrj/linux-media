@@ -1,75 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:58046 "EHLO
+Received: from bombadil.infradead.org ([18.85.46.34]:37384 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752238AbZINAJG (ORCPT
+	with ESMTP id S1755785AbZIKSwx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2009 20:09:06 -0400
-Received: from 200-158-183-52.dsl.telesp.net.br ([200.158.183.52] helo=caramujo.chehab.org)
-	by bombadil.infradead.org with esmtpsa (Exim 4.69 #1 (Red Hat Linux))
-	id 1Mmz81-00037J-M1
-	for linux-media@vger.kernel.org; Mon, 14 Sep 2009 00:09:10 +0000
-Date: Sun, 13 Sep 2009 21:08:41 -0300
+	Fri, 11 Sep 2009 14:52:53 -0400
+Date: Fri, 11 Sep 2009 15:52:17 -0300
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: linux-media@vger.kernel.org
-Subject: [ANOUNCE] Staging trees at V4L/DVB trees
-Message-ID: <20090913210841.6a4db925@caramujo.chehab.org>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: RFCv2: Media controller proposal
+Message-ID: <20090911155217.0e0f01bd@caramujo.chehab.org>
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940436BA524F@dbde02.ent.ti.com>
+References: <200909100913.09065.hverkuil@xs4all.nl>
+	<20090910172013.55825d2e@caramujo.chehab.org>
+	<200909102335.52770.hverkuil@xs4all.nl>
+	<20090911121342.08dd1939@caramujo.chehab.org>
+	<829197380909110846t493deb9cga3a2af754f2e40cd@mail.gmail.com>
+	<19F8576C6E063C45BE387C64729E73940436BA522B@dbde02.ent.ti.com>
+	<20090911140356.7a408159@caramujo.chehab.org>
+	<19F8576C6E063C45BE387C64729E73940436BA524F@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Probably some of you already noticed that we're creating some staging trees at
-V4L/DVB trees.
+Em Fri, 11 Sep 2009 23:04:13 +0530
+"Hiremath, Vaibhav" <hvaibhav@ti.com> escreveu:
 
-There are currently 2 staging trees:
+> [Hiremath, Vaibhav] I was referring to standard V4L2 interface; I was referring to backward compatibility between Media controller devices itself.
 
-1) /linux/drivers/staging - With drivers that aren't ready yet for merge, needing
-help for being finished.
+Huh? There's no media controller concept implemented yet. Hans proposal is to
+add a new API to enumerate devices, not to replace what currently exists.
+> 
+> Have you thought of custom parameter configuration? For example H3A(20)/Resizer(64) sub-device will have coeff. Which is non-standard (we had some discussion in the past) -
+> 
 
-There are currently two drivers there: 
-	go7007 driver - Used on some designs with a Micronas encoder.
-	cx25821 driver - Driver for Conexant cx25821 chips.
+I'm not saying that all new features should be implemented via sysfs. I'm just
+saying that sysfs is the way Linux Kernel uses to describe device topology,
+and, due to that, this is is the interface that applies at under the "media
+controller" proposal.
 
-The go7007 driver were written a long time ago and requires not only
-CodingStyle fixes but also porting to some new API's and to V4L2 framework.
-This driver is already at kernel upstream, under /drivers/staging.
+In the case of resizer, I don't see why this can't be implemented as an ioctl
+over /dev/video device.
 
-The cx25821 driver is a new driver written this year for some very powerful
-PCIe chips, capable of up to 10 simultaneous video input/outputs. The driver
-needs several CodingStyle fixes, and has duplicated code for each input/output.
+> With SYSFS approach it is really difficult to pass big parameter to sub-device, which we can easily achieve using IOCTL.
 
-I intend to add tm6000 driver there later this week, if time permits to port it
-to the new i2c interface.
+I didn't get you point here. With sysfs, you can pass everything, even a mix of
+strings and numbers, since get operation can be parsed via sscanf and generated
+set uses sprintf (this doesn't mean that this is the recommended way to use it).
 
-The policy to accept new drivers code at staging tree is less rigid than
-at /drivers/media: the kernel driver for an unsupported hardware shouldn't
-depend on any userspace library other than libv4l and dvb-apps and the code
-should compile fine with the latest kernel, and the developer(s) should be
-working on fixing it for upstream inclusion. Drivers with bugs, CodingStyle
-errors, deprecated API usage, etc can be accepted. Also, drivers there not
-maintained for some time can be removed.
+For example, on kernel 2.6.31, we have the complete hda audio driver pinup by
+reading to just one var:
 
-2) /staging-specs - This contains the latest V4L and DVB API specs, in DocBook
-XML 4.1.2. This is the same DocBook version used in kernel. 
+# cat /sys/class/sound/hwC0D0/init_pin_configs
+0x11 0x02214040
+0x12 0x01014010
+0x13 0x991301f0
+0x14 0x02a19020
+0x15 0x01813030
+0x16 0x413301f0
+0x17 0x41a601f0
+0x18 0x41a601f0
+0x1a 0x41f301f0
+0x1b 0x414511f0
+0x1c 0x41a190f0
 
-It basically contains an effort to finally merge the API's at kernel DocBook
-directory.
+If you want to alter PIN 0x15 output config, all you need to do is:
 
-Currently, this is _not_ the official API, and the document still needs review
-and cleanups.
+# echo "0x15 0x02214040" >/sys/class/sound/hwC0D0/user_pin_configs
+(or open /sys/class/sound/hwC0D0/init_pin_configs and write "0x15 0x02214040" to it)
 
-My intention is to add the first tree upstream, under drivers/staging for
-kernel 2.6.32. As those drivers are new, if we can get them on a good shape
-during 2.6.32 rc cycle, it could be possible to move them to drivers/media for
-2.6.32. All depends on how they'll evolute.
+And to reset to init config:
+# echo 1 >/sys/class/sound/hwC0D0/clear
 
-If time is enough and we have the DocBook tree in good shape on the next two
-weeks, I intend to add it also to 2.6.32.
-
-Feel free to contribute to both trees.
-
-Have Fun!
+One big advantage is that you can have a shell script to do the needed setup,
+automatically called by some udev rule, without needing to write a single line
+of code. So, for those advanced configuration parameters that doesn't change
+(for example board xtal speeds), you don't need to code it on your application.
+Yet, you can do there, if needed.
 
 Cheers,
 Mauro
