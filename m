@@ -1,44 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45868 "EHLO mail.kapsi.fi"
+Received: from mail1.radix.net ([207.192.128.31]:33947 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750898AbZITNas (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Sep 2009 09:30:48 -0400
-Message-ID: <4AB62E84.8040505@iki.fi>
-Date: Sun, 20 Sep 2009 16:30:44 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Bert Haverkamp <bert@bertenselena.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: usb dvb-c tuner status
-References: <1e68a10b0908150515l217126f7j41e15ece329176e1@mail.gmail.com>	 <1e68a10b0909182348v2026a57dsc877a8c5c1e9289f@mail.gmail.com>	 <4AB4B79C.7000802@iki.fi> <1e68a10b0909200555l32c34d94w8c7beedc04d10c88@mail.gmail.com>
-In-Reply-To: <1e68a10b0909200555l32c34d94w8c7beedc04d10c88@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	id S1751192AbZIKW7J (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Sep 2009 18:59:09 -0400
+Subject: Re: Media controller: sysfs vs ioctl
+From: Andy Walls <awalls@radix.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <200909120021.48353.hverkuil@xs4all.nl>
+References: <200909120021.48353.hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Fri, 11 Sep 2009 19:01:50 -0400
+Message-Id: <1252710110.4826.64.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/20/2009 03:55 PM, Bert Haverkamp wrote:
-> Hello Antti,
->
-> Thanks for your list.
-> The reddo looks interesting, unfortunately distribution is not
-> widespread. I only see some scandinavian sites. (and your finish
-> sounding name seems to confirm the above;-) Do you know where they are
-> coming from?
+On Sat, 2009-09-12 at 00:21 +0200, Hans Verkuil wrote:
+> Hi all,
+> 
+> I've started this as a new thread to prevent polluting the discussions of the
+> media controller as a concept.
+> 
+> First of all, I have no doubt that everything that you can do with an ioctl,
+> you can also do with sysfs and vice versa. That's not the problem here.
+> 
+> The problem is deciding which approach is the best.
 
-http://www.tongshi.com/
-Reddo DVB-C USB Box is just that USB box without CI and a little bit 
-different case.
+I've wanted to reply earlier but I cannot collect enough time to do
+proper research, but since you asked this particular question, I happen
+to have something which may help.
 
-> The annysees are bulky, pricy and i really don't need the cardreader,
-> because I'm only interested in the free2cable channels.
+I would suggest evaluating a representative proposals by applying
+Baldwin and Clark's Net Options Value (NOV) metric to a simple system
+representation.  The system to which to apply the metric would comprise:
 
-But Anysee is only one you can got many EU country:)
+	- a representative user space app
+	- a representative v4l-dvb driver
+	- an API concept/suggestion/proposal
 
-> I know it is a relatively small market.  (couldn't find the exact
-> spread on wikipedia, but Netherlands is definitely in from personal
-> experience.)
+I think this metric is appropriate to apply, because the NOV is a way to
+assign value to implementing options (i.e. options in modular systems).
+An API itself is not a modular system and hard to evaluate in isolation,
+so it needs to be evaluated in the context of the options it provies to
+the system designers and maintainers.
 
-Antti
--- 
-http://palosaari.fi/
+The NOV boils to simple concepts:
+
+1. a system design has a total value that is its present value plus the
+value of it's options that can be exploited in the future.
+
+2. an option represents a potential value that may provide a return in
+the future
+
+3. an option has only a potential value (in the present)
+
+4. an option only yields a return if that option may be exploited in the
+future.  The probability that the option may be exploited needs to be
+taken into account.
+
+5. an option has costs associated with exploiting it (in the future)
+
+I'm not advocating a rigorous computation of the metric for the
+proposals, but more a qualitative look at the proposals but still using
+the precise definition of the metric (sorry I don't have a URL
+handy...).
+
+
+I will note that I think am in agreement with Hans on sysfs.  I think
+the cost of trying to exploit any option provided through sysfs in a
+userspace apppllication will nullify any technical benefit of said
+option to the application.
+
+Lets say we want to convert an existing app to a "Media Controller
+aware" version of that app.  There is a cost to do that.  Will the API
+proposal make exploting some options have a large cost?  Do some of the
+options of the API have a low probability of being exploited?  Do some
+of the options of the API provide very low technical benefit?  What does
+the API proposal do to the total value of the system (e.g. an API with
+no flexibility fixes the total value close to the present value and
+there is no value to be realized from exploiting options in the future).
+
+
+OK, I hope I've communicated what I mean.  I feel like that all may be
+less than clear.
+
+
+These ideas have come from a confluence of research I've been doing at
+work, and V4L-DVB work (thinking about Multiproto vs. DVB v5, and the
+v4l2_subdev IR ops, etc.).
+
+
+Regards,
+Andy
+
