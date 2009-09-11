@@ -1,110 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:48999 "EHLO smtp3-g21.free.fr"
+Received: from mail.kapsi.fi ([217.30.184.167]:34088 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932840AbZIDHxL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Sep 2009 03:53:11 -0400
-Date: Fri, 4 Sep 2009 09:53:03 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: lorin@obs-besancon.fr
-Cc: linux-media@vger.kernel.org
-Subject: Re: Driver for webcams based on GL860 chip.
-Message-ID: <20090904095303.437d3d0b@tele>
-In-Reply-To: <20090901235543.7hoqudid6sg80o88@webmail.obs-besancon.fr>
-References: <20090901235543.7hoqudid6sg80o88@webmail.obs-besancon.fr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+	id S1751081AbZIKTr3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Sep 2009 15:47:29 -0400
+Message-ID: <4AAAA94D.1040609@iki.fi>
+Date: Fri, 11 Sep 2009 22:47:25 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
+CC: Markus Rechberger <mrechberger@gmail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Clinton Meyer <clintonmeyer22@gmail.com>,
+	Linux Media <linux-media@vger.kernel.org>
+Subject: Re: LinuxTV firmware blocks all wireless connections / traffic
+References: <d9def9db0909100358o14f07362n550b95a033c8a798@mail.gmail.com> <20090910124549.GA18426@moon> <20090910124807.GB18426@moon> <4AA8FB2F.2040504@iki.fi> <20090910134139.GA20149@moon> <4AA9038B.8090404@iki.fi> <4AA911B6.2040301@iki.fi> <20090910171631.GA4423@moon> <20090910193916.GA4923@moon> <4AAA60D0.50706@iki.fi> <20090911175030.GA10479@moon>
+In-Reply-To: <20090911175030.GA10479@moon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 01 Sep 2009 23:55:43 +0200
-lorin@obs-besancon.fr wrote:
+On 09/11/2009 08:50 PM, Aleksandr V. Piskunov wrote:
+> Ok, I did read basics of USB 2.0 protocol, gotta love these 600 page specs..
+> So using my fresh knowledge I went away and hacked ce6230 to use Isochronous
+> transfer endpoint instead of Bulk one. And it helped, tuner works, no
+> corruption with af9015 running on same controller at the same time.
 
-> I would like to add the support for GL860 based webcams within the  
-> GSPCA framework.
-> 
-> A patch (116KB) for that can be found at :
-> http://launchpadlibrarian.net/31182405/patchu_gl860g.diff
-> 
-> This is not a final version, some improvement in the auto detection
-> of sensor will be done. Before that I'm waiting for comments about
-> what should changed in this patch in order to be accepted.
-> 
-> Basically there is four managed sensors so that this patch add a new  
-> directory in the gspca one, it contains the main part of the driver  
-> and the four sub-drivers.
+Looks like chipset driver issue as you said.
 
-Hi Olivier,
+> Of course it isn't a fix per se, af9015 still corrupts if I start bulk
+> reading from a flash drive, etc. And there are no Isochronous endpoints on
+> af9015, so no alternative to bulk transfers :)
 
-Here are some remarks:
+y, correct. Welcome to hacking DVB drivers.
 
-- in gl860/gl860.h, there are complex macros. Please, use functions
-  instead.
+> But at least I'm getting closer to pinpointing the real problem and so far
+> everything points to AMD SB700 chipset driver. Google says it has quite
+> some hardware bugs and several workarounds in linux drivers...
+>
+> P.S. Rather unrelated question, what type of USB transfer is generally
+> preferred for USB media stream devices, BULK or ISOC? Antti, why did you
+> choose BULK for ce6230?
 
-- in gl860/gl860.c
+Because chipset Windows driver was using BULK. Very many, I think even 
+most, DVB chipset offers both ISOC and BULK. BULK is still used 
+commonly, only few drivers are using ISOC. Devin answered already why 
+BULK is used generally for DVB streams. :)
 
-. don't change the returned values of the virtual functions as:
+I read also USB "bible" book yesterday and it says it is better to use 
+biggest BULK urb supported. I want to change it biggest possible one, 
+but there is other side that limits it - memory needed for buffers. 
+That's why I am thinking twice whether to increase it 8k or 16k or even 
+more. I currently think 16k will be good compromise for most 
+configurations / devices.
 
-	static s32  sd_init(struct gspca_dev *gspca_dev);
-
-  (should be int and not s32)
-
-. more generally, it is a bad idea to have s32 variables.
-
-. why are the module parameters read only? (see below)
-
-. some initialization are unuseful as:
-
-		static char sensor[7] = "";
-
-. why is the video control table not static? (if some controls are not
-  available for some webcams, just set gspca_dev->ctl_dis)
-
-. in the function gl860_guess_sensor, there is
-
-	if (product_id == 0xf191)
-		sd->vsettings.sensor = ID_MI1320;
-
-  This information could be in the device_table, and also, in the
-  declaration of this table, '.driver_info = 0' is not useful.
-
-. in the function sd_config, there is no need to set values to 0 as:
-
-	sd->vsettings.mirrorMask = 0;
-
-. in the same function,
-
-	gspca_dev->alt   = 3 + 1;
-
-  is not useful (the value will be reset at streaming start).
-
-. in the function sd_pkt_scan, the line
-
-	switch (*(s16 *)data) {
-
-  may not work either with BE or LE machines.
-
-. in the function sd_mod_init, why are the static module parameters
-  moved to the variable vsettings?
-
-. about this same variable, it should be better to set the device
-  settings from the module parameters at connect time instead of at
-  module load time. This permits to have different webcam types active
-  at the same time...
-
-- in the other .c files
-
-. the use of static variables prevents to have more than one active
-  webcam.
-
-. there are values >= 0x80 in 'char' tables. These ones should be 's8'
-  or 'u8' ('char' may be unsigned).
-
-. using strings to handle binary values is less readable than simple
-  hexadecimal values.
-
-Cheers.
-
+Antti
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+http://palosaari.fi/
