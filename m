@@ -1,43 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:42968 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752366AbZITIQE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Sep 2009 04:16:04 -0400
-Received: by ey-out-2122.google.com with SMTP id d26so235157eyd.19
-        for <linux-media@vger.kernel.org>; Sun, 20 Sep 2009 01:16:07 -0700 (PDT)
+Received: from mgw2.diku.dk ([130.225.96.92]:42670 "EHLO mgw2.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754694AbZIKQVR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Sep 2009 12:21:17 -0400
+Date: Fri, 11 Sep 2009 18:21:18 +0200 (CEST)
+From: Julia Lawall <julia@diku.dk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@skynet.be>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [PATCH 2/8] drivers/media/video/uvc: introduce missing kfree
+Message-ID: <Pine.LNX.4.64.0909111821010.10552@pc-004.diku.dk>
 MIME-Version: 1.0
-In-Reply-To: <20090729075057.GA440@daniel.bse>
-References: <6842a4030907240040k676997c9oe93b5b03548a6123@mail.gmail.com>
-	 <20090729075057.GA440@daniel.bse>
-Date: Sun, 20 Sep 2009 10:16:06 +0200
-Message-ID: <6842a4030909200116l6f5799a5hf9a2e259a6e50a85@mail.gmail.com>
-Subject: Re: Technical Details on Abus Digiprotect TV8802 Capture Card
-From: =?UTF-8?Q?Gregor_Glash=C3=BCttner?= <gregorprivat@gmail.com>
-To: =?UTF-8?Q?Gregor_Glash=C3=BCttner?= <gregorprivat@gmail.com>,
-	linux-media@vger.kernel.org,
-	=?UTF-8?Q?Daniel_Gl=C3=B6ckner?= <daniel-gl@gmx.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+From: Julia Lawall <julia@diku.dk>
 
-2009/7/29 Daniel Glöckner <daniel-gl@gmx.net>:
-> If not, can you put the card on a scanner and create pictures of both
-> sides so that we can trace the signals? Please upload them on
-> imageshack.us or similar instead of mailing them to the list.
+Error handling code following kmalloc should free the allocated data.
 
-I was able to take hi-res pictures of the card now. You can find them at:
-http://img24.imageshack.us/img24/7618/abustv8802front.jpg and
-http://img22.imageshack.us/img22/5421/abustv8802back.jpg
-Maybe someone can help now.
+The semantic match that finds the problem is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
 
-Thanks a lot in advance
+// <smpl>
+@r exists@
+local idexpression x;
+statement S;
+expression E;
+identifier f,f1,l;
+position p1,p2;
+expression *ptr != NULL;
+@@
 
-Gregor
+x@p1 = \(kmalloc\|kzalloc\|kcalloc\)(...);
+...
+if (x == NULL) S
+<... when != x
+     when != if (...) { <+...x...+> }
+(
+x->f1 = E
+|
+ (x->f1 == NULL || ...)
+|
+ f(...,x->f1,...)
+)
+...>
+(
+ return \(0\|<+...x...+>\|ptr\);
+|
+ return@p2 ...;
+)
 
--- 
-Partykeller
-www.meineparty.at
+@script:python@
+p1 << r.p1;
+p2 << r.p2;
+@@
+
+print "* file: %s kmalloc %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+---
+ drivers/media/video/uvc/uvc_video.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/video/uvc/uvc_video.c b/drivers/media/video/uvc/uvc_video.c
+index 5b757f3..ce2c484 100644
+--- a/drivers/media/video/uvc/uvc_video.c
++++ b/drivers/media/video/uvc/uvc_video.c
+@@ -128,8 +128,11 @@ static int uvc_get_video_ctrl(struct uvc_streaming *stream,
+ 	if (data == NULL)
+ 		return -ENOMEM;
+ 
+-	if ((stream->dev->quirks & UVC_QUIRK_PROBE_DEF) && query == UVC_GET_DEF)
+-		return -EIO;
++	if ((stream->dev->quirks & UVC_QUIRK_PROBE_DEF) &&
++			query == UVC_GET_DEF) {
++		ret = -EIO;
++		goto out;
++	}
+ 
+ 	ret = __uvc_query_ctrl(stream->dev, query, 0, stream->intfnum,
+ 		probe ? UVC_VS_PROBE_CONTROL : UVC_VS_COMMIT_CONTROL, data,
