@@ -1,336 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dsl-202-173-134-75.nsw.westnet.com.au ([202.173.134.75]:55673
-	"EHLO mail.lemonrind.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751850AbZIOKcb (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4378 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751760AbZIKTIV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2009 06:32:31 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by mail.lemonrind.net (Postfix) with ESMTP id 808198133CB3
-	for <linux-media@vger.kernel.org>; Tue, 15 Sep 2009 20:32:34 +1000 (EST)
-Received: from mail.lemonrind.net ([127.0.0.1])
-	by localhost (jasmin.receptiveit [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id q9+X04EWeD9W for <linux-media@vger.kernel.org>;
-	Tue, 15 Sep 2009 20:32:33 +1000 (EST)
-Received: from [192.168.198.72] (unknown [192.168.198.72])
-	(Authenticated sender: alex)
-	by mail.lemonrind.net (Postfix) with ESMTPSA id D02758133CAD
-	for <linux-media@vger.kernel.org>; Tue, 15 Sep 2009 20:32:33 +1000 (EST)
-From: Alex Ferrara <alex@receptiveit.com.au>
-Content-Type: text/plain; charset=us-ascii; format=flowed; delsp=yes
+	Fri, 11 Sep 2009 15:08:21 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: RFCv2: Media controller proposal
+Date: Fri, 11 Sep 2009 21:08:13 +0200
+Cc: linux-media@vger.kernel.org
+References: <200909100913.09065.hverkuil@xs4all.nl> <200909102335.52770.hverkuil@xs4all.nl> <20090911121342.08dd1939@caramujo.chehab.org>
+In-Reply-To: <20090911121342.08dd1939@caramujo.chehab.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Subject: HVR-2200 Australia DVB-T
-Date: Tue, 15 Sep 2009 20:32:33 +1000
-Message-Id: <CED52FAC-4C8D-416C-B00E-5662F1F63E85@receptiveit.com.au>
-To: linux-media@vger.kernel.org
-Mime-Version: 1.0 (Apple Message framework v1076)
+Content-Disposition: inline
+Message-Id: <200909112108.14033.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I decided to try a different card that is reported to work, so I  
-bought myself a HVR-2200.
+Mauro,
 
-Drivers compiled cleanly. I extracted the firmware and the driver is  
-loading well.  The second frontend is showing a little irregular in  
-dmesg - (registering adapter 1 frontend -906461813), but otherwise it  
-looks good.
+I am going to move the ioctl vs sysfs discussion to a separate thread. I'll
+post an analysis of that later today or tomorrow.
 
-Here is an extract out of dmesg
-[   34.040118] saa7164_downloadimage() Image downloaded, booting...
-[   34.150107] saa7164_downloadimage() Image booted successfully.
-[   34.150134] starting firmware download(2)
-[   36.490112] saa7164_downloadimage() Image downloaded, booting...
-[   37.920114] saa7164_downloadimage() Image booted successfully.
-[   37.920142] firmware download complete.
-[   37.921063] saa7164[0]: i2c bus 0 registered
-[   37.921109] saa7164[0]: i2c bus 1 registered
-[   37.921146] saa7164[0]: i2c bus 2 registered
-[   37.963260] tveeprom 0-0000: Hauppauge model 89619, rev D2F2,  
-serial# 6346393
-[   37.963262] tveeprom 0-0000: MAC address is 00-0D-FE-60-D6-99
-[   37.963263] tveeprom 0-0000: tuner model is NXP 18271C2_716x (idx  
-152, type 4)
-[   37.963265] tveeprom 0-0000: TV standards PAL(B/G) NTSC(M) PAL(I)  
-SECAM(L/L') PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xfc)
-[   37.963267] tveeprom 0-0000: audio processor is SAA7164 (idx 43)
-[   37.963268] tveeprom 0-0000: decoder processor is SAA7164 (idx 40)
-[   37.963269] tveeprom 0-0000: has radio
-[   37.963270] saa7164[0]: Hauppauge eeprom: model=89619
-[   38.059508] tda18271 1-0060: creating new instance
-[   38.063981] TDA18271HD/C2 detected @ 1-0060
-[   38.404874] DVB: registering new adapter (saa7164)
-[   38.404876] DVB: registering adapter 0 frontend 0 (NXP TDA10048HN  
-DVB-T)...
-[   38.433105] tda18271 2-0060: creating new instance
-[   38.437225] TDA18271HD/C2 detected @ 2-0060
-[   38.784613] tda18271: performing RF tracking filter calibration
-[   41.427330] tda18271: RF tracking filter calibration complete
-[   41.427482] DVB: registering new adapter (saa7164)
-[   41.427484] DVB: registering adapter 1 frontend -906461813 (NXP  
-TDA10048HN DVB-T)...
-.......
-[  292.106142] tda10048_firmware_upload: firmware uploaded
-[  292.515795] tda18271: performing RF tracking filter calibration
-[  295.157633] tda18271: RF tracking filter calibration complete
-[  295.366049] tda10048_firmware_upload: waiting for firmware upload (dvb-fe-tda10048-1.0.fw 
-)...
-[  295.366052] i2c-adapter i2c-2: firmware: requesting dvb-fe-tda10048-1.0.fw
-[  295.368132] tda10048_firmware_upload: firmware read 24878 bytes.
-[  295.368134] tda10048_firmware_upload: firmware uploading
-[  298.372533] tda10048_firmware_upload: firmware uploaded
-[  371.811330] CE: hpet increasing min_delta_ns to 15000 nsec
+See below for my comments on some misunderstandings for non-sysfs issues.
 
-Only problem is that I am only seeing channels from one transport.
+On Friday 11 September 2009 17:13:42 Mauro Carvalho Chehab wrote:
 
-I have seen that people that are reporting problems with this card  
-usually have I2C errors in dmesg, which I don't have. The transport  
-that I can tune, is working flawlessly, with all three channels on  
-that transport giving a perfect picture and sound.
+<snip>
 
-Here is my initial scanning data. I had to create it myself as I live  
-in a rural area. I used a known working card to extract this (Dvico  
-Dual Digital 4 PCI)
+> > > > All this requires that there has to be a way to connect and disconnect parts
+> > > > of the internal topology of a video board at will.
+> > > 
+> > > We should design this with care, since each change at the internal topology may
+> > > create/delete devices.
+> > 
+> > No, devices aren't created or deleted. Only links between devices.
+> 
+> I think that there are some cases where devices are created/deleted. For
+> example, on some hardware, you have some blocks that allow you to have either 4 SD
+> video inputs or 1 HD video input. So, if you change the type of input, you'll
+> end by creating or deleting devices.
 
-# Australia / Goulburn / Rocky Hill
-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-# ABC
-T 725500000 7MHz 3/4 3/4 QAM64 8k 1/16 NONE
+Normally you will create four device nodes, but if you switch to HD mode,
+then only one is active and attempting to use the others will return EBUSY
+or something. That's what the davinci driver does.
 
-# SBS
-T 746500000 7MHz 2/3 2/3 QAM64 8k 1/8 NONE
+Creating and deleting device nodes depending on the mode makes a driver very
+complex and the application as well. Say you are in SD mode and you have nodes
+video[0-3], now you switch to HD mode and you have only node video0. You go
+back to SD mode and you may end up with nodes video0 and video[2-4] if in the
+meantime the user connected a USB webcam which took up video1.
 
-# WIN
-T 767500000 7MHz 3/4 3/4 QAM64 8k 1/16 NONE
+Just create them upfront. You know beforehand what the maximum number of video
+nodes is since that is determined by the hardware. Let's keep things simple.
+Media boards are getting very, very complex and we should keep away from adding
+unnecessary further complications.
 
-# Prime
-T 788500000 7MHz 3/4 3/4 QAM64 8k 1/16 NONE
+And yes, I too can generate hypothetical situations where this might be needed.
+But that's something we can tackle when it arrives.
 
-# TEN
-T 809500000 7MHz 3/4 3/4 QAM64 8k 1/16 NONE
+> 
+> > > If you do such changes at topology, udev will need to 
+> > > delete the old devices and create the new ones. 
+> > 
+> > udev is not involved at all. Exception: open issue #2 suggests that we
+> > dynamically register device nodes when they are first linked to some source
+> > or sink. That would involve udev.
+> > 
+> > All devices are setup when the board is configured. But the links between
+> > them can be changed. This is nothing more than bringing the board's block
+> > diagram to life: each square of the diagram (video device node, resizer, video
+> > encoder or decoder) is a v4l2-subdev with inputs and outputs. And in some cases
+> > you can change links dynamically (in effect this will change a mutex register).
+> 
+> See above. If you're grouping 4 A/D blocks into one A/D for handling HD, you're
+> doing more than just changing links, since the HD device will be just one
+> device: one STD, one video input mux, one audio input mux, etc.
 
-Here is my channels.conf. Again, this was tuned on my known working  
-PCI card.
+So? You will just deactivate three SD device nodes. I don't see a problem with
+that, and that concept has already been proven to work in the davinci driver.
+ 
+> > > This will happen on separate 
+> > > threads and may cause locking issues at the device, especially since you can be
+> > > modifying several components at the same time (being even possible to do it on
+> > > separate threads).
+> > 
+> > This is definitely not something that should be allowed while streaming. I
+> > would like to hear from e.g. TI whether this could be a problem or not. I
+> > suspect that it isn't a problem unless streaming is in progress.
+> 
+> Even when streaming, providing that you don't touch at the used IC blocks, it
+> should be possible to reconfigure the unused parts. It is just a matter of
+> having the right resource locks at the driver.
 
-ABC HDTV: 
-725500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4 
-:FEC_3_4 
-:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE: 
-516:0:672
-ABC1 
-: 
-725500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4 
-:FEC_3_4 
-:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE: 
-512:650:673
-ABC2 
-: 
-725500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4 
-:FEC_3_4 
-:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE: 
-513:651:674
-ABC1 
-: 
-725500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4 
-:FEC_3_4 
-:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE: 
-512:650:675
-ABC3 
-: 
-725500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4 
-:FEC_3_4 
-:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE: 
-512:650:676
-ABC DiG Radio: 
-725500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4 
-:FEC_3_4 
-:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE: 
-0:690:678
-ABC DiG Jazz: 
-725500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4 
-:FEC_3_4 
-:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE: 
-0:700:679
-SBS ONE: 
-746500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3 
-:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE: 
-161:81:849
-SBS TWO: 
-746500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3 
-:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE: 
-162:83:850
-SBS  
-3 
-: 
-746500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3 
-:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE: 
-161:81:851
-SBS  
-4 
-: 
-746500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3 
-:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE: 
-161:81:852
-SBS HD: 
-746500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3 
-:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE: 
-102:103:853
-SBS Radio  
-1 
-: 
-746500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3 
-:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE: 
-0:201:862
-SBS Radio  
-2 
-: 
-746500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3 
-:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE: 
-0:202:863
-WIN TV Canberra: 
-767500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4 
-:FEC_3_4 
-:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:33:36:1
-WIN TV HD: 
-767500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4 
-:FEC_3_4 
-:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:129:0:10
-GO!: 
-767500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4 
-:FEC_3_4 
-:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:50:51:2
-PRIME Canberra: 
-788500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4 
-:FEC_3_4 
-:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE: 
-2740:2741:2374
-PRIME HD: 
-788500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4 
-:FEC_3_4 
-:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE: 
-2740:2741:2400
-PRIME View  
-1 
-: 
-788500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4 
-:FEC_3_4 
-:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE: 
-2740:2741:2401
-PRIME View  
-2 
-: 
-788500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4 
-:FEC_3_4 
-:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE: 
-2740:2741:2402
-PRIME View  
-3 
-: 
-788500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4 
-:FEC_3_4 
-:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE: 
-2740:2741:2403
-SC10 Canberra: 
-809500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4 
-:FEC_3_4 
-:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE: 
-353:354:2055
-One HD Canberra: 
-809500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4 
-:FEC_3_4 
-:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE: 
-1711:0:2087
-SC Ten: 
-809500000 
-:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4 
-:FEC_3_4 
-:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE: 
-353:354:2119
+As you say, this will depend on the driver. Some may be able to do this,
+others may just return -EBUSY. I would do the latter, personally, since
+allowing this would just make the driver more complicated for IMHO little
+gain.
+ 
+> > > I've seen some high-end core network routers that implements topology changes
+> > > on an interesting way: any changes done are not immediately applied at the
+> > > node, but are stored into a file, where the configuration that can be changed
+> > > anytime. However, the topology changes only happen after giving a commit
+> > > command. After commit, it validates the new config and apply them atomically
+> > > (e. g. or all changes are applied or none), to avoid bad effects that
+> > > intermediate changes could cause.
+> > > 
+> > > As we are at kernelspace, we need to take care to not create a very complex
+> > > interface. Yet, the idea of applying the new topology atomically seems
+> > > interesting. 
+> > 
+> > I see no need for it. At least, not for any of the current or forthcoming
+> > devices that I am aware of. Should it ever be needed, then we can introduce a
+> > 'shadow topology' in the future. You can change the shadow links and when done
+> > commit it. That wouldn't be too difficult and we can easily prepare for that
+> > eventuality (e.g. have some 'flags' field available where you can set a SHADOW
+> > flag in the future).
+> 
+> > > Alsa is facing a similar problem with pinup quirks needed with HD-audio boards.
+> > > They are proposing a firmware like interface:
+> > > 	http://linux.derkeiler.com/Mailing-Lists/Kernel/2009-09/msg03198.html
+> > > 
+> > > On their case, they are just using request_firmware() for it, at board probing
+> > > time.
+> > 
+> > That seems to be a one-time setup. We need this while the system is up and
+> > running.
+> 
+> It would be easy to implement something like:
+> 
+> 	echo 1 >/sys/class/media/mc0/config_reload
+> 
+> to call request_firmware() and load the new topology. This is enough to have an
+> atomic operation, and we don't need to implement a shadow config.
 
-If I tune channel 10, it works perfectly
+OK, so instead we require an application to construct a file containing a new
+topology, write something to a sysfs file, require code in the v4l core to load
+and parse that file, then find out which links have changed (since you really
+don't want to set all the links: there can be many, many links, believe me on
+that), and finally call the driver to tell it to change those links.
 
-root@kaylee:~/.tzap# tzap "SC10 Canberra"
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-reading channels from file '/root/.tzap/channels.conf'
-tuning to 809500000 Hz
-video pid 0x0161, audio pid 0x0162
-status 00 | signal d7d7 | snr 0059 | ber 0000ffff | unc 00000000 |
-status 1f | signal e8e8 | snr 006d | ber 00001a17 | unc 00000000 |  
-FE_HAS_LOCK
-status 1f | signal f9f9 | snr 00a8 | ber 00000154 | unc 00000000 |  
-FE_HAS_LOCK
-status 1f | signal fcfc | snr 00c6 | ber 000000e6 | unc 00000000 |  
-FE_HAS_LOCK
-status 1f | signal fdfd | snr 00d7 | ber 00000146 | unc 00000000 |  
-FE_HAS_LOCK
+I don't think so. Just call ioctl(mc, VIDIOC_S_LINK, &link). Should we ever
+need to do this atomically, then that can be done through a simple double
+buffering technique at minimal cost.
 
-But other channels don't work quite as well. This happens on either / 
-dev/dvb/adapter0 or /dev/dvb/adapter1.
+The media controller as I see it is something that can be implemented with
+very little effort. Drivers provide a bunch of mostly static const structs
+that define the topology (the only non-static things are which links are active
+and device node specifications). The core uses that info to provide the
+enumeration services and any non-media controller ioctl calls are passed
+straight to the target subdev.
 
-root@kaylee:~/.tzap# vi channels.conf
-root@kaylee:~/.tzap# tzap "SBS ONE"
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-reading channels from file '/root/.tzap/channels.conf'
-tuning to 746500000 Hz
-video pid 0x00a1, audio pid 0x0051
-status 00 | signal 0f0f | snr 0007 | ber 0000ffff | unc 00000000 |
-status 00 | signal d9d9 | snr 0058 | ber 0000ffff | unc 00000000 |
-status 00 | signal d8d8 | snr 0056 | ber 0000ffff | unc 00000000 |
-status 00 | signal d8d8 | snr 0056 | ber 0000ffff | unc 00000000 |
-status 00 | signal dada | snr 0059 | ber 0000ffff | unc 00000000 |
-root@kaylee:~/.tzap# tzap "ABC2"
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-reading channels from file '/root/.tzap/channels.conf'
-tuning to 725500000 Hz
-video pid 0x0201, audio pid 0x028b
-status 00 | signal 0000 | snr 0005 | ber 0000ffff | unc 00000000 |
-status 00 | signal ffff | snr 0000 | ber 0000ffff | unc 00000000 |
-status 00 | signal ffff | snr 0000 | ber 0000ffff | unc 00000000 |
-status 00 | signal ffff | snr 0000 | ber 0000ffff | unc 00000000 |
-root@kaylee:~/.tzap# tzap "PRIME Canberra"
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-reading channels from file '/root/.tzap/channels.conf'
-tuning to 788500000 Hz
-video pid 0x0ab4, audio pid 0x0ab5
-status 00 | signal 7c7c | snr 001c | ber 0000ffff | unc 00000000 |
-status 00 | signal ffff | snr 0000 | ber 0000ffff | unc 00000000 |
-status 00 | signal ffff | snr 0000 | ber 0000ffff | unc 00000000 |
-status 00 | signal ffff | snr 0000 | ber 0000ffff | unc 00000000 |
-status 00 | signal ffff | snr 0000 | ber 0000ffff | unc 00000000 |
-root@kaylee:~/.tzap# tzap "WIN TV Canberra"
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-reading channels from file '/root/.tzap/channels.conf'
-tuning to 767500000 Hz
-video pid 0x0021, audio pid 0x0024
-status 00 | signal a9a9 | snr 002e | ber 0000ffff | unc 00000000 |
-status 00 | signal ffff | snr 0000 | ber 0000ffff | unc 00000000 |
-status 00 | signal ffff | snr 0000 | ber 0000ffff | unc 00000000 |
-status 00 | signal ffff | snr 0000 | ber 0000ffff | unc 00000000 |
+No parsers, no complex locking schemes (although drivers are free to implement
+that if they need it), no complex sysfs attributes.
 
-Any help would be appreciated.
+Keep things as simple as possible. Complexity is the greatest danger to v4l2
+development.
 
-aF
+Regards,
 
+	Hans
 
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
