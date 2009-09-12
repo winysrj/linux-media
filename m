@@ -1,70 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:39116 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751530AbZIRTrh convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4353 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753660AbZILLNu convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Sep 2009 15:47:37 -0400
-Received: by fxm17 with SMTP id 17so942609fxm.37
-        for <linux-media@vger.kernel.org>; Fri, 18 Sep 2009 12:47:40 -0700 (PDT)
+	Sat, 12 Sep 2009 07:13:50 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Markus Rechberger <mrechberger@gmail.com>
+Subject: Re: Initial media controller implementation
+Date: Sat, 12 Sep 2009 13:13:50 +0200
+Cc: linux-media@vger.kernel.org
+References: <200909121257.28522.hverkuil@xs4all.nl> <d9def9db0909120405n277ad8e0r85ea82d877bc53f8@mail.gmail.com>
+In-Reply-To: <d9def9db0909120405n277ad8e0r85ea82d877bc53f8@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1253303096.22947.2.camel@prometheus>
-References: <1253298801.19044.5.camel@prometheus>
-	 <829197380909181201w6ad9da3cide3c8825c421edfe@mail.gmail.com>
-	 <1253303096.22947.2.camel@prometheus>
-Date: Fri, 18 Sep 2009 15:47:40 -0400
-Message-ID: <829197380909181247l5ff4e18eu55454da9310bd522@mail.gmail.com>
-Subject: Re: Incorrectly detected em28xx device
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: =?ISO-8859-1?Q?Matthias_Bl=E4sing?= <mblaesing@doppel-helix.eu>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200909121313.50084.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/9/18 Matthias Bläsing <mblaesing@doppel-helix.eu>:
-> Hey David,
->
-> thanks for this very fast reply.
->
-> Am Freitag, den 18.09.2009, 15:01 -0400 schrieb Devin Heitmueller:
->> 2009/9/18 Matthias Bläsing <mblaesing@doppel-helix.eu>:
->> > Hello,
->> >
->> > when I plugin my usb video grabber, it is misdetected (this email is the
->> > reaction to the request in the module output):
->> >
->> > [Syslog Entries]
->> >
->
->> The correct functionality can be accessed, when explicitly called with
->> > card=35 as paramter:
->> >
->> > [Syslog Entries]
->> >
->> > It would be very nice, if this could be auto-detected. If you need more information, please CC me.
->> >
->> > Greetings
->> >
->> > Matthias
->>
->> Hi Matthias,
->>
->> I fixed this a couple of months ago.  Just update to the latest v4l-dvb tree.
->
->
-> will/was this be merged to the mainline kernel? I'm currently running
-> the ubuntu build of 2.6.30 and am about to switch to 2.6.31.
->
-> Thanks for the information so far.
->
-> Matthias
+On Saturday 12 September 2009 13:05:14 Markus Rechberger wrote:
+> Hi,
+> 
+> On Sat, Sep 12, 2009 at 12:57 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > Rather than writing long mails on what a media controller is and what it can
+> > do, I thought that I could just as well implement it.
+> >
+> > So in 4 hours I implemented pretty much all of the media controller
+> > functionality. The main missing features are the ability to register non-v4l
+> > device nodes so that they can be enumerated and setting controls private to
+> > a sub-device. For that I should first finish the control handling framework.
+> >
+> > The datastructures and naming conventions needs to be cleaned up, and it
+> > needs some tweaking, but I'd say this is pretty much the way I want it.
+> >
+> > The code is available here:
+> >
+> > http://linuxtv.org/hg/~hverkuil/v4l-dvb-mc/
+> >
+> > It includes a v4l2-mc utility in v4l2-apps/util that has the
+> > --show-topology option that enumerates all nodes and subdev. Currently any
+> > registered subdevs and v4l device nodes are already automatically added.
+> > Obviously, there are no links setup between them, that would require work
+> > in the drivers.
+> >
+> > Total diffstat:
+> >
+> >  b/linux/include/media/v4l2-mc.h         |   54 +++++
+> >  b/v4l2-apps/util/v4l2-mc.cpp            |  325 ++++++++++++++++++++++++++++++++
+> >  linux/drivers/media/video/v4l2-dev.c    |   15 +
+> >  linux/drivers/media/video/v4l2-device.c |  265 +++++++++++++++++++++++++-
+> >  linux/include/linux/videodev2.h         |   74 +++++++
+> >  linux/include/media/v4l2-dev.h          |    6
+> >  linux/include/media/v4l2-device.h       |   23 +-
+> >  linux/include/media/v4l2-subdev.h       |   11 -
+> >  v4l2-apps/util/Makefile                 |    2
+> >  9 files changed, 762 insertions(+), 13 deletions(-)
+> >
+> > Ignoring the new utility that's just 435 lines of core code.
+> >
+> > Now try this with sysfs. Brrr.
+> >
+> 
+> please even more important when doing this push out a proper
+> documentation for it,
+> The s2api is a mess seen from the documentation people need to hack
+> existing code in order
+> to figure out how to use it it seems. v4l2/(incomplete)linuxdvb v3 API
+> are still the best references
+> to start with right now.
 
-It went into v4l-dvb on June 6th, and was submitted upstream to Linus
-for 2.6.31 on June 16th.
+It will obviously be documented extensively when/if this becomes official.
+Right now it is an initial implementation people can play with.
 
-Devin
+Regards,
+
+         Hans
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
