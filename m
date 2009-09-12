@@ -1,96 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f206.google.com ([209.85.219.206]:49523 "EHLO
-	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752251AbZIGI1O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Sep 2009 04:27:14 -0400
-Received: by ewy2 with SMTP id 2so1870471ewy.17
-        for <linux-media@vger.kernel.org>; Mon, 07 Sep 2009 01:27:16 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <13c90c570909070123r2ba1f5f6w2b288703f5e98738@mail.gmail.com>
-References: <13c90c570909070123r2ba1f5f6w2b288703f5e98738@mail.gmail.com>
-Date: Mon, 7 Sep 2009 10:27:15 +0200
-Message-ID: <13c90c570909070127j11ae6ee2w2aa677529096f820@mail.gmail.com>
-Subject: [PATCH] Add support for Zolid Hybrid PCI card
-From: Henk <henk.vergonet@gmail.com>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2087 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751777AbZILK52 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Sep 2009 06:57:28 -0400
+Received: from tschai.lan (cm-84.208.105.24.getinternet.no [84.208.105.24])
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id n8CAvTrv028840
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 12:57:30 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=000e0cdf936a0518dc0472f89e0c
+Subject: Initial media controller implementation
+Date: Sat, 12 Sep 2009 12:57:28 +0200
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200909121257.28522.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---000e0cdf936a0518dc0472f89e0c
-Content-Type: text/plain; charset=ISO-8859-1
+Rather than writing long mails on what a media controller is and what it can
+do, I thought that I could just as well implement it.
 
-This patch adds support for Zolid Hybrid TV card. The results are
-pretty encouraging DVB reception and analog TV reception are confirmed
-to work. Might still need to find the GPIO pin that switches AGC on
-the TDA18271.
+So in 4 hours I implemented pretty much all of the media controller
+functionality. The main missing features are the ability to register non-v4l
+device nodes so that they can be enumerated and setting controls private to
+a sub-device. For that I should first finish the control handling framework.
 
-see:
-http://linuxtv.org/wiki/index.php/Zolid_Hybrid_TV_Tuner
-for more information.
+The datastructures and naming conventions needs to be cleaned up, and it
+needs some tweaking, but I'd say this is pretty much the way I want it.
 
-Signed-off-by: Henk.Vergonet@gmail.com
+The code is available here:
 
---000e0cdf936a0518dc0472f89e0c
-Content-Type: application/octet-stream; name="Zolid_Hybrid_PCI.patch"
-Content-Disposition: attachment; filename="Zolid_Hybrid_PCI.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fzaxtuk10
+http://linuxtv.org/hg/~hverkuil/v4l-dvb-mc/
 
-ZGlmZiAtciAyYjQ5ODEzZjg0ODIgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3Nh
-YTcxMzQtY2FyZHMuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2Fh
-NzEzNC1jYXJkcy5jCVRodSBTZXAgMDMgMDk6MDY6MzQgMjAwOSAtMDMwMAorKysgYi9saW51eC9k
-cml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC1jYXJkcy5jCU1vbiBTZXAgMDcgMDA6
-MTY6MjQgMjAwOSArMDIwMApAQCAtMzUyMSw2ICszNTIxLDM1IEBACiAJCQkuZ3BpbyA9IDB4MDgw
-MDEwMCwgLyogR1BJTyAyMyBISSBmb3IgRk0gKi8KIAkJfSwKIAl9LAorCVtTQUE3MTM0X0JPQVJE
-X1pPTElEX0hZQlJJRF9QQ0ldID0geworCQkubmFtZSAgICAgICAgICAgPSAiTlhQIEV1cm9wYSBE
-VkItVCBoeWJyaWQgcmVmZXJlbmNlIGRlc2lnbiIsCisJCS5hdWRpb19jbG9jayAgICA9IDB4MDAx
-ODdkZTcsCisJCS50dW5lcl90eXBlICAgICA9IFRVTkVSX1BISUxJUFNfVERBODI5MCwKKwkJLnJh
-ZGlvX3R5cGUgICAgID0gVU5TRVQsCisJCS50dW5lcl9hZGRyICAgICA9IEFERFJfVU5TRVQsCisJ
-CS5yYWRpb19hZGRyICAgICA9IEFERFJfVU5TRVQsCisJCS50dW5lcl9jb25maWcgICA9IDMsCisJ
-CS5tcGVnICAgICAgICAgICA9IFNBQTcxMzRfTVBFR19EVkIsCisJCS50c190eXBlCT0gU0FBNzEz
-NF9NUEVHX1RTX1BBUkFMTEVMLAorCQkuaW5wdXRzICAgICAgICAgPSB7eworCQkJLm5hbWUgPSBu
-YW1lX3R2LAorCQkJLnZtdXggPSAxLAorCQkJLmFtdXggPSBUViwKKwkJCS50diAgID0gMSwKKwkJ
-fSwgeworCQkJLm5hbWUgPSBuYW1lX2NvbXAxLAorCQkJLnZtdXggPSAwLAorCQkJLmFtdXggPSBM
-SU5FMSwKKwkJfSwgeworCQkJLm5hbWUgPSBuYW1lX3N2aWRlbywKKwkJCS52bXV4ID0gNiwKKwkJ
-CS5hbXV4ID0gTElORTEsCisJCX0gfSwKKwkJLnJhZGlvID0geworCQkJLm5hbWUgPSBuYW1lX3Jh
-ZGlvLAorCQkJLmFtdXggPSBUViwKKwkJfSwKKwl9LAogCVtTQUE3MTM0X0JPQVJEX0NJTkVSR1lf
-SFRfUENNQ0lBXSA9IHsKIAkJLm5hbWUgICAgICAgICAgID0gIlRlcnJhdGVjIENpbmVyZ3kgSFQg
-UENNQ0lBIiwKIAkJLmF1ZGlvX2Nsb2NrICAgID0gMHgwMDE4N2RlNywKQEAgLTY0MjksNiArNjQ1
-OCwxMiBAQAogCQkuc3ViZGV2aWNlICAgID0gMHgwMTM4LCAvKiBMaWZlVmlldyBGbHlUViBQcmlt
-ZTMwIE9FTSAqLwogCQkuZHJpdmVyX2RhdGEgID0gU0FBNzEzNF9CT0FSRF9ST1ZFUk1FRElBX0xJ
-TktfUFJPX0ZNLAogCX0sIHsKKwkJLnZlbmRvciAgICAgICA9IFBDSV9WRU5ET1JfSURfUEhJTElQ
-UywKKwkJLmRldmljZSAgICAgICA9IFBDSV9ERVZJQ0VfSURfUEhJTElQU19TQUE3MTMzLAorCQku
-c3VidmVuZG9yICAgID0gUENJX1ZFTkRPUl9JRF9QSElMSVBTLAorCQkuc3ViZGV2aWNlICAgID0g
-MHgyMDA0LAorCQkuZHJpdmVyX2RhdGEgID0gU0FBNzEzNF9CT0FSRF9aT0xJRF9IWUJSSURfUENJ
-LAorCX0sIHsKIAkJLyogLS0tIGJvYXJkcyB3aXRob3V0IGVlcHJvbSArIHN1YnN5c3RlbSBJRCAt
-LS0gKi8KIAkJLnZlbmRvciAgICAgICA9IFBDSV9WRU5ET1JfSURfUEhJTElQUywKIAkJLmRldmlj
-ZSAgICAgICA9IFBDSV9ERVZJQ0VfSURfUEhJTElQU19TQUE3MTM0LApAQCAtNjY1NSw2ICs2Njkw
-LDcgQEAKIAlzd2l0Y2ggKGRldi0+Ym9hcmQpIHsKIAljYXNlIFNBQTcxMzRfQk9BUkRfSEFVUFBB
-VUdFX0hWUjExNTA6CiAJY2FzZSBTQUE3MTM0X0JPQVJEX0hBVVBQQVVHRV9IVlIxMTIwOgorCWNh
-c2UgU0FBNzEzNF9CT0FSRF9aT0xJRF9IWUJSSURfUENJOgogCQkvKiB0ZGE4MjkwICsgdGRhMTgy
-NzEgKi8KIAkJcmV0ID0gc2FhNzEzNF90ZGE4MjkwXzE4MjcxX2NhbGxiYWNrKGRldiwgY29tbWFu
-ZCwgYXJnKTsKIAkJYnJlYWs7CmRpZmYgLXIgMmI0OTgxM2Y4NDgyIGxpbnV4L2RyaXZlcnMvbWVk
-aWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LWR2Yi5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEv
-dmlkZW8vc2FhNzEzNC9zYWE3MTM0LWR2Yi5jCVRodSBTZXAgMDMgMDk6MDY6MzQgMjAwOSAtMDMw
-MAorKysgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC1kdmIuYwlN
-b24gU2VwIDA3IDAwOjE2OjI0IDIwMDkgKzAyMDAKQEAgLTExMjUsNiArMTEyNSwxMyBAQAogCQkJ
-Z290byBkZXR0YWNoX2Zyb250ZW5kOwogCQlicmVhazsKIAljYXNlIFNBQTcxMzRfQk9BUkRfSEFV
-UFBBVUdFX0hWUjExMjA6CisJY2FzZSBTQUE3MTM0X0JPQVJEX1pPTElEX0hZQlJJRF9QQ0k6CisJ
-CS8qIG1hdGNoIGludGVyZmFjZSB0eXBlIG9mIFNBQTcxM3ggYW5kIFREQTEwMDQ4ICovCisgICAg
-ICAgICAgICAgICAgaWYgKHNhYTcxMzRfYm9hcmRzW2Rldi0+Ym9hcmRdLnRzX3R5cGUgPT0gU0FB
-NzEzNF9NUEVHX1RTX1BBUkFMTEVMKSB7CisJCQloY3dfdGRhMTAwNDhfY29uZmlnLm91dHB1dF9t
-b2RlID0gVERBMTAwNDhfUEFSQUxMRUxfT1VUUFVUOworCQl9IGVsc2UgeworCQkJaGN3X3RkYTEw
-MDQ4X2NvbmZpZy5vdXRwdXRfbW9kZSA9IFREQTEwMDQ4X1NFUklBTF9PVVRQVVQ7CisJCX0KIAkJ
-ZmUwLT5kdmIuZnJvbnRlbmQgPSBkdmJfYXR0YWNoKHRkYTEwMDQ4X2F0dGFjaCwKIAkJCQkJICAg
-ICAgICZoY3dfdGRhMTAwNDhfY29uZmlnLAogCQkJCQkgICAgICAgJmRldi0+aTJjX2FkYXApOwpk
-aWZmIC1yIDJiNDk4MTNmODQ4MiBsaW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2Fh
-NzEzNC5oCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LmgJ
-VGh1IFNlcCAwMyAwOTowNjozNCAyMDA5IC0wMzAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEv
-dmlkZW8vc2FhNzEzNC9zYWE3MTM0LmgJTW9uIFNlcCAwNyAwMDoxNjoyNCAyMDA5ICswMjAwCkBA
-IC0yOTcsNiArMjk3LDcgQEAKICNkZWZpbmUgU0FBNzEzNF9CT0FSRF9BVkVSTUVESUFfU1RVRElP
-XzUwNSAgMTcwCiAjZGVmaW5lIFNBQTcxMzRfQk9BUkRfQkVIT0xEX1g3ICAgICAgICAgICAgIDE3
-MQogI2RlZmluZSBTQUE3MTM0X0JPQVJEX1JPVkVSTUVESUFfTElOS19QUk9fRk0gMTcyCisjZGVm
-aW5lIFNBQTcxMzRfQk9BUkRfWk9MSURfSFlCUklEX1BDSQkJMTczCiAKICNkZWZpbmUgU0FBNzEz
-NF9NQVhCT0FSRFMgMzIKICNkZWZpbmUgU0FBNzEzNF9JTlBVVF9NQVggOAo=
---000e0cdf936a0518dc0472f89e0c--
+It includes a v4l2-mc utility in v4l2-apps/util that has the
+--show-topology option that enumerates all nodes and subdev. Currently any
+registered subdevs and v4l device nodes are already automatically added.
+Obviously, there are no links setup between them, that would require work
+in the drivers.
+
+Total diffstat:
+
+ b/linux/include/media/v4l2-mc.h         |   54 +++++
+ b/v4l2-apps/util/v4l2-mc.cpp            |  325 ++++++++++++++++++++++++++++++++
+ linux/drivers/media/video/v4l2-dev.c    |   15 +
+ linux/drivers/media/video/v4l2-device.c |  265 +++++++++++++++++++++++++-
+ linux/include/linux/videodev2.h         |   74 +++++++
+ linux/include/media/v4l2-dev.h          |    6
+ linux/include/media/v4l2-device.h       |   23 +-
+ linux/include/media/v4l2-subdev.h       |   11 -
+ v4l2-apps/util/Makefile                 |    2
+ 9 files changed, 762 insertions(+), 13 deletions(-)
+
+Ignoring the new utility that's just 435 lines of core code.
+
+Now try this with sysfs. Brrr.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
