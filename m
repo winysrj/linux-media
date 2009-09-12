@@ -1,89 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:59103 "EHLO mail1.radix.net"
+Received: from smtp2e.orange.fr ([80.12.242.113]:51115 "EHLO smtp2e.orange.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752208AbZIOKy4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2009 06:54:56 -0400
-Subject: Re: tuner, code for discuss
-From: Andy Walls <awalls@radix.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Michael Krufky <mkrufky@kernellabs.com>,
-	Dmitri Belimov <d.belimov@gmail.com>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	video4linux-list@redhat.com,
-	linux-media <linux-media@vger.kernel.org>
-In-Reply-To: <200909150826.17805.hverkuil@xs4all.nl>
-References: <20090819160700.049985b5@glory.loctelecom.ru>
-	 <20090915140715.2b9ea890@glory.loctelecom.ru>
-	 <303a8ee30909142118h6808a249o2cb22570fca8dfd4@mail.gmail.com>
-	 <200909150826.17805.hverkuil@xs4all.nl>
-Content-Type: text/plain
-Date: Tue, 15 Sep 2009 06:56:22 -0400
-Message-Id: <1253012182.3166.31.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	id S1751789AbZILIOh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Sep 2009 04:14:37 -0400
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2e17.orange.fr (SMTP Server) with ESMTP id 1CE5080000A4
+	for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 10:14:39 +0200 (CEST)
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2e17.orange.fr (SMTP Server) with ESMTP id 0F60580000A6
+	for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 10:14:39 +0200 (CEST)
+Received: from [192.168.1.11] (ANantes-551-1-42-204.w86-214.abo.wanadoo.fr [86.214.145.204])
+	by mwinf2e17.orange.fr (SMTP Server) with ESMTP id AFA4780000A4
+	for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 10:14:38 +0200 (CEST)
+Message-ID: <4AAB586D.6080906@gmail.com>
+Date: Sat, 12 Sep 2009 10:14:37 +0200
+From: Morvan Le Meut <mlemeut@gmail.com>
+MIME-Version: 1.0
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: (Saa7134) Re: ADS-Tech Instant TV PCI, no remote support, giving
+ up.
+References: <4AA53C05.10203@gmail.com> <4AA61508.9040506@gmail.com> <op.uzxmzlj86dn9rq@crni> <4AA62C38.3050208@gmail.com> <4AA63434.1010709@gmail.com> <4AA683BD.6070601@gmail.com> <4AA695EE.70800@gmail.com> <4AA767F2.50702@gmail.com> <op.uzzfgyvj3xmt7q@crni> <4AA77240.2040504@gmail.com> <4AA77683.7010201@gmail.com> <4AA7C266.3000509@gmail.com> <op.uzzz96se6dn9rq@crni> <4AA7E166.7030906@gmail.com> <4AA81785.5000806@gmail.com> <4AA8BB20.4040701@gmail.com> <4AA919CA.20701@gmail.com> <4AAA0247.8020004@gmail.com>
+In-Reply-To: <4AAA0247.8020004@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2009-09-15 at 08:26 +0200, Hans Verkuil wrote:
-> On Tuesday 15 September 2009 06:18:55 Michael Krufky wrote:
-> > On Tue, Sep 15, 2009 at 12:07 AM, Dmitri Belimov <d.belimov@gmail.com> wrote:
+Since i don't know where to look, i finally decided to use a basic 
+incorrect keymap :
+ /* ADS Tech Instant TV PCI Remote */
+static struct ir_scancode ir_codes_adstech_pci[] = {
+    /* too many repeating codes : incorrect gpio ?. */
+       
+    { 0x1f, KEY_MUTE },
+    { 0x1d, KEY_SEARCH },
+    { 0x17, KEY_EPG },        /* Guide */
+    { 0x0f, KEY_UP },
+    { 0x6, KEY_DOWN },
+    { 0x16, KEY_LEFT },
+    { 0x1e, KEY_RIGHT },
+    { 0x0e, KEY_SELECT },        /* Enter */
+    { 0x1a, KEY_INFO },
+    { 0x12, KEY_EXIT },
+    { 0x19, KEY_PREVIOUS },
+    { 0x11, KEY_NEXT },
+    { 0x18, KEY_REWIND },
+    { 0x10, KEY_FORWARD },
+    { 0x4, KEY_PLAYPAUSE },
+    { 0x07, KEY_STOP },
+    { 0x1b, KEY_RECORD },
+    { 0x13, KEY_TUNER },        /* Live */
+    { 0x0a, KEY_A },
+    { 0x03, KEY_PROG1 },        /* 1 */
+    { 0x01, KEY_PROG2 },        /* 2 */
+    { 0x0, KEY_VIDEO },
+    { 0x0b, KEY_CHANNELUP },
+    { 0x08, KEY_CHANNELDOWN },
+    { 0x15, KEY_VOLUMEUP },
+    { 0x1c, KEY_VOLUMEDOWN },
+};
 
-> > Personally, I don't quite understand why we would need to add such
-> > controls NOW, while we've supported this video standard for years
-> > already.  I am not arguing against this in any way, but I dont feel
-> > like I'm qualified to accept this addition without hearing the
-> > opinions of others first.
-> > 
-> > Can somebody help to shed some light?
-> 
-> It's the first time I've heard about SECAM and AGC-TOP problems. I do know
-> that the TOP value is standard-dependent, although the datasheets recommend
-> different SECAM-L values only. So I can imagine that in some cases you would
-> like to adjust the TOP value a bit.
-> 
-> The problem is that end-users will have no idea what to do with a control like
-> that. It falls into the category of 'advanced controls' that might be nice to
-> add but is only for very advanced users or applications.
+struct ir_scancode_table ir_codes_adstech_pci_table = {
+    .scan = ir_codes_adstech_pci,
+    .size = ARRAY_SIZE(ir_codes_adstech_pci),
+};
+EXPORT_SYMBOL_GPL(ir_codes_adstech_pci_table);
 
-The AGC Take Over Point (TOP) is the signal level at which the 2nd stage
-of the amplifier chain (after the IF filter) takes over gain control
-from the 1st stage in the amplifier chain.  The idea is to maximize
-overall noise figure by boosting small signals as needed, but avoiding
-hittng amplifer non-linearities that generate intermodulation products
-(i.e. spectral "splatter").
+No numbers in favor of arrows and ch+/- Vol+/- . Well 246 will be arrows 
+and  5 select, 7 and 8 are undefined, 9 become vol-, 1 epg and 3 is tuner.
+If someone, one day, wants to find that missig bit, i'll be happy to 
+help. ( Strange anyway : it's as if there was a 0x7f mask even when i 
+specify a 0xff one )
+Feel free to write a patch.
 
-The TOP setting depends on the TV standard *and* the attenuation through
-the IF filter.  I'm fairly sure, it is something that one probably
-should not change to a value different from the manufacturer's
-recommendation for a particular TV standard, unless you are dealing with
-input signals in a very controlled, known range aor you have taken
-measurments inside the tuner and precisely know the loss through the IF
-filter.  If the user doesn't understand how the AGC-TOP setting will
-affect his overall system noise figure, for all inoming signal
-strengths, then the user shouldn't change it. (IMO)
+Morvan Le Meut a écrit :
+> um .. help, please ?
+> how can i make the driver read 1011011 instead of 011011 when i press 
+> Power instead of record on the remote ?
+>
+> thanks
+>
+>
+>
+>
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-
-
-> The proposed media controller actually gives you a way of implementing that
-> as tuner-specific controls that do not show up in the regular /dev/videoX
-> control list. I have no problems adding an AGC-TOP control as a tuner-specific
-> control, but adding it as a generic control is a bad idea IMHO.
-
-If needed, it should be an advanced control or, dare I say, a tunable
-via sysfs.  Setting the TOP wrong will simply degrade reception for the
-the general case of an unknown incoming signal level.
-
-The tuner-sumple code has initialization values for TOP.  Also there are
-some module options for the user to fix TOP to a value, IIRC.  Both are
-rather inflexible for someone who does want to manipulate the TOP in an
-environment where the incoming RF signal levels are controlled.
-
-Regards,
-Andy
-
-> Regards,
-> 
-> 	Hans
 
 
