@@ -1,65 +1,492 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:45648 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752545AbZIJQM1 convert rfc822-to-8bit (ORCPT
+Received: from mail-qy0-f172.google.com ([209.85.221.172]:50386 "EHLO
+	mail-qy0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754612AbZILOtv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Sep 2009 12:12:27 -0400
-Received: by fxm17 with SMTP id 17so212307fxm.37
-        for <linux-media@vger.kernel.org>; Thu, 10 Sep 2009 09:12:29 -0700 (PDT)
+	Sat, 12 Sep 2009 10:49:51 -0400
+Received: by mail-qy0-f172.google.com with SMTP id 2so1629968qyk.21
+        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 07:49:54 -0700 (PDT)
+Message-ID: <4AABB509.1010004@gmail.com>
+Date: Sat, 12 Sep 2009 10:49:45 -0400
+From: David Ellingsworth <david@identd.dyndns.org>
+Reply-To: david@identd.dyndns.org
 MIME-Version: 1.0
-In-Reply-To: <4AA92160.5080200@iki.fi>
-References: <62013cda0909091443g72ebdf1bge3994b545a86c854@mail.gmail.com>
-	 <d9def9db0909100358o14f07362n550b95a033c8a798@mail.gmail.com>
-	 <20090910124549.GA18426@moon> <20090910124807.GB18426@moon>
-	 <4AA8FB2F.2040504@iki.fi> <20090910134139.GA20149@moon>
-	 <4AA9038B.8090404@iki.fi> <4AA911B6.2040301@iki.fi>
-	 <829197380909100826i3e2f8315yd6a0258f38a6c7b9@mail.gmail.com>
-	 <4AA92160.5080200@iki.fi>
-Date: Thu, 10 Sep 2009 12:12:29 -0400
-Message-ID: <829197380909100912xdb34da0s55587f6fe9c0f1d5@mail.gmail.com>
-Subject: Re: LinuxTV firmware blocks all wireless connections / traffic
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>,
-	Markus Rechberger <mrechberger@gmail.com>,
-	Clinton Meyer <clintonmeyer22@gmail.com>,
-	Linux Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: linux-media@vger.kernel.org, klimov.linux@gmail.com
+Subject: [RFC/RFT 06/10] radio-mr800: simplify locking in ioctl callbacks
+Content-Type: multipart/mixed;
+ boundary="------------020700040700000607060209"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 10, 2009 at 11:55 AM, Antti Palosaari<crope@iki.fi> wrote:
-> Devin Heitmueller wrote:
->>
->> The URB size is something that varies on a device-by-device basis,
->> depending on the bridge chipset.   There really is no
->> "one-size-fits-all" value you can assume.
->
-> I doubt no. I tested last week rather many USB chips and all I tested
-> allowed to set it as x188 or x512 bytes. If it is set something than chip
-> does not like it will give errors or packets that are not as large as
-> requested. You can test that easily, look dvb-usb module debug uxfer and use
-> powertop.
->
->> I usually take a look at a USB trace of the device under Windows, and
->> then use the same value.
->
-> I have seen logs where different sizes of urbs used even same chip.
+This is a multi-part message in MIME format.
+--------------020700040700000607060209
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Yes, the URB size can change depending on who wrote the driver, or
-what the required throughput is.  For example, the em28xx has a
-different URB size depending on whether the target application is
-19Mbps ATSC or 38Mbps QAM.  That just reinforces what I'm saying - the
-size selected in many cases is determined by the requirements of the
-chipset.
+ From c012b1ac39a225e003b190a12ae942e1dd6ea09b Mon Sep 17 00:00:00 2001
+From: David Ellingsworth <david@identd.dyndns.org>
+Date: Sat, 12 Sep 2009 01:07:13 -0400
+Subject: [PATCH 06/10] mr800: simplify locking in ioctl callbacks
 
-Making it some multiple of 188 for DVB is logical since that's the
-MPEG packet size.  That seems pretty common in the bridges I have
-worked with.
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/radio-mr800.c |  109 
+++++++++++---------------------------
+ 1 files changed, 30 insertions(+), 79 deletions(-)
 
-Devin
-
+diff --git a/drivers/media/radio/radio-mr800.c 
+b/drivers/media/radio/radio-mr800.c
+index 7305c96..71d15ba 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -299,18 +299,8 @@ static int vidioc_g_tuner(struct file *file, void 
+*priv,
+     struct amradio_device *radio = file->private_data;
+     int retval;
+ 
+-    mutex_lock(&radio->lock);
+-
+-    /* safety check */
+-    if (radio->removed) {
+-        retval = -EIO;
+-        goto unlock;
+-    }
+-
+-    if (v->index > 0) {
+-        retval = -EINVAL;
+-        goto unlock;
+-    }
++    if (v->index > 0)
++        return -EINVAL;
+ 
+ /* TODO: Add function which look is signal stereo or not
+  *     amradio_getstat(radio);
+@@ -338,8 +328,6 @@ static int vidioc_g_tuner(struct file *file, void *priv,
+     v->signal = 0xffff;     /* Can't get the signal strength, sad.. */
+     v->afc = 0; /* Don't know what is this */
+ 
+-unlock:
+-    mutex_unlock(&radio->lock);
+     return retval;
+ }
+ 
+@@ -348,20 +336,10 @@ static int vidioc_s_tuner(struct file *file, void 
+*priv,
+                 struct v4l2_tuner *v)
+ {
+     struct amradio_device *radio = file->private_data;
+-    int retval;
+-
+-    mutex_lock(&radio->lock);
+-
+-    /* safety check */
+-    if (radio->removed) {
+-        retval = -EIO;
+-        goto unlock;
+-    }
++    int retval = -EINVAL;
+ 
+-    if (v->index > 0) {
+-        retval = -EINVAL;
+-        goto unlock;
+-    }
++    if (v->index > 0)
++        return -EINVAL;
+ 
+     /* mono/stereo selector */
+     switch (v->audmode) {
+@@ -377,12 +355,8 @@ static int vidioc_s_tuner(struct file *file, void 
+*priv,
+             amradio_dev_warn(&radio->videodev.dev,
+                 "set stereo failed\n");
+         break;
+-    default:
+-        retval = -EINVAL;
+     }
+ 
+-unlock:
+-    mutex_unlock(&radio->lock);
+     return retval;
+ }
+ 
+@@ -391,15 +365,7 @@ static int vidioc_s_frequency(struct file *file, 
+void *priv,
+                 struct v4l2_frequency *f)
+ {
+     struct amradio_device *radio = file->private_data;
+-    int retval;
+-
+-    mutex_lock(&radio->lock);
+-
+-    /* safety check */
+-    if (radio->removed) {
+-        retval = -EIO;
+-        goto unlock;
+-    }
++    int retval = 0;
+ 
+     radio->curfreq = f->frequency;
+ 
+@@ -408,8 +374,6 @@ static int vidioc_s_frequency(struct file *file, 
+void *priv,
+         amradio_dev_warn(&radio->videodev.dev,
+             "set frequency failed\n");
+ 
+-unlock:
+-    mutex_unlock(&radio->lock);
+     return retval;
+ }
+ 
+@@ -418,22 +382,11 @@ static int vidioc_g_frequency(struct file *file, 
+void *priv,
+                 struct v4l2_frequency *f)
+ {
+     struct amradio_device *radio = file->private_data;
+-    int retval = 0;
+-
+-    mutex_lock(&radio->lock);
+-
+-    /* safety check */
+-    if (radio->removed) {
+-        retval = -EIO;
+-        goto unlock;
+-    }
+ 
+     f->type = V4L2_TUNER_RADIO;
+     f->frequency = radio->curfreq;
+ 
+-unlock:
+-    mutex_unlock(&radio->lock);
+-    return retval;
++    return 0;
+ }
+ 
+ /* vidioc_queryctrl - enumerate control items */
+@@ -453,26 +406,14 @@ static int vidioc_g_ctrl(struct file *file, void 
+*priv,
+                 struct v4l2_control *ctrl)
+ {
+     struct amradio_device *radio = file->private_data;
+-    int retval = -EINVAL;
+-
+-    mutex_lock(&radio->lock);
+-
+-    /* safety check */
+-    if (radio->removed) {
+-        retval = -EIO;
+-        goto unlock;
+-    }
+ 
+     switch (ctrl->id) {
+     case V4L2_CID_AUDIO_MUTE:
+         ctrl->value = radio->muted;
+-        retval = 0;
+-        break;
++        return 0;
+     }
+ 
+-unlock:
+-    mutex_unlock(&radio->lock);
+-    return retval;
++    return -EINVAL;
+ }
+ 
+ /* vidioc_s_ctrl - set the value of a control */
+@@ -482,14 +423,6 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
+     struct amradio_device *radio = file->private_data;
+     int retval = -EINVAL;
+ 
+-    mutex_lock(&radio->lock);
+-
+-    /* safety check */
+-    if (radio->removed) {
+-        retval = -EIO;
+-        goto unlock;
+-    }
+-
+     switch (ctrl->id) {
+     case V4L2_CID_AUDIO_MUTE:
+         if (ctrl->value) {
+@@ -508,8 +441,6 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
+         break;
+     }
+ 
+-unlock:
+-    mutex_unlock(&radio->lock);
+     return retval;
+ }
+ 
+@@ -616,6 +547,26 @@ unlock:
+     return retval;
+ }
+ 
++static long usb_amradio_ioctl(struct file *file, unsigned int cmd,
++                unsigned long arg)
++{
++    struct amradio_device *radio = file->private_data;
++    long retval = 0;
++
++    mutex_lock(&radio->lock);
++
++    if (radio->removed) {
++        retval = -EIO;
++        goto unlock;
++    }
++
++    retval = video_ioctl2(file, cmd, arg);
++
++unlock:
++    mutex_unlock(&radio->lock);
++    return retval;
++}
++
+ /* Suspend device - stop device. Need to be checked and fixed */
+ static int usb_amradio_suspend(struct usb_interface *intf, pm_message_t 
+message)
+ {
+@@ -657,7 +608,7 @@ static const struct v4l2_file_operations 
+usb_amradio_fops = {
+     .owner        = THIS_MODULE,
+     .open        = usb_amradio_open,
+     .release    = usb_amradio_close,
+-    .ioctl        = video_ioctl2,
++    .ioctl        = usb_amradio_ioctl,
+ };
+ 
+ static const struct v4l2_ioctl_ops usb_amradio_ioctl_ops = {
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.6.3.3
+
+
+--------------020700040700000607060209
+Content-Type: text/x-diff;
+ name="0006-mr800-simplify-locking-in-ioctl-callbacks.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename*0="0006-mr800-simplify-locking-in-ioctl-callbacks.patch"
+
+>From c012b1ac39a225e003b190a12ae942e1dd6ea09b Mon Sep 17 00:00:00 2001
+From: David Ellingsworth <david@identd.dyndns.org>
+Date: Sat, 12 Sep 2009 01:07:13 -0400
+Subject: [PATCH 06/10] mr800: simplify locking in ioctl callbacks
+
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/radio-mr800.c |  109 ++++++++++---------------------------
+ 1 files changed, 30 insertions(+), 79 deletions(-)
+
+diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
+index 7305c96..71d15ba 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -299,18 +299,8 @@ static int vidioc_g_tuner(struct file *file, void *priv,
+ 	struct amradio_device *radio = file->private_data;
+ 	int retval;
+ 
+-	mutex_lock(&radio->lock);
+-
+-	/* safety check */
+-	if (radio->removed) {
+-		retval = -EIO;
+-		goto unlock;
+-	}
+-
+-	if (v->index > 0) {
+-		retval = -EINVAL;
+-		goto unlock;
+-	}
++	if (v->index > 0)
++		return -EINVAL;
+ 
+ /* TODO: Add function which look is signal stereo or not
+  * 	amradio_getstat(radio);
+@@ -338,8 +328,6 @@ static int vidioc_g_tuner(struct file *file, void *priv,
+ 	v->signal = 0xffff;     /* Can't get the signal strength, sad.. */
+ 	v->afc = 0; /* Don't know what is this */
+ 
+-unlock:
+-	mutex_unlock(&radio->lock);
+ 	return retval;
+ }
+ 
+@@ -348,20 +336,10 @@ static int vidioc_s_tuner(struct file *file, void *priv,
+ 				struct v4l2_tuner *v)
+ {
+ 	struct amradio_device *radio = file->private_data;
+-	int retval;
+-
+-	mutex_lock(&radio->lock);
+-
+-	/* safety check */
+-	if (radio->removed) {
+-		retval = -EIO;
+-		goto unlock;
+-	}
++	int retval = -EINVAL;
+ 
+-	if (v->index > 0) {
+-		retval = -EINVAL;
+-		goto unlock;
+-	}
++	if (v->index > 0)
++		return -EINVAL;
+ 
+ 	/* mono/stereo selector */
+ 	switch (v->audmode) {
+@@ -377,12 +355,8 @@ static int vidioc_s_tuner(struct file *file, void *priv,
+ 			amradio_dev_warn(&radio->videodev.dev,
+ 				"set stereo failed\n");
+ 		break;
+-	default:
+-		retval = -EINVAL;
+ 	}
+ 
+-unlock:
+-	mutex_unlock(&radio->lock);
+ 	return retval;
+ }
+ 
+@@ -391,15 +365,7 @@ static int vidioc_s_frequency(struct file *file, void *priv,
+ 				struct v4l2_frequency *f)
+ {
+ 	struct amradio_device *radio = file->private_data;
+-	int retval;
+-
+-	mutex_lock(&radio->lock);
+-
+-	/* safety check */
+-	if (radio->removed) {
+-		retval = -EIO;
+-		goto unlock;
+-	}
++	int retval = 0;
+ 
+ 	radio->curfreq = f->frequency;
+ 
+@@ -408,8 +374,6 @@ static int vidioc_s_frequency(struct file *file, void *priv,
+ 		amradio_dev_warn(&radio->videodev.dev,
+ 			"set frequency failed\n");
+ 
+-unlock:
+-	mutex_unlock(&radio->lock);
+ 	return retval;
+ }
+ 
+@@ -418,22 +382,11 @@ static int vidioc_g_frequency(struct file *file, void *priv,
+ 				struct v4l2_frequency *f)
+ {
+ 	struct amradio_device *radio = file->private_data;
+-	int retval = 0;
+-
+-	mutex_lock(&radio->lock);
+-
+-	/* safety check */
+-	if (radio->removed) {
+-		retval = -EIO;
+-		goto unlock;
+-	}
+ 
+ 	f->type = V4L2_TUNER_RADIO;
+ 	f->frequency = radio->curfreq;
+ 
+-unlock:
+-	mutex_unlock(&radio->lock);
+-	return retval;
++	return 0;
+ }
+ 
+ /* vidioc_queryctrl - enumerate control items */
+@@ -453,26 +406,14 @@ static int vidioc_g_ctrl(struct file *file, void *priv,
+ 				struct v4l2_control *ctrl)
+ {
+ 	struct amradio_device *radio = file->private_data;
+-	int retval = -EINVAL;
+-
+-	mutex_lock(&radio->lock);
+-
+-	/* safety check */
+-	if (radio->removed) {
+-		retval = -EIO;
+-		goto unlock;
+-	}
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_AUDIO_MUTE:
+ 		ctrl->value = radio->muted;
+-		retval = 0;
+-		break;
++		return 0;
+ 	}
+ 
+-unlock:
+-	mutex_unlock(&radio->lock);
+-	return retval;
++	return -EINVAL;
+ }
+ 
+ /* vidioc_s_ctrl - set the value of a control */
+@@ -482,14 +423,6 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
+ 	struct amradio_device *radio = file->private_data;
+ 	int retval = -EINVAL;
+ 
+-	mutex_lock(&radio->lock);
+-
+-	/* safety check */
+-	if (radio->removed) {
+-		retval = -EIO;
+-		goto unlock;
+-	}
+-
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_AUDIO_MUTE:
+ 		if (ctrl->value) {
+@@ -508,8 +441,6 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
+ 		break;
+ 	}
+ 
+-unlock:
+-	mutex_unlock(&radio->lock);
+ 	return retval;
+ }
+ 
+@@ -616,6 +547,26 @@ unlock:
+ 	return retval;
+ }
+ 
++static long usb_amradio_ioctl(struct file *file, unsigned int cmd,
++				unsigned long arg)
++{
++	struct amradio_device *radio = file->private_data;
++	long retval = 0;
++
++	mutex_lock(&radio->lock);
++
++	if (radio->removed) {
++		retval = -EIO;
++		goto unlock;
++	}
++
++	retval = video_ioctl2(file, cmd, arg);
++
++unlock:
++	mutex_unlock(&radio->lock);
++	return retval;
++}
++
+ /* Suspend device - stop device. Need to be checked and fixed */
+ static int usb_amradio_suspend(struct usb_interface *intf, pm_message_t message)
+ {
+@@ -657,7 +608,7 @@ static const struct v4l2_file_operations usb_amradio_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= usb_amradio_open,
+ 	.release	= usb_amradio_close,
+-	.ioctl		= video_ioctl2,
++	.ioctl		= usb_amradio_ioctl,
+ };
+ 
+ static const struct v4l2_ioctl_ops usb_amradio_ioctl_ops = {
+-- 
+1.6.3.3
+
+
+--------------020700040700000607060209--
