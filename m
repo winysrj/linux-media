@@ -1,68 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out1.zte.com.cn ([202.103.147.172]:45511 "EHLO out1.zte.com.cn"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752654AbZIVHu7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2009 03:50:59 -0400
-In-Reply-To: <alpine.LRH.1.10.0909220902390.23153@pub1.ifh.de>
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: re: re: Re: how to develop driver for cy7c68013(fx2 lp)?
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:57515 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751770AbZILTxd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Sep 2009 15:53:33 -0400
+Received: by bwz19 with SMTP id 19so1391769bwz.37
+        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 12:53:35 -0700 (PDT)
 MIME-Version: 1.0
-Message-ID: <OF7B64FB97.7AB7F221-ON48257639.0029EE84-48257639.002B381D@zte.com.cn>
-From: liu.yaojin@zte.com.cn
-Date: Tue, 22 Sep 2009 15:48:30 +0800
-Content-Type: text/plain; charset="GB2312"
-Content-Transfer-Encoding: base64
+In-Reply-To: <4AABB518.8090804@gmail.com>
+References: <4AABB518.8090804@gmail.com>
+Date: Sat, 12 Sep 2009 15:53:35 -0400
+Message-ID: <30353c3d0909121253r79ababc0y70a3f7645cbf3eac@mail.gmail.com>
+Subject: Re: [RFC/RFT 08/10] radio-mr800: turn radio on during first open and
+	off during last close
+From: David Ellingsworth <david@identd.dyndns.org>
+To: linux-media@vger.kernel.org, klimov.linux@gmail.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-aGkgUGF0cmljazoNCiAgdGhlIGRhdGEgc3RyZWFtIGlzIG11bHRpcGxleCB3aXRoIGgyNjQgYW5k
-IGFjYy1wbHVzLiB3ZSBoYXZlIG91cnNlbGYgU0RLIA0KdG8gZGVtdWx0aXBsZXggaXQuDQppIHVz
-ZSBteSBkZXZpY2UgaW4gdGhpcyB3YXk6DQoxoaJzZWFyY2ggZm9yIHZhbGlkIGNoYW5uZWwocmVh
-ZC93cml0ZSB0aHJvdWdoIGVwMCkNCjKhonJlYWQgc3RyZWFtIGNvbnRpbnVvdXNseShyZWFkIHRo
-cm91Z2ggZXA2KG91dCkgKSAtPiBkZW11bHRpcGxleCANCi0+ZGlzcGxheS4NCnNvLGkgdGhpbmsg
-dGhlIGltcG9ydGFudCB3YXkgaXMgaG93IHRvIG9wZXJhdGUgQ1k3QzY4MDEzLmNvcnJlY3QgbWUg
-aWYgDQp3cm9uZy4NCg0KDQoNCg0KDQpIaSBMaXUsDQoNCihwbGVhc2UgYXZvaWQgdG9wLXBvc3Rz
-IG9uIHRoaXMgbGlzdCkNCg0KT24gVHVlLCAyMiBTZXAgMjAwOSwgbGl1Lnlhb2ppbkB6dGUuY29t
-LmNuIHdyb3RlOg0KDQo+IGhpLE1hdXJvOg0KPiB0aGFua3MgZm9yIHJlcGx5aW5nLg0KPiBpIGFt
-IG5vdCBzdXJlIHRoZSBkdHYgYXBpIGNhbiBiZSB1c2VkIGluIG15IHByb2plY3QuYmVjYXVzZSBj
-bW1iJ3MNCj4gcHJvdG9jb2wgaXMgZGlmZmVyZW50IHRvIGRtYiA6KA0KDQpUaGVuIHRoZSBBUEkg
-bmVlZHMgdG8gYmUgZXh0ZW5kZWQuIE1heWJlIGJ5IHlvdS4gQ29ycmVjdCBtZSBpZiBJJ20gd3Jv
-bmcsIA0KYnV0IENNTUIgZG9lcyBub3QgaGF2ZSBzdGFuZGFyZCBNUEVHMi1UUyBhbmQgdGhlIGNv
-bmZpZ3VyYXRpb24gcmVhbGx5IA0KbmVlZHMgcmVhbC10aW1lIGNvbnN0cmFpbnRzLg0KDQpIb3cg
-ZG9lcyBpdCB3b3JrIGZvciB5b3VyIGRldmljZT8NCg0KVG8gaGF2ZSBwcm9wZXIgc3VwcG9ydCBm
-b3Igbm9uLU1QRUcyLVRTIERUViBzdHJlYW1zIHdlIGNvdWxkIGFkZCBhIG5ldyANCmRlbXV4ZXIt
-dHlwZSB3aGljaCBoYW5kbGVzIGl0Lg0KDQpUbyB0dW5lIGEgQ01NQiBkZXZpY2Ugd2UnZCBuZWVk
-IHRvIGFkZCB0aGUgRFRWX1BST1BFUlRJRVMgdG8gZnJvbnRlbmQuaA0KDQo+IGluIFdpbmRvd3Ms
-IHdlIGRvd25sb2FkIGZpcm13YXJlIHVzaW5nIHdpbmRvd3MgZHJpdmVyLGNvbmZpZyBmeDIgYXMg
-YnVsaw0KPiB0cmFuc2ZlcixhbmQgcmVhZCB0aGUgVFMgc3RyZWFtLGZpbmFsbHkgZGVjb2RlIGl0
-IGFuZCBkaXNwbGF5Lg0KPiBJIGFsc28gcmVhZCB0aGlzIHBvc3Q6ICJodHRwOi8vd3d3LmxpbnV4
-am91cm5hbC5jb20vYXJ0aWNsZS83NDY2Ii0tLS0NCj4gV3JpdGluZyBhIFJlYWwgRHJpdmVyP0lu
-IFVzZXIgU3BhY2UuDQo+IGlmIGkganVzdCB3YW50IHRvIHJlYWQgdGhlIHRzIHN0cmVhbSxzaG91
-bGQgaSB1c2UgdGhpcyBtZXRob2Q/IG9yIA0KYW5vdGhlcg0KPiB3YXk/DQoNClRoaXMgb3B0aW9u
-IGlzIHJhdGhlciB1c2VmdWwgZm9yIGRlYnVnZ2luZy9wcm90b3R5cGluZywgSU1PLg0KDQpJbiB0
-aGUgZnV0dXJlIHdlIHdpbGwgaGF2ZSB0byBzdXBwb3J0IHNldmVyYWwgQ01NQiBkZXZpY2UgZnJv
-bSBkaWZmZXJlbnQgDQptYW51ZmFjdHVyZXJzLiBVcCB0byBub3csIHdlIGhhdmUgdXNlZCB0aGUg
-a2VybmVsLXVzZXItaW50ZXJmYWNlIHRvIGhhdmUgDQpzdGFibGUgQVBJIGZvciBkaWZmZXJlbnQg
-c3RhbmRhcmRzIC0gd2Ugc2hvdWxkIGNvbnRpbnVlIHRvIGRvIHNvLg0KDQpJdCB3b3VsZCBiZSBu
-aWNlIHRvIHN0YXJ0IHRoZSBSRkMtcHJvY2VzcyBmb3IgQ01NQidzIGV4dGVuc2lvbiB0byBEVkIg
-QVBJIA0KNSAuDQoNCnJlZ2FyZHMsDQoNCi0tDQoNClBhdHJpY2sgQm9ldHRjaGVyIC0gS2VybmVs
-IExhYnMNCmh0dHA6Ly93d3cua2VybmVsbGFicy5jb20vDQotLQ0KVG8gdW5zdWJzY3JpYmUgZnJv
-bSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LW1lZGlhIiBpbg0K
-dGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcNCk1vcmUg
-bWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8u
-aHRtbA0KDQoNCg0KDQoNCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tDQpaVEUgSW5mb3JtYXRpb24gU2VjdXJpdHkgTm90aWNlOiBUaGUgaW5m
-b3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMgbWFpbCBpcyBzb2xlbHkgcHJvcGVydHkgb2YgdGhl
-IHNlbmRlcidzIG9yZ2FuaXphdGlvbi4gVGhpcyBtYWlsIGNvbW11bmljYXRpb24gaXMgY29uZmlk
-ZW50aWFsLiBSZWNpcGllbnRzIG5hbWVkIGFib3ZlIGFyZSBvYmxpZ2F0ZWQgdG8gbWFpbnRhaW4g
-c2VjcmVjeSBhbmQgYXJlIG5vdCBwZXJtaXR0ZWQgdG8gZGlzY2xvc2UgdGhlIGNvbnRlbnRzIG9m
-IHRoaXMgY29tbXVuaWNhdGlvbiB0byBvdGhlcnMuDQpUaGlzIGVtYWlsIGFuZCBhbnkgZmlsZXMg
-dHJhbnNtaXR0ZWQgd2l0aCBpdCBhcmUgY29uZmlkZW50aWFsIGFuZCBpbnRlbmRlZCBzb2xlbHkg
-Zm9yIHRoZSB1c2Ugb2YgdGhlIGluZGl2aWR1YWwgb3IgZW50aXR5IHRvIHdob20gdGhleSBhcmUg
-YWRkcmVzc2VkLiBJZiB5b3UgaGF2ZSByZWNlaXZlZCB0aGlzIGVtYWlsIGluIGVycm9yIHBsZWFz
-ZSBub3RpZnkgdGhlIG9yaWdpbmF0b3Igb2YgdGhlIG1lc3NhZ2UuIEFueSB2aWV3cyBleHByZXNz
-ZWQgaW4gdGhpcyBtZXNzYWdlIGFyZSB0aG9zZSBvZiB0aGUgaW5kaXZpZHVhbCBzZW5kZXIuDQpU
-aGlzIG1lc3NhZ2UgaGFzIGJlZW4gc2Nhbm5lZCBmb3IgdmlydXNlcyBhbmQgU3BhbSBieSBaVEUg
-QW50aS1TcGFtIHN5c3RlbS4NCg==
+On Sat, Sep 12, 2009 at 10:50 AM, David Ellingsworth
+<david@identd.dyndns.org> wrote:
+> From 46c7d395e4ed2df431b21b6c07fb02a075a15e43 Mon Sep 17 00:00:00 2001
+> From: David Ellingsworth <david@identd.dyndns.org>
+> Date: Sat, 12 Sep 2009 01:57:36 -0400
+> Subject: [PATCH 08/10] mr800: turn radio on during first open and off during
+> last close
+>
+> Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+> ---
+> drivers/media/radio/radio-mr800.c |   31 +++++++++++++++++--------------
+> 1 files changed, 17 insertions(+), 14 deletions(-)
+>
+> diff --git a/drivers/media/radio/radio-mr800.c
+> b/drivers/media/radio/radio-mr800.c
+> index 9fd2342..11db6ea 100644
+> --- a/drivers/media/radio/radio-mr800.c
+> +++ b/drivers/media/radio/radio-mr800.c
+> @@ -493,15 +493,14 @@ static int usb_amradio_open(struct file *file)
+>    }
+>
+>    file->private_data = radio;
+> -    radio->users = 1;
+> -    radio->muted = 1;
+>
+> -    retval = amradio_set_mute(radio, AMRADIO_START);
+> -    if (retval < 0) {
+> -        amradio_dev_warn(&radio->videodev.dev,
+> -            "radio did not start up properly\n");
+> -        radio->users = 0;
+> -        goto unlock;
+> +    if (radio->users == 0) {
+> +        retval = amradio_set_mute(radio, AMRADIO_START);
+> +        if (retval < 0) {
+> +            amradio_dev_warn(&radio->videodev.dev,
+> +                "radio did not start up properly\n");
+> +            goto unlock;
+> +        }
+>    }
+>
+>    retval = amradio_set_stereo(radio, WANT_STEREO);
+> @@ -514,6 +513,8 @@ static int usb_amradio_open(struct file *file)
+>        amradio_dev_warn(&radio->videodev.dev,
+>            "set frequency failed\n");
+>
+> +    radio->users++;
+> +
+> unlock:
+>    mutex_unlock(&radio->lock);
+>    return retval;
+> @@ -526,18 +527,19 @@ static int usb_amradio_close(struct file *file)
+>    int retval = 0;
+>
+>    mutex_lock(&radio->lock);
+> +    radio->users--;
+>
+>    if (!radio->usbdev) {
+>        retval = -EIO;
+>        goto unlock;
+>    }
+>
+> -    radio->users = 0;
+> -
+> -    retval = amradio_set_mute(radio, AMRADIO_STOP);
+> -    if (retval < 0)
+> -        amradio_dev_warn(&radio->videodev.dev,
+> -            "amradio_stop failed\n");
+> +    if (radio->users == 0 && !radio->muted) {
+> +        retval = amradio_set_mute(radio, AMRADIO_STOP);
+> +        if (retval < 0)
+> +            amradio_dev_warn(&radio->videodev.dev,
+> +                "amradio_stop failed\n");
+> +    }
+>
+> unlock:
+>    mutex_unlock(&radio->lock);
+> @@ -674,6 +676,7 @@ static int usb_amradio_probe(struct usb_interface *intf,
+>    radio->usbdev = interface_to_usbdev(intf);
+>    radio->curfreq = 95.16 * FREQ_MUL;
+>    radio->stereo = -1;
+> +    radio->muted = 1;
+>
+>    mutex_init(&radio->lock);
+>
+> --
+> 1.6.3.3
+>
+>
+
+I just went back over Alexey Klimov's last patch series and I think
+I'm going to rework this patch. I agree with the concept he presented
+in his last patch whereby the radio should not be turned on/off during
+open close, nor should the device's frequency or stereo be set.
+
+Regards,
+
+David Ellingsworth
