@@ -1,47 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:36207 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751864AbZIKM73 (ORCPT
+Received: from mail-ew0-f206.google.com ([209.85.219.206]:45600 "EHLO
+	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752655AbZILObD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2009 08:59:29 -0400
-Date: Fri, 11 Sep 2009 09:59:00 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: RFCv2: Media controller proposal
-Message-ID: <20090911095900.1cec886d@caramujo.chehab.org>
-In-Reply-To: <829197380909101327s6d14332ft6435f817f2f6862@mail.gmail.com>
-References: <200909100913.09065.hverkuil@xs4all.nl>
-	<20090910172013.55825d2e@caramujo.chehab.org>
-	<829197380909101327s6d14332ft6435f817f2f6862@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Sat, 12 Sep 2009 10:31:03 -0400
+Received: by ewy2 with SMTP id 2so1828559ewy.17
+        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 07:31:05 -0700 (PDT)
+MIME-Version: 1.0
+Date: Sat, 12 Sep 2009 10:31:05 -0400
+Message-ID: <37219a840909120731j1166b2b0r8c51dc7ba8dbea6a@mail.gmail.com>
+Subject: [2.6.30.y PATCH 1/1] V4L: em28xx: set up tda9887_conf in
+	em28xx_card_setup()
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: stable@kernel.org
+Cc: Franklin Meng <fmeng2002@yahoo.com>,
+	Douglas Schilling Landgraf <dougsland@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Larry Finger <Larry.Finger@lwfinger.net>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 10 Sep 2009 16:27:20 -0400
-Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
+V4L: em28xx: set up tda9887_conf in em28xx_card_setup()
 
-> On Thu, Sep 10, 2009 at 4:20 PM, Mauro Carvalho
-> Chehab<mchehab@infradead.org> wrote:
-> > In fact, this can already be done by using the sysfs interface. the current
-> > version of v4l2-sysfs-path.c already enumerates the associated nodes to
-> > a /dev/video device, by just navigating at the already existing device
-> > description nodes at sysfs. I hadn't tried yet, but I bet that a similar kind
-> > of topology can be obtained from a dvb device (probably, we need to do some
-> > adjustments).
-> 
-> For the audio case, I did some digging into this a bit and It's worth
-> noting that this behavior varies by driver (at least on USB).  In some
-> cases, the parent points to the USB device, in other cases it points
-> to the USB interface.  My original thought was to pick one or the
-> other and make the various drivers consistent, but even that is a
-> challenge since in some cases the audio device was provided by
-> snd-usb-audio (which has no knowledge of the v4l subsystem).
+From: Franklin Meng <fmeng2002@yahoo.com>
 
-We may consider adding a quick at snd-usb-audio for em28xx devices, in order
-to create the proper sysfs nodes.
+Added tda9887_conf set up into em28xx_card_setup()
 
-Cheers,
-Mauro
+Signed-off-by: Franklin Meng <fmeng2002@yahoo.com>
+Signed-off-by: Douglas Schilling Landgraf <dougsland@redhat.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Tested-by: Larry Finger <Larry.Finger@lwfinger.net>
+Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
+(cherry picked from commit ae3340cbf59ea362c2016eea762456cc0969fd9e)
+---
+ drivers/media/video/em28xx/em28xx-cards.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/video/em28xx/em28xx-cards.c
+b/drivers/media/video/em28xx/em28xx-cards.c
+index 7c70738..168e892 100644
+--- a/drivers/media/video/em28xx/em28xx-cards.c
++++ b/drivers/media/video/em28xx/em28xx-cards.c
+@@ -1886,6 +1886,9 @@ void em28xx_card_setup(struct em28xx *dev)
+ 	if (em28xx_boards[dev->model].tuner_addr)
+ 		dev->tuner_addr = em28xx_boards[dev->model].tuner_addr;
+
++	if (em28xx_boards[dev->model].tda9887_conf)
++		dev->tda9887_conf = em28xx_boards[dev->model].tda9887_conf;
++
+ 	/* request some modules */
+ 	switch (dev->model) {
+ 	case EM2820_BOARD_HAUPPAUGE_WINTV_USB_2:
+-- 
+1.6.0.4
