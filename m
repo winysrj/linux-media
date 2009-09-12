@@ -1,26 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx09.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.13])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n88NKlb1011544
-	for <video4linux-list@redhat.com>; Tue, 8 Sep 2009 19:20:47 -0400
-Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n88NKUei031998
-	for <video4linux-list@redhat.com>; Tue, 8 Sep 2009 19:20:30 -0400
-From: Andy Walls <awalls@radix.net>
-To: rray_1@comcast.net
-In-Reply-To: <alpine.LRH.2.00.0909081327170.4833@rray2>
-References: <alpine.LRH.2.00.0909081237170.4833@rray2>
-	<4AA69AC6.8020103@swartzlander.org>
-	<829197380909081122r70f857bbr2b4369a2ab8d91f5@mail.gmail.com>
-	<alpine.LRH.2.00.0909081327170.4833@rray2>
-Content-Type: text/plain
-Date: Tue, 08 Sep 2009 19:22:07 -0400
-Message-Id: <1252452127.3168.5.camel@palomino.walls.org>
+Received: from mx1.redhat.com (ext-mx05.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.9])
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n8C6OpAO025397
+	for <video4linux-list@redhat.com>; Sat, 12 Sep 2009 02:24:51 -0400
+Received: from smtp3-g21.free.fr (smtp3-g21.free.fr [212.27.42.3])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n8C6OXHx016324
+	for <video4linux-list@redhat.com>; Sat, 12 Sep 2009 02:24:38 -0400
+Date: Sat, 12 Sep 2009 08:24:26 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Niamathullah sharief <newbiesha@gmail.com>
+Message-ID: <20090912082426.2dfba603@tele>
+In-Reply-To: <25f5fcff0909110507y635aa97eg1d599710372a6e9e@mail.gmail.com>
+References: <25f5fcff0909110020m56f881d0q383aae1f5226476@mail.gmail.com>
+	<b89eadb20909110234v2b8ee579nc19eed163cc77463@mail.gmail.com>
+	<25f5fcff0909110507y635aa97eg1d599710372a6e9e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: NTSC/ATSC device recommendation
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: Steven Yao <yaohaiping.linux@gmail.com>, kernelnewbies@nl.linux.org,
+	video4linux-list@redhat.com
+Subject: Re: About Webcam module
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,61 +32,55 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 2009-09-08 at 13:29 -0500, rray_1@comcast.net wrote:
-> On Tue, 8 Sep 2009, Devin Heitmueller wrote:
-> 
-> > On Tue, Sep 8, 2009 at 1:56 PM, Ben Swartzlander<ben@swartzlander.org> wrote:
-> >> rray_1@comcast.net wrote:
-> >>>
-> >>> I would like to purchase a NTSC/ATSC device that is functional under Linux
-> >>> MY only requirement is receiving FTA broadcast
-> >>> Would y'all recommend a USB device or better to stick with a pci device
-> >>> I have followed this list and have only become more confused
-> >>>
-> >>> Thanks
-> >>> Richard
-> >>
-> >> I have 2 Hauppauge WinTV-HVR-850 USB sticks in my MythTV box (Ubuntu 8.04).
-> >> USB is preferable to PCI for all kinds of reasons. I bought mine here:
-> >> http://www.newegg.com/Product/Product.aspx?Item=N82E16815116031
-> >>
-> >> Note that if you go with this device, you'll need to manually add the
-> >> firmware to your /lib/firmware directory. You can get the firmware here:
-> >> http://www.steventoth.net/linux/xc5000/
-> >>
-> >> There are plenty of other supported devices though. When I was doing my
-> >> research, this page was an extremely useful resource for Linux ATSC
-> >> hardware: http://www.linuxtv.org/wiki/index.php/ATSC_Devices
-> >>
-> >> -Ben
+On Fri, 11 Sep 2009 17:37:19 +0530
+Niamathullah sharief <newbiesha@gmail.com> wrote:
+
+	[snip]
+> sharief@sharief-desktop:~$ modinfo -d gspca_zc3xx
 > >
-> > I'm really familiar with the HVR-850, and figured it would be worth
-> > mentioning that the HVR-850 only very recently got analog support in
-> > the Linux driver, and it has some issues with MythTV in particular
-> > (which I haven't had a chance to fix yet).  So if you're planning on
-> > doing analog with MythTV, that may not be a good device to go with
-> > right now.
+> GSPCA ZC03xx/VC3xx USB Camera Driver
+> >
+> sharief@sharief-desktop:~$ modinfo -d gspca_main
+> >
+> GSPCA USB Camera Driver
+> >
+> sharief@sharief-desktop:~$ modinfo -d videodev
+> >
+> Device registrar for Video4Linux drivers v2
+> >
+> sharief@sharief-desktop:~$ modinfo -d v4l1_compat
+> >
+> v4l(1) compatibility layer for v4l2 drivers.
+> >
+> sharief@sharief-desktop:~$
 > >
 > 
-> Thanks, that is the kind of info I was hoping for
-> There are still low power analog stations in my area
-> I would like a device that can reliably receive analog and digital
+> So first two things are showing as camera driver. bur how it is
+> possible. kindly help me
 
-The HVR-1600 can do both analog and digital at the same time: Picture in
-Picture in MythTV.  FM radio works too, when you're not watching analog
-TV.  PCI bus.  Hardware MPEG encoder.
+Hi,
 
-Regards,
-Andy
+The driver of a USB device is easily found looking at
+	/lib/modules/`uname -r`/modules.usbmap
 
+So, your driver is gspca_zc3xx. Then, this module uses the gspca
+framework, i.e it calls functions of the module gspca_main. This last
+one calls functions of the common video module videodev. Then again, if
+v4l1 compatibility is enabled, videodev calls functions of v4l1_compat.
 
-> Richard
-> 
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
-> 
+lsmod shows all that directly:
+
+Module              Size   Used by
+gspca_zc3xx        55936   0
+gspca_main         29312   1   gspca_zc3xx
+videodev           41344   1   gspca_main 
+v4l1_compat        22404   1   videodev
+
+Regards.
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
 
 --
 video4linux-list mailing list
