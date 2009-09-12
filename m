@@ -1,43 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fallback2.mail.ru ([94.100.176.87]:35766 "EHLO
-	fallback2.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754894AbZI3Rp3 (ORCPT
+Received: from qw-out-2122.google.com ([74.125.92.27]:15620 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754545AbZILOth (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Sep 2009 13:45:29 -0400
-Received: from mx34.mail.ru (mx34.mail.ru [94.100.176.48])
-	by fallback2.mail.ru (mPOP.Fallback_MX) with ESMTP id 43196C68439
-	for <linux-media@vger.kernel.org>; Wed, 30 Sep 2009 21:39:41 +0400 (MSD)
-Received: from [92.101.144.253] (port=59586 helo=localhost.localdomain)
-	by mx34.mail.ru with asmtp
-	id 1Mt38u-0008hL-00
-	for linux-media@vger.kernel.org; Wed, 30 Sep 2009 21:39:08 +0400
-Date: Wed, 30 Sep 2009 21:40:55 +0400
-From: Goga777 <goga777@bk.ru>
-To: linux-media@vger.kernel.org
-Subject: Re: dvbstream and S2 API (was - record DVB-S2 stream into file)
-Message-ID: <20090930214055.3b768e52@bk.ru>
-In-Reply-To: <4AC1CFF1.7050907@kaznejov.cz>
-References: <4AC1CFF1.7050907@kaznejov.cz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Sat, 12 Sep 2009 10:49:37 -0400
+Received: by qw-out-2122.google.com with SMTP id 9so632979qwb.37
+        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 07:49:40 -0700 (PDT)
+Message-ID: <4AABB4FB.4050102@gmail.com>
+Date: Sat, 12 Sep 2009 10:49:31 -0400
+From: David Ellingsworth <david@identd.dyndns.org>
+Reply-To: david@identd.dyndns.org
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org, klimov.linux@gmail.com
+Subject: [RFC/RFT 04/10] radio-mr800: remove unnecessary local variable
+Content-Type: multipart/mixed;
+ boundary="------------050006090900090606050406"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+This is a multi-part message in MIME format.
+--------------050006090900090606050406
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-is there any plans to implement in dvbstream the s2 api support ?
+ From f2fdb83ce649e9e69413ab533ec4a84d96850ed4 Mon Sep 17 00:00:00 2001
+From: David Ellingsworth <david@identd.dyndns.org>
+Date: Sat, 12 Sep 2009 00:19:48 -0400
+Subject: [PATCH 04/10] mr800: remove unnecessary local variable
 
-Goga
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/radio-mr800.c |   10 ++++------
+ 1 files changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/radio/radio-mr800.c 
+b/drivers/media/radio/radio-mr800.c
+index d01b96c..fb99c6b 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -688,7 +688,6 @@ static int usb_amradio_probe(struct usb_interface *intf,
+                 const struct usb_device_id *id)
+ {
+     struct amradio_device *radio;
+-    struct v4l2_device *v4l2_dev;
+     int retval = 0;
+ 
+     radio = kzalloc(sizeof(struct amradio_device), GFP_KERNEL);
+@@ -707,16 +706,15 @@ static int usb_amradio_probe(struct usb_interface 
+*intf,
+         goto err_nobuf;
+     }
+ 
+-    v4l2_dev = &radio->v4l2_dev;
+-    retval = v4l2_device_register(&intf->dev, v4l2_dev);
++    retval = v4l2_device_register(&intf->dev, &radio->v4l2_dev);
+     if (retval < 0) {
+         dev_err(&intf->dev, "couldn't register v4l2_device\n");
+         goto err_v4l2;
+     }
+ 
+-    strlcpy(radio->videodev.name, v4l2_dev->name,
++    strlcpy(radio->videodev.name, radio->v4l2_dev.name,
+         sizeof(radio->videodev.name));
+-    radio->videodev.v4l2_dev = v4l2_dev;
++    radio->videodev.v4l2_dev = &radio->v4l2_dev;
+     radio->videodev.fops = &usb_amradio_fops;
+     radio->videodev.ioctl_ops = &usb_amradio_ioctl_ops;
+     radio->videodev.release = usb_amradio_video_device_release;
+@@ -742,7 +740,7 @@ static int usb_amradio_probe(struct usb_interface *intf,
+     return 0;
+ 
+ err_vdev:
+-    v4l2_device_unregister(v4l2_dev);
++    v4l2_device_unregister(&radio->v4l2_dev);
+ err_v4l2:
+     kfree(radio->buffer);
+ err_nobuf:
+-- 
+1.6.3.3
 
 
-> I would like to record DVB-S2 complete stream into file. For DVB-S I can 
-> use dvbstream tool.
-> But on this time it not support DVB_S2.
-> 
-> Do somebody have patch or another tip how to save stream into file.
-> 
-> Jiri
-> 
-> PS: I don't need only one program/service but complete stream with all PIDs.
-> <http://vger.kernel.org/vger-lists.html#linux-media>
+--------------050006090900090606050406
+Content-Type: text/x-diff;
+ name="0004-mr800-remove-unnecessary-local-variable.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="0004-mr800-remove-unnecessary-local-variable.patch"
+
+>From f2fdb83ce649e9e69413ab533ec4a84d96850ed4 Mon Sep 17 00:00:00 2001
+From: David Ellingsworth <david@identd.dyndns.org>
+Date: Sat, 12 Sep 2009 00:19:48 -0400
+Subject: [PATCH 04/10] mr800: remove unnecessary local variable
+
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/radio-mr800.c |   10 ++++------
+ 1 files changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
+index d01b96c..fb99c6b 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -688,7 +688,6 @@ static int usb_amradio_probe(struct usb_interface *intf,
+ 				const struct usb_device_id *id)
+ {
+ 	struct amradio_device *radio;
+-	struct v4l2_device *v4l2_dev;
+ 	int retval = 0;
+ 
+ 	radio = kzalloc(sizeof(struct amradio_device), GFP_KERNEL);
+@@ -707,16 +706,15 @@ static int usb_amradio_probe(struct usb_interface *intf,
+ 		goto err_nobuf;
+ 	}
+ 
+-	v4l2_dev = &radio->v4l2_dev;
+-	retval = v4l2_device_register(&intf->dev, v4l2_dev);
++	retval = v4l2_device_register(&intf->dev, &radio->v4l2_dev);
+ 	if (retval < 0) {
+ 		dev_err(&intf->dev, "couldn't register v4l2_device\n");
+ 		goto err_v4l2;
+ 	}
+ 
+-	strlcpy(radio->videodev.name, v4l2_dev->name,
++	strlcpy(radio->videodev.name, radio->v4l2_dev.name,
+ 		sizeof(radio->videodev.name));
+-	radio->videodev.v4l2_dev = v4l2_dev;
++	radio->videodev.v4l2_dev = &radio->v4l2_dev;
+ 	radio->videodev.fops = &usb_amradio_fops;
+ 	radio->videodev.ioctl_ops = &usb_amradio_ioctl_ops;
+ 	radio->videodev.release = usb_amradio_video_device_release;
+@@ -742,7 +740,7 @@ static int usb_amradio_probe(struct usb_interface *intf,
+ 	return 0;
+ 
+ err_vdev:
+-	v4l2_device_unregister(v4l2_dev);
++	v4l2_device_unregister(&radio->v4l2_dev);
+ err_v4l2:
+ 	kfree(radio->buffer);
+ err_nobuf:
+-- 
+1.6.3.3
+
+
+--------------050006090900090606050406--
