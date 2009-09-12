@@ -1,40 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hide1.repubblica.it ([213.92.86.36]:34936 "EHLO
-	fo-multiplexor.int.repubblica.it" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754305AbZISOhK (ORCPT
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:49596 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754431AbZILNdM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Sep 2009 10:37:10 -0400
-Received: from fo-multiplexor.int.repubblica.it (localhost.localdomain [127.0.0.1])
-	by postfix.imss70 (Postfix) with ESMTP id AB1D61930073
-	for <linux-media@vger.kernel.org>; Sat, 19 Sep 2009 16:05:27 +0200 (CEST)
-Received: from mpdomain (co_juniper_ssl.int.repubblica.it [10.151.11.67])
-	by fo-multiplexor.int.repubblica.it (Postfix) with ESMTP id 7F412193006F
-	for <linux-media@vger.kernel.org>; Sat, 19 Sep 2009 16:05:27 +0200 (CEST)
-Message-ID: <4AB4E526.2080109@yahoo.it>
-Date: Sat, 19 Sep 2009 16:05:26 +0200
-From: Adriano Gigante <adrigiga@yahoo.it>
+	Sat, 12 Sep 2009 09:33:12 -0400
+Received: by bwz19 with SMTP id 19so1286434bwz.37
+        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 06:33:14 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <4AAB74BC.9050508@pragl.cz>
+References: <4AAB74BC.9050508@pragl.cz>
+Date: Sat, 12 Sep 2009 09:33:13 -0400
+Message-ID: <829197380909120633o8b9e0e2i2b1295cc054afc14@mail.gmail.com>
+Subject: Re: [linux-dvb] Pinnacle 320e (em28xx/xc2028): scan finds just first
+	channel
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
 To: linux-media@vger.kernel.org
-Subject: driver for Cinergy Hybrid T USB XS FM
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hy all,
+On Sat, Sep 12, 2009 at 6:15 AM, Miroslav Pragl - mailing lists
+<lists.subscriber@pragl.cz> wrote:
+> Hello,
+> I've compiled and installed latest v4l-dvb and dvb-apps, extracted xceive
+> firmware, so far so good. Distro is Fedora 11, x64 (2.6.30.5-43.fc11.x86_64)
+>
+> Unfortunately scan finds only the first channel:
+<snip>
 
-after Markus Rechberger has discontinued the development of em28xx-new 
-kernel driver, device "Terratec Cinergy Hybrid T USB XS FM" is no more 
-supported under linux.
-I also built and installed from http://linuxtv.org/hg/v4l-dvb sources 
-with no success (it creates /dev/video0 /dev/radio0 /dev/radio1 -no dvb 
-- and nothing works).
+Hello Miroslav,
 
-The device id is 0ccd:0072, and from Terratec site I saw it's based on 
-Empia em2882 and Xceive 5000 chips.
+Are you absolutely sure you installed the latest code, including "make
+unload" to unload the currently running modules?  I fixed this exact
+regression back in June, so I would be extremely surprised if you are
+really seeing this in the latest code.
 
-Someone could help with infos about this stick
+I would suggest using the following commands, and then reboot:
 
-Thanks all people.
+<unplug device>
+hg clone http://linuxtv.org/hg/v4l-dvb
+cd v4l-dvb
+make && make install && make unload
+reboot
+<plug in device>
 
-Adri
+Then see if it still happens.
+
+Cheers,
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
