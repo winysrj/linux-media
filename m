@@ -1,213 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f206.google.com ([209.85.219.206]:47797 "EHLO
-	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755370AbZIBBgx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2009 21:36:53 -0400
-Received: by ewy2 with SMTP id 2so369606ewy.17
-        for <linux-media@vger.kernel.org>; Tue, 01 Sep 2009 18:36:54 -0700 (PDT)
-Date: Wed, 2 Sep 2009 11:37:05 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: linux-media@vger.kernel.org, video4linux-list@redhat.com
-Subject: [PATCH] Add FM radio for the XC5000
-Message-ID: <20090902113705.168af9f0@glory.loctelecom.ru>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/BSa3l3l91q4nnwkvq41c0GF"
+Received: from mail-vw0-f195.google.com ([209.85.212.195]:57542 "EHLO
+	mail-vw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751448AbZILAnH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Sep 2009 20:43:07 -0400
+Received: by vws33 with SMTP id 33so1046602vws.33
+        for <linux-media@vger.kernel.org>; Fri, 11 Sep 2009 17:43:09 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4AAA944F.1090701@freemail.hu>
+References: <4AA9F7A0.5080802@freemail.hu> <4AAA944F.1090701@freemail.hu>
+Date: Fri, 11 Sep 2009 20:43:07 -0400
+Message-ID: <c2fe070d0909111743v690e8086wb3f733f04a56179c@mail.gmail.com>
+Subject: Re: image quality of Labtec Webcam 2200
+From: leandro Costantino <lcostantino@gmail.com>
+To: V4L Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_/BSa3l3l91q4nnwkvq41c0GF
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi ,
+i tested it with 2.6.31-rc9 & libvl 0.6.1 + svv  and cannot reproduce.
 
-Hi All
+301147.626826] gspca: probing 093a:2626
+[301147.641578] gspca: probe ok
+[301147.641607] gspca: probing 093a:2626
+[301147.641770] gspca: probing 093a:2626
+[301147.641829] usbcore: registered new interface driver pac7311
+[301147.641835] pac7311: registered
 
-Add FM radio for the xc5000 silicon tuner chip.
+Could you try testing with svv.c app?
 
-diff -r 28f8b0ebd224 linux/drivers/media/common/tuners/xc5000.c
---- a/linux/drivers/media/common/tuners/xc5000.c	Sun Aug 23 13:55:25 2009 -0300
-+++ b/linux/drivers/media/common/tuners/xc5000.c	Wed Sep 02 06:32:12 2009 +1000
-@@ -747,14 +747,11 @@
- 	return ret;
- }
- 
--static int xc5000_set_analog_params(struct dvb_frontend *fe,
-+static int xc5000_set_tv_freq(struct dvb_frontend *fe,
- 	struct analog_parameters *params)
- {
- 	struct xc5000_priv *priv = fe->tuner_priv;
- 	int ret;
--
--	if (xc5000_is_firmware_loaded(fe) != XC_RESULT_SUCCESS)
--		xc_load_fw_and_init_tuner(fe);
- 
- 	dprintk(1, "%s() frequency=%d (in units of 62.5khz)\n",
- 		__func__, params->frequency);
-@@ -834,6 +831,67 @@
- 
- 	return 0;
- }
-+
-+static int xc5000_set_radio_freq(struct dvb_frontend *fe,
-+	struct analog_parameters *params)
-+{
-+	struct xc5000_priv *priv = fe->tuner_priv;
-+	int ret = -EINVAL;
-+
-+	dprintk(1, "%s() frequency=%d (in units of khz)\n",
-+		__func__, params->frequency);
-+
-+	priv->freq_hz = params->frequency * 125 / 2;
-+
-+	priv->rf_mode = XC_RF_MODE_AIR;
-+
-+	ret = xc_SetTVStandard(priv,
-+		XC5000_Standard[FM_Radio_INPUT1].VideoMode,
-+		XC5000_Standard[FM_Radio_INPUT1].AudioMode);
-+
-+	if (ret != XC_RESULT_SUCCESS) {
-+		printk(KERN_ERR "xc5000: xc_SetTVStandard failed\n");
-+		return -EREMOTEIO;
-+	}
-+
-+	ret = xc_SetSignalSource(priv, priv->rf_mode);
-+	if (ret != XC_RESULT_SUCCESS) {
-+		printk(KERN_ERR
-+			"xc5000: xc_SetSignalSource(%d) failed\n",
-+			priv->rf_mode);
-+		return -EREMOTEIO;
-+	}
-+
-+	xc_tune_channel(priv, priv->freq_hz, XC_TUNE_ANALOG);
-+
-+	return 0;
-+}
-+
-+static int xc5000_set_analog_params(struct dvb_frontend *fe,
-+			     struct analog_parameters *params)
-+{
-+	struct xc5000_priv *priv = fe->tuner_priv;
-+	int ret = -EINVAL;
-+
-+	if (priv->i2c_props.adap == NULL)
-+		return -EINVAL;
-+
-+	if (xc5000_is_firmware_loaded(fe) != XC_RESULT_SUCCESS)
-+		xc_load_fw_and_init_tuner(fe);
-+
-+	switch (params->mode) {
-+	case V4L2_TUNER_RADIO:
-+		ret = xc5000_set_radio_freq(fe, params);
-+		break;
-+	case V4L2_TUNER_ANALOG_TV:
-+	case V4L2_TUNER_DIGITAL_TV:
-+		ret = xc5000_set_tv_freq(fe, params);
-+		break;
-+	}
-+
-+	return ret;
-+}
-+
- 
- static int xc5000_get_frequency(struct dvb_frontend *fe, u32 *freq)
- {
+pd: quality is not the best, but works ok. Seem that the format is not
+the proper or expected "pjpeg" on your streaming.
 
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
 
-With my best regards, Dmitry.
---MP_/BSa3l3l91q4nnwkvq41c0GF
-Content-Type: text/x-patch; name=xc5000_fm_radio.patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=xc5000_fm_radio.patch
-
-diff -r 28f8b0ebd224 linux/drivers/media/common/tuners/xc5000.c
---- a/linux/drivers/media/common/tuners/xc5000.c	Sun Aug 23 13:55:25 2009 -0300
-+++ b/linux/drivers/media/common/tuners/xc5000.c	Wed Sep 02 06:32:12 2009 +1000
-@@ -747,14 +747,11 @@
- 	return ret;
- }
- 
--static int xc5000_set_analog_params(struct dvb_frontend *fe,
-+static int xc5000_set_tv_freq(struct dvb_frontend *fe,
- 	struct analog_parameters *params)
- {
- 	struct xc5000_priv *priv = fe->tuner_priv;
- 	int ret;
--
--	if (xc5000_is_firmware_loaded(fe) != XC_RESULT_SUCCESS)
--		xc_load_fw_and_init_tuner(fe);
- 
- 	dprintk(1, "%s() frequency=%d (in units of 62.5khz)\n",
- 		__func__, params->frequency);
-@@ -834,6 +831,67 @@
- 
- 	return 0;
- }
-+
-+static int xc5000_set_radio_freq(struct dvb_frontend *fe,
-+	struct analog_parameters *params)
-+{
-+	struct xc5000_priv *priv = fe->tuner_priv;
-+	int ret = -EINVAL;
-+
-+	dprintk(1, "%s() frequency=%d (in units of khz)\n",
-+		__func__, params->frequency);
-+
-+	priv->freq_hz = params->frequency * 125 / 2;
-+
-+	priv->rf_mode = XC_RF_MODE_AIR;
-+
-+	ret = xc_SetTVStandard(priv,
-+		XC5000_Standard[FM_Radio_INPUT1].VideoMode,
-+		XC5000_Standard[FM_Radio_INPUT1].AudioMode);
-+
-+	if (ret != XC_RESULT_SUCCESS) {
-+		printk(KERN_ERR "xc5000: xc_SetTVStandard failed\n");
-+		return -EREMOTEIO;
-+	}
-+
-+	ret = xc_SetSignalSource(priv, priv->rf_mode);
-+	if (ret != XC_RESULT_SUCCESS) {
-+		printk(KERN_ERR
-+			"xc5000: xc_SetSignalSource(%d) failed\n",
-+			priv->rf_mode);
-+		return -EREMOTEIO;
-+	}
-+
-+	xc_tune_channel(priv, priv->freq_hz, XC_TUNE_ANALOG);
-+
-+	return 0;
-+}
-+
-+static int xc5000_set_analog_params(struct dvb_frontend *fe,
-+			     struct analog_parameters *params)
-+{
-+	struct xc5000_priv *priv = fe->tuner_priv;
-+	int ret = -EINVAL;
-+
-+	if (priv->i2c_props.adap == NULL)
-+		return -EINVAL;
-+
-+	if (xc5000_is_firmware_loaded(fe) != XC_RESULT_SUCCESS)
-+		xc_load_fw_and_init_tuner(fe);
-+
-+	switch (params->mode) {
-+	case V4L2_TUNER_RADIO:
-+		ret = xc5000_set_radio_freq(fe, params);
-+		break;
-+	case V4L2_TUNER_ANALOG_TV:
-+	case V4L2_TUNER_DIGITAL_TV:
-+		ret = xc5000_set_tv_freq(fe, params);
-+		break;
-+	}
-+
-+	return ret;
-+}
-+
- 
- static int xc5000_get_frequency(struct dvb_frontend *fe, u32 *freq)
- {
-
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
-
---MP_/BSa3l3l91q4nnwkvq41c0GF--
+2009/9/11 Németh Márton <nm127@freemail.hu>:
+> Márton Németh wrote:
+>> Hi,
+>>
+>> I have a Labtec Webcam 2200 and I have problems with the image quality
+>> with Linux 2.6.31 + libv4l 0.6.1. I made some experiments and stored
+>> each captured image as raw data and when libv4l was able to convert
+>> then I also stored the result as bmp.
+>>
+>> You can find my results at http://v4l-test.sourceforge.net/results/test-20090911/index.html
+>> There are three types of problems:
+>>  a) Sometimes the picture contains a 8x8 pixel error, like in image #9
+>>     http://v4l-test.sourceforge.net/results/test-20090911/index.html#img00009
+>>  b) Sometimes the brightness of the half picture is changed, like in
+>>     images #7, #36 and #37
+>>     http://v4l-test.sourceforge.net/results/test-20090911/index.html#img00007
+>>     http://v4l-test.sourceforge.net/results/test-20090911/index.html#img00036
+>>     http://v4l-test.sourceforge.net/results/test-20090911/index.html#img00037
+>>  c) Sometimes the libv4l cannot convert the raw image and the errno
+>>     is set to EAGAIN (11), for example image #1, #2 and #3
+>>
+>> Do you know how can I fix these problems?
+>
+> I investigated the c) point a little bit. When I get a negative return value
+> from the v4lconvert_convert() function then I print out the error message what the
+> v4lconvert_get_error_message() function returns. With the result log file
+> I executed a "grep v4l-convert |sort |uniq" command. All the error messages are
+> coming from the tinyjpeg.c (Small jpeg decoder library):
+>
+> v4l-convert: error decompressing JPEG: error: more then 63 AC components (65) in huffman unit
+> v4l-convert: error decompressing JPEG: error: more then 63 AC components (66) in huffman unit
+> v4l-convert: error decompressing JPEG: error: more then 63 AC components (67) in huffman unit
+> v4l-convert: error decompressing JPEG: error: more then 63 AC components (68) in huffman unit
+> v4l-convert: error decompressing JPEG: error: more then 63 AC components (69) in huffman unit
+> v4l-convert: error decompressing JPEG: error: more then 63 AC components (70) in huffman unit
+> v4l-convert: error decompressing JPEG: error: more then 63 AC components (71) in huffman unit
+> v4l-convert: error decompressing JPEG: error: more then 63 AC components (72) in huffman unit
+> v4l-convert: error decompressing JPEG: error: more then 63 AC components (73) in huffman unit
+> v4l-convert: error decompressing JPEG: error: more then 63 AC components (75) in huffman unit
+> v4l-convert: error decompressing JPEG: error: more then 63 AC components (76) in huffman unit
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x00
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x01
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x02
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x04
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x08
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x09
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x0a
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x10
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x12
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x14
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x1a
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x1b
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x1c
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x1f
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x80
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x82
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x87
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x88
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x89
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x8a
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x8b
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x8c
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x8d
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x8e
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x8f
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x90
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x91
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x92
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x93
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x94
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x95
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x96
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x97
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x99
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x9b
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x9c
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x9d
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x9e
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x9f
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xa3
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xa5
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xa6
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xa7
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xa9
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xaa
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xab
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xad
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xaf
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xb3
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xb5
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xb7
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xb8
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xb9
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xbc
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xbd
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xbe
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xbf
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xc0
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xc4
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xc6
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xc7
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xc9
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xcb
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xcc
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xcf
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xd1
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xd2
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xd3
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xd4
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xdc
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xdf
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xe5
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xe7
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xe8
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xea
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xeb
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xec
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xf0
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xf2
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xf4
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xf5
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xf8
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xf9
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xfa
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xfc
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xfe
+> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xff
+> v4l-convert: error decompressing JPEG: Pixart JPEG error, stream does not end with EOF marker
+> v4l-convert: error decompressing JPEG: unknown huffman code: 0000ff81
+> v4l-convert: error decompressing JPEG: unknown huffman code: 0000ffec
+> v4l-convert: error decompressing JPEG: unknown huffman code: 0000ffff
+>
+> Regards,
+>
+>        Márton Németh
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
