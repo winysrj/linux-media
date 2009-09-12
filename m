@@ -1,132 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet12.oracle.com ([141.146.126.234]:59091 "EHLO
-	acsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758153AbZIOVGl (ORCPT
+Received: from mail-vw0-f195.google.com ([209.85.212.195]:62230 "EHLO
+	mail-vw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754559AbZILOvz convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2009 17:06:41 -0400
-Date: Tue, 15 Sep 2009 14:06:34 -0700
-From: Randy Dunlap <randy.dunlap@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-doc@vger.kernel.org
-Subject: Re: V4L/DVB API specifications at linux kernel
-Message-Id: <20090915140634.44ab3413.randy.dunlap@oracle.com>
-In-Reply-To: <20090915162002.1c72c5b3@pedra.chehab.org>
-References: <20090915162002.1c72c5b3@pedra.chehab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Sat, 12 Sep 2009 10:51:55 -0400
+Received: by vws33 with SMTP id 33so1220647vws.33
+        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 07:51:58 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4AAB3CB5.7090106@freemail.hu>
+References: <4AA9F7A0.5080802@freemail.hu> <4AAA944F.1090701@freemail.hu>
+	 <c2fe070d0909111741l21120025v3f45eb8566d27c7a@mail.gmail.com>
+	 <4AAB3CB5.7090106@freemail.hu>
+Date: Sat, 12 Sep 2009 10:51:58 -0400
+Message-ID: <c2fe070d0909120751o2c4122c1r8607f37e65b41377@mail.gmail.com>
+Subject: Re: image quality of Labtec Webcam 2200
+From: leandro Costantino <lcostantino@gmail.com>
+To: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+Cc: Thomas Kaiser <thomas@kaiser-linux.li>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Luc Saillard <luc@saillard.org>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 15 Sep 2009 16:20:02 -0300 Mauro Carvalho Chehab wrote:
+Nice, i will take a look.
+Anyway, be aware, that the "conversion error", is something expected
+on pac7311, in fact, Hans have commented that on the libv4lconvert.
+......
+    if (result) {
+        /* Pixart webcam's seem to regulary generate corrupt frames, which
+           are best thrown away to avoid flashes in the video stream. Tell
+           the upper layer this is an intermediate fault and it should try
+           again with a new buffer by setting errno to EAGAIN */
+        if (src_pix_fmt == V4L2_PIX_FMT_PJPG ||
+            data->flags & V4LCONVERT_IS_SN9C20X) {
+          V4LCONVERT_ERR("decompressing JPEG: %s",
+            tinyjpeg_get_errorstring(data->jdec));
+          errno = EAGAIN;
+          return -1;
+........
+That's the result of the EAGAIN.
 
-> Something that always bothered me is that the documentation inside the kernel
-> for V4L/DVB were never properly updated, since people that write drivers in
-> general don't bother to keep the docs updated there. After some time, we've
-> removed V4L1 API from kernel (in text format, as far as I can remember), but
-> never added V4L2 API. Also, there weren't there any dvb api specs.
-> 
-> As an effort to change it, I did a work during the last few weeks to port V4L2 API
-> from DocBook v3.1 to DocBook XML v4.1.2. I also ported DVB specs from LaTex
-> into DocBook XML v4.1.2. This way, the API docs are compatible with the DocBook version
-> used in kernel (even eventually not having the same writing style as found there).
-> 
-> I tried to make the port as simple as possible, yet preserving the original
-> text. So, for sure there are space for style reviews, especially at the dvb
-> part, where the LaTex -> xml conversion were harder.
-> 
-> After having both ported, I've rearranged a few chapters and merged them
-> both into just one DocBook book, to allow having some parts shared, like IR.
-> 
-> The final document were broken into 3 parts:
-> I. Video for Linux Two API Specification
-> 	(basically, the same contents found at V4L2 spec version 2.6.32, except for IR chapter)
-> II. Linux DVB API
-> 	(basically, the same contents found at DVB spec version 3)
-> III. Other API's used by media infrastructure drivers
-> 	(basically, the IR chapter taken from V4L2 spec)
-> 
-> The resulting html pages can be seen at: http://linuxtv.org/downloads/v4l_dvb_apis/
-> 
-> The Kernel patches with the Document are at:
-> 
-> http://git.kernel.org/?p=linux/kernel/git/mchehab/linux-next.git;a=commit;h=9444a960e4c7c49e055bb7fa66a0805c46317ba0
-> http://git.kernel.org/?p=linux/kernel/git/mchehab/linux-next.git;a=commit;h=664efd3215fdb17d5f3f70073af4a6b61d50a96c
-> 
-> Please review. If they're ok, I'm intending to submit them for addition at 2.6.32.
-
-
-Hi Mauro,
-
-That's large, :) so I'm not planning to review it in great detail.
-
-Here are some comments on it:
-
-
-1.  http://linuxtv.org/downloads/v4l_dvb_apis/index.html
-
-List of Figures:
-
-where are the figures?  how do I see them?
-
-
-2.  http://linuxtv.org/downloads/v4l_dvb_apis/ch01.html
-
-
-"
-In /etc/modules.conf this may be written as:
-
-alias char-major-81-0 mydriver
-alias char-major-81-1 mydriver
-alias char-major-81-64 mydriver              1
-options mydriver video_nr=0,1 radio_nr=0,1   2
-"
-
-The trailing 1 and 2 there are not part of the modules.conf file, are they?
-Are they footnote pointers?  They are a bit confusing.
-
-
-3.  http://linuxtv.org/downloads/v4l_dvb_apis/ch01s10.html
-
-footnote 11:
-"Enumerating formats an application has no a-priori knowledge of (otherwise it could explicitely ask for them and need not enumerate) seems useless, but there are applications serving as proxy between drivers and the actual video applications for which this is useful."
-
-s/explicitely/explicitly/
-
-
-4.  http://linuxtv.org/downloads/v4l_dvb_apis/ch04s09.html
-
-The URL:http://home.pages.de/~videotext/ is not found.
-Checking more of them might be in order.
-
-
-5.  http://linuxtv.org/downloads/v4l_dvb_apis/apc.html
-
-" *      This program were got from V4L2 API, Draft 0.20"
-
-s/were got/was taken/
-
-6.  http://linuxtv.org/downloads/v4l_dvb_apis/ch17.html
-
-"It is not rare that the same manufacturer to ship different types of controls, depending on the device."
-
--->
-It is not rare for the same manufacturer to ship ...
-
-"Unfortunately, during several years, there weren't any effort to uniform the IR keycodes under different boards. This resulted that the same IR keyname to be mapped completely different on different IR's. Due to that, V4L2 API now specifies a standard for mapping Media keys on IR."
-
---> (possibly:)
-Unfortunately, for several years, there was no effort to create uniform IR keycodes for
-different devices.  This caused the same IR keyname to be mapped completely differently on
-different IR devices. ....
-
-
-
-Anyway, lots of good info there.  Please push it.
-
-Thanks,
----
-~Randy
-LPC 2009, Sept. 23-25, Portland, Oregon
-http://linuxplumbersconf.org/2009/
+About, the half brightness picture, did that happens when autogain is off?
+Best Regards
+On Sat, Sep 12, 2009 at 2:16 AM, Németh Márton <nm127@freemail.hu> wrote:
+> Hello,
+>
+> thank you for looking at this topic.
+>
+> leandro Costantino wrote:
+>> > Hi ,
+>> > i tested it with 2.6.31-rc9 & libvl 0.6.1 + svv  and cannot reproduce.
+>> >
+>> > 301147.626826] gspca: probing 093a:2626
+>> > [301147.641578] gspca: probe ok
+>> > [301147.641607] gspca: probing 093a:2626
+>> > [301147.641770] gspca: probing 093a:2626
+>> > [301147.641829] usbcore: registered new interface driver pac7311
+>> > [301147.641835] pac7311: registered
+>
+> I have the same dmesg output. My Labtec Webcam 2200 has the following labels
+> on the cable:
+>
+> M/N: V-UCE52
+> P/N: 860-000073
+> PID: CE73902
+>
+> Maybe there is more than one revision of the Labtec Webcam 2200 and I have
+> one with a different hardware/firmware inside?
+>
+>> > Could you try testing with svv.c app?
+>
+> I used a bit modified svv.c to create the measurement result. The
+> modifications are to create the output HTML report and save the raw
+> and the BMP images. The display is not correct because I changed
+> the format from V4L2_PIX_FMT_RGB24 to V4L2_PIX_FMT_BGR24 to easily
+> save the result to BMP. The source code quality is not the best,
+> I am sorry about that, but I can still attach my source code which I
+> modified a little bit since my last report.
+>
+>> > pd: quality is not the best, but works ok. Seem that the format is not
+>> > the proper or expected "pjpeg" on your streaming.
+>
+> Do you think about USB transfer problem?
+>
+> Regards,
+>
+>        Márton Németh
+>
+>> > 2009/9/11 Németh Márton <nm127@freemail.hu>:
+>>> >> Márton Németh wrote:
+>>>> >>> Hi,
+>>>> >>>
+>>>> >>> I have a Labtec Webcam 2200 and I have problems with the image quality
+>>>> >>> with Linux 2.6.31 + libv4l 0.6.1. I made some experiments and stored
+>>>> >>> each captured image as raw data and when libv4l was able to convert
+>>>> >>> then I also stored the result as bmp.
+>>>> >>>
+>>>> >>> You can find my results at http://v4l-test.sourceforge.net/results/test-20090911/index.html
+>>>> >>> There are three types of problems:
+>>>> >>>  a) Sometimes the picture contains a 8x8 pixel error, like in image #9
+>>>> >>>     http://v4l-test.sourceforge.net/results/test-20090911/index.html#img00009
+>>>> >>>  b) Sometimes the brightness of the half picture is changed, like in
+>>>> >>>     images #7, #36 and #37
+>>>> >>>     http://v4l-test.sourceforge.net/results/test-20090911/index.html#img00007
+>>>> >>>     http://v4l-test.sourceforge.net/results/test-20090911/index.html#img00036
+>>>> >>>     http://v4l-test.sourceforge.net/results/test-20090911/index.html#img00037
+>>>> >>>  c) Sometimes the libv4l cannot convert the raw image and the errno
+>>>> >>>     is set to EAGAIN (11), for example image #1, #2 and #3
+>>>> >>>
+>>>> >>> Do you know how can I fix these problems?
+>>> >> I investigated the c) point a little bit. When I get a negative return value
+>>> >> from the v4lconvert_convert() function then I print out the error message what the
+>>> >> v4lconvert_get_error_message() function returns. With the result log file
+>>> >> I executed a "grep v4l-convert |sort |uniq" command. All the error messages are
+>>> >> coming from the tinyjpeg.c (Small jpeg decoder library):
+>>> >>
+>>> >> v4l-convert: error decompressing JPEG: error: more then 63 AC components (65) in huffman unit
+>>> >> v4l-convert: error decompressing JPEG: error: more then 63 AC components (66) in huffman unit
+>>> >> v4l-convert: error decompressing JPEG: error: more then 63 AC components (67) in huffman unit
+>>> >> v4l-convert: error decompressing JPEG: error: more then 63 AC components (68) in huffman unit
+>>> >> v4l-convert: error decompressing JPEG: error: more then 63 AC components (69) in huffman unit
+>>> >> v4l-convert: error decompressing JPEG: error: more then 63 AC components (70) in huffman unit
+>>> >> v4l-convert: error decompressing JPEG: error: more then 63 AC components (71) in huffman unit
+>>> >> v4l-convert: error decompressing JPEG: error: more then 63 AC components (72) in huffman unit
+>>> >> v4l-convert: error decompressing JPEG: error: more then 63 AC components (73) in huffman unit
+>>> >> v4l-convert: error decompressing JPEG: error: more then 63 AC components (75) in huffman unit
+>>> >> v4l-convert: error decompressing JPEG: error: more then 63 AC components (76) in huffman unit
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x00
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x01
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x02
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x04
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x08
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x09
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x0a
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x10
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x12
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x14
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x1a
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x1b
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x1c
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x1f
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x80
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x82
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x87
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x88
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x89
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x8a
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x8b
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x8c
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x8d
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x8e
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x8f
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x90
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x91
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x92
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x93
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x94
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x95
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x96
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x97
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x99
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x9b
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x9c
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x9d
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x9e
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0x9f
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xa3
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xa5
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xa6
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xa7
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xa9
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xaa
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xab
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xad
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xaf
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xb3
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xb5
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xb7
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xb8
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xb9
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xbc
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xbd
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xbe
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xbf
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xc0
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xc4
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xc6
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xc7
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xc9
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xcb
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xcc
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xcf
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xd1
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xd2
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xd3
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xd4
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xdc
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xdf
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xe5
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xe7
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xe8
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xea
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xeb
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xec
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xf0
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xf2
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xf4
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xf5
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xf8
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xf9
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xfa
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xfc
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xfe
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error: invalid MCU marker: 0xff
+>>> >> v4l-convert: error decompressing JPEG: Pixart JPEG error, stream does not end with EOF marker
+>>> >> v4l-convert: error decompressing JPEG: unknown huffman code: 0000ff81
+>>> >> v4l-convert: error decompressing JPEG: unknown huffman code: 0000ffec
+>>> >> v4l-convert: error decompressing JPEG: unknown huffman code: 0000ffff
+>>> >>
+>>> >> Regards,
+>>> >>
+>>> >>        Márton Németh
+>>> >> --
+>>> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> >> the body of a message to majordomo@vger.kernel.org
+>>> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
