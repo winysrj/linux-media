@@ -1,119 +1,289 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:57029 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752051AbZIPPmq convert rfc822-to-8bit (ORCPT
+Received: from qw-out-2122.google.com ([74.125.92.27]:15620 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754556AbZILOto (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Sep 2009 11:42:46 -0400
-Received: by bwz19 with SMTP id 19so3586798bwz.37
-        for <linux-media@vger.kernel.org>; Wed, 16 Sep 2009 08:42:49 -0700 (PDT)
+	Sat, 12 Sep 2009 10:49:44 -0400
+Received: by qw-out-2122.google.com with SMTP id 9so632979qwb.37
+        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 07:49:47 -0700 (PDT)
+Message-ID: <4AABB503.5030902@gmail.com>
+Date: Sat, 12 Sep 2009 10:49:39 -0400
+From: David Ellingsworth <david@identd.dyndns.org>
+Reply-To: david@identd.dyndns.org
 MIME-Version: 1.0
-In-Reply-To: <4AB0E373.3080307@yahoo.it>
-References: <4AAB74BC.9050508@pragl.cz>
-	 <829197380909120633o8b9e0e2i2b1295cc054afc14@mail.gmail.com>
-	 <4AB0E373.3080307@yahoo.it>
-Date: Wed, 16 Sep 2009 11:42:49 -0400
-Message-ID: <829197380909160842j4cc1e8ebtb14491e5d421019@mail.gmail.com>
-Subject: Re: [linux-dvb] Pinnacle 320e (em28xx/xc2028): scan finds just first
-	channel
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: SebaX75 <sebax75@yahoo.it>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: linux-media@vger.kernel.org, klimov.linux@gmail.com
+Subject: [RFC/RFT 05/10] radio-mr800: simplify access to amradio_device
+Content-Type: multipart/mixed;
+ boundary="------------020508010401060503010505"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 16, 2009 at 9:09 AM, SebaX75 <sebax75@yahoo.it> wrote:
-> On 12/09/2009 15:33, Devin Heitmueller has wrote:
->>
->> On Sat, Sep 12, 2009 at 6:15 AM, Miroslav Pragl - mailing lists
->> <lists.subscriber@pragl.cz>  wrote:
->>>
->>> Hello,
->>> I've compiled and installed latest v4l-dvb and dvb-apps, extracted xceive
->>> firmware, so far so good. Distro is Fedora 11, x64
->>> (2.6.30.5-43.fc11.x86_64)
->>>
->>> Unfortunately scan finds only the first channel:
->>
->> <snip>
->>
->> Hello Miroslav,
->>
->> Are you absolutely sure you installed the latest code, including "make
->> unload" to unload the currently running modules?  I fixed this exact
->> regression back in June, so I would be extremely surprised if you are
->> really seeing this in the latest code.
->>
->> I would suggest using the following commands, and then reboot:
->>
->> <unplug device>
->> hg clone http://linuxtv.org/hg/v4l-dvb
->> cd v4l-dvb
->> make&&  make install&&  make unload
->> reboot
->> <plug in device>
->>
->> Then see if it still happens.
->>
->> Cheers,
->>
->> Devin
->>
->
-> Hi Devin,
-> I'm the person that has joined yesterday night on IRC channel to talk with
-> you about this post.
->
-> During July, I've already talked with you about a problem
-> (http://www.mail-archive.com/linux-media@vger.kernel.org/msg07728.html), but
-> I was new and not very able to do debug and explain the problem with good
-> test case.
-> After two months of tests and 3 adapters used (Hauppauge Nova-T, a china
-> generic Intel CE9500B1 and Pinnable Hybrid Stick 320E EEPROM-ID=0x9567eb1a,
-> EEPROM-hash=0xb8846b20 - only this one don't work), I've more information
-> for you.
->
-> My configuration is very similar to Miroslav, Fedora 11 with kernel
-> 2.6.30.5-43.fc11.i686.PAE; v4l-dvb tree downloaded yesterday (15/09/2009)
-> and I use scandvb to scan the channels. I've tryed your repository too,
-> em28xx-vbi3, but it seems the same. The driver compile without problem, the
-> system is rebooted every time I recompile it, modules are inserted without
-> options and dmesg doesn't show any errors (http://pastebin.com/f340bf982).
->
-> Now the problem, very similar to Miroslav if MUX transmit only one channel;
-> during tuning, the DVB-T stop on first MUX tuned and all MUX found after
-> this one are not tuned and channels are not recognized.
-> During tests, I've seen that if I change the MUX order in input file for
-> scandvb, I can get channels list tuned from first MUX... after more tuning
-> sessions to compile the list, the problem persist during normal view of
-> transmission...
->
-> If you need more info ask to me, I'll be very happy to help you; if for you
-> is useful, I've saved a tuning session with usbsnoop from windows and I've
-> not done this for linux, but if you need it I can do (I need some time to do
-> this because I don't know where to start).
->
-> Thanks for your support,
-> Sebastian
->
+This is a multi-part message in MIME format.
+--------------020508010401060503010505
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Hello Sebastian,
+ From 762337020b7744f791fc02fff7eb983e3e4a2346 Mon Sep 17 00:00:00 2001
+From: David Ellingsworth <david@identd.dyndns.org>
+Date: Sat, 12 Sep 2009 00:45:28 -0400
+Subject: [PATCH 05/10] mr800: simplify access to amradio_device
 
-Please do the following:
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/radio-mr800.c |   23 +++++++++++++----------
+ 1 files changed, 13 insertions(+), 10 deletions(-)
 
-unplug the device
-reboot
-modprobe tuner-xc2028 debug=1
-plug in the device
-Make the two tuning attempts so that the failure gets logged.
-Send me the full dmesg output (making sure it includes from the time
-the device was connected).
-
-Thanks,
-
-Devin
-
+diff --git a/drivers/media/radio/radio-mr800.c 
+b/drivers/media/radio/radio-mr800.c
+index fb99c6b..7305c96 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -141,6 +141,8 @@ struct amradio_device {
+     int muted;
+ };
+ 
++#define vdev_to_amradio(r) container_of(r, struct amradio_device, videodev)
++
+ /* USB Device ID List */
+ static struct usb_device_id usb_amradio_device_table[] = {
+     {USB_DEVICE_AND_INTERFACE_INFO(USB_AMRADIO_VENDOR, USB_AMRADIO_PRODUCT,
+@@ -280,7 +282,7 @@ static void usb_amradio_disconnect(struct 
+usb_interface *intf)
+ static int vidioc_querycap(struct file *file, void *priv,
+                     struct v4l2_capability *v)
+ {
+-    struct amradio_device *radio = video_drvdata(file);
++    struct amradio_device *radio = file->private_data;
+ 
+     strlcpy(v->driver, "radio-mr800", sizeof(v->driver));
+     strlcpy(v->card, "AverMedia MR 800 USB FM Radio", sizeof(v->card));
+@@ -294,7 +296,7 @@ static int vidioc_querycap(struct file *file, void 
+*priv,
+ static int vidioc_g_tuner(struct file *file, void *priv,
+                 struct v4l2_tuner *v)
+ {
+-    struct amradio_device *radio = video_get_drvdata(video_devdata(file));
++    struct amradio_device *radio = file->private_data;
+     int retval;
+ 
+     mutex_lock(&radio->lock);
+@@ -345,7 +347,7 @@ unlock:
+ static int vidioc_s_tuner(struct file *file, void *priv,
+                 struct v4l2_tuner *v)
+ {
+-    struct amradio_device *radio = video_get_drvdata(video_devdata(file));
++    struct amradio_device *radio = file->private_data;
+     int retval;
+ 
+     mutex_lock(&radio->lock);
+@@ -388,7 +390,7 @@ unlock:
+ static int vidioc_s_frequency(struct file *file, void *priv,
+                 struct v4l2_frequency *f)
+ {
+-    struct amradio_device *radio = video_get_drvdata(video_devdata(file));
++    struct amradio_device *radio = file->private_data;
+     int retval;
+ 
+     mutex_lock(&radio->lock);
+@@ -415,7 +417,7 @@ unlock:
+ static int vidioc_g_frequency(struct file *file, void *priv,
+                 struct v4l2_frequency *f)
+ {
+-    struct amradio_device *radio = video_get_drvdata(video_devdata(file));
++    struct amradio_device *radio = file->private_data;
+     int retval = 0;
+ 
+     mutex_lock(&radio->lock);
+@@ -450,7 +452,7 @@ static int vidioc_queryctrl(struct file *file, void 
+*priv,
+ static int vidioc_g_ctrl(struct file *file, void *priv,
+                 struct v4l2_control *ctrl)
+ {
+-    struct amradio_device *radio = video_get_drvdata(video_devdata(file));
++    struct amradio_device *radio = file->private_data;
+     int retval = -EINVAL;
+ 
+     mutex_lock(&radio->lock);
+@@ -477,7 +479,7 @@ unlock:
+ static int vidioc_s_ctrl(struct file *file, void *priv,
+                 struct v4l2_control *ctrl)
+ {
+-    struct amradio_device *radio = video_get_drvdata(video_devdata(file));
++    struct amradio_device *radio = file->private_data;
+     int retval = -EINVAL;
+ 
+     mutex_lock(&radio->lock);
+@@ -550,7 +552,7 @@ static int vidioc_s_input(struct file *filp, void 
+*priv, unsigned int i)
+ /* open device - amradio_start() and amradio_setfreq() */
+ static int usb_amradio_open(struct file *file)
+ {
+-    struct amradio_device *radio = video_get_drvdata(video_devdata(file));
++    struct amradio_device *radio = vdev_to_amradio(video_devdata(file));
+     int retval = 0;
+ 
+     mutex_lock(&radio->lock);
+@@ -560,6 +562,7 @@ static int usb_amradio_open(struct file *file)
+         goto unlock;
+     }
+ 
++    file->private_data = radio;
+     radio->users = 1;
+     radio->muted = 1;
+ 
+@@ -589,7 +592,7 @@ unlock:
+ /*close device */
+ static int usb_amradio_close(struct file *file)
+ {
+-    struct amradio_device *radio = video_get_drvdata(video_devdata(file));
++    struct amradio_device *radio = file->private_data;
+     int retval = 0;
+ 
+     mutex_lock(&radio->lock);
+@@ -674,7 +677,7 @@ static const struct v4l2_ioctl_ops 
+usb_amradio_ioctl_ops = {
+ 
+ static void usb_amradio_video_device_release(struct video_device *videodev)
+ {
+-    struct amradio_device *radio = video_get_drvdata(videodev);
++    struct amradio_device *radio = vdev_to_amradio(videodev);
+ 
+     v4l2_device_unregister(&radio->v4l2_dev);
+ 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.6.3.3
+
+
+--------------020508010401060503010505
+Content-Type: text/x-diff;
+ name="0005-mr800-simplify-access-to-amradio_device.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="0005-mr800-simplify-access-to-amradio_device.patch"
+
+>From 762337020b7744f791fc02fff7eb983e3e4a2346 Mon Sep 17 00:00:00 2001
+From: David Ellingsworth <david@identd.dyndns.org>
+Date: Sat, 12 Sep 2009 00:45:28 -0400
+Subject: [PATCH 05/10] mr800: simplify access to amradio_device
+
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/radio-mr800.c |   23 +++++++++++++----------
+ 1 files changed, 13 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
+index fb99c6b..7305c96 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -141,6 +141,8 @@ struct amradio_device {
+ 	int muted;
+ };
+ 
++#define vdev_to_amradio(r) container_of(r, struct amradio_device, videodev)
++
+ /* USB Device ID List */
+ static struct usb_device_id usb_amradio_device_table[] = {
+ 	{USB_DEVICE_AND_INTERFACE_INFO(USB_AMRADIO_VENDOR, USB_AMRADIO_PRODUCT,
+@@ -280,7 +282,7 @@ static void usb_amradio_disconnect(struct usb_interface *intf)
+ static int vidioc_querycap(struct file *file, void *priv,
+ 					struct v4l2_capability *v)
+ {
+-	struct amradio_device *radio = video_drvdata(file);
++	struct amradio_device *radio = file->private_data;
+ 
+ 	strlcpy(v->driver, "radio-mr800", sizeof(v->driver));
+ 	strlcpy(v->card, "AverMedia MR 800 USB FM Radio", sizeof(v->card));
+@@ -294,7 +296,7 @@ static int vidioc_querycap(struct file *file, void *priv,
+ static int vidioc_g_tuner(struct file *file, void *priv,
+ 				struct v4l2_tuner *v)
+ {
+-	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
++	struct amradio_device *radio = file->private_data;
+ 	int retval;
+ 
+ 	mutex_lock(&radio->lock);
+@@ -345,7 +347,7 @@ unlock:
+ static int vidioc_s_tuner(struct file *file, void *priv,
+ 				struct v4l2_tuner *v)
+ {
+-	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
++	struct amradio_device *radio = file->private_data;
+ 	int retval;
+ 
+ 	mutex_lock(&radio->lock);
+@@ -388,7 +390,7 @@ unlock:
+ static int vidioc_s_frequency(struct file *file, void *priv,
+ 				struct v4l2_frequency *f)
+ {
+-	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
++	struct amradio_device *radio = file->private_data;
+ 	int retval;
+ 
+ 	mutex_lock(&radio->lock);
+@@ -415,7 +417,7 @@ unlock:
+ static int vidioc_g_frequency(struct file *file, void *priv,
+ 				struct v4l2_frequency *f)
+ {
+-	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
++	struct amradio_device *radio = file->private_data;
+ 	int retval = 0;
+ 
+ 	mutex_lock(&radio->lock);
+@@ -450,7 +452,7 @@ static int vidioc_queryctrl(struct file *file, void *priv,
+ static int vidioc_g_ctrl(struct file *file, void *priv,
+ 				struct v4l2_control *ctrl)
+ {
+-	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
++	struct amradio_device *radio = file->private_data;
+ 	int retval = -EINVAL;
+ 
+ 	mutex_lock(&radio->lock);
+@@ -477,7 +479,7 @@ unlock:
+ static int vidioc_s_ctrl(struct file *file, void *priv,
+ 				struct v4l2_control *ctrl)
+ {
+-	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
++	struct amradio_device *radio = file->private_data;
+ 	int retval = -EINVAL;
+ 
+ 	mutex_lock(&radio->lock);
+@@ -550,7 +552,7 @@ static int vidioc_s_input(struct file *filp, void *priv, unsigned int i)
+ /* open device - amradio_start() and amradio_setfreq() */
+ static int usb_amradio_open(struct file *file)
+ {
+-	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
++	struct amradio_device *radio = vdev_to_amradio(video_devdata(file));
+ 	int retval = 0;
+ 
+ 	mutex_lock(&radio->lock);
+@@ -560,6 +562,7 @@ static int usb_amradio_open(struct file *file)
+ 		goto unlock;
+ 	}
+ 
++	file->private_data = radio;
+ 	radio->users = 1;
+ 	radio->muted = 1;
+ 
+@@ -589,7 +592,7 @@ unlock:
+ /*close device */
+ static int usb_amradio_close(struct file *file)
+ {
+-	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
++	struct amradio_device *radio = file->private_data;
+ 	int retval = 0;
+ 
+ 	mutex_lock(&radio->lock);
+@@ -674,7 +677,7 @@ static const struct v4l2_ioctl_ops usb_amradio_ioctl_ops = {
+ 
+ static void usb_amradio_video_device_release(struct video_device *videodev)
+ {
+-	struct amradio_device *radio = video_get_drvdata(videodev);
++	struct amradio_device *radio = vdev_to_amradio(videodev);
+ 
+ 	v4l2_device_unregister(&radio->v4l2_dev);
+ 
+-- 
+1.6.3.3
+
+
+--------------020508010401060503010505--
