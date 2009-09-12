@@ -1,77 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-09.arcor-online.net ([151.189.21.49]:42120 "EHLO
-	mail-in-09.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750746AbZIMEPp (ORCPT
+Received: from mail-qy0-f172.google.com ([209.85.221.172]:50386 "EHLO
+	mail-qy0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754620AbZILOuC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2009 00:15:45 -0400
-Subject: Re: Problems with Pinnacle 310i (saa7134) and recent kernels
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Avl Jawrowski <avljawrowski@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <loom.20090912T211959-273@post.gmane.org>
-References: <loom.20090718T135733-267@post.gmane.org>
-	 <1248033581.3667.40.camel@pc07.localdom.local>
-	 <loom.20090720T224156-477@post.gmane.org>
-	 <1248146456.3239.6.camel@pc07.localdom.local>
-	 <loom.20090722T123703-889@post.gmane.org>
-	 <1248338430.3206.34.camel@pc07.localdom.local>
-	 <loom.20090910T234610-403@post.gmane.org>
-	 <1252630820.3321.14.camel@pc07.localdom.local>
-	 <loom.20090912T211959-273@post.gmane.org>
-Content-Type: text/plain
-Date: Sun, 13 Sep 2009 06:12:58 +0200
-Message-Id: <1252815178.3259.39.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sat, 12 Sep 2009 10:50:02 -0400
+Received: by mail-qy0-f172.google.com with SMTP id 2so1629968qyk.21
+        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 07:50:06 -0700 (PDT)
+Message-ID: <4AABB511.7060705@gmail.com>
+Date: Sat, 12 Sep 2009 10:49:53 -0400
+From: David Ellingsworth <david@identd.dyndns.org>
+Reply-To: david@identd.dyndns.org
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org, klimov.linux@gmail.com
+Subject: [RFC/RFT 07/10] radio-mr800: remove device removed indicator
+Content-Type: multipart/mixed;
+ boundary="------------040401090809060102030706"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This is a multi-part message in MIME format.
+--------------040401090809060102030706
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Am Samstag, den 12.09.2009, 21:39 +0000 schrieb Avl Jawrowski:
-> hermann pitton <hermann-pitton <at> arcor.de> writes:
-> 
-> > > However it works still only with Kaffeine and w_scan.
-> > > dvbscan (last mercurial) give:
-> > 
-> > Off hand I can't tell, but try with "scan".
-> > I did not use "dvbscan" since years and can't tell the status.
-> 
-> Even scan works perfectly (I didn't know it).
-> I think it's an mplayer problem, I'll write about it in the mplayer mailing list.
-> 
-> > Cheers,
-> > Hermann
-> 
-> You've been very helpful!
-> Thank you very much,
-> Avl
-> 
+ From a9b0a308892919514efc692f2a0e28b80ea304ac Mon Sep 17 00:00:00 2001
+From: David Ellingsworth <david@identd.dyndns.org>
+Date: Sat, 12 Sep 2009 01:22:57 -0400
+Subject: [PATCH 07/10] mr800: remove device removed indicator
 
-I'm sorry that we have some mess on some of such devices, but currently
-really nobody can help much further.
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/radio-mr800.c |   20 ++++++++------------
+ 1 files changed, 8 insertions(+), 12 deletions(-)
 
-Mike and Hauppauge don't have any schematics for LNA and external
-antenna voltage switching for now, he assured it to me personally and we
-must live with the back hacks for now and try to further work through
-it.
+diff --git a/drivers/media/radio/radio-mr800.c 
+b/drivers/media/radio/radio-mr800.c
+index 71d15ba..9fd2342 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -137,7 +137,6 @@ struct amradio_device {
+     int curfreq;
+     int stereo;
+     int users;
+-    int removed;
+     int muted;
+ };
+ 
+@@ -270,7 +269,7 @@ static void usb_amradio_disconnect(struct 
+usb_interface *intf)
+     struct amradio_device *radio = usb_get_intfdata(intf);
+ 
+     mutex_lock(&radio->lock);
+-    radio->removed = 1;
++    radio->usbdev = NULL;
+     mutex_unlock(&radio->lock);
+ 
+     usb_set_intfdata(intf, NULL);
+@@ -488,7 +487,7 @@ static int usb_amradio_open(struct file *file)
+ 
+     mutex_lock(&radio->lock);
+ 
+-    if (radio->removed) {
++    if (!radio->usbdev) {
+         retval = -EIO;
+         goto unlock;
+     }
+@@ -528,19 +527,17 @@ static int usb_amradio_close(struct file *file)
+ 
+     mutex_lock(&radio->lock);
+ 
+-    if (radio->removed) {
++    if (!radio->usbdev) {
+         retval = -EIO;
+         goto unlock;
+     }
+ 
+     radio->users = 0;
+ 
+-    if (!radio->removed) {
+-        retval = amradio_set_mute(radio, AMRADIO_STOP);
+-        if (retval < 0)
+-            amradio_dev_warn(&radio->videodev.dev,
+-                "amradio_stop failed\n");
+-    }
++    retval = amradio_set_mute(radio, AMRADIO_STOP);
++    if (retval < 0)
++        amradio_dev_warn(&radio->videodev.dev,
++            "amradio_stop failed\n");
+ 
+ unlock:
+     mutex_unlock(&radio->lock);
+@@ -555,7 +552,7 @@ static long usb_amradio_ioctl(struct file *file, 
+unsigned int cmd,
+ 
+     mutex_lock(&radio->lock);
+ 
+-    if (radio->removed) {
++    if (!radio->usbdev) {
+         retval = -EIO;
+         goto unlock;
+     }
+@@ -673,7 +670,6 @@ static int usb_amradio_probe(struct usb_interface *intf,
+     radio->videodev.ioctl_ops = &usb_amradio_ioctl_ops;
+     radio->videodev.release = usb_amradio_video_device_release;
+ 
+-    radio->removed = 0;
+     radio->users = 0;
+     radio->usbdev = interface_to_usbdev(intf);
+     radio->curfreq = 95.16 * FREQ_MUL;
+-- 
+1.6.3.3
 
-However, mplayer should work as well, but my last checkout is a little
-out dated.
 
-It will go to Nico anyway, he is usually at the list here.
+--------------040401090809060102030706
+Content-Type: text/x-diff;
+ name="0007-mr800-remove-device-removed-indicator.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="0007-mr800-remove-device-removed-indicator.patch"
 
-If you can tell me on what you are, I might be able to confirm or not.
+>From a9b0a308892919514efc692f2a0e28b80ea304ac Mon Sep 17 00:00:00 2001
+From: David Ellingsworth <david@identd.dyndns.org>
+Date: Sat, 12 Sep 2009 01:22:57 -0400
+Subject: [PATCH 07/10] mr800: remove device removed indicator
 
-The only other issue I'm aware of is that radio is broken since guessed
-8 weeks on my tuners, only realized when testing on enabling external
-active antenna voltage for DVB-T on a/some 310i.
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/radio-mr800.c |   20 ++++++++------------
+ 1 files changed, 8 insertions(+), 12 deletions(-)
 
-Might be anything, hm, hopefully I should not have caused it ;)
+diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
+index 71d15ba..9fd2342 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -137,7 +137,6 @@ struct amradio_device {
+ 	int curfreq;
+ 	int stereo;
+ 	int users;
+-	int removed;
+ 	int muted;
+ };
+ 
+@@ -270,7 +269,7 @@ static void usb_amradio_disconnect(struct usb_interface *intf)
+ 	struct amradio_device *radio = usb_get_intfdata(intf);
+ 
+ 	mutex_lock(&radio->lock);
+-	radio->removed = 1;
++	radio->usbdev = NULL;
+ 	mutex_unlock(&radio->lock);
+ 
+ 	usb_set_intfdata(intf, NULL);
+@@ -488,7 +487,7 @@ static int usb_amradio_open(struct file *file)
+ 
+ 	mutex_lock(&radio->lock);
+ 
+-	if (radio->removed) {
++	if (!radio->usbdev) {
+ 		retval = -EIO;
+ 		goto unlock;
+ 	}
+@@ -528,19 +527,17 @@ static int usb_amradio_close(struct file *file)
+ 
+ 	mutex_lock(&radio->lock);
+ 
+-	if (radio->removed) {
++	if (!radio->usbdev) {
+ 		retval = -EIO;
+ 		goto unlock;
+ 	}
+ 
+ 	radio->users = 0;
+ 
+-	if (!radio->removed) {
+-		retval = amradio_set_mute(radio, AMRADIO_STOP);
+-		if (retval < 0)
+-			amradio_dev_warn(&radio->videodev.dev,
+-				"amradio_stop failed\n");
+-	}
++	retval = amradio_set_mute(radio, AMRADIO_STOP);
++	if (retval < 0)
++		amradio_dev_warn(&radio->videodev.dev,
++			"amradio_stop failed\n");
+ 
+ unlock:
+ 	mutex_unlock(&radio->lock);
+@@ -555,7 +552,7 @@ static long usb_amradio_ioctl(struct file *file, unsigned int cmd,
+ 
+ 	mutex_lock(&radio->lock);
+ 
+-	if (radio->removed) {
++	if (!radio->usbdev) {
+ 		retval = -EIO;
+ 		goto unlock;
+ 	}
+@@ -673,7 +670,6 @@ static int usb_amradio_probe(struct usb_interface *intf,
+ 	radio->videodev.ioctl_ops = &usb_amradio_ioctl_ops;
+ 	radio->videodev.release = usb_amradio_video_device_release;
+ 
+-	radio->removed = 0;
+ 	radio->users = 0;
+ 	radio->usbdev = interface_to_usbdev(intf);
+ 	radio->curfreq = 95.16 * FREQ_MUL;
+-- 
+1.6.3.3
 
-Cheers,
-Hermann
-        
 
-
-
+--------------040401090809060102030706--
