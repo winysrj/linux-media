@@ -1,114 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:54333 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751242AbZIKTya (ORCPT
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:38228 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750887AbZILNl4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2009 15:54:30 -0400
-Date: Fri, 11 Sep 2009 16:54:03 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: RFCv2: Media controller proposal
-Message-ID: <20090911165403.0d1b872d@caramujo.chehab.org>
-In-Reply-To: <200909112108.14033.hverkuil@xs4all.nl>
-References: <200909100913.09065.hverkuil@xs4all.nl>
-	<200909102335.52770.hverkuil@xs4all.nl>
-	<20090911121342.08dd1939@caramujo.chehab.org>
-	<200909112108.14033.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Sat, 12 Sep 2009 09:41:56 -0400
+Received: by bwz19 with SMTP id 19so1288799bwz.37
+        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 06:41:58 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20090912103111.7afffb2d@caramujo.chehab.org>
+References: <200909120021.48353.hverkuil@xs4all.nl>
+	 <20090912103111.7afffb2d@caramujo.chehab.org>
+Date: Sat, 12 Sep 2009 09:41:58 -0400
+Message-ID: <829197380909120641w66f8d092yfd307186da20edc2@mail.gmail.com>
+Subject: Re: Media controller: sysfs vs ioctl
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 11 Sep 2009 21:08:13 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Sat, Sep 12, 2009 at 9:31 AM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> True. Choosing the better approach is very important since, once merged, we'll
+> need to stick it for a very long time.
+>
+> I saw your proposal of a ioctl-only implementation for the media control. It is
+> important to have a sysfs implementation also to compare. I can do it.
+>
+> However, we are currently in the middle of a merge window, and this one will
+> require even more time than usual, since we have 2 series of patches for
+> soc_camera and for DaVinci/OMAP that depends on arm and omap architecture merge.
+>
+> Also, there are some pending merges that requires some time to analyze, like
+> the ISDB-T/ISDB-S patches and API changes that were proposed for 2.6.32, that
+> requiring the analysis of both Japanese and Brazilian specs and do some
+> tests, and the tuner changes for better handling the i2c gates, and the V4L and
+> DVB specs that we can now merge upstream, as both got converted to DocBook XML
+> 4.1.2 (the same version used upstream).
+>
+> So, during the next two weeks, we'll have enough fun to handle, in order to get
+> our patches merged for 2.6.32. So, unfortunately, I'm afraid that we'll need to
+> give a break on those discussions until the end of the merge window, focusing
+> on merging the patches we have for 2.6.32.
+>
+>
+> Cheers,
+> Mauro
 
-> > > No, devices aren't created or deleted. Only links between devices.
-> > 
-> > I think that there are some cases where devices are created/deleted. For
-> > example, on some hardware, you have some blocks that allow you to have either 4 SD
-> > video inputs or 1 HD video input. So, if you change the type of input, you'll
-> > end by creating or deleting devices.
-> 
-> Normally you will create four device nodes, but if you switch to HD mode,
-> then only one is active and attempting to use the others will return EBUSY
-> or something. That's what the davinci driver does.
-> 
-> Creating and deleting device nodes depending on the mode makes a driver very
-> complex and the application as well. Say you are in SD mode and you have nodes
-> video[0-3], now you switch to HD mode and you have only node video0. You go
-> back to SD mode and you may end up with nodes video0 and video[2-4] if in the
-> meantime the user connected a USB webcam which took up video1.
-> 
-> Just create them upfront. You know beforehand what the maximum number of video
-> nodes is since that is determined by the hardware. Let's keep things simple.
-> Media boards are getting very, very complex and we should keep away from adding
-> unnecessary further complications.
+Mauro,
 
-Ok, we may start with this approach, and move to a more complex one only if
-needed. This should be properly documented to avoid miss-understandings.
+I respectfully disagree.  The original version of this RFC has been
+pending for almost a year now.  Hans has written a prototype
+implementation.  We should strive to get this locked down by the LPC
+conference.
 
-> > See above. If you're grouping 4 A/D blocks into one A/D for handling HD, you're
-> > doing more than just changing links, since the HD device will be just one
-> > device: one STD, one video input mux, one audio input mux, etc.
-> 
-> So? You will just deactivate three SD device nodes. I don't see a problem with
-> that, and that concept has already been proven to work in the davinci driver.
+I think we all know that you are busy, but this conversation needs to
+continue even if you personally do not have the cycles to give it your
+full attention.
 
-If just disabling applies to all cases, I agree stick with this idea. The
-issue with enabling/disabling devices is that some complex hardware may need to
-register a large amount of devices to expose all the different possibilities,
-but only a very few of them being possible to be enabled. Let's see as time
-goes by.
+There is finally some real momentum behind this initiative, and the
+lack of this functionality is crippling usability for many, many
+users.  "Hi I a new user to tvtime.  I can see analog tv with tvtime,
+but how do I make audio work?"
 
-To work like you said, this means that we'll need an enable attribute at
-the corresponding sysfs entry.
+Let's finally put this issue to rest.
 
-It should be noticed that, even not deleting a hardware, udev can still be
-called. For example, an userspace application (like lirc) may need to be
-started/stopped if you enable/disable IR (or restarted on some topology
-changes, like using a different IR protocol).
+Devin
 
-> > Even when streaming, providing that you don't touch at the used IC blocks, it
-> > should be possible to reconfigure the unused parts. It is just a matter of
-> > having the right resource locks at the driver.
-> 
-> As you say, this will depend on the driver.
-
-Yes.
-
-> Some may be able to do this,
-> others may just return -EBUSY. I would do the latter, personally, since
-> allowing this would just make the driver more complicated for IMHO little
-> gain.
-
-Ok. Both approaches are valid. So the API should be able to support both ways,
-providing a thread safe interface to userspace.
-
-> > It would be easy to implement something like:
-> > 
-> > 	echo 1 >/sys/class/media/mc0/config_reload
-> > 
-> > to call request_firmware() and load the new topology. This is enough to have an
-> > atomic operation, and we don't need to implement a shadow config.
-> 
-> OK, so instead we require an application to construct a file containing a new
-> topology, write something to a sysfs file, require code in the v4l core to load
-> and parse that file, then find out which links have changed (since you really
-> don't want to set all the links: there can be many, many links, believe me on
-> that), and finally call the driver to tell it to change those links.
-
-As I said before, the design should take into account how frequent are those
-changes. If they are very infrequent, this approach works, and offers one
-advantage: the topology will survive to application crashes and warm/cold
-reboots. If the changes are frequent, an approach like the audio
-user_pin_configs work better (see my previous email - note that this approach
-can be used for atomic operations if needed). You add at a sysfs node just the
-dynamic changes you need. We may even have both ways, as alsa seems to have
-(init_pin_configs and user_pin_configs).
-
-
-
-Cheers,
-Mauro
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
