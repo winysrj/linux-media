@@ -1,52 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:58646 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751697AbZINQR1 convert rfc822-to-8bit (ORCPT
+Received: from qw-out-2122.google.com ([74.125.92.27]:15620 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754637AbZILOuO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Sep 2009 12:17:27 -0400
-Date: Mon, 14 Sep 2009 13:16:51 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [ANOUNCE] Staging trees at V4L/DVB trees
-Message-ID: <20090914131651.3165bbb3@pedra.chehab.org>
-In-Reply-To: <20090913210841.6a4db925@caramujo.chehab.org>
-References: <20090913210841.6a4db925@caramujo.chehab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+	Sat, 12 Sep 2009 10:50:14 -0400
+Received: by qw-out-2122.google.com with SMTP id 9so632979qwb.37
+        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 07:50:18 -0700 (PDT)
+Message-ID: <4AABB520.9030805@gmail.com>
+Date: Sat, 12 Sep 2009 10:50:08 -0400
+From: David Ellingsworth <david@identd.dyndns.org>
+Reply-To: david@identd.dyndns.org
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org, klimov.linux@gmail.com
+Subject: [RFC/RFT 09/10] radio-mr800: preserve radio state during suspend/resume
+Content-Type: multipart/mixed;
+ boundary="------------040600020708040902030708"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 13 Sep 2009 21:08:41 -0300
-Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
+This is a multi-part message in MIME format.
+--------------040600020708040902030708
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> I intend to add tm6000 driver there later this week, if time permits to port it
-> to the new i2c interface.
+ From 31243088bd32d5568f06f2044f8ff782641e16b5 Mon Sep 17 00:00:00 2001
+From: David Ellingsworth <david@identd.dyndns.org>
+Date: Sat, 12 Sep 2009 02:05:57 -0400
+Subject: [PATCH 09/10] mr800: preserve radio state during suspend/resume
 
-Ok, I've send part 1 of the patches I have here for tm6000. It still doesn't
-compile with kernel 2.6.30 or upper, due to the I2C API changes.
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/radio-mr800.c |   17 +++++++++++------
+ 1 files changed, 11 insertions(+), 6 deletions(-)
 
-I have still some other patches here pending, that are waiting for some time
-for testing them. I also intend to fix its compilation during this week.
+diff --git a/drivers/media/radio/radio-mr800.c 
+b/drivers/media/radio/radio-mr800.c
+index 11db6ea..10bed62 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -574,9 +574,12 @@ static int usb_amradio_suspend(struct usb_interface 
+*intf, pm_message_t message)
+ 
+     mutex_lock(&radio->lock);
+ 
+-    retval = amradio_set_mute(radio, AMRADIO_STOP);
+-    if (retval < 0)
+-        dev_warn(&intf->dev, "amradio_stop failed\n");
++    if (!radio->muted) {
++        retval = amradio_set_mute(radio, AMRADIO_STOP);
++        if (retval < 0)
++            dev_warn(&intf->dev, "amradio_stop failed\n");
++        radio->muted = 0;
++    }
+ 
+     dev_info(&intf->dev, "going into suspend..\n");
+ 
+@@ -592,9 +595,11 @@ static int usb_amradio_resume(struct usb_interface 
+*intf)
+ 
+     mutex_lock(&radio->lock);
+ 
+-    retval = amradio_set_mute(radio, AMRADIO_START);
+-    if (retval < 0)
+-        dev_warn(&intf->dev, "amradio_start failed\n");
++    if (!radio->muted) {
++        retval = amradio_set_mute(radio, AMRADIO_START);
++        if (retval < 0)
++            dev_warn(&intf->dev, "amradio_start failed\n");
++    }
+ 
+     dev_info(&intf->dev, "coming out of suspend..\n");
+ 
+-- 
+1.6.3.3
 
-> The policy to accept new drivers code at staging tree is less rigid than
-> at /drivers/media: the kernel driver for an unsupported hardware shouldn't
-> depend on any userspace library other than libv4l and dvb-apps and the code
-> should compile fine with the latest kernel, and the developer(s) should be
-> working on fixing it for upstream inclusion. Drivers with bugs, CodingStyle
-> errors, deprecated API usage, etc can be accepted. Also, drivers there not
-> maintained for some time can be removed.
 
->From some breakage reports with go7007 with some kernels and due to tm6000,
-I've added an option at Kconfig: STAGING_BROKEN, to indicate the drivers that
-are known to not compile against the latest kernel. However, there's a bad
-effect with this: those broken patches can't be updated upstream, otherwise
-they'll break upstream compilations. So, while we might eventually accept a
-broken driver at staging, a fix for it should be done quickly, to avoid causing
-upstream merging issues
+--------------040600020708040902030708
+Content-Type: text/x-diff;
+ name="0009-mr800-preserve-radio-state-during-suspend-resume.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename*0="0009-mr800-preserve-radio-state-during-suspend-resume.patch"
+
+>From 31243088bd32d5568f06f2044f8ff782641e16b5 Mon Sep 17 00:00:00 2001
+From: David Ellingsworth <david@identd.dyndns.org>
+Date: Sat, 12 Sep 2009 02:05:57 -0400
+Subject: [PATCH 09/10] mr800: preserve radio state during suspend/resume
+
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/radio-mr800.c |   17 +++++++++++------
+ 1 files changed, 11 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
+index 11db6ea..10bed62 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -574,9 +574,12 @@ static int usb_amradio_suspend(struct usb_interface *intf, pm_message_t message)
+ 
+ 	mutex_lock(&radio->lock);
+ 
+-	retval = amradio_set_mute(radio, AMRADIO_STOP);
+-	if (retval < 0)
+-		dev_warn(&intf->dev, "amradio_stop failed\n");
++	if (!radio->muted) {
++		retval = amradio_set_mute(radio, AMRADIO_STOP);
++		if (retval < 0)
++			dev_warn(&intf->dev, "amradio_stop failed\n");
++		radio->muted = 0;
++	}
+ 
+ 	dev_info(&intf->dev, "going into suspend..\n");
+ 
+@@ -592,9 +595,11 @@ static int usb_amradio_resume(struct usb_interface *intf)
+ 
+ 	mutex_lock(&radio->lock);
+ 
+-	retval = amradio_set_mute(radio, AMRADIO_START);
+-	if (retval < 0)
+-		dev_warn(&intf->dev, "amradio_start failed\n");
++	if (!radio->muted) {
++		retval = amradio_set_mute(radio, AMRADIO_START);
++		if (retval < 0)
++			dev_warn(&intf->dev, "amradio_start failed\n");
++	}
+ 
+ 	dev_info(&intf->dev, "coming out of suspend..\n");
+ 
+-- 
+1.6.3.3
 
 
-
-Cheers,
-Mauro
+--------------040600020708040902030708--
