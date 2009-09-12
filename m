@@ -1,49 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:54489 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753883AbZIKHid (ORCPT
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:38455 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752198AbZILTzR convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2009 03:38:33 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx06.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n8B7cFWd018359
-	for <linux-media@vger.kernel.org>; Fri, 11 Sep 2009 10:38:21 +0300
-Subject: Re: [PATCH 1/1] FM TX: si4713: Kconfig: Fixed two typos.
-From: m7aalton <matti.j.aaltonen@nokia.com>
-Reply-To: matti.j.aaltonen@nokia.com
-To: Linux-Media <linux-media@vger.kernel.org>
-Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>
-In-Reply-To: <1249729833-24975-8-git-send-email-eduardo.valentin@nokia.com>
-References: <1249729833-24975-1-git-send-email-eduardo.valentin@nokia.com>
-	 <1249729833-24975-2-git-send-email-eduardo.valentin@nokia.com>
-	 <1249729833-24975-3-git-send-email-eduardo.valentin@nokia.com>
-	 <1249729833-24975-4-git-send-email-eduardo.valentin@nokia.com>
-	 <1249729833-24975-5-git-send-email-eduardo.valentin@nokia.com>
-	 <1249729833-24975-6-git-send-email-eduardo.valentin@nokia.com>
-	 <1249729833-24975-7-git-send-email-eduardo.valentin@nokia.com>
-	 <1249729833-24975-8-git-send-email-eduardo.valentin@nokia.com>
-Content-Type: text/plain
-Date: Fri, 11 Sep 2009 10:38:04 +0300
-Message-Id: <1252654684.19083.140.camel@masi.ntc.nokia.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sat, 12 Sep 2009 15:55:17 -0400
+Received: by bwz19 with SMTP id 19so1392271bwz.37
+        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 12:55:20 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4AABB520.9030805@gmail.com>
+References: <4AABB520.9030805@gmail.com>
+Date: Sat, 12 Sep 2009 15:55:19 -0400
+Message-ID: <30353c3d0909121255w1449c059n27f356b030df1b6a@mail.gmail.com>
+Subject: Re: [RFC/RFT 09/10] radio-mr800: preserve radio state during
+	suspend/resume
+From: David Ellingsworth <david@identd.dyndns.org>
+To: linux-media@vger.kernel.org, klimov.linux@gmail.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixed two typos.
+On Sat, Sep 12, 2009 at 10:50 AM, David Ellingsworth
+<david@identd.dyndns.org> wrote:
+> From 31243088bd32d5568f06f2044f8ff782641e16b5 Mon Sep 17 00:00:00 2001
+> From: David Ellingsworth <david@identd.dyndns.org>
+> Date: Sat, 12 Sep 2009 02:05:57 -0400
+> Subject: [PATCH 09/10] mr800: preserve radio state during suspend/resume
+>
+> Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+> ---
+> drivers/media/radio/radio-mr800.c |   17 +++++++++++------
+> 1 files changed, 11 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/media/radio/radio-mr800.c
+> b/drivers/media/radio/radio-mr800.c
+> index 11db6ea..10bed62 100644
+> --- a/drivers/media/radio/radio-mr800.c
+> +++ b/drivers/media/radio/radio-mr800.c
+> @@ -574,9 +574,12 @@ static int usb_amradio_suspend(struct usb_interface
+> *intf, pm_message_t message)
+>
+>    mutex_lock(&radio->lock);
+>
+> -    retval = amradio_set_mute(radio, AMRADIO_STOP);
+> -    if (retval < 0)
+> -        dev_warn(&intf->dev, "amradio_stop failed\n");
+> +    if (!radio->muted) {
+> +        retval = amradio_set_mute(radio, AMRADIO_STOP);
+> +        if (retval < 0)
+> +            dev_warn(&intf->dev, "amradio_stop failed\n");
+> +        radio->muted = 0;
+> +    }
+>
+>    dev_info(&intf->dev, "going into suspend..\n");
+>
+> @@ -592,9 +595,11 @@ static int usb_amradio_resume(struct usb_interface
+> *intf)
+>
+>    mutex_lock(&radio->lock);
+>
+> -    retval = amradio_set_mute(radio, AMRADIO_START);
+> -    if (retval < 0)
+> -        dev_warn(&intf->dev, "amradio_start failed\n");
+> +    if (!radio->muted) {
+> +        retval = amradio_set_mute(radio, AMRADIO_START);
+> +        if (retval < 0)
+> +            dev_warn(&intf->dev, "amradio_start failed\n");
+> +    }
+>
+>    dev_info(&intf->dev, "coming out of suspend..\n");
+>
+> --
+> 1.6.3.3
+>
+>
 
-Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
+I'm going to rework this patch as well. I think the driver needs to do
+more than just turn the radio back on. It should also restore the set
+frequency and stereo mode.
 
-diff -r 5582a6427a41 -r ff80edccfe24 linux/drivers/media/radio/Kconfig
---- a/linux/drivers/media/radio/Kconfig	Tue Sep 01 22:16:23 2009 +0200
-+++ b/linux/drivers/media/radio/Kconfig	Fri Sep 11 10:25:13 2009 +0300
-@@ -346,7 +346,7 @@
- 	---help---
- 	  Say Y here if you want support to Si4713 FM Radio Transmitter.
- 	  This device can transmit audio through FM. It can transmit
--	  EDS and EBDS signals as well. This module is the v4l2 radio
-+	  RDS and RBDS signals as well. This module is the v4l2 radio
- 	  interface for the i2c driver of this device.
- 
- 	  To compile this driver as a module, choose M here: the
+Regards,
 
-
+David Ellingsworth
