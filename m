@@ -1,61 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199]:38286 "EHLO
-	mta4.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755328AbZIRQp7 (ORCPT
+Received: from mail-qy0-f172.google.com ([209.85.221.172]:50386 "EHLO
+	mail-qy0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754645AbZILOuV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Sep 2009 12:45:59 -0400
-Received: from steven-toths-macbook-pro.local
- (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta4.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KQ600B4KEKNHSF0@mta4.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Fri, 18 Sep 2009 12:46:00 -0400 (EDT)
-Date: Fri, 18 Sep 2009 12:45:59 -0400
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: Hw capabilities of the HVR-2200
-In-reply-to: <4AB3B43A.2030103@gmail.com>
-To: Jed <jedi.theone@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-id: <4AB3B947.1040202@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <4AAF568D.1070308@gmail.com> <4AB3B43A.2030103@gmail.com>
+	Sat, 12 Sep 2009 10:50:21 -0400
+Received: by mail-qy0-f172.google.com with SMTP id 2so1629968qyk.21
+        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 07:50:25 -0700 (PDT)
+Message-ID: <4AABB528.1060603@gmail.com>
+Date: Sat, 12 Sep 2009 10:50:16 -0400
+From: David Ellingsworth <david@identd.dyndns.org>
+Reply-To: david@identd.dyndns.org
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org, klimov.linux@gmail.com
+Subject: [RFC/RFT 10/10] radio-mr800: fix potential use after free
+Content-Type: multipart/mixed;
+ boundary="------------080909020300030208050703"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 9/18/09 12:24 PM, Jed wrote:
->
->> **a repost because of earlier issues in getting emails to the list**
->>
->> Hi Kernellabs or anyone involved with driver development of the
->> HVR-2200...
+This is a multi-part message in MIME format.
+--------------080909020300030208050703
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Hello.
+ From 987d22363c7a55a5e48a2746a61a6d805fef8661 Mon Sep 17 00:00:00 2001
+From: David Ellingsworth <david@identd.dyndns.org>
+Date: Sat, 12 Sep 2009 02:35:22 -0400
+Subject: [PATCH 10/10] mr800: fix potential use after free
 
->>
->> I know this is a loooong way down the priority list of features to be
->> added, if ever!
->> But I'm wanting to know if the *possibility* is there 'hardware-wise'
->> for the following:
->>
->> 1) h.263/mpeg4/VC-1/DivX/Xvid hardware encode of A/V-in
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/radio-mr800.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-Yes, this exists in hardware on the SAA7164 and therefore the HVR2200 and HVR2250.
-
->> 2) Component input for the A/V-in
-
-Yes, this exists on the HVR2250 product only.
-
->> 3) Hw encode bypass for A/V-in
-
-No idea. Regardless of whether it does or does not I wouldn't plan to add basic 
-raw TV support to the driver, without going through the encoder.
-
->> 4) Is Hw encode purely for A/V-in? (hauppauge's site suggests
->> otherwise but it may be a typo)
-
-Yes.
-
+diff --git a/drivers/media/radio/radio-mr800.c 
+b/drivers/media/radio/radio-mr800.c
+index 10bed62..806523c 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -274,7 +274,6 @@ static void usb_amradio_disconnect(struct 
+usb_interface *intf)
+ 
+     usb_set_intfdata(intf, NULL);
+     video_unregister_device(&radio->videodev);
+-    v4l2_device_disconnect(&radio->v4l2_dev);
+ }
+ 
+ /* vidioc_querycap - query device capabilities */
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+1.6.3.3
+
+
+--------------080909020300030208050703
+Content-Type: text/x-diff;
+ name="0010-mr800-fix-potential-use-after-free.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="0010-mr800-fix-potential-use-after-free.patch"
+
+>From 987d22363c7a55a5e48a2746a61a6d805fef8661 Mon Sep 17 00:00:00 2001
+From: David Ellingsworth <david@identd.dyndns.org>
+Date: Sat, 12 Sep 2009 02:35:22 -0400
+Subject: [PATCH 10/10] mr800: fix potential use after free
+
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/radio-mr800.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
+index 10bed62..806523c 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -274,7 +274,6 @@ static void usb_amradio_disconnect(struct usb_interface *intf)
+ 
+ 	usb_set_intfdata(intf, NULL);
+ 	video_unregister_device(&radio->videodev);
+-	v4l2_device_disconnect(&radio->v4l2_dev);
+ }
+ 
+ /* vidioc_querycap - query device capabilities */
+-- 
+1.6.3.3
+
+
+--------------080909020300030208050703--
