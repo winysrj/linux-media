@@ -1,245 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway05.websitewelcome.com ([67.18.52.6]:55528 "HELO
-	gateway05.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753518AbZIRVKB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Sep 2009 17:10:01 -0400
-Received: from [66.15.212.169] (port=30669 helo=[10.140.5.16])
-	by gator886.hostgator.com with esmtpsa (SSLv3:AES256-SHA:256)
-	(Exim 4.69)
-	(envelope-from <pete@sensoray.com>)
-	id 1Moi74-0002fM-L3
-	for linux-media@vger.kernel.org; Fri, 18 Sep 2009 13:23:18 -0500
-Subject: [PATCH 4/9] go7007: Merge struct gofh and go declarations
-From: Pete <pete@sensoray.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain
-Date: Fri, 18 Sep 2009 11:23:22 -0700
-Message-Id: <1253298202.4314.568.camel@pete-desktop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp28.orange.fr ([80.12.242.101]:19521 "EHLO smtp28.orange.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751192AbZIMV7i (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Sep 2009 17:59:38 -0400
+Message-ID: <4AAD6B4B.5030204@gmail.com>
+Date: Sun, 13 Sep 2009 23:59:39 +0200
+From: Morvan Le Meut <mlemeut@gmail.com>
+MIME-Version: 1.0
+To: hermann pitton <hermann-pitton@arcor.de>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: (Saa7134) Re: ADS-Tech Instant TV PCI, no remote support,	giving
+ up.
+References: <4AA53C05.10203@gmail.com> <4AA61508.9040506@gmail.com>	 <op.uzxmzlj86dn9rq@crni> <4AA62C38.3050208@gmail.com>	 <4AA63434.1010709@gmail.com> <4AA683BD.6070601@gmail.com>	 <4AA695EE.70800@gmail.com> <4AA767F2.50702@gmail.com>	 <op.uzzfgyvj3xmt7q@crni> <4AA77240.2040504@gmail.com>	 <4AA77683.7010201@gmail.com> <4AA7C266.3000509@gmail.com>	 <op.uzzz96se6dn9rq@crni> <4AA7E166.7030906@gmail.com>	 <4AA81785.5000806@gmail.com> <4AA8BB20.4040701@gmail.com>	 <4AA919CA.20701@gmail.com> <4AAA0247.8020004@gmail.com>	 <4AAB586D.6080906@gmail.com> <1252815352.3259.41.camel@pc07.localdom.local>
+In-Reply-To: <1252815352.3259.41.camel@pc07.localdom.local>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The declarations for struct go7007_file *gofh and struct go7007 *go can
-be merged when gofh isn't used by the function.
+just out of curiosity ( and because google showed me a new trick to try 
+), i tried to load the module with gpio_tracking=1.
+this gave me a new thing in dmesg :
+ gpio: mode=0x0000000 in=0x000007f out=0x0000000 [pre-init]
+Am i correct by thinkig that the in=0x000007f part is the mask ? If it 
+is that then i am a problem : i did specify it as 0xff. Did i miss 
+something ?
 
-Priority: normal
+hermann pitton a écrit :
+> Am Samstag, den 12.09.2009, 10:14 +0200 schrieb Morvan Le Meut: 
+>   
+>> Since i don't know where to look, i finally decided to use a basic 
+>> incorrect keymap :
+>>  /* ADS Tech Instant TV PCI Remote */
+>> static struct ir_scancode ir_codes_adstech_pci[] = {
+>>     /* too many repeating codes : incorrect gpio ?. */
+>>        
+>>     { 0x1f, KEY_MUTE },
+>>     { 0x1d, KEY_SEARCH },
+>>     { 0x17, KEY_EPG },        /* Guide */
+>>     { 0x0f, KEY_UP },
+>>     { 0x6, KEY_DOWN },
+>>     { 0x16, KEY_LEFT },
+>>     { 0x1e, KEY_RIGHT },
+>>     { 0x0e, KEY_SELECT },        /* Enter */
+>>     { 0x1a, KEY_INFO },
+>>     { 0x12, KEY_EXIT },
+>>     { 0x19, KEY_PREVIOUS },
+>>     { 0x11, KEY_NEXT },
+>>     { 0x18, KEY_REWIND },
+>>     { 0x10, KEY_FORWARD },
+>>     { 0x4, KEY_PLAYPAUSE },
+>>     { 0x07, KEY_STOP },
+>>     { 0x1b, KEY_RECORD },
+>>     { 0x13, KEY_TUNER },        /* Live */
+>>     { 0x0a, KEY_A },
+>>     { 0x03, KEY_PROG1 },        /* 1 */
+>>     { 0x01, KEY_PROG2 },        /* 2 */
+>>     { 0x0, KEY_VIDEO },
+>>     { 0x0b, KEY_CHANNELUP },
+>>     { 0x08, KEY_CHANNELDOWN },
+>>     { 0x15, KEY_VOLUMEUP },
+>>     { 0x1c, KEY_VOLUMEDOWN },
+>> };
+>>
+>> struct ir_scancode_table ir_codes_adstech_pci_table = {
+>>     .scan = ir_codes_adstech_pci,
+>>     .size = ARRAY_SIZE(ir_codes_adstech_pci),
+>> };
+>> EXPORT_SYMBOL_GPL(ir_codes_adstech_pci_table);
+>>
+>> No numbers in favor of arrows and ch+/- Vol+/- . Well 246 will be arrows 
+>> and  5 select, 7 and 8 are undefined, 9 become vol-, 1 epg and 3 is tuner.
+>> If someone, one day, wants to find that missig bit, i'll be happy to 
+>> help. ( Strange anyway : it's as if there was a 0x7f mask even when i 
+>> specify a 0xff one )
+>> Feel free to write a patch.
+>>
+>> Morvan Le Meut a écrit :
+>>     
+>>> um .. help, please ?
+>>> how can i make the driver read 1011011 instead of 011011 when i press 
+>>> Power instead of record on the remote ?
+>>>
+>>> thanks
+>>>
+>>>       
+>
+> Morvan,
+>
+> I still have a huge mail backlash and are not in details what you may
+> have tried already, but if you have a missing/unknown gpio on such a
+> remote, you start to test for that one with mask_keycode = 0x0 in
+> saa7134-input.c and if it is then found, you do add it to that mask.
+>
+> If that doesn't help, it might be something special.
+>
+> Cheers,
+> Hermann
+>
+>
+>
+>
+>
+>
+>
+>   
 
-Signed-off-by: Pete Eberlein <pete@sensoray.com>
-
-diff -r e9801d1d9c6c -r c130a089bdfc linux/drivers/staging/go7007/go7007-v4l2.c
---- a/linux/drivers/staging/go7007/go7007-v4l2.c	Fri Sep 18 10:26:12 2009 -0700
-+++ b/linux/drivers/staging/go7007/go7007-v4l2.c	Fri Sep 18 10:28:27 2009 -0700
-@@ -593,8 +593,7 @@
- static int vidioc_querycap(struct file *file, void  *priv,
- 					struct v4l2_capability *cap)
- {
--	struct go7007_file *gofh = priv;
--	struct go7007 *go = gofh->go;
-+	struct go7007 *go = ((struct go7007_file *) priv)->go;
- 
- 	strlcpy(cap->driver, "go7007", sizeof(cap->driver));
- 	strlcpy(cap->card, go->name, sizeof(cap->card));
-@@ -641,8 +640,7 @@
- static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
- 					struct v4l2_format *fmt)
- {
--	struct go7007_file *gofh = priv;
--	struct go7007 *go = gofh->go;
-+	struct go7007 *go = ((struct go7007_file *) priv)->go;
- 
- 	fmt->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 	fmt->fmt.pix.width = go->width;
-@@ -660,8 +658,7 @@
- static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- 			struct v4l2_format *fmt)
- {
--	struct go7007_file *gofh = priv;
--	struct go7007 *go = gofh->go;
-+	struct go7007 *go = ((struct go7007_file *) priv)->go;
- 
- 	return set_capture_size(go, fmt, 1);
- }
-@@ -669,8 +666,7 @@
- static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 			struct v4l2_format *fmt)
- {
--	struct go7007_file *gofh = priv;
--	struct go7007 *go = gofh->go;
-+	struct go7007 *go = ((struct go7007_file *) priv)->go;
- 
- 	if (go->streaming)
- 		return -EBUSY;
-@@ -976,8 +972,7 @@
- static int vidioc_queryctrl(struct file *file, void *priv,
- 			   struct v4l2_queryctrl *query)
- {
--	struct go7007_file *gofh = priv;
--	struct go7007 *go = gofh->go;
-+	struct go7007 *go = ((struct go7007_file *) priv)->go;
- 
- 	if (!go->i2c_adapter_online)
- 		return -EIO;
-@@ -990,8 +985,7 @@
- static int vidioc_g_ctrl(struct file *file, void *priv,
- 				struct v4l2_control *ctrl)
- {
--	struct go7007_file *gofh = priv;
--	struct go7007 *go = gofh->go;
-+	struct go7007 *go = ((struct go7007_file *) priv)->go;
- 	struct v4l2_queryctrl query;
- 
- 	if (!go->i2c_adapter_online)
-@@ -1010,8 +1004,7 @@
- static int vidioc_s_ctrl(struct file *file, void *priv,
- 				struct v4l2_control *ctrl)
- {
--	struct go7007_file *gofh = priv;
--	struct go7007 *go = gofh->go;
-+	struct go7007 *go = ((struct go7007_file *) priv)->go;
- 	struct v4l2_queryctrl query;
- 
- 	if (!go->i2c_adapter_online)
-@@ -1030,8 +1023,7 @@
- static int vidioc_g_parm(struct file *filp, void *priv,
- 		struct v4l2_streamparm *parm)
- {
--	struct go7007_file *gofh = priv;
--	struct go7007 *go = gofh->go;
-+	struct go7007 *go = ((struct go7007_file *) priv)->go;
- 	struct v4l2_fract timeperframe = {
- 		.numerator = 1001 *  go->fps_scale,
- 		.denominator = go->sensor_framerate,
-@@ -1049,8 +1041,7 @@
- static int vidioc_s_parm(struct file *filp, void *priv,
- 		struct v4l2_streamparm *parm)
- {
--	struct go7007_file *gofh = priv;
--	struct go7007 *go = gofh->go;
-+	struct go7007 *go = ((struct go7007_file *) priv)->go;
- 	unsigned int n, d;
- 
- 	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-@@ -1082,8 +1073,7 @@
- static int vidioc_enum_framesizes(struct file *filp, void *priv,
- 				  struct v4l2_frmsizeenum *fsize)
- {
--	struct go7007_file *gofh = priv;
--	struct go7007 *go = gofh->go;
-+	struct go7007 *go = ((struct go7007_file *) priv)->go;
- 
- 	/* Return -EINVAL, if it is a TV board */
- 	if ((go->board_info->flags & GO7007_BOARD_HAS_TUNER) ||
-@@ -1103,8 +1093,7 @@
- static int vidioc_enum_frameintervals(struct file *filp, void *priv,
- 				      struct v4l2_frmivalenum *fival)
- {
--	struct go7007_file *gofh = priv;
--	struct go7007 *go = gofh->go;
-+	struct go7007 *go = ((struct go7007_file *) priv)->go;
- 
- 	/* Return -EINVAL, if it is a TV board */
- 	if ((go->board_info->flags & GO7007_BOARD_HAS_TUNER) ||
-@@ -1123,8 +1112,7 @@
- 
- static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *std)
- {
--	struct go7007_file *gofh = priv;
--	struct go7007 *go = gofh->go;
-+	struct go7007 *go = ((struct go7007_file *) priv)->go;
- 
- 	if (go->streaming)
- 		return -EBUSY;
-@@ -1188,8 +1176,7 @@
- static int vidioc_enum_input(struct file *file, void *priv,
- 				struct v4l2_input *inp)
- {
--	struct go7007_file *gofh = priv;
--	struct go7007 *go = gofh->go;
-+	struct go7007 *go = ((struct go7007_file *) priv)->go;
- 
- 	if (inp->index >= go->board_info->num_inputs)
- 		return -EINVAL;
-@@ -1218,8 +1205,7 @@
- 
- static int vidioc_g_input(struct file *file, void *priv, unsigned int *input)
- {
--	struct go7007_file *gofh = priv;
--	struct go7007 *go = gofh->go;
-+	struct go7007 *go = ((struct go7007_file *) priv)->go;
- 
- 	*input = go->input;
- 
-@@ -1228,8 +1214,7 @@
- 
- static int vidioc_s_input(struct file *file, void *priv, unsigned int input)
- {
--	struct go7007_file *gofh = priv;
--	struct go7007 *go = gofh->go;
-+	struct go7007 *go = ((struct go7007_file *) priv)->go;
- 
- 	if (input >= go->board_info->num_inputs)
- 		return -EINVAL;
-@@ -1250,8 +1235,7 @@
- static int vidioc_g_tuner(struct file *file, void *priv,
- 				struct v4l2_tuner *t)
- {
--	struct go7007_file *gofh = priv;
--	struct go7007 *go = gofh->go;
-+	struct go7007 *go = ((struct go7007_file *) priv)->go;
- 
- 	if (!(go->board_info->flags & GO7007_BOARD_HAS_TUNER))
- 		return -EINVAL;
-@@ -1269,8 +1253,7 @@
- static int vidioc_s_tuner(struct file *file, void *priv,
- 				struct v4l2_tuner *t)
- {
--	struct go7007_file *gofh = priv;
--	struct go7007 *go = gofh->go;
-+	struct go7007 *go = ((struct go7007_file *) priv)->go;
- 
- 	if (!(go->board_info->flags & GO7007_BOARD_HAS_TUNER))
- 		return -EINVAL;
-@@ -1296,8 +1279,7 @@
- static int vidioc_g_frequency(struct file *file, void *priv,
- 				struct v4l2_frequency *f)
- {
--	struct go7007_file *gofh = priv;
--	struct go7007 *go = gofh->go;
-+	struct go7007 *go = ((struct go7007_file *) priv)->go;
- 
- 	if (!(go->board_info->flags & GO7007_BOARD_HAS_TUNER))
- 		return -EINVAL;
-@@ -1312,8 +1294,7 @@
- static int vidioc_s_frequency(struct file *file, void *priv,
- 				struct v4l2_frequency *f)
- {
--	struct go7007_file *gofh = priv;
--	struct go7007 *go = gofh->go;
-+	struct go7007 *go = ((struct go7007_file *) priv)->go;
- 
- 	if (!(go->board_info->flags & GO7007_BOARD_HAS_TUNER))
- 		return -EINVAL;
-@@ -1328,8 +1309,7 @@
- static int vidioc_cropcap(struct file *file, void *priv,
- 					struct v4l2_cropcap *cropcap)
- {
--	struct go7007_file *gofh = priv;
--	struct go7007 *go = gofh->go;
-+	struct go7007 *go = ((struct go7007_file *) priv)->go;
- 
- 	if (cropcap->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
-@@ -1373,8 +1353,7 @@
- 
- static int vidioc_g_crop(struct file *file, void *priv, struct v4l2_crop *crop)
- {
--	struct go7007_file *gofh = priv;
--	struct go7007 *go = gofh->go;
-+	struct go7007 *go = ((struct go7007_file *) priv)->go;
- 
- 	if (crop->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
 
 
