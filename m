@@ -1,58 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f210.google.com ([209.85.218.210]:41251 "EHLO
-	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750825AbZIUEJz convert rfc822-to-8bit (ORCPT
+Received: from qw-out-2122.google.com ([74.125.92.25]:9038 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754926AbZIMDbZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Sep 2009 00:09:55 -0400
-Received: by bwz6 with SMTP id 6so1703389bwz.37
-        for <linux-media@vger.kernel.org>; Sun, 20 Sep 2009 21:09:58 -0700 (PDT)
+	Sat, 12 Sep 2009 23:31:25 -0400
+Received: by qw-out-2122.google.com with SMTP id 9so722164qwb.37
+        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 20:31:28 -0700 (PDT)
+Message-ID: <4AAC65A3.4010607@gmail.com>
+Date: Sat, 12 Sep 2009 23:23:15 -0400
+From: David Ellingsworth <david@identd.dyndns.org>
+Reply-To: david@identd.dyndns.org
 MIME-Version: 1.0
-In-Reply-To: <1253504805.3255.3.camel@pc07.localdom.local>
-References: <d9def9db0909202040u3138670ahede6078ef1a177c@mail.gmail.com>
-	 <1253504805.3255.3.camel@pc07.localdom.local>
-Date: Mon, 21 Sep 2009 06:09:58 +0200
-Message-ID: <d9def9db0909202109m54453573kc90f0c3e5d942e2@mail.gmail.com>
-Subject: Re: Bug in S2 API...
-From: Markus Rechberger <mrechberger@gmail.com>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: linux-media@vger.kernel.org, klimov.linux@gmail.com
+Subject: [RFC/RFT 14/14] radio-mr800: set radio frequency only upon success
+Content-Type: multipart/mixed;
+ boundary="------------060205040502090700020106"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 21, 2009 at 5:46 AM, hermann pitton <hermann-pitton@arcor.de> wrote:
->
-> Am Montag, den 21.09.2009, 05:40 +0200 schrieb Markus Rechberger:
->> while porting the S2api to userspace I came accross the S2-API definition itself
->>
->> #define FE_SET_PROPERTY            _IOW('o', 82, struct dtv_properties)
->> #define FE_GET_PROPERTY            _IOR('o', 83, struct dtv_properties)
->>
->> while looking at this, FE_GET_PROPERTY should very likely be _IOWR
->>
->> in dvb-frontend.c:
->> ----
->>         if(cmd == FE_GET_PROPERTY) {
->>
->>                 tvps = (struct dtv_properties __user *)parg;
->>
->>                 dprintk("%s() properties.num = %d\n", __func__, tvps->num);
->>                 dprintk("%s() properties.props = %p\n", __func__, tvps->props);
->>                 ...
->>                 if (copy_from_user(tvp, tvps->props, tvps->num *
->> sizeof(struct dtv_property)))
->> ----
->>
->> Regards,
->> Markus
->
-> Seems to be a big issue.
->
-> Why you ever want to write to a get property?
->
+This is a multi-part message in MIME format.
+--------------060205040502090700020106
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-to read out the API version for example.
-tvps->num is also used in order to check the boundaries of the property array.
+ From 8c441616f67011244cb15bc1a3dda6fd8706ecd2 Mon Sep 17 00:00:00 2001
+From: David Ellingsworth <david@identd.dyndns.org>
+Date: Sat, 12 Sep 2009 16:04:44 -0400
+Subject: [PATCH 08/14] mr800: fix potential use after free
 
-Markus
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/radio-mr800.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/radio/radio-mr800.c 
+b/drivers/media/radio/radio-mr800.c
+index 9fd2342..87b58e3 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -274,7 +274,6 @@ static void usb_amradio_disconnect(struct 
+usb_interface *intf)
+ 
+     usb_set_intfdata(intf, NULL);
+     video_unregister_device(&radio->videodev);
+-    v4l2_device_disconnect(&radio->v4l2_dev);
+ }
+ 
+ /* vidioc_querycap - query device capabilities */
+-- 
+1.6.3.3
+
+
+--------------060205040502090700020106
+Content-Type: text/x-diff;
+ name="0014-mr800-set-radio-frequency-only-upon-success.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename*0="0014-mr800-set-radio-frequency-only-upon-success.patch"
+
+>From 1c62f52da6114756d16644f8401f1903a50ae455 Mon Sep 17 00:00:00 2001
+From: David Ellingsworth <david@identd.dyndns.org>
+Date: Sat, 12 Sep 2009 22:03:56 -0400
+Subject: [PATCH 14/14] mr800: set radio frequency only upon success
+
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/radio-mr800.c |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
+index 4d955aa..f609fdf 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -235,6 +235,7 @@ static int amradio_setfreq(struct amradio_device *radio, int freq)
+ 	if (retval < 0 || size != BUFFER_LENGTH)
+ 		goto out_err;
+ 
++	radio->curfreq = freq;
+ 	goto out;
+ 
+ out_err:
+@@ -370,13 +371,8 @@ static int vidioc_s_frequency(struct file *file, void *priv,
+ 				struct v4l2_frequency *f)
+ {
+ 	struct amradio_device *radio = file->private_data;
+-	int retval = 0;
+-
+-	radio->curfreq = f->frequency;
+ 
+-	retval = amradio_setfreq(radio, radio->curfreq);
+-
+-	return retval;
++	return amradio_setfreq(radio, f->frequency);
+ }
+ 
+ /* vidioc_g_frequency - get tuner radio frequency */
+-- 
+1.6.3.3
+
+
+--------------060205040502090700020106--
