@@ -1,155 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:46641 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751622AbZIEShM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Sep 2009 14:37:12 -0400
-Received: by fxm17 with SMTP id 17so1282193fxm.37
-        for <linux-media@vger.kernel.org>; Sat, 05 Sep 2009 11:37:13 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sat, 5 Sep 2009 20:37:13 +0200
-Message-ID: <ef96b78e0909051137w188ef6ddw75f8c595e4498f0@mail.gmail.com>
-Subject: Hauppauge HVR 1110 : recognized but doesn't work
-From: Morvan Le Meut <mlemeut@gmail.com>
+Received: from fg-out-1718.google.com ([72.14.220.157]:29836 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752340AbZIMTbV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Sep 2009 15:31:21 -0400
+Received: by fg-out-1718.google.com with SMTP id 22so780860fge.1
+        for <linux-media@vger.kernel.org>; Sun, 13 Sep 2009 12:31:24 -0700 (PDT)
+Date: Sun, 13 Sep 2009 21:31:18 +0200
+From: Uros Vampl <mobile.leecher@gmail.com>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Subject: Questions about Terratec Hybrid XS (em2882) [0ccd:005e]
+Message-ID: <20090913193118.GA12659@zverina>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="vkogqOf2sHV7VnPd"
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-( new subject from my previous ec168 mail )
 
-2009/9/4 hermann pitton <hermann-pitton@arcor.de>
->
->
-> Without knowing the kernel version on your mythbuntu I can't tell
-> anything.
->
-> For what I know so far, all HVR 1110 variants should be supported with
-> recent v4l-dvb code.
->
-> We run into some maintenance trouble, because we don't know on which of
-> those are additional LNAs, maybe even different types of LNAs.
->
-> Currently it looks like that we have some Pinnacle 310i devices broken
-> in favour to have in detail unknown HVR 1110 boards working with LNA
-> support.
->
-> It would be much better to escape from such and not to add more and more
-> unclear hardware on it.
->
-> For broken Pinnacle LNA devices are patches to test available to get
-> them back, others still do work unchanged, also to enable antenna
-> voltage for those in need of it is possible.
->
-> You should try your HVR 1110 variant with recent code and report again
-> with details from dmesg for it, if it still should fail.
->
-> Cheers,
-> Hermann
->
-i managed to get a hold of that card (well 200km to install another tv
-card, but bough the wrong one so i'm trying that one again.) :
-uname -a
-Linux pvr 2.6.28-11-generic #42-Ubuntu SMP Fri Apr 17 01:57:59 UTC
-2009 i686 GNU/Linux
+--vkogqOf2sHV7VnPd
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-dmesg ( at least what is relevant ) :
-[††† 5.711223] saa7134 0000:01:09.0: PCI INT A -> Link[LNKB] -> GSI 18
-(level, l†††† ow) -> IRQ 18
-[††† 5.711228] saa7133[0]: found at 0000:01:09.0, rev: 209, irq: 18,
-latency: 64†††† , mmio: 0xddeff800
-[††† 5.711234] saa7133[0]: subsystem: 0070:6707, board: Hauppauge
-WinTV-HVR1120††††† DVB-T/Hybrid [card=156,autodetected]
-[††† 5.711278] saa7133[0]: board init: gpio is 40000
-[††† 5.753843] cx88/0: cx2388x v4l2 driver version 0.0.7 loaded
-[††† 5.756179] cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.7 loaded
-[††† 5.809164] psmouse serio1: ID: 00 00 64ACPI: PCI Interrupt Link
-[LAZA] enabl†††† ed at IRQ 20
-[††† 5.816518] HDA Intel 0000:00:05.0: PCI INT B -> Link[LAZA] -> GSI
-20 (level,††††† low) -> IRQ 20
-[††† 5.816587] HDA Intel 0000:00:05.0: setting latency timer to 64
-[††† 5.877483] usb 1-4: reset high speed USB device using ehci_hcd and address 3
-[††† 5.884015] saa7133[0]: i2c eeprom 00: 70 00 07 67 54 20 1c 00 43
-43 a9 1c 55††††† d2 b2 92
-[††† 5.884021] saa7133[0]: i2c eeprom 10: ff ff ff 0e ff 20 ff ff ff
-ff ff ff ff††††† ff ff ff
-[††† 5.884026] saa7133[0]: i2c eeprom 20: 01 40 01 32 32 01 01 33 88
-ff 00 b0 ff††††† ff ff ff
-[††† 5.884031] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff
-ff ff ff ff††††† ff ff ff
-[††† 5.884037] saa7133[0]: i2c eeprom 40: ff 35 00 c0 96 10 06 32 97
-04 00 20 00††††† ff ff ff
-[††† 5.884042] saa7133[0]: i2c eeprom 50: ff 00 00 00 00 00 00 00 00
-00 00 00 00††††† 00 00 00
-[††† 5.884047] saa7133[0]: i2c eeprom 60: 00 00 00 00 00 00 00 00 00
-00 00 00 00††††† 00 00 00
-[††† 5.884052] saa7133[0]: i2c eeprom 70: 00 00 00 00 00 00 00 00 00
-00 00 00 00††††† 00 00 00
-[††† 5.884056] saa7133[0]: i2c eeprom 80: 84 09 00 04 20 77 00 40 5c
-05 5f f0 73††††† 05 29 00
-[††† 5.884062] saa7133[0]: i2c eeprom 90: 84 08 00 06 89 06 01 00 95
-29 8d 72 07††††† 70 73 09
-[††† 5.884067] saa7133[0]: i2c eeprom a0: 23 5f 73 0a f4 9b 72 0b 2f
-72 0e 01 72††††† 0f 01 72
-[††† 5.884072] saa7133[0]: i2c eeprom b0: 10 01 72 11 ff 73 13 a2 69
-79 29 00 00††††† 00 00 00
-[††† 5.884078] saa7133[0]: i2c eeprom c0: 00 00 00 00 00 00 00 00 00
-00 00 00 00††††† 00 00 00
-[††† 5.884083] saa7133[0]: i2c eeprom d0: 00 00 00 00 00 00 00 00 00
-00 00 00 00††††† 00 00 00
-[††† 5.884088] saa7133[0]: i2c eeprom e0: 00 00 00 00 00 00 00 00 00
-00 00 00 00††††† 00 00 00
-[††† 5.884093] saa7133[0]: i2c eeprom f0: 00 00 00 00 00 00 00 00 00
-00 00 00 00††††† 00 00 00
-[††† 5.884101] tveeprom 2-0050: Hauppauge model 67209, rev C2F5, serial# 6227292
-[††† 5.884103] tveeprom 2-0050: MAC address is 00-0D-FE-5F-05-5C
-[††† 5.884105] tveeprom 2-0050: tuner model is NXP 18271C2 (idx 155, type 54)
-[††† 5.884107] tveeprom 2-0050: TV standards PAL(B/G) PAL(I)
-SECAM(L/L') PAL(D/D†††† 1/K) ATSC/DVB Digital (eeprom 0xf4)
-[††† 5.884109] tveeprom 2-0050: audio processor is SAA7131 (idx 41)
-[††† 5.884110] tveeprom 2-0050: decoder processor is SAA7131 (idx 35)
-[††† 5.884112] tveeprom 2-0050: has radio, has IR receiver, has no IR
-transmitte†††† r
-[††† 5.884114] saa7133[0]: hauppauge eeprom: model=67209
-[††† 5.956082] tuner 2-004b: chip found @ 0x96 (saa7133[0])
-[††† 6.009348] phy0: Selected rate control algorithm 'pid'
-[††† 6.036025] tda829x 2-004b: setting tuner address to 60
-[††† 6.083703] tda18271 2-0060: creating new instance
-[††† 6.132022] TDA18271HD/C2 detected @ 2-0060
-[††† 6.236015] hda_codec: Unknown model for ALC883, trying auto-probe
-from BIOS.†††† ..
-[††† 7.464017] tda18271: performing RF tracking filter calibration
-[†† 25.668014] tda18271: RF tracking filter calibration complete
-[†† 25.724014] tda829x 2-004b: type set to tda8290+18271
-[†† 30.700128] saa7133[0]: registered device video0 [v4l2]
-[†† 30.700168] saa7133[0]: registered device vbi0
-[†† 30.700202] saa7133[0]: registered device radio0
-[†† 30.729129] saa7134 ALSA driver for DMA sound loaded
-[†† 30.729154] saa7133[0]/alsa: saa7133[0] at 0xddeff800 irq 18
-registered as ca†††† rd -2
-[†† 30.765270] dvb_init() allocating 1 frontend
-[†† 30.901676] tda829x 2-004b: type set to tda8290
-[†† 30.916100] tda18271 2-0060: attaching existing instance
-[†† 30.916105] DVB: registering new adapter (saa7133[0])
-[†† 30.916108] DVB: registering adapter 0 frontend 0 (NXP TDA10048HN DVB-T)...
-[†† 31.185908] Adding 995988k swap on /dev/sda5.† Priority:-1
-extents:1 across:9†††† 95988k
-[†† 31.244019] tda10048_firmware_upload: waiting for firmware upload
-(dvb-fe-tda†††† 10048-1.0.fw)...
-[†† 31.244024] saa7134 0000:01:09.0: firmware: requesting dvb-fe-tda10048-1.0.fw
-[†† 31.354316] tda10048_firmware_upload: firmware read 24878 bytes.
-[†† 31.354319] tda10048_firmware_upload: firmware uploading
-[†† 44.044019] tda18271_write_regs: ERROR: i2c_transfer returned: -5
-[†† 44.044023] tda18271c2_rf_tracking_filters_correction: error -5 on line 244
+Hello.
 
-got the firmware from http://steventoth.net/linux/hvr1200/
+I have the Terratec Cinergy Hybrid T XS USB (em2882) - usb-id 0ccd:005e. 
+It works with Marcus Rechberger's em28xx-new driver, but since that code 
+is unmaintained now, I tested this device with v4l-dvb today.
 
-using the latest code from linuxtv ( which autodetect the card as an HVR1120 )
-seems the problem is firmware uploading ... wrong file ?
-on the card PCB i got :
-†670000-038 LF
-the DVB part read
-hauppauge 1110
-dvb-t
-67209 LF rev c2F5
-and the chip read Saa7131e/03/G
+The analog picture is there, but audio is very, very quiet, almost not 
+there. Is there some way to increase the volume?
+
+Second question, what would be required to get DVB working?
+
+The final thing is not a question, it's actually something that works: 
+the remote. It's the same one as comes with the other Hybrid XS 
+(0ccd:0042), adding these two lines to the definition of this card in 
+em28xx-cards.c makes it work:
+
+		.ir_codes       = &ir_codes_terratec_cinergy_xs_table,
+		.xclk           = EM28XX_XCLK_FREQUENCY_12MHZ,
+
+
+Any pointers to solving my issues (analog audio, dvb) appreciated. I can 
+test patches, I can give ssh access to my machine if it helps. There's 
+even a Windows install on this machine, so USB sniffing of the Windows 
+driver is possible, I just need instructions on what exactly to do.
+Dmesg output for this device is attached.
+
+
+Regards,
+Uro≈°
+
+--vkogqOf2sHV7VnPd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="dmesg.txt"
+
+usb 1-4: new high speed USB device using ehci_hcd and address 6
+usb 1-4: configuration #1 chosen from 1 choice
+Linux video capture interface: v2.00
+em28xx: New device TerraTec Electronic GmbH Cinergy Hybrid T USB XS (2882) @ 480 Mbps (0ccd:005e, interface 0, class 0)
+em28xx #0: chip ID is em2882/em2883
+em28xx #0: i2c eeprom 00: 1a eb 67 95 cd 0c 5e 00 d0 12 5c 03 9e 40 de 1c
+em28xx #0: i2c eeprom 10: 6a 34 27 57 46 07 01 00 00 00 00 00 00 00 00 00
+em28xx #0: i2c eeprom 20: 46 00 01 00 f0 10 31 00 b8 00 14 00 5b 1e 00 00
+em28xx #0: i2c eeprom 30: 00 00 20 40 20 6e 02 20 10 01 00 00 00 00 00 00
+em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 34 03 54 00 65 00
+em28xx #0: i2c eeprom 70: 72 00 72 00 61 00 54 00 65 00 63 00 20 00 45 00
+em28xx #0: i2c eeprom 80: 6c 00 65 00 63 00 74 00 72 00 6f 00 6e 00 69 00
+em28xx #0: i2c eeprom 90: 63 00 20 00 47 00 6d 00 62 00 48 00 00 00 40 03
+em28xx #0: i2c eeprom a0: 43 00 69 00 6e 00 65 00 72 00 67 00 79 00 20 00
+em28xx #0: i2c eeprom b0: 48 00 79 00 62 00 72 00 69 00 64 00 20 00 54 00
+em28xx #0: i2c eeprom c0: 20 00 55 00 53 00 42 00 20 00 58 00 53 00 20 00
+em28xx #0: i2c eeprom d0: 28 00 32 00 38 00 38 00 32 00 29 00 00 00 1c 03
+em28xx #0: i2c eeprom e0: 30 00 36 00 30 00 39 00 30 00 32 00 30 00 31 00
+em28xx #0: i2c eeprom f0: 33 00 38 00 34 00 33 00 00 00 00 00 00 00 00 00
+em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x7713bfbe
+em28xx #0: EEPROM info:
+em28xx #0:      AC97 audio (5 sample rates)
+em28xx #0:      500mA max power
+em28xx #0:      Table at 0x27, strings=0x409e, 0x1cde, 0x346a
+em28xx #0: Identified as Terratec Hybrid XS (em2882) (card=55)
+em28xx #0:
+
+em28xx #0: The support for this board weren't valid yet.
+em28xx #0: Please send a report of having this working
+em28xx #0: not to V4L mailing list (and/or to other addresses)
+
+tvp5150 4-005c: chip found @ 0xb8 (em28xx #0)
+tuner 4-0061: chip found @ 0xc2 (em28xx #0)
+xc2028 4-0061: creating new instance
+xc2028 4-0061: type set to XCeive xc2028/xc3028 tuner
+usb 1-4: firmware: requesting xc3028-v27.fw
+xc2028 4-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+xc2028 4-0061: Loading firmware for type=BASE (1), id 0000000000000000.
+xc2028 4-0061: Loading firmware for type=(0), id 000000000000b700.
+SCODE (20000000), id 000000000000b700:
+xc2028 4-0061: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000), id 0000000000008000.
+em28xx #0: Config register raw data: 0xd0
+em28xx #0: AC97 vendor ID = 0xffffffff
+em28xx #0: AC97 features = 0x6a90
+em28xx #0: Empia 202 AC97 audio processor detected
+tvp5150 4-005c: tvp5150am1 detected.
+em28xx #0: v4l2 driver version 0.1.2
+em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
+usbcore: registered new interface driver em28xx
+em28xx driver loaded
+em28xx-audio.c: probing for em28x1 non standard usbaudio
+em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+Em28xx: Initialized (Em28xx Audio Extension) extension
+tvp5150 4-005c: tvp5150am1 detected.
+xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
+xc2028 4-0061: Loading firmware for type=(0), id 0000000100000007.
+xc2028 4-0061: Loading SCODE for type=MONO SCODE HAS_IF_5320 (60008000), id 0000000f00000007.
+
+--vkogqOf2sHV7VnPd--
