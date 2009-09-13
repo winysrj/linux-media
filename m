@@ -1,59 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:44411 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751185AbZIYRwC (ORCPT
+Received: from mail-in-11.arcor-online.net ([151.189.21.51]:36911 "EHLO
+	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754954AbZIMDni (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Sep 2009 13:52:02 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Subject: Re: V4L-DVB Summit Day 2
-Date: Fri, 25 Sep 2009 19:53:35 +0200
-Cc: "v4l-dvb" <linux-media@vger.kernel.org>
-References: <40e7bbfbf781ac7bdda6757a1292fe45.squirrel@webmail.xs4all.nl>
-In-Reply-To: <40e7bbfbf781ac7bdda6757a1292fe45.squirrel@webmail.xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+	Sat, 12 Sep 2009 23:43:38 -0400
+Subject: Re: cx88: 2 channels on each of 2 cards
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Adam Swift <vikevid@omnitude.net>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <20090913114622.cwfj5t1kgowgkgo4@omnitude.net>
+References: <20090913114622.cwfj5t1kgowgkgo4@omnitude.net>
+Content-Type: text/plain
+Date: Sun, 13 Sep 2009 05:40:48 +0200
+Message-Id: <1252813248.3259.14.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <200909251953.35529.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everybody,
 
-Hans asked me to write a quick update on the global video buffers pool 
-discussions. so here it is.
+Am Sonntag, den 13.09.2009, 11:46 +1000 schrieb Adam Swift:
+> Hi all,
+> 
+> I have 2 LeadTek WinFast TV2000 XP Expert analog capture cards. I'm  
+> attempting to get 4 channels of video in, using both the S-video and  
+> component inputs (not the tuners) of each cards. I understand that  
+> this was possible with the bt878 which this chip is an evolution of.
+> 
+> However, it doesn't work.
+> 
+> 1 channel on each card gives no signal on the "second" card- i.e. the  
+> one initialised second. This is from tests with  and ZoneAlarm (the  
+> application I'm trying to use the cards with).
+> 
+> 2 channels on one card kinda works, but not correctly. Sometimes one  
+> channel will display vertical split-screen of both feeds, with a  
+> little noise at the top, bottom, and in between. Sometimes each  
+> channel will display correctly, but will appear to "vibrate" up and  
+> down, and the channels seem to alternate between which one updates. I  
+> can provide screenshots of both these behaviours if it will help.
+> 
+> I've tried this with the following kernels:
+> 2.6.29-larch
+> 2.6.17-10mdv
+> 
+> If someone can point me in the right direction I may be able to do any  
+> patches required myself, but I need a starting point.
+> 
+> Thanks in advance,
+> Adam Swift
+> 
 
-We started with a presentation of the global video buffers pool RFC[1], The 
-proposal aimed at solving different problems related to video buffers 
-allocation and management depending on the target platform. Everybody agreed 
-that a video buffers pool was indeed needed.
+Adam,
 
-The original proposal was to create pools at the media controller level for 
-implementation ease (or maybe because I'm lazy at times :-)). It soon became 
-clear that a truly global pool was desirable, and probably not more complex to 
-implement.
+starting point here is, that neither of the now older chips like bt878,
+saa713x or cx88xx can do two external inputs at the same time on one
+chip at once. 
 
-Moving one more level upwards, it was proposed to make the buffers pool video-
-agnostic so that it could be used for generic buffers, not only v4l2_buffers. 
-However, such a global pool might have a hard time entering the mainline 
-kernel, and using v4l2_buffers would be easier for V4L2 driver writers as the 
-drivers already use those objects. The first implementation will thus likely 
-be V4L2-specific.
+At least saa713x and cx88xx boards can do DVB and analog at once for
+external inputs, if not depending on a single hybrid tuner for both,
+also DVB and analog TV from tuners.
 
-As video buffers need to be shared with the GPU for some use cases (Xv video 
-rendering, OpenGL textures, ...) the video buffers manager might need to 
-interact with the GEM GPU memory manager. As no attendee was familiar with GEM 
-this topic needs to be researched.
+Else, they totally depend on software switching between those external
+inputs.
 
-The conclusion was that the video buffers pool needs a lot more research 
-followed by another RFC. The implementation will likely first focus on buffers 
-allocation and management, and then move on video queuing latency issues 
-(cache management).
+In short, to have those inputs at once, you need at least two those
+chips per board and PCI hardware able to deal with them.
 
-[1] http://osdir.com/ml/linux-media/2009-09/msg00693.html
+Cheers,
+Hermann
 
--- 
-Regards,
 
-Laurent Pinchart
+
+
+
