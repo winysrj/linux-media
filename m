@@ -1,71 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:44876 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754695AbZIODJR (ORCPT
+Received: from mail-px0-f189.google.com ([209.85.216.189]:54503 "EHLO
+	mail-px0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752552AbZIMGNM convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Sep 2009 23:09:17 -0400
-Date: Tue, 15 Sep 2009 00:08:41 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: David Liontooth <lionteeth@cogweb.net>
+	Sun, 13 Sep 2009 02:13:12 -0400
+Received: by pxi27 with SMTP id 27so1682818pxi.15
+        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 23:13:15 -0700 (PDT)
+Subject: Re: Media controller: sysfs vs ioctl
+Mime-Version: 1.0 (Apple Message framework v1076)
+Content-Type: text/plain; charset=euc-kr; format=flowed; delsp=yes
+From: Nathaniel Kim <dongsoo.kim@gmail.com>
+In-Reply-To: <200909120021.48353.hverkuil@xs4all.nl>
+Date: Sun, 13 Sep 2009 15:13:04 +0900
 Cc: linux-media@vger.kernel.org
-Subject: Re: Reliable work-horse capture device?
-Message-ID: <20090915000841.56c24dd6@pedra.chehab.org>
-In-Reply-To: <4AAEFEC9.3080405@cogweb.net>
-References: <4AAEFEC9.3080405@cogweb.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+Message-Id: <1BD4D6CB-4CEC-40D2-B168-BE5F8494189F@gmail.com>
+References: <200909120021.48353.hverkuil@xs4all.nl>
+To: Hans Verkuil <hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi David,
 
-Em Mon, 14 Sep 2009 19:41:13 -0700
-David Liontooth <lionteeth@cogweb.net> escreveu:
+2009. 9. 12., 오전 7:21, Hans Verkuil 작성:
 
-> 
-> We're setting up NTSC cable television capture devices in a handfull of 
-> remote locations, using four devices to capture around fifty hours a day 
-> on each location. Capture is scripted and will be ongoing for several 
-> years. We want to minimize the need for human intervention.
-> 
-> I'm looking for advice on which capture device to use.  My main 
-> candidates are ivtv (WinTV PVR 500) and USB, but I've not used any of 
-> the supported USB devices.
-> 
-> Are there USB devices that are sufficiently reliable to hold up under 
-> continuous capture for years? Are the drivers robust?
-> 
-> I need zvbi-ntsc-cc support, so a big thanks to Michael Krufty for just 
-> now adding it to em28xx. Do any other USB device chipsets have raw 
-> closed captioning support?
-> 
-> I would also consider using the PCIe device Hauppauge WinTV-HVR-2200, 
-> but I need analog support.
-> 
-> Appreciate any advice.
+> Hi all,
+>
+> I've started this as a new thread to prevent polluting the  
+> discussions of the
+> media controller as a concept.
+>
+> First of all, I have no doubt that everything that you can do with  
+> an ioctl,
+> you can also do with sysfs and vice versa. That's not the problem  
+> here.
+>
+> The problem is deciding which approach is the best.
+>
+> What is sysfs? (taken from http://lwn.net/Articles/31185/)
+>
+> "Sysfs is a virtual filesystem which provides a userspace-visible  
+> representation
+> of the device model. The device model and sysfs are sometimes  
+> confused with each
+> other, but they are distinct entities. The device model functions  
+> just fine
+> without sysfs (but the reverse is not true)."
+>
+> Currently both a v4l driver and the device nodes are all represented  
+> in sysfs.
+> This is handled automatically by the kernel.
+>
+> Sub-devices are not represented in sysfs since they are not based on  
+> struct
+> device. They are v4l-internal structures. Actually, if the subdev  
+> represents
+> an i2c device, then that i2c device will be present in sysfs, but  
+> not all
+> subdevs are i2c devices.
+>
+> Should we make all sub-devices based on struct device? Currently  
+> this is not
+> required. Doing this would probably mean registering a virtual bus,  
+> then
+> attaching the sub-device to that. Of course, this only applies to  
+> sub-devices
+> that represent something that is not an i2c device (e.g. something  
+> internal
+> to the media board like a resizer, or something connected to GPIO  
+> pins).
+>
+> If we decide to go with sysfs, then we have to do this. This part  
+> shouldn't
+> be too difficult to implement. And also if we do not go with sysfs  
+> this might
+> be interesting to do eventually.
+>
+> The media controller topology as I see it should contain the device  
+> nodes
+> since the application has to know what device node to open to do the  
+> streaming.
+> It should also contain the sub-devices so the application can  
+> control them.
+> Is this enough? I think that eventually we also want to show the  
+> physical
+> connectors. I left them out (mostly) from the initial media  
+> controller proposal,
+> but I suspect that we want those as well eventually. But connectors  
+> are
+> definitely not devices. In that respect the entity concept of the  
+> media
+> controller is more abstract than sysfs.
+>
+> However, for now I think we can safely assume that sub-devices can  
+> be made
+> visible in sysfs.
+>
 
-If you look for stability, the most important item is to choose a good stable
-server distribution, like RHEL5. You'll be better serviced than using a desktop
-distro with some new (not so stable) kernel and tools.
+Hans,
 
-In terms of stability, the PCI devices are generally more reliable, and, among
-all drivers, bttv is the winner, since it is the older driver, so, in thesis,
-more bugs were solved on it. That's the reason why several surveillance systems
-are still today based on bttv. If you need a newer hardware, then you may choose
-saa7134, cx88 or ivtv devices.
+First of all I'm very sorry that I had not enough time to go through  
+your new RFC. I'll checkout right after posting this mail.
 
-I don't recommend using an USB hardware for such hard usage: it will probably
-have a shorter life (since it is not as ventilated as a PCI device on a
-server cabinet), and you might experience troubles after long plays. In terms
-of USB with analog support, em28xx driver is the more stable, and we recently
-fixed some bugs on it, related to memory consumption along the time (it used to
-forget to free memory, resulting on crashes, after several stream
-start/stop's). 
+I think this is a good approach and I also had in my mind that sysfs  
+might be a good method if we could control and monitor through this.  
+Recalling memory when we had a talk in San Francisco, I was frustrated  
+that there is no way to catch events from sort of sub-devices like  
+lens actuator (I mean pizeo motors in camera module). As you know lens  
+actuator is an extremely slow device in comparison with common v4l2  
+devices we are using and we need to know whether it has succeeded or  
+not in moving to expected position.
+So I considered sysfs and udev as candidates for catching events from  
+sub-devices. events like success/failure of lens movement, change of  
+status of subdevices.
+Does anybody experiencing same issue? I think I've seen a lens  
+controller driver in omap3 kernel from TI but not sure how did they  
+control that.
 
-There's a tool at v4l2-apps/test made to stress a video driver, made by
-Douglas. I suggest that you should run it with the board you'll choose to be
-sure that you won't have memory garbage along driver usage.
-
+My point is that we need a kind of framework to give and event to user  
+space and catching them properly just like udev does.
 Cheers,
-Mauro
+
+Nate
+
+=
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+           dongsoo45.kim@samsung.com
