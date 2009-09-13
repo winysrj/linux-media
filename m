@@ -1,117 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1557 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752360AbZILSOG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Sep 2009 14:14:06 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id n8CIE8VY021162
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 20:14:09 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 12 Sep 2009 20:14:08 +0200 (CEST)
-Message-Id: <200909121814.n8CIE8VY021162@smtp-vbr8.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from tichy.grunau.be ([85.131.189.73]:55042 "EHLO tichy.grunau.be"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751449AbZIMWMf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Sep 2009 18:12:35 -0400
+Date: Mon, 14 Sep 2009 00:13:15 +0200
+From: Janne Grunau <j@jannau.net>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Brandon Jenkins <bcjenkins@tvwhere.com>,
+	Andy Walls <awalls@radix.net>, Jarod Wilson <jarod@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] hdpvr: i2c fixups for fully functional IR support
+Message-ID: <20090913221314.GA11178@aniel.lan>
+References: <200909011019.35798.jarod@redhat.com>
+ <1251855051.3926.34.camel@palomino.walls.org>
+ <de8cad4d0909131023t7103b446sf6b20889567556ee@mail.gmail.com>
+ <6EBCDFA3-FAAA-4757-97B6-9CF3442FE920@wilsonet.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6EBCDFA3-FAAA-4757-97B6-9CF3442FE920@wilsonet.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Sun, Sep 13, 2009 at 05:04:16PM -0400, Jarod Wilson wrote:
+> On Sep 13, 2009, at 1:23 PM, Brandon Jenkins wrote:
+> 
+> > I don't mind testing. Currently I am running ArchLinux 64-bit,
+> > kernel26-2.6.30.6-1. Please tell me where to build the driver from.
+> 
+> Hrm... It *was* in Janne's hdpvr tree, but it seems to have gone  
+> missing...
 
-Results of the daily build of v4l-dvb:
+It's in http://hg.jannau.net/hdpvr. I just merged several weeks of
+v4l-dvb changes after the last commit. So it's not at the top of the
+log.
 
-date:        Sat Sep 12 19:00:05 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12715:2a59e7f77e6f
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
-
-linux-2.6.22.19-armv5: WARNINGS
-linux-2.6.23.12-armv5: ERRORS
-linux-2.6.24.7-armv5: ERRORS
-linux-2.6.25.11-armv5: ERRORS
-linux-2.6.26-armv5: ERRORS
-linux-2.6.27-armv5: ERRORS
-linux-2.6.28-armv5: ERRORS
-linux-2.6.29.1-armv5: ERRORS
-linux-2.6.30-armv5: ERRORS
-linux-2.6.31-armv5: OK
-linux-2.6.27-armv5-ixp: ERRORS
-linux-2.6.28-armv5-ixp: ERRORS
-linux-2.6.29.1-armv5-ixp: ERRORS
-linux-2.6.30-armv5-ixp: ERRORS
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: ERRORS
-linux-2.6.29.1-armv5-omap2: ERRORS
-linux-2.6.30-armv5-omap2: ERRORS
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: ERRORS
-linux-2.6.27-i686: ERRORS
-linux-2.6.28-i686: ERRORS
-linux-2.6.29.1-i686: ERRORS
-linux-2.6.30-i686: ERRORS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.30-mips: ERRORS
-linux-2.6.31-mips: OK
-linux-2.6.27-powerpc64: ERRORS
-linux-2.6.28-powerpc64: ERRORS
-linux-2.6.29.1-powerpc64: ERRORS
-linux-2.6.30-powerpc64: ERRORS
-linux-2.6.31-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: ERRORS
-linux-2.6.27-x86_64: ERRORS
-linux-2.6.28-x86_64: ERRORS
-linux-2.6.29.1-x86_64: ERRORS
-linux-2.6.30-x86_64: ERRORS
-linux-2.6.31-x86_64: WARNINGS
-sparse (linux-2.6.31): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+Janne
