@@ -1,59 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3607 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751471AbZISI56 (ORCPT
+Received: from mail-ew0-f206.google.com ([209.85.219.206]:37248 "EHLO
+	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751449AbZIMShL convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Sep 2009 04:57:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: Media Controller initial support for ALSA devices
-Date: Sat, 19 Sep 2009 10:57:58 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <829197380909172140q124ce047nd45ad5d64b155fb3@mail.gmail.com>
-In-Reply-To: <829197380909172140q124ce047nd45ad5d64b155fb3@mail.gmail.com>
+	Sun, 13 Sep 2009 14:37:11 -0400
+Received: by ewy2 with SMTP id 2so163128ewy.17
+        for <linux-media@vger.kernel.org>; Sun, 13 Sep 2009 11:37:13 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200909191057.58834.hverkuil@xs4all.nl>
+In-Reply-To: <4AAD3A52.7080807@redhat.com>
+References: <20090909174351.39b8f88f@blackbart.localnet.prv>
+	 <62e5edd40909100051i683b1d11ga27c0bfe0742c89d@mail.gmail.com>
+	 <4AAD3A52.7080807@redhat.com>
+Date: Sun, 13 Sep 2009 20:37:13 +0200
+Message-ID: <62e5edd40909131137m3d509ce3o3abe0741e880448b@mail.gmail.com>
+Subject: Re: [Patch 2/2] stv06xx webcams with HDCS 1xxx sensors
+From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: James Blanford <jhblanford@gmail.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 18 September 2009 06:40:34 Devin Heitmueller wrote:
-> Hello Hans,
-> 
-> If you can find a few minutes, please take a look at the following
-> tree, where I added initial support for including the ALSA devices in
-> the MC enumeration.  I also did a bit of cleanup on your example tool,
-> properly showing the fields associated with the given node type and
-> subtype (before it was always showing fields for the V4L subtype).
-> 
-> http://kernellabs.com/hg/~dheitmueller/v4l-dvb-mc-alsa/
-> 
-> I've implemented it for em28xx as a prototype, and will probably see
-> how the code looks when calling it from au0828 and cx88 as well (to
-> judge the quality of the abstraction).
-> 
-> Comments welcome, of course...
+2009/9/13 Hans de Goede <hdegoede@redhat.com>:
+> Hi,
+>
+> On 09/10/2009 09:51 AM, Erik Andrén wrote:
+>
+> <snip>
+>
+>>
+>> Looks good!
+>> Thanks,
+>>
+>> Acked-by: Erik Andrén<erik.andren@gmail.com>
+>
+> Erik,
+>
+> Are you going to merge these 2 patches in your tree, and let them find
+> their way into the master this way, or shall I merge them in my tree ?
+>
 
-Looks good. But rather than adding v4l2_device_register_alsa_node you should
-add a v4l2_device_register_entity. I intended to do that, but never got around
-to it. The entity struct is just part of the larger struct v4l2_alsa_device
-and you can go from one to the other using container_of.
+Hi,
+I was under the impression that Jean-Francois took stv06xx patches
+directly into his tree.
+But you can of course take them too if you want to.
 
-This way you don't need to make v4l2_device_register_fb_node and dvb_node, etc.
-A single generic register_entity is sufficient.
+Best regards,
+Erik
 
-Note that I am leaning more to replacing the v4l2 prefix by a media prefix.
-It's not really very v4l2-specific anymore. I think that most of what the
-media controller does can be generalized completely and used by pretty much
-anything that has complex mesh-like relationships. Too early to say for sure,
-though.
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+> Regards,
+>
+> Hans
+>
+>
