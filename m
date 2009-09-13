@@ -1,82 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:46420 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754346AbZI3MQo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Sep 2009 08:16:44 -0400
-Date: Wed, 30 Sep 2009 14:16:56 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Pavel Machek <pavel@ucw.cz>
-cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	kernel list <linux-kernel@vger.kernel.org>,
-	Eric Miao <eric.y.miao@gmail.com>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Paul Mundt <lethal@linux-sh.org>,
-	Magnus Damm <magnus.damm@gmail.com>
-Subject: Re: arm tree in broken state (was Re: What's inside the pxa tree
- for this merge window)
-In-Reply-To: <20090930120920.GH1412@ucw.cz>
-Message-ID: <Pine.LNX.4.64.0909301415300.4330@axis700.grange>
-References: <f17812d70909100446h17a1903fy74941945dbfc6943@mail.gmail.com>
- <1253256227.4407.7.camel@pc-matejk> <20090918074551.GA26058@n2100.arm.linux.org.uk>
- <Pine.LNX.4.64.0909212111490.17328@axis700.grange>
- <20090921200923.GF30821@n2100.arm.linux.org.uk> <20090930120920.GH1412@ucw.cz>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3260 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753701AbZIMNnK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Sep 2009 09:43:10 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: Media controller: sysfs vs ioctl
+Date: Sun, 13 Sep 2009 15:43:02 +0200
+Cc: Nathaniel Kim <dongsoo.kim@gmail.com>, linux-media@vger.kernel.org
+References: <200909120021.48353.hverkuil@xs4all.nl> <1BD4D6CB-4CEC-40D2-B168-BE5F8494189F@gmail.com> <20090913102757.2a1dff1c@caramujo.chehab.org>
+In-Reply-To: <20090913102757.2a1dff1c@caramujo.chehab.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200909131543.02990.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel
-
-On Wed, 30 Sep 2009, Pavel Machek wrote:
-
-> > > > I discarded them _because_ Eric handled them, which is what I said in the
-> > > > comments when I discarded them.
-> > > 
-> > > Ok, I did do my best to get patches in the right order in the mainline, 
-> > > but it all failed. AFAICS, v4l and sh are already in the mainline with a 
-> > > _wrongly_ resolved mefge conflict, which, most likely, breaks the 
-> > > sh_mobile_ceu_camera.c driver, and the three PXA platforms, patches for 
-> > > which should have been applied before both those trees and still haven't 
-> > > been applied are broken until the patches do get in and the later those 
-> > > patches get applied the longer the interval with the broken for them 
-> > > bisection is going to be.
+On Sunday 13 September 2009 15:27:57 Mauro Carvalho Chehab wrote:
+> Em Sun, 13 Sep 2009 15:13:04 +0900
+> Nathaniel Kim <dongsoo.kim@gmail.com> escreveu:
+> 
 > > 
-> > Meanwhile I have to consider that we have several bug fixes outstanding,
-> > and since I can't send Linus a pull request every day (max once a week)
-> > I have to be very careful about when I send stuff.
+> > 2009. 9. 12., 오전 7:21, Hans Verkuil 작성:
 > > 
-> > So I only get _two_ opportunities during a merge window to send a pull
-> > request.
-> 
-> Well, you should certainly try to keep your tree  unbroken, but when
-> it breaks, fixing it asap should be a priority. I don't know where you
-> got the 'once a week' rule, but it seems stupid.
-> 
-> > I'm going to wait until tomorrow before sending my final pull for this
-> > window, which is the penultimate day before the window closes.
+> > > Hi all,
+> > >
+> > > I've started this as a new thread to prevent polluting the  
+> > > discussions of the
+> > > media controller as a concept.
+> > >
+> > > First of all, I have no doubt that everything that you can do with  
+> > > an ioctl,
+> > > you can also do with sysfs and vice versa. That's not the problem  
+> > > here.
+> > >
+> > > The problem is deciding which approach is the best.
+> > >
+> > > What is sysfs? (taken from http://lwn.net/Articles/31185/)
+> > >
+> > > "Sysfs is a virtual filesystem which provides a userspace-visible  
+> > > representation
+> > > of the device model. The device model and sysfs are sometimes  
+> > > confused with each
+> > > other, but they are distinct entities. The device model functions  
+> > > just fine
+> > > without sysfs (but the reverse is not true)."
+> > >
+> > > Currently both a v4l driver and the device nodes are all represented  
+> > > in sysfs.
+> > > This is handled automatically by the kernel.
+> > >
+> > > Sub-devices are not represented in sysfs since they are not based on  
+> > > struct
+> > > device. They are v4l-internal structures. Actually, if the subdev  
+> > > represents
+> > > an i2c device, then that i2c device will be present in sysfs, but  
+> > > not all
+> > > subdevs are i2c devices.
+> > >
+> > > Should we make all sub-devices based on struct device? Currently  
+> > > this is not
+> > > required. Doing this would probably mean registering a virtual bus,  
+> > > then
+> > > attaching the sub-device to that. Of course, this only applies to  
+> > > sub-devices
+> > > that represent something that is not an i2c device (e.g. something  
+> > > internal
+> > > to the media board like a resizer, or something connected to GPIO  
+> > > pins).
+> > >
+> > > If we decide to go with sysfs, then we have to do this. This part  
+> > > shouldn't
+> > > be too difficult to implement. And also if we do not go with sysfs  
+> > > this might
+> > > be interesting to do eventually.
+> > >
+> > > The media controller topology as I see it should contain the device  
+> > > nodes
+> > > since the application has to know what device node to open to do the  
+> > > streaming.
+> > > It should also contain the sub-devices so the application can  
+> > > control them.
+> > > Is this enough? I think that eventually we also want to show the  
+> > > physical
+> > > connectors. I left them out (mostly) from the initial media  
+> > > controller proposal,
+> > > but I suspect that we want those as well eventually. But connectors  
+> > > are
+> > > definitely not devices. In that respect the entity concept of the  
+> > > media
+> > > controller is more abstract than sysfs.
+> > >
+> > > However, for now I think we can safely assume that sub-devices can  
+> > > be made
+> > > visible in sysfs.
+> > >
 > > 
-> > Don't blame me for these delays - it's not my choice to impose such
-> > delays.  I'd really like to fix those broken platforms right now.  I
-> > just can't do so without causing additional delays for other issues.
-> > Blame Linus for imposing the "max one pull a week" rule on me.
+> > Hans,
+> > 
+> > First of all I'm very sorry that I had not enough time to go through  
+> > your new RFC. I'll checkout right after posting this mail.
+> > 
+> > I think this is a good approach and I also had in my mind that sysfs  
+> > might be a good method if we could control and monitor through this.  
+> > Recalling memory when we had a talk in San Francisco, I was frustrated  
+> > that there is no way to catch events from sort of sub-devices like  
+> > lens actuator (I mean pizeo motors in camera module). As you know lens  
+> > actuator is an extremely slow device in comparison with common v4l2  
+> > devices we are using and we need to know whether it has succeeded or  
+> > not in moving to expected position.
+> > So I considered sysfs and udev as candidates for catching events from  
+> > sub-devices. events like success/failure of lens movement, change of  
+> > status of subdevices.
+> > Does anybody experiencing same issue? I think I've seen a lens  
+> > controller driver in omap3 kernel from TI but not sure how did they  
+> > control that.
+> > 
+> > My point is that we need a kind of framework to give and event to user  
+> > space and catching them properly just like udev does.
 > 
-> Do you have maillist reference? Not even Linus should slow down
-> development like that.
-> 
-> If Linus really insists on that, perhaps possible solution would be to
-> make subarch maintainers send pull requests for simple fixes directly
-> to Linus?
+> Maybe the Kernel event interface could be used for that.
 
-Thanks for your concern, but the patches are long in mainline, no reason 
-to worry any more.
+Are you talking about the input event interface? There is no standard kernel
+way of doing events afaik.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
