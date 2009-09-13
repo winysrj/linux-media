@@ -1,69 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2087 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751777AbZILK52 (ORCPT
+Received: from mail-in-05.arcor-online.net ([151.189.21.45]:38322 "EHLO
+	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753790AbZIMX1N (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Sep 2009 06:57:28 -0400
-Received: from tschai.lan (cm-84.208.105.24.getinternet.no [84.208.105.24])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id n8CAvTrv028840
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 12:57:30 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: Initial media controller implementation
-Date: Sat, 12 Sep 2009 12:57:28 +0200
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+	Sun, 13 Sep 2009 19:27:13 -0400
+Subject: Re: Pinnacle PCTV 310i active antenna
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Martin Konopka <martin.konopka@mknetz.de>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <200909131637.12483.martin.konopka@mknetz.de>
+References: <200907011701.43079.martin.konopka@mknetz.de>
+	 <200908281827.58036.martin.konopka@mknetz.de>
+	 <1251589115.26402.11.camel@pc07.localdom.local>
+	 <200909131637.12483.martin.konopka@mknetz.de>
+Content-Type: text/plain
+Date: Mon, 14 Sep 2009 01:22:51 +0200
+Message-Id: <1252884171.4318.58.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200909121257.28522.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rather than writing long mails on what a media controller is and what it can
-do, I thought that I could just as well implement it.
+Hi Martin,
 
-So in 4 hours I implemented pretty much all of the media controller
-functionality. The main missing features are the ability to register non-v4l
-device nodes so that they can be enumerated and setting controls private to
-a sub-device. For that I should first finish the control handling framework.
+Am Sonntag, den 13.09.2009, 16:37 +0200 schrieb Martin Konopka:
+> Hi Hermann,
+> 
+> thank you, the patch for the antenna power is working for me with the latest 
+> mercurial tree. I'm now able to receive additional weak channels. On the 
+> contrary a channel close by with a very strong signal disappeared. The 
+> stand-alone receiver with antenna power that I have can receive both channels 
+> at the same time.
 
-The datastructures and naming conventions needs to be cleaned up, and it
-needs some tweaking, but I'd say this is pretty much the way I want it.
+thanks for your testing!
 
-The code is available here:
+On many demods it is already reported, that a too strong signal might
+need attenuation. 
 
-http://linuxtv.org/hg/~hverkuil/v4l-dvb-mc/
+With the mix of different transmitters we now have, more established by
+means to serve federal states instead of having an over all concept, I
+don't wonder to get such a report now too the first time.
 
-It includes a v4l2-mc utility in v4l2-apps/util that has the
---show-topology option that enumerates all nodes and subdev. Currently any
-registered subdevs and v4l device nodes are already automatically added.
-Obviously, there are no links setup between them, that would require work
-in the drivers.
+It likely needs some RFC to think about all possible combinations of
+LNAs and active antenna support and how best to deal with it.
 
-Total diffstat:
+Cheers,
+Hermann
 
- b/linux/include/media/v4l2-mc.h         |   54 +++++
- b/v4l2-apps/util/v4l2-mc.cpp            |  325 ++++++++++++++++++++++++++++++++
- linux/drivers/media/video/v4l2-dev.c    |   15 +
- linux/drivers/media/video/v4l2-device.c |  265 +++++++++++++++++++++++++-
- linux/include/linux/videodev2.h         |   74 +++++++
- linux/include/media/v4l2-dev.h          |    6
- linux/include/media/v4l2-device.h       |   23 +-
- linux/include/media/v4l2-subdev.h       |   11 -
- v4l2-apps/util/Makefile                 |    2
- 9 files changed, 762 insertions(+), 13 deletions(-)
 
-Ignoring the new utility that's just 435 lines of core code.
+> Am Sonntag, 30. August 2009 01:38:35 schrieb hermann pitton:
+> > A testhack, not a clean implementation, is attached and should give you
+> > voltage to the active antenna when using DVB-T.
+> >
+> > BTW, the radio seems to be broken since some weeks.
+> > It is not by that patch here.
+> >
+> > Cheers,
+> > Hermann
+> >
+> 
+> 
+> Cheers,
+> 
+> Martin
 
-Now try this with sysfs. Brrr.
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
