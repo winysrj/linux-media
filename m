@@ -1,117 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-07.arcor-online.net ([151.189.21.47]:45297 "EHLO
-	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751050AbZIOWga (ORCPT
+Received: from qw-out-2122.google.com ([74.125.92.24]:27644 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754643AbZIMDa3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2009 18:36:30 -0400
-Subject: Re: saa7134 - radio broken for v4l1 apps - was - Re: Problems with
-	Pinnacle 310i (saa7134) and recent kernels
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Avl Jawrowski <avljawrowski@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-In-Reply-To: <200909151839.12643.hverkuil@xs4all.nl>
-References: <loom.20090718T135733-267@post.gmane.org>
-	 <200909140824.17591.hverkuil@xs4all.nl>
-	 <1252972232.3250.43.camel@pc07.localdom.local>
-	 <200909151839.12643.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Date: Wed, 16 Sep 2009 00:29:00 +0200
-Message-Id: <1253053740.5598.6.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	Sat, 12 Sep 2009 23:30:29 -0400
+Received: by qw-out-2122.google.com with SMTP id 9so722067qwb.37
+        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 20:30:32 -0700 (PDT)
+Message-ID: <4AAC657A.4070307@gmail.com>
+Date: Sat, 12 Sep 2009 23:22:34 -0400
+From: David Ellingsworth <david@identd.dyndns.org>
+Reply-To: david@identd.dyndns.org
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org, klimov.linux@gmail.com
+Subject: [RFC/RFT 08/14] radio-mr800: fix potential use after free
+Content-Type: multipart/mixed;
+ boundary="------------060704010204070404060704"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This is a multi-part message in MIME format.
+--------------060704010204070404060704
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Am Dienstag, den 15.09.2009, 18:39 +0200 schrieb Hans Verkuil:
-> On Tuesday 15 September 2009 01:50:32 hermann pitton wrote:
-> > Hi,
-> > 
-> > Am Montag, den 14.09.2009, 08:24 +0200 schrieb Hans Verkuil:
-> > > On Monday 14 September 2009 00:42:16 hermann pitton wrote:
-> > > > Hi,
-> > > > 
-> > > > Am Sonntag, den 13.09.2009, 12:02 +0000 schrieb Avl Jawrowski:
-> > > > > Hi,
-> > > > > 
-> > > > > hermann pitton <hermann-pitton <at> arcor.de> writes:
-> > > > > 
-> > [snip]
-> > > > 
-> > > > > > The only other issue I'm aware of is that radio is broken since guessed
-> > > > > > 8 weeks on my tuners, only realized when testing on enabling external
-> > > > > > active antenna voltage for DVB-T on a/some 310i.
-> > > > > > 
-> > > > > > Might be anything, hm, hopefully I should not have caused it ;)
-> > > > > 
-> > > > > The radio works for me, even if there's much noise (I don't usually use it).
-> > > > > I'm using the internal audio cable.
-> > > > 
-> > > > The radio is broken for all tuners, you must be on older stuff.
-> > > > 
-> > > > I finally found the time to do the mercurial bisect today.
-> > > > 
-> > > > It is broken since Hans' changeset 12429 on seventh August.
-> > > 
-> > > What are the symptoms? What application do you use to test the radio?
-> > > I don't immediately see why that changeset would break radio support as
-> > > it only affects VIDIOC_G_STD and VIDIOC_G_PARM.
-> > > 
-> > > Regards,
-> > > 
-> > > 	Hans
-> > 
-> > Hans, it are indeed only the v4l1 apps like radio, qtradio, gnomeradio
-> > and fm from fmtools. Avl is right, mplayer does still work and also
-> > kradio.
-> > 
-> > So the trouble happens in the v4l1 compat layer.
-> > 
-> > Symptoms are, that you just have loud static noise and tuning has not
-> > any effect. Also no signal and/or stereo detection.
-> > 
-> > "fm" gives now "ioctl VIDIOCGTUNER: Invalid argument".
-> 
-> Hermann, I've fixed this in v4l1-compat.c. Can you try this tree:
-> 
-> http://www.linuxtv.org/hg/~hverkuil/v4l-dvb
-> 
-> If this works (and I expect it will), then I'll post a pull request for this.
-> 
-> Regards,
-> 
-> 	Hans
+ From 8c441616f67011244cb15bc1a3dda6fd8706ecd2 Mon Sep 17 00:00:00 2001
+From: David Ellingsworth <david@identd.dyndns.org>
+Date: Sat, 12 Sep 2009 16:04:44 -0400
+Subject: [PATCH 08/14] mr800: fix potential use after free
 
-Hans, it works and restores previous behavior.
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/radio-mr800.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-Tested-by: hermann pitton <hermann-pitton@arcor.de>
-
-Thanks for the quick fix.
-
-Cheers,
-Hermann
-
-> > 
-> > qtradio
-> > Using v4l
-> > Video4Linux detected
-> > 87 - 108
-> > SIGNAL = 0
-> > SIGNAL = 0
-> > VIDIOCGAUDIO: Ungültiger Dateideskriptor
-> > VIDIOCSAUDIO: Ungültiger Dateideskriptor
-> > VIDIOCGAUDIO: Ungültiger Dateideskriptor
-> > VIDIOCSAUDIO: Ungültiger Dateideskriptor
-> > 
-> > Tested on old style simple tuners, some tda9887 stuff and
-> > tda8275a/tda8290/saa7131e, on both x86 and x86_64, with some 2.6.29 and
-> > some 2.6.30.
-> > 
-> > Cheers,
-> > Hermann
-> > 
-> > 
+diff --git a/drivers/media/radio/radio-mr800.c 
+b/drivers/media/radio/radio-mr800.c
+index 9fd2342..87b58e3 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -274,7 +274,6 @@ static void usb_amradio_disconnect(struct 
+usb_interface *intf)
+ 
+     usb_set_intfdata(intf, NULL);
+     video_unregister_device(&radio->videodev);
+-    v4l2_device_disconnect(&radio->v4l2_dev);
+ }
+ 
+ /* vidioc_querycap - query device capabilities */
+-- 
+1.6.3.3
 
 
+--------------060704010204070404060704
+Content-Type: text/x-diff;
+ name="0008-mr800-fix-potential-use-after-free.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="0008-mr800-fix-potential-use-after-free.patch"
+
+>From 8c441616f67011244cb15bc1a3dda6fd8706ecd2 Mon Sep 17 00:00:00 2001
+From: David Ellingsworth <david@identd.dyndns.org>
+Date: Sat, 12 Sep 2009 16:04:44 -0400
+Subject: [PATCH 08/14] mr800: fix potential use after free
+
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/radio-mr800.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
+index 9fd2342..87b58e3 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -274,7 +274,6 @@ static void usb_amradio_disconnect(struct usb_interface *intf)
+ 
+ 	usb_set_intfdata(intf, NULL);
+ 	video_unregister_device(&radio->videodev);
+-	v4l2_device_disconnect(&radio->v4l2_dev);
+ }
+ 
+ /* vidioc_querycap - query device capabilities */
+-- 
+1.6.3.3
+
+
+--------------060704010204070404060704--
