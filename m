@@ -1,117 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:3501 "EHLO
-	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751865AbZIZSFT (ORCPT
+Received: from mail-ew0-f206.google.com ([209.85.219.206]:39573 "EHLO
+	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750849AbZIMIor (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Sep 2009 14:05:19 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr17.xs4all.nl (8.13.8/8.13.8) with ESMTP id n8QI5M3P092216
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 26 Sep 2009 20:05:22 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 26 Sep 2009 20:05:22 +0200 (CEST)
-Message-Id: <200909261805.n8QI5M3P092216@smtp-vbr17.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Sun, 13 Sep 2009 04:44:47 -0400
+Received: by ewy2 with SMTP id 2so2169910ewy.17
+        for <linux-media@vger.kernel.org>; Sun, 13 Sep 2009 01:44:49 -0700 (PDT)
+Message-ID: <4AACB10A.5030804@gmail.com>
+Date: Sun, 13 Sep 2009 10:44:58 +0200
+From: Claes Lindblom <claesl@gmail.com>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Subject: TeVii S470 status?
+References: <c62e66e90909120136s6e0bc796jc9cb3e45d2b7e467@mail.gmail.com> <20090913093539.7750e5a0@tele>
+In-Reply-To: <20090913093539.7750e5a0@tele>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi,
+I'm looking for a new DVB-S2 card for my linux server and I wonder if
+anyone have tried the TeVii S470 in linux with DVB-S and S2 and whats
+the status of it. Is it stable and good support, no problems like the 
+TT3200 (A problem with locking high symbol rate channels (DVB-S2 30000
+3/4 transponders) .
+I need to tune channels with a high symbolrate at 30000.
+It does not say much in linuxtv-wiki but the manufacturer has s2api
+driver at there homepage.
 
-Results of the daily build of v4l-dvb:
+How is it compared to Hauppauge HVR-4000, Nova HD S2 or the TT S2 1600?
 
-date:        Sat Sep 26 19:00:04 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13044:6b7617d4a0be
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Thankful for all help.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.27-armv5-ixp: ERRORS
-linux-2.6.28-armv5-ixp: ERRORS
-linux-2.6.29.1-armv5-ixp: ERRORS
-linux-2.6.30-armv5-ixp: ERRORS
-linux-2.6.31-armv5-ixp: ERRORS
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: OK
-linux-2.6.27-powerpc64: ERRORS
-linux-2.6.28-powerpc64: ERRORS
-linux-2.6.29.1-powerpc64: ERRORS
-linux-2.6.30-powerpc64: ERRORS
-linux-2.6.31-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-x86_64: WARNINGS
-sparse (linux-2.6.31): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The V4L2 specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+Best regards
+Claes
