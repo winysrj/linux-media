@@ -1,59 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:3575 "EHLO
-	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751788AbZIMQHE (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:58115 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751944AbZIMUif (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2009 12:07:04 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: wk <handygewinnspiel@gmx.de>
-Subject: Re: Media controller: sysfs vs ioctl
-Date: Sun, 13 Sep 2009 18:07:04 +0200
-Cc: linux-media@vger.kernel.org
-References: <200909120021.48353.hverkuil@xs4all.nl> <4AAD15A3.5080001@gmx.de>
-In-Reply-To: <4AAD15A3.5080001@gmx.de>
+	Sun, 13 Sep 2009 16:38:35 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Julia Lawall <julia@diku.dk>
+Subject: Re: [PATCH 2/8] drivers/media/video/uvc: introduce missing kfree
+Date: Sun, 13 Sep 2009 22:39:21 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+References: <Pine.LNX.4.64.0909111821010.10552@pc-004.diku.dk>
+In-Reply-To: <Pine.LNX.4.64.0909111821010.10552@pc-004.diku.dk>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200909131807.04159.hverkuil@xs4all.nl>
+Message-Id: <200909132239.21806.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 13 September 2009 17:54:11 wk wrote:
-> Hans Verkuil schrieb:
-> > Hi all,
-> >
-> > I've started this as a new thread to prevent polluting the discussions of the
-> > media controller as a concept.
-> >
-> > First of all, I have no doubt that everything that you can do with an ioctl,
-> > you can also do with sysfs and vice versa. That's not the problem here.
-> >
-> > The problem is deciding which approach is the best.
-> >
-> >   
+On Friday 11 September 2009 18:21:18 Julia Lawall wrote:
+> From: Julia Lawall <julia@diku.dk>
 > 
-> Is it really a good idea to create a dependency to some virtual file 
-> system which may go away in future?
->  From time to time some of those seem to go away, for example devfs.
+> Error handling code following kmalloc should free the allocated data.
 > 
-> Is it really unavoidable to have something in sysfs, something which is 
-> really not possible with ioctls?
-> And do you really want to depend on sysfs developers?
+> The semantic match that finds the problem is as follows:
+> (http://www.emn.fr/x-info/coccinelle/)
+> 
+> // <smpl>
+> @r exists@
+> local idexpression x;
+> statement S;
+> expression E;
+> identifier f,f1,l;
+> position p1,p2;
+> expression *ptr != NULL;
+> @@
+> 
+> x@p1 = \(kmalloc\|kzalloc\|kcalloc\)(...);
+> ...
+> if (x == NULL) S
+> <... when != x
+>      when != if (...) { <+...x...+> }
+> (
+> x->f1 = E
+> 
+>  (x->f1 == NULL || ...)
+> 
+>  f(...,x->f1,...)
+> )
+> ...>
+> (
+>  return \(0\|<+...x...+>\|ptr\);
+> 
+>  return@p2 ...;
+> )
+> 
+> @script:python@
+> p1 << r.p1;
+> p2 << r.p2;
+> @@
+> 
+> print "* file: %s kmalloc %s return %s" %
+>  (p1[0].file,p1[0].line,p2[0].line) // </smpl>
+> 
+> Signed-off-by: Julia Lawall <julia@diku.dk>
+> ---
+>  drivers/media/video/uvc/uvc_video.c |    7 +++++--
+>  1 files changed, 5 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/video/uvc/uvc_video.c
+>  b/drivers/media/video/uvc/uvc_video.c index 5b757f3..ce2c484 100644
+> --- a/drivers/media/video/uvc/uvc_video.c
+> +++ b/drivers/media/video/uvc/uvc_video.c
+> @@ -128,8 +128,11 @@ static int uvc_get_video_ctrl(struct uvc_streaming
+>  *stream, if (data == NULL)
+>  		return -ENOMEM;
+> 
+> -	if ((stream->dev->quirks & UVC_QUIRK_PROBE_DEF) && query == UVC_GET_DEF)
+> -		return -EIO;
+> +	if ((stream->dev->quirks & UVC_QUIRK_PROBE_DEF) &&
+> +			query == UVC_GET_DEF) {
+> +		ret = -EIO;
+> +		goto out;
+> +	}
 
-One other interesting question is: currently the V4L2 API is also used by BSD
-variants for their video drivers. Our V4L2 header is explicitly dual-licensed
-to allow this. I don't think that BSD has sysfs. So making the media controller
-sysfs-based only would make it very hard for them if they ever want to port
-drivers that rely on that to BSD.
+This check can be moved before kmalloc(), removing the need to free memory in 
+case of error.
 
-Yes, I know that strictly speaking we don't have to care about that, but it
-is yet another argument against the use of sysfs as far as I am concerned.
-
-Regards,
-
-	Hans
+Julia, do you want to submit a modified patch or should I do it myself ?
+ 
+>  	ret = __uvc_query_ctrl(stream->dev, query, 0, stream->intfnum,
+>  		probe ? UVC_VS_PROBE_CONTROL : UVC_VS_COMMIT_CONTROL, data,
+> 
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Regards,
+
+Laurent Pinchart
