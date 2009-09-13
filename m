@@ -1,61 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.158]:31085 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751923AbZIYSWV (ORCPT
+Received: from mail-qy0-f185.google.com ([209.85.221.185]:34967 "EHLO
+	mail-qy0-f185.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754053AbZIMD3L (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Sep 2009 14:22:21 -0400
-Received: by fg-out-1718.google.com with SMTP id 22so962761fge.1
-        for <linux-media@vger.kernel.org>; Fri, 25 Sep 2009 11:22:24 -0700 (PDT)
-Date: Fri, 25 Sep 2009 20:22:13 +0200
-From: Uros Vampl <mobile.leecher@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: Re: Questions about Terratec Hybrid XS (em2882) [0ccd:005e]
-Message-ID: <20090925182213.GA6941@zverina>
-References: <20090913193118.GA12659@zverina>
- <20090921204418.GA19119@zverina>
- <829197380909211349r68b92b3em577c02d0dee9e4fc@mail.gmail.com>
- <20090921221505.GA5187@zverina>
- <829197380909211529r7ff7eab0nccc8d5fd55516ca2@mail.gmail.com>
- <20090922091235.GA10335@zverina>
- <829197380909221647p33236306ked2137a35707646d@mail.gmail.com>
- <20090925172209.GA10054@zverina>
- <829197380909251041i637a0790g10cc4b82a791f695@mail.gmail.com>
+	Sat, 12 Sep 2009 23:29:11 -0400
+Received: by qyk15 with SMTP id 15so1729687qyk.15
+        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 20:29:13 -0700 (PDT)
+Message-ID: <4AAC658E.80401@gmail.com>
+Date: Sat, 12 Sep 2009 23:22:54 -0400
+From: David Ellingsworth <david@identd.dyndns.org>
+Reply-To: david@identd.dyndns.org
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <829197380909251041i637a0790g10cc4b82a791f695@mail.gmail.com>
+To: linux-media@vger.kernel.org, klimov.linux@gmail.com
+Subject: [RFC/RFT 11/14] radio-mr800: fix behavior of set_stereo function
+Content-Type: multipart/mixed;
+ boundary="------------020403060102000800060302"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 25.09.09 13:41, Devin Heitmueller wrote:
-> >> Interesting.  Have you tried the A/V inputs (as opposed to the tuner)?
-> >>  That might help us identify whether it's an issue with the xc3028
-> >> tuner chip extracting the audio carrier or whether it's something
-> >> about the way we are programming the emp202.
-> >
-> >
-> > Hello,
-> >
-> > That was a great idea. Tested with a Playstation2 and audio is ok. It's
-> > just TV input that has a problem. So I guess that means the issue is
-> > with the tuner chip. That's progress. Where do I go from here?
-> 
-> Ok, that's good to hear.  What video standard specifically are you
-> using?  I suspect the core issue is that the application is not
-> properly specifying the video standard, which results in the xc3028
-> improperly decoding the audio (the xc3028 needs to know exactly what
-> standard is being used).
+This is a multi-part message in MIME format.
+--------------020403060102000800060302
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-I'm from Slovenia, which is a PAL-B country. Tvtime can be set to either 
-PAL-BG, PAL-DK or PAL-I, makes no difference. MPlayer has a whole bunch 
-of options (PAL, PAL-BG, etc...), but again none of them make a 
-difference.
+ From 8c441616f67011244cb15bc1a3dda6fd8706ecd2 Mon Sep 17 00:00:00 2001
+From: David Ellingsworth <david@identd.dyndns.org>
+Date: Sat, 12 Sep 2009 16:04:44 -0400
+Subject: [PATCH 08/14] mr800: fix potential use after free
 
-When the app is started, this appears in dmesg:
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/radio-mr800.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
-(0), id 00000000000000ff:
-xc2028 4-0061: Loading firmware for type=(0), id 0000000100000007.
-xc2028 4-0061: Loading SCODE for type=MONO SCODE HAS_IF_5320 (60008000), id 0000000f00000007.
+diff --git a/drivers/media/radio/radio-mr800.c 
+b/drivers/media/radio/radio-mr800.c
+index 9fd2342..87b58e3 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -274,7 +274,6 @@ static void usb_amradio_disconnect(struct 
+usb_interface *intf)
+ 
+     usb_set_intfdata(intf, NULL);
+     video_unregister_device(&radio->videodev);
+-    v4l2_device_disconnect(&radio->v4l2_dev);
+ }
+ 
+ /* vidioc_querycap - query device capabilities */
+-- 
+1.6.3.3
 
+
+--------------020403060102000800060302
+Content-Type: text/x-diff;
+ name="0011-mr800-fix-behavior-of-set_stereo-function.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename*0="0011-mr800-fix-behavior-of-set_stereo-function.patch"
+
+>From ea0c11ec6706fbd0777b0147da8a8a827a537699 Mon Sep 17 00:00:00 2001
+From: David Ellingsworth <david@identd.dyndns.org>
+Date: Sat, 12 Sep 2009 22:00:29 -0400
+Subject: [PATCH 11/14] mr800: fix behavior of set_stereo function
+
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/radio-mr800.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
+index dbf0dbb..8fc413d 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -252,12 +252,13 @@ static int amradio_set_stereo(struct amradio_device *radio, char argument)
+ 	retval = usb_bulk_msg(radio->usbdev, usb_sndintpipe(radio->usbdev, 2),
+ 		(void *) (radio->buffer), BUFFER_LENGTH, &size, USB_TIMEOUT);
+ 
+-	if (retval < 0 || size != BUFFER_LENGTH) {
+-		radio->stereo = -1;
++	if (retval < 0 || size != BUFFER_LENGTH)
+ 		return retval;
+-	}
+ 
+-	radio->stereo = 1;
++	if (argument == WANT_STEREO)
++		radio->stereo = 1;
++	else
++		radio->stereo = 0;
+ 
+ 	return retval;
+ }
+-- 
+1.6.3.3
+
+
+--------------020403060102000800060302--
