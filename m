@@ -1,66 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.lie-comtel.li ([217.173.238.89]:56885 "EHLO
-	smtp2.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750947AbZIMP7q (ORCPT
+Received: from mx.stud.uni-hannover.de ([130.75.176.3]:58748 "EHLO
+	studserv5d.stud.uni-hannover.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751276AbZINKg0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2009 11:59:46 -0400
-Message-ID: <4AAD16F3.7050805@kaiser-linux.li>
-Date: Sun, 13 Sep 2009 17:59:47 +0200
-From: Thomas Kaiser <v4l@kaiser-linux.li>
+	Mon, 14 Sep 2009 06:36:26 -0400
+Message-ID: <4AAE1975.6050707@stud.uni-hannover.de>
+Date: Mon, 14 Sep 2009 12:22:45 +0200
+From: Soeren Moch <Soeren.Moch@stud.uni-hannover.de>
 MIME-Version: 1.0
-To: leandro Costantino <lcostantino@gmail.com>
-CC: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	V4L Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: image quality of Labtec Webcam 2200
-References: <4AA9F7A0.5080802@freemail.hu> <20090913092015.485fdbcd@tele>	 <4AACD0D5.1090109@freemail.hu> <c2fe070d0909130742u2b471f7do7ff7bc8a3b6cd688@mail.gmail.com>
-In-Reply-To: <c2fe070d0909130742u2b471f7do7ff7bc8a3b6cd688@mail.gmail.com>
+To: pboettcher@kernellabs.com
+CC: linux-media@vger.kernel.org
+Subject: Re: DVB USB stream parameters
+References: <4A16A8FF.2050308@stud.uni-hannover.de>
+In-Reply-To: <4A16A8FF.2050308@stud.uni-hannover.de>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/13/2009 04:42 PM, leandro Costantino wrote:
-> Actually it based on pac7302. Pac7311/02 also has support ( since gspca1 ).
-> 
-> I checked some old logs of the pac, and the driver init for 7302 seems ok.
-> 
-> The "ff ff ff" sequence, seems to been taken in account on conversion.
-> (libv4lconvert)
-> 
-> /* Special Pixart versions of the *_nbits functions, these remove the special
->    ff ff ff xx sequences pixart cams insert from the bitstream */
-> #define pixart_fill_nbits(reservoir,nbits_in_reservoir,stream,nbits_wanted) \
-> 
-> This is really a tricky cam. I be back on windows to do further test.
+> I don't know exactly why (the USB/HW background for that is not 
+> present in my brain), but at some point having less than 39480B for 
+> one (high-level) URB for the dib0700 resulted in never having any URB 
+> returning from the USB stack. I chose 4 of them because .. I don't 
+> remember. It seems even 1 is working.
 
-Hey All
+I vote for a single high-level URB. Besides the memory savings this is 
+the only way I could get my nova-td stick working.
+(see this thread: 
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg06376.html ) 
+The patch runs flawlessly
+on my vdr system for months now.
 
-I thought Hans will come in, in this discussion.......
+> I remember someone telling me that this is due to something in the 
+> firmware. I need to wait for some people to be back from whereever 
+> they are to know exactly what's going on (that's why I haven't 
+> responded yet).
+I hope you can sort out the dib0700_streaming_ctrl problems...
 
-Anyway, I introduced support for the PAC7311 in gspcaV1 in 2006 [1]
+Soeren
 
-Pixart is using a proprietary JEPG Format to code the image. It took me 
-(and help from Jörg Schummer) more than a year to find out the basics 
-to decode a frame.
-
-They have this 0xffffffxx markers in the stream, I don't know for what 
-this is good, just skip it. And they have a "MCU marker" for each MCU. 
-As we know so far, this MCU marker tells what Quantization table should 
-be used for decoding the MCU.
-
-Hans did implement my findings into lib4vl and improved it :-)
-
-So, when you get this errors, this is due to a unknown format Pixart is 
-using.
-
-I guess we should know what marker you get and how the image should look 
-like.
-
-Don't forget, this is all re-engineered -> guess work!
-
-Thomas
-
-
-[1] http://www.kaiser-linux.li/index.php?title=PAC7311
