@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mxout1.netvision.net.il ([194.90.9.20])
+Received: from colin.muc.de ([193.149.48.1] helo=mail.muc.de ident=qmailr)
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <gennady@exatel-vs.com>) id 1MnB6j-0001ke-1r
-	for linux-dvb@linuxtv.org; Mon, 14 Sep 2009 14:56:37 +0200
-Received: from Nissim ([212.143.127.51]) by mxout1.netvision.net.il
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTPA id <0KPY00B6JP9EPZ10@mxout1.netvision.net.il> for
-	linux-dvb@linuxtv.org; Mon, 14 Sep 2009 15:56:03 +0300 (IDT)
-Date: Mon, 14 Sep 2009 15:56:16 +0300
-From: gennady <gennady@exatel-vs.com>
+	(envelope-from <hm@seneca.muc.de>) id 1Mn8pz-0000W0-3b
+	for linux-dvb@linuxtv.org; Mon, 14 Sep 2009 12:31:11 +0200
+Date: Mon, 14 Sep 2009 12:14:58 +0200
+From: Harald Milz <hm@seneca.muc.de>
 To: linux-dvb@linuxtv.org
-Message-id: <2EEBBAB264754511B0FCAE455A606BA1@exatelvs.com>
-MIME-version: 1.0
-Subject: [linux-dvb] STV0903 full data sheet
+Message-ID: <20090914101458.GA18504@seneca.muc.de>
+References: <8CB2022318A0220-1E84-15EE@WEBMAIL-MZ13.sysops.aol.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <8CB2022318A0220-1E84-15EE@WEBMAIL-MZ13.sysops.aol.com>
+Subject: [linux-dvb] Need help with TT S2-3650 w/ s2-liaplianin
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -21,133 +20,54 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0985650571=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
+Hi,
 
---===============0985650571==
-Content-type: multipart/alternative;
- boundary="Boundary_(ID_ZQeoTGKNH5QoU4EY5IjKGg)"
+I'm using 2 TT S2-3650 with s2-liaplianin (HG clone from Sep 13, 2009, and an
+older release from June, dunno which one). OS is openSUSE 11.1 with the latest
+official update kernel 2.6.27.29-0.1-default, vdr is -1.7.0 with Ext Patch 72.
+When starting up, everything seems to run fine but after a while pctv452e
+spits out lots of messages like 
 
-This is a multi-part message in MIME format.
-
---Boundary_(ID_ZQeoTGKNH5QoU4EY5IjKGg)
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7BIT
-
-Hi!
-
-We are trying to bring up the DVB-S tuner BS2F7VZ0169, that includes
-demodulator - STV0903 and tuner STV6110A.
-
-But I can't find any information about these chips.
-
-Could you send the data sheet (full ) or any another programming
-information?
-
- Thanks,
-
-Gennady.
-
-gennady@exatel-vs.com
-
+Sep 14 11:52:03 seneca kernel: pctv452e_power_ctrl: 0
+Sep 14 11:52:21 seneca kernel: usbcore: deregistering interface driver pctv452e
+Sep 14 11:52:21 seneca kernel: dvb-usb: bulk message failed: -22 (5/0)
+Sep 14 11:52:21 seneca kernel: pctv452e: CI error -22; AA 1F 46 -> AA 1F 46.
+Sep 14 11:52:21 seneca kernel: dvb-usb: bulk message failed: -22 (5/-30719)
+Sep 14 11:52:21 seneca kernel: pctv452e: CI error -22; AA 20 46 -> AA 20 46.
+Sep 14 11:52:21 seneca kernel: dvb-usb: bulk message failed: -22 (11/-30719)
+Sep 14 11:52:21 seneca kernel: pctv452e: I2C error -22; AA 21  10 04 00 -> AA 21  10 04 00.
+Sep 14 11:52:21 seneca kernel: dvb-usb: bulk message failed: -22 (10/-30719)
+Sep 14 11:52:21 seneca kernel: pctv452e: I2C error -22; AA 22  D0 03 00 -> AA 22  D0 03 00.
  
+in this case after shutting down VDR and unloading the modules. 
 
- 
+I'm not using a CAM so far so is this a problem I should be worried about? 
 
+Another issue I'm worried about is that sometimes I cannot unload the module
+because the usage count is at 17 or 18, forcing me to reboot the machine which
+reduces the WAF greatly :-/ 
 
---Boundary_(ID_ZQeoTGKNH5QoU4EY5IjKGg)
-Content-type: text/html; charset=us-ascii
-Content-transfer-encoding: 7BIT
+Anything I can do to help debug these problems? Basically, SD and HD reception
+work fine. It's just that the stability of the pctv452e driver appears to be
+not that great yet. 
 
-<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+BTW one of the S2-3650 boxes is actually a Satelco Easywatch HDTV USB CI. I'll
+add the similarity to the wiki some time. 
 
-<head>
-<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=us-ascii">
-<meta name=Generator content="Microsoft Word 11 (filtered medium)">
-<style>
-<!--
- /* Style Definitions */
- p.MsoNormal, li.MsoNormal, div.MsoNormal
-	{margin:0in;
-	margin-bottom:.0001pt;
-	font-size:12.0pt;
-	font-family:"Times New Roman";}
-a:link, span.MsoHyperlink
-	{color:blue;
-	text-decoration:underline;}
-a:visited, span.MsoHyperlinkFollowed
-	{color:purple;
-	text-decoration:underline;}
-span.EmailStyle17
-	{mso-style-type:personal-compose;
-	font-family:Arial;
-	color:windowtext;}
-@page Section1
-	{size:8.5in 11.0in;
-	margin:1.0in 1.25in 1.0in 1.25in;}
-div.Section1
-	{page:Section1;}
--->
-</style>
+While we're at it - is there any plan to merge the S2-3650 drivers into the
+official V4L tree? 
 
-</head>
-
-<body lang=EN-US link=blue vlink=purple>
-
-<div class=Section1>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>Hi!<o:p></o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>We are trying to bring up the DVB-S tuner BS2F7VZ0169, that
-includes demodulator - STV0903 and tuner STV6110A.<o:p></o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>But I can&#8217;t find any information about these chips.<o:p></o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>Could you send the data sheet (full ) or any another
-programming information?<o:p></o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>&nbsp;Thanks,<o:p></o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>Gennady.<o:p></o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>gennady@exatel-vs.com<o:p></o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-</div>
-
-</body>
-
-</html>
-
---Boundary_(ID_ZQeoTGKNH5QoU4EY5IjKGg)--
-
-
---===============0985650571==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+One man's theology is another man's belly laugh.
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0985650571==--
