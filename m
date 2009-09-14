@@ -1,16 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-bw0-f213.google.com ([209.85.218.213])
+Received: from mail-ew0-f223.google.com ([209.85.219.223])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <bdc091@gmail.com>) id 1MnD3U-00026C-Oh
-	for linux-dvb@linuxtv.org; Mon, 14 Sep 2009 17:01:25 +0200
-Received: by bwz9 with SMTP id 9so2106557bwz.17
-	for <linux-dvb@linuxtv.org>; Mon, 14 Sep 2009 08:00:51 -0700 (PDT)
+	(envelope-from <peterjolson@gmail.com>) id 1MnCgd-00008p-J4
+	for linux-dvb@linuxtv.org; Mon, 14 Sep 2009 16:37:48 +0200
+Received: by ewy23 with SMTP id 23so2832645ewy.26
+	for <linux-dvb@linuxtv.org>; Mon, 14 Sep 2009 07:37:14 -0700 (PDT)
 MIME-Version: 1.0
-Date: Mon, 14 Sep 2009 17:00:50 +0200
-Message-ID: <746d58780909140800jb43ed63y8b70dc35b090c3a@mail.gmail.com>
-From: Benedict bdc091 <bdc091@gmail.com>
+From: "Peter J. Olson" <peterjolson@gmail.com>
+Date: Mon, 14 Sep 2009 09:36:54 -0500
+Message-ID: <64a476a80909140736k159fddffle1d6ccbcaa3cecfb@mail.gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] how to get a registered adapter name
+Subject: [linux-dvb] Compile error when I get to snd-go7007.c
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -19,66 +19,105 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1113012303=="
+Content-Type: multipart/mixed; boundary="===============1793662930=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1113012303==
-Content-Type: multipart/alternative; boundary=001485f7728c806df704738aee37
+--===============1793662930==
+Content-Type: multipart/alternative; boundary=001636c5a7fb0d622d04738a9a52
 
---001485f7728c806df704738aee37
+--001636c5a7fb0d622d04738a9a52
 Content-Type: text/plain; charset=ISO-8859-1
 
-Hi list,
+Hey all,
 
-I'd like to enumerate connected DVB devices from my softawre, based on DVB
-API V3.
-Thank to ioctl FE_GET_INFO, I'm able to get frontends name, but they are not
-"clear" enough for users.
+I have a Mythbuntu 8.10 system w/ a pctv 800i (pci card) and a pctv hd stick
+(800e). Had both running just fine for about 8 months... then the stick
+stopped working.  Or rather, it works but wont pick up a signal.
 
-After a "quick look" in /var/log/messages I discovered that adapters name
-are much expressives:
+I decided I would update my system a little and figure out what broke my
+800e. I updated my kernel and went to recompile v4l-dvb and got this error:
 
-> ...
-> DVB: registering new adapter (ASUS My Cinema U3000 Mini DVBT Tuner)
-> DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
-> ...
+  CC [M]  /home/mythbox/Firmware/v4l-dvb/v4l/snd-go7007.o
 
-So, I tried to figure out a way to get "ASUS My Cinema U3000 Mini DVBT
-Tuner" string from adapter, instead of "DiBcom 7000PC" from adapter's
-frontend...
-Unsuccefully so far.
+/home/mythbox/Firmware/v4l-dvb/v4l/snd-go7007.c: In function
+'go7007_snd_init':
 
-Any suggestions?
+/home/mythbox/Firmware/v4l-dvb/v4l/snd-go7007.c:251: error: implicit
+declaration of function 'snd_card_create'
 
+make[3]: *** [/home/mythbox/Firmware/v4l-dvb/v4l/snd-go7007.o] Error 1
 
-Regards
---
-Benedict
+make[2]: *** [_module_/home/mythbox/Firmware/v4l-dvb/v4l] Error 2
 
---001485f7728c806df704738aee37
+make[2]: Leaving directory `/usr/src/linux-headers-2.6.28-15-generic'
+
+make[1]: *** [default] Error 2
+
+make[1]: Leaving directory `/home/mythbox/Firmware/v4l-dvb/v4l'
+
+make: *** [all] Error 2
+
+I was using the old copy of v4l I had so I thought it might have been the
+new kernel fighting w/ the old v4l. So I updated v4l (did a pull via hg)...
+same error.
+
+I dinked w/ it for a long time and finally gave up and upgraded to 9.0.4.
+Same error, now neither of my cards will work (brutal!)  My 800i is acting
+like the 800e was.  I can see the card in mythbackend setup but always gets
+no signal in mythtv.
+
+I dont even know what the snd-go7007 would go with... I dont even have that
+type of hardware (i dont think).
+
+Anyone have any ideas?
+
+Thanks,
+Peter
+
+--001636c5a7fb0d622d04738a9a52
 Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-Hi list, <br><br>I&#39;d like to enumerate connected DVB devices from my so=
-ftawre, based on DVB API V3.<br>Thank to ioctl FE_GET_INFO, I&#39;m able to=
- get frontends name, but they are not &quot;clear&quot; enough for users.<b=
-r>
-<br>After a &quot;quick look&quot; in /var/log/messages I discovered that a=
-dapters name are much expressives:<br><br>&gt; ...<br>&gt; DVB: registering=
- new adapter (ASUS My Cinema U3000 Mini DVBT Tuner)<br>&gt; DVB: registerin=
-g adapter 0 frontend 0 (DiBcom 7000PC)...<br>
-&gt; ...<br><br>So, I tried to figure out a way to get &quot;ASUS My Cinema=
- U3000 Mini DVBT Tuner&quot; string from adapter, instead of &quot;DiBcom 7=
-000PC&quot; from adapter&#39;s frontend...<br>Unsuccefully so far.<br><br>
-Any suggestions?<br><br><br>Regards<br>--<br>Benedict<br><br>
+Hey all,<br><br>I have a Mythbuntu 8.10 system w/ a pctv 800i (pci card) an=
+d a pctv hd
+stick (800e). Had both running just fine for about 8 months... then the
+stick stopped working.=A0 Or rather, it works but wont pick up a signal.<br=
+><br>I decided I would update my system a little and figure out what broke
+my 800e. I updated my kernel and went to recompile v4l-dvb and got this
+error:<br><br>=A0 CC [M]=A0 /home/mythbox/Firmware/v4l-dvb/v4l/snd-go7007.o=
+<br><br>/home/mythbox/Firmware/v4l-dvb/v4l/snd-go7007.c: In function &#39;g=
+o7007_snd_init&#39;:<br><br>/home/mythbox/Firmware/v4l-dvb/v4l/snd-go7007.c=
+:251: error: implicit declaration of function &#39;snd_card_create&#39;<br>
 
---001485f7728c806df704738aee37--
+<br>make[3]: *** [/home/mythbox/Firmware/v4l-dvb/v4l/snd-go7007.o] Error 1<=
+br><br>make[2]: *** [_module_/home/mythbox/Firmware/v4l-dvb/v4l] Error 2<br=
+><br>make[2]: Leaving directory `/usr/src/linux-headers-2.6.28-15-generic&#=
+39;<br>
+
+<br>make[1]: *** [default] Error 2<br><br>make[1]: Leaving directory `/home=
+/mythbox/Firmware/v4l-dvb/v4l&#39;<br><br>make: *** [all] Error 2<br><br>I =
+was using the old copy of v4l I had so I thought it might have been
+the new kernel fighting w/ the old v4l. So I updated v4l (did a pull via hg=
+)... same error.
+<br>
+<br>
+I dinked w/ it for a long time and finally gave up and upgraded to
+9.0.4. Same error, now neither of my cards will work (brutal!)=A0 My 800i i=
+s acting like the 800e was.=A0 I can see the card in mythbackend setup but =
+always gets no signal in mythtv. <br>
+<br>
+I dont even know what the snd-go7007 would go with... I dont even have that=
+ type of hardware (i dont think).<br>
+<br>
+Anyone have any ideas?<br><br>Thanks,<br>Peter<br>
+
+--001636c5a7fb0d622d04738a9a52--
 
 
---===============1113012303==
+--===============1793662930==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -89,4 +128,4 @@ linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1113012303==--
+--===============1793662930==--
