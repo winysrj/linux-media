@@ -1,117 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3624 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754699AbZIKSgJ (ORCPT
+Received: from mail-in-14.arcor-online.net ([151.189.21.54]:53127 "EHLO
+	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757530AbZINX4B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2009 14:36:09 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id n8BIaB9u025741
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 11 Sep 2009 20:36:11 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 11 Sep 2009 20:36:11 +0200 (CEST)
-Message-Id: <200909111836.n8BIaB9u025741@smtp-vbr5.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
+	Mon, 14 Sep 2009 19:56:01 -0400
+Subject: saa7134 - radio broken for v4l1 apps - was - Re: Problems with
+	Pinnacle 310i (saa7134) and recent kernels
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Avl Jawrowski <avljawrowski@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+In-Reply-To: <200909140824.17591.hverkuil@xs4all.nl>
+References: <loom.20090718T135733-267@post.gmane.org>
+	 <loom.20090913T115105-855@post.gmane.org>
+	 <1252881736.4318.48.camel@pc07.localdom.local>
+	 <200909140824.17591.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Date: Tue, 15 Sep 2009 01:50:32 +0200
+Message-Id: <1252972232.3250.43.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of v4l-dvb:
+Am Montag, den 14.09.2009, 08:24 +0200 schrieb Hans Verkuil:
+> On Monday 14 September 2009 00:42:16 hermann pitton wrote:
+> > Hi,
+> > 
+> > Am Sonntag, den 13.09.2009, 12:02 +0000 schrieb Avl Jawrowski:
+> > > Hi,
+> > > 
+> > > hermann pitton <hermann-pitton <at> arcor.de> writes:
+> > > 
+[snip]
+> > 
+> > > > The only other issue I'm aware of is that radio is broken since guessed
+> > > > 8 weeks on my tuners, only realized when testing on enabling external
+> > > > active antenna voltage for DVB-T on a/some 310i.
+> > > > 
+> > > > Might be anything, hm, hopefully I should not have caused it ;)
+> > > 
+> > > The radio works for me, even if there's much noise (I don't usually use it).
+> > > I'm using the internal audio cable.
+> > 
+> > The radio is broken for all tuners, you must be on older stuff.
+> > 
+> > I finally found the time to do the mercurial bisect today.
+> > 
+> > It is broken since Hans' changeset 12429 on seventh August.
+> 
+> What are the symptoms? What application do you use to test the radio?
+> I don't immediately see why that changeset would break radio support as
+> it only affects VIDIOC_G_STD and VIDIOC_G_PARM.
+> 
+> Regards,
+> 
+> 	Hans
 
-date:        Fri Sep 11 19:00:02 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12711:13c47deee3b1
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Hans, it are indeed only the v4l1 apps like radio, qtradio, gnomeradio
+and fm from fmtools. Avl is right, mplayer does still work and also
+kradio.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-x86_64: WARNINGS
-sparse (linux-2.6.31): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+So the trouble happens in the v4l1 compat layer.
 
-Detailed results are available here:
+Symptoms are, that you just have loud static noise and tuning has not
+any effect. Also no signal and/or stereo detection.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+"fm" gives now "ioctl VIDIOCGTUNER: Invalid argument".
 
-Full logs are available here:
+qtradio
+Using v4l
+Video4Linux detected
+87 - 108
+SIGNAL = 0
+SIGNAL = 0
+VIDIOCGAUDIO: Ungültiger Dateideskriptor
+VIDIOCSAUDIO: Ungültiger Dateideskriptor
+VIDIOCGAUDIO: Ungültiger Dateideskriptor
+VIDIOCSAUDIO: Ungültiger Dateideskriptor
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+Tested on old style simple tuners, some tda9887 stuff and
+tda8275a/tda8290/saa7131e, on both x86 and x86_64, with some 2.6.29 and
+some 2.6.30.
 
-The V4L2 specification from this daily build is here:
+Cheers,
+Hermann
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
