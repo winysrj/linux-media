@@ -1,16 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-ew0-f223.google.com ([209.85.219.223])
+Received: from mxout1.netvision.net.il ([194.90.9.20])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <peterjolson@gmail.com>) id 1MnCgd-00008p-J4
-	for linux-dvb@linuxtv.org; Mon, 14 Sep 2009 16:37:48 +0200
-Received: by ewy23 with SMTP id 23so2832645ewy.26
-	for <linux-dvb@linuxtv.org>; Mon, 14 Sep 2009 07:37:14 -0700 (PDT)
-MIME-Version: 1.0
-From: "Peter J. Olson" <peterjolson@gmail.com>
-Date: Mon, 14 Sep 2009 09:36:54 -0500
-Message-ID: <64a476a80909140736k159fddffle1d6ccbcaa3cecfb@mail.gmail.com>
+	(envelope-from <gennady@exatel-vs.com>) id 1MnB6j-0001ke-1r
+	for linux-dvb@linuxtv.org; Mon, 14 Sep 2009 14:56:37 +0200
+Received: from Nissim ([212.143.127.51]) by mxout1.netvision.net.il
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTPA id <0KPY00B6JP9EPZ10@mxout1.netvision.net.il> for
+	linux-dvb@linuxtv.org; Mon, 14 Sep 2009 15:56:03 +0300 (IDT)
+Date: Mon, 14 Sep 2009 15:56:16 +0300
+From: gennady <gennady@exatel-vs.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Compile error when I get to snd-go7007.c
+Message-id: <2EEBBAB264754511B0FCAE455A606BA1@exatelvs.com>
+MIME-version: 1.0
+Subject: [linux-dvb] STV0903 full data sheet
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -19,105 +21,125 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1793662930=="
+Content-Type: multipart/mixed; boundary="===============0985650571=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1793662930==
-Content-Type: multipart/alternative; boundary=001636c5a7fb0d622d04738a9a52
+This is a multi-part message in MIME format.
 
---001636c5a7fb0d622d04738a9a52
-Content-Type: text/plain; charset=ISO-8859-1
+--===============0985650571==
+Content-type: multipart/alternative;
+ boundary="Boundary_(ID_ZQeoTGKNH5QoU4EY5IjKGg)"
 
-Hey all,
+This is a multi-part message in MIME format.
 
-I have a Mythbuntu 8.10 system w/ a pctv 800i (pci card) and a pctv hd stick
-(800e). Had both running just fine for about 8 months... then the stick
-stopped working.  Or rather, it works but wont pick up a signal.
+--Boundary_(ID_ZQeoTGKNH5QoU4EY5IjKGg)
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7BIT
 
-I decided I would update my system a little and figure out what broke my
-800e. I updated my kernel and went to recompile v4l-dvb and got this error:
+Hi!
 
-  CC [M]  /home/mythbox/Firmware/v4l-dvb/v4l/snd-go7007.o
+We are trying to bring up the DVB-S tuner BS2F7VZ0169, that includes
+demodulator - STV0903 and tuner STV6110A.
 
-/home/mythbox/Firmware/v4l-dvb/v4l/snd-go7007.c: In function
-'go7007_snd_init':
+But I can't find any information about these chips.
 
-/home/mythbox/Firmware/v4l-dvb/v4l/snd-go7007.c:251: error: implicit
-declaration of function 'snd_card_create'
+Could you send the data sheet (full ) or any another programming
+information?
 
-make[3]: *** [/home/mythbox/Firmware/v4l-dvb/v4l/snd-go7007.o] Error 1
+ Thanks,
 
-make[2]: *** [_module_/home/mythbox/Firmware/v4l-dvb/v4l] Error 2
+Gennady.
 
-make[2]: Leaving directory `/usr/src/linux-headers-2.6.28-15-generic'
+gennady@exatel-vs.com
 
-make[1]: *** [default] Error 2
+ 
 
-make[1]: Leaving directory `/home/mythbox/Firmware/v4l-dvb/v4l'
-
-make: *** [all] Error 2
-
-I was using the old copy of v4l I had so I thought it might have been the
-new kernel fighting w/ the old v4l. So I updated v4l (did a pull via hg)...
-same error.
-
-I dinked w/ it for a long time and finally gave up and upgraded to 9.0.4.
-Same error, now neither of my cards will work (brutal!)  My 800i is acting
-like the 800e was.  I can see the card in mythbackend setup but always gets
-no signal in mythtv.
-
-I dont even know what the snd-go7007 would go with... I dont even have that
-type of hardware (i dont think).
-
-Anyone have any ideas?
-
-Thanks,
-Peter
-
---001636c5a7fb0d622d04738a9a52
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-Hey all,<br><br>I have a Mythbuntu 8.10 system w/ a pctv 800i (pci card) an=
-d a pctv hd
-stick (800e). Had both running just fine for about 8 months... then the
-stick stopped working.=A0 Or rather, it works but wont pick up a signal.<br=
-><br>I decided I would update my system a little and figure out what broke
-my 800e. I updated my kernel and went to recompile v4l-dvb and got this
-error:<br><br>=A0 CC [M]=A0 /home/mythbox/Firmware/v4l-dvb/v4l/snd-go7007.o=
-<br><br>/home/mythbox/Firmware/v4l-dvb/v4l/snd-go7007.c: In function &#39;g=
-o7007_snd_init&#39;:<br><br>/home/mythbox/Firmware/v4l-dvb/v4l/snd-go7007.c=
-:251: error: implicit declaration of function &#39;snd_card_create&#39;<br>
-
-<br>make[3]: *** [/home/mythbox/Firmware/v4l-dvb/v4l/snd-go7007.o] Error 1<=
-br><br>make[2]: *** [_module_/home/mythbox/Firmware/v4l-dvb/v4l] Error 2<br=
-><br>make[2]: Leaving directory `/usr/src/linux-headers-2.6.28-15-generic&#=
-39;<br>
-
-<br>make[1]: *** [default] Error 2<br><br>make[1]: Leaving directory `/home=
-/mythbox/Firmware/v4l-dvb/v4l&#39;<br><br>make: *** [all] Error 2<br><br>I =
-was using the old copy of v4l I had so I thought it might have been
-the new kernel fighting w/ the old v4l. So I updated v4l (did a pull via hg=
-)... same error.
-<br>
-<br>
-I dinked w/ it for a long time and finally gave up and upgraded to
-9.0.4. Same error, now neither of my cards will work (brutal!)=A0 My 800i i=
-s acting like the 800e was.=A0 I can see the card in mythbackend setup but =
-always gets no signal in mythtv. <br>
-<br>
-I dont even know what the snd-go7007 would go with... I dont even have that=
- type of hardware (i dont think).<br>
-<br>
-Anyone have any ideas?<br><br>Thanks,<br>Peter<br>
-
---001636c5a7fb0d622d04738a9a52--
+ 
 
 
---===============1793662930==
+--Boundary_(ID_ZQeoTGKNH5QoU4EY5IjKGg)
+Content-type: text/html; charset=us-ascii
+Content-transfer-encoding: 7BIT
+
+<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=us-ascii">
+<meta name=Generator content="Microsoft Word 11 (filtered medium)">
+<style>
+<!--
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0in;
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;}
+span.EmailStyle17
+	{mso-style-type:personal-compose;
+	font-family:Arial;
+	color:windowtext;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+
+</head>
+
+<body lang=EN-US link=blue vlink=purple>
+
+<div class=Section1>
+
+<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
+font-family:Arial'>Hi!<o:p></o:p></span></font></p>
+
+<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
+font-family:Arial'>We are trying to bring up the DVB-S tuner BS2F7VZ0169, that
+includes demodulator - STV0903 and tuner STV6110A.<o:p></o:p></span></font></p>
+
+<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
+font-family:Arial'>But I can&#8217;t find any information about these chips.<o:p></o:p></span></font></p>
+
+<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
+font-family:Arial'>Could you send the data sheet (full ) or any another
+programming information?<o:p></o:p></span></font></p>
+
+<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
+font-family:Arial'>&nbsp;Thanks,<o:p></o:p></span></font></p>
+
+<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
+font-family:Arial'>Gennady.<o:p></o:p></span></font></p>
+
+<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
+font-family:Arial'>gennady@exatel-vs.com<o:p></o:p></span></font></p>
+
+<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
+font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
+font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
+
+</div>
+
+</body>
+
+</html>
+
+--Boundary_(ID_ZQeoTGKNH5QoU4EY5IjKGg)--
+
+
+--===============0985650571==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -128,4 +150,4 @@ linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1793662930==--
+--===============0985650571==--
