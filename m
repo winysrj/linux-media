@@ -1,132 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f189.google.com ([209.85.216.189]:54503 "EHLO
-	mail-px0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752552AbZIMGNM convert rfc822-to-8bit (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:33107 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755813AbZINR5A (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2009 02:13:12 -0400
-Received: by pxi27 with SMTP id 27so1682818pxi.15
-        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 23:13:15 -0700 (PDT)
-Subject: Re: Media controller: sysfs vs ioctl
-Mime-Version: 1.0 (Apple Message framework v1076)
-Content-Type: text/plain; charset=euc-kr; format=flowed; delsp=yes
-From: Nathaniel Kim <dongsoo.kim@gmail.com>
-In-Reply-To: <200909120021.48353.hverkuil@xs4all.nl>
-Date: Sun, 13 Sep 2009 15:13:04 +0900
+	Mon, 14 Sep 2009 13:57:00 -0400
+Date: Mon, 14 Sep 2009 14:56:18 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Peter J. Olson" <peterjolson@gmail.com>
 Cc: linux-media@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <1BD4D6CB-4CEC-40D2-B168-BE5F8494189F@gmail.com>
-References: <200909120021.48353.hverkuil@xs4all.nl>
-To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: Compile error when I get to snd-go7007.c
+Message-ID: <20090914145618.14e08573@pedra.chehab.org>
+In-Reply-To: <64a476a80909141031u4e664a2ard4590988bf88de8f@mail.gmail.com>
+References: <64a476a80909140736k159fddffle1d6ccbcaa3cecfb@mail.gmail.com>
+	<64a476a80909140739h6612ce69u2819335f7ea2c758@mail.gmail.com>
+	<64a476a80909140804s34ebd140r7934f46fb2150364@mail.gmail.com>
+	<64a476a80909140810j2c23a11fp994c6278ec01829a@mail.gmail.com>
+	<64a476a80909140818y7d29fb0w84f247e4de702a30@mail.gmail.com>
+	<20090914133229.7dc1b9c4@pedra.chehab.org>
+	<64a476a80909141031u4e664a2ard4590988bf88de8f@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Mon, 14 Sep 2009 12:31:28 -0500
+"Peter J. Olson" <peterjolson@gmail.com> escreveu:
 
-2009. 9. 12., 오전 7:21, Hans Verkuil 작성:
+> Well, I made it a little farther...  I think.  I updated v4l-dvb: "hg
+> pull" then updated "hg update"
+> 
+> I then ran "make allmodconfig"
+> 
+> This is my output:
+> make -C /home/mythbox/Firmware/v4l-dvb/v4l allmodconfig
+> make[1]: Entering directory `/home/mythbox/Firmware/v4l-dvb/v4l'
+> ./scripts/make_kconfig.pl /lib/modules/2.6.28-15-generic/build
+> /lib/modules/2.6.28-15-generic/build 1
+> Preparing to compile for kernel version 2.6.28
+> 
+> ***WARNING:*** You do not have the full kernel sources installed.
+> This does not prevent you from building the v4l-dvb tree if you have the
+> kernel headers, but the full kernel source may be required in order to use
+> make menuconfig / xconfig / qconfig.
+> 
+> If you are experiencing problems building the v4l-dvb tree, please try
+> building against a vanilla kernel before reporting a bug.
+> 
+> Vanilla kernels are available at http://kernel.org.
+> On most distros, this will compile a newly downloaded kernel:
+> 
+> cp /boot/config-`uname -r` <your kernel dir>/.config
+> cd <your kernel dir>
+> make all modules_install install
+> 
+> Please see your distro's web site for instructions to build a new kernel.
+> 
+> VIDEO_VPSS_SYSTEM: Requires at least kernel 2.6.31
+> VIDEO_VPFE_CAPTURE: Requires at least kernel 2.6.31
+> VIDEO_DM6446_CCDC: Requires at least kernel 2.6.31
+> VIDEO_DM355_CCDC: Requires at least kernel 2.6.31
+> VIDEO_PXA27x: Requires at least kernel 2.6.29
+> VIDEO_CX25821: Requires at least kernel 2.6.31
+> VIDEO_CX25821_ALSA: Requires at least kernel 2.6.31
+> Created default (all yes) .config file
+> ./scripts/fix_kconfig.pl
+> make[1]: Leaving directory `/home/mythbox/Firmware/v4l-dvb/v4l'
+> 
+> Then I made it here:
+> 
+>   CC [M]  /home/mythbox/Firmware/v4l-dvb/v4l/videobuf-core.o
+>   CC [M]  /home/mythbox/Firmware/v4l-dvb/v4l/videobuf-dma-sg.o
+>   CC [M]  /home/mythbox/Firmware/v4l-dvb/v4l/videobuf-dma-contig.o
+> /home/mythbox/Firmware/v4l-dvb/v4l/videobuf-dma-contig.c: In function
+> 'videobuf_dma_contig_user_get':
+> /home/mythbox/Firmware/v4l-dvb/v4l/videobuf-dma-contig.c:164: error:
+> implicit declaration of function 'follow_pfn'
+> make[3]: *** [/home/mythbox/Firmware/v4l-dvb/v4l/videobuf-dma-contig.o] Error 1
+> make[2]: *** [_module_/home/mythbox/Firmware/v4l-dvb/v4l] Error 2
+> make[2]: Leaving directory `/usr/src/linux-headers-2.6.28-15-generic'
+> make[1]: *** [default] Error 2
+> make[1]: Leaving directory `/home/mythbox/Firmware/v4l-dvb/v4l'
+> make: *** [all] Error 2
+> 
+> Its kinda annoying that a year ago this was super easy...
+> 
+> I dont really want to bump up to 2.6.31 seeing it just came out a few days ago.
 
-> Hi all,
->
-> I've started this as a new thread to prevent polluting the  
-> discussions of the
-> media controller as a concept.
->
-> First of all, I have no doubt that everything that you can do with  
-> an ioctl,
-> you can also do with sysfs and vice versa. That's not the problem  
-> here.
->
-> The problem is deciding which approach is the best.
->
-> What is sysfs? (taken from http://lwn.net/Articles/31185/)
->
-> "Sysfs is a virtual filesystem which provides a userspace-visible  
-> representation
-> of the device model. The device model and sysfs are sometimes  
-> confused with each
-> other, but they are distinct entities. The device model functions  
-> just fine
-> without sysfs (but the reverse is not true)."
->
-> Currently both a v4l driver and the device nodes are all represented  
-> in sysfs.
-> This is handled automatically by the kernel.
->
-> Sub-devices are not represented in sysfs since they are not based on  
-> struct
-> device. They are v4l-internal structures. Actually, if the subdev  
-> represents
-> an i2c device, then that i2c device will be present in sysfs, but  
-> not all
-> subdevs are i2c devices.
->
-> Should we make all sub-devices based on struct device? Currently  
-> this is not
-> required. Doing this would probably mean registering a virtual bus,  
-> then
-> attaching the sub-device to that. Of course, this only applies to  
-> sub-devices
-> that represent something that is not an i2c device (e.g. something  
-> internal
-> to the media board like a resizer, or something connected to GPIO  
-> pins).
->
-> If we decide to go with sysfs, then we have to do this. This part  
-> shouldn't
-> be too difficult to implement. And also if we do not go with sysfs  
-> this might
-> be interesting to do eventually.
->
-> The media controller topology as I see it should contain the device  
-> nodes
-> since the application has to know what device node to open to do the  
-> streaming.
-> It should also contain the sub-devices so the application can  
-> control them.
-> Is this enough? I think that eventually we also want to show the  
-> physical
-> connectors. I left them out (mostly) from the initial media  
-> controller proposal,
-> but I suspect that we want those as well eventually. But connectors  
-> are
-> definitely not devices. In that respect the entity concept of the  
-> media
-> controller is more abstract than sysfs.
->
-> However, for now I think we can safely assume that sub-devices can  
-> be made
-> visible in sysfs.
->
+Ok, this is the usual backport issues we have every time we need to backport
+patches upstream. This should be solved soon, but currently my priority is to
+merge the pending patches at the tree. Up to then, you may do a:
+	make menuconfig
 
-Hans,
+and select only the drivers you need, or just revert the latest changepatch to
+videobuf-dma-config.
 
-First of all I'm very sorry that I had not enough time to go through  
-your new RFC. I'll checkout right after posting this mail.
 
-I think this is a good approach and I also had in my mind that sysfs  
-might be a good method if we could control and monitor through this.  
-Recalling memory when we had a talk in San Francisco, I was frustrated  
-that there is no way to catch events from sort of sub-devices like  
-lens actuator (I mean pizeo motors in camera module). As you know lens  
-actuator is an extremely slow device in comparison with common v4l2  
-devices we are using and we need to know whether it has succeeded or  
-not in moving to expected position.
-So I considered sysfs and udev as candidates for catching events from  
-sub-devices. events like success/failure of lens movement, change of  
-status of subdevices.
-Does anybody experiencing same issue? I think I've seen a lens  
-controller driver in omap3 kernel from TI but not sure how did they  
-control that.
 
-My point is that we need a kind of framework to give and event to user  
-space and catching them properly just like udev does.
+
 Cheers,
-
-Nate
-
-=
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-           dongsoo45.kim@samsung.com
+Mauro
