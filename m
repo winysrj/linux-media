@@ -1,114 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:49340 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752204AbZIGJkY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Sep 2009 05:40:24 -0400
-Message-ID: <4AA4D4F1.4060308@upcore.net>
-Date: Mon, 07 Sep 2009 11:40:01 +0200
-From: Magnus Nilsson <magnus@upcore.net>
+Received: from rhlx01.hs-esslingen.de ([129.143.116.10]:40311 "EHLO
+	rhlx01.hs-esslingen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753778AbZINVja (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Sep 2009 17:39:30 -0400
+Date: Mon, 14 Sep 2009 23:39:33 +0200
+From: Andreas Mohr <andi@lisas.de>
+To: Jiri Slaby <jirislaby@gmail.com>
+Cc: Andreas Mohr <andi@lisas.de>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Luca Risolia <luca.risolia@studio.unibo.it>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: V4L2 drivers: potentially dangerous and inefficient
+	msecs_to_jiffies() calculation
+Message-ID: <20090914213933.GA5468@rhlx01.hs-esslingen.de>
+References: <20090914210741.GA16799@rhlx01.hs-esslingen.de> <4AAEB6F0.4080706@gmail.com>
 MIME-Version: 1.0
-To: MartinG <gronslet@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Azurewave AD-CP400 (Twinhan VP-2040 DVB-C)
-References: <4A953E52.4020300@upcore.net> <4A956124.5070902@upcore.net> <bcb3ef430909061352v202d5b6fy3c668b64966a2848@mail.gmail.com>
-In-Reply-To: <bcb3ef430909061352v202d5b6fy3c668b64966a2848@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4AAEB6F0.4080706@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-MartinG wrote:
-> On Wed, Aug 26, 2009 at 6:21 PM, Magnus Nilsson<magnus@upcore.net> wrote:
->> Nevermind this for the time being...all is pointing to open-sasc-ng being
->> the culprit here...
-> 
-> Just to add a datapoint - I have the same problem: I can't seem to
-> successfully scan for channels. I've taken open-sasc-ng out of the
-> equation by simply not loading the loopback device and scan directly
-> on the true frontend.
-> These are my bits:
-> Terratec Cinergy C HD PCI
-> kernel 2.6.29.6-217.2.16.fc11.x86_64
-> s2-liplianin from http://mercurial.intuxication.org/hg/s2-liplianin
-> Currently:
-> changeset:   12465:096aa4559b71
-> tag:         tip
-> user:        Igor M. Liplianin <liplianin@me.by>
-> date:        Sat Sep 05 20:26:33 2009 +0300
-> 
-> dmesg when "modprobe mantis"
-> Sep  6 22:33:52 localhost kernel: Mantis 0000:04:00.0: PCI INT A ->
-> GSI 16 (level, low) -> IRQ 16
-> Sep  6 22:33:52 localhost kernel: irq: 16, latency: 64
-> Sep  6 22:33:52 localhost kernel: memory: 0xfdfff000, mmio: 0xffffc20023906000
-> Sep  6 22:33:52 localhost kernel: found a VP-2040 PCI DVB-C device on (04:00.0),
-> Sep  6 22:33:52 localhost kernel:    Mantis Rev 1 [153b:1178], irq:
-> 16, latency: 64
-> Sep  6 22:33:52 localhost kernel:    memory: 0xfdfff000, mmio:
-> 0xffffc20023906000
-> Sep  6 22:33:52 localhost kernel:    MAC Address=[00:08:ca:1d:bd:a6]
-> Sep  6 22:33:52 localhost kernel: mantis_alloc_buffers (0):
-> DMA=0xcc0d0000 cpu=0xffff8800cc0d0000 size=65536
-> Sep  6 22:33:52 localhost kernel: mantis_alloc_buffers (0):
-> RISC=0xa85ce000 cpu=0xffff8800a85ce000 size=1000
-> Sep  6 22:33:52 localhost kernel: DVB: registering new adapter (Mantis
-> dvb adapter)
-> Sep  6 22:33:52 localhost kernel: mantis_frontend_init (0): Probing
-> for CU1216 (DVB-C)
-> Sep  6 22:33:52 localhost kernel: TDA10023: i2c-addr = 0x0c, id = 0x7d
-> Sep  6 22:33:52 localhost kernel: mantis_frontend_init (0): found
-> Philips CU1216 DVB-C frontend (TDA10023) @ 0x0c
-> Sep  6 22:33:52 localhost kernel: mantis_frontend_init (0): Mantis
-> DVB-C Philips CU1216 frontend attach success
-> Sep  6 22:33:52 localhost kernel: DVB: registering adapter 0 frontend
-> 0 (Philips TDA10023 DVB-C)...
-> Sep  6 22:33:52 localhost kernel: mantis_ca_init (0): Registering EN50221 device
-> Sep  6 22:33:52 localhost kernel: mantis_ca_init (0): Registered EN50221 device
-> Sep  6 22:33:52 localhost kernel: mantis_hif_init (0): Adapter(0)
-> Initializing Mantis Host Interface
-> Sep  6 22:33:52 localhost kernel: input: Mantis VP-2040 IR Receiver as
-> /devices/virtual/input/input11
-> Sep  6 22:33:53 localhost kernel: Mantis VP-2040 IR Receiver: unknown
-> key: key=0x00 raw=0x00 down=1
-> Sep  6 22:33:53 localhost kernel: Mantis VP-2040 IR Receiver: unknown
-> key: key=0x00 raw=0x00 down=0
-> 
-> lspci -v
-> 04:00.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV
-> PCI Bridge Controller [Ver 1.0] (rev 01)
->         Subsystem: TERRATEC Electronic GmbH Device 1178
->         Flags: bus master, medium devsel, latency 64, IRQ 16
->         Memory at fdfff000 (32-bit, prefetchable) [size=4K]
->         Kernel driver in use: Mantis
->         Kernel modules: mantis
-> 
-> I have also tried the mantis module from v4l-dvb without success. The
-> card is then recognized as TDA10021 instead of TDA10023, just as you
-> describe.
-> 
-> Typically, I have to do "modprobe -r mantis;modprobe mantis" right
-> before I try to scan (with w_scan, scandvb og mythtv) in order to get
-> any channels at all. But the joy doesn't last for long, and I get
-> stuff like
-> kernel: mantis_ack_wait (0): Slave RACK Fail !
-> in /var/log/messages.
-> 
-> I guess the problems mentioned in the following post are related:
->  Subject: Terratec Cinergy C HD tuning problems
->  Date: 2009-08-19 21:10:56 GMT
-> 
-> Hope we can find a solution to this!
-> 
-> best,
-> MartinG
+Hi,
 
-I actually found what my problem was. It seems that open-sasc-ng has a 
-weird bug, which means you can't tell it to log to a logfile by using 
-the --log argument.
+On Mon, Sep 14, 2009 at 11:34:40PM +0200, Jiri Slaby wrote:
+> On 09/14/2009 11:07 PM, Andreas Mohr wrote:
+> > ./drivers/media/video/zc0301/zc0301_core.c
+> > do
+> >                             cam->module_param.frame_timeout *
+> >                             1000 * msecs_to_jiffies(1) );
+> > multiple times each.
+> > What they should do instead is
+> > frame_timeout * msecs_to_jiffies(1000), I'd think.
+> 
+> In fact, msecs_to_jiffies(frame_timeout * 1000) makes much more sense.
 
-If I remove the '--log /var/log/open-sasc-ng.log' argument and instead 
-lets it log directly to syslog, it works fine. I'm using syslog-ng, so 
-it's not a problem directing all open-sasc-ng log traffic to a specific 
-logfile anyway.
+Heh, right, even a bit better ;)
 
-//Magnus
+> > msecs_to_jiffies(1) is quite a bit too boldly assuming
+> > that all of the msecs_to_jiffies(x) implementation branches
+> > always round up.
+> 
+> They do, don't they?
+
+I'd hope so, but a slight risk remains, you never know,
+especially with 4+ or so variants...
+
+Andreas Mohr
