@@ -1,117 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2573 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756108AbZICSXw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Sep 2009 14:23:52 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id n83INrvY053891
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 3 Sep 2009 20:23:53 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 3 Sep 2009 20:23:53 +0200 (CEST)
-Message-Id: <200909031823.n83INrvY053891@smtp-vbr14.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from ip78-183-211-87.adsl2.static.versatel.nl ([87.211.183.78]:58568
+	"EHLO god.dyndns.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751078AbZINPKb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Sep 2009 11:10:31 -0400
+Date: Mon, 14 Sep 2009 17:10:12 +0200
+From: spam@systol-ng.god.lan
+To: Michael Krufky <mkrufky@kernellabs.com>
+Cc: Henk.Vergonet@gmail.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH] tda18271 add FM filter selction + minor fixes
+Message-ID: <20090914151011.GA2295@systol-ng.god.lan>
+Reply-To: Henk.Vergonet@gmail.com
+References: <20090907124934.GA8339@systol-ng.god.lan> <37219a840909070718q47890f5bgbf76a00ea8826880@mail.gmail.com> <20090907151809.GA12556@systol-ng.god.lan> <37219a840909070912h3678fb2cm94102d7437bec5df@mail.gmail.com> <20090908212733.GA19438@systol-ng.god.lan> <37219a840909081457u610b9c65le6141e79567ab629@mail.gmail.com> <20090909140147.GA24722@systol-ng.god.lan> <303a8ee30909090808u46acfb49l760d660f8a28f503@mail.gmail.com> <20090914001447.GA15770@systol-ng.god.lan> <303a8ee30909140533k728791b5p503701d4e6b14122@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <303a8ee30909140533k728791b5p503701d4e6b14122@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Mon, Sep 14, 2009 at 08:33:46AM -0400, Michael Krufky wrote:
+> On Sun, Sep 13, 2009 at 8:14 PM,  <spam@systol-ng.god.lan> wrote:
+> >
+> > This patch adds support for FM filter selection. The tda18271 has two rf
+> > inputs RF_IN (45-864 MHz) and FM_IN (65-108 MHz). The code automatically
+> > enables the antialiasing filter for radio reception and depending on the
+> > FM input selected configures EB23 register.
+> >
+> > Additional fixes:
+> > - Fixed the temerature comensation, see revision history of TDA18271HD_4
+> > ?spec.
+> > - Minor cosmetic change in the tda18271_rf_band[]
+> > - Fixed one value and removed a duplicate in tda18271_cid_target[]
+> >
+> > Signed-off-by: Henk.Vergonet@gmail.com
+> >
+> >
+> 
+> Henk,
+> 
+> Thank you for your patch.
+> 
+> I have some other tda18271 patches pending merge currently, so it will
+> be a few days before I'll be able to test and merge your patch.
+> 
+> In the meanwhile, I'd request that this single patch be broken down
+> into three separate patches, each with a description of the change and
+> sign-off.  I know that the patch you sent in is small, I just prefer
+> to apply changes separately.
+> 
+Thats fine, I will wait for the pull in v4l-dvb and then redo the patches:
+- FM filter selection
+- Errata temerature compensation
+- Table fixes
 
-Results of the daily build of v4l-dvb:
+if thast ok.
 
-date:        Thu Sep  3 19:00:04 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12615:2b49813f8482
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+> Do you have FM radio working on the Zolid board after applying this?
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc8-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-rc8-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-rc8-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-rc8-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc8-m32r: OK
-linux-2.6.30-mips: ERRORS
-linux-2.6.31-rc8-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-rc8-powerpc64: OK
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc8-x86_64: OK
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc8): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+Unfortunately not yet, I get static noise with small 'ticks' at regular
+intervals. It maybe the way I am testing. Currently I am using:
 
-Detailed results are available here:
+	mplayer radio://91.3/capture -nocache -rawaudio rate=32000 -radio \
+		adevice=hw=1.0:arate=32000
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+to test.
 
-Full logs are available here:
+I will try to see if a can solder some pin headers on the card so I can
+use audio bypass to the sound card.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+Thanks,
 
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+Henk
