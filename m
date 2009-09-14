@@ -1,65 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f192.google.com ([209.85.221.192]:58639 "EHLO
-	mail-qy0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755286AbZINMjN convert rfc822-to-8bit (ORCPT
+Received: from ey-out-2122.google.com ([74.125.78.25]:39214 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750832AbZINPS7 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Sep 2009 08:39:13 -0400
-Received: by qyk30 with SMTP id 30so2514030qyk.5
-        for <linux-media@vger.kernel.org>; Mon, 14 Sep 2009 05:39:17 -0700 (PDT)
+	Mon, 14 Sep 2009 11:18:59 -0400
+Received: by ey-out-2122.google.com with SMTP id 25so609083eya.19
+        for <linux-media@vger.kernel.org>; Mon, 14 Sep 2009 08:19:02 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20090914001447.GA15770@systol-ng.god.lan>
-References: <13c90c570909070123r2ba1f5f6w2b288703f5e98738@mail.gmail.com>
-	 <20090907124934.GA8339@systol-ng.god.lan>
-	 <37219a840909070718q47890f5bgbf76a00ea8826880@mail.gmail.com>
-	 <20090907151809.GA12556@systol-ng.god.lan>
-	 <37219a840909070912h3678fb2cm94102d7437bec5df@mail.gmail.com>
-	 <20090908212733.GA19438@systol-ng.god.lan>
-	 <37219a840909081457u610b9c65le6141e79567ab629@mail.gmail.com>
-	 <20090909140147.GA24722@systol-ng.god.lan>
-	 <303a8ee30909090808u46acfb49l760d660f8a28f503@mail.gmail.com>
-	 <20090914001447.GA15770@systol-ng.god.lan>
-Date: Mon, 14 Sep 2009 08:33:46 -0400
-Message-ID: <303a8ee30909140533k728791b5p503701d4e6b14122@mail.gmail.com>
-Subject: Re: [PATCH] tda18271 add FM filter selction + minor fixes
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Henk.Vergonet@gmail.com
-Cc: linux-media@vger.kernel.org
+In-Reply-To: <64a476a80909140810j2c23a11fp994c6278ec01829a@mail.gmail.com>
+References: <64a476a80909140736k159fddffle1d6ccbcaa3cecfb@mail.gmail.com>
+	<64a476a80909140739h6612ce69u2819335f7ea2c758@mail.gmail.com>
+	<64a476a80909140804s34ebd140r7934f46fb2150364@mail.gmail.com>
+	<64a476a80909140810j2c23a11fp994c6278ec01829a@mail.gmail.com>
+From: "Peter J. Olson" <peterjolson@gmail.com>
+Date: Mon, 14 Sep 2009 10:18:42 -0500
+Message-ID: <64a476a80909140818y7d29fb0w84f247e4de702a30@mail.gmail.com>
+Subject: Compile error when I get to snd-go7007.c
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Sep 13, 2009 at 8:14 PM,  <spam@systol-ng.god.lan> wrote:
->
-> This patch adds support for FM filter selection. The tda18271 has two rf
-> inputs RF_IN (45-864 MHz) and FM_IN (65-108 MHz). The code automatically
-> enables the antialiasing filter for radio reception and depending on the
-> FM input selected configures EB23 register.
->
-> Additional fixes:
-> - Fixed the temerature comensation, see revision history of TDA18271HD_4
->  spec.
-> - Minor cosmetic change in the tda18271_rf_band[]
-> - Fixed one value and removed a duplicate in tda18271_cid_target[]
->
-> Signed-off-by: Henk.Vergonet@gmail.com
->
->
+Hey all,
 
-Henk,
+I have a Mythbuntu 8.10 system w/ a pctv 800i (pci card) and a pctv hd
+stick (800e). Had both running just fine for about 8 months... then
+the stick stopped working.  Or rather, it works but wont pick up a
+signal.
 
-Thank you for your patch.
+I decided I would update my system a little and figure out what broke
+my 800e. I updated my kernel and went to recompile v4l-dvb and got
+this error:
 
-I have some other tda18271 patches pending merge currently, so it will
-be a few days before I'll be able to test and merge your patch.
+  CC [M]  /home/mythbox/Firmware/v4l-dvb/v4l/snd-go7007.o
 
-In the meanwhile, I'd request that this single patch be broken down
-into three separate patches, each with a description of the change and
-sign-off.  I know that the patch you sent in is small, I just prefer
-to apply changes separately.
+/home/mythbox/Firmware/v4l-dvb/v4l/snd-go7007.c: In function 'go7007_snd_init':
 
-Do you have FM radio working on the Zolid board after applying this?
+/home/mythbox/Firmware/v4l-dvb/v4l/snd-go7007.c:251: error: implicit
+declaration of function 'snd_card_create'
 
-Regards,
+make[3]: *** [/home/mythbox/Firmware/v4l-dvb/v4l/snd-go7007.o] Error 1
 
-Mike
+make[2]: *** [_module_/home/mythbox/Firmware/v4l-dvb/v4l] Error 2
+
+make[2]: Leaving directory `/usr/src/linux-headers-2.6.28-15-generic'
+
+make[1]: *** [default] Error 2
+
+make[1]: Leaving directory `/home/mythbox/Firmware/v4l-dvb/v4l'
+
+make: *** [all] Error 2
+
+I was using the old copy of v4l I had so I thought it might have been
+the new kernel fighting w/ the old v4l. So I updated v4l (did a pull
+via hg)... same error.
+
+I dinked w/ it for a long time and finally gave up and upgraded to
+9.0.4. Same error, now neither of my cards will work (brutal!)  My
+800i is acting like the 800e was.  I can see the card in mythbackend
+setup but always gets no signal in mythtv.
+
+I dont even know what the snd-go7007 would go with... I dont even have
+that type of hardware (i dont think).
+
+Anyone have any ideas?
+
+Thanks,
+Peter
