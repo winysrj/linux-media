@@ -1,65 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:34525 "EHLO smtp4-g21.free.fr"
+Received: from lo.gmane.org ([80.91.229.12]:41197 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752672AbZIGKWE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Sep 2009 06:22:04 -0400
-To: Marek Vasut <marek.vasut@gmail.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Eric Miao <eric.y.miao@gmail.com>,
-	linux-arm-kernel@lists.arm.linux.org.uk,
-	"Russell King - ARM Linux" <linux@arm.linux.org.uk>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mike Rapoport <mike@compulab.co.il>,
-	Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH] Add RGB555X and RGB565X formats to pxa-camera
-References: <200908031031.00676.marek.vasut@gmail.com>
-	<200909070646.04642.marek.vasut@gmail.com>
-	<Pine.LNX.4.64.0909070818480.4822@axis700.grange>
-	<200909071050.11531.marek.vasut@gmail.com>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Mon, 07 Sep 2009 12:21:50 +0200
-In-Reply-To: <200909071050.11531.marek.vasut@gmail.com> (Marek Vasut's message of "Mon\, 7 Sep 2009 10\:50\:11 +0200")
-Message-ID: <m2iqfvkqbl.fsf@arbois.toulouse.it.atosorigin.com>
-MIME-Version: 1.0
+	id S1752045AbZINNcj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Sep 2009 09:32:39 -0400
+Received: from list by lo.gmane.org with local (Exim 4.50)
+	id 1MnBfY-0002cB-Cx
+	for linux-media@vger.kernel.org; Mon, 14 Sep 2009 15:32:36 +0200
+Received: from host-78-14-94-77.cust-adsl.tiscali.it ([78.14.94.77])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 14 Sep 2009 15:32:36 +0200
+Received: from avljawrowski by host-78-14-94-77.cust-adsl.tiscali.it with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 14 Sep 2009 15:32:36 +0200
+To: linux-media@vger.kernel.org
+From: Avl Jawrowski <avljawrowski@gmail.com>
+Subject: Re: Problems with Pinnacle 310i (saa7134) and recent kernels
+Date: Mon, 14 Sep 2009 13:32:12 +0000 (UTC)
+Message-ID: <loom.20090914T150511-456@post.gmane.org>
+References: <loom.20090718T135733-267@post.gmane.org>  <1248033581.3667.40.camel@pc07.localdom.local>  <loom.20090720T224156-477@post.gmane.org>  <1248146456.3239.6.camel@pc07.localdom.local>  <loom.20090722T123703-889@post.gmane.org>  <1248338430.3206.34.camel@pc07.localdom.local>  <loom.20090910T234610-403@post.gmane.org>  <1252630820.3321.14.camel@pc07.localdom.local>  <loom.20090912T211959-273@post.gmane.org>  <1252815178.3259.39.camel@pc07.localdom.local>  <loom.20090913T115105-855@post.gmane.org> <1252881736.4318.48.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Marek Vasut <marek.vasut@gmail.com> writes:
+Hi,
 
-> How's it supposed to get BGR555 if the pxa-camera doesnt support that ? Will the 
-> v4l2 layer convert it or something ?
+hermann pitton <hermann-pitton <at> arcor.de> writes:
 
-In pxa_camera.c, function pxa_camera_get_formats() :
->         default:
->                 /* Generic pass-through */
->                 formats++;
->                 if (xlate) {
->                         xlate->host_fmt = icd->formats + idx;
->                         xlate->cam_fmt = icd->formats + idx;
->                         xlate->buswidth = icd->formats[idx].depth;
->                         xlate++;
->                         dev_dbg(ici->dev,
->                                 "Providing format %s in pass-through mode\n",
->                                 icd->formats[idx].name);
->                 }
->         }
+> no, in this case I meant mplayer should work for you too.
+> You need to have DVB support enabled and a channels.conf file in
+> ~/.mplayer.
 
-"Pass-through" means that if a sensors provides a cc, ie. BGR555 for example,
-the bridge (pxa_camera) will "forward" to RAM the image in the very same cc
-(ie. BGR555). In that case, the bridge is a dummy "sensor to RAM" bus translator
-if you prefer.
+It's compiled with --enable-dvbhead, and the channels.conf is made by w_scan,
+but I tried even with a made by scan one.
 
-Marek, you should activate debug trace and watch for yourself. You can trust
-Guennadi, when he says it will work, well ... it will work.
+> We might collect pictures of the cards and remotes as well.
+> To identify those card with an additional LNA circuitry is likely not
+> easy hardware wise, since the tuner shielding is soldered with 16 pins,
+> many close to lines. Maybe we can identify those boards by the card
+> revision printed on them. Don't know how to auto detect them.
 
-If it's out of technical curiousity, check the function above.  If you're even
-more curious, there was a thread in linux-media about "RFC: bus configuration
-setup for sub-devices", a very interesting one, especially considering the
-"pass-through" issue.
+I will post some photos.
 
-Cheers.
+> > In the matter of the IR, the modules seems to be loaded:
+> > 
+> > tda1004x               13048  1
+> > saa7134_dvb            20772  0
+> > videobuf_dvb            5644  1 saa7134_dvb
+> > ir_kbd_i2c              5500  0
+> > tda827x                 8880  2
+> > tuner                  16960  1
+> > saa7134               138436  1 saa7134_dvb
+> > ir_common              41828  2 ir_kbd_i2c,saa7134
+> > videobuf_dma_sg         9876  2 saa7134_dvb,saa7134
+> > videobuf_core          13596  3 videobuf_dvb,saa7134,videobuf_dma_sg
+> > tveeprom               10488  1 saa7134
+> > 
+> > But I can't find anything in /proc/bus/input/devices.
+> 
+> We might have more than the two supported remotes on such cards.
+> After all that would not make me wonder anymore and the windows driver
+> presents some more. Do you have that silver remote with colored buttons.
+> There must be a device at 0x47 detected to support it.
 
---
-Robert
+Yes that is: http://www.hwp.ru/Tvtuners/Pinnaclehybridpro.pci
+/Pinnaclepctvhybridpropci-1sm.jpg
+
+> You might have to load ir-kbd-i2c at first or reload saa7134-alsa and
+> saa7134-dvb, which includes saa7134.
+
+I've unloaded all modules, then loaded first ir-kbd-i2c and next saa7134-dvb,
+but I can't see any difference.
+Loading saa7134 with ir_debug=1 and i2c_debug=1 I can see some of these errors:
+
+saa7133[0]: i2c xfer: < 8e ERROR: NO_DEVICE
+saa7133[0]: i2c xfer: < e2 ERROR: NO_DEVICE
+saa7133[0]: i2c xfer: < 5a ERROR: NO_DEVICE
+
+> > > The only other issue I'm aware of is that radio is broken since guessed
+> > > 8 weeks on my tuners, only realized when testing on enabling external
+> > > active antenna voltage for DVB-T on a/some 310i.
+> > > 
+> > > Might be anything, hm, hopefully I should not have caused it ;)
+> > 
+> > The radio works for me, even if there's much noise (I don't usually use it).
+> > I'm using the internal audio cable.
+> 
+> The radio is broken for all tuners, you must be on older stuff.
+
+Using 2.6.31 and mplayer it really works for me.
+
+> I finally found the time to do the mercurial bisect today.
+> 
+> It is broken since Hans' changeset 12429 on seventh August.
+> 
+> Cheers,
+> Hermann
+
+Thank you!
+
