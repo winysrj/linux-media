@@ -1,53 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp27.orange.fr ([80.12.242.96]:27381 "EHLO smtp27.orange.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752415AbZIIVAw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Sep 2009 17:00:52 -0400
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2726.orange.fr (SMTP Server) with ESMTP id 81E201C00097
-	for <linux-media@vger.kernel.org>; Wed,  9 Sep 2009 23:00:54 +0200 (CEST)
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2726.orange.fr (SMTP Server) with ESMTP id 716B81C00092
-	for <linux-media@vger.kernel.org>; Wed,  9 Sep 2009 23:00:54 +0200 (CEST)
-Received: from [192.168.1.11] (ANantes-551-1-42-204.w86-214.abo.wanadoo.fr [86.214.145.204])
-	by mwinf2726.orange.fr (SMTP Server) with ESMTP id F1E6D1C00097
-	for <linux-media@vger.kernel.org>; Wed,  9 Sep 2009 23:00:53 +0200 (CEST)
-Message-ID: <4AA81785.5000806@gmail.com>
-Date: Wed, 09 Sep 2009 23:00:53 +0200
-From: Morvan Le Meut <mlemeut@gmail.com>
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:63023 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754244AbZINVPi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Sep 2009 17:15:38 -0400
+Received: by bwz19 with SMTP id 19so2390380bwz.37
+        for <linux-media@vger.kernel.org>; Mon, 14 Sep 2009 14:15:41 -0700 (PDT)
+From: Marek Vasut <marek.vasut@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: V4L2: Add a v4l2-subdev (soc-camera) driver for OmniVision OV9640 sensor
+Date: Mon, 14 Sep 2009 23:15:14 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <200908220850.07435.marek.vasut@gmail.com> <200909142202.46154.marek.vasut@gmail.com> <Pine.LNX.4.64.0909142211120.4359@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0909142211120.4359@axis700.grange>
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: (Saa7134) Re: ADS-Tech Instant TV PCI, no remote support
-References: <4AA53C05.10203@gmail.com> <4AA61508.9040506@gmail.com> <op.uzxmzlj86dn9rq@crni> <4AA62C38.3050208@gmail.com> <4AA63434.1010709@gmail.com> <4AA683BD.6070601@gmail.com> <4AA695EE.70800@gmail.com> <4AA767F2.50702@gmail.com> <op.uzzfgyvj3xmt7q@crni> <4AA77240.2040504@gmail.com> <4AA77683.7010201@gmail.com> <4AA7C266.3000509@gmail.com> <op.uzzz96se6dn9rq@crni> <4AA7E166.7030906@gmail.com>
-In-Reply-To: <4AA7E166.7030906@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <200909142315.14697.marek.vasut@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I don't know if i mentioned it before but something i find strange is " 
-saa7134 IR (ADS Tech Instant TV: unknown key: key=0x00 raw=0x00 down=1" 
-as soon as the module is loaded.
+Dne Po 14. září 2009 22:30:41 Guennadi Liakhovetski napsal(a):
+> On Mon, 14 Sep 2009, Marek Vasut wrote:
+> > Dne Po 14. září 2009 21:29:26 Guennadi Liakhovetski napsal(a):
+> > > From: Marek Vasut <marek.vasut@gmail.com>
+> > >
+> > > Signed-off-by: Marek Vasut <marek.vasut@gmail.com>
+> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > ---
+> > >
+> > > Marek, please confirm, that this version is ok. I'll push it upstream
+> > > for 2.6.32 then.
+> >
+> > No, it's not OK. You removed the RGB part. Either enclose those parts
+> > into ifdef OV9640_RGB_BUGGY or preserve it in some other way. Someone
+> > will certainly want to re-add RGB parts later and will have to figure it
+> > out all over again.
+> 
+> Ok, make a proposal, how you would like to see it. But - I do not want
+> commented out code, including "#ifdef MACRO_THAT_DOESNT_GET_DEFINED." I
+> think, I described it in sufficient detail, so that re-adding that code
+> should not take longer than 10 minutes for anyone sufficiently familiar
+> with the code. Referencing another driver also has an advantage, that if
+> we switch to imagebus or any other API, you don't get stale commented out
+> code, but you look up updated code in a functional driver. But I am open
+> to your ideas / but no commented out code, please.
 
+The RGB is broken only in a way where it swaps colours, the color matrix 
+coeficients and register configurations are OK (which is what other people who 
+will want to add it will need to figure out again from scratch if you remove the 
+code).
 
-Morvan Le Meut a �crit :
-> i did try it ( well, i left the keyup and keydown part and i also 
-> tried it by setting it to 0 ) but the gpio still repeat 
-> ("saa7133[0]/ir: build_key gpio=0x1b mask=0x0 data=0" for Power and 
-> Record, each followed by gpio=7f ).
-> Which is why i believe i am missing part of that code ( got the dvb-t 
-> version too on another computer, and given the software used, there 
-> should be no duplicate keys ).
-> I guess i will have to wait for someone to solve the problem. I can at 
-> least use the remote in a "broken" way.
->
->
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
-
-
+I dont want this merged before this is solved in some way where those values are 
+preserved.
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> 
