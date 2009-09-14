@@ -1,102 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ip78-183-211-87.adsl2.static.versatel.nl ([87.211.183.78]:33038
-	"EHLO god.dyndns.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751693AbZIVVJS (ORCPT
+Received: from mail-qy0-f185.google.com ([209.85.221.185]:59879 "EHLO
+	mail-qy0-f185.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751665AbZINQGn convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2009 17:09:18 -0400
-Date: Tue, 22 Sep 2009 23:09:15 +0200
-From: spam@systol-ng.god.lan
-To: linux-media@vger.kernel.org
-Cc: mkrufky@gmail.com
-Subject: [PATCH 4/4] Zolid Hybrid PCI card add AGC control
-Message-ID: <20090922210915.GD8661@systol-ng.god.lan>
-Reply-To: Henk.Vergonet@gmail.com
+	Mon, 14 Sep 2009 12:06:43 -0400
+Received: by qyk15 with SMTP id 15so2414140qyk.15
+        for <linux-media@vger.kernel.org>; Mon, 14 Sep 2009 09:06:45 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <303a8ee30909090808u46acfb49l760d660f8a28f503@mail.gmail.com>
+References: <13c90c570909070123r2ba1f5f6w2b288703f5e98738@mail.gmail.com>
+	 <13c90c570909070127j11ae6ee2w2aa677529096f820@mail.gmail.com>
+	 <20090907124934.GA8339@systol-ng.god.lan>
+	 <37219a840909070718q47890f5bgbf76a00ea8826880@mail.gmail.com>
+	 <20090907151809.GA12556@systol-ng.god.lan>
+	 <37219a840909070912h3678fb2cm94102d7437bec5df@mail.gmail.com>
+	 <20090908212733.GA19438@systol-ng.god.lan>
+	 <37219a840909081457u610b9c65le6141e79567ab629@mail.gmail.com>
+	 <20090909140147.GA24722@systol-ng.god.lan>
+	 <303a8ee30909090808u46acfb49l760d660f8a28f503@mail.gmail.com>
+Date: Mon, 14 Sep 2009 12:06:39 -0400
+Message-ID: <303a8ee30909140906h7a3dc120u6c63d2431a156239@mail.gmail.com>
+Subject: Re: [PATCH] Add support for Zolid Hybrid PCI card
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Henk.Vergonet@gmail.com
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wed, Sep 9, 2009 at 11:08 AM, Michael Krufky <mkrufky@kernellabs.com> wrote:
+> On Wed, Sep 9, 2009 at 10:01 AM,  <spam@systol-ng.god.lan> wrote:
+>> On Tue, Sep 08, 2009 at 05:57:12PM -0400, Michael Krufky wrote:
+>>>
+>>> Henk,
+>>>
+>>> Why do you expect a 8295?  If your board uses the SAA7131, then we
+>>> would expect an 8290 IF demod.
+>>>
+>>> Ah, I just checked the history of this email thread -- I must have
+>>> read one of your previous emails too quickly.  :-)  Perhaps there is a
+>>> typo in the document that you read -- tda8290 is correct.
+>>>
+>> Just to come back to this point,
+>>
+>> Well zolid has a SAA7131E, if you look at the datasheet (botom of page 15)
+>> http://www.nxp.com/acrobat_download/datasheets/SAA7131E_3.pdf
+>>
+>> it says:
+>> "The SAA7131E is functionally compatible with the SAA7135 audio and video
+>> broadcast decoder device and the stand-alone low-IF device TDA8295."
+>>
+>> So thats why I asked.
+>>
+>> Regards,
+>> Henk
+>>
+>
+> FIX YOUR MAILER!!
+>
+> It's a pain to reply to your emails -- I have to insert your actual
+> email address each time :-(
+>
+> Anyway, I am under the impression that it's a typo in the datasheet.
+> It is actually a tda8290.
 
-Switches IF AGC control via GPIO 21 of the saa7134. Improves DTV reception and
-FM radio reception.
+Henk,
 
-Signed-off-by: Henk.Vergonet@gmail.com
+Just FYI, I merged your patch to my saa7134 repository last week:
 
-diff -r 29e4ba1a09bc linux/drivers/media/video/saa7134/saa7134-cards.c
---- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Sat Sep 19 09:45:22 2009 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Tue Sep 22 22:06:31 2009 +0200
-@@ -6651,6 +6651,22 @@
- 	return 0;
- }
- 
-+static inline int saa7134_tda18271_zolid_toggle_agc(struct saa7134_dev *dev,
-+						      enum tda18271_mode mode)
-+{
-+	switch (mode) {
-+	case TDA18271_ANALOG:
-+		saa7134_set_gpio(dev, 21, 0);
-+		break;
-+	case TDA18271_DIGITAL:
-+		saa7134_set_gpio(dev, 21, 1);
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
- static int saa7134_tda8290_18271_callback(struct saa7134_dev *dev,
- 					  int command, int arg)
- {
-@@ -6663,7 +6679,8 @@
- 		case SAA7134_BOARD_HAUPPAUGE_HVR1120:
- 			ret = saa7134_tda18271_hvr11x0_toggle_agc(dev, arg);
- 			break;
--		default:
-+		case SAA7134_BOARD_ZOLID_HYBRID_PCI:
-+			ret = saa7134_tda18271_zolid_toggle_agc(dev, arg);
- 			break;
- 		}
- 		break;
-@@ -6682,6 +6699,7 @@
- 	switch (dev->board) {
- 	case SAA7134_BOARD_HAUPPAUGE_HVR1150:
- 	case SAA7134_BOARD_HAUPPAUGE_HVR1120:
-+	case SAA7134_BOARD_ZOLID_HYBRID_PCI:
- 		/* tda8290 + tda18271 */
- 		ret = saa7134_tda8290_18271_callback(dev, command, arg);
- 		break;
-@@ -6985,6 +7003,11 @@
- 		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x00008000, 0x00008000);
- 		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00008000);
- 		break;
-+	case SAA7134_BOARD_ZOLID_HYBRID_PCI:
-+		saa7134_set_gpio(dev, 21, 0);	/* s0 HC4052 */
-+		saa7134_set_gpio(dev, 22, 0);	/* vsync tda18271 - TODO implement saa713x driven sync in analog TV modes */
-+		saa7134_set_gpio(dev, 23, 0);	/* s1 HC4052 */
-+		break;
- 	}
- 	return 0;
- }
-diff -r 29e4ba1a09bc linux/drivers/media/video/saa7134/saa7134-dvb.c
---- a/linux/drivers/media/video/saa7134/saa7134-dvb.c	Sat Sep 19 09:45:22 2009 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-dvb.c	Tue Sep 22 22:06:31 2009 +0200
-@@ -1026,8 +1026,17 @@
- 	.disable_gate_access = 1,
- };
- 
-+static struct tda18271_std_map zolid_tda18271_std_map = {
-+	/* FM reception via RF_IN */
-+	.fm_radio = { .if_freq = 1250, .fm_rfn = 0, .agc_mode = 3, .std = 0,
-+		      .if_lvl = 0, .rfagc_top = 0x2c, },
-+};
-+
- static struct tda18271_config zolid_tda18271_config = {
-+	.std_map = &zolid_tda18271_std_map,
- 	.gate    = TDA18271_GATE_ANALOG,
-+	.config  = 3,
-+	.output_opt = TDA18271_OUTPUT_LT_OFF,
- };
- 
- /* ==================================================================
+http://www.kernellabs.com/hg/~mkrufky/saa7134
+
+I thought that I had replied to you already but that message seems to
+have gotten dropped somewhere :-/
+
+I intend to send a pull request to Mauro for this, in addition to some
+other pending patches after he merges what I have already pending.
+
+Thanks again for your work.
+
+Regards,
+
+Mike Krufky
