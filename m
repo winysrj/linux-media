@@ -1,26 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx10.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.14])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n8AI3Q7L005283
-	for <video4linux-list@redhat.com>; Thu, 10 Sep 2009 14:03:26 -0400
-Received: from mail-px0-f203.google.com (mail-px0-f203.google.com
-	[209.85.216.203])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n8AI3As7019464
-	for <video4linux-list@redhat.com>; Thu, 10 Sep 2009 14:03:10 -0400
-Received: by pxi41 with SMTP id 41so273940pxi.30
-	for <video4linux-list@redhat.com>; Thu, 10 Sep 2009 11:03:09 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <fa40cc720909072033l5ec82188va19da7b06b943fa2@mail.gmail.com>
-References: <fa40cc720909072033l5ec82188va19da7b06b943fa2@mail.gmail.com>
-Date: Thu, 10 Sep 2009 23:33:09 +0530
-Message-ID: <ecf74bb50909101103m7a18b5e5mdac95a3acf4e54e8@mail.gmail.com>
-From: Vinay Verma <vinayverma@gmail.com>
-To: Guilherme Raymo Longo <grlongo.ireland@gmail.com>
+Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.11])
+	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n8EITIR6012088
+	for <video4linux-list@redhat.com>; Mon, 14 Sep 2009 14:29:18 -0400
+Received: from smtp3-g21.free.fr (smtp3-g21.free.fr [212.27.42.3])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n8EIT17P029125
+	for <video4linux-list@redhat.com>; Mon, 14 Sep 2009 14:29:05 -0400
+Date: Mon, 14 Sep 2009 20:28:55 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Niamathullah sharief <newbiesha@gmail.com>
+Message-ID: <20090914202855.61b5e8ea@tele>
+In-Reply-To: <25f5fcff0909141100m49db178cu178801a4d4fd5976@mail.gmail.com>
+References: <25f5fcff0909110020m56f881d0q383aae1f5226476@mail.gmail.com>
+	<b89eadb20909110234v2b8ee579nc19eed163cc77463@mail.gmail.com>
+	<25f5fcff0909110507y635aa97eg1d599710372a6e9e@mail.gmail.com>
+	<20090912082426.2dfba603@tele>
+	<25f5fcff0909141100m49db178cu178801a4d4fd5976@mail.gmail.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Cc: video4linux-list@redhat.com
-Subject: Re: VIDIOC_QUERYCAP: Invalid argument - app from scratch for an USB
-	GENIUS videoCAM Look 310p
+Content-Transfer-Encoding: 8bit
+Cc: kernelnewbies@nl.linux.org, video4linux-list@redhat.com
+Subject: Re: About Webcam module
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,52 +33,57 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On Mon, 14 Sep 2009 23:30:27 +0530
+Niamathullah sharief <newbiesha@gmail.com> wrote:
 
->From the explanation I understand that you have a v4l2 driver ready for your
-cam, and are trying to test the same using an application. If that is the
-case, why dont you use some standard application like mplayer etc?
+> Here i am facing a new problem. I tried to compile and install the
+> gspca_main and gspca_zc3xx modules separately. I compiled them
+> successfully. but i am getting error when inserting that modules
+> 
+> 
+> root@sharief-desktop:/home/sharief/Desktop/video/gspca# insmod
+> > gspca_zc3xx.ko
+> >
+> insmod: error inserting 'gspca_zc3xx.ko': -1 Unknown symbol in module
+> >
+> root@sharief-desktop:/home/sharief/Desktop/video/gspca# insmod
+> gspca_main.ko
+> >
+> >
+> insmod: error inserting 'gspca_main.ko': -1 Unknown symbol in module
+> >
+> 
+> I think this both modules what some other modules to get insert in to
+> kernel...But i am sure about that modules. Can anyone help me?
 
-Regards
-Vinay
+Indeed, the 2 modules videodev and v4l1_compat must be loaded prior to
+load first gspca_main and then gspca_zc3xx, as shown by lsmod (below).
 
-On Tue, Sep 8, 2009 at 9:03 AM, Guilherme Raymo Longo <
-grlongo.ireland@gmail.com> wrote:
+Usually, insmod is not directly used. You must use modprobe which looks
+at the symbols and loads the required modules.
 
-> Good morning gentleman.
->
-> I am building my first driver from scratch and I am hanving a hard time
-> trying to figure all the steps I have to follow to get to what I need to
-> achieve.
->
-> What I am trying to do now is to develop a application to activate my
-> webcam
-> and to start capturing!
->
-> I am getting the following error trying to query the capabilities:
->
-> VIDIOC_QUERYCAP: Invalid argument
->
-> I am implementing the video capturing interface and that is what I have got
-> so far:
-> http://pastebin.com/m4b5bdd36
->
-> Could I get some help from here??
-> My webcam is an usb Genius videoCAM look 310p
-> I am using Slackware 13 and v4l2 api that I am following from here:
-> http://v4l2spec.bytesex.org/spec/
->
-> It works great on amsn and others applications so I presume I can develop I
-> application to make it work!
->
-> Thanks all in advanced!
-> Guilherme Longo
-> Software deloper
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
+> On Sat, Sep 12, 2009 at 11:54 AM, Jean-Francois Moine
+> <moinejf@free.fr>wrote:
+> > 
+> > So, your driver is gspca_zc3xx. Then, this module uses the gspca
+> > framework, i.e it calls functions of the module gspca_main. This
+> > last one calls functions of the common video module videodev. Then
+> > again, if v4l1 compatibility is enabled, videodev calls functions
+> > of v4l1_compat.
+> >
+> > lsmod shows all that directly:
+> >
+> > Module              Size   Used by
+> > gspca_zc3xx        55936   0
+> > gspca_main         29312   1   gspca_zc3xx
+> > videodev           41344   1   gspca_main
+> > v4l1_compat        22404   1   videodev
+
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
