@@ -1,93 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.km20937-01.keymachine.de ([84.19.184.169]:55213 "EHLO
-	mail.mojo.cc" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751043AbZINV3L convert rfc822-to-8bit (ORCPT
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:46806 "EHLO
+	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753128AbZINPZp convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Sep 2009 17:29:11 -0400
-Received: from maistor.s-und-s.home (eko [84.112.117.162])
-	(using TLSv1 with cipher DHE-RSA-AES128-SHA (128/128 bits))
-	(No client certificate requested)
-	by mail.mojo.cc (Postfix) with ESMTP id 1E67F316007A
-	for <linux-media@vger.kernel.org>; Mon, 14 Sep 2009 23:29:13 +0200 (CEST)
-From: Emanoil Kotsev <emanoil.kotsev@sicherundsicher.at>
-Reply-To: Emanoil Kotsev <emanoil.kotsev@sicherundsicher.de>
-To: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Terratec T USB XXS 0ccd:00ab device
-Date: Mon, 14 Sep 2009 23:29:05 +0200
-References: <200909131457.05286.emanoil.kotsev@sicherundsicher.at>
-In-Reply-To: <200909131457.05286.emanoil.kotsev@sicherundsicher.at>
+	Mon, 14 Sep 2009 11:25:45 -0400
+Received: by fxm17 with SMTP id 17so916345fxm.37
+        for <linux-media@vger.kernel.org>; Mon, 14 Sep 2009 08:25:47 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
-Content-Type: text/plain;
-  charset="utf-8"
+In-Reply-To: <COL124-W6F59C0DE926F2BC8DA4C288E40@phx.gbl>
+References: <COL124-W6F59C0DE926F2BC8DA4C288E40@phx.gbl>
+Date: Mon, 14 Sep 2009 11:25:47 -0400
+Message-ID: <30353c3d0909140825h266e9988td3dffc88612e182c@mail.gmail.com>
+Subject: Re: I can't get all pixels values from my driver. plz help ;0(
+From: David Ellingsworth <david@identd.dyndns.org>
+To: Guilherme Longo <incorpnet1@hotmail.com>
+Cc: video4linux-list@redhat.com,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 8BIT
-Message-Id: <200909142329.06809.emanoil.kotsev@sicherundsicher.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Just for the record
+Guilherme,
 
-ÐÐ° Sunday 13 September 2009 14:56:56 Emanoil Kotsev Ð½Ð°Ð¿Ð¸ÑÐ°:
-> Hello, I've just subscribed this list. I'm normally using knode to read
-> news, but somehow I can not pull the groups etc from the vger server.
+In the future, please post to the new mailing list:
+linux-media@vger.kernel.org That said, your camera won't output a
+video format that it does not support. In other words, despite you
+specifically asking for a 160x120 pixel RGB image, you may infact get
+something else. The formats your camera supports may be obtained by
+using VIDIOC_ENUM_FMT. Once you've selected a format you should then
+use VIDIOC_ENUM_FRAMESIZES to determine the size of the frames
+supported by that format.
+
+To simplify things a little, you might want to consider using libv4l
+since will automatically convert the native format supported by your
+camera to the one required by your application.
+
+Regards,
+
+David Ellingsworth
+
+On Mon, Sep 14, 2009 at 1:50 AM, Guilherme Longo <incorpnet1@hotmail.com> wrote:
 >
-> I also tried to post to linux-dvb mailing list, but found out that it moved
-> here. If you think I need to know something explicitly about participating
-> to the list, please let me know.
-
-Something is completely wrong with this "linux-dvb" list. I subscriubed there before and people are posting - I'm getting the mails.
-
+> Hi all.
 >
-> The issue I'm facing is that my old TV card (HVR900) stopped working, so I
-> googled around and decided to buy Terratec T USB XXS, reading it was
-> supported in dvb_usb_dib0700
+> After 3 weeks trying to solve my problem, I am about to give up and find another solution instead of trying to fix this one.
+> I have changed few things in the capture.c example available for download at http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/ and
+> the altered code can be seen here: http://pastebin.com/m7ef25480
 >
-> However after installing the card (usb-stick) it was not recognized (my one
-> has product id 0x00ab and not 0x0078), so I googled again and found a hint
-> to change the device id in dvb_usb_ids.h which was working for other
-> Terratec card.
-
-It seems there are two device ids covering the same card model 
-
- http://linux.terratec.de/tv_en.html
-
+> So... what is the problem?
 >
-> I pulled the latest v4l-dvb code and did it (perhaps I could have done it
-> in the kernel 2.6.31), compiled, installed and it started working.
-
-no dvb_usb_dib0700 is not part of the mainstream kernel yet
-
+> Well, I have set the following configuration for capture:
 >
-> However I can not handle udev to get the remote control links created
-> correctly. Can someone help me with it? How can I provide useful output to
-> developers to solve the issues with ir? I read and saw that ir control keys
-> are coded in the driver, so if the ir part of the 0x00ab card is different,
-> how can I get a useful information that can be coded for this card? Who is
-> doing the work at linux-dvb?
-
-http://www.linuxtv.org/wiki/index.php/Template:Making-it-work:dvb-usb-dib0700
-
-helped solve the issues
-
-however you don't get this page listed in google under top ten (at least on my pc)
-
+>        fmt.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+>        fmt.fmt.pix.width       = 160;
+>        fmt.fmt.pix.height      = 120;
+>        fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB32;
+>        fmt.fmt.pix.field       = V4L2_FIELD_INTERLACED;
 >
-> I read there are other people, returning the cards to the seller, because
-> it's not working/supported by linux, which does not seem to be really true.
-
-This is really stupid idea to give up something that easily.
-
+> All the process is implemented in a function called process_image(void * p) where p is a void pointer to the buffer where the frames captures should be stored.
 >
-> Luckilly I have a bit kernel experience and good C knowledge and could do
-> testing if somebody can have a look at the issues - the code is completely
-> new to me so that I prefer to be an alpha tester for the device.
+> this is the function that reads the buffer:
 >
-
-The offer still holds - someebody should change the code to make it work
-
-regards
-
--- 
-pub   1024D/648C084C 2008-06-06 Emanoil Kotsev 
-<emanoil.kotsev@sicherundsicher.at>
- Primary key fingerprint: 002C AF99 232A 5A44 EF9E  6D7D 0D65 4160 648C 084C
+> if (-1 == read (fd, buffers[0].start, buffers[0].length))   (length = 160x120 -> 19200)
+>
+> then after, I call the process_image function:
+> process_image (buffers[0].start);
+>
+> What I need is read the buffer separation the R, G, B, A storing them in unsigned char variables.
+>
+> It should have 19.200 pixel (160x120) but instead, look what i have got:
+>
+> [0]87 [0]110 [0]68 [0]134
+> [1]202 [1]73 [1]119 [1]109
+> [2]213 [2]36 [2]73 [2]33
+> .....
+> .....
+> [1287]73 [1287]100 [1287]150 [1287]133
+> [1288]69 [1288]133 [1288]4 [1288]0
+> [1289]0 [1289]0 [1289]0 [1289]0
+> [1290]0 [1290]0 [1290]0 [1290]0
+> [1291]0 [1291]0 [1291]0 [1291]0
+> .....
+> [4799]0 [4799]0 [4799]0 [4799]0
+> [0]80 [0]105 [0]145 [0]4
+> [1]146 [1]18 [1]108 [1]182
+> [2]68 [2]136 [2]137 [2]170
+>
+> As you can see, I get only 1289 pixels with values and all the rest are 0;
+> When the function is called again, the same happens over and over.
+>
+> So... why am I getting only 1289 pixel with values when in fact it should be 160x120 pixel corresponding to 1 frame?
+> I am begging help 'cause my arsenal's over.. I am really out of ideas!
+>
+> Thanks a lot!
+>
+>
+>
+> _________________________________________________________________
+> Drag n’ drop—Get easy photo sharing with Windows Live™ Photos.
+>
+> http://www.microsoft.com/windows/windowslive/products/photos.aspx--
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subjectunsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
