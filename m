@@ -1,44 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:60284 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755606AbZINPmJ (ORCPT
+Received: from qw-out-2122.google.com ([74.125.92.26]:32658 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751541AbZINNcH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Sep 2009 11:42:09 -0400
-Received: by fxm17 with SMTP id 17so928515fxm.37
-        for <linux-media@vger.kernel.org>; Mon, 14 Sep 2009 08:42:12 -0700 (PDT)
+	Mon, 14 Sep 2009 09:32:07 -0400
+Received: by qw-out-2122.google.com with SMTP id 9so952122qwb.37
+        for <linux-media@vger.kernel.org>; Mon, 14 Sep 2009 06:32:10 -0700 (PDT)
 MIME-Version: 1.0
-Date: Mon, 14 Sep 2009 17:42:12 +0200
-Message-ID: <746d58780909140842o8952bf1g8f7851eee9ec0093@mail.gmail.com>
-Subject: how to get a registered adapter name
-From: Benedict bdc091 <bdc091@gmail.com>
-To: linux-media@vger.kernel.org
+In-Reply-To: <4AAD9732.9060003@wilsonet.com>
+References: <200909011019.35798.jarod@redhat.com>
+	 <1251855051.3926.34.camel@palomino.walls.org>
+	 <de8cad4d0909131023t7103b446sf6b20889567556ee@mail.gmail.com>
+	 <6EBCDFA3-FAAA-4757-97B6-9CF3442FE920@wilsonet.com>
+	 <20090913221314.GA11178@aniel.lan> <4AAD9732.9060003@wilsonet.com>
+Date: Mon, 14 Sep 2009 09:32:10 -0400
+Message-ID: <de8cad4d0909140632g7e20d501p6ae3d68e5cd30c21@mail.gmail.com>
+Subject: Re: [PATCH] hdpvr: i2c fixups for fully functional IR support
+From: Brandon Jenkins <bcjenkins@tvwhere.com>
+To: Janne Grunau <j@jannau.net>, Andy Walls <awalls@radix.net>,
+	Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi list,
+Driver build procedure used:
 
-I'd like to enumerate connected DVB devices from my softawre, based on
-DVB API V3.
-Thank to ioctl FE_GET_INFO, I'm able to get frontends name, but they
-are not "clear" enough for users.
+Cloned http://hg.jannau.net/hdpvr
+Pulled http://linuxtv.org/hg/v4l-dvb/
+Pulled http://linuxtv.org/hg/~awalls/v4l-dvb/
 
-After a "quick look" in /var/log/messages I discovered that adapters
-name are much expressives:
+This should bring in all changes for HDPVR and CX18.
 
-> ...
-> DVB: registering new adapter (ASUS My Cinema U3000 Mini DVBT Tuner)
-> DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
-> ...
+What specifically would you like me to test? I can't reload the
+modules until the kids are done watching TV. :)
 
-So, I tried to figure out a way to get "ASUS My Cinema U3000 Mini DVBT
-Tuner" string from adapter, instead of "DiBcom 7000PC" from adapter's
-frontend...
-Unsuccefully so far.
+Thanks,
 
-Any suggestions?
-
-
-Regards
---
-Benedict
+Brandon
