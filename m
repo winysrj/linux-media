@@ -1,70 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:60530 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753408AbZIMNmD (ORCPT
+Received: from mail-qy0-f192.google.com ([209.85.221.192]:58639 "EHLO
+	mail-qy0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755286AbZINMjN convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2009 09:42:03 -0400
-Date: Sun, 13 Sep 2009 10:41:29 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Emanoil Kotsev <emanoil.kotsev@sicherundsicher.de>
-Cc: emanoil.kotsev@sicherundsicher.at,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Terratec T USB XXS 0ccd:00ab device
-Message-ID: <20090913104129.189fa15e@caramujo.chehab.org>
-In-Reply-To: <200909131457.05286.emanoil.kotsev@sicherundsicher.at>
-References: <200909131457.05286.emanoil.kotsev@sicherundsicher.at>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Mon, 14 Sep 2009 08:39:13 -0400
+Received: by qyk30 with SMTP id 30so2514030qyk.5
+        for <linux-media@vger.kernel.org>; Mon, 14 Sep 2009 05:39:17 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20090914001447.GA15770@systol-ng.god.lan>
+References: <13c90c570909070123r2ba1f5f6w2b288703f5e98738@mail.gmail.com>
+	 <20090907124934.GA8339@systol-ng.god.lan>
+	 <37219a840909070718q47890f5bgbf76a00ea8826880@mail.gmail.com>
+	 <20090907151809.GA12556@systol-ng.god.lan>
+	 <37219a840909070912h3678fb2cm94102d7437bec5df@mail.gmail.com>
+	 <20090908212733.GA19438@systol-ng.god.lan>
+	 <37219a840909081457u610b9c65le6141e79567ab629@mail.gmail.com>
+	 <20090909140147.GA24722@systol-ng.god.lan>
+	 <303a8ee30909090808u46acfb49l760d660f8a28f503@mail.gmail.com>
+	 <20090914001447.GA15770@systol-ng.god.lan>
+Date: Mon, 14 Sep 2009 08:33:46 -0400
+Message-ID: <303a8ee30909140533k728791b5p503701d4e6b14122@mail.gmail.com>
+Subject: Re: [PATCH] tda18271 add FM filter selction + minor fixes
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Henk.Vergonet@gmail.com
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 13 Sep 2009 14:56:56 +0200
-Emanoil Kotsev <emanoil.kotsev@sicherundsicher.at> escreveu:
+On Sun, Sep 13, 2009 at 8:14 PM,  <spam@systol-ng.god.lan> wrote:
+>
+> This patch adds support for FM filter selection. The tda18271 has two rf
+> inputs RF_IN (45-864 MHz) and FM_IN (65-108 MHz). The code automatically
+> enables the antialiasing filter for radio reception and depending on the
+> FM input selected configures EB23 register.
+>
+> Additional fixes:
+> - Fixed the temerature comensation, see revision history of TDA18271HD_4
+>  spec.
+> - Minor cosmetic change in the tda18271_rf_band[]
+> - Fixed one value and removed a duplicate in tda18271_cid_target[]
+>
+> Signed-off-by: Henk.Vergonet@gmail.com
+>
+>
 
-> Hello, I've just subscribed this list. I'm normally using knode to read news, 
-> but somehow I can not pull the groups etc from the vger server.
-> 
-> I also tried to post to linux-dvb mailing list, but found out that it moved 
-> here. If you think I need to know something explicitly about participating to 
-> the list, please let me know.
-> 
-> The issue I'm facing is that my old TV card (HVR900) stopped working, so I 
-> googled around and decided to buy Terratec T USB XXS, reading it was 
-> supported in dvb_usb_dib0700
-> 
-> However after installing the card (usb-stick) it was not recognized (my one 
-> has product id 0x00ab and not 0x0078), so I googled again and found a hint to 
-> change the device id in dvb_usb_ids.h which was working for other Terratec 
-> card.
-> 
-> I pulled the latest v4l-dvb code and did it (perhaps I could have done it in 
-> the kernel 2.6.31), compiled, installed and it started working.
-> 
-> However I can not handle udev to get the remote control links created 
-> correctly. Can someone help me with it? How can I provide useful output to 
-> developers to solve the issues with ir? I read and saw that ir control keys 
-> are coded in the driver, so if the ir part of the 0x00ab card is different, 
-> how can I get a useful information that can be coded for this card? Who is 
-> doing the work at linux-dvb?
-> 
-> I read there are other people, returning the cards to the seller, because it's 
-> not working/supported by linux, which does not seem to be really true.
-> 
-> Luckilly I have a bit kernel experience and good C knowledge and could do 
-> testing if somebody can have a look at the issues - the code is completely 
-> new to me so that I prefer to be an alpha tester for the device.
-> 
-> thanks for patience in advance and kind regards
+Henk,
 
-Basically, all you need to do is to enable IR debug, when loading em28xx module
-and see what's the scan code for each pressed key on the IR. Then edit
-ir-keycodes.c, adding a new table there, and edit em28xx-cards.c to add a new
-board entry with the new code, with the new IR table.
-There's a page for Remote Controllers at linuxtv.org wiki showing what keycode
-names should be used for each key.
+Thank you for your patch.
 
+I have some other tda18271 patches pending merge currently, so it will
+be a few days before I'll be able to test and merge your patch.
 
+In the meanwhile, I'd request that this single patch be broken down
+into three separate patches, each with a description of the change and
+sign-off.  I know that the patch you sent in is small, I just prefer
+to apply changes separately.
 
-Cheers,
-Mauro
+Do you have FM radio working on the Zolid board after applying this?
+
+Regards,
+
+Mike
