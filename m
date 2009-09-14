@@ -1,38 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fmmailgate05.web.de ([217.72.192.243]:63267 "EHLO
-	fmmailgate05.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755997AbZICRs1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Sep 2009 13:48:27 -0400
-Received: from web.de
-	by fmmailgate05.web.de (Postfix) with SMTP id 6F09D5C5FD69
-	for <linux-media@vger.kernel.org>; Thu,  3 Sep 2009 19:48:29 +0200 (CEST)
-Date: Thu, 03 Sep 2009 19:48:28 +0200
-Message-Id: <312782341@web.de>
+Received: from smtp19.orange.fr ([80.12.242.1]:36155 "EHLO smtp19.orange.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753569AbZINHd4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Sep 2009 03:33:56 -0400
+Message-ID: <4AADF1E4.80705@gmail.com>
+Date: Mon, 14 Sep 2009 09:33:56 +0200
+From: Morvan Le Meut <mlemeut@gmail.com>
 MIME-Version: 1.0
-From: Andreas Golat <androgo@web.de>
-To: linux-media@vger.kernel.org
-Subject: =?iso-8859-15?Q?Re:_[DVB]_Problems_with_TerraTec_Cinergy_T_USB_XE_(af9?=
- =?iso-8859-15?Q?005,_mt2060_problem=3F)?=
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: 8BIT
+To: hermann pitton <hermann-pitton@arcor.de>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: (Saa7134) Re: ADS-Tech Instant TV PCI, no remote	support,	giving
+ up.
+References: <4AA53C05.10203@gmail.com> <4AA61508.9040506@gmail.com>	 <op.uzxmzlj86dn9rq@crni> <4AA62C38.3050208@gmail.com>	 <4AA63434.1010709@gmail.com> <4AA683BD.6070601@gmail.com>	 <4AA695EE.70800@gmail.com> <4AA767F2.50702@gmail.com>	 <op.uzzfgyvj3xmt7q@crni> <4AA77240.2040504@gmail.com>	 <4AA77683.7010201@gmail.com> <4AA7C266.3000509@gmail.com>	 <op.uzzz96se6dn9rq@crni> <4AA7E166.7030906@gmail.com>	 <4AA81785.5000806@gmail.com> <4AA8BB20.4040701@gmail.com>	 <4AA919CA.20701@gmail.com> <4AAA0247.8020004@gmail.com>	 <4AAB586D.6080906@gmail.com> <1252815352.3259.41.camel@pc07.localdom.local>	 <4AAD6B4B.5030204@gmail.com> <1252881711.4318.46.camel@pc07.localdom.local>
+In-Reply-To: <1252881711.4318.46.camel@pc07.localdom.local>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+So, if i understand correctly,  i should change "in" to 0xBF to get the 
+missing bit.
+( and if it work, i will be able to use ir_codes_adstech_dvb_t_pci 
+instead of rolling my own keymap )
 
-> I have some trouble with a Cinergy T USB XE stick. As I saw a lot of people
-> saying, it runs, so I thought it could be a problem that should be reported.
-> 
-> I'm runnung opensuse 11.1 (2.6.27.29) with the newest v4l-driver, downloaded
-> some minutes ago with mercurial. The firmware is from http://ventoso.org/luca/af9005/ (tried both)
+Thanks.
 
-I dont know why, but after uninstalling the selfcompiled recent modules, and reinstalling the one shipped with the suse-kernel everything works. Really strange...
+hermann pitton a Ã©crit :
+> Hi,
+>
+> Am Sonntag, den 13.09.2009, 23:59 +0200 schrieb Morvan Le Meut:
+>   
+>> just out of curiosity ( and because google showed me a new trick to try 
+>> ), i tried to load the module with gpio_tracking=1.
+>> this gave me a new thing in dmesg :
+>>  gpio: mode=0x0000000 in=0x000007f out=0x0000000 [pre-init]
+>> Am i correct by thinkig that the in=0x000007f part is the mask ? If it 
+>> is that then i am a problem : i did specify it as 0xff. Did i miss 
+>> something ?
+>>     
+>
+> it does not cover the IR gpio settings, but what happens in the card
+> entry at saa7134-cards.c.
+>
+> "mode" is the gpio mask defined there, if any. You have nothing set
+> there.
+> "in" is the actual configuration of the gpio pins. This can reflect
+> changes made to them, for example from using an other cards entry
+> previously, which can change some pins or changes in different modes on
+> them, which are not yet reset. By default it shows the manufacturers
+> gpio configuration. 0x7f can mean that the first seven pins (0-6) are
+> used for the gpio remote. That would be your mask keycode then.
+>
+> "out" is what the driver writes to the gpios of that card.
+> In this mode only pins are changed, which are high in the mask,
+> this is called masked writes. In your case nothing happens.
+>
+> See my next mail for a simple example of changing the single gpio21 pin
+> to 0 in Television mode.
+>
+> Cheers,
+> Hermann
+>   
 
-Regards, Andr.
 
-
-
-________________________________________________________________
-Neu: WEB.DE Doppel-FLAT mit Internet-Flatrate + Telefon-Flatrate
-für nur 19,99 Euro/mtl.!* http://produkte.web.de/go/02/
 
