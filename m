@@ -1,46 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:50049 "EHLO znsun1.ifh.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755976AbZIQHG5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Sep 2009 03:06:57 -0400
-Date: Thu, 17 Sep 2009 09:06:44 +0200 (CEST)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mail.gmx.net ([213.165.64.20]:37857 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752632AbZINOpn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Sep 2009 10:45:43 -0400
+Date: Mon, 14 Sep 2009 16:45:50 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Marek Vasut <marek.vasut@gmail.com>
 cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Fw: [hg:v4l-dvb] DocBook/media: Add isdb-t documentation
-In-Reply-To: <20090917020923.5572340f@pedra.chehab.org>
-Message-ID: <alpine.LRH.1.10.0909170858330.6193@pub3.ifh.de>
-References: <20090917020923.5572340f@pedra.chehab.org>
+Subject: Re: [PATCH 2/3] Add driver for OmniVision OV9640 sensor
+In-Reply-To: <200909141635.24286.marek.vasut@gmail.com>
+Message-ID: <Pine.LNX.4.64.0909141643160.4359@axis700.grange>
+References: <200908220850.07435.marek.vasut@gmail.com>
+ <200909131843.18007.marek.vasut@gmail.com> <Pine.LNX.4.64.0909132030530.9668@axis700.grange>
+ <200909141635.24286.marek.vasut@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Ok, you were faster than I:-) If you agree, I can just remove those two 
+RGB formats myself, changing your comment to a TODO, and modify the 
+comment next to msleep(150) (if you could tell me what value didn't work, 
+that would be appreciated) and push it out.
 
-On Thu, 17 Sep 2009, Mauro Carvalho Chehab wrote:
-
-> Hi Patrick,
->
-> I've added the isdb-t docs at the new media DocBook. Please double check. It were
-> generated from your text document at dvb-spec dir.
-
-Thanks a lot for doing this job :) . You didn't remove the txt-file. Any 
-future change I will do in the DocBook, so no need anymore for the 
-txt-file.
-
-> Starting from now, I kindly ask developers that need to touch at Media API to
-> always send an update to the DocBook. It would be great if someone could write
-> a complete S2API spec.
-
-Hmm... as ISDB-T is based on S2API-mechanisms, it should not be that 
-hard...
-
-Should we do a list of S2API-ids described per standard? Like that e.g. 
-frequency would appear everytime, but as it has a different meaning/scale 
-for different standards, it seems logic to split it up in standards.
-
---
-
-Patrick
-http://www.kernellabs.com/
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
