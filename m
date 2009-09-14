@@ -1,94 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f218.google.com ([209.85.220.218]:64189 "EHLO
-	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752690AbZIYXBb convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4023 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756571AbZINSOl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Sep 2009 19:01:31 -0400
-Received: by fxm18 with SMTP id 18so2564612fxm.17
-        for <linux-media@vger.kernel.org>; Fri, 25 Sep 2009 16:01:34 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20090925221015.GA21295@zverina>
-References: <20090913193118.GA12659@zverina>
-	 <829197380909211349r68b92b3em577c02d0dee9e4fc@mail.gmail.com>
-	 <20090921221505.GA5187@zverina>
-	 <829197380909211529r7ff7eab0nccc8d5fd55516ca2@mail.gmail.com>
-	 <20090922091235.GA10335@zverina>
-	 <829197380909221647p33236306ked2137a35707646d@mail.gmail.com>
-	 <20090925172209.GA10054@zverina>
-	 <829197380909251041i637a0790g10cc4b82a791f695@mail.gmail.com>
-	 <20090925182213.GA6941@zverina> <20090925221015.GA21295@zverina>
-Date: Fri, 25 Sep 2009 19:01:34 -0400
-Message-ID: <829197380909251601q587131d0q51eda218f9aeaf9d@mail.gmail.com>
-Subject: Re: Questions about Terratec Hybrid XS (em2882) [0ccd:005e]
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
+	Mon, 14 Sep 2009 14:14:41 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id n8EIEhT0052989
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 14 Sep 2009 20:14:43 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 14 Sep 2009 20:14:43 +0200 (CEST)
+Message-Id: <200909141814.n8EIEhT0052989@smtp-vbr11.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 25, 2009 at 6:10 PM, Uros Vampl <mobile.leecher@gmail.com> wrote:
-> On 25.09.09 20:22, Uros Vampl wrote:
->> On 25.09.09 13:41, Devin Heitmueller wrote:
->> > >> Interesting.  Have you tried the A/V inputs (as opposed to the tuner)?
->> > >>  That might help us identify whether it's an issue with the xc3028
->> > >> tuner chip extracting the audio carrier or whether it's something
->> > >> about the way we are programming the emp202.
->> > >
->> > >
->> > > Hello,
->> > >
->> > > That was a great idea. Tested with a Playstation2 and audio is ok. It's
->> > > just TV input that has a problem. So I guess that means the issue is
->> > > with the tuner chip. That's progress. Where do I go from here?
->> >
->> > Ok, that's good to hear.  What video standard specifically are you
->> > using?  I suspect the core issue is that the application is not
->> > properly specifying the video standard, which results in the xc3028
->> > improperly decoding the audio (the xc3028 needs to know exactly what
->> > standard is being used).
->>
->> I'm from Slovenia, which is a PAL-B country. Tvtime can be set to either
->> PAL-BG, PAL-DK or PAL-I, makes no difference. MPlayer has a whole bunch
->> of options (PAL, PAL-BG, etc...), but again none of them make a
->> difference.
->>
->> When the app is started, this appears in dmesg:
->>
->> xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
->> (0), id 00000000000000ff:
->> xc2028 4-0061: Loading firmware for type=(0), id 0000000100000007.
->> xc2028 4-0061: Loading SCODE for type=MONO SCODE HAS_IF_5320 (60008000), id 0000000f00000007.
->
->
-> Alright, success!!!
->
-> Since it seems everything for this tuner is set up the same as for the
-> Hauppauge WinTV HVR 900, I figured let's set things up *exactly* the
-> same. So, like it's there for the Hauppauge, I added .mts_firmware = 1
-> to the definition of the hybrid XS em2882. And well, working TV audio!!
->
->
-> dmesg output this time:
->
-> xc2028 4-0061: Loading firmware for type=BASE F8MHZ MTS (7), id 0000000000000000.
-> MTS (4), id 00000000000000ff:
-> xc2028 4-0061: Loading firmware for type=MTS (4), id 0000000100000007.
->
->
-> So now with the attached patch, everything (analog, digital, remote)
-> works!
->
-> Regards,
-> Uroš
->
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Excellent!  I will check your patch into my current hg tree
-(http://kernellabs.com/hg/~dheitmueller/misc-fixes2/), which I planned
-on submitting a PULL for on Monday.
+Results of the daily build of v4l-dvb:
 
-Cheers,
+date:        Mon Sep 14 19:00:06 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12849:71dec186cdae
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+linux-2.6.22.19-armv5: WARNINGS
+linux-2.6.23.12-armv5: ERRORS
+linux-2.6.24.7-armv5: ERRORS
+linux-2.6.25.11-armv5: ERRORS
+linux-2.6.26-armv5: ERRORS
+linux-2.6.27-armv5: ERRORS
+linux-2.6.28-armv5: ERRORS
+linux-2.6.29.1-armv5: ERRORS
+linux-2.6.30-armv5: ERRORS
+linux-2.6.31-armv5: OK
+linux-2.6.27-armv5-ixp: ERRORS
+linux-2.6.28-armv5-ixp: ERRORS
+linux-2.6.29.1-armv5-ixp: ERRORS
+linux-2.6.30-armv5-ixp: ERRORS
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.28-armv5-omap2: ERRORS
+linux-2.6.29.1-armv5-omap2: ERRORS
+linux-2.6.30-armv5-omap2: ERRORS
+linux-2.6.31-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: ERRORS
+linux-2.6.27-i686: ERRORS
+linux-2.6.28-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30-i686: ERRORS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.30-mips: ERRORS
+linux-2.6.31-mips: OK
+linux-2.6.27-powerpc64: ERRORS
+linux-2.6.28-powerpc64: ERRORS
+linux-2.6.29.1-powerpc64: ERRORS
+linux-2.6.30-powerpc64: ERRORS
+linux-2.6.31-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: ERRORS
+linux-2.6.27-x86_64: ERRORS
+linux-2.6.28-x86_64: ERRORS
+linux-2.6.29.1-x86_64: ERRORS
+linux-2.6.30-x86_64: ERRORS
+linux-2.6.31-x86_64: WARNINGS
+sparse (linux-2.6.31): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
