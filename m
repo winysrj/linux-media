@@ -1,199 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44436 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752404AbZIKG0G convert rfc822-to-8bit (ORCPT
+Received: from ip78-183-211-87.adsl2.static.versatel.nl ([87.211.183.78]:33831
+	"EHLO god.dyndns.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755806AbZINQ1d (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2009 02:26:06 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>
-CC: Patrick Boettcher <pboettcher@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Fri, 11 Sep 2009 11:56:04 +0530
-Subject: RE: RFCv2: Media controller proposal
-Message-ID: <19F8576C6E063C45BE387C64729E73940436BA505A@dbde02.ent.ti.com>
-References: <200909100913.09065.hverkuil@xs4all.nl>
- <2830b427fef295eeb166dbd2065392ce.squirrel@webmail.xs4all.nl>
- <A69FA2915331DC488A831521EAE36FE401550D0691@dlee06.ent.ti.com>
- <200909102227.12340.hverkuil@xs4all.nl>
-In-Reply-To: <200909102227.12340.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Mon, 14 Sep 2009 12:27:33 -0400
+Date: Mon, 14 Sep 2009 18:27:18 +0200
+From: spam@systol-ng.god.lan
+To: Michael Krufky <mkrufky@kernellabs.com>
+Cc: Henk.Vergonet@gmail.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH] tda18271 add FM filter selction + minor fixes
+Message-ID: <20090914162718.GA3219@systol-ng.god.lan>
+Reply-To: Henk.Vergonet@gmail.com
+References: <20090907151809.GA12556@systol-ng.god.lan> <37219a840909070912h3678fb2cm94102d7437bec5df@mail.gmail.com> <20090908212733.GA19438@systol-ng.god.lan> <37219a840909081457u610b9c65le6141e79567ab629@mail.gmail.com> <20090909140147.GA24722@systol-ng.god.lan> <303a8ee30909090808u46acfb49l760d660f8a28f503@mail.gmail.com> <20090914001447.GA15770@systol-ng.god.lan> <303a8ee30909140533k728791b5p503701d4e6b14122@mail.gmail.com> <20090914151011.GA2295@systol-ng.god.lan> <37219a840909140821l7c1abd02q30d0c1a08dc84659@mail.gmail.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <37219a840909140821l7c1abd02q30d0c1a08dc84659@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, Sep 14, 2009 at 11:21:17AM -0400, Michael Krufky wrote:
+> Don't wait for them to be merged to v4l-dvb -- Just work against the
+> tda18271 development repository:
+> 
+> http://kernellabs.com/hg/~mkrufky/tda18271
+> 
+> I maintain this driver, and I actually have some other fixes with
+> respect to rf tracking filter calibration / compensation that I have
+> yet to push.  I'm asking you to resend your patches so that I'll queue
+> them for the next tda18271 merge.
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Hans Verkuil
-> Sent: Friday, September 11, 2009 1:57 AM
-> To: Karicheri, Muralidharan
-> Cc: Patrick Boettcher; Linux Media Mailing List
-> Subject: Re: RFCv2: Media controller proposal
-> 
-> On Thursday 10 September 2009 21:19:25 Karicheri, Muralidharan
-> wrote:
-> > Hans,
-> >
-> > I haven't gone through the RFC, but thought will respond to the
-> below comment.
-> >
-> > Murali Karicheri
-> > Software Design Engineer
-> > Texas Instruments Inc.
-> > Germantown, MD 20874
-> > new phone: 301-407-9583
-> > Old Phone : 301-515-3736 (will be deprecated)
-> > email: m-karicheri2@ti.com
-> >
-> > >>>
-> > >>> I may be mistaken, but I don't believe soundcards have this
-> same
-> > >>> complexity are media board.
-> > >>
-> > >> When I launch alsa-mixer I see 4 input devices where I can
-> select 4
-> > >> difference sources. This gives 16 combinations which is enough
-> for me to
-> > >> call it 'complex' .
-> > >>
-> > >>>> Could entities not be completely addressed (configuration
-> ioctls)
-> > >>>> through
-> > >>>> the mc-node?
-> > >>>
-> > >>> Not sure what you mean.
-> > >>
-> > >> Instead of having a device node for each entity, the ioctls for
-> each
-> > >> entities are done on the media controller-node address an
-> entity by ID.
-> > >
-> > >I definitely don't want to go there. Use device nodes (video, fb,
-> alsa,
-> > >dvb, etc) for streaming the actual media as we always did and use
-> the
-> > >media controller for controlling the board. It keeps everything
-> nicely
-> > >separate and clean.
-> > >
-> >
-> >
-> > What you mean by controlling the board?
-> 
-> In general: the media controller can do anything except streaming.
-> However,
-> that is an extreme position and in practice all the usual ioctls
-> should
-> remain supported by the video device nodes.
-> 
-> > We have currently ported DMxxx VPBE display drivers to 2.6.31 (Not
-> submitted yet to mainline). In our current implementation, the
-> output and standard/mode are controlled through sysfs because it is
-> a common functionality affecting both v4l and FBDev framebuffer
-> devices. Traditional applications such x-windows should be able to
-> stream video/graphics to VPBE output. V4l2 applications should be
-> able to stream video. Both these devices needs to know the display
-> parameters such as frame buffer resolution, field etc that are to be
-> configured in the video or osd layers in VPBE to output frames to
-> the encoder that is driving the output. So to stream, first the
-> output and mode/standard are selected using sysfs command and then
-> the application is started. Following scenarios are supported by
-> VPBE display drivers in our internal release:-
-> >
-> > 1)Traditional FBDev applications (x-window) can be run using OSD
-> device. Allows changing mode/standards at the output using fbset
-> command.
-> >
-> > 2)v4l2 driver doesn't provide s_output/s_std support since it is
-> done through sysfs.
-> >
-> > 3)Applications that requires to stream both graphics and video to
-> the output uses both FBDev and V4l2 devices. So these application
-> first set the output and mode/standard using sysfs, before doing io
-> operations with these devices.
-> 
-> I don't understand this approach. I'm no expert on the fb API but as
-> far as I
-> know the V4L2 API allows a lot more precision over the video timings
-> (esp. with
-> the new API you are working on). Furthermore, I assume it is
-> possible to use
-> the DMxxx without an OSD, right?
-> 
-> This is very similar to the ivtv and ivtvfb drivers: if the
-> framebuffer is in
-> use, then you cannot change the output standard (you'll get an EBUSY
-> error)
-> through a video device node.
-> 
-[Hiremath, Vaibhav] Framebuffer always be in use till the point you don't call FBIO_BLANK ioctl.
-
-> That's exactly what you would expect. If the framebuffer isn't used,
-> then you
-> can just use the normal V4L2 API to change the output standard.
-> 
-> In practice, I think that you can only change the resolution in the
-> FB API.
-> Not things like the framerate, let alone precise pixelclock, porch
-> and sync
-> widths.
-> 
-> Much better to let the two cooperate: you can use both APIs, but you
-> can't
-> change the resolution in the fb if streaming is going on, and you
-> can't
-> change the output standard of a video device node if that changes
-> the
-> resolution while the framebuffer is in used.
-> 
-[Hiremath, Vaibhav] To overcome this we brought in or rely on SYSFS interface, same is applicable to OMAP devices.
-
-We are using SYSFS interface for all common features like Standard/output selection, etc...
-
-I believe media controller will play some role here.
-
-Thanks,
-Vaibhav 
-
-> No need for additional sysfs entries.
-> 
-> >
-> > There is an encoder manager to which all available encoders
-> registers (using internally developed interface) and based on
-> commands received at Fbdev/sysfs interfaces, the current encoder is
-> selected by the encoder manager and current standard is selected.
-> The encoder manager provides API to retrieve current timing
-> information from the current encoder. FBDev and V4L2 drivers uses
-> this API to configure OSD/video layers for streaming.
-> >
-> > As you can see, controlling output/mode is a common function
-> required for both v4l2 and FBDev devices.
-> >
-> > One way to do this to modify the encoder manager such that it load
-> up the encoder sub devices. This will allow our customers to migrate
-> to this driver on GIT kernel with minimum effort. If v4l2 display
-> bridge driver load up the sub devices, it will make FBDev driver
-> useless unless media controller has some way to handle this
-> scenario. Any idea if media controller RFC address this? I will go
-> over the RFC in details, but if you have a ready answer, let me
-> know.
-> 
-> I don't think this has anything to do with the media controller. It
-> sounds
-> more like a driver design issue to me.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-
-> media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Done
