@@ -1,43 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:35510 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753299AbZIJNl1 (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.156]:52692 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752789AbZINWGX convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Sep 2009 09:41:27 -0400
-Received: by fxm17 with SMTP id 17so94781fxm.37
-        for <linux-media@vger.kernel.org>; Thu, 10 Sep 2009 06:41:30 -0700 (PDT)
-Date: Thu, 10 Sep 2009 16:41:39 +0300
-From: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>,
-	Markus Rechberger <mrechberger@gmail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Clinton Meyer <clintonmeyer22@gmail.com>,
-	Linux Media <linux-media@vger.kernel.org>
-Subject: Re: LinuxTV firmware blocks all wireless connections / traffic
-Message-ID: <20090910134139.GA20149@moon>
-References: <62013cda0909091443g72ebdf1bge3994b545a86c854@mail.gmail.com> <829197380909091459x5367e95dnbd15f23e8377cf33@mail.gmail.com> <20090910091400.GA15105@moon> <d9def9db0909100358o14f07362n550b95a033c8a798@mail.gmail.com> <20090910124549.GA18426@moon> <20090910124807.GB18426@moon> <4AA8FB2F.2040504@iki.fi>
+	Mon, 14 Sep 2009 18:06:23 -0400
+Received: by fg-out-1718.google.com with SMTP id 22so687830fge.1
+        for <linux-media@vger.kernel.org>; Mon, 14 Sep 2009 15:06:26 -0700 (PDT)
+From: Marek Vasut <marek.vasut@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: V4L2: Add a v4l2-subdev (soc-camera) driver for OmniVision OV9640 sensor
+Date: Tue, 15 Sep 2009 00:06:00 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <200908220850.07435.marek.vasut@gmail.com> <200909142315.14697.marek.vasut@gmail.com> <Pine.LNX.4.64.0909142319240.4359@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0909142319240.4359@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4AA8FB2F.2040504@iki.fi>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <200909150006.00150.marek.vasut@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 10, 2009 at 04:12:15PM +0300, Antti Palosaari wrote:
-> Aleksandr V. Piskunov wrote:
->>> Here is a test case:
->>> Two DVB-T USB adapters, dvb_usb_af9015 and dvb_usb_af9015. Different tuners,
->>
->> Err, make it: dvb_usb_af9015 and dvb_usb_ce6230
->
-> Those both uses currently too small bulk urbs, only 512 bytes. I have  
-> asked suitable bulk urb size for ~20mbit/sec usb2.0 stream, but no-one  
-> have answered yet (search ml back week or two). I think will increase  
-> those to the 8k to reduce load.
->
+Dne Po 14. září 2009 23:21:33 Guennadi Liakhovetski napsal(a):
+> On Mon, 14 Sep 2009, Marek Vasut wrote:
+> > Dne Po 14. září 2009 22:30:41 Guennadi Liakhovetski napsal(a):
+> > > On Mon, 14 Sep 2009, Marek Vasut wrote:
+> > > > Dne Po 14. září 2009 21:29:26 Guennadi Liakhovetski napsal(a):
+> > > > > From: Marek Vasut <marek.vasut@gmail.com>
+> > > > >
+> > > > > Signed-off-by: Marek Vasut <marek.vasut@gmail.com>
+> > > > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > > > ---
+> > > > >
+> > > > > Marek, please confirm, that this version is ok. I'll push it
+> > > > > upstream for 2.6.32 then.
+> > > >
+> > > > No, it's not OK. You removed the RGB part. Either enclose those parts
+> > > > into ifdef OV9640_RGB_BUGGY or preserve it in some other way. Someone
+> > > > will certainly want to re-add RGB parts later and will have to figure
+> > > > it out all over again.
+> > >
+> > > Ok, make a proposal, how you would like to see it. But - I do not want
+> > > commented out code, including "#ifdef MACRO_THAT_DOESNT_GET_DEFINED." I
+> > > think, I described it in sufficient detail, so that re-adding that code
+> > > should not take longer than 10 minutes for anyone sufficiently familiar
+> > > with the code. Referencing another driver also has an advantage, that
+> > > if we switch to imagebus or any other API, you don't get stale
+> > > commented out code, but you look up updated code in a functional
+> > > driver. But I am open to your ideas / but no commented out code,
+> > > please.
+> >
+> > The RGB is broken only in a way where it swaps colours, the color matrix
+> > coeficients and register configurations are OK (which is what other
+> > people who will want to add it will need to figure out again from scratch
+> > if you remove the code).
+> 
+> Excuse me, have you looked at my patch? Have you compared it to yours? I
+> only removed your RGB code entries from the list of supported formats, I
+> haven't removed any implementation details, thus effectively just
+> disabling it.
 
-Nice, I'm ready to test if such change helps.
-
-Does USB subsystem provide any way to monitor current raw USB data transfer rate?
-
+Just briefly skimmed over it. Ok then, that diff seems fine. I assume the imagebus 
+will fix the rgb issues anyway.
+> 
+> > I dont want this merged before this is solved in some way where those
+> > values are preserved.
+> 
+> Sure, let's have it fixed and submit it in time for 2.6.33.
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> 
