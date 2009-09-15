@@ -1,21 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx05.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.9])
-	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n8E5os3P011721
-	for <video4linux-list@redhat.com>; Mon, 14 Sep 2009 01:50:54 -0400
-Received: from col0-omc3-s8.col0.hotmail.com (col0-omc3-s8.col0.hotmail.com
-	[65.55.34.146])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n8E5oeji018595
-	for <video4linux-list@redhat.com>; Mon, 14 Sep 2009 01:50:40 -0400
-Message-ID: <COL124-W6F59C0DE926F2BC8DA4C288E40@phx.gbl>
-From: Guilherme Longo <incorpnet1@hotmail.com>
-To: <video4linux-list@redhat.com>
-Date: Mon, 14 Sep 2009 02:50:39 -0300
-MIME-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Subject: I can't get all pixels values from my driver. plz help ;0(
+Received: from mx1.redhat.com (ext-mx06.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.10])
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n8FFHYKp002701
+	for <video4linux-list@redhat.com>; Tue, 15 Sep 2009 11:17:34 -0400
+Received: from vms173017pub.verizon.net (vms173017pub.verizon.net
+	[206.46.173.17])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n8FFHLeP013016
+	for <video4linux-list@redhat.com>; Tue, 15 Sep 2009 11:17:21 -0400
+Received: from coyote.coyote.den ([141.153.113.94]) by vms173017.mailsrvcs.net
+	(Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008;
+	32bit)) with ESMTPA id <0KQ0008YZQGM1850@vms173017.mailsrvcs.net> for
+	video4linux-list@redhat.com; Tue, 15 Sep 2009 10:17:11 -0500 (CDT)
+From: Gene Heskett <gene.heskett@verizon.net>
+To: video4linux-list@redhat.com
+Date: Tue, 15 Sep 2009 11:17:09 -0400
+References: <20090819160700.049985b5@glory.loctelecom.ru>
+	<200909150826.17805.hverkuil@xs4all.nl>
+	<1253012182.3166.31.camel@palomino.walls.org>
+In-reply-to: <1253012182.3166.31.camel@palomino.walls.org>
+MIME-version: 1.0
+Content-type: Text/Plain; charset=iso-8859-6
+Content-transfer-encoding: 7bit
+Message-id: <200909151117.10060.gene.heskett@verizon.net>
+Subject: Re: tuner, code for discuss
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,74 +35,91 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Tuesday 15 September 2009, Andy Walls wrote:
+>On Tue, 2009-09-15 at 08:26 +0200, Hans Verkuil wrote:
+>> On Tuesday 15 September 2009 06:18:55 Michael Krufky wrote:
+>> > On Tue, Sep 15, 2009 at 12:07 AM, Dmitri Belimov <d.belimov@gmail.com>
+>> > wrote:
+>> >
+>> > Personally, I don't quite understand why we would need to add such
+>> > controls NOW, while we've supported this video standard for years
+>> > already.  I am not arguing against this in any way, but I dont feel
+>> > like I'm qualified to accept this addition without hearing the
+>> > opinions of others first.
+>> >
+>> > Can somebody help to shed some light?
+>>
+>> It's the first time I've heard about SECAM and AGC-TOP problems. I do
+>> know that the TOP value is standard-dependent, although the datasheets
+>> recommend different SECAM-L values only. So I can imagine that in some
+>> cases you would like to adjust the TOP value a bit.
+>>
+>> The problem is that end-users will have no idea what to do with a control
+>> like that. It falls into the category of 'advanced controls' that might
+>> be nice to add but is only for very advanced users or applications.
+>
+>The AGC Take Over Point (TOP) is the signal level at which the 2nd stage
+>of the amplifier chain (after the IF filter) takes over gain control
+>from the 1st stage in the amplifier chain.  The idea is to maximize
+>overall noise figure by boosting small signals as needed, but avoiding
+>hittng amplifer non-linearities that generate intermodulation products
+>(i.e. spectral "splatter").
+>
+>The TOP setting depends on the TV standard *and* the attenuation through
+>the IF filter.  I'm fairly sure, it is something that one probably
+>should not change to a value different from the manufacturer's
+>recommendation for a particular TV standard, unless you are dealing with
+>input signals in a very controlled, known range aor you have taken
+>measurments inside the tuner and precisely know the loss through the IF
+>filter.  If the user doesn't understand how the AGC-TOP setting will
+>affect his overall system noise figure, for all inoming signal
+>strengths, then the user shouldn't change it. (IMO)
 
-Hi all.
+As a retired broadcast engineer, I can say that generally speaking, this is a 
+knob that shouldn't be enabled.  It may in some cases be able to get a db's 
+worth of improvement, but the potential for worsening it by many db, by 
+someone who doesn't understand the interactions, is much too high.  Given a 
+knob, it will be tweaked, usually detrimentally.
 
-After 3 weeks trying to solve my problem=2C I am about to give up and find =
-another solution instead of trying to fix this one.
-I have changed few things in the capture.c example available for download a=
-t http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/ and
-the altered code can be seen here: http://pastebin.com/m7ef25480
-
-So... what is the problem?
-
-Well=2C I have set the following configuration for capture:
-
-        fmt.type                =3D V4L2_BUF_TYPE_VIDEO_CAPTURE=3B
-        fmt.fmt.pix.width       =3D 160=3B
-        fmt.fmt.pix.height      =3D 120=3B
-        fmt.fmt.pix.pixelformat =3D V4L2_PIX_FMT_RGB32=3B
-        fmt.fmt.pix.field       =3D V4L2_FIELD_INTERLACED=3B
-
-All the process is implemented in a function called process_image(void * p)=
- where p is a void pointer to the buffer where the frames captures should b=
-e stored.
-
-this is the function that reads the buffer:
-
-if (-1 =3D=3D read (fd=2C buffers[0].start=2C buffers[0].length))   (length=
- =3D 160x120 -> 19200)
-
-then after=2C I call the process_image function:
-process_image (buffers[0].start)=3B
-
-What I need is read the buffer separation the R=2C G=2C B=2C A storing them=
- in unsigned char variables.=20
-
-It should have 19.200 pixel (160x120) but instead=2C look what i have got:
-
-[0]87 [0]110 [0]68 [0]134
-[1]202 [1]73 [1]119 [1]109
-[2]213 [2]36 [2]73 [2]33
-.....
-.....
-[1287]73 [1287]100 [1287]150 [1287]133
-[1288]69 [1288]133 [1288]4 [1288]0
-[1289]0 [1289]0 [1289]0 [1289]0
-[1290]0 [1290]0 [1290]0 [1290]0
-[1291]0 [1291]0 [1291]0 [1291]0
-.....
-[4799]0 [4799]0 [4799]0 [4799]0
-[0]80 [0]105 [0]145 [0]4
-[1]146 [1]18 [1]108 [1]182
-[2]68 [2]136 [2]137 [2]170
-
-As you can see=2C I get only 1289 pixels with values and all the rest are 0=
-=3B=20
-When the function is called again=2C the same happens over and over.
-
-So... why am I getting only 1289 pixel with values when in fact it should b=
-e 160x120 pixel corresponding to 1 frame?
-I am begging help 'cause my arsenal's over.. I am really out of ideas!
-
-Thanks a lot!
+>> The proposed media controller actually gives you a way of implementing
+>> that as tuner-specific controls that do not show up in the regular
+>> /dev/videoX control list. I have no problems adding an AGC-TOP control as
+>> a tuner-specific control, but adding it as a generic control is a bad
+>> idea IMHO.
+>
+>If needed, it should be an advanced control or, dare I say, a tunable
+>via sysfs.  Setting the TOP wrong will simply degrade reception for the
+>the general case of an unknown incoming signal level.
+>
+>The tuner-sumple code has initialization values for TOP.  Also there are
+>some module options for the user to fix TOP to a value, IIRC.  Both are
+>rather inflexible for someone who does want to manipulate the TOP in an
+>environment where the incoming RF signal levels are controlled.
+>
+>Regards,
+>Andy
+>
+>> Regards,
+>>
+>> 	Hans
+>
+>--
+>video4linux-list mailing list
+>Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+>https://www.redhat.com/mailman/listinfo/video4linux-list
+>
 
 
+-- 
+Cheers, Gene
+"There are four boxes to be used in defense of liberty:
+ soap, ballot, jury, and ammo. Please use in that order."
+-Ed Howdershelt (Author)
+The NRA is offering FREE Associate memberships to anyone who wants them.
+<https://www.nrahq.org/nrabonus/accept-membership.asp>
 
-_________________________________________________________________
-Drag n=92 drop=97Get easy photo sharing with Windows Live=99 Photos.
+We've run out of licenses
 
-http://www.microsoft.com/windows/windowslive/products/photos.aspx=
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
