@@ -1,92 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rhlx01.hs-esslingen.de ([129.143.116.10]:58937 "EHLO
-	rhlx01.hs-esslingen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756200AbZINWN1 (ORCPT
+Received: from mail-pz0-f190.google.com ([209.85.222.190]:46687 "EHLO
+	mail-pz0-f190.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751119AbZIOUZQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Sep 2009 18:13:27 -0400
-Date: Tue, 15 Sep 2009 00:13:29 +0200
-From: Andreas Mohr <andi@lisas.de>
-To: Jiri Slaby <jirislaby@gmail.com>
-Cc: Andreas Mohr <andi@lisas.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Luca Risolia <luca.risolia@studio.unibo.it>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: V4L2 drivers: potentially dangerous and inefficient
-	msecs_to_jiffies() calculation
-Message-ID: <20090914221328.GA18867@rhlx01.hs-esslingen.de>
-References: <20090914210741.GA16799@rhlx01.hs-esslingen.de> <4AAEB6F0.4080706@gmail.com> <20090914213933.GA5468@rhlx01.hs-esslingen.de> <4AAEBABA.9060108@gmail.com>
+	Tue, 15 Sep 2009 16:25:16 -0400
+Received: by pzk28 with SMTP id 28so3670807pzk.20
+        for <linux-media@vger.kernel.org>; Tue, 15 Sep 2009 13:25:20 -0700 (PDT)
+Date: Tue, 15 Sep 2009 13:24:41 -0700
+From: Brandon Philips <brandon@ifup.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Andy Walls <awalls@radix.net>,
+	Steven Toth <stoth@hauppauge.com>,
+	Mike Krufky <mkrufky@linuxtv.org>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>,
+	Vaibhav Hiremath <hvaibhav@ti.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>,
+	"Iovescu, Magdalena" <m-iovescu1@ti.com>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@skynet.be>,
+	Hans de Goede <j.w.r.degoede@hhs.nl>
+Subject: Re: LPC v4l-dvb mini-summit agenda
+Message-ID: <20090915202441.GA29973@jenkins.home.ifup.org>
+References: <200909151919.53930.hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <4AAEBABA.9060108@gmail.com>
+In-Reply-To: <200909151919.53930.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 14, 2009 at 11:50:50PM +0200, Jiri Slaby wrote:
-> A potential problem here is rather that it may wait longer due to
-> returning 1 jiffie. It's then timeout * 1000 * 1. On 250HZ system it
-> makes a difference of multiple of 4. Don't think it's a real issue in
-> those drivers at all, but it's worth fixing. Care to post a patch?
+On 19:19 Tue 15 Sep 2009, Hans Verkuil wrote:
+> We have a room available all three days, so that makes life easier for us.
+>
+> I assume that most people will want to attend at least the keynote speeches,
+> so I'm scheduling around that.
 
-*sigh*. :) OK, last thing to be done this day.
+Thanks for organizing this. But, I have other priorities and things I
+want to discuss during the conference. I don't think I can attend a
+full three days.
 
-Generated via precise copy&paste of the change between drivers
-(which is a flashing warning that they likely contain too much c&p anyway),
-plus:
-for file in sn9c102/sn9c102_core.c et61x251/et61x251_core.c zc0301/zc0301_core.c; do diff -upN
-linux-2.6.31/drivers/media/video/"$file" linux-2.6.31.patched/drivers/media/video/"$file" >>
-/tmp/v4l2_drivers.diff; done
+> So Wednesday we start at 10:00 after the keynote (except for those
+> attending the audio track) and go on until 15:00 (yes, you are
+> allowed to have lunch :-) ).
+> 
+> Thursday we can start at 9:00 until 16:00.
 
-Disclaimer: FULLY UNTESTED, make sure to guard your hen house, use as dog food.
+I wish I had seen this sooner so we could have done something like the
+Networking folks and met while LinuxCon was going on instead. I
+thought the V4L meetup was going to be a regular BoF.
 
-ChangeLog:
-Correct dangerous and inefficient msecs_to_jiffies() calculation in some V4L2 drivers
+> Friday starts with a V4L2 BoF followed by two v4l presentations, so
+> we will only have a session from 13:30 - 16:00. I suggest we use
+> that to wrap up.
 
-Signed-off-by: Andreas Mohr <andi@lisas.de>
+After dicussing this a bit Hans and I cut it down to a single 45
+minute slot with each of us doing a 20 or so minutes.
 
---- linux-2.6.31/drivers/media/video/sn9c102/sn9c102_core.c	2009-09-10 00:13:59.000000000 +0200
-+++ linux-2.6.31.patched/drivers/media/video/sn9c102/sn9c102_core.c	2009-09-14 23:58:27.000000000 +0200
-@@ -1954,8 +1954,10 @@ sn9c102_read(struct file* filp, char __u
- 				    (!list_empty(&cam->outqueue)) ||
- 				    (cam->state & DEV_DISCONNECTED) ||
- 				    (cam->state & DEV_MISCONFIGURED),
--				    cam->module_param.frame_timeout *
--				    1000 * msecs_to_jiffies(1) );
-+				    msecs_to_jiffies(
-+					cam->module_param.frame_timeout * 1000
-+				    )
-+				  );
- 			if (timeout < 0) {
- 				mutex_unlock(&cam->fileop_mutex);
- 				return timeout;
---- linux-2.6.31/drivers/media/video/et61x251/et61x251_core.c	2009-09-10 00:13:59.000000000 +0200
-+++ linux-2.6.31.patched/drivers/media/video/et61x251/et61x251_core.c	2009-09-14 23:58:54.000000000 +0200
-@@ -1379,8 +1379,10 @@ et61x251_read(struct file* filp, char __
- 			    (!list_empty(&cam->outqueue)) ||
- 			    (cam->state & DEV_DISCONNECTED) ||
- 			    (cam->state & DEV_MISCONFIGURED),
--			    cam->module_param.frame_timeout *
--			    1000 * msecs_to_jiffies(1) );
-+			    msecs_to_jiffies(
-+				cam->module_param.frame_timeout * 1000
-+			    )
-+			  );
- 		if (timeout < 0) {
- 			mutex_unlock(&cam->fileop_mutex);
- 			return timeout;
---- linux-2.6.31/drivers/media/video/zc0301/zc0301_core.c	2009-09-10 00:13:59.000000000 +0200
-+++ linux-2.6.31.patched/drivers/media/video/zc0301/zc0301_core.c	2009-09-15 00:00:14.000000000 +0200
-@@ -819,8 +819,10 @@ zc0301_read(struct file* filp, char __us
- 			    (!list_empty(&cam->outqueue)) ||
- 			    (cam->state & DEV_DISCONNECTED) ||
- 			    (cam->state & DEV_MISCONFIGURED),
--			    cam->module_param.frame_timeout *
--			    1000 * msecs_to_jiffies(1) );
-+			    msecs_to_jiffies(
-+				cam->module_param.frame_timeout * 1000
-+			    )
-+			  );
- 		if (timeout < 0) {
- 			mutex_unlock(&cam->fileop_mutex);
- 			return timeout;
+> The main discussion points are these RFCs:
+> 
+> - V2.1 Media Controller RFC:
+> - Bus and data format negotiation (addresses open issue #3 of the MC RFC):
+> - Support for video timings at the input/output interface (aka support for HDTV):
+> - Allow bridge drivers to have better control over DVB frontend operations:
+
+> We have some other topics as well (in no particular order):
+> - mercurial vs git, how important is backwards compatibility to us?
+> - how to do events in V4L?
+> - is it possible to create a pool of buffers that we can pass around to
+>   various video nodes?
+> - others?
+> 
+> My plan is to use the Wednesday to start with the media controller, make sure
+> that everyone understands what it is and what it is not and perhaps look at
+> one embedded device to see how well it would work. The afternoon we can look
+> at some of the other topics.
+
+Can you plan on a quick overview of the RFCs and in particular how far
+along the hardware is and how it is implemented early in the morning?
+
+An hour by hour schedule with when you plan on discussing what would
+be very helpful. I find meetings that have too open ended of a
+schedule have a tendency to rat-hole ;)
+
+> I hope that on Thursday we can go over the media controller in more detail,
+> esp. with regards to other embedded devices, current and (if possible)
+> upcoming. 
+
+An overview of the current hardware implementation would be nice on
+Wed. It seems to be missing from the RFCs.
+
+Thanks,
+
+	Brandon
