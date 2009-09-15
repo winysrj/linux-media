@@ -1,125 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60006 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753797AbZIAL5s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2009 07:57:48 -0400
-Date: Tue, 1 Sep 2009 12:57:27 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Cc: "mchehab@infradead.org" <mchehab@infradead.org>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	'Kevin Hilman' <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v4] ARM: DaVinci: DM646x Video: Platform and board
-	specific setup
-Message-ID: <20090901115727.GE19719@n2100.arm.linux.org.uk>
-References: <1249483662-9589-1-git-send-email-chaithrika@ti.com> <008c01ca158e$9ffbf770$dff3e650$@com> <A69FA2915331DC488A831521EAE36FE401548C213E@dlee06.ent.ti.com>
+Received: from perceval.irobotique.be ([92.243.18.41]:41985 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750948AbZIOJn6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Sep 2009 05:43:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Julia Lawall <julia@diku.dk>
+Subject: Re: [PATCH 2/8] drivers/media/video/uvc: introduce missing kfree
+Date: Tue, 15 Sep 2009 11:44:57 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+References: <Pine.LNX.4.64.0909111821010.10552@pc-004.diku.dk> <200909132239.21806.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.0909132254430.31000@ask.diku.dk>
+In-Reply-To: <Pine.LNX.4.64.0909132254430.31000@ask.diku.dk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE401548C213E@dlee06.ent.ti.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200909151144.57816.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 18, 2009 at 04:58:48PM -0500, Karicheri, Muralidharan wrote:
-> Could you please ack this patch from Chaithrika if you agree with these
-> changes?
+Hi Julia,
 
-I can only see half the patch here - no idea what the calling convention
-is for the set_clock method for example.
+On Sunday 13 September 2009 22:55:30 Julia Lawall wrote:
+> From: Julia Lawall <julia@diku.dk>
+> 
+> Move the kzalloc and associated test after the stream/query test, to avoid
+> the need to free the allocated if the stream/query test fails.
+> 
+> The semantic match that finds the problem is as follows:
+> (http://www.emn.fr/x-info/coccinelle/)
+> 
+> // <smpl>
+> @r exists@
+> local idexpression x;
+> statement S;
+> expression E;
+> identifier f,f1,l;
+> position p1,p2;
+> expression *ptr != NULL;
+> @@
+> 
+> x@p1 = \(kmalloc\|kzalloc\|kcalloc\)(...);
+> ...
+> if (x == NULL) S
+> <... when != x
+>      when != if (...) { <+...x...+> }
+> (
+> x->f1 = E
+> 
+>  (x->f1 == NULL || ...)
+> 
+>  f(...,x->f1,...)
+> )
+> ...>
+> (
+>  return \(0\|<+...x...+>\|ptr\);
+> 
+>  return@p2 ...;
+> )
+> 
+> @script:python@
+> p1 << r.p1;
+> p2 << r.p2;
+> @@
+> 
+> print "* file: %s kmalloc %s return %s" %
+>  (p1[0].file,p1[0].line,p2[0].line) // </smpl>
+> 
+> Signed-off-by: Julia Lawall <julia@diku.dk>
+> ---
+>  drivers/media/video/uvc/uvc_video.c |    7 ++++---
+>  1 files changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/video/uvc/uvc_video.c
+>  b/drivers/media/video/uvc/uvc_video.c index 5b757f3..f960e8e 100644
+> --- a/drivers/media/video/uvc/uvc_video.c
+> +++ b/drivers/media/video/uvc/uvc_video.c
+> @@ -124,13 +124,14 @@ static int uvc_get_video_ctrl(struct uvc_streaming
+>  *stream, int ret;
+> 
+>  	size = stream->dev->uvc_version >= 0x0110 ? 34 : 26;
+> +	if ((stream->dev->quirks & UVC_QUIRK_PROBE_DEF) &&
+> +			query == UVC_GET_DEF)
 
-> I have another set of patches waiting to be submitted and is dependent
-> on this patch. So you response will be helpful to speed up the process.
+This fits in the 80 columns limit, no need to split the statement on multiple 
+lines.
 
-As published a month before, I've been away.
+> +		return -EIO;
+> +
+>  	data = kmalloc(size, GFP_KERNEL);
+>  	if (data == NULL)
+>  		return -ENOMEM;
+> 
+> -	if ((stream->dev->quirks & UVC_QUIRK_PROBE_DEF) && query == UVC_GET_DEF)
+> -		return -EIO;
+> -
+>  	ret = __uvc_query_ctrl(stream->dev, query, 0, stream->intfnum,
+>  		probe ? UVC_VS_PROBE_CONTROL : UVC_VS_COMMIT_CONTROL, data,
+>  		size, UVC_CTRL_STREAMING_TIMEOUT);
 
-> >> +static struct i2c_client *cpld_client;
-> >> +
-> >> +static int cpld_video_probe(struct i2c_client *client,
-> >> +			const struct i2c_device_id *id)
-> >> +{
-> >> +	cpld_client = client;
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static int __devexit cpld_video_remove(struct i2c_client *client)
-> >> +{
-> >> +	cpld_client = NULL;
-> >> +	return 0;
-> >> +}
+Other than that,
 
-What stops cpld_client being set to NULL while set_vpif_clock() is
-trying to use this variable?
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-I think there should be some locking here, and set_vpif_clock() should
-be using the i2c_use_client() / i2c_release_client() interfaces to
-ensure safety.
-
-> >> +static int set_vpif_clock(int mux_mode, int hd)
-> >> +{
-> >> +	int val = 0;
-> >> +	int err = 0;
-> >> +	unsigned int value;
-> >> +	void __iomem *base = IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
-> >> +
-> >> +	if (!cpld_client)
-> >> +		return -ENXIO;
-
-So here should be:
-
-	struct i2c_client *cl;
-
-	mutex_lock(&cpld_lock);
-	cl = i2c_use_client(cpld_client);
-	mutex_unlock(&cpld_lock);
-	if (!cl)
-		return -ENXIO;
-
-and all future references to cpld_client should be made using the local
-'cl'.
-
-> >> +
-> >> +	/* disable the clock */
-> >> +	value = __raw_readl(base + VSCLKDIS_OFFSET);
-> >> +	value |= (VIDCH3CLK | VIDCH2CLK);
-> >> +	__raw_writel(value, base + VSCLKDIS_OFFSET);
-> >> +
-> >> +	val = i2c_smbus_read_byte(cpld_client);
-> >> +	if (val < 0)
-> >> +		return val;
-> >> +
-> >> +	if (mux_mode == 1)
-> >> +		val &= ~0x40;
-> >> +	else
-> >> +		val |= 0x40;
-> >> +
-> >> +	err = i2c_smbus_write_byte(cpld_client, val);
-> >> +	if (err)
-> >> +		return err;
-> >> +
-> >> +	value = __raw_readl(base + VIDCLKCTL_OFFSET);
-> >> +	value &= ~(VCH2CLK_MASK);
-> >> +	value &= ~(VCH3CLK_MASK);
-> >> +
-> >> +	if (hd >= 1)
-> >> +		value |= (VCH2CLK_SYSCLK8 | VCH3CLK_SYSCLK8);
-> >> +	else
-> >> +		value |= (VCH2CLK_AUXCLK | VCH3CLK_AUXCLK);
-> >> +
-> >> +	__raw_writel(value, base + VIDCLKCTL_OFFSET);
-> >> +
-> >> +	/* enable the clock */
-> >> +	value = __raw_readl(base + VSCLKDIS_OFFSET);
-> >> +	value &= ~(VIDCH3CLK | VIDCH2CLK);
-> >> +	__raw_writel(value, base + VSCLKDIS_OFFSET);
-
-and:
-
-	i2c_release_client(cl);
-
-> >> +
-> >> +	return 0;
-> >> +}
+-- 
+Laurent Pinchart
