@@ -1,56 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34481 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753598AbZIWBDp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2009 21:03:45 -0400
-Date: Tue, 22 Sep 2009 22:03:10 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [GIT PATCHES for 2.6.32] V4L/DVB fixes
-Message-ID: <20090922220310.233e1854@pedra.chehab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from devils.ext.ti.com ([198.47.26.153]:54468 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757600AbZIORXy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Sep 2009 13:23:54 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 15 Sep 2009 12:23:36 -0500
+Subject: RE: [GIT PATCHES for 2.6.32] V4L/DVB updates
+Message-ID: <A69FA2915331DC488A831521EAE36FE40155156847@dlee06.ent.ti.com>
+References: <20090914233239.5dd6f5c8@pedra.chehab.org>
+	<A69FA2915331DC488A831521EAE36FE40155156602@dlee06.ent.ti.com>
+ <20090915102714.5c76b944@pedra.chehab.org>
+In-Reply-To: <20090915102714.5c76b944@pedra.chehab.org>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Linus,
+Mauro,
 
-Please pull from:
-        ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git for_linus
+Let me add Kevin to this list who is merging the arch part.
 
-For 4 build fix patches:
+Kevin,
 
-   - saa7134: fix build;
-   - dvbdev: Remove an annoying/uneeded warning that happens when 
-     DVB_CORE is disabled but some V4L drivers are enabled;
-   - dib0700: not building CONFIG_DVB_TUNER_DIB0070 breaks compilation;
-   - staging/go7007: Revert compatibility code added at the wrong place 
-     preventing compilation.
+Which branch should I refer to find out what are all the architecture
+part you have merged for upstream submission?
 
-Cheers,
-Mauro.
+I remember you had merged the following patches for vpif capture.
+Which branch is that? 
 
----
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+new phone: 301-407-9583
+Old Phone : 301-515-3736 (will be deprecated)
+email: m-karicheri2@ti.com
 
- drivers/media/dvb/dvb-core/dvbdev.h        |    5 ++---
- drivers/media/dvb/dvb-usb/Kconfig          |    2 +-
- drivers/media/video/saa7164/saa7164-api.c  |    8 ++++----
- drivers/media/video/saa7164/saa7164-cmd.c  |    2 +-
- drivers/media/video/saa7164/saa7164-core.c |    6 +++---
- drivers/media/video/saa7164/saa7164.h      |    4 ++--
- drivers/staging/go7007/Makefile            |    5 -----
- 7 files changed, 13 insertions(+), 19 deletions(-)
+>-----Original Message-----
+>From: Mauro Carvalho Chehab [mailto:mchehab@redhat.com]
+>Sent: Tuesday, September 15, 2009 9:27 AM
+>To: Karicheri, Muralidharan
+>Cc: Linus Torvalds; Andrew Morton; linux-kernel@vger.kernel.org; linux-
+>media@vger.kernel.org
+>Subject: Re: [GIT PATCHES for 2.6.32] V4L/DVB updates
+>
+>Em Tue, 15 Sep 2009 08:13:20 -0500
+>"Karicheri, Muralidharan" <m-karicheri2@ti.com> escreveu:
+>
+>> Mauro,
+>>
+>> Why have you not included the vpif and vpfe drivers under davinci
+>> in this drop? Or is it being included in another pull request?
+>
+>They'll be on another pull request. Are those arch dependent patches
+>already
+>merged?
+>
+>--
+>
+>Cheers,
+>Mauro
 
-Ingo Molnar (1):
-      media: video: Fix build in saa7164
-
-Mauro Carvalho Chehab (3):
-      V4L/DVB (13037): go7007: Revert compatibility code added at the wrong place
-      V4L/DVB (13038): dvbdev: Remove an anoying/uneeded warning
-      V4L/DVB (13039): dib0700: not building CONFIG_DVB_TUNER_DIB0070 breaks compilation
-
----------------------------------------------------
-V4L/DVB development is hosted at http://linuxtv.org
