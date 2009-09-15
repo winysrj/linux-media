@@ -1,110 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:54521 "EHLO
-	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750867AbZIMFlr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2009 01:41:47 -0400
-Subject: Re: Initial media controller implementation
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Markus Rechberger <mrechberger@gmail.com>,
-	linux-media@vger.kernel.org
-In-Reply-To: <200909121313.50084.hverkuil@xs4all.nl>
-References: <200909121257.28522.hverkuil@xs4all.nl>
-	 <d9def9db0909120405n277ad8e0r85ea82d877bc53f8@mail.gmail.com>
-	 <200909121313.50084.hverkuil@xs4all.nl>
-Content-Type: text/plain
-Date: Sun, 13 Sep 2009 07:38:43 +0200
-Message-Id: <1252820323.3257.18.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:48645 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1758076AbZIOTzc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Sep 2009 15:55:32 -0400
+Date: Tue, 15 Sep 2009 21:55:32 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Marek Vasut <marek.vasut@gmail.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: V4L2: Add a v4l2-subdev (soc-camera) driver for OmniVision OV9640
+ sensor
+In-Reply-To: <200909150006.00150.marek.vasut@gmail.com>
+Message-ID: <Pine.LNX.4.64.0909152150090.4640@axis700.grange>
+References: <200908220850.07435.marek.vasut@gmail.com>
+ <200909142315.14697.marek.vasut@gmail.com> <Pine.LNX.4.64.0909142319240.4359@axis700.grange>
+ <200909150006.00150.marek.vasut@gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, 15 Sep 2009, Marek Vasut wrote:
 
-Am Samstag, den 12.09.2009, 13:13 +0200 schrieb Hans Verkuil:
-> On Saturday 12 September 2009 13:05:14 Markus Rechberger wrote:
-> > Hi,
-> > 
-> > On Sat, Sep 12, 2009 at 12:57 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > > Rather than writing long mails on what a media controller is and what it can
-> > > do, I thought that I could just as well implement it.
-> > >
-> > > So in 4 hours I implemented pretty much all of the media controller
-> > > functionality. The main missing features are the ability to register non-v4l
-> > > device nodes so that they can be enumerated and setting controls private to
-> > > a sub-device. For that I should first finish the control handling framework.
-> > >
-> > > The datastructures and naming conventions needs to be cleaned up, and it
-> > > needs some tweaking, but I'd say this is pretty much the way I want it.
-> > >
-> > > The code is available here:
-> > >
-> > > http://linuxtv.org/hg/~hverkuil/v4l-dvb-mc/
-> > >
-> > > It includes a v4l2-mc utility in v4l2-apps/util that has the
-> > > --show-topology option that enumerates all nodes and subdev. Currently any
-> > > registered subdevs and v4l device nodes are already automatically added.
-> > > Obviously, there are no links setup between them, that would require work
-> > > in the drivers.
-> > >
-> > > Total diffstat:
-> > >
-> > >  b/linux/include/media/v4l2-mc.h         |   54 +++++
-> > >  b/v4l2-apps/util/v4l2-mc.cpp            |  325 ++++++++++++++++++++++++++++++++
-> > >  linux/drivers/media/video/v4l2-dev.c    |   15 +
-> > >  linux/drivers/media/video/v4l2-device.c |  265 +++++++++++++++++++++++++-
-> > >  linux/include/linux/videodev2.h         |   74 +++++++
-> > >  linux/include/media/v4l2-dev.h          |    6
-> > >  linux/include/media/v4l2-device.h       |   23 +-
-> > >  linux/include/media/v4l2-subdev.h       |   11 -
-> > >  v4l2-apps/util/Makefile                 |    2
-> > >  9 files changed, 762 insertions(+), 13 deletions(-)
-> > >
-> > > Ignoring the new utility that's just 435 lines of core code.
-> > >
-> > > Now try this with sysfs. Brrr.
-> > >
-> > 
-> > please even more important when doing this push out a proper
-> > documentation for it,
-> > The s2api is a mess seen from the documentation people need to hack
-> > existing code in order
-> > to figure out how to use it it seems. v4l2/(incomplete)linuxdvb v3 API
-> > are still the best references
-> > to start with right now.
-> 
-> It will obviously be documented extensively when/if this becomes official.
-> Right now it is an initial implementation people can play with.
-> 
-> Regards,
-> 
->          Hans
+> Just briefly skimmed over it. Ok then, that diff seems fine. I assume the imagebus 
+> will fix the rgb issues anyway.
 
-Hi,
+Sorry, have to ask to make quite sure - so, you're ok with me pushing that 
+patch as it was in the mail - not just the diff but also the patch header? 
+And no, imagebus cannot fix the problem automagically - until we know for 
+sure what those formats are. So, someone will have to test the driver 
+again.
 
-going through mail backlash I arrived at least here for now.
-
-What to say?
-
-One of our previous best hackers, who decided meanwhile to distribute
-exclusive hardware also on GNU/Linux, providing the driver only as
-closed source, if the possessor/buyer/idiot is clearly identified by his
-hardware and then gets it exclusively ...
-
-Makes suggestions for better documentation ???
-
-My "Nero" OEM version is now also to be claimed not to be functional
-anymore after one year. Three years were guarantied once. Who cares? I
-do. 
-
-I'll bail out of that zoo very soon, if such is going further on.
-
-Cheers,
-Hermann
-
-
-
-
-
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
