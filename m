@@ -1,94 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f210.google.com ([209.85.218.210]:64051 "EHLO
-	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752879AbZIVDbP convert rfc822-to-8bit (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:44971 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753089AbZIONTS convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Sep 2009 23:31:15 -0400
-Received: by bwz6 with SMTP id 6so2369028bwz.37
-        for <linux-media@vger.kernel.org>; Mon, 21 Sep 2009 20:31:17 -0700 (PDT)
+	Tue, 15 Sep 2009 09:19:18 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Tue, 15 Sep 2009 08:19:15 -0500
+Subject: RE: Handling second output from vpfe capture  - Any suggestion ?
+Message-ID: <A69FA2915331DC488A831521EAE36FE40155156609@dlee06.ent.ti.com>
+References: <A69FA2915331DC488A831521EAE36FE40154FACF34@dlee06.ent.ti.com>
+ <200909151016.52279.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <200909151016.52279.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-In-Reply-To: <1253584852.3279.11.camel@pc07.localdom.local>
-References: <d9def9db0909202040u3138670ahede6078ef1a177c@mail.gmail.com>
-	 <1253504805.3255.3.camel@pc07.localdom.local>
-	 <d9def9db0909202109m54453573kc90f0c3e5d942e2@mail.gmail.com>
-	 <1253506233.3255.6.camel@pc07.localdom.local>
-	 <d9def9db0909202142j542136e3raea8e171a19f7e73@mail.gmail.com>
-	 <1253508863.3255.10.camel@pc07.localdom.local>
-	 <d9def9db0909210302m44f8ed77wfca6be3693491233@mail.gmail.com>
-	 <1253584852.3279.11.camel@pc07.localdom.local>
-Date: Tue, 22 Sep 2009 05:31:17 +0200
-Message-ID: <d9def9db0909212031q67e12ba7j9030063baf19a98@mail.gmail.com>
-Subject: Re: Bug in S2 API...
-From: Markus Rechberger <mrechberger@gmail.com>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 22, 2009 at 4:00 AM, hermann pitton <hermann-pitton@arcor.de> wrote:
-> Hi Markus,
+Laurent,
+
+Thanks for the suggestion. I have already decided to do it as a second device as per Hans' response.
+
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+new phone: 301-407-9583
+Old Phone : 301-515-3736 (will be deprecated)
+email: m-karicheri2@ti.com
+
+>-----Original Message-----
+>From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+>Sent: Tuesday, September 15, 2009 4:17 AM
+>To: Karicheri, Muralidharan
+>Cc: Linux Media Mailing List
+>Subject: Re: Handling second output from vpfe capture - Any suggestion ?
 >
-> Am Montag, den 21.09.2009, 12:02 +0200 schrieb Markus Rechberger:
->> ----
->> in dvb-frontend.c:
->>  ----
->>          if(cmd == FE_GET_PROPERTY) {
+>Hi Murali,
+>
+>sorry for the late reply, I was on holidays.
+>
+>On Friday 04 September 2009 15:03:00 Karicheri, Muralidharan wrote:
+>> Hi,
 >>
->>                  tvps = (struct dtv_properties __user *)parg;
->>                  dprintk("%s() properties.num = %d\n", __func__, tvps->num);
->>                  dprintk("%s() properties.props = %p\n", __func__, tvps->props);
->>                  ...
->>                  if (copy_from_user(tvp, tvps->props, tvps->num *
->>  sizeof(struct dtv_property)))
->>  ----
+>> I am working on to add additional capabilities to vpfe capture driver to
+>>  allow capture two frames simultaneously for each received frame from the
+>>  input video decoder or sensor device. This is done using the IPIPE and
+>>  Resizer hw available in DM355. In our internal release this is done by
+>>  configuring IPIPE to receive from directly from CCDC and then passing it
+>>  to the Resizer. Resizer has two outputs that operates on the same input
+>>  frame. One output is usually used for capturing full resolution frame
+>and
+>>  the other is limited to output VGA or less resolution frames. Typically
+>>  this will be useful for previewing the video on a smaller LCD screen
+>using
+>>  the second output while using the full resolution frame for encoding.
 >>
->>
->> > OK,
->> >
->> > thought I'll have never to care for it again.
->> >
->> > ENUM calls should never be W.
->> >
->> > Hit me for all I missed.
->> >
->> > Cheers,
->> > Hermann
->>
->> you are not seeing the point of it it seems
+>> Since input frame is same for both these inputs, we had implemented using
+>a
+>>  bigger capture buffer that can hold both the frames. The second frame is
+>>  captured at the end of the first frame. This allowed us to DQBUF both
+>>  frames simultaneously. But we used proprietary IOCTL to change the
+>output
+>>  size or format. I think a better alternative is to implement another
+>Queue
+>>  in the vpfe capture that can take a V4L2_BUF_TYPE_PRIVATE. This will
+>allow
+>>  me to configure the output format of second output independently for the
+>>  second output. Looking at the v4l2-ioctl.c there is support for this
+>>  buffer type. But this buffer type is not used by any driver and I am not
+>>  sure if this will work or is the right approach to deal with this
+>problem.
+>>  Any suggestion here?
 >
-> you are right, I do not see your point at all, but I was wrong for the
-> get calls.
+>I think you should create two video devices, one to stream the full
+>resolution
+>video and the other one to stream the downscaled video. This is exactly the
+>kind of use case that is going to be handled by the new media controller
+>API.
 >
-> We had such discussions on v4l ioctls previously.
->
-> The result was to keep them as is and not to change IOR to IOWR to keep
-> compatibility.
->
-> This is six years back.
->
+>--
+>Laurent Pinchart
 
-I think they all have got fixed up for v4l2 back then
-
-#ifdef __OLD_VIDIOC_
-/* for compatibility, will go away some day */
-#define VIDIOC_OVERLAY_OLD      _IOWR('V', 14, int)
-#define VIDIOC_S_PARM_OLD        _IOW('V', 22, struct v4l2_streamparm)
-#define VIDIOC_S_CTRL_OLD        _IOW('V', 28, struct v4l2_control)
-#define VIDIOC_G_AUDIO_OLD      _IOWR('V', 33, struct v4l2_audio)
-#define VIDIOC_G_AUDOUT_OLD     _IOWR('V', 49, struct v4l2_audioout)
-#define VIDIOC_CROPCAP_OLD       _IOR('V', 58, struct v4l2_cropcap)
-#endif
-
-to eg:
-#define VIDIOC_OVERLAY           _IOW('V', 14, int)
-#define VIDIOC_S_PARM           _IOWR('V', 22, struct v4l2_streamparm)
-#define VIDIOC_S_CTRL           _IOWR('V', 28, struct v4l2_control)
-#define VIDIOC_G_AUDIO           _IOR('V', 33, struct v4l2_audio)
-#define VIDIOC_G_AUDOUT          _IOR('V', 49, struct v4l2_audioout)
-#define VIDIOC_CROPCAP          _IOWR('V', 58, struct v4l2_cropcap)
-
-so only the DVB-API remains bugged now.
-
-Markus
