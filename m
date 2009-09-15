@@ -1,126 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:37453 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932566AbZIDDMS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Sep 2009 23:12:18 -0400
-Subject: Re: libv4l2 and the Hauppauge HVR1600 (cx18 driver) not working
- well together
-From: Andy Walls <awalls@radix.net>
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-Cc: Simon Farnsworth <simon.farnsworth@onelan.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-In-Reply-To: <4A9FA681.5070100@hhs.nl>
-References: <4A9E9E08.7090104@onelan.com> <4A9EAF07.3040303@hhs.nl>
-	 <4A9F89AD.7030106@onelan.com> <4A9F9006.6020203@hhs.nl>
-	 <4A9F98BA.3010001@onelan.com> <4A9F9C5F.9000007@onelan.com>
-	 <4A9FA681.5070100@hhs.nl>
-Content-Type: text/plain
-Date: Thu, 03 Sep 2009 23:14:42 -0400
-Message-Id: <1252034082.7203.15.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-yx0-f171.google.com ([209.85.210.171]:51535 "EHLO
+	mail-yx0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752267AbZIOWs4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Sep 2009 18:48:56 -0400
+Received: by yxe1 with SMTP id 1so5907849yxe.21
+        for <linux-media@vger.kernel.org>; Tue, 15 Sep 2009 15:48:59 -0700 (PDT)
+Date: Tue, 15 Sep 2009 15:48:37 -0700
+From: Brandon Philips <brandon@ifup.org>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: RFC: video device (stream) sharing
+Message-ID: <20090915224837.GC29973@jenkins.home.ifup.org>
+References: <4A977BB6.5040101@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4A977BB6.5040101@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2009-09-03 at 13:20 +0200, Hans de Goede wrote:
-> Hans Verkuil,
+On 08:39 Fri 28 Aug 2009, Hans de Goede wrote:
+> The basic idea is to have some sort of userspace proxy process which allows
+> sharing for example a webcam between 2 devices. For me there are 2 major
+> criteria which need to be matched to be able to do this:
 > 
-> I think we have found a bug in the read() implementation of the cx18
-> driver, see below.
-> 
-> 
-> Hi all,
-> 
-> On 09/03/2009 12:37 PM, Simon Farnsworth wrote:
-> > Simon Farnsworth wrote:
-> >> Hans de Goede wrote:
-> >>> Ok,
-> >>>
-> >>> That was even easier then I thought it would be. Attached is a
-> >>> patch (against libv4l-0.6.1), which implements 1) and 3) from
-> >>> above.
-> >>>
-> >> I applied it to a clone of your HG repository, and had to make a
-> >> minor change to get it to compile. I've attached the updated patch.
-> >>
-> >> It looks like the read() from the card isn't reading entire frames
-> >> ata a time - I'm using a piece of test gear that I have to return in
-> >> a couple of hours to send colourbars to it, and I'm seeing bad
-> >> colour, and the picture moving across the screen. I'll try and chase
-> >> this, see whether there's something obviously wrong.
-> >>
-> > There is indeed something obviously wrong; at line 315 of libv4l2.c, we
-> > expand the buffer we read into, then ask for that many bytes.
-> >
+> 1) No (as in 0) functionality regressions for the single use case, iow when
+>    only one app opens the device everything should work as before
+>
+> 2) No significant performance regressions for the single use case. Sure this
+>    may be a bit slower, but not much!
 
-Hans de Goede,
+Agreed and it should be possible to do with shm and a fast daemon.
 
-> Ah, actually this is a driver bug,
+> So the whole stream owner concept does not work. 
 
-I agree.
+Agreed. This will need to be a per user session daemon like PulseAudio
+is by default.
 
->  not a libv4l2 bug, but I'll fix things
-> in libv4l to work around it for now.
+> -limit the amount of reported supported formats (enum fmt) to
+>  formats which we can create by conversion from native formats
 
-OK, thanks.
+Agreed.
 
-> read() should always return an entire frame (or as much of it as will fit
+> -report the full list of supported resolutions to all applications
+> -capture at the highest resolution requested by any of the
+>  applications
 
-I agree
+All supported resolutions that don't cause a drop in frame capture
+rate that the other applications are getting. I am not sure how this
+heuristic will end up working and at this point I am a long way from
+tackling this problem.
 
-> and throw away the rest).
+I am guessing that applications can provide hints on what they need
+from the hardware.
 
-That sounds fine to me.
+But, alot of my interest is in enabling interesting things to be done
+in that other operating systems can do:
 
+ - Face tracking and panning
+ - Software autofocus
+ - "Take photo of the laptop theif" software running in background
+ - Backup your camera output while Pidgin/Skype/etc is running
 
-Hans and Hans,
+These sorts of applications will be fine with the same data format
+that the current running application is using. 
 
-The V4L2 spec for the read() call seems unlcear to me:
+> -downsample for applications which want a lower resolution
 
-"Return Value
-On success, the number of bytes read is returned. It is not an error if
-this number is smaller than the number of bytes requested, or the amount
-of data required for one frame. This may happen for example because
-read() was interrupted by a signal. On error, -1 is returned, and the
-errno variable is set appropriately. In this case the next read will
-start at the beginning of a new frame."
+Yes.
 
-To me, the spec only says the remainder of a frame is thrown away when
-read() exits with an error.
+I have been reading quite a bit of the PulseAudio code while I have
+been working on my prototype. My hope is to ensure that we get the
+implementation of this daemon and library right enough so as to avoid
+layers upon layers of APIs
 
+ http://rudd-o.com/en/linux-and-free-software/how-pulseaudio-works/images/pulseaudio-diagram.png?isImage=1
 
-BTW, should select() return "data available", if less than one whole
-frame is available?  It can happen if the buffers we give to the CX23418
-firmware don't exactly match the YUV framesize.  The V4l2 spec for the
-read() call seems to imply that read() should block (or return with
-EAGAIN) until at least one whole frame is available.  Is that correct?
+:D
 
+Thanks for the input.
 
-Regards,
-Andy
+Cheers,
 
->  Think for example of jpeg streams, where the
-> exact size of the image isn't known by the client (as it differs from frame
-> to frame). dest_fmt.fmt.pix.sizeimage purely is an upper limit, and so
-> is the value passed in to read(), the driver itself should clamp it so
-> that it returns exactly one frame (for formats which are frame based).
-> 
-> The page alignment (2 pages on i386 / one on x86_64) is done because some
-> drivers internally use page aligned buffer sizes and thus for example with
-> jpeg streams, can have frames queued for read() slightly bigger then
-> dest_fmt.fmt.pix.sizeimage, but when this happens that is really a driver bug,
-> because as said dest_fmt.fmt.pix.sizeimage should report an upper limit
-> of the the frame sizes to be expected. I'll remove the align workaround, as
-> that bug is much less likely to be hit (and probably easier to fix at the
-> driver level) then the issue we're now seeing with read().
-> 
-> Regards,
-> 
-> Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+	Brandon
