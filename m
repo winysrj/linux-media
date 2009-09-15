@@ -1,16 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-bw0-f213.google.com ([209.85.218.213])
+Received: from colin.muc.de ([193.149.48.1] helo=mail.muc.de ident=qmailr)
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <mutlu.erol@gmail.com>) id 1Mmp7b-0002pQ-C4
-	for linux-dvb@linuxtv.org; Sun, 13 Sep 2009 15:28:03 +0200
-Received: by bwz9 with SMTP id 9so1563827bwz.17
-	for <linux-dvb@linuxtv.org>; Sun, 13 Sep 2009 06:27:29 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sun, 13 Sep 2009 16:27:29 +0300
-Message-ID: <2834cd740909130627h18a9346axe4d9a54d2e9e44ac@mail.gmail.com>
-From: erol mutlu <mutlu.erol@gmail.com>
+	(envelope-from <hm@seneca.muc.de>) id 1MnS2J-0005QM-Nd
+	for linux-dvb@linuxtv.org; Tue, 15 Sep 2009 09:01:12 +0200
+Date: Tue, 15 Sep 2009 08:41:15 +0200
+From: Harald Milz <hm@seneca.muc.de>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb]  TT S2-3200 CI
+Message-ID: <20090915064115.GA20603@seneca.muc.de>
+References: <8CB2022318A0220-1E84-15EE@WEBMAIL-MZ13.sysops.aol.com>
+	<20090914101458.GA18504@seneca.muc.de>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20090914101458.GA18504@seneca.muc.de>
+Subject: Re: [linux-dvb] Need help with TT S2-3650 w/ s2-liplianin
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -19,48 +21,80 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0362582009=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0362582009==
-Content-Type: multipart/alternative; boundary=0016e659f40ccd462e047375820c
+On Mon, Sep 14, 2009 at 12:14:58PM +0200, Harald Milz wrote:
+> Sep 14 11:52:03 seneca kernel: pctv452e_power_ctrl: 0
+> Sep 14 11:52:21 seneca kernel: usbcore: deregistering interface driver pctv452e
+> Sep 14 11:52:21 seneca kernel: dvb-usb: bulk message failed: -22 (5/0)
+> Sep 14 11:52:21 seneca kernel: pctv452e: CI error -22; AA 1F 46 -> AA 1F 46.
+> Sep 14 11:52:21 seneca kernel: dvb-usb: bulk message failed: -22 (5/-30719)
+> Sep 14 11:52:21 seneca kernel: pctv452e: CI error -22; AA 20 46 -> AA 20 46.
+> Sep 14 11:52:21 seneca kernel: dvb-usb: bulk message failed: -22 (11/-30719)
+> Sep 14 11:52:21 seneca kernel: pctv452e: I2C error -22; AA 21  10 04 00 -> AA 21  10 04 00.
+> Sep 14 11:52:21 seneca kernel: dvb-usb: bulk message failed: -22 (10/-30719)
+> Sep 14 11:52:21 seneca kernel: pctv452e: I2C error -22; AA 22  D0 03 00 -> AA 22  D0 03 00.
 
---0016e659f40ccd462e047375820c
-Content-Type: text/plain; charset=ISO-8859-1
+Today, after stopping VDR I get loads and loads of
 
-Hi
+Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 68  D0 03 00 -> AA 68  D0 03 00.
+Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/0)
+Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 69  D0 02 00 -> AA 69  D0 02 00.
+Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
+Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 6A  D0 02 00 -> AA 6A  D0 02 00.
+Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (10/-30719)
+Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 6B  D0 03 00 -> AA 6B  D0 03 00.
+Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
+Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 6C  D0 02 00 -> AA 6C  D0 02 00.
+Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (10/-30719)
+Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 6D  D0 03 00 -> AA 6D  D0 03 00.
+Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (10/-30719)
+Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 6E  D0 03 00 -> AA 6E  D0 03 00.
+Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
+Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 6F  D0 02 00 -> AA 6F  D0 02 00.
+Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
+Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 70  D0 02 00 -> AA 70  D0 02 00.
+Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
+Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 71  D0 02 00 -> AA 71  D0 02 00.
+Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
+Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 72  D0 02 00 -> AA 72  D0 02 00.
+Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
+Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 73  D0 02 00 -> AA 73  D0 02 00.
+Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
+Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 74  D0 02 00 -> AA 74  D0 02 00.
+Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
+Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 75  D0 02 00 -> AA 75  D0 02 00.
+Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
+Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 76  D0 02 00 -> AA 76  D0 02 00.
+Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
+Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 77  D0 02 00 -> AA 77  D0 02 00.
+Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
+Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 78  D0 02 00 -> AA 78  D0 02 00.
+Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30719)
 
-i s2-3200 with Ci modul and give  me error "Temporary descrambling error
-occured" CW" i have cryptoworks modul
-what is problem? pls help me
 
-Best Regards
+The module cannot be unloaded: 
 
-Erol
+dvb_usb_pctv452e       23052  18
 
---0016e659f40ccd462e047375820c
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+hg clone of Sep 13, 2009. 
 
-<br><br>Hi<br><br>i s2-3200 with Ci modul and give=A0 me error &quot;Tempor=
-ary descrambling error occured&quot; CW&quot; i have cryptoworks modul<br>w=
-hat is problem? pls help me<br><br>Best Regards<br><br>Erol<br>
-
---0016e659f40ccd462e047375820c--
+What can be done here?
 
 
---===============0362582009==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Linus:	I guess it's wrong always to be worrying about tomorrow.  Maybe
+	we should think only about today.
+Charlie Brown:
+	No, that's giving up.  I'm still hoping that yesterday will get
+	better.
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0362582009==--
