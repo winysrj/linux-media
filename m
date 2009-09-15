@@ -1,102 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:9038 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754926AbZIMDbZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Sep 2009 23:31:25 -0400
-Received: by qw-out-2122.google.com with SMTP id 9so722164qwb.37
-        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 20:31:28 -0700 (PDT)
-Message-ID: <4AAC65A3.4010607@gmail.com>
-Date: Sat, 12 Sep 2009 23:23:15 -0400
-From: David Ellingsworth <david@identd.dyndns.org>
-Reply-To: david@identd.dyndns.org
+Received: from mail.kapsi.fi ([217.30.184.167]:40030 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753547AbZIOTwh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Sep 2009 15:52:37 -0400
+Message-ID: <4AAFF081.7000904@iki.fi>
+Date: Tue, 15 Sep 2009 22:52:33 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org, klimov.linux@gmail.com
-Subject: [RFC/RFT 14/14] radio-mr800: set radio frequency only upon success
-Content-Type: multipart/mixed;
- boundary="------------060205040502090700020106"
+To: "Roman v. Gemmeren" <roman@hasnoname.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: MSI Digivox Micro HD support?
+References: <200909152050.32487.roman@hasnoname.de>
+In-Reply-To: <200909152050.32487.roman@hasnoname.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------060205040502090700020106
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On 09/15/2009 09:50 PM, Roman v. Gemmeren wrote:
+>>> i just bought the above mentioned DVBT-Stick after my terratec prodigy
+>>> died (from overheating i guess).
+>>> I remembered sth. about digivox being supported, but i found only drivers
+>>> for the "Digivox Mini II 3.0" which don't seem to recognize that stick at
+>>> all.
+>>>
+>>> Anyone got that card working? If it is just the usb-id which is missing,
+>>> how /where would i add that to the source?
+>>
+>> Just do lsusb -vvd USB:ID and post here. From that we usually can say
+>> which chips are used and correct driver needed for device. Also you can
+>> look driver .inf file, driver filenames, look strings from driver, look
+>> sniff or open the box to identify chips.
+>>
+>> Antti
+> This is the output for the Stick:
+>
+> root@Seth:~strowi/tmp>  lsusb -vvd 1ba6:0001
 
- From 8c441616f67011244cb15bc1a3dda6fd8706ecd2 Mon Sep 17 00:00:00 2001
-From: David Ellingsworth <david@identd.dyndns.org>
-Date: Sat, 12 Sep 2009 16:04:44 -0400
-Subject: [PATCH 08/14] mr800: fix potential use after free
+Bad new. This looks like totally new chip. In my understanding no-one is 
+working for that and this is first time I hear even it.
+http://www.abilis.com/
 
-Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
----
- drivers/media/radio/radio-mr800.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+If they are willing to give specs and sample code for the GPL then 
+someone could be willing to write driver. Or reverse-engineering...
 
-diff --git a/drivers/media/radio/radio-mr800.c 
-b/drivers/media/radio/radio-mr800.c
-index 9fd2342..87b58e3 100644
---- a/drivers/media/radio/radio-mr800.c
-+++ b/drivers/media/radio/radio-mr800.c
-@@ -274,7 +274,6 @@ static void usb_amradio_disconnect(struct 
-usb_interface *intf)
- 
-     usb_set_intfdata(intf, NULL);
-     video_unregister_device(&radio->videodev);
--    v4l2_device_disconnect(&radio->v4l2_dev);
- }
- 
- /* vidioc_querycap - query device capabilities */
+Antti
 -- 
-1.6.3.3
-
-
---------------060205040502090700020106
-Content-Type: text/x-diff;
- name="0014-mr800-set-radio-frequency-only-upon-success.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename*0="0014-mr800-set-radio-frequency-only-upon-success.patch"
-
->From 1c62f52da6114756d16644f8401f1903a50ae455 Mon Sep 17 00:00:00 2001
-From: David Ellingsworth <david@identd.dyndns.org>
-Date: Sat, 12 Sep 2009 22:03:56 -0400
-Subject: [PATCH 14/14] mr800: set radio frequency only upon success
-
-Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
----
- drivers/media/radio/radio-mr800.c |    8 ++------
- 1 files changed, 2 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
-index 4d955aa..f609fdf 100644
---- a/drivers/media/radio/radio-mr800.c
-+++ b/drivers/media/radio/radio-mr800.c
-@@ -235,6 +235,7 @@ static int amradio_setfreq(struct amradio_device *radio, int freq)
- 	if (retval < 0 || size != BUFFER_LENGTH)
- 		goto out_err;
- 
-+	radio->curfreq = freq;
- 	goto out;
- 
- out_err:
-@@ -370,13 +371,8 @@ static int vidioc_s_frequency(struct file *file, void *priv,
- 				struct v4l2_frequency *f)
- {
- 	struct amradio_device *radio = file->private_data;
--	int retval = 0;
--
--	radio->curfreq = f->frequency;
- 
--	retval = amradio_setfreq(radio, radio->curfreq);
--
--	return retval;
-+	return amradio_setfreq(radio, f->frequency);
- }
- 
- /* vidioc_g_frequency - get tuner radio frequency */
--- 
-1.6.3.3
-
-
---------------060205040502090700020106--
+http://palosaari.fi/
