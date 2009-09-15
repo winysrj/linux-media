@@ -1,53 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rhlx01.hs-esslingen.de ([129.143.116.10]:34083 "EHLO
-	rhlx01.hs-esslingen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752541AbZISKIH (ORCPT
+Received: from mo-p05-ob.rzone.de ([81.169.146.182]:19030 "EHLO
+	mo-p05-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751049AbZIOI3J (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Sep 2009 06:08:07 -0400
-Date: Sat, 19 Sep 2009 12:08:09 +0200
-From: Andreas Mohr <andi@lisas.de>
-To: Andreas Mohr <andi@lisas.de>
-Cc: Marcin Slusarz <marcin.slusarz@gmail.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Luca Risolia <luca.risolia@studio.unibo.it>,
-	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	jirislaby@gmail.com
-Subject: Re: V4L2 drivers: potentially dangerous and inefficient
-	msecs_to_jiffies() calculation
-Message-ID: <20090919100809.GA22683@rhlx01.hs-esslingen.de>
-References: <20090914210741.GA16799@rhlx01.hs-esslingen.de> <4AAFE78B.6060606@gmail.com> <20090915192146.GA18002@rhlx01.hs-esslingen.de>
+	Tue, 15 Sep 2009 04:29:09 -0400
+Message-ID: <4AAF5056.8000001@nt.tu-darmstadt.de>
+Date: Tue, 15 Sep 2009 10:29:10 +0200
+From: Vladimir Pantelic <pan@nt.tu-darmstadt.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20090915192146.GA18002@rhlx01.hs-esslingen.de>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+Subject: Re: RFC: V4L - Support for video timings at the input/output interface
+References: <A69FA2915331DC488A831521EAE36FE401550D0F8E@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE401550D0F8E@dlee06.ent.ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Karicheri, Muralidharan wrote:
 
-On Tue, Sep 15, 2009 at 09:21:46PM +0200, Andreas Mohr wrote:
-> Hi,
-> 
-> On Tue, Sep 15, 2009 at 09:14:19PM +0200, Marcin Slusarz wrote:
-> > Or better: frame_timeout * HZ
-> 
-> D'oh! ;-)
-> 
-> But then what about the other 3 bazillion places in the kernel
-> doing multiples of seconds?
-> 
-> linux-2.6.31]$ find . -name "*.c"|xargs grep msecs_to_jiffies|grep 1000|wc -l
-> 73
-> 
-> If this expression is really better (also/especially from a maintenance POV),
-> then it should get changed.
+<snip>
+> Open issues
+> -----------
+>
+> 1.How to handle an HDMI transmitter? It can be put in two different modes: DVI compatible
+> or HDMI compatible. Some of the choices are
+> 	a) enumerate them as two different outputs when enumerating.
+>          b) adding a status bit on the input.
+>          c) change it using a control
+>
+> 2. Detecting whether there is an analog or digital signal on an DVI-I input:
+> 	a) add new status field value for v4l2_input ?
+> 	   #define  V4L2_IN_ST_DVI_ANALOG_DETECTED    0x10000000
+> 	   #define  V4L2_IN_ST_DVI_DITIGITAL_DETECTED 0x20000000
+>
+> 3. Detecting an EDID.
+> 	a) adding a status field in v4l2_output and two new ioctls that can
+>           set the EDID for an input or retrieve it for an output. It should
+>           also be added as an input/output capability.
+>
+> 4. ATSC bits in v4l2_std_id: how are they used? Are they used at all for
+>     that matter?
+>
+>
+> 6. HDMI requires additional investigation. HDMI defines a whole bunch of
+>     infoframe fields. Most of these can probably be exported as controls?? Is
+>     HDMI audio handled by alsa?
 
-I just saw that my unmodified patch has been committed.
-I think that that is ok or even preferrable, since "HZ" is a lot
-less greppable (you'd have to use "\<HZ\>") or uniform than msecs_to_jiffies.
-In terms of "number of traps avoided" the expressions should be equivalent.
+7. how does this interface/co-exist with something like DSS2 on the omap3?
 
-Thanks!
+who will "own" e.g. HDMI setup, DSS2 or V4L2?
 
-Andreas Mohr
