@@ -1,222 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2792 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753729AbZIOVLs (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:60289 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754234AbZIOOJo convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2009 17:11:48 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Subject: Re: RFCv2.1: Media controller proposal
-Date: Tue, 15 Sep 2009 23:11:38 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <200909131235.13787.hverkuil@xs4all.nl> <200909152103.39154.hverkuil@xs4all.nl> <A69FA2915331DC488A831521EAE36FE40155156A29@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE40155156A29@dlee06.ent.ti.com>
+	Tue, 15 Sep 2009 10:09:44 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: Media controller: sysfs vs ioctl
+Date: Tue, 15 Sep 2009 16:10:38 +0200
+Cc: linux-media@vger.kernel.org
+References: <200909120021.48353.hverkuil@xs4all.nl>
+In-Reply-To: <200909120021.48353.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;
+Content-Type: Text/Plain;
   charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200909152311.38220.hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <200909151610.38397.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 15 September 2009 22:28:26 Karicheri, Muralidharan wrote:
-> Hans,
+On Saturday 12 September 2009 00:21:48 Hans Verkuil wrote:
+> Hi all,
 > 
-> Thanks for your response...
-> >
-> >> If application has to make a choice of making a specific connection it
-> >must know what the data formats are at each of the link along with other
-> >information such as polarities etc. These information are available only
-> >> at the driver level at present. For example you have an RFC for bus
-> >parameter settings which is defined at board specific level and is used
-> >> by bridge driver to set the bus output at sub device output and bridge
-> >device input. I can think of same thing at each of the above links. So how
-> >> application will be able to make this decision unless, each of the sub
-> >device enumerates the available output data formats and input data formats
-> >and other parameters to the application? Or is it that the bridge driver
-> >just reports the possible connections or links and the bridge driver
-> >> activates the links (here it setup one of the several possible link type
-> >> based on board/platform configuration) and attach itself to one of the
-> >sub device output and start streaming? What are all the ioctls involved
-> >here to
-> >> setup the link?
-> >
-> >See this RFC I posted later that addresses this (at least in part):
-> >
-> >http://www.mail-archive.com/linux-media%40vger.kernel.org/msg09644.html
-> >
-> >The big question here is how much will you do in the bridge driver and how
-> >much in an external library? I would prefer to move away from trying to do
-> >it
-> >all in the driver and do more in a library on top of that. Of course, the
-> >bridge driver has to set up some basic functionality and check for wrong
-> >settings,
-> >but I think it is better to move the more precise control of it to
-> >userspace.
-> >
-> >We are not talking about a consumer market tv capture card or webcam where
-> >you
-> >want to hide the complexity in a driver, we are talking about embedded
-> >systems
-> >where the developer knows best what he wants. A media controller gives him
-> >that control at the expense of a bit more work to set things up. But a
-> >library
-> >will solve that.
-> >
-> >My philosophy is that we should not try to be smart in the driver. That
-> >will
-> >just lead to a lot of difficult to understand code, and it scales pretty
-> >badly
-> >to even more complex hardware. It is better to move part of that
-> >'intelligence'
-> >to userspace and just provide an API to control it from there.
-> >
-> 
-> Application can make a link. But driver will know if that link is possible only after selecting a sub device that is connected to the output
-> connector or input connector. Once sub device is selected, driver knows
-> what other sub device can be connected at it's output before the data goes to a capture node. So that means, link can be set up only S_OUTPUT or S_INPUT is called. If this is true, this has to be a pre-condition for accepting a link connection request from user space.
+> I've started this as a new thread to prevent polluting the discussions of
+>  the media controller as a concept.
 
-I don't follow (perhaps it is too late in the evening to answer mails like
-this :-) ). Just in case it wasn't clear: not all links can be changed. Some
-links are just fixed. S_OUTPUT and S_INPUT refer to physical connectors, and
-not to the input/output links of a sub-device. 
+[snip]
+ 
+> What sort of interaction do we need with sub-devices?
+ 
+[snip]
+ 
+> 2) Private ioctls. Basically a way to set and get data that is hardware
+> specific from the sub-device. This can be anything from statistics,
+>  histogram information, setting resizer coefficients, configuring
+>  colorspace converters, whatever. Furthermore, just like the regular V4L2
+>  API it has to be designed with future additions in mind (i.e. it should
+>  use something like reserved fields).
+> 
+> In my opinion ioctls are ideal for this since they are very flexible and
+>  easy to use and efficient. Especially because you can combine multiple
+>  fields into one unit. So getting histogram data through an ioctl will also
+>  provide the timestamp. And you can both write and read data in one atomic
+>  system call. Yes, you can combine data in sysfs reads as well. Although an
+>  IORW ioctls is hard to model in sysfs. But whereas an ioctl can just copy
+>  a struct from kernel to userspace, for sysfs you have to go through a
+>  painful process of parsing and formatting.
+> 
+> And not all this data is small. Histogram data can be 10s of kilobytes.
+>  'cat' will typically only read 4 kB at a time, so you will probably have
+>  to keep track of how much is read in the read implementation of the
+>  attribute. Or does the kernel do that for you?
 
-> >>
-> >> 2) There may be multiple applications/threads using the media control
-> >nodes and doing things independently. For example there could be two
-> >independent process/thread trying to grab the resizer, one using it in one
-> >shot mode and
-> >> make a sensor->ccdc->resizer link to do this and another using resizer
-> >node
-> >> for one shot operation. As the hardware is common, only one of them
-> >should succeed. How is this mutual exclusion done?
-> >
-> >If e.g. a resizer is in use, then obviously any attempt to change it will
-> >result in an EBUSY error. Besides that we should probably adopt the
-> >priority
-> >ioctls for the media controller. That should be sufficient. Of course, any
-> >application developer that tries to do something stupid like that should go
-> >back to class :-)
-> >
-> 
-> Ok.
-> 
-> >>
-> >> Could you please add details of the ioctls required to setup these links?
-> >> Also details how the link commands flows to various nodes and what
-> >happens at each node (sub device or bridge device) in the link.
-> >
-> >This is not set in stone. In part this will depend on experimentation to
-> >see
-> >what works and what doesn't. Currently I added two ioctls MAKE_LINK and
-> >DELETE_LINK. Each defines the link by the entity IDs of the beginning and
-> >end
-> >of the link. It's very generic, but I'm not sure whether it is also easy to
-> >use. If you have a switch (so only one of X links is active), then making a
-> >link should automatically break the existing one. But if you have more
-> >freedom
-> >in setting up links, then it may not be that simple. In some cases
-> >(actually
-> >ivtv is a good example of that) making a single link will break a whole
-> >bunch
-> >of others and vice versa.
-> >
-> 
-> I will check your posting.....
-> 
-> >
-> >I did that at first, but I realized that the core ioctl is for internal use
-> >within the bridge and subdevice drivers only. In particular: there are no
-> >kernelspace to userspace copies needed. While this new ioctl will only be
-> >called from userspace.
-> >
-> 
-> 
-> Got it.
-> 
-> >> >Topology
-> >> >--------
-> >> >
-> >> >The topology is represented by entities. Each entity has 0 or more
-> >inputs
-> >> >and
-> >> >0 or more outputs. Each input or output can be linked to 0 or more
-> >possible
-> >> >outputs or inputs from other entities. This is either mutually exclusive
-> >> >(i.e. an input/output can be connected to only one output/input at a
-> >time)
-> >> >or it can be connected to multiple inputs/outputs at the same time.
-> >> >
-> >> >A device node is a special kind of entity with just one input (video
-> >> >capture)
-> >> >or output (video display). It may have both if it does some in-place
-> >> >operation.
-> >> >
-> >> >Each entity has a unique numerical ID (unique for the board). Each input
-> >or
-> >> >output has a unique numerical ID as well, but that ID is only unique to
-> >the
-> >> >entity. To specify a particular input or output of an entity one would
-> >give
-> >> >an <entity ID, input/output ID> tuple. Note: to simplify the
-> >implementation
-> >> >it is a good idea to encode this into a u32. The top 20 bits for the
-> >entity
-> >> >ID, the bottom 12 bits for the pad ID.
-> >>
-> >> What about current video nodes like vpfe capture that can have multiple
-> >inputs? Will mc driver will call enum_inputs and maps this to a enity id/
-> >input pair to user application using existing API? I think doing that will
-> >be required as per your restriction #1.
-> >
-> >I don't follow you. Entity IDs are only valid in the media controller
-> >context.
-> >They are independent from what enum_inputs reports. 
-> 
-> 
-> In issue #6, you are talking about ENUM_INPUT/OUTPUT. You made the following
-> statement above. 
-> 
-> >Each input or output has a unique numerical ID as well, but that ID is only unique to the entity. To specify a particular input or output of an entity one would give an <entity ID, input/output ID>
-> 
-> So when mc enumerates input/output, it has to call the enum_input() or enum_output() of the capture or output node, right? You also say "To specify a particular input or output of an entity". In this case why mc is referring to the particular input or output. I thought that application could enumerate/set/get input of an entity through the mc node. Not clear why mc needs to do the mapping that you are explaining unless it does enumerate/set/get through mc. Please clarify.
+If I'm not mistaken sysfs binary attributes can't be bigger than 4kB in size.
 
-ENUM_INPUT/OUTPUT refer to physical connectors. The mc enumerates possible
-links between device nodes and/or sub-devices, but not physical connectors.
-Although perhaps we should, but that is a different story. Enumerating those
-links is done through completely separate ioctls. Look at my v4l-dvb-mc tree
-for a working example on how to do that.
+[snip]
 
-Regards,
+> The final part is how to represent the topology. Device nodes and
+>  sub-devices can be exposed to sysfs as discussed earlier. Representing
+>  both the possible and current links between them is a lot harder. This is
+>  especially true for non-v4l device nodes since we cannot just add
+>  attributes there. I think this can be done though by providing that
+>  information as attributes of an mc sysfs node. That way it remains under
+>  control of the v4l core.
 
-	Hans
+I was a bit concerned (to say the least) when I started catching up with my e-
+mails and reading this thread that the discussion would heat up and split 
+developers between two sides. While trying to find arguments to convince 
+people that my side is better (and of course it is, otherwise I would be on 
+the other side :-)) I realized that the whole media controller problem might 
+be understood differently by the two sides. I'll try to shed some light on 
+this in the hope that it will bring the v4l developers together.
 
-> 
-> >> >
-> >> >We obviously need ioctls to make and break links between entities. It
-> >> >shouldn't be hard to do this.
-> >>
-> >> Need to know more details on the ioctl to know if there are issues in
-> >this approach.
-> >
-> >I have no doubts about the concept of links and that you should be able to
-> >make or break them, but the actual implementation is a different matter.
-> >This
-> >should really be tried first on a few platforms. Just working on it with
-> >ivtv
-> >already showed some shortcomings in the internal link data structures that
-> >I
-> >used. During the LPC this is definitely a worthwhile topic, but the proof
-> >of
-> >the pudding is in the eating. Just starting to implement it is often the
-> >fastest way of discovering the strengths and weaknesses of an API.
-> 
-> True. 
-> 
-> >Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+sysfs was designed to expose kernel objects arranged in a tree-like fashion. 
+It does that pretty well, although one of its weak points is that it can be 
+easily abused.
 
+>From the kernel point of view, (most of) the various sub-devices in a media 
+device are arranged in a tree of kernel objects. Most of the time we have an 
+I2C controller and various devices sitting on the I2C bus, one or several 
+video devices that sit on some internal bus (usually a SoC internal bus for 
+the most complex and recent platforms), and possibly SPI and other devices as 
+well.
 
+Realizing that, as all those sub-devices are already exposed in sysfs in one 
+way or the other, it was tempting to add a few attributes and soft links to 
+solve the media controller problem.
+
+However, that solution, even if it might seem simple, misses a very important 
+point. Sub-devices are arranged in a tree-like objects structure from the 
+kernel point of view, but from the media controller point of view they are 
+not. While the kernel cares about kernel objects that are mostly devices on 
+busses in parent-children relationships, the media controller cares about how 
+video is transferred between sub-devices. And those two concepts are totally 
+different.
+
+The sub-devices, from the media controller point of view, make an oriented 
+graph of connected nodes. When setting video controls, selecting formats and 
+streaming video, what we care about it how the video will flow from its source 
+(a sensor, a physical connector, memory, whatever) to its sink (same list of 
+possible whatevers). This is what the media controller needs to deal with.
+
+We need to expose a connected graph of nodes to userspace, and let userspace 
+access the nodes and the links for various operations. Of course it would be 
+possible to handle that through sysfs, as sub-devices are already exposed 
+there. But let's face it, it wouldn't be practical, efficient or even clean.
+
+Hans already mentioned several reasons why using sysfs attributes to replace 
+all media controller ioctls would be cumbersome. I would add that we need to 
+transfer large amounts of aggregated data in some cases (think about 
+statistics), and sysfs attributes are simply not designed for that. There's a 
+4kB limit for text attributes, and Documentation/filesystems/sysfs.txt states 
+that
+
+"Attributes should be ASCII text files, preferably with only one value
+per file. It is noted that it may not be efficient to contain only one
+value per file, so it is socially acceptable to express an array of
+values of the same type.
+
+Mixing types, expressing multiple lines of data, and doing fancy
+formatting of data is heavily frowned upon. Doing these things may get
+you publically humiliated and your code rewritten without notice."
+
+In the end, I believe that the reason why we need a media controller device 
+(which could be called differently of course) and ioctls is exactly the same 
+reason why we need ioctls for v4l devices. Would it be possible to replace 
+VIDIOC_[GS]_FMT with sysfs attributes ? Yes. Would it be useful, clean and 
+efficient ? No.
+
+This discussion isn't meant to convince people of the pros and cons of sysfs. 
+Sysfs is useful, it exposes the tree of kobjects to userspace, and thus lets 
+userspace knows about the tree of devices that make the platform applications 
+run on. This is invaluable and led to things like hal and udev that really 
+made a huge difference for Linux. However, sysfs doesn't wash your clothes nor 
+does it solve world hunger. No need to be sad about that, it wasn't designed 
+for it in the first place. Let's not abuse it and try to make the media 
+controller problem fit the sysfs design using hammers and crowbars. In the end 
+both the media controller and sysfs would suffer.
+
+The media controller is required to solve a very complex problem brought by 
+very complex hardware. The problem has been solved using lots of ugly hacks on 
+proprietary platforms, let's show that Linux can solve it cleanly and simply.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Laurent Pinchart
