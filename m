@@ -1,142 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:38520 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755532AbZIBBxg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2009 21:53:36 -0400
-Received: by bwz19 with SMTP id 19so423212bwz.37
-        for <linux-media@vger.kernel.org>; Tue, 01 Sep 2009 18:53:37 -0700 (PDT)
+Received: from smtp1.sscnet.ucla.edu ([128.97.229.231]:35926 "EHLO
+	smtp1.sscnet.ucla.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751925AbZIOFQ4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Sep 2009 01:16:56 -0400
+Message-ID: <4AAF232F.9060204@cogweb.net>
+Date: Mon, 14 Sep 2009 22:16:31 -0700
+From: David Liontooth <lionteeth@cogweb.net>
 MIME-Version: 1.0
-In-Reply-To: <20090902113705.168af9f0@glory.loctelecom.ru>
-References: <20090902113705.168af9f0@glory.loctelecom.ru>
-Date: Tue, 1 Sep 2009 21:53:36 -0400
-Message-ID: <829197380909011853i4ca0445btf7ecd2fab8738dee@mail.gmail.com>
-Subject: Re: [PATCH] Add FM radio for the XC5000
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Dmitri Belimov <d.belimov@gmail.com>
-Cc: linux-media@vger.kernel.org, video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: hermann pitton <hermann-pitton@arcor.de>
+CC: linux-media@vger.kernel.org
+Subject: Audio drop on saa7134
+References: <4AAEFEC9.3080405@cogweb.net>	 <20090915000841.56c24dd6@pedra.chehab.org>  <4AAF11EC.3040800@cogweb.net> <1252988501.3250.62.camel@pc07.localdom.local>
+In-Reply-To: <1252988501.3250.62.camel@pc07.localdom.local>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 1, 2009 at 9:37 PM, Dmitri Belimov<d.belimov@gmail.com> wrote:
-> Hi All
+hermann pitton wrote:
+> Am Montag, den 14.09.2009, 21:02 -0700 schrieb David Liontooth:
+>   
+>> <snip>
+>> We've been using saa7135 cards for several years with relatively few 
+>> incidents, but they occasionally drop audio.
+>> I've been unable to find any pattern in the audio drops, so I haven't 
+>> reported it -- I have no way to reproduce the error, but it happens 
+>> regularly, affecting between 3 and 5% of recordings. Audio will 
+>> sometimes drop in the middle of a recording and then resume, or else 
+>> work fine on the next recording.
+>>     
 >
-> Add FM radio for the xc5000 silicon tuner chip.
+> Hi Dave,
 >
-> diff -r 28f8b0ebd224 linux/drivers/media/common/tuners/xc5000.c
-> --- a/linux/drivers/media/common/tuners/xc5000.c        Sun Aug 23 13:55:25 2009 -0300
-> +++ b/linux/drivers/media/common/tuners/xc5000.c        Wed Sep 02 06:32:12 2009 +1000
-> @@ -747,14 +747,11 @@
->        return ret;
->  }
+> hmm, losing audio on three to five percent of the recordings is a lot!
 >
-> -static int xc5000_set_analog_params(struct dvb_frontend *fe,
-> +static int xc5000_set_tv_freq(struct dvb_frontend *fe,
->        struct analog_parameters *params)
->  {
->        struct xc5000_priv *priv = fe->tuner_priv;
->        int ret;
-> -
-> -       if (xc5000_is_firmware_loaded(fe) != XC_RESULT_SUCCESS)
-> -               xc_load_fw_and_init_tuner(fe);
+> When we started to talk to each other, we had only saa7134 PAL/SECAM
+> devices over here.
 >
->        dprintk(1, "%s() frequency=%d (in units of 62.5khz)\n",
->                __func__, params->frequency);
-> @@ -834,6 +831,67 @@
+> That has changed a lot, but still no System-M here.
 >
->        return 0;
->  }
-> +
-> +static int xc5000_set_radio_freq(struct dvb_frontend *fe,
-> +       struct analog_parameters *params)
-> +{
-> +       struct xc5000_priv *priv = fe->tuner_priv;
-> +       int ret = -EINVAL;
-> +
-> +       dprintk(1, "%s() frequency=%d (in units of khz)\n",
-> +               __func__, params->frequency);
-> +
-> +       priv->freq_hz = params->frequency * 125 / 2;
-> +
-> +       priv->rf_mode = XC_RF_MODE_AIR;
-> +
-> +       ret = xc_SetTVStandard(priv,
-> +               XC5000_Standard[FM_Radio_INPUT1].VideoMode,
-> +               XC5000_Standard[FM_Radio_INPUT1].AudioMode);
-> +
-> +       if (ret != XC_RESULT_SUCCESS) {
-> +               printk(KERN_ERR "xc5000: xc_SetTVStandard failed\n");
-> +               return -EREMOTEIO;
-> +       }
-> +
-> +       ret = xc_SetSignalSource(priv, priv->rf_mode);
-> +       if (ret != XC_RESULT_SUCCESS) {
-> +               printk(KERN_ERR
-> +                       "xc5000: xc_SetSignalSource(%d) failed\n",
-> +                       priv->rf_mode);
-> +               return -EREMOTEIO;
-> +       }
-> +
-> +       xc_tune_channel(priv, priv->freq_hz, XC_TUNE_ANALOG);
-> +
-> +       return 0;
-> +}
-> +
-> +static int xc5000_set_analog_params(struct dvb_frontend *fe,
-> +                            struct analog_parameters *params)
-> +{
-> +       struct xc5000_priv *priv = fe->tuner_priv;
-> +       int ret = -EINVAL;
-> +
-> +       if (priv->i2c_props.adap == NULL)
-> +               return -EINVAL;
-> +
-> +       if (xc5000_is_firmware_loaded(fe) != XC_RESULT_SUCCESS)
-> +               xc_load_fw_and_init_tuner(fe);
-> +
-> +       switch (params->mode) {
-> +       case V4L2_TUNER_RADIO:
-> +               ret = xc5000_set_radio_freq(fe, params);
-> +               break;
-> +       case V4L2_TUNER_ANALOG_TV:
-> +       case V4L2_TUNER_DIGITAL_TV:
-> +               ret = xc5000_set_tv_freq(fe, params);
-> +               break;
-> +       }
-> +
-> +       return ret;
-> +}
-> +
+> The kernel thread detecting audio on saa7133/35/31e behaves different
+> from the one on saa7134.
 >
->  static int xc5000_get_frequency(struct dvb_frontend *fe, u32 *freq)
->  {
+> But if you let it run with audio_debug=1, you should have something in
+> the logs when losing the audio. The kernel audio detection thread must
+> have been started without success or id find the right thing again. I
+> would assume caused by a weaker signal in between.
 >
-> Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+> Do you know about the insmod option audio_ddep?
 >
-> With my best regards, Dmitry.
+> It is pretty hidden and I almost must look it up myself in the code.
+>
+> Cheers,
+> Hermann
+>
+>   
+OK, I'll try running with audio_debug=1. Could you clarify what you mean 
+by "The kernel audio detection thread must have been started without 
+success or id find the right thing again"? An audio drop can be 
+initiated at any point in the recording. A weak signal is a good guess, 
+but I've never noticed a correlation with video quality.
 
-Hello Dmitri,
+I didn't know about audio_ddep -- what does it do? I'm not seeing it in 
+modinfo.
 
-A few comments;
+It would be fantastic to get this problem solved -- we've had to record 
+everything in parallel to avoid loss, and still very occasionally lose 
+sound.
 
-I don't think the code should have FM1 hard-coded as the only valid
-input.  You should probably add a parameter to the xc500_config struct
-to specify which FM input to use (so the person defining the board
-profile can define which input is appropriate).
+Cheers,
+Dave
 
-Does the signal lock register actually work for FM?  I assume it does,
-but I'm not sure.
 
-Also, I would probably have him move the setting of priv->rf_mode
-further down in the function.  That way it the xc5000_priv struct
-won't get out of sync with the actual state of the device if the call
-to xc_SetTVStandard() fails.
 
-Other than those two things though it looks ok at first glance.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
