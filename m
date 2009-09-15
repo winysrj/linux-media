@@ -1,121 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:29836 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752340AbZIMTbV (ORCPT
+Received: from mail-ew0-f206.google.com ([209.85.219.206]:56756 "EHLO
+	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750882AbZIOEGn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2009 15:31:21 -0400
-Received: by fg-out-1718.google.com with SMTP id 22so780860fge.1
-        for <linux-media@vger.kernel.org>; Sun, 13 Sep 2009 12:31:24 -0700 (PDT)
-Date: Sun, 13 Sep 2009 21:31:18 +0200
-From: Uros Vampl <mobile.leecher@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: Questions about Terratec Hybrid XS (em2882) [0ccd:005e]
-Message-ID: <20090913193118.GA12659@zverina>
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="vkogqOf2sHV7VnPd"
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+	Tue, 15 Sep 2009 00:06:43 -0400
+Received: by ewy2 with SMTP id 2so112474ewy.17
+        for <linux-media@vger.kernel.org>; Mon, 14 Sep 2009 21:06:45 -0700 (PDT)
+Date: Tue, 15 Sep 2009 14:07:15 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Michael Krufky <mkrufky@kernellabs.com>
+Cc: hermann pitton <hermann-pitton@arcor.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	video4linux-list@redhat.com,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: tuner, code for discuss
+Message-ID: <20090915140715.2b9ea890@glory.loctelecom.ru>
+In-Reply-To: <303a8ee30909140555y32d86999x5b4aaf7417fba293@mail.gmail.com>
+References: <20090819160700.049985b5@glory.loctelecom.ru>
+	<37219a840908250940m3393f73ftbaa28639ca0f93cd@mail.gmail.com>
+	<20090910152510.6970f8ab@glory.loctelecom.ru>
+	<303a8ee30909140555y32d86999x5b4aaf7417fba293@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, 14 Sep 2009 08:55:22 -0400
+Michael Krufky <mkrufky@kernellabs.com> wrote:
 
---vkogqOf2sHV7VnPd
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+> On Thu, Sep 10, 2009 at 1:25 AM, Dmitri Belimov <d.belimov@gmail.com>
+> wrote:
+> > Hi All
+> >
+> > This is my next patch.
+> >
+> > Changes:
+> > 1. By default charge pump is ON
+> > 2. For radio mode charge pump set to OFF
+> > 3. Set correct AGC value in radio mode
+> > 4. Add control gain of AGC.
+> > 5. New function simple_get_tv_gain and simple_set_tv_gain for
+> > read/write gain of AGC. 6. Add some code for control gain from
+> > saa7134 part. By default this control is OFF 7. When TV card can
+> > manipulate this control, enable it.
+> >
+> > Main changes is control value of AGC TOP in .initdata =
+> > tua603x_agc112 array. Use this value for set AGC TOP after set freq
+> > of TV.
+> >
+> > I don't understand how to correct call new function for read/write
+> > value of AGC TOP.
+> >
+> > What you think about it??
+> >
+> 
+> [patch snipped]
+> 
+> >
+> >
+> > With my best regards, Dmitry.
+> 
+> Dmitry,
+> 
+> The direct usage of .initdata and .sleepdata is probably unnecessary
+> here --  If you trace how the tuner-simple driver works, you'll find
+> that simply having these fields defined will cause these bytes to be
+> written at the appropriate moment.
+> 
+> However, for the actual sake of setting this gain value, I'm not sure
+> that initdata / sleep data is the right place for it either.  (I know
+> that I recommended something like this at first, but at the time I
+> didn't realize that there is a range of six acceptable values for this
+> field)
+> 
+> What I would still like to understand is:  Who will be changing this
+> value?  I see that you've added a control to the saa7134 driver -- is
+> this to be manipulated from userspace? 
 
-Hello.
+Yes
 
-I have the Terratec Cinergy Hybrid T XS USB (em2882) - usb-id 0ccd:005e. 
-It works with Marcus Rechberger's em28xx-new driver, but since that code 
-is unmaintained now, I tested this device with v4l-dvb today.
+> Under what conditions will somebody want to change this value?  
 
-The analog picture is there, but audio is very, very quiet, almost not 
-there. Is there some way to increase the volume?
+for SECAM with strong signal we have wide white crap on the screen.
+Need reduce value of AGC TOP.
 
-Second question, what would be required to get DVB working?
+For weak signal need increase value of AGC TOP
+Ajust value of AGC TOP can get more better image quality.
 
-The final thing is not a question, it's actually something that works: 
-the remote. It's the same one as comes with the other Hybrid XS 
-(0ccd:0042), adding these two lines to the definition of this card in 
-em28xx-cards.c makes it work:
+> How will users know that they need to alter this gain value?
 
-		.ir_codes       = &ir_codes_terratec_cinergy_xs_table,
-		.xclk           = EM28XX_XCLK_FREQUENCY_12MHZ,
+By default use value from .initdata
+v4l2-ctl can modify this value or via some plugins for TV wach programm.
 
+End-user programm for watch TV IMHO now is very poor.
 
-Any pointers to solving my issues (analog audio, dvb) appreciated. I can 
-test patches, I can give ssh access to my machine if it helps. There's 
-even a Windows install on this machine, so USB sniffing of the Windows 
-driver is possible, I just need instructions on what exactly to do.
-Dmesg output for this device is attached.
-
-
-Regards,
-Uroš
-
---vkogqOf2sHV7VnPd
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="dmesg.txt"
-
-usb 1-4: new high speed USB device using ehci_hcd and address 6
-usb 1-4: configuration #1 chosen from 1 choice
-Linux video capture interface: v2.00
-em28xx: New device TerraTec Electronic GmbH Cinergy Hybrid T USB XS (2882) @ 480 Mbps (0ccd:005e, interface 0, class 0)
-em28xx #0: chip ID is em2882/em2883
-em28xx #0: i2c eeprom 00: 1a eb 67 95 cd 0c 5e 00 d0 12 5c 03 9e 40 de 1c
-em28xx #0: i2c eeprom 10: 6a 34 27 57 46 07 01 00 00 00 00 00 00 00 00 00
-em28xx #0: i2c eeprom 20: 46 00 01 00 f0 10 31 00 b8 00 14 00 5b 1e 00 00
-em28xx #0: i2c eeprom 30: 00 00 20 40 20 6e 02 20 10 01 00 00 00 00 00 00
-em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 34 03 54 00 65 00
-em28xx #0: i2c eeprom 70: 72 00 72 00 61 00 54 00 65 00 63 00 20 00 45 00
-em28xx #0: i2c eeprom 80: 6c 00 65 00 63 00 74 00 72 00 6f 00 6e 00 69 00
-em28xx #0: i2c eeprom 90: 63 00 20 00 47 00 6d 00 62 00 48 00 00 00 40 03
-em28xx #0: i2c eeprom a0: 43 00 69 00 6e 00 65 00 72 00 67 00 79 00 20 00
-em28xx #0: i2c eeprom b0: 48 00 79 00 62 00 72 00 69 00 64 00 20 00 54 00
-em28xx #0: i2c eeprom c0: 20 00 55 00 53 00 42 00 20 00 58 00 53 00 20 00
-em28xx #0: i2c eeprom d0: 28 00 32 00 38 00 38 00 32 00 29 00 00 00 1c 03
-em28xx #0: i2c eeprom e0: 30 00 36 00 30 00 39 00 30 00 32 00 30 00 31 00
-em28xx #0: i2c eeprom f0: 33 00 38 00 34 00 33 00 00 00 00 00 00 00 00 00
-em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x7713bfbe
-em28xx #0: EEPROM info:
-em28xx #0:      AC97 audio (5 sample rates)
-em28xx #0:      500mA max power
-em28xx #0:      Table at 0x27, strings=0x409e, 0x1cde, 0x346a
-em28xx #0: Identified as Terratec Hybrid XS (em2882) (card=55)
-em28xx #0:
-
-em28xx #0: The support for this board weren't valid yet.
-em28xx #0: Please send a report of having this working
-em28xx #0: not to V4L mailing list (and/or to other addresses)
-
-tvp5150 4-005c: chip found @ 0xb8 (em28xx #0)
-tuner 4-0061: chip found @ 0xc2 (em28xx #0)
-xc2028 4-0061: creating new instance
-xc2028 4-0061: type set to XCeive xc2028/xc3028 tuner
-usb 1-4: firmware: requesting xc3028-v27.fw
-xc2028 4-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
-xc2028 4-0061: Loading firmware for type=BASE (1), id 0000000000000000.
-xc2028 4-0061: Loading firmware for type=(0), id 000000000000b700.
-SCODE (20000000), id 000000000000b700:
-xc2028 4-0061: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000), id 0000000000008000.
-em28xx #0: Config register raw data: 0xd0
-em28xx #0: AC97 vendor ID = 0xffffffff
-em28xx #0: AC97 features = 0x6a90
-em28xx #0: Empia 202 AC97 audio processor detected
-tvp5150 4-005c: tvp5150am1 detected.
-em28xx #0: v4l2 driver version 0.1.2
-em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
-usbcore: registered new interface driver em28xx
-em28xx driver loaded
-em28xx-audio.c: probing for em28x1 non standard usbaudio
-em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
-Em28xx: Initialized (Em28xx Audio Extension) extension
-tvp5150 4-005c: tvp5150am1 detected.
-xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
-xc2028 4-0061: Loading firmware for type=(0), id 0000000100000007.
-xc2028 4-0061: Loading SCODE for type=MONO SCODE HAS_IF_5320 (60008000), id 0000000f00000007.
-
---vkogqOf2sHV7VnPd--
+With my best regards, Dmitry.
