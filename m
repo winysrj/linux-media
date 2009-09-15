@@ -1,70 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.156]:59397 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752913AbZIIQTX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Sep 2009 12:19:23 -0400
-Received: by fg-out-1718.google.com with SMTP id 22so1351492fge.1
-        for <linux-media@vger.kernel.org>; Wed, 09 Sep 2009 09:19:25 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <200909091814.10092.animatrix30@gmail.com>
-References: <200909091814.10092.animatrix30@gmail.com>
-Date: Wed, 9 Sep 2009 12:19:25 -0400
-Message-ID: <829197380909090919o613827d0ye00cbfe3bde888ed@mail.gmail.com>
-Subject: Re: Invalid module format
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Edouard Marquez <animatrix30@gmail.com>
+Received: from bombadil.infradead.org ([18.85.46.34]:44876 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754695AbZIODJR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Sep 2009 23:09:17 -0400
+Date: Tue, 15 Sep 2009 00:08:41 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: David Liontooth <lionteeth@cogweb.net>
 Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: Re: Reliable work-horse capture device?
+Message-ID: <20090915000841.56c24dd6@pedra.chehab.org>
+In-Reply-To: <4AAEFEC9.3080405@cogweb.net>
+References: <4AAEFEC9.3080405@cogweb.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 9, 2009 at 12:14 PM, Edouard Marquez<animatrix30@gmail.com> wrote:
-> Hello,
->
-> I am using Gentoo with tuxonice-sources-2.6.3.0-r5 that is to say 2.6.30.5.
-> The compilation of v4l-dvb works well (the kernel which is chosen is the
-> right), but when I try to modprobe em28xx, I get this :
->
-> WARNING: Error inserting videobuf_core (/lib/modules/2.6.30-tuxonice-
-> r5/kernel/drivers/media/video/videobuf-core.ko): Invalid module format
-> WARNING: Error inserting videobuf_vmalloc (/lib/modules/2.6.30-tuxonice-
-> r5/kernel/drivers/media/video/videobuf-vmalloc.ko): Invalid module format
-> WARNING: Error inserting v4l2_compat_ioctl32 (/lib/modules/2.6.30-tuxonice-
-> r5/kernel/drivers/media/video/v4l2-compat-ioctl32.ko): Invalid module format
-> WARNING: Error inserting v4l1_compat (/lib/modules/2.6.30-tuxonice-
-> r5/kernel/drivers/media/video/v4l1-compat.ko): Invalid module format
-> WARNING: Error inserting videodev (/lib/modules/2.6.30-tuxonice-
-> r5/kernel/drivers/media/video/videodev.ko): Invalid module format
-> WARNING: Error inserting v4l2_common (/lib/modules/2.6.30-tuxonice-
-> r5/kernel/drivers/media/video/v4l2-common.ko): Invalid module format
-> WARNING: Error inserting ir_common (/lib/modules/2.6.30-tuxonice-
-> r5/kernel/drivers/media/common/ir-common.ko): Invalid module format
-> FATAL: Error inserting em28xx (/lib/modules/2.6.30-tuxonice-
-> r5/kernel/drivers/media/video/em28xx/em28xx.ko): Invalid module format
->
-> I have this error in my dmesg :
->
-> [ 3903.465920] tveeprom: disagrees about version of symbol module_layout
->
-> I join my .config file.
->
-> What do I need to do ?
-> Thanks!
->
+Hi David,
 
-Usually this occurs when people are using the mrechberger version of
-the em28xx driver, and the symbols are in conflict with the rest of
-the v4l-dvb tree.
+Em Mon, 14 Sep 2009 19:41:13 -0700
+David Liontooth <lionteeth@cogweb.net> escreveu:
 
-You need to either switch to the v4l-dvb version of the driver
-(removing the .ko files for the mrec driver), or recompile and
-reinstall the mrec driver *after* you've installed the latest v4l-dvb
-code.
+> 
+> We're setting up NTSC cable television capture devices in a handfull of 
+> remote locations, using four devices to capture around fifty hours a day 
+> on each location. Capture is scripted and will be ongoing for several 
+> years. We want to minimize the need for human intervention.
+> 
+> I'm looking for advice on which capture device to use.  My main 
+> candidates are ivtv (WinTV PVR 500) and USB, but I've not used any of 
+> the supported USB devices.
+> 
+> Are there USB devices that are sufficiently reliable to hold up under 
+> continuous capture for years? Are the drivers robust?
+> 
+> I need zvbi-ntsc-cc support, so a big thanks to Michael Krufty for just 
+> now adding it to em28xx. Do any other USB device chipsets have raw 
+> closed captioning support?
+> 
+> I would also consider using the PCIe device Hauppauge WinTV-HVR-2200, 
+> but I need analog support.
+> 
+> Appreciate any advice.
+
+If you look for stability, the most important item is to choose a good stable
+server distribution, like RHEL5. You'll be better serviced than using a desktop
+distro with some new (not so stable) kernel and tools.
+
+In terms of stability, the PCI devices are generally more reliable, and, among
+all drivers, bttv is the winner, since it is the older driver, so, in thesis,
+more bugs were solved on it. That's the reason why several surveillance systems
+are still today based on bttv. If you need a newer hardware, then you may choose
+saa7134, cx88 or ivtv devices.
+
+I don't recommend using an USB hardware for such hard usage: it will probably
+have a shorter life (since it is not as ventilated as a PCI device on a
+server cabinet), and you might experience troubles after long plays. In terms
+of USB with analog support, em28xx driver is the more stable, and we recently
+fixed some bugs on it, related to memory consumption along the time (it used to
+forget to free memory, resulting on crashes, after several stream
+start/stop's). 
+
+There's a tool at v4l2-apps/test made to stress a video driver, made by
+Douglas. I suggest that you should run it with the board you'll choose to be
+sure that you won't have memory garbage along driver usage.
 
 Cheers,
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Mauro
