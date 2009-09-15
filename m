@@ -1,104 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail00a.mail.t-online.hu ([84.2.40.5]:61335 "EHLO
-	mail00a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754214AbZICFXs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Sep 2009 01:23:48 -0400
-Message-ID: <4A9F52E1.7030004@freemail.hu>
-Date: Thu, 03 Sep 2009 07:23:45 +0200
-From: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-MIME-Version: 1.0
-To: "William M. Brack" <wbrack@mmm.com.hk>
-CC: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: problem building v4l2-spec from docbook source
-References: <4A9A3650.3000106@freemail.hu> <d88b96090d4bf9d9d152db5645149594.squirrel@delightful.com.hk>
-In-Reply-To: <d88b96090d4bf9d9d152db5645149594.squirrel@delightful.com.hk>
+Received: from smtp3-g21.free.fr ([212.27.42.3]:60279 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751114AbZIOKlK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Sep 2009 06:41:10 -0400
+Date: Tue, 15 Sep 2009 12:41:06 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: James Blanford <jhblanford@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Race in gspca main or missing lock in stv06xx subdriver?
+Message-ID: <20090915124106.35ad1382@tele>
+In-Reply-To: <20090914111757.543c7e77@blackbart.localnet.prv>
+References: <20090914111757.543c7e77@blackbart.localnet.prv>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-William M. Brack wrote:
-> Németh Márton wrote:
->> Hi,
->>
->> I get the source from http://linuxtv.org/hg/v4l-dvb repository and I
->> am now
->> at version 12564:6f58a5d8c7c6. When I try to build the human readable
->> version
->> of the V4L2 specification I get some error message:
->>
->> $ make v4l2-spec
->> [...]
->> Using catalogs: /etc/sgml/catalog
->> Using stylesheet:
->> /usr/src/linuxtv.org/v4l-dvb/v4l2-spec/custom.dsl#html
->> Working on: /usr/src/linuxtv.org/v4l-dvb/v4l2-spec/v4l2.sgml
->> openjade:/usr/src/linuxtv.org/v4l-dvb/v4l2-spec/v4l2.sgml:1:55:W:
->> cannot generate system identifier for public text "-//OASIS//DTD
->> DocBook V3.1//EN"
->> openjade:/usr/src/linuxtv.org/v4l-dvb/v4l2-spec/v4l2.sgml:23:0:E:
->> reference to entity "BOOK" for which no system identifier could be
->> generated
->> openjade:/usr/src/linuxtv.org/v4l-dvb/v4l2-spec/v4l2.sgml:1:0: entity
->> was defined here
->> openjade:/usr/src/linuxtv.org/v4l-dvb/v4l2-spec/v4l2.sgml:23:0:E: DTD
->> did not contain element declaration for document type name
->> openjade:/usr/src/linuxtv.org/v4l-dvb/v4l2-spec/v4l2.sgml:25:9:E:
->> there is no attribute "ID"
->> openjade:/usr/src/linuxtv.org/v4l-dvb/v4l2-spec/v4l2.sgml:25:19:E:
->> element "BOOK" undefined
-> <snip>
->> openjade:/usr/src/linuxtv.org/v4l-dvb/v4l2-spec/v4l2.sgml:367:11:E:
->> element "REVREMARK" undefined
->> openjade:I: maximum number of errors (200) reached; change with -E
->> option
->> make[2]: *** [html-single-build.stamp] Error 8
->> make[2]: Leaving directory `/usr/src/linuxtv.org/v4l-dvb/v4l2-spec'
->> make[1]: *** [v4l2-spec] Error 2
->> make[1]: Leaving directory `/usr/src/linuxtv.org/v4l-dvb/v4l'
->> make: *** [v4l2-spec] Error 2
->>
->> I am running Debian 5.0 with docbook-utils package version 0.6.14-1.1.
->> Any idea how to fix this?
->
-> It appears you are missing one or more of the packages involved in the
-> sgml catalog for docbook.  My first guess would be the sgml-common
-> package; my second guess would be docbook-dtds.  After that, it gets
-> more complicated - can you confirm you have those two and still have
-> the problem?
+On Mon, 14 Sep 2009 11:17:57 -0400
+James Blanford <jhblanford@gmail.com> wrote:
 
-Unfortunately the sgml-common and the docbook-dtds are not installed and
-I cannot install them on Debian because they are not found:
-http://packages.debian.org/search?keywords=sgml-common&searchon=names&suite=stable&section=all
-http://packages.debian.org/search?suite=stable&section=all&arch=any&searchon=names&keywords=docbook-dtds
+> Howdy folks,
+> 
+> I have my old quickcam express webcam working, with HDCS1000
+> sensor, 046d:840. It's clearly throwing away every other frame.  What
+> seems to be happening is, while the last packet of the previous frame
+> is being analyzed by the subdriver, the first packet of the next frame
+> is assigned to the current frame buffer.  By the time that packet is
+> analysed and sent back to the main driver, it's frame buffer has been
+> completely filled and marked as "DONE."  The entire frame is then
+> marked for "DISCARD."  This does _not_ happen with all cams using this
+> subdriver.
+> 
+> Here's a little patch, supplied only to help illustrate the problem,
+> that allows for the full, expected frame rate of the webcam.  What it
+> does is wait until the very last moment to assign a frame buffer to
+> any packet, but the last.  I also threw in a few printks so I can see
+> where failure takes place without wading through a swamp of debug
+> output.
+	[snip]
+> It works, at least until there is any disruption to the stream, such
+> as an exposure change, and then something gets out of sync and it
+> starts throwing out every other frame again.  It shows that the driver
+> framework and USB bus is capable of handling the full frame rate.
+> 
+> I'll keep looking for an actual solution, but there is a lot I don't
+> understand.  Any suggestions or ideas would be appreciated.  Several
+> questions come to mind.  Why bother assigning a frame buffer with
+> get_i_frame, before it's needed?  What purpose has frame_wait, when
+> it's not called until the frame is completed and the buffer is marked
+> as "DONE."  Why are there five, fr_i fr_q fr_o fr_queue index , buffer
+> indexing counters?  I'm sure I don't understand all the different
+> tasks this driver has to handle and all the different hardware it has
+> to deal with.  But I would be surprised if my cam is the only one
+> this is happening with.
 
-In the meantime I updated to version "12614:fd679bbd8bb3" and now I get
-a different error message:
+Hi James,
 
-| $ make v4l2-spec
-| [...]
-| Using catalogs: /etc/sgml/catalog
-| Using stylesheet: /usr/src/linuxtv.org/v4l-dvb/v4l2-spec/custom.dsl#html
-| Working on: /usr/src/linuxtv.org/v4l-dvb/v4l2-spec/v4l2.sgml
-| openjade:/usr/src/linuxtv.org/v4l-dvb/v4l2-spec/./remote_controllers.sgml:21:27:E: there is no attribute "Role"
-| make[2]: *** [html-single-build.stamp] Error 8
-| make[2]: Leaving directory `/usr/src/linuxtv.org/v4l-dvb/v4l2-spec'
-| make[1]: *** [v4l2-spec] Error 2
-| make[1]: Leaving directory `/usr/src/linuxtv.org/v4l-dvb/v4l'
-| make: *** [v4l2-spec] Error 2
+I think you may have found a big problem, and this one should exist in
+all drivers!
 
-I have the following sgml and docbook related packages installed:
+As I understood, you say that the URB completion routine (isoc_irq) may
+be run many times at the same time.
 
-ii  libsgmls-perl                        1.03ii-32                      Perl modules for processing SGML parser outp
-ii  sgml-base                            1.26                           SGML infrastructure and SGML catalog file su
-ii  sgml-data                            2.0.3                          common SGML and XML data
-ii  sgmlspl                              1.03ii-32                      SGMLS-based example Perl script for processi
-ii  docbook-defguide                     2.0.17+svn7549-3               DocBook: The Definitive Guide - HTML version
-ii  docbook-dsssl                        1.79-6                         modular DocBook DSSSL stylesheets, for print
-ii  docbook-utils                        0.6.14-1.1                     Convert Docbook files to other formats (HTML
-ii  docbook-xml                          4.5-6                          standard XML documentation system, for softw
+With gspca, the problem is critical: the frame queue is managed without
+any lock thanks to a circular buffer list (the pointers fr_i, fr_q and
+fr_o). This mechanism works well when there are only one producer
+(interrupt) and one consumer (application) (and to answer the question,
+get_i_frame can be called anywere in the interrupt function because the
+application is not running). Then, if there may be many producers...
 
-Regards,
+For other drivers, the problem remains: the image fragments could be
+received out of order.
 
-	Márton Németh
+How is this possible? Looking at some kernel documents, I found that
+the URB completion routine is called from the bottom-half entity (thus,
+not under hardware interrupt). A bottom-half may be a tasklet or a soft
+irq. There may be only one active tasklet at a time, while there may be
+many softirqs running (on the interrupt CPU). It seems that we are in
+the last case, and I could not find any mean to change that.
 
+Then, to fix this problem, I see only one solution: have a private
+tasklet to do the video streaming, as this is done for some bulk
+transfer...
+
+Cheers.
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
