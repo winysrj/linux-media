@@ -1,109 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:41985 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750948AbZIOJn6 (ORCPT
+Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:3253 "EHLO
+	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757381AbZIOVBl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2009 05:43:58 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Julia Lawall <julia@diku.dk>
-Subject: Re: [PATCH 2/8] drivers/media/video/uvc: introduce missing kfree
-Date: Tue, 15 Sep 2009 11:44:57 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-References: <Pine.LNX.4.64.0909111821010.10552@pc-004.diku.dk> <200909132239.21806.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.0909132254430.31000@ask.diku.dk>
-In-Reply-To: <Pine.LNX.4.64.0909132254430.31000@ask.diku.dk>
+	Tue, 15 Sep 2009 17:01:41 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Brandon Philips <brandon@ifup.org>
+Subject: Re: LPC v4l-dvb mini-summit agenda
+Date: Tue, 15 Sep 2009 23:01:17 +0200
+Cc: linux-media@vger.kernel.org, Andy Walls <awalls@radix.net>,
+	Steven Toth <stoth@hauppauge.com>,
+	Mike Krufky <mkrufky@linuxtv.org>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>,
+	Vaibhav Hiremath <hvaibhav@ti.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>,
+	"Iovescu, Magdalena" <m-iovescu1@ti.com>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@skynet.be>,
+	Hans de Goede <j.w.r.degoede@hhs.nl>
+References: <200909151919.53930.hverkuil@xs4all.nl> <20090915202441.GA29973@jenkins.home.ifup.org>
+In-Reply-To: <20090915202441.GA29973@jenkins.home.ifup.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
+Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <200909151144.57816.laurent.pinchart@ideasonboard.com>
+Content-Disposition: inline
+Message-Id: <200909152301.17208.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Julia,
+On Tuesday 15 September 2009 22:24:41 Brandon Philips wrote:
+> On 19:19 Tue 15 Sep 2009, Hans Verkuil wrote:
+> > We have a room available all three days, so that makes life easier for us.
+> >
+> > I assume that most people will want to attend at least the keynote speeches,
+> > so I'm scheduling around that.
+> 
+> Thanks for organizing this. But, I have other priorities and things I
+> want to discuss during the conference. I don't think I can attend a
+> full three days.
 
-On Sunday 13 September 2009 22:55:30 Julia Lawall wrote:
-> From: Julia Lawall <julia@diku.dk>
-> 
-> Move the kzalloc and associated test after the stream/query test, to avoid
-> the need to free the allocated if the stream/query test fails.
-> 
-> The semantic match that finds the problem is as follows:
-> (http://www.emn.fr/x-info/coccinelle/)
-> 
-> // <smpl>
-> @r exists@
-> local idexpression x;
-> statement S;
-> expression E;
-> identifier f,f1,l;
-> position p1,p2;
-> expression *ptr != NULL;
-> @@
-> 
-> x@p1 = \(kmalloc\|kzalloc\|kcalloc\)(...);
-> ...
-> if (x == NULL) S
-> <... when != x
->      when != if (...) { <+...x...+> }
-> (
-> x->f1 = E
-> 
->  (x->f1 == NULL || ...)
-> 
->  f(...,x->f1,...)
-> )
-> ...>
-> (
->  return \(0\|<+...x...+>\|ptr\);
-> 
->  return@p2 ...;
-> )
-> 
-> @script:python@
-> p1 << r.p1;
-> p2 << r.p2;
-> @@
-> 
-> print "* file: %s kmalloc %s return %s" %
->  (p1[0].file,p1[0].line,p2[0].line) // </smpl>
-> 
-> Signed-off-by: Julia Lawall <julia@diku.dk>
-> ---
->  drivers/media/video/uvc/uvc_video.c |    7 ++++---
->  1 files changed, 4 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/video/uvc/uvc_video.c
->  b/drivers/media/video/uvc/uvc_video.c index 5b757f3..f960e8e 100644
-> --- a/drivers/media/video/uvc/uvc_video.c
-> +++ b/drivers/media/video/uvc/uvc_video.c
-> @@ -124,13 +124,14 @@ static int uvc_get_video_ctrl(struct uvc_streaming
->  *stream, int ret;
-> 
->  	size = stream->dev->uvc_version >= 0x0110 ? 34 : 26;
-> +	if ((stream->dev->quirks & UVC_QUIRK_PROBE_DEF) &&
-> +			query == UVC_GET_DEF)
+That's no problem.
 
-This fits in the 80 columns limit, no need to split the statement on multiple 
-lines.
-
-> +		return -EIO;
-> +
->  	data = kmalloc(size, GFP_KERNEL);
->  	if (data == NULL)
->  		return -ENOMEM;
+> > So Wednesday we start at 10:00 after the keynote (except for those
+> > attending the audio track) and go on until 15:00 (yes, you are
+> > allowed to have lunch :-) ).
+> > 
+> > Thursday we can start at 9:00 until 16:00.
 > 
-> -	if ((stream->dev->quirks & UVC_QUIRK_PROBE_DEF) && query == UVC_GET_DEF)
-> -		return -EIO;
-> -
->  	ret = __uvc_query_ctrl(stream->dev, query, 0, stream->intfnum,
->  		probe ? UVC_VS_PROBE_CONTROL : UVC_VS_COMMIT_CONTROL, data,
->  		size, UVC_CTRL_STREAMING_TIMEOUT);
+> I wish I had seen this sooner so we could have done something like the
+> Networking folks and met while LinuxCon was going on instead. I
+> thought the V4L meetup was going to be a regular BoF.
 
-Other than that,
+I'll actually attend LinuxCon as well, so we can talk then as well.
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Friday starts with a V4L2 BoF followed by two v4l presentations, so
+> > we will only have a session from 13:30 - 16:00. I suggest we use
+> > that to wrap up.
+> 
+> After dicussing this a bit Hans and I cut it down to a single 45
+> minute slot with each of us doing a 20 or so minutes.
+
+Good to know.
+ 
+> > The main discussion points are these RFCs:
+> > 
+> > - V2.1 Media Controller RFC:
+> > - Bus and data format negotiation (addresses open issue #3 of the MC RFC):
+> > - Support for video timings at the input/output interface (aka support for HDTV):
+> > - Allow bridge drivers to have better control over DVB frontend operations:
+> 
+> > We have some other topics as well (in no particular order):
+> > - mercurial vs git, how important is backwards compatibility to us?
+> > - how to do events in V4L?
+> > - is it possible to create a pool of buffers that we can pass around to
+> >   various video nodes?
+> > - others?
+> > 
+> > My plan is to use the Wednesday to start with the media controller, make sure
+> > that everyone understands what it is and what it is not and perhaps look at
+> > one embedded device to see how well it would work. The afternoon we can look
+> > at some of the other topics.
+> 
+> Can you plan on a quick overview of the RFCs and in particular how far
+> along the hardware is and how it is implemented early in the morning?
+
+Yes, it will start with an overview of the RFCs and their status.
+
+> An hour by hour schedule with when you plan on discussing what would
+> be very helpful. I find meetings that have too open ended of a
+> schedule have a tendency to rat-hole ;)
+
+The media controller discussions are hard to plan, but on Wednesday after
+lunch I plan on discussing the HDTV timings proposal. That's a high prio
+feature that we need to add soon and it does not depend on the media
+controller. There are a few open issues there, in particular when it relates
+to sensors.
+
+> > I hope that on Thursday we can go over the media controller in more detail,
+> > esp. with regards to other embedded devices, current and (if possible)
+> > upcoming. 
+> 
+> An overview of the current hardware implementation would be nice on
+> Wed. It seems to be missing from the RFCs.
+
+We should have something on that as well on Wednesday.
+
+Regards,
+
+	Hans
+
+> 
+> Thanks,
+> 
+> 	Brandon
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+
+
 
 -- 
-Laurent Pinchart
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
