@@ -1,389 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f172.google.com ([209.85.221.172]:50386 "EHLO
-	mail-qy0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754544AbZILOtJ (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4816 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754518AbZIOSg3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Sep 2009 10:49:09 -0400
-Received: by qyk2 with SMTP id 2so1629968qyk.21
-        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 07:49:12 -0700 (PDT)
-Message-ID: <4AABB4E0.2080000@gmail.com>
-Date: Sat, 12 Sep 2009 10:49:04 -0400
-From: David Ellingsworth <david@identd.dyndns.org>
-Reply-To: david@identd.dyndns.org
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org, klimov.linux@gmail.com
-Subject: [RFC/RFT 02/10] radio-mr800: simplify video_device allocation
-Content-Type: multipart/mixed;
- boundary="------------000205000107020804060508"
+	Tue, 15 Sep 2009 14:36:29 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id n8FIaUdn046139
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 15 Sep 2009 20:36:31 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 15 Sep 2009 20:36:30 +0200 (CEST)
+Message-Id: <200909151836.n8FIaUdn046139@smtp-vbr13.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------000205000107020804060508
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
- From 2839cd94e21123151c0fe6683991f5a3c88fa877 Mon Sep 17 00:00:00 2001
-From: David Ellingsworth <david@identd.dyndns.org>
-Date: Fri, 11 Sep 2009 23:59:22 -0400
-Subject: [PATCH 02/10] mr800: simplify video_device allocation
+Results of the daily build of v4l-dvb:
 
-Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
----
- drivers/media/radio/radio-mr800.c |   53 
-++++++++++++++----------------------
- 1 files changed, 21 insertions(+), 32 deletions(-)
+date:        Tue Sep 15 19:00:08 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12876:6b56b5ca7d05
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-diff --git a/drivers/media/radio/radio-mr800.c 
-b/drivers/media/radio/radio-mr800.c
-index 8e96c8a..3129692 100644
---- a/drivers/media/radio/radio-mr800.c
-+++ b/drivers/media/radio/radio-mr800.c
-@@ -129,7 +129,7 @@ static int usb_amradio_resume(struct usb_interface 
-*intf);
- struct amradio_device {
-     /* reference to USB and video device */
-     struct usb_device *usbdev;
--    struct video_device *videodev;
-+    struct video_device videodev;
-     struct v4l2_device v4l2_dev;
- 
-     unsigned char *buffer;
-@@ -272,7 +272,7 @@ static void usb_amradio_disconnect(struct 
-usb_interface *intf)
-     mutex_unlock(&radio->lock);
- 
-     usb_set_intfdata(intf, NULL);
--    video_unregister_device(radio->videodev);
-+    video_unregister_device(&radio->videodev);
-     v4l2_device_disconnect(&radio->v4l2_dev);
- }
- 
-@@ -320,7 +320,7 @@ static int vidioc_g_tuner(struct file *file, void *priv,
-  */
-     retval = amradio_set_stereo(radio, WANT_STEREO);
-     if (retval < 0)
--        amradio_dev_warn(&radio->videodev->dev,
-+        amradio_dev_warn(&radio->videodev.dev,
-             "set stereo failed\n");
- 
-     strcpy(v->name, "FM");
-@@ -366,13 +366,13 @@ static int vidioc_s_tuner(struct file *file, void 
-*priv,
-     case V4L2_TUNER_MODE_MONO:
-         retval = amradio_set_stereo(radio, WANT_MONO);
-         if (retval < 0)
--            amradio_dev_warn(&radio->videodev->dev,
-+            amradio_dev_warn(&radio->videodev.dev,
-                 "set mono failed\n");
-         break;
-     case V4L2_TUNER_MODE_STEREO:
-         retval = amradio_set_stereo(radio, WANT_STEREO);
-         if (retval < 0)
--            amradio_dev_warn(&radio->videodev->dev,
-+            amradio_dev_warn(&radio->videodev.dev,
-                 "set stereo failed\n");
-         break;
-     default:
-@@ -403,7 +403,7 @@ static int vidioc_s_frequency(struct file *file, 
-void *priv,
- 
-     retval = amradio_setfreq(radio, radio->curfreq);
-     if (retval < 0)
--        amradio_dev_warn(&radio->videodev->dev,
-+        amradio_dev_warn(&radio->videodev.dev,
-             "set frequency failed\n");
- 
- unlock:
-@@ -493,13 +493,13 @@ static int vidioc_s_ctrl(struct file *file, void 
-*priv,
-         if (ctrl->value) {
-             retval = amradio_set_mute(radio, AMRADIO_STOP);
-             if (retval < 0) {
--                amradio_dev_warn(&radio->videodev->dev,
-+                amradio_dev_warn(&radio->videodev.dev,
-                     "amradio_stop failed\n");
-             }
-         } else {
-             retval = amradio_set_mute(radio, AMRADIO_START);
-             if (retval < 0) {
--                amradio_dev_warn(&radio->videodev->dev,
-+                amradio_dev_warn(&radio->videodev.dev,
-                     "amradio_start failed\n");
-             }
-         }
-@@ -565,7 +565,7 @@ static int usb_amradio_open(struct file *file)
- 
-     retval = amradio_set_mute(radio, AMRADIO_START);
-     if (retval < 0) {
--        amradio_dev_warn(&radio->videodev->dev,
-+        amradio_dev_warn(&radio->videodev.dev,
-             "radio did not start up properly\n");
-         radio->users = 0;
-         goto unlock;
-@@ -573,12 +573,12 @@ static int usb_amradio_open(struct file *file)
- 
-     retval = amradio_set_stereo(radio, WANT_STEREO);
-     if (retval < 0)
--        amradio_dev_warn(&radio->videodev->dev,
-+        amradio_dev_warn(&radio->videodev.dev,
-             "set stereo failed\n");
- 
-     retval = amradio_setfreq(radio, radio->curfreq);
-     if (retval < 0)
--        amradio_dev_warn(&radio->videodev->dev,
-+        amradio_dev_warn(&radio->videodev.dev,
-             "set frequency failed\n");
- 
- unlock:
-@@ -604,7 +604,7 @@ static int usb_amradio_close(struct file *file)
-     if (!radio->removed) {
-         retval = amradio_set_mute(radio, AMRADIO_STOP);
-         if (retval < 0)
--            amradio_dev_warn(&radio->videodev->dev,
-+            amradio_dev_warn(&radio->videodev.dev,
-                 "amradio_stop failed\n");
-     }
- 
-@@ -676,9 +676,6 @@ static void usb_amradio_video_device_release(struct 
-video_device *videodev)
- {
-     struct amradio_device *radio = video_get_drvdata(videodev);
- 
--    /* we call v4l to free radio->videodev */
--    video_device_release(videodev);
--
-     v4l2_device_unregister(&radio->v4l2_dev);
- 
-     /* free rest memory */
-@@ -718,20 +715,12 @@ static int usb_amradio_probe(struct usb_interface 
-*intf,
-         return retval;
-     }
- 
--    radio->videodev = video_device_alloc();
--
--    if (!radio->videodev) {
--        dev_err(&intf->dev, "video_device_alloc failed\n");
--        kfree(radio->buffer);
--        kfree(radio);
--        return -ENOMEM;
--    }
--
--    strlcpy(radio->videodev->name, v4l2_dev->name, 
-sizeof(radio->videodev->name));
--    radio->videodev->v4l2_dev = v4l2_dev;
--    radio->videodev->fops = &usb_amradio_fops;
--    radio->videodev->ioctl_ops = &usb_amradio_ioctl_ops;
--    radio->videodev->release = usb_amradio_video_device_release;
-+    strlcpy(radio->videodev.name, v4l2_dev->name,
-+        sizeof(radio->videodev.name));
-+    radio->videodev.v4l2_dev = v4l2_dev;
-+    radio->videodev.fops = &usb_amradio_fops;
-+    radio->videodev.ioctl_ops = &usb_amradio_ioctl_ops;
-+    radio->videodev.release = usb_amradio_video_device_release;
- 
-     radio->removed = 0;
-     radio->users = 0;
-@@ -741,12 +730,12 @@ static int usb_amradio_probe(struct usb_interface 
-*intf,
- 
-     mutex_init(&radio->lock);
- 
--    video_set_drvdata(radio->videodev, radio);
-+    video_set_drvdata(&radio->videodev, radio);
- 
--    retval = video_register_device(radio->videodev,   
- VFL_TYPE_RADIO,    radio_nr);
-+    retval = video_register_device(&radio->videodev, VFL_TYPE_RADIO,
-+                    radio_nr);
-     if (retval < 0) {
-         dev_err(&intf->dev, "could not register video device\n");
--        video_device_release(radio->videodev);
-         v4l2_device_unregister(v4l2_dev);
-         kfree(radio->buffer);
-         kfree(radio);
--- 
-1.6.3.3
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29.1-armv5-ixp: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+sparse (linux-2.6.31): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
+Detailed results are available here:
 
---------------000205000107020804060508
-Content-Type: text/x-diff;
- name="0002-mr800-simplify-video_device-allocation.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="0002-mr800-simplify-video_device-allocation.patch"
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
->From 2839cd94e21123151c0fe6683991f5a3c88fa877 Mon Sep 17 00:00:00 2001
-From: David Ellingsworth <david@identd.dyndns.org>
-Date: Fri, 11 Sep 2009 23:59:22 -0400
-Subject: [PATCH 02/10] mr800: simplify video_device allocation
+Full logs are available here:
 
-Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
----
- drivers/media/radio/radio-mr800.c |   53 ++++++++++++++----------------------
- 1 files changed, 21 insertions(+), 32 deletions(-)
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
-diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
-index 8e96c8a..3129692 100644
---- a/drivers/media/radio/radio-mr800.c
-+++ b/drivers/media/radio/radio-mr800.c
-@@ -129,7 +129,7 @@ static int usb_amradio_resume(struct usb_interface *intf);
- struct amradio_device {
- 	/* reference to USB and video device */
- 	struct usb_device *usbdev;
--	struct video_device *videodev;
-+	struct video_device videodev;
- 	struct v4l2_device v4l2_dev;
- 
- 	unsigned char *buffer;
-@@ -272,7 +272,7 @@ static void usb_amradio_disconnect(struct usb_interface *intf)
- 	mutex_unlock(&radio->lock);
- 
- 	usb_set_intfdata(intf, NULL);
--	video_unregister_device(radio->videodev);
-+	video_unregister_device(&radio->videodev);
- 	v4l2_device_disconnect(&radio->v4l2_dev);
- }
- 
-@@ -320,7 +320,7 @@ static int vidioc_g_tuner(struct file *file, void *priv,
-  */
- 	retval = amradio_set_stereo(radio, WANT_STEREO);
- 	if (retval < 0)
--		amradio_dev_warn(&radio->videodev->dev,
-+		amradio_dev_warn(&radio->videodev.dev,
- 			"set stereo failed\n");
- 
- 	strcpy(v->name, "FM");
-@@ -366,13 +366,13 @@ static int vidioc_s_tuner(struct file *file, void *priv,
- 	case V4L2_TUNER_MODE_MONO:
- 		retval = amradio_set_stereo(radio, WANT_MONO);
- 		if (retval < 0)
--			amradio_dev_warn(&radio->videodev->dev,
-+			amradio_dev_warn(&radio->videodev.dev,
- 				"set mono failed\n");
- 		break;
- 	case V4L2_TUNER_MODE_STEREO:
- 		retval = amradio_set_stereo(radio, WANT_STEREO);
- 		if (retval < 0)
--			amradio_dev_warn(&radio->videodev->dev,
-+			amradio_dev_warn(&radio->videodev.dev,
- 				"set stereo failed\n");
- 		break;
- 	default:
-@@ -403,7 +403,7 @@ static int vidioc_s_frequency(struct file *file, void *priv,
- 
- 	retval = amradio_setfreq(radio, radio->curfreq);
- 	if (retval < 0)
--		amradio_dev_warn(&radio->videodev->dev,
-+		amradio_dev_warn(&radio->videodev.dev,
- 			"set frequency failed\n");
- 
- unlock:
-@@ -493,13 +493,13 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
- 		if (ctrl->value) {
- 			retval = amradio_set_mute(radio, AMRADIO_STOP);
- 			if (retval < 0) {
--				amradio_dev_warn(&radio->videodev->dev,
-+				amradio_dev_warn(&radio->videodev.dev,
- 					"amradio_stop failed\n");
- 			}
- 		} else {
- 			retval = amradio_set_mute(radio, AMRADIO_START);
- 			if (retval < 0) {
--				amradio_dev_warn(&radio->videodev->dev,
-+				amradio_dev_warn(&radio->videodev.dev,
- 					"amradio_start failed\n");
- 			}
- 		}
-@@ -565,7 +565,7 @@ static int usb_amradio_open(struct file *file)
- 
- 	retval = amradio_set_mute(radio, AMRADIO_START);
- 	if (retval < 0) {
--		amradio_dev_warn(&radio->videodev->dev,
-+		amradio_dev_warn(&radio->videodev.dev,
- 			"radio did not start up properly\n");
- 		radio->users = 0;
- 		goto unlock;
-@@ -573,12 +573,12 @@ static int usb_amradio_open(struct file *file)
- 
- 	retval = amradio_set_stereo(radio, WANT_STEREO);
- 	if (retval < 0)
--		amradio_dev_warn(&radio->videodev->dev,
-+		amradio_dev_warn(&radio->videodev.dev,
- 			"set stereo failed\n");
- 
- 	retval = amradio_setfreq(radio, radio->curfreq);
- 	if (retval < 0)
--		amradio_dev_warn(&radio->videodev->dev,
-+		amradio_dev_warn(&radio->videodev.dev,
- 			"set frequency failed\n");
- 
- unlock:
-@@ -604,7 +604,7 @@ static int usb_amradio_close(struct file *file)
- 	if (!radio->removed) {
- 		retval = amradio_set_mute(radio, AMRADIO_STOP);
- 		if (retval < 0)
--			amradio_dev_warn(&radio->videodev->dev,
-+			amradio_dev_warn(&radio->videodev.dev,
- 				"amradio_stop failed\n");
- 	}
- 
-@@ -676,9 +676,6 @@ static void usb_amradio_video_device_release(struct video_device *videodev)
- {
- 	struct amradio_device *radio = video_get_drvdata(videodev);
- 
--	/* we call v4l to free radio->videodev */
--	video_device_release(videodev);
--
- 	v4l2_device_unregister(&radio->v4l2_dev);
- 
- 	/* free rest memory */
-@@ -718,20 +715,12 @@ static int usb_amradio_probe(struct usb_interface *intf,
- 		return retval;
- 	}
- 
--	radio->videodev = video_device_alloc();
--
--	if (!radio->videodev) {
--		dev_err(&intf->dev, "video_device_alloc failed\n");
--		kfree(radio->buffer);
--		kfree(radio);
--		return -ENOMEM;
--	}
--
--	strlcpy(radio->videodev->name, v4l2_dev->name, sizeof(radio->videodev->name));
--	radio->videodev->v4l2_dev = v4l2_dev;
--	radio->videodev->fops = &usb_amradio_fops;
--	radio->videodev->ioctl_ops = &usb_amradio_ioctl_ops;
--	radio->videodev->release = usb_amradio_video_device_release;
-+	strlcpy(radio->videodev.name, v4l2_dev->name,
-+		sizeof(radio->videodev.name));
-+	radio->videodev.v4l2_dev = v4l2_dev;
-+	radio->videodev.fops = &usb_amradio_fops;
-+	radio->videodev.ioctl_ops = &usb_amradio_ioctl_ops;
-+	radio->videodev.release = usb_amradio_video_device_release;
- 
- 	radio->removed = 0;
- 	radio->users = 0;
-@@ -741,12 +730,12 @@ static int usb_amradio_probe(struct usb_interface *intf,
- 
- 	mutex_init(&radio->lock);
- 
--	video_set_drvdata(radio->videodev, radio);
-+	video_set_drvdata(&radio->videodev, radio);
- 
--	retval = video_register_device(radio->videodev,	VFL_TYPE_RADIO,	radio_nr);
-+	retval = video_register_device(&radio->videodev, VFL_TYPE_RADIO,
-+					radio_nr);
- 	if (retval < 0) {
- 		dev_err(&intf->dev, "could not register video device\n");
--		video_device_release(radio->videodev);
- 		v4l2_device_unregister(v4l2_dev);
- 		kfree(radio->buffer);
- 		kfree(radio);
--- 
-1.6.3.3
+The V4L2 specification from this daily build is here:
 
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
 
---------------000205000107020804060508--
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
