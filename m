@@ -1,160 +1,248 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:4739 "EHLO
-	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750870AbZINGYX (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:52201 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753202AbZIPPpk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Sep 2009 02:24:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: hermann pitton <hermann-pitton@arcor.de>
-Subject: Re: Problems with Pinnacle 310i (saa7134) and recent kernels
-Date: Mon, 14 Sep 2009 08:24:17 +0200
-Cc: Avl Jawrowski <avljawrowski@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-References: <loom.20090718T135733-267@post.gmane.org> <loom.20090913T115105-855@post.gmane.org> <1252881736.4318.48.camel@pc07.localdom.local>
-In-Reply-To: <1252881736.4318.48.camel@pc07.localdom.local>
+	Wed, 16 Sep 2009 11:45:40 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC] Global video buffers pool
+Date: Wed, 16 Sep 2009 17:46:39 +0200
 MIME-Version: 1.0
+To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Cohen David Abraham <david.cohen@nokia.com>,
+	=?iso-8859-1?q?Koskip=E4=E4_Antti_Jussi_Petteri?=
+	<antti.koskipaa@nokia.com>,
+	"Zutshi Vimarsh (Nokia-D-MSW/Helsinki)" <vimarsh.zutshi@nokia.com>,
+	stefan.kost@nokia.com
 Content-Type: text/plain;
-  charset="iso-8859-15"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200909140824.17591.hverkuil@xs4all.nl>
+Message-Id: <200909161746.39754.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 14 September 2009 00:42:16 hermann pitton wrote:
-> Hi,
-> 
-> Am Sonntag, den 13.09.2009, 12:02 +0000 schrieb Avl Jawrowski:
-> > Hi,
-> > 
-> > hermann pitton <hermann-pitton <at> arcor.de> writes:
-> > 
-> > > 
-> > > I'm sorry that we have some mess on some of such devices, but currently
-> > > really nobody can help much further.
-> > > 
-> > > Mike and Hauppauge don't have any schematics for LNA and external
-> > > antenna voltage switching for now, he assured it to me personally and we
-> > > must live with the back hacks for now and try to further work through
-> > > it.
-> > > 
-> > > However, mplayer should work as well, but my last checkout is a little
-> > > out dated.
-> > > 
-> > > It will go to Nico anyway, he is usually at the list here.
-> > > 
-> > > If you can tell me on what you are, I might be able to confirm or not.
-> > 
-> > Do you mean the exact card I have? I can do some photos if they can help.
-> > Unfortunately I don't have the original eeprom content.
-> 
-> no, in this case I meant mplayer should work for you too.
-> You need to have DVB support enabled and a channels.conf file in
-> ~/.mplayer.
-> 
-> We might collect pictures of the cards and remotes as well.
-> To identify those card with an additional LNA circuitry is likely not
-> easy hardware wise, since the tuner shielding is soldered with 16 pins,
-> many close to lines. Maybe we can identify those boards by the card
-> revision printed on them. Don't know how to auto detect them.
-> 
-> > In the matter of the IR, the modules seems to be loaded:
-> > 
-> > tda1004x               13048  1
-> > saa7134_dvb            20772  0
-> > videobuf_dvb            5644  1 saa7134_dvb
-> > ir_kbd_i2c              5500  0
-> > tda827x                 8880  2
-> > tuner                  16960  1
-> > saa7134               138436  1 saa7134_dvb
-> > ir_common              41828  2 ir_kbd_i2c,saa7134
-> > videobuf_dma_sg         9876  2 saa7134_dvb,saa7134
-> > videobuf_core          13596  3 videobuf_dvb,saa7134,videobuf_dma_sg
-> > tveeprom               10488  1 saa7134
-> > 
-> > But I can't find anything in /proc/bus/input/devices.
-> 
-> We might have more than the two supported remotes on such cards.
-> After all that would not make me wonder anymore and the windows driver
-> presents some more. Do you have that silver remote with colored buttons.
-> There must be a device at 0x47 detected to support it.
-> 
-> You might have to load ir-kbd-i2c at first or reload saa7134-alsa and
-> saa7134-dvb, which includes saa7134.
-> 
-> If OK, looks like this here.
-> 
-> saa7133[2]: setting pci latency timer to 64
-> saa7133[2]: found at 0000:04:03.0, rev: 208, irq: 21, latency: 64, mmio: 0xfebfe800
-> saa7133[2]: subsystem: 11bd:002f, board: Pinnacle PCTV 310i [card=101,insmod option]
-> saa7133[2]: board init: gpio is 600c000
-> saa7133[2]: gpio: mode=0x0000000 in=0x600c000 out=0x0000000 [pre-init]
-> IRQ 21/saa7133[2]: IRQF_DISABLED is not guaranteed on shared IRQs
-> saa7133[2]: i2c eeprom 00: bd 11 2f 00 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
-> saa7133[2]: i2c eeprom 10: ff e0 60 06 ff 20 ff ff 00 30 8d 2c b0 22 ff ff
-> saa7133[2]: i2c eeprom 20: 01 2c 01 02 02 01 04 30 98 ff 00 a5 ff 21 00 c2
-> saa7133[2]: i2c eeprom 30: 96 10 03 32 15 20 ff ff 0c 22 17 88 03 44 31 f9
-> saa7133[2]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[2]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[2]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[2]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[2]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[2]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[2]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[2]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[2]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[2]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[2]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[2]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> input: i2c IR (Pinnacle PCTV) as /class/input/input7
-> ir-kbd-i2c: i2c IR (Pinnacle PCTV) detected at i2c-3/3-0047/ir0 [saa7133[2]]
-> tuner 3-004b: chip found @ 0x96 (saa7133[2])
-> tda829x 3-004b: setting tuner address to 61
-> tda829x 3-004b: type set to tda8290+75a
-> saa7133[2]: gpio: mode=0x0200000 in=0x600e000 out=0x0000000 [Television]
-> saa7133[2]: gpio: mode=0x0200000 in=0x600e000 out=0x0000000 [Television]
-> saa7133[2]: gpio: mode=0x0200000 in=0x600c000 out=0x0000000 [Television]
-> saa7133[2]: registered device video2 [v4l2]
-> saa7133[2]: registered device vbi2
-> saa7133[2]: registered device radio0
-> dvb_init() allocating 1 frontend
-> DVB: registering new adapter (saa7133[0])
-> DVB: registering adapter 0 frontend 0 (Philips TDA10046H DVB-T)...
-> tda1004x: setting up plls for 48MHz sampling clock
-> tda1004x: found firmware revision 29 -- ok
-> saa7133[0]/dvb: setting GPIO21 to 1 (Radio antenna?)
-> dvb_init() allocating 1 frontend
-> DVB: registering new adapter (saa7133[1])
-> DVB: registering adapter 1 frontend 0 (Philips TDA10086 DVB-S)...
-> dvb_init() allocating 1 frontend
-> DVB: registering new adapter (saa7133[2])
-> DVB: registering adapter 2 frontend 0 (Philips TDA10046H DVB-T)...
-> tda1004x: setting up plls for 48MHz sampling clock
-> tda1004x: found firmware revision 29 -- ok
-> 
-> > > The only other issue I'm aware of is that radio is broken since guessed
-> > > 8 weeks on my tuners, only realized when testing on enabling external
-> > > active antenna voltage for DVB-T on a/some 310i.
-> > > 
-> > > Might be anything, hm, hopefully I should not have caused it ;)
-> > 
-> > The radio works for me, even if there's much noise (I don't usually use it).
-> > I'm using the internal audio cable.
-> 
-> The radio is broken for all tuners, you must be on older stuff.
-> 
-> I finally found the time to do the mercurial bisect today.
-> 
-> It is broken since Hans' changeset 12429 on seventh August.
+Hi everybody,
 
-What are the symptoms? What application do you use to test the radio?
-I don't immediately see why that changeset would break radio support as
-it only affects VIDIOC_G_STD and VIDIOC_G_PARM.
+I didn't want to miss this year's pretty flourishing RFC season, so here's 
+another one about a global video buffers pool.
 
-Regards,
+All comments are welcome, but please don't trash this proposal too fast. It's 
+a first shot at real problems encountered in real situations with real 
+hardware (namely high resolution still image capture on OMAP3). It's far from 
+perfect, and I'm open to completely different solutions if someone thinks of 
+one.
 
-	Hans
+
+Introduction
+============
+
+The V4L2 video buffers handling API makes use of a queue of video buffers to 
+exchange data between video devices and userspace applications (the read 
+method don't expose the buffers objects directly but uses them underneath). 
+Although quite efficient for simple video capture and output use cases, the 
+current implementation doesn't scale well when used with complex hardware and 
+large video resolutions. This RFC will list the current limitations of the API 
+and propose a possible solution.
+
+The document is at this stage a work in progress. Its main purpose is to be 
+used as support material for discussions at the Linux Plumbers Conference.
+
+
+Limitations
+===========
+
+Large buffers allocation
+------------------------
+
+Many video devices still require physically contiguous memory. The 
+introduction of IOMMUs on high-end systems will probably make that a distant 
+nightmare in the future, but we have to deal with this situation for the 
+moment (I'm not sure if the most recent PCI devices support scatter-gather 
+lists, but many embedded systems still require physically contiguous memory).
+
+Allocating large amounts of physically contiguous memory needs to be done as 
+soon as possible after (or even during) system bootup, otherwise memory 
+fragmentation will cause the allocation to fail.
+
+As the amount of required video memory depends on the frame size and the 
+number of buffers, the driver can't pre-allocate the buffers beforehand. A few 
+drivers allocate a large chunk of memory when they are loaded and then use it 
+when a userspace application requests video buffers to be allocated. However, 
+that method requires guessing how much memory will be needed, and can lead to 
+waste of system memory (if the guess was too large) or allocation failures (if 
+the guess was too low).
+
+Buffer queuing latency
+-----------------------
+
+VIDIOC_QBUF is becoming a performance bottleneck when capturing large images 
+on some systems (especially in the embedded world). When capturing high 
+resolution still pictures, the VIDIOC_QBUF delay adds to the shot latency, 
+making the camera appear slow to the user.
+
+The delay is caused by several operations required by DMA transfers that all 
+happen when queuing buffers.
+
+- Cache coherency management
+
+When the processor has a non-coherent cache (which is the case with most 
+embedded devices, especially ARM-based) the device driver needs to invalidate 
+(for video capture) or flush (for video output) the cache (either a range, or 
+the whole cache) every time a buffer is queued. This ensures that stale data 
+in the cache will not be written back to memory during or after DMA and that 
+all data written by the CPU is visible to the device.
+
+Invalidating the cache for large resolutions take a considerable amount of 
+time. Preliminary tests showed that cache invalidation for a 5MP buffer 
+requires several hundreds of milliseconds on an OMAP3 platform for range 
+invalidation, or several tens of milliseconds when invalidating the whole D 
+cache.
+
+When video buffers are passed between two devices (for instance when passing 
+the same USERPTR buffer to a video capture device and a hardware codec) 
+without any userspace access to the memory, CPU cache invalidation/flushing 
+isn't required on either side (video capture and hardware codec) and could be 
+skipped.
+
+- Memory locking and IOMMU
+
+Drivers need to lock the video buffer pages in memory to make sure that the 
+physical pages will not be freed while DMA is in progress under low-memory 
+conditions. This requires looping over all pages (typically 4kB long) that 
+back the video buffer (10MB for a 5MP YUV image) and takes a considerable 
+amount of time.
+
+When using the MMAP streaming method, the buffers can be locked in memory when 
+allocated (VIDIOC_REQBUFS). However, when using the USERPTR streaming method, 
+the buffers can only be locked the first time they are queued, adding to the 
+VIDIOC_QBUF latency.
+
+A similar issue arises when using IOMMUs. The IOMMU needs to be programmed to 
+translate physically scattered pages into a contiguous memory range on the 
+bus. This operation is done the first time buffers are queued for USERPTR 
+buffers.
+
+Sharing buffers between devices
+-------------------------------
+
+Video buffers memory can be shared between several devices when at most one of 
+them uses the MMAP method, and the others the USERPTR method. This avoids 
+memcpy() operations when transferring video data from one device to another 
+through memory (video acquisition -> hardware codec is the most common use 
+case).
+
+However, the use of USERPTR buffers comes with restrictions compared to MMAP. 
+Most architectures don't offer any API to DMA data to/from userspace buffers. 
+Beside, kernel-allocated buffers could be fine-tuned by the driver (making 
+them non-cacheable when it makes sense for instance), which is not possible 
+when allocating the buffers in userspace.
+
+For that reason it would be interesting to be able to share kernel-allocated 
+video buffers between devices.
+
+
+Video buffers pool
+==================
+
+Instead of having separate buffer queues at the video node level, this RFC 
+proposes the creation of a video buffers pool at the media controller level 
+that can be used to pre-allocate and pre-queue video buffers shared by all 
+video devices created by the media controller.
+
+Depending on the implementation complexity, the pool could even be made 
+system-wide and shared by all video nodes.
+
+Allocating buffers
+------------------
+
+The video buffers pool will handle independent groups of video buffers.
+
+        allocate               request
+(NULL)   ----->   (ALLOCATED)   ----->   (ACTIVE)
+         <----                  <-----
+          free                 release
+
+Video buffers groups allocation is controlled by userspace. When allocating a 
+buffers group, an application will specify
+
+- the number of buffers
+- the buffer size (all buffers in a group have the same size)
+- what type of physical memory to allocate (virtual or physically contiguous)
+- whether to lock the pages in memory
+- whether to invalidate the cache
+
+Once allocated, a group becomes ALLOCATED and is given an ID by the kernel.
+
+When dealing with really large video buffers, embedded system designers might 
+want to restrict the amount of RAM used by the Linux kernel to reserve memory 
+for video buffers. This use case should be supported. One possible solution 
+would be to set the reserved RAM address and size as module parameters, and 
+let the video buffers pool manage that memory. A full-blown memory manager is 
+not required, as buffers in that range will be allocated by applications that 
+know what they're doing.
+
+Queuing the buffers
+-------------------
+
+Buffers can be used by any video node that belongs to the same media 
+controller as the buffer pool.
+
+To use buffers from the video buffers pool, a userspace application calls 
+VIDIOC_REQBUFS on the video node and sets the memory field to 
+V4L2_MEMORY_POOL. The video node driver creates a video buffers queue with the 
+requested number of buffers (v4l2_requestbuffers::count) but does not allocate 
+any buffer.
+
+Later, the userspace application calls VIDIOC_QBUF to queue buffers from the 
+pool to the video node queue. It sets v4l2_buffer::memory to V4L2_MEMORY_POOL 
+and v4l2_buffer::m to the ID of the buffers group in the pool.
+
+The driver must check if the buffer fulfills its needs. This includes, but is 
+not limited to, verifying the buffer size. Some devices might require 
+contiguous memory, in which case the driver must check if the buffer is 
+contiguous.
+
+Depending whether the pages have been locked in memory and the cache 
+invalidated when allocating the buffers group in the pool, the driver might 
+need to lock pages and invalidate the cache at this point, is it would do with 
+MMAP or USERPTR buffers. The ability to perform those operations when 
+allocating the group speeds up the VIDIOC_QBUF operation, decreasing the still 
+picture shot latency.
+
+Once a buffer from a group is queued, the group is market as active and can't 
+be freed until all its buffers are released.
+
+Dequeuing and using the buffers
+-------------------------------
+
+V4L2_MEMORY_POOL buffers are dequeued similarly to MMAP or USERPTR buffers. 
+Applications must set v4l2_buffer::memory to V4L2_MEMORY_POOL and the driver 
+will set v4l2_buffer::m to the buffers group ID.
+
+The buffer can then be used by the application and queued back to the same 
+video node, or queued to another video node. If the application doesn't touch 
+the buffer memory (neither reads from nor writes to memory) it can set 
+v4l2_buffer::flags to the new V4L2_BUF_FLAG_NO_CACHE value to tell the driver 
+to skip cache invalidation and cleaning.
+
+Another option would be to base the decision whether to invalidate/flush the 
+cache on whether to buffer is currently mmap'ed in userspace. A non-mmap'ed 
+buffer can't be touched by userspace, and cache invalidation/flushing is thus 
+not required. However, this wouldn't work for USERPTR-like buffer groups, but 
+those are not supported at the moment.
+
+Freeing the buffers
+-------------------
+
+A buffer group can only be freed if all its buffers are not in use. This 
+includes
+
+- all buffers that have been mmap'ed must have been unmap'ed
+- no buffer can be queued to a video node
+
+If both conditions are fulfilled, all buffers in the group are unused by both 
+userspace and kernelspace. They can then be freed.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Laurent Pinchart
