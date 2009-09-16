@@ -1,109 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-15.arcor-online.net ([151.189.21.55]:57113 "EHLO
-	mail-in-15.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754278AbZIVFXE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2009 01:23:04 -0400
-Subject: Re: Bug in S2 API...
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Markus Rechberger <mrechberger@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <d9def9db0909212031q67e12ba7j9030063baf19a98@mail.gmail.com>
-References: <d9def9db0909202040u3138670ahede6078ef1a177c@mail.gmail.com>
-	 <1253504805.3255.3.camel@pc07.localdom.local>
-	 <d9def9db0909202109m54453573kc90f0c3e5d942e2@mail.gmail.com>
-	 <1253506233.3255.6.camel@pc07.localdom.local>
-	 <d9def9db0909202142j542136e3raea8e171a19f7e73@mail.gmail.com>
-	 <1253508863.3255.10.camel@pc07.localdom.local>
-	 <d9def9db0909210302m44f8ed77wfca6be3693491233@mail.gmail.com>
-	 <1253584852.3279.11.camel@pc07.localdom.local>
-	 <d9def9db0909212031q67e12ba7j9030063baf19a98@mail.gmail.com>
-Content-Type: text/plain
-Date: Tue, 22 Sep 2009 07:08:08 +0200
-Message-Id: <1253596088.3279.67.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from web53201.mail.re2.yahoo.com ([206.190.49.71]:42488 "HELO
+	web53201.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752524AbZIPPHP convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Sep 2009 11:07:15 -0400
+Message-ID: <924321.77581.qm@web53201.mail.re2.yahoo.com>
+Date: Wed, 16 Sep 2009 08:00:37 -0700 (PDT)
+From: Emanoil Kotsev <deloptes@yahoo.com>
+Subject: Re: [linux-dvb] Best USB or PCMCIA DVB card for linux users ?
+To: a dehqan <dehqan65@gmail.com>, linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+In-Reply-To: <20090916143456.GP11042@www.viadmin.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-Am Dienstag, den 22.09.2009, 05:31 +0200 schrieb Markus Rechberger:
-> On Tue, Sep 22, 2009 at 4:00 AM, hermann pitton <hermann-pitton@arcor.de> wrote:
-> > Hi Markus,
-> >
-> > Am Montag, den 21.09.2009, 12:02 +0200 schrieb Markus Rechberger:
-> >> ----
-> >> in dvb-frontend.c:
-> >>  ----
-> >>          if(cmd == FE_GET_PROPERTY) {
-> >>
-> >>                  tvps = (struct dtv_properties __user *)parg;
-> >>                  dprintk("%s() properties.num = %d\n", __func__, tvps->num);
-> >>                  dprintk("%s() properties.props = %p\n", __func__, tvps->props);
-> >>                  ...
-> >>                  if (copy_from_user(tvp, tvps->props, tvps->num *
-> >>  sizeof(struct dtv_property)))
-> >>  ----
-> >>
-> >>
-> >> > OK,
-> >> >
-> >> > thought I'll have never to care for it again.
-> >> >
-> >> > ENUM calls should never be W.
-> >> >
-> >> > Hit me for all I missed.
-> >> >
-> >> > Cheers,
-> >> > Hermann
-> >>
-> >> you are not seeing the point of it it seems
-> >
-> > you are right, I do not see your point at all, but I was wrong for the
-> > get calls.
-> >
-> > We had such discussions on v4l ioctls previously.
-> >
-> > The result was to keep them as is and not to change IOR to IOWR to keep
-> > compatibility.
-> >
-> > This is six years back.
-> >
+--- On Wed, 9/16/09, H. Langos <henrik-dvb@prak.org> wrote:
+
+> From: H. Langos <henrik-dvb@prak.org>
+> Subject: Re: [linux-dvb] Best USB or PCMCIA DVB card for linux users ?
+> To: "a dehqan" <dehqan65@gmail.com>
+> Cc: linux-dvb@linuxtv.org
+> Date: Wednesday, September 16, 2009, 4:34 PM
 > 
-> I think they all have got fixed up for v4l2 back then
+> Hello Dehqan,
 > 
-> #ifdef __OLD_VIDIOC_
-> /* for compatibility, will go away some day */
-> #define VIDIOC_OVERLAY_OLD      _IOWR('V', 14, int)
-> #define VIDIOC_S_PARM_OLD        _IOW('V', 22, struct v4l2_streamparm)
-> #define VIDIOC_S_CTRL_OLD        _IOW('V', 28, struct v4l2_control)
-> #define VIDIOC_G_AUDIO_OLD      _IOWR('V', 33, struct v4l2_audio)
-> #define VIDIOC_G_AUDOUT_OLD     _IOWR('V', 49, struct v4l2_audioout)
-> #define VIDIOC_CROPCAP_OLD       _IOR('V', 58, struct v4l2_cropcap)
-> #endif
 > 
-> to eg:
-> #define VIDIOC_OVERLAY           _IOW('V', 14, int)
-> #define VIDIOC_S_PARM           _IOWR('V', 22, struct v4l2_streamparm)
-> #define VIDIOC_S_CTRL           _IOWR('V', 28, struct v4l2_control)
-> #define VIDIOC_G_AUDIO           _IOR('V', 33, struct v4l2_audio)
-> #define VIDIOC_G_AUDOUT          _IOR('V', 49, struct v4l2_audioout)
-> #define VIDIOC_CROPCAP          _IOWR('V', 58, struct v4l2_cropcap)
+> On Wed, Sep 16, 2009 at 12:42:38AM +0430, a dehqan wrote:
+> > In The Name Of God
+> > 
+> > I'll be thankful if you guide ;
+> > What is The best USB or PCMCIA DVB card for linux
+> users ?
 > 
-> so only the DVB-API remains bugged now.
+> In the name of the flying spaghetti monster.
 > 
-> Markus
+> You chances of getting a usefull reply would be greatly
+> improved if you stated some more information. Like the 
+> kind of DVB you are talking about.
+> 
+> Is it DVB-S(2)/C/T or ATCS ?
 
-All fine.
+He's asking for DVB-T advice
 
-But you do cut off parts of my messages.
+> 
+> Are you sure you are looking for a PCMCIA (rather
+> PC-Card/CadBus) 
+> card?
+> 
+> If your notebook is very new than you probably already 
+> have ExpressCard slots instead of PC-Card.
+> 
 
-I would like to ask you to exercise a breakage, not only for stuff six
-years back, but on recent S2 API.
+He's asking for USB or PCMCIA - the point is good mentioning the new express standard
 
-Likely you get some more interested into it then.
+I would ask him how much he's ready to pay.
 
-Cheers,
-Hermann
+I was using one HVR900 (Haupauge but won't recommend it)
+
+Now I'm using one Terratec T USB XXS
+
+It's much better then the HVR900 one
++ it's supported 
++ it's smaller
++ costs in Austria about 38€
++ has remote control (also working)
+
+- it's not in the main kernel code - as far as I understood it will be supported in 2.6.32 line
+- it is sold with different prod IDs 0078 00ab which makes it necessary to touch the v4l-dvb code
+
+regards
 
 
+
+      
