@@ -1,110 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.26]:57865 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751948AbZIDP2f convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Sep 2009 11:28:35 -0400
-Received: by ey-out-2122.google.com with SMTP id 4so99843eyf.5
-        for <linux-media@vger.kernel.org>; Fri, 04 Sep 2009 08:28:36 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4AA12E17.4080006@iki.fi>
-References: <37219a840909012132l6c04af65hddecd2d52e196bcb@mail.gmail.com>
-	 <4AA12E17.4080006@iki.fi>
-Date: Fri, 4 Sep 2009 11:28:36 -0400
-Message-ID: <37219a840909040828i4b4c6781g2f2955a0fdba649b@mail.gmail.com>
-Subject: Re: [RFC] Allow bridge drivers to have better control over DVB
-	frontend operations
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from kroah.org ([198.145.64.141]:35812 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760112AbZIPVpc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Sep 2009 17:45:32 -0400
+Subject: patch v4l-em28xx-set-up-tda9887_conf-in-em28xx_card_setup.patch added to 2.6.30-stable tree
+To: mkrufky@linuxtv.org, dougsland@redhat.com, fmeng2002@yahoo.com,
+	gregkh@suse.de, Larry.Finger@lwfinger.net,
+	linux-media@vger.kernel.org, mchehab@redhat.com
+Cc: <stable@kernel.org>, <stable-commits@vger.kernel.org>
+From: <gregkh@suse.de>
+Date: Wed, 16 Sep 2009 14:45:19 -0700
+In-Reply-To: <37219a840909120731j1166b2b0r8c51dc7ba8dbea6a@mail.gmail.com>
+Message-Id: <20090916214536.0D0C1489B2@coco.kroah.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 4, 2009 at 11:11 AM, Antti Palosaari<crope@iki.fi> wrote:
-> On 09/02/2009 07:32 AM, Michael Krufky wrote:
->>
->> Over the course of the past year, a number of developers have
->> expressed a need for giving the bridge drivers better control over
->> dvb_frontend operations.  Specifically, there is a need for the bridge
->> driver to receive a DVB frontend IOCTL and have the opportunity to
->> allow or deny the IOCTL to proceed, as resources permit.
->>
->> For instance, in the case of a hybrid device, only the bridge driver
->> knows whether the analog functionality is presently being used.  If
->> the driver is currently in analog mode, serving video frames, the
->> driver will have a chance to deny the DVB frontend ioctl request
->> before dvb-core passes the request on to the frontend driver,
->> potentially damaging the analog video stream already in progress.
->>
->> In some cases, the bridge driver might have to perform a setup
->> operation to use a feature specific to the device.  For instance, the
->> bridge device may be in a low powered state - this new capability
->> allows the driver to wake up before passing the command on to the
->> frontend driver.  This new feature will allow LinuxTV developers to
->> finally get working on actual power management support within the
->> v4l/dvb subsystem, without the fear of breaking devices with hybrid
->> analog / digital functionality.
->>
->> In other cases, there may be situations in which multiple RF
->> connectors are available to the tuner, but only the bridge driver will
->> be aware of this, as this type of thing is specific to the device's
->> hardware implementation.  As there are many tuners capable of multiple
->> RF spigots, not all devices actually employ this feature - only the
->> bridge driver knows what implementations support such features, and
->> how to enable / disable them.
->>
->> The possibilities are endless.  I actually did all the heavy lifting
->> involved in this a few months ago, but haven't had a moment to write
->> up this RFC until now.
->>
->> The change to dvb-core that allows this new functionality is posted to
->> my development repository on kernellabs.com.  I have also included an
->> example of how this can be used on a digital tuner board with multiple
->> RF inputs.  The multiple RF input switching is already supported in
->> today's code, but I promised Mauro that I would present a better
->> method of doing this before the upcoming merge window.  For your
->> review and comments, please take a look at the topmost changesets,
->> starting with "create a standard method for dvb adapter drivers to
->> override frontend ioctls":
->>
->> http://kernellabs.com/hg/~mkrufky/fe_ioctl_override
->
-> Idea looks very good! I tested one DVB USB device need blocking IOCTLs when
-> demod and tuner are power save and didn't saw functionality problems.
->
-> However, it was a little bit hard to add callback to DVB USB driver. Could
-> that callback be added to the struct dvb_usb_adapter_properties for simplify
-> things? I have feeling that this callback will be useful most DVb USB
-> devices - setting GPIOs and clock settings for power save.
->
-> Name fe_ioctl_override sounds like whole IOCTL will be replaced with new one
-> which is not true. Still, I don't know which could be better name.
 
-Thank you for the feedback, Antti.
+This is a note to let you know that we have just queued up the patch titled
 
-Yes, I can add a generic mechanism into the DVB USB device framework
-to enable this functionality there.  I'll take care of that after we
-merge the initial core changes, or maybe I will have time to do that
-over the next week.  You're right, this feature will certainly be
-useful in the dvb-usb framework, as well as many others.
+    Subject: V4L: em28xx: set up tda9887_conf in em28xx_card_setup()
 
-As far as the name fe_ioctl_override, this does apply to the entire
-IOCTL, but currently only being used for SET_FRONTEND.  As more needs
-arise, the possibilities of this feature will become more prominent.
+to the 2.6.30-stable tree.  Its filename is
 
-This is not a "replacement" for the IOCTL per se.  As the comments in
-dvbdev.h explain, depending on the return value of the bridge
-callback, this will determine whether or not the previous default
-IOCTL handling should be allowed to continue, or whether the bridge's
-override returns back to userspace itself.  So, if configured a
-certain way, this feature CAN be used to replace dvb-core's IOCTL
-handling, but in most cases it will simply allow the bridge to do
-pre-processing and post-processing of a given IOCTL.
+    v4l-em28xx-set-up-tda9887_conf-in-em28xx_card_setup.patch
 
-As fe_ioctl_override is actually most descriptive of the process going
-on, I'd like to keep that name as-is.
+A git repo of this tree can be found at 
+    http://www.kernel.org/git/?p=linux/kernel/git/stable/stable-queue.git;a=summary
 
-Cheers,
 
-Mike
+>From mkrufky@linuxtv.org  Wed Sep 16 14:36:28 2009
+From: Michael Krufky <mkrufky@linuxtv.org>
+Date: Sat, 12 Sep 2009 10:31:05 -0400
+Subject: V4L: em28xx: set up tda9887_conf in em28xx_card_setup()
+To: stable@kernel.org
+Cc: Larry Finger <Larry.Finger@lwfinger.net>, linux-media <linux-media@vger.kernel.org>, Mauro Carvalho Chehab <mchehab@redhat.com>, Douglas Schilling Landgraf <dougsland@redhat.com>, Franklin Meng <fmeng2002@yahoo.com>
+Message-ID: <37219a840909120731j1166b2b0r8c51dc7ba8dbea6a@mail.gmail.com>
+
+From: Franklin Meng <fmeng2002@yahoo.com>
+
+V4L: em28xx: set up tda9887_conf in em28xx_card_setup()
+
+(cherry picked from commit ae3340cbf59ea362c2016eea762456cc0969fd9e)
+
+Added tda9887_conf set up into em28xx_card_setup()
+
+Signed-off-by: Franklin Meng <fmeng2002@yahoo.com>
+Signed-off-by: Douglas Schilling Landgraf <dougsland@redhat.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Tested-by: Larry Finger <Larry.Finger@lwfinger.net>
+Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+---
+ drivers/media/video/em28xx/em28xx-cards.c |    3 +++
+ 1 file changed, 3 insertions(+)
+
+--- a/drivers/media/video/em28xx/em28xx-cards.c
++++ b/drivers/media/video/em28xx/em28xx-cards.c
+@@ -1886,6 +1886,9 @@ void em28xx_card_setup(struct em28xx *de
+ 	if (em28xx_boards[dev->model].tuner_addr)
+ 		dev->tuner_addr = em28xx_boards[dev->model].tuner_addr;
+ 
++	if (em28xx_boards[dev->model].tda9887_conf)
++		dev->tda9887_conf = em28xx_boards[dev->model].tda9887_conf;
++
+ 	/* request some modules */
+ 	switch (dev->model) {
+ 	case EM2820_BOARD_HAUPPAUGE_WINTV_USB_2:
+
+
+Patches currently in stable-queue which might be from mkrufky@linuxtv.org are
+
+queue-2.6.30/v4l-em28xx-set-up-tda9887_conf-in-em28xx_card_setup.patch
