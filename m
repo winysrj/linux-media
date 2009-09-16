@@ -1,170 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f210.google.com ([209.85.218.210]:64335 "EHLO
-	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752019AbZIUUoT (ORCPT
+Received: from bamako.nerim.net ([62.4.17.28]:53652 "EHLO bamako.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753729AbZIPG5D convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Sep 2009 16:44:19 -0400
-Received: by bwz6 with SMTP id 6so2214153bwz.37
-        for <linux-media@vger.kernel.org>; Mon, 21 Sep 2009 13:44:21 -0700 (PDT)
-Date: Mon, 21 Sep 2009 22:44:18 +0200
-From: Uros Vampl <mobile.leecher@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: Re: Questions about Terratec Hybrid XS (em2882) [0ccd:005e]
-Message-ID: <20090921204418.GA19119@zverina>
-References: <20090913193118.GA12659@zverina>
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="ReaqsoxgOBHFXBhH"
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20090913193118.GA12659@zverina>
+	Wed, 16 Sep 2009 02:57:03 -0400
+Date: Wed, 16 Sep 2009 08:57:01 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: =?UTF-8?B?UGF3ZcWC?= Sikora <pluto@agmk.net>
+Cc: linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [2.6.31] ir-kbd-i2c oops.
+Message-ID: <20090916085701.6e883600@hyperion.delvare>
+In-Reply-To: <200909160300.28382.pluto@agmk.net>
+References: <200909160300.28382.pluto@agmk.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Pawel,
 
---ReaqsoxgOBHFXBhH
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Hello.
-
-Partial success. With the attached patch, DVB works. But I have no idea 
-how to get analog audio working correctly. Any help would be 
-appreciated.
-
-Regards,
-Uroš
-
-
-
-On 13.09.09 21:31, Uros Vampl wrote:
-> Hello.
+On Wed, 16 Sep 2009 03:00:28 +0200, Paweł Sikora wrote:
+> the latest 2.6.31 kernel oopses in ir-kbd-i2c on my box:
+> afaics the 2.6.28.10 is also affected.
 > 
-> I have the Terratec Cinergy Hybrid T XS USB (em2882) - usb-id 0ccd:005e. 
-> It works with Marcus Rechberger's em28xx-new driver, but since that code 
-> is unmaintained now, I tested this device with v4l-dvb today.
+> http://imgbin.org/index.php?page=image&id=776
+> http://imgbin.org/index.php?page=image&id=777
+> http://imgbin.org/index.php?page=image&id=778
 > 
-> The analog picture is there, but audio is very, very quiet, almost not 
-> there. Is there some way to increase the volume?
+> installed pinnacle tv card with infra-red receiver:
 > 
-> Second question, what would be required to get DVB working?
+> 05:00.0 Multimedia controller: Philips Semiconductors SAA7133/SAA7135
+>         Video Broadcast Decoder (rev d1)
+>         Subsystem: Pinnacle Systems Inc. PCTV 110i (saa7133)
+>         Kernel driver in use: saa7134
+>         Kernel modules: saa7134
 > 
-> The final thing is not a question, it's actually something that works: 
-> the remote. It's the same one as comes with the other Hybrid XS 
-> (0ccd:0042), adding these two lines to the definition of this card in 
-> em28xx-cards.c makes it work:
-> 
-> 		.ir_codes       = &ir_codes_terratec_cinergy_xs_table,
-> 		.xclk           = EM28XX_XCLK_FREQUENCY_12MHZ,
-> 
-> 
-> Any pointers to solving my issues (analog audio, dvb) appreciated. I can 
-> test patches, I can give ssh access to my machine if it helps. There's 
-> even a Windows install on this machine, so USB sniffing of the Windows 
-> driver is possible, I just need instructions on what exactly to do.
-> Dmesg output for this device is attached.
-> 
-> 
-> Regards,
-> Uroš
+> if you need i'll provide more information.
+> please, CC me on reply.
 
-> usb 1-4: new high speed USB device using ehci_hcd and address 6
-> usb 1-4: configuration #1 chosen from 1 choice
-> Linux video capture interface: v2.00
-> em28xx: New device TerraTec Electronic GmbH Cinergy Hybrid T USB XS (2882) @ 480 Mbps (0ccd:005e, interface 0, class 0)
-> em28xx #0: chip ID is em2882/em2883
-> em28xx #0: i2c eeprom 00: 1a eb 67 95 cd 0c 5e 00 d0 12 5c 03 9e 40 de 1c
-> em28xx #0: i2c eeprom 10: 6a 34 27 57 46 07 01 00 00 00 00 00 00 00 00 00
-> em28xx #0: i2c eeprom 20: 46 00 01 00 f0 10 31 00 b8 00 14 00 5b 1e 00 00
-> em28xx #0: i2c eeprom 30: 00 00 20 40 20 6e 02 20 10 01 00 00 00 00 00 00
-> em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 34 03 54 00 65 00
-> em28xx #0: i2c eeprom 70: 72 00 72 00 61 00 54 00 65 00 63 00 20 00 45 00
-> em28xx #0: i2c eeprom 80: 6c 00 65 00 63 00 74 00 72 00 6f 00 6e 00 69 00
-> em28xx #0: i2c eeprom 90: 63 00 20 00 47 00 6d 00 62 00 48 00 00 00 40 03
-> em28xx #0: i2c eeprom a0: 43 00 69 00 6e 00 65 00 72 00 67 00 79 00 20 00
-> em28xx #0: i2c eeprom b0: 48 00 79 00 62 00 72 00 69 00 64 00 20 00 54 00
-> em28xx #0: i2c eeprom c0: 20 00 55 00 53 00 42 00 20 00 58 00 53 00 20 00
-> em28xx #0: i2c eeprom d0: 28 00 32 00 38 00 38 00 32 00 29 00 00 00 1c 03
-> em28xx #0: i2c eeprom e0: 30 00 36 00 30 00 39 00 30 00 32 00 30 00 31 00
-> em28xx #0: i2c eeprom f0: 33 00 38 00 34 00 33 00 00 00 00 00 00 00 00 00
-> em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x7713bfbe
-> em28xx #0: EEPROM info:
-> em28xx #0:      AC97 audio (5 sample rates)
-> em28xx #0:      500mA max power
-> em28xx #0:      Table at 0x27, strings=0x409e, 0x1cde, 0x346a
-> em28xx #0: Identified as Terratec Hybrid XS (em2882) (card=55)
-> em28xx #0:
-> 
-> em28xx #0: The support for this board weren't valid yet.
-> em28xx #0: Please send a report of having this working
-> em28xx #0: not to V4L mailing list (and/or to other addresses)
-> 
-> tvp5150 4-005c: chip found @ 0xb8 (em28xx #0)
-> tuner 4-0061: chip found @ 0xc2 (em28xx #0)
-> xc2028 4-0061: creating new instance
-> xc2028 4-0061: type set to XCeive xc2028/xc3028 tuner
-> usb 1-4: firmware: requesting xc3028-v27.fw
-> xc2028 4-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
-> xc2028 4-0061: Loading firmware for type=BASE (1), id 0000000000000000.
-> xc2028 4-0061: Loading firmware for type=(0), id 000000000000b700.
-> SCODE (20000000), id 000000000000b700:
-> xc2028 4-0061: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000), id 0000000000008000.
-> em28xx #0: Config register raw data: 0xd0
-> em28xx #0: AC97 vendor ID = 0xffffffff
-> em28xx #0: AC97 features = 0x6a90
-> em28xx #0: Empia 202 AC97 audio processor detected
-> tvp5150 4-005c: tvp5150am1 detected.
-> em28xx #0: v4l2 driver version 0.1.2
-> em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
-> usbcore: registered new interface driver em28xx
-> em28xx driver loaded
-> em28xx-audio.c: probing for em28x1 non standard usbaudio
-> em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
-> Em28xx: Initialized (Em28xx Audio Extension) extension
-> tvp5150 4-005c: tvp5150am1 detected.
-> xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
-> xc2028 4-0061: Loading firmware for type=(0), id 0000000100000007.
-> xc2028 4-0061: Loading SCODE for type=MONO SCODE HAS_IF_5320 (60008000), id 0000000f00000007.
+This would have best been posted to linux-media... Cc'd.
 
+I think this would be fixed by the following patch:
+http://patchwork.kernel.org/patch/45707/
 
---ReaqsoxgOBHFXBhH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="hybrid_xs_em2882-dvb.diff"
+Can you please give it a try?
 
-diff -r 29e4ba1a09bc linux/drivers/media/video/em28xx/em28xx-cards.c
---- a/linux/drivers/media/video/em28xx/em28xx-cards.c	Sat Sep 19 09:45:22 2009 -0300
-+++ b/linux/drivers/media/video/em28xx/em28xx-cards.c	Mon Sep 21 19:59:50 2009 +0200
-@@ -1442,10 +1442,8 @@
- 		.tuner_type   = TUNER_XC2028,
- 		.tuner_gpio   = default_tuner_gpio,
- 		.decoder      = EM28XX_TVP5150,
--#if 0 /* FIXME: add an entry at em28xx-dvb */
- 		.has_dvb      = 1,
- 		.dvb_gpio     = hauppauge_wintv_hvr_900_digital,
--#endif
- 		.input        = { {
- 			.type     = EM28XX_VMUX_TELEVISION,
- 			.vmux     = TVP5150_COMPOSITE0,
-@@ -2119,6 +2117,7 @@
- 	switch (dev->model) {
- 	case EM2880_BOARD_EMPIRE_DUAL_TV:
- 	case EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900:
-+	case EM2882_BOARD_TERRATEC_HYBRID_XS:
- 		ctl->demod = XC3028_FE_ZARLINK456;
- 		break;
- 	case EM2880_BOARD_TERRATEC_HYBRID_XS:
-diff -r 29e4ba1a09bc linux/drivers/media/video/em28xx/em28xx-dvb.c
---- a/linux/drivers/media/video/em28xx/em28xx-dvb.c	Sat Sep 19 09:45:22 2009 -0300
-+++ b/linux/drivers/media/video/em28xx/em28xx-dvb.c	Mon Sep 21 19:59:50 2009 +0200
-@@ -494,6 +494,7 @@
- 		}
- 		break;
- 	case EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900:
-+	case EM2882_BOARD_TERRATEC_HYBRID_XS:
- 	case EM2880_BOARD_EMPIRE_DUAL_TV:
- 		dvb->frontend = dvb_attach(zl10353_attach,
- 					   &em28xx_zl10353_xc3028_no_i2c_gate,
+If I am correct then only kernel 2.6.31 would be affected, 2.6.30
+wouldn't be.
 
---ReaqsoxgOBHFXBhH--
+-- 
+Jean Delvare
