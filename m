@@ -1,74 +1,227 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:18588 "EHLO mga02.intel.com"
+Received: from mail1.radix.net ([207.192.128.31]:50222 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752499AbZI0OaY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Sep 2009 10:30:24 -0400
-From: "Yu, Jinlu" <jinlu.yu@intel.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Sun, 27 Sep 2009 22:30:49 +0800
-Subject: RE: [PATCH 0/5] V4L2 patches for Intel Moorestown Camera Imaging
-Message-ID: <037F493892196B458CD3E193E8EBAD4F01ED97460C@pdsmsx502.ccr.corp.intel.com>
-References: <037F493892196B458CD3E193E8EBAD4F01ED6EEE10@pdsmsx502.ccr.corp.intel.com>
- <20090924084448.76bf8ff1@pedra.chehab.org>
-In-Reply-To: <20090924084448.76bf8ff1@pedra.chehab.org>
-Content-Language: en-US
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+	id S1753024AbZIPDXS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Sep 2009 23:23:18 -0400
+Subject: Re: tuner, code for discuss
+From: Andy Walls <awalls@radix.net>
+To: Michael Krufky <mkrufky@kernellabs.com>
+Cc: hermann pitton <hermann-pitton@arcor.de>,
+	Dmitri Belimov <d.belimov@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	video4linux-list@redhat.com,
+	linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <303a8ee30909142155n36bdf40fpb5675361bce69a62@mail.gmail.com>
+References: <20090819160700.049985b5@glory.loctelecom.ru>
+	 <37219a840908250940m3393f73ftbaa28639ca0f93cd@mail.gmail.com>
+	 <20090910152510.6970f8ab@glory.loctelecom.ru>
+	 <303a8ee30909140555y32d86999x5b4aaf7417fba293@mail.gmail.com>
+	 <20090915140715.2b9ea890@glory.loctelecom.ru>
+	 <303a8ee30909142118h6808a249o2cb22570fca8dfd4@mail.gmail.com>
+	 <1252989796.3250.72.camel@pc07.localdom.local>
+	 <303a8ee30909142155n36bdf40fpb5675361bce69a62@mail.gmail.com>
+Content-Type: text/plain
+Date: Tue, 15 Sep 2009 23:25:33 -0400
+Message-Id: <1253071533.7816.35.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGksIE1hdXJvDQoNClRoYW5rIHlvdSBmb3IgeW91ciBzdWdnZXN0aW9uIG9uIHRoaXMuDQoNCk5v
-dyBJIGhhdmUgYW5vdGhlciBwcm9ibGVtLiBUaGUgSVNQIG5lZWRzIHRoZSBmb2xsb3dpbmcgcGFy
-YW1ldGVycyBvZiB0aGUgc2Vuc29yIHRvIHNldCB0aGUgYWNxdWlzaXRpb24gaW50ZXJmYWNlLCBi
-dXQgSSBjYW4gbm90IGZpbmQgYSBzdWl0YWJsZSBzdWJkZXYgaW9jdGxzIHRvIGdldCB0aGVtIGZy
-b20gc2Vuc29yIGRyaXZlci4gDQoNCmJ1c193aWR0aDsgd2lkdGggb2YgdGhlIGJ1c3MgY29ubmVj
-dGluZyBzZW5zb3IgYW5kIElTUC4NCmZpZWxkX3NlbDsgZmllbGQgc2VsZWN0aW9uLCBldmVuIG9y
-IG9kZC4NCnljc2VxOyBZQ2JDciBzZXF1ZW5jZSwgWUNiQ3Igb3IgWUNyQ2Igb3IgQ2JZQ3JZIG9y
-IENyWUNiWQ0KY29udjQyMjsgc3Vic2FtcGxpbmcgdHlwZSwgY28tc2l0ZWQgNDo0OjQgb3Igbm9u
-LWNvc2l0ZWQgNDo0OjQgb3IgY29sb3IgaW50ZXJwb2xhdGlvbg0KYnBhdDsgYmF5ZXIgc2FtcGxp
-bmcgc2VxdWVuY2UsIFJHUkcgR0JHQiBvciBHUkdSIEJHQkcgb3IgLi4uDQpocG9sOyBob3Jpem9u
-dGFsIHN5bmMgcG9sYXJpdHkNCnZwb2w7IHZlcnRpY2FsIHN5bmMgcG9sYXJpdHkNCmVkZ2U7IHNh
-bXBsaW5nIGVkZ2UNCg0KQmVzdCBSZWdhcmRzDQpKaW5sdSBZdQ0KVU1HIFVQU0cgUFJDDQpJTkVU
-OiA4NzU4IDE2MDMNClRFTDogIDg2IDEwIDgyMTcgMTYwMw0KRkFYOiAgODYgMTAgODI4NiAxNDAw
-DQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogTWF1cm8gQ2FydmFsaG8gQ2hlaGFi
-IFttYWlsdG86bWNoZWhhYkBpbmZyYWRlYWQub3JnXSANClNlbnQ6IDIwMDnE6jnUwjI0yNUgMTk6
-NDUNClRvOiBZdSwgSmlubHUNCkNjOiBsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcNClN1Ympl
-Y3Q6IFJlOiBbUEFUQ0ggMC81XSBWNEwyIHBhdGNoZXMgZm9yIEludGVsIE1vb3Jlc3Rvd24gQ2Ft
-ZXJhIEltYWdpbmcNCg0KRW0gVGh1LCAyNCBTZXAgMjAwOSAxOToyMTo0MCArMDgwMA0KIll1LCBK
-aW5sdSIgPGppbmx1Lnl1QGludGVsLmNvbT4gZXNjcmV2ZXU6DQoNCj4gSGksIEhhbnMvR3Vlbm5h
-ZGkNCj4gDQo+IEkgYW0gbW9kaWZ5aW5nIHRoZXNlIGRyaXZlcnMgdG8gY29tcGx5IHdpdGggdjRs
-MiBmcmFtZXdvcmsuIEkgaGF2ZSBmaW5pc2hlZCByZXBsYWNpbmcgb3VyIGJ1ZmZlciBtYW5hZ2lu
-ZyBjb2RlIHdpdGggdXRpbGl0eSBmdW5jdGlvbiBmcm9tIHZpZGVvYnVmLWNvcmUuYyBhbmQgdmlk
-ZW9idWYtZG1hLWNvbnRpZy5jLiBOb3cgSSBhbSB3b3JraW5nIG9uIHRoZSBzdWJkZXYuIE9uZSB0
-aGluZyBJIGFtIHN1cmUgaXMgdGhhdCBlYWNoIHNlbnNvciBzaG91bGQgYmUgcmVnaXN0ZXJlZCBh
-cyBhIHY0bDJfc3ViZGV2IGFuZCBJU1AgKEltYWdlIFNpZ25hbCBQcm9jZXNzb3IpIGlzIHJlZ2lz
-dGVyZWQgYXMgYSB2NGwyX2RldmljZSBhY3RpbmcgYXMgdGhlIGJyaWRnZSBkZXZpY2UuIA0KPiAN
-Cj4gQnV0IHdlIGhhdmUgdHdvIHdheXMgdG8gZGVhbCB3aXRoIHRoZSByZWxhdGlvbnNoaXAgb2Yg
-c2Vuc29yIGFuZCBJU1AsIGFuZCB3ZSBkb24ndCBrbm93IHdoaWNoIG9uZSBpcyBiZXR0ZXIuIENv
-dWxkIHlvdSBoZWxwIG1lIG9uIHRoaXM/DQo+IA0KPiBOby4xLiBSZWdpc3RlciB0aGUgSVNQIGFz
-IGEgdmlkZW9fZGV2aWNlICgvZGV2L3ZpZGVvMCkgYW5kIHRyZWF0IGVhY2ggb2YgdGhlIHNlbnNv
-ciAoU09DIGFuZCBSQVcpIGFzIGFuIGlucHV0IG9mIHRoZSBJU1AuIElmIEkgd2FudCB0byBjaGFu
-Z2UgdGhlIHNlbnNvciwgdXNlIHRoZSBWSURJT0NfU19JTlBVVCB0byBjaGFuZ2UgaW5wdXQgZnJv
-bSBzZW5zb3IgQSB0byBzZW5zb3IgQi4gQnV0IEkgaGF2ZSBhIGNvbmNlcm4gYWJvdXQgdGhpcyBp
-b2N0bC4gU2luY2UgSSBkaWRuJ3QgZmluZCBhbnkgY29kZSByZWxhdGVkIEhXIHBpcGVsaW5lIHN0
-YXR1cyBjaGVja2luZyBhbmQgSFcgcmVnaXN0ZXIgc2V0dGluZyBpbiB0aGUgaW1wbGVtZW50IG9m
-IHRoaXMgaW9jdGwgKGUuZy4gdmlub19zX2lucHV0IGluIC9kcml2ZXJzL21lZGlhL3ZpZGVvL3Zp
-bm8uYykuIFNvIGRvbid0IEkgaGF2ZSB0byBzdHJlYW0tb2ZmIHRoZSBIVyBwaXBlbGluZSBhbmQg
-Y2hhbmdlIHRoZSBIVyByZWdpc3RlciBzZXR0aW5nIGZvciB0aGUgbmV3IGlucHV0PyBPciBpcyBp
-dCBhcHBsaWNhdGlvbidzIHJlc3BvbnNpYmlsaXR5IHRvIHN0cmVhbS1vZmYgdGhlIHBpcGVsaW5l
-IGFuZCByZW5lZ290aWF0ZSB0aGUgcGFyYW1ldGVycyBmb3IgdGhlIG5ldyBpbnB1dD8NCj4gDQo+
-IE5vLjIuIENvbWJpbmUgdGhlIFNPQyBzZW5zb3IgdG9nZXRoZXIgd2l0aCB0aGUgSVNQIGFzIENo
-YW5uZWwgT25lIGFuZCByZWdpc3RlciBpdCBhcyAvZGV2L3ZpZGVvMCwgYW5kIGNvbWJpbmUgdGhl
-IFJBVyBzZW5zb3IgdG9nZXRoZXIgd2l0aCB0aGUgSVNQIGFzIENoYW5uZWwgVHdvIGFuZCByZWdp
-c3RlciBpdCBhcyAvZGV2L3ZpZGVvMS4gU3VyZWx5LCBvbmx5IG9uZSBjaGFubmVsIHdvcmtzIGF0
-IGEgY2VydGFpbiB0aW1lIGR1ZSB0byBIVyByZXN0cmljdGlvbi4gV2hlbiBJIHdhbnQgdG8gY2hh
-bmdlIHRoZSBzZW5zb3IgKGUuZy4gZnJvbSBTT0Mgc2Vuc29yIHRvIFJBVyBzZW5zb3IpLCBqdXN0
-IGNsb3NlIC9kZXYvdmlkZW8wIGFuZCBvcGVuIC9kZXYvdmlkZW8xLg0KDQpUaGUgYmV0dGVyIHNl
-ZW1zIHRvIGJlIE5vLiAxLiBBcyB5b3UgbmVlZCB0byByZS1uZWdvdGlhdGUgcGFyYW1ldGVycyBm
-b3INCnN3aXRjaGluZyBmcm9tIG9uZSBzZW5zb3IgdG8gYW5vdGhlciwgaWYgc29tZSBhcHAgdHJp
-ZXMgdG8gY2hhbmdlIGZyb20gb25lDQppbnB1dCB0byBhbm90aGVyIHdoaWxlIHN0cmVhbWluZywg
-eW91IHNob3VsZCBqdXN0IHJldHVybiAtRUJVU1ksIGlmIGl0IGlzIG5vdA0KcG9zc2libGUgdG8g
-c3dpdGNoIChmb3IgZXhhbXBsZSwgaWYgdGhlIHNlbGVjdGVkIGZvcm1hdC9yZXNvbHV0aW9uL2Zy
-YW1lIHJhdGUNCmlzIGluY29tcGF0aWJsZSkuDQoNCg0KDQpDaGVlcnMsDQpNYXVybw0K
+On Tue, 2009-09-15 at 00:55 -0400, Michael Krufky wrote:
+> On Tue, Sep 15, 2009 at 12:43 AM, hermann pitton
+> <hermann-pitton@arcor.de> wrote:
+> >
+> > Am Dienstag, den 15.09.2009, 00:18 -0400 schrieb Michael Krufky:
+> >> On Tue, Sep 15, 2009 at 12:07 AM, Dmitri Belimov <d.belimov@gmail.com> wrote:
+> >> > On Mon, 14 Sep 2009 08:55:22 -0400
+> >> > Michael Krufky <mkrufky@kernellabs.com> wrote:
+> >> >
+> >> >> On Thu, Sep 10, 2009 at 1:25 AM, Dmitri Belimov <d.belimov@gmail.com>
+> >> >> wrote:
+> >> >> > Hi All
+> >> >> >
+> >> >> > This is my next patch.
+> >> >> >
+> >> >> > Changes:
+> >> >> > 1. By default charge pump is ON
+> >> >> > 2. For radio mode charge pump set to OFF
+> >> >> > 3. Set correct AGC value in radio mode
+> >> >> > 4. Add control gain of AGC.
+> >> >> > 5. New function simple_get_tv_gain and simple_set_tv_gain for
+> >> >> > read/write gain of AGC. 6. Add some code for control gain from
+> >> >> > saa7134 part. By default this control is OFF 7. When TV card can
+> >> >> > manipulate this control, enable it.
+> >> >> >
+> >> >> > Main changes is control value of AGC TOP in .initdata =
+> >> >> > tua603x_agc112 array. Use this value for set AGC TOP after set freq
+> >> >> > of TV.
+> >> >> >
+> >> >> > I don't understand how to correct call new function for read/write
+> >> >> > value of AGC TOP.
+> >> >> >
+> >> >> > What you think about it??
+> >> >> >
+> >> >>
+> >> >> [patch snipped]
+> >> >>
+> >> >> >
+> >> >> >
+> >> >> > With my best regards, Dmitry.
+> >> >>
+> >> >> Dmitry,
+> >> >>
+> >> >> The direct usage of .initdata and .sleepdata is probably unnecessary
+> >> >> here --  If you trace how the tuner-simple driver works, you'll find
+> >> >> that simply having these fields defined will cause these bytes to be
+> >> >> written at the appropriate moment.
+> >> >>
+> >> >> However, for the actual sake of setting this gain value, I'm not sure
+> >> >> that initdata / sleep data is the right place for it either.  (I know
+> >> >> that I recommended something like this at first, but at the time I
+> >> >> didn't realize that there is a range of six acceptable values for this
+> >> >> field)
+> >> >>
+> >> >> What I would still like to understand is:  Who will be changing this
+> >> >> value?  I see that you've added a control to the saa7134 driver -- is
+> >> >> this to be manipulated from userspace?
+> >> >
+> >> > Yes
+> >> >
+> >> >> Under what conditions will somebody want to change this value?
+> >> >
+> >> > for SECAM with strong signal we have wide white crap on the screen.
+> >> > Need reduce value of AGC TOP.
+> >> >
+> >> > For weak signal need increase value of AGC TOP
+> >> > Ajust value of AGC TOP can get more better image quality.
+> >> >
+> >> >> How will users know that they need to alter this gain value?
+> >> >
+> >> > By default use value from .initdata
+> >> > v4l2-ctl can modify this value or via some plugins for TV wach programm.
+> >> >
+> >> > End-user programm for watch TV IMHO now is very poor.
+> >> >
+> >> > With my best regards, Dmitry.
+> >> >
+> >>
+> >> I have to admit that I am not familiar enough with SECAM myself to see
+> >> this kind of trouble.  For NTSC and PAL, tvtime is a great application
+> >> -- the only shortcoming that bothers me about tvtime is lack of audio
+> >> support.  One must rely on a separate mechanism to hear audio, whether
+> >> it's a patch cable from the tv tuner to the sound board, or a separate
+> >> application decoding DMA audio.  ...but that is not what this email
+> >> thread is about.
+> >>
+> >> As far as simple tuning and analog television viewing goes, tvtime
+> >> rocks.  Is it really that difficult for SECAM users?
+> >>
+> >> In summary, you are telling us that we need to add userspace controls
+> >> to handle gain control, for tuning SECAM.  I am going to have to ask
+> >> for help on this topic from those cc'd on this email.  (Adding Hans
+> >> Verkuil, as I value his opinion for controls and dealing with video
+> >> standards in high regard)
+> >>
+> >> Personally, I don't quite understand why we would need to add such
+> >> controls NOW, while we've supported this video standard for years
+> >> already.  I am not arguing against this in any way, but I dont feel
+> >> like I'm qualified to accept this addition without hearing the
+> >> opinions of others first.
+> >>
+> >> Can somebody help to shed some light?
+> >>
+> >> Cheers,
+> >>
+> >> Mike
+> >
+> > Mike,
+> >
+> > i did discuss this with Dmitri a lot on the list previously.
+> >
+> > I destroyed one of my FM1216ME/I MK3 tuners, searched all websites in
+> > China, to convince him not to do that for the original Philips tuners.
+> >
+> > Andy was also pretty active on it, thanks for your help.
+> >
+> > However, it is for now only about that TCL MK3, using different filters
+> > than the original Philips stuff, and their labs have clear results, that
+> > they can improve SECAM-DK this way for their users.
+> 
+> Thanks for the comment, Hermann.
+> 
+> Do you think there is any way that we can automate this without having
+> to expose an additional user control?
+
+We should automate this.
+
+1. The user will generally be incapable of setting it properly for a
+number of reasons.
+
+2. The tuner modules/subdevs are aware of the standards changes
+via .s_std calls, so they should be able to set the TOP when needed.
+
+3. The TOP also needs to be set for FM radio mode on tuners that support
+FM.
+
+
+Problems with proper automation of this feature:
+
+1. We have many overloaded tuner definitions: a single definition is
+used for multiple tuner models of varying types.  These tuners *may*
+need slightly different TOP settings; thus requiring splitting out to
+separate tuner definitions.  Maybe many won't.
+
+2. Only the manufacturer has the engineering design data to say what the
+proper TOP should be.  That's hard to get for Leading suppliers.  I have
+no idea how much harder it would be for the knockoffs and clones.
+Forget getting the proper values for counterfits.
+
+3. A manufacturer like Dmitry's company can take measurments on
+specimens that have been opened up, but it requires going through a
+range of video input signal levels and a test on a single device from a
+production run may not be representative of the worst case in that tuner
+assembly's design.
+
+4. Analog OTA is DEAD in the US; cable will follow in 2 years or so.  My
+personal level of caring about analog RF tuners is low.
+
+
+> If you believe that it's necessary, I am fine with adding this, but I
+> will need Mauro to agree on it as well -- that's why I'm asking for
+> some argument points.
+
+
+
+> Some questions that he might ask -- why do we need this in the saa7134
+> driver but not the other drivers?  Is this specific to this TCL MK3
+> only?  Could doing this help to improve SECAM support for users of
+> other tuners?
+
+This is about optimizing receiver system nosie figure under a range of
+RF signal levels.  The losses before the first gain stage dominate the
+noise figure, and the gain of the first stage mitigates the noise
+contributions of the components behind it.  The higher the gain you can
+maintain in the first stage without clipping/distortion, the better your
+overall receiver noise figure, and the better your SNR.   The worst
+thing that can happen is a strong signal coming in and the TOP being set
+to high (I think - I'm tired), so that the signal experiences non-linear
+distortion in the first stage (Osc/Mixer and IF amplifier). 
+
+Here's a quick tutorial on the concept:
+http://www.comsec.com/usrp/microtune/NF_tutorial.pdf
+
+This is sometimes a problem that's *not* solvable with TOP settings for
+some tuners, as the AGC signal from the sencond stage (IF demodulator)
+is not fed to the first stage's AGC.  It all depends on how the
+manufacturer wired up the tuner internals.
+
+Regards,
+Andy
+
+> Cheers,
+> 
+> Mike
+> --
+
