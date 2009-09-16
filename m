@@ -1,54 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bamako.nerim.net ([62.4.17.28]:53652 "EHLO bamako.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753729AbZIPG5D convert rfc822-to-8bit (ORCPT
+Received: from smtp112.mail.ukl.yahoo.com ([77.238.184.50]:30217 "HELO
+	smtp112.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1759068AbZIPNPc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Sep 2009 02:57:03 -0400
-Date: Wed, 16 Sep 2009 08:57:01 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: =?UTF-8?B?UGF3ZcWC?= Sikora <pluto@agmk.net>
-Cc: linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [2.6.31] ir-kbd-i2c oops.
-Message-ID: <20090916085701.6e883600@hyperion.delvare>
-In-Reply-To: <200909160300.28382.pluto@agmk.net>
-References: <200909160300.28382.pluto@agmk.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Wed, 16 Sep 2009 09:15:32 -0400
+Message-ID: <4AB0E373.3080307@yahoo.it>
+Date: Wed, 16 Sep 2009 15:09:07 +0200
+From: SebaX75 <sebax75@yahoo.it>
+MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Pinnacle 320e (em28xx/xc2028): scan finds just first
+ channel
+References: <4AAB74BC.9050508@pragl.cz> <829197380909120633o8b9e0e2i2b1295cc054afc14@mail.gmail.com>
+In-Reply-To: <829197380909120633o8b9e0e2i2b1295cc054afc14@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pawel,
+On 12/09/2009 15:33, Devin Heitmueller has wrote:
+> On Sat, Sep 12, 2009 at 6:15 AM, Miroslav Pragl - mailing lists
+> <lists.subscriber@pragl.cz>  wrote:
+>> Hello,
+>> I've compiled and installed latest v4l-dvb and dvb-apps, extracted xceive
+>> firmware, so far so good. Distro is Fedora 11, x64 (2.6.30.5-43.fc11.x86_64)
+>>
+>> Unfortunately scan finds only the first channel:
+> <snip>
+>
+> Hello Miroslav,
+>
+> Are you absolutely sure you installed the latest code, including "make
+> unload" to unload the currently running modules?  I fixed this exact
+> regression back in June, so I would be extremely surprised if you are
+> really seeing this in the latest code.
+>
+> I would suggest using the following commands, and then reboot:
+>
+> <unplug device>
+> hg clone http://linuxtv.org/hg/v4l-dvb
+> cd v4l-dvb
+> make&&  make install&&  make unload
+> reboot
+> <plug in device>
+>
+> Then see if it still happens.
+>
+> Cheers,
+>
+> Devin
+>
 
-On Wed, 16 Sep 2009 03:00:28 +0200, Paweł Sikora wrote:
-> the latest 2.6.31 kernel oopses in ir-kbd-i2c on my box:
-> afaics the 2.6.28.10 is also affected.
-> 
-> http://imgbin.org/index.php?page=image&id=776
-> http://imgbin.org/index.php?page=image&id=777
-> http://imgbin.org/index.php?page=image&id=778
-> 
-> installed pinnacle tv card with infra-red receiver:
-> 
-> 05:00.0 Multimedia controller: Philips Semiconductors SAA7133/SAA7135
->         Video Broadcast Decoder (rev d1)
->         Subsystem: Pinnacle Systems Inc. PCTV 110i (saa7133)
->         Kernel driver in use: saa7134
->         Kernel modules: saa7134
-> 
-> if you need i'll provide more information.
-> please, CC me on reply.
+Hi Devin,
+I'm the person that has joined yesterday night on IRC channel to talk 
+with you about this post.
 
-This would have best been posted to linux-media... Cc'd.
+During July, I've already talked with you about a problem 
+(http://www.mail-archive.com/linux-media@vger.kernel.org/msg07728.html), 
+but I was new and not very able to do debug and explain the problem with 
+good test case.
+After two months of tests and 3 adapters used (Hauppauge Nova-T, a china 
+generic Intel CE9500B1 and Pinnable Hybrid Stick 320E 
+EEPROM-ID=0x9567eb1a, EEPROM-hash=0xb8846b20 - only this one don't 
+work), I've more information for you.
 
-I think this would be fixed by the following patch:
-http://patchwork.kernel.org/patch/45707/
+My configuration is very similar to Miroslav, Fedora 11 with kernel 
+2.6.30.5-43.fc11.i686.PAE; v4l-dvb tree downloaded yesterday 
+(15/09/2009) and I use scandvb to scan the channels. I've tryed your 
+repository too, em28xx-vbi3, but it seems the same. The driver compile 
+without problem, the system is rebooted every time I recompile it, 
+modules are inserted without options and dmesg doesn't show any errors 
+(http://pastebin.com/f340bf982).
 
-Can you please give it a try?
+Now the problem, very similar to Miroslav if MUX transmit only one 
+channel; during tuning, the DVB-T stop on first MUX tuned and all MUX 
+found after this one are not tuned and channels are not recognized.
+During tests, I've seen that if I change the MUX order in input file for 
+scandvb, I can get channels list tuned from first MUX... after more 
+tuning sessions to compile the list, the problem persist during normal 
+view of transmission...
 
-If I am correct then only kernel 2.6.31 would be affected, 2.6.30
-wouldn't be.
+If you need more info ask to me, I'll be very happy to help you; if for 
+you is useful, I've saved a tuning session with usbsnoop from windows 
+and I've not done this for linux, but if you need it I can do (I need 
+some time to do this because I don't know where to start).
 
--- 
-Jean Delvare
+Thanks for your support,
+Sebastian
