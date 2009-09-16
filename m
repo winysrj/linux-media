@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.5])
-	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n88HjP2L011184
-	for <video4linux-list@redhat.com>; Tue, 8 Sep 2009 13:45:25 -0400
-Received: from QMTA05.westchester.pa.mail.comcast.net
-	(qmta05.westchester.pa.mail.comcast.net [76.96.62.48])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n88HjCU0021933
-	for <video4linux-list@redhat.com>; Tue, 8 Sep 2009 13:45:13 -0400
-Received: from rray2 (rray2 [127.0.0.1])
-	by rray2.comcast.net (8.13.8/8.13.8) with ESMTP id n88Hj7bK001691
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <video4linux-list@redhat.com>; Tue, 8 Sep 2009 12:45:11 -0500
-Date: Tue, 8 Sep 2009 12:45:07 -0500 (CDT)
-From: rray_1@comcast.net
-To: video4linux-list@redhat.com
-Message-ID: <alpine.LRH.2.00.0909081237170.4833@rray2>
+Received: from mx1.redhat.com (ext-mx06.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.10])
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n8G4kkYW010660
+	for <video4linux-list@redhat.com>; Wed, 16 Sep 2009 00:46:46 -0400
+Received: from smtp130.mail.ukl.yahoo.com (smtp130.mail.ukl.yahoo.com
+	[77.238.184.61])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n8G4kTDT011555
+	for <video4linux-list@redhat.com>; Wed, 16 Sep 2009 00:46:30 -0400
+Message-ID: <4AB06DA9.80307@yahoo.es>
+Date: Wed, 16 Sep 2009 06:46:33 +0200
+From: "Carlos (listas)" <carloscasbas@yahoo.es>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
-Subject: NTSC/ATSC device recommendation
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
+Subject: Native library for linux video
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,13 +27,15 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I would like to purchase a NTSC/ATSC device that is functional under Linux
-MY only requirement is receiving FTA broadcast
-Would y'all recommend a USB device or better to stick with a pci device
-I have followed this list and have only become more confused
+Hello,
 
-Thanks
-Richard
+    I use v4l2 to capture video frames from a capture device and I need 
+generate a movie file (avi, mpg, etc). Is there a native library in 
+linux to do it? ¿I need to install a extern library (ffmpeg, gstreamer, 
+etc)?
+
+Thanks. Carlos.
+ 
 
 --
 video4linux-list mailing list
