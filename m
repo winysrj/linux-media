@@ -1,77 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.ispras.ru ([83.149.198.201]:53057 "EHLO smtp.ispras.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750827AbZIJP1j (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Sep 2009 11:27:39 -0400
-Content-Disposition: inline
-From: iceberg <strakh@ispras.ru>
-To: Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: Re: [PATCH] fix lock imbalances in /drivers/media/video/cafe_ccic.c
-Date: Thu, 10 Sep 2009 19:29:07 +0000
+Received: from smtp132.mail.ukl.yahoo.com ([77.238.184.63]:20006 "HELO
+	smtp132.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1759947AbZIPUfQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Sep 2009 16:35:16 -0400
+Message-ID: <4AB14C05.7010305@yahoo.it>
+Date: Wed, 16 Sep 2009 22:35:17 +0200
+From: SebaX75 <sebax75@yahoo.it>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Pinnacle 320e (em28xx/xc2028): scan finds just first
+ 	channel
+References: <4AAB74BC.9050508@pragl.cz>	 <829197380909120633o8b9e0e2i2b1295cc054afc14@mail.gmail.com>	 <4AB0E373.3080307@yahoo.it> <829197380909160842j4cc1e8ebtb14491e5d421019@mail.gmail.com>
+In-Reply-To: <829197380909160842j4cc1e8ebtb14491e5d421019@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <200909101929.08127.strakh@ispras.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In ./drivers/media/video/cafe_ccic.c, in function cafe_pci_probe: 
-Mutex must be unlocked before exit
-	1. On paths starting with mutex lock in line 1912, then continuing in lines: 
-1929, 1936 (goto unreg) and 1940 (goto iounmap) . 
-	2. On path starting in line 1971 mutex lock, and then continuing in line 1978 
-(goto out_smbus) mutex.
+Devin Heitmueller has wrote:
+> On Wed, Sep 16, 2009 at 9:09 AM, SebaX75 <sebax75@yahoo.it> wrote:
+>> Hi Devin,
+>> I'm the person that has joined yesterday night on IRC channel to talk with
+>> you about this post.
+>>
+>> During July, I've already talked with you about a problem
+>> (http://www.mail-archive.com/linux-media@vger.kernel.org/msg07728.html), but
+>> I was new and not very able to do debug and explain the problem with good
+>> test case.
+>> After two months of tests and 3 adapters used (Hauppauge Nova-T, a china
+>> generic Intel CE9500B1 and Pinnable Hybrid Stick 320E EEPROM-ID=0x9567eb1a,
+>> EEPROM-hash=0xb8846b20 - only this one don't work), I've more information
+>> for you.
+>>
+>> My configuration is very similar to Miroslav, Fedora 11 with kernel
+>> 2.6.30.5-43.fc11.i686.PAE; v4l-dvb tree downloaded yesterday (15/09/2009)
+>> and I use scandvb to scan the channels. I've tryed your repository too,
+>> em28xx-vbi3, but it seems the same. The driver compile without problem, the
+>> system is rebooted every time I recompile it, modules are inserted without
+>> options and dmesg doesn't show any errors (http://pastebin.com/f340bf982).
+>>
+>> Now the problem, very similar to Miroslav if MUX transmit only one channel;
+>> during tuning, the DVB-T stop on first MUX tuned and all MUX found after
+>> this one are not tuned and channels are not recognized.
+>> During tests, I've seen that if I change the MUX order in input file for
+>> scandvb, I can get channels list tuned from first MUX... after more tuning
+>> sessions to compile the list, the problem persist during normal view of
+>> transmission...
+>>
+>> If you need more info ask to me, I'll be very happy to help you; if for you
+>> is useful, I've saved a tuning session with usbsnoop from windows and I've
+>> not done this for linux, but if you need it I can do (I need some time to do
+>> this because I don't know where to start).
+>>
+>> Thanks for your support,
+>> Sebastian
+>>
+> 
+> Hello Sebastian,
+> 
+> Please do the following:
+> 
+> unplug the device
+> reboot
+> modprobe tuner-xc2028 debug=1
+> plug in the device
+> Make the two tuning attempts so that the failure gets logged.
+> Send me the full dmesg output (making sure it includes from the time
+> the device was connected).
+> 
+> Thanks,
+> 
+> Devin
 
-Fix lock imbalances in function cafe_pci_probe.
-Found by Linux Driver Verification project.
+Hi Devin,
+I've done the test as you have told and the output results are at 
+http://pastebin.com/f75008ea6.
 
-Signed-off-by: Alexander Strakh <strakh@ispras.ru>
+The dmesg output is divided in three section:
+- insert of device;
+- first tuning section (only first MUX, at 474MHz, was tuned, nothing 
+for 482 or 514MHz);
+- second tuning section (only first MUX, at 514MHz, was tuned, nothing 
+for 482 or 474MHz).
 
----
-diff --git a/./a/drivers/media/video/cafe_ccic.c 
-b/./b/drivers/media/video/cafe_ccic.c
-index c4d181d..2987433 100644
---- a/./a/drivers/media/video/cafe_ccic.c
-+++ b/./b/drivers/media/video/cafe_ccic.c
-@@ -1925,19 +1925,24 @@ static int cafe_pci_probe(struct pci_dev *pdev,
- 	 * Get set up on the PCI bus.
- 	 */
- 	ret = pci_enable_device(pdev);
--	if (ret)
-+	if (ret) {
-+		mutex_unlock(&cam->s_mutex);
- 		goto out_unreg;
-+	}
- 	pci_set_master(pdev);
- 
- 	ret = -EIO;
- 	cam->regs = pci_iomap(pdev, 0, 0);
- 	if (! cam->regs) {
- 		printk(KERN_ERR "Unable to ioremap cafe-ccic regs\n");
-+		mutex_unlock(&cam->s_mutex);
- 		goto out_unreg;
- 	}
- 	ret = request_irq(pdev->irq, cafe_irq, IRQF_SHARED, "cafe-ccic", cam);
--	if (ret)
-+	if (ret) {
-+		mutex_unlock(&cam->s_mutex);
- 		goto out_iounmap;
-+	}
- 	/*
- 	 * Initialize the controller and leave it powered up.  It will
- 	 * stay that way until the sensor driver shows up.
-@@ -1974,8 +1979,10 @@ static int cafe_pci_probe(struct pci_dev *pdev,
- /*	cam->vdev.debug = V4L2_DEBUG_IOCTL_ARG;*/
- 	cam->vdev.v4l2_dev = &cam->v4l2_dev;
- 	ret = video_register_device(&cam->vdev, VFL_TYPE_GRABBER, -1);
--	if (ret)
-+	if (ret) {
-+		mutex_unlock(&cam->s_mutex);
- 		goto out_smbus;
-+	}
- 	video_set_drvdata(&cam->vdev, cam);
- 
- 	/*
+In the tuning sections I've reported input file and screen output for 
+scandvb.
 
+Thanks,
+Sebastian
