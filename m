@@ -1,81 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:49828 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751084AbZIXK7Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Sep 2009 06:59:16 -0400
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com,
-	Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
-Subject: [PATCH 1/2] media: video: pwc: Use kernel's simple_strtol()
-Date: Thu, 24 Sep 2009 13:58:09 +0300
-Message-Id: <1253789890-31262-1-git-send-email-andy.shevchenko@gmail.com>
+Received: from mail.gmx.net ([213.165.64.20]:53255 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1760035AbZIPUif (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Sep 2009 16:38:35 -0400
+Date: Wed, 16 Sep 2009 22:38:35 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: Re: RFCv2: Media controller proposal
+In-Reply-To: <200909162121.16606.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.0909162237250.19291@axis700.grange>
+References: <200909100913.09065.hverkuil@xs4all.nl> <200909120039.50343.hverkuil@xs4all.nl>
+ <20090916151520.53537714@pedra.chehab.org> <200909162121.16606.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+On Wed, 16 Sep 2009, Hans Verkuil wrote:
 
-Change own implementation of pwc_atoi() by simple_strtol(x, NULL, 10).
+> On Wednesday 16 September 2009 20:15:20 Mauro Carvalho Chehab wrote:
+> > 
+> > What's a sub-device?
+> > ====================
+> > 
+> > Well, if we strip v4l2-framework.txt and driver/media from "git grep", we have:
+> > 
+> > For "subdevice", there are several occurences. All of them refers to
+> > subvendor/subdevice PCI ID.
+> > 
+> > For "sub-device": most references also talk about PCI subdevices. On all places
+> > (except for V4L), where a subdevice exists, a kernel device is created.
+> > 
+> > So, basically, only V4L is using sub-device with a different meaning than what's at kernel.
+> > On all other places, a subdevice is just another device.
+> > 
+> > It seems that we have a misconception here: sub-device is just an alias for
+> > "device". 
+> > 
+> > IMO, it is better to avoid using "sub-device", as this cause confusion with the
+> > widely used pci subdevice designation.
+> 
+> We discussed this on the list at the time. I think my original name was
+> v4l2-client. If you can come up with a better name, then I'm happy to do a
+> search and replace.
 
-Signed-off-by: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
-Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
+FWIW, I'm also mostly using the video -host and -client notation in 
+soc-camera.
+
+Thanks
+Guennadi
 ---
- drivers/media/video/pwc/pwc-if.c |   23 +++++++----------------
- 1 files changed, 7 insertions(+), 16 deletions(-)
-
-diff --git a/drivers/media/video/pwc/pwc-if.c b/drivers/media/video/pwc/pwc-if.c
-index f976df4..89b620f 100644
---- a/drivers/media/video/pwc/pwc-if.c
-+++ b/drivers/media/video/pwc/pwc-if.c
-@@ -68,6 +68,7 @@
- #endif
- #include <linux/vmalloc.h>
- #include <asm/io.h>
-+#include <linux/kernel.h>		/* simple_strtol() */
- 
- #include "pwc.h"
- #include "pwc-kiara.h"
-@@ -1916,19 +1917,6 @@ disconnect_out:
- 	unlock_kernel();
- }
- 
--/* *grunt* We have to do atoi ourselves :-( */
--static int pwc_atoi(const char *s)
--{
--	int k = 0;
--
--	k = 0;
--	while (*s != '\0' && *s >= '0' && *s <= '9') {
--		k = 10 * k + (*s - '0');
--		s++;
--	}
--	return k;
--}
--
- 
- /*
-  * Initialization code & module stuff
-@@ -2078,13 +2066,16 @@ static int __init usb_pwc_init(void)
- 				}
- 				else {
- 					/* No type or serial number specified, just a number. */
--					device_hint[i].device_node = pwc_atoi(s);
-+					device_hint[i].device_node =
-+						simple_strtol(s, NULL, 10);
- 				}
- 			}
- 			else {
- 				/* There's a colon, so we have at least a type and a device node */
--				device_hint[i].type = pwc_atoi(s);
--				device_hint[i].device_node = pwc_atoi(colon + 1);
-+				device_hint[i].type =
-+					simple_strtol(s, NULL, 10);
-+				device_hint[i].device_node =
-+					simple_strtol(colon + 1, NULL, 10);
- 				if (*dot != '\0') {
- 					/* There's a serial number as well */
- 					int k;
--- 
-1.5.6.5
-
+Guennadi Liakhovetski
