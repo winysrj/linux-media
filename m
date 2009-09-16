@@ -1,65 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33050 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755977AbZIUOAr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Sep 2009 10:00:47 -0400
-Message-ID: <4AB7870D.3030300@iki.fi>
-Date: Mon, 21 Sep 2009 17:00:45 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from fg-out-1718.google.com ([72.14.220.153]:35240 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752473AbZIPRW3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Sep 2009 13:22:29 -0400
+Received: by fg-out-1718.google.com with SMTP id 22so1251422fge.1
+        for <linux-media@vger.kernel.org>; Wed, 16 Sep 2009 10:22:32 -0700 (PDT)
+Message-ID: <4AB11EF6.3040106@gmail.com>
+Date: Thu, 17 Sep 2009 03:23:02 +1000
+From: Jed <jedi.theone@gmail.com>
 MIME-Version: 1.0
-To: Roman <lists@hasnoname.de>
-CC: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: MSI Digivox mini III Remote Control
-References: <200909202026.27086.lists@hasnoname.de> <20090921115122.GA2269@moon> <4AB77329.5000405@iki.fi> <200909211555.11747.lists@hasnoname.de>
-In-Reply-To: <200909211555.11747.lists@hasnoname.de>
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Hw capabilities of the HVR-2200
+References: <4AAF568D.1070308@gmail.com>
+In-Reply-To: <4AAF568D.1070308@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Roman wrote:
-> Am Monday 21 September 2009 14:35:53 schrieb Antti Palosaari:
->> On 09/21/2009 02:51 PM, Aleksandr V. Piskunov wrote:
->>> Just grab that patch and apply it to the current vl4-dvb, no need to mess
->>> with old repository.
->>> http://linuxtv.org/hg/~anttip/af9015-digivox3_remote/raw-rev/914ded6d921d
->> With this patch remote will not work most likely. But after adding that
->> patch you should see remote events dumped to the /var/log/messages when
->> key is pressed. I need to know which key gives which code. After that I
->> can add correct key mappings to the driver.
->>
->> Antti
-> 
-> I don't get anything else in the logs than this, even with the patch applied:
-> #---
-> Sep 21 15:43:04 Seth usbcore: registered new interface driver dvb_usb_af9015
-> Sep 21 15:43:07 Seth usb 1-5: new high speed USB device using ehci_hcd and 
-> address 4
-> Sep 21 15:43:08 Seth usb 1-5: configuration #1 chosen from 1 choice
-> Sep 21 15:43:08 Seth dvb-usb: found a 'MSI Digi VOX mini III' in cold state, 
-> will try to load a firmware
-> Sep 21 15:43:08 Seth usb 1-5: firmware: requesting dvb-usb-af9015.fw
-> Sep 21 15:43:08 Seth dvb-usb: downloading firmware from 
-> file 'dvb-usb-af9015.fw'
-> Sep 21 15:43:08 Seth dvb-usb: found a 'MSI Digi VOX mini III' in warm state.
-> Sep 21 15:43:08 Seth dvb-usb: will pass the complete MPEG2 transport stream to 
-> the software demuxer.
-> Sep 21 15:43:08 Seth DVB: registering new adapter (MSI Digi VOX mini III)
-> Sep 21 15:43:08 Seth af9013: firmware version:4.95.0
-> Sep 21 15:43:08 Seth DVB: registering adapter 0 frontend 0 (Afatech AF9013 
-> DVB-T)...
-> Sep 21 15:43:08 Seth tda18271 3-00c0: creating new instance
-> Sep 21 15:43:08 Seth TDA18271HD/C1 detected @ 3-00c0
-> Sep 21 15:43:08 Seth dvb-usb: MSI Digi VOX mini III successfully initialized 
-> and connected.
-> Sep 21 15:43:51 Seth [drm] LVDS-8: set mode 1024x768 10
-> #---
-
-For reason or the other there is no any mention about remote polling. 
-Could you enable debug=3 to see what eeprom value is set to remote?
-rmmod dvb-usb-af9015; modprobe dvb-usb-af9015 debug=3;
-
-Antti
--- 
-http://palosaari.fi/
+Jed wrote:
+> **a repost because of earlier issues in getting emails to the list**
+>
+> Hi Kernellabs or anyone involved with driver development of the 
+> HVR-2200...
+>
+> I know this is a loooong way down the priority list of features to be 
+> added, if ever!
+> But I'm wanting to know if the *possibility* is there 'hardware-wise' 
+> for the following:
+>
+> 1) h.263/mpeg4/VC-1/DivX/Xvid hardware encode of A/V-in
+> 2) Component input for the A/V-in
+> 3) Hw encode bypass for A/V-in
+> 4) Is Hw encode purely for A/V-in? (hauppauge's site suggests 
+> otherwise but it may be a typo)
+> 5) If not then questions 1) & 3) also apply to RF-in!
+>
+> Here are the reference cards spec sheets again:
+> http://www.picamatic.com/view/5094357_75016126_P1/
+> http://www.picamatic.com/view/5094364_75016126_P2/
+> http://www.picamatic.com/view/5094375_75016207_P1/
+> http://www.picamatic.com/view/5094373_75016207_P2/
+>
+> I would be proactive in providing feed-back (as needed) for the dev. 
+> of such features.
+>
+> Most Sincerely,
+> Jed
+>
+>
+Just a test feel free to ignore........
