@@ -1,74 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f175.google.com ([209.85.211.175]:46695 "EHLO
-	mail-yw0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752737AbZIGXfn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Sep 2009 19:35:43 -0400
-Received: by ywh5 with SMTP id 5so3993362ywh.4
-        for <linux-media@vger.kernel.org>; Mon, 07 Sep 2009 16:35:46 -0700 (PDT)
-Date: Tue, 8 Sep 2009 09:36:05 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: linux-media@vger.kernel.org, video4linux-list@redhat.com
-Subject: [PATCH] Key filter for BeholdTV cards.
-Message-ID: <20090908093605.25f8c68d@glory.loctelecom.ru>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/W_CCQcf9C1tuLp=eKO7uvLE"
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4734 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754232AbZIQGeg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Sep 2009 02:34:36 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Subject: Re: RFCv2: Media controller proposal
+Date: Thu, 17 Sep 2009 08:34:23 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <200909100913.09065.hverkuil@xs4all.nl> <20090916175043.0d462a18@pedra.chehab.org> <A69FA2915331DC488A831521EAE36FE40155157118@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40155157118@dlee06.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200909170834.23449.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_/W_CCQcf9C1tuLp=eKO7uvLE
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Thursday 17 September 2009 00:28:38 Karicheri, Muralidharan wrote:
+> >
+> >> And as I explained above, a v4l2_subdev just implements an interface. It
+> >has
+> >> no relation to devices. And yes, I'm beginning to agree with you that
+> >subdevice
+> >> was a bad name because it suggested something that it simply isn't.
+> >>
+> >> That said, I also see some advantages in doing this. For statistics or
+> >> histogram sub-devices you can implement a read() call to read the data
+> >> instead of using ioctl. It is more flexible in that respect.
+> >
+> >I think this will be more flexible and will be less complex than creating a
+> >proxy
+> >device. For example, as you'll be directly addressing a device, you don't
+> >need to
+> >have any locking to avoid the risk that different threads accessing
+> >different
+> >sub-devices at the same time would result on a command sending to the wrong
+> >device.
+> >So, both kernel driver and userspace app can be simpler.
+> 
+> 
+> Not really. User application trying to parse the output of a histogram which
+> really will about 4K in size as described by Laurent. Imagine application does lot of parsing to decode the values thrown by the sysfs. Again on different platform, they can be different formats. With ioctl, each of these platforms provides api to access them and it is much simpler to use. Same for configuring IPIPE on DM355/DM365 where there are hundreds of parameters and write a lot of code in sysfs to parse each of these variables. I can see it as a nightmare for user space library or application developer.
 
-Hi All.
+I believe Mauro was talking about normal device nodes, not sysfs.
 
-When fast push-pull button of remote control we can received incorrect
-key code 0x00. Key information from IR decoder has ID of remote control 2 bytes,
-byte of key code and byte of mirror key code.
-Correct data
-0x86 0x6B 0x00 0xFF
+What is a bit more complex in Mauro's scheme is that to get hold of the right
+device node needed to access a sub-device you will need to first get the
+subdev's entity information from the media controller, then go to libudev to
+translate major/minor numbers to an actual device path, and then open that.
 
-Wrong data
-0x86 0x6B 0x00 0x00
+On the other hand, we will have a library available to do this.
 
-This patch added additional test of mirror byte for filtering.
+On balance I think that the kernel implementation will be more complex by
+creating device nodes, although not by much, and that userspace will be
+slightly simpler in the case of using the same mc filehandle in a multi-
+threaded application.
 
-diff -r 2b49813f8482 linux/drivers/media/video/saa7134/saa7134-input.c
---- a/linux/drivers/media/video/saa7134/saa7134-input.c	Thu Sep 03 09:06:34 2009 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-input.c	Mon Sep 07 18:05:54 2009 +1000
-@@ -286,6 +286,10 @@
- 	 * So, skip not our, if disable full codes mode.
- 	 */
- 	if (data[10] != 0x6b && data[11] != 0x86 && disable_other_ir)
-+		return 0;
-+
-+	/* Wrong data decode fix */
-+	if (data[9] != (unsigned char)(~data[8]))
- 		return 0;
- 
- 	*ir_key = data[9];
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+Regards,
 
-With my best regards, Dmitry.
---MP_/W_CCQcf9C1tuLp=eKO7uvLE
-Content-Type: text/x-patch; name=behold_remote.patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=behold_remote.patch
+	Hans
 
-diff -r 2b49813f8482 linux/drivers/media/video/saa7134/saa7134-input.c
---- a/linux/drivers/media/video/saa7134/saa7134-input.c	Thu Sep 03 09:06:34 2009 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-input.c	Mon Sep 07 18:05:54 2009 +1000
-@@ -286,6 +286,10 @@
- 	 * So, skip not our, if disable full codes mode.
- 	 */
- 	if (data[10] != 0x6b && data[11] != 0x86 && disable_other_ir)
-+		return 0;
-+
-+	/* Wrong data decode fix */
-+	if (data[9] != (unsigned char)(~data[8]))
- 		return 0;
- 
- 	*ir_key = data[9];
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
 
---MP_/W_CCQcf9C1tuLp=eKO7uvLE--
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
