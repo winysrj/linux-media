@@ -1,37 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.fouter.net ([87.194.154.38]:49717 "EHLO mail.fouter.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750780AbZIGTbp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Sep 2009 15:31:45 -0400
-Received: from mail.fouter.net (localhost [127.0.0.1])
-	by mail.fouter.net (Postfix at FouterNet) with ESMTP id D48B04102
-	for <linux-media@vger.kernel.org>; Mon,  7 Sep 2009 20:23:44 +0100 (BST)
-Received: from [192.168.46.100] (penguin.lingbrae [192.168.46.100])
-	by mail.fouter.net (Postfix at FouterNet) with ESMTPSA id 9363B40C4
-	for <linux-media@vger.kernel.org>; Mon,  7 Sep 2009 20:23:44 +0100 (BST)
-Message-ID: <4AA55DC0.1010907@fouter.net>
-Date: Mon, 07 Sep 2009 20:23:44 +0100
-From: Dick Middleton <dick@fouter.net>
-Reply-To: dick@fouter.net
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Terratec Cinergy T USB XXS
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from bombadil.infradead.org ([18.85.46.34]:38472 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752322AbZIQMAO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Sep 2009 08:00:14 -0400
+Date: Thu, 17 Sep 2009 08:59:35 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org
+Subject: Re: RFCv2: Media controller proposal
+Message-ID: <20090917085935.34e02c99@pedra.chehab.org>
+In-Reply-To: <200909170835.57106.hverkuil@xs4all.nl>
+References: <200909100913.09065.hverkuil@xs4all.nl>
+	<200909162334.08807.hverkuil@xs4all.nl>
+	<1253139323.3158.28.camel@palomino.walls.org>
+	<200909170835.57106.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em Thu, 17 Sep 2009 08:35:57 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-	Just bought one of these.  It has USB ID: 0xcccd:0x00ab which is not the same 
-product code as mentioned in the wiki 0xcccd:0x0078.
+> On Thursday 17 September 2009 00:15:23 Andy Walls wrote:
+> > On Wed, 2009-09-16 at 23:34 +0200, Hans Verkuil wrote:
+> > > On Wednesday 16 September 2009 22:50:43 Mauro Carvalho Chehab wrote:
+> > > > Em Wed, 16 Sep 2009 21:21:16 +0200
+> > 
+> > > C) in all other cases you only get it if a kernel config option is on. And since
+> > > any advanced controls are still exposed in sysfs you can still change those even
+> > > if the config option was off.
+> > 
+> > That is a user interface and support annoyance.  Either decide to have a
+> > node for a subdevice or don't.  If a distribution wants to supress them,
+> > udev rules could suffice - right?  Changing udev rules is
+> > (theoretically) easier than rebuilding the kernel for most end users.
+> 
+> Good point.
 
-This difference prevents driver from recognising the device.
+I suspect that, in practice, the drivers will talk for themselves: e. g.
+drivers that are used with embedded and that requires extra parameters for
+tweaking will add some callback methods to indicate V4L2 core that they need
+a /dev. Others will not implement those methods and won't have any /dev
+associated.
 
-I see there are others on this list with the same problem.
-
-Does anybody know anything about this and what can be done to get it to work?
-
-Dick
-
-
+Cheers,
+Mauro
