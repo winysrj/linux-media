@@ -1,61 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f195.google.com ([209.85.212.195]:32909 "EHLO
-	mail-vw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754205AbZIDL2K convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Sep 2009 07:28:10 -0400
-Received: by vws33 with SMTP id 33so605498vws.33
-        for <linux-media@vger.kernel.org>; Fri, 04 Sep 2009 04:28:12 -0700 (PDT)
+Received: from mail-ew0-f206.google.com ([209.85.219.206]:61690 "EHLO
+	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752542AbZIQMxk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Sep 2009 08:53:40 -0400
+Received: by ewy2 with SMTP id 2so354340ewy.17
+        for <linux-media@vger.kernel.org>; Thu, 17 Sep 2009 05:53:43 -0700 (PDT)
+Message-ID: <4AB23151.6090409@gmail.com>
+Date: Thu, 17 Sep 2009 14:53:37 +0200
+From: Claes Lindblom <claesl@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20090904112438.15890681@tele>
-References: <1250820538.29546.5.camel@Joe-Laptop.home>
-	 <20090904112438.15890681@tele>
-Date: Fri, 4 Sep 2009 07:28:11 -0400
-Message-ID: <f34657950909040428p433925g330509acd551f29a@mail.gmail.com>
-Subject: Re: [PATCH] sn9c20x: Reduce data usage, make functions static
-From: Brian Johnson <brijohn@gmail.com>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Joe Perches <joe@perches.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: claesl@gmail.com
+Subject: Nova S2 HD scanning problems
+References: <200909100913.09065.hverkuil@xs4all.nl>	<20090916175043.0d462a18@pedra.chehab.org>	<A69FA2915331DC488A831521EAE36FE40155157118@dlee06.ent.ti.com>	<200909170834.23449.hverkuil@xs4all.nl> <20090917091104.34806d1e@pedra.chehab.org>
+In-Reply-To: <20090917091104.34806d1e@pedra.chehab.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jean-Francois,
+Hi all,
+I have just installed my new Nova S2 HD card on ubuntu x86_64, 
+2.6.28-13-generic, changed the
+firmware to version 1.23.86.1 and I have also tried version 1.22.82.0. 
+The result is that I can tune and watch
+channels without any problems but when I try to scan for channels it 
+will not work.
 
-The two red tables actually do contain values greater then 127 so
-would not fit within a s8 variable, the other four i think may have
-only values between -128 and 127 but i haven't gone through and made
-sure of that.
+The card is loaded as adapter 1 so I use the following command to scan 
+with the latest scan-s2
+sudo ./scan-s2 -a 1 -s 0 -l UNIVERSAL dvb-s/Thor-1.0W
 
-Brian
+I have a DisEqC switch but I know it's working since I have a Azurewave 
+AD SP400 card that I have scanned channels before
+and also the card can tune in on both LNB's with szap-s2.
 
-On Fri, Sep 4, 2009 at 5:24 AM, Jean-Francois Moine<moinejf@free.fr> wrote:
-> On Thu, 20 Aug 2009 19:08:58 -0700
-> Joe Perches <joe@perches.com> wrote:
->
->> Compiled, not tested, no hardware
->>
->> Reduces size of object
->>
->> Use s16 instead of int where possible.
->        [snip]
->> -static const int hsv_red_x[] = {
->> +static const s16 hsv_red_x[] = {
->>       41,  44,  46,  48,  50,  52,  54,  56,
->>       58,  60,  62,  64,  66,  68,  70,  72,
->>       74,  76,  78,  80,  81,  83,  85,  87,
->        [snip]
->
-> Hi Joe and Brian,
->
-> I got the patch but I was wondering if such tables could be even
-> smaller with 's8'?
->
-> Cheers.
->
-> --
-> Ken ar c'hentañ |             ** Breizh ha Linux atav! **
-> Jef             |               http://moinejf.free.fr/
->
+Has anyone ideas about the scanning problems?
+
+Dmesg does not output anything.
+Output of scan-s2:
+----------------------------------> Using DVB-S
+ >>> tune to: 11216:vC78S0:S0.0W:24500:
+DVB-S IF freq is 1466000
+WARNING: >>> tuning failed!!!
+ >>> tune to: 11216:vC78S0:S0.0W:24500: (tuning failed)
+DVB-S IF freq is 1466000
+WARNING: >>> tuning failed!!!
+----------------------------------> Using DVB-S2
+ >>> tune to: 11216:vC78S1:S0.0W:24500:
+DVB-S IF freq is 1466000
+WARNING: >>> tuning failed!!!
+ >>> tune to: 11216:vC78S1:S0.0W:24500: (tuning failed)
+DVB-S IF freq is 1466000
+WARNING: >>> tuning failed!!!
+
+
+Regards
+/Claes
+
