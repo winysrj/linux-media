@@ -1,52 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f206.google.com ([209.85.219.206]:58931 "EHLO
-	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752963AbZIOSn0 (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4151 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754545AbZIQGgW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2009 14:43:26 -0400
-Received: by ewy2 with SMTP id 2so748941ewy.17
-        for <linux-media@vger.kernel.org>; Tue, 15 Sep 2009 11:43:29 -0700 (PDT)
+	Thu, 17 Sep 2009 02:36:22 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andy Walls <awalls@radix.net>
+Subject: Re: RFCv2: Media controller proposal
+Date: Thu, 17 Sep 2009 08:35:57 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+References: <200909100913.09065.hverkuil@xs4all.nl> <200909162334.08807.hverkuil@xs4all.nl> <1253139323.3158.28.camel@palomino.walls.org>
+In-Reply-To: <1253139323.3158.28.camel@palomino.walls.org>
 MIME-Version: 1.0
-In-Reply-To: <200909151919.53930.hverkuil@xs4all.nl>
-References: <200909151919.53930.hverkuil@xs4all.nl>
-Date: Tue, 15 Sep 2009 14:43:28 -0400
-Message-ID: <37219a840909151143u3c5a3c11xb6df3f9db7650b32@mail.gmail.com>
-Subject: Re: LPC v4l-dvb mini-summit agenda
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Andy Walls <awalls@radix.net>,
-	Steven Toth <stoth@hauppauge.com>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>,
-	Vaibhav Hiremath <hvaibhav@ti.com>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>,
-	"Iovescu, Magdalena" <m-iovescu1@ti.com>,
-	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Laurent Pinchart <laurent.pinchart@skynet.be>,
-	Hans de Goede <j.w.r.degoede@hhs.nl>,
-	Brandon Philips <brandon@ifup.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200909170835.57106.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 15, 2009 at 1:19 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> - Allow bridge drivers to have better control over DVB frontend operations:
-> http://www.mail-archive.com/linux-media%40vger.kernel.org/msg09183.html
+On Thursday 17 September 2009 00:15:23 Andy Walls wrote:
+> On Wed, 2009-09-16 at 23:34 +0200, Hans Verkuil wrote:
+> > On Wednesday 16 September 2009 22:50:43 Mauro Carvalho Chehab wrote:
+> > > Em Wed, 16 Sep 2009 21:21:16 +0200
+> 
+> > C) in all other cases you only get it if a kernel config option is on. And since
+> > any advanced controls are still exposed in sysfs you can still change those even
+> > if the config option was off.
+> 
+> That is a user interface and support annoyance.  Either decide to have a
+> node for a subdevice or don't.  If a distribution wants to supress them,
+> udev rules could suffice - right?  Changing udev rules is
+> (theoretically) easier than rebuilding the kernel for most end users.
 
-The RFC on the mailing list went well.  I did not intend on discussing
-this further unless somebody has issue with it.  So far, it has
-received a positive response and I intend to request merge at the
-close of the 2.6.32 merge window (pushing upstream merge for 2.6.33)
+Good point.
 
-I dont think this is necessary as a discussion topic, it is
-self-explanatory and already been discussed on the list.
+	Hans
 
- I'd prefer that if anybody has comments, that they discuss this on
-the mailing list NOW, rather than waiting for the conference.
+> 
+> Regards,
+> Andy
+> 
+> 
+> > What do you think about that? I would certainly like to hear what people think
+> > about this.
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> 
+> 
+> 
 
-Of course, I will be available to field any questions, but I do not
-plan to attend the entire "mini-summit"
 
-Regards,
 
-Mike
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
