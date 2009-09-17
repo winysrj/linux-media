@@ -1,100 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web31002.mail.mud.yahoo.com ([68.142.200.165]:27727 "HELO
-	web31002.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751800AbZIZU4O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Sep 2009 16:56:14 -0400
-Message-ID: <94949.68456.qm@web31002.mail.mud.yahoo.com>
-Date: Sat, 26 Sep 2009 13:49:37 -0700 (PDT)
-From: =?iso-8859-1?Q?S=E9rgio_Fortier?= <sergiofortier@yahoo.com.br>
-Subject: EvolutePC TvWay+ USB ISDB-Tb fullseg device support
-To: linux-media@vger.kernel.org
+Received: from smtp4-g21.free.fr ([212.27.42.4]:37495 "EHLO smtp4-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757366AbZIQJS0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Sep 2009 05:18:26 -0400
+Message-ID: <4AB1FEDC.6020308@cynove.com>
+Date: Thu, 17 Sep 2009 11:18:20 +0200
+From: =?ISO-8859-1?Q?Jean-Philippe_Fran=E7ois?= <jp.francois@cynove.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="0-1572355505-1253998177=:68456"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: RFC: V4L - Support for video timings at the input/output	interface
+References: <A69FA2915331DC488A831521EAE36FE401550D0F8E@dlee06.ent.ti.com>	<200909150853.19902.hverkuil@xs4all.nl>	<A69FA2915331DC488A831521EAE36FE40155157076@dlee06.ent.ti.com> <200909162349.24772.hverkuil@xs4all.nl>
+In-Reply-To: <200909162349.24772.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0-1572355505-1253998177=:68456
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hans Verkuil a écrit :
 
-Patch for EvolutePC TvWay+ USB ISDB-Tb fullseg device support=0A=0A=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0A=
-diff -r 6b7617d4a0be linux/drivers/media/dvb/dvb-usb/dib0700_devices.c=0A--=
-- a/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c    Sat Sep 26 13:45:0=
-3 2009 -0300=0A+++ b/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c    S=
-at Sep 26 17:18:45 2009 -0300=0A@@ -1917,6 +1917,7 @@=0A    { USB_DEVICE(US=
-B_VID_DIBCOM,    USB_PID_DIBCOM_STK807XPVR) },=0A    { USB_DEVICE(USB_VID_D=
-IBCOM,    USB_PID_DIBCOM_STK807XP) },=0A    { USB_DEVICE(USB_VID_PIXELVIEW,=
- USB_PID_PIXELVIEW_SBTVD) },=0A+    { USB_DEVICE(USB_VID_EVOLUTEPC, USB_PID=
-_TVWAY_PLUS) },=0A    { 0 }        /* Terminating entry */=0A};=0AMODULE_DE=
-VICE_TABLE(usb, dib0700_usb_id_table);=0A@@ -2422,7 +2423,7 @@=0A          =
-  },=0A        },=0A=0A-        .num_device_descs =3D 2,=0A+        .num_de=
-vice_descs =3D 3,=0A        .devices =3D {=0A            {   "DiBcom STK807=
-xP reference design",=0A                { &dib0700_usb_id_table[62], NULL }=
-,=0A@@ -2432,6 +2433,10 @@=0A                { &dib0700_usb_id_table[63], N=
-ULL },=0A                { NULL },=0A            },=0A+            {   "Evo=
-lutePC TVWay+",=0A+                { &dib0700_usb_id_table[64], NULL },=0A+=
-                { NULL },=0A+            },=0A        },=0A=0A        .rc_i=
-nterval      =3D DEFAULT_RC_INTERVAL,=0Adiff -r 6b7617d4a0be linux/drivers/=
-media/dvb/dvb-usb/dvb-usb-ids.h=0A--- a/linux/drivers/media/dvb/dvb-usb/dvb=
--usb-ids.h    Sat Sep 26 13:45:03 2009 -0300=0A+++ b/linux/drivers/media/dv=
-b/dvb-usb/dvb-usb-ids.h    Sat Sep 26 17:18:45 2009 -0300=0A@@ -61,6 +61,7 =
-@@=0A#define USB_VID_XTENSIONS            0x1ae7=0A#define USB_VID_HUMAX_CO=
-EX            0x10b9=0A#define USB_VID_774                0x7a69=0A+#define=
- USB_VID_EVOLUTEPC            0x1e59=0A=0A/* Product IDs */=0A#define USB_P=
-ID_ADSTECH_USB2_COLD            0xa333=0A@@ -276,5 +277,6 @@=0A#define USB_=
-PID_DVB_T_USB_STICK_HIGH_SPEED_COLD        0x5000=0A#define USB_PID_DVB_T_U=
-SB_STICK_HIGH_SPEED_WARM        0x5001=0A#define USB_PID_FRIIO_WHITE       =
-         0x0001=0A+#define USB_PID_TVWAY_PLUS                0x0002=0A=0A#e=
-ndif=0A=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0ASigned-of=
-f-by: S=E9rgio C Fortier <sergiofortier@yahoo.com.br>=0A=0ARegards,=0A=0A=
-=0A=0A      _______________________________________________________________=
-_____________________=0AVeja quais s=E3o os assuntos do momento no Yahoo! +=
-Buscados=0Ahttp://br.maisbuscados.yahoo.com
---0-1572355505-1253998177=:68456
-Content-Type: text/x-patch; name="tvwayplus.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="tvwayplus.patch"
+>> and so forth. So for a camera that supports pre-defined presets can
+>> set the CAP_FIXED_FRAME_RATE capability. So Auto exposure may not
+>> be available. If Auto exposure is available, the driver can indicate
+>> CAP_VARIABLE_FRAME_RATE. If a driver supports both, then both flags
+>> can be set and based on the value of fps can decide which mode to
+>> operate on (0/0 - for variable mode, 30/1 - to do 30fps rate).
+> 
+> Setting up a sensor is rather messy at the moment. You have the
+> ENUM_FRAMESIZES and ENUM_FRAMEINTERVALS ioctls that basically give you the
+> 'presets' of a sensor. For exposure we have camera controls. Yet we also
+> have S_PARM to set the framerate. And to set the resolution we abuse S_FMT.
+>
+Some sensor are very versatile, and so a preset is just an arbitrary 
+resolution. Yet most of the application will be happy with a few preset 
+to choose from. I agree that it should be easy to just "set the resolution".
 
-ZGlmZiAtciA2Yjc2MTdkNGEwYmUgbGludXgvZHJpdmVycy9tZWRpYS9kdmIv
-ZHZiLXVzYi9kaWIwNzAwX2RldmljZXMuYwotLS0gYS9saW51eC9kcml2ZXJz
-L21lZGlhL2R2Yi9kdmItdXNiL2RpYjA3MDBfZGV2aWNlcy5jCVNhdCBTZXAg
-MjYgMTM6NDU6MDMgMjAwOSAtMDMwMAorKysgYi9saW51eC9kcml2ZXJzL21l
-ZGlhL2R2Yi9kdmItdXNiL2RpYjA3MDBfZGV2aWNlcy5jCVNhdCBTZXAgMjYg
-MTc6MTg6NDUgMjAwOSAtMDMwMApAQCAtMTkxNyw2ICsxOTE3LDcgQEAKIAl7
-IFVTQl9ERVZJQ0UoVVNCX1ZJRF9ESUJDT00sICAgIFVTQl9QSURfRElCQ09N
-X1NUSzgwN1hQVlIpIH0sCiAJeyBVU0JfREVWSUNFKFVTQl9WSURfRElCQ09N
-LCAgICBVU0JfUElEX0RJQkNPTV9TVEs4MDdYUCkgfSwKIAl7IFVTQl9ERVZJ
-Q0UoVVNCX1ZJRF9QSVhFTFZJRVcsIFVTQl9QSURfUElYRUxWSUVXX1NCVFZE
-KSB9LAorCXsgVVNCX0RFVklDRShVU0JfVklEX0VWT0xVVEVQQywgVVNCX1BJ
-RF9UVldBWV9QTFVTKSB9LAogCXsgMCB9CQkvKiBUZXJtaW5hdGluZyBlbnRy
-eSAqLwogfTsKIE1PRFVMRV9ERVZJQ0VfVEFCTEUodXNiLCBkaWIwNzAwX3Vz
-Yl9pZF90YWJsZSk7CkBAIC0yNDIyLDcgKzI0MjMsNyBAQAogCQkJfSwKIAkJ
-fSwKIAotCQkubnVtX2RldmljZV9kZXNjcyA9IDIsCisJCS5udW1fZGV2aWNl
-X2Rlc2NzID0gMywKIAkJLmRldmljZXMgPSB7CiAJCQl7ICAgIkRpQmNvbSBT
-VEs4MDd4UCByZWZlcmVuY2UgZGVzaWduIiwKIAkJCQl7ICZkaWIwNzAwX3Vz
-Yl9pZF90YWJsZVs2Ml0sIE5VTEwgfSwKQEAgLTI0MzIsNiArMjQzMywxMCBA
-QAogCQkJCXsgJmRpYjA3MDBfdXNiX2lkX3RhYmxlWzYzXSwgTlVMTCB9LAog
-CQkJCXsgTlVMTCB9LAogCQkJfSwKKwkJCXsgICAiRXZvbHV0ZVBDIFRWV2F5
-KyIsCisJCQkJeyAmZGliMDcwMF91c2JfaWRfdGFibGVbNjRdLCBOVUxMIH0s
-CisJCQkJeyBOVUxMIH0sCisJCQl9LAogCQl9LAogCiAJCS5yY19pbnRlcnZh
-bCAgICAgID0gREVGQVVMVF9SQ19JTlRFUlZBTCwKZGlmZiAtciA2Yjc2MTdk
-NGEwYmUgbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kdmItdXNi
-LWlkcy5oCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2Iv
-ZHZiLXVzYi1pZHMuaAlTYXQgU2VwIDI2IDEzOjQ1OjAzIDIwMDkgLTAzMDAK
-KysrIGIvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kdmItdXNi
-LWlkcy5oCVNhdCBTZXAgMjYgMTc6MTg6NDUgMjAwOSAtMDMwMApAQCAtNjEs
-NiArNjEsNyBAQAogI2RlZmluZSBVU0JfVklEX1hURU5TSU9OUwkJCTB4MWFl
-NwogI2RlZmluZSBVU0JfVklEX0hVTUFYX0NPRVgJCQkweDEwYjkKICNkZWZp
-bmUgVVNCX1ZJRF83NzQJCQkJMHg3YTY5CisjZGVmaW5lIFVTQl9WSURfRVZP
-TFVURVBDCQkJMHgxZTU5CiAKIC8qIFByb2R1Y3QgSURzICovCiAjZGVmaW5l
-IFVTQl9QSURfQURTVEVDSF9VU0IyX0NPTEQJCQkweGEzMzMKQEAgLTI3Niw1
-ICsyNzcsNiBAQAogI2RlZmluZSBVU0JfUElEX0RWQl9UX1VTQl9TVElDS19I
-SUdIX1NQRUVEX0NPTEQJCTB4NTAwMAogI2RlZmluZSBVU0JfUElEX0RWQl9U
-X1VTQl9TVElDS19ISUdIX1NQRUVEX1dBUk0JCTB4NTAwMQogI2RlZmluZSBV
-U0JfUElEX0ZSSUlPX1dISVRFCQkJCTB4MDAwMQorI2RlZmluZSBVU0JfUElE
-X1RWV0FZX1BMVVMJCQkJMHgwMDAyCiAKICNlbmRpZgo=
+We should have preset, it should still be possible to access all 
+capabilities of the sensor. I have not contributed any code, but here 
+are some use case that are quite difficult to handle :
 
---0-1572355505-1253998177=:68456--
+* I don't like the presets.
+How should I change resolution ?
+-VIDIOC_S_FMT ?
+-VIDIOC_S_DV_TIMINGS ?
+
+* I use the sensor with another hardware, I can't handle the default 
+pixelclock :
+-VIDIOC_G/S_DV_TIMINGS seems really handy here. Except I don't necessary
+care about / can set the other parameters
+
+
+* I wan't to change the field of view.
+-should I use S_CROP ? But I am not really doing any cropping here, just 
+changing the firts row, first column.
+
+* Both the sensor and the hardware provide the cropping capability.
+-For example, let's say I want to capture a 800x600 windows in the 
+center of a 5 MPixel sensor, and I work with a video port that has 
+cropping capabilities.
+- solution A : The sensor is configured for a 800x600 capture, and the 
+video port takes it all.
+-solution B : the sensor is configured for a full field capture (5Mpx), 
+and the videoport takes only some part of the data.
+
+Of course solution A is faster, because the sensor does a readout of 
+much less data. But with some sensor I will only get solution B.
+
+IMO, S/G_FMT should deal with solution A, and S/G_CROP with solution B.
+
+* Repeat the former point with white balance, exposure, gain, gamma,
+rgb2yuv etc...
+
+* "Preview" and "capture mode" ex : MT9D131. I can have the following :
+- Full field capture (1600x1200) but 800x600 output
+- Full field capture, full resolution output
+Ok, this can be handheld with ENUM_FRAME_SIZE
+- Windowed 800x600 capture, full resolution output (800x600)
+Same resolution, similar or identical framerate.
+The possibility to move the window, gives you a very quick zoom 
+capability anywhere in the picture.
+But it is a PITA with the current API
+
+That is why I think the VIDIOC_S_DV_PRESET is a good idea, when you just 
+want to set a standard resolution.
+Regarding the custom timings, I think it puts and emphasis on the timing 
+  problem, while CMOS sensor has some other interesting parameters.
+
+I am glad I can change pixelclock, but changing the capture windows 
+position would be great to !
+
+Should S_FMT be changed ?
+This is the format as seen by the application, changing the windows 
+position does not change the ouptut format.
+
+Should I use S_CROP ?
+See my example with solution A and B. Obviously, solution A is not 
+really cropping.
+
+Should it be exposed in a CTRL ?
+That is the current solution i am using. Hacking the driver. Of course 
+then I move on a new project because my boss does not want me to spend 
+time having my change merged upstream. Typical embedded reaction :(
+
+Should we enhance the custom timings RFC proposed by TI to include not 
+only timing, but perhaps windows pos, and perhaps skipping/binning as well ?
+
+
+> I don't think we should use preset for anything else besides just uniquely
+> identifying a particular video timing. It is a good idea though to add the
+> width, height and fps to struct v4l2_dv_enum_presets. That way apps can
+> actually know what the preset resolution and fps is.
+> 
+> To be honest I don't have any brilliant ideas at the moment on how to solve
+> setting sensor timings. 
+Neither do I, and I prefer a simple driver I can hack, to a "let's 
+expose all messiness to userspace, and let them fill a dozen struct"
+At the LPC we have both the UVC maintainer (Laurent
+> Pinchart) and the libv4l and gspca developer Hans de Goede present, so we
+> should be able to come up with a good solution to this. My knowledge of
+> sensors is limited, so I will need help with this.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+
