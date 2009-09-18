@@ -1,66 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:48992 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753471AbZIKIcD (ORCPT
+Received: from ey-out-2122.google.com ([74.125.78.26]:2238 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758704AbZIRXDM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2009 04:32:03 -0400
-Message-ID: <4AAA0AF7.8060201@upcore.net>
-Date: Fri, 11 Sep 2009 10:31:51 +0200
-From: Magnus Nilsson <magnus@upcore.net>
+	Fri, 18 Sep 2009 19:03:12 -0400
+Received: by ey-out-2122.google.com with SMTP id 4so226419eyf.5
+        for <linux-media@vger.kernel.org>; Fri, 18 Sep 2009 16:03:15 -0700 (PDT)
+Message-ID: <4AB41364.20106@gmail.com>
+Date: Sat, 19 Sep 2009 01:10:28 +0200
+From: Roel Kluin <roel.kluin@gmail.com>
 MIME-Version: 1.0
-To: Claes Lindblom <claesl@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Azurewave AD-CP400 (Twinhan VP-2040 DVB-C)
-References: <4A953E52.4020300@upcore.net> <4A956124.5070902@upcore.net> <bcb3ef430909061352v202d5b6fy3c668b64966a2848@mail.gmail.com> <4AA4D4F1.4060308@upcore.net> <4AA9E41B.4010102@gmail.com>
-In-Reply-To: <4AA9E41B.4010102@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: [PATCH] V4L/DVB (7969): kmalloc failure ignored in m920x_firmware_download()
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Claes Lindblom wrote:
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Hi, I have the same problem with Slave RACK Fail on my Azurewave
-> AP-SP400 (VP-1041).
-> Do you really mean that to don't get theese problems when turning off
-> the log from open-sasc-ng or was the problem on open-sasc-ng?
-> I have turned off the log completely for a long time since it was
-> problems in open-sasc-ng but I still have problems with Slave RACK Fail.
-> I'm using the same drivers with  Ubuntu server x86_64 2.6.28-13-generic
-> kernel.
-> 
-> Have you done anything else to work properly, like patching open-sasc-ng
-> or the driver?
-> From my experience it really starts to fail when using MythTV, otherwise
-> I can tune channels for several days straight without any problems.
-> But when doing a complete channels scan it can make the driver fail so I
-> would not blame mythtv to much but it's feels like something messes
-> it up.
-> Maybe it's getting better in Mythtv 0.22...
-> 
-> I'm almost about to sell my tv-card if it does not start to work
-> properly. :(
-> 
-> Best regards
-> /Claes
-> 
+Prevent NULL dereference if kmalloc() fails.
 
-If you read the entire thread it was MartinG that had the problem with
-"Slave RACK Fail". My machine just completely locked up before I removed
-the logging in open-sasc-ng. I'm currently using a vanilla 2.6.30.5
-kernel, with open-sasc-ng r77 and s2-liplianin-16e3dc6f2758, on a Debian
-system with MythTV 0.21 from the vanilla sources.
-The only thing I've had to do to get open-sasc-ng to compile was comment
-out the lines containing "owner", specifically lines 175,187,196,221 in
-dvbloopback/module/dvblb_proc.c
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+---
+Found with sed: http://kernelnewbies.org/roelkluin
 
-I can remember seeing Slave RACK Fail errors when using the older mantis
-driver from Manu (not the mantis-v4l one). That was however only when
-booting up, since it paused for a few seconds while displaying 4 of
-those errors. I don't see it now with the newer drivers though.
+Build tested.
 
-Keep in mind that we don't even have the same card, since I have the
-AD-CP400 (DVB-C version).
-
-Thanks,
-Magnus
+diff --git a/drivers/media/dvb/dvb-usb/m920x.c b/drivers/media/dvb/dvb-usb/m920x.c
+index aec7a19..ef9b7be 100644
+--- a/drivers/media/dvb/dvb-usb/m920x.c
++++ b/drivers/media/dvb/dvb-usb/m920x.c
+@@ -337,6 +337,8 @@ static int m920x_firmware_download(struct usb_device *udev, const struct firmwar
+ 	int i, pass, ret = 0;
+ 
+ 	buff = kmalloc(65536, GFP_KERNEL);
++	if (buff == NULL)
++		return -ENOMEM;
+ 
+ 	if ((ret = m920x_read(udev, M9206_FILTER, 0x0, 0x8000, read, 4)) != 0)
+ 		goto done;
