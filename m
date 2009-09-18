@@ -1,45 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from server15.01domain.net ([216.7.191.132]:33846 "EHLO
-	server15.01domain.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751769AbZIOFLc (ORCPT
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:39116 "EHLO
+	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751530AbZIRTrh convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2009 01:11:32 -0400
-Message-ID: <20090915151134.5s8l0f63kgcsw4o0@omnitude.net>
-Date: Tue, 15 Sep 2009 15:11:34 +1000
-From: Adam Swift <vikevid@omnitude.net>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: linux-media@vger.kernel.org
-Subject: Re: cx88: 2 channels on each of 2 cards
-References: <20090913114622.cwfj5t1kgowgkgo4@omnitude.net>
-	<1252813248.3259.14.camel@pc07.localdom.local>
-In-Reply-To: <1252813248.3259.14.camel@pc07.localdom.local>
+	Fri, 18 Sep 2009 15:47:37 -0400
+Received: by fxm17 with SMTP id 17so942609fxm.37
+        for <linux-media@vger.kernel.org>; Fri, 18 Sep 2009 12:47:40 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset=ISO-8859-1;
-	DelSp="Yes";
-	format="flowed"
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1253303096.22947.2.camel@prometheus>
+References: <1253298801.19044.5.camel@prometheus>
+	 <829197380909181201w6ad9da3cide3c8825c421edfe@mail.gmail.com>
+	 <1253303096.22947.2.camel@prometheus>
+Date: Fri, 18 Sep 2009 15:47:40 -0400
+Message-ID: <829197380909181247l5ff4e18eu55454da9310bd522@mail.gmail.com>
+Subject: Re: Incorrectly detected em28xx device
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: =?ISO-8859-1?Q?Matthias_Bl=E4sing?= <mblaesing@doppel-helix.eu>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks Hermann,
+2009/9/18 Matthias Bläsing <mblaesing@doppel-helix.eu>:
+> Hey David,
+>
+> thanks for this very fast reply.
+>
+> Am Freitag, den 18.09.2009, 15:01 -0400 schrieb Devin Heitmueller:
+>> 2009/9/18 Matthias Bläsing <mblaesing@doppel-helix.eu>:
+>> > Hello,
+>> >
+>> > when I plugin my usb video grabber, it is misdetected (this email is the
+>> > reaction to the request in the module output):
+>> >
+>> > [Syslog Entries]
+>> >
+>
+>> The correct functionality can be accessed, when explicitly called with
+>> > card=35 as paramter:
+>> >
+>> > [Syslog Entries]
+>> >
+>> > It would be very nice, if this could be auto-detected. If you need more information, please CC me.
+>> >
+>> > Greetings
+>> >
+>> > Matthias
+>>
+>> Hi Matthias,
+>>
+>> I fixed this a couple of months ago.  Just update to the latest v4l-dvb tree.
+>
+>
+> will/was this be merged to the mainline kernel? I'm currently running
+> the ubuntu build of 2.6.30 and am about to switch to 2.6.31.
+>
+> Thanks for the information so far.
+>
+> Matthias
 
-hermann pitton <hermann-pitton@arcor.de> wrote:
-> starting point here is, that neither of the now older chips like bt878,
-> saa713x or cx88xx can do two external inputs at the same time on one
-> chip at once.
-<snip>
-> Else, they totally depend on software switching between those external
-> inputs.
+It went into v4l-dvb on June 6th, and was submitted upstream to Linus
+for 2.6.31 on June 16th.
 
-Ok, I will attempt to correct the implementation in ZoneMinder to allow this.
+Devin
 
-But as I understand it, one channel on each of two cards should work,  
-correct? I'm currently accessing each of /dev/video0 and /dev/video1  
-this way (single channel on each), and the card accessed second gives  
-no video. I've got the same results with both xawtv and ZoneMinder.
-
-Regards
-Adam Swift
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
