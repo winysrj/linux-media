@@ -1,87 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44971 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753089AbZIONTS convert rfc822-to-8bit (ORCPT
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:41608 "EHLO
+	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754848AbZIRQYP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2009 09:19:18 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Tue, 15 Sep 2009 08:19:15 -0500
-Subject: RE: Handling second output from vpfe capture  - Any suggestion ?
-Message-ID: <A69FA2915331DC488A831521EAE36FE40155156609@dlee06.ent.ti.com>
-References: <A69FA2915331DC488A831521EAE36FE40154FACF34@dlee06.ent.ti.com>
- <200909151016.52279.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <200909151016.52279.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Fri, 18 Sep 2009 12:24:15 -0400
+Received: by fxm17 with SMTP id 17so827593fxm.37
+        for <linux-media@vger.kernel.org>; Fri, 18 Sep 2009 09:24:18 -0700 (PDT)
+Message-ID: <4AB3B454.6090808@gmail.com>
+Date: Sat, 19 Sep 2009 02:24:52 +1000
+From: Jed <jedi.theone@gmail.com>
 MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Hw capabilities of the HVR-2200
+References: <4AAF568D.1070308@gmail.com>
+In-Reply-To: <4AAF568D.1070308@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent,
 
-Thanks for the suggestion. I have already decided to do it as a second device as per Hans' response.
+> **a repost because of earlier issues in getting emails to the list**
+>
+> Hi Kernellabs or anyone involved with driver development of the 
+> HVR-2200...
+>
+> I know this is a loooong way down the priority list of features to be 
+> added, if ever!
+> But I'm wanting to know if the *possibility* is there 'hardware-wise' 
+> for the following:
+>
+> 1) h.263/mpeg4/VC-1/DivX/Xvid hardware encode of A/V-in
+> 2) Component input for the A/V-in
+> 3) Hw encode bypass for A/V-in
+> 4) Is Hw encode purely for A/V-in? (hauppauge's site suggests 
+> otherwise but it may be a typo)
+> 5) If not then questions 1) & 3) also apply to RF-in!
+>
+> Here are the reference cards spec sheets again:
+> http://www.picamatic.com/view/5094357_75016126_P1/
+> http://www.picamatic.com/view/5094364_75016126_P2/
+> http://www.picamatic.com/view/5094375_75016207_P1/
+> http://www.picamatic.com/view/5094373_75016207_P2/
+>
+> I would be proactive in providing feed-back (as needed) for the dev. 
+> of such features.
+>
+> Most Sincerely,
+> Jed
+>
+>
+[Follow-up post] *Delivery issues resolved, although there's still 
+delays of 7hrs or more being investigated with postmasters*
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-new phone: 301-407-9583
-Old Phone : 301-515-3736 (will be deprecated)
-email: m-karicheri2@ti.com
+Attention Kernellabs devs,
+I've deliberately delayed these two posts as Steve mentioned he wouldn't 
+have time to respond for at least 1wk.
 
->-----Original Message-----
->From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
->Sent: Tuesday, September 15, 2009 4:17 AM
->To: Karicheri, Muralidharan
->Cc: Linux Media Mailing List
->Subject: Re: Handling second output from vpfe capture - Any suggestion ?
->
->Hi Murali,
->
->sorry for the late reply, I was on holidays.
->
->On Friday 04 September 2009 15:03:00 Karicheri, Muralidharan wrote:
->> Hi,
->>
->> I am working on to add additional capabilities to vpfe capture driver to
->>  allow capture two frames simultaneously for each received frame from the
->>  input video decoder or sensor device. This is done using the IPIPE and
->>  Resizer hw available in DM355. In our internal release this is done by
->>  configuring IPIPE to receive from directly from CCDC and then passing it
->>  to the Resizer. Resizer has two outputs that operates on the same input
->>  frame. One output is usually used for capturing full resolution frame
->and
->>  the other is limited to output VGA or less resolution frames. Typically
->>  this will be useful for previewing the video on a smaller LCD screen
->using
->>  the second output while using the full resolution frame for encoding.
->>
->> Since input frame is same for both these inputs, we had implemented using
->a
->>  bigger capture buffer that can hold both the frames. The second frame is
->>  captured at the end of the first frame. This allowed us to DQBUF both
->>  frames simultaneously. But we used proprietary IOCTL to change the
->output
->>  size or format. I think a better alternative is to implement another
->Queue
->>  in the vpfe capture that can take a V4L2_BUF_TYPE_PRIVATE. This will
->allow
->>  me to configure the output format of second output independently for the
->>  second output. Looking at the v4l2-ioctl.c there is support for this
->>  buffer type. But this buffer type is not used by any driver and I am not
->>  sure if this will work or is the right approach to deal with this
->problem.
->>  Any suggestion here?
->
->I think you should create two video devices, one to stream the full
->resolution
->video and the other one to stream the downscaled video. This is exactly the
->kind of use case that is going to be handled by the new media controller
->API.
->
->--
->Laurent Pinchart
+It's now been almost two weeks, do you think you might have 5-minutes to 
+spare now?
+I realise you might not "know" the answer to some of my questions 
+yet!...  :-)
 
+All the best,
+Jed
