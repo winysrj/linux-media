@@ -1,18 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [89.221.175.11] (helo=cp1smtp.www1.dk)
+Received: from www.viadmin.org ([195.145.128.101])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <thomas@rokamp.dk>) id 1MioCE-0007hN-Gu
-	for linux-dvb@linuxtv.org; Wed, 02 Sep 2009 13:40:16 +0200
-Received: from localhost (unknown [89.221.175.57])
-	by cp1smtp.www1.dk (Postfix) with ESMTP id 94A227056A
-	for <linux-dvb@linuxtv.org>; Wed,  2 Sep 2009 13:39:50 +0200 (CEST)
+	(envelope-from <henrik-dvb@prak.org>) id 1MoYXx-00063b-MB
+	for linux-dvb@linuxtv.org; Fri, 18 Sep 2009 10:10:26 +0200
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by www.viadmin.org (Postfix) with ESMTP id C793154DA
+	for <linux-dvb@linuxtv.org>; Fri, 18 Sep 2009 10:09:51 +0200 (CEST)
+Received: from www.viadmin.org ([127.0.0.1])
+	by localhost (www.viadmin.org [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id k9LlfX5KfODv for <linux-dvb@linuxtv.org>;
+	Fri, 18 Sep 2009 10:09:41 +0200 (CEST)
+Date: Fri, 18 Sep 2009 10:09:41 +0200
+From: "H. Langos" <henrik-dvb@prak.org>
+To: linux-dvb@linuxtv.org
+Message-ID: <20090918080941.GA15590@www.viadmin.org>
 MIME-Version: 1.0
-Message-ID: <54953.1251891572@rokamp.dk>
-To: <linux-dvb@linuxtv.org>
-Date: Wed, 02 Sep 2009 13:39:32 +0200
-From: Thomas Rokamp <thomas@rokamp.dk>
-Subject: [linux-dvb] Problems with Hauppauge Nova-T USB2
-Reply-To: linux-media@vger.kernel.org, thomas@rokamp.dk
+Content-Disposition: inline
+Subject: [linux-dvb] Linuxtv wiki needs email notification/more email-ready
+	users
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,82 +32,58 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-(sorry if you already got this mail, I think I had sent it to the wrong list to begin with)
+Hi there,
 
-Hi
+after a while I decided to come back to the linuxtv wiki to finish
+organizing the bazillion dvb-t usb devices in a way that helps 
+a) normal users to find out if a certain device is supported and 
+b) developers to update information on the drivers they manage.
 
-I have found my old Hauppauge Nova-T USB2 box. It's the old revision, with and USB ID 9301.
-I'm struggling to get it to work correctly under linux (Ubuntu Intrepid 2.6.27-11-server). So far all I have read and tried has been without success.
+Some preview of this can be seen on my playground page:
+http://www.linuxtv.org/wiki/index.php/HLPlayground2
 
-I'm running the latest checked out v4l-dvb drivers (using hg).
+As this is a more complicated way of storing the information than just plain
+tables, I'd like to keep an eye on changes. Not because of fear of
+vandalisim but because changes to the templates/date potentially have 
+effects on a lot of pages.
 
-I have tested the box on the same location using windows, and "everything works fine".
+There are some people who day by day put a lot of effort and work into the 
+wiki and I'd like to thank them all for their continuing effort. I myself 
+have only occasionaly time to update information there and I miss a lot
+of changes, even to the pages I watch, because the "watchlist" and "recent
+cahnges" reaches only seven days back. Manually going through the pages on 
+my watchlist (currently 57) is not what I'd call good use of resources.
 
-My setup is a bit odd though. I have TV supplied from my local cable company, yet they have decided to supply the DVB signal using DVB-T. I guess it's because most of the TV's where I live supports DVB-T only. The signal is provided through the same plu in the wall as the old analog signal, though this should not be a problem, it works in windows.
-
-I have tried various tools from dvb-apps, the output supplied further down...
-
-dmesg | grep dvb:
-(I'm quite sure the MAC address it suggest is random upon each boot, which sounds like trouble to me)
-
-dvb-usb: found a 'Hauppauge WinTV-NOVA-T usb2' in cold state, will try to load a firmware
-firmware: requesting dvb-usb-nova-t-usb2-02.fw
-dvb-usb: downloading firmware from file 'dvb-usb-nova-t-usb2-02.fw'
-usbcore: registered new interface driver dvb_usb_nova_t_usb2
-dvb-usb: generic DVB-USB module successfully deinitialized and disconnected.
-dvb-usb: found a 'Hauppauge WinTV-NOVA-T usb2' in warm state.
-dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-dvb-usb: MAC address: f5c9c8e4
-dvb-usb: schedule remote query interval to 100 msecs.
-dvb-usb: Hauppauge WinTV-NOVA-T usb2 successfully initialized and connected.
-
-Using 'scan' I have come to a channel.conf file, out of which I have added just one line to channels.conf:
-X:722000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_5_6:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:513:644:905
-
-Using the above channels.conf file as input to tzap, I get the following lines:
-
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-reading channels from file '.tzap/channels.conf'
-tuning to 722000000 Hz
-video pid 0x0201, audio pid 0x0284
-status 1f | signal 7bd3 | snr 0000 | ber 001fffff | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 7b94 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 7b7d | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 7b77 | snr 0000 | ber 00000090 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 7b79 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 7b70 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-
-As you can see from above, the signal-to-noise ratio is, well... bad. I was hoping (according to my readings) a value much higher.
-
-Trying to record something with dvbstream:
-dvbstream -n 5 -qam 64 -gi 16 -cr 5_6 -crlp 5_6 -bw 8 -tm 2 -hy NONE -f 722000000 513 644 -o > test.mpg
-dvbstream v0.6 - (C) Dave Chapman 2001-2004
-Released under the GPL.
-Latest version available from http://www.linuxstb.org/
-Tuning to 722000000 Hz
-Using DVB card "DiBcom 3000MC/P", freq=722000000
-tuning DVB-T (in United Kingdom) to 722000000 Hz, Bandwidth: 8
-Getting frontend status
-Event: Frequency: 722000000
-Bit error rate: 2097151
-Signal strength: 31503
-SNR: 0
-UNC: 0
-FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI FE_HAS_SYNC
-dvbstream will stop after 5 seconds (0 minutes)
-Output to stdout
-Streaming 3 streams
-Caught signal 1 - closing cleanly.
+It would be great if it was possible to get (immediate/daily/weekly?) change
+notifications by email in order not to lose track of what is happening to
+the pages that I care about. (I bet this is standard functionality of
+mediawiki or at least one of the more common extentions.)
 
 
-This 'test.mpg' output file, however, shows no video at all, despite it actually containing data. VLC reports 'nothing to play'.
+Also I'd like to encourage new and existing users to add their email address 
+to their profile AND to check the "Enable e-mail from other users" box.
+Maybe we could change the default to enable that box?
+That way it is possible to ask for missing details if somebody adds a new
+device, or to send hints if somebody writes in an article that a certain
+device doesn't work. Or to simply write a short note when removing some
+information like "Hey dude, I just removed some information that you added 
+to article X because it is already contained in article Y. Instead I've 
+added a link to Y. Thank you for your help and keep up the good work!..."
+
+Also developers could ask people who are interested in a device's driver to 
+check out a new version as soon as it is ready. 
+
+All in all it would improve the user experience and the quality of information 
+on the wiki as feedback would not have to go through the "discussion" pages. 
+
+I went that way when talking to some other wiki admins about my efforts to 
+unify the usb dvb-t data and the experience shows that wiki's are not a 
+good medium for serious discussions.
+
+cheers
+-henrik
 
 
-Any help at this point would be highly appreciated :-)
-
-Best regards,
-Thomas Rokamp
- 
 
 _______________________________________________
 linux-dvb users mailing list
