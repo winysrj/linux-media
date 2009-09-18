@@ -1,86 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:12815 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751443AbZI1Q7T (ORCPT
+Received: from ey-out-2122.google.com ([74.125.78.25]:24943 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750786AbZIRGnA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Sep 2009 12:59:19 -0400
-Received: by fg-out-1718.google.com with SMTP id 22so810124fge.1
-        for <linux-media@vger.kernel.org>; Mon, 28 Sep 2009 09:59:23 -0700 (PDT)
-Message-ID: <4AC0EB67.5010002@gmail.com>
-Date: Mon, 28 Sep 2009 19:59:19 +0300
-From: Folnin Vi <folnin@gmail.com>
+	Fri, 18 Sep 2009 02:43:00 -0400
+Received: by ey-out-2122.google.com with SMTP id 25so245310eya.19
+        for <linux-media@vger.kernel.org>; Thu, 17 Sep 2009 23:43:03 -0700 (PDT)
+Message-ID: <4AB32BF2.3090604@gmail.com>
+Date: Fri, 18 Sep 2009 08:42:58 +0200
+From: Claes Lindblom <claesl@gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Mystique SaTiX DVB-S2 [KNC ONE] - Kernel panic
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: claesl@gmail.com
+Subject: Re: Nova S2 HD scanning problems
+References: <200909100913.09065.hverkuil@xs4all.nl>	<20090916175043.0d462a18@pedra.chehab.org>	<A69FA2915331DC488A831521EAE36FE40155157118@dlee06.ent.ti.com>	<200909170834.23449.hverkuil@xs4all.nl> <20090917091104.34806d1e@pedra.chehab.org> <4AB23151.6090409@gmail.com>
+In-Reply-To: <4AB23151.6090409@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Claes Lindblom wrote:
+> Hi all,
+> I have just installed my new Nova S2 HD card on ubuntu x86_64, 
+> 2.6.28-13-generic, changed the
+> firmware to version 1.23.86.1 and I have also tried version 1.22.82.0. 
+> The result is that I can tune and watch
+> channels without any problems but when I try to scan for channels it 
+> will not work.
+>
+> The card is loaded as adapter 1 so I use the following command to scan 
+> with the latest scan-s2
+> sudo ./scan-s2 -a 1 -s 0 -l UNIVERSAL dvb-s/Thor-1.0W
+>
+I have made a strange discovery about this. scan-s2 does not work but 
+when I used scan it worked
+and after that I started a new scan-s2 which suddenly worked. A while 
+later I tried again but it did not work so
+I had to use scan first and then scan-s2.
 
-I am having problems with Mystique SaTiX DVB-S2 card.
+I think this is really strange when I have succeded with scan-s2 on my 
+other card.
 
-Using the latest drivers from linuxtv.org.
+Another that appeared with this is that Mythtv 0.22 cannot present any 
+info on the frontend when installing new cards.
+I know that it migt belong in this mailinglist but it feels like it's 
+connected somehow.
+> I have a DisEqC switch but I know it's working since I have a 
+> Azurewave AD SP400 card that I have scanned channels before
+> and also the card can tune in on both LNB's with szap-s2.
+>
+> Has anyone ideas about the scanning problems?
+>
+> Dmesg does not output anything.
+> Output of scan-s2:
+> ----------------------------------> Using DVB-S
+> >>> tune to: 11216:vC78S0:S0.0W:24500:
+> DVB-S IF freq is 1466000
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 11216:vC78S0:S0.0W:24500: (tuning failed)
+> DVB-S IF freq is 1466000
+> WARNING: >>> tuning failed!!!
+> ----------------------------------> Using DVB-S2
+> >>> tune to: 11216:vC78S1:S0.0W:24500:
+> DVB-S IF freq is 1466000
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 11216:vC78S1:S0.0W:24500: (tuning failed)
+> DVB-S IF freq is 1466000
+> WARNING: >>> tuning failed!!!
+>
+>
+> Regards
+> /Claes
+>
 
-Every time I use the card kernel panic occurs.
-For example when trying to scan transponder.
-
-Kernel panic - not syncing: stack-protector: Kernel stack is corrupted 
-in: fb40d12f
-
-I have tried to use kexec to make a vmcore dump, but the gdb only shows:
-[root@alinux ~]# gdb ./vmlinux ./vmcore.dvb_v4l
-...
-(gdb) bt
-#0  0xc017e781 in ?? ()
-#1  0x00000000 in ?? ()
-(gdb)
-
-The card on windows works fine.
-
-Is it a driver problem?
-
-Is there a way I could extract more information about this issue?
-
-Any help would be really appreciated.
-
-Some more info:
-
-dmesg
-udget_av 0000:01:08.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
-IRQ 17/: IRQF_DISABLED is not guaranteed on shared IRQs
-saa7146: found saa7146 @ mem fb108e00 (revision 1, irq 17) (0x1894,0x0019).
-saa7146 (0): dma buffer size 192512
-DVB: registering new adapter (KNC1 DVB-S2)
-adapter failed MAC signature check
-encoded MAC from EEPROM was 
-ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff
-budget_av: saa7113_init(): saa7113 not found on KNC card
-KNC1-0: MAC addr = 00:09:d6:65:2d:92
-saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
-stb0899_attach: Attaching STB0899
-tda8261_attach: Attaching TDA8261 8PSK/QPSK tuner
-DVB: registering adapter 0 frontend 0 (STB0899 Multistandard)...
-dvb_ca_en50221_init
-budget-av: ci interface initialised.
-dvb_ca_en50221_thread
-budget-av: cam inserted A
-budget_av: ciintf_slot_reset(): ciintf_slot_reset
-dvb_ca adapter 0: DVB CAM detected and initialised successfully
-
-lspci -vv
-01:08.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-         Subsystem: KNC One Device 0019
-         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
-ParErr- Stepping- SERR- FastB2B- DisINTx-
-         Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium 
- >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
-         Latency: 64 (3750ns min, 9500ns max)
-         Interrupt: pin A routed to IRQ 17
-         Region 0: Memory at feadfe00 (32-bit, non-prefetchable) [size=512]
-         Kernel driver in use: budget_av
-         Kernel modules: budget-av
-
-Thanks in advance.
-Folnin Vi
