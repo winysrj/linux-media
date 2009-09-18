@@ -1,63 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from em002a.cxnet.dk ([87.72.115.243]:34212 "EHLO em002a.cxnet.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755964AbZICQpm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Sep 2009 12:45:42 -0400
-Message-ID: <4A9FF2C4.5040604@rokamp.dk>
-Date: Thu, 03 Sep 2009 18:45:56 +0200
-From: Thomas Rokamp <thomas@rokamp.dk>
-MIME-Version: 1.0
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Problems with Hauppauge Nova-T USB2
-References: <41138.1251890451@rokamp.dk> <alpine.LRH.1.10.0909021905001.3802@pub6.ifh.de> <4A9EB032.7000503@rokamp.dk> <alpine.LRH.1.10.0909021957400.3802@pub6.ifh.de> <4A9EB417.5040409@rokamp.dk> <alpine.LRH.1.10.0909030851490.3802@pub6.ifh.de>
-In-Reply-To: <alpine.LRH.1.10.0909030851490.3802@pub6.ifh.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200]:52323 "EHLO
+	mta5.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757251AbZIRRwl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Sep 2009 13:52:41 -0400
+Received: from steven-toths-macbook-pro.local
+ (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta5.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KQ600I94HNPGOC0@mta5.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Fri, 18 Sep 2009 13:52:38 -0400 (EDT)
+Date: Fri, 18 Sep 2009 13:52:37 -0400
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: Hw capabilities of the HVR-2200
+In-reply-to: <4AB3C17D.1030300@gmail.com>
+To: Jed <jedi.theone@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Message-id: <4AB3C8E5.4010700@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <4AAF568D.1070308@gmail.com> <4AB3B43A.2030103@gmail.com>
+ <4AB3B947.1040202@kernellabs.com> <4AB3C17D.1030300@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+>>>> 2) Component input for the A/V-in
+>>
+>> Yes, this exists on the HVR2250 product only.
+>
+> Ah shite, are you sure?
+> If you look at the specs for the reference card it was there, did they
+> take it out at the last minute?
 
-> mplayer and no special codec:
->
-> When I'm running mplayer it shows that:
->
-> TS file format detected.
-> VIDEO MPEG2(pid=513) AUDIO MPA(pid=644) NO SUBS (yet)!  PROGRAM N. 0
-> VIDEO:  MPEG2  704x576  (aspect 2)  25.000 fps  10000.0 kbps (1250.0 
-> kbyte/s)
-> ========================================================================== 
->
-> Opening video decoder: [mpegpes] MPEG 1/2 Video passthrough
-> VDec: vo config request - 704 x 576 (preferred colorspace: Mpeg PES)
-> Could not find matching colorspace - retrying with -vf scale...
-> Opening video filter: [scale]
-> The selected video_out device is incompatible with this codec.
-> Try adding the scale filter, e.g. -vf spp,scale instead of -vf spp.
-> VDecoder init failed :(
-> Opening video decoder: [libmpeg2] MPEG 1/2 Video decoder libmpeg2-v0.4.0b
-> Selected video codec: [mpeg12] vfm: libmpeg2 (MPEG-1 or 2 (libmpeg2))
-> ========================================================================== 
->
-> ========================================================================== 
->
-> Opening audio decoder: [mp3lib] MPEG layer-2, layer-3
-> AUDIO: 48000 Hz, 2 ch, s16le, 192.0 kbit/12.50% (ratio: 24000->192000)
-> Selected audio codec: [mp3] afm: mp3lib (mp3lib MPEG layer-2, layer-3)
-> ========================================================================== 
->
->
-> It looks quite standard to me.
-Thanks for helping me debugging this. Turned out that none of the 
-players I had at the moment of testing was working (VLC / windows media 
-player), so I concluded that the stream was broken.
-Media Player Classic played it just fine.
+It's not feature Hauppauge supports on the HVR2200 today. I have a suspicion 
+this may change but I'm neither confirming, denying or announcing anything. It 
+would make sense to officially support component cables on the HVR2200 since the 
+silicon supports it. If/when it does I'm sure it will be mentioned in the forums 
+or on the HVR2200 product packaging.
 
-Problem is solved and with MythTV now installed, even VLC will play the 
-files, after they have been recorded through MythTV.
+>
+>>>> 3) Hw encode bypass for A/V-in
+>>
+>> No idea. Regardless of whether it does or does not I wouldn't plan to
+>> add basic raw TV support to the driver, without going through the
+>> encoder.
+>
+> Why do you rule it out unequivocally, is it just because I've annoyed
+> you? :-(
 
+Raw analog TV isn't a high priority feature on my mental check-list. Analog TV 
+via the encoder is much more interesting and applicable to many people.
 
-Thanks again, also for the other suggestions I have received.
-
-Best regards,
-Thomas Rokamp
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
