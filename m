@@ -1,49 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:14966 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753006AbZIIPMm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Sep 2009 11:12:42 -0400
-Received: by ey-out-2122.google.com with SMTP id 25so1252530eya.19
-        for <linux-media@vger.kernel.org>; Wed, 09 Sep 2009 08:12:45 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20090909125329.GA4465@raptus.dandreoli.com>
-References: <4A7E8593.2030500@gmx.de> <4AA72C6D.7030706@rogers.com>
-	 <20090909125329.GA4465@raptus.dandreoli.com>
-Date: Wed, 9 Sep 2009 11:12:45 -0400
-Message-ID: <37219a840909090812l5f7fd650k20126cb2b47380f2@mail.gmail.com>
-Subject: Re: xf86-video-v4l
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Linux-media <linux-media@vger.kernel.org>,
-	Stefan Sassenberg <stefan.sassenberg@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from gateway07.websitewelcome.com ([69.56.176.23]:49773 "HELO
+	gateway07.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755093AbZIRVKH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Sep 2009 17:10:07 -0400
+Received: from [66.15.212.169] (port=30677 helo=[10.140.5.16])
+	by gator886.hostgator.com with esmtpsa (SSLv3:AES256-SHA:256)
+	(Exim 4.69)
+	(envelope-from <pete@sensoray.com>)
+	id 1Moi7C-0002jL-6m
+	for linux-media@vger.kernel.org; Fri, 18 Sep 2009 13:23:26 -0500
+Subject: [PATCH 6/9] s2250-board: Fix memory leaks
+From: Pete <pete@sensoray.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain
+Date: Fri, 18 Sep 2009 11:23:30 -0700
+Message-Id: <1253298210.4314.570.camel@pete-desktop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 9, 2009 at 8:53 AM, Domenico Andreoli<cavokz@gmail.com> wrote:
-> hi,
->
-> On Wed, Sep 09, 2009 at 12:17:49AM -0400, CityK wrote:
->> Stefan Sassenberg wrote:
->> >
->> > what does the xf86-video-v4l driver do? I think I know the purpose of
->> > xf86-video-<graphics_card> drivers, but I don't know what the -v4l
->> > does. How is it used?
->>
->> Anyway, in answer to your question:
->> * from the command line, type "man v4l"
->> Then supplement that info with the following points taken from the V4L2
->> API
->
-> i think he knows also what v4l is about. he was asking which kind of
-> support is given to X through this driver, something i'm also curious
-> to know.
->
-> cheers,
-> Domenico
+In some error cases, allocated buffers need to be freed before returning.
 
-Domenico,
+Priority: normal
 
-Try "man v4l" as CityK suggested -- you will find that he did in fact
-answer the question appropriately.
+Signed-off-by: Pete Eberlein <pete@sensoray.com>
 
--Mike
+diff -r e227a099a9f2 -r bf8ee230f1a0 linux/drivers/staging/go7007/s2250-board.c
+--- a/linux/drivers/staging/go7007/s2250-board.c	Fri Sep 18 10:37:01 2009 -0700
++++ b/linux/drivers/staging/go7007/s2250-board.c	Fri Sep 18 10:39:03 2009 -0700
+@@ -203,10 +203,13 @@
+ 	usb = go->hpi_context;
+ 	if (mutex_lock_interruptible(&usb->i2c_lock) != 0) {
+ 		printk(KERN_INFO "i2c lock failed\n");
++		kfree(buf);
+ 		return -EINTR;
+ 	}
+-	if (go7007_usb_vendor_request(go, 0x57, addr, val, buf, 16, 1) < 0)
++	if (go7007_usb_vendor_request(go, 0x57, addr, val, buf, 16, 1) < 0) {
++		kfree(buf);
+ 		return -EFAULT;
++	}
+ 
+ 	mutex_unlock(&usb->i2c_lock);
+ 	if (buf[0] == 0) {
+@@ -214,6 +217,7 @@
+ 
+ 		subaddr = (buf[4] << 8) + buf[5];
+ 		val_read = (buf[2] << 8) + buf[3];
++		kfree(buf);
+ 		if (val_read != val) {
+ 			printk(KERN_INFO "invalid fp write %x %x\n",
+ 			       val_read, val);
+@@ -224,8 +228,10 @@
+ 			       subaddr, addr);
+ 			return -EFAULT;
+ 		}
+-	} else
++	} else {
++		kfree(buf);
+ 		return -EFAULT;
++	}
+ 
+ 	/* save last 12b value */
+ 	if (addr == 0x12b)
+
+
