@@ -1,93 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:46583 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754986AbZICLY5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Sep 2009 07:24:57 -0400
-Subject: Re: libv4l2 and the Hauppauge HVR1600 (cx18 driver) not working
-	well together
-From: Andy Walls <awalls@radix.net>
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-Cc: Simon Farnsworth <simon.farnsworth@onelan.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-In-Reply-To: <4A9FA681.5070100@hhs.nl>
-References: <4A9E9E08.7090104@onelan.com> <4A9EAF07.3040303@hhs.nl>
-	 <4A9F89AD.7030106@onelan.com> <4A9F9006.6020203@hhs.nl>
-	 <4A9F98BA.3010001@onelan.com> <4A9F9C5F.9000007@onelan.com>
-	 <4A9FA681.5070100@hhs.nl>
+Received: from h1622217.stratoserver.net ([85.214.125.154]:55612 "EHLO
+	h1622217.stratoserver.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757722AbZIRSn7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Sep 2009 14:43:59 -0400
+Received: from [192.168.1.127] (p50902768.dip.t-dialin.net [80.144.39.104])
+	by h1622217.stratoserver.net (Postfix) with ESMTPSA id 8CF2669D4059
+	for <linux-media@vger.kernel.org>; Fri, 18 Sep 2009 20:33:23 +0200 (CEST)
+Subject: Incorrectly detected em28xx device
+From: Matthias =?ISO-8859-1?Q?Bl=E4sing?= <mblaesing@doppel-helix.eu>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain
-Date: Thu, 03 Sep 2009 07:23:28 -0400
-Message-Id: <1251977008.22279.17.camel@morgan.walls.org>
+Date: Fri, 18 Sep 2009 20:33:21 +0200
+Message-Id: <1253298801.19044.5.camel@prometheus>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2009-09-03 at 13:20 +0200, Hans de Goede wrote:
-> Hans Verkuil,
-> 
-> I think we have found a bug in the read() implementation of the cx18
-> driver, see below.
-> 
-> 
-> Hi all,
-> 
-> On 09/03/2009 12:37 PM, Simon Farnsworth wrote:
-> > Simon Farnsworth wrote:
-> >> Hans de Goede wrote:
-> >>> Ok,
-> >>>
-> >>> That was even easier then I thought it would be. Attached is a
-> >>> patch (against libv4l-0.6.1), which implements 1) and 3) from
-> >>> above.
-> >>>
-> >> I applied it to a clone of your HG repository, and had to make a
-> >> minor change to get it to compile. I've attached the updated patch.
-> >>
-> >> It looks like the read() from the card isn't reading entire frames
-> >> ata a time - I'm using a piece of test gear that I have to return in
-> >> a couple of hours to send colourbars to it, and I'm seeing bad
-> >> colour, and the picture moving across the screen. I'll try and chase
-> >> this, see whether there's something obviously wrong.
-> >>
-> > There is indeed something obviously wrong; at line 315 of libv4l2.c, we
-> > expand the buffer we read into, then ask for that many bytes.
-> >
-> 
-> Ah, actually this is a driver bug, not a libv4l2 bug, but I'll fix things
-> in libv4l to work around it for now.
-> 
-> read() should always return an entire frame (or as much of it as will fit
-> and throw away the rest). Think for example of jpeg streams, where the
-> exact size of the image isn't known by the client (as it differs from frame
-> to frame). dest_fmt.fmt.pix.sizeimage purely is an upper limit, and so
-> is the value passed in to read(), the driver itself should clamp it so
-> that it returns exactly one frame (for formats which are frame based).
-> 
-> The page alignment (2 pages on i386 / one on x86_64) is done because some
-> drivers internally use page aligned buffer sizes and thus for example with
-> jpeg streams, can have frames queued for read() slightly bigger then
-> dest_fmt.fmt.pix.sizeimage, but when this happens that is really a driver bug,
-> because as said dest_fmt.fmt.pix.sizeimage should report an upper limit
-> of the the frame sizes to be expected. I'll remove the align workaround, as
-> that bug is much less likely to be hit (and probably easier to fix at the
-> driver level) then the issue we're now seeing with read().
+Hello,
 
+when I plugin my usb video grabber, it is misdetected (this email is the
+reaction to the request in the module output):
 
-Hans and Hans,
+Sep 18 20:27:19 prometheus kernel: [15016.458509] em28xx: New device @ 480 Mbps (eb1a:2860, interface 0, class 0)
+Sep 18 20:27:19 prometheus kernel: [15016.458516] em28xx #0: Identified as Unknown EM2750/28xx video grabber (card=1)
+Sep 18 20:27:19 prometheus kernel: [15016.458563] em28xx #0: chip ID is em2860
+Sep 18 20:27:19 prometheus kernel: [15016.548934] em28xx #0: board has no eeprom
+Sep 18 20:27:19 prometheus kernel: [15016.562331] em28xx #0: found i2c device @ 0x4a [saa7113h]
+Sep 18 20:27:19 prometheus kernel: [15016.595202] em28xx #0: Your board has no unique USB ID.
+Sep 18 20:27:19 prometheus kernel: [15016.595207] em28xx #0: A hint were successfully done, based on i2c devicelist hash.
+Sep 18 20:27:19 prometheus kernel: [15016.595209] em28xx #0: This method is not 100% failproof.
+Sep 18 20:27:19 prometheus kernel: [15016.595210] em28xx #0: If the board were missdetected, please email this log to:
+Sep 18 20:27:19 prometheus kernel: [15016.595212] em28xx #0: ^IV4L Mailing List  <linux-media@vger.kernel.org>
+Sep 18 20:27:19 prometheus kernel: [15016.595214] em28xx #0: Board detected as PointNix Intra-Oral Camera
+Sep 18 20:27:19 prometheus kernel: [15016.595217] em28xx #0: Registering snapshot button...
+Sep 18 20:27:19 prometheus kernel: [15016.595289] input: em28xx snapshot button as /devices/pci0000:00/0000:00:1a.7/usb1/1-5/1-5.4/input/input19
+Sep 18 20:27:20 prometheus kernel: [15016.980420] saa7115 0-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
+Sep 18 20:27:21 prometheus kernel: [15017.696774] em28xx #0: Config register raw data: 0x00
+Sep 18 20:27:21 prometheus kernel: [15017.696777] em28xx #0: No AC97 audio processor
+Sep 18 20:27:21 prometheus kernel: [15017.796516] em28xx #0: v4l2 driver version 0.1.2
+Sep 18 20:27:21 prometheus kernel: [15018.076600] em28xx #0: V4L2 device registered as /dev/video1 and /dev/vbi0
+Sep 18 20:27:21 prometheus kernel: [15018.076630] usbcore: registered new interface driver em28xx
+Sep 18 20:27:21 prometheus kernel: [15018.076633] em28xx driver loaded
 
-I'll have time to look into this on Friday and see what can be done.
+The correct functionality can be accessed, when explicitly called with
+card=35 as paramter:
 
-Hans de Goede,
+[ 1014.939536] em28xx: New device @ 480 Mbps (eb1a:2860, interface 0, class 0)
+[ 1014.939549] em28xx #0: Identified as Typhoon DVD Maker (card=35)
+[ 1014.939734] em28xx #0: chip ID is em2860
+[ 1015.029084] em28xx #0: board has no eeprom
+[ 1015.393031] saa7115 0-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
+[ 1016.100782] em28xx #0: Config register raw data: 0x00
+[ 1016.100789] em28xx #0: No AC97 audio processor
+[ 1016.204578] em28xx #0: v4l2 driver version 0.1.2
+[ 1016.484275] em28xx #0: V4L2 device registered as /dev/video1 and /dev/vbi0
 
-I may ask for more information/explanation later.
+It would be very nice, if this could be auto-detected. If you need more information, please CC me.
 
-Regards,
-Andy
+Greetings
 
-
-> Regards,
-> 
-> Hans
-
+Matthias
 
