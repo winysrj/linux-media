@@ -1,36 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from claranet-outbound-smtp01.uk.clara.net ([195.8.89.34]:33695 "EHLO
-	claranet-outbound-smtp01.uk.clara.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754181AbZICLXX (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.152]:24926 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757667AbZIRSMp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Sep 2009 07:23:23 -0400
-Message-ID: <4A9FA729.3010207@onelan.com>
-Date: Thu, 03 Sep 2009 12:23:21 +0100
-From: Simon Farnsworth <simon.farnsworth@onelan.com>
+	Fri, 18 Sep 2009 14:12:45 -0400
+Received: by fg-out-1718.google.com with SMTP id 22so333530fge.1
+        for <linux-media@vger.kernel.org>; Fri, 18 Sep 2009 11:12:48 -0700 (PDT)
+Message-ID: <4AB3CDC2.20505@gmail.com>
+Date: Sat, 19 Sep 2009 04:13:22 +1000
+From: Jed <jedi.theone@gmail.com>
 MIME-Version: 1.0
-To: Andy Walls <awalls@radix.net>
-CC: Hans de Goede <j.w.r.degoede@hhs.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: libv4l2 and the Hauppauge HVR1600 (cx18 driver) not working	well
- together
-References: <4A9E9E08.7090104@onelan.com>  <4A9EAF07.3040303@hhs.nl> <1251975978.22279.8.camel@morgan.walls.org>
-In-Reply-To: <1251975978.22279.8.camel@morgan.walls.org>
-Content-Type: text/plain; charset=UTF-8
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Hw capabilities of the HVR-2200
+References: <4AAF568D.1070308@gmail.com> <4AB3B43A.2030103@gmail.com> <4AB3B947.1040202@kernellabs.com> <4AB3C17D.1030300@gmail.com> <4AB3C8E5.4010700@kernellabs.com>
+In-Reply-To: <4AB3C8E5.4010700@kernellabs.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andy Walls wrote:
-> But I suspect no user pays for the extra cost of the CX2341[568]
-> hardware MPEG encoder, if the user primarily wants uncompressed YUV
-> video as their main format.
+>>>>> 2) Component input for the A/V-in
+>>>
+>>> Yes, this exists on the HVR2250 product only.
+>>
+>> Ah shite, are you sure?
+>> If you look at the specs for the reference card it was there, did they
+>> take it out at the last minute?
+> 
+> It's not feature Hauppauge supports on the HVR2200 today. I have a 
+> suspicion this may change but I'm neither confirming, denying or 
+> announcing anything. It would make sense to officially support component 
+> cables on the HVR2200 since the silicon supports it. If/when it does I'm 
+> sure it will be mentioned in the forums or on the HVR2200 product 
+> packaging.
 
-Actually, we're doing exactly that. We want a PCI card from a reputable
-manufacturer which provides uncompressed YUV and ATSC (both OTA and
-ClearQAM cable). As we already buy Hauppauge HVR-1110s for DVB-T and
-uncompressed analogue, a Hauppauge card suits us, and the only thing
-they have that fits the needs is the HVR-1600; the MPEG encoder is thus
-left idle.
--- 
-Simon Farnsworth
+So I garner from that, that you don't intend to add support for anything 
+(including extra encoding abilities that they don't support in Windows) 
+unless Hauppauge officially does?
+
+>>>>> 3) Hw encode bypass for A/V-in
+>>>
+>>> No idea. Regardless of whether it does or does not I wouldn't plan to
+>>> add basic raw TV support to the driver, without going through the
+>>> encoder.
+>>
+>> Why do you rule it out unequivocally, is it just because I've annoyed
+>> you? :-(
+> 
+> Raw analog TV isn't a high priority feature on my mental check-list. 
+> Analog TV via the encoder is much more interesting and applicable to 
+> many people.
+
+Fair-enough, thanks.
 
