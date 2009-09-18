@@ -1,153 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:57650 "EHLO
+Received: from bombadil.infradead.org ([18.85.46.34]:42042 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752964AbZIQMpM (ORCPT
+	with ESMTP id S1752754AbZIRMr5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Sep 2009 08:45:12 -0400
-Date: Thu, 17 Sep 2009 09:44:36 -0300
+	Fri, 18 Sep 2009 08:47:57 -0400
+Date: Fri, 18 Sep 2009 09:47:18 -0300
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: RFCv2: Media controller proposal
-Message-ID: <20090917094436.7e217227@pedra.chehab.org>
-In-Reply-To: <200909162334.08807.hverkuil@xs4all.nl>
-References: <200909100913.09065.hverkuil@xs4all.nl>
-	<200909162121.16606.hverkuil@xs4all.nl>
-	<20090916175043.0d462a18@pedra.chehab.org>
-	<200909162334.08807.hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Cohen David Abraham <david.cohen@nokia.com>,
+	=?ISO-8859-1?B?S29za2lw5OQ=?= Antti Jussi Petteri
+	<antti.koskipaa@nokia.com>,
+	"Zutshi Vimarsh (Nokia-D-MSW/Helsinki)" <vimarsh.zutshi@nokia.com>,
+	stefan.kost@nokia.com
+Subject: Re: [RFC] Global video buffers pool
+Message-ID: <20090918094718.3d25ff20@pedra.chehab.org>
+In-Reply-To: <200909181039.18012.laurent.pinchart@ideasonboard.com>
+References: <200909161746.39754.laurent.pinchart@ideasonboard.com>
+	<200909172319.24703.hverkuil@xs4all.nl>
+	<20090917194542.5df9c65b@pedra.chehab.org>
+	<200909181039.18012.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 16 Sep 2009 23:34:08 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+I'm joining your comments to Vaibhav with your comments to me, in order to
+avoid duplicating comments.
 
-> > I'm just guessing, but If the two usecases are so different, maybe we shouldn't
-> > try to find a common solution for the two problems, or maybe we should use an
-> > approach similar to debufs, where you enable/mount only were needed (embedded).
+Em Fri, 18 Sep 2009 10:39:17 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+
+> > > Different devices may have quite different buffer requirements (size,
+> > > number of buffers). Would it be safe to have them all allocated from a
+> > > global pool? I do not feel confident myself that I understand all the
+> > > implications of a global pool or whether you actually always want that.
+> > 
+> > This is a problem with the pool concept. Even having the same driver,
+> >  you'll still be needing different resolutions, frame rates, formats and
+> >  bits per pixel on each /dev/video interface.
 > 
-> They are not *that* different. You still want the ability to discover the
-> available device nodes for consumer products (e.g. the alsa device belonging
-> to the video device). And there will no doubt be some borderline products
-> belonging to, say, the professional consumer market. It's not black-and-white.
+> That's right (the frame rate doesn't matter though), but not different memory 
+> type (low-mem, non-cacheable, contiguous, ...) requirements. The only thing 
+> that matters in the end is the number of buffers and their size. The pool 
+> doesn't care about the formats and resolutions separately.
+
+For raw formats, that's right. However, with some compressed formats, there are
+other parameters that affect the size of a framebuffer. For example, just
+knowing the resolution is not enough for h.264/mpeg/jpeg formats. Even frame
+rate can affect some of them, since they'll affect the temporal estimations. For
+compressed formats, maybe the right approach would be to allocate buffers based
+on the maximum allowed bandwidth.
+
+> 
+> >  I'm not sure how to deal.
+> 
+> My idea was to have several groups of video buffers. You could allocate on 
+> "large" group of low-resolution buffers for video preview, and a "small" group 
+> of high-resolution buffers for still image capture. Video devices could then 
+> pick buffers from one of those groups depending on their needs.
+> 
+> >  Maybe we'll need to allocate the buffers considering the worse case that
+> >  can be passed to the driver. For example, in the case of a kernel
+> >  parameter, it could be something like:
+> > 	videobuf=buffers=32,size=256K
+> > To allocate 32 buffers with 256K each. This way, even if application asks
+> >  for a smaller buffer, it will keep reserving 256K for each buffer. If bad
+> >  specified, memory will be wasted, but the memory will be there.
+> > Eventually, after allocating that memory, some API could be provided for
+> > example to rearrange the allocated space into 64 x 128K.
+> 
+> We still need separate groups, otherwise we will waste too much memory. 5MP 
+> sensors are common today, and the size will probably grow in the years to 
+> come. We can't allocate 32 5MP buffers on an embedded system.
+
+> > I agree with Mauro here. The only way you can allocate the required memory
+> > is in general to do it early in the boot sequence.  
+> 
+> I agree with you there as well, but there's one obvious problem with that 
+> approach: the Linux kernel doesn't know how much memory you will need.
+> Let me take the OMAP3 camera as an example. The sensor has a native 5MP 
+> resolution (2548x1938). When taking a still picture, we want to display live 
+> video on the device's screen in a lower resolution (840x400) and, when the 
+> user presses the camera button, switch to the 5MP resolution and capture 3 
+> images.
+>
+> For this we need a few (let's say 5) 840x400 buffers (672000 bytes each in 
+> YUV) and 3 2548x1938 buffers (9876048 bytes each). Those requirements come 
+> from the product specifications, and the device driver has no way to know 
+> about them. Allocating several huge buffers at boot time big enough for all 
+> use cases will here use 75MB of memory instead of 31.5MB.
+> 
+> That's why I was thinking about allowing a userspace application to allocate 
+> those buffers very early after boot. One other possible solution would be to 
+> use a kernel command line parameter set to something like 
+> "5x672000,3x9876048".
+
+Interesting approach. Another alternative would be to allocate a flat memory
+block
+during boot time, and provide a set of controls to control how the memory will
+be divided.
+
+> > So, while I agree that it is not a mandatory requirement to port the
+> >  existing drivers to benefit with the memory pool, by not doing it, those
+> >  drivers will be less reliable than the other drivers on professional
+> >  usage.
+> 
+> Good point. No need to be too clever though. I think that the memory pool 
+> concept can be restricted to use cases where the user knows in advance what's 
+> going to happen with the hardware. A video monitoring system is one of them, a 
+> digital camera is another one.
 
 Agreed.
 
-> > v4l2-object seems good. also the -host/-client terms that Guennadi is proposing.
+> In those cases the system designer knows what 
+> resolutions will be streamed at, and how many buffers will be needed. This 
+> information can come from userspace or the kernel command line, and the memory 
+> pool won't need to become a complete memory management system. An application 
+> that wants to use buffers from the pool will the explicitly which set of 
+> buffers it wants to use.
+
+I'm not sure that reserving memory size on userspace would be good enough, even
+if done too early. On the other hand, a complex command line won't be good
+enough.
+
+Maybe the solution could be something like:
+	- command line: just the total size, like: videobuf.maxsize=16M
+
+	- sysfs: call some application when the first video device is created.
+or, alternatively, during rc scripts, before starting the first video
+application.
+
+> > > > 6) As videobuf uses a common method of allocating memory, and all
+> > > > memory requests passes via videobuf-core (videobuf_alloc function), the
+> > > > implementation of a global-wide set of videobuffer means to touch on
+> > > > just one function there, at the abstraction layer, and to double check
+> > > > at the videobuf-dma-sg/videobuf-vmalloc/videobuf-contig if they don't
+> > > > call directly their own allocation methods. If they do, a simple change
+> > > > would be needed.
+> > > >
+> > > > 7) IMO, the better interface for it is to add some sysfs attributes to
+> > > > media class, providing there the means to control the video buffer
+> > > > pools. If the size of a video buffer pool is set to zero, it will use
+> > > > normal memory allocation. Otherwise, it will work at the "pool mode".
+> > >
+> > > Or you use the existing API to request either MEMORY_MMAP or
+> > > MEMORY_POOL_MMAP. So much cleaner than creating some random sysfs
+> > > attribute.
+> > 
+> > The existing V4L2 API applies over a /dev/video device, not at videobuf or
+> >  V4L2 core level. As we want this at a core level, we need to apply it on a
+> >  different place.
 > 
-> Just an idea: why not rename struct v4l2_device to v4l2_mc and v4l2_subdev to
-> v4l2_object? And if we decide to go all the way, then we can rename video_device
-> to v4l2_devnode. Or perhaps we go straight to the media_ prefix instead.
+> VIDIOC_REQBUFS/VIDIOC_QBUF/VIDIOC_DQBUF on the /dev/video device will need to 
+> tell the driver to use buffers from the pool, so a new memory type is needed.
+
+Why they need to tell? We don't need this even for read() method. If you look at
+videobuf methods, no matter what kind of memory mode were selected (overlay,
+mmap, userptr, read), it will be converted into 4 callbacks:
+	buffer_setup, buffer_prepare, buffer_queue, buffer_release.
+
+The first callback (buffer_setup) will return to videobuf the size of each
+buffer.
+
+So, videobuf just needs to check if there are memory pools allocated. If yes,
+it will
+use the closest buffers that are enough to satisfy the maximum size specified.
+It can
+even decide to reduce the number of buffers requested by the userspace
+application.
+
+For example, let's say that the pool has 5 x 672000 and 3 x  9876048 buffers,
+all free, from your example above.
+
+Userspace app may request 5 buffers for 840x400 res. Videobuf will call
+buffer_setup, that will return a size of 672000 for each buffer.
+
+Videobuf will check that it has 5 of such buffers, and will allocate his first
+block to this application. Later, the snapshot button got pressed, and some
+application got called, requesting 16 buffers (due to some bug there?) of
+9876048. Videobuf will call buffer_setup, and check that there are only 3 buffers with
+enough size. It will automatically reduce the number of buffers to 3, and this
+information will be returned back to userspace.
+
+So, there's no need to touch at the existing ioctls for it.
+
+The only remaining question is what to do if all buffers were already spent,
+but userspace is requesting more buffers. We may eventually have two modes of
+operation: an "strict" mode, where trying to allocate more memory will result
+in an error, and a "relaxed" mode, where it will fall back to the old behavior.
+I would opt for using the "relaxed" mode, and to print some warning at dmesg
+that the pool is not big enough. We may also have some API to allow userspace
+to select between the two modes of operation.
+
+> > Different devices may have quite different buffer requirements (size,
+> >  number of buffers). Would it be safe to have them all allocated from a
+> >  global pool? I do not feel confident myself that I understand all the
+> >  implications of a global pool or whether you actually always want that.  
 > 
-> The term 'client' has for me similar problems as 'device': it's used in so many
-> different contexts that it is easy to get confused.
+> This is why my proposal was restricted to one pool per media controller. 
+> Careful thought is required to extend that to a global pool. We would 
+> definitely need a way to allocate several groups of buffers with different 
+> resolutions and different "properties" (alignment, cacheable/non-cacheable, 
+> physically contiguous, ...). On some platforms the hardware can't DMA to all 
+> physical memory, so we need to be able to specify ranges of physical memory as 
+> well (it's a bad example as we probably don't really care about that kind of 
+> hardware, but ISA can only DMA to the first 16MB, and other PCI hardware or 
+> embedded hardware might have similar restrictions).
 
-IMO, let's patch the docs, but, at least for a while, let's not change API names again.
-
-Perhaps, I'm just too stressed with all the merge extra work I had to do this time due
-to the last function rename that stopped me merging patches while the arch changes
-were not upstream... I generally take one or two days for merging most patches,
-but I'm working hardly this entire week due to that.
-
-> > This can be easily solved: Just add a Kconfig option for the tweak interfaces
-> > eventually making it depending on CONFIG_EMBEDDED.
-> 
-> An interesting idea. I don't think you want to make this specific for embedded
-> devices only. It can be done as a separate config option within V4L.
-> 
-> I have a problem though: what to do with sub-devices (if you don't mind, I'll
-> just keep using that term for now) that want to expose some advanced control.
-> We have seen several requests for that lately. 
-
-I think we should discuss this case by case. When I said that people were considering the
-media controller as a replacement for V4L2 API, I was referring to the fact that lately,
-all proposals are thinking on doing things only at the sub-devices, where, on most cases,
-the control should be applied via an already-existing API call.
-
-> E.g. an AGC-TOP control for fine-tuning the AGC of tuners.
-
-In this specific case, there's already AFC parameter for vidioc_[g/s]_tuner, being
-also an example of advanced control for tuners. So, IMO, the proper place for
-AGC-TOP is together with AFC, e. g., at struct v4l2_tuner.
-
-> I think this example will be quite typical of several sub-devices: they may
-> have one or two 'advanced' controls that can be useful in very particular
-> cases for end-users.
-
-On some cases, they can be just one extra G/S_CTRL. 
-
-We need to have a clear rule of what kind of controls should go via the current
-V4L2 standard way for those that will go via a subdev interface, to avoid the
-"mess controller" scenario.
-
-IMO, They should only use the sub-dev interface when there are more than one
-subdev associated to the same /dev/video interface and were each may need
-different settings for the same control.
-
-Let me use an arbitrary scenario:
-
-/dev/video0 -> dsp0 -> dsp1 -> ...
-
-let's imagine that both dsp0 and dsp1 blocks are identical, and can do
-a set of image enhancement functions, including movement detection and image
-filtering.
-
-If we need to set dsp0 block to do image filtering and dsp block 2 to do
-movement detection, no V4L2 current methods will fit. In this case, subdev
-interface should be used.
-
-> There are a few possible ways of doing this:
-> 
-> 1) With the mediacontroller concept from the RFC you can select the tuner
-> subdev through the mc device node and call VIDIOC_S_CTRL on that node (and
-> with QUERYCTRL you can also query all controls supported by that subdev,
-> including these advanced controls).
-
-In this case, what would happen if the S_CTRL were applied at /dev/video? There
-will be several possible ways (refuse, apply to all subdevs, apply to the first
-one that accepts, etc), each with advantages and dis-advantages. IMO, too messy.
-
-> 2) Create a device node for each subdev even if they have just a single control
-> to expose. Possible, but this still seems overkill for me.
-> 
-> 3) Use your idea of only creating a device node for subdevs if a kernel config
-> is set. If no device nodes should be created, then the control framework can
-> still export such advanced controls to sysfs, allowing end-users to change
-> them. This is actually quite a nice idea: embedded systems or power-users can
-> get full control through the device nodes, while the average end-user can
-> just use the control from sysfs if he needs to tweak something.
-
-IMO, both 2 and 3 are OK. Considering Andy's argument that we can always avoid
-creating a device at udev, (2) seems better.
-> 
-> 4) Same as 3) but you can still use the mc to select a sub-device and call
-> ioctl on it. In other words, allow both mechanisms. It's trivial to implement,
-> but I got to admit that I don't like it. It's not clean, somehow.
-
-I also don't like it.
-
-> So IF we go with the idea to create separate device nodes to access sub-devices,
-> then a good scheme would be this:
-> 
-> A) if a sub-device needs no control from outside, then no device node is ever
-> created. It is still enumerated in the media controller, but it has no associated
-> node.
-> 
-> B) if a sub-device needs a lot of control from outside, then we always create a
-> device node. This would typically be the case for e.g. a resizer or previewer
-> that is a core part of an embedded platform.
-
-(A) and (B) are OK.
-
-> C) in all other cases you only get it if a kernel config option is on. And since
-> any advanced controls are still exposed in sysfs you can still change those even
-> if the config option was off.
-
-Again, considering Andy's argument, maybe we can avoid having an extra config
-for it, letting distros to disable or enable those interfaces at sysfs.
-
+Doing it per media controller could only make sense if the DMA restrictions
+are different for the several boards at the same system. While this is
+possible (so, this need to be addressed), I doubt that this will happen in
+practice. The videobuf pools are for systems dedicated to an specific usage,
+where memory restrictions deserve a serious analysis. If we have buffers per
+memory controllers, on systems with several memory controllers, it is likely
+that we'll waste memory.
 
 
 
