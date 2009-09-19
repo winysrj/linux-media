@@ -1,117 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2976 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757935AbZIRSgH (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:57980 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754305AbZISMRV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Sep 2009 14:36:07 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id n8IIa8a8088371
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 18 Sep 2009 20:36:08 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 18 Sep 2009 20:36:08 +0200 (CEST)
-Message-Id: <200909181836.n8IIa8a8088371@smtp-vbr7.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
+	Sat, 19 Sep 2009 08:17:21 -0400
+Date: Sat, 19 Sep 2009 09:16:44 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Magnus Damm <damm@igel.co.jp>
+Subject: Re: Diffs between our tree and upstream
+Message-ID: <20090919091644.0219cfba@pedra.chehab.org>
+In-Reply-To: <20090919010602.7e8f2df2@pedra.chehab.org>
+References: <20090919010602.7e8f2df2@pedra.chehab.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Em Sat, 19 Sep 2009 01:06:02 -0300
+Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
 
-Results of the daily build of v4l-dvb:
+> Hi Guennadi,
+> 
+> I'm about to send our pull request.
+> 
+> While doing my last checks, I noticed a difference between our tree and
+> upstream. I'm not sure what happens. Could you please check?
+> 
+> The enclosed patch is the diff from upstream to -hg.
 
-date:        Fri Sep 18 19:00:05 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12994:ae90c0408d70
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Ok, I discovered the cause of the conflict: 
+	git patch 6d1386c6b8db54ac8d94c01194e0c27cd538532b were applied before the
+soc_camera conversion to v4l dev/subdev.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: OK
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: OK
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-x86_64: WARNINGS
-sparse (linux-2.6.31): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+I've applied the patch on our development tree. Still, we have a few diffs,
+probably meaning that I solved it at the wrong way at git.
 
-Detailed results are available here:
+Please let me know what would be the proper way to fix it: by keeping
+clk_enable/clk_disable (so reverting part of Magnus changes),
+or by using, instead pm_runtime_get_sync/pm_runtime_put_sync.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+I guess the latter is the proper fix, but, as both use API's that are sh
+specific, the better is if you could point me the right way.
 
-Full logs are available here:
+Cheers,
+Mauro.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+diff -upr oldtree/drivers/media/video/sh_mobile_ceu_camera.c /home/v4l/tokernel/wrk/linux-next/drivers/media/video/sh_mobile_ceu_camera.c
+--- oldtree/drivers/media/video/sh_mobile_ceu_camera.c	2009-09-19 09:08:13.000000000 -0300
++++ /home/v4l/tokernel/wrk/linux-next/drivers/media/video/sh_mobile_ceu_camera.c	2009-09-19 01:35:28.000000000 -0300
+@@ -404,7 +404,7 @@ static int sh_mobile_ceu_add_device(stru
+ 		 "SuperH Mobile CEU driver attached to camera %d\n",
+ 		 icd->devnum);
+ 
+-	pm_runtime_get_sync(ici->dev);
++	clk_enable(pcdev->clk);
+ 
+ 	ceu_write(pcdev, CAPSR, 1 << 16); /* reset */
+ 	while (ceu_read(pcdev, CSTSR) & 1)
+@@ -438,7 +438,7 @@ static void sh_mobile_ceu_remove_device(
+ 	}
+ 	spin_unlock_irqrestore(&pcdev->lock, flags);
+ 
+-	pm_runtime_put_sync(ici->dev);
++	clk_disable(pcdev->clk);
+ 
+ 	dev_info(icd->dev.parent,
+ 		 "SuperH Mobile CEU driver detached from camera %d\n",
 
-The V4L2 specification failed to build, but the last compiled spec is here:
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
 
-The DVB API specification from this daily build is here:
 
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
+
+Cheers,
+Mauro
