@@ -1,42 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:38665 "EHLO znsun1.ifh.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752046AbZI1J0W (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Sep 2009 05:26:22 -0400
-Date: Mon, 28 Sep 2009 11:26:19 +0200 (CEST)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: =?ISO-8859-15?Q?S=E9rgio_Fortier?= <sergiofortier@yahoo.com.br>
-cc: linux-media@vger.kernel.org
-Subject: Re: EvolutePC TvWay+ USB ISDB-Tb fullseg device support
-In-Reply-To: <94949.68456.qm@web31002.mail.mud.yahoo.com>
-Message-ID: <alpine.LRH.1.10.0909281125570.27824@pub3.ifh.de>
-References: <94949.68456.qm@web31002.mail.mud.yahoo.com>
+Received: from hide1.repubblica.it ([213.92.86.36]:34936 "EHLO
+	fo-multiplexor.int.repubblica.it" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754305AbZISOhK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Sep 2009 10:37:10 -0400
+Received: from fo-multiplexor.int.repubblica.it (localhost.localdomain [127.0.0.1])
+	by postfix.imss70 (Postfix) with ESMTP id AB1D61930073
+	for <linux-media@vger.kernel.org>; Sat, 19 Sep 2009 16:05:27 +0200 (CEST)
+Received: from mpdomain (co_juniper_ssl.int.repubblica.it [10.151.11.67])
+	by fo-multiplexor.int.repubblica.it (Postfix) with ESMTP id 7F412193006F
+	for <linux-media@vger.kernel.org>; Sat, 19 Sep 2009 16:05:27 +0200 (CEST)
+Message-ID: <4AB4E526.2080109@yahoo.it>
+Date: Sat, 19 Sep 2009 16:05:26 +0200
+From: Adriano Gigante <adrigiga@yahoo.it>
 MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="579696399-556447541-1254129979=:27824"
+To: linux-media@vger.kernel.org
+Subject: driver for Cinergy Hybrid T USB XS FM
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hy all,
 
---579696399-556447541-1254129979=:27824
-Content-Type: TEXT/PLAIN; charset=iso-8859-1; format=flowed
-Content-Transfer-Encoding: 8BIT
+after Markus Rechberger has discontinued the development of em28xx-new 
+kernel driver, device "Terratec Cinergy Hybrid T USB XS FM" is no more 
+supported under linux.
+I also built and installed from http://linuxtv.org/hg/v4l-dvb sources 
+with no success (it creates /dev/video0 /dev/radio0 /dev/radio1 -no dvb 
+- and nothing works).
 
-On Sat, 26 Sep 2009, Sérgio Fortier wrote:
-> [..]
-> +#define USB_PID_TVWAY_PLUS                0x0002
->
-> #endif
-> ===========================================
-> Signed-off-by: Sérgio C Fortier <sergiofortier@yahoo.com.br>
->
-> Regards,
+The device id is 0ccd:0072, and from Terratec site I saw it's based on 
+Empia em2882 and Xceive 5000 chips.
 
-Applied, thanks.
+Someone could help with infos about this stick
 
---
+Thanks all people.
 
-Patrick Boettcher - Kernel Labs
-http://www.kernellabs.com/
---579696399-556447541-1254129979=:27824--
+Adri
