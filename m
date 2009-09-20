@@ -1,150 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:45517 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754741AbZIMDWy (ORCPT
+Received: from mail-in-10.arcor-online.net ([151.189.21.50]:34878 "EHLO
+	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750808AbZITEjJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Sep 2009 23:22:54 -0400
-Received: by qw-out-2122.google.com with SMTP id 9so721299qwb.37
-        for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 20:22:57 -0700 (PDT)
-Message-ID: <4AAC6587.7090309@gmail.com>
-Date: Sat, 12 Sep 2009 23:22:47 -0400
-From: David Ellingsworth <david@identd.dyndns.org>
-Reply-To: david@identd.dyndns.org
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org, klimov.linux@gmail.com
-Subject: [RFC/RFT 10/14] radio-mr800: ensure the radio is initialized to a
- consistent state
-Content-Type: multipart/mixed;
- boundary="------------020308040907000603080008"
+	Sun, 20 Sep 2009 00:39:09 -0400
+Subject: Re: tuner, code for discuss
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Gene Heskett <gene.heskett@verizon.net>
+Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org
+In-Reply-To: <200909151117.10060.gene.heskett@verizon.net>
+References: <20090819160700.049985b5@glory.loctelecom.ru>
+	 <200909150826.17805.hverkuil@xs4all.nl>
+	 <1253012182.3166.31.camel@palomino.walls.org>
+	 <200909151117.10060.gene.heskett@verizon.net>
+Content-Type: text/plain
+Date: Sun, 20 Sep 2009 06:26:32 +0200
+Message-Id: <1253420792.3255.33.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------020308040907000603080008
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 
- From 8c441616f67011244cb15bc1a3dda6fd8706ecd2 Mon Sep 17 00:00:00 2001
-From: David Ellingsworth <david@identd.dyndns.org>
-Date: Sat, 12 Sep 2009 16:04:44 -0400
-Subject: [PATCH 08/14] mr800: fix potential use after free
+Am Dienstag, den 15.09.2009, 11:17 -0400 schrieb Gene Heskett:
+> On Tuesday 15 September 2009, Andy Walls wrote:
+> >On Tue, 2009-09-15 at 08:26 +0200, Hans Verkuil wrote:
+> >> On Tuesday 15 September 2009 06:18:55 Michael Krufky wrote:
+> >> > On Tue, Sep 15, 2009 at 12:07 AM, Dmitri Belimov <d.belimov@gmail.com>
+> >> > wrote:
+> >> >
+> >> > Personally, I don't quite understand why we would need to add such
+> >> > controls NOW, while we've supported this video standard for years
+> >> > already.  I am not arguing against this in any way, but I dont feel
+> >> > like I'm qualified to accept this addition without hearing the
+> >> > opinions of others first.
+> >> >
+> >> > Can somebody help to shed some light?
+> >>
+> >> It's the first time I've heard about SECAM and AGC-TOP problems. I do
+> >> know that the TOP value is standard-dependent, although the datasheets
+> >> recommend different SECAM-L values only. So I can imagine that in some
+> >> cases you would like to adjust the TOP value a bit.
+> >>
+> >> The problem is that end-users will have no idea what to do with a control
+> >> like that. It falls into the category of 'advanced controls' that might
+> >> be nice to add but is only for very advanced users or applications.
+> >
+> >The AGC Take Over Point (TOP) is the signal level at which the 2nd stage
+> >of the amplifier chain (after the IF filter) takes over gain control
+> >from the 1st stage in the amplifier chain.  The idea is to maximize
+> >overall noise figure by boosting small signals as needed, but avoiding
+> >hittng amplifer non-linearities that generate intermodulation products
+> >(i.e. spectral "splatter").
+> >
+> >The TOP setting depends on the TV standard *and* the attenuation through
+> >the IF filter.  I'm fairly sure, it is something that one probably
+> >should not change to a value different from the manufacturer's
+> >recommendation for a particular TV standard, unless you are dealing with
+> >input signals in a very controlled, known range aor you have taken
+> >measurments inside the tuner and precisely know the loss through the IF
+> >filter.  If the user doesn't understand how the AGC-TOP setting will
+> >affect his overall system noise figure, for all inoming signal
+> >strengths, then the user shouldn't change it. (IMO)
+> 
+> As a retired broadcast engineer, I can say that generally speaking, this is a 
+> knob that shouldn't be enabled.  It may in some cases be able to get a db's 
+> worth of improvement, but the potential for worsening it by many db, by 
+> someone who doesn't understand the interactions, is much too high.  Given a 
+> knob, it will be tweaked, usually detrimentally.
 
-Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
----
- drivers/media/radio/radio-mr800.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+you likely get more readers on linux-media@vger.kernel.org these days,
+which was considered the right thing to change to next, but, unlike the
+dvb ML, video4linux still does not give any advice to the users to
+change over to vger.
 
-diff --git a/drivers/media/radio/radio-mr800.c 
-b/drivers/media/radio/radio-mr800.c
-index 9fd2342..87b58e3 100644
---- a/drivers/media/radio/radio-mr800.c
-+++ b/drivers/media/radio/radio-mr800.c
-@@ -274,7 +274,6 @@ static void usb_amradio_disconnect(struct 
-usb_interface *intf)
- 
-     usb_set_intfdata(intf, NULL);
-     video_unregister_device(&radio->videodev);
--    v4l2_device_disconnect(&radio->v4l2_dev);
- }
- 
- /* vidioc_querycap - query device capabilities */
--- 
-1.6.3.3
+The Beholder Labs initially planed to introduce it to all tuners around,
+including all Multi Europe Philips FM1216ME MK3.
 
+We previously had separate tuners for Russia, maybe only caused by the
+different radio bandwidth, but the point when that changed, and it did,
+is still not fully investigated.
 
---------------020308040907000603080008
-Content-Type: text/x-diff;
- name="0010-mr800-ensure-the-radio-is-initialized-to-a.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename*0="0010-mr800-ensure-the-radio-is-initialized-to-a.patch"
+The case here now is, that we eventually have to deal with at least two
+issues.
 
->From 8b5f17aeea6cf394bedd6f9029a57b85555f5815 Mon Sep 17 00:00:00 2001
-From: David Ellingsworth <david@identd.dyndns.org>
-Date: Sat, 12 Sep 2009 21:59:07 -0400
-Subject: [PATCH 10/14] mr800: ensure the radio is initialized to a
- consistent state
+One is known as "Secam fire" ...
+No such complaints on the original Philips tuners during the last four
+years so far.
 
-Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
----
- drivers/media/radio/radio-mr800.c |   34 ++++++++++++++++++++++++++++++++--
- 1 files changed, 32 insertions(+), 2 deletions(-)
+The other one is, that believed _one to one_ Chinese clones of the
+original Philips tuners, still using the same Philips chips, have
+different SAW filters.
 
-diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
-index df020e8..dbf0dbb 100644
---- a/drivers/media/radio/radio-mr800.c
-+++ b/drivers/media/radio/radio-mr800.c
-@@ -85,6 +85,9 @@ MODULE_LICENSE("GPL");
- #define amradio_dev_warn(dev, fmt, arg...)				\
- 		dev_warn(dev, MR800_DRIVER_NAME " - " fmt, ##arg)
- 
-+#define amradio_dev_err(dev, fmt, arg...) \
-+		dev_err(dev, MR800_DRIVER_NAME " - " fmt, ##arg)
-+
- /* Probably USB_TIMEOUT should be modified in module parameter */
- #define BUFFER_LENGTH 8
- #define USB_TIMEOUT 500
-@@ -137,6 +140,7 @@ struct amradio_device {
- 	int curfreq;
- 	int stereo;
- 	int muted;
-+	int initialized;
- };
- 
- #define vdev_to_amradio(r) container_of(r, struct amradio_device, videodev)
-@@ -477,6 +481,31 @@ static int vidioc_s_input(struct file *filp, void *priv, unsigned int i)
- 	return 0;
- }
- 
-+static int usb_amradio_init(struct amradio_device *radio)
-+{
-+	int retval;
-+
-+	retval = amradio_set_mute(radio, AMRADIO_STOP);
-+	if (retval < 0) {
-+		amradio_dev_warn(&radio->videodev.dev, "amradio_stop failed\n");
-+		goto out_err;
-+	}
-+
-+	retval = amradio_set_stereo(radio, WANT_STEREO);
-+	if (retval < 0) {
-+		amradio_dev_warn(&radio->videodev.dev, "set stereo failed\n");
-+		goto out_err;
-+	}
-+
-+	radio->initialized = 1;
-+	goto out;
-+
-+out_err:
-+	amradio_dev_err(&radio->videodev.dev, "initialization failed\n");
-+out:
-+	return retval;
-+}
-+
- /* open device - amradio_start() and amradio_setfreq() */
- static int usb_amradio_open(struct file *file)
- {
-@@ -492,6 +521,9 @@ static int usb_amradio_open(struct file *file)
- 
- 	file->private_data = radio;
- 
-+	if (unlikely(!radio->initialized))
-+		retval = usb_amradio_init(radio);
-+
- unlock:
- 	mutex_unlock(&radio->lock);
- 	return retval;
-@@ -640,8 +672,6 @@ static int usb_amradio_probe(struct usb_interface *intf,
- 
- 	radio->usbdev = interface_to_usbdev(intf);
- 	radio->curfreq = 95.16 * FREQ_MUL;
--	radio->stereo = -1;
--	radio->muted = 1;
- 
- 	mutex_init(&radio->lock);
- 
--- 
-1.6.3.3
+My assumption so far is, that they are not as linear as claimed over the
+covered (uncovered ;) frequency ranges, some ups and downs, and that is
+what Dmitry tries to compensate in software. And least their labs have
+good results for that ... ;)
+
+The Russian border to China is very long, Dmitry told they can tweak
+those tuners to receive, maybe somehow limited, even Chinese broadcast.
+
+We have some special case here, so I don't tell just ignore it per se,
+but we are also not forced to please some undocumented, maybe wrong
+documented, hardware.
+
+Cheers,
+Hermann
+
+> >> The proposed media controller actually gives you a way of implementing
+> >> that as tuner-specific controls that do not show up in the regular
+> >> /dev/videoX control list. I have no problems adding an AGC-TOP control as
+> >> a tuner-specific control, but adding it as a generic control is a bad
+> >> idea IMHO.
+> >
+> >If needed, it should be an advanced control or, dare I say, a tunable
+> >via sysfs.  Setting the TOP wrong will simply degrade reception for the
+> >the general case of an unknown incoming signal level.
+> >
+> >The tuner-sumple code has initialization values for TOP.  Also there are
+> >some module options for the user to fix TOP to a value, IIRC.  Both are
+> >rather inflexible for someone who does want to manipulate the TOP in an
+> >environment where the incoming RF signal levels are controlled.
+> >
+> >Regards,
+> >Andy
+> >
+> >> Regards,
+> >>
+> >> 	Hans
+> >
 
 
---------------020308040907000603080008--
