@@ -1,89 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-01.arcor-online.net ([151.189.21.41]:52300 "EHLO
-	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752134AbZIVCPa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Sep 2009 22:15:30 -0400
-Subject: Re: Bug in S2 API...
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Markus Rechberger <mrechberger@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <d9def9db0909210302m44f8ed77wfca6be3693491233@mail.gmail.com>
-References: <d9def9db0909202040u3138670ahede6078ef1a177c@mail.gmail.com>
-	 <1253504805.3255.3.camel@pc07.localdom.local>
-	 <d9def9db0909202109m54453573kc90f0c3e5d942e2@mail.gmail.com>
-	 <1253506233.3255.6.camel@pc07.localdom.local>
-	 <d9def9db0909202142j542136e3raea8e171a19f7e73@mail.gmail.com>
-	 <1253508863.3255.10.camel@pc07.localdom.local>
-	 <d9def9db0909210302m44f8ed77wfca6be3693491233@mail.gmail.com>
-Content-Type: text/plain
-Date: Tue, 22 Sep 2009 04:00:52 +0200
-Message-Id: <1253584852.3279.11.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:56637 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753838AbZITI5Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Sep 2009 04:57:24 -0400
+Date: Sun, 20 Sep 2009 10:57:34 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Magnus Damm <damm@igel.co.jp>
+Subject: Re: Diffs between our tree and upstream
+In-Reply-To: <20090919091644.0219cfba@pedra.chehab.org>
+Message-ID: <Pine.LNX.4.64.0909201053530.332@axis700.grange>
+References: <20090919010602.7e8f2df2@pedra.chehab.org>
+ <20090919091644.0219cfba@pedra.chehab.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Markus,
+Hi Mauro
 
-Am Montag, den 21.09.2009, 12:02 +0200 schrieb Markus Rechberger:
-> ----
-> in dvb-frontend.c:
->  ----
->          if(cmd == FE_GET_PROPERTY) {
+On Sat, 19 Sep 2009, Mauro Carvalho Chehab wrote:
+
+> Em Sat, 19 Sep 2009 01:06:02 -0300
+> Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
 > 
->                  tvps = (struct dtv_properties __user *)parg;
->                  dprintk("%s() properties.num = %d\n", __func__, tvps->num);
->                  dprintk("%s() properties.props = %p\n", __func__, tvps->props);
->                  ...
->                  if (copy_from_user(tvp, tvps->props, tvps->num *
->  sizeof(struct dtv_property)))
->  ----
+> > Hi Guennadi,
+> > 
+> > I'm about to send our pull request.
+> > 
+> > While doing my last checks, I noticed a difference between our tree and
+> > upstream. I'm not sure what happens. Could you please check?
+> > 
+> > The enclosed patch is the diff from upstream to -hg.
+> 
+> Ok, I discovered the cause of the conflict: 
+> 	git patch 6d1386c6b8db54ac8d94c01194e0c27cd538532b were applied before the
+> soc_camera conversion to v4l dev/subdev.
+> 
+> I've applied the patch on our development tree. Still, we have a few diffs,
+> probably meaning that I solved it at the wrong way at git.
+
+No, please, don't change anything in our trees. Pual should have pushed 
+his tree after v4l to Linus, but he has done it before. The idea is we 
+should push our tree as is and then solve the conflict on merge. That 
+should be easy. But if you start patching the v4l tree, that can make 
+things much more complicated. BTW, your patch below is not the correct 
+fix.
+
+Thanks
+Guennadi
+
+> 
+> Please let me know what would be the proper way to fix it: by keeping
+> clk_enable/clk_disable (so reverting part of Magnus changes),
+> or by using, instead pm_runtime_get_sync/pm_runtime_put_sync.
+> 
+> I guess the latter is the proper fix, but, as both use API's that are sh
+> specific, the better is if you could point me the right way.
+> 
+> Cheers,
+> Mauro.
+> 
+> diff -upr oldtree/drivers/media/video/sh_mobile_ceu_camera.c /home/v4l/tokernel/wrk/linux-next/drivers/media/video/sh_mobile_ceu_camera.c
+> --- oldtree/drivers/media/video/sh_mobile_ceu_camera.c	2009-09-19 09:08:13.000000000 -0300
+> +++ /home/v4l/tokernel/wrk/linux-next/drivers/media/video/sh_mobile_ceu_camera.c	2009-09-19 01:35:28.000000000 -0300
+> @@ -404,7 +404,7 @@ static int sh_mobile_ceu_add_device(stru
+>  		 "SuperH Mobile CEU driver attached to camera %d\n",
+>  		 icd->devnum);
+>  
+> -	pm_runtime_get_sync(ici->dev);
+> +	clk_enable(pcdev->clk);
+>  
+>  	ceu_write(pcdev, CAPSR, 1 << 16); /* reset */
+>  	while (ceu_read(pcdev, CSTSR) & 1)
+> @@ -438,7 +438,7 @@ static void sh_mobile_ceu_remove_device(
+>  	}
+>  	spin_unlock_irqrestore(&pcdev->lock, flags);
+>  
+> -	pm_runtime_put_sync(ici->dev);
+> +	clk_disable(pcdev->clk);
+>  
+>  	dev_info(icd->dev.parent,
+>  		 "SuperH Mobile CEU driver detached from camera %d\n",
 > 
 > 
-> > OK,
-> >
-> > thought I'll have never to care for it again.
-> >
-> > ENUM calls should never be W.
-> >
-> > Hit me for all I missed.
-> >
-> > Cheers,
-> > Hermann
 > 
-> you are not seeing the point of it it seems
-
-you are right, I do not see your point at all, but I was wrong for the
-get calls.
-
-We had such discussions on v4l ioctls previously.
-
-The result was to keep them as is and not to change IOR to IOWR to keep
-compatibility.
-
-This is six years back.
-
-If you point me to a bug ever caused by it, I'll happily try to look it
-up again.
-
-Cheers,
-Hermann
-
-> Documentation/ioctl-number.txt
 > 
-> ----
-> If you are adding new ioctl's to the kernel, you should use the _IO
-> macros defined in <linux/ioctl.h>:
 > 
->     _IO    an ioctl with no parameters
->     _IOW   an ioctl with write parameters (copy_from_user)
->     _IOR   an ioctl with read parameters  (copy_to_user)
->     _IOWR  an ioctl with both write and read parameters.
-> ----
-> copy from user is required in order to copy the keys for the requested
-> elements into the kernel.
-> copy to user is finally used to play them back.
 > 
-> Markus
+> Cheers,
+> Mauro
+> 
 
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
