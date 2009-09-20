@@ -1,61 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:39352 "EHLO
+Received: from bombadil.infradead.org ([18.85.46.34]:42426 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753318AbZIGOGw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Sep 2009 10:06:52 -0400
-Date: Mon, 7 Sep 2009 11:06:25 -0300
+	with ESMTP id S1753938AbZITJC4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Sep 2009 05:02:56 -0400
+Date: Sun, 20 Sep 2009 06:02:18 -0300
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Steven Toth <stoth@kernellabs.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: ML delivery failures
-Message-ID: <20090907110625.5ed50733@caramujo.chehab.org>
-In-Reply-To: <4AA50882.7070002@kernellabs.com>
-References: <4AA50882.7070002@kernellabs.com>
+To: David Liontooth <lionteeth@cogweb.net>
+Cc: hermann pitton <hermann-pitton@arcor.de>,
+	linux-media@vger.kernel.org
+Subject: Re: Audio drop on saa7134
+Message-ID: <20090920060218.51971a45@pedra.chehab.org>
+In-Reply-To: <4AB5E6AC.1090505@cogweb.net>
+References: <4AAEFEC9.3080405@cogweb.net>
+	<20090915000841.56c24dd6@pedra.chehab.org>
+	<4AAF11EC.3040800@cogweb.net>
+	<1252988501.3250.62.camel@pc07.localdom.local>
+	<4AAF232F.9060204@cogweb.net>
+	<1252993000.3250.97.camel@pc07.localdom.local>
+	<4AAF2F1B.2050206@cogweb.net>
+	<4AB5E6AC.1090505@cogweb.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 07 Sep 2009 09:20:02 -0400
-Steven Toth <stoth@kernellabs.com> escreveu:
+Em Sun, 20 Sep 2009 01:24:12 -0700
+David Liontooth <lionteeth@cogweb.net> escreveu:
 
-> Hi,
-> 
-> I have the traffic from this list going to a gmail account. I normally use 
-> thunderbird to respond to emails and never have issues posting to the ML.
-> 
-> If I'm away from thunderbird and try to respond via the google apps gmail 
-> interface my mails always get bounced from vger's mail daemon, claiming that the 
-> message has a html sub-part, and is considered spam or an outlook virus - thus 
-> rejected.
-> 
-> It's happened a few times, again today when responding to Simon's comment about 
-> the relationship between the 716x and the 7162 driver.
-> 
-> I don't see any obvious 'use-non-html' formatting setting in gmail.
-> 
-> Perhaps someone else has seen this issue or knows of a workaround?
-> 
-> Comments / feedback appreciated.
+> Sep 18 07:00:01 prato kernel: saa7133[4]/audio: dsp write reg 0x464 = 0x000000
+> Sep 18 07:00:01 prato kernel: saa7133[4]/audio: dsp write reg 0x46c = 0xbbbbbb
 
-Hi Stoth,
+This means mute. With this, audio will stop.
 
-As you know, vger has several ways to protect the mailing list against spam,
-and, considering the amount of spam we receive here and at LKML, they are quite
-effective. There are very low spam traffic there.
+> Sep 18 07:00:01 prato kernel: saa7133[4]/audio: dsp write reg 0x464 = 0x000000
+> Sep 18 07:00:01 prato kernel: saa7133[4]/audio: dsp write reg 0x46c = 0xbbbb10
 
-I don't know what mechanisms they used there to solve this, but for sure they
-deny html posts. This is a recommended measure from security POV, since html
-emails can be used for several bad things including scam, especially when those
-emails are mirrored on some websites, since they can include some arbitrary code
-(asp/java/javascript) inside, that can do evil things for those who read such
-emails.
+This means unmute.
 
-I dunno if is there any way to disable html emails at gmail's web interface. In
-my case, when I use my gmail account, I always do it via an imap/smtp client, using
-the gmail server as a smtp smart relay. This way, the email will be sent as a
-pure text email as expected.
+It seems that the auto-mute code is doing some bad things for you. What happens
+if you disable automute? This is a control that you can access via v4l2ctl or
+on your userspace application.
+
+Are you using the last version of the driver? I'm not seeing some debug log messages
+that should be there...
+
+
 
 Cheers,
 Mauro
