@@ -1,85 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-11.arcor-online.net ([151.189.21.51]:39138 "EHLO
-	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751277AbZIUBnR (ORCPT
+Received: from mail-ew0-f206.google.com ([209.85.219.206]:57033 "EHLO
+	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751534AbZITPNp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Sep 2009 21:43:17 -0400
-Subject: Re: Audio drop on saa7134
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: David Liontooth <lionteeth@cogweb.net>, linux-media@vger.kernel.org
-In-Reply-To: <20090920060218.51971a45@pedra.chehab.org>
-References: <4AAEFEC9.3080405@cogweb.net>
-	 <20090915000841.56c24dd6@pedra.chehab.org> <4AAF11EC.3040800@cogweb.net>
-	 <1252988501.3250.62.camel@pc07.localdom.local>
-	 <4AAF232F.9060204@cogweb.net>
-	 <1252993000.3250.97.camel@pc07.localdom.local>
-	 <4AAF2F1B.2050206@cogweb.net> <4AB5E6AC.1090505@cogweb.net>
-	 <20090920060218.51971a45@pedra.chehab.org>
-Content-Type: text/plain
-Date: Mon, 21 Sep 2009 03:30:15 +0200
-Message-Id: <1253496615.3257.25.camel@pc07.localdom.local>
-Mime-Version: 1.0
+	Sun, 20 Sep 2009 11:13:45 -0400
+Received: by ewy2 with SMTP id 2so331720ewy.17
+        for <linux-media@vger.kernel.org>; Sun, 20 Sep 2009 08:13:47 -0700 (PDT)
+Message-ID: <4AB646CD.3030909@gmail.com>
+Date: Sun, 20 Sep 2009 16:14:21 +0100
+From: Danny Wood <danwood76@gmail.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: [PATCH] Add support for Asus Europa Hybrid DVB-T card (SAA7134 	SubVendor
+ ID: 0x1043 Device ID: 0x4847)
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Adds the device IDs and driver linking to allow the Asus Europa DVB-T
+card to operate with these drivers.
+The device has a SAA7134 chipset with a TD1316 Hybrid Tuner.
+All inputs work on the card including switching between DVB-T and
+Analogue TV, there is also no IR with this card.
 
-Am Sonntag, den 20.09.2009, 06:02 -0300 schrieb Mauro Carvalho Chehab:
-> Em Sun, 20 Sep 2009 01:24:12 -0700
-> David Liontooth <lionteeth@cogweb.net> escreveu:
-> 
-> > Sep 18 07:00:01 prato kernel: saa7133[4]/audio: dsp write reg 0x464 = 0x000000
-> > Sep 18 07:00:01 prato kernel: saa7133[4]/audio: dsp write reg 0x46c = 0xbbbbbb
-> 
-> This means mute. With this, audio will stop.
-> 
-> > Sep 18 07:00:01 prato kernel: saa7133[4]/audio: dsp write reg 0x464 = 0x000000
-> > Sep 18 07:00:01 prato kernel: saa7133[4]/audio: dsp write reg 0x46c = 0xbbbb10
-> 
-> This means unmute.
-> 
-> It seems that the auto-mute code is doing some bad things for you. What happens
-> if you disable automute? This is a control that you can access via v4l2ctl or
-> on your userspace application.
-> 
-> Are you using the last version of the driver? I'm not seeing some debug log messages
-> that should be there...
-> 
-> 
-> 
-> Cheers,
-> Mauro
+(Resent with fixed email formatting)
 
-despite of still 1001 messages unread, Mauro is right here.
-
-You are also for sure not on a saa7134, likely you would not ever had a
-reason to come up here on such. But the much better is to have you now.
-
-Means, you are at least on a saa7133, not able to decode stereo TV sound
-on PAL and SECAM systems, vice versa counts for the saa7134 on SYSTEM-M.
-
-The automute is for convenience of the users, say not to have loud noise
-on channel switching. It is also controlled by different registers for
-analog sound and PCI dma sound.
-
-If debugging those issues, one more thing to mention is that external
-video in without audio will kick in mute on those cards too at the first
-round.
-
-It should be possible to disable all such funny stuff on production
-systems, pleasant for the average user's conditions, and then see if
-anything should still remain.
-
-On bad mobos, needing PCI quirks and other such stuff, we are likely not
-any further than what you have seen on bttv previously, but in 99.9
-percent of the known cases it seems to work.
-
-Else Mauro again is right, even audio_debug = 1 should deliver the
-related mute ioctl prints.
-
-Cheers,
-Hermann
-
+Signed-off-by: Danny Wood <danwood76@gmail.com>
+diff -ruN a/linux/drivers/media/video/saa7134/saa7134-cards.c b/linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c	2009-09-20 09:10:03.000000000 +0100
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	2009-09-20 09:07:21.000000000 +0100
+@@ -5317,6 +5317,30 @@
+ 			.amux = TV,
+ 		},
+ 	},
++	[SAA7134_BOARD_ASUS_EUROPA_HYBRID] = {
++		.name           = "Asus Europa Hybrid OEM",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_TD1316,
++		.radio_type     = UNSET,
++		.tuner_addr	= 0x61,
++		.radio_addr	= ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT | TDA9887_PORT1_ACTIVE,
++		.mpeg           = SAA7134_MPEG_DVB,
++		.inputs = {{
++			.name   = name_tv,
++			.vmux   = 3,
++			.amux   = TV,
++			.tv     = 1,
++		},{
++			.name   = name_comp1,
++			.vmux   = 4,
++			.amux   = LINE2,
++		},{
++			.name   = name_svideo,
++			.vmux   = 8,
++			.amux   = LINE2,
++		}},
++	},
+ 
+ };
+ 
+@@ -6455,6 +6479,12 @@
+ 		.subvendor    = PCI_VENDOR_ID_PHILIPS,
+ 		.subdevice    = 0x2004,
+ 		.driver_data  = SAA7134_BOARD_ZOLID_HYBRID_PCI,
++	},{
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
++		.subvendor    = 0x1043,
++		.subdevice    = 0x4847,
++		.driver_data  = SAA7134_BOARD_ASUS_EUROPA_HYBRID,
+ 	}, {
+ 		/* --- boards without eeprom + subsystem ID --- */
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+@@ -7162,6 +7192,7 @@
+ 		/* break intentionally omitted */
+ 	case SAA7134_BOARD_VIDEOMATE_DVBT_300:
+ 	case SAA7134_BOARD_ASUS_EUROPA2_HYBRID:
++	case SAA7134_BOARD_ASUS_EUROPA_HYBRID:
+ 	{
+ 
+ 		/* The Philips EUROPA based hybrid boards have the tuner
+diff -ruN a/linux/drivers/media/video/saa7134/saa7134-dvb.c b/linux/drivers/media/video/saa7134/saa7134-dvb.c
+--- a/linux/drivers/media/video/saa7134/saa7134-dvb.c	2009-09-20 09:10:03.000000000 +0100
++++ b/linux/drivers/media/video/saa7134/saa7134-dvb.c	2009-09-20 08:58:51.000000000 +0100
+@@ -1116,6 +1116,7 @@
+ 		break;
+ 	case SAA7134_BOARD_PHILIPS_EUROPA:
+ 	case SAA7134_BOARD_VIDEOMATE_DVBT_300:
++	case SAA7134_BOARD_ASUS_EUROPA_HYBRID:
+ 		fe0->dvb.frontend = dvb_attach(tda10046_attach,
+ 					       &philips_europa_config,
+ 					       &dev->i2c_adap);
+diff -ruN a/linux/drivers/media/video/saa7134/saa7134.h b/linux/drivers/media/video/saa7134/saa7134.h
+--- a/linux/drivers/media/video/saa7134/saa7134.h	2009-09-20 09:10:03.000000000 +0100
++++ b/linux/drivers/media/video/saa7134/saa7134.h	2009-09-20 09:08:15.000000000 +0100
+@@ -298,6 +298,7 @@
+ #define SAA7134_BOARD_BEHOLD_X7             171
+ #define SAA7134_BOARD_ROVERMEDIA_LINK_PRO_FM 172
+ #define SAA7134_BOARD_ZOLID_HYBRID_PCI		173
++#define SAA7134_BOARD_ASUS_EUROPA_HYBRID	174
+ 
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
 
