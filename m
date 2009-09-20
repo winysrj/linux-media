@@ -1,18 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mxout1.netvision.net.il ([194.90.9.20])
+Received: from moutng.kundenserver.de ([212.227.126.188])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <gennady@exatel-vs.com>) id 1Mno0N-0004Bc-1J
-	for linux-dvb@linuxtv.org; Wed, 16 Sep 2009 08:28:39 +0200
-Received: from Nissim ([212.143.127.51]) by mxout1.netvision.net.il
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTPA id <0KQ100BSYWMRB470@mxout1.netvision.net.il> for
-	linux-dvb@linuxtv.org; Wed, 16 Sep 2009 09:28:03 +0300 (IDT)
-Date: Wed, 16 Sep 2009 09:28:14 +0300
-From: gennady <gennady@exatel-vs.com>
+	(envelope-from <SRS0=Dki3=FL=gmx.de=jens.nixdorf@srs.kundenserver.de>)
+	id 1MpOZJ-0003OJ-7z
+	for linux-dvb@linuxtv.org; Sun, 20 Sep 2009 17:43:17 +0200
+Received: from miniserver.lan (localhost.localdomain [127.0.0.1])
+	by miniserver.lan (8.13.8/8.13.8/SuSE Linux 0.8) with ESMTP id
+	n8KFgWcb015696
+	for <linux-dvb@linuxtv.org>; Sun, 20 Sep 2009 17:42:33 +0200
+Date: Sun, 20 Sep 2009 17:42:20 +0200
+From: Jens Nixdorf <jens.nixdorf@gmx.de>
 To: linux-dvb@linuxtv.org
-Message-id: <C0EA3D8EE7E94C01A6FF929034F088C1@exatelvs.com>
-MIME-version: 1.0
-Subject: [linux-dvb] The Tuner stv6110x.c driver problem.
+Message-ID: <200909201742.20628.jens.nixdorf@gmx.de>
+In-Reply-To: <20090915064115.GA20603@seneca.muc.de>
+References: <8CB2022318A0220-1E84-15EE@WEBMAIL-MZ13.sysops.aol.com>
+References: <20090914101458.GA18504@seneca.muc.de>
+References: <20090915064115.GA20603@seneca.muc.de>
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: Re: [linux-dvb] Need help with TT S2-3650 w/ s2-liplianin
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -21,217 +27,37 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0456336180=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
-
---===============0456336180==
-Content-type: multipart/alternative;
- boundary="Boundary_(ID_TjinkK+afwJvCwEPHmZlbA)"
-
-This is a multi-part message in MIME format.
-
---Boundary_(ID_TjinkK+afwJvCwEPHmZlbA)
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7BIT
-
-Hi!
-
-My stv6110a tuner doesn't work.
-
-I see that there is problem with the divider calculation.
-
- 
-
-The code gets the same value = 3 in any case:
-
- 
-
-for (rDiv = 0; rDiv <= 3; rDiv++) 
-
- {
-
-             pCalc = (REFCLOCK_kHz / 100) / R_DIV(rDiv);
-
- 
-
-             if ((abs((s32)(pCalc - pVal))) < (abs((s32)(1000 - pVal))))
-
-             {
-
-                        rDivOpt = rDiv;
-
-             }
-
-}
-
- 
-
-As result is the wrong divider value.
-
- 
-
-Is this driver working?
-
- 
-
- 
-
-Gennady.
-
- 
-
-gennady@exatel-vs.com
-
- 
-
- 
-
-
---Boundary_(ID_TjinkK+afwJvCwEPHmZlbA)
-Content-type: text/html; charset=us-ascii
-Content-transfer-encoding: 7BIT
-
-<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
-
-<head>
-<meta http-equiv=Content-Type content="text/html; charset=us-ascii">
-<meta name=Generator content="Microsoft Word 11 (filtered medium)">
-<style>
-<!--
- /* Style Definitions */
- p.MsoNormal, li.MsoNormal, div.MsoNormal
-	{margin:0in;
-	margin-bottom:.0001pt;
-	font-size:12.0pt;
-	font-family:"Times New Roman";}
-a:link, span.MsoHyperlink
-	{color:blue;
-	text-decoration:underline;}
-a:visited, span.MsoHyperlinkFollowed
-	{color:purple;
-	text-decoration:underline;}
-span.EmailStyle17
-	{mso-style-type:personal-compose;
-	font-family:Arial;
-	color:windowtext;}
-@page Section1
-	{size:8.5in 11.0in;
-	margin:1.0in 1.25in 1.0in 1.25in;}
-div.Section1
-	{page:Section1;}
--->
-</style>
-
-</head>
-
-<body lang=EN-US link=blue vlink=purple>
-
-<div class=Section1>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>Hi!<o:p></o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>My stv6110a tuner doesn&#8217;t work.<o:p></o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>I see that there is problem with the divider calculation.<o:p></o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>The code gets the same value = 3 in any case:<o:p></o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>for (rDiv = 0; rDiv &lt;= 3; rDiv++) <o:p></o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>&nbsp;{<o:p></o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;pCalc
-= (REFCLOCK_kHz / 100) / R_DIV(rDiv);<o:p></o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;if
-((abs((s32)(pCalc - pVal))) &lt; (abs((s32)(1000 - pVal))))<o:p></o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;{<o:p></o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; rDivOpt
-= rDiv;<o:p></o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;}<o:p></o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>}<o:p></o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>As result is the wrong divider value.<o:p></o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>Is this driver working?<o:p></o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>Gennady.<o:p></o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>gennady@exatel-vs.com<o:p></o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-</div>
-
-</body>
-
-</html>
-
---Boundary_(ID_TjinkK+afwJvCwEPHmZlbA)--
-
-
---===============0456336180==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Am Dienstag, 15. September 2009 08:41:15 schrieb Harald Milz:
+> 
+> Today, after stopping VDR I get loads and loads of
+> 
+> Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22; AA 68  D0 03 00 ->
+>  AA 68  D0 03 00. Sep 15 08:38:43 seneca kernel: dvb-usb: bulk message
+>  failed: -22 (9/0) Sep 15 08:38:43 seneca kernel: pctv452e: I2C error -22;
+>  AA 69  D0 02 00 -> AA 69  D0 02 00. Sep 15 08:38:43 seneca kernel:
+>  dvb-usb: bulk message failed: -22 (9/-30719)
+[...]
+> 
+> 
+> The module cannot be unloaded:
+> 
+> dvb_usb_pctv452e       23052  18
+> 
+
+Same here within freevdr2.0d, an ubuntu 9.04-derivate. When this is happening, 
+the system isnt usable anymore. No input is acknowledged from this point, not 
+from keyboard, not over the net (ssh).
+
+regards, Jens
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0456336180==--
