@@ -1,344 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43335 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751925AbZIQTid convert rfc822-to-8bit (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:49131 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751646AbZITJbO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Sep 2009 15:38:33 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Cohen David Abraham <david.cohen@nokia.com>,
-	=?iso-8859-1?Q?Koskip=E4=E4_Antti_Jussi_Petteri?=
-	<antti.koskipaa@nokia.com>,
-	"Zutshi Vimarsh (Nokia-D-MSW/Helsinki)" <vimarsh.zutshi@nokia.com>,
-	"stefan.kost@nokia.com" <stefan.kost@nokia.com>
-Date: Thu, 17 Sep 2009 14:38:28 -0500
-Subject: RE: [RFC] Global video buffers pool
-Message-ID: <A69FA2915331DC488A831521EAE36FE401551D6E9B@dlee06.ent.ti.com>
-References: <200909161746.39754.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <200909161746.39754.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Sun, 20 Sep 2009 05:31:14 -0400
+Date: Sun, 20 Sep 2009 06:30:39 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Magnus Damm <damm@igel.co.jp>
+Subject: Re: Diffs between our tree and upstream
+Message-ID: <20090920063039.47318a65@pedra.chehab.org>
+In-Reply-To: <Pine.LNX.4.64.0909201053530.332@axis700.grange>
+References: <20090919010602.7e8f2df2@pedra.chehab.org>
+	<20090919091644.0219cfba@pedra.chehab.org>
+	<Pine.LNX.4.64.0909201053530.332@axis700.grange>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent,
+Em Sun, 20 Sep 2009 10:57:34 +0200 (CEST)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
 
-Thanks for working on this. I might need some more time to review this
-as there are many RFCs put for review (including one from myself). From
-TI's point of view we need something like a global buffer allocator for video drivers.
+> Hi Mauro
+> 
+> On Sat, 19 Sep 2009, Mauro Carvalho Chehab wrote:
+> 
+> > Em Sat, 19 Sep 2009 01:06:02 -0300
+> > Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
+> > 
+> > > Hi Guennadi,
+> > > 
+> > > I'm about to send our pull request.
+> > > 
+> > > While doing my last checks, I noticed a difference between our tree and
+> > > upstream. I'm not sure what happens. Could you please check?
+> > > 
+> > > The enclosed patch is the diff from upstream to -hg.
+> > 
+> > Ok, I discovered the cause of the conflict: 
+> > 	git patch 6d1386c6b8db54ac8d94c01194e0c27cd538532b were applied before the
+> > soc_camera conversion to v4l dev/subdev.
+> > 
+> > I've applied the patch on our development tree. Still, we have a few diffs,
+> > probably meaning that I solved it at the wrong way at git.
+> 
+> No, please, don't change anything in our trees. Pual should have pushed 
+> his tree after v4l to Linus, but he has done it before. The idea is we 
+> should push our tree as is and then solve the conflict on merge. That 
+> should be easy. But if you start patching the v4l tree, that can make 
+> things much more complicated. BTW, your patch below is not the correct 
+> fix.
 
-Two ideas that came up while discussing this internally are given below which I thought will share with you.
+That patch bellow is the diff between -hg tree and what we have at -git, after the
+conflict solve. If it is wrong, it shows that the conflict were solved in a wrong
+direction. Both your and Magnus patch touched at the same context lines of the
+code, making the resolution not trivial.
 
-1)Add a common contiguous buffer allocator/deallocator to video buffer
-  layer which will pre-allocate the buffer at bootup and contiguous
-  buffer layer use it for allocating buffer. When runs out, it will
-  fallback to it's current scheme.
+If that patch is not correct, we need to apply it on our tree and write a patch
+fixing it. The fix patch should be then added at another git push request.
 
-2)Similar to 1) except that the allocator use the bootargs mem variable to 
-  calculate the available memory in the board and use this memory for buffer 
-  allocation. This way user can customize it based on a system design goal.
 
-We might want to have user application to request buffer from the same pool through an API. User space applications would use this API to allocate contiguous buffers as needed and would use USERPTR IO in all drivers or use MMAP IO in one driver and USERPTR IO in other drivers using these buffer pointers.
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-new phone: 301-407-9583
-Old Phone : 301-515-3736 (will be deprecated)
-email: m-karicheri2@ti.com
-
->-----Original Message-----
->From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->owner@vger.kernel.org] On Behalf Of Laurent Pinchart
->Sent: Wednesday, September 16, 2009 11:47 AM
->To: linux-media@vger.kernel.org; Hans Verkuil; Sakari Ailus; Cohen David
->Abraham; Koskipää Antti Jussi Petteri; Zutshi Vimarsh (Nokia-D-
->MSW/Helsinki); stefan.kost@nokia.com
->Subject: [RFC] Global video buffers pool
->
->Hi everybody,
->
->I didn't want to miss this year's pretty flourishing RFC season, so here's
->another one about a global video buffers pool.
->
->All comments are welcome, but please don't trash this proposal too fast.
->It's
->a first shot at real problems encountered in real situations with real
->hardware (namely high resolution still image capture on OMAP3). It's far
->from
->perfect, and I'm open to completely different solutions if someone thinks
->of
->one.
->
->
->Introduction
->============
->
->The V4L2 video buffers handling API makes use of a queue of video buffers
->to
->exchange data between video devices and userspace applications (the read
->method don't expose the buffers objects directly but uses them underneath).
->Although quite efficient for simple video capture and output use cases, the
->current implementation doesn't scale well when used with complex hardware
->and
->large video resolutions. This RFC will list the current limitations of the
->API
->and propose a possible solution.
->
->The document is at this stage a work in progress. Its main purpose is to be
->used as support material for discussions at the Linux Plumbers Conference.
->
->
->Limitations
->===========
->
->Large buffers allocation
->------------------------
->
->Many video devices still require physically contiguous memory. The
->introduction of IOMMUs on high-end systems will probably make that a
->distant
->nightmare in the future, but we have to deal with this situation for the
->moment (I'm not sure if the most recent PCI devices support scatter-gather
->lists, but many embedded systems still require physically contiguous
->memory).
->
->Allocating large amounts of physically contiguous memory needs to be done
->as
->soon as possible after (or even during) system bootup, otherwise memory
->fragmentation will cause the allocation to fail.
->
->As the amount of required video memory depends on the frame size and the
->number of buffers, the driver can't pre-allocate the buffers beforehand. A
->few
->drivers allocate a large chunk of memory when they are loaded and then use
->it
->when a userspace application requests video buffers to be allocated.
->However,
->that method requires guessing how much memory will be needed, and can lead
->to
->waste of system memory (if the guess was too large) or allocation failures
->(if
->the guess was too low).
->
->Buffer queuing latency
->-----------------------
->
->VIDIOC_QBUF is becoming a performance bottleneck when capturing large
->images
->on some systems (especially in the embedded world). When capturing high
->resolution still pictures, the VIDIOC_QBUF delay adds to the shot latency,
->making the camera appear slow to the user.
->
->The delay is caused by several operations required by DMA transfers that
->all
->happen when queuing buffers.
->
->- Cache coherency management
->
->When the processor has a non-coherent cache (which is the case with most
->embedded devices, especially ARM-based) the device driver needs to
->invalidate
->(for video capture) or flush (for video output) the cache (either a range,
->or
->the whole cache) every time a buffer is queued. This ensures that stale
->data
->in the cache will not be written back to memory during or after DMA and
->that
->all data written by the CPU is visible to the device.
->
->Invalidating the cache for large resolutions take a considerable amount of
->time. Preliminary tests showed that cache invalidation for a 5MP buffer
->requires several hundreds of milliseconds on an OMAP3 platform for range
->invalidation, or several tens of milliseconds when invalidating the whole D
->cache.
->
->When video buffers are passed between two devices (for instance when
->passing
->the same USERPTR buffer to a video capture device and a hardware codec)
->without any userspace access to the memory, CPU cache invalidation/flushing
->isn't required on either side (video capture and hardware codec) and could
->be
->skipped.
->
->- Memory locking and IOMMU
->
->Drivers need to lock the video buffer pages in memory to make sure that the
->physical pages will not be freed while DMA is in progress under low-memory
->conditions. This requires looping over all pages (typically 4kB long) that
->back the video buffer (10MB for a 5MP YUV image) and takes a considerable
->amount of time.
->
->When using the MMAP streaming method, the buffers can be locked in memory
->when
->allocated (VIDIOC_REQBUFS). However, when using the USERPTR streaming
->method,
->the buffers can only be locked the first time they are queued, adding to
->the
->VIDIOC_QBUF latency.
->
->A similar issue arises when using IOMMUs. The IOMMU needs to be programmed
->to
->translate physically scattered pages into a contiguous memory range on the
->bus. This operation is done the first time buffers are queued for USERPTR
->buffers.
->
->Sharing buffers between devices
->-------------------------------
->
->Video buffers memory can be shared between several devices when at most one
->of
->them uses the MMAP method, and the others the USERPTR method. This avoids
->memcpy() operations when transferring video data from one device to another
->through memory (video acquisition -> hardware codec is the most common use
->case).
->
->However, the use of USERPTR buffers comes with restrictions compared to
->MMAP.
->Most architectures don't offer any API to DMA data to/from userspace
->buffers.
->Beside, kernel-allocated buffers could be fine-tuned by the driver (making
->them non-cacheable when it makes sense for instance), which is not possible
->when allocating the buffers in userspace.
->
->For that reason it would be interesting to be able to share kernel-
->allocated
->video buffers between devices.
->
->
->Video buffers pool
->==================
->
->Instead of having separate buffer queues at the video node level, this RFC
->proposes the creation of a video buffers pool at the media controller level
->that can be used to pre-allocate and pre-queue video buffers shared by all
->video devices created by the media controller.
->
->Depending on the implementation complexity, the pool could even be made
->system-wide and shared by all video nodes.
->
->Allocating buffers
->------------------
->
->The video buffers pool will handle independent groups of video buffers.
->
->        allocate               request
->(NULL)   ----->   (ALLOCATED)   ----->   (ACTIVE)
->         <----                  <-----
->          free                 release
->
->Video buffers groups allocation is controlled by userspace. When allocating
->a
->buffers group, an application will specify
->
->- the number of buffers
->- the buffer size (all buffers in a group have the same size)
->- what type of physical memory to allocate (virtual or physically
->contiguous)
->- whether to lock the pages in memory
->- whether to invalidate the cache
->
->Once allocated, a group becomes ALLOCATED and is given an ID by the kernel.
->
->When dealing with really large video buffers, embedded system designers
->might
->want to restrict the amount of RAM used by the Linux kernel to reserve
->memory
->for video buffers. This use case should be supported. One possible solution
->would be to set the reserved RAM address and size as module parameters, and
->let the video buffers pool manage that memory. A full-blown memory manager
->is
->not required, as buffers in that range will be allocated by applications
->that
->know what they're doing.
->
->Queuing the buffers
->-------------------
->
->Buffers can be used by any video node that belongs to the same media
->controller as the buffer pool.
->
->To use buffers from the video buffers pool, a userspace application calls
->VIDIOC_REQBUFS on the video node and sets the memory field to
->V4L2_MEMORY_POOL. The video node driver creates a video buffers queue with
->the
->requested number of buffers (v4l2_requestbuffers::count) but does not
->allocate
->any buffer.
->
->Later, the userspace application calls VIDIOC_QBUF to queue buffers from
->the
->pool to the video node queue. It sets v4l2_buffer::memory to
->V4L2_MEMORY_POOL
->and v4l2_buffer::m to the ID of the buffers group in the pool.
->
->The driver must check if the buffer fulfills its needs. This includes, but
->is
->not limited to, verifying the buffer size. Some devices might require
->contiguous memory, in which case the driver must check if the buffer is
->contiguous.
->
->Depending whether the pages have been locked in memory and the cache
->invalidated when allocating the buffers group in the pool, the driver might
->need to lock pages and invalidate the cache at this point, is it would do
->with
->MMAP or USERPTR buffers. The ability to perform those operations when
->allocating the group speeds up the VIDIOC_QBUF operation, decreasing the
->still
->picture shot latency.
->
->Once a buffer from a group is queued, the group is market as active and
->can't
->be freed until all its buffers are released.
->
->Dequeuing and using the buffers
->-------------------------------
->
->V4L2_MEMORY_POOL buffers are dequeued similarly to MMAP or USERPTR buffers.
->Applications must set v4l2_buffer::memory to V4L2_MEMORY_POOL and the
->driver
->will set v4l2_buffer::m to the buffers group ID.
->
->The buffer can then be used by the application and queued back to the same
->video node, or queued to another video node. If the application doesn't
->touch
->the buffer memory (neither reads from nor writes to memory) it can set
->v4l2_buffer::flags to the new V4L2_BUF_FLAG_NO_CACHE value to tell the
->driver
->to skip cache invalidation and cleaning.
->
->Another option would be to base the decision whether to invalidate/flush
->the
->cache on whether to buffer is currently mmap'ed in userspace. A non-mmap'ed
->buffer can't be touched by userspace, and cache invalidation/flushing is
->thus
->not required. However, this wouldn't work for USERPTR-like buffer groups,
->but
->those are not supported at the moment.
->
->Freeing the buffers
->-------------------
->
->A buffer group can only be freed if all its buffers are not in use. This
->includes
->
->- all buffers that have been mmap'ed must have been unmap'ed
->- no buffer can be queued to a video node
->
->If both conditions are fulfilled, all buffers in the group are unused by
->both
->userspace and kernelspace. They can then be freed.
->
->--
->Laurent Pinchart
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Cheers,
+Mauro
