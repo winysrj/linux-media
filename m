@@ -1,42 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f174.google.com ([209.85.211.174]:33093 "EHLO
-	mail-yw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753786AbZIWGaL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Sep 2009 02:30:11 -0400
-Received: by ywh4 with SMTP id 4so554449ywh.33
-        for <linux-media@vger.kernel.org>; Tue, 22 Sep 2009 23:30:15 -0700 (PDT)
-MIME-Version: 1.0
-Date: Wed, 23 Sep 2009 14:30:14 +0800
-Message-ID: <7c34ac520909222330k73380177sbf103345f5d3d7ec@mail.gmail.com>
-Subject: Support on discontinuous planer buffer and stride
-From: Jun Nie <niej0001@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: base64
+Received: from mail1.radix.net ([207.192.128.31]:40942 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752972AbZITCWi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Sep 2009 22:22:38 -0400
+Subject: Preliminary working HVR-1850 IR hardware and grey Hauppauge RC-5
+	remote
+From: Andy Walls <awalls@radix.net>
+To: stoth@kernellabs.com
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <1252369138.2571.17.camel@morgan.walls.org>
+References: <1252297247.18025.8.camel@morgan.walls.org>
+	 <1252369138.2571.17.camel@morgan.walls.org>
+Content-Type: text/plain
+Date: Sat, 19 Sep 2009 22:20:36 -0400
+Message-Id: <1253413236.13400.24.camel@morgan.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGksCqCgoKAgSSByZS1zZW5kIHRoaXMgZW1haWwgZm9yIHRoZSBsYXN0IG9uZSBpcyByZWplY3Rl
-ZCBieSBzeXN0ZW0uIEkgYW0Kc29ycnkgaWYgeW91IGd1eXMgcmVjZWl2ZWQgYm90aC4KCqCgoKAg
-SSBhbSBvcHRpbWl6aW5nIHZpZGVvIHBsYXliYWNrIHdpdGggb3ZlcmxheSB3aXRoIFY0TDIgZHJp
-dmVyLiBUaGUKdmlkZW8gY29udGVudCBpcyBhIHN1Yi1yZWdpb24gb2YgY29kZWMgb3V0cHV0LiBU
-aHVzIGEgbWVtb3J5IGNvcHkgaXMKbmVjZXNzYXJ5LgqgoKAgSXMgdGhlcmUgcGxhbiB0byBzdXBw
-b3J0IGZvciBzdHJpZGUgYW5kIGRpc2NyZXRlIFlVViBwbGFuZXIgaW4Ka2VybmVsPyBTdWNoIGFz
-IGJlbG93IGNoYW5nZXMgY2FuIGhlbHAgbXVjaCBmb3IgbXkgdXNhZ2UgY2FzZS4KCi0tLSBhL2lu
-Y2x1ZGUvbGludXgvdmlkZW9kZXYyLmgKKysrIGIvaW5jbHVkZS9saW51eC92aWRlb2RldjIuaApA
-QCAtNTI5LDcgKzUyOSwyMCBAQCBzdHJ1Y3QgdjRsMl9idWZmZXIgewqgoKCgoKCgoKCgoKCgoKAg
-X191MzKgoKCgoKCgoKCgIG9mZnNldDsKoKCgoKCgoKCgoKCgoKCgIHVuc2lnbmVkIGxvbmegoCB1
-c2VycHRyOwqgoKCgoKCgIH0gbTsKK6CgoKCgoCAvKiBVVi9HQiBsb2NhdGlvbiBpcyB2YWxpZCBv
-bmx5IGluIHBsYW5lciBjYXNlICovCiugoKCgoKAgdW5pb24geworoKCgoKCgoKCgoKCgoKAgX191
-MzKgoKCgoKCgoKCgIG9mZnNldF91ZzsKK6CgoKCgoKCgoKCgoKCgIHVuc2lnbmVkIGxvbmegoCB1
-c2VycHRyX3VnOworoKCgoKCgIH0gbV91ZzsKK6CgoKCgoCB1bmlvbiB7CiugoKCgoKCgoKCgoKCg
-oCBfX3UzMqCgoKCgoKCgoKAgb2Zmc2V0X3ZiOworoKCgoKCgoKCgoKCgoKAgdW5zaWduZWQgbG9u
-Z6CgIHVzZXJwdHJfdmI7CiugoKCgoKAgfSBtX3ZiOwqgoKCgoKCgIF9fdTMyoKCgoKCgoKCgoKCg
-oKCgoKCgIGxlbmd0aDsKK6CgoKCgoCAvKiBzdHJpZGUgb2YgWVVWIG9yIFJHQiAqLworoKCgoKCg
-IF9fdTMyoKCgoKCgoKCgoKCgoKCgoKCgIHN0cmlkZV95cjsKK6CgoKCgoCBfX3UzMqCgoKCgoKCg
-oKCgoKCgoKCgoCBzdHJpZGVfdWc7CiugoKCgoKAgX191MzKgoKCgoKCgoKCgoKCgoKCgoKAgc3Ry
-aWRlX3ZiOwqgoKCgoKCgIF9fdTMyoKCgoKCgoKCgoKCgoKCgoKCgIGlucHV0OwqgoKCgoKCgIF9f
-dTMyoKCgoKCgoKCgoKCgoKCgoKCgIHJlc2VydmVkOwqgfTsKCqCgoCBJZiBzdWNoIGNoYW5nZSBp
-cyBhY2NlcHRhYmxlIGZvciBldmVyeW9uZSwgSSBtYXkgaGVscCBvbiB0aGUgaW1wbGVtZW50YXRp
-b24uCqCgoCBBbnkgY29tbWVudHMgYXJlIHdlbGNvbWUuCgpKdW4K
+Steve,
+
+I've finally have a working implementation of the the HVR-1850 IR
+receiver and the grey Hauppauge RC-5 remote with in kernel (non-LIRC) IR
+input to key press events.
+
+If you feel adventurous, give it a try for testing the IR receiver:
+
+http://www.linuxtv.org/hg/~awalls/cx23888-ir
+
+
+Caveat emptor:
+
+1. I would not recommend reviewing the code by individual change sets.
+The change sets become an evolutionary mess towards the end, as I would
+find a few minutes here or there to add a few lines of code. :)  I will
+provide a cleaned up version, most likely some time after the LPC.
+
+2. I need to clean up of some dead/commented out code.
+
+3. I need to port it forward to catch up with recent changes to the
+cx25840 module, cx23885 module, and IR keytable changes.  (The code
+compiles and works, but I started working from a v4l-dvb clone from a
+few months ago. There have been a few changes in areas I have worked.)
+
+4. It only works for CX23888 devices right now. CX23885 devices should
+be easy enough to support after cleanup and initial merge of this code.
+
+5. I specifically did not address the RC-6(A) remote.  With the
+CX2388[58] hardware, it wouldn't be hard to handle the RC-6(A) remote,
+but the v4l-dvb tree is missing lots of RC-6 definitions and helper
+functions.  I figured I'd rather focus on a LIRC plug-in for a
+v4l_device rather than reinvent RC-6(A) inside the v4l-dvb code.
+
+
+Regards,
+Andy
+
