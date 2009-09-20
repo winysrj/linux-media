@@ -1,77 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:45955 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752663AbZIISj3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Sep 2009 14:39:29 -0400
-Received: by bwz19 with SMTP id 19so640488bwz.37
-        for <linux-media@vger.kernel.org>; Wed, 09 Sep 2009 11:39:32 -0700 (PDT)
+Received: from mail-ew0-f206.google.com ([209.85.219.206]:58115 "EHLO
+	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754394AbZITKSt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Sep 2009 06:18:49 -0400
+Received: by ewy2 with SMTP id 2so231235ewy.17
+        for <linux-media@vger.kernel.org>; Sun, 20 Sep 2009 03:18:51 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <c2885d2b0909091134w1264b827kf5d4254634bed1d9@mail.gmail.com>
-References: <200909091814.10092.animatrix30@gmail.com>
-	 <829197380909090919o613827d0ye00cbfe3bde888ed@mail.gmail.com>
-	 <c2885d2b0909091113h2ae6e27ai7541b3efac0e4606@mail.gmail.com>
-	 <829197380909091120h45f1a21eoe2aa576acbf3a4ac@mail.gmail.com>
-	 <c2885d2b0909091134w1264b827kf5d4254634bed1d9@mail.gmail.com>
-Date: Wed, 9 Sep 2009 14:39:31 -0400
-Message-ID: <829197380909091139i5894aa4chd116c9ef32aff25e@mail.gmail.com>
-Subject: Re: Invalid module format
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: "animatrix30@gmail.com" <animatrix30@gmail.com>
-Cc: linux-media@vger.kernel.org
+Date: Sun, 20 Sep 2009 11:18:47 +0100
+Message-ID: <2ebb56ce0909200318t5dca2671t5e2784a394bb8e77@mail.gmail.com>
+Subject: [PATCH] Add support for Asus Europa Hybrid DVB-T card (SAA7134
+	SubVendor ID: 0x1043 Device ID: 0x4847)
+From: Danny <danwood76@gmail.com>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 9, 2009 at 2:34 PM, animatrix30@gmail.com
-<animatrix30@gmail.com> wrote:
->
-> I have this error, when I load the module :
-> [ 2122.708062] em28xx: Unknown symbol v4l2_i2c_new_probed_subdev
-> [ 2122.708402] em28xx: disagrees about version of symbol v4l2_i2c_subdev_addr
-> [ 2122.708404] em28xx: Unknown symbol v4l2_i2c_subdev_addr
-> [ 2122.708680] em28xx: disagrees about version of symbol video_devdata
-> [ 2122.708682] em28xx: Unknown symbol video_devdata
-> [ 2122.708889] em28xx: Unknown symbol v4l_bound_align_image
-> [ 2122.709594] em28xx: disagrees about version of symbol video_unregister_device
-> [ 2122.709597] em28xx: Unknown symbol video_unregister_device
-> [ 2122.709810] em28xx: disagrees about version of symbol video_device_alloc
-> [ 2122.709813] em28xx: Unknown symbol video_device_alloc
-> [ 2122.709886] em28xx: disagrees about version of symbol v4l2_device_disconnect
-> [ 2122.709888] em28xx: Unknown symbol v4l2_device_disconnect
-> [ 2122.709982] em28xx: disagrees about version of symbol video_register_device
-> [ 2122.709985] em28xx: Unknown symbol video_register_device
-> [ 2122.710090] em28xx: disagrees about version of symbol v4l2_device_register
-> [ 2122.710093] em28xx: Unknown symbol v4l2_device_register
-> [ 2122.710416] em28xx: Unknown symbol ir_codes_evga_indtube
-> [ 2122.711104] em28xx: disagrees about version of symbol v4l2_device_unregister
-> [ 2122.711106] em28xx: Unknown symbol v4l2_device_unregister
-> [ 2122.711332] em28xx: disagrees about version of symbol video_device_release
-> [ 2122.711335] em28xx: Unknown symbol video_device_release
-> [ 2122.711406] em28xx: disagrees about version of symbol v4l2_i2c_new_subdev
-> [ 2122.711408] em28xx: Unknown symbol v4l2_i2c_new_subdev
->
-> Is it because of my (wrong) configuration or your code (debug) ?
-> Thanks !
->
-> (It seems that the mailing list is not working )
-<snip>
+Adds the device IDs and driver linking to allow the Asus Europa DVB-T
+card to operate with these drivers.
+The device has a SAA7134 chipset with a TD1316 Hybrid Tuner.
+All inputs work on the card including switching between DVB-T and
+Analogue TV, there is also no IR with this card.
 
-Please stop top posting.
+Signed-off-by: Danny Wood <danwood76@gmail.com>
+diff -ruN a/linux/drivers/media/video/saa7134/saa7134-cards.c
+b/linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c 2009-09-20
+09:10:03.000000000 +0100
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c 2009-09-20
+09:07:21.000000000 +0100
+@@ -5317,6 +5317,30 @@
+                       .amux = TV,
+               },
+       },
++       [SAA7134_BOARD_ASUS_EUROPA_HYBRID] = {
++               .name           = "Asus Europa Hybrid OEM",
++               .audio_clock    = 0x00187de7,
++               .tuner_type     = TUNER_PHILIPS_TD1316,
++               .radio_type     = UNSET,
++               .tuner_addr     = 0x61,
++               .radio_addr     = ADDR_UNSET,
++               .tda9887_conf   = TDA9887_PRESENT | TDA9887_PORT1_ACTIVE,
++               .mpeg           = SAA7134_MPEG_DVB,
++               .inputs = {{
++                       .name   = name_tv,
++                       .vmux   = 3,
++                       .amux   = TV,
++                       .tv     = 1,
++               },{
++                       .name   = name_comp1,
++                       .vmux   = 4,
++                       .amux   = LINE2,
++               },{
++                       .name   = name_svideo,
++                       .vmux   = 8,
++                       .amux   = LINE2,
++               }},
++       },
 
-Did you build mrec's driver from source?  Or are you using a binary
-package?  If you built it from source, then your problem has to do
-with his code not finding the proper headers.  If you are using his
-binary package, then you need to understand that the binary package
-only works with whatever kernel he built against.
+ };
 
-Either way, this is a problem with your environment and not with the
-v4l-dvb code.
+@@ -6455,6 +6479,12 @@
+               .subvendor    = PCI_VENDOR_ID_PHILIPS,
+               .subdevice    = 0x2004,
+               .driver_data  = SAA7134_BOARD_ZOLID_HYBRID_PCI,
++       },{
++               .vendor       = PCI_VENDOR_ID_PHILIPS,
++               .device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
++               .subvendor    = 0x1043,
++               .subdevice    = 0x4847,
++               .driver_data  = SAA7134_BOARD_ASUS_EUROPA_HYBRID,
+       }, {
+               /* --- boards without eeprom + subsystem ID --- */
+               .vendor       = PCI_VENDOR_ID_PHILIPS,
+@@ -7162,6 +7192,7 @@
+               /* break intentionally omitted */
+       case SAA7134_BOARD_VIDEOMATE_DVBT_300:
+       case SAA7134_BOARD_ASUS_EUROPA2_HYBRID:
++       case SAA7134_BOARD_ASUS_EUROPA_HYBRID:
+       {
 
-I'm not really in a position to help you debug problems getting mrec's
-driver to work.
+               /* The Philips EUROPA based hybrid boards have the tuner
+diff -ruN a/linux/drivers/media/video/saa7134/saa7134-dvb.c
+b/linux/drivers/media/video/saa7134/saa7134-dvb.c
+--- a/linux/drivers/media/video/saa7134/saa7134-dvb.c   2009-09-20
+09:10:03.000000000 +0100
++++ b/linux/drivers/media/video/saa7134/saa7134-dvb.c   2009-09-20
+08:58:51.000000000 +0100
+@@ -1116,6 +1116,7 @@
+               break;
+       case SAA7134_BOARD_PHILIPS_EUROPA:
+       case SAA7134_BOARD_VIDEOMATE_DVBT_300:
++       case SAA7134_BOARD_ASUS_EUROPA_HYBRID:
+               fe0->dvb.frontend = dvb_attach(tda10046_attach,
+                                              &philips_europa_config,
+                                              &dev->i2c_adap);
+diff -ruN a/linux/drivers/media/video/saa7134/saa7134.h
+b/linux/drivers/media/video/saa7134/saa7134.h
+--- a/linux/drivers/media/video/saa7134/saa7134.h       2009-09-20
+09:10:03.000000000 +0100
++++ b/linux/drivers/media/video/saa7134/saa7134.h       2009-09-20
+09:08:15.000000000 +0100
+@@ -298,6 +298,7 @@
+ #define SAA7134_BOARD_BEHOLD_X7             171
+ #define SAA7134_BOARD_ROVERMEDIA_LINK_PRO_FM 172
+ #define SAA7134_BOARD_ZOLID_HYBRID_PCI         173
++#define SAA7134_BOARD_ASUS_EUROPA_HYBRID       174
 
-Devin
-
---
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
