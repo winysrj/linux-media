@@ -1,61 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp104.mail.ukl.yahoo.com ([77.238.184.36]:36812 "HELO
-	smtp104.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753334AbZISBNq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Sep 2009 21:13:46 -0400
-Message-ID: <4AB42EBB.9070807@sipradius.com>
-Date: Fri, 18 Sep 2009 21:07:07 -0400
-From: Sylvain LESAGE <sylvain@sipradius.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] choice between MPE and ULE in the code
-References: <4AB39EF2.3020807@sipradius.com> <d2f7e03e0909181759qf552c86x6fd0cdc818f829b@mail.gmail.com>
-In-Reply-To: <d2f7e03e0909181759qf552c86x6fd0cdc818f829b@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mail.gmx.net ([213.165.64.20]:33172 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752679AbZITOhY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Sep 2009 10:37:24 -0400
+Date: Sun, 20 Sep 2009 16:37:10 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Gregor =?iso-8859-1?Q?Glash=FCttner?= <gregorprivat@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Technical Details on Abus Digiprotect TV8802 Capture Card
+Message-ID: <20090920143710.GA20246@stinkie>
+References: <6842a4030907240040k676997c9oe93b5b03548a6123@mail.gmail.com> <20090729075057.GA440@daniel.bse> <6842a4030909200116l6f5799a5hf9a2e259a6e50a85@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <6842a4030909200116l6f5799a5hf9a2e259a6e50a85@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thank you very much for your answer, Seyyed... I was pretty sure there 
-was a place in the code dedicated to this choice between MPE and ULE, 
-but I couldn't find it. I better understand why, now.
+Hi Gregor,
 
-Sylvain LESAGE
+On 20 Sep 09 10:16, Gregor Glashüttner wrote:
+> I was able to take hi-res pictures of the card now. You can find them at:
+> http://img24.imageshack.us/img24/7618/abustv8802front.jpg and
+> http://img22.imageshack.us/img22/5421/abustv8802back.jpg
+> Maybe someone can help now.
 
-Seyyed Mohammad mohammadzadeh a écrit :
-> I have tried the ULE decapsulation part of code. you can find it in
-> the v4l_dvb/linux/driver/media/dvb_core/dvb_net.c you must force ULE
-> decapsulation in the code and there is no media to choose it run-time.
-> The decapsulation code is too bogus and useless. I'm trying to write a
-> new decapsulator based on the original code.
->
-> 2009/9/18, Sylvain LESAGE <sylvain@sipradius.com>:
->   
->> Hi,
->>
->> I am working on ULE (ultra-lightweight encapsulation) and MPE
->> (multi-protocol encapsulation) decapsulation of transport stream
->> packets. I can't find, in the code of linuxDVB, where the choice is done
->> between ULE or MPE when parsing the packets ?
->> Does someone has an idea ?
->>
->> Thank you.
->> Sylvain LESAGE
->>
->> _______________________________________________
->> linux-dvb users mailing list
->> For V4L/DVB development, please use instead linux-media@vger.kernel.org
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>
->>     
->
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
->   
+the VD-009 entry didn't work because ABUS uses 8-input multiplexers for the
+four inputs. So there are 3 GPIO lines (0-2) to select the channel instead
+of the two on the Phytec board.
+
+Other things I could see from the pictures:
+- You can connect an audio source to J7.
+  snd-bt87x will be able to capture it in analog mode.
+
+- Any of the four bnc inputs can be routed to the cinch output.
+  This is controlled by U1, which is accessed via I2C.
+
+- U14 is a video amplifier for the output.
+
+- U1 also controls the watchdog and is able to drive the PCI reset line.
+
+- U12 is a sync separator.
+  One of its outputs is connected to GPIO 15 - probably the vsync out pin.
+
+I will try to create a patch for the card when I'm back home.
+
+  Daniel
 
