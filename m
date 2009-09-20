@@ -1,49 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from utm.netup.ru ([193.203.36.250]:44772 "EHLO utm.netup.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753141AbZIIPNV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Sep 2009 11:13:21 -0400
-Subject: NetUP Dual DVB-T/C-CI RF PCI-E x1
-From: Abylai Ospan <aospan@netup.ru>
-To: linux-dvb@linuxtv.org
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Wed, 09 Sep 2009 18:51:12 +0400
-Message-Id: <1252507872.29643.330.camel@alkaloid.netup.ru>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from ey-out-2122.google.com ([74.125.78.27]:42968 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752366AbZITIQE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Sep 2009 04:16:04 -0400
+Received: by ey-out-2122.google.com with SMTP id d26so235157eyd.19
+        for <linux-media@vger.kernel.org>; Sun, 20 Sep 2009 01:16:07 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20090729075057.GA440@daniel.bse>
+References: <6842a4030907240040k676997c9oe93b5b03548a6123@mail.gmail.com>
+	 <20090729075057.GA440@daniel.bse>
+Date: Sun, 20 Sep 2009 10:16:06 +0200
+Message-ID: <6842a4030909200116l6f5799a5hf9a2e259a6e50a85@mail.gmail.com>
+Subject: Re: Technical Details on Abus Digiprotect TV8802 Capture Card
+From: =?UTF-8?Q?Gregor_Glash=C3=BCttner?= <gregorprivat@gmail.com>
+To: =?UTF-8?Q?Gregor_Glash=C3=BCttner?= <gregorprivat@gmail.com>,
+	linux-media@vger.kernel.org,
+	=?UTF-8?Q?Daniel_Gl=C3=B6ckner?= <daniel-gl@gmx.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi!
 
-We have designed NetUP Dual NetUP Dual DVB-T/C-CI RF PCI-E x1 card. A short
-description is available in wiki - http://linuxtv.org/wiki/index.php/NetUP_Dual_DVB_T_C_CI_RF 
+2009/7/29 Daniel Glöckner <daniel-gl@gmx.net>:
+> If not, can you put the card on a scanner and create pictures of both
+> sides so that we can trace the signals? Please upload them on
+> imageshack.us or similar instead of mailing them to the list.
 
-Features:
-* PCI-e x1  
-* Supports two DVB-T/DVB-C transponders simultaneously
-* Supports two analog audio/video channels simultaneously
-* Independent descrambling of two transponders
-* Hardware PID filtering
+I was able to take hi-res pictures of the card now. You can find them at:
+http://img24.imageshack.us/img24/7618/abustv8802front.jpg and
+http://img22.imageshack.us/img22/5421/abustv8802back.jpg
+Maybe someone can help now.
 
-Now we have started the work on the driver for Linux. The following  components used in this card already have their code for Linux published:
-* Conexant CX23885, CX25840
-* Xceive XC5000 silicon TV tuner
+Thanks a lot in advance
 
-We are working on the code for the following components:
-* STM STV0367 low-power and ultra-compact combo DVB-T/C single-chip receiver
-* Altera FPGA for Common Interafce. 
-
-We have developed FPGA firmware for CI (according to PCMCIA/en50221). Also we are doing "hardware" PID filtering. It's fast and very flexible. JTAG is used for firmware uploading into FPGA - 
-this part contains "JAM player" from Altera for processing JAM STAPL Byte-Code (.jbc files).
-
-The resulting code will be published under GPL after receiving permissions from IC vendors.
+Gregor
 
 -- 
-Abylai Ospan <aospan@netup.ru>
-NetUP Inc.
-
-P.S.
-We will show this card at the upcoming IBC exhibition ( stand IP402 ).
-
+Partykeller
+www.meineparty.at
