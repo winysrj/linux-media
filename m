@@ -1,109 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.sscnet.ucla.edu ([128.97.229.231]:56221 "EHLO
-	smtp1.sscnet.ucla.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752380AbZIUHxt (ORCPT
+Received: from m2.goneo.de ([82.100.220.83]:58327 "EHLO m2.goneo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755834AbZIUNzI convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Sep 2009 03:53:49 -0400
-Message-ID: <4AB730F2.4090203@cogweb.net>
-Date: Mon, 21 Sep 2009 00:53:22 -0700
-From: David Liontooth <lionteeth@cogweb.net>
+	Mon, 21 Sep 2009 09:55:08 -0400
+From: Roman <lists@hasnoname.de>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: MSI Digivox mini III Remote Control
+Date: Mon, 21 Sep 2009 15:55:11 +0200
+Cc: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <200909202026.27086.lists@hasnoname.de> <20090921115122.GA2269@moon> <4AB77329.5000405@iki.fi>
+In-Reply-To: <4AB77329.5000405@iki.fi>
 MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: Audio drop on saa7134
-References: <4AAEFEC9.3080405@cogweb.net>	 <20090915000841.56c24dd6@pedra.chehab.org> <4AAF11EC.3040800@cogweb.net>	 <1252988501.3250.62.camel@pc07.localdom.local>	 <4AAF232F.9060204@cogweb.net>	 <1252993000.3250.97.camel@pc07.localdom.local>	 <4AAF2F1B.2050206@cogweb.net> <4AB5E6AC.1090505@cogweb.net>	 <20090920060218.51971a45@pedra.chehab.org> <1253496615.3257.25.camel@pc07.localdom.local>
-In-Reply-To: <1253496615.3257.25.camel@pc07.localdom.local>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200909211555.11747.lists@hasnoname.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hermann pitton wrote:
-> Hi,
+Am Monday 21 September 2009 14:35:53 schrieb Antti Palosaari:
+> On 09/21/2009 02:51 PM, Aleksandr V. Piskunov wrote:
+> > Just grab that patch and apply it to the current vl4-dvb, no need to mess
+> > with old repository.
+> > http://linuxtv.org/hg/~anttip/af9015-digivox3_remote/raw-rev/914ded6d921d
 >
-> Am Sonntag, den 20.09.2009, 06:02 -0300 schrieb Mauro Carvalho Chehab:
->   
->> Em Sun, 20 Sep 2009 01:24:12 -0700
->> David Liontooth <lionteeth@cogweb.net> escreveu:
->>
->>     
->>> Sep 18 07:00:01 prato kernel: saa7133[4]/audio: dsp write reg 0x464 = 0x000000
->>> Sep 18 07:00:01 prato kernel: saa7133[4]/audio: dsp write reg 0x46c = 0xbbbbbb
->>>       
->> This means mute. With this, audio will stop.
->>
->>     
->>> Sep 18 07:00:01 prato kernel: saa7133[4]/audio: dsp write reg 0x464 = 0x000000
->>> Sep 18 07:00:01 prato kernel: saa7133[4]/audio: dsp write reg 0x46c = 0xbbbb10
->>>       
->> This means unmute.
->>
->> It seems that the auto-mute code is doing some bad things for you. What happens
->> if you disable automute? This is a control that you can access via v4l2ctl or
->> on your userspace application.
->>
->> Are you using the last version of the driver? I'm not seeing some debug log messages
->> that should be there...
->>
->>
->>
->> Cheers,
->> Mauro
->>     
+> With this patch remote will not work most likely. But after adding that
+> patch you should see remote events dumped to the /var/log/messages when
+> key is pressed. I need to know which key gives which code. After that I
+> can add correct key mappings to the driver.
 >
-> despite of still 1001 messages unread, Mauro is right here.
->
-> You are also for sure not on a saa7134, likely you would not ever had a
-> reason to come up here on such. But the much better is to have you now.
->   
-lspci says
+> Antti
 
-00:07.0 Multimedia controller: Philips Semiconductors SAA7133/SAA7135 
-Video Broadcast Decoder (rev 10)
+I don't get anything else in the logs than this, even with the patch applied:
+#---
+Sep 21 15:43:04 Seth usbcore: registered new interface driver dvb_usb_af9015
+Sep 21 15:43:07 Seth usb 1-5: new high speed USB device using ehci_hcd and 
+address 4
+Sep 21 15:43:08 Seth usb 1-5: configuration #1 chosen from 1 choice
+Sep 21 15:43:08 Seth dvb-usb: found a 'MSI Digi VOX mini III' in cold state, 
+will try to load a firmware
+Sep 21 15:43:08 Seth usb 1-5: firmware: requesting dvb-usb-af9015.fw
+Sep 21 15:43:08 Seth dvb-usb: downloading firmware from 
+file 'dvb-usb-af9015.fw'
+Sep 21 15:43:08 Seth dvb-usb: found a 'MSI Digi VOX mini III' in warm state.
+Sep 21 15:43:08 Seth dvb-usb: will pass the complete MPEG2 transport stream to 
+the software demuxer.
+Sep 21 15:43:08 Seth DVB: registering new adapter (MSI Digi VOX mini III)
+Sep 21 15:43:08 Seth af9013: firmware version:4.95.0
+Sep 21 15:43:08 Seth DVB: registering adapter 0 frontend 0 (Afatech AF9013 
+DVB-T)...
+Sep 21 15:43:08 Seth tda18271 3-00c0: creating new instance
+Sep 21 15:43:08 Seth TDA18271HD/C1 detected @ 3-00c0
+Sep 21 15:43:08 Seth dvb-usb: MSI Digi VOX mini III successfully initialized 
+and connected.
+Sep 21 15:43:51 Seth [drm] LVDS-8: set mode 1024x768 10
+#---
 
-The cards apparently have the saa7133HL-v101 chip. Are you suggesting 
-the saa7134 would be better?
-> Means, you are at least on a saa7133, not able to decode stereo TV sound
-> on PAL and SECAM systems, vice versa counts for the saa7134 on SYSTEM-M.
->   
-I'm recording NTSC -- are you saying the saa7133 should be able to 
-decode stereo on NTSC?
 
-If "vice versa" for the saa7134, does that mean this chip is not able to 
-decode stereo on NTSC?
 
-Sorry, I don't know what SYSTEM-M is in this context.
+Gruß,
+Roman
 
-If you could help me find a chip that avoids this audio drop problem, 
-that would be great.
-> The automute is for convenience of the users, say not to have loud noise
-> on channel switching. 
-I see. That's irrelevant for my purposes; the channels are switched 
-before the recording starts.
-> It is also controlled by different registers for
-> analog sound and PCI dma sound.
->   
-I'm using PCI dma sound.
-> If debugging those issues, one more thing to mention is that external
-> video in without audio will kick in mute on those cards too at the first
-> round.
->
-> It should be possible to disable all such funny stuff on production
-> systems, pleasant for the average user's conditions, and then see if
-> anything should still remain.
->
-> On bad mobos, needing PCI quirks and other such stuff, we are likely not
-> any further than what you have seen on bttv previously, but in 99.9
-> percent of the known cases it seems to work.
->
-> Else Mauro again is right, even audio_debug = 1 should deliver the
-> related mute ioctl prints.
->   
-I see -- it may be a couple of weeks before I can run tests on a more 
-recent kernel, but I'll do that if turning off audiomute doesn't solve 
-the problem.
-
-Cheers,
-Dave
-
+-- 
+When I was in school, I cheated on my metaphysics exam: I looked into
+the soul of the boy sitting next to me.
+		-- Woody Allen
