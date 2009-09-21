@@ -1,137 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:4859 "EHLO
-	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754565AbZIQVTY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Sep 2009 17:19:24 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from lo.gmane.org ([80.91.229.12]:45587 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756312AbZIUPPC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Sep 2009 11:15:02 -0400
+Received: from list by lo.gmane.org with local (Exim 4.50)
+	id 1MpkbY-0003SI-9G
+	for linux-media@vger.kernel.org; Mon, 21 Sep 2009 17:15:04 +0200
+Received: from 217.153.235.18 ([217.153.235.18])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 21 Sep 2009 17:15:04 +0200
+Received: from m.szyprowski by 217.153.235.18 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 21 Sep 2009 17:15:04 +0200
+To: linux-media@vger.kernel.org
+From: Marek Szyprowski <m.szyprowski@samsung.com>
 Subject: Re: [RFC] Global video buffers pool
-Date: Thu, 17 Sep 2009 23:19:24 +0200
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Cohen David Abraham <david.cohen@nokia.com>,
-	=?iso-8859-1?q?Koskip=E4=E4_Antti_Jussi_Petteri?=
-	<antti.koskipaa@nokia.com>,
-	"Zutshi Vimarsh (Nokia-D-MSW/Helsinki)" <vimarsh.zutshi@nokia.com>,
-	stefan.kost@nokia.com
-References: <200909161746.39754.laurent.pinchart@ideasonboard.com> <20090917154949.21b85c1b@pedra.chehab.org>
-In-Reply-To: <20090917154949.21b85c1b@pedra.chehab.org>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Date: Mon, 21 Sep 2009 15:07:05 +0000 (UTC)
+Message-ID: <loom.20090921T122131-888@post.gmane.org>
+References: <200909161746.39754.laurent.pinchart@ideasonboard.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200909172319.24703.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 17 September 2009 20:49:49 Mauro Carvalho Chehab wrote:
-> Em Wed, 16 Sep 2009 17:46:39 +0200
-> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
-> 
-> > Hi everybody,
-> > 
-> > I didn't want to miss this year's pretty flourishing RFC season, so here's 
-> > another one about a global video buffers pool.
-> > 
-> > All comments are welcome, but please don't trash this proposal too fast. It's 
-> > a first shot at real problems encountered in real situations with real 
-> > hardware (namely high resolution still image capture on OMAP3). It's far from 
-> > perfect, and I'm open to completely different solutions if someone thinks of 
-> > one.
+Hello Laurent,
 
-First of all, thank you Laurent for working on this! Much appreciated.
- 
-> Some comments about your proposal:
-> 
-> 1) For embedded systems, probably the better is to create it at boot time, instead
-> of controlling it via userspace, since as early it is done, the better.
+We have been developing quite simmilar solution for Samsung SoCs multimedia 
+drivers that the one mentioned in this RFC.
 
-I agree with Mauro here. The only way you can allocate the required memory is
-in general to do it early in the boot sequence.
+Our solution bases on the global buffer manager that provides buffers 
+(contiguous in physical memory) to user applications. Then the application can 
+pass the buffers (as input or output) to different multimedia device drivers. 
+Please note that our solution is aimed at UMA systems, where all multimedia 
+devices can access system memory directly.
 
-> 2) As I've posted at the media controller RFC, we should take care to not abuse
-> about its usage. Media controller has two specific objetives: topology
-> enumeration/change and subdev parameter send.
+We decided not to use any special buffer identifiers. In our solution 
+applications must mmap the buffer (even if they don't plan to read/write it 
+directly) and pass the buffer user pointer to the multimedia driver.
 
-True, but perhaps it can also be used for other purposes. I'm not saying we
-should, but neither should we stop thinking about it. Someone may come up with
-a great idea for which a mc is ideally suited. We are still in the brainstorming
-stage, so any idea is welcome.
+To get access to specified buffer we prepared a special layer that checks if 
+the passed user pointer points to the buffer that is continuous in physical 
+memory, locks properly the buffer memory and returns the buffer physical 
+address. More details on this solution can be found here: 
+http://thread.gmane.org/gmane.linux.ports.arm.kernel/56879
 
-> For the last, as I've explained 
-> there, the proper solution is to create devices for each v4l subdev that requires
-> control from userspace.
+Using the user pointer access type gave us the possibility to directly 
+transfer multimedia data to frame buffer memory and to create an SYSV SHMem 
+area from it (by some additional hacks in kernel mm). This gave us the real 
+power esspecially in hardware acceleration of XServer - with XSHM extensions 
+we were able to blit frames directly from user application's buffer to the 
+frame buffer memory.
 
-The proper solution *in your opinion*. I'm still on the fence on that one.
+Our multimedia devices do not use V4L framework currently, but moving towards 
+V4L2 is possible.
 
-> In the case of a video buffers memory poll, it is none of the  
-> usecases of media controller. So, it is needed to think better about where to
-> implement it.
+Now let's get back to the RFC thesis.
 
-Why couldn't it be one of the use cases? Again, it is your opinion, not a fact.
-Note that I share this opinion, but try to avoid presenting opinions as facts.
- 
-> 3) I don't think that having a buffer pool per media controller will be so useful.
-> A media controller groups /dev/video with their audio, IR, I2C... resources. On
-> systems with more than one different board (for example a cellular phone with a
-> camera and an DVB-H receiver), you'll likely have more than one media controller.
-> So, controlling video buffer pools at /dev/video or at media controller will give
-> the same results on several environments;
+The idea behind the global memory pool is really good and especially required 
+in embedded-like systems. One of the important features of the buffer manager 
+is cache coherency control. User, who allocated a buffer can request the 
+buffer should be mapped as cacheable area or not, depending on the aimed use 
+case. Queueing non-cacheable buffers is faster of course (no cache flush is 
+required), but CPU read access is much slower (note the write-combining here).
 
-I don't follow the logic here, sorry.
+A global memory pool should also reduce system memory requirements, however it 
+should be kept in mind that some use cases might cause memory fragmentation 
+issues. A pluginable memory management should also be considered. With some 
+standard allocating methods like all buffers of the same size, first fit, best 
+fit, etc in the buffer manager most of the typical usecases can be covered. 
+Also some statistics on buffer allocation/deallocation and usage can be easily 
+gathered with buffer manager.
 
-> 4) As you've mentioned, a global set of buffers seem to be the better alternative. This
-> means that V4L2 core will take care of controlling the pool, instead of leaving
-> this task to the drivers. This makes easier to have a boot-time parameter specifying
-> the size of the memory pool and will optimize memory usage. We may even have a
-> Kconfig var specifying the default size of the memory pool (although this is
-> not really needed, since new kernels allow specifying default line command parameters).
+However one should consider whether introducing new v4l2 buffer access method 
+(V4L2_MEMORY_POOL) is really required. One of the key features of the 
+introduced pool buffer identifiers is the much quicker buffer locking, as no 
+per-page locking needs to be done. However a simmilar effect can be achieved 
+with USERPTR access method. User application can allocate the buffer from the 
+buffer manager (global pool), mmap it and pass it to the driver with USERPTR 
+method. The driver can quite easily check if the passed user pointer is a 
+pointer to the buffer from the pool and then lock it quickly with the simmilar 
+method we used in our drivers for SoCs multimedia hardware.
 
-Different devices may have quite different buffer requirements (size, number
-of buffers). Would it be safe to have them all allocated from a global pool?
-I do not feel confident myself that I understand all the implications of a
-global pool or whether you actually always want that.
- 
-> 5) The step to have a a global-wide video buffers pool allocation, as you
-> mentioned at the RFC, is to make sure that all drivers will use v4l2 framework
-> to allocate memory. So, this means porting a few drivers (ivtv, uvcvideo, cx18
-> and gspca) to use videobuf. As videobuf already supports all sorts of different
-> memory types and configs (contig and Scatter/Gather DMA, vmalloced buffers,
-> mmap, userptr, read, overlay modes), it should fits well on the needs.
+Best regards
+--
+Marek Szyprowski
+Samsung Poland R&D Center
 
-Why would I want to change ivtv for this? In fact, I see no reason to modify
-any of the existing drivers. A mc-wide or global memory pool is only of
-interest for very complex devices where you want to pass buffers around
-between various sub-devices (and possibly to other media devices or DSPs).
-And yes, they probably will have to use the framework in order to be able to
-coordinate these pools properly.
- 
-> 6) As videobuf uses a common method of allocating memory, and all memory
-> requests passes via videobuf-core (videobuf_alloc function), the implementation of a
-> global-wide set of videobuffer means to touch on just one function there, at the abstraction
-> layer, and to double check at the videobuf-dma-sg/videobuf-vmalloc/videobuf-contig if they
-> don't call directly their own allocation methods. If they do, a simple change
-> would be needed.
-> 
-> 7) IMO, the better interface for it is to add some sysfs attributes to media
-> class, providing there the means to control the video buffer pools. If the size
-> of a video buffer pool is set to zero, it will use normal memory allocation.
-> Otherwise, it will work at the "pool mode". 
 
-Or you use the existing API to request either MEMORY_MMAP or MEMORY_POOL_MMAP.
-So much cleaner than creating some random sysfs attribute.
 
-> 8) By using videobuf, we can also export usage statistics via debugfs, providing
-> runtime statistics about how many memory is being used by what drivers and /dev devices.
-
-Wouldn't procfs be more appropriate? I don't think debugfs is very common.
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
