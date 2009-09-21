@@ -1,83 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:42810 "EHLO znsun1.ifh.de"
+Received: from m3.goneo.de ([82.100.220.82]:58605 "EHLO m3.goneo.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753267AbZIBSD1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Sep 2009 14:03:27 -0400
-Date: Wed, 2 Sep 2009 20:03:19 +0200 (CEST)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Thomas Rokamp <thomas@rokamp.dk>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Problems with Hauppauge Nova-T USB2
-In-Reply-To: <4A9EB032.7000503@rokamp.dk>
-Message-ID: <alpine.LRH.1.10.0909021957400.3802@pub6.ifh.de>
-References: <41138.1251890451@rokamp.dk> <alpine.LRH.1.10.0909021905001.3802@pub6.ifh.de> <4A9EB032.7000503@rokamp.dk>
+	id S1750782AbZIUKww (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Sep 2009 06:52:52 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by scan.goneo.de (Postfix) with ESMTP id 174594A0984
+	for <linux-media@vger.kernel.org>; Mon, 21 Sep 2009 12:52:56 +0200 (CEST)
+Received: from m3.goneo.de ([127.0.0.1])
+	by localhost (m3.goneo.de [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id 2CXKCZdJeiK6 for <linux-media@vger.kernel.org>;
+	Mon, 21 Sep 2009 12:52:55 +0200 (CEST)
+Received: from sleipnir.naglfar (localhost [127.0.0.1])
+	by m3-smtp.goneo.de (Postfix) with ESMTPA id A58864A097F
+	for <linux-media@vger.kernel.org>; Mon, 21 Sep 2009 12:52:55 +0200 (CEST)
+From: Roman <lists@hasnoname.de>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: MSI Digivox mini III Remote Control
+Date: Mon, 21 Sep 2009 12:53:49 +0200
+References: <200909202026.27086.lists@hasnoname.de> <20090921081933.GA29884@moon>
+In-Reply-To: <20090921081933.GA29884@moon>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200909211253.49766.lists@hasnoname.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi,
 
-On Wed, 2 Sep 2009, Thomas Rokamp wrote:
-> dvbsnoop -s pidscan
-> ---------------------------------------------------------
-> Transponder PID-Scan...
-> ---------------------------------------------------------
-> PID found:    0 (0x0000)  [SECTION: Program Association Table (PAT)]
-> PID found:  110 (0x006e)  [PS/PES: ITU-T Rec. H.262 | ISO/IEC 13818-2 or 
-> ISO/IEC 11172-2 video stream]
-> PID found:  120 (0x0078)  [PS/PES: ISO/IEC 13818-3 or ISO/IEC 11172-3 audio 
-> stream]
-> PID found:  130 (0x0082)  [PS/PES: private_stream_1]
-> PID found:  131 (0x0083)  [unknown]
-> PID found:  257 (0x0101)  [SECTION: Program Map Table (PMT)]
-> PID found:  259 (0x0103)  [SECTION: Program Map Table (PMT)]
-> PID found:  260 (0x0104)  [SECTION: Program Map Table (PMT)]
-> PID found:  261 (0x0105)  [SECTION: Program Map Table (PMT)]
-> PID found:  301 (0x012d)  [PS/PES: private_stream_1]
-> PID found:  512 (0x0200)  [PS/PES: ITU-T Rec. H.262 | ISO/IEC 13818-2 or 
-> ISO/IEC 11172-2 video stream]
-> PID found:  513 (0x0201)  [PS/PES: ITU-T Rec. H.262 | ISO/IEC 13818-2 or 
-> ISO/IEC 11172-2 video stream]
-> PID found:  640 (0x0280)  [PS/PES: ISO/IEC 13818-3 or ISO/IEC 11172-3 audio 
-> stream]
-> PID found:  644 (0x0284)  [PS/PES: ISO/IEC 13818-3 or ISO/IEC 11172-3 audio 
-> stream]
-> PID found: 1200 (0x04b0)  [PS/PES: ITU-T Rec. H.262 | ISO/IEC 13818-2 or 
-> ISO/IEC 11172-2 video stream]
-> PID found: 1201 (0x04b1)  [PS/PES: ISO/IEC 13818-3 or ISO/IEC 11172-3 audio 
-> stream]
-> PID found: 5008 (0x1390)  [PS/PES: private_stream_1]
-> PID found: 5009 (0x1391)  [PS/PES: private_stream_1]
-> PID found: 8180 (0x1ff4)  [unknown]
-> PID found: 8191 (0x1fff)  [stuffing]
+thx for the tip, i jusst tested it on Windows 7 and i was amazed....
+Not only the remote worked perfectly out of the box, also the software used 
+(some media-center from ArcSoft), worked flawless. (I last used a Hauppauge 
+TV-Card about 2 years ago on windows).
+One thing to note is the channel switching was a LOT faster (max. 1sec.) than 
+on linux (sometimes > 5sec.).
+
+Anyway, the remote works on windows, no i am trying to compile the mentioned 
+repository, but it seems to fail compiling.
+I already sent a mail to the msi-support...
+
+#------
+make[2]: Entering directory `/home/strowi/src/zen-sources'
+  CC [M]  /home/strowi/src/af9015-digivox3_remote/v4l/au0828-cards.o
+In file included from /home/strowi/src/af9015-digivox3_remote/v4l/dmxdev.h:33,
+                 from /home/strowi/src/af9015-digivox3_remote/v4l/au0828.h:29,
+                 
+from /home/strowi/src/af9015-digivox3_remote/v4l/au0828-cards.c:22:
+/home/strowi/src/af9015-digivox3_remote/v4l/compat.h:385: error: redefinition 
+of 'usb_endpoint_type'
+include/linux/usb/ch9.h:377: error: previous definition of 'usb_endpoint_type' 
+was here
+make[3]: *** [/home/strowi/src/af9015-digivox3_remote/v4l/au0828-cards.o] 
+Error 1
+#------
+
+Am Monday 21 September 2009 10:19:33 schrieb Aleksandr V. Piskunov:
+> Well, it seems there is a patch for Digivox mini III remote control at
+> http://linuxtv.org/hg/~anttip/af9015-digivox3_remote/, perhaps Antti
+> can tell you more about it.
 >
+> I got this tuner, and no, IR receiver doesn't work for me, it doesn't
+> even work in WinXP with bundled drivers and software, tested with
+> USB snoop, no reaction to keypresses. Maybe a hardware defect at
+> receiver part, maybe something is missing in a firmware, no idea.
 >
-> If it can be any help, I have uploaded 2 test files
-> (both made with "dvbstream -n 5 -qam 64 -gi 16 -cr 5_6 -crlp 5_6 -bw 8 -tm 2 
-> -hy NONE -f 722000000 513 644 -o > testX.mpg")
+> So check it on some Windows system first, then try patch..
 >
-> http://phail.dk/test01.mpg
 
-Hmm, I did:
-
-wget http://phail.dk/test01.mpg
-mplayer test01.mpg
-
-and I see a nice star animation looks like Eurosport .
-
-> http://phail.dk/test02.mpg
-
-doing the same thing with this file:
-
-It show Melzer vs. Safin playing Tennis at the US Open on Eurosport.
-
-Something's wrong with your mplayer/vlc/libffmpeg or whatever, definitely 
-not a problem of driver or reception.
-
-best regards,
-
---
-
-Patrick Boettcher - Kernel Labs
-http://www.kernellabs.com/
+greetings,
+Roman
+-- 
+Iron Law of Distribution:
+	Them that has, gets.
