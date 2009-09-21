@@ -1,111 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay08.ispgateway.de ([80.67.29.8]:47488 "EHLO
-	smtprelay08.ispgateway.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752243AbZIROns (ORCPT
+Received: from smtp1.sscnet.ucla.edu ([128.97.229.231]:54074 "EHLO
+	smtp1.sscnet.ucla.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751953AbZIUHkj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Sep 2009 10:43:48 -0400
-Message-ID: <4AB39AE8.2040502@ladisch.de>
-Date: Fri, 18 Sep 2009 16:36:24 +0200
-From: Clemens Ladisch <clemens@ladisch.de>
+	Mon, 21 Sep 2009 03:40:39 -0400
+Message-ID: <4AB72DD0.70205@cogweb.net>
+Date: Mon, 21 Sep 2009 00:40:00 -0700
+From: David Liontooth <lionteeth@cogweb.net>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	Bryan Wu <cooloney@kernel.org>,
-	Mike Frysinger <vapier@gentoo.org>
-Subject: Re: [PATCH 1/3] USB gadget: audio class function driver
-References: <200909181225.57212.laurent.pinchart@ideasonboard.com> <200909181226.50056.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <200909181226.50056.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=us-ascii
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: hermann pitton <hermann-pitton@arcor.de>,
+	linux-media@vger.kernel.org
+Subject: Re: Audio drop on saa7134
+References: <4AAEFEC9.3080405@cogweb.net>	<20090915000841.56c24dd6@pedra.chehab.org>	<4AAF11EC.3040800@cogweb.net>	<1252988501.3250.62.camel@pc07.localdom.local>	<4AAF232F.9060204@cogweb.net>	<1252993000.3250.97.camel@pc07.localdom.local>	<4AAF2F1B.2050206@cogweb.net>	<4AB5E6AC.1090505@cogweb.net> <20090920060218.51971a45@pedra.chehab.org>
+In-Reply-To: <20090920060218.51971a45@pedra.chehab.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart wrote:
-> +snd_uac_pcm_open(struct snd_pcm_substream *substream, int stream)
-> ...
-> +	substream->runtime->hw = stream == SNDRV_PCM_STREAM_PLAYBACK
-> +			       ? snd_uac_playback_hw
-> +			       : snd_uac_capture_hw;
-> +	substream->runtime->hw.rate_min = uac->rate;
-> +	substream->runtime->hw.rate_max = uac->rate;
+Mauro Carvalho Chehab wrote:
+> Em Sun, 20 Sep 2009 01:24:12 -0700
+> David Liontooth <lionteeth@cogweb.net> escreveu:
+>
+>   
+>> Sep 18 07:00:01 prato kernel: saa7133[4]/audio: dsp write reg 0x464 = 0x000000
+>> Sep 18 07:00:01 prato kernel: saa7133[4]/audio: dsp write reg 0x46c = 0xbbbbbb
+>>     
+>
+> This means mute. With this, audio will stop.
+>
+>   
+>> Sep 18 07:00:01 prato kernel: saa7133[4]/audio: dsp write reg 0x464 = 0x000000
+>> Sep 18 07:00:01 prato kernel: saa7133[4]/audio: dsp write reg 0x46c = 0xbbbb10
+>>     
+>
+> This means unmute.
+>
+> It seems that the auto-mute code is doing some bad things for you. What happens
+> if you disable automute? This is a control that you can access via v4l2ctl or
+> on your userspace application.
+>   
+Ah, great -- I added "v4lctl -c /dev/video$DEV setattr automute off" to 
+the script and verified it works.
 
-The .rates bit mask is supposed to be consistent with the min/max
-values; you can use the snd_pcm_rate_to_rate_bit() helper function for
-this.
+Is there a way to turn off the automute on module insertion?
 
-> +snd_uac_pcm_trigger(struct snd_pcm_substream *substream, int cmd)
-> ...
-> +		spin_lock_irqsave(&subs->lock, flags);
-> +		subs->streaming = 1;
-> +		spin_unlock_irqrestore(&subs->lock, flags);
+I don't see a lot of difference -- during the initialization, audio is 
+still turned off several times, and then left on:
 
-The trigger callback is guaranteed to be called with interrupts
-disabled; you can use spin_lock/spin_unlock here.
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x464 = 
+0x000000
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x46c = 
+0xbbbbbb
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x464 = 
+0x000000
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x46c = 
+0xbbbbbb
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: tvaudio thread scan 
+start [8]
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: scanning: M
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x454 = 
+0x000000
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x454 = 
+0x0000c0
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x464 = 
+0x000000
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x470 = 
+0x101010
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x464 = 
+0x000000
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x46c = 
+0xbbbbbb
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x464 = 
+0x000000
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x46c = 
+0xbbbbbb
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x464 = 
+0x000000
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x46c = 
+0xbbbbbb
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x464 = 
+0x000000
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x46c = 
+0xbbbbbb
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x464 = 
+0x000000
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x46c = 
+0xbbbbbb
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x464 = 
+0x000000
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x46c = 
+0xbbbbbb
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: tvaudio thread scan 
+start [9]
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: scanning: M
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x454 = 
+0x000000
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x454 = 
+0x0000c0
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x464 = 
+0x000000
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x470 = 
+0x101010
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x464 = 
+0x000000
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x46c = 
+0xbbbb10
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x464 = 
+0x000000
+Sep 21 00:25:19 prato kernel: saa7133[4]/audio: dsp write reg 0x46c = 
+0xbbbb10
+Sep 21 00:25:22 prato kernel: saa7133[4]/audio: tvaudio thread status: 
+0x100003 [M (in progress)]
+Sep 21 00:25:22 prato kernel: saa7133[4]/audio: detailed status: 
+############# init done
 
-> +int __init uac_audio_init(struct uac_device *uac)
-> ...
-> +	static int dev = 0;
-> ...
-> +	ret = snd_card_create(SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1,
+And then audio is turned off again at the end of the recording:
 
-Usually, drivers use index/id module parameters for these parameters.
-But if you don't (which is possible), you don't need to count up the
-dev variable.
+Sep 21 00:35:15 prato kernel: saa7133[4]/audio: dsp write reg 0x464 = 
+0x000000
+Sep 21 00:35:15 prato kernel: saa7133[4]/audio: dsp write reg 0x46c = 
+0xbbbbbb
+Sep 21 00:35:15 prato kernel: saa7133[4]/audio: dsp write reg 0x464 = 
+0x000000
+Sep 21 00:35:15 prato kernel: saa7133[4]/audio: dsp write reg 0x46c = 
+0xbbbbbb
 
-> +uac_audio_encode(struct snd_uac_substream *subs, struct usb_request *req)
-> ...
-> +	if (!subs->streaming) {
-> +		spin_unlock_irqrestore(&subs->lock, flags);
-> +		req->length = 0;
-> +		return;
-> +	}
-> +
-> +	/* TODO Handle buffer underruns. */
+I'll run with audiomute off for a while and see if it makes a difference 
+for the audio drops -- it seems a plausible cause.
+> Are you using the last version of the driver? I'm not seeing some debug log messages
+> that should be there...
+>   
+I'm still running 2.6.19.1 and 2.6.20.11 on these production machines -- 
+if it works, don't fix it.  If there's a clear reason to upgrade, of 
+course I'll do that.
 
-The ALSA framework handles buffer underruns by stopping the stream.
-AFAICS this will result in the gadget returning empty packets.
+It would be a huge relief to discover the audio drops is a driver issue 
+that can be fixed with a simple setting.
 
-It is also possible for the application (not the driver) to configure
-the ALSA PCM device to continue streaming, so that the device plays
-either the old contents of the buffer or silence.
-
-The driver doesn't actually get much of an opportunity to handle this.
-
-> +uac_audio_complete(struct usb_ep *ep, struct usb_request *req)
-> ...
-> +	switch (req->status) {
-> +	case 0:
-> +		break;
-> +
-> +	case -ECONNRESET:
-> +	case -ESHUTDOWN:
-> +		goto requeue;
-> +
-> +	default:
-> +		INFO(uac->func.config->cdev, "AS request completed with "
-> +			"status %d.\n", req->status);
-> +		goto requeue;
-> +	}
-> +
-> +	uac_audio_encode(subs, req);
-
-Shouldn't the device continue to send packets even if an isochronous
-transfer failed?
-
-> +uac_audio_pump(struct uac_device *uac)
-> ...
-> +	/* FIXME TODO Race between uac_audio_pump and requests completion
-> +	 * handler ???
-> +	 */
-
-Indeed.  But I guess uac_audio_pump() is called when starting a stream
-when you don't yet have any completions?
-
-The USB audio host driver copies samples from the ALSA buffer to the
-request buffers only in the request completion handler; streaming gets
-started with a bunch of silence packets.  This also has the consequence
-that data gets taken out of the buffer at a constant rate.
+Cheers,
+Dave
 
 
-Best regards,
-Clemens
