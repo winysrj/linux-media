@@ -1,236 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f184.google.com ([209.85.216.184]:56700 "EHLO
-	mail-px0-f184.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751350AbZIGLwd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Sep 2009 07:52:33 -0400
-Received: by pxi14 with SMTP id 14so2450863pxi.19
-        for <linux-media@vger.kernel.org>; Mon, 07 Sep 2009 04:52:36 -0700 (PDT)
+Received: from mail-bw0-f210.google.com ([209.85.218.210]:58029 "EHLO
+	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753343AbZIUTe4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Sep 2009 15:34:56 -0400
+Received: by bwz6 with SMTP id 6so2170980bwz.37
+        for <linux-media@vger.kernel.org>; Mon, 21 Sep 2009 12:34:59 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <D8912B36-7521-4559-9E7A-3B9A7F6DC1E1@receptiveit.com.au>
-References: <D8912B36-7521-4559-9E7A-3B9A7F6DC1E1@receptiveit.com.au>
-Date: Mon, 7 Sep 2009 21:52:34 +1000
-Message-ID: <702870ef0909070452o5eef67b5p6505c3db301ea65f@mail.gmail.com>
-Subject: Re: Fusion HDTV Dual Digital Express - NSW Australia
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: Alex Ferrara <alex@receptiveit.com.au>
-Cc: linux-media@vger.kernel.org
+In-Reply-To: <200909212126.53226.martin@marsark.sytes.net>
+References: <200909212126.53226.martin@marsark.sytes.net>
+Date: Mon, 21 Sep 2009 15:34:59 -0400
+Message-ID: <829197380909211234x62444b03hbfdce9d620ed0009@mail.gmail.com>
+Subject: Re: [linux-dvb] Gigabyte U8000-RH USB stick oops kernel
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have some issues with what I think is the same card, I'm in Sydney,
-using mythtv.
-I also have the DViCo Fusion Dual Digital 4 rev 1. (setup details at the end)
-
-At first when I scanned I could not get the SBS HD transport.
-Sometime between 28 Jun and 19 July I stopped being able to tune
-anything from channel 9 as well. This does not appear to have been
-triggered by a v4l code change, I did not
-pull from the tree in that time frame.
-
-The symptom I see when it "fails" is that mythv reports some signal,
-but it fails to get lock.
-
-When I try to rescan, I get weird errors - after mythtv-backend stops,
-I start getting USB errors of this kind:
-
-kernel: [  663.703978] dvb-usb: recv bulk message failed: -110
-kernel: [  663.703994] zl10353: write to reg 62 failed (err = -121)!
-kernel: [  664.836658] dvb-usb: recv bulk message failed: -110
-kernel: [  664.836665] zl10353: write to reg 62 failed (err = -121)!
-kernel: [  665.699864] dvb-usb: bulk message failed: -110 (4/0)
-kernel: [  665.699869] cxusb: i2c read failed
-kernel: [  666.832545] dvb-usb: bulk message failed: -110 (5/0)
-kernel: [  666.832551] zl10353: write to reg 50 failed (err = -121)!
-kernel: [  667.696001] dvb-usb: bulk message failed: -110 (5/0)
-kernel: [  667.696016] zl10353: write to reg 50 failed (err = -121)!
-kernel: [  668.828433] dvb-usb: bulk message failed: -110 (2/0)
-kernel: [  669.691639] dvb-usb: bulk message failed: -110 (4/0)
-
-
-At this point, the channel scan stalls out and the machine is very
-sluggish because of the DoSing of the USB bus. To recover I have to
-halt the machine and bring it up again.
-It's unclear to me if it is a problem with the Dual DIgital 4 or the
-Dual Digital Express.
-
-This appears to be a longstanding issue, existing from 2.6.26 (my
-kernel) through to 2.6.30 (see
-http://www.spinics.net/lists/linux-media/msg08244.html)
-
-
-I attempted to avoid the power cycling of the card by loading the
-tuner module with
- options tuner_xc2028 no_poweroff=1
-in /etc/modprobe.d/options, but with this option turned on I was
-unable to receive any stations.
-
-Alex, just to confirm we have the same card could you post the PCI IDs?
-
-When the card is detected I see in syslog:
-kernel: [   57.768535] CORE cx23885[0]: subsystem: 18ac:db78, board:
-DViCO FusionHDTV DVB-T Dual Express [card=11,autodetected]
-
-and lspci gives me
-(lspci -n -s 04:00 && lspci -v -s 04:00)
-(sudo lspci -n -s 4:00 && sudo lspci -v -s 4:00; )
-04:00.0 0400: 14f1:8852 (rev 02)
-04:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885
-PCI Video and Audio Decoder (rev 02)
-        Subsystem: DViCO Corporation FusionHDTV DVB-T Dual Express
-        Flags: bus master, fast devsel, latency 0, IRQ 19
-        Memory at 90000000 (64-bit, non-prefetchable) [size=2M]
-        Capabilities: [40] Express Endpoint IRQ 0
-        Capabilities: [80] Power Management version 2
-        Capabilities: [90] Vital Product Data
-        Capabilities: [a0] Message Signalled Interrupts: Mask- 64bit+
-Queue=0/0 Enable-
-
-
-My system details:
-  (cd ~/v4l; hg identify)
-  2b49813f8482 tip
-
-  /etc/issue
-  Ubuntu 8.04.3 LTS
-
-  uname -a
-  2.6.24-24-generic #1 SMP Tue Aug 18 17:04:53 UTC 2009 i686 GNU/Linux
-
-  lspci
-00:00.0 0600: 8086:29c0 (rev 02)
-00:00.0 Host bridge: Intel Corporation 82G33/G31/P35/P31 Express DRAM
-Controller (rev 02)
-00:02.0 0300: 8086:29c2 (rev 02)
-00:02.0 VGA compatible controller: Intel Corporation 82G33/G31 Express
-Integrated Graphics Controller (rev 02)
-00:03.0 0780: 8086:29c4 (rev 02)
-00:03.0 Communication controller: Intel Corporation 82G33/G31/P35/P31
-Express MEI Controller (rev 02)
-00:19.0 0200: 8086:294c (rev 02)
-00:19.0 Ethernet controller: Intel Corporation 82566DC-2 Gigabit
-Network Connection (rev 02)
-00:1a.0 0c03: 8086:2937 (rev 02)
-00:1a.0 USB Controller: Intel Corporation 82801I (ICH9 Family) USB
-UHCI Controller #4 (rev 02)
-00:1a.1 0c03: 8086:2938 (rev 02)
-00:1a.1 USB Controller: Intel Corporation 82801I (ICH9 Family) USB
-UHCI Controller #5 (rev 02)
-00:1a.2 0c03: 8086:2939 (rev 02)
-00:1a.2 USB Controller: Intel Corporation 82801I (ICH9 Family) USB
-UHCI Controller #6 (rev 02)
-00:1a.7 0c03: 8086:293c (rev 02)
-00:1a.7 USB Controller: Intel Corporation 82801I (ICH9 Family) USB2
-EHCI Controller #2 (rev 02)
-00:1b.0 0403: 8086:293e (rev 02)
-00:1b.0 Audio device: Intel Corporation 82801I (ICH9 Family) HD Audio
-Controller (rev 02)
-00:1c.0 0604: 8086:2940 (rev 02)
-00:1c.0 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express
-Port 1 (rev 02)
-00:1c.1 0604: 8086:2942 (rev 02)
-00:1c.2 0604: 8086:2944 (rev 02)
-00:1c.2 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express
-Port 3 (rev 02)
-00:1c.3 0604: 8086:2946 (rev 02)
-00:1c.3 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express
-Port 4 (rev 02)
-00:1c.4 0604: 8086:2948 (rev 02)
-00:1c.4 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express
-Port 5 (rev 02)
-00:1d.0 0c03: 8086:2934 (rev 02)
-00:1d.0 USB Controller: Intel Corporation 82801I (ICH9 Family) USB
-UHCI Controller #1 (rev 02)
-00:1d.1 0c03: 8086:2935 (rev 02)
-00:1d.1 USB Controller: Intel Corporation 82801I (ICH9 Family) USB
-UHCI Controller #2 (rev 02)
-00:1d.2 0c03: 8086:2936 (rev 02)
-00:1d.2 USB Controller: Intel Corporation 82801I (ICH9 Family) USB
-UHCI Controller #3 (rev 02)
-00:1d.7 0c03: 8086:293a (rev 02)
-00:1d.7 USB Controller: Intel Corporation 82801I (ICH9 Family) USB2
-EHCI Controller #1 (rev 02)
-00:1e.0 0604: 8086:244e (rev 92)
-00:1e.0 PCI bridge: Intel Corporation 82801 PCI Bridge (rev 92)
-00:1f.0 0601: 8086:2912 (rev 02)
-00:1f.0 ISA bridge: Intel Corporation 82801IH (ICH9DH) LPC Interface
-Controller (rev 02)
-00:1f.2 0106: 8086:2922 (rev 02)
-00:1f.2 SATA controller: Intel Corporation 82801IR/IO/IH (ICH9R/DO/DH)
-6 port SATA AHCI Controller (rev 02)
-00:1f.3 0c05: 8086:2930 (rev 02)
-00:1f.3 SMBus: Intel Corporation 82801I (ICH9 Family) SMBus Controller (rev 02)
-02:00.0 0101: 11ab:6101 (rev b2)
-02:00.0 IDE interface: Marvell Technology Group Ltd. 88SE6101
-single-port PATA133 interface (rev b2)
-04:00.0 0400: 14f1:8852 (rev 02)
-04:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885
-PCI Video and Audio Decoder (rev 02)
-06:00.0 0200: 10ec:8185 (rev 20)
-06:00.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL-8185
-IEEE 802.11a/b/g Wireless LAN Controller (rev 20)
-06:01.0 0c03: 1106:3038 (rev 61)
-06:01.0 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1
-Controller (rev 61)
-06:01.1 0c03: 1106:3038 (rev 61)
-06:01.1 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1
-Controller (rev 61)
-06:01.2 0c03: 1106:3104 (rev 63)
-06:01.2 USB Controller: VIA Technologies, Inc. USB 2.0 (rev 63)
-06:03.0 0c00: 104c:8023
-06:03.0 FireWire (IEEE 1394): Texas Instruments TSB43AB22/A
-IEEE-1394a-2000 Controller (PHY/Link)
-
-  lsusb
-00:1f.3 0c05: 8086:2930 (rev 02)
-00:1f.3 SMBus: Intel Corporation 82801I (ICH9 Family) SMBus Controller (rev 02)
-02:00.0 0101: 11ab:6101 (rev b2)
-02:00.0 IDE interface: Marvell Technology Group Ltd. 88SE6101
-single-port PATA133 interface (rev b2)
-04:00.0 0400: 14f1:8852 (rev 02)
-04:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885
-PCI Video and Audio Decoder (rev 02)
-06:00.0 0200: 10ec:8185 (rev 20)
-06:00.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL-8185
-IEEE 802.11a/b/g Wireless LAN Controller (rev 20)
-06:01.0 0c03: 1106:3038 (rev 61)
-06:01.0 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1
-Controller (rev 61)
-06:01.1 0c03: 1106:3038 (rev 61)
-06:01.1 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1
-Controller (rev 61)
-06:01.2 0c03: 1106:3104 (rev 63)
-06:01.2 USB Controller: VIA Technologies, Inc. USB 2.0 (rev 63)
-06:03.0 0c00: 104c:8023
-06:03.0 FireWire (IEEE 1394): Texas Instruments TSB43AB22/A
-IEEE-1394a-2000 Controller (PHY/Link)
-
-
-
-On 9/7/09, Alex Ferrara <alex@receptiveit.com.au> wrote:
-> I bought several of these cards over a year ago thinking that they
-> worked under Linux, but I found that while the cards seem to work
-> flawlessly for some people, in some geographic locations, they don't
-> work for me in Goulburn NSW pointing to Mt Gray.
+On Mon, Sep 21, 2009 at 3:26 PM, MarSarK <martin@marsark.sytes.net> wrote:
+> hi, my brand new Gigabyte U8000-RG USB tv oops kernel.
 >
-> I have a mythtv backend with 2 x Dvico Dual Digital 4 PCI cards and
-> they are working perfectly, but the Dual Express cards will not tune
-> all transports. It seems that Prime and TEN hardly get enough signal
-> to tune.
+> I have tried kernels from 2.6.27 to 2.6.31 everytime with same result (also at
+> my notebook).
 >
-> I have done some tests, and under Windows with MCE the cards work
-> perfectly using the same antenna
+> uname -a:
+> Linux vertigo 2.6.31-gentoo #2 SMP PREEMPT Mon Sep 14 20:20:59 CEST 2009 i686
+> Intel(R) Core(TM)2 Duo CPU E8400 @ 3.00GHz GenuineIntel GNU/Linux
 >
-> I've heard that these cards have some sort of pre-amp that isn't
-> getting turned on in Linux. This might be part of the issue. I have
-> tried increasing signal amplification, but that degrades the other
-> signals that are working ok without the extra amp.
+> lsusb:
+> Bus 001 Device 005: ID 1044:7002 Chu Yuen Enterprise Co., Ltd
 >
-> If anyone can shed some light, I would be very appreciative
+> This output is from 2.6.31 kernel and last mercurial snapshot of linuxtv tree.
+> Error occure when I try to scan channels in Kaffeine.
 >
-> aF
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> dmesg:
+> usb 1-4: configuration #1 chosen from 1 choice
+> dib0700: loaded with support for 13 different device-types
+> dvb-usb: found a 'Gigabyte U8000-RH' in cold state, will try to load a firmware
+> usb 1-4: firmware: requesting dvb-usb-dib0700-1.20.fw
+> dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
+> dib0700: firmware started successfully.
+> dvb-usb: found a 'Gigabyte U8000-RH' in warm state.
+> dvb-usb: will pass the complete MPEG2 transport stream to the software
+> demuxer.
+> DVB: registering new adapter (Gigabyte U8000-RH)
+> DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
+> xc2028 4-0061: creating new instance
+> xc2028 4-0061: type set to XCeive xc2028/xc3028 tuner
+> input: IR-receiver inside an USB DVB receiver as
+> /devices/pci0000:00/0000:00:1a.7/usb1/1-4/input/input4
+> dvb-usb: schedule remote query interval to 50 msecs.
+> dvb-usb: Gigabyte U8000-RH successfully initialized and connected.
+> usbcore: registered new interface driver dvb_usb_dib0700
+> BUG: unable to handle kernel NULL pointer dereference at 00000008
+> IP: [<c11f99f3>] _request_firmware+0x3e3/0x440
+> *pde = 00000000
+> Oops: 0000 [#1] PREEMPT SMP
+> last sysfs file: /sys/devices/pci0000:00/0000:00:1a.7/usb1/1-4/idProduct
+> Modules linked in: tuner_xc2028 dvb_usb_dib0700 dib7000p dib7000m dib0070
+> dvb_usb dib3000mc dib8000 dibx000_common dvb_core nvidia(P) asus_atk0110
+> coretemp sco rfcomm l2cap fuse usb_storage vboxnetadp vboxnetflt vboxdrv
 >
+> Pid: 9533, comm: kdvb-ad-0-fe-0 Tainted: P           (2.6.31-gentoo #2) P5Q
+> DELUXE
+> EIP: 0060:[<c11f99f3>] EFLAGS: 00010202 CPU: 0
+> EIP is at _request_firmware+0x3e3/0x440
+> EAX: 00000000 EBX: f62f5300 ECX: 00000000 EDX: f4933e54
+> ESI: c1438ab0 EDI: f4999720 EBP: f62f5300 ESP: f4933d34
+>  DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
+> Process kdvb-ad-0-fe-0 (pid: 9533, ti=f4932000 task=f4aa6cb0 task.ti=f4932000)
+> Stack:
+>  f4933d88 00000000 00000000 e8024090 00000000 f4933e54 e8024098 f62f5300
+> <0> f67f3000 00000000 f62f5300 c11f9adf 00000001 f89d3107 c12550b0 00069400
+> <0> 00000000 00000000 00000003 80000400 f4949400 00000006 00000006 00000006
+> Call Trace:
+>  [<c11f9adf>] ? request_firmware+0xf/0x20
+>  [<f89d3107>] ? generic_set_freq+0xc87/0x1c70 [tuner_xc2028]
+>  [<c12550b0>] ? usb_control_msg+0xe0/0x100
+>  [<f8880807>] ? dib0700_i2c_xfer+0x157/0x4d0 [dvb_usb_dib0700]
+>  [<c127922b>] ? i2c_transfer+0xab/0xd0
+>  [<c127922b>] ? i2c_transfer+0xab/0xd0
+>  [<f8867068>] ? dib7000p_write_word+0x58/0x70 [dib7000p]
+>  [<f89d4456>] ? xc2028_set_params+0x146/0x260 [tuner_xc2028]
+>  [<f88684a6>] ? dib7000p_set_frontend+0x56/0xfb0 [dib7000p]
+>  [<c10269f7>] ? finish_task_switch+0xa7/0xf0
+>  [<c1367f57>] ? schedule+0x317/0x8f0
+>  [<c1035537>] ? lock_timer_base+0x27/0x60
+>  [<f8842c41>] ? dvb_frontend_swzigzag_autotune+0xc1/0x270 [dvb_core]
+>  [<c1035831>] ? del_timer_sync+0x11/0x20
+>  [<c13687b6>] ? schedule_timeout+0xe6/0x150
+>  [<c10280ad>] ? try_to_wake_up+0x8d/0x1a0
+>  [<f8843719>] ? dvb_frontend_swzigzag+0x189/0x2a0 [dvb_core]
+>  [<f8843fb7>] ? dvb_frontend_thread+0x3b7/0x650 [dvb_core]
+>  [<c103fbb0>] ? autoremove_wake_function+0x0/0x50
+>  [<f8843c00>] ? dvb_frontend_thread+0x0/0x650 [dvb_core]
+>  [<c103f8c4>] ? kthread+0x84/0x90
+>  [<c103f840>] ? kthread+0x0/0x90
+>  [<c10039df>] ? kernel_thread_helper+0x7/0x18
+> Code: d0 e8 02 7a ff ff 89 5c 24 08 c7 44 24 0c a0 c4 38 c1 89 44 24 04 c7 04 24
+> 52 e6 40 c1 e8 7f df 16 00 e9 2e ff ff ff 8b 44 24 10 <8b> 58 08 e8 d5 79 ff ff 89
+> 7c 24 0c 89 5c 24 08 89 44 24 04 c7
+> EIP: [<c11f99f3>] _request_firmware+0x3e3/0x440 SS:ESP 0068:f4933d34
+> CR2: 0000000000000008
+> ---[ end trace 3f52e895d964749e ]---
+>
+>
+> Martin
+
+Heh, I know what that is.  It was a result of a change to the
+request_firmware() implementation where they actually started
+dereferencing the first argument (and the i2c slave in the dib7000
+isn't setting the pointer).  I ran into it when doing the PCTV 340e
+work
+
+You'll need something comparable to this patch:
+
+http://www.kernellabs.com/hg/~dheitmueller/pctv-340e/rev/ba97460d2b3e
+
+My patch is just a workaround (which is why I had not submitted it
+upstream) - we really need to fix the bridge driver to do the work
+properly.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
