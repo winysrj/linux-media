@@ -1,55 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from av7-2-sn3.vrr.skanova.net ([81.228.9.182]:49959 "EHLO
-	av7-2-sn3.vrr.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755449AbZIVJ1z (ORCPT
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:37248 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752072AbZIUUtY convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2009 05:27:55 -0400
-Message-ID: <4AB893D6.5090009@mocean-labs.com>
-Date: Tue, 22 Sep 2009 11:07:34 +0200
-From: =?ISO-8859-1?Q?Richard_R=F6jfors?=
-	<richard.rojfors@mocean-labs.com>
+	Mon, 21 Sep 2009 16:49:24 -0400
+Received: by fxm18 with SMTP id 18so348678fxm.17
+        for <linux-media@vger.kernel.org>; Mon, 21 Sep 2009 13:49:27 -0700 (PDT)
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>
-Subject: [PATCH 4/4] adv7180: Use __devinit and __devexit macros
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20090921204418.GA19119@zverina>
+References: <20090913193118.GA12659@zverina> <20090921204418.GA19119@zverina>
+Date: Mon, 21 Sep 2009 16:49:26 -0400
+Message-ID: <829197380909211349r68b92b3em577c02d0dee9e4fc@mail.gmail.com>
+Subject: Re: Questions about Terratec Hybrid XS (em2882) [0ccd:005e]
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch defines the probe and remove function as __devinit and __devexit.
+On Mon, Sep 21, 2009 at 4:44 PM, Uros Vampl <mobile.leecher@gmail.com> wrote:
+> Hello.
+>
+> Partial success. With the attached patch, DVB works. But I have no idea
+> how to get analog audio working correctly. Any help would be
+> appreciated.
+>
+> Regards,
+> Uroš
 
-Signed-off-by: Richard R�jfors <richard.rojfors@mocean-labs.com>
----
-diff --git a/drivers/media/video/adv7180.c b/drivers/media/video/adv7180.c
-index d9e897d..0826f0d 100644
---- a/drivers/media/video/adv7180.c
-+++ b/drivers/media/video/adv7180.c
-@@ -302,7 +302,7 @@ static irqreturn_t adv7180_irq(int irq, void *devid)
-  * concerning the addresses: i2c wants 7 bit (without the r/w bit), so '>>1'
-  */
+Hello Uroš,
 
--static int adv7180_probe(struct i2c_client *client,
-+static __devinit int adv7180_probe(struct i2c_client *client,
- 			const struct i2c_device_id *id)
- {
- 	struct adv7180_state *state;
-@@ -404,7 +404,7 @@ err:
- 	return ret;
- }
+Sorry I somehow missed your previous email.  I have a patch already
+which should make the device work correctly, and am issuing a PULL
+request for it this week.
 
--static int adv7180_remove(struct i2c_client *client)
-+static __devexit int adv7180_remove(struct i2c_client *client)
- {
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
- 	struct adv7180_state *state = to_state(sd);
-@@ -440,7 +440,7 @@ static struct i2c_driver adv7180_driver = {
- 		.name	= DRIVER_NAME,
- 	},
- 	.probe		= adv7180_probe,
--	.remove		= adv7180_remove,
-+	.remove		= __devexit_p(adv7180_remove),
- 	.id_table	= adv7180_id,
- };
+Regarding the analog audio, I'm not sure how you are testing, but if
+you are using tvtime, it is known that tvtime does not support analog
+audio for raw devices such as this.  You need to run arecord/aplay in
+a separate window.
 
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
