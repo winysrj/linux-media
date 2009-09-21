@@ -1,288 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4032 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753207AbZIJNur (ORCPT
+Received: from mail-bw0-f210.google.com ([209.85.218.210]:46070 "EHLO
+	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752069AbZIUS0L (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Sep 2009 09:50:47 -0400
-Message-ID: <1ceb929cb176ac6272ff94a6dcd47b6d.squirrel@webmail.xs4all.nl>
-In-Reply-To: <alpine.LRH.1.10.0909101001390.5940@pub3.ifh.de>
-References: <200909100913.09065.hverkuil@xs4all.nl>
-    <alpine.LRH.1.10.0909101001390.5940@pub3.ifh.de>
-Date: Thu, 10 Sep 2009 15:50:45 +0200
-Subject: Re: RFCv2: Media controller proposal
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Patrick Boettcher" <pboettcher@kernellabs.com>
-Cc: linux-media@vger.kernel.org
+	Mon, 21 Sep 2009 14:26:11 -0400
+Received: by mail-bw0-f210.google.com with SMTP id 6so2128004bwz.37
+        for <linux-media@vger.kernel.org>; Mon, 21 Sep 2009 11:26:14 -0700 (PDT)
+Date: Mon, 21 Sep 2009 21:26:10 +0300
+From: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
+To: Roman <lists@hasnoname.de>
+Cc: Antti Palosaari <crope@iki.fi>,
+	"Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: MSI Digivox mini III Remote Control
+Message-ID: <20090921182610.GA16805@moon>
+References: <200909202026.27086.lists@hasnoname.de> <200909211610.52856.lists@hasnoname.de> <4AB78B79.3030203@iki.fi> <200909211631.19838.lists@hasnoname.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <200909211631.19838.lists@hasnoname.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Patrick,
+On Mon, Sep 21, 2009 at 04:31:19PM +0200, Roman wrote:
+> Hi Antti,
+> 
+> Am Monday 21 September 2009 16:19:37 schrieb Antti Palosaari:
+> > > Here is the output of dmesg after reloading the module:
+> > > #--
+> > > af9015_usb_probe: interface:0
+> > > af9015_read_config: IR mode:4
+> >
+> > IR mode 4 disables it. I have strong feeling it should mean "polling"...
+> > Could you change af9015.c around line 720:
+> > from: if (val == AF9015_IR_MODE_DISABLED || val == 0x04) {
+> > to: if (val == AF9015_IR_MODE_DISABLED) {
+> >
+> > and test again.
+> > Antti
+> 
+> Ahh progress... ;)
+> I did as you suggested, now dmesg shows the IR-device:
+> #--
+> Sep 21 16:25:50 Seth input: IR-receiver inside an USB DVB receiver 
+> as /devices/pci0000:00/0000:00:1d.7/usb1/1-1/input/input7
+> Sep 21 16:25:50 Seth dvb-usb: schedule remote query interval to 150 msecs
+> #--
+> 
+> And syslog shows requests like the following:
+> #--
+> Sep 21 16:26:33 Seth af9015_rc_query: 07 00 27 00 00 00 00 00
+> #--
+> 
+> If it is ok, i will mail the output to you (and not spam the ml), later this 
+> day or tomorrow morning, as i have to leave for the university now...
+> 
 
-> Hello Hans,
->
->
-> On Thu, 10 Sep 2009, Hans Verkuil wrote:
->> Here is the new Media Controller RFC. It is completely rewritten from
->> the
->> original RFC. This original RFC can be found here:
->>
->> http://www.archivum.info/video4linux-list%40redhat.com/2008-07/00371/RFC:_Add_support_to_query_and_change_connections_inside_a_media_device
->>
->> This document will be the basis of the discussions during the Plumbers
->> Conference in two weeks time.
->
-> I wasn't following this RFC during the past year, though I heard you
-> talking about this idea at LPC 2008.
+Oh, tested under Windows, hardware is fine afterall.
 
-There were no follow-ups for this RFC in the past year. All the work was
-concentrated on the new framework (v4l2_device and v4l2_subdev) which was
-in any case needed before we could even think of continuing with this RFC.
+Applied patch, removed check for val 0x04, now driver gets the scancodes!
 
-Now that this is in we can continue with the next phase and actually think
-on how it should be implemented.
+So here we are, high-res picture of remote added to wiki at
+http://www.linuxtv.org/wiki/index.php/MSI_DIGIVOX_mini_III
 
->
-> I will add some things to discussion (see below) I have in my mind
-> regarding similar difficulties we face today with some pure-DTV devices.
->
-> From a first look, it seems media controller could not only unify v4l and
-> DVB device abstraction layers, but also a missing features to DTV devices
-> which are not present right now.
+32 keys, left-to-right, top-to-bottom:
 
-Yes, that's the idea. Currently I am concentrating exclusively on v4l
-since we really, really need it there asap. But it is a very generic idea
-that makes no assumptions on the hardware. It just gives you an abstract
-view of the board and a way to access it.
-
->
->> [..]
->>
->> Topology
->> --------
->>
->> The topology is represented by entities. Each entity has 0 or more
->> inputs and
->> 0 or more outputs. Each input or output can be linked to 0 or more
->> possible
->> outputs or inputs from other entities. This is either mutually exclusive
->> (i.e. an input/output can be connected to only one output/input at a
->> time)
->> or it can be connected to multiple inputs/outputs at the same time.
->>
->> A device node is a special kind of entity with just one input (capture
->> node)
->> or output (video node). It may have both if it does some in-place
->> operation.
->>
->> Each entity has a unique numerical ID (unique for the board). Each input
->> or
->> output has a unique numerical ID as well, but that ID is only unique to
->> the
->> entity. To specify a particular input or output of an entity one would
->> give
->> an <entity ID, input/output ID> tuple.
->>
->> When enumerating over entities you will need to retrieve at least the
->> following information:
->>
->> - type (subdev or device node)
->> - entity ID
->> - entity description (can be quite long)
->> - subtype (what sort of device node or subdev is it?)
->> - capabilities (what can the entity do? Specific to the subtype and more
->> precise than the v4l2_capability struct which only deals with the board
->> capabilities)
->> - addition subtype-specific data (union)
->> - number of inputs and outputs. The input IDs should probably just be a
->> value
->> of 0 - (#inputs - 1) (ditto for output IDs).
->>
->> Another ioctl is needed to obtain the list of possible links that can be
->> made
->> for each input and output.
->>
->> It is good to realize that most applications will just enumerate e.g.
->> capture
->> device nodes. Few applications will do a full scan of the whole
->> topology.
->> Instead they will just specify the unique entity ID and if needed the
->> input/output ID as well. These IDs are declared in the board or
->> sub-device
->> specific header.
->
-> Very good this topology-idea!
->
-> I can even see this to be continued in user-space in a very smart
-> application/library: A software MPEG decoder/rescaler whatever would be
-> such an entity for example.
-
-True, but in practice it will be very hard to make such an app for generic
-hardware. You can hide some of the hardware-specific code behind a
-library, but the whole point of giving access is to optimally utilize all
-the hw-specific bits. On the other hand, having a library that tries to do
-a 'best effort' job might be quite feasible.
-
->> A full enumeration will typically only be done by some sort of generic
->> application like v4l2-ctl.
->
-> Hmm... I'm seeing this idea covering other stream-oriented devices. Like
-> sound-cards (*ouch*).
-
-I may be mistaken, but I don't believe soundcards have this same
-complexity are media board.
-
->
->> [..]
->>
->> Open issues
->> ===========
->>
->> In no particular order:
->>
->> 1) How to tell the application that this board uses an audio loopback
->> cable
->> to the PC's audio input?
->>
->> 2) There can be a lot of device nodes in complicated boards. One
->> suggestion
->> is to only register them when they are linked to an entity (i.e. can be
->> active). Should we do this or not?
->
-> Could entities not be completely addressed (configuration ioctls) through
-> the mc-node?
-
-Not sure what you mean.
-
-> Only entities who have an output/input with is of type
-> 'user-space-interface' are actually having a node where the user (in
-> user-space) can read from/write to?
-
-Yes, each device node (i.e. that can be read from or written to) is
-represented by an entity. That makes sense as well, since there usually is
-a DMA engine associated with this, which definitely qualifies as something
-more than 'just' an input or output from some other block. You may even
-want to control this in someway through the media controller (setting up
-DMA parameters?).
-
-Inputs and outputs are not meant to represent anything complex. They just
-represent pins or busses.
-
->
->> 3) Format and bus configuration and enumeration. Sub-devices are
->> connected
->> together by a bus. These busses can have different configurations that
->> will
->> influence the list of possible formats that can be received or sent from
->> device nodes. This was always pretty straightforward, but if you have
->> several
->> sub-devices such as scalers and colorspace converters in a pipeline then
->> this
->> becomes very complex indeed. This is already a problem with soc-camera,
->> but
->> that is only the tip of the iceberg.
->>
->> How to solve this problem is something that requires a lot more thought.
->
-> For me the entities (components) you're describing are having 2 basic
-> bus-types: one control bus (which gives register access) and one or more
-> data-stream buses.
-
-Not really a datastream bus, more the DMA engine (or something similar)
-associated with a datastream bus. It's really the place where data is
-passed to/from userspace. I.e. the bus between a sensor and a resizer is
-not an entity. It's probably what you meant in any case.
-
-> In your topology I understood that the inputs/outputs are exactly
-> representing the data-stream buses.
->
-> Depending on the main-type of the media controller a library could give
-> some basic-models of how all entities can be connected together. EG:
->
-> (I have no clue about webcams, that why I use this as an example :) ):
->
-> Webcam: sensor + resize + filtering = picture
->
-> WEBCAM model X provides:
->
-> 2 sensor-types + 3 resizers + 5 filters
->
-> one of each of it provides a pictures. By default this first one of each
-> is taken.
-
-My current idea is that the driver will setup an initial default
-configuration that would do something reasonable. In this example it would
-setup only one sensor as source, one resizer and the relevant filters. So
-you have one default path through the system and a library can just follow
-that path.
-
->
->> [..]
->
-> My additional comments for DTV
->
-> 1) In DTV as of today we can't handle a feature which becomes more and
-> more important: diversity. There are boards where you have 2 frontends and
-> they can either combined their demodulated data to achieve better
-> sensitivity when being tuned to the same frequency or they can deliver two
-> MPEG2 transport streams when being tuned to 2 different frequencies. With
-> the entity topology this problem would be solved, because we have the
-> abstraction of possible inputs.
-
-Exactly.
-
-> 2) What is today a dvb_frontend could become several entities: I'm seeing
-> tuner, demodulator, channel-decoder, amplifiers.
-
-In practice every i2c device will be an entity. If the main bridge IC
-contains integrated tuners, demods, etc., then the driver can divide them
-up in sub-devices at will.
-
-> IMO, we should not
-> hesitate to lower the granularity of entities if possible.
-
-I have actually thought of sub-sub-devices. Some i2c devices can be very,
-very complex. It's possible to do and we should probably allow for this to
-happen in the future. Although we shouldn't implement this initially.
-
->
-> I really, really like this approach as it gives flexibily to user-space
-> applications which will ultimatetly improve the quality of the supported
-> devices, but I think it has to be assisted by a user-space library and the
-> access has to be done exclusively by that library. I'm aware that this
-> library-idea could be a hot discussion point.
-
-I do not see how you can make any generic library for this. You can make
-libraries for each specific board (I'm talking SoCs here mostly) that
-provide a slightly higher level of abstraction, but making something
-generic? I don't see how. You could perhaps do something for specific
-use-cases, though.
-
-> OTOH, in your approach I see nothing which would block an integration of
-> DTV-devices in that media-controller-architecture even if it is not done
-> in the first development-period.
-
-I would love to see that happen. But then dvb should first migrate to the
-standard i2c API, and then integrate that into v4l2_subdev (by that time
-we should probably rename it to media_subdev).
-
-Not a trivial job, but it would truly integrate the two parts.
-
-Thanks for your review!
-
-        Hans
-
->
-> regards,
-> --
->
-> Patrick
-> http://www.kernellabs.com/
->
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
-
+Sep 21 21:15:30 moon kernel: [ 5216.332334] af9015_rc_query: 07 00 13 00 00 00 00 00
+Sep 21 21:15:32 moon kernel: [ 5218.308390] af9015_rc_query: 07 00 3b 00 00 00 00 00
+Sep 21 21:15:33 moon kernel: [ 5219.524395] af9015_rc_query: 07 00 3e 00 00 00 00 00
+Sep 21 21:15:36 moon kernel: [ 5221.956404] af9015_rc_query: 07 00 0b 00 00 00 00 00
+Sep 21 21:15:39 moon kernel: [ 5225.452309] af9015_rc_query: 07 00 1e 00 00 00 00 00
+Sep 21 21:15:41 moon kernel: [ 5227.428367] af9015_rc_query: 07 00 1f 00 00 00 00 00
+Sep 21 21:15:42 moon kernel: [ 5228.644871] af9015_rc_query: 07 00 20 00 00 00 00 00
+Sep 21 21:15:44 moon kernel: [ 5230.164338] af9015_rc_query: 07 00 52 00 00 00 00 00
+Sep 21 21:15:46 moon kernel: [ 5232.292388] af9015_rc_query: 07 00 21 00 00 00 00 00
+Sep 21 21:15:47 moon kernel: [ 5233.508393] af9015_rc_query: 07 00 22 00 00 00 00 00
+Sep 21 21:15:48 moon kernel: [ 5234.572411] af9015_rc_query: 07 00 23 00 00 00 00 00
+Sep 21 21:15:50 moon kernel: [ 5236.244373] af9015_rc_query: 07 00 51 00 00 00 00 00
+Sep 21 21:15:52 moon kernel: [ 5238.524400] af9015_rc_query: 07 00 24 00 00 00 00 00
+Sep 21 21:15:53 moon kernel: [ 5239.588419] af9015_rc_query: 07 00 25 00 00 00 00 00
+Sep 21 21:15:54 moon kernel: [ 5240.500328] af9015_rc_query: 07 00 26 00 00 00 00 00
+Sep 21 21:15:55 moon kernel: [ 5241.564350] af9015_rc_query: 07 00 50 00 00 00 00 00
+Sep 21 21:15:57 moon kernel: [ 5243.084450] af9015_rc_query: 07 00 05 00 00 00 00 00
+Sep 21 21:15:58 moon kernel: [ 5244.604424] af9015_rc_query: 07 00 27 00 00 00 00 00
+Sep 21 21:15:59 moon kernel: [ 5245.516335] af9015_rc_query: 07 00 08 00 00 00 00 00
+Sep 21 21:16:01 moon kernel: [ 5247.188419] af9015_rc_query: 07 00 4f 00 00 00 00 00
+Sep 21 21:16:03 moon kernel: [ 5249.012366] af9015_rc_query: 07 00 3f 00 00 00 00 00
+Sep 21 21:16:04 moon kernel: [ 5250.532340] af9015_rc_query: 07 00 16 00 00 00 00 00
+Sep 21 21:16:05 moon kernel: [ 5251.448378] af9015_rc_query: 07 00 2a 00 00 00 00 00
+Sep 21 21:16:06 moon kernel: [ 5252.664872] af9015_rc_query: 07 00 3c 00 00 00 00 00
+Sep 21 21:16:09 moon kernel: [ 5254.944405] af9015_rc_query: 07 00 18 00 00 00 00 00
+Sep 21 21:16:10 moon kernel: [ 5256.616366] af9015_rc_query: 07 00 07 00 00 00 00 00
+Sep 21 21:16:11 moon kernel: [ 5257.680885] af9015_rc_query: 07 00 0f 00 00 00 00 00
+Sep 21 21:16:13 moon kernel: [ 5258.896393] af9015_rc_query: 07 00 15 00 00 00 00 00
+Sep 21 21:16:14 moon kernel: [ 5260.720336] af9015_rc_query: 07 00 36 00 00 00 00 00
+Sep 21 21:16:16 moon kernel: [ 5261.784858] af9015_rc_query: 07 00 37 00 00 00 00 00
+Sep 21 21:16:17 moon kernel: [ 5262.848378] af9015_rc_query: 07 00 2d 00 00 00 00 00
+Sep 21 21:16:17 moon kernel: [ 5263.608427] af9015_rc_query: 07 00 2e 00 00 00 00 00
