@@ -1,91 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.24]:32105 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751923AbZIZNGw (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1653 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751669AbZIUSFK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Sep 2009 09:06:52 -0400
-Received: by qw-out-2122.google.com with SMTP id 5so1199185qwd.37
-        for <linux-media@vger.kernel.org>; Sat, 26 Sep 2009 06:06:56 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.0909261103310.4273@axis700.grange>
-References: <200909232239.20105.hverkuil@xs4all.nl> <Pine.LNX.4.64.0909242000240.4913@axis700.grange>
-	<5e9665e10909260140v2030ab5bvb7c1bed5e358319b@mail.gmail.com>
-	<Pine.LNX.4.64.0909261103310.4273@axis700.grange>
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-Date: Sat, 26 Sep 2009 22:06:36 +0900
-Message-ID: <5e9665e10909260606t36901e72ma49c586d19f7d701@mail.gmail.com>
-Subject: Re: V4L-DVB Summit Day 1
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 21 Sep 2009 14:05:10 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id n8LI5Csh025993
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 21 Sep 2009 20:05:13 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 21 Sep 2009 20:05:12 +0200 (CEST)
+Message-Id: <200909211805.n8LI5Csh025993@smtp-vbr4.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Sep 26, 2009 at 6:32 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> On Sat, 26 Sep 2009, Dongsoo, Nathaniel Kim wrote:
->
->> On Fri, Sep 25, 2009 at 3:07 AM, Guennadi Liakhovetski
->> <g.liakhovetski@gmx.de> wrote:
->> > Hi Hans
->> >
->> > Thanks for keeping us updated. One comment:
->> >
->> > On Wed, 23 Sep 2009, Hans Verkuil wrote:
->> >
->> >> In the afternoon we discussed the proposed timings API. There was no
->> >> opposition to this API. The idea I had to also use this for sensor setup
->> >> turned out to be based on a misconception on how the S_FMT relates to sensors.
->> >> ENUM_FRAMESIZES basically gives you the possible resolutions that the scaler
->> >> hidden inside the bridge can scale the native sensor resolution. It does not
->> >> enumerate the various native sensor resolutions, since there is only one. So
->> >> S_FMT really sets up the scaler.
->> >
->> > Just as Jinlu Yu noticed in his email, this doesn't reflect the real
->> > situation, I am afraid. You can use binning and skipping on the sensor to
->> > scale the image, and you can also use the bridge to do the scaling, as you
->> > say. Worth than that, there's also a case, where there _several_ ways to
->> > perform scaling on the sensor, among which one can freely choose, and the
->> > host can scale too. And indeed it makes sense to scale on the source to
->> > save the bandwidth and thus increase the framerate. So, what I'm currently
->> > doing on sh-mobile, I try to scale on the client - in the best possible
->> > way. And then use bridge scaling to provide the exact result.
->> >
->>
->> Yes I do agree with you. And it is highly necessary to provide a clear
->> method which obviously indicates which device to use in scaling job.
->> When I use some application processors which provide camera
->> peripherals with scaler inside and external ISP attached, there is no
->> way to use both scaler features inside them. I just need to choose one
->> of them.
->
-> Well, I don't necessarily agree, in fact, I do use both scaling engines in
-> my sh setup. The argument is as mentioned above - bus usage and framerate
-> optimisation. So, what I am doing is: I try to scale on the sensor as
-> close as possible, and then scale further on the host (SoC). This works
-> well, only calculations are not very trivial. But you only have to perform
-> them once during setup, so, it's not time-critical. Might be worth
-> implementing such calculations somewhere centrally to reduce error chances
-> in specific drivers. Same with cropping.
->
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-I think that is a good approach. And considering the image quality, I
-should make bypass the scaler when user is requesting the exact
-resolution supported by the external camera ISP. Because some of
-camera interface embedded scalers are very poor in image quality and
-performance thus they may reduce in framerate as well. So, user can
-choose "with scaler" or "without scaler".
-Cheers,
+Results of the daily build of v4l-dvb:
 
-Nate
+date:        Mon Sep 21 19:00:03 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13038:29e4ba1a09bc
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
--- 
-=
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.27-armv5-ixp: ERRORS
+linux-2.6.28-armv5-ixp: ERRORS
+linux-2.6.29.1-armv5-ixp: ERRORS
+linux-2.6.30-armv5-ixp: ERRORS
+linux-2.6.31-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.27-powerpc64: ERRORS
+linux-2.6.28-powerpc64: ERRORS
+linux-2.6.29.1-powerpc64: ERRORS
+linux-2.6.30-powerpc64: ERRORS
+linux-2.6.31-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+sparse (linux-2.6.31): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
