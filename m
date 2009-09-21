@@ -1,81 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:47286 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755111AbZICLv4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Sep 2009 07:51:56 -0400
-Subject: Re: [PATCH] hdpvr: i2c fixups for fully functional IR support
-From: Andy Walls <awalls@radix.net>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Jarod Wilson <jarod@redhat.com>, Janne Grunau <j@jannau.net>,
-	linux-media@vger.kernel.org,
-	Brandon Jenkins <bcjenkins@tvwhere.com>
-In-Reply-To: <4A9F38EE.7020104@wilsonet.com>
-References: <200909011019.35798.jarod@redhat.com>
-	 <1251855051.3926.34.camel@palomino.walls.org>
-	 <4A9DE5FE.8060409@wilsonet.com>  <4A9F38EE.7020104@wilsonet.com>
+Received: from mail-in-06.arcor-online.net ([151.189.21.46]:35966 "EHLO
+	mail-in-06.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753326AbZIUFHr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Sep 2009 01:07:47 -0400
+Subject: Re: Bug in S2 API...
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Markus Rechberger <mrechberger@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <d9def9db0909202142j542136e3raea8e171a19f7e73@mail.gmail.com>
+References: <d9def9db0909202040u3138670ahede6078ef1a177c@mail.gmail.com>
+	 <1253504805.3255.3.camel@pc07.localdom.local>
+	 <d9def9db0909202109m54453573kc90f0c3e5d942e2@mail.gmail.com>
+	 <1253506233.3255.6.camel@pc07.localdom.local>
+	 <d9def9db0909202142j542136e3raea8e171a19f7e73@mail.gmail.com>
 Content-Type: text/plain
-Date: Thu, 03 Sep 2009 07:50:07 -0400
-Message-Id: <1251978607.22279.36.camel@morgan.walls.org>
+Date: Mon, 21 Sep 2009 06:54:23 +0200
+Message-Id: <1253508863.3255.10.camel@pc07.localdom.local>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2009-09-02 at 23:33 -0400, Jarod Wilson wrote:
-> On 09/01/2009 11:26 PM, Jarod Wilson wrote:
-> > On 09/01/2009 09:30 PM, Andy Walls wrote:
-> >> On Tue, 2009-09-01 at 10:19 -0400, Jarod Wilson wrote:
-> >>> Patch is against http://hg.jannau.net/hdpvr/
-> >>>
-> >>> 1) Adds support for building hdpvr i2c support when i2c is built as a
-> >>> module (based on work by David Engel on the mythtv-users list)
-> >>>
-> >>> 2) Refines the hdpvr_i2c_write() success check (based on a thread in
-> >>> the sagetv forums)
-> >>>
-> >>> With this patch in place, and the latest lirc_zilog driver in my lirc
-> >>> git tree, the IR part in my hdpvr works perfectly, both for reception
-> >>> and transmitting.
-> >>>
-> >>> Signed-off-by: Jarod Wilson<jarod@redhat.com>
-> >>
-> >> Jarod,
-> >>
-> >> I recall a problem Brandon Jenkins had from last year, that when I2C was
-> >> enabled in hdpvr, his machine with multiple HVR-1600s and an HD-PVR
-> >> would produce a kernel oops.
-> >>
-> >> Have you tested this on a machine with both an HVR-1600 and HD-PVR
-> >> installed?
+
+Am Montag, den 21.09.2009, 06:42 +0200 schrieb Markus Rechberger:
+> On Mon, Sep 21, 2009 at 6:10 AM, hermann pitton <hermann-pitton@arcor.de> wrote:
 > >
-> > Hrm, no, haven't tested it with such a setup, don't have an HVR-1600. I
-> > do have an HVR-1250 that I think might suffice for testing though, if
-> > I'm thinking clearly.
+> > Am Montag, den 21.09.2009, 06:09 +0200 schrieb Markus Rechberger:
+> >> On Mon, Sep 21, 2009 at 5:46 AM, hermann pitton <hermann-pitton@arcor.de> wrote:
+> >> >
+> >> > Am Montag, den 21.09.2009, 05:40 +0200 schrieb Markus Rechberger:
+> >> >> while porting the S2api to userspace I came accross the S2-API definition itself
+> >> >>
+> >> >> #define FE_SET_PROPERTY            _IOW('o', 82, struct dtv_properties)
+> >> >> #define FE_GET_PROPERTY            _IOR('o', 83, struct dtv_properties)
+> >> >>
+> >> >> while looking at this, FE_GET_PROPERTY should very likely be _IOWR
+> >> >>
+> >> >> in dvb-frontend.c:
+> >> >> ----
+> >> >>         if(cmd == FE_GET_PROPERTY) {
+> >> >>
+> >> >>                 tvps = (struct dtv_properties __user *)parg;
+> >> >>
+> >> >>                 dprintk("%s() properties.num = %d\n", __func__, tvps->num);
+> >> >>                 dprintk("%s() properties.props = %p\n", __func__, tvps->props);
+> >> >>                 ...
+> >> >>                 if (copy_from_user(tvp, tvps->props, tvps->num *
+> >> >> sizeof(struct dtv_property)))
+> >> >> ----
+> >> >>
+> >> >> Regards,
+> >> >> Markus
+> >> >
+> >> > Seems to be a big issue.
+> >> >
+> >> > Why you ever want to write to a get property?
+> >> >
+> >>
+> >> to read out the API version for example.
+> >> tvps->num is also used in order to check the boundaries of the property array.
+> >>
+> >> Markus
+> >
+> > Their are no writes allowed to manipulate get properties.
+> >
 > 
-> Hrm. A brief google search suggests the 1250 IR part isn't enabled. I 
-> see a number of i2c devices in i2cdetect -l output, but none that say 
-> anything about IR... I could just plug the hdpvr in there and see what 
-> happens, I suppose...
-
-You should try that.  It was an issue of legacy I2C driver probing that
-caused the hdpvr module to have problems.  The cx18 driver simply
-stimulated the i2c subsystem to do legacy probing (via the tuner modules
-IIRC)?  See the email I sent you.
-
-
-> > Ugh. And I just noticed that while everything works swimmingly with a
-> > 2.6.30 kernel base, the i2c changes in 2.6.31 actually break it, so
-> > there's gonna be at least one more patch coming... I'm an idjit for not
-> > testing w/2.6.31 before sending this in, I *knew* there were major i2c
-> > changes to account for... (Its actually the hdpvr driver oopsing, before
-> > one even tries loading lirc_zilog).
+> the writes are needed in order to submit tvps->num, although _IOR will
+> work _IOWR is the correct one in that case, aside of that you can just
+> compare it with other calls (eg. v4l2), the ENUM calls are all _IOWR.
+> They submit the index and retrieve the rest.
 > 
-> Getting closer. The hdpvr driver is no longer oopsing, and lirc_zilog 
-> binds correctly. Transmit and receive are working too, but there's still 
-> an oops on module unload I'm tracking down. Should be able to finish 
-> sorting it all out tomorrow and get patches into the mail.
+> Markus
 
+OK,
 
-Regards,
-Andy
+thought I'll have never to care for it again.
+
+ENUM calls should never be W.
+
+Hit me for all I missed.
+
+Cheers,
+Hermann
+
 
