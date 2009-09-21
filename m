@@ -1,112 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in0-pp.ewetel.de ([212.6.122.191]:56401 "EHLO
-	mail-in0-pp.ewetel.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755965AbZICQWD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Sep 2009 12:22:03 -0400
-Message-ID: <4A9FEB28.2080503@ewetel.net>
-Date: Thu, 03 Sep 2009 18:13:28 +0200
-From: Hartmut <spieluhr@ewetel.net>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org, thomas@rokamp.dk
-CC: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Problems with Hauppauge Nova-T USB2
-References: <54953.1251891572@rokamp.dk>
-In-Reply-To: <54953.1251891572@rokamp.dk>
+Received: from bombadil.infradead.org ([18.85.46.34]:46739 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755785AbZIUJ7B convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Sep 2009 05:59:01 -0400
+Date: Mon, 21 Sep 2009 06:58:24 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Richard =?ISO-8859-1?B?UvZqZm9ycw==?=
+	<richard.rojfors@mocean-labs.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	dougsland@redhat.com
+Subject: Re: [hg:v4l-dvb] video: initial support for ADV7180
+Message-ID: <20090921065824.4e18917a@pedra.chehab.org>
+In-Reply-To: <4AB72B33.5070107@mocean-labs.com>
+References: <E1MoqBB-0006BF-Qx@mail.linuxtv.org>
+	<4AB72B33.5070107@mocean-labs.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thomas Rokamp schrieb:
-> (sorry if you already got this mail, I think I had sent it to the wrong list to begin with)
->
-> Hi
->
-> I have found my old Hauppauge Nova-T USB2 box. It's the old revision, with and USB ID 9301.
-> I'm struggling to get it to work correctly under linux (Ubuntu Intrepid 2.6.27-11-server). So far all I have read and tried has been without success.
->
-> I'm running the latest checked out v4l-dvb drivers (using hg).
->
-> I have tested the box on the same location using windows, and "everything works fine".
->
-> My setup is a bit odd though. I have TV supplied from my local cable company, yet they have decided to supply the DVB signal using DVB-T. I guess it's because most of the TV's where I live supports DVB-T only. The signal is provided through the same plu in the wall as the old analog signal, though this should not be a problem, it works in windows.
->
-> I have tried various tools from dvb-apps, the output supplied further down...
->
-> dmesg | grep dvb:
-> (I'm quite sure the MAC address it suggest is random upon each boot, which sounds like trouble to me)
->
-> dvb-usb: found a 'Hauppauge WinTV-NOVA-T usb2' in cold state, will try to load a firmware
-> firmware: requesting dvb-usb-nova-t-usb2-02.fw
-> dvb-usb: downloading firmware from file 'dvb-usb-nova-t-usb2-02.fw'
-> usbcore: registered new interface driver dvb_usb_nova_t_usb2
-> dvb-usb: generic DVB-USB module successfully deinitialized and disconnected.
-> dvb-usb: found a 'Hauppauge WinTV-NOVA-T usb2' in warm state.
-> dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-> dvb-usb: MAC address: f5c9c8e4
-> dvb-usb: schedule remote query interval to 100 msecs.
-> dvb-usb: Hauppauge WinTV-NOVA-T usb2 successfully initialized and connected.
->
-> Using 'scan' I have come to a channel.conf file, out of which I have added just one line to channels.conf:
-> X:722000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_5_6:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:513:644:905
->
-> Using the above channels.conf file as input to tzap, I get the following lines:
->
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> reading channels from file '.tzap/channels.conf'
-> tuning to 722000000 Hz
-> video pid 0x0201, audio pid 0x0284
-> status 1f | signal 7bd3 | snr 0000 | ber 001fffff | unc 00000000 | FE_HAS_LOCK
-> status 1f | signal 7b94 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status 1f | signal 7b7d | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status 1f | signal 7b77 | snr 0000 | ber 00000090 | unc 00000000 | FE_HAS_LOCK
-> status 1f | signal 7b79 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status 1f | signal 7b70 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
->
-> As you can see from above, the signal-to-noise ratio is, well... bad. I was hoping (according to my readings) a value much higher.
->
-> Trying to record something with dvbstream:
-> dvbstream -n 5 -qam 64 -gi 16 -cr 5_6 -crlp 5_6 -bw 8 -tm 2 -hy NONE -f 722000000 513 644 -o > test.mpg
-> dvbstream v0.6 - (C) Dave Chapman 2001-2004
-> Released under the GPL.
-> Latest version available from http://www.linuxstb.org/
-> Tuning to 722000000 Hz
-> Using DVB card "DiBcom 3000MC/P", freq=722000000
-> tuning DVB-T (in United Kingdom) to 722000000 Hz, Bandwidth: 8
-> Getting frontend status
-> Event: Frequency: 722000000
-> Bit error rate: 2097151
-> Signal strength: 31503
-> SNR: 0
-> UNC: 0
-> FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI FE_HAS_SYNC
-> dvbstream will stop after 5 seconds (0 minutes)
-> Output to stdout
-> Streaming 3 streams
-> Caught signal 1 - closing cleanly.
->
->
-> This 'test.mpg' output file, however, shows no video at all, despite it actually containing data. VLC reports 'nothing to play'.
->
->
-> Any help at this point would be highly appreciated :-)
->
-> Best regards,
-> Thomas Rokamp
->  
->
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
->   
-Normally all you need is the firmware and it seems, that is OK. Try
-Kaffeine and let kaffeine do a search. In the channel-menu kaffeine will
-show you the signal-strenght. If nothing is shown, try another point of
-stand for the antenna or try another antenna with amplifier.
+Em Mon, 21 Sep 2009 09:28:51 +0200
+Richard Röjfors  <richard.rojfors@mocean-labs.com> escreveu:
 
-Regards,
+> Patch from Richard Röjfors wrote:
+> > The patch number 13019 was added via Douglas Schilling Landgraf <dougsland@redhat.com>
+> > to http://linuxtv.org/hg/v4l-dvb master development tree.
+> > 
+> > Kernel patches in this development tree may be modified to be backward
+> > compatible with older kernels. Compatibility modifications will be
+> > removed before inclusion into the mainstream Kernel
+> > 
+> > If anyone has any objections, please let us know by sending a message to:
+> > 	Linux Media Mailing List <linux-media@vger.kernel.org>
+> > 
+> > ------
+> 
+> Hi,
+> 
+> There is a newer version of the driver that has support for beeing
+> interrupt driver and setting standard, and checking the signal status.
+> 
+> I would be very happy if that gets committed instead.
 
-Hartmut
+Hi Richard,
+
+The previous version were already committed on our trees. So, please send us
+diff patches, instead of a completely new version.
+
+As stated on Kernel Documentation/SubmittingPatches:
+
+"If your changes produce a lot of deltas, you may want to look into
+splitting them into individual patches which modify things in
+logical stages.  This will facilitate easier reviewing by other
+kernel developers, very important if you want your patch accepted."
+
+So, if you are adding 3 new functionalities (interrupt, standard setting,
+signal status), the better is if you send us 3 patches.
+
+Thanks,
+Mauro.
+
+> +static int v4l2_std_to_adv7180(v4l2_std_id std)
+> +{
+> +	/* pal is a combination of several variants */
+> +	if (std & V4L2_STD_PAL)
+> +		return ADV7180_INPUT_CONTROL_PAL_BG;
+> +	if (std & V4L2_STD_NTSC)
+> +		return ADV7180_INPUT_CONTROL_NTSC_M;
+> +
+> +	switch (std) {
+> +	case V4L2_STD_PAL_60:
+> +		return ADV7180_INPUT_CONTROL_PAL60;
+> +	case V4L2_STD_NTSC_443:
+> +		return ADV7180_INPUT_CONTROL_NTSC_443;
+> +	case V4L2_STD_PAL_N:
+> +		return ADV7180_INPUT_CONTROL_PAL_N;
+> +	case V4L2_STD_PAL_M:
+> +		return ADV7180_INPUT_CONTROL_PAL_M;
+> +	case V4L2_STD_PAL_Nc:
+> +		return ADV7180_INPUT_CONTROL_PAL_COMB_N;
+> +	case V4L2_STD_SECAM:
+> +		return ADV7180_INPUT_CONTROL_PAL_SECAM;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +}
+
+Btw, this code is not right. 
+
+All standards are bit masks. As such, it is valid that an userspace application
+to send a request like, for example, V4L2_STD_SECAM_K. This standard
+seems to be supported, but your driver will return -EINVAL.
+
+What we generally do is to handle first the special cases where just one standard
+that requires especial treatment is defined (like PAL/60, PAL/M, PAL/N, ...) and then
+at the bottom, we handle the masks that covers more than one standard, like:
+
+	if (std == V4L_STD_PAL_60)
+		return ADV7180_INPUT_CONTROL_PAL60;
+	...
+
+	if (std & V4L2_STD_SECAM)
+		return ADV7180_INPUT_CONTROL_PAL_SECAM;
+	if (std & V4L2_STD_NTSC)
+		return ADV7180_INPUT_CONTROL_NTSC_M;
+	/* If it is none of the above, it is PAL */
+	return ADV7180_INPUT_CONTROL_PAL_BG;
+
+
+
+Cheers,
+Mauro
