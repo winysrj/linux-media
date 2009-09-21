@@ -1,46 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from link-v.kaznejov.cz ([89.235.36.82]:34473 "EHLO
-	link-v.kaznejov.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753545AbZI2KEr (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.156]:11690 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754104AbZIUW3F convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Sep 2009 06:04:47 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by link-v.kaznejov.cz (Postfix) with ESMTP id 64BCCE5039
-	for <linux-media@vger.kernel.org>; Tue, 29 Sep 2009 12:04:51 +0200 (CEST)
-Received: from link-v.kaznejov.cz ([127.0.0.1])
-	by localhost (kaznejov.cz [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id fe5FOfyp9fRx for <linux-media@vger.kernel.org>;
-	Tue, 29 Sep 2009 12:04:45 +0200 (CEST)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by link-v.kaznejov.cz (Postfix) with ESMTP id 50CD5E10E7
-	for <linux-media@vger.kernel.org>; Tue, 29 Sep 2009 12:04:45 +0200 (CEST)
-Message-ID: <4AC1DBBD.2060006@kaznejov.cz>
-Date: Tue, 29 Sep 2009 12:04:45 +0200
-From: Jiri Dobry <jirik@kaznejov.cz>
+	Mon, 21 Sep 2009 18:29:05 -0400
+Received: by fg-out-1718.google.com with SMTP id 22so1027489fge.1
+        for <linux-media@vger.kernel.org>; Mon, 21 Sep 2009 15:29:08 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20090921221505.GA5187@zverina>
+References: <20090913193118.GA12659@zverina> <20090921204418.GA19119@zverina>
+	 <829197380909211349r68b92b3em577c02d0dee9e4fc@mail.gmail.com>
+	 <20090921221505.GA5187@zverina>
+Date: Mon, 21 Sep 2009 18:29:07 -0400
+Message-ID: <829197380909211529r7ff7eab0nccc8d5fd55516ca2@mail.gmail.com>
+Subject: Re: Questions about Terratec Hybrid XS (em2882) [0ccd:005e]
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
 To: linux-media@vger.kernel.org
-Subject: Re: record DVB-S2 stream into file
-References: <4AC1CFF1.7050907@kaznejov.cz> <200909291201.14623.hftom@free.fr>
-In-Reply-To: <200909291201.14623.hftom@free.fr>
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Christophe Thommeret napsal(a):
-> Le Tuesday 29 September 2009 11:14:25 Jiri Dobry, vous avez Ècrit :
->   
+On Mon, Sep 21, 2009 at 6:15 PM, Uros Vampl <mobile.leecher@gmail.com> wrote:
+> I tried arecord/aplay and sox with tvtime, and also mplayer (which
+> has
+> built-in audio support). I know about these tricks, I've used them
+> successfully with Markus' em28xx-new driver. But with v4l-dvb it's as I
+> said, audio is there but it's extremely quiet. If you have suggestions
+> how I should try to diagnoze this, I'm all ears.
 >
-> Kaffeine 0.8.8 supports DVB-S2 and you can record a whole TS by setting a 
-> channel with videoPid=0 and audioPid=8192.
-> Hope this helps.
->
->
->   
-Thanks, but I need command line tool. Is it possible use kaffeine 
-without XORG? I thing no.
+> Regards,
+> Uro≈°
 
-But many thanks, it is solution but i forget wrote that I need command 
-line tool.
+If the audio is present but very quiet, then it's probably some issue
+you are having with your mixer.  I would check your ALSA and
+PulseAudio configuration (in particular the mixer volume controls).
 
-Jiri
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
