@@ -1,48 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f175.google.com ([209.85.210.175]:65234 "EHLO
-	mail-yx0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751160AbZIEQYV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Sep 2009 12:24:21 -0400
-Received: by yxe5 with SMTP id 5so3767531yxe.33
-        for <linux-media@vger.kernel.org>; Sat, 05 Sep 2009 09:24:24 -0700 (PDT)
-Message-ID: <4AA290CF.5000806@gmail.com>
-Date: Sun, 06 Sep 2009 02:24:47 +1000
-From: Jed <jedi.theone@gmail.com>
+Received: from mail-bw0-f210.google.com ([209.85.218.210]:51449 "EHLO
+	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752717AbZIUKCb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Sep 2009 06:02:31 -0400
+Received: by bwz6 with SMTP id 6so1815309bwz.37
+        for <linux-media@vger.kernel.org>; Mon, 21 Sep 2009 03:02:34 -0700 (PDT)
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: generic question
-References: <4AA28EBB.5070401@gmail.com>
-In-Reply-To: <4AA28EBB.5070401@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1253508863.3255.10.camel@pc07.localdom.local>
+References: <d9def9db0909202040u3138670ahede6078ef1a177c@mail.gmail.com>
+	 <1253504805.3255.3.camel@pc07.localdom.local>
+	 <d9def9db0909202109m54453573kc90f0c3e5d942e2@mail.gmail.com>
+	 <1253506233.3255.6.camel@pc07.localdom.local>
+	 <d9def9db0909202142j542136e3raea8e171a19f7e73@mail.gmail.com>
+	 <1253508863.3255.10.camel@pc07.localdom.local>
+Date: Mon, 21 Sep 2009 12:02:34 +0200
+Message-ID: <d9def9db0909210302m44f8ed77wfca6be3693491233@mail.gmail.com>
+Subject: Re: Bug in S2 API...
+From: Markus Rechberger <mrechberger@gmail.com>
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Actually I just realised...
+----
+in dvb-frontend.c:
+ ----
+         if(cmd == FE_GET_PROPERTY) {
 
-I think when the system reboots it will only load the modules it needs 
-from /lib/modules/[kernel version]/kernel/drivers/media...
-It won't load everything in that directory into the kernel/memory right?
+                 tvps = (struct dtv_properties __user *)parg;
+                 dprintk("%s() properties.num = %d\n", __func__, tvps->num);
+                 dprintk("%s() properties.props = %p\n", __func__, tvps->props);
+                 ...
+                 if (copy_from_user(tvp, tvps->props, tvps->num *
+ sizeof(struct dtv_property)))
+ ----
 
-So the only reason one might want to use "make menuconfig"; is to 
-prevent irrelevant compiled modules ending up in...
-/lib/modules/[kernel version]/kernel/drivers/media
 
-Feel free to correct if this understanding is wrong.
-
-Cheers
-
-Jed wrote:
-> I installed _all_ dvb-v4l modules after compiling latest source 
-> because at the time I couldn't use "make menuconfig" (didn't have 
-> ncurses installed)
-> Is there a way I can retrospectively remove some compiled/installed 
-> modules so that I'm only using the ones I need?
-> I only need modules associated with: 
-> http://www.linuxtv.org/wiki/index.php/Saa7162_devices#DNTV_PCI_Express_cards 
+> OK,
 >
+> thought I'll have never to care for it again.
+>
+> ENUM calls should never be W.
+>
+> Hit me for all I missed.
 >
 > Cheers,
-> Jed
->
+> Hermann
 
+you are not seeing the point of it it seems
+
+Documentation/ioctl-number.txt
+
+----
+If you are adding new ioctl's to the kernel, you should use the _IO
+macros defined in <linux/ioctl.h>:
+
+    _IO    an ioctl with no parameters
+    _IOW   an ioctl with write parameters (copy_from_user)
+    _IOR   an ioctl with read parameters  (copy_to_user)
+    _IOWR  an ioctl with both write and read parameters.
+----
+copy from user is required in order to copy the keys for the requested
+elements into the kernel.
+copy to user is finally used to play them back.
+
+Markus
