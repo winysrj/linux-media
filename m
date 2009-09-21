@@ -1,108 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4939 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754233AbZIOQjT convert rfc822-to-8bit (ORCPT
+Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199]:53621 "EHLO
+	mta4.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756159AbZIUNgk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2009 12:39:19 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: hermann pitton <hermann-pitton@arcor.de>
-Subject: Re: saa7134 - radio broken for v4l1 apps - was - Re: Problems with Pinnacle 310i (saa7134) and recent kernels
-Date: Tue, 15 Sep 2009 18:39:12 +0200
-Cc: Avl Jawrowski <avljawrowski@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-References: <loom.20090718T135733-267@post.gmane.org> <200909140824.17591.hverkuil@xs4all.nl> <1252972232.3250.43.camel@pc07.localdom.local>
-In-Reply-To: <1252972232.3250.43.camel@pc07.localdom.local>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200909151839.12643.hverkuil@xs4all.nl>
+	Mon, 21 Sep 2009 09:36:40 -0400
+Received: from steven-toths-macbook-pro.local
+ (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta4.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KQB000YKPT6U1H0@mta4.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Mon, 21 Sep 2009 09:36:43 -0400 (EDT)
+Date: Mon, 21 Sep 2009 09:36:41 -0400
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: Preliminary working HVR-1850 IR hardware and grey Hauppauge RC-5
+ remote
+In-reply-to: <1253413236.13400.24.camel@morgan.walls.org>
+To: Andy Walls <awalls@radix.net>
+Cc: linux-media@vger.kernel.org
+Message-id: <4AB78169.5030800@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <1252297247.18025.8.camel@morgan.walls.org>
+ <1252369138.2571.17.camel@morgan.walls.org>
+ <1253413236.13400.24.camel@morgan.walls.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 15 September 2009 01:50:32 hermann pitton wrote:
-> Hi,
-> 
-> Am Montag, den 14.09.2009, 08:24 +0200 schrieb Hans Verkuil:
-> > On Monday 14 September 2009 00:42:16 hermann pitton wrote:
-> > > Hi,
-> > > 
-> > > Am Sonntag, den 13.09.2009, 12:02 +0000 schrieb Avl Jawrowski:
-> > > > Hi,
-> > > > 
-> > > > hermann pitton <hermann-pitton <at> arcor.de> writes:
-> > > > 
-> [snip]
-> > > 
-> > > > > The only other issue I'm aware of is that radio is broken since guessed
-> > > > > 8 weeks on my tuners, only realized when testing on enabling external
-> > > > > active antenna voltage for DVB-T on a/some 310i.
-> > > > > 
-> > > > > Might be anything, hm, hopefully I should not have caused it ;)
-> > > > 
-> > > > The radio works for me, even if there's much noise (I don't usually use it).
-> > > > I'm using the internal audio cable.
-> > > 
-> > > The radio is broken for all tuners, you must be on older stuff.
-> > > 
-> > > I finally found the time to do the mercurial bisect today.
-> > > 
-> > > It is broken since Hans' changeset 12429 on seventh August.
-> > 
-> > What are the symptoms? What application do you use to test the radio?
-> > I don't immediately see why that changeset would break radio support as
-> > it only affects VIDIOC_G_STD and VIDIOC_G_PARM.
-> > 
-> > Regards,
-> > 
-> > 	Hans
-> 
-> Hans, it are indeed only the v4l1 apps like radio, qtradio, gnomeradio
-> and fm from fmtools. Avl is right, mplayer does still work and also
-> kradio.
-> 
-> So the trouble happens in the v4l1 compat layer.
-> 
-> Symptoms are, that you just have loud static noise and tuning has not
-> any effect. Also no signal and/or stereo detection.
-> 
-> "fm" gives now "ioctl VIDIOCGTUNER: Invalid argument".
+On 9/19/09 10:20 PM, Andy Walls wrote:
+> Steve,
+>
+> I've finally have a working implementation of the the HVR-1850 IR
+> receiver and the grey Hauppauge RC-5 remote with in kernel (non-LIRC) IR
+> input to key press events.
+>
+> If you feel adventurous, give it a try for testing the IR receiver:
+>
+> http://www.linuxtv.org/hg/~awalls/cx23888-ir
 
-Hermann, I've fixed this in v4l1-compat.c. Can you try this tree:
+Very nice, excellent work. Sorry, my weekend was crazy so I never managed to 
+test your tree, even though I saw your email. Today and tomorrow won't be much 
+better as I'll be preparing to head out to LPC.
 
-http://www.linuxtv.org/hg/~hverkuil/v4l-dvb
+A couple of things on my mind currently:
 
-If this works (and I expect it will), then I'll post a pull request for this.
+1. I'd like to test this asap and give you some feedback. This is a very welcome 
+addition to the cx23885/25840 driver codebase. In reality this could be a week 
+or so.
+
+2. Once you have your patch-sets in order I'd like to pull those patches and do 
+some HVR1850 analog encoder work. I have some small patches pending that should 
+immediately allow me to start testing various aspects of analog. (Unrelated to 
+your IR work but highly related to the fact you're fixed up the clocks inside 
+the 25840 nicely).
+
+3. Getting RC5 IR support on the existing HVR1800/HVR1250 would be _really_ nice 
+and from the sound of it an incremental step built on the current work. I think 
+from memory you only have HVR1600 and HVR1850 Hauppauge boards. Is this correct? 
+I want to bring a couple of 'samples' to LPC for you.... Assuming you're 
+interested. Let me know as my luggage space will be tight.
+
+4. I'm hoping we'll sample a beer or two in Portland ;)
 
 Regards,
 
-	Hans
-
-> 
-> qtradio
-> Using v4l
-> Video4Linux detected
-> 87 - 108
-> SIGNAL = 0
-> SIGNAL = 0
-> VIDIOCGAUDIO: Ungültiger Dateideskriptor
-> VIDIOCSAUDIO: Ungültiger Dateideskriptor
-> VIDIOCGAUDIO: Ungültiger Dateideskriptor
-> VIDIOCSAUDIO: Ungültiger Dateideskriptor
-> 
-> Tested on old style simple tuners, some tda9887 stuff and
-> tda8275a/tda8290/saa7131e, on both x86 and x86_64, with some 2.6.29 and
-> some 2.6.30.
-> 
-> Cheers,
-> Hermann
-> 
-> 
-> 
-
-
-
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
