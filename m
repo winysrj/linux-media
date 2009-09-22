@@ -1,110 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iw0-f200.google.com ([209.85.223.200]:59881 "EHLO
-	mail-iw0-f200.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753904AbZIIVm7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Sep 2009 17:42:59 -0400
-Received: by iwn38 with SMTP id 38so18695iwn.33
-        for <linux-media@vger.kernel.org>; Wed, 09 Sep 2009 14:43:02 -0700 (PDT)
+Received: from mx7.zte.com.cn ([202.103.147.169]:34678 "EHLO mx7.zte.com.cn"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750901AbZIVF6U (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Sep 2009 01:58:20 -0400
+In-Reply-To: <20090922015333.2fe70e98@pedra.chehab.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
+Subject: re: Re: how to develop driver for cy7c68013(fx2 lp)?
 MIME-Version: 1.0
-Date: Wed, 9 Sep 2009 16:43:02 -0500
-Message-ID: <62013cda0909091443g72ebdf1bge3994b545a86c854@mail.gmail.com>
-Subject: LinuxTV firmware blocks all wireless connections / traffic
-From: Clinton Meyer <clintonmeyer22@gmail.com>
-To: Linux Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Message-ID: <OFA2190736.178E50BE-ON48257639.001FAFA7-48257639.0020E884@zte.com.cn>
+From: liu.yaojin@zte.com.cn
+Date: Tue, 22 Sep 2009 13:55:53 +0800
+Content-Type: text/plain; charset="GB2312"
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Purchased a Hauppauge WinTV-HVR-950Q USB Hybrid TV stick to capture ATSC OTA TV.
-
-Am running MEPIS 8.06 on all three machines, Debian 5 Lenny based, KDE
-3.5.10, kernel 2.6.27-1-mepis-smp
-
-All three machines now have wireless blocked, either do not connect or
-all packets dropped/blocked if a connection is made.
-
-Used the resources from LinuxTV (dot) org
-
-to get it working, they are referenced and posted as follows:
- linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-950Q#Firmware
-
-******** *********** **********
- Quote:
-In order to use the LinuxTV driver, you need to download and install
-the firmware for the xc5000.
-
-Quote:
-wget  ... steventoth (dot) net/linux/xc50...25271_WHQL (dot) zip
-wget ... steventoth (dot) net/linux/xc5000/extract (dot) sh
- sh extract (dot) sh
-cp dvb-fe-xc5000-1.1 (dot) fw /lib/firmware
-:Unquote
-
-Note: Though the usual directory location in which the firmware file
-is placed is /lib/firmware, this may differ in the case of some
-distros; consult your distro's documentation for the appropriate
-location.
-
-The firmware will be added lazily (on-demand) when you first use the driver.
-Drivers
-
-The xc5000 driver needed for this WinTV-HVR-950Q is already part of
-the latest Linux kernel (part of v4l-dvb drivers).
-
-Analog support was merged into the mainline v4l-dvb tree on March 18, 2009.
-:Unquote
-******** *********** ********** ******** *********** **********
-So on Saturday I got this up and running... and Sunday morning
-recorded one show successfully that had set up on a timer.
-
-Then set up three consecutive shows for the afternoon.
-They were all part of a series on the same channel. Here are the results:
-
-    * Show A, 2.5 hours long, 13.2gb file size, appears to be OK.
-    * Show B, 2.0 hours long, 3.7gb file size, appears to be OK.
-     * Show C, supposed to be 2.0 hours long, result was 2.7gb file
-size, about the first hour is missing.
-
-At about this point, I lost wireless internet connectivity on TV
-recording laptop. Machine sees the access point, but won't connect.
-
-Went to my main desktop where i had first worked with this Hauppauge
-WinTV-HVR-950Q USB Hybrid TV stick and that machine also lost
-internet, even though it was right next to AP and got a very good
-signal.
-
-Thought it was maybe the AP, so switched it out for a working spare.
- Same results.
-Packed up laptop and a spare laptop, along with a MEPIS 8.06 LiveCD
-and an 8.06 Live USB stick and hit the road to go to a reliable high
-speed wifi spot.
-Same results... changins ISPs resulted in the same issues.
- Also same ting happened with the spare laptop, an IBM T43 Thinkpad I
-had also done the "wget ... steventoth (dot)
-net/linux/xc5000/HVR-12x0-14x0-17x0_1_25_25271_WHQL (dot) zip"
-firmware thing to.
-
-Was able to get one machine, while running a LIVE USB session, to
-connect, but zero packets received.. ALL were blocked. The connection
-information said ALL packets were dropped.
- None of the two other machines connected to wireless on a LiveCD or
-LiveUSB thing too
-Three machines. All different brands (HP, Dell, and IBM) with
-different wifi cards. All three see the access point ESSID, but none
-connect.
-
-This does not *feel* good. What got flashed? Can this be resolved?
-
-Came home. No difference. Grabbed a laptop that i had NOT done the
-firmware thing to and that is what I am using to write this. Hooked
-right up to the AP.
-
-Please help... that is too much hardware disabled for me to think calmly.
-I'd really like to make the USB tv tuner work... what a great way to
-PVR / DVR, but I need wireless.
-
-Can provide any details requested to drive this towards a fix!
-
-Thank you,
-Clinton
+aGksTWF1cm86DQogdGhhbmtzIGZvciByZXBseWluZy4NCmkgYW0gbm90IHN1cmUgdGhlIGR0diBh
+cGkgY2FuIGJlIHVzZWQgaW4gbXkgcHJvamVjdC5iZWNhdXNlIGNtbWIncyANCnByb3RvY29sIGlz
+IGRpZmZlcmVudCB0byBkbWIgOigNCg0KaW4gV2luZG93cywgd2UgZG93bmxvYWQgZmlybXdhcmUg
+dXNpbmcgd2luZG93cyBkcml2ZXIsY29uZmlnIGZ4MiBhcyBidWxrIA0KdHJhbnNmZXIsYW5kIHJl
+YWQgdGhlIFRTIHN0cmVhbSxmaW5hbGx5IGRlY29kZSBpdCBhbmQgZGlzcGxheS4NCkkgYWxzbyBy
+ZWFkIHRoaXMgcG9zdDogImh0dHA6Ly93d3cubGludXhqb3VybmFsLmNvbS9hcnRpY2xlLzc0NjYi
+LS0tLQ0KV3JpdGluZyBhIFJlYWwgRHJpdmVyoapJbiBVc2VyIFNwYWNlLg0KaWYgaSBqdXN0IHdh
+bnQgdG8gcmVhZCB0aGUgdHMgc3RyZWFtLHNob3VsZCBpIHVzZSB0aGlzIG1ldGhvZD8gb3IgYW5v
+dGhlciANCndheT8NCg0KDQoNCg0KDQpNYXVybyBDYXJ2YWxobyBDaGVoYWIgPG1jaGVoYWJAaW5m
+cmFkZWFkLm9yZz4gDQoyMDA5LTA5LTIyIDEyOjUzDQoNCsrVvP7Iyw0KbGl1Lnlhb2ppbkB6dGUu
+Y29tLmNuDQqzrcvNDQpsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcNCtb3zOINClJlOiBob3cg
+dG8gZGV2ZWxvcCBkcml2ZXIgZm9yIGN5N2M2ODAxMyhmeDIgbHApPw0KDQoNCg0KDQoNCg0KSGkg
+TGl1LA0KDQpFbSBUdWUsIDIyIFNlcCAyMDA5IDEwOjQ3OjE4ICswODAwDQpsaXUueWFvamluQHp0
+ZS5jb20uY24gZXNjcmV2ZXU6DQoNCj4gaGksYWxsOg0KPiAgIGkgaGF2ZSBhIGNtbWIgdXNiIGNh
+cmQsYmFzZWQgb24gZngyIGxwLm15IGtlcm5lbCB2ZXJzaW9uIGlzIDIuNi4yNC43LmkgDQoNCj4g
+YWxyZWFkeSByZWFkIHNvbWUgc291cmNlIGluIC9kcml2ZXIvdXNiL21pc2MgYW5kIA0KPiAvZHJp
+dmVyL21lZGlhL2R2Yi9kdmItdXNiLCBhbmQgc3RpbGwgaGF2ZSBubyBpZGVhIGhvdyB0byB3cml0
+ZSB0aGUgDQpkcml2ZXIgDQo+IC5jb3VsZCB5b3Ugc2hvdyBtZSBob3cgdG8gZG8gaXQ/DQo+IG1h
+eWJlIGkganVzdCB3YW50IHRvIHJlYWQvd3JpdGUgY3k3YzY4MDEzIGNvcnJlbnRseSxhbmQgbm90
+IG5lZWQgdjRsMiANCmFwaSANCj4gOikNCj4gdGhhbmtzLg0KDQpJZiB0aGUgZHJpdmVyIHdpbGwg
+c3VwcG9ydCBqdXN0IGRpZ2l0YWwgVFYsIHlvdSBkb24ndCBuZWVkIFY0TDIgQVBJLCBqdXN0IA0K
+RFZCDQpBUEkuIFRoZSBsYXRlc3QgdmVyc2lvbiBvZiB0aGUgQVBJJ3MgYXJlIGF0Og0KDQogICAg
+ICAgICAgICAgICAgIGh0dHA6Ly9saW51eHR2Lm9yZy9kb3dubG9hZHMvdjRsLWR2Yi1hcGlzLw0K
+DQpJbiBvcmRlciB0byBzdGFydCwgeW91IG5lZWQgZmlyc3QgdG8gdW5kZXJzdGFuZCB0aGUgQVBJ
+LiBUaGVuLCB5b3UnbGwgbmVlZCANCnRvDQpnZXQgb25lIGRyaXZlciBhcyBhbiBleGFtcGxlIChm
+b3IgZXhhbXBsZSwgY3h1c2IuYyAtIGlmIHRoZSBkZXZpY2UgaXMgDQpVU0IpLiANCg0KSWYgdGhl
+IGRyaXZlciBhbHNvIHN1cHBvcnRzIGFuYWxvZyBUViwgdGhlbiB0aGUgYmV0dGVyIGlzIHRvIHVz
+ZSBhIGRyaXZlciANCnRoYXQNCnN1cHBvcnRzIGJvdGggQVBJJ3MsIGxpa2UgZW0yOHh4DQoNCg0K
+DQpDaGVlcnMsDQpNYXVybw0KDQoNCg0KDQoNCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQpaVEUgSW5mb3JtYXRpb24gU2VjdXJpdHkgTm90
+aWNlOiBUaGUgaW5mb3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMgbWFpbCBpcyBzb2xlbHkgcHJv
+cGVydHkgb2YgdGhlIHNlbmRlcidzIG9yZ2FuaXphdGlvbi4gVGhpcyBtYWlsIGNvbW11bmljYXRp
+b24gaXMgY29uZmlkZW50aWFsLiBSZWNpcGllbnRzIG5hbWVkIGFib3ZlIGFyZSBvYmxpZ2F0ZWQg
+dG8gbWFpbnRhaW4gc2VjcmVjeSBhbmQgYXJlIG5vdCBwZXJtaXR0ZWQgdG8gZGlzY2xvc2UgdGhl
+IGNvbnRlbnRzIG9mIHRoaXMgY29tbXVuaWNhdGlvbiB0byBvdGhlcnMuDQpUaGlzIGVtYWlsIGFu
+ZCBhbnkgZmlsZXMgdHJhbnNtaXR0ZWQgd2l0aCBpdCBhcmUgY29uZmlkZW50aWFsIGFuZCBpbnRl
+bmRlZCBzb2xlbHkgZm9yIHRoZSB1c2Ugb2YgdGhlIGluZGl2aWR1YWwgb3IgZW50aXR5IHRvIHdo
+b20gdGhleSBhcmUgYWRkcmVzc2VkLiBJZiB5b3UgaGF2ZSByZWNlaXZlZCB0aGlzIGVtYWlsIGlu
+IGVycm9yIHBsZWFzZSBub3RpZnkgdGhlIG9yaWdpbmF0b3Igb2YgdGhlIG1lc3NhZ2UuIEFueSB2
+aWV3cyBleHByZXNzZWQgaW4gdGhpcyBtZXNzYWdlIGFyZSB0aG9zZSBvZiB0aGUgaW5kaXZpZHVh
+bCBzZW5kZXIuDQpUaGlzIG1lc3NhZ2UgaGFzIGJlZW4gc2Nhbm5lZCBmb3IgdmlydXNlcyBhbmQg
+U3BhbSBieSBaVEUgQW50aS1TcGFtIHN5c3RlbS4NCg==
