@@ -1,53 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:64209 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753296AbZIHNlg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Sep 2009 09:41:36 -0400
-Received: by bwz19 with SMTP id 19so2203817bwz.37
-        for <linux-media@vger.kernel.org>; Tue, 08 Sep 2009 06:41:38 -0700 (PDT)
+Received: from exprod7og108.obsmtp.com ([64.18.2.169]:47294 "HELO
+	exprod7og108.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751041AbZIVVrK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Sep 2009 17:47:10 -0400
+Received: by an-out-0708.google.com with SMTP id d14so63811and.3
+        for <linux-media@vger.kernel.org>; Tue, 22 Sep 2009 14:47:13 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <200909080837.31989.hverkuil@xs4all.nl>
-References: <200909080837.31989.hverkuil@xs4all.nl>
-Date: Tue, 8 Sep 2009 09:41:38 -0400
-Message-ID: <829197380909080641q3ff2cd15r6150d36f2a4ee809@mail.gmail.com>
-Subject: Re: Volunteer for V4L2+Audio at Plumbers Conference?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
+In-Reply-To: <781723be0909221420l7e955a54p9d713d821ba737da@mail.gmail.com>
+References: <781723be0909221420l7e955a54p9d713d821ba737da@mail.gmail.com>
+From: "Dreher, Eric" <eric@dreher-associates.com>
+Date: Tue, 22 Sep 2009 16:40:56 -0500
+Message-ID: <781723be0909221440w5969c21ai5e190936a64fd84@mail.gmail.com>
+Subject: Fwd: ATI HDTV Wonder not always recognized
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 8, 2009 at 2:37 AM, Hans Verkuil<hverkuil@xs4all.nl> wrote:
-> Hi all,
->
-> I'm looking for a v4l-dvb developer who is at the Plumbers Conference to
-> attend the audio miniconference on Wednesday morning (see schedule here:
-> http://linuxplumbersconf.org/2009/schedule/) and to discuss ways of
-> synchronizing video and audio.
->
-> I won't have time for that myself, and I also know very little about alsa.
-> But this is an open topic that we need to do something about and this
-> conference is a good place for that.
->
-> Regards,
->
->        Hans
+I am need of opinions on whether this is a driver or motherboard issue
+(or something else).
 
-Hello Hans,
+I originally had an ATI HDTV Wonder card working perfectly along with
+a PVR-150 in my two PCI slots of a Asus M2NPV-VM motherboard.
+Driver for the HDTV Wonder is cx88_dvb, and the PVR, ivtv
 
-I will be attending the audio seminars, since I have a keen interest
-in finally getting the audio and video streams properly associated for
-raw analog video (so that applications such as tvtime will work
-out-of-the-box).
+The PVR-150 recently started to deteriorate with a poor picture
+quality ( I can describe more if relevant).  So I purchased a
+replacement PVR-150 and popped into place.  The new PVR-150 worked
+without a hitch itself.  But...the HDTV Wonder isn't even recognized.
+Does not show up in lspci.  "modprobe cx88_dvb" reports "no such
+device"
 
-I would be happy to meet up with you afterward and share my notes.
+I have tried swapping PCI slots with no luck, replaced the old PVR-150
+with no luck.
 
-Cheers,
+But the HDTV Wonder is recognized in one slot only with the other slot
+empty.  So I can currently run with either card, but not both.
 
-Devin
+Motherboard has the most recent firmware.  I've updated Ubuntu to 9.10
+and v4l-dvb drivers to most recent 0.0.7.  (No noticable difference
+from 0.0.6 as far as what I need).
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Is my logic correct in blaming the motherboard?  Any suggestions?
+
+Thanks,
+Eric
