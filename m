@@ -1,77 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:55259 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753331AbZI1Vwl (ORCPT
+Received: from mail-yx0-f199.google.com ([209.85.210.199]:34039 "EHLO
+	mail-yx0-f199.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751495AbZIVCfz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Sep 2009 17:52:41 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Stefan.Kost@nokia.com
-Subject: Re: [RFC] Global video buffers pool
-Date: Mon, 28 Sep 2009 23:54:25 +0200
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	sakari.ailus@maxwell.research.nokia.com, david.cohen@nokia.com,
-	antti.koskipaa@nokia.com, vimarsh.zutshi@nokia.com
-References: <200909161746.39754.laurent.pinchart@ideasonboard.com> <D019E777779A4345963526A1797F28D409E78C5B57@NOK-EUMSG-02.mgdnok.nokia.com>
-In-Reply-To: <D019E777779A4345963526A1797F28D409E78C5B57@NOK-EUMSG-02.mgdnok.nokia.com>
+	Mon, 21 Sep 2009 22:35:55 -0400
+Received: by yxe37 with SMTP id 37so3809794yxe.33
+        for <linux-media@vger.kernel.org>; Mon, 21 Sep 2009 19:35:59 -0700 (PDT)
+Message-ID: <4AB8366E.1010905@gmail.com>
+Date: Mon, 21 Sep 2009 22:29:02 -0400
+From: David Ellingsworth <david@identd.dyndns.org>
+Reply-To: david@identd.dyndns.org
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200909282354.25563.laurent.pinchart@ideasonboard.com>
+To: david@identd.dyndns.org
+CC: linux-media@vger.kernel.org, klimov.linux@gmail.com
+Subject: Re: [RFC/RFT 08/14] radio-mr800: fix potential use after free
+References: <4AAC657A.4070307@gmail.com>
+In-Reply-To: <4AAC657A.4070307@gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------060806090705050902030705"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Stefan,
+This is a multi-part message in MIME format.
+--------------060806090705050902030705
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Monday 28 September 2009 16:04:58 Stefan.Kost@nokia.com wrote:
-> hi,
-> 
-> >-----Original Message-----
-> >From: ext Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> >Sent: 16 September, 2009 18:47
-> >To: linux-media@vger.kernel.org; Hans Verkuil; Sakari Ailus;
-> >Cohen David.A (Nokia-D/Helsinki); Koskipaa Antti
-> >(Nokia-D/Helsinki); Zutshi Vimarsh (Nokia-D/Helsinki); Kost
-> >Stefan (Nokia-D/Helsinki)
-> >Subject: [RFC] Global video buffers pool
-> >
-> > Hi everybody,
-> >
-> > I didn't want to miss this year's pretty flourishing RFC
-> > season, so here's another one about a global video buffers pool.
-> 
-> Sorry for ther very late reply.
+Version 2
 
-No worries, better late than never.
+ From c2c100652ed74d91ade7fdfb2a22d607ff43acf2 Mon Sep 17 00:00:00 2001
+From: David Ellingsworth <david@identd.dyndns.org>
+Date: Mon, 21 Sep 2009 22:17:05 -0400
+Subject: [PATCH 08/14] mr800: fix potential use after free
 
-> I have been thinking about the problem on a bit broader scale and see the
-> need for something more kernel wide. E.g. there is some work done from intel
-> for graphics:
-> http://keithp.com/blogs/gem_update/
-> 
-> and this is not so much embedded even. If there buffer pools are
-> v4l2specific then we need to make all those other subsystems like xvideo,
-> opengl, dsp-bridges become v4l2 media controllers.
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/radio-mr800.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-The global video buffers pool topic has been discussed during the v4l2 mini-
-summit at Portland last week, and we all agreed that it needs more research.
-
-The idea of having pools at the media controller level has been dropped in 
-favor of a kernel-wide video buffers pool. Whether we can make the buffers 
-pool not v4l2-specific still needs to be tested. As you have pointed out, we 
-currently have a GPU memory manager in the kernel, and being able to interact 
-with it would be very interesting if we want to DMA video data to OpenGL 
-texture buffers for instance. I'm not sure if that would be possible though, 
-as the GPU and the video acquisition hardware might have different memory 
-requirements, at least in the general case. I will contact the GEM guys at 
-Intel to discuss the topic.
-
-If we can't share the buffers between the GPU and the rest of the system, we 
-could at least create a V4L2 wrapper on top of the DSP bridge core (which will 
-require a major cleanup/restructuring), making it possible to share video 
-buffers between the ISP and the DSP.
-
+diff --git a/drivers/media/radio/radio-mr800.c 
+b/drivers/media/radio/radio-mr800.c
+index 9fd2342..c8fbdde 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -273,8 +273,8 @@ static void usb_amradio_disconnect(struct 
+usb_interface *intf)
+     mutex_unlock(&radio->lock);
+ 
+     usb_set_intfdata(intf, NULL);
+-    video_unregister_device(&radio->videodev);
+     v4l2_device_disconnect(&radio->v4l2_dev);
++    video_unregister_device(&radio->videodev);
+ }
+ 
+ /* vidioc_querycap - query device capabilities */
 -- 
-Regards,
+1.6.4.3
 
-Laurent Pinchart
+
+
+--------------060806090705050902030705
+Content-Type: text/x-diff;
+ name="0008-mr800-fix-potential-use-after-free.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="0008-mr800-fix-potential-use-after-free.patch"
+
+>From c2c100652ed74d91ade7fdfb2a22d607ff43acf2 Mon Sep 17 00:00:00 2001
+From: David Ellingsworth <david@identd.dyndns.org>
+Date: Mon, 21 Sep 2009 22:17:05 -0400
+Subject: [PATCH 08/14] mr800: fix potential use after free
+
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/radio-mr800.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
+index 9fd2342..c8fbdde 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -273,8 +273,8 @@ static void usb_amradio_disconnect(struct usb_interface *intf)
+ 	mutex_unlock(&radio->lock);
+ 
+ 	usb_set_intfdata(intf, NULL);
+-	video_unregister_device(&radio->videodev);
+ 	v4l2_device_disconnect(&radio->v4l2_dev);
++	video_unregister_device(&radio->videodev);
+ }
+ 
+ /* vidioc_querycap - query device capabilities */
+-- 
+1.6.4.3
+
+
+--------------060806090705050902030705--
