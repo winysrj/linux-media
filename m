@@ -1,74 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:51505 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758058AbZIOU1q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2009 16:27:46 -0400
-Received: from list by lo.gmane.org with local (Exim 4.50)
-	id 1Mnecu-0004EF-P7
-	for linux-media@vger.kernel.org; Tue, 15 Sep 2009 22:27:48 +0200
-Received: from host-78-14-97-22.cust-adsl.tiscali.it ([78.14.97.22])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 15 Sep 2009 22:27:48 +0200
-Received: from avljawrowski by host-78-14-97-22.cust-adsl.tiscali.it with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 15 Sep 2009 22:27:48 +0200
-To: linux-media@vger.kernel.org
-From: Avl Jawrowski <avljawrowski@gmail.com>
-Subject: Re: Problems with Pinnacle 310i (saa7134) and recent kernels
-Date: Tue, 15 Sep 2009 20:27:34 +0000 (UTC)
-Message-ID: <loom.20090915T215753-102@post.gmane.org>
-References: <loom.20090718T135733-267@post.gmane.org>  <1248033581.3667.40.camel@pc07.localdom.local>  <loom.20090720T224156-477@post.gmane.org>  <1248146456.3239.6.camel@pc07.localdom.local>  <loom.20090722T123703-889@post.gmane.org>  <1248338430.3206.34.camel@pc07.localdom.local>  <loom.20090910T234610-403@post.gmane.org>  <1252630820.3321.14.camel@pc07.localdom.local>  <loom.20090912T211959-273@post.gmane.org>  <1252815178.3259.39.camel@pc07.localdom.local>  <loom.20090913T115105-855@post.gmane.org>  <1252881736.4318.48.camel@pc07.localdom.local>  <loom.20090914T150511-456@post.gmane.org> <1252968793.3250.23.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from av11-2-sn2.hy.skanova.net ([81.228.8.184]:53089 "EHLO
+	av11-2-sn2.hy.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755308AbZIVJFo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Sep 2009 05:05:44 -0400
+Message-ID: <4AB89366.9030305@mocean-labs.com>
+Date: Tue, 22 Sep 2009 11:05:42 +0200
+From: =?ISO-8859-1?Q?Richard_R=F6jfors?=
+	<richard.rojfors@mocean-labs.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>
+Subject: [PATCH 1/4] adv7180: Support for getting input status
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This patch adds support to the ADV7180 driver to check the input
+status.
 
-hermann pitton <hermann-pitton <at> arcor.de> writes:
+Since the status is held in the same register as the input standard
+a small restructuring of the code is done to reuse the code for
+reading the register
 
-> mplayer works on all my cards including the 310i for DVB-T and DVB-S
-> since years. Guess you miss something or have a broken checkout.
+Signed-off-by: Richard Röjfors <richard.rojfors@mocean-labs.com>
+---
+diff --git a/drivers/media/video/adv7180.c b/drivers/media/video/adv7180.c
+index 1b3cbd0..f3fce39 100644
+--- a/drivers/media/video/adv7180.c
++++ b/drivers/media/video/adv7180.c
+@@ -30,14 +30,31 @@
 
-I've just compiled another checkout, but it's the same.
-With some channels I can see even something like this:
+ #define DRIVER_NAME "adv7180"
 
-TS file format detected.
-dvb_streaming_read, attempt N. 6 failed with errno 0 when reading 816 bytes
-dvb_streaming_read, attempt N. 6 failed with errno 0 when reading 1736 bytes
-dvb_streaming_read, attempt N. 6 failed with errno 0 when reading 1148 bytes
+-#define ADV7180_INPUT_CONTROL_REG	0x00
+-#define ADV7180_INPUT_CONTROL_PAL_BG_NTSC_J_SECAM	0x00
++#define ADV7180_INPUT_CONTROL_REG			0x00
++#define ADV7180_INPUT_CONTROL_AD_PAL_BG_NTSC_J_SECAM	0x00
++#define ADV7180_INPUT_CONTROL_AD_PAL_BG_NTSC_J_SECAM_PED 0x10
++#define ADV7180_INPUT_CONTROL_AD_PAL_N_NTSC_J_SECAM	0x20
++#define ADV7180_INPUT_CONTROL_AD_PAL_N_NTSC_M_SECAM	0x30
++#define ADV7180_INPUT_CONTROL_NTSC_J			0x40
++#define ADV7180_INPUT_CONTROL_NTSC_M			0x50
++#define ADV7180_INPUT_CONTROL_PAL60			0x60
++#define ADV7180_INPUT_CONTROL_NTSC_443			0x70
++#define ADV7180_INPUT_CONTROL_PAL_BG			0x80
++#define ADV7180_INPUT_CONTROL_PAL_N			0x90
++#define ADV7180_INPUT_CONTROL_PAL_M			0xa0
++#define ADV7180_INPUT_CONTROL_PAL_M_PED			0xb0
++#define ADV7180_INPUT_CONTROL_PAL_COMB_N		0xc0
++#define ADV7180_INPUT_CONTROL_PAL_COMB_N_PED		0xd0
++#define ADV7180_INPUT_CONTROL_PAL_SECAM			0xe0
++#define ADV7180_INPUT_CONTROL_PAL_SECAM_PED		0xf0
++
+ #define ADV7180_AUTODETECT_ENABLE_REG	0x07
+ #define ADV7180_AUTODETECT_DEFAULT	0x7f
 
-or like this:
 
-dvb_streaming_read, attempt N. 6 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 5 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 4 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 3 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 2 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 1 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, return 0 bytes
+-#define ADV7180_STATUS1_REG 0x10
+-#define ADV7180_STATUS1_AUTOD_MASK 0x70
++#define ADV7180_STATUS1_REG				0x10
++#define ADV7180_STATUS1_IN_LOCK		0x01
++#define ADV7180_STATUS1_AUTOD_MASK	0x70
+ #define ADV7180_STATUS1_AUTOD_NTSM_M_J	0x00
+ #define ADV7180_STATUS1_AUTOD_NTSC_4_43 0x10
+ #define ADV7180_STATUS1_AUTOD_PAL_M	0x20
+@@ -55,13 +72,11 @@ struct adv7180_state {
+ 	struct v4l2_subdev sd;
+ };
 
-But I can't see any video.
-With Kaffeine I can see the same channels as well.
+-static v4l2_std_id determine_norm(struct i2c_client *client)
++static v4l2_std_id adv7180_std_to_v4l2(u8 status1)
+ {
+-	u8 status1 = i2c_smbus_read_byte_data(client, ADV7180_STATUS1_REG);
+-
+ 	switch (status1 & ADV7180_STATUS1_AUTOD_MASK) {
+ 	case ADV7180_STATUS1_AUTOD_NTSM_M_J:
+-		return V4L2_STD_NTSC_M_JP;
++		return V4L2_STD_NTSC;
+ 	case ADV7180_STATUS1_AUTOD_NTSC_4_43:
+ 		return V4L2_STD_NTSC_443;
+ 	case ADV7180_STATUS1_AUTOD_PAL_M:
+@@ -81,6 +96,30 @@ static v4l2_std_id determine_norm(struct i2c_client *client)
+ 	}
+ }
 
-> Best is to add them to the wiki, else upload somewhere else or post off
-> list.
++static u32 adv7180_status_to_v4l2(u8 status1)
++{
++	if (!(status1 & ADV7180_STATUS1_IN_LOCK))
++		return V4L2_IN_ST_NO_SIGNAL;
++
++	return 0;
++}
++
++static int __adv7180_status(struct i2c_client *client, u32 *status,
++	v4l2_std_id *std)
++{
++	int status1 = i2c_smbus_read_byte_data(client, ADV7180_STATUS1_REG);
++
++	if (status1 < 0)
++		return status1;
++
++	if (status)
++		*status = adv7180_status_to_v4l2(status1);
++	if (std)
++		*std = adv7180_std_to_v4l2(status1);
++
++	return 0;
++}
++
+ static inline struct adv7180_state *to_state(struct v4l2_subdev *sd)
+ {
+ 	return container_of(sd, struct adv7180_state, sd);
+@@ -88,10 +127,12 @@ static inline struct adv7180_state *to_state(struct v4l2_subdev *sd)
 
-Then I'm going to sign me up to the wiki.
-Do you think it's better to create a "Pinnacle PCTV Hybrid Pro PCI" page or to
-add the photos to the 310i page?
+ static int adv7180_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
+ {
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	return __adv7180_status(v4l2_get_subdevdata(sd), NULL, std);
++}
 
-> > saa7133[0]: i2c xfer: < 8e ERROR: NO_DEVICE
-> 
-> Here is the problem. The supported cards do have the i2c chip at 0x47 or
-> 0x8e in 8bit notation. Needs closer investigation.
+-	*std = determine_norm(client);
+-	return 0;
++static int adv7180_g_input_status(struct v4l2_subdev *sd, u32 *status)
++{
++	return __adv7180_status(v4l2_get_subdevdata(sd), status, NULL);
+ }
 
-If can be useful, I can attach the entire log.
+ static int adv7180_g_chip_ident(struct v4l2_subdev *sd,
+@@ -104,6 +145,7 @@ static int adv7180_g_chip_ident(struct v4l2_subdev *sd,
 
-> Cheers,
-> Hermann
+ static const struct v4l2_subdev_video_ops adv7180_video_ops = {
+ 	.querystd = adv7180_querystd,
++	.g_input_status = adv7180_g_input_status,
+ };
 
-Thank you!
-
+ static const struct v4l2_subdev_core_ops adv7180_core_ops = {
+@@ -143,7 +185,7 @@ static int adv7180_probe(struct i2c_client *client,
+ 	/* Initialize adv7180 */
+ 	/* enable autodetection */
+ 	ret = i2c_smbus_write_byte_data(client, ADV7180_INPUT_CONTROL_REG,
+-		ADV7180_INPUT_CONTROL_PAL_BG_NTSC_J_SECAM);
++		ADV7180_INPUT_CONTROL_AD_PAL_BG_NTSC_J_SECAM);
+ 	if (ret > 0)
+ 		ret = i2c_smbus_write_byte_data(client,
+ 			ADV7180_AUTODETECT_ENABLE_REG,
