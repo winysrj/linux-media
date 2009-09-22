@@ -1,31 +1,23 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:44741 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751151AbZI0TLF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Sep 2009 15:11:05 -0400
-Subject: Re: HVR1800 ATSC regression - Fails to attach DVB
-From: Andy Walls <awalls@radix.net>
-To: Steven Toth <stoth@kernellabs.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-In-Reply-To: <4ABF8297.6000507@kernellabs.com>
-References: <4ABF8297.6000507@kernellabs.com>
-Content-Type: text/plain
-Date: Sun, 27 Sep 2009 15:08:55 -0400
-Message-Id: <1254078535.3554.10.camel@morgan.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from n77.bullet.mail.sp1.yahoo.com ([98.136.44.45]:32708 "HELO
+	n77.bullet.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1756593AbZIVOOC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Sep 2009 10:14:02 -0400
+Message-ID: <954900.60129.qm@web180313.mail.gq1.yahoo.com>
+Date: Tue, 22 Sep 2009 07:07:18 -0700 (PDT)
+From: Informations <carloenterprises@bellsouth.net>
+Reply-To: jerry.smith222@live.com
+Subject: WINNER OF Electronics AWARDS
+To: undisclosed recipients:;
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2009-09-27 at 11:19 -0400, Steven Toth wrote:
-> I'm seeing a regression in tip. A Hauppauge HVR1800 model 78521 fails to have 
-> its demod for DTV attached correctly, resulting in a total loss of ATSC/QAM support.
-> 
-> I'm looking into this.
 
+Your email ID has been awarded 950,000.00 Pounds. in our LG Electronics Award send your details.Name:...Country:..Age:...... Address:......Phone No..........
 
-Thanks, but I don't think this was tip...
-
-Regards,
-Andy
+Best Regards
+Mrs Joan James
 
