@@ -1,219 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.perches.com ([173.55.12.10]:1329 "EHLO mail.perches.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753017AbZI2FBS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Sep 2009 01:01:18 -0400
-From: Joe Perches <joe@perches.com>
-To: linux-kernel@vger.kernel.org
-Cc: Adrian Hunter <adrian.hunter@nokia.com>,
-	Alex Elder <aelder@sgi.com>,
-	Artem Bityutskiy <dedekind@infradead.org>,
-	Christoph Hellwig <hch@lst.de>,
-	Harvey Harrison <harvey.harrison@gmail.com>,
-	Huang Ying <ying.huang@intel.com>, Ingo Molnar <mingo@elte.hu>,
-	Jeff Garzik <jgarzik@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@skynet.be>,
-	Matt Mackall <mpm@selenic.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Neil Brown <neilb@suse.de>,
-	Steven Whitehouse <swhiteho@redhat.com>,
-	xfs-masters@oss.sgi.com, linux-media@vger.kernel.org
-Subject: [PATCH 6/9] drivers/media/video/uvc: Use %pUr to print UUIDs
-Date: Mon, 28 Sep 2009 22:01:08 -0700
-Message-Id: <111526fa2ce7f728d1f81465a00859c1780f0607.1254193019.git.joe@perches.com>
-In-Reply-To: <cover.1254193019.git.joe@perches.com>
-References: <cover.1254193019.git.joe@perches.com>
+Received: from mail-bw0-f210.google.com ([209.85.218.210]:64051 "EHLO
+	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752879AbZIVDbP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Sep 2009 23:31:15 -0400
+Received: by bwz6 with SMTP id 6so2369028bwz.37
+        for <linux-media@vger.kernel.org>; Mon, 21 Sep 2009 20:31:17 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1253584852.3279.11.camel@pc07.localdom.local>
+References: <d9def9db0909202040u3138670ahede6078ef1a177c@mail.gmail.com>
+	 <1253504805.3255.3.camel@pc07.localdom.local>
+	 <d9def9db0909202109m54453573kc90f0c3e5d942e2@mail.gmail.com>
+	 <1253506233.3255.6.camel@pc07.localdom.local>
+	 <d9def9db0909202142j542136e3raea8e171a19f7e73@mail.gmail.com>
+	 <1253508863.3255.10.camel@pc07.localdom.local>
+	 <d9def9db0909210302m44f8ed77wfca6be3693491233@mail.gmail.com>
+	 <1253584852.3279.11.camel@pc07.localdom.local>
+Date: Tue, 22 Sep 2009 05:31:17 +0200
+Message-ID: <d9def9db0909212031q67e12ba7j9030063baf19a98@mail.gmail.com>
+Subject: Re: Bug in S2 API...
+From: Markus Rechberger <mrechberger@gmail.com>
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- drivers/media/video/uvc/uvc_ctrl.c   |   69 ++++++++++++++++------------------
- drivers/media/video/uvc/uvc_driver.c |    7 +--
- drivers/media/video/uvc/uvcvideo.h   |   10 -----
- 3 files changed, 35 insertions(+), 51 deletions(-)
+On Tue, Sep 22, 2009 at 4:00 AM, hermann pitton <hermann-pitton@arcor.de> wrote:
+> Hi Markus,
+>
+> Am Montag, den 21.09.2009, 12:02 +0200 schrieb Markus Rechberger:
+>> ----
+>> in dvb-frontend.c:
+>>  ----
+>>          if(cmd == FE_GET_PROPERTY) {
+>>
+>>                  tvps = (struct dtv_properties __user *)parg;
+>>                  dprintk("%s() properties.num = %d\n", __func__, tvps->num);
+>>                  dprintk("%s() properties.props = %p\n", __func__, tvps->props);
+>>                  ...
+>>                  if (copy_from_user(tvp, tvps->props, tvps->num *
+>>  sizeof(struct dtv_property)))
+>>  ----
+>>
+>>
+>> > OK,
+>> >
+>> > thought I'll have never to care for it again.
+>> >
+>> > ENUM calls should never be W.
+>> >
+>> > Hit me for all I missed.
+>> >
+>> > Cheers,
+>> > Hermann
+>>
+>> you are not seeing the point of it it seems
+>
+> you are right, I do not see your point at all, but I was wrong for the
+> get calls.
+>
+> We had such discussions on v4l ioctls previously.
+>
+> The result was to keep them as is and not to change IOR to IOWR to keep
+> compatibility.
+>
+> This is six years back.
+>
 
-diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
-index c3225a5..2959e46 100644
---- a/drivers/media/video/uvc/uvc_ctrl.c
-+++ b/drivers/media/video/uvc/uvc_ctrl.c
-@@ -1093,8 +1093,8 @@ int uvc_xu_ctrl_query(struct uvc_video_chain *chain,
- 
- 	if (!found) {
- 		uvc_trace(UVC_TRACE_CONTROL,
--			"Control " UVC_GUID_FORMAT "/%u not found.\n",
--			UVC_GUID_ARGS(entity->extension.guidExtensionCode),
-+			"Control %pUr/%u not found.\n",
-+			entity->extension.guidExtensionCode,
- 			xctrl->selector);
- 		return -EINVAL;
- 	}
-@@ -1171,9 +1171,9 @@ int uvc_ctrl_resume_device(struct uvc_device *dev)
- 			    (ctrl->info->flags & UVC_CONTROL_RESTORE) == 0)
- 				continue;
- 
--			printk(KERN_INFO "restoring control " UVC_GUID_FORMAT
--				"/%u/%u\n", UVC_GUID_ARGS(ctrl->info->entity),
--				ctrl->info->index, ctrl->info->selector);
-+			printk(KERN_INFO "restoring control %pUr/%u/%u\n",
-+			       ctrl->info->entity,
-+			       ctrl->info->index, ctrl->info->selector);
- 			ctrl->dirty = 1;
- 		}
- 
-@@ -1228,46 +1228,43 @@ static void uvc_ctrl_add_ctrl(struct uvc_device *dev,
- 			dev->intfnum, info->selector, (__u8 *)&size, 2);
- 		if (ret < 0) {
- 			uvc_trace(UVC_TRACE_CONTROL, "GET_LEN failed on "
--				"control " UVC_GUID_FORMAT "/%u (%d).\n",
--				UVC_GUID_ARGS(info->entity), info->selector,
--				ret);
-+				  "control %pUr/%u (%d).\n",
-+				  info->entity, info->selector, ret);
- 			return;
- 		}
- 
- 		if (info->size != le16_to_cpu(size)) {
--			uvc_trace(UVC_TRACE_CONTROL, "Control " UVC_GUID_FORMAT
--				"/%u size doesn't match user supplied "
--				"value.\n", UVC_GUID_ARGS(info->entity),
--				info->selector);
-+			uvc_trace(UVC_TRACE_CONTROL,
-+				  "Control %pUr/%u size doesn't match user supplied value.\n",
-+				  info->entity, info->selector);
- 			return;
- 		}
- 
- 		ret = uvc_query_ctrl(dev, UVC_GET_INFO, ctrl->entity->id,
- 			dev->intfnum, info->selector, &inf, 1);
- 		if (ret < 0) {
--			uvc_trace(UVC_TRACE_CONTROL, "GET_INFO failed on "
--				"control " UVC_GUID_FORMAT "/%u (%d).\n",
--				UVC_GUID_ARGS(info->entity), info->selector,
--				ret);
-+			uvc_trace(UVC_TRACE_CONTROL,
-+				  "GET_INFO failed on control %pUr/%u (%d).\n",
-+				  info->entity, info->selector, ret);
- 			return;
- 		}
- 
- 		flags = info->flags;
- 		if (((flags & UVC_CONTROL_GET_CUR) && !(inf & (1 << 0))) ||
- 		    ((flags & UVC_CONTROL_SET_CUR) && !(inf & (1 << 1)))) {
--			uvc_trace(UVC_TRACE_CONTROL, "Control "
--				UVC_GUID_FORMAT "/%u flags don't match "
--				"supported operations.\n",
--				UVC_GUID_ARGS(info->entity), info->selector);
-+			uvc_trace(UVC_TRACE_CONTROL,
-+				  "Control %pUr/%u flags don't match supported operations.\n",
-+				  info->entity, info->selector);
- 			return;
- 		}
- 	}
- 
- 	ctrl->info = info;
- 	ctrl->data = kmalloc(ctrl->info->size * UVC_CTRL_NDATA, GFP_KERNEL);
--	uvc_trace(UVC_TRACE_CONTROL, "Added control " UVC_GUID_FORMAT "/%u "
--		"to device %s entity %u\n", UVC_GUID_ARGS(ctrl->info->entity),
--		ctrl->info->selector, dev->udev->devpath, entity->id);
-+	uvc_trace(UVC_TRACE_CONTROL,
-+		  "Added control %pUr/%u to device %s entity %u\n",
-+		  ctrl->info->entity, ctrl->info->selector,
-+		  dev->udev->devpath, entity->id);
- }
- 
- /*
-@@ -1293,17 +1290,16 @@ int uvc_ctrl_add_info(struct uvc_control_info *info)
- 			continue;
- 
- 		if (ctrl->selector == info->selector) {
--			uvc_trace(UVC_TRACE_CONTROL, "Control "
--				UVC_GUID_FORMAT "/%u is already defined.\n",
--				UVC_GUID_ARGS(info->entity), info->selector);
-+			uvc_trace(UVC_TRACE_CONTROL,
-+				  "Control %pUr/%u is already defined.\n",
-+				  info->entity, info->selector);
- 			ret = -EEXIST;
- 			goto end;
- 		}
- 		if (ctrl->index == info->index) {
--			uvc_trace(UVC_TRACE_CONTROL, "Control "
--				UVC_GUID_FORMAT "/%u would overwrite index "
--				"%d.\n", UVC_GUID_ARGS(info->entity),
--				info->selector, info->index);
-+			uvc_trace(UVC_TRACE_CONTROL,
-+				  "Control %pUr/%u would overwrite index %d.\n",
-+				  info->entity, info->selector, info->index);
- 			ret = -EEXIST;
- 			goto end;
- 		}
-@@ -1344,10 +1340,9 @@ int uvc_ctrl_add_mapping(struct uvc_control_mapping *mapping)
- 			continue;
- 
- 		if (info->size * 8 < mapping->size + mapping->offset) {
--			uvc_trace(UVC_TRACE_CONTROL, "Mapping '%s' would "
--				"overflow control " UVC_GUID_FORMAT "/%u\n",
--				mapping->name, UVC_GUID_ARGS(info->entity),
--				info->selector);
-+			uvc_trace(UVC_TRACE_CONTROL,
-+				  "Mapping '%s' would overflow control %pUr/%u\n",
-+				  mapping->name, info->entity, info->selector);
- 			ret = -EOVERFLOW;
- 			goto end;
- 		}
-@@ -1366,9 +1361,9 @@ int uvc_ctrl_add_mapping(struct uvc_control_mapping *mapping)
- 
- 		mapping->ctrl = info;
- 		list_add_tail(&mapping->list, &info->mappings);
--		uvc_trace(UVC_TRACE_CONTROL, "Adding mapping %s to control "
--			UVC_GUID_FORMAT "/%u.\n", mapping->name,
--			UVC_GUID_ARGS(info->entity), info->selector);
-+		uvc_trace(UVC_TRACE_CONTROL,
-+			  "Adding mapping %s to control %pUr/%u.\n",
-+			  mapping->name, info->entity, info->selector);
- 
- 		ret = 0;
- 		break;
-diff --git a/drivers/media/video/uvc/uvc_driver.c b/drivers/media/video/uvc/uvc_driver.c
-index 8756be5..647d0a2 100644
---- a/drivers/media/video/uvc/uvc_driver.c
-+++ b/drivers/media/video/uvc/uvc_driver.c
-@@ -328,11 +328,10 @@ static int uvc_parse_format(struct uvc_device *dev,
- 				sizeof format->name);
- 			format->fcc = fmtdesc->fcc;
- 		} else {
--			uvc_printk(KERN_INFO, "Unknown video format "
--				UVC_GUID_FORMAT "\n",
--				UVC_GUID_ARGS(&buffer[5]));
-+			uvc_printk(KERN_INFO, "Unknown video format %pUr\n",
-+				   &buffer[5]);
- 			snprintf(format->name, sizeof format->name,
--				UVC_GUID_FORMAT, UVC_GUID_ARGS(&buffer[5]));
-+				 "%pUr", &Buffer[5]);
- 			format->fcc = 0;
- 		}
- 
-diff --git a/drivers/media/video/uvc/uvcvideo.h b/drivers/media/video/uvc/uvcvideo.h
-index e7958aa..9f4a437 100644
---- a/drivers/media/video/uvc/uvcvideo.h
-+++ b/drivers/media/video/uvc/uvcvideo.h
-@@ -555,16 +555,6 @@ extern unsigned int uvc_trace_param;
- #define uvc_printk(level, msg...) \
- 	printk(level "uvcvideo: " msg)
- 
--#define UVC_GUID_FORMAT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-" \
--			"%02x%02x%02x%02x%02x%02x"
--#define UVC_GUID_ARGS(guid) \
--	(guid)[3],  (guid)[2],  (guid)[1],  (guid)[0], \
--	(guid)[5],  (guid)[4], \
--	(guid)[7],  (guid)[6], \
--	(guid)[8],  (guid)[9], \
--	(guid)[10], (guid)[11], (guid)[12], \
--	(guid)[13], (guid)[14], (guid)[15]
--
- /* --------------------------------------------------------------------------
-  * Internal functions.
-  */
--- 
-1.6.3.1.10.g659a0.dirty
+I think they all have got fixed up for v4l2 back then
 
+#ifdef __OLD_VIDIOC_
+/* for compatibility, will go away some day */
+#define VIDIOC_OVERLAY_OLD      _IOWR('V', 14, int)
+#define VIDIOC_S_PARM_OLD        _IOW('V', 22, struct v4l2_streamparm)
+#define VIDIOC_S_CTRL_OLD        _IOW('V', 28, struct v4l2_control)
+#define VIDIOC_G_AUDIO_OLD      _IOWR('V', 33, struct v4l2_audio)
+#define VIDIOC_G_AUDOUT_OLD     _IOWR('V', 49, struct v4l2_audioout)
+#define VIDIOC_CROPCAP_OLD       _IOR('V', 58, struct v4l2_cropcap)
+#endif
+
+to eg:
+#define VIDIOC_OVERLAY           _IOW('V', 14, int)
+#define VIDIOC_S_PARM           _IOWR('V', 22, struct v4l2_streamparm)
+#define VIDIOC_S_CTRL           _IOWR('V', 28, struct v4l2_control)
+#define VIDIOC_G_AUDIO           _IOR('V', 33, struct v4l2_audio)
+#define VIDIOC_G_AUDOUT          _IOR('V', 49, struct v4l2_audioout)
+#define VIDIOC_CROPCAP          _IOWR('V', 58, struct v4l2_cropcap)
+
+so only the DVB-API remains bugged now.
+
+Markus
