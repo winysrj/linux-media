@@ -1,71 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f218.google.com ([209.85.220.218]:46171 "EHLO
-	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754833AbZIVFyo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2009 01:54:44 -0400
-Received: by fxm18 with SMTP id 18so557345fxm.17
-        for <linux-media@vger.kernel.org>; Mon, 21 Sep 2009 22:54:47 -0700 (PDT)
+Received: from out1.zte.com.cn ([202.103.147.172]:45511 "EHLO out1.zte.com.cn"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752654AbZIVHu7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Sep 2009 03:50:59 -0400
+In-Reply-To: <alpine.LRH.1.10.0909220902390.23153@pub1.ifh.de>
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: re: re: Re: how to develop driver for cy7c68013(fx2 lp)?
 MIME-Version: 1.0
-In-Reply-To: <1253596088.3279.67.camel@pc07.localdom.local>
-References: <d9def9db0909202040u3138670ahede6078ef1a177c@mail.gmail.com>
-	 <1253504805.3255.3.camel@pc07.localdom.local>
-	 <d9def9db0909202109m54453573kc90f0c3e5d942e2@mail.gmail.com>
-	 <1253506233.3255.6.camel@pc07.localdom.local>
-	 <d9def9db0909202142j542136e3raea8e171a19f7e73@mail.gmail.com>
-	 <1253508863.3255.10.camel@pc07.localdom.local>
-	 <d9def9db0909210302m44f8ed77wfca6be3693491233@mail.gmail.com>
-	 <1253584852.3279.11.camel@pc07.localdom.local>
-	 <d9def9db0909212031q67e12ba7j9030063baf19a98@mail.gmail.com>
-	 <1253596088.3279.67.camel@pc07.localdom.local>
-Date: Tue, 22 Sep 2009 07:54:47 +0200
-Message-ID: <d9def9db0909212254v38755332v6b564eb882f111a7@mail.gmail.com>
-Subject: Re: Bug in S2 API...
-From: Markus Rechberger <mrechberger@gmail.com>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Message-ID: <OF7B64FB97.7AB7F221-ON48257639.0029EE84-48257639.002B381D@zte.com.cn>
+From: liu.yaojin@zte.com.cn
+Date: Tue, 22 Sep 2009 15:48:30 +0800
+Content-Type: text/plain; charset="GB2312"
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 22, 2009 at 7:08 AM, hermann pitton <hermann-pitton@arcor.de> wrote:
->
-> All fine.
->
-> But you do cut off parts of my messages.
->
-> I would like to ask you to exercise a breakage, not only for stuff six
-> years back, but on recent S2 API.
->
-
-at this time there are definitely no DVB applications available which
-check the flags of the encoded IOCTL values for the S2-API
-definitions, there are just very few applications available which use
-this API at all.
-
-if (IOCTL_WRITE(cmd))
-  copy data into buffer for ioctl
-
--- from the driver side --
-if (IOCTL_WRITE(cmd))
-  copy data from the other side
-process_ioctl()
-
-At least the API specification should be valid however the rest is
-implemented is another story. It works as it is but it's still wrong.
-Since the S2-API is rather new it might be better to fix it up. It
-would be a little bit weird too that coding style has a higher
-priority in Linux than correct code.
-
-it breaks the macros in asm-generic/ioctl.h
-
-#define IOC_INOUT       ((_IOC_WRITE|_IOC_READ) << _IOC_DIRSHIFT)
-#define IOC_IN          (_IOC_WRITE << _IOC_DIRSHIFT)
-#define IOC_OUT         (_IOC_READ << _IOC_DIRSHIFT)
-#define _IOC_DIR(nr)            (((nr) >> _IOC_DIRSHIFT) & _IOC_DIRMASK)
-
-Basically I don't mind too much since we already maintain our own
-version which also supports other unix systems and is not limited to
-linux only...
-
-Markus
+aGkgUGF0cmljazoNCiAgdGhlIGRhdGEgc3RyZWFtIGlzIG11bHRpcGxleCB3aXRoIGgyNjQgYW5k
+IGFjYy1wbHVzLiB3ZSBoYXZlIG91cnNlbGYgU0RLIA0KdG8gZGVtdWx0aXBsZXggaXQuDQppIHVz
+ZSBteSBkZXZpY2UgaW4gdGhpcyB3YXk6DQoxoaJzZWFyY2ggZm9yIHZhbGlkIGNoYW5uZWwocmVh
+ZC93cml0ZSB0aHJvdWdoIGVwMCkNCjKhonJlYWQgc3RyZWFtIGNvbnRpbnVvdXNseShyZWFkIHRo
+cm91Z2ggZXA2KG91dCkgKSAtPiBkZW11bHRpcGxleCANCi0+ZGlzcGxheS4NCnNvLGkgdGhpbmsg
+dGhlIGltcG9ydGFudCB3YXkgaXMgaG93IHRvIG9wZXJhdGUgQ1k3QzY4MDEzLmNvcnJlY3QgbWUg
+aWYgDQp3cm9uZy4NCg0KDQoNCg0KDQpIaSBMaXUsDQoNCihwbGVhc2UgYXZvaWQgdG9wLXBvc3Rz
+IG9uIHRoaXMgbGlzdCkNCg0KT24gVHVlLCAyMiBTZXAgMjAwOSwgbGl1Lnlhb2ppbkB6dGUuY29t
+LmNuIHdyb3RlOg0KDQo+IGhpLE1hdXJvOg0KPiB0aGFua3MgZm9yIHJlcGx5aW5nLg0KPiBpIGFt
+IG5vdCBzdXJlIHRoZSBkdHYgYXBpIGNhbiBiZSB1c2VkIGluIG15IHByb2plY3QuYmVjYXVzZSBj
+bW1iJ3MNCj4gcHJvdG9jb2wgaXMgZGlmZmVyZW50IHRvIGRtYiA6KA0KDQpUaGVuIHRoZSBBUEkg
+bmVlZHMgdG8gYmUgZXh0ZW5kZWQuIE1heWJlIGJ5IHlvdS4gQ29ycmVjdCBtZSBpZiBJJ20gd3Jv
+bmcsIA0KYnV0IENNTUIgZG9lcyBub3QgaGF2ZSBzdGFuZGFyZCBNUEVHMi1UUyBhbmQgdGhlIGNv
+bmZpZ3VyYXRpb24gcmVhbGx5IA0KbmVlZHMgcmVhbC10aW1lIGNvbnN0cmFpbnRzLg0KDQpIb3cg
+ZG9lcyBpdCB3b3JrIGZvciB5b3VyIGRldmljZT8NCg0KVG8gaGF2ZSBwcm9wZXIgc3VwcG9ydCBm
+b3Igbm9uLU1QRUcyLVRTIERUViBzdHJlYW1zIHdlIGNvdWxkIGFkZCBhIG5ldyANCmRlbXV4ZXIt
+dHlwZSB3aGljaCBoYW5kbGVzIGl0Lg0KDQpUbyB0dW5lIGEgQ01NQiBkZXZpY2Ugd2UnZCBuZWVk
+IHRvIGFkZCB0aGUgRFRWX1BST1BFUlRJRVMgdG8gZnJvbnRlbmQuaA0KDQo+IGluIFdpbmRvd3Ms
+IHdlIGRvd25sb2FkIGZpcm13YXJlIHVzaW5nIHdpbmRvd3MgZHJpdmVyLGNvbmZpZyBmeDIgYXMg
+YnVsaw0KPiB0cmFuc2ZlcixhbmQgcmVhZCB0aGUgVFMgc3RyZWFtLGZpbmFsbHkgZGVjb2RlIGl0
+IGFuZCBkaXNwbGF5Lg0KPiBJIGFsc28gcmVhZCB0aGlzIHBvc3Q6ICJodHRwOi8vd3d3LmxpbnV4
+am91cm5hbC5jb20vYXJ0aWNsZS83NDY2Ii0tLS0NCj4gV3JpdGluZyBhIFJlYWwgRHJpdmVyP0lu
+IFVzZXIgU3BhY2UuDQo+IGlmIGkganVzdCB3YW50IHRvIHJlYWQgdGhlIHRzIHN0cmVhbSxzaG91
+bGQgaSB1c2UgdGhpcyBtZXRob2Q/IG9yIA0KYW5vdGhlcg0KPiB3YXk/DQoNClRoaXMgb3B0aW9u
+IGlzIHJhdGhlciB1c2VmdWwgZm9yIGRlYnVnZ2luZy9wcm90b3R5cGluZywgSU1PLg0KDQpJbiB0
+aGUgZnV0dXJlIHdlIHdpbGwgaGF2ZSB0byBzdXBwb3J0IHNldmVyYWwgQ01NQiBkZXZpY2UgZnJv
+bSBkaWZmZXJlbnQgDQptYW51ZmFjdHVyZXJzLiBVcCB0byBub3csIHdlIGhhdmUgdXNlZCB0aGUg
+a2VybmVsLXVzZXItaW50ZXJmYWNlIHRvIGhhdmUgDQpzdGFibGUgQVBJIGZvciBkaWZmZXJlbnQg
+c3RhbmRhcmRzIC0gd2Ugc2hvdWxkIGNvbnRpbnVlIHRvIGRvIHNvLg0KDQpJdCB3b3VsZCBiZSBu
+aWNlIHRvIHN0YXJ0IHRoZSBSRkMtcHJvY2VzcyBmb3IgQ01NQidzIGV4dGVuc2lvbiB0byBEVkIg
+QVBJIA0KNSAuDQoNCnJlZ2FyZHMsDQoNCi0tDQoNClBhdHJpY2sgQm9ldHRjaGVyIC0gS2VybmVs
+IExhYnMNCmh0dHA6Ly93d3cua2VybmVsbGFicy5jb20vDQotLQ0KVG8gdW5zdWJzY3JpYmUgZnJv
+bSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LW1lZGlhIiBpbg0K
+dGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcNCk1vcmUg
+bWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8u
+aHRtbA0KDQoNCg0KDQoNCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tDQpaVEUgSW5mb3JtYXRpb24gU2VjdXJpdHkgTm90aWNlOiBUaGUgaW5m
+b3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMgbWFpbCBpcyBzb2xlbHkgcHJvcGVydHkgb2YgdGhl
+IHNlbmRlcidzIG9yZ2FuaXphdGlvbi4gVGhpcyBtYWlsIGNvbW11bmljYXRpb24gaXMgY29uZmlk
+ZW50aWFsLiBSZWNpcGllbnRzIG5hbWVkIGFib3ZlIGFyZSBvYmxpZ2F0ZWQgdG8gbWFpbnRhaW4g
+c2VjcmVjeSBhbmQgYXJlIG5vdCBwZXJtaXR0ZWQgdG8gZGlzY2xvc2UgdGhlIGNvbnRlbnRzIG9m
+IHRoaXMgY29tbXVuaWNhdGlvbiB0byBvdGhlcnMuDQpUaGlzIGVtYWlsIGFuZCBhbnkgZmlsZXMg
+dHJhbnNtaXR0ZWQgd2l0aCBpdCBhcmUgY29uZmlkZW50aWFsIGFuZCBpbnRlbmRlZCBzb2xlbHkg
+Zm9yIHRoZSB1c2Ugb2YgdGhlIGluZGl2aWR1YWwgb3IgZW50aXR5IHRvIHdob20gdGhleSBhcmUg
+YWRkcmVzc2VkLiBJZiB5b3UgaGF2ZSByZWNlaXZlZCB0aGlzIGVtYWlsIGluIGVycm9yIHBsZWFz
+ZSBub3RpZnkgdGhlIG9yaWdpbmF0b3Igb2YgdGhlIG1lc3NhZ2UuIEFueSB2aWV3cyBleHByZXNz
+ZWQgaW4gdGhpcyBtZXNzYWdlIGFyZSB0aG9zZSBvZiB0aGUgaW5kaXZpZHVhbCBzZW5kZXIuDQpU
+aGlzIG1lc3NhZ2UgaGFzIGJlZW4gc2Nhbm5lZCBmb3IgdmlydXNlcyBhbmQgU3BhbSBieSBaVEUg
+QW50aS1TcGFtIHN5c3RlbS4NCg==
