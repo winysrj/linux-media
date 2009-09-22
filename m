@@ -1,73 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:53840 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750766AbZIVSZM (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:49489 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750963AbZIVSe0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2009 14:25:12 -0400
-Message-ID: <4AB7B66E.6080308@maxwell.research.nokia.com>
-Date: Mon, 21 Sep 2009 20:22:54 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-MIME-Version: 1.0
+	Tue, 22 Sep 2009 14:34:26 -0400
+Date: Tue, 22 Sep 2009 20:34:29 +0200
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Cohen David Abraham <david.cohen@nokia.com>,
-	"Koskipaa Antti (Nokia-D/Helsinki)" <antti.koskipaa@nokia.com>,
-	Zutshi Vimarsh <vimarsh.zutshi@nokia.com>
-Subject: Re: RFCv2: Media controller proposal
-References: <200909100913.09065.hverkuil@xs4all.nl>	<200909112123.44778.hverkuil@xs4all.nl>	<20090911165937.776a638d@caramujo.chehab.org>	<200909112215.15155.hverkuil@xs4all.nl> <20090911183758.31184072@caramujo.chehab.org>
-In-Reply-To: <20090911183758.31184072@caramujo.chehab.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: linux-media@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>,
+	Roel Kluin <roel.kluin@gmail.com>
+Subject: [PATCH] media/tvp514x: recognize the error case in
+ tvp514x_read_reg()
+Message-ID: <20090922183429.GA8585@Chamillionaire.breakpoint.cc>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
-> Em Fri, 11 Sep 2009 22:15:15 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> On Friday 11 September 2009 21:59:37 Mauro Carvalho Chehab wrote:
->>> Em Fri, 11 Sep 2009 21:23:44 +0200
->>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>>> The second problem is that this will pollute the 'namespace' of a v4l device
->>>> node. Device drivers need to pass all those private ioctls to the right
->>>> sub-device. But they shouldn't have to care about that. If someone wants to
->>>> tweak the resizer (e.g. scaling coefficients), then pass it straight to the
->>>> resizer component.
->>> Sorry, I missed your point here
->> Example: a sub-device can produce certain statistics. You want to have an
->> ioctl to obtain those statistics. If you call that through /dev/videoX, then
->> that main driver has to handle that ioctl in vidioc_default and pass it on
->> to the right subdev. So you have to write that vidioc_default handler,
->> know about the sub-devices that you have and which sub-device is linked to
->> the device node. You really don't want to have to do that. Especially not
->> when you are dealing with i2c devices that are loaded from platform code.
->> If a video encoder supports private ioctls, then an omap3 driver doesn't
->> want to know about that. Oh, and before you ask: just broadcasting that
->> ioctl is not a solution if you have multiple identical video encoders.
-> 
-> This can be as easy as reading from /sys/class/media/dsp:stat0/stats
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-In general, the H3A block producing the statistics is configured first,
-after which it starts producing statistics. Statistics buffers are
-usually smallish, the maximum size is half MiB or so. For such a buffer
-you'd have to ask the data for a number of times since the sysfs show() 
-limit is one page (4 kiB usually).
+i2c_smbus_read_byte_data() returns a negative value on error. It is very
+likely to be != -1 (-EPERM).
 
-Statistics are also often available before the actual frame since the
-whole frame is not used to compute them. The statistics are used by e.g.
-the AEWB algorithm which then comes up with the new exposure and gain
-values. Applying them to the sensor in time is important since the
-sensor may start exposing a new frame already before the last one has ended.
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+Noticed by strange results during signal beeing pending.
 
-This requires event delivery to userspace (Laurent has written about it
-under subject "[RFC] Video events").
+ drivers/media/video/tvp514x.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
+diff --git a/drivers/media/video/tvp514x.c b/drivers/media/video/tvp514x.c
+index 2443726..26b4e71 100644
+--- a/drivers/media/video/tvp514x.c
++++ b/drivers/media/video/tvp514x.c
+@@ -272,7 +272,7 @@ static int tvp514x_read_reg(struct v4l2_subdev *sd, u8 reg)
+ read_again:
+ 
+ 	err = i2c_smbus_read_byte_data(client, reg);
+-	if (err == -1) {
++	if (err < 0) {
+ 		if (retry <= I2C_RETRY_COUNT) {
+ 			v4l2_warn(sd, "Read: retry ... %d\n", retry);
+ 			retry++;
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
-
-
+1.6.3.3
 
