@@ -1,89 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.221.181]:45716 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751584AbZIHUEW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Sep 2009 16:04:22 -0400
-Received: by qyk11 with SMTP id 11so3103886qyk.1
-        for <linux-media@vger.kernel.org>; Tue, 08 Sep 2009 13:04:25 -0700 (PDT)
-Message-ID: <4AA6B8E0.9070009@gmail.com>
-Date: Wed, 09 Sep 2009 06:04:48 +1000
-From: Jed <jedi.theone@gmail.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: PCI/e with dual DVB-T + AV-in?
-References: <4A9F5B73.8060004@gmail.com> <4A9FFD29.7090607@gmail.com> <37219a840909031126w2cbde9e2ld3cbffe8dfa64353@mail.gmail.com> <4AA0A317.6030605@gmail.com> <4AA54D9F.7060301@gmail.com>
-In-Reply-To: <4AA54D9F.7060301@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mail-in-01.arcor-online.net ([151.189.21.41]:52300 "EHLO
+	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752134AbZIVCPa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Sep 2009 22:15:30 -0400
+Subject: Re: Bug in S2 API...
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Markus Rechberger <mrechberger@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <d9def9db0909210302m44f8ed77wfca6be3693491233@mail.gmail.com>
+References: <d9def9db0909202040u3138670ahede6078ef1a177c@mail.gmail.com>
+	 <1253504805.3255.3.camel@pc07.localdom.local>
+	 <d9def9db0909202109m54453573kc90f0c3e5d942e2@mail.gmail.com>
+	 <1253506233.3255.6.camel@pc07.localdom.local>
+	 <d9def9db0909202142j542136e3raea8e171a19f7e73@mail.gmail.com>
+	 <1253508863.3255.10.camel@pc07.localdom.local>
+	 <d9def9db0909210302m44f8ed77wfca6be3693491233@mail.gmail.com>
+Content-Type: text/plain
+Date: Tue, 22 Sep 2009 04:00:52 +0200
+Message-Id: <1253584852.3279.11.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Markus,
 
->>>>> Hi Ya'll,
->>>>>
->>>>> Going on response levels thus far I'm not expecting much :-D but I 
->>>>> was
->>>>> wondering if someone could possibly help me out here.
->>>>>
->>>>> Is there anything with half-decent driver support that is PCI/e, 
->>>>> and has
->>>>> dual DVB-T + A/V-in?*
->>>>> As a bonus it would be dual Hybrid and have hardware encode, but I
->>>>> wouldn't expect either to work at this stage.
->>>>>
->>>>> I'm still trawling through mail-lists & wiki's etc, so I may yet 
->>>>> find the
->>>>> best solution, but I was hoping some might already know.
->>>>> Any advice or even just a response to chastise me is greatly 
->>>>> appreciated!
->>>>>  :-D
->>>>>
->>>>> Cheers,
->>>>> Jed
->>>>> *Is HVR-2200 the only option?
->>>>>  I wish there was something with better AV-in but it might end-up 
->>>>> being my
->>>>> final choice.
->>>>>
->>>>>
->>>>>       
->>>> Jed wrote:
->>>> I've stopped looking for an alternative card, going to have a crack at
->>>> getting my 7162-based device working.
->>>> Still, any suggestions in the meantime are most welcome! I've also 
->>>> decided
->>>> AV-in isn't that important...
->>>> So just a known, nicely working PCI/e + dual DVB-T card, having the 
->>>> other
->>>> features is nice but they needn't be working yet.
->>>>
->>>> Wish me luck!   :-D
->>>>
->>>>     
->>>
->>> HVR2200 is in well supported now for digital-only.  It is a dual tuner
->>> board using a PCI-E interface.  It has A/V capabilities that are not
->>> *yet* supported in Linux.  Don't know when A/V will be supported, but
->>> it will probably happen, eventually.
->>>
->>> It is a dual hybrid, and it does do hardware encode.  (although not
->>> yet in Linux)  This probably is the device for you.
->>>
->>> To follow the development more closely, see the blog on kernellabs.com
->>> I hope this helps.
->>>
->>> Regards,
->>> Mike
->
-> Hi saa7164 devs, once(if) the software support is in place for A/V-in...
-> Do you know if it'd be possible to bypass hw encode and dump 
-> uncompressed HD/SD with this card?
-> Or is it limited hardware-wise to even do this?
->
-> Cheers,
-> Jed
-Hi, could I possibly get a response to this please?
+Am Montag, den 21.09.2009, 12:02 +0200 schrieb Markus Rechberger:
+> ----
+> in dvb-frontend.c:
+>  ----
+>          if(cmd == FE_GET_PROPERTY) {
+> 
+>                  tvps = (struct dtv_properties __user *)parg;
+>                  dprintk("%s() properties.num = %d\n", __func__, tvps->num);
+>                  dprintk("%s() properties.props = %p\n", __func__, tvps->props);
+>                  ...
+>                  if (copy_from_user(tvp, tvps->props, tvps->num *
+>  sizeof(struct dtv_property)))
+>  ----
+> 
+> 
+> > OK,
+> >
+> > thought I'll have never to care for it again.
+> >
+> > ENUM calls should never be W.
+> >
+> > Hit me for all I missed.
+> >
+> > Cheers,
+> > Hermann
+> 
+> you are not seeing the point of it it seems
+
+you are right, I do not see your point at all, but I was wrong for the
+get calls.
+
+We had such discussions on v4l ioctls previously.
+
+The result was to keep them as is and not to change IOR to IOWR to keep
+compatibility.
+
+This is six years back.
+
+If you point me to a bug ever caused by it, I'll happily try to look it
+up again.
 
 Cheers,
-Jed
+Hermann
+
+> Documentation/ioctl-number.txt
+> 
+> ----
+> If you are adding new ioctl's to the kernel, you should use the _IO
+> macros defined in <linux/ioctl.h>:
+> 
+>     _IO    an ioctl with no parameters
+>     _IOW   an ioctl with write parameters (copy_from_user)
+>     _IOR   an ioctl with read parameters  (copy_to_user)
+>     _IOWR  an ioctl with both write and read parameters.
+> ----
+> copy from user is required in order to copy the keys for the requested
+> elements into the kernel.
+> copy to user is finally used to play them back.
+> 
+> Markus
 
