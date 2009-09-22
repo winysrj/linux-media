@@ -1,77 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway04.websitewelcome.com ([67.18.10.5]:32845 "HELO
-	gateway04.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751618AbZIXDXm (ORCPT
+Received: from ip78-183-211-87.adsl2.static.versatel.nl ([87.211.183.78]:40762
+	"EHLO god.dyndns.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751076AbZIVVHo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Sep 2009 23:23:42 -0400
-Message-ID: <4ABAADEF.1030309@sensoray.com>
-Date: Wed, 23 Sep 2009 16:23:27 -0700
-From: dean <dean@sensoray.com>
+	Tue, 22 Sep 2009 17:07:44 -0400
+Date: Tue, 22 Sep 2009 23:07:48 +0200
+From: spam@systol-ng.god.lan
+To: linux-media@vger.kernel.org
+Cc: mkrufky@gmail.com
+Subject: [PATCH 3/4] tda8290 enable deemphasis_50 module parameter.
+Message-ID: <20090922210748.GC8661@systol-ng.god.lan>
+Reply-To: Henk.Vergonet@gmail.com
 MIME-Version: 1.0
-To: Mike Isely <isely@isely.net>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] s2255drv: Don't conditionalize video buffer completion
- on waiting processes
-References: <alpine.DEB.1.10.0909231603210.29815@cnc.isely.net>
-In-Reply-To: <alpine.DEB.1.10.0909231603210.29815@cnc.isely.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This seems ok.  This portion of code was based on vivi.c, so that might 
-be checked also.
 
+This adds a forgotten module_param macro needed to set a deemphasis of 50us.
+It is the standard setting for commercial FM radio broadcasts outside the US.
 
+Signed-off-by: Henk.Vergonet@gmail.com
 
-Mike Isely wrote:
-> # HG changeset patch
-> # User Mike Isely <isely@pobox.com>
-> # Date 1253739604 18000
-> # Node ID 522a74147753ba59c7f45e368439928090a286f2
-> # Parent  e349075171ddf939381fad432c23c1269abc4899
-> s2255drv: Don't conditionalize video buffer completion on waiting processes
->
-> From: Mike Isely <isely@pobox.com>
->
-> The s2255 driver had logic which aborted processing of a video frame
-> if there was no process waiting on the video buffer in question.  That
-> simply doesn't work when the application is doing things in an
-> asynchronous manner.  If the application went to the trouble to queue
-> the buffer in the first place, then the driver should always attempt
-> to complete it - even if the application at that moment has its
-> attention turned elsewhere.  Applications which always blocked waiting
-> for I/O on the capture device would not have been affected by this.
-> Applications which *mostly* blocked waiting for I/O on the capture
-> device probably only would have been somewhat affected (frame lossage,
-> at a rate which goes up as the application blocks less).  Applications
-> which never blocked on the capture device (e.g. polling only) however
-> would never have been able to receive any video frames, since in that
-> case this "is anyone waiting on this?" check on the buffer never would
-> have evalutated true.  This patch just deletes that harmful check
-> against the buffer's wait queue.
->
-> Priority: high
->
-> Signed-off-by: Mike Isely <isely@pobox.com>
->
-> diff -r e349075171dd -r 522a74147753 linux/drivers/media/video/s2255drv.c
-> --- a/linux/drivers/media/video/s2255drv.c	Mon Sep 21 10:42:22 2009 -0500
-> +++ b/linux/drivers/media/video/s2255drv.c	Wed Sep 23 16:00:04 2009 -0500
-> @@ -599,11 +599,6 @@
->  	buf = list_entry(dma_q->active.next,
->  			 struct s2255_buffer, vb.queue);
->  
-> -	if (!waitqueue_active(&buf->vb.done)) {
-> -		/* no one active */
-> -		rc = -1;
-> -		goto unlock;
-> -	}
->  	list_del(&buf->vb.queue);
->  	do_gettimeofday(&buf->vb.ts);
->  	dprintk(100, "[%p/%d] wakeup\n", buf, buf->vb.i);
->
->
->   
-
+diff -r 29e4ba1a09bc linux/drivers/media/common/tuners/tda8290.c
+--- a/linux/drivers/media/common/tuners/tda8290.c	Sat Sep 19 09:45:22 2009 -0300
++++ b/linux/drivers/media/common/tuners/tda8290.c	Tue Sep 22 22:06:31 2009 +0200
+@@ -34,6 +34,7 @@
+ MODULE_PARM_DESC(debug, "enable verbose debug messages");
+ 
+ static int deemphasis_50;
++module_param(deemphasis_50, int, 0644);
+ MODULE_PARM_DESC(deemphasis_50, "0 - 75us deemphasis; 1 - 50us deemphasis");
+ 
+ /* ---------------------------------------------------------------------- */
