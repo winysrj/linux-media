@@ -1,38 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout05.t-online.de ([194.25.134.82]:39135 "EHLO
-	mailout05.t-online.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752009AbZIHSSc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Sep 2009 14:18:32 -0400
-Message-ID: <4AA69BBE.3050501@wimmer-christian.de>
-Date: Tue, 08 Sep 2009 20:00:30 +0200
-From: Christian Wimmer <office2@wimmer-christian.de>
+Received: from av12-1-sn2.hy.skanova.net ([81.228.8.185]:43073 "EHLO
+	av12-1-sn2.hy.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755636AbZIVJFS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Sep 2009 05:05:18 -0400
+Message-ID: <4AB8934E.3030807@mocean-labs.com>
+Date: Tue, 22 Sep 2009 11:05:18 +0200
+From: =?ISO-8859-1?Q?Richard_R=F6jfors?=
+	<richard.rojfors@mocean-labs.com>
 MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: strange colors in webcam with driver gspca_pac7311
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>
+Subject: [PATCH 0/4] adv7180 updates
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+To follow is a series of patches against the adv7180 in the linux-media tree.
 
-I use the driver gspca_pac7311 from kernel  linux-2.6.30.5 but the video 
-of my webcam
-is very blue, or, if I swap the colors in gqcam they are very yellow.
-Is it possible to change the driver to compensate for this?
+1. support for getting input status.
 
-Info:
-If I do lsusb I get
-Bus 002 Device 025: ID 093a:2620 Pixart Imaging, Inc.
-When inserting the device I see in the log:
+2. support for setting video standard
 
-usb 2-1.1.4: new full speed USB device using ehci_hcd and address 27
-usb 2-1.1.4: New USB device found, idVendor=093a, idProduct=2620
-usb 2-1.1.4: New USB device strings: Mfr=0, Product=0, SerialNumber=0
-usb 2-1.1.4: configuration #1 chosen from 1 choice
-gspca: probing 093a:2620
-gspca: probe ok
+3. support for interrupt driven update of the video standard
 
-Thanks for your help,
+4. usage of the __devinit and __devexit macros
 
-Chris
+--Richard
