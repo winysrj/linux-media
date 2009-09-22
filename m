@@ -1,50 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:38472 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752322AbZIQMAO (ORCPT
+Received: from mail-yx0-f199.google.com ([209.85.210.199]:42590 "EHLO
+	mail-yx0-f199.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755574AbZIVJMg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Sep 2009 08:00:14 -0400
-Date: Thu, 17 Sep 2009 08:59:35 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org
-Subject: Re: RFCv2: Media controller proposal
-Message-ID: <20090917085935.34e02c99@pedra.chehab.org>
-In-Reply-To: <200909170835.57106.hverkuil@xs4all.nl>
-References: <200909100913.09065.hverkuil@xs4all.nl>
-	<200909162334.08807.hverkuil@xs4all.nl>
-	<1253139323.3158.28.camel@palomino.walls.org>
-	<200909170835.57106.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Tue, 22 Sep 2009 05:12:36 -0400
+Received: by yxe37 with SMTP id 37so4035083yxe.33
+        for <linux-media@vger.kernel.org>; Tue, 22 Sep 2009 02:12:40 -0700 (PDT)
+Date: Tue, 22 Sep 2009 11:12:35 +0200
+From: Uros Vampl <mobile.leecher@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: Re: Questions about Terratec Hybrid XS (em2882) [0ccd:005e]
+Message-ID: <20090922091235.GA10335@zverina>
+References: <20090913193118.GA12659@zverina>
+ <20090921204418.GA19119@zverina>
+ <829197380909211349r68b92b3em577c02d0dee9e4fc@mail.gmail.com>
+ <20090921221505.GA5187@zverina>
+ <829197380909211529r7ff7eab0nccc8d5fd55516ca2@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <829197380909211529r7ff7eab0nccc8d5fd55516ca2@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 17 Sep 2009 08:35:57 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-
-> On Thursday 17 September 2009 00:15:23 Andy Walls wrote:
-> > On Wed, 2009-09-16 at 23:34 +0200, Hans Verkuil wrote:
-> > > On Wednesday 16 September 2009 22:50:43 Mauro Carvalho Chehab wrote:
-> > > > Em Wed, 16 Sep 2009 21:21:16 +0200
-> > 
-> > > C) in all other cases you only get it if a kernel config option is on. And since
-> > > any advanced controls are still exposed in sysfs you can still change those even
-> > > if the config option was off.
-> > 
-> > That is a user interface and support annoyance.  Either decide to have a
-> > node for a subdevice or don't.  If a distribution wants to supress them,
-> > udev rules could suffice - right?  Changing udev rules is
-> > (theoretically) easier than rebuilding the kernel for most end users.
+On 21.09.09 18:29, Devin Heitmueller wrote:
+> On Mon, Sep 21, 2009 at 6:15 PM, Uros Vampl <mobile.leecher@gmail.com> wrote:
+> > I tried arecord/aplay and sox with tvtime, and also mplayer (which
+> > has
+> > built-in audio support). I know about these tricks, I've used them
+> > successfully with Markus' em28xx-new driver. But with v4l-dvb it's as I
+> > said, audio is there but it's extremely quiet. If you have suggestions
+> > how I should try to diagnoze this, I'm all ears.
+> >
+> > Regards,
+> > Uroš
 > 
-> Good point.
+> If the audio is present but very quiet, then it's probably some issue
+> you are having with your mixer.  I would check your ALSA and
+> PulseAudio configuration (in particular the mixer volume controls).
+> 
+> Devin
 
-I suspect that, in practice, the drivers will talk for themselves: e. g.
-drivers that are used with embedded and that requires extra parameters for
-tweaking will add some callback methods to indicate V4L2 core that they need
-a /dev. Others will not implement those methods and won't have any /dev
-associated.
+No PulseAudio here. And I've played plenty with the ALSA mixer, all the 
+sliders that are there.
 
-Cheers,
-Mauro
+Using em28xx-new instead of v4l-dvb, all else being equal, tv volume is 
+fine. So there's gotta be a difference somewhere in the way em28xx-new 
+sets up audio compared to how v4l-dvb does it.
+
+Regards,
+Uroš
