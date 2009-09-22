@@ -1,105 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:14929 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751174AbZIXLVQ convert rfc822-to-8bit (ORCPT
+Received: from av10-1-sn2.hy.skanova.net ([81.228.8.181]:49948 "EHLO
+	av10-1-sn2.hy.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753755AbZIVJIH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Sep 2009 07:21:16 -0400
-From: "Yu, Jinlu" <jinlu.yu@intel.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Thu, 24 Sep 2009 19:21:40 +0800
-Subject: Re: [PATCH 0/5] V4L2 patches for Intel Moorestown Camera Imaging
-Message-ID: <037F493892196B458CD3E193E8EBAD4F01ED6EEE10@pdsmsx502.ccr.corp.intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Tue, 22 Sep 2009 05:08:07 -0400
+Message-ID: <4AB8939A.3050508@mocean-labs.com>
+Date: Tue, 22 Sep 2009 11:06:34 +0200
+From: =?ISO-8859-1?Q?Richard_R=F6jfors?=
+	<richard.rojfors@mocean-labs.com>
 MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>
+Subject: [PATCH 2/4] adv7180: Support for setting input status
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Hans/Guennadi
+Support for settings the input standard of the ADV7180.
 
-I am modifying these drivers to comply with v4l2 framework. I have finished replacing our buffer managing code with utility function from videobuf-core.c and videobuf-dma-contig.c. Now I am working on the subdev. One thing I am sure is that each sensor should be registered as a v4l2_subdev and ISP (Image Signal Processor) is registered as a v4l2_device acting as the bridge device. 
+When the input standard is set there is no use to ask the
+chip for standard, therefore it is cached in the driver.
 
-But we have two ways to deal with the relationship of sensor and ISP, and we don't know which one is better. Could you help me on this?
+Signed-off-by: Richard Röjfors <richard.rojfors@mocean-labs.com>
+---
+diff --git a/drivers/media/video/adv7180.c b/drivers/media/video/adv7180.c
+index f3fce39..8b199a8 100644
+--- a/drivers/media/video/adv7180.c
++++ b/drivers/media/video/adv7180.c
+@@ -69,7 +69,9 @@
 
-No.1. Register the ISP as a video_device (/dev/video0) and treat each of the sensor (SOC and RAW) as an input of the ISP. If I want to change the sensor, use the VIDIOC_S_INPUT to change input from sensor A to sensor B. But I have a concern about this ioctl. Since I didn't find any code related HW pipeline status checking and HW register setting in the implement of this ioctl (e.g. vino_s_input in /drivers/media/video/vino.c). So don't I have to stream-off the HW pipeline and change the HW register setting for the new input? Or is it application's responsibility to stream-off the pipeline and renegotiate the parameters for the new input?
 
-No.2. Combine the SOC sensor together with the ISP as Channel One and register it as /dev/video0, and combine the RAW sensor together with the ISP as Channel Two and register it as /dev/video1. Surely, only one channel works at a certain time due to HW restriction. When I want to change the sensor (e.g. from SOC sensor to RAW sensor), just close /dev/video0 and open /dev/video1.
+ struct adv7180_state {
+-	struct v4l2_subdev sd;
++	struct v4l2_subdev	sd;
++	v4l2_std_id		curr_norm;
++	bool			autodetect;
+ };
 
-Best Regards
-Jinlu Yu
-Intel China Research Center
+ static v4l2_std_id adv7180_std_to_v4l2(u8 status1)
+@@ -96,6 +98,29 @@ static v4l2_std_id adv7180_std_to_v4l2(u8 status1)
+ 	}
+ }
 
->-----Original Message-----
->From: linux-media-owner@vger.kernel.org
->[mailto:linux-media-owner@vger.kernel.org] On Behalf Of Hans Verkuil
->Sent: Saturday, May 02, 2009 11:43 PM
->To: Guennadi Liakhovetski
->Cc: Zhang, Xiaolin; linux-media@vger.kernel.org; Johnson, Charles F; Zhu, Daniel
->Subject: Re: [PATCH 0/5] V4L2 patches for Intel Moorestown Camera Imaging
->Drivers
->
->On Friday 01 May 2009 23:26:02 Guennadi Liakhovetski wrote:
->> On Thu, 30 Apr 2009, Zhang, Xiaolin wrote:
->> > Hi All,
->> >
->> > Here is the a set of V4L2 camera sensors and ISP drivers to support the
->> > Intel Moorestown camera imaging subsystem. The Camera Imaging interface
->> > in Moorestown is responsible for capturing both still and video frames.
->> > The CI handles demosaicing, color synthesis, filtering, image
->> > enhancement functions and JPEG encode. Intel Moorestown platform can
->> > support either a single camera or two cameras. A platform with two
->> > cameras will have on the same side as this display and the second on
->> > the opposite side the display. The camera on the display side will be
->> > used for video conferencing (with low resolution SoC cameras) and the
->> > other camera is used to still image capture or video recode (with high
->> > resolution RAW cameras).
->> >
->> > In this set of driver patches, I will submit the 5 patches to enable
->> > the ISP HW and 3 cameras module (two SoCs: 1.3MP - Omnivision 9665, 2MP
->> > - Omnivison 2650 and one RAW: 5MP - Omnivision 5630).
->> > 1. Intel Moorestown ISP driver.
->> > 2. Intel Moorestown camera sensor pseudo driver. This is to uniform the
->> > interfaces for ISP due to supporting dual cameras.
->> > 3. Intel Moorestown 2MP camera sensor driver.
->> > 4. Intel Moorestown 5MP camera sensor driver.
->> > 5. Intel Moorestown 1.3MP camera sensor driver.
->> >
->> > I will post the above 5 patches in near feature.
->>
->> I think this is a perfect candidate for the use of the v4l2-(sub)dev API,
->> and should be converted to use it, am I right?
->
->Absolutely. The sensor drivers must use v4l2_subdev, otherwise they will not
->be reusable by other drivers.
->
->There is a lot of work that needs to be done before these sensor drivers can
->be merged. These sensor drivers are tightly coupled to the platform driver,
->thus preventing any reuse of these i2c devices. That's bad and something
->that needs to be fixed first.
->
->Xiaolin, please take a look at Documentation/video4linux/v4l2-framework.txt
->for information on the new v4l2 framework. All v4l2 i2c drivers should use
->v4l2_subdev to enable reuse of these i2c devices in other platform drivers
->and webcams.
->
->Regards,
->
->	Hans
->
->>
->> Thanks
->> Guennadi
->> ---
->> Guennadi Liakhovetski, Ph.D.
->> Freelance Open-Source Software Developer
->> http://www.open-technology.de/
->
->
->
->--
->Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
++static int v4l2_std_to_adv7180(v4l2_std_id std)
++{
++	if (std == V4L2_STD_PAL_60)
++		return ADV7180_INPUT_CONTROL_PAL60;
++	if (std == V4L2_STD_NTSC_443)
++		return ADV7180_INPUT_CONTROL_NTSC_443;
++	if (std == V4L2_STD_PAL_N)
++		return ADV7180_INPUT_CONTROL_PAL_N;
++	if (std == V4L2_STD_PAL_M)
++		return ADV7180_INPUT_CONTROL_PAL_M;
++	if (std == V4L2_STD_PAL_Nc)
++		return ADV7180_INPUT_CONTROL_PAL_COMB_N;
++
++	if (std & V4L2_STD_PAL)
++		return ADV7180_INPUT_CONTROL_PAL_BG;
++	if (std & V4L2_STD_NTSC)
++		return ADV7180_INPUT_CONTROL_NTSC_M;
++	if (std & V4L2_STD_SECAM)
++		return ADV7180_INPUT_CONTROL_PAL_SECAM;
++
++	return -EINVAL;
++}
++
+ static u32 adv7180_status_to_v4l2(u8 status1)
+ {
+ 	if (!(status1 & ADV7180_STATUS1_IN_LOCK))
+@@ -127,7 +152,15 @@ static inline struct adv7180_state *to_state(struct v4l2_subdev *sd)
+
+ static int adv7180_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
+ {
+-	return __adv7180_status(v4l2_get_subdevdata(sd), NULL, std);
++	struct adv7180_state *state = to_state(sd);
++	int err = 0;
++
++	if (!state->autodetect)
++		*std = state->curr_norm;
++	else
++		err = __adv7180_status(v4l2_get_subdevdata(sd), NULL, std);
++
++	return err;
+ }
+
+ static int adv7180_g_input_status(struct v4l2_subdev *sd, u32 *status)
+@@ -143,6 +176,39 @@ static int adv7180_g_chip_ident(struct v4l2_subdev *sd,
+ 	return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_ADV7180, 0);
+ }
+
++static int adv7180_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
++{
++	struct adv7180_state *state = to_state(sd);
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	int ret;
++
++	/* all standards -> autodetect */
++	if (std == V4L2_STD_ALL) {
++		ret = i2c_smbus_write_byte_data(client,
++			ADV7180_INPUT_CONTROL_REG,
++			ADV7180_INPUT_CONTROL_AD_PAL_BG_NTSC_J_SECAM);
++		if (ret < 0)
++			goto out;
++
++		state->autodetect = true;
++	} else {
++		ret = v4l2_std_to_adv7180(std);
++		if (ret < 0)
++			goto out;
++
++		ret = i2c_smbus_write_byte_data(client,
++			ADV7180_INPUT_CONTROL_REG, ret);
++		if (ret < 0)
++			goto out;
++
++		state->curr_norm = std;
++		state->autodetect = false;
++	}
++	ret = 0;
++out:
++	return ret;
++}
++
+ static const struct v4l2_subdev_video_ops adv7180_video_ops = {
+ 	.querystd = adv7180_querystd,
+ 	.g_input_status = adv7180_g_input_status,
+@@ -150,6 +216,7 @@ static const struct v4l2_subdev_video_ops adv7180_video_ops = {
+
+ static const struct v4l2_subdev_core_ops adv7180_core_ops = {
+ 	.g_chip_ident = adv7180_g_chip_ident,
++	.s_std = adv7180_s_std,
+ };
+
+ static const struct v4l2_subdev_ops adv7180_ops = {
+@@ -179,6 +246,7 @@ static int adv7180_probe(struct i2c_client *client,
+ 	state = kzalloc(sizeof(struct adv7180_state), GFP_KERNEL);
+ 	if (state == NULL)
+ 		return -ENOMEM;
++	state->autodetect = true;
+ 	sd = &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &adv7180_ops);
+
