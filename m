@@ -1,43 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:56078 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753432AbZIDL0a (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Sep 2009 07:26:30 -0400
-Message-ID: <4AA0F973.80900@nildram.co.uk>
-Date: Fri, 04 Sep 2009 12:26:43 +0100
-From: Lou Otway <lotway@nildram.co.uk>
-Reply-To: lotway@nildram.co.uk
+Received: from znsun1.ifh.de ([141.34.1.16]:57588 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751321AbZIVH35 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Sep 2009 03:29:57 -0400
+Date: Tue, 22 Sep 2009 09:29:45 +0200 (CEST)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: liu.yaojin@zte.com.cn
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: re: Re: how to develop driver for cy7c68013(fx2 lp)?
+In-Reply-To: <OFA2190736.178E50BE-ON48257639.001FAFA7-48257639.0020E884@zte.com.cn>
+Message-ID: <alpine.LRH.1.10.0909220902390.23153@pub1.ifh.de>
+References: <OFA2190736.178E50BE-ON48257639.001FAFA7-48257639.0020E884@zte.com.cn>
 MIME-Version: 1.0
-To: Jed <jedi.theone@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: PCI/e with dual DVB-T + AV-in?
-References: <4A9F5B73.8060004@gmail.com>
-In-Reply-To: <4A9F5B73.8060004@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jed wrote:
->
-> I'm still trawling through mail-lists & wiki's etc, so I may yet find 
-> the best solution, but I was hoping some might already know.
-> Any advice or even just a response to chastise me is greatly 
-> appreciated!  :-D
->
+Hi Liu,
 
-I've been searching for a PCI-e device with an MPEG-2 hardware encoder 
-for analogue input for months, there's nothing on the market with linux 
-support.
+(please avoid top-posts on this list)
 
-There are a few h.264 encoders, mainly aimed at CCTV applications, but 
-they're no good for me.
+On Tue, 22 Sep 2009, liu.yaojin@zte.com.cn wrote:
 
-Analogue encoding support on the HVR devices seems the only likely 
-solution but it won't happen any time soon it seems.
+> hi,Mauro:
+> thanks for replying.
+> i am not sure the dtv api can be used in my project.because cmmb's
+> protocol is different to dmb :(
 
-If you find anything, please post details!
+Then the API needs to be extended. Maybe by you. Correct me if I'm wrong, 
+but CMMB does not have standard MPEG2-TS and the configuration really 
+needs real-time constraints.
 
-Thanks,
+How does it work for your device?
 
-Lou
+To have proper support for non-MPEG2-TS DTV streams we could add a new 
+demuxer-type which handles it.
+
+To tune a CMMB device we'd need to add the DTV_PROPERTIES to frontend.h
+
+> in Windows, we download firmware using windows driver,config fx2 as bulk
+> transfer,and read the TS stream,finally decode it and display.
+> I also read this post: "http://www.linuxjournal.com/article/7466"----
+> Writing a Real Driver?In User Space.
+> if i just want to read the ts stream,should i use this method? or another
+> way?
+
+This option is rather useful for debugging/prototyping, IMO.
+
+In the future we will have to support several CMMB device from different 
+manufacturers. Up to now, we have used the kernel-user-interface to have 
+stable API for different standards - we should continue to do so.
+
+It would be nice to start the RFC-process for CMMB's extension to DVB API 
+5 .
+
+regards,
+
+--
+
+Patrick Boettcher - Kernel Labs
+http://www.kernellabs.com/
