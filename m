@@ -1,56 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:47337 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758068AbZIFRwJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2009 13:52:09 -0400
-Received: by fxm17 with SMTP id 17so1596205fxm.37
-        for <linux-media@vger.kernel.org>; Sun, 06 Sep 2009 10:52:10 -0700 (PDT)
-From: Marek Vasut <marek.vasut@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] Add RGB555X and RGB565X formats to pxa-camera
-Date: Sun, 6 Sep 2009 19:51:44 +0200
-Cc: Eric Miao <eric.y.miao@gmail.com>,
-	linux-arm-kernel@lists.arm.linux.org.uk,
-	"Russell King - ARM Linux" <linux@arm.linux.org.uk>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mike Rapoport <mike@compulab.co.il>,
-	Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>,
-	linux-arm-kernel@lists.infradead.org
-References: <200908031031.00676.marek.vasut@gmail.com> <200909060550.23681.marek.vasut@gmail.com> <Pine.LNX.4.64.0909061755020.10484@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0909061755020.10484@axis700.grange>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <200909061951.44629.marek.vasut@gmail.com>
+Received: from bombadil.infradead.org ([18.85.46.34]:39332 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751534AbZIWMrc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Sep 2009 08:47:32 -0400
+Date: Wed, 23 Sep 2009 09:46:58 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Christian Gmeiner <christian.gmeiner@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: PCI bridge driver
+Message-ID: <20090923094658.4e58e7d6@pedra.chehab.org>
+In-Reply-To: <3192d3cd0909230515v32090f55y2e3a582172420edc@mail.gmail.com>
+References: <3192d3cd0909230515v32090f55y2e3a582172420edc@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dne Ne 6. září 2009 18:52:55 Guennadi Liakhovetski napsal(a):
-> On Sun, 6 Sep 2009, Marek Vasut wrote:
-> > Ah damn, I see what you mean. What the camera does is it swaps the RED
-> > and BLUE channel:
-> > 15  14  13  12  11  10  09  08  07  06  05  04  03  02  01  00
-> > B4  B3  B2  B1  B0  G4  G3  G2  G1  G1  R4  R3  R2  R1  R1  --
-> > so it's more a BGR555/565 then. I had to patch fswebcam for this.
->
-> Ok, this is, of course, something different. In this case you, probably,
-> could deceive the PXA to handle blue as red and the other way round, but
-> still, I would prefer not to do that. Hence my suggestion remains - pass
-> these formats as raw data.
->
-Which is bogus from the camera point of view.
+Em Wed, 23 Sep 2009 14:15:25 +0200
+Christian Gmeiner <christian.gmeiner@gmail.com> escreveu:
 
-> The only case when you might want to put the PXA into RGB555 mode, while
-> feeding BGR555 to it, is you want to use the QCI to set the transparency
-> bit for you. But we currently do not support this any way, not in a
-> configurable way at least. You would need to implement some sort of a
-> "global (one-bit) alpha" control for pxa_camera to use this. Any need for
-> this?
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
+> Hi List,
+> 
+> I have looked at the documentation (v4l2-framework.txt) and have some
+> questions. I want to make use
+> of the subdevice stuff, but I don't know where to start. The
+> subdevices are connected through i2c and the
+> components may vary. So is there a good example driver to look at?
+
+If you want to take a look on a PCI driver, I think the better is to take a
+look at saa7134 and at cx88 drivers. You can also take a look at vivi driver.
+vivi has just the basic stuff for a video driver. However, as it runs without any
+associated hardware, you won't find there any call to dev/subdev stuff.
+
+
+
+Cheers,
+Mauro
