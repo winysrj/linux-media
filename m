@@ -1,35 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50611 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751563AbZIMSrl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2009 14:47:41 -0400
-Message-ID: <4AAD3F0A.4090403@redhat.com>
-Date: Sun, 13 Sep 2009 20:50:50 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-bw0-f210.google.com ([209.85.218.210]:41551 "EHLO
+	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752631AbZIWMPW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Sep 2009 08:15:22 -0400
+Received: by bwz6 with SMTP id 6so479119bwz.37
+        for <linux-media@vger.kernel.org>; Wed, 23 Sep 2009 05:15:25 -0700 (PDT)
 MIME-Version: 1.0
-To: Thomas Kaiser <v4l@kaiser-linux.li>
-CC: leandro Costantino <lcostantino@gmail.com>,
-	=?ISO-8859-1?Q?N=E9meth_?= =?ISO-8859-1?Q?M=E1rton?=
-	<nm127@freemail.hu>, Jean-Francois Moine <moinejf@free.fr>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: image quality of Labtec Webcam 2200
-References: <4AA9F7A0.5080802@freemail.hu> <20090913092015.485fdbcd@tele>	 <4AACD0D5.1090109@freemail.hu> <c2fe070d0909130742u2b471f7do7ff7bc8a3b6cd688@mail.gmail.com> <4AAD16F3.7050805@kaiser-linux.li>
-In-Reply-To: <4AAD16F3.7050805@kaiser-linux.li>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Date: Wed, 23 Sep 2009 14:15:25 +0200
+Message-ID: <3192d3cd0909230515v32090f55y2e3a582172420edc@mail.gmail.com>
+Subject: PCI bridge driver
+From: Christian Gmeiner <christian.gmeiner@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi List,
 
-On 09/13/2009 05:59 PM, Thomas Kaiser wrote:
-> I thought Hans will come in, in this discussion.......
->
+I have looked at the documentation (v4l2-framework.txt) and have some
+questions. I want to make use
+of the subdevice stuff, but I don't know where to start. The
+subdevices are connected through i2c and the
+components may vary. So is there a good example driver to look at?
 
-Hey hey, its weekend, give me some time to respond already :)
-
-See my reply higher up in the thread.
-
-Regards,
-
-Hans
+thanks,
+-- 
+Christian Gmeiner, B.Sc.
