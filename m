@@ -1,141 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:44441 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754029AbZIMOA2 convert rfc822-to-8bit (ORCPT
+Received: from mail-yw0-f174.google.com ([209.85.211.174]:33093 "EHLO
+	mail-yw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753786AbZIWGaL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2009 10:00:28 -0400
-Date: Sun, 13 Sep 2009 11:00:01 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Nathaniel Kim <dongsoo.kim@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: Media controller: sysfs vs ioctl
-Message-ID: <20090913110001.20976a03@caramujo.chehab.org>
-In-Reply-To: <200909131543.02990.hverkuil@xs4all.nl>
-References: <200909120021.48353.hverkuil@xs4all.nl>
-	<1BD4D6CB-4CEC-40D2-B168-BE5F8494189F@gmail.com>
-	<20090913102757.2a1dff1c@caramujo.chehab.org>
-	<200909131543.02990.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Wed, 23 Sep 2009 02:30:11 -0400
+Received: by ywh4 with SMTP id 4so554449ywh.33
+        for <linux-media@vger.kernel.org>; Tue, 22 Sep 2009 23:30:15 -0700 (PDT)
+MIME-Version: 1.0
+Date: Wed, 23 Sep 2009 14:30:14 +0800
+Message-ID: <7c34ac520909222330k73380177sbf103345f5d3d7ec@mail.gmail.com>
+Subject: Support on discontinuous planer buffer and stride
+From: Jun Nie <niej0001@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 13 Sep 2009 15:43:02 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-
-> On Sunday 13 September 2009 15:27:57 Mauro Carvalho Chehab wrote:
-> > Em Sun, 13 Sep 2009 15:13:04 +0900
-> > Nathaniel Kim <dongsoo.kim@gmail.com> escreveu:
-> > 
-> > > 
-> > > 2009. 9. 12., 오전 7:21, Hans Verkuil 작성:
-> > > 
-> > > > Hi all,
-> > > >
-> > > > I've started this as a new thread to prevent polluting the  
-> > > > discussions of the
-> > > > media controller as a concept.
-> > > >
-> > > > First of all, I have no doubt that everything that you can do with  
-> > > > an ioctl,
-> > > > you can also do with sysfs and vice versa. That's not the problem  
-> > > > here.
-> > > >
-> > > > The problem is deciding which approach is the best.
-> > > >
-> > > > What is sysfs? (taken from http://lwn.net/Articles/31185/)
-> > > >
-> > > > "Sysfs is a virtual filesystem which provides a userspace-visible  
-> > > > representation
-> > > > of the device model. The device model and sysfs are sometimes  
-> > > > confused with each
-> > > > other, but they are distinct entities. The device model functions  
-> > > > just fine
-> > > > without sysfs (but the reverse is not true)."
-> > > >
-> > > > Currently both a v4l driver and the device nodes are all represented  
-> > > > in sysfs.
-> > > > This is handled automatically by the kernel.
-> > > >
-> > > > Sub-devices are not represented in sysfs since they are not based on  
-> > > > struct
-> > > > device. They are v4l-internal structures. Actually, if the subdev  
-> > > > represents
-> > > > an i2c device, then that i2c device will be present in sysfs, but  
-> > > > not all
-> > > > subdevs are i2c devices.
-> > > >
-> > > > Should we make all sub-devices based on struct device? Currently  
-> > > > this is not
-> > > > required. Doing this would probably mean registering a virtual bus,  
-> > > > then
-> > > > attaching the sub-device to that. Of course, this only applies to  
-> > > > sub-devices
-> > > > that represent something that is not an i2c device (e.g. something  
-> > > > internal
-> > > > to the media board like a resizer, or something connected to GPIO  
-> > > > pins).
-> > > >
-> > > > If we decide to go with sysfs, then we have to do this. This part  
-> > > > shouldn't
-> > > > be too difficult to implement. And also if we do not go with sysfs  
-> > > > this might
-> > > > be interesting to do eventually.
-> > > >
-> > > > The media controller topology as I see it should contain the device  
-> > > > nodes
-> > > > since the application has to know what device node to open to do the  
-> > > > streaming.
-> > > > It should also contain the sub-devices so the application can  
-> > > > control them.
-> > > > Is this enough? I think that eventually we also want to show the  
-> > > > physical
-> > > > connectors. I left them out (mostly) from the initial media  
-> > > > controller proposal,
-> > > > but I suspect that we want those as well eventually. But connectors  
-> > > > are
-> > > > definitely not devices. In that respect the entity concept of the  
-> > > > media
-> > > > controller is more abstract than sysfs.
-> > > >
-> > > > However, for now I think we can safely assume that sub-devices can  
-> > > > be made
-> > > > visible in sysfs.
-> > > >
-> > > 
-> > > Hans,
-> > > 
-> > > First of all I'm very sorry that I had not enough time to go through  
-> > > your new RFC. I'll checkout right after posting this mail.
-> > > 
-> > > I think this is a good approach and I also had in my mind that sysfs  
-> > > might be a good method if we could control and monitor through this.  
-> > > Recalling memory when we had a talk in San Francisco, I was frustrated  
-> > > that there is no way to catch events from sort of sub-devices like  
-> > > lens actuator (I mean pizeo motors in camera module). As you know lens  
-> > > actuator is an extremely slow device in comparison with common v4l2  
-> > > devices we are using and we need to know whether it has succeeded or  
-> > > not in moving to expected position.
-> > > So I considered sysfs and udev as candidates for catching events from  
-> > > sub-devices. events like success/failure of lens movement, change of  
-> > > status of subdevices.
-> > > Does anybody experiencing same issue? I think I've seen a lens  
-> > > controller driver in omap3 kernel from TI but not sure how did they  
-> > > control that.
-> > > 
-> > > My point is that we need a kind of framework to give and event to user  
-> > > space and catching them properly just like udev does.
-> > 
-> > Maybe the Kernel event interface could be used for that.
-> 
-> Are you talking about the input event interface? There is no standard kernel
-> way of doing events afaik.
-
-Yes. It is designed for low-latency report of events, like mouse movements,
-where you expect that the movement will happen as mouse moves. So, it may work
-fine also for servo movements. A closer look on it, plus some tests should be
-done to see if it will work fine for such camera events.
-
-Cheers,
-Mauro
+SGksCqCgoKAgSSByZS1zZW5kIHRoaXMgZW1haWwgZm9yIHRoZSBsYXN0IG9uZSBpcyByZWplY3Rl
+ZCBieSBzeXN0ZW0uIEkgYW0Kc29ycnkgaWYgeW91IGd1eXMgcmVjZWl2ZWQgYm90aC4KCqCgoKAg
+SSBhbSBvcHRpbWl6aW5nIHZpZGVvIHBsYXliYWNrIHdpdGggb3ZlcmxheSB3aXRoIFY0TDIgZHJp
+dmVyLiBUaGUKdmlkZW8gY29udGVudCBpcyBhIHN1Yi1yZWdpb24gb2YgY29kZWMgb3V0cHV0LiBU
+aHVzIGEgbWVtb3J5IGNvcHkgaXMKbmVjZXNzYXJ5LgqgoKAgSXMgdGhlcmUgcGxhbiB0byBzdXBw
+b3J0IGZvciBzdHJpZGUgYW5kIGRpc2NyZXRlIFlVViBwbGFuZXIgaW4Ka2VybmVsPyBTdWNoIGFz
+IGJlbG93IGNoYW5nZXMgY2FuIGhlbHAgbXVjaCBmb3IgbXkgdXNhZ2UgY2FzZS4KCi0tLSBhL2lu
+Y2x1ZGUvbGludXgvdmlkZW9kZXYyLmgKKysrIGIvaW5jbHVkZS9saW51eC92aWRlb2RldjIuaApA
+QCAtNTI5LDcgKzUyOSwyMCBAQCBzdHJ1Y3QgdjRsMl9idWZmZXIgewqgoKCgoKCgoKCgoKCgoKAg
+X191MzKgoKCgoKCgoKCgIG9mZnNldDsKoKCgoKCgoKCgoKCgoKCgIHVuc2lnbmVkIGxvbmegoCB1
+c2VycHRyOwqgoKCgoKCgIH0gbTsKK6CgoKCgoCAvKiBVVi9HQiBsb2NhdGlvbiBpcyB2YWxpZCBv
+bmx5IGluIHBsYW5lciBjYXNlICovCiugoKCgoKAgdW5pb24geworoKCgoKCgoKCgoKCgoKAgX191
+MzKgoKCgoKCgoKCgIG9mZnNldF91ZzsKK6CgoKCgoKCgoKCgoKCgIHVuc2lnbmVkIGxvbmegoCB1
+c2VycHRyX3VnOworoKCgoKCgIH0gbV91ZzsKK6CgoKCgoCB1bmlvbiB7CiugoKCgoKCgoKCgoKCg
+oCBfX3UzMqCgoKCgoKCgoKAgb2Zmc2V0X3ZiOworoKCgoKCgoKCgoKCgoKAgdW5zaWduZWQgbG9u
+Z6CgIHVzZXJwdHJfdmI7CiugoKCgoKAgfSBtX3ZiOwqgoKCgoKCgIF9fdTMyoKCgoKCgoKCgoKCg
+oKCgoKCgIGxlbmd0aDsKK6CgoKCgoCAvKiBzdHJpZGUgb2YgWVVWIG9yIFJHQiAqLworoKCgoKCg
+IF9fdTMyoKCgoKCgoKCgoKCgoKCgoKCgIHN0cmlkZV95cjsKK6CgoKCgoCBfX3UzMqCgoKCgoKCg
+oKCgoKCgoKCgoCBzdHJpZGVfdWc7CiugoKCgoKAgX191MzKgoKCgoKCgoKCgoKCgoKCgoKAgc3Ry
+aWRlX3ZiOwqgoKCgoKCgIF9fdTMyoKCgoKCgoKCgoKCgoKCgoKCgIGlucHV0OwqgoKCgoKCgIF9f
+dTMyoKCgoKCgoKCgoKCgoKCgoKCgIHJlc2VydmVkOwqgfTsKCqCgoCBJZiBzdWNoIGNoYW5nZSBp
+cyBhY2NlcHRhYmxlIGZvciBldmVyeW9uZSwgSSBtYXkgaGVscCBvbiB0aGUgaW1wbGVtZW50YXRp
+b24uCqCgoCBBbnkgY29tbWVudHMgYXJlIHdlbGNvbWUuCgpKdW4K
