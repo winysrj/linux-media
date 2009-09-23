@@ -1,154 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp19.orange.fr ([80.12.242.18]:57263 "EHLO smtp19.orange.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751068AbZIJPWy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Sep 2009 11:22:54 -0400
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf1924.orange.fr (SMTP Server) with ESMTP id 45CA9200008C
-	for <linux-media@vger.kernel.org>; Thu, 10 Sep 2009 17:22:56 +0200 (CEST)
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf1924.orange.fr (SMTP Server) with ESMTP id 395B72000086
-	for <linux-media@vger.kernel.org>; Thu, 10 Sep 2009 17:22:56 +0200 (CEST)
-Received: from [192.168.1.11] (ANantes-551-1-42-204.w86-214.abo.wanadoo.fr [86.214.145.204])
-	by mwinf1924.orange.fr (SMTP Server) with ESMTP id 8B601200008E
-	for <linux-media@vger.kernel.org>; Thu, 10 Sep 2009 17:22:51 +0200 (CEST)
-Message-ID: <4AA919CA.20701@gmail.com>
-Date: Thu, 10 Sep 2009 17:22:50 +0200
-From: Morvan Le Meut <mlemeut@gmail.com>
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:50371 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751151AbZIWT2K (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Sep 2009 15:28:10 -0400
+Received: by fxm18 with SMTP id 18so882894fxm.17
+        for <linux-media@vger.kernel.org>; Wed, 23 Sep 2009 12:28:13 -0700 (PDT)
+Date: Wed, 23 Sep 2009 22:28:10 +0300
+From: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: xc2028 sound carrier detection
+Message-ID: <20090923192810.GA4653@moon>
+References: <20090921223751.GA1303@moon> <20090921215238.2e189d60@pedra.chehab.org>
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: (Saa7134) Re: ADS-Tech Instant TV PCI, no remote support, no
- idea what to try.
-References: <4AA53C05.10203@gmail.com> <4AA61508.9040506@gmail.com> <op.uzxmzlj86dn9rq@crni> <4AA62C38.3050208@gmail.com> <4AA63434.1010709@gmail.com> <4AA683BD.6070601@gmail.com> <4AA695EE.70800@gmail.com> <4AA767F2.50702@gmail.com> <op.uzzfgyvj3xmt7q@crni> <4AA77240.2040504@gmail.com> <4AA77683.7010201@gmail.com> <4AA7C266.3000509@gmail.com> <op.uzzz96se6dn9rq@crni> <4AA7E166.7030906@gmail.com> <4AA81785.5000806@gmail.com> <4AA8BB20.4040701@gmail.com>
-In-Reply-To: <4AA8BB20.4040701@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20090921215238.2e189d60@pedra.chehab.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-from cx88-input.c
+On Mon, Sep 21, 2009 at 09:52:38PM -0300, Mauro Carvalho Chehab wrote:
+> Em Tue, 22 Sep 2009 01:37:51 +0300
+> "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com> escreveu:
+> 
+> > Is xc2028 tuner able to autodetect/handle different sound carrier standards
+> > without being spoon-fed precise input system information using module param
+> > or ioctl?
+> > 
+> > Got an ivtv board here (AverTV MCE 116) with xc2028 and cx25843.
+> > 
+> > When I specify a generic standard using 'v4l2-ctl -s pal', xc2028 loads
+> > firmware specific to PAL-BG, so if there is an PAL-DK or PAL-I signal on RF
+> > input... nice picture but no sound. Setting a more precise standard like
+> > 'v4l2-ctl -s pal-dk' fixes the issue, but other PAL-BG or PAL-I channels
+> > loose sound.
+> > 
+> > Bttv board with a tin-can tuner sitting on the same RF source autodetects
+> > PAL-BG, PAL-DK and PAL-I without any manual intervention.
+> > 
+> > So any voodoo tricks to get the autodetection running?
+> 
+> No, sorry. It requires specific and different firmwares based on your video
+> standard. I suspect that it is due to some firmware limiting size, since newer
+> products from Xceive, like xc5000 don't have such troubles, but this is just my
+> guess.
 
-case CX88_BOARD_ADSTECH_DVB_T_PCI:
-		ir_codes = ir_codes_adstech_dvb_t_pci;
-		ir->gpio_addr = MO_GP1_IO;
-		ir->mask_keycode = 0xbf;
-		ir->mask_keyup = 0x40;
-		ir->polling = 50; /* ms */
-		break;
+Mmm, tested that tuner under windows, it autodetects all 3 sound carrier sub-
+standards instantly: PAL-BG, PAL-DK, PAL-I.
 
-I'm not sure how much of the adstech instant tv dvb-t pci can be copied 
-for the non dvb-t one but could the solution be something along the 
-lines of that "ir->gpio_addr" thing ? or is that specific to the cx88 
-driver ?
+In order to test, I connected ancient Panasonic VCR that has a built-in tuner
+and can output video to RF-OUT on fixed frequency using PAL standard. Sound
+carrier frequency can be choosen using hardware switch BG, DK or I.
 
-Morvan Le Meut a écrit :
-> Still rambling about it :)
-> i was just comparing the  instant TV dvb-t pci keymap with what i got 
-> for the instant tv pci :
->    dvb-t
->    { 0x4d, KEY_0 },
->    { 0x57, KEY_1 },
->    { 0x4f, KEY_2 },
->    { 0x53, KEY_3 },
->    { 0x56, KEY_4 },
->    { 0x4e, KEY_5 },
->    { 0x5e, KEY_6 },
->    { 0x54, KEY_7 },
->    { 0x4c, KEY_8 },
->    { 0x5c, KEY_9 },
->    pci
->    { 0xd, KEY_0 },
->    { 0x17, KEY_1 },
->    { 0xf, KEY_2 },
->    { 0x13, KEY_3 },
->    { 0x16, KEY_4 },
->    { 0xe, KEY_5 },
->    { 0x1e, KEY_6 },
->    { 0x14, KEY_7 },
->    { 0xc, KEY_8 },
->    { 0x1c, KEY_9 },
-> if manufacturers are half as lazy as i am, and since the remote is the 
-> same ( or at least looks the same ), it looks like i am indeed missing 
-> part of the gpio. ( no mark, got the output with ir_debug=1 )
-> now for the rest of the keys :
-> dvb-t
-> { 0x5b, KEY_POWER },
->    { 0x5f, KEY_MUTE },
->    { 0x55, KEY_GOTO },
->    { 0x5d, KEY_SEARCH },
->    { 0x17, KEY_EPG },        /* Guide */
->    { 0x1f, KEY_MENU },
->    { 0x0f, KEY_UP },
->    { 0x46, KEY_DOWN },
->    { 0x16, KEY_LEFT },
->    { 0x1e, KEY_RIGHT },
->    { 0x0e, KEY_SELECT },        /* Enter */
->    { 0x5a, KEY_INFO },
->    { 0x52, KEY_EXIT },
->    { 0x59, KEY_PREVIOUS },
->    { 0x51, KEY_NEXT },
->    { 0x58, KEY_REWIND },
->    { 0x50, KEY_FORWARD },
->    { 0x44, KEY_PLAYPAUSE },
->    { 0x07, KEY_STOP },
->    { 0x1b, KEY_RECORD },
->    { 0x13, KEY_TUNER },        /* Live */
->    { 0x0a, KEY_A },
->    { 0x12, KEY_B },
->    { 0x03, KEY_PROG1 },        /* 1 */
->    { 0x01, KEY_PROG2 },        /* 2 */
->    { 0x00, KEY_PROG3 },        /* 3 */
->    { 0x06, KEY_DVD },
->    { 0x48, KEY_AUX },        /* Photo */
->    { 0x40, KEY_VIDEO },
->    { 0x19, KEY_AUDIO },        /* Music */
->    { 0x0b, KEY_CHANNELUP },
->    { 0x08, KEY_CHANNELDOWN },
->    { 0x15, KEY_VOLUMEUP },
->    { 0x1c, KEY_VOLUMEDOWN },
-> pci
->    { 0x1b, KEY_POWER },
->    { 0x1f, KEY_MUTE },
->    { 0x15, KEY_GOTO },
->    { 0x1d, KEY_SEARCH },
->    { 0x17, KEY_EPG },        /* Guide */
->    { 0x1f, KEY_MENU },
->    { 0x0f, KEY_UP },
->    { 0x6, KEY_DOWN },
->    { 0x16, KEY_LEFT },
->    { 0x1e, KEY_RIGHT },
->    { 0x0e, KEY_SELECT },        /* Enter */
->    { 0x1a, KEY_INFO },
->    { 0x12, KEY_EXIT },
->    { 0x19, KEY_PREVIOUS },
->    { 0x11, KEY_NEXT },
->    { 0x18, KEY_REWIND },
->    { 0x10, KEY_FORWARD },
->    { 0x4, KEY_PLAYPAUSE },
->    { 0x07, KEY_STOP },
->    { 0x1b, KEY_RECORD },
->    { 0x13, KEY_TUNER },        /* Live */
->    { 0x0a, KEY_A },
->    { 0x12, KEY_B },
->    { 0x03, KEY_PROG1 },        /* 1 */
->    { 0x01, KEY_PROG2 },        /* 2 */
->    { 0x00, KEY_PROG3 },        /* 3 */
->    { 0x06, KEY_DVD },
->    { 0x8, KEY_AUX },        /* Photo */
->    { 0x0, KEY_VIDEO },
->    { 0x19, KEY_AUDIO },        /* Music */
->    { 0x0b, KEY_CHANNELUP },
->    { 0x08, KEY_CHANNELDOWN },
->    { 0x15, KEY_VOLUMEUP },
->    { 0x1c, KEY_VOLUMEDOWN },
->
-> as you can see, for most of the keycodes, i am missing 0x40, which 
-> mean i am missing one bit.
->
-> And i don't even know where i should start looking to solve that problem.
->
-> thanks for any help/solution.
->
+So under windows: tuner produces clear audio in BG, DK and I, hardware switch
+can be toggled on fly, audio never stops, only a few miliseconds of static on
+switch.
 
+Under linux: audio only works if driver is set to use specific audio carrier
+sub-standard AND same is selected on PVR. (not to mention extremely unreliable
+PAL-DK detection by cx25843, only works 50% of times, but thats another issue)
 
-
+Either a more generic firmware exists can be uploaded on xc2028.. or several
+can be uploaded at once. Any xc2028 gurus out there?
