@@ -1,113 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1999 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754083AbZIJU1N (ORCPT
+Received: from qmta08.emeryville.ca.mail.comcast.net ([76.96.30.80]:51958 "EHLO
+	QMTA08.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751596AbZIWKHA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Sep 2009 16:27:13 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Subject: Re: RFCv2: Media controller proposal
-Date: Thu, 10 Sep 2009 22:27:12 +0200
-Cc: Patrick Boettcher <pboettcher@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <200909100913.09065.hverkuil@xs4all.nl> <2830b427fef295eeb166dbd2065392ce.squirrel@webmail.xs4all.nl> <A69FA2915331DC488A831521EAE36FE401550D0691@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE401550D0691@dlee06.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200909102227.12340.hverkuil@xs4all.nl>
+	Wed, 23 Sep 2009 06:07:00 -0400
+From: Brian Rogers <brian@xyzw.org>
+To: stable@kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Brian Rogers <brian@xyzw.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 2/2] saa7134: ir-kbd-i2c init data needs a persistent object
+Date: Wed, 23 Sep 2009 03:05:03 -0700
+Message-Id: <1253700303-15172-2-git-send-email-brian@xyzw.org>
+In-Reply-To: <1253700303-15172-1-git-send-email-brian@xyzw.org>
+References: <1253700303-15172-1-git-send-email-brian@xyzw.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 10 September 2009 21:19:25 Karicheri, Muralidharan wrote:
-> Hans,
-> 
-> I haven't gone through the RFC, but thought will respond to the below comment.
-> 
-> Murali Karicheri
-> Software Design Engineer
-> Texas Instruments Inc.
-> Germantown, MD 20874
-> new phone: 301-407-9583
-> Old Phone : 301-515-3736 (will be deprecated)
-> email: m-karicheri2@ti.com
-> 
-> >>>
-> >>> I may be mistaken, but I don't believe soundcards have this same
-> >>> complexity are media board.
-> >>
-> >> When I launch alsa-mixer I see 4 input devices where I can select 4
-> >> difference sources. This gives 16 combinations which is enough for me to
-> >> call it 'complex' .
-> >>
-> >>>> Could entities not be completely addressed (configuration ioctls)
-> >>>> through
-> >>>> the mc-node?
-> >>>
-> >>> Not sure what you mean.
-> >>
-> >> Instead of having a device node for each entity, the ioctls for each
-> >> entities are done on the media controller-node address an entity by ID.
-> >
-> >I definitely don't want to go there. Use device nodes (video, fb, alsa,
-> >dvb, etc) for streaming the actual media as we always did and use the
-> >media controller for controlling the board. It keeps everything nicely
-> >separate and clean.
-> >
-> 
-> 
-> What you mean by controlling the board?
+commit 7aedd5ec87686c557d48584d69ad880c11a0984d upstream.
 
-In general: the media controller can do anything except streaming. However,
-that is an extreme position and in practice all the usual ioctls should
-remain supported by the video device nodes.
+Tested on MSI TV@nywhere Plus.
 
-> We have currently ported DMxxx VPBE display drivers to 2.6.31 (Not submitted yet to mainline). In our current implementation, the output and standard/mode are controlled through sysfs because it is a common functionality affecting both v4l and FBDev framebuffer devices. Traditional applications such x-windows should be able to stream video/graphics to VPBE output. V4l2 applications should be able to stream video. Both these devices needs to know the display parameters such as frame buffer resolution, field etc that are to be configured in the video or osd layers in VPBE to output frames to the encoder that is driving the output. So to stream, first the output and mode/standard are selected using sysfs command and then the application is started. Following scenarios are supported by VPBE display drivers in our internal release:-
-> 
-> 1)Traditional FBDev applications (x-window) can be run using OSD device. Allows changing mode/standards at the output using fbset command.
-> 
-> 2)v4l2 driver doesn't provide s_output/s_std support since it is done through sysfs. 
-> 
-> 3)Applications that requires to stream both graphics and video to the output uses both FBDev and V4l2 devices. So these application first set the output and mode/standard using sysfs, before doing io operations with these devices.
+Original commit message:
 
-I don't understand this approach. I'm no expert on the fb API but as far as I
-know the V4L2 API allows a lot more precision over the video timings (esp. with
-the new API you are working on). Furthermore, I assume it is possible to use
-the DMxxx without an OSD, right?
+ir-kbd-i2c's ir_probe() function can be called much later (i.e. at
+ir-kbd-i2c module load), than the lifetime of a struct IR_i2c_init_data
+allocated off of the stack in cx18_i2c_new_ir() at registration time.
+Make sure we pass a pointer to a persistent IR_i2c_init_data object at
+i2c registration time.
 
-This is very similar to the ivtv and ivtvfb drivers: if the framebuffer is in
-use, then you cannot change the output standard (you'll get an EBUSY error)
-through a video device node.
+Thanks to Brian Rogers, Dustin Mitchell, Andy Walls and Jean Delvare to
+rise this question.
 
-That's exactly what you would expect. If the framebuffer isn't used, then you
-can just use the normal V4L2 API to change the output standard.
+Before this patch, if ir-kbd-i2c were probed after SAA7134, trash data
+were used.
 
-In practice, I think that you can only change the resolution in the FB API.
-Not things like the framerate, let alone precise pixelclock, porch and sync
-widths.
+Compile tested only, but the patch is identical to em28xx one. So, it
+should work properly.
 
-Much better to let the two cooperate: you can use both APIs, but you can't
-change the resolution in the fb if streaming is going on, and you can't
-change the output standard of a video device node if that changes the
-resolution while the framebuffer is in used.
+Original-patch-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+[brian@xyzw.org: backported for 2.6.31]
+Signed-off-by: Brian Rogers <brian@xyzw.org>
+---
+ drivers/media/video/saa7134/saa7134-input.c |   56 +++++++++++++--------------
+ drivers/media/video/saa7134/saa7134.h       |    4 ++
+ 2 files changed, 31 insertions(+), 29 deletions(-)
 
-No need for additional sysfs entries.
-
-> 
-> There is an encoder manager to which all available encoders  registers (using internally developed interface) and based on commands received at Fbdev/sysfs interfaces, the current encoder is selected by the encoder manager and current standard is selected. The encoder manager provides API to retrieve current timing information from the current encoder. FBDev and V4L2 drivers uses this API to configure OSD/video layers for streaming.
-> 
-> As you can see, controlling output/mode is a common function required for both v4l2 and FBDev devices. 
-> 
-> One way to do this to modify the encoder manager such that it load up the encoder sub devices. This will allow our customers to migrate to this driver on GIT kernel with minimum effort. If v4l2 display bridge driver load up the sub devices, it will make FBDev driver useless unless media controller has some way to handle this scenario. Any idea if media controller RFC address this? I will go over the RFC in details, but if you have a ready answer, let me know.
-
-I don't think this has anything to do with the media controller. It sounds
-more like a driver design issue to me.
-
-Regards,
-
-	Hans
-
+diff --git a/drivers/media/video/saa7134/saa7134-input.c b/drivers/media/video/saa7134/saa7134-input.c
+index 6e219c2..69e48ce 100644
+--- a/drivers/media/video/saa7134/saa7134-input.c
++++ b/drivers/media/video/saa7134/saa7134-input.c
+@@ -684,8 +684,6 @@ void saa7134_input_fini(struct saa7134_dev *dev)
+ 
+ void saa7134_probe_i2c_ir(struct saa7134_dev *dev)
+ {
+-	struct i2c_board_info info;
+-	struct IR_i2c_init_data init_data;
+ 	const unsigned short addr_list[] = {
+ 		0x7a, 0x47, 0x71, 0x2d,
+ 		I2C_CLIENT_END
+@@ -705,32 +703,32 @@ void saa7134_probe_i2c_ir(struct saa7134_dev *dev)
+ 		return;
+ 	}
+ 
+-	memset(&info, 0, sizeof(struct i2c_board_info));
+-	memset(&init_data, 0, sizeof(struct IR_i2c_init_data));
+-	strlcpy(info.type, "ir_video", I2C_NAME_SIZE);
++	memset(&dev->info, 0, sizeof(dev->info));
++	memset(&dev->init_data, 0, sizeof(dev->init_data));
++	strlcpy(dev->info.type, "ir_video", I2C_NAME_SIZE);
+ 
+ 	switch (dev->board) {
+ 	case SAA7134_BOARD_PINNACLE_PCTV_110i:
+ 	case SAA7134_BOARD_PINNACLE_PCTV_310i:
+-		init_data.name = "Pinnacle PCTV";
++		dev->init_data.name = "Pinnacle PCTV";
+ 		if (pinnacle_remote == 0) {
+-			init_data.get_key = get_key_pinnacle_color;
+-			init_data.ir_codes = ir_codes_pinnacle_color;
++			dev->init_data.get_key = get_key_pinnacle_color;
++			dev->init_data.ir_codes = ir_codes_pinnacle_color;
+ 		} else {
+-			init_data.get_key = get_key_pinnacle_grey;
+-			init_data.ir_codes = ir_codes_pinnacle_grey;
++			dev->init_data.get_key = get_key_pinnacle_grey;
++			dev->init_data.ir_codes = ir_codes_pinnacle_grey;
+ 		}
+ 		break;
+ 	case SAA7134_BOARD_UPMOST_PURPLE_TV:
+-		init_data.name = "Purple TV";
+-		init_data.get_key = get_key_purpletv;
+-		init_data.ir_codes = ir_codes_purpletv;
++		dev->init_data.name = "Purple TV";
++		dev->init_data.get_key = get_key_purpletv;
++		dev->init_data.ir_codes = ir_codes_purpletv;
+ 		break;
+ 	case SAA7134_BOARD_MSI_TVATANYWHERE_PLUS:
+-		init_data.name = "MSI TV@nywhere Plus";
+-		init_data.get_key = get_key_msi_tvanywhere_plus;
+-		init_data.ir_codes = ir_codes_msi_tvanywhere_plus;
+-		info.addr = 0x30;
++		dev->init_data.name = "MSI TV@nywhere Plus";
++		dev->init_data.get_key = get_key_msi_tvanywhere_plus;
++		dev->init_data.ir_codes = ir_codes_msi_tvanywhere_plus;
++		dev->info.addr = 0x30;
+ 		/* MSI TV@nywhere Plus controller doesn't seem to
+ 		   respond to probes unless we read something from
+ 		   an existing device. Weird...
+@@ -741,9 +739,9 @@ void saa7134_probe_i2c_ir(struct saa7134_dev *dev)
+ 			(1 == rc) ? "yes" : "no");
+ 		break;
+ 	case SAA7134_BOARD_HAUPPAUGE_HVR1110:
+-		init_data.name = "HVR 1110";
+-		init_data.get_key = get_key_hvr1110;
+-		init_data.ir_codes = ir_codes_hauppauge_new;
++		dev->init_data.name = "HVR 1110";
++		dev->init_data.get_key = get_key_hvr1110;
++		dev->init_data.ir_codes = ir_codes_hauppauge_new;
+ 		break;
+ 	case SAA7134_BOARD_BEHOLD_607FM_MK3:
+ 	case SAA7134_BOARD_BEHOLD_607FM_MK5:
+@@ -757,26 +755,26 @@ void saa7134_probe_i2c_ir(struct saa7134_dev *dev)
+ 	case SAA7134_BOARD_BEHOLD_M63:
+ 	case SAA7134_BOARD_BEHOLD_M6_EXTRA:
+ 	case SAA7134_BOARD_BEHOLD_H6:
+-		init_data.name = "BeholdTV";
+-		init_data.get_key = get_key_beholdm6xx;
+-		init_data.ir_codes = ir_codes_behold;
++		dev->init_data.name = "BeholdTV";
++		dev->init_data.get_key = get_key_beholdm6xx;
++		dev->init_data.ir_codes = ir_codes_behold;
+ 		break;
+ 	case SAA7134_BOARD_AVERMEDIA_CARDBUS_501:
+ 	case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
+-		info.addr = 0x40;
++		dev->info.addr = 0x40;
+ 		break;
+ 	}
+ 
+-	if (init_data.name)
+-		info.platform_data = &init_data;
++	if (dev->init_data.name)
++		dev->info.platform_data = &dev->init_data;
+ 	/* No need to probe if address is known */
+-	if (info.addr) {
+-		i2c_new_device(&dev->i2c_adap, &info);
++	if (dev->info.addr) {
++		i2c_new_device(&dev->i2c_adap, &dev->info);
+ 		return;
+ 	}
+ 
+ 	/* Address not known, fallback to probing */
+-	i2c_new_probed_device(&dev->i2c_adap, &info, addr_list);
++	i2c_new_probed_device(&dev->i2c_adap, &dev->info, addr_list);
+ }
+ 
+ static int saa7134_rc5_irq(struct saa7134_dev *dev)
+diff --git a/drivers/media/video/saa7134/saa7134.h b/drivers/media/video/saa7134/saa7134.h
+index fb564f1..4d85f5c 100644
+--- a/drivers/media/video/saa7134/saa7134.h
++++ b/drivers/media/video/saa7134/saa7134.h
+@@ -584,6 +584,10 @@ struct saa7134_dev {
+ 	int                        nosignal;
+ 	unsigned int               insuspend;
+ 
++	/* I2C keyboard data */
++	struct i2c_board_info      info;
++	struct IR_i2c_init_data    init_data;
++
+ 	/* SAA7134_MPEG_* */
+ 	struct saa7134_ts          ts;
+ 	struct saa7134_dmaqueue    ts_q;
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+1.6.3.3
+
