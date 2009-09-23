@@ -1,31 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:37857 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752632AbZINOpn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Sep 2009 10:45:43 -0400
-Date: Mon, 14 Sep 2009 16:45:50 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Marek Vasut <marek.vasut@gmail.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/3] Add driver for OmniVision OV9640 sensor
-In-Reply-To: <200909141635.24286.marek.vasut@gmail.com>
-Message-ID: <Pine.LNX.4.64.0909141643160.4359@axis700.grange>
-References: <200908220850.07435.marek.vasut@gmail.com>
- <200909131843.18007.marek.vasut@gmail.com> <Pine.LNX.4.64.0909132030530.9668@axis700.grange>
- <200909141635.24286.marek.vasut@gmail.com>
+Received: from mail-vw0-f203.google.com ([209.85.212.203]:60611 "EHLO
+	mail-vw0-f203.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751516AbZIWRzq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Sep 2009 13:55:46 -0400
+Received: by vws41 with SMTP id 41so604557vws.4
+        for <linux-media@vger.kernel.org>; Wed, 23 Sep 2009 10:55:50 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Date: Wed, 23 Sep 2009 10:55:50 -0700
+Message-ID: <a3ef07920909231055o53c93bean6894fa536cdaa5dc@mail.gmail.com>
+Subject: Genpix driver is broken (no 8psk lock). Here's why & how to fix.
+From: VDR User <user.vdr@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Cc: Alan Nisota <alannisota@gmail.com>,
+	Patrick Boettcher <pboettcher@kernellabs.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ok, you were faster than I:-) If you agree, I can just remove those two 
-RGB formats myself, changing your comment to a TODO, and modify the 
-comment next to msleep(150) (if you could tell me what value didn't work, 
-that would be appreciated) and push it out.
+Over a month ago I reported a problem with a change that was made to
+the Genpix driver which broke 8PSK.  The change limited DVB-S streams
+to QPSK and 8PSK to DVB-S2.  There are a couple problems with this.
+First of all, Genpix devices do NOT support DVB-S2 but pretends to for
+access to 8PSK.  Secondly, the 8PSK the Genpix provides is modified,
+aka 8PSK turbo-fec.  Two of the biggest North American DVB-S providers
+use 8PSK turbo-fec for a lot of their content.  Therefore, limiting
+DVB-S to QPSK only is crippling reception of all those providers
+transponders which use it.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Ideally 8PSK should be allowed for DVB-S in v4l so that a device like
+the Genpix doesn't have to pretend to be something it's not to use it.
+ While I seriously doubt that will be fixed, this problem can still be
+resolved by simply reverting back to the drivers original behavior
+with the following patch:
+
+diff -pruN v4l-dvb.orig/linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c
+v4l-dvb/linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c
+--- v4l-dvb.orig/linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c
+2009-08-14 19:17:43.000000000 -0700
++++ v4l-dvb/linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c 2009-08-14
+19:19:18.000000000 -0700
+@@ -146,8 +146,8 @@ static int gp8psk_fe_set_frontend(struct
+
+        switch (c->delivery_system) {
+        case SYS_DVBS:
+-               /* Only QPSK is supported for DVB-S */
+-               if (c->modulation != QPSK) {
++               /* Allow QPSK and 8PSK */
++               if (c->modulation != QPSK && c->modulation != PSK_8) {
+                        deb_fe("%s: unsupported modulation selected (%d)\n",
+                                __func__, c->modulation);
+                        return -EOPNOTSUPP;
