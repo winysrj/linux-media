@@ -1,198 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f206.google.com ([209.85.219.206]:42834 "EHLO
-	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752813AbZIJHvd convert rfc822-to-8bit (ORCPT
+Received: from mail-ew0-f211.google.com ([209.85.219.211]:34846 "EHLO
+	mail-ew0-f211.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751073AbZIWM62 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Sep 2009 03:51:33 -0400
-Received: by ewy2 with SMTP id 2so120548ewy.17
-        for <linux-media@vger.kernel.org>; Thu, 10 Sep 2009 00:51:35 -0700 (PDT)
+	Wed, 23 Sep 2009 08:58:28 -0400
+Received: by ewy7 with SMTP id 7so655939ewy.17
+        for <linux-media@vger.kernel.org>; Wed, 23 Sep 2009 05:58:31 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20090909174351.39b8f88f@blackbart.localnet.prv>
-References: <20090909174351.39b8f88f@blackbart.localnet.prv>
-Date: Thu, 10 Sep 2009 09:51:35 +0200
-Message-ID: <62e5edd40909100051i683b1d11ga27c0bfe0742c89d@mail.gmail.com>
-Subject: Re: [Patch 2/2] stv06xx webcams with HDCS 1xxx sensors
-From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
-To: James Blanford <jhblanford@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <1253495337.3257.3.camel@pc07.localdom.local>
+References: <4AB646CD.3030909@gmail.com>
+	 <1253491552.27219.6.camel@AcerAspire4710>
+	 <1253495337.3257.3.camel@pc07.localdom.local>
+Date: Wed, 23 Sep 2009 13:58:30 +0100
+Message-ID: <2ebb56ce0909230558y4aa4dcabhb3e6aa1024a5bdb9@mail.gmail.com>
+Subject: Re: [PATCH] Add support for Asus Europa Hybrid DVB-T card (SAA7134
+	SubVendor ID: 0x1043 Device ID: 0x4847)
+From: Danny <danwood76@gmail.com>
+To: hermann pitton <hermann-pitton@arcor.de>,
+	phamthanhnam.ptn@gmail.com, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/9/9 James Blanford <jhblanford@gmail.com>:
-> Quickcam Express 046d:0840 and maybe others
->
-> Driver version:  v 2.60 from 2.6.31-rc7
->
-> Due to rounding and clipping, exposure and gain settings do not map to
-> unique register values.  Rather than read the registers and report gain
-> and exposure that may be different than the values that were set, just
-> cache the latest values that were set and report them.  Reduce exposure
-> range from 0-65535 to 0-255 so libv4l's autogain doesn't take forever.
-> Remove vestiges of driver signal processing that is now handled by
-> libv4l.
->
-> Signed-off-by: James Blanford <jhblanford@gmail.com>
-> diff -upr a/drivers/media/video/gspca/stv06xx/stv06xx_hdcs.c b/drivers/media/video/gspca/stv06xx/stv06xx_hdcs.c
-> --- a/drivers/media/video/gspca/stv06xx/stv06xx_hdcs.c  2009-09-09 14:59:35.000000000 -0400
-> +++ b/drivers/media/video/gspca/stv06xx/stv06xx_hdcs.c  2009-09-09 16:30:08.000000000 -0400
-> @@ -37,7 +37,7 @@ static const struct ctrl hdcs1x00_ctrl[]
->                        .type           = V4L2_CTRL_TYPE_INTEGER,
->                        .name           = "exposure",
->                        .minimum        = 0x00,
-> -                       .maximum        = 0xffff,
-> +                       .maximum        = 0xff,
->                        .step           = 0x1,
->                        .default_value  = HDCS_DEFAULT_EXPOSURE,
->                        .flags          = V4L2_CTRL_FLAG_SLIDER
-> @@ -120,6 +120,7 @@ struct hdcs {
->        } exp;
->
->        int psmp;
-> +       u8 exp_cache, gain_cache;
->  };
->
->  static int hdcs_reg_write_seq(struct sd *sd, u8 reg, u8 *vals, u8 len)
-> @@ -205,34 +206,8 @@ static int hdcs_get_exposure(struct gspc
->        struct sd *sd = (struct sd *) gspca_dev;
->        struct hdcs *hdcs = sd->sensor_priv;
->
-> -       /* Column time period */
-> -       int ct;
-> -       /* Column processing period */
-> -       int cp;
-> -       /* Row processing period */
-> -       int rp;
-> -       int cycles;
-> -       int err;
-> -       int rowexp;
-> -       u16 data[2];
-> -
-> -       err = stv06xx_read_sensor(sd, HDCS_ROWEXPL, &data[0]);
-> -       if (err < 0)
-> -               return err;
-> -
-> -       err = stv06xx_read_sensor(sd, HDCS_ROWEXPH, &data[1]);
-> -       if (err < 0)
-> -               return err;
-> -
-> -       rowexp = (data[1] << 8) | data[0];
-> +       *val = hdcs->exp_cache;
->
-> -       ct = hdcs->exp.cto + hdcs->psmp + (HDCS_ADC_START_SIG_DUR + 2);
-> -       cp = hdcs->exp.cto + (hdcs->w * ct / 2);
-> -       rp = hdcs->exp.rs + cp;
-> -
-> -       cycles = rp * rowexp;
-> -       *val = cycles / HDCS_CLK_FREQ_MHZ;
-> -       PDEBUG(D_V4L2, "Read exposure %d", *val);
->        return 0;
->  }
->
-> @@ -254,7 +229,10 @@ static int hdcs_set_exposure(struct gspc
->        int cycles, err;
->        u8 exp[14];
->
-> -       cycles = val * HDCS_CLK_FREQ_MHZ;
-> +       val &= 0xff;
-> +       hdcs->exp_cache = val;
-> +
-> +       cycles = val * HDCS_CLK_FREQ_MHZ * 257;
+So should I resubmit the patch with this extra file patched or not?
 
-Why 257 here? I guess it is some kind of expansion factor.
 
+On Mon, Sep 21, 2009 at 2:08 AM, hermann pitton <hermann-pitton@arcor.de> wrote:
+> Hi Pham,
 >
->        ct = hdcs->exp.cto + hdcs->psmp + (HDCS_ADC_START_SIG_DUR + 2);
->        cp = hdcs->exp.cto + (hdcs->w * ct / 2);
-> @@ -325,49 +303,42 @@ static int hdcs_set_exposure(struct gspc
->        return err;
->  }
+> Am Montag, den 21.09.2009, 07:05 +0700 schrieb Pham Thanh Nam:
+>> Hi, Danny
+>> Please add an entry in:
+>> linux/Documentation/video4linux/CARDLIST.saa7134
+>> Regards.
 >
-> -static int hdcs_set_gains(struct sd *sd, u8 r, u8 g, u8 b)
-> +static int hdcs_set_gains(struct sd *sd, u8 g)
->  {
-> +       struct hdcs *hdcs = sd->sensor_priv;
-> +       int err;
->        u8 gains[4];
+> that is not so important.
 >
-> +       hdcs->gain_cache = g;
-> +
->        /* the voltage gain Av = (1 + 19 * val / 127) * (1 + bit7) */
-> -       if (r > 127)
-> -               r = 0x80 | (r / 2);
->        if (g > 127)
->                g = 0x80 | (g / 2);
-> -       if (b > 127)
-> -               b = 0x80 | (b / 2);
+> It will be auto magically created by scripts, if Mauro pulls it in.
 >
->        gains[0] = g;
-> -       gains[1] = r;
-> -       gains[2] = b;
-> +       gains[1] = g;
-> +       gains[2] = g;
->        gains[3] = g;
+> Cheers,
+> Hermann
 >
-> -       return hdcs_reg_write_seq(sd, HDCS_ERECPGA, gains, 4);
-> +       err = hdcs_reg_write_seq(sd, HDCS_ERECPGA, gains, 4);
-> +               return err;
->  }
+>> VÃ o CN, ngÃ y 20, 09 nÄƒm 2009 lÃºc 16:14 +0100, Danny Wood viáº¿t:
+>> > Adds the device IDs and driver linking to allow the Asus Europa DVB-T
+>> > card to operate with these drivers.
+>> > The device has a SAA7134 chipset with a TD1316 Hybrid Tuner.
+>> > All inputs work on the card including switching between DVB-T and
+>> > Analogue TV, there is also no IR with this card.
+>> >
+>> > (Resent with fixed email formatting)
+>> >
+>> > Signed-off-by: Danny Wood <danwood76@gmail.com>
+>> > diff -ruN a/linux/drivers/media/video/saa7134/saa7134-cards.c b/linux/drivers/media/video/saa7134/saa7134-cards.c
+>> > --- a/linux/drivers/media/video/saa7134/saa7134-cards.c Â  Â  2009-09-20 09:10:03.000000000 +0100
+>> > +++ b/linux/drivers/media/video/saa7134/saa7134-cards.c Â  Â  2009-09-20 09:07:21.000000000 +0100
+>> > @@ -5317,6 +5317,30 @@
+>> > Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  .amux = TV,
+>> > Â  Â  Â  Â  Â  Â  },
+>> > Â  Â  },
+>> > + Â  [SAA7134_BOARD_ASUS_EUROPA_HYBRID] = {
+>> > + Â  Â  Â  Â  Â  .name Â  Â  Â  Â  Â  = "Asus Europa Hybrid OEM",
+>> > + Â  Â  Â  Â  Â  .audio_clock Â  Â = 0x00187de7,
+>> > + Â  Â  Â  Â  Â  .tuner_type Â  Â  = TUNER_PHILIPS_TD1316,
+>> > + Â  Â  Â  Â  Â  .radio_type Â  Â  = UNSET,
+>> > + Â  Â  Â  Â  Â  .tuner_addr Â  Â  = 0x61,
+>> > + Â  Â  Â  Â  Â  .radio_addr Â  Â  = ADDR_UNSET,
+>> > + Â  Â  Â  Â  Â  .tda9887_conf Â  = TDA9887_PRESENT | TDA9887_PORT1_ACTIVE,
+>> > + Â  Â  Â  Â  Â  .mpeg Â  Â  Â  Â  Â  = SAA7134_MPEG_DVB,
+>> > + Â  Â  Â  Â  Â  .inputs = {{
+>> > + Â  Â  Â  Â  Â  Â  Â  Â  Â  .name Â  = name_tv,
+>> > + Â  Â  Â  Â  Â  Â  Â  Â  Â  .vmux Â  = 3,
+>> > + Â  Â  Â  Â  Â  Â  Â  Â  Â  .amux Â  = TV,
+>> > + Â  Â  Â  Â  Â  Â  Â  Â  Â  .tv Â  Â  = 1,
+>> > + Â  Â  Â  Â  Â  },{
+>> > + Â  Â  Â  Â  Â  Â  Â  Â  Â  .name Â  = name_comp1,
+>> > + Â  Â  Â  Â  Â  Â  Â  Â  Â  .vmux Â  = 4,
+>> > + Â  Â  Â  Â  Â  Â  Â  Â  Â  .amux Â  = LINE2,
+>> > + Â  Â  Â  Â  Â  },{
+>> > + Â  Â  Â  Â  Â  Â  Â  Â  Â  .name Â  = name_svideo,
+>> > + Â  Â  Â  Â  Â  Â  Â  Â  Â  .vmux Â  = 8,
+>> > + Â  Â  Â  Â  Â  Â  Â  Â  Â  .amux Â  = LINE2,
+>> > + Â  Â  Â  Â  Â  }},
+>> > + Â  },
+>> >
+>> > Â };
+>> >
+>> > @@ -6455,6 +6479,12 @@
+>> > Â  Â  Â  Â  Â  Â  .subvendor Â  Â = PCI_VENDOR_ID_PHILIPS,
+>> > Â  Â  Â  Â  Â  Â  .subdevice Â  Â = 0x2004,
+>> > Â  Â  Â  Â  Â  Â  .driver_data Â = SAA7134_BOARD_ZOLID_HYBRID_PCI,
+>> > + Â  },{
+>> > + Â  Â  Â  Â  Â  .vendor Â  Â  Â  = PCI_VENDOR_ID_PHILIPS,
+>> > + Â  Â  Â  Â  Â  .device Â  Â  Â  = PCI_DEVICE_ID_PHILIPS_SAA7134,
+>> > + Â  Â  Â  Â  Â  .subvendor Â  Â = 0x1043,
+>> > + Â  Â  Â  Â  Â  .subdevice Â  Â = 0x4847,
+>> > + Â  Â  Â  Â  Â  .driver_data Â = SAA7134_BOARD_ASUS_EUROPA_HYBRID,
+>> > Â  Â  }, {
+>> > Â  Â  Â  Â  Â  Â  /* --- boards without eeprom + subsystem ID --- */
+>> > Â  Â  Â  Â  Â  Â  .vendor Â  Â  Â  = PCI_VENDOR_ID_PHILIPS,
+>> > @@ -7162,6 +7192,7 @@
+>> > Â  Â  Â  Â  Â  Â  /* break intentionally omitted */
+>> > Â  Â  case SAA7134_BOARD_VIDEOMATE_DVBT_300:
+>> > Â  Â  case SAA7134_BOARD_ASUS_EUROPA2_HYBRID:
+>> > + Â  case SAA7134_BOARD_ASUS_EUROPA_HYBRID:
+>> > Â  Â  {
+>> >
+>> > Â  Â  Â  Â  Â  Â  /* The Philips EUROPA based hybrid boards have the tuner
+>> > diff -ruN a/linux/drivers/media/video/saa7134/saa7134-dvb.c b/linux/drivers/media/video/saa7134/saa7134-dvb.c
+>> > --- a/linux/drivers/media/video/saa7134/saa7134-dvb.c Â  Â  Â  2009-09-20 09:10:03.000000000 +0100
+>> > +++ b/linux/drivers/media/video/saa7134/saa7134-dvb.c Â  Â  Â  2009-09-20 08:58:51.000000000 +0100
+>> > @@ -1116,6 +1116,7 @@
+>> > Â  Â  Â  Â  Â  Â  break;
+>> > Â  Â  case SAA7134_BOARD_PHILIPS_EUROPA:
+>> > Â  Â  case SAA7134_BOARD_VIDEOMATE_DVBT_300:
+>> > + Â  case SAA7134_BOARD_ASUS_EUROPA_HYBRID:
+>> > Â  Â  Â  Â  Â  Â  fe0->dvb.frontend = dvb_attach(tda10046_attach,
+>> > Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â &philips_europa_config,
+>> > Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â &dev->i2c_adap);
+>> > diff -ruN a/linux/drivers/media/video/saa7134/saa7134.h b/linux/drivers/media/video/saa7134/saa7134.h
+>> > --- a/linux/drivers/media/video/saa7134/saa7134.h Â  2009-09-20 09:10:03.000000000 +0100
+>> > +++ b/linux/drivers/media/video/saa7134/saa7134.h Â  2009-09-20 09:08:15.000000000 +0100
+>> > @@ -298,6 +298,7 @@
+>> > Â #define SAA7134_BOARD_BEHOLD_X7 Â  Â  Â  Â  Â  Â  171
+>> > Â #define SAA7134_BOARD_ROVERMEDIA_LINK_PRO_FM 172
+>> > Â #define SAA7134_BOARD_ZOLID_HYBRID_PCI Â  Â  Â  Â  Â  Â  173
+>> > +#define SAA7134_BOARD_ASUS_EUROPA_HYBRID Â  174
+>> >
+>> > Â #define SAA7134_MAXBOARDS 32
+>> > Â #define SAA7134_INPUT_MAX 8
+>> >
 >
->  static int hdcs_get_gain(struct gspca_dev *gspca_dev, __s32 *val)
->  {
->        struct sd *sd = (struct sd *) gspca_dev;
-> -       int err;
-> -       u16 data;
-> +       struct hdcs *hdcs = sd->sensor_priv;
 >
-> -       err = stv06xx_read_sensor(sd, HDCS_ERECPGA, &data);
-> +       *val = hdcs->gain_cache;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at Â http://vger.kernel.org/majordomo-info.html
 >
-> -       /* Bit 7 doubles the gain */
-> -       if (data & 0x80)
-> -               *val = (data & 0x7f) * 2;
-> -       else
-> -               *val = data;
-> -
-> -       PDEBUG(D_V4L2, "Read gain %d", *val);
-> -       return err;
-> +       return 0;
->  }
->
->  static int hdcs_set_gain(struct gspca_dev *gspca_dev, __s32 val)
->  {
->        PDEBUG(D_V4L2, "Writing gain %d", val);
->        return hdcs_set_gains((struct sd *) gspca_dev,
-> -                              val & 0xff, val & 0xff, val & 0xff);
-> +                              val & 0xff);
->  }
->
->  static int hdcs_set_size(struct sd *sd,
-> @@ -585,8 +556,7 @@ static int hdcs_init(struct sd *sd)
->        if (err < 0)
->                return err;
->
-> -       err = hdcs_set_gains(sd, HDCS_DEFAULT_GAIN, HDCS_DEFAULT_GAIN,
-> -                            HDCS_DEFAULT_GAIN);
-> +       err = hdcs_set_gains(sd, HDCS_DEFAULT_GAIN);
->        if (err < 0)
->                return err;
->
-> diff -upr a/drivers/media/video/gspca/stv06xx/stv06xx_hdcs.h b/drivers/media/video/gspca/stv06xx/stv06xx_hdcs.h
-> --- a/drivers/media/video/gspca/stv06xx/stv06xx_hdcs.h  2009-09-01 13:36:04.000000000 -0400
-> +++ b/drivers/media/video/gspca/stv06xx/stv06xx_hdcs.h  2009-09-09 16:05:43.000000000 -0400
-> @@ -124,7 +124,7 @@
->  #define HDCS_RUN_ENABLE                (1 << 2)
->  #define HDCS_SLEEP_MODE                (1 << 1)
->
-> -#define HDCS_DEFAULT_EXPOSURE  5000
-> +#define HDCS_DEFAULT_EXPOSURE  48
->  #define HDCS_DEFAULT_GAIN      128
->
->  static int hdcs_probe_1x00(struct sd *sd);
->
-
-Looks good!
-Thanks,
-
-Acked-by: Erik Andrén <erik.andren@gmail.com>
