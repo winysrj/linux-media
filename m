@@ -1,79 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [193.252.22.190] ([193.252.22.190]:30370 "EHLO
-	smtp6.freeserve.com" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S933051AbZIDJPn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Sep 2009 05:15:43 -0400
-From: "Chris Thornley" <C.J.Thornley@coolrose.fsnet.co.uk>
-To: <linux-media@vger.kernel.org>
-Cc: <linux-dvb@linuxtv.org>
-References: <!&!AAAAAAAAAAAYAAAAAAAAAMs7WpTkg9MRuRcAACHFyB/CgAAAEAAAAJQ52z3qEFtDsl72y5icHrgBAAAAAA==@coolrose.fsnet.co.uk> <200908122130.15270.jens.nixdorf@gmx.de> <20090904082956.GB7618@seneca.muc.de>
-In-Reply-To: <20090904082956.GB7618@seneca.muc.de>
-Subject: RE: [linux-dvb] TechnoTrend TT-connect S2-3650 CI
-Date: Fri, 4 Sep 2009 10:15:16 +0100
-Message-ID: <!&!AAAAAAAAAAAYAAAAAAAAAMs7WpTkg9MRuRcAACHFyB/CgAAAEAAAABC/vOiiinVFtYa9GtWASsoBAAAAAA==@coolrose.fsnet.co.uk>
+Received: from mga11.intel.com ([192.55.52.93]:14929 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751174AbZIXLVQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Sep 2009 07:21:16 -0400
+From: "Yu, Jinlu" <jinlu.yu@intel.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Thu, 24 Sep 2009 19:21:40 +0800
+Subject: Re: [PATCH 0/5] V4L2 patches for Intel Moorestown Camera Imaging
+Message-ID: <037F493892196B458CD3E193E8EBAD4F01ED6EEE10@pdsmsx502.ccr.corp.intel.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
- 
-There's still no fully working driver for the TT-connectR CT-3650 CI DVB-C
-and DVB-T which is very similar to the TT-connect S2-3650 CI. 
-Is anyone working on getting this USB device to correctly work with the
-driver and successfully tune into channels or is this problem being ignored
-in the hope it will go away?
+Hi, Hans/Guennadi
 
-Thanks
-Chris
+I am modifying these drivers to comply with v4l2 framework. I have finished replacing our buffer managing code with utility function from videobuf-core.c and videobuf-dma-contig.c. Now I am working on the subdev. One thing I am sure is that each sensor should be registered as a v4l2_subdev and ISP (Image Signal Processor) is registered as a v4l2_device acting as the bridge device. 
 
-               />      Christopher J. Thornley is cjt@coolrose.fsnet.co.uk
-  (           //------------------------------------------------------,
- (*)OXOXOXOXO(*>=*=O=S=U=0=3=6=*=---------                             >
-  (           \\------------------------------------------------------'
-               \>       Home Page :-http://www.coolrose.fsnet.co.uk
- 
------Original Message-----
-From: linux-media-owner@vger.kernel.org
-[mailto:linux-media-owner@vger.kernel.org] On Behalf Of Harald Milz
-Sent: 04 September 2009 09:30
-To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TechnoTrend TT-connect S2-3650 CI
+But we have two ways to deal with the relationship of sensor and ISP, and we don't know which one is better. Could you help me on this?
 
+No.1. Register the ISP as a video_device (/dev/video0) and treat each of the sensor (SOC and RAW) as an input of the ISP. If I want to change the sensor, use the VIDIOC_S_INPUT to change input from sensor A to sensor B. But I have a concern about this ioctl. Since I didn't find any code related HW pipeline status checking and HW register setting in the implement of this ioctl (e.g. vino_s_input in /drivers/media/video/vino.c). So don't I have to stream-off the HW pipeline and change the HW register setting for the new input? Or is it application's responsibility to stream-off the pipeline and renegotiate the parameters for the new input?
 
-On Wed, Aug 12, 2009 at 09:30:15PM +0200, Jens Nixdorf wrote:
-> As Niels told you already, you cant use both types of driver. I own 
-> the same DVB-S2-Box from Technotrend and i'm using it with VDR 1.7.0 
-> in ubuntu 9.04. I was following the wiki for installing s2-liplianin- 
-> drivers, and since this time the box is running including its CI.
+No.2. Combine the SOC sensor together with the ISP as Channel One and register it as /dev/video0, and combine the RAW sensor together with the ISP as Channel Two and register it as /dev/video1. Surely, only one channel works at a certain time due to HW restriction. When I want to change the sensor (e.g. from SOC sensor to RAW sensor), just close /dev/video0 and open /dev/video1.
 
-Mine as well under openSUSE 11.1. The part should definitely get the
-"supported" status. I figure the s2-liaplianin tree need to me merged into
-the official tree then. As the S2-3200 card which is technically very
-similar except for the USB interface is officially supported in kernel
-2.6.29, a respective hint should be added to the Wiki. I may test a 2.6.29
-kernel for openSUSE 11.1 today and give some feedback. 
+Best Regards
+Jinlu Yu
+Intel China Research Center
 
-Same for the S2-3600 which is technically identical except for the CI. 
-
-Any idea if the Satelco part
-(http://www.amazon.de/SATELCO-EasyWatch-HDTV-USB-DVB-S2/dp/B000X1C02W) is a
-OEM part of the S2-3650? 
-
-> Maybe there could be some optimization (the log is full with some 
-> bandwisth-messages from the stb6100-part), but it works at least good 
-> enough for me.
-
-"modprobe ... verbose=0"  helps. 
-
---
-Save the Whales -- Harpoon a Honda.
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org More majordomo info at
-http://vger.kernel.org/majordomo-info.html
-
-
-
+>-----Original Message-----
+>From: linux-media-owner@vger.kernel.org
+>[mailto:linux-media-owner@vger.kernel.org] On Behalf Of Hans Verkuil
+>Sent: Saturday, May 02, 2009 11:43 PM
+>To: Guennadi Liakhovetski
+>Cc: Zhang, Xiaolin; linux-media@vger.kernel.org; Johnson, Charles F; Zhu, Daniel
+>Subject: Re: [PATCH 0/5] V4L2 patches for Intel Moorestown Camera Imaging
+>Drivers
+>
+>On Friday 01 May 2009 23:26:02 Guennadi Liakhovetski wrote:
+>> On Thu, 30 Apr 2009, Zhang, Xiaolin wrote:
+>> > Hi All,
+>> >
+>> > Here is the a set of V4L2 camera sensors and ISP drivers to support the
+>> > Intel Moorestown camera imaging subsystem. The Camera Imaging interface
+>> > in Moorestown is responsible for capturing both still and video frames.
+>> > The CI handles demosaicing, color synthesis, filtering, image
+>> > enhancement functions and JPEG encode. Intel Moorestown platform can
+>> > support either a single camera or two cameras. A platform with two
+>> > cameras will have on the same side as this display and the second on
+>> > the opposite side the display. The camera on the display side will be
+>> > used for video conferencing (with low resolution SoC cameras) and the
+>> > other camera is used to still image capture or video recode (with high
+>> > resolution RAW cameras).
+>> >
+>> > In this set of driver patches, I will submit the 5 patches to enable
+>> > the ISP HW and 3 cameras module (two SoCs: 1.3MP - Omnivision 9665, 2MP
+>> > - Omnivison 2650 and one RAW: 5MP - Omnivision 5630).
+>> > 1. Intel Moorestown ISP driver.
+>> > 2. Intel Moorestown camera sensor pseudo driver. This is to uniform the
+>> > interfaces for ISP due to supporting dual cameras.
+>> > 3. Intel Moorestown 2MP camera sensor driver.
+>> > 4. Intel Moorestown 5MP camera sensor driver.
+>> > 5. Intel Moorestown 1.3MP camera sensor driver.
+>> >
+>> > I will post the above 5 patches in near feature.
+>>
+>> I think this is a perfect candidate for the use of the v4l2-(sub)dev API,
+>> and should be converted to use it, am I right?
+>
+>Absolutely. The sensor drivers must use v4l2_subdev, otherwise they will not
+>be reusable by other drivers.
+>
+>There is a lot of work that needs to be done before these sensor drivers can
+>be merged. These sensor drivers are tightly coupled to the platform driver,
+>thus preventing any reuse of these i2c devices. That's bad and something
+>that needs to be fixed first.
+>
+>Xiaolin, please take a look at Documentation/video4linux/v4l2-framework.txt
+>for information on the new v4l2 framework. All v4l2 i2c drivers should use
+>v4l2_subdev to enable reuse of these i2c devices in other platform drivers
+>and webcams.
+>
+>Regards,
+>
+>	Hans
+>
+>>
+>> Thanks
+>> Guennadi
+>> ---
+>> Guennadi Liakhovetski, Ph.D.
+>> Freelance Open-Source Software Developer
+>> http://www.open-technology.de/
+>
+>
+>
+>--
+>Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
