@@ -1,56 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f206.google.com ([209.85.219.206]:37248 "EHLO
-	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751449AbZIMShL convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2472 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752622AbZIXSFP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2009 14:37:11 -0400
-Received: by ewy2 with SMTP id 2so163128ewy.17
-        for <linux-media@vger.kernel.org>; Sun, 13 Sep 2009 11:37:13 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4AAD3A52.7080807@redhat.com>
-References: <20090909174351.39b8f88f@blackbart.localnet.prv>
-	 <62e5edd40909100051i683b1d11ga27c0bfe0742c89d@mail.gmail.com>
-	 <4AAD3A52.7080807@redhat.com>
-Date: Sun, 13 Sep 2009 20:37:13 +0200
-Message-ID: <62e5edd40909131137m3d509ce3o3abe0741e880448b@mail.gmail.com>
-Subject: Re: [Patch 2/2] stv06xx webcams with HDCS 1xxx sensors
-From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: James Blanford <jhblanford@gmail.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Thu, 24 Sep 2009 14:05:15 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id n8OI5HKV099440
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 24 Sep 2009 20:05:18 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 24 Sep 2009 20:05:17 +0200 (CEST)
+Message-Id: <200909241805.n8OI5HKV099440@smtp-vbr9.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/9/13 Hans de Goede <hdegoede@redhat.com>:
-> Hi,
->
-> On 09/10/2009 09:51 AM, Erik Andrén wrote:
->
-> <snip>
->
->>
->> Looks good!
->> Thanks,
->>
->> Acked-by: Erik Andrén<erik.andren@gmail.com>
->
-> Erik,
->
-> Are you going to merge these 2 patches in your tree, and let them find
-> their way into the master this way, or shall I merge them in my tree ?
->
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Hi,
-I was under the impression that Jean-Francois took stv06xx patches
-directly into his tree.
-But you can of course take them too if you want to.
+Results of the daily build of v4l-dvb:
 
-Best regards,
-Erik
+date:        Thu Sep 24 19:00:03 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13041:a798c751f06d
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-> Regards,
->
-> Hans
->
->
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.27-armv5-ixp: ERRORS
+linux-2.6.28-armv5-ixp: ERRORS
+linux-2.6.29.1-armv5-ixp: ERRORS
+linux-2.6.30-armv5-ixp: ERRORS
+linux-2.6.31-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.27-powerpc64: ERRORS
+linux-2.6.28-powerpc64: ERRORS
+linux-2.6.29.1-powerpc64: ERRORS
+linux-2.6.30-powerpc64: ERRORS
+linux-2.6.31-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+sparse (linux-2.6.31): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
