@@ -1,78 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55707 "EHLO mail.kapsi.fi"
+Received: from cnc.isely.net ([64.81.146.143]:36755 "EHLO cnc.isely.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753121AbZIJU34 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Sep 2009 16:29:56 -0400
-Message-ID: <4AA961BF.2040308@iki.fi>
-Date: Thu, 10 Sep 2009 23:29:51 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>,
-	Markus Rechberger <mrechberger@gmail.com>,
-	Clinton Meyer <clintonmeyer22@gmail.com>,
-	Linux Media <linux-media@vger.kernel.org>,
-	Heinrich Langos <henrik-vdr@prak.org>
-Subject: Re: LinuxTV firmware blocks all wireless connections / traffic
-References: <62013cda0909091443g72ebdf1bge3994b545a86c854@mail.gmail.com>	 <20090910124807.GB18426@moon> <4AA8FB2F.2040504@iki.fi>	 <20090910134139.GA20149@moon> <4AA9038B.8090404@iki.fi>	 <4AA911B6.2040301@iki.fi>	 <829197380909100826i3e2f8315yd6a0258f38a6c7b9@mail.gmail.com>	 <4AA92160.5080200@iki.fi>	 <829197380909100912xdb34da0s55587f6fe9c0f1d5@mail.gmail.com>	 <4AA92DF6.80107@iki.fi> <829197380909101017w17645c56te9fe829b59812800@mail.gmail.com>
-In-Reply-To: <829197380909101017w17645c56te9fe829b59812800@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	id S1750717AbZIXEpg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Sep 2009 00:45:36 -0400
+Date: Wed, 23 Sep 2009 23:45:40 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+To: dean <dean@sensoray.com>
+cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] s2255drv: Don't conditionalize video buffer completion
+ on waiting processes
+In-Reply-To: <4ABAADEF.1030309@sensoray.com>
+Message-ID: <alpine.DEB.1.10.0909232341010.4579@cnc.isely.net>
+References: <alpine.DEB.1.10.0909231603210.29815@cnc.isely.net> <4ABAADEF.1030309@sensoray.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/10/2009 08:17 PM, Devin Heitmueller wrote:
-> On Thu, Sep 10, 2009 at 12:48 PM, Antti Palosaari<crope@iki.fi>  wrote:
->> Yes thats just what I tried to say for. Look my previous thread where all
->> currently sizes are listed. We need to define suitable values that are used.
->> For example USB2.0 DVB-C, DVB-T, ATSC and same values for USB1.1 too. And
->> stream size can vary much depending used transmission parameters too but I
->> think such kind resolution logic is not needed.
->>
->> Currently there is almost everything between 512 to 65k used for DVB-T that
->> makes huge difference to load device causing.
->>
->> Does anyone know if there is some table which says what are good USB
->> transmission parameters for each bandwidth needed?
->
-> The problem is that there cannot be any single set of rules that apply
-> to all devices.  For each chip, the rules are different and either
-> need to be reverse engineered by the maintainer or someone has to
-> refer to the datasheet if available.
+On Wed, 23 Sep 2009, dean wrote:
 
-Eh, not all needed, but we need some kind of rule of thumb which URB 
-size is suitable for bandwidth used. 512, 8k, 16k etc. It is not wise at 
-all set it to only 512 bytes when streaming whole TS example 22Mbit/sec. 
-I have tested Anysee (Cypress FX2), AF9015, CE6230, RTL2831U and all 
-those allowed to set URB rather freely. I haven't seen yet device which 
-forces to use just one size - though it is possible there is. And no 
-datasheet even needed, you can see from debug log or error code if URB 
-is not suitable.
-Why not set it some good value when possible? And also adding module 
-parameter which overrides driver default is not hard to add, just look 
-value user gives as param and round it to nearest suitable one.
+> This seems ok.  This portion of code was based on vivi.c, so that might be
+> checked also.
 
-> It comes as no surprise that there is a huge variation on the URB
-> sizes chosen, and there is almost certainly an opportunity for
-> improvement on most bridges.  I suspect the logic applied by most of
-> the people who wrote the bridge drivers was to find the first value
-> that "works" and then not do any subsequent tuning/optimization.  Like
-> the situation with power management or tuning time, this just doesn't
-> seem to have been a priority.  And given how few developers we have
-> actually fixing bugs, adding support for new boards, and writing new
-> drivers, I can hardly blame them.
+Yes, after seeing the mention of vivi in this driver I looked at vivi.c 
+and saw the same construct there.  Though I'm willing to bet that it's 
+just as incorrect there as it was here, I haven't tested or otherwise 
+used vivi so I wasn't prepared to recommend a patch for it as well.
 
-Of course it is easiest to set as small as possible, 512 or 188 usually 
-and it is working. wakeups are then very high but not much buffers needed.
+Probably vivi should be fixed, since it is after all intended as a model 
+for other v4l driver developers.  (And are there any other drivers based 
+on vivi which have inherited this bug as well?)
 
-> Unfortunately, with limited resources, we have to pick our battles -
-> which is more important:  having a slightly more optimal allocation
-> that produces fewer wakeups?  Or getting new product XYZ to work and
-> fixing bugs that are highly visible to end-users?
->
-> Devin
->
+  -Mike
 
-Antti
+
+> 
+> 
+> 
+> Mike Isely wrote:
+> > # HG changeset patch
+> > # User Mike Isely <isely@pobox.com>
+> > # Date 1253739604 18000
+> > # Node ID 522a74147753ba59c7f45e368439928090a286f2
+> > # Parent  e349075171ddf939381fad432c23c1269abc4899
+> > s2255drv: Don't conditionalize video buffer completion on waiting processes
+> > 
+> > From: Mike Isely <isely@pobox.com>
+> > 
+> > The s2255 driver had logic which aborted processing of a video frame
+> > if there was no process waiting on the video buffer in question.  That
+> > simply doesn't work when the application is doing things in an
+> > asynchronous manner.  If the application went to the trouble to queue
+> > the buffer in the first place, then the driver should always attempt
+> > to complete it - even if the application at that moment has its
+> > attention turned elsewhere.  Applications which always blocked waiting
+> > for I/O on the capture device would not have been affected by this.
+> > Applications which *mostly* blocked waiting for I/O on the capture
+> > device probably only would have been somewhat affected (frame lossage,
+> > at a rate which goes up as the application blocks less).  Applications
+> > which never blocked on the capture device (e.g. polling only) however
+> > would never have been able to receive any video frames, since in that
+> > case this "is anyone waiting on this?" check on the buffer never would
+> > have evalutated true.  This patch just deletes that harmful check
+> > against the buffer's wait queue.
+> > 
+> > Priority: high
+> > 
+> > Signed-off-by: Mike Isely <isely@pobox.com>
+> > 
+> > diff -r e349075171dd -r 522a74147753 linux/drivers/media/video/s2255drv.c
+> > --- a/linux/drivers/media/video/s2255drv.c	Mon Sep 21 10:42:22 2009 -0500
+> > +++ b/linux/drivers/media/video/s2255drv.c	Wed Sep 23 16:00:04 2009 -0500
+> > @@ -599,11 +599,6 @@
+> >  	buf = list_entry(dma_q->active.next,
+> >  			 struct s2255_buffer, vb.queue);
+> >  -	if (!waitqueue_active(&buf->vb.done)) {
+> > -		/* no one active */
+> > -		rc = -1;
+> > -		goto unlock;
+> > -	}
+> >  	list_del(&buf->vb.queue);
+> >  	do_gettimeofday(&buf->vb.ts);
+> >  	dprintk(100, "[%p/%d] wakeup\n", buf, buf->vb.i);
+> > 
+> > 
+> >   
+> 
+> 
+
 -- 
-http://palosaari.fi/
+
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
