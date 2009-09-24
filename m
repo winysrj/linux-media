@@ -1,56 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:44199 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752851AbZIOTUi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2009 15:20:38 -0400
-Date: Tue, 15 Sep 2009 16:20:02 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Randy Dunlap <randy.dunlap@oracle.com>,
-	linux-doc@vger.kernel.org
-Subject: V4L/DVB API specifications at linux kernel
-Message-ID: <20090915162002.1c72c5b3@pedra.chehab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mga09.intel.com ([134.134.136.24]:8338 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751196AbZIXLwy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Sep 2009 07:52:54 -0400
+From: "Yu, Jinlu" <jinlu.yu@intel.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Thu, 24 Sep 2009 19:52:44 +0800
+Subject: RE: V4L-DVB Summit Day 1
+Message-ID: <037F493892196B458CD3E193E8EBAD4F01ED6EEE13@pdsmsx502.ccr.corp.intel.com>
+References: <200909232239.20105.hverkuil@xs4all.nl>
+In-Reply-To: <200909232239.20105.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Something that always bothered me is that the documentation inside the kernel
-for V4L/DVB were never properly updated, since people that write drivers in
-general don't bother to keep the docs updated there. After some time, we've
-removed V4L1 API from kernel (in text format, as far as I can remember), but
-never added V4L2 API. Also, there weren't there any dvb api specs.
-
-As an effort to change it, I did a work during the last few weeks to port V4L2 API
-from DocBook v3.1 to DocBook XML v4.1.2. I also ported DVB specs from LaTex
-into DocBook XML v4.1.2. This way, the API docs are compatible with the DocBook version
-used in kernel (even eventually not having the same writing style as found there).
-
-I tried to make the port as simple as possible, yet preserving the original
-text. So, for sure there are space for style reviews, especially at the dvb
-part, where the LaTex -> xml conversion were harder.
-
-After having both ported, I've rearranged a few chapters and merged them
-both into just one DocBook book, to allow having some parts shared, like IR.
-
-The final document were broken into 3 parts:
-I. Video for Linux Two API Specification
-	(basically, the same contents found at V4L2 spec version 2.6.32, except for IR chapter)
-II. Linux DVB API
-	(basically, the same contents found at DVB spec version 3)
-III. Other API's used by media infrastructure drivers
-	(basically, the IR chapter taken from V4L2 spec)
-
-The resulting html pages can be seen at: http://linuxtv.org/downloads/v4l_dvb_apis/
-
-The Kernel patches with the Document are at:
-
-http://git.kernel.org/?p=linux/kernel/git/mchehab/linux-next.git;a=commit;h=9444a960e4c7c49e055bb7fa66a0805c46317ba0
-http://git.kernel.org/?p=linux/kernel/git/mchehab/linux-next.git;a=commit;h=664efd3215fdb17d5f3f70073af4a6b61d50a96c
-
-Please review. If they're ok, I'm intending to submit them for addition at 2.6.32.
-
-Cheers,
-Mauro
+QWJvdXQgU19GTVQsIE1vb3Jlc3Rvd24gQ2FtZXJhIGRyaXZlciB3aGljaCBJIGFtIHdvcmtpbmcg
+b24gaGFzIGEgZGlmZmVyZW50IHN0b3J5Lg0KDQpXZSBkbyB1c2UgZGlmZmVyZW50IHNlbnNvciBy
+ZXNvbHV0aW9ucywgYmVjYXVzZSBoaWdoIHJlc29sdXRpb24gaGFzIGxvdyBGUFMsIGFuZCBjYW4g
+bm90IGJlIHVzZWQgZm9yIHZpZXctZmluZGluZywgZS5nLiBvdjU2MzAgb25seSBvdXRwdXQgMTVm
+cHMgd2l0aCA1TWVnYSByZXNvbHV0aW9uLiANCg0KT3VyIGN1cnJlbnQgc29sdXRpb24gaXMgdG8g
+ZGlzYWJsZSB0aGUgc2NhbGVyIGluIElTUCBhbmQgb25seSBzdXBwb3J0IHRoZSByZXNvbHV0aW9u
+cyB0aGF0IHNlbnNvciBjYW4gcHJvdmlkZS4gU28gU19GTVQgd2lsbCBzZXQgdGhlIGZyYW1lc2l6
+ZSBpbnRvIHNlbnNvci4NCg0KQmVzdCBSZWdhcmRzDQpKaW5sdSBZdQ0KVU1HIFVQU0cgUFJDDQpJ
+TkVUOiA4NzU4IDE2MDMNClRFTDogIDg2IDEwIDgyMTcgMTYwMw0KRkFYOiAgODYgMTAgODI4NiAx
+NDAwDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBsaW51eC1tZWRpYS1vd25l
+ckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1tZWRpYS1vd25lckB2Z2VyLmtlcm5lbC5v
+cmddIE9uIEJlaGFsZiBPZiBIYW5zIFZlcmt1aWwNClNlbnQ6IDIwMDnE6jnUwjI0yNUgMTM6MzkN
+ClRvOiBsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcNClN1YmplY3Q6IFY0TC1EVkIgU3VtbWl0
+IERheSAxDQoNCkhpIGFsbCwNCg0KQXMgbW9zdCBvZiB5b3Uga25vdyBJIG9yZ2FuaXplZCBhIHY0
+bC1kdmIgc3VtbWl0ICh3ZWxsLCByZWFsbHkgYSB2NGwyIHN1bW1pdCANCmFzIHRoZXJlIHdlcmUg
+bm8gZHZiIHRvcGljcyB0byBkaXNjdXNzKSBkdXJpbmcgdGhlIExpbnV4IFBsdW1iZXJzIENvbmZl
+cmVuY2UgDQppbiBQb3J0bGFuZC4gVGhpcyBzdW1taXQgd2lsbCB0YWtlIGFsbCB0aHJlZSBkYXlz
+IG9mIHRoaXMgY29uZmVyZW5jZSwgYW5kIEkgDQppbnRlbmQgdG8gbWFrZSBhIHNob3J0IHJlcG9y
+dCBhdCB0aGUgZW5kIG9mIGVhY2ggZGF5Lg0KDQpGaXJzdCBvZiBhbGwgSSB3YW50IHRvIHRoYW5r
+IGV2ZXJ5b25lIHdobyBhdHRlbmRlZCB0aGlzIGZpcnN0IGRheSBvZiB0aGUgDQpzdW1taXQ6IHdl
+IGhhZCBhIGdyZWF0IHR1cm4tb3V0IHdpdGggc2V2ZW4gY29yZSB2NGwtZHZiIGRldmVsb3BlcnMs
+IHRocmVlIFRJIA0KZW5naW5lZXJzLCB0d28gTm9raWEgZW5naW5lZXJzLCB0d28gZW5naW5lZXJz
+IGZyb20gU2Ftc3VuZyBhbmQgYW4gSW50ZWwgDQplbmdpbmVlci4gSSBrbm93IEkndmUgZm9yZ290
+dGVuIHNvbWVvbmUsIEknbGwgdHJ5IHRvIGZpeCB0aGF0IHRvbW9ycm93Lg0KDQpCdXQgaXQgbWVh
+bnQgdGhhdCB0aGUgbWFpbiBTb0MgdmVuZG9ycyB3aXRoIGNvbXBsZXggdmlkZW8gaGFyZHdhcmUg
+d2VyZSB3ZWxsIA0KcmVwcmVzZW50ZWQuDQoNClRoZSBzdW1taXQgc3RhcnRlZCBvZmYgd2l0aCBh
+biBvdmVydmlldyBvZiB0aGUgcHJvcG9zZWQgbWVkaWEgY29udHJvbGxlciBhbmQgDQphbiBvdmVy
+dmlldyBvZiB0aGUgZmVhdHVyZXMgb2Ygc2V2ZXJhbCBTb0NzIHRvIGdpdmUgYW4gaWRlYSBvZiB3
+aGF0IHNvcnQgb2YgDQpjb21wbGV4aXR5IGhhcyB0byBiZSBzdXBwb3J0ZWQgaW4gdGhlIGZ1dHVy
+ZS4gSSdsbCB0cnkgdG8gZ2V0IHNvbWUgb2YgdGhlIA0KcHJlc2VudGF0aW9ucyB1cCBvbiBteSBz
+aXRlLiBVbmZvcnR1bmF0ZWx5LCBub3QgYWxsIHByZXNlbnRhdGlvbnMgY2FuIGJlIG1hZGUgDQpw
+dWJsaWMuIFRoZSBtYWluIG1lc3NhZ2UgdGhhdCBjYW1lIGFjcm9zcyB0aG91Z2ggaXMgdGhhdCB0
+aGVzZSBjb21wbGV4IGRldmljZXMgDQp3aXRoIGJpZyBwaXBlbGluZXMsIHNjYWxlcnMsIGNvbXBv
+c2VycywgY29sb3JzcGFjZSBjb252ZXJ0ZXJzLCBldGMuIHJlcXVpcmUgYSANCmNvbXBsZXRlbHkg
+bmV3IHdheSBvZiB3b3JraW5nLg0KDQpXaGlsZSB3ZSBkaWQgZGlzY3VzcyB0aGUgY29uY2VwdHMg
+b2YgdGhlIG1lZGlhIGNvbnRyb2xsZXIsIHdlIGRpZCBub3QgZ28gaW50byANCm11Y2ggZGV0YWls
+OiB0aGF0IGlzIHNjaGVkdWxlZCBmb3IgVGh1cnNkYXkuDQoNCkluIHRoZSBhZnRlcm5vb24gd2Ug
+ZGlzY3Vzc2VkIHRoZSBwcm9wb3NlZCB0aW1pbmdzIEFQSS4gVGhlcmUgd2FzIG5vIA0Kb3Bwb3Np
+dGlvbiB0byB0aGlzIEFQSS4gVGhlIGlkZWEgSSBoYWQgdG8gYWxzbyB1c2UgdGhpcyBmb3Igc2Vu
+c29yIHNldHVwIA0KdHVybmVkIG91dCB0byBiZSBiYXNlZCBvbiBhIG1pc2NvbmNlcHRpb24gb24g
+aG93IHRoZSBTX0ZNVCByZWxhdGVzIHRvIHNlbnNvcnMuIA0KRU5VTV9GUkFNRVNJWkVTIGJhc2lj
+YWxseSBnaXZlcyB5b3UgdGhlIHBvc3NpYmxlIHJlc29sdXRpb25zIHRoYXQgdGhlIHNjYWxlciAN
+CmhpZGRlbiBpbnNpZGUgdGhlIGJyaWRnZSBjYW4gc2NhbGUgdGhlIG5hdGl2ZSBzZW5zb3IgcmVz
+b2x1dGlvbi4gSXQgZG9lcyBub3QgDQplbnVtZXJhdGUgdGhlIHZhcmlvdXMgbmF0aXZlIHNlbnNv
+ciByZXNvbHV0aW9ucywgc2luY2UgdGhlcmUgaXMgb25seSBvbmUuIFNvIA0KU19GTVQgcmVhbGx5
+IHNldHMgdXAgdGhlIHNjYWxlci4NCg0KU28gd2UgY2FuIHByb2NlZWQgd2l0aCB0aGUgdGltaW5n
+cyBSRkMgYW5kIGhvcGVmdWxseSBoYXZlIHRoaXMgaW1wbGVtZW50ZWQgZm9yIA0KMi42LjMzLg0K
+DQpOZXh0IHdhcyB0aGUgZXZlbnQgQVBJIHByb3Bvc2FsOiB0aGlzIGNhdXNlZCBzb21lIG1vcmUg
+ZGlzY3Vzc2lvbnMsIGluIA0KcGFydGljdWxhciBzaW5jZSB0aGUgb3JpZ2luYWwgUkZDIGhhZCBu
+byBwcm92aXNpb24gZm9yICh1bilzdWJzY3JpYmluZyB0byANCmV2ZW50cy4gVGhlIGlkZWEgaXMg
+dGhhdCB3ZSB3YW50IHRvIHN1YnNjcmliZSB0byBldmVudHMgb24gYSBwZXItZmlsZWhhbmRsZSAN
+CmJhc2lzLiBUaGUgY29yZSBmcmFtZXdvcmsgY2FuIGtlZXAgdHJhY2sgb2YgZXZlbnRzIGFuZCBk
+aXN0cmlidXRlIHRoZW0gdG8gDQpmaWxlaGFuZGxlcyB0aGF0ICdsaXN0ZW4nIHRvIHRoZW0uIFNv
+IHRoaXMgUkZDIHdpbGwgY2xlYXJseSBuZWVkIHRvIGdvIHRvIGF0IA0KbGVhc3Qgb25lIHJldmlz
+aW9uLg0KDQpUaGF0IHdhcyBhbHNvIGEgZ29vZCBwb2ludCB0byBzdG9wIGZvciB0aGUgZGF5IGFu
+ZCBoZWFkIG91dCB0byBnZXQgZnJlZSBiZWVyIA0KYW5kIGZvb2QgOi0pDQoNClNjaGVkdWxlZCBm
+b3IgVGh1cnNkYXkgaXMgYSBkaXNjdXNzaW9uIG9mIHRoZSBwcm9wb3NlZCBtZW1vcnkgcG9vbCBh
+bmQgDQpjb250aW51ZWQgbWVkaWEgY29udHJvbGxlciBkaXNjdXNzaW9ucy4NCg0KUmVnYXJkcywN
+Cg0KICAgICAgICBIYW5zDQotLQ0KVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQg
+dGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LW1lZGlhIiBpbg0KdGhlIGJvZHkgb2YgYSBtZXNz
+YWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcNCk1vcmUgbWFqb3Jkb21vIGluZm8gYXQg
+IGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
