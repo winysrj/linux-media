@@ -1,43 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.156]:11690 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754104AbZIUW3F convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Sep 2009 18:29:05 -0400
-Received: by fg-out-1718.google.com with SMTP id 22so1027489fge.1
-        for <linux-media@vger.kernel.org>; Mon, 21 Sep 2009 15:29:08 -0700 (PDT)
+Received: from mail.gmx.net ([213.165.64.20]:51138 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752324AbZIXSHK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Sep 2009 14:07:10 -0400
+Date: Thu, 24 Sep 2009 20:07:27 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-media@vger.kernel.org
+Subject: Re: V4L-DVB Summit Day 1
+In-Reply-To: <200909232239.20105.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.0909242000240.4913@axis700.grange>
+References: <200909232239.20105.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20090921221505.GA5187@zverina>
-References: <20090913193118.GA12659@zverina> <20090921204418.GA19119@zverina>
-	 <829197380909211349r68b92b3em577c02d0dee9e4fc@mail.gmail.com>
-	 <20090921221505.GA5187@zverina>
-Date: Mon, 21 Sep 2009 18:29:07 -0400
-Message-ID: <829197380909211529r7ff7eab0nccc8d5fd55516ca2@mail.gmail.com>
-Subject: Re: Questions about Terratec Hybrid XS (em2882) [0ccd:005e]
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 21, 2009 at 6:15 PM, Uros Vampl <mobile.leecher@gmail.com> wrote:
-> I tried arecord/aplay and sox with tvtime, and also mplayer (which
-> has
-> built-in audio support). I know about these tricks, I've used them
-> successfully with Markus' em28xx-new driver. But with v4l-dvb it's as I
-> said, audio is there but it's extremely quiet. If you have suggestions
-> how I should try to diagnoze this, I'm all ears.
->
-> Regards,
-> Uroš
+Hi Hans
 
-If the audio is present but very quiet, then it's probably some issue
-you are having with your mixer.  I would check your ALSA and
-PulseAudio configuration (in particular the mixer volume controls).
+Thanks for keeping us updated. One comment:
 
-Devin
+On Wed, 23 Sep 2009, Hans Verkuil wrote:
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+> In the afternoon we discussed the proposed timings API. There was no 
+> opposition to this API. The idea I had to also use this for sensor setup 
+> turned out to be based on a misconception on how the S_FMT relates to sensors. 
+> ENUM_FRAMESIZES basically gives you the possible resolutions that the scaler 
+> hidden inside the bridge can scale the native sensor resolution. It does not 
+> enumerate the various native sensor resolutions, since there is only one. So 
+> S_FMT really sets up the scaler.
+
+Just as Jinlu Yu noticed in his email, this doesn't reflect the real 
+situation, I am afraid. You can use binning and skipping on the sensor to 
+scale the image, and you can also use the bridge to do the scaling, as you 
+say. Worth than that, there's also a case, where there _several_ ways to 
+perform scaling on the sensor, among which one can freely choose, and the 
+host can scale too. And indeed it makes sense to scale on the source to 
+save the bandwidth and thus increase the framerate. So, what I'm currently 
+doing on sh-mobile, I try to scale on the client - in the best possible 
+way. And then use bridge scaling to provide the exact result.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
