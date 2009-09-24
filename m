@@ -1,70 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:59631 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754053AbZIMXcL (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:60352 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751253AbZIXVFF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2009 19:32:11 -0400
-Date: Sun, 13 Sep 2009 20:31:36 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: wk <handygewinnspiel@gmx.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: Media controller: sysfs vs ioctl
-Message-ID: <20090913203136.41bb7ae0@caramujo.chehab.org>
-In-Reply-To: <4AAD15A3.5080001@gmx.de>
-References: <200909120021.48353.hverkuil@xs4all.nl>
-	<4AAD15A3.5080001@gmx.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Thu, 24 Sep 2009 17:05:05 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Paulo Assis <pj.assis@gmail.com>
+Subject: Re: [Linux-uvc-devel] [PATCH] uvc: kmalloc failure ignored in uvc_ctrl_add_ctrl()
+Date: Thu, 24 Sep 2009 23:06:34 +0200
+Cc: Roel Kluin <roel.kluin@gmail.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org
+References: <4AB43041.6050001@gmail.com> <200909240820.54291.laurent.pinchart@ideasonboard.com> <59cf47a80909240150w3127ed51j48f81e157b49dc0c@mail.gmail.com>
+In-Reply-To: <59cf47a80909240150w3127ed51j48f81e157b49dc0c@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <200909242306.34733.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 13 Sep 2009 17:54:11 +0200
-wk <handygewinnspiel@gmx.de> escreveu:
-
-> Hans Verkuil schrieb:
-> > Hi all,
-> >
-> > I've started this as a new thread to prevent polluting the discussions of the
-> > media controller as a concept.
-> >
-> > First of all, I have no doubt that everything that you can do with an ioctl,
-> > you can also do with sysfs and vice versa. That's not the problem here.
-> >
-> > The problem is deciding which approach is the best.
-> >
-> >   
+On Thursday 24 September 2009 10:50:39 Paulo Assis wrote:
+> Laurent,
 > 
-> Is it really a good idea to create a dependency to some virtual file 
-> system which may go away in future?
->  From time to time some of those seem to go away, for example devfs.
+> > That's not enough to prevent a kernel crash. The driver can try to
+> > dereference ctrl->data if ctrl->info isn't NULL. You should only set
+> > ctrl->info if allocationg succeeds. Something like
+> >
+> >        ctrl->data = kmalloc(ctrl->info->size * UVC_CTRL_NDATA,
+> > GFP_KERNEL); if (ctrl->data == NULL)
+> >                return -ENOMEM;
+> >
+> >        ctrl->info = info;
+> 
+> Without reading any code this doesn't seem correct, how can you use
+> ctrl->info->size if you haven't set ctrl->info yet?
+> 
+> Did you mean something like this:
+> 
+>  ctrl->data = kmalloc(info->size * UVC_CTRL_NDATA, GFP_KERNEL);
+>  if (ctrl->data == NULL)
+>          return -ENOMEM;
+> 
+>  ctrl->info = info;
+> 
+> 
+> Like I said I haven't read the code but this looks better.
 
-> Is it really unavoidable to have something in sysfs, something which is 
-> really not possible with ioctls?
-> And do you really want to depend on sysfs developers?
+Oops, you're right. My bad. Thanks for catching this.
 
-First of all, both ioctl's and sysfs are part of vfs support.
+-- 
+Regards,
 
-Second: where did you got the wrong information that sysfs would be deprecated? 
-
-There's no plan to deprecate sysfs, and, since there are lots of
-kernel-userspace API's depending on sysfs, you can't just remove it. 
-
-It is completely different from what we had with devfs, where just device names
-were created there, on a limited way (for example, no directories were allowed
-at devfs). Yet, before devfs removal, sysfs was added to implement the same
-features, providing even more functionality.
-
-Removing sysfs is as hard as removing ioctl or procfs support on kernel.
-You may change their internal implementation, but not the userspace API. 
-
-Btw, if we'll seek for the last internal changes, among those three API's, the more
-recent internal changes were at fs API where ioctl support is. There, the
-Kernel big logs were removed. This required a review on all driver locks and changes
-on almost all v4l/dvb drivers.
-
-Also, wanting or not, sysfs is called on every kernel driver, so this
-dependency already exists.
-
-Cheers,
-Mauro
+Laurent Pinchart
