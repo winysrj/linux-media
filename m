@@ -1,30 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:49486 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752787AbZIJMr5 (ORCPT
+Received: from mail-ew0-f211.google.com ([209.85.219.211]:58772 "EHLO
+	mail-ew0-f211.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752495AbZIXSlW convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Sep 2009 08:47:57 -0400
-Received: by bwz19 with SMTP id 19so53784bwz.37
-        for <linux-media@vger.kernel.org>; Thu, 10 Sep 2009 05:47:58 -0700 (PDT)
-Date: Thu, 10 Sep 2009 15:48:07 +0300
-From: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
-To: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
-Cc: Markus Rechberger <mrechberger@gmail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Clinton Meyer <clintonmeyer22@gmail.com>,
-	Linux Media <linux-media@vger.kernel.org>
-Subject: Re: LinuxTV firmware blocks all wireless connections / traffic
-Message-ID: <20090910124807.GB18426@moon>
-References: <62013cda0909091443g72ebdf1bge3994b545a86c854@mail.gmail.com> <829197380909091459x5367e95dnbd15f23e8377cf33@mail.gmail.com> <20090910091400.GA15105@moon> <d9def9db0909100358o14f07362n550b95a033c8a798@mail.gmail.com> <20090910124549.GA18426@moon>
+	Thu, 24 Sep 2009 14:41:22 -0400
+Received: by ewy7 with SMTP id 7so1925246ewy.17
+        for <linux-media@vger.kernel.org>; Thu, 24 Sep 2009 11:41:26 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20090910124549.GA18426@moon>
+In-Reply-To: <20090922210635.GB8661@systol-ng.god.lan>
+References: <20090922210635.GB8661@systol-ng.god.lan>
+Date: Thu, 24 Sep 2009 14:41:25 -0400
+Message-ID: <37219a840909241141s548e4ab4oeb4fa68479062a8@mail.gmail.com>
+Subject: Re: [PATCH 2/4] 18271_calc_main_pll small bugfix
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Henk.Vergonet@gmail.com
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> 
-> Here is a test case:
-> Two DVB-T USB adapters, dvb_usb_af9015 and dvb_usb_af9015. Different tuners,
+On Tue, Sep 22, 2009 at 5:06 PM,  <spam@systol-ng.god.lan> wrote:
+>
+> Removed code fragment that is not part of the (C2) specs. Possibly an early
+> remnant of an attempted if_notch filter configuration. It is already
+> handled correctly in the tda18271_set_if_notch function.
+>
+> Signed-off-by: Henk.Vergonet@gmail.com
+>
+> diff -r 29e4ba1a09bc linux/drivers/media/common/tuners/tda18271-common.c
+> --- a/linux/drivers/media/common/tuners/tda18271-common.c       Sat Sep 19 09:45:22 2009 -0300
+> +++ b/linux/drivers/media/common/tuners/tda18271-common.c       Tue Sep 22 22:06:31 2009 +0200
+> @@ -582,15 +582,6 @@
+>
+>        regs[R_MPD]   = (0x77 & pd);
+>
+> -       switch (priv->mode) {
+> -       case TDA18271_ANALOG:
+> -               regs[R_MPD]  &= ~0x08;
+> -               break;
+> -       case TDA18271_DIGITAL:
+> -               regs[R_MPD]  |=  0x08;
+> -               break;
+> -       }
+> -
+>        div =  ((d * (freq / 1000)) << 7) / 125;
+>
+>        regs[R_MD1]   = 0x7f & (div >> 16);
+>
 
-Err, make it: dvb_usb_af9015 and dvb_usb_ce6230
+
+NACK.  This bit needs to remain -- do not merge this.
+
+Regards,
+
+Mike Krufky
