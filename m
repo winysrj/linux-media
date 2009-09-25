@@ -1,45 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ip78-183-211-87.adsl2.static.versatel.nl ([87.211.183.78]:40760
-	"EHLO god.dyndns.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750803AbZIVVGc (ORCPT
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:52708 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751185AbZIYRWR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2009 17:06:32 -0400
-Date: Tue, 22 Sep 2009 23:06:35 +0200
-From: spam@systol-ng.god.lan
+	Fri, 25 Sep 2009 13:22:17 -0400
+Received: by fxm18 with SMTP id 18so2373267fxm.17
+        for <linux-media@vger.kernel.org>; Fri, 25 Sep 2009 10:22:20 -0700 (PDT)
+Date: Fri, 25 Sep 2009 19:22:09 +0200
+From: Uros Vampl <mobile.leecher@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: mkrufky@gmail.com
-Subject: [PATCH 2/4] 18271_calc_main_pll small bugfix
-Message-ID: <20090922210635.GB8661@systol-ng.god.lan>
-Reply-To: Henk.Vergonet@gmail.com
+Subject: Re: Questions about Terratec Hybrid XS (em2882) [0ccd:005e]
+Message-ID: <20090925172209.GA10054@zverina>
+References: <20090913193118.GA12659@zverina>
+ <20090921204418.GA19119@zverina>
+ <829197380909211349r68b92b3em577c02d0dee9e4fc@mail.gmail.com>
+ <20090921221505.GA5187@zverina>
+ <829197380909211529r7ff7eab0nccc8d5fd55516ca2@mail.gmail.com>
+ <20090922091235.GA10335@zverina>
+ <829197380909221647p33236306ked2137a35707646d@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <829197380909221647p33236306ked2137a35707646d@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 22.09.09 19:47, Devin Heitmueller wrote:
+> >> If the audio is present but very quiet, then it's probably some issue
+> >> you are having with your mixer.  I would check your ALSA and
+> >> PulseAudio configuration (in particular the mixer volume controls).
+> >>
+> >> Devin
+> >
+> > No PulseAudio here. And I've played plenty with the ALSA mixer, all the
+> > sliders that are there.
+> >
+> > Using em28xx-new instead of v4l-dvb, all else being equal, tv volume is
+> > fine. So there's gotta be a difference somewhere in the way em28xx-new
+> > sets up audio compared to how v4l-dvb does it.
+> 
+> Interesting.  Have you tried the A/V inputs (as opposed to the tuner)?
+>  That might help us identify whether it's an issue with the xc3028
+> tuner chip extracting the audio carrier or whether it's something
+> about the way we are programming the emp202.
 
-Removed code fragment that is not part of the (C2) specs. Possibly an early
-remnant of an attempted if_notch filter configuration. It is already
-handled correctly in the tda18271_set_if_notch function.
 
-Signed-off-by: Henk.Vergonet@gmail.com
+Hello,
 
-diff -r 29e4ba1a09bc linux/drivers/media/common/tuners/tda18271-common.c
---- a/linux/drivers/media/common/tuners/tda18271-common.c	Sat Sep 19 09:45:22 2009 -0300
-+++ b/linux/drivers/media/common/tuners/tda18271-common.c	Tue Sep 22 22:06:31 2009 +0200
-@@ -582,15 +582,6 @@
- 
- 	regs[R_MPD]   = (0x77 & pd);
- 
--	switch (priv->mode) {
--	case TDA18271_ANALOG:
--		regs[R_MPD]  &= ~0x08;
--		break;
--	case TDA18271_DIGITAL:
--		regs[R_MPD]  |=  0x08;
--		break;
--	}
--
- 	div =  ((d * (freq / 1000)) << 7) / 125;
- 
- 	regs[R_MD1]   = 0x7f & (div >> 16);
+That was a great idea. Tested with a Playstation2 and audio is ok. It's 
+just TV input that has a problem. So I guess that means the issue is 
+with the tuner chip. That's progress. Where do I go from here?
+
+Regards,
+Uroš
