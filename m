@@ -1,115 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:46739 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755785AbZIUJ7B convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1440 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751884AbZIYSFc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Sep 2009 05:59:01 -0400
-Date: Mon, 21 Sep 2009 06:58:24 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Richard =?ISO-8859-1?B?UvZqZm9ycw==?=
-	<richard.rojfors@mocean-labs.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	dougsland@redhat.com
-Subject: Re: [hg:v4l-dvb] video: initial support for ADV7180
-Message-ID: <20090921065824.4e18917a@pedra.chehab.org>
-In-Reply-To: <4AB72B33.5070107@mocean-labs.com>
-References: <E1MoqBB-0006BF-Qx@mail.linuxtv.org>
-	<4AB72B33.5070107@mocean-labs.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Fri, 25 Sep 2009 14:05:32 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id n8PI5Y3c001897
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 25 Sep 2009 20:05:35 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 25 Sep 2009 20:05:34 +0200 (CEST)
+Message-Id: <200909251805.n8PI5Y3c001897@smtp-vbr1.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 21 Sep 2009 09:28:51 +0200
-Richard Röjfors  <richard.rojfors@mocean-labs.com> escreveu:
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> Patch from Richard Röjfors wrote:
-> > The patch number 13019 was added via Douglas Schilling Landgraf <dougsland@redhat.com>
-> > to http://linuxtv.org/hg/v4l-dvb master development tree.
-> > 
-> > Kernel patches in this development tree may be modified to be backward
-> > compatible with older kernels. Compatibility modifications will be
-> > removed before inclusion into the mainstream Kernel
-> > 
-> > If anyone has any objections, please let us know by sending a message to:
-> > 	Linux Media Mailing List <linux-media@vger.kernel.org>
-> > 
-> > ------
-> 
-> Hi,
-> 
-> There is a newer version of the driver that has support for beeing
-> interrupt driver and setting standard, and checking the signal status.
-> 
-> I would be very happy if that gets committed instead.
+Results of the daily build of v4l-dvb:
 
-Hi Richard,
+date:        Fri Sep 25 19:00:03 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13041:a798c751f06d
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-The previous version were already committed on our trees. So, please send us
-diff patches, instead of a completely new version.
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.27-armv5-ixp: ERRORS
+linux-2.6.28-armv5-ixp: ERRORS
+linux-2.6.29.1-armv5-ixp: ERRORS
+linux-2.6.30-armv5-ixp: ERRORS
+linux-2.6.31-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.27-powerpc64: ERRORS
+linux-2.6.28-powerpc64: ERRORS
+linux-2.6.29.1-powerpc64: ERRORS
+linux-2.6.30-powerpc64: ERRORS
+linux-2.6.31-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+sparse (linux-2.6.31): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-As stated on Kernel Documentation/SubmittingPatches:
+Detailed results are available here:
 
-"If your changes produce a lot of deltas, you may want to look into
-splitting them into individual patches which modify things in
-logical stages.  This will facilitate easier reviewing by other
-kernel developers, very important if you want your patch accepted."
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-So, if you are adding 3 new functionalities (interrupt, standard setting,
-signal status), the better is if you send us 3 patches.
+Full logs are available here:
 
-Thanks,
-Mauro.
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-> +static int v4l2_std_to_adv7180(v4l2_std_id std)
-> +{
-> +	/* pal is a combination of several variants */
-> +	if (std & V4L2_STD_PAL)
-> +		return ADV7180_INPUT_CONTROL_PAL_BG;
-> +	if (std & V4L2_STD_NTSC)
-> +		return ADV7180_INPUT_CONTROL_NTSC_M;
-> +
-> +	switch (std) {
-> +	case V4L2_STD_PAL_60:
-> +		return ADV7180_INPUT_CONTROL_PAL60;
-> +	case V4L2_STD_NTSC_443:
-> +		return ADV7180_INPUT_CONTROL_NTSC_443;
-> +	case V4L2_STD_PAL_N:
-> +		return ADV7180_INPUT_CONTROL_PAL_N;
-> +	case V4L2_STD_PAL_M:
-> +		return ADV7180_INPUT_CONTROL_PAL_M;
-> +	case V4L2_STD_PAL_Nc:
-> +		return ADV7180_INPUT_CONTROL_PAL_COMB_N;
-> +	case V4L2_STD_SECAM:
-> +		return ADV7180_INPUT_CONTROL_PAL_SECAM;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +}
+The V4L2 specification failed to build, but the last compiled spec is here:
 
-Btw, this code is not right. 
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
 
-All standards are bit masks. As such, it is valid that an userspace application
-to send a request like, for example, V4L2_STD_SECAM_K. This standard
-seems to be supported, but your driver will return -EINVAL.
+The DVB API specification from this daily build is here:
 
-What we generally do is to handle first the special cases where just one standard
-that requires especial treatment is defined (like PAL/60, PAL/M, PAL/N, ...) and then
-at the bottom, we handle the masks that covers more than one standard, like:
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
-	if (std == V4L_STD_PAL_60)
-		return ADV7180_INPUT_CONTROL_PAL60;
-	...
-
-	if (std & V4L2_STD_SECAM)
-		return ADV7180_INPUT_CONTROL_PAL_SECAM;
-	if (std & V4L2_STD_NTSC)
-		return ADV7180_INPUT_CONTROL_NTSC_M;
-	/* If it is none of the above, it is PAL */
-	return ADV7180_INPUT_CONTROL_PAL_BG;
-
-
-
-Cheers,
-Mauro
