@@ -1,100 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:48890 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753169AbZIGSmM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Sep 2009 14:42:12 -0400
-Date: Mon, 7 Sep 2009 13:42:15 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Konstantin Dimitrov <kosio.dimitrov@gmail.com>,
-	Michael Krufky <mkrufky@kernellabs.com>,
-	linuxtv-commits@linuxtv.org, Jarod Wilson <jarod@wilsonet.com>,
-	Hans Verkuil via Mercurial <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mike Isely <isely@isely.net>
-Subject: Re: [linuxtv-commits] [hg:v4l-dvb] cx25840: fix determining the
- firmware name
-In-Reply-To: <20090907095326.3cb7a3d0@caramujo.chehab.org>
-Message-ID: <Pine.LNX.4.64.0909071339100.23768@cnc.isely.net>
-References: <E1MiTfS-0001LQ-SU@mail.linuxtv.org>
- <37219a840909041105u7fe714aala56893566d93cdc3@mail.gmail.com>
- <20090907021002.2f4d3a57@caramujo.chehab.org>
- <37219a840909062220p3ae71dc0t4df96fd140c5c7b4@mail.gmail.com>
- <20090907030652.04e2d2a3@caramujo.chehab.org>
- <8103ad500909070044r3a04d36bu80e65357ceaf533@mail.gmail.com>
- <20090907095326.3cb7a3d0@caramujo.chehab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4542 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752116AbZIYHN7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Sep 2009 03:13:59 -0400
+Received: from webmail.xs4all.nl (dovemail1.xs4all.nl [194.109.26.3])
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id n8P7Dwkq029362
+	for <linux-media@vger.kernel.org>; Fri, 25 Sep 2009 09:14:02 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Message-ID: <40e7bbfbf781ac7bdda6757a1292fe45.squirrel@webmail.xs4all.nl>
+Date: Fri, 25 Sep 2009 09:14:02 +0200
+Subject: V4L-DVB Summit Day 2
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "v4l-dvb" <linux-media@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 7 Sep 2009, Mauro Carvalho Chehab wrote:
+Hi all,
 
+A quick update on day 2 of the summit.
 
-   [...]
+We started off with a discussion on the memory pool API. It was soon
+obvious that we really should attempt to make this a global memory pool as
+opposed to one pool per device. If it is global then we can do some really
+fancy stuff that would be hard to do otherwise.
 
-> 
-> I remember I asked both Mikes (Michael Krufky and Mike Isely) on March for some
-> tests with the new firmware. I'm not sure if they had some time for testing it.
+What also became clear quite soon is that a lot more research is needed in
+how to allocate and keep track of the memory and how to handle caches etc.
 
-Yes, I remember this exchange.  At the time you had mentioned only the 3 
-files with identical MD5 sums (not that other one with the dadb79... 
-sum).  Here's the message I sent in response at that time:
+We got some info from Samsung as well on how they solved this issue. We
+will need to look at this in more detail. I will make two presentations
+from Samsung available on my website later.
 
-<CUT_HERE>
+After discussing the memory pool API we continued with the Media Controller.
 
->From isely@isely.net Tue Mar 31 21:17:58 2009
-From: Mike Isely <isely@isely.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Michael Krufky <mkrufky@linuxtv.org>, Mike Isely at pobox <isely@pobox.com>
-Date: Tue, 31 Mar 2009 21:17:54 -0500 (CDT)
-Subject: Re: Conexant firmwares
-Reply-To: Mike Isely <isely@pobox.com>
+Some conclusions:
 
-On Tue, 24 Mar 2009, Mike Isely wrote:
+- Everyone likes that concept of the media controller.
 
-> On Mon, 23 Mar 2009, Mauro Carvalho Chehab wrote:
-> 
-> > Hi Hans and Mike I.,
-> > 
-> > Conexant officially sent us their firmwares. Due to that, I've added the
-> > firmwares at linuxtv.org and included at the get_dvb_firmware script. 
-> > 
-> > I'll also make sure that they'll be added at kernel-firmware -git and
-> > included in Fedora.
-> > 
-> > As Michael K. noticed, the cx25840 firmwares are identical, for 3 different
-> > models:
-> > 
-> > a9f8f5d901a7fb42f552e1ee6384f3bb  cx23885 firmware/v4l-cx23885-enc.fw
-> > a9f8f5d901a7fb42f552e1ee6384f3bb  cx25840 firmwares/v4l-cx231xx-avcore-01.fw
-> > a9f8f5d901a7fb42f552e1ee6384f3bb  cx25840 firmwares/v4l-cx23885-avcore-01.fw
-> > 
-> > Could you please test if those firmwares work well for the ivtv and pvrusb2
-> > models? 
-> > 
-> > All those firmwares are available at linuxtv.org downloads/firmware dir.
-> > 
-> 
-> I imagine that they will all work just fine.  But I'll let you know once 
-> I've positively verified that fact.
-> 
->   -Mike
+- Nobody likes using sysfs for link enumeration and setting (sorry Mauro
+:-) )
 
-Yes, it works fine.  I tested an HVR-1950 and a PVR-USB2 24xxx series 
-model.  Both work with the new firmware.
+- We do need to introduce something like a group ID in the entity
+information to group related entities together. The idea is that
+application can use that ID to discover which video node is associated
+with which audio node.
 
-Given that the 3 firmware images are identical, then what's the point of 
-there being 3 different names?
+- In order to allow data to flow between two endpoints the dataformat
+needs to be setup correctly. This needs to be set for both endpoints as
+that is the most general solution. But in 99% if not all cases the
+dataformat will be the same for both endpoints. So initially the API will
+set the dataformat for both endpoints at the same time for ease of use.
 
-  -Mike
+- Currently the entity has a 'descr' field that contains what is
+effectively tooltip-type information about the entity. This is better
+handled as a string control of that entity.
 
-</CUT_HERE>
+- Rather than using the mc to select a 'target' subdev and pass ioctls on
+to that, we decided that creating a node for each sub-device is better.
+But only if there is anything to control for that sub-device.
 
+- We agreed that the basic premise should be to keep the driver for a SoC
+as simple as possible, and to move a lot of the intelligence in setting up
+the SoC to SoC-specific userspace libraries. So the driver in the kernel
+is responsible for programming the various sub-devices and buffer I/O,
+while configuring the various sub-devices into a working pipeline is the
+job of the userspace library. This prevents the kernel driver from
+becoming a mess.
+
+Obviously, nothing is final, but all of these points should appear in
+future RFCs for further discussion on the mailinglists.
+
+Regards,
+
+         Hans
 
 -- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
