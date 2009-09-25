@@ -1,102 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2f.orange.fr ([80.12.242.150]:42327 "EHLO smtp2f.orange.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753796AbZIHKEl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Sep 2009 06:04:41 -0400
-Message-ID: <4AA62C38.3050208@gmail.com>
-Date: Tue, 08 Sep 2009 12:04:40 +0200
-From: Morvan Le Meut <mlemeut@gmail.com>
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:64189 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752690AbZIYXBb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Sep 2009 19:01:31 -0400
+Received: by fxm18 with SMTP id 18so2564612fxm.17
+        for <linux-media@vger.kernel.org>; Fri, 25 Sep 2009 16:01:34 -0700 (PDT)
 MIME-Version: 1.0
-To: Samuel Rakitnican <samuel.rakitnican@gmail.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: (Saa7134) Re: ADS-Tech Instant TV PCI, no remote support
-References: <4AA53C05.10203@gmail.com> <4AA61508.9040506@gmail.com> <op.uzxmzlj86dn9rq@crni>
-In-Reply-To: <op.uzxmzlj86dn9rq@crni>
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20090925221015.GA21295@zverina>
+References: <20090913193118.GA12659@zverina>
+	 <829197380909211349r68b92b3em577c02d0dee9e4fc@mail.gmail.com>
+	 <20090921221505.GA5187@zverina>
+	 <829197380909211529r7ff7eab0nccc8d5fd55516ca2@mail.gmail.com>
+	 <20090922091235.GA10335@zverina>
+	 <829197380909221647p33236306ked2137a35707646d@mail.gmail.com>
+	 <20090925172209.GA10054@zverina>
+	 <829197380909251041i637a0790g10cc4b82a791f695@mail.gmail.com>
+	 <20090925182213.GA6941@zverina> <20090925221015.GA21295@zverina>
+Date: Fri, 25 Sep 2009 19:01:34 -0400
+Message-ID: <829197380909251601q587131d0q51eda218f9aeaf9d@mail.gmail.com>
+Subject: Re: Questions about Terratec Hybrid XS (em2882) [0ccd:005e]
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Samuel Rakitnican a �crit :
-> On Tue, 08 Sep 2009 10:25:44 +0200, Morvan Le Meut <mlemeut@gmail.com> 
-> wrote:
->
->> Morvan Le Meut a �crit :
->>> Hello all
->>> This is an old card i bough by error ( wanted the DVB-T version ) 
->>> but i tried it and i see a small problem :
->>> The remote isn't supported. ( If it is, i wonder why my computer 
->>> don't see it )
->>>
->>> I found an old patch to add remote support to it here :
->>>
->>> http://tfpsly.free.fr/Files/Instant_TV_PCI_remote/saa7134_patch_for_AdsInstantTVPCI.gz 
->>> ( The webpage talking about it is 
->>> http://tfpsly.free.fr/francais/index.html?url=http://tfpsly.free.fr/Files/Instant_TV_PCI_remote/index.html 
->>> in french )
->>>
->>> But since i found out long ago that i shouldn't even think of 
->>> altering a source file, could someone adapt that old patch to 
->>> correct this ? ( should be quick, i guess )
->>>
->>> Thanks.
->>>
->>>
->>> -- To unsubscribe from this list: send the line "unsubscribe 
->>> linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->> Well, i'm trying it myself ( by hand, since the patch looks old ) :
->> adding
->> case SAA7134_BOARD_ADS_INSTANT_TV: at line 6659 in saa7134-cards.c
->> (before "dev->has_remote = SAA7134_REMOTE_GPIO;" )
->> is that correct ?
->> but from the diff file i should add what seems to be the remote 
->> keycode in saa7134-input.c
->> "+static IR_KEYTAB_TYPE AdsInstantTvPci_codes[IR_KEYTAB_SIZE] = {
->> +    // Buttons are in the top to bottom physical order
->> +    // Some buttons return the same raw code, so they are currently 
->> disabled
->> +    [ 127] = KEY_FINANCE,   // "release all keys" code - prevent 
->> repeating enlessly a key
->> +   +    [ 27 ] = KEY_POWER,"
->> ( and so on )
->>  Since i didn't see other keycodes for the other cards, i guess this 
->> is wrong, so where should i add them ?
->> ( i barely understand what i am doing right now :p )
+On Fri, Sep 25, 2009 at 6:10 PM, Uros Vampl <mobile.leecher@gmail.com> wrote:
+> On 25.09.09 20:22, Uros Vampl wrote:
+>> On 25.09.09 13:41, Devin Heitmueller wrote:
+>> > >> Interesting.  Have you tried the A/V inputs (as opposed to the tuner)?
+>> > >>  That might help us identify whether it's an issue with the xc3028
+>> > >> tuner chip extracting the audio carrier or whether it's something
+>> > >> about the way we are programming the emp202.
+>> > >
+>> > >
+>> > > Hello,
+>> > >
+>> > > That was a great idea. Tested with a Playstation2 and audio is ok. It's
+>> > > just TV input that has a problem. So I guess that means the issue is
+>> > > with the tuner chip. That's progress. Where do I go from here?
+>> >
+>> > Ok, that's good to hear.  What video standard specifically are you
+>> > using?  I suspect the core issue is that the application is not
+>> > properly specifying the video standard, which results in the xc3028
+>> > improperly decoding the audio (the xc3028 needs to know exactly what
+>> > standard is being used).
 >>
->> Thanks
+>> I'm from Slovenia, which is a PAL-B country. Tvtime can be set to either
+>> PAL-BG, PAL-DK or PAL-I, makes no difference. MPlayer has a whole bunch
+>> of options (PAL, PAL-BG, etc...), but again none of them make a
+>> difference.
+>>
+>> When the app is started, this appears in dmesg:
+>>
+>> xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
+>> (0), id 00000000000000ff:
+>> xc2028 4-0061: Loading firmware for type=(0), id 0000000100000007.
+>> xc2028 4-0061: Loading SCODE for type=MONO SCODE HAS_IF_5320 (60008000), id 0000000f00000007.
 >
-> Hi Morvan,
 >
-> I'm not a developer, however I've done someting similar in the past...
+> Alright, success!!!
 >
-> This "keycodes" looks pretty strange to me, but then again I'm not a 
-> developer.
+> Since it seems everything for this tuner is set up the same as for the
+> Hauppauge WinTV HVR 900, I figured let's set things up *exactly* the
+> same. So, like it's there for the Hauppauge, I added .mts_firmware = 1
+> to the definition of the hybrid XS em2882. And well, working TV audio!!
 >
-> Just add it by hand and compile it, and install it.
 >
-> After successful load of all new modules, you should get some response 
-> in terminal, or in dmesg output like "Unknown key..." if keymap table 
-> is wrong by pressing buttons on remote. If this gpio's are correct:
+> dmesg output this time:
 >
-> +        mask_keycode = 0xffffff;
-> +        mask_keyup   = 0xffffff;
-> +        mask_keydown = 0xffffff;
-> +        polling      = 50; // ms
+> xc2028 4-0061: Loading firmware for type=BASE F8MHZ MTS (7), id 0000000000000000.
+> MTS (4), id 00000000000000ff:
+> xc2028 4-0061: Loading firmware for type=MTS (4), id 0000000100000007.
 >
-Still working on it, i found out where thoses keycodes should go :
-ir-keymaps.c
-i'm not a developer either, but i tried to learn C a few years ago
-so i'm not completly lost, i just can't understand what all that code is 
-doing ...
-But it is strange that such an old card had this lack of remote support 
-go unnoticed.
+>
+> So now with the attached patch, everything (analog, digital, remote)
+> works!
+>
+> Regards,
+> Uroš
+>
 
-( I really have no luck when it come to TV cards : first, my PC Basic 
-EC168 card ( tnt usb basic v5 ) doesn't work where it should, then my 
-HVR-1120 works but not with mythtv and now the remote i wanted to use 
-isn't supported :D )
+Excellent!  I will check your patch into my current hg tree
+(http://kernellabs.com/hg/~dheitmueller/misc-fixes2/), which I planned
+on submitting a PULL for on Monday.
 
+Cheers,
 
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
