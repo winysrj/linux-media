@@ -1,133 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4815 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753916AbZIKWj4 (ORCPT
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:49489 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751467AbZIYRld convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2009 18:39:56 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: RFCv2: Media controller proposal
-Date: Sat, 12 Sep 2009 00:39:50 +0200
-Cc: linux-media@vger.kernel.org
-References: <200909100913.09065.hverkuil@xs4all.nl> <200909112229.41357.hverkuil@xs4all.nl> <20090911182847.6458de96@caramujo.chehab.org>
-In-Reply-To: <20090911182847.6458de96@caramujo.chehab.org>
+	Fri, 25 Sep 2009 13:41:33 -0400
+Received: by fxm18 with SMTP id 18so2386548fxm.17
+        for <linux-media@vger.kernel.org>; Fri, 25 Sep 2009 10:41:36 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200909120039.50343.hverkuil@xs4all.nl>
+In-Reply-To: <20090925172209.GA10054@zverina>
+References: <20090913193118.GA12659@zverina> <20090921204418.GA19119@zverina>
+	 <829197380909211349r68b92b3em577c02d0dee9e4fc@mail.gmail.com>
+	 <20090921221505.GA5187@zverina>
+	 <829197380909211529r7ff7eab0nccc8d5fd55516ca2@mail.gmail.com>
+	 <20090922091235.GA10335@zverina>
+	 <829197380909221647p33236306ked2137a35707646d@mail.gmail.com>
+	 <20090925172209.GA10054@zverina>
+Date: Fri, 25 Sep 2009 13:41:36 -0400
+Message-ID: <829197380909251041i637a0790g10cc4b82a791f695@mail.gmail.com>
+Subject: Re: Questions about Terratec Hybrid XS (em2882) [0ccd:005e]
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 11 September 2009 23:28:47 Mauro Carvalho Chehab wrote:
-> Em Fri, 11 Sep 2009 22:29:41 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
-> > On Friday 11 September 2009 21:54:03 Mauro Carvalho Chehab wrote:
-> > > Em Fri, 11 Sep 2009 21:08:13 +0200
-> > > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > 
-> > <snip>
-> > 
-> > > > OK, so instead we require an application to construct a file containing a new
-> > > > topology, write something to a sysfs file, require code in the v4l core to load
-> > > > and parse that file, then find out which links have changed (since you really
-> > > > don't want to set all the links: there can be many, many links, believe me on
-> > > > that), and finally call the driver to tell it to change those links.
-> > > 
-> > > As I said before, the design should take into account how frequent are those
-> > > changes. If they are very infrequent, this approach works, and offers one
-> > > advantage: the topology will survive to application crashes and warm/cold
-> > > reboots. If the changes are frequent, an approach like the audio
-> > > user_pin_configs work better (see my previous email - note that this approach
-> > > can be used for atomic operations if needed). You add at a sysfs node just the
-> > > dynamic changes you need. We may even have both ways, as alsa seems to have
-> > > (init_pin_configs and user_pin_configs).
-> > 
-> > How frequent those changes are will depend entirely on the application.
-> > Never underestimate the creativity of the end-users :-)
-> > 
-> > I think that a good worst case guideline would be 60 times per second.
-> > Say for a surveillance type application that switches between video decoders
-> > for each frame.
-> 
-> The video input switch control, is already used by surveillance applications
-> for a long time. There's no need to add any API for it.
-> 
-> > Or some 3D type application that switches between two sensors for each frame.
-> 
-> Also, another case of video input selection.
+On Fri, Sep 25, 2009 at 1:22 PM, Uros Vampl <mobile.leecher@gmail.com> wrote:
+> On 22.09.09 19:47, Devin Heitmueller wrote:
+>> >> If the audio is present but very quiet, then it's probably some issue
+>> >> you are having with your mixer.  I would check your ALSA and
+>> >> PulseAudio configuration (in particular the mixer volume controls).
+>> >>
+>> >> Devin
+>> >
+>> > No PulseAudio here. And I've played plenty with the ALSA mixer, all the
+>> > sliders that are there.
+>> >
+>> > Using em28xx-new instead of v4l-dvb, all else being equal, tv volume is
+>> > fine. So there's gotta be a difference somewhere in the way em28xx-new
+>> > sets up audio compared to how v4l-dvb does it.
+>>
+>> Interesting.  Have you tried the A/V inputs (as opposed to the tuner)?
+>>  That might help us identify whether it's an issue with the xc3028
+>> tuner chip extracting the audio carrier or whether it's something
+>> about the way we are programming the emp202.
+>
+>
+> Hello,
+>
+> That was a great idea. Tested with a Playstation2 and audio is ok. It's
+> just TV input that has a problem. So I guess that means the issue is
+> with the tuner chip. That's progress. Where do I go from here?
 
-True, bad example. Given enough time I can no doubt come up with some example :-)
+Ok, that's good to hear.  What video standard specifically are you
+using?  I suspect the core issue is that the application is not
+properly specifying the video standard, which results in the xc3028
+improperly decoding the audio (the xc3028 needs to know exactly what
+standard is being used).
 
-> We shouldn't design any new device for it.
-> 
-> I may be wrong, but from Vaibhav and your last comments, I'm starting to think
-> that you're wanting to replace V4L2 by a new "media controller" based new API.
-> 
-> So, let's go one step back and better understand what's expected by the media
-> controller.
-> 
-> From my previous understanding, those are the needs:
-> 
-> 1) V4L2 API will keep being used to control the devices and to do streaming,
-> working under the already well defined devices;
-
-Yes.
- 
-> 2) One Kernel object is needed to represent the entire board as a hole, to
-> enumerate its sub-devices and to change their topology;
-
-Yes.
-
-> 3) For some very specific cases, it should be possible to "tweak" some
-> sub-devices to act on a non-usual way;
-
-This will not be for 'some very specific cases'. This will become an essential
-feature on embedded platforms. It's probably the most important part of the
-media controller proposal.
-
-> 4) Some new ioctls are needed to control some parts of the devices that aren't
-> currently covered by V4L2 API.
-
-No, that is not part of the proposal. Of course, as drivers for the more
-advanced devices are submitted there may be some functionality that is general
-enough to warrant inclusion in the V4L2 API, but that's business as usual.
-
-> 
-> Right?
-> 
-> If so:
-> 
-> (1) already exists;
-
-Obviously.
- 
-> (2) is the "topology manager" of the media controller, that should use
-> sysfs, due to its nature.
-
-See the separate thread I started on sysfs vs ioctl.
-
-> For (3), there are a few alternatives. IMO, the better is to use also sysfs,
-> since we'll have all subdevs already represented there. So, to change
-> something, it is just a matter to write something to a sysfs node.
-
-See that same thread why that is a really bad idea.
-
-> Another 
-> alternative would be to create separate subdevs at /dev, but this will end on
-> creating much more complex drivers than probably needed.
-
-I agree with this.
-
-> (4) is implemented by some new ioctl additions at V4L2 API.
-
-Not an issue as stated above.
-
-Regards,
-
-	Hans
+Devin
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
