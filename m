@@ -1,53 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2f.orange.fr ([80.12.242.150]:55448 "EHLO smtp2f.orange.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752272AbZIKHyr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2009 03:54:47 -0400
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2f04.orange.fr (SMTP Server) with ESMTP id 30ED580000A0
-	for <linux-media@vger.kernel.org>; Fri, 11 Sep 2009 09:54:49 +0200 (CEST)
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2f04.orange.fr (SMTP Server) with ESMTP id 24B3D80000A9
-	for <linux-media@vger.kernel.org>; Fri, 11 Sep 2009 09:54:49 +0200 (CEST)
-Received: from [192.168.1.11] (ANantes-551-1-42-204.w86-214.abo.wanadoo.fr [86.214.145.204])
-	by mwinf2f04.orange.fr (SMTP Server) with ESMTP id A50F480000A0
-	for <linux-media@vger.kernel.org>; Fri, 11 Sep 2009 09:54:48 +0200 (CEST)
-Message-ID: <4AAA0247.8020004@gmail.com>
-Date: Fri, 11 Sep 2009 09:54:47 +0200
-From: Morvan Le Meut <mlemeut@gmail.com>
+Received: from web24712.mail.ird.yahoo.com ([212.82.104.185]:25880 "HELO
+	web24712.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751030AbZIZMCp convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Sep 2009 08:02:45 -0400
+Message-ID: <462146.41730.qm@web24712.mail.ird.yahoo.com>
+Date: Sat, 26 Sep 2009 11:56:08 +0000 (GMT)
+From: Alistair Thomas <astavale@yahoo.co.uk>
+Subject: No sound on Pinnacle PCTV Studio/Rave card - fixed with tda9887 and tuner module settings
+To: linux-media@vger.kernel.org
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: (Saa7134) Re: ADS-Tech Instant TV PCI, no remote support, no
- idea what to try.
-References: <4AA53C05.10203@gmail.com> <4AA61508.9040506@gmail.com> <op.uzxmzlj86dn9rq@crni> <4AA62C38.3050208@gmail.com> <4AA63434.1010709@gmail.com> <4AA683BD.6070601@gmail.com> <4AA695EE.70800@gmail.com> <4AA767F2.50702@gmail.com> <op.uzzfgyvj3xmt7q@crni> <4AA77240.2040504@gmail.com> <4AA77683.7010201@gmail.com> <4AA7C266.3000509@gmail.com> <op.uzzz96se6dn9rq@crni> <4AA7E166.7030906@gmail.com> <4AA81785.5000806@gmail.com> <4AA8BB20.4040701@gmail.com> <4AA919CA.20701@gmail.com>
-In-Reply-To: <4AA919CA.20701@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-um .. help, please ?
-how can i make the driver read 1011011 instead of 011011 when i press 
-Power instead of record on the remote ?
+Hi,
 
-thanks
+Each time I update Fedora I lose these settings:
 
-Morvan Le Meut a écrit :
-> from cx88-input.c
->
-> case CX88_BOARD_ADSTECH_DVB_T_PCI:
->         ir_codes = ir_codes_adstech_dvb_t_pci;
->         ir->gpio_addr = MO_GP1_IO;
->         ir->mask_keycode = 0xbf;
->         ir->mask_keyup = 0x40;
->         ir->polling = 50; /* ms */
->         break;
->
-> I'm not sure how much of the adstech instant tv dvb-t pci can be 
-> copied for the non dvb-t one but could the solution be something along 
-> the lines of that "ir->gpio_addr" thing ? or is that specific to the 
-> cx88 driver ?
->
+options tda9887 qss=0
+options tuner pal=i
+
+Who would be able to include these settings automatically within these modules?
+
+Thanks for any help
+
+Alistair Thomas
+
+PCI card details from dmesg:
+
+bttv: driver version 0.9.18 loaded
+bttv: using 8 buffers with 2080k (520 pages) each for capture
+bttv: Bt8xx card found (0).
+ACPI: PCI Interrupt Link [APC3] enabled at IRQ 18
+bttv 0000:01:06.0: PCI INT A -> Link[APC3] -> GSI 18 (level, high) -> IRQ 18
+bttv0: Bt878 (rev 17) at 0000:01:06.0, irq: 18, latency: 32, mmio: 0xc2000000
+bttv0: detected: Pinnacle PCTV [card=39], PCI subsystem ID is 11bd:0012
+bttv0: using: Pinnacle PCTV Studio/Rave [card=39,autodetected]
+IRQ 18/bttv0: IRQF_DISABLED is not guaranteed on shared IRQs
+bttv0: gpio: en=00000000, out=00000000 in=00ffffff [init]
+bttv0: i2c: checking for MSP34xx @ 0x80... not found
+bttv0: pinnacle/mt: id=1 info="PAL / mono" radio=no
+bttv0: tuner type=33
+intel8x0_measure_ac97_clock: measured 53024 usecs (2576 samples)
+intel8x0: clocking to 47425
+usbcore: registered new interface driver snd-usb-audio
+firewire_core: created device fw0: GUID 00301b301baf5073, S400
+tuner 2-0043: chip found @ 0x86 (bt878 #0 [sw])
+tda9887 2-0043: creating new instance
+tda9887 2-0043: tda988[5/6/7] found
+Chip ID is not zero. It is not a TEA5767
+tuner 2-0060: chip found @ 0xc0 (bt878 #0 [sw])
+mt20xx 2-0060: microtune: companycode=3cbf part=42 rev=22
+mt20xx 2-0060: microtune MT2050 found, OK
+bttv0: audio absent, no audio device found!
+bttv0: registered device video0
+bttv0: registered device vbi0
+bttv0: PLL: 28636363 => 35468950 .. ok
 
 
-
+      
