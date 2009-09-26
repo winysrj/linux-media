@@ -1,66 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:34298 "EHLO compulab.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754037AbZIFGDp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Sep 2009 02:03:45 -0400
-Message-ID: <4AA350B4.30204@compulab.co.il>
-Date: Sun, 06 Sep 2009 09:03:32 +0300
-From: Mike Rapoport <mike@compulab.co.il>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4552 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752370AbZIZTbB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Sep 2009 15:31:01 -0400
+Message-ID: <6d6bcf63e448949eceda7ef357efedff.squirrel@webmail.xs4all.nl>
+In-Reply-To: <5e9665e10909260606t36901e72ma49c586d19f7d701@mail.gmail.com>
+References: <200909232239.20105.hverkuil@xs4all.nl>
+    <Pine.LNX.4.64.0909242000240.4913@axis700.grange>
+    <5e9665e10909260140v2030ab5bvb7c1bed5e358319b@mail.gmail.com>
+    <Pine.LNX.4.64.0909261103310.4273@axis700.grange>
+    <5e9665e10909260606t36901e72ma49c586d19f7d701@mail.gmail.com>
+Date: Sat, 26 Sep 2009 21:31:03 +0200
+Subject: Re: V4L-DVB Summit Day 1
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+Cc: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
+	"Linux Media Mailing List" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Eric Miao <eric.y.miao@gmail.com>,
-	Marek Vasut <marek.vasut@gmail.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH] Add RGB555X and RGB565X formats to pxa-camera
-References: <200908031031.00676.marek.vasut@gmail.com> <4A76CB7C.10401@gmail.com> <Pine.LNX.4.64.0908031415370.5310@axis700.grange> <4A76DF29.1050008@compulab.co.il> <Pine.LNX.4.64.0909042102200.4501@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0909042102200.4501@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
 
-Guennadi Liakhovetski wrote:
-> On Mon, 3 Aug 2009, Mike Rapoport wrote:
-> 
->>> 2. Mike, while reviewing this patch I came across code in 
->>> pxa_camera_setup_cicr(), introduced by your earlier patch:
+> On Sat, Sep 26, 2009 at 6:32 PM, Guennadi Liakhovetski
+> <g.liakhovetski@gmx.de> wrote:
+>> On Sat, 26 Sep 2009, Dongsoo, Nathaniel Kim wrote:
+>>
+>>> On Fri, Sep 25, 2009 at 3:07 AM, Guennadi Liakhovetski
+>>> <g.liakhovetski@gmx.de> wrote:
+>>> > Hi Hans
+>>> >
+>>> > Thanks for keeping us updated. One comment:
+>>> >
+>>> > On Wed, 23 Sep 2009, Hans Verkuil wrote:
+>>> >
+>>> >> In the afternoon we discussed the proposed timings API. There was no
+>>> >> opposition to this API. The idea I had to also use this for sensor
+>>> setup
+>>> >> turned out to be based on a misconception on how the S_FMT relates
+>>> to sensors.
+>>> >> ENUM_FRAMESIZES basically gives you the possible resolutions that
+>>> the scaler
+>>> >> hidden inside the bridge can scale the native sensor resolution. It
+>>> does not
+>>> >> enumerate the various native sensor resolutions, since there is only
+>>> one. So
+>>> >> S_FMT really sets up the scaler.
+>>> >
+>>> > Just as Jinlu Yu noticed in his email, this doesn't reflect the real
+>>> > situation, I am afraid. You can use binning and skipping on the
+>>> sensor to
+>>> > scale the image, and you can also use the bridge to do the scaling,
+>>> as you
+>>> > say. Worth than that, there's also a case, where there _several_ ways
+>>> to
+>>> > perform scaling on the sensor, among which one can freely choose, and
+>>> the
+>>> > host can scale too. And indeed it makes sense to scale on the source
+>>> to
+>>> > save the bandwidth and thus increase the framerate. So, what I'm
+>>> currently
+>>> > doing on sh-mobile, I try to scale on the client - in the best
+>>> possible
+>>> > way. And then use bridge scaling to provide the exact result.
+>>> >
 >>>
->>> 	case V4L2_PIX_FMT_RGB555:
->>> 		cicr1 |= CICR1_RGB_BPP_VAL(1) | CICR1_RGBT_CONV_VAL(2) |
->>> 			CICR1_TBIT | CICR1_COLOR_SP_VAL(1);
->>> 		break;
->>>
->>> Why are you enabling the RGB to RGBT conversion here unconditionally? 
->>> Generally, what are the advantages of configuring CICR1 for a specific RGB 
->>> format compared to using just a raw capture? Do I understand it right, 
->>> that ATM we are not using any of those features?
->> As far as I remember I've tried to overlay the captured imagery using pxa
->> overlay1. Most probably it's left here after those tries.
-> 
-> Mike, could you, please, verify that those bits are indeed unneeded and 
-> provide patch to remove them?
+>>> Yes I do agree with you. And it is highly necessary to provide a clear
+>>> method which obviously indicates which device to use in scaling job.
+>>> When I use some application processors which provide camera
+>>> peripherals with scaler inside and external ISP attached, there is no
+>>> way to use both scaler features inside them. I just need to choose one
+>>> of them.
+>>
+>> Well, I don't necessarily agree, in fact, I do use both scaling engines
+>> in
+>> my sh setup. The argument is as mentioned above - bus usage and
+>> framerate
+>> optimisation. So, what I am doing is: I try to scale on the sensor as
+>> close as possible, and then scale further on the host (SoC). This works
+>> well, only calculations are not very trivial. But you only have to
+>> perform
+>> them once during setup, so, it's not time-critical. Might be worth
+>> implementing such calculations somewhere centrally to reduce error
+>> chances
+>> in specific drivers. Same with cropping.
+>>
+>
+> I think that is a good approach. And considering the image quality, I
+> should make bypass the scaler when user is requesting the exact
+> resolution supported by the external camera ISP. Because some of
+> camera interface embedded scalers are very poor in image quality and
+> performance thus they may reduce in framerate as well. So, user can
+> choose "with scaler" or "without scaler".
 
-Unfortunately, I don't have the sensor handy at the time :( The one I've used
-then is now broken (physically) and there's no replacement for it :(
+There are two ways of doing this: one is to have a smart driver that will
+attempt to do the best thing (soc-camera, uvc, gspca), the other will be
+to give the application writer full control of the SoC capabilities
+through the media controller. Through a media controller you will be able
+to setup the sensor scaler and a SoC scaler independently.
 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+For a digital camera for example you probably want to be able to control
+the hardware from the application in order to get the very best results,
+rather than let the driver do it.
+
+Regards,
+
+         Hans
 
 -- 
-Sincerely yours,
-Mike.
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
