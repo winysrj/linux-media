@@ -1,69 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway07.websitewelcome.com ([69.56.176.23]:49773 "HELO
-	gateway07.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1755093AbZIRVKH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Sep 2009 17:10:07 -0400
-Received: from [66.15.212.169] (port=30677 helo=[10.140.5.16])
-	by gator886.hostgator.com with esmtpsa (SSLv3:AES256-SHA:256)
-	(Exim 4.69)
-	(envelope-from <pete@sensoray.com>)
-	id 1Moi7C-0002jL-6m
-	for linux-media@vger.kernel.org; Fri, 18 Sep 2009 13:23:26 -0500
-Subject: [PATCH 6/9] s2250-board: Fix memory leaks
-From: Pete <pete@sensoray.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Received: from mail1.radix.net ([207.192.128.31]:54037 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752242AbZIZULP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Sep 2009 16:11:15 -0400
+Subject: Re: [PATCH] cx25840 6.5MHz carrier detection fixes
+From: Andy Walls <awalls@radix.net>
+To: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>,
+	hverkuil@xs4all.nl
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <20090925211621.GA15452@moon>
+References: <20090925211621.GA15452@moon>
 Content-Type: text/plain
-Date: Fri, 18 Sep 2009 11:23:30 -0700
-Message-Id: <1253298210.4314.570.camel@pete-desktop>
+Date: Sat, 26 Sep 2009 16:12:59 -0400
+Message-Id: <1253995979.3156.31.camel@palomino.walls.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In some error cases, allocated buffers need to be freed before returning.
+On Sat, 2009-09-26 at 00:16 +0300, Aleksandr V. Piskunov wrote:
+> cx25840:
+> Disable 6.5MHz carrier autodetection for PAL, always assume its DK.
+> Only try to autodetect 6.5MHz carrier for SECAM if user accepts both
+> system DK and L.
+> 
+> Signed-off-by: Aleksandr V. Piskunov <alexandr.v.piskunov@gmail.com>
 
-Priority: normal
+Aleksandr,
 
-Signed-off-by: Pete Eberlein <pete@sensoray.com>
+I would like a little more time to look at your patch.
 
-diff -r e227a099a9f2 -r bf8ee230f1a0 linux/drivers/staging/go7007/s2250-board.c
---- a/linux/drivers/staging/go7007/s2250-board.c	Fri Sep 18 10:37:01 2009 -0700
-+++ b/linux/drivers/staging/go7007/s2250-board.c	Fri Sep 18 10:39:03 2009 -0700
-@@ -203,10 +203,13 @@
- 	usb = go->hpi_context;
- 	if (mutex_lock_interruptible(&usb->i2c_lock) != 0) {
- 		printk(KERN_INFO "i2c lock failed\n");
-+		kfree(buf);
- 		return -EINTR;
- 	}
--	if (go7007_usb_vendor_request(go, 0x57, addr, val, buf, 16, 1) < 0)
-+	if (go7007_usb_vendor_request(go, 0x57, addr, val, buf, 16, 1) < 0) {
-+		kfree(buf);
- 		return -EFAULT;
-+	}
- 
- 	mutex_unlock(&usb->i2c_lock);
- 	if (buf[0] == 0) {
-@@ -214,6 +217,7 @@
- 
- 		subaddr = (buf[4] << 8) + buf[5];
- 		val_read = (buf[2] << 8) + buf[3];
-+		kfree(buf);
- 		if (val_read != val) {
- 			printk(KERN_INFO "invalid fp write %x %x\n",
- 			       val_read, val);
-@@ -224,8 +228,10 @@
- 			       subaddr, addr);
- 			return -EFAULT;
- 		}
--	} else
-+	} else {
-+		kfree(buf);
- 		return -EFAULT;
-+	}
- 
- 	/* save last 12b value */
- 	if (addr == 0x12b)
+However, in the mean time, could you test the DK vs. L autodetection,
+without your patch, using the cx25840 firmware in
 
+http://dl.ivtvdriver.org/ivtv/firmware/ivtv-firmware-20070217.tar.gz
+
+?
+
+The MD5 sum of that firmware is:
+
+$ md5sum /lib/firmware/v4l-cx25840.fw 
+99836e41ccb28c7b373e87686f93712a  /lib/firmware/v4l-cx25840.fw
+
+The cx25840 firmware in
+
+http://dl.ivtvdriver.org/ivtv/firmware/ivtv-firmware-20080701.tar.gz
+http://dl.ivtvdriver.org/ivtv/firmware/ivtv-firmware.tar.gz
+
+is probably wrong to use for the CX2584[0123] chips as it it actually
+CX23148 A/V core firmware - very similar but not the same.
+
+
+Hans or Axel,
+
+Could one of you put the correct v4l-cx25840.fw image found in 
+
+http://dl.ivtvdriver.org/ivtv/firmware/ivtv-firmware-20070217.tar.gz
+
+in the archive at:
+
+http://dl.ivtvdriver.org/ivtv/firmware/ivtv-firmware.tar.gz
+
+?
+
+The v4l-cx25840.fw image currently in that archive, which is actually
+for the CX23418, is not good to use with CX2584[0123].
+
+
+Regards,
+Andy
+
+
+> diff --git a/linux/drivers/media/video/cx25840/cx25840-core.c b/linux/drivers/media/video/cx25840/cx25840-core.c
+> --- a/linux/drivers/media/video/cx25840/cx25840-core.c
+> +++ b/linux/drivers/media/video/cx25840/cx25840-core.c
+> @@ -647,13 +647,30 @@
+>                 }
+>                 cx25840_write(client, 0x80b, 0x00);
+>         } else if (std & V4L2_STD_PAL) {
+> -               /* Follow tuner change procedure for PAL */
+> +               /* Autodetect audio standard and audio system */
+>                 cx25840_write(client, 0x808, 0xff);
+> -               cx25840_write(client, 0x80b, 0x10);
+> +               /* Since system PAL-L is pretty much non-existant and
+> +                  not used by any public broadcast network, force
+> +                  6.5 MHz carrier to be interpreted as System DK,
+> +                  this avoids DK audio detection instability */
+> +               cx25840_write(client, 0x80b, 0x00);
+>         } else if (std & V4L2_STD_SECAM) {
+> -               /* Select autodetect for SECAM */
+> +               /* Autodetect audio standard and audio system */
+>                 cx25840_write(client, 0x808, 0xff);
+> -               cx25840_write(client, 0x80b, 0x10);
+> +               /* If only one of SECAM-DK / SECAM-L is required, then force
+> +                  6.5MHz carrier, else autodetect it */
+> +               if ((std & V4L2_STD_SECAM_DK) &&
+> +                   !(std & (V4L2_STD_SECAM_L | V4L2_STD_SECAM_LC))) {
+> +                       /* 6.5 MHz carrier to be interpreted as System DK */
+> +                       cx25840_write(client, 0x80b, 0x00);
+> +               } else if (!(std & V4L2_STD_SECAM_DK) &&
+> +                          (std & (V4L2_STD_SECAM_L | V4L2_STD_SECAM_LC))) {
+> +                       /* 6.5 MHz carrier to be interpreted as System L */
+> +                       cx25840_write(client, 0x80b, 0x08);
+> +               } else {
+> +                       /* 6.5 MHz carrier to be autodetected */
+> +                       cx25840_write(client, 0x80b, 0x10);
+> +               }
+>         }
+> 
+>         cx25840_and_or(client, 0x810, ~0x01, 0);
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
