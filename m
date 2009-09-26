@@ -1,38 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailsub1.hostvue.com ([195.26.90.71]:39938 "EHLO
-	mailsub1.hostvue.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756218AbZIUOQu (ORCPT
+Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:3501 "EHLO
+	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751865AbZIZSFT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Sep 2009 10:16:50 -0400
-Received: from apache by mailsub1.hostvue.com with local (Exim 4.63)
-	(envelope-from <george@playinmedia.com>)
-	id 1MpjLF-0002bx-AY
-	for linux-media@vger.kernel.org; Mon, 21 Sep 2009 14:54:09 +0100
-Message-ID: <34816.188.220.60.62.1253541249.squirrel@webmail.daily.co.uk>
-In-Reply-To: <4AB78169.5030800@kernellabs.com>
-References: <1252297247.18025.8.camel@morgan.walls.org>
-    <1252369138.2571.17.camel@morgan.walls.org>
-    <1253413236.13400.24.camel@morgan.walls.org>
-    <4AB78169.5030800@kernellabs.com>
-Date: Mon, 21 Sep 2009 14:54:09 +0100 (BST)
-Subject: 
-From: "George Joseph" <george@playinmedia.com>
+	Sat, 26 Sep 2009 14:05:19 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr17.xs4all.nl (8.13.8/8.13.8) with ESMTP id n8QI5M3P092216
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 26 Sep 2009 20:05:22 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 26 Sep 2009 20:05:22 +0200 (CEST)
+Message-Id: <200909261805.n8QI5M3P092216@smtp-vbr17.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello All,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
- I am new to the list. I am currently working on a dm7025 platform and
-would like to know if there is a possibillity to use the 128 pid filters
-on the xilleon 226. currently I see only /dev/dvb/adaptor0/demux0-3 in my
-device directory - i,e; at a point in time I can use only 4 tpid filters
-from the 128 available at hardware level.
+Results of the daily build of v4l-dvb:
 
+date:        Sat Sep 26 19:00:04 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13044:6b7617d4a0be
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Cheers,
-Warm regs,
-G.
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.27-armv5-ixp: ERRORS
+linux-2.6.28-armv5-ixp: ERRORS
+linux-2.6.29.1-armv5-ixp: ERRORS
+linux-2.6.30-armv5-ixp: ERRORS
+linux-2.6.31-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.27-powerpc64: ERRORS
+linux-2.6.28-powerpc64: ERRORS
+linux-2.6.29.1-powerpc64: ERRORS
+linux-2.6.30-powerpc64: ERRORS
+linux-2.6.31-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+sparse (linux-2.6.31): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
