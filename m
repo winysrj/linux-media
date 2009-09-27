@@ -1,54 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:37768 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751709AbZI1RTp convert rfc822-to-8bit (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.155]:46941 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752780AbZI0AXs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Sep 2009 13:19:45 -0400
-Received: from smtp1-g21.free.fr (localhost [127.0.0.1])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id F3F67940146
-	for <linux-media@vger.kernel.org>; Mon, 28 Sep 2009 19:19:44 +0200 (CEST)
-Received: from gandalf.hd.free.fr (wmh38-1-82-225-140-65.fbx.proxad.net [82.225.140.65])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id E93AE940238
-	for <linux-media@vger.kernel.org>; Mon, 28 Sep 2009 19:19:41 +0200 (CEST)
-Received: from localhost
-	([127.0.0.1] helo=gandalf.localnet ident=domi)
-	by gandalf.hd.free.fr with esmtp (Exim 4.69)
-	(envelope-from <domi.dumont@free.fr>)
-	id 1MsJsx-0004Lt-JW
-	for linux-media@vger.kernel.org; Mon, 28 Sep 2009 19:19:40 +0200
-From: Dominique Dumont <domi.dumont@free.fr>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Mon, 28 Sep 2009 19:19:38 +0200
-References: <cd98718e0909280200r23942bf5r726931bf23fc2bb3@mail.gmail.com> <cd98718e0909280202v5679ffabwaf9c1f6c1bf67734@mail.gmail.com>
-In-Reply-To: <cd98718e0909280202v5679ffabwaf9c1f6c1bf67734@mail.gmail.com>
+	Sat, 26 Sep 2009 20:23:48 -0400
+Received: by fg-out-1718.google.com with SMTP id 22so473704fge.1
+        for <linux-media@vger.kernel.org>; Sat, 26 Sep 2009 17:23:51 -0700 (PDT)
+Date: Sun, 27 Sep 2009 02:23:39 +0200
+From: Uros Vampl <mobile.leecher@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: Re: Questions about Terratec Hybrid XS (em2882) [0ccd:005e]
+Message-ID: <20090927002339.GA23032@zverina>
+References: <829197380909211349r68b92b3em577c02d0dee9e4fc@mail.gmail.com>
+ <20090921221505.GA5187@zverina>
+ <829197380909211529r7ff7eab0nccc8d5fd55516ca2@mail.gmail.com>
+ <20090922091235.GA10335@zverina>
+ <829197380909221647p33236306ked2137a35707646d@mail.gmail.com>
+ <20090925172209.GA10054@zverina>
+ <829197380909251041i637a0790g10cc4b82a791f695@mail.gmail.com>
+ <20090925182213.GA6941@zverina>
+ <20090925221015.GA21295@zverina>
+ <829197380909261359l22588d31v6fcc2cef40b12acd@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <200909281919.38386.domi.dumont@free.fr>
-Subject: Re: Hauppauge Nova-T 500 regression in dib0700
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <829197380909261359l22588d31v6fcc2cef40b12acd@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le lundi 28 septembre 2009 11:02:59, vous avez �crit :
-> I was wondering if any progress has been made with this issue? I have
-> what appears to be the same problem.
-> Can you offer any advice on getting this tuner card working with ubuntu
->  Jaunty? Obviously I guess the choices are compile an old kernel, or remove
->  said update from v4l, but I ask anyway just incase there is a better
->  option, or something happening in the near future I could just wait on.
+On 26.09.09 16:59, Devin Heitmueller wrote:
+> On Fri, Sep 25, 2009 at 6:10 PM, Uros Vampl <mobile.leecher@gmail.com> wrote:
+> > Alright, success!!!
+> >
+> > Since it seems everything for this tuner is set up the same as for the
+> > Hauppauge WinTV HVR 900, I figured let's set things up *exactly* the
+> > same. So, like it's there for the Hauppauge, I added .mts_firmware = 1
+> > to the definition of the hybrid XS em2882. And well, working TV audio!!
+> >
+> >
+> > dmesg output this time:
+> >
+> > xc2028 4-0061: Loading firmware for type=BASE F8MHZ MTS (7), id 0000000000000000.
+> > MTS (4), id 00000000000000ff:
+> > xc2028 4-0061: Loading firmware for type=MTS (4), id 0000000100000007.
+> >
+> >
+> > So now with the attached patch, everything (analog, digital, remote)
+> > works!
+> >
+> > Regards,
+> > Uroš
+> >
+> 
+> Hello Uros,
+> 
+> Please test out the following tree, which has all the relevant fixes
+> (enabling dvb, your audio fix, proper gpio setting, etc).
+> 
+> http://kernellabs.com/hg/~dheitmueller/misc-fixes2/
+> 
+> If you have any trouble, please let me know.  Otherwise I would like
+> to issue a PULL request for this tree.
 
-You may have a problem similar to my Nova-T usb box (you card is also using 
-USB).
 
-Here's the behavior I see since 2.6.28 (or so): all modules required for nova-
-T are loaded, and device files created BEFORE the usb box is ready. Sometimes, 
-the red LED on the box lights up after 20s, sometimes after 60s.
+Hi,
 
-Needless to say, if vdr starts before the LED goes on, the Nova-T device is 
-not seen by vdr.
+Your tree does not work, no audio. I quickly found the problem though: 
+gpio is set to default_analog, but it needs to be set to 
+hauppauge_wintv_hvr_900_analog. So I guess treating the EM2880 and 
+EM2882 as the same will not work, because they require different gpio 
+settings.
 
-I have no real solution. The only work-around I've found is to delay vdr start 
-with a 'sleep 60' in its startup script.
-
-Hope this helps
+Regards,
+Uroš
