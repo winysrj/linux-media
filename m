@@ -1,16 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-yw0-f174.google.com ([209.85.211.174])
-	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <david.whyte@gmail.com>) id 1MlCZp-0008Ud-Ro
-	for linux-dvb@linuxtv.org; Wed, 09 Sep 2009 04:06:30 +0200
-Received: by ywh4 with SMTP id 4so915425ywh.1
-	for <linux-dvb@linuxtv.org>; Tue, 08 Sep 2009 19:05:55 -0700 (PDT)
+Received: from static.123.246.46.78.clients.your-server.de ([78.46.246.123]
+	helo=rohieb.name) by mail.linuxtv.org with esmtp (Exim 4.69)
+	(envelope-from <rohieb@rohieb.name>) id 1Ms0t3-0006PB-KY
+	for linux-dvb@linuxtv.org; Sun, 27 Sep 2009 23:02:30 +0200
+Received: from [134.169.174.188] (c188.apm.etc.tu-bs.de [134.169.174.188])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested) (Authenticated sender: rohieb)
+	by rohieb.name (Postfix) with ESMTPSA id 2AAAF5D2DF
+	for <linux-dvb@linuxtv.org>; Sun, 27 Sep 2009 23:02:25 +0200 (CEST)
+Message-ID: <4ABFD2E0.7000103@rohieb.name>
+Date: Sun, 27 Sep 2009 23:02:24 +0200
+From: Roland Hieber <rohieb@rohieb.name>
 MIME-Version: 1.0
-Date: Wed, 9 Sep 2009 12:05:55 +1000
-Message-ID: <5df807700909081905hee100f3ia5dfed3604015a7f@mail.gmail.com>
-From: David Whyte <david.whyte@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] saa7134 tuner doesn't work after warm-reboot
+Subject: [linux-dvb] Problems with af9013/5: I2C read failed reg:d417,
+	bulk message failed:-22
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -25,109 +29,61 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-My brothers mythTV setup currently consists of one MBE with 2x DVB-T
-tuners in.
+Hello,
 
-Both tuners are from identical Medion PCs and report the following
-from dmesg when booted...
+I am having problems with my DIGITTRADE DVB-T USB Stick with af9015 chipset
+since a few weeks. It works for a while (sometimes about 3 minutes, sometimes
+half an hour) but suddenly the video stream freezes and dmesg says:
 
-mythtv-user@mythBE1:~$ dmesg | grep -i dvb
-[   62.626167] saa7134[0] Board has DVB-T
-[   63.405856] saa7134[1] Board has DVB-T
-[   63.933725] DVB: registering new adapter (saa7134[0])
-[   63.933729] DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
-[   66.281192] DVB: registering new adapter (saa7134[1])
-[   66.281197] DVB: registering frontend 1 (Philips TDA10046H DVB-T)...
+> [  155.924040] usb 1-6: new high speed USB device using ehci_hcd and address 4
+> [  156.091151] usb 1-6: configuration #1 chosen from 1 choice
+> [  156.096560] Afatech DVB-T: Fixing fullspeed to highspeed interval: 16 -> 8
+> [  156.096985] input: Afatech DVB-T as /devices/pci0000:00/0000:00:10.3/usb1/1-6/1-6:1.1/input/input7
+> [  156.138858] generic-usb 0003:15A4:9016.0002: input,hidraw1: USB HID v1.01 Keyboard [Afatech DVB-T] on usb-0000:00:10.3-6/input1
+> [  156.262580] dvb-usb: found a 'Afatech AF9015 DVB-T USB2.0 stick' in cold state, will try to load a firmware
+> [  156.262591] usb 1-6: firmware: requesting dvb-usb-af9015.fw
+> [  156.313938] dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
+> [  156.382340] dvb-usb: found a 'Afatech AF9015 DVB-T USB2.0 stick' in warm state.
+> [  156.382441] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+> [  156.382984] DVB: registering new adapter (Afatech AF9015 DVB-T USB2.0 stick)
+> [  156.906560] af9013: firmware version:4.95.0
+> [  156.911056] DVB: registering adapter 0 frontend 0 (Afatech AF9013 DVB-T)...
+> [  156.995283] MT2060: successfully identified (IF1 = 1220)
+> [  157.471840] dvb-usb: Afatech AF9015 DVB-T USB2.0 stick successfully initialized and connected.
+> [  157.551768] usbcore: registered new interface driver dvb_usb_af9015
+> [  239.765547] usb 1-6: USB disconnect, address 4
+> [  239.769954] af9015: bulk message failed:-22 (8/-224805168)
+> [  239.769961] af9013: I2C read failed reg:d417
+> [  239.769965] af9015: bulk message failed:-22 (8/-1067461161)
+> [  239.769968] af9013: I2C read failed reg:d417
+> [  239.769971] af9015: bulk message failed:-22 (9/54295)
+> [  239.769973] mt2060 I2C write failed
+> [  239.769975] af9015: bulk message failed:-22 (8/134)
+> [  239.769977] af9013: I2C read failed reg:d417
+> [  239.769980] af9015: bulk message failed:-22 (8/15)
+> [  239.769982] af9013: I2C read failed reg:d417
+> [  239.769986] af9015: bulk message failed:-22 (8/-1065361500)
+> [  239.769988] af9013: I2C read failed reg:d730
 
-My brother lives in an area that suffers very short power-outages if
-there is a storm or whatever and I have noticed that after such an
-event, he loses the ability to record TV from both tuners and
-generally only one will work.  I am never sure if it is always the
-same tuner that as busted since I don't know which is dvb0 or dvb1 at
-any point in time.
+I am not even able to rmmod the dvb_usb_af9015 driver, the process hangs.
 
-To correct this, I remote into the server and issue a 'halt', get him
-to unplug it from the wall then press the power button on the front of
-the machine, re-plug it into the wall and boot up the server.  Then
-both tuners are working fine.
+I already tried a more recent firmware and driver, so I am now working with
+firmware v4.95.0 and changeset 71dec186cdae of the v4l-dvb repository. My
+system is running on a 2.6.28-15-generic #49-Ubuntu SMP kernel.
 
-I understand the best way around this might be a UPS, but I don't have
-the ability to get one at the moment, though it will be his next
-purchase.
+What do these error messages mean? What meaning do the numbers have? Could it
+be that my hardware is broken? It has now been working for over a year now
+without major problems (and even better than on Windows, thanks to v4l-dvb ;-))
 
-In the meantime I was wandering if anyone had any suggestions for
-getting around this problem.  For my tuners that used to suffer a
-similar problem (but which are different tuners) I had to add some
-lines to rc.local to remove the dvb modules and then re-insert them
-and this seemed to work.  There are a number of similar posts in the
-archives like this.  I have tried this for the saa7134 modules but to
-no avail.
+Thanks in advantage,
+Roland Hieber
 
-The following output is for reference:
-mythtv-user@mythBE1:~$ lsmod | grep -i saa
-saa7134_dvb            21516  0
-videobuf_dvb            7812  1 saa7134_dvb
-dvb_core               80636  2 saa7134_dvb,videobuf_dvb
-saa7134               143828  1 saa7134_dvb
-videodev               35072  2 saa7134,tuner
-compat_ioctl32          2304  1 saa7134
-v4l2_common            12672  2 saa7134,tuner
-videobuf_dma_sg        14980  2 saa7134_dvb,saa7134
-videobuf_core          19716  3 videobuf_dvb,saa7134,videobuf_dma_sg
-ir_kbd_i2c             11152  1 saa7134
-ir_common              40580  2 saa7134,ir_kbd_i2c
-tveeprom               13444  1 saa7134
-i2c_core               24832  12
-saa7134_dvb,saa7134,tda1004x,tuner_simple,tda9887,tda8290,tuner,v4l2_common,ir_kbd_i2c,tveeprom,i2c_i810,i2c_algo_bit
-mythtv-user@mythBE1:~$
 
-mythtv-user@mythBE1:~$ cat /etc/rc.local
-#!/bin/sh -e
-#
-# rc.local
-#
-# This script is executed at the end of each multiuser runlevel.
-# Make sure that the script will "exit 0" on success or any other
-# value on error.
-#
-# In order to enable or disable this script just change the execution
-# bits.
-#
-# By default this script does nothing.
 
-/sbin/rmmod saa7134_dvb saa7134 videobuf_dvb dvb_core
 
-/sbin/modprobe saa7134_dvb
 
-exit 0
-mythtv-user@mythBE1:~$
 
-The machine is a Pentium 4 running Ubuntu Hardy:
-mythtv-user@mythBE1:~$ uname -r
-2.6.24-24-generic
-mythtv-user@mythBE1:~$
 
-mythtv-user@mythBE1:~$ modinfo saa7134_dvb
-filename:       /lib/modules/2.6.24-24-generic/updates/dkms/saa7134-dvb.ko
-license:        GPL
-author:         Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]
-srcversion:     C8C85F1BA098BDF283F1975
-depends:        saa7134,dvb-core,videobuf-dvb,videobuf-dma-sg,i2c-core
-vermagic:       2.6.24-24-generic SMP mod_unload 586
-parm:           antenna_pwr:enable antenna power (Pinnacle 300i) (int)
-parm:           use_frontend:for cards with multiple frontends (0:
-terrestrial, 1: satellite) (int)
-parm:           debug:Turn on/off module debugging (default:off). (int)
-parm:           adapter_nr:DVB adapter numbers (array of short)
-mythtv-user@mythBE1:~$
-
-Similar bug in launchpad, but no saa7134_also module is loaded for these cards.
-https://bugs.launchpad.net/ubuntu/+source/linux/+bug/349537
-
-Any help is greatly appreciated.
-
-Regards,
-Whytey
 
 _______________________________________________
 linux-dvb users mailing list
