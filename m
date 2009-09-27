@@ -1,124 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:16541 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750803AbZIVSZj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2009 14:25:39 -0400
-Message-ID: <4AB7B6AA.3070404@maxwell.research.nokia.com>
-Date: Mon, 21 Sep 2009 20:23:54 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from mga02.intel.com ([134.134.136.20]:18588 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752499AbZI0OaY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Sep 2009 10:30:24 -0400
+From: "Yu, Jinlu" <jinlu.yu@intel.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Sun, 27 Sep 2009 22:30:49 +0800
+Subject: RE: [PATCH 0/5] V4L2 patches for Intel Moorestown Camera Imaging
+Message-ID: <037F493892196B458CD3E193E8EBAD4F01ED97460C@pdsmsx502.ccr.corp.intel.com>
+References: <037F493892196B458CD3E193E8EBAD4F01ED6EEE10@pdsmsx502.ccr.corp.intel.com>
+ <20090924084448.76bf8ff1@pedra.chehab.org>
+In-Reply-To: <20090924084448.76bf8ff1@pedra.chehab.org>
+Content-Language: en-US
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Nathaniel Kim <dongsoo.kim@gmail.com>, linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@skynet.be>
-Subject: Re: Media controller: sysfs vs ioctl
-References: <200909120021.48353.hverkuil@xs4all.nl> <1BD4D6CB-4CEC-40D2-B168-BE5F8494189F@gmail.com> <200909131103.20202.hverkuil@xs4all.nl>
-In-Reply-To: <200909131103.20202.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
-> On Sunday 13 September 2009 08:13:04 Nathaniel Kim wrote:
->> 2009. 9. 12., 오전 7:21, Hans Verkuil 작성:
->>
->> Hans,
->>
->> First of all I'm very sorry that I had not enough time to go through  
->> your new RFC. I'll checkout right after posting this mail.
->>
->> I think this is a good approach and I also had in my mind that sysfs  
->> might be a good method if we could control and monitor through this.  
->> Recalling memory when we had a talk in San Francisco, I was frustrated  
->> that there is no way to catch events from sort of sub-devices like  
->> lens actuator (I mean pizeo motors in camera module). As you know lens  
->> actuator is an extremely slow device in comparison with common v4l2  
->> devices we are using and we need to know whether it has succeeded or  
->> not in moving to expected position.
->> So I considered sysfs and udev as candidates for catching events from  
->> sub-devices. events like success/failure of lens movement, change of  
->> status of subdevices.
->> Does anybody experiencing same issue? I think I've seen a lens  
->> controller driver in omap3 kernel from TI but not sure how did they  
->> control that.
->>
->> My point is that we need a kind of framework to give and event to user  
->> space and catching them properly just like udev does.
-> 
-> When I was talking to Laurent Pinchart and Sakari and his team at Nokia
-> we discussed just such a framework. It actually exists already, although
-> it is poorly implemented.
-> 
-> Look at include/linux/dvb/video.h, struct video_event and ioctl VIDEO_GET_EVENT.
-> It is used in ivtv (ivtv-ioctl.c, look for VIDEO_GET_EVENT).
-> 
-> The idea is that you can either call VIDEO_GET_EVENT to wait for an event
-> or use select() and wait for an exception to arrive, and then call
-> VIDEO_GET_EVENT to find which event it was.
-> 
-> This is ideal for streaming-related events. In ivtv it is used to report
-> VSYNCs and to report when the MPEG decoder stopped (there is a delay between
-> stopping sending new data to the decoder and when it actually processed all
-> its internal buffers).
-> 
-> Laurent is going to look into this to clean it up and present it as a new
-> proper official V4L2 event mechanism.
-> 
-> For events completely specific to a subdev I wonder whether it wouldn't be
-> a good idea to use the media controller device for that. I like the select()
-> mechanism since in an application you can just select() on a whole bunch of
-> filehandles. If you can't use select() then you are forced to do awkward coding
-> (e.g. make a separate thread just to handle that other event mechanism).
-
-Agree. There's no reasonable way to use video devices here since the 
-events may be connected to non-video related issues --- like the statistics.
-
-One possible approach could be allocating a device node for each subdev 
-and use them and leave the media controller device with just the media 
-controller specific ioctls. Then there would be no need to set current 
-subdev nor bind the subdev to file handle either.
-
-Just an idea.
-
-> So with the media controller we can easily let sub-devices notify the media
-> controller when an event is ready and the media controller can then generate
-> an exception. An application can just select() on the mc filehandle.
-> 
-> There are two ways of implementing this. One is that the media controller
-> keeps a global queue of pending events and subdevices just queue events to
-> that when they arrive (with some queue size limit to prevent run-away events).
-
-With the above arrangement, the events could be easily subdev specific. 
-The mechanism should be generic still, though.
-
-> So when you call some GET_EVENT type ioctl it should return the ID of the
-> subdevice (aka entity) as well. What makes me slightly uncomfortable is that
-> you still want to use that same ioctl on a normal video node. And the subdev
-> ID has really no meaning there. But making two different ioctls doesn't sit
-> well with me either.
-> 
-> The alternative implementation is that the mc will only wait for events from
-> the currently selected sub-device. So if you want to wait on events from
-> different sub-devices, then you have to open the mc multiple times, once for
-> each subdev that you want to receive events from.
-> 
-> I think I would probably go for the second implementation because it is
-> consistent with the way ioctls are passed to sub-devices. I like the idea that
-> you can just pass regular V4L2 ioctls to sub-devices. Not all ioctls make
-> sense, obviously (e.g. any of the streaming I/O ioctls), but a surprisingly
-> large number of ioctls can be used in that way.
-
-I agree with this. There are just a few ioctls that probably don't make 
-sense (e.g. the steaming related ones).
-
-IMO even the format setting ioctls could be nice since the possible 
-input and output formats of the subdevs should be enumerable, too.
-
-ENUM_FRAMESIZES and ENUM_FRAMEINTERVALS are missing the v4l2_buf_type, 
-but there are reserved fields...
-
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
-
+SGksIE1hdXJvDQoNClRoYW5rIHlvdSBmb3IgeW91ciBzdWdnZXN0aW9uIG9uIHRoaXMuDQoNCk5v
+dyBJIGhhdmUgYW5vdGhlciBwcm9ibGVtLiBUaGUgSVNQIG5lZWRzIHRoZSBmb2xsb3dpbmcgcGFy
+YW1ldGVycyBvZiB0aGUgc2Vuc29yIHRvIHNldCB0aGUgYWNxdWlzaXRpb24gaW50ZXJmYWNlLCBi
+dXQgSSBjYW4gbm90IGZpbmQgYSBzdWl0YWJsZSBzdWJkZXYgaW9jdGxzIHRvIGdldCB0aGVtIGZy
+b20gc2Vuc29yIGRyaXZlci4gDQoNCmJ1c193aWR0aDsgd2lkdGggb2YgdGhlIGJ1c3MgY29ubmVj
+dGluZyBzZW5zb3IgYW5kIElTUC4NCmZpZWxkX3NlbDsgZmllbGQgc2VsZWN0aW9uLCBldmVuIG9y
+IG9kZC4NCnljc2VxOyBZQ2JDciBzZXF1ZW5jZSwgWUNiQ3Igb3IgWUNyQ2Igb3IgQ2JZQ3JZIG9y
+IENyWUNiWQ0KY29udjQyMjsgc3Vic2FtcGxpbmcgdHlwZSwgY28tc2l0ZWQgNDo0OjQgb3Igbm9u
+LWNvc2l0ZWQgNDo0OjQgb3IgY29sb3IgaW50ZXJwb2xhdGlvbg0KYnBhdDsgYmF5ZXIgc2FtcGxp
+bmcgc2VxdWVuY2UsIFJHUkcgR0JHQiBvciBHUkdSIEJHQkcgb3IgLi4uDQpocG9sOyBob3Jpem9u
+dGFsIHN5bmMgcG9sYXJpdHkNCnZwb2w7IHZlcnRpY2FsIHN5bmMgcG9sYXJpdHkNCmVkZ2U7IHNh
+bXBsaW5nIGVkZ2UNCg0KQmVzdCBSZWdhcmRzDQpKaW5sdSBZdQ0KVU1HIFVQU0cgUFJDDQpJTkVU
+OiA4NzU4IDE2MDMNClRFTDogIDg2IDEwIDgyMTcgMTYwMw0KRkFYOiAgODYgMTAgODI4NiAxNDAw
+DQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogTWF1cm8gQ2FydmFsaG8gQ2hlaGFi
+IFttYWlsdG86bWNoZWhhYkBpbmZyYWRlYWQub3JnXSANClNlbnQ6IDIwMDnE6jnUwjI0yNUgMTk6
+NDUNClRvOiBZdSwgSmlubHUNCkNjOiBsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcNClN1Ympl
+Y3Q6IFJlOiBbUEFUQ0ggMC81XSBWNEwyIHBhdGNoZXMgZm9yIEludGVsIE1vb3Jlc3Rvd24gQ2Ft
+ZXJhIEltYWdpbmcNCg0KRW0gVGh1LCAyNCBTZXAgMjAwOSAxOToyMTo0MCArMDgwMA0KIll1LCBK
+aW5sdSIgPGppbmx1Lnl1QGludGVsLmNvbT4gZXNjcmV2ZXU6DQoNCj4gSGksIEhhbnMvR3Vlbm5h
+ZGkNCj4gDQo+IEkgYW0gbW9kaWZ5aW5nIHRoZXNlIGRyaXZlcnMgdG8gY29tcGx5IHdpdGggdjRs
+MiBmcmFtZXdvcmsuIEkgaGF2ZSBmaW5pc2hlZCByZXBsYWNpbmcgb3VyIGJ1ZmZlciBtYW5hZ2lu
+ZyBjb2RlIHdpdGggdXRpbGl0eSBmdW5jdGlvbiBmcm9tIHZpZGVvYnVmLWNvcmUuYyBhbmQgdmlk
+ZW9idWYtZG1hLWNvbnRpZy5jLiBOb3cgSSBhbSB3b3JraW5nIG9uIHRoZSBzdWJkZXYuIE9uZSB0
+aGluZyBJIGFtIHN1cmUgaXMgdGhhdCBlYWNoIHNlbnNvciBzaG91bGQgYmUgcmVnaXN0ZXJlZCBh
+cyBhIHY0bDJfc3ViZGV2IGFuZCBJU1AgKEltYWdlIFNpZ25hbCBQcm9jZXNzb3IpIGlzIHJlZ2lz
+dGVyZWQgYXMgYSB2NGwyX2RldmljZSBhY3RpbmcgYXMgdGhlIGJyaWRnZSBkZXZpY2UuIA0KPiAN
+Cj4gQnV0IHdlIGhhdmUgdHdvIHdheXMgdG8gZGVhbCB3aXRoIHRoZSByZWxhdGlvbnNoaXAgb2Yg
+c2Vuc29yIGFuZCBJU1AsIGFuZCB3ZSBkb24ndCBrbm93IHdoaWNoIG9uZSBpcyBiZXR0ZXIuIENv
+dWxkIHlvdSBoZWxwIG1lIG9uIHRoaXM/DQo+IA0KPiBOby4xLiBSZWdpc3RlciB0aGUgSVNQIGFz
+IGEgdmlkZW9fZGV2aWNlICgvZGV2L3ZpZGVvMCkgYW5kIHRyZWF0IGVhY2ggb2YgdGhlIHNlbnNv
+ciAoU09DIGFuZCBSQVcpIGFzIGFuIGlucHV0IG9mIHRoZSBJU1AuIElmIEkgd2FudCB0byBjaGFu
+Z2UgdGhlIHNlbnNvciwgdXNlIHRoZSBWSURJT0NfU19JTlBVVCB0byBjaGFuZ2UgaW5wdXQgZnJv
+bSBzZW5zb3IgQSB0byBzZW5zb3IgQi4gQnV0IEkgaGF2ZSBhIGNvbmNlcm4gYWJvdXQgdGhpcyBp
+b2N0bC4gU2luY2UgSSBkaWRuJ3QgZmluZCBhbnkgY29kZSByZWxhdGVkIEhXIHBpcGVsaW5lIHN0
+YXR1cyBjaGVja2luZyBhbmQgSFcgcmVnaXN0ZXIgc2V0dGluZyBpbiB0aGUgaW1wbGVtZW50IG9m
+IHRoaXMgaW9jdGwgKGUuZy4gdmlub19zX2lucHV0IGluIC9kcml2ZXJzL21lZGlhL3ZpZGVvL3Zp
+bm8uYykuIFNvIGRvbid0IEkgaGF2ZSB0byBzdHJlYW0tb2ZmIHRoZSBIVyBwaXBlbGluZSBhbmQg
+Y2hhbmdlIHRoZSBIVyByZWdpc3RlciBzZXR0aW5nIGZvciB0aGUgbmV3IGlucHV0PyBPciBpcyBp
+dCBhcHBsaWNhdGlvbidzIHJlc3BvbnNpYmlsaXR5IHRvIHN0cmVhbS1vZmYgdGhlIHBpcGVsaW5l
+IGFuZCByZW5lZ290aWF0ZSB0aGUgcGFyYW1ldGVycyBmb3IgdGhlIG5ldyBpbnB1dD8NCj4gDQo+
+IE5vLjIuIENvbWJpbmUgdGhlIFNPQyBzZW5zb3IgdG9nZXRoZXIgd2l0aCB0aGUgSVNQIGFzIENo
+YW5uZWwgT25lIGFuZCByZWdpc3RlciBpdCBhcyAvZGV2L3ZpZGVvMCwgYW5kIGNvbWJpbmUgdGhl
+IFJBVyBzZW5zb3IgdG9nZXRoZXIgd2l0aCB0aGUgSVNQIGFzIENoYW5uZWwgVHdvIGFuZCByZWdp
+c3RlciBpdCBhcyAvZGV2L3ZpZGVvMS4gU3VyZWx5LCBvbmx5IG9uZSBjaGFubmVsIHdvcmtzIGF0
+IGEgY2VydGFpbiB0aW1lIGR1ZSB0byBIVyByZXN0cmljdGlvbi4gV2hlbiBJIHdhbnQgdG8gY2hh
+bmdlIHRoZSBzZW5zb3IgKGUuZy4gZnJvbSBTT0Mgc2Vuc29yIHRvIFJBVyBzZW5zb3IpLCBqdXN0
+IGNsb3NlIC9kZXYvdmlkZW8wIGFuZCBvcGVuIC9kZXYvdmlkZW8xLg0KDQpUaGUgYmV0dGVyIHNl
+ZW1zIHRvIGJlIE5vLiAxLiBBcyB5b3UgbmVlZCB0byByZS1uZWdvdGlhdGUgcGFyYW1ldGVycyBm
+b3INCnN3aXRjaGluZyBmcm9tIG9uZSBzZW5zb3IgdG8gYW5vdGhlciwgaWYgc29tZSBhcHAgdHJp
+ZXMgdG8gY2hhbmdlIGZyb20gb25lDQppbnB1dCB0byBhbm90aGVyIHdoaWxlIHN0cmVhbWluZywg
+eW91IHNob3VsZCBqdXN0IHJldHVybiAtRUJVU1ksIGlmIGl0IGlzIG5vdA0KcG9zc2libGUgdG8g
+c3dpdGNoIChmb3IgZXhhbXBsZSwgaWYgdGhlIHNlbGVjdGVkIGZvcm1hdC9yZXNvbHV0aW9uL2Zy
+YW1lIHJhdGUNCmlzIGluY29tcGF0aWJsZSkuDQoNCg0KDQpDaGVlcnMsDQpNYXVybw0K
