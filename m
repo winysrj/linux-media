@@ -1,41 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp106.rog.mail.re2.yahoo.com ([68.142.225.204]:45354 "HELO
-	smtp106.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751159AbZIIEZ5 (ORCPT
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200]:62262 "EHLO
+	mta5.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751498AbZI0TNn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Sep 2009 00:25:57 -0400
-Message-ID: <4AA72E57.6000304@rogers.com>
-Date: Wed, 09 Sep 2009 00:25:59 -0400
-From: CityK <cityk@rogers.com>
-MIME-Version: 1.0
-To: Peter Brouwer <pb.maillists@googlemail.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: Question on video device in /dev for S460 card cx88
-References: <4AA149C6.9070308@googlemail.com>
-In-Reply-To: <4AA149C6.9070308@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Sun, 27 Sep 2009 15:13:43 -0400
+Received: from mbp.kernelscience.com
+ (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta5.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KQN003F29EY3A70@mta5.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Sun, 27 Sep 2009 15:13:46 -0400 (EDT)
+Date: Sun, 27 Sep 2009 15:13:46 -0400
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: HVR1800 ATSC regression - Fails to attach DVB
+In-reply-to: <1254078535.3554.10.camel@morgan.walls.org>
+To: Andy Walls <awalls@radix.net>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Message-id: <4ABFB96A.3020106@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <4ABF8297.6000507@kernellabs.com>
+ <1254078535.3554.10.camel@morgan.walls.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Peter Brouwer wrote:
-> Hello
+On 9/27/09 3:08 PM, Andy Walls wrote:
+> On Sun, 2009-09-27 at 11:19 -0400, Steven Toth wrote:
+>> I'm seeing a regression in tip. A Hauppauge HVR1800 model 78521 fails to have
+>> its demod for DTV attached correctly, resulting in a total loss of ATSC/QAM support.
+>>
+>> I'm looking into this.
 >
-> Quick question regarding video devices that show up when using a cx88
-> base S460
-> (tevii) DVB-S2 card.
 >
-> I see two devices in /dev
-> /dev/video0 and /dev/vbi0 related to the cx88 based dvb-s2 card.
-> What are those devices, is the video0 the video out of the card after the
-> demuxer? If so, should that device not show up in /dev/dvb/adapterN ??
->
-> What is the /dev/vbi0 device?
->
-> Regards
+> Thanks, but I don't think this was tip...
 
-I heavily modified/updated my previous link/answer I provided to this
-question you posted earlier.  A more thorough answer can be found here:
-http://www.linuxtv.org/wiki/index.php/Device_nodes_and_character_devices
+Sorry for the noise, I had two bad piece of hardware.
 
-Please review that, as it should make clear the answers to your questions.
+Please ignore.
+
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
