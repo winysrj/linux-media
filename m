@@ -1,93 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2e.orange.fr ([80.12.242.113]:51115 "EHLO smtp2e.orange.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751789AbZILIOh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Sep 2009 04:14:37 -0400
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2e17.orange.fr (SMTP Server) with ESMTP id 1CE5080000A4
-	for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 10:14:39 +0200 (CEST)
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2e17.orange.fr (SMTP Server) with ESMTP id 0F60580000A6
-	for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 10:14:39 +0200 (CEST)
-Received: from [192.168.1.11] (ANantes-551-1-42-204.w86-214.abo.wanadoo.fr [86.214.145.204])
-	by mwinf2e17.orange.fr (SMTP Server) with ESMTP id AFA4780000A4
-	for <linux-media@vger.kernel.org>; Sat, 12 Sep 2009 10:14:38 +0200 (CEST)
-Message-ID: <4AAB586D.6080906@gmail.com>
-Date: Sat, 12 Sep 2009 10:14:37 +0200
-From: Morvan Le Meut <mlemeut@gmail.com>
+Received: from mail-qy0-f174.google.com ([209.85.221.174]:65231 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751961AbZI0Uhz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Sep 2009 16:37:55 -0400
+Received: by qyk4 with SMTP id 4so2963691qyk.33
+        for <linux-media@vger.kernel.org>; Sun, 27 Sep 2009 13:37:58 -0700 (PDT)
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: (Saa7134) Re: ADS-Tech Instant TV PCI, no remote support, giving
- up.
-References: <4AA53C05.10203@gmail.com> <4AA61508.9040506@gmail.com> <op.uzxmzlj86dn9rq@crni> <4AA62C38.3050208@gmail.com> <4AA63434.1010709@gmail.com> <4AA683BD.6070601@gmail.com> <4AA695EE.70800@gmail.com> <4AA767F2.50702@gmail.com> <op.uzzfgyvj3xmt7q@crni> <4AA77240.2040504@gmail.com> <4AA77683.7010201@gmail.com> <4AA7C266.3000509@gmail.com> <op.uzzz96se6dn9rq@crni> <4AA7E166.7030906@gmail.com> <4AA81785.5000806@gmail.com> <4AA8BB20.4040701@gmail.com> <4AA919CA.20701@gmail.com> <4AAA0247.8020004@gmail.com>
-In-Reply-To: <4AAA0247.8020004@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20090927202448.GA27176@systol-ng.god.lan>
+References: <20090922210500.GA8661@systol-ng.god.lan>
+	 <37219a840909241146q72af5395hc028b91b6a97ada1@mail.gmail.com>
+	 <20090924214233.GA13708@systol-ng.god.lan>
+	 <37219a840909270925y5de5f10fn1a10e63d62953fe0@mail.gmail.com>
+	 <37219a840909270935j74a25f3fn229839fb7c2cf50a@mail.gmail.com>
+	 <20090927202448.GA27176@systol-ng.god.lan>
+Date: Sun, 27 Sep 2009 16:37:58 -0400
+Message-ID: <303a8ee30909271337r51502479o77cb2062372064e4@mail.gmail.com>
+Subject: Re: [PATCH 1/4] tda18271_set_analog_params major bugfix
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Henk.Vergonet@gmail.com
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since i don't know where to look, i finally decided to use a basic 
-incorrect keymap :
- /* ADS Tech Instant TV PCI Remote */
-static struct ir_scancode ir_codes_adstech_pci[] = {
-    /* too many repeating codes : incorrect gpio ?. */
-       
-    { 0x1f, KEY_MUTE },
-    { 0x1d, KEY_SEARCH },
-    { 0x17, KEY_EPG },        /* Guide */
-    { 0x0f, KEY_UP },
-    { 0x6, KEY_DOWN },
-    { 0x16, KEY_LEFT },
-    { 0x1e, KEY_RIGHT },
-    { 0x0e, KEY_SELECT },        /* Enter */
-    { 0x1a, KEY_INFO },
-    { 0x12, KEY_EXIT },
-    { 0x19, KEY_PREVIOUS },
-    { 0x11, KEY_NEXT },
-    { 0x18, KEY_REWIND },
-    { 0x10, KEY_FORWARD },
-    { 0x4, KEY_PLAYPAUSE },
-    { 0x07, KEY_STOP },
-    { 0x1b, KEY_RECORD },
-    { 0x13, KEY_TUNER },        /* Live */
-    { 0x0a, KEY_A },
-    { 0x03, KEY_PROG1 },        /* 1 */
-    { 0x01, KEY_PROG2 },        /* 2 */
-    { 0x0, KEY_VIDEO },
-    { 0x0b, KEY_CHANNELUP },
-    { 0x08, KEY_CHANNELDOWN },
-    { 0x15, KEY_VOLUMEUP },
-    { 0x1c, KEY_VOLUMEDOWN },
-};
-
-struct ir_scancode_table ir_codes_adstech_pci_table = {
-    .scan = ir_codes_adstech_pci,
-    .size = ARRAY_SIZE(ir_codes_adstech_pci),
-};
-EXPORT_SYMBOL_GPL(ir_codes_adstech_pci_table);
-
-No numbers in favor of arrows and ch+/- Vol+/- . Well 246 will be arrows 
-and  5 select, 7 and 8 are undefined, 9 become vol-, 1 epg and 3 is tuner.
-If someone, one day, wants to find that missig bit, i'll be happy to 
-help. ( Strange anyway : it's as if there was a 0x7f mask even when i 
-specify a 0xff one )
-Feel free to write a patch.
-
-Morvan Le Meut a écrit :
-> um .. help, please ?
-> how can i make the driver read 1011011 instead of 011011 when i press 
-> Power instead of record on the remote ?
+On Sun, Sep 27, 2009 at 4:24 PM,  <spam@systol-ng.god.lan> wrote:
+> On Sun, Sep 27, 2009 at 12:35:00PM -0400, Michael Krufky wrote:
+>> On Sun, Sep 27, 2009 at 12:25 PM, Michael Krufky <mkrufky@kernellabs.com> wrote:
+>>
+>> On a second thought, I see that my above patch loses some precision
+>> ...  this is even better:
+>>
+>> diff -r f52640ced9e8 linux/drivers/media/common/tuners/tda18271-fe.c
+>> --- a/linux/drivers/media/common/tuners/tda18271-fe.c Tue Sep 15
+>> 01:25:35 2009 -0400
+>> +++ b/linux/drivers/media/common/tuners/tda18271-fe.c Sun Sep 27
+>> 12:33:20 2009 -0400
+>> @@ -1001,12 +1001,12 @@
+>>       struct tda18271_std_map_item *map;
+>>       char *mode;
+>>       int ret;
+>> -     u32 freq = params->frequency * 62500;
+>> +     u32 freq = params->frequency * 125 *
+>> +             ((params->mode == V4L2_TUNER_RADIO) ? 1 : 1000) / 2;
+>>
+>>       priv->mode = TDA18271_ANALOG;
+>>
+>>       if (params->mode == V4L2_TUNER_RADIO) {
+>> -             freq = freq / 1000;
+>>               map = &std_map->fm_radio;
+>>               mode = "fm";
+>>       } else if (params->std & V4L2_STD_MN) {
+>>
+>> Cheers,
+>>
+>> Mike
 >
-> thanks
+> Much better!
 >
->
->
->
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> Btw. It seems that the tuner is capable of tuning in 1000 Hz steps, is
+> there a reason why we are using 62500 Hz steps?
 
+That's the v4l2 analog tuner API.  It has nothing to do with the
+tda18271 driver internals.  If you look on the digital set_params
+function, you'll see that this doesnt happen there.
 
-
+-Mike
