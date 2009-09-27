@@ -1,59 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f206.google.com ([209.85.219.206]:64109 "EHLO
-	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932733AbZINTJc (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.155]:31503 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753750AbZI0KSB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Sep 2009 15:09:32 -0400
-Received: by mail-ew0-f206.google.com with SMTP id 2so969025ewy.17
-        for <linux-media@vger.kernel.org>; Mon, 14 Sep 2009 12:09:35 -0700 (PDT)
+	Sun, 27 Sep 2009 06:18:01 -0400
+Received: by fg-out-1718.google.com with SMTP id 22so521027fge.1
+        for <linux-media@vger.kernel.org>; Sun, 27 Sep 2009 03:18:04 -0700 (PDT)
+Date: Sun, 27 Sep 2009 12:17:50 +0200
+From: Uros Vampl <mobile.leecher@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: Re: Questions about Terratec Hybrid XS (em2882) [0ccd:005e]
+Message-ID: <20090927101750.GA29816@zverina>
+References: <829197380909211529r7ff7eab0nccc8d5fd55516ca2@mail.gmail.com>
+ <20090922091235.GA10335@zverina>
+ <829197380909221647p33236306ked2137a35707646d@mail.gmail.com>
+ <20090925172209.GA10054@zverina>
+ <829197380909251041i637a0790g10cc4b82a791f695@mail.gmail.com>
+ <20090925182213.GA6941@zverina>
+ <20090925221015.GA21295@zverina>
+ <829197380909261359l22588d31v6fcc2cef40b12acd@mail.gmail.com>
+ <20090927002339.GA23032@zverina>
+ <829197380909261833uc08f661vff2695e2986b672d@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4AAC656D.2070709@gmail.com>
-References: <4AAC656D.2070709@gmail.com>
-Date: Mon, 14 Sep 2009 23:09:35 +0400
-Message-ID: <208cbae30909141209ge8095fi9f64a07ada0599c1@mail.gmail.com>
-Subject: Re: [RFC/RFT 0/14] radio-mr800 patch series
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: david@identd.dyndns.org
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <829197380909261833uc08f661vff2695e2986b672d@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello David,
+On 26.09.09 21:33, Devin Heitmueller wrote:
+> On Sat, Sep 26, 2009 at 8:23 PM, Uros Vampl <mobile.leecher@gmail.com> wrote:
+> > On 26.09.09 16:59, Devin Heitmueller wrote:
+> >> On Fri, Sep 25, 2009 at 6:10 PM, Uros Vampl <mobile.leecher@gmail.com> wrote:
+> >> > Alright, success!!!
+> >> >
+> >> > Since it seems everything for this tuner is set up the same as for the
+> >> > Hauppauge WinTV HVR 900, I figured let's set things up *exactly* the
+> >> > same. So, like it's there for the Hauppauge, I added .mts_firmware = 1
+> >> > to the definition of the hybrid XS em2882. And well, working TV audio!!
+> >> >
+> >> >
+> >> > dmesg output this time:
+> >> >
+> >> > xc2028 4-0061: Loading firmware for type=BASE F8MHZ MTS (7), id 0000000000000000.
+> >> > MTS (4), id 00000000000000ff:
+> >> > xc2028 4-0061: Loading firmware for type=MTS (4), id 0000000100000007.
+> >> >
+> >> >
+> >> > So now with the attached patch, everything (analog, digital, remote)
+> >> > works!
+> >> >
+> >> > Regards,
+> >> > Uroš
+> >> >
+> >>
+> >> Hello Uros,
+> >>
+> >> Please test out the following tree, which has all the relevant fixes
+> >> (enabling dvb, your audio fix, proper gpio setting, etc).
+> >>
+> >> http://kernellabs.com/hg/~dheitmueller/misc-fixes2/
+> >>
+> >> If you have any trouble, please let me know.  Otherwise I would like
+> >> to issue a PULL request for this tree.
+> >
+> >
+> > Hi,
+> >
+> > Your tree does not work, no audio. I quickly found the problem though:
+> > gpio is set to default_analog, but it needs to be set to
+> > hauppauge_wintv_hvr_900_analog. So I guess treating the EM2880 and
+> > EM2882 as the same will not work, because they require different gpio
+> > settings.
+> >
+> > Regards,
+> > Uroš
+> 
+> Hmm..  Interesting.  That does make me wonder whether the GPIOs are
+> setup for audio properly on the em2880 version of the profile, or
+> whether the user in question just never tested it.  I'll have to go
+> back and check the USB trace.
+> 
+> Nonetheless, I'll just check in your version of the patch, and scrap
+> my version entirely for now.  Could you please add your SOB to the
+> patch?
+> 
+> Thanks,
+> 
+> Devin
 
-On Sun, Sep 13, 2009 at 7:22 AM, David Ellingsworth
-<david@identd.dyndns.org> wrote:
-> What follow is a series of patches to clean up the radio-mr800 driver. I
-> do _not_ have access to this device so these patches need to be tested.
-> These patches should apply to Mauro's git tree and against the 2.6.31
-> release kernel. The patches in this series are as follows:
->
-> 01. radio-mr800: implement proper locking
-> 02. radio-mr800: simplify video_device allocation
-> 03. radio-mr800: simplify error paths in usb probe callback
-> 04. radio-mr800: remove an unnecessary local variable
-> 05. radio-mr800: simplify access to amradio_device
-> 06. radio-mr800: simplify locking in ioctl callbacks
-> 07. radio-mr800: remove device-removed indicator
-> 08. radio-mr800: fix potential use after free
-> 09. radio-mr800: remove device initialization from open/close
-> 10. radio-mr800: ensure the radio is initialized to a consistent state
-> 11. radio-mr800: fix behavior of set_radio function
-> 12. radio-mr800: preserve radio state during suspend/resume
-> 13. radio-mr800: simplify device warnings
-> 14. radio-mr800: set radio frequency only upon success
->
-> The first 7 in this series are the same as those submitted in my last series
-> and will not be resent. The remaining 7 patches in this series will be sent
-> separately for review.
->
-> Regards,
->
-> David Ellingsworth
-
-Thank you for work at radio-mr800. I'll check and test your patches as
-soon as possible, it probably takes 2-3 days.
+Ok, here we go...
 
 
--- 
-Best regards, Klimov Alexey
+Make analog audio, dvb and the remote work on a Terratec Cinergy Hybrid 
+XS (em2882).
+
+Signed-off-by: Uroš Vampl <mobile.leecher@gmail.com>
+
+
+diff -r 29e4ba1a09bc linux/drivers/media/video/em28xx/em28xx-cards.c
+--- a/linux/drivers/media/video/em28xx/em28xx-cards.c	Sat Sep 19 09:45:22 2009 -0300
++++ b/linux/drivers/media/video/em28xx/em28xx-cards.c	Sat Sep 26 00:06:37 2009 +0200
+@@ -1441,11 +1441,12 @@
+ 		.valid        = EM28XX_BOARD_NOT_VALIDATED,
+ 		.tuner_type   = TUNER_XC2028,
+ 		.tuner_gpio   = default_tuner_gpio,
++		.mts_firmware = 1,
+ 		.decoder      = EM28XX_TVP5150,
+-#if 0 /* FIXME: add an entry at em28xx-dvb */
+ 		.has_dvb      = 1,
+ 		.dvb_gpio     = hauppauge_wintv_hvr_900_digital,
+-#endif
++		.ir_codes     = &ir_codes_terratec_cinergy_xs_table,
++		.xclk         = EM28XX_XCLK_FREQUENCY_12MHZ,
+ 		.input        = { {
+ 			.type     = EM28XX_VMUX_TELEVISION,
+ 			.vmux     = TVP5150_COMPOSITE0,
+@@ -2119,6 +2120,7 @@
+ 	switch (dev->model) {
+ 	case EM2880_BOARD_EMPIRE_DUAL_TV:
+ 	case EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900:
++	case EM2882_BOARD_TERRATEC_HYBRID_XS:
+ 		ctl->demod = XC3028_FE_ZARLINK456;
+ 		break;
+ 	case EM2880_BOARD_TERRATEC_HYBRID_XS:
+diff -r 29e4ba1a09bc linux/drivers/media/video/em28xx/em28xx-dvb.c
+--- a/linux/drivers/media/video/em28xx/em28xx-dvb.c	Sat Sep 19 09:45:22 2009 -0300
++++ b/linux/drivers/media/video/em28xx/em28xx-dvb.c	Sat Sep 26 00:06:37 2009 +0200
+@@ -494,6 +494,7 @@
+ 		}
+ 		break;
+ 	case EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900:
++	case EM2882_BOARD_TERRATEC_HYBRID_XS:
+ 	case EM2880_BOARD_EMPIRE_DUAL_TV:
+ 		dvb->frontend = dvb_attach(zl10353_attach,
+ 					   &em28xx_zl10353_xc3028_no_i2c_gate,
