@@ -1,70 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f210.google.com ([209.85.218.210]:51449 "EHLO
-	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752717AbZIUKCb convert rfc822-to-8bit (ORCPT
+Received: from ip78-183-211-87.adsl2.static.versatel.nl ([87.211.183.78]:43976
+	"EHLO god.dyndns.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750912AbZI0UZB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Sep 2009 06:02:31 -0400
-Received: by bwz6 with SMTP id 6so1815309bwz.37
-        for <linux-media@vger.kernel.org>; Mon, 21 Sep 2009 03:02:34 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1253508863.3255.10.camel@pc07.localdom.local>
-References: <d9def9db0909202040u3138670ahede6078ef1a177c@mail.gmail.com>
-	 <1253504805.3255.3.camel@pc07.localdom.local>
-	 <d9def9db0909202109m54453573kc90f0c3e5d942e2@mail.gmail.com>
-	 <1253506233.3255.6.camel@pc07.localdom.local>
-	 <d9def9db0909202142j542136e3raea8e171a19f7e73@mail.gmail.com>
-	 <1253508863.3255.10.camel@pc07.localdom.local>
-Date: Mon, 21 Sep 2009 12:02:34 +0200
-Message-ID: <d9def9db0909210302m44f8ed77wfca6be3693491233@mail.gmail.com>
-Subject: Re: Bug in S2 API...
-From: Markus Rechberger <mrechberger@gmail.com>
-To: hermann pitton <hermann-pitton@arcor.de>
+	Sun, 27 Sep 2009 16:25:01 -0400
+Date: Sun, 27 Sep 2009 22:24:48 +0200
+From: spam@systol-ng.god.lan
+To: Michael Krufky <mkrufky@kernellabs.com>
 Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Subject: Re: [PATCH 1/4] tda18271_set_analog_params major bugfix
+Message-ID: <20090927202448.GA27176@systol-ng.god.lan>
+Reply-To: Henk.Vergonet@gmail.com
+References: <20090922210500.GA8661@systol-ng.god.lan> <37219a840909241146q72af5395hc028b91b6a97ada1@mail.gmail.com> <20090924214233.GA13708@systol-ng.god.lan> <37219a840909270925y5de5f10fn1a10e63d62953fe0@mail.gmail.com> <37219a840909270935j74a25f3fn229839fb7c2cf50a@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <37219a840909270935j74a25f3fn229839fb7c2cf50a@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-----
-in dvb-frontend.c:
- ----
-         if(cmd == FE_GET_PROPERTY) {
-
-                 tvps = (struct dtv_properties __user *)parg;
-                 dprintk("%s() properties.num = %d\n", __func__, tvps->num);
-                 dprintk("%s() properties.props = %p\n", __func__, tvps->props);
-                 ...
-                 if (copy_from_user(tvp, tvps->props, tvps->num *
- sizeof(struct dtv_property)))
- ----
-
-
-> OK,
->
-> thought I'll have never to care for it again.
->
-> ENUM calls should never be W.
->
-> Hit me for all I missed.
->
+On Sun, Sep 27, 2009 at 12:35:00PM -0400, Michael Krufky wrote:
+> On Sun, Sep 27, 2009 at 12:25 PM, Michael Krufky <mkrufky@kernellabs.com> wrote:
+> 
+> On a second thought, I see that my above patch loses some precision
+> ...  this is even better:
+> 
+> diff -r f52640ced9e8 linux/drivers/media/common/tuners/tda18271-fe.c
+> --- a/linux/drivers/media/common/tuners/tda18271-fe.c	Tue Sep 15
+> 01:25:35 2009 -0400
+> +++ b/linux/drivers/media/common/tuners/tda18271-fe.c	Sun Sep 27
+> 12:33:20 2009 -0400
+> @@ -1001,12 +1001,12 @@
+>  	struct tda18271_std_map_item *map;
+>  	char *mode;
+>  	int ret;
+> -	u32 freq = params->frequency * 62500;
+> +	u32 freq = params->frequency * 125 *
+> +		((params->mode == V4L2_TUNER_RADIO) ? 1 : 1000) / 2;
+> 
+>  	priv->mode = TDA18271_ANALOG;
+> 
+>  	if (params->mode == V4L2_TUNER_RADIO) {
+> -		freq = freq / 1000;
+>  		map = &std_map->fm_radio;
+>  		mode = "fm";
+>  	} else if (params->std & V4L2_STD_MN) {
+> 
 > Cheers,
-> Hermann
+> 
+> Mike
 
-you are not seeing the point of it it seems
+Much better!
 
-Documentation/ioctl-number.txt
+Btw. It seems that the tuner is capable of tuning in 1000 Hz steps, is
+there a reason why we are using 62500 Hz steps?
 
-----
-If you are adding new ioctl's to the kernel, you should use the _IO
-macros defined in <linux/ioctl.h>:
-
-    _IO    an ioctl with no parameters
-    _IOW   an ioctl with write parameters (copy_from_user)
-    _IOR   an ioctl with read parameters  (copy_to_user)
-    _IOWR  an ioctl with both write and read parameters.
-----
-copy from user is required in order to copy the keys for the requested
-elements into the kernel.
-copy to user is finally used to play them back.
-
-Markus
+Regards,
+Henk
