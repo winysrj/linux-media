@@ -1,75 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1228 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751923AbZIKUPW (ORCPT
+Received: from mail-bw0-f210.google.com ([209.85.218.210]:54350 "EHLO
+	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753000AbZI0Bd5 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2009 16:15:22 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: RFCv2: Media controller proposal
-Date: Fri, 11 Sep 2009 22:15:15 +0200
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <200909100913.09065.hverkuil@xs4all.nl> <200909112123.44778.hverkuil@xs4all.nl> <20090911165937.776a638d@caramujo.chehab.org>
-In-Reply-To: <20090911165937.776a638d@caramujo.chehab.org>
+	Sat, 26 Sep 2009 21:33:57 -0400
+Received: by bwz6 with SMTP id 6so644389bwz.37
+        for <linux-media@vger.kernel.org>; Sat, 26 Sep 2009 18:33:59 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200909112215.15155.hverkuil@xs4all.nl>
+In-Reply-To: <20090927002339.GA23032@zverina>
+References: <829197380909211349r68b92b3em577c02d0dee9e4fc@mail.gmail.com>
+	 <829197380909211529r7ff7eab0nccc8d5fd55516ca2@mail.gmail.com>
+	 <20090922091235.GA10335@zverina>
+	 <829197380909221647p33236306ked2137a35707646d@mail.gmail.com>
+	 <20090925172209.GA10054@zverina>
+	 <829197380909251041i637a0790g10cc4b82a791f695@mail.gmail.com>
+	 <20090925182213.GA6941@zverina> <20090925221015.GA21295@zverina>
+	 <829197380909261359l22588d31v6fcc2cef40b12acd@mail.gmail.com>
+	 <20090927002339.GA23032@zverina>
+Date: Sat, 26 Sep 2009 21:33:59 -0400
+Message-ID: <829197380909261833uc08f661vff2695e2986b672d@mail.gmail.com>
+Subject: Re: Questions about Terratec Hybrid XS (em2882) [0ccd:005e]
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 11 September 2009 21:59:37 Mauro Carvalho Chehab wrote:
-> Em Fri, 11 Sep 2009 21:23:44 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
-> > > In the case of resizer, I don't see why this can't be implemented as an ioctl
-> > > over /dev/video device.
-> > 
-> > Well, no. Not in general. There are two problems. The first problem occurs if
-> > you have multiple instances of a resizer (OK, not likely, but you *can* have
-> > multiple video encoders or decoders or sensors). If all you have is the
-> > streaming device node, then you cannot select to which resizer (or video
-> > encoder) the ioctl should go. The media controller allows you to select the
-> > recipient of the ioctl explicitly. Thus providing the control that these
-> > applications need.
-> 
-> This case doesn't apply, since, if you have multiple encoders and/or decoders,
-> you'll also have multiple /dev/video instances. All you need is to call it at
-> the right device you need to control. Am I missing something here?
+On Sat, Sep 26, 2009 at 8:23 PM, Uros Vampl <mobile.leecher@gmail.com> wrote:
+> On 26.09.09 16:59, Devin Heitmueller wrote:
+>> On Fri, Sep 25, 2009 at 6:10 PM, Uros Vampl <mobile.leecher@gmail.com> wrote:
+>> > Alright, success!!!
+>> >
+>> > Since it seems everything for this tuner is set up the same as for the
+>> > Hauppauge WinTV HVR 900, I figured let's set things up *exactly* the
+>> > same. So, like it's there for the Hauppauge, I added .mts_firmware = 1
+>> > to the definition of the hybrid XS em2882. And well, working TV audio!!
+>> >
+>> >
+>> > dmesg output this time:
+>> >
+>> > xc2028 4-0061: Loading firmware for type=BASE F8MHZ MTS (7), id 0000000000000000.
+>> > MTS (4), id 00000000000000ff:
+>> > xc2028 4-0061: Loading firmware for type=MTS (4), id 0000000100000007.
+>> >
+>> >
+>> > So now with the attached patch, everything (analog, digital, remote)
+>> > works!
+>> >
+>> > Regards,
+>> > Uroš
+>> >
+>>
+>> Hello Uros,
+>>
+>> Please test out the following tree, which has all the relevant fixes
+>> (enabling dvb, your audio fix, proper gpio setting, etc).
+>>
+>> http://kernellabs.com/hg/~dheitmueller/misc-fixes2/
+>>
+>> If you have any trouble, please let me know.  Otherwise I would like
+>> to issue a PULL request for this tree.
+>
+>
+> Hi,
+>
+> Your tree does not work, no audio. I quickly found the problem though:
+> gpio is set to default_analog, but it needs to be set to
+> hauppauge_wintv_hvr_900_analog. So I guess treating the EM2880 and
+> EM2882 as the same will not work, because they require different gpio
+> settings.
+>
+> Regards,
+> Uroš
 
-Typical use-case: two video decoders feed video into a composer that combines
-the two (e.g. for PiP) and streams the result to one video node.
+Hmm..  Interesting.  That does make me wonder whether the GPIOs are
+setup for audio properly on the em2880 version of the profile, or
+whether the user in question just never tested it.  I'll have to go
+back and check the USB trace.
 
-Now you want to change e.g. the contrast on one of those video decoders. That's
-not going to be possible using /dev/video.
+Nonetheless, I'll just check in your version of the patch, and scrap
+my version entirely for now.  Could you please add your SOB to the
+patch?
 
-> > The second problem is that this will pollute the 'namespace' of a v4l device
-> > node. Device drivers need to pass all those private ioctls to the right
-> > sub-device. But they shouldn't have to care about that. If someone wants to
-> > tweak the resizer (e.g. scaling coefficients), then pass it straight to the
-> > resizer component.
-> 
-> Sorry, I missed your point here
+Thanks,
 
-Example: a sub-device can produce certain statistics. You want to have an
-ioctl to obtain those statistics. If you call that through /dev/videoX, then
-that main driver has to handle that ioctl in vidioc_default and pass it on
-to the right subdev. So you have to write that vidioc_default handler,
-know about the sub-devices that you have and which sub-device is linked to
-the device node. You really don't want to have to do that. Especially not
-when you are dealing with i2c devices that are loaded from platform code.
+Devin
 
-If a video encoder supports private ioctls, then an omap3 driver doesn't
-want to know about that. Oh, and before you ask: just broadcasting that
-ioctl is not a solution if you have multiple identical video encoders.
 
-Regards,
-
-	Hans
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
