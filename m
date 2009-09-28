@@ -1,114 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4552 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752370AbZIZTbB (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.155]:12815 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751443AbZI1Q7T (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Sep 2009 15:31:01 -0400
-Message-ID: <6d6bcf63e448949eceda7ef357efedff.squirrel@webmail.xs4all.nl>
-In-Reply-To: <5e9665e10909260606t36901e72ma49c586d19f7d701@mail.gmail.com>
-References: <200909232239.20105.hverkuil@xs4all.nl>
-    <Pine.LNX.4.64.0909242000240.4913@axis700.grange>
-    <5e9665e10909260140v2030ab5bvb7c1bed5e358319b@mail.gmail.com>
-    <Pine.LNX.4.64.0909261103310.4273@axis700.grange>
-    <5e9665e10909260606t36901e72ma49c586d19f7d701@mail.gmail.com>
-Date: Sat, 26 Sep 2009 21:31:03 +0200
-Subject: Re: V4L-DVB Summit Day 1
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-Cc: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>
+	Mon, 28 Sep 2009 12:59:19 -0400
+Received: by fg-out-1718.google.com with SMTP id 22so810124fge.1
+        for <linux-media@vger.kernel.org>; Mon, 28 Sep 2009 09:59:23 -0700 (PDT)
+Message-ID: <4AC0EB67.5010002@gmail.com>
+Date: Mon, 28 Sep 2009 19:59:19 +0300
+From: Folnin Vi <folnin@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: linux-media@vger.kernel.org
+Subject: Mystique SaTiX DVB-S2 [KNC ONE] - Kernel panic
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello,
 
-> On Sat, Sep 26, 2009 at 6:32 PM, Guennadi Liakhovetski
-> <g.liakhovetski@gmx.de> wrote:
->> On Sat, 26 Sep 2009, Dongsoo, Nathaniel Kim wrote:
->>
->>> On Fri, Sep 25, 2009 at 3:07 AM, Guennadi Liakhovetski
->>> <g.liakhovetski@gmx.de> wrote:
->>> > Hi Hans
->>> >
->>> > Thanks for keeping us updated. One comment:
->>> >
->>> > On Wed, 23 Sep 2009, Hans Verkuil wrote:
->>> >
->>> >> In the afternoon we discussed the proposed timings API. There was no
->>> >> opposition to this API. The idea I had to also use this for sensor
->>> setup
->>> >> turned out to be based on a misconception on how the S_FMT relates
->>> to sensors.
->>> >> ENUM_FRAMESIZES basically gives you the possible resolutions that
->>> the scaler
->>> >> hidden inside the bridge can scale the native sensor resolution. It
->>> does not
->>> >> enumerate the various native sensor resolutions, since there is only
->>> one. So
->>> >> S_FMT really sets up the scaler.
->>> >
->>> > Just as Jinlu Yu noticed in his email, this doesn't reflect the real
->>> > situation, I am afraid. You can use binning and skipping on the
->>> sensor to
->>> > scale the image, and you can also use the bridge to do the scaling,
->>> as you
->>> > say. Worth than that, there's also a case, where there _several_ ways
->>> to
->>> > perform scaling on the sensor, among which one can freely choose, and
->>> the
->>> > host can scale too. And indeed it makes sense to scale on the source
->>> to
->>> > save the bandwidth and thus increase the framerate. So, what I'm
->>> currently
->>> > doing on sh-mobile, I try to scale on the client - in the best
->>> possible
->>> > way. And then use bridge scaling to provide the exact result.
->>> >
->>>
->>> Yes I do agree with you. And it is highly necessary to provide a clear
->>> method which obviously indicates which device to use in scaling job.
->>> When I use some application processors which provide camera
->>> peripherals with scaler inside and external ISP attached, there is no
->>> way to use both scaler features inside them. I just need to choose one
->>> of them.
->>
->> Well, I don't necessarily agree, in fact, I do use both scaling engines
->> in
->> my sh setup. The argument is as mentioned above - bus usage and
->> framerate
->> optimisation. So, what I am doing is: I try to scale on the sensor as
->> close as possible, and then scale further on the host (SoC). This works
->> well, only calculations are not very trivial. But you only have to
->> perform
->> them once during setup, so, it's not time-critical. Might be worth
->> implementing such calculations somewhere centrally to reduce error
->> chances
->> in specific drivers. Same with cropping.
->>
->
-> I think that is a good approach. And considering the image quality, I
-> should make bypass the scaler when user is requesting the exact
-> resolution supported by the external camera ISP. Because some of
-> camera interface embedded scalers are very poor in image quality and
-> performance thus they may reduce in framerate as well. So, user can
-> choose "with scaler" or "without scaler".
+I am having problems with Mystique SaTiX DVB-S2 card.
 
-There are two ways of doing this: one is to have a smart driver that will
-attempt to do the best thing (soc-camera, uvc, gspca), the other will be
-to give the application writer full control of the SoC capabilities
-through the media controller. Through a media controller you will be able
-to setup the sensor scaler and a SoC scaler independently.
+Using the latest drivers from linuxtv.org.
 
-For a digital camera for example you probably want to be able to control
-the hardware from the application in order to get the very best results,
-rather than let the driver do it.
+Every time I use the card kernel panic occurs.
+For example when trying to scan transponder.
 
-Regards,
+Kernel panic - not syncing: stack-protector: Kernel stack is corrupted 
+in: fb40d12f
 
-         Hans
+I have tried to use kexec to make a vmcore dump, but the gdb only shows:
+[root@alinux ~]# gdb ./vmlinux ./vmcore.dvb_v4l
+...
+(gdb) bt
+#0  0xc017e781 in ?? ()
+#1  0x00000000 in ?? ()
+(gdb)
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+The card on windows works fine.
 
+Is it a driver problem?
+
+Is there a way I could extract more information about this issue?
+
+Any help would be really appreciated.
+
+Some more info:
+
+dmesg
+udget_av 0000:01:08.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
+IRQ 17/: IRQF_DISABLED is not guaranteed on shared IRQs
+saa7146: found saa7146 @ mem fb108e00 (revision 1, irq 17) (0x1894,0x0019).
+saa7146 (0): dma buffer size 192512
+DVB: registering new adapter (KNC1 DVB-S2)
+adapter failed MAC signature check
+encoded MAC from EEPROM was 
+ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff
+budget_av: saa7113_init(): saa7113 not found on KNC card
+KNC1-0: MAC addr = 00:09:d6:65:2d:92
+saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
+stb0899_attach: Attaching STB0899
+tda8261_attach: Attaching TDA8261 8PSK/QPSK tuner
+DVB: registering adapter 0 frontend 0 (STB0899 Multistandard)...
+dvb_ca_en50221_init
+budget-av: ci interface initialised.
+dvb_ca_en50221_thread
+budget-av: cam inserted A
+budget_av: ciintf_slot_reset(): ciintf_slot_reset
+dvb_ca adapter 0: DVB CAM detected and initialised successfully
+
+lspci -vv
+01:08.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
+         Subsystem: KNC One Device 0019
+         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
+ParErr- Stepping- SERR- FastB2B- DisINTx-
+         Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium 
+ >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+         Latency: 64 (3750ns min, 9500ns max)
+         Interrupt: pin A routed to IRQ 17
+         Region 0: Memory at feadfe00 (32-bit, non-prefetchable) [size=512]
+         Kernel driver in use: budget_av
+         Kernel modules: budget-av
+
+Thanks in advance.
+Folnin Vi
