@@ -1,68 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:64721 "EHLO znsun1.ifh.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754528AbZICHDj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Sep 2009 03:03:39 -0400
-Date: Thu, 3 Sep 2009 09:03:32 +0200 (CEST)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Thomas Rokamp <thomas@rokamp.dk>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Problems with Hauppauge Nova-T USB2
-In-Reply-To: <4A9EB417.5040409@rokamp.dk>
-Message-ID: <alpine.LRH.1.10.0909030851490.3802@pub6.ifh.de>
-References: <41138.1251890451@rokamp.dk> <alpine.LRH.1.10.0909021905001.3802@pub6.ifh.de> <4A9EB032.7000503@rokamp.dk> <alpine.LRH.1.10.0909021957400.3802@pub6.ifh.de> <4A9EB417.5040409@rokamp.dk>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200]:48966 "EHLO
+	mta5.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751599AbZI1QZj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Sep 2009 12:25:39 -0400
+Received: from steven-toths-macbook-pro.local
+ (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta5.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KQO00H95WAUW9O0@mta5.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Mon, 28 Sep 2009 12:25:43 -0400 (EDT)
+Date: Mon, 28 Sep 2009 12:25:42 -0400
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: CX23885 card Analog/Digital Switch
+In-reply-to: <4AC0DC20.2070307@gmail.com>
+To: "David T. L. Wong" <davidtlwong@gmail.com>
+Cc: linux-media@vger.kernel.org
+Message-id: <4AC0E386.7070803@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7BIT
+References: <4AC0DC20.2070307@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2 Sep 2009, Thomas Rokamp wrote:
->> wget http://phail.dk/test01.mpg
->> mplayer test01.mpg
->> 
->> and I see a nice star animation looks like Eurosport .
->> 
->>> http://phail.dk/test02.mpg
->> 
->> doing the same thing with this file:
->> 
->> It show Melzer vs. Safin playing Tennis at the US Open on Eurosport.
->> 
->> Something's wrong with your mplayer/vlc/libffmpeg or whatever, definitely 
->> not a problem of driver or reception.
+On 9/28/09 11:54 AM, David T. L. Wong wrote:
+> Hello List,
 >
-> Yikes... well, thanks for that information. Been trying on two machines, 
-> windows + linux, and no result.
-> What player are you using? Any special codec?
+> cx23885 card Magic-Pro ProHDTV Extreme 2, has a cx23885 GPIO pin to
+> select Analog TV+Radio or Digital TV. How should I add that GPIO setting
+> code into cx23885?
+> The current model that all operations goes to FE instead of card is not
+> very appropriate to model this case.
+> I thought of adding a callback code for the tuner (XC5000), but my case
+> is that this behavior is card specific, but not XC5000 generic.
+>
+> Is there any "Input Selection" hook / callback mechanism to notify the
+> card, the device.
 
-mplayer and no special codec:
+Digital TV is about to have mkrufky's ioctl override patch merged so that the 
+bridge can be informed before/after a dtv frontend is opened, this is an entry 
+point for you. The bridge can flip the GPIO on demand based on current hardware 
+state.
 
-When I'm running mplayer it shows that:
+Analog tv entry point could be the hooked into one of the video open ops, such 
+as video_open(). Likewise, the bridge would be involved.
 
-TS file format detected.
-VIDEO MPEG2(pid=513) AUDIO MPA(pid=644) NO SUBS (yet)!  PROGRAM N. 0
-VIDEO:  MPEG2  704x576  (aspect 2)  25.000 fps  10000.0 kbps (1250.0 
-kbyte/s)
-==========================================================================
-Opening video decoder: [mpegpes] MPEG 1/2 Video passthrough
-VDec: vo config request - 704 x 576 (preferred colorspace: Mpeg PES)
-Could not find matching colorspace - retrying with -vf scale...
-Opening video filter: [scale]
-The selected video_out device is incompatible with this codec.
-Try adding the scale filter, e.g. -vf spp,scale instead of -vf spp.
-VDecoder init failed :(
-Opening video decoder: [libmpeg2] MPEG 1/2 Video decoder libmpeg2-v0.4.0b
-Selected video codec: [mpeg12] vfm: libmpeg2 (MPEG-1 or 2 (libmpeg2))
-==========================================================================
-==========================================================================
-Opening audio decoder: [mp3lib] MPEG layer-2, layer-3
-AUDIO: 48000 Hz, 2 ch, s16le, 192.0 kbit/12.50% (ratio: 24000->192000)
-Selected audio codec: [mp3] afm: mp3lib (mp3lib MPEG layer-2, layer-3)
-==========================================================================
-
-It looks quite standard to me.
-
---
-
-Patrick Boettcher - Kernel Labs
-http://www.kernellabs.com/
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
