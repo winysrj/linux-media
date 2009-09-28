@@ -1,58 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:33359 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751639AbZIMRbZ (ORCPT
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:45013 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752397AbZI1PyM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2009 13:31:25 -0400
-Received: by qw-out-2122.google.com with SMTP id 9so796473qwb.37
-        for <linux-media@vger.kernel.org>; Sun, 13 Sep 2009 10:31:28 -0700 (PDT)
+	Mon, 28 Sep 2009 11:54:12 -0400
+Received: by fxm18 with SMTP id 18so3770091fxm.17
+        for <linux-media@vger.kernel.org>; Mon, 28 Sep 2009 08:54:15 -0700 (PDT)
+Message-ID: <4AC0DC20.2070307@gmail.com>
+Date: Mon, 28 Sep 2009 23:54:08 +0800
+From: "David T. L. Wong" <davidtlwong@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1251855051.3926.34.camel@palomino.walls.org>
-References: <200909011019.35798.jarod@redhat.com>
-	 <1251855051.3926.34.camel@palomino.walls.org>
-Date: Sun, 13 Sep 2009 13:23:52 -0400
-Message-ID: <de8cad4d0909131023t7103b446sf6b20889567556ee@mail.gmail.com>
-Subject: Re: [PATCH] hdpvr: i2c fixups for fully functional IR support
-From: Brandon Jenkins <bcjenkins@tvwhere.com>
-To: Andy Walls <awalls@radix.net>, Jarod Wilson <jarod@redhat.com>,
-	Janne Grunau <j@jannau.net>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+Subject: CX23885 card Analog/Digital Switch 
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 1, 2009 at 9:30 PM, Andy Walls <awalls@radix.net> wrote:
-> On Tue, 2009-09-01 at 10:19 -0400, Jarod Wilson wrote:
->> Patch is against http://hg.jannau.net/hdpvr/
->>
->> 1) Adds support for building hdpvr i2c support when i2c is built as a
->> module (based on work by David Engel on the mythtv-users list)
->>
->> 2) Refines the hdpvr_i2c_write() success check (based on a thread in
->> the sagetv forums)
->>
->> With this patch in place, and the latest lirc_zilog driver in my lirc
->> git tree, the IR part in my hdpvr works perfectly, both for reception
->> and transmitting.
->>
->> Signed-off-by: Jarod Wilson <jarod@redhat.com>
->
-> Jarod,
->
-> I recall a problem Brandon Jenkins had from last year, that when I2C was
-> enabled in hdpvr, his machine with multiple HVR-1600s and an HD-PVR
-> would produce a kernel oops.
->
-> Have you tested this on a machine with both an HVR-1600 and HD-PVR
-> installed?
->
-> Regards,
-> Andy
->
->
+Hello List,
 
-I don't mind testing. Currently I am running ArchLinux 64-bit,
-kernel26-2.6.30.6-1. Please tell me where to build the driver from.
+cx23885 card Magic-Pro ProHDTV Extreme 2, has a cx23885 GPIO pin to
+select Analog TV+Radio or Digital TV. How should I add that GPIO setting 
+code into cx23885?
+The current model that all operations goes to FE instead of card is not 
+very appropriate to model this case.
+I thought of adding a callback code for the tuner (XC5000), but my case
+  is that this behavior is card specific, but not XC5000 generic.
 
-Thanks,
+Is there any "Input Selection" hook / callback mechanism to notify the 
+card, the device.
 
-Brandon
+Regards,
+David T.L. Wong
