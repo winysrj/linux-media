@@ -1,91 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:60279 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751114AbZIOKlK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2009 06:41:10 -0400
-Date: Tue, 15 Sep 2009 12:41:06 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: James Blanford <jhblanford@gmail.com>
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:53781 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751482AbZI1QU5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Sep 2009 12:20:57 -0400
+Received: by fxm18 with SMTP id 18so3792537fxm.17
+        for <linux-media@vger.kernel.org>; Mon, 28 Sep 2009 09:21:00 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4AC0DC20.2070307@gmail.com>
+References: <4AC0DC20.2070307@gmail.com>
+Date: Mon, 28 Sep 2009 12:20:59 -0400
+Message-ID: <829197380909280920v2d86d41nb42d4e90b5136215@mail.gmail.com>
+Subject: Re: CX23885 card Analog/Digital Switch
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: "David T. L. Wong" <davidtlwong@gmail.com>
 Cc: linux-media@vger.kernel.org
-Subject: Re: Race in gspca main or missing lock in stv06xx subdriver?
-Message-ID: <20090915124106.35ad1382@tele>
-In-Reply-To: <20090914111757.543c7e77@blackbart.localnet.prv>
-References: <20090914111757.543c7e77@blackbart.localnet.prv>
-Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 14 Sep 2009 11:17:57 -0400
-James Blanford <jhblanford@gmail.com> wrote:
+On Mon, Sep 28, 2009 at 11:54 AM, David T. L. Wong
+<davidtlwong@gmail.com> wrote:
+> Hello List,
+>
+> cx23885 card Magic-Pro ProHDTV Extreme 2, has a cx23885 GPIO pin to
+> select Analog TV+Radio or Digital TV. How should I add that GPIO setting
+> code into cx23885?
+> The current model that all operations goes to FE instead of card is not very
+> appropriate to model this case.
+> I thought of adding a callback code for the tuner (XC5000), but my case
+>  is that this behavior is card specific, but not XC5000 generic.
+>
+> Is there any "Input Selection" hook / callback mechanism to notify the card,
+> the device.
+>
+> Regards,
+> David T.L. Wong
 
-> Howdy folks,
-> 
-> I have my old quickcam express webcam working, with HDCS1000
-> sensor, 046d:840. It's clearly throwing away every other frame.  What
-> seems to be happening is, while the last packet of the previous frame
-> is being analyzed by the subdriver, the first packet of the next frame
-> is assigned to the current frame buffer.  By the time that packet is
-> analysed and sent back to the main driver, it's frame buffer has been
-> completely filled and marked as "DONE."  The entire frame is then
-> marked for "DISCARD."  This does _not_ happen with all cams using this
-> subdriver.
-> 
-> Here's a little patch, supplied only to help illustrate the problem,
-> that allows for the full, expected frame rate of the webcam.  What it
-> does is wait until the very last moment to assign a frame buffer to
-> any packet, but the last.  I also threw in a few printks so I can see
-> where failure takes place without wading through a swamp of debug
-> output.
-	[snip]
-> It works, at least until there is any disruption to the stream, such
-> as an exposure change, and then something gets out of sync and it
-> starts throwing out every other frame again.  It shows that the driver
-> framework and USB bus is capable of handling the full frame rate.
-> 
-> I'll keep looking for an actual solution, but there is a lot I don't
-> understand.  Any suggestions or ideas would be appreciated.  Several
-> questions come to mind.  Why bother assigning a frame buffer with
-> get_i_frame, before it's needed?  What purpose has frame_wait, when
-> it's not called until the frame is completed and the buffer is marked
-> as "DONE."  Why are there five, fr_i fr_q fr_o fr_queue index , buffer
-> indexing counters?  I'm sure I don't understand all the different
-> tasks this driver has to handle and all the different hardware it has
-> to deal with.  But I would be surprised if my cam is the only one
-> this is happening with.
+You should definitely *not* add a callback to xc5000 (and such a patch
+will not be accepted).  The best approach may be to look at Michael
+Krufky's fe_override tree, which is pending for merge:
 
-Hi James,
+http://www.kernellabs.com/hg/~mkrufky/fe_ioctl_override/
 
-I think you may have found a big problem, and this one should exist in
-all drivers!
-
-As I understood, you say that the URB completion routine (isoc_irq) may
-be run many times at the same time.
-
-With gspca, the problem is critical: the frame queue is managed without
-any lock thanks to a circular buffer list (the pointers fr_i, fr_q and
-fr_o). This mechanism works well when there are only one producer
-(interrupt) and one consumer (application) (and to answer the question,
-get_i_frame can be called anywere in the interrupt function because the
-application is not running). Then, if there may be many producers...
-
-For other drivers, the problem remains: the image fragments could be
-received out of order.
-
-How is this possible? Looking at some kernel documents, I found that
-the URB completion routine is called from the bottom-half entity (thus,
-not under hardware interrupt). A bottom-half may be a tasklet or a soft
-irq. There may be only one active tasklet at a time, while there may be
-many softirqs running (on the interrupt CPU). It seems that we are in
-the last case, and I could not find any mean to change that.
-
-Then, to fix this problem, I see only one solution: have a private
-tasklet to do the video streaming, as this is done for some bulk
-transfer...
-
-Cheers.
+Devin
 
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
