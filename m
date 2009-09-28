@@ -1,121 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:39349 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754918AbZIJJRR (ORCPT
+Received: from mail-yw0-f174.google.com ([209.85.211.174]:64271 "EHLO
+	mail-yw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751400AbZI1PED (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Sep 2009 05:17:17 -0400
-Received: by bwz19 with SMTP id 19so1003336bwz.37
-        for <linux-media@vger.kernel.org>; Thu, 10 Sep 2009 02:17:19 -0700 (PDT)
+	Mon, 28 Sep 2009 11:04:03 -0400
+Received: by ywh4 with SMTP id 4so4737761ywh.33
+        for <linux-media@vger.kernel.org>; Mon, 28 Sep 2009 08:04:06 -0700 (PDT)
+Message-ID: <4AC0D05D.4060304@gmail.com>
+Date: Mon, 28 Sep 2009 12:03:57 -0300
+From: Filipe Rosset <rosset.filipe@gmail.com>
+Reply-To: rosset.filipe@gmail.com
 MIME-Version: 1.0
-In-Reply-To: <4AA8C07C.9030804@nildram.co.uk>
-References: <4AA7AE23.2040601@nildram.co.uk>
-	 <loom.20090909T195347-576@post.gmane.org>
-	 <4AA8B235.3050407@nildram.co.uk>
-	 <617be8890909100110jaaedf51h637d114d30382b99@mail.gmail.com>
-	 <4AA8C07C.9030804@nildram.co.uk>
-Date: Thu, 10 Sep 2009 11:17:19 +0200
-Message-ID: <617be8890909100217y1c13cdfbw7d95e1f714549b71@mail.gmail.com>
-Subject: Re: Nova-T 500 Dual DVB-T and h.264
-From: Eduard Huguet <eduardhc@gmail.com>
-To: lotway@nildram.co.uk
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+CC: Douglas Schilling Landgraf <dougsland@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 2/2] em28xx: Convert printks to em28xx_err and em28xx_info
+Content-Type: multipart/mixed;
+ boundary="------------020306050106040107080600"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/9/10 Lou Otway <lotway@nildram.co.uk>:
-> Eduard Huguet wrote:
->>
->> 2009/9/10 Lou Otway <lotway@nildram.co.uk>:
->>>
->>> Eduard Huguet wrote:
->>>>
->>>> Lou Otway <lotway <at> nildram.co.uk> writes:
->>>>
->>>>> Hi,
->>>>>
->>>>> Does anyone have experience of using the Hauppuage Nova-T 500 with
->>>>> DVB-T
->>>>> broadcasts with h.264 and AAC audio?
->>>>>
->>>>> DTT in New Zealand uses these formats and I'm seeing poor performance
->>>>> from the Nova-T card. My thinking is that it was probably not conceived
->>>>> for
->>>>> dealing with dual h264 streams.
->>>>>
->>>>> Has the PCIe HVR-2200 been tested with dual h.264? I was wondering if
->>>>> this card might have better performance.
->>>>>
->>>>> Thanks,
->>>>>
->>>>> Lou
->>>>
->>>> Hi,    AFAIK the card just tunes to the desired frequency, applies
->>>> configured
->>>> filters (to select the desired station through its PID number), and
->>>> handles the
->>>> received transport stream to the calling application. It's up to the
->>>> lastest to
->>>> properly decode it. Check that the software you are using is properly
->>>> capable of
->>>> decoding this kind of content.
->>>>
->>>> Best regards,  Eduard Huguet
->>>
->>> Hi,
->>>
->>> the problem isn't to do with playback as I have another type of adapter
->>> card
->>> that creates a TS, from the same mux, that is played back with no
->>> problem.
->>>
->>> It seems that the problem only happens when using the Nova-T card.
->>>
->>> DTT in NZ has services with 1080i video format, I'm not sure that there
->>> are
->>> many other places in the world where 1080i h.264 content is broadcast
->>> using
->>> DVB-T, hence I was thinking that this combination may not have been well
->>> tested.
->>>
->>> Thanks,
->>>
->>> Lou
->>>
->>
->> I don't know how this it works in NZ. Here in Spain there is at least
->> one station (TVC's 3HD) emitting HD content through TDT, and it works
->> flawlessly with a Nova-T 500 (as I have one). I'm not sure if contents
->> are 1080 or 720, though.
->>
->> There were some problems watching these channels through MythTV, but
->> they were definitely decoding related. With current MythTV trunk they
->> are fine.
->>
->> Anyway, as I said before, theoretically a DVB card doesn't know what
->> kind of streams contains the signal it tunes. Decoding & parsing is
->> handled by the app.
->>
->> Best regards,
->>  Eduard Huguet
->> --
->
-> I'm not using MythTV or any other type of Media playing application.
->
-> In any case, I see very different performance between the two different
-> types of card, when presented with the same input.
->
-> I'll gather some more data, if I can draw any new conclusions I'll update
-> the list.
->
-> Best,
->
-> Lou
->
->
->
+This is a multi-part message in MIME format.
+--------------020306050106040107080600
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Maybe it's a problem of tuner sensibility. Is the low noise amplifier
-(LNA) activated for the Nova-T card?
-regards
-  Eduard
+
+--------------020306050106040107080600
+Content-Type: text/plain;
+ name="Convert_printks_to_em28xx_err_and_em28xx_info.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="Convert_printks_to_em28xx_err_and_em28xx_info.diff"
+
+em28xx: Convert printks to em28xx_err and em28xx_info
+
+From: Filipe Rosset <rosset.filipe@gmail.com>
+
+Convert printks to em28xx_err and em28xx_info
+
+Priority: normal
+
+Signed-off-by: Filipe Rosset <rosset.filipe@gmail.com>
+
+diff -r cbf8899e0fd4 linux/drivers/media/video/em28xx/em28xx-dvb.c
+--- a/linux/drivers/media/video/em28xx/em28xx-dvb.c	Mon Sep 28 11:22:23 2009 -0300
++++ b/linux/drivers/media/video/em28xx/em28xx-dvb.c	Mon Sep 28 11:52:23 2009 -0300
+@@ -314,7 +314,7 @@
+ 	cfg.i2c_addr  = addr;
+ 
+ 	if (!dev->dvb->frontend) {
+-		printk(KERN_ERR "%s/2: dvb frontend not attached. "
++		em28xx_err("%s/2: dvb frontend not attached. "
+ 				"Can't attach xc3028\n",
+ 		       dev->name);
+ 		return -EINVAL;
+@@ -322,14 +322,14 @@
+ 
+ 	fe = dvb_attach(xc2028_attach, dev->dvb->frontend, &cfg);
+ 	if (!fe) {
+-		printk(KERN_ERR "%s/2: xc3028 attach failed\n",
++		em28xx_err("%s/2: xc3028 attach failed\n",
+ 		       dev->name);
+ 		dvb_frontend_detach(dev->dvb->frontend);
+ 		dev->dvb->frontend = NULL;
+ 		return -EINVAL;
+ 	}
+ 
+-	printk(KERN_INFO "%s/2: xc3028 attached\n", dev->name);
++	em28xx_info("%s/2: xc3028 attached\n", dev->name);
+ 
+ 	return 0;
+ }
+@@ -464,7 +464,7 @@
+ 	dvb = kzalloc(sizeof(struct em28xx_dvb), GFP_KERNEL);
+ 
+ 	if (dvb == NULL) {
+-		printk(KERN_INFO "em28xx_dvb: memory allocation failed\n");
++		em28xx_info("em28xx_dvb: memory allocation failed\n");
+ 		return -ENOMEM;
+ 	}
+ 	dev->dvb = dvb;
+@@ -570,14 +570,13 @@
+ 		}
+ 		break;
+ 	default:
+-		printk(KERN_ERR "%s/2: The frontend of your DVB/ATSC card"
++		em28xx_err("%s/2: The frontend of your DVB/ATSC card"
+ 				" isn't supported yet\n",
+ 		       dev->name);
+ 		break;
+ 	}
+ 	if (NULL == dvb->frontend) {
+-		printk(KERN_ERR
+-		       "%s/2: frontend initialization failed\n",
++		em28xx_err("%s/2: frontend initialization failed\n",
+ 		       dev->name);
+ 		result = -EINVAL;
+ 		goto out_free;
+@@ -592,7 +591,7 @@
+ 		goto out_free;
+ 
+ 	em28xx_set_mode(dev, EM28XX_SUSPEND);
+-	printk(KERN_INFO "Successfully loaded em28xx-dvb\n");
++	em28xx_info("Successfully loaded em28xx-dvb\n");
+ 	return 0;
+ 
+ out_free:
+
+--------------020306050106040107080600--
