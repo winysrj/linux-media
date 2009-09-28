@@ -1,89 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:31886 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751302AbZI1J0R (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Sep 2009 05:26:17 -0400
-From: "Yu, Jinlu" <jinlu.yu@intel.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Mon, 28 Sep 2009 17:26:23 +0800
-Subject: RE: [PATCH 0/5] V4L2 patches for Intel Moorestown Camera Imaging
-Message-ID: <037F493892196B458CD3E193E8EBAD4F01ED974980@pdsmsx502.ccr.corp.intel.com>
-References: <037F493892196B458CD3E193E8EBAD4F01ED6EEE10@pdsmsx502.ccr.corp.intel.com>
- <20090924084448.76bf8ff1@pedra.chehab.org>
- <037F493892196B458CD3E193E8EBAD4F01ED97460C@pdsmsx502.ccr.corp.intel.com>
-In-Reply-To: <037F493892196B458CD3E193E8EBAD4F01ED97460C@pdsmsx502.ccr.corp.intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from qw-out-2122.google.com ([74.125.92.27]:52196 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752377AbZI1SR5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Sep 2009 14:17:57 -0400
+Received: by qw-out-2122.google.com with SMTP id 5so1640772qwd.37
+        for <linux-media@vger.kernel.org>; Mon, 28 Sep 2009 11:18:01 -0700 (PDT)
+Message-ID: <4AC0FDCD.2070705@gmail.com>
+Date: Mon, 28 Sep 2009 15:17:49 -0300
+From: Filipe Rosset <rosset.filipe@gmail.com>
+Reply-To: rosset.filipe@gmail.com
 MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux-media@vger.kernel.org,
+	Douglas Schilling Landgraf <dougsland@gmail.com>
+Subject: Re: [PATCH 2/2] em28xx: Convert printks to em28xx_err and em28xx_info
+References: <4AC0D05D.4060304@gmail.com>	 <829197380909280824q487c3effp64914d8430f16092@mail.gmail.com>	 <4AC0E21F.1000301@gmail.com>	 <829197380909280923r28452c44j610ffdcccf3f5d38@mail.gmail.com>	 <4AC0E7B0.3010409@gmail.com> <829197380909281105p53315240t40e0609b80cf1905@mail.gmail.com>
+In-Reply-To: <829197380909281105p53315240t40e0609b80cf1905@mail.gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------060105050805020803030809"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-V2UgaGF2ZSBhIHNvbHV0aW9uIHRvIHRoaXMgd2hpY2ggaXMgdG8gbWFrZSB0aGVtIGFzIHNlbnNv
-cidzIHByaXZhdGUgZGF0YSwgYW5kIGxldCBJU1AgYWNjZXNzIHRoZW0gYnkgc2hhcmUgdGhlIHNh
-bWUgc3RydWN0dXJlIGRlZmluaXRpb24uIA0KDQpCdXQgSSBkb24ndCB0aGluayBpdCdzIGEgZ29v
-ZCBpZGVhLCBiZWNhdXNlIGl0IGlzIHNvIGRyaXZlci1zcGVjaWZpYyBhbmQgY2FuIG5vdCBiZSB1
-c2VkIGJ5IG90aGVycy4NCg0KQmVzdCBSZWdhcmRzDQpKaW5sdSBZdQ0KVU1HIFVQU0cgUFJDDQpJ
-TkVUOiA4NzU4IDE2MDMNClRFTDogIDg2IDEwIDgyMTcgMTYwMw0KRkFYOiAgODYgMTAgODI4NiAx
-NDAwDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogbGludXgtbWVkaWEtb3duZXJA
-dmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtbWVkaWEtb3duZXJAdmdlci5rZXJuZWwub3Jn
-XSBPbiBCZWhhbGYgT2YgWXUsIEppbmx1DQpTZW50OiAyMDA55bm0OeaciDI35pelIDIyOjMxDQpU
-bzogTWF1cm8gQ2FydmFsaG8gQ2hlaGFiDQpDYzogbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3Jn
-DQpTdWJqZWN0OiBSRTogW1BBVENIIDAvNV0gVjRMMiBwYXRjaGVzIGZvciBJbnRlbCBNb29yZXN0
-b3duIENhbWVyYSBJbWFnaW5nDQoNCkhpLCBNYXVybw0KDQpUaGFuayB5b3UgZm9yIHlvdXIgc3Vn
-Z2VzdGlvbiBvbiB0aGlzLg0KDQpOb3cgSSBoYXZlIGFub3RoZXIgcHJvYmxlbS4gVGhlIElTUCBu
-ZWVkcyB0aGUgZm9sbG93aW5nIHBhcmFtZXRlcnMgb2YgdGhlIHNlbnNvciB0byBzZXQgdGhlIGFj
-cXVpc2l0aW9uIGludGVyZmFjZSwgYnV0IEkgY2FuIG5vdCBmaW5kIGEgc3VpdGFibGUgc3ViZGV2
-IGlvY3RscyB0byBnZXQgdGhlbSBmcm9tIHNlbnNvciBkcml2ZXIuIA0KDQpidXNfd2lkdGg7IHdp
-ZHRoIG9mIHRoZSBidXNzIGNvbm5lY3Rpbmcgc2Vuc29yIGFuZCBJU1AuDQpmaWVsZF9zZWw7IGZp
-ZWxkIHNlbGVjdGlvbiwgZXZlbiBvciBvZGQuDQp5Y3NlcTsgWUNiQ3Igc2VxdWVuY2UsIFlDYkNy
-IG9yIFlDckNiIG9yIENiWUNyWSBvciBDcllDYlkNCmNvbnY0MjI7IHN1YnNhbXBsaW5nIHR5cGUs
-IGNvLXNpdGVkIDQ6NDo0IG9yIG5vbi1jb3NpdGVkIDQ6NDo0IG9yIGNvbG9yIGludGVycG9sYXRp
-b24NCmJwYXQ7IGJheWVyIHNhbXBsaW5nIHNlcXVlbmNlLCBSR1JHIEdCR0Igb3IgR1JHUiBCR0JH
-IG9yIC4uLg0KaHBvbDsgaG9yaXpvbnRhbCBzeW5jIHBvbGFyaXR5DQp2cG9sOyB2ZXJ0aWNhbCBz
-eW5jIHBvbGFyaXR5DQplZGdlOyBzYW1wbGluZyBlZGdlDQoNCkJlc3QgUmVnYXJkcw0KSmlubHUg
-WXUNClVNRyBVUFNHIFBSQw0KSU5FVDogODc1OCAxNjAzDQpURUw6ICA4NiAxMCA4MjE3IDE2MDMN
-CkZBWDogIDg2IDEwIDgyODYgMTQwMA0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZyb206
-IE1hdXJvIENhcnZhbGhvIENoZWhhYiBbbWFpbHRvOm1jaGVoYWJAaW5mcmFkZWFkLm9yZ10gDQpT
-ZW50OiAyMDA55bm0OeaciDI05pelIDE5OjQ1DQpUbzogWXUsIEppbmx1DQpDYzogbGludXgtbWVk
-aWFAdmdlci5rZXJuZWwub3JnDQpTdWJqZWN0OiBSZTogW1BBVENIIDAvNV0gVjRMMiBwYXRjaGVz
-IGZvciBJbnRlbCBNb29yZXN0b3duIENhbWVyYSBJbWFnaW5nDQoNCkVtIFRodSwgMjQgU2VwIDIw
-MDkgMTk6MjE6NDAgKzA4MDANCiJZdSwgSmlubHUiIDxqaW5sdS55dUBpbnRlbC5jb20+IGVzY3Jl
-dmV1Og0KDQo+IEhpLCBIYW5zL0d1ZW5uYWRpDQo+IA0KPiBJIGFtIG1vZGlmeWluZyB0aGVzZSBk
-cml2ZXJzIHRvIGNvbXBseSB3aXRoIHY0bDIgZnJhbWV3b3JrLiBJIGhhdmUgZmluaXNoZWQgcmVw
-bGFjaW5nIG91ciBidWZmZXIgbWFuYWdpbmcgY29kZSB3aXRoIHV0aWxpdHkgZnVuY3Rpb24gZnJv
-bSB2aWRlb2J1Zi1jb3JlLmMgYW5kIHZpZGVvYnVmLWRtYS1jb250aWcuYy4gTm93IEkgYW0gd29y
-a2luZyBvbiB0aGUgc3ViZGV2LiBPbmUgdGhpbmcgSSBhbSBzdXJlIGlzIHRoYXQgZWFjaCBzZW5z
-b3Igc2hvdWxkIGJlIHJlZ2lzdGVyZWQgYXMgYSB2NGwyX3N1YmRldiBhbmQgSVNQIChJbWFnZSBT
-aWduYWwgUHJvY2Vzc29yKSBpcyByZWdpc3RlcmVkIGFzIGEgdjRsMl9kZXZpY2UgYWN0aW5nIGFz
-IHRoZSBicmlkZ2UgZGV2aWNlLiANCj4gDQo+IEJ1dCB3ZSBoYXZlIHR3byB3YXlzIHRvIGRlYWwg
-d2l0aCB0aGUgcmVsYXRpb25zaGlwIG9mIHNlbnNvciBhbmQgSVNQLCBhbmQgd2UgZG9uJ3Qga25v
-dyB3aGljaCBvbmUgaXMgYmV0dGVyLiBDb3VsZCB5b3UgaGVscCBtZSBvbiB0aGlzPw0KPiANCj4g
-Tm8uMS4gUmVnaXN0ZXIgdGhlIElTUCBhcyBhIHZpZGVvX2RldmljZSAoL2Rldi92aWRlbzApIGFu
-ZCB0cmVhdCBlYWNoIG9mIHRoZSBzZW5zb3IgKFNPQyBhbmQgUkFXKSBhcyBhbiBpbnB1dCBvZiB0
-aGUgSVNQLiBJZiBJIHdhbnQgdG8gY2hhbmdlIHRoZSBzZW5zb3IsIHVzZSB0aGUgVklESU9DX1Nf
-SU5QVVQgdG8gY2hhbmdlIGlucHV0IGZyb20gc2Vuc29yIEEgdG8gc2Vuc29yIEIuIEJ1dCBJIGhh
-dmUgYSBjb25jZXJuIGFib3V0IHRoaXMgaW9jdGwuIFNpbmNlIEkgZGlkbid0IGZpbmQgYW55IGNv
-ZGUgcmVsYXRlZCBIVyBwaXBlbGluZSBzdGF0dXMgY2hlY2tpbmcgYW5kIEhXIHJlZ2lzdGVyIHNl
-dHRpbmcgaW4gdGhlIGltcGxlbWVudCBvZiB0aGlzIGlvY3RsIChlLmcuIHZpbm9fc19pbnB1dCBp
-biAvZHJpdmVycy9tZWRpYS92aWRlby92aW5vLmMpLiBTbyBkb24ndCBJIGhhdmUgdG8gc3RyZWFt
-LW9mZiB0aGUgSFcgcGlwZWxpbmUgYW5kIGNoYW5nZSB0aGUgSFcgcmVnaXN0ZXIgc2V0dGluZyBm
-b3IgdGhlIG5ldyBpbnB1dD8gT3IgaXMgaXQgYXBwbGljYXRpb24ncyByZXNwb25zaWJpbGl0eSB0
-byBzdHJlYW0tb2ZmIHRoZSBwaXBlbGluZSBhbmQgcmVuZWdvdGlhdGUgdGhlIHBhcmFtZXRlcnMg
-Zm9yIHRoZSBuZXcgaW5wdXQ/DQo+IA0KPiBOby4yLiBDb21iaW5lIHRoZSBTT0Mgc2Vuc29yIHRv
-Z2V0aGVyIHdpdGggdGhlIElTUCBhcyBDaGFubmVsIE9uZSBhbmQgcmVnaXN0ZXIgaXQgYXMgL2Rl
-di92aWRlbzAsIGFuZCBjb21iaW5lIHRoZSBSQVcgc2Vuc29yIHRvZ2V0aGVyIHdpdGggdGhlIElT
-UCBhcyBDaGFubmVsIFR3byBhbmQgcmVnaXN0ZXIgaXQgYXMgL2Rldi92aWRlbzEuIFN1cmVseSwg
-b25seSBvbmUgY2hhbm5lbCB3b3JrcyBhdCBhIGNlcnRhaW4gdGltZSBkdWUgdG8gSFcgcmVzdHJp
-Y3Rpb24uIFdoZW4gSSB3YW50IHRvIGNoYW5nZSB0aGUgc2Vuc29yIChlLmcuIGZyb20gU09DIHNl
-bnNvciB0byBSQVcgc2Vuc29yKSwganVzdCBjbG9zZSAvZGV2L3ZpZGVvMCBhbmQgb3BlbiAvZGV2
-L3ZpZGVvMS4NCg0KVGhlIGJldHRlciBzZWVtcyB0byBiZSBOby4gMS4gQXMgeW91IG5lZWQgdG8g
-cmUtbmVnb3RpYXRlIHBhcmFtZXRlcnMgZm9yDQpzd2l0Y2hpbmcgZnJvbSBvbmUgc2Vuc29yIHRv
-IGFub3RoZXIsIGlmIHNvbWUgYXBwIHRyaWVzIHRvIGNoYW5nZSBmcm9tIG9uZQ0KaW5wdXQgdG8g
-YW5vdGhlciB3aGlsZSBzdHJlYW1pbmcsIHlvdSBzaG91bGQganVzdCByZXR1cm4gLUVCVVNZLCBp
-ZiBpdCBpcyBub3QNCnBvc3NpYmxlIHRvIHN3aXRjaCAoZm9yIGV4YW1wbGUsIGlmIHRoZSBzZWxl
-Y3RlZCBmb3JtYXQvcmVzb2x1dGlvbi9mcmFtZSByYXRlDQppcyBpbmNvbXBhdGlibGUpLg0KDQoN
-Cg0KQ2hlZXJzLA0KTWF1cm8NCk7lq6Xlj4npnaPnrKF57oy35rCKYueegu6DkeWNg3bosZ0/6JeT
-ey5uP+Wjj+6aj3vnnZPpj7FqKemfsOmqhXcqamfug4w/56e55q6g5ai47pWQL+S+gemLpOe9kOae
-iD/lqLnmq5LnkoA/P+aRuueOnOWbpH/ukr8e55O954+06ZaUP+mOlzorduWivuWmm+mRtuS9tg0K
+This is a multi-part message in MIME format.
+--------------060105050805020803030809
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+Em 28-09-2009 15:05, Devin Heitmueller escreveu:
+> 
+> Hi Felipe,
+> 
+> Sorry, I'm not trying to be difficult, but could you please include
+> the SOB block in your final patch, as you did with your original
+> version?  This is required in order for it to be merged upstream.
+> 
+> Thanks,
+> 
+> Devin
+> 
+
+Hi.
+Thanks for your tips.
+
+Filipe
+
+--------------060105050805020803030809
+Content-Type: text/plain;
+ name="Convert_printks_to_em28xx_err_and_em28xx_info.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="Convert_printks_to_em28xx_err_and_em28xx_info.diff"
+
+em28xx: Convert printks to em28xx_err and em28xx_info
+
+From: Filipe Rosset <rosset.filipe@gmail.com>
+
+Convert printks to em28xx_err and em28xx_info
+
+Priority: normal
+
+Signed-off-by: Filipe Rosset <rosset.filipe@gmail.com>
+
+diff -r cbf8899e0fd4 linux/drivers/media/video/em28xx/em28xx-dvb.c
+--- a/linux/drivers/media/video/em28xx/em28xx-dvb.c	Mon Sep 28 11:22:23 2009 -0300
++++ b/linux/drivers/media/video/em28xx/em28xx-dvb.c	Mon Sep 28 13:37:46 2009 -0300
+@@ -314,22 +314,20 @@
+ 	cfg.i2c_addr  = addr;
+ 
+ 	if (!dev->dvb->frontend) {
+-		printk(KERN_ERR "%s/2: dvb frontend not attached. "
+-				"Can't attach xc3028\n",
+-		       dev->name);
++		em28xx_errdev("/2: dvb frontend not attached. "
++				"Can't attach xc3028\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	fe = dvb_attach(xc2028_attach, dev->dvb->frontend, &cfg);
+ 	if (!fe) {
+-		printk(KERN_ERR "%s/2: xc3028 attach failed\n",
+-		       dev->name);
++		em28xx_errdev("/2: xc3028 attach failed\n");
+ 		dvb_frontend_detach(dev->dvb->frontend);
+ 		dev->dvb->frontend = NULL;
+ 		return -EINVAL;
+ 	}
+ 
+-	printk(KERN_INFO "%s/2: xc3028 attached\n", dev->name);
++	em28xx_info("%s/2: xc3028 attached\n", dev->name);
+ 
+ 	return 0;
+ }
+@@ -464,7 +462,7 @@
+ 	dvb = kzalloc(sizeof(struct em28xx_dvb), GFP_KERNEL);
+ 
+ 	if (dvb == NULL) {
+-		printk(KERN_INFO "em28xx_dvb: memory allocation failed\n");
++		em28xx_info("em28xx_dvb: memory allocation failed\n");
+ 		return -ENOMEM;
+ 	}
+ 	dev->dvb = dvb;
+@@ -570,15 +568,12 @@
+ 		}
+ 		break;
+ 	default:
+-		printk(KERN_ERR "%s/2: The frontend of your DVB/ATSC card"
+-				" isn't supported yet\n",
+-		       dev->name);
++		em28xx_errdev("/2: The frontend of your DVB/ATSC card"
++				" isn't supported yet\n");
+ 		break;
+ 	}
+ 	if (NULL == dvb->frontend) {
+-		printk(KERN_ERR
+-		       "%s/2: frontend initialization failed\n",
+-		       dev->name);
++		em28xx_errdev("/2: frontend initialization failed\n");
+ 		result = -EINVAL;
+ 		goto out_free;
+ 	}
+@@ -592,7 +587,7 @@
+ 		goto out_free;
+ 
+ 	em28xx_set_mode(dev, EM28XX_SUSPEND);
+-	printk(KERN_INFO "Successfully loaded em28xx-dvb\n");
++	em28xx_info("Successfully loaded em28xx-dvb\n");
+ 	return 0;
+ 
+ out_free:
+
+--------------060105050805020803030809--
