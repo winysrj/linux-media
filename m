@@ -1,64 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from claranet-outbound-smtp01.uk.clara.net ([195.8.89.34]:50599 "EHLO
-	claranet-outbound-smtp01.uk.clara.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754421AbZICLoX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Sep 2009 07:44:23 -0400
-Message-ID: <4A9FAC15.9000002@onelan.com>
-Date: Thu, 03 Sep 2009 12:44:21 +0100
-From: Simon Farnsworth <simon.farnsworth@onelan.com>
+Received: from mga09.intel.com ([134.134.136.24]:31886 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751302AbZI1J0R (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Sep 2009 05:26:17 -0400
+From: "Yu, Jinlu" <jinlu.yu@intel.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Mon, 28 Sep 2009 17:26:23 +0800
+Subject: RE: [PATCH 0/5] V4L2 patches for Intel Moorestown Camera Imaging
+Message-ID: <037F493892196B458CD3E193E8EBAD4F01ED974980@pdsmsx502.ccr.corp.intel.com>
+References: <037F493892196B458CD3E193E8EBAD4F01ED6EEE10@pdsmsx502.ccr.corp.intel.com>
+ <20090924084448.76bf8ff1@pedra.chehab.org>
+ <037F493892196B458CD3E193E8EBAD4F01ED97460C@pdsmsx502.ccr.corp.intel.com>
+In-Reply-To: <037F493892196B458CD3E193E8EBAD4F01ED97460C@pdsmsx502.ccr.corp.intel.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-To: Andy Walls <awalls@radix.net>
-CC: Hans de Goede <j.w.r.degoede@hhs.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: libv4l2 and the Hauppauge HVR1600 (cx18 driver) not	working	well
- together
-References: <4A9E9E08.7090104@onelan.com>  <4A9EAF07.3040303@hhs.nl>	 <1251975978.22279.8.camel@morgan.walls.org>  <4A9FA729.3010207@onelan.com> <1251977347.22279.21.camel@morgan.walls.org>
-In-Reply-To: <1251977347.22279.21.camel@morgan.walls.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andy Walls wrote:
-> On Thu, 2009-09-03 at 12:23 +0100, Simon Farnsworth wrote:
->> Andy Walls wrote:
->>> But I suspect no user pays for the extra cost of the CX2341[568]
->>> hardware MPEG encoder, if the user primarily wants uncompressed YUV
->>> video as their main format.
->> Actually, we're doing exactly that. We want a PCI card from a reputable
->> manufacturer which provides uncompressed YUV and ATSC (both OTA and
->> ClearQAM cable). As we already buy Hauppauge HVR-1110s for DVB-T and
->> uncompressed analogue, a Hauppauge card suits us, and the only thing
->> they have that fits the needs is the HVR-1600; the MPEG encoder is thus
->> left idle.
-> 
-> Ah. OK, this is more than an academic exercise. :)
-> 
-> If you can prioritize your needs for the cx18 driver, I can see what I
-> can get done.
-> 
-The video side is now working well for me on the HVR1110 and HVR1600 -
-in an ideal world, I'd have an ALSA driver for cx18 audio instead of the
-video24 device. The read() bug isn't major for me, as I can just use a
-slightly modified libv4l2 to cope.
-
-> If you'd like to submit patches, I'll be happy to review them to make
-> sure they don't break anything and then get them integrated.
-> 
-I'll be discussing this with my management next week, and they'll be
-making a judgement call on whether we can cope without analogue audio on
-the RF input only. If we can't, I'll be tasked with working on this; I
-take it you'd prefer to have ALSA added to the driver than for me to
-teach Xine to read from /dev/video24 for PCM audio?
-
-In any case, I have some more work to do on the reworked input_v4l for
-Xine, as I need to get it into a state where I can work with the Xine
-guys on merging it into their mainline. This will have to be finished
-before I can really dive into the cx18 driver.
--- 
-Thank you for the offer of help - I'll let you know if I'm going to
-start working on ALSA support in cx18,
-
-Simon Farnsworth
-
+V2UgaGF2ZSBhIHNvbHV0aW9uIHRvIHRoaXMgd2hpY2ggaXMgdG8gbWFrZSB0aGVtIGFzIHNlbnNv
+cidzIHByaXZhdGUgZGF0YSwgYW5kIGxldCBJU1AgYWNjZXNzIHRoZW0gYnkgc2hhcmUgdGhlIHNh
+bWUgc3RydWN0dXJlIGRlZmluaXRpb24uIA0KDQpCdXQgSSBkb24ndCB0aGluayBpdCdzIGEgZ29v
+ZCBpZGVhLCBiZWNhdXNlIGl0IGlzIHNvIGRyaXZlci1zcGVjaWZpYyBhbmQgY2FuIG5vdCBiZSB1
+c2VkIGJ5IG90aGVycy4NCg0KQmVzdCBSZWdhcmRzDQpKaW5sdSBZdQ0KVU1HIFVQU0cgUFJDDQpJ
+TkVUOiA4NzU4IDE2MDMNClRFTDogIDg2IDEwIDgyMTcgMTYwMw0KRkFYOiAgODYgMTAgODI4NiAx
+NDAwDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogbGludXgtbWVkaWEtb3duZXJA
+dmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtbWVkaWEtb3duZXJAdmdlci5rZXJuZWwub3Jn
+XSBPbiBCZWhhbGYgT2YgWXUsIEppbmx1DQpTZW50OiAyMDA55bm0OeaciDI35pelIDIyOjMxDQpU
+bzogTWF1cm8gQ2FydmFsaG8gQ2hlaGFiDQpDYzogbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3Jn
+DQpTdWJqZWN0OiBSRTogW1BBVENIIDAvNV0gVjRMMiBwYXRjaGVzIGZvciBJbnRlbCBNb29yZXN0
+b3duIENhbWVyYSBJbWFnaW5nDQoNCkhpLCBNYXVybw0KDQpUaGFuayB5b3UgZm9yIHlvdXIgc3Vn
+Z2VzdGlvbiBvbiB0aGlzLg0KDQpOb3cgSSBoYXZlIGFub3RoZXIgcHJvYmxlbS4gVGhlIElTUCBu
+ZWVkcyB0aGUgZm9sbG93aW5nIHBhcmFtZXRlcnMgb2YgdGhlIHNlbnNvciB0byBzZXQgdGhlIGFj
+cXVpc2l0aW9uIGludGVyZmFjZSwgYnV0IEkgY2FuIG5vdCBmaW5kIGEgc3VpdGFibGUgc3ViZGV2
+IGlvY3RscyB0byBnZXQgdGhlbSBmcm9tIHNlbnNvciBkcml2ZXIuIA0KDQpidXNfd2lkdGg7IHdp
+ZHRoIG9mIHRoZSBidXNzIGNvbm5lY3Rpbmcgc2Vuc29yIGFuZCBJU1AuDQpmaWVsZF9zZWw7IGZp
+ZWxkIHNlbGVjdGlvbiwgZXZlbiBvciBvZGQuDQp5Y3NlcTsgWUNiQ3Igc2VxdWVuY2UsIFlDYkNy
+IG9yIFlDckNiIG9yIENiWUNyWSBvciBDcllDYlkNCmNvbnY0MjI7IHN1YnNhbXBsaW5nIHR5cGUs
+IGNvLXNpdGVkIDQ6NDo0IG9yIG5vbi1jb3NpdGVkIDQ6NDo0IG9yIGNvbG9yIGludGVycG9sYXRp
+b24NCmJwYXQ7IGJheWVyIHNhbXBsaW5nIHNlcXVlbmNlLCBSR1JHIEdCR0Igb3IgR1JHUiBCR0JH
+IG9yIC4uLg0KaHBvbDsgaG9yaXpvbnRhbCBzeW5jIHBvbGFyaXR5DQp2cG9sOyB2ZXJ0aWNhbCBz
+eW5jIHBvbGFyaXR5DQplZGdlOyBzYW1wbGluZyBlZGdlDQoNCkJlc3QgUmVnYXJkcw0KSmlubHUg
+WXUNClVNRyBVUFNHIFBSQw0KSU5FVDogODc1OCAxNjAzDQpURUw6ICA4NiAxMCA4MjE3IDE2MDMN
+CkZBWDogIDg2IDEwIDgyODYgMTQwMA0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZyb206
+IE1hdXJvIENhcnZhbGhvIENoZWhhYiBbbWFpbHRvOm1jaGVoYWJAaW5mcmFkZWFkLm9yZ10gDQpT
+ZW50OiAyMDA55bm0OeaciDI05pelIDE5OjQ1DQpUbzogWXUsIEppbmx1DQpDYzogbGludXgtbWVk
+aWFAdmdlci5rZXJuZWwub3JnDQpTdWJqZWN0OiBSZTogW1BBVENIIDAvNV0gVjRMMiBwYXRjaGVz
+IGZvciBJbnRlbCBNb29yZXN0b3duIENhbWVyYSBJbWFnaW5nDQoNCkVtIFRodSwgMjQgU2VwIDIw
+MDkgMTk6MjE6NDAgKzA4MDANCiJZdSwgSmlubHUiIDxqaW5sdS55dUBpbnRlbC5jb20+IGVzY3Jl
+dmV1Og0KDQo+IEhpLCBIYW5zL0d1ZW5uYWRpDQo+IA0KPiBJIGFtIG1vZGlmeWluZyB0aGVzZSBk
+cml2ZXJzIHRvIGNvbXBseSB3aXRoIHY0bDIgZnJhbWV3b3JrLiBJIGhhdmUgZmluaXNoZWQgcmVw
+bGFjaW5nIG91ciBidWZmZXIgbWFuYWdpbmcgY29kZSB3aXRoIHV0aWxpdHkgZnVuY3Rpb24gZnJv
+bSB2aWRlb2J1Zi1jb3JlLmMgYW5kIHZpZGVvYnVmLWRtYS1jb250aWcuYy4gTm93IEkgYW0gd29y
+a2luZyBvbiB0aGUgc3ViZGV2LiBPbmUgdGhpbmcgSSBhbSBzdXJlIGlzIHRoYXQgZWFjaCBzZW5z
+b3Igc2hvdWxkIGJlIHJlZ2lzdGVyZWQgYXMgYSB2NGwyX3N1YmRldiBhbmQgSVNQIChJbWFnZSBT
+aWduYWwgUHJvY2Vzc29yKSBpcyByZWdpc3RlcmVkIGFzIGEgdjRsMl9kZXZpY2UgYWN0aW5nIGFz
+IHRoZSBicmlkZ2UgZGV2aWNlLiANCj4gDQo+IEJ1dCB3ZSBoYXZlIHR3byB3YXlzIHRvIGRlYWwg
+d2l0aCB0aGUgcmVsYXRpb25zaGlwIG9mIHNlbnNvciBhbmQgSVNQLCBhbmQgd2UgZG9uJ3Qga25v
+dyB3aGljaCBvbmUgaXMgYmV0dGVyLiBDb3VsZCB5b3UgaGVscCBtZSBvbiB0aGlzPw0KPiANCj4g
+Tm8uMS4gUmVnaXN0ZXIgdGhlIElTUCBhcyBhIHZpZGVvX2RldmljZSAoL2Rldi92aWRlbzApIGFu
+ZCB0cmVhdCBlYWNoIG9mIHRoZSBzZW5zb3IgKFNPQyBhbmQgUkFXKSBhcyBhbiBpbnB1dCBvZiB0
+aGUgSVNQLiBJZiBJIHdhbnQgdG8gY2hhbmdlIHRoZSBzZW5zb3IsIHVzZSB0aGUgVklESU9DX1Nf
+SU5QVVQgdG8gY2hhbmdlIGlucHV0IGZyb20gc2Vuc29yIEEgdG8gc2Vuc29yIEIuIEJ1dCBJIGhh
+dmUgYSBjb25jZXJuIGFib3V0IHRoaXMgaW9jdGwuIFNpbmNlIEkgZGlkbid0IGZpbmQgYW55IGNv
+ZGUgcmVsYXRlZCBIVyBwaXBlbGluZSBzdGF0dXMgY2hlY2tpbmcgYW5kIEhXIHJlZ2lzdGVyIHNl
+dHRpbmcgaW4gdGhlIGltcGxlbWVudCBvZiB0aGlzIGlvY3RsIChlLmcuIHZpbm9fc19pbnB1dCBp
+biAvZHJpdmVycy9tZWRpYS92aWRlby92aW5vLmMpLiBTbyBkb24ndCBJIGhhdmUgdG8gc3RyZWFt
+LW9mZiB0aGUgSFcgcGlwZWxpbmUgYW5kIGNoYW5nZSB0aGUgSFcgcmVnaXN0ZXIgc2V0dGluZyBm
+b3IgdGhlIG5ldyBpbnB1dD8gT3IgaXMgaXQgYXBwbGljYXRpb24ncyByZXNwb25zaWJpbGl0eSB0
+byBzdHJlYW0tb2ZmIHRoZSBwaXBlbGluZSBhbmQgcmVuZWdvdGlhdGUgdGhlIHBhcmFtZXRlcnMg
+Zm9yIHRoZSBuZXcgaW5wdXQ/DQo+IA0KPiBOby4yLiBDb21iaW5lIHRoZSBTT0Mgc2Vuc29yIHRv
+Z2V0aGVyIHdpdGggdGhlIElTUCBhcyBDaGFubmVsIE9uZSBhbmQgcmVnaXN0ZXIgaXQgYXMgL2Rl
+di92aWRlbzAsIGFuZCBjb21iaW5lIHRoZSBSQVcgc2Vuc29yIHRvZ2V0aGVyIHdpdGggdGhlIElT
+UCBhcyBDaGFubmVsIFR3byBhbmQgcmVnaXN0ZXIgaXQgYXMgL2Rldi92aWRlbzEuIFN1cmVseSwg
+b25seSBvbmUgY2hhbm5lbCB3b3JrcyBhdCBhIGNlcnRhaW4gdGltZSBkdWUgdG8gSFcgcmVzdHJp
+Y3Rpb24uIFdoZW4gSSB3YW50IHRvIGNoYW5nZSB0aGUgc2Vuc29yIChlLmcuIGZyb20gU09DIHNl
+bnNvciB0byBSQVcgc2Vuc29yKSwganVzdCBjbG9zZSAvZGV2L3ZpZGVvMCBhbmQgb3BlbiAvZGV2
+L3ZpZGVvMS4NCg0KVGhlIGJldHRlciBzZWVtcyB0byBiZSBOby4gMS4gQXMgeW91IG5lZWQgdG8g
+cmUtbmVnb3RpYXRlIHBhcmFtZXRlcnMgZm9yDQpzd2l0Y2hpbmcgZnJvbSBvbmUgc2Vuc29yIHRv
+IGFub3RoZXIsIGlmIHNvbWUgYXBwIHRyaWVzIHRvIGNoYW5nZSBmcm9tIG9uZQ0KaW5wdXQgdG8g
+YW5vdGhlciB3aGlsZSBzdHJlYW1pbmcsIHlvdSBzaG91bGQganVzdCByZXR1cm4gLUVCVVNZLCBp
+ZiBpdCBpcyBub3QNCnBvc3NpYmxlIHRvIHN3aXRjaCAoZm9yIGV4YW1wbGUsIGlmIHRoZSBzZWxl
+Y3RlZCBmb3JtYXQvcmVzb2x1dGlvbi9mcmFtZSByYXRlDQppcyBpbmNvbXBhdGlibGUpLg0KDQoN
+Cg0KQ2hlZXJzLA0KTWF1cm8NCk7lq6Xlj4npnaPnrKF57oy35rCKYueegu6DkeWNg3bosZ0/6JeT
+ey5uP+Wjj+6aj3vnnZPpj7FqKemfsOmqhXcqamfug4w/56e55q6g5ai47pWQL+S+gemLpOe9kOae
+iD/lqLnmq5LnkoA/P+aRuueOnOWbpH/ukr8e55O954+06ZaUP+mOlzorduWivuWmm+mRtuS9tg0K
