@@ -1,78 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.sscnet.ucla.edu ([128.97.229.231]:47816 "EHLO
-	smtp1.sscnet.ucla.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751635AbZIOFER (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:55259 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753331AbZI1Vwl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2009 01:04:17 -0400
-Message-ID: <4AAF203B.3010304@cogweb.net>
-Date: Mon, 14 Sep 2009 22:03:55 -0700
-From: David Liontooth <lionteeth@cogweb.net>
+	Mon, 28 Sep 2009 17:52:41 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Stefan.Kost@nokia.com
+Subject: Re: [RFC] Global video buffers pool
+Date: Mon, 28 Sep 2009 23:54:25 +0200
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	sakari.ailus@maxwell.research.nokia.com, david.cohen@nokia.com,
+	antti.koskipaa@nokia.com, vimarsh.zutshi@nokia.com
+References: <200909161746.39754.laurent.pinchart@ideasonboard.com> <D019E777779A4345963526A1797F28D409E78C5B57@NOK-EUMSG-02.mgdnok.nokia.com>
+In-Reply-To: <D019E777779A4345963526A1797F28D409E78C5B57@NOK-EUMSG-02.mgdnok.nokia.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: linux-media@vger.kernel.org
-Subject: Re: Reliable work-horse capture device?
-References: <4AAEFEC9.3080405@cogweb.net>	<20090915000841.56c24dd6@pedra.chehab.org>	<4AAF11EC.3040800@cogweb.net> <20090915013430.61ad5889@pedra.chehab.org>
-In-Reply-To: <20090915013430.61ad5889@pedra.chehab.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <200909282354.25563.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
-> Em Mon, 14 Sep 2009 21:02:52 -0700
-> David Liontooth <lionteeth@cogweb.net> escreveu:
->
->   
->> As for the ventilation issue for USB devices, that may not be a serious 
->> obstacle. If the USB sticks such as Hauppauge HVR-950 have reliable 
->> components, we could strip the plastic casing and mount the unit next to 
->> a fan inside the case.
->>     
->
-> Yes, this may work.
->
-> Don't forget that, if you use USB devices, you'll probably need one separate USB
-> buses per each device, due to USB limits in terms of the maximum number of isoc
-> packets per second. If you don't require high quality, you could try to use
-> a format that requires less than 16 bits per pixel or 320x240 pixels, in order
-> to have more than one device per bus.
->   
-Thanks for pointing this out.
->   
->> I would be happy to use bttv, but I can't find cards. I also need to 
->> grab audio off the PCI bus, which only some bttv cards support.
->>
->> We've been using saa7135 cards for several years with relatively few 
->> incidents, but they occasionally drop audio.
->> I've been unable to find any pattern in the audio drops, so I haven't 
->> reported it -- I have no way to reproduce the error, but it happens 
->> regularly, affecting between 3 and 5% of recordings. Audio will 
->> sometimes drop in the middle of a recording and then resume, or else 
->> work fine on the next recording.
->>     
->
-> saa7134 has a thread to detect audio audio stereo mode. Maybe there is a bug
-> somewhere there.
->   
-Interesting idea -- anything I can do to debug?
->   
->> Our fallback is ivtv. I was hoping to use USB so that we could get 
->> blades instead of 3U cases; it's also getting hard to find good 
->> motherboards with four PCI slots.
->>     
->
-> The current best relation in terms of slots is the new cx25821. It has 8
-> simultaneous inputs at 60 fps per each PCIe board. If you don't need a tuner,
-> this design could be very interesting. The driver was written by Conexant, and
-> it is not yet present on any distribution (I just committed it today - at
-> staging - since it needs some cleanups to match kernel CodingStyle).
->   
-Wow, that's great to get support for this powerful device. We do need 
-tuners, though -- we're capturing straight from RF television cable. 
-Otherwise a beautiful product, even with h264 compression, which is what 
-we need.
+Hi Stefan,
 
-Cheers,
-Dave
+On Monday 28 September 2009 16:04:58 Stefan.Kost@nokia.com wrote:
+> hi,
+> 
+> >-----Original Message-----
+> >From: ext Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> >Sent: 16 September, 2009 18:47
+> >To: linux-media@vger.kernel.org; Hans Verkuil; Sakari Ailus;
+> >Cohen David.A (Nokia-D/Helsinki); Koskipaa Antti
+> >(Nokia-D/Helsinki); Zutshi Vimarsh (Nokia-D/Helsinki); Kost
+> >Stefan (Nokia-D/Helsinki)
+> >Subject: [RFC] Global video buffers pool
+> >
+> > Hi everybody,
+> >
+> > I didn't want to miss this year's pretty flourishing RFC
+> > season, so here's another one about a global video buffers pool.
+> 
+> Sorry for ther very late reply.
 
+No worries, better late than never.
 
+> I have been thinking about the problem on a bit broader scale and see the
+> need for something more kernel wide. E.g. there is some work done from intel
+> for graphics:
+> http://keithp.com/blogs/gem_update/
+> 
+> and this is not so much embedded even. If there buffer pools are
+> v4l2specific then we need to make all those other subsystems like xvideo,
+> opengl, dsp-bridges become v4l2 media controllers.
+
+The global video buffers pool topic has been discussed during the v4l2 mini-
+summit at Portland last week, and we all agreed that it needs more research.
+
+The idea of having pools at the media controller level has been dropped in 
+favor of a kernel-wide video buffers pool. Whether we can make the buffers 
+pool not v4l2-specific still needs to be tested. As you have pointed out, we 
+currently have a GPU memory manager in the kernel, and being able to interact 
+with it would be very interesting if we want to DMA video data to OpenGL 
+texture buffers for instance. I'm not sure if that would be possible though, 
+as the GPU and the video acquisition hardware might have different memory 
+requirements, at least in the general case. I will contact the GEM guys at 
+Intel to discuss the topic.
+
+If we can't share the buffers between the GPU and the rest of the system, we 
+could at least create a V4L2 wrapper on top of the DSP bridge core (which will 
+require a major cleanup/restructuring), making it possible to share video 
+buffers between the ISP and the DSP.
+
+-- 
+Regards,
+
+Laurent Pinchart
