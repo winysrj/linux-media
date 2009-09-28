@@ -1,117 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4740 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751601AbZIESYF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Sep 2009 14:24:05 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id n85IO6dx074928
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 5 Sep 2009 20:24:06 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 5 Sep 2009 20:24:06 +0200 (CEST)
-Message-Id: <200909051824.n85IO6dx074928@smtp-vbr8.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from an-out-0708.google.com ([209.85.132.247]:25758 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751599AbZI1PDp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Sep 2009 11:03:45 -0400
+Received: by an-out-0708.google.com with SMTP id d40so4914340and.1
+        for <linux-media@vger.kernel.org>; Mon, 28 Sep 2009 08:03:49 -0700 (PDT)
+Message-ID: <4AC0D046.5000701@gmail.com>
+Date: Mon, 28 Sep 2009 12:03:34 -0300
+From: Filipe Rosset <rosset.filipe@gmail.com>
+Reply-To: rosset.filipe@gmail.com
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+CC: Douglas Schilling Landgraf <dougsland@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 1/2] em28xx: Convert printks to em28xx_err
+Content-Type: multipart/mixed;
+ boundary="------------040404080003010507030501"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+This is a multi-part message in MIME format.
+--------------040404080003010507030501
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Results of the daily build of v4l-dvb:
 
-date:        Sat Sep  5 19:00:03 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12615:2b49813f8482
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+--------------040404080003010507030501
+Content-Type: text/plain;
+ name="Convert_printks_to_em28xx_err.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="Convert_printks_to_em28xx_err.diff"
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc8-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-rc8-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-rc8-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-rc8-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc8-m32r: OK
-linux-2.6.30-mips: ERRORS
-linux-2.6.31-rc8-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-rc8-powerpc64: OK
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc8-x86_64: OK
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc8): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+em28xx: Convert printks to em28xx_err
 
-Detailed results are available here:
+From: Filipe Rosset <rosset.filipe@gmail.com>
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+Convert printks to em28xx_err
 
-Full logs are available here:
+Priority: normal
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+Signed-off-by: Filipe Rosset <rosset.filipe@gmail.com>
 
-The V4L2 specification from this daily build is here:
+diff -r 6b7617d4a0be linux/drivers/media/video/em28xx/em28xx-audio.c
+--- a/linux/drivers/media/video/em28xx/em28xx-audio.c	Sat Sep 26 13:45:03 2009 -0300
++++ b/linux/drivers/media/video/em28xx/em28xx-audio.c	Mon Sep 28 10:49:25 2009 -0300
+@@ -335,7 +335,7 @@
+ 	dprintk("opening device and trying to acquire exclusive lock\n");
+ 
+ 	if (!dev) {
+-		printk(KERN_ERR "BUG: em28xx can't find device struct."
++		em28xx_err("BUG: em28xx can't find device struct."
+ 				" Can't proceed with open\n");
+ 		return -ENODEV;
+ 	}
+@@ -367,7 +367,7 @@
+ 
+ 	return 0;
+ err:
+-	printk(KERN_ERR "Error while configuring em28xx mixer\n");
++	em28xx_err("Error while configuring em28xx mixer\n");
+ 	return ret;
+ }
+ 
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
 
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+--------------040404080003010507030501--
