@@ -1,56 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:60352 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751253AbZIXVFF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Sep 2009 17:05:05 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Paulo Assis <pj.assis@gmail.com>
-Subject: Re: [Linux-uvc-devel] [PATCH] uvc: kmalloc failure ignored in uvc_ctrl_add_ctrl()
-Date: Thu, 24 Sep 2009 23:06:34 +0200
-Cc: Roel Kluin <roel.kluin@gmail.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org
-References: <4AB43041.6050001@gmail.com> <200909240820.54291.laurent.pinchart@ideasonboard.com> <59cf47a80909240150w3127ed51j48f81e157b49dc0c@mail.gmail.com>
-In-Reply-To: <59cf47a80909240150w3127ed51j48f81e157b49dc0c@mail.gmail.com>
+Received: from znsun1.ifh.de ([141.34.1.16]:38665 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752046AbZI1J0W (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Sep 2009 05:26:22 -0400
+Date: Mon, 28 Sep 2009 11:26:19 +0200 (CEST)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: =?ISO-8859-15?Q?S=E9rgio_Fortier?= <sergiofortier@yahoo.com.br>
+cc: linux-media@vger.kernel.org
+Subject: Re: EvolutePC TvWay+ USB ISDB-Tb fullseg device support
+In-Reply-To: <94949.68456.qm@web31002.mail.mud.yahoo.com>
+Message-ID: <alpine.LRH.1.10.0909281125570.27824@pub3.ifh.de>
+References: <94949.68456.qm@web31002.mail.mud.yahoo.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200909242306.34733.laurent.pinchart@ideasonboard.com>
+Content-Type: MULTIPART/MIXED; BOUNDARY="579696399-556447541-1254129979=:27824"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 24 September 2009 10:50:39 Paulo Assis wrote:
-> Laurent,
-> 
-> > That's not enough to prevent a kernel crash. The driver can try to
-> > dereference ctrl->data if ctrl->info isn't NULL. You should only set
-> > ctrl->info if allocationg succeeds. Something like
-> >
-> >        ctrl->data = kmalloc(ctrl->info->size * UVC_CTRL_NDATA,
-> > GFP_KERNEL); if (ctrl->data == NULL)
-> >                return -ENOMEM;
-> >
-> >        ctrl->info = info;
-> 
-> Without reading any code this doesn't seem correct, how can you use
-> ctrl->info->size if you haven't set ctrl->info yet?
-> 
-> Did you mean something like this:
-> 
->  ctrl->data = kmalloc(info->size * UVC_CTRL_NDATA, GFP_KERNEL);
->  if (ctrl->data == NULL)
->          return -ENOMEM;
-> 
->  ctrl->info = info;
-> 
-> 
-> Like I said I haven't read the code but this looks better.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Oops, you're right. My bad. Thanks for catching this.
+--579696399-556447541-1254129979=:27824
+Content-Type: TEXT/PLAIN; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: 8BIT
 
--- 
-Regards,
+On Sat, 26 Sep 2009, Sérgio Fortier wrote:
+> [..]
+> +#define USB_PID_TVWAY_PLUS                0x0002
+>
+> #endif
+> ===========================================
+> Signed-off-by: Sérgio C Fortier <sergiofortier@yahoo.com.br>
+>
+> Regards,
 
-Laurent Pinchart
+Applied, thanks.
+
+--
+
+Patrick Boettcher - Kernel Labs
+http://www.kernellabs.com/
+--579696399-556447541-1254129979=:27824--
