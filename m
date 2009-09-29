@@ -1,209 +1,219 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:46569 "EHLO mail1.radix.net"
+Received: from mail.perches.com ([173.55.12.10]:1329 "EHLO mail.perches.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752080AbZI3BDH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Sep 2009 21:03:07 -0400
-Subject: Re: [PATCH] media/video:  adding __init/__exit macros to various
- drivers
-From: Andy Walls <awalls@radix.net>
-To: Peter Huewe <PeterHuewe@gmx.de>
-Cc: Jiri Kosina <trivial@kernel.org>, kernel-janitors@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Steven Toth <stoth@kernellabs.com>,
-	Michael Krufky <mkrufky@kernellabs.com>,
+	id S1753017AbZI2FBS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Sep 2009 01:01:18 -0400
+From: Joe Perches <joe@perches.com>
+To: linux-kernel@vger.kernel.org
+Cc: Adrian Hunter <adrian.hunter@nokia.com>,
+	Alex Elder <aelder@sgi.com>,
+	Artem Bityutskiy <dedekind@infradead.org>,
+	Christoph Hellwig <hch@lst.de>,
+	Harvey Harrison <harvey.harrison@gmail.com>,
+	Huang Ying <ying.huang@intel.com>, Ingo Molnar <mingo@elte.hu>,
+	Jeff Garzik <jgarzik@redhat.com>,
 	Laurent Pinchart <laurent.pinchart@skynet.be>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>,
-	Martin Dauskardt <martin.dauskardt@gmx.de>,
-	"Beholder Intl. Ltd. Dmitry Belimov" <d.belimov@gmail.com>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-In-Reply-To: <200909290219.01623.PeterHuewe@gmx.de>
-References: <200909290219.01623.PeterHuewe@gmx.de>
-Content-Type: text/plain
-Date: Tue, 29 Sep 2009 21:05:45 -0400
-Message-Id: <1254272745.5510.1.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Matt Mackall <mpm@selenic.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Neil Brown <neilb@suse.de>,
+	Steven Whitehouse <swhiteho@redhat.com>,
+	xfs-masters@oss.sgi.com, linux-media@vger.kernel.org
+Subject: [PATCH 6/9] drivers/media/video/uvc: Use %pUr to print UUIDs
+Date: Mon, 28 Sep 2009 22:01:08 -0700
+Message-Id: <111526fa2ce7f728d1f81465a00859c1780f0607.1254193019.git.joe@perches.com>
+In-Reply-To: <cover.1254193019.git.joe@perches.com>
+References: <cover.1254193019.git.joe@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2009-09-29 at 02:19 +0200, Peter Huewe wrote:
-> From: Peter Huewe <peterhuewe@gmx.de>
-> 
-> Trivial patch which adds the __init/__exit macros to the module_init/
-> module_exit functions of the following drivers in media video:
->     drivers/media/video/ivtv/ivtv-driver.c
->     drivers/media/video/cx18/cx18-driver.c
->     drivers/media/video/davinci/dm355_ccdc.c
->     drivers/media/video/davinci/dm644x_ccdc.c
->     drivers/media/video/saa7164/saa7164-core.c
->     drivers/media/video/saa7134/saa7134-core.c
->     drivers/media/video/cx23885/cx23885-core.c
-> 
-> Please have a look at the small patch and either pull it through
-> your tree, or please ack' it so Jiri can pull it through the trivial tree.
-> 
-> linux version v2.6.32-rc1 - linus git tree, Di 29. Sep 01:10:18 CEST 2009
-> 
-> Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/media/video/uvc/uvc_ctrl.c   |   69 ++++++++++++++++------------------
+ drivers/media/video/uvc/uvc_driver.c |    7 +--
+ drivers/media/video/uvc/uvcvideo.h   |   10 -----
+ 3 files changed, 35 insertions(+), 51 deletions(-)
 
-For ivtv-driver.c and cx18-driver.c:
-
-Acked-by: Andy Walls <awalls@radix.net>
-
-> ---
-> diff --git a/drivers/media/video/cx18/cx18-driver.c b/drivers/media/video/cx18/cx18-driver.c
-> index 6dd51e2..e12082b 100644
-> --- a/drivers/media/video/cx18/cx18-driver.c
-> +++ b/drivers/media/video/cx18/cx18-driver.c
-> @@ -1200,7 +1200,7 @@ static struct pci_driver cx18_pci_driver = {
->        .remove =   cx18_remove,
->  };
->  
-> -static int module_start(void)
-> +static int __init module_start(void)
->  {
->  	printk(KERN_INFO "cx18:  Start initialization, version %s\n", CX18_VERSION);
->  
-> @@ -1224,7 +1224,7 @@ static int module_start(void)
->  	return 0;
->  }
->  
-> -static void module_cleanup(void)
-> +static void __exit module_cleanup(void)
->  {
->  	pci_unregister_driver(&cx18_pci_driver);
->  }
-> diff --git a/drivers/media/video/cx23885/cx23885-core.c b/drivers/media/video/cx23885/cx23885-core.c
-> index c31284b..fa2d350 100644
-> --- a/drivers/media/video/cx23885/cx23885-core.c
-> +++ b/drivers/media/video/cx23885/cx23885-core.c
-> @@ -1957,7 +1957,7 @@ static struct pci_driver cx23885_pci_driver = {
->  	.resume   = NULL,
->  };
->  
-> -static int cx23885_init(void)
-> +static int __init cx23885_init(void)
->  {
->  	printk(KERN_INFO "cx23885 driver version %d.%d.%d loaded\n",
->  	       (CX23885_VERSION_CODE >> 16) & 0xff,
-> @@ -1970,7 +1970,7 @@ static int cx23885_init(void)
->  	return pci_register_driver(&cx23885_pci_driver);
->  }
->  
-> -static void cx23885_fini(void)
-> +static void __exit cx23885_fini(void)
->  {
->  	pci_unregister_driver(&cx23885_pci_driver);
->  }
-> diff --git a/drivers/media/video/davinci/dm355_ccdc.c b/drivers/media/video/davinci/dm355_ccdc.c
-> index 4629cab..56fbefe 100644
-> --- a/drivers/media/video/davinci/dm355_ccdc.c
-> +++ b/drivers/media/video/davinci/dm355_ccdc.c
-> @@ -959,7 +959,7 @@ static struct ccdc_hw_device ccdc_hw_dev = {
->  	},
->  };
->  
-> -static int dm355_ccdc_init(void)
-> +static int __init dm355_ccdc_init(void)
->  {
->  	printk(KERN_NOTICE "dm355_ccdc_init\n");
->  	if (vpfe_register_ccdc_device(&ccdc_hw_dev) < 0)
-> @@ -969,7 +969,7 @@ static int dm355_ccdc_init(void)
->  	return 0;
->  }
->  
-> -static void dm355_ccdc_exit(void)
-> +static void __exit dm355_ccdc_exit(void)
->  {
->  	vpfe_unregister_ccdc_device(&ccdc_hw_dev);
->  }
-> diff --git a/drivers/media/video/davinci/dm644x_ccdc.c b/drivers/media/video/davinci/dm644x_ccdc.c
-> index 2f19a91..d5fa193 100644
-> --- a/drivers/media/video/davinci/dm644x_ccdc.c
-> +++ b/drivers/media/video/davinci/dm644x_ccdc.c
-> @@ -859,7 +859,7 @@ static struct ccdc_hw_device ccdc_hw_dev = {
->  	},
->  };
->  
-> -static int dm644x_ccdc_init(void)
-> +static int __init dm644x_ccdc_init(void)
->  {
->  	printk(KERN_NOTICE "dm644x_ccdc_init\n");
->  	if (vpfe_register_ccdc_device(&ccdc_hw_dev) < 0)
-> @@ -869,7 +869,7 @@ static int dm644x_ccdc_init(void)
->  	return 0;
->  }
->  
-> -static void dm644x_ccdc_exit(void)
-> +static void __exit dm644x_ccdc_exit(void)
->  {
->  	vpfe_unregister_ccdc_device(&ccdc_hw_dev);
->  }
-> diff --git a/drivers/media/video/ivtv/ivtv-driver.c b/drivers/media/video/ivtv/ivtv-driver.c
-> index 463ec34..7cdbc1a 100644
-> --- a/drivers/media/video/ivtv/ivtv-driver.c
-> +++ b/drivers/media/video/ivtv/ivtv-driver.c
-> @@ -1361,7 +1361,7 @@ static struct pci_driver ivtv_pci_driver = {
->        .remove =   ivtv_remove,
->  };
->  
-> -static int module_start(void)
-> +static int __init module_start(void)
->  {
->  	printk(KERN_INFO "ivtv: Start initialization, version %s\n", IVTV_VERSION);
->  
-> @@ -1385,7 +1385,7 @@ static int module_start(void)
->  	return 0;
->  }
->  
-> -static void module_cleanup(void)
-> +static void __exit module_cleanup(void)
->  {
->  	pci_unregister_driver(&ivtv_pci_driver);
->  }
-> diff --git a/drivers/media/video/saa7134/saa7134-core.c b/drivers/media/video/saa7134/saa7134-core.c
-> index f87757f..c673901 100644
-> --- a/drivers/media/video/saa7134/saa7134-core.c
-> +++ b/drivers/media/video/saa7134/saa7134-core.c
-> @@ -1319,7 +1319,7 @@ static struct pci_driver saa7134_pci_driver = {
->  #endif
->  };
->  
-> -static int saa7134_init(void)
-> +static int __init saa7134_init(void)
->  {
->  	INIT_LIST_HEAD(&saa7134_devlist);
->  	printk(KERN_INFO "saa7130/34: v4l2 driver version %d.%d.%d loaded\n",
-> @@ -1333,7 +1333,7 @@ static int saa7134_init(void)
->  	return pci_register_driver(&saa7134_pci_driver);
->  }
->  
-> -static void saa7134_fini(void)
-> +static void __exit saa7134_fini(void)
->  {
->  	pci_unregister_driver(&saa7134_pci_driver);
->  }
-> diff --git a/drivers/media/video/saa7164/saa7164-core.c b/drivers/media/video/saa7164/saa7164-core.c
-> index 709affc..e6aa0fb 100644
-> --- a/drivers/media/video/saa7164/saa7164-core.c
-> +++ b/drivers/media/video/saa7164/saa7164-core.c
-> @@ -724,13 +724,13 @@ static struct pci_driver saa7164_pci_driver = {
->  	.resume   = NULL,
->  };
->  
-> -static int saa7164_init(void)
-> +static int __init saa7164_init(void)
->  {
->  	printk(KERN_INFO "saa7164 driver loaded\n");
->  	return pci_register_driver(&saa7164_pci_driver);
->  }
->  
-> -static void saa7164_fini(void)
-> +static void __exit saa7164_fini(void)
->  {
->  	pci_unregister_driver(&saa7164_pci_driver);
->  }
-> 
+diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
+index c3225a5..2959e46 100644
+--- a/drivers/media/video/uvc/uvc_ctrl.c
++++ b/drivers/media/video/uvc/uvc_ctrl.c
+@@ -1093,8 +1093,8 @@ int uvc_xu_ctrl_query(struct uvc_video_chain *chain,
+ 
+ 	if (!found) {
+ 		uvc_trace(UVC_TRACE_CONTROL,
+-			"Control " UVC_GUID_FORMAT "/%u not found.\n",
+-			UVC_GUID_ARGS(entity->extension.guidExtensionCode),
++			"Control %pUr/%u not found.\n",
++			entity->extension.guidExtensionCode,
+ 			xctrl->selector);
+ 		return -EINVAL;
+ 	}
+@@ -1171,9 +1171,9 @@ int uvc_ctrl_resume_device(struct uvc_device *dev)
+ 			    (ctrl->info->flags & UVC_CONTROL_RESTORE) == 0)
+ 				continue;
+ 
+-			printk(KERN_INFO "restoring control " UVC_GUID_FORMAT
+-				"/%u/%u\n", UVC_GUID_ARGS(ctrl->info->entity),
+-				ctrl->info->index, ctrl->info->selector);
++			printk(KERN_INFO "restoring control %pUr/%u/%u\n",
++			       ctrl->info->entity,
++			       ctrl->info->index, ctrl->info->selector);
+ 			ctrl->dirty = 1;
+ 		}
+ 
+@@ -1228,46 +1228,43 @@ static void uvc_ctrl_add_ctrl(struct uvc_device *dev,
+ 			dev->intfnum, info->selector, (__u8 *)&size, 2);
+ 		if (ret < 0) {
+ 			uvc_trace(UVC_TRACE_CONTROL, "GET_LEN failed on "
+-				"control " UVC_GUID_FORMAT "/%u (%d).\n",
+-				UVC_GUID_ARGS(info->entity), info->selector,
+-				ret);
++				  "control %pUr/%u (%d).\n",
++				  info->entity, info->selector, ret);
+ 			return;
+ 		}
+ 
+ 		if (info->size != le16_to_cpu(size)) {
+-			uvc_trace(UVC_TRACE_CONTROL, "Control " UVC_GUID_FORMAT
+-				"/%u size doesn't match user supplied "
+-				"value.\n", UVC_GUID_ARGS(info->entity),
+-				info->selector);
++			uvc_trace(UVC_TRACE_CONTROL,
++				  "Control %pUr/%u size doesn't match user supplied value.\n",
++				  info->entity, info->selector);
+ 			return;
+ 		}
+ 
+ 		ret = uvc_query_ctrl(dev, UVC_GET_INFO, ctrl->entity->id,
+ 			dev->intfnum, info->selector, &inf, 1);
+ 		if (ret < 0) {
+-			uvc_trace(UVC_TRACE_CONTROL, "GET_INFO failed on "
+-				"control " UVC_GUID_FORMAT "/%u (%d).\n",
+-				UVC_GUID_ARGS(info->entity), info->selector,
+-				ret);
++			uvc_trace(UVC_TRACE_CONTROL,
++				  "GET_INFO failed on control %pUr/%u (%d).\n",
++				  info->entity, info->selector, ret);
+ 			return;
+ 		}
+ 
+ 		flags = info->flags;
+ 		if (((flags & UVC_CONTROL_GET_CUR) && !(inf & (1 << 0))) ||
+ 		    ((flags & UVC_CONTROL_SET_CUR) && !(inf & (1 << 1)))) {
+-			uvc_trace(UVC_TRACE_CONTROL, "Control "
+-				UVC_GUID_FORMAT "/%u flags don't match "
+-				"supported operations.\n",
+-				UVC_GUID_ARGS(info->entity), info->selector);
++			uvc_trace(UVC_TRACE_CONTROL,
++				  "Control %pUr/%u flags don't match supported operations.\n",
++				  info->entity, info->selector);
+ 			return;
+ 		}
+ 	}
+ 
+ 	ctrl->info = info;
+ 	ctrl->data = kmalloc(ctrl->info->size * UVC_CTRL_NDATA, GFP_KERNEL);
+-	uvc_trace(UVC_TRACE_CONTROL, "Added control " UVC_GUID_FORMAT "/%u "
+-		"to device %s entity %u\n", UVC_GUID_ARGS(ctrl->info->entity),
+-		ctrl->info->selector, dev->udev->devpath, entity->id);
++	uvc_trace(UVC_TRACE_CONTROL,
++		  "Added control %pUr/%u to device %s entity %u\n",
++		  ctrl->info->entity, ctrl->info->selector,
++		  dev->udev->devpath, entity->id);
+ }
+ 
+ /*
+@@ -1293,17 +1290,16 @@ int uvc_ctrl_add_info(struct uvc_control_info *info)
+ 			continue;
+ 
+ 		if (ctrl->selector == info->selector) {
+-			uvc_trace(UVC_TRACE_CONTROL, "Control "
+-				UVC_GUID_FORMAT "/%u is already defined.\n",
+-				UVC_GUID_ARGS(info->entity), info->selector);
++			uvc_trace(UVC_TRACE_CONTROL,
++				  "Control %pUr/%u is already defined.\n",
++				  info->entity, info->selector);
+ 			ret = -EEXIST;
+ 			goto end;
+ 		}
+ 		if (ctrl->index == info->index) {
+-			uvc_trace(UVC_TRACE_CONTROL, "Control "
+-				UVC_GUID_FORMAT "/%u would overwrite index "
+-				"%d.\n", UVC_GUID_ARGS(info->entity),
+-				info->selector, info->index);
++			uvc_trace(UVC_TRACE_CONTROL,
++				  "Control %pUr/%u would overwrite index %d.\n",
++				  info->entity, info->selector, info->index);
+ 			ret = -EEXIST;
+ 			goto end;
+ 		}
+@@ -1344,10 +1340,9 @@ int uvc_ctrl_add_mapping(struct uvc_control_mapping *mapping)
+ 			continue;
+ 
+ 		if (info->size * 8 < mapping->size + mapping->offset) {
+-			uvc_trace(UVC_TRACE_CONTROL, "Mapping '%s' would "
+-				"overflow control " UVC_GUID_FORMAT "/%u\n",
+-				mapping->name, UVC_GUID_ARGS(info->entity),
+-				info->selector);
++			uvc_trace(UVC_TRACE_CONTROL,
++				  "Mapping '%s' would overflow control %pUr/%u\n",
++				  mapping->name, info->entity, info->selector);
+ 			ret = -EOVERFLOW;
+ 			goto end;
+ 		}
+@@ -1366,9 +1361,9 @@ int uvc_ctrl_add_mapping(struct uvc_control_mapping *mapping)
+ 
+ 		mapping->ctrl = info;
+ 		list_add_tail(&mapping->list, &info->mappings);
+-		uvc_trace(UVC_TRACE_CONTROL, "Adding mapping %s to control "
+-			UVC_GUID_FORMAT "/%u.\n", mapping->name,
+-			UVC_GUID_ARGS(info->entity), info->selector);
++		uvc_trace(UVC_TRACE_CONTROL,
++			  "Adding mapping %s to control %pUr/%u.\n",
++			  mapping->name, info->entity, info->selector);
+ 
+ 		ret = 0;
+ 		break;
+diff --git a/drivers/media/video/uvc/uvc_driver.c b/drivers/media/video/uvc/uvc_driver.c
+index 8756be5..647d0a2 100644
+--- a/drivers/media/video/uvc/uvc_driver.c
++++ b/drivers/media/video/uvc/uvc_driver.c
+@@ -328,11 +328,10 @@ static int uvc_parse_format(struct uvc_device *dev,
+ 				sizeof format->name);
+ 			format->fcc = fmtdesc->fcc;
+ 		} else {
+-			uvc_printk(KERN_INFO, "Unknown video format "
+-				UVC_GUID_FORMAT "\n",
+-				UVC_GUID_ARGS(&buffer[5]));
++			uvc_printk(KERN_INFO, "Unknown video format %pUr\n",
++				   &buffer[5]);
+ 			snprintf(format->name, sizeof format->name,
+-				UVC_GUID_FORMAT, UVC_GUID_ARGS(&buffer[5]));
++				 "%pUr", &Buffer[5]);
+ 			format->fcc = 0;
+ 		}
+ 
+diff --git a/drivers/media/video/uvc/uvcvideo.h b/drivers/media/video/uvc/uvcvideo.h
+index e7958aa..9f4a437 100644
+--- a/drivers/media/video/uvc/uvcvideo.h
++++ b/drivers/media/video/uvc/uvcvideo.h
+@@ -555,16 +555,6 @@ extern unsigned int uvc_trace_param;
+ #define uvc_printk(level, msg...) \
+ 	printk(level "uvcvideo: " msg)
+ 
+-#define UVC_GUID_FORMAT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-" \
+-			"%02x%02x%02x%02x%02x%02x"
+-#define UVC_GUID_ARGS(guid) \
+-	(guid)[3],  (guid)[2],  (guid)[1],  (guid)[0], \
+-	(guid)[5],  (guid)[4], \
+-	(guid)[7],  (guid)[6], \
+-	(guid)[8],  (guid)[9], \
+-	(guid)[10], (guid)[11], (guid)[12], \
+-	(guid)[13], (guid)[14], (guid)[15]
+-
+ /* --------------------------------------------------------------------------
+  * Internal functions.
+  */
+-- 
+1.6.3.1.10.g659a0.dirty
 
