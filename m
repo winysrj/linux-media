@@ -1,28 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.agmk.net ([91.192.224.71]:41584 "EHLO mail.agmk.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754186AbZI3Lwd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Sep 2009 07:52:33 -0400
-From: =?utf-8?q?Pawe=C5=82_Sikora?= <pluto@agmk.net>
-To: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [2.6.31] ir-kbd-i2c oops.
-Date: Wed, 30 Sep 2009 13:52:27 +0200
-Cc: linux-kernel@vger.kernel.org, LMML <linux-media@vger.kernel.org>
-References: <200909160300.28382.pluto@agmk.net> <200909301016.15327.pluto@agmk.net> <20090930125737.704413c8@hyperion.delvare>
-In-Reply-To: <20090930125737.704413c8@hyperion.delvare>
+Received: from link-v.kaznejov.cz ([89.235.36.82]:34473 "EHLO
+	link-v.kaznejov.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753545AbZI2KEr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Sep 2009 06:04:47 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by link-v.kaznejov.cz (Postfix) with ESMTP id 64BCCE5039
+	for <linux-media@vger.kernel.org>; Tue, 29 Sep 2009 12:04:51 +0200 (CEST)
+Received: from link-v.kaznejov.cz ([127.0.0.1])
+	by localhost (kaznejov.cz [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id fe5FOfyp9fRx for <linux-media@vger.kernel.org>;
+	Tue, 29 Sep 2009 12:04:45 +0200 (CEST)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by link-v.kaznejov.cz (Postfix) with ESMTP id 50CD5E10E7
+	for <linux-media@vger.kernel.org>; Tue, 29 Sep 2009 12:04:45 +0200 (CEST)
+Message-ID: <4AC1DBBD.2060006@kaznejov.cz>
+Date: Tue, 29 Sep 2009 12:04:45 +0200
+From: Jiri Dobry <jirik@kaznejov.cz>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200909301352.28362.pluto@agmk.net>
+To: linux-media@vger.kernel.org
+Subject: Re: record DVB-S2 stream into file
+References: <4AC1CFF1.7050907@kaznejov.cz> <200909291201.14623.hftom@free.fr>
+In-Reply-To: <200909291201.14623.hftom@free.fr>
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 30 September 2009 12:57:37 Jean Delvare wrote:
+Christophe Thommeret napsal(a):
+> Le Tuesday 29 September 2009 11:14:25 Jiri Dobry, vous avez écrit :
+>   
+>
+> Kaffeine 0.8.8 supports DVB-S2 and you can record a whole TS by setting a 
+> channel with videoPid=0 and audioPid=8192.
+> Hope this helps.
+>
+>
+>   
+Thanks, but I need command line tool. Is it possible use kaffeine 
+without XORG? I thing no.
 
-> Are you running distribution kernels or self-compiled ones?
-> Any local patches applied?
-> Would you be able to apply debug patches and rebuild your kernel?
+But many thanks, it is solution but i forget wrote that I need command 
+line tool.
 
-yes, i'm using patched (vserver,grsec) modular kernel from pld-linux
-but i'm able to boot custom git build and do the bisect if necessary.
+Jiri
