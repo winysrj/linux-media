@@ -1,77 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp28.orange.fr ([80.12.242.100]:3258 "EHLO smtp28.orange.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752734AbZIHIZq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Sep 2009 04:25:46 -0400
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2813.orange.fr (SMTP Server) with ESMTP id 4675E80000A6
-	for <linux-media@vger.kernel.org>; Tue,  8 Sep 2009 10:25:45 +0200 (CEST)
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2813.orange.fr (SMTP Server) with ESMTP id 3AE6180000AB
-	for <linux-media@vger.kernel.org>; Tue,  8 Sep 2009 10:25:45 +0200 (CEST)
-Received: from [192.168.1.11] (ANantes-551-1-19-82.w92-135.abo.wanadoo.fr [92.135.50.82])
-	by mwinf2813.orange.fr (SMTP Server) with ESMTP id 0F6BC80000A6
-	for <linux-media@vger.kernel.org>; Tue,  8 Sep 2009 10:25:45 +0200 (CEST)
-Message-ID: <4AA61508.9040506@gmail.com>
-Date: Tue, 08 Sep 2009 10:25:44 +0200
-From: Morvan Le Meut <mlemeut@gmail.com>
+Received: from mail.gmx.net ([213.165.64.20]:33794 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753748AbZI2ATD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Sep 2009 20:19:03 -0400
+From: Peter Huewe <PeterHuewe@gmx.de>
+To: Jiri Kosina <trivial@kernel.org>
+Subject: [PATCH] media/video:  adding __init/__exit macros to various drivers
+Date: Tue, 29 Sep 2009 02:19:00 +0200
+Cc: kernel-janitors@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Andy Walls <awalls@radix.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Steven Toth <stoth@kernellabs.com>,
+	Michael Krufky <mkrufky@kernellabs.com>,
+	Laurent Pinchart <laurent.pinchart@skynet.be>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>,
+	Martin Dauskardt <martin.dauskardt@gmx.de>,
+	"Beholder Intl. Ltd. Dmitry Belimov" <d.belimov@gmail.com>,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: (Saa7134) Re: ADS-Tech Instant TV PCI, no remote support
-References: <4AA53C05.10203@gmail.com>
-In-Reply-To: <4AA53C05.10203@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200909290219.01623.PeterHuewe@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Morvan Le Meut a écrit :
-> Hello all
-> This is an old card i bough by error ( wanted the DVB-T version ) but 
-> i tried it and i see a small problem :
-> The remote isn't supported. ( If it is, i wonder why my computer don't 
-> see it )
->
-> I found an old patch to add remote support to it here :
->
-> http://tfpsly.free.fr/Files/Instant_TV_PCI_remote/saa7134_patch_for_AdsInstantTVPCI.gz 
->
-> ( The webpage talking about it is 
-> http://tfpsly.free.fr/francais/index.html?url=http://tfpsly.free.fr/Files/Instant_TV_PCI_remote/index.html 
-> in french )
->
-> But since i found out long ago that i shouldn't even think of altering 
-> a source file, could someone adapt that old patch to correct this ? ( 
-> should be quick, i guess )
->
-> Thanks.
->
->
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-Well, i'm trying it myself ( by hand, since the patch looks old ) :
-adding
-case SAA7134_BOARD_ADS_INSTANT_TV: at line 6659 in saa7134-cards.c
-(before "dev->has_remote = SAA7134_REMOTE_GPIO;" )
-is that correct ?
-but from the diff file i should add what seems to be the remote keycode 
-in saa7134-input.c
-"+static IR_KEYTAB_TYPE AdsInstantTvPci_codes[IR_KEYTAB_SIZE] = {
-+    // Buttons are in the top to bottom physical order
-+    // Some buttons return the same raw code, so they are currently 
-disabled
-+    [ 127] = KEY_FINANCE,   // "release all keys" code - prevent 
-repeating enlessly a key
-+   
-+    [ 27 ] = KEY_POWER,"
-( and so on )
- Since i didn't see other keycodes for the other cards, i guess this is 
-wrong, so where should i add them ?
-( i barely understand what i am doing right now :p )
+From: Peter Huewe <peterhuewe@gmx.de>
 
-Thanks
+Trivial patch which adds the __init/__exit macros to the module_init/
+module_exit functions of the following drivers in media video:
+    drivers/media/video/ivtv/ivtv-driver.c
+    drivers/media/video/cx18/cx18-driver.c
+    drivers/media/video/davinci/dm355_ccdc.c
+    drivers/media/video/davinci/dm644x_ccdc.c
+    drivers/media/video/saa7164/saa7164-core.c
+    drivers/media/video/saa7134/saa7134-core.c
+    drivers/media/video/cx23885/cx23885-core.c
 
+Please have a look at the small patch and either pull it through
+your tree, or please ack' it so Jiri can pull it through the trivial tree.
 
+linux version v2.6.32-rc1 - linus git tree, Di 29. Sep 01:10:18 CEST 2009
+
+Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
+---
+diff --git a/drivers/media/video/cx18/cx18-driver.c b/drivers/media/video/cx18/cx18-driver.c
+index 6dd51e2..e12082b 100644
+--- a/drivers/media/video/cx18/cx18-driver.c
++++ b/drivers/media/video/cx18/cx18-driver.c
+@@ -1200,7 +1200,7 @@ static struct pci_driver cx18_pci_driver = {
+       .remove =   cx18_remove,
+ };
+ 
+-static int module_start(void)
++static int __init module_start(void)
+ {
+ 	printk(KERN_INFO "cx18:  Start initialization, version %s\n", CX18_VERSION);
+ 
+@@ -1224,7 +1224,7 @@ static int module_start(void)
+ 	return 0;
+ }
+ 
+-static void module_cleanup(void)
++static void __exit module_cleanup(void)
+ {
+ 	pci_unregister_driver(&cx18_pci_driver);
+ }
+diff --git a/drivers/media/video/cx23885/cx23885-core.c b/drivers/media/video/cx23885/cx23885-core.c
+index c31284b..fa2d350 100644
+--- a/drivers/media/video/cx23885/cx23885-core.c
++++ b/drivers/media/video/cx23885/cx23885-core.c
+@@ -1957,7 +1957,7 @@ static struct pci_driver cx23885_pci_driver = {
+ 	.resume   = NULL,
+ };
+ 
+-static int cx23885_init(void)
++static int __init cx23885_init(void)
+ {
+ 	printk(KERN_INFO "cx23885 driver version %d.%d.%d loaded\n",
+ 	       (CX23885_VERSION_CODE >> 16) & 0xff,
+@@ -1970,7 +1970,7 @@ static int cx23885_init(void)
+ 	return pci_register_driver(&cx23885_pci_driver);
+ }
+ 
+-static void cx23885_fini(void)
++static void __exit cx23885_fini(void)
+ {
+ 	pci_unregister_driver(&cx23885_pci_driver);
+ }
+diff --git a/drivers/media/video/davinci/dm355_ccdc.c b/drivers/media/video/davinci/dm355_ccdc.c
+index 4629cab..56fbefe 100644
+--- a/drivers/media/video/davinci/dm355_ccdc.c
++++ b/drivers/media/video/davinci/dm355_ccdc.c
+@@ -959,7 +959,7 @@ static struct ccdc_hw_device ccdc_hw_dev = {
+ 	},
+ };
+ 
+-static int dm355_ccdc_init(void)
++static int __init dm355_ccdc_init(void)
+ {
+ 	printk(KERN_NOTICE "dm355_ccdc_init\n");
+ 	if (vpfe_register_ccdc_device(&ccdc_hw_dev) < 0)
+@@ -969,7 +969,7 @@ static int dm355_ccdc_init(void)
+ 	return 0;
+ }
+ 
+-static void dm355_ccdc_exit(void)
++static void __exit dm355_ccdc_exit(void)
+ {
+ 	vpfe_unregister_ccdc_device(&ccdc_hw_dev);
+ }
+diff --git a/drivers/media/video/davinci/dm644x_ccdc.c b/drivers/media/video/davinci/dm644x_ccdc.c
+index 2f19a91..d5fa193 100644
+--- a/drivers/media/video/davinci/dm644x_ccdc.c
++++ b/drivers/media/video/davinci/dm644x_ccdc.c
+@@ -859,7 +859,7 @@ static struct ccdc_hw_device ccdc_hw_dev = {
+ 	},
+ };
+ 
+-static int dm644x_ccdc_init(void)
++static int __init dm644x_ccdc_init(void)
+ {
+ 	printk(KERN_NOTICE "dm644x_ccdc_init\n");
+ 	if (vpfe_register_ccdc_device(&ccdc_hw_dev) < 0)
+@@ -869,7 +869,7 @@ static int dm644x_ccdc_init(void)
+ 	return 0;
+ }
+ 
+-static void dm644x_ccdc_exit(void)
++static void __exit dm644x_ccdc_exit(void)
+ {
+ 	vpfe_unregister_ccdc_device(&ccdc_hw_dev);
+ }
+diff --git a/drivers/media/video/ivtv/ivtv-driver.c b/drivers/media/video/ivtv/ivtv-driver.c
+index 463ec34..7cdbc1a 100644
+--- a/drivers/media/video/ivtv/ivtv-driver.c
++++ b/drivers/media/video/ivtv/ivtv-driver.c
+@@ -1361,7 +1361,7 @@ static struct pci_driver ivtv_pci_driver = {
+       .remove =   ivtv_remove,
+ };
+ 
+-static int module_start(void)
++static int __init module_start(void)
+ {
+ 	printk(KERN_INFO "ivtv: Start initialization, version %s\n", IVTV_VERSION);
+ 
+@@ -1385,7 +1385,7 @@ static int module_start(void)
+ 	return 0;
+ }
+ 
+-static void module_cleanup(void)
++static void __exit module_cleanup(void)
+ {
+ 	pci_unregister_driver(&ivtv_pci_driver);
+ }
+diff --git a/drivers/media/video/saa7134/saa7134-core.c b/drivers/media/video/saa7134/saa7134-core.c
+index f87757f..c673901 100644
+--- a/drivers/media/video/saa7134/saa7134-core.c
++++ b/drivers/media/video/saa7134/saa7134-core.c
+@@ -1319,7 +1319,7 @@ static struct pci_driver saa7134_pci_driver = {
+ #endif
+ };
+ 
+-static int saa7134_init(void)
++static int __init saa7134_init(void)
+ {
+ 	INIT_LIST_HEAD(&saa7134_devlist);
+ 	printk(KERN_INFO "saa7130/34: v4l2 driver version %d.%d.%d loaded\n",
+@@ -1333,7 +1333,7 @@ static int saa7134_init(void)
+ 	return pci_register_driver(&saa7134_pci_driver);
+ }
+ 
+-static void saa7134_fini(void)
++static void __exit saa7134_fini(void)
+ {
+ 	pci_unregister_driver(&saa7134_pci_driver);
+ }
+diff --git a/drivers/media/video/saa7164/saa7164-core.c b/drivers/media/video/saa7164/saa7164-core.c
+index 709affc..e6aa0fb 100644
+--- a/drivers/media/video/saa7164/saa7164-core.c
++++ b/drivers/media/video/saa7164/saa7164-core.c
+@@ -724,13 +724,13 @@ static struct pci_driver saa7164_pci_driver = {
+ 	.resume   = NULL,
+ };
+ 
+-static int saa7164_init(void)
++static int __init saa7164_init(void)
+ {
+ 	printk(KERN_INFO "saa7164 driver loaded\n");
+ 	return pci_register_driver(&saa7164_pci_driver);
+ }
+ 
+-static void saa7164_fini(void)
++static void __exit saa7164_fini(void)
+ {
+ 	pci_unregister_driver(&saa7164_pci_driver);
+ }
