@@ -1,26 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.11])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n88IMNKW006291
-	for <video4linux-list@redhat.com>; Tue, 8 Sep 2009 14:22:23 -0400
-Received: from mail-bw0-f209.google.com (mail-bw0-f209.google.com
-	[209.85.218.209])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n88IM6gB032089
-	for <video4linux-list@redhat.com>; Tue, 8 Sep 2009 14:22:06 -0400
-Received: by bwz5 with SMTP id 5so2807046bwz.3
-	for <video4linux-list@redhat.com>; Tue, 08 Sep 2009 11:22:05 -0700 (PDT)
+Received: from mx1.redhat.com (ext-mx05.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.9])
+	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n8T7r1pm009194
+	for <video4linux-list@redhat.com>; Tue, 29 Sep 2009 03:53:01 -0400
+Received: from web95202.mail.in2.yahoo.com (web95202.mail.in2.yahoo.com
+	[203.104.18.178])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n8T7qnte004390
+	for <video4linux-list@redhat.com>; Tue, 29 Sep 2009 03:52:50 -0400
+Message-ID: <375375.79494.qm@web95202.mail.in2.yahoo.com>
+Date: Tue, 29 Sep 2009 00:52:47 -0700 (PDT)
+From: Rahul Pandey <rrp702@yahoo.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-In-Reply-To: <4AA69AC6.8020103@swartzlander.org>
-References: <alpine.LRH.2.00.0909081237170.4833@rray2>
-	<4AA69AC6.8020103@swartzlander.org>
-Date: Tue, 8 Sep 2009 14:22:04 -0400
-Message-ID: <829197380909081122r70f857bbr2b4369a2ab8d91f5@mail.gmail.com>
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Ben Swartzlander <ben@swartzlander.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: video4linux-list@redhat.com
-Subject: Re: NTSC/ATSC device recommendation
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Subject: Unable to capture sound for Hauppauge wintv pci fm card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,46 +27,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Sep 8, 2009 at 1:56 PM, Ben Swartzlander<ben@swartzlander.org> wrote:
-> rray_1@comcast.net wrote:
->>
->> I would like to purchase a NTSC/ATSC device that is functional under Linux
->> MY only requirement is receiving FTA broadcast
->> Would y'all recommend a USB device or better to stick with a pci device
->> I have followed this list and have only become more confused
->>
->> Thanks
->> Richard
->
-> I have 2 Hauppauge WinTV-HVR-850 USB sticks in my MythTV box (Ubuntu 8.04).
-> USB is preferable to PCI for all kinds of reasons. I bought mine here:
-> http://www.newegg.com/Product/Product.aspx?Item=N82E16815116031
->
-> Note that if you go with this device, you'll need to manually add the
-> firmware to your /lib/firmware directory. You can get the firmware here:
-> http://www.steventoth.net/linux/xc5000/
->
-> There are plenty of other supported devices though. When I was doing my
-> research, this page was an extremely useful resource for Linux ATSC
-> hardware: http://www.linuxtv.org/wiki/index.php/ATSC_Devices
->
-> -Ben
-
-I'm really familiar with the HVR-850, and figured it would be worth
-mentioning that the HVR-850 only very recently got analog support in
-the Linux driver, and it has some issues with MythTV in particular
-(which I haven't had a chance to fix yet).  So if you're planning on
-doing analog with MythTV, that may not be a good device to go with
-right now.
-
-Cheers,
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
-
+hi, i recently installed hauppauge wintv pci fm card and i am able to captu=
+re video using it. Howver i am not unable to capture audio.=0AI am bit new =
+to linux.=0Ai have pasted the output for dmesg and lspci=0A=0A=0Admesg:=0A[=
+   13.253951] cx88[0]: subsystem: 0070:3401, board: Hauppauge WinTV 34xxx m=
+odels [card=3D1,autodetected], frontend(s): 0=0A[   13.595036] tveeprom 1-0=
+050: Hauppauge model 34519, rev J189, serial# 10687500=0A[   13.622219] inp=
+ut: cx88 IR (Hauppauge WinTV 34xxx  as /devices/pci0000:00/0000:00:09.0/inp=
+ut/input5=0A=0A=0A=0Alspci -n :=0A00:00.0 0600: 1106:3205=0A00:01.0 0604: 1=
+106:b198=0A00:08.0 0200: 8086:1229 (rev 05)=0A00:09.0 0400: 14f1:8800 (rev =
+05)=0A00:09.1 0480: 14f1:8811 (rev 05)=0A00:10.0 0c03: 1106:3038 (rev 80)=
+=0A00:10.1 0c03: 1106:3038 (rev 80)=0A00:10.2 0c03: 1106:3038 (rev 80)=0A00=
+:10.3 0c03: 1106:3104 (rev 82)=0A00:11.0 0601: 1106:3177=0A00:11.1 0101: 11=
+06:0571 (rev 06)=0A00:11.5 0401: 1106:3059 (rev 50)=0A00:12.0 0200: 1106:30=
+65 (rev 74)=0A01:00.0 0300: 1106:7205 (rev 01)=0A=0A=0A=0Amy card model num=
+ber is 34519.=0A=0AAny help will be appreciated=0A=0A=0A=0A      Try the ne=
+w Yahoo! India Homepage. Click here. http://in.yahoo.com/trynew
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
