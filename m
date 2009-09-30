@@ -1,88 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59898 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752856AbZI3N2n convert rfc822-to-8bit (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:47413 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754709AbZI3XuF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Sep 2009 09:28:43 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Peter Huewe <PeterHuewe@gmx.de>
-CC: Jiri Kosina <trivial@kernel.org>,
-	"kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Andy Walls <awalls@radix.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Steven Toth <stoth@kernellabs.com>,
-	Michael Krufky <mkrufky@kernellabs.com>,
-	Martin Dauskardt <martin.dauskardt@gmx.de>,
-	"Beholder Intl. Ltd. Dmitry Belimov" <d.belimov@gmail.com>,
-	"ivtv-devel@ivtvdriver.org" <ivtv-devel@ivtvdriver.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Date: Wed, 30 Sep 2009 08:26:15 -0500
-Subject: RE: [PATCH] media/video:  adding __init/__exit macros to various
- drivers
-Message-ID: <A69FA2915331DC488A831521EAE36FE4015536F6E8@dlee06.ent.ti.com>
-References: <200909290219.01623.PeterHuewe@gmx.de>
- <200909301002.35202.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <200909301002.35202.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Wed, 30 Sep 2009 19:50:05 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: tom.leiming@gmail.com
+Subject: Re: [PATCH] V4L/DVB:uvcvideo:fix uvc_alloc_urb_buffers()
+Date: Thu, 1 Oct 2009 01:51:58 +0200
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com
+References: <1254040234-11230-1-git-send-email-tom.leiming@gmail.com>
+In-Reply-To: <1254040234-11230-1-git-send-email-tom.leiming@gmail.com>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200910010151.58362.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
+On Sunday 27 September 2009 10:30:34 tom.leiming@gmail.com wrote:
+> From: Ming Lei <tom.leiming@gmail.com>
+> 
+> This patch sets stream->urb_size as psize*npackets
+> before calling uvc_alloc_urb_buffers, which may fix
+> a possible failure of usb_buffer_free in case usb_buffer_alloc
+> returns NULL. The patch is based on the ideas below:
+> 
+> 1,If usb_buffer_alloc can't allocate a buffer sucessfully,
+> uvc_free_urb_buffers will be called to free the allocated
+> buffers, and stream->urb_size is required to be passed to
+> usb_buffer_free;
+> 
+> 2,uvc_free_urb_buffers can reset stream->urb_size.
+> 
+> This patch is against linux-v2.6.31-next-20090926.
 
+Good catch, thanks.
+ 
+> Signed-off-by: Ming Lei <tom.leiming@gmail.com>
 
-For drivers/media/video/davinci/dm355_ccdc.c and
-drivers/media/video/davinci/dm644x_ccdc.c,
-Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-email: m-karicheri2@ti.com
+I've applied the patch to my tree and I'll send a pull request.
 
->-----Original Message-----
->From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
->Sent: Wednesday, September 30, 2009 4:03 AM
->To: Peter Huewe
->Cc: Jiri Kosina; kernel-janitors@vger.kernel.org; Hans Verkuil; Andy Walls;
->Mauro Carvalho Chehab; Steven Toth; Michael Krufky; Karicheri,
->Muralidharan; Martin Dauskardt; Beholder Intl. Ltd. Dmitry Belimov; ivtv-
->devel@ivtvdriver.org; linux-media@vger.kernel.org; linux-
->kernel@vger.kernel.org
->Subject: Re: [PATCH] media/video: adding __init/__exit macros to various
->drivers
->
->On Tuesday 29 September 2009 02:19:00 Peter Huewe wrote:
->> From: Peter Huewe <peterhuewe@gmx.de>
->>
->> Trivial patch which adds the __init/__exit macros to the module_init/
->> module_exit functions of the following drivers in media video:
->>     drivers/media/video/ivtv/ivtv-driver.c
->>     drivers/media/video/cx18/cx18-driver.c
->>     drivers/media/video/davinci/dm355_ccdc.c
->>     drivers/media/video/davinci/dm644x_ccdc.c
->>     drivers/media/video/saa7164/saa7164-core.c
->>     drivers/media/video/saa7134/saa7134-core.c
->>     drivers/media/video/cx23885/cx23885-core.c
->
->For drivers/media/video/davinci/dm355_ccdc.c and
->drivers/media/video/davinci/dm644x_ccdc.c,
->
->Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->
->> Please have a look at the small patch and either pull it through
->> your tree, or please ack' it so Jiri can pull it through the trivial tree.
->>
->> linux version v2.6.32-rc1 - linus git tree, Di 29. Sep 01:10:18 CEST 2009
->>
->> Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
->
->--
->Laurent Pinchart
+> ---
+>  drivers/media/video/uvc/uvc_video.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/video/uvc/uvc_video.c
+>  b/drivers/media/video/uvc/uvc_video.c index f960e8e..31dba66 100644
+> --- a/drivers/media/video/uvc/uvc_video.c
+> +++ b/drivers/media/video/uvc/uvc_video.c
+> @@ -768,9 +768,10 @@ static int uvc_alloc_urb_buffers(struct uvc_streaming
+>  *stream,
+> 
+>  	/* Retry allocations until one succeed. */
+>  	for (; npackets > 1; npackets /= 2) {
+> +		stream->urb_size = psize * npackets;
+>  		for (i = 0; i < UVC_URBS; ++i) {
+>  			stream->urb_buffer[i] = usb_buffer_alloc(
+> -				stream->dev->udev, psize * npackets,
+> +				stream->dev->udev, stream->urb_size,
+>  				gfp_flags | __GFP_NOWARN, &stream->urb_dma[i]);
+>  			if (!stream->urb_buffer[i]) {
+>  				uvc_free_urb_buffers(stream);
+> @@ -779,7 +780,6 @@ static int uvc_alloc_urb_buffers(struct uvc_streaming
+>  *stream, }
+> 
+>  		if (i == UVC_URBS) {
+> -			stream->urb_size = psize * npackets;
+>  			return npackets;
+>  		}
+>  	}
+> 
 
+-- 
+Regards,
+
+Laurent Pinchart
