@@ -1,52 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f216.google.com ([209.85.220.216]:55333 "EHLO
-	mail-fx0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752707AbZIUIT0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Sep 2009 04:19:26 -0400
-Received: by fxm12 with SMTP id 12so1999147fxm.18
-        for <linux-media@vger.kernel.org>; Mon, 21 Sep 2009 01:19:29 -0700 (PDT)
-Date: Mon, 21 Sep 2009 11:19:33 +0300
-From: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
-To: Roman <lists@hasnoname.de>
-Cc: linux-media@vger.kernel.org
-Subject: Re: MSI Digivox mini III Remote Control
-Message-ID: <20090921081933.GA29884@moon>
-References: <200909202026.27086.lists@hasnoname.de>
+Received: from mail.agmk.net ([91.192.224.71]:41584 "EHLO mail.agmk.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754186AbZI3Lwd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Sep 2009 07:52:33 -0400
+From: =?utf-8?q?Pawe=C5=82_Sikora?= <pluto@agmk.net>
+To: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [2.6.31] ir-kbd-i2c oops.
+Date: Wed, 30 Sep 2009 13:52:27 +0200
+Cc: linux-kernel@vger.kernel.org, LMML <linux-media@vger.kernel.org>
+References: <200909160300.28382.pluto@agmk.net> <200909301016.15327.pluto@agmk.net> <20090930125737.704413c8@hyperion.delvare>
+In-Reply-To: <20090930125737.704413c8@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <200909202026.27086.lists@hasnoname.de>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200909301352.28362.pluto@agmk.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Well, it seems there is a patch for Digivox mini III remote control at
-http://linuxtv.org/hg/~anttip/af9015-digivox3_remote/, perhaps Antti
-can tell you more about it.
+On Wednesday 30 September 2009 12:57:37 Jean Delvare wrote:
 
-I got this tuner, and no, IR receiver doesn't work for me, it doesn't
-even work in WinXP with bundled drivers and software, tested with
-USB snoop, no reaction to keypresses. Maybe a hardware defect at
-receiver part, maybe something is missing in a firmware, no idea.
+> Are you running distribution kernels or self-compiled ones?
+> Any local patches applied?
+> Would you be able to apply debug patches and rebuild your kernel?
 
-So check it on some Windows system first, then try patch..
-
-
-On Sun, Sep 20, 2009 at 08:26:26PM +0200, Roman wrote:
-> hi,
-> 
-> after my previous failure with the hvr-900h and another Digivox micro hd, i am 
-> finally able to watch dvb-tv with the Digivox mini III.
-> Has anyone gotten the IR working? The wiki-entry says it is not supported 
-> yet.... on the other hand MSI provides linux-drivers that don't seem to work 
-> on recent kernels...
-> 
-> greetings,
-> Roman
-> -- 
-> Leave no stone unturned.
-> 		-- Euripides
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+yes, i'm using patched (vserver,grsec) modular kernel from pld-linux
+but i'm able to boot custom git build and do the bisect if necessary.
