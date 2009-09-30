@@ -1,89 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from em002a.cxnet.dk ([87.72.115.243]:49136 "EHLO em002a.cxnet.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752407AbZIBSGF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Sep 2009 14:06:05 -0400
-Message-ID: <4A9EB417.5040409@rokamp.dk>
-Date: Wed, 02 Sep 2009 20:06:15 +0200
-From: Thomas Rokamp <thomas@rokamp.dk>
-MIME-Version: 1.0
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Problems with Hauppauge Nova-T USB2
-References: <41138.1251890451@rokamp.dk> <alpine.LRH.1.10.0909021905001.3802@pub6.ifh.de> <4A9EB032.7000503@rokamp.dk> <alpine.LRH.1.10.0909021957400.3802@pub6.ifh.de>
-In-Reply-To: <alpine.LRH.1.10.0909021957400.3802@pub6.ifh.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from fallback2.mail.ru ([94.100.176.87]:35766 "EHLO
+	fallback2.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754894AbZI3Rp3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Sep 2009 13:45:29 -0400
+Received: from mx34.mail.ru (mx34.mail.ru [94.100.176.48])
+	by fallback2.mail.ru (mPOP.Fallback_MX) with ESMTP id 43196C68439
+	for <linux-media@vger.kernel.org>; Wed, 30 Sep 2009 21:39:41 +0400 (MSD)
+Received: from [92.101.144.253] (port=59586 helo=localhost.localdomain)
+	by mx34.mail.ru with asmtp
+	id 1Mt38u-0008hL-00
+	for linux-media@vger.kernel.org; Wed, 30 Sep 2009 21:39:08 +0400
+Date: Wed, 30 Sep 2009 21:40:55 +0400
+From: Goga777 <goga777@bk.ru>
+To: linux-media@vger.kernel.org
+Subject: Re: dvbstream and S2 API (was - record DVB-S2 stream into file)
+Message-ID: <20090930214055.3b768e52@bk.ru>
+In-Reply-To: <4AC1CFF1.7050907@kaznejov.cz>
+References: <4AC1CFF1.7050907@kaznejov.cz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patrick Boettcher wrote:
-> Hi,
->
-> On Wed, 2 Sep 2009, Thomas Rokamp wrote:
->> dvbsnoop -s pidscan
->> ---------------------------------------------------------
->> Transponder PID-Scan...
->> ---------------------------------------------------------
->> PID found:    0 (0x0000)  [SECTION: Program Association Table (PAT)]
->> PID found:  110 (0x006e)  [PS/PES: ITU-T Rec. H.262 | ISO/IEC 13818-2 
->> or ISO/IEC 11172-2 video stream]
->> PID found:  120 (0x0078)  [PS/PES: ISO/IEC 13818-3 or ISO/IEC 11172-3 
->> audio stream]
->> PID found:  130 (0x0082)  [PS/PES: private_stream_1]
->> PID found:  131 (0x0083)  [unknown]
->> PID found:  257 (0x0101)  [SECTION: Program Map Table (PMT)]
->> PID found:  259 (0x0103)  [SECTION: Program Map Table (PMT)]
->> PID found:  260 (0x0104)  [SECTION: Program Map Table (PMT)]
->> PID found:  261 (0x0105)  [SECTION: Program Map Table (PMT)]
->> PID found:  301 (0x012d)  [PS/PES: private_stream_1]
->> PID found:  512 (0x0200)  [PS/PES: ITU-T Rec. H.262 | ISO/IEC 13818-2 
->> or ISO/IEC 11172-2 video stream]
->> PID found:  513 (0x0201)  [PS/PES: ITU-T Rec. H.262 | ISO/IEC 13818-2 
->> or ISO/IEC 11172-2 video stream]
->> PID found:  640 (0x0280)  [PS/PES: ISO/IEC 13818-3 or ISO/IEC 11172-3 
->> audio stream]
->> PID found:  644 (0x0284)  [PS/PES: ISO/IEC 13818-3 or ISO/IEC 11172-3 
->> audio stream]
->> PID found: 1200 (0x04b0)  [PS/PES: ITU-T Rec. H.262 | ISO/IEC 13818-2 
->> or ISO/IEC 11172-2 video stream]
->> PID found: 1201 (0x04b1)  [PS/PES: ISO/IEC 13818-3 or ISO/IEC 11172-3 
->> audio stream]
->> PID found: 5008 (0x1390)  [PS/PES: private_stream_1]
->> PID found: 5009 (0x1391)  [PS/PES: private_stream_1]
->> PID found: 8180 (0x1ff4)  [unknown]
->> PID found: 8191 (0x1fff)  [stuffing]
->>
->>
->> If it can be any help, I have uploaded 2 test files
->> (both made with "dvbstream -n 5 -qam 64 -gi 16 -cr 5_6 -crlp 5_6 -bw 
->> 8 -tm 2 -hy NONE -f 722000000 513 644 -o > testX.mpg")
->>
->> http://phail.dk/test01.mpg
->
-> Hmm, I did:
->
-> wget http://phail.dk/test01.mpg
-> mplayer test01.mpg
->
-> and I see a nice star animation looks like Eurosport .
->
->> http://phail.dk/test02.mpg
->
-> doing the same thing with this file:
->
-> It show Melzer vs. Safin playing Tennis at the US Open on Eurosport.
->
-> Something's wrong with your mplayer/vlc/libffmpeg or whatever, 
-> definitely not a problem of driver or reception.
->
-> best regards,
->
-> -- 
->
-> Patrick Boettcher - Kernel Labs
-> http://www.kernellabs.com/
+Hello,
 
-Yikes... well, thanks for that information. Been trying on two machines, 
-windows + linux, and no result.
-What player are you using? Any special codec?
+is there any plans to implement in dvbstream the s2 api support ?
+
+Goga
+
+
+> I would like to record DVB-S2 complete stream into file. For DVB-S I can 
+> use dvbstream tool.
+> But on this time it not support DVB_S2.
+> 
+> Do somebody have patch or another tip how to save stream into file.
+> 
+> Jiri
+> 
+> PS: I don't need only one program/service but complete stream with all PIDs.
+> <http://vger.kernel.org/vger-lists.html#linux-media>
