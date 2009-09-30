@@ -1,36 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f174.google.com ([209.85.211.174]:36368 "EHLO
-	mail-yw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751609AbZI1JC4 (ORCPT
+Received: from fallback3.mail.ru ([94.100.176.58]:54280 "EHLO
+	fallback3.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754202AbZI3Rmh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Sep 2009 05:02:56 -0400
-Received: by ywh4 with SMTP id 4so4519906ywh.33
-        for <linux-media@vger.kernel.org>; Mon, 28 Sep 2009 02:03:00 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <cd98718e0909280200r23942bf5r726931bf23fc2bb3@mail.gmail.com>
-References: <cd98718e0909280200r23942bf5r726931bf23fc2bb3@mail.gmail.com>
-Date: Mon, 28 Sep 2009 22:02:59 +1300
-Message-ID: <cd98718e0909280202v5679ffabwaf9c1f6c1bf67734@mail.gmail.com>
-Subject: Re: Hauppauge Nova-T 500 regression in dib0700
-From: Carey Stevens <carey@zestgroup.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Wed, 30 Sep 2009 13:42:37 -0400
+Received: from mx27.mail.ru (mx27.mail.ru [94.100.176.41])
+	by fallback3.mail.ru (mPOP.Fallback_MX) with ESMTP id A71424A0A58
+	for <linux-media@vger.kernel.org>; Wed, 30 Sep 2009 21:42:40 +0400 (MSD)
+Date: Wed, 30 Sep 2009 21:43:57 +0400
+From: Goga777 <goga777@bk.ru>
+To: Jiri Dobry <jirik@kaznejov.cz>, linux-media@vger.kernel.org
+Subject: Re: record DVB-S2 stream into file
+Message-ID: <20090930214357.1b19a872@bk.ru>
+In-Reply-To: <4AC1DBBD.2060006@kaznejov.cz>
+References: <4AC1CFF1.7050907@kaznejov.cz>
+	<200909291201.14623.hftom@free.fr>
+	<4AC1DBBD.2060006@kaznejov.cz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+> > Kaffeine 0.8.8 supports DVB-S2 and you can record a whole TS by setting a 
+> > channel with videoPid=0 and audioPid=8192.
+> > Hope this helps.
+> >
+> >
+> >   
+> Thanks, but I need command line tool. Is it possible use kaffeine 
+> without XORG? I thing no.
+> 
+> But many thanks, it is solution but i forget wrote that I need command 
+> line tool.
 
-Sorry I'm not sure the appropriate place to look to find any updates
-with this issue, is there a bug filed somewhere?
+in first console you can run szap-s2 which support s2 api
+in second console you can run dvbstream
 
-I was wondering if any progress has been made with this issue? I have
-what appears to be the same problem.
-Can you offer any advice on getting this tuner card working with ubuntu Jaunty?
-Obviously I guess the choices are compile an old kernel, or remove
-said update from v4l, but I ask anyway just incase there is a better
-option, or something happening in the near future I could just wait
-on.
+dvbstream -o 8192 > dump.ts
 
-Thanks
+I hope it will help
 
-Carey
+Goga
+
