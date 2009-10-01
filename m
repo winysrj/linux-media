@@ -1,83 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lider.pardus.org.tr ([193.140.100.216]:36449 "EHLO
-	lider.pardus.org.tr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750806AbZJTIYv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Oct 2009 04:24:51 -0400
-Message-ID: <4ADD74FE.4040406@pardus.org.tr>
-Date: Tue, 20 Oct 2009 11:29:50 +0300
-From: =?UTF-8?B?T3phbiDDh2HEn2xheWFu?= <ozan@pardus.org.tr>
-MIME-Version: 1.0
-To: Alan Stern <stern@rowland.harvard.edu>
-CC: linux-media@vger.kernel.org,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	linux-usb@vger.kernel.org
-Subject: Re: uvcvideo causes ehci_hcd to halt
-References: <Pine.LNX.4.44L0.0910131050460.3169-100000@iolanthe.rowland.org> <4AD588DB.4050905@pardus.org.tr>
-In-Reply-To: <4AD588DB.4050905@pardus.org.tr>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from cnc.isely.net ([64.81.146.143]:60656 "EHLO cnc.isely.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752864AbZJAWOX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 Oct 2009 18:14:23 -0400
+Date: Thu, 1 Oct 2009 17:14:26 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+To: Wellington Terumi Uemura <wellingtonuemura@gmail.com>
+cc: linux-media@vger.kernel.org
+Subject: Re: How to make my device work with linux?
+In-Reply-To: <829197380910011507k59f3b18fv3cc5d21b77299ef7@mail.gmail.com>
+Message-ID: <alpine.DEB.1.10.0910011708260.22836@cnc.isely.net>
+References: <c85228170910011138w6d3fa3adibbb25d275baa824f@mail.gmail.com>  <37219a840910011227r155d4bc1kc98935e3a52a4a17@mail.gmail.com>  <c85228170910011414n29837812y28010ef0d97b7bf1@mail.gmail.com>  <alpine.DEB.1.10.0910011628420.21852@cnc.isely.net>
+ <c85228170910011503t68b100a1v3dccda2602ae08da@mail.gmail.com> <829197380910011507k59f3b18fv3cc5d21b77299ef7@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ozan Çağlayan wrote On 14-10-2009 11:16:
-> Alan Stern wrote On 13-10-2009 17:53:
->   
->> Can you add a dump_stack() call just after the ehci_err() line in 
->> drivers/usb/host/ehci-hcd.c:handshake_on_error_set_halt()?  It should 
->> provide some clues.
->>
->> At the same time (i.e., during the same test) you should collect a 
->> usbmon trace.
->>
->> Alan Stern
->>   
->>     
->
-> Hi. First the backtrace:
->
-> [  149.510272] uvcvideo: Found UVC 1.00 device BisonCam, NB Pro (5986:0203)
-> [  149.515017] input: BisonCam, NB Pro as
-> /devices/pci0000:00/0000:00:1d.7/usb1/1-5/1-5:1.0/input/input10
-> [  149.515588] usbcore: registered new interface driver uvcvideo
-> [  149.516247] USB Video Class driver (v0.1.0)
-> [  149.658012] Pid: 1137, comm: hald-probe-vide Tainted: G         C
-> 2.6.31.4-128 #2
-> [  149.658012] Call Trace:
-> [  149.658012]  [<c0373f62>] handshake_on_error_set_halt+0x36/0x65
-> [  149.658012]  [<c0374073>] enable_periodic+0x32/0x72
-> [  149.658012]  [<c03741c9>] qh_link_periodic+0x116/0x11e
-> [  149.658012]  [<c0374665>] qh_schedule+0x120/0x12c
-> [  149.658012]  [<c03775d0>] intr_submit+0x8c/0x124
-> [  149.658012]  [<c0377d2a>] ehci_urb_enqueue+0x7a/0xa5
-> [  149.658012]  [<c036965f>] usb_hcd_submit_urb+0xbb/0x13c
-> [  149.658012]  [<c0369b1e>] usb_submit_urb+0x1f1/0x20d
-> [  149.658012]  [<f854aaff>] uvc_status_start+0x18/0x1a [uvcvideo]
-> [  149.658012]  [<f8546e23>] uvc_v4l2_open+0x8a/0xcf [uvcvideo]
-> [  149.658012]  [<f7c3d74a>] v4l2_open+0x68/0x7c [videodev]
-> [  149.658012]  [<c01c648e>] chrdev_open+0x125/0x13c
-> [  149.658012]  [<c01c28a9>] __dentry_open+0x119/0x207
-> [  149.658012]  [<c01c2a31>] nameidata_to_filp+0x2c/0x43
-> [  149.658012]  [<c01c6369>] ? chrdev_open+0x0/0x13c
-> [  149.658012]  [<c01ccc28>] do_filp_open+0x3e5/0x741
-> [  149.658012]  [<c01ccfe9>] ? getname+0x20/0xb7
-> [  149.658012]  [<c01d4be8>] ? alloc_fd+0x55/0xbe
-> [  149.658012]  [<c01c2699>] do_sys_open+0x4a/0xe2
-> [  149.658012]  [<c0435527>] ? do_page_fault+0x2d6/0x304
-> [  149.658012]  [<c01c2773>] sys_open+0x1e/0x26
-> [  149.658012]  [<c0103214>] sysenter_do_call+0x12/0x28
-> [  149.658012] ehci_hcd 0000:00:1d.7: force halt; handhake f7c66024
-> 00004000 00000000 -> -110
->
-> And the usbmon trace during "modprobe uvcvideo" can be found at:
->
-> http://cekirdek.pardus.org.tr/~ozan/ivir/logs/usbmon.trace.bad
->
-> I also manage to not reproduce the problem so it's kinda racy. You can
-> find good/bad dmesg/usbmon traces at:
->
-> http://cekirdek.pardus.org.tr/~ozan/ivir/logs
->   
-ping! in case it's got lost between high traffic :)
+On Thu, 1 Oct 2009, Devin Heitmueller wrote:
 
-Thanks.
+> On Thu, Oct 1, 2009 at 6:03 PM, Wellington Terumi Uemura
+> <wellingtonuemura@gmail.com> wrote:
+> > It's not the answer that I was looking for but looks like the thing is
+> > much more complex than just compile and run drivers, this gives me
+> > another perspective, like a dead end.
+> >
+> > Thank you Mike.
+> 
+> Well, it's certainly possible to get it to work if you're willing to
+> make the investment.  It's just one of those situations where you
+> realize quickly that you're going to have to be prepared to do *way*
+> more work than just adding a new board profile.  Just because there
+> are drivers for the chips on your device doesn't mean that it is
+> trivial to get working.
+> 
+> Cheers,
+> 
+> Devin
+> 
+
+And actually I wasn't intending on totally discouraging you either.  
+But you do need to see the perspective of what you're trying to do 
+otherwise you may just get frustrated.
+
+Things aren't hopeless.  The cxusb module in DVB might be something you 
+should look at.  I guess it depends on how deep you wish to dive here.
+
+  -Mike
+
+
+-- 
+
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
