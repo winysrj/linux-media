@@ -1,52 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp19.orange.fr ([80.12.242.18]:22779 "EHLO smtp19.orange.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752680AbZIJHJV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Sep 2009 03:09:21 -0400
-Message-ID: <4AA8A61F.8060707@gmail.com>
-Date: Thu, 10 Sep 2009 09:09:19 +0200
-From: Morvan Le Meut <mlemeut@gmail.com>
+Received: from perceval.irobotique.be ([92.243.18.41]:40870 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754898AbZJAASa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Sep 2009 20:18:30 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH 6/9] drivers/media/video/uvc: Use %pUr to print UUIDs
+Date: Thu, 1 Oct 2009 02:20:17 +0200
+Cc: linux-kernel@vger.kernel.org,
+	Adrian Hunter <adrian.hunter@nokia.com>,
+	Alex Elder <aelder@sgi.com>,
+	Artem Bityutskiy <dedekind@infradead.org>,
+	Christoph Hellwig <hch@lst.de>,
+	Harvey Harrison <harvey.harrison@gmail.com>,
+	Huang Ying <ying.huang@intel.com>, Ingo Molnar <mingo@elte.hu>,
+	Jeff Garzik <jgarzik@redhat.com>,
+	Matt Mackall <mpm@selenic.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Neil Brown <neilb@suse.de>,
+	Steven Whitehouse <swhiteho@redhat.com>,
+	xfs-masters@oss.sgi.com, linux-media@vger.kernel.org
+References: <cover.1254193019.git.joe@perches.com> <111526fa2ce7f728d1f81465a00859c1780f0607.1254193019.git.joe@perches.com>
+In-Reply-To: <111526fa2ce7f728d1f81465a00859c1780f0607.1254193019.git.joe@perches.com>
 MIME-Version: 1.0
-To: David Whyte <david.whyte@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: saa7134 doesn't work after warm-reboot
-References: <5df807700909082037n3d5ed809id2966632ce5e8a97@mail.gmail.com> <5df807700909092043u6afec694i38633ea5e73599fc@mail.gmail.com>
-In-Reply-To: <5df807700909092043u6afec694i38633ea5e73599fc@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200910010220.17534.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I've seen computer act strangely after such short power outage ( 
-especially when that outage take a few ms ). Usually, the culprit is a 
-low quality power supply, and i solve it by using a better quality one 
-plus a surge protector (when i can't convice to buy a small UPS, at 
-least :) ).
+Hi Joe,
 
-Beyond that suggestion i can't help you.
+thanks for the patch. A few comments below.
 
-David Whyte a écrit :
-> Further info, the power outage was for about 10 seconds in the latest
-> incident.  Also, there is no need to unplug the PC power from the wall
-> and press the power button etc to recover, you just need to leave the
-> machine powered down for a short while.
->
-> Sounds a lot like the issues I have read about where the firmware
-> remains in the tuner card but is corrupt or something.  The only way
-> is to clear the firmware and re-upload it, generally by powering down
-> for sometime but I am hoping that you can do this by unloading then
-> loading the modules.
->
-> Is this possible?  Anyone know which modules in this instance?
->
-> Regards,
-> Whytey
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->   
+On Tuesday 29 September 2009 07:01:08 Joe Perches wrote:
+> Signed-off-by: Joe Perches <joe@perches.com>
+> ---
+>  drivers/media/video/uvc/uvc_ctrl.c   |   69 ++++++++++++++++------------------
+>  drivers/media/video/uvc/uvc_driver.c |    7 +--
+>  drivers/media/video/uvc/uvcvideo.h   |   10 -----
+>  3 files changed, 35 insertions(+), 51 deletions(-)
+> 
+> diff --git a/drivers/media/video/uvc/uvc_ctrl.c
+>  b/drivers/media/video/uvc/uvc_ctrl.c index c3225a5..2959e46 100644
+> --- a/drivers/media/video/uvc/uvc_ctrl.c
+> +++ b/drivers/media/video/uvc/uvc_ctrl.c
+> @@ -1093,8 +1093,8 @@ int uvc_xu_ctrl_query(struct uvc_video_chain *chain,
+> 
+>  	if (!found) {
+>  		uvc_trace(UVC_TRACE_CONTROL,
+> -			"Control " UVC_GUID_FORMAT "/%u not found.\n",
+> -			UVC_GUID_ARGS(entity->extension.guidExtensionCode),
+> +			"Control %pUr/%u not found.\n",
+> +			entity->extension.guidExtensionCode,
+>  			xctrl->selector);
 
+Could you try to cut long statements in as few lines as possible ? This one
+would become
 
+		uvc_trace(UVC_TRACE_CONTROL, "Control %pUr/%u not found.\n",
+			  entity->extension.guidExtensionCode, xctrl->selector);
 
+There are a few others that should be changed as well. If you prefer I can
+apply the patch through my tree (after the printk patch goes in of course)
+and handle that myself.
+
+[snip]
+
+>  		flags = info->flags;
+>  		if (((flags & UVC_CONTROL_GET_CUR) && !(inf & (1 << 0))) ||
+>  		    ((flags & UVC_CONTROL_SET_CUR) && !(inf & (1 << 1)))) {
+> -			uvc_trace(UVC_TRACE_CONTROL, "Control "
+> -				UVC_GUID_FORMAT "/%u flags don't match "
+> -				"supported operations.\n",
+> -				UVC_GUID_ARGS(info->entity), info->selector);
+> +			uvc_trace(UVC_TRACE_CONTROL,
+> +				  "Control %pUr/%u flags don't match supported operations.\n",
+> +				  info->entity, info->selector);
+
+This doesn't fit the 80 columns limit. Please run checkpatch.pl on your patches.
+
+[snip]
+
+> diff --git a/drivers/media/video/uvc/uvc_driver.c
+>  b/drivers/media/video/uvc/uvc_driver.c index 8756be5..647d0a2 100644
+> --- a/drivers/media/video/uvc/uvc_driver.c
+> +++ b/drivers/media/video/uvc/uvc_driver.c
+> @@ -328,11 +328,10 @@ static int uvc_parse_format(struct uvc_device *dev,
+>  				sizeof format->name);
+>  			format->fcc = fmtdesc->fcc;
+>  		} else {
+> -			uvc_printk(KERN_INFO, "Unknown video format "
+> -				UVC_GUID_FORMAT "\n",
+> -				UVC_GUID_ARGS(&buffer[5]));
+> +			uvc_printk(KERN_INFO, "Unknown video format %pUr\n",
+> +				   &buffer[5]);
+>  			snprintf(format->name, sizeof format->name,
+> -				UVC_GUID_FORMAT, UVC_GUID_ARGS(&buffer[5]));
+> +				 "%pUr", &Buffer[5]);
+
+Should be &buffer[5], not &Buffer[5]. You haven't compiled the patch, have
+you ? :-)
+
+-- 
+Regards,
+
+Laurent Pinchart
