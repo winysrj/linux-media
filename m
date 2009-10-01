@@ -1,41 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smarthost03.mail.zen.net.uk ([212.23.3.142]:55928 "EHLO
-	smarthost03.mail.zen.net.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752119AbZJPOF6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Oct 2009 10:05:58 -0400
-Received: from [217.155.82.241] (helo=smtp.etvinteractive.com)
-	by smarthost03.mail.zen.net.uk with esmtp (Exim 4.63)
-	(envelope-from <david.nicol@etvinteractive.com>)
-	id 1MynQi-0004Oz-Gc
-	for linux-media@vger.kernel.org; Fri, 16 Oct 2009 14:05:16 +0000
-Received: from [172.17.253.38] (62-50-207-174.client.stsn.net [62.50.207.174])
-	by smtp.etvinteractive.com (Postfix) with ESMTPSA id 4645A337041
-	for <linux-media@vger.kernel.org>; Fri, 16 Oct 2009 15:05:15 +0100 (BST)
-Date: Fri, 16 Oct 2009 15:05:04 +0100
-Subject: Leadtek PVR2100 / DVR3100 Experience
-From: David Nicol <david@etvinteractive.com>
-To: <linux-media@vger.kernel.org>
-Message-ID: <C6FE3C20.1BB80%david@etvinteractive.com>
-Mime-version: 1.0
-Content-type: text/plain;
-	charset="US-ASCII"
-Content-transfer-encoding: 7bit
+Received: from mail.agmk.net ([91.192.224.71]:56056 "EHLO mail.agmk.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756095AbZJAKRa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Oct 2009 06:17:30 -0400
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Jean Delvare" <khali@linux-fr.org>,
+	"Andy Walls" <awalls@radix.net>
+Cc: linux-kernel@vger.kernel.org, LMML <linux-media@vger.kernel.org>
+Subject: Re: [2.6.31] ir-kbd-i2c oops.
+References: <200909160300.28382.pluto@agmk.net>
+ <200909161003.33090.pluto@agmk.net> <20090929161629.2a5c8d30@hyperion.delvare>
+ <200909301016.15327.pluto@agmk.net> <20090930125737.704413c8@hyperion.delvare>
+ <1254354167.4771.7.camel@palomino.walls.org>
+ <20091001120609.50327134@hyperion.delvare>
+Date: Thu, 01 Oct 2009 12:17:20 +0200
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+From: =?utf-8?B?UGF3ZcWCIFNpa29yYQ==?= <pluto@agmk.net>
+Message-ID: <op.u039i6wbzu3k57@pawels.alatek.krakow.pl>
+In-Reply-To: <20091001120609.50327134@hyperion.delvare>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Dnia 01-10-2009 o 12:06:09 Jean Delvare <khali@linux-fr.org> napisał(a):
 
-Could anyone give first hand experience of the stability of the Leadtek
-PVR2100 and/or the DVR3100 cards?
+>> I'm not sure if it is the problem here, but it may be prudent to check
+>> that there's no mismatch between the module and the structure
+>> definitions being pulled in via "#include"  (maybe by stopping gcc after
+>> the preprocessing with -E ).
+>
+> Thanks for the hint. As far as I can see, this change is new in kernel
+> 2.6.32-rc1. In 2.6.31, which is where Pawel reported the issue, we
+> still have IR_KEYTAB_TYPE.
+>
+> Pawel, are you by any chance mixing kernel drivers of different
+> sources?
 
-Does analog capture work well in both cards over a prolonged period of
-uptime?
-
-Any known issues with either card?
-
-Thanks in advance for any information.
-
-David Nicol
-
-
+everything is under control. i've two separated builds:
+- 2.6.31 from git with debugging patch.
+- vendor kernel from rpms.
+both kernels have separated initrd images for easy booting/testing.
