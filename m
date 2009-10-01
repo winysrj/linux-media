@@ -1,67 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:23986 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755413AbZJVNwf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Oct 2009 09:52:35 -0400
-Date: Thu, 22 Oct 2009 15:52:21 +0200
-From: Jiri Pirko <jpirko@redhat.com>
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net, eric.dumazet@gmail.com,
-	jeffrey.t.kirsher@intel.com, jesse.brandeburg@intel.com,
-	bruce.w.allan@intel.com, peter.p.waskiewicz.jr@intel.com,
-	john.ronciak@intel.com, e1000-devel@lists.sourceforge.net,
-	mchehab@infradead.org, linux-media@vger.kernel.org
-Subject: [PATCH net-next-2.6 1/4] net: introduce mc list helpers
-Message-ID: <20091022135220.GD2868@psychotron.lab.eng.brq.redhat.com>
-References: <20091022135120.GC2868@psychotron.lab.eng.brq.redhat.com>
+Received: from mail-bw0-f210.google.com ([209.85.218.210]:46450 "EHLO
+	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751924AbZJAWHp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Oct 2009 18:07:45 -0400
+Received: by bwz6 with SMTP id 6so526588bwz.37
+        for <linux-media@vger.kernel.org>; Thu, 01 Oct 2009 15:07:48 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20091022135120.GC2868@psychotron.lab.eng.brq.redhat.com>
+In-Reply-To: <c85228170910011503t68b100a1v3dccda2602ae08da@mail.gmail.com>
+References: <c85228170910011138w6d3fa3adibbb25d275baa824f@mail.gmail.com>
+	 <37219a840910011227r155d4bc1kc98935e3a52a4a17@mail.gmail.com>
+	 <c85228170910011414n29837812y28010ef0d97b7bf1@mail.gmail.com>
+	 <alpine.DEB.1.10.0910011628420.21852@cnc.isely.net>
+	 <c85228170910011503t68b100a1v3dccda2602ae08da@mail.gmail.com>
+Date: Thu, 1 Oct 2009 18:07:48 -0400
+Message-ID: <829197380910011507k59f3b18fv3cc5d21b77299ef7@mail.gmail.com>
+Subject: Re: How to make my device work with linux?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Wellington Terumi Uemura <wellingtonuemura@gmail.com>
+Cc: Mike Isely <isely@isely.net>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This helpers should be used by network drivers to access to netdev
-multicast lists.
+On Thu, Oct 1, 2009 at 6:03 PM, Wellington Terumi Uemura
+<wellingtonuemura@gmail.com> wrote:
+> It's not the answer that I was looking for but looks like the thing is
+> much more complex than just compile and run drivers, this gives me
+> another perspective, like a dead end.
+>
+> Thank you Mike.
 
-Signed-off-by: Jiri Pirko <jpirko@redhat.com>
----
- include/linux/netdevice.h |   22 ++++++++++++++++++++++
- 1 files changed, 22 insertions(+), 0 deletions(-)
+Well, it's certainly possible to get it to work if you're willing to
+make the investment.  It's just one of those situations where you
+realize quickly that you're going to have to be prepared to do *way*
+more work than just adding a new board profile.  Just because there
+are drivers for the chips on your device doesn't mean that it is
+trivial to get working.
 
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index 8380009..7edc4a6 100644
---- a/include/linux/netdevice.h
-+++ b/include/linux/netdevice.h
-@@ -921,6 +921,28 @@ struct net_device
- 
- #define	NETDEV_ALIGN		32
- 
-+static inline int netdev_mc_count(struct net_device *dev)
-+{
-+	return dev->mc_count;
-+}
-+
-+static inline bool netdev_mc_empty(struct net_device *dev)
-+{
-+	return netdev_mc_count(dev) == 0;
-+}
-+
-+static inline void netdev_mc_walk(struct net_device *dev,
-+				  void (*func)(void *, unsigned char *),
-+				  void *data)
-+{
-+	struct dev_addr_list *mclist;
-+	int i;
-+
-+	for (i = 0, mclist = dev->mc_list; mclist && i < dev->mc_count;
-+	     i++, mclist = mclist->next)
-+		func(data, mclist->dmi_addr);
-+}
-+
- static inline
- struct netdev_queue *netdev_get_tx_queue(const struct net_device *dev,
- 					 unsigned int index)
+Cheers,
+
+Devin
+
 -- 
-1.6.2.5
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
