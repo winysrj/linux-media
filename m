@@ -1,62 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:34496 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753711AbZJUPHs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Oct 2009 11:07:48 -0400
-Date: Wed, 21 Oct 2009 11:07:51 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: =?UTF-8?B?T3phbiDDh2HEn2xheWFu?= <ozan@pardus.org.tr>
-cc: linux-media@vger.kernel.org,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	USB list <linux-usb@vger.kernel.org>
-Subject: Re: uvcvideo causes ehci_hcd to halt
-In-Reply-To: <4ADEC4C5.8010707@pardus.org.tr>
-Message-ID: <Pine.LNX.4.44L0.0910211052200.2847-100000@iolanthe.rowland.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from bamako.nerim.net ([62.4.17.28]:60561 "EHLO bamako.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754099AbZJAKGI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 Oct 2009 06:06:08 -0400
+Date: Thu, 1 Oct 2009 12:06:09 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Andy Walls <awalls@radix.net>,
+	=?UTF-8?B?UGF3ZcWC?= Sikora <pluto@agmk.net>
+Cc: linux-kernel@vger.kernel.org, LMML <linux-media@vger.kernel.org>
+Subject: Re: [2.6.31] ir-kbd-i2c oops.
+Message-ID: <20091001120609.50327134@hyperion.delvare>
+In-Reply-To: <1254354167.4771.7.camel@palomino.walls.org>
+References: <200909160300.28382.pluto@agmk.net>
+	<200909161003.33090.pluto@agmk.net>
+	<20090929161629.2a5c8d30@hyperion.delvare>
+	<200909301016.15327.pluto@agmk.net>
+	<20090930125737.704413c8@hyperion.delvare>
+	<1254354167.4771.7.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 21 Oct 2009, [UTF-8] Ozan Çağlayan wrote:
+Hi Andy,
 
-> Nope it didn't help. Here's the DEBUG enabled dmesg output:
+On Wed, 30 Sep 2009 19:42:46 -0400, Andy Walls wrote:
+> On Wed, 2009-09-30 at 12:57 +0200, Jean Delvare wrote:
+> > Not sure why you look at address 0x83e? The stack trace says +0x64. As
+> > function ir_input_init() starts at 0x800, the oops address would be
+> > 0x864, which is:
+> > 
+> > 864:	f0 0f ab 31          	lock bts %esi,(%rcx)
+> > 
+> > If my disassembler skills are still worth anything, this corresponds to
+> > the set_bit instruction in:
+> > 
+> > 	for (i = 0; i < IR_KEYTAB_SIZE; i++)
+> > 		set_bit(ir->ir_codes[i], dev->keybit);
+> > 
+> > in the source code. This suggests that ir->ir_codes is smaller than
+> > expected (sounds unlikely as this array is included in struct
+> > ir_input_state) or dev->keybit isn't large enough (sounds unlikely as
+> > well, it should be large enough to contain 0x300 bits while ir keycodes
+> > are all below 0x100.) So most probably something went wrong before and
+> > we're only noticing now.
+> 
+> Jean,
+> 
+> You should be aware that the type of ir_codes changed recently from 
+> 
+> IR_KEYTAB_TYPE
+> 
+> to
+> 
+> struct ir_scancode_table *
+> 
+> 
+> I'm not sure if it is the problem here, but it may be prudent to check
+> that there's no mismatch between the module and the structure
+> definitions being pulled in via "#include"  (maybe by stopping gcc after
+> the preprocessing with -E ).
 
-...
-> [  420.737748] usb 1-5: link qh1024-0001/f6ffe280 start 1 [1/0 us]
+Thanks for the hint. As far as I can see, this change is new in kernel
+2.6.32-rc1. In 2.6.31, which is where Pawel reported the issue, we
+still have IR_KEYTAB_TYPE.
 
-The periodic schedule was enabled here.
+Pawel, are you by any chance mixing kernel drivers of different
+sources? Best would be to provide the output of rpm -qf and modinfo for
+all related kernel modules:
 
-> [  420.737891] usb 1-5: unlink qh1024-0001/f6ffe280 start 1 [1/0 us]
+rpm -qf /lib/modules/$(uname -r)/kernel/drivers/media/video/ir-kbd-i2c.ko
+rpm -qf /lib/modules/$(uname -r)/kernel/drivers/media/common/ir-common.ko
+rpm -qf /lib/modules/$(uname -r)/kernel/drivers/media/video/saa7134/saa7134.ko
 
-And it was disabled here.  Do you have any idea why the uvcvideo driver 
-submits an interrupt URB and then cancels it 150 us later?  The same 
-thing shows up in the usbmon traces.
+modinfo ir-kbd-i2c
+modinfo ir-common
+modinfo saa7134
 
-> [  420.741605] usb 1-5:1.0: uevent
-> [  420.741957] usb 1-5: uevent
-> [  420.745592] usb 1-5:1.0: uevent
-> [  420.807880] ehci_hcd 0000:00:1d.7: reused qh f6ffe280 schedule
-> [  420.807894] usb 1-5: link qh1024-0001/f6ffe280 start 1 [1/0 us]
-
-Now ehci-hcd tried to re-enable the periodic schedule.  Note that 
-this is 70 ms after it was supposed to be disabled.
-
-> [  420.808780] ehci_hcd 0000:00:1d.7: force halt; handhake f7c6a024
-> 00004000 00000000 -> -110
-
-This error message means that the disable request from 70 ms earlier
-hasn't taken effect.  It looks like a nasty hardware bug -- the
-controller is supposed to disable the schedule no more than 2 ms after
-being told to do so.
-
-Has this device ever worked with any earlier kernels?
-
-A little more debugging information could confirm this.  After the
-error occurs, go into /sys/kernel/debug/usb/ehci/0000:00:1d.7 and post
-a copy of the "registers" file.  If there's anything of interest in the
-other files, post them too.
-
-Alan Stern
-
+Thanks,
+-- 
+Jean Delvare
