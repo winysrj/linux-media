@@ -1,133 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:58684 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752960AbZJKWop convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Oct 2009 18:44:45 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: Media controller: sysfs vs ioctl
-Date: Mon, 12 Oct 2009 00:46:32 +0200
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Nathaniel Kim <dongsoo.kim@gmail.com>,
-	linux-media@vger.kernel.org
-References: <200909120021.48353.hverkuil@xs4all.nl> <200909131103.20202.hverkuil@xs4all.nl> <4AB7B6AA.3070404@maxwell.research.nokia.com>
-In-Reply-To: <4AB7B6AA.3070404@maxwell.research.nokia.com>
+Received: from mail-ew0-f227.google.com ([209.85.219.227]:39661 "EHLO
+	mail-ew0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752952AbZJATeg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Oct 2009 15:34:36 -0400
+Received: by ewy27 with SMTP id 27so607681ewy.40
+        for <linux-media@vger.kernel.org>; Thu, 01 Oct 2009 12:34:39 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <200910120046.32597.laurent.pinchart@ideasonboard.com>
+Date: Thu, 1 Oct 2009 20:34:39 +0100
+Message-ID: <b4619a970910011234l518a5197jc60c6d4896af7e77@mail.gmail.com>
+Subject: Aver A700 : "frequency out of range"
+From: Mikhail Ramendik <mr@ramendik.ru>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 21 September 2009 19:23:54 Sakari Ailus wrote:
-> Hans Verkuil wrote:
-> > On Sunday 13 September 2009 08:13:04 Nathaniel Kim wrote:
-> >> 2009. 9. 12., 오전 7:21, Hans Verkuil 작성:
-> >>
-> >> Hans,
-> >>
-> >> First of all I'm very sorry that I had not enough time to go through
-> >> your new RFC. I'll checkout right after posting this mail.
-> >>
-> >> I think this is a good approach and I also had in my mind that sysfs
-> >> might be a good method if we could control and monitor through this.
-> >> Recalling memory when we had a talk in San Francisco, I was frustrated
-> >> that there is no way to catch events from sort of sub-devices like
-> >> lens actuator (I mean pizeo motors in camera module). As you know lens
-> >> actuator is an extremely slow device in comparison with common v4l2
-> >> devices we are using and we need to know whether it has succeeded or
-> >> not in moving to expected position.
-> >> So I considered sysfs and udev as candidates for catching events from
-> >> sub-devices. events like success/failure of lens movement, change of
-> >> status of subdevices.
-> >> Does anybody experiencing same issue? I think I've seen a lens
-> >> controller driver in omap3 kernel from TI but not sure how did they
-> >> control that.
-> >>
-> >> My point is that we need a kind of framework to give and event to user
-> >> space and catching them properly just like udev does.
-> >
-> > When I was talking to Laurent Pinchart and Sakari and his team at Nokia
-> > we discussed just such a framework. It actually exists already, although
-> > it is poorly implemented.
-> >
-> > Look at include/linux/dvb/video.h, struct video_event and ioctl
-> > VIDEO_GET_EVENT. It is used in ivtv (ivtv-ioctl.c, look for
-> > VIDEO_GET_EVENT).
-> >
-> > The idea is that you can either call VIDEO_GET_EVENT to wait for an event
-> > or use select() and wait for an exception to arrive, and then call
-> > VIDEO_GET_EVENT to find which event it was.
-> >
-> > This is ideal for streaming-related events. In ivtv it is used to report
-> > VSYNCs and to report when the MPEG decoder stopped (there is a delay
-> > between stopping sending new data to the decoder and when it actually
-> > processed all its internal buffers).
-> >
-> > Laurent is going to look into this to clean it up and present it as a new
-> > proper official V4L2 event mechanism.
-> >
-> > For events completely specific to a subdev I wonder whether it wouldn't
-> > be a good idea to use the media controller device for that. I like the
-> > select() mechanism since in an application you can just select() on a
-> > whole bunch of filehandles. If you can't use select() then you are forced
-> > to do awkward coding (e.g. make a separate thread just to handle that
-> > other event mechanism).
-> 
-> Agree. There's no reasonable way to use video devices here since the
-> events may be connected to non-video related issues --- like the
->  statistics.
-> 
-> One possible approach could be allocating a device node for each subdev
-> and use them and leave the media controller device with just the media
-> controller specific ioctls. Then there would be no need to set current
-> subdev nor bind the subdev to file handle either.
-> 
-> Just an idea.
-> 
-> > So with the media controller we can easily let sub-devices notify the
-> > media controller when an event is ready and the media controller can then
-> > generate an exception. An application can just select() on the mc
-> > filehandle.
-> >
-> > There are two ways of implementing this. One is that the media controller
-> > keeps a global queue of pending events and subdevices just queue events
-> > to that when they arrive (with some queue size limit to prevent run-away
-> > events).
-> 
-> With the above arrangement, the events could be easily subdev specific.
-> The mechanism should be generic still, though.
-> 
-> > So when you call some GET_EVENT type ioctl it should return the ID of the
-> > subdevice (aka entity) as well. What makes me slightly uncomfortable is
-> > that you still want to use that same ioctl on a normal video node. And
-> > the subdev ID has really no meaning there. But making two different
-> > ioctls doesn't sit well with me either.
-> >
-> > The alternative implementation is that the mc will only wait for events
-> > from the currently selected sub-device. So if you want to wait on events
-> > from different sub-devices, then you have to open the mc multiple times,
-> > once for each subdev that you want to receive events from.
-> >
-> > I think I would probably go for the second implementation because it is
-> > consistent with the way ioctls are passed to sub-devices. I like the idea
-> > that you can just pass regular V4L2 ioctls to sub-devices. Not all ioctls
-> > make sense, obviously (e.g. any of the streaming I/O ioctls), but a
-> > surprisingly large number of ioctls can be used in that way.
-> 
-> I agree with this. There are just a few ioctls that probably don't make
-> sense (e.g. the steaming related ones).
-> 
-> IMO even the format setting ioctls could be nice since the possible
-> input and output formats of the subdevs should be enumerable, too.
-> 
-> ENUM_FRAMESIZES and ENUM_FRAMEINTERVALS are missing the v4l2_buf_type,
-> but there are reserved fields...
+Hello,
 
-Those two ioctls are still marked as experimental. Does that mean we could 
-change them in an ABI incompatible way ?
+I have:
 
--- 
-Laurent Pinchart
+- Debian Lenny (dual booted with Windows XP)
+- Linux kernel 2.6.30 (from backports.org)
+- An AverMedia DVB-S Pro A700 card (not hybrid)
+- a satellite dish set to Astra 28.2E (in Ireland)
+
+With Windows XP I can view TV all right.
+
+With Linux, I tried tuning with me-tv and scan, in both cases using
+files for Astra 28.2E. Both cause a similar failure - can not set
+frequency. The most coherent messages are in dmesg:
+
+[   96.950097] DVB: adapter 0 frontend 0 frequency 11709400 out of
+range (950000..2150000)
+
+(and lots of this - for every attempt to set the frequency).
+
+Here are the lines from dmesg during boot up time, relevant for the card:
+
+[   10.363711] Linux video capture interface: v2.00
+[   10.413266] saa7130/34: v4l2 driver version 0.2.15 loaded
+[   10.413333] saa7134 0000:00:0a.0: PCI INT A -> GSI 19 (level, low) -> IRQ 19
+[   10.413344] saa7133[0]: found at 0000:00:0a.0, rev: 209, irq: 19,
+latency: 32, mmio: 0xeb024000
+[   10.413356] saa7133[0]: subsystem: 1461:a7a1, board: Avermedia
+DVB-S Pro A700 [card=140,autodetected]
+[   10.413388] saa7133[0]: board init: gpio is 202f600
+[   10.413402] IRQ 19/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+[   10.564525] saa7133[0]: i2c eeprom 00: 61 14 a1 a7 ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   10.564547] saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   10.564568] saa7133[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   10.564588] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   10.564608] saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   10.564627] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   10.564646] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   10.564665] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   10.564684] saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   10.564703] saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   10.564722] saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   10.564741] saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   10.564760] saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   10.564780] saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   10.564799] saa7133[0]: i2c eeprom e0: 00 01 81 b0 3e 3f ff ff ff
+ff ff ff ff ff ff ff
+[   10.564818] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   10.580356] saa7133[0]: registered device video0 [v4l2]
+[   10.580400] saa7133[0]: registered device vbi0
+[   10.791137] dvb_init() allocating 1 frontend
+[   10.938187] Intel ICH 0000:00:02.7: PCI INT C -> GSI 18 (level,
+low) -> IRQ 18
+[   11.012527] zl10036_attach: tuner initialization (Zarlink ZL10036
+addr=0x60) ok
+[   11.012534] DVB: registering new adapter (saa7133[0])
+[   11.012540] DVB: registering adapter 0 frontend 0 (Zarlink ZL10313 DVB-S)...
+[   11.213808] saa7134 ALSA driver for DMA sound loaded
+[   11.213825] IRQ 19/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+[   11.213859] saa7133[0]/alsa: saa7133[0] at 0xeb024000 irq 19
+registered as card -1
+
+What do I need to do in orer to get the card to work under Linux?
+
+(I can apply patches/build kernel or libraries if needed).
+
+--
+Yours, Mikhail Ramendik
