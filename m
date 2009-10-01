@@ -1,45 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:60682 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754909AbZJCLP7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 3 Oct 2009 07:15:59 -0400
-Received: from lyakh (helo=localhost)
-	by axis700.grange with local-esmtp (Exim 4.63)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1Mu2aw-0001fB-3A
-	for linux-media@vger.kernel.org; Sat, 03 Oct 2009 13:16:10 +0200
-Date: Sat, 3 Oct 2009 13:16:10 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] sh_mobile_ceu_camera: fix cropping for scaling clients
-Message-ID: <Pine.LNX.4.64.0910031313190.5857@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200]:34144 "EHLO
+	mta5.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756100AbZJANlb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Oct 2009 09:41:31 -0400
+Received: from steven-toths-macbook-pro.local
+ (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta5.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KQU000FZ8P78X91@mta5.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Thu, 01 Oct 2009 09:41:32 -0400 (EDT)
+Date: Thu, 01 Oct 2009 09:41:32 -0400
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: BUG: cx23885_video_register() uninitialized value passed to
+ v4l2_subdev_call()
+In-reply-to: <4AC454E1.9070104@gmail.com>
+To: "David T. L. Wong" <davidtlwong@gmail.com>
+Cc: linux-media@vger.kernel.org
+Message-id: <4AC4B18C.9090402@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7BIT
+References: <4AC454E1.9070104@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix a bug in cropping calculation, when the client is also scaling the image.
+On 10/1/09 3:06 AM, David T. L. Wong wrote:
+> Hi all,
+>
+> A potential bug is found in cx23885_video_register().
+>
+> A tuner_setup struct is passed to v4l2_subdev_call(),
+> but that struct is not fully initialized, especially for tuner_callback
+> member, and eventually tuner_s_type_addr() copy that wrong pointer.
+> It would particularly cause seg. fault for xc5000 tuner for analog
+> frontend when it calls fe->callback at xc5000_TunerReset().
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/sh_mobile_ceu_camera.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Thanks for raising this.
 
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index 65ac474..2f78b4f 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -1173,8 +1173,8 @@ static int get_scales(struct soc_camera_device *icd,
- 	width_in = scale_up(cam->ceu_rect.width, *scale_h);
- 	height_in = scale_up(cam->ceu_rect.height, *scale_v);
- 
--	*scale_h = calc_generic_scale(cam->ceu_rect.width, icd->user_width);
--	*scale_v = calc_generic_scale(cam->ceu_rect.height, icd->user_height);
-+	*scale_h = calc_generic_scale(width_in, icd->user_width);
-+	*scale_v = calc_generic_scale(height_in, icd->user_height);
- 
- 	return 0;
- }
+I also discovered this last Saturday. I have a patch for this which I expect to 
+merge shortly.
+
+Regards,
+
+Steve
+
 -- 
-1.6.2.4
-
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
