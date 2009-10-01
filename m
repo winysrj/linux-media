@@ -1,62 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45561 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:37170 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759910AbZJMPJH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Oct 2009 11:09:07 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9DF8RrO018363
+	id S1756516AbZJANqN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Oct 2009 09:46:13 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n91DkI5X021007
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 13 Oct 2009 10:08:30 -0500
-From: hvaibhav@ti.com
-To: linux-media@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH 2/6] Davinci VPFE Capture: Take i2c adapter id through platform data
-Date: Tue, 13 Oct 2009 20:38:23 +0530
-Message-Id: <1255446503-16727-1-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
+	for <linux-media@vger.kernel.org>; Thu, 1 Oct 2009 08:46:18 -0500
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id n91DkHd4027560
+	for <linux-media@vger.kernel.org>; Thu, 1 Oct 2009 08:46:17 -0500 (CDT)
+Received: from dsbe71.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id n91DkHJm011452
+	for <linux-media@vger.kernel.org>; Thu, 1 Oct 2009 08:46:17 -0500 (CDT)
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Thu, 1 Oct 2009 08:46:15 -0500
+Subject: status of google group created for working on Media controller?
+Message-ID: <A69FA2915331DC488A831521EAE36FE4015536FCAE@dlee06.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+Hi,
 
-The I2C adapter ID is actually depends on Board and may vary, Davinci
-uses id=1, but in case of AM3517 id=3.
+In the plumbers conference, a Google group was setup to share ideas/patches during development of media controller framework. But I have not any email regarding the same. Could someone tell me what is the current status of this group and add me to the group based on my below information?
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- drivers/media/video/davinci/vpfe_capture.c |    3 +--
- include/media/davinci/vpfe_capture.h       |    2 ++
- 2 files changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
-index dc32de0..c3c37e7 100644
---- a/drivers/media/video/davinci/vpfe_capture.c
-+++ b/drivers/media/video/davinci/vpfe_capture.c
-@@ -2228,8 +2228,7 @@ static __init int vpfe_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, vpfe_dev);
- 	/* set driver private data */
- 	video_set_drvdata(vpfe_dev->video_dev, vpfe_dev);
--	i2c_adap = i2c_get_adapter(1);
--	vpfe_cfg = pdev->dev.platform_data;
-+	i2c_adap = i2c_get_adapter(vpfe_cfg->i2c_adapter_id);
- 	num_subdevs = vpfe_cfg->num_subdevs;
- 	vpfe_dev->sd = kmalloc(sizeof(struct v4l2_subdev *) * num_subdevs,
- 				GFP_KERNEL);
-diff --git a/include/media/davinci/vpfe_capture.h b/include/media/davinci/vpfe_capture.h
-index e8272d1..f610104 100644
---- a/include/media/davinci/vpfe_capture.h
-+++ b/include/media/davinci/vpfe_capture.h
-@@ -94,6 +94,8 @@ struct vpfe_subdev_info {
- struct vpfe_config {
- 	/* Number of sub devices connected to vpfe */
- 	int num_subdevs;
-+	/*I2c Bus adapter no*/
-+	int i2c_adapter_id;
- 	/* information about each subdev */
- 	struct vpfe_subdev_info *sub_devs;
- 	/* evm card info */
--- 
-1.6.2.4
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+email: m-karicheri2@ti.com
 
