@@ -1,68 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:58177 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753364AbZJKW3F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Oct 2009 18:29:05 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: Very busy for the next several weeks...
-Date: Mon, 12 Oct 2009 00:30:56 +0200
-Cc: linux-media@vger.kernel.org, ivtv-devel@ivtvdriver.org,
-	ivtv-users@ivtvdriver.org
-References: <200910111802.42492.hverkuil@xs4all.nl>
-In-Reply-To: <200910111802.42492.hverkuil@xs4all.nl>
+Received: from mail-ew0-f227.google.com ([209.85.219.227]:56828 "EHLO
+	mail-ew0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755457AbZJANX1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Oct 2009 09:23:27 -0400
+Received: by ewy27 with SMTP id 27so169543ewy.40
+        for <linux-media@vger.kernel.org>; Thu, 01 Oct 2009 06:23:29 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200910120030.57034.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <20090915124106.35ad1382@tele>
+References: <20090914111757.543c7e77@blackbart.localnet.prv>
+	 <20090915124106.35ad1382@tele>
+Date: Thu, 1 Oct 2009 15:23:29 +0200
+Message-ID: <62e5edd40910010623w58232a7cnf77a2e0c3679aab3@mail.gmail.com>
+Subject: Re: Race in gspca main or missing lock in stv06xx subdriver?
+From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: James Blanford <jhblanford@gmail.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+2009/9/15 Jean-Francois Moine <moinejf@free.fr>:
+> On Mon, 14 Sep 2009 11:17:57 -0400
+> James Blanford <jhblanford@gmail.com> wrote:
+>
+>> Howdy folks,
+>>
+>> I have my old quickcam express webcam working, with HDCS1000
+>> sensor, 046d:840. It's clearly throwing away every other frame.  What
+>> seems to be happening is, while the last packet of the previous frame
+>> is being analyzed by the subdriver, the first packet of the next frame
+>> is assigned to the current frame buffer.  By the time that packet is
+>> analysed and sent back to the main driver, it's frame buffer has been
+>> completely filled and marked as "DONE."  The entire frame is then
+>> marked for "DISCARD."  This does _not_ happen with all cams using this
+>> subdriver.
+>>
+>> Here's a little patch, supplied only to help illustrate the problem,
+>> that allows for the full, expected frame rate of the webcam.  What it
+>> does is wait until the very last moment to assign a frame buffer to
+>> any packet, but the last.  I also threw in a few printks so I can see
+>> where failure takes place without wading through a swamp of debug
+>> output.
+>        [snip]
+>> It works, at least until there is any disruption to the stream, such
+>> as an exposure change, and then something gets out of sync and it
+>> starts throwing out every other frame again.  It shows that the driver
+>> framework and USB bus is capable of handling the full frame rate.
+>>
+>> I'll keep looking for an actual solution, but there is a lot I don't
+>> understand.  Any suggestions or ideas would be appreciated.  Several
+>> questions come to mind.  Why bother assigning a frame buffer with
+>> get_i_frame, before it's needed?  What purpose has frame_wait, when
+>> it's not called until the frame is completed and the buffer is marked
+>> as "DONE."  Why are there five, fr_i fr_q fr_o fr_queue index , buffer
+>> indexing counters?  I'm sure I don't understand all the different
+>> tasks this driver has to handle and all the different hardware it has
+>> to deal with.  But I would be surprised if my cam is the only one
+>> this is happening with.
+>
+> Hi James,
+>
+> I think you may have found a big problem, and this one should exist in
+> all drivers!
+>
+> As I understood, you say that the URB completion routine (isoc_irq) may
+> be run many times at the same time.
+>
+> With gspca, the problem is critical: the frame queue is managed without
+> any lock thanks to a circular buffer list (the pointers fr_i, fr_q and
+> fr_o). This mechanism works well when there are only one producer
+> (interrupt) and one consumer (application) (and to answer the question,
+> get_i_frame can be called anywere in the interrupt function because the
+> application is not running). Then, if there may be many producers...
+>
+> For other drivers, the problem remains: the image fragments could be
+> received out of order.
+>
+> How is this possible? Looking at some kernel documents, I found that
+> the URB completion routine is called from the bottom-half entity (thus,
+> not under hardware interrupt). A bottom-half may be a tasklet or a soft
+> irq. There may be only one active tasklet at a time, while there may be
+> many softirqs running (on the interrupt CPU). It seems that we are in
+> the last case, and I could not find any mean to change that.
+>
+> Then, to fix this problem, I see only one solution: have a private
+> tasklet to do the video streaming, as this is done for some bulk
+> transfer...
+>
+> Cheers.
 
-On Sunday 11 October 2009 18:02:42 Hans Verkuil wrote:
-> Hi all,
-> 
-> You may have noticed very little activity from me lately: this is due to
-> a lot of traveling and a very busy work schedule.
-> 
-> This will continue until early November at least.
-> 
-> So if you do not get an answer to a question, then that's why.
-> 
-> I will try my utmost to do any reviews related to the new APIs discussed
-> during the v4l-dvb mini-summit in Portland. I've started that, after all.
-> One exception will probably be the memory pool discussions: that is not my
-> area of expertise so I doubt I can contribute much there.
+Hi Jean-Francois,
+Are you currently working on anything addressing this issue or do we
+need some further discussion?
 
-I've been pretty busy as well since the LPC. The memory pool RFC got delayed a 
-bit (but I've been working on subdev and media-controller related tasks, so my 
-work will hopefully be useful too :-)). Following your discussion I studied 
-the GEM architecture and I'll contact the Intel developers to see if sharing 
-buffers between the GPU and the V4L2 devices could be possible. I'm a bit 
-scared this will be difficult, as GPU memory is accessed through the GART (a 
-kind of IOMMU for GPUs) and we would have to deal with textures tiling and 
-swizzling.
- 
-> Note that even though I have more time in November, I really want to use
-> that time to continue work on the control framework, so whether I will have
-> much time to do anything else is doubtful as well. And December will almost
-> certainly be very busy again...
-> 
-> My apologies for the ivtv users: I'm pretty certain that's on hold for the
-> rest of the year (not that there was much going on and I hope Andy can help
-> out there). The new SoC support being discussed and worked on will be
-> pretty much the only thing I'll be paying attention to for now.
-> 
-> Just so you all know what to expect...
+Best regards,
+Erik
 
-We all have business and personal schedules to deal with. Nobody should expect 
-you or any open-source developer to put life aside and commit 100% to open-
-source projects (unless funded by a company, but that's another story).
-
--- 
-Regards,
-
-Laurent Pinchart
+>
+> --
+> Ken ar c'hentań |             ** Breizh ha Linux atav! **
+> Jef             |               http://moinejf.free.fr/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
