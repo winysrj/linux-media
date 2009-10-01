@@ -1,64 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from exprod7og105.obsmtp.com ([64.18.2.163]:41330 "HELO
-	exprod7og105.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751083AbZJWHfR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Oct 2009 03:35:17 -0400
-Received: by fxm12 with SMTP id 12so10287148fxm.5
-        for <linux-media@vger.kernel.org>; Fri, 23 Oct 2009 00:35:20 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <095c6478b6c5187393b7af198449545f.squirrel@webmail.xs4all.nl>
-References: <aaaa95950910210632p74179cv91aa9825eff8d6bd@mail.gmail.com>
-	 <aaaa95950910220813y71f2f328sdb53d5c594d93094@mail.gmail.com>
-	 <aaaa95950910220851l201870c8w5352f2ec889244eb@mail.gmail.com>
-	 <095c6478b6c5187393b7af198449545f.squirrel@webmail.xs4all.nl>
-Date: Fri, 23 Oct 2009 09:35:20 +0200
-Message-ID: <aaaa95950910230035o4c07c955jbbe74a80f79d6d69@mail.gmail.com>
-Subject: Re: [PATCH] output human readable form of the .status field from
-	VIDIOC_ENUMINPUT
-From: Sigmund Augdal <sigmund@snap.tv>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:3988 "EHLO
+	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755751AbZJASFX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Oct 2009 14:05:23 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr3.xs4all.nl (8.13.8/8.13.8) with ESMTP id n91I5QPa015182
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 1 Oct 2009 20:05:26 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 1 Oct 2009 20:05:26 +0200 (CEST)
+Message-Id: <200910011805.n91I5QPa015182@smtp-vbr3.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 23, 2009 at 12:10 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
->> The attach patch modifies v4l2-ctl -I to also output signal status as
->> detected by the driver/hardware. This info is available in the status
->> field of the data returned by VIDIOC_ENUMINPUT which v4l2-ctl -I
->> already calls. The strings are copied from the v4l2 api specification
->> and could perhaps be modified a bit to fit the application.
->>
->> Best regards
->>
->> Sigmund Augdal
->>
->
-> Hi Sigmund,
->
-> This doesn't work right: the status field is a bitmask, so multiple bits
-> can be set at the same time. So a switch is not the right choice for that.
-> Look at some of the other functions to print bitmasks in v4l2-ctl.cpp for
-> ideas on how to implement this properly.
->
-> But it will be nice to have this in v4l2-ctl!
-Right, I realized this shortly after sending. I'll take a look at this
-today. However, I'm unsure how to handle the value 0. It seems this is
-used both for "signal detected and everything is ok" and "driver has
-no clue if there is a signal or not". Any feedback welcome.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Best regards
+Results of the daily build of v4l-dvb:
 
-Sigmund Augdal
->
-> Regards,
->
->      Hans
->
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
->
->
+date:        Thu Oct  1 19:00:03 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13044:6b7617d4a0be
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
+
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.27-armv5-ixp: ERRORS
+linux-2.6.28-armv5-ixp: ERRORS
+linux-2.6.29.1-armv5-ixp: ERRORS
+linux-2.6.30-armv5-ixp: ERRORS
+linux-2.6.31-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.27-powerpc64: ERRORS
+linux-2.6.28-powerpc64: ERRORS
+linux-2.6.29.1-powerpc64: ERRORS
+linux-2.6.30-powerpc64: ERRORS
+linux-2.6.31-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+sparse (linux-2.6.31): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
