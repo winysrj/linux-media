@@ -1,57 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.navvo.net ([74.208.67.6]:52806 "EHLO mail.navvo.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757524AbZJOOn7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Oct 2009 10:43:59 -0400
-From: santiago.nunez@ridgerun.com
-To: davinci-linux-open-source@linux.davincidsp.com
-Cc: linux-media@vger.kernel.org, nsnehaprabha@ti.com,
-	m-karicheri2@ti.com, diego.dompe@ridgerun.com,
-	todd.fischer@ridgerun.com, mgrosen@ti.com,
-	Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-Date: Thu, 15 Oct 2009 08:43:28 -0600
-Message-Id: <1255617808-1429-1-git-send-email-santiago.nunez@ridgerun.com>
-Subject: [PATCH 3/6 v5] Support for TVP7002 in VPFE
+Received: from mail-gx0-f212.google.com ([209.85.217.212]:55565 "EHLO
+	mail-gx0-f212.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757530AbZJBKgX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2009 06:36:23 -0400
+Received: by gxk4 with SMTP id 4so1295600gxk.8
+        for <linux-media@vger.kernel.org>; Fri, 02 Oct 2009 03:36:27 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <87ab0auo19.fsf@musikcheck.dk>
+References: <87ab0auo19.fsf@musikcheck.dk>
+Date: Fri, 2 Oct 2009 12:36:26 +0200
+Message-ID: <82d79e70910020336s4438875aw55709ebf95a75211@mail.gmail.com>
+Subject: Re: What is the status of the driver TT CT-3650
+From: James Peters <james.peters.ml@googlemail.com>
+To: Hasse Hagen Johansen <hhj-linux-dvd@musikcheck.dk>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+On Fri, Oct 2, 2009 at 9:20 AM, Hasse Hagen Johansen
+<hhj-linux-dvd@musikcheck.dk> wrote:
+> Hi
+>
+> I have recently bought such a card and tried to get it working. Does
+> anyone know if it is possible. I have compiled the dvb drivers from
+> s2-liplianin
+>
+> And tried to use the scan program from the dvb-apps mercurial tarball. I
+> also compile scan-s2 and tried that, but I always get "tuning failed"
+>
+> Anyone know how to get this working or this card is in a working state
+> under linux. Because if it not working yet I will stop wasting my time
+> :-)
+>
 
-This patch adds support for TVP7002 in the DM365 VPFE inteface.
-Added video modes.
+it didn't work for me either, so I returned it and stick with my old
+DVB-T device again..
 
-Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
----
- drivers/media/video/davinci/vpfe_capture.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
-index 402ce43..4820091 100644
---- a/drivers/media/video/davinci/vpfe_capture.c
-+++ b/drivers/media/video/davinci/vpfe_capture.c
-@@ -73,6 +73,7 @@
- #include <linux/version.h>
- #include <media/v4l2-common.h>
- #include <linux/io.h>
-+#include <media/davinci/videohd.h>
- #include <media/davinci/vpfe_capture.h>
- #include "ccdc_hw_device.h"
- 
-@@ -131,6 +132,14 @@ static struct ccdc_config *ccdc_cfg;
- const struct vpfe_standard vpfe_standards[] = {
- 	{V4L2_STD_525_60, 720, 480, {11, 10}, 1},
- 	{V4L2_STD_625_50, 720, 576, {54, 59}, 1},
-+	{V4L2_STD_525P_60, 720, 480, {11, 10}, 0},
-+	{V4L2_STD_625P_50, 720, 576, {54, 59}, 0},
-+	{V4L2_STD_720P_50, 1280, 720, {1, 1}, 0},
-+	{V4L2_STD_720P_60, 1280, 720, {1, 1}, 0},
-+	{V4L2_STD_1080I_50, 1920, 1080, {1, 1}, 1},
-+	{V4L2_STD_1080I_60, 1920, 1080, {1, 1}, 1},
-+	{V4L2_STD_1080P_50, 1920, 1080, {1, 1}, 0},
-+	{V4L2_STD_1080P_60, 1920, 1080, {1, 1}, 0},
- };
- 
- /* Used when raw Bayer image from ccdc is directly captured to SDRAM */
--- 
-1.6.0.4
-
+James
