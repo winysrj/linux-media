@@ -1,54 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:56064 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756655AbZJ1Brn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2009 21:47:43 -0400
-Subject: Re: [PATCH 0/7] kfifo: new API v0.6
-From: Andy Walls <awalls@radix.net>
-To: Stefani Seibold <stefani@seibold.net>
-Cc: Andi Kleen <andi@firstfloor.org>,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Amerigo Wang <xiyou.wangcong@gmail.com>,
-	Joe Perches <joe@perches.com>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain
-Date: Tue, 27 Oct 2009 21:49:31 -0400
-Message-Id: <1256694571.3131.26.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197]:46211 "EHLO
+	mta2.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755134AbZJBMRq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2009 08:17:46 -0400
+Received: from mbpwifi.kernelscience.com
+ (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta2.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KQV00G75ZHP9DZ0@mta2.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Fri, 02 Oct 2009 08:17:50 -0400 (EDT)
+Date: Fri, 02 Oct 2009 08:17:49 -0400
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: cx23885 audio
+In-reply-to: <4AC57911.50006@gmail.com>
+To: "David T.L. Wong" <davidtlwong@gmail.com>
+Cc: v4l-dvb <linux-media@vger.kernel.org>
+Message-id: <4AC5EF6D.9060703@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7BIT
+References: <4AC57911.50006@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 10/1/09 11:52 PM, David T.L. Wong wrote:
+> Hi all,
+>
+> It there any cx23885 audio support on current v4l-dvb tree, Or any
+> development tree for cx23885 audio?
 
-> One thing is that the new API is not compatible with the old one. I
-> had a look at the current user of the old kfifo API and it is was easy
-> to adapt it to the new API. These are the files which currently use
-> the kfifo API:
-> 
-> drivers/char/nozomi.c
-> drivers/char/sonypi.c
-> drivers/infiniband/hw/cxgb3/cxio_resource.c
-> drivers/media/video/meye.c
-> drivers/net/wireless/libertas/main.c
-> drivers/platform/x86/fujitsu-laptop.c
-> drivers/platform/x86/sony-laptop.c
-> drivers/scsi/libiscsi.c
-> drivers/scsi/libiscsi_tcp.c
-> drivers/scsi/libsrp.c
-> drivers/usb/host/fhci.h
-> net/dccp/probe.c
-> drivers/usb/serial/usb-serial.c
-> drivers/usb/serial/generic.c
+http://www.kernellabs.com/blog/?p=788
 
-Here's a V4L-DVB cx23885 module change, that is on its way upstream,
-that uses kfifo as is:
+I'm about to start on this.
 
-http://linuxtv.org/hg/v4l-dvb/rev/a2d8d3d88c6d
-
-Do you really have to break the old API?
-
-Regards,
-Andy
-
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
