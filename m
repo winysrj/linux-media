@@ -1,30 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.11])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n986xOxb007109
-	for <video4linux-list@redhat.com>; Thu, 8 Oct 2009 02:59:24 -0400
-Received: from kuber.nabble.com (kuber.nabble.com [216.139.236.158])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n986x9ZC016238
-	for <video4linux-list@redhat.com>; Thu, 8 Oct 2009 02:59:09 -0400
-Received: from tervel.nabble.com ([192.168.236.150])
-	by kuber.nabble.com with esmtp (Exim 4.63)
-	(envelope-from <bounces@n2.nabble.com>) id 1Mvmxw-0005sW-L5
-	for video4linux-list@redhat.com; Wed, 07 Oct 2009 23:59:08 -0700
-Date: Wed, 7 Oct 2009 23:59:08 -0700 (PDT)
-From: Carlos Lavin <carlos.lavin@vista-silicon.com>
-To: video4linux-list@redhat.com
-Message-ID: <1254985148643-3786323.post@n2.nabble.com>
-In-Reply-To: <9319940908100515w21d38a5bs6c6a552b07498fc4@mail.gmail.com>
-References: <eedb5540908060552n43021d5bla6ee655c294307eb@mail.gmail.com>
-	<20090807191809.GJ5842@pengutronix.de>
-	<9319940908091109l64530b9cgd2e305ea8127a35a@mail.gmail.com>
-	<eedb5540908092359g27e61389wad4a918f3339ae38@mail.gmail.com>
-	<9319940908100515w21d38a5bs6c6a552b07498fc4@mail.gmail.com>
+Received: from mx1.redhat.com (ext-mx03.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.7])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n92GeGPn009945
+	for <video4linux-list@redhat.com>; Fri, 2 Oct 2009 12:40:16 -0400
+Received: from mail-bw0-f209.google.com (mail-bw0-f209.google.com
+	[209.85.218.209])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n92Ge3Vx010644
+	for <video4linux-list@redhat.com>; Fri, 2 Oct 2009 12:40:03 -0400
+Received: by bwz5 with SMTP id 5so1123819bwz.3
+	for <video4linux-list@redhat.com>; Fri, 02 Oct 2009 09:40:02 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <4AC5FA6E.2000201@tmr.com>
+References: <4AC5FA6E.2000201@tmr.com>
+Date: Fri, 2 Oct 2009 12:40:02 -0400
+Message-ID: <829197380910020940o599f5678t60abb2b2da6f8d46@mail.gmail.com>
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Bill Davidsen <davidsen@tmr.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8bit
-Subject: Re: soc-camera driver for i.MX27
+Cc: video4linux M/L <video4linux-list@redhat.com>
+Subject: Re: Upgrading from FC4 to current Linux
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,71 +32,52 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-
-hello, i'm Carlos Lavín and i'm partner of Javier. I was trying download the
-PHYTEC repository of this URL git: / /
-git.pengutronix.de/git/phytec/linux-2.6.git but I have a problem when I
-download it, this repositoy isn't complete. moreover, when i'm downloading
-this repository i have a warning... why?
-can you help me, please? thank you. 
-
-
-
-
-Derek Bouius wrote:
-> 
-> On Mon, Aug 10, 2009 at 3:25 AM, Sascha Hauer<sha@pengutronix.de> wrote:
->> Hi,
->>
->> On Mon, Aug 10, 2009 at 08:59:23AM +0200, javier Martin wrote:
->>> Dear Derek,
->>>
->>> >> We have a driver for the phyCORE-i.MX27 board:
->>> >>
->>> http://git.pengutronix.de/?p=phytec/linux-2.6.git;a=blob;f=drivers/media/video/mx27_camera.c;h=9e9f4426c3db890e6fc13130e047c65c073aa0b4;hb=refs/heads/phytec-master
->>>
->>> Thank you for the pointer to the patch.
->>>
->>> > I have just used this driver to interface to a soc imager (Aptina
->>> > mt9p031) on the phyCORE-i.MX27 board. It works for acquiring a 640x480
->>> > video stream quite reliably. I am currently working on getting it to
->>> > be able to capture a full image frame (5MB) as well as various image
->>> > sizes in between. I am running into out of memory issues with the
->>> > dma_alloc_coherent() and not sure what the solution is yet.
->>> >
->>>
->>> Maybe you are requesting too much contiguous memory. I don't remember
->>> where that could be changed.
->>
->> It's CONSISTENT_DMA_SIZE.
->>
-> That did the trick.
-> Thanks, Derek
-> 
-> 
->> Sascha
->>
->> --
->> Pengutronix e.K.                           |                            
->> |
->> Industrial Linux Solutions                 | http://www.pengutronix.de/
->>  |
->> Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0  
->>  |
->> Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555
->> |
->>
-> 
+On Fri, Oct 2, 2009 at 9:04 AM, Bill Davidsen <davidsen@tmr.com> wrote:
+> I am looking for a video solution which works on recent Linux, like
+> Fedora-11. Video used to be easy, plug in the capture device, install xawtv
+> via rpm, and use. However, recent versions of Fedora simply don't work, even
+> on the same hardware, due to /dev/dsp no longer being created and the
+> applications like xawtv or tvtime still looking for it.
+>
+> The people who will be using this are looking for hardware which is still
+> made and sold new, and software which can be installed by a support person
+> who can plug in cards (PCI preferred) or USB devices, and install rpms. I
+> maintain the servers on Linux there, desktop support is unpaid (meaning I
+> want a solution they can use themselves).
+>
+> We looked at vlc, which seems to want channel frequencies in kHz rather than
+> channels, mythtv, which requires a database their tech isn't able (or
+> willing) to support, etc.
+>
+> It seems that video has gone from "easy as Windows" 3-4 years ago to
+> "insanely complex" according to to one person in that group who wanted an
+> upgrade on his laptop. There is some pressure from Windows users to mandate
+> Win7 as the desktop, which Linux users are rejecting.
+>
+> The local cable is a mix of analog channels (for old TVs) and clear qam. The
+> capture feeds from the monitor system are either S-video or three wire
+> composite plus L-R audio. Any reasonable combination of cards (PCI best,
+> PCIe acceptable), USB device, and application which can monitor/record would
+> be fine, but the users are not going to type in kHz values, create channel
+> tables, etc. They want something as easy to use as five years ago.
+>
+> Any thoughts?
+>
 > --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
-> 
-> 
+> Bill Davidsen <davidsen@tmr.com>
+> �"We have more to fear from the bungling of the incompetent than from
+> the machinations of the wicked." �- from Slashdot
+
+I took a few minutes and put together a response to your email,
+outlining the issues.  Feel free to check it out here:
+
+http://www.kernellabs.com/blog/
+
+Devin
 
 -- 
-View this message in context: http://n2.nabble.com/soc-camera-driver-for-i-MX27-tp3398063p3786323.html
-Sent from the video4linux-list mailing list archive at Nabble.com.
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
 
 --
 video4linux-list mailing list
