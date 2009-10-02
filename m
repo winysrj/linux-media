@@ -1,80 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail02d.mail.t-online.hu ([84.2.42.7]:52372 "EHLO
-	mail02d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933316AbZJaXOk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Oct 2009 19:14:40 -0400
-Message-ID: <4AECC4E0.8090006@freemail.hu>
-Date: Sun, 01 Nov 2009 00:14:40 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Received: from static.106.220.46.78.clients.your-server.de ([78.46.220.106]:59817
+	"EHLO mail.vanguard.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757361AbZJBULh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2009 16:11:37 -0400
+Date: Fri, 2 Oct 2009 23:11:33 +0300 (EEST)
+From: Beepo / Vanguard <beepo@vanguard.fi>
+To: Jonathan <jkdsoft@gmail.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <29251389.261254514293875.JavaMail.root@mail.vanguard.fi>
+In-Reply-To: <200910022044.05324.jhonny.b@gmail.com>
+Subject: Re: saa716x compiling problem
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-CC: Thomas Kaiser <thomas@kaiser-linux.li>,
-	Theodore Kilgore <kilgota@auburn.edu>,
-	Kyle Guinn <elyk03@gmail.com>
-Subject: [PATCH 08/21] gspca pac7302/pac7311: separate stop0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+Hi,
 
-Separate the stop0 function. Remove the run-time decision for
-PAC7302 and PAC7311 sensors.
+You could try http://mercurial.intuxication.org/hg/s2-liplianin
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
-Cc: Thomas Kaiser <thomas@kaiser-linux.li>
-Cc: Theodore Kilgore <kilgota@auburn.edu>
-Cc: Kyle Guinn <elyk03@gmail.com>
----
-diff -uprN h/drivers/media/video/gspca/pac7311.c i/drivers/media/video/gspca/pac7311.c
---- h/drivers/media/video/gspca/pac7311.c	2009-10-30 18:01:57.000000000 +0100
-+++ i/drivers/media/video/gspca/pac7311.c	2009-10-30 17:59:39.000000000 +0100
-@@ -803,17 +803,18 @@ static void pac7311_sd_stopN(struct gspc
- 	reg_w(gspca_dev, 0x78, 0x44); /* Bit_0=start stream, Bit_6=LED */
- }
+I think the jusst.de version is outdated regarding the newer kernels.
 
--/* called on streamoff with alt 0 and on disconnect */
--static void sd_stop0(struct gspca_dev *gspca_dev)
-+/* called on streamoff with alt 0 and on disconnect for pac7302 */
-+static void pac7302_sd_stop0(struct gspca_dev *gspca_dev)
- {
--	struct sd *sd = (struct sd *) gspca_dev;
--
- 	if (!gspca_dev->present)
- 		return;
--	if (sd->sensor == SENSOR_PAC7302) {
--		reg_w(gspca_dev, 0xff, 0x01);
--		reg_w(gspca_dev, 0x78, 0x40);
--	}
-+	reg_w(gspca_dev, 0xff, 0x01);
-+	reg_w(gspca_dev, 0x78, 0x40);
-+}
-+
-+/* called on streamoff with alt 0 and on disconnect for 7311 */
-+static void pac7311_sd_stop0(struct gspca_dev *gspca_dev)
-+{
- }
+BR:
+  Beepo
 
- /* Include pac common sof detection functions */
-@@ -1177,7 +1178,7 @@ static struct sd_desc pac7302_sd_desc =
- 	.init = pac7302_sd_init,
- 	.start = pac7302_sd_start,
- 	.stopN = pac7302_sd_stopN,
--	.stop0 = sd_stop0,
-+	.stop0 = pac7302_sd_stop0,
- 	.pkt_scan = pac7302_sd_pkt_scan,
- 	.dq_callback = do_autogain,
- };
-@@ -1191,7 +1192,7 @@ static struct sd_desc pac7311_sd_desc =
- 	.init = pac7311_sd_init,
- 	.start = pac7311_sd_start,
- 	.stopN = pac7311_sd_stopN,
--	.stop0 = sd_stop0,
-+	.stop0 = pac7311_sd_stop0,
- 	.pkt_scan = pac7311_sd_pkt_scan,
- 	.dq_callback = do_autogain,
- };
+----- Original Message -----
+From: "Jonathan" <jkdsoft@gmail.com>
+To: linux-media@vger.kernel.org
+Sent: Friday, October 2, 2009 9:44:05 PM GMT +02:00 Athens, Beirut, Bucharest, Istanbul
+Subject: saa716x compiling problem
+
+Hello,
+
+I'm trying to compile saa716x module for kernel 2.6.30 but I'm getting some 
+errors. It seems that sources need to be adapted to latest kernel versions to 
+work. I'm using code located at http://www.jusst.de/hg/saa716x/ (last change 
+was three months ago).
+
+Is there any patch to solve this problem?
+
+Jonathan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
