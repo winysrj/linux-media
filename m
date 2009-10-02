@@ -1,59 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.agmk.net ([91.192.224.71]:45985 "EHLO mail.agmk.net"
+Received: from lo.gmane.org ([80.91.229.12]:52590 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752580AbZJDHIu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 4 Oct 2009 03:08:50 -0400
-From: =?utf-8?q?Pawe=C5=82_Sikora?= <pluto@agmk.net>
-To: Hermann Pitton <hermann-pitton@arcor.de>
-Subject: Re: [2.6.31] ir-kbd-i2c oops.
-Date: Sun, 4 Oct 2009 09:08:05 +0200
-Cc: Jean Delvare <khali@linux-fr.org>,
-	LMML <linux-media@vger.kernel.org>
-References: <200909160300.28382.pluto@agmk.net> <200910032109.01674.pluto@agmk.net> <1254610338.11623.46.camel@localhost>
-In-Reply-To: <1254610338.11623.46.camel@localhost>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Message-Id: <200910040908.05864.pluto@agmk.net>
+	id S1753001AbZJBXKA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Oct 2009 19:10:00 -0400
+Received: from list by lo.gmane.org with local (Exim 4.50)
+	id 1MtrGF-0002CN-KB
+	for linux-media@vger.kernel.org; Sat, 03 Oct 2009 01:10:03 +0200
+Received: from proxysb02.ext.ti.com ([192.94.94.106])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sat, 03 Oct 2009 01:10:03 +0200
+Received: from rtivy by proxysb02.ext.ti.com with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sat, 03 Oct 2009 01:10:03 +0200
+To: linux-media@vger.kernel.org
+From: Robert Tivy <rtivy@ti.com>
+Subject: Re: [RFC] Global video buffers pool
+Date: Fri, 2 Oct 2009 22:57:29 +0000 (UTC)
+Message-ID: <loom.20091003T005632-488@post.gmane.org>
+References: <200909161746.39754.laurent.pinchart@ideasonboard.com> <D019E777779A4345963526A1797F28D409E78C5B57@NOK-EUMSG-02.mgdnok.nokia.com> <200909282354.25563.laurent.pinchart@ideasonboard.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 04 October 2009 00:52:18 Hermann Pitton wrote:
-> Hi,
+Laurent Pinchart <laurent.pinchart <at> ideasonboard.com> writes:
+
 > 
-> Am Samstag, den 03.10.2009, 21:09 +0200 schrieb Paweł Sikora:
-> > On Saturday 03 October 2009 20:15:27 Jean Delvare wrote:
-> > > > moreover, with this patch i'm observing a flood in dmesg:
-> > > >
-> > > > [  938.313245] i2c IR (Pinnacle PCTV): unknown key: key=0x12 raw=0x12
-> > > > down=1 [  938.419914] i2c IR (Pinnacle PCTV): unknown key: key=0x12
-> > > > raw=0x12 down=0 [  939.273249] i2c IR (Pinnacle PCTV): unknown key:
-> > > > key=0x24 raw=0x24 down=1 [  939.379955] i2c IR (Pinnacle PCTV):
-> > > > unknown key: key=0x24 raw=0x24 down=0
+> Hi Stefan,
+> 
+> On Monday 28 September 2009 16:04:58 Stefan.Kost <at> nokia.com wrote:
+> > hi,
+> > 
+> > >-----Original Message-----
+> > >From: ext Laurent Pinchart [mailto:laurent.pinchart <at> ideasonboard.com]
+> > >Sent: 16 September, 2009 18:47
+> > >To: linux-media <at> vger.kernel.org; Hans Verkuil; Sakari Ailus;
+> > >Cohen David.A (Nokia-D/Helsinki); Koskipaa Antti
+> > >(Nokia-D/Helsinki); Zutshi Vimarsh (Nokia-D/Helsinki); Kost
+> > >Stefan (Nokia-D/Helsinki)
+> > >Subject: [RFC] Global video buffers pool
 > > >
-> > > Different issue, and I don't know much about IR support, but these keys
-> > > aren't listed in ir_codes_pinnacle_color. Maybe you have a different
-> > > variant of this remote control with more keys and we need to add their
-> > > definitions.
-> >
-> > i have such one: http://imgbin.org/index.php?page=image&id=812
+> > > Hi everybody,
+> > >
+> > > I didn't want to miss this year's pretty flourishing RFC
+> > > season, so here's another one about a global video buffers pool.
+> > 
+> > Sorry for ther very late reply.
 > 
-> hm, maybe it is some fake Pinnacle stuff, at least that remote is very
-> different from the supported ones with gray only or colored keys and
-> looks very poor.
+> No worries, better late than never.
+> 
+> > I have been thinking about the problem on a bit broader scale and see the
+> > need for something more kernel wide. E.g. there is some work done from 
+intel
+> > for graphics:
+> > http://keithp.com/blogs/gem_update/
+> > 
+> > and this is not so much embedded even. If there buffer pools are
+> > v4l2specific then we need to make all those other subsystems like xvideo,
+> > opengl, dsp-bridges become v4l2 media controllers.
+> 
+> The global video buffers pool topic has been discussed during the v4l2 mini-
+> summit at Portland last week, and we all agreed that it needs more research.
+> 
+> The idea of having pools at the media controller level has been dropped in 
+> favor of a kernel-wide video buffers pool. Whether we can make the buffers 
+> pool not v4l2-specific still needs to be tested. As you have pointed out, we 
+> currently have a GPU memory manager in the kernel, and being able to 
+interact 
+> with it would be very interesting if we want to DMA video data to OpenGL 
+> texture buffers for instance. I'm not sure if that would be possible though, 
+> as the GPU and the video acquisition hardware might have different memory 
+> requirements, at least in the general case. I will contact the GEM guys at 
+> Intel to discuss the topic.
+> 
+> If we can't share the buffers between the GPU and the rest of the system, we 
+> could at least create a V4L2 wrapper on top of the DSP bridge core (which 
+will 
+> require a major cleanup/restructuring), making it possible to share video 
+> buffers between the ISP and the DSP.
+> 
 
-i have pinnacle pctv analog pci 110i:
 
-http://imgbin.org/index.php?page=image&id=813
+TI has been providing this sort of contiguous buffer support for quite a few 
+years now.  TI provides a SW package named LinuxUtils, and it contains a 
+module named CMEM (stand for Contiguous MEMory manager).
 
-05:00.0 Multimedia controller: Philips Semiconductors SAA7133/SAA7135
-        Video Broadcast Decoder (rev d1)
-        Subsystem: Pinnacle Systems Inc. PCTV 110i (saa7133)                                          
-        Flags: bus master, medium devsel, latency 64, IRQ 16                                          
-        Memory at febff800 (32-bit, non-prefetchable) [size=2K]                                       
-        Capabilities: [40] Power Management version 2                                                 
-        Kernel driver in use: saa7134                                                                 
-        Kernel modules: saa7134
+Latest LinuxUtils release, contains cdocs of CMEM:
+http://software-
+dl.ti.com/dsps/dsps_public_sw/sdo_sb/targetcontent/linuxutils/2_24_03/exports/l
+inuxutils_2_24_03.tar.gz
 
-05:00.0 0480: 1131:7133 (rev d1)
+And the background/usage article here:
+http://tiexpressdsp.com/index.php/CMEM_Overview
+
+CMEM solves lots of the same sorts of things that the driver described in this 
+thread does.  However, it doesn't integrate into other drivers, and it's 
+accessed through the CMEM user interface.  Also, CMEM alleviates some of the 
+issues raised in this thread since it uses memory not known to the kernel 
+(user "carves out" a chunk by reducing kernel memory through u-boot mem= 
+param), which IMO can be both good and bad (good - alleviates 
+locking/unavailable memory issues, bad - doesn't cooperate with the kernel in 
+getting memory, requiring user intervention).
+
+Regards,
+
+Robert Tivy
+MGTS
+Systems Software
+Texas Instruments, Santa Barbara
+
+
+
