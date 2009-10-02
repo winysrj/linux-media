@@ -1,124 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f180.google.com ([209.85.216.180]:46485 "EHLO
-	mail-px0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753892AbZJ0OzV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2009 10:55:21 -0400
-Received: by pxi10 with SMTP id 10so159364pxi.33
-        for <linux-media@vger.kernel.org>; Tue, 27 Oct 2009 07:55:25 -0700 (PDT)
+Received: from ip78-183-211-87.adsl2.static.versatel.nl ([87.211.183.78]:43776
+	"EHLO god.dyndns.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755217AbZJBJNO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2009 05:13:14 -0400
+Date: Fri, 2 Oct 2009 11:12:55 +0200
+From: spam@systol-ng.god.lan
+To: Michael Krufky <mkrufky@kernellabs.com>
+Cc: Henk.Vergonet@gmail.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/4] Zolid Hybrid PCI card add AGC control
+Message-ID: <20091002091255.GA29221@systol-ng.god.lan>
+Reply-To: Henk.Vergonet@gmail.com
+References: <20090922210915.GD8661@systol-ng.god.lan> <37219a840909241155h1b809877mf7ae1807e34a2f87@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <83bcf6340910270717n12066fb8oa4870eb3214d7597@mail.gmail.com>
-References: <8d0bb7650910261544i4ebed975rf81ec6bc38076927@mail.gmail.com>
-	 <a413d4880910261623x44d106f4h167a7dab80a4a3f8@mail.gmail.com>
-	 <83bcf6340910270717n12066fb8oa4870eb3214d7597@mail.gmail.com>
-Date: Tue, 27 Oct 2009 08:55:25 -0600
-Message-ID: <8d0bb7650910270755v38f37f6fh3937e9727493854c@mail.gmail.com>
-Subject: Re: Hauppage HVR-2250 Tuning problems
-From: dan <danwalkeriv@gmail.com>
-To: Steven Toth <stoth@kernellabs.com>
-Cc: Another Sillyname <anothersname@googlemail.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <37219a840909241155h1b809877mf7ae1807e34a2f87@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Steve,
+On Thu, Sep 24, 2009 at 02:55:42PM -0400, Michael Krufky wrote:
+> On Tue, Sep 22, 2009 at 5:09 PM,  <spam@systol-ng.god.lan> wrote:
+> >
+> > Switches IF AGC control via GPIO 21 of the saa7134. Improves DTV reception and
+> > FM radio reception.
+> >
+> > Signed-off-by: Henk.Vergonet@gmail.com
+> 
+> Reviewed-by: Michael Krufky <mkrufky@kernellabs.com>
+> 
+> Henk,
+> 
+> This is *very* interesting...  Have you taken a scope to the board to
+> measure AGC interference?   This seems to be *very* similar to
+> Hauppauge's design for the HVR1120 and HVR1150 boards, which are
+> actually *not* based on any reference design.
+> 
+> I have no problems with this patch, but I would be interested to hear
+> that you can prove it is actually needed by using a scope.  If you
+> don't have a scope, I understand....  but this certainly peaks my
+> interest.
+> 
+> Do you have schematics of that board?
+> 
+> Regards,
+> 
+> Mike Krufky
+> 
 
-Thanks for responding.  I created the channels.conf file and ran the
-azap command you suggested.  In both cases I get something that looks
-like this:
+One note: I have tested the tda18271 signedness fixes in the debug
+repository. This is a big improvement in reception.
 
-$ azap -r c112
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-tuning to 723000000 Hz
-video pid 0x0120, audio pid 0x0121
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 1f | signal 0172 | snr 0172 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 0190 | snr 0190 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 00 | signal 0000 | snr 0190 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0190 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0190 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0190 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 1f | signal 0190 | snr 0190 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 00 | signal 0190 | snr 0190 | ber 00000000 | unc 00000000 |
-status 00 | signal 0190 | snr 0190 | ber 00000000 | unc 00000000 |
-status 07 | signal 0190 | snr 0190 | ber 00000000 | unc 00000000 |
-status 07 | signal 0190 | snr 0190 | ber 00000000 | unc 00000000 |
-status 07 | signal 0190 | snr 0190 | ber 00000000 | unc 00000000 |
-status 00 | signal 0190 | snr 0190 | ber 00000000 | unc 00000000 |
-status 00 | signal 0190 | snr 0190 | ber 00000000 | unc 00000000 |
-status 00 | signal 0190 | snr 0190 | ber 00000000 | unc 00000000 |
-status 00 | signal 0190 | snr 0190 | ber 00000000 | unc 00000000 |
+Based on the latest testing with all the fixes I would say that
+switching the AGC line via gpio is not needed and leaving it at 0 gives
+the best results.
+(This is purely based on SNR and BER readings from tzap)
 
-Does that mean the signal is going in and out?  Any suggestions?
+So I would recomend: leaving config at zero.
 
-Thanks again.  I really appreciate the work you've done on the driver
-for this card, and that you're willing to take the time to help out.
+ static struct tda18271_config zolid_tda18271_config = {
+ 	.std_map = &zolid_tda18271_std_map,
+ 	.gate    = TDA18271_GATE_ANALOG,
+-	.config  = 3,
++//	.config  = 3,
+	.output_opt = TDA18271_OUTPUT_LT_OFF,
+ };
 
-Thanks to Mr. Sillyname, also, for adding another data point.
-
---dan
-
-On Tue, Oct 27, 2009 at 8:17 AM, Steven Toth <stoth@kernellabs.com> wrote:
->>> I have done some searching online, and that's what led me to scan,
->>> dvbscan and scte65scan, but none of the suggestions I've found so far
->>> seem to help.  Does anyone have any suggestions as to where I can go
->>> from here?  Could there be something wrong with the card itself?  Are
->>> there any diagnostics I could run?
->>>
->>> Thanks in advance for any help that anyone can offer.
->
-> Dan,
->
-> I'm not aware of any digital cable issues currently.
->
-> 1) Do you have any other tvtuners that can validate your signal is
-> working correctly? Specifically, for a number of identifiable
-> frequencies?
->
-> 2) Is your cable plant standard cable, IRC, or HRC?
->
-> 3) I suggest you put together a rudamentary $HOME/.azap/channels.conf
-> and experiment with azap, that works really well for me.
->
-> Here's a sample from my development channels.conf:
-> c112:723000000:QAM_256:288:289:713
-> c86:597000000:QAM_256:288:289:713
->
-> Try this with azap -r c86 or c112, what happens?
->
-> - Steve
->
-> --
-> Steven Toth - Kernel Labs
-> http://www.kernellabs.com
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Regards,
+Henk
