@@ -1,41 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:39545 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753894AbZJNDbB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Oct 2009 23:31:01 -0400
-Received: from 201-26-167-171.dial-up.telesp.net.br ([201.26.167.171] helo=pedra.chehab.org)
-	by bombadil.infradead.org with esmtpsa (Exim 4.69 #1 (Red Hat Linux))
-	id 1MxuZE-00005E-Ij
-	for linux-media@vger.kernel.org; Wed, 14 Oct 2009 03:30:25 +0000
-Date: Wed, 14 Oct 2009 00:29:45 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Japan Linux Symposium
-Message-ID: <20091014002945.30f1ddf5@pedra.chehab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-bw0-f210.google.com ([209.85.218.210]:48455 "EHLO
+	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755676AbZJBNH0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2009 09:07:26 -0400
+Received: by bwz6 with SMTP id 6so964098bwz.37
+        for <linux-media@vger.kernel.org>; Fri, 02 Oct 2009 06:07:29 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20091002091255.GA29221@systol-ng.god.lan>
+References: <20090922210915.GD8661@systol-ng.god.lan>
+	 <37219a840909241155h1b809877mf7ae1807e34a2f87@mail.gmail.com>
+	 <20091002091255.GA29221@systol-ng.god.lan>
+Date: Fri, 2 Oct 2009 09:07:29 -0400
+Message-ID: <37219a840910020607g5a0560b3r49ff48dc0c85327d@mail.gmail.com>
+Subject: Re: [PATCH 4/4] Zolid Hybrid PCI card add AGC control
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Henk.Vergonet@gmail.com
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Next week, I'll be traveling to Japan to participate at the JLS and KS/2009.
-This, together with a very complicated merge window we had this time, a
-memory controller driver I'm finishing and a training course I've participated
-really consumed a lot of my time.
+On Fri, Oct 2, 2009 at 5:12 AM,  <spam@systol-ng.god.lan> wrote:
+> On Thu, Sep 24, 2009 at 02:55:42PM -0400, Michael Krufky wrote:
+>> On Tue, Sep 22, 2009 at 5:09 PM,  <spam@systol-ng.god.lan> wrote:
+>> >
+>> > Switches IF AGC control via GPIO 21 of the saa7134. Improves DTV reception and
+>> > FM radio reception.
+>> >
+>> > Signed-off-by: Henk.Vergonet@gmail.com
+>>
+>> Reviewed-by: Michael Krufky <mkrufky@kernellabs.com>
+>>
+>> Henk,
+>>
+>> This is *very* interesting...  Have you taken a scope to the board to
+>> measure AGC interference?   This seems to be *very* similar to
+>> Hauppauge's design for the HVR1120 and HVR1150 boards, which are
+>> actually *not* based on any reference design.
+>>
+>> I have no problems with this patch, but I would be interested to hear
+>> that you can prove it is actually needed by using a scope.  If you
+>> don't have a scope, I understand....  but this certainly peaks my
+>> interest.
+>>
+>> Do you have schematics of that board?
+>>
+>> Regards,
+>>
+>> Mike Krufky
+>>
+>
+> One note: I have tested the tda18271 signedness fixes in the debug
+> repository. This is a big improvement in reception.
+>
+> Based on the latest testing with all the fixes I would say that
+> switching the AGC line via gpio is not needed and leaving it at 0 gives
+> the best results.
+> (This is purely based on SNR and BER readings from tzap)
+>
+> So I would recomend: leaving config at zero.
+>
+>  static struct tda18271_config zolid_tda18271_config = {
+>        .std_map = &zolid_tda18271_std_map,
+>        .gate    = TDA18271_GATE_ANALOG,
+> -       .config  = 3,
+> +//     .config  = 3,
+>        .output_opt = TDA18271_OUTPUT_LT_OFF,
+>  };
+>
 
-This means that I'm also too busy and with a large backlog. I'll try to merge
-the pending patches and pull requests while there but please don't expect too
-much. It will be a long travel (about 60 hours in transit, going and going back
-to Japan).
+I removed the patch from my tree awaiting merge, "saa7134: add AGC
+control for Zolid Hybrid PCI card".
 
-Anyway, I'm trying to setup an informal meeting with those of you that will be
-there. Please let me know in priv if some of you are interested on discussing
-relevant issues about the subsystem. In particular, it would be good to discuss
-about missing things to properly support Asian digital video standards.
+It wasn't as simple as changing the 3 to a 0, since the function,
+"saa7134_tda18271_zolid_toggle_agc" becomes a no-op.
 
-If there are enough audience, I'll probably be able to get a room there.
+Also, you've been sending the sign-off's in the wrong format in your
+previous submissions.
 
+Please send in the "FM reception via RF_IN" as a separate patch, and
+include your sign-off using the actual format:
 
-Cheers,
-Mauro
+Signed-off-by: Your Name <email@addre.ss>
+
+Regards,
+
+Mike
