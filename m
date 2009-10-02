@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from dd16712.kasserver.com ([85.13.137.159])
-	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <vdr@helmutauer.de>) id 1MxRNR-0005rw-61
-	for linux-dvb@linuxtv.org; Mon, 12 Oct 2009 22:20:17 +0200
-Received: from [127.0.0.1] (p50817320.dip.t-dialin.net [80.129.115.32])
-	by dd16712.kasserver.com (Postfix) with ESMTP id 0E032180CEA68
-	for <linux-dvb@linuxtv.org>; Mon, 12 Oct 2009 22:20:18 +0200 (CEST)
-Message-ID: <4AD38F87.6020306@helmutauer.de>
-Date: Mon, 12 Oct 2009 22:20:23 +0200
-From: Helmut Auer <vdr@helmutauer.de>
-MIME-Version: 1.0
+Received: from 0403ds2-oebr.1.fullrate.dk ([90.184.6.185]
+	helo=pris.musikcheck.dk) by mail.linuxtv.org with esmtp (Exim 4.69)
+	(envelope-from <hhj-linux-dvd@musikcheck.dk>) id 1MtcRv-0000jY-GC
+	for linux-dvb@linuxtv.org; Fri, 02 Oct 2009 09:21:07 +0200
+Received: from [94.101.209.34] (helo=miyagi.musikcheck.dk)
+	by pris.musikcheck.dk with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69) (envelope-from <hhj-linux-dvd@musikcheck.dk>)
+	id 1MtcRL-0003tE-9J
+	for linux-dvb@linuxtv.org; Fri, 02 Oct 2009 09:20:32 +0200
+From: Hasse Hagen Johansen <hhj-linux-dvd@musikcheck.dk>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Status of v4l repositories / merging new one
+Date: Fri, 02 Oct 2009 09:20:24 +0200
+Message-ID: <87fxa2uurr.fsf@musikcheck.dk>
+MIME-Version: 1.0
+Subject: [linux-dvb] What is the status of the driver TT CT-3650
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -26,18 +28,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello List
+Hi
 
-AFAIK there are different v4l repositories supporting differnet hardware, e.g v4l-dvb(missing
-skystar HD), liplianin (missing knc1) etc.
-To add another one, we have a repository supporting the pci-e dual dvb-s low pointer profile
-mediapointer card :)
-But for my distribution I'd like to have one repository, supporting all cards
-Whats to do to get all these repositories merged ?
-Are there any plans about doing that ?
+I have recently bought such a card and tried to get it working. Does
+anyone know if it is possible. I have compiled the dvb drivers from
+s2-liplianin
 
--- 
-Helmut Auer, helmut@helmutauer.de
+And tried to use the scan program from the dvb-apps mercurial tarball. I
+also compile scan-s2 and tried that, but I always get "tuning failed"
+
+Anyone know how to get this working or this card is in a working state
+under linux. Because if it not working yet I will stop wasting my time
+:-)
+
+Regards
+Hasse H. Johansen
 
 _______________________________________________
 linux-dvb users mailing list
