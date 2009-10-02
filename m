@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx06.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.10])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n9SAIFcT012801
-	for <video4linux-list@redhat.com>; Wed, 28 Oct 2009 06:18:15 -0400
-Received: from smtpin2.mailsecure.in (SMTPIN2.mailsecure.in [121.241.224.3])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n9SAI4Ak028724
-	for <video4linux-list@redhat.com>; Wed, 28 Oct 2009 06:18:05 -0400
-Content-class: urn:content-classes:message
+Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.8])
+	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n92CkGhv028758
+	for <video4linux-list@redhat.com>; Fri, 2 Oct 2009 08:46:16 -0400
+Received: from partygirl.tmr.com (mail.tmr.com [64.65.253.246])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n92Ck4Wo028939
+	for <video4linux-list@redhat.com>; Fri, 2 Oct 2009 08:46:06 -0400
+Received: from partygirl.tmr.com (partygirl.tmr.com [127.0.0.1])
+	by partygirl.tmr.com (8.14.2/8.14.2) with ESMTP id n92Ck3EE023973
+	for <video4linux-list@redhat.com>; Fri, 2 Oct 2009 08:46:03 -0400
+Message-ID: <4AC5F60B.7040804@tmr.com>
+Date: Fri, 02 Oct 2009 08:46:03 -0400
+From: Bill Davidsen <davidsen@tmr.com>
 MIME-Version: 1.0
-Date: Wed, 28 Oct 2009 15:47:58 +0530
-Message-ID: <9D5E1752379A43408015F7FE9846611504EDD06A@CHNEXVS01.VSNLXCHANGE.COM>
-From: "Anantha Krishnan H" <ananthakrishnan@tataelxsi.co.in>
-To: <video4linux-list@redhat.com>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Subject: what is /dev/video0 entry?
+To: video4linux-list@redhat.com
+References: <1253120892.3669.11.camel@paulo-desktop>
+In-Reply-To: <1253120892.3669.11.camel@paulo-desktop>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: Re: Create a /dev/video0 file and write directly into it images
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,18 +31,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all
-    When kernel boots up the Video4Linux driver is registered as a characte=
-r driver with major number 81.If i plug-in my UVC compliant webcam, the UVC=
- driver creates an entry in /dev/video0.Now i want to write an application =
-for testing my webcam.I came to know that for writing an application for co=
-mmunicating with the webcam we can use the V4L2 APIs provided by the linux =
-kernel.Are these V4L2 APIs from the video4linux driver?Also could anyone ki=
-ndly tell me what is the /dev/video0 entry?Is this entry used for communica=
-ting with the video device?
+Paulo Freitas wrote:
+> Hi everyone,
+> 
+> I have an Ethernet Camera, from Prosilica, and I need to somehow emulate
+> this camera in a /dev/video0 file. My idea is, mount a driver file using
+> 'makedev', pick up images from the camera and write them into
+> the /dev/video0 file. You know how V4L can be used to write images
+> in /dev/video files? I don't know if it is needed to use makedev
+> probably not. Any suggestion is welcome.
+> 
+I'm not sure I see what the end use is here, watching or recording, but you 
+might be able to use existing software which can generate streaming video and 
+then use tools which can accept that over a network (could just be loopback if 
+that fits your use).
 
-Thanks & Regards
-Ananth
+-- 
+Bill Davidsen <davidsen@tmr.com>
+   "We have more to fear from the bungling of the incompetent than from
+the machinations of the wicked."  - from Slashdot
 
 --
 video4linux-list mailing list
