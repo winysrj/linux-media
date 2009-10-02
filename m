@@ -1,110 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:26029 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751402AbZJWKSd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Oct 2009 06:18:33 -0400
-Message-ID: <4AE182DD.6060103@maxwell.research.nokia.com>
-Date: Fri, 23 Oct 2009 13:18:05 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from mail-bw0-f210.google.com ([209.85.218.210]:57368 "EHLO
+	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758121AbZJBUkD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2009 16:40:03 -0400
+Received: by bwz6 with SMTP id 6so1338260bwz.37
+        for <linux-media@vger.kernel.org>; Fri, 02 Oct 2009 13:40:06 -0700 (PDT)
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"Zutshi Vimarsh (Nokia-D-MSW/Helsinki)" <vimarsh.zutshi@nokia.com>,
-	Ivan Ivanov <iivanov@mm-sol.com>,
-	Cohen David Abraham <david.cohen@nokia.com>,
-	Guru Raj <gururaj.nagendra@intel.com>,
-	Mike Krufky <mkrufky@linuxtv.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [RFC] Video events, version 2.2
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4AC63EC9.2010207@rogers.com>
+References: <200909252322.26427.hverkuil@xs4all.nl>
+	 <4AC63EC9.2010207@rogers.com>
+Date: Fri, 2 Oct 2009 22:40:06 +0200
+Message-ID: <d9def9db0910021340k63492355ldb881056854b077e@mail.gmail.com>
+Subject: Re: [Bulk] V4L-DVB Summit Day 3
+From: Markus Rechberger <mrechberger@gmail.com>
+To: CityK <cityk@rogers.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Fri, Oct 2, 2009 at 7:56 PM, CityK <cityk@rogers.com> wrote:
+> Hans Verkuil wrote:
+>> I made the following list:
+>>
+>> - We created a new mc mailinglist: linux-mc@googlegroups.com
+>>
+>> This is a temporary mailinglist where we can post and review patches during
+>> prototyping of the mc API. We don't want to flood the linux-media list with
+>> those patches since that is already quite high-volume.
+>>
+>> The mailinglist should be active, although I couldn't find it yet from
+>> www.googlegroups.com. I'm not sure if it hasn't shown up yet, or if I did
+>> something wrong.
+>>
+>
+> I'm scratching my head on this one.  Seems the last thing that is needed
+> is YET another mailing list.  Further, it
+> - fractures the development community.
 
+this is what I think too. I'm mainly interested in keeping up
+compatibility with that framework
+The traffic on this mailinglist is rather small and it should be ok to
+mix up developer mails
+with a few support mails (whereas people usually use to CC anyone who
+might be involved anyway).
 
-Here's the version 2.2 of the video events RFC. It's based on Laurent
-Pinchart's original RFC and versions 2 and 2.1 which I wrote. The old 
-RFC is available here:
+> - persons unaware of the decision, and whom might be interested, would
+> never find it . i.e. alienation
 
-<URL:http://www.spinics.net/lists/linux-media/msg11056.html>
+if you try to send an email as adviced to that googlemail mailinglist
+you'll just get an email back that it doesn't work :-)
 
-Added Mauro to Cc.
+nothing else to write about it I totally agree.
 
-Changes to version 2.1
---------------------
+One question I have though, what is the impact to the existing API,
+will they start to require that MC interface?
+TI hardware is rather specialized and most other devices will not need
+any of those changes, I don't see the benefit
+of bloating up the API for devices which already work fine, for simple
+devices it should better remain simple.
+(This question is mainly because we also maintain our own player which
+supports the v4l2/dvbV(3/5) API, but the
+driver should still support legacy applications in the future)
 
-V4L2_EVENT_ALL is now 0 instead 0x07ffffff.
-
-V4L2_EVENT_RESERVED is gone. A note will be added not to use four 
-topmost bits.
-
-It's V4L2_EVENT_PRIVATE_START, not V4L2_EVENT_PRIVATE.
-
-Interface description
----------------------
-
-Event type is either a standard event or private event. Standard events
-will be defined in videodev2.h. Private event types begin from
-V4L2_EVENT_PRIVATE_START. The four topmost bits of the type should not 
-be used for the moment.
-
-#define V4L2_EVENT_ALL			0
-#define V4L2_EVENT_PRIVATE_START	0x08000000
-
-VIDIOC_DQEVENT is used to get events. count is number of pending events
-after the current one. sequence is the event type sequence number and
-the data is specific to event type.
-
-The user will get the information that there's an event through
-exception file descriptors by using select(2). When an event is
-available the poll handler sets POLLPRI which wakes up select. -EINVAL
-will be returned if there are no pending events.
-
-VIDIOC_SUBSCRIBE_EVENT and VIDIOC_UNSUBSCRIBE_EVENT are used to
-subscribe and unsubscribe from events. The argument is struct
-v4l2_event_subscription which now only contains the type field for the
-event type. Every event can be subscribed or unsubscribed by one ioctl
-by using special type V4L2_EVENT_ALL.
-
-
-struct v4l2_event {
-	__u32		count;
-	__u32		type;
-	__u32		sequence;
-	struct timeval	timestamp;
-	__u32		reserved[8];
-	__u8		data[64];
-};
-
-struct v4l2_event_subscription {
-	__u32		type;
-	__u32		reserved[8];
-};
-
-#define VIDIOC_DQEVENT		_IOR('V', 84, struct v4l2_event)
-#define VIDIOC_SUBSCRIBE_EVENT	_IOW('V', 85, struct
-				     v4l2_event_subscription)
-#define VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 86, struct
-				      v4l2_event_subscription)
-
-
-The size of the event queue is decided by the driver. Which events will
-be discarded on queue overflow depends on the implementation.
-
-
-Questions
----------
-
-None on my side.
-
-Comments and questions are still very very welcome.
-
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
-
+Best Regards,
+Markus
