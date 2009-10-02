@@ -1,60 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:64390 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750724AbZJQDU5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Oct 2009 23:20:57 -0400
-Subject: Re: Leadtek PVR2100 / DVR3100 Experience
-From: Andy Walls <awalls@radix.net>
-To: David Nicol <david@etvinteractive.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <C6FE3C20.1BB80%david@etvinteractive.com>
-References: <C6FE3C20.1BB80%david@etvinteractive.com>
-Content-Type: text/plain
-Date: Fri, 16 Oct 2009 23:23:22 -0400
-Message-Id: <1255749802.5667.10.camel@palomino.walls.org>
-Mime-Version: 1.0
+Received: from hrndva-omtalb.mail.rr.com ([71.74.56.122]:57112 "EHLO
+	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755546AbZJBQGv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2009 12:06:51 -0400
+From: "David F. Carlson" <dave@chronolytics.com>
+Message-Id: <200910021603.n92G3elB032227@chronolytics.com>
+Subject: Re: Global Video Buffers Pool - PMM and UPBuffer reference drivers [RFC]
+To: m.szyprowski@samsung.com (Marek Szyprowski)
+Date: Fri, 2 Oct 2009 12:03:40 -0400 (EDT)
+Cc: linux-media@vger.kernel.org (linux-media@vger.kernel.org),
+	linux-arm-kernel@lists.infradead.org (linux-arm-kernel@lists.infradead.org),
+	kyungmin.park@samsung.com (kyungmin.park@samsung.com),
+	t.fujak@samsung.com (Tomasz Fujak)
+In-Reply-To: <E4D3F24EA6C9E54F817833EAE0D912AC077151C44B@bssrvexch01.BS.local>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2009-10-16 at 15:05 +0100, David Nicol wrote:
-> Hi,
+
+I am not a fan of the large and static driver based bootmem allocations in the 
+samsung-ap-2.6 git.  This work at least addresses that issue.  Thanks.
+
+Below are some comments.  Perhaps I am not "getting it".
+
+According to Marek Szyprowski:
 > 
-> Could anyone give first hand experience of the stability of the Leadtek
-> PVR2100 and/or the DVR3100 cards?
+> algorithm itself would typically be changed to fit a usage pattern.
 > 
-> Does analog capture work well in both cards over a prolonged period of
-> uptime?
+> In our solution all memory buffers are all allocated by user-space
+> applications, because only user applications have enough information
+> which devices will be used in the video processing pipeline. For
+> example:
 > 
-> Any known issues with either card?
-
-Both cards are supported by the cx18 driver which is stable.
-
-The card definition for the DVR 3100 H certainly has the digital side of
-the cards working properly, thanks to Terry Wu.
-
-The analog side of the 3100 or just the 2100 should work just fine, once
-the card definition in cx18-cards.c are tweaked to actually match how
-the cards are wired up.  (I made some guesses without any cards to test
-or look at.)  Once that's done, analog should be comparable to an
-HVR-1600.  You'll have to extract the XCeive tuner's firmware via
-instructions that are somewhere on the V4L-DVB wiki. 
-
-
-On shortcoming the cx18 driver has is a missing interlock between the
-analog and digitial TV capture, if trying to capture analog video from
-the tuner versus a baseband input (CVBS or S-Video).  The XCeive tuner
-can either do analog tuning or digital tuning at any one time - not
-both.  Do don't try both analog and digital OTA capture with a 3100 at
-the same time. 
-
-Also, I wouldn't expect FM radio to work.
-
-Regards,
-Andy
-
-> Thanks in advance for any information.
+> MFC video decoder -> Post Processor (scaler and color space converter)
+>  -> Frame Buffer memory.
 > 
-> David Nicol
+> If such a translation succeeds the
+> physical memory region will be properly locked and is guaranteed to be
+> in the memory till the end of transaction. Each transaction must be
+> closed by the multimedia device driver explicitly.
+
+Since this is a *physical* memory manager, I would never expect the memory
+to not be in memory... 
+
+> 
+> 
+> Technical details
+> -----------------
+> 
+> 1. Physical memory allocation
+> 
+> PMM reserves the contiguous physical memory with bootmem kernel
+> allocator. A boot parameter is used to provide information how much
+> memory should be allocated, for example: adding a 'pmm=32M' parameter
+> would reserve 32MiB of system memory on system boot.
+> 
+> 2. Allocating a buffer from userspace
+> 
+> PMM provides a /dev/pmm special device. Each time the application wants
+> to allocate a buffer it opens the /dev/pmm special file, calls
+> IOCTL_PMM_ALLOC ioctl and the mmaps it into its virtual memory. The
+> struct pmm_area_info parameter for IOCTL_PMM_ALLOC ioctl describes the
+> memory requirements for the buffer (please refer to
+> include/linux/s3c/pmm.h) - like buffer size, memory alignment, memory
+> type (PMM supports different memory types, although currently only one
+> is used) and cpu cache coherency rules (memory can be mapped as
+> cacheable or non-cacheable). The buffer is freed when the file
+> descriptor reference count reaches zero (so the file is closed, is
+> unmmaped from applications memory and released from multimedia devices).
+
+I prefer using mmap semantics with a driver than messes with *my* address
+space.  Ioctls that mess with my address space gives me hives.  
+
+mmap is the call a user makes to map a memory/file object into its space.
+ioctl is for things that don't fit read/write/mmap.  :-)
+
+1.  memory alignment will be page size 4k (no?).  Or are you suggesting
+larger alignment requirements?  Are any of the target devices 24 bit dma
+clients?  (Crossing a 16MB boundary would then not work...)
+
+2. Since these buffers will be dma sources/targets, cache will be off (no?)
+
+Many CPUs ldr/stm memcpy do burst access to DDR so non-cached is still pretty 
+zipping for non-bit banging apps.  Forcing non-cached makes much of the "sync" 
+semantic you have "go away".
+
+Is there a use-case for cached graphics controller memory that I am missing?
 
 
+> 3. Buffer locking
+> 
+> If user application performed a mmap call on some special device and a
+> driver mapped some physical memory into user address space (usually with
+> remap_pfn_range function), this will create a vm_area structure with
+> VM_PFNMAP flag set in user address space map. UPBuffer layer can easily
+> perform a reverse mapping (virtual address to physical memory address)
+> by simply reading the PTE values and checking if it is contiguous in
+> physical memory. The only problem is how to guarantee the security of
+> this solution. VM_PFNMAP-type areas do not have associated page
+> structures so that memory pages cannot be locked directly in page cache.
+> However such memory area would not be freed until the special file that
+> is behind it is still in use. We found that is can be correctly locked
+> by increasing reference counter of that special file (vm_area->vm_file).
+> This would lock the mapping from being freed if user would accidently do
+> something really nasty like unmapping that area.
+
+I am still missing it.  Your /dev/pmm is allocating *physical memory* -- which
+it (the pmm) owns for all time (bootmem).  If the user unmaps it, it is still 
+pmm's physical memory.  
+
+Now, returning the allocated memory to the pmm freelist
+requires both the source and target to relinquish.  That implies both drivers 
+"know" to relinquish on last-close.  Otherwise, you leak like a sieve.
+
+Returning the pmm memory to the freelist when the user unmaps means that 
+dma registers in HW still reference that memory.  Only the driver knows 
+when it is "done".
+
+Drivers "own" the PMM lifecycle.  Users get transient mappings.
+
+
+> 7. SYSV SHM integration
+> 
+SysV shm is a nice touch.  Good job.
+
+Re: configuration
+There are quite a few CONFIG variables.  Forcing s3c-mm drivers to use PMM
+would knock quite a few of them out.
+
+You have presented a very flexible, general purpose bootmem allocator/mapper.
+(cache/uncached, bounce/pmm, etc.)
+
+The problem you were trying to solve is a means to generalize multiple 
+compile-time fixed bootmem allocations at runtime.
+
+Perhaps this could be simplified to fix that problem by assuming that 
+all users (including the s3c-fb driver) would use a simple non-cached 
+pmm allocator so that all allocations would be pooled.
+
+I would advocate "hiding" pmm allocations within the s3c-mm drivers.  
+Each driver could test user buffers for "isPMM()" trivially since the 
+bootmem is physically contig.
+
+What is the advantage in exporting the pmm API to user-space?
+
+David F. Carlson    Chronolytics, Inc.  Rochester, NY
+mailto:dave@chronolytics.com            http://www.chronolytics.com
+
+"The faster I go, the behinder I get." --Lewis Carroll
