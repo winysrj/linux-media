@@ -1,17 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qmta09.emeryville.ca.mail.comcast.net ([76.96.30.96])
+Received: from ombos.raceme.org ([212.85.152.43])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <reg@dwf.com>) id 1MwsD4-0007Vi-Fe
-	for linux-dvb@linuxtv.org; Sun, 11 Oct 2009 08:47:15 +0200
-Received: from deneb.dwf.com (localhost.localdomain [127.0.0.1])
-	by deneb.dwf.com (8.14.1/8.14.1) with ESMTP id n9B6kcN5014056
-	for <linux-dvb@linuxtv.org>; Sun, 11 Oct 2009 00:46:38 -0600
-Message-Id: <200910110646.n9B6kcN5014056@deneb.dwf.com>
+	(envelope-from <tof+linux-dvb@raceme.org>) id 1MtlrQ-0003Dl-9u
+	for linux-dvb@linuxtv.org; Fri, 02 Oct 2009 19:24:04 +0200
+Received: from localhost (mail.raceme.org [192.168.1.17])
+	by ombos.raceme.org (Postfix) with ESMTP id 18F1EC1F9E
+	for <linux-dvb@linuxtv.org>; Fri,  2 Oct 2009 19:24:00 +0200 (CEST)
+Received: from ombos.raceme.org ([192.168.1.17])
+	by localhost (ombos.raceme.org [192.168.1.17]) (amavisd-new, port 10024)
+	with ESMTP id TIlkPMnVQuKZ for <linux-dvb@linuxtv.org>;
+	Fri,  2 Oct 2009 19:23:54 +0200 (CEST)
+Received: from [IPv6:::1] (shell.raceme.org [192.168.1.19])
+	by ombos.raceme.org (Postfix) with ESMTP id 8AD37C1F96
+	for <linux-dvb@linuxtv.org>; Fri,  2 Oct 2009 19:23:54 +0200 (CEST)
+Message-ID: <4AC63729.9070100@raceme.org>
+Date: Fri, 02 Oct 2009 19:23:53 +0200
+From: Christophe Boyanique <tof+linux-dvb@raceme.org>
+MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-From: clemens@dwf.com
-Mime-Version: 1.0
-Date: Sun, 11 Oct 2009 00:46:38 -0600
-Subject: [linux-dvb] Problems in linux-2.6.31
+References: <a413d4880909280734j714abc45ne664e061a7209d29@mail.gmail.com>
+In-Reply-To: <a413d4880909280734j714abc45ne664e061a7209d29@mail.gmail.com>
+Subject: Re: [linux-dvb] Any PCIe DVB-T Dual Tuner cards yet working under
+ Linux?
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -26,28 +36,35 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-In xconfig for linux-2.6.31 there appears to be only one line that refers to 
-the
-Technisat Air 2 PCI cards, viz
-	Technisat/B2C2 ...
-	    Tecnisat/B2C2 Air/Sky/Cable2PC PCI 
-	    ...
 
-Yet when I build a kernel with this option my OLD Techisat card 
-the Air 2 PC-ATSC-PCI card that requires some microcode to be loaded, comes
-up but the newer card, the AirStar-HD5000-PCI does not.
+Hello,,
 
-Anyone else see this behaviour?
-Everything is fine with an older kernel.
+> Is anyone on the list currently using a DVB-T card that has DUAL
+> tuners (i.e. I'm looking to replace Hauppage 500's which work great).
 
-Anyone know  a solution?
+That is an excellent question and I am looking forward to here people
+about success stories.
 
-Am I missing something?
+I am also looking for a device (PCIe preferred, or PCI or at worst USB
+stick) with a dual HD tuner which is buyable from France or Europe...
 
--- 
-                                        Reg.Clemens
-                                        reg@dwf.com
+I found this models which seem to be NOT supported:
+- TerraTec Cinergy 2400i DT (not supported from wiki)
+- TerraTec T5 Stick (no information found)
+- PCTV Stick Dual DVB-T Diversity (2001e) (not supported from wiki)
+- AVerMedia AVerTV Duo Hybrid PCI-E A188H (no information found)
 
+I found this card which seems to be supported:
+- Dvico FusionHDTV DVB-T Dual Express
+but I do not find any reseller in Europe.
+
+I found an online reseller in the USA here:
+http://www.cyberestore.com/hdtv-tv-tuner-cards/dvico-fusionhdtv-dvb-t-dual-express.html
+
+But I am not sure that a card sold in the USA will work in Europe as USA
+uses NTSC and ATSC (instead of PAL and DVB in Europe).
+
+Christophe.
 
 _______________________________________________
 linux-dvb users mailing list
