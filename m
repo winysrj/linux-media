@@ -1,68 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp148.mail.ukl.yahoo.com ([77.238.184.79]:41581 "HELO
-	smtp148.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1758767AbZJHSOT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 8 Oct 2009 14:14:19 -0400
-Message-ID: <4ACE2BCE.9040308@yahoo.it>
-Date: Thu, 08 Oct 2009 20:13:34 +0200
-From: SebaX75 <sebax75@yahoo.it>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: Pinnace 320e (PCTV Hybrid Pro Stick) support
-References: <2D9D466571BB4CCEB9FD981D65F8FBFC@MirekPNB> <829197380910080736g4b30e0e8m21f1d3b876a15ce6@mail.gmail.com>
-In-Reply-To: <829197380910080736g4b30e0e8m21f1d3b876a15ce6@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from bamako.nerim.net ([62.4.17.28]:55393 "EHLO bamako.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756825AbZJBMsD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Oct 2009 08:48:03 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by bamako.nerim.net (Postfix) with ESMTP id B5F9439DE4A
+	for <linux-media@vger.kernel.org>; Fri,  2 Oct 2009 14:48:03 +0200 (CEST)
+Received: from bamako.nerim.net ([127.0.0.1])
+	by localhost (bamako.nerim.net [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id MueeN84BqOBX for <linux-media@vger.kernel.org>;
+	Fri,  2 Oct 2009 14:48:02 +0200 (CEST)
+Received: from hyperion.delvare (jdelvare.pck.nerim.net [62.212.121.182])
+	by bamako.nerim.net (Postfix) with ESMTP id 96F5239DE5A
+	for <linux-media@vger.kernel.org>; Fri,  2 Oct 2009 14:48:02 +0200 (CEST)
+Date: Fri, 2 Oct 2009 14:48:04 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: LMML <linux-media@vger.kernel.org>
+Subject: [PATCH] saa7134: Complete the IR address list
+Message-ID: <20091002144804.56b0b908@hyperion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller ha scritto:
-> 2009/10/8 Miroslav Pragl <lists.subscriber@pragl.cz>:
->> Hello,
->> are here users of Pinnace 320e (PCTV Hybrid Pro Stick)?
->>
->> I have lots of problems with tuning, namely
->> - scan somehow locks on the first frequency listed in scan file and finds no
->> signal on subsequent freqs
->> - kaffeine which has own scanning scans RELIABLY two, somehow three of four
->> channels available in my region
->> - vlc which has great commandline parameters for direc tuning frequency and
->> programm (by its ID) works fine
->>
->> I currently use Fedora 11 with latest stable kernel (64 bit) and try to keep
->> up-to-date with linuxtv drivers
->>
->> any help or atleast bug confirming would help me a lot
->>
->> Thanks
->>
->> MP
->>
->> P.S. although i hated the aggressivnes of Markus' drivers from mcentral.de
->> (no longer maintained) and need of FULL kernel sources these atleast worked
->> :(
-> 
-> Hi Miroslav,
-> 
-> I did the 320e work with the assistance of a couple of users in
-> Europe.  Could you confirm that you are running the latest v4l-dvb
-> tree from http://linuxtv.org/hg/v4l-dvb?  If so, please provide the
-> output of dmesg after connecting the device.
-> 
-> Devin
-> 
+Google is pretty clear that the HVR 1110 IR chip is always at address
+0x71 and the BeholdTV IR chip is always at address 0x2d. This
+completes the list of IR device addresses for the SAA7134-based
+adapters, and we no longer need to probe any of them.
 
-Hi Devin,
-we have already discussed a few weeks ago on IRC; you've tryed to 
-identify the problem with my help and debug on, but no information about 
-the problem was identified, so you have requested to me a log captured 
-with usbmon during scanning.
-I've sent you a session captured with usbmon, but after this I've not 
-seen any improvement and I've not received any reply.
-In the past day I'm joined on #linuxtv, but probably you was busy and so 
-I don't know if there are news.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+Note: this goes on top of the other saa7134 patches I've sent earlier
+today.
 
-Bye and thanks,
-Sebastian
+ linux/drivers/media/video/saa7134/saa7134-input.c |   25 ++++++---------------
+ 1 file changed, 8 insertions(+), 17 deletions(-)
+
+--- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134-input.c	2009-10-02 13:50:12.000000000 +0200
++++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134-input.c	2009-10-02 14:29:07.000000000 +0200
+@@ -746,10 +746,6 @@ void saa7134_probe_i2c_ir(struct saa7134
+ {
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
+ 	struct i2c_board_info info;
+-	const unsigned short addr_list[] = {
+-		0x47, 0x71, 0x2d,
+-		I2C_CLIENT_END
+-	};
+ 
+ 	struct i2c_msg msg_msi = {
+ 		.addr = 0x50,
+@@ -846,6 +842,7 @@ void saa7134_probe_i2c_ir(struct saa7134
+ 		dev->init_data.name = "HVR 1110";
+ 		dev->init_data.get_key = get_key_hvr1110;
+ 		dev->init_data.ir_codes = &ir_codes_hauppauge_new_table;
++		info.addr = 0x71;
+ #endif
+ 		break;
+ 	case SAA7134_BOARD_BEHOLD_607FM_MK3:
+@@ -869,30 +866,24 @@ void saa7134_probe_i2c_ir(struct saa7134
+ 		dev->init_data.name = "BeholdTV";
+ 		dev->init_data.get_key = get_key_beholdm6xx;
+ 		dev->init_data.ir_codes = &ir_codes_behold_table;
++		info.addr = 0x2d;
+ #endif
+ 		break;
+-#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 30)
+-	default:
+-		dprintk("Shouldn't get here: Unknown board %x for I2C IR?\n",dev->board);
+-#else
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
+ 	case SAA7134_BOARD_AVERMEDIA_CARDBUS_501:
+ 	case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
+ 		info.addr = 0x40;
+-#endif
+ 		break;
++#endif
++	default:
++		dprintk("No I2C IR support for board %x\n", dev->board);
++		return;
+ 	}
+ 
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
+ 	if (dev->init_data.name)
+ 		info.platform_data = &dev->init_data;
+-	/* No need to probe if address is known */
+-	if (info.addr) {
+-		i2c_new_device(&dev->i2c_adap, &info);
+-		return;
+-	}
+-
+-	/* Address not known, fallback to probing */
+-	i2c_new_probed_device(&dev->i2c_adap, &info, addr_list);
++	i2c_new_device(&dev->i2c_adap, &info);
+ #endif
+ }
+ 
+
+-- 
+Jean Delvare
