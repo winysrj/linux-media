@@ -1,96 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56450 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752850AbZJMPKy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Oct 2009 11:10:54 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9DFAF1h011657
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 13 Oct 2009 10:10:17 -0500
-From: hvaibhav@ti.com
+Received: from mail-ew0-f211.google.com ([209.85.219.211]:55194 "EHLO
+	mail-ew0-f211.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751526AbZJCWJu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2009 18:09:50 -0400
+Received: by ewy7 with SMTP id 7so2387276ewy.17
+        for <linux-media@vger.kernel.org>; Sat, 03 Oct 2009 15:09:12 -0700 (PDT)
+Subject: [PATCH] MAINTAINERS: addition of gspca_gl860 driver
+From: Olivier Lorin <olorin75@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH 5/6] Davinci VPFE Capture: Add support for Control ioctls
-Date: Tue, 13 Oct 2009 20:40:14 +0530
-Message-Id: <1255446614-16847-1-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
+Content-Type: text/plain
+Date: Sun, 04 Oct 2009 00:09:10 +0200
+Message-Id: <1254607750.24873.49.camel@miniol>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+MAINTAINERS: addition of gspca_gl860 driver
 
-Added support for Control IOCTL,
-	- s_ctrl
-	- g_ctrl
-	- queryctrl
+From: Olivier Lorin <o.lorin@laposte.net>
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- drivers/media/video/davinci/vpfe_capture.c |   43 ++++++++++++++++++++++++++++
- 1 files changed, 43 insertions(+), 0 deletions(-)
+- addition of gspca_gl860 driver
 
-diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
-index abe21e4..f77d99b 100644
---- a/drivers/media/video/davinci/vpfe_capture.c
-+++ b/drivers/media/video/davinci/vpfe_capture.c
-@@ -1368,6 +1368,46 @@ static int vpfe_g_std(struct file *file, void *priv, v4l2_std_id *std_id)
- 	return 0;
- }
+Priority: normal
+
+Signed-off-by: Olivier Lorin <o.lorin@laposte.net>
+
+--- ../a/MAINTAINERS	2009-09-20 02:07:33.000000000 +0200
++++ MAINTAINERS	2009-09-20 02:09:56.000000000 +0200
+@@ -2224,6 +2224,13 @@ T:	git git://git.kernel.org/pub/scm/linu
+ S:	Maintained
+ F:	drivers/media/video/gspca/finepix.c
  
-+static int vpfe_queryctrl(struct file *file, void *priv,
-+		struct v4l2_queryctrl *qctrl)
-+{
-+	struct vpfe_device *vpfe_dev = video_drvdata(file);
-+	struct vpfe_subdev_info *sdinfo;
-+	int ret = 0;
++GSPCA GL860 SUBDRIVER
++M:	Olivier Lorin <o.lorin@laposte.net>
++L:	linux-media@vger.kernel.org
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
++S:	Maintained
++F:	drivers/media/video/gspca/gl860/
 +
-+	sdinfo = vpfe_dev->current_subdev;
-+
-+	ret = v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo->grp_id,
-+					 core, queryctrl, qctrl);
-+
-+	if (ret)
-+		qctrl->flags |= V4L2_CTRL_FLAG_DISABLED;
-+
-+	return 0;
-+}
-+
-+static int vpfe_g_ctrl(struct file *file, void *priv, struct v4l2_control *ctrl)
-+{
-+	struct vpfe_device *vpfe_dev = video_drvdata(file);
-+	struct vpfe_subdev_info *sdinfo;
-+
-+	sdinfo = vpfe_dev->current_subdev;
-+
-+	return v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo->grp_id,
-+					 core, g_ctrl, ctrl);
-+}
-+
-+static int vpfe_s_ctrl(struct file *file, void *priv, struct v4l2_control *ctrl)
-+{
-+	struct vpfe_device *vpfe_dev = video_drvdata(file);
-+	struct vpfe_subdev_info *sdinfo;
-+
-+	sdinfo = vpfe_dev->current_subdev;
-+
-+	return v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo->grp_id,
-+					 core, s_ctrl, ctrl);
-+}
-+
- /*
-  *  Videobuf operations
-  */
-@@ -1939,6 +1979,9 @@ static const struct v4l2_ioctl_ops vpfe_ioctl_ops = {
- 	.vidioc_querystd	 = vpfe_querystd,
- 	.vidioc_s_std		 = vpfe_s_std,
- 	.vidioc_g_std		 = vpfe_g_std,
-+	.vidioc_queryctrl	 = vpfe_queryctrl,
-+	.vidioc_g_ctrl		 = vpfe_g_ctrl,
-+	.vidioc_s_ctrl		 = vpfe_s_ctrl,
- 	.vidioc_reqbufs		 = vpfe_reqbufs,
- 	.vidioc_querybuf	 = vpfe_querybuf,
- 	.vidioc_qbuf		 = vpfe_qbuf,
--- 
-1.6.2.4
+ GSPCA M5602 SUBDRIVER
+ M:	Erik Andren <erik.andren@gmail.com>
+ L:	linux-media@vger.kernel.org
 
