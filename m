@@ -1,96 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:62910 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932701AbZJ3STp convert rfc822-to-8bit (ORCPT
+Received: from mailrelay003.isp.belgacom.be ([195.238.6.53]:4200 "EHLO
+	mailrelay003.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751163AbZJCPBe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Oct 2009 14:19:45 -0400
-Received: by pwj9 with SMTP id 9so793251pwj.21
-        for <linux-media@vger.kernel.org>; Fri, 30 Oct 2009 11:19:50 -0700 (PDT)
+	Sat, 3 Oct 2009 11:01:34 -0400
+Received: from [192.168.1.4] (athloroad.xperim.be [192.168.1.4])
+	(authenticated bits=0)
+	by via.xperim.be (8.14.2/8.14.2/Debian-2build1) with ESMTP id n93EvGDm013783
+	for <linux-media@vger.kernel.org>; Sat, 3 Oct 2009 16:57:17 +0200
+Message-ID: <4AC7664B.3090404@computer.org>
+Date: Sat, 03 Oct 2009 16:57:15 +0200
+From: Jan Ceuleers <jan.ceuleers@computer.org>
 MIME-Version: 1.0
-In-Reply-To: <83bcf6340910301109p221042b5h7b727acda69ebb74@mail.gmail.com>
-References: <8d0bb7650910261544i4ebed975rf81ec6bc38076927@mail.gmail.com>
-	 <a413d4880910261623x44d106f4h167a7dab80a4a3f8@mail.gmail.com>
-	 <83bcf6340910270717n12066fb8oa4870eb3214d7597@mail.gmail.com>
-	 <8d0bb7650910270755v38f37f6fh3937e9727493854c@mail.gmail.com>
-	 <83bcf6340910270920i4323faf8mb5b482b75bda7291@mail.gmail.com>
-	 <8d0bb7650910272244wfdbdda0kae6bec6cd94e2bcc@mail.gmail.com>
-	 <83bcf6340910280708t67fdfbffw88dc4594ca527359@mail.gmail.com>
-	 <83bcf6340910280712ue562142i5ef891fe2b701f3d@mail.gmail.com>
-	 <8d0bb7650910301043n3ba0b37ja78d78370a9e5ca7@mail.gmail.com>
-	 <83bcf6340910301109p221042b5h7b727acda69ebb74@mail.gmail.com>
-Date: Fri, 30 Oct 2009 12:19:49 -0600
-Message-ID: <8d0bb7650910301119x6d306208t40d37485d69f9f7a@mail.gmail.com>
-Subject: Re: Hauppage HVR-2250 Tuning problems
-From: dan <danwalkeriv@gmail.com>
-To: Steven Toth <stoth@kernellabs.com>
-Cc: Another Sillyname <anothersname@googlemail.com>,
-	linux-media@vger.kernel.org
+To: linux-media@vger.kernel.org
+Subject: [PATCH] drivers/media/video/em28xx: memset region size error
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I sort of hinted that I would like to try that and he didn't seem very
-excited about the idea.  I think I'll just RMA the card and hope I
-have better luck with the replacement.
+>From 2082ccb34a1ef5f67ec0618ed05d2f15c67d1da0 Mon Sep 17 00:00:00 2001
+From: Jan Ceuleers <jan.ceuleers@computer.org>
+Date: Sat, 3 Oct 2009 16:51:31 +0200
+Subject: [PATCH] drivers/media/video/em28xx: memset region size error
 
-Thanks again for all your help!
+The size of the region to be memset() should be the size
+of the target rather than the size of the pointer to it.
 
---dan
+Compile-tested only.
 
-On Fri, Oct 30, 2009 at 12:09 PM, Steven Toth <stoth@kernellabs.com> wrote:
-> On Fri, Oct 30, 2009 at 1:43 PM, dan <danwalkeriv@gmail.com> wrote:
->> Steven,
->>
->> I tried adding some 2 way splitters for attenuation.  Each one was
->> -3dB, and I got up to about 5 total, with no change.
->>
->> I didn't get a chance to try under windows (for various reasons mostly
->> related to time and lack of a Windows install CD), but I did get some
->> evidence that it might be the card.  I have a friend at work with the
->> same card which he has been using without problems for a while now (in
->> Fedora 10).  He took my card home and swapped it for his working card
->> and it didn't work.  He said that he got a message saying that the
->> card couldn't lock and that he could either try waiting longer or try
->> another channel.  He did both and he still couldn't get a lock.
->> Unless there is some other reason that you can't just swap two working
->> HVR-2250s in a working system and have the system still work, I'm
->> inclined to believe I got a bad one.
->>
->> --dan
->>
->>
->> On Wed, Oct 28, 2009 at 8:12 AM, Steven Toth <stoth@kernellabs.com> wrote:
->>> On Wed, Oct 28, 2009 at 10:08 AM, Steven Toth <stoth@kernellabs.com> wrote:
->>>> On Wed, Oct 28, 2009 at 1:44 AM, dan <danwalkeriv@gmail.com> wrote:
->>>>> I do have 2 2-way splitters between the card in the wall.  I tried
->>>>> hooking the card straight to the cable outlet on the wall and ran some
->>>>> more tests.  It's a little difficult, because there's only one cable
->>>>> outlet in my whole apartment, and it means doing some re-arranging and
->>>>> being offline while I'm running the tests.
->>>>
->>>> Removing splitters proves it's probably not a weak signal issue (also
->>>> the SNR or 39 on the TV).  Can you apply some attenuation to reduce
->>>> the overall rf strength? I'm thinking it's too hot.
->>>>
->>>> Something must be using your second tuner, mythtv maybe?
->>>
->>> Oh, and please try the card under windows ideally on the same PC using
->>> the same antenna feed, to rule out any card specific issues.
->>>
->>> --
->>> Steven Toth - Kernel Labs
->>> http://www.kernellabs.com
->>>
->>
->
-> Urgh. It sounds like a card specific problem. Of course, installing
-> your friends card in your system to completely confirm the suspicion
-> would be perfect.
->
-> Regards,
->
-> --
-> Steven Toth - Kernel Labs
-> http://www.kernellabs.com
->
+Signed-off-by: Jan Ceuleers <jan.ceuleers@computer.org>
+---
+ drivers/media/video/em28xx/em28xx-cards.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
+index bdb249b..dd4f19b 100644
+--- a/drivers/media/video/em28xx/em28xx-cards.c
++++ b/drivers/media/video/em28xx/em28xx-cards.c
+@@ -2234,7 +2234,7 @@ void em28xx_register_i2c_ir(struct em28xx *dev)
+ 	if (disable_ir)
+ 		return;
+ 
+-	memset(&dev->info, 0, sizeof(&dev->info));
++	memset(&dev->info, 0, sizeof(dev->info));
+ 	memset(&dev->init_data, 0, sizeof(dev->init_data));
+ 	strlcpy(dev->info.type, "ir_video", I2C_NAME_SIZE);
+ 
+-- 
+1.5.4.3
