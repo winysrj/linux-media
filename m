@@ -1,59 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.seznam.cz ([77.75.72.43]:36320 "EHLO smtp.seznam.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754978AbZJ0F4I (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2009 01:56:08 -0400
-From: =?utf-8?q?Old=C5=99ich_Jedli=C4=8Dka?= <oldium.pro@seznam.cz>
-To: Magnus Alm <magnus.alm@gmail.com>
-Subject: Re: Almost got remote working with my "Winfast tv usb II Deluxe" box
-Date: Tue, 27 Oct 2009 06:56:07 +0100
-Cc: linux-media@vger.kernel.org
-References: <156a113e0910251344k5799814dm8afe71d3bbfbe513@mail.gmail.com>
-In-Reply-To: <156a113e0910251344k5799814dm8afe71d3bbfbe513@mail.gmail.com>
+Received: from mp1-smtp-6.eutelia.it ([62.94.10.166]:35589 "EHLO
+	smtp.eutelia.it" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757062AbZJCTIs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2009 15:08:48 -0400
+Message-ID: <4AC79B4A.5030809@email.it>
+Date: Sat, 03 Oct 2009 20:43:22 +0200
+From: xwang1976@email.it
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: Dainius Ridzevicius <ridzevicius@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: New device: Dikom DK-300 (maybe Kworld 323U rebranded)
+References: <9577d4e00908130614q1d8c2c60kdcf74d324c897572@mail.gmail.com>	 <4A84138A.3050909@email.it> <9577d4e00908130934k77fb2b2ag124da076f448b1be@mail.gmail.com>
+In-Reply-To: <9577d4e00908130934k77fb2b2ag124da076f448b1be@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200910270656.07196.oldium.pro@seznam.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 25 of October 2009 at 21:44:20, Magnus Alm wrote:
-> Hi!
+Hi Dainius,
+I'm using the modified driver as you suggested but I can't see analog tv
+  because the system has a kernel loop when I try to tune the analog
+channels.
+Does your card have an analog tuner too?
+Do you have a v4l branch or do you know if someone has included your
+modification in thr main tree?
+Thank you,
+Xwang
 
-Hi Magnus,
+Dainius Ridzevicius ha scritto:
+> Hi,
+> 
+> replace files in /v4l-dvb/linux/drivers/media/video/em28xx
+> with attached ones and make all v4l-dvb.
+> make && make install. Reboot to clean old modules.
+> 
+> DVB-T on kwordl 323ur is working, watching TV for an hour now.
+> 
+> regards,
+> 
+> 
+> On Thu, Aug 13, 2009 at 4:22 PM, <xwang1976@email.it 
+> <mailto:xwang1976@email.it>> wrote:
+> 
+>     Yes,
+>     I'm still interested.
+>     I suppose it is the same device.
+>     In the next days I hope I will be able to take an usbsnoop of the
+>     device under windows xp.
+>     Meantime, I would like to test your drive.
+>     Regards,
+>     Xwang
+> 
+>     Dainius Ridzevicius ha scritto:
+> 
+>         Hello,
+> 
+>         I have got Kworld 323UR hybrid tuner and managed to get dvb-t
+>         lock today, will do some more testing later, but I can email or
+>         post you a link for v4l-dvb sources changed by me (from todays
+>         mercurial) if You are still interested.
+> 
+>         Regards,
+>         Dainius
+> 
+> 
+>         -- 
+>         -----------------------------------------
+> 
+> 
+> 
+> 
+> -- 
+> -----------------------------------------
 
-> This is on Ubuntu 9.04, kernel 2.6.28-16.
-> I get the following in dmesg when pressing channel down on my remote:
->
-> [ 3517.984559] : unknown key: key=0x90 raw=0x90 down=1
-> [ 3518.096558] : unknown key: key=0x90 raw=0x90 down=0
->
-> That should correspond with the following row in my keytable in ir-keymaps:
->
-> 	{ 0x90, KEY_CHANNELDOWN},	/* CHANNELDOWN */
->
-
-That is right. The "unknown key" gives a hint for your keymap. After you 
-define all keys, you should fully enjoy your remote control.
-
-> Do I need to configure lirc also?
-
-The keys are emitted via the evdev subsystem, so the remote control behaves 
-like a normal keyboard (when you press "1" you should see "1" on the console 
-too). Either you will learn your application to directly understand the key 
-presses (just change it's keyboard shortcuts), or you can use the lirc's 
-devinput driver (it reads keypresses from evdev) and do it via lirc. It's up 
-to you.
-
-Oldrich.
-
-> But since something responds (ir-common ?) to my pressing on the
-> remote I thought it shouldn't be necessary.
->
-> /Magnus
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
