@@ -1,58 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:57478 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753654AbZJGOxb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Oct 2009 10:53:31 -0400
-Received: by qw-out-2122.google.com with SMTP id 3so1877213qwe.37
-        for <linux-media@vger.kernel.org>; Wed, 07 Oct 2009 07:52:24 -0700 (PDT)
+Received: from mailrelay003.isp.belgacom.be ([195.238.6.53]:15335 "EHLO
+	mailrelay003.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752297AbZJCPGe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 3 Oct 2009 11:06:34 -0400
+Received: from [192.168.1.4] (athloroad.xperim.be [192.168.1.4])
+	(authenticated bits=0)
+	by via.xperim.be (8.14.2/8.14.2/Debian-2build1) with ESMTP id n93F4Bde014192
+	for <linux-media@vger.kernel.org>; Sat, 3 Oct 2009 17:04:13 +0200
+Message-ID: <4AC767EB.7070006@computer.org>
+Date: Sat, 03 Oct 2009 17:04:11 +0200
+From: Jan Ceuleers <jan.ceuleers@computer.org>
 MIME-Version: 1.0
-In-Reply-To: <b4619a970910021844o7ef75eeehad3a1b295131cc5@mail.gmail.com>
-References: <b4619a970910021844o7ef75eeehad3a1b295131cc5@mail.gmail.com>
-Date: Wed, 7 Oct 2009 10:45:32 -0400
-Message-ID: <de8cad4d0910070745o323f82aclbdaac6b8313aeea8@mail.gmail.com>
-Subject: Re: Skipping commercials?
-From: Brandon Jenkins <bcjenkins@tvwhere.com>
-To: Mikhail Ramendik <mr@ramendik.ru>
-Cc: linux-media@vger.kernel.org
+To: linux-media@vger.kernel.org
+Subject: [PATCH] drivers/media/dvb/dvb-usb: memset region size error
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 2, 2009 at 9:44 PM, Mikhail Ramendik <mr@ramendik.ru> wrote:
-> Hello,
->
-> I would like to skip commercials in my dvb recordings.
->
-> I know mythtv has some methods but I don't really want the hassle of
-> mythtv setup and use. It is relatively early stage software and
-> besides, I prefer to have a normal window-based UI. I use kaffeine and
-> except for absence of commercial skipping, like it.
->
-> Ideally I would want a program to run on an already existing
-> recording, to mark or cut out ads.
->
-> A Windows program, comskip, exists. It is closed source and its
-> configuration seems opaque. I will still try it under wine, but
-> perhaps there is a better way?
->
-> --
-> Yours, Mikhail Ramendik
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+>From bb568359751d84b485dbbf04f1317a77c6c3f6f0 Mon Sep 17 00:00:00 2001
+From: Jan Ceuleers <jan.ceuleers@computer.org>
+Date: Sat, 3 Oct 2009 16:58:51 +0200
+Subject: [PATCH] drivers/media/dvb/dvb-usb: memset region size error
 
-Hi Mikhail,
+The size of the region to be memset() should be the size
+of the target rather than the size of the pointer to it.
 
-I use comskip in Wine with no issues. It works on HDPVR recordings as
-well. If you'd like a script, I have posted mine here:
+Compile-tested only.
 
-http://dl.getdropbox.com/u/4976/comcheker.sh.tar.gz
+Signed-off-by: Jan Ceuleers <jan.ceuleers@computer.org>
+---
+ drivers/media/dvb/dvb-usb/ce6230.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-If you find a standalone Myth version I would be interested in that.
+diff --git a/drivers/media/dvb/dvb-usb/ce6230.c b/drivers/media/dvb/dvb-usb/ce6230.c
+index 0737c63..3df2045 100644
+--- a/drivers/media/dvb/dvb-usb/ce6230.c
++++ b/drivers/media/dvb/dvb-usb/ce6230.c
+@@ -105,7 +105,7 @@ static int ce6230_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 	int i = 0;
+ 	struct req_t req;
+ 	int ret = 0;
+-	memset(&req, 0, sizeof(&req));
++	memset(&req, 0, sizeof(req));
+ 
+ 	if (num > 2)
+ 		return -EINVAL;
+-- 
+1.5.4.3
 
-Thanks,
-
-B
