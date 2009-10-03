@@ -1,51 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f227.google.com ([209.85.220.227]:54877 "EHLO
-	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760778AbZJNNPJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Oct 2009 09:15:09 -0400
-Received: by fxm27 with SMTP id 27so11568642fxm.17
-        for <linux-media@vger.kernel.org>; Wed, 14 Oct 2009 06:14:32 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4AD5AFA6.8080401@onelan.com>
-References: <4AD591BB.80607@onelan.com>
-	 <1255516547.3848.10.camel@palomino.walls.org>
-	 <4AD5AFA6.8080401@onelan.com>
-Date: Wed, 14 Oct 2009 09:14:32 -0400
-Message-ID: <829197380910140614l1b7e299ev9bad4bbe96081918@mail.gmail.com>
-Subject: Re: Poor reception with Hauppauge HVR-1600 on a ClearQAM cable feed
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Simon Farnsworth <simon.farnsworth@onelan.com>
-Cc: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org
+Received: from smtp3-g21.free.fr ([212.27.42.3]:36012 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752868AbZJCH17 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2009 03:27:59 -0400
+Date: Sat, 3 Oct 2009 09:28:00 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Erik =?ISO-8859-1?Q?Andr=E9n?= <erik.andren@gmail.com>
+Cc: James Blanford <jhblanford@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: Race in gspca main or missing lock in stv06xx subdriver?
+Message-ID: <20091003092800.27fbafb8@tele>
+In-Reply-To: <62e5edd40910010623w58232a7cnf77a2e0c3679aab3@mail.gmail.com>
+References: <20090914111757.543c7e77@blackbart.localnet.prv>
+	<20090915124106.35ad1382@tele>
+	<62e5edd40910010623w58232a7cnf77a2e0c3679aab3@mail.gmail.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 14, 2009 at 7:01 AM, Simon Farnsworth
-<simon.farnsworth@onelan.com> wrote:
-> Andy Walls wrote:
->> Have your remote user read
->>
->> http://www.ivtvdriver.org/index.php/Howto:Improve_signal_quality
->>
->> and take any actions that seem appropriate/easy.
->>
-> I'll try that again - they're grouching, because their TV is fine, and
-> the same card in a Windows PC is also fine. It's just under Linux that
-> they're seeing problems, so I may not be able to get them to co-operate.
->>
->> The in kernel mxl5005s driver is known to have about 3 dB worse
->> performance for QAM vs 8-VSB (Steven Toth took some measurements once).
->>
-> Am I misunderstanding dmesg here? I see references to a Samsung S5H1409,
-> not to an mxl5005s; if I've read the driver code correctly, I'd see a
-> KERN_INFO printk for the mxl5005s when it comes up.
+On Thu, 1 Oct 2009 15:23:29 +0200
+Erik Andrén <erik.andren@gmail.com> wrote:
 
-Simon, the HVR-1600 has both an s5h1409 and an mxl5005s - the s5h1409
-is the digital demodulator and the mxl5005s is the tuner chip.
+> 2009/9/15 Jean-Francois Moine <moinejf@free.fr>:
+	[snip]
+> > I think you may have found a big problem, and this one should exist
+> > in all drivers!
+> >
+> > As I understood, you say that the URB completion routine (isoc_irq)
+> > may be run many times at the same time.
+	[snip]
+> > Then, to fix this problem, I see only one solution: have a private
+> > tasklet to do the video streaming, as this is done for some bulk
+> > transfer...
+	[snip]
+> Are you currently working on anything addressing this issue or do we
+> need some further discussion?
 
-Devin
+Hi Erik,
+
+No, I am not working on this problem: I cannot reproduce it (easy test:
+have a static variable which is incremented in the irq function -
+isoc_irq() in gspca.c - and warn when it is non null at entry).
+
+May you (or anyone) check it?
+
+Then, the simplest solution is not a tasklet, but to use only one URB
+(change the '#define DEF_NURBS' to 1 instead of 3 in gspca.c).
+
+Best regards.
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
