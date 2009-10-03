@@ -1,89 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from exprod7og127.obsmtp.com ([64.18.2.210]:59557 "HELO
-	exprod7og127.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756507AbZJVPvp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Oct 2009 11:51:45 -0400
-Received: by mail-fx0-f219.google.com with SMTP id 19so9522925fxm.2
-        for <linux-media@vger.kernel.org>; Thu, 22 Oct 2009 08:51:49 -0700 (PDT)
+Received: from mail01a.mail.t-online.hu ([84.2.40.6]:49158 "EHLO
+	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754769AbZJCSMO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2009 14:12:14 -0400
+Message-ID: <4AC793D5.3010305@freemail.hu>
+Date: Sat, 03 Oct 2009 20:11:33 +0200
+From: =?ISO-8859-2?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
 MIME-Version: 1.0
-In-Reply-To: <aaaa95950910220813y71f2f328sdb53d5c594d93094@mail.gmail.com>
-References: <aaaa95950910210632p74179cv91aa9825eff8d6bd@mail.gmail.com>
-	 <aaaa95950910220813y71f2f328sdb53d5c594d93094@mail.gmail.com>
-Date: Thu, 22 Oct 2009 17:51:48 +0200
-Message-ID: <aaaa95950910220851l201870c8w5352f2ec889244eb@mail.gmail.com>
-Subject: [PATCH] output human readable form of the .status field from
-	VIDIOC_ENUMINPUT
-From: Sigmund Augdal <sigmund@snap.tv>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=000325559f3ebce50804768812e1
+To: Jean-Francois Moine <moinejf@free.fr>,
+	Thomas Kaiser <thomas@kaiser-linux.li>
+CC: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] pac7311: add comment about JPEG header
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---000325559f3ebce50804768812e1
-Content-Type: text/plain; charset=ISO-8859-1
+From: Márton Németh <nm127@freemail.hu>
 
-The attach patch modifies v4l2-ctl -I to also output signal status as
-detected by the driver/hardware. This info is available in the status
-field of the data returned by VIDIOC_ENUMINPUT which v4l2-ctl -I
-already calls. The strings are copied from the v4l2 api specification
-and could perhaps be modified a bit to fit the application.
+Add comment about the meaning of the fixed JPEG header bytes used to
+create each image.
 
-Best regards
+The change was tested with Labtec Webcam 2200.
 
-Sigmund Augdal
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+diff -upr e/drivers/media/video/gspca/pac7311.c f/drivers/media/video/gspca/pac7311.c
+--- e/drivers/media/video/gspca/pac7311.c	2009-10-03 16:23:37.000000000 +0200
++++ f/drivers/media/video/gspca/pac7311.c	2009-10-03 19:56:21.000000000 +0200
+@@ -801,13 +801,32 @@ static void do_autogain(struct gspca_dev
+ 		sd->autogain_ignore_frames = PAC_AUTOGAIN_IGNORE_FRAMES;
+ }
 
---000325559f3ebce50804768812e1
-Content-Type: application/octet-stream; name="v4l2-ctl-enuminput.patch"
-Content-Disposition: attachment; filename="v4l2-ctl-enuminput.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_g124iq910
++/* JPEG header, part 1 */
+ static const unsigned char pac7311_jpeg_header1[] = {
+-  0xff, 0xd8, 0xff, 0xc0, 0x00, 0x11, 0x08
++  0xff, 0xd8,		/* SOI: Start of Image */
++
++  0xff, 0xc0,		/* SOF0: Start of Frame (Baseline DCT) */
++  0x00, 0x11,		/* length = 17 bytes (including this length field) */
++  0x08			/* Precision: 8 */
++  /* 2 bytes is placed here: number of image lines */
++  /* 2 bytes is placed here: samples per line */
+ };
 
-IyBIRyBjaGFuZ2VzZXQgcGF0Y2gKIyBVc2VyIHJvb3RAbG9jYWxob3N0CiMgRGF0ZSAxMjU2MTMw
-ODUyIC0xMDgwMAojIE5vZGUgSUQgYjMzNTI4NGQzMWEzZmE4NWYxYmIyYTk0OTU2MDQ1YmNiMmU3
-YzJjMgojIFBhcmVudCAgN2UyNzNiZWU4NjAxN2FhMTU2OGJiOTJlNmY3MTdlYjU4NTU2MTU3OApj
-aGFuZ2VkIC0tZ2V0LWlucHV0IHRvIHBhcnNlIGFuZCBvdXRwdXQgdGhlIHN0YXR1cyBmaWVsZCBv
-ZiBWSURJT0NfRU5VTUlOUFVUClNpZ25lZC1vZmYtYnk6IFNpZ211bmQgQXVnZGFsIDxzaWdtdW5k
-QHNuYXAudHY+CgpkaWZmIC1yIDdlMjczYmVlODYwMSAtciBiMzM1Mjg0ZDMxYTMgdjRsMi1hcHBz
-L3V0aWwvdjRsMi1jdGwuY3BwCi0tLSBhL3Y0bDItYXBwcy91dGlsL3Y0bDItY3RsLmNwcAlXZWQg
-T2N0IDIxIDE2OjExOjA5IDIwMDkgKzAzMDAKKysrIGIvdjRsMi1hcHBzL3V0aWwvdjRsMi1jdGwu
-Y3BwCVdlZCBPY3QgMjEgMTY6MTQ6MTIgMjAwOSArMDMwMApAQCAtNTcyLDYgKzU3Miw0NCBAQCBz
-dGF0aWMgc3RkOjpzdHJpbmcgZmxhZ3Mycyh1bnNpZ25lZCB2YWwsCiAJcmV0dXJuIHM7CiB9CiAK
-K3N0YXRpYyBzdGQ6OnN0cmluZyBzdGF0dXMycyhfX3UzMiBzdGF0dXMpCit7CisJc3dpdGNoIChz
-dGF0dXMpIHsKKwljYXNlIDA6CisJCXJldHVybiAiU2lnbmFsIE9LIjsKKwljYXNlIFY0TDJfSU5f
-U1RfTk9fUE9XRVI6CisJCXJldHVybiAiQXR0YWNoZWQgZGV2aWNlIGlzIG9mZi4iOworCWNhc2Ug
-VjRMMl9JTl9TVF9OT19TSUdOQUw6CisJCXJldHVybiAiTm8gc2lnbmFsIjsKKwljYXNlIFY0TDJf
-SU5fU1RfTk9fQ09MT1I6CisJCXJldHVybiAiVGhlIGhhcmR3YXJlIHN1cHBvcnRzIGNvbG9yIGRl
-Y29kaW5nLCBidXQgZG9lcyBub3QgZGV0ZWN0IGNvbG9yIG1vZHVsYXRpb24gaW4gdGhlIHNpZ25h
-bC4iOworCWNhc2UgVjRMMl9JTl9TVF9IRkxJUDoKKwkJcmV0dXJuICJUaGUgaW5wdXQgaXMgY29u
-bmVjdGVkIHRvIGEgZGV2aWNlIHRoYXQgcHJvZHVjZXMgYSBzaWduYWwgdGhhdCBpcyBmbGlwcGVk
-IGhvcml6b250YWxseSBhbmQgZG9lcyBub3QgY29ycmVjdCB0aGlzIGJlZm9yZSBwYXNzaW5nIHRo
-ZSBzaWduYWwgdG8gdXNlcnNwYWNlLiI7CisJY2FzZSBWNEwyX0lOX1NUX1ZGTElQOgorCQlyZXR1
-cm4gIlRoZSBpbnB1dCBpcyBjb25uZWN0ZWQgdG8gYSBkZXZpY2UgdGhhdCBwcm9kdWNlcyBhIHNp
-Z25hbCB0aGF0IGlzIGZsaXBwZWQgdmVydGljYWxseSBhbmQgZG9lcyBub3QgY29ycmVjdCB0aGlz
-IGJlZm9yZSBwYXNzaW5nIHRoZSBzaWduYWwgdG8gdXNlcnNwYWNlLiBOb3RlIHRoYXQgYSAxODAg
-ZGVncmVlIHJvdGF0aW9uIGlzIHRoZSBzYW1lIGFzIEhGTElQIHwgVkZMSVAiOworCWNhc2UgVjRM
-Ml9JTl9TVF9OT19IX0xPQ0s6CisJCXJldHVybiAiTm8gaG9yaXpvbnRhbCBzeW5jIGxvY2suIjsK
-KwljYXNlIFY0TDJfSU5fU1RfQ09MT1JfS0lMTDoKKwkJcmV0dXJuICJBIGNvbG9yIGtpbGxlciBj
-aXJjdWl0IGF1dG9tYXRpY2FsbHkgZGlzYWJsZXMgY29sb3IgZGVjb2Rpbmcgd2hlbiBpdCBkZXRl
-Y3RzIG5vIGNvbG9yIG1vZHVsYXRpb24uIFdoZW4gdGhpcyBmbGFnIGlzIHNldCB0aGUgY29sb3Ig
-a2lsbGVyIGlzIGVuYWJsZWQgYW5kIGhhcyBzaHV0IG9mZiBjb2xvciBkZWNvZGluZy4iOworCWNh
-c2UgVjRMMl9JTl9TVF9OT19TWU5DOgorCQlyZXR1cm4gIk5vIHN5bmNocm9uaXphdGlvbiBsb2Nr
-LiI7CisJY2FzZSBWNEwyX0lOX1NUX05PX0VRVToKKwkJcmV0dXJuICJObyBlcXVhbGl6ZXIgbG9j
-ay4iOworCWNhc2UgVjRMMl9JTl9TVF9OT19DQVJSSUVSOgorCQlyZXR1cm4gIkNhcnJpZXIgcmVj
-b3ZlcnkgZmFpbGVkLiI7CisJY2FzZSBWNEwyX0lOX1NUX01BQ1JPVklTSU9OOgorCQlyZXR1cm4g
-Ik1hY3JvdmlzaW9uIGlzIGFuIGFuYWxvZyBjb3B5IHByZXZlbnRpb24gc3lzdGVtIG1hbmdsaW5n
-IHRoZSB2aWRlbyBzaWduYWwgdG8gY29uZnVzZSB2aWRlbyByZWNvcmRlcnMuIFdoZW4gdGhpcyBm
-bGFnIGlzIHNldCBNYWNyb3Zpc2lvbiBoYXMgYmVlbiBkZXRlY3RlZC4iOworCWNhc2UgVjRMMl9J
-Tl9TVF9OT19BQ0NFU1M6CisJCXJldHVybiAiQ29uZGl0aW9uYWwgYWNjZXNzIGRlbmllZC4iOwor
-CWNhc2UgVjRMMl9JTl9TVF9WVFI6CisJCXJldHVybiAiVlRSIHRpbWUgY29uc3RhbnQuIFs/XSI7
-CisJZGVmYXVsdDoKKwkJY2hhciBtc2dbMjBdOworCQlzcHJpbnRmKG1zZywgInVua25vd24oJWQp
-Iiwgc3RhdHVzKTsKKwkJcmV0dXJuIG1zZzsKKwl9Cit9CisKIHN0YXRpYyB2b2lkIHByaW50X3Ns
-aWNlZF92YmlfY2FwKHN0cnVjdCB2NGwyX3NsaWNlZF92YmlfY2FwICZjYXApCiB7CiAJcHJpbnRm
-KCJcdFR5cGUgICAgICAgICAgIDogJXNcbiIsIGJ1ZnR5cGUycyhjYXAudHlwZSkuY19zdHIoKSk7
-CkBAIC0yNzA3LDcgKzI3NDUsNyBAQCBzZXRfdmlkX2ZtdF9lcnJvcjoKIAkJCXByaW50ZigiVmlk
-ZW8gaW5wdXQgOiAlZCIsIGlucHV0KTsKIAkJCXZpbi5pbmRleCA9IGlucHV0OwogCQkJaWYgKGlv
-Y3RsKGZkLCBWSURJT0NfRU5VTUlOUFVULCAmdmluKSA+PSAwKQotCQkJCXByaW50ZigiICglcyki
-LCB2aW4ubmFtZSk7CisJCQkJcHJpbnRmKCIgKCVzOiAlcykiLCB2aW4ubmFtZSwgc3RhdHVzMnMo
-dmluLnN0YXR1cykuY19zdHIoKSk7CiAJCQlwcmludGYoIlxuIik7CiAJCX0KIAl9Cg==
---000325559f3ebce50804768812e1--
++/* JPEG header, continued */
+ static const unsigned char pac7311_jpeg_header2[] = {
+-  0x03, 0x01, 0x21, 0x00, 0x02, 0x11, 0x01, 0x03, 0x11, 0x01, 0xff, 0xda,
+-  0x00, 0x0c, 0x03, 0x01, 0x00, 0x02, 0x11, 0x03, 0x11, 0x00, 0x3f, 0x00
++  0x03,			/* Number of image components: 3 */
++  0x01, 0x21, 0x00,	/* ID=1, Subsampling 1x1, Quantization table: 0 */
++  0x02, 0x11, 0x01,	/* ID=2, Subsampling 2x1, Quantization table: 1 */
++  0x03, 0x11, 0x01,	/* ID=3, Subsampling 2x1, Quantization table: 1 */
++
++  0xff, 0xda,		/* SOS: Start Of Scan */
++  0x00, 0x0c,		/* length = 12 bytes (including this length field) */
++  0x03,			/* number of components: 3 */
++  0x01, 0x00,		/* selector 1, table 0x00 */
++  0x02, 0x11,		/* selector 2, table 0x11 */
++  0x03, 0x11,		/* selector 3, table 0x11 */
++  0x00, 0x3f,		/* Spectral selection: 0 .. 63 */
++  0x00			/* Successive approximation: 0 */
+ };
+
+ /* this function is run at interrupt level */
