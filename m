@@ -1,56 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pro10.proekspert.ee ([212.47.207.10]:45057 "HELO
-	mail.proekspert.ee" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751591AbZJMHGB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Oct 2009 03:06:01 -0400
-Date: Tue, 13 Oct 2009 09:54:05 +0300 (EEST)
-From: Lauri Laanmets <lauri.laanmets@proekspert.ee>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <5247569.9431255416845783.JavaMail.root@mail>
-In-Reply-To: <31497292.9391255416643929.JavaMail.root@mail>
-Subject: Re: DVB support for MSI DigiVox A/D II and KWorld 320U
+Received: from proxy3.bredband.net ([195.54.101.73]:56980 "EHLO
+	proxy3.bredband.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752353AbZJCQWL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2009 12:22:11 -0400
+Received: from iph2.telenor.se (195.54.127.133) by proxy3.bredband.net (7.3.140.3)
+        id 49F597CD03F509E1 for linux-media@vger.kernel.org; Sat, 3 Oct 2009 18:21:33 +0200
+Message-ID: <2467404e44c3d9bb80ee8973ed2872a0.squirrel@mail.kurelid.se>
+In-Reply-To: <tkrat.2a34f4bd39830bed@s5r6.in-berlin.de>
+References: <000a01ca431e$14250210$6301a8c0@ds.mot.com>
+    <tkrat.2a34f4bd39830bed@s5r6.in-berlin.de>
+Date: Sat, 3 Oct 2009 18:21:31 +0200
+Subject: Re: [PATCH resend] firedtv: length field corrupt in ca2host if
+ length>127
+From: "Henrik Kurelid" <henke@kurelid.se>
+To: "Stefan Richter" <stefanr@s5r6.in-berlin.de>
+Cc: "Henrik Kurelid" <henke@kurelid.se>,
+	"Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+Hi,
 
-> Check the dvb_gpio setting in the board profile.  On some of those
-> boards you need to take put one of the GPO pins high to take the demod
-> out of reset.  The KWorld 315u and 330u are both like that.
+Comments inline.
 
-Absolutely true. Using the same pin setting as KWorld 330U made the I2C communication work correctly and the device is found.
+Regards,
+Henrik
 
-Now the trouble is that scanning channels doesn't work, blue LED doesn't light up and the device is not heated up.
+> From: Henrik Kurelid <henke@kurelid.se>
+>
+> This solves a problem in firedtv that has become major for Swedish DVB-T
+> users the last month or so.  It will most likely solve issues seen by
+> other users as well.
+>
+> If the length of an AVC message is greater than 127, the length field
+> should be encoded in LV mode instead of V mode. V mode can only be used
+> if the length is 127 or less. This patch ensures that the CA_PMT
+> message is always encoded in LV mode so PMT message of greater lengths
+> can be supported.
+>
+> Signed-off-by: Henrik Kurelid <henrik@kurelid.se>
+> Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+> ---
+>
+> On  2 Oct, Henrik Kurelid wrote:
+>> Here is a patch that solves a problem in firedtv that has become major for
+>> Swedish DVB-T users the last month or so.
+>> It will most likely solve issues seen by other users as well.
+>> Please review and comment.
+>
+> I don't have a CA module, hence can't test it myself.  Is the message
+> format vendor-defined or ist there a standard for this?
+The Ca2Host and Host2Ca messages are vendor specific. According to the documentation from DE the same message structure applies to all cards
+independent of the delivery system. The patch have been verified by myself on DVB-T+CA and at least one user on the DE forums with a similar setup.
 
-I'm quite newbie in this field, is there a good way to know what registers to set exactly?
+> Anyway, I am resending this patch for Mauro to apply, since the original
+> posting had lines wrapped.  I also took the liberty to standardize the
+> hexadecimal constants to lowercase to match the rest of firedtv-avc.c.
+Thanks for cleaning up my mess again, Stefan. I really need to configure my mail agent better!
 
-I see that the working "mcentral" code had the following setting:
+>  drivers/media/dvb/firewire/firedtv-avc.c |   38 ++++++++++++-----------
+>  1 file changed, 20 insertions(+), 18 deletions(-)
+>
+> Index: linux-2.6.32-rc1/drivers/media/dvb/firewire/firedtv-avc.c
+> ===================================================================
+> --- linux-2.6.32-rc1.orig/drivers/media/dvb/firewire/firedtv-avc.c
+> +++ linux-2.6.32-rc1/drivers/media/dvb/firewire/firedtv-avc.c
+> @@ -1050,28 +1050,28 @@ int avc_ca_pmt(struct firedtv *fdtv, cha
+>  	c->operand[4] = 0; /* slot */
+>  	c->operand[5] = SFE_VENDOR_TAG_CA_PMT; /* ca tag */
+>  	c->operand[6] = 0; /* more/last */
+> -	/* c->operand[7] = XXXprogram_info_length + 17; */ /* length */
+> -	c->operand[8] = list_management;
+> -	c->operand[9] = 0x01; /* pmt_cmd=OK_descramble */
+> +	/* Use three bytes for length field in case length > 127 */
+> +	c->operand[10] = list_management;
+> +	c->operand[11] = 0x01; /* pmt_cmd=OK_descramble */
+>
+>  	/* TS program map table */
+>
+> -	c->operand[10] = 0x02; /* Table id=2 */
+> -	c->operand[11] = 0x80; /* Section syntax + length */
+> -	/* c->operand[12] = XXXprogram_info_length + 12; */
+> -	c->operand[13] = msg[1]; /* Program number */
+> -	c->operand[14] = msg[2];
+> -	c->operand[15] = 0x01; /* Version number=0 + current/next=1 */
+> -	c->operand[16] = 0x00; /* Section number=0 */
+> -	c->operand[17] = 0x00; /* Last section number=0 */
+> -	c->operand[18] = 0x1f; /* PCR_PID=1FFF */
+> -	c->operand[19] = 0xff;
+> -	c->operand[20] = (program_info_length >> 8); /* Program info length */
+> -	c->operand[21] = (program_info_length & 0xff);
+> +	c->operand[12] = 0x02; /* Table id=2 */
+> +	c->operand[13] = 0x80; /* Section syntax + length */
+> +	/* c->operand[14] = XXXprogram_info_length + 12; */
+> +	c->operand[15] = msg[1]; /* Program number */
+> +	c->operand[16] = msg[2];
+> +	c->operand[17] = 0x01; /* Version number=0 + current/next=1 */
+> +	c->operand[18] = 0x00; /* Section number=0 */
+> +	c->operand[19] = 0x00; /* Last section number=0 */
+> +	c->operand[20] = 0x1f; /* PCR_PID=1FFF */
+> +	c->operand[21] = 0xff;
+> +	c->operand[22] = (program_info_length >> 8); /* Program info length */
+> +	c->operand[23] = (program_info_length & 0xff);
+>
+>  	/* CA descriptors at programme level */
+>  	read_pos = 6;
+> -	write_pos = 22;
+> +	write_pos = 24;
+>  	if (program_info_length > 0) {
+>  		pmt_cmd_id = msg[read_pos++];
+>  		if (pmt_cmd_id != 1 && pmt_cmd_id != 4)
+> @@ -1113,8 +1113,10 @@ int avc_ca_pmt(struct firedtv *fdtv, cha
+>  	c->operand[write_pos++] = 0x00;
+>  	c->operand[write_pos++] = 0x00;
+>
+> -	c->operand[7] = write_pos - 8;
+> -	c->operand[12] = write_pos - 13;
+> +	c->operand[7] = 0x82;
+> +	c->operand[8] = (write_pos - 10) >> 8;
+> +	c->operand[9] = (write_pos - 10) & 0xff;
+> +	c->operand[14] = write_pos - 15;
+>
+>  	crc32_csum = crc32_be(0, &c->operand[10], c->operand[12] - 1);
+>  	c->operand[write_pos - 4] = (crc32_csum >> 24) & 0xff;
+>
+>
+> --
+> Stefan Richter
+> -=====-==--= =-=- ---==
+> http://arcgraph.de/sr/
+>
 
-#define EETI_DEFAULT_GPIO {						\
-	.ts1_on     = _BIT_VAL(EM28XX_GPIO0,  0, 0), 			\
-	.a_on       = _BIT_VAL(EM28XX_GPIO1,  0, 0), 			\
-	.xc3028_sec = _BIT_VAL(EM28XX_GPIO2,  1, 0), 			\
-	/* reserved */							\
-	.t1_reset   = _BIT_VAL(EM28XX_GPIO4,  0, 1), 			\
-	/* reserved */							\
-	.t1_on      = _BIT_VAL(EM28XX_GPIO6,  0, 0), 			\
-	.t2_on      = _BIT_VAL(EM28XX_GPIO7,  1, 0), 			\
-									\
-	.l1_on      = _BIT_VAL(EM28XX_GOP2,   1, 0), 			\
-	.d1_reset   = _BIT_VAL(EM28XX_GOP3,   0, 1), 			\
-}
-
-But the v4l-dvb uses:
-
-static struct em28xx_reg_seq kworld_330u_digital[] = {
-	{EM28XX_R08_GPIO,	0x6e,	~EM_GPIO_4,	10},
-	{EM2880_R04_GPO,	0x08,	0xff,		10},
-	{ -1,			-1,	-1,		-1},
-};
-
-Lauri
