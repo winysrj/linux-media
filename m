@@ -1,150 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web32703.mail.mud.yahoo.com ([68.142.207.247]:40389 "HELO
-	web32703.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752537AbZJVEqi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Oct 2009 00:46:38 -0400
-Message-ID: <802529.6453.qm@web32703.mail.mud.yahoo.com>
-Date: Wed, 21 Oct 2009 21:46:42 -0700 (PDT)
-From: Franklin Meng <fmeng2002@yahoo.com>
-Subject: Re: Kworld 315U help?
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:43249
+	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753071AbZJCDKr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2009 23:10:47 -0400
 Cc: linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="0-1144177502-1256186802=:6453"
+Message-Id: <F3D79B4D-0A53-4563-A2DD-074035B21381@wilsonet.com>
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Mikhail Ramendik <mr@ramendik.ru>
+In-Reply-To: <b4619a970910021844o7ef75eeehad3a1b295131cc5@mail.gmail.com>
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0 (Apple Message framework v936)
+Subject: Re: Skipping commercials?
+Date: Fri, 2 Oct 2009 23:11:13 -0400
+References: <b4619a970910021844o7ef75eeehad3a1b295131cc5@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0-1144177502-1256186802=:6453
-Content-Type: text/plain; charset=us-ascii
+On Oct 2, 2009, at 9:44 PM, Mikhail Ramendik wrote:
 
-Here are the files since I forgot to attach them in my last e-mail.  
+> Hello,
+>
+> I would like to skip commercials in my dvb recordings.
+>
+> I know mythtv has some methods but I don't really want the hassle of
+> mythtv setup and use. It is relatively early stage software
 
-Thanks,
-Franklin Meng
+Um. If you say so. Been happily using it for over six years now...
 
+> and
+> besides, I prefer to have a normal window-based UI. I use kaffeine and
+> except for absence of commercial skipping, like it.
+>
+> Ideally I would want a program to run on an already existing
+> recording, to mark or cut out ads.
+>
+> A Windows program, comskip, exists. It is closed source and its
+> configuration seems opaque. I will still try it under wine, but
+> perhaps there is a better way?
 
-      
---0-1144177502-1256186802=:6453
-Content-Type: application/gzip; name="decode.tar.gz"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="decode.tar.gz"
+MythTV is open-source. Look at the code specific to the mythcommflag  
+binary. Adapt it for stand-alone use. It wouldn't even have to do the  
+actual cutting, just output a cutlist something like gopchop, avidemux  
+or similar could use to set cut points.
 
-H4sIAKnf30oAA+2dXW/bOBaGc7v9FbrcXSx2SUq25d1BgTRJ22CbpkjaTudK
-cPyxGMxMZtGPnQEW+99XkiNbomVKlExbsh/CSAOTPIekyMNzzvtGnf/y78nn
-L3P5OP/tr79++3rmooi4DIMg+VeOBiL/rxC+DPyhPJNSDUdKyKE/OhMyUMHg
-zBNORqOVb1++Tj573tni8+Txp59/fNzWrqq+p+Xb40+Pv/72+HcvFJ4YeiL+
-KdOfwpMq+fndd9+lvy2/VU918SeIW0y8+YMnfW/ie3LV8+nnsxLRat33SbQY
-J9/6Mu0mnzrHHRaTtCrI9AXeYpH8svwpRp4YeGHc2M/0PWRfqvUMkl+WX/q5
-L4Psy6DYcqVO1ldnmuRyUkcwSZO6aVCibrFchbw6Za1uFnecNFXnN5rdtKE6
-u7GNmoxNBlZjezb/RYW//x59nk9m8Y9//XE2/89fvKsbFX76FN2J8+ji9fW7
-68s//eMPf/jbn72klSd+V4H357856zmMrtVFdPHmn8Wu8aJvdpXDZee4Wi2b
-Z639waRa1UX04f7F/Yf7d5oqkXRdndhguU/SXT1Z7W3hPX/+3BNhuYpYyMAo
-dJozAHmhiRmYiYZCj2OkSjkY6bat3m5Ng92NdH2JJpeli2Vt+qxMyxoMHYxU
-7nBZg9VI56kBTJS4WNym67D3PasmLkZquaZms/wy+rRp/ke5fr99/vHrfGvH
-VO3oT/+oudmmHViPeiN1YcHdjHTWm5GOezPSeW9G2gULU2+ki96MtKlHsPeR
-9sd7U35f1lQ4efqW028ftW27tld9E+XBNL65zbrC6NW769uiojhCrla07Jho
-Wczq+geqC7dug/WYtViP/NADVRz6ovbdLrevRzApCpWW5zvfeDIdj5atzy/G
-o+jj1dvL27vo+lLGHXP94h1S2CPGvsrcd7meWud3t99f3UWXt9+/jS7e371J
-By+FWO/m2r38Rr0WTXoFhV4O99diL6d6btISirhxEDe+NWypEiXrfuk6G9dr
-RzrC2tbJhadtGxI1eK5z++daOnSlDX1R20s2WKeZvh61rbXc03pUnyaR5l8v
-Xr4qKpo1HaDdQRwt6m5g4SJYGDQVajxqvQnAurWmeaHTYdPpG47rNCgKtT2u
-5UI1t+ehaU6yPw+KkZ6yQXFyTHs6/eC0p6+ZPn8XcMy08Ugt1rRbZz8vNNRO
-VGiZedyrszeyjLpqO3v+DnODK2BPpTQhlRBlHBhp3wmw13QdjCN1kqhykXj1
-nYAuTkbaGyjD7w1AELjgIbgZadMttbfUr1TRx+u3V2/PX7y50jrLahue750M
-QEk9gZgf3SzNF6rauLoTHMhJFLZDE79m8SRk12MNb+zTn6FV+tMIAW3VUQE1
-laRYmQfzYB6HncePahr9Mvnydf45+jJ/nP1R/D5Vz5/Lv3j/9dTA84U3nntz
-4f0v7RBsG1SzuGmvRLPAyYV4COKdBiveXV3c3l1Gr86v3yaKQ5FCZKzJ5pqw
-G9mNHV+TPDPDjiJnyNO1FeqeODBrQJ1QlYSLp3W/v3pzdfF+Ob1kgsY+V5/e
-R+cfLte8DuFvhGX64C5uouu30f3d+fs0jnt4CKutzVWi5fr2/u6iuHLhJhSt
-qXsTx4yxuo+3y/FNxKRifB+vL69us/ZjIauW7fzDJ4vWN9cXWmsO+9arp/bm
-bsRBChrxnYJmI1Q1rtRdsyDsSE+jGXd+1+63E18T865SIvoh61CnuYo+fCxr
-b5usVDV2/EayclR5uIx/3llxvlZ9681t5xBcA/puResiy7r66cpBdJc9XFWj
-+TB6ZdN8FL2waR5Gd7cvX95fva+5N+U4emXX4Tx6YdVB+dEHuw5B7KdYdRhG
-F7c37+4qmsdesl+dsnF7Amsdo01XbnPKo+j2w/uXN+kS+UH1UxPJmG5uL69q
-2iCZtE98CC3OqAOXrPqmk9kOlqwmE0afbp6sY43W47j1+afUgferW59HP1jI
-fhG3Xsr2H6oX9SJ6ff/+/K720bmMPq7bV49dXkUX319fvn+dzrXGQ34ZG9er
-61evl7ui8g9E5Ivo9uWb2+/tzX7Ws+Zm2p2ezSxoMHnKgiZuRfiU/1S2+U+T
-XD/JrjqQO0xe9iJmXhgmY/9fJmR3CibJO1GC0dPbYRwoWHhq4mBlklffhMnb
-Q+YjRwNPV8bBI52vn+RO5YbJJtm93MEkWYrdyw1k8iaW0s9oVP1ZNU5HJrde
-1xVhAgkqElTHF5mazIRK5tTwOFc4RjL6IeeTh9WeVC5EllXjnq3N/K7HnQ+9
-a/jVMojX++bmPHWgVPUsB9H96/O7d2+v7u/Nw9djlQZT2RLlkDEjY9bVNWkO
-aBnWRP+j6KnlQpvPZxZYF3v6QY0Dui0m32eIfdhIb1sqUVqnEuWe06TD6iSN
-7V2ycQVisDtlnE58TQ5wkDcSsn5QmbP1B2mTsanJsCJBFjcZpVKqU2I7M8qD
-MSeeE9+pNekmqDncK6hpb8BqrAWYIZghmOG2u3MwbnN3ghmCGYIZghmCGYIZ
-ghmCGYIZghmCGdadCphhV84ga9IlzHDS4kXKHcQM24XYYIZghhgnDHZrBAGH
-bzcOn018ZuqcPjnju96PPRp0bj7DYzefoa2pEMdvPpuuCYe+o4e+5IFy6Dn0
-7takk0Fuf0bq/IQTFREVwauCV1VsDq8KXpVFDhdeldYaXtXBs+3wquBVwatq
-IxdeVQMvHF5V35NqBH7wqo4MZoNXdQRnkDWBV2URk+8zxD5spAevynQFAsV2
-FIqFfwEU62pN8Kuhrx25+YTJgvl0bD459Bz649zgrAn0NUZaf5/t4P9+4n+U
-O6arCwNaEXTyP8rtxao0/B/lIAmDybhak/qpJEjC/I9ysJhNux8WMyxm82Rg
-McNihsX8JGR3CmAxw2KGxUyCigTVEUWmsJh7zbaAxXwEZ5A1gcVsEZPvM8Q+
-bKQHi9l0Be7Mj4ORY/Iand+LMHJg5OyIhrdHewn/g/D6dMJr+B/wP4hmiWbh
-f8D/gP9h6AD/w3VqAf5H1WTgf8D/gP/hwf+A/wH/A/4HCaoTSFDB/4D/Af+j
-n2eQNYH/YRGTw/+A/wH/A/5Hb+4A+B/wP+B/HL2h5LjC/4D/cTRbnmgW/gf8
-D0v/Bf4H/A/4H/A/4H/A/4D/Af+jnVz4H/A/SFCRoHIYmcL/gP8B/4OMWS/W
-BP7HvkNs+B/wP+B/uL0X4X/A/4D/QXjdd0PJcYX/Af/jaLY80Sz8D/gflv4L
-/A/4H/A/4H/A/4D/Af8D/kc7ufA/4H+QoCJB5TAyhf8B/wP+BxmzXqwJ/I99
-h9jwP+B/wP9wey/C/4D/Af+D8LrvhpLjCv8D/sfRbHmiWfgf8D8s/Rf4H/A/
-4H/A/4D/Af8D/gf8j3Zy4X/A/yBBRYLKYWQK/wP+B/wPMma9WBP4H/sOseF/
-wP+A/+H2XoT/Af8D/gfhdd8NJccV/gf8j6PZ8kSz8D/gf1j6L/A/4H/A/4D/
-Af8D/gf8D/gf7eTC/4D/QYKKBJXDyBT+B/wP+B9kzHqxJvA/9h1iw/+A/wH/
-w+29CP8D/gf8D8LrvhtKjiv8D/gfR7PliWbhf8D/sPRf4H/A/4D/Af8D/gf8
-D/gf8D/ayYX/Af+DBBUJKoeRKfwP+B/wP8iY9WJN4H/sO8SG/wH/A/6H23sR
-/gf8j07yP47kDgbtxXc9HNpbnTASjegbohFVRCwakT4WNWzPLvhgi1MGs3fn
-wUtp0hWKeGxBvOjawxJTs551v1XS5oySL4/z337+9V9//fXbV3c6Ej9gGATJ
-v3I0EPl/hVBDIQeDMynVcKRiu6IGZ0L6vpBnnnA3pHX59uXr5LPnnS0+Tx5/
-+vnHx23tqup7WkKRwHCrWyr+SJVdV8lvy2+zCy3xe+IWkwS3k7438VOkSub6
-y2driWrdJbsAx8m3vkxby6c+cYfFJK0KMjVBgn3Evyx/xpeaGHihTG/rpZqH
-7Eu1Hnjyy/JLP/dlkH0ZFFuu1Mn66krmtpzLEczNpG4alKhbLFchr05Zq5sF
-Cf7WUJ3faHbThursxjZqMjYZWI3t2TQ7lMlHi0dUYFU9LFaLabFarX8m1Qls
-6hdbTDdcXZN7LcJi78FGb5MfPRNVvbuqW6k2uvVHbjnvoIHu9WWQGP1WU69c
-ONPUg2Eb3bLJ1IOV7nl6/GTWrukCVE7B3bNXk1a6az261WehVY+eBVuq0205
-Mj+6qduRG3W3shQtdc8OqHt8QN3zA+p2fEqMuhcH1F1p2N3pPuSNqPzDzVu0
-W/NaI199Nr27YEt1mvvUTG5Y7L1YFHuHxd6LmXnNHdtU48hnVSMvZPjVRm+T
-blkcuY4PyMqdmq8O/NLNJEqGlo68+MSemq58t5RL2Er+fMfycwLSw5C0NY5A
-c54ayPcdy1+4lR9Yybfd+YtWJ167soNib21u+erl3Fr1Ds3WppUXVc/33Lpq
-8zqrlulWYqO3hbWZ6SM320m92nLk2m7RdOsRst1mGi3M12YrF21Q2du4mQ7o
-mrqed773VHcXam2mVe+gtLpub+3SfaiM3Lu6W05Vt+tT0m6ndmbkm9dcX0au
-nVDfKrc2tdNdMe99WsVQ22thrYBd+9S9JEcVHpf5kvSbxNSrdKdK/U+VgFdt
-7IDfLt1ZOQWj7nZBZqukgt8uedZO9wETWP4Bk0hBK2yhpe5agf1uEhpSs71a
-0JyvTq+FYvXyr4xyI1fmrGC7zFw7x62J8VhjVQk1ocv+kzHgDc0B79Tce1oV
-LqMb3fV1B2LD8wuyajVI3gswnnvzA+KDQTsr1Xbk7ZJ6oTntKqenPHX2DHum
-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
+-- 
+Jarod Wilson
+jarod@wilsonet.com
 
 
---0-1144177502-1256186802=:6453--
+
+
