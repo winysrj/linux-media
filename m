@@ -1,207 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.navvo.net ([74.208.67.6]:50272 "EHLO mail.navvo.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755742AbZJ0Px7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2009 11:53:59 -0400
-Message-ID: <4AE71793.3090502@ridgerun.com>
-Date: Tue, 27 Oct 2009 09:53:55 -0600
-From: Santiago Nunez-Corrales <snunez@ridgerun.com>
-Reply-To: santiago.nunez@ridgerun.com
+Received: from mail-ew0-f211.google.com ([209.85.219.211]:55392 "EHLO
+	mail-ew0-f211.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754944AbZJCND2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2009 09:03:28 -0400
+Received: by ewy7 with SMTP id 7so2071367ewy.17
+        for <linux-media@vger.kernel.org>; Sat, 03 Oct 2009 06:03:31 -0700 (PDT)
+Message-ID: <4AC74BA0.6090606@gmail.com>
+Date: Sat, 03 Oct 2009 15:03:28 +0200
+From: Olivier Lorin <olorin75@gmail.com>
 MIME-Version: 1.0
-To: "Narnakaje, Snehaprabha" <nsnehaprabha@ti.com>
-CC: Kevin Hilman <khilman@deeprootsystems.com>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <1255617794-1401-1-git-send-email-santiago.nunez@ridgerun.com>	<87skdk7aul.fsf@deeprootsystems.com> <4AE1E903.4030605@ridgerun.com> <87y6mxalep.fsf@deeprootsystems.com> <7A436F7769CA33409C6B44B358BFFF0C012ACE7054@dlee02.ent.ti.com>
-In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0C012ACE7054@dlee02.ent.ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: LMML <linux-media@vger.kernel.org>
+Subject: [PATCH 3/3] gspca_gl860
+References: <200909160300.28382.pluto@agmk.net>	<1254354727.4771.13.camel@palomino.walls.org>	<20091001134343.30e7cd98@hyperion.delvare>	<200910031208.36524.pluto@agmk.net> <20091003140447.6486ed82@hyperion.delvare> <4AC74A4D.2050409@gmail.com> <4AC74B36.4080407@gmail.com>
+In-Reply-To: <4AC74B36.4080407@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH 2/6 v5] Support for TVP7002 in dm365 board
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sneha,
+gspca - gl860: add flip/mirror for OV2640
 
+From: Olivier Lorin <o.lorin@laposte.net>
 
-So, if I got it right, have_tvp7002 is unnecessary since that 
-initialization is done via the CPLD interface. Therefore, all I need to 
-do is actually remove the logic for the device from board-dm365-evm.h. 
-Am I right? If so, should I also remove the logic for tvp5146?
+- add flip/mirror support for OV2640
+- fix for backlight value range
+- fix for red-blue inversion hue mode with V4L1 applications
 
-Regards,
-
-Narnakaje, Snehaprabha wrote:
-> Santiago, Kevin,
->
->   
->> -----Original Message-----
->> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->> Sent: Monday, October 26, 2009 5:35 PM
->> To: santiago.nunez@ridgerun.com
->> Cc: Narnakaje, Snehaprabha; davinci-linux-open-
->> source@linux.davincidsp.com; todd.fischer@ridgerun.com; linux-
->> media@vger.kernel.org
->> Subject: Re: [PATCH 2/6 v5] Support for TVP7002 in dm365 board
->>
->> Santiago Nunez-Corrales <snunez@ridgerun.com> writes:
->>
->>     
->>> Kevin Hilman wrote:
->>>       
->>>> <santiago.nunez@ridgerun.com> writes:
->>>>
->>>>
->>>>         
->>>>> From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
->>>>>
->>>>> This patch provides support for TVP7002 in architecture definitions
->>>>> within DM365.
->>>>>
->>>>> Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
->>>>> ---
->>>>>  arch/arm/mach-davinci/board-dm365-evm.c |  170
->>>>>           
->> ++++++++++++++++++++++++++++++-
->>     
->>>>>  1 files changed, 166 insertions(+), 4 deletions(-)
->>>>>
->>>>> diff --git a/arch/arm/mach-davinci/board-dm365-evm.c b/arch/arm/mach-
->>>>>           
->> davinci/board-dm365-evm.c
->>     
->>>>> index a1d5e7d..6c544d3 100644
->>>>> --- a/arch/arm/mach-davinci/board-dm365-evm.c
->>>>> +++ b/arch/arm/mach-davinci/board-dm365-evm.c
->>>>> @@ -38,6 +38,11 @@
->>>>>  #include <mach/common.h>
->>>>>  #include <mach/mmc.h>
->>>>>  #include <mach/nand.h>
->>>>> +#include <mach/gpio.h>
->>>>> +#include <linux/videodev2.h>
->>>>> +#include <media/tvp514x.h>
->>>>> +#include <media/tvp7002.h>
->>>>> +#include <media/davinci/videohd.h>
->>>>>    static inline int have_imager(void)
->>>>> @@ -48,8 +53,11 @@ static inline int have_imager(void)
->>>>>   static inline int have_tvp7002(void)
->>>>>  {
->>>>> -	/* REVISIT when it's supported, trigger via Kconfig */
->>>>> +#ifdef CONFIG_VIDEO_TVP7002
->>>>> +	return 1;
->>>>> +#else
->>>>>  	return 0;
->>>>> +#endif
->>>>>
->>>>>           
->>>> I've said this before, but I'll say it again.  I don't like the
->>>> #ifdef-on-Kconfig-option here.
->>>>
->>>> Can you add a probe hook to the platform_data so that when the tvp7002
->>>> is found it can call pdata->probe() which could then set a flag
->>>> for use by have_tvp7002().
->>>>
->>>> This will have he same effect without the ifdef since if the driver
->>>> is not compiled in, its probe can never be triggered.
->>>>
->>>> Kevin
->>>>
->>>>
->>>>         
->>> Kevin,
->>>
->>> I've been working on this particular implementation. This
->>> board-dm365-evm.c is specific to the board, therefore I don't still
->>> get the point of not having those values wired to the board file, but
->>> I know it'd be nice to have the CPLD configuration triggered upon
->>> TVP7002 detection. I see two options:
->>>       
->> Having them in the board file is appropriate, what I object to is the
->> selection by Kconfig.  Run-time detection is always preferred when
->> possible.
->>     
->
-> We have this CPLD init API - evm_init_cpld() called from the dm365_evm_init() function. The CPLD init API was trying to initialize the CPLD, based on the default configuration. I believe David Brownell had this placeholder for have_imager() and have_tvp7002() APIs since, we have different CPLD settings for the imager, tvp7002 and tvp5146 for the video input source.
->
->   
->>> 1. Do the callback function inside pdata and initialize it at driver
->>> load time (tvp7002_probe). Set tvp5146 as default and override when
->>> driver loads (and restore when unloads).
->>>       
->> This is the preferred option to me.
->>     
->
-> We can decide on the default video input source to be TVP5146. However we do not need a new callback function. We already have the VPFE .setup_input callback API dm365evm_setup_video_input() for the same purpose. The VPFE .setup_input API is called when each of the decoders (sub-devices) registered with VPFE capture driver. It is also called when the application decides on an input source and switches between the input sources.
->
-> So, TVP5146 remains as the default video input source, only until VPFE probe is called, which registers the all decoders (sub-devices) defined in the VPFE platform data. This also means that the last decoder in the VPFE platform data remains active after boot-up. One can change the order in the VPFE platform data if a particular input source needs to remain active after boot-up. Note that application can always switch the input-source at run time.
->
-> I quickly tried removing the have_imager() construct in the evm_init_cpld() and here is the output -
->
-> Starting kernel ...
->
-> Uncompressing Linux...............................................................................................
-> ........................................ done, booting the kernel.
-> Linux version 2.6.32-rc2-davinci1-dirty 
-> ...
-> CPU: Testing write buffer coherency: ok
-> DaVinci: 8 gpio irqs
-> NET: Registered protocol family 16
-> EVM: tvp5146 SD video input
-> bio: create slab <bio-0> at 0
-> SCSI subsystem initialized
-> ...
-> vpfe_init
-> vpfe-capture: vpss clock vpss_master enabled
-> vpfe-capture vpfe-capture: v4l2 device registered
-> vpfe-capture vpfe-capture: video device registered
-> EVM: switch to tvp5146 SD video input
-> tvp514x 1-005d: tvp514x 1-005d decoder driver registered !!
-> vpfe-capture vpfe-capture: v4l2 sub device tvp5146 registered
-> EVM: switch to tvp7002 HD video input
-> tvp7002 1-005c: tvp7002 1-005c decoder driver registered !!
-> vpfe-capture vpfe-capture: v4l2 sub device tvp7002 registered
-> ths7353 1-002e: chip found @ 0x5c (DaVinci I2C adapter)
-> vpfe-capture vpfe-capture: v4l2 sub device ths7353 registered
-> ...
->
-> As you can see, the default video input source is TVP5146 and it has been video input source has been switched to TVP7002.
->
-> Thanks
-> Sneha
->
->   
->>> 2. Add an entry to sysfs such that it can be user-configurable whether
->>> to activate one of the other regardless of whether tvp5156 or tvp7002
->>> are actually there (the only result would be fail to access the
->>> device).
->>>       
->> Why do you need sysfs options for switching?  Wouldn't building as
->> modules and loading/unloading the needed modules serve the same
->> purpose?
->>
->> Remeber that the 'probe' isn't going to be called until the
->> platform_driver
->> is registered, and that will (usually) happen at module load time.
->>
->>     
->>> Sneha, do you have any suggestions on this one?
->>>       
->> Kevin
->>
->>     
->
->   
-
-
--- 
-Santiago Nunez-Corrales, Eng.
-RidgeRun Engineering, LLC
-
-Guayabos, Curridabat
-San Jose, Costa Rica
-+(506) 2271 1487
-+(506) 8313 0536
-http://www.ridgerun.com
-
-
+diff -rupN ../gspca-msrc2/linux/drivers/media/video/gspca/gl860/gl860.h 
+./linux/drivers/media/video/gspca/gl860/gl860.h
+--- ../gspca-msrc2/linux/drivers/media/video/gspca/gl860/gl860.h   
+ 2009-09-24 23:16:10.000000000 +0200
++++ ./linux/drivers/media/video/gspca/gl860/gl860.h    2009-09-24 
+23:55:32.000000000 +0200
+@@ -23,7 +23,7 @@
+ #include "gspca.h"
+ 
+ #define MODULE_NAME "gspca_gl860"
+-#define DRIVER_VERSION "0.9d11"
++#define DRIVER_VERSION "0.9e"
+ 
+ #define ctrl_in  gl860_RTx
+ #define ctrl_out gl860_RTx
+diff -rupN 
+../gspca-msrc2/linux/drivers/media/video/gspca/gl860/gl860-ov2640.c 
+./linux/drivers/media/video/gspca/gl860/gl860-ov2640.c
+--- 
+../gspca-msrc2/linux/drivers/media/video/gspca/gl860/gl860-ov2640.c   
+ 2009-09-24 23:34:57.000000000 +0200
++++ ./linux/drivers/media/video/gspca/gl860/gl860-ov2640.c    2009-09-30 
+00:40:49.000000000 +0200
+@@ -107,36 +107,6 @@ static struct validx tbl_sensor_settings
+     {0x6001, 0x00ff}, {0x6038, 0x000c},
+     {10, 0xffff},
+     {0x6000, 0x0011},
+-    /* backlight=31/64 */
+-    {0x6001, 0x00ff}, {0x603e, 0x0024}, {0x6034, 0x0025},
+-    /* bright=0/256 */
+-    {0x6000, 0x00ff}, {0x6009, 0x007c}, {0x6000, 0x007d},
+-    /* wbal=64/128 */
+-    {0x6000, 0x00ff}, {0x6003, 0x007c}, {0x6040, 0x007d},
+-    /* cntr=0/256 */
+-    {0x6000, 0x00ff}, {0x6007, 0x007c}, {0x6000, 0x007d},
+-    /* sat=128/256 */
+-    {0x6000, 0x00ff}, {0x6001, 0x007c}, {0x6080, 0x007d},
+-    /* sharpness=0/32 */
+-    {0x6000, 0x00ff}, {0x6001, 0x0092}, {0x60c0, 0x0093},
+-    /* hue=0/256 */
+-    {0x6000, 0x00ff}, {0x6002, 0x007c}, {0x6000, 0x007d},
+-    /* gam=32/64 */
+-    {0x6000, 0x00ff}, {0x6008, 0x007c}, {0x6020, 0x007d},
+-    /* image right up */
+-    {0xffff, 0xffff},
+-    {15, 0xffff},
+-    {0x6001, 0x00ff}, {0x6000, 0x8004},
+-    {0xffff, 0xffff},
+-    {0x60a8, 0x0004},
+-    {15, 0xffff},
+-    {0x6001, 0x00ff}, {0x6000, 0x8004},
+-    {0xffff, 0xffff},
+-    {0x60f8, 0x0004},
+-    /* image right up */
+-    {0xffff, 0xffff},
+-    /* backlight=31/64 */
+-    {0x6001, 0x00ff}, {0x603e, 0x0024}, {0x6034, 0x0025},
+ };
+ 
+ static struct validx tbl_640[] = {
+@@ -222,17 +192,19 @@ void ov2640_init_settings(struct gspca_d
+     sd->vcur.hue        =   0;
+     sd->vcur.saturation = 128;
+     sd->vcur.whitebal   =  64;
++    sd->vcur.mirror     =   0;
++    sd->vcur.flip       =   0;
+ 
+     sd->vmax.backlight  =  64;
+     sd->vmax.brightness = 255;
+     sd->vmax.sharpness  =  31;
+     sd->vmax.contrast   = 255;
+     sd->vmax.gamma      =  64;
+-    sd->vmax.hue        = 255 + 1;
++    sd->vmax.hue        = 254 + 2;
+     sd->vmax.saturation = 255;
+     sd->vmax.whitebal   = 128;
+-    sd->vmax.mirror     = 0;
+-    sd->vmax.flip       = 0;
++    sd->vmax.mirror     = 1;
++    sd->vmax.flip       = 1;
+     sd->vmax.AC50Hz     = 0;
+ 
+     sd->dev_camera_settings = ov2640_camera_settings;
+@@ -284,6 +256,8 @@ static int ov2640_init_pre_alt(struct gs
+     sd->vold.gamma    = -1;
+     sd->vold.hue      = -1;
+     sd->vold.whitebal = -1;
++    sd->vold.mirror = -1;
++    sd->vold.flip   = -1;
+ 
+     ov2640_init_post_alt(gspca_dev);
+ 
+@@ -346,18 +320,6 @@ static int ov2640_init_post_alt(struct g
+ 
+     n = fetch_validx(gspca_dev, tbl_sensor_settings_common2,
+             ARRAY_SIZE(tbl_sensor_settings_common2));
+-    ctrl_in(gspca_dev, 0xc0, 2, 0x0000, 0x0000, 1, c50);
+-    keep_on_fetching_validx(gspca_dev, tbl_sensor_settings_common2,
+-                ARRAY_SIZE(tbl_sensor_settings_common2), n);
+-    ctrl_in(gspca_dev, 0xc0, 2, 0x6000, 0x8004, 1, c28);
+-    keep_on_fetching_validx(gspca_dev, tbl_sensor_settings_common2,
+-                ARRAY_SIZE(tbl_sensor_settings_common2), n);
+-    ctrl_in(gspca_dev, 0xc0, 2, 0x6000, 0x8004, 1, ca8);
+-    keep_on_fetching_validx(gspca_dev, tbl_sensor_settings_common2,
+-                ARRAY_SIZE(tbl_sensor_settings_common2), n);
+-    ctrl_in(gspca_dev, 0xc0, 2, 0x0000, 0x0000, 1, c50);
+-    keep_on_fetching_validx(gspca_dev, tbl_sensor_settings_common2,
+-                ARRAY_SIZE(tbl_sensor_settings_common2), n);
+ 
+     ov2640_camera_settings(gspca_dev);
+ 
+@@ -394,6 +356,8 @@ static int ov2640_camera_settings(struct
+     s32 sat    = sd->vcur.saturation;
+     s32 hue    = sd->vcur.hue;
+     s32 wbal   = sd->vcur.whitebal;
++    s32 mirror = (((sd->vcur.mirror > 0) ^ sd->mirrorMask) == 0);
++    s32 flip   = (((sd->vcur.flip   > 0) ^ sd->mirrorMask) == 0);
+ 
+     if (backlight != sd->vold.backlight) {
+         /* No sd->vold.backlight=backlight; (to be done again later) */
+@@ -402,9 +366,9 @@ static int ov2640_camera_settings(struct
+ 
+         ctrl_out(gspca_dev, 0x40, 1, 0x6001                 , 0x00ff,
+                 0, NULL);
+-        ctrl_out(gspca_dev, 0x40, 1, 0x601f + backlight     , 0x0024,
++        ctrl_out(gspca_dev, 0x40, 1, 0x601e + backlight     , 0x0024,
+                 0, NULL);
+-        ctrl_out(gspca_dev, 0x40, 1, 0x601f + backlight - 10, 0x0025,
++        ctrl_out(gspca_dev, 0x40, 1, 0x601e + backlight - 10, 0x0025,
+                 0, NULL);
+     }
+ 
+@@ -467,7 +431,7 @@ static int ov2640_camera_settings(struct
+         ctrl_out(gspca_dev, 0x40, 1, 0x6002     , 0x007c, 0, NULL);
+         ctrl_out(gspca_dev, 0x40, 1, 0x6000 + hue * (hue < 255), 0x007d,
+                 0, NULL);
+-        if (hue >= sd->vmax.hue)
++        if (hue >= 255)
+             sd->swapRB = 1;
+         else
+             sd->swapRB = 0;
+@@ -483,14 +447,33 @@ static int ov2640_camera_settings(struct
+         ctrl_out(gspca_dev, 0x40, 1, 0x6000 + gam, 0x007d, 0, NULL);
+     }
+ 
++    if (mirror != sd->vold.mirror || flip != sd->vold.flip) {
++        sd->vold.mirror = mirror;
++        sd->vold.flip   = flip;
++
++        mirror = 0x80 * mirror;
++        ctrl_out(gspca_dev, 0x40, 1, 0x6001, 0x00ff, 0, NULL);
++        ctrl_out(gspca_dev, 0x40, 1, 0x6000, 0x8004, 0, NULL);
++        ctrl_in(gspca_dev, 0xc0, 2, 0x6000, 0x8004, 1, &c28);
++        ctrl_out(gspca_dev, 0x40, 1, 0x6028 + mirror, 0x0004, 0, NULL);
++
++        flip = 0x50 * flip + mirror;
++        ctrl_out(gspca_dev, 0x40, 1, 0x6001, 0x00ff, 0, NULL);
++        ctrl_out(gspca_dev, 0x40, 1, 0x6000, 0x8004, 0, NULL);
++        ctrl_in(gspca_dev, 0xc0, 2, 0x6000, 0x8004, 1, &ca8);
++        ctrl_out(gspca_dev, 0x40, 1, 0x6028 + flip, 0x0004, 0, NULL);
++
++        ctrl_in(gspca_dev, 0xc0, 2, 0x0000, 0x0000, 1, &c50);
++    }
++
+     if (backlight != sd->vold.backlight) {
+         sd->vold.backlight = backlight;
+ 
+         ctrl_out(gspca_dev, 0x40, 1, 0x6001                 , 0x00ff,
+                 0, NULL);
+-        ctrl_out(gspca_dev, 0x40, 1, 0x601f + backlight     , 0x0024,
++        ctrl_out(gspca_dev, 0x40, 1, 0x601e + backlight     , 0x0024,
+                 0, NULL);
+-        ctrl_out(gspca_dev, 0x40, 1, 0x601f + backlight - 10, 0x0025,
++        ctrl_out(gspca_dev, 0x40, 1, 0x601e + backlight - 10, 0x0025,
+                 0, NULL);
+     }
+ 
