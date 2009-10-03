@@ -1,155 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:35718 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932287AbZJSVrq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Oct 2009 17:47:46 -0400
-Message-ID: <4ADCDE6F.6000502@maxwell.research.nokia.com>
-Date: Tue, 20 Oct 2009 00:47:27 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from mail.gmx.net ([213.165.64.20]:33964 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752747AbZJCWcK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 3 Oct 2009 18:32:10 -0400
+Date: Sun, 4 Oct 2009 00:31:24 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Antonio Ospite <ospite@studenti.unina.it>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: Re: pxa_camera + mt9m1111:  Failed to configure for format 50323234
+In-Reply-To: <20091003161328.36419315.ospite@studenti.unina.it>
+Message-ID: <Pine.LNX.4.64.0910040024070.5857@axis700.grange>
+References: <20091002213530.104a5009.ospite@studenti.unina.it>
+ <Pine.LNX.4.64.0910030116270.12093@axis700.grange>
+ <20091003161328.36419315.ospite@studenti.unina.it>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Zutshi Vimarsh (Nokia-D-MSW/Helsinki)" <vimarsh.zutshi@nokia.com>,
-	Ivan Ivanov <iivanov@mm-sol.com>,
-	Cohen David Abraham <david.cohen@nokia.com>,
-	Guru Raj <gururaj.nagendra@intel.com>,
-	Mike Krufky <mkrufky@linuxtv.org>, dheitmueller@kernellabs.org
-Subject: Re: [RFC] Video events, version 2.1
-References: <4AD877A0.3080004@maxwell.research.nokia.com> <200910162243.05921.hverkuil@xs4all.nl>
-In-Reply-To: <200910162243.05921.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
-[clip]
->> #define V4L2_EVENT_ALL			0x07ffffff
+On Sat, 3 Oct 2009, Antonio Ospite wrote:
+
+> On Sat, 3 Oct 2009 01:27:04 +0200 (CEST)
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
 > 
-> I suggest using 0 instead of 0x07ffffff. Yes, 0 is still a magic number, but 
-> somehow it feels a lot less magic :-)
-
-Okay.
-
->> #define V4L2_EVENT_PRIVATE_START	0x08000000
->> #define V4L2_EVENT_RESERVED		0x10000000
+> > On Fri, 2 Oct 2009, Antonio Ospite wrote:
+> > 
+> > > Hi,
+> > > 
+> > > after updating to 2.6.32-rc2 I can't capture anymore with the setup in the
+> > > subject.
+> > 
+> > Indeed:-( Please, verify, that this patch fixes your problem (completely 
+> > untested), if it does, I'll push it for 2.6.32:
+> > 
+> > pxa_camera: fix camera pixel format configuration
+> > 
+> > A typo prevents correct picel format negotiation with client drivers.
+> >
 > 
-> Rather than calling this RESERVED turn this into a mask:
+> typo in the log message too :) s/picel/pixel/
+
+Thanks:-)
+
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > ---
+> > diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+> > index 6952e96..aa831d5 100644
+> > --- a/drivers/media/video/pxa_camera.c
+> > +++ b/drivers/media/video/pxa_camera.c
+> > @@ -1432,7 +1432,9 @@ static int pxa_camera_set_fmt(struct soc_camera_device *icd,
+> >  		icd->sense = &sense;
+> >  
+> >  	cam_f.fmt.pix.pixelformat = cam_fmt->fourcc;
+> > -	ret = v4l2_subdev_call(sd, video, s_fmt, f);
+> > +	ret = v4l2_subdev_call(sd, video, s_fmt, &cam_f);
+> > +	cam_f.fmt.pix.pixelformat = pix->pixelformat;
+> > +	*pix = cam_f.fmt.pix;
+> >  
+> >  	icd->sense = NULL;
 > 
-> #define V4L2_EVENT_MASK	0x0fffffff
+> Ok, I can capture again even by only fixing the typo: s/f/&cam_f/
+> but I don't know if this is complete.
 
-Ok.
+No, that's not.
 
->> VIDIOC_DQEVENT is used to get events. count is number of pending events
->> after the current one. sequence is the event type sequence number and
->> the data is specific to event type.
->>
->> The user will get the information that there's an event through
->> exception file descriptors by using select(2). When an event is
->> available the poll handler sets POLLPRI which wakes up select. -EINVAL
->> will be returned if there are no pending events.
->>
->> VIDIOC_SUBSCRIBE_EVENT and VIDIOC_UNSUBSCRIBE_EVENT are used to
->> subscribe and unsubscribe from events. The argument is struct
->> v4l2_event_subscription which now only contains the type field for the
->> event type. Every event can be subscribed or unsubscribed by one ioctl
->> by using special type V4L2_EVENT_ALL.
->>
->>
->> struct v4l2_event {
->> 	__u32		count;
->> 	__u32		type;
->> 	__u32		sequence;
->> 	struct timeval	timestamp;
->> 	__u32		reserved[8];
->> 	__u8		data[64];
->> };
->>
->> struct v4l2_event_subscription {
->> 	__u32		type;
->> 	__u32		reserved[8];
->> };
->>
->> #define VIDIOC_DQEVENT		_IOR('V', 84, struct v4l2_event)
->> #define VIDIOC_SUBSCRIBE_EVENT	_IOW('V', 85, struct
->> 				     v4l2_event_subscription)
->> #define VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 86, struct
->> 				      v4l2_event_subscription)
+> Anyways your patch works, but the picture is now shifted, see:
+> http://people.openezx.org/ao2/a780-pxa-camera-mt9m111-shifted.jpg
 > 
-> Perhaps we should use just one ioctl and use a flag in the 
-> event_subscription struct to tell whether to subscribe or unsubscribe? Just 
-> brainstorming here.
+> Is this because of the new cropping code?
 
-Having two ioctls would be equivalent to STREAMON and STREAMOFF, that's 
-why I originally picked that. I can't immediately figure a way it could 
-be done nicely by using a flag.
+Hm, it shouldn't be. Does it look always like this - reproducible? What 
+program are you using? What about other geometry configurations? Have you 
+ever seen this with previous kernel versions? New cropping - neither 
+mplayer nor gstreamer use cropping normally. This seems more like a HSYNC 
+problem to me. Double-check platform data? Is it mioa701 or some custom 
+board?
 
->> The size of the event queue is decided by the driver. Which events will
->> be discarded on queue overflow depends on the implementation.
->>
->>
->> Questions
->> ---------
->>
->> One more question I have is that there can be situations that the
->> application wants to know something has happened but does not want an
->> explicit notification from that. So it gets an event from VIDIOC_DQEVENT
->> but does not want to get woken up for that reason. I guess one flag in
->> event subscription should do that. Perhaps that is something that should
->> be implemented when needed, though.
-> 
-> Yeah, lets implement this only when needed.
-> 
->> Are there enough reserved fields now?
-> 
-> Personally I think 4 reserved fields for the event_subscription is enough. 8 
-> reserved fields for that seems overkill to me.
-
-struct v4l2_format is IMO a good example of having enough unused fields. ;)
-
-I see that 8 reserved fields might make sense at least for v4l2_event. I 
-wouldn't mind if we had that many in v4l2_event_subscription as well. 
-There is already proposed use for three of them:
-
-- flags (e.g. notification / no notification)
-- entity
-
-- number of pending events
-
-The two first ones might make sense in v4l2_event_subscription as well. 
-That would leave just two reserved fields afterwards.
-
-The entity field would fit to v4l2_event_subscription for the same 
-reasons than to v4l2_event; if there are several entities the event 
-could be coming from we could limit it to just some. Perhaps a bit 
-far-fetched but still...
-
-And I wouldn't be surprised if a need appeared to something like 
-priority as Tomasz suggested. After all that we'd be left with just one 
-reserved field if we decided to use all 32 bits for priority.
-
-The basic event delivery problem is IMO very well understood but there 
-are just so many ideas on extensions (many of which sound quite 
-reasonable) already at this point that I'm slightly worried about the 
-future if we just have a few reserved fields. Unnecessary bloat still 
-must be kept away, of course.
-
->> How about the event type high 
->> order bits split?
-> 
-> Yes, what's the purpose of that? I don't see a good reason for that.
-
-Me neither. Although even if we don't see use for them now it doesn't 
-mean there couldn't be any in future. We can always say that the 
-reserved bits are no more reserved but not the other way around.
-
-I originally though those few bits could be used for flags that now are 
-part of the structure.
-
-Or we could just drop the reserved bits, I'm not against that.
-
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
