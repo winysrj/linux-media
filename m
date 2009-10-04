@@ -1,43 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:55705 "EHLO mail1.radix.net"
+Received: from poutre.nerim.net ([62.4.16.124]:49157 "EHLO poutre.nerim.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933369AbZKAAiz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Oct 2009 20:38:55 -0400
-Subject: Re: cx18: YUV frame alignment improvements
-From: Andy Walls <awalls@radix.net>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org, ivtv-devel@ivtvdriver.org,
-	Simon Farnsworth <simon.farnsworth@onelan.com>
-In-Reply-To: <829197380910311328u2879c45ep2023a99058112549@mail.gmail.com>
-References: <1257020204.3087.18.camel@palomino.walls.org>
-	 <829197380910311328u2879c45ep2023a99058112549@mail.gmail.com>
-Content-Type: text/plain
-Date: Sat, 31 Oct 2009 20:41:34 -0400
-Message-Id: <1257036094.3181.7.camel@palomino.walls.org>
+	id S1753257AbZJDIpm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 4 Oct 2009 04:45:42 -0400
+Date: Sun, 4 Oct 2009 10:44:52 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
+Cc: Andy Walls <awalls@radix.net>, Jarod Wilson <jarod@wilsonet.com>,
+	linux-media@vger.kernel.org,
+	Oldrich Jedlicka <oldium.pro@seznam.cz>, hverkuil@xs4all.nl
+Subject: Re: [REVIEW] ivtv, ir-kbd-i2c: Explicit IR support for the AVerTV
+ M116 for newer kernels
+Message-ID: <20091004104452.7a6d0f9b@hyperion.delvare>
+In-Reply-To: <20091004083139.GA20457@moon>
+References: <1254584660.3169.25.camel@palomino.walls.org>
+	<20091004083139.GA20457@moon>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2009-10-31 at 16:28 -0400, Devin Heitmueller wrote:
-> On Sat, Oct 31, 2009 at 4:16 PM, Andy Walls <awalls@radix.net> wrote:
-
+On Sun, 4 Oct 2009 11:31:39 +0300, Aleksandr V. Piskunov wrote:
+> Tested on 2.6.30.8, one of Ubuntu mainline kernel builds.
 > 
-> Hi Andy,
+> ivtv-i2c part works, ivtv_i2c_new_ir() gets called, according to /sys/bus/i2c
+> device @ 0x40 gets a name ir_rx_em78p153s_ave.
 > 
-> How does this code work if the cx23418 scaler is used (resulting in
-> the size of the frames to be non-constant)?  Or is the scaler not
-> currently supported in the driver?
+> Now according to my (very) limited understanding of new binding model, ir-kbd-i2c
+> should attach to this device by its name. Somehow it doesn't, ir-kbd-i2c gets loaded
+> silently without doing anything.
 
-I also forgot to mention, changing size while the encoder has an analog
-stream running (MPEG, VBI, YUV, IDX) is not permitted by the firmware.
-So this change works just fine as it computes the buffer size to use
-just as it sets up to start the capture.
+Change the device name to a shorter string (e.g. "ir_rx_em78p153s").
+You're hitting the i2c client name length limit. More details about
+this in the details reply I'm writing right now.
 
-Regards,
-Andy
-
-> 
-> Devin
-> 
-
+-- 
+Jean Delvare
