@@ -1,50 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.viadmin.org ([195.145.128.101]:58840 "EHLO www.viadmin.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757351AbZJOKp4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Oct 2009 06:45:56 -0400
-Date: Thu, 15 Oct 2009 12:45:09 +0200
-From: "H. Langos" <henrik-dvb@prak.org>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] request driver for cards
-Message-ID: <20091015104509.GO6384@www.viadmin.org>
-References: <23582ca0910140607v54a15d46y7ac834a3b6255af3@mail.gmail.com>
+Received: from mail-ew0-f211.google.com ([209.85.219.211]:36975 "EHLO
+	mail-ew0-f211.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753910AbZJDLiA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Oct 2009 07:38:00 -0400
+Received: by ewy7 with SMTP id 7so2693202ewy.17
+        for <linux-media@vger.kernel.org>; Sun, 04 Oct 2009 04:37:23 -0700 (PDT)
+Message-ID: <4AC88895.2040601@tremplin-utc.net>
+Date: Sun, 04 Oct 2009 13:35:49 +0200
+From: "=?ISO-8859-1?Q?=C9ric_Piel?=" <eric.piel@tremplin-utc.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <23582ca0910140607v54a15d46y7ac834a3b6255af3@mail.gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Michael Krufky <mkrufky@kernellabs.com>,
+	Uri Shkolnik <uris@siano-ms.com>, linux-media@vger.kernel.org
+Subject: [PATCH] sms1xxx: load smsdvb also for the hauppauge tiger cards
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 14, 2009 at 03:07:00PM +0200, Theunis Potgieter wrote:
-> Hi, what is the procedure to request drivers for specific new, perhaps
-> unknown supported cards?
+Hello,
 
-The "procedure" is to hit google with something 
-like "linux <vendor> <model>" and see what you find. :-)
+Here is a patch to get my DVB-T receiver directly being recognized useful.
+It's against Linus' 2.6.32-rc1.
 
-Especially links to mailing list archives like linux-media and linux-dvb
-are worth a read.
+Eric
 
+==
 
-> Perhaps I shouldn't waste time if I could find a dual/twin tuner card for
-> dvb-s or dvb-s2. Are there any recommended twin-tuner pci-e cards that is
-> support and can actually be bought by the average consumer?
+I've got a hauppauge tiger minicard (2040:2011), and without smsdvb loaded,
+it's completely useless (to watch TV). So let's add both the minicard and the
+minicard r2 to the list of cards which should trigger the load of smsdvb.
 
-Did you risk a look at any of those?
+Signed-off-by: Éric Piel <eric.piel@tremplin-utc.net>
+---
+  drivers/media/dvb/siano/sms-cards.c |    2 ++
+  1 files changed, 2 insertions(+), 0 deletions(-)
 
-http://www.linuxtv.org/wiki/index.php/DVB-S_PCI_Cards
-http://www.linuxtv.org/wiki/index.php/DVB-S_PCIe_Cards
-http://www.linuxtv.org/wiki/index.php/DVB-S2_PCI_Cards
-http://www.linuxtv.org/wiki/index.php/DVB-S2_PCIe_Cards
-
-I suspect they might contain some usable informaion. You should however
-take into account that most developers don't care to update a bazillion
-different places after they added support for a particular devices. So 
-in most cases there will be a brief announcment on the developers
-mailinglist and the code is the documentation.
-
-cheers
--henrik
-
+diff --git a/drivers/media/dvb/siano/sms-cards.c b/drivers/media/dvb/siano/sms-cards.c
+index 0420e28..e216389 100644
+--- a/drivers/media/dvb/siano/sms-cards.c
++++ b/drivers/media/dvb/siano/sms-cards.c
+@@ -294,6 +294,8 @@ int sms_board_load_modules(int id)
+  	case SMS1XXX_BOARD_HAUPPAUGE_OKEMO_A:
+  	case SMS1XXX_BOARD_HAUPPAUGE_OKEMO_B:
+  	case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
++	case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
++	case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
+  		request_module("smsdvb");
+  		break;
+  	default:
