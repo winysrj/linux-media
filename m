@@ -1,86 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52085 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755994AbZJVN4n (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Oct 2009 09:56:43 -0400
-Date: Thu, 22 Oct 2009 15:56:29 +0200
-From: Jiri Pirko <jpirko@redhat.com>
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net, eric.dumazet@gmail.com,
-	jeffrey.t.kirsher@intel.com, jesse.brandeburg@intel.com,
-	bruce.w.allan@intel.com, peter.p.waskiewicz.jr@intel.com,
-	john.ronciak@intel.com, e1000-devel@lists.sourceforge.net,
-	mchehab@infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH net-next-2.6 0/4] net: change the way mc_list is
-	accessed
-Message-ID: <20091022135628.GH2868@psychotron.lab.eng.brq.redhat.com>
-References: <20091022135120.GC2868@psychotron.lab.eng.brq.redhat.com> <20091022135446.GG2868@psychotron.lab.eng.brq.redhat.com>
+Received: from mail-fx0-f227.google.com ([209.85.220.227]:64994 "EHLO
+	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751878AbZJDJ1F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Oct 2009 05:27:05 -0400
+Received: by fxm27 with SMTP id 27so2221291fxm.17
+        for <linux-media@vger.kernel.org>; Sun, 04 Oct 2009 02:26:27 -0700 (PDT)
+Date: Sun, 4 Oct 2009 12:26:21 +0300
+From: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>,
+	Andy Walls <awalls@radix.net>,
+	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org,
+	Oldrich Jedlicka <oldium.pro@seznam.cz>, hverkuil@xs4all.nl
+Subject: Re: [REVIEW] ivtv, ir-kbd-i2c: Explicit IR support for the AVerTV
+	M116 for newer kernels
+Message-ID: <20091004092621.GB20457@moon>
+References: <1254584660.3169.25.camel@palomino.walls.org> <20091004083139.GA20457@moon> <20091004104452.7a6d0f9b@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20091022135446.GG2868@psychotron.lab.eng.brq.redhat.com>
+In-Reply-To: <20091004104452.7a6d0f9b@hyperion.delvare>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-wrong subject... reposting...
+On Sun, Oct 04, 2009 at 10:44:52AM +0200, Jean Delvare wrote:
+> On Sun, 4 Oct 2009 11:31:39 +0300, Aleksandr V. Piskunov wrote:
+> > Tested on 2.6.30.8, one of Ubuntu mainline kernel builds.
+> > 
+> > ivtv-i2c part works, ivtv_i2c_new_ir() gets called, according to /sys/bus/i2c
+> > device @ 0x40 gets a name ir_rx_em78p153s_ave.
+> > 
+> > Now according to my (very) limited understanding of new binding model, ir-kbd-i2c
+> > should attach to this device by its name. Somehow it doesn't, ir-kbd-i2c gets loaded
+> > silently without doing anything.
+> 
+> Change the device name to a shorter string (e.g. "ir_rx_em78p153s").
+> You're hitting the i2c client name length limit. More details about
+> this in the details reply I'm writing right now.
 
-Thu, Oct 22, 2009 at 03:54:47PM CEST, jpirko@redhat.com wrote:
->Signed-off-by: Jiri Pirko <jpirko@redhat.com>
->---
-> drivers/media/dvb/dvb-core/dvb_net.c |   22 +++++++---------------
-> 1 files changed, 7 insertions(+), 15 deletions(-)
->
->diff --git a/drivers/media/dvb/dvb-core/dvb_net.c b/drivers/media/dvb/dvb-core/dvb_net.c
->index 8c9ae0a..eb50fb0 100644
->--- a/drivers/media/dvb/dvb-core/dvb_net.c
->+++ b/drivers/media/dvb/dvb-core/dvb_net.c
->@@ -1110,17 +1110,16 @@ static int dvb_net_feed_stop(struct net_device *dev)
-> }
-> 
-> 
->-static int dvb_set_mc_filter (struct net_device *dev, struct dev_mc_list *mc)
->+static void dvb_set_mc_filter(void *data, unsigned char *addr)
-> {
->-	struct dvb_net_priv *priv = netdev_priv(dev);
->+	struct dvb_net_priv *priv = data;
-> 
-> 	if (priv->multi_num == DVB_NET_MULTICAST_MAX)
->-		return -ENOMEM;
->+		return;
-> 
->-	memcpy(priv->multi_macs[priv->multi_num], mc->dmi_addr, 6);
->+	memcpy(priv->multi_macs[priv->multi_num], addr, ETH_ALEN);
-> 
-> 	priv->multi_num++;
->-	return 0;
-> }
-> 
-> 
->@@ -1140,21 +1139,14 @@ static void wq_set_multicast_list (struct work_struct *work)
-> 	} else if ((dev->flags & IFF_ALLMULTI)) {
-> 		dprintk("%s: allmulti mode\n", dev->name);
-> 		priv->rx_mode = RX_MODE_ALL_MULTI;
->-	} else if (dev->mc_count) {
->-		int mci;
->-		struct dev_mc_list *mc;
->-
->+	} else if (netdev_mc_count(dev)) {
-> 		dprintk("%s: set_mc_list, %d entries\n",
->-			dev->name, dev->mc_count);
->+			dev->name, netdev_mc_count(dev));
-> 
-> 		priv->rx_mode = RX_MODE_MULTI;
-> 		priv->multi_num = 0;
-> 
->-		for (mci = 0, mc=dev->mc_list;
->-		     mci < dev->mc_count;
->-		     mc = mc->next, mci++) {
->-			dvb_set_mc_filter(dev, mc);
->-		}
->+		netdev_mc_walk(dev, dvb_set_mc_filter, priv);
-> 	}
-> 
-> 	netif_addr_unlock_bh(dev);
->-- 
->1.6.2.5
->
+Thanks, it works now. ir-kbd-i2c picks up the short name, input device is created, remote
+works.
+
+Another place where truncation occurs is name field in em78p153s_aver_ir_init_data 
+("ivtv-CX23416 EM78P153S AVerMedia"). Actual input device ends up with a name
+"i2c IR (ivtv-CX23416 EM78P153S ", limited by char name[32] in IR_i2c struct.
+
+IMHO actual name of resulting input device should be readable by end-user. Perhaps it should
+include the short name of the card itself, or model/color of remote control itself if several
+revisions exist, etc.
