@@ -1,98 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lider.uludag.org.tr ([193.140.100.216]:44043 "EHLO
-	lider.pardus.org.tr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750841AbZJWHOC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Oct 2009 03:14:02 -0400
-Message-ID: <4AE158D7.6000900@pardus.org.tr>
-Date: Fri, 23 Oct 2009 10:18:47 +0300
-From: =?UTF-8?B?T3phbiDDh2HEn2xheWFu?= <ozan@pardus.org.tr>
+Received: from mail-bw0-f210.google.com ([209.85.218.210]:55029 "EHLO
+	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754678AbZJDWj4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Oct 2009 18:39:56 -0400
+Received: by bwz6 with SMTP id 6so2123666bwz.37
+        for <linux-media@vger.kernel.org>; Sun, 04 Oct 2009 15:39:19 -0700 (PDT)
+Date: Mon, 5 Oct 2009 01:39:15 +0300
+From: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
+To: Andy Walls <awalls@radix.net>
+Cc: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>,
+	Jean Delvare <khali@linux-fr.org>,
+	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org,
+	Oldrich Jedlicka <oldium.pro@seznam.cz>, hverkuil@xs4all.nl
+Subject: Re: [REVIEW] ivtv, ir-kbd-i2c: Explicit IR support for the AVerTV
+	M116 for newer kernels
+Message-ID: <20091004223915.GB31609@moon>
+References: <1254584660.3169.25.camel@palomino.walls.org> <20091004083139.GA20457@moon> <20091004104452.7a6d0f9b@hyperion.delvare> <20091004092621.GB20457@moon> <1254688861.3148.137.camel@palomino.walls.org>
 MIME-Version: 1.0
-To: Alan Stern <stern@rowland.harvard.edu>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	USB list <linux-usb@vger.kernel.org>
-Subject: Re: uvcvideo causes ehci_hcd to halt
-References: <Pine.LNX.4.44L0.0910220944100.989-100000@netrider.rowland.org>
-In-Reply-To: <Pine.LNX.4.44L0.0910220944100.989-100000@netrider.rowland.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1254688861.3148.137.camel@palomino.walls.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Alan Stern wrote On 22-10-2009 17:05:
-> On Thu, 22 Oct 2009, [UTF-8] Ozan Ã‡aÄŸlayan wrote:
->
->   
->> Here's the outputs from /sys/kernel/debug/usb/ehci:
->>
->> periodic:
->> ----------------
->> size = 1024
->>    1:  qh1024-0001/f6ffe280 (h2 ep2 [1/0] q0 p8)
->>     
->
-> There's something odd about this.  I'd like to see this file again, 
-> after the patch below has been applied.
->   
+On Sun, Oct 04, 2009 at 04:41:01PM -0400, Andy Walls wrote:
+> On Sun, 2009-10-04 at 12:26 +0300, Aleksandr V. Piskunov wrote:
+> > On Sun, Oct 04, 2009 at 10:44:52AM +0200, Jean Delvare wrote:
+> > > On Sun, 4 Oct 2009 11:31:39 +0300, Aleksandr V. Piskunov wrote:
+> > > > Tested on 2.6.30.8, one of Ubuntu mainline kernel builds.
+> > > > 
+> > > > ivtv-i2c part works, ivtv_i2c_new_ir() gets called, according to /sys/bus/i2c
+> > > > device @ 0x40 gets a name ir_rx_em78p153s_ave.
+> > > > 
+> > > > Now according to my (very) limited understanding of new binding model, ir-kbd-i2c
+> > > > should attach to this device by its name. Somehow it doesn't, ir-kbd-i2c gets loaded
+> > > > silently without doing anything.
+> > > 
+> > > Change the device name to a shorter string (e.g. "ir_rx_em78p153s").
+> > > You're hitting the i2c client name length limit. More details about
+> > > this in the details reply I'm writing right now.
+> > 
+> > Thanks, it works now. ir-kbd-i2c picks up the short name, input device is created, remote
+> > works.
+> > 
+> > Another place where truncation occurs is name field in em78p153s_aver_ir_init_data 
+> > ("ivtv-CX23416 EM78P153S AVerMedia"). Actual input device ends up with a name
+> > "i2c IR (ivtv-CX23416 EM78P153S ", limited by char name[32] in IR_i2c struct.
+> 
+> I'm naive here.  What applications actually show this string or use it?
+> For what purposes do applications use it?
 
-periodic
-size = 1024
-   1:  qh1024-0001/f6ffe280 (h2 ep2 [1/0] q0 p8) t00000000
+Mmm, from the top of my head
+1) evtest, using it to test remotes and other input devices.
+2) gnome-device-manager, displays a tree of hardware devices with details
 
-registers
-bus pci, device 0000:00:1d.7
-EHCI Host Controller
-EHCI 1.00, hcd state 0
-ownership 00000001
-SMI sts/enable 0x80080000
-structural params 0x00104208
-capability params 0x00016871
-status 6008 Periodic Recl FLR
-command 010000 (park)=0 ithresh=1 period=1024 HALT
-intrenable 00
-uframe 0677
-port 1 status 001000 POWER sig=se0
-port 2 status 001000 POWER sig=se0
-port 3 status 001000 POWER sig=se0
-port 4 status 001000 POWER sig=se0
-port 5 status 001005 POWER sig=se0 PE CONNECT
-port 6 status 001005 POWER sig=se0 PE CONNECT
-port 7 status 001000 POWER sig=se0
-port 8 status 001000 POWER sig=se0
-irq normal 60 err 0 reclaim 14 (lost 0)
-complete 60 unlink 1
+I hope when the time comes for a media controller stuff, applications will be able to link
+all the related hardware, including boards IR device and show this information to end-user.
+There it becomes a little bit more important to have a readable and meaningful name.
 
-After putting a udelay() the problem seems to be resolved. I did a
-rmmod-modprobe-sleep in 50 iterations,  and the host controller was
-still functional along with the web-cam:
-
-periodic
-size = 1024
-
-registers
-bus pci, device 0000:00:1d.7
-EHCI Host Controller
-EHCI 1.00, hcd state 1
-ownership 00000001
-SMI sts/enable 0x80080000
-structural params 0x00104208
-capability params 0x00016871
-status 2008 Recl FLR
-command 010001 (park)=0 ithresh=1 period=1024 RUN
-intrenable 37 IAA FATAL PCD ERR INT
-uframe 0908
-port 1 status 001000 POWER sig=se0
-port 2 status 001000 POWER sig=se0
-port 3 status 001000 POWER sig=se0
-port 4 status 001000 POWER sig=se0
-port 5 status 001005 POWER sig=se0 PE CONNECT
-port 6 status 001005 POWER sig=se0 PE CONNECT
-port 7 status 001000 POWER sig=se0
-port 8 status 001000 POWER sig=se0
-irq normal 2115 err 0 reclaim 300 (lost 0)
-complete 2110 unlink 8
-
---
-Thanks a lot for all your efforts!
+> > IMHO actual name of resulting input device should be readable by end-user. Perhaps it should
+> > include the short name of the card itself, or model/color of remote control itself if several
+> > revisions exist, etc.
+> 
+> The em28xx driver uses things like:
+> 
+> 	i2c IR (EM28XX Terratec)
+> 	i2c IR (EM28XX Pinnacle PCTV)
+> 
+> The saa7134 driver uses thing like:
+> 	
+> 	Pinnacle PCTV
+> 	Purple TV
+> 	MSI TV@nywhere Plus
+> 	HVR 1110
+> 	BeholdTV
+> 
+> The cx18 driver (i.e. me) uses:
+> 
+> 	CX23418 Z8F0811 Hauppauge
+> 
+> 
+> I appear to be user-unfriendly. ;)  I guess I like knowing what devices
+> are precisely involved, as it helps me when I need to troubleshoot.  I
+> agree that it doesn't help the normal user in day to day operations.
+> 
+> I will change the names to something more card specific.  It could end
+> up slightly misleading in the long run.  A single card entry in
+> ivtv-cards.c can describe multiple card variants, but gives all those
+> variants the same "name" whether or not the consumer retail names are
+> the same.
+> 
+> 
+> Regards,
+> Andy
+> 
+> 
