@@ -1,40 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f212.google.com ([209.85.217.212]:55565 "EHLO
-	mail-gx0-f212.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757530AbZJBKgX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2009 06:36:23 -0400
-Received: by gxk4 with SMTP id 4so1295600gxk.8
-        for <linux-media@vger.kernel.org>; Fri, 02 Oct 2009 03:36:27 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <87ab0auo19.fsf@musikcheck.dk>
-References: <87ab0auo19.fsf@musikcheck.dk>
-Date: Fri, 2 Oct 2009 12:36:26 +0200
-Message-ID: <82d79e70910020336s4438875aw55709ebf95a75211@mail.gmail.com>
-Subject: Re: What is the status of the driver TT CT-3650
-From: James Peters <james.peters.ml@googlemail.com>
-To: Hasse Hagen Johansen <hhj-linux-dvd@musikcheck.dk>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail1.radix.net ([207.192.128.31]:58969 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757911AbZJDUmI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 4 Oct 2009 16:42:08 -0400
+Subject: Re: [REVIEW] ivtv, ir-kbd-i2c: Explicit IR support for the AVerTV
+ M116 for newer kernels
+From: Andy Walls <awalls@radix.net>
+To: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
+Cc: Jean Delvare <khali@linux-fr.org>,
+	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org,
+	Oldrich Jedlicka <oldium.pro@seznam.cz>, hverkuil@xs4all.nl
+In-Reply-To: <20091004083139.GA20457@moon>
+References: <1254584660.3169.25.camel@palomino.walls.org>
+	 <20091004083139.GA20457@moon>
+Content-Type: text/plain
+Date: Sun, 04 Oct 2009 16:44:17 -0400
+Message-Id: <1254689057.3148.139.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 2, 2009 at 9:20 AM, Hasse Hagen Johansen
-<hhj-linux-dvd@musikcheck.dk> wrote:
-> Hi
->
-> I have recently bought such a card and tried to get it working. Does
-> anyone know if it is possible. I have compiled the dvb drivers from
-> s2-liplianin
->
-> And tried to use the scan program from the dvb-apps mercurial tarball. I
-> also compile scan-s2 and tried that, but I always get "tuning failed"
->
-> Anyone know how to get this working or this card is in a working state
-> under linux. Because if it not working yet I will stop wasting my time
-> :-)
->
+On Sun, 2009-10-04 at 11:31 +0300, Aleksandr V. Piskunov wrote:
+> On Sat, Oct 03, 2009 at 11:44:20AM -0400, Andy Walls wrote:
+> > Aleksandr and Jean,
+> > 
+> > Zdrastvoitye & Bonjour,
+> > 
+> > To support the AVerMedia M166's IR microcontroller in ivtv and
+> > ir-kbd-i2c with the new i2c binding model, I have added 3 changesets in
+> > 
+> > 	http://linuxtv.org/hg/~awalls/ivtv
+> > 
+> > 01/03: ivtv: Defer legacy I2C IR probing until after setup of known I2C devices
+> > http://linuxtv.org/hg/~awalls/ivtv?cmd=changeset;node=3d243437f046
+> > 
+> > 02/03: ivtv: Add explicit IR controller initialization for the AVerTV M116
+> > http://linuxtv.org/hg/~awalls/ivtv?cmd=changeset;node=0127ed2ea55b
+> > 
+> > 03/03: ir-kbd-i2c: Add support for the AVerTV M116 with the new binding model
+> > http://linuxtv.org/hg/~awalls/ivtv?cmd=changeset;node=c10e0d5d895c
+> > 
+> > 
+> > I cannot really test them as I still am using an older kernel.  Could
+> > you please review, and test them if possible?
+> > 
+> 
+> Thank you, Andy! Much more elegant solution than simply pounding 0x40 on every ivtv
+> board.
 
-it didn't work for me either, so I returned it and stick with my old
-DVB-T device again..
+Thank you.  Of course as Jean has pointed out, I have some things to
+clean up.
 
-James
+> Tested on 2.6.30.8, one of Ubuntu mainline kernel builds.
+
+Thank you for testing.
+
+> ivtv-i2c part works, ivtv_i2c_new_ir() gets called, according to /sys/bus/i2c
+> device @ 0x40 gets a name ir_rx_em78p153s_ave.
+> 
+> Now according to my (very) limited understanding of new binding model, ir-kbd-i2c
+> should attach to this device by its name. Somehow it doesn't, ir-kbd-i2c gets loaded
+> silently without doing anything.
+
+As you probably know, the truncated name cannot be matched.
+
+
+Regards,
+Andy
+
