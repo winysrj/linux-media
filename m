@@ -1,127 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1989 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755225AbZJ2TZp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Oct 2009 15:25:45 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id n9TJPjd1055502
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 29 Oct 2009 20:25:49 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 29 Oct 2009 20:25:45 +0100 (CET)
-Message-Id: <200910291925.n9TJPjd1055502@smtp-vbr6.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail.agmk.net ([91.192.224.71]:45985 "EHLO mail.agmk.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752580AbZJDHIu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 4 Oct 2009 03:08:50 -0400
+From: =?utf-8?q?Pawe=C5=82_Sikora?= <pluto@agmk.net>
+To: Hermann Pitton <hermann-pitton@arcor.de>
+Subject: Re: [2.6.31] ir-kbd-i2c oops.
+Date: Sun, 4 Oct 2009 09:08:05 +0200
+Cc: Jean Delvare <khali@linux-fr.org>,
+	LMML <linux-media@vger.kernel.org>
+References: <200909160300.28382.pluto@agmk.net> <200910032109.01674.pluto@agmk.net> <1254610338.11623.46.camel@localhost>
+In-Reply-To: <1254610338.11623.46.camel@localhost>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Message-Id: <200910040908.05864.pluto@agmk.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Sunday 04 October 2009 00:52:18 Hermann Pitton wrote:
+> Hi,
+> 
+> Am Samstag, den 03.10.2009, 21:09 +0200 schrieb Paweł Sikora:
+> > On Saturday 03 October 2009 20:15:27 Jean Delvare wrote:
+> > > > moreover, with this patch i'm observing a flood in dmesg:
+> > > >
+> > > > [  938.313245] i2c IR (Pinnacle PCTV): unknown key: key=0x12 raw=0x12
+> > > > down=1 [  938.419914] i2c IR (Pinnacle PCTV): unknown key: key=0x12
+> > > > raw=0x12 down=0 [  939.273249] i2c IR (Pinnacle PCTV): unknown key:
+> > > > key=0x24 raw=0x24 down=1 [  939.379955] i2c IR (Pinnacle PCTV):
+> > > > unknown key: key=0x24 raw=0x24 down=0
+> > >
+> > > Different issue, and I don't know much about IR support, but these keys
+> > > aren't listed in ir_codes_pinnacle_color. Maybe you have a different
+> > > variant of this remote control with more keys and we need to add their
+> > > definitions.
+> >
+> > i have such one: http://imgbin.org/index.php?page=image&id=812
+> 
+> hm, maybe it is some fake Pinnacle stuff, at least that remote is very
+> different from the supported ones with gray only or colored keys and
+> looks very poor.
 
-Results of the daily build of v4l-dvb:
+i have pinnacle pctv analog pci 110i:
 
-date:        Thu Oct 29 19:00:11 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13234:4ae02a41d03d
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+http://imgbin.org/index.php?page=image&id=813
 
-linux-2.6.22.19-armv5: WARNINGS
-linux-2.6.23.12-armv5: WARNINGS
-linux-2.6.24.7-armv5: WARNINGS
-linux-2.6.25.11-armv5: WARNINGS
-linux-2.6.26-armv5: WARNINGS
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-rc3-armv5: ERRORS
-linux-2.6.32-rc3-armv5-davinci: ERRORS
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.32-rc3-armv5-ixp: ERRORS
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: ERRORS
-linux-2.6.32-rc3-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-rc3-i686: ERRORS
-linux-2.6.23.12-m32r: WARNINGS
-linux-2.6.24.7-m32r: WARNINGS
-linux-2.6.25.11-m32r: WARNINGS
-linux-2.6.26-m32r: WARNINGS
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-rc3-m32r: ERRORS
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: OK
-linux-2.6.32-rc3-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: OK
-linux-2.6.32-rc3-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-rc3-x86_64: ERRORS
-sparse (linux-2.6.31): OK
-sparse (linux-2.6.32-rc3): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+05:00.0 Multimedia controller: Philips Semiconductors SAA7133/SAA7135
+        Video Broadcast Decoder (rev d1)
+        Subsystem: Pinnacle Systems Inc. PCTV 110i (saa7133)                                          
+        Flags: bus master, medium devsel, latency 64, IRQ 16                                          
+        Memory at febff800 (32-bit, non-prefetchable) [size=2K]                                       
+        Capabilities: [40] Power Management version 2                                                 
+        Kernel driver in use: saa7134                                                                 
+        Kernel modules: saa7134
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The V4L2 specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+05:00.0 0480: 1131:7133 (rev d1)
