@@ -1,124 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:46521 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759942AbZJPNld (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Oct 2009 09:41:33 -0400
-Message-ID: <4AD877A0.3080004@maxwell.research.nokia.com>
-Date: Fri, 16 Oct 2009 16:39:44 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from mail-ew0-f211.google.com ([209.85.219.211]:33169 "EHLO
+	mail-ew0-f211.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756857AbZJDQZh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Oct 2009 12:25:37 -0400
+Received: by ewy7 with SMTP id 7so2823715ewy.17
+        for <linux-media@vger.kernel.org>; Sun, 04 Oct 2009 09:24:59 -0700 (PDT)
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"Zutshi Vimarsh (Nokia-D-MSW/Helsinki)" <vimarsh.zutshi@nokia.com>,
-	Ivan Ivanov <iivanov@mm-sol.com>,
-	Cohen David Abraham <david.cohen@nokia.com>,
-	Guru Raj <gururaj.nagendra@intel.com>, mkrufky@hauppauge.com,
-	dheitmueller@kernellabs.org
-Subject: [RFC] Video events, version 2.1
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4AC8C227.4000301@redhat.com>
+References: <4AC8C227.4000301@redhat.com>
+Date: Sun, 4 Oct 2009 18:24:59 +0200
+Message-ID: <62e5edd40910040924g38d42351le2642849cdd2cf5b@mail.gmail.com>
+Subject: Re: PATCH: gscpa stv06xx + ov518: dont discard every other frame
+From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Jean-Francois Moine <moinejf@free.fr>,
+	James Blanford <jhblanford@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+2009/10/4 Hans de Goede <hdegoede@redhat.com>:
+> Hi,
+>
+> As noticed by James Blanford <jhblanford@gmail.com>, we were discarding
+> every other frame in stv06xx and the ov518 (part of ov519.c) drivers.
+>
+> When we call gspca_frame_add, it returns a pointer to the frame passed in,
+> unless we call it with LAST_PACKET, when it will return a pointer to a
+> new frame in which to store the frame data for the next frame. So whenever
+> calling:
+> gspca_frame_add(gspca_dev, LAST_PACKET, frame, data, len);
+> we should do this as:
+> frame = gspca_frame_add(gspca_dev, LAST_PACKET, frame, data, len);
+>
+> So that any further data got from of the pkt we are handling in pkt_scan,
+> goes
+> to the next frame.
+>
+> We are not doing this in stv06xx.c pkt_scan method, which the cause of what
+> James is seeing. So I started checking all drivers, and we are not doing
+> this
+> either in ov519.c when handling an ov518 bridge. So now the framerate of my
+> 3 ov518 test cams has just doubled. Thanks James!
+>
+What a great discovery!  \o/
 
+Regards,
+Erik
 
-Here's the version 2.1 of the video events RFC. It's based on Laurent
-Pinchart's original RFC and version 2 which I wrote some time ago. This 
-time the changes are done based on discussion on the list. The old RFC 
-is available here:
-
-<URL:http://www.spinics.net/lists/linux-media/msg10971.html>
-
-(Cc:d to Mike Krufky and Devin Heitmueller, too.)
-
-Changes to version 2
---------------------
-
-#define V4L2_EVENT_ALL
-
-VIDIOC_G_EVENT -> VIDIOC_DQEVENT
-
-Event enumeration is gone.
-
-Reserved fields moved before data in v4l2_event and now there are 8 of 
-them instead of 4.
-
-Event (un)subscription argument is now v4l2_event_subscription.
-
-Interface description
----------------------
-
-Event type is either a standard event or private event. Standard events
-will be defined in videodev2.h. Private event types begin from
-V4L2_EVENT_PRIVATE. Some high order bits will be reserved for future use.
-
-#define V4L2_EVENT_ALL			0x07ffffff
-#define V4L2_EVENT_PRIVATE_START	0x08000000
-#define V4L2_EVENT_RESERVED		0x10000000
-
-VIDIOC_DQEVENT is used to get events. count is number of pending events 
-after the current one. sequence is the event type sequence number and 
-the data is specific to event type.
-
-The user will get the information that there's an event through
-exception file descriptors by using select(2). When an event is
-available the poll handler sets POLLPRI which wakes up select. -EINVAL
-will be returned if there are no pending events.
-
-VIDIOC_SUBSCRIBE_EVENT and VIDIOC_UNSUBSCRIBE_EVENT are used to
-subscribe and unsubscribe from events. The argument is struct 
-v4l2_event_subscription which now only contains the type field for the 
-event type. Every event can be subscribed or unsubscribed by one ioctl 
-by using special type V4L2_EVENT_ALL.
-
-
-struct v4l2_event {
-	__u32		count;
-	__u32		type;
-	__u32		sequence;
-	struct timeval	timestamp;
-	__u32		reserved[8];
-	__u8		data[64];
-};
-
-struct v4l2_event_subscription {
-	__u32		type;
-	__u32		reserved[8];
-};
-
-#define VIDIOC_DQEVENT		_IOR('V', 84, struct v4l2_event)
-#define VIDIOC_SUBSCRIBE_EVENT	_IOW('V', 85, struct
-				     v4l2_event_subscription)
-#define VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 86, struct
-				      v4l2_event_subscription)
-
-
-The size of the event queue is decided by the driver. Which events will 
-be discarded on queue overflow depends on the implementation.
-
-
-Questions
----------
-
-One more question I have is that there can be situations that the 
-application wants to know something has happened but does not want an 
-explicit notification from that. So it gets an event from VIDIOC_DQEVENT 
-but does not want to get woken up for that reason. I guess one flag in 
-event subscription should do that. Perhaps that is something that should 
-be implemented when needed, though.
-
-Are there enough reserved fields now? How about the event type high 
-order bits split?
-
-What should we really call v4l2_event_subscription? A better name for 
-the structure would be perhaps favourable.
-
-
-Comments and questions are still very very welcome.
-
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+> The attached patch fixes this.
+>
+> Regards,
+>
+> Hans
+>
