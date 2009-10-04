@@ -1,192 +1,534 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f211.google.com ([209.85.219.211]:50773 "EHLO
-	mail-ew0-f211.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752689AbZJCM6E (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2009 08:58:04 -0400
-Received: by ewy7 with SMTP id 7so2067285ewy.17
-        for <linux-media@vger.kernel.org>; Sat, 03 Oct 2009 05:58:05 -0700 (PDT)
-Message-ID: <4AC74A4D.2050409@gmail.com>
-Date: Sat, 03 Oct 2009 14:57:49 +0200
-From: Olivier Lorin <olorin75@gmail.com>
+Received: from mail00d.mail.t-online.hu ([84.2.42.5]:63440 "EHLO
+	mail00d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758003AbZJDU5g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Oct 2009 16:57:36 -0400
+Message-ID: <4AC90C17.70103@freemail.hu>
+Date: Sun, 04 Oct 2009 22:56:55 +0200
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [PATCH 1/3] gspca_gl860
-References: <200909160300.28382.pluto@agmk.net>	<1254354727.4771.13.camel@palomino.walls.org>	<20091001134343.30e7cd98@hyperion.delvare>	<200910031208.36524.pluto@agmk.net> <20091003140447.6486ed82@hyperion.delvare>
-In-Reply-To: <20091003140447.6486ed82@hyperion.delvare>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Jean-Francois Moine <moinejf@free.fr>,
+	Thomas Kaiser <thomas@kaiser-linux.li>,
+	Kyle Guinn <elyk03@gmail.com>,
+	Theodore Kilgore <kilgota@auburn.edu>,
+	ltp-list@lists.sourceforge.net
+CC: V4L Mailing List <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] pac_common: redesign function for finding Start Of Frame
+References: <4AC90BBF.9040803@freemail.hu>
+In-Reply-To: <4AC90BBF.9040803@freemail.hu>
+Content-Type: multipart/mixed;
+ boundary="------------010600030802050504020505"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-gspca - gl860: improvement of the main driver part
+This is a multi-part message in MIME format.
+--------------010600030802050504020505
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-From: Olivier Lorin <o.lorin@laposte.net>
+Hi,
 
-- fix for warning compilation about sd_ctrls
-- trace improvement while probing the sensor
+I wrote a simple test for pac_find_sof(). I implemented a user-space test
+which takes the implementation from the source file and calls it directly.
+You can find the source code of the test attached.
 
-Priority: normal
+The test results for the pac_find_sof() implementation in the Linux kernel
+2.6.32-rc1 is the following:
 
-Signed-off-by: Olivier Lorin <o.lorin@laposte.net>
+Test case 1: exact match
+PDEBUG: SOF found, bytes to analyze: 5. Frame starts at byte #5
+PASSED
 
-diff -rupN ../gspca-o/linux/drivers/media/video/gspca/gl860/gl860.c 
-./linux/drivers/media/video/gspca/gl860/gl860.c
---- ../gspca-o/linux/drivers/media/video/gspca/gl860/gl860.c    
-2009-09-18 10:36:24.000000000 +0200
-+++ ./linux/drivers/media/video/gspca/gl860/gl860.c    2009-09-24 
-13:55:34.000000000 +0200
-@@ -23,8 +23,8 @@
- #include "gspca.h"
- #include "gl860.h"
- 
--MODULE_AUTHOR("Olivier Lorin <lorin@laposte.net>");
--MODULE_DESCRIPTION("GSPCA/Genesys Logic GL860 USB Camera Driver");
-+MODULE_AUTHOR("Olivier Lorin <o.lorin@laposte.net>");
-+MODULE_DESCRIPTION("Genesys Logic USB PC Camera Driver");
- MODULE_LICENSE("GPL");
- 
- /*======================== static function declarations 
-====================*/
-@@ -53,7 +53,7 @@ MODULE_PARM_DESC(AC50Hz, " Does AC power
- static char sensor[7];
- module_param_string(sensor, sensor, sizeof(sensor), 0644);
- MODULE_PARM_DESC(sensor,
--        " Driver sensor ('MI1320'/'MI2020'/'OV9655'/'OV2640'/'')");
-+        " Driver sensor ('MI1320'/'MI2020'/'OV9655'/'OV2640')");
- 
- /*============================ webcam controls 
-=============================*/
- 
-@@ -119,16 +119,23 @@ static int gl860_build_control_table(str
-     struct ctrl *sd_ctrls;
-     int nCtrls = 0;
- 
--    if (_MI1320_)
-+    switch (sd->sensor) {
-+    case ID_MI1320:
-         sd_ctrls = sd_ctrls_mi1320;
--    else if (_MI2020_)
-+        break;
-+    case ID_MI2020:
-         sd_ctrls = sd_ctrls_mi2020;
--    else if (_MI2020b_)
-+        break;
-+    case ID_MI2020b:
-         sd_ctrls = sd_ctrls_mi2020b;
--    else if (_OV2640_)
-+        break;
-+    case ID_OV2640:
-         sd_ctrls = sd_ctrls_ov2640;
--    else if (_OV9655_)
-+        break;
-+    default:
-         sd_ctrls = sd_ctrls_ov9655;
-+        break;
-+    }
- 
-     memset(sd_ctrls, 0, GL860_NCTRLS * sizeof(struct ctrl));
- 
-@@ -154,7 +161,7 @@ static int gl860_build_control_table(str
-     SET_MY_CTRL(V4L2_CID_VFLIP,
-         V4L2_CTRL_TYPE_BOOLEAN, "Flip", flip)
-     SET_MY_CTRL(V4L2_CID_POWER_LINE_FREQUENCY,
--        V4L2_CTRL_TYPE_BOOLEAN, "50Hz", AC50Hz)
-+        V4L2_CTRL_TYPE_BOOLEAN, "AC power 50Hz", AC50Hz)
- 
-     return nCtrls;
- }
-@@ -700,6 +707,7 @@ static int gl860_guess_sensor(struct gsp
-         ctrl_out(gspca_dev, 0x40, 1, 0x006a, 0x000d, 0, NULL);
-         msleep(56);
- 
-+        PDEBUG(D_PROBE, "probing for sensor MI2020 or OVXXXX");
-         nOV = 0;
-         for (ntry = 0; ntry < 4; ntry++) {
-             ctrl_out(gspca_dev, 0x40, 1, 0x0040, 0x0000, 0, NULL);
-@@ -709,14 +717,14 @@ static int gl860_guess_sensor(struct gsp
-             ctrl_out(gspca_dev, 0x40, 1, 0x7a00, 0x8030, 0, NULL);
-             msleep(10);
-             ctrl_in(gspca_dev, 0xc0, 2, 0x7a00, 0x8030, 1, &probe);
--            PDEBUG(D_PROBE, "1st probe=%02x", probe);
-+            PDEBUG(D_PROBE, "probe=0x%02x", probe);
-             if (probe == 0xff)
-                 nOV++;
-         }
- 
-         if (nOV) {
--            PDEBUG(D_PROBE, "0xff -> sensor OVXXXX");
--            PDEBUG(D_PROBE, "Probing for sensor OV2640 or OV9655");
-+            PDEBUG(D_PROBE, "0xff -> OVXXXX");
-+            PDEBUG(D_PROBE, "probing for sensor OV2640 or OV9655");
- 
-             nb26 = nb96 = 0;
-             for (ntry = 0; ntry < 4; ntry++) {
-@@ -726,40 +734,38 @@ static int gl860_guess_sensor(struct gsp
-                 ctrl_out(gspca_dev, 0x40, 1, 0x6000, 0x800a,
-                         0, NULL);
-                 msleep(10);
-+
-                 /* Wait for 26(OV2640) or 96(OV9655) */
-                 ctrl_in(gspca_dev, 0xc0, 2, 0x6000, 0x800a,
-                         1, &probe);
- 
--                PDEBUG(D_PROBE, "2nd probe=%02x", probe);
--                if (probe == 0x00)
--                    nb26++;
-                 if (probe == 0x26 || probe == 0x40) {
-+                    PDEBUG(D_PROBE,
-+                        "probe=0x%02x -> OV2640",
-+                        probe);
-                     sd->sensor = ID_OV2640;
-                     nb26 += 4;
-                     break;
-                 }
-                 if (probe == 0x96 || probe == 0x55) {
-+                    PDEBUG(D_PROBE,
-+                        "probe=0x%02x -> OV9655",
-+                        probe);
-                     sd->sensor = ID_OV9655;
-                     nb96 += 4;
-                     break;
-                 }
-+                PDEBUG(D_PROBE, "probe=0x%02x", probe);
-+                if (probe == 0x00)
-+                    nb26++;
-                 if (probe == 0xff)
-                     nb96++;
-                 msleep(3);
-             }
--            if (nb26 < 4 && nb96 < 4) {
--                PDEBUG(D_PROBE, "No relevant answer ");
--                PDEBUG(D_PROBE, "* 1.3Mpixels -> use OV9655");
--                PDEBUG(D_PROBE, "* 2.0Mpixels -> use OV2640");
--                PDEBUG(D_PROBE,
--                    "To force a sensor, add that line to "
--                    "/etc/modprobe.d/options.conf:");
--                PDEBUG(D_PROBE, "options gspca_gl860 "
--                    "sensor=\"OV2640\" or \"OV9655\"");
-+            if (nb26 < 4 && nb96 < 4)
-                 return -1;
--            }
--        } else { /* probe = 0 */
--            PDEBUG(D_PROBE, "No 0xff -> sensor MI2020");
-+        } else {
-+            PDEBUG(D_PROBE, "Not any 0xff -> MI2020");
-             sd->sensor = ID_MI2020;
-         }
-     }
-diff -rupN ../gspca-o/linux/drivers/media/video/gspca/gl860/gl860.h 
-./linux/drivers/media/video/gspca/gl860/gl860.h
---- ../gspca-o/linux/drivers/media/video/gspca/gl860/gl860.h    
-2009-09-18 10:36:24.000000000 +0200
-+++ ./linux/drivers/media/video/gspca/gl860/gl860.h    2009-09-24 
-14:01:41.000000000 +0200
-@@ -22,7 +22,7 @@
- #include "gspca.h"
- 
- #define MODULE_NAME "gspca_gl860"
--#define DRIVER_VERSION "0.9d10"
-+#define DRIVER_VERSION "0.9d11"
- 
- #define ctrl_in  gl860_RTx
- #define ctrl_out gl860_RTx
+Test case 2: offset 1
+PDEBUG: SOF found, bytes to analyze: 6. Frame starts at byte #6
+PASSED
+
+Test case 3: offset 1, first byte may be misleading
+FAILED
+
+Test case 4: offset 2, first two bytes may be misleading
+PDEBUG: SOF found, bytes to analyze: 7. Frame starts at byte #7
+PASSED
+
+Test case 5: offset 3, first three bytes may be misleading
+FAILED
+
+Test case 6: offset 4, first four bytes may be misleading
+FAILED
+
+Test case 7: pattern starts at end of packet and continues in the next one
+PDEBUG: SOF found, bytes to analyze: 1. Frame starts at byte #1
+PASSED
+
+Test case 8: splited pattern, with misleading first byte
+FAILED
+
+Test case 9: splited pattern, with misleading first three bytes
+FAILED
+
+Test case 10: no match, extra byte at offset 1
+PASSED
+
+Test case 11: no match, extra byte at offset 2
+PASSED
+
+Test case 12: no match, extra byte at offset 3
+PASSED
+
+Test case 13: no match, extra byte at offset 4
+PASSED
+
+I also executed the test with the patched pac_find_sof() implementation
+and that one passes all these test cases.
+
+Regards,
+
+	Márton Németh
+
+Németh Márton wrote:
+> From: Márton Németh <nm127@freemail.hu>
+> 
+> The original implementation of pac_find_sof() does not always find
+> the Start Of Frame (SOF) marker. Replace it with a state machine
+> based design.
+> 
+> The change was tested with Labtec Webcam 2200.
+> 
+> Signed-off-by: Márton Németh <nm127@freemail.hu>
+> ---
+> --- linux-2.6.32-rc1.orig/drivers/media/video/gspca/pac_common.h	2009-09-10 00:13:59.000000000 +0200
+> +++ linux-2.6.32-rc1/drivers/media/video/gspca/pac_common.h	2009-10-04 21:49:19.000000000 +0200
+> @@ -33,6 +33,45 @@
+>  static const unsigned char pac_sof_marker[5] =
+>  		{ 0xff, 0xff, 0x00, 0xff, 0x96 };
+> 
+> +/*
+> +   The following state machine finds the SOF marker sequence
+> +   0xff, 0xff, 0x00, 0xff, 0x96 in a byte stream.
+> +
+> +	   +----------+
+> +	   | 0: START |<---------------\
+> +	   +----------+<-\             |
+> +	     |       \---/otherwise    |
+> +	     v 0xff                    |
+> +	   +----------+ otherwise      |
+> +	   |     1    |--------------->*
+> +	   |          |                ^
+> +	   +----------+                |
+> +	     |                         |
+> +	     v 0xff                    |
+> +	   +----------+<-\0xff         |
+> +	/->|          |--/             |
+> +	|  |     2    |--------------->*
+> +	|  |          | otherwise      ^
+> +	|  +----------+                |
+> +	|    |                         |
+> +	|    v 0x00                    |
+> +	|  +----------+                |
+> +	|  |     3    |                |
+> +	|  |          |--------------->*
+> +	|  +----------+ otherwise      ^
+> +	|    |                         |
+> +   0xff |    v 0xff                    |
+> +	|  +----------+                |
+> +	\--|     4    |                |
+> +	   |          |----------------/
+> +	   +----------+ otherwise
+> +	     |
+> +	     v 0x96
+> +	   +----------+
+> +	   |  FOUND   |
+> +	   +----------+
+> +*/
+> +
+>  static unsigned char *pac_find_sof(struct gspca_dev *gspca_dev,
+>  					unsigned char *m, int len)
+>  {
+> @@ -41,17 +80,54 @@ static unsigned char *pac_find_sof(struc
+> 
+>  	/* Search for the SOF marker (fixed part) in the header */
+>  	for (i = 0; i < len; i++) {
+> -		if (m[i] == pac_sof_marker[sd->sof_read]) {
+> -			sd->sof_read++;
+> -			if (sd->sof_read == sizeof(pac_sof_marker)) {
+> +		switch (sd->sof_read) {
+> +		case 0:
+> +			if (m[i] == 0xff)
+> +				sd->sof_read = 1;
+> +			break;
+> +		case 1:
+> +			if (m[i] == 0xff)
+> +				sd->sof_read = 2;
+> +			else
+> +				sd->sof_read = 0;
+> +			break;
+> +		case 2:
+> +			switch (m[i]) {
+> +			case 0x00:
+> +				sd->sof_read = 3;
+> +				break;
+> +			case 0xff:
+> +				/* stay in this state */
+> +				break;
+> +			default:
+> +				sd->sof_read = 0;
+> +			}
+> +			break;
+> +		case 3:
+> +			if (m[i] == 0xff)
+> +				sd->sof_read = 4;
+> +			else
+> +				sd->sof_read = 0;
+> +			break;
+> +		case 4:
+> +			switch (m[i]) {
+> +			case 0x96:
+> +				/* Pattern found */
+>  				PDEBUG(D_FRAM,
+>  					"SOF found, bytes to analyze: %u."
+>  					" Frame starts at byte #%u",
+>  					len, i + 1);
+>  				sd->sof_read = 0;
+>  				return m + i + 1;
+> +				break;
+> +			case 0xff:
+> +				sd->sof_read = 2;
+> +				break;
+> +			default:
+> +				sd->sof_read = 0;
+>  			}
+> -		} else {
+> +			break;
+> +		default:
+>  			sd->sof_read = 0;
+>  		}
+>  	}
+> 
+
+
+--------------010600030802050504020505
+Content-Type: text/x-csrc;
+ name="test_pac_find_sof.c"
+Content-Transfer-Encoding: 8bit
+Content-Disposition: inline;
+ filename="test_pac_find_sof.c"
+
+
+/*
+  Test the function pac_find_sof() from file
+  linux/drivers/media/video/gspca/pac_common.h
+
+  Test based on Linux kernel 2.6.32-rc1
+  Written by Márton Németh <nm127@freemail.hu>, 4 Oct 2009
+  Released under GPL
+*/
+
+#include <stdio.h>
+
+struct sd {
+	unsigned int sof_read;
+};
+
+struct gspca_dev {
+    struct sd* sd;
+};
+
+#define PDEBUG(level, fmt, args...) \
+	do {\
+		printf("PDEBUG: " fmt "\n", ## args); \
+	} while (0)
+
+#include "pac_common.h"
+
+int tc1() {
+	static unsigned char test[] = { 0xff, 0xff, 0x00, 0xff, 0x96 };
+	unsigned char* p;
+	struct sd sd;
+	int result = 0;
+
+	printf("Test case 1: exact match\n");
+	sd.sof_read = 0;
+	p = pac_find_sof((struct gspca_dev*)&sd, test, sizeof(test));
+	if (p == &test[5]) {
+		printf("PASSED\n");
+	} else {
+		printf("FAILED\n");
+		result = 1;
+	}
+	printf("\n");
+
+	return result;
+}
+
+int tc2() {
+	static unsigned char test[] = { 0x00, 0xff, 0xff, 0x00, 0xff, 0x96 };
+	unsigned char* p;
+	struct sd sd;
+	int result = 0;
+
+	printf("Test case 2: offset 1\n");
+	sd.sof_read = 0;
+	p = pac_find_sof((struct gspca_dev*)&sd, test, sizeof(test));
+	if (p == &test[6]) {
+		printf("PASSED\n");
+	} else {
+		printf("FAILED\n");
+		result = 1;
+	}
+	printf("\n");
+
+	return result;
+}
+
+int tc3() {
+	static unsigned char test[] = { 0xff, 0xff, 0xff, 0x00, 0xff, 0x96 };
+	unsigned char* p;
+	struct sd sd;
+	int result = 0;
+
+	printf("Test case 3: offset 1, first byte may be misleading\n");
+	sd.sof_read = 0;
+	p = pac_find_sof((struct gspca_dev*)&sd, test, sizeof(test));
+	if (p == &test[6]) {
+		printf("PASSED\n");
+	} else {
+		printf("FAILED\n");
+		result = 1;
+	}
+	printf("\n");
+
+	return result;
+}
+
+int tc4() {
+	static unsigned char test[] = { 0xff, 0x00, 0xff, 0xff, 0x00, 0xff, 0x96 };
+	unsigned char* p;
+	struct sd sd;
+	int result = 0;
+
+	printf("Test case 4: offset 2, first two bytes may be misleading\n");
+	sd.sof_read = 0;
+	p = pac_find_sof((struct gspca_dev*)&sd, test, sizeof(test));
+	if (p == &test[7]) {
+		printf("PASSED\n");
+	} else {
+		printf("FAILED\n");
+		result = 1;
+	}
+	printf("\n");
+
+	return result;
+}
+
+int tc5() {
+	static unsigned char test[] = { 0xff, 0xff, 0x00, 0xff, 0xff, 0x00, 0xff, 0x96 };
+	unsigned char* p;
+	struct sd sd;
+	int result = 0;
+
+	printf("Test case 5: offset 3, first three bytes may be misleading\n");
+	sd.sof_read = 0;
+	p = pac_find_sof((struct gspca_dev*)&sd, test, sizeof(test));
+	if (p == &test[8]) {
+		printf("PASSED\n");
+	} else {
+		printf("FAILED\n");
+		result = 1;
+	}
+	printf("\n");
+
+	return result;
+}
+
+int tc6() {
+	static unsigned char test[] = { 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0x96 };
+	unsigned char* p;
+	struct sd sd;
+	int result = 0;
+
+	printf("Test case 6: offset 4, first four bytes may be misleading\n");
+	sd.sof_read = 0;
+	p = pac_find_sof((struct gspca_dev*)&sd, test, sizeof(test));
+	if (p == &test[9]) {
+		printf("PASSED\n");
+	} else {
+		printf("FAILED\n");
+		result = 1;
+	}
+	printf("\n");
+
+	return result;
+}
+
+int tc7() {
+	static unsigned char test1[] = { 0xff, 0xff, 0x00, 0xff };
+	static unsigned char test2[] = { 0x96 };
+	unsigned char* p1;
+	unsigned char* p2;
+	struct sd sd;
+	int result = 0;
+
+	printf("Test case 7: pattern starts at end of packet and continues in the next one\n");
+	sd.sof_read = 0;
+	p1 = pac_find_sof((struct gspca_dev*)&sd, test1, sizeof(test1));
+	p2 = pac_find_sof((struct gspca_dev*)&sd, test2, sizeof(test2));
+	if (p1 == NULL && p2 == &test2[1]) {
+		printf("PASSED\n");
+	} else {
+		printf("FAILED\n");
+		result = 1;
+	}
+	printf("\n");
+
+	return result;
+}
+
+int tc8() {
+	static unsigned char test1[] = { 0xff, 0xff, 0xff, 0x00, 0xff };
+	static unsigned char test2[] = { 0x96 };
+	unsigned char* p1;
+	unsigned char* p2;
+	struct sd sd;
+	int result = 0;
+
+	printf("Test case 8: splited pattern, with misleading first byte\n");
+	sd.sof_read = 0;
+	p1 = pac_find_sof((struct gspca_dev*)&sd, test1, sizeof(test1));
+	p2 = pac_find_sof((struct gspca_dev*)&sd, test2, sizeof(test2));
+	if (p1 == NULL && p2 == &test2[1]) {
+		printf("PASSED\n");
+	} else {
+		printf("FAILED\n");
+		result = 1;
+	}
+	printf("\n");
+
+	return result;
+}
+
+int tc9() {
+	static unsigned char test1[] = { 0xff, 0xff, 0x00, 0xff, 0xff, 0x00, 0xff };
+	static unsigned char test2[] = { 0x96 };
+	unsigned char* p1;
+	unsigned char* p2;
+	struct sd sd;
+	int result = 0;
+
+	printf("Test case 9: splited pattern, with misleading first three bytes\n");
+	sd.sof_read = 0;
+	p1 = pac_find_sof((struct gspca_dev*)&sd, test1, sizeof(test1));
+	p2 = pac_find_sof((struct gspca_dev*)&sd, test2, sizeof(test2));
+	if (p1 == NULL && p2 == &test2[1]) {
+		printf("PASSED\n");
+	} else {
+		printf("FAILED\n");
+		result = 1;
+	}
+	printf("\n");
+
+	return result;
+}
+
+int tc10() {
+	static unsigned char test[] = { 0xff, 0xaa, 0xff, 0x00, 0xff, 0x96 };
+	unsigned char* p;
+	struct sd sd;
+	int result = 0;
+
+	printf("Test case 10: no match, extra byte at offset 1\n");
+	sd.sof_read = 0;
+	p = pac_find_sof((struct gspca_dev*)&sd, test, sizeof(test));
+	if (p == NULL) {
+		printf("PASSED\n");
+	} else {
+		printf("FAILED\n");
+		result = 1;
+	}
+	printf("\n");
+
+	return result;
+}
+
+int tc11() {
+	static unsigned char test[] = { 0xff, 0xff, 0xaa, 0x00, 0xff, 0x96 };
+	unsigned char* p;
+	struct sd sd;
+	int result = 0;
+
+	printf("Test case 11: no match, extra byte at offset 2\n");
+	sd.sof_read = 0;
+	p = pac_find_sof((struct gspca_dev*)&sd, test, sizeof(test));
+	if (p == NULL) {
+		printf("PASSED\n");
+	} else {
+		printf("FAILED\n");
+		result = 1;
+	}
+	printf("\n");
+
+	return result;
+}
+
+int tc12() {
+	static unsigned char test[] = { 0xff, 0xff, 0x00, 0xaa, 0xff, 0x96 };
+	unsigned char* p;
+	struct sd sd;
+	int result = 0;
+
+	printf("Test case 12: no match, extra byte at offset 3\n");
+	sd.sof_read = 0;
+	p = pac_find_sof((struct gspca_dev*)&sd, test, sizeof(test));
+	if (p == NULL) {
+		printf("PASSED\n");
+	} else {
+		printf("FAILED\n");
+		result = 1;
+	}
+	printf("\n");
+
+	return result;
+}
+
+int tc13() {
+	static unsigned char test[] = { 0xff, 0xff, 0x00, 0xff, 0xaa, 0x96 };
+	unsigned char* p;
+	struct sd sd;
+	int result = 0;
+
+	printf("Test case 13: no match, extra byte at offset 4\n");
+	sd.sof_read = 0;
+	p = pac_find_sof((struct gspca_dev*)&sd, test, sizeof(test));
+	if (p == NULL) {
+		printf("PASSED\n");
+	} else {
+		printf("FAILED\n");
+		result = 1;
+	}
+	printf("\n");
+
+	return result;
+}
+
+
+int main() {
+	int result = 0;
+
+	result += tc1();
+	result += tc2();
+	result += tc3();
+	result += tc4();
+	result += tc5();
+	result += tc6();
+	result += tc7();
+	result += tc8();
+	result += tc9();
+	result += tc10();
+	result += tc11();
+	result += tc12();
+	result += tc13();
+
+	return result;
+}
+
+--------------010600030802050504020505--
