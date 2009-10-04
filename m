@@ -1,68 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f208.google.com ([209.85.219.208]:41498 "EHLO
-	mail-ew0-f208.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751071AbZJIHf3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Oct 2009 03:35:29 -0400
-Received: by ewy4 with SMTP id 4so372204ewy.37
-        for <linux-media@vger.kernel.org>; Fri, 09 Oct 2009 00:34:52 -0700 (PDT)
-Message-ID: <4ACF03BA.4070505@xfce.org>
-Date: Fri, 09 Oct 2009 09:34:50 +0000
-From: Ali Abdallah <aliov@xfce.org>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Michael Krufky <mkrufky@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Hauppage WinTV-HVR-900H
-References: <4ACDF829.3010500@xfce.org>	 <37219a840910080545v72165540v622efd43574cf085@mail.gmail.com>	 <4ACDFED9.30606@xfce.org>	 <829197380910080745j3015af10pbced2a7e04c7595b@mail.gmail.com>	 <4ACE2D5B.4080603@xfce.org> <829197380910080928t30fc0ecas7f9ab2a7d8437567@mail.gmail.com>
-In-Reply-To: <829197380910080928t30fc0ecas7f9ab2a7d8437567@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mail1.radix.net ([207.192.128.31]:58930 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757904AbZJDUjx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 4 Oct 2009 16:39:53 -0400
+Subject: Re: [REVIEW] ivtv, ir-kbd-i2c: Explicit IR support for the AVerTV
+ M116 for newer kernels
+From: Andy Walls <awalls@radix.net>
+To: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
+Cc: Jean Delvare <khali@linux-fr.org>,
+	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org,
+	Oldrich Jedlicka <oldium.pro@seznam.cz>, hverkuil@xs4all.nl
+In-Reply-To: <20091004092621.GB20457@moon>
+References: <1254584660.3169.25.camel@palomino.walls.org>
+	 <20091004083139.GA20457@moon> <20091004104452.7a6d0f9b@hyperion.delvare>
+	 <20091004092621.GB20457@moon>
+Content-Type: text/plain
+Date: Sun, 04 Oct 2009 16:41:01 -0400
+Message-Id: <1254688861.3148.137.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
-> On Thu, Oct 8, 2009 at 2:20 PM, Ali Abdallah <aliov@xfce.org> wrote:
->   
->> I have the card since alsmost 3 years, it never worked, but now i'm in
->> urgent need of getting an analog usb stick to work with Linux.
->>
->> The PCTV hybrid:
->>
->> Bus 001 Device 004: ID eb1a:2881 eMPIA Technology, Inc.
->>
->> Thanks for you support, but i need an analog usb stick, well hopefully the
->> wintv 900H will get supported soon.
->>     
->
-> Well, I added support for that device last month, so I would suggest
-> you install the latest v4l-dvb code from
-> http://linuxtv.org/hg/v4l-dvb.  Directions can be found here:
->
-> http://linuxtv.org/repo
->   
-Okay, i installed the latest drivers+the firmware of the device using 
-extract_xc3028.pl, the device seems to be detected now, i can detect all 
-the analog TV of my cable using tvtime, but manually, i mean i had to 
-disable signal detection when scanning, otherwise i got no results, 
-since the picture quality is terrible.
+On Sun, 2009-10-04 at 12:26 +0300, Aleksandr V. Piskunov wrote:
+> On Sun, Oct 04, 2009 at 10:44:52AM +0200, Jean Delvare wrote:
+> > On Sun, 4 Oct 2009 11:31:39 +0300, Aleksandr V. Piskunov wrote:
+> > > Tested on 2.6.30.8, one of Ubuntu mainline kernel builds.
+> > > 
+> > > ivtv-i2c part works, ivtv_i2c_new_ir() gets called, according to /sys/bus/i2c
+> > > device @ 0x40 gets a name ir_rx_em78p153s_ave.
+> > > 
+> > > Now according to my (very) limited understanding of new binding model, ir-kbd-i2c
+> > > should attach to this device by its name. Somehow it doesn't, ir-kbd-i2c gets loaded
+> > > silently without doing anything.
+> > 
+> > Change the device name to a shorter string (e.g. "ir_rx_em78p153s").
+> > You're hitting the i2c client name length limit. More details about
+> > this in the details reply I'm writing right now.
+> 
+> Thanks, it works now. ir-kbd-i2c picks up the short name, input device is created, remote
+> works.
+> 
+> Another place where truncation occurs is name field in em78p153s_aver_ir_init_data 
+> ("ivtv-CX23416 EM78P153S AVerMedia"). Actual input device ends up with a name
+> "i2c IR (ivtv-CX23416 EM78P153S ", limited by char name[32] in IR_i2c struct.
 
-Of course i'm sure that all the connections (cable to antenna, cable to 
-the usb stick, ...) are correct, since it works with my old PC equipped 
-with a PCI TV card.
+I'm naive here.  What applications actually show this string or use it?
+For what purposes do applications use it?
 
-Any advice, what could be the problem? firmware? since you said (you 
-added support for this device) should i open a bug report? is this 
-device reported as working by other users?
 
-Please help if possible, almost two weeks with no real success.
+> IMHO actual name of resulting input device should be readable by end-user. Perhaps it should
+> include the short name of the card itself, or model/color of remote control itself if several
+> revisions exist, etc.
 
-> Cheers,
->
-> Devin
->
->   
+The em28xx driver uses things like:
 
-Cheers,
+	i2c IR (EM28XX Terratec)
+	i2c IR (EM28XX Pinnacle PCTV)
 
-Ali.
+The saa7134 driver uses thing like:
+	
+	Pinnacle PCTV
+	Purple TV
+	MSI TV@nywhere Plus
+	HVR 1110
+	BeholdTV
+
+The cx18 driver (i.e. me) uses:
+
+	CX23418 Z8F0811 Hauppauge
+
+
+I appear to be user-unfriendly. ;)  I guess I like knowing what devices
+are precisely involved, as it helps me when I need to troubleshoot.  I
+agree that it doesn't help the normal user in day to day operations.
+
+I will change the names to something more card specific.  It could end
+up slightly misleading in the long run.  A single card entry in
+ivtv-cards.c can describe multiple card variants, but gives all those
+variants the same "name" whether or not the consumer retail names are
+the same.
+
+
+Regards,
+Andy
+
 
