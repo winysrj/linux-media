@@ -1,41 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:26265 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759077AbZJPO1B convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Oct 2009 10:27:01 -0400
-Received: by ey-out-2122.google.com with SMTP id d26so138722eyd.5
-        for <linux-media@vger.kernel.org>; Fri, 16 Oct 2009 07:25:54 -0700 (PDT)
+Received: from mail-ew0-f211.google.com ([209.85.219.211]:35501 "EHLO
+	mail-ew0-f211.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751371AbZJDCEP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2009 22:04:15 -0400
+Received: by ewy7 with SMTP id 7so2475024ewy.17
+        for <linux-media@vger.kernel.org>; Sat, 03 Oct 2009 19:03:06 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <4AD86B3A.8010704@apple2pl.us>
-References: <4AD86B3A.8010704@apple2pl.us>
-Date: Fri, 16 Oct 2009 10:25:53 -0400
-Message-ID: <83bcf6340910160725g579d5d4fm72efd7f599556273@mail.gmail.com>
-Subject: Re: Status of CX25821 PCI-E capture driver
-From: Steven Toth <stoth@kernellabs.com>
-To: Donald Bailey <donnie@apple2pl.us>
-Cc: linux-media@vger.kernel.org
+Date: Sun, 4 Oct 2009 03:03:06 +0100
+Message-ID: <b4619a970910031903h5c263d38h2122ae507fd097fb@mail.gmail.com>
+Subject: See signal level
+From: Mikhail Ramendik <mr@ramendik.ru>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 16, 2009 at 8:46 AM, Donald Bailey <donnie@apple2pl.us> wrote:
-> I recently picked up a 16 port DVR card from China which uses two CX25821
-> chips.  I compiled the staging driver for it and was able to load it
-> successfully with kernel 2.6.32-rc2.  But I can't find any /dev devices to
-> get at the inputs.  I created a character device with a major/minor of 81/0
-> but am unable to open it.
+Hello,
 
-We're planning to do some work inside KernelLabs on that particular
-driver. We have access to hardware and are looking to stabilize and
-improve the overall quality of the driver to a commercial production
-grade. I don't have any timescales as this is currently and unfunded
-project but you're not alone, the driver does need some major
-improvements.
+Is there a utility to see the current signal level?
 
-Regards,
+I want to try correcting the head position on the dish. And I don't
+have any receiver except my PC. So I'd like to move the head around
+while looking at the signal level.
 
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Yours, Mikhail Ramendik
