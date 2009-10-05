@@ -1,51 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:37011 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752483AbZJ0Kmf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2009 06:42:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [RFC] Media controller: next round of patches
-Date: Tue, 27 Oct 2009 11:43:14 +0100
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50558 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752029AbZJEGAG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Oct 2009 02:00:06 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "Ivan T. Ivanov" <iivanov@mm-sol.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	Tomasz Fujak <t.fujak@samsung.com>,
+	Pawel Osciak <p.osciak@samsung.com>
+Date: Mon, 5 Oct 2009 11:29:18 +0530
+Subject: RE: Mem2Mem V4L2 devices [RFC]
+Message-ID: <19F8576C6E063C45BE387C64729E73940436CF8DCB@dbde02.ent.ti.com>
+References: <E4D3F24EA6C9E54F817833EAE0D912AC077151C64F@bssrvexch01.BS.local>
+ <1254500705.16625.35.camel@iivanov.int.mm-sol.com>
+In-Reply-To: <1254500705.16625.35.camel@iivanov.int.mm-sol.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200910271143.14182.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everybody,
 
-I've committed 26 media controller patches to 
-http://linuxtv.org/hg/~pinchartl/v4l-dvb-mc-uvc.
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Ivan T. Ivanov
+> Sent: Friday, October 02, 2009 9:55 PM
+> To: Marek Szyprowski
+> Cc: linux-media@vger.kernel.org; kyungmin.park@samsung.com; Tomasz
+> Fujak; Pawel Osciak
+> Subject: Re: Mem2Mem V4L2 devices [RFC]
+> 
+> 
+> Hi Marek,
+> 
+> 
+> On Fri, 2009-10-02 at 13:45 +0200, Marek Szyprowski wrote:
+> > Hello,
+> >
+<snip>
 
-The code is in an early development phase, so I need to rework the patches and 
-rebase the tree very often. Hg doesn't provide a rebase operation and 
-linuxtv.org can't host git trees yet (AFAIK), so I've settled on quilt+hg. 
-Patches are thus provided as a quilt series on top of the v4l-dvb repository 
-head (at clone time).
+> > image format and size, while the existing v4l2 ioctls would only
+> refer
+> > to the output buffer. Frankly speaking, we don't like this idea.
+> 
+> I think that is not unusual one video device to define that it can
+> support at the same time input and output operation.
+> 
+> Lets take as example resizer device. it is always possible that it
+> inform user space application that
+> 
+> struct v4l2_capability.capabilities ==
+> 		(V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT)
+> 
+> User can issue S_FMT ioctl supplying
+> 
+> struct v4l2_format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE
+> 		  .pix  = width x height
+> 
+> which will instruct this device to prepare its output for this
+> resolution. after that user can issue S_FMT ioctl supplying
+> 
+> struct v4l2_format.type = V4L2_BUF_TYPE_VIDEO_OUTPUT
+>    		  .pix  = width x height
+> 
+> using only these ioctls should be enough to device driver
+> to know down/up scale factor required.
+> 
+> regarding color space struct v4l2_pix_format have field
+> 'pixelformat'
+> which can be used to define input and output buffers content.
+> so using only existing ioctl's user can have working resizer device.
+> 
+> also please note that there is VIDIOC_S_CROP which can add
+> additional
+> flexibility of adding cropping on input or output.
+> 
+[Hiremath, Vaibhav] I think this makes more sense in capture pipeline, for example,
 
-The first 16 patches come directly from Hans' v4l-dvb-mc tree (including 
-Devin's patches). The remaining patches are based on the 14 patches I've 
-already posted.
+Sensor/decoder -> previewer -> resizer -> /dev/videoX
 
-Compared to the previous RFC/PATCH, this series adds
 
-- video_device refactoring
-- subdev device node support
-- better subdev support in the UVC driver
+> last thing which should be done is to QBUF 2 buffers and call
+> STREAMON.
+> 
+[Hiremath, Vaibhav] IMO, this implementation is not streaming model, we are trying to fit mem-to-mem forcefully to streaming. We have to put some constraints - 
 
-As always feedback will be greatly appreciated, especially if you believe I'm 
-headed in the wrong direction. If you don't have much time please comment on 
-the video_device refactoring first.
+	- Driver will treat index 0 as input always, irrespective of number of buffers queued.
+	- Or, application should not queue more that 2 buffers.
+	- Multi-channel use-case????
 
--- 
-Regards,
+I think we have to have 2 device nodes which are capable of streaming multiple buffers, both are queuing the buffers. The constraint would be the buffers must be mapped one-to-one.
 
-Laurent Pinchart
+User layer library would be important here to play major role in supporting multi-channel feature. I think we need to do some more investigation on this.
+
+Thanks,
+Vaibhav
+
+> i think this will simplify a lot buffer synchronization.
+> 
+> iivanov
+> 
+> 
+> >
+> > 2. Input and output in the same video node would not be compatible
+> with
+> > the upcoming media controller, with which we will get an ability
+> to
+> > arrange devices into a custom pipeline. Piping together two
+> separate
+> > input-output nodes to create a new mem2mem device would be
+> difficult and
+> > unintuitive. And that not even considering multi-output devices.
+> >
+> > My idea is to get back to the "2 video nodes per device" approach
+> and
+> > introduce a new ioctl for matching input and output instances of
+> the
+> > same device. When such an ioctl could be called is another
+> question. I
+> > like the idea of restricting such a call to be issued after
+> opening
+> > video nodes and before using them. Using this ioctl, a user
+> application
+> > would be able to match output instance to an input one, by
+> matching
+> > their corresponding file descriptors.
+> >
+> > What do you think of such a solution?
+> >
+> > Best regards
+> > --
+> > Marek Szyprowski
+> > Samsung Poland R&D Center
+> >
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-
+> media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-
+> media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
