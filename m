@@ -1,56 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f208.google.com ([209.85.219.208]:34250 "EHLO
-	mail-ew0-f208.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751654AbZJHMqc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Oct 2009 08:46:32 -0400
-Received: by ewy4 with SMTP id 4so2833539ewy.37
-        for <linux-media@vger.kernel.org>; Thu, 08 Oct 2009 05:45:55 -0700 (PDT)
+Received: from bear.ext.ti.com ([192.94.94.41]:53525 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754119AbZJEWYu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Oct 2009 18:24:50 -0400
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: michael <michael@panicking.kicks-ass.org>,
+	Nishanth Menon <menon.nishanth@gmail.com>
+CC: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Mon, 5 Oct 2009 17:23:21 -0500
+Subject: RE: ISP OMAP3 camera support ov7690
+Message-ID: <A24693684029E5489D1D202277BE89444CB3A2CB@dlee02.ent.ti.com>
+References: <4AC7DAAD.2020203@panicking.kicks-ass.org>
+ <4AC8B764.2030101@gmail.com> <4AC93DC9.2080809@panicking.kicks-ass.org>
+In-Reply-To: <4AC93DC9.2080809@panicking.kicks-ass.org>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <4ACDF829.3010500@xfce.org>
-References: <4ACDF829.3010500@xfce.org>
-Date: Thu, 8 Oct 2009 08:45:54 -0400
-Message-ID: <37219a840910080545v72165540v622efd43574cf085@mail.gmail.com>
-Subject: Re: Hauppage WinTV-HVR-900H
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Ali Abdallah <aliov@xfce.org>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 8, 2009 at 10:33 AM, Ali Abdallah <aliov@xfce.org> wrote:
+Hi Michael, 
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of michael
+> Sent: Sunday, October 04, 2009 7:29 PM
+> To: Nishanth Menon
+> Cc: linux-omap@vger.kernel.org; linux-media@vger.kernel.org
+> Subject: Re: ISP OMAP3 camera support ov7690
+> 
 > Hi,
->
-> Very unlucky, i bought a pinnacle hybrid pro and couldn't get it to work
-> with linux, then i gave it up, and i found that HVR-900 card works well
-> under linux, i got one, but i didn't know that the company is referring now
-> for 900 same as 900H.
->
-> 900H doesn't work under Linux, is there is way to get this card working?
->
-> googling i didn't find much information, all i found is work under way to
-> get this card supported (2008).
->
-> Please help,
+> 
+> cc: linux-media
+> 
+> Nishanth Menon wrote:
+> > michael said the following on 10/03/2009 06:13 PM:
+> >> I'm writing a driver to support the ov7690 camera and I have some
+> >> question about the meaning of:
+> >>
+> >> - datalane configuration
+> > CSI2 Data lanes - each CSI2 lane is a differential pair. 
+> And, at least 1
+> > clock and data lane is used in devices.
+> 
+> Sorry can you explain a little bit more. I have the camera 
+> connected to the
+> cam_hs and cam_vs and the data is 8Bit. I use the the isp init
+> structure. The sccb bus works great and I can send 
+> configuration to it,
+> but I don't receive any interrupt from the ics, seems that it 
+> doen't see
+> the transaction:
+> 
+> The ISPCCDC: ###CCDC SYN_MODE=0x31704 seems ok.
+> 
+> 
+> static struct isp_interface_config ov7690_if_config = {
+>         .ccdc_par_ser           = ISP_CSIA,
+>         .dataline_shift         = 0x0,
+>         .hsvs_syncdetect        = ISPCTRL_SYNC_DETECT_VSFALL,
 
-Mauro was working on this driver some time ago...  There is a current
-thread about the tm6010 on the mailing list now, but I have not read
-up on it.  Last I heard, progress on the driver has been minimal.
+Can you try with ISPCTRL_SYNC_DETECT_VSRISE ?
 
-Almost all other Hauppauge products have relatively decent linux
-support -- you were unlucky and picked the one usb stick that will
-probably not be fully functional for a while.
+>         .strobe                 = 0x0,
+>         .prestrobe              = 0x0,
+>         .shutter                = 0x0,
+>         .wenlog                 = ISPCCDC_CFG_WENLOG_AND,
+>         .wait_hs_vs             = 0x4,
+>         .raw_fmt_in             = ISPCCDC_INPUT_FMT_GR_BG,
+>         .u.csi.crc              = 0x0,
+>         .u.csi.mode             = 0x0,
+>         .u.csi.edge             = 0x0,
+>         .u.csi.signalling       = 0x0,
+>         .u.csi.strobe_clock_inv = 0x0,
+>         .u.csi.vs_edge          = 0x0,
+>         .u.csi.channel          = 0x0,
+>         .u.csi.vpclk            = 0x1,
+>         .u.csi.data_start       = 0x0,
+>         .u.csi.data_size        = 0x0,
+>         .u.csi.format           = V4L2_PIX_FMT_YUYV,
+> };
+> 
+> and I don't know the meaning of
+> 
+> lanecfg.clk.pol = OV7690_CSI2_CLOCK_POLARITY;
+> lanecfg.clk.pos = OV7690_CSI2_CLOCK_LANE;
+> lanecfg.data[0].pol = OV7690_CSI2_DATA0_POLARITY;
+> lanecfg.data[0].pos = OV7690_CSI2_DATA0_LANE;
+> lanecfg.data[1].pol = OV7690_CSI2_DATA1_POLARITY;
+> lanecfg.data[1].pos = OV7690_CSI2_DATA1_LANE;
+> lanecfg.data[2].pol = 0;
+> lanecfg.data[2].pos = 0;
+> lanecfg.data[3].pol = 0;
+> lanecfg.data[3].pos = 0;
+> 
 
-If you're interested in helping the driver development, then take a
-look at the related mailing list posts.  Otherwise, you might be
-better off choosing a different product.
+This is the physical connection details:
 
-On the other hand, I think there's been some recent progress on the
-PCTV hybrid pro -- Devin Heitmueller has been doing a lot of work on
-those products lately.  For more information, see
-http://kernellabs.com
+- The .pol field stands for the differntial pair polarity.
+  (i.e. the order in which the negative and positive connections
+  are pugged in to the CSI2 ComplexIO module)
 
-Are you specifically looking for a hybrid analog / digital usb stick?
-...or is digital-only good enough for your purposes?
+- The .pos field is for telling in which position of the 4
+  available physically you have your clock, or data lane located.
 
--Mike
+Regards,
+Sergio
+
+> >> - phyconfiguration
+> > PHY - Physical timing configurations. btw, if it is camera 
+> specific you
+> > could get a lot of inputs from [1].
+> 
+> Ok I wil ask to them.
+> 
+> > 
+> > Regards,
+> > Nishanth Menon
+> > 
+> > Ref:
+> > [1] http://vger.kernel.org/vger-lists.html#linux-media
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> 
+> Michael
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
