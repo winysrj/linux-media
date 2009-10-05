@@ -1,70 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2043 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751389AbZJTVJy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Oct 2009 17:09:54 -0400
-Message-ID: <bed24489d25a4039aa189d8f10e97a05.squirrel@webmail.xs4all.nl>
-In-Reply-To: <200910201617.25206.laurent.pinchart@ideasonboard.com>
-References: <200910201617.25206.laurent.pinchart@ideasonboard.com>
-Date: Tue, 20 Oct 2009 23:09:56 +0200
-Subject: Re: Why doesn't video_ioctl2 reuse video_usercopy ?
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
+Received: from ms01.sssup.it ([193.205.80.99]:41936 "EHLO sssup.it"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751815AbZJEAbQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 4 Oct 2009 20:31:16 -0400
+Message-ID: <4AC93DC9.2080809@panicking.kicks-ass.org>
+Date: Mon, 05 Oct 2009 02:28:57 +0200
+From: michael <michael@panicking.kicks-ass.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: Nishanth Menon <menon.nishanth@gmail.com>
+CC: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: ISP OMAP3 camera support ov7690
+References: <4AC7DAAD.2020203@panicking.kicks-ass.org> <4AC8B764.2030101@gmail.com>
+In-Reply-To: <4AC8B764.2030101@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
-> Hi everybody,
->
-> while working on subdevs device node implementation noticed that
-> video_ioctl2
-> doesn't use video_usercopy but has its own (slightly modified) copy of the
-> code. As I need to perform a similar operation for subdevs ioctls I was
-> wondering if we could have a single video_usercopy implementation that
-> could
-> be used by both video_ioctl2 and the subdevs ioctl handler.
+cc: linux-media
 
-The idea was that video_usercopy would eventually be completely replaced
-by video_ioctl2. However, for the subdevs ioctls video_ioctl2 might be
-less suitable and we may want to keep video_usercopy.
+Nishanth Menon wrote:
+> michael said the following on 10/03/2009 06:13 PM:
+>> I'm writing a driver to support the ov7690 camera and I have some
+>> question about the meaning of:
+>>
+>> - datalane configuration
+> CSI2 Data lanes - each CSI2 lane is a differential pair. And, at least 1
+> clock and data lane is used in devices.
 
-An alternative solution is to use video_ioctl2 for subdev ioctls as well.
-In that case any private subdev ioctls would end up in the default ioctl
-handler. This is actually quite an interesting solution since I'm sure
-some of the subdev ioctls will be identical to the 'regular' ioctls (this
-will certainly be the case for the v4l2 control ioctls).
+Sorry can you explain a little bit more. I have the camera connected to the
+cam_hs and cam_vs and the data is 8Bit. I use the the isp init
+structure. The sccb bus works great and I can send configuration to it,
+but I don't receive any interrupt from the ics, seems that it doen't see
+the transaction:
 
-The problem is that that will saddle each subdev driver with this huge
-struct. One solution for that might be to split up this big struct into a
-bunch of smaller ones in exactly the same way that I did for the
-v4l2_subdev ops.
+The ISPCCDC: ###CCDC SYN_MODE=0x31704 seems ok.
 
-For this initial prototyping I would suggest that you use video_ioctl2 for
-the time being. The additional functionality that is has over
-video_usercopy makes it the best choice and the overhead in the size of
-the struct isn't an issue while prototyping and can be fixed later.
 
-Regards,
+static struct isp_interface_config ov7690_if_config = {
+        .ccdc_par_ser           = ISP_CSIA,
+        .dataline_shift         = 0x0,
+        .hsvs_syncdetect        = ISPCTRL_SYNC_DETECT_VSFALL,
+        .strobe                 = 0x0,
+        .prestrobe              = 0x0,
+        .shutter                = 0x0,
+        .wenlog                 = ISPCCDC_CFG_WENLOG_AND,
+        .wait_hs_vs             = 0x4,
+        .raw_fmt_in             = ISPCCDC_INPUT_FMT_GR_BG,
+        .u.csi.crc              = 0x0,
+        .u.csi.mode             = 0x0,
+        .u.csi.edge             = 0x0,
+        .u.csi.signalling       = 0x0,
+        .u.csi.strobe_clock_inv = 0x0,
+        .u.csi.vs_edge          = 0x0,
+        .u.csi.channel          = 0x0,
+        .u.csi.vpclk            = 0x1,
+        .u.csi.data_start       = 0x0,
+        .u.csi.data_size        = 0x0,
+        .u.csi.format           = V4L2_PIX_FMT_YUYV,
+};
 
-       Hans
+and I don't know the meaning of
 
->
-> --
+lanecfg.clk.pol = OV7690_CSI2_CLOCK_POLARITY;
+lanecfg.clk.pos = OV7690_CSI2_CLOCK_LANE;
+lanecfg.data[0].pol = OV7690_CSI2_DATA0_POLARITY;
+lanecfg.data[0].pos = OV7690_CSI2_DATA0_LANE;
+lanecfg.data[1].pol = OV7690_CSI2_DATA1_POLARITY;
+lanecfg.data[1].pos = OV7690_CSI2_DATA1_LANE;
+lanecfg.data[2].pol = 0;
+lanecfg.data[2].pos = 0;
+lanecfg.data[3].pol = 0;
+lanecfg.data[3].pos = 0;
+
+>> - phyconfiguration
+> PHY - Physical timing configurations. btw, if it is camera specific you
+> could get a lot of inputs from [1].
+
+Ok I wil ask to them.
+
+> 
 > Regards,
->
-> Laurent Pinchart
+> Nishanth Menon
+> 
+> Ref:
+> [1] http://vger.kernel.org/vger-lists.html#linux-media
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> 
 
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
-
+Michael
