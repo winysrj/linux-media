@@ -1,148 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailrelay009.isp.belgacom.be ([195.238.6.176]:43881 "EHLO
-	mailrelay009.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751338AbZJTIO5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Oct 2009 04:14:57 -0400
-Message-Id: <20091020011215.754611441@ideasonboard.com>
-Date: Tue, 20 Oct 2009 03:12:21 +0200
-From: laurent.pinchart@ideasonboard.com
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com, hverkuil@xs4all.nl,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [RFC/PATCH 11/14] uvcvideo: Refactor chain scan
-References: <20091020011210.623421213@ideasonboard.com>
-Content-Disposition: inline; filename=uvc-refactor-chain-scan.diff
+Received: from ns.mm-sol.com ([213.240.235.226]:38290 "EHLO extserv.mm-sol.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754119AbZJEUP0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Oct 2009 16:15:26 -0400
+Subject: RE: Mem2Mem V4L2 devices [RFC]
+From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	Tomasz Fujak <t.fujak@samsung.com>,
+	Pawel Osciak <p.osciak@samsung.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE401553E952D@dlee06.ent.ti.com>
+References: <E4D3F24EA6C9E54F817833EAE0D912AC077151C64F@bssrvexch01.BS.local>
+	 <1254500705.16625.35.camel@iivanov.int.mm-sol.com>
+	 <A69FA2915331DC488A831521EAE36FE401553E952D@dlee06.ent.ti.com>
+Content-Type: text/plain
+Date: Mon, 05 Oct 2009 23:14:13 +0300
+Message-Id: <1254773653.10214.31.camel@violet.int.mm-sol.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Don't handle the first output terminal in a chain in a special way. Use
-uvc_scan_chain_entity() like for all other entities, making the chain
-scan code more generic.
+Hi, 
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Index: v4l-dvb-mc/linux/drivers/media/video/uvc/uvc_driver.c
-===================================================================
---- v4l-dvb-mc.orig/linux/drivers/media/video/uvc/uvc_driver.c
-+++ v4l-dvb-mc/linux/drivers/media/video/uvc/uvc_driver.c
-@@ -1256,13 +1256,12 @@ static int uvc_scan_chain_entity(struct 
- 		break;
- 
- 	case UVC_TT_STREAMING:
--		if (uvc_trace_param & UVC_TRACE_PROBE)
--			printk(" <- IT %d\n", entity->id);
--
--		if (!UVC_ENTITY_IS_ITERM(entity)) {
--			uvc_trace(UVC_TRACE_DESCR, "Unsupported input "
--				"terminal %u.\n", entity->id);
--			return -1;
-+		if (UVC_ENTITY_IS_ITERM(entity)) {
-+			if (uvc_trace_param & UVC_TRACE_PROBE)
-+				printk(" <- IT %d\n", entity->id);
-+		} else {
-+			if (uvc_trace_param & UVC_TRACE_PROBE)
-+				printk(" OT %d", entity->id);
- 		}
- 
- 		break;
-@@ -1342,10 +1341,11 @@ static int uvc_scan_chain_forward(struct
- }
- 
- static int uvc_scan_chain_backward(struct uvc_video_chain *chain,
--	struct uvc_entity *entity)
-+	struct uvc_entity **_entity)
- {
-+	struct uvc_entity *entity = *_entity;
- 	struct uvc_entity *term;
--	int id = -1, i;
-+	int id = -EINVAL, i;
- 
- 	switch (UVC_ENTITY_TYPE(entity)) {
- 	case UVC_VC_EXTENSION_UNIT:
-@@ -1389,34 +1389,49 @@ static int uvc_scan_chain_backward(struc
- 
- 		id = 0;
- 		break;
-+
-+	case UVC_ITT_VENDOR_SPECIFIC:
-+	case UVC_ITT_CAMERA:
-+	case UVC_ITT_MEDIA_TRANSPORT_INPUT:
-+	case UVC_OTT_VENDOR_SPECIFIC:
-+	case UVC_OTT_DISPLAY:
-+	case UVC_OTT_MEDIA_TRANSPORT_OUTPUT:
-+	case UVC_TT_STREAMING:
-+		id = UVC_ENTITY_IS_OTERM(entity) ? entity->output.bSourceID : 0;
-+		break;
-+	}
-+
-+	if (id <= 0) {
-+		*_entity = NULL;
-+		return id;
-+	}
-+
-+	entity = uvc_entity_by_id(chain->dev, id);
-+	if (entity == NULL) {
-+		uvc_trace(UVC_TRACE_DESCR, "Found reference to "
-+			"unknown entity %d.\n", id);
-+		return -EINVAL;
- 	}
- 
--	return id;
-+	*_entity = entity;
-+	return 0;
- }
- 
- static int uvc_scan_chain(struct uvc_video_chain *chain,
--			  struct uvc_entity *oterm)
-+			  struct uvc_entity *term)
- {
- 	struct uvc_entity *entity, *prev;
--	int id;
- 
--	entity = oterm;
--	list_add_tail(&entity->chain, &chain->entities);
--	uvc_trace(UVC_TRACE_PROBE, "Scanning UVC chain: OT %d", entity->id);
-+	uvc_trace(UVC_TRACE_PROBE, "Scanning UVC chain:");
- 
--	id = entity->output.bSourceID;
--	while (id != 0) {
--		prev = entity;
--		entity = uvc_entity_by_id(chain->dev, id);
--		if (entity == NULL) {
--			uvc_trace(UVC_TRACE_DESCR, "Found reference to "
--				"unknown entity %d.\n", id);
--			return -EINVAL;
--		}
-+	entity = term;
-+	prev = NULL;
- 
-+	while (entity != NULL) {
-+		/* Entity must not be part of an existing chain */
- 		if (entity->chain.next || entity->chain.prev) {
- 			uvc_trace(UVC_TRACE_DESCR, "Found reference to "
--				"entity %d already in chain.\n", id);
-+				"entity %d already in chain.\n", entity->id);
- 			return -EINVAL;
- 		}
- 
-@@ -1428,14 +1443,10 @@ static int uvc_scan_chain(struct uvc_vid
- 		if (uvc_scan_chain_forward(chain, entity, prev) < 0)
- 			return -EINVAL;
- 
--		/* Stop when a terminal is found. */
--		if (UVC_ENTITY_IS_TERM(entity))
--			break;
--
- 		/* Backward scan */
--		id = uvc_scan_chain_backward(chain, entity);
--		if (id < 0)
--			return id;
-+		prev = entity;
-+		if (uvc_scan_chain_backward(chain, &entity) < 0)
-+			return -EINVAL;
- 	}
- 
- 	return 0;
+On Mon, 2009-10-05 at 15:02 -0500, Karicheri, Muralidharan wrote:
+> 
+> >>
+> >> 1. How to set different color space or size for input and output buffer
+> >> each? It could be solved by adding a set of ioctls to get/set source
+> >> image format and size, while the existing v4l2 ioctls would only refer
+> >> to the output buffer. Frankly speaking, we don't like this idea.
+> >
+> >I think that is not unusual one video device to define that it can
+> >support at the same time input and output operation.
+> >
+> >Lets take as example resizer device. it is always possible that it
+> >inform user space application that
+> >
+> >struct v4l2_capability.capabilities ==
+> >		(V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT)
+> >
+> >User can issue S_FMT ioctl supplying
+> >
+> >struct v4l2_format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE
+> >		  .pix  = width x height
+> >
+> >which will instruct this device to prepare its output for this
+> >resolution. after that user can issue S_FMT ioctl supplying
+> >
+> >struct v4l2_format.type = V4L2_BUF_TYPE_VIDEO_OUTPUT
+> >   		  .pix  = width x height
+> >
+> >using only these ioctls should be enough to device driver
+> >to know down/up scale factor required.
+> >
+> >regarding color space struct v4l2_pix_format have field 'pixelformat'
+> >which can be used to define input and output buffers content.
+> >so using only existing ioctl's user can have working resizer device.
+> >
+> >also please note that there is VIDIOC_S_CROP which can add additional
+> >flexibility of adding cropping on input or output.
+> >
+> >last thing which should be done is to QBUF 2 buffers and call STREAMON.
+> >
+> >i think this will simplify a lot buffer synchronization.
+> >
+> 
+> Ivan,
+> 
+> There is another use case where there are two Resizer hardware working on the same input frame and give two different output frames of different resolution. How do we handle this using the one video device approach you
+> just described here?
 
+ what is the difference?
+ 
+- you can have only one resizer device driver which will hide that 
+  they are actually 2 hardware resizers. just operations will be
+  faster ;).
+
+- they are two device drivers (nodes) with similar characteristics.
+
+in both cases input buffer can be the same. 
+
+iivanov
+
+
+
+> 
+> Murali
 
