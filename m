@@ -1,72 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3.epfl.ch ([128.178.224.226]:35563 "HELO smtp3.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753974AbZJURSE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Oct 2009 13:18:04 -0400
-Message-ID: <4ADF40BC.4090801@epfl.ch>
-Date: Wed, 21 Oct 2009 19:11:24 +0200
-From: Valentin Longchamp <valentin.longchamp@epfl.ch>
+Received: from fg-out-1718.google.com ([72.14.220.156]:35831 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932481AbZJEKEj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Oct 2009 06:04:39 -0400
+Received: by fg-out-1718.google.com with SMTP id 22so1031524fge.1
+        for <linux-media@vger.kernel.org>; Mon, 05 Oct 2009 03:02:51 -0700 (PDT)
+Date: Mon, 5 Oct 2009 13:02:48 +0300
+From: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>,
+	Andy Walls <awalls@radix.net>,
+	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org,
+	Oldrich Jedlicka <oldium.pro@seznam.cz>, hverkuil@xs4all.nl
+Subject: Re: [REVIEW] ivtv, ir-kbd-i2c: Explicit IR support for the AVerTV
+	M116 for newer kernels
+Message-ID: <20091005100248.GA15806@moon>
+References: <1254584660.3169.25.camel@palomino.walls.org> <20091004222347.GA31609@moon> <1254707677.9896.10.camel@palomino.walls.org> <20091005085031.GA17431@moon> <20091005110402.059e9830@hyperion.delvare>
 MIME-Version: 1.0
-To: Sascha Hauer <s.hauer@pengutronix.de>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 5/6] mx31moboard: camera support
-References: <1255599780-12948-1-git-send-email-valentin.longchamp@epfl.ch> <1255599780-12948-2-git-send-email-valentin.longchamp@epfl.ch> <1255599780-12948-3-git-send-email-valentin.longchamp@epfl.ch> <1255599780-12948-4-git-send-email-valentin.longchamp@epfl.ch> <1255599780-12948-5-git-send-email-valentin.longchamp@epfl.ch> <1255599780-12948-6-git-send-email-valentin.longchamp@epfl.ch> <Pine.LNX.4.64.0910162307160.26130@axis700.grange> <4ADC96A9.3090403@epfl.ch> <20091020080941.GN8818@pengutronix.de>
-In-Reply-To: <20091020080941.GN8818@pengutronix.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20091005110402.059e9830@hyperion.delvare>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sascha Hauer wrote:
-> On Mon, Oct 19, 2009 at 06:41:13PM +0200, Valentin Longchamp wrote:
->> Hi Guennadi,
->>
->> Guennadi Liakhovetski wrote:
->>> Hi
->>>
->>> On Thu, 15 Oct 2009, Valentin Longchamp wrote:
->>>
->>>> We have two mt9t031 cameras that have a muxed bus on the robot.
->>>> We can control which one we are using with gpio outputs. This
->>>> currently is not optimal
->>> So, what prevents you from registering two platform devices for your 
->>> two cameras? Is there a problem with that?
->> The lack of time until now to do it properly. I sent those patches as  
->> initial RFC (and by the way thanks for your comment).
->>
->> I would like to have one video interface only and that I can switch  
->> between the two physical camera using a quite simple system call. Would  
->> that be compatible with registering the two platform devices ?
+On Mon, Oct 05, 2009 at 11:04:02AM +0200, Jean Delvare wrote:
+> On Mon, 5 Oct 2009 11:50:31 +0300, Aleksandr V. Piskunov wrote:
+> > > Try:
+> > > 
+> > > # modprobe ivtv newi2c=1
+> > > 
+> > > to see if that works first. 
+> > > 
+> > 
+> > udelay=10, newi2c=0  => BAD
+> > udelay=10, newi2c=1  => BAD
+> > udelay=5,  newi2c=0  => OK
+> > udelay=5,  newi2c=1  => BAD
 > 
-> Wouldn't it be better to have /dev/video[01] for two cameras? How do
-> keep the registers synchron between both cameras otherwise?
+> The udelay value is only used by i2c-algo-bit, not newi2c, so the last
+> test was not needed.
 > 
 
-Well, from my experimentations, most initializations are done when you 
-open the device. So if you close the device, switch camera and open it 
-again, the registers are initialized with the need values. Of course 
-there is a problem is you switch camera while the device is open.
+Yup, also tried udelay=4, IR controller handles it without problems,
+though cx25840 and xc2028 doesn't seem to like the 125 KHz frequency,
+refusing to communicate. xc2028 even stopped responding, requiring a cold
+reboot.
 
-It could be ok with /dev/video[01], but I would need something that 
-would prevent one device to be opened when the other already is open (a 
-mutex, but where ?).
-
-Besides, I have read a slide from Dongsoo Kim 
-(http://www.celinuxforum.org/CelfPubWiki/ELC2009Presentations?action=AttachFile&do=get&target=Framework_for_digital_camera_in_linux-in_detail.ppt 
-slides 41-47) and the cleanest solution would be to have the two chips 
-enumerated with VIDIOC_ENUMINPUT as proposed. What would then be the 
-v4l2 call to switch from one device to each other ? How to "link" it 
-with the kernel code that make the real hardware switching ?
-
-Thanks for your inputs.
-
-Val
-
--- 
-Valentin Longchamp, PhD Student, EPFL-STI-LSRO1
-valentin.longchamp@epfl.ch, Phone: +41216937827
-http://people.epfl.ch/valentin.longchamp
-MEA3485, Station 9, CH-1015 Lausanne
+So for M116 board, the most stable combination seems to be 100 KHz i2c bus
+and 150ms polling delay (up from 100 default). With this combination
+I can quickly press 1234567890 on remote and driver gets the combination
+without any losses.
