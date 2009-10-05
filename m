@@ -1,25 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx10.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.14])
+Received: from mx1.redhat.com (ext-mx02.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.6])
 	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n9QCKmRj029872
-	for <video4linux-list@redhat.com>; Mon, 26 Oct 2009 08:20:48 -0400
-Received: from fileserv.snetsys.co.za (ns1.netsys.co.za [196.211.62.234])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n9QCKVJE013742
-	for <video4linux-list@redhat.com>; Mon, 26 Oct 2009 08:20:36 -0400
-Received: from [192.168.51.46] (nsdv64.snetsys.co.za [192.168.51.46])
-	(authenticated bits=0)
-	by fileserv.snetsys.co.za (8.14.2/8.14.2) with ESMTP id n9QCKRmr024104
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <video4linux-list@redhat.com>; Mon, 26 Oct 2009 14:20:28 +0200
-Message-ID: <4AE5940B.3060409@netsys.co.za>
-Date: Mon, 26 Oct 2009 12:20:27 +0000
-From: Tiaan Wessels <tiaan@netsys.co.za>
-MIME-Version: 1.0
+	id n956pTtj004929
+	for <video4linux-list@redhat.com>; Mon, 5 Oct 2009 02:51:29 -0400
+Received: from lo.gmane.org (lo.gmane.org [80.91.229.12])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n956pGjv002823
+	for <video4linux-list@redhat.com>; Mon, 5 Oct 2009 02:51:16 -0400
+Received: from list by lo.gmane.org with local (Exim 4.50) id 1MugzL-0002PW-8y
+	for video4linux-list@redhat.com; Mon, 05 Oct 2009 08:24:03 +0200
+Received: from 118.210.98.83 ([118.210.98.83])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Mon, 05 Oct 2009 08:24:03 +0200
+Received: from arthur.marsh by 118.210.98.83 with local (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Mon, 05 Oct 2009 08:24:03 +0200
 To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+From: Arthur Marsh <arthur.marsh@internode.on.net>
+Date: Mon, 05 Oct 2009 16:52:06 +1030
+Message-ID: <ktfop6-bdv.ln1@ppp121-45-136-118.lns11.adl6.internode.on.net>
+References: <4AC5FA6E.2000201@tmr.com>
+	<1254514454.3169.51.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: v4l2 programming question
+In-Reply-To: <1254514454.3169.51.camel@palomino.walls.org>
+Subject: linux-media@vger.kernel.org is
+	gmane.linux.drivers.video-input-infrastructure
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,22 +39,19 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
-I have a leadtek winfast 2000 tv tuner card. I have however not attached 
-an antenna to it but a CCTV camera. When using the s/w that shipped with 
-the card under Windows XP I can see the CCTV feed when selecting CVBS as 
-the input source (as opposed to S-Video or one of the TV channels). I am 
-writing a program under Linux with V4L2 to grab the frames from the CCTV 
-camera but only get 'snow' as expected when no antenna is connected to 
-the tuner. Can someone please point me to the correct ioctl to use to 
-get the CCTV input ?
-Thanks
--- 
-Tiaan Wessels
-Netsys International
-Tel: +27 (0)12 349-2056 (Business)
-+27 (0)12 349-2757 (Facsimile)
-E-mail: tiaan@netsys.co.za
+Andy Walls wrote, on 2009-10-03 05:44:
+> Bill,
+> 
+> On Fri, 2009-10-02 at 09:04 -0400, Bill Davidsen wrote:
+>> I am looking for a video solution which works on recent Linux, like Fedora-11.
+> 
+> The video4linux ML is just about dead.  You should post to
+> linux-media@vger.kernel.org 
+
+Just for anyone who missed it, linux-media@vger.kernel.org is available 
+on gmane.org as gmane.linux.drivers.video-input-infrastructure
+
+Arthur.
 
 --
 video4linux-list mailing list
