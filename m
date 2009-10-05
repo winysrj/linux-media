@@ -1,303 +1,266 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:48559 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S932141AbZJ3OBW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Oct 2009 10:01:22 -0400
-Date: Fri, 30 Oct 2009 15:01:36 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH/RFC 9/9] mt9t031: make the use of the soc-camera client API
- optional
-In-Reply-To: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
-Message-ID: <Pine.LNX.4.64.0910301442570.4378@axis700.grange>
-References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from perceval.irobotique.be ([92.243.18.41]:34485 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751122AbZJENtE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Oct 2009 09:49:04 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [PATCH] v4l2_subdev: rename tuner s_standby operation to core s_power
+Date: Mon,  5 Oct 2009 15:48:17 +0200
+Message-Id: <1254750497-13684-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that we have moved most of the functions over to the v4l2-subdev API, only
-quering and setting bus parameters are still performed using the legacy
-soc-camera client API. Make the use of this API optional for mt9t031.
+Upcoming I2C v4l2_subdev drivers need a way to control the subdevice
+power state from the core. This use case is already partially covered by
+the tuner s_standby operation, but no way to explicitly come back from
+the standby state is available.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Rename the tuner s_standby operation to core s_power, and fix tuner
+drivers accordingly. The tuner core will call s_power(0) instead of
+s_standby(). No explicit call to s_power(1) is required for tuners as
+they are supposed to wake up from standby automatically.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
+ drivers/media/video/au0828/au0828-video.c   |    2 +-
+ drivers/media/video/cx231xx/cx231xx-video.c |    2 +-
+ drivers/media/video/cx23885/cx23885-core.c  |    2 +-
+ drivers/media/video/cx23885/cx23885-dvb.c   |    2 +-
+ drivers/media/video/cx88/cx88-cards.c       |    2 +-
+ drivers/media/video/cx88/cx88-dvb.c         |    2 +-
+ drivers/media/video/cx88/cx88-video.c       |    2 +-
+ drivers/media/video/em28xx/em28xx-cards.c   |    2 +-
+ drivers/media/video/em28xx/em28xx-video.c   |    2 +-
+ drivers/media/video/saa7134/saa7134-core.c  |    2 +-
+ drivers/media/video/saa7134/saa7134-video.c |    2 +-
+ drivers/media/video/tuner-core.c            |    9 ++++++---
+ include/media/v4l2-subdev.h                 |    7 ++++---
+ 13 files changed, 21 insertions(+), 17 deletions(-)
 
-Muralidharan, this one is for you to test. To differentiate between the 
-soc-camera case and a generic user I check i2c client's platform data 
-(client->dev.platform_data), so, you have to make sure your user doesn't 
-use that field for something else.
-
-One more note: I'm not sure about where v4l2_device_unregister_subdev() 
-should be called. In soc-camera the core calls 
-v4l2_i2c_new_subdev_board(), which then calls 
-v4l2_device_register_subdev(). Logically, it's also the core that then 
-calls v4l2_device_unregister_subdev(). Whereas I see many other client 
-drivers call v4l2_device_unregister_subdev() internally. So, if your 
-bridge driver does not call v4l2_device_unregister_subdev() itself and 
-expects the client to call it, there will be a slight problem with that 
-too.
-
- drivers/media/video/mt9t031.c |  146 ++++++++++++++++++++---------------------
- 1 files changed, 70 insertions(+), 76 deletions(-)
-
-diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
-index c95c277..49357bd 100644
---- a/drivers/media/video/mt9t031.c
-+++ b/drivers/media/video/mt9t031.c
-@@ -204,6 +204,59 @@ static unsigned long mt9t031_query_bus_param(struct soc_camera_device *icd)
- 	return soc_camera_apply_sensor_flags(icl, MT9T031_BUS_PARAM);
+diff --git a/drivers/media/video/au0828/au0828-video.c b/drivers/media/video/au0828/au0828-video.c
+index 51527d7..1485aee 100644
+--- a/drivers/media/video/au0828/au0828-video.c
++++ b/drivers/media/video/au0828/au0828-video.c
+@@ -830,7 +830,7 @@ static int au0828_v4l2_close(struct file *filp)
+ 		au0828_uninit_isoc(dev);
+ 
+ 		/* Save some power by putting tuner to sleep */
+-		v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_standby);
++		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
+ 
+ 		/* When close the device, set the usb intf0 into alt0 to free
+ 		   USB bandwidth */
+diff --git a/drivers/media/video/cx231xx/cx231xx-video.c b/drivers/media/video/cx231xx/cx231xx-video.c
+index 609bae6..1d57972 100644
+--- a/drivers/media/video/cx231xx/cx231xx-video.c
++++ b/drivers/media/video/cx231xx/cx231xx-video.c
+@@ -2106,7 +2106,7 @@ static int cx231xx_v4l2_close(struct file *filp)
+ 		}
+ 
+ 		/* Save some power by putting tuner to sleep */
+-		call_all(dev, tuner, s_standby);
++		call_all(dev, core, s_power, 0);
+ 
+ 		/* do this before setting alternate! */
+ 		cx231xx_uninit_isoc(dev);
+diff --git a/drivers/media/video/cx23885/cx23885-core.c b/drivers/media/video/cx23885/cx23885-core.c
+index bf7bb1c..c46bae2 100644
+--- a/drivers/media/video/cx23885/cx23885-core.c
++++ b/drivers/media/video/cx23885/cx23885-core.c
+@@ -875,7 +875,7 @@ static int cx23885_dev_setup(struct cx23885_dev *dev)
+ 	cx23885_i2c_register(&dev->i2c_bus[1]);
+ 	cx23885_i2c_register(&dev->i2c_bus[2]);
+ 	cx23885_card_setup(dev);
+-	call_all(dev, tuner, s_standby);
++	call_all(dev, core, s_power, 0);
+ 	cx23885_ir_init(dev);
+ 
+ 	if (cx23885_boards[dev->board].porta == CX23885_ANALOG_VIDEO) {
+diff --git a/drivers/media/video/cx23885/cx23885-dvb.c b/drivers/media/video/cx23885/cx23885-dvb.c
+index 86ac529..a003a3c 100644
+--- a/drivers/media/video/cx23885/cx23885-dvb.c
++++ b/drivers/media/video/cx23885/cx23885-dvb.c
+@@ -848,7 +848,7 @@ static int dvb_register(struct cx23885_tsport *port)
+ 	fe0->dvb.frontend->callback = cx23885_tuner_callback;
+ 
+ 	/* Put the analog decoder in standby to keep it quiet */
+-	call_all(dev, tuner, s_standby);
++	call_all(dev, core, s_power, 0);
+ 
+ 	if (fe0->dvb.frontend->ops.analog_ops.standby)
+ 		fe0->dvb.frontend->ops.analog_ops.standby(fe0->dvb.frontend);
+diff --git a/drivers/media/video/cx88/cx88-cards.c b/drivers/media/video/cx88/cx88-cards.c
+index 3946530..9e1656c 100644
+--- a/drivers/media/video/cx88/cx88-cards.c
++++ b/drivers/media/video/cx88/cx88-cards.c
+@@ -3213,7 +3213,7 @@ static void cx88_card_setup(struct cx88_core *core)
+ 			    ctl.fname);
+ 		call_all(core, tuner, s_config, &xc2028_cfg);
+ 	}
+-	call_all(core, tuner, s_standby);
++	call_all(core, core, s_power, 0);
  }
  
-+static const struct v4l2_queryctrl mt9t031_controls[] = {
-+	{
-+		.id		= V4L2_CID_VFLIP,
-+		.type		= V4L2_CTRL_TYPE_BOOLEAN,
-+		.name		= "Flip Vertically",
-+		.minimum	= 0,
-+		.maximum	= 1,
-+		.step		= 1,
-+		.default_value	= 0,
-+	}, {
-+		.id		= V4L2_CID_HFLIP,
-+		.type		= V4L2_CTRL_TYPE_BOOLEAN,
-+		.name		= "Flip Horizontally",
-+		.minimum	= 0,
-+		.maximum	= 1,
-+		.step		= 1,
-+		.default_value	= 0,
-+	}, {
-+		.id		= V4L2_CID_GAIN,
-+		.type		= V4L2_CTRL_TYPE_INTEGER,
-+		.name		= "Gain",
-+		.minimum	= 0,
-+		.maximum	= 127,
-+		.step		= 1,
-+		.default_value	= 64,
-+		.flags		= V4L2_CTRL_FLAG_SLIDER,
-+	}, {
-+		.id		= V4L2_CID_EXPOSURE,
-+		.type		= V4L2_CTRL_TYPE_INTEGER,
-+		.name		= "Exposure",
-+		.minimum	= 1,
-+		.maximum	= 255,
-+		.step		= 1,
-+		.default_value	= 255,
-+		.flags		= V4L2_CTRL_FLAG_SLIDER,
-+	}, {
-+		.id		= V4L2_CID_EXPOSURE_AUTO,
-+		.type		= V4L2_CTRL_TYPE_BOOLEAN,
-+		.name		= "Automatic Exposure",
-+		.minimum	= 0,
-+		.maximum	= 1,
-+		.step		= 1,
-+		.default_value	= 1,
-+	}
-+};
+ /* ------------------------------------------------------------------ */
+diff --git a/drivers/media/video/cx88/cx88-dvb.c b/drivers/media/video/cx88/cx88-dvb.c
+index e237b50..dd2769b 100644
+--- a/drivers/media/video/cx88/cx88-dvb.c
++++ b/drivers/media/video/cx88/cx88-dvb.c
+@@ -1170,7 +1170,7 @@ static int dvb_register(struct cx8802_dev *dev)
+ 		fe1->dvb.frontend->ops.ts_bus_ctrl = cx88_dvb_bus_ctrl;
+ 
+ 	/* Put the analog decoder in standby to keep it quiet */
+-	call_all(core, tuner, s_standby);
++	call_all(core, core, s_power, 0);
+ 
+ 	/* register everything */
+ 	return videobuf_dvb_register_bus(&dev->frontends, THIS_MODULE, dev,
+diff --git a/drivers/media/video/cx88/cx88-video.c b/drivers/media/video/cx88/cx88-video.c
+index 2bb54c3..a57afa0 100644
+--- a/drivers/media/video/cx88/cx88-video.c
++++ b/drivers/media/video/cx88/cx88-video.c
+@@ -935,7 +935,7 @@ static int video_release(struct file *file)
+ 
+ 	mutex_lock(&dev->core->lock);
+ 	if(atomic_dec_and_test(&dev->core->users))
+-		call_all(dev->core, tuner, s_standby);
++		call_all(dev->core, core, s_power, 0);
+ 	mutex_unlock(&dev->core->lock);
+ 
+ 	return 0;
+diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
+index ed281f5..af469da 100644
+--- a/drivers/media/video/em28xx/em28xx-cards.c
++++ b/drivers/media/video/em28xx/em28xx-cards.c
+@@ -2566,7 +2566,7 @@ static int em28xx_init_dev(struct em28xx **devhandle, struct usb_device *udev,
+ 	em28xx_init_extension(dev);
+ 
+ 	/* Save some power by putting tuner to sleep */
+-	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_standby);
++	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
+ 
+ 	return 0;
+ 
+diff --git a/drivers/media/video/em28xx/em28xx-video.c b/drivers/media/video/em28xx/em28xx-video.c
+index ab079d9..042ab43 100644
+--- a/drivers/media/video/em28xx/em28xx-video.c
++++ b/drivers/media/video/em28xx/em28xx-video.c
+@@ -1800,7 +1800,7 @@ static int em28xx_v4l2_close(struct file *filp)
+ 		}
+ 
+ 		/* Save some power by putting tuner to sleep */
+-		v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_standby);
++		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
+ 
+ 		/* do this before setting alternate! */
+ 		em28xx_uninit_isoc(dev);
+diff --git a/drivers/media/video/saa7134/saa7134-core.c b/drivers/media/video/saa7134/saa7134-core.c
+index 94a023a..22afe8d 100644
+--- a/drivers/media/video/saa7134/saa7134-core.c
++++ b/drivers/media/video/saa7134/saa7134-core.c
+@@ -1030,7 +1030,7 @@ static int __devinit saa7134_initdev(struct pci_dev *pci_dev,
+ 	saa7134_irq_video_signalchange(dev);
+ 
+ 	if (TUNER_ABSENT != dev->tuner_type)
+-		saa_call_all(dev, tuner, s_standby);
++		saa_call_all(dev, core, s_power, 0);
+ 
+ 	/* register v4l devices */
+ 	if (saa7134_no_overlay > 0)
+diff --git a/drivers/media/video/saa7134/saa7134-video.c b/drivers/media/video/saa7134/saa7134-video.c
+index ba87128..abd135e 100644
+--- a/drivers/media/video/saa7134/saa7134-video.c
++++ b/drivers/media/video/saa7134/saa7134-video.c
+@@ -1500,7 +1500,7 @@ static int video_release(struct file *file)
+ 	saa_andorb(SAA7134_OFMT_DATA_A, 0x1f, 0);
+ 	saa_andorb(SAA7134_OFMT_DATA_B, 0x1f, 0);
+ 
+-	saa_call_all(dev, tuner, s_standby);
++	saa_call_all(dev, core, s_power, 0);
+ 	if (fh->radio)
+ 		saa_call_all(dev, core, ioctl, RDS_CMD_CLOSE, &cmd);
+ 
+diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
+index 5375942..89049ca 100644
+--- a/drivers/media/video/tuner-core.c
++++ b/drivers/media/video/tuner-core.c
+@@ -740,14 +740,17 @@ static int tuner_s_radio(struct v4l2_subdev *sd)
+ 	return 0;
+ }
+ 
+-static int tuner_s_standby(struct v4l2_subdev *sd)
++static int tuner_s_power(struct v4l2_subdev *sd, int on)
+ {
+ 	struct tuner *t = to_tuner(sd);
+ 	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
+ 
++	if (on)
++	    return 0;
 +
-+static struct soc_camera_ops mt9t031_ops = {
-+	.set_bus_param		= mt9t031_set_bus_param,
-+	.query_bus_param	= mt9t031_query_bus_param,
-+	.controls		= mt9t031_controls,
-+	.num_controls		= ARRAY_SIZE(mt9t031_controls),
-+};
+ 	tuner_dbg("Putting tuner to sleep\n");
+ 
+-	if (check_mode(t, "s_standby") == -EINVAL)
++	if (check_mode(t, "s_power") == -EINVAL)
+ 		return 0;
+ 	t->mode = T_STANDBY;
+ 	if (analog_ops->standby)
+@@ -949,6 +952,7 @@ static int tuner_command(struct i2c_client *client, unsigned cmd, void *arg)
+ static const struct v4l2_subdev_core_ops tuner_core_ops = {
+ 	.log_status = tuner_log_status,
+ 	.s_std = tuner_s_std,
++	.s_power = tuner_s_power,
+ };
+ 
+ static const struct v4l2_subdev_tuner_ops tuner_tuner_ops = {
+@@ -959,7 +963,6 @@ static const struct v4l2_subdev_tuner_ops tuner_tuner_ops = {
+ 	.g_frequency = tuner_g_frequency,
+ 	.s_type_addr = tuner_s_type_addr,
+ 	.s_config = tuner_s_config,
+-	.s_standby = tuner_s_standby,
+ };
+ 
+ static const struct v4l2_subdev_ops tuner_ops = {
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 5dcb367..3e16bfd 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -96,6 +96,9 @@ struct v4l2_decode_vbi_line {
+ 
+    s_gpio: set GPIO pins. Very simple right now, might need to be extended with
+ 	a direction argument if needed.
 +
- /* target must be _even_ */
- static u16 mt9t031_skip(s32 *source, s32 target, s32 max)
- {
-@@ -223,10 +276,9 @@ static u16 mt9t031_skip(s32 *source, s32 target, s32 max)
- }
- 
- /* rect is the sensor rectangle, the caller guarantees parameter validity */
--static int mt9t031_set_params(struct soc_camera_device *icd,
-+static int mt9t031_set_params(struct i2c_client *client,
- 			      struct v4l2_rect *rect, u16 xskip, u16 yskip)
- {
--	struct i2c_client *client = to_i2c_client(to_soc_camera_control(icd));
- 	struct mt9t031 *mt9t031 = to_mt9t031(client);
- 	int ret;
- 	u16 xbin, ybin;
-@@ -307,7 +359,7 @@ static int mt9t031_set_params(struct soc_camera_device *icd,
- 		if (ret >= 0) {
- 			const u32 shutter_max = MT9T031_MAX_HEIGHT + vblank;
- 			const struct v4l2_queryctrl *qctrl =
--				soc_camera_find_qctrl(icd->ops,
-+				soc_camera_find_qctrl(&mt9t031_ops,
- 						      V4L2_CID_EXPOSURE);
- 			mt9t031->exposure = (shutter_max / 2 + (total_h - 1) *
- 				 (qctrl->maximum - qctrl->minimum)) /
-@@ -333,7 +385,6 @@ static int mt9t031_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
- 	struct v4l2_rect rect = a->c;
- 	struct i2c_client *client = sd->priv;
- 	struct mt9t031 *mt9t031 = to_mt9t031(client);
--	struct soc_camera_device *icd = client->dev.platform_data;
- 
- 	rect.width = ALIGN(rect.width, 2);
- 	rect.height = ALIGN(rect.height, 2);
-@@ -344,7 +395,7 @@ static int mt9t031_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
- 	soc_camera_limit_side(&rect.top, &rect.height,
- 		     MT9T031_ROW_SKIP, MT9T031_MIN_HEIGHT, MT9T031_MAX_HEIGHT);
- 
--	return mt9t031_set_params(icd, &rect, mt9t031->xskip, mt9t031->yskip);
-+	return mt9t031_set_params(client, &rect, mt9t031->xskip, mt9t031->yskip);
- }
- 
- static int mt9t031_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
-@@ -391,7 +442,6 @@ static int mt9t031_s_fmt(struct v4l2_subdev *sd,
- {
- 	struct i2c_client *client = sd->priv;
- 	struct mt9t031 *mt9t031 = to_mt9t031(client);
--	struct soc_camera_device *icd = client->dev.platform_data;
- 	u16 xskip, yskip;
- 	struct v4l2_rect rect = mt9t031->rect;
- 
-@@ -403,7 +453,7 @@ static int mt9t031_s_fmt(struct v4l2_subdev *sd,
- 	yskip = mt9t031_skip(&rect.height, imgf->height, MT9T031_MAX_HEIGHT);
- 
- 	/* mt9t031_set_params() doesn't change width and height */
--	return mt9t031_set_params(icd, &rect, xskip, yskip);
-+	return mt9t031_set_params(client, &rect, xskip, yskip);
- }
- 
- /*
-@@ -476,59 +526,6 @@ static int mt9t031_s_register(struct v4l2_subdev *sd,
- }
++   s_power: puts subdevice in power saving mode (on == 0) or normal operation
++   	mode (on == 1).
+  */
+ struct v4l2_subdev_core_ops {
+ 	int (*g_chip_ident)(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident *chip);
+@@ -118,6 +121,7 @@ struct v4l2_subdev_core_ops {
+ 	int (*g_register)(struct v4l2_subdev *sd, struct v4l2_dbg_register *reg);
+ 	int (*s_register)(struct v4l2_subdev *sd, struct v4l2_dbg_register *reg);
  #endif
++	int (*s_power)(struct v4l2_subdev *sd, int on);
+ };
  
--static const struct v4l2_queryctrl mt9t031_controls[] = {
--	{
--		.id		= V4L2_CID_VFLIP,
--		.type		= V4L2_CTRL_TYPE_BOOLEAN,
--		.name		= "Flip Vertically",
--		.minimum	= 0,
--		.maximum	= 1,
--		.step		= 1,
--		.default_value	= 0,
--	}, {
--		.id		= V4L2_CID_HFLIP,
--		.type		= V4L2_CTRL_TYPE_BOOLEAN,
--		.name		= "Flip Horizontally",
--		.minimum	= 0,
--		.maximum	= 1,
--		.step		= 1,
--		.default_value	= 0,
--	}, {
--		.id		= V4L2_CID_GAIN,
--		.type		= V4L2_CTRL_TYPE_INTEGER,
--		.name		= "Gain",
--		.minimum	= 0,
--		.maximum	= 127,
--		.step		= 1,
--		.default_value	= 64,
--		.flags		= V4L2_CTRL_FLAG_SLIDER,
--	}, {
--		.id		= V4L2_CID_EXPOSURE,
--		.type		= V4L2_CTRL_TYPE_INTEGER,
--		.name		= "Exposure",
--		.minimum	= 1,
--		.maximum	= 255,
--		.step		= 1,
--		.default_value	= 255,
--		.flags		= V4L2_CTRL_FLAG_SLIDER,
--	}, {
--		.id		= V4L2_CID_EXPOSURE_AUTO,
--		.type		= V4L2_CTRL_TYPE_BOOLEAN,
--		.name		= "Automatic Exposure",
--		.minimum	= 0,
--		.maximum	= 1,
--		.step		= 1,
--		.default_value	= 1,
--	}
--};
+ /* s_mode: switch the tuner to a specific tuner mode. Replacement of s_radio.
+@@ -127,8 +131,6 @@ struct v4l2_subdev_core_ops {
+    s_type_addr: sets tuner type and its I2C addr.
+ 
+    s_config: sets tda9887 specific stuff, like port1, port2 and qss
 -
--static struct soc_camera_ops mt9t031_ops = {
--	.set_bus_param		= mt9t031_set_bus_param,
--	.query_bus_param	= mt9t031_query_bus_param,
--	.controls		= mt9t031_controls,
--	.num_controls		= ARRAY_SIZE(mt9t031_controls),
--};
--
- static int mt9t031_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
- {
- 	struct i2c_client *client = sd->priv;
-@@ -565,7 +562,6 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
- {
- 	struct i2c_client *client = sd->priv;
- 	struct mt9t031 *mt9t031 = to_mt9t031(client);
--	struct soc_camera_device *icd = client->dev.platform_data;
- 	const struct v4l2_queryctrl *qctrl;
- 	int data;
+-   s_standby: puts tuner on powersaving state, disabling it, except for i2c.
+  */
+ struct v4l2_subdev_tuner_ops {
+ 	int (*s_mode)(struct v4l2_subdev *sd, enum v4l2_tuner_type);
+@@ -139,7 +141,6 @@ struct v4l2_subdev_tuner_ops {
+ 	int (*s_tuner)(struct v4l2_subdev *sd, struct v4l2_tuner *vt);
+ 	int (*s_type_addr)(struct v4l2_subdev *sd, struct tuner_setup *type);
+ 	int (*s_config)(struct v4l2_subdev *sd, const struct v4l2_priv_tun_config *config);
+-	int (*s_standby)(struct v4l2_subdev *sd);
+ };
  
-@@ -657,7 +653,8 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
- 
- 			if (set_shutter(client, total_h) < 0)
- 				return -EIO;
--			qctrl = soc_camera_find_qctrl(icd->ops, V4L2_CID_EXPOSURE);
-+			qctrl = soc_camera_find_qctrl(&mt9t031_ops,
-+						      V4L2_CID_EXPOSURE);
- 			mt9t031->exposure = (shutter_max / 2 + (total_h - 1) *
- 				 (qctrl->maximum - qctrl->minimum)) /
- 				shutter_max + qctrl->minimum;
-@@ -751,18 +748,16 @@ static int mt9t031_probe(struct i2c_client *client,
- 	struct mt9t031 *mt9t031;
- 	struct soc_camera_device *icd = client->dev.platform_data;
- 	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
--	struct soc_camera_link *icl;
- 	int ret;
- 
--	if (!icd) {
--		dev_err(&client->dev, "MT9T031: missing soc-camera data!\n");
--		return -EINVAL;
--	}
-+	if (icd) {
-+		struct soc_camera_link *icl = to_soc_camera_link(icd);
-+		if (!icl) {
-+			dev_err(&client->dev, "MT9T031 driver needs platform data\n");
-+			return -EINVAL;
-+		}
- 
--	icl = to_soc_camera_link(icd);
--	if (!icl) {
--		dev_err(&client->dev, "MT9T031 driver needs platform data\n");
--		return -EINVAL;
-+		icd->ops = &mt9t031_ops;
- 	}
- 
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
-@@ -777,9 +772,6 @@ static int mt9t031_probe(struct i2c_client *client,
- 
- 	v4l2_i2c_subdev_init(&mt9t031->subdev, client, &mt9t031_subdev_ops);
- 
--	/* Second stage probe - when a capture adapter is there */
--	icd->ops		= &mt9t031_ops;
--
- 	mt9t031->rect.left	= MT9T031_COLUMN_SKIP;
- 	mt9t031->rect.top	= MT9T031_ROW_SKIP;
- 	mt9t031->rect.width	= MT9T031_MAX_WIDTH;
-@@ -801,7 +793,8 @@ static int mt9t031_probe(struct i2c_client *client,
- 	mt9t031_disable(client);
- 
- 	if (ret) {
--		icd->ops = NULL;
-+		if (icd)
-+			icd->ops = NULL;
- 		i2c_set_clientdata(client, NULL);
- 		kfree(mt9t031);
- 	}
-@@ -814,7 +807,8 @@ static int mt9t031_remove(struct i2c_client *client)
- 	struct mt9t031 *mt9t031 = to_mt9t031(client);
- 	struct soc_camera_device *icd = client->dev.platform_data;
- 
--	icd->ops = NULL;
-+	if (icd)
-+		icd->ops = NULL;
- 	i2c_set_clientdata(client, NULL);
- 	client->driver = NULL;
- 	kfree(mt9t031);
+ /* s_clock_freq: set the frequency (in Hz) of the audio clock output.
 -- 
-1.6.2.4
+1.6.4.4
 
