@@ -1,81 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:52957 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753705AbZJQUqt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Oct 2009 16:46:49 -0400
-Date: Sat, 17 Oct 2009 22:46:25 +0200 (CEST)
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Subject: [PATCH] firedtv: fix regression: tuning fails due to bogus error
- return
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
-In-Reply-To: <4ADA26D0.6010108@s5r6.in-berlin.de>
-Message-ID: <tkrat.de5abfc32fa5476d@s5r6.in-berlin.de>
-References: <4ADA149E.1070704@s5r6.in-berlin.de>
- <4ADA26D0.6010108@s5r6.in-berlin.de>
+Received: from smtp.seznam.cz ([77.75.72.43]:42989 "EHLO smtp.seznam.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752662AbZJESqM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Oct 2009 14:46:12 -0400
+From: Oldrich Jedlicka <oldium.pro@seznam.cz>
+To: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
+Subject: Re: [REVIEW] ivtv, ir-kbd-i2c: Explicit IR support for the AVerTV M116 for newer kernels
+Date: Mon, 5 Oct 2009 20:45:20 +0200
+Cc: Andy Walls <awalls@radix.net>, Jean Delvare <khali@linux-fr.org>,
+	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org,
+	hverkuil@xs4all.nl
+References: <1254584660.3169.25.camel@palomino.walls.org> <20091004222347.GA31609@moon>
+In-Reply-To: <20091004222347.GA31609@moon>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=us-ascii
-Content-Disposition: INLINE
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200910052045.20676.oldium.pro@seznam.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since 2.6.32(-rc1), DVB core checks the return value of
-dvb_frontend_ops.set_frontend.  Now it becomes apparent that firedtv
-always returned a bogus value from its set_frontend method.
+On Monday 05 of October 2009 at 00:23:47, Aleksandr V. Piskunov wrote:
+> On Sat, Oct 03, 2009 at 11:44:20AM -0400, Andy Walls wrote:
+> > Aleksandr and Jean,
+> >
+> > Zdrastvoitye & Bonjour,
+> >
+> > To support the AVerMedia M166's IR microcontroller in ivtv and
+> > ir-kbd-i2c with the new i2c binding model, I have added 3 changesets in
+> >
+> > 	http://linuxtv.org/hg/~awalls/ivtv
+>
+> Now the last step to the decent support of M116 remote.
+>
+> I spent hours banging my head against the wall, controller just doesn't
+> give a stable keypresses, skips a lot of them. Increasing polling interval
+> from default 100 ms to 400-500 ms helps a bit, but it only masks the
+> problem. Decreasing polling interval below 50ms makes it skip virtually
+> 90% of keypresses.
+>
+> Basicly during the I2C operation that reads scancode, controller seems
+> to stop processing input from IR sensor, resulting a loss of keypress.
 
-Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
----
- drivers/media/dvb/firewire/firedtv-avc.c |    7 +++++--
- drivers/media/dvb/firewire/firedtv-fe.c  |    8 +-------
- 2 files changed, 6 insertions(+), 9 deletions(-)
+Hi Aleksandr,
 
-Index: linux-2.6.32-rc5/drivers/media/dvb/firewire/firedtv-avc.c
-===================================================================
---- linux-2.6.32-rc5.orig/drivers/media/dvb/firewire/firedtv-avc.c
-+++ linux-2.6.32-rc5/drivers/media/dvb/firewire/firedtv-avc.c
-@@ -573,8 +573,11 @@ int avc_tuner_dsd(struct firedtv *fdtv,
- 
- 	msleep(500);
- #if 0
--	/* FIXME: */
--	/* u8 *status was an out-parameter of avc_tuner_dsd, unused by caller */
-+	/*
-+	 * FIXME:
-+	 * u8 *status was an out-parameter of avc_tuner_dsd, unused by caller
-+	 * Check for AVC_RESPONSE_ACCEPTED here instead?
-+	 */
- 	if (status)
- 		*status = r->operand[2];
- #endif
-Index: linux-2.6.32-rc5/drivers/media/dvb/firewire/firedtv-fe.c
-===================================================================
---- linux-2.6.32-rc5.orig/drivers/media/dvb/firewire/firedtv-fe.c
-+++ linux-2.6.32-rc5/drivers/media/dvb/firewire/firedtv-fe.c
-@@ -141,18 +141,12 @@ static int fdtv_read_uncorrected_blocks(
- 	return -EOPNOTSUPP;
- }
- 
--#define ACCEPTED 0x9
--
- static int fdtv_set_frontend(struct dvb_frontend *fe,
- 			     struct dvb_frontend_parameters *params)
- {
- 	struct firedtv *fdtv = fe->sec_priv;
- 
--	/* FIXME: avc_tuner_dsd never returns ACCEPTED. Check status? */
--	if (avc_tuner_dsd(fdtv, params) != ACCEPTED)
--		return -EINVAL;
--	else
--		return 0; /* not sure of this... */
-+	return avc_tuner_dsd(fdtv, params);
- }
- 
- static int fdtv_get_frontend(struct dvb_frontend *fe,
+Just a side note. If your M166 has the same remote control chip as my CardBus 
+Plus/Hybrid (I2C address 0x40), then I have to say it is very fragile. From 
+my experience it doesn't like probing (empty read), when reading the value it 
+doesn't like interruptions (you have to write the address and read 
+immediately). So I wouldn't be surprised if it doesn't work under some other 
+conditions.
 
--- 
-Stefan Richter
--=====-==--= =-=- =---=
-http://arcgraph.de/sr/
+Regards,
+Oldrich.
+
+>
+> So the solution(?) I found was to decrease the udelay in
+> ivtv_i2c_algo_template from 10 to 5. Guess it just doubles the frequency
+> of ivtv i2c bus or something like that. Problem went away, IR controller
+> is now working as expected.
+>
+> So question is:
+> 1) Is it ok to decrease udelay for this board?
+> 2) If yes, how to do it right?
+
 
