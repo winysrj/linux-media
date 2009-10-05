@@ -1,138 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.hauppauge.com ([167.206.143.4]:2487 "EHLO
-	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752017AbZJPOc5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Oct 2009 10:32:57 -0400
-Message-ID: <4AD8802E.8010608@linuxtv.org>
-Date: Fri, 16 Oct 2009 10:16:14 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:42099 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753294AbZJETOQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Oct 2009 15:14:16 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+CC: Marek Szyprowski <m.szyprowski@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	Tomasz Fujak <t.fujak@samsung.com>,
+	Pawel Osciak <p.osciak@samsung.com>
+Date: Tue, 6 Oct 2009 00:43:22 +0530
+Subject: RE: Mem2Mem V4L2 devices [RFC]
+Message-ID: <19F8576C6E063C45BE387C64729E73940436CF8FEF@dbde02.ent.ti.com>
+References: <E4D3F24EA6C9E54F817833EAE0D912AC077151C64F@bssrvexch01.BS.local>
+	 <1254500705.16625.35.camel@iivanov.int.mm-sol.com>
+	 <19F8576C6E063C45BE387C64729E73940436CF8DCB@dbde02.ent.ti.com>
+	 <001801ca45c3$a14826c0$e3d87440$%szyprowski@samsung.com>
+	 <19F8576C6E063C45BE387C64729E73940436CF8FE8@dbde02.ent.ti.com>
+	 <1254769004.10214.12.camel@violet.int.mm-sol.com>
+	 <19F8576C6E063C45BE387C64729E73940436CF8FEC@dbde02.ent.ti.com>
+ <1254769765.10214.17.camel@violet.int.mm-sol.com>
+In-Reply-To: <1254769765.10214.17.camel@violet.int.mm-sol.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-CC: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"Zutshi Vimarsh (Nokia-D-MSW/Helsinki)" <vimarsh.zutshi@nokia.com>,
-	Ivan Ivanov <iivanov@mm-sol.com>,
-	Cohen David Abraham <david.cohen@nokia.com>,
-	Guru Raj <gururaj.nagendra@intel.com>,
-	dheitmueller@kernellabs.org, mkrufky@kernellabs.com
-References: <4AD877A0.3080004@maxwell.research.nokia.com>
-In-Reply-To: <4AD877A0.3080004@maxwell.research.nokia.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: Re: [RFC] Video events, version 2.1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Let's please just use either my @linuxtv.org or @kernellabs.com email 
-account for this...
+
 
 Thanks,
+Vaibhav Hiremath
+Platform Support Products
+Texas Instruments Inc
+Ph: +91-80-25099927
 
-Mike
+> -----Original Message-----
+> From: Ivan T. Ivanov [mailto:iivanov@mm-sol.com]
+> Sent: Tuesday, October 06, 2009 12:39 AM
+> To: Hiremath, Vaibhav
+> Cc: Marek Szyprowski; linux-media@vger.kernel.org;
+> kyungmin.park@samsung.com; Tomasz Fujak; Pawel Osciak
+> Subject: RE: Mem2Mem V4L2 devices [RFC]
+> 
+> On Tue, 2009-10-06 at 00:31 +0530, Hiremath, Vaibhav wrote:
+> > > -----Original Message-----
+> > > From: Ivan T. Ivanov [mailto:iivanov@mm-sol.com]
+> > > Sent: Tuesday, October 06, 2009 12:27 AM
+> > > To: Hiremath, Vaibhav
+> > > Cc: Marek Szyprowski; linux-media@vger.kernel.org;
+> > > kyungmin.park@samsung.com; Tomasz Fujak; Pawel Osciak
+> > > Subject: RE: Mem2Mem V4L2 devices [RFC]
+> > >
+> > >
+> > <snip>
+> > > > > > > last thing which should be done is to QBUF 2 buffers and
+> > > call
+> > > > > > > STREAMON.
+> > > > > > >
+> > > > > > [Hiremath, Vaibhav] IMO, this implementation is not
+> streaming
+> > > > > model, we are trying to fit mem-to-mem
+> > > > > > forcefully to streaming.
+> > > > >
+> > > > > Why this does not fit streaming? I see no problems with
+> > > streaming
+> > > > > over mem2mem device with only one video node. You just queue
+> > > input
+> > > > > and output buffers (they are distinguished by 'type'
+> parameter)
+> > > on
+> > > > > the same video node.
+> > > > >
+> > > > [Hiremath, Vaibhav] Do we create separate queue of buffers
+> based
+> > > on type? I think we don't.
+> > > >
+> > > > App1		App2		App3		...		AppN
+> > > >   |		 |		|		|		  |
+> > > >    -----------------------------------------------
+> > > > 				|
+> > > > 			/dev/video0
+> > > > 				|
+> > > > 			Resizer Driver
+> > >
+> > >  why not? they can be per file handler input/output queue. and
+> we
+> > >  can do time sharing use of resizer driver like Marek suggests.
+> > >
+> > [Hiremath, Vaibhav] Ivan,
+> > File handle based queue and buffer type based queue are two
+> different terms.
+> 
+> really? ;)
+> 
+> >
+> > Yes, definitely we have to create separate queues for each file
+> handle to support multiple channels. But my question was for buffer
+> type, CAPTURE and OUTPUT.
+> >
+> 
+> let me see. you concern is that for very big frames 1X Mpix,
+> managing
+> separate buffers for input and output will be waste of space
+> for operations like downs calling. i know that such operations can
+> be
+> done in-place ;). but what about up-scaling. this also should
+> be possible, but with some very dirty hacks.
+> 
+[Hiremath, Vaibhav] Dirty hacks??? 
+I think, for upscaling we have to have 2 separate buffers, I do not see any options here.
 
-Sakari Ailus wrote:
->
-> Hi,
->
->
-> Here's the version 2.1 of the video events RFC. It's based on Laurent
-> Pinchart's original RFC and version 2 which I wrote some time ago. This
-> time the changes are done based on discussion on the list. The old RFC
-> is available here:
->
-> <URL:http://www.spinics.net/lists/linux-media/msg10971.html>
->
-> (Cc:d to Mike Krufky and Devin Heitmueller, too.)
->
-> Changes to version 2
-> --------------------
->
-> #define V4L2_EVENT_ALL
->
-> VIDIOC_G_EVENT -> VIDIOC_DQEVENT
->
-> Event enumeration is gone.
->
-> Reserved fields moved before data in v4l2_event and now there are 8 of
-> them instead of 4.
->
-> Event (un)subscription argument is now v4l2_event_subscription.
->
-> Interface description
-> ---------------------
->
-> Event type is either a standard event or private event. Standard events
-> will be defined in videodev2.h. Private event types begin from
-> V4L2_EVENT_PRIVATE. Some high order bits will be reserved for future use.
->
-> #define V4L2_EVENT_ALL                  0x07ffffff
-> #define V4L2_EVENT_PRIVATE_START        0x08000000
-> #define V4L2_EVENT_RESERVED             0x10000000
->
-> VIDIOC_DQEVENT is used to get events. count is number of pending events
-> after the current one. sequence is the event type sequence number and
-> the data is specific to event type.
->
-> The user will get the information that there's an event through
-> exception file descriptors by using select(2). When an event is
-> available the poll handler sets POLLPRI which wakes up select. -EINVAL
-> will be returned if there are no pending events.
->
-> VIDIOC_SUBSCRIBE_EVENT and VIDIOC_UNSUBSCRIBE_EVENT are used to
-> subscribe and unsubscribe from events. The argument is struct
-> v4l2_event_subscription which now only contains the type field for the
-> event type. Every event can be subscribed or unsubscribed by one ioctl
-> by using special type V4L2_EVENT_ALL.
->
->
-> struct v4l2_event {
->         __u32           count;
->         __u32           type;
->         __u32           sequence;
->         struct timeval  timestamp;
->         __u32           reserved[8];
->         __u8            data[64];
-> };
->
-> struct v4l2_event_subscription {
->         __u32           type;
->         __u32           reserved[8];
-> };
->
-> #define VIDIOC_DQEVENT          _IOR('V', 84, struct v4l2_event)
-> #define VIDIOC_SUBSCRIBE_EVENT  _IOW('V', 85, struct
->                                      v4l2_event_subscription)
-> #define VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 86, struct
->                                       v4l2_event_subscription)
->
->
-> The size of the event queue is decided by the driver. Which events will
-> be discarded on queue overflow depends on the implementation.
->
->
-> Questions
-> ---------
->
-> One more question I have is that there can be situations that the
-> application wants to know something has happened but does not want an
-> explicit notification from that. So it gets an event from VIDIOC_DQEVENT
-> but does not want to get woken up for that reason. I guess one flag in
-> event subscription should do that. Perhaps that is something that should
-> be implemented when needed, though.
->
-> Are there enough reserved fields now? How about the event type high
-> order bits split?
->
-> What should we really call v4l2_event_subscription? A better name for
-> the structure would be perhaps favourable.
->
->
-> Comments and questions are still very very welcome.
->
-> -- 
-> Sakari Ailus
-> sakari.ailus@maxwell.research.nokia.com
->
+Thanks,
+Vaibhav
+
+> iivanov
+> 
+> > Thanks,
+> > Vaibhav
+> >
+> > >
+> > > >
+> > > > Everyone will be doing streamon, and in normal use case every
+> > > application must be getting buffers from another module (another
+> > > driver, codecs, DSP, etc...) in multiple streams, 0,
+> 1,2,3,4....N
+> > > >
+> > > > Every application will start streaming with (mostly) fixed
+> scaling
+> > > factor which mostly never changes. This one video node approach
+> is
+> > > possible only with constraint that, the application will always
+> > > queue only 2 buffers with one CAPTURE and one with OUTPUT type.
+> > >
+> > > i don't see how 2 device node approach can help with this case.
+> > > even in "normal" video capture device you should stop streaming
+> > > when change buffer sizes.
+> > >
+> > > > He has to wait till first/second gets finished, you can't
+> queue
+> > > multiple buffers (input and output) simultaneously.
+> > >
+> > > actually this should be possible.
+> > >
+> > > iivanov
+> > >
+> > > >
+> > > > I do agree here with you that we need to investigate on
+> whether we
+> > > really have such use-case. Does it make sense to put such
+> constraint
+> > > on application? What is the impact? Again in case of down-
+> scaling,
+> > > application may want to use same buffer as input, which is
+> easily
+> > > possible with single node approach.
+> > > >
+> > > > Thanks,
+> > > > Vaibhav
+> > > >
+> > > > > > We have to put some constraints -
+> > > > > >
+> > > > > > 	- Driver will treat index 0 as input always,
+> > > irrespective of
+> > > > > number of buffers queued.
+> > > > > > 	- Or, application should not queue more that 2 buffers.
+> > > > > > 	- Multi-channel use-case????
+> > > > > >
+> > > > > > I think we have to have 2 device nodes which are capable
+> of
+> > > > > streaming multiple buffers, both are
+> > > > > > queuing the buffers.
+> > > > >
+> > > > > In one video node approach there can be 2 buffer queues in
+> one
+> > > video
+> > > > > node, for input and output respectively.
+> > > > >
+> > > > > > The constraint would be the buffers must be mapped one-to-
+> one.
+> > > > >
+> > > > > Right, each queued input buffer must have corresponding
+> output
+> > > > > buffer.
+> > > > >
+> > > > > Best regards
+> > > > > --
+> > > > > Marek Szyprowski
+> > > > > Samsung Poland R&D Center
+> > > > >
+> > > > >
+> > > >
+> > >
+> >
+> 
 
