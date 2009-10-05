@@ -1,47 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f210.google.com ([209.85.218.210]:32953 "EHLO
-	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933313AbZJLVsq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Oct 2009 17:48:46 -0400
+Received: from smtp2-g21.free.fr ([212.27.42.2]:37115 "EHLO smtp2-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751003AbZJEVzf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Oct 2009 17:55:35 -0400
+Message-ID: <4ACA6B25.9090605@free.fr>
+Date: Mon, 05 Oct 2009 23:54:45 +0200
+From: matthieu castet <castet.matthieu@free.fr>
 MIME-Version: 1.0
-In-Reply-To: <f326ee1a0910121420j59d4f63dy1ffcb1636a9a63d1@mail.gmail.com>
-References: <f326ee1a0910121420j59d4f63dy1ffcb1636a9a63d1@mail.gmail.com>
-Date: Mon, 12 Oct 2009 17:48:08 -0400
-Message-ID: <829197380910121448l1a9f35fmff276ad14afd9ac4@mail.gmail.com>
-Subject: Re: Kworld Analog TV 305U without audio - updated
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
 To: =?ISO-8859-1?Q?D=EAnis_Goes?= <denishark@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	lauri.laanmets@proekspert.ee, grythumn@gmail.com,
-	jarod@wilsonet.com, ridzevicius@gmail.com, xwang1976@email.it,
-	mchehab@infradead.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+CC: linux-media@vger.kernel.org
+Subject: Re: tm6010 status
+References: <4AC8C44E.4050103@free.fr> <f326ee1a0910040910p3400a8a7idd91a280e638bec5@mail.gmail.com>
+In-Reply-To: <f326ee1a0910040910p3400a8a7idd91a280e638bec5@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 12, 2009 at 5:20 PM, Dênis Goes <denishark@gmail.com> wrote:
-> Hi...
->
-> I updated the driver to latest in repository, but I having audio problems
-> yet:
->
-> I'm testing a USB TV "Kworld PlusTV Analog TV stick VS-PVR-TV 305U" the TV
-> video works fine, but without audio...
-> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> I tried to pipe the audio via sox:
-> tvtime -d /dev/video1 & sox -v 1 -V4 -S -t ossdsp /dev/dsp1 -t ossdsp
-> /dev/dsp
->
+Hi,
 
-Just as a test, try opening two console windows, run tvtime in one,
-and then once the video is showing run the sox command in the other
-window.  I just want to rule out this being some sort of race
-condition.
+Dênis Goes wrote:
+> Hi Matthieu...
+> I made the same answer yesterday... I want to help in development for use my
+> PixelView 405 USB.
+> 
+> Do you have the correct tridvid.sys file to extract the firmware ?
+> 
+No, I took the firmware (for the tuner) somewhere on internet.
 
-Devin
+Some time ago I have done some usb sniffing on Windows for my HVR900H, study the linux driver and start
+some analysis [2].
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+I found some strange thing on i2c bus [1]. Then I figure out what should be done to make
+work the digital part.
+But because of lack of time and motivation (like everybody ;) ), I stopped working on this.
+
+Matthieu
+
+[1] 
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg00987.html
+
+[2]
+== i2c ==
+0x1f zl
+0xa0 eeprom
+0xa2 ??? (0xff)
+0xa4
+0xa6->0xac ??? (0xff)
+0xae 
+0xc2 (tuner)
+== gpio ==
+0 (WP eeprom ?? )
+1 ZL RESET
+2 tuner_reset_gpio
+4 input sel ???
+5 (led green)
+7 (led blue)
+== eeprom format ==
+0x0-0x3 : magic ???
+0x4-0x15 : GetDescriptor device
+0xc VID
+0xE PID
+0x10 DID
+0x12 iManufacturer
+0x13 Product string
+0x14 SerialNumber
+
+0x40 string size (10 03) ???
+0x42-0x4f (Product string @32)
+0x94 string size (16 03)
+0x96-0xa9 (SerialNumber @64)
+0x16 string size (02 03)
+0x18-     (iManufacturer @16)
+
+0x60 : iConfiguration index ???
+0x6a string size (0a 03)
+0x6c (iConfiguration @48)
+
+where is mac address and rev ???
