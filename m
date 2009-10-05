@@ -1,87 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from poutre.nerim.net ([62.4.16.124]:56480 "EHLO poutre.nerim.net"
+Received: from ns.mm-sol.com ([213.240.235.226]:41703 "EHLO extserv.mm-sol.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751142AbZJEJEv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Oct 2009 05:04:51 -0400
-Date: Mon, 5 Oct 2009 11:04:02 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
-Cc: Andy Walls <awalls@radix.net>, Jarod Wilson <jarod@wilsonet.com>,
-	linux-media@vger.kernel.org,
-	Oldrich Jedlicka <oldium.pro@seznam.cz>, hverkuil@xs4all.nl
-Subject: Re: [REVIEW] ivtv, ir-kbd-i2c: Explicit IR support for the AVerTV
- M116 for newer kernels
-Message-ID: <20091005110402.059e9830@hyperion.delvare>
-In-Reply-To: <20091005085031.GA17431@moon>
-References: <1254584660.3169.25.camel@palomino.walls.org>
-	<20091004222347.GA31609@moon>
-	<1254707677.9896.10.camel@palomino.walls.org>
-	<20091005085031.GA17431@moon>
+	id S1753172AbZJETKW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Oct 2009 15:10:22 -0400
+Subject: RE: Mem2Mem V4L2 devices [RFC]
+From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	Tomasz Fujak <t.fujak@samsung.com>,
+	Pawel Osciak <p.osciak@samsung.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940436CF8FEC@dbde02.ent.ti.com>
+References: <E4D3F24EA6C9E54F817833EAE0D912AC077151C64F@bssrvexch01.BS.local>
+	 <1254500705.16625.35.camel@iivanov.int.mm-sol.com>
+	 <19F8576C6E063C45BE387C64729E73940436CF8DCB@dbde02.ent.ti.com>
+	 <001801ca45c3$a14826c0$e3d87440$%szyprowski@samsung.com>
+	 <19F8576C6E063C45BE387C64729E73940436CF8FE8@dbde02.ent.ti.com>
+	 <1254769004.10214.12.camel@violet.int.mm-sol.com>
+	 <19F8576C6E063C45BE387C64729E73940436CF8FEC@dbde02.ent.ti.com>
+Content-Type: text/plain
+Date: Mon, 05 Oct 2009 22:09:25 +0300
+Message-Id: <1254769765.10214.17.camel@violet.int.mm-sol.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 5 Oct 2009 11:50:31 +0300, Aleksandr V. Piskunov wrote:
-> > Try:
+On Tue, 2009-10-06 at 00:31 +0530, Hiremath, Vaibhav wrote:
+> > -----Original Message-----
+> > From: Ivan T. Ivanov [mailto:iivanov@mm-sol.com]
+> > Sent: Tuesday, October 06, 2009 12:27 AM
+> > To: Hiremath, Vaibhav
+> > Cc: Marek Szyprowski; linux-media@vger.kernel.org;
+> > kyungmin.park@samsung.com; Tomasz Fujak; Pawel Osciak
+> > Subject: RE: Mem2Mem V4L2 devices [RFC]
 > > 
-> > # modprobe ivtv newi2c=1
 > > 
-> > to see if that works first. 
+> <snip>
+> > > > > > last thing which should be done is to QBUF 2 buffers and
+> > call
+> > > > > > STREAMON.
+> > > > > >
+> > > > > [Hiremath, Vaibhav] IMO, this implementation is not streaming
+> > > > model, we are trying to fit mem-to-mem
+> > > > > forcefully to streaming.
+> > > >
+> > > > Why this does not fit streaming? I see no problems with
+> > streaming
+> > > > over mem2mem device with only one video node. You just queue
+> > input
+> > > > and output buffers (they are distinguished by 'type' parameter)
+> > on
+> > > > the same video node.
+> > > >
+> > > [Hiremath, Vaibhav] Do we create separate queue of buffers based
+> > on type? I think we don't.
+> > >
+> > > App1		App2		App3		...		AppN
+> > >   |		 |		|		|		  |
+> > >    -----------------------------------------------
+> > > 				|
+> > > 			/dev/video0
+> > > 				|
+> > > 			Resizer Driver
+> > 
+> >  why not? they can be per file handler input/output queue. and we
+> >  can do time sharing use of resizer driver like Marek suggests.
+> > 
+> [Hiremath, Vaibhav] Ivan,
+> File handle based queue and buffer type based queue are two different terms. 
+
+really? ;)
+
+> 
+> Yes, definitely we have to create separate queues for each file handle to support multiple channels. But my question was for buffer type, CAPTURE and OUTPUT.
+> 
+
+let me see. you concern is that for very big frames 1X Mpix, managing
+separate buffers for input and output will be waste of space
+for operations like downs calling. i know that such operations can be
+done in-place ;). but what about up-scaling. this also should 
+be possible, but with some very dirty hacks.
+
+iivanov
+
+> Thanks,
+> Vaibhav
+> 
+> > 
+> > >
+> > > Everyone will be doing streamon, and in normal use case every
+> > application must be getting buffers from another module (another
+> > driver, codecs, DSP, etc...) in multiple streams, 0, 1,2,3,4....N
+> > >
+> > > Every application will start streaming with (mostly) fixed scaling
+> > factor which mostly never changes. This one video node approach is
+> > possible only with constraint that, the application will always
+> > queue only 2 buffers with one CAPTURE and one with OUTPUT type.
+> > 
+> > i don't see how 2 device node approach can help with this case.
+> > even in "normal" video capture device you should stop streaming
+> > when change buffer sizes.
+> > 
+> > > He has to wait till first/second gets finished, you can't queue
+> > multiple buffers (input and output) simultaneously.
+> > 
+> > actually this should be possible.
+> > 
+> > iivanov
+> > 
+> > >
+> > > I do agree here with you that we need to investigate on whether we
+> > really have such use-case. Does it make sense to put such constraint
+> > on application? What is the impact? Again in case of down-scaling,
+> > application may want to use same buffer as input, which is easily
+> > possible with single node approach.
+> > >
+> > > Thanks,
+> > > Vaibhav
+> > >
+> > > > > We have to put some constraints -
+> > > > >
+> > > > > 	- Driver will treat index 0 as input always,
+> > irrespective of
+> > > > number of buffers queued.
+> > > > > 	- Or, application should not queue more that 2 buffers.
+> > > > > 	- Multi-channel use-case????
+> > > > >
+> > > > > I think we have to have 2 device nodes which are capable of
+> > > > streaming multiple buffers, both are
+> > > > > queuing the buffers.
+> > > >
+> > > > In one video node approach there can be 2 buffer queues in one
+> > video
+> > > > node, for input and output respectively.
+> > > >
+> > > > > The constraint would be the buffers must be mapped one-to-one.
+> > > >
+> > > > Right, each queued input buffer must have corresponding output
+> > > > buffer.
+> > > >
+> > > > Best regards
+> > > > --
+> > > > Marek Szyprowski
+> > > > Samsung Poland R&D Center
+> > > >
+> > > >
+> > >
 > > 
 > 
-> udelay=10, newi2c=0  => BAD
-> udelay=10, newi2c=1  => BAD
-> udelay=5,  newi2c=0  => OK
-> udelay=5,  newi2c=1  => BAD
 
-The udelay value is only used by i2c-algo-bit, not newi2c, so the last
-test was not needed.
-
-> newi2c=1 also throws some log messages, not sure if its ok or not.
-> 
-> Oct  5 11:41:16 moon kernel: [45430.916449] ivtv: Start initialization, version 1.4.1
-> Oct  5 11:41:16 moon kernel: [45430.916618] ivtv0: Initializing card 0
-> Oct  5 11:41:16 moon kernel: [45430.916628] ivtv0: Autodetected AVerTV MCE 116 Plus card (cx23416 based)
-> Oct  5 11:41:16 moon kernel: [45430.918887] ivtv 0000:03:06.0: PCI INT A -> GSI 20 (level, low) -> IRQ 20
-> Oct  5 11:41:16 moon kernel: [45430.919229] ivtv0:  i2c: i2c init
-> Oct  5 11:41:16 moon kernel: [45430.919234] ivtv0:  i2c: setting scl and sda to 1
-> Oct  5 11:41:16 moon kernel: [45430.937745] cx25840 0-0044: cx25843-23 found @ 0x88 (ivtv i2c driver #0)
-> Oct  5 11:41:16 moon kernel: [45430.949145] ivtv0:  i2c: Slave did not ack
-> Oct  5 11:41:16 moon kernel: [45430.951628] ivtv0:  i2c: Slave did not ack
-> Oct  5 11:41:16 moon kernel: [45430.954191] ivtv0:  i2c: Slave did not ack
-> Oct  5 11:41:16 moon kernel: [45430.956724] ivtv0:  i2c: Slave did not ack
-> Oct  5 11:41:16 moon kernel: [45430.959211] ivtv0:  i2c: Slave did not ack
-> Oct  5 11:41:16 moon kernel: [45430.961749] ivtv0:  i2c: Slave did not ack
-> Oct  5 11:41:16 moon kernel: [45430.964236] ivtv0:  i2c: Slave did not ack
-> Oct  5 11:41:16 moon kernel: [45430.966722] ivtv0:  i2c: Slave did not ack
-> Oct  5 11:41:16 moon kernel: [45430.966786] ivtv0:  i2c: i2c write to 43 failed
-> Oct  5 11:41:16 moon kernel: [45430.971106] tuner 0-0061: chip found @ 0xc2 (ivtv i2c driver #0)
-> Oct  5 11:41:16 moon kernel: [45430.974404] wm8739 0-001a: chip found @ 0x34 (ivtv i2c driver #0)
-> Oct  5 11:41:16 moon kernel: [45430.986328] ivtv0:  i2c: Slave did not ack
-> Oct  5 11:41:16 moon kernel: [45430.988871] ivtv0:  i2c: Slave did not ack
-> Oct  5 11:41:16 moon kernel: [45430.991355] ivtv0:  i2c: Slave did not ack
-> Oct  5 11:41:16 moon kernel: [45430.993904] ivtv0:  i2c: Slave did not ack
-> Oct  5 11:41:16 moon kernel: [45430.996427] ivtv0:  i2c: Slave did not ack
-> Oct  5 11:41:16 moon kernel: [45430.998938] ivtv0:  i2c: Slave did not ack
-> Oct  5 11:41:16 moon kernel: [45431.001477] ivtv0:  i2c: Slave did not ack
-> Oct  5 11:41:16 moon kernel: [45431.003968] ivtv0:  i2c: Slave did not ack
-> Oct  5 11:41:16 moon kernel: [45431.004053] ivtv0:  i2c: i2c write to 18 failed
-> Oct  5 11:41:16 moon kernel: [45431.011333] ivtv0:  i2c: Slave did not ack
-> Oct  5 11:41:16 moon kernel: [45431.013883] ivtv0:  i2c: Slave did not ack
-> Oct  5 11:41:16 moon kernel: [45431.016418] ivtv0:  i2c: Slave did not ack
-> Oct  5 11:41:16 moon kernel: [45431.018911] ivtv0:  i2c: Slave did not ack
-> Oct  5 11:41:16 moon kernel: [45431.021463] ivtv0:  i2c: Slave did not ack
-> Oct  5 11:41:16 moon kernel: [45431.023937] ivtv0:  i2c: Slave did not ack
-> Oct  5 11:41:16 moon kernel: [45431.026478] ivtv0:  i2c: Slave did not ack
-> Oct  5 11:41:16 moon kernel: [45431.028998] ivtv0:  i2c: Slave did not ack
-> Oct  5 11:41:16 moon kernel: [45431.029063] ivtv0:  i2c: i2c write to 71 failed
-> Oct  5 11:41:16 moon kernel: [45431.031468] ivtv0:  i2c: Slave did not ack
-> ....
-
-That would be I2C probe attempts such as the ones done by ir-kbd-i2c.
-Nothing to be afraid of.
-
--- 
-Jean Delvare
