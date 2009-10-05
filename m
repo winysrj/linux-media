@@ -1,61 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fisek2.ada.net.tr ([195.112.153.19]:40660 "HELO
-	mail.fisek.com.tr" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with SMTP id S1761629AbZJNQFI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Oct 2009 12:05:08 -0400
-Date: Wed, 14 Oct 2009 18:57:33 +0300
-From: Onur =?UTF-8?B?S8O8w6fDvGs=?= <onur@delipenguen.net>
-To: linux-media@vger.kernel.org
-Subject: Re: libv4l does not work!
-Message-Id: <20091014185733.45a84258.onur@delipenguen.net>
-In-Reply-To: <4AD5E813.2070406@gmail.com>
-References: <4ACDF829.3010500@xfce.org>
-	<37219a840910080545v72165540v622efd43574cf085@mail.gmail.com>
-	<4ACDFED9.30606@xfce.org>
-	<829197380910080745j3015af10pbced2a7e04c7595b@mail.gmail.com>
-	<4ACE2D5B.4080603@xfce.org>
-	<829197380910080928t30fc0ecas7f9ab2a7d8437567@mail.gmail.com>
-	<4ACF03BA.4070505@xfce.org>
-	<829197380910090629h64ce22e5y64ce5ff5b5991802@mail.gmail.com>
-	<4ACF714A.2090209@xfce.org>
-	<829197380910090826r5358a8a2p7a13f2915b5adcd8@mail.gmail.com>
-	<4AD5D5F2.9080102@xfce.org>
-	<20091014093038.423f3304@pedra.chehab.org>
-	<4AD5EEA0.2010709@xfce.org>
-	<4AD5E813.2070406@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from znsun1.ifh.de ([141.34.1.16]:63903 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750866AbZJENu4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Oct 2009 09:50:56 -0400
+Date: Mon, 5 Oct 2009 15:50:13 +0200 (CEST)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Mario Bachmann <grafgrimm77@gmx.de>
+cc: linux-media@vger.kernel.org
+Subject: Re: dib3000mb dvb-t with kernel 2.6.32-rc3 do not work
+In-Reply-To: <20091005095144.3551deb3@x2.grafnetz>
+Message-ID: <alpine.LRH.1.10.0910051547130.29145@pub6.ifh.de>
+References: <20091005095144.3551deb3@x2.grafnetz>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mario,
 
-On Wed, 14 Oct 2009 12:02:43 -0300
-Guilherme Longo <grlongo.ireland@gmail.com> wrote:
+On Mon, 5 Oct 2009, Mario Bachmann wrote:
+> with kernel 2.6.30.8 my "TwinhanDTV USB-Ter USB1.1 / Magic Box I"
+> worked.
+>
+> Now with kernel 2.6.32-rc3 (and 2.6.31.1) the modules seems to be
+> loaded fine, but tzap/kaffeine/mplayer can not tune to a channel:
+>
+> dmesg says:
+> dvb-usb: found a 'TwinhanDTV USB-Ter USB1.1 / Magic Box I / HAMA USB1.1 DVB-T device' in warm state.
+> dvb-usb: will use the device's hardware PID filter (table count: 16).
+> DVB: registering new adapter (TwinhanDTV USB-Ter USB1.1 / Magic Box I / HAMA USB1.1 DVB-T device)
+> DVB: registering adapter 0 frontend 0 (DiBcom 3000M-B DVB-T)...
+> dibusb: This device has the Thomson Cable onboard. Which is default.
+> input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:04.0/usb4/4-2/input/input5
+> dvb-usb: schedule remote query interval to 150 msecs.
+> dvb-usb: TwinhanDTV USB-Ter USB1.1 / Magic Box I / HAMA USB1.1 DVB-T device successfully initialized and connected.
+> usbcore: registered new interface driver dvb_usb_dibusb_mb
+>
+> [..]
+> and so on. The signal-values are zero or near zero, but when i boot the old kernel 2.6.30.8, t can tune without problems.
 
-> Do we need include any other header file than
-> 
-> libv4l2.h
-> libv4lconvert.h
-> 
-> to get libv4l working?
-> 
-> I read Hans saying that:
-> 
-> Just replace open("dev/video0", ...) with v4l2_open
-> ("dev/video0", ...), ioctl with v4l2_ioctl, etc. libv4l2 will then do
-> conversion of any known (webcam) pixelformats to bgr24 or yuv420.
-> 
-> But I am getting undefined reference to 'v4l2_open' and 'v4l2_ioctl'.
-> Can I get some help?
+In a personal email to me you are saying that the differences between 
+dibusb-common.c in 2.6.30.8 and 2.6.32-rc3 are the main cause for the 
+problem.
 
- You must also "link" your program with necessary libraries, for example
+Is it possible for you find out which exact change is causing the trouble?
 
- gcc  code.c -lv4l2
+With the v4l-dvb-hg-repository it is possible to get each intemediate 
+version of this file. Afaics, there is only 3 modifications for the 
+timeframe we are talking about.
 
+best regards,
 
--- 
- Onur Küçük                                      Knowledge speaks,
- <onur.--.-.delipenguen.net>                     but wisdom listens
+--
 
+Patrick Boettcher - Kernel Labs
+http://www.kernellabs.com/
