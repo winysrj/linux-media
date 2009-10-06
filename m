@@ -1,259 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f204.google.com ([209.85.216.204]:50548 "EHLO
-	mail-px0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756092AbZJOXny (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Oct 2009 19:43:54 -0400
-Received: by pxi42 with SMTP id 42so1193353pxi.5
-        for <linux-media@vger.kernel.org>; Thu, 15 Oct 2009 16:42:42 -0700 (PDT)
-To: neilsikka@ti.com
-Cc: linux-media@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com, hverkuil@xs4all.nl
-Subject: Re: [PATCH v1 1/4] DM365 Platform support for VPFE
-References: <1250539529-2702-1-git-send-email-neilsikka@ti.com>
-	<1250539529-2702-2-git-send-email-neilsikka@ti.com>
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Date: Thu, 15 Oct 2009 16:18:14 -0700
-In-Reply-To: <1250539529-2702-2-git-send-email-neilsikka@ti.com> (neilsikka@ti.com's message of "Mon\, 17 Aug 2009 16\:05\:26 -0400")
-Message-ID: <87y6ncz1op.fsf@deeprootsystems.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from mailout5.samsung.com ([203.254.224.35]:51162 "EHLO
+	mailout5.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755187AbZJFIN1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Oct 2009 04:13:27 -0400
+Received: from epmmp2 (mailout5.samsung.com [203.254.224.35])
+ by mailout1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0KR300EDA2SH99@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 06 Oct 2009 17:12:17 +0900 (KST)
+Received: from AMDC159 ([106.116.37.153])
+ by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0KR3000CZ2SCD5@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 06 Oct 2009 17:12:17 +0900 (KST)
+Date: Tue, 06 Oct 2009 10:10:45 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: Global Video Buffers Pool - PMM and UPBuffer reference drivers
+ [RFC]
+In-reply-to: <200910021603.n92G3elB032227@chronolytics.com>
+To: "'David F. Carlson'" <dave@chronolytics.com>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: kyungmin.park@samsung.com, Tomasz Fujak <t.fujak@samsung.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <002301ca465c$841cdca0$8c5695e0$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <E4D3F24EA6C9E54F817833EAE0D912AC077151C44B@bssrvexch01.BS.local>
+ <200910021603.n92G3elB032227@chronolytics.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-neilsikka@ti.com writes:
+Hello,
 
-> From: Neil Sikka <neilsikka@ti.com>
+On Friday, October 02, 2009 6:04 PM David F. Carlson wrote:
+
+> I am not a fan of the large and static driver based bootmem allocations in the
+> samsung-ap-2.6 git.  This work at least addresses that issue.  Thanks.
+> 
+> Below are some comments.  Perhaps I am not "getting it".
+> 
+> According to Marek Szyprowski:
+> >
+> > algorithm itself would typically be changed to fit a usage pattern.
+> >
+> > In our solution all memory buffers are all allocated by user-space
+> > applications, because only user applications have enough information
+> > which devices will be used in the video processing pipeline. For
+> > example:
+> >
+> > MFC video decoder -> Post Processor (scaler and color space converter)
+> >  -> Frame Buffer memory.
+> >
+> > If such a translation succeeds the
+> > physical memory region will be properly locked and is guaranteed to be
+> > in the memory till the end of transaction. Each transaction must be
+> > closed by the multimedia device driver explicitly.
+> 
+> Since this is a *physical* memory manager, I would never expect the memory
+> to not be in memory...
+
+The memory cannot be swapped to disk, but notice that PMM is also an allocator.
+It must track which regions has been allocated and free them when are no
+longer in use.
+
+> > 2. Allocating a buffer from userspace
+> >
+> > PMM provides a /dev/pmm special device. Each time the application wants
+> > to allocate a buffer it opens the /dev/pmm special file, calls
+> > IOCTL_PMM_ALLOC ioctl and the mmaps it into its virtual memory. The
+> > struct pmm_area_info parameter for IOCTL_PMM_ALLOC ioctl describes the
+> > memory requirements for the buffer (please refer to
+> > include/linux/s3c/pmm.h) - like buffer size, memory alignment, memory
+> > type (PMM supports different memory types, although currently only one
+> > is used) and cpu cache coherency rules (memory can be mapped as
+> > cacheable or non-cacheable). The buffer is freed when the file
+> > descriptor reference count reaches zero (so the file is closed, is
+> > unmmaped from applications memory and released from multimedia devices).
+> 
+> I prefer using mmap semantics with a driver than messes with *my* address
+> space.  Ioctls that mess with my address space gives me hives.
+> 
+> mmap is the call a user makes to map a memory/file object into its space.
+> ioctl is for things that don't fit read/write/mmap.  :-)
+
+Well, maybe I didn't write it clear enough. You allocate a buffer with
+custom ioctl and then map it with mmap() call. So the sequence of the calls
+is as follows:
+
+struct pmm_mem_info info = {
+	.magic = PMM_MAGIC,
+	.size = BUFFER_SIZE,
+	.type = PMM_MEM_GENERAL,
+	.flags = PMM_NO_CACHE,
+	.alignment = 0x1000,
+};
+
+fd = open(/dev/pmm);
+ioctl(fd, IOCTL_PMM_ALLOC, &info);
+mmap(0, BUFFER_SIZE, 0777, MAP_SHARED, fd, 0);
+close(fd);
+
+> 1.  memory alignment will be page size 4k (no?).  Or are you suggesting
+> larger alignment requirements?  Are any of the target devices 24 bit dma
+> clients?  (Crossing a 16MB boundary would then not work...)
+
+You can set the alignment in pmm_mem_info structure.
+
+> 2. Since these buffers will be dma sources/targets, cache will be off (no?)
+
+You can control weather to use cache or not on the buffer region with special
+flags provided to alloc ioctl. In case o cacheable mapping, the upbuffer
+translation layer would do proper cache synchronization (flush/clean/invalidate)
+basing on the type of operation that the driver wants to perform (please refer
+to include/linux/s3c/upbuffer.h)
+
+> Many CPUs ldr/stm memcpy do burst access to DDR so non-cached is still pretty
+> zipping for non-bit banging apps.  Forcing non-cached makes much of the "sync"
+> semantic you have "go away".
+> 
+> Is there a use-case for cached graphics controller memory that I am missing?
+
+Yes, you may want to perform some of the gfx transformations by the cpu (in
+case they are for example not available in the hardware). If the buffer is
+mapped as non-cacheable then all cpu read opeations will be really slow.
+
+> > 3. Buffer locking
+> >
+> > If user application performed a mmap call on some special device and a
+> > driver mapped some physical memory into user address space (usually with
+> > remap_pfn_range function), this will create a vm_area structure with
+> > VM_PFNMAP flag set in user address space map. UPBuffer layer can easily
+> > perform a reverse mapping (virtual address to physical memory address)
+> > by simply reading the PTE values and checking if it is contiguous in
+> > physical memory. The only problem is how to guarantee the security of
+> > this solution. VM_PFNMAP-type areas do not have associated page
+> > structures so that memory pages cannot be locked directly in page cache.
+> > However such memory area would not be freed until the special file that
+> > is behind it is still in use. We found that is can be correctly locked
+> > by increasing reference counter of that special file (vm_area->vm_file).
+> > This would lock the mapping from being freed if user would accidently do
+> > something really nasty like unmapping that area.
+> 
+> I am still missing it.  Your /dev/pmm is allocating *physical memory* -- which
+> it (the pmm) owns for all time (bootmem).  If the user unmaps it, it is still
+> pmm's physical memory.
+> 
+> Now, returning the allocated memory to the pmm freelist
+> requires both the source and target to relinquish.  That implies both drivers
+> "know" to relinquish on last-close.  Otherwise, you leak like a sieve.
 >
-> This has platform and board setup changes to support the vpfe capture
-> driver for DM365 EVMs.
->
-> Reviewed-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-> Mandatory-Reviewer: Hans Verkuil <hverkuil@xs4all.nl>
-> Mandatory-Reviewer: Kevin Hilman <khilman@deeprootsystems.com>
-> Signed-off-by: Neil Sikka <neilsikka@ti.com>
+> Returning the pmm memory to the freelist when the user unmaps means that
+> dma registers in HW still reference that memory.  Only the driver knows
+> when it is "done".
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Exactly this is addressed by the UPBuffer translation layer. If application
+unmaps the buffer from its address space the region is not freed unless the
+multimedia driver explicitly unlocks it after the transaction. That is that
+I called the buffer locking. Multimedia driver must lock the buffer before
+performing any DMA transactions on it.
+ 
+> Re: configuration
+> There are quite a few CONFIG variables.  Forcing s3c-mm drivers to use PMM
+> would knock quite a few of them out.
 
-for this patch, but the rest of the series needs to be reviewed by linux-media folks.
+This was presented only as a reference. Don't take it too strictly.
 
-Kevin
+> You have presented a very flexible, general purpose bootmem allocator/mapper.
+> (cache/uncached, bounce/pmm, etc.)
+> 
+> The problem you were trying to solve is a means to generalize multiple
+> compile-time fixed bootmem allocations at runtime.
+> 
+> Perhaps this could be simplified to fix that problem by assuming that
+> all users (including the s3c-fb driver) would use a simple non-cached
+> pmm allocator so that all allocations would be pooled.
+
+I don't get this, could you elaborate?
+
+> I would advocate "hiding" pmm allocations within the s3c-mm drivers.
+> Each driver could test user buffers for "isPMM()" trivially since the
+> bootmem is physically contig.
+> 
+> What is the advantage in exporting the pmm API to user-space?
+
+Only user applications know what buffers will be required for the
+processing they are performing and which of them they want to reuse
+with other drivers. We decided to remove all buffers from the drivers
+and allocate them separately in user space. This way no memory is wasted
+to fixed buffers. Please note that the ability of SHARING the same buffer
+between different devices is the key feature of this solution.
+
+Best regards
+--
+Marek Szyprowski
+Samsung Poland R&D Center
 
 
-> ---
-> Applies to Kevin Hilman's linux-davinci repository
->  arch/arm/mach-davinci/board-dm365-evm.c    |   71 ++++++++++++++++++++++++++++
->  arch/arm/mach-davinci/dm365.c              |   68 ++++++++++++++++++++++++++
->  arch/arm/mach-davinci/include/mach/dm365.h |    2 +
->  3 files changed, 141 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-davinci/board-dm365-evm.c b/arch/arm/mach-davinci/board-dm365-evm.c
-> index f6adf79..757ad13 100644
-> --- a/arch/arm/mach-davinci/board-dm365-evm.c
-> +++ b/arch/arm/mach-davinci/board-dm365-evm.c
-> @@ -38,6 +38,8 @@
->  #include <mach/common.h>
->  #include <mach/mmc.h>
->  #include <mach/nand.h>
-> +#include <linux/videodev2.h>
-> +#include <media/tvp514x.h>
->  
->  
->  static inline int have_imager(void)
-> @@ -98,6 +100,11 @@ static inline int have_tvp7002(void)
->  
->  static void __iomem *cpld;
->  
-> +static struct tvp514x_platform_data tvp5146_pdata = {
-> +       .clk_polarity = 0,
-> +       .hs_polarity = 1,
-> +       .vs_polarity = 1
-> +};
->  
->  /* NOTE:  this is geared for the standard config, with a socketed
->   * 2 GByte Micron NAND (MT29F16G08FAA) using 128KB sectors.  If you
-> @@ -210,6 +217,68 @@ static int cpld_mmc_get_ro(int module)
->  	return !!(__raw_readb(cpld + CPLD_CARDSTAT) & BIT(module ? 5 : 1));
->  }
->  
-> +#define TVP514X_STD_ALL        (V4L2_STD_NTSC | V4L2_STD_PAL)
-> +/* Inputs available at the TVP5146 */
-> +static struct v4l2_input tvp5146_inputs[] = {
-> +	{
-> +		.index = 0,
-> +		.name = "Composite",
-> +		.type = V4L2_INPUT_TYPE_CAMERA,
-> +		.std = TVP514X_STD_ALL,
-> +	},
-> +	{
-> +		.index = 1,
-> +		.name = "S-Video",
-> +		.type = V4L2_INPUT_TYPE_CAMERA,
-> +		.std = TVP514X_STD_ALL,
-> +	},
-> +};
-> +
-> +/*
-> + * this is the route info for connecting each input to decoder
-> + * ouput that goes to vpfe. There is a one to one correspondence
-> + * with tvp5146_inputs
-> + */
-> +static struct vpfe_route tvp5146_routes[] = {
-> +	{
-> +		.input = INPUT_CVBS_VI2B,
-> +		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
-> +	},
-> +{
-> +		.input = INPUT_SVIDEO_VI2C_VI1C,
-> +		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
-> +	},
-> +};
-> +
-> +static struct vpfe_subdev_info vpfe_sub_devs[] = {
-> +{
-> +		.module_name = "tvp5146",
-> +		.grp_id = 0,
-> +		.num_inputs = ARRAY_SIZE(tvp5146_inputs),
-> +		.inputs = tvp5146_inputs,
-> +		.routes = tvp5146_routes,
-> +		.can_route = 1,
-> +		.ccdc_if_params = {
-> +			.if_type = VPFE_BT656,
-> +			.hdpol = VPFE_PINPOL_POSITIVE,
-> +			.vdpol = VPFE_PINPOL_POSITIVE,
-> +		},
-> +		.board_info = {
-> +			I2C_BOARD_INFO("tvp5146", 0x5d),
-> +			.platform_data = &tvp5146_pdata,
-> +		},
-> +	}
-> +};
-> +
-> +static struct vpfe_config vpfe_cfg = {
-> +       .num_subdevs = ARRAY_SIZE(vpfe_sub_devs),
-> +       .sub_devs = vpfe_sub_devs,
-> +       .card_name = "DM365 EVM",
-> +       .ccdc = "DM365 ISIF",
-> +       .num_clocks = 1,
-> +       .clocks = {"vpss_master"},
-> +};
-> +
->  static struct davinci_mmc_config dm365evm_mmc_config = {
->  	.get_cd		= cpld_mmc_get_cd,
->  	.get_ro		= cpld_mmc_get_ro,
-> @@ -461,6 +530,8 @@ static struct davinci_uart_config uart_config __initdata = {
->  
->  static void __init dm365_evm_map_io(void)
->  {
-> +	/* setup input configuration for VPFE input devices */
-> +	dm365_set_vpfe_config(&vpfe_cfg);
->  	dm365_init();
->  }
->  
-> diff --git a/arch/arm/mach-davinci/dm365.c b/arch/arm/mach-davinci/dm365.c
-> index f8bac94..aa432d4 100644
-> --- a/arch/arm/mach-davinci/dm365.c
-> +++ b/arch/arm/mach-davinci/dm365.c
-> @@ -904,6 +904,62 @@ void __init dm365_init(void)
->  	davinci_common_init(&davinci_soc_info_dm365);
->  }
->  
-> +static struct resource dm365_vpss_resources[] = {
-> +	{
-> +		/* VPSS ISP5 Base address */
-> +		.name           = "vpss",
-> +		.start          = 0x01c70000,
-> +		.end            = 0x01c70000 + 0xff,
-> +		.flags          = IORESOURCE_MEM,
-> +	},
-> +	{
-> +		/* VPSS CLK Base address */
-> +		.name           = "vpss",
-> +		.start          = 0x01c70200,
-> +		.end            = 0x01c70200 + 0xff,
-> +		.flags          = IORESOURCE_MEM,
-> +	},
-> +};
-> +
-> +static struct platform_device dm365_vpss_device = {
-> +       .name                   = "vpss",
-> +       .id                     = -1,
-> +       .dev.platform_data      = "dm365_vpss",
-> +       .num_resources          = ARRAY_SIZE(dm365_vpss_resources),
-> +       .resource               = dm365_vpss_resources,
-> +};
-> +
-> +static struct resource vpfe_resources[] = {
-> +	{
-> +		.start          = IRQ_VDINT0,
-> +		.end            = IRQ_VDINT0,
-> +		.flags          = IORESOURCE_IRQ,
-> +	},
-> +	{
-> +		.start          = IRQ_VDINT1,
-> +		.end            = IRQ_VDINT1,
-> +		.flags          = IORESOURCE_IRQ,
-> +	},
-> +	/* ISIF Base address */
-> +	{
-> +		.start          = 0x01c71000,
-> +		.end            = 0x01c71000 + 0x1ff,
-> +		.flags          = IORESOURCE_MEM,
-> +	},
-> +};
-> +
-> +static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
-> +static struct platform_device vpfe_capture_dev = {
-> +	.name           = CAPTURE_DRV_NAME,
-> +	.id             = -1,
-> +	.num_resources  = ARRAY_SIZE(vpfe_resources),
-> +	.resource       = vpfe_resources,
-> +	.dev = {
-> +		.dma_mask               = &vpfe_capture_dma_mask,
-> +		.coherent_dma_mask      = DMA_BIT_MASK(32),
-> +	},
-> +};
-> +
->  static int __init dm365_init_devices(void)
->  {
->  	if (!cpu_is_davinci_dm365())
-> @@ -913,6 +969,18 @@ static int __init dm365_init_devices(void)
->  	platform_device_register(&dm365_edma_device);
->  	platform_device_register(&dm365_emac_device);
->  
-> +	/*
-> +	* setup Mux configuration for vpfe input and register
-> +	* vpfe capture platform device
-> +	*/
-> +	platform_device_register(&dm365_vpss_device);
-> +	platform_device_register(&vpfe_capture_dev);
-> +
->  	return 0;
->  }
->  postcore_initcall(dm365_init_devices);
-> +
-> +void dm365_set_vpfe_config(struct vpfe_config *cfg)
-> +{
-> +       vpfe_capture_dev.dev.platform_data = cfg;
-> +}
-> diff --git a/arch/arm/mach-davinci/include/mach/dm365.h b/arch/arm/mach-davinci/include/mach/dm365.h
-> index 09db434..2fbead2 100644
-> --- a/arch/arm/mach-davinci/include/mach/dm365.h
-> +++ b/arch/arm/mach-davinci/include/mach/dm365.h
-> @@ -15,6 +15,7 @@
->  
->  #include <linux/platform_device.h>
->  #include <mach/hardware.h>
-> +#include <media/davinci/vpfe_capture.h>
->  #include <mach/emac.h>
->  
->  #define DM365_EMAC_BASE			(0x01D07000)
-> @@ -25,5 +26,6 @@
->  #define DM365_EMAC_CNTRL_RAM_SIZE	(0x2000)
->  
->  void __init dm365_init(void);
-> +void dm365_set_vpfe_config(struct vpfe_config *cfg);
->  
->  #endif /* __ASM_ARCH_DM365_H */
-> -- 
-> 1.6.0.4
