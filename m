@@ -1,159 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01a.mail.t-online.hu ([84.2.40.6]:52765 "EHLO
-	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933375AbZJaXQK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Oct 2009 19:16:10 -0400
-Message-ID: <4AECC538.3010605@freemail.hu>
-Date: Sun, 01 Nov 2009 00:16:08 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-CC: Thomas Kaiser <thomas@kaiser-linux.li>,
-	Theodore Kilgore <kilgota@auburn.edu>,
-	Kyle Guinn <elyk03@gmail.com>
-Subject: [PATCH 15/21] gspca pac7302/pac7311: simplify pac_find_sof
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2165 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933009AbZJFSHu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Oct 2009 14:07:50 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id n96I7CkB098243
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 6 Oct 2009 20:07:13 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 6 Oct 2009 20:07:12 +0200 (CEST)
+Message-Id: <200910061807.n96I7CkB098243@smtp-vbr5.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Remove struct sd dependency from pac_find_sof() function implementation,
-This step prepares separation of pac7302 and pac7311 specific parts of
-struct sd.
+Results of the daily build of v4l-dvb:
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
-Cc: Thomas Kaiser <thomas@kaiser-linux.li>
-Cc: Theodore Kilgore <kilgota@auburn.edu>
-Cc: Kyle Guinn <elyk03@gmail.com>
----
-diff -uprN o/drivers/media/video/gspca/mr97310a.c p/drivers/media/video/gspca/mr97310a.c
---- o/drivers/media/video/gspca/mr97310a.c	2009-10-31 08:11:38.000000000 +0100
-+++ p/drivers/media/video/gspca/mr97310a.c	2009-10-31 08:20:00.000000000 +0100
-@@ -957,9 +957,10 @@ static void sd_pkt_scan(struct gspca_dev
- 			__u8 *data,                   /* isoc packet */
- 			int len)                      /* iso packet length */
- {
-+	struct sd *sd = (struct sd *) gspca_dev;
- 	unsigned char *sof;
+date:        Tue Oct  6 19:00:03 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13046:c7aa399e5dac
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
--	sof = pac_find_sof(gspca_dev, data, len);
-+	sof = pac_find_sof(&sd->sof_read, data, len);
- 	if (sof) {
- 		int n;
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-rc3-armv5: ERRORS
+linux-2.6.32-rc3-armv5-davinci: ERRORS
+linux-2.6.27-armv5-ixp: ERRORS
+linux-2.6.28-armv5-ixp: ERRORS
+linux-2.6.29.1-armv5-ixp: ERRORS
+linux-2.6.30-armv5-ixp: ERRORS
+linux-2.6.31-armv5-ixp: ERRORS
+linux-2.6.32-rc3-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.32-rc3-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-rc3-i686: ERRORS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-rc3-m32r: ERRORS
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.32-rc3-mips: ERRORS
+linux-2.6.27-powerpc64: ERRORS
+linux-2.6.28-powerpc64: ERRORS
+linux-2.6.29.1-powerpc64: ERRORS
+linux-2.6.30-powerpc64: ERRORS
+linux-2.6.31-powerpc64: ERRORS
+linux-2.6.32-rc3-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-rc3-x86_64: ERRORS
+sparse (linux-2.6.31): OK
+sparse (linux-2.6.32-rc3): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-diff -uprN o/drivers/media/video/gspca/pac207.c p/drivers/media/video/gspca/pac207.c
---- o/drivers/media/video/gspca/pac207.c	2009-10-23 07:07:59.000000000 +0200
-+++ p/drivers/media/video/gspca/pac207.c	2009-10-31 08:18:59.000000000 +0100
-@@ -344,7 +344,7 @@ static void sd_pkt_scan(struct gspca_dev
- 	struct sd *sd = (struct sd *) gspca_dev;
- 	unsigned char *sof;
+Detailed results are available here:
 
--	sof = pac_find_sof(gspca_dev, data, len);
-+	sof = pac_find_sof(&sd->sof_read, data, len);
- 	if (sof) {
- 		int n;
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-diff -uprN o/drivers/media/video/gspca/pac7311.c p/drivers/media/video/gspca/pac7311.c
---- o/drivers/media/video/gspca/pac7311.c	2009-10-31 07:45:27.000000000 +0100
-+++ p/drivers/media/video/gspca/pac7311.c	2009-10-31 08:22:45.000000000 +0100
-@@ -1035,7 +1035,7 @@ static void pac7302_sd_pkt_scan(struct g
- 	struct sd *sd = (struct sd *) gspca_dev;
- 	unsigned char *sof;
+Full logs are available here:
 
--	sof = pac_find_sof(gspca_dev, data, len);
-+	sof = pac_find_sof(&sd->sof_read, data, len);
- 	if (sof) {
- 		unsigned char tmpbuf[4];
- 		int n, lum_offset, footer_length;
-@@ -1099,7 +1099,7 @@ static void pac7311_sd_pkt_scan(struct g
- 	struct sd *sd = (struct sd *) gspca_dev;
- 	unsigned char *sof;
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
--	sof = pac_find_sof(gspca_dev, data, len);
-+	sof = pac_find_sof(&sd->sof_read, data, len);
- 	if (sof) {
- 		unsigned char tmpbuf[4];
- 		int n, lum_offset, footer_length;
-diff -uprN o/drivers/media/video/gspca/pac_common.h p/drivers/media/video/gspca/pac_common.h
---- o/drivers/media/video/gspca/pac_common.h	2009-10-30 16:12:05.000000000 +0100
-+++ p/drivers/media/video/gspca/pac_common.h	2009-10-31 08:17:38.000000000 +0100
-@@ -72,42 +72,41 @@ static const unsigned char pac_sof_marke
- 	   +----------+
- */
+The V4L2 specification failed to build, but the last compiled spec is here:
 
--static unsigned char *pac_find_sof(struct gspca_dev *gspca_dev,
-+static unsigned char *pac_find_sof(u8 *sof_read,
- 					unsigned char *m, int len)
- {
--	struct sd *sd = (struct sd *) gspca_dev;
- 	int i;
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
 
- 	/* Search for the SOF marker (fixed part) in the header */
- 	for (i = 0; i < len; i++) {
--		switch (sd->sof_read) {
-+		switch (*sof_read) {
- 		case 0:
- 			if (m[i] == 0xff)
--				sd->sof_read = 1;
-+				*sof_read = 1;
- 			break;
- 		case 1:
- 			if (m[i] == 0xff)
--				sd->sof_read = 2;
-+				*sof_read = 2;
- 			else
--				sd->sof_read = 0;
-+				*sof_read = 0;
- 			break;
- 		case 2:
- 			switch (m[i]) {
- 			case 0x00:
--				sd->sof_read = 3;
-+				*sof_read = 3;
- 				break;
- 			case 0xff:
- 				/* stay in this state */
- 				break;
- 			default:
--				sd->sof_read = 0;
-+				*sof_read = 0;
- 			}
- 			break;
- 		case 3:
- 			if (m[i] == 0xff)
--				sd->sof_read = 4;
-+				*sof_read = 4;
- 			else
--				sd->sof_read = 0;
-+				*sof_read = 0;
- 			break;
- 		case 4:
- 			switch (m[i]) {
-@@ -117,18 +116,18 @@ static unsigned char *pac_find_sof(struc
- 					"SOF found, bytes to analyze: %u."
- 					" Frame starts at byte #%u",
- 					len, i + 1);
--				sd->sof_read = 0;
-+				*sof_read = 0;
- 				return m + i + 1;
- 				break;
- 			case 0xff:
--				sd->sof_read = 2;
-+				*sof_read = 2;
- 				break;
- 			default:
--				sd->sof_read = 0;
-+				*sof_read = 0;
- 			}
- 			break;
- 		default:
--			sd->sof_read = 0;
-+			*sof_read = 0;
- 		}
- 	}
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
