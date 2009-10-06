@@ -1,268 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3698 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751247AbZJTVSh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Oct 2009 17:18:37 -0400
-Message-ID: <7e82ade47f528c59e82018a67e4e2982.squirrel@webmail.xs4all.nl>
-In-Reply-To: <E4D3F24EA6C9E54F817833EAE0D912AC07D2F45382@bssrvexch01.BS.local>
-References: <E4D3F24EA6C9E54F817833EAE0D912AC07D2F45382@bssrvexch01.BS.local>
-Date: Tue, 20 Oct 2009 23:18:37 +0200
-Subject: Re: [RFC] v1.1: Multi-plane (discontiguous) buffers
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Pawel Osciak" <p.osciak@samsung.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"Tomasz Fujak" <t.fujak@samsung.com>,
-	"Marek Szyprowski" <m.szyprowski@samsung.com>,
-	"Pawel Osciak" <p.osciak@samsung.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37337 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932934AbZJFQND convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Oct 2009 12:13:03 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+	"'Ivan T. Ivanov'" <iivanov@mm-sol.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	Tomasz Fujak <t.fujak@samsung.com>,
+	Pawel Osciak <p.osciak@samsung.com>
+Date: Tue, 6 Oct 2009 21:42:13 +0530
+Subject: RE: Mem2Mem V4L2 devices [RFC]
+Message-ID: <19F8576C6E063C45BE387C64729E73940436CF9278@dbde02.ent.ti.com>
+References: <E4D3F24EA6C9E54F817833EAE0D912AC077151C64F@bssrvexch01.BS.local>
+ <1254500705.16625.35.camel@iivanov.int.mm-sol.com>
+ <19F8576C6E063C45BE387C64729E73940436CF8DCB@dbde02.ent.ti.com>
+ <001801ca45c3$a14826c0$e3d87440$%szyprowski@samsung.com>
+ <19F8576C6E063C45BE387C64729E73940436CF8FE8@dbde02.ent.ti.com>
+ <001d01ca464d$825316f0$86f944d0$%szyprowski@samsung.com>
+In-Reply-To: <001d01ca464d$825316f0$86f944d0$%szyprowski@samsung.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+> -----Original Message-----
+> From: Marek Szyprowski [mailto:m.szyprowski@samsung.com]
+> Sent: Tuesday, October 06, 2009 11:53 AM
+> To: Hiremath, Vaibhav; 'Ivan T. Ivanov'; linux-media@vger.kernel.org
+> Cc: kyungmin.park@samsung.com; Tomasz Fujak; Pawel Osciak; Marek
+> Szyprowski
+> Subject: RE: Mem2Mem V4L2 devices [RFC]
+> 
 > Hello,
->
-> we are currently working on a chip that requires a separate buffer for
-> each
-> plane in a frame. Our hardware requires, those plane buffers not to be
-> placed
-> immediately one after another.
->
-> There is no support for such buffers in V4L2 yet and we would like to
-> propose
-> a solution for this problem.
->
->
-> Purpose and requirements
-> =========================
-> Currently, the v4l2_buffer struct supports only contiguous memory buffers,
-> i.e. one frame has to fit in one, contiguous physical buffer. A driver
-> receives and passes back to the userspace (e.g. when mmap()ing) only one
-> pointer (offset).
->
-> Our hardware requires two physically separate buffers for Y and CbCr
-> components,
-> which must be placed in two different memory banks.
-> A similar problem was also expressed by Jun Nie in a recent discussion on
-> this
-> list:
-> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/10462.
->
-> That proposal included a hardcoded 3-plane format.
-> There also was a requirement for per-plane stride as well and although we
-> have
-> not included it in this proposal, it could be easily incorporated into
-> this
-> design (see comments below).
->
-> We would like to add support for a more general type of buffers: n-plane
-> buffers.
-> No changes should be made to break the existing API.
->
->
->
-> Proposed extensions
-> ====================
-> The proposed extensions to the framework are as follows:
->
-> 1. Add two new memory types:
->
->  enum v4l2_memory {
->          V4L2_MEMORY_MMAP             = 1,
->          V4L2_MEMORY_USERPTR          = 2,
->          V4L2_MEMORY_OVERLAY          = 3,
-> +        V4L2_MEMORY_MULTI_USERPTR    = 4,
-> +        V4L2_MEMORY_MULTI_MMAP       = 5,
->  };
->
-> The new types would be used to identify multi-planar buffers.
->
->
-> 2. Modify the buffer struct (no change to size):
->
-> struct v4l2_buffer {
->          /* ... */
->          union {
->                  __u32           offset;
->                  unsigned long   userptr;
-> +                unsigned long   multi_info_ptr;
->          } m;
->          /* ... */
->  };
->
->
-> 3. The multi_info_ptr would contain a userspace pointer to a structure
-> further
-> describing the buffer:
->
-> + struct v4l2_multiplane_info {
-> +         __u32  count;
+> 
+> On Monday, October 05, 2009 8:27 PM Hiremath, Vaibhav wrote:
+> 
+> > > > [Hiremath, Vaibhav] IMO, this implementation is not streaming
+> > > model, we are trying to fit mem-to-mem
+> > > > forcefully to streaming.
+> > >
+> > > Why this does not fit streaming? I see no problems with
+> streaming
+> > > over mem2mem device with only one video node. You just queue
+> input
+> > > and output buffers (they are distinguished by 'type' parameter)
+> on
+> > > the same video node.
+> > >
+> > [Hiremath, Vaibhav] Do we create separate queue of buffers based
+> on type? I think we don't.
+> 
+> Why not? I really see no problems implementing such driver,
+> especially if this heavily increases the number of use cases where
+> such
+> device can be used.
+> 
+[Hiremath, Vaibhav] I thought of it and you are correct, it should be possible. I was kind of biased and thinking in only one direction. Now I don't see any reason why we should go for 2 device node approach. Earlier I was thinking of 2 device nodes for 2 queues, if it is possible with one device node then I think we should align to single device node approach.
 
-Rather than introducing this new struct, perhaps it would be better to
-reuse the v4l2_buffer length field as a 'count' for multiplanes. That
-length field is currently unused for multiplane formats.
+Do you see any issues with it?
 
-> +         struct v4l2_plane[0];
-> + };
->
-> Where the v4l2_plane array would contain count elements:
->
-> + struct v4l2_plane {
-> +         __u32   parent_index;
-> +         __u32   bytesused;
-> +         union {
-> +                 __u32 offset;
-> +                 unsigned long userptr;
-> +         } m;
-> +         __u32   flags;
-> +         __u32   length;
-> +         __u32   reserved;
+Thanks,
+Vaibhav
 
-Make this reserved[4].
-
-> + };
->
-> parent_index - index of the parent v4l2_buffer
-
-Why do we need this index?
-
->
-> offset, userptr, bytesused, length - same as in v4l2_buffer struct but for
-> current frame
->
-> flags - one flag currently: V4L2_PLANE_FLAG_MAPPED
-> (or reuse V4L2_BUF_FLAG_MAPPED for that)
-
-Isn't this just a copy of the v4l2_buffer flags? Why do we need it again?
-
->
-> A stride field could also be added if there is a need for one.
->
->
->
-> How this would work
-> ===================
->
-> -------------------------------------------------------------------------------
-> 1. Formats
-> -------------------------------------------------------------------------------
-> No need to change the format API, although new formats for such buffers
-> may be
-> needed and added, as required.
->
->
-> -------------------------------------------------------------------------------
-> 2. Requesting, querying and mapping buffers
-> -------------------------------------------------------------------------------
-> No changes to existing applications/drivers required.
->
-> A driver (and the videobuffer framework components) willing to support
-> multi-plane buffers would have to be made aware of the new memory types:
->
->
-> VIDIOC_REQBUFS:
-> ---------------
->
-> - MULTI_MMAP:
->
->   * application: pass the new memory type and count of multi-plane buffers
->     (not plane count) normally
->
->   * driver: fills in count as usual, being the number of actually
-> allocated
->     buffers (i.e. 1 for each multi-plane buffer, not each plane)
->
-> - MULTI_USERPTR:
->   * no changes
->
->
-> VIDIOC_QUERYBUFS:
-> -----------------
-> - MULTI_MMAP:
->
-> * application: pass a v4l2_buffer struct as usual, but with the new memory
->     type and a userspace pointer (in multi_info_ptr) to an instance of
->     v4l2_multiplane_info structure. The structure and the embedded
->     v4l2_plane[] array has to be preallocated in userspace and have count
-> set
->     to the required number of planes.
->
-> * driver fills offset fields in each v4l2_plane struct, analogically to
->   offsets in "normal" v4l2_buffers.
->
->
-> - MULTI_USERPTR:
-> n/a
->
->
->
-> mmap()
-> -----------------
-> Basically just like in normal buffer case, but with planes instead of
-> buffers
-> and one mmap() call per each plane.
->
-> - application calls mmap count times (one for each plane), passing the
-> offsets
-> provided in v4l2_plane structs
->
-> - there is no need for those calls to be in any particular order.
->
->
-> - driver (videobuffer framework) should store an array of planes
-> internally - just like it does with v4l2_buffers - and match offsets in
-> that array to those provided in mmap.
->
-> - a plane gets marked as mapped (V4L2_PLANE_FLAG_MAPPED flag) after
-> a successful mmap. A buffer changes state to mapped (V4L2_BUF_FLAG_MAPPED)
-> only if all of its planes are mapped.
->
-> - matching planes with buffers can be done using the parent_index member
->
->
-> -------------------------------------------------------------------------------
-> 3. Queuing and dequeuing buffers, buffer usage
-> -------------------------------------------------------------------------------
->
-> No real changes have to be made to be made to the v4l2 framework, the
-> buffers
-> get queued and dequeud as usual. Only access to the new type differs, but
-> not much - in practice, just handle more pointers than one.
->
-> As for the videobuffer framework, additional function(s) to acquire
-> addresses
-> to each plane will have to be added and it should be made aware of planes.
-> But the overall mechanism remains mostly unchanged.
->
->
->
-> Comments are welcome, especially other requirements that we might not have
-> considered.
-
-I like this. It looks like a clean solution to this problem.
-
-Regards,
-
-       Hans
-
->
->
+> > App1		App2		App3		...		AppN
+> >   |		 |		|		|		  |
+> >    -----------------------------------------------
+> > 				|
+> > 			/dev/video0
+> > 				|
+> > 			Resizer Driver
+> >
+> > Everyone will be doing streamon, and in normal use case every
+> application must be getting buffers from
+> > another module (another driver, codecs, DSP, etc...) in multiple
+> streams, 0, 1,2,3,4....N
+<snip>
+> case in which the operation can be performed in-place. Usually all
+> other types of operations (like color space conversion or rotation)
+> require 2 buffers. Please note that having only one video node
+> would not mean that all operations must be done in-place. As Ivan
+> stated you can perfectly queue 2 separate input and output buffers
+> into the one video node and the driver can handle this correctly.
+> 
 > Best regards
 > --
-> Pawel Osciak
-> Linux Platform Group
+> Marek Szyprowski
 > Samsung Poland R&D Center
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+> 
 
