@@ -1,84 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:51627 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752995AbZJVUDg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Oct 2009 16:03:36 -0400
-Date: Thu, 22 Oct 2009 16:03:41 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: =?UTF-8?B?T3phbiDDh2HEn2xheWFu?= <ozan@pardus.org.tr>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	<linux-media@vger.kernel.org>,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	USB list <linux-usb@vger.kernel.org>
-Subject: Re: uvcvideo causes ehci_hcd to halt
-In-Reply-To: <4AE080AC.4050108@pardus.org.tr>
-Message-ID: <Pine.LNX.4.44L0.0910221558510.9192-100000@netrider.rowland.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Received: from devils.ext.ti.com ([198.47.26.153]:36033 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756769AbZJGNjo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Oct 2009 09:39:44 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+	"'Ivan T. Ivanov'" <iivanov@mm-sol.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	Tomasz Fujak <t.fujak@samsung.com>,
+	Pawel Osciak <p.osciak@samsung.com>
+Date: Wed, 7 Oct 2009 08:39:02 -0500
+Subject: RE: Mem2Mem V4L2 devices [RFC] - Can we enhance the V4L2 API?
+Message-ID: <A69FA2915331DC488A831521EAE36FE4015546FBA6@dlee06.ent.ti.com>
+References: <E4D3F24EA6C9E54F817833EAE0D912AC077151C64F@bssrvexch01.BS.local>
+ <1254500705.16625.35.camel@iivanov.int.mm-sol.com>
+ <A69FA2915331DC488A831521EAE36FE401553E952D@dlee06.ent.ti.com>
+ <1254773653.10214.31.camel@violet.int.mm-sol.com>
+ <A69FA2915331DC488A831521EAE36FE401553E9655@dlee06.ent.ti.com>
+ <001e01ca464d$87fcacb0$97f60610$%szyprowski@samsung.com>
+In-Reply-To: <001e01ca464d$87fcacb0$97f60610$%szyprowski@samsung.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 22 Oct 2009, [UTF-8] Ozan Çağlayan wrote:
+Marek,
 
-> Alan Stern wrote:
-> > On Thu, 22 Oct 2009, [UTF-8] Ozan Ã‡aÄŸlayan wrote:
-> >
-> >   
-> >> Here's the outputs from /sys/kernel/debug/usb/ehci:
-> >>
-> >> periodic:
-> >> ----------------
-> >> size = 1024
-> >>    1:  qh1024-0001/f6ffe280 (h2 ep2 [1/0] q0 p8)
-> >>     
-> >
-> > There's something odd about this.  I'd like to see this file again, 
-> > after the patch below has been applied.
-> >
-> >   
-> 
-> Do you want me to apply this patch altogether with the first one that
-> you sent a while ago in this thread or directly onto the vanilla kernel?
+>
+>> As we have seen in the discussion, this is not a streaming device, rather
+>> a transaction/conversion device which operate on a given frame to get a
+>desired output frame. Each
+>> transaction may have it's own set of configuration context which will be
+>applied to the hardware
+>> before starting the operation. This is unlike a streaming device, where
+>most of the configuration is
+>> done prior to starting the streaming.
+>
+>From the application point of view an instance of such a device still is a
+>streaming device. The application should not even know if
+>any other apps are using the device or not (well, it may only notice the
+>lower throughput or higher device latency, but this cannot
+>be avoided). Application can queue input and output buffers, stream on and
+>wait for the result.
+>
+In a typical capture or display side streaming, AFAIK, there is only one device io instance. While streaming is ON, if another application tries to do IO, driver returns -EBUSY. I believe this is true for all drivers (Correct me if this is not true).When you say the memory to memory device is able to allow multiple application to call STREAMON, this model is broken(Assuming what I said above is true).
 
-It doesn't matter.  The "size = 1024" line in your debugging output 
-means that the first patch won't have any effect; my hunch was wrong.
+May be I am missing something here. Is the following true? I think in your model, each application gets a device instance that has it's own scaling factors and other parameters. So streaming status is maintained for each IO instance. Each IO instance has it's own buffer queues. If this is true then you are right. Streaming model is not broken.
 
-However it turns out that the most recent patch wasn't quite what I
-wanted.  Here's an updated version to be used instead.
+So following scenario holds good concurrently (api call sequence).
 
-Alan Stern
+App1 -> open() -> S_FMT -> STREAMON->QBUF/DQBUF(n times)->STREAMOFF->close()
+App2 -> open() -> S_FMT -> STREAMON->QBUF/DQBUF(n times)->STREAMOFF->close()
+....
+App3 -> open() -> S_FMT -> STREAMON->QBUF/DQBUF(n times)->STREAMOFF->close()
 
+So internal to driver, if there are multiple concurrent streamon requests, and hardware is busy, subsequent requests waits until the first one is complete and driver schedules requests from multiple IO queues. So this is essentially what we have in our internal implementation (discussed during the linux plumbers mini summit) converted to v4l2 model.
 
-
-Index: usb-2.6/drivers/usb/host/ehci-dbg.c
-===================================================================
---- usb-2.6.orig/drivers/usb/host/ehci-dbg.c
-+++ usb-2.6/drivers/usb/host/ehci-dbg.c
-@@ -596,18 +596,22 @@ static ssize_t fill_periodic_buffer(stru
- 							qtd->hw_token) >> 8)) {
- 						case 0: type = "out"; continue;
- 						case 1: type = "in"; continue;
-+						case 2: type = "?2"; continue;
-+						case 3: type = "?3"; continue;
- 						}
- 					}
- 
- 					temp = scnprintf (next, size,
- 						" (%c%d ep%d%s "
--						"[%d/%d] q%d p%d)",
-+						"[%d/%d] q%d p%d) t%08x",
- 						speed_char (scratch),
- 						scratch & 0x007f,
- 						(scratch >> 8) & 0x000f, type,
- 						p.qh->usecs, p.qh->c_usecs,
- 						temp,
--						0x7ff & (scratch >> 16));
-+						0x7ff & (scratch >> 16),
-+						hc32_to_cpu(ehci,
-+							p.qh->hw->hw_token));
- 
- 					if (seen_count < DBG_SCHED_LIMIT)
- 						seen [seen_count++].qh = p.qh;
+>> The changes done during streaming are controls like brightness,
+>> contrast, gain etc. The frames received by application are either
+>synchronized to an input source
+>> timing or application output frame based on a display timing. Also a
+>single IO instance is usually
+>> maintained at the driver where as in the case of memory to memory device,
+>hardware needs to switch
+>> contexts between operations. So we might need a different approach than
+>capture/output device.
+>
+>All this is internal to the device driver, which can hide it from the
+>application.
+>
+>Best regards
+>--
+>Marek Szyprowski
+>Samsung Poland R&D Center
+>
+>
 
