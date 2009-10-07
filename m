@@ -1,92 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:45443 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756100AbZJANcf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Oct 2009 09:32:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: Re: dqbuf in blocking mode
-Date: Thu, 1 Oct 2009 15:34:27 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <A24693684029E5489D1D202277BE89444C9C902B@dlee02.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE89444C9C902B@dlee02.ent.ti.com>
+Received: from smtp.ispras.ru ([83.149.198.201]:42388 "EHLO smtp.ispras.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753998AbZJGLy4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Oct 2009 07:54:56 -0400
+From: Alexander Strakh <strakh@ispras.ru>
+To: Jaya Kumar <jayalk@intworks.biz>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] quickcam_messenger.c: possible buffer overflow while use strncat.
+Date: Wed, 7 Oct 2009 15:56:54 +0000
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Disposition: inline
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Message-Id: <200910011534.28019.laurent.pinchart@ideasonboard.com>
+Message-Id: <200910071556.54534.strakh@ispras.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergio,
+	In driver ./drivers/media/video/usbvideo/quickcam_messenger.c in line 91:
+  91         usb_make_path(dev, cam->input_physname, sizeof(cam-
+>input_physname));
+After this line we use strncat:
+  92         strncat(cam->input_physname, "/input0", sizeof(cam-
+>input_physname));
+ where sizeof(cam->input_physname) returns length of cam->input_phisname 
+without length for null-symbol. But this parameter must be -  "maximum numbers 
+of bytes to copy", i.e.: sizeof(cam->input_physname)-strlen(cam-
+>input_physname)-1.
+	In this case, after call to usb_make_path the similar drivers use strlcat. 
+Like in: drivers/hid/usbhid/hid-core.c:
+1152         usb_make_path(dev, hid->phys, sizeof(hid->phys));
+1153         strlcat(hid->phys, "/input", sizeof(hid->phys));
 
-On Thursday 01 October 2009 13:56:19 Aguirre Rodriguez, Sergio Alberto wrote:
-> Hi all,
-> 
-> I was wondering how acceptable is to requeue a buffer in a dqbuf call
-> if the videbuf_dqbuf returns error?
-> 
-> See, here's our current omap3 camera dqbuf function code:
-> 
-> static int vidioc_dqbuf(struct file *file, void *fh, struct v4l2_buffer *b)
-> {
-> 	struct omap34xxcam_fh *ofh = fh;
-> 	int rval;
-> 
-> videobuf_dqbuf_again:
-> 	rval = videobuf_dqbuf(&ofh->vbq, b, file->f_flags & O_NONBLOCK);
-> 
-> 	/*
-> 	 * This is a hack. We don't want to show -EIO to the user
-> 	 * space. Requeue the buffer and try again if we're not doing
-> 	 * this in non-blocking mode.
-> 	 */
+Found by Linux Driver Verification Project.
 
-If I'm not mistaken videobuf_dqbuf() only returns -EIO if the buffer state is 
-VIDEOBUF_ERROR. This is the direct result of either
+Use strlcat instead of strncat.
 
-- videobuf_queue_cancel() being called, or
-- the device driver marking the buffer as erroneous because of a (possibly 
-transient) device error
+Signed-off-by:Alexander Strakh <strakh@ispras.ru>
 
-In the first case VIDIOC_DQBUF should in my opinion return with an error. In 
-the second case things are not that clear. A transient error could be hidden 
-from the application, or, if returned to the application through -EIO, 
-shouldn't be treated as a fatal error. Non-transient errors should result in 
-the application stopping video streaming.
+---
+diff --git a/./a/drivers/media/video/usbvideo/quickcam_messenger.c 
+b/./b/drivers/media/video/usbvideo/quickcam_messenger.c
+index 803d3e4..c4d1b96 100644
+--- a/./a/drivers/media/video/usbvideo/quickcam_messenger.c
++++ b/./b/drivers/media/video/usbvideo/quickcam_messenger.c
+@@ -89,7 +89,7 @@ static void qcm_register_input(struct qcm *cam, struct 
+usb_device *dev)
+ 	int error;
+ 
+ 	usb_make_path(dev, cam->input_physname, sizeof(cam->input_physname));
+-	strncat(cam->input_physname, "/input0", sizeof(cam->input_physname));
++	strlcat(cam->input_physname, "/input0", sizeof(cam->input_physname));
+ 
+ 	cam->input = input_dev = input_allocate_device();
+ 	if (!input_dev) {
 
-Unfortunately there V4L2 API doesn't offer a way to find out if the error is 
-transient or fatal:
-
-"EIO		VIDIOC_DQBUF failed due to an internal error. Can also indicate 
-temporary problems like signal loss. Note the driver might dequeue an (empty) 
-buffer despite returning an error, or even stop capturing."
-
--EIO can mean many different things that need to be handled differently by 
-applications. I especially hate the "the driver might dequeue an (empty) 
-buffer despite returning an error".
-
-Drivers should always or never dequeue a buffer when an error occurs, not 
-sometimes. The problem is for the application to recognize the difference 
-between a transient and a fatal error in a backward-compatible way.
-
-> 	if (rval == -EIO) {
-> 		videobuf_qbuf(&ofh->vbq, b);
-> 		if (!(file->f_flags & O_NONBLOCK))
-> 			goto videobuf_dqbuf_again;
-> 		/*
-> 		 * We don't have a videobuf_buffer now --- maybe next
-> 		 * time...
-> 		 */
-> 		rval = -EAGAIN;
-> 	}
-> 
-> 	return rval;
-> }
-> 
-> Is anything wrong with doing this? Or perhaphs something better to do?
-
---
-Regards,
-
-Laurent Pinchart
