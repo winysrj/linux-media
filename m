@@ -1,265 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57033 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754058AbZJSUxk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Oct 2009 16:53:40 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9JKrjNd026906
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 19 Oct 2009 15:53:45 -0500
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id n9JKrjgs023807
-	for <linux-media@vger.kernel.org>; Mon, 19 Oct 2009 15:53:45 -0500 (CDT)
-Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id n9JKrjrg025659
-	for <linux-media@vger.kernel.org>; Mon, 19 Oct 2009 15:53:45 -0500 (CDT)
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Mon, 19 Oct 2009 15:53:44 -0500
-Subject: RFC (v1.2): V4L - Support for video timings at the input/output
- interface
-Message-ID: <A69FA2915331DC488A831521EAE36FE40155609B3F@dlee06.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-MIME-Version: 1.0
+Received: from mail.perches.com ([173.55.12.10]:1972 "EHLO mail.perches.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752538AbZJGErB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Oct 2009 00:47:01 -0400
+From: Joe Perches <joe@perches.com>
+To: linux-kernel@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>
+Cc: Laurent Pinchart <laurent.pinchart@skynet.be>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 5/8] drivers/media/video/uvc: Use %pUl to print UUIDs
+Date: Tue,  6 Oct 2009 21:45:38 -0700
+Message-Id: <ef810b1f134d8b5f07b849b13751445d7d49956b.1254884776.git.joe@perches.com>
+In-Reply-To: <1254890742-28245-1-git-send-email-joe@perches.com>
+References: <1254890742-28245-1-git-send-email-joe@perches.com>
+In-Reply-To: <cover.1254884776.git.joe@perches.com>
+References: <cover.1254884776.git.joe@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/media/video/uvc/uvc_ctrl.c   |   69 ++++++++++++++++------------------
+ drivers/media/video/uvc/uvc_driver.c |    7 +--
+ drivers/media/video/uvc/uvcvideo.h   |   10 -----
+ 3 files changed, 35 insertions(+), 51 deletions(-)
 
-Here is the updated RFC incorporating comments received on last one.
-
-Following are the changes:-
-
-1) Removed V4L2_DV_CUSTOM since we have a capability flag for it in v4l2_input/output structure
-
-2) Replaced V4L2_DV_CUSTOMS with V4L2_DV_INVALID (value 0x00000000)
-
-3) Renamed capability flags with V4L2_IN_CAP/V4L2_OUT_CAP prefixes
-
-============================================================================
-RFC (v1.2): V4L - Support for video timings at the input/output interface
-
-Version : 1.2
-
-Background
------------
-
-Currently v4l2 specification supports capturing video frames from TV signals using tuners (input type V4L2_INPUT_TYPE_TUNER) and baseband TV signals (V4L2_INPUT_TYPE_CAMERA) and sensors. Similarly on the output side, the signals could be TV signal (V4L2_OUTPUT_TYPE_MODULATOR), baseband TV signal (V4L2_OUTPUT_TYPE_ANALOG) or hybrid analog VGA overlay (V4L2_OUTPUT_TYPE_ANALOGVGAOVERLAY) which output from a graphics card and
-then use chromakeying to replace part of the picture with the video. V4L2_OUTPUT_TYPE_ANALOG & V4L2_INPUT_TYPE_CAMERA are for analog interfaces that includes composite, S-Video and VGA (for output only). Note that even though VGA is a supported output, we don't have anyway to set the standard or timing on the output. Standard ids are only defined for TVs using
-v4l2_std_id and a set of bit masks  defined for analog TV standards.
-
-Today we have a wide variety of different interfaces available to transmit/receive video or graphics content between source device and destination device. Following are some of the interfaces used in addition to the ones described in the v4l2 specification.
-
-Component analog input/output interface - ED/HD video
-DVI - Digital only, ANALOG only, DVI integrated that support Digital and 
-	Analog;
-      Dual Link - Where second data link is used for higher bandwidth
-SDI - Serial digital interface standardized by SMPTE
-HDMI - HD video and Audio
-DisplayPort - digital audio/video interconnect by VESA
-
-V4L2 specification currently defined NTSC/PAL/SECAM (all variants) standards for describing the timing of the signal transmitted over these interfaces. Even though the specification defined ANALOG output type for VGA, there are no ways to set the timings used for output to VGA or LCD display monitors. Some of the proprietary implementations used existing standards IOCTL, VIDIOC_S_STD, to set these timings over these interfaces. For example, TI SoCs have Video Processing Back End (VPBE) on various media SOCs (Eg, DM6446, DM355 etc) that can output signal for Analog TV and VGA interfaces (using Digital LCD port) and support timings for displaying SD and HD videos (1080i, 1080p and 720p) as well as over VGA interface to a CRT or LCD display monitor. So we need to enhance the v4l2 specification to allow applications to set these timings in the capture or output devices. This RFC proposes to add new IOCTLs for setting/getting timings over the different interfaces described above and freeze the the use of existing standards IOCTL and standards IDs for analog TVs only.
-
-Timings
--------
-
-The timings at the analog or digital interface that are not covered by the v4l2_std_id can be defined using a set of preset values that are used by the hardware where the timings are predefined or by a set of timing values which can be configured at the hardware to generate the signal expected at the interface. The former will be used for hardware like TVP7002/THS8200 which specifies preset timing required for output HD video such 1080i50/60, 720p50/60 etc. The latter can be used for hardware that requires configuration of frame timing such as front porch, hsync length, vsync length, pixel clock etc. For example the earlier mentioned TI SOCs have a Digital LCD port that can be configured to output different timing values expected by LCD Display monitors.
-
-Preset timings (defined by VESA, SMPTE or BT.656/BT.1120 or others) can be defined by the following structure:-
-
-struct v4l2_dv_preset {
-    __u32    preset;
-    __u32    reserved[4];
-};
-
-Where preset is one of the following values:-
-
-#define	  V4L2_DV_INVALID		 0x00000000
-#define       V4L2_DV_480I59_94      0x00000001
-#define       V4L2_DV_480I60         0x00000002
-#define       V4L2_DV_480P23_976     0x00000003
-#define       V4L2_DV_480P24         0x00000004
-#define       V4L2_DV_480P29_97      0x00000005
-#define       V4L2_DV_480P30         0x00000006
-#define       V4L2_DV_576I50         0x00000007
-#define       V4L2_DV_576P25         0x00000008
-#define       V4L2_DV_576P50         0x00000009
-#define       V4L2_DV_720P23_976     0x0000000A
-#define       V4L2_DV_720P24         0x0000000B
-#define       V4L2_DV_720P25         0x0000000C
-#define       V4L2_DV_720P29_97      0x0000000D
-#define       V4L2_DV_720P30         0x0000000E
-#define       V4L2_DV_720P50         0x0000000F
-#define       V4L2_DV_720P59_94      0x00000010
-#define       V4L2_DV_720P60         0x00000011
-#define       V4L2_DV_1080I50        0x00000012
-#define       V4L2_DV_1080I59_94     0x00000013
-#define       V4L2_DV_1080I60        0x00000014
-#define       V4L2_DV_1080P23_976    0x00000015
-#define       V4L2_DV_1080P24        0x00000016
-#define       V4L2_DV_1080P25        0x00000017
-#define       V4L2_DV_1080P29_97     0x00000018
-#define       V4L2_DV_1080P30        0x00000019
-#define       V4L2_DV_1080P60        0x00000020
-
-
-Driver sets preset to V4L2_DV_INVALID to indicate there is no signal detected or could not lock to the signal for a VIDIOC_QUERY_DV_PRESET IOCTL 
-
-This list is expected grow over time. So a bit mask is not used for this
-(Unlike analog TV standards) so that many presets can be defined as needed in the future.
-
-To enumerate the DV preset timings available, applications call VIDIOC_ENUM_DV_PRESETS using the following structure:-
-
-struct v4l2_dv_enum_presets {
-        __u32     index;
-        __u32     preset;
-        __u8      name[32]; /* Name of the preset timing */
-        __u32     width;
-        __u32     height;
-        __u32     reserved[4];
-};
-
-Application set/get the preset by calling VIDIOC_S/G_DV_PRESET using v4l2_dv_preset structure.
-
-Also add a capabilities field in the input and output structure to support presets
-
-/*
- *      V I D E O   I N P U T S
- */
-struct v4l2_input {
-        __u32        index;             /*  Which input */
-        __u8         name[32];          /*  Label */
-        __u32        type;              /*  Type of input */
-        __u32        audioset;          /*  Associated audios (bitfield) */
-        __u32        tuner;             /*  Associated tuner */
-        v4l2_std_id  std;
-        __u32        status;
-        __u32        capabilities;
-        __u32        reserved[3];
-};
-
-where capabilities can be one or more of the following:- 
-
-#define V4L2_IN_CAP_PRESETS          0x00000001
-#define V4L2_IN_CAP_CUSTOM_TIMINGS 	 0x00000002
-#define V4L2_IN_CAP_STD              0x00000004
-
-/*
- *      V I D E O   O U T P U T S
- */
-struct v4l2_output {
-        __u32        index;             /*  Which output */
-        __u8         name[32];          /*  Label */
-        __u32        type;              /*  Type of output */
-        __u32        audioset;          /*  Associated audios (bitfield) */
-        __u32        modulator;         /*  Associated modulator */
-        v4l2_std_id  std;
-        __u32        capabilities;
-        __u32        reserved[3];
-};
-
-where capabilities can be one or more of the following:- 
-
-#define V4L2_OUT_CAP_PRESETS        0x00000001
-#define V4L2_OUT_CAP_CUSTOM_TIMINGS 0x00000002
-#define V4L2_OUT_CAP_STD		0x00000004
-
-For setting custom timing at the device, following structure is used which defines the complete set of timing values required at the input and output interface:-
-
-/* timing data values specified by various standards such as BT.1120, BT.656 etc. */
-
-/* bt.656/bt.1120 timing data */
-struct v4l2_bt_timings {
-    __u32      interlaced;
-    __u64      pixelclock;
-    __u32      width, height;
-    __u32      polarities;
-    __u32      hfrontporch, hsync, htotal;
-    __u32      vfrontporch, vsync, vtotal;
-    /* timings for bottom frame for interlaced formats */
-    __u32      il_vtotal;
-    __u32      reserved[16];
-};
-
-
-interlaced - Interlaced or progressive. use following values:-
-
-#define V4L2_DV_INTERLACED      0
-#define V4L2_DV_PROGRESSIVE    1
-
-pixelclock - expressed in HZ. So for 74.25MHz, use 74250000.
-width - number of pixels in horizontal direction
-height - number of lines in vertical direction
-polarities - Bit mask for following polarities to begin with
-(if polarity bit is not set, corresponding polarity is assumed to be negative)
-
-#define V4L2_DV_VSYNC_POS_POL    0x00000001
-#define V4L2_DV_HSYNC_POS_POL    0x00000002
-
-hfrontporch,hsync, and htotal for horizontal direction and vfrontporch, vsync, and vtotal for vertical direction. il_vtotal is the number of vertical lines for interlaced video for bottom field. 
-
-To define a particular timing type, following enum is used:-
-
-enum v4l2_dv_timings_type {
-        V4L2_DV_BT_656_1120,
-};
-
-This will allow adding new timing types in the future.
-
-If the driver supports a set of custom timing, it can be set/get using VIDIOC_S/G_DV_TIMINGS IOCTL and specifying timings using the structure
-
-struct v4l2_dv_timings {
-        enum v4l2_dv_timings_type type;
-        union {
-                struct v4l2_bt_timings bt;
-                __u32 reserved[32];
-        };
-};
-
-
-If the driver supports custom timing as well as Presets, it will return V4L2_DV_CUSTOM along with other preset timings for the VIDIOC_ENUM_DV_PRESETS IOCTL call. Application can then call VIDIOC_S/G_TIMING to get/set custom timings at the driver. 
-
-To detect a preset timing at the input application calls VIDIOC_QUERY_DV_PRESET which returns the preset using the v4l2_dv_preset structure. 
-
-Following summarize the new ioctls added by this RFC
-
-#define VIDIOC_ENUM_DV_PRESETS   _IOWR('V', 79, struct v4l2_dv_enum_presets)
-#define VIDIOC_S_DV_PRESET           _IOWR('V', 80, struct v4l2_dv_preset)
-#define VIDIOC_G_DV_PRESET           _IOWR('V', 81, struct v4l2_dv_preset)
-#define VIDIOC_QUERY_DV_PRESET   _IOR('V',  82, struct v4l2_dv_preset)
-#define VIDIOC_S_DV_TIMINGS         _IOWR('V', 83, struct v4l2_dv_timings)
-#define VIDIOC_G_DV_TIMINGS         _IOWR('V', 84, struct v4l2_dv_timings)
-
-Open issues
------------
-
-1.How to handle an HDMI transmitter? It can be put in two different modes: DVI compatible
-or HDMI compatible. Some of the choices are 
-	  a) enumerate them as two different outputs when enumerating.
-        b) adding a status bit on the input. 
-        c) change it using a control
-
-2. Detecting whether there is an analog or digital signal on an DVI-I input: 
-	a) add new status field value for v4l2_input ?
-	   #define  V4L2_IN_ST_DVI_ANALOG_DETECTED    0x10000000
-	   #define  V4L2_IN_ST_DVI_DIGITAL_DETECTED   0x20000000
-       
-3. Detecting an EDID. 
-  a) adding a status field in v4l2_output and two new ioctls that can set the EDID for an input or retrieve it for an output. It should also  be added as an input/output capability.
-
-4. ATSC bits in v4l2_std_id: how are they used? Are they used at all for that matter?
-5. There are a lot of status bits defined in v4l2_input, but only a few are actually used. What are we going to do with that?
-
-6. HDMI requires additional investigation. HDMI defines a whole bunch of infoframe fields. Most of these can probably be exported as controls?? Is HDMI audio handled by alsa? 
-
-7. Can sensor driver use the same API for setting frame size and frame rate? It was discussed and the general agreement was to use this API only for video timing.
-
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-email: m-karicheri2@ti.com
+diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
+index c3225a5..4d06976 100644
+--- a/drivers/media/video/uvc/uvc_ctrl.c
++++ b/drivers/media/video/uvc/uvc_ctrl.c
+@@ -1093,8 +1093,8 @@ int uvc_xu_ctrl_query(struct uvc_video_chain *chain,
+ 
+ 	if (!found) {
+ 		uvc_trace(UVC_TRACE_CONTROL,
+-			"Control " UVC_GUID_FORMAT "/%u not found.\n",
+-			UVC_GUID_ARGS(entity->extension.guidExtensionCode),
++			"Control %pUl/%u not found.\n",
++			entity->extension.guidExtensionCode,
+ 			xctrl->selector);
+ 		return -EINVAL;
+ 	}
+@@ -1171,9 +1171,9 @@ int uvc_ctrl_resume_device(struct uvc_device *dev)
+ 			    (ctrl->info->flags & UVC_CONTROL_RESTORE) == 0)
+ 				continue;
+ 
+-			printk(KERN_INFO "restoring control " UVC_GUID_FORMAT
+-				"/%u/%u\n", UVC_GUID_ARGS(ctrl->info->entity),
+-				ctrl->info->index, ctrl->info->selector);
++			printk(KERN_INFO "restoring control %pUl/%u/%u\n",
++			       ctrl->info->entity,
++			       ctrl->info->index, ctrl->info->selector);
+ 			ctrl->dirty = 1;
+ 		}
+ 
+@@ -1228,46 +1228,43 @@ static void uvc_ctrl_add_ctrl(struct uvc_device *dev,
+ 			dev->intfnum, info->selector, (__u8 *)&size, 2);
+ 		if (ret < 0) {
+ 			uvc_trace(UVC_TRACE_CONTROL, "GET_LEN failed on "
+-				"control " UVC_GUID_FORMAT "/%u (%d).\n",
+-				UVC_GUID_ARGS(info->entity), info->selector,
+-				ret);
++				  "control %pUl/%u (%d).\n",
++				  info->entity, info->selector, ret);
+ 			return;
+ 		}
+ 
+ 		if (info->size != le16_to_cpu(size)) {
+-			uvc_trace(UVC_TRACE_CONTROL, "Control " UVC_GUID_FORMAT
+-				"/%u size doesn't match user supplied "
+-				"value.\n", UVC_GUID_ARGS(info->entity),
+-				info->selector);
++			uvc_trace(UVC_TRACE_CONTROL,
++				  "Control %pUl/%u size doesn't match user supplied value.\n",
++				  info->entity, info->selector);
+ 			return;
+ 		}
+ 
+ 		ret = uvc_query_ctrl(dev, UVC_GET_INFO, ctrl->entity->id,
+ 			dev->intfnum, info->selector, &inf, 1);
+ 		if (ret < 0) {
+-			uvc_trace(UVC_TRACE_CONTROL, "GET_INFO failed on "
+-				"control " UVC_GUID_FORMAT "/%u (%d).\n",
+-				UVC_GUID_ARGS(info->entity), info->selector,
+-				ret);
++			uvc_trace(UVC_TRACE_CONTROL,
++				  "GET_INFO failed on control %pUl/%u (%d).\n",
++				  info->entity, info->selector, ret);
+ 			return;
+ 		}
+ 
+ 		flags = info->flags;
+ 		if (((flags & UVC_CONTROL_GET_CUR) && !(inf & (1 << 0))) ||
+ 		    ((flags & UVC_CONTROL_SET_CUR) && !(inf & (1 << 1)))) {
+-			uvc_trace(UVC_TRACE_CONTROL, "Control "
+-				UVC_GUID_FORMAT "/%u flags don't match "
+-				"supported operations.\n",
+-				UVC_GUID_ARGS(info->entity), info->selector);
++			uvc_trace(UVC_TRACE_CONTROL,
++				  "Control %pUl/%u flags don't match supported operations.\n",
++				  info->entity, info->selector);
+ 			return;
+ 		}
+ 	}
+ 
+ 	ctrl->info = info;
+ 	ctrl->data = kmalloc(ctrl->info->size * UVC_CTRL_NDATA, GFP_KERNEL);
+-	uvc_trace(UVC_TRACE_CONTROL, "Added control " UVC_GUID_FORMAT "/%u "
+-		"to device %s entity %u\n", UVC_GUID_ARGS(ctrl->info->entity),
+-		ctrl->info->selector, dev->udev->devpath, entity->id);
++	uvc_trace(UVC_TRACE_CONTROL,
++		  "Added control %pUl/%u to device %s entity %u\n",
++		  ctrl->info->entity, ctrl->info->selector,
++		  dev->udev->devpath, entity->id);
+ }
+ 
+ /*
+@@ -1293,17 +1290,16 @@ int uvc_ctrl_add_info(struct uvc_control_info *info)
+ 			continue;
+ 
+ 		if (ctrl->selector == info->selector) {
+-			uvc_trace(UVC_TRACE_CONTROL, "Control "
+-				UVC_GUID_FORMAT "/%u is already defined.\n",
+-				UVC_GUID_ARGS(info->entity), info->selector);
++			uvc_trace(UVC_TRACE_CONTROL,
++				  "Control %pUl/%u is already defined.\n",
++				  info->entity, info->selector);
+ 			ret = -EEXIST;
+ 			goto end;
+ 		}
+ 		if (ctrl->index == info->index) {
+-			uvc_trace(UVC_TRACE_CONTROL, "Control "
+-				UVC_GUID_FORMAT "/%u would overwrite index "
+-				"%d.\n", UVC_GUID_ARGS(info->entity),
+-				info->selector, info->index);
++			uvc_trace(UVC_TRACE_CONTROL,
++				  "Control %pUl/%u would overwrite index %d.\n",
++				  info->entity, info->selector, info->index);
+ 			ret = -EEXIST;
+ 			goto end;
+ 		}
+@@ -1344,10 +1340,9 @@ int uvc_ctrl_add_mapping(struct uvc_control_mapping *mapping)
+ 			continue;
+ 
+ 		if (info->size * 8 < mapping->size + mapping->offset) {
+-			uvc_trace(UVC_TRACE_CONTROL, "Mapping '%s' would "
+-				"overflow control " UVC_GUID_FORMAT "/%u\n",
+-				mapping->name, UVC_GUID_ARGS(info->entity),
+-				info->selector);
++			uvc_trace(UVC_TRACE_CONTROL,
++				  "Mapping '%s' would overflow control %pUl/%u\n",
++				  mapping->name, info->entity, info->selector);
+ 			ret = -EOVERFLOW;
+ 			goto end;
+ 		}
+@@ -1366,9 +1361,9 @@ int uvc_ctrl_add_mapping(struct uvc_control_mapping *mapping)
+ 
+ 		mapping->ctrl = info;
+ 		list_add_tail(&mapping->list, &info->mappings);
+-		uvc_trace(UVC_TRACE_CONTROL, "Adding mapping %s to control "
+-			UVC_GUID_FORMAT "/%u.\n", mapping->name,
+-			UVC_GUID_ARGS(info->entity), info->selector);
++		uvc_trace(UVC_TRACE_CONTROL,
++			  "Adding mapping %s to control %pUl/%u.\n",
++			  mapping->name, info->entity, info->selector);
+ 
+ 		ret = 0;
+ 		break;
+diff --git a/drivers/media/video/uvc/uvc_driver.c b/drivers/media/video/uvc/uvc_driver.c
+index 8756be5..411dc63 100644
+--- a/drivers/media/video/uvc/uvc_driver.c
++++ b/drivers/media/video/uvc/uvc_driver.c
+@@ -328,11 +328,10 @@ static int uvc_parse_format(struct uvc_device *dev,
+ 				sizeof format->name);
+ 			format->fcc = fmtdesc->fcc;
+ 		} else {
+-			uvc_printk(KERN_INFO, "Unknown video format "
+-				UVC_GUID_FORMAT "\n",
+-				UVC_GUID_ARGS(&buffer[5]));
++			uvc_printk(KERN_INFO, "Unknown video format %pUl\n",
++				   &buffer[5]);
+ 			snprintf(format->name, sizeof format->name,
+-				UVC_GUID_FORMAT, UVC_GUID_ARGS(&buffer[5]));
++				 "%pUl", &Buffer[5]);
+ 			format->fcc = 0;
+ 		}
+ 
+diff --git a/drivers/media/video/uvc/uvcvideo.h b/drivers/media/video/uvc/uvcvideo.h
+index e7958aa..9f4a437 100644
+--- a/drivers/media/video/uvc/uvcvideo.h
++++ b/drivers/media/video/uvc/uvcvideo.h
+@@ -555,16 +555,6 @@ extern unsigned int uvc_trace_param;
+ #define uvc_printk(level, msg...) \
+ 	printk(level "uvcvideo: " msg)
+ 
+-#define UVC_GUID_FORMAT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-" \
+-			"%02x%02x%02x%02x%02x%02x"
+-#define UVC_GUID_ARGS(guid) \
+-	(guid)[3],  (guid)[2],  (guid)[1],  (guid)[0], \
+-	(guid)[5],  (guid)[4], \
+-	(guid)[7],  (guid)[6], \
+-	(guid)[8],  (guid)[9], \
+-	(guid)[10], (guid)[11], (guid)[12], \
+-	(guid)[13], (guid)[14], (guid)[15]
+-
+ /* --------------------------------------------------------------------------
+  * Internal functions.
+  */
+-- 
+1.6.3.1.10.g659a0.dirty
 
