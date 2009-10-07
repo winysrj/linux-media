@@ -1,90 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from csldevices.co.uk ([77.75.105.137]:44335 "EHLO
-	mhall.vps.goscomb.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753232AbZJELNf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Oct 2009 07:13:35 -0400
-Received: from [212.49.228.51] (helo=[192.168.17.1])
-	by mhall.vps.goscomb.net with esmtp (Exim 4.63)
-	(envelope-from <phil@csldevices.co.uk>)
-	id 1MuktW-0002wO-UC
-	for linux-media@vger.kernel.org; Mon, 05 Oct 2009 11:34:19 +0100
-Message-ID: <4AC9CBA5.5050308@csldevices.co.uk>
-Date: Mon, 05 Oct 2009 11:34:13 +0100
-From: phil <phil@csldevices.co.uk>
+Received: from mail.atlantis.sk ([80.94.52.35]:35257 "EHLO mail.atlantis.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751021AbZJGNfe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Oct 2009 09:35:34 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Gianluca Cecchi <gianluca.cecchi@gmail.com>
+Subject: Re: [Linux-uvc-devel] [PATCH] Re: uvcvideo: Finally fix Logitech  Quickcam for Notebooks Pro
+Date: Wed, 7 Oct 2009 15:34:54 +0200
+Cc: laurent.pinchart@skynet.be, linux-uvc-devel@lists.berlios.de,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+References: <200910061607.07195.linux@rainbow-software.org> <200910071459.43622.linux@rainbow-software.org> <561c252c0910070612v6c7f6363xbb9548f62c834fbd@mail.gmail.com>
+In-Reply-To: <561c252c0910070612v6c7f6363xbb9548f62c834fbd@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: writing to dvr0 for playback
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200910071534.55687.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Wednesday 07 October 2009, Gianluca Cecchi wrote:
+> On Wed, Oct 7, 2009 at 2:59 PM, Ondrej Zary 
+<linux@rainbow-software.org>wrote:
+> > [snip]
+> >
+> > > What was the change that supposedly broke this in 2.6.22?
+> >
+> > I discovered that it's not related to usb audio at all. Doing "rmmod
+> > uvcvideo"
+> > and "modprobe uvcvideo" repeatedly succeeded after a couple of tries.
+> > Increasing
+> > UVC_CTRL_STREAMING_TIMEOUT to 3000 helped (2000 was not enough).
+> >
+> >
+> > Increase UVC_CTRL_STREAMING_TIMEOUT to fix initialization of
+> > Logitech Quickcam for Notebooks Pro.
+> > This fixes following error messages:
+> > uvcvideo: UVC non compliance - GET_DEF(PROBE) not supported. Enabling
+> > workaround.
+> > uvcvideo: Failed to query (129) UVC probe control : -110 (exp. 26).
+> > uvcvideo: Failed to initialize the device (-5).
+> >
+> > Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+> >
+> > --- linux-2.6.31-orig/drivers/media/video/uvc/uvcvideo.h       
+> > 2009-09-10 00:13:59.000000000 +0200
+> > +++ linux-2.6.31/drivers/media/video/uvc/uvcvideo.h     2009-10-07
+> > 13:47:27.000000000 +0200
+> > @@ -304,7 +304,7 @@
+> >  #define UVC_MAX_STATUS_SIZE    16
+> >
+> >  #define UVC_CTRL_CONTROL_TIMEOUT       300
+> > -#define UVC_CTRL_STREAMING_TIMEOUT     1000
+> > +#define UVC_CTRL_STREAMING_TIMEOUT     3000
+> >
+> >  /* Devices quirks */
+> >  #define UVC_QUIRK_STATUS_INTERVAL      0x00000001
+> >
+> >
+> > --
+> > Ondrej Zary
+>
+> Could this kind of fix also be useful in my case with Omnivision oem in
+> Dell sp2208wfp monitor, in your opinion?
+> See thread
+> https://lists.berlios.de/pipermail/linux-uvc-devel/2008-February/003076.html
+>
+> incidentally at that time I was using Fedora 8 32bit with kernel
+> 2.6.23.15-137.fc8 that indeed is post 2.6.22....
 
-I'm currently trying to replay a transport stream from a file, having 
-read through the v3 API docs and this mailing list I'm fairly certain I 
-have a good understanding of how to do this. I am however using the 
-test_dvr_play test program from the dvb-apps suite rather than writing 
-my own code, I have the latest version of dvb-apps from hg as of today.
+I don't know - try it. My patch is not related to 2.6.22 and usb-audio at all.
 
-The dvb hardware which I'm using is a Hauppauge Nova-T usb stick version
-3, so thats the DIB7070p tuner and I'm using it with the 2.6.31 kernel
-from kernel.org. I've got that working perfectly fine, I can watch tv,
-stream to disk and stream a multiplex to disk without issue. The problem
-is that if I try to open dvr0 for writing then I get an Error 22
-(Invalid Argument). I've looked through the list archives and I've found
-similar issues before with no resolution, with this
-http://www.linuxtv.org/pipermail/linux-dvb/2008-June/026661.html being
-the most recent and most comprehensive I think. This error happens if I
-try to cat a ts file into dvr0 or if I run test_dvr_play as follows:
-
-# DVR=/dev/dvb/adapter0/dvr0  DEMUX=/dev/dvb/adapter0/demux0 \
-./test_dvr_play /srv/nfs/dave.ts 0x191 0x192
-Playing '/srv/nfs/dave.ts', video PID 0x0191, audio PID 0x0192
-Failed to open '/dev/dvb/adapter0/dvr0': 22 Invalid argument
-
-I've looked into the test_dvr_play source and it is trying to open dvr0
-for writing:
-
-if ((dvrfd = open(dvrdev, O_WRONLY)) == -1) {
-
-
-Now I've looked into the driver code and this appears to be an issue in
-drivers/media/dvb/dvb-core/dmxdev.c specfically in the dvb_dvr_open
-routine, from following the code through I've determined that it's
-failing because it can't get a frontend (ie dvbdemux->frontend_list is
-empty)  when it calls get_fe (line 169 of dmxdev.c) in the following
-section of code
-
-
-  if ((file->f_flags & O_ACCMODE) == O_WRONLY) {
-      dmxdev->dvr_orig_fe = dmxdev->demux->frontend;
-
-      if (!dmxdev->demux->write) {
-          mutex_unlock(&dmxdev->mutex);
-          return -EOPNOTSUPP;
-      }
-
-      front = get_fe(dmxdev->demux, DMX_MEMORY_FE);
-
-      if (!front) {
-          mutex_unlock(&dmxdev->mutex);
-          return -EINVAL;
-      }
-      dmxdev->demux->disconnect_frontend(dmxdev->demux);
-      dmxdev->demux->connect_frontend(dmxdev->demux, front);
-  }
-
-
-I'm now wondering if anyone could shed some light on why it's failing
-here and specifically why if I'm trying to avoid using the frontend by
-writing in my own TS, it would fail on account of not being able to get
-a frontend. Should test_dvr_play be setting up a frontend first before
-attempting to open dvr0?
-
-
-Thanks,
-
-Phil
-
-
+-- 
+Ondrej Zary
