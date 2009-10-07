@@ -1,100 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:45611 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752945AbZJ1RNx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Oct 2009 13:13:53 -0400
-Message-ID: <4AE87BD5.8010506@gmx.net>
-Date: Wed, 28 Oct 2009 18:13:57 +0100
-From: Michael Gius <m.gius@gmx.net>
-MIME-Version: 1.0
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4445 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759639AbZJGSIU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Oct 2009 14:08:20 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id n97I7dRQ041045
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 7 Oct 2009 20:07:43 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 7 Oct 2009 20:07:39 +0200 (CEST)
+Message-Id: <200910071807.n97I7dRQ041045@smtp-vbr10.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: bt878 card: no sound and only xvideo support in 2.6.31 after perfect
- support in 2.6.24
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello!
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-My Hercules SmartTv Stereo PCI had perfect
-support under 2.6.24 in Ubuntu 8.04  with below modprobe settings.
+Results of the daily build of v4l-dvb:
 
-Now I switched to Ubuntu 9.10 and have:
-- no sound except some faint garbled noises when I turn up the volume to 
-max.
-- only have a picture via xvideo/overlay (using the xvideo plugin in kdetv
-  before it worked using the v4l2 plugin in kdetv)
-Country is Belgium, TV Norm is PAL.
+date:        Wed Oct  7 19:00:07 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13083:89b7e6d5854a
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Using the latest version compiled from the mercurial repository
-gives the same results.
-In Ubuntu 9.04 with kernel 2.6.28 I had the same symptoms but could use the
-tv card by simply reverting to kernel 2.6.24 without any other
-changes.
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-rc3-armv5: ERRORS
+linux-2.6.32-rc3-armv5-davinci: ERRORS
+linux-2.6.27-armv5-ixp: ERRORS
+linux-2.6.28-armv5-ixp: ERRORS
+linux-2.6.29.1-armv5-ixp: ERRORS
+linux-2.6.30-armv5-ixp: ERRORS
+linux-2.6.31-armv5-ixp: ERRORS
+linux-2.6.32-rc3-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.32-rc3-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-rc3-i686: ERRORS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-rc3-m32r: ERRORS
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.32-rc3-mips: ERRORS
+linux-2.6.27-powerpc64: ERRORS
+linux-2.6.28-powerpc64: ERRORS
+linux-2.6.29.1-powerpc64: ERRORS
+linux-2.6.30-powerpc64: ERRORS
+linux-2.6.31-powerpc64: ERRORS
+linux-2.6.32-rc3-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-rc3-x86_64: ERRORS
+sparse (linux-2.6.31): OK
+sparse (linux-2.6.32-rc3): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-Below are the modprobe settings that worked in 2.6.24,
-the lspci -v output and the relevant dmesg lines.
+Detailed results are available here:
 
-Any pointers are more than welcome.
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-Thanks and best regards,
-Michael
+Full logs are available here:
 
-#/etc/modprobe.d/bttv.conf
-alias char-major-89 i2c-dev
-options bttv card=0x64 tuner=38  automute=1 i2c_udelay=128
-options tvaudio tda9874a=1
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
+The V4L2 specification failed to build, but the last compiled spec is here:
 
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
 
-lspci -v:
-03:06.0 Multimedia video controller: Brooktree Corporation Bt878 Video 
-Capture (rev 11)
-    Subsystem: PROVIDEO MULTIMEDIA Co Ltd Device 952b
-    Flags: bus master, medium devsel, latency 32, IRQ 16
-    Memory at fdeff000 (32-bit, prefetchable) [size=4K]
-    Capabilities: [44] Vital Product Data <?>
-    Capabilities: [4c] Power Management version 2
-    Kernel driver in use: bttv
-    Kernel modules: bttv
+The DVB API specification from this daily build is here:
 
-03:06.1 Multimedia controller: Brooktree Corporation Bt878 Audio Capture 
-(rev 11)
-    Subsystem: PROVIDEO MULTIMEDIA Co Ltd Device 952b
-    Flags: bus master, medium devsel, latency 32, IRQ 11
-    Memory at fdefe000 (32-bit, prefetchable) [size=4K]
-    Capabilities: [44] Vital Product Data <?>
-    Capabilities: [4c] Power Management version 2
-
-
-dmesg:
-
-[   10.180614] Linux video capture interface: v2.00
-[   10.206630] bttv: driver version 0.9.18 loaded
-[   10.206632] bttv: using 8 buffers with 2080k (520 pages) each for capture
-[   10.206852] bttv: Bt8xx card found (0).
-[   10.207136] ACPI: PCI Interrupt Link [APC1] enabled at IRQ 16
-[   10.207140] bttv 0000:03:06.0: PCI INT A -> Link[APC1] -> GSI 16 
-(level, low) -> IRQ 16
-[   10.207149] bttv0: Bt878 (rev 17) at 0000:03:06.0, irq: 16, latency: 
-32, mmio: 0xfdeff000
-[   10.207178] bttv0: subsystem: 1540:952b (UNKNOWN)
-[   10.207180] please mail id, board name and the correct card= insmod 
-option to linux-media@vger.kernel.org
-[   10.207182] bttv0: using: Hercules Smart TV Stereo [card=100,insmod 
-option]
-[   10.207184] IRQ 16/bttv0: IRQF_DISABLED is not guaranteed on shared IRQs
-[   10.207210] bttv0: gpio: en=00000000, out=00000000 in=00ffffff [init]
-[   10.234435] bttv0: tuner type=38
-[   10.744660] tvaudio 1-0058: found tda9874a.
-[   10.744662] tvaudio 1-0058: tda9874h/a found @ 0xb0 (bt878 #0 [sw])
-[   11.460205] All bytes are equal. It is not a TEA5767
-[   11.460258] tuner 1-0060: chip found @ 0xc0 (bt878 #0 [sw])
-[   11.810349] tuner-simple 1-0060: creating new instance
-[   11.810352] tuner-simple 1-0060: type set to 38 (Philips PAL/SECAM 
-multi (FM1216ME MK3))
-[   11.822666] bttv0: registered device video0
-[   11.822685] bttv0: registered device vbi0
-[   11.822705] bttv0: PLL: 28636363 => 35468950 .. ok
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
