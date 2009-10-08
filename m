@@ -1,45 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f210.google.com ([209.85.218.210]:59616 "EHLO
-	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757216AbZJLWx0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Oct 2009 18:53:26 -0400
+Received: from mail.atlantis.sk ([80.94.52.35]:50435 "EHLO mail.atlantis.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756942AbZJHLCl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 8 Oct 2009 07:02:41 -0400
+To: laurent.pinchart@skynet.be
+Subject: [PATCH] [resend] Finally fix Logitech Quickcam for Notebooks Pro
+Cc: linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Content-Disposition: inline
+From: Ondrej Zary <linux@rainbow-software.org>
+Date: Thu, 8 Oct 2009 13:01:55 +0200
 MIME-Version: 1.0
-In-Reply-To: <f326ee1a0910121545o3a359b9cne477fadfe13c06e5@mail.gmail.com>
-References: <f326ee1a0910121420j59d4f63dy1ffcb1636a9a63d1@mail.gmail.com>
-	 <829197380910121448l1a9f35fmff276ad14afd9ac4@mail.gmail.com>
-	 <f326ee1a0910121510q793fd06g7e704c31c0792713@mail.gmail.com>
-	 <f326ee1a0910121545o3a359b9cne477fadfe13c06e5@mail.gmail.com>
-Date: Mon, 12 Oct 2009 18:52:48 -0400
-Message-ID: <829197380910121552r56b83604s551f14937897a655@mail.gmail.com>
-Subject: Re: Kworld Analog TV 305U without audio - updated
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: =?ISO-8859-1?Q?D=EAnis_Goes?= <denishark@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	lauri.laanmets@proekspert.ee, grythumn@gmail.com,
-	jarod@wilsonet.com, ridzevicius@gmail.com, xwang1976@email.it,
-	mchehab@infradead.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200910081301.57688.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 12, 2009 at 6:45 PM, Dênis Goes <denishark@gmail.com> wrote:
-> Hi...
->
-> I was seeing in em28xx-cards.c in "KWorld DVB-T 305U" section, that is the
-> more aproximate model for my card, and I have a doubt, my card is analog
-> only (although it's 305U also), but the 305U in em28xx-cards.c have DVB-T,
-> can be any parameter for card that causing the problem ?
->
-> Thanks.
+Increase UVC_CTRL_STREAMING_TIMEOUT to fix initialization of
+Logitech Quickcam for Notebooks Pro.
+This fixes following error messages:
+uvcvideo: UVC non compliance - GET_DEF(PROBE) not supported. Enabling workaround.
+uvcvideo: Failed to query (129) UVC probe control : -110 (exp. 26).
+uvcvideo: Failed to initialize the device (-5).
 
-It's not clear why the product name says "DVB-T" since the board
-profile that follows doesn't have a DVB-T definition.  Either way,
-that's not having an effect on your issue.
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-Devin
+--- linux-2.6.31-orig/drivers/media/video/uvc/uvcvideo.h	2009-09-10 00:13:59.000000000 +0200
++++ linux-2.6.31/drivers/media/video/uvc/uvcvideo.h	2009-10-07 13:47:27.000000000 +0200
+@@ -304,7 +304,7 @@
+ #define UVC_MAX_STATUS_SIZE	16
+ 
+ #define UVC_CTRL_CONTROL_TIMEOUT	300
+-#define UVC_CTRL_STREAMING_TIMEOUT	1000
++#define UVC_CTRL_STREAMING_TIMEOUT	3000
+ 
+ /* Devices quirks */
+ #define UVC_QUIRK_STATUS_INTERVAL	0x00000001
+
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Ondrej Zary
