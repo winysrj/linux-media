@@ -1,111 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp06.mail.tnz.yahoo.co.jp ([203.216.246.69]:48536 "HELO
-	smtp06.mail.tnz.yahoo.co.jp" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751969AbZJAFZ4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Oct 2009 01:25:56 -0400
-Message-ID: <4AC43BD7.5090203@yahoo.co.jp>
-Date: Thu, 01 Oct 2009 14:19:19 +0900
-From: Akihiro TSUKADA <tskd2@yahoo.co.jp>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 2/2] dvb-usb-friio: cleaning up unnecessary functions
-References: <4AC43967.6070108@yahoo.co.jp>
-In-Reply-To: <4AC43967.6070108@yahoo.co.jp>
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
+Received: from mailout5.samsung.com ([203.254.224.35]:53800 "EHLO
+	mailout5.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751850AbZJHGYP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Oct 2009 02:24:15 -0400
+Received: from epmmp1 (mailout5.samsung.com [203.254.224.35])
+ by mailout1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0KR600BO5N3DPF@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 08 Oct 2009 15:23:37 +0900 (KST)
+Received: from AMDC159 ([106.116.37.153])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0KR600K6PN3206@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 08 Oct 2009 15:23:37 +0900 (KST)
+Date: Thu, 08 Oct 2009 08:21:56 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: Mem2Mem V4L2 devices [RFC] - Can we enhance the V4L2 API?
+In-reply-to: <A69FA2915331DC488A831521EAE36FE4015546FBA6@dlee06.ent.ti.com>
+To: "'Karicheri, Muralidharan'" <m-karicheri2@ti.com>,
+	"'Ivan T. Ivanov'" <iivanov@mm-sol.com>,
+	linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, Tomasz Fujak <t.fujak@samsung.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <000001ca47df$a58e83a0$f0ab8ae0$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <E4D3F24EA6C9E54F817833EAE0D912AC077151C64F@bssrvexch01.BS.local>
+ <1254500705.16625.35.camel@iivanov.int.mm-sol.com>
+ <A69FA2915331DC488A831521EAE36FE401553E952D@dlee06.ent.ti.com>
+ <1254773653.10214.31.camel@violet.int.mm-sol.com>
+ <A69FA2915331DC488A831521EAE36FE401553E9655@dlee06.ent.ti.com>
+ <001e01ca464d$87fcacb0$97f60610$%szyprowski@samsung.com>
+ <A69FA2915331DC488A831521EAE36FE4015546FBA6@dlee06.ent.ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd2@yahoo.co.jp>
+Hello,
 
-This patch removes some fe->ops.X() functions which do nothing more useful than the default.
+On Wednesday, October 07, 2009 3:39 PM Karicheri, Muralidharan wrote:
 
-Priority: normal
+> >> As we have seen in the discussion, this is not a streaming device, rather
+> >> a transaction/conversion device which operate on a given frame to get a
+> >desired output frame. Each
+> >> transaction may have it's own set of configuration context which will be
+> >applied to the hardware
+> >> before starting the operation. This is unlike a streaming device, where
+> >most of the configuration is
+> >> done prior to starting the streaming.
+> >
+> >From the application point of view an instance of such a device still is a
+> >streaming device. The application should not even know if
+> >any other apps are using the device or not (well, it may only notice the
+> >lower throughput or higher device latency, but this cannot
+> >be avoided). Application can queue input and output buffers, stream on and
+> >wait for the result.
+> >
+> In a typical capture or display side streaming, AFAIK, there is only one device io instance. While
+> streaming is ON, if another application tries to do IO, driver returns -EBUSY. I believe this is true
+> for all drivers (Correct me if this is not true).When you say the memory to memory device is able to
+> allow multiple application to call STREAMON, this model is broken(Assuming what I said above is true).
+> 
+> May be I am missing something here. Is the following true? I think in your model, each application
+> gets a device instance that has it's own scaling factors and other parameters. So streaming status is
+> maintained for each IO instance. Each IO instance has it's own buffer queues. If this is true then you
+> are right. Streaming model is not broken.
 
-Signed-off-by: Akihiro Tsukada <tskd2@yahoo.co.jp>
----
- friio-fe.c |   38 --------------------------------------
- 1 file changed, 38 deletions(-)
+This is exactly what I mean. Typical capture or display devices are single instance from the definition (I cannot imagine more than
+one application streaming _directly_ from the camera interface). However, a multi-instance support for mem2mem device perfectly
+makes sense and heavily improves the usability of it. 
 
-diff --git a/linux/drivers/media/dvb/dvb-usb/friio-fe.c b/linux/drivers/media/dvb/dvb-usb/friio-fe.c
---- a/linux/drivers/media/dvb/dvb-usb/friio-fe.c
-+++ b/linux/drivers/media/dvb/dvb-usb/friio-fe.c
-@@ -232,12 +232,6 @@ static int jdvbt90502_read_status(struct
- 	return 0;
- }
- 
--static int jdvbt90502_read_ber(struct dvb_frontend *fe, u32 *ber)
--{
--	*ber = 0;
--	return 0;
--}
--
- static int jdvbt90502_read_signal_strength(struct dvb_frontend *fe,
- 					   u16 *strength)
- {
-@@ -264,27 +258,6 @@ static int jdvbt90502_read_signal_streng
- 	return 0;
- }
- 
--static int jdvbt90502_read_snr(struct dvb_frontend *fe, u16 *snr)
--{
--	*snr = 0x0101;
--	return 0;
--}
--
--static int jdvbt90502_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
--{
--	*ucblocks = 0;
--	return 0;
--}
--
--static int jdvbt90502_get_tune_settings(struct dvb_frontend *fe,
--					struct dvb_frontend_tune_settings *fs)
--{
--	fs->min_delay_ms = 500;
--	fs->step_size = 0;
--	fs->max_drift = 0;
--
--	return 0;
--}
- 
- /* filter out un-supported properties to notify users */
- static int jdvbt90502_set_property(struct dvb_frontend *fe,
-@@ -347,12 +320,6 @@ static int jdvbt90502_set_frontend(struc
- 	return 0;
- }
- 
--static int jdvbt90502_sleep(struct dvb_frontend *fe)
--{
--	deb_fe("%s called.\n", __func__);
--	return 0;
--}
--
- 
- /**
-  * (reg, val) commad list to initialize this module.
-@@ -493,18 +460,13 @@ static struct dvb_frontend_ops jdvbt9050
- 	.release = jdvbt90502_release,
- 
- 	.init = jdvbt90502_init,
--	.sleep = jdvbt90502_sleep,
- 	.write = _jdvbt90502_write,
- 
- 	.set_property = jdvbt90502_set_property,
- 
- 	.set_frontend = jdvbt90502_set_frontend,
- 	.get_frontend = jdvbt90502_get_frontend,
--	.get_tune_settings = jdvbt90502_get_tune_settings,
- 
- 	.read_status = jdvbt90502_read_status,
--	.read_ber = jdvbt90502_read_ber,
- 	.read_signal_strength = jdvbt90502_read_signal_strength,
--	.read_snr = jdvbt90502_read_snr,
--	.read_ucblocks = jdvbt90502_read_ucblocks,
- };
+> So following scenario holds good concurrently (api call sequence).
+> 
+> App1 -> open() -> S_FMT -> STREAMON->QBUF/DQBUF(n times)->STREAMOFF->close()
+> App2 -> open() -> S_FMT -> STREAMON->QBUF/DQBUF(n times)->STREAMOFF->close()
+> ....
+> App3 -> open() -> S_FMT -> STREAMON->QBUF/DQBUF(n times)->STREAMOFF->close()
 
---------------------------------------
-Yahoo! JAPAN - Internet Security for teenagers and parents.
-http://pr.mail.yahoo.co.jp/security/
+Exactly.
+ 
+> So internal to driver, if there are multiple concurrent streamon requests, and hardware is busy,
+> subsequent requests waits until the first one is complete and driver schedules requests from multiple
+> IO queues. So this is essentially what we have in our internal implementation (discussed during the
+> linux plumbers mini summit) converted to v4l2 model.
+
+Right, this is what we also have in our custom v4l2-incompatible drivers.
+
+Best regards
+--
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
+
