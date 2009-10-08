@@ -1,54 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f218.google.com ([209.85.220.218]:49337 "EHLO
-	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751807AbZJZPge (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Oct 2009 11:36:34 -0400
-Received: by fxm18 with SMTP id 18so12167243fxm.37
-        for <linux-media@vger.kernel.org>; Mon, 26 Oct 2009 08:36:38 -0700 (PDT)
+Received: from mail-bw0-f210.google.com ([209.85.218.210]:58973 "EHLO
+	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754658AbZJHOhC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Oct 2009 10:37:02 -0400
+Received: by bwz6 with SMTP id 6so829676bwz.37
+        for <linux-media@vger.kernel.org>; Thu, 08 Oct 2009 07:36:25 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <4AE497B5.8050801@iki.fi>
-References: <829197380910132052w155116ecrcea808abe87a57a6@mail.gmail.com>
-	 <4AE497B5.8050801@iki.fi>
-Date: Mon, 26 Oct 2009 11:36:37 -0400
-Message-ID: <829197380910260836o4b17a65ex8c46d1db8d6d3027@mail.gmail.com>
-Subject: Re: em28xx DVB modeswitching change: call for testers
+In-Reply-To: <2D9D466571BB4CCEB9FD981D65F8FBFC@MirekPNB>
+References: <2D9D466571BB4CCEB9FD981D65F8FBFC@MirekPNB>
+Date: Thu, 8 Oct 2009 10:36:24 -0400
+Message-ID: <829197380910080736g4b30e0e8m21f1d3b876a15ce6@mail.gmail.com>
+Subject: Re: Pinnace 320e (PCTV Hybrid Pro Stick) support
 From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+To: Miroslav Pragl <lists.subscriber@pragl.cz>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Antti,
+2009/10/8 Miroslav Pragl <lists.subscriber@pragl.cz>:
+> Hello,
+> are here users of Pinnace 320e (PCTV Hybrid Pro Stick)?
+>
+> I have lots of problems with tuning, namely
+> - scan somehow locks on the first frequency listed in scan file and finds no
+> signal on subsequent freqs
+> - kaffeine which has own scanning scans RELIABLY two, somehow three of four
+> channels available in my region
+> - vlc which has great commandline parameters for direc tuning frequency and
+> programm (by its ID) works fine
+>
+> I currently use Fedora 11 with latest stable kernel (64 bit) and try to keep
+> up-to-date with linuxtv drivers
+>
+> any help or atleast bug confirming would help me a lot
+>
+> Thanks
+>
+> MP
+>
+> P.S. although i hated the aggressivnes of Markus' drivers from mcentral.de
+> (no longer maintained) and need of FULL kernel sources these atleast worked
+> :(
 
-Sorry, I'm a couple of days behind on email.
+Hi Miroslav,
 
-On Sun, Oct 25, 2009 at 2:23 PM, Antti Palosaari <crope@iki.fi> wrote:
-> Reddo DVB-C USB Box works fine with this patch. But whats the status of this
-> patch, when this is going to Kernel? Reddo is added to the 2.6.32 and due to
-> that I need this go 2.6.32 as bug fix. If this is not going to happen I
-> should pull request my fix:
-> http://linuxtv.org/hg/~anttip/reddo-dvb-c/rev/38f946af568f
-
-I've received some very mixed results in terms of testing of the patch
-(as you can see from the responses).  Even stranger, I received mixed
-responses from people with the same boards.  I haven't had a chance to
-debug *why* the people who raised problems still had an issue.  I
-continue to believe it's the "right fix" but I don't know why those
-people reported problems with it.
-
-> And other issue raised as well. QAM256 channels are mosaic. I suspect there
-> is some USB speed problems in Empia em28xx driver since demod UNC and BER
-> counters are clean. It is almost 50 Mbit/sec stream... Any idea? I tested
-> modprobe em28xx alt=N without success...
-
-What do you mean by "mosaic"?  Can you try using dvbstreamer and see
-what the overall throughput is?  That will tell us if we are not
-getting the whole stream.
-
-You cannot rely on the "alt=n" for DVB.  The max packet size is
-determined by an em28xx register.
+I did the 320e work with the assistance of a couple of users in
+Europe.  Could you confirm that you are running the latest v4l-dvb
+tree from http://linuxtv.org/hg/v4l-dvb?  If so, please provide the
+output of dmesg after connecting the device.
 
 Devin
 
