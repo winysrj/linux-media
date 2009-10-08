@@ -1,31 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:50825 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751539AbZJTORK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Oct 2009 10:17:10 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: Why doesn't video_ioctl2 reuse video_usercopy ?
-Date: Tue, 20 Oct 2009 16:17:25 +0200
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from ey-out-2122.google.com ([74.125.78.27]:39352 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757706AbZJHMe2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Oct 2009 08:34:28 -0400
+Received: by ey-out-2122.google.com with SMTP id 4so1240346eyf.19
+        for <linux-media@vger.kernel.org>; Thu, 08 Oct 2009 05:33:21 -0700 (PDT)
+Message-ID: <4ACDF829.3010500@xfce.org>
+Date: Thu, 08 Oct 2009 14:33:13 +0000
+From: Ali Abdallah <aliov@xfce.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: linux-media@vger.kernel.org
+Subject: Hauppage WinTV-HVR-900H
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <200910201617.25206.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everybody,
+Hi,
 
-while working on subdevs device node implementation noticed that video_ioctl2 
-doesn't use video_usercopy but has its own (slightly modified) copy of the 
-code. As I need to perform a similar operation for subdevs ioctls I was 
-wondering if we could have a single video_usercopy implementation that could 
-be used by both video_ioctl2 and the subdevs ioctl handler.
+Very unlucky, i bought a pinnacle hybrid pro and couldn't get it to work 
+with linux, then i gave it up, and i found that HVR-900 card works well 
+under linux, i got one, but i didn't know that the company is referring 
+now for 900 same as 900H.
 
--- 
-Regards,
+900H doesn't work under Linux, is there is way to get this card working?
 
-Laurent Pinchart
+googling i didn't find much information, all i found is work under way 
+to get this card supported (2008).
+
+Please help,
+.
