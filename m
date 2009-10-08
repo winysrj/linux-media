@@ -1,18 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227])
-	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <dehqan65@gmail.com>) id 1N3cGr-0007gx-AF
-	for linux-dvb@linuxtv.org; Thu, 29 Oct 2009 22:11:01 +0100
-Received: by bwz27 with SMTP id 27so3460433bwz.1
-	for <linux-dvb@linuxtv.org>; Thu, 29 Oct 2009 14:10:28 -0700 (PDT)
+Received: from web25404.mail.ukl.yahoo.com ([217.12.10.138])
+	by mail.linuxtv.org with smtp (Exim 4.69)
+	(envelope-from <ftirapelle@yahoo.it>) id 1MvzDa-0005lr-SV
+	for linux-dvb@linuxtv.org; Thu, 08 Oct 2009 22:04:07 +0200
+Message-ID: <412891.59983.qm@web25404.mail.ukl.yahoo.com>
+Date: Thu, 8 Oct 2009 20:03:33 +0000 (GMT)
+From: fabio tirapelle <ftirapelle@yahoo.it>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-In-Reply-To: <1C29C2C980F9432EADFF0F6A3D14A085@JackPC>
-References: <1C29C2C980F9432EADFF0F6A3D14A085@JackPC>
-Date: Fri, 30 Oct 2009 00:40:27 +0330
-Message-ID: <267bb6670910291410r50d0efacgd094385d43b9e1a4@mail.gmail.com>
-From: a dehqan <dehqan65@gmail.com>
-To: matthias@tevii.com, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] some questions before buy
+Subject: [linux-dvb] DVB-T card for mythtv
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -21,69 +17,64 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============2097175201=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============2097175201==
-Content-Type: multipart/alternative; boundary=0016364c77a936e12a04771957b9
+Hi
 
---0016364c77a936e12a04771957b9
-Content-Type: text/plain; charset=ISO-8859-1
+I have installed mythtv on this configuration:
+Asus M3N78-VM GF8200 RGVSM
+AMD Ath64 X2LV 3100BOX6000+ 1MB
+Haupp. WinTV HVR-1100 -t/a PCI
+TechniSat SkyStar 2 DVB-S PCI
+nVidia GeForce 8200
+Ubuntu 8.10 - Linux htpc 2.6.27-11-generic 
 
-In The Name Of God The compassionate merciful
+Two questions
 
-Thanks for your attention ;
+1) But the Haupp. WinTV will not be found even if I have followed
+http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-1110 
+http://ubuntuforums.org/showthread.php?t=623126&page=2 (#12)
 
-In S650 specification is written :
-Support SDTV and HDTV (MPEG-4 AVC/ H.264 and MPEG-2 Standard)
-And In S660 specification is written  :Support HDTV (MPEG-4 AVC/ H.264 up to
-1080i)
-Does that mean S660 does not support SDTV ?
+Output of dmesg
 
-About S660 , Is it's driver behavior better thatn S650 driver ? Someone told
-that S650 driver has problem with S2 channels  and hangs on them . Does S660
-driver also have these problems ?
+[   13.062214] ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 17
+[   13.062223] b2c2_flexcop_pci 0000:01:06.0: PCI INT A -> Link[LNKA] -> GSI 17 (level, low) -> IRQ 17
+[   13.076654] DVB: registering new adapter (FlexCop Digital TV device)
+[   13.078432] b2c2-flexcop: MAC address = 00:d0:d7:0d:30:88
+[   13.078664] b2c2-flexcop: i2c master_xfer failed
+[   13.078893] b2c2-flexcop: i2c master_xfer failed
+[   13.078895] CX24123: cx24123_i2c_readreg: reg=0x0 (error=-121)
+[   13.078897] CX24123: wrong demod revision: 87
+[   13.101063] saa7130/34: v4l2 driver version 0.2.14 loaded
+[   13.360642] b2c2-flexcop: found 'ST STV0299 DVB-S' .
+[   13.360647] DVB: registering frontend 0 (ST STV0299 DVB-S)...
+[   13.360768] b2c2-flexcop: initialization of 'Sky2PC/SkyStar 2 DVB-S' at the 'PCI' bus controlled by a 'FlexCopIIb' complete
+[   13.363507] ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 16
+[   13.363517] saa7134 0000:01:07.0: PCI INT A -> Link[LNKB] -> GSI 16 (level, low) -> IRQ 16
+[   13.363523] saa7133[0]: found at 0000:01:07.0, rev: 255, irq: 16, latency: 255, mmio: 0x0
+[   13.363528] saa7133[0]: subsystem: ffff:ffff, board: UNKNOWN/GENERIC [card=0,autodetected]
+[   13.363531] saa7133[0]: can't get MMIO memory @ 0x0
+[   13.363538] saa7134: probe of 0000:01:07.0 failed with error -16
+[   13.393682] saa7134 ALSA driver for DMA sound loaded
+[   13.393685] saa7134 ALSA: no saa7134 cards found
 
-Also How about showing S2 channels for laptops ?
+ouput lspci
+01:06.0 Network controller: Techsan Electronics Co Ltd B2C2 FlexCopII DVB chip / Technisat SkyStar2 DVB card (rev 02)
+01:07.0 Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d1)
 
-Which one of USB DVB-s/s2 cards do you advice for linux ? Is tevii best of
-them <http://www.linuxtv.org/wiki/index.php/DVB-S2_USB_Devices>?
+2) What kind of DVB-T card will you suggest for my configuration instead of "Hauppage WinTv"?
 
-
-Regards dehqan
-
---0016364c77a936e12a04771957b9
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-In The Name Of God The compassionate merciful<br><br>Thanks for your attent=
-ion ;<br><br>In S650 specification is written :<br>Support SDTV and HDTV (M=
-PEG-4 AVC/ H.264 and MPEG-2 Standard)<br>And In S660 specification is writt=
-en=A0 :Support HDTV (MPEG-4 AVC/ H.264 up to 1080i)<br>
-Does that mean S660 does not support SDTV ?<br><br>About S660 , Is it&#39;s=
- driver behavior better thatn S650 driver ? Someone told that S650 driver h=
-as problem with S2 channels=A0 and hangs on them . Does S660 driver also ha=
-ve these problems ?<br>
-<br>Also How about showing S2 channels for laptops ?<br><br>Which one of US=
-B DVB-s/s2 cards do you advice for linux ? Is tevii best of <a href=3D"http=
-://www.linuxtv.org/wiki/index.php/DVB-S2_USB_Devices">them</a>?<br><br><br>
-Regards dehqan<br><br><br><br>
-
---0016364c77a936e12a04771957b9--
+Thanks for help 
 
 
---===============2097175201==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+      
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============2097175201==--
