@@ -1,26 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx05.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.9])
-	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n9FMevtF007852
-	for <video4linux-list@redhat.com>; Thu, 15 Oct 2009 18:40:57 -0400
-Received: from mail-ew0-f205.google.com (mail-ew0-f205.google.com
-	[209.85.219.205])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n9FMe9M7001291
-	for <video4linux-list@redhat.com>; Thu, 15 Oct 2009 18:40:47 -0400
-Received: by mail-ew0-f205.google.com with SMTP id 1so1001726ewy.3
-	for <video4linux-list@redhat.com>; Thu, 15 Oct 2009 15:40:47 -0700 (PDT)
+Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.11])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n986xOxb007109
+	for <video4linux-list@redhat.com>; Thu, 8 Oct 2009 02:59:24 -0400
+Received: from kuber.nabble.com (kuber.nabble.com [216.139.236.158])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n986x9ZC016238
+	for <video4linux-list@redhat.com>; Thu, 8 Oct 2009 02:59:09 -0400
+Received: from tervel.nabble.com ([192.168.236.150])
+	by kuber.nabble.com with esmtp (Exim 4.63)
+	(envelope-from <bounces@n2.nabble.com>) id 1Mvmxw-0005sW-L5
+	for video4linux-list@redhat.com; Wed, 07 Oct 2009 23:59:08 -0700
+Date: Wed, 7 Oct 2009 23:59:08 -0700 (PDT)
+From: Carlos Lavin <carlos.lavin@vista-silicon.com>
+To: video4linux-list@redhat.com
+Message-ID: <1254985148643-3786323.post@n2.nabble.com>
+In-Reply-To: <9319940908100515w21d38a5bs6c6a552b07498fc4@mail.gmail.com>
+References: <eedb5540908060552n43021d5bla6ee655c294307eb@mail.gmail.com>
+	<20090807191809.GJ5842@pengutronix.de>
+	<9319940908091109l64530b9cgd2e305ea8127a35a@mail.gmail.com>
+	<eedb5540908092359g27e61389wad4a918f3339ae38@mail.gmail.com>
+	<9319940908100515w21d38a5bs6c6a552b07498fc4@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1309046926@web.de>
-References: <1309046926@web.de>
-Date: Thu, 15 Oct 2009 18:40:47 -0400
-Message-ID: <37219a840910151540u5aea8b93pe96bbf4a4d83acb0@mail.gmail.com>
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: =?ISO-8859-1?Q?Michael_Gr=FCtzmann?= <Avalone@web.de>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: tuner type
+Subject: Re: soc-camera driver for i.MX27
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,57 +36,71 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Oct 15, 2009 at 4:16 PM, Michael Gr�tzmann <Avalone@web.de> wrote:
-> Dear to all,
->
-> I have an Medion 7134 card, so I use the saa7134 module with a 2.6.25 kernel (card=12). But I have a question. Which tuner type should I use?
-> �cat /var/log/boot.msg |grep saa
-> <6>saa7130/34: v4l2 driver version 0.2.14 loaded
-> <6>saa7134[0]: found at 0000:00:0b.0, rev: 1, irq: 18, latency: 32, mmio: 0xdffffc00
-> <6>saa7134[0]: subsystem: 16be:0003, board: Medion 7134 [card=12,autodetected]
-> <6>saa7134[0]: board init: gpio is 0
-> <6>saa7134[0]: i2c eeprom 00: be 16 03 00 08 20 1c 55 43 43 a9 1c 55 43 43 a9
-> <6>saa7134[0]: i2c eeprom 10: ff ff ff ff 15 00 0e 01 0c c0 08 00 00 00 00 00
-> <6>saa7134[0]: i2c eeprom 20: 00 00 00 e3 ff ff ff ff ff ff ff ff ff ff ff ff
-> <6>saa7134[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> <6>saa7134[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> <6>saa7134[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> <6>saa7134[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> <6>saa7134[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> <6>saa7134[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> <6>saa7134[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> <6>saa7134[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> <6>saa7134[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> <6>saa7134[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> <6>saa7134[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> <6>saa7134[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> <6>saa7134[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> <6>tuner' 2-0043: chip found @ 0x86 (saa7134[0])
-> <6>tuner' 2-0060: chip found @ 0xc0 (saa7134[0])
-> <6>saa7134[0] Tuner type is 38
-> <6>saa7134[0]: registered device video0 [v4l2]
-> <6>saa7134[0]: registered device vbi0
-> <6>saa7134[0]: registered device radio0
-> <3>saa7134[0]/dvb: frontend initialization failed
-> It is not tuner=38.
-> On the card, there stands: 'tuner philips 3139 147 18201H#'.
-> There are two Ambient chips on it. One chip ctis0tp. If needed, I can write to you the full chip labelings.
-> Your help would be appreciated.
-> ps. I'm a linux newbie (use it for 2 years). Maybe you could also tell me how to write the changes made manually to modules.d, so the changes aren't lost when rebooting.
->
-> Thanks in advance,
-> Dirk
 
-Dirk,
+hello, i'm Carlos Lavín and i'm partner of Javier. I was trying download the
+PHYTEC repository of this URL git: / /
+git.pengutronix.de/git/phytec/linux-2.6.git but I have a problem when I
+download it, this repositoy isn't complete. moreover, when i'm downloading
+this repository i have a warning... why?
+can you help me, please? thank you. 
 
-The tuner labelled, "3139 147 18201H" should be tuner # 63 - Philips
-FMD1216ME MK3 Hybrid Tuner
 
-I hope this helps you.
 
-Regards,
 
-Mike
+Derek Bouius wrote:
+> 
+> On Mon, Aug 10, 2009 at 3:25 AM, Sascha Hauer<sha@pengutronix.de> wrote:
+>> Hi,
+>>
+>> On Mon, Aug 10, 2009 at 08:59:23AM +0200, javier Martin wrote:
+>>> Dear Derek,
+>>>
+>>> >> We have a driver for the phyCORE-i.MX27 board:
+>>> >>
+>>> http://git.pengutronix.de/?p=phytec/linux-2.6.git;a=blob;f=drivers/media/video/mx27_camera.c;h=9e9f4426c3db890e6fc13130e047c65c073aa0b4;hb=refs/heads/phytec-master
+>>>
+>>> Thank you for the pointer to the patch.
+>>>
+>>> > I have just used this driver to interface to a soc imager (Aptina
+>>> > mt9p031) on the phyCORE-i.MX27 board. It works for acquiring a 640x480
+>>> > video stream quite reliably. I am currently working on getting it to
+>>> > be able to capture a full image frame (5MB) as well as various image
+>>> > sizes in between. I am running into out of memory issues with the
+>>> > dma_alloc_coherent() and not sure what the solution is yet.
+>>> >
+>>>
+>>> Maybe you are requesting too much contiguous memory. I don't remember
+>>> where that could be changed.
+>>
+>> It's CONSISTENT_DMA_SIZE.
+>>
+> That did the trick.
+> Thanks, Derek
+> 
+> 
+>> Sascha
+>>
+>> --
+>> Pengutronix e.K.                           |                            
+>> |
+>> Industrial Linux Solutions                 | http://www.pengutronix.de/
+>>  |
+>> Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0  
+>>  |
+>> Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555
+>> |
+>>
+> 
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+> 
+> 
+
+-- 
+View this message in context: http://n2.nabble.com/soc-camera-driver-for-i-MX27-tp3398063p3786323.html
+Sent from the video4linux-list mailing list archive at Nabble.com.
 
 --
 video4linux-list mailing list
