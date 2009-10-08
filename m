@@ -1,54 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [195.7.61.12] ([195.7.61.12]:53960 "EHLO killala.koala.ie"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1756097AbZJNJt3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Oct 2009 05:49:29 -0400
-Received: from [195.7.61.12] (localhost [127.0.0.1])
-	(authenticated bits=0)
-	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id n9E9mo9q030578
-	for <linux-media@vger.kernel.org>; Wed, 14 Oct 2009 10:48:51 +0100
-Message-ID: <4AD59E82.6070904@koala.ie>
-Date: Wed, 14 Oct 2009 10:48:50 +0100
-From: Simon Kenyon <simon@koala.ie>
+Received: from h206.core.ignum.cz ([217.31.49.206]:40251 "EHLO
+	h206.core.ignum.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758012AbZJHSYU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Oct 2009 14:24:20 -0400
+Message-ID: <C3EF2005C0C34F008FA0B59B48782D75@MirekPNB>
+From: "Miroslav Pragl" <lists.subscriber@pragl.cz>
+To: "Devin Heitmueller" <dheitmueller@kernellabs.com>
+Cc: <linux-media@vger.kernel.org>
+References: <2D9D466571BB4CCEB9FD981D65F8FBFC@MirekPNB> <829197380910080736g4b30e0e8m21f1d3b876a15ce6@mail.gmail.com>
+In-Reply-To: <829197380910080736g4b30e0e8m21f1d3b876a15ce6@mail.gmail.com>
+Subject: Re: Pinnace 320e (PCTV Hybrid Pro Stick) support
+Date: Thu, 8 Oct 2009 20:23:22 +0200
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Hauppage WinTV-HVR-900H
-References: <4ACDF829.3010500@xfce.org>	<37219a840910080545v72165540v622efd43574cf085@mail.gmail.com>	<4ACDFED9.30606@xfce.org>	<829197380910080745j3015af10pbced2a7e04c7595b@mail.gmail.com>	<4ACE2D5B.4080603@xfce.org>	<829197380910080928t30fc0ecas7f9ab2a7d8437567@mail.gmail.com>	<d9def9db0910080946r445ac0efs421cb3bd2972a0d8@mail.gmail.com>	<4ACEED7D.10302@koala.ie>	<d9def9db0910090121i76571d0o4778aa14026b4b9d@mail.gmail.com>	<4ACFB218.5040608@koala.ie>	<d9def9db0910091524p6c8cba7fxf4a245a64af297c4@mail.gmail.com> <20091010085626.377f7daf@pedra.chehab.org> <4AD512B9.2060909@tmr.com>
-In-Reply-To: <4AD512B9.2060909@tmr.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	format=flowed;
+	charset="ISO-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bill Davidsen wrote:
-> The answer was responsive to the question, a couple of links to software 
-> which might serve. I would think your going off about it was further 
-> off-topic, it certainly didn't help the O.P. any. When someone ends a 
-> question with "please help" I would assume that any answer would be 
-> better than "we're working on it." Answering an on-topic question with a 
-> short list of links is hardly "spamming" or even advertising, it's 
-> called being polite and helpful.
+Devin,
+thank you very much.
+
+I downloaded, compiled and installed drivers from current (today) hg 
+repository o linuxtv.org, attached Pinnacle dongle, scanned.
+
+The log files are quite large so i ZIPed them and made available at 
+http://pragl.com/tmp/em28xx_logs.zip
+They are:
+
+1. messages.txt - relevant paert of /var/log/messages after plugging the 
+dongle in
+
+2. scan.txt - output from `scan cz-Praha` (my location) you can see scan 
+locks on first frequency (634000000), finds correctly couple of channels 
+then fails on other frequencies
+
+3. scan2.txt - same scan but I commented-out 1st frequency (634000000) so 
+scan successfully starts from following one (674000000) and the situation 
+repeats - only this one gets scanned, following are not
+
+Hope I described it clearly :)
+
+I really appreciate your help
+
+MP
+
+
+--------------------------------------------------
+From: "Devin Heitmueller" <dheitmueller@kernellabs.com>
+Sent: Thursday, October 08, 2009 4:36 PM
+To: "Miroslav Pragl" <lists.subscriber@pragl.cz>
+Cc: <linux-media@vger.kernel.org>
+Subject: Re: Pinnace 320e (PCTV Hybrid Pro Stick) support
+
+> 2009/10/8 Miroslav Pragl <lists.subscriber@pragl.cz>:
+>> Hello,
+>> are here users of Pinnace 320e (PCTV Hybrid Pro Stick)?
+>>
+>> I have lots of problems with tuning, namely
+>> - scan somehow locks on the first frequency listed in scan file and finds 
+>> no
+>> signal on subsequent freqs
+>> - kaffeine which has own scanning scans RELIABLY two, somehow three of 
+>> four
+>> channels available in my region
+>> - vlc which has great commandline parameters for direc tuning frequency 
+>> and
+>> programm (by its ID) works fine
+>>
+>> I currently use Fedora 11 with latest stable kernel (64 bit) and try to 
+>> keep
+>> up-to-date with linuxtv drivers
+>>
+>> any help or atleast bug confirming would help me a lot
+>>
+>> Thanks
+>>
+>> MP
+>>
+>> P.S. although i hated the aggressivnes of Markus' drivers from 
+>> mcentral.de
+>> (no longer maintained) and need of FULL kernel sources these atleast 
+>> worked
+>> :(
 >
-> I would rather run commercial software on Linux that open source on 
-> Windows, thanks, if those are the choices.
+> Hi Miroslav,
 >
-> After several months of looking I have yet to find any video app that a 
-> typical office worker can use. Something no more complex than xawtv, 
-> which has been running fine on FC4 and FC6 for these folks. I would 
-> certainly consider a commercial solution rather than have them go back 
-> to the dark side of the force and Windows-7.
->   
-i've followed the advice of marcus in the past
-and that is why for over a year i had a completely useless piece of hardware
-in the end the "real" developers here sorted the problem out
-
-this list is for people who run or want to run the drivers at linuxtv.org
-so no, i don't think i was off-topic
-he constantly spams the list here with his closed source commercial solution
-just about my only job on this list is to counter his bull
-
-with kind regards
---
-simon
-
-
+> I did the 320e work with the assistance of a couple of users in
+> Europe.  Could you confirm that you are running the latest v4l-dvb
+> tree from http://linuxtv.org/hg/v4l-dvb?  If so, please provide the
+> output of dmesg after connecting the device.
+>
+> Devin
+>
+> -- 
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+> 
