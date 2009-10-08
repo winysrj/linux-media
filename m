@@ -1,71 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f227.google.com ([209.85.220.227]:35631 "EHLO
-	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760275AbZJNNNA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Oct 2009 09:13:00 -0400
-Received: by fxm27 with SMTP id 27so11566038fxm.17
-        for <linux-media@vger.kernel.org>; Wed, 14 Oct 2009 06:12:22 -0700 (PDT)
+Received: from mail-ew0-f208.google.com ([209.85.219.208]:43243 "EHLO
+	mail-ew0-f208.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758679AbZJHQhs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Oct 2009 12:37:48 -0400
+Received: by ewy4 with SMTP id 4so3061922ewy.37
+        for <linux-media@vger.kernel.org>; Thu, 08 Oct 2009 09:37:11 -0700 (PDT)
+Message-ID: <4ACE314D.1090300@xfce.org>
+Date: Thu, 08 Oct 2009 18:37:01 +0000
+From: Ali Abdallah <aliov@xfce.org>
 MIME-Version: 1.0
-In-Reply-To: <20091014122550.7c84bba5@ieee.org>
-References: <829197380910132052w155116ecrcea808abe87a57a6@mail.gmail.com>
-	 <20091014122550.7c84bba5@ieee.org>
-Date: Wed, 14 Oct 2009 09:12:22 -0400
-Message-ID: <829197380910140612t726251d6y7cff3873587101b4@mail.gmail.com>
-Subject: Re: em28xx DVB modeswitching change: call for testers
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Giuseppe Borzi <gborzi@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Michael Krufky <mkrufky@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Hauppage WinTV-HVR-900H
+References: <4ACDF829.3010500@xfce.org>	 <37219a840910080545v72165540v622efd43574cf085@mail.gmail.com>	 <4ACDFED9.30606@xfce.org>	 <829197380910080745j3015af10pbced2a7e04c7595b@mail.gmail.com>	 <4ACE2D5B.4080603@xfce.org> <829197380910080928t30fc0ecas7f9ab2a7d8437567@mail.gmail.com>
+In-Reply-To: <829197380910080928t30fc0ecas7f9ab2a7d8437567@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 14, 2009 at 6:25 AM, Giuseppe Borzi <gborzi@gmail.com> wrote:
->> Hello all,
+Devin Heitmueller wrote:
+> On Thu, Oct 8, 2009 at 2:20 PM, Ali Abdallah <aliov@xfce.org> wrote:
+>   
+>> I have the card since alsmost 3 years, it never worked, but now i'm in
+>> urgent need of getting an analog usb stick to work with Linux.
 >>
->> I have setup a tree that removes the mode switching code when
->> starting/stopping streaming.  If you have one of the em28xx dvb
->> devices mentioned in the previous thread and volunteered to test,
->> please try out the following tree:
+>> The PCTV hybrid:
 >>
->> http://kernellabs.com/hg/~dheitmueller/em28xx-modeswitch
+>> Bus 001 Device 004: ID eb1a:2881 eMPIA Technology, Inc.
 >>
->> In particular, this should work for those of you who reported problems
->> with zl10353 based devices like the Pinnacle 320e (or Dazzle) and were
->> using that one line change I sent this week.  It should also work with
->> Antti's Reddo board without needing his patch to move the demod reset
->> into the tuner_gpio.
->>
->> This also brings us one more step forward to setting up the locking
->> properly so that applications cannot simultaneously open the analog
->> and dvb side of the device.
->>
->> Thanks for your help,
->>
->> Devin
->>
-> Hello Devin,
-> I've just downloaded, compiled and installed em28xx-modeswitch.
-> Unfortunately, it doesn't work and doesn't even
-> create /dev/dvb, /dev/videoX, /dev/vbiX. Only /dev/dsp1 is created.
-> The dmesg is attached to this email. As you can see it ends up in
-> errors.
-> One last note, I downloaded from the bz2 link.
+>> Thanks for you support, but i need an analog usb stick, well hopefully the
+>> wintv 900H will get supported soon.
+>>     
 >
-> Cheers.
+> Well, I added support for that device last month, so I would suggest
+> you install the latest v4l-dvb code from
+> http://linuxtv.org/hg/v4l-dvb.  Directions can be found here:
+>
+> http://linuxtv.org/repo
+>   
 
-Did you run "make unload" before you plugged in the device?
+Analog part also?
+> Cheers,
+>
+> Devin
+>   
 
-Do me a favor - unplug the device, reboot the PC, plug it back in and
-see if it still happens.  I just want to be sure this isn't some sort
-of issue with conflict between the new and old modules before I debug
-this any further.
+Cheers,
+Ali.
 
-Thanks,
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
