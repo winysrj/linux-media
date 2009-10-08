@@ -1,14 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from blu0-omc3-s6.blu0.hotmail.com ([65.55.116.81])
+Received: from www.viadmin.org ([195.145.128.101])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <firebringer11@hotmail.com>) id 1N1uyU-0003R1-Hf
-	for linux-dvb@linuxtv.org; Sun, 25 Oct 2009 05:45:05 +0100
-Message-ID: <BLU0-SMTP73ED79EFFA56A43888F510B0BB0@phx.gbl>
-From: "E.T. Anderson" <firebringer11@hotmail.com>
+	(envelope-from <henrik-dvb@prak.org>) id 1MvqQm-0006WF-An
+	for linux-dvb@linuxtv.org; Thu, 08 Oct 2009 12:41:09 +0200
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by www.viadmin.org (Postfix) with ESMTP id 2237355D08
+	for <linux-dvb@linuxtv.org>; Thu,  8 Oct 2009 12:40:33 +0200 (CEST)
+Received: from www.viadmin.org ([127.0.0.1])
+	by localhost (www.viadmin.org [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id AjsrRkfh3XaC for <linux-dvb@linuxtv.org>;
+	Thu,  8 Oct 2009 12:40:22 +0200 (CEST)
+Date: Thu, 8 Oct 2009 12:40:22 +0200
+From: "H. Langos" <henrik-dvb@prak.org>
 To: linux-dvb@linuxtv.org
-Date: Sat, 24 Oct 2009 21:44:20 -0700
+Message-ID: <20091008104022.GE6384@www.viadmin.org>
 MIME-Version: 1.0
-Subject: [linux-dvb] OnAir HDTV GT
+Content-Disposition: inline
+Subject: [linux-dvb] linuxtv.org/wiki sleepers in the user database ;-)
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -17,58 +25,32 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0947809421=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0947809421==
-Content-Type: multipart/alternative;
-  boundary="Boundary-01=_ke94KHnP7S/6y3W"
-Content-Transfer-Encoding: 7bit
 
---Boundary-01=_ke94KHnP7S/6y3W
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+I just took a look at the users list
+http://www.linuxtv.org/wiki/index.php/Special:ListUsers
+to find out how it comes that we have > 6400 users but hardly any
+changes in the wiki.
 
-Is anyone working on the GT? I heard that the company was working on a Linux 
-driver, but that was a few years ago and I've heard nothing more.
+Of course this is mostly due to the fact that users are a bunch of lazy
+bastards ;-) ... but apart from that there are several hundred "users" with
+names that consist of 6 random hex characters. Their "User contributions" 
+list is as empty as their "Logs" page.
 
-If anyone is working on it, I have one I'd love to get working.
+My guess is that they are left over from some stupid kid's wiki spamming
+attack. Is it possible to put those zombies out of their missery to 
+avoid them being resurrected for some attack later?
 
-E.T. Anderson
-firebringer11@hotmail.com
-
-
---Boundary-01=_ke94KHnP7S/6y3W
-Content-Type: text/html;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
-<html><head><meta name="qrichtext" content="1" /><style type="text/css">
-p, li { white-space: pre-wrap; }
-</style></head><body style=" font-family:'DejaVu Sans'; font-size:12pt; font-weight:400; font-style:normal;">
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">Is anyone working on the GT? I heard that the company was working on a Linux driver, but that was a few years ago and I've heard nothing more.</p>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"></p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">If anyone is working on it, I have one I'd love to get working.<br /></p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><span style=" font-weight:600;">E.T. Anderson</span></p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">firebringer11@hotmail.com</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br /></p></body></html>
---Boundary-01=_ke94KHnP7S/6y3W--
-
-
---===============0947809421==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+cheers
+-henrik
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0947809421==--
