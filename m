@@ -1,60 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:57199 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751606AbZJXPtU (ORCPT
+Received: from smtp131.mail.ukl.yahoo.com ([77.238.184.62]:24156 "HELO
+	smtp131.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1757660AbZJHXfs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Oct 2009 11:49:20 -0400
-Received: by pwj9 with SMTP id 9so641888pwj.21
-        for <linux-media@vger.kernel.org>; Sat, 24 Oct 2009 08:49:24 -0700 (PDT)
-Message-ID: <4AE32200.6070107@gmail.com>
-Date: Sat, 24 Oct 2009 23:49:20 +0800
-From: "David T. L. Wong" <davidtlwong@gmail.com>
+	Thu, 8 Oct 2009 19:35:48 -0400
+Message-ID: <4ACE7727.7090800@yahoo.it>
+Date: Fri, 09 Oct 2009 01:35:03 +0200
+From: SebaX75 <sebax75@yahoo.it>
 MIME-Version: 1.0
-To: v4l-dvb <linux-media@vger.kernel.org>
-Subject: gcc 4.3.3 compilation problem
-Content-Type: multipart/mixed;
- boundary="------------030500030901090902090900"
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Miroslav Pragl <lists.subscriber@pragl.cz>,
+	linux-media@vger.kernel.org
+Subject: Re: Pinnace 320e (PCTV Hybrid Pro Stick) support
+References: <2D9D466571BB4CCEB9FD981D65F8FBFC@MirekPNB>	 <829197380910080736g4b30e0e8m21f1d3b876a15ce6@mail.gmail.com>	 <C3EF2005C0C34F008FA0B59B48782D75@MirekPNB> <829197380910081204r6b8c779dsf32c61b718df77f0@mail.gmail.com>
+In-Reply-To: <829197380910081204r6b8c779dsf32c61b718df77f0@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------030500030901090902090900
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Il 08/10/2009 21:04, Devin Heitmueller ha scritto:
+> On Thu, Oct 8, 2009 at 2:23 PM, Miroslav Pragl
+> <lists.subscriber@pragl.cz>  wrote:
+>> Devin,
+>> thank you very much.
+>>
+>> I downloaded, compiled and installed drivers from current (today) hg
+>> repository o linuxtv.org, attached Pinnacle dongle, scanned.
+>>
+>> The log files are quite large so i ZIPed them and made available at
+>> http://pragl.com/tmp/em28xx_logs.zip
+>> They are:
+>>
+>> 1. messages.txt - relevant paert of /var/log/messages after plugging the
+>> dongle in
+>>
+>> 2. scan.txt - output from `scan cz-Praha` (my location) you can see scan
+>> locks on first frequency (634000000), finds correctly couple of channels
+>> then fails on other frequencies
+>>
+>> 3. scan2.txt - same scan but I commented-out 1st frequency (634000000) so
+>> scan successfully starts from following one (674000000) and the situation
+>> repeats - only this one gets scanned, following are not
+>>
+>> Hope I described it clearly :)
+>>
+>> I really appreciate your help
+>
+> Interesting.  I just looked at SebaX75's usbmon trace, and I have a
+> suspicion as to what is going on.  If one of you is feeling
+> adventurous, try the following
+>
+> unplug the device
+> comment out line 181 of file v4l/em28xx-cards.c so it looks like:
+>
+> //   {EM2880_R04_GPO,        0x04,   0xff,          100},/* zl10353 reset */
+>
+> make&&  make install&&  make unload
+> plug in device
+> Attempt a scan
+>
+> Let me know if that causes it to lock on more than just the first frequency.
+>
+> Devin
+>
 
-I encounter a compilation error on gcc 4.3.3 ubuntu 9.04 x86_64.
+Hi Devin,
+I've no problem to test... and now all is working. I've scanned all VHF 
+and UHF frequency and all MUX were identified and channel are recognized.
 
-The compiler complains missing parameter name for first parameter of 
-function dib7000p_pid_filter().
+Your suspicion was correct, very thanks.
 
-attached patch fix the problem.
-
-David
-
---------------030500030901090902090900
-Content-Type: text/x-patch;
- name="gcc4.3.3_compilation_fix.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="gcc4.3.3_compilation_fix.patch"
-
-changeset:   13157:df47ca1f4db5
-user:        David T.L. Wong <davidtlwong@gmail.com>
-date:        Sat Oct 24 23:16:11 2009 +0800
-summary:     fix gcc-4.3.3 compilation error
-
-diff --git a/linux/drivers/media/dvb/frontends/dib7000p.h b/linux/drivers/media/dvb/frontends/dib7000p.h
---- a/linux/drivers/media/dvb/frontends/dib7000p.h
-+++ b/linux/drivers/media/dvb/frontends/dib7000p.h
-@@ -97,7 +97,7 @@
- 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
- 	return -ENODEV;
- }
--static inline int dib7000p_pid_filter(struct dvb_frontend *, u8 id, u16 pid, u8 onoff)
-+static inline int dib7000p_pid_filter(struct dvb_frontend *fe, u8 id, u16 pid, u8 onoff)
- {
-     printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-     return -ENODEV;
-
-
---------------030500030901090902090900--
+Sebastian
