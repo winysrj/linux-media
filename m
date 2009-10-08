@@ -1,117 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx5.sysproserver.de ([78.46.249.136]:49020 "EHLO
-	srv5.sysproserver.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756437AbZJCNsH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2009 09:48:07 -0400
-Received: from laptop.localnet (xdsl-87-78-37-50.netcologne.de [87.78.37.50])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by srv5.sysproserver.de (Postfix) with ESMTP id 89A811D88087
-	for <linux-media@vger.kernel.org>; Sat,  3 Oct 2009 15:37:35 +0200 (CEST)
-From: Niels Ole Salscheider <niels_ole@salscheider-online.de>
-To: linux-media@vger.kernel.org
-Subject: Patch for TeVii S470
-Date: Sat, 3 Oct 2009 15:37:31 +0200
+Received: from h206.core.ignum.cz ([217.31.49.206]:40295 "EHLO
+	h206.core.ignum.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756914AbZJHTr5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Oct 2009 15:47:57 -0400
+Message-ID: <4ACE41AE.7070008@pragl.cz>
+Date: Thu, 08 Oct 2009 21:46:54 +0200
+From: Miroslav Pragl - mailing lists <lists.subscriber@pragl.cz>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: SebaX75 <sebax75@yahoo.it>, linux-media@vger.kernel.org
+Subject: Re: Pinnace 320e (PCTV Hybrid Pro Stick) support
+References: <2D9D466571BB4CCEB9FD981D65F8FBFC@MirekPNB>	 <829197380910080736g4b30e0e8m21f1d3b876a15ce6@mail.gmail.com>	 <C3EF2005C0C34F008FA0B59B48782D75@MirekPNB> <829197380910081204r6b8c779dsf32c61b718df77f0@mail.gmail.com>
+In-Reply-To: <829197380910081204r6b8c779dsf32c61b718df77f0@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <200910031537.31905.niels_ole@salscheider-online.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+GREAT, works perfectly! Thanks a lot!
 
-I have downloaded and compiled the linuxtv sources from 
-http://mercurial.intuxication.org/hg/s2-liplianin in order to get my TeVii 
-S470 working. Nevertheless, I get the folowing error if I try to tune any 
-channel:
+MP
+> comment out line 181 of file v4l/em28xx-cards.c so it looks like:
+> //   {EM2880_R04_GPO,        0x04,   0xff,          100},/* zl10353 reset */
+>    
 
-Oct  3 11:15:51 Server kernel: ds3000_firmware_ondemand: Waiting for firmware 
-upload (dvb-fe-ds3000.fw)...
-Oct  3 11:15:51 Server kernel: i2c-adapter i2c-1: firmware: requesting dvb-fe-
-ds3000.fw
-Oct  3 11:15:51 Server kernel: ------------[ cut here ]------------
-Oct  3 11:15:51 Server kernel: WARNING: at fs/sysfs/dir.c:487 
-sysfs_add_one+0x12d/0x160()
-Oct  3 11:15:51 Server kernel: Hardware name: System Product Name
-Oct  3 11:15:51 Server kernel: sysfs: cannot create duplicate filename 
-'/devices/pci0000:00/0000:00:05.0/0000:02:00.0/i2c-adapter/i2c-1/i2c-1'
-Oct  3 11:15:51 Server kernel: Modules linked in: af_packet hwmon_vid i2c_dev 
-powernow_k8 kvm_amd kvm nfsd nfs_acl exportfs nfs lockd auth_rpcgss sunrpc 
-dvb_pll ds3000 stv0299 cx23885 cx2341x v4l2_common videodev v4l1_compat 
-b2c2_flexcop_pci v4l2_compat_ioctl32 b2c2_flexcop videobuf_dma_sg videobuf_dvb 
-dvb_core videobuf_core processor i2c_piix4 btcx_risc cx24123 atiixp thermal 
-tveeprom ide_core cx24113 ehci_hcd ohci_hcd s5h1420 thermal_sys shpchp usbcore 
-floppy atl1 ata_generic 8250_pnp rtc_cmos pata_acpi rtc_core pci_hotplug 8250 
-mii sg serial_core k8temp rtc_lib hwmon button unix
-Oct  3 11:15:51 Server kernel: Pid: 2548, comm: kdvb-ad-1-fe-0 Not tainted 
-2.6.31-gentoo #1
-Oct  3 11:15:51 Server kernel: Call Trace:
-Oct  3 11:15:51 Server kernel: [<ffffffff81186f3d>] ? sysfs_add_one+0x12d/0x160
-Oct  3 11:15:51 Server kernel: [<ffffffff81057af9>] ? 
-warn_slowpath_common+0x89/0x100
-Oct  3 11:15:51 Server kernel: [<ffffffff81186de4>] ? sysfs_pathname+0x44/0x70
-Oct  3 11:15:51 Server kernel: [<ffffffff81057c11>] ? warn_slowpath_fmt+0x61/0x90
-Oct  3 11:15:51 Server kernel: [<ffffffff81186de4>] ? sysfs_pathname+0x44/0x70
-Oct  3 11:15:51 Server kernel: [<ffffffff8110f5bb>] ? kmem_cache_alloc+0x9b/0x160
-Oct  3 11:15:51 Server kernel: [<ffffffff81186de4>] ? sysfs_pathname+0x44/0x70
-Oct  3 11:15:51 Server kernel: [<ffffffff81186f3d>] ? sysfs_add_one+0x12d/0x160
-Oct  3 11:15:51 Server kernel: [<ffffffff81187ee0>] ? create_dir+0x70/0xe0
-Oct  3 11:15:51 Server kernel: [<ffffffff81187f8f>] ? sysfs_create_dir+0x3f/0x70
-Oct  3 11:15:51 Server kernel: [<ffffffff812b23c9>] ? 
-kobject_add_internal+0x109/0x210
-Oct  3 11:15:51 Server kernel: [<ffffffff812b27c4>] ? kobject_add+0x64/0xb0
-Oct  3 11:15:51 Server kernel: [<ffffffff8135308d>] ? dev_set_name+0x5d/0x80
-Oct  3 11:15:51 Server kernel: [<ffffffff812b21f6>] ? kobject_get+0x26/0x50
-Oct  3 11:15:51 Server kernel: [<ffffffff81353fdf>] ? device_add+0x18f/0x680
-Oct  3 11:15:51 Server kernel: [<ffffffff8135f83e>] ? _request_firmware+0x2ae/0x5d0
-Oct  3 11:15:51 Server kernel: [<ffffffffa0201ff6>] ? ds3000_tune+0xaf6/0xe98 
-[ds3000]
-Oct  3 11:15:51 Server kernel: [<ffffffff81066c64>] ? 
-try_to_del_timer_sync+0x64/0x90
-Oct  3 11:15:51 Server kernel: [<ffffffffa017da61>] ? 
-dvb_frontend_swzigzag_autotune+0xe1/0x260 [dvb_core]
-Oct  3 11:15:51 Server kernel: [<ffffffff81066d80>] ? process_timeout+0x0/0x40
-Oct  3 11:15:51 Server kernel: [<ffffffffa017ec0a>] ? 
-dvb_frontend_swzigzag+0x26a/0x2c0 [dvb_core]
-Oct  3 11:15:51 Server kernel: [<ffffffffa017f0b0>] ? 
-dvb_frontend_thread+0x450/0x770 [dvb_core]
-Oct  3 11:15:51 Server kernel: [<ffffffff81077d80>] ? 
-autoremove_wake_function+0x0/0x60
-Oct  3 11:15:51 Server kernel: [<ffffffffa017ec60>] ? 
-dvb_frontend_thread+0x0/0x770 [dvb_core]
-Oct  3 11:15:51 Server kernel: [<ffffffffa017ec60>] ? 
-dvb_frontend_thread+0x0/0x770 [dvb_core]
-Oct  3 11:15:51 Server kernel: [<ffffffff81077846>] ? kthread+0xb6/0xd0
-Oct  3 11:15:51 Server kernel: [<ffffffff8100d29a>] ? child_rip+0xa/0x20
-Oct  3 11:15:51 Server kernel: [<ffffffff81077790>] ? kthread+0x0/0xd0
-Oct  3 11:15:51 Server kernel: [<ffffffff8100d290>] ? child_rip+0x0/0x20
-Oct  3 11:15:51 Server kernel: ---[ end trace 478953c6d1c9275f ]---
+scan /usr/share/dvb/dvb-t/cz-Praha
+scanning /usr/share/dvb/dvb-t/cz-Praha
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+initial transponder 634000000 0 2 9 3 1 3 0
+initial transponder 674000000 0 2 9 3 1 3 0
+initial transponder 730000000 0 2 9 3 1 3 0
+initial transponder 778000000 0 2 9 3 1 3 0
+initial transponder 818000000 0 2 9 3 1 2 0
+ >>> tune to: 
+634000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
+Network Name 'CESKE RADIOKOMUNIKACE'
+0x0000 0x0202: pmt_pid 0x0190 CESKE RADIOKOMUNIKACE -- NOVA CINEMA (running)
+0x0000 0x0201: pmt_pid 0x0064 CESKE RADIOKOMUNIKACE --  NOVA (running)
+0x0000 0x0801: pmt_pid 0x012c CESKE RADIOKOMUNIKACE -- BARRANDOV TV 
+(running)
+0x0000 0x0302: pmt_pid 0x01f4 CESKE RADIOKOMUNIKACE -- Prima COOL (running)
+0x0000 0x0301: pmt_pid 0x00c8 CESKE RADIOKOMUNIKACE -- PRIMA (running)
+ >>> tune to: 
+674000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
+Network Name 'Sit 3 Czech Digital Group'
+0x0301 0x0303: pmt_pid 0x0000 CDG -- Prima (MPEG-4 HD) (running)
+0x0301 0x0501: pmt_pid 0x0000 CDG -- Noe TV (running)
+0x0301 0x0601: pmt_pid 0x0000 CDG -- PublicTV (running)
+0x0301 0x0701: pmt_pid 0x0000 CDG -- Z1 (running)
+0x0301 0x4301: pmt_pid 0x0000 CDG -- Proglas (running)
+ >>> tune to: 
+730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
+0x0000 0x0101: pmt_pid 0x0100 Ceska televize -- CT 1 (running)
+0x0000 0x0102: pmt_pid 0x0200 Ceska televize -- CT 2 (running)
+0x0000 0x0103: pmt_pid 0x0300 Ceska televize -- CT 24 (running)
+0x0000 0x0104: pmt_pid 0x0400 Ceska televize -- CT 4 (running)
+0x0000 0x4101: pmt_pid 0x1000 Ceska televize -- CRo1-Radiozurnal     
+(running)
+0x0000 0x4102: pmt_pid 0x1100 Ceska televize -- CRo2-Praha           
+(running)
+0x0000 0x4103: pmt_pid 0x1200 Ceska televize -- CRo3-Vltava          
+(running)
+0x0000 0x4104: pmt_pid 0x1300 Ceska televize -- CRo Radio Wave      
+(running)
+0x0000 0x4105: pmt_pid 0x1400 Ceska televize -- CRo D-dur            
+(running)
+0x0000 0x4106: pmt_pid 0x1500 Ceska televize -- CRo Leonardo         
+(running)
+0x0000 0x4107: pmt_pid 0x1600 Ceska televize -- CRo Radio Cesko      
+(running)
+Network Name 'SIT 1 CESKA TELEVIZE'
+ >>> tune to: 
+778000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
+Network Name 'Sit 3-Czech Digital Group'
+0x0000 0x0601: pmt_pid 0x0300 CDG -- PublicTV (running)
+0x0000 0x0701: pmt_pid 0x0400 CDG -- Z1 (running)
+0x0000 0x4301: pmt_pid 0x1000 CDG -- Proglas (running)
+ >>> tune to: 
+818000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE
+WARNING: >>> tuning failed!!!
+ >>> tune to: 
+818000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE 
+(tuning failed)
+WARNING: >>> tuning failed!!!
+dumping lists (24 services)
+NOVA 
+CINEMA:634000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:401:411:514
+  NOVA:634000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:101:111:513
+BARRANDOV 
+TV:634000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:301:311:2049
+Prima 
+COOL:634000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:501:511:770
+PRIMA:634000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:201:211:769
+Prima (MPEG-4 
+HD):674000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:1281:1282:771
+Noe 
+TV:674000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:513:514:1281
+PublicTV:674000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:769:770:1537
+Z1:674000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:1025:1026:1793
+Proglas:674000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:4097:17153
+CT 
+1:730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:257:273:257
+CT 
+2:730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:513:529:258
+CT 
+24:730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:769:785:259
+CT 
+4:730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:1025:1041:260
+CRo1-Radiozurnal    
+:730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:4113:16641
+CRo2-Praha          
+:730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:4369:16642
+CRo3-Vltava         
+:730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:4625:16643
+CRo Radio Wave     
+:730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:4881:16644
+CRo D-dur           
+:730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:5137:16645
+CRo Leonardo        
+:730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:5393:16646
+CRo Radio Cesko     
+:730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:5649:16647
+PublicTV:778000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:769:770:1537
+Z1:778000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:1025:1026:1793
+Proglas:778000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:4097:17153
+Done.
 
-
-The following patch solves this problem for me:
-
-diff -r 82a256f5d842 linux/drivers/media/dvb/frontends/ds3000.c
---- a/linux/drivers/media/dvb/frontends/ds3000.c        Wed Sep 23 20:44:12 
-2009 +0300
-+++ b/linux/drivers/media/dvb/frontends/ds3000.c        Sat Oct 03 15:28:52 
-2009 +0200
-@@ -444,7 +444,7 @@
-                /* Load firmware */
-                /* request the firmware, this will block until someone uploads 
-it */
-                printk("%s: Waiting for firmware upload (%s)...\n", __func__, 
-DS3000_DEFAULT_FIRMWARE);
--               ret = request_firmware(&fw, DS3000_DEFAULT_FIRMWARE, &state-
->i2c->dev);
-+               ret = request_firmware(&fw, DS3000_DEFAULT_FIRMWARE, state-
->i2c->dev.parent);
-                printk("%s: Waiting for firmware upload(2)...\n", __func__);
-                if (ret) {
-                        printk("%s: No firmware uploaded (timeout or file not 
-found?)\n", __func__);
-
-Kind regards
-
-Ole
