@@ -1,57 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lider.pardus.org.tr ([193.140.100.216]:59424 "EHLO
-	lider.pardus.org.tr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752494AbZJVK0Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Oct 2009 06:26:16 -0400
-Message-ID: <4AE03477.1010902@pardus.org.tr>
-Date: Thu, 22 Oct 2009 13:31:19 +0300
-From: =?UTF-8?B?T3phbiDDh2HEn2xheWFu?= <ozan@pardus.org.tr>
-MIME-Version: 1.0
-To: Alan Stern <stern@rowland.harvard.edu>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	USB list <linux-usb@vger.kernel.org>
-Subject: Re: uvcvideo causes ehci_hcd to halt
-References: <Pine.LNX.4.44L0.0910212131560.24481-100000@netrider.rowland.org>
-In-Reply-To: <Pine.LNX.4.44L0.0910212131560.24481-100000@netrider.rowland.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1548 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758550AbZJHSIZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Oct 2009 14:08:25 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id n98I7i4M006823
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 8 Oct 2009 20:07:48 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 8 Oct 2009 20:07:44 +0200 (CEST)
+Message-Id: <200910081807.n98I7i4M006823@smtp-vbr8.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Alan Stern wrote On 22-10-2009 04:36:
-> On Thu, 22 Oct 2009, Laurent Pinchart wrote:
->   
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Here's the outputs from /sys/kernel/debug/usb/ehci:
+Results of the daily build of v4l-dvb:
 
-periodic:
-----------------
-size = 1024
-   1:  qh1024-0001/f6ffe280 (h2 ep2 [1/0] q0 p8)
+date:        Thu Oct  8 19:00:03 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13083:89b7e6d5854a
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-registers:
-----------------
-bus pci, device 0000:00:1d.7
-EHCI Host Controller
-EHCI 1.00, hcd state 0
-ownership 00000001
-SMI sts/enable 0x80080000
-structural params 0x00104208
-capability params 0x00016871
-status 6008 Periodic Recl FLR
-command 010000 (park)=0 ithresh=1 period=1024 HALT
-intrenable 00
-uframe 2fa0
-port 1 status 001000 POWER sig=se0
-port 2 status 001000 POWER sig=se0
-port 3 status 001000 POWER sig=se0
-port 4 status 001000 POWER sig=se0
-port 5 status 001005 POWER sig=se0 PE CONNECT
-port 6 status 001005 POWER sig=se0 PE CONNECT
-port 7 status 001000 POWER sig=se0
-port 8 status 001000 POWER sig=se0
-irq normal 60 err 0 reclaim 16 (lost 0)
-complete 60 unlink 1
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-rc3-armv5: ERRORS
+linux-2.6.32-rc3-armv5-davinci: ERRORS
+linux-2.6.27-armv5-ixp: ERRORS
+linux-2.6.28-armv5-ixp: ERRORS
+linux-2.6.29.1-armv5-ixp: ERRORS
+linux-2.6.30-armv5-ixp: ERRORS
+linux-2.6.31-armv5-ixp: ERRORS
+linux-2.6.32-rc3-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.32-rc3-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-rc3-i686: ERRORS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-rc3-m32r: ERRORS
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.32-rc3-mips: ERRORS
+linux-2.6.27-powerpc64: ERRORS
+linux-2.6.28-powerpc64: ERRORS
+linux-2.6.29.1-powerpc64: ERRORS
+linux-2.6.30-powerpc64: ERRORS
+linux-2.6.31-powerpc64: ERRORS
+linux-2.6.32-rc3-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-rc3-x86_64: ERRORS
+sparse (linux-2.6.31): OK
+sparse (linux-2.6.32-rc3): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
