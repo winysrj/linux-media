@@ -1,53 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3533 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752509AbZJKWnL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Oct 2009 18:43:11 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] v4l2_subdev: rename tuner s_standby operation to core s_power
-Date: Mon, 12 Oct 2009 00:42:19 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <1254750497-13684-1-git-send-email-laurent.pinchart@ideasonboard.com> <200910120036.37857.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <200910120036.37857.laurent.pinchart@ideasonboard.com>
+Received: from mail-ew0-f208.google.com ([209.85.219.208]:34250 "EHLO
+	mail-ew0-f208.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751654AbZJHMqc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Oct 2009 08:46:32 -0400
+Received: by ewy4 with SMTP id 4so2833539ewy.37
+        for <linux-media@vger.kernel.org>; Thu, 08 Oct 2009 05:45:55 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200910120042.19506.hverkuil@xs4all.nl>
+In-Reply-To: <4ACDF829.3010500@xfce.org>
+References: <4ACDF829.3010500@xfce.org>
+Date: Thu, 8 Oct 2009 08:45:54 -0400
+Message-ID: <37219a840910080545v72165540v622efd43574cf085@mail.gmail.com>
+Subject: Re: Hauppage WinTV-HVR-900H
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Ali Abdallah <aliov@xfce.org>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 12 October 2009 00:36:37 Laurent Pinchart wrote:
-> On Monday 05 October 2009 15:48:17 Laurent Pinchart wrote:
-> > Upcoming I2C v4l2_subdev drivers need a way to control the subdevice
-> > power state from the core. This use case is already partially covered by
-> > the tuner s_standby operation, but no way to explicitly come back from
-> > the standby state is available.
-> > 
-> > Rename the tuner s_standby operation to core s_power, and fix tuner
-> > drivers accordingly. The tuner core will call s_power(0) instead of
-> > s_standby(). No explicit call to s_power(1) is required for tuners as
-> > they are supposed to wake up from standby automatically.
-> 
-> Mauro, Hans told me he didn't see anything wrong with this patch. As there's 
-> no negative feedback so far (but unfortunately no positive feedback either) 
-> can it be applied ?
-> 
+On Thu, Oct 8, 2009 at 10:33 AM, Ali Abdallah <aliov@xfce.org> wrote:
+> Hi,
+>
+> Very unlucky, i bought a pinnacle hybrid pro and couldn't get it to work
+> with linux, then i gave it up, and i found that HVR-900 card works well
+> under linux, i got one, but i didn't know that the company is referring now
+> for 900 same as 900H.
+>
+> 900H doesn't work under Linux, is there is way to get this card working?
+>
+> googling i didn't find much information, all i found is work under way to
+> get this card supported (2008).
+>
+> Please help,
 
-Just in case anyone wants it:
+Mauro was working on this driver some time ago...  There is a current
+thread about the tm6010 on the mailing list now, but I have not read
+up on it.  Last I heard, progress on the driver has been minimal.
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+Almost all other Hauppauge products have relatively decent linux
+support -- you were unlucky and picked the one usb stick that will
+probably not be fully functional for a while.
 
-This came out of discussions during the LPC and it's a good change.
+If you're interested in helping the driver development, then take a
+look at the related mailing list posts.  Otherwise, you might be
+better off choosing a different product.
 
-Regards,
+On the other hand, I think there's been some recent progress on the
+PCTV hybrid pro -- Devin Heitmueller has been doing a lot of work on
+those products lately.  For more information, see
+http://kernellabs.com
 
-	Hans
+Are you specifically looking for a hybrid analog / digital usb stick?
+...or is digital-only good enough for your purposes?
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+-Mike
