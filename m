@@ -1,41 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.versatel.nl ([62.58.50.89]:53984 "EHLO smtp2.versatel.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752848AbZJIJLt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Oct 2009 05:11:49 -0400
-Message-ID: <4ACEFDC1.1030805@hhs.nl>
-Date: Fri, 09 Oct 2009 11:09:21 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Received: from mail-bw0-f210.google.com ([209.85.218.210]:62063 "EHLO
+	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754210AbZJHQ3Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Oct 2009 12:29:24 -0400
+Received: by bwz6 with SMTP id 6so939794bwz.37
+        for <linux-media@vger.kernel.org>; Thu, 08 Oct 2009 09:28:46 -0700 (PDT)
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: libv4l release: 0.6.2: the 3th upside down release
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4ACE2D5B.4080603@xfce.org>
+References: <4ACDF829.3010500@xfce.org>
+	 <37219a840910080545v72165540v622efd43574cf085@mail.gmail.com>
+	 <4ACDFED9.30606@xfce.org>
+	 <829197380910080745j3015af10pbced2a7e04c7595b@mail.gmail.com>
+	 <4ACE2D5B.4080603@xfce.org>
+Date: Thu, 8 Oct 2009 12:28:46 -0400
+Message-ID: <829197380910080928t30fc0ecas7f9ab2a7d8437567@mail.gmail.com>
+Subject: Re: Hauppage WinTV-HVR-900H
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Ali Abdallah <aliov@xfce.org>
+Cc: Michael Krufky <mkrufky@kernellabs.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+On Thu, Oct 8, 2009 at 2:20 PM, Ali Abdallah <aliov@xfce.org> wrote:
+> I have the card since alsmost 3 years, it never worked, but now i'm in
+> urgent need of getting an analog usb stick to work with Linux.
+>
+> The PCTV hybrid:
+>
+> Bus 001 Device 004: ID eb1a:2881 eMPIA Technology, Inc.
+>
+> Thanks for you support, but i need an analog usb stick, well hopefully the
+> wintv 900H will get supported soon.
 
-I'm very happy to announce the release of libv4l-0.6.2
+Well, I added support for that device last month, so I would suggest
+you install the latest v4l-dvb code from
+http://linuxtv.org/hg/v4l-dvb.  Directions can be found here:
 
-The main changes this release is 17 new laptops in the list of laptops
-whose camera modules (mostly uvc) are known to be mounted upside down in
-the frame and it will automatically correct the image for this.
+http://linuxtv.org/repo
 
-(This upside down business is becoming a never ending story)
+Cheers,
 
-libv4l-0.6.2
--------------
-* Add more laptop models to the upside down devices table
-* Put usb id in controls shm segment name for USB devices, to better
-   distuingish between devices plugged into the same port
-* Enable software whitebalance and autogain for mr97310a cameras
-* Improvements / tweaks to software autogain algorithm
+Devin
 
-Note new URL! Get it here:
-http://people.fedoraproject.org/~jwrdegoede/libv4l-0.6.2.tar.gz
-
-Regards,
-
-Hans
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
