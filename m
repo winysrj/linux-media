@@ -1,75 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f218.google.com ([209.85.220.218]:62496 "EHLO
-	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932289AbZJSVvo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Oct 2009 17:51:44 -0400
-Received: by fxm18 with SMTP id 18so5636944fxm.37
-        for <linux-media@vger.kernel.org>; Mon, 19 Oct 2009 14:51:48 -0700 (PDT)
+Received: from ey-out-2122.google.com ([74.125.78.25]:3155 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758721AbZJINgL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Oct 2009 09:36:11 -0400
+Received: by ey-out-2122.google.com with SMTP id 4so1476235eyf.19
+        for <linux-media@vger.kernel.org>; Fri, 09 Oct 2009 06:35:03 -0700 (PDT)
+Message-ID: <4ACF5825.7010202@xfce.org>
+Date: Fri, 09 Oct 2009 15:35:01 +0000
+From: Ali Abdallah <aliov@xfce.org>
 MIME-Version: 1.0
-In-Reply-To: <829197380910191341p484e070ftd190143f73b1d10e@mail.gmail.com>
-References: <51bd605b0910181441l7d6ac90g53978e3e4436f6ba@mail.gmail.com>
-	 <829197380910191218u2c281553pad57bff61ffbd3b5@mail.gmail.com>
-	 <51bd605b0910191328i3b58c955ha3ade305b4af928d@mail.gmail.com>
-	 <829197380910191341p484e070ftd190143f73b1d10e@mail.gmail.com>
-Date: Mon, 19 Oct 2009 23:51:48 +0200
-Message-ID: <51bd605b0910191451x22287c5ai3f829f2af0243879@mail.gmail.com>
-Subject: Re: pctv nanoStick Solo not recognized
-From: Matteo Miraz <telegraph.road@gmail.com>
 To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+CC: Michael Krufky <mkrufky@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Hauppage WinTV-HVR-900H
+References: <4ACDF829.3010500@xfce.org>	 <37219a840910080545v72165540v622efd43574cf085@mail.gmail.com>	 <4ACDFED9.30606@xfce.org>	 <829197380910080745j3015af10pbced2a7e04c7595b@mail.gmail.com>	 <4ACE2D5B.4080603@xfce.org>	 <829197380910080928t30fc0ecas7f9ab2a7d8437567@mail.gmail.com>	 <4ACF03BA.4070505@xfce.org> <829197380910090629h64ce22e5y64ce5ff5b5991802@mail.gmail.com>
+In-Reply-To: <829197380910090629h64ce22e5y64ce5ff5b5991802@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin,
-
-thanks for the support.
-
-In the meanwhile, can I try to force the "new" vendor id?
-Since I have another pinnacle USB device, I was thinking about
-creating a new vendor (something like USB_VID_PINNACLE2).
-Is it enough to add it just after the USB_VID_PINNACLE definition and
-change the 57th line to
-
-{ USB_DEVICE(USB_VID_PINNACLE2, USB_PID_PINNACLE_PCTV73ESE) },
-
-or should I do something else?
-
-Thank you again,
-Matteo
-
-
-On Mon, Oct 19, 2009 at 10:41 PM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> On Mon, Oct 19, 2009 at 4:28 PM, Matteo Miraz <telegraph.road@gmail.com> wrote:
->> in the changeset 12886:ba22a9decfab was added a device called
->> USB_PID_PINNACLE_PCTV73ESE, with id 0245
+Devin Heitmueller wrote:
+> On Fri, Oct 9, 2009 at 5:34 AM, Ali Abdallah <aliov@xfce.org> wrote:
+>   
+>> Okay, i installed the latest drivers+the firmware of the device using
+>> extract_xc3028.pl, the device seems to be detected now, i can detect all the
+>> analog TV of my cable using tvtime, but manually, i mean i had to disable
+>> signal detection when scanning, otherwise i got no results, since the
+>> picture quality is terrible.
 >>
->> However, the vendor is USB_VID_PINNACLE ( 0x2304 ) instead of 0x2013 (
->> as reported for my usb dvb by lsusb )
+>> Of course i'm sure that all the connections (cable to antenna, cable to the
+>> usb stick, ...) are correct, since it works with my old PC equipped with a
+>> PCI TV card.
 >>
->> How can I fix it? How can I create a new vendor with the correct ID,
->> and try if the module works? I'm new to the kernel development, so I'm
->> afraid to make mistakes!
+>> Any advice, what could be the problem? firmware? since you said (you added
+>> support for this device) should i open a bug report? is this device reported
+>> as working by other users?
+>>
+>> Please help if possible, almost two weeks with no real success.
+>>     
 >
-> I've sent some email to the engineer I know over at PCTV Systems, and
-> will report back when I know more.  My suspicion is that they changed
-> the USB ID and we just need to update the driver to allow for either
-> USB ID to be associated with the device.
->
+> Could you please provide a screen shot of the tvtime output?
+>   
+
+I will provide you a screenshot when i go back home this evening.
+> Also, are you trying to capture over-the-air or are you capturing
+> cable television?
+>   
+It is a cable but at the end it is connected to main antenna of the 
+building.
+
+> What analog standard are you using?  PAL-BG?
+>   
+
+SECAM.
+> Did you make sure to tell tvtime which analog standard you are using?
+>   
+Yes i'm sure, settings are SECAM, area France.
+
+> Could you try the S-Video or composite input and see if the picture
+> quality is still bad (as this well help isolate whether it's a problem
+> with the tuner chip or the decoder.
+>   
+
+I will also try these at reply this evening.
+
+
+
 > Devin
 >
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
->
-
-
-
--- 
-ciao, teo
-
-20 minutes is the average that a Windows based PC lasts
-before it's compromised. (Internet Storm Center)
+>   
+Cheers,
+Ali.
