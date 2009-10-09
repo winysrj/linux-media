@@ -1,58 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.ispras.ru ([83.149.198.201]:42391 "EHLO smtp.ispras.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753998AbZJGLy7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Oct 2009 07:54:59 -0400
-From: Alexander Strakh <strakh@ispras.ru>
-To: Simon Evans <spse@secret.org.uk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] konicawc.c: possible buffer overflow while use strncat.
-Date: Wed, 7 Oct 2009 15:56:58 +0000
+Received: from [195.7.61.12] ([195.7.61.12]:46810 "EHLO killala.koala.ie"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S934513AbZJIV72 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 9 Oct 2009 17:59:28 -0400
+Received: from [195.7.61.8] (killarney.koala.ie [195.7.61.8])
+	(authenticated bits=0)
+	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id n99Lwmi5007162
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 9 Oct 2009 22:58:50 +0100
+Message-ID: <4ACFB218.5040608@koala.ie>
+Date: Fri, 09 Oct 2009 22:58:48 +0100
+From: Simon Kenyon <simon@koala.ie>
 MIME-Version: 1.0
-Content-Disposition: inline
-Content-Type: text/plain;
-  charset="us-ascii"
+To: linux-media@vger.kernel.org
+Subject: Re: Hauppage WinTV-HVR-900H
+References: <4ACDF829.3010500@xfce.org>	 <37219a840910080545v72165540v622efd43574cf085@mail.gmail.com>	 <4ACDFED9.30606@xfce.org>	 <829197380910080745j3015af10pbced2a7e04c7595b@mail.gmail.com>	 <4ACE2D5B.4080603@xfce.org>	 <829197380910080928t30fc0ecas7f9ab2a7d8437567@mail.gmail.com>	 <d9def9db0910080946r445ac0efs421cb3bd2972a0d8@mail.gmail.com>	 <4ACEED7D.10302@koala.ie> <d9def9db0910090121i76571d0o4778aa14026b4b9d@mail.gmail.com>
+In-Reply-To: <d9def9db0910090121i76571d0o4778aa14026b4b9d@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <200910071556.59139.strakh@ispras.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-	In driver ./drivers/media/video/usbvideo/konicawc.c in line 227:
-227         usb_make_path(dev, cam->input_physname, sizeof(cam-
->input_physname));
-After this line we use strncat:
-228         strncat(cam->input_physname, "/input0", sizeof(cam-
->input_physname));
- where sizeof(cam->input_physname) returns length of cam->input_phisname 
-without length for null-symbol. But this parameter must be -  "maximum numbers 
-of bytes to copy", i.e.: sizeof(cam->input_physname)-strlen(cam-
->input_physname)-1.
-	In this case, after call to usb_make_path the similar drivers use strlcat. 
-Like in drivers/hid/usbhid/hid-core.c:
-1152         usb_make_path(dev, hid->phys, sizeof(hid->phys));
-1153         strlcat(hid->phys, "/input", sizeof(hid->phys));
+Markus Rechberger wrote:
 
-Found by Linux Driver Verification Project.
+> Available from 20th Oct on so in 11 days. There are not many
+> competitive devices (none) available for
+> linux which deliver such support. On the other side it's not kernel
+> based either, it's entirely in userspace.
+> It's also  entirely supported by all participating companies.
 
-Use strlcat instead of strncat.
+this is a mailing list for the open source dvb drivers
+you are talking about a closed source solution
+what does your solution have to do with linuxtv.org?
 
-Signed-off-by:Alexander Strakh <strakh@ispras.ru>
-
----
-diff --git a/./a/drivers/media/video/usbvideo/konicawc.c 
-b/./b/drivers/media/video/usbvideo/konicawc.c
-index 31d57f2..a0addcb 100644
---- a/./a/drivers/media/video/usbvideo/konicawc.c
-+++ b/./b/drivers/media/video/usbvideo/konicawc.c
-@@ -225,7 +225,7 @@ static void konicawc_register_input(struct konicawc *cam, 
-struct usb_device *dev
- 	int error;
- 
- 	usb_make_path(dev, cam->input_physname, sizeof(cam->input_physname));
--	strncat(cam->input_physname, "/input0", sizeof(cam->input_physname));
-+	strlcat(cam->input_physname, "/input0", sizeof(cam->input_physname));
- 
- 	cam->input = input_dev = input_allocate_device();
- 	if (!input_dev) {
-
+nothing
