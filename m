@@ -1,31 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpout27.attiva.biz ([85.37.16.28]:1757 "EHLO
-	smtpout27.attiva.biz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755548AbZJZKpm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Oct 2009 06:45:42 -0400
-Message-ID: <4AE57DD5.8030706@veneto.com>
-Date: Mon, 26 Oct 2009 11:45:41 +0100
-From: Massimo Del Fedele <max@veneto.com>
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:65151 "EHLO
+	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752468AbZJIFhn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Oct 2009 01:37:43 -0400
+Received: by yxe17 with SMTP id 17so397020yxe.33
+        for <linux-media@vger.kernel.org>; Thu, 08 Oct 2009 22:37:07 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Hint request for driver change
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <7c34ac520909222330k73380177sbf103345f5d3d7ec@mail.gmail.com>
+References: <7c34ac520909222330k73380177sbf103345f5d3d7ec@mail.gmail.com>
+Date: Fri, 9 Oct 2009 13:07:32 +0800
+Message-ID: <7c34ac520910082207i2beacffbhd89a38244370cf39@mail.gmail.com>
+Subject: Re: Support on discontinuous planer buffer and stride
+From: Jun Nie <niej0001@gmail.com>
+To: g.liakhovetski@gmx.de, hverkuil@xs4all.nl,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-I'm trying to support the analog part of Pinnacle PCTV310e, which is an
-ULI M9207 based card; by now I added the support for the digital side
-patching the M920x driver; in order to add the analog part the driver
-should be almost completely rewritten, and it'll take more source files,
-so it should have a separate folder.
-Shall I make a new driver (with different name, as m920x-new) or simply
-remove old one and add the new ?
-
-Ciao
-
-Max
-
+MjAwOS85LzIzIEp1biBOaWUgPG5pZWowMDAxQGdtYWlsLmNvbT46Cj4gSGksCj4goKCgoCBJIHJl
+LXNlbmQgdGhpcyBlbWFpbCBmb3IgdGhlIGxhc3Qgb25lIGlzIHJlamVjdGVkIGJ5IHN5c3RlbS4g
+SSBhbQo+IHNvcnJ5IGlmIHlvdSBndXlzIHJlY2VpdmVkIGJvdGguCj4KPiCgoKCgIEkgYW0gb3B0
+aW1pemluZyB2aWRlbyBwbGF5YmFjayB3aXRoIG92ZXJsYXkgd2l0aCBWNEwyIGRyaXZlci4gVGhl
+Cj4gdmlkZW8gY29udGVudCBpcyBhIHN1Yi1yZWdpb24gb2YgY29kZWMgb3V0cHV0LiBUaHVzIGEg
+bWVtb3J5IGNvcHkgaXMKPiBuZWNlc3NhcnkuCj4goKCgIElzIHRoZXJlIHBsYW4gdG8gc3VwcG9y
+dCBmb3Igc3RyaWRlIGFuZCBkaXNjcmV0ZSBZVVYgcGxhbmVyIGluCj4ga2VybmVsPyBTdWNoIGFz
+IGJlbG93IGNoYW5nZXMgY2FuIGhlbHAgbXVjaCBmb3IgbXkgdXNhZ2UgY2FzZS4KPgo+IC0tLSBh
+L2luY2x1ZGUvbGludXgvdmlkZW9kZXYyLmgKPiArKysgYi9pbmNsdWRlL2xpbnV4L3ZpZGVvZGV2
+Mi5oCj4gQEAgLTUyOSw3ICs1MjksMjAgQEAgc3RydWN0IHY0bDJfYnVmZmVyIHsKPiCgoKCgoKCg
+oKCgoKCgoKAgX191MzKgoKCgoKCgoKCgIG9mZnNldDsKPiCgoKCgoKCgoKCgoKCgoKAgdW5zaWdu
+ZWQgbG9uZ6CgIHVzZXJwdHI7Cj4goKCgoKCgoCB9IG07Cj4gK6CgoKCgoCAvKiBVVi9HQiBsb2Nh
+dGlvbiBpcyB2YWxpZCBvbmx5IGluIHBsYW5lciBjYXNlICovCj4gK6CgoKCgoCB1bmlvbiB7Cj4g
+K6CgoKCgoKCgoKCgoKCgIF9fdTMyoKCgoKCgoKCgoCBvZmZzZXRfdWc7Cj4gK6CgoKCgoKCgoKCg
+oKCgIHVuc2lnbmVkIGxvbmegoCB1c2VycHRyX3VnOwo+ICugoKCgoKAgfSBtX3VnOwo+ICugoKCg
+oKAgdW5pb24gewo+ICugoKCgoKCgoKCgoKCgoCBfX3UzMqCgoKCgoKCgoKAgb2Zmc2V0X3ZiOwo+
+ICugoKCgoKCgoKCgoKCgoCB1bnNpZ25lZCBsb25noKAgdXNlcnB0cl92YjsKPiAroKCgoKCgIH0g
+bV92YjsKPiCgoKCgoKCgIF9fdTMyoKCgoKCgoKCgoKCgoKCgoKCgIGxlbmd0aDsKPiAroKCgoKCg
+IC8qIHN0cmlkZSBvZiBZVVYgb3IgUkdCICovCj4gK6CgoKCgoCBfX3UzMqCgoKCgoKCgoKCgoKCg
+oKCgoCBzdHJpZGVfeXI7Cj4gK6CgoKCgoCBfX3UzMqCgoKCgoKCgoKCgoKCgoKCgoCBzdHJpZGVf
+dWc7Cj4gK6CgoKCgoCBfX3UzMqCgoKCgoKCgoKCgoKCgoKCgoCBzdHJpZGVfdmI7Cj4goKCgoKCg
+oCBfX3UzMqCgoKCgoKCgoKCgoKCgoKCgoCBpbnB1dDsKPiCgoKCgoKCgIF9fdTMyoKCgoKCgoKCg
+oKCgoKCgoKCgIHJlc2VydmVkOwo+IKB9Owo+Cj4goKCgIElmIHN1Y2ggY2hhbmdlIGlzIGFjY2Vw
+dGFibGUgZm9yIGV2ZXJ5b25lLCBJIG1heSBoZWxwIG9uIHRoZSBpbXBsZW1lbnRhdGlvbi4KPiCg
+oKAgQW55IGNvbW1lbnRzIGFyZSB3ZWxjb21lLgo+Cj4gSnVuCj4KCkhpLCBIYW5zL0d1ZW5uYWRp
+CgogICAgIFdoYXQgZG8geW91IHRoaW5rIG9mICBzdXBwb3J0aW5nIHRoaXMgZmVhdHVyZT8KCkp1
+bgo=
