@@ -1,97 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42933 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755413AbZJVNyQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Oct 2009 09:54:16 -0400
-Date: Thu, 22 Oct 2009 15:54:05 +0200
-From: Jiri Pirko <jpirko@redhat.com>
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net, eric.dumazet@gmail.com,
-	jeffrey.t.kirsher@intel.com, jesse.brandeburg@intel.com,
-	bruce.w.allan@intel.com, peter.p.waskiewicz.jr@intel.com,
-	john.ronciak@intel.com, e1000-devel@lists.sourceforge.net,
-	mchehab@infradead.org, linux-media@vger.kernel.org
-Subject: [PATCH net-next-2.6 3/4] e1000e: use mc helpers to access
-	multicast list
-Message-ID: <20091022135404.GF2868@psychotron.lab.eng.brq.redhat.com>
-References: <20091022135120.GC2868@psychotron.lab.eng.brq.redhat.com>
+Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:59714 "EHLO
+	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754801AbZJIBpo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Oct 2009 21:45:44 -0400
+Date: Fri, 9 Oct 2009 10:44:13 +0900
+From: Paul Mundt <lethal@linux-sh.org>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-sh@vger.kernel.org
+Subject: Re: [PATCH 1/2] SH: add support for the RJ54N1CB0C camera for the kfr2r09 platform
+Message-ID: <20091009014412.GD31816@linux-sh.org>
+References: <Pine.LNX.4.64.0910031319320.5857@axis700.grange> <Pine.LNX.4.64.0910031320170.5857@axis700.grange> <20091005022500.GD3185@linux-sh.org> <Pine.LNX.4.64.0910051719040.4337@axis700.grange>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20091022135120.GC2868@psychotron.lab.eng.brq.redhat.com>
+In-Reply-To: <Pine.LNX.4.64.0910051719040.4337@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Jiri Pirko <jpirko@redhat.com>
----
- drivers/net/e1000e/netdev.c |   34 +++++++++++++++++++---------------
- 1 files changed, 19 insertions(+), 15 deletions(-)
-
-diff --git a/drivers/net/e1000e/netdev.c b/drivers/net/e1000e/netdev.c
-index 3769248..97cd106 100644
---- a/drivers/net/e1000e/netdev.c
-+++ b/drivers/net/e1000e/netdev.c
-@@ -2529,6 +2529,17 @@ static void e1000_update_mc_addr_list(struct e1000_hw *hw, u8 *mc_addr_list,
- }
- 
- /**
-+ * e1000_mc_walker - helper function
-+ **/
-+static void e1000_mc_walker(void *data, unsigned char *addr)
-+{
-+	u8 **mta_list_i = data;
-+
-+	memcpy(*mta_list_i, addr, ETH_ALEN);
-+	*mta_list_i += ETH_ALEN;
-+}
-+
-+/**
-  * e1000_set_multi - Multicast and Promiscuous mode set
-  * @netdev: network interface device structure
-  *
-@@ -2542,10 +2553,9 @@ static void e1000_set_multi(struct net_device *netdev)
- 	struct e1000_adapter *adapter = netdev_priv(netdev);
- 	struct e1000_hw *hw = &adapter->hw;
- 	struct e1000_mac_info *mac = &hw->mac;
--	struct dev_mc_list *mc_ptr;
--	u8  *mta_list;
-+	u8  *mta_list, *mta_list_i;
- 	u32 rctl;
--	int i;
-+	int mc_count;
- 
- 	/* Check for Promiscuous and All Multicast modes */
- 
-@@ -2567,23 +2577,17 @@ static void e1000_set_multi(struct net_device *netdev)
- 
- 	ew32(RCTL, rctl);
- 
--	if (netdev->mc_count) {
--		mta_list = kmalloc(netdev->mc_count * 6, GFP_ATOMIC);
-+	mc_count = netdev_mc_count(netdev);
-+	if (mc_count) {
-+		mta_list = kmalloc(mc_count * ETH_ALEN, GFP_ATOMIC);
- 		if (!mta_list)
- 			return;
- 
- 		/* prepare a packed array of only addresses. */
--		mc_ptr = netdev->mc_list;
--
--		for (i = 0; i < netdev->mc_count; i++) {
--			if (!mc_ptr)
--				break;
--			memcpy(mta_list + (i*ETH_ALEN), mc_ptr->dmi_addr,
--			       ETH_ALEN);
--			mc_ptr = mc_ptr->next;
--		}
-+		mta_list_i = mta_list;
-+		netdev_mc_walk(netdev, e1000_mc_walker, &mta_list_i);
- 
--		e1000_update_mc_addr_list(hw, mta_list, i, 1,
-+		e1000_update_mc_addr_list(hw, mta_list, mc_count, 1,
- 					  mac->rar_entry_count);
- 		kfree(mta_list);
- 	} else {
--- 
-1.6.2.5
-
+On Mon, Oct 05, 2009 at 05:20:48PM +0200, Guennadi Liakhovetski wrote:
+> On Mon, 5 Oct 2009, Paul Mundt wrote:
+> 
+> > On Sat, Oct 03, 2009 at 01:21:30PM +0200, Guennadi Liakhovetski wrote:
+> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > ---
+> > >  arch/sh/boards/mach-kfr2r09/setup.c |  139 +++++++++++++++++++++++++++++++++++
+> > >  1 files changed, 139 insertions(+), 0 deletions(-)
+> > > 
+> > This seems to depend on the RJ54N1CB0C driver, so I'll queue this up
+> > after that has been merged in the v4l tree. If it's available on a topic
+> > branch upstream that isn't going to be rebased, then I can pull that in,
+> > but this is not so critical either way.
+> 
+> It actually shouldn't depend on the driver patch. The driver has no 
+> headers, so... I haven't verified, but it should work either way. OTOH, 
+> waiting for the driver patch is certainly a safe bet:-)
+> 
+I thought it had a header dependency, but I must have been imagining
+things. So in that regard it looks fine, I'll split out my 2.6.32 stuff
+in to a separate branch momentarily and then roll this in when I start
+taking 2.6.33 stuff. This should at least allow us to start testing in
+-next when the driver is merged.
