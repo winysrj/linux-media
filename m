@@ -1,44 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f184.google.com ([209.85.212.184]:49797 "EHLO
-	mail-vw0-f184.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752577AbZJWTCw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Oct 2009 15:02:52 -0400
-Received: by vws14 with SMTP id 14so414130vws.33
-        for <linux-media@vger.kernel.org>; Fri, 23 Oct 2009 12:02:57 -0700 (PDT)
+Received: from [195.7.61.12] ([195.7.61.12]:48362 "EHLO killala.koala.ie"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1753412AbZJIIAf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 9 Oct 2009 04:00:35 -0400
+Received: from [195.7.61.12] (localhost [127.0.0.1])
+	(authenticated bits=0)
+	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id n997xvfx030473
+	for <linux-media@vger.kernel.org>; Fri, 9 Oct 2009 08:59:58 +0100
+Message-ID: <4ACEED7D.10302@koala.ie>
+Date: Fri, 09 Oct 2009 08:59:57 +0100
+From: Simon Kenyon <simon@koala.ie>
 MIME-Version: 1.0
-In-Reply-To: <1a297b360910221329o4b832f4ewaee08872120bfea0@mail.gmail.com>
-References: <20091022211330.6e84c6e7@hyperion.delvare>
-	 <20091023051025.597c05f4@caramujo.chehab.org>
-	 <1a297b360910221329o4b832f4ewaee08872120bfea0@mail.gmail.com>
-Date: Fri, 23 Oct 2009 12:02:56 -0700
-Message-ID: <a3ef07920910231202l1c3861ddga223c22157ba5591@mail.gmail.com>
-Subject: Re: Details about DVB frontend API
-From: VDR User <user.vdr@gmail.com>
-To: Manu Abraham <abraham.manu@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jean Delvare <khali@linux-fr.org>,
-	LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Hauppage WinTV-HVR-900H
+References: <4ACDF829.3010500@xfce.org>	 <37219a840910080545v72165540v622efd43574cf085@mail.gmail.com>	 <4ACDFED9.30606@xfce.org>	 <829197380910080745j3015af10pbced2a7e04c7595b@mail.gmail.com>	 <4ACE2D5B.4080603@xfce.org>	 <829197380910080928t30fc0ecas7f9ab2a7d8437567@mail.gmail.com> <d9def9db0910080946r445ac0efs421cb3bd2972a0d8@mail.gmail.com>
+In-Reply-To: <d9def9db0910080946r445ac0efs421cb3bd2972a0d8@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 22, 2009 at 1:29 PM, Manu Abraham <abraham.manu@gmail.com> wrote:
-> Sometime back, (some time in April) i proposed a patch which addressed
-> the issue to scale "even those devices which have a weird scale or
-> none". Though based on an older tree of mine, here is the patch again.
-> If it looks good enough, i can port the patch to accomodate other
-> devices as well.
-
-Thanks for posting your patch.  How about people get some discussion
-going about the pros/cons instead of ignoring it?  The best method for
-the most devices needs to be the deciding factor here, not
-accepting/disregarding based on who "your" friends are.  For once it
-would be nice if the childish politics could get throw out and what's
-best for v4l be the highest priority.
-
-And a thanks to anyone else that would like to submit a recommendation
-on how to deal with this.  Hopefully there will be a few "solid"
-proposals to consider.
-
-Regards.
+Markus Rechberger wrote:
+> Aside of that we also fully support Linux
+>
+> http://support.sundtek.de/index.php/topic,4.0.html
+>
+> http://support.sundtek.de/index.php/topic,7.0.html
+>
+> We also use to report bugs to Distributors in order to improve general
+> Multimedia Support.
+> Customers also get dedicated support as far as needed in order to get
+> everything work properly (if needed).
+>
+> Best Regards,
+> Markus
+>   
+binary driver for very expensive and unavailable hardware
