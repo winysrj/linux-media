@@ -1,35 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46435 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752325AbZJBNn5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2009 09:43:57 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Fri, 2 Oct 2009 08:43:57 -0500
-Subject: mt9t031-VPFE integration issues...
-Message-ID: <A69FA2915331DC488A831521EAE36FE4015537027D@dlee06.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from ey-out-2122.google.com ([74.125.78.24]:58501 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933438AbZJIPXa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Oct 2009 11:23:30 -0400
+Received: by ey-out-2122.google.com with SMTP id 4so238922eyf.5
+        for <linux-media@vger.kernel.org>; Fri, 09 Oct 2009 08:22:22 -0700 (PDT)
+Message-ID: <4ACF714A.2090209@xfce.org>
+Date: Fri, 09 Oct 2009 17:22:18 +0000
+From: Ali Abdallah <aliov@xfce.org>
 MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Michael Krufky <mkrufky@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Hauppage WinTV-HVR-900H
+References: <4ACDF829.3010500@xfce.org>	 <37219a840910080545v72165540v622efd43574cf085@mail.gmail.com>	 <4ACDFED9.30606@xfce.org>	 <829197380910080745j3015af10pbced2a7e04c7595b@mail.gmail.com>	 <4ACE2D5B.4080603@xfce.org>	 <829197380910080928t30fc0ecas7f9ab2a7d8437567@mail.gmail.com>	 <4ACF03BA.4070505@xfce.org> <829197380910090629h64ce22e5y64ce5ff5b5991802@mail.gmail.com>
+In-Reply-To: <829197380910090629h64ce22e5y64ce5ff5b5991802@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Devin Heitmueller wrote:
+> On Fri, Oct 9, 2009 at 5:34 AM, Ali Abdallah <aliov@xfce.org> wrote:
+>   
+>> Okay, i installed the latest drivers+the firmware of the device using
+>> extract_xc3028.pl, the device seems to be detected now, i can detect all the
+>> analog TV of my cable using tvtime, but manually, i mean i had to disable
+>> signal detection when scanning, otherwise i got no results, since the
+>> picture quality is terrible.
+>>
+>> Of course i'm sure that all the connections (cable to antenna, cable to the
+>> usb stick, ...) are correct, since it works with my old PC equipped with a
+>> PCI TV card.
+>>
+>> Any advice, what could be the problem? firmware? since you said (you added
+>> support for this device) should i open a bug report? is this device reported
+>> as working by other users?
+>>
+>> Please help if possible, almost two weeks with no real success.
+>>     
+>
+> Could you please provide a screen shot of the tvtime output?
+>   
+Screenshots here for TV and S-Video input configuration with TV time.
 
-I am currently integrating latest MT9T031 driver to vpfe_capture driver and see following issues:-
+http://ali.blogsite.org/files/tvtime/
+>
+> Could you try the S-Video or composite input and see if the picture
+> quality is still bad (as this well help isolate whether it's a problem
+> with the tuner chip or the decoder.
+>   
 
-1) Currently MT9T031 Kconfig configuration variable has a dependency on SOC_CAMERA. We need to remove this dependency since this sensor can be used on other platforms like DM6446/DM355/DM365. This is trivial and I can send a patch to remove the dependency.
+Same picture quality with S-Video, but with composite there is no picture.
 
-2) The code still has reference to soc_camera_device and associated changes. I think this should be removed so that it can be used on other platforms as well. I am expecting these will go away once the bus parameter as well data format related RFCs are approved. If this is true, I can wait until the same is approved. If not, we need to work together so that this driver can be integrated with vpfe capture driver.
-
-Please let me know what you think on this.
-
-Regards,
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-email: m-karicheri2@ti.com
-
+Many thanks.
+> Devin
+>
+>   
+Cheers,
+Ali.
