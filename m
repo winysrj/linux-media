@@ -1,85 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:62871 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932695AbZJ3SJ1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Oct 2009 14:09:27 -0400
-Received: by bwz27 with SMTP id 27so3869244bwz.21
-        for <linux-media@vger.kernel.org>; Fri, 30 Oct 2009 11:09:31 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <8d0bb7650910301043n3ba0b37ja78d78370a9e5ca7@mail.gmail.com>
-References: <8d0bb7650910261544i4ebed975rf81ec6bc38076927@mail.gmail.com>
-	 <a413d4880910261623x44d106f4h167a7dab80a4a3f8@mail.gmail.com>
-	 <83bcf6340910270717n12066fb8oa4870eb3214d7597@mail.gmail.com>
-	 <8d0bb7650910270755v38f37f6fh3937e9727493854c@mail.gmail.com>
-	 <83bcf6340910270920i4323faf8mb5b482b75bda7291@mail.gmail.com>
-	 <8d0bb7650910272244wfdbdda0kae6bec6cd94e2bcc@mail.gmail.com>
-	 <83bcf6340910280708t67fdfbffw88dc4594ca527359@mail.gmail.com>
-	 <83bcf6340910280712ue562142i5ef891fe2b701f3d@mail.gmail.com>
-	 <8d0bb7650910301043n3ba0b37ja78d78370a9e5ca7@mail.gmail.com>
-Date: Fri, 30 Oct 2009 14:09:30 -0400
-Message-ID: <83bcf6340910301109p221042b5h7b727acda69ebb74@mail.gmail.com>
-Subject: Re: Hauppage HVR-2250 Tuning problems
-From: Steven Toth <stoth@kernellabs.com>
-To: dan <danwalkeriv@gmail.com>
-Cc: Another Sillyname <anothersname@googlemail.com>,
+Received: from mail.atlantis.sk ([80.94.52.35]:58255 "EHLO mail.atlantis.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751590AbZJIGcx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 9 Oct 2009 02:32:53 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [Linux-uvc-devel] [PATCH] Re: uvcvideo: Finally fix Logitech Quickcam for Notebooks Pro
+Date: Fri, 9 Oct 2009 08:32:06 +0200
+Cc: linux-uvc-devel@lists.berlios.de, linux-kernel@vger.kernel.org,
 	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+References: <200910061607.07195.linux@rainbow-software.org> <200910071459.43622.linux@rainbow-software.org> <200910090104.26371.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <200910090104.26371.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200910090832.09254.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 30, 2009 at 1:43 PM, dan <danwalkeriv@gmail.com> wrote:
-> Steven,
+On Friday 09 October 2009, Laurent Pinchart wrote:
+> Hi Ondrej,
 >
-> I tried adding some 2 way splitters for attenuation.  Each one was
-> -3dB, and I got up to about 5 total, with no change.
+> On Wednesday 07 October 2009 14:59:40 Ondrej Zary wrote:
+> > On Tuesday 06 October 2009, Ondrej Zary wrote:
+> > > Hello,
+> > > I have a Logitech Quickcam for Notebooks Pro camera (046d:08c3) which
+> > > just does not work even with kernel 2.6.31 and has never worked well
+> > > before.
+> > >
+> > > On http://linux-uvc.berlios.de/, there are two problems listed. I want
+> > > to really fix these two problems so the camera will just work after
+> > > plugging in (and not disconnect). I started with problem no. 2 as this
+> > > causes the camera not to work at all when plugged in:
+> > >
+> > > usb 5-2.4: new high speed USB device using ehci_hcd and address 7
+> > > usb 5-2.4: configuration #1 chosen from 1 choice
+> > > uvcvideo: Found UVC 1.00 device <unnamed> (046d:08c3)
+> > > uvcvideo: UVC non compliance - GET_DEF(PROBE) not supported. Enabling
+> > > workaround.
+> > > uvcvideo: Failed to query (129) UVC probe control : -110 (exp. 26).
+> > > uvcvideo: Failed to initialize the device (-5).
+> > >
+> > > When I do "modprobe snd_usb_audio", then "rmmod snd_usb_audio" and
+> > > finally "modprobe uvcvideo", it works. So it looks like snd_usb_audio
+> > > does some initialization that allows uvcvideo to work. It didn't work
+> > > at all I didn't have snd_usb_audio module compiled.
+> > >
+> > > What was the change that supposedly broke this in 2.6.22?
+> >
+> > I discovered that it's not related to usb audio at all. Doing "rmmod
+> >  uvcvideo" and "modprobe uvcvideo" repeatedly succeeded after a couple of
+> >  tries. Increasing UVC_CTRL_STREAMING_TIMEOUT to 3000 helped (2000 was
+> > not enough).
+> >
+> >
+> > Increase UVC_CTRL_STREAMING_TIMEOUT to fix initialization of
+> > Logitech Quickcam for Notebooks Pro.
+> > This fixes following error messages:
+> > uvcvideo: UVC non compliance - GET_DEF(PROBE) not supported. Enabling
+> >  workaround. uvcvideo: Failed to query (129) UVC probe control : -110
+> > (exp. 26). uvcvideo: Failed to initialize the device (-5).
+> >
+> > Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+> >
+> > --- linux-2.6.31-orig/drivers/media/video/uvc/uvcvideo.h	2009-09-10
+> >  00:13:59.000000000 +0200 +++
+> >  linux-2.6.31/drivers/media/video/uvc/uvcvideo.h	2009-10-07
+> >  13:47:27.000000000 +0200 @@ -304,7 +304,7 @@
+> >  #define UVC_MAX_STATUS_SIZE	16
+> >
+> >  #define UVC_CTRL_CONTROL_TIMEOUT	300
+> > -#define UVC_CTRL_STREAMING_TIMEOUT	1000
+> > +#define UVC_CTRL_STREAMING_TIMEOUT	3000
+> >
+> >  /* Devices quirks */
+> >  #define UVC_QUIRK_STATUS_INTERVAL	0x00000001
 >
-> I didn't get a chance to try under windows (for various reasons mostly
-> related to time and lack of a Windows install CD), but I did get some
-> evidence that it might be the card.  I have a friend at work with the
-> same card which he has been using without problems for a while now (in
-> Fedora 10).  He took my card home and swapped it for his working card
-> and it didn't work.  He said that he got a message saying that the
-> card couldn't lock and that he could either try waiting longer or try
-> another channel.  He did both and he still couldn't get a lock.
-> Unless there is some other reason that you can't just swap two working
-> HVR-2250s in a working system and have the system still work, I'm
-> inclined to believe I got a bad one.
+> Thanks for the patch. I wonder if it will help other Logitech users.
 >
-> --dan
+> The UVC specification unfortunately doesn't give a time boundary for
+> answering streaming requests, so that's up to the developers. I'm pretty
+> sure we will find at least one webcam model that will require 3001ms at
+> some point :-)
 >
->
-> On Wed, Oct 28, 2009 at 8:12 AM, Steven Toth <stoth@kernellabs.com> wrote:
->> On Wed, Oct 28, 2009 at 10:08 AM, Steven Toth <stoth@kernellabs.com> wrote:
->>> On Wed, Oct 28, 2009 at 1:44 AM, dan <danwalkeriv@gmail.com> wrote:
->>>> I do have 2 2-way splitters between the card in the wall.  I tried
->>>> hooking the card straight to the cable outlet on the wall and ran some
->>>> more tests.  It's a little difficult, because there's only one cable
->>>> outlet in my whole apartment, and it means doing some re-arranging and
->>>> being offline while I'm running the tests.
->>>
->>> Removing splitters proves it's probably not a weak signal issue (also
->>> the SNR or 39 on the TV).  Can you apply some attenuation to reduce
->>> the overall rf strength? I'm thinking it's too hot.
->>>
->>> Something must be using your second tuner, mythtv maybe?
->>
->> Oh, and please try the card under windows ideally on the same PC using
->> the same antenna feed, to rule out any card specific issues.
->>
->> --
->> Steven Toth - Kernel Labs
->> http://www.kernellabs.com
->>
->
+> I was thinking about adding a module parameter to set the streaming control
+> timeout. I'm not sure what the default value should be though. What's your
+> opinion on this ? If we decide to increase the default value, where should
+> we stop ?
 
-Urgh. It sounds like a card specific problem. Of course, installing
-your friends card in your system to completely confirm the suspicion
-would be perfect.
+I really don't know. Maybe only the first request is slow as the hardware 
+needs some time to initialize?
 
-Regards,
+If someone knows what value is used by Windows or Mac OS X, that's probably 
+the "right" choice as most devices are tested with them.
 
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Ondrej Zary
