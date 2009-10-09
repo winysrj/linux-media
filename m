@@ -1,50 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f210.google.com ([209.85.218.210]:39714 "EHLO
-	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758651AbZJHT6q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Oct 2009 15:58:46 -0400
-Received: by bwz6 with SMTP id 6so1109524bwz.37
-        for <linux-media@vger.kernel.org>; Thu, 08 Oct 2009 12:58:09 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4ACE41AE.7070008@pragl.cz>
-References: <2D9D466571BB4CCEB9FD981D65F8FBFC@MirekPNB>
-	 <829197380910080736g4b30e0e8m21f1d3b876a15ce6@mail.gmail.com>
-	 <C3EF2005C0C34F008FA0B59B48782D75@MirekPNB>
-	 <829197380910081204r6b8c779dsf32c61b718df77f0@mail.gmail.com>
-	 <4ACE41AE.7070008@pragl.cz>
-Date: Thu, 8 Oct 2009 15:58:09 -0400
-Message-ID: <829197380910081258n2212a7a6wd9701688a1b05451@mail.gmail.com>
-Subject: Re: Pinnace 320e (PCTV Hybrid Pro Stick) support
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Miroslav Pragl - mailing lists <lists.subscriber@pragl.cz>
-Cc: SebaX75 <sebax75@yahoo.it>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-in-09.arcor-online.net ([151.189.21.49]:44988 "EHLO
+	mail-in-09.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933000AbZJHXJ2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 8 Oct 2009 19:09:28 -0400
+Subject: Re: Haupp. HVR-1100 problem and DVB-T card
+From: hermann pitton <hermann-pitton@arcor.de>
+To: fabio tirapelle <ftirapelle@yahoo.it>,
+	Michael Hunold <hunold@linuxtv.org>,
+	Oliver Endriss <o.endriss@gmx.de>,
+	Oldrich Jedlicka <oldium.pro@seznam.cz>,
+	Andy Walls <awalls@radix.net>,
+	Michael Krufky <mkrufky@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <813517.84815.qm@web25405.mail.ukl.yahoo.com>
+References: <813517.84815.qm@web25405.mail.ukl.yahoo.com>
+Content-Type: text/plain
+Date: Fri, 09 Oct 2009 03:01:48 +0200
+Message-Id: <1255050108.5543.21.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 8, 2009 at 3:46 PM, Miroslav Pragl - mailing lists
-<lists.subscriber@pragl.cz> wrote:
-> GREAT, works perfectly! Thanks a lot!
->
-> MP
+Hi Fabio,
 
-Yeah, that's what I figured.  However, that's not really a good long
-term fix.  Basically the problem is we should hardware reset the
-zl10353 when we startup in digital mode so the chip is in a known
-state.  However, that same code is also being called whenever we start
-streaming, which puts the demod in an inconsistent state when
-performing every tuning attempt after the first one (because the
-zl10353 init routine does to not get re-run after the reset).
+Am Donnerstag, den 08.10.2009, 20:02 +0000 schrieb fabio tirapelle:
+> Hi
+> 
+> I have installed mythtv on this configuration:
+> Asus M3N78-VM GF8200 RGVSM
+> AMD Ath64 X2LV 3100BOX6000+ 1MB
+> Haupp. WinTV HVR-1100 -t/a PCI
+> TechniSat SkyStar 2 DVB-S PCI
+> nVidia GeForce 8200
+> Ubuntu 8.10 - Linux htpc 2.6.27-11-generic 
 
-I'll have to play with it a bit and figure out what the *correct* fix
-is, but that should be good enough to get you up and running for now.
+did send to those likely interested too and might be able to give better
+advice.
 
-It turns up I wasn't seeing this when I did the original debugging
-because I was using a DVB generator and thus my scan file only had one
-entry in it.
+> Two questions
+> 
+> 1) But the Haupp. WinTV will not be found even if I have followed
+> http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-1110 
+> http://ubuntuforums.org/showthread.php?t=623126&page=2 (#12)
+> 
+> Output of dmesg
+> 
+> [   13.062214] ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 17
+> [   13.062223] b2c2_flexcop_pci 0000:01:06.0: PCI INT A -> Link[LNKA] -> GSI 17 (level, low) -> IRQ 17
+> [   13.076654] DVB: registering new adapter (FlexCop Digital TV device)
+> [   13.078432] b2c2-flexcop: MAC address = 00:d0:d7:0d:30:88
+> [   13.078664] b2c2-flexcop: i2c master_xfer failed
+> [   13.078893] b2c2-flexcop: i2c master_xfer failed
+> [   13.078895] CX24123: cx24123_i2c_readreg: reg=0x0 (error=-121)
+> [   13.078897] CX24123: wrong demod revision: 87
+> [   13.101063] saa7130/34: v4l2 driver version 0.2.14 loaded
+> [   13.360642] b2c2-flexcop: found 'ST STV0299 DVB-S' .
+> [   13.360647] DVB: registering frontend 0 (ST STV0299 DVB-S)...
+> [   13.360768] b2c2-flexcop: initialization of 'Sky2PC/SkyStar 2 DVB-S' at the 'PCI' bus controlled by a 'FlexCopIIb' complete
+> [   13.363507] ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 16
+> [   13.363517] saa7134 0000:01:07.0: PCI INT A -> Link[LNKB] -> GSI 16 (level, low) -> IRQ 16
+> [   13.363523] saa7133[0]: found at 0000:01:07.0, rev: 255, irq: 16, latency: 255, mmio: 0x0
 
-Devin
+Memory allocation at the PCI bus fails and PCI latency is very high for
+nothing in the end.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+> [   13.363528] saa7133[0]: subsystem: ffff:ffff, board: UNKNOWN/GENERIC [card=0,autodetected]
+
+Either the eeprom is corrupted, or more likely, this fails because of
+the previous failing.
+
+> [   13.363531] saa7133[0]: can't get MMIO memory @ 0x0
+> [   13.363538] saa7134: probe of 0000:01:07.0 failed with error -16
+> [   13.393682] saa7134 ALSA driver for DMA sound loaded
+> [   13.393685] saa7134 ALSA: no saa7134 cards found
+> 
+> ouput lspci
+> 01:06.0 Network controller: Techsan Electronics Co Ltd B2C2 FlexCopII DVB chip / Technisat SkyStar2 DVB card (rev 02)
+> 01:07.0 Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d1)
+> 
+> 2) What kind of DVB-T card will you suggest for my configuration instead of "Hauppage WinTv"?
+> 
+
+We have some unknowns on the various Hauppauge 1110s, but in general
+they are assumed to be well supported.
+
+They are all auto eeprom detectable and only for latest revisions you
+need some latest mercurial v4l-dvb. These look good now too.
+
+Could you try again with the HVR1110 as the only PCI card?
+
+If this still fails, the mobo seems not to be best treated anyway too, I
+would guess the card is broken.
+
+Cheers,
+Hermann
+
+
+
+
