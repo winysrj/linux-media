@@ -1,80 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:52294 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757874AbZJaWng convert rfc822-to-8bit (ORCPT
+Received: from mail-fx0-f227.google.com ([209.85.220.227]:33614 "EHLO
+	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755525AbZJJMFu convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Oct 2009 18:43:36 -0400
-Received: by qw-out-2122.google.com with SMTP id 9so919574qwb.37
-        for <linux-media@vger.kernel.org>; Sat, 31 Oct 2009 15:43:41 -0700 (PDT)
+	Sat, 10 Oct 2009 08:05:50 -0400
+Received: by fxm27 with SMTP id 27so7132126fxm.17
+        for <linux-media@vger.kernel.org>; Sat, 10 Oct 2009 05:05:13 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <ef52a95d0910311508v644e998bke9e7955aa32d5da6@mail.gmail.com>
-References: <4ADED23C.2080002@uq.edu.au>
-	 <303a8ee30910211233r111d3378vedc1672f68728717@mail.gmail.com>
-	 <1257002647.3333.7.camel@pc07.localdom.local>
-	 <303a8ee30910310948o107387c5g2d89665ea2bcde7e@mail.gmail.com>
-	 <ef52a95d0910311508v644e998bke9e7955aa32d5da6@mail.gmail.com>
-Date: Sat, 31 Oct 2009 18:43:40 -0400
-Message-ID: <303a8ee30910311543h178879d2wf79fd0045b8e6eb@mail.gmail.com>
-Subject: Re: Leadtek DTV-1000S
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Michael Obst <m.obst@ugrad.unimelb.edu.au>
-Cc: linux-media@vger.kernel.org
+In-Reply-To: <20091010085626.377f7daf@pedra.chehab.org>
+References: <4ACDF829.3010500@xfce.org>
+	 <829197380910080745j3015af10pbced2a7e04c7595b@mail.gmail.com>
+	 <4ACE2D5B.4080603@xfce.org>
+	 <829197380910080928t30fc0ecas7f9ab2a7d8437567@mail.gmail.com>
+	 <d9def9db0910080946r445ac0efs421cb3bd2972a0d8@mail.gmail.com>
+	 <4ACEED7D.10302@koala.ie>
+	 <d9def9db0910090121i76571d0o4778aa14026b4b9d@mail.gmail.com>
+	 <4ACFB218.5040608@koala.ie>
+	 <d9def9db0910091524p6c8cba7fxf4a245a64af297c4@mail.gmail.com>
+	 <20091010085626.377f7daf@pedra.chehab.org>
+Date: Sat, 10 Oct 2009 14:05:12 +0200
+Message-ID: <d9def9db0910100505g77eac841ie8c857328faf9816@mail.gmail.com>
+Subject: Re: Hauppage WinTV-HVR-900H
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Simon Kenyon <simon@koala.ie>, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Oct 31, 2009 at 6:08 PM, Michael Obst
-<m.obst@ugrad.unimelb.edu.au> wrote:
-> Hi,
->    Thanks for fixing this, I can confirm that it now compiles and
-> inserts and the remote works, so does the av input to the tvcard
-> however the card does not seem to be able to tune any channels, I have
-> checked the old driver and that is still able to tune in channels. The
-> output from my dmesg is below.
+On Sat, Oct 10, 2009 at 1:56 PM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> Em Sat, 10 Oct 2009 00:24:57 +0200
+> Markus Rechberger <mrechberger@gmail.com> escreveu:
 >
-> Thanks
-> Michael Obst
+>> On Fri, Oct 9, 2009 at 11:58 PM, Simon Kenyon <simon@koala.ie> wrote:
+>> > Markus Rechberger wrote:
+>> >
+>> >> Available from 20th Oct on so in 11 days. There are not many
+>> >> competitive devices (none) available for
+>> >> linux which deliver such support. On the other side it's not kernel
+>> >> based either, it's entirely in userspace.
+>> >> It's also  entirely supported by all participating companies.
+>> >
+>> > this is a mailing list for the open source dvb drivers
+>> > you are talking about a closed source solution
+>> > what does your solution have to do with linuxtv.org?
+>> >
+>>
+>> I see linux-media, you can find the sources of a patched tvtime version on the
+>> website.
+>> It shows an alternative way how to integrate usb chipsolutions in linux.
+>> Aside of that the official DVB(3/5)/V4L(1/2) API has been reviewed
+>> through our work and bugreports have been
+>> submitted to various places (linux media, some linux distributions).
+>> It integrates
+>> flawlessly and helps to improve the overall media support with linux.
+>>
+>> The posting was pointing out to Ali's email that he was looking
+>> for a working analog TV solution for France. He has bought this
+>> Pinnacle device 3 years ago,
+>> the vendor does not care about support for it.
+>> We provide solutions which work within a few seconds, nevermind what
+>> distribution.
+>
+> Your business is so bad that you can't even pay to an adds on some magazine, for
+> you to spam the open source mailing lists as a desperate trial to sell a single
+> unit of your product?
 
-Michael,
+As an information for you it's going very well. Just because you don't
+have any influence
+anymore in blocking our work as you had done in the past it's better
+for you to remain silent in the background.
 
-This is an interesting problem -- the part of your dmesg that stands
-out to me is this:
-
-> [  502.928544] tuner 0-0060: chip found @ 0xc0 (saa7130[0])
-> [  502.960501] tda8290: no gate control were provided!
-
-That error message was added as a safety measure -- it shouldn't be
-possible to ever hit that code path.  Are you running any non-GPL
-binary drivers on your system, such as NVIDIA or anything else?
-
-Let me explain:
-
-The "no gate control were provided!" message was added by Mauro to the
-tda8290 driver, mainly as a check to ensure that we don't call a null
-function pointer.  The gate control is actually provided by the
-tda8290 driver itself, by either tda8290_i2c_bridge or
-tda8295_i2c_bridge, depending on which hardware is present.  In your
-case, it's a tda8290.
-
-The function pointer is filled during the tda829x_attach() function,
-before we call the tda829x_find_tuner function, where this error
-message is displayed.  The only way for this to have occurred, as far
-as I can tell,  is if the probe to detect the tda8290 itself had
-failed.
-
-Have you repeated your test with the same problem each time, or did
-this only happen once?
-
-Can you try again, from a cold reboot?
-
-Also, I'm just assuming that this failure occurred during a digital
-tune -- is that correct?  Does analog television work?
-
-If the problem is reproducible, can you also show us dmesg during a failed tune?
-
-I'm very interested in hearing more about this -- please let me know.
-
-Regards,
-
-Mike
+Best Regards,
+Markus
