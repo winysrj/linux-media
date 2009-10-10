@@ -1,134 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hrndva-omtalb.mail.rr.com ([71.74.56.124]:56052 "EHLO
-	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757733AbZJFPR1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Oct 2009 11:17:27 -0400
-From: "David F. Carlson" <dave@chronolytics.com>
-Message-Id: <200910061519.n96FJR3p024739@chronolytics.com>
-Subject: Re: Global Video Buffers Pool - PMM and UPBuffer reference drivers
-To: m.szyprowski@samsung.com (Marek Szyprowski)
-Date: Tue, 6 Oct 2009 11:19:27 -0400 (EDT)
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	p.osciak@samsung.com (Pawel Osciak), kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com (Marek Szyprowski),
-	t.fujak@samsung.com (Tomasz Fujak)
-In-Reply-To: <002301ca465c$841cdca0$8c5695e0$%szyprowski@samsung.com>
+Received: from mail-bw0-f210.google.com ([209.85.218.210]:62291 "EHLO
+	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754319AbZJJVtO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Oct 2009 17:49:14 -0400
+Received: by bwz6 with SMTP id 6so2352853bwz.37
+        for <linux-media@vger.kernel.org>; Sat, 10 Oct 2009 14:48:37 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <200910102219.23667.miga_miga@gmx.de>
+References: <200910102219.23667.miga_miga@gmx.de>
+Date: Sat, 10 Oct 2009 17:48:37 -0400
+Message-ID: <829197380910101448w4240eb35g8f51daca2b7c961c@mail.gmail.com>
+Subject: Re: 2.6.32 dvbdev error / Cinergy XS [0ccd:0043]
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Michael G <miga_miga@gmx.de>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-According to Marek Szyprowski:
-> 
-> struct pmm_mem_info info = {
-> 	.magic = PMM_MAGIC,
-> 	.size = BUFFER_SIZE,
-> 	.type = PMM_MEM_GENERAL,
-> 	.flags = PMM_NO_CACHE,
-> 	.alignment = 0x1000,
-> };
-> 
-> fd = open(/dev/pmm);
-> ioctl(fd, IOCTL_PMM_ALLOC, &info);
-> mmap(0, BUFFER_SIZE, 0777, MAP_SHARED, fd, 0);
-> close(fd);
+On Sat, Oct 10, 2009 at 4:19 PM, Michael G <miga_miga@gmx.de> wrote:
+> Hi,
+> can someone please help me to get my
+> Cinergy XS (Bus 001 Device 010: ID 0ccd:0043 TerraTec Electronic GmbH)
+> to run in a 2.6.32 RC3 gentoo system?
+>
+> When I use the in-kernel driver I'll get the following output:
+> usb 1-1: new high speed USB device using ehci_hcd and address 10
+> usb 1-1: configuration #1 chosen from 1 choice
+> em28xx: New device TerraTec Electronic GmbH Cinergy T USB XS @ 480 Mbps
+> (0ccd:0043, interface 0, class 0)
+> em28xx #0: chip ID is em2870
+> em28xx #0: i2c eeprom 00: 1a eb 67 95 cd 0c 43 00 c0 12 81 00 6a 24 8e 34
+> em28xx #0: i2c eeprom 10: 00 00 06 57 02 0c 00 00 00 00 00 00 00 00 00 00
+> em28xx #0: i2c eeprom 20: 44 00 00 00 f0 10 01 00 00 00 00 00 5b 00 00 00
+> em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01 00 00 ee 2d 46 4a
+> em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 24 03 43 00 69 00
+> em28xx #0: i2c eeprom 70: 6e 00 65 00 72 00 67 00 79 00 20 00 54 00 20 00
+> em28xx #0: i2c eeprom 80: 55 00 53 00 42 00 20 00 58 00 53 00 00 00 34 03
+> em28xx #0: i2c eeprom 90: 54 00 65 00 72 00 72 00 61 00 54 00 65 00 63 00
+> em28xx #0: i2c eeprom a0: 20 00 45 00 6c 00 65 00 63 00 74 00 72 00 6f 00
+> em28xx #0: i2c eeprom b0: 6e 00 69 00 63 00 20 00 47 00 6d 00 62 00 48 00
+> em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x339064dc
+> em28xx #0: EEPROM info:
+> em28xx #0:      No audio on board.
+> em28xx #0:      500mA max power
+> em28xx #0:      Table at 0x06, strings=0x246a, 0x348e, 0x0000
+> em28xx #0: Identified as Terratec Cinergy T XS (card=43)
+> em28xx #0:
+>
+> em28xx #0: The support for this board weren't valid yet.
+> em28xx #0: Please send a report of having this working
+> em28xx #0: not to V4L mailing list (and/or to other addresses)
+>
+> Chip ID is not zero. It is not a TEA5767
+> tuner 0-0060: chip found @ 0xc0 (em28xx #0)
+> xc2028 0-0060: creating new instance
+> xc2028 0-0060: type set to XCeive xc2028/xc3028 tuner
+> usb 1-1: firmware: requesting xc3028-v27.fw
+> xc2028 0-0060: Loading 80 firmware images from xc3028-v27.fw, type: xc2028
+> firmware, ver 2.7
+> xc2028 0-0060: Loading firmware for type=BASE (1), id 0000000000000000.
+> xc2028 0-0060: Loading firmware for type=(0), id 000000000000b700.
+> SCODE (20000000), id 000000000000b700:
+> xc2028 0-0060: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000), id
+> 0000000000008000.
+> xc2028 0-0060: Incorrect readback of firmware version.
+> xc2028 0-0060: Loading firmware for type=BASE (1), id 0000000000000000.
+> xc2028 0-0060: Loading firmware for type=(0), id 000000000000b700.
+> SCODE (20000000), id 000000000000b700:
+> xc2028 0-0060: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000), id
+> 0000000000008000.
+> xc2028 0-0060: Incorrect readback of firmware version.
+> em28xx #0: v4l2 driver version 0.1.2
+> em28xx #0: V4L2 video device registered as /dev/video1
+>
+>
+> No /dev/dvb, so no DVT-T. I tried to use the latest v4l-dvb but I can't
+> compile it:
+>
+> /root/v4l-dvb/v4l/dvbdev.c: In function 'init_dvbdev':
+> /root/v4l-dvb/v4l/dvbdev.c:516: error: 'struct class' has no member named
+> 'nodename'
+> make[3]: *** [/root/v4l-dvb/v4l/dvbdev.o] Error 1
+> make[2]: *** [_module_/root/v4l-dvb/v4l] Error 2
+> make[2]: Leaving directory `/usr/src/linux-2.6.32-rc3'
+> make[1]: *** [default] Error 2
+> make[1]: Leaving directory `/root/v4l-dvb/v4l'
+> make: *** [all] Error 2
+>
+> Any help is appreciated!
+>
+> Thanks,
+> Michael
 
-Thanks for the clarification.
+Hello Michael,
 
-> 
-> > 2. Since these buffers will be dma sources/targets, cache will be off (no?)
-> 
-> You can control weather to use cache or not on the buffer region with special
-> flags provided to alloc ioctl. In case o cacheable mapping, the upbuffer
-> translation layer would do proper cache synchronization (flush/clean/invalidate)
-> basing on the type of operation that the driver wants to perform (please refer
-> to include/linux/s3c/upbuffer.h)
+Don't bother trying to compile the latest v4l-dvb code.  It's not
+supported even in the latest code (and there is presently no work
+going on to add support).
 
-How does user-space "know" that a buffer will be the target of DMA?  How will
-"flushing" working on implied-dma devices (such as the FB 60Hz dma)?  
+Devin
 
-Will the FB take any user or driver allocated PMM and "fix it" to be 
-non-cached so that implicit DMA makes sense?  Or does the user have to "know" 
-that a buffer may be the target of dma sometime later because the driver
-it passed the PMM to may subsequently pass it to another driver?  
-
-You have added lots of capability but have provided no user-space guidance.
-
-> 
-> Exactly this is addressed by the UPBuffer translation layer. If application
-> unmaps the buffer from its address space the region is not freed unless the
-> multimedia driver explicitly unlocks it after the transaction. That is that
-> I called the buffer locking. Multimedia driver must lock the buffer before
-> performing any DMA transactions on it.
->  
-> 
-> > You have presented a very flexible, general purpose bootmem allocator/mapper.
-> > (cache/uncached, bounce/pmm, etc.)
-> > 
-> > The problem you were trying to solve is a means to generalize multiple
-> > compile-time fixed bootmem allocations at runtime.
-> > 
-> > Perhaps this could be simplified to fix that problem by assuming that
-> > all users (including the s3c-fb driver) would use a simple non-cached
-> > pmm allocator so that all allocations would be pooled.
-> 
-> I don't get this, could you elaborate?
-
-You have lot of provisions for "bounce" copies etc. that imply that s3c-mm
-drivers will accept non-PMM buffers for I/O.  This creates more problems than
-it solves.  Fix the fixed allocation problem, then solve world hunger.
-
-> 
-> > I would advocate "hiding" pmm allocations within the s3c-mm drivers.
-> > Each driver could test user buffers for "isPMM()" trivially since the
-> > bootmem is physically contig.
-> > 
-> > What is the advantage in exporting the pmm API to user-space?
-> 
-> Only user applications know what buffers will be required for the
-> processing they are performing and which of them they want to reuse
-> with other drivers. We decided to remove all buffers from the drivers
-> and allocate them separately in user space. This way no memory is wasted
-> to fixed buffers. Please note that the ability of SHARING the same buffer
-> between different devices is the key feature of this solution.
-
-I have no problem with buffer sharing and runtime pools.  Motherhood and 
-apple pie.
-
-I think what is missing are the use-cases for *each s3c-mm device*:
-
-1.  Device DMA model (cached/non-cached  no-dma / explicit dma / implicit dma)
-2.  Device buffer model: min size, max size, alignment, scatter/gather) 
-3.  Device shared PMM use-case (post->fb and what else?)
-4.  Device lifecycle of pmm buffers (define "transaction")
-5.  Device non-PMM use-case (when would using non-PMM make sense)
-
-You obviously had these use-cases in mind when you designed the PMM.
-
-It would help to understand this design if you could elaborate on you model
-for how these devices would be used.  (And how the user will "know" how
-to satisfy each device wrt (1), (2), (3))  
-
-The reality is that user-space doesn't/can't/shouldn't know intimate details 
-of driver internals like required alignment, etc.  
-
-My suggestion (from the previous email that PMM is a driver issue):
-The user should direct each driver to allocate its buffer(s) providing a 
-size and a "SHARED|PRIVATE" flag depending on when the buffer could ever 
-be passed to another driver.  
-
-struct user_pmm {
-   size_t    size;      /* desired size of the allocation */
-   uint32_t  flags;     /* SHARED or PRIVATE to this driver */
-};
-
-*Each driver* has the IOCTL_PMM_ALLOC so that it can "know" its requirements.
-And there is no /dev/pmm.
-
-Cheers,
-
-David F. Carlson    Chronolytics, Inc.  Rochester, NY
-mailto:dave@chronolytics.com            http://www.chronolytics.com
-
-"The faster I go, the behinder I get." --Lewis Carroll
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
