@@ -1,16 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227])
-	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <dehqan65@gmail.com>) id 1N3cYP-0001Am-B7
-	for linux-dvb@linuxtv.org; Thu, 29 Oct 2009 22:29:09 +0100
-Received: by bwz27 with SMTP id 27so3483323bwz.1
-	for <linux-dvb@linuxtv.org>; Thu, 29 Oct 2009 14:28:36 -0700 (PDT)
-MIME-Version: 1.0
-Date: Fri, 30 Oct 2009 00:58:35 +0330
-Message-ID: <267bb6670910291428p3523ec96v4e064bf57034a705@mail.gmail.com>
-From: a dehqan <dehqan65@gmail.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by mail.linuxtv.org with smtp (Exim 4.69)
+	(envelope-from <miga_miga@gmx.de>) id 1Mwhyl-0002Yc-ER
+	for linux-dvb@linuxtv.org; Sat, 10 Oct 2009 21:51:48 +0200
+From: Michael G <miga_miga@gmx.de>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] What is The best UB DVB-S2 card for linux ?
+Date: Sat, 10 Oct 2009 21:42:10 +0200
+MIME-Version: 1.0
+Message-Id: <200910102142.10701.miga_miga@gmx.de>
+Subject: [linux-dvb] 2.6.32 dvbdev error / Cinvergy XS
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -19,44 +17,94 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0741467660=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0741467660==
-Content-Type: multipart/alternative; boundary=0016e659f46611b40c0477199899
+Hi,
+can someone please help me to get my
+Cinergy XS (Bus 001 Device 010: ID 0ccd:0043 TerraTec Electronic GmbH)
+to run in a 2.6.32 RC3 gentoo system?
 
---0016e659f46611b40c0477199899
-Content-Type: text/plain; charset=ISO-8859-1
+When I use the in-kernel driver I'll get the following output:
+usb 1-1: new high speed USB device using ehci_hcd and address 10                             
+usb 1-1: configuration #1 chosen from 1 choice                                               
+em28xx: New device TerraTec Electronic GmbH Cinergy T USB XS @ 480 Mbps 
+(0ccd:0043, interface 0, class 0)
+em28xx #0: chip ID is em2870                                                                             
+em28xx #0: i2c eeprom 00: 1a eb 67 95 cd 0c 43 00 c0 12 81 00 6a 24 8e 34                               
+em28xx #0: i2c eeprom 10: 00 00 06 57 02 0c 00 00 00 00 00 00 00 00 00 00                               
+em28xx #0: i2c eeprom 20: 44 00 00 00 f0 10 01 00 00 00 00 00 5b 00 00 00                               
+em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01 00 00 ee 2d 46 4a                               
+em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                               
+em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                               
+em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 24 03 43 00 69 00                               
+em28xx #0: i2c eeprom 70: 6e 00 65 00 72 00 67 00 79 00 20 00 54 00 20 00                               
+em28xx #0: i2c eeprom 80: 55 00 53 00 42 00 20 00 58 00 53 00 00 00 34 03                               
+em28xx #0: i2c eeprom 90: 54 00 65 00 72 00 72 00 61 00 54 00 65 00 63 00                               
+em28xx #0: i2c eeprom a0: 20 00 45 00 6c 00 65 00 63 00 74 00 72 00 6f 00                               
+em28xx #0: i2c eeprom b0: 6e 00 69 00 63 00 20 00 47 00 6d 00 62 00 48 00                               
+em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                               
+em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                               
+em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                               
+em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x339064dc
+em28xx #0: EEPROM info:
+em28xx #0:      No audio on board.
+em28xx #0:      500mA max power
+em28xx #0:      Table at 0x06, strings=0x246a, 0x348e, 0x0000
+em28xx #0: Identified as Terratec Cinergy T XS (card=43)
+em28xx #0:
 
-In The Name Of God The compassionate merciful
+em28xx #0: The support for this board weren't valid yet.
+em28xx #0: Please send a report of having this working
+em28xx #0: not to V4L mailing list (and/or to other addresses)
 
-Good day everyone ;
-What is The best UB DVB-S2 card for linux ? that it's driver also works fine
-and deos not have problem with s2 channel. please tell why you advice that .
+Chip ID is not zero. It is not a TEA5767
+tuner 0-0060: chip found @ 0xc0 (em28xx #0)
+xc2028 0-0060: creating new instance
+xc2028 0-0060: type set to XCeive xc2028/xc3028 tuner
+usb 1-1: firmware: requesting xc3028-v27.fw
+xc2028 0-0060: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 
+firmware, ver 2.7
+xc2028 0-0060: Loading firmware for type=BASE (1), id 0000000000000000.
+xc2028 0-0060: Loading firmware for type=(0), id 000000000000b700.
+SCODE (20000000), id 000000000000b700:
+xc2028 0-0060: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000), id 
+0000000000008000.
+xc2028 0-0060: Incorrect readback of firmware version.
+xc2028 0-0060: Loading firmware for type=BASE (1), id 0000000000000000.
+xc2028 0-0060: Loading firmware for type=(0), id 000000000000b700.
+SCODE (20000000), id 000000000000b700:
+xc2028 0-0060: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000), id 
+0000000000008000.
+xc2028 0-0060: Incorrect readback of firmware version.
+em28xx #0: v4l2 driver version 0.1.2
+em28xx #0: V4L2 video device registered as /dev/video1 
 
-Regards dehqan
 
---0016e659f46611b40c0477199899
-Content-Type: text/html; charset=ISO-8859-1
+No /dev/dvb, so no DVT-T. I tried to use the latest v4l-dvb but I can't 
+compile it:
 
-In The Name Of God The compassionate merciful<br><br>Good day everyone ;<br>What is The best UB DVB-S2 card for linux ? that it&#39;s driver also works fine and deos not have problem with s2 channel. please tell why you advice that .<br>
-<br>Regards dehqan<br>
+/root/v4l-dvb/v4l/dvbdev.c: In function 'init_dvbdev':
+/root/v4l-dvb/v4l/dvbdev.c:516: error: 'struct class' has no member named 
+'nodename'
+make[3]: *** [/root/v4l-dvb/v4l/dvbdev.o] Error 1
+make[2]: *** [_module_/root/v4l-dvb/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-2.6.32-rc3'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/root/v4l-dvb/v4l'
+make: *** [all] Error 2
 
---0016e659f46611b40c0477199899--
+Any help is appreciated!
 
-
---===============0741467660==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thanks,
+Michael
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0741467660==--
