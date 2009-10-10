@@ -1,82 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53058 "EHLO bear.ext.ti.com"
+Received: from lo.gmane.org ([80.91.229.12]:42812 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754273AbZJAPdA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Oct 2009 11:33:00 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "Nagendra, Gururaj" <gururaj.nagendra@intel.com>
-Date: Thu, 1 Oct 2009 10:33:02 -0500
-Subject: RE: status of google group created for working on Media controller?
-Message-ID: <A69FA2915331DC488A831521EAE36FE4015536FDE9@dlee06.ent.ti.com>
-References: <A69FA2915331DC488A831521EAE36FE4015536FCAE@dlee06.ent.ti.com>
- <A24693684029E5489D1D202277BE89444C9C92CC@dlee02.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE89444C9C92CC@dlee02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	id S1753102AbZJJHAm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Oct 2009 03:00:42 -0400
+Received: from list by lo.gmane.org with local (Exim 4.50)
+	id 1MwVvw-0003xE-FH
+	for linux-media@vger.kernel.org; Sat, 10 Oct 2009 09:00:05 +0200
+Received: from 124-168-110-190.dyn.iinet.net.au ([124.168.110.190])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sat, 10 Oct 2009 09:00:04 +0200
+Received: from tom by 124-168-110-190.dyn.iinet.net.au with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sat, 10 Oct 2009 09:00:04 +0200
+To: linux-media@vger.kernel.org
+From: Tom Clift <tom@clift.name>
+Subject: Re: My DVB-card is flooding the consol with 
+Date: Sat, 10 Oct 2009 06:54:58 +0000 (UTC)
+Message-ID: <loom.20091010T083344-450@post.gmane.org>
+References: <20090615113315.0fdfbe62.bhepple@promptu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sergio,
+Bob Hepple <bhepple <at> promptu.com> writes:
 
-Thanks..
+> To add another data-point, I am also getting this error with the same
+> board ... as far as I have been able to test, it's something that was
+> OK in 2.6.27, regressed in 2.6.28 and is still a problem in 2.6.30.
+> 
+> Note that this is the rev.1 DViCO
+...
+> I get spammed by this console message every 1 second and the board does not
+> operate:
+> [ 375.385180] dvb-usb: bulk message failed: -110 (4/0)
+...
+> So I put in a new disc and installed Fedora-10 (2.6.27) with the same
+> firmware: /lib/firmware/xc3028-v27.fw
+> ... and it's working fine now.
 
-Guru,
+Same here.  I hadn't touched my kernel for some time for fear of breaking things
+(getting it working was a trial).  Recently tried with a new kernel on a
+different drive and the card didn't work.
 
-Could you add me to the group? 
+Working on: 2.6.22 (Gentoo) with patches by Michael Krufky and Australian
+firmware by Chris Pascoe.
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-email: m-karicheri2@ti.com
->-----Original Message-----
->From: Aguirre Rodriguez, Sergio Alberto
->Sent: Thursday, October 01, 2009 11:10 AM
->To: Karicheri, Muralidharan; linux-media@vger.kernel.org
->Cc: Nagendra, Gururaj
->Subject: RE: status of google group created for working on Media
->controller?
->
->Hi Murali,
->
->> -----Original Message-----
->> From: linux-media-owner@vger.kernel.org
->> [mailto:linux-media-owner@vger.kernel.org] On Behalf Of
->> Karicheri, Muralidharan
->> Sent: Thursday, October 01, 2009 8:46 AM
->> To: linux-media@vger.kernel.org
->> Subject: status of google group created for working on Media
->> controller?
->>
->> Hi,
->>
->> In the plumbers conference, a Google group was setup to share
->> ideas/patches during development of media controller
->> framework. But I have not any email regarding the same. Could
->> someone tell me what is the current status of this group and
->> add me to the group based on my below information?
->
->Guru should add you to the group.
->
->Nothing has been yet discussed there though.
->
->Regards,
->Sergio
->>
->> Murali Karicheri
->> Software Design Engineer
->> Texas Instruments Inc.
->> Germantown, MD 20874
->> email: m-karicheri2@ti.com
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe
->> linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
+Not working on: 2.6.28 (Mythbuntu 9.04) both stock and built from the v4l-dvb
+repo.
+
+I also tried a 2.6.30 kernel and an earlier 2.6.28 kernel with both the stock
+driver and built from the v4l-dvb repo - none worked.  Also tried going back to
+older v4l-dvb revisions, but this was hit and miss as they often wouldn't build
+(the few successful builds didn't work).  Unfortunately I can't easily try a
+2.6.27 kernel, but if it comes to that I can probably re-install with an older
+distro.
+
+Bob, I'd agree that it seems the DViCO Dual Digital 4 rev.1 was working in
+2.6.27, regressed in 2.6.28, and still not working in 2.6.30.
+
+I'd like to hear from anyone who has a DD4 rev.1 working in 2.6.30 or later.
+I'm also in Australia, but this time I don't think that is a factor (unlike the
+firmware shenanigans several years ago).  Just a hunch though.
+
+For the record, my dmesg shows:
+----
+[  178.599125] xc2028 2-0061: Loading 80 firmware images from xc3028-v27.fw, t
+ype: xc2028 firmware, ver 2.7
+[  178.609325] xc2028 2-0061: Loading firmware for type=BASE F8MHZ (3), id 000
+0000000000000.
+[  183.165027] xc2028 2-0061: Loading firmware for type=D2633 DTV7 (90), id 00
+00000000000000.
+[  183.245019] xc2028 2-0061: Loading SCODE for type=SCODE HAS_IF_5260 (600000
+00), id 0000000000000000.
+[  185.400150] dvb-usb: recv bulk message failed: -110
+[  185.400162] zl10353: write to reg 62 failed (err = -121)!
+[  187.400099] dvb-usb: bulk message failed: -110 (5/0)
+[  187.400112] zl10353: write to reg 50 failed (err = -121)!
+[  189.411540] dvb-usb: bulk message failed: -110 (2/0)
+[  191.408114] dvb-usb: bulk message failed: -110 (4/0)
+[  191.408124] cxusb: i2c read failed
+[  193.508151] dvb-usb: bulk message failed: -110 (4/0)
+[  193.508160] cxusb: i2c read failed
+----
+(last 2 lines repeating)
+
+- Tom
+
