@@ -1,114 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01a.mail.t-online.hu ([84.2.40.6]:51868 "EHLO
-	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933343AbZJaXPX (ORCPT
+Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:1454 "EHLO
+	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752565AbZJJSIY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Oct 2009 19:15:23 -0400
-Message-ID: <4AECC505.4040201@freemail.hu>
-Date: Sun, 01 Nov 2009 00:15:17 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-CC: Thomas Kaiser <thomas@kaiser-linux.li>,
-	Theodore Kilgore <kilgota@auburn.edu>,
-	Kyle Guinn <elyk03@gmail.com>
-Subject: [PATCH 11/21] gspca pac7302/pac7311: separate contrast control
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Sat, 10 Oct 2009 14:08:24 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr17.xs4all.nl (8.13.8/8.13.8) with ESMTP id n9AI7hIC042839
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 10 Oct 2009 20:07:47 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 10 Oct 2009 20:07:43 +0200 (CEST)
+Message-Id: <200910101807.n9AI7hIC042839@smtp-vbr17.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Separate the contrast control. Remove the run-time decision for
-PAC7302 and PAC7311 sensors.
+Results of the daily build of v4l-dvb:
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
-Cc: Thomas Kaiser <thomas@kaiser-linux.li>
-Cc: Theodore Kilgore <kilgota@auburn.edu>
-Cc: Kyle Guinn <elyk03@gmail.com>
----
-diff -uprN k/drivers/media/video/gspca/pac7311.c l/drivers/media/video/gspca/pac7311.c
---- k/drivers/media/video/gspca/pac7311.c	2009-10-31 07:13:44.000000000 +0100
-+++ l/drivers/media/video/gspca/pac7311.c	2009-10-31 07:21:22.000000000 +0100
-@@ -83,8 +83,10 @@ struct sd {
- /* V4L2 controls supported by the driver */
- static int pac7302_sd_setbrightness(struct gspca_dev *gspca_dev, __s32 val);
- static int pac7302_sd_getbrightness(struct gspca_dev *gspca_dev, __s32 *val);
--static int sd_setcontrast(struct gspca_dev *gspca_dev, __s32 val);
--static int sd_getcontrast(struct gspca_dev *gspca_dev, __s32 *val);
-+static int pac7302_sd_setcontrast(struct gspca_dev *gspca_dev, __s32 val);
-+static int pac7311_sd_setcontrast(struct gspca_dev *gspca_dev, __s32 val);
-+static int pac7302_sd_getcontrast(struct gspca_dev *gspca_dev, __s32 *val);
-+static int pac7311_sd_getcontrast(struct gspca_dev *gspca_dev, __s32 *val);
- static int pac7302_sd_setcolors(struct gspca_dev *gspca_dev, __s32 val);
- static int pac7302_sd_getcolors(struct gspca_dev *gspca_dev, __s32 *val);
- static int sd_setautogain(struct gspca_dev *gspca_dev, __s32 val);
-@@ -128,8 +130,8 @@ static struct ctrl pac7302_sd_ctrls[] =
- #define CONTRAST_DEF 127
- 		.default_value = CONTRAST_DEF,
- 	    },
--	    .set = sd_setcontrast,
--	    .get = sd_getcontrast,
-+	    .set = pac7302_sd_setcontrast,
-+	    .get = pac7302_sd_getcontrast,
- 	},
- /* This control is pac7302 only */
- 	{
-@@ -238,8 +240,8 @@ static struct ctrl pac7311_sd_ctrls[] =
- #define CONTRAST_DEF 127
- 		.default_value = CONTRAST_DEF,
- 	    },
--	    .set = sd_setcontrast,
--	    .get = sd_getcontrast,
-+	    .set = pac7311_sd_setcontrast,
-+	    .get = pac7311_sd_getcontrast,
- 	},
- /* All controls below are for both the 7302 and the 7311 */
- 	{
-@@ -1130,21 +1132,37 @@ static int pac7302_sd_getbrightness(stru
- 	return 0;
- }
+date:        Sat Oct 10 19:00:03 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13083:89b7e6d5854a
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
--static int sd_setcontrast(struct gspca_dev *gspca_dev, __s32 val)
-+static int pac7302_sd_setcontrast(struct gspca_dev *gspca_dev, __s32 val)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-rc3-armv5: ERRORS
+linux-2.6.32-rc3-armv5-davinci: ERRORS
+linux-2.6.27-armv5-ixp: ERRORS
+linux-2.6.28-armv5-ixp: ERRORS
+linux-2.6.29.1-armv5-ixp: ERRORS
+linux-2.6.30-armv5-ixp: ERRORS
+linux-2.6.31-armv5-ixp: ERRORS
+linux-2.6.32-rc3-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.32-rc3-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-rc3-i686: ERRORS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-rc3-m32r: ERRORS
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.32-rc3-mips: ERRORS
+linux-2.6.27-powerpc64: ERRORS
+linux-2.6.28-powerpc64: ERRORS
+linux-2.6.29.1-powerpc64: ERRORS
+linux-2.6.30-powerpc64: ERRORS
+linux-2.6.31-powerpc64: ERRORS
+linux-2.6.32-rc3-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-rc3-x86_64: ERRORS
+sparse (linux-2.6.31): OK
+sparse (linux-2.6.32-rc3): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
- 	sd->contrast = val;
- 	if (gspca_dev->streaming) {
--		if (sd->sensor == SENSOR_PAC7302)
--			pac7302_setbrightcont(gspca_dev);
--		else
--			pac7311_setcontrast(gspca_dev);
-+		pac7302_setbrightcont(gspca_dev);
-+	}
-+	return 0;
-+}
-+
-+static int pac7311_sd_setcontrast(struct gspca_dev *gspca_dev, __s32 val)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+
-+	sd->contrast = val;
-+	if (gspca_dev->streaming) {
-+		pac7311_setcontrast(gspca_dev);
- 	}
- 	return 0;
- }
+Detailed results are available here:
 
--static int sd_getcontrast(struct gspca_dev *gspca_dev, __s32 *val)
-+static int pac7302_sd_getcontrast(struct gspca_dev *gspca_dev, __s32 *val)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+
-+	*val = sd->contrast;
-+	return 0;
-+}
-+
-+static int pac7311_sd_getcontrast(struct gspca_dev *gspca_dev, __s32 *val)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
