@@ -1,158 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f208.google.com ([209.85.219.208]:61014 "EHLO
-	mail-ew0-f208.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754092AbZJOOre (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Oct 2009 10:47:34 -0400
-Received: by ewy4 with SMTP id 4so606820ewy.37
-        for <linux-media@vger.kernel.org>; Thu, 15 Oct 2009 07:46:56 -0700 (PDT)
-MIME-Version: 1.0
-Date: Thu, 15 Oct 2009 15:46:56 +0100
-Message-ID: <1341f2f50910150746k383a77ccg3e26c6bd170d5fee@mail.gmail.com>
-Subject: Regression: Nebula DigiTV DVB-T (PCI) no longer works
-From: Stephen Bainbridge <bainbridge.stephen@gmail.com>
+Received: from mail.gmx.net ([213.165.64.20]:57121 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1761525AbZJJU3O (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Oct 2009 16:29:14 -0400
+From: Michael G <miga_miga@gmx.de>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: 2.6.32 dvbdev error / Cinergy XS [0ccd:0043]
+Date: Sat, 10 Oct 2009 22:19:23 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200910102219.23667.miga_miga@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi,
+can someone please help me to get my
+Cinergy XS (Bus 001 Device 010: ID 0ccd:0043 TerraTec Electronic GmbH)
+to run in a 2.6.32 RC3 gentoo system?
 
-My Nebula DigiTV DVB-T (PCI) card no longer works. It's on a
-multi-boot Kubuntu system and works fine when I boot into Intrepid
-(v2.6.27-11-generic#1 SMP i686), but it does not work with Jaunty
-(2.6.28-11-generic i686). I've also tried a beta of the latest Kubuntu
-release Karmic and that also does not work. I've tried both i686 and
-x64 variants and its the same.
+When I use the in-kernel driver I'll get the following output:
+usb 1-1: new high speed USB device using ehci_hcd and address 10                             
+usb 1-1: configuration #1 chosen from 1 choice                                               
+em28xx: New device TerraTec Electronic GmbH Cinergy T USB XS @ 480 Mbps 
+(0ccd:0043, interface 0, class 0)
+em28xx #0: chip ID is em2870                                                                             
+em28xx #0: i2c eeprom 00: 1a eb 67 95 cd 0c 43 00 c0 12 81 00 6a 24 8e 34                               
+em28xx #0: i2c eeprom 10: 00 00 06 57 02 0c 00 00 00 00 00 00 00 00 00 00                               
+em28xx #0: i2c eeprom 20: 44 00 00 00 f0 10 01 00 00 00 00 00 5b 00 00 00                               
+em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01 00 00 ee 2d 46 4a                               
+em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                               
+em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                               
+em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 24 03 43 00 69 00                               
+em28xx #0: i2c eeprom 70: 6e 00 65 00 72 00 67 00 79 00 20 00 54 00 20 00                               
+em28xx #0: i2c eeprom 80: 55 00 53 00 42 00 20 00 58 00 53 00 00 00 34 03                               
+em28xx #0: i2c eeprom 90: 54 00 65 00 72 00 72 00 61 00 54 00 65 00 63 00                               
+em28xx #0: i2c eeprom a0: 20 00 45 00 6c 00 65 00 63 00 74 00 72 00 6f 00                               
+em28xx #0: i2c eeprom b0: 6e 00 69 00 63 00 20 00 47 00 6d 00 62 00 48 00                               
+em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                               
+em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                               
+em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                               
+em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x339064dc
+em28xx #0: EEPROM info:
+em28xx #0:      No audio on board.
+em28xx #0:      500mA max power
+em28xx #0:      Table at 0x06, strings=0x246a, 0x348e, 0x0000
+em28xx #0: Identified as Terratec Cinergy T XS (card=43)
+em28xx #0:
 
-I did a clean install and when I try to scan for channels using Kaffeine
-it gets nothing and displays the following:
+em28xx #0: The support for this board weren't valid yet.
+em28xx #0: Please send a report of having this working
+em28xx #0: not to V4L mailing list (and/or to other addresses)
 
-fred@cartman:/media$ kaffeine
-kbuildsycoca running...
-Reusing existing ksycoca
-/dev/dvb/adapter0/frontend0 : opened ( Zarlink MT352 DVB-T )
-0 EPG plugins loaded for device 0:0.
-Loaded epg data : 0 events (0 msecs)
-fred@cartman:/media$ DvbCam::probe(): /dev/dvb/adapter0/ca0: : No such
-file or directory
-Using DVB device 0:0 "Zarlink MT352 DVB-T"
-tuning DVB-T to 177500000 Hz
-inv:2 bw:1 fecH:9 fecL:9 mod:6 tm:2 gi:4 hier:4
-.FE_READ_STATUS: Remote I/O error
-
-Transponders: 1/57
-scanMode=0
-it's dvb 2!
-
-Invalid section length or timeout: pid=17
-
-
-Invalid section length or timeout: pid=0
-
-Frontend closed
-Using DVB device 0:0 "Zarlink MT352 DVB-T"
-tuning DVB-T to 184500000 Hz
-inv:2 bw:1 fecH:9 fecL:9 mod:6 tm:2 gi:4 hier:4
-.FE_READ_STATUS: Remote I/O error
-
-
-
-/var/log/messages looks like:
-
-Apr 27 21:52:36 cartman kernel: [   10.928721] bttv: driver version
-0.9.17 loaded
-Apr 27 21:52:36 cartman kernel: [   10.928726] bttv: using 8 buffers
-with 2080k (520 pages) each for capture
-Apr 27 21:52:36 cartman kernel: [   10.928782] bttv: Bt8xx card found (0).
-Apr 27 21:52:36 cartman kernel: [   10.928802] bttv 0000:05:07.0: PCI
-INT A -> Link[APC2] -> GSI 17 (level, low) -> IRQ 17
-Apr 27 21:52:36 cartman kernel: [   10.928812] bttv0: Bt878 (rev 17)
-at 0000:05:07.0, irq: 17, latency: 32, mmio: 0xd2000000
-Apr 27 21:52:36 cartman kernel: [   10.929515] bttv0: detected: Nebula
-Electronics DigiTV [card=104], PCI subsystem ID is 0071:0101
-Apr 27 21:52:36 cartman kernel: [   10.929520] bttv0: using: Nebula
-Electronics DigiTV [card=104,autodetected]
-Apr 27 21:52:36 cartman kernel: [   10.929654] bttv0: tuner absent
-Apr 27 21:52:36 cartman kernel: [   10.929719] bttv0: registered device video1
-Apr 27 21:52:36 cartman kernel: [   10.929742] bttv0: registered device vbi0
-Apr 27 21:52:36 cartman kernel: [   10.929760] bttv0: PLL: 28636363 =>
-35468950 .. ok
-Apr 27 21:52:36 cartman kernel: [   10.961077] bttv0: add subdevice "dvb0"
-Apr 27 21:52:36 cartman kernel: [   10.961206] input: bttv IR
-(card=104) as /devices/pci0000:00/0000:00:
-09.0/0000:05:07.0/input/input6
-Apr 27 21:52:36 cartman kernel: [   10.994975] synaptics was reset on
-resume, see synaptics_resume_reset if you have trouble on resume
-Apr 27 21:52:36 cartman kernel: [   11.013425] bt878: AUDIO driver
-version 0.0.0 loaded
-Apr 27 21:52:36 cartman kernel: [   11.013628] bt878: Bt878 AUDIO
-function found (0).
-Apr 27 21:52:36 cartman kernel: [   11.013645] bt878 0000:05:07.1: PCI
-INT A -> Link[APC2] -> GSI 17 (level, low) -> IRQ 17
-Apr 27 21:52:36 cartman kernel: [   11.013648] bt878_probe: card
-id=[0x1010071],[ Nebula Electronics DigiTV ] has DVB functions.
-Apr 27 21:52:36 cartman kernel: [   11.013655] bt878(0): Bt878 (rev
-17) at 05:07.1, irq: 17, latency: 32, memory: 0xd2001000
-Apr 27 21:52:36 cartman kernel: [   11.018482] scsi 6:0:0:0:
-Direct-Access     VIA-P    VT6205-DevB      2.82 PQ: 0 ANSI: 2
-Apr 27 21:52:36 cartman kernel: [   11.019101] scsi 6:0:0:1:
-Direct-Access     VIA-P    VT6205-DevM      2.82 PQ: 0 ANSI: 2
-Apr 27 21:52:36 cartman kernel: [   11.021611] sd 6:0:0:0: [sdc]
-Attached SCSI removable disk
-Apr 27 21:52:36 cartman kernel: [   11.021740] sd 6:0:0:0: Attached
-scsi generic sg4 type 0
-Apr 27 21:52:36 cartman kernel: [   11.022689] sd 6:0:0:1: [sdd]
-Attached SCSI removable disk
-Apr 27 21:52:36 cartman kernel: [   11.022772] sd 6:0:0:1: Attached
-scsi generic sg5 type 0
-Apr 27 21:52:36 cartman kernel: [   11.050652] DVB: registering new
-adapter (bttv0)
-Apr 27 21:52:36 cartman kernel: [   11.058791] usbcore: registered new
-interface driver snd-usb-audio
-Apr 27 21:52:36 cartman kernel: [   11.142234] ACPI: PCI Interrupt
-Link [APCJ] enabled at IRQ 22
-Apr 27 21:52:36 cartman kernel: [   11.142241] Intel ICH 0000:00:04.0:
-PCI INT A -> Link[APCJ] -> GSI 22 (level, low) -> IRQ 22
-Apr 27 21:52:36 cartman kernel: [   11.308995] DVB: registering
-adapter 0 frontend 0 (Zarlink MT352 DVB-T)...
-A
-.
-.
-.
-Apr 27 21:54:50 cartman kernel: [  149.693129] mt352_read_register:
-readreg error (reg=137, ret==-6)
-Apr 27 21:54:50 cartman kernel: [  149.693715] mt352_read_register:
-readreg error (reg=138, ret==-6)
-Apr 27 21:54:53 cartman kernel: [  152.692542] mt352_write() to reg 89
-failed (err = -6)!
-Apr 27 21:55:01 cartman kernel: [  160.599305] mt352_read_register:
-readreg error (reg=137, ret==-6)
-Apr 27 21:55:01 cartman kernel: [  160.599806] mt352_read_register:
-readreg error (reg=138, ret==-6)
-Apr 27 21:55:01 cartman kernel: [  160.600787] mt352_write() to reg 51
-failed (err = -6)!
-Apr 27 21:55:01 cartman kernel: [  160.601285] mt352_write() to reg 5d
-failed (err = -6)!
-Apr 27 21:55:01 cartman kernel: [  160.700793] mt352_read_register:
-readreg error (reg=0, ret==-6)
-Apr 27 21:55:02 cartman kernel: [  161.085569] mt352_read_register:
-readreg error (reg=20, ret==-6)
-Apr 27 21:55:02 cartman kernel: [  161.086069] mt352_read_register:
-readreg error (reg=21, ret==-6)
-Apr 27 21:55:02 cartman kernel: [  161.086867] mt352_read_register:
-readreg error (reg=9, ret==-6)
-Apr 27 21:55:02 cartman kernel: [  161.090498] mt352_read_register:
-readreg error (reg=0, ret==-6)
-Apr 27 21:55:02 cartman kernel: [  161.404535] mt352_read_register:
-readreg error (reg=0, ret==-6)
-Apr 27 21:55:02 cartman kernel: [  161.405039] mt352_write() to reg 51
-failed (err = -6)!
-Apr 27 21:55:02 cartman kernel: [  161.405536] mt352_write() to reg 5d
-failed (err = -6)!
+Chip ID is not zero. It is not a TEA5767
+tuner 0-0060: chip found @ 0xc0 (em28xx #0)
+xc2028 0-0060: creating new instance
+xc2028 0-0060: type set to XCeive xc2028/xc3028 tuner
+usb 1-1: firmware: requesting xc3028-v27.fw
+xc2028 0-0060: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 
+firmware, ver 2.7
+xc2028 0-0060: Loading firmware for type=BASE (1), id 0000000000000000.
+xc2028 0-0060: Loading firmware for type=(0), id 000000000000b700.
+SCODE (20000000), id 000000000000b700:
+xc2028 0-0060: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000), id 
+0000000000008000.
+xc2028 0-0060: Incorrect readback of firmware version.
+xc2028 0-0060: Loading firmware for type=BASE (1), id 0000000000000000.
+xc2028 0-0060: Loading firmware for type=(0), id 000000000000b700.
+SCODE (20000000), id 000000000000b700:
+xc2028 0-0060: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000), id 
+0000000000008000.
+xc2028 0-0060: Incorrect readback of firmware version.
+em28xx #0: v4l2 driver version 0.1.2
+em28xx #0: V4L2 video device registered as /dev/video1 
 
 
-Any pointers how this may be resolved ?
+No /dev/dvb, so no DVT-T. I tried to use the latest v4l-dvb but I can't 
+compile it:
 
-Regards,
-Steve
+/root/v4l-dvb/v4l/dvbdev.c: In function 'init_dvbdev':
+/root/v4l-dvb/v4l/dvbdev.c:516: error: 'struct class' has no member named 
+'nodename'
+make[3]: *** [/root/v4l-dvb/v4l/dvbdev.o] Error 1
+make[2]: *** [_module_/root/v4l-dvb/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-2.6.32-rc3'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/root/v4l-dvb/v4l'
+make: *** [all] Error 2
+
+Any help is appreciated!
+
+Thanks,
+Michael
