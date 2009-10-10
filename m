@@ -1,127 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:1101 "EHLO
-	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754100AbZJMSId (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:41127 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754685AbZJJL5n convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Oct 2009 14:08:33 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr3.xs4all.nl (8.13.8/8.13.8) with ESMTP id n9DI7pge040027
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 13 Oct 2009 20:07:56 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 13 Oct 2009 20:07:51 +0200 (CEST)
-Message-Id: <200910131807.n9DI7pge040027@smtp-vbr3.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Sat, 10 Oct 2009 07:57:43 -0400
+Date: Sat, 10 Oct 2009 08:56:26 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Markus Rechberger <mrechberger@gmail.com>
+Cc: Simon Kenyon <simon@koala.ie>, linux-media@vger.kernel.org
+Subject: Re: Hauppage WinTV-HVR-900H
+Message-ID: <20091010085626.377f7daf@pedra.chehab.org>
+In-Reply-To: <d9def9db0910091524p6c8cba7fxf4a245a64af297c4@mail.gmail.com>
+References: <4ACDF829.3010500@xfce.org>
+	<37219a840910080545v72165540v622efd43574cf085@mail.gmail.com>
+	<4ACDFED9.30606@xfce.org>
+	<829197380910080745j3015af10pbced2a7e04c7595b@mail.gmail.com>
+	<4ACE2D5B.4080603@xfce.org>
+	<829197380910080928t30fc0ecas7f9ab2a7d8437567@mail.gmail.com>
+	<d9def9db0910080946r445ac0efs421cb3bd2972a0d8@mail.gmail.com>
+	<4ACEED7D.10302@koala.ie>
+	<d9def9db0910090121i76571d0o4778aa14026b4b9d@mail.gmail.com>
+	<4ACFB218.5040608@koala.ie>
+	<d9def9db0910091524p6c8cba7fxf4a245a64af297c4@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Em Sat, 10 Oct 2009 00:24:57 +0200
+Markus Rechberger <mrechberger@gmail.com> escreveu:
 
-Results of the daily build of v4l-dvb:
+> On Fri, Oct 9, 2009 at 11:58 PM, Simon Kenyon <simon@koala.ie> wrote:
+> > Markus Rechberger wrote:
+> >
+> >> Available from 20th Oct on so in 11 days. There are not many
+> >> competitive devices (none) available for
+> >> linux which deliver such support. On the other side it's not kernel
+> >> based either, it's entirely in userspace.
+> >> It's also  entirely supported by all participating companies.
+> >
+> > this is a mailing list for the open source dvb drivers
+> > you are talking about a closed source solution
+> > what does your solution have to do with linuxtv.org?
+> >
+> 
+> I see linux-media, you can find the sources of a patched tvtime version on the
+> website.
+> It shows an alternative way how to integrate usb chipsolutions in linux.
+> Aside of that the official DVB(3/5)/V4L(1/2) API has been reviewed
+> through our work and bugreports have been
+> submitted to various places (linux media, some linux distributions).
+> It integrates
+> flawlessly and helps to improve the overall media support with linux.
+> 
+> The posting was pointing out to Ali's email that he was looking
+> for a working analog TV solution for France. He has bought this
+> Pinnacle device 3 years ago,
+> the vendor does not care about support for it.
+> We provide solutions which work within a few seconds, nevermind what
+> distribution.
 
-date:        Tue Oct 13 19:00:03 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13095:5578cc977a13
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Your business is so bad that you can't even pay to an adds on some magazine, for
+you to spam the open source mailing lists as a desperate trial to sell a single
+unit of your product?
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-rc3-armv5: ERRORS
-linux-2.6.32-rc3-armv5-davinci: ERRORS
-linux-2.6.27-armv5-ixp: ERRORS
-linux-2.6.28-armv5-ixp: ERRORS
-linux-2.6.29.1-armv5-ixp: ERRORS
-linux-2.6.30-armv5-ixp: ERRORS
-linux-2.6.31-armv5-ixp: ERRORS
-linux-2.6.32-rc3-armv5-ixp: ERRORS
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: ERRORS
-linux-2.6.32-rc3-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-rc3-i686: ERRORS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-rc3-m32r: ERRORS
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: OK
-linux-2.6.32-rc3-mips: ERRORS
-linux-2.6.27-powerpc64: ERRORS
-linux-2.6.28-powerpc64: ERRORS
-linux-2.6.29.1-powerpc64: ERRORS
-linux-2.6.30-powerpc64: ERRORS
-linux-2.6.31-powerpc64: ERRORS
-linux-2.6.32-rc3-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-rc3-x86_64: ERRORS
-sparse (linux-2.6.31): OK
-sparse (linux-2.6.32-rc3): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+Please stop spamming.
 
-Detailed results are available here:
+> 
+> Although this was my last mail addressing your questions.
+> 
+> Best Regards,
+> Markus Rechberger
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
-The V4L2 specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+Cheers,
+Mauro
