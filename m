@@ -1,115 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail02d.mail.t-online.hu ([84.2.42.7]:52396 "EHLO
-	mail02d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933364AbZJaXOv (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:54759 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752452AbZJKWdG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Oct 2009 19:14:51 -0400
-Message-ID: <4AECC4EB.7070504@freemail.hu>
-Date: Sun, 01 Nov 2009 00:14:51 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+	Sun, 11 Oct 2009 18:33:06 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH 5/8] drivers/media/video/uvc: Use %pUl to print UUIDs
+Date: Mon, 12 Oct 2009 00:34:58 +0200
+Cc: linux-kernel@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+References: <1254890742-28245-1-git-send-email-joe@perches.com> <ef810b1f134d8b5f07b849b13751445d7d49956b.1254884776.git.joe@perches.com>
+In-Reply-To: <ef810b1f134d8b5f07b849b13751445d7d49956b.1254884776.git.joe@perches.com>
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-CC: Thomas Kaiser <thomas@kaiser-linux.li>,
-	Theodore Kilgore <kilgota@auburn.edu>,
-	Kyle Guinn <elyk03@gmail.com>
-Subject: [PATCH 09/21] gspca pac7302/pac7311: separate dq_callback
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200910120034.58943.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+Hi Joe,
 
-Separate the dq_callback function. Remove the run-time decision for
-PAC7302 and PAC7311 sensors.
+On Wednesday 07 October 2009 06:45:38 Joe Perches wrote:
+> Signed-off-by: Joe Perches <joe@perches.com>
+> ---
+>  drivers/media/video/uvc/uvc_ctrl.c   |   69 ++++++++++++++++------------------
+>  drivers/media/video/uvc/uvc_driver.c |    7 +--
+>  drivers/media/video/uvc/uvcvideo.h   |   10 -----
+>  3 files changed, 35 insertions(+), 51 deletions(-)
+> 
+> diff --git a/drivers/media/video/uvc/uvc_ctrl.c
+>  b/drivers/media/video/uvc/uvc_ctrl.c index c3225a5..4d06976 100644
+> --- a/drivers/media/video/uvc/uvc_ctrl.c
+> +++ b/drivers/media/video/uvc/uvc_ctrl.c
+> @@ -1093,8 +1093,8 @@ int uvc_xu_ctrl_query(struct uvc_video_chain *chain,
+> 
+>  	if (!found) {
+>  		uvc_trace(UVC_TRACE_CONTROL,
+> -			"Control " UVC_GUID_FORMAT "/%u not found.\n",
+> -			UVC_GUID_ARGS(entity->extension.guidExtensionCode),
+> +			"Control %pUl/%u not found.\n",
+> +			entity->extension.guidExtensionCode,
+>  			xctrl->selector);
+>  		return -EINVAL;
+>  	}
+> @@ -1171,9 +1171,9 @@ int uvc_ctrl_resume_device(struct uvc_device *dev)
+>  			    (ctrl->info->flags & UVC_CONTROL_RESTORE) == 0)
+>  				continue;
+> 
+> -			printk(KERN_INFO "restoring control " UVC_GUID_FORMAT
+> -				"/%u/%u\n", UVC_GUID_ARGS(ctrl->info->entity),
+> -				ctrl->info->index, ctrl->info->selector);
+> +			printk(KERN_INFO "restoring control %pUl/%u/%u\n",
+> +			       ctrl->info->entity,
+> +			       ctrl->info->index, ctrl->info->selector);
+>  			ctrl->dirty = 1;
+>  		}
+> 
+> @@ -1228,46 +1228,43 @@ static void uvc_ctrl_add_ctrl(struct uvc_device
+>  *dev, dev->intfnum, info->selector, (__u8 *)&size, 2);
+>  		if (ret < 0) {
+>  			uvc_trace(UVC_TRACE_CONTROL, "GET_LEN failed on "
+> -				"control " UVC_GUID_FORMAT "/%u (%d).\n",
+> -				UVC_GUID_ARGS(info->entity), info->selector,
+> -				ret);
+> +				  "control %pUl/%u (%d).\n",
+> +				  info->entity, info->selector, ret);
+>  			return;
+>  		}
+> 
+>  		if (info->size != le16_to_cpu(size)) {
+> -			uvc_trace(UVC_TRACE_CONTROL, "Control " UVC_GUID_FORMAT
+> -				"/%u size doesn't match user supplied "
+> -				"value.\n", UVC_GUID_ARGS(info->entity),
+> -				info->selector);
+> +			uvc_trace(UVC_TRACE_CONTROL,
+> +				  "Control %pUl/%u size doesn't match user supplied value.\n",
+> +				  info->entity, info->selector);
+>  			return;
+>  		}
+> 
+>  		ret = uvc_query_ctrl(dev, UVC_GET_INFO, ctrl->entity->id,
+>  			dev->intfnum, info->selector, &inf, 1);
+>  		if (ret < 0) {
+> -			uvc_trace(UVC_TRACE_CONTROL, "GET_INFO failed on "
+> -				"control " UVC_GUID_FORMAT "/%u (%d).\n",
+> -				UVC_GUID_ARGS(info->entity), info->selector,
+> -				ret);
+> +			uvc_trace(UVC_TRACE_CONTROL,
+> +				  "GET_INFO failed on control %pUl/%u (%d).\n",
+> +				  info->entity, info->selector, ret);
+>  			return;
+>  		}
+> 
+>  		flags = info->flags;
+>  		if (((flags & UVC_CONTROL_GET_CUR) && !(inf & (1 << 0))) ||
+>  		    ((flags & UVC_CONTROL_SET_CUR) && !(inf & (1 << 1)))) {
+> -			uvc_trace(UVC_TRACE_CONTROL, "Control "
+> -				UVC_GUID_FORMAT "/%u flags don't match "
+> -				"supported operations.\n",
+> -				UVC_GUID_ARGS(info->entity), info->selector);
+> +			uvc_trace(UVC_TRACE_CONTROL,
+> +				  "Control %pUl/%u flags don't match supported operations.\n",
+> +				  info->entity, info->selector);
+>  			return;
+>  		}
+>  	}
+> 
+>  	ctrl->info = info;
+>  	ctrl->data = kmalloc(ctrl->info->size * UVC_CTRL_NDATA, GFP_KERNEL);
+> -	uvc_trace(UVC_TRACE_CONTROL, "Added control " UVC_GUID_FORMAT "/%u "
+> -		"to device %s entity %u\n", UVC_GUID_ARGS(ctrl->info->entity),
+> -		ctrl->info->selector, dev->udev->devpath, entity->id);
+> +	uvc_trace(UVC_TRACE_CONTROL,
+> +		  "Added control %pUl/%u to device %s entity %u\n",
+> +		  ctrl->info->entity, ctrl->info->selector,
+> +		  dev->udev->devpath, entity->id);
+>  }
+> 
+>  /*
+> @@ -1293,17 +1290,16 @@ int uvc_ctrl_add_info(struct uvc_control_info
+>  *info) continue;
+> 
+>  		if (ctrl->selector == info->selector) {
+> -			uvc_trace(UVC_TRACE_CONTROL, "Control "
+> -				UVC_GUID_FORMAT "/%u is already defined.\n",
+> -				UVC_GUID_ARGS(info->entity), info->selector);
+> +			uvc_trace(UVC_TRACE_CONTROL,
+> +				  "Control %pUl/%u is already defined.\n",
+> +				  info->entity, info->selector);
+>  			ret = -EEXIST;
+>  			goto end;
+>  		}
+>  		if (ctrl->index == info->index) {
+> -			uvc_trace(UVC_TRACE_CONTROL, "Control "
+> -				UVC_GUID_FORMAT "/%u would overwrite index "
+> -				"%d.\n", UVC_GUID_ARGS(info->entity),
+> -				info->selector, info->index);
+> +			uvc_trace(UVC_TRACE_CONTROL,
+> +				  "Control %pUl/%u would overwrite index %d.\n",
+> +				  info->entity, info->selector, info->index);
+>  			ret = -EEXIST;
+>  			goto end;
+>  		}
+> @@ -1344,10 +1340,9 @@ int uvc_ctrl_add_mapping(struct uvc_control_mapping
+>  *mapping) continue;
+> 
+>  		if (info->size * 8 < mapping->size + mapping->offset) {
+> -			uvc_trace(UVC_TRACE_CONTROL, "Mapping '%s' would "
+> -				"overflow control " UVC_GUID_FORMAT "/%u\n",
+> -				mapping->name, UVC_GUID_ARGS(info->entity),
+> -				info->selector);
+> +			uvc_trace(UVC_TRACE_CONTROL,
+> +				  "Mapping '%s' would overflow control %pUl/%u\n",
+> +				  mapping->name, info->entity, info->selector);
+>  			ret = -EOVERFLOW;
+>  			goto end;
+>  		}
+> @@ -1366,9 +1361,9 @@ int uvc_ctrl_add_mapping(struct uvc_control_mapping
+>  *mapping)
+> 
+>  		mapping->ctrl = info;
+>  		list_add_tail(&mapping->list, &info->mappings);
+> -		uvc_trace(UVC_TRACE_CONTROL, "Adding mapping %s to control "
+> -			UVC_GUID_FORMAT "/%u.\n", mapping->name,
+> -			UVC_GUID_ARGS(info->entity), info->selector);
+> +		uvc_trace(UVC_TRACE_CONTROL,
+> +			  "Adding mapping %s to control %pUl/%u.\n",
+> +			  mapping->name, info->entity, info->selector);
+> 
+>  		ret = 0;
+>  		break;
+> diff --git a/drivers/media/video/uvc/uvc_driver.c
+>  b/drivers/media/video/uvc/uvc_driver.c index 8756be5..411dc63 100644
+> --- a/drivers/media/video/uvc/uvc_driver.c
+> +++ b/drivers/media/video/uvc/uvc_driver.c
+> @@ -328,11 +328,10 @@ static int uvc_parse_format(struct uvc_device *dev,
+>  				sizeof format->name);
+>  			format->fcc = fmtdesc->fcc;
+>  		} else {
+> -			uvc_printk(KERN_INFO, "Unknown video format "
+> -				UVC_GUID_FORMAT "\n",
+> -				UVC_GUID_ARGS(&buffer[5]));
+> +			uvc_printk(KERN_INFO, "Unknown video format %pUl\n",
+> +				   &buffer[5]);
+>  			snprintf(format->name, sizeof format->name,
+> -				UVC_GUID_FORMAT, UVC_GUID_ARGS(&buffer[5]));
+> +				 "%pUl", &Buffer[5]);
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
-Cc: Thomas Kaiser <thomas@kaiser-linux.li>
-Cc: Theodore Kilgore <kilgota@auburn.edu>
-Cc: Kyle Guinn <elyk03@gmail.com>
----
-diff -uprN i/drivers/media/video/gspca/pac7311.c j/drivers/media/video/gspca/pac7311.c
---- i/drivers/media/video/gspca/pac7311.c	2009-10-30 17:59:39.000000000 +0100
-+++ j/drivers/media/video/gspca/pac7311.c	2009-10-30 18:00:55.000000000 +0100
-@@ -820,7 +820,7 @@ static void pac7311_sd_stop0(struct gspc
- /* Include pac common sof detection functions */
- #include "pac_common.h"
+Buffer should still be written buffer.
 
--static void do_autogain(struct gspca_dev *gspca_dev)
-+static void pac7302_do_autogain(struct gspca_dev *gspca_dev)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
- 	int avg_lum = atomic_read(&sd->avg_lum);
-@@ -829,22 +829,36 @@ static void do_autogain(struct gspca_dev
- 	if (avg_lum == -1)
- 		return;
+As this will go through the linuxtv v4l-dvb tree, I'll have to add backward
+compatibility code (that will not make it to mainline). If that's ok with you
+it will be easier for me to test and apply that part of the patch through my
+tree once the vsprintf extension gets in. 
 
--	if (sd->sensor == SENSOR_PAC7302) {
--		desired_lum = 270 + sd->brightness * 4;
--		/* Hack hack, with the 7202 the first exposure step is
--		   pretty large, so if we're about to make the first
--		   exposure increase make the deadzone large to avoid
--		   oscilating */
--		if (desired_lum > avg_lum && sd->gain == GAIN_DEF &&
--				sd->exposure > EXPOSURE_DEF &&
--				sd->exposure < 42)
--			deadzone = 90;
--		else
--			deadzone = 30;
--	} else {
--		desired_lum = 200;
--		deadzone = 20;
--	}
-+	desired_lum = 270 + sd->brightness * 4;
-+	/* Hack hack, with the 7202 the first exposure step is
-+	   pretty large, so if we're about to make the first
-+	   exposure increase make the deadzone large to avoid
-+	   oscilating */
-+	if (desired_lum > avg_lum && sd->gain == GAIN_DEF &&
-+			sd->exposure > EXPOSURE_DEF &&
-+			sd->exposure < 42)
-+		deadzone = 90;
-+	else
-+		deadzone = 30;
-+
-+	if (sd->autogain_ignore_frames > 0)
-+		sd->autogain_ignore_frames--;
-+	else if (gspca_auto_gain_n_exposure(gspca_dev, avg_lum, desired_lum,
-+			deadzone, GAIN_KNEE, EXPOSURE_KNEE))
-+		sd->autogain_ignore_frames = PAC_AUTOGAIN_IGNORE_FRAMES;
-+}
-+
-+static void pac7311_do_autogain(struct gspca_dev *gspca_dev)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+	int avg_lum = atomic_read(&sd->avg_lum);
-+	int desired_lum, deadzone;
-+
-+	if (avg_lum == -1)
-+		return;
-+
-+	desired_lum = 200;
-+	deadzone = 20;
+-- 
+Regards,
 
- 	if (sd->autogain_ignore_frames > 0)
- 		sd->autogain_ignore_frames--;
-@@ -1180,7 +1194,7 @@ static struct sd_desc pac7302_sd_desc =
- 	.stopN = pac7302_sd_stopN,
- 	.stop0 = pac7302_sd_stop0,
- 	.pkt_scan = pac7302_sd_pkt_scan,
--	.dq_callback = do_autogain,
-+	.dq_callback = pac7302_do_autogain,
- };
-
- /* sub-driver description for pac7311 */
-@@ -1194,7 +1208,7 @@ static struct sd_desc pac7311_sd_desc =
- 	.stopN = pac7311_sd_stopN,
- 	.stop0 = pac7311_sd_stop0,
- 	.pkt_scan = pac7311_sd_pkt_scan,
--	.dq_callback = do_autogain,
-+	.dq_callback = pac7311_do_autogain,
- };
-
- /* -- module initialisation -- */
+Laurent Pinchart
