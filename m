@@ -1,111 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51575 "EHLO mx1.redhat.com"
+Received: from mail1.radix.net ([207.192.128.31]:49969 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751766AbZJ2KwZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Oct 2009 06:52:25 -0400
-Message-ID: <4AE97550.2020100@redhat.com>
-Date: Thu, 29 Oct 2009 11:58:24 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Alexey Fisher <bug-track@fisher-privat.net>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [Linux-uvc-devel] again "Logitech QuickCam Pro for Notebooks
- 046d:0991"
-References: <1255514751.15164.17.camel@zwerg>	 <200910281352.14940.laurent.pinchart@ideasonboard.com>	 <1256736993.2575.5.camel@mini>	 <200910281440.48791.laurent.pinchart@ideasonboard.com> <1256737867.2575.6.camel@mini>
-In-Reply-To: <1256737867.2575.6.camel@mini>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+	id S1755290AbZJKMEE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Oct 2009 08:04:04 -0400
+Subject: Re: [PATCH] AVerTV MCE 116 Plus radio
+From: Andy Walls <awalls@radix.net>
+To: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
+Cc: ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
+In-Reply-To: <20091011010039.GA4726@moon>
+References: <20091006080406.GA22207@moon> <20091006081159.GB22207@moon>
+	 <20091011010039.GA4726@moon>
+Content-Type: text/plain
+Date: Sun, 11 Oct 2009 08:05:35 -0400
+Message-Id: <1255262735.3151.16.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sun, 2009-10-11 at 04:01 +0300, Aleksandr V. Piskunov wrote:
+> On Tue, Oct 06, 2009 at 11:11:59AM +0300, Aleksandr V. Piskunov wrote:
+> > On Tue, Oct 06, 2009 at 11:04:06AM +0300, Aleksandr V. Piskunov wrote:
+> > > Added FM radio support to Avermedia AVerTV MCE 116 Plus card
+> > > 
+> > 
+> > What leaves me puzzled, radio only works ok with ivtv newi2c=1
+> > 
+> > With default newi2c audio is tinny, metallic, with some strange static.
+> > Similar problem with pvr-150 was reported years ago, guess issue is still
+> > unresolved, perhaps something with cx25840..
+> 
+> This particular "tinny" audio problem is definitely I2C speed related, to be
+> more precise, audio only goes bad if i2c-algo-bit is being run with udelay
+> less than 15, i.e. i2c bus frequency is higher than 30 KHz.
+> 
+> So with default udelay=10 or udelay=5 (optimal for IR reciever on that board)
+> radio goes bad. Running with newi2c=1 is ok, but again it isn't optimal for IR
+> reciever on AVerTV M116.
+> 
+> I2C reads/writes to cx25840 themself are ok, verified using register readback
+> after each write/write4. Problem seems to be that with cx25840 register writes
+> coming too fast on higher i2c bus speed, switching register 0x808 _from_ 
+> TV standard autodetection mode (0xff) _to_ FM radio mode (0xf9) leaves chip 
+> audio detection routine in inconsistent state.
+> 
+> The only solution I found is to do standard routine (assert_reset + write +
+> deassert_reset) followed by 50ms delay and another reset.
+> 
+> Following patch works_for_me, can be improved to only delay/doublereset when
+> really needed, etc. Andy, could you comment/review?
 
+Aleksandr,
 
-On 10/28/2009 02:51 PM, Alexey Fisher wrote:
-> Am Mittwoch, den 28.10.2009, 14:40 +0100 schrieb Laurent Pinchart:
->> On Wednesday 28 October 2009 14:36:33 Alexey Fisher wrote:
->>> Hi Laurent,
->>>
->>> Am Mittwoch, den 28.10.2009, 13:52 +0100 schrieb Laurent Pinchart:
->>>> Hi Alexey,
->>>>
->>>> On Wednesday 28 October 2009 10:58:24 Alexey Fisher wrote:
->>>>> Am Mittwoch, den 28.10.2009, 00:27 +0100 schrieb Laurent Pinchart:
->>>>>> On Monday 26 October 2009 15:06:41 Hans de Goede wrote:
->>>>>>> On 10/26/2009 12:52 PM, Alexey Fisher wrote:
->>>>>>>> Am Sonntag, den 25.10.2009, 14:21 +0100 schrieb Hans de Goede:
->>>>>>
->>>>>> [snip]
->>>>>>
->>>>>>>>> fwiw I'm a v4l kernel developer, but I'm not involved in the
->>>>>>>>> UVC driver, I'm however a contributor to cheese, I thought that
->>>>>>>>> my input that cheese would give up even if the driver has a
->>>>>>>>> long enough timeout would be helpful.
->>>>>>>>>
->>>>>>>>> To try and see if this (the cheese timeout is the issue), you
->>>>>>>>> will need to re-compile cheese from source, after unpacking
->>>>>>>>> cheese, edit src/cheese-webcam.c and goto line 716 (in 2.28.0)
->>>>>>>>>
->>>>>>>>> And change the "10 * GST_SECOND" there in something bigger. I
->>>>>>>>> also see that I'm mistaken and the timeout in cheese is not 3
->>>>>>>>> but 10 seconds, it might have changed recently, or my memory
->>>>>>>>> has been playing tricks on me.
->>>>>>>>>
->>>>>>>>> I still believe this might be the cause, the trace you have
->>>>>>>>> posted seems consistent with cheese's behaviour. Also noticed
->>>>>>>>> that there never is a successfull DQBUF the first time cheese
->>>>>>>>> opens the device. If cheese (or rather gstreamer) does not
->>>>>>>>> manage to DQBUF the first time, then cheese will not work with
->>>>>>>>> the device. There is a limitation in gstreamer (or maybe in the
->>>>>>>>> way cheese uses it) where gstreamer needs to be streaming
->>>>>>>>> before cheese can tell the properties of the cam. If the stream
->>>>>>>>> does not start within the first 10 seconds, then cheese will
->>>>>>>>> fail to get the properties.
->>>>>>>>>
->>>>>>>>> If you go to cheese's edit ->   preferences menu, and your cam
->>>>>>>>> has no resolutions listed there (the resolution drop down is
->>>>>>>>> grayed out). This is what is happening.
->>>>>>>>>
->>>>>>>>> As for empathy, I'm not familiar with that. But if we can get
->>>>>>>>> cheese to work first I'm sure that that would be a good step in
->>>>>>>>> the right direction.
->>>>>>>>
->>>>>>>> Hallo Hans,
->>>>>>>> thank you for your constructive response,
->>>>>>>> I increased timeout to 15 seconds i now i can't reproduce camera
->>>>>>>> freeze, i'll play with it more to be sure. There is still one
->>>>>>>> issue with it - on cold start the image is zoomed in.
->>>>>>>> I need to close cheese and open it again to get normal zoom. The
->>>>>>>> resolution seems to be the same.
->>>>>>
->>>>>> Zoomed in ? Really ? As far as I know the QuickCam Pro for Notebooks
->>>>>> has no optical or digital zoom. Could you please send me lsusb's
->>>>>> output for your device ?
->>>>>
->>>>> Yes. I can use digital zoom under M$Win with Logitech software.
->>>>
->>>> That's probably implemented in software in the Windows driver.
->>>>
->>>> [snip]
->>>> The zoom control, if present, should have appeared here.
->>>>
->>>> As your camera doesn't expose any zoom control I really don't know where
->>>> the zoom comes from.
->>>
->>> i don't really care about zoom problem. This not making this webcam
->>> freeze so probably nobody will find this issue. You can sleep well :)
->>>
->>> if you have some ideas about camera freeze, please let me know.
->>
->> You have been able to work around the freeze by raising cheese's timeout to 15
->> seconds, right ?
->
-> yes
->
+I will when I get time.  This past week and next few weeks are very busy
+for me for personal (non-linux) reasons.  I'll try to get caught up with
+the patches I still have to rework and then look at this.
 
-Talking about this, can you please file a bug against upstream cheese to
-change the timeout to be 15 seconds ?
+Obviously, your patch is fairly straightforward and looks OK.  I just
+haven't checked for any implications.  The "general" tinny audio problem
+with the CX25840 on ivtv boards is *always* resolved with an audio
+microcontroller reset.
+
+The problem is the microcontroller may restart its detection loop and
+tinny audio may return.  Can you run FM radio for a long time (a day ?),
+and see if it ever goes back to tinny audio?
 
 Regards,
+Andy
 
-Hans
+> 
+> diff --git a/linux/drivers/media/video/cx25840/cx25840-core.c b/linux/drivers/media/video/cx25840/cx25840-core.c
+> --- a/linux/drivers/media/video/cx25840/cx25840-core.c
+> +++ b/linux/drivers/media/video/cx25840/cx25840-core.c
+> @@ -626,7 +642,13 @@
+>  	if (state->radio) {
+>  		cx25840_write(client, 0x808, 0xf9);
+>  		cx25840_write(client, 0x80b, 0x00);
+> -	}
+> +		/* Double reset cx2384x after setting FM radio mode, helps to
+> +		   avoid "tinny" audio when ivtv I2C bus is being run on
+> +		   frequency higher than 30 KHz */
+> +		cx25840_and_or(client, 0x810, ~0x01, 0);
+> +		msleep(50);
+> +		cx25840_and_or(client, 0x810, ~0x01, 1);
+> +	}	
+>  	else if (std & V4L2_STD_525_60) {
+>  		/* Certain Hauppauge PVR150 models have a hardware bug
+>  		   that causes audio to drop out. For these models the
+> 
+
