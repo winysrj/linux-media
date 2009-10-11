@@ -1,126 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1548 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758550AbZJHSIZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Oct 2009 14:08:25 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id n98I7i4M006823
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 8 Oct 2009 20:07:48 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 8 Oct 2009 20:07:44 +0200 (CEST)
-Message-Id: <200910081807.n98I7i4M006823@smtp-vbr8.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail-bw0-f210.google.com ([209.85.218.210]:37504 "EHLO
+	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751051AbZJKTTO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Oct 2009 15:19:14 -0400
+Received: by bwz6 with SMTP id 6so2709256bwz.37
+        for <linux-media@vger.kernel.org>; Sun, 11 Oct 2009 12:18:00 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <loom.20091011T180513-771@post.gmane.org>
+References: <loom.20091011T180513-771@post.gmane.org>
+Date: Sun, 11 Oct 2009 15:18:00 -0400
+Message-ID: <829197380910111218q5739eb5ex9a87f19899a13e98@mail.gmail.com>
+Subject: Re: Dazzle TV Hybrid USB and em28xx
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Giuseppe Borzi <gborzi@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hello Giuseppe,
 
-Results of the daily build of v4l-dvb:
+On Sun, Oct 11, 2009 at 12:38 PM, Giuseppe Borzi <gborzi@gmail.com> wrote:
+> Hello to everyone,
+> I bought a Dazzle TV Hybrid USB stick some years ago (2006 maybe?) and until
+> now I've used out of kernel drivers from M. Rechberger. Here's a webpage about
+> the stick
+>
+> http://www.lelong.com.my/Auc/List/2009-10DeStd44780009_AUCTION_-#
+> Dazzle-TV-Hybrid-USB-stick-Watch-TV-without-Internet-BID-Now.htm
+> (this line has been breaked at the sharp # sign)
+>
+> The usbid is eb1a:2881.
+> The Linux distribution I'm using, Archlinux, has updated the kernel to 2.6.31.3
+> and I've failed to patch the out of kernel drivers again, so I've tried the in
+> kernel em28xx modules.
 
-date:        Thu Oct  8 19:00:03 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13083:89b7e6d5854a
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Make sure you have the latest v4l-dvb code installed.  The changes for
+that board went in relatively recently (make sure you do *not* specify
+a card= modprobe parameter).
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-rc3-armv5: ERRORS
-linux-2.6.32-rc3-armv5-davinci: ERRORS
-linux-2.6.27-armv5-ixp: ERRORS
-linux-2.6.28-armv5-ixp: ERRORS
-linux-2.6.29.1-armv5-ixp: ERRORS
-linux-2.6.30-armv5-ixp: ERRORS
-linux-2.6.31-armv5-ixp: ERRORS
-linux-2.6.32-rc3-armv5-ixp: ERRORS
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: ERRORS
-linux-2.6.32-rc3-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-rc3-i686: ERRORS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-rc3-m32r: ERRORS
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: OK
-linux-2.6.32-rc3-mips: ERRORS
-linux-2.6.27-powerpc64: ERRORS
-linux-2.6.28-powerpc64: ERRORS
-linux-2.6.29.1-powerpc64: ERRORS
-linux-2.6.30-powerpc64: ERRORS
-linux-2.6.31-powerpc64: ERRORS
-linux-2.6.32-rc3-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-rc3-x86_64: ERRORS
-sparse (linux-2.6.31): OK
-sparse (linux-2.6.32-rc3): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+http://linuxtv.org/repo
 
-Detailed results are available here:
+> But analog TV has no audio (I've tried sox/arecord-aplay),
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+Make sure you have the correct standard selected.  This sort of thing
+often occurs when you are in an area with PAL support but you have the
+device configured for NTSC.
 
-Full logs are available here:
+> teletext doesn't work (mtt segfaults) and DVB doesn't work too.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+Teletext is not supported currently - I did the NTSC VBI support and
+am planning on doing the PAL support in the next couple of weeks.
 
-The V4L2 specification failed to build, but the last compiled spec is here:
+> With me-tv I
+> get an error message like "Failed to tune to channel" and sometimes a
+> "timeout".
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+A fix for this was done this week (but hasn't been checked in yet).
+Check the linux-media archive for the PCTV 320e thread.
 
-The DVB API specification from this daily build is here:
+Devin
 
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
