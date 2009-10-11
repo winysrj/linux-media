@@ -1,102 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout5.samsung.com ([203.254.224.35]:46696 "EHLO
-	mailout5.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755379AbZJHIWA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Oct 2009 04:22:00 -0400
-Received: from epmmp2 (mailout5.samsung.com [203.254.224.35])
- by mailout1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0KR600448SIDPG@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 08 Oct 2009 17:20:37 +0900 (KST)
-Received: from AMDC159 ([106.116.37.153])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0KR600M0ASI1RD@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 08 Oct 2009 17:20:36 +0900 (KST)
-Date: Thu, 08 Oct 2009 10:18:56 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: Mem2Mem V4L2 devices [RFC]
-In-reply-to: <A69FA2915331DC488A831521EAE36FE4015546FBDB@dlee06.ent.ti.com>
-To: "'Karicheri, Muralidharan'" <m-karicheri2@ti.com>,
-	"'Ivan T. Ivanov'" <iivanov@mm-sol.com>,
-	linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, Tomasz Fujak <t.fujak@samsung.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <000101ca47ef$fd373510$f7a59f30$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <E4D3F24EA6C9E54F817833EAE0D912AC077151C64F@bssrvexch01.BS.local>
- <1254500705.16625.35.camel@iivanov.int.mm-sol.com>
- <A69FA2915331DC488A831521EAE36FE401553E952D@dlee06.ent.ti.com>
- <002201ca4655$dd8dc260$98a94720$%szyprowski@samsung.com>
- <A69FA2915331DC488A831521EAE36FE4015546FBDB@dlee06.ent.ti.com>
+Received: from mail-gx0-f212.google.com ([209.85.217.212]:58439 "EHLO
+	mail-gx0-f212.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755355AbZJKJXd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Oct 2009 05:23:33 -0400
+Received: by gxk4 with SMTP id 4so9216072gxk.8
+        for <linux-media@vger.kernel.org>; Sun, 11 Oct 2009 02:22:57 -0700 (PDT)
+MIME-Version: 1.0
+Date: Sun, 11 Oct 2009 12:22:57 +0300
+Message-ID: <219e947f0910110222v5fd961f5o1c0ece0633164838@mail.gmail.com>
+Subject: bttv/msp3400 and hibernation
+From: Ivan Kalvachev <ikalvachev@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=00163616452dd1e1360475a55ba0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+--00163616452dd1e1360475a55ba0
+Content-Type: text/plain; charset=ISO-8859-1
 
-On Wednesday, October 07, 2009 4:03 PM Karicheri, Muralidharan wrote:
+I'm having analog capture card based on bt878. It works without any
+major problems.
 
-> >How the hardware is actually designed? I see two possibilities:
-> >
-> >1.
-> >[input buffer] --[dma engine]----> [resizer1] --[dma]-> [mem output
-> >buffer1]
-> >                               \-> [resizer2] --[dma]-> [mem output
-> >buffer2]
-> >
-> This is the case.
-> >2.
-> >[input buffer] ---[dma engine1]-> [resizer1] --[dma]-> [mem output buffer1]
-> >                \-[dma engine2]-> [resizer2] --[dma]-> [mem output buffer2]
-> >
-> >In the first case we would really have problems mapping it properly to
-> >video
-> >nodes. But we should think if there are any use cases of such design? (in
-> >terms of mem-2-mem device)
-> 
-> Why not? In a typical camera scenario, application can feed one frame and get two output frames (one
-> for storing and another for sending over email (a lower resolution). I just gave an example.
+However there is some annoying bug with the msp3400 module (this is
+audio decoding chip on the card, used to decode stereo sound) when
+using the build-in kernel hibernation.
+After resume the kernel module spills some I/O Errors and no audio
+could be heard. The workaround is simple, remove and modprobe the bttv
+module.
 
-You gave an example of the Y-type pipeline which start in real streaming
-device (camera) which is completely different thing. Y-type CAPTURE pipeline
-is quite common thing, which can be simply mapped to 2 different capture
-video nodes.
+If somebody have idea how to further debug problem, please provide instructions.
 
-In my previous mail I asked about Y-type pipeline which starts in memory. I
-don't think there is any common use case for such thing.
+For now I attach full system log done by having "option bttv debug=10"
+and "option msp3400 debug=10" in modprobe.conf . The log is using the
+latest kernel-2.6.31.3, but this happens with every kernel I've tried
+so far.
 
->  I know that this Y-type design makes sense as a
-> >part of the pipeline from a sensor or decoder device. But I cannot find any
-> >useful use case for mem2mem version of it.
-> >
-> >The second case is much more trivial. One can just create two separate
-> >resizer
-> >devices (with their own nodes) or one resizer driver with two hardware
-> >resizers underneath it. In both cases application would simply queue the
-> >input
-> >buffer 2 times for both transactions.
-> I am assuming we are using the One node implementation model suggested by Ivan.
-> 
-> At hardware, streaming should happen at the same time (only one bit in register). So if we have second
-> node for the same, then driver needs to match the IO instance of second device with the corresponding
-> request on first node and this takes us to the same complication as with 2 video nodes implementation.
+--00163616452dd1e1360475a55ba0
+Content-Type: application/x-gzip; name="msp3400.log.gz"
+Content-Disposition: attachment; filename="msp3400.log.gz"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file1
 
-Right.
-
-> Since only one capture queue per IO instance is possible in this model (matched by buf type), I don't
-> think we can scale it for 2 outputs case. Or is it possible to queue 2 output buffers of two different
-> sizes to the same queue?
-
-This can be hacked by introducing yet another 'type' (for example
-SECOND_CAPTURE), but I don't like such solution. Anyway - would we really
-need Y-type mem2mem device?
-
-Best regards
---
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+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
+--00163616452dd1e1360475a55ba0--
