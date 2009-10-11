@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 0403ds2-oebr.1.fullrate.dk ([90.184.6.185]
-	helo=pris.musikcheck.dk) by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <hhj-linux-dvd@musikcheck.dk>) id 1MtcRv-0000jY-GC
-	for linux-dvb@linuxtv.org; Fri, 02 Oct 2009 09:21:07 +0200
-Received: from [94.101.209.34] (helo=miyagi.musikcheck.dk)
-	by pris.musikcheck.dk with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69) (envelope-from <hhj-linux-dvd@musikcheck.dk>)
-	id 1MtcRL-0003tE-9J
-	for linux-dvb@linuxtv.org; Fri, 02 Oct 2009 09:20:32 +0200
-From: Hasse Hagen Johansen <hhj-linux-dvd@musikcheck.dk>
+Received: from qmta09.emeryville.ca.mail.comcast.net ([76.96.30.96])
+	by mail.linuxtv.org with esmtp (Exim 4.69)
+	(envelope-from <reg@dwf.com>) id 1MwsD4-0007Vi-Fe
+	for linux-dvb@linuxtv.org; Sun, 11 Oct 2009 08:47:15 +0200
+Received: from deneb.dwf.com (localhost.localdomain [127.0.0.1])
+	by deneb.dwf.com (8.14.1/8.14.1) with ESMTP id n9B6kcN5014056
+	for <linux-dvb@linuxtv.org>; Sun, 11 Oct 2009 00:46:38 -0600
+Message-Id: <200910110646.n9B6kcN5014056@deneb.dwf.com>
 To: linux-dvb@linuxtv.org
-Date: Fri, 02 Oct 2009 09:20:24 +0200
-Message-ID: <87fxa2uurr.fsf@musikcheck.dk>
-MIME-Version: 1.0
-Subject: [linux-dvb] What is the status of the driver TT CT-3650
+From: clemens@dwf.com
+Mime-Version: 1.0
+Date: Sun, 11 Oct 2009 00:46:38 -0600
+Subject: [linux-dvb] Problems in linux-2.6.31
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -28,21 +26,28 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi
+In xconfig for linux-2.6.31 there appears to be only one line that refers to 
+the
+Technisat Air 2 PCI cards, viz
+	Technisat/B2C2 ...
+	    Tecnisat/B2C2 Air/Sky/Cable2PC PCI 
+	    ...
 
-I have recently bought such a card and tried to get it working. Does
-anyone know if it is possible. I have compiled the dvb drivers from
-s2-liplianin
+Yet when I build a kernel with this option my OLD Techisat card 
+the Air 2 PC-ATSC-PCI card that requires some microcode to be loaded, comes
+up but the newer card, the AirStar-HD5000-PCI does not.
 
-And tried to use the scan program from the dvb-apps mercurial tarball. I
-also compile scan-s2 and tried that, but I always get "tuning failed"
+Anyone else see this behaviour?
+Everything is fine with an older kernel.
 
-Anyone know how to get this working or this card is in a working state
-under linux. Because if it not working yet I will stop wasting my time
-:-)
+Anyone know  a solution?
 
-Regards
-Hasse H. Johansen
+Am I missing something?
+
+-- 
+                                        Reg.Clemens
+                                        reg@dwf.com
+
 
 _______________________________________________
 linux-dvb users mailing list
