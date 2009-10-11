@@ -1,105 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from exprod7og104.obsmtp.com ([64.18.2.161]:49072 "HELO
-	exprod7og104.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756526AbZJVPwV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Oct 2009 11:52:21 -0400
-Received: by bwz24 with SMTP id 24so583512bwz.30
-        for <linux-media@vger.kernel.org>; Thu, 22 Oct 2009 08:52:25 -0700 (PDT)
+Received: from web25405.mail.ukl.yahoo.com ([217.12.10.139]:45745 "HELO
+	web25405.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751121AbZJKTaX convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Oct 2009 15:30:23 -0400
+Message-ID: <207667.36736.qm@web25405.mail.ukl.yahoo.com>
+References: <813517.84815.qm@web25405.mail.ukl.yahoo.com> <1255050108.5543.21.camel@pc07.localdom.local>
+Date: Sun, 11 Oct 2009 19:29:45 +0000 (GMT)
+From: fabio tirapelle <ftirapelle@yahoo.it>
+Subject: Re: Haupp. HVR-1100 problem and DVB-T card
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: linux-media@vger.kernel.org, Michael Hunold <hunold@linuxtv.org>,
+	Oliver Endriss <o.endriss@gmx.de>,
+	Oldrich Jedlicka <oldium.pro@seznam.cz>,
+	Andy Walls <awalls@radix.net>,
+	Michael Krufky <mkrufky@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+In-Reply-To: <1255050108.5543.21.camel@pc07.localdom.local>
 MIME-Version: 1.0
-In-Reply-To: <aaaa95950910220814t5bca2432iacb0fed68ec6f86a@mail.gmail.com>
-References: <aaaa95950910210820r59edd33dga953ca44b0745628@mail.gmail.com>
-	 <aaaa95950910220814t5bca2432iacb0fed68ec6f86a@mail.gmail.com>
-Date: Thu, 22 Oct 2009 17:52:24 +0200
-Message-ID: <aaaa95950910220852q39726d5fn71394fd013a9425c@mail.gmail.com>
-Subject: [PATCH] driver support for VIDIOC_QUERYSTD and enhanced
-	VIDIOC_ENUMINPUT for WinTV PVR-150
-From: Sigmund Augdal <sigmund@snap.tv>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=00032555b93adf18de0476881448
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---00032555b93adf18de0476881448
-Content-Type: text/plain; charset=ISO-8859-1
+Hi Hermann
 
-Attached is a patch that contains driver side changes to implement the
-features that were added to v4l2-ctl by my two previous patches. It is
-based on an old kernel and is only tested for one single capture card,
-so this patch is provided for reference only, not for inclusion into
-the drivers as is.
+> Hi Fabio,
 
-Best regards
+> 
+> Am Donnerstag, den 08.10.2009, 20:02 +0000 schrieb fabio tirapelle:
+> > Hi
+> > 
+> > I have installed mythtv on this configuration:
+> > Asus M3N78-VM GF8200 RGVSM
+> > AMD Ath64 X2LV 3100BOX6000+ 1MB
+> > Haupp. WinTV HVR-1100 -t/a PCI
+> > TechniSat SkyStar 2 DVB-S PCI
+> > nVidia GeForce 8200
+> > Ubuntu 8.10 - Linux htpc 2.6.27-11-generic 
+> 
+> did send to those likely interested too and might be able to give better
+> advice.
+> 
+> > Two questions
+> > 
+> > 1) But the Haupp. WinTV will not be found even if I have followed
+> > http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-1110 
+> > http://ubuntuforums.org/showthread.php?t=623126&page=2 (#12)
+> > 
+> > Output of dmesg
+> > 
+> > [   13.062214] ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 17
+> > [   13.062223] b2c2_flexcop_pci 0000:01:06.0: PCI INT A -> Link[LNKA] -> GSI 
+> 17 (level, low) -> IRQ 17
+> > [   13.076654] DVB: registering new adapter (FlexCop Digital TV device)
+> > [   13.078432] b2c2-flexcop: MAC address = 00:d0:d7:0d:30:88
+> > [   13.078664] b2c2-flexcop: i2c master_xfer failed
+> > [   13.078893] b2c2-flexcop: i2c master_xfer failed
+> > [   13.078895] CX24123: cx24123_i2c_readreg: reg=0x0 (error=-121)
+> > [   13.078897] CX24123: wrong demod revision: 87
+> > [   13.101063] saa7130/34: v4l2 driver version 0.2.14 loaded
+> > [   13.360642] b2c2-flexcop: found 'ST STV0299 DVB-S' .
+> > [   13.360647] DVB: registering frontend 0 (ST STV0299 DVB-S)...
+> > [   13.360768] b2c2-flexcop: initialization of 'Sky2PC/SkyStar 2 DVB-S' at the 
+> 'PCI' bus controlled by a 'FlexCopIIb' complete
+> > [   13.363507] ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 16
+> > [   13.363517] saa7134 0000:01:07.0: PCI INT A -> Link[LNKB] -> GSI 16 (level, 
+> low) -> IRQ 16
+> > [   13.363523] saa7133[0]: found at 0000:01:07.0, rev: 255, irq: 16, latency: 
+> 255, mmio: 0x0
+> 
+> Memory allocation at the PCI bus fails and PCI latency is very high for
+> nothing in the end.
+> 
+> > [   13.363528] saa7133[0]: subsystem: ffff:ffff, board: UNKNOWN/GENERIC 
+> [card=0,autodetected]
+> 
+> Either the eeprom is corrupted, or more likely, this fails because of
+> the previous failing.
+> 
+> > [   13.363531] saa7133[0]: can't get MMIO memory @ 0x0
+> > [   13.363538] saa7134: probe of 0000:01:07.0 failed with error -16
+> > [   13.393682] saa7134 ALSA driver for DMA sound loaded
+> > [   13.393685] saa7134 ALSA: no saa7134 cards found
+> > 
+> > ouput lspci
+> > 01:06.0 Network controller: Techsan Electronics Co Ltd B2C2 FlexCopII DVB chip 
+> / Technisat SkyStar2 DVB card (rev 02)
+> > 01:07.0 Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA7135 
+> Video Broadcast Decoder (rev d1)
+> > 
+> > 2) What kind of DVB-T card will you suggest for my configuration instead of 
+> "Hauppage WinTv"?
+> > 
+> 
+> We have some unknowns on the various Hauppauge 1110s, but in general
+> they are assumed to be well supported.
+> 
+> They are all auto eeprom detectable and only for latest revisions you
+> need some latest mercurial v4l-dvb. These look good now too.
+> 
+> Could you try again with the HVR1110 as the only PCI card?
 
-Sigmund Augdal
+I have tried without success
 
---00032555b93adf18de0476881448
-Content-Type: application/octet-stream;
-	name="pvr150_enuminput_querystd.patch"
-Content-Disposition: attachment; filename="pvr150_enuminput_querystd.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_g128dmqn0
+> 
+> If this still fails, the mobo seems not to be best treated anyway too, I
+> would guess the card is broken.
 
-ZGlmZiAtdXJwIC14ICcqLmtvJyAteCAnKi5tb2QuKicgLXggJyouY21kJyAteCAnKi5vJyBsaW51
-eC0yLjYuMjQtc25hcHR2LXI0NjgzL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gyNTg0MC9jeDI1ODQw
-LWNvcmUuYyBsaW51eC1hbmFsb2ctaW1wcm92ZW1lbnQvZHJpdmVycy9tZWRpYS92aWRlby9jeDI1
-ODQwL2N4MjU4NDAtY29yZS5jCi0tLSBsaW51eC0yLjYuMjQtc25hcHR2LXI0NjgzL2RyaXZlcnMv
-bWVkaWEvdmlkZW8vY3gyNTg0MC9jeDI1ODQwLWNvcmUuYwkyMDA5LTA0LTI4IDE1OjI5OjEyLjAw
-MDAwMDAwMCArMDMwMAorKysgbGludXgtYW5hbG9nLWltcHJvdmVtZW50L2RyaXZlcnMvbWVkaWEv
-dmlkZW8vY3gyNTg0MC9jeDI1ODQwLWNvcmUuYwkyMDA5LTEwLTIxIDE2OjQwOjQ3Ljg1NjQxMzcy
-MiArMDMwMApAQCAtNTY3LDEzICs1NjcsMTMgQEAgc3RhdGljIGludCBzZXRfdjRsc3RkKHN0cnVj
-dCBpMmNfY2xpZW50IAogCXJldHVybiAwOwogfQogCi12NGwyX3N0ZF9pZCBjeDI1ODQwX2dldF92
-NGxzdGQoc3RydWN0IGkyY19jbGllbnQgKiBjbGllbnQpCitzdGF0aWMgdjRsMl9zdGRfaWQgY3gy
-NTg0MF9nZXRfdjRsc3RkX2ludGVybmFsKHN0cnVjdCBpMmNfY2xpZW50ICogY2xpZW50LCBpbnQg
-YXV0b2RldGVjdCkKIHsKIAlzdHJ1Y3QgY3gyNTg0MF9zdGF0ZSAqc3RhdGUgPSBpMmNfZ2V0X2Ns
-aWVudGRhdGEoY2xpZW50KTsKIAkvKiBjaGVjayBWSURfRk1UX1NFTCBmaXJzdCAqLwogCXU4IGZt
-dCA9IGN4MjU4NDBfcmVhZChjbGllbnQsIDB4NDAwKSAmIDB4ZjsKIAotCWlmICghZm10KSB7CisJ
-aWYgKCFmbXQgfHwgYXV0b2RldGVjdCkgewogCQkvKiBjaGVjayBBRkRfRk1UX1NUQVQgaWYgc2V0
-IHRvIGF1dG9kZXRlY3QgKi8KIAkJZm10ID0gY3gyNTg0MF9yZWFkKGNsaWVudCwgMHg0MGQpICYg
-MHhmOwogCX0KQEAgLTU5OSw2ICs1OTksMTEgQEAgdjRsMl9zdGRfaWQgY3gyNTg0MF9nZXRfdjRs
-c3RkKHN0cnVjdCBpMgogCX0KIH0KIAordjRsMl9zdGRfaWQgY3gyNTg0MF9nZXRfdjRsc3RkKHN0
-cnVjdCBpMmNfY2xpZW50ICogY2xpZW50KQoreworICAgIHJldHVybiBjeDI1ODQwX2dldF92NGxz
-dGRfaW50ZXJuYWwoY2xpZW50LCAwKTsKK30KKwogLyogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gKi8KIAogc3Rh
-dGljIGludCBzZXRfdjRsY3RybChzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50LCBzdHJ1Y3QgdjRs
-Ml9jb250cm9sICpjdHJsKQpAQCAtOTgzLDYgKzk4OCw3IEBAIHN0YXRpYyBpbnQgY3gyNTg0MF9j
-b21tYW5kKHN0cnVjdCBpMmNfY2wKIAlzdHJ1Y3QgY3gyNTg0MF9zdGF0ZSAqc3RhdGUgPSBpMmNf
-Z2V0X2NsaWVudGRhdGEoY2xpZW50KTsKIAlzdHJ1Y3QgdjRsMl90dW5lciAqdnQgPSBhcmc7CiAJ
-c3RydWN0IHY0bDJfcm91dGluZyAqcm91dGUgPSBhcmc7CisJc3RydWN0IHY0bDJfaW5wdXQgKnZp
-biA9IGFyZzsKIAogCS8qIGlnbm9yZSB0aGVzZSBjb21tYW5kcyAqLwogCXN3aXRjaCAoY21kKSB7
-CkBAIC0xMTAzLDYgKzExMDksMTcgQEAgc3RhdGljIGludCBjeDI1ODQwX2NvbW1hbmQoc3RydWN0
-IGkyY19jbAogCQlzdGF0ZS0+cmFkaW8gPSAwOwogCQlyZXR1cm4gc2V0X3Y0bHN0ZChjbGllbnQs
-ICoodjRsMl9zdGRfaWQgKilhcmcpOwogCisJY2FzZSBWSURJT0NfUVVFUllTVEQ6CisJCSoodjRs
-Ml9zdGRfaWQgKilhcmcgPSBjeDI1ODQwX2dldF92NGxzdGRfaW50ZXJuYWwoY2xpZW50LCAxKTsK
-KwkJYnJlYWs7CisKKwljYXNlIFZJRElPQ19FTlVNSU5QVVQ6CisJCS8qIEFzc3VtaW5nIHRoZSBk
-cml2ZXIgd2lsbCBvbmx5IHByb3BhZ2F0ZSB0aGUgaW9jdGwgaGVyZSBpZiBpdCBhbGxyZWFkeSBj
-aGVja2VkIHRoYXQgdGhlIGFza2VkIGZvciBpbmRleCBpcyB0aGUgY3VycmVudGx5IHNlbGVjdGVk
-IGluZGV4LCBzbyB3ZSBuZWVkIG5vdCBib3RoZXIgd2l0aCByb3V0aW5nIGFuZCBzdWNoICovCisJ
-CWlmICghKGN4MjU4NDBfcmVhZChjbGllbnQsIDB4NDBlKSAmIDB4MjApKSB7CisJCQl2aW4tPnN0
-YXR1cyA9IFY0TDJfSU5fU1RfTk9fU0lHTkFMOworCQl9CisJCWJyZWFrOworCiAJY2FzZSBBVURD
-X1NFVF9SQURJTzoKIAkJc3RhdGUtPnJhZGlvID0gMTsKIAkJYnJlYWs7CmRpZmYgLXVycCAteCAn
-Ki5rbycgLXggJyoubW9kLionIC14ICcqLmNtZCcgLXggJyoubycgbGludXgtMi42LjI0LXNuYXB0
-di1yNDY4My9kcml2ZXJzL21lZGlhL3ZpZGVvL2l2dHYvaXZ0di1pb2N0bC5jIGxpbnV4LWFuYWxv
-Zy1pbXByb3ZlbWVudC9kcml2ZXJzL21lZGlhL3ZpZGVvL2l2dHYvaXZ0di1pb2N0bC5jCi0tLSBs
-aW51eC0yLjYuMjQtc25hcHR2LXI0NjgzL2RyaXZlcnMvbWVkaWEvdmlkZW8vaXZ0di9pdnR2LWlv
-Y3RsLmMJMjAwOS0wNC0yOCAxNToyOToxMi4wMDAwMDAwMDAgKzAzMDAKKysrIGxpbnV4LWFuYWxv
-Zy1pbXByb3ZlbWVudC9kcml2ZXJzL21lZGlhL3ZpZGVvL2l2dHYvaXZ0di1pb2N0bC5jCTIwMDkt
-MTAtMjEgMTY6NDE6NDguMDU0Nzc4MTk5ICswMzAwCkBAIC03OTcsOSArNzk3LDE0IEBAIGludCBp
-dnR2X3Y0bDJfaW9jdGxzKHN0cnVjdCBpdnR2ICppdHYsIHMKIAogCWNhc2UgVklESU9DX0VOVU1J
-TlBVVDp7CiAJCXN0cnVjdCB2NGwyX2lucHV0ICp2aW4gPSBhcmc7CisJCWludCByZXQ7CiAKIAkJ
-Lyogc2V0IGl0IHRvIGRlZmF1bHRzIGZyb20gb3VyIHRhYmxlICovCi0JCXJldHVybiBpdnR2X2dl
-dF9pbnB1dChpdHYsIHZpbi0+aW5kZXgsIHZpbik7CisJCXJldCA9IGl2dHZfZ2V0X2lucHV0KGl0
-diwgdmluLT5pbmRleCwgdmluKTsKKwkJaWYgKHZpbi0+aW5kZXggPT0gaXR2LT5hY3RpdmVfaW5w
-dXQpIHsKKwkJCWl2dHZfY2FsbF9pMmNfY2xpZW50cyhpdHYsIFZJRElPQ19FTlVNSU5QVVQsIHZp
-bik7CisJCX0KKwkJcmV0dXJuIHJldDsKIAl9CiAKIAljYXNlIFZJRElPQ19FTlVNT1VUUFVUOnsK
-QEAgLTEwODAsNiArMTA4NSwxMiBAQCBpbnQgaXZ0dl92NGwyX2lvY3RscyhzdHJ1Y3QgaXZ0diAq
-aXR2LCBzCiAJCWJyZWFrOwogCX0KIAorCWNhc2UgVklESU9DX1FVRVJZU1REOiB7CisJCXN0cnVj
-dCB2NGwyX3N0ZF9pZCAqc3RkID0gYXJnOworCQlpdnR2X2NhbGxfaTJjX2NsaWVudHMoaXR2LCBW
-SURJT0NfUVVFUllTVEQsIHN0ZCk7CisJCWJyZWFrOworCX0KKwogCWNhc2UgVklESU9DX1NfVFVO
-RVI6IHsJLyogU2V0dGluZyB0dW5lciBjYW4gb25seSBzZXQgYXVkaW8gbW9kZSAqLwogCQlzdHJ1
-Y3QgdjRsMl90dW5lciAqdnQgPSBhcmc7CiAKQEAgLTE2NTEsNiArMTY2Miw3IEBAIHN0YXRpYyBp
-bnQgaXZ0dl92NGwyX2RvX2lvY3RsKHN0cnVjdCBpbm8KIAljYXNlIFZJRElPQ19TX0ZSRVFVRU5D
-WToKIAljYXNlIFZJRElPQ19FTlVNU1REOgogCWNhc2UgVklESU9DX0dfU1REOgorCWNhc2UgVklE
-SU9DX1FVRVJZU1REOgogCWNhc2UgVklESU9DX1NfU1REOgogCWNhc2UgVklESU9DX1NfVFVORVI6
-CiAJY2FzZSBWSURJT0NfR19UVU5FUjoK
---00032555b93adf18de0476881448--
+What kind of mobo do you suggest? If necessary I can buy a new mobo
+
+> 
+> Cheers,
+> Hermann
+
+Thanks Fabio
+
+
+
+      
