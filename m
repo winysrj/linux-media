@@ -1,44 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f227.google.com ([209.85.220.227]:41928 "EHLO
-	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752073AbZJNDx3 (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:54760 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751447AbZJKWel (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Oct 2009 23:53:29 -0400
-Received: by fxm27 with SMTP id 27so11055484fxm.17
-        for <linux-media@vger.kernel.org>; Tue, 13 Oct 2009 20:52:52 -0700 (PDT)
+	Sun, 11 Oct 2009 18:34:41 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH] v4l2_subdev: rename tuner s_standby operation to core s_power
+Date: Mon, 12 Oct 2009 00:36:37 +0200
+Cc: sakari.ailus@maxwell.research.nokia.com,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+References: <1254750497-13684-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1254750497-13684-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Date: Tue, 13 Oct 2009 23:52:52 -0400
-Message-ID: <829197380910132052w155116ecrcea808abe87a57a6@mail.gmail.com>
-Subject: em28xx DVB modeswitching change: call for testers
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200910120036.37857.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello all,
+On Monday 05 October 2009 15:48:17 Laurent Pinchart wrote:
+> Upcoming I2C v4l2_subdev drivers need a way to control the subdevice
+> power state from the core. This use case is already partially covered by
+> the tuner s_standby operation, but no way to explicitly come back from
+> the standby state is available.
+> 
+> Rename the tuner s_standby operation to core s_power, and fix tuner
+> drivers accordingly. The tuner core will call s_power(0) instead of
+> s_standby(). No explicit call to s_power(1) is required for tuners as
+> they are supposed to wake up from standby automatically.
 
-I have setup a tree that removes the mode switching code when
-starting/stopping streaming.  If you have one of the em28xx dvb
-devices mentioned in the previous thread and volunteered to test,
-please try out the following tree:
-
-http://kernellabs.com/hg/~dheitmueller/em28xx-modeswitch
-
-In particular, this should work for those of you who reported problems
-with zl10353 based devices like the Pinnacle 320e (or Dazzle) and were
-using that one line change I sent this week.  It should also work with
-Antti's Reddo board without needing his patch to move the demod reset
-into the tuner_gpio.
-
-This also brings us one more step forward to setting up the locking
-properly so that applications cannot simultaneously open the analog
-and dvb side of the device.
-
-Thanks for your help,
-
-Devin
+Mauro, Hans told me he didn't see anything wrong with this patch. As there's 
+no negative feedback so far (but unfortunately no positive feedback either) 
+can it be applied ?
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Regards,
+
+Laurent Pinchart
