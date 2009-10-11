@@ -1,100 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:56499 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751239AbZJ1EA4 (ORCPT
+Received: from mail-fx0-f227.google.com ([209.85.220.227]:59930 "EHLO
+	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751180AbZJKPpV convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Oct 2009 00:00:56 -0400
-Received: by bwz27 with SMTP id 27so495580bwz.21
-        for <linux-media@vger.kernel.org>; Tue, 27 Oct 2009 21:01:00 -0700 (PDT)
+	Sun, 11 Oct 2009 11:45:21 -0400
+Received: by fxm27 with SMTP id 27so8198828fxm.17
+        for <linux-media@vger.kernel.org>; Sun, 11 Oct 2009 08:44:44 -0700 (PDT)
 MIME-Version: 1.0
-Date: Tue, 27 Oct 2009 23:01:00 -0500
-Message-ID: <1427a9600910272101k15ee3b3aka244fbe45ad463bc@mail.gmail.com>
-Subject: Probelms to tune pci dvb-s card
-From: Lenin Aguilar <lenin.aguilar@gmail.com>
-To: linux-media@vger.kernel.org
+In-Reply-To: <156a113e0910110639u52ca17a8ha48830fa1784e010@mail.gmail.com>
+References: <156a113e0910110639u52ca17a8ha48830fa1784e010@mail.gmail.com>
+Date: Sun, 11 Oct 2009 11:44:44 -0400
+Message-ID: <829197380910110844r1fd62edfw24d5808b65f727a0@mail.gmail.com>
+Subject: Re: No sound in television with Leadtek Winfast USB II Deluxe
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Magnus Alm <magnus.alm@gmail.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello All,
+2009/10/11 Magnus Alm <magnus.alm@gmail.com>:
+> Hi!
+>
+> I've been pooking around to get my "Leadtek Winfast USB II Deluxe"
+> working in Ubuntu 9.10 (kernel 2.6.31-12-generic).
+>
+> The code for the drivers is collected with:
+>
+> hg clone http://linuxtv.org/hg/v4l-dvb
+>
+>
+> So far, in television mode, I can tune channels and get picture. But I
+> have no sound.
+> In Composite mode I have picture and sound, altho it's just black and
+> white. (Might depend on my source tho, I haven't put that much time
+> into it.)
+> In Svideo mode I have sound and color picture, so thats OK.
+> To get any sound in tvtime or Xawttv, I have to run "sox -r 48000 -c 2
+> -t ossdsp /dev/dsp1 -t ossdsp /dev/dsp" in a terminal. Only works with
+> Composite/Svideo.
+>
+>
+> The changes I've made to make it work so far is the following:
+>
+> em28xx-cards.c
+>
+>    { USB_DEVICE(0x0413, 0x6023),
+>            .driver_info = EM2820_BOARD_LEADTEK_WINFAST_USBII_DELUXE },
+>
+> Just for my own convenience, otherwise it finds the
+> LEADTEK_WINFAST_USBII device instead, I got bored with doing "modprobe
+> em28xx card=28" ;-p.
+>
+>
+> [EM2820_BOARD_LEADTEK_WINFAST_USBII_DELUXE] = {
+>        .name         = "Leadtek Winfast USB II Deluxe",
+>        .valid        = EM28XX_BOARD_NOT_VALIDATED,
+>        .tuner_type   = TUNER_PHILIPS_FM1216ME_MK3,
+>        .tda9887_conf = TDA9887_PRESENT,
+>        .decoder      = EM28XX_SAA711X,
+>        .input        = { {
+>            .type     = EM28XX_VMUX_TELEVISION,
+>            .vmux     = SAA7115_COMPOSITE4,
+>                             */ Was SAA7115_COMPOSITE2 originally */
+>            .amux     = EM28XX_AMUX_VIDEO,
+>        }, {
+>            .type     = EM28XX_VMUX_COMPOSITE1,
+>            .vmux     = SAA7115_COMPOSITE5,
+>                             */ Was SAA7115_COMPOSITE0 originally */
+>            .amux     = EM28XX_AMUX_LINE_IN,
+>        }, {
+>            .type     = EM28XX_VMUX_SVIDEO,
+>            .vmux     = SAA7115_SVIDEO3,
+>                                  */ Was SAA7115_COMPOSITE0 originally
+>  */
+>            .amux     = EM28XX_AMUX_LINE_IN,
+>        } },
+>
+>
+>
+> saa7115.c
+>
+> R_08_SYNC_CNTL, 0x28,            /* 0xBO: auto detection, 0x68 = NTSC */
+>
+> Changed it from 0x68, so I don't have to switch back to PAL after
+> switching input mode. Just for my own convenience.
+>
+>
+>
+> When I was searching the internet for information about getting my usb
+> tv tuner working, I came across this thread.
+>
+> http://thread.gmane.org/gmane.linux.drivers.em28xx/97/focus=124
+>
+> (Cut  from the post where the poster got working picture and audio.
+> After snooping the device in Windows and parsing the output with
+> parser.pl, then playing around with Usbreplay (a tool I don't have
+> access to tho, and he was using a em28xx-new build.))
+>
+> "This line made the video appear:
+> 000385:  OUT: 000001 ms 005258 ms 40 02 00 00 42 00 02 00 >>>  02 c4
+>
+> And this worked for audio:
+> 000895:  OUT: 000000 ms 006684 ms 40 00 00 00 42 00 01 00 >>>  16
+>
+>
+> This line made both usb audio and jack audio output of the device work :)"
+>
+>
+> The video output I fixed with ".vmux     = SAA7115_COMPOSITE4, ".
+>
+> After snooping my device in windows, just swapping between
+> television/Composite/Svideo, I didn't get any line with:
+>
+> 40 00 00 00 42 00 01 00 >>>  16
+>
+> The only comparable output I found from my snooping is:
+>
+> 40 00 00 00 42 00 01 00 >>>  02
+>
+> (Might be because we didn't use the same drivers in Windows, default
+> the installation program installs the drivers for "Winfast TV USB II",
+> doh!.)
+>
+> When loading em28xx with reg_debug=1 and doing the same swapping
+> between input modes, as I did in windows, with tvtime or xawtv.
+> I got the following lines in syslog containing "40 00 00 00 42 00 01
+> 00" after every input mode switch.
+>
+> [ 2548.560012] (pipe 0x80000600): OUT: 40 00 00 00 42 00 01 00 >>> 02
+> [ 2548.584049] (pipe 0x80000600): OUT: 40 00 00 00 42 00 01 00 >>> 04
+> [ 2548.608014] (pipe 0x80000600): OUT: 40 00 00 00 42 00 01 00 >>> 06
+> [ 2548.632012] (pipe 0x80000600): OUT: 40 00 00 00 42 00 01 00 >>> 36
+> [ 2548.656012] (pipe 0x80000600): OUT: 40 00 00 00 42 00 01 00 >>> 38
+> [ 2548.732012] (pipe 0x80000600): OUT: 40 00 00 00 42 00 01 00 >>> 14
+> [ 2548.756012] (pipe 0x80000600): OUT: 40 00 00 00 42 00 01 00 >>> 10
+> [ 2548.780012] (pipe 0x80000600): OUT: 40 00 00 00 42 00 01 00 >>> 0c
+> [ 2548.804013] (pipe 0x80000600): OUT: 40 00 00 00 42 00 01 00 >>> 0e
+> [ 2548.828012] (pipe 0x80000600): OUT: 40 00 00 00 42 00 01 00 >>> 12
+> [ 2548.852013] (pipe 0x80000600): OUT: 40 00 00 00 42 00 01 00 >>> 16
+> [ 2548.876012] (pipe 0x80000600): OUT: 40 00 00 00 42 00 01 00 >>> 18
+> [ 2548.900012] (pipe 0x80000600): OUT: 40 00 00 00 42 00 01 00 >>> 26
+> [ 2548.924009] (pipe 0x80000600): OUT: 40 00 00 00 42 00 01 00 >>> 2a
+> [ 2548.948012] (pipe 0x80000600): OUT: 40 00 00 00 42 00 01 00 >>> 32
+> [ 2548.972013] (pipe 0x80000600): OUT: 40 00 00 00 42 00 01 00 >>> 02
+>
+> This might not be the source of my problem, since it both starts and
+> ends with ">>> 02", but the em28xx driver seems to be unnecessarily
+> chatty to me.
+> There is much more difference's between the logs than that tho, added
+> examples from each log as attachments, for those that would care to
+> look at it :-).
+>
+> One funny detail in those logs:
+> "40 02 00 00 42 00 02 00 >>> 02 c5" Composite in windows is "40 02 00
+> 00 42 00 02 00 >>> 02 85" in linux
+> "40 02 00 00 42 00 02 00 >>> 02 c4" Television in windows is "40 02 00
+> 00 42 00 02 00 >>> 02 84" in linux
+> "40 02 00 00 42 00 02 00 >>> 02 c9" Svideo in windows is "40 02 00 00
+> 42 00 02 00 >>> 02 89" in linux.
+>
+>
+> Any hints on how I should proceed would be appreciated ;-).
+>
+>
+> Regards
+> Magnus Alm
+>
 
-I spent the last 4 days reading mailing lists and testing stuff in my
-Mythbuntu installation.
-I have a x86 machine running the latest Mythbuntu version, attached a
-DM1105 PCI DVB-S card.
+Sound like you're not configuring the standard properly.  You cannot
+just hack it into saa7115 because the xc3028 driver needs to know the
+proper standard as well, or else you will get black/white picture and
+no audio.
 
-I read other trails from people having different kind of problems to
-tune or lock a freq on this card... I am having similar problems, I
-try to tune to well known and tested frequesncies and S Rates, with
-out luck
+What standard are you trying to use?  And why are you not just
+configuring it in tvtime?
 
-This is what I get tuninmg to a tested freq, there is an unencrypted
-channel on this tp:
-***************************************************************************************
-master@Main:~/DVB$ dvbtune -f 12092000 -s 28888 -p H
-Using DVB card "ST STV0299 DVB-S"
-tuning DVB-S to L-Band:0, Pol:H Srate=28888000, 22kHz=off
-ERROR setting tone
-: Connection timed out
-polling....
-Getting frontend event
-FE_STATUS:
-polling....
-Getting frontend event
-FE_STATUS: FE_HAS_SIGNAL
-polling....
-polling....
-polling....
-polling....
-***************************************************************************************
+Devin
 
-In a different terminal, I ran dvbsnoop to check parameters, and here
-what I get:
-***************************************************************************************
-master@Main:~/DVB$ dvbsnoop -s feinfo
-dvbsnoop V1.4.50 -- http://dvbsnoop.sourceforge.net/
-
----------------------------------------------------------
-FrontEnd Info...
----------------------------------------------------------
-
-Device: /dev/dvb/adapter0/frontend0
-
-Basic capabilities:
-    Name: "ST STV0299 DVB-S"
-    Frontend-type:       QPSK (DVB-S)
-    Frequency (min):     950.000 MHz
-    Frequency (max):     2150.000 MHz
-    Frequency stepsiz:   0.125 MHz
-    Frequency tolerance: 0.000 MHz
-    Symbol rate (min):     1.000000 MSym/s
-    Symbol rate (max):     45.000000 MSym/s
-    Symbol rate tolerance: 500 ppm
-    Notifier delay: 0 ms
-    Frontend capabilities:
-        auto inversion
-        FEC 1/2
-        FEC 2/3
-        FEC 3/4
-        FEC 5/6
-        FEC 7/8
-        FEC AUTO
-        QPSK
-
-Current parameters:
-    Frequency:  1492.000 MHz
-    Inversion:  ON
-    Symbol rate:  37.334000 MSym/s
-    FEC:  FEC 2/3
-*********************************************************************
-
-
-Looks like the frequency parameter set by dvbtune are not taken by the card.
-
-I also tested with szap, with well known freq,SR, VPID, etc, with the
-same result, nothing appears in /dev/dvb/adapter0/dvr0
-
-Any ideas about what to test is highly appreacited....
-
-
-Greetings from Ecuador...
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
