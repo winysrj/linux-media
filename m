@@ -1,36 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f177.google.com ([209.85.222.177]:40343 "EHLO
-	mail-pz0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756217AbZJBMeJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2009 08:34:09 -0400
-Received: by pzk7 with SMTP id 7so968785pzk.33
-        for <linux-media@vger.kernel.org>; Fri, 02 Oct 2009 05:34:13 -0700 (PDT)
-Message-ID: <4AC5F341.2070008@gmail.com>
-Date: Fri, 02 Oct 2009 20:34:09 +0800
-From: "David T. L. Wong" <davidtlwong@gmail.com>
+Received: from mail-fx0-f227.google.com ([209.85.220.227]:62516 "EHLO
+	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758270AbZJLWNN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Oct 2009 18:13:13 -0400
+Received: by fxm27 with SMTP id 27so9671911fxm.17
+        for <linux-media@vger.kernel.org>; Mon, 12 Oct 2009 15:12:36 -0700 (PDT)
 MIME-Version: 1.0
-To: Steven Toth <stoth@kernellabs.com>
-CC: v4l-dvb <linux-media@vger.kernel.org>
-Subject: Re: cx23885 audio
-References: <4AC57911.50006@gmail.com> <4AC5EF6D.9060703@kernellabs.com>
-In-Reply-To: <4AC5EF6D.9060703@kernellabs.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Date: Mon, 12 Oct 2009 18:12:35 -0400
+Message-ID: <829197380910121512y62a90cdcs49a0aa9606e8a588@mail.gmail.com>
+Subject: em28xx mode switching
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Steven Toth wrote:
-> On 10/1/09 11:52 PM, David T.L. Wong wrote:
->> Hi all,
->>
->> It there any cx23885 audio support on current v4l-dvb tree, Or any
->> development tree for cx23885 audio?
-> 
-> http://www.kernellabs.com/blog/?p=788
-> 
-> I'm about to start on this.
-> 
+I was debugging an issue on a user's hybrid board, when I realized
+that we are switching the em28xx mode whenever we start and stop dvb
+streaming.  We already have the ts_bus_ctrl callback implemented which
+puts the device into digital mode and puts it back into suspend
+whenever the frontend is opened/closed.
 
-Cool, Let's work on that together.
+This call seems redundant, and in fact can cause problems if the
+dvb_gpio definition strobes the reset pin, as it can put the driver
+out of sync with the demodulator's state (in fact this is what I ran
+into with the zl10353 - the reset pin got strobed when the streaming
+was started but the demod driver's init() routine was not being run
+because it already ran when the frontend was originally opened).
 
-David
+The only case I can think of where toggling the device mode when
+starting/stopping dvb streaming might be useful is if we wanted to
+support being able to do an analog tune while the dvb frontend was
+still open but not streaming.  However, this seems like this could
+expose all sorts of bugs, and I think the locking would have to be
+significantly reworked if this were a design goal.
+
+Thoughts anybody?
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
