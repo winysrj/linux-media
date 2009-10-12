@@ -1,61 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:61208 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932373AbZJaRk6 (ORCPT
+Received: from ppsw-7.csi.cam.ac.uk ([131.111.8.137]:58099 "EHLO
+	ppsw-7.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933022AbZJLSIj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Oct 2009 13:40:58 -0400
-Received: by bwz27 with SMTP id 27so4738636bwz.21
-        for <linux-media@vger.kernel.org>; Sat, 31 Oct 2009 10:41:03 -0700 (PDT)
-Subject: Re: [linux-dvb] Possible error in firedtv-1394.o?
-From: Andreas Breitbach <andreas.breitbach@gmail.com>
-To: linux-media@vger.kernel.org
-In-Reply-To: <829197380910301253w5e94a313idb942ad5336b2640@mail.gmail.com>
-References: <1256932132.3563.12.camel@andy-laptop>
-	 <829197380910301253w5e94a313idb942ad5336b2640@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 31 Oct 2009 18:41:00 +0100
-Message-ID: <1257010860.3095.4.camel@andy-laptop>
-Mime-Version: 1.0
+	Mon, 12 Oct 2009 14:08:39 -0400
+Message-ID: <4AD37090.4040002@cam.ac.uk>
+Date: Mon, 12 Oct 2009 19:08:16 +0100
+From: Jonathan Cameron <jic23@cam.ac.uk>
+MIME-Version: 1.0
+To: Jonathan Cameron <jic23@cam.ac.uk>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] pxa-camera: Fix missing sched.h
+References: <4AD36D2D.2000202@cam.ac.uk> <4AD36EE5.1060807@cam.ac.uk>
+In-Reply-To: <4AD36EE5.1060807@cam.ac.uk>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Huge thanks Devin,
+linux/sched.h include was removed form linux/poll.h by
+commmit a99bbaf5ee6bad1aca0c88ea65ec6e5373e86184
 
-now it's working again.
+Required for wakeup call.
 
-Andy
+Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
+---
+ drivers/media/video/pxa_camera.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Am Freitag, den 30.10.2009, 15:53 -0400 schrieb Devin Heitmueller:
-> On Fri, Oct 30, 2009 at 3:48 PM, Andreas Breitbach
-> <andreas.breitbach@gmail.com> wrote:
-> > Hello all.
-> >
-> > I subscribed to this mailing list to report a possible error in the
-> > above mentioned module. For your better understanding, some details
-> > about my situation: I upgraded yesterday from Jaunty(Ubuntu) to the new
-> > Karmic. I had a "0ccd:0069 TerraTec Electronic GmbH Cinergy T XE DVB-T
-> > Receiver"(lsusb output), which worked with the drivers avaible from
-> > http://linuxtv.org/hg/~anttip/. After the upgrade, I tried to compile
-> > and install the modules necessary for the stick by entering "make all".
-> > It compiles til reaching firedtv-1394.o, I attached the output, which
-> > complains about this specific module.
-> > As I'm not a programmer, but rather a normal user who clued together how
-> > to get this stick working once, I fear I can not be of much help in
-> > debugging. Nonetheless, I'd be very interested in knowing about the
-> > status of this and when my TV will be back working(or how I could
-> > circumvent this error).
-> 
-> Hi Andy,
-> 
-> Yeah, this is a known issue with the build process under Karmic.  The
-> iee1394 is enabled by default but Karmic's packaging of the kernel
-> headers is missing some files that are needed by the firedtv driver.
-> 
-> To workaround the issue, I usually just open v4l/.config and change
-> the firedtv driver from "=m" to "=n".
-> 
-> Devin
-> 
-
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index 6952e96..5d01dcf 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -26,6 +26,7 @@
+ #include <linux/device.h>
+ #include <linux/platform_device.h>
+ #include <linux/clk.h>
++#include <linux/sched.h>
+ 
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-dev.h>
+-- 
+1.6.3.3
 
