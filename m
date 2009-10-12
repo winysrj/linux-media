@@ -1,23 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (ext-mx02.extmail.prod.ext.phx2.redhat.com
 	[10.5.110.6])
-	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n92D4vBa031843
-	for <video4linux-list@redhat.com>; Fri, 2 Oct 2009 09:04:57 -0400
-Received: from partygirl.tmr.com (mail.tmr.com [64.65.253.246])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n92D4ksR016796
-	for <video4linux-list@redhat.com>; Fri, 2 Oct 2009 09:04:48 -0400
-Received: from partygirl.tmr.com (partygirl.tmr.com [127.0.0.1])
-	by partygirl.tmr.com (8.14.2/8.14.2) with ESMTP id n92D4kD5024013
-	for <video4linux-list@redhat.com>; Fri, 2 Oct 2009 09:04:46 -0400
-Message-ID: <4AC5FA6E.2000201@tmr.com>
-Date: Fri, 02 Oct 2009 09:04:46 -0400
-From: Bill Davidsen <davidsen@tmr.com>
+	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n9C7XKev021569
+	for <video4linux-list@redhat.com>; Mon, 12 Oct 2009 03:33:20 -0400
+Received: from web23105.mail.ird.yahoo.com (web23105.mail.ird.yahoo.com
+	[217.146.189.45])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n9C7X2j7009140
+	for <video4linux-list@redhat.com>; Mon, 12 Oct 2009 03:33:03 -0400
+Message-ID: <164184.43566.qm@web23105.mail.ird.yahoo.com>
+Date: Mon, 12 Oct 2009 07:33:02 +0000 (GMT)
+From: Mattias Persson <d98mp@yahoo.se>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-To: video4linux M/L <video4linux-list@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: Upgrading from FC4 to current Linux
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Subject: How to store the latest image without modifying videobuf-core.c
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,40 +27,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I am looking for a video solution which works on recent Linux, like Fedora-11. 
-Video used to be easy, plug in the capture device, install xawtv via rpm, and 
-use. However, recent versions of Fedora simply don't work, even on the same 
-hardware, due to /dev/dsp no longer being created and the applications like 
-xawtv or tvtime still looking for it.
+Hi, 
 
-The people who will be using this are looking for hardware which is still made 
-and sold new, and software which can be installed by a support person who can 
-plug in cards (PCI preferred) or USB devices, and install rpms. I maintain the 
-servers on Linux there, desktop support is unpaid (meaning I want a solution 
-they can use themselves).
+I am developing a driver for a camera. As an example I am using the vivi driver (2.6.28) and the first major difference between my ISR and thread_tick() is that my driver will always attempt to store the latest image, even if nobody is waiting for a new image. 
 
-We looked at vlc, which seems to want channel frequencies in kHz rather than 
-channels, mythtv, which requires a database their tech isn't able (or willing) 
-to support, etc.
+In my driver, when all queued buffers are used any new images will be stored in the oldest frame which has already been captured (state == VIDEOBUF_DONE) and here is where my problems start. (If this is wrong, what shall I do to always keep the latest captured image?)
 
-It seems that video has gone from "easy as Windows" 3-4 years ago to "insanely 
-complex" according to to one person in that group who wanted an upgrade on his 
-laptop. There is some pressure from Windows users to mandate Win7 as the 
-desktop, which Linux users are rejecting.
+In the function videobuf_dqbuf in videobuf-core.c, if a new image is returned by stream_next_buffer and the ISR kicks in before videobuf_dqbuf can set buf->state to VIDEOBUF_IDLE, my driver will modify the image presented to userspace and that is not acceptable. 
 
-The local cable is a mix of analog channels (for old TVs) and clear qam. The 
-capture feeds from the monitor system are either S-video or three wire composite 
-plus L-R audio. Any reasonable combination of cards (PCI best, PCIe acceptable), 
-USB device, and application which can monitor/record would be fine, but the 
-users are not going to type in kHz values, create channel tables, etc. They want 
-something as easy to use as five years ago.
+The only solution I can find is to use the spinlock in videobuf_queue when the userspace application is requesting a new image (DQBUF/poll) to check for a new image and set some flag indicating that the buffer can't be overwritten by the ISR. However, this approach would require changes to videobuf-core.c and that doesn't seem right. Can someone please give me some guidance on this? 
 
-Any thoughts?
+Regards, 
+Mattias
 
--- 
-Bill Davidsen <davidsen@tmr.com>
-   "We have more to fear from the bungling of the incompetent than from
-the machinations of the wicked."  - from Slashdot
+
+
+      __________________________________________________________
+Ta semester! - sök efter resor hos Kelkoo.
+Jämför pris på flygbiljetter och hotellrum här:
+http://www.kelkoo.se/c-169901-resor-biljetter.html?partnerId=96914052
 
 --
 video4linux-list mailing list
