@@ -1,27 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx10.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.14])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n9IJEWMW022600
-	for <video4linux-list@redhat.com>; Sun, 18 Oct 2009 15:14:32 -0400
-Received: from kuber.nabble.com (kuber.nabble.com [216.139.236.158])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n9IJEH6p006734
-	for <video4linux-list@redhat.com>; Sun, 18 Oct 2009 15:14:17 -0400
-Received: from tervel.nabble.com ([192.168.236.150])
-	by kuber.nabble.com with esmtp (Exim 4.63)
-	(envelope-from <bounces@n2.nabble.com>) id 1MzbCr-0001VZ-79
-	for video4linux-list@redhat.com; Sun, 18 Oct 2009 12:14:17 -0700
-Date: Sun, 18 Oct 2009 12:14:17 -0700 (PDT)
-From: chris snow <chsnow123@gmail.com>
-To: video4linux-list@redhat.com
-Message-ID: <1255893257216-3845496.post@n2.nabble.com>
-In-Reply-To: <1244834106.19673.1320127457@webmail.messagingengine.com>
-References: <1244834106.19673.1320127457@webmail.messagingengine.com>
+Received: from mx1.redhat.com (ext-mx09.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.13])
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n9CKi8s0022390
+	for <video4linux-list@redhat.com>; Mon, 12 Oct 2009 16:44:08 -0400
+Received: from mail-yx0-f200.google.com (mail-yx0-f200.google.com
+	[209.85.210.200])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n9CKhwGG029253
+	for <video4linux-list@redhat.com>; Mon, 12 Oct 2009 16:43:58 -0400
+Received: by yxe38 with SMTP id 38so36745281yxe.6
+	for <video4linux-list@redhat.com>; Mon, 12 Oct 2009 13:43:57 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Subject: Re: SUCCESS - KWorld VS-USB2800D recognized as PointNix Intra-Oral
- Camera - No Composite Input
+Date: Mon, 12 Oct 2009 17:43:57 -0300
+Message-ID: <f326ee1a0910121343l7770bc0dgec036e952e04b85f@mail.gmail.com>
+From: =?ISO-8859-1?Q?D=EAnis_Goes?= <denishark@gmail.com>
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
+Subject: Kworld Analog TV 305U without audio
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,205 +28,119 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Hi...
 
-Does anyone know of any similar hardware to the KWorld VS-USB2800D that has
-built in support from Ubuntu 9.04/9.10?
+I'm testing a USB TV "*Kworld PlusTV Analog TV stick VS-PVR-TV 305U*" the TV
+video works fine, but without audio...
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+I tried to pipe the audio via sox:
+*tvtime -d /dev/video1 & sox -t ossdsp /dev/dsp1 -t ossdsp /dev/dsp*
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+But without sucess, sox report follow error:
+*Input File     : '/dev/dsp1' (ossdsp)
+Channels       : 2
+Sample Rate    : 48000
+Precision      : 16-bit
+Sample Encoding: 16-bit Signed Integer PCM
 
-Many thanks in advance,
+In:0.00% 00:00:00.00 [00:00:00.00] Out:0     [      |      ]
+Clip:0    sox sox: /dev/dsp1: lsx_readbuf: Input/output error
+In:0.00% 00:00:00.00 [00:00:00.00] Out:0     [      |      ]
+Clip:0
+Done.*
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Follow my dmesg:
+*[   55.556050] usb 1-1: new high speed USB device using ehci_hcd and
+address 5
+[   55.710766] usb 1-1: configuration #1 chosen from 1 choice
+[   55.858949] em28xx v4l2 driver version 0.1.0 loaded
+[   55.879514] em28xx new video device (eb1a:e305): interface 0, class 255
+[   55.879522] em28xx Doesn't have usb audio class
+[   55.879524] em28xx #0: Alternate settings: 8
+[   55.879527] em28xx #0: Alternate setting 0, max size= 0
+[   55.879529] em28xx #0: Alternate setting 1, max size= 0
+[   55.879531] em28xx #0: Alternate setting 2, max size= 1448
+[   55.879533] em28xx #0: Alternate setting 3, max size= 2048
+[   55.879536] em28xx #0: Alternate setting 4, max size= 2304
+[   55.879538] em28xx #0: Alternate setting 5, max size= 2580
+[   55.879540] em28xx #0: Alternate setting 6, max size= 2892
+[   55.879542] em28xx #0: Alternate setting 7, max size= 3072
+[   55.879821] em28xx #0: chip ID is em2860
+[   56.238141] em28xx #0: i2c eeprom 00: 1a eb 67 95 1a eb 05 e3 d0 00 5c 00
+6a 22 00 00
+[   56.238150] em28xx #0: i2c eeprom 10: 00 00 04 57 4e 03 00 00 00 00 00 00
+00 00 00 00
+[   56.238158] em28xx #0: i2c eeprom 20: 06 00 01 00 f0 10 01 00 00 00 00 00
+5b 00 00 00
+[   56.238166] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01 00 00
+00 00 00 00
+[   56.238173] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00
+[   56.238180] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00
+[   56.238187] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 22 03
+55 00 53 00
+[   56.238194] em28xx #0: i2c eeprom 70: 42 00 20 00 32 00 38 00 36 00 31 00
+20 00 44 00
+[   56.238202] em28xx #0: i2c eeprom 80: 65 00 76 00 69 00 63 00 65 00 00 00
+00 00 00 00
+[   56.238209] em28xx #0: i2c eeprom 90: 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00
+[   56.238216] em28xx #0: i2c eeprom a0: 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00
+[   56.238223] em28xx #0: i2c eeprom b0: 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00
+[   56.238230] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00
+[   56.238237] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00
+[   56.238244] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00
+[   56.238251] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00
+[   56.238260] EEPROM ID= 0x9567eb1a, hash = 0x28a51142
+[   56.238262] Vendor/Product ID= eb1a:e305
+[   56.238264] AC97 audio (5 sample rates)
+[   56.238265] 500mA max power
+[   56.238267] Table at 0x04, strings=0x226a, 0x0000, 0x0000
+[   56.238270] em28xx #0:
+[   56.238271]
+[   56.238274] em28xx #0: The support for this board weren't valid yet.
+[   56.238276] em28xx #0: Please send a report of having this working
+[   56.238278] em28xx #0: not to V4L mailing list (and/or to other
+addresses)
+[   56.238280]
+[   56.293417] tuner' 1-0061: chip found @ 0xc2 (em28xx #0)
+[   56.337047] xc2028 1-0061: creating new instance
+[   56.337052] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+[   56.337064] i2c-adapter i2c-1: firmware: requesting xc3028-v27.fw
+[   56.392257] xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw,
+type: xc2028 firmware, ver 2.7
+[   56.392370] xc2028 1-0061: Loading firmware for type=BASE (1), id
+0000000000000000.
+[   72.884040] xc2028 1-0061: Loading firmware for type=(0), id
+000000000000b700.
+[   73.220037] SCODE (20000000), id 000000000000b700:
+[   73.220045] xc2028 1-0061: Loading SCODE for type=MONO SCODE HAS_IF_4320
+(60008000), id 0000000000008000.
+[   73.836481] tvp5150 1-005c: tvp5150am1 detected.
+[   76.492211] em28xx #0: V4L2 device registered as /dev/video1 and
+/dev/vbi0
+[   76.492215] em28xx #0: Found KWorld DVB-T 305U
+[   76.492236] em28xx new video device (eb1a:e305): interface 1, class 255
+[   76.492240] em28xx probing error: endpoint is non-ISO endpoint!
+[   76.492272] usbcore: registered new interface driver em28xx
+[   76.534297] em28xx-audio.c: probing for em28x1 non standard usbaudio
+[   76.534301] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+[   76.534579] Em28xx: Initialized (Em28xx Audio Extension) extension
+[   76.588480] tvp5150 1-005c: tvp5150am1 detected.*
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Chris
+Anyone have any idea what might be happening?
 
+Thanks.
 
-
-Kay Wrobel wrote:
-> 
-> Dear folks @ V4L List,
-> 
-> I'd just quickly like to let everybody know that I am now able to
-> capture S-Video AND Composite video from my KWorld VS-USB2800D using the
-> latest development snapshot of v4l-dvb. Kudos to Douglas Schilling
-> Landgraf for helping me with the steps to download and recompile the
-> v4l-dvb drivers, specifically the em28xx driver which pertains to my
-> capture device.
-> 
-> As a nice side effect, I am also now able to select a new audio capture
-> device embedded in the VS-USB2800D device instead of using the extra
-> line-in wire that comes out of the device. I used to have to feed that
-> cable into the line-in of my sound card. Now, I get an actual device
-> called "Empia Em28xx Audio Empia 28xx Capture (ALSA)" in Ubuntu's Sound
-> Preferences dialog.
-> 
-> These are the steps I followed to get the driver downloaded and compiled
-> (again, thanks Douglas):
-> 
-> 1) rmmod em28xx (remove any driver pre-loaded)
-> 
-> 2) Check version of your kernel
->    uname -r
-> 
-> 3) Making backup
->    cp -R /lib/modules/KERNELVERSION/kernel/drivers/media/video/em28xx
->       /BACKUPDIR
-> 
-> 4) Installing dev stuff
->    apt-get install build-essential mercurial -y
-> 
-> 5) Download and recompile
-> shell> hg clone http://www.linuxtv.org/hg/v4l-dvb
-> shell> cd v4l-dvb
-> shell> make
-> shell> make unload
-> shell> make install 
-> shell> dmesg -c  (clear your dmesg)
-> shell> modprobe em28xx 
-> 
-> The new dmesg output is:
->> [13703.852052] usb 1-6: new high speed USB device using ehci_hcd and
->> address 6
->> [13703.985055] usb 1-6: configuration #1 chosen from 1 choice
->> [13704.110261] Linux video capture interface: v2.00
->> [13704.142555] em28xx: New device @ 480 Mbps (eb1a:2860, interface 0,
->> class 0)
->> [13704.143637] em28xx #0: Identified as Unknown EM2750/28xx video grabber
->> (card=1)
->> [13704.145734] em28xx #0: chip ID is em2860
->> [13704.238342] em28xx #0: board has no eeprom
->> [13704.252594] em28xx #0: found i2c device @ 0x4a [saa7113h]
->> [13704.286824] em28xx #0: Your board has no unique USB ID.
->> [13704.286836] em28xx #0: A hint were successfully done, based on i2c
->> devicelist hash.
->> [13704.286843] em28xx #0: This method is not 100% failproof.
->> [13704.286849] em28xx #0: If the board were missdetected, please email
->> this log to:
->> [13704.286854] em28xx #0:     V4L Mailing List 
->> <linux-media@vger.kernel.org>
->> [13704.286859] em28xx #0: Board detected as EM2860/SAA711X Reference
->> Design
->> [13704.286865] em28xx #0: Registering snapshot button...
->> [13704.287002] input: em28xx snapshot button as
->> /devices/pci0000:00/0000:00:1d.7/usb1/1-6/input/input7
->> [13704.712507] saa7115 3-0025: saa7113 found (1f7113d0e100000) @ 0x4a
->> (em28xx #0)
->> [13705.448275] em28xx #0: Config register raw data: 0x00
->> [13705.448286] em28xx #0: No AC97 audio processor
->> [13705.548029] em28xx #0: v4l2 driver version 0.1.2
->> [13705.832260] em28xx #0: V4L2 device registered as /dev/video0 and
->> /dev/vbi0
->> [13705.832324] usbcore: registered new interface driver em28xx
->> [13705.832332] em28xx driver loaded
->> [13705.871760] em28xx-audio.c: probing for em28x1 non standard usbaudio
->> [13705.871780] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
->> [13705.876321] Em28xx: Initialized (Em28xx Audio Extension) extension
-> 
-> So finally I can use the device the way I had intended it to: Play Super
-> Mario Galaxy on my Wii connected to my laptop ;-)
-> 
-> Cheers.
-> 
-> 
-> ----- Original message -----
-> From: "Kay Wrobel" <kwrobel@letterboxes.org>
-> To: "V4L Mailing List" <video4linux-list@redhat.com>
-> Date: Tue, 09 Jun 2009 14:58:01 -0500
-> Subject: KWorld VS-USB2800D recognized as PointNix Intra-Oral Camera -
-> No Composite Input
-> 
-> Hi video4linux list,
-> 
-> This may be something that has been asked in the past. I have a KWorld
-> VS-USB2800D video capture device and my Ubuntu 9.04 Jaunty recognizes it
-> as a PointNix Intra-Oral Camera. The only thing that works is the
-> S-Video input. However, I'd like to use the Composite input (regular
-> yellow RCA). So here's the dmesg:
-> 
-> [18325.975026] usb 3-2.2: USB disconnect, address 7
-> [18406.553718] usb 3-2.2: new full speed USB device using uhci_hcd and
-> address 8
-> [18406.655706] usb 3-2.2: not running at top speed; connect to a high
-> speed hub
-> [18406.664296] usb 3-2.2: configuration #1 chosen from 1 choice
-> [18406.666788] hub 3-2.2:1.0: USB hub found
-> [18406.668783] hub 3-2.2:1.0: 4 ports detected
-> [20149.760030] usb 1-6: new high speed USB device using ehci_hcd and
-> address 5
-> [20149.892966] usb 1-6: configuration #1 chosen from 1 choice
-> [20149.954275] Linux video capture interface: v2.00
-> [20149.964580] em28xx v4l2 driver version 0.1.0 loaded
-> [20149.964632] em28xx new video device (eb1a:2860): interface 0, class
-> 255
-> [20149.964640] em28xx Doesn't have usb audio class
-> [20149.964645] em28xx #0: Alternate settings: 8
-> [20149.964649] em28xx #0: Alternate setting 0, max size= 0
-> [20149.964653] em28xx #0: Alternate setting 1, max size= 0
-> [20149.964657] em28xx #0: Alternate setting 2, max size= 1448
-> [20149.964661] em28xx #0: Alternate setting 3, max size= 2048
-> [20149.964666] em28xx #0: Alternate setting 4, max size= 2304
-> [20149.964670] em28xx #0: Alternate setting 5, max size= 2580
-> [20149.964674] em28xx #0: Alternate setting 6, max size= 2892
-> [20149.964678] em28xx #0: Alternate setting 7, max size= 3072
-> [20149.964926] em28xx #0: chip ID is em2860
-> [20150.196540] em28xx #0: board has no eeprom
-> [20150.210897] em28xx #0: found i2c device @ 0x4a [saa7113h]
-> [20150.252142] em28xx #0: Your board has no unique USB ID.
-> [20150.252150] em28xx #0: A hint were successfully done, based on i2c
-> devicelist hash.
-> [20150.252155] em28xx #0: This method is not 100% failproof.
-> [20150.252160] em28xx #0: If the board were missdetected, please email
-> this log to:
-> [20150.252164] em28xx #0:       V4L Mailing List 
-> <video4linux-list@redhat.com>
-> [20150.252170] em28xx #0: Board detected as PointNix Intra-Oral Camera
-> [20150.252175] em28xx #0: Registering snapshot button...
-> [20150.252411] input: em28xx snapshot button as
-> /devices/pci0000:00/0000:00:1d.7/usb1/1-6/input/input6
-> [20150.643094] saa7115' 4-0025: saa7113 found (1f7113d0e100000) @ 0x4a
-> (em28xx #0)
-> [20151.920343] em28xx #0: V4L2 device registered as /dev/video0 and
-> /dev/vbi0
-> [20151.920351] em28xx #0: Found PointNix Intra-Oral Camera
-> [20151.920395] usbcore: registered new interface driver em28xx
-> [20151.927004] em28xx-audio.c: probing for em28x1 non standard usbaudio
-> [20151.927009] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
-> [20151.927534] Em28xx: Initialized (Em28xx Audio Extension) extension
-> 
-> Notice how it only generates /dev/video0 and /dev/vbi0. I would have
-> expected to see two additional devices, like /dev/video1 and /dev/vbi1.
-> 
-> Maybe the detected Intra-Oral camera doesn't have that input, but the
-> KWorld VS-USB2008D does. What can be done to make the driver recognize
-> the Composite input correctly?
-> 
-> Thanks for any help...
-> -- 
->   Kay Wrobel
->   kwrobel@letterboxes.org
-> 
-> -- 
-> http://www.fastmail.fm - IMAP accessible web-mail
-> 
-> --
-> video4linux-list mailing list
-> Unsubscribe
-> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
-> -- 
->   Kay Wrobel
->   kwrobel@letterboxes.org
-> 
-> -- 
-> http://www.fastmail.fm - Email service worth paying for. Try it for free
-> 
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
-> 
-> 
-
--- 
-View this message in context: http://n2.nabble.com/SUCCESS-KWorld-VS-USB2800D-recognized-as-PointNix-Intra-Oral-Camera-No-Composite-Input-tp3069455p3845496.html
-Sent from the video4linux-list mailing list archive at Nabble.com.
-
+Denis Goes
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
