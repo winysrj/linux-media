@@ -1,227 +1,299 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:15908 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751149AbZJTNxU (ORCPT
+Received: from web31502.mail.mud.yahoo.com ([68.142.198.131]:38757 "HELO
+	web31502.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754649AbZJLIjL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Oct 2009 09:53:20 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0KRT00EK8FGA1I10@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 20 Oct 2009 14:43:22 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0KRT008Q4FG9R4@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 20 Oct 2009 14:43:21 +0100 (BST)
-Date: Tue, 20 Oct 2009 15:41:30 +0200
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: [RFC] v1.1: Multi-plane (discontiguous) buffers
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	Tomasz Fujak <t.fujak@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Pawel Osciak <p.osciak@samsung.com>
-Message-id: <E4D3F24EA6C9E54F817833EAE0D912AC07D2F45382@bssrvexch01.BS.local>
-Content-language: en-US
+	Mon, 12 Oct 2009 04:39:11 -0400
+Message-ID: <251043.94699.qm@web31502.mail.mud.yahoo.com>
+Date: Mon, 12 Oct 2009 01:31:54 -0700 (PDT)
+From: Ming-Ching Tiew <mctiew@yahoo.com>
+Subject: Re: Gadmei 380 on kernel 2.6.28.4
+To: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="0-1383806686-1255336314=:94699"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+--0-1383806686-1255336314=:94699
+Content-Type: text/plain; charset=us-ascii
 
-we are currently working on a chip that requires a separate buffer for each
-plane in a frame. Our hardware requires, those plane buffers not to be placed
-immediately one after another.
+I did a dmesg, include please find the output. If you see
+carefully, towards the end, there is a USB driver error,
+and my KINGSTON usb thumb drive get disconnected and 
+reconnected again.
 
-There is no support for such buffers in V4L2 yet and we would like to propose
-a solution for this problem.
+--- On Mon, 10/12/09, mctiew <mctiew@yahoo.com> wrote:
 
-
-Purpose and requirements
-=========================
-Currently, the v4l2_buffer struct supports only contiguous memory buffers,
-i.e. one frame has to fit in one, contiguous physical buffer. A driver
-receives and passes back to the userspace (e.g. when mmap()ing) only one
-pointer (offset).
-
-Our hardware requires two physically separate buffers for Y and CbCr components,
-which must be placed in two different memory banks.
-A similar problem was also expressed by Jun Nie in a recent discussion on this
-list:
-http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/10462.
-
-That proposal included a hardcoded 3-plane format.
-There also was a requirement for per-plane stride as well and although we have
-not included it in this proposal, it could be easily incorporated into this
-design (see comments below).
-
-We would like to add support for a more general type of buffers: n-plane
-buffers.
-No changes should be made to break the existing API.
-
-
-
-Proposed extensions
-====================
-The proposed extensions to the framework are as follows:
-
-1. Add two new memory types:
-
- enum v4l2_memory {
-         V4L2_MEMORY_MMAP             = 1,
-         V4L2_MEMORY_USERPTR          = 2,
-         V4L2_MEMORY_OVERLAY          = 3,
-+        V4L2_MEMORY_MULTI_USERPTR    = 4,
-+        V4L2_MEMORY_MULTI_MMAP       = 5,
- };
-
-The new types would be used to identify multi-planar buffers.
+> From: mctiew <mctiew@yahoo.com>
+> Subject: Gadmei 380 on kernel 2.6.28.4
+> To: linux-media@vger.kernel.org
+> Date: Monday, October 12, 2009, 3:32 AM
+> 
+> I am trying to use the gadmei 380 which I bought
+> yesterday.
+> 
+> I am using kernel 2.6.28.4, I downloaded the entire
+> ~dougsland/em28xx
+> and did a make and install. Everything went on smoothly.
+> However,
+> when I plug in the gadmei 380 usb device, it seems the
+> driver can 
+> get loaded by the usb pnp, but at the same time, one of my
+> usb 
+> pendrive will get disconnected. Because that's my boot
+> drive 
+> ( I boot off from the usb drive ), that will cause problem
+> with 
+> my system.
+> 
+> Anyone has experienced this before ?
+> 
+>
 
 
-2. Modify the buffer struct (no change to size):
+      
+--0-1383806686-1255336314=:94699
+Content-Type: application/octet-stream; name="gadmei.log"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="gadmei.log"
 
-struct v4l2_buffer {
-         /* ... */
-         union {
-                 __u32           offset;
-                 unsigned long   userptr;
-+                unsigned long   multi_info_ptr;
-         } m;
-         /* ... */
- };
+dXNiIDEtNzogbmV3IGhpZ2ggc3BlZWQgVVNCIGRldmljZSB1c2luZyBlaGNp
+X2hjZCBhbmQgYWRkcmVzcyA1ClsgIDQ4NC4yNjQ3ODddIHVzYiAxLTc6IGNv
+bmZpZ3VyYXRpb24gIzEgY2hvc2VuIGZyb20gMSBjaG9pY2UKWyAgNDg0LjI2
+NzUzOF0gdXNiIDEtNzogTmV3IFVTQiBkZXZpY2UgZm91bmQsIGlkVmVuZG9y
+PWViMWEsIGlkUHJvZHVjdD0yODYxClsgIDQ4NC4yNjc1NDVdIHVzYiAxLTc6
+IE5ldyBVU0IgZGV2aWNlIHN0cmluZ3M6IE1mcj0wLCBQcm9kdWN0PTEsIFNl
+cmlhbE51bWJlcj0wClsgIDQ4NC4yNjc1NTFdIHVzYiAxLTc6IFByb2R1Y3Q6
+IFVTQiAyODYxIERldmljZQpbICA0ODUuMDAxMDkwXSBMaW51eCB2aWRlbyBj
+YXB0dXJlIGludGVyZmFjZTogdjIuMDAKWyAgNDg1LjA1OTY3NF0gZW0yOHh4
+OiBOZXcgZGV2aWNlIFVTQiAyODYxIERldmljZSBAIDQ4MCBNYnBzIChlYjFh
+OjI4NjEsIGludGVyZmFjZSAwLCBjbGFzcyAwKQpbICA0ODUuMDU5NzgwXSBl
+bTI4eHggIzA6IGNoaXAgSUQgaXMgZW0yODYwClsgIDQ4NS4xNzY0MDhdIGVt
+Mjh4eCAjMDogaTJjIGVlcHJvbSAwMDogMWEgZWIgNjcgOTUgMWEgZWIgNjEg
+MjggNTAgMDAgNWMgMDMgNmEgMjIgMDAgMDAKWyAgNDg1LjE3NjQzMV0gZW0y
+OHh4ICMwOiBpMmMgZWVwcm9tIDEwOiAwMCAwMCAwNCA1NyA0ZSAwMyAwMCAw
+MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMApbICA0ODUuMTc2NDUxXSBlbTI4
+eHggIzA6IGkyYyBlZXByb20gMjA6IDA2IDAwIDAxIDAxIGYwIDEwIDAxIDAw
+IDRhIDAwIDAwIDAwIDViIDAwIDAwIDAwClsgIDQ4NS4xNzY0NzFdIGVtMjh4
+eCAjMDogaTJjIGVlcHJvbSAzMDogMDAgMDAgMjAgNDAgMjAgODAgMDIgMjAg
+MDEgMDEgMDMgMDEgMDAgMDAgMDAgMDAKWyAgNDg1LjE3NjQ5MV0gZW0yOHh4
+ICMwOiBpMmMgZWVwcm9tIDQwOiAwMCAwMCAwNyAwMCAwMCAwMCAwMCAwMCAw
+MCAwMCAwMCAwMCAwMCAwMCAwMCAwMApbICA0ODUuMTc2NTEwXSBlbTI4eHgg
+IzA6IGkyYyBlZXByb20gNTA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwClsgIDQ4NS4xNzY1MjldIGVtMjh4eCAj
+MDogaTJjIGVlcHJvbSA2MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMjIgMDMgNTUgMDAgNTMgMDAKWyAgNDg1LjE3NjU0OV0gZW0yOHh4ICMw
+OiBpMmMgZWVwcm9tIDcwOiA0MiAwMCAyMCAwMCAzMiAwMCAzOCAwMCAzNiAw
+MCAzMSAwMCAyMCAwMCA0NCAwMApbICA0ODUuMTc2NTY4XSBlbTI4eHggIzA6
+IGkyYyBlZXByb20gODA6IDY1IDAwIDc2IDAwIDY5IDAwIDYzIDAwIDY1IDAw
+IDAwIDAwIDAwIDAwIDAwIDAwClsgIDQ4NS4xNzY1ODddIGVtMjh4eCAjMDog
+aTJjIGVlcHJvbSA5MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMDAgMDAgMDAgMDAgMDAKWyAgNDg1LjE3NjYwNl0gZW0yOHh4ICMwOiBp
+MmMgZWVwcm9tIGEwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
+MCAwMCAwMCAwMCAwMCAwMApbICA0ODUuMTc3NTE5XSBlbTI4eHggIzA6IGky
+YyBlZXByb20gYjA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIDAwClsgIDQ4NS4xNzc1NDBdIGVtMjh4eCAjMDogaTJj
+IGVlcHJvbSBjMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMDAgMDAgMDAgMDAKWyAgNDg1LjE3NzU1OV0gZW0yOHh4ICMwOiBpMmMg
+ZWVwcm9tIGQwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
+MCAwMCAwMCAwMCAwMApbICA0ODUuMTc3NTc4XSBlbTI4eHggIzA6IGkyYyBl
+ZXByb20gZTA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+IDAwIDAwIDAwIDAwClsgIDQ4NS4xNzc1OTddIGVtMjh4eCAjMDogaTJjIGVl
+cHJvbSBmMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMDAgMDAgMDAKWyAgNDg1LjE3NzYyMF0gZW0yOHh4ICMwOiBFRVBST00g
+SUQ9IDB4OTU2N2ViMWEsIEVFUFJPTSBoYXNoID0gMHgyYWZjNzE4YQpbICA0
+ODUuMTc3NjI0XSBlbTI4eHggIzA6IEVFUFJPTSBpbmZvOgpbICA0ODUuMTc3
+NjI3XSBlbTI4eHggIzA6CUFDOTcgYXVkaW8gKDUgc2FtcGxlIHJhdGVzKQpb
+ICA0ODUuMTc3NjMxXSBlbTI4eHggIzA6CTUwMG1BIG1heCBwb3dlcgpbICA0
+ODUuMTc3NjM1XSBlbTI4eHggIzA6CVRhYmxlIGF0IDB4MDQsIHN0cmluZ3M9
+MHgyMjZhLCAweDAwMDAsIDB4MDAwMApbICA0ODUuMTg3OTA2XSBlbTI4eHgg
+IzA6IElkZW50aWZpZWQgYXMgVW5rbm93biBFTTI3NTAvMjh4eCB2aWRlbyBn
+cmFiYmVyIChjYXJkPTEpClsgIDQ4NS4yMDI0MDhdIGVtMjh4eCAjMDogZm91
+bmQgaTJjIGRldmljZSBAIDB4NGEgW3NhYTcxMTNoXQpbICA0ODUuMjE5NDA4
+XSBlbTI4eHggIzA6IGZvdW5kIGkyYyBkZXZpY2UgQCAweGEwIFtlZXByb21d
+ClsgIDQ4NS4yMTk5MTNdIGVtMjh4eCAjMDogZm91bmQgaTJjIGRldmljZSBA
+IDB4YTIgWz8/P10KWyAgNDg1LjIyNjAzMV0gZW0yOHh4ICMwOiBmb3VuZCBp
+MmMgZGV2aWNlIEAgMHhjMiBbdHVuZXIgKGFuYWxvZyldClsgIDQ4NS4yMzc1
+MzRdIGVtMjh4eCAjMDogWW91ciBib2FyZCBoYXMgbm8gdW5pcXVlIFVTQiBJ
+RCBhbmQgdGh1cyBuZWVkIGEgaGludCB0byBiZSBkZXRlY3RlZC4KWyAgNDg1
+LjIzNzU0Ml0gZW0yOHh4ICMwOiBZb3UgbWF5IHRyeSB0byB1c2UgY2FyZD08
+bj4gaW5zbW9kIG9wdGlvbiB0byB3b3JrYXJvdW5kIHRoYXQuClsgIDQ4NS4y
+Mzc1NDZdIGVtMjh4eCAjMDogUGxlYXNlIHNlbmQgYW4gZW1haWwgd2l0aCB0
+aGlzIGxvZyB0bzoKWyAgNDg1LjIzNzU1MF0gZW0yOHh4ICMwOiAJVjRMIE1h
+aWxpbmcgTGlzdCA8bGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnPgpbICA0
+ODUuMjM3NTU1XSBlbTI4eHggIzA6IEJvYXJkIGVlcHJvbSBoYXNoIGlzIDB4
+MmFmYzcxOGEKWyAgNDg1LjIzNzU1OV0gZW0yOHh4ICMwOiBCb2FyZCBpMmMg
+ZGV2aWNlbGlzdCBoYXNoIGlzIDB4NmI5NTAwODAKWyAgNDg1LjIzNzU2NF0g
+ZW0yOHh4ICMwOiBIZXJlIGlzIGEgbGlzdCBvZiB2YWxpZCBjaG9pY2VzIGZv
+ciB0aGUgY2FyZD08bj4gaW5zbW9kIG9wdGlvbjoKWyAgNDg1LjIzNzU2OV0g
+ZW0yOHh4ICMwOiAgICAgY2FyZD0wIC0+IFVua25vd24gRU0yODAwIHZpZGVv
+IGdyYWJiZXIKWyAgNDg1LjIzNzU3NF0gZW0yOHh4ICMwOiAgICAgY2FyZD0x
+IC0+IFVua25vd24gRU0yNzUwLzI4eHggdmlkZW8gZ3JhYmJlcgpbICA0ODUu
+MjM3NTc5XSBlbTI4eHggIzA6ICAgICBjYXJkPTIgLT4gVGVycmF0ZWMgQ2lu
+ZXJneSAyNTAgVVNCClsgIDQ4NS4yMzc1ODNdIGVtMjh4eCAjMDogICAgIGNh
+cmQ9MyAtPiBQaW5uYWNsZSBQQ1RWIFVTQiAyClsgIDQ4NS4yMzc1ODhdIGVt
+Mjh4eCAjMDogICAgIGNhcmQ9NCAtPiBIYXVwcGF1Z2UgV2luVFYgVVNCIDIK
+WyAgNDg1LjIzNzU5Ml0gZW0yOHh4ICMwOiAgICAgY2FyZD01IC0+IE1TSSBW
+T1ggVVNCIDIuMApbICA0ODUuMjM3NTk3XSBlbTI4eHggIzA6ICAgICBjYXJk
+PTYgLT4gVGVycmF0ZWMgQ2luZXJneSAyMDAgVVNCClsgIDQ4NS4yMzc2MDFd
+IGVtMjh4eCAjMDogICAgIGNhcmQ9NyAtPiBMZWFkdGVrIFdpbmZhc3QgVVNC
+IElJClsgIDQ4NS4yMzc2MDZdIGVtMjh4eCAjMDogICAgIGNhcmQ9OCAtPiBL
+d29ybGQgVVNCMjgwMApbICA0ODUuMjM3NjEwXSBlbTI4eHggIzA6ICAgICBj
+YXJkPTkgLT4gUGlubmFjbGUgRGF6emxlIERWQyA5MC8xMDAvMTAxLzEwNyAv
+IEthaXNlciBCYWFzIFZpZGVvIHRvIERWRCBtYWtlciAvIEt3b3JsZCBEVkQg
+TWFrZXIgMgpbICA0ODUuMjM3NjE3XSBlbTI4eHggIzA6ICAgICBjYXJkPTEw
+IC0+IEhhdXBwYXVnZSBXaW5UViBIVlIgOTAwClsgIDQ4NS4yMzc2MjFdIGVt
+Mjh4eCAjMDogICAgIGNhcmQ9MTEgLT4gVGVycmF0ZWMgSHlicmlkIFhTClsg
+IDQ4NS4yMzc2MjZdIGVtMjh4eCAjMDogICAgIGNhcmQ9MTIgLT4gS3dvcmxk
+IFBWUiBUViAyODAwIFJGClsgIDQ4NS4yMzc2MzBdIGVtMjh4eCAjMDogICAg
+IGNhcmQ9MTMgLT4gVGVycmF0ZWMgUHJvZGlneSBYUwpbICA0ODUuMjM3NjM1
+XSBlbTI4eHggIzA6ICAgICBjYXJkPTE0IC0+IFNJSUcgQVZUdW5lci1QVlIg
+LyBQaXhlbHZpZXcgUHJvbGluayBQbGF5VFYgVVNCIDIuMApbICA0ODUuMjM3
+NjQwXSBlbTI4eHggIzA6ICAgICBjYXJkPTE1IC0+IFYtR2VhciBQb2NrZXRU
+VgpbICA0ODUuMjM3NjQ0XSBlbTI4eHggIzA6ICAgICBjYXJkPTE2IC0+IEhh
+dXBwYXVnZSBXaW5UViBIVlIgOTUwClsgIDQ4NS4yMzc2NDldIGVtMjh4eCAj
+MDogICAgIGNhcmQ9MTcgLT4gUGlubmFjbGUgUENUViBIRCBQcm8gU3RpY2sK
+WyAgNDg1LjIzNzY1NF0gZW0yOHh4ICMwOiAgICAgY2FyZD0xOCAtPiBIYXVw
+cGF1Z2UgV2luVFYgSFZSIDkwMCAoUjIpClsgIDQ4NS4yMzc2NThdIGVtMjh4
+eCAjMDogICAgIGNhcmQ9MTkgLT4gRU0yODYwL1NBQTcxMVggUmVmZXJlbmNl
+IERlc2lnbgpbICA0ODUuMjM3NjYzXSBlbTI4eHggIzA6ICAgICBjYXJkPTIw
+IC0+IEFNRCBBVEkgVFYgV29uZGVyIEhEIDYwMApbICA0ODUuMjM3NjY4XSBl
+bTI4eHggIzA6ICAgICBjYXJkPTIxIC0+IGVNUElBIFRlY2hub2xvZ3ksIElu
+Yy4gR3JhYkJlZVgrIFZpZGVvIEVuY29kZXIKWyAgNDg1LjIzNzY3M10gZW0y
+OHh4ICMwOiAgICAgY2FyZD0yMiAtPiBFTTI3MTAvRU0yNzUwL0VNMjc1MSB3
+ZWJjYW0gZ3JhYmJlcgpbICA0ODUuMjM3Njc3XSBlbTI4eHggIzA6ICAgICBj
+YXJkPTIzIC0+IEh1YXFpIERMQ1ctMTMwClsgIDQ4NS4yMzc2ODJdIGVtMjh4
+eCAjMDogICAgIGNhcmQ9MjQgLT4gRC1MaW5rIERVQi1UMjEwIFRWIFR1bmVy
+ClsgIDQ4NS4yMzc2ODZdIGVtMjh4eCAjMDogICAgIGNhcmQ9MjUgLT4gR2Fk
+bWVpIFVUVjMxMApbICA0ODUuMjM3NjkxXSBlbTI4eHggIzA6ICAgICBjYXJk
+PTI2IC0+IEhlcmN1bGVzIFNtYXJ0IFRWIFVTQiAyLjAKWyAgNDg1LjIzNzY5
+NV0gZW0yOHh4ICMwOiAgICAgY2FyZD0yNyAtPiBQaW5uYWNsZSBQQ1RWIFVT
+QiAyIChQaGlsaXBzIEZNMTIxNk1FKQpbICA0ODUuMjM3NzAwXSBlbTI4eHgg
+IzA6ICAgICBjYXJkPTI4IC0+IExlYWR0ZWsgV2luZmFzdCBVU0IgSUkgRGVs
+dXhlClsgIDQ4NS4yMzc3MDVdIGVtMjh4eCAjMDogICAgIGNhcmQ9MjkgLT4g
+PE5VTEw+ClsgIDQ4NS4yMzc3MDldIGVtMjh4eCAjMDogICAgIGNhcmQ9MzAg
+LT4gVmlkZW9sb2d5IDIwSzE0WFVTQiBVU0IyLjAKWyAgNDg1LjIzNzcxNF0g
+ZW0yOHh4ICMwOiAgICAgY2FyZD0zMSAtPiBVc2JnZWFyIFZEMjA0djkKWyAg
+NDg1LjIzNzcxOF0gZW0yOHh4ICMwOiAgICAgY2FyZD0zMiAtPiBTdXBlcmNv
+bXAgVVNCIDIuMCBUVgpbICA0ODUuMjM3NzIyXSBlbTI4eHggIzA6ICAgICBj
+YXJkPTMzIC0+IDxOVUxMPgpbICA0ODUuMjM3NzI2XSBlbTI4eHggIzA6ICAg
+ICBjYXJkPTM0IC0+IFRlcnJhdGVjIENpbmVyZ3kgQSBIeWJyaWQgWFMKWyAg
+NDg1LjIzNzczMV0gZW0yOHh4ICMwOiAgICAgY2FyZD0zNSAtPiBUeXBob29u
+IERWRCBNYWtlcgpbICA0ODUuMjM3NzM1XSBlbTI4eHggIzA6ICAgICBjYXJk
+PTM2IC0+IE5ldEdNQkggQ2FtClsgIDQ4NS4yMzc3NDBdIGVtMjh4eCAjMDog
+ICAgIGNhcmQ9MzcgLT4gR2FkbWVpIFVUVjMzMApbICA0ODUuMjM3NzQ0XSBl
+bTI4eHggIzA6ICAgICBjYXJkPTM4IC0+IFlha3VtbyBNb3ZpZU1peGVyClsg
+IDQ4NS4yMzc3NDhdIGVtMjh4eCAjMDogICAgIGNhcmQ9MzkgLT4gS1dvcmxk
+IFBWUlRWIDMwMFUKWyAgNDg1LjIzNzc1M10gZW0yOHh4ICMwOiAgICAgY2Fy
+ZD00MCAtPiBQbGV4dG9yIENvbnZlcnRYIFBYLVRWMTAwVQpbICA0ODUuMjM3
+NzU3XSBlbTI4eHggIzA6ICAgICBjYXJkPTQxIC0+IEt3b3JsZCAzNTAgVSBE
+VkItVApbICA0ODUuMjM3NzYyXSBlbTI4eHggIzA6ICAgICBjYXJkPTQyIC0+
+IEt3b3JsZCAzNTUgVSBEVkItVApbICA0ODUuMjM3NzY2XSBlbTI4eHggIzA6
+ICAgICBjYXJkPTQzIC0+IFRlcnJhdGVjIENpbmVyZ3kgVCBYUwpbICA0ODUu
+MjM3NzcxXSBlbTI4eHggIzA6ICAgICBjYXJkPTQ0IC0+IFRlcnJhdGVjIENp
+bmVyZ3kgVCBYUyAoTVQyMDYwKQpbICA0ODUuMjM3Nzc1XSBlbTI4eHggIzA6
+ICAgICBjYXJkPTQ1IC0+IFBpbm5hY2xlIFBDVFYgRFZCLVQKWyAgNDg1LjIz
+Nzc4MF0gZW0yOHh4ICMwOiAgICAgY2FyZD00NiAtPiBDb21wcm8sIFZpZGVv
+TWF0ZSBVMwpbICA0ODUuMjM3Nzg0XSBlbTI4eHggIzA6ICAgICBjYXJkPTQ3
+IC0+IEtXb3JsZCBEVkItVCAzMDVVClsgIDQ4NS4yMzc3ODldIGVtMjh4eCAj
+MDogICAgIGNhcmQ9NDggLT4gS1dvcmxkIERWQi1UIDMxMFUKWyAgNDg1LjIz
+Nzc5M10gZW0yOHh4ICMwOiAgICAgY2FyZD00OSAtPiBNU0kgRGlnaVZveCBB
+L0QKWyAgNDg1LjIzNzc5N10gZW0yOHh4ICMwOiAgICAgY2FyZD01MCAtPiBN
+U0kgRGlnaVZveCBBL0QgSUkKWyAgNDg1LjIzNzgwMl0gZW0yOHh4ICMwOiAg
+ICAgY2FyZD01MSAtPiBUZXJyYXRlYyBIeWJyaWQgWFMgU2VjYW0KWyAgNDg1
+LjIzNzgwNl0gZW0yOHh4ICMwOiAgICAgY2FyZD01MiAtPiBETlQgREEyIEh5
+YnJpZApbICA0ODUuMjM3ODExXSBlbTI4eHggIzA6ICAgICBjYXJkPTUzIC0+
+IFBpbm5hY2xlIEh5YnJpZCBQcm8KWyAgNDg1LjIzNzgxNV0gZW0yOHh4ICMw
+OiAgICAgY2FyZD01NCAtPiBLd29ybGQgVlMtRFZCLVQgMzIzVVIKWyAgNDg1
+LjIzNzgyMF0gZW0yOHh4ICMwOiAgICAgY2FyZD01NSAtPiBUZXJyYXRlYyBI
+eWJyaWQgWFMgKGVtMjg4MikKWyAgNDg1LjIzNzgyNV0gZW0yOHh4ICMwOiAg
+ICAgY2FyZD01NiAtPiBQaW5uYWNsZSBIeWJyaWQgUHJvICgyKQpbICA0ODUu
+MjM3ODI5XSBlbTI4eHggIzA6ICAgICBjYXJkPTU3IC0+IEt3b3JsZCBQbHVz
+VFYgSEQgSHlicmlkIDMzMApbICA0ODUuMjM3ODM0XSBlbTI4eHggIzA6ICAg
+ICBjYXJkPTU4IC0+IENvbXBybyBWaWRlb01hdGUgRm9yWW91L1N0ZXJlbwpb
+ICA0ODUuMjM3ODM4XSBlbTI4eHggIzA6ICAgICBjYXJkPTU5IC0+IDxOVUxM
+PgpbICA0ODUuMjM3ODQyXSBlbTI4eHggIzA6ICAgICBjYXJkPTYwIC0+IEhh
+dXBwYXVnZSBXaW5UViBIVlIgODUwClsgIDQ4NS4yMzc4NDddIGVtMjh4eCAj
+MDogICAgIGNhcmQ9NjEgLT4gUGl4ZWx2aWV3IFBsYXlUViBCb3ggNCBVU0Ig
+Mi4wClsgIDQ4NS4yMzc4NTFdIGVtMjh4eCAjMDogICAgIGNhcmQ9NjIgLT4g
+R2FkbWVpIFRWUjIwMApbICA0ODUuMjM3ODU2XSBlbTI4eHggIzA6ICAgICBj
+YXJkPTYzIC0+IEthaW9teSBUVm5QQyBVMgpbICA0ODUuMjM3ODYwXSBlbTI4
+eHggIzA6ICAgICBjYXJkPTY0IC0+IEVhc3kgQ2FwIENhcHR1cmUgREMtNjAK
+WyAgNDg1LjIzNzg2NF0gZW0yOHh4ICMwOiAgICAgY2FyZD02NSAtPiBJTy1E
+QVRBIEdWLU1WUC9TWgpbICA0ODUuMjM3ODY5XSBlbTI4eHggIzA6ICAgICBj
+YXJkPTY2IC0+IEVtcGlyZSBkdWFsIFRWClsgIDQ4NS4yMzc4NzNdIGVtMjh4
+eCAjMDogICAgIGNhcmQ9NjcgLT4gVGVycmF0ZWMgR3JhYmJ5ClsgIDQ4NS4y
+Mzc4NzddIGVtMjh4eCAjMDogICAgIGNhcmQ9NjggLT4gVGVycmF0ZWMgQVYz
+NTAKWyAgNDg1LjIzNzg4Ml0gZW0yOHh4ICMwOiAgICAgY2FyZD02OSAtPiBL
+V29ybGQgQVRTQyAzMTVVIEhEVFYgVFYgQm94ClsgIDQ4NS4yMzc4ODZdIGVt
+Mjh4eCAjMDogICAgIGNhcmQ9NzAgLT4gRXZnYSBpbkR0dWJlClsgIDQ4NS4y
+Mzc4OTBdIGVtMjh4eCAjMDogICAgIGNhcmQ9NzEgLT4gU2lsdmVyY3Jlc3Qg
+V2ViY2FtIDEuM21waXgKWyAgNDg1LjIzNzg5NV0gZW0yOHh4ICMwOiAgICAg
+Y2FyZD03MiAtPiBHYWRtZWkgVVRWMzMwKwpbICA0ODUuMjM3ODk5XSBlbTI4
+eHggIzA6ICAgICBjYXJkPTczIC0+IFJlZGRvIERWQi1DIFVTQiBUViBCb3gK
+WyAgNDg1LjIzODAyOF0gZW0yOHh4ICMwOiBDb25maWcgcmVnaXN0ZXIgcmF3
+IGRhdGE6IDB4NTAKWyAgNDg1LjI1NjkyNV0gZW0yOHh4ICMwOiBBQzk3IHZl
+bmRvciBJRCA9IDB4Zjc1MmY3NTIKWyAgNDg1LjI2NjkwN10gZW0yOHh4ICMw
+OiBBQzk3IGZlYXR1cmVzID0gMHhmNzUyClsgIDQ4NS4yNjY5MTNdIGVtMjh4
+eCAjMDogVW5rbm93biBBQzk3IGF1ZGlvIHByb2Nlc3NvciBkZXRlY3RlZCEK
+WyAgNDg1LjYxMzM3Ml0gZW0yOHh4ICMwOiB2NGwyIGRyaXZlciB2ZXJzaW9u
+IDAuMS4yClsgIDQ4Ni4zNjM0MDJdIHVzYiAxLTU6IHJlc2V0IGhpZ2ggc3Bl
+ZWQgVVNCIGRldmljZSB1c2luZyBlaGNpX2hjZCBhbmQgYWRkcmVzcyAyClsg
+IDQ4Ni4zOTAzNjldIGVtMjh4eCAjMDogVjRMMiB2aWRlbyBkZXZpY2UgcmVn
+aXN0ZXJlZCBhcyAvZGV2L3ZpZGVvMApbICA0ODYuMzkwMzc2XSBlbTI4eHgg
+IzA6IFY0TDIgVkJJIGRldmljZSByZWdpc3RlcmVkIGFzIC9kZXYvdmJpMApb
+ICA0ODYuMzkwNDAyXSBlbTI4eHggYXVkaW8gZGV2aWNlIChlYjFhOjI4NjEp
+OiBpbnRlcmZhY2UgMSwgY2xhc3MgMQpbICA0ODYuMzkwNDIzXSBlbTI4eHgg
+YXVkaW8gZGV2aWNlIChlYjFhOjI4NjEpOiBpbnRlcmZhY2UgMiwgY2xhc3Mg
+MQpbICA0ODYuMzkwNDU3XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRl
+cmZhY2UgZHJpdmVyIGVtMjh4eApbICA0ODYuMzkwNDYzXSBlbTI4eHggZHJp
+dmVyIGxvYWRlZApbICA0ODYuNDY5NjAyXSB1c2Jjb3JlOiByZWdpc3RlcmVk
+IG5ldyBpbnRlcmZhY2UgZHJpdmVyIHNuZC11c2ItYXVkaW8KWyAgNDg2LjUy
+MjY0OV0gdXNiIDEtNTogZmFpbGVkIHRvIHJlc3RvcmUgaW50ZXJmYWNlIDAg
+YWx0c2V0dGluZyAwIChlcnJvcj0tNzEpClsgIDQ4Ni41MjI2NzldIHVzYiAx
+LTU6IFVTQiBkaXNjb25uZWN0LCBhZGRyZXNzIDIKWyAgNDg2LjUyMjkzM10g
+c2QgMjowOjA6MDogW3NkYl0gUkVBRCBDQVBBQ0lUWSBmYWlsZWQKWyAgNDg2
+LjUyMjkzNV0gc2QgMjowOjA6MDogW3NkYl0gUmVzdWx0OiBob3N0Ynl0ZT1E
+SURfRVJST1IgZHJpdmVyYnl0ZT1EUklWRVJfT0ssU1VHR0VTVF9PSwpbICA0
+ODYuNTIyOTQwXSBzZCAyOjA6MDowOiBbc2RiXSBTZW5zZSBub3QgYXZhaWxh
+YmxlLgpbICA0ODYuNTIyOTg2XSBzZCAyOjA6MDowOiBbc2RiXSBXcml0ZSBQ
+cm90ZWN0IGlzIG9mZgpbICA0ODYuNTIyOTg5XSBzZCAyOjA6MDowOiBbc2Ri
+XSBNb2RlIFNlbnNlOiAwMCAwMCAwMCAwMApbICA0ODYuNTIyOTkxXSBzZCAy
+OjA6MDowOiBbc2RiXSBBc3N1bWluZyBkcml2ZSBjYWNoZTogd3JpdGUgdGhy
+b3VnaApbICA0ODYuNjMzMzMzXSB1c2IgMS01OiBuZXcgaGlnaCBzcGVlZCBV
+U0IgZGV2aWNlIHVzaW5nIGVoY2lfaGNkIGFuZCBhZGRyZXNzIDYKWyAgNDg2
+LjgxMTQ1NV0gdXNiIDEtNTogY29uZmlndXJhdGlvbiAjMSBjaG9zZW4gZnJv
+bSAxIGNob2ljZQpbICA0ODYuODE4MTMxXSBzY3NpMyA6IFNDU0kgZW11bGF0
+aW9uIGZvciBVU0IgTWFzcyBTdG9yYWdlIGRldmljZXMKWyAgNDg2LjgyODcx
+NF0gdXNiIDEtNTogTmV3IFVTQiBkZXZpY2UgZm91bmQsIGlkVmVuZG9yPTA5
+MzAsIGlkUHJvZHVjdD02NTNkClsgIDQ4Ni44Mjg3MThdIHVzYiAxLTU6IE5l
+dyBVU0IgZGV2aWNlIHN0cmluZ3M6IE1mcj0xLCBQcm9kdWN0PTIsIFNlcmlh
+bE51bWJlcj0zClsgIDQ4Ni44Mjg3MjFdIHVzYiAxLTU6IFByb2R1Y3Q6IERh
+dGFUcmF2ZWxlciAyLjAKWyAgNDg2LjgyODcyM10gdXNiIDEtNTogTWFudWZh
+Y3R1cmVyOiBLaW5nc3RvbgpbICA0ODYuODI4NzI1XSB1c2IgMS01OiBTZXJp
+YWxOdW1iZXI6IDA2MDUyNDE4MDE0ODMKWyAgNDg2LjgyODczMV0gdXNiLXN0
+b3JhZ2U6IGRldmljZSBmb3VuZCBhdCA2ClsgIDQ4Ni44Mjg3MzNdIHVzYi1z
+dG9yYWdlOiB3YWl0aW5nIGZvciBkZXZpY2UgdG8gc2V0dGxlIGJlZm9yZSBz
+Y2FubmluZwpbICA0OTEuODMxNDc3XSBzY3NpIDM6MDowOjA6IERpcmVjdC1B
+Y2Nlc3MgICAgIEtpbmdzdG9uIERhdGFUcmF2ZWxlciAyLjAgMS4wMCBQUTog
+MCBBTlNJOiAyClsgIDQ5MS44MzUyOTZdIHNkIDM6MDowOjA6IFtzZGNdIDE5
+NzEyMDAgNTEyLWJ5dGUgaGFyZHdhcmUgc2VjdG9yczogKDEuMDAgR0IvOTYy
+IE1pQikKWyAgNDkxLjgzNTc4Ml0gc2QgMzowOjA6MDogW3NkY10gV3JpdGUg
+UHJvdGVjdCBpcyBvZmYKWyAgNDkxLjgzNTc4OF0gc2QgMzowOjA6MDogW3Nk
+Y10gTW9kZSBTZW5zZTogMGIgMDAgMDAgMDgKWyAgNDkxLjgzNTc5M10gc2Qg
+MzowOjA6MDogW3NkY10gQXNzdW1pbmcgZHJpdmUgY2FjaGU6IHdyaXRlIHRo
+cm91Z2gKWyAgNTAyLjEwNjY3Ml0gdXNiIDEtNTogcmVzZXQgaGlnaCBzcGVl
+ZCBVU0IgZGV2aWNlIHVzaW5nIGVoY2lfaGNkIGFuZCBhZGRyZXNzIDYKWyAg
+NTAyLjI2MDY4OV0gc2QgMzowOjA6MDogW3NkY10gMTk3MTIwMCA1MTItYnl0
+ZSBoYXJkd2FyZSBzZWN0b3JzOiAoMS4wMCBHQi85NjIgTWlCKQpbICA1MDIu
+MjYxMjExXSBzZCAzOjA6MDowOiBbc2RjXSBXcml0ZSBQcm90ZWN0IGlzIG9m
+ZgpbICA1MDIuMjYxMjE5XSBzZCAzOjA6MDowOiBbc2RjXSBNb2RlIFNlbnNl
+OiAwYiAwMCAwMCAwOApbICA1MDIuMjYxMjI0XSBzZCAzOjA6MDowOiBbc2Rj
+XSBBc3N1bWluZyBkcml2ZSBjYWNoZTogd3JpdGUgdGhyb3VnaApbICA1MDIu
+MjYxMjM2XSAgc2RjOiBzZGMxClsgIDUwMi4yNjQzMzJdIHNkIDM6MDowOjA6
+IFtzZGNdIEF0dGFjaGVkIFNDU0kgcmVtb3ZhYmxlIGRpc2sKWyAgNTAyLjI2
+NjA4OV0gc2QgMzowOjA6MDogQXR0YWNoZWQgc2NzaSBnZW5lcmljIHNnMiB0
+eXBlIDAKWyAgNTAyLjI2NjUzOV0gdXNiLXN0b3JhZ2U6IGRldmljZSBzY2Fu
+IGNvbXBsZXRlCg==
 
-
-3. The multi_info_ptr would contain a userspace pointer to a structure further
-describing the buffer:
-
-+ struct v4l2_multiplane_info {
-+         __u32  count;
-+         struct v4l2_plane[0];
-+ };
-
-Where the v4l2_plane array would contain count elements:
-
-+ struct v4l2_plane {
-+         __u32   parent_index;
-+         __u32   bytesused;
-+         union {
-+                 __u32 offset;
-+                 unsigned long userptr;
-+         } m;
-+         __u32   flags;
-+         __u32   length;
-+         __u32   reserved;
-+ };
-
-parent_index - index of the parent v4l2_buffer
-
-offset, userptr, bytesused, length - same as in v4l2_buffer struct but for
-current frame
-
-flags - one flag currently: V4L2_PLANE_FLAG_MAPPED
-(or reuse V4L2_BUF_FLAG_MAPPED for that)
-
-A stride field could also be added if there is a need for one. 
-
-
-
-How this would work
-===================
-
--------------------------------------------------------------------------------
-1. Formats
--------------------------------------------------------------------------------
-No need to change the format API, although new formats for such buffers may be
-needed and added, as required.
-
-
--------------------------------------------------------------------------------
-2. Requesting, querying and mapping buffers
--------------------------------------------------------------------------------
-No changes to existing applications/drivers required.
-
-A driver (and the videobuffer framework components) willing to support
-multi-plane buffers would have to be made aware of the new memory types:
-
-
-VIDIOC_REQBUFS:
----------------
-
-- MULTI_MMAP:
-
-  * application: pass the new memory type and count of multi-plane buffers
-    (not plane count) normally
-
-  * driver: fills in count as usual, being the number of actually allocated
-    buffers (i.e. 1 for each multi-plane buffer, not each plane)
-
-- MULTI_USERPTR:
-  * no changes
-
-
-VIDIOC_QUERYBUFS:
------------------
-- MULTI_MMAP:
-
-* application: pass a v4l2_buffer struct as usual, but with the new memory
-    type and a userspace pointer (in multi_info_ptr) to an instance of 
-    v4l2_multiplane_info structure. The structure and the embedded
-    v4l2_plane[] array has to be preallocated in userspace and have count set
-    to the required number of planes.
-
-* driver fills offset fields in each v4l2_plane struct, analogically to
-  offsets in "normal" v4l2_buffers.
-
-
-- MULTI_USERPTR:
-n/a
-
-
-
-mmap()
------------------
-Basically just like in normal buffer case, but with planes instead of buffers
-and one mmap() call per each plane.
-
-- application calls mmap count times (one for each plane), passing the offsets
-provided in v4l2_plane structs
-
-- there is no need for those calls to be in any particular order.
-
-
-- driver (videobuffer framework) should store an array of planes
-internally - just like it does with v4l2_buffers - and match offsets in 
-that array to those provided in mmap.
-
-- a plane gets marked as mapped (V4L2_PLANE_FLAG_MAPPED flag) after
-a successful mmap. A buffer changes state to mapped (V4L2_BUF_FLAG_MAPPED)
-only if all of its planes are mapped.
-
-- matching planes with buffers can be done using the parent_index member
-
-
--------------------------------------------------------------------------------
-3. Queuing and dequeuing buffers, buffer usage
--------------------------------------------------------------------------------
-
-No real changes have to be made to be made to the v4l2 framework, the buffers
-get queued and dequeud as usual. Only access to the new type differs, but
-not much - in practice, just handle more pointers than one.
-
-As for the videobuffer framework, additional function(s) to acquire addresses
-to each plane will have to be added and it should be made aware of planes.
-But the overall mechanism remains mostly unchanged.
-
-
-
-Comments are welcome, especially other requirements that we might not have
-considered.
-
-
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
-
+--0-1383806686-1255336314=:94699--
