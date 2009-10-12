@@ -1,40 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f184.google.com ([209.85.212.184]:49089 "EHLO
-	mail-vw0-f184.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756363AbZJVTiF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Oct 2009 15:38:05 -0400
-Received: by vws14 with SMTP id 14so13834vws.33
-        for <linux-media@vger.kernel.org>; Thu, 22 Oct 2009 12:38:09 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <829197380910221227sc3b6398xbd3061e8483ac41@mail.gmail.com>
-References: <20091022211330.6e84c6e7@hyperion.delvare>
-	 <829197380910221227sc3b6398xbd3061e8483ac41@mail.gmail.com>
-Date: Thu, 22 Oct 2009 12:38:09 -0700
-Message-ID: <a3ef07920910221238x6a0bc078g74a1e63527263385@mail.gmail.com>
-Subject: Re: Details about DVB frontend API
-From: VDR User <user.vdr@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Jean Delvare <khali@linux-fr.org>,
-	LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from lo.gmane.org ([80.91.229.12]:50506 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752404AbZJLDzl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Oct 2009 23:55:41 -0400
+Received: from list by lo.gmane.org with local (Exim 4.50)
+	id 1MxC00-0000Rn-TD
+	for linux-media@vger.kernel.org; Mon, 12 Oct 2009 05:55:04 +0200
+Received: from 210.187.111.86 ([210.187.111.86])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 12 Oct 2009 05:55:04 +0200
+Received: from mctiew by 210.187.111.86 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 12 Oct 2009 05:55:04 +0200
+To: linux-media@vger.kernel.org
+From: mctiew <mctiew@yahoo.com>
+Subject: Gadmei 380 on kernel 2.6.28.4
+Date: Mon, 12 Oct 2009 03:32:53 +0000 (UTC)
+Message-ID: <loom.20091012T052656-654@post.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 22, 2009 at 12:27 PM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> I could have had this problem solved six months ago for 98% of the
-> community, and instead we are right where we have been since the
-> beginning of the project.
 
-This is really a shame too considering the enormous amount of people,
-both users & devs, who would really like to see this happen.  You've
-got to start somewhere and build/improve from there.  Simply sitting
-back and doing nothing is of absolutely no benefit what-so-ever.
-Maybe you should release your patch(es) and when/if enough people use
-them, there will be some pressure to actually have progress.  Then
-again, the same ugly monster that is linux dvb politics might prevent
-that progress from ever happening.
+I am trying to use the gadmei 380 which I bought yesterday.
 
-Regards,
-Derek
+I am using kernel 2.6.28.4, I downloaded the entire ~dougsland/em28xx
+and did a make and install. Everything went on smoothly. However,
+when I plug in the gadmei 380 usb device, it seems the driver can 
+get loaded by the usb pnp, but at the same time, one of my usb 
+pendrive will get disconnected. Because that's my boot drive 
+( I boot off from the usb drive ), that will cause problem with 
+my system.
+
+Anyone has experienced this before ?
+
+Regards.
+
