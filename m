@@ -1,48 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:57018 "EHLO znsun1.ifh.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750893AbZJTHmn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Oct 2009 03:42:43 -0400
-Date: Tue, 20 Oct 2009 09:42:39 +0200 (CEST)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Matteo Miraz <telegraph.road@gmail.com>
-cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: pctv nanoStick Solo not recognized
-In-Reply-To: <51bd605b0910191534x48973759g721f4ee79b692059@mail.gmail.com>
-Message-ID: <alpine.LRH.1.10.0910200938140.3543@pub2.ifh.de>
-References: <51bd605b0910181441l7d6ac90g53978e3e4436f6ba@mail.gmail.com>  <829197380910191218u2c281553pad57bff61ffbd3b5@mail.gmail.com>  <51bd605b0910191328i3b58c955ha3ade305b4af928d@mail.gmail.com>  <829197380910191341p484e070ftd190143f73b1d10e@mail.gmail.com>
-  <51bd605b0910191451x22287c5ai3f829f2af0243879@mail.gmail.com>  <829197380910191456g5c53f37bh82ae6d7359ae5d2e@mail.gmail.com> <51bd605b0910191534x48973759g721f4ee79b692059@mail.gmail.com>
+Received: from mail-bw0-f210.google.com ([209.85.218.210]:42513 "EHLO
+	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758407AbZJLXEv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Oct 2009 19:04:51 -0400
+Received: by bwz6 with SMTP id 6so3498189bwz.37
+        for <linux-media@vger.kernel.org>; Mon, 12 Oct 2009 16:04:12 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=US-ASCII; format=flowed
+In-Reply-To: <4AD3AE34.6020305@iki.fi>
+References: <829197380910121512y62a90cdcs49a0aa9606e8a588@mail.gmail.com>
+	 <4AD3AE34.6020305@iki.fi>
+Date: Mon, 12 Oct 2009 19:04:12 -0400
+Message-ID: <829197380910121604w6a9c5b22i26a892ff79aaf691@mail.gmail.com>
+Subject: Re: em28xx mode switching
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Matteo,
-
-Sorry for being quite in the first place.
-
-On Tue, 20 Oct 2009, Matteo Miraz wrote:
-
-> Devin,
+On Mon, Oct 12, 2009 at 6:31 PM, Antti Palosaari <crope@iki.fi> wrote:
+> I ran this same trap few weeks ago when adding Reddo DVB-C USB Box support
+> to em28xx :) Anyhow, since it is dvb only device I decided to switch from
+> .dvb_gpio to .tuner_gpio to fix the problem. I haven't pull requested it
+> yet.
+> http://linuxtv.org/hg/~anttip/reddo-dvb-c/rev/38f946af568f
 >
-> it worked.
->
-> I added the new vendor, and changed the other entry. I'm wondering if
-> exists a "pinnacle" pctv 73e se usb device...
->
-> attached to this mail there is the (easy) patch.
+> Antti
+> --
+> http://palosaari.fi/
 
-This patch is in fact the right way to do things.
+You were able to get by with using tuner_gpio instead of dvb_gpio
+because the Reddo isn't a hybrid device.
 
-Acked-by:  Patrick Boettcher <pboettcher@kernellabs.com>
+I'm going to propose removing the calls to em28xx_set_mode() in
+start_streaming() and stop_streaming().  Given the supported boards
+that are there, I can regression test:
 
-While you are at it, can you please also changed the vendor ID for 
-the PCTV282E-device to PCTVSYSTEMS and file a new patch?
+EM2883_BOARD_HAUPPAUGE_WINTV_HVR_850
+EM2883_BOARD_HAUPPAUGE_WINTV_HVR_950
+EM2880_BOARD_PINNACLE_PCTV_HD_PRO
+EM2880_BOARD_AMD_ATI_TV_WONDER_HD_600
+EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900
+EM2880_BOARD_TERRATEC_HYBRID_XS
 
-thanks for the help,
+and I cannot regression test:
 
---
+EM2880_BOARD_KWORLD_DVB_310U (I have a strong suspicion this board is
+currently broken anyway)
+EM2882_BOARD_TERRATEC_HYBRID_XS (I worked with the authors of this one
+and can probably get them to test)
+EM2882_BOARD_EVGA_INDTUBE (I worked with the authors of this one and
+can probably get them to test)
+EM2880_BOARD_EMPIRE_DUAL_TV (I worked with the authors of this one and
+can probably get them to test)
+EM2881_BOARD_PINNACLE_HYBRID_PRO (this is the board I noticed the problem under)
+EM2883_BOARD_KWORLD_HYBRID_330U
+EM2870_BOARD_REDDO_DVB_C_USB_BOX
 
-Patrick Boettcher - Kernel Labs
-http://www.kernellabs.com/
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
