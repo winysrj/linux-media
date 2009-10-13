@@ -1,66 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01a.mail.t-online.hu ([84.2.40.6]:49158 "EHLO
-	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754769AbZJCSMO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2009 14:12:14 -0400
-Message-ID: <4AC793D5.3010305@freemail.hu>
-Date: Sat, 03 Oct 2009 20:11:33 +0200
-From: =?ISO-8859-2?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+Received: from qw-out-2122.google.com ([74.125.92.24]:47983 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760322AbZJMPfu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Oct 2009 11:35:50 -0400
+Received: by qw-out-2122.google.com with SMTP id 9so915115qwb.37
+        for <linux-media@vger.kernel.org>; Tue, 13 Oct 2009 08:34:43 -0700 (PDT)
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>,
-	Thomas Kaiser <thomas@kaiser-linux.li>
-CC: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] pac7311: add comment about JPEG header
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <4AD3962A.9010209@sagurna.de>
+References: <4AD3962A.9010209@sagurna.de>
+Date: Tue, 13 Oct 2009 11:34:42 -0400
+Message-ID: <bb40fe370910130834m79d25097y399aac0557ac8886@mail.gmail.com>
+Subject: Re: Bug in HVR1300. Found part of a patch, if reverted bug seems to
+	be gone [spam-bayes][heur][spf]
+From: Steven Toth <stoth@hauppauge.com>
+To: Frank Sagurna <frank@sagurna.de>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+On Mon, Oct 12, 2009 at 4:48 PM, Frank Sagurna <frank@sagurna.de> wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+>
+> Hi list,
+>
+> there seems to be a bug in cx88 (HVR1300) that is responsible for not
+> switching channels, and not being able to scan.
+> Complete description can be found on launchpad:
+>
+> https://bugs.launchpad.net/mythtv/+bug/439163 (starting from comment #16)
+>
+> Anyway, i digged it down to this patch:
+> http://www.mail-archive.com/linuxtv-commits@linuxtv.org/msg02195.html
+>
+> When reverting the following part of the patch it starts working again:
+>
+> snip----------
 
-Add comment about the meaning of the fixed JPEG header bytes used to
-create each image.
+Thanks Frank. I'll pick up this patch and start the merge process.
 
-The change was tested with Labtec Webcam 2200.
+Regards,
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
-diff -upr e/drivers/media/video/gspca/pac7311.c f/drivers/media/video/gspca/pac7311.c
---- e/drivers/media/video/gspca/pac7311.c	2009-10-03 16:23:37.000000000 +0200
-+++ f/drivers/media/video/gspca/pac7311.c	2009-10-03 19:56:21.000000000 +0200
-@@ -801,13 +801,32 @@ static void do_autogain(struct gspca_dev
- 		sd->autogain_ignore_frames = PAC_AUTOGAIN_IGNORE_FRAMES;
- }
-
-+/* JPEG header, part 1 */
- static const unsigned char pac7311_jpeg_header1[] = {
--  0xff, 0xd8, 0xff, 0xc0, 0x00, 0x11, 0x08
-+  0xff, 0xd8,		/* SOI: Start of Image */
-+
-+  0xff, 0xc0,		/* SOF0: Start of Frame (Baseline DCT) */
-+  0x00, 0x11,		/* length = 17 bytes (including this length field) */
-+  0x08			/* Precision: 8 */
-+  /* 2 bytes is placed here: number of image lines */
-+  /* 2 bytes is placed here: samples per line */
- };
-
-+/* JPEG header, continued */
- static const unsigned char pac7311_jpeg_header2[] = {
--  0x03, 0x01, 0x21, 0x00, 0x02, 0x11, 0x01, 0x03, 0x11, 0x01, 0xff, 0xda,
--  0x00, 0x0c, 0x03, 0x01, 0x00, 0x02, 0x11, 0x03, 0x11, 0x00, 0x3f, 0x00
-+  0x03,			/* Number of image components: 3 */
-+  0x01, 0x21, 0x00,	/* ID=1, Subsampling 1x1, Quantization table: 0 */
-+  0x02, 0x11, 0x01,	/* ID=2, Subsampling 2x1, Quantization table: 1 */
-+  0x03, 0x11, 0x01,	/* ID=3, Subsampling 2x1, Quantization table: 1 */
-+
-+  0xff, 0xda,		/* SOS: Start Of Scan */
-+  0x00, 0x0c,		/* length = 12 bytes (including this length field) */
-+  0x03,			/* number of components: 3 */
-+  0x01, 0x00,		/* selector 1, table 0x00 */
-+  0x02, 0x11,		/* selector 2, table 0x11 */
-+  0x03, 0x11,		/* selector 3, table 0x11 */
-+  0x00, 0x3f,		/* Spectral selection: 0 .. 63 */
-+  0x00			/* Successive approximation: 0 */
- };
-
- /* this function is run at interrupt level */
+- Steve
