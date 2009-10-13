@@ -1,90 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:40616 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752608AbZJAVm1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Oct 2009 17:42:27 -0400
-Date: Thu, 1 Oct 2009 16:42:24 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: Wellington Terumi Uemura <wellingtonuemura@gmail.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: How to make my device work with linux?
-In-Reply-To: <c85228170910011414n29837812y28010ef0d97b7bf1@mail.gmail.com>
-Message-ID: <alpine.DEB.1.10.0910011628420.21852@cnc.isely.net>
-References: <c85228170910011138w6d3fa3adibbb25d275baa824f@mail.gmail.com>  <37219a840910011227r155d4bc1kc98935e3a52a4a17@mail.gmail.com> <c85228170910011414n29837812y28010ef0d97b7bf1@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mail-fx0-f227.google.com ([209.85.220.227]:35763 "EHLO
+	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761140AbZJMTiV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Oct 2009 15:38:21 -0400
+Received: by fxm27 with SMTP id 27so10618629fxm.17
+        for <linux-media@vger.kernel.org>; Tue, 13 Oct 2009 12:37:44 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20091013213119.7e790e7b@ieee.org>
+References: <loom.20091011T180513-771@post.gmane.org>
+	 <829197380910111218q5739eb5ex9a87f19899a13e98@mail.gmail.com>
+	 <loom.20091012T223603-551@post.gmane.org>
+	 <829197380910121437m4f1fb7cld8d7dc351f468671@mail.gmail.com>
+	 <20091013012255.260afea3@ieee.org>
+	 <829197380910121723i59d2498en10d166f523889fbd@mail.gmail.com>
+	 <20091013213119.7e790e7b@ieee.org>
+Date: Tue, 13 Oct 2009 15:37:43 -0400
+Message-ID: <829197380910131237n5a09861bs204df901522cecc5@mail.gmail.com>
+Subject: Re: Dazzle TV Hybrid USB and em28xx
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Giuseppe Borzi <gborzi@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 1 Oct 2009, Wellington Terumi Uemura wrote:
+On Tue, Oct 13, 2009 at 3:31 PM, Giuseppe Borzi <gborzi@gmail.com> wrote:
+> Thanks Devin,
+> now DVB works as expected, i.e. I can change channel and w_scan
+> finds the channels available in my area. The stick is recognized as
+> card=1 instead of 53 as I expected, but still it works fine.
+> Still no sound for analog TV, but that's a minor problem.
+>
+> Thanks again.
 
-> I was looking around to find that there is a driver for that Fujitsu
-> MB86A16 inside the "Linux Mantis Driver" project, Fujitsu MB86A16
-> DVB-S/DSS DC Receiver driver made by Manu Abraham
-> http://www.verbraak.org/wiki/index.php/Linux_Mantis_driver.
-> 
-> I've done a few tests with usbsnoop and other tools but USB sniffer
-> doesn't see any valid command, jut a bunch of bytes that makes no
-> sense:
-> http://www.isely.net/pvrusb2/firmware.html#FX2
+Can you please provide the output of dmesg after connecting the card?
+I am not sure why it would recognize as card=1.  Do you have a
+modprobe option setup forcing it to card=1?
 
-What you've pointed at here is a page that describes using a trick with 
-the pvrusb2 driver to suck an image of the FX2 firmware out of the FX2 
-processor itself.  That won't work in your case however since it 
-requires that the pvrusb2 driver already be talking to the chip.  The 
-procedure documented at that link is really about firmware extraction 
-not reverse-engineering the data link protocol between the FX2 and the 
-host.
-
-> 
-> I will try my luck compiling that Fujitsu driver, but my best guess is
-> that without a proper I/O from that FX2 it will end up with nothing at
-> all.
-
-It's that data link protocol that you need to understand.  Please 
-realize that the FX2 is "just" an 8051 microcontroller which happens to 
-have a fairly interesting USB device interface resident on the same 
-silicon.  Beyond that, the chip's behavior is really up to whatever the 
-firmware does.  For pvrusb2-driven devices that firmware's behavior is 
-pretty well understood.  That driver also benefits from the fact that 
-essentially all USB hosted analog (and some hybrid) capture cards with 
-an mpeg encoder and an FX2 all are derivations from a reference design 
-by a single vendor.  That reference design included "reference 
-firmware", which each manufacturer of course tweaked a bit.  For that 
-reason, all those different devices tend to implement a similar enough 
-data link protocol that the pvrusb2 driver can handle them all with the 
-same implementation.
-
-The problem is, we don't know if any of that is true for your device.  
-You are dealing with a digital-only capture device so it can't be based 
-on that same reference design.  It is entirely sensible that the FX2 
-firmware was set up in that case with similar requirements in mind so 
-the result *might* be similar in behavior.  But it really isn't known.  
-So when you scan documentation for other drivers (e.g. pvrusb2) you must 
-really look at it all with a rather large helping of scepticism.
-
-Mike Krufky mentions a driver for the TDA18271 and he's right.  There is 
-one - because the pvrusb2 driver also relies on that when driving an 
-HVR-1950 capture device which happens to use that same part.  But that 
-isn't "the" driver you need.  What you need is a bridge driver that can 
-implement the host side of the data link protocol implemented by your 
-device's FX2.  That is what the pvrusb2 driver does for the capture 
-devices it handles.  With the proper bridge driver set up, then the 
-TDA18271 sub-device driver can ride over that data link to establish 
-communications with its hardware in the device.  THEN you'll be on the 
-way to having something working.
-
-I know that none of the about is the answer you're looking for.  But 
-perhaps it will lead you in the right direction.  It is entirely 
-possible that there is another bridge driver out there which can handle 
-this part, but I can't help you there.
-
-  -Mike
-
+Devin
 
 -- 
-
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
