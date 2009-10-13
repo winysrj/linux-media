@@ -1,44 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f194.google.com ([209.85.221.194]:56827 "EHLO
-	mail-qy0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751381AbZJTSfp convert rfc822-to-8bit (ORCPT
+Received: from mail-ew0-f208.google.com ([209.85.219.208]:48208 "EHLO
+	mail-ew0-f208.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759579AbZJMOtf convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Oct 2009 14:35:45 -0400
-Received: by qyk32 with SMTP id 32so4265402qyk.4
-        for <linux-media@vger.kernel.org>; Tue, 20 Oct 2009 11:35:49 -0700 (PDT)
+	Tue, 13 Oct 2009 10:49:35 -0400
+Received: by ewy4 with SMTP id 4so3444748ewy.37
+        for <linux-media@vger.kernel.org>; Tue, 13 Oct 2009 07:48:57 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <2df568dc0910200911w301da2cbyb7ba8726d2f0c94a@mail.gmail.com>
-References: <2df568dc0910200911w301da2cbyb7ba8726d2f0c94a@mail.gmail.com>
-Date: Tue, 20 Oct 2009 12:35:48 -0600
-Message-ID: <2df568dc0910201135u25eee08aq25ea4e8865b10ba9@mail.gmail.com>
-Subject: Re: saa7134-empress output format problem
-From: Gordon Smith <spider.karma+linux-media@gmail.com>
+In-Reply-To: <e425a9f30910130353o33871635hb7cbe7ebe294c1a9@mail.gmail.com>
+References: <e425a9f30910130353o33871635hb7cbe7ebe294c1a9@mail.gmail.com>
+Date: Tue, 13 Oct 2009 16:48:57 +0200
+Message-ID: <e425a9f30910130748v741b9fcfue527f161cc278240@mail.gmail.com>
+Subject: Re: Lifeview lv8h pci-e low profile
+From: Oinatz Aspiazu <oaspiazu@gmail.com>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 20, 2009 at 10:11 AM, Gordon Smith
-<spider.karma+linux-media@gmail.com> wrote:
-> Hello -
->
-> I have a saa7134 video encoder card "RTD Embedded Technologies VFG73"
-> in 2.6.28.9 with recent v4l2 (3919b17dc88e). It has two compression
-> channels and no tuner.
->
+Hello:
 
-I can clarify that my card is "RTD Embedded Technologies VFG7350".
+I'm using an Arch Linux, kernel 2.6.30-ARCH.
+I've a Lifeview LV8H pci-e dvb-t (low profile card) , that says:
 
-> # v4l2-ctl --device /dev/video3 --all
-> Driver Info:
-> Â  Â  Â Driver name Â  : saa7134
-> Â  Â  Â Card type Â  Â  : RTD Embedded Technologies VFG73
-> Â  Â  Â Bus info Â  Â  Â : PCI:0000:02:09.0
-> Â  Â  Â Driver version: 527
-> Â  Â  Â Capabilities Â : 0x05000015
-> Â  Â  Â  Â  Â  Â  Â Video Capture
-> Â  Â  Â  Â  Â  Â  Â Video Overlay
-> Â  Â  Â  Â  Â  Â  Â VBI Capture
-> Â  Â  Â  Â  Â  Â  Â Read/Write
-> Â  Â  Â  Â  Â  Â  Â Streaming
+# lspci -vv
+        03:00.0 Multimedia video controller: Conexant Systems, Inc.
+CX23885 PCI Video and Audio Decoder (rev 02)
+        Subsystem: Conexant Systems, Inc. Device ec80
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
+ParErr- Stepping- SERR- FastB2B- DisINTx-
+        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 0, Cache Line Size: 64 bytes
+        Interrupt: pin A routed to IRQ 17
+        Region 0: Memory at fe800000 (64-bit, non-prefetchable) [size=2M]
+        Capabilities: <access denied>
+        Kernel driver in use: cx23885
+        Kernel modules: cx23885
+        cx23885 driver version 0.0.2 loaded
+
+
+ The cx23885 module, is supported by the kernel but does not seem to
+work for this device. If i load the module without parameters, I get:
+
+ # dmesg | grep cx23885
+
+ ACPI: PCI Interrupt Link [LNEA] enabled at IRQ 17
+ cx23885 0000:03:00.0: PCI INT A -> Link[LNEA] -> GSI 17 (level, low) -> IRQ 17
+ cx23885[0]: Your board isn't known (yet) to the driver.
+ cx23885[0]: Try to pick one of the existing card configs via
+ cx23885[0]: card=<n> insmod option.  Updating to the latest
+ cx23885[0]: version might help as well.
+ cx23885[0]: Here is a list of valid choices for the card=<n> insmod option:
+ cx23885[0]:    card=0 -> UNKNOWN/GENERIC
+ cx23885[0]:    card=1 -> Hauppauge WinTV-HVR1800lp
+ cx23885[0]:    card=2 -> Hauppauge WinTV-HVR1800
+ cx23885[0]:    card=3 -> Hauppauge WinTV-HVR1250
+ cx23885[0]:    card=4 -> DViCO FusionHDTV5 Express
+ cx23885[0]:    card=5 -> Hauppauge WinTV-HVR1500Q
+ cx23885[0]:    card=6 -> Hauppauge WinTV-HVR1500
+ cx23885[0]:    card=7 -> Hauppauge WinTV-HVR1200
+ cx23885[0]:    card=8 -> Hauppauge WinTV-HVR1700
+ cx23885[0]:    card=9 -> Hauppauge WinTV-HVR1400
+ cx23885[0]:    card=10 -> DViCO FusionHDTV7 Dual Express
+ cx23885[0]:    card=11 -> DViCO FusionHDTV DVB-T Dual Express
+ cx23885[0]:    card=12 -> Leadtek Winfast PxDVR3200 H
+ cx23885[0]:    card=13 -> Compro VideoMate E650F
+ cx23885[0]:    card=14 -> TurboSight TBS 6920
+ cx23885[0]:    card=15 -> TeVii S470
+ cx23885[0]:    card=16 -> DVBWorld DVB-S2 2005
+ cx23885[0]:    card=17 -> NetUP Dual DVB-S2 CI
+ CORE cx23885[0]: subsystem: 14f1:ec80, board: UNKNOWN/GENERIC
+[card=0,autodetected]
+ cx23885_dev_checkrevision() Hardware revision = 0xb0
+ cx23885[0]/0: found at 0000:03:00.0, rev: 2, irq: 17, latency: 0,
+mmio: 0xfe800000
+ cx23885 0000:03:00.0: setting latency timer to 64
+ IRQ 17/cx23885[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+
+ Loading card=4, all the devices /dev/dvb/ are created (frontend,..). I get:
+
+ # dmesg | grep cx23885
+
+     cx23885 driver version 0.0.2 loaded
+     cx23885 0000:03:00.0: PCI INT A -> Link[LNEA] -> GSI 17 (level,
+low) -> IRQ 17
+     CORE cx23885[0]: subsystem: 14f1:ec80, board: DViCO FusionHDTV5
+Express [card=4,insmod option]
+     cx23885_dvb_register() allocating 1 frontend(s)
+     cx23885[0]: cx23885 based dvb card
+     DVB: registering new adapter (cx23885[0])
+     cx23885_dev_checkrevision() Hardware revision = 0xb0
+     cx23885[0]/0: found at 0000:03:00.0, rev: 2, irq: 17, latency: 0,
+mmio: 0xfe800000
+     cx23885 0000:03:00.0: setting latency timer to 64
+     IRQ 17/cx23885[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+
+ Going to Kaffeine or making an scan from the console, it says that is
+in mode ATSC and that is not compatable.
+ I'm living in Spain, and I have used this card as a PAL system.
+
+     initial transponder 546000000 0 3 9 1 0 0 0
+     initial transponder 578000000 0 2 9 3 0 0 0
+     initial transponder 625833000 0 2 9 3 0 0 0
+     initial transponder 705833000 0 3 9 1 0 0 0
+     initial transponder 649833000 0 3 9 1 0 0 0
+     initial transponder 673833000 0 3 9 1 0 0 0
+     WARNING: frontend type (ATSC) is not compatible with requested
+tuning type (OFDM)
+     WARNING: frontend type (ATSC) is not compatible with requested
+tuning type (OFDM)
+     WARNING: frontend type (ATSC) is not compatible with requested
+tuning type (OFDM)
+     WARNING: frontend type (ATSC) is not compatible with requested
+tuning type (OFDM)
+     WARNING: frontend type (ATSC) is not compatible with requested
+tuning type (OFDM)
+     WARNING: frontend type (ATSC) is not compatible with requested
+tuning type (OFDM)
+     ERROR: initial tuning failed
+
+ I've tried all options from the driver from the list. Only card=4,
+seems to be valid.
+ Anyone can help me?
+
+ Thanks and sorry for my english,
+ Oinatz Aspiazu
