@@ -1,70 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:39688 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751062AbZJTMVx (ORCPT
+Received: from lider.pardus.org.tr ([193.140.100.216]:44517 "EHLO
+	lider.pardus.org.tr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751185AbZJMGvI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Oct 2009 08:21:53 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 1/4] V4L2: Added New V4L2 CIDs VIDIOC_S/G_COLOR_SPACE_CONV
-Date: Tue, 20 Oct 2009 14:22:03 +0200
-Cc: hvaibhav@ti.com, linux-media@vger.kernel.org
-References: <hvaibhav@ti.com> <200910161426.52344.laurent.pinchart@ideasonboard.com> <200910162226.54573.hverkuil@xs4all.nl>
-In-Reply-To: <200910162226.54573.hverkuil@xs4all.nl>
+	Tue, 13 Oct 2009 02:51:08 -0400
+Message-ID: <4AD42453.20103@pardus.org.tr>
+Date: Tue, 13 Oct 2009 09:55:15 +0300
+From: =?UTF-8?B?T3phbiDDh2HEn2xheWFu?= <ozan@pardus.org.tr>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: linux-media@vger.kernel.org,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	linux-usb@vger.kernel.org
+Subject: uvcvideo causes ehci_hcd to halt
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <200910201422.03987.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 16 October 2009 22:26:53 Hans Verkuil wrote:
-> On Friday 16 October 2009 14:26:52 Laurent Pinchart wrote:
-> > Hi,
-> >
-> > On Friday 16 October 2009 12:19:20 hvaibhav@ti.com wrote:
-> > > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> > >
-> > >
-> > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > > ---
-> > >  drivers/media/video/v4l2-ioctl.c |   19 +++++++++++++++++++
-> > >  include/linux/videodev2.h        |   14 ++++++++++++++
-> > >  include/media/v4l2-ioctl.h       |    4 ++++
-> > >  3 files changed, 37 insertions(+), 0 deletions(-)
-> > >
-> > > diff --git a/drivers/media/video/v4l2-ioctl.c
-> > >  b/drivers/media/video/v4l2-ioctl.c index 30cc334..d3140e0 100644
-> > > --- a/drivers/media/video/v4l2-ioctl.c
-> > > +++ b/drivers/media/video/v4l2-ioctl.c
-> > > @@ -284,6 +284,8 @@ static const char *v4l2_ioctls[] = {
-> > >  	[_IOC_NR(VIDIOC_DBG_G_CHIP_IDENT)] = "VIDIOC_DBG_G_CHIP_IDENT",
-> > >  	[_IOC_NR(VIDIOC_S_HW_FREQ_SEEK)]   = "VIDIOC_S_HW_FREQ_SEEK",
-> > >  #endif
-> > > +	[_IOC_NR(VIDIOC_S_COLOR_SPACE_CONV)]   = "VIDIOC_S_COLOR_SPACE_CONV",
-> > > +	[_IOC_NR(VIDIOC_G_COLOR_SPACE_CONV)]   = "VIDIOC_G_COLOR_SPACE_CONV",
-> > >  };
-> > >  #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
-> >
-> > This should go through a control, not an ioctl. Strings control have
-> > recently been introduced, it should be fairly easy to create binary
-> > controls for such cases.
-> 
-> I'm not sure whether this should be seen as a control. That feels like an
-> abuse of the control framework to me.
-> 
-> Actually, shouldn't this be something for a subdev node? I.e. an omap2/3
-> specific ioctl?
+Hi,
 
-I would see it as a subdev control. Even though this is a complex control that 
-uses a matrix instead of a simple integer value, I believe this kind of use 
-cases qualify for the control API. They're really controls, i.e. values that 
-apply to a block in the video pipeline to tune its behavior.
- 
-> It might be good to refresh our memory of how this is supposed to be used.
+Some recent netbooks (Some MSI winds and LG X110's) equipped with an
+integrated webcam have non-working USB ports unless the uvcvideo module
+is blacklisted. I've found some bug reports in launchpad:
 
--- 
-Regards,
+https://bugs.launchpad.net/ubuntu/+source/linux/+bug/435352
 
-Laurent Pinchart
+I have an LG X110 on which I can reproduce the problem with 2.6.30.8.
+Here's the interesting part in dmesg:
+
+Oct 13 08:46:32 x110 kernel: [  261.048312] uvcvideo: Found UVC 1.00
+device BisonCam, NB Pro (5986:0203)
+Oct 13 08:46:32 x110 kernel: [  261.053592] input: BisonCam, NB Pro as
+/devices/pci0000:00/0000:00:1d.7/usb1/1-5/1-5:1.0/input/input10
+Oct 13 08:46:32 x110 kernel: [  261.053891] usbcore: registered new
+interface driver uvcvideo
+Oct 13 08:46:32 x110 kernel: [  261.054755] USB Video Class driver (v0.1.0)
+Oct 13 08:46:32 x110 kernel: [  261.091014] ehci_hcd 0000:00:1d.7: force
+halt; handhake f807c024 00004000 00000000 -> -110
+Oct 13 08:46:33 x110 kernel: [  261.742335] hub 1-0:1.0: cannot reset
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742360] hub 1-0:1.0: cannot reset
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742381] hub 1-0:1.0: cannot reset
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742400] hub 1-0:1.0: cannot reset
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742419] hub 1-0:1.0: cannot reset
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742433] hub 1-0:1.0: Cannot enable
+port 6.  Maybe the USB cable is bad?
+Oct 13 08:46:33 x110 kernel: [  261.742454] hub 1-0:1.0: cannot disable
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742478] hub 1-0:1.0: cannot reset
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742496] hub 1-0:1.0: cannot reset
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742514] hub 1-0:1.0: cannot reset
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742532] hub 1-0:1.0: cannot reset
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742550] hub 1-0:1.0: cannot reset
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742564] hub 1-0:1.0: Cannot enable
+port 6.  Maybe the USB cable is bad?
+Oct 13 08:46:33 x110 kernel: [  261.742582] hub 1-0:1.0: cannot disable
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742597] hub 1-0:1.0: cannot reset
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742609] hub 1-0:1.0: cannot reset
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742622] hub 1-0:1.0: cannot reset
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742634] hub 1-0:1.0: cannot reset
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742647] hub 1-0:1.0: cannot reset
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742657] hub 1-0:1.0: Cannot enable
+port 6.  Maybe the USB cable is bad?
+Oct 13 08:46:33 x110 kernel: [  261.742670] hub 1-0:1.0: cannot disable
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742684] hub 1-0:1.0: cannot reset
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742697] hub 1-0:1.0: cannot reset
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742709] hub 1-0:1.0: cannot reset
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742722] hub 1-0:1.0: cannot reset
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742734] hub 1-0:1.0: cannot reset
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742744] hub 1-0:1.0: Cannot enable
+port 6.  Maybe the USB cable is bad?
+Oct 13 08:46:33 x110 kernel: [  261.742758] hub 1-0:1.0: cannot disable
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742771] hub 1-0:1.0: cannot disable
+port 6 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742839] hub 1-0:1.0: hub_port_status
+failed (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742902] hub 1-0:1.0: cannot reset
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742923] hub 1-0:1.0: cannot reset
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742943] hub 1-0:1.0: cannot reset
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742963] hub 1-0:1.0: cannot reset
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742983] hub 1-0:1.0: cannot reset
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.742997] hub 1-0:1.0: Cannot enable
+port 2.  Maybe the USB cable is bad?
+Oct 13 08:46:33 x110 kernel: [  261.743018] hub 1-0:1.0: cannot disable
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.743041] hub 1-0:1.0: cannot reset
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.743059] hub 1-0:1.0: cannot reset
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.743076] hub 1-0:1.0: cannot reset
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.743092] hub 1-0:1.0: cannot reset
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.743108] hub 1-0:1.0: cannot reset
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.743121] hub 1-0:1.0: Cannot enable
+port 2.  Maybe the USB cable is bad?
+Oct 13 08:46:33 x110 kernel: [  261.743139] hub 1-0:1.0: cannot disable
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.743158] hub 1-0:1.0: cannot reset
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.743174] hub 1-0:1.0: cannot reset
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.743190] hub 1-0:1.0: cannot reset
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.743207] hub 1-0:1.0: cannot reset
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.743223] hub 1-0:1.0: cannot reset
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.743236] hub 1-0:1.0: Cannot enable
+port 2.  Maybe the USB cable is bad?
+Oct 13 08:46:33 x110 kernel: [  261.743253] hub 1-0:1.0: cannot disable
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.743294] hub 1-0:1.0: cannot reset
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.743311] hub 1-0:1.0: cannot reset
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.743327] hub 1-0:1.0: cannot reset
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.743343] hub 1-0:1.0: cannot reset
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.743359] hub 1-0:1.0: cannot reset
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.743372] hub 1-0:1.0: Cannot enable
+port 2.  Maybe the USB cable is bad?
+Oct 13 08:46:33 x110 kernel: [  261.743390] hub 1-0:1.0: cannot disable
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.743407] hub 1-0:1.0: cannot disable
+port 2 (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.748008] hub 1-0:1.0: hub_port_status
+failed (err = -108)
+Oct 13 08:46:33 x110 kernel: [  261.748032] hub 1-0:1.0: hub_port_status
+failed (err = -108)
+
+After that, plugging a USB device doesn't have any effect on the system,
+dmesg is intact.
