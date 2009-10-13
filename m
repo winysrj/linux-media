@@ -1,39 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f188.google.com ([209.85.210.188]:38499 "EHLO
-	mail-yx0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756763AbZJNPD0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Oct 2009 11:03:26 -0400
-Received: by yxe26 with SMTP id 26so5418095yxe.4
-        for <linux-media@vger.kernel.org>; Wed, 14 Oct 2009 08:02:49 -0700 (PDT)
-Message-ID: <4AD5E813.2070406@gmail.com>
-Date: Wed, 14 Oct 2009 12:02:43 -0300
-From: Guilherme Longo <grlongo.ireland@gmail.com>
-MIME-Version: 1.0
+Received: from comal.ext.ti.com ([198.47.26.152]:49873 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759413AbZJMPHe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Oct 2009 11:07:34 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9DF6sPm022672
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 13 Oct 2009 10:06:57 -0500
+From: hvaibhav@ti.com
 To: linux-media@vger.kernel.org
-Subject: libv4l does not work! 
-References: <4ACDF829.3010500@xfce.org>	<37219a840910080545v72165540v622efd43574cf085@mail.gmail.com>	<4ACDFED9.30606@xfce.org>	<829197380910080745j3015af10pbced2a7e04c7595b@mail.gmail.com>	<4ACE2D5B.4080603@xfce.org>	<829197380910080928t30fc0ecas7f9ab2a7d8437567@mail.gmail.com>	<4ACF03BA.4070505@xfce.org>	<829197380910090629h64ce22e5y64ce5ff5b5991802@mail.gmail.com>	<4ACF714A.2090209@xfce.org>	<829197380910090826r5358a8a2p7a13f2915b5adcd8@mail.gmail.com>	<4AD5D5F2.9080102@xfce.org> <20091014093038.423f3304@pedra.chehab.org> <4AD5EEA0.2010709@xfce.org>
-In-Reply-To: <4AD5EEA0.2010709@xfce.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH 1/6] Davinci VPFE Capture: Specify device pointer in videobuf_queue_dma_contig_init
+Date: Tue, 13 Oct 2009 20:36:52 +0530
+Message-Id: <1255446412-16642-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Do we need include any other header file than
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-libv4l2.h
-libv4lconvert.h
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ drivers/media/video/davinci/vpfe_capture.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-to get libv4l working?
+diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
+index ff43446..dc32de0 100644
+--- a/drivers/media/video/davinci/vpfe_capture.c
++++ b/drivers/media/video/davinci/vpfe_capture.c
+@@ -1547,7 +1547,7 @@ static int vpfe_reqbufs(struct file *file, void *priv,
+ 	vpfe_dev->memory = req_buf->memory;
+ 	videobuf_queue_dma_contig_init(&vpfe_dev->buffer_queue,
+ 				&vpfe_videobuf_qops,
+-				NULL,
++				vpfe_dev->pdev,
+ 				&vpfe_dev->irqlock,
+ 				req_buf->type,
+ 				vpfe_dev->fmt.fmt.pix.field,
+-- 
+1.6.2.4
 
-I read Hans saying that:
-
-Just replace open("dev/video0", ...) with v4l2_open("dev/video0", ...), 
-ioctl with v4l2_ioctl, etc. libv4l2 will then do conversion of any known 
-(webcam) pixelformats to bgr24 or yuv420.
-
-But I am getting undefined reference to 'v4l2_open' and 'v4l2_ioctl'.
-Can I get some help?
-
-regards!
-Guilherme Longo
