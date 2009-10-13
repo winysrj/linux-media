@@ -1,26 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx03.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.7])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n92GeGPn009945
-	for <video4linux-list@redhat.com>; Fri, 2 Oct 2009 12:40:16 -0400
-Received: from mail-bw0-f209.google.com (mail-bw0-f209.google.com
-	[209.85.218.209])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n92Ge3Vx010644
-	for <video4linux-list@redhat.com>; Fri, 2 Oct 2009 12:40:03 -0400
-Received: by bwz5 with SMTP id 5so1123819bwz.3
-	for <video4linux-list@redhat.com>; Fri, 02 Oct 2009 09:40:02 -0700 (PDT)
+Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.8])
+	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n9D9RZrE021654
+	for <video4linux-list@redhat.com>; Tue, 13 Oct 2009 05:27:35 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n9D9RKPE014773
+	for <video4linux-list@redhat.com>; Tue, 13 Oct 2009 05:27:20 -0400
+Date: Tue, 13 Oct 2009 11:27:26 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+In-Reply-To: <uab0d9hue.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0910131112090.5089@axis700.grange>
+References: <uab0d9hue.wl%morimoto.kuninori@renesas.com>
 MIME-Version: 1.0
-In-Reply-To: <4AC5FA6E.2000201@tmr.com>
-References: <4AC5FA6E.2000201@tmr.com>
-Date: Fri, 2 Oct 2009 12:40:02 -0400
-Message-ID: <829197380910020940o599f5678t60abb2b2da6f8d46@mail.gmail.com>
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Bill Davidsen <davidsen@tmr.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux M/L <video4linux-list@redhat.com>
-Subject: Re: Upgrading from FC4 to current Linux
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: V4L-Linux <video4linux-list@redhat.com>
+Subject: Re: [PATCH 3/4] soc-camera: sh_mobile_ceu: Add
+ V4L2_FIELD_INTERLACED_BT/TB support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,52 +29,205 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Oct 2, 2009 at 9:04 AM, Bill Davidsen <davidsen@tmr.com> wrote:
-> I am looking for a video solution which works on recent Linux, like
-> Fedora-11. Video used to be easy, plug in the capture device, install xawtv
-> via rpm, and use. However, recent versions of Fedora simply don't work, even
-> on the same hardware, due to /dev/dsp no longer being created and the
-> applications like xawtv or tvtime still looking for it.
->
-> The people who will be using this are looking for hardware which is still
-> made and sold new, and software which can be installed by a support person
-> who can plug in cards (PCI preferred) or USB devices, and install rpms. I
-> maintain the servers on Linux there, desktop support is unpaid (meaning I
-> want a solution they can use themselves).
->
-> We looked at vlc, which seems to want channel frequencies in kHz rather than
-> channels, mythtv, which requires a database their tech isn't able (or
-> willing) to support, etc.
->
-> It seems that video has gone from "easy as Windows" 3-4 years ago to
-> "insanely complex" according to to one person in that group who wanted an
-> upgrade on his laptop. There is some pressure from Windows users to mandate
-> Win7 as the desktop, which Linux users are rejecting.
->
-> The local cable is a mix of analog channels (for old TVs) and clear qam. The
-> capture feeds from the monitor system are either S-video or three wire
-> composite plus L-R audio. Any reasonable combination of cards (PCI best,
-> PCIe acceptable), USB device, and application which can monitor/record would
-> be fine, but the users are not going to type in kHz values, create channel
-> tables, etc. They want something as easy to use as five years ago.
->
-> Any thoughts?
->
-> --
-> Bill Davidsen <davidsen@tmr.com>
->  "We have more to fear from the bungling of the incompetent than from
-> the machinations of the wicked."  - from Slashdot
+On Wed, 30 Sep 2009, Kuninori Morimoto wrote:
 
-I took a few minutes and put together a response to your email,
-outlining the issues.  Feel free to check it out here:
+> 
+> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> ---
+>  drivers/media/video/sh_mobile_ceu_camera.c |   75 +++++++++++++++++++---------
+>  1 files changed, 52 insertions(+), 23 deletions(-)
+> 
+> diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+> index 65ac474..3e15114 100644
+> --- a/drivers/media/video/sh_mobile_ceu_camera.c
+> +++ b/drivers/media/video/sh_mobile_ceu_camera.c
+> @@ -104,7 +104,8 @@ struct sh_mobile_ceu_dev {
+>  
+>  	u32 cflcr;
+>  
+> -	unsigned int is_interlaced:1;
+> +	enum v4l2_field field;
+> +
+>  	unsigned int image_mode:1;
+>  	unsigned int is_16bit:1;
+>  };
+> @@ -208,6 +209,8 @@ static void sh_mobile_ceu_capture(struct sh_mobile_ceu_dev *pcdev)
+>  {
+>  	struct soc_camera_device *icd = pcdev->icd;
+>  	dma_addr_t phys_addr_top, phys_addr_bottom;
+> +	unsigned long top1, top2;
+> +	unsigned long bottom1, bottom2;
+>  
+>  	/* The hardware is _very_ picky about this sequence. Especially
+>  	 * the CEU_CETCR_MAGIC value. It seems like we need to acknowledge
+> @@ -222,11 +225,23 @@ static void sh_mobile_ceu_capture(struct sh_mobile_ceu_dev *pcdev)
+>  	if (!pcdev->active)
+>  		return;
+>  
+> +	if (V4L2_FIELD_INTERLACED_BT == pcdev->field) {
+> +		top1	= CDBYR;
+> +		top2	= CDBCR;
+> +		bottom1	= CDAYR;
+> +		bottom2	= CDACR;
+> +	} else {
+> +		top1	= CDAYR;
+> +		top2	= CDACR;
+> +		bottom1	= CDBYR;
+> +		bottom2	= CDBCR;
+> +	}
+> +
+>  	phys_addr_top = videobuf_to_dma_contig(pcdev->active);
+> -	ceu_write(pcdev, CDAYR, phys_addr_top);
+> -	if (pcdev->is_interlaced) {
+> +	ceu_write(pcdev, top1, phys_addr_top);
+> +	if (V4L2_FIELD_NONE != pcdev->field) {
+>  		phys_addr_bottom = phys_addr_top + icd->user_width;
+> -		ceu_write(pcdev, CDBYR, phys_addr_bottom);
+> +		ceu_write(pcdev, bottom1, phys_addr_bottom);
+>  	}
+>  
+>  	switch (icd->current_fmt->fourcc) {
+> @@ -236,11 +251,10 @@ static void sh_mobile_ceu_capture(struct sh_mobile_ceu_dev *pcdev)
+>  	case V4L2_PIX_FMT_NV61:
+>  		phys_addr_top += icd->user_width *
+>  			icd->user_height;
+> -		ceu_write(pcdev, CDACR, phys_addr_top);
+> -		if (pcdev->is_interlaced) {
+> -			phys_addr_bottom = phys_addr_top +
+> -				icd->user_width;
+> -			ceu_write(pcdev, CDBCR, phys_addr_bottom);
+> +		ceu_write(pcdev, top2, phys_addr_top);
+> +		if (V4L2_FIELD_NONE != pcdev->field) {
+> +			phys_addr_bottom = phys_addr_top + icd->user_width;
+> +			ceu_write(pcdev, bottom2, phys_addr_bottom);
+>  		}
+>  	}
+>  
+> @@ -519,7 +533,7 @@ static void sh_mobile_ceu_set_rect(struct soc_camera_device *icd,
+>  
+>  	height = out_height;
+>  	in_height = rect->height;
+> -	if (pcdev->is_interlaced) {
+> +	if (V4L2_FIELD_NONE != pcdev->field) {
+>  		height /= 2;
+>  		in_height /= 2;
+>  		top_offset /= 2;
+> @@ -646,7 +660,19 @@ static int sh_mobile_ceu_set_bus_param(struct soc_camera_device *icd,
+>  	ceu_write(pcdev, CAMCR, value);
+>  
+>  	ceu_write(pcdev, CAPCR, 0x00300000);
+> -	ceu_write(pcdev, CAIFR, pcdev->is_interlaced ? 0x101 : 0);
+> +
+> +	switch (pcdev->field) {
+> +	case V4L2_FIELD_INTERLACED_TB:
+> +		value = 0x101;
+> +		break;
+> +	case V4L2_FIELD_INTERLACED_BT:
+> +		value = 0x102;
+> +		break;
+> +	default:
+> +		value = 0;
+> +		break;
+> +	}
+> +	ceu_write(pcdev, CAIFR, value);
+>  
+>  	sh_mobile_ceu_set_rect(icd, icd->user_width, icd->user_height);
+>  	mdelay(1);
+> @@ -1265,7 +1291,8 @@ static int sh_mobile_ceu_set_crop(struct soc_camera_device *icd,
+>  	f.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+>  
+>  	ret = client_scale(icd, cam_rect, rect, ceu_rect, &f,
+> -			   pcdev->image_mode && !pcdev->is_interlaced);
+> +			   pcdev->image_mode &&
+> +			   V4L2_FIELD_NONE == pcdev->field);
+>  
+>  	dev_geo(dev, "6-9: %d\n", ret);
+>  
+> @@ -1323,18 +1350,20 @@ static int sh_mobile_ceu_set_fmt(struct soc_camera_device *icd,
+>  	unsigned int scale_cam_h, scale_cam_v;
+>  	u16 scale_v, scale_h;
+>  	int ret;
+> -	bool is_interlaced, image_mode;
+> +	bool image_mode;
+> +	enum v4l2_field field;
+>  
+>  	switch (pix->field) {
+> +	case V4L2_FIELD_INTERLACED_TB:
+> +	case V4L2_FIELD_INTERLACED_BT:
+> +	case V4L2_FIELD_NONE:
+> +		field = pix->field;
+> +		break;
+>  	case V4L2_FIELD_INTERLACED:
+> -		is_interlaced = true;
+> +		field = V4L2_FIELD_INTERLACED_TB;
+>  		break;
+> -	case V4L2_FIELD_ANY:
+>  	default:
+> -		pix->field = V4L2_FIELD_NONE;
+> -		/* fall-through */
+> -	case V4L2_FIELD_NONE:
+> -		is_interlaced = false;
+> +		field = pix->field = V4L2_FIELD_NONE;
+>  		break;
+>  	}
 
-http://www.kernellabs.com/blog/
+Even easier
 
-Devin
+	switch (pix->field) {
+	default:
+		pix->field = V4L2_FIELD_NONE;
+		/* fall-through */
+	case V4L2_FIELD_INTERLACED_TB:
+	case V4L2_FIELD_INTERLACED_BT:
+	case V4L2_FIELD_NONE:
+		field = pix->field;
+		break;
+	case V4L2_FIELD_INTERLACED:
+		field = V4L2_FIELD_INTERLACED_TB;
+		break;
+	}
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+
+>  
+> @@ -1402,7 +1431,8 @@ static int sh_mobile_ceu_set_fmt(struct soc_camera_device *icd,
+>  
+>  	/* 5. - 9. */
+>  	ret = client_scale(icd, cam_rect, &cam_subrect, &ceu_rect, &cam_f,
+> -			   image_mode && !is_interlaced);
+> +			   image_mode &&
+> +			   V4L2_FIELD_NONE == field);
+>  
+>  	dev_geo(dev, "5-9: client scale %d\n", ret);
+>  
+> @@ -1441,7 +1471,7 @@ static int sh_mobile_ceu_set_fmt(struct soc_camera_device *icd,
+>  	cam->camera_fmt = xlate->cam_fmt;
+>  	cam->ceu_rect = ceu_rect;
+>  
+> -	pcdev->is_interlaced = is_interlaced;
+> +	pcdev->field = field;
+>  	pcdev->image_mode = image_mode;
+>  
+>  	return 0;
+> @@ -1568,8 +1598,7 @@ static void sh_mobile_ceu_init_videobuf(struct videobuf_queue *q,
+>  				       &sh_mobile_ceu_videobuf_ops,
+>  				       icd->dev.parent, &pcdev->lock,
+>  				       V4L2_BUF_TYPE_VIDEO_CAPTURE,
+> -				       pcdev->is_interlaced ?
+> -				       V4L2_FIELD_INTERLACED : V4L2_FIELD_NONE,
+> +				       pcdev->field,
+>  				       sizeof(struct sh_mobile_ceu_buffer),
+>  				       icd);
+>  }
+> -- 
+> 1.6.0.4
+> 
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
 
 --
 video4linux-list mailing list
