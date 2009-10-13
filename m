@@ -1,50 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f208.google.com ([209.85.219.208]:36066 "EHLO
-	mail-ew0-f208.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754860AbZJNNbH (ORCPT
+Received: from mail-px0-f194.google.com ([209.85.216.194]:52468 "EHLO
+	mail-px0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753461AbZJMGS3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Oct 2009 09:31:07 -0400
-Received: by ewy4 with SMTP id 4so4414787ewy.37
-        for <linux-media@vger.kernel.org>; Wed, 14 Oct 2009 06:30:30 -0700 (PDT)
-Message-ID: <4AD5D271.8040400@gmail.com>
-Date: Wed, 14 Oct 2009 10:30:25 -0300
-From: Guilherme Longo <grlongo.ireland@gmail.com>
+	Tue, 13 Oct 2009 02:18:29 -0400
+Received: by pxi32 with SMTP id 32so8868464pxi.16
+        for <linux-media@vger.kernel.org>; Mon, 12 Oct 2009 23:17:52 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <8bc341120910122311p63db318ck7e9dc4c19696e2b9@mail.gmail.com>
+References: <8bc341120910122311p63db318ck7e9dc4c19696e2b9@mail.gmail.com>
+Date: Tue, 13 Oct 2009 13:17:52 +0700
+Message-ID: <8bc341120910122317v39d0266y29b5d911d0884cd@mail.gmail.com>
+Subject: 16apsk for cx24116
+From: Kristiadi Himawan <kristiadi.himawan@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: Re: Looking for libv4l documentation!
-References: <156a113e0910130955w428d536i7fc3ac8355293030@mail.gmail.com> <4AD5CFEF.40004@gmail.com>
-In-Reply-To: <4AD5CFEF.40004@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Just a little observation,
+Hi
 
-I am looking for this library because my webcan has a sn9c10x chipset 
-and I can´t find how sn9c10x pixelformat is captured.
+Does cx24116 support 16apsk for the modulation?
 
-There are a huge list of pixelformats in v4l2 spec but there is just a 
-reserved word for this format. They say it exist but I can´t find how it 
-is captured.
 
-If someone could tell me where to find such documentation, plz, it would 
-be better than converting the pixelformat.
-
-Great Regards
-Guilherme Longo
-
-Guilherme Longo escreveu:
-> Hi, I been searching for a tutorial or a documentation for libv4l to 
-> convert the pixelformat supported by my webcan but I can´t find any.
->
-> I found a article saying that I only should open my device using 
-> v4l_open(/dev/video0) instead of open(/dev/video0) and the lib should 
-> do the conversion, but it sound a bit odd for me since I believe it 
-> should need a more sofisticated threatment.
->
-> Does anyone could point to me any reference to such a documentation??
->
-> Great regards!
-> Guilherme Longo
->
+BR/KH
+Ogden Nash  - "The trouble with a kitten is that when it grows up,
+it's always a cat."
