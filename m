@@ -1,76 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-06.arcor-online.net ([151.189.21.46]:49472 "EHLO
-	mail-in-06.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752038AbZJPWBU (ORCPT
+Received: from mail-fx0-f227.google.com ([209.85.220.227]:54508 "EHLO
+	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754143AbZJMSdq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Oct 2009 18:01:20 -0400
-Subject: Re: tuner type
-From: hermann pitton <hermann-pitton@arcor.de>
-To: avalone@web.de
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <1309684974@web.de>
-References: <1309684974@web.de>
-Content-Type: text/plain; charset=UTF-8
-Date: Sat, 17 Oct 2009 00:00:30 +0200
-Message-Id: <1255730430.3319.31.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	Tue, 13 Oct 2009 14:33:46 -0400
+Received: by fxm27 with SMTP id 27so10544339fxm.17
+        for <linux-media@vger.kernel.org>; Tue, 13 Oct 2009 11:33:09 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4AD4C684.5070908@email.it>
+References: <829197380910121512y62a90cdcs49a0aa9606e8a588@mail.gmail.com>
+	 <4AD3AE34.6020305@iki.fi>
+	 <829197380910121604w6a9c5b22i26a892ff79aaf691@mail.gmail.com>
+	 <4AD4C684.5070908@email.it>
+Date: Tue, 13 Oct 2009 14:33:09 -0400
+Message-ID: <829197380910131133k37873fedl1d7038d9e175b089@mail.gmail.com>
+Subject: Re: em28xx mode switching
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: xwang1976@email.it
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dirk,
+On Tue, Oct 13, 2009 at 2:27 PM,  <xwang1976@email.it> wrote:
+> Hi Devin,
+> let me know if you need a tester for the EMPIRE_DUAL_TV.
+> In case I will install the latest v4l driver on my old notebook which has a
+> clean kubuntu 9.04 distro. On the newer notebook I'm using my new Dikom
+> DK-300 device which does not work with the latest v4l drivers and which I
+> can use using a patched version of the main v4l driver (thanks to Dainius
+> Ridzevicius). If you have some spare time for this device too...
+> Xwang
 
-Am Freitag, den 16.10.2009, 10:32 +0200 schrieb avalone@web.de:
-> Thanks alot, Herman.
-> What does ctx mean? I use opensuse 11.0.
+Hi xwang,
 
-you will find the CTX (Creatix) revision and version printed on the
-board and also on a sticker on the card, mostly at the modem or ISDN
-part. With that information and the second and third line printed on the
-tuner, I should know which card you have.
+Well, I'm hoping to setup a tree sometime this week (and test it with
+my devices).  Assuming it works, I will put out a call for testers
+such as yourself.
 
-Do you have it in an original blue MSI/Medion PCI slot.
-At least variants with the Cologne ISDN chip (Kölner Dom Pictogramm) are
-close to impossible to become stable in regular PCI slots.
-
-They all have the same PCI subsystem, I have six different cards alone,
-and we just detect the three different tuner types over the eeprom
-content, since all other inputs are the same.
-
-DVB-T support started with CTX917, 918 and 921 cardbus.
- 
-> So you say, it's not tuner=5 and not 63. So something in between?
-
-If you read on the second line of the tuner label FM1216ME/I H-3, I
-expect yours is from Singapore, others are from Indonesia etc ..., it is
-a tuner=38. MK3 MultiEurope with tda9887. Works from Portugal/Ireland to
-Vladivostok.
-
-> I tired 51, if I remember it right. It worked, but sometimes there were muting breakes in between, but maybe it's just my vcr. 
-> Can you name me a lightweight capture program? Maybe even something where you can adjust bitrate and container format? Best would be a command-line program.
-> Thanks alot.
-> ps. I'm from Germany, so maybe it's a german tuner?
-> 
-> best regards,
-> 
-> Dirk
-
-On 2.6.25 and 2.6.26 were several known bugs introduced. First the user
-could not set the detailed TV subnorm anymore, then the user was not
-able to force a tuner type anymore and also the eeprom detection of the
-tuner on the saa7134 was broken.
-
-Further, if tuner stuff was not build as modules, there was an oops and
-I'm still aware of more, but not related to your tuner.
-
-This is all fixed, but it would take me time, to check how far it made
-it into old distro kernels and stable vanilla revisions.
-
-Try with at least 2.6.27 or compile current v4l-dvb and remove/backup
-your old media modules folder. Currently you need at least a 2.6.26 to
-compile latest.
+Regarding your DK-300, if you send the diff between the main v4l
+driver and the patched version, we can take a look at what would be
+required to merge it upstream.
 
 Cheers,
-Hermann
 
+Devin
 
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
