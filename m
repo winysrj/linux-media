@@ -1,67 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.26]:43562 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758699AbZJHQV2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Oct 2009 12:21:28 -0400
-Received: by ey-out-2122.google.com with SMTP id 4so1288062eyf.19
-        for <linux-media@vger.kernel.org>; Thu, 08 Oct 2009 09:20:21 -0700 (PDT)
-Message-ID: <4ACE2D5B.4080603@xfce.org>
-Date: Thu, 08 Oct 2009 18:20:11 +0000
-From: Ali Abdallah <aliov@xfce.org>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Michael Krufky <mkrufky@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Hauppage WinTV-HVR-900H
-References: <4ACDF829.3010500@xfce.org>	 <37219a840910080545v72165540v622efd43574cf085@mail.gmail.com>	 <4ACDFED9.30606@xfce.org> <829197380910080745j3015af10pbced2a7e04c7595b@mail.gmail.com>
-In-Reply-To: <829197380910080745j3015af10pbced2a7e04c7595b@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mail1.radix.net ([207.192.128.31]:44896 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752010AbZJMXHL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Oct 2009 19:07:11 -0400
+Subject: Andy Walls very busy for next few weeks; noted backlog
+From: Andy Walls <awalls@radix.net>
+To: linux-media@vger.kernel.org, ivtv-users@ivtvdriver.org,
+	ivtv-devel@ivtvdriver.org
+Cc: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Tony Ross <tross.technical@starband.net>,
+	Hiemanshu Sharma <hiemanshu@fedoraproject.org>,
+	Simon Farnsworth <simon.farnsworth@onelan.com>,
+	Jean Delvare <khali@linux-fr.org>
+Content-Type: text/plain
+Date: Tue, 13 Oct 2009 19:05:58 -0400
+Message-Id: <1255475158.3141.27.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
-> On Thu, Oct 8, 2009 at 11:01 AM, Ali Abdallah <aliov@xfce.org> wrote:
->   
->>> If you're interested in helping the driver development, then take a
->>> look at the related mailing list posts.  Otherwise, you might be
->>> better off choosing a different product.
->>>
->>> On the other hand, I think there's been some recent progress on the
->>> PCTV hybrid pro -- Devin Heitmueller has been doing a lot of work on
->>> those products lately.  For more information, see
->>> http://kernellabs.com
->>>
->>>
->>>       
->> That's a good new, i can still get that card, probably i can help testing
->> the driver.
->>     
->
-> It depends on what your needs are and whether you already own the
-> device.  If you own an older version of the board already, it may or
-> may not work depending on which board you ended up with (if you send
-> the USB ID, I can tell you the status in terms of support).  If you
-> haven't bought it yet, then the currently shipping version of this
-> product is not supported (I'm actively working on the support).  Also,
-> even once I have added the support, it will only be for the digital
-> part of the card, with no plans at this time to do the analog support.
->   
+All,
 
-I have the card since alsmost 3 years, it never worked, but now i'm in 
-urgent need of getting an analog usb stick to work with Linux.
+I'll be somewhat busy on non-linux things for the next 2-3 weeks as I
+support my wife in getting her corporation off the ground.  (I'm already
+losing a quite a bit of sleep helping my wife with research and
+administrative help in the evenings.)
 
-The PCTV hybrid:
 
-Bus 001 Device 004: ID eb1a:2881 eMPIA Technology, Inc.
+I have the following linux v4l-dvb backlog noted for myself also listing
+the concerned or interested persons:
 
-Thanks for you support, but i need an analog usb stick, well hopefully 
-the wintv 900H will get supported soon.
-> Cheers,
->
-> Devin
->   
 
-Cheers,
-Ali.
+cx23888-ir-part2: Fix whitespace problems: Mauro
+
+cx25840: 6.5 MHz sound carrieir detetction for DK systems: Aleksandr
+
+ivtv: AverTV MCE M116 remote, rework fixes: Aleksander and Jean
+
+ivtv: I2C clock frequency module option: Aleksandr
+cx25840: additional reset of the microcontroller for FM: Aleksandr
+
+ivtv: Add support for AverTV Ultra 116 (M103): Hiemanshu
+
+ivtv: Troubleshoot PVR-500 crash: Tony
+
+cx18: Assist as needed in development of cx18-alsa module/code: Simon
+
+
+Hopefully I haven't missed anything.  I am especially grateful for the
+patches and comments.   I will try to get them worked in, if I can, in
+the next few weeks.  However, it may take until sometime in early
+November.
+
+One exception is that I plan on getting the cx23888-ir-part2 whitespace
+changes done this weekend.  How hard could that be....
+
+Regards,
+Andy
 
