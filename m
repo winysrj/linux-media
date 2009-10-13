@@ -1,42 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:58731 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752168AbZJWOsf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Oct 2009 10:48:35 -0400
-Received: by bwz27 with SMTP id 27so944519bwz.21
-        for <linux-media@vger.kernel.org>; Fri, 23 Oct 2009 07:48:39 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <56601b784c3fd9cde05d75ad15ca98a9.squirrel@squirrel-webmail.surftown.com>
-References: <56601b784c3fd9cde05d75ad15ca98a9.squirrel@squirrel-webmail.surftown.com>
-Date: Fri, 23 Oct 2009 10:48:38 -0400
-Message-ID: <829197380910230748s697f9efdtaebdf67ba3eed780@mail.gmail.com>
-Subject: Re: Pinnacle PCTV DVB-T support.
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: mark@spanberg.se
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56826 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750914AbZJMPNj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Oct 2009 11:13:39 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9DFD0ZN013319
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 13 Oct 2009 10:13:03 -0500
+From: hvaibhav@ti.com
+To: linux-media@vger.kernel.org
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>,
+	Brijesh Jadav <brijesh.j@ti.com>
+Subject: [PATCH 6/6] TVP514x:Switch to automode for s_input/querystd
+Date: Tue, 13 Oct 2009 20:42:59 +0530
+Message-Id: <1255446779-16969-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 23, 2009 at 10:12 AM,  <mark@spanberg.se> wrote:
-> Hi!
->
-> I found my old Pinnacle PCTV DVB-T card and thought I might put it to use.
-> Since I have used it on linux before (about two years ago) with the em28xx
-> driver I didn't think it would be any problems.
->
-> However I can't seem to get it to work.
-<snip>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Yes, that particular board is known to not work.  I never got around
-to adding the support for the mainline driver.  I started to work on
-it with a user earlier in the year, but I couldn't get it to work
-immediately and since I didn't have the hardware I couldn't really
-debug it further without a level of effort that wasn't worth my time.
+Driver should switch to AutoSwitch mode on S_INPUT and QUERYSTD ioctls.
+It has been observed that, if user configure the standard explicitely
+then driver preserves the old settings.
 
-Devin
+Reviewed by: Vaibhav Hiremath <hvaibhav@ti.com>
+Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+---
+ drivers/media/video/tvp514x.c |   17 +++++++++++++++++
+ 1 files changed, 17 insertions(+), 0 deletions(-)
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+diff --git a/drivers/media/video/tvp514x.c b/drivers/media/video/tvp514x.c
+index 2443726..0b0412d 100644
+--- a/drivers/media/video/tvp514x.c
++++ b/drivers/media/video/tvp514x.c
+@@ -523,10 +523,18 @@ static int tvp514x_querystd(struct v4l2_subdev *sd, v4l2_std_id *std_id)
+ 	enum tvp514x_std current_std;
+ 	enum tvp514x_input input_sel;
+ 	u8 sync_lock_status, lock_mask;
++	int err;
+
+ 	if (std_id == NULL)
+ 		return -EINVAL;
+
++	err = tvp514x_write_reg(sd, REG_VIDEO_STD,
++			VIDEO_STD_AUTO_SWITCH_BIT);
++	if (err < 0)
++		return err;
++
++	msleep(LOCK_RETRY_DELAY);
++
+ 	/* get the current standard */
+ 	current_std = tvp514x_get_current_std(sd);
+ 	if (current_std == STD_INVALID)
+@@ -643,6 +651,15 @@ static int tvp514x_s_routing(struct v4l2_subdev *sd,
+ 		/* Index out of bound */
+ 		return -EINVAL;
+
++	/* Since this api is goint to detect the input, it is required
++	   to set the standard in the auto switch mode */
++	err = tvp514x_write_reg(sd, REG_VIDEO_STD,
++			VIDEO_STD_AUTO_SWITCH_BIT);
++	if (err < 0)
++		return err;
++
++	msleep(LOCK_RETRY_DELAY);
++
+ 	input_sel = input;
+ 	output_sel = output;
+
+--
+1.6.2.4
+
