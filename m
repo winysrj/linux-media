@@ -1,76 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:55595 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753559AbZJ3LJk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Oct 2009 07:09:40 -0400
-Received: from list by lo.gmane.org with local (Exim 4.50)
-	id 1N3pMW-0000Sm-0H
-	for linux-media@vger.kernel.org; Fri, 30 Oct 2009 12:09:44 +0100
-Received: from 92.103.125.220 ([92.103.125.220])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 30 Oct 2009 12:09:43 +0100
-Received: from ticapix by 92.103.125.220 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 30 Oct 2009 12:09:43 +0100
-To: linux-media@vger.kernel.org
-From: "pierre.gronlier" <ticapix@gmail.com>
-Subject: Re: Determining MAC address or Serial Number
-Date: Fri, 30 Oct 2009 12:09:16 +0100
-Message-ID: <hcehh0$u72$1@ger.gmane.org>
-References: <4AEAB4A6.6050502@tripleplay-services.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Received: from smtp106.rog.mail.re2.yahoo.com ([68.142.225.204]:31896 "HELO
+	smtp106.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751990AbZJMEwu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Oct 2009 00:52:50 -0400
+Message-ID: <4AD40778.6080009@rogers.com>
+Date: Tue, 13 Oct 2009 00:52:08 -0400
+From: CityK <cityk@rogers.com>
+MIME-Version: 1.0
+To: Linux-media <linux-media@vger.kernel.org>,
+	Hlangos <henrik-linuxtv@prak.org>
+Subject: Re: [linux-dvb] Linuxtv wiki needs email notification/more email-ready
+ users
+References: <20090918080941.GA15590@www.viadmin.org> <4AB47066.105@rogers.com>
+In-Reply-To: <4AB47066.105@rogers.com>
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <4AEAB4A6.6050502@tripleplay-services.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Lou Otway wrote, On 10/30/2009 10:40 AM:
-> Hi,
-> 
-> I'm trying to find a way to be able to uniquely identify each device in
-> a PC and was hoping to use either serial or MAC for this purpose.
-> 
-> I've looked at the documentation but can't find a generic way to read
-> back serial numbers or MAC addresses from V4L devices? Does such a
-> function exist?
+Hi Henrik,
 
+CityK wrote:
+> H. Langos wrote:
+>   
+>> ...I'd like to keep an eye on changes. Not because of fear of
+>> vandalisim but because changes to the templates/date potentially have 
+>> effects on a lot of pages.
+>>
+>> There are some people who day by day put a lot of effort and work into the 
+>> wiki and I'd like to thank them all for their continuing effort. I myself 
+>> have only occasionaly time to update information there and I miss a lot
+>> of changes, even to the pages I watch, because the "watchlist" and "recent
+>> cahnges" reaches only seven days back. Manually going through the pages on 
+>> my watchlist (currently 57) is not what I'd call good use of resources.
+>>
+>> It would be great if it was possible to get (immediate/daily/weekly?) change
+>> notifications by email in order not to lose track of what is happening to
+>> the pages that I care about. (I bet this is standard functionality of
+>> mediawiki or at least one of the more common extentions.)
+>>     
 
-Hi Lou,
+In searching for something else, I came across this recent thread on the
+mediawiki m/l:
+http://lists.wikimedia.org/pipermail/mediawiki-l/2009-October/032214.html
 
-I'm using the mac address to identify each device and to do so I created
-this script which use dvbnet to create network interface from the dvb card.
-
-a=<your adapter>
-n=<your net device>
-for ex. /dev/dvb/adapter1/net0 => a=1, n=0
-
-
-# get mac address
-iface=$(sudo /usr/bin/dvbnet -a $a -n $n -p 0 | awk '/device/ {print $3}')
-sleep 1
-mac_address=$(/sbin/ifconfig $iface | awk '/HWaddr/ {print $5}' | tr -d
-':' | tr A-Z a-z)
-num=$(sudo /usr/bin/dvbnet -a $a -n $n -l | grep 'Found device ' | awk
-'{print $3}' | tr -d ':')
-sleep 1
-sudo /usr/bin/dvbnet -a $a -n $n -d $num 1> /dev/null
-
-
-
-AFAIK, mac address are known only from the kernel and are not directly
-exposed to the userland. I you manage to do something "cleaner", let me
-know :)
-
-
-Regards
-
-pierre gr.
-
-> 
-> Thanks,
-> 
-> Lou
-
-
+There are a few suggestions in it (I just skimmed through). Perhaps one
+of them would be good to implement.
