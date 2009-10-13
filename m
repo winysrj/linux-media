@@ -1,48 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:53158 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932664AbZJ3Qzh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Oct 2009 12:55:37 -0400
-Received: by bwz27 with SMTP id 27so3791505bwz.21
-        for <linux-media@vger.kernel.org>; Fri, 30 Oct 2009 09:55:41 -0700 (PDT)
-Subject: Tunning information of Granada, Spain
-From: David =?ISO-8859-1?Q?Fern=E1ndez?= <dgvalde@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary="=-kTzgKsJ+Ddo2YeFCDMxJ"
-Date: Fri, 30 Oct 2009 17:55:39 +0100
-Message-ID: <1256921739.20651.7.camel@ironvaio>
-Mime-Version: 1.0
+Received: from mail.gmx.net ([213.165.64.20]:40877 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1756793AbZJMIYZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Oct 2009 04:24:25 -0400
+Date: Tue, 13 Oct 2009 10:23:44 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 5/5] soc-camera: tw9910: Add revision control on
+ tw9910_set_hsync
+In-Reply-To: <ubpkbkfm9.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0910131017370.5089@axis700.grange>
+References: <ubpkbkfm9.wl%morimoto.kuninori@renesas.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, 13 Oct 2009, Kuninori Morimoto wrote:
 
---=-kTzgKsJ+Ddo2YeFCDMxJ
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+> 10 - 3 bit hsync control are same as Rev0/Rev1.
+> But only rev1 can control more 3 bit for hsync.
+> This patch modify this problem
+> 
+> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> ---
+>  drivers/media/video/tw9910.c |   26 +++++++++++++++++---------
+>  1 files changed, 17 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/media/video/tw9910.c b/drivers/media/video/tw9910.c
+> index 59158bb..a688c11 100644
+> --- a/drivers/media/video/tw9910.c
+> +++ b/drivers/media/video/tw9910.c
+> @@ -349,6 +349,7 @@ static int tw9910_set_scale(struct i2c_client *client,
+>  static int tw9910_set_hsync(struct i2c_client *client,
+>  			    const u16 start, const u16 end)
+>  {
+> +	struct tw9910_priv *priv = to_tw9910(client);
+>  	int ret;
+>  
+>  	/* bit 10 - 3 */
+> @@ -363,15 +364,22 @@ static int tw9910_set_hsync(struct i2c_client *client,
+>  	if (ret < 0)
+>  		return ret;
+>  
+> -	/* bit 2 - 0 */
+> -	ret = i2c_smbus_read_byte_data(client, HSLOWCTL);
+> -	if (ret < 0)
+> -		return ret;
+> +	/* FIXME
 
-The attached file "es-Granada" is the tunning information of my city:
-Granada (Spain)
-(Location: 37,183334 N - 3,783333 W)
+Why FIXME? If this is a real distinction between hardware revisions, 
+there's nothing  to fix about that?
 
-Could someone please add this information to the dvb-apps repository?
+> +	 *
+> +	 * So far only revisions 0 and 1 have been seen
+> +	 */
+> +	if (1 == priv->rev) {
+>  
+> -	ret = i2c_smbus_write_byte_data(client, HSLOWCTL,
+> -					(ret   & 0x88)        |
+> -					(start & 0x0007) << 4 |
+> -					(end   & 0x0007));
+> +		/* bit 2 - 0 */
+> +		ret = i2c_smbus_read_byte_data(client, HSLOWCTL);
+> +		if (ret < 0)
+> +			return ret;
+> +
+> +		ret = i2c_smbus_write_byte_data(client, HSLOWCTL,
+> +						(ret   & 0x88)        |
+> +						(start & 0x0007) << 4 |
+> +						(end   & 0x0007));
+> +	}
 
-Thanks.
+This looks like a perfect case for your mask_set():
 
+		ret = tw9910_mask_set(client, HSLOWCTL, 0x77,
+				      (start & 7) << 4 | (end & 7));
 
+While at it, could you also fix that typo copied from the datasheet: 
+s/HSGEGIN/HSBEGIN/g?
 
---=-kTzgKsJ+Ddo2YeFCDMxJ
-Content-Disposition: attachment; filename="es-Granada"
-Content-Type: text/plain; name="es-Granada"; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+>  
+>  	return ret;
+>  }
+> -- 
+> 1.6.0.4
 
-[dvb-t/es-Granada]
-T 762000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
-T 770000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
-T 834000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
-T 842000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
-T 850000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
-T 858000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
-
---=-kTzgKsJ+Ddo2YeFCDMxJ--
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
