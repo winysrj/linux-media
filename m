@@ -1,226 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f218.google.com ([209.85.220.218]:58555 "EHLO
-	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752180AbZJVU3Y (ORCPT
+Received: from mail-ew0-f208.google.com ([209.85.219.208]:36066 "EHLO
+	mail-ew0-f208.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754860AbZJNNbH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Oct 2009 16:29:24 -0400
-Received: by fxm18 with SMTP id 18so9642599fxm.37
-        for <linux-media@vger.kernel.org>; Thu, 22 Oct 2009 13:29:28 -0700 (PDT)
+	Wed, 14 Oct 2009 09:31:07 -0400
+Received: by ewy4 with SMTP id 4so4414787ewy.37
+        for <linux-media@vger.kernel.org>; Wed, 14 Oct 2009 06:30:30 -0700 (PDT)
+Message-ID: <4AD5D271.8040400@gmail.com>
+Date: Wed, 14 Oct 2009 10:30:25 -0300
+From: Guilherme Longo <grlongo.ireland@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20091023051025.597c05f4@caramujo.chehab.org>
-References: <20091022211330.6e84c6e7@hyperion.delvare>
-	 <20091023051025.597c05f4@caramujo.chehab.org>
-Date: Fri, 23 Oct 2009 00:29:27 +0400
-Message-ID: <1a297b360910221329o4b832f4ewaee08872120bfea0@mail.gmail.com>
-Subject: Re: Details about DVB frontend API
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Jean Delvare <khali@linux-fr.org>,
-	LMML <linux-media@vger.kernel.org>
-Content-Type: multipart/mixed; boundary=00151747b690b2eb9304768bf39c
+To: linux-media@vger.kernel.org
+Subject: Re: Looking for libv4l documentation!
+References: <156a113e0910130955w428d536i7fc3ac8355293030@mail.gmail.com> <4AD5CFEF.40004@gmail.com>
+In-Reply-To: <4AD5CFEF.40004@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---00151747b690b2eb9304768bf39c
-Content-Type: text/plain; charset=ISO-8859-1
+Just a little observation,
 
-On Fri, Oct 23, 2009 at 12:10 AM, Mauro Carvalho Chehab
-<mchehab@infradead.org> wrote:
-> Em Thu, 22 Oct 2009 21:13:30 +0200
-> Jean Delvare <khali@linux-fr.org> escreveu:
+I am looking for this library because my webcan has a sn9c10x chipset 
+and I can´t find how sn9c10x pixelformat is captured.
+
+There are a huge list of pixelformats in v4l2 spec but there is just a 
+reserved word for this format. They say it exist but I can´t find how it 
+is captured.
+
+If someone could tell me where to find such documentation, plz, it would 
+be better than converting the pixelformat.
+
+Great Regards
+Guilherme Longo
+
+Guilherme Longo escreveu:
+> Hi, I been searching for a tutorial or a documentation for libv4l to 
+> convert the pixelformat supported by my webcan but I can´t find any.
 >
->> Hi folks,
->>
->> I am looking for details regarding the DVB frontend API. I've read
->> linux-dvb-api-1.0.0.pdf, it roughly explains what the FE_READ_BER,
->> FE_READ_SNR, FE_READ_SIGNAL_STRENGTH and FE_READ_UNCORRECTED_BLOCKS
->> commands return, however it does not give any information about how the
->> returned values should be interpreted (or, seen from the other end, how
->> the frontend kernel drivers should encode these values.) If there
->> documentation available that would explain this?
->>
->> For example, the signal strength. All I know so far is that this is a
->> 16-bit value. But then what? Do greater values represent stronger
->> signal or weaker signal? Are 0x0000 and 0xffff special values? Is the
->> returned value meaningful even when FE_HAS_SIGNAL is 0? When
->> FE_HAS_LOCK is 0? Is the scale linear, or do some values have
->> well-defined meanings, or is it arbitrary and each driver can have its
->> own scale? What are the typical use cases by user-space application for
->> this value?
->>
->> That's the kind of details I'd like to know, not only for the signal
->> strength, but also for the SNR, BER and UB. Without this information,
->> it seems a little difficult to have consistent frontend drivers.
+> I found a article saying that I only should open my device using 
+> v4l_open(/dev/video0) instead of open(/dev/video0) and the lib should 
+> do the conversion, but it sound a bit odd for me since I believe it 
+> should need a more sofisticated threatment.
 >
-> We all want to know about that ;)
+> Does anyone could point to me any reference to such a documentation??
 >
-> Seriously, the lack of a description of the meaning of the ranges for those
-> read values were already widely discussed at LMML and at the legacy dvb ML.
-> We should return this discussion again and decide what would be the better
-> way to describe those values.
+> Great regards!
+> Guilherme Longo
 >
-> My suggestion is that someone summarize the proposals we had and give some time
-> for people vote. After that, we just commit the most voted one, and commit the
-> patches for it. A pending question that should also be discussed is what we will
-> do with those dvb devices where we simply don't know what scale it uses. There
-> are several of them.
-
-
-Sometime back, (some time in April) i proposed a patch which addressed
-the issue to scale "even those devices which have a weird scale or
-none". Though based on an older tree of mine, here is the patch again.
-If it looks good enough, i can port the patch to accomodate other
-devices as well.
-
-
-Regards,
-Manu
-
---00151747b690b2eb9304768bf39c
-Content-Type: text/x-patch; charset=US-ASCII; name="statistics.patch"
-Content-Disposition: attachment; filename="statistics.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_g13yvsij0
-
-ZGlmZiAtciBiNTUwNWE5ODVmMjQgbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLWNvcmUvZHZi
-X2Zyb250ZW5kLmMKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLWNvcmUvZHZiX2Zy
-b250ZW5kLmMJU2F0IEZlYiAyMSAwMToxMjowOSAyMDA5ICswNDAwCisrKyBiL2xpbnV4L2RyaXZl
-cnMvbWVkaWEvZHZiL2R2Yi1jb3JlL2R2Yl9mcm9udGVuZC5jCVR1ZSBBcHIgMDcgMTg6MTk6MjIg
-MjAwOSArMDQwMApAQCAtMTAwNCw4ICsxMDA0LDggQEAKIAkgKi8KIAkvKiBMZWdhY3kJKi8KIAlp
-ZiAoZmUtPmxlZ2FjeSkgewotCQlpZiAoKGZlcHJpdi0+c3RhdGUgJiBGRVNUQVRFX0xPU1RMT0NL
-KSAmJiAKLQkJICAgIChmZS0+b3BzLmluZm8uY2FwcyAmIEZFX0NBTl9SRUNPVkVSKSAmJiAKKwkJ
-aWYgKChmZXByaXYtPnN0YXRlICYgRkVTVEFURV9MT1NUTE9DSykgJiYKKwkJICAgIChmZS0+b3Bz
-LmluZm8uY2FwcyAmIEZFX0NBTl9SRUNPVkVSKSAmJgogCQkgICAgKGZlcHJpdi0+bWF4X2RyaWZ0
-ID09IDApKSB7CiAKIAkJCWR2Yl9mcm9udGVuZF9zd3ppZ3phZ191cGRhdGVfZGVsYXkoZmVwcml2
-LCBzICYgRkVfSEFTX0xPQ0spOwpAQCAtMTQ4Nyw2ICsxNDg3LDEzIEBACiAJCWJyZWFrOwogCX0K
-IAorCWNhc2UgRkVfU1RBVElTVElDU19DQVBTOiB7CisJCXN0cnVjdCBmZWNhcF9zdGF0aXN0aWNz
-ICpzdGF0c19jYXAgPSBwYXJnOworCQltZW1jcHkoc3RhdHNfY2FwLCAmZmUtPm9wcy5zdGF0aXN0
-aWNzX2NhcHMsIHNpemVvZiAoc3RydWN0IGZlY2FwX3N0YXRpc3RpY3MpKTsKKwkJZXJyID0gMDsK
-KwkJYnJlYWs7CisJfQorCiAJY2FzZSBGRV9SRUFEX1NUQVRVUzogewogCQlmZV9zdGF0dXNfdCog
-c3RhdHVzID0gcGFyZzsKIApAQCAtMTUwMiw2ICsxNTA5LDE3IEBACiAJCQllcnIgPSBmZS0+b3Bz
-LnJlYWRfc3RhdHVzKGZlLCBzdGF0dXMpOwogCQlicmVhazsKIAl9CisKKwljYXNlIEZFX1NJR05B
-TF9MRVZFTDoKKwkJaWYgKGZlLT5vcHMucmVhZF9sZXZlbCkKKwkJCWVyciA9IGZlLT5vcHMucmVh
-ZF9sZXZlbChmZSwgKF9fdTMyICopIHBhcmcpOworCQlicmVhazsKKworCWNhc2UgRkVfU0lHTkFM
-X1NUQVRTOgorCQlpZiAoZmUtPm9wcy5yZWFkX3N0YXRzKQorCQkJZXJyID0gZmUtPm9wcy5yZWFk
-X3N0YXRzKGZlLCAoc3RydWN0IGZlc2lnbmFsX3N0YXQgKikgcGFyZyk7CisJCWJyZWFrOworCiAJ
-Y2FzZSBGRV9SRUFEX0JFUjoKIAkJaWYgKGZlLT5vcHMucmVhZF9iZXIpCiAJCQllcnIgPSBmZS0+
-b3BzLnJlYWRfYmVyKGZlLCAoX191MzIqKSBwYXJnKTsKQEAgLTE2NDUsNyArMTY2Myw3IEBACiAJ
-CQlicmVhazsKIAkJfQogCi0JCW1lbWNweSgmZmVwcml2LT5wYXJhbWV0ZXJzLCBwYXJnLCBzaXpl
-b2YgKHN0cnVjdCBkdmJfZnJvbnRlbmRfcGFyYW1ldGVycykpOwkJCisJCW1lbWNweSgmZmVwcml2
-LT5wYXJhbWV0ZXJzLCBwYXJnLCBzaXplb2YgKHN0cnVjdCBkdmJfZnJvbnRlbmRfcGFyYW1ldGVy
-cykpOwogCQltZW1zZXQoJmZldHVuZXNldHRpbmdzLCAwLCBzaXplb2Yoc3RydWN0IGR2Yl9mcm9u
-dGVuZF90dW5lX3NldHRpbmdzKSk7CiAJCW1lbWNweSgmZmV0dW5lc2V0dGluZ3MucGFyYW1ldGVy
-cywgcGFyZywgc2l6ZW9mIChzdHJ1Y3QgZHZiX2Zyb250ZW5kX3BhcmFtZXRlcnMpKTsKIApkaWZm
-IC1yIGI1NTA1YTk4NWYyNCBsaW51eC9kcml2ZXJzL21lZGlhL2R2Yi9kdmItY29yZS9kdmJfZnJv
-bnRlbmQuaAotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9kdmItY29yZS9kdmJfZnJvbnRl
-bmQuaAlTYXQgRmViIDIxIDAxOjEyOjA5IDIwMDkgKzA0MDAKKysrIGIvbGludXgvZHJpdmVycy9t
-ZWRpYS9kdmIvZHZiLWNvcmUvZHZiX2Zyb250ZW5kLmgJVHVlIEFwciAwNyAxODoxOToyMiAyMDA5
-ICswNDAwCkBAIC03Miw3ICs3Miw3IEBACiAJdW5zaWduZWQgaW50IGF1ZG1vZGU7CiAJdTY0IHN0
-ZDsKIH07Ci0JCisKIGVudW0gZHZiZmVfbW9kY29kIHsKIAlEVkJGRV9NT0RDT0RfRFVNTVlfUExG
-UkFNRQk9IDAsCiAJRFZCRkVfTU9EQ09EX1FQU0tfMV80LApAQCAtMjUwLDYgKzI1MCw3IEBACiBz
-dHJ1Y3QgZHZiX2Zyb250ZW5kX29wcyB7CiAKIAlzdHJ1Y3QgZHZiX2Zyb250ZW5kX2luZm8gaW5m
-bzsKKwlzdHJ1Y3QgZmVjYXBfc3RhdGlzdGljcyBzdGF0aXN0aWNzX2NhcHM7CiAKIAl2b2lkICgq
-cmVsZWFzZSkoc3RydWN0IGR2Yl9mcm9udGVuZCogZmUpOwogCXZvaWQgKCpyZWxlYXNlX3NlYyko
-c3RydWN0IGR2Yl9mcm9udGVuZCogZmUpOwpAQCAtMzA0LDYgKzMwNSw5IEBACiAJZW51bSBkdmJm
-ZV9zZWFyY2ggKCpzZWFyY2gpKHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlLCBzdHJ1Y3QgZHZiZmVf
-cGFyYW1zICpmZV9wYXJhbXMpOwogCWludCAoKnRyYWNrKShzdHJ1Y3QgZHZiX2Zyb250ZW5kICpm
-ZSwgc3RydWN0IGR2YmZlX3BhcmFtcyAqZmVfcGFyYW1zLCBpbnQgKmRlbGF5KTsKIAorCWludCAo
-KnJlYWRfbGV2ZWwpKHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlLCB1MzIgKnNpZ25hbCk7IC8qIFJh
-dyBBR0MgbGV2ZWwgKi8KKwlpbnQgKCpyZWFkX3N0YXRzKShzdHJ1Y3QgZHZiX2Zyb250ZW5kICpm
-ZSwgc3RydWN0IGZlc2lnbmFsX3N0YXQgKnN0YXQpOworCiAJc3RydWN0IGR2Yl90dW5lcl9vcHMg
-dHVuZXJfb3BzOwogCXN0cnVjdCBhbmFsb2dfZGVtb2Rfb3BzIGFuYWxvZ19vcHM7CiB9OwpkaWZm
-IC1yIGI1NTA1YTk4NWYyNCBsaW51eC9kcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvc3RiMDg5
-OV9kcnYuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvc3RiMDg5OV9k
-cnYuYwlTYXQgRmViIDIxIDAxOjEyOjA5IDIwMDkgKzA0MDAKKysrIGIvbGludXgvZHJpdmVycy9t
-ZWRpYS9kdmIvZnJvbnRlbmRzL3N0YjA4OTlfZHJ2LmMJVHVlIEFwciAwNyAxODoxOToyMiAyMDA5
-ICswNDAwCkBAIC0xMjI1LDYgKzEyMjUsMjkgQEAKIAlyZXR1cm4gMDsKIH0KIAorc3RhdGljIGlu
-dCBzdGIwODk5X3JlYWRfbGV2ZWwoc3RydWN0IGR2Yl9mcm9udGVuZCAqZmUsIHUzMiAqc2lnbmFs
-KQoreworCS8qIFRPRE8hICovCisJcmV0dXJuIDA7Cit9CisKK3N0YXRpYyBpbnQgc3RiMDg5OV9y
-ZWFkX3N0YXRzKHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlLCBzdHJ1Y3QgZmVzaWduYWxfc3RhdCAq
-c3RhdHMpCit7CisJdTE2IHNuciwgc3RyZW5ndGg7CisJdTMyIGJlcjsKKworCXN0YjA4OTlfcmVh
-ZF9zbnIoZmUsICZzbnIpOworCXN0YjA4OTlfcmVhZF9zaWduYWxfc3RyZW5ndGgoZmUsICZzdHJl
-bmd0aCk7CisJc3RiMDg5OV9yZWFkX2JlcihmZSwgJmJlcik7CisKKwlzdGF0cy0+cXVhbGl0eSA9
-IHNucjsKKwlzdGF0cy0+c3RyZW5ndGggPSBzdHJlbmd0aDsKKwlzdGF0cy0+ZXJyb3IgPSBiZXI7
-CisJc3RhdHMtPnVuYyA9IDA7CisKKwlyZXR1cm4gMDsKK30KKwogc3RhdGljIGludCBzdGIwODk5
-X3NldF92b2x0YWdlKHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlLCBmZV9zZWNfdm9sdGFnZV90IHZv
-bHRhZ2UpCiB7CiAJc3RydWN0IHN0YjA4OTlfc3RhdGUgKnN0YXRlID0gZmUtPmRlbW9kdWxhdG9y
-X3ByaXY7CkBAIC0yMDM5LDYgKzIwNjIsMjYgQEAKIAkJLnR5cGUJCQk9IEZFX1FQU0ssIC8qIHdp
-dGggb2xkIEFQSSAqLwogCX0sCiAKKwkuc3RhdGlzdGljc19jYXBzID0geworCQkucXVhbGl0eSA9
-IHsKKwkJCS5wYXJhbXMgICAgICAgICA9IEZFX1FVQUxJVFlfQ05SLAorCQkJLnNjYWxlICAgICAg
-ICAgID0gRkVfU0NBTEVfZEIsCisJCQkuZXhwb25lbnQgICAgICAgPSAtNCwKKwkJfSwKKworCQku
-c3RyZW5ndGggPSB7CisJCQkucGFyYW1zICAgICAgICAgPSBGRV9TQ0FMRV9kQiwKKwkJCS5leHBv
-bmVudCAgICAgICA9IC00LAorCQl9LAorCisJCS5lcnJvciA9IHsKKwkJCS5wYXJhbXMgICAgICAg
-ICA9IEZFX0VSUk9SX0JFUiwKKwkJCS5leHBvbmVudCAgICAgICA9IDcsCisJCX0sCisKKwkJLnVu
-YyA9IEZFX1VOQ19VTktOT1dOLAorCX0sCisKIAkucmVsZWFzZQkJCT0gc3RiMDg5OV9yZWxlYXNl
-LAogCS5pbml0CQkJCT0gc3RiMDg5OV9pbml0LAogCS5zbGVlcAkJCQk9IHN0YjA4OTlfc2xlZXAs
-CkBAIC0yMDU5LDYgKzIxMDIsOSBAQAogCS5yZWFkX3NpZ25hbF9zdHJlbmd0aAkJPSBzdGIwODk5
-X3JlYWRfc2lnbmFsX3N0cmVuZ3RoLAogCS5yZWFkX3N0YXR1cwkJCT0gc3RiMDg5OV9yZWFkX3N0
-YXR1cywKIAkucmVhZF9iZXIJCQk9IHN0YjA4OTlfcmVhZF9iZXIsCisKKwkucmVhZF9sZXZlbCAg
-ICAgICAgICAgICAgICAgICAgID0gc3RiMDg5OV9yZWFkX2xldmVsLAorCS5yZWFkX3N0YXRzICAg
-ICAgICAgICAgICAgICAgICAgPSBzdGIwODk5X3JlYWRfc3RhdHMsCiAKIAkuc2V0X3ZvbHRhZ2UJ
-CQk9IHN0YjA4OTlfc2V0X3ZvbHRhZ2UsCiAJLnNldF90b25lCQkJPSBzdGIwODk5X3NldF90b25l
-LApkaWZmIC1yIGI1NTA1YTk4NWYyNCBsaW51eC9pbmNsdWRlL2xpbnV4L2R2Yi9mcm9udGVuZC5o
-Ci0tLSBhL2xpbnV4L2luY2x1ZGUvbGludXgvZHZiL2Zyb250ZW5kLmgJU2F0IEZlYiAyMSAwMTox
-MjowOSAyMDA5ICswNDAwCisrKyBiL2xpbnV4L2luY2x1ZGUvbGludXgvZHZiL2Zyb250ZW5kLmgJ
-VHVlIEFwciAwNyAxODoxOToyMiAyMDA5ICswNDAwCkBAIC02NDUsNCArNjQ1LDExOCBAQAogfTsK
-ICNkZWZpbmUgRFZCRkVfR0VUX0VWRU5UCQkJX0lPUignbycsIDg2LCBzdHJ1Y3QgZHZiZmVfZXZl
-bnQpCiAKKy8qIEZyb250ZW5kIEdlbmVyYWwgU3RhdGlzdGljcworICogR2VuZXJhbCBwYXJhbWV0
-ZXJzCisgKiBGRV8qX1VOS05PV046CisgKglQYXJhbWV0ZXIgaXMgdW5rbm93biB0byB0aGUgZnJv
-bnRlbmQgYW5kIGRvZXNuJ3QgcmVhbGx5CisgKgltYWtlIGFueSBzZW5zZSBmb3IgYW4gYXBwbGlj
-YXRpb24uCisgKgorICogRkVfKl9SRUxBVElWRToKKyAqCVBhcmFtZXRlciBpcyByZWxhdGl2ZSBv
-biB0aGUgYmFzaXMgb2YgYSBjZWlsIC0gZmxvb3IgYmFzaXMKKyAqCUZvcm1hdCBpcyBiYXNlZCBv
-biBlbXBpcmljYWwgdGVzdCB0byBkZXRlcm1pbmUKKyAqCXRoZSBmbG9vciBhbmQgY2VpbGluZyB2
-YWx1ZXMuIFRoaXMgZm9ybWF0IGlzIGV4YWN0bHkgdGhlCisgKglzYW1lIGZvcm1hdCBhcyB0aGUg
-ZXhpc3Rpbmcgc3RhdGlzdGljcyBpbXBsZW1lbnRhdGlvbi4KKyAqLworZW51bSBmZWNhcF9xdWFs
-aXR5X3BhcmFtcyB7CisJRkVfUVVBTElUWV9VTktOT1dOCQk9IDAsCisJRkVfUVVBTElUWV9TTlIJ
-CQk9ICgxIDw8ICAwKSwKKwlGRV9RVUFMSVRZX0NOUgkJCT0gKDEgPDwgIDEpLAorCUZFX1FVQUxJ
-VFlfRXNObwkJCT0gKDEgPDwgIDIpLAorCUZFX1FVQUxJVFlfRWJObwkJCT0gKDEgPDwgIDMpLAor
-CUZFX1FVQUxJVFlfUkVMQVRJVkUJCT0gKDEgPDwgMzEpLAorfTsKKworZW51bSBmZWNhcF9zY2Fs
-ZV9wYXJhbXMgeworCUZFX1NDQUxFX1VOS05PV04JCT0gMCwKKwlGRV9TQ0FMRV9kQgkJCT0gKDEg
-PDwgIDApLAorCUZFX1NDQUxFX1JFTEFUSVZFCQk9ICgxIDw8IDMxKSwKK307CisKK2VudW0gZmVj
-YXBfZXJyb3JfcGFyYW1zIHsKKwlGRV9FUlJPUl9VTktOT1dOCQk9IDAsCisJRkVfRVJST1JfQkVS
-CQkJPSAoMSA8PCAgMCksCisJRkVfRVJST1JfUEVSCQkJPSAoMSA8PCAgMSksCisJRkVfRVJST1Jf
-UkVMQVRJVkUJCT0gKDEgPDwgMzEpLAorfTsKKworZW51bSBmZWNhcF91bmNfcGFyYW1zIHsKKwlG
-RV9VTkNfVU5LTk9XTgkJCT0gMCwKKwlGRV9VTkNfUkVMQVRJVkUJCQk9ICgxIDw8IDMxKSwKK307
-CisKKy8qIEdlbmVyYWwgcGFyYW1ldGVycworICogd2lkdGg6CisgKiAJU3BlY2lmaWVzIHRoZSB3
-aWR0aCBvZiB0aGUgZmllbGQKKyAqCisgKiBleHBvbmVudDoKKyAqCVNwZWNpZmllcyB0aGUgbXVs
-dGlwbGllciBmb3IgdGhlIHJlc3BlY3RpdmUgZmllbGQKKyAqCU1TQjoxYml0IGluZGljYXRlcyB0
-aGUgc2lnbmRuZXNzIG9mIHRoZSBwYXJhbWV0ZXIKKyAqLworc3RydWN0IGZlY2FwX3F1YWxpdHkg
-eworCWVudW0gZmVjYXBfcXVhbGl0eV9wYXJhbXMJcGFyYW1zOworCWVudW0gZmVjYXBfc2NhbGVf
-cGFyYW1zCQlzY2FsZTsKKworCV9fdTMyCQkJCXdpZHRoOworCV9fczMyCQkJCWV4cG9uZW50Owor
-fTsKKworc3RydWN0IGZlY2FwX3N0cmVuZ3RoIHsKKwllbnVtIGZlY2FwX3NjYWxlX3BhcmFtcwkJ
-cGFyYW1zOworCV9fdTMyCQkJCXdpZHRoOworCV9fczMyCQkJCWV4cG9uZW50OworfTsKKworc3Ry
-dWN0IGZlY2FwX2Vycm9yIHsKKwllbnVtIGZlY2FwX2Vycm9yX3BhcmFtcwkJcGFyYW1zOworCV9f
-dTMyIAkJCQl3aWR0aDsKKwlfX3MzMiAJCQkJZXhwb25lbnQ7Cit9OworCitzdHJ1Y3QgZmVjYXBf
-c3RhdGlzdGljcyB7CisJc3RydWN0IGZlY2FwX3F1YWxpdHkJCXF1YWxpdHk7CisJc3RydWN0IGZl
-Y2FwX3N0cmVuZ3RoCQlzdHJlbmd0aDsKKwlzdHJ1Y3QgZmVjYXBfZXJyb3IJCWVycm9yOworCWVu
-dW0gZmVjYXBfdW5jX3BhcmFtcwkJdW5jOworfTsKKworLyogRkVfU1RBVElTVElDU19DQVBTCisg
-KiBVc2Vyc3BhY2UgcXVlcnkgZm9yIGZyb250ZW5kIHNpZ25hbCBzdGF0aXN0aWNzIGNhcGFiaWxp
-dGllcworICovCisjZGVmaW5lIEZFX1NUQVRJU1RJQ1NfQ0FQUwkJX0lPUignbycsIDg0LCBzdHJ1
-Y3QgZmVjYXBfc3RhdGlzdGljcykKKworCisvKiBGRV9TSUdOQUxfTEVWRUwKKyAqIFRoaXMgc3lz
-dGVtIGNhbGwgcHJvdmlkZXMgYSBkaXJlY3QgbW9uaXRvciBvZiB0aGUgc2lnbmFsLCB3aXRob3V0
-CisgKiBwYXNzaW5nIHRocm91Z2ggdGhlIHJlbGV2YW50IHByb2Nlc3NpbmcgY2hhaW5zLiBJbiBt
-YW55IGNhc2VzLCBpdAorICogaXMgc2ltcGx5IGNvbnNpZGVyZWQgYXMgZGlyZWN0IEFHQzEgc2Nh
-bGVkIHZhbHVlcy4gVGhpcyBwYXJhbWV0ZXIKKyAqIGNhbiBnZW5lcmFsbHkgYmUgdXNlZCB0byBw
-b3NpdGlvbiBhbiBhbnRlbm5hIHRvIHdoaWxlIGxvb2tpbmcgYXQKKyAqIGEgcGVhayBvZiB0aGlz
-IHZhbHVlLiBUaGlzIHBhcmFtZXRlciBjYW4gYmUgcmVhZCBiYWNrLCBldmVuIHdoZW4KKyAqIGEg
-ZnJvbnRlbmQgTE9DSyBoYXMgbm90IGJlZW4gYWNoaWV2ZWQuIFNvbWUgbWljcm9udHJvbGxlciBi
-YXNlZAorICogZGVtb2R1bGF0b3JzIGRvIG5vdCBwcm92aWRlIGEgZGlyZWN0IGFjY2VzcyB0byB0
-aGUgQUdDIG9uIHRoZQorICogZGVtb2R1bGF0b3IsIGhlbmNlIHRoaXMgcGFyYW1ldGVyIHdpbGwg
-YmUgVW5zdXBwb3J0ZWQgZm9yIHN1Y2gKKyAqIGRldmljZXMuCisgKi8KKyNkZWZpbmUgRkVfU0lH
-TkFMX0xFVkVMCQkJX0lPUignbycsIDg1LCBfX3UzMikKKworCitzdHJ1Y3QgZmVzaWduYWxfc3Rh
-dCB7CisJX191MzIgcXVhbGl0eTsKKwlfX3UzMiBzdHJlbmd0aDsKKwlfX3UzMiBlcnJvcjsKKwlf
-X3UzMiB1bmM7Cit9OworCisvKiBGRV9TSUdOQUxfU1RBVFMKKyAqIFRoaXMgc3lzdGVtIGNhbGwg
-cHJvdmlkZXMgYSBzbmFwc2hvdCBvZiBhbGwgdGhlIHJlY2VpdmVyIHN5c3RlbQorICogYXQgYW55
-IGdpdmVuIHBvaW50IG9mIHRpbWUuIFN5c3RlbSBzaWduYWwgc3RhdGlzdGljcyBhcmUgYWx3YXlz
-CisgKiBjb21wdXRlZCB3aXRoIHJlc3BlY3QgdG8gdGltZSBhbmQgaXMgYmVzdCBvYnRhaW5lZCB0
-aGUgbmVhcmVzdAorICogdG8gZWFjaCBvZiB0aGUgaW5kaXZpZHVhbCBwYXJhbWV0ZXJzIGluIGEg
-dGltZSBkb21haW4uCisgKiBTaWduYWwgc3RhdGlzdGljcyBhcmUgYXNzdW1lZCwgImF0IGFueSBn
-aXZlbiBpbnN0YW5jZSBvZiB0aW1lIi4KKyAqIEl0IGlzIG5vdCBwb3NzaWJsZSB0byBnZXQgYSBz
-bmFwc2hvdCBhdCB0aGUgZXhhY3Qgc2luZ2xlIGluc3RhbmNlCisgKiBhbmQgaGVuY2Ugd2UgbG9v
-ayBhdCB0aGUgbmVhcmVzdCBpbnN0YW5jZSwgaW4gdGhlIHRpbWUgZG9tYWluLgorICogVGhlIHN0
-YXRpc3RpY3MgYXJlIGRlc2NyaWJlZCBieSB0aGUgRkVfU1RBVElTVElDU19DQVBTIGlvY3RsLAor
-ICogaWUuIGJhc2VkIG9uIHRoZSBkZXZpY2UgY2FwYWJpbGl0aWVzLgorICovCisjZGVmaW5lIEZF
-X1NJR05BTF9TVEFUUwkJCV9JT1IoJ28nLCA4Niwgc3RydWN0IGZlc2lnbmFsX3N0YXQpCisKICNl
-bmRpZiAvKl9EVkJGUk9OVEVORF9IXyovCg==
---00151747b690b2eb9304768bf39c--
