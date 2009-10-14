@@ -1,180 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:62594 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751511AbZJEOJE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Oct 2009 10:09:04 -0400
-Received: from epmmp1 (mailout2.samsung.com [203.254.224.25])
- by mailout1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0KR100HDIO4LT9@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 05 Oct 2009 22:57:58 +0900 (KST)
-Received: from AMDC159 ([106.116.37.153])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0KR1005XTO4B8B@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 05 Oct 2009 22:57:57 +0900 (KST)
-Date: Mon, 05 Oct 2009 15:56:21 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: Mem2Mem V4L2 devices [RFC]
-In-reply-to: <19F8576C6E063C45BE387C64729E73940436CF8DCB@dbde02.ent.ti.com>
-To: "'Hiremath, Vaibhav'" <hvaibhav@ti.com>,
-	"'Ivan T. Ivanov'" <iivanov@mm-sol.com>,
-	linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, Tomasz Fujak <t.fujak@samsung.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <001801ca45c3$a14826c0$e3d87440$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <E4D3F24EA6C9E54F817833EAE0D912AC077151C64F@bssrvexch01.BS.local>
- <1254500705.16625.35.camel@iivanov.int.mm-sol.com>
- <19F8576C6E063C45BE387C64729E73940436CF8DCB@dbde02.ent.ti.com>
+Received: from mail-fx0-f227.google.com ([209.85.220.227]:63240 "EHLO
+	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933149AbZJNOMZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Oct 2009 10:12:25 -0400
+Received: by fxm27 with SMTP id 27so11637590fxm.17
+        for <linux-media@vger.kernel.org>; Wed, 14 Oct 2009 07:11:48 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20091014160626.70db928b@ieee.org>
+References: <829197380910132052w155116ecrcea808abe87a57a6@mail.gmail.com>
+	 <20091014122550.7c84bba5@ieee.org>
+	 <829197380910140612t726251d6y7cff3873587101b4@mail.gmail.com>
+	 <20091014160626.70db928b@ieee.org>
+Date: Wed, 14 Oct 2009 10:11:48 -0400
+Message-ID: <829197380910140711l7624c0c8va474156f712580a4@mail.gmail.com>
+Subject: Re: em28xx DVB modeswitching change: call for testers
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Giuseppe Borzi <gborzi@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Wed, Oct 14, 2009 at 10:06 AM, Giuseppe Borzi <gborzi@gmail.com> wrote:
+> Hello Devin,
+> I did as you suggested. Unplugged the stick reboot and plug it again.
+> And just to be sure I did it two times. Now the device works, but it is
+> unable to change channel. That is to say, when I use the command "vlc
+> channels.conf" it tunes to the first station in the channel file and
+> can't change it. Other apps (xine, kaffeine) that seems to change to
+> the latest channel don't work at all. The dmesg output after plugging
+> the driver is in attach. In dmesg I noticed lines like this
+>
+> [drm] TV-14: set mode NTSC 480i 0
+>
+> I suppose this hasn't anything to do with the analog audio problem, but
+> just to be sure I ask you. Also, using arecord/aplay for analog audio I
+> get an "underrun" error message
+>
+> arecord -D hw:1,0 -r 32000 -c 2 -f S16_LE | aplay -
+> Recording WAVE 'stdin' : Signed 16 bit Little Endian, Rate 32000 Hz,
+> Stereo Playing WAVE 'stdin' : Signed 16 bit Little Endian, Rate 32000
+> Hz, Stereo underrun!!! (at least -1255527098942.108 ms long)
+>
+> Cheers.
 
-On Monday, October 05, 2009 7:59 AM Hiremath, Vaibhav wrote:
+Ok, let me look at the code and see what I can figure out.
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-owner@vger.kernel.org] On Behalf Of
-> Hiremath, Vaibhav
-> Sent: Monday, October 05, 2009 7:59 AM
-> To: Ivan T. Ivanov; Marek Szyprowski
-> Cc: linux-media@vger.kernel.org; kyungmin.park@samsung.com; Tomasz Fujak; Pawel Osciak
-> Subject: RE: Mem2Mem V4L2 devices [RFC]
-> 
-> 
-> > -----Original Message-----
-> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> > owner@vger.kernel.org] On Behalf Of Ivan T. Ivanov
-> > Sent: Friday, October 02, 2009 9:55 PM
-> > To: Marek Szyprowski
-> > Cc: linux-media@vger.kernel.org; kyungmin.park@samsung.com; Tomasz
-> > Fujak; Pawel Osciak
-> > Subject: Re: Mem2Mem V4L2 devices [RFC]
-> >
-> >
-> > Hi Marek,
-> >
-> >
-> > On Fri, 2009-10-02 at 13:45 +0200, Marek Szyprowski wrote:
-> > > Hello,
-> > >
-> <snip>
-> 
-> > > image format and size, while the existing v4l2 ioctls would only
-> > refer
-> > > to the output buffer. Frankly speaking, we don't like this idea.
-> >
-> > I think that is not unusual one video device to define that it can
-> > support at the same time input and output operation.
-> >
-> > Lets take as example resizer device. it is always possible that it
-> > inform user space application that
-> >
-> > struct v4l2_capability.capabilities ==
-> > 		(V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT)
-> >
-> > User can issue S_FMT ioctl supplying
-> >
-> > struct v4l2_format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE
-> > 		  .pix  = width x height
-> >
-> > which will instruct this device to prepare its output for this
-> > resolution. after that user can issue S_FMT ioctl supplying
-> >
-> > struct v4l2_format.type = V4L2_BUF_TYPE_VIDEO_OUTPUT
-> >    		  .pix  = width x height
-> >
-> > using only these ioctls should be enough to device driver
-> > to know down/up scale factor required.
-> >
-> > regarding color space struct v4l2_pix_format have field
-> > 'pixelformat'
-> > which can be used to define input and output buffers content.
-> > so using only existing ioctl's user can have working resizer device.
-> >
-> > also please note that there is VIDIOC_S_CROP which can add
-> > additional
-> > flexibility of adding cropping on input or output.
-> >
-> [Hiremath, Vaibhav] I think this makes more sense in capture pipeline, for example,
-> 
-> Sensor/decoder -> previewer -> resizer -> /dev/videoX
-> 
+Devin
 
-I don't get this. In strictly capture pipeline we will get one video node anyway. 
-
-However the question is how we should support a bit more complicated pipeline.
-
-Just consider a resizer module and the pipeline:
-
-sensor/decoder -[bus]-> previewer -> [memory] -> resizer -> [memory]
-
-([bus] means some kind of internal bus that is completely interdependent from the system memory)
-
-Mapping to video nodes is not so trivial. In fact this pipeline consist of 2 independent (sub)pipelines connected by user space
-application:
-
-sensor/decoder -[bus]-> previewer -> [memory] -[user application]-> [memory] -> resizer -> [memory]
-
-For further analysis it should be cut into 2 separate pipelines: 
-
-a. sensor/decoder -[bus]-> previewer -> [memory]
-b. [memory] -> resizer -> [memory]
-
-Again, mapping the first subpipeline is trivial:
-
-sensor/decoder -[bus]-> previewer -> /dev/video0
-
-But the last, can be mapped either as:
-
-/dev/video1 -> resizer -> /dev/video1
-(one video node approach)
-
-or
-
-/dev/video1 -> resizer -> /dev/video2
-(2 video nodes approach).
-
-
-So at the end the pipeline would look like this:
-
-sensor/decoder -[bus]-> previewer -> /dev/video0 -[user application]-> /dev/video1 -> resizer -> /dev/video2
-
-or 
-
-sensor/decoder -[bus]-> previewer -> /dev/video0 -[user application]-> /dev/video1 -> resizer -> /dev/video1
-
-> > last thing which should be done is to QBUF 2 buffers and call
-> > STREAMON.
-> >
-> [Hiremath, Vaibhav] IMO, this implementation is not streaming model, we are trying to fit mem-to-mem
-> forcefully to streaming.
-
-Why this does not fit streaming? I see no problems with streaming over mem2mem device with only one video node. You just queue input
-and output buffers (they are distinguished by 'type' parameter) on the same video node.
-
-> We have to put some constraints -
-> 
-> 	- Driver will treat index 0 as input always, irrespective of number of buffers queued.
-> 	- Or, application should not queue more that 2 buffers.
-> 	- Multi-channel use-case????
-> 
-> I think we have to have 2 device nodes which are capable of streaming multiple buffers, both are
-> queuing the buffers.
-
-In one video node approach there can be 2 buffer queues in one video node, for input and output respectively.
-
-> The constraint would be the buffers must be mapped one-to-one.
-
-Right, each queued input buffer must have corresponding output buffer.
-
-Best regards
---
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
