@@ -1,53 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:43249
-	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753071AbZJCDKr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2009 23:10:47 -0400
-Cc: linux-media@vger.kernel.org
-Message-Id: <F3D79B4D-0A53-4563-A2DD-074035B21381@wilsonet.com>
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Mikhail Ramendik <mr@ramendik.ru>
-In-Reply-To: <b4619a970910021844o7ef75eeehad3a1b295131cc5@mail.gmail.com>
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0 (Apple Message framework v936)
-Subject: Re: Skipping commercials?
-Date: Fri, 2 Oct 2009 23:11:13 -0400
-References: <b4619a970910021844o7ef75eeehad3a1b295131cc5@mail.gmail.com>
+Received: from www.viadmin.org ([195.145.128.101]:43897 "EHLO www.viadmin.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753166AbZJNJCN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Oct 2009 05:02:13 -0400
+Date: Wed, 14 Oct 2009 10:53:35 +0200
+From: "H. Langos" <henrik-dvb@prak.org>
+To: CityK <cityk@rogers.com>
+Cc: Linux-media <linux-media@vger.kernel.org>
+Subject: Re: [linux-dvb] Linuxtv wiki needs email notification/more
+	email-ready users
+Message-ID: <20091014085335.GM6384@www.viadmin.org>
+References: <20090918080941.GA15590@www.viadmin.org> <4AB47066.105@rogers.com> <4AD40778.6080009@rogers.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4AD40778.6080009@rogers.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Oct 2, 2009, at 9:44 PM, Mikhail Ramendik wrote:
+Hi,
 
-> Hello,
->
-> I would like to skip commercials in my dvb recordings.
->
-> I know mythtv has some methods but I don't really want the hassle of
-> mythtv setup and use. It is relatively early stage software
+On Tue, Oct 13, 2009 at 12:52:08AM -0400, CityK wrote:
+> Hi Henrik,
+> 
+> > H. Langos wrote:
+> >>
+> >> It would be great if it was possible to get (immediate/daily/weekly?) change
+> >> notifications by email in order not to lose track of what is happening to
+> >> the pages that I care about. (I bet this is standard functionality of
+> >> mediawiki or at least one of the more common extentions.)
+> >>     
+> 
+> In searching for something else, I came across this recent thread on the
+> mediawiki m/l:
+> http://lists.wikimedia.org/pipermail/mediawiki-l/2009-October/032214.html
+> 
+> There are a few suggestions in it (I just skimmed through). Perhaps one
+> of them would be good to implement.
 
-Um. If you say so. Been happily using it for over six years now...
+I took a look at those but in doing so I've (re)discovered the automatic rss
+feed that each page generates. Those rss feeds can be polled by services
+like feedmyinbox.com to generate a daily report.
 
-> and
-> besides, I prefer to have a normal window-based UI. I use kaffeine and
-> except for absence of commercial skipping, like it.
->
-> Ideally I would want a program to run on an already existing
-> recording, to mark or cut out ads.
->
-> A Windows program, comskip, exists. It is closed source and its
-> configuration seems opaque. I will still try it under wine, but
-> perhaps there is a better way?
+Our Mediawiki version does not yet have the ability to generate RSS feeds 
+for users' watchlists without them being logged in (I've seen that feature 
+on MW 1.16beta on the iPodlinux.org wiki though), but I am happy enough 
+with the general "Recent changes" and the individual pages' feeds.
 
-MythTV is open-source. Look at the code specific to the mythcommflag  
-binary. Adapt it for stand-alone use. It wouldn't even have to do the  
-actual cutting, just output a cutlist something like gopchop, avidemux  
-or similar could use to set cut points.
+Thank you very much for pointing me in the right direction
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
-
+cheers
+-henrik
 
