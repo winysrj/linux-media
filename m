@@ -1,32 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.24]:40524 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750845AbZJ1RKK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Oct 2009 13:10:10 -0400
-Received: by qw-out-2122.google.com with SMTP id 9so284092qwb.37
-        for <linux-media@vger.kernel.org>; Wed, 28 Oct 2009 10:10:15 -0700 (PDT)
+Received: from [195.7.61.12] ([195.7.61.12]:53960 "EHLO killala.koala.ie"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1756097AbZJNJt3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Oct 2009 05:49:29 -0400
+Received: from [195.7.61.12] (localhost [127.0.0.1])
+	(authenticated bits=0)
+	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id n9E9mo9q030578
+	for <linux-media@vger.kernel.org>; Wed, 14 Oct 2009 10:48:51 +0100
+Message-ID: <4AD59E82.6070904@koala.ie>
+Date: Wed, 14 Oct 2009 10:48:50 +0100
+From: Simon Kenyon <simon@koala.ie>
 MIME-Version: 1.0
-In-Reply-To: <20091028172914.0480e7d1@piBook>
-References: <20091023174502.0608cd4e@rechenknecht2k7>
-	 <829197380910230908p733ee69bt79043b78ca5ad81f@mail.gmail.com>
-	 <20091028172914.0480e7d1@piBook>
-Date: Wed, 28 Oct 2009 18:10:14 +0100
-Message-ID: <68676e00910281010s5902b626p7f1475972a8ff60@mail.gmail.com>
-Subject: Re: pinnacle pctv 7010ix and saa716x
-From: Luca Tettamanti <kronos.it@gmail.com>
-To: Benjamin Valentin <benpicco@zedat.fu-berlin.de>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Hauppage WinTV-HVR-900H
+References: <4ACDF829.3010500@xfce.org>	<37219a840910080545v72165540v622efd43574cf085@mail.gmail.com>	<4ACDFED9.30606@xfce.org>	<829197380910080745j3015af10pbced2a7e04c7595b@mail.gmail.com>	<4ACE2D5B.4080603@xfce.org>	<829197380910080928t30fc0ecas7f9ab2a7d8437567@mail.gmail.com>	<d9def9db0910080946r445ac0efs421cb3bd2972a0d8@mail.gmail.com>	<4ACEED7D.10302@koala.ie>	<d9def9db0910090121i76571d0o4778aa14026b4b9d@mail.gmail.com>	<4ACFB218.5040608@koala.ie>	<d9def9db0910091524p6c8cba7fxf4a245a64af297c4@mail.gmail.com> <20091010085626.377f7daf@pedra.chehab.org> <4AD512B9.2060909@tmr.com>
+In-Reply-To: <4AD512B9.2060909@tmr.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 28, 2009 at 5:29 PM, Benjamin Valentin
-<benpicco@zedat.fu-berlin.de> wrote:
-> lspci oddly recognizes the board as Pinnacle PCTV 3010iX, which only
-> has one tuner module.
+Bill Davidsen wrote:
+> The answer was responsive to the question, a couple of links to software 
+> which might serve. I would think your going off about it was further 
+> off-topic, it certainly didn't help the O.P. any. When someone ends a 
+> question with "please help" I would assume that any answer would be 
+> better than "we're working on it." Answering an on-topic question with a 
+> short list of links is hardly "spamming" or even advertising, it's 
+> called being polite and helpful.
+>
+> I would rather run commercial software on Linux that open source on 
+> Windows, thanks, if those are the choices.
+>
+> After several months of looking I have yet to find any video app that a 
+> typical office worker can use. Something no more complex than xawtv, 
+> which has been running fine on FC4 and FC6 for these folks. I would 
+> certainly consider a commercial solution rather than have them go back 
+> to the dark side of the force and Windows-7.
+>   
+i've followed the advice of marcus in the past
+and that is why for over a year i had a completely useless piece of hardware
+in the end the "real" developers here sorted the problem out
 
-Probably not relevant to your problem, but my 3010iX has 2 tuners
-(hybrid, each can do DVB-T + analog).
+this list is for people who run or want to run the drivers at linuxtv.org
+so no, i don't think i was off-topic
+he constantly spams the list here with his closed source commercial solution
+just about my only job on this list is to counter his bull
 
-Luca
+with kind regards
+--
+simon
+
+
