@@ -1,62 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:51730 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:44653 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755046AbZJLUC2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Oct 2009 16:02:28 -0400
-Date: Mon, 12 Oct 2009 22:01:23 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Jonathan Cameron <jic23@cam.ac.uk>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] pxa-camera: Fix missing sched.h
-In-Reply-To: <4AD37090.4040002@cam.ac.uk>
-Message-ID: <Pine.LNX.4.64.0910122159330.4366@axis700.grange>
-References: <4AD36D2D.2000202@cam.ac.uk> <4AD36EE5.1060807@cam.ac.uk>
- <4AD37090.4040002@cam.ac.uk>
+	id S1759460AbZJNTvL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Oct 2009 15:51:11 -0400
+Message-ID: <4AD62B7E.9010606@gmx.de>
+Date: Wed, 14 Oct 2009 21:50:22 +0200
+From: Andreas Regel <andreas.regel@gmx.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: linux-media@vger.kernel.org
+Subject: stv090x/stv6110x improvements and bug fixes
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 12 Oct 2009, Jonathan Cameron wrote:
+Hi,
 
-> linux/sched.h include was removed form linux/poll.h by
-> commmit a99bbaf5ee6bad1aca0c88ea65ec6e5373e86184
-> 
-> Required for wakeup call.
-> 
-> Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
+some time ago, I made some improvements and fixed some bugs in the 
+stv090x and stv6110x frontend drivers. These include:
 
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+- increased search range on STV090x based on symbol rate
+- fixed some STV090x register definitions and typos
+- fix STR and SNR calculation and normalize the value into the 0..0xFFFF 
+range
+- fixed STV6110x r divider calculation when setting frequency
+- first disable DVB-S and DVB-S2 mode before enabling it again for 
+automatic search
+- fix calculation of AGC2 values
+- corrections of several register values
+- several blind scan related fixes
 
-Mauro, can you take it from here with my ack for -rc5 or do I have to pull 
-it through my tree?
+They were available since about two months and tested successfully using 
+TT S2-1600 card by me and other people from vdrportal.de. I made them 
+public in my repository available at http://powarman.dyndns.org/hg/v4l-dvb
 
-Thanks
-Guennadi
-
-> ---
->  drivers/media/video/pxa_camera.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
-> index 6952e96..5d01dcf 100644
-> --- a/drivers/media/video/pxa_camera.c
-> +++ b/drivers/media/video/pxa_camera.c
-> @@ -26,6 +26,7 @@
->  #include <linux/device.h>
->  #include <linux/platform_device.h>
->  #include <linux/clk.h>
-> +#include <linux/sched.h>
->  
->  #include <media/v4l2-common.h>
->  #include <media/v4l2-dev.h>
-> -- 
-> 1.6.3.3
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Regards
+Andreas
