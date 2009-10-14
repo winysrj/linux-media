@@ -1,66 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f208.google.com ([209.85.219.208]:45687 "EHLO
-	mail-ew0-f208.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752865AbZJ1Qnc (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:43694 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752048AbZJNLRh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Oct 2009 12:43:32 -0400
-Received: by ewy4 with SMTP id 4so925777ewy.37
-        for <linux-media@vger.kernel.org>; Wed, 28 Oct 2009 09:43:36 -0700 (PDT)
-Message-ID: <4AE874AF.5050606@gmail.com>
-Date: Thu, 29 Oct 2009 00:43:27 +0800
-From: "David T. L. Wong" <davidtlwong@gmail.com>
-MIME-Version: 1.0
-To: Benjamin Valentin <benpicco@zedat.fu-berlin.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: saa716x
-References: <20091023174502.0608cd4e@rechenknecht2k7> <829197380910230908p733ee69bt79043b78ca5ad81f@mail.gmail.com> <20091028172914.0480e7d1@piBook>
-In-Reply-To: <20091028172914.0480e7d1@piBook>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Wed, 14 Oct 2009 07:17:37 -0400
+Received: from epmmp1 (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0KRI00HD44OB00@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 14 Oct 2009 20:16:59 +0900 (KST)
+Received: from AMDC159 ([106.116.37.153])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0KRI00D6F4MVD5@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 14 Oct 2009 20:16:59 +0900 (KST)
+Date: Wed, 14 Oct 2009 13:14:30 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: Mem2Mem V4L2 devices [RFC]
+In-reply-to: <A69FA2915331DC488A831521EAE36FE40154EE1938@dlee06.ent.ti.com>
+To: "'Karicheri, Muralidharan'" <m-karicheri2@ti.com>,
+	"'Ivan T. Ivanov'" <iivanov@mm-sol.com>,
+	linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, Tomasz Fujak <t.fujak@samsung.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <001a01ca4cbf$833f2ae0$89bd80a0$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <E4D3F24EA6C9E54F817833EAE0D912AC077151C64F@bssrvexch01.BS.local>
+ <1254500705.16625.35.camel@iivanov.int.mm-sol.com>
+ <A69FA2915331DC488A831521EAE36FE401553E952D@dlee06.ent.ti.com>
+ <002201ca4655$dd8dc260$98a94720$%szyprowski@samsung.com>
+ <A69FA2915331DC488A831521EAE36FE4015546FBDB@dlee06.ent.ti.com>
+ <000101ca47ef$fd373510$f7a59f30$%szyprowski@samsung.com>
+ <A69FA2915331DC488A831521EAE36FE40154EE1938@dlee06.ent.ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Benjamin Valentin wrote:
-> Am Fri, 23 Oct 2009 12:08:22 -0400
-> schrieb Devin Heitmueller <dheitmueller@kernellabs.com>:
+Hello,
+
+On Thursday, October 08, 2009 11:26 PM Karicheri, Muralidharan wrote:
+
+> > Why not? In a typical camera scenario, application can feed one frame and get two output frames (one
+> > for storing and another for sending over email (a lower resolution). I just gave an example.
 > 
+> > You gave an example of the Y-type pipeline which start in real streaming
+> > device (camera) which is completely different thing. Y-type CAPTURE pipeline
+> > is quite common thing, which can be simply mapped to 2 different capture
+> > video nodes.
 > 
->> You cannot use a saa7162 based device with the saa7164 driver.  They
->> chipsets are too dissimilar.
+> > In my previous mail I asked about Y-type pipeline which starts in memory. I
+> > don't think there is any common use case for such thing.
 > 
-> This was why I tried the saa716x driver [1] that should work for
-> saa7160, saa7161 and saa7162 based devices.
-> However, after downloading and compiling the driver and loading all
-> saa716x_* modules, there was no /dev/dvb nor /dev/video, neither were
-> there any messages from saa716x in dmesg (but lsmod did show them up as
-> loaded) Despite
-> MAKE_ENTRY(NXP_REFERENCE_BOARD, PCI_ANY_ID, SAA7162,&saa716x_atlantis_config)
-> should have been true for my card as far as I understand, I've added 
-> #define PINNACLE                0x1131
-> #define PINNACLE_PCTV_7010IX    0x7162
+> Marek,
 > 
-> MAKE_ENTRY(PINNACLE, PINNACLE_PCTV_7010IX, SAA7162, &saa716x_atlantis_config)
-> with no change after repeating the procedure (and unloading the
-> saa716x_hybrid module of cause)
+> You can't say that. This feature is currently supported in our internal release which is
+> being used by our customers. So for feature parity it is required to be supported as
+> we can't determine how many customers are using this feature. Besides in the above
+> scenario that I have mentioned, following happens.
 > 
-> lspci oddly recognizes the board as Pinnacle PCTV 3010iX, which only
-> has one tuner module.
+> sensor -> CCDC -> Memory (video node)
 > 
-> I've included lspci and dmesg output.
+> Memory -> Previewer -> Resizer1 -> Memory
+>                                    |-> Resizer2 -> Memory
 > 
-> I'm looking forward for someone who could explain what is happening
-> here and what I may do about it.
+> Typically application capture full resolution frame (Bayer RGB) to Memory and then use Previewer
+> and Resizer in memory to memory mode to do conversion to UYVY format. But application use second
+> resizer to get a lower resolution frame simultaneously. We would like to expose this hardware
+> capability to user application through this memory to memory device.
+
+Ok. I understand that Your current custom API exports such functionality. I thought
+a bit about this issue and found a solution how this can be implemented using one
+video node approach. It would require additional custom ioctl but imho there is no
+other way.
+
+An application can open the /dev/videoX node 2 times. Then it can 'link' them with
+this special ioctl, so the driver would know which instances are 'linked' together. 
+Then the application queues source buffer to both instances, sets destination
+format/size/colorspace/etc, and queues output buffers. Then calls stream on both
+instances. The driver can detect if the 2 instances has been linked together and
+if the source buffer is the same in both of them, it will use this special feature
+of your hardware and run 2 resizers simultaneously. This sounds a bit complicated
+(especially because the driver would need to play a bit with synchronization and
+possible races...), but currently I see no other possibility to implement it on
+top of one-video-node approach.
+
+> > Since only one capture queue per IO instance is possible in this model (matched by buf type), I
+> don't
+> > think we can scale it for 2 outputs case. Or is it possible to queue 2 output buffers of two
+> different
+> > sizes to the same queue?
 > 
-> Best regards
-> benjamin
+> This can be hacked by introducing yet another 'type' (for example
+> SECOND_CAPTURE), but I don't like such solution. Anyway - would we really
+> need Y-type mem2mem device?
 > 
-> [1] http://jusst.de/hg/saa716x/
-> [2] http://www.computerbase.de/bildstrecke/14665/2/
+> Yes. No hacking please! We should be able to do S_FMT for the second Resizer output and dequeue
+> the frame. Not sure how can we handle this in this model.
+
+Currently I see no clean way of adding support for more than one output in one video node approach.
+
+Best regards
+--
+Marek Szyprowski
+Samsung Poland R&D Center
 
 
-sorry for forking out another discussion.
-I am curious to know the status of saa716x driver, because I have a 
-DMB-TH card with saa7160, does it has i2c and TS port working?
-
-regards,
-David
