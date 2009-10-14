@@ -1,33 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:62053 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756363AbZJNNU4 (ORCPT
+Received: from mail-fx0-f227.google.com ([209.85.220.227]:54877 "EHLO
+	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760778AbZJNNPJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Oct 2009 09:20:56 -0400
-Received: by ey-out-2122.google.com with SMTP id 9so208947eyd.19
-        for <linux-media@vger.kernel.org>; Wed, 14 Oct 2009 06:19:48 -0700 (PDT)
-Message-ID: <4AD5CFEF.40004@gmail.com>
-Date: Wed, 14 Oct 2009 10:19:43 -0300
-From: Guilherme Longo <grlongo.ireland@gmail.com>
+	Wed, 14 Oct 2009 09:15:09 -0400
+Received: by fxm27 with SMTP id 27so11568642fxm.17
+        for <linux-media@vger.kernel.org>; Wed, 14 Oct 2009 06:14:32 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Looking for libv4l documentation!
-References: <156a113e0910130955w428d536i7fc3ac8355293030@mail.gmail.com>
-In-Reply-To: <156a113e0910130955w428d536i7fc3ac8355293030@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <4AD5AFA6.8080401@onelan.com>
+References: <4AD591BB.80607@onelan.com>
+	 <1255516547.3848.10.camel@palomino.walls.org>
+	 <4AD5AFA6.8080401@onelan.com>
+Date: Wed, 14 Oct 2009 09:14:32 -0400
+Message-ID: <829197380910140614l1b7e299ev9bad4bbe96081918@mail.gmail.com>
+Subject: Re: Poor reception with Hauppauge HVR-1600 on a ClearQAM cable feed
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Simon Farnsworth <simon.farnsworth@onelan.com>
+Cc: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, I been searching for a tutorial or a documentation for libv4l to 
-convert the pixelformat supported by my webcan but I can´t find any.
+On Wed, Oct 14, 2009 at 7:01 AM, Simon Farnsworth
+<simon.farnsworth@onelan.com> wrote:
+> Andy Walls wrote:
+>> Have your remote user read
+>>
+>> http://www.ivtvdriver.org/index.php/Howto:Improve_signal_quality
+>>
+>> and take any actions that seem appropriate/easy.
+>>
+> I'll try that again - they're grouching, because their TV is fine, and
+> the same card in a Windows PC is also fine. It's just under Linux that
+> they're seeing problems, so I may not be able to get them to co-operate.
+>>
+>> The in kernel mxl5005s driver is known to have about 3 dB worse
+>> performance for QAM vs 8-VSB (Steven Toth took some measurements once).
+>>
+> Am I misunderstanding dmesg here? I see references to a Samsung S5H1409,
+> not to an mxl5005s; if I've read the driver code correctly, I'd see a
+> KERN_INFO printk for the mxl5005s when it comes up.
 
-I found a article saying that I only should open my device using 
-v4l_open(/dev/video0) instead of open(/dev/video0) and the lib should do 
-the conversion, but it sound a bit odd for me since I believe it should 
-need a more sofisticated threatment.
+Simon, the HVR-1600 has both an s5h1409 and an mxl5005s - the s5h1409
+is the digital demodulator and the mxl5005s is the tuner chip.
 
-Does anyone could point to me any reference to such a documentation??
+Devin
 
-Great regards!
-Guilherme Longo
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
