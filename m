@@ -1,126 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4445 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759639AbZJGSIU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Oct 2009 14:08:20 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id n97I7dRQ041045
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 7 Oct 2009 20:07:43 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 7 Oct 2009 20:07:39 +0200 (CEST)
-Message-Id: <200910071807.n97I7dRQ041045@smtp-vbr10.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail1.radix.net ([207.192.128.31]:55605 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932358AbZJNKdh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Oct 2009 06:33:37 -0400
+Subject: Re: Poor reception with Hauppauge HVR-1600 on a ClearQAM cable feed
+From: Andy Walls <awalls@radix.net>
+To: Simon Farnsworth <simon.farnsworth@onelan.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <4AD591BB.80607@onelan.com>
+References: <4AD591BB.80607@onelan.com>
+Content-Type: text/plain
+Date: Wed, 14 Oct 2009 06:35:47 -0400
+Message-Id: <1255516547.3848.10.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Wed, 2009-10-14 at 09:54 +0100, Simon Farnsworth wrote:
+> Hello,
+> 
+> I'm having problems with glitchy reception on a HVR-1600 card using
+> ClearQAM digital cable channels. Unfortunately, I'm remote from the box,
+> so can't describe the visual appearance, but I do have SSH access.
+> 
+> Looking at the output of femon -c 100 (attached as femon.txt), I'm
+> seeing the occasional burst of UNC errors. I've attached dmesg as
+> dmesg.txt in case it gives any clues; the v4l drivers are as in kernel
+> 2.6.30 from Linus, with no extra patches.
+> 
+> I'm using Xine to decode the channel - my channels.conf line for the
+> channel in question is:
+> WTAE:567012500:QAM_256:0:0:5
+> 
+> Any ideas?
 
-Results of the daily build of v4l-dvb:
+Have your remote user read
 
-date:        Wed Oct  7 19:00:07 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13083:89b7e6d5854a
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+http://www.ivtvdriver.org/index.php/Howto:Improve_signal_quality
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-rc3-armv5: ERRORS
-linux-2.6.32-rc3-armv5-davinci: ERRORS
-linux-2.6.27-armv5-ixp: ERRORS
-linux-2.6.28-armv5-ixp: ERRORS
-linux-2.6.29.1-armv5-ixp: ERRORS
-linux-2.6.30-armv5-ixp: ERRORS
-linux-2.6.31-armv5-ixp: ERRORS
-linux-2.6.32-rc3-armv5-ixp: ERRORS
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: ERRORS
-linux-2.6.32-rc3-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-rc3-i686: ERRORS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-rc3-m32r: ERRORS
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: OK
-linux-2.6.32-rc3-mips: ERRORS
-linux-2.6.27-powerpc64: ERRORS
-linux-2.6.28-powerpc64: ERRORS
-linux-2.6.29.1-powerpc64: ERRORS
-linux-2.6.30-powerpc64: ERRORS
-linux-2.6.31-powerpc64: ERRORS
-linux-2.6.32-rc3-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-rc3-x86_64: ERRORS
-sparse (linux-2.6.31): OK
-sparse (linux-2.6.32-rc3): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+and take any actions that seem appropriate/easy.
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+The in kernel mxl5005s driver is known to have about 3 dB worse
+performance for QAM vs 8-VSB (Steven Toth took some measurements once).
 
-Full logs are available here:
+If I had access to the mxl5005s datasheet and any programming manuals, I
+could probably fix this.  However, I do not have them.  Though, I have
+not asked MaxLinear for them either since I don't have cable at my home
+(yet).
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L2 specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+Regards,
+Andy
 
