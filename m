@@ -1,90 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:52425 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752373AbZJTPHH (ORCPT
+Received: from mail-yx0-f188.google.com ([209.85.210.188]:38499 "EHLO
+	mail-yx0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756763AbZJNPD0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Oct 2009 11:07:07 -0400
-Date: Tue, 20 Oct 2009 11:07:09 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: =?UTF-8?B?T3phbiDDh2HEn2xheWFu?= <ozan@pardus.org.tr>
-cc: linux-media@vger.kernel.org,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	USB list <linux-usb@vger.kernel.org>
-Subject: Re: uvcvideo causes ehci_hcd to halt
-In-Reply-To: <4ADD74FE.4040406@pardus.org.tr>
-Message-ID: <Pine.LNX.4.44L0.0910201101220.2887-100000@iolanthe.rowland.org>
+	Wed, 14 Oct 2009 11:03:26 -0400
+Received: by yxe26 with SMTP id 26so5418095yxe.4
+        for <linux-media@vger.kernel.org>; Wed, 14 Oct 2009 08:02:49 -0700 (PDT)
+Message-ID: <4AD5E813.2070406@gmail.com>
+Date: Wed, 14 Oct 2009 12:02:43 -0300
+From: Guilherme Longo <grlongo.ireland@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: linux-media@vger.kernel.org
+Subject: libv4l does not work! 
+References: <4ACDF829.3010500@xfce.org>	<37219a840910080545v72165540v622efd43574cf085@mail.gmail.com>	<4ACDFED9.30606@xfce.org>	<829197380910080745j3015af10pbced2a7e04c7595b@mail.gmail.com>	<4ACE2D5B.4080603@xfce.org>	<829197380910080928t30fc0ecas7f9ab2a7d8437567@mail.gmail.com>	<4ACF03BA.4070505@xfce.org>	<829197380910090629h64ce22e5y64ce5ff5b5991802@mail.gmail.com>	<4ACF714A.2090209@xfce.org>	<829197380910090826r5358a8a2p7a13f2915b5adcd8@mail.gmail.com>	<4AD5D5F2.9080102@xfce.org> <20091014093038.423f3304@pedra.chehab.org> <4AD5EEA0.2010709@xfce.org>
+In-Reply-To: <4AD5EEA0.2010709@xfce.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 20 Oct 2009, [UTF-8] Ozan Çağlayan wrote:
+Do we need include any other header file than
 
-> > Hi. First the backtrace:
-> >
-> > [  149.510272] uvcvideo: Found UVC 1.00 device BisonCam, NB Pro (5986:0203)
-> > [  149.515017] input: BisonCam, NB Pro as
-> > /devices/pci0000:00/0000:00:1d.7/usb1/1-5/1-5:1.0/input/input10
-> > [  149.515588] usbcore: registered new interface driver uvcvideo
-> > [  149.516247] USB Video Class driver (v0.1.0)
-> > [  149.658012] Pid: 1137, comm: hald-probe-vide Tainted: G         C
-> > 2.6.31.4-128 #2
-> > [  149.658012] Call Trace:
-> > [  149.658012]  [<c0373f62>] handshake_on_error_set_halt+0x36/0x65
-> > [  149.658012]  [<c0374073>] enable_periodic+0x32/0x72
-> > [  149.658012]  [<c03741c9>] qh_link_periodic+0x116/0x11e
-> > [  149.658012]  [<c0374665>] qh_schedule+0x120/0x12c
-> > [  149.658012]  [<c03775d0>] intr_submit+0x8c/0x124
-> > [  149.658012]  [<c0377d2a>] ehci_urb_enqueue+0x7a/0xa5
-...
-> > [  149.658012] ehci_hcd 0000:00:1d.7: force halt; handhake f7c66024
-> > 00004000 00000000 -> -110
-> >
-> > And the usbmon trace during "modprobe uvcvideo" can be found at:
-> >
-> > http://cekirdek.pardus.org.tr/~ozan/ivir/logs/usbmon.trace.bad
-> >
-> > I also manage to not reproduce the problem so it's kinda racy. You can
-> > find good/bad dmesg/usbmon traces at:
-> >
-> > http://cekirdek.pardus.org.tr/~ozan/ivir/logs
-> >   
-> ping! in case it's got lost between high traffic :)
+libv4l2.h
+libv4lconvert.h
 
-Yes, sorry, my email client tends to hide messages with non-ASCII 
-characters in the From: address.  It's unforunate.  :-(
+to get libv4l working?
 
-I can't tell exactly what's wrong, but I've got a hunch that the patch 
-below might help.  If it doesn't, send another dmesg log but this time 
-with CONFIG_USB_DEBUG enabled in the kernel.
+I read Hans saying that:
 
-Alan Stern
+Just replace open("dev/video0", ...) with v4l2_open("dev/video0", ...), 
+ioctl with v4l2_ioctl, etc. libv4l2 will then do conversion of any known 
+(webcam) pixelformats to bgr24 or yuv420.
 
+But I am getting undefined reference to 'v4l2_open' and 'v4l2_ioctl'.
+Can I get some help?
 
-Index: usb-2.6/drivers/usb/host/ehci-q.c
-===================================================================
---- usb-2.6.orig/drivers/usb/host/ehci-q.c
-+++ usb-2.6/drivers/usb/host/ehci-q.c
-@@ -818,6 +818,9 @@ qh_make (
- 				dbg ("intr period %d uframes, NYET!",
- 						urb->interval);
- 				goto done;
-+			} else if (qh->period > ehci->periodic_size) {
-+				qh->period = ehci->periodic_size;
-+				urb->interval = qh->period << 3;
- 			}
- 		} else {
- 			int		think_time;
-@@ -840,6 +843,10 @@ qh_make (
- 					usb_calc_bus_time (urb->dev->speed,
- 					is_input, 0, max_packet (maxp)));
- 			qh->period = urb->interval;
-+			if (qh->period > ehci->periodic_size) {
-+				qh->period = ehci->periodic_size;
-+				urb->interval = qh->period;
-+			}
- 		}
- 	}
- 
-
+regards!
+Guilherme Longo
