@@ -1,125 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailrelay009.isp.belgacom.be ([195.238.6.176]:43921 "EHLO
-	mailrelay009.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751306AbZJTIOw (ORCPT
+Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:2584 "EHLO
+	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753851AbZJNRtY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Oct 2009 04:14:52 -0400
-Message-Id: <20091020011215.243408842@ideasonboard.com>
-Date: Tue, 20 Oct 2009 03:12:16 +0200
-From: laurent.pinchart@ideasonboard.com
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com, hverkuil@xs4all.nl,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [RFC/PATCH 06/14] v4l-mc: Remove subdev v4l2_dev field
-References: <20091020011210.623421213@ideasonboard.com>
-Content-Disposition: inline; filename=v4l-mc-remove-subdev-v4l2-dev-field.diff
+	Wed, 14 Oct 2009 13:49:24 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [RFC] Video events, version 2
+Date: Wed, 14 Oct 2009 19:48:33 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Zutshi Vimarsh (Nokia-D-MSW/Helsinki)" <vimarsh.zutshi@nokia.com>,
+	Ivan Ivanov <iivanov@mm-sol.com>,
+	Cohen David Abraham <david.cohen@nokia.com>,
+	Guru Raj <gururaj.nagendra@intel.com>
+References: <4AD5CBD6.4030800@maxwell.research.nokia.com>
+In-Reply-To: <4AD5CBD6.4030800@maxwell.research.nokia.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200910141948.33666.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A pointer to the v4l2_device is stored in the v4l2_entity structure that
-v4l2_subdev derives from. There is no need to hold an extra copy of the
-pointer.
+On Wednesday 14 October 2009 15:02:14 Sakari Ailus wrote:
+> Hi,
+> 
+> 
+> Here's the second version of the video events RFC. It's based on Laurent 
+> Pinchart's original RFC. My aim is to address the issues found in the 
+> old RFC during the V4L-DVB mini-summit in the Linux plumbers conference 
+> 2009. To get a good grasp of the problem at hand it's probably a good 
+> idea read the original RFC as well:
+> 
+> <URL:http://www.spinics.net/lists/linux-media/msg10217.html>
+> 
+> 
+> Changes to version 1
+> ----------------------------------
+> 
+> struct video_event has been renamed to v4l2_event. The struct is used in 
+> userspace and V4L related structures appear to have v4l2 prefix so that 
+> should be better than video.
+> 
+> The "entity" field has been removed from the struct v4l2_event since the 
+> subdevices will have their own device nodes --- the events should come 
+> from them instead of the media controller. Video nodes could be used for 
+> events, too.
+> 
+> A few reserved fields have been added. There are new ioctls as well for 
+> enumeration and (un)subscribing.
+> 
+> 
+> Interface description
+> ---------------------
+> 
+> Event type is either a standard event or private event. Standard events 
+> will be defined in videodev2.h. Private event types begin from 
+> V4L2_EVENT_PRIVATE. Some high order bits could be reserved for future use.
+> 
+> #define V4L2_EVENT_PRIVATE_START	0x08000000
+> #define V4L2_EVENT_RESERVED		0x10000000
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Suggestion: use the V4L2_EV_ prefix perhaps instead of the longer V4L2_EVENT?
 
-Index: v4l-dvb-mc/linux/include/media/v4l2-subdev.h
-===================================================================
---- v4l-dvb-mc.orig/linux/include/media/v4l2-subdev.h
-+++ v4l-dvb-mc/linux/include/media/v4l2-subdev.h
-@@ -261,7 +261,6 @@ struct v4l2_subdev {
- 	struct v4l2_entity entity;
- 	struct module *owner;
- 	u32 flags;
--	struct v4l2_device *v4l2_dev;
- 	const struct v4l2_subdev_ops *ops;
- 	/* name must be unique */
- 	char name[V4L2_SUBDEV_NAME_SIZE];
-@@ -290,7 +289,6 @@ static inline void v4l2_subdev_init(stru
- 	sd->entity.subtype = V4L2_SUBDEV_TYPE_MISC;
- 	sd->entity.name = sd->name;
- 	sd->ops = ops;
--	sd->v4l2_dev = NULL;
- 	sd->flags = 0;
- 	sd->name[0] = '\0';
- 	sd->grp_id = 0;
-@@ -308,7 +306,7 @@ static inline void v4l2_subdev_init(stru
- 
- /* Send a notification to v4l2_device. */
- #define v4l2_subdev_notify(sd, notification, arg)			   \
--	((!(sd) || !(sd)->v4l2_dev || !(sd)->v4l2_dev->notify) ? -ENODEV : \
--	 (sd)->v4l2_dev->notify((sd), (notification), (arg)))
-+	((!(sd) || !(sd)->entity.parent || !(sd)->entity.parent->notify) ? \
-+	  -ENODEV : (sd)->entity.parent->notify((sd), (notification), (arg)))
- 
- #endif
-Index: v4l-dvb-mc/linux/drivers/media/video/bt819.c
-===================================================================
---- v4l-dvb-mc.orig/linux/drivers/media/video/bt819.c
-+++ v4l-dvb-mc/linux/drivers/media/video/bt819.c
-@@ -256,7 +256,7 @@ static int bt819_s_std(struct v4l2_subde
- 
- 	v4l2_dbg(1, debug, sd, "set norm %llx\n", (unsigned long long)std);
- 
--	if (sd->v4l2_dev == NULL || sd->v4l2_dev->notify == NULL)
-+	if (sd->entity.parent == NULL || sd->entity.parent->notify == NULL)
- 		v4l2_err(sd, "no notify found!\n");
- 
- 	if (std & V4L2_STD_NTSC) {
-@@ -308,7 +308,7 @@ static int bt819_s_routing(struct v4l2_s
- 	if (input < 0 || input > 7)
- 		return -EINVAL;
- 
--	if (sd->v4l2_dev == NULL || sd->v4l2_dev->notify == NULL)
-+	if (sd->entity.parent == NULL || sd->entity.parent->notify == NULL)
- 		v4l2_err(sd, "no notify found!\n");
- 
- 	if (decoder->input != input) {
-Index: v4l-dvb-mc/linux/drivers/media/video/v4l2-device.c
-===================================================================
---- v4l-dvb-mc.orig/linux/drivers/media/video/v4l2-device.c
-+++ v4l-dvb-mc/linux/drivers/media/video/v4l2-device.c
-@@ -333,10 +333,10 @@ int v4l2_device_register_subdev(struct v
- 	if (v4l2_dev == NULL || sd == NULL || !sd->name[0])
- 		return -EINVAL;
- 	/* Warn if we apparently re-register a subdev */
--	WARN_ON(sd->v4l2_dev != NULL);
-+	WARN_ON(sd->entity.parent != NULL);
- 	if (!try_module_get(sd->owner))
- 		return -ENODEV;
--	sd->v4l2_dev = v4l2_dev;
-+	sd->entity.parent = v4l2_dev;
- 	spin_lock(&v4l2_dev->lock);
- 	sd->entity.id = v4l2_dev->subdev_id++;
- 	list_add_tail(&sd->entity.list, &v4l2_dev->subdevs);
-@@ -348,12 +348,12 @@ EXPORT_SYMBOL_GPL(v4l2_device_register_s
- void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
- {
- 	/* return if it isn't registered */
--	if (sd == NULL || sd->v4l2_dev == NULL)
-+	if (sd == NULL || sd->entity.parent == NULL)
- 		return;
--	spin_lock(&sd->v4l2_dev->lock);
-+	spin_lock(&sd->entity.parent->lock);
- 	list_del(&sd->entity.list);
--	spin_unlock(&sd->v4l2_dev->lock);
--	sd->v4l2_dev = NULL;
-+	spin_unlock(&sd->entity.parent->lock);
-+	sd->entity.parent = NULL;
- 	module_put(sd->owner);
- }
- EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
-Index: v4l-dvb-mc/linux/drivers/media/video/zoran/zoran_card.c
-===================================================================
---- v4l-dvb-mc.orig/linux/drivers/media/video/zoran/zoran_card.c
-+++ v4l-dvb-mc/linux/drivers/media/video/zoran/zoran_card.c
-@@ -1196,7 +1196,7 @@ zoran_setup_videocodec (struct zoran *zr
- 
- static void zoran_subdev_notify(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
- {
--	struct zoran *zr = to_zoran(sd->v4l2_dev);
-+	struct zoran *zr = to_zoran(sd->entity.parent);
- 
- 	/* Bt819 needs to reset its FIFO buffer using #FRST pin and
- 	   LML33 card uses GPIO(7) for that. */
+> 
+> VIDIOC_ENUM_EVENT is used to enumerate the available event types. It 
+> works a bit the same way than VIDIOC_ENUM_FMT i.e. you get the next 
+> event type by calling it with the last type in the type field. The 
+> difference is that the range is not continuous like in querying controls.
+
+Question: why do we need an ENUM_EVENT? I don't really see a use-case for this.
+
+Also note that there are three methods in use for enumerating within V4L:
+
+1) there is an index field in the struct that starts at 0 and that the
+application increases by 1 until the ioctl returns an error.
+
+2) old-style controls where just enumerated from CID_BASE to CID_LASTP1,
+which is very, very ugly.
+
+3) controls new-style allow one to set bit 31 on the control ID and in that
+case the ioctl will give you the first control with an ID that is higher than
+the specified ID.
+
+1 or 3 are both valid options IMHO.
+
+But again, I don't see why we need it in the first place.
+
+> VIDIOC_G_EVENT is used to get events. sequence is the event sequence 
+> number and the data is specific to driver or event type.
+> 
+> The user will get the information that there's an event through 
+> exception file descriptors by using select(2). When an event is 
+> available the poll handler sets POLLPRI which wakes up select. -EINVAL 
+> will be returned if there are no pending events.
+> 
+> VIDIOC_SUBSCRIBE_EVENT and VIDIOC_UNSUBSCRIBE_EVENT are used to 
+> subscribe and unsubscribe from events. The argument is event type.
+> 
+
+Two event types can be defined already (used by ivtv):
+
+#define V4L2_EVENT_DECODER_STOPPED   1
+#define V4L2_EVENT_OUTPUT_VSYNC      2
+
+> 
+> struct v4l2_eventdesc {
+> 	__u32		type;
+> 	__u8		description[64];
+> 	__u32		reserved[4];
+> };
+> 
+> struct v4l2_event {
+> 	__u32		type;
+> 	__u32		sequence;
+> 	struct timeval	timestamp;
+> 	__u8		data[64];
+
+This should be a union:
 
 
+union {
+	enum v4l2_field ev_output_vsync;
+	__u8 data[64];
+};
+
+> 	__u32		reserved[4];
+> };
+> 
+> #define VIDIOC_ENUM_EVENT	_IORW('V', 83, struct v4l2_eventdesc)
+> #define VIDIOC_G_EVENT		_IOR('V', 84, struct v4l2_event)
+> #define VIDIOC_SUBSCRIBE_EVENT	_IOW('V', 85, __u32)
+> #define VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 86, __u32)
+
+For (un)subscribe I suggest that we also use a struct with the event type
+and a few reserved fields.
+
+> 
+> 
+> As it was discussed in the LPC, event subscriptions should be bound to 
+> file handle. The implementation, however, is not visible to userspace. 
+> This is why I'm not specifying it in this RFC.
+> 
+> While the number of possible standard (and probably private) events 
+> would be quite small and the implementation could be a bit field, I do 
+> see that the interface must be using types passed as numbers instead of 
+> bit fields.
+> 
+> Is it necessary to buffer events of same type or will an event replace 
+> an older event of the same type? It probably depends on event type which 
+> is better. This is also a matter of implementation.
+> 
+> 
+> Comments and questions are more than welcome.
+
+Here's a mixed bag of idea/comments:
+
+We need to define what to do when you unsubscribe an event and there are still
+events of that type pending. Do we remove those pending events as well?
+I think we should just keep them, but I'm open for other opinions.
+
+I was wondering if a 'count' field in v4l2_event might be useful: e.g. if you
+get multiple identical events, and that event is already registered, then you
+can just increase the count rather than adding the same event again. This
+might be overengineering, though. And to be honest, I can't think of a
+use-case, but it's something to keep in mind perhaps.
+
+Would we ever need a VIDIOC_S_EVENT to let the application set an event?
+('software events').
+
+Rather than naming the ioctl VIDIOC_G_EVENT, perhaps VIDIOC_DQEVENT might be
+more appropriate.
+
+How do we prevent the event queue from overflowing? Just hardcode a watermark?
+Alternatively, when subscribing an event we can also pass the maximum number
+of allowed events as an argument.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
