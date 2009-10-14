@@ -1,121 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:49764 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750916AbZJCIiW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2009 04:38:22 -0400
-Date: Sat, 3 Oct 2009 10:37:58 +0200 (CEST)
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Subject: [PATCH resend] firedtv: length field corrupt in ca2host if length>127
-To: Henrik Kurelid <henke@kurelid.se>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: linux-media@vger.kernel.org
-In-Reply-To: <000a01ca431e$14250210$6301a8c0@ds.mot.com>
-Message-ID: <tkrat.2a34f4bd39830bed@s5r6.in-berlin.de>
-References: <000a01ca431e$14250210$6301a8c0@ds.mot.com>
+Received: from mail-fx0-f227.google.com ([209.85.220.227]:35631 "EHLO
+	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760275AbZJNNNA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Oct 2009 09:13:00 -0400
+Received: by fxm27 with SMTP id 27so11566038fxm.17
+        for <linux-media@vger.kernel.org>; Wed, 14 Oct 2009 06:12:22 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=us-ascii
-Content-Disposition: INLINE
+In-Reply-To: <20091014122550.7c84bba5@ieee.org>
+References: <829197380910132052w155116ecrcea808abe87a57a6@mail.gmail.com>
+	 <20091014122550.7c84bba5@ieee.org>
+Date: Wed, 14 Oct 2009 09:12:22 -0400
+Message-ID: <829197380910140612t726251d6y7cff3873587101b4@mail.gmail.com>
+Subject: Re: em28xx DVB modeswitching change: call for testers
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Giuseppe Borzi <gborzi@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Henrik Kurelid <henke@kurelid.se>
+On Wed, Oct 14, 2009 at 6:25 AM, Giuseppe Borzi <gborzi@gmail.com> wrote:
+>> Hello all,
+>>
+>> I have setup a tree that removes the mode switching code when
+>> starting/stopping streaming.  If you have one of the em28xx dvb
+>> devices mentioned in the previous thread and volunteered to test,
+>> please try out the following tree:
+>>
+>> http://kernellabs.com/hg/~dheitmueller/em28xx-modeswitch
+>>
+>> In particular, this should work for those of you who reported problems
+>> with zl10353 based devices like the Pinnacle 320e (or Dazzle) and were
+>> using that one line change I sent this week.  It should also work with
+>> Antti's Reddo board without needing his patch to move the demod reset
+>> into the tuner_gpio.
+>>
+>> This also brings us one more step forward to setting up the locking
+>> properly so that applications cannot simultaneously open the analog
+>> and dvb side of the device.
+>>
+>> Thanks for your help,
+>>
+>> Devin
+>>
+> Hello Devin,
+> I've just downloaded, compiled and installed em28xx-modeswitch.
+> Unfortunately, it doesn't work and doesn't even
+> create /dev/dvb, /dev/videoX, /dev/vbiX. Only /dev/dsp1 is created.
+> The dmesg is attached to this email. As you can see it ends up in
+> errors.
+> One last note, I downloaded from the bz2 link.
+>
+> Cheers.
 
-This solves a problem in firedtv that has become major for Swedish DVB-T
-users the last month or so.  It will most likely solve issues seen by
-other users as well.
+Did you run "make unload" before you plugged in the device?
 
-If the length of an AVC message is greater than 127, the length field
-should be encoded in LV mode instead of V mode. V mode can only be used
-if the length is 127 or less. This patch ensures that the CA_PMT
-message is always encoded in LV mode so PMT message of greater lengths
-can be supported.
+Do me a favor - unplug the device, reboot the PC, plug it back in and
+see if it still happens.  I just want to be sure this isn't some sort
+of issue with conflict between the new and old modules before I debug
+this any further.
 
-Signed-off-by: Henrik Kurelid <henrik@kurelid.se>
-Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
----
+Thanks,
 
-On  2 Oct, Henrik Kurelid wrote:
-> Here is a patch that solves a problem in firedtv that has become major for
-> Swedish DVB-T users the last month or so.
-> It will most likely solve issues seen by other users as well.
-> Please review and comment.
-
-I don't have a CA module, hence can't test it myself.  Is the message
-format vendor-defined or ist there a standard for this?
-
-Anyway, I am resending this patch for Mauro to apply, since the original
-posting had lines wrapped.  I also took the liberty to standardize the
-hexadecimal constants to lowercase to match the rest of firedtv-avc.c.
-
- drivers/media/dvb/firewire/firedtv-avc.c |   38 ++++++++++++-----------
- 1 file changed, 20 insertions(+), 18 deletions(-)
-
-Index: linux-2.6.32-rc1/drivers/media/dvb/firewire/firedtv-avc.c
-===================================================================
---- linux-2.6.32-rc1.orig/drivers/media/dvb/firewire/firedtv-avc.c
-+++ linux-2.6.32-rc1/drivers/media/dvb/firewire/firedtv-avc.c
-@@ -1050,28 +1050,28 @@ int avc_ca_pmt(struct firedtv *fdtv, cha
- 	c->operand[4] = 0; /* slot */
- 	c->operand[5] = SFE_VENDOR_TAG_CA_PMT; /* ca tag */
- 	c->operand[6] = 0; /* more/last */
--	/* c->operand[7] = XXXprogram_info_length + 17; */ /* length */
--	c->operand[8] = list_management;
--	c->operand[9] = 0x01; /* pmt_cmd=OK_descramble */
-+	/* Use three bytes for length field in case length > 127 */
-+	c->operand[10] = list_management;
-+	c->operand[11] = 0x01; /* pmt_cmd=OK_descramble */
- 
- 	/* TS program map table */
- 
--	c->operand[10] = 0x02; /* Table id=2 */
--	c->operand[11] = 0x80; /* Section syntax + length */
--	/* c->operand[12] = XXXprogram_info_length + 12; */
--	c->operand[13] = msg[1]; /* Program number */
--	c->operand[14] = msg[2];
--	c->operand[15] = 0x01; /* Version number=0 + current/next=1 */
--	c->operand[16] = 0x00; /* Section number=0 */
--	c->operand[17] = 0x00; /* Last section number=0 */
--	c->operand[18] = 0x1f; /* PCR_PID=1FFF */
--	c->operand[19] = 0xff;
--	c->operand[20] = (program_info_length >> 8); /* Program info length */
--	c->operand[21] = (program_info_length & 0xff);
-+	c->operand[12] = 0x02; /* Table id=2 */
-+	c->operand[13] = 0x80; /* Section syntax + length */
-+	/* c->operand[14] = XXXprogram_info_length + 12; */
-+	c->operand[15] = msg[1]; /* Program number */
-+	c->operand[16] = msg[2];
-+	c->operand[17] = 0x01; /* Version number=0 + current/next=1 */
-+	c->operand[18] = 0x00; /* Section number=0 */
-+	c->operand[19] = 0x00; /* Last section number=0 */
-+	c->operand[20] = 0x1f; /* PCR_PID=1FFF */
-+	c->operand[21] = 0xff;
-+	c->operand[22] = (program_info_length >> 8); /* Program info length */
-+	c->operand[23] = (program_info_length & 0xff);
- 
- 	/* CA descriptors at programme level */
- 	read_pos = 6;
--	write_pos = 22;
-+	write_pos = 24;
- 	if (program_info_length > 0) {
- 		pmt_cmd_id = msg[read_pos++];
- 		if (pmt_cmd_id != 1 && pmt_cmd_id != 4)
-@@ -1113,8 +1113,10 @@ int avc_ca_pmt(struct firedtv *fdtv, cha
- 	c->operand[write_pos++] = 0x00;
- 	c->operand[write_pos++] = 0x00;
- 
--	c->operand[7] = write_pos - 8;
--	c->operand[12] = write_pos - 13;
-+	c->operand[7] = 0x82;
-+	c->operand[8] = (write_pos - 10) >> 8;
-+	c->operand[9] = (write_pos - 10) & 0xff;
-+	c->operand[14] = write_pos - 15;
- 
- 	crc32_csum = crc32_be(0, &c->operand[10], c->operand[12] - 1);
- 	c->operand[write_pos - 4] = (crc32_csum >> 24) & 0xff;
-
+Devin
 
 -- 
-Stefan Richter
--=====-==--= =-=- ---==
-http://arcgraph.de/sr/
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
