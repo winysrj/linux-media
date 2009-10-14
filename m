@@ -1,16 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-vw0-f173.google.com ([209.85.212.173])
+Received: from mail-yx0-f178.google.com ([209.85.210.178])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <falconix@gmail.com>) id 1N3d4G-0004Qa-FN
-	for linux-dvb@linuxtv.org; Thu, 29 Oct 2009 23:02:05 +0100
-Received: by vws3 with SMTP id 3so429162vws.3
-	for <linux-dvb@linuxtv.org>; Thu, 29 Oct 2009 15:01:30 -0700 (PDT)
+	(envelope-from <theunis.potgieter@gmail.com>) id 1My3Zn-0002e2-6X
+	for linux-dvb@linuxtv.org; Wed, 14 Oct 2009 15:07:35 +0200
+Received: by yxe8 with SMTP id 8so11135184yxe.17
+	for <linux-dvb@linuxtv.org>; Wed, 14 Oct 2009 06:07:01 -0700 (PDT)
 MIME-Version: 1.0
-Date: Thu, 29 Oct 2009 23:01:29 +0100
-Message-ID: <e39f6bb10910291501o5e423d9epecb82b922769f259@mail.gmail.com>
-From: Anders <falconix@gmail.com>
+Date: Wed, 14 Oct 2009 15:07:00 +0200
+Message-ID: <23582ca0910140607v54a15d46y7ac834a3b6255af3@mail.gmail.com>
+From: Theunis Potgieter <theunis.potgieter@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Elgato eyeTV DTT Deluxe 2009
+Subject: [linux-dvb] request driver for cards
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -19,55 +19,61 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0788384902=="
+Content-Type: multipart/mixed; boundary="===============2082131072=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0788384902==
-Content-Type: multipart/alternative; boundary=001636c5bea7ba705704771a0d9d
+--===============2082131072==
+Content-Type: multipart/alternative; boundary=001485f78c2497e12b0475e4d618
 
---001636c5bea7ba705704771a0d9d
-Content-Type: text/plain; charset=UTF-8
+--001485f78c2497e12b0475e4d618
+Content-Type: text/plain; charset=ISO-8859-1
 
-I have just bought an Elgato eyeTV DTT Deluxe 2009 usb dongle, and I knew
-that there is no support for it from linuxtv when i bought it.
+Hi, what is the procedure to request drivers for specific new, perhaps
+unknown supported cards?
 
-This is where I am, i don't know wich hardware it is in it and don't want to
-open it because it seems imposible without destroy anything.
-Just in case if it was running the same hardware as Elgato eyeTV DTT Deluxe
-i tried to just change the USB device id in the dvb-usb-ids.h with no sucess
-when i run lsusb i still only sees its ID with out any name. So they doesn't
-seems to be compatible with each other.
+I did have a look at http://www.linuxtv.org/wiki/index.php/Main_Page but it
+didn't contain any information about supported cards. Neither did
+/usr/src/linux/Documentation/dvb/cards.txt for the following brands:
 
-I have started a wikipage
-http://www.linuxtv.org/wiki/index.php/Elgato_EyeTV_DTT_deluxe_v2
-where i gather information, so is there something more i can do to get more
-information about my dongle?
+name, site:
+Compro, S300 http://www.comprousa.com/en/product/s300/s300.html
+K-World VS-DVB-S 100/IS,
+http://global.kworld-global.com/main/prod_in.aspx?mnuid=1248&modid=6&pcid=46&ifid=16&prodid=98
 
---001636c5bea7ba705704771a0d9d
-Content-Type: text/html; charset=UTF-8
+Perhaps I shouldn't waste time if I could find a dual/twin tuner card for
+dvb-s or dvb-s2. Are there any recommended twin-tuner pci-e cards that is
+support and can actually be bought by the average consumer?
+
+Thanks
+
+--001485f78c2497e12b0475e4d618
+Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-I have just bought an Elgato eyeTV DTT Deluxe 2009 usb dongle, and I knew t=
-hat there is no support for it from linuxtv when i bought it.<br><br>This i=
-s where I am, i don&#39;t know wich hardware it is in it and don&#39;t want=
- to open it because it seems imposible without destroy anything. <br>
-Just in case if it was running the same hardware as Elgato eyeTV DTT Deluxe=
- i tried to just change the USB device id in the dvb-usb-ids.h with no suce=
-ss<br>when i run lsusb i still only sees its ID with out any name. So they =
-doesn&#39;t seems to be compatible with each other.<br>
-<br>I have started a wikipage <a href=3D"http://www.linuxtv.org/wiki/index.=
-php/Elgato_EyeTV_DTT_deluxe_v2">http://www.linuxtv.org/wiki/index.php/Elgat=
-o_EyeTV_DTT_deluxe_v2</a><br>where i gather information, so is there someth=
-ing more i can do to get more information about my dongle?<br>
+Hi, what is the procedure to request drivers for specific new, perhaps unkn=
+own supported cards?<br><br>I did have a look at <a href=3D"http://www.linu=
+xtv.org/wiki/index.php/Main_Page">http://www.linuxtv.org/wiki/index.php/Mai=
+n_Page</a> but it didn&#39;t contain any information about supported cards.=
+ Neither did /usr/src/linux/Documentation/dvb/cards.txt for the following b=
+rands:<br>
+<br>name, site:<br>Compro, S300 <a href=3D"http://www.comprousa.com/en/prod=
+uct/s300/s300.html">http://www.comprousa.com/en/product/s300/s300.html</a><=
+br>K-World VS-DVB-S 100/IS, <a href=3D"http://global.kworld-global.com/main=
+/prod_in.aspx?mnuid=3D1248&amp;modid=3D6&amp;pcid=3D46&amp;ifid=3D16&amp;pr=
+odid=3D98">http://global.kworld-global.com/main/prod_in.aspx?mnuid=3D1248&a=
+mp;modid=3D6&amp;pcid=3D46&amp;ifid=3D16&amp;prodid=3D98</a><br>
+<br>Perhaps I shouldn&#39;t waste time if I could find a dual/twin tuner ca=
+rd for dvb-s or dvb-s2. Are there any recommended twin-tuner pci-e cards th=
+at is support and can actually be bought by the average consumer?<br><br>
+Thanks<br><br><br><br>
+
+--001485f78c2497e12b0475e4d618--
 
 
---001636c5bea7ba705704771a0d9d--
-
-
---===============0788384902==
+--===============2082131072==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -78,4 +84,4 @@ linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0788384902==--
+--===============2082131072==--
