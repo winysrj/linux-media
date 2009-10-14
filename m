@@ -1,47 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:52390 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751695AbZJWWOc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Oct 2009 18:14:32 -0400
-Date: Fri, 23 Oct 2009 18:14:35 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: =?UTF-8?B?T3phbiDDh2HEn2xheWFu?= <ozan@pardus.org.tr>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	<linux-media@vger.kernel.org>,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	USB list <linux-usb@vger.kernel.org>
-Subject: Re: uvcvideo causes ehci_hcd to halt
-In-Reply-To: <4AE158D7.6000900@pardus.org.tr>
-Message-ID: <Pine.LNX.4.44L0.0910231809290.31680-100000@netrider.rowland.org>
+Received: from web25403.mail.ukl.yahoo.com ([217.12.10.137]:32612 "HELO
+	web25403.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1756203AbZJNNzY convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Oct 2009 09:55:24 -0400
+Message-ID: <736902.30432.qm@web25403.mail.ukl.yahoo.com>
+References: <813517.84815.qm@web25405.mail.ukl.yahoo.com>  <1255050108.5543.21.camel@pc07.localdom.local>  <207667.36736.qm@web25405.mail.ukl.yahoo.com> <1255379707.3278.5.camel@pc07.localdom.local>
+Date: Wed, 14 Oct 2009 13:54:47 +0000 (GMT)
+From: fabio tirapelle <ftirapelle@yahoo.it>
+Subject: Re: Haupp. HVR-1100 problem and DVB-T card
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: linux-media@vger.kernel.org, Michael Hunold <hunold@linuxtv.org>,
+	Oliver Endriss <o.endriss@gmx.de>,
+	Oldrich Jedlicka <oldium.pro@seznam.cz>,
+	Andy Walls <awalls@radix.net>,
+	Michael Krufky <mkrufky@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <1255379707.3278.5.camel@pc07.localdom.local>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 23 Oct 2009, [UTF-8] Ozan Çağlayan wrote:
+----- Messaggio originale -----
+> Da: hermann pitton <hermann-pitton@arcor.de>
+> A: fabio tirapelle <ftirapelle@yahoo.it>
 
-> > There's something odd about this.  I'd like to see this file again, 
-> > after the patch below has been applied.
-> >   
-> 
-> periodic
-> size = 1024
->    1:  qh1024-0001/f6ffe280 (h2 ep2 [1/0] q0 p8) t00000000
+> > > > I have installed mythtv on this configuration:
+> > > > Asus M3N78-VM GF8200 RGVSM
+> > > > AMD Ath64 X2LV 3100BOX6000+ 1MB
+> > > > Haupp. WinTV HVR-1100 -t/a PCI
+> > > > TechniSat SkyStar 2 DVB-S PCI
+> > > > nVidia GeForce 8200
+> > > > Ubuntu 8.10 - Linux htpc 2.6.27-11-generic 
 
-On closer study and more careful thought, there's nothing odd here at
-all.  This is what would be expected given the bug that you saw.
+> I would try to test the HVR1110 next on another PC with known working
+> PCI hardware, also above different operating systems if possible.
 
-> After putting a udelay() the problem seems to be resolved. I did a
-> rmmod-modprobe-sleep in 50 iterations,  and the host controller was
-> still functional along with the web-cam:
+Hi Hermann! Thank you for your quick response. I tested the card on a  M2N-VM DH and it works. So my best guess is that the card does not work on my actual motherboard.
 
-Okay, that proves this really is a timing bug in the hardware.  But we
-can't go around putting 2-millisecond delays in the kernel!  Maybe you
-can test to see if smaller delays will fix the problem.  If 50
-microseconds or less doesn't work then it will be necessary to add a
-new timer to ehci-hcd.
+> We know that the HVR1110s are properly detected on almost all hardware.
+> Before thinking about replacing mobo/PSU, make sure the card is OK.
 
-Alan Stern
+Do you have a suggestion for a new mobo that you know is working (if I can keep my other hardware that would be great)?
 
+Thank you very mutch for your time,
+Fabio
+
+
+
+      
