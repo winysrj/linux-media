@@ -1,84 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:12910 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754425AbZJDPhT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 4 Oct 2009 11:37:19 -0400
-Message-ID: <4AC8C227.4000301@redhat.com>
-Date: Sun, 04 Oct 2009 17:41:27 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: James Blanford <jhblanford@gmail.com>,
-	=?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: PATCH: gscpa stv06xx + ov518: dont discard every other frame
-Content-Type: multipart/mixed;
- boundary="------------050800020709060407060204"
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1888 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755393AbZJNSHS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Oct 2009 14:07:18 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id n9EI6b4L005338
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 14 Oct 2009 20:06:41 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 14 Oct 2009 20:06:37 +0200 (CEST)
+Message-Id: <200910141806.n9EI6b4L005338@smtp-vbr16.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------050800020709060407060204
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Hi,
+Results of the daily build of v4l-dvb:
 
-As noticed by James Blanford <jhblanford@gmail.com>, we were discarding
-every other frame in stv06xx and the ov518 (part of ov519.c) drivers.
+date:        Wed Oct 14 19:00:05 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13101:3919b17dc88e
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-When we call gspca_frame_add, it returns a pointer to the frame passed in,
-unless we call it with LAST_PACKET, when it will return a pointer to a
-new frame in which to store the frame data for the next frame. So whenever
-calling:
-gspca_frame_add(gspca_dev, LAST_PACKET, frame, data, len);
-we should do this as:
-frame = gspca_frame_add(gspca_dev, LAST_PACKET, frame, data, len);
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-rc3-armv5: ERRORS
+linux-2.6.32-rc3-armv5-davinci: ERRORS
+linux-2.6.27-armv5-ixp: ERRORS
+linux-2.6.28-armv5-ixp: ERRORS
+linux-2.6.29.1-armv5-ixp: ERRORS
+linux-2.6.30-armv5-ixp: ERRORS
+linux-2.6.31-armv5-ixp: ERRORS
+linux-2.6.32-rc3-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.32-rc3-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-rc3-i686: ERRORS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-rc3-m32r: ERRORS
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.32-rc3-mips: ERRORS
+linux-2.6.27-powerpc64: ERRORS
+linux-2.6.28-powerpc64: ERRORS
+linux-2.6.29.1-powerpc64: ERRORS
+linux-2.6.30-powerpc64: ERRORS
+linux-2.6.31-powerpc64: ERRORS
+linux-2.6.32-rc3-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-rc3-x86_64: ERRORS
+sparse (linux-2.6.31): OK
+sparse (linux-2.6.32-rc3): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-So that any further data got from of the pkt we are handling in pkt_scan, goes
-to the next frame.
+Detailed results are available here:
 
-We are not doing this in stv06xx.c pkt_scan method, which the cause of what
-James is seeing. So I started checking all drivers, and we are not doing this
-either in ov519.c when handling an ov518 bridge. So now the framerate of my
-3 ov518 test cams has just doubled. Thanks James!
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-The attached patch fixes this.
+Full logs are available here:
 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-Hans
+The V4L2 specification failed to build, but the last compiled spec is here:
 
---------------050800020709060407060204
-Content-Type: text/plain;
- name="gspca-dont-discard-every-other-frame.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="gspca-dont-discard-every-other-frame.patch"
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
 
-diff -r 5ad36b0c0e90 linux/drivers/media/video/gspca/ov519.c
---- a/linux/drivers/media/video/gspca/ov519.c	Sun Oct 04 16:23:04 2009 +0200
-+++ b/linux/drivers/media/video/gspca/ov519.c	Sun Oct 04 17:26:43 2009 +0200
-@@ -2939,7 +2939,7 @@
- 	/* A false positive here is likely, until OVT gives me
- 	 * the definitive SOF/EOF format */
- 	if ((!(data[0] | data[1] | data[2] | data[3] | data[5])) && data[6]) {
--		gspca_frame_add(gspca_dev, LAST_PACKET, frame, data, 0);
-+		frame = gspca_frame_add(gspca_dev, LAST_PACKET, frame, data, 0);
- 		gspca_frame_add(gspca_dev, FIRST_PACKET, frame, data, 0);
- 		sd->packet_nr = 0;
- 	}
-diff -r 5ad36b0c0e90 linux/drivers/media/video/gspca/stv06xx/stv06xx.c
---- a/linux/drivers/media/video/gspca/stv06xx/stv06xx.c	Sun Oct 04 16:23:04 2009 +0200
-+++ b/linux/drivers/media/video/gspca/stv06xx/stv06xx.c	Sun Oct 04 17:26:43 2009 +0200
-@@ -394,7 +394,7 @@
- 			PDEBUG(D_PACK, "End of frame detected");
- 
- 			/* Complete the last frame (if any) */
--			gspca_frame_add(gspca_dev, LAST_PACKET, frame, data, 0);
-+			frame = gspca_frame_add(gspca_dev, LAST_PACKET, frame, data, 0);
- 
- 			if (chunk_len)
- 				PDEBUG(D_ERR, "Chunk length is "
+The DVB API specification from this daily build is here:
 
---------------050800020709060407060204--
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
