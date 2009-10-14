@@ -1,97 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.navvo.net ([74.208.67.6]:52843 "EHLO mail.navvo.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761456AbZJOOoj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Oct 2009 10:44:39 -0400
-From: santiago.nunez@ridgerun.com
-To: davinci-linux-open-source@linux.davincidsp.com
-Cc: linux-media@vger.kernel.org, nsnehaprabha@ti.com,
-	m-karicheri2@ti.com, diego.dompe@ridgerun.com,
-	todd.fischer@ridgerun.com, mgrosen@ti.com,
-	Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-Date: Thu, 15 Oct 2009 08:44:08 -0600
-Message-Id: <1255617848-1512-1-git-send-email-santiago.nunez@ridgerun.com>
-Subject: [PATCH 6/6 v5] Menu support for TVP7002 in DM365
+Received: from fisek2.ada.net.tr ([195.112.153.19]:40660 "HELO
+	mail.fisek.com.tr" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with SMTP id S1761629AbZJNQFI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Oct 2009 12:05:08 -0400
+Date: Wed, 14 Oct 2009 18:57:33 +0300
+From: Onur =?UTF-8?B?S8O8w6fDvGs=?= <onur@delipenguen.net>
+To: linux-media@vger.kernel.org
+Subject: Re: libv4l does not work!
+Message-Id: <20091014185733.45a84258.onur@delipenguen.net>
+In-Reply-To: <4AD5E813.2070406@gmail.com>
+References: <4ACDF829.3010500@xfce.org>
+	<37219a840910080545v72165540v622efd43574cf085@mail.gmail.com>
+	<4ACDFED9.30606@xfce.org>
+	<829197380910080745j3015af10pbced2a7e04c7595b@mail.gmail.com>
+	<4ACE2D5B.4080603@xfce.org>
+	<829197380910080928t30fc0ecas7f9ab2a7d8437567@mail.gmail.com>
+	<4ACF03BA.4070505@xfce.org>
+	<829197380910090629h64ce22e5y64ce5ff5b5991802@mail.gmail.com>
+	<4ACF714A.2090209@xfce.org>
+	<829197380910090826r5358a8a2p7a13f2915b5adcd8@mail.gmail.com>
+	<4AD5D5F2.9080102@xfce.org>
+	<20091014093038.423f3304@pedra.chehab.org>
+	<4AD5EEA0.2010709@xfce.org>
+	<4AD5E813.2070406@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
 
-This patch provides menu configuration options for the TVP7002
-decoder driver in DM365.
+On Wed, 14 Oct 2009 12:02:43 -0300
+Guilherme Longo <grlongo.ireland@gmail.com> wrote:
 
-Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
----
- drivers/media/video/Kconfig  |   32 ++++++++++++++++++++++++++++++++
- drivers/media/video/Makefile |    2 ++
- 2 files changed, 34 insertions(+), 0 deletions(-)
+> Do we need include any other header file than
+> 
+> libv4l2.h
+> libv4lconvert.h
+> 
+> to get libv4l working?
+> 
+> I read Hans saying that:
+> 
+> Just replace open("dev/video0", ...) with v4l2_open
+> ("dev/video0", ...), ioctl with v4l2_ioctl, etc. libv4l2 will then do
+> conversion of any known (webcam) pixelformats to bgr24 or yuv420.
+> 
+> But I am getting undefined reference to 'v4l2_open' and 'v4l2_ioctl'.
+> Can I get some help?
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index e6186b3..f33652e 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -392,6 +392,15 @@ config VIDEO_TVP5150
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called tvp5150.
- 
-+config VIDEO_TVP7002
-+	tristate "Texas Instruments TVP7002 video decoder"
-+	depends on VIDEO_V4L2 && I2C
-+	---help---
-+	  Support for the Texas Instruments TVP7002 video decoder.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called tvp7002.
-+
- config VIDEO_VPX3220
- 	tristate "vpx3220a, vpx3216b & vpx3214c video decoders"
- 	depends on VIDEO_V4L2 && I2C
-@@ -466,6 +475,29 @@ config VIDEO_THS7303
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called ths7303.
- 
-+config VIDEO_THS7353
-+	tristate "THS7353 Video Amplifier"
-+	depends on I2C
-+	help
-+	  Support for TI THS7353 video amplifier
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called ths7353.
-+
-+config VIDEO_THS7353_LUMA_CHANNEL
-+	int "THS7353 channel number for Luma Input"
-+	default 3
-+	depends on VIDEO_THS7353
-+	help
-+	  Select the luma channel number for the THS7353 input.
-+
-+	  THS7353 has three identical channels. For the component
-+	  interface, luma input will be connected to one of these
-+	  channels and cb and cr will be connected to other channels
-+	  This config option is used to select the luma input channel
-+	  number. Possible values for this option are 1,2 or 3. Any
-+	  other value will result in value 2.
-+
- config VIDEO_ADV7343
- 	tristate "ADV7343 video encoder"
- 	depends on I2C
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index e541932..d9a421a 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -53,9 +53,11 @@ obj-$(CONFIG_VIDEO_BT856) += bt856.o
- obj-$(CONFIG_VIDEO_BT866) += bt866.o
- obj-$(CONFIG_VIDEO_KS0127) += ks0127.o
- obj-$(CONFIG_VIDEO_THS7303) += ths7303.o
-+obj-$(CONFIG_VIDEO_THS7353) += ths7353.o
- obj-$(CONFIG_VIDEO_VINO) += indycam.o
- obj-$(CONFIG_VIDEO_TVP5150) += tvp5150.o
- obj-$(CONFIG_VIDEO_TVP514X) += tvp514x.o
-+obj-$(CONFIG_VIDEO_TVP7002) += tvp7002.o
- obj-$(CONFIG_VIDEO_MSP3400) += msp3400.o
- obj-$(CONFIG_VIDEO_CS5345) += cs5345.o
- obj-$(CONFIG_VIDEO_CS53L32A) += cs53l32a.o
+ You must also "link" your program with necessary libraries, for example
+
+ gcc  code.c -lv4l2
+
+
 -- 
-1.6.0.4
+ Onur Küçük                                      Knowledge speaks,
+ <onur.--.-.delipenguen.net>                     but wisdom listens
 
