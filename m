@@ -1,77 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:54329 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754202AbZJ2LLN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Oct 2009 07:11:13 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: finalising soc-camera conversion to v4l2-subdev
-Date: Thu, 29 Oct 2009 12:11:16 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-References: <Pine.LNX.4.64.0910281653010.4524@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0910281653010.4524@axis700.grange>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from lo.gmane.org ([80.91.229.12]:60687 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754524AbZJONt0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Oct 2009 09:49:26 -0400
+Received: from list by lo.gmane.org with local (Exim 4.50)
+	id 1MyQh6-00017K-Vv
+	for linux-media@vger.kernel.org; Thu, 15 Oct 2009 15:48:40 +0200
+Received: from 92-234-3-28.cable.ubr10.dals.blueyonder.co.uk ([92.234.3.28])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 15 Oct 2009 15:48:40 +0200
+Received: from mariofutire by 92-234-3-28.cable.ubr10.dals.blueyonder.co.uk with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 15 Oct 2009 15:48:40 +0200
+To: linux-media@vger.kernel.org
+From: Andrea <mariofutire@googlemail.com>
+Subject: Re: How to set "nomail" option for the mailing list
+Date: Thu, 15 Oct 2009 14:48:03 +0100
+Message-ID: <hb796j$l9n$1@ger.gmane.org>
+References: <hb6kt3$k18$1@ger.gmane.org> <200910151036.27696.laurent.pinchart@ideasonboard.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <200910291211.16665.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <200910151036.27696.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+On 15/10/09 09:36, Laurent Pinchart wrote:
+> On Thursday 15 October 2009 10:01:39 Andrea wrote:
+>> Hi,
+>>
+>> I read and sometimes post to this mailing list, but I very much prefer to
+>>   use a newsreader from gmane rather than receiving all the mails.
+>>
+>> In the old linux-dvb mailing list it was possible to switch off receiving
+>>   all the emails, is it still possible?
+>>
+>> I could not find anything in the documentation of majordomo@vger.kernel.org
+>
+> The linux-media@vger.kernel.org list is not subscriber-only like the old list.
+> You could just unsubscribe.
+>
 
-On Wednesday 28 October 2009 17:37:09 Guennadi Liakhovetski wrote:
-> Hi all
-> 
-> As some of you will know, soc-camera framework is undergoing a conversion to
-> the v4l2-subdev API. Most of the legacy soc-camera client API has been
-> ported over to v4l2-subdev. Final conversion is blocked by missing
-> functionality in the current v4l2 subsystem. Namely video bus configuration
-> and data format negotiation. And from the progress of respective RFCs it
-> looks like this could take a while to get them into the mainline, which is
-> also understandable, given the amount of work. So, the question is - can we
-> work out a way to finalise the porting yet before the final versions of
-> those RFCs make it upstream? OTOH, we certainly do not want to have to
-> create a solution, which will have to be thrown away completely later.
+Thanks.
+But gmane returns a wrong information then
 
-Right, but we could design a temporary solution that goes in the right 
-direction and "fix" the code later. In that case the temporary solution must 
-be clearly marked as such, as we don't want to keep it around for API and ABI 
-compatibility reasons.
+================================================================================
+You have sent a message to be posted on the
+gmane.linux.drivers.video-input-infrastructure newsgroup.
 
-> We could decide to
-> 
-> 1. make bus configuration optional. If no data provided - use defaults.
 
-Would that really work ?
+This is a non-public mailing list, which means that you have to
+subscribe to the list to post to it.  If you're already subscribed to
+the list, Gmane can forward the message you sent to the list if you respond
+to this message.  If not, you should sign up to the mailing list first,
+and then respond to this message, or just forget about it.
 
-> 2. use something like the proposed imagebus API for data format negotiation.
-> Even if it will be eventually strongly modified for new "Media Controller &
-> Co." APIs, it already exists, so, the time has already been spent on it, and
-> mainlining it will not require much more time. But I'm open to other ideas
-> too.
-> 
-> OR
-> 
-> 3. use some intermediate solution - something, that we think will later
-> allow an easy enough extension to the new APIs when they appear.
+Many mailing lists have an option to subscribe to a list, but then put
+it in 'nomail' mode, which means that you won't receive any mail from
+the list.
 
-2 and 3 are similar in my opinion. The current imagebus API proposal controls 
-whole subdevices while it should act at the pad level. Pads will be introduced 
-with the media controller, so we could
+The mailing list software used for the list in question is majordomo.
 
-- use a subdev-level imagebus API, allowing the soc-camera conversion to 
-subdev, and port the code to pad level latter, or
 
-- introduce subdev pads operations now and use them for the imagebus API
+Mail majordomo@vger.kernel.org and say 'subscribe linux-media'.
+You have to respond within one week.
+=================================================================================
 
-The second solution would take more time as we need to agree on the subdev 
-pads operations. I'm ok with the first solution, as long as you agree to port 
-the code to the new subdev pads operations later :-)
-
--- 
-Regards,
-
-Laurent Pinchart
