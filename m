@@ -1,77 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f171.google.com ([209.85.216.171]:33960 "EHLO
-	mail-px0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754132AbZJTGuL convert rfc822-to-8bit (ORCPT
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46902 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751067AbZJOOKT convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Oct 2009 02:50:11 -0400
-Received: by pxi1 with SMTP id 1so1096267pxi.33
-        for <linux-media@vger.kernel.org>; Mon, 19 Oct 2009 23:50:15 -0700 (PDT)
-MIME-Version: 1.0
-Date: Tue, 20 Oct 2009 17:50:15 +1100
-Message-ID: <ef52a95d0910192350t457ba959x8d2f1cce82585a3b@mail.gmail.com>
-Subject: Leadtek Winfast DTV-1000S remote control support
-From: Michael Obst <m.obst@ugrad.unimelb.edu.au>
-To: mkrufky@kernellabs.com
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 15 Oct 2009 10:10:19 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Jun Nie <niej0001@gmail.com>
+CC: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	linux-media <linux-media@vger.kernel.org>
+Date: Thu, 15 Oct 2009 09:09:41 -0500
+Subject: RE: Support on discontinuous planer buffer and stride
+Message-ID: <A69FA2915331DC488A831521EAE36FE4015555EFD7@dlee06.ent.ti.com>
+References: <7c34ac520909222330k73380177sbf103345f5d3d7ec@mail.gmail.com>
+ <7c34ac520910082207i2beacffbhd89a38244370cf39@mail.gmail.com>
+ <200910090817.20736.hverkuil@xs4all.nl>
+ <A69FA2915331DC488A831521EAE36FE4015555EFBC@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE4015555EFBC@dlee06.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="Windows-1252"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi,
-    I've been using the testing drivers for the dtv 1000s and they
-have been working great, there was no remote control support however
-so after a bit of messing around I managed to patch the files and get
-my remote working. The patch is below, but i'm new to the mailing list
-and patches and the like so not sure if this is useful or correct, but
-it works for me so I thought I would contribute it.
 
-Cheers
+Forgot to mention that this may need a new memory type as well.
 
-diff -Naur dtv1000s-orig/linux/drivers/media/common/ir-keymaps.c
-dtv1000s-remote/linux/drivers/media/common/ir-keymaps.c
---- dtv1000s-orig/linux/drivers/media/common/ir-keymaps.c	2009-10-07
-21:27:39.315700245 +1100
-+++ dtv1000s-remote/linux/drivers/media/common/ir-keymaps.c	2009-10-07
-21:27:59.727200476 +1100
-@@ -1630,6 +1630,7 @@
- 	[ 0x37 ] = KEY_RADIO,         /* FM */
- 	[ 0x38 ] = KEY_DVD,
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+phone: 301-407-9583
+email: m-karicheri2@ti.com
 
-+	[ 0x1a ] = KEY_MODE,		/* change to MCE mode on Y04G0051*/
- 	[ 0x3e ] = KEY_F21,           /* MCE +VOL, on Y04G0033 */
- 	[ 0x3a ] = KEY_F22,           /* MCE -VOL, on Y04G0033 */
- 	[ 0x3b ] = KEY_F23,           /* MCE +CH,  on Y04G0033 */
-diff -Naur dtv1000s-orig/linux/drivers/media/video/saa7134/saa7134-cards.c
-dtv1000s-remote/linux/drivers/media/video/saa7134/saa7134-cards.c
---- dtv1000s-orig/linux/drivers/media/video/saa7134/saa7134-cards.c	2009-06-20
-05:22:30.000000000 +1000
-+++ dtv1000s-remote/linux/drivers/media/video/saa7134/saa7134-cards.c	2009-10-07
-21:23:23.243700429 +1100
-@@ -6638,6 +6638,7 @@
- 	case SAA7134_BOARD_REAL_ANGEL_220:
- 	case SAA7134_BOARD_KWORLD_PLUS_TV_ANALOG:
- 	case SAA7134_BOARD_AVERMEDIA_GO_007_FM_PLUS:
-+	case SAA7134_BOARD_LEADTEK_WINFAST_DTV1000S:
- 		dev->has_remote = SAA7134_REMOTE_GPIO;
- 		break;
- 	case SAA7134_BOARD_FLYDVBS_LR300:
-diff -Naur dtv1000s-orig/linux/drivers/media/video/saa7134/saa7134-input.c
-dtv1000s-remote/linux/drivers/media/video/saa7134/saa7134-input.c
---- dtv1000s-orig/linux/drivers/media/video/saa7134/saa7134-input.c	2009-06-20
-05:22:30.000000000 +1000
-+++ dtv1000s-remote/linux/drivers/media/video/saa7134/saa7134-input.c	2009-10-07
-21:24:32.555700167 +1100
-@@ -605,6 +605,12 @@
- 		mask_keycode = 0x7f;
- 		polling = 40; /* ms */
- 		break;
-+	case SAA7134_BOARD_LEADTEK_WINFAST_DTV1000S:
-+		ir_codes     = ir_codes_winfast;
-+		mask_keycode = 0x5f00;
-+		mask_keyup = 0x020000;
-+		polling      = 50; // ms
-+		break;
- 	}
- 	if (NULL == ir_codes) {
- 		printk("%s: Oops: IR config error [card=%d]\n",
+>-----Original Message-----
+>From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>owner@vger.kernel.org] On Behalf Of Karicheri, Muralidharan
+>Sent: Thursday, October 15, 2009 10:00 AM
+>To: Hans Verkuil; Jun Nie
+>Cc: g.liakhovetski@gmx.de; linux-media
+>Subject: RE: Support on discontinuous planer buffer and stride
+>
+>Hans,
+>
+>>
+>>Well, it is definitely not possible to do it in this manner since changing
+>>the size of struct v4l2_buffer will break the API. Furthermore, something
+>>like
+>>this will only work if the DMA engine can handle strides. Is that the case
+>>for your hardware? I don't think you mentioned what the hardware is you
+>use.
+>>
+>In fact I was planning to write an RFC for this as well. DM365 Resizer
+>allows setting separate buffer address for Y and C plane (For _NV12 pixel
+>format) as well as line offsets. Similarly on the display side, VPBE
+>provides separate registers for configuring this. Currently we have
+>proprietary IOCTL to configure the C-Plane buffer address and is not the
+>right way to do it. For planar pixel format like NV12, NV16 etc, where the
+>hardware is capable of configuring different address for individual plane,
+>current v4l2 API has limitations. So I suggest that Jun Nie work on a RFC
+>&implementation that allows application to set buffer addresses for
+>individual planes of planar pixel formats. Something like below for userptr
+>case (I feel only userptr case to be supported in this case)...
+>
+>+ struct v4l2_userptr_planar {
+>+	/* Number of planes in the pixel format. 2 or 3,
+>+	 * 2 - for Y & CbCr, 3 for Y, Cb, & Cr
+>+	 */
+>+	__u32	num_planes;
+>+	/* Y or R */
+>+	unsigned long   userptr_yr;
+>+	/* Cb or G */
+>+	unsigned long   userptr_cbg;
+>+	/* Cr or B */
+>+	unsigned long   userptr_crb;
+>+ };
+>
+>struct v4l2_buffer {
+>	__u32			index;
+>	enum v4l2_buf_type      type;
+>	__u32			bytesused;
+>	__u32			flags;
+>	enum v4l2_field		field;
+>	struct timeval		timestamp;
+>	struct v4l2_timecode	timecode;
+>	__u32			sequence;
+>
+>	/* memory location */
+>	enum v4l2_memory        memory;
+>	union {
+>		__u32           offset;
+>		unsigned long   userptr;
+>+		struct v4l2_userptr_planar userptr_p;
+>	} m;
+>	__u32			length;
+>	__u32			input;
+>	__u32			reserved;
+>};
+>
+>-Murali
+>>Regards,
+>>
+>>	Hans
+>>
+>>--
+>>Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+>>¢éì¹»®&Þ~º&¶¬–+-±éÝ¶¥Šw®žË›±ÊâmébžìfyØšŠ{ayºÊ‡Ú™ë,j
+>­¢f£¢·hš‹àz¹®w¥¢¸
+>>
+>>¢·¦j:+v‰¨ŠwèjØm¶Ÿÿ¾
+>«‘êçzZ+ƒùšŽŠÝ¢j"ú!¶i
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
