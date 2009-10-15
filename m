@@ -1,194 +1,235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:62107 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932237AbZJNWZs convert rfc822-to-8bit (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:58555 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754438AbZJOVJ1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Oct 2009 18:25:48 -0400
-Received: by qw-out-2122.google.com with SMTP id 9so85371qwb.37
-        for <linux-media@vger.kernel.org>; Wed, 14 Oct 2009 15:24:41 -0700 (PDT)
+	Thu, 15 Oct 2009 17:09:27 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC] Video events, version 2
+Date: Thu, 15 Oct 2009 23:11:33 +0200
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Zutshi Vimarsh (Nokia-D-MSW/Helsinki)" <vimarsh.zutshi@nokia.com>,
+	Ivan Ivanov <iivanov@mm-sol.com>,
+	Cohen David Abraham <david.cohen@nokia.com>,
+	Guru Raj <gururaj.nagendra@intel.com>
+References: <4AD5CBD6.4030800@maxwell.research.nokia.com> <200910141948.33666.hverkuil@xs4all.nl>
+In-Reply-To: <200910141948.33666.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <156a113e0910140541y1fc5025fx3ce84352e3fdf5a2@mail.gmail.com>
-References: <156a113e0910130955w428d536i7fc3ac8355293030@mail.gmail.com>
-	 <156a113e0910140541y1fc5025fx3ce84352e3fdf5a2@mail.gmail.com>
-Date: Thu, 15 Oct 2009 00:24:41 +0200
-Message-ID: <156a113e0910141524m348b7fa6u807cf11324328c60@mail.gmail.com>
-Subject: Re: More about "Winfast TV USB Deluxe"
-From: Magnus Alm <magnus.alm@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200910152311.33709.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Strange, but changeing the tvaudio_addr = 0xb0 to 88, (half of the
-decimal value of b0) made tvaudio find my tda9874.
+Hi Sakari,
 
-[ 1186.725140] tvaudio: TV audio decoder + audio/video mux driver
-[ 1186.725142] tvaudio: known chips: tda9840, tda9873h, tda9874h/a/ah,
-tda9875, tda9850, tda9855, tea6300, tea6320, tea6420, tda8425,
-pic16c54 (PV951), ta8874z
-[ 1186.725151] tvaudio 4-0058: chip found @ 0xb0
-[ 1186.736444] tvaudio 4-0058: chip_read2: reg254=0x11
-[ 1186.749704] tvaudio 4-0058: chip_read2: reg255=0x2
-[ 1186.749708] tvaudio 4-0058: tda9874a_checkit(): DIC=0x11, SIC=0x2.
-[ 1186.749710] tvaudio 4-0058: found tda9874a.
-[ 1186.749712] tvaudio 4-0058: tda9874h/a/ah found @ 0xb0 (em28xx #0)
-[ 1186.749714] tvaudio 4-0058: matches:.
-[ 1186.749716] tvaudio 4-0058: chip_write: reg0=0x0
-[ 1186.760012] tvaudio 4-0058: chip_write: reg1=0xc0
-[ 1186.772014] tvaudio 4-0058: chip_write: reg2=0x2
-[ 1186.784013] tvaudio 4-0058: chip_write: reg11=0x80
-[ 1186.796010] tvaudio 4-0058: chip_write: reg12=0x0
-[ 1186.808013] tvaudio 4-0058: chip_write: reg13=0x0
-[ 1186.820012] tvaudio 4-0058: chip_write: reg14=0x1
-[ 1186.832015] tvaudio 4-0058: chip_write: reg15=0x0
-[ 1186.844012] tvaudio 4-0058: chip_write: reg16=0x14
-[ 1186.856018] tvaudio 4-0058: chip_write: reg17=0x50
-[ 1186.868011] tvaudio 4-0058: chip_write: reg18=0xf9
-[ 1186.880745] tvaudio 4-0058: chip_write: reg19=0x80
-[ 1186.892347] tvaudio 4-0058: chip_write: reg20=0x80
-[ 1186.904015] tvaudio 4-0058: chip_write: reg24=0x80
-[ 1186.916011] tvaudio 4-0058: chip_write: reg255=0x0
-[ 1186.928021] tvaudio 4-0058: tda9874a_setup(): A2, B/G [0x00].
-[ 1186.928091] tvaudio 4-0058: thread started
+On Wednesday 14 October 2009 19:48:33 Hans Verkuil wrote:
+> On Wednesday 14 October 2009 15:02:14 Sakari Ailus wrote:
+> > Here's the second version of the video events RFC. It's based on Laurent
+> > Pinchart's original RFC. My aim is to address the issues found in the
+> > old RFC during the V4L-DVB mini-summit in the Linux plumbers conference
+> > 2009. To get a good grasp of the problem at hand it's probably a good
+> > idea read the original RFC as well:
+> >
+> > <URL:http://www.spinics.net/lists/linux-media/msg10217.html>
 
-Now I probably need to set some gpio's too....
+Thanks for the RFC update.
 
-/Magnus
+> > Changes to version 1
+> > ----------------------------------
+> >
+> > struct video_event has been renamed to v4l2_event. The struct is used in
+> > userspace and V4L related structures appear to have v4l2 prefix so that
+> > should be better than video.
 
-2009/10/14 Magnus Alm <magnus.alm@gmail.com>:
-> Loaded em28xx with i2c_scan and i2c_debug and tvaudio with tda9874a
-> option and debug.
->
-> sudo modprobe -v em28xx i2c_scan=1 i2c_debug=1
-> sudo modprobe -v tvaudio tda9874a=1 debug=1
->
-> And got this ouput:
->
-> [91083.588182] em28xx #0: found i2c device @ 0x30 [???]
-> [91083.590179] em28xx #0: found i2c device @ 0x3e [???]
-> [91083.590804] em28xx #0: found i2c device @ 0x42 [???]
-> [91083.600308] em28xx #0: found i2c device @ 0x86 [tda9887]
-> [91083.603805] em28xx #0: found i2c device @ 0xa0 [eeprom]
-> [91083.606183] em28xx #0: found i2c device @ 0xb0 [tda9874]
-> [91083.608808] em28xx #0: found i2c device @ 0xc2 [tuner (analog)]
-> [91083.617682] em28xx #0: Identified as Leadtek Winfast USB II Deluxe (card=28)
-> [91083.617684] em28xx #0:
-> [91083.617684]
-> [91083.617687] em28xx #0: The support for this board weren't valid yet.
-> [91083.617688] em28xx #0: Please send a report of having this working
-> [91083.617690] em28xx #0: not to V4L mailing list (and/or to other addresses)
-> [91083.617691]
-> [91083.980702] saa7115 4-0021: saa7114 found (1f7114d0e000000) @ 0x42
-> (em28xx #0)
-> [91086.173114] tvaudio: TV audio decoder + audio/video mux driver
-> [91086.173116] tvaudio: known chips: tda9840, tda9873h, tda9874h/a/ah,
-> tda9875, tda9850, tda9855, tea6300, tea6320, tea6420, tda8425,
-> pic16c54 (PV951), ta8874z
-> [91086.173125] tvaudio 4-00b0: chip found @ 0x160
-> [91086.173127] tvaudio 4-00b0: no matching chip description found
-> [91086.173131] tvaudio: probe of 4-00b0 failed with error -5
->
->
-> It seems to be a tda9874 there -> em28xx #0: found i2c device @ 0xb0 [tda9874]
->
-> But does tvaudio stop @ 0x160 (decimal value of 0xa0 rigth? ) and
-> doesn't look further?
-> I mean does tvaudio find my boards eeprom, cant talk to it and gives up?
->
->
-> /Magnus
->
->
-> 2009/10/13 Magnus Alm <magnus.alm@gmail.com>:
->> Hi!
->>
->> Thanks to Devin's moral support I  now have sound in television. ;-)
->>
->> Thanks!!
->>
->> I pooked around some more managed to get radio to function with these settings:
->>
->> [EM2820_BOARD_LEADTEK_WINFAST_USBII_DELUXE] = {
->>                .name         = "Leadtek Winfast USB II Deluxe",
->>                .valid        = EM28XX_BOARD_NOT_VALIDATED,
->>                .tuner_type   = TUNER_PHILIPS_FM1216ME_MK3,
->>                .tda9887_conf = TDA9887_PRESENT |
->>                                TDA9887_PORT1_ACTIVE,
->>                .decoder      = EM28XX_SAA711X,
->>                .input        = { {
->>                        .type     = EM28XX_VMUX_TELEVISION,
->>                        .vmux     = SAA7115_COMPOSITE4,
->>                        .amux     = EM28XX_AMUX_AUX,
->>                }, {
->>                        .type     = EM28XX_VMUX_COMPOSITE1,
->>                        .vmux     = SAA7115_COMPOSITE5,
->>                        .amux     = EM28XX_AMUX_LINE_IN,
->>                }, {
->>                        .type     = EM28XX_VMUX_SVIDEO,
->>                        .vmux     = SAA7115_SVIDEO3,
->>                        .amux     = EM28XX_AMUX_LINE_IN,
->>                } },
->>                        .radio    = {
->>                        .type     = EM28XX_RADIO,
->>                        .amux     = EM28XX_AMUX_AUX,
->>                }
->>        },
->>
->> I tested with different settings on tda9887 and modprobe "tda9887
->> port1=1" seemed to work be best.
->>
->> One odd thing when the modules is load is this:
->>
->> [15680.459343] tuner 4-0000: chip found @ 0x0 (em28xx #0)
->> [15680.473017] tuner 4-0043: chip found @ 0x86 (em28xx #0)
->> [15680.473089] tda9887 4-0043: creating new instance
->> [15680.473091] tda9887 4-0043: tda988[5/6/7] found
->> [15680.485719] tuner 4-0061: chip found @ 0xc2 (em28xx #0)
->> [15680.486169] tuner-simple 4-0000: unable to probe Alps TSBE1,
->> proceeding anyway.                            <-- What is that?
->> [15680.486171] tuner-simple 4-0000: creating new instance
->>                                                       <--
->> [15680.486174] tuner-simple 4-0000: type set to 10 (Alps TSBE1)
->>                                                    <--
->> [15680.496562] tuner-simple 4-0061: creating new instance
->> [15680.496566] tuner-simple 4-0061: type set to 38 (Philips PAL/SECAM
->> multi (FM1216ME MK3))
->>
->>
->> Another question, my box has a tda9874ah chip and if  understand the
->> data sheet it gives support for stereo (even Nicam if that is still
->> used anymore.).
->> So I tried to configure my box the same way as
->> [EM2820_BOARD_COMPRO_VIDEOMATE_FORYOU] by adding these lines:
->>
->> .tvaudio_addr = 0xb0,                             <---- address of
->> tda9874 according to ic2-addr.h
->> .adecoder     = EM28XX_TVAUDIO,
->>
->> But it didnt work, got the following message when I plugged it in:
->>
->> [15677.928972] em28xx #0: Please send a report of having this working
->> [15677.928974] em28xx #0: not to V4L mailing list (and/or to other addresses)
->> [15677.928975]
->> [15678.288360] saa7115 4-0021: saa7114 found (1f7114d0e000000) @ 0x42
->> (em28xx #0)
->> [15680.457094] tvaudio: TV audio decoder + audio/video mux driver
->> [15680.457097] tvaudio: known chips: tda9840, tda9873h, tda9874h/a/ah,
->> tda9875, tda9850, tda9855, tea6300, tea6320, tea6420, tda8425,
->> pic16c54 (PV951), ta8874z
->> [15680.457105] tvaudio 4-00b0: chip found @ 0x160
->> [15680.457107] tvaudio 4-00b0: no matching chip description found
->> [15680.457111] tvaudio: probe of 4-00b0 failed with error -5
->> [15680.459343] tuner 4-0000: chip found @ 0x0 (em28xx #0)
->> [15680.473017] tuner 4-0043: chip found @ 0x86 (em28xx #0)
->> [15680.473089] tda9887 4-0043: creating new instance
->>
->>
->> It might be so that my box is not wired to fully utilize the chip or I
->> did something wrong.
->>
->>
->> /Magnus
->>
->
+In the end we will probably rename that to media_ or something similar in the 
+big media controller rename (if that ever happens). For now let's keep v4l2_, 
+that will be more consistent.
+
+> > The "entity" field has been removed from the struct v4l2_event since the
+> > subdevices will have their own device nodes --- the events should come
+> > from them instead of the media controller. Video nodes could be used for
+> > events, too.
+
+I would still keep the entity field. It would allow for parents to report 
+children events and there could be use cases for that.
+
+> > A few reserved fields have been added. There are new ioctls as well for
+> > enumeration and (un)subscribing.
+> >
+> >
+> > Interface description
+> > ---------------------
+> >
+> > Event type is either a standard event or private event. Standard events
+> > will be defined in videodev2.h. Private event types begin from
+> > V4L2_EVENT_PRIVATE. Some high order bits could be reserved for future
+> > use.
+> >
+> > #define V4L2_EVENT_PRIVATE_START	0x08000000
+> > #define V4L2_EVENT_RESERVED		0x10000000
+> 
+> Suggestion: use the V4L2_EV_ prefix perhaps instead of the longer
+>  V4L2_EVENT?
+
+EV could be confused with electron volt, exposure value, or even escape 
+velocity (don't underestimate the use of V4L2 in the spaceship market ;-)). On 
+a more serious note, while I like to keep identifiers short, is the 3 
+characters gain worth it here ?
+
+> > VIDIOC_ENUM_EVENT is used to enumerate the available event types. It
+> > works a bit the same way than VIDIOC_ENUM_FMT i.e. you get the next
+> > event type by calling it with the last type in the type field. The
+> > difference is that the range is not continuous like in querying controls.
+> 
+> Question: why do we need an ENUM_EVENT? I don't really see a use-case for
+>  this.
+> 
+> Also note that there are three methods in use for enumerating within V4L:
+> 
+> 1) there is an index field in the struct that starts at 0 and that the
+> application increases by 1 until the ioctl returns an error.
+> 
+> 2) old-style controls where just enumerated from CID_BASE to CID_LASTP1,
+> which is very, very ugly.
+> 
+> 3) controls new-style allow one to set bit 31 on the control ID and in that
+> case the ioctl will give you the first control with an ID that is higher
+>  than the specified ID.
+> 
+> 1 or 3 are both valid options IMHO.
+> 
+> But again, I don't see why we need it in the first place.
+
+Applications will only subscribe to the events they can handle, so I don't 
+think enumeration is really required. We might want to provide "subscribe to 
+all" and "subscribe to none" options though, maybe as special events 
+(V4L2_EVENT_NONE, V4L2_EVENT_ALL)
+
+> > VIDIOC_G_EVENT is used to get events. sequence is the event sequence
+> > number and the data is specific to driver or event type.
+
+For efficiency reasons a V4L2_G_EVENTS ioctl could also be provided to 
+retrieve multiple events.
+
+struct v4l2_events {
+	__u32 count;
+	struct v4l2_event __user *events;
+};
+
+#define VIDIOC_G_EVENTS _IOW('V', xx, struct v4l2_events)
+
+> > The user will get the information that there's an event through
+> > exception file descriptors by using select(2). When an event is
+> > available the poll handler sets POLLPRI which wakes up select. -EINVAL
+> > will be returned if there are no pending events.
+> >
+> > VIDIOC_SUBSCRIBE_EVENT and VIDIOC_UNSUBSCRIBE_EVENT are used to
+> > subscribe and unsubscribe from events. The argument is event type.
+> 
+> Two event types can be defined already (used by ivtv):
+> 
+> #define V4L2_EVENT_DECODER_STOPPED   1
+> #define V4L2_EVENT_OUTPUT_VSYNC      2
+> 
+> > struct v4l2_eventdesc {
+> > 	__u32		type;
+> > 	__u8		description[64];
+> > 	__u32		reserved[4];
+> > };
+> >
+> > struct v4l2_event {
+> > 	__u32		type;
+> > 	__u32		sequence;
+> > 	struct timeval	timestamp;
+> > 	__u8		data[64];
+> 
+> This should be a union:
+> 
+> 
+> union {
+> 	enum v4l2_field ev_output_vsync;
+> 	__u8 data[64];
+> };
+
+The union will grow pretty big and I'm scared it would soon become a mess.
+
+> > 	__u32		reserved[4];
+> > };
+> >
+> > #define VIDIOC_ENUM_EVENT	_IORW('V', 83, struct v4l2_eventdesc)
+> > #define VIDIOC_G_EVENT		_IOR('V', 84, struct v4l2_event)
+> > #define VIDIOC_SUBSCRIBE_EVENT	_IOW('V', 85, __u32)
+> > #define VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 86, __u32)
+> 
+> For (un)subscribe I suggest that we also use a struct with the event type
+> and a few reserved fields.
+
+Agreed.
+
+> > As it was discussed in the LPC, event subscriptions should be bound to
+> > file handle. The implementation, however, is not visible to userspace.
+> > This is why I'm not specifying it in this RFC.
+> >
+> > While the number of possible standard (and probably private) events
+> > would be quite small and the implementation could be a bit field, I do
+> > see that the interface must be using types passed as numbers instead of
+> > bit fields.
+> >
+> > Is it necessary to buffer events of same type or will an event replace
+> > an older event of the same type? It probably depends on event type which
+> > is better. This is also a matter of implementation.
+> >
+> >
+> > Comments and questions are more than welcome.
+> 
+> Here's a mixed bag of idea/comments:
+> 
+> We need to define what to do when you unsubscribe an event and there are
+>  still events of that type pending. Do we remove those pending events as
+>  well? I think we should just keep them, but I'm open for other opinions.
+
+It would be easier to keep them and I don't think that would hurt.
+
+> I was wondering if a 'count' field in v4l2_event might be useful: e.g. if
+>  you get multiple identical events, and that event is already registered,
+>  then you can just increase the count rather than adding the same event
+>  again. This might be overengineering, though. And to be honest, I can't
+>  think of a use-case, but it's something to keep in mind perhaps.
+
+That's called events compression in the GUI world. The main reason to 
+implement this is efficiency when dealing with events that can occur at a high 
+frequency. For instance, when moving a window and thus exposing previously 
+unexposed parts that need to be redrawn, compressing all the redraw events 
+generated while the window moves make sense. There could be use cases in the 
+media world as well, but I think this is a case of overengineering at the 
+moment. We can always implement it later, and I don't think a count field 
+would be useful anyway, as events that could be repeated will probably be 
+intermixed with other events.
+
+> Would we ever need a VIDIOC_S_EVENT to let the application set an event?
+> ('software events').
+
+Using a kernel driver to pass information from one userspace application to 
+another doesn't seem like a very good design IMHO. Let's not do that for now.
+
+> Rather than naming the ioctl VIDIOC_G_EVENT, perhaps VIDIOC_DQEVENT might
+> be more appropriate.
+
+No preference there.
+
+> How do we prevent the event queue from overflowing? Just hardcode a
+> watermark? Alternatively, when subscribing an event we can also pass the
+> maximum number of allowed events as an argument.
+
+We can't prevent it from overflowing if the userspace application isn't fast 
+enough. In that case events will be discarded, and the application will find 
+out using the sequence number.
+
+-- 
+Regards,
+
+Laurent Pinchart
