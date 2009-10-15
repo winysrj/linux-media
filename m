@@ -1,60 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f227.google.com ([209.85.220.227]:46479 "EHLO
-	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756443AbZJLMea convert rfc822-to-8bit (ORCPT
+Received: from smtp102.mail.ukl.yahoo.com ([77.238.184.34]:21233 "HELO
+	smtp102.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1758810AbZJOXkK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Oct 2009 08:34:30 -0400
-Received: by fxm27 with SMTP id 27so9136676fxm.17
-        for <linux-media@vger.kernel.org>; Mon, 12 Oct 2009 05:33:53 -0700 (PDT)
+	Thu, 15 Oct 2009 19:40:10 -0400
+Message-ID: <4AD7B2AF.8000602@yahoo.it>
+Date: Fri, 16 Oct 2009 01:39:27 +0200
+From: SebaX75 <sebax75@yahoo.it>
 MIME-Version: 1.0
-In-Reply-To: <164184.43566.qm@web23105.mail.ird.yahoo.com>
-References: <164184.43566.qm@web23105.mail.ird.yahoo.com>
-Date: Mon, 12 Oct 2009 08:33:53 -0400
-Message-ID: <30353c3d0910120533j53804660t6706c04b13e48221@mail.gmail.com>
-Subject: Re: How to store the latest image without modifying videobuf-core.c
-From: David Ellingsworth <david@identd.dyndns.org>
-To: Mattias Persson <d98mp@yahoo.se>
-Cc: video4linux-list@redhat.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: em28xx DVB modeswitching change: call for testers
+References: <829197380910132052w155116ecrcea808abe87a57a6@mail.gmail.com>
+In-Reply-To: <829197380910132052w155116ecrcea808abe87a57a6@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 12, 2009 at 3:33 AM, Mattias Persson <d98mp@yahoo.se> wrote:
-> Hi,
->
+Devin Heitmueller ha scritto:
+> Hello all,
+> 
+> I have setup a tree that removes the mode switching code when
+> starting/stopping streaming.  If you have one of the em28xx dvb
+> devices mentioned in the previous thread and volunteered to test,
+> please try out the following tree:
+> 
+> http://kernellabs.com/hg/~dheitmueller/em28xx-modeswitch
+> 
+> In particular, this should work for those of you who reported problems
+> with zl10353 based devices like the Pinnacle 320e (or Dazzle) and were
+> using that one line change I sent this week.  It should also work with
+> Antti's Reddo board without needing his patch to move the demod reset
+> into the tuner_gpio.
+> 
+> This also brings us one more step forward to setting up the locking
+> properly so that applications cannot simultaneously open the analog
+> and dvb side of the device.
+> 
+> Thanks for your help,
+> 
+> Devin
 
-Please send messages to the new mailing list:
-linux-media@vger.kernel.org from now on.
+Hi Devin,
+excuse my late, but I've done some test.
 
-> I am developing a driver for a camera. As an example I am using the vivi driver (2.6.28) and the first major difference between my ISR and thread_tick() is that my driver will always attempt to store the latest image, even if nobody is waiting for a new image.
+The scanning now work correctly and without problem, all MUX was tuned 
+and channel recognized.
 
-I believe the standard here is that your driver should simply drop the
-frame if no one is waiting for it.
->
-> In my driver, when all queued buffers are used any new images will be stored in the oldest frame which has already been captured (state == VIDEOBUF_DONE) and here is where my problems start. (If this is wrong, what shall I do to always keep the latest captured image?)
->
+With mplayer no problem, for a new channel I must stop the actual 
+channel viewing and start a new one instance of mplayer.
 
-If no one wants the image you should just drop it but note that it
-existed. I believe the v4l2 api has frame counters so that the
-application knows that it missed some.
+I've a problem with kaffeine, and this problem before was not present 
+(I've not tested with the previous temporary patch).
+To reproduce the problem, is necessary a channel change, and the two 
+channel must be on a different MUX: the first double click on new 
+channel name display an "Impossible to tune", if I do a new double click 
+the channel was opened. Is like the adapter was resetted, but not 
+reinitialized on new frequency.
+Logically the problem not appears if I stop the transmission between the 
+channel change or if I change channel that are located on the same MUX.
 
-> In the function videobuf_dqbuf in videobuf-core.c, if a new image is returned by stream_next_buffer and the ISR kicks in before videobuf_dqbuf can set buf->state to VIDEOBUF_IDLE, my driver will modify the image presented to userspace and that is not acceptable.
+I hope to have explained well the thing.
 
-Correct, it's not acceptable to modify userspace memory when not asked to do so.
+Thanks and bye,
+Sebastian
 
->
-> The only solution I can find is to use the spinlock in videobuf_queue when the userspace application is requesting a new image (DQBUF/poll) to check for a new image and set some flag indicating that the buffer can't be overwritten by the ISR. However, this approach would require changes to videobuf-core.c and that doesn't seem right. Can someone please give me some guidance on this?
->
-> Regards,
-> Mattias
-
-You might want to take a look at possibly using gspca as a base for
-your driver. It currently supports hundreds of cameras and there are
-quite a few drivers that you can use as a reference. gspca doesn't use
-videobuf.. but should make it less painful to write a driver.
-
-Regards,
-
-David Ellingsworth
