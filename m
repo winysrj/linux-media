@@ -1,97 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f210.google.com ([209.85.218.210]:55029 "EHLO
-	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754678AbZJDWj4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Oct 2009 18:39:56 -0400
-Received: by bwz6 with SMTP id 6so2123666bwz.37
-        for <linux-media@vger.kernel.org>; Sun, 04 Oct 2009 15:39:19 -0700 (PDT)
-Date: Mon, 5 Oct 2009 01:39:15 +0300
-From: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
-To: Andy Walls <awalls@radix.net>
-Cc: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>,
-	Jean Delvare <khali@linux-fr.org>,
-	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org,
-	Oldrich Jedlicka <oldium.pro@seznam.cz>, hverkuil@xs4all.nl
-Subject: Re: [REVIEW] ivtv, ir-kbd-i2c: Explicit IR support for the AVerTV
-	M116 for newer kernels
-Message-ID: <20091004223915.GB31609@moon>
-References: <1254584660.3169.25.camel@palomino.walls.org> <20091004083139.GA20457@moon> <20091004104452.7a6d0f9b@hyperion.delvare> <20091004092621.GB20457@moon> <1254688861.3148.137.camel@palomino.walls.org>
+Received: from mail-fx0-f227.google.com ([209.85.220.227]:60157 "EHLO
+	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758160AbZJOLOR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Oct 2009 07:14:17 -0400
+Received: by fxm27 with SMTP id 27so947115fxm.17
+        for <linux-media@vger.kernel.org>; Thu, 15 Oct 2009 04:13:40 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1254688861.3148.137.camel@palomino.walls.org>
+In-Reply-To: <20091015104509.GO6384@www.viadmin.org>
+References: <23582ca0910140607v54a15d46y7ac834a3b6255af3@mail.gmail.com>
+	 <20091015104509.GO6384@www.viadmin.org>
+Date: Thu, 15 Oct 2009 13:13:39 +0200
+Message-ID: <23582ca0910150413l10246d04v19306a257c8f36c6@mail.gmail.com>
+Subject: Re: [linux-dvb] request driver for cards
+From: Theunis Potgieter <theunis.potgieter@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Oct 04, 2009 at 04:41:01PM -0400, Andy Walls wrote:
-> On Sun, 2009-10-04 at 12:26 +0300, Aleksandr V. Piskunov wrote:
-> > On Sun, Oct 04, 2009 at 10:44:52AM +0200, Jean Delvare wrote:
-> > > On Sun, 4 Oct 2009 11:31:39 +0300, Aleksandr V. Piskunov wrote:
-> > > > Tested on 2.6.30.8, one of Ubuntu mainline kernel builds.
-> > > > 
-> > > > ivtv-i2c part works, ivtv_i2c_new_ir() gets called, according to /sys/bus/i2c
-> > > > device @ 0x40 gets a name ir_rx_em78p153s_ave.
-> > > > 
-> > > > Now according to my (very) limited understanding of new binding model, ir-kbd-i2c
-> > > > should attach to this device by its name. Somehow it doesn't, ir-kbd-i2c gets loaded
-> > > > silently without doing anything.
-> > > 
-> > > Change the device name to a shorter string (e.g. "ir_rx_em78p153s").
-> > > You're hitting the i2c client name length limit. More details about
-> > > this in the details reply I'm writing right now.
-> > 
-> > Thanks, it works now. ir-kbd-i2c picks up the short name, input device is created, remote
-> > works.
-> > 
-> > Another place where truncation occurs is name field in em78p153s_aver_ir_init_data 
-> > ("ivtv-CX23416 EM78P153S AVerMedia"). Actual input device ends up with a name
-> > "i2c IR (ivtv-CX23416 EM78P153S ", limited by char name[32] in IR_i2c struct.
-> 
-> I'm naive here.  What applications actually show this string or use it?
-> For what purposes do applications use it?
+On 15/10/2009, H. Langos <henrik-dvb@prak.org> wrote:
+> On Wed, Oct 14, 2009 at 03:07:00PM +0200, Theunis Potgieter wrote:
+>  > Hi, what is the procedure to request drivers for specific new, perhaps
+>  > unknown supported cards?
+>
+>
+> The "procedure" is to hit google with something
+>  like "linux <vendor> <model>" and see what you find. :-)
+>
+I meant to say: Where do I ask for a new driver to be written for an
+unsupported card. Or Perhaps the card is already supported and I just
+couldn't see it from a singular view. (linuxtv.org, mailing list,
+Google)
 
-Mmm, from the top of my head
-1) evtest, using it to test remotes and other input devices.
-2) gnome-device-manager, displays a tree of hardware devices with details
+>  Especially links to mailing list archives like linux-media and linux-dvb
+>  are worth a read.
+>
+>
+I joined linux-dvb@linuxtv.org recently and I was informed that the
+mailing list is deprecated and I should join this mailing list
+instead. (you will see my first mail on their list too)
 
-I hope when the time comes for a media controller stuff, applications will be able to link
-all the related hardware, including boards IR device and show this information to end-user.
-There it becomes a little bit more important to have a readable and meaningful name.
+>
+>  > Perhaps I shouldn't waste time if I could find a dual/twin tuner card for
+>  > dvb-s or dvb-s2. Are there any recommended twin-tuner pci-e cards that is
+>  > support and can actually be bought by the average consumer?
+>
+>
+> Did you risk a look at any of those?
+>
+>  http://www.linuxtv.org/wiki/index.php/DVB-S_PCI_Cards
+>  http://www.linuxtv.org/wiki/index.php/DVB-S_PCIe_Cards
+>  http://www.linuxtv.org/wiki/index.php/DVB-S2_PCI_Cards
+>  http://www.linuxtv.org/wiki/index.php/DVB-S2_PCIe_Cards
+>
 
-> > IMHO actual name of resulting input device should be readable by end-user. Perhaps it should
-> > include the short name of the card itself, or model/color of remote control itself if several
-> > revisions exist, etc.
-> 
-> The em28xx driver uses things like:
-> 
-> 	i2c IR (EM28XX Terratec)
-> 	i2c IR (EM28XX Pinnacle PCTV)
-> 
-> The saa7134 driver uses thing like:
-> 	
-> 	Pinnacle PCTV
-> 	Purple TV
-> 	MSI TV@nywhere Plus
-> 	HVR 1110
-> 	BeholdTV
-> 
-> The cx18 driver (i.e. me) uses:
-> 
-> 	CX23418 Z8F0811 Hauppauge
-> 
-> 
-> I appear to be user-unfriendly. ;)  I guess I like knowing what devices
-> are precisely involved, as it helps me when I need to troubleshoot.  I
-> agree that it doesn't help the normal user in day to day operations.
-> 
-> I will change the names to something more card specific.  It could end
-> up slightly misleading in the long run.  A single card entry in
-> ivtv-cards.c can describe multiple card variants, but gives all those
-> variants the same "name" whether or not the consumer retail names are
-> the same.
-> 
-> 
-> Regards,
-> Andy
-> 
-> 
+I did visit those, and I couldn't find any sellers of the twin tuner
+cards on  http://www.linuxtv.org/wiki/index.php/DVB-S2_PCIe_Cards :(
+They would be perfect. Exept I can't find where to buy these. Perhaps
+they are re-branded and somebody here knows this already?
+
+This site http://www.linuxtv.org/wiki/index.php/DVB-S_PCI_Cards does
+not list the Compro S300 neither the KWorld dvb-s 100. I just happened
+to grep -i kworld /usr/src/linux/drivers/media/dvb/*/* and found
+KWorld to be somewhat supported. Great so I know that one. How to
+approach Compro S300?
+
+The problem is this: Either I setup my old penium 3 machine with 5 pci
+slots (which I try to avoid) or buy a new machine with only 2 pci
+slots and 2 pci-e 1x slots. The options becomes limited on new
+machines if you want 4 or more tuners in the same machine. So I need
+some advice if it is feasible to run 5 dvb-s single tuner cards in a
+pentium3 or 5 tuners (2 twin tuner cards and single card) on an atom
+based machine?
+
+>  I suspect they might contain some usable informaion. You should however
+>  take into account that most developers don't care to update a bazillion
+>  different places after they added support for a particular devices. So
+>  in most cases there will be a brief announcment on the developers
+>  mailinglist and the code is the documentation.
+>
+
+I recently joined this mailing list and will be a lookout for anything
+related to twin tuner cards sent by developers. Or if somebody knows
+just reply to this thread.
+
+Thanks for the help.
+
+>  cheers
+>  -henrik
+>
