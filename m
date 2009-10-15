@@ -1,125 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from unknown.interbgc.com ([213.240.235.226]:44158 "EHLO
-	extserv.mm-sol.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1751758AbZJWM7u (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Oct 2009 08:59:50 -0400
-Subject: Re: [RFC] Video events, version 2.2
-From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"Zutshi Vimarsh (Nokia-D-MSW/Helsinki)" <vimarsh.zutshi@nokia.com>,
-	Cohen David Abraham <david.cohen@nokia.com>,
-	Guru Raj <gururaj.nagendra@intel.com>,
-	Mike Krufky <mkrufky@linuxtv.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <4AE182DD.6060103@maxwell.research.nokia.com>
-References: <4AE182DD.6060103@maxwell.research.nokia.com>
-Content-Type: text/plain
-Date: Fri, 23 Oct 2009 15:59:39 +0300
-Message-Id: <1256302779.10472.45.camel@iivanov.int.mm-sol.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.navvo.net ([74.208.67.6]:32933 "EHLO mail.navvo.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932918AbZJOQHX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Oct 2009 12:07:23 -0400
+From: santiago.nunez@ridgerun.com
+To: davinci-linux-open-source@linux.davincidsp.com
+Cc: linux-media@vger.kernel.org, nsnehaprabha@ti.com,
+	m-karicheri2@ti.com, diego.dompe@ridgerun.com,
+	todd.fischer@ridgerun.com, mgrosen@ti.com,
+	Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+Date: Thu, 15 Oct 2009 10:06:52 -0600
+Message-Id: <1255622812-3219-1-git-send-email-santiago.nunez@ridgerun.com>
+Subject: [PATCH 6/6 v5] Menu support for TVP7002 in DM365
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
 
-Hi Sakari, 
+This patch provides menu configuration options for the TVP7002
+decoder driver in DM365.
 
-On Fri, 2009-10-23 at 13:18 +0300, Sakari Ailus wrote:
-> Hi,
-> 
-> 
-> Here's the version 2.2 of the video events RFC. It's based on Laurent
-> Pinchart's original RFC and versions 2 and 2.1 which I wrote. The old 
-> RFC is available here:
-> 
-> <URL:http://www.spinics.net/lists/linux-media/msg11056.html>
-> 
-> Added Mauro to Cc.
-> 
-> Changes to version 2.1
-> --------------------
-> 
-> V4L2_EVENT_ALL is now 0 instead 0x07ffffff.
-> 
-> V4L2_EVENT_RESERVED is gone. A note will be added not to use four 
-> topmost bits.
-> 
-> It's V4L2_EVENT_PRIVATE_START, not V4L2_EVENT_PRIVATE.
-> 
-> Interface description
-> ---------------------
-> 
-> Event type is either a standard event or private event. Standard events
-> will be defined in videodev2.h. Private event types begin from
-> V4L2_EVENT_PRIVATE_START. The four topmost bits of the type should not 
-> be used for the moment.
-> 
-> #define V4L2_EVENT_ALL			0
-> #define V4L2_EVENT_PRIVATE_START	0x08000000
-> 
-> VIDIOC_DQEVENT is used to get events. count is number of pending events
-> after the current one. sequence is the event type sequence number and
-> the data is specific to event type.
-> 
-> The user will get the information that there's an event through
-> exception file descriptors by using select(2). When an event is
-> available the poll handler sets POLLPRI which wakes up select. -EINVAL
-> will be returned if there are no pending events.
-> 
-> VIDIOC_SUBSCRIBE_EVENT and VIDIOC_UNSUBSCRIBE_EVENT are used to
-> subscribe and unsubscribe from events. The argument is struct
-> v4l2_event_subscription which now only contains the type field for the
-> event type. Every event can be subscribed or unsubscribed by one ioctl
-> by using special type V4L2_EVENT_ALL.
-> 
-> 
-> struct v4l2_event {
-> 	__u32		count;
-> 	__u32		type;
-> 	__u32		sequence;
-> 	struct timeval	timestamp;
+Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+---
+ drivers/media/video/Kconfig  |   32 ++++++++++++++++++++++++++++++++
+ drivers/media/video/Makefile |    2 ++
+ 2 files changed, 34 insertions(+), 0 deletions(-)
 
-Can we use 'struct timespec' here. This will force actual 
-implementation to use high-resolution source if possible, 
-and remove hundreds gettimeofday() in user space, which 
-should be used for event synchronization, with more 
-power friendly clock_getres(CLOCK_MONOTONIC).
-
-Thank you.
-
-iivanov
-
-
-> 	__u32		reserved[8];
-> 	__u8		data[64];
-> };
-> 
-> struct v4l2_event_subscription {
-> 	__u32		type;
-> 	__u32		reserved[8];
-> };
-> 
-> #define VIDIOC_DQEVENT		_IOR('V', 84, struct v4l2_event)
-> #define VIDIOC_SUBSCRIBE_EVENT	_IOW('V', 85, struct
-> 				     v4l2_event_subscription)
-> #define VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 86, struct
-> 				      v4l2_event_subscription)
-> 
-> 
-> The size of the event queue is decided by the driver. Which events will
-> be discarded on queue overflow depends on the implementation.
-> 
-> 
-> Questions
-> ---------
-> 
-> None on my side.
-> 
-> Comments and questions are still very very welcome.
-> 
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index e6186b3..f33652e 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -392,6 +392,15 @@ config VIDEO_TVP5150
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called tvp5150.
+ 
++config VIDEO_TVP7002
++	tristate "Texas Instruments TVP7002 video decoder"
++	depends on VIDEO_V4L2 && I2C
++	---help---
++	  Support for the Texas Instruments TVP7002 video decoder.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called tvp7002.
++
+ config VIDEO_VPX3220
+ 	tristate "vpx3220a, vpx3216b & vpx3214c video decoders"
+ 	depends on VIDEO_V4L2 && I2C
+@@ -466,6 +475,29 @@ config VIDEO_THS7303
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called ths7303.
+ 
++config VIDEO_THS7353
++	tristate "THS7353 Video Amplifier"
++	depends on I2C
++	help
++	  Support for TI THS7353 video amplifier
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called ths7353.
++
++config VIDEO_THS7353_LUMA_CHANNEL
++	int "THS7353 channel number for Luma Input"
++	default 3
++	depends on VIDEO_THS7353
++	help
++	  Select the luma channel number for the THS7353 input.
++
++	  THS7353 has three identical channels. For the component
++	  interface, luma input will be connected to one of these
++	  channels and cb and cr will be connected to other channels
++	  This config option is used to select the luma input channel
++	  number. Possible values for this option are 1,2 or 3. Any
++	  other value will result in value 2.
++
+ config VIDEO_ADV7343
+ 	tristate "ADV7343 video encoder"
+ 	depends on I2C
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index e541932..d9a421a 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -53,9 +53,11 @@ obj-$(CONFIG_VIDEO_BT856) += bt856.o
+ obj-$(CONFIG_VIDEO_BT866) += bt866.o
+ obj-$(CONFIG_VIDEO_KS0127) += ks0127.o
+ obj-$(CONFIG_VIDEO_THS7303) += ths7303.o
++obj-$(CONFIG_VIDEO_THS7353) += ths7353.o
+ obj-$(CONFIG_VIDEO_VINO) += indycam.o
+ obj-$(CONFIG_VIDEO_TVP5150) += tvp5150.o
+ obj-$(CONFIG_VIDEO_TVP514X) += tvp514x.o
++obj-$(CONFIG_VIDEO_TVP7002) += tvp7002.o
+ obj-$(CONFIG_VIDEO_MSP3400) += msp3400.o
+ obj-$(CONFIG_VIDEO_CS5345) += cs5345.o
+ obj-$(CONFIG_VIDEO_CS53L32A) += cs53l32a.o
+-- 
+1.6.0.4
 
