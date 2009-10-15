@@ -1,49 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:33061 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932977AbZJaTKe (ORCPT
+Received: from comal.ext.ti.com ([198.47.26.152]:51640 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758456AbZJOOAK convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Oct 2009 15:10:34 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 5/8] drivers/media/video/uvc: Use %pUl to print UUIDs
-Date: Sat, 31 Oct 2009 20:10:39 +0100
-Cc: Joe Perches <joe@perches.com>, linux-kernel@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-media@vger.kernel.org
-References: <1254890742-28245-1-git-send-email-joe@perches.com> <200910120034.58943.laurent.pinchart@ideasonboard.com> <20091031070701.4ccf27d5@caramujo.chehab.org>
-In-Reply-To: <20091031070701.4ccf27d5@caramujo.chehab.org>
+	Thu, 15 Oct 2009 10:00:10 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, Jun Nie <niej0001@gmail.com>
+CC: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	linux-media <linux-media@vger.kernel.org>
+Date: Thu, 15 Oct 2009 08:59:31 -0500
+Subject: RE: Support on discontinuous planer buffer and stride
+Message-ID: <A69FA2915331DC488A831521EAE36FE4015555EFBC@dlee06.ent.ti.com>
+References: <7c34ac520909222330k73380177sbf103345f5d3d7ec@mail.gmail.com>
+ <7c34ac520910082207i2beacffbhd89a38244370cf39@mail.gmail.com>
+ <200910090817.20736.hverkuil@xs4all.nl>
+In-Reply-To: <200910090817.20736.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200910312010.39785.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 31 October 2009 10:07:01 Mauro Carvalho Chehab wrote:
-> Hi Laurent,
-> 
-> Em Mon, 12 Oct 2009 00:34:58 +0200
-> 
-> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
-> > As this will go through the linuxtv v4l-dvb tree, I'll have to add
-> > backward compatibility code (that will not make it to mainline). If
-> > that's ok with you it will be easier for me to test and apply that part
-> > of the patch through my tree once the vsprintf extension gets in.
-> 
-> I'm assuming that those printk patches from Joe to uvc will go via your
->  tree, so please submit a pull request when they'll be ready for upstream.
+Hans,
 
-I'll submit the pull request as soon as the printk core patch hits upstream.
+>
+>Well, it is definitely not possible to do it in this manner since changing
+>the size of struct v4l2_buffer will break the API. Furthermore, something
+>like
+>this will only work if the DMA engine can handle strides. Is that the case
+>for your hardware? I don't think you mentioned what the hardware is you use.
+>
+In fact I was planning to write an RFC for this as well. DM365 Resizer allows setting separate buffer address for Y and C plane (For _NV12 pixel format) as well as line offsets. Similarly on the display side, VPBE provides separate registers for configuring this. Currently we have proprietary IOCTL to configure the C-Plane buffer address and is not the right way to do it. For planar pixel format like NV12, NV16 etc, where the hardware is capable of configuring different address for individual plane, current v4l2 API has limitations. So I suggest that Jun Nie work on a RFC &implementation that allows application to set buffer addresses for individual planes of planar pixel formats. Something like below for userptr case (I feel only userptr case to be supported in this case)...
 
-The change will break the driver when used with older versions (it will 
-compile, load and run, but will print broken messages), and compat.h 
-compatibility magic will not be possible. As the messages are purely 
-informational, I'm pondering not even keeping #ifdef compatibility. Any 
-thought on that ?
++ struct v4l2_userptr_planar {
++	/* Number of planes in the pixel format. 2 or 3,
++	 * 2 - for Y & CbCr, 3 for Y, Cb, & Cr
++	 */
++	__u32	num_planes; 
++	/* Y or R */
++	unsigned long   userptr_yr;
++	/* Cb or G */
++	unsigned long   userptr_cbg;
++	/* Cr or B */
++	unsigned long   userptr_crb;
++ };
 
--- 
-Regards,
+struct v4l2_buffer {
+	__u32			index;
+	enum v4l2_buf_type      type;
+	__u32			bytesused;
+	__u32			flags;
+	enum v4l2_field		field;
+	struct timeval		timestamp;
+	struct v4l2_timecode	timecode;
+	__u32			sequence;
 
-Laurent Pinchart
+	/* memory location */
+	enum v4l2_memory        memory;
+	union {
+		__u32           offset;
+		unsigned long   userptr;
++		struct v4l2_userptr_planar userptr_p;
+	} m;
+	__u32			length;
+	__u32			input;
+	__u32			reserved;
+};
+
+-Murali
+>Regards,
+>
+>	Hans
+>
+>--
+>Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+>¢ÈÏπªÆ&ﬁ~∫&∂¨ñ+-±È›∂•äwÆûÀõ± ‚mÈbûÏfyÿöä{ay∫ á⁄ôÎ,j
+≠¢f£¢∑höã‡zπÆw•¢∏
+>
+>¢∑¶j:+vâ®äwËjÿm∂üˇæ
+´ëÍÁzZ+É˘öéä›¢j"ù˙!∂i
