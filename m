@@ -1,61 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f227.google.com ([209.85.220.227]:49316 "EHLO
-	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757953AbZJBRsQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2009 13:48:16 -0400
-Received: by fxm27 with SMTP id 27so1277630fxm.17
-        for <linux-media@vger.kernel.org>; Fri, 02 Oct 2009 10:48:19 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4AC63729.9070100@raceme.org>
-References: <a413d4880909280734j714abc45ne664e061a7209d29@mail.gmail.com>
-	 <4AC63729.9070100@raceme.org>
-Date: Fri, 2 Oct 2009 13:48:17 -0400
-Message-ID: <829197380910021048k72c5ac2v804799c74623430c@mail.gmail.com>
-Subject: Re: [linux-dvb] Any PCIe DVB-T Dual Tuner cards yet working under
-	Linux?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:37996 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752979AbZJPKUn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Oct 2009 06:20:43 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9GAK4o9030493
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 16 Oct 2009 05:20:06 -0500
+From: hvaibhav@ti.com
 To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-Content-Type: text/plain; charset=ISO-8859-1
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH 2/4] V4L2: Added CID's V4L2_CID_ROTATE/BG_COLOR
+Date: Fri, 16 Oct 2009 15:50:03 +0530
+Message-Id: <1255688403-6334-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 2, 2009 at 1:23 PM, Christophe Boyanique
-<tof+linux-dvb@raceme.org> wrote:
->
-> Hello,,
->
->> Is anyone on the list currently using a DVB-T card that has DUAL
->> tuners (i.e. I'm looking to replace Hauppage 500's which work great).
->
-> That is an excellent question and I am looking forward to here people
-> about success stories.
->
-> I am also looking for a device (PCIe preferred, or PCI or at worst USB
-> stick) with a dual HD tuner which is buyable from France or Europe...
->
-> I found this models which seem to be NOT supported:
-> - TerraTec Cinergy 2400i DT (not supported from wiki)
-> - TerraTec T5 Stick (no information found)
-> - PCTV Stick Dual DVB-T Diversity (2001e) (not supported from wiki)
-> - AVerMedia AVerTV Duo Hybrid PCI-E A188H (no information found)
->
-> I found this card which seems to be supported:
-> - Dvico FusionHDTV DVB-T Dual Express
-> but I do not find any reseller in Europe.
->
-> I found an online reseller in the USA here:
-> http://www.cyberestore.com/hdtv-tv-tuner-cards/dvico-fusionhdtv-dvb-t-dual-express.html
->
-> But I am not sure that a card sold in the USA will work in Europe as USA
-> uses NTSC and ATSC (instead of PAL and DVB in Europe).
->
-> Christophe.
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Have you looked at the HVR-2200 (PCIe, dual DVB-T)?
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ drivers/media/video/v4l2-common.c |    9 +++++++++
+ include/linux/videodev2.h         |    4 +++-
+ 2 files changed, 12 insertions(+), 1 deletions(-)
 
-Devin
-
+diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
+index f5a93ae..35a0107 100644
+--- a/drivers/media/video/v4l2-common.c
++++ b/drivers/media/video/v4l2-common.c
+@@ -431,6 +431,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_CHROMA_AGC:		return "Chroma AGC";
+ 	case V4L2_CID_COLOR_KILLER:		return "Color Killer";
+ 	case V4L2_CID_COLORFX:			return "Color Effects";
++	case V4L2_CID_ROTATE:			return "Rotate";
++	case V4L2_CID_BG_COLOR:			return "Background color";
+ 
+ 	/* MPEG controls */
+ 	case V4L2_CID_MPEG_CLASS: 		return "MPEG Encoder Controls";
+@@ -587,6 +589,13 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
+ 		qctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 		min = max = step = def = 0;
+ 		break;
++	case V4L2_CID_BG_COLOR:
++		qctrl->type = V4L2_CTRL_TYPE_INTEGER;
++		step = 1;
++		min = 0;
++		/* Max is calculated as RGB888 that is 2^12*/
++		max = 0xFFFFFF;
++		break;
+ 	default:
+ 		qctrl->type = V4L2_CTRL_TYPE_INTEGER;
+ 		break;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index b6fe1de..d77db6f 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -912,8 +912,10 @@ enum v4l2_colorfx {
+ #define V4L2_CID_AUTOBRIGHTNESS			(V4L2_CID_BASE+32)
+ #define V4L2_CID_BAND_STOP_FILTER		(V4L2_CID_BASE+33)
+ 
++#define V4L2_CID_ROTATE				(V4L2_CID_BASE+34)
++#define V4L2_CID_BG_COLOR			(V4L2_CID_BASE+35)
+ /* last CID + 1 */
+-#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+34)
++#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+36)
+ 
+ /*  MPEG-class control IDs defined by V4L2 */
+ #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.6.2.4
+
