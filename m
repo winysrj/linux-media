@@ -1,133 +1,355 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:19387 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752075AbZJBLql (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2009 07:46:41 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Received: from eu_spt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0KQV00DOGY1VL760@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 02 Oct 2009 12:46:43 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0KQV001XQY1PRD@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 02 Oct 2009 12:46:43 +0100 (BST)
-Date: Fri, 02 Oct 2009 13:45:13 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Mem2Mem V4L2 devices [RFC]
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	Tomasz Fujak <t.fujak@samsung.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <E4D3F24EA6C9E54F817833EAE0D912AC077151C64F@bssrvexch01.BS.local>
-Content-language: en-US
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2556 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757427AbZJPI1w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Oct 2009 04:27:52 -0400
+Message-ID: <7c87abde6f2f45f29d56c6b112de169d.squirrel@webmail.xs4all.nl>
+In-Reply-To: <4AD82293.5040504@maxwell.research.nokia.com>
+References: <4AD5CBD6.4030800@maxwell.research.nokia.com>
+    <200910141948.33666.hverkuil@xs4all.nl>
+    <200910152311.33709.laurent.pinchart@ideasonboard.com>
+    <200910152337.06794.hverkuil@xs4all.nl>
+    <4AD82293.5040504@maxwell.research.nokia.com>
+Date: Fri, 16 Oct 2009 10:27:07 +0200
+Subject: Re: [RFC] Video events, version 2
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Sakari Ailus" <sakari.ailus@maxwell.research.nokia.com>
+Cc: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Zutshi Vimarsh" <vimarsh.zutshi@nokia.com>,
+	"Ivan Ivanov" <iivanov@mm-sol.com>,
+	"Cohen David Abraham" <david.cohen@nokia.com>,
+	"Guru Raj" <gururaj.nagendra@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
 
-During the V4L2 mini-summit and the Media Controller RFC discussion on 
-Linux Plumbers 2009 Conference a mem2mem video device has been mentioned 
-a few times (usually in a context of a 'resizer device' which might be a 
-part of Camera interface pipeline or work as a standalone device). We 
-are doing a research how our custom video/multimedia drivers can fit 
-into the V4L2 framework. Most of our multimedia devices work in mem2mem 
-mode. 
+> Hans Verkuil wrote:
+>> On Thursday 15 October 2009 23:11:33 Laurent Pinchart wrote:
+>>> Hi Sakari,
+>>>
+>>> On Wednesday 14 October 2009 19:48:33 Hans Verkuil wrote:
+>>>> On Wednesday 14 October 2009 15:02:14 Sakari Ailus wrote:
+>>>>> Here's the second version of the video events RFC. It's based on
+>>>>> Laurent
+>>>>> Pinchart's original RFC. My aim is to address the issues found in the
+>>>>> old RFC during the V4L-DVB mini-summit in the Linux plumbers
+>>>>> conference
+>>>>> 2009. To get a good grasp of the problem at hand it's probably a good
+>>>>> idea read the original RFC as well:
+>>>>>
+>>>>> <URL:http://www.spinics.net/lists/linux-media/msg10217.html>
+>>> Thanks for the RFC update.
+>
+> You're welcome.
+>
+>>>>> Changes to version 1
+>>>>> ----------------------------------
+>>>>>
+>>>>> struct video_event has been renamed to v4l2_event. The struct is used
+>>>>> in
+>>>>> userspace and V4L related structures appear to have v4l2 prefix so
+>>>>> that
+>>>>> should be better than video.
+>>> In the end we will probably rename that to media_ or something similar
+>>> in the
+>>> big media controller rename (if that ever happens). For now let's keep
+>>> v4l2_,
+>>> that will be more consistent.
+>>>
+>>>>> The "entity" field has been removed from the struct v4l2_event since
+>>>>> the
+>>>>> subdevices will have their own device nodes --- the events should
+>>>>> come
+>>>>> from them instead of the media controller. Video nodes could be used
+>>>>> for
+>>>>> events, too.
+>>> I would still keep the entity field. It would allow for parents to
+>>> report
+>>> children events and there could be use cases for that.
+>>
+>> We can always convert one of the reserved fields to an entity field in
+>> the
+>> future. Adding support in the new API for an even newer and as yet
+>> highly
+>> experimental API is not a good idea.
+>
+> Then the entity field stays away for now?
 
-I did a quick research and I found that currently in the V4L2 framework 
-there is no device that processes video data in a memory-to-memory 
-model. In terms of V4L2 framework such device would be both video sink 
-and source at the same time. The main problem is how the video nodes 
-(/dev/videoX) should be assigned to such a device. 
+Yup.
 
-The simplest way of implementing mem2mem device in v4l2 framework would 
-use two video nodes (one for input and one for output). Such an idea has 
-been already suggested on V4L2 mini-summit. Each DMA engine (either 
-input or output) that is available in the hardware should get its own 
-video node. In this approach an application can write() source image to 
-for example /dev/video0 and then read the processed output from for 
-example /dev/video1. Source and destination format/params/other custom 
-settings also can be easily set for either source or destination node. 
-Besides a single image, user applications can also process video streams 
-by calling stream_on(), qbuf() + dqbuf(), stream_off() simultaneously on 
-both video nodes. 
+>>>>> A few reserved fields have been added. There are new ioctls as well
+>>>>> for
+>>>>> enumeration and (un)subscribing.
+>>>>>
+>>>>>
+>>>>> Interface description
+>>>>> ---------------------
+>>>>>
+>>>>> Event type is either a standard event or private event. Standard
+>>>>> events
+>>>>> will be defined in videodev2.h. Private event types begin from
+>>>>> V4L2_EVENT_PRIVATE. Some high order bits could be reserved for future
+>>>>> use.
+>>>>>
+>>>>> #define V4L2_EVENT_PRIVATE_START	0x08000000
+>>>>> #define V4L2_EVENT_RESERVED		0x10000000
+>>>> Suggestion: use the V4L2_EV_ prefix perhaps instead of the longer
+>>>>  V4L2_EVENT?
+>>> EV could be confused with electron volt, exposure value, or even escape
+>>> velocity (don't underestimate the use of V4L2 in the spaceship market
+>>> ;-)). On
+>>> a more serious note, while I like to keep identifiers short, is the 3
+>>> characters gain worth it here ?
+>
+> I'll use V4L2_EVENT_ in the next RFC, too.
+>
+>>>>> VIDIOC_ENUM_EVENT is used to enumerate the available event types. It
+>>>>> works a bit the same way than VIDIOC_ENUM_FMT i.e. you get the next
+>>>>> event type by calling it with the last type in the type field. The
+>>>>> difference is that the range is not continuous like in querying
+>>>>> controls.
+>>>> Question: why do we need an ENUM_EVENT? I don't really see a use-case
+>>>> for
+>>>>  this.
+>>>>
+>>>> Also note that there are three methods in use for enumerating within
+>>>> V4L:
+>>>>
+>>>> 1) there is an index field in the struct that starts at 0 and that the
+>>>> application increases by 1 until the ioctl returns an error.
+>>>>
+>>>> 2) old-style controls where just enumerated from CID_BASE to
+>>>> CID_LASTP1,
+>>>> which is very, very ugly.
+>>>>
+>>>> 3) controls new-style allow one to set bit 31 on the control ID and in
+>>>> that
+>>>> case the ioctl will give you the first control with an ID that is
+>>>> higher
+>>>>  than the specified ID.
+>>>>
+>>>> 1 or 3 are both valid options IMHO.
+>>>>
+>>>> But again, I don't see why we need it in the first place.
+>>> Applications will only subscribe to the events they can handle, so I
+>>> don't
+>>> think enumeration is really required. We might want to provide
+>>> "subscribe to
+>>> all" and "subscribe to none" options though, maybe as special events
+>>> (V4L2_EVENT_NONE, V4L2_EVENT_ALL)
+>>
+>> Nice idea. Although we only need an EVENT_ALL. 'Subscribe to none'
+>> equals
+>> 'unsubscribe all' after all :-)
+>
+> Ok.
+>
+>>>>> VIDIOC_G_EVENT is used to get events. sequence is the event sequence
+>>>>> number and the data is specific to driver or event type.
+>>> For efficiency reasons a V4L2_G_EVENTS ioctl could also be provided to
+>>> retrieve multiple events.
+>>>
+>>> struct v4l2_events {
+>>> 	__u32 count;
+>>> 	struct v4l2_event __user *events;
+>>> };
+>>>
+>>> #define VIDIOC_G_EVENTS _IOW('V', xx, struct v4l2_events)
+>>
+>> Hmm. Premature optimization. Perhaps as a future extension.
+>
+> That *could* save one ioctl sometimes --- then you'd no there are no
+> more events coming right now. But just one should be supported IMO,
+> VIDIOC_G_EVENT or VIDIOC_G_EVENTS.
 
-This approach has a limitation however. As user applications would have 
-to open 2 different file descriptors to perform the processing of a 
-single image, the v4l2 driver would need to match read() calls done on 
-one file descriptor with write() calls from the another. The same thing 
-would happen with buffers enqueued with qbuf(). In practice, this would 
-result in a driver that allows only one instance of /dev/video0 as well 
-as /dev/video1 opened. Otherwise, it would not be possible to track 
-which opened /dev/video0 instance matches which /dev/video1 one. 
+I'm not keen on using pointers insides structures unless there is a very
+good reason to do so. In practice it complicates the driver code
+substantially due to all the kernel-to-userspace copies that need to be
+done that are normally handled by video_ioctl2. In addition it requires
+custom code in the compat-ioctl32 part as well.
 
-The real limitation of this approach is the fact, that it is hardly 
-possible to implement multi-instance support and application 
-multiplexing on a video device. In a typical embedded system, in 
-contrast to most video-source-only or video-sink-only devices, a mem2mem 
-device is very often used by more than one application at a time. Be it 
-either simple one-shot single video frame processing or stream 
-processing. Just consider that the 'resizer' module might be used in 
-many applications for scaling bitmaps (xserver video subsystem, 
-gstreamer, jpeglib, etc) only. 
+>>>>> The user will get the information that there's an event through
+>>>>> exception file descriptors by using select(2). When an event is
+>>>>> available the poll handler sets POLLPRI which wakes up select.
+>>>>> -EINVAL
+>>>>> will be returned if there are no pending events.
+>>>>>
+>>>>> VIDIOC_SUBSCRIBE_EVENT and VIDIOC_UNSUBSCRIBE_EVENT are used to
+>>>>> subscribe and unsubscribe from events. The argument is event type.
+>>>> Two event types can be defined already (used by ivtv):
+>>>>
+>>>> #define V4L2_EVENT_DECODER_STOPPED   1
+>>>> #define V4L2_EVENT_OUTPUT_VSYNC      2
+>>>>
+>>>>> struct v4l2_eventdesc {
+>>>>> 	__u32		type;
+>>>>> 	__u8		description[64];
+>>>>> 	__u32		reserved[4];
+>>>>> };
+>>>>>
+>>>>> struct v4l2_event {
+>>>>> 	__u32		type;
+>>>>> 	__u32		sequence;
+>>>>> 	struct timeval	timestamp;
+>>>>> 	__u8		data[64];
+>>>> This should be a union:
+>>>>
+>>>>
+>>>> union {
+>>>> 	enum v4l2_field ev_output_vsync;
+>>>> 	__u8 data[64];
+>>>> };
+>>> The union will grow pretty big and I'm scared it would soon become a
+>>> mess.
+>>
+>> But otherwise apps need to unpack the data array. That's very
+>> user-unfriendly.
+>> I've no problem with big unions.
+>
+> The size of the structure is now 96 bytes. I guess we could make that
+> around 128 to allow a bit more space for data without really affecting
+> performance.
 
-At the first glance one might think that implementing multi-instance 
-support should be done in a userspace daemon instead of mem2mem drivers. 
-However I have run into problems designing such a user space daemon. 
-Usually, video buffers are passed to v4l2 device as a user pointer or 
-are mmaped directly from the device. The main issue that cannot be 
-easily resolved is passing video buffers from the client application to 
-the daemon. The daemon would queue a request on the device and return 
-results back to the client application after a transaction is finished. 
-Passing userspace pointers between an application and the daemon cannot 
-be done, as they are two different processes. Mmap-type buffers are 
-similar in this aspect - at least 2 buffer copy operations are required 
-(from client application to device input buffers mmaped in daemon's 
-memory and then from device output buffers to client application). 
-Buffer copying and process context switches add both latency and 
-additional cpu workload. In our custom drivers for mem2mem multimedia 
-devices we implemented a queue shared between all instances of an opened 
-mem2mem device. Each instance is assigned to an open device file 
-descriptor. The queue is serviced in the device context, thus maximizing 
-the device throughput. This is achieved by scheduling the next 
-transaction in the driver (kernel) context. This may not even require a 
-context switch at all. 
+With 'big unions' I didn't mean the memory size. I think 64 bytes (16
+longs) is a decent size. I was talking about the union definition in the
+videodev2.h header.
 
-Do you have any ideas how would this solution fit into the current v4l2 
-design? 
+>> As an aside: I think that eventually videodev2.h should be split up.
+>> Especially
+>> the control section should be moved to a separate header and just be
+>> included
+>> by videodev2.h.
+>>
+>>>>> 	__u32		reserved[4];
+>>>>> };
+>>>>>
+>>>>> #define VIDIOC_ENUM_EVENT	_IORW('V', 83, struct v4l2_eventdesc)
+>>>>> #define VIDIOC_G_EVENT		_IOR('V', 84, struct v4l2_event)
+>>>>> #define VIDIOC_SUBSCRIBE_EVENT	_IOW('V', 85, __u32)
+>>>>> #define VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 86, __u32)
+>>>> For (un)subscribe I suggest that we also use a struct with the event
+>>>> type
+>>>> and a few reserved fields.
+>>> Agreed.
+>
+> Ack.
+>
+>>>>> As it was discussed in the LPC, event subscriptions should be bound
+>>>>> to
+>>>>> file handle. The implementation, however, is not visible to
+>>>>> userspace.
+>>>>> This is why I'm not specifying it in this RFC.
+>>>>>
+>>>>> While the number of possible standard (and probably private) events
+>>>>> would be quite small and the implementation could be a bit field, I
+>>>>> do
+>>>>> see that the interface must be using types passed as numbers instead
+>>>>> of
+>>>>> bit fields.
+>>>>>
+>>>>> Is it necessary to buffer events of same type or will an event
+>>>>> replace
+>>>>> an older event of the same type? It probably depends on event type
+>>>>> which
+>>>>> is better. This is also a matter of implementation.
+>>>>>
+>>>>>
+>>>>> Comments and questions are more than welcome.
+>>>> Here's a mixed bag of idea/comments:
+>>>>
+>>>> We need to define what to do when you unsubscribe an event and there
+>>>> are
+>>>>  still events of that type pending. Do we remove those pending events
+>>>> as
+>>>>  well? I think we should just keep them, but I'm open for other
+>>>> opinions.
+>>> It would be easier to keep them and I don't think that would hurt.
+>
+> I'd guess so, too.
+>
+>>>> I was wondering if a 'count' field in v4l2_event might be useful: e.g.
+>>>> if
+>>>>  you get multiple identical events, and that event is already
+>>>> registered,
+>>>>  then you can just increase the count rather than adding the same
+>>>> event
+>>>>  again. This might be overengineering, though. And to be honest, I
+>>>> can't
+>>>>  think of a use-case, but it's something to keep in mind perhaps.
+>>> That's called events compression in the GUI world. The main reason to
+>>> implement this is efficiency when dealing with events that can occur at
+>>> a high
+>>> frequency. For instance, when moving a window and thus exposing
+>>> previously
+>>> unexposed parts that need to be redrawn, compressing all the redraw
+>>> events
+>>> generated while the window moves make sense. There could be use cases
+>>> in the
+>>> media world as well, but I think this is a case of overengineering at
+>>> the
+>>> moment. We can always implement it later, and I don't think a count
+>>> field
+>>> would be useful anyway, as events that could be repeated will probably
+>>> be
+>>> intermixed with other events.
+>
+> Perhaps more than four reserved fields should be allocated for the event
+> structure? :-) :-)
+>
+>>>> Would we ever need a VIDIOC_S_EVENT to let the application set an
+>>>> event?
+>>>> ('software events').
+>>> Using a kernel driver to pass information from one userspace
+>>> application to
+>>> another doesn't seem like a very good design IMHO. Let's not do that
+>>> for now.
+>>>
+>>>> Rather than naming the ioctl VIDIOC_G_EVENT, perhaps VIDIOC_DQEVENT
+>>>> might
+>>>> be more appropriate.
+>>> No preference there.
+>
+> VIDIOC_DQEVENTS? :-)
+>
+>>>> How do we prevent the event queue from overflowing? Just hardcode a
+>>>> watermark? Alternatively, when subscribing an event we can also pass
+>>>> the
+>>>> maximum number of allowed events as an argument.
+>>> We can't prevent it from overflowing if the userspace application isn't
+>>> fast
+>>> enough. In that case events will be discarded, and the application will
+>>> find
+>>> out using the sequence number.
+>>
+>> Obviously, but my question is whether we use a fixed internal queue or
+>> whether we make this something that the application can configure.
+>>
+>> That said, I think the initial implementation should be that the
+>> subscribe
+>> ioctl gets a struct with the event type and a few reserved fields so
+>> that
+>> in the future we can use one of the reserved fields as a configuration
+>> parameter. So for now we just have some default watermark that is set by
+>> the
+>> driver.
+>
+> I'd like to think a queue size defined by the driver is fine at this
+> point. It's probably depending on the driver rather than application how
+> long the queue should to be. At some point old events start becoming
+> uninteresting...
 
-Another solution that came into my mind that would not suffer from this 
-limitation is to use the same video node for both writing input buffers 
-and reading output buffers (or queuing both input and output buffers). 
-Such a design causes more problems with the current v4l2 design however: 
+Question: will we drop old events or new events? Or make this
+configurable? Or driver dependent?
 
-1. How to set different color space or size for input and output buffer 
-each? It could be solved by adding a set of ioctls to get/set source 
-image format and size, while the existing v4l2 ioctls would only refer 
-to the output buffer. Frankly speaking, we don't like this idea. 
+Regards,
 
-2. Input and output in the same video node would not be compatible with 
-the upcoming media controller, with which we will get an ability to 
-arrange devices into a custom pipeline. Piping together two separate 
-input-output nodes to create a new mem2mem device would be difficult and 
-unintuitive. And that not even considering multi-output devices. 
+         Hans
 
-My idea is to get back to the "2 video nodes per device" approach and 
-introduce a new ioctl for matching input and output instances of the 
-same device. When such an ioctl could be called is another question. I 
-like the idea of restricting such a call to be issued after opening 
-video nodes and before using them. Using this ioctl, a user application 
-would be able to match output instance to an input one, by matching 
-their corresponding file descriptors. 
-
-What do you think of such a solution? 
-
-Best regards
---
-Marek Szyprowski
-Samsung Poland R&D Center
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
