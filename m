@@ -1,70 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f210.google.com ([209.85.218.210]:65109 "EHLO
-	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756644AbZJHTEz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Oct 2009 15:04:55 -0400
-Received: by bwz6 with SMTP id 6so1066909bwz.37
-        for <linux-media@vger.kernel.org>; Thu, 08 Oct 2009 12:04:18 -0700 (PDT)
+Received: from smtp.nokia.com ([192.100.105.134]:28189 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754946AbZJPMq4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Oct 2009 08:46:56 -0400
+Message-ID: <4AD86ADF.2040107@maxwell.research.nokia.com>
+Date: Fri, 16 Oct 2009 15:45:19 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-In-Reply-To: <C3EF2005C0C34F008FA0B59B48782D75@MirekPNB>
-References: <2D9D466571BB4CCEB9FD981D65F8FBFC@MirekPNB>
-	 <829197380910080736g4b30e0e8m21f1d3b876a15ce6@mail.gmail.com>
-	 <C3EF2005C0C34F008FA0B59B48782D75@MirekPNB>
-Date: Thu, 8 Oct 2009 15:04:17 -0400
-Message-ID: <829197380910081204r6b8c779dsf32c61b718df77f0@mail.gmail.com>
-Subject: Re: Pinnace 320e (PCTV Hybrid Pro Stick) support
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Miroslav Pragl <lists.subscriber@pragl.cz>,
-	SebaX75 <sebax75@yahoo.it>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Zutshi Vimarsh (Nokia-D-MSW/Helsinki)" <vimarsh.zutshi@nokia.com>,
+	Ivan Ivanov <iivanov@mm-sol.com>,
+	Cohen David Abraham <david.cohen@nokia.com>,
+	Guru Raj <gururaj.nagendra@intel.com>
+Subject: Re: [RFC] Video events, version 2
+References: <4AD5CBD6.4030800@maxwell.research.nokia.com> <200910161024.13340.laurent.pinchart@ideasonboard.com> <4AD86854.8060803@maxwell.research.nokia.com> <200910161441.18415.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <200910161441.18415.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 8, 2009 at 2:23 PM, Miroslav Pragl
-<lists.subscriber@pragl.cz> wrote:
-> Devin,
-> thank you very much.
->
-> I downloaded, compiled and installed drivers from current (today) hg
-> repository o linuxtv.org, attached Pinnacle dongle, scanned.
->
-> The log files are quite large so i ZIPed them and made available at
-> http://pragl.com/tmp/em28xx_logs.zip
-> They are:
->
-> 1. messages.txt - relevant paert of /var/log/messages after plugging the
-> dongle in
->
-> 2. scan.txt - output from `scan cz-Praha` (my location) you can see scan
-> locks on first frequency (634000000), finds correctly couple of channels
-> then fails on other frequencies
->
-> 3. scan2.txt - same scan but I commented-out 1st frequency (634000000) so
-> scan successfully starts from following one (674000000) and the situation
-> repeats - only this one gets scanned, following are not
->
-> Hope I described it clearly :)
->
-> I really appreciate your help
+Laurent Pinchart wrote:
+> That's not what I meant. The idea of a count field is to report the number of 
+> events still pending after that one, type aside. If v4l2_event::count equals 0 
+> the userspace application will know there is no need to call VIDIOC_G_EVENT 
+> just to get a -EAGAIN. 
 
-Interesting.  I just looked at SebaX75's usbmon trace, and I have a
-suspicion as to what is going on.  If one of you is feeling
-adventurous, try the following
+Thanks for the clarification.
 
-unplug the device
-comment out line 181 of file v4l/em28xx-cards.c so it looks like:
-
-//   {EM2880_R04_GPO,        0x04,   0xff,          100},/* zl10353 reset */
-
-make && make install && make unload
-plug in device
-Attempt a scan
-
-Let me know if that causes it to lock on more than just the first frequency.
-
-Devin
+Sounds good to me, I'll put this to the next version.
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
