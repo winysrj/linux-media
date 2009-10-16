@@ -1,61 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f227.google.com ([209.85.220.227]:59674 "EHLO
-	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760200AbZJOPyM convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3998 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752044AbZJPSGj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Oct 2009 11:54:12 -0400
-Received: by fxm27 with SMTP id 27so1272005fxm.17
-        for <linux-media@vger.kernel.org>; Thu, 15 Oct 2009 08:53:36 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <200909281909.15028.opensource@andmarios.com>
-References: <200909281850.25492.opensource@andmarios.com>
-	 <829197380909280856j42f37b66rf99ddaaad836461e@mail.gmail.com>
-	 <200909281909.15028.opensource@andmarios.com>
-Date: Thu, 15 Oct 2009 11:53:35 -0400
-Message-ID: <829197380910150853l6797a053qd2d9e05ec3b7552e@mail.gmail.com>
-Subject: Re: [linux-dvb] KWORLD 323U, kernel panic when trying to access ALSA
-	interface
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Marios Andreopoulos <opensource@andmarios.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Fri, 16 Oct 2009 14:06:39 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id n9GI6g0f009363
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 16 Oct 2009 20:06:43 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 16 Oct 2009 20:06:42 +0200 (CEST)
+Message-Id: <200910161806.n9GI6g0f009363@smtp-vbr10.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/9/28 Marios Andreopoulos <opensource@andmarios.com>:
-> On Monday 28 of September 2009, Devin Heitmueller wrote:
->>
->> Hello Marios,
->>
->> I started doing some debugging em28xx audio on the HVR-950 and hit
->> what is probably the same panic (which occurs as soon as you run the
->> arecord command).  I've got a stack dump and am actively debugging the
->> issue.
->>
->> It seems that a regression has been recently introduced.
->>
->> Devin
->>
->>
->
-> If there is any way I can help please let me know.
-> I do not know much about developing or debugging software but I believe I'm able to follow instructions to get a dump or do some trials if there is a need.
->
-> Thanks for the really quick reply,
-> Marios
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Hello Marios,
+Results of the daily build of v4l-dvb:
 
-Sorry about the extended delay on this.  Please try out the following
-tree and see if you still hit a panic:
+date:        Fri Oct 16 19:00:03 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13101:3919b17dc88e
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-http://www.kernellabs.com/hg/~dheitmueller/em28xx-audio-panic
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-rc3-armv5: ERRORS
+linux-2.6.32-rc3-armv5-davinci: ERRORS
+linux-2.6.27-armv5-ixp: ERRORS
+linux-2.6.28-armv5-ixp: ERRORS
+linux-2.6.29.1-armv5-ixp: ERRORS
+linux-2.6.30-armv5-ixp: ERRORS
+linux-2.6.31-armv5-ixp: ERRORS
+linux-2.6.32-rc3-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.32-rc3-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-rc3-i686: ERRORS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-rc3-m32r: ERRORS
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.32-rc3-mips: ERRORS
+linux-2.6.27-powerpc64: ERRORS
+linux-2.6.28-powerpc64: ERRORS
+linux-2.6.29.1-powerpc64: ERRORS
+linux-2.6.30-powerpc64: ERRORS
+linux-2.6.31-powerpc64: ERRORS
+linux-2.6.32-rc3-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-rc3-x86_64: ERRORS
+sparse (linux-2.6.31): OK
+sparse (linux-2.6.32-rc3): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-Cheers,
+Detailed results are available here:
 
-Devin
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
