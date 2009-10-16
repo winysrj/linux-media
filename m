@@ -1,55 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:36012 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752868AbZJCH17 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2009 03:27:59 -0400
-Date: Sat, 3 Oct 2009 09:28:00 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Erik =?ISO-8859-1?Q?Andr=E9n?= <erik.andren@gmail.com>
-Cc: James Blanford <jhblanford@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: Race in gspca main or missing lock in stv06xx subdriver?
-Message-ID: <20091003092800.27fbafb8@tele>
-In-Reply-To: <62e5edd40910010623w58232a7cnf77a2e0c3679aab3@mail.gmail.com>
-References: <20090914111757.543c7e77@blackbart.localnet.prv>
-	<20090915124106.35ad1382@tele>
-	<62e5edd40910010623w58232a7cnf77a2e0c3679aab3@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail.hauppauge.com ([167.206.143.4]:2487 "EHLO
+	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752017AbZJPOc5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Oct 2009 10:32:57 -0400
+Message-ID: <4AD8802E.8010608@linuxtv.org>
+Date: Fri, 16 Oct 2009 10:16:14 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+CC: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"Zutshi Vimarsh (Nokia-D-MSW/Helsinki)" <vimarsh.zutshi@nokia.com>,
+	Ivan Ivanov <iivanov@mm-sol.com>,
+	Cohen David Abraham <david.cohen@nokia.com>,
+	Guru Raj <gururaj.nagendra@intel.com>,
+	dheitmueller@kernellabs.org, mkrufky@kernellabs.com
+References: <4AD877A0.3080004@maxwell.research.nokia.com>
+In-Reply-To: <4AD877A0.3080004@maxwell.research.nokia.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: Re: [RFC] Video events, version 2.1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 1 Oct 2009 15:23:29 +0200
-Erik Andrén <erik.andren@gmail.com> wrote:
+Let's please just use either my @linuxtv.org or @kernellabs.com email 
+account for this...
 
-> 2009/9/15 Jean-Francois Moine <moinejf@free.fr>:
-	[snip]
-> > I think you may have found a big problem, and this one should exist
-> > in all drivers!
-> >
-> > As I understood, you say that the URB completion routine (isoc_irq)
-> > may be run many times at the same time.
-	[snip]
-> > Then, to fix this problem, I see only one solution: have a private
-> > tasklet to do the video streaming, as this is done for some bulk
-> > transfer...
-	[snip]
-> Are you currently working on anything addressing this issue or do we
-> need some further discussion?
+Thanks,
 
-Hi Erik,
+Mike
 
-No, I am not working on this problem: I cannot reproduce it (easy test:
-have a static variable which is incremented in the irq function -
-isoc_irq() in gspca.c - and warn when it is non null at entry).
+Sakari Ailus wrote:
+>
+> Hi,
+>
+>
+> Here's the version 2.1 of the video events RFC. It's based on Laurent
+> Pinchart's original RFC and version 2 which I wrote some time ago. This
+> time the changes are done based on discussion on the list. The old RFC
+> is available here:
+>
+> <URL:http://www.spinics.net/lists/linux-media/msg10971.html>
+>
+> (Cc:d to Mike Krufky and Devin Heitmueller, too.)
+>
+> Changes to version 2
+> --------------------
+>
+> #define V4L2_EVENT_ALL
+>
+> VIDIOC_G_EVENT -> VIDIOC_DQEVENT
+>
+> Event enumeration is gone.
+>
+> Reserved fields moved before data in v4l2_event and now there are 8 of
+> them instead of 4.
+>
+> Event (un)subscription argument is now v4l2_event_subscription.
+>
+> Interface description
+> ---------------------
+>
+> Event type is either a standard event or private event. Standard events
+> will be defined in videodev2.h. Private event types begin from
+> V4L2_EVENT_PRIVATE. Some high order bits will be reserved for future use.
+>
+> #define V4L2_EVENT_ALL                  0x07ffffff
+> #define V4L2_EVENT_PRIVATE_START        0x08000000
+> #define V4L2_EVENT_RESERVED             0x10000000
+>
+> VIDIOC_DQEVENT is used to get events. count is number of pending events
+> after the current one. sequence is the event type sequence number and
+> the data is specific to event type.
+>
+> The user will get the information that there's an event through
+> exception file descriptors by using select(2). When an event is
+> available the poll handler sets POLLPRI which wakes up select. -EINVAL
+> will be returned if there are no pending events.
+>
+> VIDIOC_SUBSCRIBE_EVENT and VIDIOC_UNSUBSCRIBE_EVENT are used to
+> subscribe and unsubscribe from events. The argument is struct
+> v4l2_event_subscription which now only contains the type field for the
+> event type. Every event can be subscribed or unsubscribed by one ioctl
+> by using special type V4L2_EVENT_ALL.
+>
+>
+> struct v4l2_event {
+>         __u32           count;
+>         __u32           type;
+>         __u32           sequence;
+>         struct timeval  timestamp;
+>         __u32           reserved[8];
+>         __u8            data[64];
+> };
+>
+> struct v4l2_event_subscription {
+>         __u32           type;
+>         __u32           reserved[8];
+> };
+>
+> #define VIDIOC_DQEVENT          _IOR('V', 84, struct v4l2_event)
+> #define VIDIOC_SUBSCRIBE_EVENT  _IOW('V', 85, struct
+>                                      v4l2_event_subscription)
+> #define VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 86, struct
+>                                       v4l2_event_subscription)
+>
+>
+> The size of the event queue is decided by the driver. Which events will
+> be discarded on queue overflow depends on the implementation.
+>
+>
+> Questions
+> ---------
+>
+> One more question I have is that there can be situations that the
+> application wants to know something has happened but does not want an
+> explicit notification from that. So it gets an event from VIDIOC_DQEVENT
+> but does not want to get woken up for that reason. I guess one flag in
+> event subscription should do that. Perhaps that is something that should
+> be implemented when needed, though.
+>
+> Are there enough reserved fields now? How about the event type high
+> order bits split?
+>
+> What should we really call v4l2_event_subscription? A better name for
+> the structure would be perhaps favourable.
+>
+>
+> Comments and questions are still very very welcome.
+>
+> -- 
+> Sakari Ailus
+> sakari.ailus@maxwell.research.nokia.com
+>
 
-May you (or anyone) check it?
-
-Then, the simplest solution is not a tasklet, but to use only one URB
-(change the '#define DEF_NURBS' to 1 instead of 3 in gspca.c).
-
-Best regards.
-
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
