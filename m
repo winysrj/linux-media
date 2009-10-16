@@ -1,48 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f187.google.com ([209.85.210.187]:65151 "EHLO
-	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752468AbZJIFhn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Oct 2009 01:37:43 -0400
-Received: by yxe17 with SMTP id 17so397020yxe.33
-        for <linux-media@vger.kernel.org>; Thu, 08 Oct 2009 22:37:07 -0700 (PDT)
+Received: from perceval.irobotique.be ([92.243.18.41]:48676 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751346AbZJPJEH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Oct 2009 05:04:07 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [RFC] Video events, version 2
+Date: Fri, 16 Oct 2009 11:06:15 +0200
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Zutshi Vimarsh <vimarsh.zutshi@nokia.com>,
+	Ivan Ivanov <iivanov@mm-sol.com>,
+	Cohen David Abraham <david.cohen@nokia.com>,
+	Guru Raj <gururaj.nagendra@intel.com>
+References: <4AD5CBD6.4030800@maxwell.research.nokia.com> <7c87abde6f2f45f29d56c6b112de169d.squirrel@webmail.xs4all.nl> <4AD834E8.5090209@maxwell.research.nokia.com>
+In-Reply-To: <4AD834E8.5090209@maxwell.research.nokia.com>
 MIME-Version: 1.0
-In-Reply-To: <7c34ac520909222330k73380177sbf103345f5d3d7ec@mail.gmail.com>
-References: <7c34ac520909222330k73380177sbf103345f5d3d7ec@mail.gmail.com>
-Date: Fri, 9 Oct 2009 13:07:32 +0800
-Message-ID: <7c34ac520910082207i2beacffbhd89a38244370cf39@mail.gmail.com>
-Subject: Re: Support on discontinuous planer buffer and stride
-From: Jun Nie <niej0001@gmail.com>
-To: g.liakhovetski@gmx.de, hverkuil@xs4all.nl,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: base64
+Content-Type: Text/Plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Message-Id: <200910161106.16008.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-MjAwOS85LzIzIEp1biBOaWUgPG5pZWowMDAxQGdtYWlsLmNvbT46Cj4gSGksCj4goKCgoCBJIHJl
-LXNlbmQgdGhpcyBlbWFpbCBmb3IgdGhlIGxhc3Qgb25lIGlzIHJlamVjdGVkIGJ5IHN5c3RlbS4g
-SSBhbQo+IHNvcnJ5IGlmIHlvdSBndXlzIHJlY2VpdmVkIGJvdGguCj4KPiCgoKCgIEkgYW0gb3B0
-aW1pemluZyB2aWRlbyBwbGF5YmFjayB3aXRoIG92ZXJsYXkgd2l0aCBWNEwyIGRyaXZlci4gVGhl
-Cj4gdmlkZW8gY29udGVudCBpcyBhIHN1Yi1yZWdpb24gb2YgY29kZWMgb3V0cHV0LiBUaHVzIGEg
-bWVtb3J5IGNvcHkgaXMKPiBuZWNlc3NhcnkuCj4goKCgIElzIHRoZXJlIHBsYW4gdG8gc3VwcG9y
-dCBmb3Igc3RyaWRlIGFuZCBkaXNjcmV0ZSBZVVYgcGxhbmVyIGluCj4ga2VybmVsPyBTdWNoIGFz
-IGJlbG93IGNoYW5nZXMgY2FuIGhlbHAgbXVjaCBmb3IgbXkgdXNhZ2UgY2FzZS4KPgo+IC0tLSBh
-L2luY2x1ZGUvbGludXgvdmlkZW9kZXYyLmgKPiArKysgYi9pbmNsdWRlL2xpbnV4L3ZpZGVvZGV2
-Mi5oCj4gQEAgLTUyOSw3ICs1MjksMjAgQEAgc3RydWN0IHY0bDJfYnVmZmVyIHsKPiCgoKCgoKCg
-oKCgoKCgoKAgX191MzKgoKCgoKCgoKCgIG9mZnNldDsKPiCgoKCgoKCgoKCgoKCgoKAgdW5zaWdu
-ZWQgbG9uZ6CgIHVzZXJwdHI7Cj4goKCgoKCgoCB9IG07Cj4gK6CgoKCgoCAvKiBVVi9HQiBsb2Nh
-dGlvbiBpcyB2YWxpZCBvbmx5IGluIHBsYW5lciBjYXNlICovCj4gK6CgoKCgoCB1bmlvbiB7Cj4g
-K6CgoKCgoKCgoKCgoKCgIF9fdTMyoKCgoKCgoKCgoCBvZmZzZXRfdWc7Cj4gK6CgoKCgoKCgoKCg
-oKCgIHVuc2lnbmVkIGxvbmegoCB1c2VycHRyX3VnOwo+ICugoKCgoKAgfSBtX3VnOwo+ICugoKCg
-oKAgdW5pb24gewo+ICugoKCgoKCgoKCgoKCgoCBfX3UzMqCgoKCgoKCgoKAgb2Zmc2V0X3ZiOwo+
-ICugoKCgoKCgoKCgoKCgoCB1bnNpZ25lZCBsb25noKAgdXNlcnB0cl92YjsKPiAroKCgoKCgIH0g
-bV92YjsKPiCgoKCgoKCgIF9fdTMyoKCgoKCgoKCgoKCgoKCgoKCgIGxlbmd0aDsKPiAroKCgoKCg
-IC8qIHN0cmlkZSBvZiBZVVYgb3IgUkdCICovCj4gK6CgoKCgoCBfX3UzMqCgoKCgoKCgoKCgoKCg
-oKCgoCBzdHJpZGVfeXI7Cj4gK6CgoKCgoCBfX3UzMqCgoKCgoKCgoKCgoKCgoKCgoCBzdHJpZGVf
-dWc7Cj4gK6CgoKCgoCBfX3UzMqCgoKCgoKCgoKCgoKCgoKCgoCBzdHJpZGVfdmI7Cj4goKCgoKCg
-oCBfX3UzMqCgoKCgoKCgoKCgoKCgoKCgoCBpbnB1dDsKPiCgoKCgoKCgIF9fdTMyoKCgoKCgoKCg
-oKCgoKCgoKCgIHJlc2VydmVkOwo+IKB9Owo+Cj4goKCgIElmIHN1Y2ggY2hhbmdlIGlzIGFjY2Vw
-dGFibGUgZm9yIGV2ZXJ5b25lLCBJIG1heSBoZWxwIG9uIHRoZSBpbXBsZW1lbnRhdGlvbi4KPiCg
-oKAgQW55IGNvbW1lbnRzIGFyZSB3ZWxjb21lLgo+Cj4gSnVuCj4KCkhpLCBIYW5zL0d1ZW5uYWRp
-CgogICAgIFdoYXQgZG8geW91IHRoaW5rIG9mICBzdXBwb3J0aW5nIHRoaXMgZmVhdHVyZT8KCkp1
-bgo=
+On Friday 16 October 2009 10:55:04 Sakari Ailus wrote:
+> Hans Verkuil wrote:
+> [clip]
+> 
+> > I'm not keen on using pointers insides structures unless there is a very
+> > good reason to do so. In practice it complicates the driver code
+> > substantially due to all the kernel-to-userspace copies that need to be
+> > done that are normally handled by video_ioctl2. In addition it requires
+> > custom code in the compat-ioctl32 part as well.
+> 
+> VIDIOC_DQEVENT then.
+> 
+> [clip]
+> 
+> >> The size of the structure is now 96 bytes. I guess we could make that
+> >> around 128 to allow a bit more space for data without really affecting
+> >> performance.
+> >
+> > With 'big unions' I didn't mean the memory size. I think 64 bytes (16
+> > longs) is a decent size. I was talking about the union definition in the
+> > videodev2.h header.
+> 
+> That was a badly placed comment, but I meant the memory size. I have
+> currently no opinion on whether to use union or not.
+> 
+> [clip]
+> 
+> >>> That said, I think the initial implementation should be that the
+> >>> subscribe
+> >>> ioctl gets a struct with the event type and a few reserved fields so
+> >>> that
+> >>> in the future we can use one of the reserved fields as a configuration
+> >>> parameter. So for now we just have some default watermark that is set
+> >>> by the
+> >>> driver.
+> >>
+> >> I'd like to think a queue size defined by the driver is fine at this
+> >> point. It's probably depending on the driver rather than application how
+> >> long the queue should to be. At some point old events start becoming
+> >> uninteresting...
+> >
+> > Question: will we drop old events or new events? Or make this
+> > configurable? Or driver dependent?
+> 
+> This should the same than for video buffers. I guess it's undefined? I'd
+> let the driver decide at this point.
+
+>From the user point of view it won't make much difference. The same number of 
+consecutive events will be lost. Which ones will depend on the events arrival 
+time and when/how long the application fails to retrieve pending events. I 
+agree to let the driver decide (or rather the v4l2 core, as the queue will be 
+implemented there).
+
+-- 
+Laurent Pinchart
