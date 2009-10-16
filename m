@@ -1,62 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:53750 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753888AbZJBMh1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2009 08:37:27 -0400
-Message-ID: <4AC5F3F7.4010404@maxwell.research.nokia.com>
-Date: Fri, 02 Oct 2009 15:37:11 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from mail-ew0-f208.google.com ([209.85.219.208]:63847 "EHLO
+	mail-ew0-f208.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751173AbZJPQsg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Oct 2009 12:48:36 -0400
+Received: by ewy4 with SMTP id 4so1780236ewy.37
+        for <linux-media@vger.kernel.org>; Fri, 16 Oct 2009 09:48:39 -0700 (PDT)
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: dqbuf in blocking mode
-References: <A24693684029E5489D1D202277BE89444C9C902B@dlee02.ent.ti.com> <200910011534.28019.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <200910011534.28019.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4AD3962A.9010209@sagurna.de>
+References: <4AD3962A.9010209@sagurna.de>
+Date: Fri, 16 Oct 2009 12:48:39 -0400
+Message-ID: <83bcf6340910160948s554e7a82v7e70e89ce621c147@mail.gmail.com>
+Subject: Re: Bug in HVR1300. Found part of a patch, if reverted bug seems to
+	be gone
+From: Steven Toth <stoth@kernellabs.com>
+To: Frank Sagurna <frank@sagurna.de>
+Cc: linux-media@vger.kernel.org, Steven Toth <stoth@hauppauge.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart wrote:
-[clip]
-> If I'm not mistaken videobuf_dqbuf() only returns -EIO if the buffer state is 
-> VIDEOBUF_ERROR. This is the direct result of either
-> 
-> - videobuf_queue_cancel() being called, or
-> - the device driver marking the buffer as erroneous because of a (possibly 
-> transient) device error
-> 
-> In the first case VIDIOC_DQBUF should in my opinion return with an error. In 
-> the second case things are not that clear. A transient error could be hidden 
-> from the application, or, if returned to the application through -EIO, 
-> shouldn't be treated as a fatal error. Non-transient errors should result in 
-> the application stopping video streaming.
-> 
-> Unfortunately there V4L2 API doesn't offer a way to find out if the error is 
-> transient or fatal:
-> 
-> "EIO		VIDIOC_DQBUF failed due to an internal error. Can also indicate 
-> temporary problems like signal loss. Note the driver might dequeue an (empty) 
-> buffer despite returning an error, or even stop capturing."
-> 
-> -EIO can mean many different things that need to be handled differently by 
-> applications. I especially hate the "the driver might dequeue an (empty) 
-> buffer despite returning an error".
-> 
-> Drivers should always or never dequeue a buffer when an error occurs, not 
-> sometimes. The problem is for the application to recognize the difference 
-> between a transient and a fatal error in a backward-compatible way.
+> there seems to be a bug in cx88 (HVR1300) that is responsible for not
+> switching channels, and not being able to scan.
+> Complete description can be found on launchpad:
 
-The errors in this case are transient and for blocking mode IMO the 
-safest way is to return the buffer only when there's one available. 
-Which is what the driver is doing now.
+Noted.
 
-What I'd probably change, however, is to move the handling to the ISP 
-driver instead.
-
-Regards,
+Thanks
 
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
