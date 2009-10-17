@@ -1,40 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from claranet-outbound-smtp06.uk.clara.net ([195.8.89.39]:33384 "EHLO
-	claranet-outbound-smtp06.uk.clara.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756221AbZJNLCg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Oct 2009 07:02:36 -0400
-Message-ID: <4AD5AFA6.8080401@onelan.com>
-Date: Wed, 14 Oct 2009 12:01:58 +0100
-From: Simon Farnsworth <simon.farnsworth@onelan.com>
-MIME-Version: 1.0
-To: Andy Walls <awalls@radix.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: Poor reception with Hauppauge HVR-1600 on a ClearQAM cable feed
-References: <4AD591BB.80607@onelan.com> <1255516547.3848.10.camel@palomino.walls.org>
-In-Reply-To: <1255516547.3848.10.camel@palomino.walls.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail.gmx.net ([213.165.64.20]:37451 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752005AbZJQUYn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 Oct 2009 16:24:43 -0400
+Date: Sat, 17 Oct 2009 22:24:37 +0200
+From: Mario Bachmann <grafgrimm77@gmx.de>
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: linux-media@vger.kernel.org
+Subject: Re: 2.6.32 regression: can't tune DVB with firedtv
+Message-ID: <20091017222437.0cbbe897@x2.grafnetz>
+In-Reply-To: <4ADA149E.1070704@s5r6.in-berlin.de>
+References: <4ADA149E.1070704@s5r6.in-berlin.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andy Walls wrote:
-> Have your remote user read
-> 
-> http://www.ivtvdriver.org/index.php/Howto:Improve_signal_quality
-> 
-> and take any actions that seem appropriate/easy.
-> 
-I'll try that again - they're grouching, because their TV is fine, and
-the same card in a Windows PC is also fine. It's just under Linux that
-they're seeing problems, so I may not be able to get them to co-operate.
-> 
-> The in kernel mxl5005s driver is known to have about 3 dB worse
-> performance for QAM vs 8-VSB (Steven Toth took some measurements once).
-> 
-Am I misunderstanding dmesg here? I see references to a Samsung S5H1409,
-not to an mxl5005s; if I've read the driver code correctly, I'd see a
-KERN_INFO printk for the mxl5005s when it comes up.
--- 
-Simon Farnsworth
+Am Sat, 17 Oct 2009 21:01:50 +0200
+schrieb Stefan Richter <stefanr@s5r6.in-berlin.de>:
 
+> Hi list,
+> 
+> I just switched from kernel 2.6.31 to 2.6.32-rc5.  Using kaffeine, I
+> can't tune FireDTV-C and FireDTV-T boxes via the firedtv driver
+> anymore. Electronic program guide data is still displayed though.
+> 
+> Under 2.6.31, I used firedtv at the same patchlevel as present in
+> 2.6.32-rc5, hence I guess that it is a DVB core problem rather than a
+> driver problem.
+> 
+> Any suggestions where to look for the cause?
+> 
+> (I am not subscribed to the list.)
+
+Hi there, 
+
+perhaps it is related:
+with kernel 2.6.30.8 my "TwinhanDTV USB-Ter USB1.1 / Magic Box I"
+worked. 
+
+Now with kernel 2.6.32-rc3 (and 2.6.31.1) the modules seems to be
+loaded fine, but tzap/kaffeine/mplayer can not tune to a channel. 
+
+i think the cause must be here:
+/usr/src/linux-2.6.32-rc3/drivers/media/dvb/dvb-usb/dibusb-common.c
+line 136 to line 146
+
+i changed this hole section to the version of 2.6.30.8 and it works
+again.
+
+Mario
