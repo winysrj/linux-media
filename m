@@ -1,97 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.freemail.gr ([81.171.104.45]:34949 "EHLO www.freemail.gr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757016AbZJ1Alw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2009 20:41:52 -0400
-Reply-To: scoop_yo@freemail.gr
-From: scoop_yo@freemail.gr
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3084 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753074AbZJQSIP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 Oct 2009 14:08:15 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id n9HI8IFc074944
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 17 Oct 2009 20:08:18 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 17 Oct 2009 20:08:18 +0200 (CEST)
+Message-Id: <200910171808.n9HI8IFc074944@smtp-vbr10.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: Lifeview hybrid saa7134 pci driver not working anymore pt2
-Date: Wed, 28 Oct 2009 02:25:09 +0200
-Message-Id: <4ae78f655868f8.31336853@freemail.gr>
-MIME-version: 1.0
-Content-type: multipart/mixed; boundary="=_4ae78f655b5562.53763585=_";
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To l^mula aut| e_mai se loqv^ MIME. E\m to pq|cqalla akkgkocqav_ar sar dem jatakaba_mei
-aut^ tg loqv^, ]ma l]qor ^ to s}moko tou lgm}lator lpoqe_ ma lg diab\fetai.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
---=_4ae78f655b5562.53763585=_
-Content-Type: text/plain; charset="iso-8859-7"
+Results of the daily build of v4l-dvb:
 
-pt1 is here http://linuxtv.org/pipermail/linux-dvb/2009-August/032334.html
+date:        Sat Oct 17 19:00:05 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13101:3919b17dc88e
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-I have a Lifeview Hybrid Pci card and since around August 2009 the driver doesn't work in 64bit linux but works only in 32bit linux.
-Now, I am using vanilla 2.6.31.5 source with latest mercurial v4b-dvb snapshot.
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-rc3-armv5: ERRORS
+linux-2.6.32-rc3-armv5-davinci: ERRORS
+linux-2.6.27-armv5-ixp: ERRORS
+linux-2.6.28-armv5-ixp: ERRORS
+linux-2.6.29.1-armv5-ixp: ERRORS
+linux-2.6.30-armv5-ixp: ERRORS
+linux-2.6.31-armv5-ixp: ERRORS
+linux-2.6.32-rc3-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.32-rc3-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-rc3-i686: ERRORS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-rc3-m32r: ERRORS
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.32-rc3-mips: ERRORS
+linux-2.6.27-powerpc64: ERRORS
+linux-2.6.28-powerpc64: ERRORS
+linux-2.6.29.1-powerpc64: ERRORS
+linux-2.6.30-powerpc64: ERRORS
+linux-2.6.31-powerpc64: ERRORS
+linux-2.6.32-rc3-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-rc3-x86_64: ERRORS
+sparse (linux-2.6.31): OK
+sparse (linux-2.6.32-rc3): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-I tried today again in my 64bit system to see if the driver works but again I discovered that it just doesn't work. I am using the same firmware on both 32 and 64bit linux installations and in 32bits I have no problem, everything works. I am choosing the same options in both 32 and 64bit installations.
+Detailed results are available here:
 
-The error that I get is in the attachement.
-It complains about firmware but the firmware is exactly the same with my 32bit installation where things work. 
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-What's wrong with the saa7134 driver ?
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
+The V4L2 specification failed to build, but the last compiled spec is here:
 
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
 
---=_4ae78f655b5562.53763585=_
-Content-Type: text/x-log
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="new_tuner.log"
+The DVB API specification from this daily build is here:
 
-TGludXggdmlkZW8gY2FwdHVyZSBpbnRlcmZhY2U6IHYyLjAwCnNhYTcxMzAvMzQ6IHY0bDIg
-ZHJpdmVyIHZlcnNpb24gMC4yLjE1IGxvYWRlZApBQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsg
-W0FQQzJdIGVuYWJsZWQgYXQgSVJRIDE3CnNhYTcxMzQgMDAwMDowNTowNy4wOiBQQ0kgSU5U
-IEEgLT4gTGlua1tBUEMyXSAtPiBHU0kgMTcgKGxldmVsLCBsb3cpIC0+IElSUSAxNwpzYWE3
-MTMzWzBdOiBmb3VuZCBhdCAwMDAwOjA1OjA3LjAsIHJldjogMjA5LCBpcnE6IDE3LCBsYXRl
-bmN5OiAzMiwgbW1pbzogMHhkMDAwMDAwMApzYWE3MTMzWzBdOiBzdWJzeXN0ZW06IDUxNjg6
-MzMwNiwgYm9hcmQ6IExpZmVWaWV3IEZseURWQi1UIEh5YnJpZCBDYXJkYnVzL01TSSBUViBA
-bnl3aGVyZSBBL0QgTkIgW2NhcmQ9OTQsYXV0b2RldGVjdGVkXQpzYWE3MTMzWzBdOiBib2Fy
-ZCBpbml0OiBncGlvIGlzIDIxMDAwMApJUlEgMTcvc2FhNzEzM1swXTogSVJRRl9ESVNBQkxF
-RCBpcyBub3QgZ3VhcmFudGVlZCBvbiBzaGFyZWQgSVJRcwpzYWE3MTMzWzBdOiBpMmMgZWVw
-cm9tIDAwOiA2OCA1MSAwNiAzMyA1NCAyMCAxYyAwMCA0MyA0MyBhOSAxYyA1NSBkMiBiMiA5
-MgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDEwOiAwMCAwMCA2MiAwOCBmZiAyMCBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDIwOiAwMSA0
-MCAwMSAwMyAwMyAwMSAwMSAwMyAwOCBmZiAwMSAxNiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBd
-OiBpMmMgZWVwcm9tIDMwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDQwOiBmZiAyMSAwMCBjMiA5NiAx
-MCAwNSAwMSAwMSAxNiAzMiAxNSBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9t
-IDUwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpz
-YWE3MTMzWzBdOiBpMmMgZWVwcm9tIDYwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDcwOiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBp
-MmMgZWVwcm9tIDgwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDkwOiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGEw
-OiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3
-MTMzWzBdOiBpMmMgZWVwcm9tIGIwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGMwOiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMg
-ZWVwcm9tIGQwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGUwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGYwOiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgppMmMtYWRh
-cHRlciBpMmMtMjogSW52YWxpZCA3LWJpdCBhZGRyZXNzIDB4N2EKdHVuZXIgMi0wMDRiOiBj
-aGlwIGZvdW5kIEAgMHg5NiAoc2FhNzEzM1swXSkKdGRhODI5eCAyLTAwNGI6IHNldHRpbmcg
-dHVuZXIgYWRkcmVzcyB0byA2MQp0ZGE4Mjl4IDItMDA0YjogdHlwZSBzZXQgdG8gdGRhODI5
-MCs3NWEKc2FhNzEzM1swXTogcmVnaXN0ZXJlZCBkZXZpY2UgdmlkZW8wIFt2NGwyXQpzYWE3
-MTMzWzBdOiByZWdpc3RlcmVkIGRldmljZSB2YmkwCnNhYTcxMzNbMF06IHJlZ2lzdGVyZWQg
-ZGV2aWNlIHJhZGlvMApzYWE3MTM0IEFMU0EgZHJpdmVyIGZvciBETUEgc291bmQgbG9hZGVk
-CklSUSAxNy9zYWE3MTMzWzBdOiBJUlFGX0RJU0FCTEVEIGlzIG5vdCBndWFyYW50ZWVkIG9u
-IHNoYXJlZCBJUlFzCnNhYTcxMzNbMF0vYWxzYTogc2FhNzEzM1swXSBhdCAweGQwMDAwMDAw
-IGlycSAxNyByZWdpc3RlcmVkIGFzIGNhcmQgLTEKZHZiX2luaXQoKSBhbGxvY2F0aW5nIDEg
-ZnJvbnRlbmQKRFZCOiByZWdpc3RlcmluZyBuZXcgYWRhcHRlciAoc2FhNzEzM1swXSkKRFZC
-OiByZWdpc3RlcmluZyBhZGFwdGVyIDAgZnJvbnRlbmQgMCAoUGhpbGlwcyBUREExMDA0Nkgg
-RFZCLVQpLi4uCnRkYTEwMDR4OiBzZXR0aW5nIHVwIHBsbHMgZm9yIDQ4TUh6IHNhbXBsaW5n
-IGNsb2NrCnRkYTEwMDR4OiBmb3VuZCBmaXJtd2FyZSByZXZpc2lvbiBlYSAtLSBpbnZhbGlk
-CnRkYTEwMDR4OiB0cnlpbmcgdG8gYm9vdCBmcm9tIGVlcHJvbQp0ZGExMDA0eDogZm91bmQg
-ZmlybXdhcmUgcmV2aXNpb24gZWEgLS0gaW52YWxpZAp0ZGExMDA0eDogd2FpdGluZyBmb3Ig
-ZmlybXdhcmUgdXBsb2FkLi4uCnNhYTcxMzQgMDAwMDowNTowNy4wOiBmaXJtd2FyZTogcmVx
-dWVzdGluZyBkdmItZmUtdGRhMTAwNDYuZncKdGRhMTAwNHg6IEVycm9yIGR1cmluZyBmaXJt
-d2FyZSB1cGxvYWQKdGRhMTAwNHg6IGZvdW5kIGZpcm13YXJlIHJldmlzaW9uIGVhIC0tIGlu
-dmFsaWQKdGRhMTAwNHg6IGZpcm13YXJlIHVwbG9hZCBmYWlsZWQKdGRhODI3eF9wcm9iZV92
-ZXJzaW9uOiBjb3VsZCBub3QgcmVhZCBmcm9tIHR1bmVyIGF0IGFkZHI6IDB4YzIKCg==
-
---=_4ae78f655b5562.53763585=_--
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
