@@ -1,32 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx09.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.13])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n988CREX008593
-	for <video4linux-list@redhat.com>; Thu, 8 Oct 2009 04:12:27 -0400
-Received: from mail.extern.dresearch.de (mail.extern.DResearch.DE
-	[87.193.137.78])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n988CC1R020817
-	for <video4linux-list@redhat.com>; Thu, 8 Oct 2009 04:12:13 -0400
-Received: from consult.extern.dresearch.de (consult.extern.DResearch.DE
-	[87.193.137.68])
-	by mail.extern.dresearch.de (Postfix) with ESMTP id 6FB1816DEDF
-	for <video4linux-list@redhat.com>;
-	Thu,  8 Oct 2009 10:12:09 +0200 (CEST)
-Received: from hiob.intern.dresearch.de (unknown [87.193.137.50])
-	by consult.extern.dresearch.de (Postfix) with ESMTP id 2EDF92A4255
-	for <video4linux-list@redhat.com>;
-	Thu,  8 Oct 2009 10:12:09 +0200 (CEST)
-Content-class: urn:content-classes:message
+Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.11])
+	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n9HML5K8012956
+	for <video4linux-list@redhat.com>; Sat, 17 Oct 2009 18:21:05 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.158])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n9HMKo6Z031213
+	for <video4linux-list@redhat.com>; Sat, 17 Oct 2009 18:20:51 -0400
+Received: by fg-out-1718.google.com with SMTP id d23so801333fga.9
+	for <video4linux-list@redhat.com>; Sat, 17 Oct 2009 15:20:50 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Date: Thu, 8 Oct 2009 10:13:36 +0200
-Message-ID: <69E6C70090A0A14498CC98FAE5E06B6E19A81F@hiob.intern.dresearch.de>
-From: "Schuknecht, Mario" <m.schuknecht@DResearch.de>
-To: <video4linux-list@redhat.com>
-Content-Transfer-Encoding: 8bit
-Subject: Graphics card with TV-out
+From: =?ISO-8859-1?Q?P=E9ter_S=E1rk=F6zi?= <xmisterhu@gmail.com>
+Date: Sun, 18 Oct 2009 00:20:30 +0200
+Message-ID: <745af8a00910171520n13e80a4eld7247df97f8e75f9@mail.gmail.com>
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
+Subject: EasyCap USB 05e1:0408
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -38,26 +27,19 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
+Hi,
 
-I am looking for graphics cards with 5 TV-outs(CVBS). Probably I must
-take 3 graphics cards with 2 TV-outs or 1 graphics card with 4 TV-outs
-and 1 graphics card with 1 TV-out.
-The graphics card must work under Linux. I think video4linux is the best
-choice. I informed on the web page (www.linuxtv.org) already.
-I am found the Matrox QID LP PCI series (www.matrox.com) with 4 TV-outs.
-On the Matrox web page driver for Linux can be downloaded. But I did not
-buy the graphics card. Does someone know that 4 TV-outs with v4l works?
-Do 2 Matrox cards co-operate? I sent an email at Matrox already. But I
-do not get an answer.
-Does someone have experience with TV-out under Linux and can recommend
-other graphics cards?
-Or does someone know further links or mailing lists?
+I've bought an USB DVR mentioned in the subject. With the latest
+syntek driver from sourceforge, I can recognise it, but I can't get a
+normal signal from it.
+The picture I get now is this:
+http://ubuntuforums.org/attachment.php?attachmentid=131231&stc=1&d=1255023938
+If I move the camera the picture changes too, so I think there could
+be settings problem.
 
-Best regards
-Mario
+What should I try to get a good picture?
 
-
+Thanks
 
 --
 video4linux-list mailing list
