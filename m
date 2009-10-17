@@ -1,61 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.25]:13694 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934915AbZJNQjW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Oct 2009 12:39:22 -0400
-Received: by ey-out-2122.google.com with SMTP id 9so7138eyd.19
-        for <linux-media@vger.kernel.org>; Wed, 14 Oct 2009 09:38:15 -0700 (PDT)
-Message-ID: <4AD5FE72.80803@gmail.com>
-Date: Wed, 14 Oct 2009 13:38:10 -0300
-From: Guilherme Longo <grlongo.ireland@gmail.com>
+Received: from mgw2.diku.dk ([130.225.96.92]:36128 "EHLO mgw2.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751301AbZJQGjj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 Oct 2009 02:39:39 -0400
+Date: Sat, 17 Oct 2009 08:39:41 +0200 (CEST)
+From: Julia Lawall <julia@diku.dk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [PATCH 6/14] drivers/media/video: Move dereference after NULL test
+Message-ID: <Pine.LNX.4.64.0910170839070.9213@ask.diku.dk>
 MIME-Version: 1.0
-To: =?UTF-8?B?T251ciBLw7zDp8O8aw==?= <onur@delipenguen.net>,
-	linux-media@vger.kernel.org
-Subject: (V4L2_PIX_FMT_SBGGR8) wierd behavior trying to get image from buffer!
-References: <4ACDF829.3010500@xfce.org>	<37219a840910080545v72165540v622efd43574cf085@mail.gmail.com>	<4ACDFED9.30606@xfce.org>	<829197380910080745j3015af10pbced2a7e04c7595b@mail.gmail.com>	<4ACE2D5B.4080603@xfce.org>	<829197380910080928t30fc0ecas7f9ab2a7d8437567@mail.gmail.com>	<4ACF03BA.4070505@xfce.org>	<829197380910090629h64ce22e5y64ce5ff5b5991802@mail.gmail.com>	<4ACF714A.2090209@xfce.org>	<829197380910090826r5358a8a2p7a13f2915b5adcd8@mail.gmail.com>	<4AD5D5F2.9080102@xfce.org>	<20091014093038.423f3304@pedra.chehab.org>	<4AD5EEA0.2010709@xfce.org>	<4AD5E813.2070406@gmail.com> <20091014185733.45a84258.onur@delipenguen.net>
-In-Reply-To: <20091014185733.45a84258.onur@delipenguen.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-You guys with more experience could tell me why this strange behavior 
-with my app.
+From: Julia Lawall <julia@diku.dk>
 
-First of all, I built my app from a code well known in the Video For 
-Linux spec. It is a capture example.
+In quickcam_messenger.c, if the NULL test on uvd is needed, then the
+dereference should be after the NULL test.
 
-1º - Why is this  /* Buggy driver paranoia. */?
-            min = fmt.fmt.pix.width * 2;
+In vpif_display.c, std_info is initialized to the address of a structure
+field.  This seems unlikely to be NULL.  If it could somehow be NULL, then
+the assignment should be moved after the NULL test.  Alternatively, perhaps
+the NULL test is intended to test std_info->stdid rather than std_info?
 
-        if (fmt.fmt.pix.bytesperline < min)
-                fmt.fmt.pix.bytesperline = min;
-        min = fmt.fmt.pix.bytesperline * fmt.fmt.pix.height;
-        if (fmt.fmt.pix.sizeimage < min)
-                fmt.fmt.pix.sizeimage = min;
+In saa7134-alsa.c, the function is only called from one place, where the
+chip argument has already been dereferenced.  On the other hand, if it
+should be kept, then card should be initialized after it.
 
-2º - I am using libv4l, and using the V4L2_PIX_FMT_SBGGR8 pixelformat in order 
-to get 640x480 of resolution. Otherwise I get only 160x120!
+A simplified version of the semantic match that detects this problem is as
+follows (http://coccinelle.lip6.fr/):
 
-This is where the problem lies, I can´t get a good image, I am actually 
-getting no more than fuzzy image. So I presumed that I am geting smth else 
-from the buffer instead of the data I should get. I started checking the parameters and plz, 
-have a look at this wierd response: 
+// <smpl>
+@match exists@
+expression x, E;
+identifier fld;
+@@
 
-fmt.fmt.pix.width:        640   <- Fine
-fmt.fmt.pix.height:       480   <- Fine
-fmt.fmt.pix.bytesperline: 1920  <- How comes ? It is 3 times more, in the SBGGR8 pixelformat each pixel is 1 byte!
-fmt.fmt.pix.sizeimage:    921600 <- The image is (fmt.fmt.pix.bytesperline * fmt.fmt.pix.height)
+* x->fld
+  ... when != \(x = E\|&x\)
+* x == NULL
+// </smpl>
 
-I believe that this sizeimage should be set to 307200, representing 640 * 480.
+Signed-off-by: Julia Lawall <julia@diku.dk>
 
+---
+ drivers/media/video/davinci/vpif_display.c        |    2 --
+ drivers/media/video/saa7134/saa7134-alsa.c        |    2 --
+ drivers/media/video/usbvideo/quickcam_messenger.c |    3 ++-
+ 3 files changed, 2 insertions(+), 5 deletions(-)
 
-Is there someone familiar with this problem and how to solve it??
-Great regards.
-Guilherme Longo
-
-
+diff --git a/drivers/media/video/usbvideo/quickcam_messenger.c b/drivers/media/video/usbvideo/quickcam_messenger.c
+index 803d3e4..f0043d0 100644
+--- a/drivers/media/video/usbvideo/quickcam_messenger.c
++++ b/drivers/media/video/usbvideo/quickcam_messenger.c
+@@ -692,12 +692,13 @@ static int qcm_start_data(struct uvd *uvd)
  
-
-
+ static void qcm_stop_data(struct uvd *uvd)
+ {
+-	struct qcm *cam = (struct qcm *) uvd->user_data;
++	struct qcm *cam;
+ 	int i, j;
+ 	int ret;
+ 
+ 	if ((uvd == NULL) || (!uvd->streaming) || (uvd->dev == NULL))
+ 		return;
++	cam = (struct qcm *) uvd->user_data;
+ 
+ 	ret = qcm_camera_off(uvd);
+ 	if (ret)
+diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
+index c015da8..7500411 100644
+--- a/drivers/media/video/davinci/vpif_display.c
++++ b/drivers/media/video/davinci/vpif_display.c
+@@ -383,8 +383,6 @@ static int vpif_get_std_info(struct channel_obj *ch)
+ 	int index;
+ 
+ 	std_info->stdid = vid_ch->stdid;
+-	if (!std_info)
+-		return -1;
+ 
+ 	for (index = 0; index < ARRAY_SIZE(ch_params); index++) {
+ 		config = &ch_params[index];
+diff --git a/drivers/media/video/saa7134/saa7134-alsa.c b/drivers/media/video/saa7134/saa7134-alsa.c
+index d48c450..d3bd82a 100644
+--- a/drivers/media/video/saa7134/saa7134-alsa.c
++++ b/drivers/media/video/saa7134/saa7134-alsa.c
+@@ -1011,8 +1011,6 @@ static int snd_card_saa7134_new_mixer(snd_card_saa7134_t * chip)
+ 	unsigned int idx;
+ 	int err, addr;
+ 
+-	if (snd_BUG_ON(!chip))
+-		return -EINVAL;
+ 	strcpy(card->mixername, "SAA7134 Mixer");
+ 
+ 	for (idx = 0; idx < ARRAY_SIZE(snd_saa7134_volume_controls); idx++) {
