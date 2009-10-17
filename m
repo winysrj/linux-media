@@ -1,42 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:54760 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751447AbZJKWel (ORCPT
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:64352 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753129AbZJQRgJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Oct 2009 18:34:41 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH] v4l2_subdev: rename tuner s_standby operation to core s_power
-Date: Mon, 12 Oct 2009 00:36:37 +0200
-Cc: sakari.ailus@maxwell.research.nokia.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-References: <1254750497-13684-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1254750497-13684-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Sat, 17 Oct 2009 13:36:09 -0400
+Received: by fxm18 with SMTP id 18so3550722fxm.37
+        for <linux-media@vger.kernel.org>; Sat, 17 Oct 2009 10:36:12 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200910120036.37857.laurent.pinchart@ideasonboard.com>
+Date: Sat, 17 Oct 2009 18:36:12 +0100
+Message-ID: <a413d4880910171036t2a3322b0i77c3e3dd581c9e62@mail.gmail.com>
+Subject: Is anyone working on a Dual DVB-S2 PCIe Tuner driver?
+From: Another Sillyname <anothersname@googlemail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 05 October 2009 15:48:17 Laurent Pinchart wrote:
-> Upcoming I2C v4l2_subdev drivers need a way to control the subdevice
-> power state from the core. This use case is already partially covered by
-> the tuner s_standby operation, but no way to explicitly come back from
-> the standby state is available.
-> 
-> Rename the tuner s_standby operation to core s_power, and fix tuner
-> drivers accordingly. The tuner core will call s_power(0) instead of
-> s_standby(). No explicit call to s_power(1) is required for tuners as
-> they are supposed to wake up from standby automatically.
+I've had a look at the Wiki and there appears to be only two PCIe
+cards that have Dual Tuners.
 
-Mauro, Hans told me he didn't see anything wrong with this patch. As there's 
-no negative feedback so far (but unfortunately no positive feedback either) 
-can it be applied ?
+However both seem crazily expensive and perhaps in once case are vapourware.
 
--- 
-Regards,
+Is there anyone working on any DVB-S2 PCI Express Device that has dual tuners?
 
-Laurent Pinchart
+Lastly (I know it's not shipping yet) there's a newly announced
+Blackgold card BGT3595
+that supposedly will have Dual DVB-T AND Dual DVB-S2 (so 4 tuners) on
+a PCI express platform.
+Will anyone be working on a driver for that device?  (Looking back
+through the lists it would appear)
+that previous cards from Blackgold couldn't get the information to
+produce a driver.
+
+Thanks in advance.
