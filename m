@@ -1,42 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.agmk.net ([91.192.224.71]:44455 "EHLO mail.agmk.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754359AbZJCTJo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 3 Oct 2009 15:09:44 -0400
-From: =?utf-8?q?Pawe=C5=82_Sikora?= <pluto@agmk.net>
-To: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [2.6.31] ir-kbd-i2c oops.
-Date: Sat, 3 Oct 2009 21:09:01 +0200
-Cc: LMML <linux-media@vger.kernel.org>
-References: <200909160300.28382.pluto@agmk.net> <200910031730.45021.pluto@agmk.net> <20091003201527.110b69e3@hyperion.delvare>
-In-Reply-To: <20091003201527.110b69e3@hyperion.delvare>
+Received: from einhorn.in-berlin.de ([192.109.42.8]:52851 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753189AbZJQUTZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 Oct 2009 16:19:25 -0400
+Received: from [192.168.0.42] ([83.221.231.7])
+	(authenticated bits=0)
+	by einhorn.in-berlin.de (8.13.6/8.13.6/Debian-1) with ESMTP id n9HKJSCZ032366
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
+	for <linux-media@vger.kernel.org>; Sat, 17 Oct 2009 22:19:29 +0200
+Message-ID: <4ADA26D0.6010108@s5r6.in-berlin.de>
+Date: Sat, 17 Oct 2009 22:19:28 +0200
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: linux-media@vger.kernel.org
+Subject: Re: 2.6.32 regression: can't tune DVB with firedtv
+References: <4ADA149E.1070704@s5r6.in-berlin.de>
+In-Reply-To: <4ADA149E.1070704@s5r6.in-berlin.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <200910032109.01674.pluto@agmk.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 03 October 2009 20:15:27 Jean Delvare wrote:
-
-> > moreover, with this patch i'm observing a flood in dmesg:
-> >
-> > [  938.313245] i2c IR (Pinnacle PCTV): unknown key: key=0x12 raw=0x12
-> > down=1 [  938.419914] i2c IR (Pinnacle PCTV): unknown key: key=0x12
-> > raw=0x12 down=0 [  939.273249] i2c IR (Pinnacle PCTV): unknown key:
-> > key=0x24 raw=0x24 down=1 [  939.379955] i2c IR (Pinnacle PCTV): unknown
-> > key: key=0x24 raw=0x24 down=0
+Stefan Richter wrote:
+> I just switched from kernel 2.6.31 to 2.6.32-rc5.  Using kaffeine, I
+> can't tune FireDTV-C and FireDTV-T boxes via the firedtv driver anymore.
+> Electronic program guide data is still displayed though.
 > 
-> Different issue, and I don't know much about IR support, but these keys
-> aren't listed in ir_codes_pinnacle_color. Maybe you have a different
-> variant of this remote control with more keys and we need to add their
-> definitions.
+> Under 2.6.31, I used firedtv at the same patchlevel as present in
+> 2.6.32-rc5, hence I guess that it is a DVB core problem rather than a
+> driver problem.
+> 
+> Any suggestions where to look for the cause?
 
-i have such one: http://imgbin.org/index.php?page=image&id=812
+>From looking at the git history of dvb-core, I think the cause is
+"V4L/DVB (12685): dvb-core: check fe->ops.set_frontend return value",
+but the actual bug is in the driver in
+firedtv-fe.c::fdtv_set_frontend().  Let me boot back into 2.6.32-rc5 and
+check my theory...
 
-> Which keys are triggering these messages?
-
-this is the funny thing because i'm not pressing any keys at all.
-the remote control is unused currently becasue i'm using only
-pinnacle svideo input for watching sat-tv with tvtime.
+> (I am not subscribed to the list.)
+-- 
+Stefan Richter
+-=====-==--= =-=- =---=
+http://arcgraph.de/sr/
