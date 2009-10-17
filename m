@@ -1,97 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.24]:1606 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754812AbZJUTdH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Oct 2009 15:33:07 -0400
-Received: by qw-out-2122.google.com with SMTP id 9so985423qwb.37
-        for <linux-media@vger.kernel.org>; Wed, 21 Oct 2009 12:33:11 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4ADED23C.2080002@uq.edu.au>
-References: <4ADED23C.2080002@uq.edu.au>
-Date: Wed, 21 Oct 2009 15:33:10 -0400
-Message-ID: <303a8ee30910211233r111d3378vedc1672f68728717@mail.gmail.com>
-Subject: Re: Leadtek DTV-1000S
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Ryan Day <ryan.day@uq.edu.au>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail1.radix.net ([207.192.128.31]:64390 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750724AbZJQDU5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Oct 2009 23:20:57 -0400
+Subject: Re: Leadtek PVR2100 / DVR3100 Experience
+From: Andy Walls <awalls@radix.net>
+To: David Nicol <david@etvinteractive.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <C6FE3C20.1BB80%david@etvinteractive.com>
+References: <C6FE3C20.1BB80%david@etvinteractive.com>
+Content-Type: text/plain
+Date: Fri, 16 Oct 2009 23:23:22 -0400
+Message-Id: <1255749802.5667.10.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 21, 2009 at 5:19 AM, Ryan Day <ryan.day@uq.edu.au> wrote:
-> Michael-
-> I wanted to see if you might be able to assist in getting a DTV-1000S to
-> work.  I followed the instructions on the Whirlpool forum (DL the firmware,
-> cp it to /lib/firmware, dl the dtv-1000s files from kernellabs.com, untar,
-> make, make install, reboot), and everything looks good when I install, but
-> when I reboot, the boot up hangs and eventually freezes.
->
-> I thought reinstalling might give me a better chance for success with a
-> clean slate to work with, but the problem continues.  Unfortunately, I don't
-> have any of the error logs or anything, as I reinstalled.
->
-> I can't remember the message at the first hang, but the freeze is caused by
-> a failure to load the LIRC module.
->
-> Also of note is that I'm installing this card as a second tuner.  I have a
-> DTV-2000H already installed.  I don't know if that changes anything.
->
-> Sorry I can't provide better info, but any advice you can give would be
-> great.
+On Fri, 2009-10-16 at 15:05 +0100, David Nicol wrote:
+> Hi,
+> 
+> Could anyone give first hand experience of the stability of the Leadtek
+> PVR2100 and/or the DVR3100 cards?
+> 
+> Does analog capture work well in both cards over a prolonged period of
+> uptime?
+> 
+> Any known issues with either card?
 
-Ryan,
+Both cards are supported by the cx18 driver which is stable.
 
-This is really a question for the linux-media mailing list, so I've
-added it in cc -- please use REPLY-TO-ALL in your correspondence, so
-that anybody else that may have seen this issue can chime in with
-their advice, or perhaps they may benefit themselves simply by reading
-your problem description.  Also, please remember that your response on
-the mailing list should appear below the quoted thread.
+The card definition for the DVR 3100 H certainly has the digital side of
+the cards working properly, thanks to Terry Wu.
 
-Meanwhile, why would failure to load the LIRC module cause a problem
-on your board, causing a system hang... Sounds fishy to me -- are you
-sure about this?
+The analog side of the 3100 or just the 2100 should work just fine, once
+the card definition in cx18-cards.c are tweaked to actually match how
+the cards are wired up.  (I made some guesses without any cards to test
+or look at.)  Once that's done, analog should be comparable to an
+HVR-1600.  You'll have to extract the XCeive tuner's firmware via
+instructions that are somewhere on the V4L-DVB wiki. 
 
-Have you tried deleting / blacklisting the module that you believe to
-be freezing your system?
 
-Have you tried moving your PCI card to another slot?
+On shortcoming the cx18 driver has is a missing interlock between the
+analog and digitial TV capture, if trying to capture analog video from
+the tuner versus a baseband input (CVBS or S-Video).  The XCeive tuner
+can either do analog tuning or digital tuning at any one time - not
+both.  Do don't try both analog and digital OTA capture with a 3100 at
+the same time. 
 
-Have you google'd for other users of your motherboard who might be
-suffering from similar issues?
-
-I updated the dtv1000s tree yesterday, with the intention of getting
-it merged into the master branch.  Perhaps there is a bug in the new
-repository that is not present in the old repository?
-
-The current repository that you probably have already tested is located here:
-
-http://kernellabs.com/hg/~mkrufky/dtv1000s
-
-The only difference in the new tree when compared to the older tree,
-is that I've pulled in the latest v4l-dvb core changes from the master
-branch on linuxtv.org, and updated the DTV1000S patch to account for
-the latest board additions in the saa7134 driver.  The dtv1000s
-support itself hasn't changed at all.  To eliminate this as a possible
-cause, you can try testing the older tree, instead.  The older tree
-that has already been tested by other users of both flavors of this
-dtv1000s board is located here:
-
-http://kernellabs.com/hg/~mkrufky/dtv1000s.old
-
-If the older repository works but the new one doesn't, that would
-indicate that there is a problem in the master v4l-dvb repository.
-
-If all else fails, try removing the other board that you have
-installed, and see if that is a factor in this problem
-
-Please test and report your findings back to the mailing list as a
-reply-to-all response in this thread.
-
-I hope this helps.
+Also, I wouldn't expect FM radio to work.
 
 Regards,
+Andy
 
-Mike Krufky
+> Thanks in advance for any information.
+> 
+> David Nicol
+
+
