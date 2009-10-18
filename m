@@ -1,50 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:57572 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755967AbZJEMzA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Oct 2009 08:55:00 -0400
-Date: Mon, 5 Oct 2009 09:53:43 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: =?ISO-8859-1?B?ROpuaXM=?= Goes <denishark@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: TM6010 driver and firmware
-Message-ID: <20091005095343.6b9afa65@pedra.chehab.org>
-In-Reply-To: <f326ee1a0910030602w2518f66q2d6e185c473d5ad@mail.gmail.com>
-References: <f326ee1a0910030539pd5e00e2xb9f6de9975b64b9b@mail.gmail.com>
-	<f326ee1a0910030602w2518f66q2d6e185c473d5ad@mail.gmail.com>
-Mime-Version: 1.0
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:59609 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754934AbZJRVl0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Oct 2009 17:41:26 -0400
+Received: by fxm18 with SMTP id 18so4367618fxm.37
+        for <linux-media@vger.kernel.org>; Sun, 18 Oct 2009 14:41:29 -0700 (PDT)
+MIME-Version: 1.0
+Date: Sun, 18 Oct 2009 23:41:29 +0200
+Message-ID: <51bd605b0910181441l7d6ac90g53978e3e4436f6ba@mail.gmail.com>
+Subject: pctv nanoStick Solo not recognized
+From: Matteo Miraz <telegraph.road@gmail.com>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dênis,
+Hi,
 
-Em Sat, 3 Oct 2009 10:02:26 -0300
-Dênis Goes <denishark@gmail.com> escreveu:
+I've just bought a new DVB USB card, but it seems that the current
+version of linux tv does not recognize it at all.
+I tried both the ubuntu kernel (9.04 and 9.10) and the latest drivers
+downloaded with mercurial from http://linuxtv.org/hg/v4l-dvb
 
-> Hi People...
-> 
-> I'm a programmer and I want to help in development of tm6010 driver to
-> finish the driver and use my PixelView 405 USB card.
-> 
-> What the status of tm6010 driver ??? How to obtain the correct tridvid.sys
-> file ??? I have here 7 file versions from many driver versions, but none
-> have the correct md5sum.
+The card is a PCTV nanoStick Solo, and chip seems to be a "73E SE".
+Looking at the lsusb output (reported below), it seems that it is not
+a pinnacle, but a new brand (the Vendor ID is different from the
+pinnacle's one).
 
-Probably it will use v2.7 firmware or v3.6 (if it has a xc3028L). Those firmwares
-are available via Documentation/video4linux/extract_xc3028.pl script. The instructions
-for use it are commented on the top of the script file.
+Can you help me?
 
-The driver is at the staging directory at the mercurial tree. It compiles fine, but
-it generates some OOPSes when you try to use it. It may be related to the i2c
-conversion or to the buffer filling routines.
+Thanks,
+Matteo
+---
 
-Feel free to contribute. While I want to finish the driver, due to some higher
-priority tasks on my large TODO list, it is unlikely that I'll have some time
-for doing it soon, unfortunately.
+lsusb output:
 
-
-
-Cheers,
-Mauro
+Bus 001 Device 011: ID 2013:0245
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0
+  bDeviceProtocol         0
+  bMaxPacketSize0        64
+  idVendor           0x2013
+  idProduct          0x0245
+  bcdDevice            1.00
+  iManufacturer           1
+  iProduct                2
+  iSerial                 3
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength           46
+    bNumInterfaces          1
+    bConfigurationValue     1
+    iConfiguration          0
+    bmAttributes         0xa0
+      (Bus Powered)
+      Remote Wakeup
+    MaxPower              500mA
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           4
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass      0
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+       bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x83  EP 3 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               1
