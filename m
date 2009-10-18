@@ -1,33 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx02.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.6])
-	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n956pTtj004929
-	for <video4linux-list@redhat.com>; Mon, 5 Oct 2009 02:51:29 -0400
-Received: from lo.gmane.org (lo.gmane.org [80.91.229.12])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n956pGjv002823
-	for <video4linux-list@redhat.com>; Mon, 5 Oct 2009 02:51:16 -0400
-Received: from list by lo.gmane.org with local (Exim 4.50) id 1MugzL-0002PW-8y
-	for video4linux-list@redhat.com; Mon, 05 Oct 2009 08:24:03 +0200
-Received: from 118.210.98.83 ([118.210.98.83])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Mon, 05 Oct 2009 08:24:03 +0200
-Received: from arthur.marsh by 118.210.98.83 with local (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Mon, 05 Oct 2009 08:24:03 +0200
-To: video4linux-list@redhat.com
-From: Arthur Marsh <arthur.marsh@internode.on.net>
-Date: Mon, 05 Oct 2009 16:52:06 +1030
-Message-ID: <ktfop6-bdv.ln1@ppp121-45-136-118.lns11.adl6.internode.on.net>
-References: <4AC5FA6E.2000201@tmr.com>
-	<1254514454.3169.51.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <1254514454.3169.51.camel@palomino.walls.org>
-Subject: linux-media@vger.kernel.org is
-	gmane.linux.drivers.video-input-infrastructure
+Received: from mx1.redhat.com (ext-mx09.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.13])
+	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n9IMlw9V021720
+	for <video4linux-list@redhat.com>; Sun, 18 Oct 2009 18:47:58 -0400
+Received: from mail-fx0-f209.google.com (mail-fx0-f209.google.com
+	[209.85.220.209])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n9IMleZh018938
+	for <video4linux-list@redhat.com>; Sun, 18 Oct 2009 18:47:41 -0400
+Received: by fxm5 with SMTP id 5so2438577fxm.3
+	for <video4linux-list@redhat.com>; Sun, 18 Oct 2009 15:47:40 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1255899566299-3845932.post@n2.nabble.com>
+References: <1244834106.19673.1320127457@webmail.messagingengine.com>
+	<1255893257216-3845496.post@n2.nabble.com>
+	<829197380910181308p1c43d6ean7dff216f28ff25c1@mail.gmail.com>
+	<1255899566299-3845932.post@n2.nabble.com>
+Date: Sun, 18 Oct 2009 18:47:39 -0400
+Message-ID: <829197380910181547l39af23c4q2e25b94cca5c5a0a@mail.gmail.com>
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: chris snow <chsnow123@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: video4linux-list@redhat.com
+Subject: Re: SUCCESS - KWorld VS-USB2800D recognized as PointNix Intra-Oral
+	Camera - No Composite Input
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -39,19 +35,35 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Andy Walls wrote, on 2009-10-03 05:44:
-> Bill,
-> 
-> On Fri, 2009-10-02 at 09:04 -0400, Bill Davidsen wrote:
->> I am looking for a video solution which works on recent Linux, like Fedora-11.
-> 
-> The video4linux ML is just about dead.  You should post to
-> linux-media@vger.kernel.org 
+On Sun, Oct 18, 2009 at 4:59 PM, chris snow <chsnow123@gmail.com> wrote:
+>
+> Is this hardware any good? There is a lot of 1 star reviews on amazon.co.uk,
+> but I'm not sure if it's user error rather than the hardware....
+>
+> Many thanks,
+>
+> Chris
 
-Just for anyone who missed it, linux-media@vger.kernel.org is available 
-on gmane.org as gmane.linux.drivers.video-input-infrastructure
+It's not a bad piece of hardware in terms of capture quality.  Bear in
+mind that it only has S-Video and composite inputs - it does not have
+a tuner.  Also, the audio feed comes through the external cable, so
+you need to hook that to the line-in on your soundcard.  It also
+doesn't have an IR receiver or blaster, so not well suited for
+controlling a cable box.
 
-Arthur.
+One more warning: they just released a new version of the product
+which uses a different chip.  As a result, if you haven't bought it
+yet you might end up with the new version, which *is* supported in the
+latest v4l-dvb tree, but that support was introduced after Ubuntu 9.10
+took the kernel.
+
+In other words, it's all about what you intend to do with the product.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
 
 --
 video4linux-list mailing list
