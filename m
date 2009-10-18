@@ -1,29 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx09.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.13])
-	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n9IMlw9V021720
-	for <video4linux-list@redhat.com>; Sun, 18 Oct 2009 18:47:58 -0400
-Received: from mail-fx0-f209.google.com (mail-fx0-f209.google.com
-	[209.85.220.209])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n9IMleZh018938
-	for <video4linux-list@redhat.com>; Sun, 18 Oct 2009 18:47:41 -0400
-Received: by fxm5 with SMTP id 5so2438577fxm.3
-	for <video4linux-list@redhat.com>; Sun, 18 Oct 2009 15:47:40 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1255899566299-3845932.post@n2.nabble.com>
-References: <1244834106.19673.1320127457@webmail.messagingengine.com>
-	<1255893257216-3845496.post@n2.nabble.com>
-	<829197380910181308p1c43d6ean7dff216f28ff25c1@mail.gmail.com>
-	<1255899566299-3845932.post@n2.nabble.com>
-Date: Sun, 18 Oct 2009 18:47:39 -0400
-Message-ID: <829197380910181547l39af23c4q2e25b94cca5c5a0a@mail.gmail.com>
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: chris snow <chsnow123@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com (ext-mx03.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.7])
+	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n9I0DXBj008764
+	for <video4linux-list@redhat.com>; Sat, 17 Oct 2009 20:13:33 -0400
+Received: from mail-in-11.arcor-online.net (mail-in-11.arcor-online.net
+	[151.189.21.51])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n9I0DHVC032171
+	for <video4linux-list@redhat.com>; Sat, 17 Oct 2009 20:13:18 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: =?ISO-8859-1?Q?P=E9ter_S=E1rk=F6zi?= <xmisterhu@gmail.com>
+In-Reply-To: <745af8a00910171520n13e80a4eld7247df97f8e75f9@mail.gmail.com>
+References: <745af8a00910171520n13e80a4eld7247df97f8e75f9@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Date: Sun, 18 Oct 2009 02:10:42 +0200
+Message-Id: <1255824642.3285.3.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Cc: video4linux-list@redhat.com
-Subject: Re: SUCCESS - KWorld VS-USB2800D recognized as PointNix Intra-Oral
-	Camera - No Composite Input
+Subject: Re: EasyCap USB 05e1:0408
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,35 +30,30 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, Oct 18, 2009 at 4:59 PM, chris snow <chsnow123@gmail.com> wrote:
->
-> Is this hardware any good? There is a lot of 1 star reviews on amazon.co.uk,
-> but I'm not sure if it's user error rather than the hardware....
->
-> Many thanks,
->
-> Chris
 
-It's not a bad piece of hardware in terms of capture quality.  Bear in
-mind that it only has S-Video and composite inputs - it does not have
-a tuner.  Also, the audio feed comes through the external cable, so
-you need to hook that to the line-in on your soundcard.  It also
-doesn't have an IR receiver or blaster, so not well suited for
-controlling a cable box.
+Am Sonntag, den 18.10.2009, 00:20 +0200 schrieb Péter Sárközi: 
+> Hi,
+> 
+> I've bought an USB DVR mentioned in the subject. With the latest
+> syntek driver from sourceforge, I can recognise it, but I can't get a
+> normal signal from it.
+> The picture I get now is this:
+> http://ubuntuforums.org/attachment.php?attachmentid=131231&stc=1&d=1255023938
+> If I move the camera the picture changes too, so I think there could
+> be settings problem.
+> 
+> What should I try to get a good picture?
 
-One more warning: they just released a new version of the product
-which uses a different chip.  As a result, if you haven't bought it
-yet you might end up with the new version, which *is* supported in the
-latest v4l-dvb tree, but that support was introduced after Ubuntu 9.10
-took the kernel.
+Peter,
 
-In other words, it's all about what you intend to do with the product.
+likely, first of all, don't post such links requiring membership and
+login, or stay on that and don't appear here that way.
 
-Devin
+I don't doubt that there is still some oil in Texas ...
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Cheers,
+Hermann
+
 
 --
 video4linux-list mailing list
