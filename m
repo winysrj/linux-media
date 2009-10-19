@@ -1,52 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.156]:35831 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932481AbZJEKEj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Oct 2009 06:04:39 -0400
-Received: by fg-out-1718.google.com with SMTP id 22so1031524fge.1
-        for <linux-media@vger.kernel.org>; Mon, 05 Oct 2009 03:02:51 -0700 (PDT)
-Date: Mon, 5 Oct 2009 13:02:48 +0300
-From: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>,
-	Andy Walls <awalls@radix.net>,
-	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org,
-	Oldrich Jedlicka <oldium.pro@seznam.cz>, hverkuil@xs4all.nl
-Subject: Re: [REVIEW] ivtv, ir-kbd-i2c: Explicit IR support for the AVerTV
-	M116 for newer kernels
-Message-ID: <20091005100248.GA15806@moon>
-References: <1254584660.3169.25.camel@palomino.walls.org> <20091004222347.GA31609@moon> <1254707677.9896.10.camel@palomino.walls.org> <20091005085031.GA17431@moon> <20091005110402.059e9830@hyperion.delvare>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20091005110402.059e9830@hyperion.delvare>
+Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:4101 "EHLO
+	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755123AbZJSSQ3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Oct 2009 14:16:29 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr17.xs4all.nl (8.13.8/8.13.8) with ESMTP id n9JIGWiB087058
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 19 Oct 2009 20:16:33 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 19 Oct 2009 20:16:32 +0200 (CEST)
+Message-Id: <200910191816.n9JIGWiB087058@smtp-vbr17.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 05, 2009 at 11:04:02AM +0200, Jean Delvare wrote:
-> On Mon, 5 Oct 2009 11:50:31 +0300, Aleksandr V. Piskunov wrote:
-> > > Try:
-> > > 
-> > > # modprobe ivtv newi2c=1
-> > > 
-> > > to see if that works first. 
-> > > 
-> > 
-> > udelay=10, newi2c=0  => BAD
-> > udelay=10, newi2c=1  => BAD
-> > udelay=5,  newi2c=0  => OK
-> > udelay=5,  newi2c=1  => BAD
-> 
-> The udelay value is only used by i2c-algo-bit, not newi2c, so the last
-> test was not needed.
-> 
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Yup, also tried udelay=4, IR controller handles it without problems,
-though cx25840 and xc2028 doesn't seem to like the 125 KHz frequency,
-refusing to communicate. xc2028 even stopped responding, requiring a cold
-reboot.
+Results of the daily build of v4l-dvb:
 
-So for M116 board, the most stable combination seems to be 100 KHz i2c bus
-and 150ms polling delay (up from 100 default). With this combination
-I can quickly press 1234567890 on remote and driver gets the combination
-without any losses.
+date:        Mon Oct 19 19:00:09 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13156:f6680fa8e7ec
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
+
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-rc3-armv5: ERRORS
+linux-2.6.32-rc3-armv5-davinci: ERRORS
+linux-2.6.27-armv5-ixp: ERRORS
+linux-2.6.28-armv5-ixp: ERRORS
+linux-2.6.29.1-armv5-ixp: ERRORS
+linux-2.6.30-armv5-ixp: ERRORS
+linux-2.6.31-armv5-ixp: ERRORS
+linux-2.6.32-rc3-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.32-rc3-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-rc3-i686: ERRORS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-rc3-m32r: ERRORS
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.32-rc3-mips: ERRORS
+linux-2.6.27-powerpc64: ERRORS
+linux-2.6.28-powerpc64: ERRORS
+linux-2.6.29.1-powerpc64: ERRORS
+linux-2.6.30-powerpc64: ERRORS
+linux-2.6.31-powerpc64: ERRORS
+linux-2.6.32-rc3-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-rc3-x86_64: ERRORS
+sparse (linux-2.6.31): OK
+sparse (linux-2.6.32-rc3): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
