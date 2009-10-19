@@ -1,26 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx06.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.10])
-	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n92IGA2q014589
-	for <video4linux-list@redhat.com>; Fri, 2 Oct 2009 14:16:10 -0400
-Received: from partygirl.tmr.com (mail.tmr.com [64.65.253.246])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n92IFr6J028518
-	for <video4linux-list@redhat.com>; Fri, 2 Oct 2009 14:15:56 -0400
-Received: from partygirl.tmr.com (partygirl.tmr.com [127.0.0.1])
-	by partygirl.tmr.com (8.14.2/8.14.2) with ESMTP id n92IFq4Q024651
-	for <video4linux-list@redhat.com>; Fri, 2 Oct 2009 14:15:53 -0400
-Message-ID: <4AC64358.3010200@tmr.com>
-Date: Fri, 02 Oct 2009 14:15:52 -0400
-From: Bill Davidsen <davidsen@tmr.com>
+Received: from mx1.redhat.com (ext-mx10.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.14])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n9J7Y4W3026876
+	for <video4linux-list@redhat.com>; Mon, 19 Oct 2009 03:34:04 -0400
+Received: from kuber.nabble.com (kuber.nabble.com [216.139.236.158])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n9J7XqGj006730
+	for <video4linux-list@redhat.com>; Mon, 19 Oct 2009 03:33:52 -0400
+Received: from tervel.nabble.com ([192.168.236.150])
+	by kuber.nabble.com with esmtp (Exim 4.63)
+	(envelope-from <bounces@n2.nabble.com>) id 1MzmkZ-00079x-UX
+	for video4linux-list@redhat.com; Mon, 19 Oct 2009 00:33:51 -0700
+Date: Mon, 19 Oct 2009 00:33:51 -0700 (PDT)
+From: chris snow <chsnow123@gmail.com>
+To: video4linux-list@redhat.com
+Message-ID: <1255937631941-3847619.post@n2.nabble.com>
+In-Reply-To: <829197380910181547l39af23c4q2e25b94cca5c5a0a@mail.gmail.com>
+References: <1244834106.19673.1320127457@webmail.messagingengine.com>
+	<1255893257216-3845496.post@n2.nabble.com>
+	<829197380910181308p1c43d6ean7dff216f28ff25c1@mail.gmail.com>
+	<1255899566299-3845932.post@n2.nabble.com>
+	<829197380910181547l39af23c4q2e25b94cca5c5a0a@mail.gmail.com>
 MIME-Version: 1.0
-To: video4linux M/L <video4linux-list@redhat.com>
-References: <4AC5FA6E.2000201@tmr.com>
-	<829197380910020940o599f5678t60abb2b2da6f8d46@mail.gmail.com>
-In-Reply-To: <829197380910020940o599f5678t60abb2b2da6f8d46@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Subject: Re: Upgrading from FC4 to current Linux
+Subject: Re: SUCCESS - KWorld VS-USB2800D recognized as PointNix Intra-Oral
+ Camera - No Composite Input
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,63 +37,60 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Devin Heitmueller wrote:
-> On Fri, Oct 2, 2009 at 9:04 AM, Bill Davidsen <davidsen@tmr.com> wrote:
->> I am looking for a video solution which works on recent Linux, like
->> Fedora-11. Video used to be easy, plug in the capture device, install xawtv
->> via rpm, and use. However, recent versions of Fedora simply don't work, even
->> on the same hardware, due to /dev/dsp no longer being created and the
->> applications like xawtv or tvtime still looking for it.
->>
->> The people who will be using this are looking for hardware which is still
->> made and sold new, and software which can be installed by a support person
->> who can plug in cards (PCI preferred) or USB devices, and install rpms. I
->> maintain the servers on Linux there, desktop support is unpaid (meaning I
->> want a solution they can use themselves).
->>
->> We looked at vlc, which seems to want channel frequencies in kHz rather than
->> channels, mythtv, which requires a database their tech isn't able (or
->> willing) to support, etc.
->>
->> It seems that video has gone from "easy as Windows" 3-4 years ago to
->> "insanely complex" according to to one person in that group who wanted an
->> upgrade on his laptop. There is some pressure from Windows users to mandate
->> Win7 as the desktop, which Linux users are rejecting.
->>
->> The local cable is a mix of analog channels (for old TVs) and clear qam. The
->> capture feeds from the monitor system are either S-video or three wire
->> composite plus L-R audio. Any reasonable combination of cards (PCI best,
->> PCIe acceptable), USB device, and application which can monitor/record would
->> be fine, but the users are not going to type in kHz values, create channel
->> tables, etc. They want something as easy to use as five years ago.
->>
->> Any thoughts?
->>
->> --
->> Bill Davidsen <davidsen@tmr.com>
->>  "We have more to fear from the bungling of the incompetent than from
->> the machinations of the wicked."  - from Slashdot
-> 
-> I took a few minutes and put together a response to your email,
-> outlining the issues.  Feel free to check it out here:
-> 
-> http://www.kernellabs.com/blog/
-> 
-I fear you are concentrating on the analog which is only a discussion of where 
-things were when there was support. But since you didn't offer any suggestions 
-for some user-friendly app I could give users, and I haven't found any, I have 
-to assume that the tools which I did find, all requiring a significant user 
-expertise to install, configure, and use, are all that's available any more. 
-Perhaps the days of the Linux desktop are over, at least for people who want to 
-install and have it work.
 
-I guess staying with FC4 or going Windows are the only options for users who 
-want something easy to use, thanks for assuring me that I didn't miss something.
+I have a freeview terrestial hard-disc recorder with just a scart out
+connection.  To burn off the recorded programs I normally plug a scart dvd
+recorder into the hard-disc recorder.  Instead of using the dvd recorder, I
+would like to copy the recorded programs onto my laptop.
+
+Many thanks,
+
+Chris
+
+
+Devin Heitmueller-2 wrote:
+> 
+> On Sun, Oct 18, 2009 at 4:59 PM, chris snow <chsnow123@gmail.com> wrote:
+>>
+>> Is this hardware any good? There is a lot of 1 star reviews on
+>> amazon.co.uk,
+>> but I'm not sure if it's user error rather than the hardware....
+>>
+>> Many thanks,
+>>
+>> Chris
+> 
+> It's not a bad piece of hardware in terms of capture quality.  Bear in
+> mind that it only has S-Video and composite inputs - it does not have
+> a tuner.  Also, the audio feed comes through the external cable, so
+> you need to hook that to the line-in on your soundcard.  It also
+> doesn't have an IR receiver or blaster, so not well suited for
+> controlling a cable box.
+> 
+> One more warning: they just released a new version of the product
+> which uses a different chip.  As a result, if you haven't bought it
+> yet you might end up with the new version, which *is* supported in the
+> latest v4l-dvb tree, but that support was introduced after Ubuntu 9.10
+> took the kernel.
+> 
+> In other words, it's all about what you intend to do with the product.
+> 
+> Devin
+> 
+> -- 
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+> 
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+> 
+> 
 
 -- 
-Bill Davidsen <davidsen@tmr.com>
-   "We have more to fear from the bungling of the incompetent than from
-the machinations of the wicked."  - from Slashdot
+View this message in context: http://n2.nabble.com/SUCCESS-KWorld-VS-USB2800D-recognized-as-PointNix-Intra-Oral-Camera-No-Composite-Input-tp3069455p3847619.html
+Sent from the video4linux-list mailing list archive at Nabble.com.
 
 --
 video4linux-list mailing list
