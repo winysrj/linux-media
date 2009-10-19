@@ -1,264 +1,265 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01a.mail.t-online.hu ([84.2.40.6]:62155 "EHLO
-	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933371AbZJaXPo (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:57033 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754058AbZJSUxk convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Oct 2009 19:15:44 -0400
-Message-ID: <4AECC51D.40409@freemail.hu>
-Date: Sun, 01 Nov 2009 00:15:41 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+	Mon, 19 Oct 2009 16:53:40 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9JKrjNd026906
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 19 Oct 2009 15:53:45 -0500
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id n9JKrjgs023807
+	for <linux-media@vger.kernel.org>; Mon, 19 Oct 2009 15:53:45 -0500 (CDT)
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id n9JKrjrg025659
+	for <linux-media@vger.kernel.org>; Mon, 19 Oct 2009 15:53:45 -0500 (CDT)
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Mon, 19 Oct 2009 15:53:44 -0500
+Subject: RFC (v1.2): V4L - Support for video timings at the input/output
+ interface
+Message-ID: <A69FA2915331DC488A831521EAE36FE40155609B3F@dlee06.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-CC: Thomas Kaiser <thomas@kaiser-linux.li>,
-	Theodore Kilgore <kilgota@auburn.edu>,
-	Kyle Guinn <elyk03@gmail.com>
-Subject: [PATCH 13/21] gspca pac7302/pac7311: separate gain/autogain control
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+Hi,
 
-Separate the gain and autogain controls. Remove the run-time
-decision for PAC7302 and PAC7311 sensors.
+Here is the updated RFC incorporating comments received on last one.
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
-Cc: Thomas Kaiser <thomas@kaiser-linux.li>
-Cc: Theodore Kilgore <kilgota@auburn.edu>
-Cc: Kyle Guinn <elyk03@gmail.com>
----
-diff -uprN m/drivers/media/video/gspca/pac7311.c n/drivers/media/video/gspca/pac7311.c
---- m/drivers/media/video/gspca/pac7311.c	2009-10-31 07:29:51.000000000 +0100
-+++ n/drivers/media/video/gspca/pac7311.c	2009-10-31 07:38:45.000000000 +0100
-@@ -89,8 +89,10 @@ static int pac7302_sd_getcontrast(struct
- static int pac7311_sd_getcontrast(struct gspca_dev *gspca_dev, __s32 *val);
- static int pac7302_sd_setcolors(struct gspca_dev *gspca_dev, __s32 val);
- static int pac7302_sd_getcolors(struct gspca_dev *gspca_dev, __s32 *val);
--static int sd_setautogain(struct gspca_dev *gspca_dev, __s32 val);
--static int sd_getautogain(struct gspca_dev *gspca_dev, __s32 *val);
-+static int pac7302_sd_setautogain(struct gspca_dev *gspca_dev, __s32 val);
-+static int pac7311_sd_setautogain(struct gspca_dev *gspca_dev, __s32 val);
-+static int pac7302_sd_getautogain(struct gspca_dev *gspca_dev, __s32 *val);
-+static int pac7311_sd_getautogain(struct gspca_dev *gspca_dev, __s32 *val);
- static int pac7302_sd_sethflip(struct gspca_dev *gspca_dev, __s32 val);
- static int pac7311_sd_sethflip(struct gspca_dev *gspca_dev, __s32 val);
- static int pac7302_sd_gethflip(struct gspca_dev *gspca_dev, __s32 *val);
-@@ -99,8 +101,10 @@ static int pac7302_sd_setvflip(struct gs
- static int pac7311_sd_setvflip(struct gspca_dev *gspca_dev, __s32 val);
- static int pac7302_sd_getvflip(struct gspca_dev *gspca_dev, __s32 *val);
- static int pac7311_sd_getvflip(struct gspca_dev *gspca_dev, __s32 *val);
--static int sd_setgain(struct gspca_dev *gspca_dev, __s32 val);
--static int sd_getgain(struct gspca_dev *gspca_dev, __s32 *val);
-+static int pac7302_sd_setgain(struct gspca_dev *gspca_dev, __s32 val);
-+static int pac7311_sd_setgain(struct gspca_dev *gspca_dev, __s32 val);
-+static int pac7302_sd_getgain(struct gspca_dev *gspca_dev, __s32 *val);
-+static int pac7311_sd_getgain(struct gspca_dev *gspca_dev, __s32 *val);
- static int sd_setexposure(struct gspca_dev *gspca_dev, __s32 val);
- static int sd_getexposure(struct gspca_dev *gspca_dev, __s32 *val);
+Following are the changes:-
 
-@@ -167,8 +171,8 @@ static struct ctrl pac7302_sd_ctrls[] =
- #define GAIN_KNEE 255 /* Gain seems to cause little noise on the pac73xx */
- 		.default_value = GAIN_DEF,
- 	    },
--	    .set = sd_setgain,
--	    .get = sd_getgain,
-+	    .set = pac7302_sd_setgain,
-+	    .get = pac7302_sd_getgain,
- 	},
- 	{
- 	    {
-@@ -197,8 +201,8 @@ static struct ctrl pac7302_sd_ctrls[] =
- #define AUTOGAIN_DEF 1
- 		.default_value = AUTOGAIN_DEF,
- 	    },
--	    .set = sd_setautogain,
--	    .get = sd_getautogain,
-+	    .set = pac7302_sd_setautogain,
-+	    .get = pac7302_sd_getautogain,
- 	},
- 	{
- 	    {
-@@ -261,8 +265,8 @@ static struct ctrl pac7311_sd_ctrls[] =
- #define GAIN_KNEE 255 /* Gain seems to cause little noise on the pac73xx */
- 		.default_value = GAIN_DEF,
- 	    },
--	    .set = sd_setgain,
--	    .get = sd_getgain,
-+	    .set = pac7311_sd_setgain,
-+	    .get = pac7311_sd_getgain,
- 	},
- 	{
- 	    {
-@@ -291,8 +295,8 @@ static struct ctrl pac7311_sd_ctrls[] =
- #define AUTOGAIN_DEF 1
- 		.default_value = AUTOGAIN_DEF,
- 	    },
--	    .set = sd_setautogain,
--	    .get = sd_getautogain,
-+	    .set = pac7311_sd_setautogain,
-+	    .get = pac7311_sd_getautogain,
- 	},
- 	{
- 	    {
-@@ -717,23 +721,30 @@ static void pac7302_setcolors(struct gsp
- 	PDEBUG(D_CONF|D_STREAM, "color: %i", sd->colors);
- }
+1) Removed V4L2_DV_CUSTOM since we have a capability flag for it in v4l2_input/output structure
 
--static void setgain(struct gspca_dev *gspca_dev)
-+static void pac7302_setgain(struct gspca_dev *gspca_dev)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
+2) Replaced V4L2_DV_CUSTOMS with V4L2_DV_INVALID (value 0x00000000)
 
--	if (sd->sensor == SENSOR_PAC7302) {
--		reg_w(gspca_dev, 0xff, 0x03);		/* page 3 */
--		reg_w(gspca_dev, 0x10, sd->gain >> 3);
--	} else {
--		int gain = GAIN_MAX - sd->gain;
--		if (gain < 1)
--			gain = 1;
--		else if (gain > 245)
--			gain = 245;
--		reg_w(gspca_dev, 0xff, 0x04);		/* page 4 */
--		reg_w(gspca_dev, 0x0e, 0x00);
--		reg_w(gspca_dev, 0x0f, gain);
--	}
-+	reg_w(gspca_dev, 0xff, 0x03);		/* page 3 */
-+	reg_w(gspca_dev, 0x10, sd->gain >> 3);
-+
-+	/* load registers to sensor (Bit 0, auto clear) */
-+	reg_w(gspca_dev, 0x11, 0x01);
-+}
-+
-+static void pac7311_setgain(struct gspca_dev *gspca_dev)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+	int gain = GAIN_MAX - sd->gain;
-+
-+	if (gain < 1)
-+		gain = 1;
-+	else if (gain > 245)
-+		gain = 245;
-+	reg_w(gspca_dev, 0xff, 0x04);		/* page 4 */
-+	reg_w(gspca_dev, 0x0e, 0x00);
-+	reg_w(gspca_dev, 0x0f, gain);
-+
- 	/* load registers to sensor (Bit 0, auto clear) */
- 	reg_w(gspca_dev, 0x11, 0x01);
- }
-@@ -824,7 +835,7 @@ static int pac7302_sd_start(struct gspca
- 	reg_w_var(gspca_dev, start_7302);
- 	pac7302_setbrightcont(gspca_dev);
- 	pac7302_setcolors(gspca_dev);
--	setgain(gspca_dev);
-+	pac7302_setgain(gspca_dev);
- 	setexposure(gspca_dev);
- 	pac7302_sethvflip(gspca_dev);
+3) Renamed capability flags with V4L2_IN_CAP/V4L2_OUT_CAP prefixes
 
-@@ -849,7 +860,7 @@ static int pac7311_sd_start(struct gspca
+============================================================================
+RFC (v1.2): V4L - Support for video timings at the input/output interface
 
- 	reg_w_var(gspca_dev, start_7311);
- 	pac7311_setcontrast(gspca_dev);
--	setgain(gspca_dev);
-+	pac7311_setgain(gspca_dev);
- 	setexposure(gspca_dev);
- 	pac7311_sethvflip(gspca_dev);
+Version : 1.2
 
-@@ -1197,17 +1208,35 @@ static int pac7302_sd_getcolors(struct g
- 	return 0;
- }
+Background
+-----------
 
--static int sd_setgain(struct gspca_dev *gspca_dev, __s32 val)
-+static int pac7302_sd_setgain(struct gspca_dev *gspca_dev, __s32 val)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
+Currently v4l2 specification supports capturing video frames from TV signals using tuners (input type V4L2_INPUT_TYPE_TUNER) and baseband TV signals (V4L2_INPUT_TYPE_CAMERA) and sensors. Similarly on the output side, the signals could be TV signal (V4L2_OUTPUT_TYPE_MODULATOR), baseband TV signal (V4L2_OUTPUT_TYPE_ANALOG) or hybrid analog VGA overlay (V4L2_OUTPUT_TYPE_ANALOGVGAOVERLAY) which output from a graphics card and
+then use chromakeying to replace part of the picture with the video. V4L2_OUTPUT_TYPE_ANALOG & V4L2_INPUT_TYPE_CAMERA are for analog interfaces that includes composite, S-Video and VGA (for output only). Note that even though VGA is a supported output, we don't have anyway to set the standard or timing on the output. Standard ids are only defined for TVs using
+v4l2_std_id and a set of bit masks  defined for analog TV standards.
 
- 	sd->gain = val;
- 	if (gspca_dev->streaming)
--		setgain(gspca_dev);
-+		pac7302_setgain(gspca_dev);
- 	return 0;
- }
+Today we have a wide variety of different interfaces available to transmit/receive video or graphics content between source device and destination device. Following are some of the interfaces used in addition to the ones described in the v4l2 specification.
 
--static int sd_getgain(struct gspca_dev *gspca_dev, __s32 *val)
-+static int pac7311_sd_setgain(struct gspca_dev *gspca_dev, __s32 val)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+
-+	sd->gain = val;
-+	if (gspca_dev->streaming)
-+		pac7311_setgain(gspca_dev);
-+	return 0;
-+}
-+
-+static int pac7302_sd_getgain(struct gspca_dev *gspca_dev, __s32 *val)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+
-+	*val = sd->gain;
-+	return 0;
-+}
-+
-+static int pac7311_sd_getgain(struct gspca_dev *gspca_dev, __s32 *val)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
+Component analog input/output interface - ED/HD video
+DVI - Digital only, ANALOG only, DVI integrated that support Digital and 
+	Analog;
+      Dual Link - Where second data link is used for higher bandwidth
+SDI - Serial digital interface standardized by SMPTE
+HDMI - HD video and Audio
+DisplayPort - digital audio/video interconnect by VESA
 
-@@ -1233,7 +1262,7 @@ static int sd_getexposure(struct gspca_d
- 	return 0;
- }
+V4L2 specification currently defined NTSC/PAL/SECAM (all variants) standards for describing the timing of the signal transmitted over these interfaces. Even though the specification defined ANALOG output type for VGA, there are no ways to set the timings used for output to VGA or LCD display monitors. Some of the proprietary implementations used existing standards IOCTL, VIDIOC_S_STD, to set these timings over these interfaces. For example, TI SoCs have Video Processing Back End (VPBE) on various media SOCs (Eg, DM6446, DM355 etc) that can output signal for Analog TV and VGA interfaces (using Digital LCD port) and support timings for displaying SD and HD videos (1080i, 1080p and 720p) as well as over VGA interface to a CRT or LCD display monitor. So we need to enhance the v4l2 specification to allow applications to set these timings in the capture or output devices. This RFC proposes to add new IOCTLs for setting/getting timings over the different interfaces described above and freeze the the use of existing standards IOCTL and standards IDs for analog TVs only.
 
--static int sd_setautogain(struct gspca_dev *gspca_dev, __s32 val)
-+static int pac7302_sd_setautogain(struct gspca_dev *gspca_dev, __s32 val)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
+Timings
+-------
 
-@@ -1249,14 +1278,45 @@ static int sd_setautogain(struct gspca_d
- 			sd->autogain_ignore_frames =
- 				PAC_AUTOGAIN_IGNORE_FRAMES;
- 			setexposure(gspca_dev);
--			setgain(gspca_dev);
-+			pac7302_setgain(gspca_dev);
- 		}
- 	}
+The timings at the analog or digital interface that are not covered by the v4l2_std_id can be defined using a set of preset values that are used by the hardware where the timings are predefined or by a set of timing values which can be configured at the hardware to generate the signal expected at the interface. The former will be used for hardware like TVP7002/THS8200 which specifies preset timing required for output HD video such 1080i50/60, 720p50/60 etc. The latter can be used for hardware that requires configuration of frame timing such as front porch, hsync length, vsync length, pixel clock etc. For example the earlier mentioned TI SOCs have a Digital LCD port that can be configured to output different timing values expected by LCD Display monitors.
 
- 	return 0;
- }
+Preset timings (defined by VESA, SMPTE or BT.656/BT.1120 or others) can be defined by the following structure:-
 
--static int sd_getautogain(struct gspca_dev *gspca_dev, __s32 *val)
-+static int pac7311_sd_setautogain(struct gspca_dev *gspca_dev, __s32 val)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+
-+	sd->autogain = val;
-+	/* when switching to autogain set defaults to make sure
-+	   we are on a valid point of the autogain gain /
-+	   exposure knee graph, and give this change time to
-+	   take effect before doing autogain. */
-+	if (sd->autogain) {
-+		sd->exposure = EXPOSURE_DEF;
-+		sd->gain = GAIN_DEF;
-+		if (gspca_dev->streaming) {
-+			sd->autogain_ignore_frames =
-+				PAC_AUTOGAIN_IGNORE_FRAMES;
-+			setexposure(gspca_dev);
-+			pac7311_setgain(gspca_dev);
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int pac7302_sd_getautogain(struct gspca_dev *gspca_dev, __s32 *val)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+
-+	*val = sd->autogain;
-+	return 0;
-+}
-+
-+static int pac7311_sd_getautogain(struct gspca_dev *gspca_dev, __s32 *val)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
+struct v4l2_dv_preset {
+    __u32    preset;
+    __u32    reserved[4];
+};
+
+Where preset is one of the following values:-
+
+#define	  V4L2_DV_INVALID		 0x00000000
+#define       V4L2_DV_480I59_94      0x00000001
+#define       V4L2_DV_480I60         0x00000002
+#define       V4L2_DV_480P23_976     0x00000003
+#define       V4L2_DV_480P24         0x00000004
+#define       V4L2_DV_480P29_97      0x00000005
+#define       V4L2_DV_480P30         0x00000006
+#define       V4L2_DV_576I50         0x00000007
+#define       V4L2_DV_576P25         0x00000008
+#define       V4L2_DV_576P50         0x00000009
+#define       V4L2_DV_720P23_976     0x0000000A
+#define       V4L2_DV_720P24         0x0000000B
+#define       V4L2_DV_720P25         0x0000000C
+#define       V4L2_DV_720P29_97      0x0000000D
+#define       V4L2_DV_720P30         0x0000000E
+#define       V4L2_DV_720P50         0x0000000F
+#define       V4L2_DV_720P59_94      0x00000010
+#define       V4L2_DV_720P60         0x00000011
+#define       V4L2_DV_1080I50        0x00000012
+#define       V4L2_DV_1080I59_94     0x00000013
+#define       V4L2_DV_1080I60        0x00000014
+#define       V4L2_DV_1080P23_976    0x00000015
+#define       V4L2_DV_1080P24        0x00000016
+#define       V4L2_DV_1080P25        0x00000017
+#define       V4L2_DV_1080P29_97     0x00000018
+#define       V4L2_DV_1080P30        0x00000019
+#define       V4L2_DV_1080P60        0x00000020
+
+
+Driver sets preset to V4L2_DV_INVALID to indicate there is no signal detected or could not lock to the signal for a VIDIOC_QUERY_DV_PRESET IOCTL 
+
+This list is expected grow over time. So a bit mask is not used for this
+(Unlike analog TV standards) so that many presets can be defined as needed in the future.
+
+To enumerate the DV preset timings available, applications call VIDIOC_ENUM_DV_PRESETS using the following structure:-
+
+struct v4l2_dv_enum_presets {
+        __u32     index;
+        __u32     preset;
+        __u8      name[32]; /* Name of the preset timing */
+        __u32     width;
+        __u32     height;
+        __u32     reserved[4];
+};
+
+Application set/get the preset by calling VIDIOC_S/G_DV_PRESET using v4l2_dv_preset structure.
+
+Also add a capabilities field in the input and output structure to support presets
+
+/*
+ *      V I D E O   I N P U T S
+ */
+struct v4l2_input {
+        __u32        index;             /*  Which input */
+        __u8         name[32];          /*  Label */
+        __u32        type;              /*  Type of input */
+        __u32        audioset;          /*  Associated audios (bitfield) */
+        __u32        tuner;             /*  Associated tuner */
+        v4l2_std_id  std;
+        __u32        status;
+        __u32        capabilities;
+        __u32        reserved[3];
+};
+
+where capabilities can be one or more of the following:- 
+
+#define V4L2_IN_CAP_PRESETS          0x00000001
+#define V4L2_IN_CAP_CUSTOM_TIMINGS 	 0x00000002
+#define V4L2_IN_CAP_STD              0x00000004
+
+/*
+ *      V I D E O   O U T P U T S
+ */
+struct v4l2_output {
+        __u32        index;             /*  Which output */
+        __u8         name[32];          /*  Label */
+        __u32        type;              /*  Type of output */
+        __u32        audioset;          /*  Associated audios (bitfield) */
+        __u32        modulator;         /*  Associated modulator */
+        v4l2_std_id  std;
+        __u32        capabilities;
+        __u32        reserved[3];
+};
+
+where capabilities can be one or more of the following:- 
+
+#define V4L2_OUT_CAP_PRESETS        0x00000001
+#define V4L2_OUT_CAP_CUSTOM_TIMINGS 0x00000002
+#define V4L2_OUT_CAP_STD		0x00000004
+
+For setting custom timing at the device, following structure is used which defines the complete set of timing values required at the input and output interface:-
+
+/* timing data values specified by various standards such as BT.1120, BT.656 etc. */
+
+/* bt.656/bt.1120 timing data */
+struct v4l2_bt_timings {
+    __u32      interlaced;
+    __u64      pixelclock;
+    __u32      width, height;
+    __u32      polarities;
+    __u32      hfrontporch, hsync, htotal;
+    __u32      vfrontporch, vsync, vtotal;
+    /* timings for bottom frame for interlaced formats */
+    __u32      il_vtotal;
+    __u32      reserved[16];
+};
+
+
+interlaced - Interlaced or progressive. use following values:-
+
+#define V4L2_DV_INTERLACED      0
+#define V4L2_DV_PROGRESSIVE    1
+
+pixelclock - expressed in HZ. So for 74.25MHz, use 74250000.
+width - number of pixels in horizontal direction
+height - number of lines in vertical direction
+polarities - Bit mask for following polarities to begin with
+(if polarity bit is not set, corresponding polarity is assumed to be negative)
+
+#define V4L2_DV_VSYNC_POS_POL    0x00000001
+#define V4L2_DV_HSYNC_POS_POL    0x00000002
+
+hfrontporch,hsync, and htotal for horizontal direction and vfrontporch, vsync, and vtotal for vertical direction. il_vtotal is the number of vertical lines for interlaced video for bottom field. 
+
+To define a particular timing type, following enum is used:-
+
+enum v4l2_dv_timings_type {
+        V4L2_DV_BT_656_1120,
+};
+
+This will allow adding new timing types in the future.
+
+If the driver supports a set of custom timing, it can be set/get using VIDIOC_S/G_DV_TIMINGS IOCTL and specifying timings using the structure
+
+struct v4l2_dv_timings {
+        enum v4l2_dv_timings_type type;
+        union {
+                struct v4l2_bt_timings bt;
+                __u32 reserved[32];
+        };
+};
+
+
+If the driver supports custom timing as well as Presets, it will return V4L2_DV_CUSTOM along with other preset timings for the VIDIOC_ENUM_DV_PRESETS IOCTL call. Application can then call VIDIOC_S/G_TIMING to get/set custom timings at the driver. 
+
+To detect a preset timing at the input application calls VIDIOC_QUERY_DV_PRESET which returns the preset using the v4l2_dv_preset structure. 
+
+Following summarize the new ioctls added by this RFC
+
+#define VIDIOC_ENUM_DV_PRESETS   _IOWR('V', 79, struct v4l2_dv_enum_presets)
+#define VIDIOC_S_DV_PRESET           _IOWR('V', 80, struct v4l2_dv_preset)
+#define VIDIOC_G_DV_PRESET           _IOWR('V', 81, struct v4l2_dv_preset)
+#define VIDIOC_QUERY_DV_PRESET   _IOR('V',  82, struct v4l2_dv_preset)
+#define VIDIOC_S_DV_TIMINGS         _IOWR('V', 83, struct v4l2_dv_timings)
+#define VIDIOC_G_DV_TIMINGS         _IOWR('V', 84, struct v4l2_dv_timings)
+
+Open issues
+-----------
+
+1.How to handle an HDMI transmitter? It can be put in two different modes: DVI compatible
+or HDMI compatible. Some of the choices are 
+	  a) enumerate them as two different outputs when enumerating.
+        b) adding a status bit on the input. 
+        c) change it using a control
+
+2. Detecting whether there is an analog or digital signal on an DVI-I input: 
+	a) add new status field value for v4l2_input ?
+	   #define  V4L2_IN_ST_DVI_ANALOG_DETECTED    0x10000000
+	   #define  V4L2_IN_ST_DVI_DIGITAL_DETECTED   0x20000000
+       
+3. Detecting an EDID. 
+  a) adding a status field in v4l2_output and two new ioctls that can set the EDID for an input or retrieve it for an output. It should also  be added as an input/output capability.
+
+4. ATSC bits in v4l2_std_id: how are they used? Are they used at all for that matter?
+5. There are a lot of status bits defined in v4l2_input, but only a few are actually used. What are we going to do with that?
+
+6. HDMI requires additional investigation. HDMI defines a whole bunch of infoframe fields. Most of these can probably be exported as controls?? Is HDMI audio handled by alsa? 
+
+7. Can sensor driver use the same API for setting frame size and frame rate? It was discussed and the general agreement was to use this API only for video timing.
+
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+email: m-karicheri2@ti.com
 
