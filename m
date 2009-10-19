@@ -1,42 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:40110 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750841AbZJWHqB (ORCPT
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:63010 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751159AbZJSTj5 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Oct 2009 03:46:01 -0400
-Subject: A driver for TI WL1273 FM Radio
-From: m7aalton <matti.j.aaltonen@nokia.com>
-Reply-To: matti.j.aaltonen@nokia.com
-To: Linux-Media <linux-media@vger.kernel.org>
-Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
-	ext Hans Verkuil <hverkuil@xs4all.nl>
-In-Reply-To: <1249729833-24975-3-git-send-email-eduardo.valentin@nokia.com>
-References: <1249729833-24975-1-git-send-email-eduardo.valentin@nokia.com>
-	 <1249729833-24975-2-git-send-email-eduardo.valentin@nokia.com>
-	 <1249729833-24975-3-git-send-email-eduardo.valentin@nokia.com>
-Content-Type: text/plain
-Date: Fri, 23 Oct 2009 10:45:53 +0300
-Message-Id: <1256283953.5953.148.camel@masi.ntc.nokia.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Mon, 19 Oct 2009 15:39:57 -0400
+Received: by fxm18 with SMTP id 18so5488551fxm.37
+        for <linux-media@vger.kernel.org>; Mon, 19 Oct 2009 12:40:01 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20091020042913.1d3609d7@caramujo.chehab.org>
+References: <340263.68846.qm@web25604.mail.ukl.yahoo.com>
+	 <20091020042913.1d3609d7@caramujo.chehab.org>
+Date: Mon, 19 Oct 2009 21:40:00 +0200
+Message-ID: <d9def9db0910191240g163f04aau631ec481ec6bdf70@mail.gmail.com>
+Subject: Re: ISDB-T tuner
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Romont Sylvain <psgman24@yahoo.fr>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi.
+On Mon, Oct 19, 2009 at 9:29 PM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> Hi Romont,
+>
+> Em Mon, 19 Oct 2009 12:16:30 +0000 (GMT)
+> Romont Sylvain <psgman24@yahoo.fr> escreveu:
+>
+>> Hello!
+>>
+>> I actually live in Japan, I try to make working a tuner card ISDB-T with
+>> linux. I searched a lot in internet but I find nothing....
+>> How can I make it working?
+>> My tuner card is a Pixela PIXDT090-PE0
+>> in picture here:  http://bbsimg01.kakaku.com/images/bbs/000/208/208340_m.jpg
+>>
+>> Thank you for your help!!!
+>
+> Unfortunately, only the Earthsoft PC1 board and the boards with dibcom 80xx USB
+> boards are currently supported. In the case of Dibcom, it can support several
+> different devices, but we may need to add the proper USB ID for the board at the driver.
+>
+> I'm in Japan during this week for the Kernel Summit and Japan Linux Symposium.
+>
+> One of objectives I'm expecting from this trip is to get more people involved on
+> creating more drivers for ISDB and other Asian digital video standards.
+>
 
-I have written a driver for the TI WL1273 FM Radio but it's not yet
-quite ready for up-streaming because of its interface. Now I've started
-to change the interface to v4l2 and I'm following Eduardo Valentin's
-Si4713 TX driver as an example. However, WL1273 radio has RX and TX so
-there are things that Eduardo's driver doesn't cover. For example: the
-driver needs a mode switch for switching between TX and RX. Should that
-be implemented as an extended control or should there be a new IOCTL
-added to the v4l2 API? etc...
+Here we can add that we also have fully working Hybrid/ISDB-T USB
+fullseg devices for Linux already, just in case someone is interested
+in it.
+Feel free to contact me to get some more information about it. The
+driver works from Linux 2.6.15 on (easy installation everywhere
+without compiling).
 
-Also I've added some things to the ivtv-radio tool. Should I try to
-"up-stream" those as well?
-
-Cheers, Matti A.
-
-
-
+Best Regards,
+Markus
