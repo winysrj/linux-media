@@ -1,102 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:48489 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752525AbZJ2MsL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Oct 2009 08:48:11 -0400
-Date: Thu, 29 Oct 2009 13:48:18 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: finalising soc-camera conversion to v4l2-subdev
-In-Reply-To: <200910291211.16665.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.0910291338310.4340@axis700.grange>
-References: <Pine.LNX.4.64.0910281653010.4524@axis700.grange>
- <200910291211.16665.laurent.pinchart@ideasonboard.com>
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:63958 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932316AbZJSV4V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Oct 2009 17:56:21 -0400
+Received: by fxm18 with SMTP id 18so5641950fxm.37
+        for <linux-media@vger.kernel.org>; Mon, 19 Oct 2009 14:56:25 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <51bd605b0910191451x22287c5ai3f829f2af0243879@mail.gmail.com>
+References: <51bd605b0910181441l7d6ac90g53978e3e4436f6ba@mail.gmail.com>
+	 <829197380910191218u2c281553pad57bff61ffbd3b5@mail.gmail.com>
+	 <51bd605b0910191328i3b58c955ha3ade305b4af928d@mail.gmail.com>
+	 <829197380910191341p484e070ftd190143f73b1d10e@mail.gmail.com>
+	 <51bd605b0910191451x22287c5ai3f829f2af0243879@mail.gmail.com>
+Date: Mon, 19 Oct 2009 17:56:25 -0400
+Message-ID: <829197380910191456g5c53f37bh82ae6d7359ae5d2e@mail.gmail.com>
+Subject: Re: pctv nanoStick Solo not recognized
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Matteo Miraz <telegraph.road@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent
+On Mon, Oct 19, 2009 at 5:51 PM, Matteo Miraz <telegraph.road@gmail.com> wrote:
+> Devin,
+>
+> thanks for the support.
+>
+> In the meanwhile, can I try to force the "new" vendor id?
+> Since I have another pinnacle USB device, I was thinking about
+> creating a new vendor (something like USB_VID_PINNACLE2).
+> Is it enough to add it just after the USB_VID_PINNACLE definition and
+> change the 57th line to
+>
+> { USB_DEVICE(USB_VID_PINNACLE2, USB_PID_PINNACLE_PCTV73ESE) },
+>
+> or should I do something else?
 
-On Thu, 29 Oct 2009, Laurent Pinchart wrote:
+You can definitely give that a try and see if it starts working.  I
+would suggest you call it USB_VID_PCTVSYSTEMS though, since that is
+the new name.  If it works, send in a patch and we'll merge it.
 
-> Hi Guennadi,
-> 
-> On Wednesday 28 October 2009 17:37:09 Guennadi Liakhovetski wrote:
-> > Hi all
-> > 
-> > As some of you will know, soc-camera framework is undergoing a conversion to
-> > the v4l2-subdev API. Most of the legacy soc-camera client API has been
-> > ported over to v4l2-subdev. Final conversion is blocked by missing
-> > functionality in the current v4l2 subsystem. Namely video bus configuration
-> > and data format negotiation. And from the progress of respective RFCs it
-> > looks like this could take a while to get them into the mainline, which is
-> > also understandable, given the amount of work. So, the question is - can we
-> > work out a way to finalise the porting yet before the final versions of
-> > those RFCs make it upstream? OTOH, we certainly do not want to have to
-> > create a solution, which will have to be thrown away completely later.
-> 
-> Right, but we could design a temporary solution that goes in the right 
-> direction and "fix" the code later. In that case the temporary solution must 
-> be clearly marked as such, as we don't want to keep it around for API and ABI 
-> compatibility reasons.
+My speculation is that they got a new USB ID because of the Hauppauge
+acquisition, and they started shipping the existing products with the
+new ID (thereby we would need both USB ids in the driver).
 
-Agree.
+Devin
 
-> > We could decide to
-> > 
-> > 1. make bus configuration optional. If no data provided - use defaults.
-> 
-> Would that really work ?
-
-Well, we should be able to make at least one (USB or whatever) camera work 
-per soc-camera sensor driver:-) Which means, soc-camera native 
-configurations set bus configuration explicitly anyway, and we make 
-default match that one non-soc-camera card. It is relatively improbable, 
-that some driver will get used by more than one card and that they will 
-have incompatible configurations;) Then we'll have to think how to solve 
-that.
-
-> > 2. use something like the proposed imagebus API for data format negotiation.
-> > Even if it will be eventually strongly modified for new "Media Controller &
-> > Co." APIs, it already exists, so, the time has already been spent on it, and
-> > mainlining it will not require much more time. But I'm open to other ideas
-> > too.
-> > 
-> > OR
-> > 
-> > 3. use some intermediate solution - something, that we think will later
-> > allow an easy enough extension to the new APIs when they appear.
-> 
-> 2 and 3 are similar in my opinion.
-
-The numbering is not very logical, it should have been 2.1 instead of 2, 
-and 2.2 instead of 3.
-
-That's good that that's also your opinion:-) That means my imagebus is not 
-too far off the track.
-
-> The current imagebus API proposal controls 
-> whole subdevices while it should act at the pad level. Pads will be introduced 
-> with the media controller, so we could
-> 
-> - use a subdev-level imagebus API, allowing the soc-camera conversion to 
-> subdev, and port the code to pad level latter, or
-> 
-> - introduce subdev pads operations now and use them for the imagebus API
-> 
-> The second solution would take more time as we need to agree on the subdev 
-> pads operations. I'm ok with the first solution, as long as you agree to port 
-> the code to the new subdev pads operations later :-)
-
-You know, noone can see the future:-) But so far I don't see anything that 
-would hinder me from doing that.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
