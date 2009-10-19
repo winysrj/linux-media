@@ -1,64 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:26154 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755974AbZJaJxk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Oct 2009 05:53:40 -0400
-Message-ID: <4AEC08F0.70205@redhat.com>
-Date: Sat, 31 Oct 2009 07:52:48 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-qy0-f194.google.com ([209.85.221.194]:55865 "EHLO
+	mail-qy0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753486AbZJSTSf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Oct 2009 15:18:35 -0400
+Received: by qyk32 with SMTP id 32so3364777qyk.4
+        for <linux-media@vger.kernel.org>; Mon, 19 Oct 2009 12:18:40 -0700 (PDT)
 MIME-Version: 1.0
-To: HoP <jpetrous@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] isl6421.c - added optional features: tone control and
- 	temporary diseqc overcurrent
-References: <846899810910241711s6fb5939fq3a693a92a2a76310@mail.gmail.com>
-In-Reply-To: <846899810910241711s6fb5939fq3a693a92a2a76310@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <51bd605b0910181441l7d6ac90g53978e3e4436f6ba@mail.gmail.com>
+References: <51bd605b0910181441l7d6ac90g53978e3e4436f6ba@mail.gmail.com>
+Date: Mon, 19 Oct 2009 15:18:39 -0400
+Message-ID: <829197380910191218u2c281553pad57bff61ffbd3b5@mail.gmail.com>
+Subject: Re: pctv nanoStick Solo not recognized
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Matteo Miraz <telegraph.road@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-HoP escreveu:
+On Sun, Oct 18, 2009 at 5:41 PM, Matteo Miraz <telegraph.road@gmail.com> wrote:
 > Hi,
 >
-> this is my first kernel patch, so all comments are welcome.
->   
-First of all, please check all your patches with checkpatch, to be sure
-that they don't have any CodingStyle troubles. There are some on your
-patch (the better is to read README.patches for more info useful
-for developers).
-> Attached patch adds two optional (so, disabled by default
-> and therefore could not break any compatibility) features:
+> I've just bought a new DVB USB card, but it seems that the current
+> version of linux tv does not recognize it at all.
+> I tried both the ubuntu kernel (9.04 and 9.10) and the latest drivers
+> downloaded with mercurial from http://linuxtv.org/hg/v4l-dvb
 >
-> 1, tone_control=1
-> When enabled, ISL6421 overrides frontend's tone control
-> function (fe->ops.set_tone) by its own one.
->   
-On your comments, the better is to describe why someone would need
-to use such option. You should also add a quick hint about that at the
-option description.
-> 2, overcurrent_enable=1
-> When enabled, overcurrent protection is disabled during
-> sending diseqc command. Such option is usable when ISL6421
-> catch overcurrent threshold and starts limiting output.
-> Note: protection is disabled only during sending
-> of diseqc command, until next set_tone() usage.
-> What typically means only max up to few hundreds of ms.
-> WARNING: overcurrent_enable=1 is dangerous
-> and can damage your device. Use with care
-> and only if you really know what you do.
->   
-I'm not sure if it is a good idea to have this... Why/when someone would 
-need this?
-
-If we go ahead and add this one, you should add a notice about it at the 
-parameter.
-I would also print a big WARNING message at the dmesg if the module were 
-loaded
-with this option turned on.
-> /Honza
+> The card is a PCTV nanoStick Solo, and chip seems to be a "73E SE".
+> Looking at the lsusb output (reported below), it seems that it is not
+> a pinnacle, but a new brand (the Vendor ID is different from the
+> pinnacle's one).
 >
-> Signed-off-by: Jan Petrous <jpetrous@gmail.com>
-> ---
->   
+> Can you help me?
+>
+> Thanks,
+> Matteo
 
+As far as I can see, support for the PCTV 73E-SE (usb id 2013:0245)
+was introduced in hg rev 12886 on September 2nd.  This would have been
+too late to make it for the Karmic release.
+
+You can get the device working in your environment by installing the
+latest v4l-dvb tree.  You can find directions here:
+
+http://linuxtv.org/repo
+
+Cheers,
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
