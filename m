@@ -1,101 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from h206.core.ignum.cz ([217.31.49.206]:40251 "EHLO
-	h206.core.ignum.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758012AbZJHSYU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Oct 2009 14:24:20 -0400
-Message-ID: <C3EF2005C0C34F008FA0B59B48782D75@MirekPNB>
-From: "Miroslav Pragl" <lists.subscriber@pragl.cz>
-To: "Devin Heitmueller" <dheitmueller@kernellabs.com>
-Cc: <linux-media@vger.kernel.org>
-References: <2D9D466571BB4CCEB9FD981D65F8FBFC@MirekPNB> <829197380910080736g4b30e0e8m21f1d3b876a15ce6@mail.gmail.com>
-In-Reply-To: <829197380910080736g4b30e0e8m21f1d3b876a15ce6@mail.gmail.com>
-Subject: Re: Pinnace 320e (PCTV Hybrid Pro Stick) support
-Date: Thu, 8 Oct 2009 20:23:22 +0200
-MIME-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="ISO-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:13351 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751176AbZJSMfl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Oct 2009 08:35:41 -0400
+Received: from eu_spt2 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0KRR001WCH6U4H@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 19 Oct 2009 13:25:42 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0KRR00CCRH6U6S@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 19 Oct 2009 13:25:42 +0100 (BST)
+Date: Mon, 19 Oct 2009 14:24:01 +0200
+From: Tomasz Fujak <t.fujak@samsung.com>
+Subject: RE: [RFC] Video events, version 2.1
+In-reply-to: <4AD877A0.3080004@maxwell.research.nokia.com>
+To: 'Sakari Ailus' <sakari.ailus@maxwell.research.nokia.com>,
+	linux-media@vger.kernel.org
+Cc: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	'Hans Verkuil' <hverkuil@xs4all.nl>,
+	"'Zutshi Vimarsh (Nokia-D-MSW/Helsinki)'" <vimarsh.zutshi@nokia.com>,
+	'Ivan Ivanov' <iivanov@mm-sol.com>,
+	'Cohen David Abraham' <david.cohen@nokia.com>,
+	'Guru Raj' <gururaj.nagendra@intel.com>, mkrufky@hauppauge.com,
+	dheitmueller@kernellabs.org
+Message-id: <004301ca50b7$0a02e6c0$1e08b440$%fujak@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <4AD877A0.3080004@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin,
-thank you very much.
+Hi,
 
-I downloaded, compiled and installed drivers from current (today) hg 
-repository o linuxtv.org, attached Pinnacle dongle, scanned.
+The event count may be useful for the reason Laurent mentioned. In case we
+don't have dequeue multiple (DQEVENT_MULTIPLE?) a flag should be enough,
+saying if there are any events immediately available. That'd be just one bit
+we could mash into the 'type' field.
 
-The log files are quite large so i ZIPed them and made available at 
-http://pragl.com/tmp/em28xx_logs.zip
-They are:
+On the other hand I can imagine an event type that come swarming once a
+client registers to them (i.e.: VSYNC). In such a case they may overflow a
+queue and discard potentially useful events (i.e.: a cable detached from the
+output). We could do one of the following:
+ - nothing (let the above happen if the application is not fast enough to
+retrieve events),
+ - suggest using separate event feed for periodic events,
+ - compress periodic events (provide 'compressed' flag, and stamp the event
+with the timestamp of the last of the kind) - thus at most one of a periodic
+event type would reside in the queue,
+ - let the client define the window size,
+ - define event priorities (low, normal, high) and discard overflowing
+events starting with the lowest priorities. I.e.: low for VSYNC, normal for
+picture decoding error and high for cable attach
 
-1. messages.txt - relevant paert of /var/log/messages after plugging the 
-dongle in
-
-2. scan.txt - output from `scan cz-Praha` (my location) you can see scan 
-locks on first frequency (634000000), finds correctly couple of channels 
-then fails on other frequencies
-
-3. scan2.txt - same scan but I commented-out 1st frequency (634000000) so 
-scan successfully starts from following one (674000000) and the situation 
-repeats - only this one gets scanned, following are not
-
-Hope I described it clearly :)
-
-I really appreciate your help
-
-MP
+Third, the event subscription scheme. What does a subscription call mean:
+"Add these new events to what I already collect" or "Discard whatever I have
+subscribed for and now give me this"?
+In the latter use, there are just 27 event types available; can't tell if
+that's enough till we try to enumerate the event types we currently have.
+I've just seen a few of them (DVB, UVC, ACPI), but I think the list would
+grow once people start using the v4l2 events. How big is it going to be?
+ 
+Best regards
+-- 
+Tomasz Fujak
 
 
---------------------------------------------------
-From: "Devin Heitmueller" <dheitmueller@kernellabs.com>
-Sent: Thursday, October 08, 2009 4:36 PM
-To: "Miroslav Pragl" <lists.subscriber@pragl.cz>
-Cc: <linux-media@vger.kernel.org>
-Subject: Re: Pinnace 320e (PCTV Hybrid Pro Stick) support
-
-> 2009/10/8 Miroslav Pragl <lists.subscriber@pragl.cz>:
->> Hello,
->> are here users of Pinnace 320e (PCTV Hybrid Pro Stick)?
->>
->> I have lots of problems with tuning, namely
->> - scan somehow locks on the first frequency listed in scan file and finds 
->> no
->> signal on subsequent freqs
->> - kaffeine which has own scanning scans RELIABLY two, somehow three of 
->> four
->> channels available in my region
->> - vlc which has great commandline parameters for direc tuning frequency 
->> and
->> programm (by its ID) works fine
->>
->> I currently use Fedora 11 with latest stable kernel (64 bit) and try to 
->> keep
->> up-to-date with linuxtv drivers
->>
->> any help or atleast bug confirming would help me a lot
->>
->> Thanks
->>
->> MP
->>
->> P.S. although i hated the aggressivnes of Markus' drivers from 
->> mcentral.de
->> (no longer maintained) and need of FULL kernel sources these atleast 
->> worked
->> :(
->
-> Hi Miroslav,
->
-> I did the 320e work with the assistance of a couple of users in
-> Europe.  Could you confirm that you are running the latest v4l-dvb
-> tree from http://linuxtv.org/hg/v4l-dvb?  If so, please provide the
-> output of dmesg after connecting the device.
->
-> Devin
->
-> -- 
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
-> 
