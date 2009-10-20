@@ -1,54 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f210.google.com ([209.85.218.210]:34726 "EHLO
-	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933472AbZJIP1Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Oct 2009 11:27:24 -0400
-Received: by bwz6 with SMTP id 6so1663014bwz.37
-        for <linux-media@vger.kernel.org>; Fri, 09 Oct 2009 08:26:47 -0700 (PDT)
+Received: from web25603.mail.ukl.yahoo.com ([217.12.10.162]:27427 "HELO
+	web25603.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751177AbZJTMyw convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Oct 2009 08:54:52 -0400
+Message-ID: <459385.60767.qm@web25603.mail.ukl.yahoo.com>
+References: <340263.68846.qm@web25604.mail.ukl.yahoo.com> <4ADD3341.3050202@yahoo.co.jp>
+Date: Tue, 20 Oct 2009 12:54:56 +0000 (GMT)
+From: Romont Sylvain <psgman24@yahoo.fr>
+Subject: Re : ISDB-T tuner
+To: Akihiro TSUKADA <tskd2@yahoo.co.jp>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <4ADD3341.3050202@yahoo.co.jp>
 MIME-Version: 1.0
-In-Reply-To: <4ACF714A.2090209@xfce.org>
-References: <4ACDF829.3010500@xfce.org>
-	 <37219a840910080545v72165540v622efd43574cf085@mail.gmail.com>
-	 <4ACDFED9.30606@xfce.org>
-	 <829197380910080745j3015af10pbced2a7e04c7595b@mail.gmail.com>
-	 <4ACE2D5B.4080603@xfce.org>
-	 <829197380910080928t30fc0ecas7f9ab2a7d8437567@mail.gmail.com>
-	 <4ACF03BA.4070505@xfce.org>
-	 <829197380910090629h64ce22e5y64ce5ff5b5991802@mail.gmail.com>
-	 <4ACF714A.2090209@xfce.org>
-Date: Fri, 9 Oct 2009 11:26:46 -0400
-Message-ID: <829197380910090826r5358a8a2p7a13f2915b5adcd8@mail.gmail.com>
-Subject: Re: Hauppage WinTV-HVR-900H
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Ali Abdallah <aliov@xfce.org>
-Cc: Michael Krufky <mkrufky@kernellabs.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 9, 2009 at 1:22 PM, Ali Abdallah <aliov@xfce.org> wrote:
-> Screenshots here for TV and S-Video input configuration with TV time.
->
-> http://ali.blogsite.org/files/tvtime/
->>
->> Could you try the S-Video or composite input and see if the picture
->> quality is still bad (as this well help isolate whether it's a problem
->> with the tuner chip or the decoder.
->>
->
-> Same picture quality with S-Video, but with composite there is no picture.
+Thank you for the explain!
+so, which device can I buy, working in Japan, in linux, and in digital (working after 2011)?
+really NOTHING is working??
+Thank you very much for your help!
 
-Ok, this helps alot.  This rules out the tuner and suggests that
-perhaps the video decoder is not being programmed properly.
 
-Could you please send me the output of "dmesg"?  I'll see about
-setting up a tree with some additional debugging for you to try out.
 
-Thanks,
 
-Devin
+----- Message d'origine ----
+De : Akihiro TSUKADA <tskd2@yahoo.co.jp>
+À : Romont Sylvain <psgman24@yahoo.fr>
+Cc : linux-media@vger.kernel.org
+Envoyé le : Mar 20 Octobre 2009, 12 h 49 min 21 s
+Objet : Re: ISDB-T tuner
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+> My tuner card is a Pixela PIXDT090-PE0
+
+Hi Romont,
+
+As you might know, all Japanese DTV programs are scrambled with BCAS.
+BCAS scrambling algorithm itself is opend in the standard,
+but in addition to that, PC devices have to encrypt received data
+locally in order to get authorized for BCAS.
+So most DTV devices sold in Japan cannot be used in Linux.
+
+Some self-started vendors have sold their devices without BCAS
+authentication (thus without local encryption).
+They don't/can't include a BCAS PC-card necessary for descrambling,
+and users must bring it from elsewhere, which is against the EULA
+with the exclusive and private card issuer organization,
+or just live with qcif-sized non scrambled 'one seg.' programs in TS.
+
+This is why so few ISDB-T/S devices are supported in Linux.
+And Pixela is one of the major vendors with BCAS authentication.
+So I'm afraid there is almost no possibility to be supported in Linux.
+
+And just  for you information, in addition to EarthSoft PT1,
+there is a driver for 'Friio' ISDB-T USB receiver (which I wrote;) ,
+and it is already included in the main repository.
+Dibcom is maybe for Brazil and may or may not work in Japan.
+(Some of the SKnet HDUS series USB receivers are known to be
+hack-able to avoid local encryption, but of course it's underground.)
+----------
+  tsukada
+--------------------------------------
+GyaO! - Anime, Dramas, Movies, and Music videos [FREE]
+http://pr.mail.yahoo.co.jp/gyao/
+
+
+
+      
