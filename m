@@ -1,46 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48177 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933626AbZJNUIo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Oct 2009 16:08:44 -0400
-Message-ID: <4AD62FA1.10504@iki.fi>
-Date: Wed, 14 Oct 2009 23:08:01 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Andrea <mariofutire@googlemail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Has anybody tried Freeview HD in UK
-References: <hb57qt$vmd$1@ger.gmane.org>
-In-Reply-To: <hb57qt$vmd$1@ger.gmane.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailrelay009.isp.belgacom.be ([195.238.6.176]:43811 "EHLO
+	mailrelay009.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751112AbZJTIOq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Oct 2009 04:14:46 -0400
+Message-Id: <20091020011215.061080010@ideasonboard.com>
+Date: Tue, 20 Oct 2009 03:12:14 +0200
+From: laurent.pinchart@ideasonboard.com
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com, hverkuil@xs4all.nl,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC/PATCH 04/14] v4l-subdev: Add pads operations
+References: <20091020011210.623421213@ideasonboard.com>
+Content-Disposition: inline; filename=v4l-subdev-add-pad-ops.patch
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/14/2009 10:12 PM, Andrea wrote:
-> Hi,
->
-> I've read that they are going to start trial for HD DVB on Freeview
->
-> http://www.bbc.co.uk/blogs/bbcinternet/2009/06/whats_happening_with_freeview.html
->
-> http://www.dtg.org.uk/dtg/press_release.php?id=14
->
-> They mention September, October and Decembre 2009, does anybody know
-> more detailed info?
-> Is it using the same transmission, just a different codec, or do we need
-> new receivers?
+Add a v4l2_subdev_pad_ops structure for the operations that need to be
+performed at the pad level such as format-related operations.
 
-In my understanding they will start new DVB-T2 standard and due to that 
-new devices are needed. There is no DVB-T2 devices publicly sold 
-currently. Few vendors like Pace and Humax have public prototypes.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Basically new demodulator chips are needed and I don't know if there is 
-any publicly released.
+Index: v4l-dvb-mc/linux/include/media/v4l2-subdev.h
+===================================================================
+--- v4l-dvb-mc.orig/linux/include/media/v4l2-subdev.h
++++ v4l-dvb-mc/linux/include/media/v4l2-subdev.h
+@@ -232,11 +232,21 @@ struct v4l2_subdev_video_ops {
+ 	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct v4l2_frmivalenum *fival);
+ };
+ 
++struct v4l2_subdev_pad_ops {
++	int (*enum_fmt)(struct v4l2_subdev *sd, unsigned int pad, struct v4l2_fmtdesc *fmtdesc);
++	int (*enum_framesizes)(struct v4l2_subdev *sd, unsigned int pad, struct v4l2_frmsizeenum *fsize);
++	int (*enum_frameintervals)(struct v4l2_subdev *sd, unsigned int pad, struct v4l2_frmivalenum *fival);
++	int (*get_fmt)(struct v4l2_subdev *sd, unsigned int pad, struct v4l2_format *fmt);
++	int (*try_fmt)(struct v4l2_subdev *sd, unsigned int pad, struct v4l2_format *fmt);
++	int (*set_fmt)(struct v4l2_subdev *sd, unsigned int pad, struct v4l2_format *fmt);
++};
++
+ struct v4l2_subdev_ops {
+ 	const struct v4l2_subdev_core_ops  *core;
+ 	const struct v4l2_subdev_tuner_ops *tuner;
+ 	const struct v4l2_subdev_audio_ops *audio;
+ 	const struct v4l2_subdev_video_ops *video;
++	const struct v4l2_subdev_pad_ops *pad;
+ };
+ 
+ #define V4L2_SUBDEV_NAME_SIZE 32
 
-Finland will also start DVB-T2 SFN (Single Frequency Network) with h.264 
-during next year. There is two VHF muxes currently reserved for that.
 
-Antti
--- 
-http://palosaari.fi/
