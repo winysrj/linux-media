@@ -1,68 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f210.google.com ([209.85.218.210]:57368 "EHLO
-	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758121AbZJBUkD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2009 16:40:03 -0400
-Received: by bwz6 with SMTP id 6so1338260bwz.37
-        for <linux-media@vger.kernel.org>; Fri, 02 Oct 2009 13:40:06 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4AC63EC9.2010207@rogers.com>
-References: <200909252322.26427.hverkuil@xs4all.nl>
-	 <4AC63EC9.2010207@rogers.com>
-Date: Fri, 2 Oct 2009 22:40:06 +0200
-Message-ID: <d9def9db0910021340k63492355ldb881056854b077e@mail.gmail.com>
-Subject: Re: [Bulk] V4L-DVB Summit Day 3
-From: Markus Rechberger <mrechberger@gmail.com>
-To: CityK <cityk@rogers.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from devils.ext.ti.com ([198.47.26.153]:45670 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751934AbZJTM3w convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Oct 2009 08:29:52 -0400
+From: "Nori, Sekhar" <nsekhar@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>,
+	"santiago.nunez@ridgerun.com" <santiago.nunez@ridgerun.com>
+CC: "todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 20 Oct 2009 17:59:42 +0530
+Subject: RE: [PATCH 2/6 v5] Support for TVP7002 in dm365 board
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DDF23F62@dbde02.ent.ti.com>
+References: <1255617794-1401-1-git-send-email-santiago.nunez@ridgerun.com>
+ <87skdk7aul.fsf@deeprootsystems.com>
+In-Reply-To: <87skdk7aul.fsf@deeprootsystems.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 2, 2009 at 7:56 PM, CityK <cityk@rogers.com> wrote:
-> Hans Verkuil wrote:
->> I made the following list:
->>
->> - We created a new mc mailinglist: linux-mc@googlegroups.com
->>
->> This is a temporary mailinglist where we can post and review patches during
->> prototyping of the mc API. We don't want to flood the linux-media list with
->> those patches since that is already quite high-volume.
->>
->> The mailinglist should be active, although I couldn't find it yet from
->> www.googlegroups.com. I'm not sure if it hasn't shown up yet, or if I did
->> something wrong.
->>
+On Fri, Oct 16, 2009 at 00:17:46, Kevin Hilman wrote:
+> <santiago.nunez@ridgerun.com> writes:
 >
-> I'm scratching my head on this one.  Seems the last thing that is needed
-> is YET another mailing list.  Further, it
-> - fractures the development community.
+> > From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+> >
+> > This patch provides support for TVP7002 in architecture definitions
+> > within DM365.
+> >
+> > Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+> > ---
+> >  arch/arm/mach-davinci/board-dm365-evm.c |  170 ++++++++++++++++++++++++++++++-
+> >  1 files changed, 166 insertions(+), 4 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-davinci/board-dm365-evm.c b/arch/arm/mach-davinci/board-dm365-evm.c
+> > index a1d5e7d..6c544d3 100644
+> > --- a/arch/arm/mach-davinci/board-dm365-evm.c
+> > +++ b/arch/arm/mach-davinci/board-dm365-evm.c
+> > @@ -38,6 +38,11 @@
+> >  #include <mach/common.h>
+> >  #include <mach/mmc.h>
+> >  #include <mach/nand.h>
+> > +#include <mach/gpio.h>
+> > +#include <linux/videodev2.h>
+> > +#include <media/tvp514x.h>
+> > +#include <media/tvp7002.h>
+> > +#include <media/davinci/videohd.h>
+> >
+> >
+> >  static inline int have_imager(void)
+> > @@ -48,8 +53,11 @@ static inline int have_imager(void)
+> >
+> >  static inline int have_tvp7002(void)
+> >  {
+> > -   /* REVISIT when it's supported, trigger via Kconfig */
+> > +#ifdef CONFIG_VIDEO_TVP7002
+> > +   return 1;
+> > +#else
+> >     return 0;
+> > +#endif
+>
+> I've said this before, but I'll say it again.  I don't like the
+> #ifdef-on-Kconfig-option here.
+>
+> Can you add a probe hook to the platform_data so that when the tvp7002
+> is found it can call pdata->probe() which could then set a flag
+> for use by have_tvp7002().
+>
+> This will have he same effect without the ifdef since if the driver
+> is not compiled in, its probe can never be triggered.
 
-this is what I think too. I'm mainly interested in keeping up
-compatibility with that framework
-The traffic on this mailinglist is rather small and it should be ok to
-mix up developer mails
-with a few support mails (whereas people usually use to CC anyone who
-might be involved anyway).
+But this wouldn't work when TVP7002 is built as a module. Correct?
+The current patch does not take care of the module case as well.
 
-> - persons unaware of the decision, and whom might be interested, would
-> never find it . i.e. alienation
+Patch 6/6 of this series does seem to make the TVP7002 driver available
+as module.
 
-if you try to send an email as adviced to that googlemail mailinglist
-you'll just get an email back that it doesn't work :-)
-
-nothing else to write about it I totally agree.
-
-One question I have though, what is the impact to the existing API,
-will they start to require that MC interface?
-TI hardware is rather specialized and most other devices will not need
-any of those changes, I don't see the benefit
-of bloating up the API for devices which already work fine, for simple
-devices it should better remain simple.
-(This question is mainly because we also maintain our own player which
-supports the v4l2/dvbV(3/5) API, but the
-driver should still support legacy applications in the future)
-
-Best Regards,
-Markus
+Thanks,
+Sekhar
