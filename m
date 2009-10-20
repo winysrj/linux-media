@@ -1,16 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-ew0-f223.google.com ([209.85.219.223])
+Received: from dangerbird.closetothewind.net ([82.134.87.117])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <albert.comerma@gmail.com>) id 1N4DBR-0005bW-Mt
-	for linux-dvb@linuxtv.org; Sat, 31 Oct 2009 13:35:54 +0100
-Received: by ewy23 with SMTP id 23so1220033ewy.26
-	for <linux-dvb@linuxtv.org>; Sat, 31 Oct 2009 05:35:19 -0700 (PDT)
-Message-ID: <4AEC2F03.6050205@gmail.com>
-Date: Sat, 31 Oct 2009 13:35:15 +0100
-From: Albert Comerma <albert.comerma@gmail.com>
+	(envelope-from <linuxtv@closetothewind.net>) id 1N0Ne9-00013i-Nn
+	for linux-dvb@linuxtv.org; Wed, 21 Oct 2009 00:57:42 +0200
+Received: from [192.168.1.22] ([213.153.15.207])
+	by dangerbird.closetothewind.net (8.14.3/8.14.3/SuSE Linux 0.8) with
+	ESMTP id n9KMvbGE019107
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-dvb@linuxtv.org>; Wed, 21 Oct 2009 00:57:37 +0200
+Message-ID: <4ADE4061.1020708@closetothewind.net>
+Date: Wed, 21 Oct 2009 00:57:37 +0200
+From: Jonas Kvinge <linuxtv@closetothewind.net>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] somebody messed something on xc2028 code?
+Subject: [linux-dvb] Corruption and decoding problems on SD channels with
+ Hauppauge WinTV-Nova-HD-S2, HD channels are fine.
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -19,62 +23,277 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all, I just updated my ubuntu to karmic and found with surprise that 
-with 2.6.31 kernel my device does not work... It seems to be related to 
-the xc2028 code part since the kernel explosion happens when you try to 
-tune the device, here it's my dmesg, any idea?
+Hello,
 
-Albert
+I'm having frequently "Unknown audio decoding error", "Header missing",
+"ac-tex damaged" on what seem to be all SD channels, which resutls in
+prebuffering pause in MythTV. All HD channels are fine and no problems.
+The channels  which are worst are also very hard to lock. Sometimes some
+channels are not watchable at all.
 
-[ 1622.032196] usb 1-1: new high speed USB device using ehci_hcd and 
-address 4
-[ 1622.166041] usb 1-1: configuration #1 chosen from 1 choice
-[ 1622.167341] dvb-usb: found a 'Pinnacle Expresscard 320cx' in cold 
-state, will try to load a firmware
-[ 1622.167353] usb 1-1: firmware: requesting dvb-usb-dib0700-1.20.fw
-[ 1622.188465] dvb-usb: downloading firmware from file 
-'dvb-usb-dib0700-1.20.fw'
-[ 1622.396737] dib0700: firmware started successfully.
-[ 1622.900198] dvb-usb: found a 'Pinnacle Expresscard 320cx' in warm state.
-[ 1622.900308] dvb-usb: will pass the complete MPEG2 transport stream to 
-the software demuxer.
-[ 1622.900759] DVB: registering new adapter (Pinnacle Expresscard 320cx)
-[ 1623.157839] DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
-[ 1623.158165] xc2028 4-0061: creating new instance
-[ 1623.158173] xc2028 4-0061: type set to XCeive xc2028/xc3028 tuner
-[ 1623.158333] input: IR-receiver inside an USB DVB receiver as 
-/devices/pci0000:00/0000:00:1a.7/usb1/1-1/input/input16
-[ 1623.158418] dvb-usb: schedule remote query interval to 50 msecs.
-[ 1623.158427] dvb-usb: Pinnacle Expresscard 320cx successfully 
-initialized and connected.
-[ 1670.979678] CE: hpet increasing min_delta_ns to 15000 nsec
-[ 1753.316527] BUG: unable to handle kernel NULL pointer dereference at 
-00000008
-[ 1753.316543] IP: [<c03a8a13>] _request_firmware+0x1f3/0x250
-[ 1753.316562] *pde = 00000000
-[ 1753.316570] Oops: 0000 [#2] SMP
-[ 1753.316578] last sysfs file: 
-/sys/devices/LNXSYSTM:00/device:00/PNP0C0A:00/power_supply/BAT0/charge_full
-[ 1753.316586] Modules linked in: tuner_xc2028 dvb_usb_dib0700 dib7000p 
-dib7000m dvb_usb dvb_core dib3000mc dibx000_common dib0070 hidp 
-binfmt_misc vboxnetflt vboxnetadp vboxdrv ppdev parport_pc 
-snd_hda_codec_idt snd_hda_intel snd_hda_codec snd_hwdep snd_pcm_oss 
-snd_mixer_oss snd_pcm arc4 ecb snd_seq_dummy snd_seq_oss iwlagn bridge 
-stp bnep snd_seq_midi iwlcore snd_rawmidi joydev iptable_nat 
-snd_seq_midi_event mac80211 nf_nat snd_seq nf_conntrack_ipv4 
-nf_conntrack nf_defrag_ipv4 snd_timer snd_seq_device iptable_mangle snd 
-sbp2 dell_wmi psmouse iptable_filter serio_raw ip_tables soundcore 
-x_tables snd_page_alloc cfg80211 uvcvideo videodev v4l1_compat sdhci_pci 
-sdhci led_class lp btusb dell_laptop dcdbas nvidia(P) parport usbhid 
-dm_raid45 xor ohci1394 video output ieee1394 tg3 intel_agp agpgart
-[ 1753.316753]
-...
+I am using Canal Digital in Norway, channel listing can be found here:
+
+http://www.telenorsbc.com/templates/Page.aspx?id=678
+
+
+I have had this problem for about a month. I know that Canal
+Digital have done some changes to the transponders around the same time
+that this happened. But I don't know if this has anything to do with it.
+I have deleted all transponders and channels in MythTV and rescanned
+everything.
+
+It seem like a bad signal, but when testing with the set-top box from
+the provider it shows signal strength 80% and signal quality 90%. Also
+it is strange that all HD channels would work fine if there was a poor
+signal.
+
+* I got a Hauppauge Nova-HD-S2 card. Using Kernel 2.6.30.9 and MythTV
+trunk revision 22257
+
+* My dish is pointed correctly using a satellite finder. it shows 9 out
+of 10 when the db button is set at the lowest. This is the best signal I
+have ever had. I've tried to slightly adjust the dish anyway without any
+change.
+
+* I have replaced the LNB, it is a Triax Quad LNB.
+
+* I got two cables from the dish, same problem with both cables.
+
+* In MYthTV signal is shown as 85-86%. BE is 0. This is the same as I
+have always had when it was working.
+
+I have also tested with a Technotrend Budget S-3200 card, which had the
+same problems, except that this card does not work on HD channels at
+all, which it never have.
+
+Here is the log when this happens:
+
+2009-10-08 15:58:43.381 mythfrontend version: trunk [22257] www.mythtv.org
+2009-10-08 15:58:43.406 Using runtime prefix = /usr/local
+2009-10-08 15:58:43.406 Using configuration directory = /home/jonas/.mythtv
+2009-10-08 15:58:44.147 Unable to read configuration file mysql.txt
+2009-10-08 15:58:44.148 Empty LocalHostName.
+2009-10-08 15:58:44.148 Using localhost value of linuxtv
+2009-10-08 15:58:44.151 New DB connection, total: 1
+2009-10-08 15:58:44.154 Connected to database 'mythconverg' at host:
+localhost
+2009-10-08 15:58:44.155 Closing DB connection named 'DBManager0'
+2009-10-08 15:58:44.188 DPMS is active.
+2009-10-08 15:58:44.189 Primary screen: 0.
+2009-10-08 15:58:44.190 Connected to database 'mythconverg' at host:
+localhost
+2009-10-08 15:58:44.191 Using screen 0, 1920x1080 at 0,0
+2009-10-08 15:58:44.233 MythUI Image Cache size set to 20971520 bytes
+2009-10-08 15:58:44.233 Enabled verbose msgs:  important general
+2009-10-08 15:58:44.237 Primary screen: 0.
+2009-10-08 15:58:44.237 Using screen 0, 1920x1080 at 0,0
+2009-10-08 15:58:44.238 Using theme base resolution of 800x600
+2009-10-08 15:58:44.244 LIRC: Successfully initialized '/dev/lircd'
+using '/home/jonas/.mythtv/lircrc' config
+2009-10-08 15:58:44.396 Using the Qt painter
+2009-10-08 15:58:44.398 Unknown tag size:small in font 'small'
+2009-10-08 15:58:44.398 Specified base font 'small' does not exist for
+font medium
+2009-10-08 15:58:44.398 Specified base font 'small' does not exist for
+font large
+2009-10-08 15:58:44.404 Loading base theme from
+/usr/local/share/mythtv/themes/G.A.N.T/base.xml
+2009-10-08 15:58:44.527 Loading base theme from
+/usr/local/share/mythtv/themes/default/base.xml
+2009-10-08 15:58:44.529 Current MythTV Schema Version (DBSchemaVer): 1244
+2009-10-08 15:58:44.859 Desktop video mode: 1920x1080 60.0024 Hz
+2009-10-08 15:58:44.960 Registering Internal as a media playback plugin.
+2009-10-08 15:58:44.974 Cannot load language en_gb for module mytharchive
+2009-10-08 15:58:44.975 Cannot load language en_gb for module mythbrowser
+2009-10-08 15:58:44.976 Registering WebBrowser as a media playback plugin.
+2009-10-08 15:58:44.977 Cannot load language en_gb for module mythbrowser
+2009-10-08 15:58:44.983 Cannot load language en_gb for module mythflix
+2009-10-08 15:58:45.016 MonitorRegisterExtensions(0x100, gif,jpg,png)
+2009-10-08 15:58:45.016 Cannot load language en_gb for module mythgallery
+2009-10-08 15:58:45.020 Cannot load language en_gb for module mythgame
+2009-10-08 15:58:45.022 Cannot load language en_gb for module mythmovies
+2009-10-08 15:58:45.032 Current MythMusic Schema Version
+(MusicDBSchemaVer): 1017
+2009-10-08 15:58:45.059 MonitorRegisterExtensions(0x40,
+mp3,mp2,ogg,oga,flac,wma,wav,ac3,oma,omg,atp,ra,dts,aac,m4a,aa3,tta,mka,aiff,swa,wv)
+2009-10-08 15:58:45.062 Cannot load language en_gb for module mythmusic
+2009-10-08 15:58:45.065 Cannot load language en_gb for module mythnews
+2009-10-08 15:58:45.070 Current MythVideo Schema Version
+(mythvideo.DBSchemaVer): 1028
+2009-10-08 15:58:45.091 Cannot load language en_gb for module mythvideo
+2009-10-08 15:58:45.096 Cannot load language en_gb for module mythweather
+2009-10-08 15:58:45.100 Specified base font 'small' does not exist for
+font clock
+2009-10-08 15:58:45.179 Loading window theme from
+/usr/local/share/mythtv/themes/G.A.N.T/menu-ui.xml
+2009-10-08 15:58:45.235 Loading menu theme from
+/usr/local/share/mythtv/themes/defaultmenu//mainmenu.xml
+2009-10-08 15:58:45.236 Found mainmenu.xml for theme 'G.A.N.T'
+2009-10-08 15:58:45.257 MythContext: Connecting to backend server:
+127.0.0.1:6543 (try 1 of 1)
+2009-10-08 15:58:45.258 Using protocol version 50
+2009-10-08 15:58:49.342 New DB connection, total: 2
+2009-10-08 15:58:49.343 Connected to database 'mythconverg' at host:
+localhost
+2009-10-08 15:58:49.454 TV: Attempting to change from None to Watching
+WatchingLiveTV
+2009-10-08 15:58:49.455 MythContext: Connecting to backend server:
+127.0.0.1:6543 (try 1 of 1)
+2009-10-08 15:58:49.455 Using protocol version 50
+2009-10-08 15:58:49.465 Spawning LiveTV Recorder -- begin
+2009-10-08 15:58:49.679 Spawning LiveTV Recorder -- end
+2009-10-08 15:58:49.684 We have a
+playbackURL(/mnt/store/livetv/2502_20091008155849.mpg) & cardtype(DUMMY)
+2009-10-08 15:58:49.684 We have a RingBuffer
+2009-10-08 15:58:49.685 TV: StartPlayer(0, Watching WatchingLiveTV,
+main) -- begin
+2009-10-08 15:58:49.701 NVP(0): Disabling Audio, params(-1,2,44100)
+2009-10-08 15:58:49.714 VideoOutputXv: XVideo Adaptor Name: 'NV17 Video
+Texture'
+2009-10-08 15:58:49.737 OSD Theme Dimensions W: 640 H: 480
+2009-10-08 15:58:49.919 TV: StartPlayer(0, Watching WatchingLiveTV,
+main) -- end ok
+2009-10-08 15:58:49.919 TV: Changing from None to Watching WatchingLiveTV
+2009-10-08 15:58:49.919 TV: State is LiveTV & mctx == ctx
+2009-10-08 15:58:49.919 New DB connection, total: 3
+2009-10-08 15:58:49.920 New DB connection, total: 4
+2009-10-08 15:58:49.920 Realtime priority would require SUID as root.
+2009-10-08 15:58:49.920 Connected to database 'mythconverg' at host:
+localhost
+2009-10-08 15:58:49.920 Connected to database 'mythconverg' at host:
+localhost
+2009-10-08 15:58:49.921 TV: UpdateOSDInput done
+2009-10-08 15:58:49.921 TV: UpdateLCD done
+2009-10-08 15:58:49.921 TV: ITVRestart done
+2009-10-08 15:58:49.923 Video timing method: USleep with busy wait
+2009-10-08 15:58:49.943 ScreenSaverX11Private: DPMS Deactivated 1
+2009-10-08 15:58:51.681 [mp2 @ 0x7fba415d07e0]Header missing
+2009-10-08 15:58:52.458 VideoOutputXv: XVideo Adaptor Name: 'NV17 Video
+Texture'
+2009-10-08 15:58:52.593 AFD: Opened codec 0x7fba21a4b080, id(MPEG2VIDEO)
+type(Video)
+2009-10-08 15:58:52.593 AFD: codec MP2 has 2 channels
+2009-10-08 15:58:52.593 AFD: Opened codec 0x7fba21d06020, id(MP2)
+type(Audio)
+2009-10-08 15:58:52.688 Opening audio device '/dev/dsp'. ch 2(2) sr 48000
+2009-10-08 15:58:52.688 Opening OSS audio device '/dev/dsp'.
+2009-10-08 15:58:52.691 NVP(0): Enabling Audio
+2009-10-08 16:00:01.974 [mp2 @ 0x7fba415d07e0]incomplete frame
+2009-10-08 16:00:01.974 AFD Error: Unknown audio decoding error
+2009-10-08 16:00:01.974 LiveTV forcing JumpTo 1
+2009-10-08 16:02:30.472 NVP(0): prebuffering pause
+2009-10-08 16:18:00.325 NVP(0): prebuffering pause
+2009-10-08 16:19:15.211 NVP(0): prebuffering pause
+2009-10-08 16:19:16.812 NVP(0): Prebuffer wait timed out 10 times.
+2009-10-08 16:19:18.412 NVP(0): Prebuffer wait timed out 20 times.
+2009-10-08 16:19:20.013 NVP(0): Prebuffer wait timed out 30 times.
+2009-10-08 16:19:20.045 [mp2 @ 0x7fba415d07e0]Header missing
+2009-10-08 16:19:20.045 AFD Error: Unknown audio decoding error
+2009-10-08 16:19:20.590 [mpeg2video @ 0x7fba415d07e0]00 motion_type at 31 31
+2009-10-08 16:19:20.590 [mpeg2video @ 0x7fba415d07e0]Warning MVs not
+available
+2009-10-08 16:19:20.799 NVP(0): prebuffering pause
+2009-10-08 16:19:29.792 TV: ASK_RECORDING 1 29 0 0 hasrec: 0 haslater: 0
+2009-10-08 16:19:29.970 TV: ASK_RECORDING 2 29 0 0 hasrec: 0 haslater: 0
+2009-10-08 16:20:05.875 [mp2 @ 0x7fba415d07e0]Header missing
+2009-10-08 16:20:07.192 NVP(0): Prebuffer wait timed out 10 times.
+2009-10-08 16:20:08.792 NVP(0): Prebuffer wait timed out 20 times.
+2009-10-08 16:20:08.838 AFD: Opened codec 0x7fba231a2660, id(MPEG2VIDEO)
+type(Video)
+2009-10-08 16:20:08.838 AFD: codec MP2 has 2 channels
+2009-10-08 16:20:08.838 AFD: Opened codec 0x7fba231ae350, id(MP2)
+type(Audio)
+2009-10-08 16:20:24.774 [mp2 @ 0x7fba415d07e0]Header missing
+2009-10-08 16:20:24.774 AFD Error: Unknown audio decoding error
+2009-10-08 16:20:24.774 [mp2 @ 0x7fba415d07e0]Header missing
+2009-10-08 16:20:24.774 AFD Error: Unknown audio decoding error
+2009-10-08 16:20:25.971 NVP(0): prebuffering pause
+2009-10-08 16:20:27.572 NVP(0): Prebuffer wait timed out 10 times.
+2009-10-08 16:20:28.980 [mp2 @ 0x7fba415d07e0]Header missing
+2009-10-08 16:20:28.980 AFD Error: Unknown audio decoding error
+2009-10-08 16:20:29.173 NVP(0): Prebuffer wait timed out 20 times.
+2009-10-08 16:20:29.283 [mpeg2video @ 0x7fba415d07e0]ac-tex damaged at 34 30
+2009-10-08 16:20:29.283 [mpeg2video @ 0x7fba415d07e0]Warning MVs not
+available
+2009-10-08 16:20:29.910 NVP(0): prebuffering pause
+2009-10-08 16:20:44.588 NVP(0): prebuffering pause
+2009-10-08 16:20:46.189 NVP(0): Prebuffer wait timed out 10 times.
+2009-10-08 16:20:47.790 NVP(0): Prebuffer wait timed out 20 times.
+2009-10-08 16:20:48.568 [mp2 @ 0x7fba415d07e0]Header missing
+2009-10-08 16:20:48.568 AFD Error: Unknown audio decoding error
+2009-10-08 16:20:48.614 NVP(0): prebuffering pause
+2009-10-08 16:20:48.991 [mpeg2video @ 0x7fba415d07e0]ac-tex damaged at 35 15
+2009-10-08 16:20:48.991 [mpeg2video @ 0x7fba415d07e0]Warning MVs not
+available
+2009-10-08 16:21:04.432 NVP(0): prebuffering pause
+2009-10-08 16:21:06.032 NVP(0): Prebuffer wait timed out 10 times.
+2009-10-08 16:21:07.633 NVP(0): Prebuffer wait timed out 20 times.
+2009-10-08 16:21:09.234 NVP(0): Prebuffer wait timed out 30 times.
+2009-10-08 16:21:10.835 NVP(0): Prebuffer wait timed out 40 times.
+2009-10-08 16:21:12.435 NVP(0): Prebuffer wait timed out 50 times.
+2009-10-08 16:21:14.036 NVP(0): Prebuffer wait timed out 60 times.
+2009-10-08 16:21:15.637 NVP(0): Prebuffer wait timed out 70 times.
+2009-10-08 16:21:17.238 NVP(0): Prebuffer wait timed out 80 times.
+2009-10-08 16:21:18.574 [mp2 @ 0x7fba415d07e0]Header missing
+2009-10-08 16:21:18.574 AFD Error: Unknown audio decoding error
+2009-10-08 16:21:18.616 NVP(0): prebuffering pause
+2009-10-08 16:21:18.764 [mpeg2video @ 0x7fba415d07e0]ac-tex damaged at 34 11
+2009-10-08 16:21:34.352 NVP(0): prebuffering pause
+2009-10-08 16:21:35.953 NVP(0): Prebuffer wait timed out 10 times.
+2009-10-08 16:21:37.554 NVP(0): Prebuffer wait timed out 20 times.
+2009-10-08 16:21:38.416 [mp2 @ 0x7fba415d07e0]Header missing
+2009-10-08 16:21:38.416 AFD Error: Unknown audio decoding error
+2009-10-08 16:21:38.463 NVP(0): prebuffering pause
+2009-10-08 16:21:38.898 [mpeg2video @ 0x7fba415d07e0]invalid mb type in
+B Frame at 29 8
+2009-10-08 16:21:54.552 NVP(0): prebuffering pause
+2009-10-08 16:21:56.153 NVP(0): Prebuffer wait timed out 10 times.
+2009-10-08 16:21:57.754 NVP(0): Prebuffer wait timed out 20 times.
+2009-10-08 16:21:59.355 NVP(0): Prebuffer wait timed out 30 times.
+2009-10-08 16:22:00.956 NVP(0): Prebuffer wait timed out 40 times.
+2009-10-08 16:22:02.556 NVP(0): Prebuffer wait timed out 50 times.
+2009-10-08 16:22:04.157 NVP(0): Prebuffer wait timed out 60 times.
+2009-10-08 16:22:05.758 NVP(0): Prebuffer wait timed out 70 times.
+2009-10-08 16:22:07.359 NVP(0): Prebuffer wait timed out 80 times.
+2009-10-08 16:22:08.960 NVP(0): Prebuffer wait timed out 90 times.
+2009-10-08 16:22:10.561 NVP(0): Prebuffer wait timed out 100 times.
+2009-10-08 16:22:10.561 NVP(0), Error: Timed out waiting for
+prebuffering too long. Exiting..
+2009-10-08 16:22:10.790 TV: Attempting to change from Watching
+WatchingLiveTV to None
+2009-10-08 16:22:10.790 [mp2 @ 0x7fba415d07e0]Header missing
+2009-10-08 16:22:10.790 AFD Error: Unknown audio decoding error
+2009-10-08 16:22:10.855 TV: Changing from Watching WatchingLiveTV to None
+2009-10-08 16:22:10.877 ScreenSaverX11Private: DPMS Reactivated 1
+2009-10-08 16:22:10.877 TV: Attempting to change from None to None
+2009-10-08 16:22:10.913 TV: Attempting to change from None to Watching
+WatchingLiveTV
+2009-10-08 16:22:10.915 MythContext: Connecting to backend server:
+127.0.0.1:6543 (try 1 of 1)
+2009-10-08 16:22:10.915 Using protocol version 50
+2009-10-08 16:22:10.925 Spawning LiveTV Recorder -- begin
+2009-10-08 16:22:11.063 Spawning LiveTV Recorder -- end
+2009-10-08 16:22:11.069 We have a
+playbackURL(/mnt/store/livetv/2508_20091008162211.mpg) & cardtype(DUMMY)
+2009-10-08 16:22:11.071 We have a RingBuffer
+2009-10-08 16:22:11.072 TV: StartPlayer(0, Watching WatchingLiveTV,
+main) -- begin
+2009-10-08 16:22:11.072 playCtx, Error: Attempting to setup a player,
+but it already exists.
+2009-10-08 16:22:11.072 TV: StartPlayer(0, Watching WatchingLiveTV,
+main) -- end error
+2009-10-08 16:22:11.072 TV Error: LiveTV not successfully started
+2009-10-08 16:22:11.093 ScreenSaverX11Private: DPMS Deactivated 1
+2009-10-08 16:22:11.093 ScreenSaverX11Private: DPMS Reactivated 1
+
+
+Jonas
 
 _______________________________________________
 linux-dvb users mailing list
