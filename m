@@ -1,112 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:44544 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758246AbZJTDIc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Oct 2009 23:08:32 -0400
-Date: Tue, 20 Oct 2009 12:07:42 +0900
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Romont Sylvain <psgman24@yahoo.fr>
-Cc: Markus Rechberger <mrechberger@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Re : ISDB-T tuner
-Message-ID: <20091020120742.66ff5c66@caramujo.chehab.org>
-In-Reply-To: <640894.16785.qm@web25601.mail.ukl.yahoo.com>
-References: <340263.68846.qm@web25604.mail.ukl.yahoo.com>
-	<20091020042913.1d3609d7@caramujo.chehab.org>
-	<d9def9db0910191240g163f04aau631ec481ec6bdf70@mail.gmail.com>
-	<640894.16785.qm@web25601.mail.ukl.yahoo.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from rouge.crans.org ([138.231.136.3]:52321 "EHLO rouge.crans.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751364AbZJTULw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Oct 2009 16:11:52 -0400
+Message-ID: <4ADE1985.1090300@crans.ens-cachan.fr>
+Date: Tue, 20 Oct 2009 22:11:49 +0200
+From: DUBOST Brice <dubost@crans.ens-cachan.fr>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org, alex.betis@gmail.com
+Subject: Re: S2API and DVB-T tuning [Solved]
+References: <4AD30DFD.8080800@crans.ens-cachan.fr> <4AD3279A.6030907@crans.ens-cachan.fr>
+In-Reply-To: <4AD3279A.6030907@crans.ens-cachan.fr>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 19 Oct 2009 23:16:26 +0000 (GMT)
-Romont Sylvain <psgman24@yahoo.fr> escreveu:
-
-> Thank you for your answer!
+DUBOST Brice a écrit :
+> DUBOST Brice a écrit :
+>> Hello,
+>>
+>> I have some problems with DVB-T tuning under s2-api/DVB API 5
+>>
+>> To run these tests I use scan-s2-7effc68db255
+>>
+>> My machine runs the following kernel (uname -a)
+>> Linux fixe_barcelone 2.6.31-13-generic #42-Ubuntu SMP Thu Oct 8 20:03:54
+>> UTC 2009 x86_64 GNU/Linux
+>>
+>> And I own 3 DVB-T devices :
+>> 1:
+>> 01:00.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
+>> 	Subsystem: Technotrend Systemtechnik GmbH Device 1012
+>> 	Flags: bus master, medium devsel, latency 64, IRQ 21
+>> 	Memory at fa6ffc00 (32-bit, non-prefetchable) [size=512]
+>> 	Kernel driver in use: budget_ci dvb
+>> 	Kernel modules: budget-ci
+>> 2:
+>> Bus 001 Device 010: ID 2040:7070 Hauppauge
+>>
+>> 3:
+>> Bus 001 Device 011: ID 07ca:a815 AVerMedia Technologies, Inc.
+>>
+>> All three devices tune well and work flawlessly with scan (dvb api v3)
+>> But when I use scan-s2, only the AVerMedia is able to lock
+>>
+>> I use the dvb-t/es-Collserola as an initial tuning file.
+>>
+>> I thought the S2API shouldn't change the tuning behavior.
+>>
+>> I tried to search the Mailing list archives via google I unfortunately
+>> found nothing. I'm sorry if this subject was discussed before.
+>>
+>> What can I do to investigate more on this issue ?
+>>
 > 
-> What do you mean by "Hybrid"?
-
-Just drop any answer from markus. He is just sending spam trying to sell his
-products with closed-source binary drivers. Apparently, his products don't work
-or don't have any market acceptance. So, he is trying to sell individual
-pieces by abusing this mailing list.
+> Hello
 > 
-> My tuner is not a USB tuner... (PCI-E)
+> One more information, if I change
 > 
-> Here the lspci:
-> 01:00.0 Multimedia controller: Fujitsu Limited. Device 2030 (rev 01)
->         Subsystem: Device 1718:0020                                 
->         Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B- DisINTx-
->         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx- 
->         Latency: 0, Cache Line Size: 64 bytes                                                                
->         Interrupt: pin A routed to IRQ 10                                                                    
->         Region 0: Memory at cfdfc000 (64-bit, prefetchable) [size=16K]                                       
->         Region 2: Memory at f9bffc00 (32-bit, non-prefetchable) [size=128]                                   
->         Capabilities: <access denied>   
+> 514000000 8MHz 2/3 AUTO QAM64 8k 1/4 NONE
 > 
-> Please help me to make it working! lol
+> by
 > 
-> Thank you very much!
+> 514000000 8MHz 2/3 AUTO AUTO 8k 1/4 NONE
 > 
+> it works with scan-s2
 > 
+> With "old" scan it works for both
 > 
-> ----- Message d'origine ----
-> De : Markus Rechberger <mrechberger@gmail.com>
-> Ã€ : Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc : Romont Sylvain <psgman24@yahoo.fr>; linux-media@vger.kernel.org
-> EnvoyÃ© le : Mar 20 Octobre 2009, 4 h 40 min 00 s
-> Objet : Re: ISDB-T tuner
+> Hope this will help to find the issue
 > 
-> On Mon, Oct 19, 2009 at 9:29 PM, Mauro Carvalho Chehab
-> <mchehab@infradead.org> wrote:
-> > Hi Romont,
-> >
-> > Em Mon, 19 Oct 2009 12:16:30 +0000 (GMT)
-> > Romont Sylvain <psgman24@yahoo.fr> escreveu:
-> >
-> >> Hello!
-> >>
-> >> I actually live in Japan, I try to make working a tuner card ISDB-T with
-> >> linux. I searched a lot in internet but I find nothing....
-> >> How can I make it working?
-> >> My tuner card is a Pixela PIXDT090-PE0
-> >> in picture here:  http://bbsimg01.kakaku.com/images/bbs/000/208/208340_m.jpg
-> >>
-> >> Thank you for your help!!!
-> >
-> > Unfortunately, only the Earthsoft PC1 board and the boards with dibcom 80xx USB
-> > boards are currently supported. In the case of Dibcom, it can support several
-> > different devices, but we may need to add the proper USB ID for the board at the driver.
-> >
-> > I'm in Japan during this week for the Kernel Summit and Japan Linux Symposium.
-> >
-> > One of objectives I'm expecting from this trip is to get more people involved on
-> > creating more drivers for ISDB and other Asian digital video standards.
-> >
-> 
-> Here we can add that we also have fully working Hybrid/ISDB-T USB
-> fullseg devices for Linux already, just in case someone is interested
-> in it.
-> Feel free to contact me to get some more information about it. The
-> driver works from Linux 2.6.15 on (easy installation everywhere
-> without compiling).
-> 
-> Best Regards,
-> Markus
-> 
-> 
-> 
->       
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
+Hello
+
+After playing a bit more with S2API, I understood that the S2API is
+using DVB API v3 for DVB-T. So I investigated a bit more this issue.
+
+The problem came from the fact that scan-s2 was not giving all the
+parameters needed for DVB-T to the new API
+
+By making scan-s2 setting the following parameters, it works
+DTV_DELIVERY_SYSTEM
+DTV_FREQUENCY
+DTV_MODULATION
+DTV_GUARD_INTERVAL
+DTV_CODE_RATE_HP
+DTV_CODE_RATE_LP
+DTV_TRANSMISSION_MODE
+DTV_HIERARCHY
+DTV_BANDWIDTH_HZ
 
 
-Cheers,
-Mauro
+Problem solved :D
+
+Best regards
+
+-- 
+Brice
+
+A: Yes.
+>Q: Are you sure?
+>>A: Because it reverses the logical flow of conversation.
+>>>Q: Why is top posting annoying in email?
