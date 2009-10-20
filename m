@@ -1,127 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:1454 "EHLO
-	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752565AbZJJSIY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Oct 2009 14:08:24 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr17.xs4all.nl (8.13.8/8.13.8) with ESMTP id n9AI7hIC042839
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 10 Oct 2009 20:07:47 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 10 Oct 2009 20:07:43 +0200 (CEST)
-Message-Id: <200910101807.n9AI7hIC042839@smtp-vbr17.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from web25602.mail.ukl.yahoo.com ([217.12.10.161]:36568 "HELO
+	web25602.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752392AbZJTOtz convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Oct 2009 10:49:55 -0400
+Message-ID: <38955.60379.qm@web25602.mail.ukl.yahoo.com>
+References: <340263.68846.qm@web25604.mail.ukl.yahoo.com> <4ADD3341.3050202@yahoo.co.jp> <459385.60767.qm@web25603.mail.ukl.yahoo.com> <4ADDC39A.1080002@yahoo.co.jp>
+Date: Tue, 20 Oct 2009 14:49:58 +0000 (GMT)
+From: Romont Sylvain <psgman24@yahoo.fr>
+Subject: Re : Re : ISDB-T tuner
+To: Akihiro TSUKADA <tskd2@yahoo.co.jp>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <4ADDC39A.1080002@yahoo.co.jp>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Thanks for your answer!
+I will give back my pixela to the shop!
+and I think I will choose the SKNet MonsterTV HDUS.
+I don't have BCAS card because I will give back the pixela!
+Do you think than SKNet MonsterTV HDUS is good?
+Can I use it with Mythtv? (if you know mythtv)
 
-Results of the daily build of v4l-dvb:
+Thank you very much for your help!
 
-date:        Sat Oct 10 19:00:03 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13083:89b7e6d5854a
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-rc3-armv5: ERRORS
-linux-2.6.32-rc3-armv5-davinci: ERRORS
-linux-2.6.27-armv5-ixp: ERRORS
-linux-2.6.28-armv5-ixp: ERRORS
-linux-2.6.29.1-armv5-ixp: ERRORS
-linux-2.6.30-armv5-ixp: ERRORS
-linux-2.6.31-armv5-ixp: ERRORS
-linux-2.6.32-rc3-armv5-ixp: ERRORS
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: ERRORS
-linux-2.6.32-rc3-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-rc3-i686: ERRORS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-rc3-m32r: ERRORS
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: OK
-linux-2.6.32-rc3-mips: ERRORS
-linux-2.6.27-powerpc64: ERRORS
-linux-2.6.28-powerpc64: ERRORS
-linux-2.6.29.1-powerpc64: ERRORS
-linux-2.6.30-powerpc64: ERRORS
-linux-2.6.31-powerpc64: ERRORS
-linux-2.6.32-rc3-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-rc3-x86_64: ERRORS
-sparse (linux-2.6.31): OK
-sparse (linux-2.6.32-rc3): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
 
-Detailed results are available here:
+----- Message d'origine ----
+De : Akihiro TSUKADA <tskd2@yahoo.co.jp>
+À : Romont Sylvain <psgman24@yahoo.fr>
+Cc : linux-media@vger.kernel.org
+Envoyé le : Mar 20 Octobre 2009, 23 h 05 min 14 s
+Objet : Re: Re : ISDB-T tuner
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+> so, which device can I buy, working in Japan, in linux, and in digital (working after 2011)?
+known to work devices
 
-Full logs are available here:
+0. 774 Friio white
+http://www.friio.com/  (in Japanese)
+USB2.0 ISDB-T, with a card-reader device, without BCAS card
+DVB driver: in v4l-dvb main repository
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+direct net shopping only, pretty expensive.
+card reader is very unstable due to its large initial
+power consumption,  and pratically needs a self-powered USB hub
+to used this reader. (receiver itself is OK in bus-powered)
 
-The V4L2 specification failed to build, but the last compiled spec is here:
+1. Earthsoft PT1
+http://earthsoft.jp/PT/index.html  (in Japanese)
+PCI 2xISDB-T + 2xISDB-S, 4 concurrent streaming
+no BCAS card, no card-reader.
+DVB driver: in v4l-dvb main repository
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+very popular in this area but discontinued.
+PT2 has been released but highly out of stock, and no driver yet.
 
-The DVB API specification from this daily build is here:
+2. SKNet MonsterTV HDUS, or HDUSF
+http://www.sknet-web.co.jp/product/mtvhdus.html
+USB2.0 ISDB-T, with BCAS card&reader, remote-controller
 
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+a bit old but maybe most available in stores.
+I don't know much about this device, but it is reported to
+work in Linux, (with some firmware hack?)
+and some people seems to have written DVB driver.
+you may find it from
+  http://2sen.dip.jp/cgi-bin/hdusup/upload.cgi
+  (up0432.zip??)
+I heard that some another version(series?) have internal encryption and
+are difficult to make it work in Linux.
 
+
+note 0.
+  DVB drivers output scrambled streams as is.
+  an user-land application is necessary to descramble.
+  stand-alone descrambler:
+    http://www.marumo.ne.jp/junk/arib_std_b25-0.2.4.lzh
+  patch to mplayer/gstreamer demuxer:
+    http://2sen.dip.jp/cgi-bin/dtvup/source/up0176.zip
+
+note 1.
+  you have to prepare yourself PC/SC card reader and
+  a BCAS card if the device does not bundle them.
+  I guess  you already have a BCAS card in hand already;)
+  Card reader must be supported by PC/SC to be used with the
+  above descrambling applications.
+  for example,
+
+http://www.amazon.co.jp/gp/switch-language/product/B001NEIRH0/ref=dp_change_lang?ie=UTF8&language=en_JP
+  is told to work, but I'm not sure.
+
+note 2.
+  re-using a BCAS card for non-autorized (bundeled) devices
+  is probably against the EULA of the card.
+  (one seg. programs are not scrambled and can be viewed
+   without a BCAS card).
+
+---------
+akihiro
+--------------------------------------
+GyaO! - Anime, Dramas, Movies, and Music videos [FREE]
+http://pr.mail.yahoo.co.jp/gyao/
+
+
+
+      
