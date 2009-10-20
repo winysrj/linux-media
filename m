@@ -1,111 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.navvo.net ([74.208.67.6]:33506 "EHLO mail.navvo.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751352AbZJTQha (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Oct 2009 12:37:30 -0400
-Message-ID: <4ADDE74E.4000609@ridgerun.com>
-Date: Tue, 20 Oct 2009 10:37:34 -0600
-From: Santiago Nunez-Corrales <snunez@ridgerun.com>
-Reply-To: santiago.nunez@ridgerun.com
-MIME-Version: 1.0
-To: "Nori, Sekhar" <nsekhar@ti.com>
-CC: Kevin Hilman <khilman@deeprootsystems.com>,
-	"santiago.nunez@ridgerun.com" <santiago.nunez@ridgerun.com>,
-	"todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <1255617794-1401-1-git-send-email-santiago.nunez@ridgerun.com> <87skdk7aul.fsf@deeprootsystems.com> <B85A65D85D7EB246BE421B3FB0FBB59301DDF23F62@dbde02.ent.ti.com>
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DDF23F62@dbde02.ent.ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH 2/6 v5] Support for TVP7002 in dm365 board
+Received: from mailrelay009.isp.belgacom.be ([195.238.6.176]:43921 "EHLO
+	mailrelay009.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751306AbZJTIOw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Oct 2009 04:14:52 -0400
+Message-Id: <20091020011215.243408842@ideasonboard.com>
+Date: Tue, 20 Oct 2009 03:12:16 +0200
+From: laurent.pinchart@ideasonboard.com
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com, hverkuil@xs4all.nl,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC/PATCH 06/14] v4l-mc: Remove subdev v4l2_dev field
+References: <20091020011210.623421213@ideasonboard.com>
+Content-Disposition: inline; filename=v4l-mc-remove-subdev-v4l2-dev-field.diff
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sekhar,
+A pointer to the v4l2_device is stored in the v4l2_entity structure that
+v4l2_subdev derives from. There is no need to hold an extra copy of the
+pointer.
 
-Nori, Sekhar wrote:
-> On Fri, Oct 16, 2009 at 00:17:46, Kevin Hilman wrote:
->   
->> <santiago.nunez@ridgerun.com> writes:
->>
->>     
->>> From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
->>>
->>> This patch provides support for TVP7002 in architecture definitions
->>> within DM365.
->>>
->>> Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
->>> ---
->>>  arch/arm/mach-davinci/board-dm365-evm.c |  170 ++++++++++++++++++++++++++++++-
->>>  1 files changed, 166 insertions(+), 4 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-davinci/board-dm365-evm.c b/arch/arm/mach-davinci/board-dm365-evm.c
->>> index a1d5e7d..6c544d3 100644
->>> --- a/arch/arm/mach-davinci/board-dm365-evm.c
->>> +++ b/arch/arm/mach-davinci/board-dm365-evm.c
->>> @@ -38,6 +38,11 @@
->>>  #include <mach/common.h>
->>>  #include <mach/mmc.h>
->>>  #include <mach/nand.h>
->>> +#include <mach/gpio.h>
->>> +#include <linux/videodev2.h>
->>> +#include <media/tvp514x.h>
->>> +#include <media/tvp7002.h>
->>> +#include <media/davinci/videohd.h>
->>>
->>>
->>>  static inline int have_imager(void)
->>> @@ -48,8 +53,11 @@ static inline int have_imager(void)
->>>
->>>  static inline int have_tvp7002(void)
->>>  {
->>> -   /* REVISIT when it's supported, trigger via Kconfig */
->>> +#ifdef CONFIG_VIDEO_TVP7002
->>> +   return 1;
->>> +#else
->>>     return 0;
->>> +#endif
->>>       
->> I've said this before, but I'll say it again.  I don't like the
->> #ifdef-on-Kconfig-option here.
->>
->> Can you add a probe hook to the platform_data so that when the tvp7002
->> is found it can call pdata->probe() which could then set a flag
->> for use by have_tvp7002().
->>
->> This will have he same effect without the ifdef since if the driver
->> is not compiled in, its probe can never be triggered.
->>     
->
-> But this wouldn't work when TVP7002 is built as a module. Correct?
-> The current patch does not take care of the module case as well.
->
-> Patch 6/6 of this series does seem to make the TVP7002 driver available
-> as module.
->
->   
-Well, that was the intention given the inherent convenience of 
-loading/unloading the TVP7002 driver for applications. Now, given that 
-scenario, I know the #ifdef option is not elegant, but it is simple and 
-accomplishes the purpose with the module approach. Any other 
-suggestions/ideas?
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-> Thanks,
-> Sekhar
->   
-
-Regards,
-
--- 
-Santiago Nunez-Corrales, Eng.
-RidgeRun Engineering, LLC
-
-Guayabos, Curridabat
-San Jose, Costa Rica
-+(506) 2271 1487
-+(506) 8313 0536
-http://www.ridgerun.com
+Index: v4l-dvb-mc/linux/include/media/v4l2-subdev.h
+===================================================================
+--- v4l-dvb-mc.orig/linux/include/media/v4l2-subdev.h
++++ v4l-dvb-mc/linux/include/media/v4l2-subdev.h
+@@ -261,7 +261,6 @@ struct v4l2_subdev {
+ 	struct v4l2_entity entity;
+ 	struct module *owner;
+ 	u32 flags;
+-	struct v4l2_device *v4l2_dev;
+ 	const struct v4l2_subdev_ops *ops;
+ 	/* name must be unique */
+ 	char name[V4L2_SUBDEV_NAME_SIZE];
+@@ -290,7 +289,6 @@ static inline void v4l2_subdev_init(stru
+ 	sd->entity.subtype = V4L2_SUBDEV_TYPE_MISC;
+ 	sd->entity.name = sd->name;
+ 	sd->ops = ops;
+-	sd->v4l2_dev = NULL;
+ 	sd->flags = 0;
+ 	sd->name[0] = '\0';
+ 	sd->grp_id = 0;
+@@ -308,7 +306,7 @@ static inline void v4l2_subdev_init(stru
+ 
+ /* Send a notification to v4l2_device. */
+ #define v4l2_subdev_notify(sd, notification, arg)			   \
+-	((!(sd) || !(sd)->v4l2_dev || !(sd)->v4l2_dev->notify) ? -ENODEV : \
+-	 (sd)->v4l2_dev->notify((sd), (notification), (arg)))
++	((!(sd) || !(sd)->entity.parent || !(sd)->entity.parent->notify) ? \
++	  -ENODEV : (sd)->entity.parent->notify((sd), (notification), (arg)))
+ 
+ #endif
+Index: v4l-dvb-mc/linux/drivers/media/video/bt819.c
+===================================================================
+--- v4l-dvb-mc.orig/linux/drivers/media/video/bt819.c
++++ v4l-dvb-mc/linux/drivers/media/video/bt819.c
+@@ -256,7 +256,7 @@ static int bt819_s_std(struct v4l2_subde
+ 
+ 	v4l2_dbg(1, debug, sd, "set norm %llx\n", (unsigned long long)std);
+ 
+-	if (sd->v4l2_dev == NULL || sd->v4l2_dev->notify == NULL)
++	if (sd->entity.parent == NULL || sd->entity.parent->notify == NULL)
+ 		v4l2_err(sd, "no notify found!\n");
+ 
+ 	if (std & V4L2_STD_NTSC) {
+@@ -308,7 +308,7 @@ static int bt819_s_routing(struct v4l2_s
+ 	if (input < 0 || input > 7)
+ 		return -EINVAL;
+ 
+-	if (sd->v4l2_dev == NULL || sd->v4l2_dev->notify == NULL)
++	if (sd->entity.parent == NULL || sd->entity.parent->notify == NULL)
+ 		v4l2_err(sd, "no notify found!\n");
+ 
+ 	if (decoder->input != input) {
+Index: v4l-dvb-mc/linux/drivers/media/video/v4l2-device.c
+===================================================================
+--- v4l-dvb-mc.orig/linux/drivers/media/video/v4l2-device.c
++++ v4l-dvb-mc/linux/drivers/media/video/v4l2-device.c
+@@ -333,10 +333,10 @@ int v4l2_device_register_subdev(struct v
+ 	if (v4l2_dev == NULL || sd == NULL || !sd->name[0])
+ 		return -EINVAL;
+ 	/* Warn if we apparently re-register a subdev */
+-	WARN_ON(sd->v4l2_dev != NULL);
++	WARN_ON(sd->entity.parent != NULL);
+ 	if (!try_module_get(sd->owner))
+ 		return -ENODEV;
+-	sd->v4l2_dev = v4l2_dev;
++	sd->entity.parent = v4l2_dev;
+ 	spin_lock(&v4l2_dev->lock);
+ 	sd->entity.id = v4l2_dev->subdev_id++;
+ 	list_add_tail(&sd->entity.list, &v4l2_dev->subdevs);
+@@ -348,12 +348,12 @@ EXPORT_SYMBOL_GPL(v4l2_device_register_s
+ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
+ {
+ 	/* return if it isn't registered */
+-	if (sd == NULL || sd->v4l2_dev == NULL)
++	if (sd == NULL || sd->entity.parent == NULL)
+ 		return;
+-	spin_lock(&sd->v4l2_dev->lock);
++	spin_lock(&sd->entity.parent->lock);
+ 	list_del(&sd->entity.list);
+-	spin_unlock(&sd->v4l2_dev->lock);
+-	sd->v4l2_dev = NULL;
++	spin_unlock(&sd->entity.parent->lock);
++	sd->entity.parent = NULL;
+ 	module_put(sd->owner);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
+Index: v4l-dvb-mc/linux/drivers/media/video/zoran/zoran_card.c
+===================================================================
+--- v4l-dvb-mc.orig/linux/drivers/media/video/zoran/zoran_card.c
++++ v4l-dvb-mc/linux/drivers/media/video/zoran/zoran_card.c
+@@ -1196,7 +1196,7 @@ zoran_setup_videocodec (struct zoran *zr
+ 
+ static void zoran_subdev_notify(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
+ {
+-	struct zoran *zr = to_zoran(sd->v4l2_dev);
++	struct zoran *zr = to_zoran(sd->entity.parent);
+ 
+ 	/* Bt819 needs to reset its FIFO buffer using #FRST pin and
+ 	   LML33 card uses GPIO(7) for that. */
 
 
