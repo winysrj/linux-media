@@ -1,28 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx74.mail.ru ([94.100.176.89]:54952 "EHLO mx74.mail.ru"
+Received: from znsun1.ifh.de ([141.34.1.16]:49619 "EHLO znsun1.ifh.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757725AbZJDU0d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 4 Oct 2009 16:26:33 -0400
-Received: from [95.53.185.11] (port=60496 helo=localhost.localdomain)
-	by mx74.mail.ru with asmtp
-	id 1MuXeV-000BaT-00
-	for linux-media@vger.kernel.org; Mon, 05 Oct 2009 00:25:55 +0400
-Date: Mon, 5 Oct 2009 00:28:23 +0400
-From: Goga777 <goga777@bk.ru>
-To: linux-media@vger.kernel.org
-Subject: newest firmware for cx24116 - 124_27191
-Message-ID: <20091005002823.037271fe@bk.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	id S1751849AbZJTNQo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Oct 2009 09:16:44 -0400
+Date: Tue, 20 Oct 2009 15:16:42 +0200 (CEST)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Romont Sylvain <psgman24@yahoo.fr>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	tskd2@yahoo.co.jp
+Subject: Re: Re : ISDB-T tuner
+In-Reply-To: <750990.6802.qm@web25608.mail.ukl.yahoo.com>
+Message-ID: <alpine.LRH.1.10.0910201512430.24115@pub3.ifh.de>
+References: <340263.68846.qm@web25604.mail.ukl.yahoo.com> <4ADD3341.3050202@yahoo.co.jp> <alpine.LRH.1.10.0910200935120.3543@pub2.ifh.de> <750990.6802.qm@web25608.mail.ukl.yahoo.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+On Tue, 20 Oct 2009, Romont Sylvain wrote:
 
-here's http://www.wintvcd.co.uk/drivers/88x_2_124_27191_1_WHQL.zip
-seems it's newest windows drivers version for cx24116 and hvr4000
+> Dibcom's tuner is only working in brazil no?
+> the Brazil's ISDB-T and Japanese one is not excatly same, no?
 
-can someone to extract the firmware for linux ?
+On the physical layer it is exactly the same. It is the content 
+(video/audio/data inside the MPEG2 transport-stream) which differs in the 
+two countries. This is typically not handled by the 'tuner', but by the 
+'backend'.
 
-Goga
+This 'backend' is either another hardware chip or a software-stack. This 
+is what has to be different between Japan and Brazil.
+
+--
+
+Patrick 
+http://www.kernellabs.com/
