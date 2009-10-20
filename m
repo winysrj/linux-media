@@ -1,163 +1,227 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:59074 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753748AbZJUUvn (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:15908 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751149AbZJTNxU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Oct 2009 16:51:43 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: pradeepa@digilink.in
-Subject: Re: Avoiding mem copy b/w camera which uses uvc standard and the h/w accelerator
-Date: Wed, 21 Oct 2009 22:51:58 +0200
-Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org
-References: <OFE70D9FDA.C7DBF7E0-ON65257653.0038E92C-65257653.00396150@digilink.in>
-In-Reply-To: <OFE70D9FDA.C7DBF7E0-ON65257653.0038E92C-65257653.00396150@digilink.in>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200910212251.58666.laurent.pinchart@ideasonboard.com>
+	Tue, 20 Oct 2009 09:53:20 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=us-ascii
+Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0KRT00EK8FGA1I10@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 20 Oct 2009 14:43:22 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0KRT008Q4FG9R4@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 20 Oct 2009 14:43:21 +0100 (BST)
+Date: Tue, 20 Oct 2009 15:41:30 +0200
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [RFC] v1.1: Multi-plane (discontiguous) buffers
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	Tomasz Fujak <t.fujak@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Pawel Osciak <p.osciak@samsung.com>
+Message-id: <E4D3F24EA6C9E54F817833EAE0D912AC07D2F45382@bssrvexch01.BS.local>
+Content-language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pradeep,
+Hello,
 
-On Sunday 18 October 2009 12:25:56 pradeepa@digilink.in wrote:
-> I've a netbook which has a camera of 1.3 Mp. The camera is connected through
-> the usb and follows the uvc standard. I've written an application which
-> follows the uvc standard and can capture the image from the camera and
-> display it on the netbook. My netbook has h/w accelerators to do image
-> resizing, format conversion etc.
-> The camera that i have gives the me the data in yuv 422 and my h/w
-> acclerator converts to rgb 565 and gives me the data so that i can display
-> it on to a window.The flow of the application is as follows
-> 
->              yuv422                                             rgb 565
-> camera------------->        Resizer and Format ----------------> display
->                                         converter
->  uvc standard                   H/w Accelerator
-> 
-> My h/w accelerator has registers to configure the source/destination memory
-> addresses from where it has to pick up/put the data after doing format
-> conversion and resizing. The problem is that this h/w accelerator needs the
-> Physical Address and not the logical address.
+we are currently working on a chip that requires a separate buffer for each
+plane in a frame. Our hardware requires, those plane buffers not to be placed
+immediately one after another.
 
-I suppose this also means that the buffers need to be contiguous in physical 
-memory, right ?
+There is no support for such buffers in V4L2 yet and we would like to propose
+a solution for this problem.
 
-> I request for 3 buffers using VIDIOC_REQBUFS ioctl and after it succeeds, i
-> call VIDIOC_QUERYBUF. I do call the mmap for using the address returned in
-> VIDIOC_QUERYBUF.
-> 
-> struct v4l2_buffer            sV4l2Buf;
-> memset(&sV4l2Buf, 0, sizeof(struct v4l2_buffer));
-> sV4l2Buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> sV4l2Buf.memory = V4L2_MEMORY_MMAP;
-> sV4l2Buf.index = u8Index;
-> sV4l2Buf.length = 320 *240 *2; /* qvga image */
-> 
-> ioctl(i32CaptureFd,VIDIOC_QUERYBUF,&sV4l2Buf);
 
-> The address returned in sV4l2Buf.m.offset structure after calling the QUERY
-> buf ioctl is the offset and the not the physical address unlike the v4l2
-> standard.
+Purpose and requirements
+=========================
+Currently, the v4l2_buffer struct supports only contiguous memory buffers,
+i.e. one frame has to fit in one, contiguous physical buffer. A driver
+receives and passes back to the userspace (e.g. when mmap()ing) only one
+pointer (offset).
 
-The V4L2 standard states that "the m.offset contains the offset of the buffer 
-from the start of the device memory". No mention of a physical memory address 
-is made.
+Our hardware requires two physically separate buffers for Y and CbCr components,
+which must be placed in two different memory banks.
+A similar problem was also expressed by Jun Nie in a recent discussion on this
+list:
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/10462.
 
-> there this address cannot be configured in the h/w accelerator. In order to
-> make it work, i took the following approach. My application can configure
-> the h/w accelerator through the set of ioctls. One of ioctl can allocate the
-> memory and returuns the physical address. The code inside the ioctl uses
-> dma_alloc_coherent unlike kmalloc used in uvc standard there by satisfying
-> my requirement.
+That proposal included a hardcoded 3-plane format.
+There also was a requirement for per-plane stride as well and although we have
+not included it in this proposal, it could be easily incorporated into this
+design (see comments below).
 
-Just to be correct, the uvcvideo driver uses vmalloc_32, not kmalloc. Your 
-problem stays the same though.
+We would like to add support for a more general type of buffers: n-plane
+buffers.
+No changes should be made to break the existing API.
 
-> The modified folow is as follows
-> 
->                          yuv422   rgb 565
-> camera        -------------->         mem copy( virtual address allocated
-> by h/w driver,    --------> h/w accelerator ----> display
->                                   virtual address containing camera image
-> from uvc,
->                                   size of the camera image)
->                     Virtual Address                             physical
-> Address
 
-You should create your ASCII art using a non-proportional font and a 80 
-characters per column limit. That one is unreadable.
 
-> Problem::
-> 
-> The above procedure works fine but there is slowness in the image displayed
-> as the size of the image captured from the camera is changed from qvga to
-> vga because the no of bytes of memcopy increases by 4 times and increases by
-> 16 time if capture the camera image at 1280 * 1024 resolution and display it
-> in 320 *240 resolution. I want to cut down the mem copy happening before
-> giving to the h/w accelerator. The only way to do is to know the physical
-> where the image from the camera is placed.
-> 
-> When i went through the code, the uvc reqbuf ioctl calls kmalloc
+Proposed extensions
+====================
+The proposed extensions to the framework are as follows:
 
-Still vmalloc_32().
+1. Add two new memory types:
 
-> (which allocates the virtual address)
+ enum v4l2_memory {
+         V4L2_MEMORY_MMAP             = 1,
+         V4L2_MEMORY_USERPTR          = 2,
+         V4L2_MEMORY_OVERLAY          = 3,
++        V4L2_MEMORY_MULTI_USERPTR    = 4,
++        V4L2_MEMORY_MULTI_MMAP       = 5,
+ };
 
-Memory allocators don't allocate physical or virtual addresses. They allocate 
-pages of physical memory, either contiguous or discontiguous, map the pages in 
-virtual memory and return a kernel virtual address. For physically contiguous 
-memory the allocator can also return the physical address. In both cases it's 
-possible to get the physical address of every allocated page.
+The new types would be used to identify multi-planar buffers.
 
-vmalloc_32() allocates physically discontiguous memory and remaps it 
-contiguously in virtual memory. It returns the kernel virtual address.
 
-> instead of physical address and the address returned by query_buf ioctl in
-> sV4l2Buf.m.offset is offset and NOT the physical address.
+2. Modify the buffer struct (no change to size):
 
-That's right. Once again there is no requirement to return a physical address. 
-v4l2_buffer::m::offset is an opaque token as far as the application is 
-concerned (and don't forget that an application can't access physical memory 
-directly).
+struct v4l2_buffer {
+         /* ... */
+         union {
+                 __u32           offset;
+                 unsigned long   userptr;
++                unsigned long   multi_info_ptr;
+         } m;
+         /* ... */
+ };
 
-> the reason being kmalloc is used instead of using dma_alloc_coherent which
-> is used by the v4l2 standard for the same ioctl
 
-The V4L2 standard doesn't require the use of dma_alloc_coherent.
+3. The multi_info_ptr would contain a userspace pointer to a structure further
+describing the buffer:
 
-> Q 1) Is there any ioctl or a function call to get the physical address for
-> a given virtual adress so that the application can get the physical address
-> and avoid the mem copy in the above scenario ??
++ struct v4l2_multiplane_info {
++         __u32  count;
++         struct v4l2_plane[0];
++ };
 
-As explained above the memory allocated by vmalloc_32() isn't physically 
-contiguous, so you can't get a physical address for the buffer. At best your 
-hardware accelerator would have to deal with scatter-gather lists, which it 
-probably can't.
-> Q 2) Can the mechanism of allocating the buffers in req buf ioctl be changed
-> so that the application can get both the kernel virtual address and the
-> physical address as well ?? What i mean to say is that replace kmalloc with
-> dma_alloc_coherent ?
+Where the v4l2_plane array would contain count elements:
 
-The uvcvideo driver could try to allocate physically contiguous memory, but 
-that would put a lot of pressure on the memory subsystem for no reason in most 
-cases.
++ struct v4l2_plane {
++         __u32   parent_index;
++         __u32   bytesused;
++         union {
++                 __u32 offset;
++                 unsigned long userptr;
++         } m;
++         __u32   flags;
++         __u32   length;
++         __u32   reserved;
++ };
 
-> suggestion:
->         There can be additional code written in query_buf ioctl to return
-> the physical address rather than the offset when the application calls it
+parent_index - index of the parent v4l2_buffer
 
-There's a standard way to remove the extra memcpy. You need to allocate 
-physically contiguous buffers outside of the uvcvideo driver (allocation could 
-for instance be done by the hardware accelerator driver), map them to the 
-userspace application virtual memory space, and pass them to the uvcvideo 
-driver using V4L2_MEMORY_USERPTR instead of V4L2_MEMORY_MMAP.
+offset, userptr, bytesused, length - same as in v4l2_buffer struct but for
+current frame
 
-Unfortunately the uvcvideo driver doesn't support V4L2_MEMORY_USERPTR yet, but 
-I'm working on it. I'll keep you informed when a patch will be available.
+flags - one flag currently: V4L2_PLANE_FLAG_MAPPED
+(or reuse V4L2_BUF_FLAG_MAPPED for that)
 
--- 
-Regards,
+A stride field could also be added if there is a need for one. 
 
-Laurent Pinchart
+
+
+How this would work
+===================
+
+-------------------------------------------------------------------------------
+1. Formats
+-------------------------------------------------------------------------------
+No need to change the format API, although new formats for such buffers may be
+needed and added, as required.
+
+
+-------------------------------------------------------------------------------
+2. Requesting, querying and mapping buffers
+-------------------------------------------------------------------------------
+No changes to existing applications/drivers required.
+
+A driver (and the videobuffer framework components) willing to support
+multi-plane buffers would have to be made aware of the new memory types:
+
+
+VIDIOC_REQBUFS:
+---------------
+
+- MULTI_MMAP:
+
+  * application: pass the new memory type and count of multi-plane buffers
+    (not plane count) normally
+
+  * driver: fills in count as usual, being the number of actually allocated
+    buffers (i.e. 1 for each multi-plane buffer, not each plane)
+
+- MULTI_USERPTR:
+  * no changes
+
+
+VIDIOC_QUERYBUFS:
+-----------------
+- MULTI_MMAP:
+
+* application: pass a v4l2_buffer struct as usual, but with the new memory
+    type and a userspace pointer (in multi_info_ptr) to an instance of 
+    v4l2_multiplane_info structure. The structure and the embedded
+    v4l2_plane[] array has to be preallocated in userspace and have count set
+    to the required number of planes.
+
+* driver fills offset fields in each v4l2_plane struct, analogically to
+  offsets in "normal" v4l2_buffers.
+
+
+- MULTI_USERPTR:
+n/a
+
+
+
+mmap()
+-----------------
+Basically just like in normal buffer case, but with planes instead of buffers
+and one mmap() call per each plane.
+
+- application calls mmap count times (one for each plane), passing the offsets
+provided in v4l2_plane structs
+
+- there is no need for those calls to be in any particular order.
+
+
+- driver (videobuffer framework) should store an array of planes
+internally - just like it does with v4l2_buffers - and match offsets in 
+that array to those provided in mmap.
+
+- a plane gets marked as mapped (V4L2_PLANE_FLAG_MAPPED flag) after
+a successful mmap. A buffer changes state to mapped (V4L2_BUF_FLAG_MAPPED)
+only if all of its planes are mapped.
+
+- matching planes with buffers can be done using the parent_index member
+
+
+-------------------------------------------------------------------------------
+3. Queuing and dequeuing buffers, buffer usage
+-------------------------------------------------------------------------------
+
+No real changes have to be made to be made to the v4l2 framework, the buffers
+get queued and dequeud as usual. Only access to the new type differs, but
+not much - in practice, just handle more pointers than one.
+
+As for the videobuffer framework, additional function(s) to acquire addresses
+to each plane will have to be added and it should be made aware of planes.
+But the overall mechanism remains mostly unchanged.
+
+
+
+Comments are welcome, especially other requirements that we might not have
+considered.
+
+
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
+
