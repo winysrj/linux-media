@@ -1,68 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cicero-fbr1.cybercity.dk ([212.242.40.5]:63620 "EHLO
-	cicero-fbr1.cybercity.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751245AbZJCHhO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2009 03:37:14 -0400
-Received: from smtp1.cybercity.dk (smtp1.cybercity.dk [212.242.43.251])
-	by cicero-fbr1.cybercity.dk (Postfix) with ESMTP id A46DC3D1D8C
-	for <linux-media@vger.kernel.org>; Sat,  3 Oct 2009 09:37:16 +0200 (CEST)
-Received: from uf5.cybercity.dk (uf5.cybercity.dk [212.242.42.163])
-	by smtp1.cybercity.dk (Postfix) with ESMTP id C2E76586814
-	for <linux-media@vger.kernel.org>; Sat,  3 Oct 2009 09:36:06 +0200 (CEST)
-Received: from kjellerup-hansen.dk (0x4dd624a9.adsl.cybercity.dk [77.214.36.169])
-	by uf5.cybercity.dk (Postfix) with SMTP id 4520E205815
-	for <linux-media@vger.kernel.org>; Sat,  3 Oct 2009 09:36:03 +0200 (CEST)
-Message-ID: <20091003093603.83862y5i7zyw1mas@www.kjellerup-hansen.dk>
-Date: Sat,  3 Oct 2009 09:36:03 +0200
-From: Jens Kjellerup <jens@kjellerup-hansen.dk>
-To: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] What is the status of the driver TT CT-3650
-References: <87fxa2uurr.fsf@musikcheck.dk>
-In-Reply-To: <87fxa2uurr.fsf@musikcheck.dk>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1261 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751182AbZJTWPg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Oct 2009 18:15:36 -0400
+Message-ID: <dddd6ede1d034513603028f90a8c0395.squirrel@webmail.xs4all.nl>
+In-Reply-To: <20091020011210.623421213@ideasonboard.com>
+References: <20091020011210.623421213@ideasonboard.com>
+Date: Wed, 21 Oct 2009 00:15:37 +0200
+Subject: Re: [RFC/PATCH 00/14] Media controller update based on Hans'
+ v4l-dvb-mc tree
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: laurent.pinchart@ideasonboard.com
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8;
- DelSp="Yes";
- format="flowed"
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have tried the TT Ct2650 C/T CI as a DVB-T tuner with the same  
-negative result. I have heard that there is some work going on but  
-haven't hear of any definitive positive results yet.
+Hi Laurent,
 
-As i am no programmer but fairly well in using linux i cam contribute  
-on testing and documenting if there is some positive results.
-
-Still hoping...
-
-Citat af Hasse Hagen Johansen <hhj-linux-dvd@musikcheck.dk>:
-
-> Hi
+> Hi everybody,
 >
-> I have recently bought such a card and tried to get it working. Does
-> anyone know if it is possible. I have compiled the dvb drivers from
-> s2-liplianin
+> here's a set of patches to clean up and extend Hans' initial media
+> controller
+> implementation.
 >
-> And tried to use the scan program from the dvb-apps mercurial tarball. I
-> also compile scan-s2 and tried that, but I always get "tuning failed"
+> Patches prefixed by v4l deal with the v4l core code and update existing
+> drivers when required by an API change. The core now offers two functions
+> to
+> deal with entities and links:
 >
-> Anyone know how to get this working or this card is in a working state
-> under linux. Because if it not working yet I will stop wasting my time
-> :-)
+> - v4l2_entity_init() will initialize an entity. For subdevices the
+> v4l2_subdev_init() performs part of the entity initialization as well,
+> which
+> leads me to believe that the API is currently ill-defined.
 >
-> Regards
-> Hasse H. Johansen
+> - v4l2_entity_connect() creates a link between two entities. All possible
+> links should be created using that function before the subdevice is
+> registered.
 >
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> As I don't own any ivtv hardware the media controller code was difficult
+> to
+> test so I've implemented media controller support in the UVC driver for
+> testing purpose. The code can be found in patches prefixed by uvc.
 >
+> This is mostly playground code. There are known and unknown bugs
+> (especially
+> in the ivtv driver as I haven't been able to test that code;
+> v4l2_entity_connect is definitely called with bad parameters in there) as
+> well
+> as design issues. There's a lot of code missing. I'm mostly interested in
+> getting feedback on the changes, especially the new v4l2_entity_pad and
+> v4l2_entity_link objects. Feel free to comment on the public userspace API
+> too, I realized after changing it to mimic the new kernel API that the way
+> the previous API exposed "local" and "remote" pads instead of pads and
+> links
+> is probably more space efficient.
+>
+> I'll keep playing with the code and I'll start porting the OMAP3 camera
+> driver
+> to the in-progress media controller API. I'll discover problems (and
+> hopefully solutions) along the way so another round of patches can be
+> expected
+> later, maybe in a week. Of course I'll appreciate comments before that, as
+> the earlier I get feedback the easier it will be to incorporate it in the
+> code. No pressure though, I know that a few developers have left for the
+> kernel summit in Japan.
 
+While I haven't been able to do an in-depth review it is clear to me that
+the switch to 'pads' is definitely the right direction. That leads to much
+cleaner code.
 
+With regards to the code kernel API to set up all these relationships: I
+expect we'll end up with a few generic core functions that do all the hard
+work, and a bunch of static inline convenience functions on top of that.
+That tends to work quite well.
 
+One tip: it might be useful to have a tree ready with just a single driver
+that is converted to use mc, links and pads (e.g. uvc). That makes it easy
+to experiment with different data structures and APIs. It's much harder to
+do this if you have a lot of dependencies on your code.
+
+Keep up the good work! I'm so pleased to see so much activity from so many
+people after the v4l-dvb mini-summit!
+
+Regards,
+
+        Hans
 
