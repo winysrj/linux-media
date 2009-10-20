@@ -1,58 +1,383 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f202.google.com ([209.85.211.202]:41745 "EHLO
-	mail-yw0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750795AbZJTNFW (ORCPT
+Received: from mailrelay009.isp.belgacom.be ([195.238.6.176]:43921 "EHLO
+	mailrelay009.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751320AbZJTIOz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Oct 2009 09:05:22 -0400
-Received: by ywh40 with SMTP id 40so3457861ywh.33
-        for <linux-media@vger.kernel.org>; Tue, 20 Oct 2009 06:05:26 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <51bd605b0910200329u394e9e56m93ad8ca3cf1dedb5@mail.gmail.com>
-References: <51bd605b0910181441l7d6ac90g53978e3e4436f6ba@mail.gmail.com>
-	 <829197380910191218u2c281553pad57bff61ffbd3b5@mail.gmail.com>
-	 <51bd605b0910191328i3b58c955ha3ade305b4af928d@mail.gmail.com>
-	 <829197380910191341p484e070ftd190143f73b1d10e@mail.gmail.com>
-	 <51bd605b0910191451x22287c5ai3f829f2af0243879@mail.gmail.com>
-	 <829197380910191456g5c53f37bh82ae6d7359ae5d2e@mail.gmail.com>
-	 <51bd605b0910191534x48973759g721f4ee79b692059@mail.gmail.com>
-	 <alpine.LRH.1.10.0910200938140.3543@pub2.ifh.de>
-	 <51bd605b0910200329u394e9e56m93ad8ca3cf1dedb5@mail.gmail.com>
-Date: Tue, 20 Oct 2009 09:05:25 -0400
-Message-ID: <829197380910200605w48a18ddak83efd9166d92c278@mail.gmail.com>
-Subject: Re: pctv nanoStick Solo not recognized
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Matteo Miraz <telegraph.road@gmail.com>
-Cc: Patrick Boettcher <pboettcher@kernellabs.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 20 Oct 2009 04:14:55 -0400
+Message-Id: <20091020011215.443876368@ideasonboard.com>
+Date: Tue, 20 Oct 2009 03:12:18 +0200
+From: laurent.pinchart@ideasonboard.com
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com, hverkuil@xs4all.nl,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC/PATCH 08/14] uvcvideo: Rely on videodev to reference-count the device
+References: <20091020011210.623421213@ideasonboard.com>
+Content-Disposition: inline; filename=uvc-faba04f47c9b.diff
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 20, 2009 at 6:29 AM, Matteo Miraz <telegraph.road@gmail.com> wrote:
-> Hi Patrick,
->
-> here it is the requested patch... note that I don't have a PCTV282E
-> device, so I cannot test it!
->
-> Thanks for the assistance,
-> Matteo
+The uvcvideo driver has a driver-wide lock and a reference count to protect
+against a disconnect/open race. Now that videodev handles the race itself,
+reference-counting in the driver can be removed.
 
-Ok, I heard back from the engineer at PCTV.  He says that the
-following products could appear with either the old USB vendor ID or
-the new vendor ID.
+This is a backport from the v4l-dvb tree.
 
-USB\VID_2013&PID_0245       ; PCTV 73e SE / PCTV nanoStick SE (73e SE)
-USB\VID_2013&PID_0246       ; PCTV 74e / PCTV picoStick (74e)
-USB\VID_2013&PID_0248       ; PCTV 282e (Peanut) / PCTV FlashStick nano (282e)
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Looks like we're already got the 73e and 282e, so we just need to do
-the 74e as well (assuming we support the 74e at all, which I haven't
-checked yet).
+--- a/linux/drivers/media/video/uvc/uvc_driver.c	Wed Sep 02 08:12:26 2009 +0200
++++ b/linux/drivers/media/video/uvc/uvc_driver.c	Wed Sep 30 02:07:19 2009 +0200
+@@ -1531,22 +1531,92 @@
+  */
+ 
+ /*
++ * Delete the UVC device.
++ *
++ * Called by the kernel when the last reference to the uvc_device structure
++ * is released.
++ *
++ * As this function is called after or during disconnect(), all URBs have
++ * already been canceled by the USB core. There is no need to kill the
++ * interrupt URB manually.
++ */
++static void uvc_delete(struct uvc_device *dev)
++{
++	struct list_head *p, *n;
++
++	usb_put_intf(dev->intf);
++	usb_put_dev(dev->udev);
++
++	uvc_status_cleanup(dev);
++	uvc_ctrl_cleanup_device(dev);
++
++	list_for_each_safe(p, n, &dev->chains) {
++		struct uvc_video_chain *chain;
++		chain = list_entry(p, struct uvc_video_chain, list);
++		kfree(chain);
++	}
++
++	list_for_each_safe(p, n, &dev->entities) {
++		struct uvc_entity *entity;
++		entity = list_entry(p, struct uvc_entity, list);
++		kfree(entity);
++	}
++
++	list_for_each_safe(p, n, &dev->streams) {
++		struct uvc_streaming *streaming;
++		streaming = list_entry(p, struct uvc_streaming, list);
++		usb_driver_release_interface(&uvc_driver.driver,
++			streaming->intf);
++		usb_put_intf(streaming->intf);
++		kfree(streaming->format);
++		kfree(streaming->header.bmaControls);
++		kfree(streaming);
++	}
++
++	kfree(dev);
++}
++
++static void uvc_release(struct video_device *vdev)
++{
++	struct uvc_streaming *stream = video_get_drvdata(vdev);
++	struct uvc_device *dev = stream->dev;
++
++	video_device_release(vdev);
++
++	/* Decrement the registered streams count and delete the device when it
++	 * reaches zero.
++	 */
++	if (atomic_dec_and_test(&dev->nstreams))
++		uvc_delete(dev);
++}
++
++/*
+  * Unregister the video devices.
+  */
+ static void uvc_unregister_video(struct uvc_device *dev)
+ {
+ 	struct uvc_streaming *stream;
+ 
++	/* Unregistering all video devices might result in uvc_delete() being
++	 * called from inside the loop if there's no open file handle. To avoid
++	 * that, increment the stream count before iterating over the streams
++	 * and decrement it when done.
++	 */
++	atomic_inc(&dev->nstreams);
++
+ 	list_for_each_entry(stream, &dev->streams, list) {
+ 		if (stream->vdev == NULL)
+ 			continue;
+ 
+-		if (stream->vdev->minor == -1)
+-			video_device_release(stream->vdev);
+-		else
+-			video_unregister_device(stream->vdev);
++		video_unregister_device(stream->vdev);
+ 		stream->vdev = NULL;
+ 	}
++
++	/* Decrement the stream count and call uvc_delete explicitly if there
++	 * are no stream left.
++	 */
++	if (atomic_dec_and_test(&dev->nstreams))
++		uvc_delete(dev);
+ }
+ 
+ static int uvc_register_video(struct uvc_device *dev,
+@@ -1580,7 +1650,7 @@
+ 	vdev->parent = &dev->intf->dev;
+ 	vdev->minor = -1;
+ 	vdev->fops = &uvc_fops;
+-	vdev->release = video_device_release;
++	vdev->release = uvc_release;
+ 	strlcpy(vdev->name, dev->name, sizeof vdev->name);
+ 
+ 	/* Set the driver data before calling video_register_device, otherwise
+@@ -1598,6 +1668,7 @@
+ 		return ret;
+ 	}
+ 
++	atomic_inc(&dev->nstreams);
+ 	return 0;
+ }
+ 
+@@ -1653,61 +1724,6 @@
+  * USB probe, disconnect, suspend and resume
+  */
+ 
+-/*
+- * Delete the UVC device.
+- *
+- * Called by the kernel when the last reference to the uvc_device structure
+- * is released.
+- *
+- * Unregistering the video devices is done here because every opened instance
+- * must be closed before the device can be unregistered. An alternative would
+- * have been to use another reference count for uvc_v4l2_open/uvc_release, and
+- * unregister the video devices on disconnect when that reference count drops
+- * to zero.
+- *
+- * As this function is called after or during disconnect(), all URBs have
+- * already been canceled by the USB core. There is no need to kill the
+- * interrupt URB manually.
+- */
+-void uvc_delete(struct kref *kref)
+-{
+-	struct uvc_device *dev = container_of(kref, struct uvc_device, kref);
+-	struct list_head *p, *n;
+-
+-	/* Unregister the video devices. */
+-	uvc_unregister_video(dev);
+-	usb_put_intf(dev->intf);
+-	usb_put_dev(dev->udev);
+-
+-	uvc_status_cleanup(dev);
+-	uvc_ctrl_cleanup_device(dev);
+-
+-	list_for_each_safe(p, n, &dev->chains) {
+-		struct uvc_video_chain *chain;
+-		chain = list_entry(p, struct uvc_video_chain, list);
+-		kfree(chain);
+-	}
+-
+-	list_for_each_safe(p, n, &dev->entities) {
+-		struct uvc_entity *entity;
+-		entity = list_entry(p, struct uvc_entity, list);
+-		kfree(entity);
+-	}
+-
+-	list_for_each_safe(p, n, &dev->streams) {
+-		struct uvc_streaming *streaming;
+-		streaming = list_entry(p, struct uvc_streaming, list);
+-		usb_driver_release_interface(&uvc_driver.driver,
+-			streaming->intf);
+-		usb_put_intf(streaming->intf);
+-		kfree(streaming->format);
+-		kfree(streaming->header.bmaControls);
+-		kfree(streaming);
+-	}
+-
+-	kfree(dev);
+-}
+-
+ static int uvc_probe(struct usb_interface *intf,
+ 		     const struct usb_device_id *id)
+ {
+@@ -1730,7 +1746,7 @@
+ 	INIT_LIST_HEAD(&dev->entities);
+ 	INIT_LIST_HEAD(&dev->chains);
+ 	INIT_LIST_HEAD(&dev->streams);
+-	kref_init(&dev->kref);
++	atomic_set(&dev->nstreams, 0);
+ 	atomic_set(&dev->users, 0);
+ 
+ 	dev->udev = usb_get_dev(udev);
+@@ -1792,7 +1808,7 @@
+ 	return 0;
+ 
+ error:
+-	kref_put(&dev->kref, uvc_delete);
++	uvc_unregister_video(dev);
+ 	return -ENODEV;
+ }
+ 
+@@ -1809,21 +1825,9 @@
+ 	    UVC_SC_VIDEOSTREAMING)
+ 		return;
+ 
+-	/* uvc_v4l2_open() might race uvc_disconnect(). A static driver-wide
+-	 * lock is needed to prevent uvc_disconnect from releasing its
+-	 * reference to the uvc_device instance after uvc_v4l2_open() received
+-	 * the pointer to the device (video_devdata) but before it got the
+-	 * chance to increase the reference count (kref_get).
+-	 *
+-	 * Note that the reference can't be released with the lock held,
+-	 * otherwise a AB-BA deadlock can occur with videodev_lock that
+-	 * videodev acquires in videodev_open() and video_unregister_device().
+-	 */
+-	mutex_lock(&uvc_driver.open_mutex);
+ 	dev->state |= UVC_DEV_DISCONNECTED;
+-	mutex_unlock(&uvc_driver.open_mutex);
+ 
+-	kref_put(&dev->kref, uvc_delete);
++	uvc_unregister_video(dev);
+ }
+ 
+ static int uvc_suspend(struct usb_interface *intf, pm_message_t message)
+@@ -2165,7 +2169,6 @@
+ 
+ 	INIT_LIST_HEAD(&uvc_driver.devices);
+ 	INIT_LIST_HEAD(&uvc_driver.controls);
+-	mutex_init(&uvc_driver.open_mutex);
+ 	mutex_init(&uvc_driver.ctrl_mutex);
+ 
+ 	uvc_ctrl_init();
+--- a/linux/drivers/media/video/uvc/uvc_v4l2.c	Wed Sep 02 08:12:26 2009 +0200
++++ b/linux/drivers/media/video/uvc/uvc_v4l2.c	Wed Sep 30 02:07:19 2009 +0200
+@@ -376,25 +376,18 @@
+  */
+ static int uvc_acquire_privileges(struct uvc_fh *handle)
+ {
+-	int ret = 0;
+-
+ 	/* Always succeed if the handle is already privileged. */
+ 	if (handle->state == UVC_HANDLE_ACTIVE)
+ 		return 0;
+ 
+ 	/* Check if the device already has a privileged handle. */
+-	mutex_lock(&uvc_driver.open_mutex);
+ 	if (atomic_inc_return(&handle->stream->active) != 1) {
+ 		atomic_dec(&handle->stream->active);
+-		ret = -EBUSY;
+-		goto done;
++		return -EBUSY;
+ 	}
+ 
+ 	handle->state = UVC_HANDLE_ACTIVE;
+-
+-done:
+-	mutex_unlock(&uvc_driver.open_mutex);
+-	return ret;
++	return 0;
+ }
+ 
+ static void uvc_dismiss_privileges(struct uvc_fh *handle)
+@@ -421,18 +414,15 @@
+ 	int ret = 0;
+ 
+ 	uvc_trace(UVC_TRACE_CALLS, "uvc_v4l2_open\n");
+-	mutex_lock(&uvc_driver.open_mutex);
+ 	stream = video_drvdata(file);
+ 
+-	if (stream->dev->state & UVC_DEV_DISCONNECTED) {
+-		ret = -ENODEV;
+-		goto done;
+-	}
++	if (stream->dev->state & UVC_DEV_DISCONNECTED)
++		return -ENODEV;
+ 
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 19)
+ 	ret = usb_autopm_get_interface(stream->dev->intf);
+ 	if (ret < 0)
+-		goto done;
++		return ret;
+ #endif
+ 
+ 	/* Create the device handle. */
+@@ -441,8 +431,7 @@
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 19)
+ 		usb_autopm_put_interface(stream->dev->intf);
+ #endif
+-		ret = -ENOMEM;
+-		goto done;
++		return -ENOMEM;
+ 	}
+ 
+ 	if (atomic_inc_return(&stream->dev->users) == 1) {
+@@ -453,7 +442,7 @@
+ #endif
+ 			atomic_dec(&stream->dev->users);
+ 			kfree(handle);
+-			goto done;
++			return ret;
+ 		}
+ 	}
+ 
+@@ -462,11 +451,7 @@
+ 	handle->state = UVC_HANDLE_PASSIVE;
+ 	file->private_data = handle;
+ 
+-	kref_get(&stream->dev->kref);
+-
+-done:
+-	mutex_unlock(&uvc_driver.open_mutex);
+-	return ret;
++	return 0;
+ }
+ 
+ static int uvc_v4l2_release(struct file *file)
+@@ -498,7 +483,6 @@
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 19)
+ 	usb_autopm_put_interface(stream->dev->intf);
+ #endif
+-	kref_put(&stream->dev->kref, uvc_delete);
+ 	return 0;
+ }
+ 
+--- a/linux/drivers/media/video/uvc/uvcvideo.h	Wed Sep 02 08:12:26 2009 +0200
++++ b/linux/drivers/media/video/uvc/uvcvideo.h	Wed Sep 30 02:07:19 2009 +0200
+@@ -476,7 +476,6 @@
+ 	char name[32];
+ 
+ 	enum uvc_device_state state;
+-	struct kref kref;
+ 	struct list_head list;
+ 	atomic_t users;
+ 
+@@ -489,6 +488,7 @@
+ 
+ 	/* Video Streaming interfaces */
+ 	struct list_head streams;
++	atomic_t nstreams;
+ 
+ 	/* Status Interrupt Endpoint */
+ 	struct usb_host_endpoint *int_ep;
+@@ -512,8 +512,6 @@
+ struct uvc_driver {
+ 	struct usb_driver driver;
+ 
+-	struct mutex open_mutex;	/* protects from open/disconnect race */
+-
+ 	struct list_head devices;	/* struct uvc_device list */
+ 	struct list_head controls;	/* struct uvc_control_info list */
+ 	struct mutex ctrl_mutex;	/* protects controls and devices
+@@ -572,7 +570,6 @@
+ 
+ /* Core driver */
+ extern struct uvc_driver uvc_driver;
+-extern void uvc_delete(struct kref *kref);
+ 
+ /* Video buffers queue management. */
+ extern void uvc_queue_init(struct uvc_video_queue *queue,
 
-Cheers,
 
-Devin
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
