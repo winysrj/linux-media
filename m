@@ -1,54 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f192.google.com ([209.85.212.192]:58490 "EHLO
-	mail-vw0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753508AbZJAWYj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Oct 2009 18:24:39 -0400
-Received: by vws30 with SMTP id 30so326163vws.21
-        for <linux-media@vger.kernel.org>; Thu, 01 Oct 2009 15:24:43 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <829197380910011507k59f3b18fv3cc5d21b77299ef7@mail.gmail.com>
-References: <c85228170910011138w6d3fa3adibbb25d275baa824f@mail.gmail.com>
-	 <37219a840910011227r155d4bc1kc98935e3a52a4a17@mail.gmail.com>
-	 <c85228170910011414n29837812y28010ef0d97b7bf1@mail.gmail.com>
-	 <alpine.DEB.1.10.0910011628420.21852@cnc.isely.net>
-	 <c85228170910011503t68b100a1v3dccda2602ae08da@mail.gmail.com>
-	 <829197380910011507k59f3b18fv3cc5d21b77299ef7@mail.gmail.com>
-Date: Thu, 1 Oct 2009 19:24:42 -0300
-Message-ID: <c85228170910011524p53c0bf63vb6938ded88fb3c99@mail.gmail.com>
-Subject: Re: How to make my device work with linux?
-From: Wellington Terumi Uemura <wellingtonuemura@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Mike Isely <isely@isely.net>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mailrelay009.isp.belgacom.be ([195.238.6.176]:43921 "EHLO
+	mailrelay009.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751340AbZJTIPA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Oct 2009 04:15:00 -0400
+Message-Id: <20091020011216.038361298@ideasonboard.com>
+Date: Tue, 20 Oct 2009 03:12:24 +0200
+From: laurent.pinchart@ideasonboard.com
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com, hverkuil@xs4all.nl,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC/PATCH 14/14] uvcvideo: Register subdevices for each entity
+References: <20091020011210.623421213@ideasonboard.com>
+Content-Disposition: inline; filename=uvc-mc.patch
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm up for the challenge, I just need the right tools (software) and
-information so I can report valid information back to a developer to
-finish it.
+Userspace applications can now discover the UVC device topology using
+the media controller API.
 
-My real intention was to do something like that, I know is impossible
-to a developer to program something without the device in hands and
-I'm willing to help out the best way I can. Doing that I also help the
-community not just by asking something, but to give something back. If
-the price to do that is to stay up acquiring data, info, for the
-benefit of the community, I go for it.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-I know that things are not simple as that, device drivers need to know
-how to communicate and how to deal with the information that it get
-back.
+Index: v4l-dvb-mc/linux/drivers/media/video/uvc/uvc_driver.c
+===================================================================
+--- v4l-dvb-mc.orig/linux/drivers/media/video/uvc/uvc_driver.c
++++ v4l-dvb-mc/linux/drivers/media/video/uvc/uvc_driver.c
+@@ -762,9 +762,12 @@ static struct uvc_entity *uvc_alloc_enti
+ 	struct uvc_entity *entity;
+ 	unsigned int num_inputs;
+ 	unsigned int size;
++	unsigned int i;
+ 
++	extra_size = ALIGN(extra_size, sizeof(*entity->pads));
+ 	num_inputs = (type & UVC_TERM_OUTPUT) ? num_pads : num_pads - 1;
+-	size = sizeof(*entity) + extra_size + num_inputs;
++	size = sizeof(*entity) + extra_size + sizeof(*entity->pads) * num_pads
++	     + num_inputs;
+ 	entity = kzalloc(size, GFP_KERNEL);
+ 	if (entity == NULL)
+ 		return NULL;
+@@ -772,8 +775,17 @@ static struct uvc_entity *uvc_alloc_enti
+ 	entity->id = id;
+ 	entity->type = type;
+ 
++	entity->num_links = 0;
++	entity->num_pads = num_pads;
++	entity->pads = ((void *)(entity + 1)) + extra_size;
++
++	for (i = 0; i < num_inputs; ++i)
++		entity->pads[i].type = V4L2_PAD_TYPE_INPUT;
++	if (!UVC_ENTITY_IS_OTERM(entity))
++		entity->pads[num_pads-1].type = V4L2_PAD_TYPE_OUTPUT;
++
+ 	entity->bNrInPins = num_inputs;
+-	entity->baSourceID = ((__u8 *)entity) + sizeof(*entity) + extra_size;
++	entity->baSourceID = (__u8 *)(&entity->pads[num_pads]);
+ 
+ 	return entity;
+ }
+@@ -1158,6 +1170,77 @@ next_descriptor:
+ }
+ 
+ /* ------------------------------------------------------------------------
++ * Video subdevices registration and unregistration
++ */
++
++static int uvc_mc_register_subdev(struct uvc_video_chain *chain,
++	struct uvc_entity *entity)
++{
++	const u32 flags = V4L2_LINK_FLAG_ACTIVE | V4L2_LINK_FLAG_PERMANENT;
++	struct uvc_entity *remote;
++	unsigned int i;
++	u8 remote_pad;
++	int ret;
++
++	for (i = 0; i < entity->num_pads; ++i) {
++		if (entity->pads[i].type != V4L2_PAD_TYPE_INPUT)
++			continue;
++
++		remote = uvc_entity_by_id(chain->dev, entity->baSourceID[i]);
++		if (remote == NULL)
++			return -EINVAL;
++
++		remote_pad = remote->num_pads - 1;
++		ret = v4l2_entity_connect(&remote->subdev.entity, remote_pad,
++					  &entity->subdev.entity, i, flags);
++		if (ret < 0)
++			return ret;
++	}
++
++	return v4l2_device_register_subdev(&chain->dev->vdev, &entity->subdev);
++}
++
++static struct v4l2_subdev_ops uvc_subdev_ops = {
++};
++
++static int uvc_mc_init_subdev(struct uvc_video_chain *chain,
++	struct uvc_entity *entity)
++{
++	v4l2_subdev_init(&entity->subdev, &uvc_subdev_ops);
++	snprintf(entity->subdev.name, sizeof(entity->subdev.name), "uvc-%u",
++		 entity->id);
++
++	return v4l2_entity_init(&entity->subdev.entity, entity->num_pads,
++				entity->pads, 0);
++}
++
++static int uvc_mc_register_subdevs(struct uvc_video_chain *chain)
++{
++	struct uvc_entity *entity;
++	int ret;
++
++	list_for_each_entry(entity, &chain->entities, chain) {
++		ret = uvc_mc_init_subdev(chain, entity);
++		if (ret < 0) {
++			uvc_printk(KERN_INFO, "Failed to initialize subdev for "
++				   "entity %u\n", entity->id);
++			return ret;
++		}
++	}
++
++	list_for_each_entry(entity, &chain->entities, chain) {
++		ret = uvc_mc_register_subdev(chain, entity);
++		if (ret < 0) {
++			uvc_printk(KERN_INFO, "Failed to register subdev for "
++				   "entity %u\n", entity->id);
++			return ret;
++		}
++	}
++
++	return 0;
++}
++
++/* ------------------------------------------------------------------------
+  * UVC device scan
+  */
+ 
+@@ -1708,6 +1791,12 @@ static int uvc_register_chains(struct uv
+ 		ret = uvc_register_terms(dev, chain);
+ 		if (ret < 0)
+ 			return ret;
++
++		ret = uvc_mc_register_subdevs(chain);
++		if (ret < 0) {
++			uvc_printk(KERN_INFO, "Failed to register subdevs "
++				"(%d).\n", ret);
++		}
+ 	}
+ 
+ 	return 0;
+Index: v4l-dvb-mc/linux/drivers/media/video/uvc/uvcvideo.h
+===================================================================
+--- v4l-dvb-mc.orig/linux/drivers/media/video/uvc/uvcvideo.h
++++ v4l-dvb-mc/linux/drivers/media/video/uvc/uvcvideo.h
+@@ -278,6 +278,12 @@ struct uvc_entity {
+ 	__u16 type;
+ 	char name[64];
+ 
++	/* Media controller-related fields. */
++	struct v4l2_subdev subdev;
++	unsigned int num_pads;
++	unsigned int num_links;
++	struct v4l2_entity_pad *pads;
++
+ 	union {
+ 		struct {
+ 			__u16 wObjectiveFocalLengthMin;
 
-What is the price that I have to pay?
 
-2009/10/1 Devin Heitmueller <dheitmueller@kernellabs.com>:
-> Well, it's certainly possible to get it to work if you're willing to
-> make the investment.  It's just one of those situations where you
-> realize quickly that you're going to have to be prepared to do *way*
-> more work than just adding a new board profile.  Just because there
-> are drivers for the chips on your device doesn't mean that it is
-> trivial to get working.
->
-> Cheers,
->
-> Devin
