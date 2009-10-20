@@ -1,57 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.perches.com ([173.55.12.10]:1947 "EHLO mail.perches.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753076AbZJGEqU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Oct 2009 00:46:20 -0400
-From: Joe Perches <joe@perches.com>
-To: linux-kernel@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>
-Cc: Matt Mackall <mpm@selenic.com>, Neil Brown <neilb@suse.de>,
-	Laurent Pinchart <laurent.pinchart@skynet.be>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Steven Whitehouse <swhiteho@redhat.com>,
-	Artem Bityutskiy <dedekind@infradead.org>,
-	Adrian Hunter <adrian.hunter@nokia.com>,
-	Alex Elder <aelder@sgi.com>, xfs-masters@oss.sgi.com,
-	linux-raid@vger.kernel.org, linux-media@vger.kernel.org,
-	cluster-devel@redhat.com, linux-mtd@lists.infradead.org,
-	xfs@oss.sgi.com
-Subject: [PATCH 0/8] Add vsprintf extension %pU to print UUID/GUIDs and use it
-Date: Tue,  6 Oct 2009 21:45:33 -0700
-Message-Id: <1254890742-28245-1-git-send-email-joe@perches.com>
+Received: from mailrelay009.isp.belgacom.be ([195.238.6.176]:43811 "EHLO
+	mailrelay009.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751216AbZJTIOp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Oct 2009 04:14:45 -0400
+Message-Id: <20091020011214.954146615@ideasonboard.com>
+Date: Tue, 20 Oct 2009 03:12:13 +0200
+From: laurent.pinchart@ideasonboard.com
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com, hverkuil@xs4all.nl,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC/PATCH 03/14] v4l-mc: Replace the active pads bitmask by a link flag
+References: <20091020011210.623421213@ideasonboard.com>
+Content-Disposition: inline; filename=v4l-mc-replace-active-bitflag.diff
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Using %pU makes an x86 defconfig image a bit smaller
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-before:	$ size vmlinux
-   text    data     bss     dec     hex filename
-6976022  679572 1359668 9015262  898fde vmlinux
+Index: v4l-dvb-mc/linux/drivers/media/video/v4l2-device.c
+===================================================================
+--- v4l-dvb-mc.orig/linux/drivers/media/video/v4l2-device.c
++++ v4l-dvb-mc/linux/drivers/media/video/v4l2-device.c
+@@ -145,10 +145,8 @@ static long mc_enum_links(struct v4l2_de
+ 		for (l = 0; l < ent->pads; l++, s++) {
+ 			struct v4l2_mc_io_status stat = { 0, 0 };
+ 
+-			if (ent->links) {
+-				stat.active_pads = ent->links[l].active;
++			if (ent->links)
+ 				stat.nr_of_remote_pads = ent->links[l].nr_of_remote_pads;
+-			}
+ 			if (copy_to_user(uios->status + s, &stat, sizeof(stat)))
+ 				return -EFAULT;
+ 		}
+Index: v4l-dvb-mc/linux/include/linux/videodev2.h
+===================================================================
+--- v4l-dvb-mc.orig/linux/include/linux/videodev2.h
++++ v4l-dvb-mc/linux/include/linux/videodev2.h
+@@ -1560,10 +1560,10 @@ struct v4l2_dbg_chip_ident {
+ struct v4l2_mc_io {
+ 	__u32 entity;	/* entity ID */
+ 	__u8 pad;	/* pad index */
++	__u8 active;	/* link is active */
+ };
+ 
+ struct v4l2_mc_io_status {
+-	__u32 active_pads;
+ 	__u8 nr_of_remote_pads;
+ 	__u32 type;	/* pad type */
+ };
+Index: v4l-dvb-mc/linux/include/media/v4l2-mc.h
+===================================================================
+--- v4l-dvb-mc.orig/linux/include/media/v4l2-mc.h
++++ v4l-dvb-mc/linux/include/media/v4l2-mc.h
+@@ -4,7 +4,6 @@
+ #include <linux/list.h>
+ 
+ struct v4l2_entity_io {
+-	u32 active;	/* bitmask of active remote pads */
+ 	u8 nr_of_remote_pads; /* number of remote pads */
+ 	struct v4l2_mc_io *remote_pads; /* specify possible remote pads */
+ };
+@@ -68,10 +67,10 @@ static inline void v4l2_entity_connect(s
+ 	sink_link = sink->pads++;
+ 	source->links[source_link].remote_pads[0].entity = sink->id;
+ 	source->links[source_link].remote_pads[0].pad = sink_link;
+-	source->links[source_link].active = active;
++	source->links[source_link].remote_pads[0].active = active;
+ 	sink->links[sink_link].remote_pads[0].entity = source->id;
+ 	sink->links[sink_link].remote_pads[0].pad = source_link;
+-	sink->links[sink_link].active = active;
++	sink->links[sink_link].remote_pads[0].active = active;
+ }
+ 
+ #endif
 
-after:	$ size vmlinux
-   text	   data	    bss	    dec	    hex	filename
-6975863	 679652	1359668	9015183	 898f8f	vmlinux
-
-Joe Perches (8):
-  lib/vsprintf.c: Add %pU to print UUID/GUIDs
-  random.c: Use %pU to print UUIDs
-  drivers/firmware/dmi_scan.c: Use %pUB to print UUIDs
-  drivers/md/md.c: Use %pU to print UUIDs
-  drivers/media/video/uvc: Use %pUl to print UUIDs
-  fs/gfs2/sys.c: Use %pUB to print UUIDs
-  fs/ubifs: Use %pUB to print UUIDs
-  fs/xfs/xfs_log_recover.c: Use %pU to print UUIDs
-
- drivers/char/random.c                |   10 +---
- drivers/firmware/dmi_scan.c          |    5 +--
- drivers/md/md.c                      |   16 ++------
- drivers/media/video/uvc/uvc_ctrl.c   |   69 ++++++++++++++++------------------
- drivers/media/video/uvc/uvc_driver.c |    7 +--
- drivers/media/video/uvc/uvcvideo.h   |   10 -----
- fs/gfs2/sys.c                        |   16 +------
- fs/ubifs/debug.c                     |    9 +---
- fs/ubifs/super.c                     |    7 +---
- fs/xfs/xfs_log_recover.c             |   14 ++-----
- lib/vsprintf.c                       |   62 ++++++++++++++++++++++++++++++-
- 11 files changed, 114 insertions(+), 111 deletions(-)
 
