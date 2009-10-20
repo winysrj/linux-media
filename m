@@ -1,52 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.122]:38413 "EHLO
-	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753206AbZJ2FdE (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:39177 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756741AbZJTCkR convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Oct 2009 01:33:04 -0400
-Message-ID: <4AE92913.4050209@acm.org>
-Date: Wed, 28 Oct 2009 22:33:07 -0700
-From: Bob Cunningham <rcunning@acm.org>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: HVR-950Q problem under MythTV
-References: <4AE8F99E.5010701@acm.org>	 <829197380910282040t6fce747aoca318911e76aa23f@mail.gmail.com>	 <4AE91E54.2030409@acm.org> <829197380910282156l6bea177g79f38eb973335e27@mail.gmail.com>
-In-Reply-To: <829197380910282156l6bea177g79f38eb973335e27@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Mon, 19 Oct 2009 22:40:17 -0400
+Date: Tue, 20 Oct 2009 11:39:30 +0900
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Romont Sylvain <psgman24@yahoo.fr>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Re : ISDB-T tuner
+Message-ID: <20091020113930.1721958e@caramujo.chehab.org>
+In-Reply-To: <565364.54329.qm@web25604.mail.ukl.yahoo.com>
+References: <340263.68846.qm@web25604.mail.ukl.yahoo.com>
+	<20091020042913.1d3609d7@caramujo.chehab.org>
+	<565364.54329.qm@web25604.mail.ukl.yahoo.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/28/2009 09:56 PM, Devin Heitmueller wrote:
-> On Thu, Oct 29, 2009 at 12:47 AM, Bob Cunningham<rcunning@acm.org>  wrote:
->> For F11, I appended the line "options xc5000 no_poweroff=1" to
->> /etc/modprobe.d/local.conf
->>
->> Rather than power down (shudder), I did the following:
->> 1. Unplug HVR-950Q
->> 2. rmmod xc5000
->> 3. modprobe xc5000 no_poweroff=1
->> 4. Plug in HVR-950Q
->
-> You would be shocked how many people have trouble with those four
-> steps.  So now I just tell people to reboot.
->
->> All is well with the world: The tuner is tuning, MythTV is mythic, and I am
->> a vidiot.
->
-> That's great.  Bear in mind that I only did a minimal amount of
-> burn-in under MythTV, so if you see other issues, please speak up.  I
-> basically did enough to get rid of the segfaults, show the user video,
-> and cleanup a couple of errors in the mythbackend.log (by implementing
-> the hue and saturation controls).
->
-> Devin
+Em Mon, 19 Oct 2009 23:11:48 +0000 (GMT)
+Romont Sylvain <psgman24@yahoo.fr> escreveu:
 
-I spoke too soon: Switching between SD and HD channels (or vice-versa) always works the first time, but generally dies the next time I try.  The behavior is very inconsistent:  If I switch from SD to HD 720p or higher, the tuner goes away the next time I try to tune an SD channel.  If I switch between SD and 480i HD channels, I can do so up to 4 times before it stops working.
+> Thanks for your answer!!
+> please find me somebody for make working my tuner! lol
 
-I can switch among SD channels with no problem, and I can switch between HD channels of any resolution with no problem.  Only switching back and forth between HD and SD causes the problem, and it always happens, sooner or later.
+For it to work, a developer will need a similar board, and, ideally, having the
+chipset datasheets. I'm trying to contact some vendors while here to see if we can
+find a way for adding more support on Linux. It would be nice if japanese linux
+communities could also try to help on this process.
 
-Is there a way to force a "quick & dirty" device reinitialization?  Right now, I'm killing mythfrontend and mythbackend, re-plugging the HVR-950Q, and restarting mythbackend and mythfrontend.  Probably overkill.  Is there an easier way?
+As I'm living on an ISDB-T Country (Brazil), I'll probably buy some hardware
+from myself and try to do some code on my very limited spare time, if I think I'll have
+some chance of writing a driver on a short window. Currently, my attributions as the
+maintainer is consuming much more time that I wanted, preventing me to have much time
+for coding.
 
--BobC
+> here, in japan, in 2011 the analog TV will stop and only Digital TV will work, the don't stop to speak about it in Tv and newspaper!
+> So lot of people buy new TV or TV card for computer (like me) and almost all of thess Digital tuner card have the same tuner than mine!
+> I know lot of people don't use linux because of this.....
+> If it's working, use it with MythTV is VERY cool!
+
+We'll need some changes at the applications to fully support ISDB-T, as there
+are some new API parameters that may need to be used on some situations.
+
+> 
+> Thank you for your help!
+> 
+> PS:I have this with the command lspci:
+> 01:00.0 Multimedia controller: Fujitsu Limited. Device 2030 (rev 01)
+>         Subsystem: Device 1718:0020                                 
+>         Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B- DisINTx-
+>         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx- 
+>         Latency: 0, Cache Line Size: 64 bytes                                                                
+>         Interrupt: pin A routed to IRQ 10                                                                    
+>         Region 0: Memory at cfdfc000 (64-bit, prefetchable) [size=16K]                                       
+>         Region 2: Memory at f9bffc00 (32-bit, non-prefetchable) [size=128]                                   
+>         Capabilities: <access denied>   
+> 
+> PS2: Here my Tuner card:
+> http://www.pixela.co.jp/products/tv_capture/pix_dt090_pe0/spec.html
+> 
+> 
+> 
+> ----- Message d'origine ----
+> De : Mauro Carvalho Chehab <mchehab@infradead.org>
+> À : Romont Sylvain <psgman24@yahoo.fr>
+> Cc : linux-media@vger.kernel.org
+> Envoyé le : Mar 20 Octobre 2009, 4 h 29 min 13 s
+> Objet : Re: ISDB-T tuner
+> 
+> Hi Romont,
+> 
+> Em Mon, 19 Oct 2009 12:16:30 +0000 (GMT)
+> Romont Sylvain <psgman24@yahoo.fr> escreveu:
+> 
+> > Hello!
+> > 
+> > I actually live in Japan, I try to make working a tuner card ISDB-T with
+> > linux. I searched a lot in internet but I find nothing....
+> > How can I make it working?
+> > My tuner card is a Pixela PIXDT090-PE0
+> > in picture here:  http://bbsimg01.kakaku.com/images/bbs/000/208/208340_m.jpg
+> > 
+> > Thank you for your help!!!
+> 
+> Unfortunately, only the Earthsoft PC1 board and the boards with dibcom 80xx USB
+> boards are currently supported. In the case of Dibcom, it can support several
+> different devices, but we may need to add the proper USB ID for the board at the driver.
+> 
+> I'm in Japan during this week for the Kernel Summit and Japan Linux Symposium.
+> 
+> One of objectives I'm expecting from this trip is to get more people involved on
+> creating more drivers for ISDB and other Asian digital video standards.
+> 
+> 
+> 
+> Cheers,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+> 
+>       
+
+
+
+
+Cheers,
+Mauro
