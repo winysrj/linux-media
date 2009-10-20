@@ -1,95 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:40877 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1756793AbZJMIYZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Oct 2009 04:24:25 -0400
-Date: Tue, 13 Oct 2009 10:23:44 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 5/5] soc-camera: tw9910: Add revision control on
- tw9910_set_hsync
-In-Reply-To: <ubpkbkfm9.wl%morimoto.kuninori@renesas.com>
-Message-ID: <Pine.LNX.4.64.0910131017370.5089@axis700.grange>
-References: <ubpkbkfm9.wl%morimoto.kuninori@renesas.com>
+Received: from web25605.mail.ukl.yahoo.com ([217.12.10.164]:28991 "HELO
+	web25605.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752015AbZJTN3g convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Oct 2009 09:29:36 -0400
+Message-ID: <271534.68660.qm@web25605.mail.ukl.yahoo.com>
+References: <340263.68846.qm@web25604.mail.ukl.yahoo.com> <4ADD3341.3050202@yahoo.co.jp> <alpine.LRH.1.10.0910200935120.3543@pub2.ifh.de> <750990.6802.qm@web25608.mail.ukl.yahoo.com> <alpine.LRH.1.10.0910201512430.24115@pub3.ifh.de>
+Date: Tue, 20 Oct 2009 13:29:38 +0000 (GMT)
+From: Romont Sylvain <psgman24@yahoo.fr>
+Subject: Re : Re : ISDB-T tuner
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+Cc: linux-media@vger.kernel.org, tskd2@yahoo.co.jp
+In-Reply-To: <alpine.LRH.1.10.0910201512430.24115@pub3.ifh.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 13 Oct 2009, Kuninori Morimoto wrote:
+ok...
+so it's mean, now, all the  japanese ISDB-T tuner card are not working in linux?
 
-> 10 - 3 bit hsync control are same as Rev0/Rev1.
-> But only rev1 can control more 3 bit for hsync.
-> This patch modify this problem
-> 
-> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-> ---
->  drivers/media/video/tw9910.c |   26 +++++++++++++++++---------
->  1 files changed, 17 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/media/video/tw9910.c b/drivers/media/video/tw9910.c
-> index 59158bb..a688c11 100644
-> --- a/drivers/media/video/tw9910.c
-> +++ b/drivers/media/video/tw9910.c
-> @@ -349,6 +349,7 @@ static int tw9910_set_scale(struct i2c_client *client,
->  static int tw9910_set_hsync(struct i2c_client *client,
->  			    const u16 start, const u16 end)
->  {
-> +	struct tw9910_priv *priv = to_tw9910(client);
->  	int ret;
->  
->  	/* bit 10 - 3 */
-> @@ -363,15 +364,22 @@ static int tw9910_set_hsync(struct i2c_client *client,
->  	if (ret < 0)
->  		return ret;
->  
-> -	/* bit 2 - 0 */
-> -	ret = i2c_smbus_read_byte_data(client, HSLOWCTL);
-> -	if (ret < 0)
-> -		return ret;
-> +	/* FIXME
 
-Why FIXME? If this is a real distinction between hardware revisions, 
-there's nothing  to fix about that?
 
-> +	 *
-> +	 * So far only revisions 0 and 1 have been seen
-> +	 */
-> +	if (1 == priv->rev) {
->  
-> -	ret = i2c_smbus_write_byte_data(client, HSLOWCTL,
-> -					(ret   & 0x88)        |
-> -					(start & 0x0007) << 4 |
-> -					(end   & 0x0007));
-> +		/* bit 2 - 0 */
-> +		ret = i2c_smbus_read_byte_data(client, HSLOWCTL);
-> +		if (ret < 0)
-> +			return ret;
-> +
-> +		ret = i2c_smbus_write_byte_data(client, HSLOWCTL,
-> +						(ret   & 0x88)        |
-> +						(start & 0x0007) << 4 |
-> +						(end   & 0x0007));
-> +	}
+----- Message d'origine ----
+De : Patrick Boettcher <pboettcher@kernellabs.com>
+À : Romont Sylvain <psgman24@yahoo.fr>
+Cc : Linux Media Mailing List <linux-media@vger.kernel.org>; tskd2@yahoo.co.jp
+Envoyé le : Mar 20 Octobre 2009, 22 h 16 min 42 s
+Objet : Re: Re : ISDB-T tuner
 
-This looks like a perfect case for your mask_set():
+On Tue, 20 Oct 2009, Romont Sylvain wrote:
 
-		ret = tw9910_mask_set(client, HSLOWCTL, 0x77,
-				      (start & 7) << 4 | (end & 7));
+> Dibcom's tuner is only working in brazil no?
+> the Brazil's ISDB-T and Japanese one is not excatly same, no?
 
-While at it, could you also fix that typo copied from the datasheet: 
-s/HSGEGIN/HSBEGIN/g?
+On the physical layer it is exactly the same. It is the content (video/audio/data inside the MPEG2 transport-stream) which differs in the two countries. This is typically not handled by the 'tuner', but by the 'backend'.
 
->  
->  	return ret;
->  }
-> -- 
-> 1.6.0.4
+This 'backend' is either another hardware chip or a software-stack. This is what has to be different between Japan and Brazil.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+--
+
+Patrick http://www.kernellabs.com/
+
+
+
+      
