@@ -1,25 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
 	[10.5.110.8])
-	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n92CkGhv028758
-	for <video4linux-list@redhat.com>; Fri, 2 Oct 2009 08:46:16 -0400
-Received: from partygirl.tmr.com (mail.tmr.com [64.65.253.246])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n92Ck4Wo028939
-	for <video4linux-list@redhat.com>; Fri, 2 Oct 2009 08:46:06 -0400
-Received: from partygirl.tmr.com (partygirl.tmr.com [127.0.0.1])
-	by partygirl.tmr.com (8.14.2/8.14.2) with ESMTP id n92Ck3EE023973
-	for <video4linux-list@redhat.com>; Fri, 2 Oct 2009 08:46:03 -0400
-Message-ID: <4AC5F60B.7040804@tmr.com>
-Date: Fri, 02 Oct 2009 08:46:03 -0400
-From: Bill Davidsen <davidsen@tmr.com>
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n9LFKuQg000684
+	for <video4linux-list@redhat.com>; Wed, 21 Oct 2009 11:20:56 -0400
+Received: from exprod7og121.obsmtp.com (exprod7og121.obsmtp.com [64.18.2.20])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n9LFKiqp028189
+	for <video4linux-list@redhat.com>; Wed, 21 Oct 2009 11:20:44 -0400
+Received: by mail-fx0-f226.google.com with SMTP id 26so10784293fxm.23
+	for <video4linux-list@redhat.com>; Wed, 21 Oct 2009 08:20:43 -0700 (PDT)
 MIME-Version: 1.0
+Date: Wed, 21 Oct 2009 17:20:43 +0200
+Message-ID: <aaaa95950910210820r59edd33dga953ca44b0745628@mail.gmail.com>
+From: Sigmund Augdal <sigmund@snap.tv>
 To: video4linux-list@redhat.com
-References: <1253120892.3669.11.camel@paulo-desktop>
-In-Reply-To: <1253120892.3669.11.camel@paulo-desktop>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: Re: Create a /dev/video0 file and write directly into it images
+Content-Type: multipart/mixed; boundary=002215401592b6c7c30476738516
+Subject: [PATCH] driver support for VIDIOC_QUERYSTD and enhanced
+	VIDIOC_ENUMINPUT for WinTV PVR-150
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,27 +28,95 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Paulo Freitas wrote:
-> Hi everyone,
-> 
-> I have an Ethernet Camera, from Prosilica, and I need to somehow emulate
-> this camera in a /dev/video0 file. My idea is, mount a driver file using
-> 'makedev', pick up images from the camera and write them into
-> the /dev/video0 file. You know how V4L can be used to write images
-> in /dev/video files? I don't know if it is needed to use makedev
-> probably not. Any suggestion is welcome.
-> 
-I'm not sure I see what the end use is here, watching or recording, but you 
-might be able to use existing software which can generate streaming video and 
-then use tools which can accept that over a network (could just be loopback if 
-that fits your use).
+--002215401592b6c7c30476738516
+Content-Type: text/plain; charset=ISO-8859-1
 
--- 
-Bill Davidsen <davidsen@tmr.com>
-   "We have more to fear from the bungling of the incompetent than from
-the machinations of the wicked."  - from Slashdot
+Attached is a patch that contains driver side changes to implement the
+features that were added to v4l2-ctl by my two previous patches. It is based
+on an old kernel and is only tested for one single capture card, so this
+patch is provided for reference only, not for inclusion into the drivers as
+is.
+
+Best regards
+
+Sigmund Augdal
+
+--002215401592b6c7c30476738516
+Content-Type: application/octet-stream; name="pvr150_enuminput_querystd.patch"
+Content-Disposition: attachment; filename="pvr150_enuminput_querystd.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g128dmqn0
+
+ZGlmZiAtdXJwIC14ICcqLmtvJyAteCAnKi5tb2QuKicgLXggJyouY21kJyAteCAnKi5vJyBsaW51
+eC0yLjYuMjQtc25hcHR2LXI0NjgzL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gyNTg0MC9jeDI1ODQw
+LWNvcmUuYyBsaW51eC1hbmFsb2ctaW1wcm92ZW1lbnQvZHJpdmVycy9tZWRpYS92aWRlby9jeDI1
+ODQwL2N4MjU4NDAtY29yZS5jCi0tLSBsaW51eC0yLjYuMjQtc25hcHR2LXI0NjgzL2RyaXZlcnMv
+bWVkaWEvdmlkZW8vY3gyNTg0MC9jeDI1ODQwLWNvcmUuYwkyMDA5LTA0LTI4IDE1OjI5OjEyLjAw
+MDAwMDAwMCArMDMwMAorKysgbGludXgtYW5hbG9nLWltcHJvdmVtZW50L2RyaXZlcnMvbWVkaWEv
+dmlkZW8vY3gyNTg0MC9jeDI1ODQwLWNvcmUuYwkyMDA5LTEwLTIxIDE2OjQwOjQ3Ljg1NjQxMzcy
+MiArMDMwMApAQCAtNTY3LDEzICs1NjcsMTMgQEAgc3RhdGljIGludCBzZXRfdjRsc3RkKHN0cnVj
+dCBpMmNfY2xpZW50IAogCXJldHVybiAwOwogfQogCi12NGwyX3N0ZF9pZCBjeDI1ODQwX2dldF92
+NGxzdGQoc3RydWN0IGkyY19jbGllbnQgKiBjbGllbnQpCitzdGF0aWMgdjRsMl9zdGRfaWQgY3gy
+NTg0MF9nZXRfdjRsc3RkX2ludGVybmFsKHN0cnVjdCBpMmNfY2xpZW50ICogY2xpZW50LCBpbnQg
+YXV0b2RldGVjdCkKIHsKIAlzdHJ1Y3QgY3gyNTg0MF9zdGF0ZSAqc3RhdGUgPSBpMmNfZ2V0X2Ns
+aWVudGRhdGEoY2xpZW50KTsKIAkvKiBjaGVjayBWSURfRk1UX1NFTCBmaXJzdCAqLwogCXU4IGZt
+dCA9IGN4MjU4NDBfcmVhZChjbGllbnQsIDB4NDAwKSAmIDB4ZjsKIAotCWlmICghZm10KSB7CisJ
+aWYgKCFmbXQgfHwgYXV0b2RldGVjdCkgewogCQkvKiBjaGVjayBBRkRfRk1UX1NUQVQgaWYgc2V0
+IHRvIGF1dG9kZXRlY3QgKi8KIAkJZm10ID0gY3gyNTg0MF9yZWFkKGNsaWVudCwgMHg0MGQpICYg
+MHhmOwogCX0KQEAgLTU5OSw2ICs1OTksMTEgQEAgdjRsMl9zdGRfaWQgY3gyNTg0MF9nZXRfdjRs
+c3RkKHN0cnVjdCBpMgogCX0KIH0KIAordjRsMl9zdGRfaWQgY3gyNTg0MF9nZXRfdjRsc3RkKHN0
+cnVjdCBpMmNfY2xpZW50ICogY2xpZW50KQoreworICAgIHJldHVybiBjeDI1ODQwX2dldF92NGxz
+dGRfaW50ZXJuYWwoY2xpZW50LCAwKTsKK30KKwogLyogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gKi8KIAogc3Rh
+dGljIGludCBzZXRfdjRsY3RybChzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50LCBzdHJ1Y3QgdjRs
+Ml9jb250cm9sICpjdHJsKQpAQCAtOTgzLDYgKzk4OCw3IEBAIHN0YXRpYyBpbnQgY3gyNTg0MF9j
+b21tYW5kKHN0cnVjdCBpMmNfY2wKIAlzdHJ1Y3QgY3gyNTg0MF9zdGF0ZSAqc3RhdGUgPSBpMmNf
+Z2V0X2NsaWVudGRhdGEoY2xpZW50KTsKIAlzdHJ1Y3QgdjRsMl90dW5lciAqdnQgPSBhcmc7CiAJ
+c3RydWN0IHY0bDJfcm91dGluZyAqcm91dGUgPSBhcmc7CisJc3RydWN0IHY0bDJfaW5wdXQgKnZp
+biA9IGFyZzsKIAogCS8qIGlnbm9yZSB0aGVzZSBjb21tYW5kcyAqLwogCXN3aXRjaCAoY21kKSB7
+CkBAIC0xMTAzLDYgKzExMDksMTcgQEAgc3RhdGljIGludCBjeDI1ODQwX2NvbW1hbmQoc3RydWN0
+IGkyY19jbAogCQlzdGF0ZS0+cmFkaW8gPSAwOwogCQlyZXR1cm4gc2V0X3Y0bHN0ZChjbGllbnQs
+ICoodjRsMl9zdGRfaWQgKilhcmcpOwogCisJY2FzZSBWSURJT0NfUVVFUllTVEQ6CisJCSoodjRs
+Ml9zdGRfaWQgKilhcmcgPSBjeDI1ODQwX2dldF92NGxzdGRfaW50ZXJuYWwoY2xpZW50LCAxKTsK
+KwkJYnJlYWs7CisKKwljYXNlIFZJRElPQ19FTlVNSU5QVVQ6CisJCS8qIEFzc3VtaW5nIHRoZSBk
+cml2ZXIgd2lsbCBvbmx5IHByb3BhZ2F0ZSB0aGUgaW9jdGwgaGVyZSBpZiBpdCBhbGxyZWFkeSBj
+aGVja2VkIHRoYXQgdGhlIGFza2VkIGZvciBpbmRleCBpcyB0aGUgY3VycmVudGx5IHNlbGVjdGVk
+IGluZGV4LCBzbyB3ZSBuZWVkIG5vdCBib3RoZXIgd2l0aCByb3V0aW5nIGFuZCBzdWNoICovCisJ
+CWlmICghKGN4MjU4NDBfcmVhZChjbGllbnQsIDB4NDBlKSAmIDB4MjApKSB7CisJCQl2aW4tPnN0
+YXR1cyA9IFY0TDJfSU5fU1RfTk9fU0lHTkFMOworCQl9CisJCWJyZWFrOworCiAJY2FzZSBBVURD
+X1NFVF9SQURJTzoKIAkJc3RhdGUtPnJhZGlvID0gMTsKIAkJYnJlYWs7CmRpZmYgLXVycCAteCAn
+Ki5rbycgLXggJyoubW9kLionIC14ICcqLmNtZCcgLXggJyoubycgbGludXgtMi42LjI0LXNuYXB0
+di1yNDY4My9kcml2ZXJzL21lZGlhL3ZpZGVvL2l2dHYvaXZ0di1pb2N0bC5jIGxpbnV4LWFuYWxv
+Zy1pbXByb3ZlbWVudC9kcml2ZXJzL21lZGlhL3ZpZGVvL2l2dHYvaXZ0di1pb2N0bC5jCi0tLSBs
+aW51eC0yLjYuMjQtc25hcHR2LXI0NjgzL2RyaXZlcnMvbWVkaWEvdmlkZW8vaXZ0di9pdnR2LWlv
+Y3RsLmMJMjAwOS0wNC0yOCAxNToyOToxMi4wMDAwMDAwMDAgKzAzMDAKKysrIGxpbnV4LWFuYWxv
+Zy1pbXByb3ZlbWVudC9kcml2ZXJzL21lZGlhL3ZpZGVvL2l2dHYvaXZ0di1pb2N0bC5jCTIwMDkt
+MTAtMjEgMTY6NDE6NDguMDU0Nzc4MTk5ICswMzAwCkBAIC03OTcsOSArNzk3LDE0IEBAIGludCBp
+dnR2X3Y0bDJfaW9jdGxzKHN0cnVjdCBpdnR2ICppdHYsIHMKIAogCWNhc2UgVklESU9DX0VOVU1J
+TlBVVDp7CiAJCXN0cnVjdCB2NGwyX2lucHV0ICp2aW4gPSBhcmc7CisJCWludCByZXQ7CiAKIAkJ
+Lyogc2V0IGl0IHRvIGRlZmF1bHRzIGZyb20gb3VyIHRhYmxlICovCi0JCXJldHVybiBpdnR2X2dl
+dF9pbnB1dChpdHYsIHZpbi0+aW5kZXgsIHZpbik7CisJCXJldCA9IGl2dHZfZ2V0X2lucHV0KGl0
+diwgdmluLT5pbmRleCwgdmluKTsKKwkJaWYgKHZpbi0+aW5kZXggPT0gaXR2LT5hY3RpdmVfaW5w
+dXQpIHsKKwkJCWl2dHZfY2FsbF9pMmNfY2xpZW50cyhpdHYsIFZJRElPQ19FTlVNSU5QVVQsIHZp
+bik7CisJCX0KKwkJcmV0dXJuIHJldDsKIAl9CiAKIAljYXNlIFZJRElPQ19FTlVNT1VUUFVUOnsK
+QEAgLTEwODAsNiArMTA4NSwxMiBAQCBpbnQgaXZ0dl92NGwyX2lvY3RscyhzdHJ1Y3QgaXZ0diAq
+aXR2LCBzCiAJCWJyZWFrOwogCX0KIAorCWNhc2UgVklESU9DX1FVRVJZU1REOiB7CisJCXN0cnVj
+dCB2NGwyX3N0ZF9pZCAqc3RkID0gYXJnOworCQlpdnR2X2NhbGxfaTJjX2NsaWVudHMoaXR2LCBW
+SURJT0NfUVVFUllTVEQsIHN0ZCk7CisJCWJyZWFrOworCX0KKwogCWNhc2UgVklESU9DX1NfVFVO
+RVI6IHsJLyogU2V0dGluZyB0dW5lciBjYW4gb25seSBzZXQgYXVkaW8gbW9kZSAqLwogCQlzdHJ1
+Y3QgdjRsMl90dW5lciAqdnQgPSBhcmc7CiAKQEAgLTE2NTEsNiArMTY2Miw3IEBAIHN0YXRpYyBp
+bnQgaXZ0dl92NGwyX2RvX2lvY3RsKHN0cnVjdCBpbm8KIAljYXNlIFZJRElPQ19TX0ZSRVFVRU5D
+WToKIAljYXNlIFZJRElPQ19FTlVNU1REOgogCWNhc2UgVklESU9DX0dfU1REOgorCWNhc2UgVklE
+SU9DX1FVRVJZU1REOgogCWNhc2UgVklESU9DX1NfU1REOgogCWNhc2UgVklESU9DX1NfVFVORVI6
+CiAJY2FzZSBWSURJT0NfR19UVU5FUjoK
+--002215401592b6c7c30476738516
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--002215401592b6c7c30476738516--
