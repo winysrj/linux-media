@@ -1,29 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.156]:50349 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752382AbZJBStQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2009 14:49:16 -0400
-Received: by fg-out-1718.google.com with SMTP id 22so2229115fge.1
-        for <linux-media@vger.kernel.org>; Fri, 02 Oct 2009 11:49:19 -0700 (PDT)
-From: Jonathan <jkdsoft@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: saa716x compiling problem
-Date: Fri, 2 Oct 2009 20:44:05 +0200
+Received: from perceval.irobotique.be ([92.243.18.41]:45264 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754019AbZJUR0m convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Oct 2009 13:26:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: uvcvideo causes ehci_hcd to halt
+Date: Wed, 21 Oct 2009 19:27:00 +0200
+Cc: Ozan =?utf-8?q?=C3=87a=C4=9Flayan?= <ozan@pardus.org.tr>,
+	linux-media@vger.kernel.org,
+	"linux-kernel" <linux-kernel@vger.kernel.org>,
+	USB list <linux-usb@vger.kernel.org>
+References: <Pine.LNX.4.44L0.0910211052200.2847-100000@iolanthe.rowland.org>
+In-Reply-To: <Pine.LNX.4.44L0.0910211052200.2847-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200910022044.05324.jhonny.b@gmail.com>
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <200910211927.00298.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Wednesday 21 October 2009 17:07:51 Alan Stern wrote:
+> On Wed, 21 Oct 2009, [UTF-8] Ozan Çağlayan wrote:
+> > Nope it didn't help. Here's the DEBUG enabled dmesg output:
+> 
+> ...
+> 
+> > [  420.737748] usb 1-5: link qh1024-0001/f6ffe280 start 1 [1/0 us]
+> 
+> The periodic schedule was enabled here.
+> 
+> > [  420.737891] usb 1-5: unlink qh1024-0001/f6ffe280 start 1 [1/0 us]
+> 
+> And it was disabled here.  Do you have any idea why the uvcvideo driver
+> submits an interrupt URB and then cancels it 150 us later?  The same
+> thing shows up in the usbmon traces.
 
-I'm trying to compile saa716x module for kernel 2.6.30 but I'm getting some 
-errors. It seems that sources need to be adapted to latest kernel versions to 
-work. I'm using code located at http://www.jusst.de/hg/saa716x/ (last change 
-was three months ago).
+Probably because hal opens the device to query its capabilities and closes it 
+right after. The driver submits the interrupt URB when the first user opens 
+the device and cancels it when the last user closes the device.
+ 
+-- 
+Regards,
 
-Is there any patch to solve this problem?
-
-Jonathan
+Laurent Pinchart
