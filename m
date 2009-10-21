@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.11])
-	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n9S8HVk1025346
-	for <video4linux-list@redhat.com>; Wed, 28 Oct 2009 04:17:31 -0400
-Received: from smtpin2.mailsecure.in (SMTPIN2.mailsecure.in [121.241.224.3])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n9S8HKI0025856
-	for <video4linux-list@redhat.com>; Wed, 28 Oct 2009 04:17:21 -0400
-Content-class: urn:content-classes:message
+Received: from mx1.redhat.com (ext-mx08.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.12])
+	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n9LDQACD027059
+	for <video4linux-list@redhat.com>; Wed, 21 Oct 2009 09:26:10 -0400
+Received: from exprod7og126.obsmtp.com (exprod7og126.obsmtp.com [64.18.2.206])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n9LDPwss031528
+	for <video4linux-list@redhat.com>; Wed, 21 Oct 2009 09:25:58 -0400
+Received: by mail-fx0-f207.google.com with SMTP id 3so6949437fxm.20
+	for <video4linux-list@redhat.com>; Wed, 21 Oct 2009 06:25:57 -0700 (PDT)
 MIME-Version: 1.0
-Date: Wed, 28 Oct 2009 13:46:57 +0530
-Message-ID: <9D5E1752379A43408015F7FE9846611504EDD067@CHNEXVS01.VSNLXCHANGE.COM>
-From: "Anantha Krishnan H" <ananthakrishnan@tataelxsi.co.in>
-To: <video4linux-list@redhat.com>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Subject: Overview of V4L2
+Date: Wed, 21 Oct 2009 15:25:57 +0200
+Message-ID: <aaaa95950910210625x33218164v1b0a5b3e276acfda@mail.gmail.com>
+From: Sigmund Augdal <sigmund@snap.tv>
+To: video4linux-list@redhat.com
+Content-Type: multipart/mixed; boundary=00151761ca5846f5e0047671ebfc
+Subject: [PATCH] Support for VIDIOC_QUERYSTD in v4l2-ctl
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,16 +27,96 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all
-    Can anyone give me an overview regarding how V4L2 works and how the V4L=
-2 API s are used?I just know the basics that V4L2 is an Application Program=
-ming Interface provided by the Linux Kernel for communicating with video de=
-vices lie webcams,TV Tuner cards etc...
+--00151761ca5846f5e0047671ebfc
+Content-Type: text/plain; charset=ISO-8859-1
 
-Thanks & Regards
-Ananth
+Attached patch adds support for running the VIDIOC_QUERYSTD ioctl from
+v4l2-ctl.
+
+Best regards
+
+Sigmund Augdal
+
+--00151761ca5846f5e0047671ebfc
+Content-Type: application/octet-stream; name="v4l2-ctl-querystd.patch"
+Content-Disposition: attachment; filename="v4l2-ctl-querystd.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g12491zm0
+
+IyBIRyBjaGFuZ2VzZXQgcGF0Y2gKIyBVc2VyIHJvb3RAbG9jYWxob3N0CiMgRGF0ZSAxMjU2MTMw
+NjY5IC0xMDgwMAojIE5vZGUgSUQgN2UyNzNiZWU4NjAxN2FhMTU2OGJiOTJlNmY3MTdlYjU4NTU2
+MTU3OAojIFBhcmVudCAgZjY2ODBmYThlN2VjODhiYmZiZWRkZGM3YzNlOTkwMDNlMzI4YTFhYQpB
+ZGRlZCBzdXBwb3J0IGZvciBWSURJT0NfUVVFUllTVEQKClNpZ25lZC1vZmYtYnk6IFNpZ211bmQg
+QXVnZGFsIDxzaWdtdW5kQHNuYXAudHY+CmRpZmYgLXIgZjY2ODBmYThlN2VjIC1yIDdlMjczYmVl
+ODYwMSB2NGwyLWFwcHMvdXRpbC92NGwyLWN0bC5jcHAKLS0tIGEvdjRsMi1hcHBzL3V0aWwvdjRs
+Mi1jdGwuY3BwCVR1ZSBPY3QgMjAgMDA6MDg6MDUgMjAwOSArMDkwMAorKysgYi92NGwyLWFwcHMv
+dXRpbC92NGwyLWN0bC5jcHAJV2VkIE9jdCAyMSAxNjoxMTowOSAyMDA5ICswMzAwCkBAIC0xNDEs
+NiArMTQxLDcgQEAgZW51bSBPcHRpb24gewogCU9wdExpc3REZXZpY2VzLAogCU9wdEdldE91dHB1
+dFBhcm0sCiAJT3B0U2V0T3V0cHV0UGFybSwKKwlPcHRRdWVyeVN0YW5kYXJkLAogCU9wdExhc3Qg
+PSAyNTYKIH07CiAKQEAgLTIyOSw2ICsyMzAsNyBAQCBzdGF0aWMgc3RydWN0IG9wdGlvbiBsb25n
+X29wdGlvbnNbXSA9IHsKIAl7Imxpc3QtZnJhbWVpbnRlcnZhbHMiLCByZXF1aXJlZF9hcmd1bWVu
+dCwgMCwgT3B0TGlzdEZyYW1lSW50ZXJ2YWxzfSwKIAl7ImdldC1zdGFuZGFyZCIsIG5vX2FyZ3Vt
+ZW50LCAwLCBPcHRHZXRTdGFuZGFyZH0sCiAJeyJzZXQtc3RhbmRhcmQiLCByZXF1aXJlZF9hcmd1
+bWVudCwgMCwgT3B0U2V0U3RhbmRhcmR9LAorCXsiZ2V0LWRldGVjdGVkLXN0YW5kYXJkIiwgbm9f
+YXJndW1lbnQsIDAsIE9wdFF1ZXJ5U3RhbmRhcmR9LAogCXsiZ2V0LXBhcm0iLCBub19hcmd1bWVu
+dCwgMCwgT3B0R2V0UGFybX0sCiAJeyJzZXQtcGFybSIsIHJlcXVpcmVkX2FyZ3VtZW50LCAwLCBP
+cHRTZXRQYXJtfSwKIAl7ImdldC1vdXRwdXQtcGFybSIsIG5vX2FyZ3VtZW50LCAwLCBPcHRHZXRP
+dXRwdXRQYXJtfSwKQEAgLTMxNyw2ICszMTksOCBAQCBzdGF0aWMgdm9pZCB1c2FnZSh2b2lkKQog
+CSAgICAgICAiICAgICAgICAgICAgICAgICAgICAgbnRzYy1YIChYID0gTS9KL0spIG9yIGp1c3Qg
+J250c2MnIChWNEwyX1NURF9OVFNDKVxuIgogCSAgICAgICAiICAgICAgICAgICAgICAgICAgICAg
+c2VjYW0tWCAoWCA9IEIvRy9IL0QvSy9ML0xjKSBvciBqdXN0ICdzZWNhbScgKFY0TDJfU1REX1NF
+Q0FNKVxuIgogCSAgICAgICAiICAtLWxpc3Qtc3RhbmRhcmRzICAgZGlzcGxheSBzdXBwb3J0ZWQg
+dmlkZW8gc3RhbmRhcmRzIFtWSURJT0NfRU5VTVNURF1cbiIKKwkgICAgICAgIiAgLS1nZXQtZGV0
+ZWN0ZWQtc3RhbmRhcmRcbiIKKwkgICAgICAgIiAgICAgICAgICAgICAgICAgICAgIGRpc3BsYXkg
+dmlkZW8gZGV0ZWN0ZWQgaW5wdXQgdmlkZW8gc3RhbmRhcmQgW1ZJRElPQ19RVUVSWVNURF1cbiIK
+IAkgICAgICAgIiAgLVAsIC0tZ2V0LXBhcm0gICAgIGRpc3BsYXkgdmlkZW8gcGFyYW1ldGVycyBb
+VklESU9DX0dfUEFSTV1cbiIKIAkgICAgICAgIiAgLXAsIC0tc2V0LXBhcm09PGZwcz5cbiIKIAkg
+ICAgICAgIiAgICAgICAgICAgICAgICAgICAgIHNldCB2aWRlbyBmcmFtZXJhdGUgaW4gPGZwcz4g
+W1ZJRElPQ19TX1BBUk1dXG4iCkBAIC0xNDk0LDYgKzE0OTgsNDAgQEAgc3RhdGljIHZvaWQgcHJp
+bnRfc3RkKGNvbnN0IGNoYXIgKnByZWZpeAogCXByaW50ZigiXG4iKTsKIH0KIAorc3RhdGljIHZv
+aWQgcHJpbnRfdjRsc3RkKHVuc2lnbmVkIGxvbmcgbG9uZyBzdGQpCit7CisJc3RhdGljIGNvbnN0
+IGNoYXIgKnBhbFtdID0geworCQkiQiIsICJCMSIsICJHIiwgIkgiLCAiSSIsICJEIiwgIkQxIiwg
+IksiLAorCQkiTSIsICJOIiwgIk5jIiwgIjYwIiwKKwkJTlVMTAorCX07CisJc3RhdGljIGNvbnN0
+IGNoYXIgKm50c2NbXSA9IHsKKwkJIk0iLCAiTS1KUCIsICI0NDMiLCAiTS1LUiIsCisJCU5VTEwK
+Kwl9OworCXN0YXRpYyBjb25zdCBjaGFyICpzZWNhbVtdID0geworCQkiQiIsICJEIiwgIkciLCAi
+SCIsICJLIiwgIksxIiwgIkwiLCAiTGMiLAorCQlOVUxMCisJfTsKKwlzdGF0aWMgY29uc3QgY2hh
+ciAqYXRzY1tdID0geworCQkiQVRTQy04LVZTQiIsICJBVFNDLTE2LVZTQiIsCisJCU5VTEwKKwl9
+OworCisJaWYgKHN0ZCAmIDB4ZmZmKSB7CisJCXByaW50X3N0ZCgiUEFMIiwgcGFsLCBzdGQpOwor
+CX0KKwlpZiAoc3RkICYgMHhmMDAwKSB7CisJCXByaW50X3N0ZCgiTlRTQyIsIG50c2MsIHN0ZCA+
+PiAxMik7CisJfQorCWlmIChzdGQgJiAweGZmMDAwMCkgeworCQlwcmludF9zdGQoIlNFQ0FNIiwg
+c2VjYW0sIHN0ZCA+PiAxNik7CisJfQorCWlmIChzdGQgJiAweGYwMDAwMDApIHsKKwkJcHJpbnRf
+c3RkKCJBVFNDL0hEVFYiLCBhdHNjLCBzdGQgPj4gMjQpOworCX0KK30KKwogc3RhdGljIHZvaWQg
+ZG9fY3JvcChpbnQgZmQsIHVuc2lnbmVkIGludCBzZXRfY3JvcCwgc3RydWN0IHY0bDJfcmVjdCAm
+dmNyb3AsIHY0bDJfYnVmX3R5cGUgdHlwZSkKIHsKICAgICBzdHJ1Y3QgdjRsMl9jcm9wIGluX2Ny
+b3A7CkBAIC0yNzE5LDM3ICsyNzU3LDE1IEBAIHNldF92aWRfZm10X2Vycm9yOgogCiAJaWYgKG9w
+dGlvbnNbT3B0R2V0U3RhbmRhcmRdKSB7CiAJCWlmIChkb2lvY3RsKGZkLCBWSURJT0NfR19TVEQs
+ICZzdGQsICJWSURJT0NfR19TVEQiKSA9PSAwKSB7Ci0JCQlzdGF0aWMgY29uc3QgY2hhciAqcGFs
+W10gPSB7Ci0JCQkJIkIiLCAiQjEiLCAiRyIsICJIIiwgIkkiLCAiRCIsICJEMSIsICJLIiwKLQkJ
+CQkiTSIsICJOIiwgIk5jIiwgIjYwIiwKLQkJCQlOVUxMCi0JCQl9OwotCQkJc3RhdGljIGNvbnN0
+IGNoYXIgKm50c2NbXSA9IHsKLQkJCQkiTSIsICJNLUpQIiwgIjQ0MyIsICJNLUtSIiwKLQkJCQlO
+VUxMCi0JCQl9OwotCQkJc3RhdGljIGNvbnN0IGNoYXIgKnNlY2FtW10gPSB7Ci0JCQkJIkIiLCAi
+RCIsICJHIiwgIkgiLCAiSyIsICJLMSIsICJMIiwgIkxjIiwKLQkJCQlOVUxMCi0JCQl9OwotCQkJ
+c3RhdGljIGNvbnN0IGNoYXIgKmF0c2NbXSA9IHsKLQkJCQkiQVRTQy04LVZTQiIsICJBVFNDLTE2
+LVZTQiIsCi0JCQkJTlVMTAotCQkJfTsKLQogCQkJcHJpbnRmKCJWaWRlbyBTdGFuZGFyZCA9IDB4
+JTA4bGx4XG4iLCAodW5zaWduZWQgbG9uZyBsb25nKXN0ZCk7Ci0JCQlpZiAoc3RkICYgMHhmZmYp
+IHsKLQkJCQlwcmludF9zdGQoIlBBTCIsIHBhbCwgc3RkKTsKLQkJCX0KLQkJCWlmIChzdGQgJiAw
+eGYwMDApIHsKLQkJCQlwcmludF9zdGQoIk5UU0MiLCBudHNjLCBzdGQgPj4gMTIpOwotCQkJfQot
+CQkJaWYgKHN0ZCAmIDB4ZmYwMDAwKSB7Ci0JCQkJcHJpbnRfc3RkKCJTRUNBTSIsIHNlY2FtLCBz
+dGQgPj4gMTYpOwotCQkJfQotCQkJaWYgKHN0ZCAmIDB4ZjAwMDAwMCkgewotCQkJCXByaW50X3N0
+ZCgiQVRTQy9IRFRWIiwgYXRzYywgc3RkID4+IDI0KTsKLQkJCX0KKwkJCXByaW50X3Y0bHN0ZCgo
+dW5zaWduZWQgbG9uZyBsb25nKXN0ZCk7CisJCX0KKwl9CisKKwlpZiAob3B0aW9uc1tPcHRRdWVy
+eVN0YW5kYXJkXSkgeworCQlpZiAoZG9pb2N0bChmZCwgVklESU9DX1FVRVJZU1RELCAmc3RkLCAi
+VklESU9DX1FVRVJZU1REIikgPT0gMCkgeworCQkJcHJpbnRmKCJWaWRlbyBTdGFuZGFyZCA9IDB4
+JTA4bGx4XG4iLCAodW5zaWduZWQgbG9uZyBsb25nKXN0ZCk7CisJCQlwcmludF92NGxzdGQoKHVu
+c2lnbmVkIGxvbmcgbG9uZylzdGQpOwogCQl9CiAJfQogCg==
+--00151761ca5846f5e0047671ebfc
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--00151761ca5846f5e0047671ebfc--
