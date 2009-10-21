@@ -1,127 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2605 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751989AbZJWSPh (ORCPT
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46747 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752615AbZJUPV3 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Oct 2009 14:15:37 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id n9NIFbmZ016042
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 23 Oct 2009 20:15:41 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 23 Oct 2009 20:15:37 +0200 (CEST)
-Message-Id: <200910231815.n9NIFbmZ016042@smtp-vbr15.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Wed, 21 Oct 2009 11:21:29 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 21 Oct 2009 10:21:32 -0500
+Subject: RE: RFC (v1.2): V4L - Support for video timings at the
+   input/output interface
+Message-ID: <A69FA2915331DC488A831521EAE36FE4015560A3EF@dlee06.ent.ti.com>
+References: <A69FA2915331DC488A831521EAE36FE40155609B3F@dlee06.ent.ti.com>
+    <0da0629d3f5701e9fa9761cf92189a75.squirrel@webmail.xs4all.nl>
+    <A69FA2915331DC488A831521EAE36FE4015560A325@dlee06.ent.ti.com>
+ <865830e80e6eb4d6a7a272b5e20bd015.squirrel@webmail.xs4all.nl>
+In-Reply-To: <865830e80e6eb4d6a7a272b5e20bd015.squirrel@webmail.xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hans,
 
-Results of the daily build of v4l-dvb:
+>>>>
+>>>> /* timing data values specified by various standards such as BT.1120,
+>>>> BT.656 etc. */
+>>>>
+>>>> /* bt.656/bt.1120 timing data */
+>>>> struct v4l2_bt_timings {
+>>>>     __u32      interlaced;
+>>>>     __u64      pixelclock;
+>>>>     __u32      width, height;
+>>>>     __u32      polarities;
+>>>>     __u32      hfrontporch, hsync, htotal;
+>>>>     __u32      vfrontporch, vsync, vtotal;
+>>>>     /* timings for bottom frame for interlaced formats */
+>>>>     __u32      il_vtotal;
+>>>>     __u32      reserved[16];
+>>>> };
+>>>
+>>>I think that we should be a change here: instead of specifying htotal and
+>>>vtotal it is more symmetrical to specify hbackporch and vbackporch.
+>>>
+>>>And instead of il_vtotal I think it is better to specify il_vfrontporch,
+>>>il_vsync, il_vbackporch. Since any of these three parameters can be the
+>>>one that is 1 longer than the top field.
+>>
+>>
+>> [MK] So are you saying we need all four:- il_vtotal, il_vfrontporch,
+>> il_vsync, & il_vbackporch ?
+>
+>No, the htotal, vtotal and il_vtotal fields should be removed. These can
+>be calculated from adding up the other fields.
+>
+[MK] Ok. That make sense. Here is the final structure...
 
-date:        Fri Oct 23 19:00:04 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13156:f6680fa8e7ec
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+struct v4l2_bt_timings {
+	__u32      interlaced;
+	__u64      pixelclock;
+      __u32      width, height;
+      __u32      polarities;
+      __u32      hfrontporch, hsync, hbackporch;
+      __u32      vfrontporch, vsync, vbackporch;
+      /* timings for bottom frame for interlaced formats */
+      __u32      il_vfrontporch, il_vsync, il_vbackporch ;
+      __u32      reserved[16];
+};
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-rc3-armv5: ERRORS
-linux-2.6.32-rc3-armv5-davinci: ERRORS
-linux-2.6.27-armv5-ixp: ERRORS
-linux-2.6.28-armv5-ixp: ERRORS
-linux-2.6.29.1-armv5-ixp: ERRORS
-linux-2.6.30-armv5-ixp: ERRORS
-linux-2.6.31-armv5-ixp: ERRORS
-linux-2.6.32-rc3-armv5-ixp: ERRORS
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: ERRORS
-linux-2.6.32-rc3-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-rc3-i686: ERRORS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-rc3-m32r: ERRORS
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: OK
-linux-2.6.32-rc3-mips: ERRORS
-linux-2.6.27-powerpc64: ERRORS
-linux-2.6.28-powerpc64: ERRORS
-linux-2.6.29.1-powerpc64: ERRORS
-linux-2.6.30-powerpc64: ERRORS
-linux-2.6.31-powerpc64: ERRORS
-linux-2.6.32-rc3-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-rc3-x86_64: ERRORS
-sparse (linux-2.6.31): OK
-sparse (linux-2.6.32-rc3): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L2 specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+Murali
