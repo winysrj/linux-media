@@ -1,62 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailfilter42.ihug.co.nz ([203.109.136.42]:55124 "EHLO
-	mailfilter42.ihug.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758005AbZJDVCz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Oct 2009 17:02:55 -0400
-Message-ID: <4AC90B3C.7060407@yahoo.co.nz>
-Date: Mon, 05 Oct 2009 09:53:16 +1300
-From: Kevin Wells <wells_kevin@yahoo.co.nz>
-MIME-Version: 1.0
+Received: from web32702.mail.mud.yahoo.com ([68.142.207.246]:30036 "HELO
+	web32702.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751514AbZJUFd2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Oct 2009 01:33:28 -0400
+Message-ID: <174105.67821.qm@web32702.mail.mud.yahoo.com>
+Date: Tue, 20 Oct 2009 22:26:50 -0700 (PDT)
+From: Franklin Meng <fmeng2002@yahoo.com>
+Subject: parse-sniffusb2.pl update
 To: linux-media@vger.kernel.org
-Subject: Re: tm6010 status
-References: <4AC8C44E.4050103@free.fr>
-In-Reply-To: <4AC8C44E.4050103@free.fr>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="0-446084893-1256102810=:67821"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-matthieu castet wrote:
-> Hi,
-> 
-> what's the status of tm6010 support ?
-> 
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg04048.html 
-> announced some patches,
-> but nothing seems to have happened ?
-> 
-> 
-> Matthieu
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+--0-446084893-1256102810=:67821
+Content-Type: text/plain; charset=us-ascii
 
-Mauro has it on his TODO list:
+I have updated/rewrote parts of the parse-sniffusb2.pl script since I noticed some minor errors that I had in the previous version.  I believe everything should be correct now.  Attached is a newer version for review with the name parse1b-sniffusb2.pl
 
-   http://www.mail-archive.com/linux-media@vger.kernel.org/msg08770.html
+Thanks,
+Franklin Meng
 
-I'm not spending any time on this at the moment, and probably won't in 
-the future. I spent some time reading the code for the existing driver 
-and submitted a few trivial patches, and quite a bit of time with a USB 
-sniffer to try and determine where the Linux and Windows XP driver 
-behaved differently. But I have subsequently purchased an Asus My-Cinema 
-U3100 Mini (DVB-T only) that is cheap and worked out of the box on 
-Ubuntu. So I no longer have much motivation to work on this.
 
-I was surprised to find that data sheets are difficult to obtain for the 
-tm6010, and for a lot of other chips used in TV devices as well. Why? I 
-thought these companies made money by selling chips in significant 
-volume rather than by selling development kits. So surely they would 
-sell more chips by making documentation available to anyone who wants to 
-support their products. If there are trade secrets they are trying to 
-protect surely these are in the hardware and firmware rather than the 
-driver and the protocols used to communicate with the hardware. Perhaps 
-someone on this list can explain how this makes business sense.
+      
+--0-446084893-1256102810=:67821
+Content-Type: text/x-perl; name="parse1b-sniffusb2.pl"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="parse1b-sniffusb2.pl"
 
-So it seems it is common practice to use reverse engineering to get 
-drivers working. This is a lot of work and makes me really appreciate 
-the work that has been put in by v4l developers.
+IyEvdXNyL2Jpbi9wZXJsCiMKIyBBdXRob3I6IEZyYW5rbGluIE1lbmcgPGZt
+ZW5nMjAwMkB5YWhvby5jb20+CiMgUGFyc2VyIGZvciBVU0Igc25vb3BzIGNh
+cHR1cmVkIGZyb20gU25pZmZVU0IgMi4wLgojCgp1c2Ugc3RyaWN0Owp1c2Ug
+d2FybmluZ3M7CnVzZSBEYXRhOjpEdW1wZXI7CgpteSAkdXJiaGFzaDsKCmZv
+cmVhY2ggbXkgJGN1cmZpbGUgKEBBUkdWKSB7CglwYXJzZWZpbGUoJGN1cmZp
+bGUpOwoJI3dlIGNhbiBvbmx5IHByb2Nlc3MgMSBmaWxlCglleGl0Owp9Cgpz
+dWIgcGFyc2VmaWxlIHsKCW15ICRjdXJmaWxlID0gc2hpZnQ7CgkKCW15ICRz
+MSA9IDA7CglteSAkdDEgPSAwOwoJbXkgJHRtcDEgPSAiIjsKCW15ICRwcmlu
+dHVyYiA9IDA7CglteSAkY3VydXJiID0gMDsKCglvcGVuKEZELCAkY3VyZmls
+ZSkgfHwgZGllKCJFcnJvcjogJCFcbiIpOwoKCXdoaWxlKDxGRD4pIHsKCQlj
+aG9tcDsKCQlpZiAoL1VSQlxzKyhcZCspXHMrZ29pbmdccytkb3duLykgewoJ
+CQkjIHByaW50IHByZXZpb3VzIHVyYiBpZiBhdmFpbGFibGUKCQkJaWYoJHBy
+aW50dXJiICE9IDAgJiYgZXhpc3RzKCR1cmJoYXNoLT57JHByaW50dXJifS0+
+eydTZXR1cFBhY2tldCd9KSkgewoJCQkJcHJpbnQgIiR1cmJoYXNoLT57JHBy
+aW50dXJifS0+eydTZXR1cFBhY2tldCd9ICR1cmJoYXNoLT57JHByaW50dXJi
+fS0+eydEaXJlY3Rpb24nfSAkdXJiaGFzaC0+eyRwcmludHVyYn0tPnsnVHJh
+bnNmZXJCdWZmZXJNREwnfVxuIjsKIwkJCQkjIGRlbGV0ZSB1cmIgaW5mb3Jt
+YXRpb24KIwkJCQlkZWxldGUoJHVyYmhhc2gtPnskcHJpbnR1cmJ9KTsKCQkJ
+fQoJCQkjIGRlbGV0ZSB1cmIgaW5mb3JtYXRpb24KCQkJZGVsZXRlKCR1cmJo
+YXNoLT57JHByaW50dXJifSk7CgkJCSRwcmludHVyYiA9IDA7ICAjcmVzZXQg
+aGVyZQoJCQkkdG1wMSA9ICIiOwoJCQkkczEgPSAwOwoJCQkkdDEgPSAwOwoJ
+CQkjIHN0b3JlIG5leHQgdXJiIGluZm8gaGVyZQoJCQkkY3VydXJiID0gJDE7
+CgkJCSR1cmJoYXNoLT57JDF9ID0gdW5kZWY7CgkJCW5leHQ7CgkJfSBlbHNp
+ZiAoL1VSQlxzKyhcZCspXHMrY29taW5nXHMrYmFjay8pIHsKCQkJIyBwcmlu
+dCBwcmV2aW91cyB1cmIgaWYgYXZhaWxhYmxlCgkJCWlmKCRwcmludHVyYiAh
+PSAwICYmIGV4aXN0cygkdXJiaGFzaC0+eyRwcmludHVyYn0tPnsnU2V0dXBQ
+YWNrZXQnfSkpIHsKCQkJCXByaW50ICIkdXJiaGFzaC0+eyRwcmludHVyYn0t
+PnsnU2V0dXBQYWNrZXQnfSAkdXJiaGFzaC0+eyRwcmludHVyYn0tPnsnRGly
+ZWN0aW9uJ30gJHVyYmhhc2gtPnskcHJpbnR1cmJ9LT57J1RyYW5zZmVyQnVm
+ZmVyTURMJ31cbiI7CiMJCQkJIyBkZWxldGUgdXJiIGluZm9ybWF0aW9uCiMJ
+CQkJZGVsZXRlKCR1cmJoYXNoLT57JHByaW50dXJifSk7CgkJCX0KCQkJIyBk
+ZWxldGUgdXJiIGluZm9ybWF0aW9uCgkJCWRlbGV0ZSgkdXJiaGFzaC0+eyRw
+cmludHVyYn0pOwoJCQkkcHJpbnR1cmIgPSAwOyAgI3Jlc2V0IGhlcmUKCQkJ
+JHRtcDEgPSAiIjsKCQkJJHMxID0gMDsKCQkJJHQxID0gMDsKCQkJIyBmbGFn
+IG5leHQgdXJiIGZvciBwcmludCBvdXQKCQkJaWYoZXhpc3RzKCR1cmJoYXNo
+LT57JDF9KSkgewoJCQkJJHByaW50dXJiID0gJDE7CgkJCX0gZWxzZSB7CgkJ
+CQlkaWUgIkVycm9yOiBjYW5ub3QgbWF0Y2ggdXJiISFcbiI7CgkJCX0KCQkJ
+JGN1cnVyYiA9ICQxOwoJCQluZXh0OwoJCX0gZWxzaWYgKC9cLXsyfVxzKyhV
+UkJfRlVOLispXDovKSB7ICAjIHN0b3JlIHVyYiBmdW5jdGlvbiAodXNlZCBm
+b3IgZGVidWdnaW5nKQoJCQlpZighZXhpc3RzKCR1cmJoYXNoLT57JGN1cnVy
+Yn0tPnsnRnVuY3Rpb24nfSkpIHsKCQkJCSR1cmJoYXNoLT57JGN1cnVyYn0t
+PnsnRnVuY3Rpb24nfSA9ICQxOwoJCQl9CgkJCW5leHQ7CgkJfSBlbHNpZiAo
+L1VTQkRfVFJBTlNGRVJfRElSRUNUSU9OX0lOLykgeyAgI3N0b3JlIGluIGRp
+cmVjdGlvbgoJCQkjY2hlY2sgaWYgd2UgYWxyZWFkeSBzdG9yZWQgYSB2YWx1
+ZQoJCQlpZighZXhpc3RzKCR1cmJoYXNoLT57JGN1cnVyYn0tPnsnRGlyZWN0
+aW9uJ30pKSB7CgkJCQkkdXJiaGFzaC0+eyRjdXJ1cmJ9LT57J0RpcmVjdGlv
+bid9ID0gIjw8PCI7CgkJCX0KCQkJbmV4dDsKCQl9IGVsc2lmICgvVVNCRF9U
+UkFOU0ZFUl9ESVJFQ1RJT05fT1VULykgeyAjc3RvcmUgb3V0IGRpcmVjdGlv
+bgoJCQkjY2hlY2sgaWYgd2UgYWxyZWFkeSBzdG9yZWQgYSB2YWx1ZQoJCQlp
+ZighZXhpc3RzKCR1cmJoYXNoLT57JGN1cnVyYn0tPnsnRGlyZWN0aW9uJ30p
+KSB7CgkJCQkkdXJiaGFzaC0+eyRjdXJ1cmJ9LT57J0RpcmVjdGlvbid9ID0g
+Ij4+PiI7CgkJCX0KCQkJbmV4dDsKCQl9IGVsc2lmICgvVHJhbnNmZXJCdWZm
+ZXJNRExccys9XHMrLykgeyAgI2ZsYWcgZGF0YSBwYWNrZXQKCQkJJHQxID0g
+MTsKCQkJbmV4dDsKCQl9IGVsc2lmICgvU2V0dXBQYWNrZXRccys9LykgeyAg
+I2ZsYWcgc2V0dXAgcGFja2V0CgkJCSRzMSA9IDE7CgkJCW5leHQ7CgkJfSBl
+bHNpZiAoLyguK1xzK1w9fG1zXF0pLyAmJiAoJHMxIHx8ICR0MSkpIHsgI3Nh
+dmUgZGF0YSBwYWNrZXQgYW5kIHJlc2V0CgkJCWlmKCRzMSAmJiAoJHRtcDEg
+bmUgIiIpKSB7CgkJCQkkdG1wMSA9fiBzL15ccysvLzsKCQkJCSR1cmJoYXNo
+LT57JGN1cnVyYn0tPnsnU2V0dXBQYWNrZXQnfSA9ICR0bXAxOwoJCQl9IGVs
+c2lmKCR0MSAmJiAoJHRtcDEgbmUgIiIpKSB7CgkJCQkkdG1wMSA9fiBzL15c
+cysvLzsKCQkJCSR1cmJoYXNoLT57JGN1cnVyYn0tPnsnVHJhbnNmZXJCdWZm
+ZXJNREwnfSA9ICR0bXAxCgkJCX0KCQkJJHRtcDEgPSAiIjsKCQkJJHMxID0g
+MDsKCQkJJHQxID0gMDsKCQkJbmV4dDsKCQl9IGVsc2lmICgvXlxzK1xkK1w6
+KC4rKS8gJiYgKCRzMSB8fCAkdDEpKSB7ICNjYXB0dXJlIHBhY2tldAoJCQkk
+dG1wMSA9ICR0bXAxIC4gJDE7CgkJfQoJCQoJfQoJCgkjIHByaW50IHJlbWFp
+bmluZyBVUkIKCWlmKCRwcmludHVyYiAhPSAwICYmIGV4aXN0cygkdXJiaGFz
+aC0+eyRwcmludHVyYn0tPnsnU2V0dXBQYWNrZXQnfSkpIHsKCQlwcmludCAi
+JHVyYmhhc2gtPnskcHJpbnR1cmJ9LT57J1NldHVwUGFja2V0J30gJHVyYmhh
+c2gtPnskcHJpbnR1cmJ9LT57J0RpcmVjdGlvbid9ICR1cmJoYXNoLT57JHBy
+aW50dXJifS0+eydUcmFuc2ZlckJ1ZmZlck1ETCd9XG4iOwojCQkjIGRlbGV0
+ZSB1cmIgaW5mb3JtYXRpb24KIwkJZGVsZXRlKCR1cmJoYXNoLT57JHByaW50
+dXJifSk7Cgl9CgkjIGRlbGV0ZSB1cmIgaW5mb3JtYXRpb24KCWRlbGV0ZSgk
+dXJiaGFzaC0+eyRwcmludHVyYn0pOwoKCSMgTWF5YmUgd2Ugc2hvdWxkIHdh
+cm4gZm9yIHRoZSBVUkIncyB0aGF0IGRpZCBub3QgaGF2ZSBtYXRjaGVzPwoJ
+CgkjIHByaW50IG91dCBzdHVmZiByZW1haW5pbmcgaW4gdGhlIGhhc2ggZm9y
+IGRlYnVnZ2luZwoJI3ByaW50IER1bXBlcigkdXJiaGFzaCk7Cn0=
 
-Kevin Wells
+--0-446084893-1256102810=:67821--
