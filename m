@@ -1,22 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx02.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.6])
+Received: from mx1.redhat.com (ext-mx06.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.10])
 	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n9KCFIdn013105
-	for <video4linux-list@redhat.com>; Tue, 20 Oct 2009 08:15:18 -0400
-Received: from mail-yw0-f195.google.com (mail-yw0-f195.google.com
-	[209.85.211.195])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n9KCF1K8003705
-	for <video4linux-list@redhat.com>; Tue, 20 Oct 2009 08:15:01 -0400
-Received: by ywh33 with SMTP id 33so4609120ywh.23
-	for <video4linux-list@redhat.com>; Tue, 20 Oct 2009 05:15:01 -0700 (PDT)
+	id n9LCpGno010464
+	for <video4linux-list@redhat.com>; Wed, 21 Oct 2009 08:51:17 -0400
+Received: from fmmailgate04.web.de (fmmailgate04.web.de [217.72.192.242])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n9LCp4le023059
+	for <video4linux-list@redhat.com>; Wed, 21 Oct 2009 08:51:05 -0400
+Received: from web.de
+	by fmmailgate04.web.de (Postfix) with SMTP id 0AE4C61F3557
+	for <video4linux-list@redhat.com>;
+	Wed, 21 Oct 2009 14:51:04 +0200 (CEST)
+Date: Wed, 21 Oct 2009 14:51:03 +0200
+Message-Id: <1316903889@web.de>
 MIME-Version: 1.0
-From: Mark Bidewell <mark.bidewell@alumni.clemson.edu>
-Date: Tue, 20 Oct 2009 08:14:41 -0400
-Message-ID: <bfdeacfa0910200514o713cbab3xa9eba77b6aa5eb0f@mail.gmail.com>
+From: =?iso-8859-15?Q?Michael_Gr=FCtzmann?= <Avalone@web.de>
 To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
-Subject: GO7007 driver and ADS Tech DVD Xpress DX2
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 8bit
+Subject: 'pop' sound when unsing vcr
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,17 +30,21 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I am looking into adding the patches for the ADS Tech DVD Xpress DX2
-into the GO7007 driver.  But before I get too far I was wondering what
-the status of the driver was and the future plans?  Also how does the
-kernel driver track with updates from sources such as
-go7007.imploder.org?
+sometimes, when I watch vcr, the sound hangs (disappears) for some secounds and then comes back with a electroic 'pop'.
+could this be related to an old kernel (2.5.25)? 
+I use an saa7134 card=12 tuner=38 or tuner=51 (both work).
+Thanks in advance for your answer.
+The sound is connected via a cable to the sound card aux input (it's a sound blaster live! 5.1 from creative).
+The software (kdetv) uses sound card, not video card sound settings.
 
-Thanks
+best regards,
 
--- 
-Mark Bidewell
-http://www.linkedin.com/in/markbidewell
+Dirk
+
+______________________________________________________
+GRATIS für alle WEB.DE-Nutzer: Die maxdome Movie-FLAT!
+Jetzt freischalten unter http://movieflat.web.de
+
 
 --
 video4linux-list mailing list
