@@ -1,27 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f211.google.com ([209.85.219.211]:35501 "EHLO
-	mail-ew0-f211.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751371AbZJDCEP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2009 22:04:15 -0400
-Received: by ewy7 with SMTP id 7so2475024ewy.17
-        for <linux-media@vger.kernel.org>; Sat, 03 Oct 2009 19:03:06 -0700 (PDT)
+Received: from perceval.irobotique.be ([92.243.18.41]:35087 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751237AbZJUXhu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Oct 2009 19:37:50 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ozan =?utf-8?q?=C3=87a=C4=9Flayan?= <ozan@pardus.org.tr>
+Subject: Re: uvcvideo causes ehci_hcd to halt
+Date: Thu, 22 Oct 2009 01:38:06 +0200
+Cc: Alan Stern <stern@rowland.harvard.edu>,
+	linux-media@vger.kernel.org,
+	"linux-kernel" <linux-kernel@vger.kernel.org>,
+	USB list <linux-usb@vger.kernel.org>
+References: <Pine.LNX.4.44L0.0910211052200.2847-100000@iolanthe.rowland.org> <200910211927.00298.laurent.pinchart@ideasonboard.com> <4ADF6A8A.3070109@pardus.org.tr>
+In-Reply-To: <4ADF6A8A.3070109@pardus.org.tr>
 MIME-Version: 1.0
-Date: Sun, 4 Oct 2009 03:03:06 +0100
-Message-ID: <b4619a970910031903h5c263d38h2122ae507fd097fb@mail.gmail.com>
-Subject: See signal level
-From: Mikhail Ramendik <mr@ramendik.ru>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <200910220138.06878.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Wednesday 21 October 2009 22:09:46 Ozan Çağlayan wrote:
+> Laurent Pinchart wrote:
+> > Probably because hal opens the device to query its capabilities and
+> > closes it right after. The driver submits the interrupt URB when the
+> > first user opens the device and cancels it when the last user closes the
+> > device.
+> 
+> So who's guilty now?
+> 
+> :)
 
-Is there a utility to see the current signal level?
+Not me :-)
 
-I want to try correcting the head position on the dish. And I don't
-have any receiver except my PC. So I'd like to move the head around
-while looking at the signal level.
+I don't think there's anything wrong with submitting an interrupt URB and 
+canceling it soon after.
 
 -- 
-Yours, Mikhail Ramendik
+Regards,
+
+Laurent Pinchart
