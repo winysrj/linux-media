@@ -1,26 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx06.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.10])
+Received: from mx1.redhat.com (ext-mx05.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.9])
 	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n9SDlEWa003955
-	for <video4linux-list@redhat.com>; Wed, 28 Oct 2009 09:47:14 -0400
-Received: from mail-px0-f185.google.com (mail-px0-f185.google.com
-	[209.85.216.185])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n9SDl1u9001317
-	for <video4linux-list@redhat.com>; Wed, 28 Oct 2009 09:47:01 -0400
-Received: by pxi15 with SMTP id 15so546792pxi.23
-	for <video4linux-list@redhat.com>; Wed, 28 Oct 2009 06:47:00 -0700 (PDT)
+	id n9LDWwEU029743
+	for <video4linux-list@redhat.com>; Wed, 21 Oct 2009 09:32:58 -0400
+Received: from exprod7og126.obsmtp.com (exprod7og126.obsmtp.com [64.18.2.206])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n9LDWjpf005269
+	for <video4linux-list@redhat.com>; Wed, 21 Oct 2009 09:32:46 -0400
+Received: by mail-fx0-f211.google.com with SMTP id 7so7340212fxm.34
+	for <video4linux-list@redhat.com>; Wed, 21 Oct 2009 06:32:45 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <9D5E1752379A43408015F7FE9846611504EDD067@CHNEXVS01.VSNLXCHANGE.COM>
-References: <9D5E1752379A43408015F7FE9846611504EDD067@CHNEXVS01.VSNLXCHANGE.COM>
-Date: Wed, 28 Oct 2009 16:47:00 +0300
-Message-ID: <208cbae30910280647lb7913b6saf9d79efb8bfb4b2@mail.gmail.com>
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Anantha Krishnan H <ananthakrishnan@tataelxsi.co.in>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Overview of V4L2
+Date: Wed, 21 Oct 2009 15:32:44 +0200
+Message-ID: <aaaa95950910210632p74179cv91aa9825eff8d6bd@mail.gmail.com>
+From: Sigmund Augdal <sigmund@snap.tv>
+To: video4linux-list@redhat.com
+Content-Type: multipart/mixed; boundary=00151761ca5890239604767203ff
+Subject: [PATCH] output human readable form of the .status field from
+	VIDIOC_ENUMINPUT
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,24 +28,80 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Oct 28, 2009 at 11:16 AM, Anantha Krishnan H
-<ananthakrishnan@tataelxsi.co.in> wrote:
-> Hi all
->    Can anyone give me an overview regarding how V4L2 works and how the V4L2 API s are used?I just know the basics that V4L2 is an Application Programming Interface provided by the Linux Kernel for communicating with video devices lie webcams,TV Tuner cards etc...
+--00151761ca5890239604767203ff
+Content-Type: text/plain; charset=ISO-8859-1
 
-Please take a look at links below:
-docs:
-http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec-single/v4l2.html
-http://linuxtv.org/docs.php
-wiki:
-http://linuxtv.org/wiki/index.php/Main_Page
+The attach patch modifies v4l2-ctl -I to also output signal status as
+detected by the driver/hardware. This info is available in the status field
+of the data returned by VIDIOC_ENUMINPUT which v4l2-ctl -I already calls.
+The strings are copied from the v4l2 api specification and could perhaps be
+modified a bit to fit the application.
 
-I hope you will find it useful.
+Best regards
 
--- 
-Best regards, Klimov Alexey
+Sigmund Augdal
+
+--00151761ca5890239604767203ff
+Content-Type: application/octet-stream; name="v4l2-ctl-enuminput.patch"
+Content-Disposition: attachment; filename="v4l2-ctl-enuminput.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g124iq910
+
+IyBIRyBjaGFuZ2VzZXQgcGF0Y2gKIyBVc2VyIHJvb3RAbG9jYWxob3N0CiMgRGF0ZSAxMjU2MTMw
+ODUyIC0xMDgwMAojIE5vZGUgSUQgYjMzNTI4NGQzMWEzZmE4NWYxYmIyYTk0OTU2MDQ1YmNiMmU3
+YzJjMgojIFBhcmVudCAgN2UyNzNiZWU4NjAxN2FhMTU2OGJiOTJlNmY3MTdlYjU4NTU2MTU3OApj
+aGFuZ2VkIC0tZ2V0LWlucHV0IHRvIHBhcnNlIGFuZCBvdXRwdXQgdGhlIHN0YXR1cyBmaWVsZCBv
+ZiBWSURJT0NfRU5VTUlOUFVUClNpZ25lZC1vZmYtYnk6IFNpZ211bmQgQXVnZGFsIDxzaWdtdW5k
+QHNuYXAudHY+CgpkaWZmIC1yIDdlMjczYmVlODYwMSAtciBiMzM1Mjg0ZDMxYTMgdjRsMi1hcHBz
+L3V0aWwvdjRsMi1jdGwuY3BwCi0tLSBhL3Y0bDItYXBwcy91dGlsL3Y0bDItY3RsLmNwcAlXZWQg
+T2N0IDIxIDE2OjExOjA5IDIwMDkgKzAzMDAKKysrIGIvdjRsMi1hcHBzL3V0aWwvdjRsMi1jdGwu
+Y3BwCVdlZCBPY3QgMjEgMTY6MTQ6MTIgMjAwOSArMDMwMApAQCAtNTcyLDYgKzU3Miw0NCBAQCBz
+dGF0aWMgc3RkOjpzdHJpbmcgZmxhZ3Mycyh1bnNpZ25lZCB2YWwsCiAJcmV0dXJuIHM7CiB9CiAK
+K3N0YXRpYyBzdGQ6OnN0cmluZyBzdGF0dXMycyhfX3UzMiBzdGF0dXMpCit7CisJc3dpdGNoIChz
+dGF0dXMpIHsKKwljYXNlIDA6CisJCXJldHVybiAiU2lnbmFsIE9LIjsKKwljYXNlIFY0TDJfSU5f
+U1RfTk9fUE9XRVI6CisJCXJldHVybiAiQXR0YWNoZWQgZGV2aWNlIGlzIG9mZi4iOworCWNhc2Ug
+VjRMMl9JTl9TVF9OT19TSUdOQUw6CisJCXJldHVybiAiTm8gc2lnbmFsIjsKKwljYXNlIFY0TDJf
+SU5fU1RfTk9fQ09MT1I6CisJCXJldHVybiAiVGhlIGhhcmR3YXJlIHN1cHBvcnRzIGNvbG9yIGRl
+Y29kaW5nLCBidXQgZG9lcyBub3QgZGV0ZWN0IGNvbG9yIG1vZHVsYXRpb24gaW4gdGhlIHNpZ25h
+bC4iOworCWNhc2UgVjRMMl9JTl9TVF9IRkxJUDoKKwkJcmV0dXJuICJUaGUgaW5wdXQgaXMgY29u
+bmVjdGVkIHRvIGEgZGV2aWNlIHRoYXQgcHJvZHVjZXMgYSBzaWduYWwgdGhhdCBpcyBmbGlwcGVk
+IGhvcml6b250YWxseSBhbmQgZG9lcyBub3QgY29ycmVjdCB0aGlzIGJlZm9yZSBwYXNzaW5nIHRo
+ZSBzaWduYWwgdG8gdXNlcnNwYWNlLiI7CisJY2FzZSBWNEwyX0lOX1NUX1ZGTElQOgorCQlyZXR1
+cm4gIlRoZSBpbnB1dCBpcyBjb25uZWN0ZWQgdG8gYSBkZXZpY2UgdGhhdCBwcm9kdWNlcyBhIHNp
+Z25hbCB0aGF0IGlzIGZsaXBwZWQgdmVydGljYWxseSBhbmQgZG9lcyBub3QgY29ycmVjdCB0aGlz
+IGJlZm9yZSBwYXNzaW5nIHRoZSBzaWduYWwgdG8gdXNlcnNwYWNlLiBOb3RlIHRoYXQgYSAxODAg
+ZGVncmVlIHJvdGF0aW9uIGlzIHRoZSBzYW1lIGFzIEhGTElQIHwgVkZMSVAiOworCWNhc2UgVjRM
+Ml9JTl9TVF9OT19IX0xPQ0s6CisJCXJldHVybiAiTm8gaG9yaXpvbnRhbCBzeW5jIGxvY2suIjsK
+KwljYXNlIFY0TDJfSU5fU1RfQ09MT1JfS0lMTDoKKwkJcmV0dXJuICJBIGNvbG9yIGtpbGxlciBj
+aXJjdWl0IGF1dG9tYXRpY2FsbHkgZGlzYWJsZXMgY29sb3IgZGVjb2Rpbmcgd2hlbiBpdCBkZXRl
+Y3RzIG5vIGNvbG9yIG1vZHVsYXRpb24uIFdoZW4gdGhpcyBmbGFnIGlzIHNldCB0aGUgY29sb3Ig
+a2lsbGVyIGlzIGVuYWJsZWQgYW5kIGhhcyBzaHV0IG9mZiBjb2xvciBkZWNvZGluZy4iOworCWNh
+c2UgVjRMMl9JTl9TVF9OT19TWU5DOgorCQlyZXR1cm4gIk5vIHN5bmNocm9uaXphdGlvbiBsb2Nr
+LiI7CisJY2FzZSBWNEwyX0lOX1NUX05PX0VRVToKKwkJcmV0dXJuICJObyBlcXVhbGl6ZXIgbG9j
+ay4iOworCWNhc2UgVjRMMl9JTl9TVF9OT19DQVJSSUVSOgorCQlyZXR1cm4gIkNhcnJpZXIgcmVj
+b3ZlcnkgZmFpbGVkLiI7CisJY2FzZSBWNEwyX0lOX1NUX01BQ1JPVklTSU9OOgorCQlyZXR1cm4g
+Ik1hY3JvdmlzaW9uIGlzIGFuIGFuYWxvZyBjb3B5IHByZXZlbnRpb24gc3lzdGVtIG1hbmdsaW5n
+IHRoZSB2aWRlbyBzaWduYWwgdG8gY29uZnVzZSB2aWRlbyByZWNvcmRlcnMuIFdoZW4gdGhpcyBm
+bGFnIGlzIHNldCBNYWNyb3Zpc2lvbiBoYXMgYmVlbiBkZXRlY3RlZC4iOworCWNhc2UgVjRMMl9J
+Tl9TVF9OT19BQ0NFU1M6CisJCXJldHVybiAiQ29uZGl0aW9uYWwgYWNjZXNzIGRlbmllZC4iOwor
+CWNhc2UgVjRMMl9JTl9TVF9WVFI6CisJCXJldHVybiAiVlRSIHRpbWUgY29uc3RhbnQuIFs/XSI7
+CisJZGVmYXVsdDoKKwkJY2hhciBtc2dbMjBdOworCQlzcHJpbnRmKG1zZywgInVua25vd24oJWQp
+Iiwgc3RhdHVzKTsKKwkJcmV0dXJuIG1zZzsKKwl9Cit9CisKIHN0YXRpYyB2b2lkIHByaW50X3Ns
+aWNlZF92YmlfY2FwKHN0cnVjdCB2NGwyX3NsaWNlZF92YmlfY2FwICZjYXApCiB7CiAJcHJpbnRm
+KCJcdFR5cGUgICAgICAgICAgIDogJXNcbiIsIGJ1ZnR5cGUycyhjYXAudHlwZSkuY19zdHIoKSk7
+CkBAIC0yNzA3LDcgKzI3NDUsNyBAQCBzZXRfdmlkX2ZtdF9lcnJvcjoKIAkJCXByaW50ZigiVmlk
+ZW8gaW5wdXQgOiAlZCIsIGlucHV0KTsKIAkJCXZpbi5pbmRleCA9IGlucHV0OwogCQkJaWYgKGlv
+Y3RsKGZkLCBWSURJT0NfRU5VTUlOUFVULCAmdmluKSA+PSAwKQotCQkJCXByaW50ZigiICglcyki
+LCB2aW4ubmFtZSk7CisJCQkJcHJpbnRmKCIgKCVzOiAlcykiLCB2aW4ubmFtZSwgc3RhdHVzMnMo
+dmluLnN0YXR1cykuY19zdHIoKSk7CiAJCQlwcmludGYoIlxuIik7CiAJCX0KIAl9Cg==
+--00151761ca5890239604767203ff
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--00151761ca5890239604767203ff--
