@@ -1,60 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f208.google.com ([209.85.219.208]:44064 "EHLO
-	mail-ew0-f208.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756287AbZJNLqP (ORCPT
+Received: from iolanthe.rowland.org ([192.131.102.54]:34496 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753711AbZJUPHs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Oct 2009 07:46:15 -0400
-Received: by ewy4 with SMTP id 4so4314771ewy.37
-        for <linux-media@vger.kernel.org>; Wed, 14 Oct 2009 04:45:38 -0700 (PDT)
-Message-ID: <4AD5D5F2.9080102@xfce.org>
-Date: Wed, 14 Oct 2009 13:45:22 +0000
-From: Ali Abdallah <aliov@xfce.org>
+	Wed, 21 Oct 2009 11:07:48 -0400
+Date: Wed, 21 Oct 2009 11:07:51 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: =?UTF-8?B?T3phbiDDh2HEn2xheWFu?= <ozan@pardus.org.tr>
+cc: linux-media@vger.kernel.org,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	USB list <linux-usb@vger.kernel.org>
+Subject: Re: uvcvideo causes ehci_hcd to halt
+In-Reply-To: <4ADEC4C5.8010707@pardus.org.tr>
+Message-ID: <Pine.LNX.4.44L0.0910211052200.2847-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Michael Krufky <mkrufky@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Hauppage WinTV-HVR-900H
-References: <4ACDF829.3010500@xfce.org>	 <37219a840910080545v72165540v622efd43574cf085@mail.gmail.com>	 <4ACDFED9.30606@xfce.org>	 <829197380910080745j3015af10pbced2a7e04c7595b@mail.gmail.com>	 <4ACE2D5B.4080603@xfce.org>	 <829197380910080928t30fc0ecas7f9ab2a7d8437567@mail.gmail.com>	 <4ACF03BA.4070505@xfce.org>	 <829197380910090629h64ce22e5y64ce5ff5b5991802@mail.gmail.com>	 <4ACF714A.2090209@xfce.org> <829197380910090826r5358a8a2p7a13f2915b5adcd8@mail.gmail.com>
-In-Reply-To: <829197380910090826r5358a8a2p7a13f2915b5adcd8@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
-> On Fri, Oct 9, 2009 at 1:22 PM, Ali Abdallah <aliov@xfce.org> wrote:
->   
->> Screenshots here for TV and S-Video input configuration with TV time.
->>
->> http://ali.blogsite.org/files/tvtime/
->>     
->>> Could you try the S-Video or composite input and see if the picture
->>> quality is still bad (as this well help isolate whether it's a problem
->>> with the tuner chip or the decoder.
->>>
->>>       
->> Same picture quality with S-Video, but with composite there is no picture.
->>     
->
-> Ok, this helps alot.  This rules out the tuner and suggests that
-> perhaps the video decoder is not being programmed properly.
->
-> Could you please send me the output of "dmesg"?  I'll see about
-> setting up a tree with some additional debugging for you to try out.
->   
+On Wed, 21 Oct 2009, [UTF-8] Ozan Çağlayan wrote:
 
-Follow up, i manager to get the hvr 900 instead the 900H, and i got the 
-same result with the analog signal, i tried with my friend's windows 
-system, same result, no analog channels detected, however i got all the 
-channels a hvr pci card, so i expect these USB keys needs really a very 
-strong signal, so there is no problem in the driver, sorry for the 
-noise, hopefully the 900H will get a driver soon.
+> Nope it didn't help. Here's the DEBUG enabled dmesg output:
 
+...
+> [  420.737748] usb 1-5: link qh1024-0001/f6ffe280 start 1 [1/0 us]
 
-> Thanks,
->
-> Devin
->
->   
-Thanks,
-Ali.
+The periodic schedule was enabled here.
+
+> [  420.737891] usb 1-5: unlink qh1024-0001/f6ffe280 start 1 [1/0 us]
+
+And it was disabled here.  Do you have any idea why the uvcvideo driver 
+submits an interrupt URB and then cancels it 150 us later?  The same 
+thing shows up in the usbmon traces.
+
+> [  420.741605] usb 1-5:1.0: uevent
+> [  420.741957] usb 1-5: uevent
+> [  420.745592] usb 1-5:1.0: uevent
+> [  420.807880] ehci_hcd 0000:00:1d.7: reused qh f6ffe280 schedule
+> [  420.807894] usb 1-5: link qh1024-0001/f6ffe280 start 1 [1/0 us]
+
+Now ehci-hcd tried to re-enable the periodic schedule.  Note that 
+this is 70 ms after it was supposed to be disabled.
+
+> [  420.808780] ehci_hcd 0000:00:1d.7: force halt; handhake f7c6a024
+> 00004000 00000000 -> -110
+
+This error message means that the disable request from 70 ms earlier
+hasn't taken effect.  It looks like a nasty hardware bug -- the
+controller is supposed to disable the schedule no more than 2 ms after
+being told to do so.
+
+Has this device ever worked with any earlier kernels?
+
+A little more debugging information could confirm this.  After the
+error occurs, go into /sys/kernel/debug/usb/ehci/0000:00:1d.7 and post
+a copy of the "registers" file.  If there's anything of interest in the
+other files, post them too.
+
+Alan Stern
+
