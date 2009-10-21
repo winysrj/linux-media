@@ -1,117 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34549 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751118AbZJPKUB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Oct 2009 06:20:01 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9GAJMb8017513
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 16 Oct 2009 05:19:24 -0500
-From: hvaibhav@ti.com
-To: linux-media@vger.kernel.org
-Cc: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH 1/4] V4L2: Added New V4L2 CIDs VIDIOC_S/G_COLOR_SPACE_CONV
-Date: Fri, 16 Oct 2009 15:49:20 +0530
-Message-Id: <1255688360-6278-1-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
+Received: from qw-out-2122.google.com ([74.125.92.24]:1606 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754812AbZJUTdH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Oct 2009 15:33:07 -0400
+Received: by qw-out-2122.google.com with SMTP id 9so985423qwb.37
+        for <linux-media@vger.kernel.org>; Wed, 21 Oct 2009 12:33:11 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4ADED23C.2080002@uq.edu.au>
+References: <4ADED23C.2080002@uq.edu.au>
+Date: Wed, 21 Oct 2009 15:33:10 -0400
+Message-ID: <303a8ee30910211233r111d3378vedc1672f68728717@mail.gmail.com>
+Subject: Re: Leadtek DTV-1000S
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Ryan Day <ryan.day@uq.edu.au>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+On Wed, Oct 21, 2009 at 5:19 AM, Ryan Day <ryan.day@uq.edu.au> wrote:
+> Michael-
+> I wanted to see if you might be able to assist in getting a DTV-1000S to
+> work.  I followed the instructions on the Whirlpool forum (DL the firmware,
+> cp it to /lib/firmware, dl the dtv-1000s files from kernellabs.com, untar,
+> make, make install, reboot), and everything looks good when I install, but
+> when I reboot, the boot up hangs and eventually freezes.
+>
+> I thought reinstalling might give me a better chance for success with a
+> clean slate to work with, but the problem continues.  Unfortunately, I don't
+> have any of the error logs or anything, as I reinstalled.
+>
+> I can't remember the message at the first hang, but the freeze is caused by
+> a failure to load the LIRC module.
+>
+> Also of note is that I'm installing this card as a second tuner.  I have a
+> DTV-2000H already installed.  I don't know if that changes anything.
+>
+> Sorry I can't provide better info, but any advice you can give would be
+> great.
 
+Ryan,
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- drivers/media/video/v4l2-ioctl.c |   19 +++++++++++++++++++
- include/linux/videodev2.h        |   14 ++++++++++++++
- include/media/v4l2-ioctl.h       |    4 ++++
- 3 files changed, 37 insertions(+), 0 deletions(-)
+This is really a question for the linux-media mailing list, so I've
+added it in cc -- please use REPLY-TO-ALL in your correspondence, so
+that anybody else that may have seen this issue can chime in with
+their advice, or perhaps they may benefit themselves simply by reading
+your problem description.  Also, please remember that your response on
+the mailing list should appear below the quoted thread.
 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 30cc334..d3140e0 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -284,6 +284,8 @@ static const char *v4l2_ioctls[] = {
- 	[_IOC_NR(VIDIOC_DBG_G_CHIP_IDENT)] = "VIDIOC_DBG_G_CHIP_IDENT",
- 	[_IOC_NR(VIDIOC_S_HW_FREQ_SEEK)]   = "VIDIOC_S_HW_FREQ_SEEK",
- #endif
-+	[_IOC_NR(VIDIOC_S_COLOR_SPACE_CONV)]   = "VIDIOC_S_COLOR_SPACE_CONV",
-+	[_IOC_NR(VIDIOC_G_COLOR_SPACE_CONV)]   = "VIDIOC_G_COLOR_SPACE_CONV",
- };
- #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
- 
-@@ -1795,6 +1797,23 @@ static long __video_do_ioctl(struct file *file,
- 		break;
- 	}
- 
-+	/*---------------Color space conversion------------------------------*/
-+	case VIDIOC_S_COLOR_SPACE_CONV:
-+	{
-+		struct v4l2_color_space_conv *p = arg;
-+		if (!ops->vidioc_s_color_space_conv)
-+			break;
-+		ret = ops->vidioc_s_color_space_conv(file, fh, p);
-+		break;
-+	}
-+	case VIDIOC_G_COLOR_SPACE_CONV:
-+	{
-+		struct v4l2_color_space_conv *p = arg;
-+		if (!ops->vidioc_g_color_space_conv)
-+			break;
-+		ret = ops->vidioc_g_color_space_conv(file, fh, p);
-+		break;
-+	}
- 	default:
- 	{
- 		if (!ops->vidioc_default)
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index b59e78c..b6fe1de 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1281,6 +1281,18 @@ struct v4l2_rds_data {
- #define V4L2_RDS_BLOCK_ERROR 	 0x80
- 
- /*
-+ * Color conversion
-+ * User needs to pass pointer to color conversion matrix
-+ * defined by hardware
-+ */
-+struct v4l2_color_space_conv {
-+	__s32 coefficients[3][3];
-+	__s32 const_factor;
-+	__s32 input_offs[3];
-+	__s32 output_offs[3];
-+};
-+
-+/*
-  *	A U D I O
-  */
- struct v4l2_audio {
-@@ -1619,6 +1631,8 @@ struct v4l2_dbg_chip_ident {
- #endif
- 
- #define VIDIOC_S_HW_FREQ_SEEK	 _IOW('V', 82, struct v4l2_hw_freq_seek)
-+#define VIDIOC_S_COLOR_SPACE_CONV _IOW('V', 83, struct v4l2_color_space_conv)
-+#define VIDIOC_G_COLOR_SPACE_CONV _IOR('V', 84, struct v4l2_color_space_conv)
- /* Reminder: when adding new ioctls please add support for them to
-    drivers/media/video/v4l2-compat-ioctl32.c as well! */
- 
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index 7a4529d..0e31ace 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -242,6 +242,10 @@ struct v4l2_ioctl_ops {
- 	/* For other private ioctls */
- 	long (*vidioc_default)	       (struct file *file, void *fh,
- 					int cmd, void *arg);
-+	int (*vidioc_s_color_space_conv)     (struct file *file, void *fh,
-+					struct v4l2_color_space_conv *a);
-+	int (*vidioc_g_color_space_conv)     (struct file *file, void *fh,
-+					struct v4l2_color_space_conv *a);
- };
- 
- 
--- 
-1.6.2.4
+Meanwhile, why would failure to load the LIRC module cause a problem
+on your board, causing a system hang... Sounds fishy to me -- are you
+sure about this?
 
+Have you tried deleting / blacklisting the module that you believe to
+be freezing your system?
+
+Have you tried moving your PCI card to another slot?
+
+Have you google'd for other users of your motherboard who might be
+suffering from similar issues?
+
+I updated the dtv1000s tree yesterday, with the intention of getting
+it merged into the master branch.  Perhaps there is a bug in the new
+repository that is not present in the old repository?
+
+The current repository that you probably have already tested is located here:
+
+http://kernellabs.com/hg/~mkrufky/dtv1000s
+
+The only difference in the new tree when compared to the older tree,
+is that I've pulled in the latest v4l-dvb core changes from the master
+branch on linuxtv.org, and updated the DTV1000S patch to account for
+the latest board additions in the saa7134 driver.  The dtv1000s
+support itself hasn't changed at all.  To eliminate this as a possible
+cause, you can try testing the older tree, instead.  The older tree
+that has already been tested by other users of both flavors of this
+dtv1000s board is located here:
+
+http://kernellabs.com/hg/~mkrufky/dtv1000s.old
+
+If the older repository works but the new one doesn't, that would
+indicate that there is a problem in the master v4l-dvb repository.
+
+If all else fails, try removing the other board that you have
+installed, and see if that is a factor in this problem
+
+Please test and report your findings back to the mailing list as a
+reply-to-all response in this thread.
+
+I hope this helps.
+
+Regards,
+
+Mike Krufky
