@@ -1,59 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f218.google.com ([209.85.220.218]:63010 "EHLO
-	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751159AbZJSTj5 convert rfc822-to-8bit (ORCPT
+Received: from netrider.rowland.org ([192.131.102.5]:51627 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752995AbZJVUDg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Oct 2009 15:39:57 -0400
-Received: by fxm18 with SMTP id 18so5488551fxm.37
-        for <linux-media@vger.kernel.org>; Mon, 19 Oct 2009 12:40:01 -0700 (PDT)
+	Thu, 22 Oct 2009 16:03:36 -0400
+Date: Thu, 22 Oct 2009 16:03:41 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: =?UTF-8?B?T3phbiDDh2HEn2xheWFu?= <ozan@pardus.org.tr>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	<linux-media@vger.kernel.org>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	USB list <linux-usb@vger.kernel.org>
+Subject: Re: uvcvideo causes ehci_hcd to halt
+In-Reply-To: <4AE080AC.4050108@pardus.org.tr>
+Message-ID: <Pine.LNX.4.44L0.0910221558510.9192-100000@netrider.rowland.org>
 MIME-Version: 1.0
-In-Reply-To: <20091020042913.1d3609d7@caramujo.chehab.org>
-References: <340263.68846.qm@web25604.mail.ukl.yahoo.com>
-	 <20091020042913.1d3609d7@caramujo.chehab.org>
-Date: Mon, 19 Oct 2009 21:40:00 +0200
-Message-ID: <d9def9db0910191240g163f04aau631ec481ec6bdf70@mail.gmail.com>
-Subject: Re: ISDB-T tuner
-From: Markus Rechberger <mrechberger@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Romont Sylvain <psgman24@yahoo.fr>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 19, 2009 at 9:29 PM, Mauro Carvalho Chehab
-<mchehab@infradead.org> wrote:
-> Hi Romont,
->
-> Em Mon, 19 Oct 2009 12:16:30 +0000 (GMT)
-> Romont Sylvain <psgman24@yahoo.fr> escreveu:
->
->> Hello!
->>
->> I actually live in Japan, I try to make working a tuner card ISDB-T with
->> linux. I searched a lot in internet but I find nothing....
->> How can I make it working?
->> My tuner card is a Pixela PIXDT090-PE0
->> in picture here: �http://bbsimg01.kakaku.com/images/bbs/000/208/208340_m.jpg
->>
->> Thank you for your help!!!
->
-> Unfortunately, only the Earthsoft PC1 board and the boards with dibcom 80xx USB
-> boards are currently supported. In the case of Dibcom, it can support several
-> different devices, but we may need to add the proper USB ID for the board at the driver.
->
-> I'm in Japan during this week for the Kernel Summit and Japan Linux Symposium.
->
-> One of objectives I'm expecting from this trip is to get more people involved on
-> creating more drivers for ISDB and other Asian digital video standards.
->
+On Thu, 22 Oct 2009, [UTF-8] Ozan Çağlayan wrote:
 
-Here we can add that we also have fully working Hybrid/ISDB-T USB
-fullseg devices for Linux already, just in case someone is interested
-in it.
-Feel free to contact me to get some more information about it. The
-driver works from Linux 2.6.15 on (easy installation everywhere
-without compiling).
+> Alan Stern wrote:
+> > On Thu, 22 Oct 2009, [UTF-8] Ozan Ã‡aÄŸlayan wrote:
+> >
+> >   
+> >> Here's the outputs from /sys/kernel/debug/usb/ehci:
+> >>
+> >> periodic:
+> >> ----------------
+> >> size = 1024
+> >>    1:  qh1024-0001/f6ffe280 (h2 ep2 [1/0] q0 p8)
+> >>     
+> >
+> > There's something odd about this.  I'd like to see this file again, 
+> > after the patch below has been applied.
+> >
+> >   
+> 
+> Do you want me to apply this patch altogether with the first one that
+> you sent a while ago in this thread or directly onto the vanilla kernel?
 
-Best Regards,
-Markus
+It doesn't matter.  The "size = 1024" line in your debugging output 
+means that the first patch won't have any effect; my hunch was wrong.
+
+However it turns out that the most recent patch wasn't quite what I
+wanted.  Here's an updated version to be used instead.
+
+Alan Stern
+
+
+
+Index: usb-2.6/drivers/usb/host/ehci-dbg.c
+===================================================================
+--- usb-2.6.orig/drivers/usb/host/ehci-dbg.c
++++ usb-2.6/drivers/usb/host/ehci-dbg.c
+@@ -596,18 +596,22 @@ static ssize_t fill_periodic_buffer(stru
+ 							qtd->hw_token) >> 8)) {
+ 						case 0: type = "out"; continue;
+ 						case 1: type = "in"; continue;
++						case 2: type = "?2"; continue;
++						case 3: type = "?3"; continue;
+ 						}
+ 					}
+ 
+ 					temp = scnprintf (next, size,
+ 						" (%c%d ep%d%s "
+-						"[%d/%d] q%d p%d)",
++						"[%d/%d] q%d p%d) t%08x",
+ 						speed_char (scratch),
+ 						scratch & 0x007f,
+ 						(scratch >> 8) & 0x000f, type,
+ 						p.qh->usecs, p.qh->c_usecs,
+ 						temp,
+-						0x7ff & (scratch >> 16));
++						0x7ff & (scratch >> 16),
++						hc32_to_cpu(ehci,
++							p.qh->hw->hw_token));
+ 
+ 					if (seen_count < DBG_SCHED_LIMIT)
+ 						seen [seen_count++].qh = p.qh;
+
