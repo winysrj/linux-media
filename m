@@ -1,103 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from exprod7og116.obsmtp.com ([64.18.2.219]:49842 "HELO
-	exprod7og116.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756133AbZJVPj1 (ORCPT
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:37859 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756363AbZJVT1R (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Oct 2009 11:39:27 -0400
-Received: by fxm19 with SMTP id 19so9509190fxm.2
-        for <linux-media@vger.kernel.org>; Thu, 22 Oct 2009 08:39:29 -0700 (PDT)
+	Thu, 22 Oct 2009 15:27:17 -0400
+Received: by fxm18 with SMTP id 18so9575731fxm.37
+        for <linux-media@vger.kernel.org>; Thu, 22 Oct 2009 12:27:21 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <aaaa95950910220812o400a2daeh4d7ff2cff832c4d8@mail.gmail.com>
-References: <aaaa95950910210625x33218164v1b0a5b3e276acfda@mail.gmail.com>
-	 <aaaa95950910220812o400a2daeh4d7ff2cff832c4d8@mail.gmail.com>
-Date: Thu, 22 Oct 2009 17:39:29 +0200
-Message-ID: <aaaa95950910220839x74a969f6haa02c0aa0a685750@mail.gmail.com>
-Subject: [PATCH] Support for VIDIOC_QUERYSTD in v4l2-ctl
-From: Sigmund Augdal <sigmund@snap.tv>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=00032555a15aa72e36047687e62f
+In-Reply-To: <20091022211330.6e84c6e7@hyperion.delvare>
+References: <20091022211330.6e84c6e7@hyperion.delvare>
+Date: Thu, 22 Oct 2009 15:27:20 -0400
+Message-ID: <829197380910221227sc3b6398xbd3061e8483ac41@mail.gmail.com>
+Subject: Re: Details about DVB frontend API
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---00032555a15aa72e36047687e62f
-Content-Type: text/plain; charset=ISO-8859-1
+On Thu, Oct 22, 2009 at 3:13 PM, Jean Delvare <khali@linux-fr.org> wrote:
+> Hi folks,
+>
+> I am looking for details regarding the DVB frontend API. I've read
+> linux-dvb-api-1.0.0.pdf, it roughly explains what the FE_READ_BER,
+> FE_READ_SNR, FE_READ_SIGNAL_STRENGTH and FE_READ_UNCORRECTED_BLOCKS
+> commands return, however it does not give any information about how the
+> returned values should be interpreted (or, seen from the other end, how
+> the frontend kernel drivers should encode these values.) If there
+> documentation available that would explain this?
+>
+> For example, the signal strength. All I know so far is that this is a
+> 16-bit value. But then what? Do greater values represent stronger
+> signal or weaker signal? Are 0x0000 and 0xffff special values? Is the
+> returned value meaningful even when FE_HAS_SIGNAL is 0? When
+> FE_HAS_LOCK is 0? Is the scale linear, or do some values have
+> well-defined meanings, or is it arbitrary and each driver can have its
+> own scale? What are the typical use cases by user-space application for
+> this value?
+>
+> That's the kind of details I'd like to know, not only for the signal
+> strength, but also for the SNR, BER and UB. Without this information,
+> it seems a little difficult to have consistent frontend drivers.
+>
+> Thanks,
+> --
+> Jean Delvare
 
-Attached patch adds support for running the VIDIOC_QUERYSTD ioctl from v4l2-ctl.
+Hi Jean,
 
-Best regards
+I try to raise this every six months or so.  Check the mailing list
+archive for "SNR" in the subject line.
 
-Sigmund Augdal
+Yes, it's all screwed up and inconsistent across demods.  I took a
+crack at fixing it a few months ago by proposing a standard (and even
+offering to fix up all the demods to be consistent), and those efforts
+were derailed by some individuals who wanted what I would consider a
+"perfect interface" at the cost of something that worked for 98% of
+the userbase (I'm not going to point any fingers).  And what did we
+get as a result?  Nothing.
 
---00032555a15aa72e36047687e62f
-Content-Type: application/octet-stream; name="v4l2-ctl-querystd.patch"
-Content-Disposition: attachment; filename="v4l2-ctl-querystd.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_g12491zm0
+I could have had this problem solved six months ago for 98% of the
+community, and instead we are right where we have been since the
+beginning of the project.
 
-IyBIRyBjaGFuZ2VzZXQgcGF0Y2gKIyBVc2VyIHJvb3RAbG9jYWxob3N0CiMgRGF0ZSAxMjU2MTMw
-NjY5IC0xMDgwMAojIE5vZGUgSUQgN2UyNzNiZWU4NjAxN2FhMTU2OGJiOTJlNmY3MTdlYjU4NTU2
-MTU3OAojIFBhcmVudCAgZjY2ODBmYThlN2VjODhiYmZiZWRkZGM3YzNlOTkwMDNlMzI4YTFhYQpB
-ZGRlZCBzdXBwb3J0IGZvciBWSURJT0NfUVVFUllTVEQKClNpZ25lZC1vZmYtYnk6IFNpZ211bmQg
-QXVnZGFsIDxzaWdtdW5kQHNuYXAudHY+CmRpZmYgLXIgZjY2ODBmYThlN2VjIC1yIDdlMjczYmVl
-ODYwMSB2NGwyLWFwcHMvdXRpbC92NGwyLWN0bC5jcHAKLS0tIGEvdjRsMi1hcHBzL3V0aWwvdjRs
-Mi1jdGwuY3BwCVR1ZSBPY3QgMjAgMDA6MDg6MDUgMjAwOSArMDkwMAorKysgYi92NGwyLWFwcHMv
-dXRpbC92NGwyLWN0bC5jcHAJV2VkIE9jdCAyMSAxNjoxMTowOSAyMDA5ICswMzAwCkBAIC0xNDEs
-NiArMTQxLDcgQEAgZW51bSBPcHRpb24gewogCU9wdExpc3REZXZpY2VzLAogCU9wdEdldE91dHB1
-dFBhcm0sCiAJT3B0U2V0T3V0cHV0UGFybSwKKwlPcHRRdWVyeVN0YW5kYXJkLAogCU9wdExhc3Qg
-PSAyNTYKIH07CiAKQEAgLTIyOSw2ICsyMzAsNyBAQCBzdGF0aWMgc3RydWN0IG9wdGlvbiBsb25n
-X29wdGlvbnNbXSA9IHsKIAl7Imxpc3QtZnJhbWVpbnRlcnZhbHMiLCByZXF1aXJlZF9hcmd1bWVu
-dCwgMCwgT3B0TGlzdEZyYW1lSW50ZXJ2YWxzfSwKIAl7ImdldC1zdGFuZGFyZCIsIG5vX2FyZ3Vt
-ZW50LCAwLCBPcHRHZXRTdGFuZGFyZH0sCiAJeyJzZXQtc3RhbmRhcmQiLCByZXF1aXJlZF9hcmd1
-bWVudCwgMCwgT3B0U2V0U3RhbmRhcmR9LAorCXsiZ2V0LWRldGVjdGVkLXN0YW5kYXJkIiwgbm9f
-YXJndW1lbnQsIDAsIE9wdFF1ZXJ5U3RhbmRhcmR9LAogCXsiZ2V0LXBhcm0iLCBub19hcmd1bWVu
-dCwgMCwgT3B0R2V0UGFybX0sCiAJeyJzZXQtcGFybSIsIHJlcXVpcmVkX2FyZ3VtZW50LCAwLCBP
-cHRTZXRQYXJtfSwKIAl7ImdldC1vdXRwdXQtcGFybSIsIG5vX2FyZ3VtZW50LCAwLCBPcHRHZXRP
-dXRwdXRQYXJtfSwKQEAgLTMxNyw2ICszMTksOCBAQCBzdGF0aWMgdm9pZCB1c2FnZSh2b2lkKQog
-CSAgICAgICAiICAgICAgICAgICAgICAgICAgICAgbnRzYy1YIChYID0gTS9KL0spIG9yIGp1c3Qg
-J250c2MnIChWNEwyX1NURF9OVFNDKVxuIgogCSAgICAgICAiICAgICAgICAgICAgICAgICAgICAg
-c2VjYW0tWCAoWCA9IEIvRy9IL0QvSy9ML0xjKSBvciBqdXN0ICdzZWNhbScgKFY0TDJfU1REX1NF
-Q0FNKVxuIgogCSAgICAgICAiICAtLWxpc3Qtc3RhbmRhcmRzICAgZGlzcGxheSBzdXBwb3J0ZWQg
-dmlkZW8gc3RhbmRhcmRzIFtWSURJT0NfRU5VTVNURF1cbiIKKwkgICAgICAgIiAgLS1nZXQtZGV0
-ZWN0ZWQtc3RhbmRhcmRcbiIKKwkgICAgICAgIiAgICAgICAgICAgICAgICAgICAgIGRpc3BsYXkg
-dmlkZW8gZGV0ZWN0ZWQgaW5wdXQgdmlkZW8gc3RhbmRhcmQgW1ZJRElPQ19RVUVSWVNURF1cbiIK
-IAkgICAgICAgIiAgLVAsIC0tZ2V0LXBhcm0gICAgIGRpc3BsYXkgdmlkZW8gcGFyYW1ldGVycyBb
-VklESU9DX0dfUEFSTV1cbiIKIAkgICAgICAgIiAgLXAsIC0tc2V0LXBhcm09PGZwcz5cbiIKIAkg
-ICAgICAgIiAgICAgICAgICAgICAgICAgICAgIHNldCB2aWRlbyBmcmFtZXJhdGUgaW4gPGZwcz4g
-W1ZJRElPQ19TX1BBUk1dXG4iCkBAIC0xNDk0LDYgKzE0OTgsNDAgQEAgc3RhdGljIHZvaWQgcHJp
-bnRfc3RkKGNvbnN0IGNoYXIgKnByZWZpeAogCXByaW50ZigiXG4iKTsKIH0KIAorc3RhdGljIHZv
-aWQgcHJpbnRfdjRsc3RkKHVuc2lnbmVkIGxvbmcgbG9uZyBzdGQpCit7CisJc3RhdGljIGNvbnN0
-IGNoYXIgKnBhbFtdID0geworCQkiQiIsICJCMSIsICJHIiwgIkgiLCAiSSIsICJEIiwgIkQxIiwg
-IksiLAorCQkiTSIsICJOIiwgIk5jIiwgIjYwIiwKKwkJTlVMTAorCX07CisJc3RhdGljIGNvbnN0
-IGNoYXIgKm50c2NbXSA9IHsKKwkJIk0iLCAiTS1KUCIsICI0NDMiLCAiTS1LUiIsCisJCU5VTEwK
-Kwl9OworCXN0YXRpYyBjb25zdCBjaGFyICpzZWNhbVtdID0geworCQkiQiIsICJEIiwgIkciLCAi
-SCIsICJLIiwgIksxIiwgIkwiLCAiTGMiLAorCQlOVUxMCisJfTsKKwlzdGF0aWMgY29uc3QgY2hh
-ciAqYXRzY1tdID0geworCQkiQVRTQy04LVZTQiIsICJBVFNDLTE2LVZTQiIsCisJCU5VTEwKKwl9
-OworCisJaWYgKHN0ZCAmIDB4ZmZmKSB7CisJCXByaW50X3N0ZCgiUEFMIiwgcGFsLCBzdGQpOwor
-CX0KKwlpZiAoc3RkICYgMHhmMDAwKSB7CisJCXByaW50X3N0ZCgiTlRTQyIsIG50c2MsIHN0ZCA+
-PiAxMik7CisJfQorCWlmIChzdGQgJiAweGZmMDAwMCkgeworCQlwcmludF9zdGQoIlNFQ0FNIiwg
-c2VjYW0sIHN0ZCA+PiAxNik7CisJfQorCWlmIChzdGQgJiAweGYwMDAwMDApIHsKKwkJcHJpbnRf
-c3RkKCJBVFNDL0hEVFYiLCBhdHNjLCBzdGQgPj4gMjQpOworCX0KK30KKwogc3RhdGljIHZvaWQg
-ZG9fY3JvcChpbnQgZmQsIHVuc2lnbmVkIGludCBzZXRfY3JvcCwgc3RydWN0IHY0bDJfcmVjdCAm
-dmNyb3AsIHY0bDJfYnVmX3R5cGUgdHlwZSkKIHsKICAgICBzdHJ1Y3QgdjRsMl9jcm9wIGluX2Ny
-b3A7CkBAIC0yNzE5LDM3ICsyNzU3LDE1IEBAIHNldF92aWRfZm10X2Vycm9yOgogCiAJaWYgKG9w
-dGlvbnNbT3B0R2V0U3RhbmRhcmRdKSB7CiAJCWlmIChkb2lvY3RsKGZkLCBWSURJT0NfR19TVEQs
-ICZzdGQsICJWSURJT0NfR19TVEQiKSA9PSAwKSB7Ci0JCQlzdGF0aWMgY29uc3QgY2hhciAqcGFs
-W10gPSB7Ci0JCQkJIkIiLCAiQjEiLCAiRyIsICJIIiwgIkkiLCAiRCIsICJEMSIsICJLIiwKLQkJ
-CQkiTSIsICJOIiwgIk5jIiwgIjYwIiwKLQkJCQlOVUxMCi0JCQl9OwotCQkJc3RhdGljIGNvbnN0
-IGNoYXIgKm50c2NbXSA9IHsKLQkJCQkiTSIsICJNLUpQIiwgIjQ0MyIsICJNLUtSIiwKLQkJCQlO
-VUxMCi0JCQl9OwotCQkJc3RhdGljIGNvbnN0IGNoYXIgKnNlY2FtW10gPSB7Ci0JCQkJIkIiLCAi
-RCIsICJHIiwgIkgiLCAiSyIsICJLMSIsICJMIiwgIkxjIiwKLQkJCQlOVUxMCi0JCQl9OwotCQkJ
-c3RhdGljIGNvbnN0IGNoYXIgKmF0c2NbXSA9IHsKLQkJCQkiQVRTQy04LVZTQiIsICJBVFNDLTE2
-LVZTQiIsCi0JCQkJTlVMTAotCQkJfTsKLQogCQkJcHJpbnRmKCJWaWRlbyBTdGFuZGFyZCA9IDB4
-JTA4bGx4XG4iLCAodW5zaWduZWQgbG9uZyBsb25nKXN0ZCk7Ci0JCQlpZiAoc3RkICYgMHhmZmYp
-IHsKLQkJCQlwcmludF9zdGQoIlBBTCIsIHBhbCwgc3RkKTsKLQkJCX0KLQkJCWlmIChzdGQgJiAw
-eGYwMDApIHsKLQkJCQlwcmludF9zdGQoIk5UU0MiLCBudHNjLCBzdGQgPj4gMTIpOwotCQkJfQot
-CQkJaWYgKHN0ZCAmIDB4ZmYwMDAwKSB7Ci0JCQkJcHJpbnRfc3RkKCJTRUNBTSIsIHNlY2FtLCBz
-dGQgPj4gMTYpOwotCQkJfQotCQkJaWYgKHN0ZCAmIDB4ZjAwMDAwMCkgewotCQkJCXByaW50X3N0
-ZCgiQVRTQy9IRFRWIiwgYXRzYywgc3RkID4+IDI0KTsKLQkJCX0KKwkJCXByaW50X3Y0bHN0ZCgo
-dW5zaWduZWQgbG9uZyBsb25nKXN0ZCk7CisJCX0KKwl9CisKKwlpZiAob3B0aW9uc1tPcHRRdWVy
-eVN0YW5kYXJkXSkgeworCQlpZiAoZG9pb2N0bChmZCwgVklESU9DX1FVRVJZU1RELCAmc3RkLCAi
-VklESU9DX1FVRVJZU1REIikgPT0gMCkgeworCQkJcHJpbnRmKCJWaWRlbyBTdGFuZGFyZCA9IDB4
-JTA4bGx4XG4iLCAodW5zaWduZWQgbG9uZyBsb25nKXN0ZCk7CisJCQlwcmludF92NGxzdGQoKHVu
-c2lnbmVkIGxvbmcgbG9uZylzdGQpOwogCQl9CiAJfQogCg==
---00032555a15aa72e36047687e62f--
+/me stops thinking about this and goes and gets some coffee....
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
