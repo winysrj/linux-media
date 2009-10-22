@@ -1,86 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:32894 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750835AbZJ2DkZ convert rfc822-to-8bit (ORCPT
+Received: from exprod7og127.obsmtp.com ([64.18.2.210]:59557 "HELO
+	exprod7og127.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1756507AbZJVPvp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Oct 2009 23:40:25 -0400
-Received: by bwz27 with SMTP id 27so1817445bwz.21
-        for <linux-media@vger.kernel.org>; Wed, 28 Oct 2009 20:40:29 -0700 (PDT)
+	Thu, 22 Oct 2009 11:51:45 -0400
+Received: by mail-fx0-f219.google.com with SMTP id 19so9522925fxm.2
+        for <linux-media@vger.kernel.org>; Thu, 22 Oct 2009 08:51:49 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <4AE8F99E.5010701@acm.org>
-References: <4AE8F99E.5010701@acm.org>
-Date: Wed, 28 Oct 2009 23:40:28 -0400
-Message-ID: <829197380910282040t6fce747aoca318911e76aa23f@mail.gmail.com>
-Subject: Re: HVR-950Q problem under MythTV
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Bob Cunningham <rcunning@acm.org>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <aaaa95950910220813y71f2f328sdb53d5c594d93094@mail.gmail.com>
+References: <aaaa95950910210632p74179cv91aa9825eff8d6bd@mail.gmail.com>
+	 <aaaa95950910220813y71f2f328sdb53d5c594d93094@mail.gmail.com>
+Date: Thu, 22 Oct 2009 17:51:48 +0200
+Message-ID: <aaaa95950910220851l201870c8w5352f2ec889244eb@mail.gmail.com>
+Subject: [PATCH] output human readable form of the .status field from
+	VIDIOC_ENUMINPUT
+From: Sigmund Augdal <sigmund@snap.tv>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=000325559f3ebce50804768812e1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 28, 2009 at 10:10 PM, Bob Cunningham <rcunning@acm.org> wrote:
-> I just completed a fresh install of MythTV 0.22 RC1 on my fully-updated
-> Fedora 11 system.  My tuner is an HVR-950Q, connected to cable.  The tuner
-> works fine under tvtime (SD) and xine (HD).
->
-> All MythTV functions work, except LiveTV.  The problem is that mythfrontend
-> times out waiting for the HVR-950Q to tune to the first station.  This
-> appears to be due to the very long HVR-950Q firmware load time, since no
-> errors are reported by the backend.
->
-> Unfortunately, mythfrontend has a hard-wired 7 second timeout for most
-> requests sent to the backend.  It seems this timeout works fine under normal
-> circumstances for every other tuner MythTV works with.
->
-> The following is repeated in dmesg after every attempt:
->
->  xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)...
->  usb 1-2: firmware: requesting dvb-fe-xc5000-1.6.114.fw
->  xc5000: firmware read 12401 bytes.
->  xc5000: firmware uploading...
->  xc5000: firmware upload complete...
->
-> It looks like the HVR-950Q driver reloads the firmware at every possible
-> opportunity, independent of the hardware state, each time either the SD or
-> HD device is opened, such as when changing from an SD channel on /dev/video0
-> to an HD channel on /dev/dvb/adapter0.  Is this necessary?
->
-> Is it possible to tell the driver to ease up on the firmware reloads?  I
-> don't mind if the first attempt fails, but the second attempt should succeed
-> (without a reload).
->
-> Alternatively, are faster firmware loads possible?
->
-> Should I open a bug on this?
+--000325559f3ebce50804768812e1
+Content-Type: text/plain; charset=ISO-8859-1
 
-Hello Bob,
+The attach patch modifies v4l2-ctl -I to also output signal status as
+detected by the driver/hardware. This info is available in the status
+field of the data returned by VIDIOC_ENUMINPUT which v4l2-ctl -I
+already calls. The strings are copied from the v4l2 api specification
+and could perhaps be modified a bit to fit the application.
 
-In order to avoid the firmware reloading condition, you need to add a
-modprobe option called "no_poweroff=1" for the xc5000 driver to your
-modprobe.conf file and then reboot your computer.  I agree that this
-is a very annoying workaround, but have not had a chance to try to
-find another solution (the i2c master in the au0828 hardware is poorly
-designed and this same problem occurs in Windows but the problem is
-not as noticeable because the Windows application doesn't as
-aggressively power down the tuner).
+Best regards
 
-Also, in order for the video to be rendered properly, you need to make
-sure your capture resolution for LiveTV mode and the various capture
-modes is set to 720x480 (the default in MythTV is 480x480).  Without
-this change, the picture will appear to be vertically stretched.  This
-is actually a bug in MythTV not properly handling analog capture
-products that do not have an onboard hardware scaler (I did work in
-0.22 to get the analog support working but have not had an opportunity
-to fix this bug yet).
+Sigmund Augdal
 
-If you still have trouble, feel free to reply to this message.
+--000325559f3ebce50804768812e1
+Content-Type: application/octet-stream; name="v4l2-ctl-enuminput.patch"
+Content-Disposition: attachment; filename="v4l2-ctl-enuminput.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g124iq910
 
-Cheers,
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+IyBIRyBjaGFuZ2VzZXQgcGF0Y2gKIyBVc2VyIHJvb3RAbG9jYWxob3N0CiMgRGF0ZSAxMjU2MTMw
+ODUyIC0xMDgwMAojIE5vZGUgSUQgYjMzNTI4NGQzMWEzZmE4NWYxYmIyYTk0OTU2MDQ1YmNiMmU3
+YzJjMgojIFBhcmVudCAgN2UyNzNiZWU4NjAxN2FhMTU2OGJiOTJlNmY3MTdlYjU4NTU2MTU3OApj
+aGFuZ2VkIC0tZ2V0LWlucHV0IHRvIHBhcnNlIGFuZCBvdXRwdXQgdGhlIHN0YXR1cyBmaWVsZCBv
+ZiBWSURJT0NfRU5VTUlOUFVUClNpZ25lZC1vZmYtYnk6IFNpZ211bmQgQXVnZGFsIDxzaWdtdW5k
+QHNuYXAudHY+CgpkaWZmIC1yIDdlMjczYmVlODYwMSAtciBiMzM1Mjg0ZDMxYTMgdjRsMi1hcHBz
+L3V0aWwvdjRsMi1jdGwuY3BwCi0tLSBhL3Y0bDItYXBwcy91dGlsL3Y0bDItY3RsLmNwcAlXZWQg
+T2N0IDIxIDE2OjExOjA5IDIwMDkgKzAzMDAKKysrIGIvdjRsMi1hcHBzL3V0aWwvdjRsMi1jdGwu
+Y3BwCVdlZCBPY3QgMjEgMTY6MTQ6MTIgMjAwOSArMDMwMApAQCAtNTcyLDYgKzU3Miw0NCBAQCBz
+dGF0aWMgc3RkOjpzdHJpbmcgZmxhZ3Mycyh1bnNpZ25lZCB2YWwsCiAJcmV0dXJuIHM7CiB9CiAK
+K3N0YXRpYyBzdGQ6OnN0cmluZyBzdGF0dXMycyhfX3UzMiBzdGF0dXMpCit7CisJc3dpdGNoIChz
+dGF0dXMpIHsKKwljYXNlIDA6CisJCXJldHVybiAiU2lnbmFsIE9LIjsKKwljYXNlIFY0TDJfSU5f
+U1RfTk9fUE9XRVI6CisJCXJldHVybiAiQXR0YWNoZWQgZGV2aWNlIGlzIG9mZi4iOworCWNhc2Ug
+VjRMMl9JTl9TVF9OT19TSUdOQUw6CisJCXJldHVybiAiTm8gc2lnbmFsIjsKKwljYXNlIFY0TDJf
+SU5fU1RfTk9fQ09MT1I6CisJCXJldHVybiAiVGhlIGhhcmR3YXJlIHN1cHBvcnRzIGNvbG9yIGRl
+Y29kaW5nLCBidXQgZG9lcyBub3QgZGV0ZWN0IGNvbG9yIG1vZHVsYXRpb24gaW4gdGhlIHNpZ25h
+bC4iOworCWNhc2UgVjRMMl9JTl9TVF9IRkxJUDoKKwkJcmV0dXJuICJUaGUgaW5wdXQgaXMgY29u
+bmVjdGVkIHRvIGEgZGV2aWNlIHRoYXQgcHJvZHVjZXMgYSBzaWduYWwgdGhhdCBpcyBmbGlwcGVk
+IGhvcml6b250YWxseSBhbmQgZG9lcyBub3QgY29ycmVjdCB0aGlzIGJlZm9yZSBwYXNzaW5nIHRo
+ZSBzaWduYWwgdG8gdXNlcnNwYWNlLiI7CisJY2FzZSBWNEwyX0lOX1NUX1ZGTElQOgorCQlyZXR1
+cm4gIlRoZSBpbnB1dCBpcyBjb25uZWN0ZWQgdG8gYSBkZXZpY2UgdGhhdCBwcm9kdWNlcyBhIHNp
+Z25hbCB0aGF0IGlzIGZsaXBwZWQgdmVydGljYWxseSBhbmQgZG9lcyBub3QgY29ycmVjdCB0aGlz
+IGJlZm9yZSBwYXNzaW5nIHRoZSBzaWduYWwgdG8gdXNlcnNwYWNlLiBOb3RlIHRoYXQgYSAxODAg
+ZGVncmVlIHJvdGF0aW9uIGlzIHRoZSBzYW1lIGFzIEhGTElQIHwgVkZMSVAiOworCWNhc2UgVjRM
+Ml9JTl9TVF9OT19IX0xPQ0s6CisJCXJldHVybiAiTm8gaG9yaXpvbnRhbCBzeW5jIGxvY2suIjsK
+KwljYXNlIFY0TDJfSU5fU1RfQ09MT1JfS0lMTDoKKwkJcmV0dXJuICJBIGNvbG9yIGtpbGxlciBj
+aXJjdWl0IGF1dG9tYXRpY2FsbHkgZGlzYWJsZXMgY29sb3IgZGVjb2Rpbmcgd2hlbiBpdCBkZXRl
+Y3RzIG5vIGNvbG9yIG1vZHVsYXRpb24uIFdoZW4gdGhpcyBmbGFnIGlzIHNldCB0aGUgY29sb3Ig
+a2lsbGVyIGlzIGVuYWJsZWQgYW5kIGhhcyBzaHV0IG9mZiBjb2xvciBkZWNvZGluZy4iOworCWNh
+c2UgVjRMMl9JTl9TVF9OT19TWU5DOgorCQlyZXR1cm4gIk5vIHN5bmNocm9uaXphdGlvbiBsb2Nr
+LiI7CisJY2FzZSBWNEwyX0lOX1NUX05PX0VRVToKKwkJcmV0dXJuICJObyBlcXVhbGl6ZXIgbG9j
+ay4iOworCWNhc2UgVjRMMl9JTl9TVF9OT19DQVJSSUVSOgorCQlyZXR1cm4gIkNhcnJpZXIgcmVj
+b3ZlcnkgZmFpbGVkLiI7CisJY2FzZSBWNEwyX0lOX1NUX01BQ1JPVklTSU9OOgorCQlyZXR1cm4g
+Ik1hY3JvdmlzaW9uIGlzIGFuIGFuYWxvZyBjb3B5IHByZXZlbnRpb24gc3lzdGVtIG1hbmdsaW5n
+IHRoZSB2aWRlbyBzaWduYWwgdG8gY29uZnVzZSB2aWRlbyByZWNvcmRlcnMuIFdoZW4gdGhpcyBm
+bGFnIGlzIHNldCBNYWNyb3Zpc2lvbiBoYXMgYmVlbiBkZXRlY3RlZC4iOworCWNhc2UgVjRMMl9J
+Tl9TVF9OT19BQ0NFU1M6CisJCXJldHVybiAiQ29uZGl0aW9uYWwgYWNjZXNzIGRlbmllZC4iOwor
+CWNhc2UgVjRMMl9JTl9TVF9WVFI6CisJCXJldHVybiAiVlRSIHRpbWUgY29uc3RhbnQuIFs/XSI7
+CisJZGVmYXVsdDoKKwkJY2hhciBtc2dbMjBdOworCQlzcHJpbnRmKG1zZywgInVua25vd24oJWQp
+Iiwgc3RhdHVzKTsKKwkJcmV0dXJuIG1zZzsKKwl9Cit9CisKIHN0YXRpYyB2b2lkIHByaW50X3Ns
+aWNlZF92YmlfY2FwKHN0cnVjdCB2NGwyX3NsaWNlZF92YmlfY2FwICZjYXApCiB7CiAJcHJpbnRm
+KCJcdFR5cGUgICAgICAgICAgIDogJXNcbiIsIGJ1ZnR5cGUycyhjYXAudHlwZSkuY19zdHIoKSk7
+CkBAIC0yNzA3LDcgKzI3NDUsNyBAQCBzZXRfdmlkX2ZtdF9lcnJvcjoKIAkJCXByaW50ZigiVmlk
+ZW8gaW5wdXQgOiAlZCIsIGlucHV0KTsKIAkJCXZpbi5pbmRleCA9IGlucHV0OwogCQkJaWYgKGlv
+Y3RsKGZkLCBWSURJT0NfRU5VTUlOUFVULCAmdmluKSA+PSAwKQotCQkJCXByaW50ZigiICglcyki
+LCB2aW4ubmFtZSk7CisJCQkJcHJpbnRmKCIgKCVzOiAlcykiLCB2aW4ubmFtZSwgc3RhdHVzMnMo
+dmluLnN0YXR1cykuY19zdHIoKSk7CiAJCQlwcmludGYoIlxuIik7CiAJCX0KIAl9Cg==
+--000325559f3ebce50804768812e1--
