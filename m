@@ -1,205 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f211.google.com ([209.85.219.211]:55392 "EHLO
-	mail-ew0-f211.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754944AbZJCND2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2009 09:03:28 -0400
-Received: by ewy7 with SMTP id 7so2071367ewy.17
-        for <linux-media@vger.kernel.org>; Sat, 03 Oct 2009 06:03:31 -0700 (PDT)
-Message-ID: <4AC74BA0.6090606@gmail.com>
-Date: Sat, 03 Oct 2009 15:03:28 +0200
-From: Olivier Lorin <olorin75@gmail.com>
+Received: from mail-vw0-f184.google.com ([209.85.212.184]:49089 "EHLO
+	mail-vw0-f184.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756363AbZJVTiF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Oct 2009 15:38:05 -0400
+Received: by vws14 with SMTP id 14so13834vws.33
+        for <linux-media@vger.kernel.org>; Thu, 22 Oct 2009 12:38:09 -0700 (PDT)
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [PATCH 3/3] gspca_gl860
-References: <200909160300.28382.pluto@agmk.net>	<1254354727.4771.13.camel@palomino.walls.org>	<20091001134343.30e7cd98@hyperion.delvare>	<200910031208.36524.pluto@agmk.net> <20091003140447.6486ed82@hyperion.delvare> <4AC74A4D.2050409@gmail.com> <4AC74B36.4080407@gmail.com>
-In-Reply-To: <4AC74B36.4080407@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <829197380910221227sc3b6398xbd3061e8483ac41@mail.gmail.com>
+References: <20091022211330.6e84c6e7@hyperion.delvare>
+	 <829197380910221227sc3b6398xbd3061e8483ac41@mail.gmail.com>
+Date: Thu, 22 Oct 2009 12:38:09 -0700
+Message-ID: <a3ef07920910221238x6a0bc078g74a1e63527263385@mail.gmail.com>
+Subject: Re: Details about DVB frontend API
+From: VDR User <user.vdr@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Jean Delvare <khali@linux-fr.org>,
+	LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-gspca - gl860: add flip/mirror for OV2640
+On Thu, Oct 22, 2009 at 12:27 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> I could have had this problem solved six months ago for 98% of the
+> community, and instead we are right where we have been since the
+> beginning of the project.
 
-From: Olivier Lorin <o.lorin@laposte.net>
+This is really a shame too considering the enormous amount of people,
+both users & devs, who would really like to see this happen.  You've
+got to start somewhere and build/improve from there.  Simply sitting
+back and doing nothing is of absolutely no benefit what-so-ever.
+Maybe you should release your patch(es) and when/if enough people use
+them, there will be some pressure to actually have progress.  Then
+again, the same ugly monster that is linux dvb politics might prevent
+that progress from ever happening.
 
-- add flip/mirror support for OV2640
-- fix for backlight value range
-- fix for red-blue inversion hue mode with V4L1 applications
-
-diff -rupN ../gspca-msrc2/linux/drivers/media/video/gspca/gl860/gl860.h 
-./linux/drivers/media/video/gspca/gl860/gl860.h
---- ../gspca-msrc2/linux/drivers/media/video/gspca/gl860/gl860.h   
- 2009-09-24 23:16:10.000000000 +0200
-+++ ./linux/drivers/media/video/gspca/gl860/gl860.h    2009-09-24 
-23:55:32.000000000 +0200
-@@ -23,7 +23,7 @@
- #include "gspca.h"
- 
- #define MODULE_NAME "gspca_gl860"
--#define DRIVER_VERSION "0.9d11"
-+#define DRIVER_VERSION "0.9e"
- 
- #define ctrl_in  gl860_RTx
- #define ctrl_out gl860_RTx
-diff -rupN 
-../gspca-msrc2/linux/drivers/media/video/gspca/gl860/gl860-ov2640.c 
-./linux/drivers/media/video/gspca/gl860/gl860-ov2640.c
---- 
-../gspca-msrc2/linux/drivers/media/video/gspca/gl860/gl860-ov2640.c   
- 2009-09-24 23:34:57.000000000 +0200
-+++ ./linux/drivers/media/video/gspca/gl860/gl860-ov2640.c    2009-09-30 
-00:40:49.000000000 +0200
-@@ -107,36 +107,6 @@ static struct validx tbl_sensor_settings
-     {0x6001, 0x00ff}, {0x6038, 0x000c},
-     {10, 0xffff},
-     {0x6000, 0x0011},
--    /* backlight=31/64 */
--    {0x6001, 0x00ff}, {0x603e, 0x0024}, {0x6034, 0x0025},
--    /* bright=0/256 */
--    {0x6000, 0x00ff}, {0x6009, 0x007c}, {0x6000, 0x007d},
--    /* wbal=64/128 */
--    {0x6000, 0x00ff}, {0x6003, 0x007c}, {0x6040, 0x007d},
--    /* cntr=0/256 */
--    {0x6000, 0x00ff}, {0x6007, 0x007c}, {0x6000, 0x007d},
--    /* sat=128/256 */
--    {0x6000, 0x00ff}, {0x6001, 0x007c}, {0x6080, 0x007d},
--    /* sharpness=0/32 */
--    {0x6000, 0x00ff}, {0x6001, 0x0092}, {0x60c0, 0x0093},
--    /* hue=0/256 */
--    {0x6000, 0x00ff}, {0x6002, 0x007c}, {0x6000, 0x007d},
--    /* gam=32/64 */
--    {0x6000, 0x00ff}, {0x6008, 0x007c}, {0x6020, 0x007d},
--    /* image right up */
--    {0xffff, 0xffff},
--    {15, 0xffff},
--    {0x6001, 0x00ff}, {0x6000, 0x8004},
--    {0xffff, 0xffff},
--    {0x60a8, 0x0004},
--    {15, 0xffff},
--    {0x6001, 0x00ff}, {0x6000, 0x8004},
--    {0xffff, 0xffff},
--    {0x60f8, 0x0004},
--    /* image right up */
--    {0xffff, 0xffff},
--    /* backlight=31/64 */
--    {0x6001, 0x00ff}, {0x603e, 0x0024}, {0x6034, 0x0025},
- };
- 
- static struct validx tbl_640[] = {
-@@ -222,17 +192,19 @@ void ov2640_init_settings(struct gspca_d
-     sd->vcur.hue        =   0;
-     sd->vcur.saturation = 128;
-     sd->vcur.whitebal   =  64;
-+    sd->vcur.mirror     =   0;
-+    sd->vcur.flip       =   0;
- 
-     sd->vmax.backlight  =  64;
-     sd->vmax.brightness = 255;
-     sd->vmax.sharpness  =  31;
-     sd->vmax.contrast   = 255;
-     sd->vmax.gamma      =  64;
--    sd->vmax.hue        = 255 + 1;
-+    sd->vmax.hue        = 254 + 2;
-     sd->vmax.saturation = 255;
-     sd->vmax.whitebal   = 128;
--    sd->vmax.mirror     = 0;
--    sd->vmax.flip       = 0;
-+    sd->vmax.mirror     = 1;
-+    sd->vmax.flip       = 1;
-     sd->vmax.AC50Hz     = 0;
- 
-     sd->dev_camera_settings = ov2640_camera_settings;
-@@ -284,6 +256,8 @@ static int ov2640_init_pre_alt(struct gs
-     sd->vold.gamma    = -1;
-     sd->vold.hue      = -1;
-     sd->vold.whitebal = -1;
-+    sd->vold.mirror = -1;
-+    sd->vold.flip   = -1;
- 
-     ov2640_init_post_alt(gspca_dev);
- 
-@@ -346,18 +320,6 @@ static int ov2640_init_post_alt(struct g
- 
-     n = fetch_validx(gspca_dev, tbl_sensor_settings_common2,
-             ARRAY_SIZE(tbl_sensor_settings_common2));
--    ctrl_in(gspca_dev, 0xc0, 2, 0x0000, 0x0000, 1, c50);
--    keep_on_fetching_validx(gspca_dev, tbl_sensor_settings_common2,
--                ARRAY_SIZE(tbl_sensor_settings_common2), n);
--    ctrl_in(gspca_dev, 0xc0, 2, 0x6000, 0x8004, 1, c28);
--    keep_on_fetching_validx(gspca_dev, tbl_sensor_settings_common2,
--                ARRAY_SIZE(tbl_sensor_settings_common2), n);
--    ctrl_in(gspca_dev, 0xc0, 2, 0x6000, 0x8004, 1, ca8);
--    keep_on_fetching_validx(gspca_dev, tbl_sensor_settings_common2,
--                ARRAY_SIZE(tbl_sensor_settings_common2), n);
--    ctrl_in(gspca_dev, 0xc0, 2, 0x0000, 0x0000, 1, c50);
--    keep_on_fetching_validx(gspca_dev, tbl_sensor_settings_common2,
--                ARRAY_SIZE(tbl_sensor_settings_common2), n);
- 
-     ov2640_camera_settings(gspca_dev);
- 
-@@ -394,6 +356,8 @@ static int ov2640_camera_settings(struct
-     s32 sat    = sd->vcur.saturation;
-     s32 hue    = sd->vcur.hue;
-     s32 wbal   = sd->vcur.whitebal;
-+    s32 mirror = (((sd->vcur.mirror > 0) ^ sd->mirrorMask) == 0);
-+    s32 flip   = (((sd->vcur.flip   > 0) ^ sd->mirrorMask) == 0);
- 
-     if (backlight != sd->vold.backlight) {
-         /* No sd->vold.backlight=backlight; (to be done again later) */
-@@ -402,9 +366,9 @@ static int ov2640_camera_settings(struct
- 
-         ctrl_out(gspca_dev, 0x40, 1, 0x6001                 , 0x00ff,
-                 0, NULL);
--        ctrl_out(gspca_dev, 0x40, 1, 0x601f + backlight     , 0x0024,
-+        ctrl_out(gspca_dev, 0x40, 1, 0x601e + backlight     , 0x0024,
-                 0, NULL);
--        ctrl_out(gspca_dev, 0x40, 1, 0x601f + backlight - 10, 0x0025,
-+        ctrl_out(gspca_dev, 0x40, 1, 0x601e + backlight - 10, 0x0025,
-                 0, NULL);
-     }
- 
-@@ -467,7 +431,7 @@ static int ov2640_camera_settings(struct
-         ctrl_out(gspca_dev, 0x40, 1, 0x6002     , 0x007c, 0, NULL);
-         ctrl_out(gspca_dev, 0x40, 1, 0x6000 + hue * (hue < 255), 0x007d,
-                 0, NULL);
--        if (hue >= sd->vmax.hue)
-+        if (hue >= 255)
-             sd->swapRB = 1;
-         else
-             sd->swapRB = 0;
-@@ -483,14 +447,33 @@ static int ov2640_camera_settings(struct
-         ctrl_out(gspca_dev, 0x40, 1, 0x6000 + gam, 0x007d, 0, NULL);
-     }
- 
-+    if (mirror != sd->vold.mirror || flip != sd->vold.flip) {
-+        sd->vold.mirror = mirror;
-+        sd->vold.flip   = flip;
-+
-+        mirror = 0x80 * mirror;
-+        ctrl_out(gspca_dev, 0x40, 1, 0x6001, 0x00ff, 0, NULL);
-+        ctrl_out(gspca_dev, 0x40, 1, 0x6000, 0x8004, 0, NULL);
-+        ctrl_in(gspca_dev, 0xc0, 2, 0x6000, 0x8004, 1, &c28);
-+        ctrl_out(gspca_dev, 0x40, 1, 0x6028 + mirror, 0x0004, 0, NULL);
-+
-+        flip = 0x50 * flip + mirror;
-+        ctrl_out(gspca_dev, 0x40, 1, 0x6001, 0x00ff, 0, NULL);
-+        ctrl_out(gspca_dev, 0x40, 1, 0x6000, 0x8004, 0, NULL);
-+        ctrl_in(gspca_dev, 0xc0, 2, 0x6000, 0x8004, 1, &ca8);
-+        ctrl_out(gspca_dev, 0x40, 1, 0x6028 + flip, 0x0004, 0, NULL);
-+
-+        ctrl_in(gspca_dev, 0xc0, 2, 0x0000, 0x0000, 1, &c50);
-+    }
-+
-     if (backlight != sd->vold.backlight) {
-         sd->vold.backlight = backlight;
- 
-         ctrl_out(gspca_dev, 0x40, 1, 0x6001                 , 0x00ff,
-                 0, NULL);
--        ctrl_out(gspca_dev, 0x40, 1, 0x601f + backlight     , 0x0024,
-+        ctrl_out(gspca_dev, 0x40, 1, 0x601e + backlight     , 0x0024,
-                 0, NULL);
--        ctrl_out(gspca_dev, 0x40, 1, 0x601f + backlight - 10, 0x0025,
-+        ctrl_out(gspca_dev, 0x40, 1, 0x601e + backlight - 10, 0x0025,
-                 0, NULL);
-     }
- 
+Regards,
+Derek
