@@ -1,24 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx03.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.7])
-	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n9I0DXBj008764
-	for <video4linux-list@redhat.com>; Sat, 17 Oct 2009 20:13:33 -0400
-Received: from mail-in-11.arcor-online.net (mail-in-11.arcor-online.net
-	[151.189.21.51])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n9I0DHVC032171
-	for <video4linux-list@redhat.com>; Sat, 17 Oct 2009 20:13:18 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: =?ISO-8859-1?Q?P=E9ter_S=E1rk=F6zi?= <xmisterhu@gmail.com>
-In-Reply-To: <745af8a00910171520n13e80a4eld7247df97f8e75f9@mail.gmail.com>
-References: <745af8a00910171520n13e80a4eld7247df97f8e75f9@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Date: Sun, 18 Oct 2009 02:10:42 +0200
-Message-Id: <1255824642.3285.3.camel@pc07.localdom.local>
-Mime-Version: 1.0
+Received: from mx1.redhat.com (ext-mx05.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.9])
+	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n9N7J77F022335
+	for <video4linux-list@redhat.com>; Fri, 23 Oct 2009 03:19:08 -0400
+Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de
+	[92.198.50.35])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n9N7Ir01015956
+	for <video4linux-list@redhat.com>; Fri, 23 Oct 2009 03:18:53 -0400
+Date: Fri, 23 Oct 2009 09:18:51 +0200
+From: Robert Schwebel <r.schwebel@pengutronix.de>
+To: Carlos Lavin <carlos.lavin@vista-silicon.com>
+Message-ID: <20091023071851.GJ22376@pengutronix.de>
+References: <eedb5540908060552n43021d5bla6ee655c294307eb@mail.gmail.com>
+	<20090807191809.GJ5842@pengutronix.de>
+	<9319940908091109l64530b9cgd2e305ea8127a35a@mail.gmail.com>
+	<eedb5540908092359g27e61389wad4a918f3339ae38@mail.gmail.com>
+	<9319940908100515w21d38a5bs6c6a552b07498fc4@mail.gmail.com>
+	<1254985148643-3786323.post@n2.nabble.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <1254985148643-3786323.post@n2.nabble.com>
 Cc: video4linux-list@redhat.com
-Subject: Re: EasyCap USB 05e1:0408
+Subject: Re: soc-camera driver for i.MX27
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,30 +36,23 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Wed, Oct 07, 2009 at 11:59:08PM -0700, Carlos Lavin wrote:
+> hello, i'm Carlos Lav�n and i'm partner of Javier. I was trying download the
+> PHYTEC repository of this URL git: / /
+> git.pengutronix.de/git/phytec/linux-2.6.git but I have a problem when I
+> download it, this repositoy isn't complete. moreover, when i'm downloading
+> this repository i have a warning... why?
+> can you help me, please? thank you. 
 
-Am Sonntag, den 18.10.2009, 00:20 +0200 schrieb Péter Sárközi: 
-> Hi,
-> 
-> I've bought an USB DVR mentioned in the subject. With the latest
-> syntek driver from sourceforge, I can recognise it, but I can't get a
-> normal signal from it.
-> The picture I get now is this:
-> http://ubuntuforums.org/attachment.php?attachmentid=131231&stc=1&d=1255023938
-> If I move the camera the picture changes too, so I think there could
-> be settings problem.
-> 
-> What should I try to get a good picture?
+As long as you don't show us the error output you are seeing, we can't
+help you, sorry.
 
-Peter,
-
-likely, first of all, don't post such links requiring membership and
-login, or stay on that and don't appear here that way.
-
-I don't doubt that there is still some oil in Texas ...
-
-Cheers,
-Hermann
-
+rsc
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
 
 --
 video4linux-list mailing list
