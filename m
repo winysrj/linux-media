@@ -1,132 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:53939 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1757588AbZJMHiJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Oct 2009 03:38:09 -0400
-Date: Tue, 13 Oct 2009 09:37:21 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/5] soc-camera: tw9910: Add output signal control
-In-Reply-To: <ufx9nkfmj.wl%morimoto.kuninori@renesas.com>
-Message-ID: <Pine.LNX.4.64.0910130834230.5089@axis700.grange>
-References: <ufx9nkfmj.wl%morimoto.kuninori@renesas.com>
+Received: from smtp.nokia.com ([192.100.122.230]:26029 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751402AbZJWKSd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Oct 2009 06:18:33 -0400
+Message-ID: <4AE182DD.6060103@maxwell.research.nokia.com>
+Date: Fri, 23 Oct 2009 13:18:05 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"Zutshi Vimarsh (Nokia-D-MSW/Helsinki)" <vimarsh.zutshi@nokia.com>,
+	Ivan Ivanov <iivanov@mm-sol.com>,
+	Cohen David Abraham <david.cohen@nokia.com>,
+	Guru Raj <gururaj.nagendra@intel.com>,
+	Mike Krufky <mkrufky@linuxtv.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [RFC] Video events, version 2.2
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 13 Oct 2009, Kuninori Morimoto wrote:
+Hi,
 
-> tw9910 can control output signal.
-> This patch will stop all signal when video was stopped.
-> 
-> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-> ---
->  drivers/media/video/tw9910.c |   35 ++++++++++++++++++++++++-----------
->  1 files changed, 24 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/video/tw9910.c b/drivers/media/video/tw9910.c
-> index 5152d56..8bda689 100644
-> --- a/drivers/media/video/tw9910.c
-> +++ b/drivers/media/video/tw9910.c
-> @@ -152,7 +152,8 @@
->  			 /* 1 : non-auto */
->  #define VSCTL       0x08 /* 1 : Vertical out ctrl by DVALID */
->  			 /* 0 : Vertical out ctrl by HACTIVE and DVALID */
-> -#define OEN         0x04 /* Output Enable together with TRI_SEL. */
-> +#define OEN         0x00 /* Enable output */
-> +#define EN_TRI_SEL  0x04 /* TRI_SEL output */
 
-Is this to tri-state the output? Ok, from the datasheet it tri-states all 
-outputs except clocks. My copy of the datasheet is funny at this point. It 
-first describes OEN = bit 2 of OPFORM, and then the TRI_SEL field, which 
-is said to occupy bits 1-0, but is documented together with bit 2 with 
-values 0-7... And you cannot really say that values 0-3 have a feature 
-distinguishing them from values 4-7. So, I wouldn't separate OEN and just 
-use the bits 2-0 as a single field. And call the required values like
+Here's the version 2.2 of the video events RFC. It's based on Laurent
+Pinchart's original RFC and versions 2 and 2.1 which I wrote. The old 
+RFC is available here:
 
-#define OEN_TRI_SEL_ALL_ON	0
-#define OEN_TRI_SEL_CLK_ON	4
+<URL:http://www.spinics.net/lists/linux-media/msg11056.html>
 
->  
->  /* OUTCTR1 */
->  #define VSP_LO      0x00 /* 0 : VS pin output polarity is active low */
-> @@ -236,7 +237,6 @@ struct tw9910_priv {
->  
->  static const struct regval_list tw9910_default_regs[] =
->  {
-> -	{ OPFORM,  0x00 },
->  	{ OUTCTR1, VSP_LO | VSSL_VVALID | HSP_HI | HSSL_HSYNC },
->  	ENDMARKER,
->  };
-> @@ -513,19 +513,32 @@ static int tw9910_s_stream(struct v4l2_subdev *sd, int enable)
->  {
->  	struct i2c_client *client = sd->priv;
->  	struct tw9910_priv *priv = to_tw9910(client);
-> +	u8 val;
->  
-> -	if (!enable)
-> +	if (!enable) {
-> +		switch (priv->rev) {
-> +		case 0:
-> +			val = EN_TRI_SEL | 0x2;
-> +			break;
-> +		case 1:
-> +			val = EN_TRI_SEL | 0x3;
-> +			break;
-> +		}
->  		return 0;
-> +	} else {
+Added Mauro to Cc.
 
-Ok, it's 8:30 here, so, I might be still not quite awake... but I fail to 
-understand, why you bother calculating val above if you anyway just return 
-immediately without using it? And if that return is misplaced - what are 
-those 2 and 3 constants doing?
+Changes to version 2.1
+--------------------
 
->  
-> -	if (!priv->scale) {
-> -		dev_err(&client->dev, "norm select error\n");
-> -		return -EPERM;
-> +		if (!priv->scale) {
-> +			dev_err(&client->dev, "norm select error\n");
-> +			return -EPERM;
-> +		}
-> +
-> +		dev_dbg(&client->dev, "%s %dx%d\n",
-> +			priv->scale->name,
-> +			priv->scale->width,
-> +			priv->scale->height);
->  	}
->  
-> -	dev_dbg(&client->dev, "%s %dx%d\n",
-> -		 priv->scale->name,
-> -		 priv->scale->width,
-> -		 priv->scale->height);
-> +	tw9910_mask_set(client, OPFORM, 0x7, val);
+V4L2_EVENT_ALL is now 0 instead 0x07ffffff.
 
-...and you don't get an "uninitialised variable" warning here? I don't see 
-where val gets set in the enable case... Please, wake me up if I'm 
-dreaming. Oh, I see, you fix it in the next patch. Please, don't do that! 
-Don't introduce bugs to fix them in a later patch. Do it here.
+V4L2_EVENT_RESERVED is gone. A note will be added not to use four 
+topmost bits.
 
->  
->  	return 0;
+It's V4L2_EVENT_PRIVATE_START, not V4L2_EVENT_PRIVATE.
 
-Yes, tri-stating outputs for switched off streaming is better than doing 
-nothing at all, but isn't there anything else that can be safely powered 
-down? What about CLK_PDN, Y_PDN and C_PDN in ACNTL? YSV, CSV and PLL_PDN 
-in Analog Control II? I would also expect, that we can at least tristate 
-all outputs without any problem, we shouldn't need pixel clock running 
-with disabled streaming.
+Interface description
+---------------------
 
->  }
-> -- 
-> 1.6.0.4
+Event type is either a standard event or private event. Standard events
+will be defined in videodev2.h. Private event types begin from
+V4L2_EVENT_PRIVATE_START. The four topmost bits of the type should not 
+be used for the moment.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+#define V4L2_EVENT_ALL			0
+#define V4L2_EVENT_PRIVATE_START	0x08000000
+
+VIDIOC_DQEVENT is used to get events. count is number of pending events
+after the current one. sequence is the event type sequence number and
+the data is specific to event type.
+
+The user will get the information that there's an event through
+exception file descriptors by using select(2). When an event is
+available the poll handler sets POLLPRI which wakes up select. -EINVAL
+will be returned if there are no pending events.
+
+VIDIOC_SUBSCRIBE_EVENT and VIDIOC_UNSUBSCRIBE_EVENT are used to
+subscribe and unsubscribe from events. The argument is struct
+v4l2_event_subscription which now only contains the type field for the
+event type. Every event can be subscribed or unsubscribed by one ioctl
+by using special type V4L2_EVENT_ALL.
+
+
+struct v4l2_event {
+	__u32		count;
+	__u32		type;
+	__u32		sequence;
+	struct timeval	timestamp;
+	__u32		reserved[8];
+	__u8		data[64];
+};
+
+struct v4l2_event_subscription {
+	__u32		type;
+	__u32		reserved[8];
+};
+
+#define VIDIOC_DQEVENT		_IOR('V', 84, struct v4l2_event)
+#define VIDIOC_SUBSCRIBE_EVENT	_IOW('V', 85, struct
+				     v4l2_event_subscription)
+#define VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 86, struct
+				      v4l2_event_subscription)
+
+
+The size of the event queue is decided by the driver. Which events will
+be discarded on queue overflow depends on the implementation.
+
+
+Questions
+---------
+
+None on my side.
+
+Comments and questions are still very very welcome.
+
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
+
