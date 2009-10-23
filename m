@@ -1,54 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web25608.mail.ukl.yahoo.com ([217.12.10.167]:30313 "HELO
-	web25608.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751721AbZJTNDT convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Oct 2009 09:03:19 -0400
-Message-ID: <750990.6802.qm@web25608.mail.ukl.yahoo.com>
-References: <340263.68846.qm@web25604.mail.ukl.yahoo.com> <4ADD3341.3050202@yahoo.co.jp> <alpine.LRH.1.10.0910200935120.3543@pub2.ifh.de>
-Date: Tue, 20 Oct 2009 13:03:23 +0000 (GMT)
-From: Romont Sylvain <psgman24@yahoo.fr>
-Subject: Re : ISDB-T tuner
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-Cc: linux-media@vger.kernel.org, tskd2@yahoo.co.jp
-In-Reply-To: <alpine.LRH.1.10.0910200935120.3543@pub2.ifh.de>
+Received: from 60-241-246-14.static.tpgi.com.au ([60.241.246.14]:35488 "EHLO
+	fw.iplatinum.com.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751388AbZJWGIm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Oct 2009 02:08:42 -0400
+Received: from egroups.iplatinum.com.au (fs.iplatinum.com.au [192.168.226.1])
+	by fw.iplatinum.com.au (8.14.3/8.14.3) with ESMTP id n9N5uI49008708
+	for <linux-media@vger.kernel.org>; Fri, 23 Oct 2009 16:56:18 +1100
+From: "Andrew Congdon" <andrew.congdon@iplatinum.com.au>
+To: linux-media@vger.kernel.org
+Subject: cx22702_readreg errors
+Date: Fri, 23 Oct 2009 16:56:18 +1100
+Message-ID: <20091023.Zxn.10620600@egroups.iplatinum.com.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dibcom's tuner is only working in brazil no?
-the Brazil's ISDB-T and Japanese one is not excatly same, no?
+I'm getting these errors:
 
+cx22702_writereg: error (reg == 0x0c, val == 0x40, ret == -6)
+cx22702_writereg: error (reg == 0x00, val == 0x01, ret == -6)
+cx22702_writereg: error (reg == 0x0d, val == 0x00, ret == -6)
+cx22702_writereg: error (reg == 0x0d, val == 0x01, ret == -6)
+cx22702_readreg: readreg error (ret == -6)
 
+after which the DVB-T card is unusable until the system is rebooted.
+It happens with Fedora 10 and 11 (11 is worse).
+The systems involved use ASUS M4N78-PRO boards with 5050e and 4850e
+CPUs. I've tried a number of different DVB-T cards, the cx88 module
+reports the card ids as 14, 19, 35 and 43. All produce the same
+problem sooner or later.
 
------ Message d'origine ----
-De : Patrick Boettcher <pboettcher@kernellabs.com>
-À : Akihiro TSUKADA <tskd2@yahoo.co.jp>
-Cc : Romont Sylvain <psgman24@yahoo.fr>; linux-media@vger.kernel.org
-Envoyé le : Mar 20 Octobre 2009, 16 h 43 min 34 s
-Objet : Re: ISDB-T tuner
+The problem occurs soon after cpuspeed is started in Fedora 11.
+In Fedora 10 the problem mightn't occur for several days.
+On the Fedora 11 machine it appears the PCI bus is corrupt
+because all devices are reported like this:
 
-Hi all,
+# lspci -v
+04:00.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL8111/8168B PCI
+Express Gigabit Ethernet controller (rev ff) (prog-if ff)
+        !!! Unknown header type 7f
+        Kernel driver in use: r8169
+        Kernel modules: r8169
 
-On Tue, 20 Oct 2009, Akihiro TSUKADA wrote:
-> And just  for you information, in addition to EarthSoft PT1,
-> there is a driver for 'Friio' ISDB-T USB receiver (which I wrote;) ,
-> and it is already included in the main repository.
-> Dibcom is maybe for Brazil and may or may not work in Japan.
+I can't reproduce this behaviour unless a DVB card is installed.
 
-I'm just stepping in here to clarify Dibcom's ISDB-T support: it's purely limited to demodulation with the dib8000-driver. Meaning, using a Dibcom reference-design in Japan will give you the BCAS encrypted transport stream, not more. This way is primarily used in set-top-boxes and car-receivers and things like that.
+I've seen this problem reported elsewhere.
 
+Another system, only difference is the CPU is a 6000+ with card=14
+doesn't exhibit the problem (yet?).
+
+I've tried using the Mercurial code and the problem is the same.
+
+Anyone have any ideas?
+
+thanks
 --
+Andrew
 
-Patrick Boettcher - Kernel Labs
-http://www.kernellabs.com/
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
-      
