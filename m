@@ -1,55 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f210.google.com ([209.85.218.210]:53663 "EHLO
-	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933252AbZJLViC (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:41359 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751960AbZJWOZo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Oct 2009 17:38:02 -0400
-Received: by bwz6 with SMTP id 6so3456941bwz.37
-        for <linux-media@vger.kernel.org>; Mon, 12 Oct 2009 14:37:23 -0700 (PDT)
+	Fri, 23 Oct 2009 10:25:44 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [RFC] Restructure video_device
+Date: Fri, 23 Oct 2009 16:25:40 +0200
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-In-Reply-To: <loom.20091012T223603-551@post.gmane.org>
-References: <loom.20091011T180513-771@post.gmane.org>
-	 <829197380910111218q5739eb5ex9a87f19899a13e98@mail.gmail.com>
-	 <loom.20091012T223603-551@post.gmane.org>
-Date: Mon, 12 Oct 2009 17:37:23 -0400
-Message-ID: <829197380910121437m4f1fb7cld8d7dc351f468671@mail.gmail.com>
-Subject: Re: Dazzle TV Hybrid USB and em28xx
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Giuseppe Borzi <gborzi@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200910231625.40822.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 12, 2009 at 4:49 PM, Giuseppe Borzi <gborzi@gmail.com> wrote:
-> Thanks for your prompt reply. I've downloaded v4l-dvb-5578cc977a13.tar.bz2, but
-> it fails to compile when it reaches firedtv-1394.c. The first part of the error
-> message is
->
-> /home/gborzi/v4l-dvb-5578cc977a13/v4l/firedtv-1394.c:21:17: error: dma.h: No
-> such file or directory
-> /home/gborzi/v4l-dvb-5578cc977a13/v4l/firedtv-1394.c:22:21: error: csr1212.h:
-> No such file or directory
-> /home/gborzi/v4l-dvb-5578cc977a13/v4l/firedtv-1394.c:23:23: error: highlevel.h:
-> No such file or directory
-> /home/gborzi/v4l-dvb-5578cc977a13/v4l/firedtv-1394.c:24:19: error: hosts.h: No
-> such file or directory
-> /home/gborzi/v4l-dvb-5578cc977a13/v4l/firedtv-1394.c:25:22: error: ieee1394.h:
-> No such file or directory
-> /home/gborzi/v4l-dvb-5578cc977a13/v4l/firedtv-1394.c:26:17: error: iso.h: No
-> such file or directory
-> /home/gborzi/v4l-dvb-5578cc977a13/v4l/firedtv-1394.c:27:21: error: nodemgr.h:
-> No such file or directory
+Hi everybody,
 
-Yeah, that happens with Ubuntu Karmic.  The v4l-dvb firedtv driver
-depends on headers that are private to ieee1394 and not in their
-kernel headers package.
+while working on device node support for subdevs I ran into an issue with the 
+way v4l2 objects are structured.
 
-To workaround the issue, open v4l/.config and set the firedtv driver
-from "=m" to "=n"
+We currently have the following structure:
 
-Devin
+- video_device represents a device that complies with the V4L1 or V4L2 API. 
+Every video_device has a corresponding device node.
+
+- v4l2_device represents a high-level media device that handles sub-devices. 
+With the new media controller infrastructure a v4l2_device will have a device 
+node as well.
+
+- v4l2_subdev represents a sub-device. As for v4l2_device's, the new media 
+controller infrastructure will give a device node for every sub-device.
+
+- v4l2_entity is the structure that both v4l2_subdev and video_device derive 
+from. Most of the media controller code will deal with entities rather than 
+sub-devices or video devices, as most operations (such as discovering the 
+topology and create links) do not depend on the exact nature of the entity. 
+New types of entities could be introduced later.
+
+Both the video_device and v4l2_subdev structure inherit from v4l2_entity, so 
+both of them have a v4l2_entity field. With v4l2_device and v4l2_subdev now 
+needing to devices to have device nodes created, the v4l2_device and 
+v4l2_subdev structure both have a video_device field.
+
+This isn't clean for two reasons:
+
+- v4l2_device isn't a v4l2_entity, so it should inherit from a structure 
+(video_device) that itself inherits from v4l2_entity. 
+
+- v4l2_subdev shouldn't inherit twice from v4l2_entity, once directly and once 
+through video_device.
+
+To fix this I would like to refactor the video_device structure and cut it in 
+two pieces. One of them will deal with device node related tasks, being mostly 
+V4L1/V4L2 agnostic, and the other will inherit from the first and add 
+V4L1/V4L2 support (tvnorms/current_norm/ioctl_ops fields from the current 
+video_device structure), as well as media controller support (inheriting from 
+v4l2_entity).
+
+My plan was to create a video_devnode structure for the low-level device node 
+related structure, and keeping the video_device name for the higher level 
+structure. v4l2_device, v4l2_subdev and video_device would then all have a 
+video_devnode field.
+
+While this isn't exactly difficult, it would require changing a lot of 
+drivers, as some field will be moved from video_device to 
+video_device::video_devnode. Some of those fields are internal, some of them 
+are accessed by drivers while they shouldn't in most cases (the minor field 
+for instance), and some are public (name, parent).
+
+I would like to have your opinion on whether you think this proposal is 
+acceptable or whether you see a better and cleaner way to restructure the 
+video device code structures.
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Regards,
+
+Laurent Pinchart
