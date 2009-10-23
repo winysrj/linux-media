@@ -1,135 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f208.google.com ([209.85.219.208]:58563 "EHLO
-	mail-ew0-f208.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752674AbZJSGSn convert rfc822-to-8bit (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:60177 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751480AbZJWSYU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Oct 2009 02:18:43 -0400
-Received: by ewy4 with SMTP id 4so1205802ewy.37
-        for <linux-media@vger.kernel.org>; Sun, 18 Oct 2009 23:18:46 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <e425a9f30910130353o33871635hb7cbe7ebe294c1a9@mail.gmail.com>
-References: <e425a9f30910130353o33871635hb7cbe7ebe294c1a9@mail.gmail.com>
-Date: Mon, 19 Oct 2009 08:18:46 +0200
-Message-ID: <e425a9f30910182318j4a804390lcd411785b2725d5@mail.gmail.com>
-Subject: Re: Lifeview lv8h pci-e low profile
-From: Oinatz Aspiazu <oaspiazu@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Fri, 23 Oct 2009 14:24:20 -0400
+Subject: TV card working with kernel 2.6.28 not working with kernel 2.6.31
+From: Norman Jonas <vger.kernel.org@devport.codepilot.net>
+To: LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Fri, 23 Oct 2009 20:24:22 +0200
+Message-ID: <1256322262.3448.7.camel@desktop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello:
+I am an Ubuntu user. Since I switched to the new Karmic release with the
+new kernel my TV card stopped working. Even explicitly setting the tuner
+doesnt seem to work. Setting the options explicitly with saa7134
+i2c_scan=1 card=49 tuner=5 and tuner no_autodetect=5 addr=0xc6 / 0x63
+and any combination doesnt help so I am out of options. The relevant
+parts of dmesg are
 
-Does anybody know anything about this?
+dmesg kernel 2.6.28 :
 
-Thanks
+[   57.673251] saa7134 0000:05:00.0: PCI INT A -> GSI 16 (level, low) ->
+IRQ 16
+[   57.673257] saa7134[0]: found at 0000:05:00.0, rev: 1, irq: 16,
+latency: 64, mmio: 0xfebffc00
+[   57.673262] saa7134[0]: subsystem: 185b:c200, board: Compro VideoMate
+Gold+ Pal [card=49,autodetected]
+[   57.673300] saa7134[0]: board init: gpio is cc003f
+[   57.673355] input: saa7134 IR (Compro VideoMate Go
+as /devices/pci0000:00/0000:00:1e.0/0000:05:00.0/input/input7
+[   57.844008] saa7134[0]: i2c eeprom 00: 5b 18 00 c2 ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   57.844019] saa7134[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   57.844029] saa7134[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   57.844038] saa7134[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   57.844047] saa7134[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   57.844056] saa7134[0]: i2c eeprom 50: ff ff ff ff ff ff 01 01 ff 00
+ff 00 07 34 02 cb
+[   57.844065] saa7134[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   57.844074] saa7134[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   57.844083] saa7134[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   57.844093] saa7134[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   57.844102] saa7134[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   57.844111] saa7134[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   57.844125] saa7134[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   57.844132] saa7134[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   57.844139] saa7134[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   57.844146] saa7134[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   57.956579] tuner' 1-0060: chip found @ 0xc0 (saa7134[0])
+[   57.956646] tea5767 1-0060: type set to Philips TEA5767HN FM Radio
+[   57.972009] tuner' 1-0063: chip found @ 0xc6 (saa7134[0])
+[   57.984510] tuner' 1-0068: chip found @ 0xd0 (saa7134[0])
+[   58.033510] tuner-simple 1-0063: creating new instance
+[   58.033514] tuner-simple 1-0063: type set to 5 (Philips PAL_BG
+(FI1216 and compatibles))
+[   58.040154] saa7134[0]: registered device video0 [v4l2]
+[   58.040194] saa7134[0]: registered device vbi0
+[   58.040229] saa7134[0]: registered device radio0
+[   58.208104] saa7134 ALSA driver for DMA sound loaded
+[   58.208126] saa7134[0]/alsa: saa7134[0] at 0xfebffc00 irq 16
+registered as card -2
 
+dmesg kernel 2.6.31
 
+[   10.894197] Linux video capture interface: v2.00
+[   11.064157] saa7130/34: v4l2 driver version 0.2.15 loaded
+[   11.064246] saa7134 0000:05:00.0: PCI INT A -> GSI 16 (level, low) ->
+IRQ 16
+[   11.064251] saa7134[0]: found at 0000:05:00.0, rev: 1, irq: 16,
+latency: 64, mmio: 0xfebffc00
+[   11.064257] saa7134[0]: subsystem: 185b:c200, board: Compro VideoMate
+Gold+ Pal [card=49,insmod option]
+[   11.064268] saa7134[0]: board init: gpio is cc003f
+[   11.064323] input: saa7134 IR (Compro VideoMate Go
+as /devices/pci0000:00/0000:00:1e.0/0000:05:00.0/input/input5
+[   11.064358] IRQ 16/saa7134[0]: IRQF_DISABLED is not guaranteed on
+shared IRQs
+[   11.068283] saa7146: register extension 'budget_ci dvb'.
+[   11.250009] saa7134[0]: i2c eeprom 00: 5b 18 00 c2 ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   11.250019] saa7134[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   11.250028] saa7134[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   11.250037] saa7134[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   11.250046] saa7134[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   11.250054] saa7134[0]: i2c eeprom 50: ff ff ff ff ff ff 01 01 ff 00
+ff 00 07 34 02 cb
+[   11.250063] saa7134[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   11.250072] saa7134[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   11.250081] saa7134[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   11.250090] saa7134[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   11.250098] saa7134[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   11.250107] saa7134[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   11.250116] saa7134[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   11.250129] saa7134[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   11.250136] saa7134[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   11.250143] saa7134[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[   11.280006] saa7134[0]: i2c scan: found device @ 0xa0  [eeprom]
+[   11.300007] saa7134[0]: i2c scan: found device @ 0xc0  [tuner
+(analog)]
+[   11.320008] saa7134[0]: i2c scan: found device @ 0xc6  [???]
+[   11.340008] saa7134[0]: i2c scan: found device @ 0xd0  [???]
+[   11.343937] i2c-adapter i2c-0: Invalid 7-bit address 0x7a
+[   11.460045] tuner 0-0060: chip found @ 0xc0 (saa7134[0])
+[   11.640028] tuner-simple 0-0060: creating new instance
+[   11.640032] tuner-simple 0-0060: type set to 5 (Philips PAL_BG
+(FI1216 and compatibles))
+[   11.660150] saa7134[0]: registered device video0 [v4l2]
+[   11.660169] saa7134[0]: registered device vbi0
+[   11.660190] saa7134[0]: registered device radio0
+[   11.660430] budget_ci dvb 0000:05:05.0: PCI INT A -> GSI 21 (level,
+low) -> IRQ 21
+[   11.660452] IRQ 21/: IRQF_DISABLED is not guaranteed on shared IRQs
+[   11.660460] saa7146: found saa7146 @ mem ffffc90010a02800 (revision
+1, irq 21) (0x13c2,0x101a).
+[   11.660464] saa7146 (0): dma buffer size 192512
+[   11.660467] DVB: registering new adapter (TT-Budget C-1501 PCI)
+[   11.720915] adapter has MAC addr = 00:d0:5c:c6:5d:42
+[   11.721151] input: Budget-CI dvb ir receiver saa7146 (0)
+as /devices/pci0000:00/0000:00:1e.0/0000:05:05.0/input/input6
+[   11.721312] budget_ci: CI interface initialised
+[   11.803063] DVB: registering adapter 0 frontend 0 (Philips TDA10023
+DVB-C)...
+[   12.075129] ip6_tables: (C) 2000-2006 Netfilter Core Team
+[   12.294664] saa7134 ALSA driver for DMA sound loaded
+[   12.294674] IRQ 16/saa7134[0]: IRQF_DISABLED is not guaranteed on
+shared IRQs
+[   12.294693] saa7134[0]/alsa: saa7134[0] at 0xfebffc00 irq 16
+registered as card -2
 
-2009/10/13 Oinatz Aspiazu <oaspiazu@gmail.com>:
-> Hello:
-> I'm using an Arch Linux, kernel 2.6.30-ARCH.
-> I've a Lifeview LV8H pci-e dvb-t (low profile card) , that says:
-> # lspci -vv
->     03:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI
-> Video and Audio Decoder (rev 02)
->        Subsystem: Conexant Systems, Inc. Device ec80
->        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-> Stepping- SERR- FastB2B- DisINTx-
->        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
-> <TAbort- <MAbort- >SERR- <PERR- INTx-
->        Latency: 0, Cache Line Size: 64 bytes
->        Interrupt: pin A routed to IRQ 17
->        Region 0: Memory at fe800000 (64-bit, non-prefetchable) [size=2M]
->        Capabilities: <access denied>
->        Kernel driver in use: cx23885
->        Kernel modules: cx23885
-> cx23885 driver version 0.0.2 loaded
->
-> The cx23885 module, is supported by the kernel but does not seem to work for
-> this device. If i load the module without parameters, I get:
-> # dmesg | grep cx23885
-> ACPI: PCI Interrupt Link [LNEA] enabled at IRQ 17
-> cx23885 0000:03:00.0: PCI INT A -> Link[LNEA] -> GSI 17 (level, low) -> IRQ
-> 17
-> cx23885[0]: Your board isn't known (yet) to the driver.
-> cx23885[0]: Try to pick one of the existing card configs via
-> cx23885[0]: card=<n> insmod option.  Updating to the latest
-> cx23885[0]: version might help as well.
-> cx23885[0]: Here is a list of valid choices for the card=<n> insmod option:
-> cx23885[0]:    card=0 -> UNKNOWN/GENERIC
-> cx23885[0]:    card=1 -> Hauppauge WinTV-HVR1800lp
-> cx23885[0]:    card=2 -> Hauppauge WinTV-HVR1800
-> cx23885[0]:    card=3 -> Hauppauge WinTV-HVR1250
-> cx23885[0]:    card=4 -> DViCO FusionHDTV5 Express
-> cx23885[0]:    card=5 -> Hauppauge WinTV-HVR1500Q
-> cx23885[0]:    card=6 -> Hauppauge WinTV-HVR1500
-> cx23885[0]:    card=7 -> Hauppauge WinTV-HVR1200
-> cx23885[0]:    card=8 -> Hauppauge WinTV-HVR1700
-> cx23885[0]:    card=9 -> Hauppauge WinTV-HVR1400
-> cx23885[0]:    card=10 -> DViCO FusionHDTV7 Dual Express
-> cx23885[0]:    card=11 -> DViCO FusionHDTV DVB-T Dual Express
-> cx23885[0]:    card=12 -> Leadtek Winfast PxDVR3200 H
-> cx23885[0]:    card=13 -> Compro VideoMate E650F
-> cx23885[0]:    card=14 -> TurboSight TBS 6920
-> cx23885[0]:    card=15 -> TeVii S470
-> cx23885[0]:    card=16 -> DVBWorld DVB-S2 2005
-> cx23885[0]:    card=17 -> NetUP Dual DVB-S2 CI
-> CORE cx23885[0]: subsystem: 14f1:ec80, board: UNKNOWN/GENERIC
-> [card=0,autodetect
-> ed]
-> cx23885_dev_checkrevision() Hardware revision = 0xb0
-> cx23885[0]/0: found at 0000:03:00.0, rev: 2, irq: 17, latency: 0, mmio:
-> 0xfe8000
-> 00
-> cx23885 0000:03:00.0: setting latency timer to 64
-> IRQ 17/cx23885[0]: IRQF_DISABLED is not guaranteed on shared IRQs
->
-> Loading card=4, all the devices /dev/dvb/ are created (frontend,..). I get:
->
-> # dmesg | grep cx23885
-> Código: Seleccionar todo
->     cx23885 driver version 0.0.2 loaded
->     cx23885 0000:03:00.0: PCI INT A -> Link[LNEA] -> GSI 17 (level, low) ->
-> IRQ 17
->     CORE cx23885[0]: subsystem: 14f1:ec80, board: DViCO FusionHDTV5 Express
-> [card=4,insmod option]
->     cx23885_dvb_register() allocating 1 frontend(s)
->     cx23885[0]: cx23885 based dvb card
->     DVB: registering new adapter (cx23885[0])
->     cx23885_dev_checkrevision() Hardware revision = 0xb0
->     cx23885[0]/0: found at 0000:03:00.0, rev: 2, irq: 17, latency: 0, mmio:
-> 0xfe800000
->     cx23885 0000:03:00.0: setting latency timer to 64
->     IRQ 17/cx23885[0]: IRQF_DISABLED is not guaranteed on shared IRQs
->
-> Going to Kaffeine or making an scan from the console, it says that is in
-> mode ATSC and that is not compatable.
-> I'm living in Spain, and I have used this card as a PAL system.
->
->     initial transponder 546000000 0 3 9 1 0 0 0
->     initial transponder 578000000 0 2 9 3 0 0 0
->     initial transponder 625833000 0 2 9 3 0 0 0
->     initial transponder 705833000 0 3 9 1 0 0 0
->     initial transponder 649833000 0 3 9 1 0 0 0
->     initial transponder 673833000 0 3 9 1 0 0 0
->     WARNING: frontend type (ATSC) is not compatible with requested tuning
-> type (OFDM)
->     WARNING: frontend type (ATSC) is not compatible with requested tuning
-> type (OFDM)
->     WARNING: frontend type (ATSC) is not compatible with requested tuning
-> type (OFDM)
->     WARNING: frontend type (ATSC) is not compatible with requested tuning
-> type (OFDM)
->     WARNING: frontend type (ATSC) is not compatible with requested tuning
-> type (OFDM)
->     WARNING: frontend type (ATSC) is not compatible with requested tuning
-> type (OFDM)
->     ERROR: initial tuning failed
->
-> I've tried all options from the driver from the list. Only card=4, seems to
-> be valid.
-> Anyone can help me?
-> Thanks and sorry for my english,
-> Oinatz Aspiazu
+The main difference between old kernel
+
+[   57.972009] tuner' 1-0063: chip found @ 0xc6 (saa7134[0])
+
+and new kernel
+
+[   11.320008] saa7134[0]: i2c scan: found device @ 0xc6  [???]
+
+seems to be that the tuner isnt detected as such anymore and thus no
+tuner-simple is created for it... I read about some changes to v4l2 /
+saa7134 code which disabled a previous workaround, maybe this workaround
+is needed on my tv card ?
+
+Any help would be much appreciated !
+
+Norman
+
