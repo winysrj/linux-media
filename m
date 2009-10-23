@@ -1,83 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bamako.nerim.net ([62.4.17.28]:60561 "EHLO bamako.nerim.net"
+Received: from poutre.nerim.net ([62.4.16.124]:59914 "EHLO poutre.nerim.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754099AbZJAKGI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Oct 2009 06:06:08 -0400
-Date: Thu, 1 Oct 2009 12:06:09 +0200
+	id S1752233AbZJWPrE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Oct 2009 11:47:04 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by poutre.nerim.net (Postfix) with ESMTP id CD8E839DE7C
+	for <linux-media@vger.kernel.org>; Fri, 23 Oct 2009 17:47:04 +0200 (CEST)
+Received: from poutre.nerim.net ([127.0.0.1])
+	by localhost (poutre.nerim.net [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id u1NVK+g+7jBy for <linux-media@vger.kernel.org>;
+	Fri, 23 Oct 2009 17:47:03 +0200 (CEST)
+Received: from hyperion.delvare (jdelvare.pck.nerim.net [62.212.121.182])
+	by poutre.nerim.net (Postfix) with ESMTP id D334B39DC36
+	for <linux-media@vger.kernel.org>; Fri, 23 Oct 2009 17:47:03 +0200 (CEST)
+Date: Fri, 23 Oct 2009 17:47:05 +0200
 From: Jean Delvare <khali@linux-fr.org>
-To: Andy Walls <awalls@radix.net>,
-	=?UTF-8?B?UGF3ZcWC?= Sikora <pluto@agmk.net>
-Cc: linux-kernel@vger.kernel.org, LMML <linux-media@vger.kernel.org>
-Subject: Re: [2.6.31] ir-kbd-i2c oops.
-Message-ID: <20091001120609.50327134@hyperion.delvare>
-In-Reply-To: <1254354167.4771.7.camel@palomino.walls.org>
-References: <200909160300.28382.pluto@agmk.net>
-	<200909161003.33090.pluto@agmk.net>
-	<20090929161629.2a5c8d30@hyperion.delvare>
-	<200909301016.15327.pluto@agmk.net>
-	<20090930125737.704413c8@hyperion.delvare>
-	<1254354167.4771.7.camel@palomino.walls.org>
+To: LMML <linux-media@vger.kernel.org>
+Subject: Re: Details about DVB frontend API
+Message-ID: <20091023174705.7db4db52@hyperion.delvare>
+In-Reply-To: <20091022211330.6e84c6e7@hyperion.delvare>
+References: <20091022211330.6e84c6e7@hyperion.delvare>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy,
+On Thu, 22 Oct 2009 21:13:30 +0200, Jean Delvare wrote:
+> For example, the signal strength. All I know so far is that this is a
+> 16-bit value. But then what? Do greater values represent stronger
+> signal or weaker signal? Are 0x0000 and 0xffff special values? Is the
+> returned value meaningful even when FE_HAS_SIGNAL is 0? When
+> FE_HAS_LOCK is 0? Is the scale linear, or do some values have
+> well-defined meanings, or is it arbitrary and each driver can have its
+> own scale? What are the typical use cases by user-space application for
+> this value?
 
-On Wed, 30 Sep 2009 19:42:46 -0400, Andy Walls wrote:
-> On Wed, 2009-09-30 at 12:57 +0200, Jean Delvare wrote:
-> > Not sure why you look at address 0x83e? The stack trace says +0x64. As
-> > function ir_input_init() starts at 0x800, the oops address would be
-> > 0x864, which is:
-> > 
-> > 864:	f0 0f ab 31          	lock bts %esi,(%rcx)
-> > 
-> > If my disassembler skills are still worth anything, this corresponds to
-> > the set_bit instruction in:
-> > 
-> > 	for (i = 0; i < IR_KEYTAB_SIZE; i++)
-> > 		set_bit(ir->ir_codes[i], dev->keybit);
-> > 
-> > in the source code. This suggests that ir->ir_codes is smaller than
-> > expected (sounds unlikely as this array is included in struct
-> > ir_input_state) or dev->keybit isn't large enough (sounds unlikely as
-> > well, it should be large enough to contain 0x300 bits while ir keycodes
-> > are all below 0x100.) So most probably something went wrong before and
-> > we're only noticing now.
-> 
-> Jean,
-> 
-> You should be aware that the type of ir_codes changed recently from 
-> 
-> IR_KEYTAB_TYPE
-> 
-> to
-> 
-> struct ir_scancode_table *
-> 
-> 
-> I'm not sure if it is the problem here, but it may be prudent to check
-> that there's no mismatch between the module and the structure
-> definitions being pulled in via "#include"  (maybe by stopping gcc after
-> the preprocessing with -E ).
+To close the chapter on signal strength... I understand now that we
+don't have strict rules about the exact values. But do we have at least
+a common agreement that greater values mean stronger signal? I am
+asking because the DVB-T adapter model I have here behaves very
+strangely in this respect. I get values of:
+* 0xffff when there's no signal at all
+* 0x2828 to 0x2e2e when signal is OK
+* greater values as signal weakens (I have an amplified antenna with
+  manual gain control) up to 0x7272
 
-Thanks for the hint. As far as I can see, this change is new in kernel
-2.6.32-rc1. In 2.6.31, which is where Pawel reported the issue, we
-still have IR_KEYTAB_TYPE.
+I would have expected it the other way around: 0x0000 for no signal and
+greater values as signal strengthens. I think the frontend driver
+(cx22702) needs to be fixed.
 
-Pawel, are you by any chance mixing kernel drivers of different
-sources? Best would be to provide the output of rpm -qf and modinfo for
-all related kernel modules:
-
-rpm -qf /lib/modules/$(uname -r)/kernel/drivers/media/video/ir-kbd-i2c.ko
-rpm -qf /lib/modules/$(uname -r)/kernel/drivers/media/common/ir-common.ko
-rpm -qf /lib/modules/$(uname -r)/kernel/drivers/media/video/saa7134/saa7134.ko
-
-modinfo ir-kbd-i2c
-modinfo ir-common
-modinfo saa7134
-
-Thanks,
 -- 
 Jean Delvare
