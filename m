@@ -1,129 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f208.google.com ([209.85.219.208]:48208 "EHLO
-	mail-ew0-f208.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759579AbZJMOtf convert rfc822-to-8bit (ORCPT
+Received: from exprod7og126.obsmtp.com ([64.18.2.206]:59120 "HELO
+	exprod7og126.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751641AbZJWNgg convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Oct 2009 10:49:35 -0400
-Received: by ewy4 with SMTP id 4so3444748ewy.37
-        for <linux-media@vger.kernel.org>; Tue, 13 Oct 2009 07:48:57 -0700 (PDT)
+	Fri, 23 Oct 2009 09:36:36 -0400
+Received: by bwz25 with SMTP id 25so1017971bwz.18
+        for <linux-media@vger.kernel.org>; Fri, 23 Oct 2009 06:36:40 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <e425a9f30910130353o33871635hb7cbe7ebe294c1a9@mail.gmail.com>
-References: <e425a9f30910130353o33871635hb7cbe7ebe294c1a9@mail.gmail.com>
-Date: Tue, 13 Oct 2009 16:48:57 +0200
-Message-ID: <e425a9f30910130748v741b9fcfue527f161cc278240@mail.gmail.com>
-Subject: Re: Lifeview lv8h pci-e low profile
-From: Oinatz Aspiazu <oaspiazu@gmail.com>
-To: linux-media@vger.kernel.org
+In-Reply-To: <aaaa95950910230035o4c07c955jbbe74a80f79d6d69@mail.gmail.com>
+References: <aaaa95950910210632p74179cv91aa9825eff8d6bd@mail.gmail.com>
+	 <aaaa95950910220813y71f2f328sdb53d5c594d93094@mail.gmail.com>
+	 <aaaa95950910220851l201870c8w5352f2ec889244eb@mail.gmail.com>
+	 <095c6478b6c5187393b7af198449545f.squirrel@webmail.xs4all.nl>
+	 <aaaa95950910230035o4c07c955jbbe74a80f79d6d69@mail.gmail.com>
+Date: Fri, 23 Oct 2009 15:36:39 +0200
+Message-ID: <aaaa95950910230636o64ce8946re1dd19282e622370@mail.gmail.com>
+Subject: Re: [PATCH] output human readable form of the .status field from
+	VIDIOC_ENUMINPUT
+From: Sigmund Augdal <sigmund@snap.tv>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello:
+On Fri, Oct 23, 2009 at 9:35 AM, Sigmund Augdal <sigmund@snap.tv> wrote:
+> On Fri, Oct 23, 2009 at 12:10 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>
+>>> The attach patch modifies v4l2-ctl -I to also output signal status as
+>>> detected by the driver/hardware. This info is available in the status
+>>> field of the data returned by VIDIOC_ENUMINPUT which v4l2-ctl -I
+>>> already calls. The strings are copied from the v4l2 api specification
+>>> and could perhaps be modified a bit to fit the application.
+>>>
+>>> Best regards
+>>>
+>>> Sigmund Augdal
+>>>
+>>
+>> Hi Sigmund,
+>>
+>> This doesn't work right: the status field is a bitmask, so multiple bits
+>> can be set at the same time. So a switch is not the right choice for that.
+>> Look at some of the other functions to print bitmasks in v4l2-ctl.cpp for
+>> ideas on how to implement this properly.
+>>
+>> But it will be nice to have this in v4l2-ctl!
+> Right, I realized this shortly after sending. I'll take a look at this
+> today. However, I'm unsure how to handle the value 0. It seems this is
+> used both for "signal detected and everything is ok" and "driver has
+> no clue if there is a signal or not". Any feedback welcome.
+Attached is my second attempt at this. It should be slightly cleaner.
+I also changed the output format a bit so the line containing input
+name is unchanged compared to current v4l2-ctl (in case anyone has
+scripts that depend on it). Now signal status is outputted on a new
+line.
 
-I'm using an Arch Linux, kernel 2.6.30-ARCH.
-I've a Lifeview LV8H pci-e dvb-t (low profile card) , that says:
+Best regards
 
-# lspci -vv
-        03:00.0 Multimedia video controller: Conexant Systems, Inc.
-CX23885 PCI Video and Audio Decoder (rev 02)
-        Subsystem: Conexant Systems, Inc. Device ec80
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR- FastB2B- DisINTx-
-        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-        Latency: 0, Cache Line Size: 64 bytes
-        Interrupt: pin A routed to IRQ 17
-        Region 0: Memory at fe800000 (64-bit, non-prefetchable) [size=2M]
-        Capabilities: <access denied>
-        Kernel driver in use: cx23885
-        Kernel modules: cx23885
-        cx23885 driver version 0.0.2 loaded
-
-
- The cx23885 module, is supported by the kernel but does not seem to
-work for this device. If i load the module without parameters, I get:
-
- # dmesg | grep cx23885
-
- ACPI: PCI Interrupt Link [LNEA] enabled at IRQ 17
- cx23885 0000:03:00.0: PCI INT A -> Link[LNEA] -> GSI 17 (level, low) -> IRQ 17
- cx23885[0]: Your board isn't known (yet) to the driver.
- cx23885[0]: Try to pick one of the existing card configs via
- cx23885[0]: card=<n> insmod option.  Updating to the latest
- cx23885[0]: version might help as well.
- cx23885[0]: Here is a list of valid choices for the card=<n> insmod option:
- cx23885[0]:    card=0 -> UNKNOWN/GENERIC
- cx23885[0]:    card=1 -> Hauppauge WinTV-HVR1800lp
- cx23885[0]:    card=2 -> Hauppauge WinTV-HVR1800
- cx23885[0]:    card=3 -> Hauppauge WinTV-HVR1250
- cx23885[0]:    card=4 -> DViCO FusionHDTV5 Express
- cx23885[0]:    card=5 -> Hauppauge WinTV-HVR1500Q
- cx23885[0]:    card=6 -> Hauppauge WinTV-HVR1500
- cx23885[0]:    card=7 -> Hauppauge WinTV-HVR1200
- cx23885[0]:    card=8 -> Hauppauge WinTV-HVR1700
- cx23885[0]:    card=9 -> Hauppauge WinTV-HVR1400
- cx23885[0]:    card=10 -> DViCO FusionHDTV7 Dual Express
- cx23885[0]:    card=11 -> DViCO FusionHDTV DVB-T Dual Express
- cx23885[0]:    card=12 -> Leadtek Winfast PxDVR3200 H
- cx23885[0]:    card=13 -> Compro VideoMate E650F
- cx23885[0]:    card=14 -> TurboSight TBS 6920
- cx23885[0]:    card=15 -> TeVii S470
- cx23885[0]:    card=16 -> DVBWorld DVB-S2 2005
- cx23885[0]:    card=17 -> NetUP Dual DVB-S2 CI
- CORE cx23885[0]: subsystem: 14f1:ec80, board: UNKNOWN/GENERIC
-[card=0,autodetected]
- cx23885_dev_checkrevision() Hardware revision = 0xb0
- cx23885[0]/0: found at 0000:03:00.0, rev: 2, irq: 17, latency: 0,
-mmio: 0xfe800000
- cx23885 0000:03:00.0: setting latency timer to 64
- IRQ 17/cx23885[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-
- Loading card=4, all the devices /dev/dvb/ are created (frontend,..). I get:
-
- # dmesg | grep cx23885
-
-     cx23885 driver version 0.0.2 loaded
-     cx23885 0000:03:00.0: PCI INT A -> Link[LNEA] -> GSI 17 (level,
-low) -> IRQ 17
-     CORE cx23885[0]: subsystem: 14f1:ec80, board: DViCO FusionHDTV5
-Express [card=4,insmod option]
-     cx23885_dvb_register() allocating 1 frontend(s)
-     cx23885[0]: cx23885 based dvb card
-     DVB: registering new adapter (cx23885[0])
-     cx23885_dev_checkrevision() Hardware revision = 0xb0
-     cx23885[0]/0: found at 0000:03:00.0, rev: 2, irq: 17, latency: 0,
-mmio: 0xfe800000
-     cx23885 0000:03:00.0: setting latency timer to 64
-     IRQ 17/cx23885[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-
- Going to Kaffeine or making an scan from the console, it says that is
-in mode ATSC and that is not compatable.
- I'm living in Spain, and I have used this card as a PAL system.
-
-     initial transponder 546000000 0 3 9 1 0 0 0
-     initial transponder 578000000 0 2 9 3 0 0 0
-     initial transponder 625833000 0 2 9 3 0 0 0
-     initial transponder 705833000 0 3 9 1 0 0 0
-     initial transponder 649833000 0 3 9 1 0 0 0
-     initial transponder 673833000 0 3 9 1 0 0 0
-     WARNING: frontend type (ATSC) is not compatible with requested
-tuning type (OFDM)
-     WARNING: frontend type (ATSC) is not compatible with requested
-tuning type (OFDM)
-     WARNING: frontend type (ATSC) is not compatible with requested
-tuning type (OFDM)
-     WARNING: frontend type (ATSC) is not compatible with requested
-tuning type (OFDM)
-     WARNING: frontend type (ATSC) is not compatible with requested
-tuning type (OFDM)
-     WARNING: frontend type (ATSC) is not compatible with requested
-tuning type (OFDM)
-     ERROR: initial tuning failed
-
- I've tried all options from the driver from the list. Only card=4,
-seems to be valid.
- Anyone can help me?
-
- Thanks and sorry for my english,
- Oinatz Aspiazu
+Sigmund Augdal
+>
+> Best regards
+>
+> Sigmund Augdal
+>>
+>> Regards,
+>>
+>>      Hans
+>>
+>> --
+>> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+>>
+>>
+>
