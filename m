@@ -1,44 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:1026 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:42935 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751712AbZJPRhe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Oct 2009 13:37:34 -0400
-Message-ID: <4AD8B0A2.1090207@redhat.com>
-Date: Fri, 16 Oct 2009 19:42:58 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1751764AbZJXSUb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Oct 2009 14:20:31 -0400
+Message-ID: <4AE3456D.5000203@iki.fi>
+Date: Sat, 24 Oct 2009 21:20:29 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Pablo Baena <pbaena@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Possible bug on libv4l read() emulation
-References: <36be2c7a0910151500k847735dub3e1a8547f913e8c@mail.gmail.com>
-In-Reply-To: <36be2c7a0910151500k847735dub3e1a8547f913e8c@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Oliver Neukum <oliver@neukum.org>
+CC: Gonsolo <gonsolo@gmail.com>, mchehab@infradead.org,
+	pboettcher@dibcom.fr, linux-media@vger.kernel.org,
+	Linux Kernel <linux-kernel@vger.kernel.org>
+Subject: Re: DVB-T dib0700 one minute hang when resuming
+References: <4AE32EF2.2040508@googlemail.com> <200910242014.18785.oliver@neukum.org>
+In-Reply-To: <200910242014.18785.oliver@neukum.org>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 10/24/2009 09:14 PM, Oliver Neukum wrote:
+> Am Samstag, 24. Oktober 2009 18:44:34 schrieb Gonsolo:
+>> Hi!
+>>
+>> The following script fixes an annoying 62 second hang when resuming
+>> while my Nova-T stick is connected to my notebook.
+>>
+> Do you have any idea why it doesn't find its firmware?
 
-On 10/16/2009 12:00 AM, Pablo Baena wrote:
-> I have a program where I use libv4l's read() emulation for simplicity.
-> But with most v4l2 webcams I've tried, I get kernel panics.
->
-> I have pics of the message if anyone cares to see them, I don't want
-> to flood the mailing list.
->
-> Basically, the names I see in the kernel panic from a uvcvideo card is:
->
-> uvc_queue_next_buffer
-> __bad_area_no_semaphore
-> do_page_fault
->
-> And a lot more.
->
+Known issue. I have no idea where to start look from.
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg09974.html
 
-A panic should never happen, no matter what libv4l does (as libv4l is 100%
-userspace). Please submit a bug report with as much detail as possible to the
-driver author.
-
-Regards,
-
-Hans
+Antti
+-- 
+http://palosaari.fi/
