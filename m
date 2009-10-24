@@ -1,257 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([213.240.235.226]:55852 "EHLO extserv.mm-sol.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754427AbZJES5l (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Oct 2009 14:57:41 -0400
-Subject: RE: Mem2Mem V4L2 devices [RFC]
-From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	Tomasz Fujak <t.fujak@samsung.com>,
-	Pawel Osciak <p.osciak@samsung.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940436CF8FE8@dbde02.ent.ti.com>
-References: <E4D3F24EA6C9E54F817833EAE0D912AC077151C64F@bssrvexch01.BS.local>
-	 <1254500705.16625.35.camel@iivanov.int.mm-sol.com>
-	 <19F8576C6E063C45BE387C64729E73940436CF8DCB@dbde02.ent.ti.com>
-	 <001801ca45c3$a14826c0$e3d87440$%szyprowski@samsung.com>
-	 <19F8576C6E063C45BE387C64729E73940436CF8FE8@dbde02.ent.ti.com>
-Content-Type: text/plain
-Date: Mon, 05 Oct 2009 21:56:44 +0300
-Message-Id: <1254769004.10214.12.camel@violet.int.mm-sol.com>
-Mime-Version: 1.0
+Received: from smtp-out003.kontent.com ([81.88.40.217]:55376 "EHLO
+	smtp-out003.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751834AbZJXSML (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Oct 2009 14:12:11 -0400
+From: Oliver Neukum <oliver@neukum.org>
+To: Gonsolo <gonsolo@gmail.com>
+Subject: Re: DVB-T dib0700 one minute hang when resuming
+Date: Sat, 24 Oct 2009 20:14:18 +0200
+Cc: mchehab@infradead.org, pboettcher@dibcom.fr,
+	linux-media@vger.kernel.org,
+	Linux Kernel <linux-kernel@vger.kernel.org>
+References: <4AE32EF2.2040508@googlemail.com>
+In-Reply-To: <4AE32EF2.2040508@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200910242014.18785.oliver@neukum.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Am Samstag, 24. Oktober 2009 18:44:34 schrieb Gonsolo:
+> Hi!
+>
+> The following script fixes an annoying 62 second hang when resuming
+> while my Nova-T stick is connected to my notebook.
+>
+Do you have any idea why it doesn't find its firmware?
 
-Hi Vaibhav,
-
-On Mon, 2009-10-05 at 23:57 +0530, Hiremath, Vaibhav wrote:
-> > -----Original Message-----
-> > From: Marek Szyprowski [mailto:m.szyprowski@samsung.com]
-> > Sent: Monday, October 05, 2009 7:26 PM
-> > To: Hiremath, Vaibhav; 'Ivan T. Ivanov'; linux-media@vger.kernel.org
-> > Cc: kyungmin.park@samsung.com; Tomasz Fujak; Pawel Osciak; Marek
-> > Szyprowski
-> > Subject: RE: Mem2Mem V4L2 devices [RFC]
-> > 
-> > Hello,
-> > 
-> > On Monday, October 05, 2009 7:59 AM Hiremath, Vaibhav wrote:
-> > 
-> > > -----Original Message-----
-> > > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> > owner@vger.kernel.org] On Behalf Of
-> > > Hiremath, Vaibhav
-> > > Sent: Monday, October 05, 2009 7:59 AM
-> > > To: Ivan T. Ivanov; Marek Szyprowski
-> > > Cc: linux-media@vger.kernel.org; kyungmin.park@samsung.com; Tomasz
-> > Fujak; Pawel Osciak
-> > > Subject: RE: Mem2Mem V4L2 devices [RFC]
-> > >
-> > >
-> > > > -----Original Message-----
-> > > > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> > > > owner@vger.kernel.org] On Behalf Of Ivan T. Ivanov
-> > > > Sent: Friday, October 02, 2009 9:55 PM
-> > > > To: Marek Szyprowski
-> > > > Cc: linux-media@vger.kernel.org; kyungmin.park@samsung.com;
-> > Tomasz
-> > > > Fujak; Pawel Osciak
-> > > > Subject: Re: Mem2Mem V4L2 devices [RFC]
-> > > >
-> > > >
-> > > > Hi Marek,
-> > > >
-> > > >
-> > > > On Fri, 2009-10-02 at 13:45 +0200, Marek Szyprowski wrote:
-> > > > > Hello,
-> > > > >
-> > > <snip>
-> > >
-> > > > > image format and size, while the existing v4l2 ioctls would
-> > only
-> > > > refer
-> > > > > to the output buffer. Frankly speaking, we don't like this
-> > idea.
-> > > >
-> > > > I think that is not unusual one video device to define that it
-> > can
-> > > > support at the same time input and output operation.
-> > > >
-> > > > Lets take as example resizer device. it is always possible that
-> > it
-> > > > inform user space application that
-> > > >
-> > > > struct v4l2_capability.capabilities ==
-> > > > 		(V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT)
-> > > >
-> > > > User can issue S_FMT ioctl supplying
-> > > >
-> > > > struct v4l2_format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE
-> > > > 		  .pix  = width x height
-> > > >
-> > > > which will instruct this device to prepare its output for this
-> > > > resolution. after that user can issue S_FMT ioctl supplying
-> > > >
-> > > > struct v4l2_format.type = V4L2_BUF_TYPE_VIDEO_OUTPUT
-> > > >    		  .pix  = width x height
-> > > >
-> > > > using only these ioctls should be enough to device driver
-> > > > to know down/up scale factor required.
-> > > >
-> > > > regarding color space struct v4l2_pix_format have field
-> > > > 'pixelformat'
-> > > > which can be used to define input and output buffers content.
-> > > > so using only existing ioctl's user can have working resizer
-> > device.
-> > > >
-> > > > also please note that there is VIDIOC_S_CROP which can add
-> > > > additional
-> > > > flexibility of adding cropping on input or output.
-> > > >
-> > > [Hiremath, Vaibhav] I think this makes more sense in capture
-> > pipeline, for example,
-> > >
-> > > Sensor/decoder -> previewer -> resizer -> /dev/videoX
-> > >
-> > 
-> > I don't get this. In strictly capture pipeline we will get one video
-> > node anyway.
-> > 
-> > However the question is how we should support a bit more complicated
-> > pipeline.
-> > 
-> > Just consider a resizer module and the pipeline:
-> > 
-> > sensor/decoder -[bus]-> previewer -> [memory] -> resizer -> [memory]
-> > 
-> [Hiremath, Vaibhav] For me this is not single pipeline, it has two separate links - 
-> 
-> 1) sensor/decoder -[bus]-> previewer -> [memory]
-> 
-> 2) [memory] -> resizer -> [memory]
-> 
-> 
-> > ([bus] means some kind of internal bus that is completely
-> > interdependent from the system memory)
-> > 
-> > Mapping to video nodes is not so trivial. In fact this pipeline
-> > consist of 2 independent (sub)pipelines connected by user space
-> > application:
-> > 
-> > sensor/decoder -[bus]-> previewer -> [memory] -[user application]->
-> > [memory] -> resizer -> [memory]
-> > 
-> > For further analysis it should be cut into 2 separate pipelines:
-> > 
-> > a. sensor/decoder -[bus]-> previewer -> [memory]
-> > b. [memory] -> resizer -> [memory]
-> > 
-> [Hiremath, Vaibhav] Correct, I wouldn't call them as sub-pipeline. Application is linking them, so from driver point of view they are completely separate.
-> 
-> > Again, mapping the first subpipeline is trivial:
-> > 
-> > sensor/decoder -[bus]-> previewer -> /dev/video0
-> > 
-> [Hiremath, Vaibhav] Correct, it is separate streaming device.
-> 
-> > But the last, can be mapped either as:
-> > 
-> > /dev/video1 -> resizer -> /dev/video1
-> > (one video node approach)
-> > 
-> [Hiremath, Vaibhav] Please go through my last response where I have mentioned about buffer queuing constraints with this approach.
-> 
-> > or
-> > 
-> > /dev/video1 -> resizer -> /dev/video2
-> > (2 video nodes approach).
-> > 
-> > 
-> > So at the end the pipeline would look like this:
-> > 
-> > sensor/decoder -[bus]-> previewer -> /dev/video0 -[user
-> > application]-> /dev/video1 -> resizer -> /dev/video2
-> > 
-> > or
-> > 
-> > sensor/decoder -[bus]-> previewer -> /dev/video0 -[user
-> > application]-> /dev/video1 -> resizer -> /dev/video1
-> > 
-> > > > last thing which should be done is to QBUF 2 buffers and call
-> > > > STREAMON.
-> > > >
-> > > [Hiremath, Vaibhav] IMO, this implementation is not streaming
-> > model, we are trying to fit mem-to-mem
-> > > forcefully to streaming.
-> > 
-> > Why this does not fit streaming? I see no problems with streaming
-> > over mem2mem device with only one video node. You just queue input
-> > and output buffers (they are distinguished by 'type' parameter) on
-> > the same video node.
-> > 
-> [Hiremath, Vaibhav] Do we create separate queue of buffers based on type? I think we don't. 
-> 
-> App1		App2		App3		...		AppN
->   |		 |		|		|		  |
->    -----------------------------------------------
-> 				|
-> 			/dev/video0
-> 				|
-> 			Resizer Driver
-
- why not? they can be per file handler input/output queue. and we
- can do time sharing use of resizer driver like Marek suggests.
-
-
-> 
-> Everyone will be doing streamon, and in normal use case every application must be getting buffers from another module (another driver, codecs, DSP, etc...) in multiple streams, 0, 1,2,3,4....N
-> 
-> Every application will start streaming with (mostly) fixed scaling factor which mostly never changes. This one video node approach is possible only with constraint that, the application will always queue only 2 buffers with one CAPTURE and one with OUTPUT type. 
-
-i don't see how 2 device node approach can help with this case.
-even in "normal" video capture device you should stop streaming 
-when change buffer sizes.
-
-> He has to wait till first/second gets finished, you can't queue multiple buffers (input and output) simultaneously.
-
-actually this should be possible. 
-
-iivanov
- 
-> 
-> I do agree here with you that we need to investigate on whether we really have such use-case. Does it make sense to put such constraint on application? What is the impact? Again in case of down-scaling, application may want to use same buffer as input, which is easily possible with single node approach.
-> 
-> Thanks,
-> Vaibhav
-> 
-> > > We have to put some constraints -
-> > >
-> > > 	- Driver will treat index 0 as input always, irrespective of
-> > number of buffers queued.
-> > > 	- Or, application should not queue more that 2 buffers.
-> > > 	- Multi-channel use-case????
-> > >
-> > > I think we have to have 2 device nodes which are capable of
-> > streaming multiple buffers, both are
-> > > queuing the buffers.
-> > 
-> > In one video node approach there can be 2 buffer queues in one video
-> > node, for input and output respectively.
-> > 
-> > > The constraint would be the buffers must be mapped one-to-one.
-> > 
-> > Right, each queued input buffer must have corresponding output
-> > buffer.
-> > 
-> > Best regards
-> > --
-> > Marek Szyprowski
-> > Samsung Poland R&D Center
-> > 
-> > 
-> 
+	Regards
+		Oliver
 
