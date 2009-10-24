@@ -1,152 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hrndva-omtalb.mail.rr.com ([71.74.56.122]:57112 "EHLO
-	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755546AbZJBQGv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2009 12:06:51 -0400
-From: "David F. Carlson" <dave@chronolytics.com>
-Message-Id: <200910021603.n92G3elB032227@chronolytics.com>
-Subject: Re: Global Video Buffers Pool - PMM and UPBuffer reference drivers [RFC]
-To: m.szyprowski@samsung.com (Marek Szyprowski)
-Date: Fri, 2 Oct 2009 12:03:40 -0400 (EDT)
-Cc: linux-media@vger.kernel.org (linux-media@vger.kernel.org),
-	linux-arm-kernel@lists.infradead.org (linux-arm-kernel@lists.infradead.org),
-	kyungmin.park@samsung.com (kyungmin.park@samsung.com),
-	t.fujak@samsung.com (Tomasz Fujak)
-In-Reply-To: <E4D3F24EA6C9E54F817833EAE0D912AC077151C44B@bssrvexch01.BS.local>
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:54627 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751257AbZJXQbz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Oct 2009 12:31:55 -0400
+Received: by pzk1 with SMTP id 1so291184pzk.33
+        for <linux-media@vger.kernel.org>; Sat, 24 Oct 2009 09:32:00 -0700 (PDT)
+Message-ID: <4AE32BFD.1090000@gmail.com>
+Date: Sun, 25 Oct 2009 00:31:57 +0800
+From: "David T. L. Wong" <davidtlwong@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: v4l-dvb <linux-media@vger.kernel.org>
+Subject: Re: Details about DVB frontend API
+References: <20091022211330.6e84c6e7@hyperion.delvare>
+In-Reply-To: <20091022211330.6e84c6e7@hyperion.delvare>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-I am not a fan of the large and static driver based bootmem allocations in the 
-samsung-ap-2.6 git.  This work at least addresses that issue.  Thanks.
-
-Below are some comments.  Perhaps I am not "getting it".
-
-According to Marek Szyprowski:
+Jean Delvare wrote:
+> Hi folks,
 > 
-> algorithm itself would typically be changed to fit a usage pattern.
+> I am looking for details regarding the DVB frontend API. I've read
+> linux-dvb-api-1.0.0.pdf, it roughly explains what the FE_READ_BER,
+> FE_READ_SNR, FE_READ_SIGNAL_STRENGTH and FE_READ_UNCORRECTED_BLOCKS
+> commands return, however it does not give any information about how the
+> returned values should be interpreted (or, seen from the other end, how
+> the frontend kernel drivers should encode these values.) If there
+> documentation available that would explain this?
 > 
-> In our solution all memory buffers are all allocated by user-space
-> applications, because only user applications have enough information
-> which devices will be used in the video processing pipeline. For
-> example:
+> For example, the signal strength. All I know so far is that this is a
+> 16-bit value. But then what? Do greater values represent stronger
+> signal or weaker signal? Are 0x0000 and 0xffff special values? Is the
+> returned value meaningful even when FE_HAS_SIGNAL is 0? When
+> FE_HAS_LOCK is 0? Is the scale linear, or do some values have
+> well-defined meanings, or is it arbitrary and each driver can have its
+> own scale? What are the typical use cases by user-space application for
+> this value?
 > 
-> MFC video decoder -> Post Processor (scaler and color space converter)
->  -> Frame Buffer memory.
+> That's the kind of details I'd like to know, not only for the signal
+> strength, but also for the SNR, BER and UB. Without this information,
+> it seems a little difficult to have consistent frontend drivers.
 > 
-> If such a translation succeeds the
-> physical memory region will be properly locked and is guaranteed to be
-> in the memory till the end of transaction. Each transaction must be
-> closed by the multimedia device driver explicitly.
+> Thanks,
 
-Since this is a *physical* memory manager, I would never expect the memory
-to not be in memory... 
+Hi all,
 
-> 
-> 
-> Technical details
-> -----------------
-> 
-> 1. Physical memory allocation
-> 
-> PMM reserves the contiguous physical memory with bootmem kernel
-> allocator. A boot parameter is used to provide information how much
-> memory should be allocated, for example: adding a 'pmm=32M' parameter
-> would reserve 32MiB of system memory on system boot.
-> 
-> 2. Allocating a buffer from userspace
-> 
-> PMM provides a /dev/pmm special device. Each time the application wants
-> to allocate a buffer it opens the /dev/pmm special file, calls
-> IOCTL_PMM_ALLOC ioctl and the mmaps it into its virtual memory. The
-> struct pmm_area_info parameter for IOCTL_PMM_ALLOC ioctl describes the
-> memory requirements for the buffer (please refer to
-> include/linux/s3c/pmm.h) - like buffer size, memory alignment, memory
-> type (PMM supports different memory types, although currently only one
-> is used) and cpu cache coherency rules (memory can be mapped as
-> cacheable or non-cacheable). The buffer is freed when the file
-> descriptor reference count reaches zero (so the file is closed, is
-> unmmaped from applications memory and released from multimedia devices).
+   I am a bit late in this discussion.
 
-I prefer using mmap semantics with a driver than messes with *my* address
-space.  Ioctls that mess with my address space gives me hives.  
+   I just want to raise out a problem of the current architecture of FE 
++ tuner.
 
-mmap is the call a user makes to map a memory/file object into its space.
-ioctl is for things that don't fit read/write/mmap.  :-)
+   Indeed, the actual "Signal Strength" can only be get from tuner. 
+Tuner has amplifier internally and AGC. So demod can never know the 
+accurate signal strength. Demod only roughly knows signal-to-noise ratio.
 
-1.  memory alignment will be page size 4k (no?).  Or are you suggesting
-larger alignment requirements?  Are any of the target devices 24 bit dma
-clients?  (Crossing a 16MB boundary would then not work...)
+   Correct me if I am wrong that I found FE == Demod in current code.
+Thus, asking FE to report the signal strength is not appropriate.
 
-2. Since these buffers will be dma sources/targets, cache will be off (no?)
+   To achieve reporting actual signal strength, in commercial 
+proprietary code, it is a combination of readings from tuner + demod. 
+Which in turn,
+should sit in card/dongle specific code.
 
-Many CPUs ldr/stm memcpy do burst access to DDR so non-cached is still pretty 
-zipping for non-bit banging apps.  Forcing non-cached makes much of the "sync" 
-semantic you have "go away".
-
-Is there a use-case for cached graphics controller memory that I am missing?
-
-
-> 3. Buffer locking
-> 
-> If user application performed a mmap call on some special device and a
-> driver mapped some physical memory into user address space (usually with
-> remap_pfn_range function), this will create a vm_area structure with
-> VM_PFNMAP flag set in user address space map. UPBuffer layer can easily
-> perform a reverse mapping (virtual address to physical memory address)
-> by simply reading the PTE values and checking if it is contiguous in
-> physical memory. The only problem is how to guarantee the security of
-> this solution. VM_PFNMAP-type areas do not have associated page
-> structures so that memory pages cannot be locked directly in page cache.
-> However such memory area would not be freed until the special file that
-> is behind it is still in use. We found that is can be correctly locked
-> by increasing reference counter of that special file (vm_area->vm_file).
-> This would lock the mapping from being freed if user would accidently do
-> something really nasty like unmapping that area.
-
-I am still missing it.  Your /dev/pmm is allocating *physical memory* -- which
-it (the pmm) owns for all time (bootmem).  If the user unmaps it, it is still 
-pmm's physical memory.  
-
-Now, returning the allocated memory to the pmm freelist
-requires both the source and target to relinquish.  That implies both drivers 
-"know" to relinquish on last-close.  Otherwise, you leak like a sieve.
-
-Returning the pmm memory to the freelist when the user unmaps means that 
-dma registers in HW still reference that memory.  Only the driver knows 
-when it is "done".
-
-Drivers "own" the PMM lifecycle.  Users get transient mappings.
-
-
-> 7. SYSV SHM integration
-> 
-SysV shm is a nice touch.  Good job.
-
-Re: configuration
-There are quite a few CONFIG variables.  Forcing s3c-mm drivers to use PMM
-would knock quite a few of them out.
-
-You have presented a very flexible, general purpose bootmem allocator/mapper.
-(cache/uncached, bounce/pmm, etc.)
-
-The problem you were trying to solve is a means to generalize multiple 
-compile-time fixed bootmem allocations at runtime.
-
-Perhaps this could be simplified to fix that problem by assuming that 
-all users (including the s3c-fb driver) would use a simple non-cached 
-pmm allocator so that all allocations would be pooled.
-
-I would advocate "hiding" pmm allocations within the s3c-mm drivers.  
-Each driver could test user buffers for "isPMM()" trivially since the 
-bootmem is physically contig.
-
-What is the advantage in exporting the pmm API to user-space?
-
-David F. Carlson    Chronolytics, Inc.  Rochester, NY
-mailto:dave@chronolytics.com            http://www.chronolytics.com
-
-"The faster I go, the behinder I get." --Lewis Carroll
+Regards,
+David T.L. Wong
