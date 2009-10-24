@@ -1,22 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 0403ds2-oebr.1.fullrate.dk ([90.184.6.185]:47614 "EHLO
-	pris.musikcheck.dk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751711AbZJZPFc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Oct 2009 11:05:32 -0400
-Received: from [94.101.209.34] (helo=myagi)
-	by pris.musikcheck.dk with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
-	(Exim 4.69)
-	(envelope-from <hasse-linuxmedia@hagenjohansen.dk>)
-	id 1N2Qe9-0002CR-NW
-	for linux-media@vger.kernel.org; Mon, 26 Oct 2009 15:34:14 +0100
-From: Hasse Hagen Johansen <hasse-linuxmedia@hagenjohansen.dk>
-To: linux-media@vger.kernel.org
-Date: Mon, 26 Oct 2009 15:33:50 +0100
-Message-ID: <87ws2ikywh.fsf@musikcheck.dk>
+Received: from mail.gmx.net ([213.165.64.20]:59833 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751312AbZJXTez (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Oct 2009 15:34:55 -0400
+Date: Sat, 24 Oct 2009 21:35:00 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] pxa_camera: Fix missing include for wake_up
+In-Reply-To: <1256398701-7369-1-git-send-email-robert.jarzmik@free.fr>
+Message-ID: <Pine.LNX.4.64.0910242134240.14133@axis700.grange>
+References: <1256398701-7369-1-git-send-email-robert.jarzmik@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-subscribe linux-media
+Hi Robert
+
+On Sat, 24 Oct 2009, Robert Jarzmik wrote:
+
+> Function wake_up() needs include sched.h.
+> Apparently, commit d43c36dc6b357fa1806800f18aa30123c747a6d1
+> changed the include chain, removing linux/sched.h
+> 
+> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+
+Thanks, but I'm afraid you're a bit late:
+
+http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/10947/focus=10949
+
+Regards
+Guennadi
+
+> 
+> --
+> Kernelversion: v2.6.32-rc5
+> ---
+>  drivers/media/video/pxa_camera.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+> index 6952e96..5d01dcf 100644
+> --- a/drivers/media/video/pxa_camera.c
+> +++ b/drivers/media/video/pxa_camera.c
+> @@ -26,6 +26,7 @@
+>  #include <linux/device.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/clk.h>
+> +#include <linux/sched.h>
+>  
+>  #include <media/v4l2-common.h>
+>  #include <media/v4l2-dev.h>
+> -- 
+> 1.6.0.4
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
