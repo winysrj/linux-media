@@ -1,109 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web32702.mail.mud.yahoo.com ([68.142.207.246]:30036 "HELO
-	web32702.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751514AbZJUFd2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Oct 2009 01:33:28 -0400
-Message-ID: <174105.67821.qm@web32702.mail.mud.yahoo.com>
-Date: Tue, 20 Oct 2009 22:26:50 -0700 (PDT)
-From: Franklin Meng <fmeng2002@yahoo.com>
-Subject: parse-sniffusb2.pl update
-To: linux-media@vger.kernel.org
+Received: from smtp4-g21.free.fr ([212.27.42.4]:53512 "EHLO smtp4-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751985AbZJXToR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Oct 2009 15:44:17 -0400
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] pxa_camera: Fix missing include for wake_up
+References: <1256398701-7369-1-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.0910242134240.14133@axis700.grange>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Sat, 24 Oct 2009 21:44:13 +0200
+In-Reply-To: <Pine.LNX.4.64.0910242134240.14133@axis700.grange> (Guennadi Liakhovetski's message of "Sat\, 24 Oct 2009 21\:35\:00 +0200 \(CEST\)")
+Message-ID: <87d44cy3ua.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="0-446084893-1256102810=:67821"
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0-446084893-1256102810=:67821
-Content-Type: text/plain; charset=us-ascii
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-I have updated/rewrote parts of the parse-sniffusb2.pl script since I noticed some minor errors that I had in the previous version.  I believe everything should be correct now.  Attached is a newer version for review with the name parse1b-sniffusb2.pl
+> Hi Robert
+> Thanks, but I'm afraid you're a bit late:
+>
+> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/10947/focus=10949
+Ouch, missed this one on the mailing list.
+You can drop that patch then, Jonathan's patch is exactly the same.
 
-Thanks,
-Franklin Meng
+BTW, it was not included in -rc5 (which I'm based on) as you wished for.
 
+Cheers.
 
-      
---0-446084893-1256102810=:67821
-Content-Type: text/x-perl; name="parse1b-sniffusb2.pl"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="parse1b-sniffusb2.pl"
-
-IyEvdXNyL2Jpbi9wZXJsCiMKIyBBdXRob3I6IEZyYW5rbGluIE1lbmcgPGZt
-ZW5nMjAwMkB5YWhvby5jb20+CiMgUGFyc2VyIGZvciBVU0Igc25vb3BzIGNh
-cHR1cmVkIGZyb20gU25pZmZVU0IgMi4wLgojCgp1c2Ugc3RyaWN0Owp1c2Ug
-d2FybmluZ3M7CnVzZSBEYXRhOjpEdW1wZXI7CgpteSAkdXJiaGFzaDsKCmZv
-cmVhY2ggbXkgJGN1cmZpbGUgKEBBUkdWKSB7CglwYXJzZWZpbGUoJGN1cmZp
-bGUpOwoJI3dlIGNhbiBvbmx5IHByb2Nlc3MgMSBmaWxlCglleGl0Owp9Cgpz
-dWIgcGFyc2VmaWxlIHsKCW15ICRjdXJmaWxlID0gc2hpZnQ7CgkKCW15ICRz
-MSA9IDA7CglteSAkdDEgPSAwOwoJbXkgJHRtcDEgPSAiIjsKCW15ICRwcmlu
-dHVyYiA9IDA7CglteSAkY3VydXJiID0gMDsKCglvcGVuKEZELCAkY3VyZmls
-ZSkgfHwgZGllKCJFcnJvcjogJCFcbiIpOwoKCXdoaWxlKDxGRD4pIHsKCQlj
-aG9tcDsKCQlpZiAoL1VSQlxzKyhcZCspXHMrZ29pbmdccytkb3duLykgewoJ
-CQkjIHByaW50IHByZXZpb3VzIHVyYiBpZiBhdmFpbGFibGUKCQkJaWYoJHBy
-aW50dXJiICE9IDAgJiYgZXhpc3RzKCR1cmJoYXNoLT57JHByaW50dXJifS0+
-eydTZXR1cFBhY2tldCd9KSkgewoJCQkJcHJpbnQgIiR1cmJoYXNoLT57JHBy
-aW50dXJifS0+eydTZXR1cFBhY2tldCd9ICR1cmJoYXNoLT57JHByaW50dXJi
-fS0+eydEaXJlY3Rpb24nfSAkdXJiaGFzaC0+eyRwcmludHVyYn0tPnsnVHJh
-bnNmZXJCdWZmZXJNREwnfVxuIjsKIwkJCQkjIGRlbGV0ZSB1cmIgaW5mb3Jt
-YXRpb24KIwkJCQlkZWxldGUoJHVyYmhhc2gtPnskcHJpbnR1cmJ9KTsKCQkJ
-fQoJCQkjIGRlbGV0ZSB1cmIgaW5mb3JtYXRpb24KCQkJZGVsZXRlKCR1cmJo
-YXNoLT57JHByaW50dXJifSk7CgkJCSRwcmludHVyYiA9IDA7ICAjcmVzZXQg
-aGVyZQoJCQkkdG1wMSA9ICIiOwoJCQkkczEgPSAwOwoJCQkkdDEgPSAwOwoJ
-CQkjIHN0b3JlIG5leHQgdXJiIGluZm8gaGVyZQoJCQkkY3VydXJiID0gJDE7
-CgkJCSR1cmJoYXNoLT57JDF9ID0gdW5kZWY7CgkJCW5leHQ7CgkJfSBlbHNp
-ZiAoL1VSQlxzKyhcZCspXHMrY29taW5nXHMrYmFjay8pIHsKCQkJIyBwcmlu
-dCBwcmV2aW91cyB1cmIgaWYgYXZhaWxhYmxlCgkJCWlmKCRwcmludHVyYiAh
-PSAwICYmIGV4aXN0cygkdXJiaGFzaC0+eyRwcmludHVyYn0tPnsnU2V0dXBQ
-YWNrZXQnfSkpIHsKCQkJCXByaW50ICIkdXJiaGFzaC0+eyRwcmludHVyYn0t
-PnsnU2V0dXBQYWNrZXQnfSAkdXJiaGFzaC0+eyRwcmludHVyYn0tPnsnRGly
-ZWN0aW9uJ30gJHVyYmhhc2gtPnskcHJpbnR1cmJ9LT57J1RyYW5zZmVyQnVm
-ZmVyTURMJ31cbiI7CiMJCQkJIyBkZWxldGUgdXJiIGluZm9ybWF0aW9uCiMJ
-CQkJZGVsZXRlKCR1cmJoYXNoLT57JHByaW50dXJifSk7CgkJCX0KCQkJIyBk
-ZWxldGUgdXJiIGluZm9ybWF0aW9uCgkJCWRlbGV0ZSgkdXJiaGFzaC0+eyRw
-cmludHVyYn0pOwoJCQkkcHJpbnR1cmIgPSAwOyAgI3Jlc2V0IGhlcmUKCQkJ
-JHRtcDEgPSAiIjsKCQkJJHMxID0gMDsKCQkJJHQxID0gMDsKCQkJIyBmbGFn
-IG5leHQgdXJiIGZvciBwcmludCBvdXQKCQkJaWYoZXhpc3RzKCR1cmJoYXNo
-LT57JDF9KSkgewoJCQkJJHByaW50dXJiID0gJDE7CgkJCX0gZWxzZSB7CgkJ
-CQlkaWUgIkVycm9yOiBjYW5ub3QgbWF0Y2ggdXJiISFcbiI7CgkJCX0KCQkJ
-JGN1cnVyYiA9ICQxOwoJCQluZXh0OwoJCX0gZWxzaWYgKC9cLXsyfVxzKyhV
-UkJfRlVOLispXDovKSB7ICAjIHN0b3JlIHVyYiBmdW5jdGlvbiAodXNlZCBm
-b3IgZGVidWdnaW5nKQoJCQlpZighZXhpc3RzKCR1cmJoYXNoLT57JGN1cnVy
-Yn0tPnsnRnVuY3Rpb24nfSkpIHsKCQkJCSR1cmJoYXNoLT57JGN1cnVyYn0t
-PnsnRnVuY3Rpb24nfSA9ICQxOwoJCQl9CgkJCW5leHQ7CgkJfSBlbHNpZiAo
-L1VTQkRfVFJBTlNGRVJfRElSRUNUSU9OX0lOLykgeyAgI3N0b3JlIGluIGRp
-cmVjdGlvbgoJCQkjY2hlY2sgaWYgd2UgYWxyZWFkeSBzdG9yZWQgYSB2YWx1
-ZQoJCQlpZighZXhpc3RzKCR1cmJoYXNoLT57JGN1cnVyYn0tPnsnRGlyZWN0
-aW9uJ30pKSB7CgkJCQkkdXJiaGFzaC0+eyRjdXJ1cmJ9LT57J0RpcmVjdGlv
-bid9ID0gIjw8PCI7CgkJCX0KCQkJbmV4dDsKCQl9IGVsc2lmICgvVVNCRF9U
-UkFOU0ZFUl9ESVJFQ1RJT05fT1VULykgeyAjc3RvcmUgb3V0IGRpcmVjdGlv
-bgoJCQkjY2hlY2sgaWYgd2UgYWxyZWFkeSBzdG9yZWQgYSB2YWx1ZQoJCQlp
-ZighZXhpc3RzKCR1cmJoYXNoLT57JGN1cnVyYn0tPnsnRGlyZWN0aW9uJ30p
-KSB7CgkJCQkkdXJiaGFzaC0+eyRjdXJ1cmJ9LT57J0RpcmVjdGlvbid9ID0g
-Ij4+PiI7CgkJCX0KCQkJbmV4dDsKCQl9IGVsc2lmICgvVHJhbnNmZXJCdWZm
-ZXJNRExccys9XHMrLykgeyAgI2ZsYWcgZGF0YSBwYWNrZXQKCQkJJHQxID0g
-MTsKCQkJbmV4dDsKCQl9IGVsc2lmICgvU2V0dXBQYWNrZXRccys9LykgeyAg
-I2ZsYWcgc2V0dXAgcGFja2V0CgkJCSRzMSA9IDE7CgkJCW5leHQ7CgkJfSBl
-bHNpZiAoLyguK1xzK1w9fG1zXF0pLyAmJiAoJHMxIHx8ICR0MSkpIHsgI3Nh
-dmUgZGF0YSBwYWNrZXQgYW5kIHJlc2V0CgkJCWlmKCRzMSAmJiAoJHRtcDEg
-bmUgIiIpKSB7CgkJCQkkdG1wMSA9fiBzL15ccysvLzsKCQkJCSR1cmJoYXNo
-LT57JGN1cnVyYn0tPnsnU2V0dXBQYWNrZXQnfSA9ICR0bXAxOwoJCQl9IGVs
-c2lmKCR0MSAmJiAoJHRtcDEgbmUgIiIpKSB7CgkJCQkkdG1wMSA9fiBzL15c
-cysvLzsKCQkJCSR1cmJoYXNoLT57JGN1cnVyYn0tPnsnVHJhbnNmZXJCdWZm
-ZXJNREwnfSA9ICR0bXAxCgkJCX0KCQkJJHRtcDEgPSAiIjsKCQkJJHMxID0g
-MDsKCQkJJHQxID0gMDsKCQkJbmV4dDsKCQl9IGVsc2lmICgvXlxzK1xkK1w6
-KC4rKS8gJiYgKCRzMSB8fCAkdDEpKSB7ICNjYXB0dXJlIHBhY2tldAoJCQkk
-dG1wMSA9ICR0bXAxIC4gJDE7CgkJfQoJCQoJfQoJCgkjIHByaW50IHJlbWFp
-bmluZyBVUkIKCWlmKCRwcmludHVyYiAhPSAwICYmIGV4aXN0cygkdXJiaGFz
-aC0+eyRwcmludHVyYn0tPnsnU2V0dXBQYWNrZXQnfSkpIHsKCQlwcmludCAi
-JHVyYmhhc2gtPnskcHJpbnR1cmJ9LT57J1NldHVwUGFja2V0J30gJHVyYmhh
-c2gtPnskcHJpbnR1cmJ9LT57J0RpcmVjdGlvbid9ICR1cmJoYXNoLT57JHBy
-aW50dXJifS0+eydUcmFuc2ZlckJ1ZmZlck1ETCd9XG4iOwojCQkjIGRlbGV0
-ZSB1cmIgaW5mb3JtYXRpb24KIwkJZGVsZXRlKCR1cmJoYXNoLT57JHByaW50
-dXJifSk7Cgl9CgkjIGRlbGV0ZSB1cmIgaW5mb3JtYXRpb24KCWRlbGV0ZSgk
-dXJiaGFzaC0+eyRwcmludHVyYn0pOwoKCSMgTWF5YmUgd2Ugc2hvdWxkIHdh
-cm4gZm9yIHRoZSBVUkIncyB0aGF0IGRpZCBub3QgaGF2ZSBtYXRjaGVzPwoJ
-CgkjIHByaW50IG91dCBzdHVmZiByZW1haW5pbmcgaW4gdGhlIGhhc2ggZm9y
-IGRlYnVnZ2luZwoJI3ByaW50IER1bXBlcigkdXJiaGFzaCk7Cn0=
-
---0-446084893-1256102810=:67821--
+--
+Robert
