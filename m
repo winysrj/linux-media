@@ -1,71 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:42887 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932568AbZJEKvn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Oct 2009 06:51:43 -0400
-Subject: Re: [REVIEW] ivtv, ir-kbd-i2c: Explicit IR support for the AVerTV
- M116 for newer kernels
-From: Andy Walls <awalls@radix.net>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>,
-	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org,
-	Oldrich Jedlicka <oldium.pro@seznam.cz>, hverkuil@xs4all.nl
-In-Reply-To: <20091005102901.5d8447a2@hyperion.delvare>
-References: <1254584660.3169.25.camel@palomino.walls.org>
-	 <20091004222347.GA31609@moon> <1254707677.9896.10.camel@palomino.walls.org>
-	 <20091005102901.5d8447a2@hyperion.delvare>
-Content-Type: text/plain
-Date: Mon, 05 Oct 2009 06:36:05 -0400
-Message-Id: <1254738965.3980.3.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:57199 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751606AbZJXPtU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Oct 2009 11:49:20 -0400
+Received: by pwj9 with SMTP id 9so641888pwj.21
+        for <linux-media@vger.kernel.org>; Sat, 24 Oct 2009 08:49:24 -0700 (PDT)
+Message-ID: <4AE32200.6070107@gmail.com>
+Date: Sat, 24 Oct 2009 23:49:20 +0800
+From: "David T. L. Wong" <davidtlwong@gmail.com>
+MIME-Version: 1.0
+To: v4l-dvb <linux-media@vger.kernel.org>
+Subject: gcc 4.3.3 compilation problem
+Content-Type: multipart/mixed;
+ boundary="------------030500030901090902090900"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2009-10-05 at 10:29 +0200, Jean Delvare wrote:
-> On Sun, 04 Oct 2009 21:54:37 -0400, Andy Walls wrote:
-> > On Mon, 2009-10-05 at 01:23 +0300, Aleksandr V. Piskunov wrote:
+This is a multi-part message in MIME format.
+--------------030500030901090902090900
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> > > 
-> > > So question is:
-> > > 1) Is it ok to decrease udelay for this board?
-> > 
-> > Sure, I think.  It would actually run the ivtv I2C bus at the nominal
-> > clock rate specified by the I2C specification.
-> 
-> FWIW, 100 kHz isn't the "nominal" I2C clock rate, but the maximum clock
-> rate for normal I2C. It is perfectly valid to run I2C buses as lower
-> clock frequencies. I don't even think there is a minimum for I2C (but
-> there is a minimum of 10 kHz for SMBus.)
+I encounter a compilation error on gcc 4.3.3 ubuntu 9.04 x86_64.
 
-Ah, thanks.  I was too lazy to go read my copy of the spec.
+The compiler complains missing parameter name for first parameter of 
+function dib7000p_pid_filter().
+
+attached patch fix the problem.
+
+David
+
+--------------030500030901090902090900
+Content-Type: text/x-patch;
+ name="gcc4.3.3_compilation_fix.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="gcc4.3.3_compilation_fix.patch"
+
+changeset:   13157:df47ca1f4db5
+user:        David T.L. Wong <davidtlwong@gmail.com>
+date:        Sat Oct 24 23:16:11 2009 +0800
+summary:     fix gcc-4.3.3 compilation error
+
+diff --git a/linux/drivers/media/dvb/frontends/dib7000p.h b/linux/drivers/media/dvb/frontends/dib7000p.h
+--- a/linux/drivers/media/dvb/frontends/dib7000p.h
++++ b/linux/drivers/media/dvb/frontends/dib7000p.h
+@@ -97,7 +97,7 @@
+ 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+ 	return -ENODEV;
+ }
+-static inline int dib7000p_pid_filter(struct dvb_frontend *, u8 id, u16 pid, u8 onoff)
++static inline int dib7000p_pid_filter(struct dvb_frontend *fe, u8 id, u16 pid, u8 onoff)
+ {
+     printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+     return -ENODEV;
 
 
-> But of course different hardware implementations may not fully cover
-> the standard I2C or SMBus frequency range, and it is possible that a TV
-> adapter manufacturer designed its hardware to run the I2C bus at a
-> fixed frequency and we have to use that frequency to make the adapter
-> happy.
-
-This is very plausible for a microcontroller implementation of an I2C
-slave, which is the case here.
-
-
-> > I never had any reason to change it, as I feared causing regressions in
-> > many well tested boards.
-> 
-> This is a possibility, indeed. But for obvious performance reasons, I'd
-> rather use 100 kHz as the default, and let boards override it with a
-> lower frequency of their choice if needed. Obviously this provides an
-> easy improvement path, where each board can be tested separately and
-> I2C bus frequency bumped from 50 kHz to 100 kHz after some good testing.
-> 
-> Some boards might even support fast I2C, up to 400 kHz but limited to
-> 250 kHz by the i2c-algo-bit implementation.
-
-I can add a module option to ivtv for I2C clock rate.  It may take a few
-days.
-
-Regards,
-Andy
-
+--------------030500030901090902090900--
