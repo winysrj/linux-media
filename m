@@ -1,29 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f192.google.com ([209.85.212.192]:38084 "EHLO
-	mail-vw0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751250AbZJCGao (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2009 02:30:44 -0400
-Received: by vws30 with SMTP id 30so993443vws.21
-        for <linux-media@vger.kernel.org>; Fri, 02 Oct 2009 23:30:48 -0700 (PDT)
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:59552 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752014AbZJYALx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Oct 2009 20:11:53 -0400
+Received: by bwz27 with SMTP id 27so1495752bwz.21
+        for <linux-media@vger.kernel.org>; Sat, 24 Oct 2009 17:11:56 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <29251389.261254514293875.JavaMail.root@mail.vanguard.fi>
-References: <200910022044.05324.jhonny.b@gmail.com>
-	 <29251389.261254514293875.JavaMail.root@mail.vanguard.fi>
-Date: Fri, 2 Oct 2009 23:30:48 -0700
-Message-ID: <a3ef07920910022330v3ce5b843je4e711f466e15542@mail.gmail.com>
-Subject: Re: saa716x compiling problem
-From: VDR User <user.vdr@gmail.com>
-To: "Beepo / Vanguard" <beepo@vanguard.fi>
-Cc: Jonathan <jkdsoft@gmail.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Date: Sun, 25 Oct 2009 02:11:56 +0200
+Message-ID: <846899810910241711s6fb5939fq3a693a92a2a76310@mail.gmail.com>
+Subject: [PATCH] isl6421.c - added optional features: tone control and
+	temporary diseqc overcurrent
+From: HoP <jpetrous@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=00163649914b020fa80476b74be8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 2, 2009 at 1:11 PM, Beepo / Vanguard <beepo@vanguard.fi> wrote:
-> Hi,
->
-> You could try http://mercurial.intuxication.org/hg/s2-liplianin
+--00163649914b020fa80476b74be8
+Content-Type: text/plain; charset=ISO-8859-1
 
-To my knowledge there is no working saa716x driver and I certainly
-wouldn't expect one from that s2-liplianin tree if jusst.de doesn't
-have a proper one yet since that's the real dev tree.
+Hi,
+
+this is my first kernel patch, so all comments are welcome.
+
+Attached patch adds two optional (so, disabled by default
+and therefore could not break any compatibility) features:
+
+1, tone_control=1
+When enabled, ISL6421 overrides frontend's tone control
+function (fe->ops.set_tone) by its own one.
+
+2, overcurrent_enable=1
+When enabled, overcurrent protection is disabled during
+sending diseqc command. Such option is usable when ISL6421
+catch overcurrent threshold and starts limiting output.
+Note: protection is disabled only during sending
+of diseqc command, until next set_tone() usage.
+What typically means only max up to few hundreds of ms.
+WARNING: overcurrent_enable=1 is dangerous
+and can damage your device. Use with care
+and only if you really know what you do.
+
+/Honza
+
+Signed-off-by: Jan Petrous <jpetrous@gmail.com>
+---
+
+--00163649914b020fa80476b74be8
+Content-Type: text/x-patch; charset=US-ASCII; name="isl6421-tonectrl_overcurr.patch"
+Content-Disposition: attachment; filename="isl6421-tonectrl_overcurr.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g16zy0i30
+
+ZGlmZiAtciBmNjY4MGZhOGU3ZWMgbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZnJvbnRlbmRzL2lz
+bDY0MjEuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvaXNsNjQyMS5j
+CVR1ZSBPY3QgMjAgMDA6MDg6MDUgMjAwOSArMDkwMAorKysgYi9saW51eC9kcml2ZXJzL21lZGlh
+L2R2Yi9mcm9udGVuZHMvaXNsNjQyMS5jCVN1biBPY3QgMjUgMDA6NTk6NDYgMjAwOSArMDIwMApA
+QCAtMyw2ICszLDkgQEAKICAqCiAgKiBDb3B5cmlnaHQgKEMpIDIwMDYgQW5kcmV3IGRlIFF1aW5j
+ZXkKICAqIENvcHlyaWdodCAoQykgMjAwNiBPbGl2ZXIgRW5kcmlzcworICogQ29weXJpZ2h0IChD
+KSAyMDA5IEFsZXMgSnVyaWsgYW5kIEphbiBQZXRyb3VzIChhZGRlZCBvcHRpb25hbCAyMmsgdG9u
+ZSAKKyAqICAgICAgICAgICAgICAgICAgICBzdXBwb3J0IGFuZCB0ZW1wb3JhcnkgZGlzZXFjIG92
+ZXJjdXJyZW50IGVuYWJsZSB1bnRpbCAKKyAqICAgICAgICAgICAgICAgICAgICBuZXh0IGNvbW1h
+bmQgLSBzZXQgdm9sdGFnZSBvciB0b25lKQogICoKICAqIFRoaXMgcHJvZ3JhbSBpcyBmcmVlIHNv
+ZnR3YXJlOyB5b3UgY2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3IKICAqIG1vZGlmeSBpdCB1bmRl
+ciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlCkBAIC0zNSwxMiAr
+MzgsMjMgQEAKICNpbmNsdWRlICJkdmJfZnJvbnRlbmQuaCIKICNpbmNsdWRlICJpc2w2NDIxLmgi
+CiAKK3N0YXRpYyBpbnQgdG9uZV9jb250cm9sID0gMDsKK21vZHVsZV9wYXJhbSh0b25lX2NvbnRy
+b2wsIGludCwgU19JUlVHTyk7CitNT0RVTEVfUEFSTV9ERVNDKHRvbmVfY29udHJvbCwgIlNldCBJ
+U0w2NDIxIHRvIGNvbnRyb2wgMjJrSHogdG9uZSIpOworCitzdGF0aWMgaW50IG92ZXJjdXJyZW50
+X2VuYWJsZSA9IDA7Cittb2R1bGVfcGFyYW0ob3ZlcmN1cnJlbnRfZW5hYmxlLCBpbnQsIFNfSVJV
+R08pOworTU9EVUxFX1BBUk1fREVTQyhvdmVyY3VycmVudF9lbmFibGUsICJTZXQgSVNMNjQyMSB0
+byB0ZW1wb3JhcnkgZW5hYmxlIG92ZXJjdXJyZW50ICIKKwkJIndoZW4gZGlzZXFjIGNvbW1hbmQg
+aXMgYWN0aXZlIik7CisKIHN0cnVjdCBpc2w2NDIxIHsKIAl1OAkJCWNvbmZpZzsKIAl1OAkJCW92
+ZXJyaWRlX29yOwogCXU4CQkJb3ZlcnJpZGVfYW5kOwogCXN0cnVjdCBpMmNfYWRhcHRlcgkqaTJj
+OwogCXU4CQkJaTJjX2FkZHI7CisJaW50ICgqZGlzZXFjX3NlbmRfbWFzdGVyX2NtZF9vcmlnKShz
+dHJ1Y3QgZHZiX2Zyb250ZW5kKiBmZSwKKwkJCXN0cnVjdCBkdmJfZGlzZXFjX21hc3Rlcl9jbWQq
+IGNtZCk7CiB9OwogCiBzdGF0aWMgaW50IGlzbDY0MjFfc2V0X3ZvbHRhZ2Uoc3RydWN0IGR2Yl9m
+cm9udGVuZCAqZmUsIGZlX3NlY192b2x0YWdlX3Qgdm9sdGFnZSkKQEAgLTYwLDYgKzc0LDUzIEBA
+CiAJCWJyZWFrOwogCWNhc2UgU0VDX1ZPTFRBR0VfMTg6CiAJCWlzbDY0MjEtPmNvbmZpZyB8PSAo
+SVNMNjQyMV9FTjEgfCBJU0w2NDIxX1ZTRUwxKTsKKwkJYnJlYWs7CisJZGVmYXVsdDoKKwkJcmV0
+dXJuIC1FSU5WQUw7CisJfTsKKworCWlzbDY0MjEtPmNvbmZpZyB8PSBpc2w2NDIxLT5vdmVycmlk
+ZV9vcjsKKwlpc2w2NDIxLT5jb25maWcgJj0gaXNsNjQyMS0+b3ZlcnJpZGVfYW5kOworCisJcmV0
+dXJuIChpMmNfdHJhbnNmZXIoaXNsNjQyMS0+aTJjLCAmbXNnLCAxKSA9PSAxKSA/IDAgOiAtRUlP
+OworfQorCitzdGF0aWMgaW50IGlzbDY0MjFfc2VuZF9kaXNlcWMoc3RydWN0IGR2Yl9mcm9udGVu
+ZCAqZmUsCisJCQkJc3RydWN0IGR2Yl9kaXNlcWNfbWFzdGVyX2NtZCAqY21kKQoreworCXN0cnVj
+dCBpc2w2NDIxICppc2w2NDIxID0gKHN0cnVjdCBpc2w2NDIxICopIGZlLT5zZWNfcHJpdjsKKwlz
+dHJ1Y3QgaTJjX21zZyBtc2cgPSB7CS5hZGRyID0gaXNsNjQyMS0+aTJjX2FkZHIsIC5mbGFncyA9
+IDAsCisJCQkJLmJ1ZiA9ICZpc2w2NDIxLT5jb25maWcsCisJCQkJLmxlbiA9IHNpemVvZihpc2w2
+NDIxLT5jb25maWcpIH07CisKKwlpc2w2NDIxLT5jb25maWcgfD0gSVNMNjQyMV9EQ0w7CisKKwlp
+c2w2NDIxLT5jb25maWcgfD0gaXNsNjQyMS0+b3ZlcnJpZGVfb3I7CisJaXNsNjQyMS0+Y29uZmln
+ICY9IGlzbDY0MjEtPm92ZXJyaWRlX2FuZDsKKworCWlmIChpMmNfdHJhbnNmZXIoaXNsNjQyMS0+
+aTJjLCAmbXNnLCAxKSAhPSAxKSByZXR1cm4gLUVJTzsKKwkKKwlpc2w2NDIxLT5jb25maWcgJj0g
+fklTTDY0MjFfRENMOworCQorCXJldHVybiBpc2w2NDIxLT5kaXNlcWNfc2VuZF9tYXN0ZXJfY21k
+X29yaWcoZmUsIGNtZCk7Cit9CisKK3N0YXRpYyBpbnQgaXNsNjQyMV9zZXRfdG9uZShzdHJ1Y3Qg
+ZHZiX2Zyb250ZW5kICpmZSwgZmVfc2VjX3RvbmVfbW9kZV90IHRvbmUpCit7CisJc3RydWN0IGlz
+bDY0MjEgKmlzbDY0MjEgPSAoc3RydWN0IGlzbDY0MjEgKikgZmUtPnNlY19wcml2OworCXN0cnVj
+dCBpMmNfbXNnIG1zZyA9IHsJLmFkZHIgPSBpc2w2NDIxLT5pMmNfYWRkciwgLmZsYWdzID0gMCwK
+KwkJCQkuYnVmID0gJmlzbDY0MjEtPmNvbmZpZywKKwkJCQkubGVuID0gc2l6ZW9mKGlzbDY0MjEt
+PmNvbmZpZykgfTsKKworCWlzbDY0MjEtPmNvbmZpZyAmPSB+KElTTDY0MjFfRU5UMSk7CisKKwlw
+cmludGsoS0VSTl9JTkZPICIlczogJXNcbiIsIF9fZnVuY19fLCAoKHRvbmUgPT0gU0VDX1RPTkVf
+T0ZGKSA/ICJPZmYiIDogIk9uIikpOworCisJc3dpdGNoKHRvbmUpIHsKKwljYXNlIFNFQ19UT05F
+X09OOgorCQlpc2w2NDIxLT5jb25maWcgfD0gSVNMNjQyMV9FTlQxOworCQlicmVhazsKKwljYXNl
+IFNFQ19UT05FX09GRjoKIAkJYnJlYWs7CiAJZGVmYXVsdDoKIAkJcmV0dXJuIC1FSU5WQUw7CkBA
+IC05MSwxOCArMTUyLDI2IEBACiAKIHN0YXRpYyB2b2lkIGlzbDY0MjFfcmVsZWFzZShzdHJ1Y3Qg
+ZHZiX2Zyb250ZW5kICpmZSkKIHsKKwlzdHJ1Y3QgaXNsNjQyMSAqaXNsNjQyMSA9IChzdHJ1Y3Qg
+aXNsNjQyMSAqKSBmZS0+c2VjX3ByaXY7CisKIAkvKiBwb3dlciBvZmYgKi8KIAlpc2w2NDIxX3Nl
+dF92b2x0YWdlKGZlLCBTRUNfVk9MVEFHRV9PRkYpOworCisJaWYob3ZlcmN1cnJlbnRfZW5hYmxl
+KQorCQlmZS0+b3BzLmRpc2VxY19zZW5kX21hc3Rlcl9jbWQgPQorCQkJaXNsNjQyMS0+ZGlzZXFj
+X3NlbmRfbWFzdGVyX2NtZF9vcmlnOwogCiAJLyogZnJlZSAqLwogCWtmcmVlKGZlLT5zZWNfcHJp
+dik7CiAJZmUtPnNlY19wcml2ID0gTlVMTDsKIH0KIAotc3RydWN0IGR2Yl9mcm9udGVuZCAqaXNs
+NjQyMV9hdHRhY2goc3RydWN0IGR2Yl9mcm9udGVuZCAqZmUsIHN0cnVjdCBpMmNfYWRhcHRlciAq
+aTJjLCB1OCBpMmNfYWRkciwKLQkJICAgdTggb3ZlcnJpZGVfc2V0LCB1OCBvdmVycmlkZV9jbGVh
+cikKK3N0cnVjdCBkdmJfZnJvbnRlbmQgKmlzbDY0MjFfYXR0YWNoKHN0cnVjdCBkdmJfZnJvbnRl
+bmQgKmZlLAorCQlzdHJ1Y3QgaTJjX2FkYXB0ZXIgKmkyYywgdTggaTJjX2FkZHIsIHU4IG92ZXJy
+aWRlX3NldCwKKwkJdTggb3ZlcnJpZGVfY2xlYXIpCiB7CiAJc3RydWN0IGlzbDY0MjEgKmlzbDY0
+MjEgPSBrbWFsbG9jKHNpemVvZihzdHJ1Y3QgaXNsNjQyMSksIEdGUF9LRVJORUwpOworCiAJaWYg
+KCFpc2w2NDIxKQogCQlyZXR1cm4gTlVMTDsKIApAQCAtMTMxLDYgKzIwMCwzMSBAQAogCS8qIG92
+ZXJyaWRlIGZyb250ZW5kIG9wcyAqLwogCWZlLT5vcHMuc2V0X3ZvbHRhZ2UgPSBpc2w2NDIxX3Nl
+dF92b2x0YWdlOwogCWZlLT5vcHMuZW5hYmxlX2hpZ2hfbG5iX3ZvbHRhZ2UgPSBpc2w2NDIxX2Vu
+YWJsZV9oaWdoX2xuYl92b2x0YWdlOworCWlmKHRvbmVfY29udHJvbCkKKwkJZmUtPm9wcy5zZXRf
+dG9uZSA9IGlzbDY0MjFfc2V0X3RvbmU7CisJaWYob3ZlcmN1cnJlbnRfZW5hYmxlKSB7CisJCWlm
+KChvdmVycmlkZV9zZXQgJiBJU0w2NDIxX0RDTCkgfHwKKwkJCQkob3ZlcnJpZGVfY2xlYXIgJiBJ
+U0w2NDIxX0RDTCkpIHsKKwkJLyogdGhlcmUgaXMgbm8gc2Vuc2UgdG8gdXNlIG92ZXJjdXJyZW50
+X2VuYWJsZSB3aXRoIERDTCBiaXQgc2V0CisJCSAqIGluIGFueSBvdmVycmlkZSBieXRlICovCisJ
+CQlpZihvdmVycmlkZV9zZXQgJiBJU0w2NDIxX0RDTCkKKwkJCQlwcmludGsoS0VSTl9XQVJOSU5H
+ICJJU0w2NDIxIG92ZXJjdXJyZW50X2VuYWJsZSIKKwkJCQkJCSIgd2l0aCBEQ0wgYml0IGluIG92
+ZXJyaWRlX3NldCwiCisJCQkJCQkiIG92ZXJjdXJyZW50X2VuYWJsZSBpZ25vcmVkXG4iKTsKKwkJ
+CWlmKG92ZXJyaWRlX2NsZWFyICYgSVNMNjQyMV9EQ0wpCisJCQkJcHJpbnRrKEtFUk5fV0FSTklO
+RyAiSVNMNjQyMSBvdmVyY3VycmVudF9lbmFibGUiCisJCQkJCQkiIHdpdGggRENMIGJpdCBpbiBv
+dmVycmlkZV9jbGVhciwiCisJCQkJCQkiIG92ZXJjdXJyZW50X2VuYWJsZSBpZ25vcmVkXG4iKTsK
+KwkJfSBlbHNlIHsKKwkJCWlzbDY0MjEtPmRpc2VxY19zZW5kX21hc3Rlcl9jbWRfb3JpZyA9CisJ
+CQkJZmUtPm9wcy5kaXNlcWNfc2VuZF9tYXN0ZXJfY21kOworCQkJZmUtPm9wcy5kaXNlcWNfc2Vu
+ZF9tYXN0ZXJfY21kID0gaXNsNjQyMV9zZW5kX2Rpc2VxYzsKKwkJfQorCX0KKworCXByaW50ayhL
+RVJOX0lORk8gIklTTDY0MjEgYXR0YWNoZWQgb24gYWRkcj0leCAlcyAlc1xuIiwgaTJjX2FkZHIs
+CisJCQlvdmVyY3VycmVudF9lbmFibGUgPyAiKG92ZXJjdXJyZW50X2VuYWJsZSBvdmVyd3JpdHRl
+bikiIDogIiIsCisJCQl0b25lX2NvbnRyb2wgPyAiKHRvbmVfY29udHJvbCBvdmVyd3JpdHRlbiki
+IDogIiIpOwogCiAJcmV0dXJuIGZlOwogfQo=
+--00163649914b020fa80476b74be8--
