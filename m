@@ -1,42 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:44889 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932532AbZJ1DUp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2009 23:20:45 -0400
-Date: Wed, 28 Oct 2009 04:20:49 +0100
-From: Andi Kleen <andi@firstfloor.org>
-To: Andy Walls <awalls@radix.net>
-Cc: Stefani Seibold <stefani@seibold.net>,
-	Andi Kleen <andi@firstfloor.org>,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Amerigo Wang <xiyou.wangcong@gmail.com>,
-	Joe Perches <joe@perches.com>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 0/7] kfifo: new API v0.6
-Message-ID: <20091028032049.GB7744@basil.fritz.box>
-References: <1256694571.3131.26.camel@palomino.walls.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:33271 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753849AbZJYSXq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Oct 2009 14:23:46 -0400
+Message-ID: <4AE497B5.8050801@iki.fi>
+Date: Sun, 25 Oct 2009 20:23:49 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1256694571.3131.26.camel@palomino.walls.org>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx DVB modeswitching change: call for testers
+References: <829197380910132052w155116ecrcea808abe87a57a6@mail.gmail.com>
+In-Reply-To: <829197380910132052w155116ecrcea808abe87a57a6@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Here's a V4L-DVB cx23885 module change, that is on its way upstream,
-> that uses kfifo as is:
-> 
-> http://linuxtv.org/hg/v4l-dvb/rev/a2d8d3d88c6d
-> 
-> Do you really have to break the old API?
+On 10/14/2009 06:52 AM, Devin Heitmueller wrote:
+> Hello all,
+>
+> I have setup a tree that removes the mode switching code when
+> starting/stopping streaming.  If you have one of the em28xx dvb
+> devices mentioned in the previous thread and volunteered to test,
+> please try out the following tree:
+>
+> http://kernellabs.com/hg/~dheitmueller/em28xx-modeswitch
+>
+> In particular, this should work for those of you who reported problems
+> with zl10353 based devices like the Pinnacle 320e (or Dazzle) and were
+> using that one line change I sent this week.  It should also work with
+> Antti's Reddo board without needing his patch to move the demod reset
+> into the tuner_gpio.
+>
+> This also brings us one more step forward to setting up the locking
+> properly so that applications cannot simultaneously open the analog
+> and dvb side of the device.
 
-That was extensively discussed in the original patch kit submission,
-and yes there are good reasons. You will just have to adapt
-the driver if it gets in after the new kfifo patches; if kfifo
-gets in later it'll have to adapt it.
+Reddo DVB-C USB Box works fine with this patch. But whats the status of 
+this patch, when this is going to Kernel? Reddo is added to the 2.6.32 
+and due to that I need this go 2.6.32 as bug fix. If this is not going 
+to happen I should pull request my fix:
+http://linuxtv.org/hg/~anttip/reddo-dvb-c/rev/38f946af568f
 
--Andi
+And other issue raised as well. QAM256 channels are mosaic. I suspect 
+there is some USB speed problems in Empia em28xx driver since demod UNC 
+and BER counters are clean. It is almost 50 Mbit/sec stream... Any idea? 
+I tested modprobe em28xx alt=N without success...
+
+regards
+Antti
 -- 
-ak@linux.intel.com -- Speaking for myself only.
+http://palosaari.fi/
