@@ -1,113 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gv-out-0910.google.com ([216.239.58.186]:23298 "EHLO
-	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753608AbZJMTd7 (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2623 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753674AbZJYTPa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Oct 2009 15:33:59 -0400
-Received: by gv-out-0910.google.com with SMTP id r4so137201gve.37
-        for <linux-media@vger.kernel.org>; Tue, 13 Oct 2009 12:32:11 -0700 (PDT)
-Date: Tue, 13 Oct 2009 21:31:19 +0200
-From: Giuseppe Borzi <gborzi@gmail.com>
+	Sun, 25 Oct 2009 15:15:30 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id n9PJFUFM007835
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 25 Oct 2009 20:15:34 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 25 Oct 2009 20:15:30 +0100 (CET)
+Message-Id: <200910251915.n9PJFUFM007835@smtp-vbr5.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: Dazzle TV Hybrid USB and em28xx
-Message-ID: <20091013213119.7e790e7b@ieee.org>
-In-Reply-To: <829197380910121723i59d2498en10d166f523889fbd@mail.gmail.com>
-References: <loom.20091011T180513-771@post.gmane.org>
-	<829197380910111218q5739eb5ex9a87f19899a13e98@mail.gmail.com>
-	<loom.20091012T223603-551@post.gmane.org>
-	<829197380910121437m4f1fb7cld8d7dc351f468671@mail.gmail.com>
-	<20091013012255.260afea3@ieee.org>
-	<829197380910121723i59d2498en10d166f523889fbd@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/sBLXSC7LJ/Iy5kHMBRzDd9D"; protocol="application/pgp-signature"
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/sBLXSC7LJ/Iy5kHMBRzDd9D
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> On Mon, Oct 12, 2009 at 7:22 PM, Giuseppe Borzi <gborzi@gmail.com>
-> wrote:
-> >>
-> >> Yeah, that happens with Ubuntu Karmic. =C2=A0The v4l-dvb firedtv driver
-> >> depends on headers that are private to ieee1394 and not in their
-> >> kernel headers package.
-> >>
-> >> To workaround the issue, open v4l/.config and set the firedtv
-> >> driver from "=3Dm" to "=3Dn"
-> >>
-> >> Devin
-> >>
-> >
-> > Thanks Devin,
-> > following your instruction for firedtv I've compiled
-> > v4l-dvb-5578cc977a13 but the results aren't so good. After doing an
-> > "make rminstall" , compiling and "make install" I plugged the USB
-> > stick, the various devices were created (including /dev/dvb) and
-> > here is the dmesg output (now it's identified as card=3D1)
-> >
-> > then I started checking if it works. The command "vlc channels.conf"
-> > works, i.e. it plays the first channel in the list, but is unable to
-> > switch channel. me-tv doesn't start, but I think this is related to
-> > the recent gnome upgrade. w_scan doesn't find any channel.
->=20
-> Open v4l/em28xx-cards.c and comment out line 181 so it looks like:
->=20
-> //        {EM2880_R04_GPO,        0x04,   0xff,          100},/*
-> zl10353 reset */
->=20
-> This is an issue I have been actively debugging for two other users.
->=20
-> > Analog TV only shows video, no audio. Tried this both with sox and
-> > vlc. When you say that I have to choose the right TV standard (PAL
-> > for my region) do you mean I have to select this in the TV app I'm
-> > using (tvtime, vlc, xawtv) or as a module option? I've not seen any
-> > em28xx option for TV standard, so I suppose it's in the app.
->=20
-> Correct - the em28xx module does not have module parameters for the
-> standard - you have to select it in the application.
->=20
-> > Finally, I've noticed that the device is much less hot than it
-> > happened with out of kernel modules and the card=3D11 workaround.
-> > Is your latest post "em28xx mode switching" related to my device?
->=20
-> Yes, it is one device effected by that discussion.
->=20
-> Devin
->=20
+Results of the daily build of v4l-dvb:
 
-Thanks Devin,
-now DVB works as expected, i.e. I can change channel and w_scan
-finds the channels available in my area. The stick is recognized as
-card=3D1 instead of 53 as I expected, but still it works fine.
-Still no sound for analog TV, but that's a minor problem.
+date:        Sun Oct 25 19:00:05 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13164:c4beabacadb3
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Thanks again.
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-rc3-armv5: ERRORS
+linux-2.6.32-rc3-armv5-davinci: ERRORS
+linux-2.6.27-armv5-ixp: ERRORS
+linux-2.6.28-armv5-ixp: ERRORS
+linux-2.6.29.1-armv5-ixp: ERRORS
+linux-2.6.30-armv5-ixp: ERRORS
+linux-2.6.31-armv5-ixp: ERRORS
+linux-2.6.32-rc3-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.32-rc3-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-rc3-i686: ERRORS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-rc3-m32r: ERRORS
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.32-rc3-mips: ERRORS
+linux-2.6.27-powerpc64: ERRORS
+linux-2.6.28-powerpc64: ERRORS
+linux-2.6.29.1-powerpc64: ERRORS
+linux-2.6.30-powerpc64: ERRORS
+linux-2.6.31-powerpc64: ERRORS
+linux-2.6.32-rc3-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-rc3-x86_64: ERRORS
+sparse (linux-2.6.31): OK
+sparse (linux-2.6.32-rc3): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
---=20
-***********************************************************
-  Giuseppe Borzi, Assistant Professor at the
-  University of Messina - Department of Civil Engineering
-  Address: Contrada di Dio, Messina, I-98166, Italy
-  Tel:     +390903977323
-  Fax:     +390903977480
-  email:   gborzi@ieee.org
-  url:     http://ww2.unime.it/dic/gborzi/index.php
-***********************************************************
+Detailed results are available here:
 
---Sig_/sBLXSC7LJ/Iy5kHMBRzDd9D
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
+Full logs are available here:
 
-iEYEARECAAYFAkrU1YcACgkQVX4H2P5hPtP6VwCfUtTAFg/4bGgDQvbRCaJhh9SP
-7jgAnAsF2U1EfDIUZP7DCh8V3tVl3HP3
-=eXNH
------END PGP SIGNATURE-----
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
---Sig_/sBLXSC7LJ/Iy5kHMBRzDd9D--
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
