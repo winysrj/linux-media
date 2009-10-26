@@ -1,172 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44447 "EHLO comal.ext.ti.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:58076 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754996AbZJ0PnA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2009 11:43:00 -0400
-From: "Narnakaje, Snehaprabha" <nsnehaprabha@ti.com>
-To: Kevin Hilman <khilman@deeprootsystems.com>,
-	"santiago.nunez@ridgerun.com" <santiago.nunez@ridgerun.com>
-CC: "davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 27 Oct 2009 10:42:54 -0500
-Subject: RE: [PATCH 2/6 v5] Support for TVP7002 in dm365 board
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0C012ACE7054@dlee02.ent.ti.com>
-References: <1255617794-1401-1-git-send-email-santiago.nunez@ridgerun.com>
-	<87skdk7aul.fsf@deeprootsystems.com> <4AE1E903.4030605@ridgerun.com>
- <87y6mxalep.fsf@deeprootsystems.com>
-In-Reply-To: <87y6mxalep.fsf@deeprootsystems.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	id S1753170AbZJZQCE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Oct 2009 12:02:04 -0400
+Message-ID: <4AE5C7F9.6000502@iki.fi>
+Date: Mon, 26 Oct 2009 18:02:01 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx DVB modeswitching change: call for testers
+References: <829197380910132052w155116ecrcea808abe87a57a6@mail.gmail.com>	 <4AE497B5.8050801@iki.fi> <829197380910260836o4b17a65ex8c46d1db8d6d3027@mail.gmail.com>
+In-Reply-To: <829197380910260836o4b17a65ex8c46d1db8d6d3027@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Santiago, Kevin,
+Terve Devin,
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Monday, October 26, 2009 5:35 PM
-> To: santiago.nunez@ridgerun.com
-> Cc: Narnakaje, Snehaprabha; davinci-linux-open-
-> source@linux.davincidsp.com; todd.fischer@ridgerun.com; linux-
-> media@vger.kernel.org
-> Subject: Re: [PATCH 2/6 v5] Support for TVP7002 in dm365 board
-> 
-> Santiago Nunez-Corrales <snunez@ridgerun.com> writes:
-> 
-> > Kevin Hilman wrote:
-> >> <santiago.nunez@ridgerun.com> writes:
-> >>
-> >>
-> >>> From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-> >>>
-> >>> This patch provides support for TVP7002 in architecture definitions
-> >>> within DM365.
-> >>>
-> >>> Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-> >>> ---
-> >>>  arch/arm/mach-davinci/board-dm365-evm.c |  170
-> ++++++++++++++++++++++++++++++-
-> >>>  1 files changed, 166 insertions(+), 4 deletions(-)
-> >>>
-> >>> diff --git a/arch/arm/mach-davinci/board-dm365-evm.c b/arch/arm/mach-
-> davinci/board-dm365-evm.c
-> >>> index a1d5e7d..6c544d3 100644
-> >>> --- a/arch/arm/mach-davinci/board-dm365-evm.c
-> >>> +++ b/arch/arm/mach-davinci/board-dm365-evm.c
-> >>> @@ -38,6 +38,11 @@
-> >>>  #include <mach/common.h>
-> >>>  #include <mach/mmc.h>
-> >>>  #include <mach/nand.h>
-> >>> +#include <mach/gpio.h>
-> >>> +#include <linux/videodev2.h>
-> >>> +#include <media/tvp514x.h>
-> >>> +#include <media/tvp7002.h>
-> >>> +#include <media/davinci/videohd.h>
-> >>>    static inline int have_imager(void)
-> >>> @@ -48,8 +53,11 @@ static inline int have_imager(void)
-> >>>   static inline int have_tvp7002(void)
-> >>>  {
-> >>> -	/* REVISIT when it's supported, trigger via Kconfig */
-> >>> +#ifdef CONFIG_VIDEO_TVP7002
-> >>> +	return 1;
-> >>> +#else
-> >>>  	return 0;
-> >>> +#endif
-> >>>
-> >>
-> >> I've said this before, but I'll say it again.  I don't like the
-> >> #ifdef-on-Kconfig-option here.
-> >>
-> >> Can you add a probe hook to the platform_data so that when the tvp7002
-> >> is found it can call pdata->probe() which could then set a flag
-> >> for use by have_tvp7002().
-> >>
-> >> This will have he same effect without the ifdef since if the driver
-> >> is not compiled in, its probe can never be triggered.
-> >>
-> >> Kevin
-> >>
-> >>
-> > Kevin,
-> >
-> > I've been working on this particular implementation. This
-> > board-dm365-evm.c is specific to the board, therefore I don't still
-> > get the point of not having those values wired to the board file, but
-> > I know it'd be nice to have the CPLD configuration triggered upon
-> > TVP7002 detection. I see two options:
-> 
-> Having them in the board file is appropriate, what I object to is the
-> selection by Kconfig.  Run-time detection is always preferred when
-> possible.
+On 10/26/2009 05:36 PM, Devin Heitmueller wrote:
+> Hello Antti,
+>
+> Sorry, I'm a couple of days behind on email.
+>
+> On Sun, Oct 25, 2009 at 2:23 PM, Antti Palosaari<crope@iki.fi>  wrote:
+>> Reddo DVB-C USB Box works fine with this patch. But whats the status of this
+>> patch, when this is going to Kernel? Reddo is added to the 2.6.32 and due to
+>> that I need this go 2.6.32 as bug fix. If this is not going to happen I
+>> should pull request my fix:
+>> http://linuxtv.org/hg/~anttip/reddo-dvb-c/rev/38f946af568f
+>
+> I've received some very mixed results in terms of testing of the patch
+> (as you can see from the responses).  Even stranger, I received mixed
+> responses from people with the same boards.  I haven't had a chance to
+> debug *why* the people who raised problems still had an issue.  I
+> continue to believe it's the "right fix" but I don't know why those
+> people reported problems with it.
 
-We have this CPLD init API - evm_init_cpld() called from the dm365_evm_init() function. The CPLD init API was trying to initialize the CPLD, based on the default configuration. I believe David Brownell had this placeholder for have_imager() and have_tvp7002() APIs since, we have different CPLD settings for the imager, tvp7002 and tvp5146 for the video input source.
+OK, I will wait then.
 
-> 
-> > 1. Do the callback function inside pdata and initialize it at driver
-> > load time (tvp7002_probe). Set tvp5146 as default and override when
-> > driver loads (and restore when unloads).
-> 
-> This is the preferred option to me.
+>> And other issue raised as well. QAM256 channels are mosaic. I suspect there
+>> is some USB speed problems in Empia em28xx driver since demod UNC and BER
+>> counters are clean. It is almost 50 Mbit/sec stream... Any idea? I tested
+>> modprobe em28xx alt=N without success...
+>
+> What do you mean by "mosaic"?  Can you try using dvbstreamer and see
+> what the overall throughput is?  That will tell us if we are not
+> getting the whole stream.
+>
+> You cannot rely on the "alt=n" for DVB.  The max packet size is
+> determined by an em28xx register.
 
-We can decide on the default video input source to be TVP5146. However we do not need a new callback function. We already have the VPFE .setup_input callback API dm365evm_setup_video_input() for the same purpose. The VPFE .setup_input API is called when each of the decoders (sub-devices) registered with VPFE capture driver. It is also called when the application decides on an input source and switches between the input sources.
+I mean picture is bad, very much errors on stream. Look this thread for 
+sample picture:
+http://linuxtv.fi/viewtopic.php?t=3661&postdays=0&postorder=asc&start=15
 
-So, TVP5146 remains as the default video input source, only until VPFE probe is called, which registers the all decoders (sub-devices) defined in the VPFE platform data. This also means that the last decoder in the VPFE platform data remains active after boot-up. One can change the order in the VPFE platform data if a particular input source needs to remain active after boot-up. Note that application can always switch the input-source at run time.
+I did some more tests yesterday after sending that mail. Problem seems 
+to be that em28xx does not transfer bytes faster than ~46 Mbit/sec 
+whilst stream is over 50 Mbit/sec. About 5 Mbit/sec is lost... I ensured 
+that comparing towards Anysee E30C Plus DVB-C which has same demodulator 
+(TDA10023). Anysee is just fine, Empia not. I looked stream sizes by 
+using dvbtraffic.
 
-I quickly tried removing the have_imager() construct in the evm_init_cpld() and here is the output -
+Is there any way to speed up Empia to handle streams bigger than ~45 
+Mbit/sec?
 
-Starting kernel ...
-
-Uncompressing Linux...............................................................................................
-........................................ done, booting the kernel.
-Linux version 2.6.32-rc2-davinci1-dirty 
-...
-CPU: Testing write buffer coherency: ok
-DaVinci: 8 gpio irqs
-NET: Registered protocol family 16
-EVM: tvp5146 SD video input
-bio: create slab <bio-0> at 0
-SCSI subsystem initialized
-...
-vpfe_init
-vpfe-capture: vpss clock vpss_master enabled
-vpfe-capture vpfe-capture: v4l2 device registered
-vpfe-capture vpfe-capture: video device registered
-EVM: switch to tvp5146 SD video input
-tvp514x 1-005d: tvp514x 1-005d decoder driver registered !!
-vpfe-capture vpfe-capture: v4l2 sub device tvp5146 registered
-EVM: switch to tvp7002 HD video input
-tvp7002 1-005c: tvp7002 1-005c decoder driver registered !!
-vpfe-capture vpfe-capture: v4l2 sub device tvp7002 registered
-ths7353 1-002e: chip found @ 0x5c (DaVinci I2C adapter)
-vpfe-capture vpfe-capture: v4l2 sub device ths7353 registered
-...
-
-As you can see, the default video input source is TVP5146 and it has been video input source has been switched to TVP7002.
-
-Thanks
-Sneha
-
-> 
-> > 2. Add an entry to sysfs such that it can be user-configurable whether
-> > to activate one of the other regardless of whether tvp5156 or tvp7002
-> > are actually there (the only result would be fail to access the
-> > device).
-> 
-> Why do you need sysfs options for switching?  Wouldn't building as
-> modules and loading/unloading the needed modules serve the same
-> purpose?
-> 
-> Remeber that the 'probe' isn't going to be called until the
-> platform_driver
-> is registered, and that will (usually) happen at module load time.
-> 
-> > Sneha, do you have any suggestions on this one?
-> 
-> Kevin
-> 
-
+regards
+Antti
+-- 
+http://palosaari.fi/
