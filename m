@@ -1,54 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.viadmin.org ([195.145.128.101]:43897 "EHLO www.viadmin.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753166AbZJNJCN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Oct 2009 05:02:13 -0400
-Date: Wed, 14 Oct 2009 10:53:35 +0200
-From: "H. Langos" <henrik-dvb@prak.org>
-To: CityK <cityk@rogers.com>
-Cc: Linux-media <linux-media@vger.kernel.org>
-Subject: Re: [linux-dvb] Linuxtv wiki needs email notification/more
-	email-ready users
-Message-ID: <20091014085335.GM6384@www.viadmin.org>
-References: <20090918080941.GA15590@www.viadmin.org> <4AB47066.105@rogers.com> <4AD40778.6080009@rogers.com>
+Received: from fg-out-1718.google.com ([72.14.220.156]:32856 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752672AbZJZSSg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Oct 2009 14:18:36 -0400
+Received: by fg-out-1718.google.com with SMTP id d23so1182244fga.1
+        for <linux-media@vger.kernel.org>; Mon, 26 Oct 2009 11:18:40 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4AD40778.6080009@rogers.com>
+In-Reply-To: <4AE5E481.8010805@iki.fi>
+References: <829197380910132052w155116ecrcea808abe87a57a6@mail.gmail.com>
+	 <4AE497B5.8050801@iki.fi>
+	 <829197380910260836o4b17a65ex8c46d1db8d6d3027@mail.gmail.com>
+	 <4AE5C7F9.6000502@iki.fi>
+	 <829197380910260909m42ed776bt56754b882d7ac426@mail.gmail.com>
+	 <4AE5E481.8010805@iki.fi>
+Date: Mon, 26 Oct 2009 14:18:40 -0400
+Message-ID: <829197380910261118x68fe0160jf76fd37c410276d8@mail.gmail.com>
+Subject: Re: em28xx DVB modeswitching change: call for testers
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Mon, Oct 26, 2009 at 2:03 PM, Antti Palosaari <crope@iki.fi> wrote:
+> On 10/26/2009 06:09 PM, Devin Heitmueller wrote:
+>>
+>> On Mon, Oct 26, 2009 at 12:02 PM, Antti Palosaari<crope@iki.fi>  wrote:
+>>>
+>>> Is there any way to speed up Empia to handle streams bigger than ~45
+>>> Mbit/sec?
+>>
+>> Can you add a debug line that dumps out the values of register 0x01
+>> and register 0x5d and then send me the values?
+>
+> Here you are.
 
-On Tue, Oct 13, 2009 at 12:52:08AM -0400, CityK wrote:
-> Hi Henrik,
-> 
-> > H. Langos wrote:
-> >>
-> >> It would be great if it was possible to get (immediate/daily/weekly?) change
-> >> notifications by email in order not to lose track of what is happening to
-> >> the pages that I care about. (I bet this is standard functionality of
-> >> mediawiki or at least one of the more common extentions.)
-> >>     
-> 
-> In searching for something else, I came across this recent thread on the
-> mediawiki m/l:
-> http://lists.wikimedia.org/pipermail/mediawiki-l/2009-October/032214.html
-> 
-> There are a few suggestions in it (I just skimmed through). Perhaps one
-> of them would be good to implement.
+Ok, let me digest the logs you sent and see what I can find out.
 
-I took a look at those but in doing so I've (re)discovered the automatic rss
-feed that each page generates. Those rss feeds can be polled by services
-like feedmyinbox.com to generate a daily report.
+Thanks,
 
-Our Mediawiki version does not yet have the ability to generate RSS feeds 
-for users' watchlists without them being logged in (I've seen that feature 
-on MW 1.16beta on the iPodlinux.org wiki though), but I am happy enough 
-with the general "Recent changes" and the individual pages' feeds.
+Devin
 
-Thank you very much for pointing me in the right direction
-
-cheers
--henrik
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
