@@ -1,129 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.seznam.cz ([77.75.72.43]:50670 "EHLO smtp.seznam.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759723AbZJGR1e (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Oct 2009 13:27:34 -0400
-From: Oldrich Jedlicka <oldium.pro@seznam.cz>
-To: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
-Subject: Re: [REVIEW] ivtv, ir-kbd-i2c: Explicit IR support for the AVerTV M116 for newer kernels
-Date: Wed, 7 Oct 2009 19:26:23 +0200
-Cc: Andy Walls <awalls@radix.net>, Jean Delvare <khali@linux-fr.org>,
-	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org,
-	hverkuil@xs4all.nl
-References: <1254584660.3169.25.camel@palomino.walls.org> <1254707677.9896.10.camel@palomino.walls.org> <20091005085031.GA17431@moon>
-In-Reply-To: <20091005085031.GA17431@moon>
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:43754 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753731AbZJZWoC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Oct 2009 18:44:02 -0400
+Received: by pwj9 with SMTP id 9so1560918pwj.21
+        for <linux-media@vger.kernel.org>; Mon, 26 Oct 2009 15:44:07 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200910071926.29736.oldium.pro@seznam.cz>
+Date: Mon, 26 Oct 2009 16:44:07 -0600
+Message-ID: <8d0bb7650910261544i4ebed975rf81ec6bc38076927@mail.gmail.com>
+Subject: Hauppage HVR-2250 Tuning problems
+From: dan <danwalkeriv@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 05 of October 2009 at 10:50:31, Aleksandr V. Piskunov wrote:
-> > > Basicly during the I2C operation that reads scancode, controller seems
-> > > to stop processing input from IR sensor, resulting a loss of keypress.
-> > >
-> > > So the solution(?) I found was to decrease the udelay in
-> > > ivtv_i2c_algo_template from 10 to 5. Guess it just doubles the
-> > > frequency of ivtv i2c bus or something like that. Problem went away, IR
-> > > controller is now working as expected.
-> >
-> > That's a long standing error in the ivtv driver.  It ran the I2C bus at
-> > 1/(2*10 usec) = 50 kHz instead of the standard 100 kHz.
-> >
-> > Technically any I2C device should be able to handle clock rates down to
-> > about DC IIRC; so there must be a bug in the IR microcontroller
-> > implementation.
-> >
-> > Also the CX23416 errantly marks its PCI register space as cacheable
-> > which is probably wrong (see lspci output).  This may also be
-> > interfering with proper I2C operation with i2c_algo_bit depedning on the
-> > PCI bridges in your system.
-> >
-> > > So question is:
-> > > 1) Is it ok to decrease udelay for this board?
-> >
-> > Sure, I think.  It would actually run the ivtv I2C bus at the nominal
-> > clock rate specified by the I2C specification.
-> >
-> > I never had any reason to change it, as I feared causing regressions in
-> > many well tested boards.
-> >
-> > > 2) If yes, how to do it right?
-> >
-> > Try:
-> >
-> > # modprobe ivtv newi2c=1
-> >
-> > to see if that works first.
->
-> udelay=10, newi2c=0  => BAD
-> udelay=10, newi2c=1  => BAD
-> udelay=5,  newi2c=0  => OK
-> udelay=5,  newi2c=1  => BAD
->
->
-> newi2c=1 also throws some log messages, not sure if its ok or not.
+I can't seem to get my HVR-2250 (rev. 88061) card to tune any
+channels.  I have Comcast digital cable, and my VIZIO VL370M
+television is able to tune all of the QAM channels, so I know that the
+signal is present and is usable (in theory).  I have tried scanning
+for channels in Mythbuntu 9.10 RC (2.6.31 kernel), with MythTV, scan,
+dvbscan and scte65scan, without finding any channels.  I have tried
+installing the saa7164 drivers from the kernellabs repository and also
+the linuxtv repository, with the same results.
 
-Hi Aleksandr,
+The channel scanner in MythTV has two bars at the top of the screen to
+indicate signal strength and signal-to-noise ratio, and they both stay
+at 0% during the channel scan.  The scanner will say "locked" for a
+particular channel, but then it will show a message saying that it
+timed and without finding any channels.  I have already set the
+timeout to the maximum allowed by the software.
 
-I had a look at the ivtv newi2c implementation and it doesn't have any good 
-timing source. The only delay there is 5 times read of the clock line (SCL) 
-and waiting for the clock/data line to go high or low.
+scte65 scan get the closest to giving some kind of output.  I run it
+with this command:
 
-The implementation assumes that the slave is generating sufficient clock line 
-slow-down (by holding the clock line down) and that it is enough to have data 
-line stable for very short time (5 times read of the clock line).
+$ ./scte65scan -f1 -n1 ./us-Cable-Standard-center-frequencies-QAM256 >
+channels.conf
 
-I'm not surprised that with newi2c=1 you see "Slave did not ack", because the 
-clock just isn't correct. The generic i2c-algo-bit is doing much better job 
-here.
+At some point it  gives the following output:
 
-Regards,
-Oldrich.
+tuning 741000000hz..locked...PID 0x1ffc found
+Collecting data (may take up to 2 minutes)
 
+but then it basically just hangs indefinitely until I kill it, and
+channels.conf is always empty afterward.
 
-> Oct  5 11:41:16 moon kernel: [45430.916449] ivtv: Start initialization,
-> version 1.4.1 Oct  5 11:41:16 moon kernel: [45430.916618] ivtv0:
-> Initializing card 0 Oct  5 11:41:16 moon kernel: [45430.916628] ivtv0:
-> Autodetected AVerTV MCE 116 Plus card (cx23416 based) Oct  5 11:41:16 moon
-> kernel: [45430.918887] ivtv 0000:03:06.0: PCI INT A -> GSI 20 (level, low)
-> -> IRQ 20 Oct  5 11:41:16 moon kernel: [45430.919229] ivtv0:  i2c: i2c init
-> Oct  5 11:41:16 moon kernel: [45430.919234] ivtv0:  i2c: setting scl and
-> sda to 1 Oct  5 11:41:16 moon kernel: [45430.937745] cx25840 0-0044:
-> cx25843-23 found @ 0x88 (ivtv i2c driver #0) Oct  5 11:41:16 moon kernel:
-> [45430.949145] ivtv0:  i2c: Slave did not ack Oct  5 11:41:16 moon kernel:
-> [45430.951628] ivtv0:  i2c: Slave did not ack Oct  5 11:41:16 moon kernel:
-> [45430.954191] ivtv0:  i2c: Slave did not ack Oct  5 11:41:16 moon kernel:
-> [45430.956724] ivtv0:  i2c: Slave did not ack Oct  5 11:41:16 moon kernel:
-> [45430.959211] ivtv0:  i2c: Slave did not ack Oct  5 11:41:16 moon kernel:
-> [45430.961749] ivtv0:  i2c: Slave did not ack Oct  5 11:41:16 moon kernel:
-> [45430.964236] ivtv0:  i2c: Slave did not ack Oct  5 11:41:16 moon kernel:
-> [45430.966722] ivtv0:  i2c: Slave did not ack Oct  5 11:41:16 moon kernel:
-> [45430.966786] ivtv0:  i2c: i2c write to 43 failed Oct  5 11:41:16 moon
-> kernel: [45430.971106] tuner 0-0061: chip found @ 0xc2 (ivtv i2c driver #0)
-> Oct  5 11:41:16 moon kernel: [45430.974404] wm8739 0-001a: chip found @
-> 0x34 (ivtv i2c driver #0) Oct  5 11:41:16 moon kernel: [45430.986328]
-> ivtv0:  i2c: Slave did not ack Oct  5 11:41:16 moon kernel: [45430.988871]
-> ivtv0:  i2c: Slave did not ack Oct  5 11:41:16 moon kernel: [45430.991355]
-> ivtv0:  i2c: Slave did not ack Oct  5 11:41:16 moon kernel: [45430.993904]
-> ivtv0:  i2c: Slave did not ack Oct  5 11:41:16 moon kernel: [45430.996427]
-> ivtv0:  i2c: Slave did not ack Oct  5 11:41:16 moon kernel: [45430.998938]
-> ivtv0:  i2c: Slave did not ack Oct  5 11:41:16 moon kernel: [45431.001477]
-> ivtv0:  i2c: Slave did not ack Oct  5 11:41:16 moon kernel: [45431.003968]
-> ivtv0:  i2c: Slave did not ack Oct  5 11:41:16 moon kernel: [45431.004053]
-> ivtv0:  i2c: i2c write to 18 failed Oct  5 11:41:16 moon kernel:
-> [45431.011333] ivtv0:  i2c: Slave did not ack Oct  5 11:41:16 moon kernel:
-> [45431.013883] ivtv0:  i2c: Slave did not ack Oct  5 11:41:16 moon kernel:
-> [45431.016418] ivtv0:  i2c: Slave did not ack Oct  5 11:41:16 moon kernel:
-> [45431.018911] ivtv0:  i2c: Slave did not ack Oct  5 11:41:16 moon kernel:
-> [45431.021463] ivtv0:  i2c: Slave did not ack Oct  5 11:41:16 moon kernel:
-> [45431.023937] ivtv0:  i2c: Slave did not ack Oct  5 11:41:16 moon kernel:
-> [45431.026478] ivtv0:  i2c: Slave did not ack Oct  5 11:41:16 moon kernel:
-> [45431.028998] ivtv0:  i2c: Slave did not ack Oct  5 11:41:16 moon kernel:
-> [45431.029063] ivtv0:  i2c: i2c write to 71 failed Oct  5 11:41:16 moon
-> kernel: [45431.031468] ivtv0:  i2c: Slave did not ack ....
+I do have a couple of errors show up in dmesg, but I'm not sure if
+they're relevant.  Just in case it's helpful, here is the output from
+dmesg.
 
+[   14.266956] saa7164 driver loaded
+[   14.267518] saa7164 0000:01:00.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
+[   14.267621] CORE saa7164[0]: subsystem: 0070:8891, board: Hauppauge
+WinTV-HVR2250 [card=7,autodetected]
+[   14.267627] saa7164[0]/0: found at 0000:01:00.0, rev: 129, irq: 16,
+latency: 0, mmio: 0xe4000000
+[   14.267633] saa7164 0000:01:00.0: setting latency timer to 64
+[   14.267637] IRQ 16/saa7164[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+[   14.460016] saa7164_downloadfirmware() no first image
+[   14.460029] saa7164_downloadfirmware() Waiting for firmware upload
+(v4l-saa7164-1.0.3.fw)
+[   14.460035] saa7164 0000:01:00.0: firmware: requesting v4l-saa7164-1.0.3.fw
+[   16.075415] saa7164_downloadfirmware() firmware read 3978608 bytes.
+[   16.075417] saa7164_downloadfirmware() firmware loaded.
+[   16.075425] saa7164_downloadfirmware() SecBootLoader.FileSize = 3978608
+[   16.075431] saa7164_downloadfirmware() FirmwareSize = 0x1fd6
+[   16.075433] saa7164_downloadfirmware() BSLSize = 0x0
+[   16.075434] saa7164_downloadfirmware() Reserved = 0x0
+[   16.075435] saa7164_downloadfirmware() Version = 0x51cc1
+[   23.351830] saa7164_downloadimage() Image downloaded, booting...
+[   23.460015] saa7164_downloadimage() Image booted successfully.
+[   25.840015] saa7164_downloadimage() Image downloaded, booting...
+[   27.260019] saa7164_downloadimage() Image booted successfully.
+[   27.302513] saa7164[0]: Hauppauge eeprom: model=88061
+[   28.539398] saa7164_api_i2c_read() error, ret(2) = 0x13
+[   28.542913] saa7164_api_i2c_read() error, ret(2) = 0x13
+[   28.543201] DVB: registering new adapter (saa7164)
+[   32.148177] DVB: registering new adapter (saa7164)
 
+I have done some searching online, and that's what led me to scan,
+dvbscan and scte65scan, but none of the suggestions I've found so far
+seem to help.  Does anyone have any suggestions as to where I can go
+from here?  Could there be something wrong with the card itself?  Are
+there any diagnostics I could run?
+
+Thanks in advance for any help that anyone can offer.
+
+--dan
