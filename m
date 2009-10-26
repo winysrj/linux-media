@@ -1,66 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51115 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750707AbZJ2Fm5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Oct 2009 01:42:57 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9T5gxu4019346
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 29 Oct 2009 00:43:01 -0500
-From: hvaibhav@ti.com
-To: linux-media@vger.kernel.org
-Cc: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH 1/1] v4l2 doc: Added S/G_ROTATE, S/G_BG_COLOR information
-Date: Thu, 29 Oct 2009 11:12:57 +0530
-Message-Id: <1256794977-32473-1-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
+Received: from mail.gmx.net ([213.165.64.20]:33788 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752009AbZJZPJ4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Oct 2009 11:09:56 -0400
+Received: from lyakh (helo=localhost)
+	by axis700.grange with local-esmtp (Exim 4.63)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1N2RCx-0001ql-R3
+	for linux-media@vger.kernel.org; Mon, 26 Oct 2009 16:10:07 +0100
+Date: Mon, 26 Oct 2009 16:10:07 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: soc-camera: current patch-stack
+Message-ID: <Pine.LNX.4.64.0910261526520.4090@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+Hi all
 
+Under http://download.open-technology.de/soc-camera/20091026/ I've just 
+uploaded my current soc-camera snapshot, which includes
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+- a couple of fixes, that have also been submitted to the mainline via my 
+  hg-tree
+
+- imagebus API
+
+- sh_mobile_ceu_camera VBP error handling from Morimoto-san
+
+- new driver for the RJ54N1CB0C camera sensor and its support for the 
+  kfr2r09 board
+
+- some auxiliary patches like adding a .private field to struct 
+  soc_camera_link, fixing comment style, etc.
+
+Most, if not all, these patches have been in some form posted on the list, 
+others depend on the imagebus API, which will, probably, not be included 
+in the mainline in its present form, so, those patches will change too. 
+Therefore this patch-series is mostly for those, willing to have a look at 
+it and play with it.
+
+Based on 2.6.32-rc5.
+
+Thanks
+Guennadi
 ---
- v4l2-spec/controls.sgml |   20 +++++++++++++++++++-
- 1 files changed, 19 insertions(+), 1 deletions(-)
-
-diff --git a/v4l2-spec/controls.sgml b/v4l2-spec/controls.sgml
-index 477a970..a675f30 100644
---- a/v4l2-spec/controls.sgml
-+++ b/v4l2-spec/controls.sgml
-@@ -281,10 +281,28 @@ minimum value disables backlight compensation.</entry>
- <constant>V4L2_COLORFX_SEPIA</constant> (2).</entry>
- 	  </row>
- 	  <row>
-+	    <entry><constant>V4L2_CID_ROTATE</constant></entry>
-+	    <entry>integer</entry>
-+	    <entry>Rotates the image by specified angle. Common angles are 90,
-+	    270 and 180. Rotating the image to 90 and 270 will reverse the height
-+	    and width of the display window. It is necessary to set the new height and
-+	    width of the picture using S_FMT ioctl, see <xref linkend="vidioc-g-fmt"> according to
-+	    the rotation angle selected.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_CID_BG_COLOR</constant></entry>
-+	    <entry>integer</entry>
-+	    <entry>Sets the background color on the current output device.
-+	    Background color needs to be specified in the RGB24 format. The
-+	    supplied 32 bit value is interpreted as bits 0-7 Red color information,
-+	    bits 8-15 Green color information, bits 16-23 Blue color
-+	    information and bits 24-31 must be zero.</entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>V4L2_CID_LASTP1</constant></entry>
- 	    <entry></entry>
- 	    <entry>End of the predefined control IDs (currently
--<constant>V4L2_CID_COLORFX</constant> + 1).</entry>
-+<constant>V4L2_CID_BG_COLOR</constant> + 1).</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_CID_PRIVATE_BASE</constant></entry>
--- 
-1.6.2.4
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
