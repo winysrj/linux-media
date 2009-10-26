@@ -1,57 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:60656 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752864AbZJAWOX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Oct 2009 18:14:23 -0400
-Date: Thu, 1 Oct 2009 17:14:26 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: Wellington Terumi Uemura <wellingtonuemura@gmail.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: How to make my device work with linux?
-In-Reply-To: <829197380910011507k59f3b18fv3cc5d21b77299ef7@mail.gmail.com>
-Message-ID: <alpine.DEB.1.10.0910011708260.22836@cnc.isely.net>
-References: <c85228170910011138w6d3fa3adibbb25d275baa824f@mail.gmail.com>  <37219a840910011227r155d4bc1kc98935e3a52a4a17@mail.gmail.com>  <c85228170910011414n29837812y28010ef0d97b7bf1@mail.gmail.com>  <alpine.DEB.1.10.0910011628420.21852@cnc.isely.net>
- <c85228170910011503t68b100a1v3dccda2602ae08da@mail.gmail.com> <829197380910011507k59f3b18fv3cc5d21b77299ef7@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2718 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755365AbZJZTPE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Oct 2009 15:15:04 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id n9QJF7dk012041
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 26 Oct 2009 20:15:08 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 26 Oct 2009 20:15:07 +0100 (CET)
+Message-Id: <200910261915.n9QJF7dk012041@smtp-vbr5.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 1 Oct 2009, Devin Heitmueller wrote:
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> On Thu, Oct 1, 2009 at 6:03 PM, Wellington Terumi Uemura
-> <wellingtonuemura@gmail.com> wrote:
-> > It's not the answer that I was looking for but looks like the thing is
-> > much more complex than just compile and run drivers, this gives me
-> > another perspective, like a dead end.
-> >
-> > Thank you Mike.
-> 
-> Well, it's certainly possible to get it to work if you're willing to
-> make the investment.  It's just one of those situations where you
-> realize quickly that you're going to have to be prepared to do *way*
-> more work than just adding a new board profile.  Just because there
-> are drivers for the chips on your device doesn't mean that it is
-> trivial to get working.
-> 
-> Cheers,
-> 
-> Devin
-> 
+Results of the daily build of v4l-dvb:
 
-And actually I wasn't intending on totally discouraging you either.  
-But you do need to see the perspective of what you're trying to do 
-otherwise you may just get frustrated.
+date:        Mon Oct 26 19:00:03 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13164:c4beabacadb3
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Things aren't hopeless.  The cxusb module in DVB might be something you 
-should look at.  I guess it depends on how deep you wish to dive here.
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-rc3-armv5: ERRORS
+linux-2.6.32-rc3-armv5-davinci: ERRORS
+linux-2.6.27-armv5-ixp: ERRORS
+linux-2.6.28-armv5-ixp: ERRORS
+linux-2.6.29.1-armv5-ixp: ERRORS
+linux-2.6.30-armv5-ixp: ERRORS
+linux-2.6.31-armv5-ixp: ERRORS
+linux-2.6.32-rc3-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.32-rc3-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-rc3-i686: ERRORS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-rc3-m32r: ERRORS
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.32-rc3-mips: ERRORS
+linux-2.6.27-powerpc64: ERRORS
+linux-2.6.28-powerpc64: ERRORS
+linux-2.6.29.1-powerpc64: ERRORS
+linux-2.6.30-powerpc64: ERRORS
+linux-2.6.31-powerpc64: ERRORS
+linux-2.6.32-rc3-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-rc3-x86_64: ERRORS
+sparse (linux-2.6.31): OK
+sparse (linux-2.6.32-rc3): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
-  -Mike
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
--- 
+Full logs are available here:
 
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
