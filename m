@@ -1,61 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f208.google.com ([209.85.219.208]:41740 "EHLO
-	mail-ew0-f208.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758904AbZJHQrP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Oct 2009 12:47:15 -0400
-Received: by ewy4 with SMTP id 4so3070990ewy.37
-        for <linux-media@vger.kernel.org>; Thu, 08 Oct 2009 09:46:38 -0700 (PDT)
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:49337 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751807AbZJZPge (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Oct 2009 11:36:34 -0400
+Received: by fxm18 with SMTP id 18so12167243fxm.37
+        for <linux-media@vger.kernel.org>; Mon, 26 Oct 2009 08:36:38 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <829197380910080928t30fc0ecas7f9ab2a7d8437567@mail.gmail.com>
-References: <4ACDF829.3010500@xfce.org>
-	 <37219a840910080545v72165540v622efd43574cf085@mail.gmail.com>
-	 <4ACDFED9.30606@xfce.org>
-	 <829197380910080745j3015af10pbced2a7e04c7595b@mail.gmail.com>
-	 <4ACE2D5B.4080603@xfce.org>
-	 <829197380910080928t30fc0ecas7f9ab2a7d8437567@mail.gmail.com>
-Date: Thu, 8 Oct 2009 18:46:37 +0200
-Message-ID: <d9def9db0910080946r445ac0efs421cb3bd2972a0d8@mail.gmail.com>
-Subject: Re: Hauppage WinTV-HVR-900H
-From: Markus Rechberger <mrechberger@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Ali Abdallah <aliov@xfce.org>,
-	Michael Krufky <mkrufky@kernellabs.com>,
-	linux-media@vger.kernel.org
+In-Reply-To: <4AE497B5.8050801@iki.fi>
+References: <829197380910132052w155116ecrcea808abe87a57a6@mail.gmail.com>
+	 <4AE497B5.8050801@iki.fi>
+Date: Mon, 26 Oct 2009 11:36:37 -0400
+Message-ID: <829197380910260836o4b17a65ex8c46d1db8d6d3027@mail.gmail.com>
+Subject: Re: em28xx DVB modeswitching change: call for testers
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 8, 2009 at 6:28 PM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> On Thu, Oct 8, 2009 at 2:20 PM, Ali Abdallah <aliov@xfce.org> wrote:
->> I have the card since alsmost 3 years, it never worked, but now i'm in
->> urgent need of getting an analog usb stick to work with Linux.
->>
->> The PCTV hybrid:
->>
->> Bus 001 Device 004: ID eb1a:2881 eMPIA Technology, Inc.
->>
->> Thanks for you support, but i need an analog usb stick, well hopefully the
->> wintv 900H will get supported soon.
->
-> Well, I added support for that device last month, so I would suggest
-> you install the latest v4l-dvb code from
-> http://linuxtv.org/hg/v4l-dvb.  Directions can be found here:
->
-> http://linuxtv.org/repo
->
+Hello Antti,
 
-Aside of that we also fully support Linux
+Sorry, I'm a couple of days behind on email.
 
-http://support.sundtek.de/index.php/topic,4.0.html
+On Sun, Oct 25, 2009 at 2:23 PM, Antti Palosaari <crope@iki.fi> wrote:
+> Reddo DVB-C USB Box works fine with this patch. But whats the status of this
+> patch, when this is going to Kernel? Reddo is added to the 2.6.32 and due to
+> that I need this go 2.6.32 as bug fix. If this is not going to happen I
+> should pull request my fix:
+> http://linuxtv.org/hg/~anttip/reddo-dvb-c/rev/38f946af568f
 
-http://support.sundtek.de/index.php/topic,7.0.html
+I've received some very mixed results in terms of testing of the patch
+(as you can see from the responses).  Even stranger, I received mixed
+responses from people with the same boards.  I haven't had a chance to
+debug *why* the people who raised problems still had an issue.  I
+continue to believe it's the "right fix" but I don't know why those
+people reported problems with it.
 
-We also use to report bugs to Distributors in order to improve general
-Multimedia Support.
-Customers also get dedicated support as far as needed in order to get
-everything work properly (if needed).
+> And other issue raised as well. QAM256 channels are mosaic. I suspect there
+> is some USB speed problems in Empia em28xx driver since demod UNC and BER
+> counters are clean. It is almost 50 Mbit/sec stream... Any idea? I tested
+> modprobe em28xx alt=N without success...
 
-Best Regards,
-Markus
+What do you mean by "mosaic"?  Can you try using dvbstreamer and see
+what the overall throughput is?  That will tell us if we are not
+getting the whole stream.
+
+You cannot rely on the "alt=n" for DVB.  The max packet size is
+determined by an em28xx register.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
