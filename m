@@ -1,45 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38227 "EHLO mx1.redhat.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:44571 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752489AbZJYImE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Oct 2009 04:42:04 -0400
-Message-ID: <4AE40794.4010009@hhs.nl>
-Date: Sun, 25 Oct 2009 09:08:52 +0100
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	id S1752085AbZJZPrT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Oct 2009 11:47:19 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Roel Kluin <roel.kluin@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>
+Date: Mon, 26 Oct 2009 10:47:05 -0500
+Subject: RE: [PATCH] V4L/DVB: keep index within bound in vpfe_cropcap()
+Message-ID: <A69FA2915331DC488A831521EAE36FE4015568F206@dlee06.ent.ti.com>
+References: <4AE586F2.9060501@gmail.com>
+In-Reply-To: <4AE586F2.9060501@gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: libv4l release: 0.6.3: time to retire some v4l1 drivers
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+Roel,
 
-I'm very happy to announce the release of libv4l-0.6.3
+Thanks for fixing this.
 
-The main change this release is support for decompression of w9968cf
-JPEG and stv0680 raw bayer formats, together with the new gspca
-support for these bridges, this will allow us to retire the w9968cf
-and stv680 v4l1 drivers.
+Mauro,
 
-This release also adds 4 new laptops in the list of laptops
-whose camera modules are known to be mounted upside down in
-the frame. So it looks like the rate of adding new upside down cams
-is slowing somewhat, which is good.
+Could you merge this please?
 
-libv4l-0.6.3
--------------
-* Add more laptop models to the upside down devices table
-* Improved mr97310a decompression
-* Add support for decompressing yuv420 planar JPEG (one component per SOS,
-   3 SOS per frame), this is needed for w9968cf based cams
-* Add support for STV0680 raw bayer data
+Acked-by Muralidharan Karicheri <m-karicheri2@ti.com> 
 
-Note new URL! Get it here:
-http://people.fedoraproject.org/~jwrdegoede/libv4l-0.6.3.tar.gz
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+phone: 301-407-9583
+email: m-karicheri2@ti.com
 
-Regards,
-
-Hans
+>-----Original Message-----
+>From: Roel Kluin [mailto:roel.kluin@gmail.com]
+>Sent: Monday, October 26, 2009 7:25 AM
+>To: Mauro Carvalho Chehab; linux-media@vger.kernel.org; Andrew Morton;
+>Karicheri, Muralidharan
+>Subject: [PATCH] V4L/DVB: keep index within bound in vpfe_cropcap()
+>
+>If vpfe_dev->std_index equals ARRAY_SIZE(vpfe_standards), that is
+>one too large
+>
+>Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+>---
+> drivers/media/video/davinci/vpfe_capture.c |    2 +-
+> 1 files changed, 1 insertions(+), 1 deletions(-)
+>
+>diff --git a/drivers/media/video/davinci/vpfe_capture.c
+>b/drivers/media/video/davinci/vpfe_capture.c
+>index 402ce43..6b31e59 100644
+>--- a/drivers/media/video/davinci/vpfe_capture.c
+>+++ b/drivers/media/video/davinci/vpfe_capture.c
+>@@ -1577,7 +1577,7 @@ static int vpfe_cropcap(struct file *file, void *priv,
+>
+> 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_cropcap\n");
+>
+>-	if (vpfe_dev->std_index > ARRAY_SIZE(vpfe_standards))
+>+	if (vpfe_dev->std_index >= ARRAY_SIZE(vpfe_standards))
+> 		return -EINVAL;
+>
+> 	memset(crop, 0, sizeof(struct v4l2_cropcap));
 
