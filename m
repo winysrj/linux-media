@@ -1,101 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:42522 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753009AbZJ1Nge (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Oct 2009 09:36:34 -0400
-Subject: Re: [Linux-uvc-devel] again "Logitech QuickCam Pro for Notebooks
- 046d:0991"
-From: Alexey Fisher <bug-track@fisher-privat.net>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <200910281352.14940.laurent.pinchart@ideasonboard.com>
-References: <1255514751.15164.17.camel@zwerg>
-	 <200910280027.38292.laurent.pinchart@ideasonboard.com>
-	 <1256723904.3452.6.camel@zwerg>
-	 <200910281352.14940.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 28 Oct 2009 14:36:33 +0100
-Message-ID: <1256736993.2575.5.camel@mini>
-Mime-Version: 1.0
+Received: from mail-pz0-f188.google.com ([209.85.222.188]:51448 "EHLO
+	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753683AbZJ0LmY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Oct 2009 07:42:24 -0400
+Received: by pzk26 with SMTP id 26so32831pzk.4
+        for <linux-media@vger.kernel.org>; Tue, 27 Oct 2009 04:42:29 -0700 (PDT)
+Message-ID: <4AE6DCA2.4070802@gmail.com>
+Date: Tue, 27 Oct 2009 19:42:26 +0800
+From: KS Ng <ksnggm@gmail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: linux-media@vger.kernel.org
+Subject: Re: failure to submit first post
+References: <4AE4541D.7060206@gmail.com>	<4AE5A2F3.1060504@gmail.com> <20091027081155.05927ad4@pedra.chehab.org>
+In-Reply-To: <20091027081155.05927ad4@pedra.chehab.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Mauro,
 
-Am Mittwoch, den 28.10.2009, 13:52 +0100 schrieb Laurent Pinchart:
-> Hi Alexey,
-> 
-> On Wednesday 28 October 2009 10:58:24 Alexey Fisher wrote:
-> > Am Mittwoch, den 28.10.2009, 00:27 +0100 schrieb Laurent Pinchart:
-> > > On Monday 26 October 2009 15:06:41 Hans de Goede wrote:
-> > > > On 10/26/2009 12:52 PM, Alexey Fisher wrote:
-> > > > > Am Sonntag, den 25.10.2009, 14:21 +0100 schrieb Hans de Goede:
-> > >
-> > > [snip]
-> > >
-> > > > > > fwiw I'm a v4l kernel developer, but I'm not involved in the UVC
-> > > > > > driver, I'm however a contributor to cheese, I thought that my
-> > > > > > input that cheese would give up even if the driver has a long
-> > > > > > enough timeout would be helpful.
-> > > > > >
-> > > > > > To try and see if this (the cheese timeout is the issue), you will
-> > > > > > need to re-compile cheese from source, after unpacking cheese, edit
-> > > > > > src/cheese-webcam.c and goto line 716 (in 2.28.0)
-> > > > > >
-> > > > > > And change the "10 * GST_SECOND" there in something bigger. I also
-> > > > > > see that I'm mistaken and the timeout in cheese is not 3 but 10
-> > > > > > seconds, it might have changed recently, or my memory has been
-> > > > > > playing tricks on me.
-> > > > > >
-> > > > > > I still believe this might be the cause, the trace you have posted
-> > > > > > seems consistent with cheese's behaviour. Also noticed that there
-> > > > > > never is a successfull DQBUF the first time cheese opens the
-> > > > > > device. If cheese (or rather gstreamer) does not manage to DQBUF
-> > > > > > the first time, then cheese will not work with the device. There is
-> > > > > > a limitation in gstreamer (or maybe in the way cheese uses it)
-> > > > > > where gstreamer needs to be streaming before cheese can tell the
-> > > > > > properties of the cam. If the stream does not start within the
-> > > > > > first 10 seconds, then cheese will fail to get the properties.
-> > > > > >
-> > > > > > If you go to cheese's edit ->  preferences menu, and your cam has
-> > > > > > no resolutions listed there (the resolution drop down is grayed
-> > > > > > out). This is what is happening.
-> > > > > >
-> > > > > > As for empathy, I'm not familiar with that. But if we can get
-> > > > > > cheese to work first I'm sure that that would be a good step in the
-> > > > > > right direction.
-> > > > >
-> > > > > Hallo Hans,
-> > > > > thank you for your constructive response,
-> > > > > I increased timeout to 15 seconds i now i can't reproduce camera
-> > > > > freeze, i'll play with it more to be sure. There is still one issue
-> > > > > with it - on cold start the image is zoomed in.
-> > > > > I need to close cheese and open it again to get normal zoom. The
-> > > > > resolution seems to be the same.
-> > >
-> > > Zoomed in ? Really ? As far as I know the QuickCam Pro for Notebooks has
-> > > no optical or digital zoom. Could you please send me lsusb's output for
-> > > your device ?
-> > 
-> > Yes. I can use digital zoom under M$Win with Logitech software.
-> 
-> That's probably implemented in software in the Windows driver.
-> 
-> [snip]
-> The zoom control, if present, should have appeared here.
-> 
-> As your camera doesn't expose any zoom control I really don't know where the 
-> zoom comes from.
-> 
+Thanks for your attention! I also believe packets under tuner_init_pkts 
+constitute the firmware of the device. I'll see how to construct a 
+firmware file instead of coding them inline, and I'll re-submit once 
+I've figured that out.
 
-i don't really care about zoom problem. This not making this webcam
-freeze so probably nobody will find this issue. You can sleep well :) 
+Cheers,
+K.S. Ng
 
-if you have some ideas about camera freeze, please let me know.
-
-regards,
-
-Alexey.
+Mauro Carvalho Chehab wrote:
+> Em Mon, 26 Oct 2009 21:24:03 +0800
+> KS Ng <ksnggm@gmail.com> escreveu:
+>
+>   
+>> This is a resend with the patch attached.
+>>
+>> KS Ng wrote:
+>>     
+>>> Hi,
+>>>
+>>> I've registered to linux-media mailing list a couple of days ago and 
+>>> attempted to do my first posting yesterday with subject "Support for 
+>>> Magicpro proHDTV Dual DMB-TH adapter". However I can't see my posting 
+>>> even though I've replied to the email requesting confirmation.
+>>>
+>>> Would you please kindly have a look!
+>>>       
+>
+> Please take a look at:
+> 	http://linuxtv.org/hg/v4l-dvb/raw-file/tip/README.patches
+>
+> for some comments about how to submit a patch.
+>
+> Basically, you'll need to send a patch with a short description at the subject,
+> a more complete description at the body and add your Signed-off-by: there.
+>
+> Also, please run checkpatch before submitting it, since it will point you the CodingStyle
+> troubles that your code have. There are several coding styles there, being harder for people
+> to analyse your code.
+>
+> In the case of tuner_init_pkts, is this a firmware or just register sets? If it
+> is a firmware, it should be split from the code, due to legal issues.
+> Basically, some lawyers believe that, if you distribute a firmware inside of
+> the source code of a GPL'd code, you're bound to distribute also the firmware
+> source code, due to GPL.
+>
+> Cheers,
+> Mauro.
+>
+>   
+>>> Thanks,
+>>> K.S. Ng
+>>>
+>>> email: ksnggm@gmail.com
+>>>       
+>
+>
+>
+>
+> Cheers,
+> Mauro
+>   
 
