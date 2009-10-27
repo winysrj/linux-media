@@ -1,99 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55705 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756509AbZJ2GvF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Oct 2009 02:51:05 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9T6p657013744
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 29 Oct 2009 01:51:08 -0500
-From: hvaibhav@ti.com
-To: linux-media@vger.kernel.org
-Cc: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH V2] Davinci VPFE Capture: Add support for Control ioctls
-Date: Thu, 29 Oct 2009 12:21:04 +0530
-Message-Id: <1256799064-25031-1-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:14727 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752537AbZJ0LBr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Oct 2009 07:01:47 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=us-ascii
+Received: from eu_spt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0KS6007RD6N26800@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 27 Oct 2009 11:01:50 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0KS600MVB6N2XK@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 27 Oct 2009 11:01:50 +0000 (GMT)
+Date: Tue, 27 Oct 2009 11:59:54 +0100
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: V4L2_MEMORY_USERPTR support in videobuf-core
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	Tomasz Fujak <t.fujak@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Pawel Osciak <p.osciak@samsung.com>
+Message-id: <E4D3F24EA6C9E54F817833EAE0D912AC07D2F45C6B@bssrvexch01.BS.local>
+Content-language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+Hello,
+could anybody confirm that there is no full/working support for USERPTR in
+current videobuf-core? That is the conclusion I came up with after a more 
+thorough investigation.
 
-Added support for Control IOCTL,
-	- s_ctrl
-	- g_ctrl
-	- queryctrl
+I am currently working to fix that, and will hopefully be posting patches in
+the coming days/weeks. Is there any other development effort underway related
+to this problem?
 
-Change from last patch:
-	- added room for error return in queryctrl function.
-	
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- drivers/media/video/davinci/vpfe_capture.c |   43 ++++++++++++++++++++++++++++
- 1 files changed, 43 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
-index abe21e4..8275d02 100644
---- a/drivers/media/video/davinci/vpfe_capture.c
-+++ b/drivers/media/video/davinci/vpfe_capture.c
-@@ -1368,6 +1368,46 @@ static int vpfe_g_std(struct file *file, void *priv, v4l2_std_id *std_id)
- 	return 0;
- }
-
-+static int vpfe_queryctrl(struct file *file, void *priv,
-+		struct v4l2_queryctrl *qctrl)
-+{
-+	struct vpfe_device *vpfe_dev = video_drvdata(file);
-+	struct vpfe_subdev_info *sdinfo;
-+	int ret = 0;
-+
-+	sdinfo = vpfe_dev->current_subdev;
-+
-+	ret = v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo->grp_id,
-+					 core, queryctrl, qctrl);
-+
-+	if (ret)
-+		qctrl->flags |= V4L2_CTRL_FLAG_DISABLED;
-+
-+	return ret;
-+}
-+
-+static int vpfe_g_ctrl(struct file *file, void *priv, struct v4l2_control *ctrl)
-+{
-+	struct vpfe_device *vpfe_dev = video_drvdata(file);
-+	struct vpfe_subdev_info *sdinfo;
-+
-+	sdinfo = vpfe_dev->current_subdev;
-+
-+	return v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo->grp_id,
-+					 core, g_ctrl, ctrl);
-+}
-+
-+static int vpfe_s_ctrl(struct file *file, void *priv, struct v4l2_control *ctrl)
-+{
-+	struct vpfe_device *vpfe_dev = video_drvdata(file);
-+	struct vpfe_subdev_info *sdinfo;
-+
-+	sdinfo = vpfe_dev->current_subdev;
-+
-+	return v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo->grp_id,
-+					 core, s_ctrl, ctrl);
-+}
-+
- /*
-  *  Videobuf operations
-  */
-@@ -1939,6 +1979,9 @@ static const struct v4l2_ioctl_ops vpfe_ioctl_ops = {
- 	.vidioc_querystd	 = vpfe_querystd,
- 	.vidioc_s_std		 = vpfe_s_std,
- 	.vidioc_g_std		 = vpfe_g_std,
-+	.vidioc_queryctrl	 = vpfe_queryctrl,
-+	.vidioc_g_ctrl		 = vpfe_g_ctrl,
-+	.vidioc_s_ctrl		 = vpfe_s_ctrl,
- 	.vidioc_reqbufs		 = vpfe_reqbufs,
- 	.vidioc_querybuf	 = vpfe_querybuf,
- 	.vidioc_qbuf		 = vpfe_qbuf,
+Best regards
 --
-1.6.2.4
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
+
 
