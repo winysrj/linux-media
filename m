@@ -1,46 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f210.google.com ([209.85.218.210]:46450 "EHLO
-	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751924AbZJAWHp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Oct 2009 18:07:45 -0400
-Received: by bwz6 with SMTP id 6so526588bwz.37
-        for <linux-media@vger.kernel.org>; Thu, 01 Oct 2009 15:07:48 -0700 (PDT)
+Received: from smtp.seznam.cz ([77.75.72.43]:36320 "EHLO smtp.seznam.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754978AbZJ0F4I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Oct 2009 01:56:08 -0400
+From: =?utf-8?q?Old=C5=99ich_Jedli=C4=8Dka?= <oldium.pro@seznam.cz>
+To: Magnus Alm <magnus.alm@gmail.com>
+Subject: Re: Almost got remote working with my "Winfast tv usb II Deluxe" box
+Date: Tue, 27 Oct 2009 06:56:07 +0100
+Cc: linux-media@vger.kernel.org
+References: <156a113e0910251344k5799814dm8afe71d3bbfbe513@mail.gmail.com>
+In-Reply-To: <156a113e0910251344k5799814dm8afe71d3bbfbe513@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <c85228170910011503t68b100a1v3dccda2602ae08da@mail.gmail.com>
-References: <c85228170910011138w6d3fa3adibbb25d275baa824f@mail.gmail.com>
-	 <37219a840910011227r155d4bc1kc98935e3a52a4a17@mail.gmail.com>
-	 <c85228170910011414n29837812y28010ef0d97b7bf1@mail.gmail.com>
-	 <alpine.DEB.1.10.0910011628420.21852@cnc.isely.net>
-	 <c85228170910011503t68b100a1v3dccda2602ae08da@mail.gmail.com>
-Date: Thu, 1 Oct 2009 18:07:48 -0400
-Message-ID: <829197380910011507k59f3b18fv3cc5d21b77299ef7@mail.gmail.com>
-Subject: Re: How to make my device work with linux?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Wellington Terumi Uemura <wellingtonuemura@gmail.com>
-Cc: Mike Isely <isely@isely.net>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200910270656.07196.oldium.pro@seznam.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 1, 2009 at 6:03 PM, Wellington Terumi Uemura
-<wellingtonuemura@gmail.com> wrote:
-> It's not the answer that I was looking for but looks like the thing is
-> much more complex than just compile and run drivers, this gives me
-> another perspective, like a dead end.
+On Sunday 25 of October 2009 at 21:44:20, Magnus Alm wrote:
+> Hi!
+
+Hi Magnus,
+
+> This is on Ubuntu 9.04, kernel 2.6.28-16.
+> I get the following in dmesg when pressing channel down on my remote:
 >
-> Thank you Mike.
+> [ 3517.984559] : unknown key: key=0x90 raw=0x90 down=1
+> [ 3518.096558] : unknown key: key=0x90 raw=0x90 down=0
+>
+> That should correspond with the following row in my keytable in ir-keymaps:
+>
+> 	{ 0x90, KEY_CHANNELDOWN},	/* CHANNELDOWN */
+>
 
-Well, it's certainly possible to get it to work if you're willing to
-make the investment.  It's just one of those situations where you
-realize quickly that you're going to have to be prepared to do *way*
-more work than just adding a new board profile.  Just because there
-are drivers for the chips on your device doesn't mean that it is
-trivial to get working.
+That is right. The "unknown key" gives a hint for your keymap. After you 
+define all keys, you should fully enjoy your remote control.
 
-Cheers,
+> Do I need to configure lirc also?
 
-Devin
+The keys are emitted via the evdev subsystem, so the remote control behaves 
+like a normal keyboard (when you press "1" you should see "1" on the console 
+too). Either you will learn your application to directly understand the key 
+presses (just change it's keyboard shortcuts), or you can use the lirc's 
+devinput driver (it reads keypresses from evdev) and do it via lirc. It's up 
+to you.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Oldrich.
+
+> But since something responds (ir-common ?) to my pressing on the
+> remote I thought it shouldn't be necessary.
+>
+> /Magnus
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
