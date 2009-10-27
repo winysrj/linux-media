@@ -1,88 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:61522 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755734AbZJVNxU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Oct 2009 09:53:20 -0400
-Date: Thu, 22 Oct 2009 15:53:08 +0200
-From: Jiri Pirko <jpirko@redhat.com>
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net, eric.dumazet@gmail.com,
-	jeffrey.t.kirsher@intel.com, jesse.brandeburg@intel.com,
-	bruce.w.allan@intel.com, peter.p.waskiewicz.jr@intel.com,
-	john.ronciak@intel.com, e1000-devel@lists.sourceforge.net,
-	mchehab@infradead.org, linux-media@vger.kernel.org
-Subject: [PATCH net-next-2.6 2/4] 8139too: use mc helpers to access
-	multicast list
-Message-ID: <20091022135308.GE2868@psychotron.lab.eng.brq.redhat.com>
-References: <20091022135120.GC2868@psychotron.lab.eng.brq.redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20091022135120.GC2868@psychotron.lab.eng.brq.redhat.com>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1887 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756642AbZJ0Tbb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Oct 2009 15:31:31 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id n9RJVYRk039341
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 27 Oct 2009 20:31:35 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 27 Oct 2009 20:31:34 +0100 (CET)
+Message-Id: <200910271931.n9RJVYRk039341@smtp-vbr1.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Jiri Pirko <jpirko@redhat.com>
----
- drivers/net/8139too.c |   24 ++++++++++++++----------
- 1 files changed, 14 insertions(+), 10 deletions(-)
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-diff --git a/drivers/net/8139too.c b/drivers/net/8139too.c
-index 7e333f7..f0c3670 100644
---- a/drivers/net/8139too.c
-+++ b/drivers/net/8139too.c
-@@ -2501,6 +2501,15 @@ static struct net_device_stats *rtl8139_get_stats (struct net_device *dev)
- 	return &dev->stats;
- }
- 
-+static void mc_walker(void *data, unsigned char *addr)
-+{
-+	u32 *mc_filter = data;
-+	int bit_nr;
-+
-+	bit_nr = ether_crc(ETH_ALEN, addr) >> 26;
-+	mc_filter[bit_nr >> 5] |= 1 << (bit_nr & 31);
-+}
-+
- /* Set or clear the multicast filter for this adaptor.
-    This routine is not state sensitive and need not be SMP locked. */
- 
-@@ -2509,7 +2518,7 @@ static void __set_rx_mode (struct net_device *dev)
- 	struct rtl8139_private *tp = netdev_priv(dev);
- 	void __iomem *ioaddr = tp->mmio_addr;
- 	u32 mc_filter[2];	/* Multicast hash filter */
--	int i, rx_mode;
-+	int rx_mode;
- 	u32 tmp;
- 
- 	pr_debug("%s:   rtl8139_set_rx_mode(%4.4x) done -- Rx config %8.8lx.\n",
-@@ -2521,22 +2530,17 @@ static void __set_rx_mode (struct net_device *dev)
- 		    AcceptBroadcast | AcceptMulticast | AcceptMyPhys |
- 		    AcceptAllPhys;
- 		mc_filter[1] = mc_filter[0] = 0xffffffff;
--	} else if ((dev->mc_count > multicast_filter_limit)
-+	} else if ((netdev_mc_count(dev) > multicast_filter_limit)
- 		   || (dev->flags & IFF_ALLMULTI)) {
- 		/* Too many to filter perfectly -- accept all multicasts. */
- 		rx_mode = AcceptBroadcast | AcceptMulticast | AcceptMyPhys;
- 		mc_filter[1] = mc_filter[0] = 0xffffffff;
- 	} else {
--		struct dev_mc_list *mclist;
- 		rx_mode = AcceptBroadcast | AcceptMyPhys;
--		mc_filter[1] = mc_filter[0] = 0;
--		for (i = 0, mclist = dev->mc_list; mclist && i < dev->mc_count;
--		     i++, mclist = mclist->next) {
--			int bit_nr = ether_crc(ETH_ALEN, mclist->dmi_addr) >> 26;
--
--			mc_filter[bit_nr >> 5] |= 1 << (bit_nr & 31);
-+		if (!netdev_mc_empty(dev))
- 			rx_mode |= AcceptMulticast;
--		}
-+		mc_filter[1] = mc_filter[0] = 0;
-+		netdev_mc_walk(dev, mc_walker, mc_filter);
- 	}
- 
- 	/* We can safely update without stopping the chip. */
--- 
-1.6.2.5
+Results of the daily build of v4l-dvb:
+
+date:        Tue Oct 27 19:00:05 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13168:d6c09c3711b5
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
+
+linux-2.6.22.19-armv5: WARNINGS
+linux-2.6.23.12-armv5: WARNINGS
+linux-2.6.24.7-armv5: WARNINGS
+linux-2.6.25.11-armv5: WARNINGS
+linux-2.6.26-armv5: WARNINGS
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-rc3-armv5: ERRORS
+linux-2.6.32-rc3-armv5-davinci: ERRORS
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29.1-armv5-ixp: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.32-rc3-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.32-rc3-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-rc3-i686: ERRORS
+linux-2.6.23.12-m32r: WARNINGS
+linux-2.6.24.7-m32r: WARNINGS
+linux-2.6.25.11-m32r: WARNINGS
+linux-2.6.26-m32r: WARNINGS
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-rc3-m32r: ERRORS
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.32-rc3-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: OK
+linux-2.6.32-rc3-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-rc3-x86_64: ERRORS
+sparse (linux-2.6.31): OK
+sparse (linux-2.6.32-rc3): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
