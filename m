@@ -1,39 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:55041 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760012AbZJOIeY (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:35404 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753218AbZJ0KXz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Oct 2009 04:34:24 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Andrea <mariofutire@googlemail.com>
-Subject: Re: How to set "nomail" option for the mailing list
-Date: Thu, 15 Oct 2009 10:36:27 +0200
+	Tue, 27 Oct 2009 06:23:55 -0400
+Date: Tue, 27 Oct 2009 08:23:20 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Massimo Del Fedele <max@veneto.com>
 Cc: linux-media@vger.kernel.org
-References: <hb6kt3$k18$1@ger.gmane.org>
-In-Reply-To: <hb6kt3$k18$1@ger.gmane.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Subject: Re: Hint request for driver change
+Message-ID: <20091027082320.408afe1b@pedra.chehab.org>
+In-Reply-To: <4AE57DD5.8030706@veneto.com>
+References: <4AE57DD5.8030706@veneto.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <200910151036.27696.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 15 October 2009 10:01:39 Andrea wrote:
+Em Mon, 26 Oct 2009 11:45:41 +0100
+Massimo Del Fedele <max@veneto.com> escreveu:
+
 > Hi,
 > 
-> I read and sometimes post to this mailing list, but I very much prefer to
->  use a newsreader from gmane rather than receiving all the mails.
+> I'm trying to support the analog part of Pinnacle PCTV310e, which is an
+> ULI M9207 based card; by now I added the support for the digital side
+> patching the M920x driver; in order to add the analog part the driver
+> should be almost completely rewritten, and it'll take more source files,
+> so it should have a separate folder.
+> Shall I make a new driver (with different name, as m920x-new) or simply
+> remove old one and add the new ?
+
+It is better to not rename it, to avoid confusion.
 > 
-> In the old linux-dvb mailing list it was possible to switch off receiving
->  all the emails, is it still possible?
+> Ciao
 > 
-> I could not find anything in the documentation of majordomo@vger.kernel.org
+> Max
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-The linux-media@vger.kernel.org list is not subscriber-only like the old list. 
-You could just unsubscribe.
 
--- 
-Regards,
 
-Laurent Pinchart
+
+Cheers,
+Mauro
