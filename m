@@ -1,45 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f227.google.com ([209.85.220.227]:62516 "EHLO
-	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758270AbZJLWNN (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:58028 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752049AbZJ0KM3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Oct 2009 18:13:13 -0400
-Received: by fxm27 with SMTP id 27so9671911fxm.17
-        for <linux-media@vger.kernel.org>; Mon, 12 Oct 2009 15:12:36 -0700 (PDT)
-MIME-Version: 1.0
-Date: Mon, 12 Oct 2009 18:12:35 -0400
-Message-ID: <829197380910121512y62a90cdcs49a0aa9606e8a588@mail.gmail.com>
-Subject: em28xx mode switching
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 27 Oct 2009 06:12:29 -0400
+Date: Tue, 27 Oct 2009 08:11:55 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: KS Ng <ksnggm@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: failure to submit first post
+Message-ID: <20091027081155.05927ad4@pedra.chehab.org>
+In-Reply-To: <4AE5A2F3.1060504@gmail.com>
+References: <4AE4541D.7060206@gmail.com>
+	<4AE5A2F3.1060504@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I was debugging an issue on a user's hybrid board, when I realized
-that we are switching the em28xx mode whenever we start and stop dvb
-streaming.  We already have the ts_bus_ctrl callback implemented which
-puts the device into digital mode and puts it back into suspend
-whenever the frontend is opened/closed.
+Em Mon, 26 Oct 2009 21:24:03 +0800
+KS Ng <ksnggm@gmail.com> escreveu:
 
-This call seems redundant, and in fact can cause problems if the
-dvb_gpio definition strobes the reset pin, as it can put the driver
-out of sync with the demodulator's state (in fact this is what I ran
-into with the zl10353 - the reset pin got strobed when the streaming
-was started but the demod driver's init() routine was not being run
-because it already ran when the frontend was originally opened).
+> This is a resend with the patch attached.
+> 
+> KS Ng wrote:
+> > Hi,
+> >
+> > I've registered to linux-media mailing list a couple of days ago and 
+> > attempted to do my first posting yesterday with subject "Support for 
+> > Magicpro proHDTV Dual DMB-TH adapter". However I can't see my posting 
+> > even though I've replied to the email requesting confirmation.
+> >
+> > Would you please kindly have a look!
 
-The only case I can think of where toggling the device mode when
-starting/stopping dvb streaming might be useful is if we wanted to
-support being able to do an analog tune while the dvb frontend was
-still open but not streaming.  However, this seems like this could
-expose all sorts of bugs, and I think the locking would have to be
-significantly reworked if this were a design goal.
+Please take a look at:
+	http://linuxtv.org/hg/v4l-dvb/raw-file/tip/README.patches
 
-Thoughts anybody?
+for some comments about how to submit a patch.
 
-Devin
+Basically, you'll need to send a patch with a short description at the subject,
+a more complete description at the body and add your Signed-off-by: there.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Also, please run checkpatch before submitting it, since it will point you the CodingStyle
+troubles that your code have. There are several coding styles there, being harder for people
+to analyse your code.
+
+In the case of tuner_init_pkts, is this a firmware or just register sets? If it
+is a firmware, it should be split from the code, due to legal issues.
+Basically, some lawyers believe that, if you distribute a firmware inside of
+the source code of a GPL'd code, you're bound to distribute also the firmware
+source code, due to GPL.
+
+Cheers,
+Mauro.
+
+> >
+> > Thanks,
+> > K.S. Ng
+> >
+> > email: ksnggm@gmail.com
+> 
+
+
+
+
+Cheers,
+Mauro
