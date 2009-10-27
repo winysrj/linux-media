@@ -1,48 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:45264 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754019AbZJUR0m convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Oct 2009 13:26:42 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: uvcvideo causes ehci_hcd to halt
-Date: Wed, 21 Oct 2009 19:27:00 +0200
-Cc: Ozan =?utf-8?q?=C3=87a=C4=9Flayan?= <ozan@pardus.org.tr>,
-	linux-media@vger.kernel.org,
-	"linux-kernel" <linux-kernel@vger.kernel.org>,
-	USB list <linux-usb@vger.kernel.org>
-References: <Pine.LNX.4.44L0.0910211052200.2847-100000@iolanthe.rowland.org>
-In-Reply-To: <Pine.LNX.4.44L0.0910211052200.2847-100000@iolanthe.rowland.org>
+Received: from mail.gmx.net ([213.165.64.20]:54377 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S932088AbZJ0IEX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Oct 2009 04:04:23 -0400
+Date: Tue, 27 Oct 2009 09:04:25 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Cohen David Abraham <david.cohen@nokia.com>,
+	"Koskipaa Antti (Nokia-D/Helsinki)" <antti.koskipaa@nokia.com>,
+	Zutshi Vimarsh <vimarsh.zutshi@nokia.com>
+Subject: Re: RFCv2: Media controller proposal
+In-Reply-To: <4AB7B66E.6080308@maxwell.research.nokia.com>
+Message-ID: <Pine.LNX.4.64.0910270854300.4828@axis700.grange>
+References: <200909100913.09065.hverkuil@xs4all.nl> <200909112123.44778.hverkuil@xs4all.nl>
+ <20090911165937.776a638d@caramujo.chehab.org> <200909112215.15155.hverkuil@xs4all.nl>
+ <20090911183758.31184072@caramujo.chehab.org> <4AB7B66E.6080308@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <200910211927.00298.laurent.pinchart@ideasonboard.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 21 October 2009 17:07:51 Alan Stern wrote:
-> On Wed, 21 Oct 2009, [UTF-8] Ozan Çağlayan wrote:
-> > Nope it didn't help. Here's the DEBUG enabled dmesg output:
-> 
-> ...
-> 
-> > [  420.737748] usb 1-5: link qh1024-0001/f6ffe280 start 1 [1/0 us]
-> 
-> The periodic schedule was enabled here.
-> 
-> > [  420.737891] usb 1-5: unlink qh1024-0001/f6ffe280 start 1 [1/0 us]
-> 
-> And it was disabled here.  Do you have any idea why the uvcvideo driver
-> submits an interrupt URB and then cancels it 150 us later?  The same
-> thing shows up in the usbmon traces.
+Hi
 
-Probably because hal opens the device to query its capabilities and closes it 
-right after. The driver submits the interrupt URB when the first user opens 
-the device and cancels it when the last user closes the device.
- 
--- 
-Regards,
+(repeating my preamble from a previous post)
 
-Laurent Pinchart
+This is a general comment to the whole "media controller" work: having 
+given a talk at the ELC-E in Grenoble on soc-camera, I mentioned briefly a 
+few related RFCs, including this one. I've got a couple of comments back, 
+including the following ones (which is to say, opinions are not mine and 
+may or may not be relevant, I'm just fulfilling my promise to pass them 
+on;)):
+
+1) what about DVB? Wouldn't they also benefit from such an API? I wasn't 
+able to reply to the question, whether the DVB folks know about this and 
+have a chance to take part in the discussion and eventually use this API?
+
+2) what I am even less sure about is, whether ALSA / ASoC have been 
+mentioned as possible users of MC, or, at least, possible sources for 
+ideas. ASoC has definitely been mentioned as an audio analog of 
+soc-camera, so, I'll be looking at that - at least at their documentation 
+- to see if I can borrow some of their ideas:-)
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
