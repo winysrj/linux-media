@@ -1,116 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4992 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755048AbZJBSFs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2009 14:05:48 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id n92I5l0Q016041
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 2 Oct 2009 20:05:51 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 2 Oct 2009 20:05:47 +0200 (CEST)
-Message-Id: <200910021805.n92I5l0Q016041@smtp-vbr11.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail-ew0-f208.google.com ([209.85.219.208]:58961 "EHLO
+	mail-ew0-f208.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755888AbZJ0QUx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Oct 2009 12:20:53 -0400
+Received: by ewy4 with SMTP id 4so315801ewy.37
+        for <linux-media@vger.kernel.org>; Tue, 27 Oct 2009 09:20:57 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <8d0bb7650910270755v38f37f6fh3937e9727493854c@mail.gmail.com>
+References: <8d0bb7650910261544i4ebed975rf81ec6bc38076927@mail.gmail.com>
+	 <a413d4880910261623x44d106f4h167a7dab80a4a3f8@mail.gmail.com>
+	 <83bcf6340910270717n12066fb8oa4870eb3214d7597@mail.gmail.com>
+	 <8d0bb7650910270755v38f37f6fh3937e9727493854c@mail.gmail.com>
+Date: Tue, 27 Oct 2009 12:20:56 -0400
+Message-ID: <83bcf6340910270920i4323faf8mb5b482b75bda7291@mail.gmail.com>
+Subject: Re: Hauppage HVR-2250 Tuning problems
+From: Steven Toth <stoth@kernellabs.com>
+To: dan <danwalkeriv@gmail.com>
+Cc: Another Sillyname <anothersname@googlemail.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Tue, Oct 27, 2009 at 10:55 AM, dan <danwalkeriv@gmail.com> wrote:
+> Steve,
+>
+> Thanks for responding.  I created the channels.conf file and ran the
+> azap command you suggested.  In both cases I get something that looks
+> like this:
+>
+> $ azap -r c112
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> tuning to 723000000 Hz
+> video pid 0x0120, audio pid 0x0121
+> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
+> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
+> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
+> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
+> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
+> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
+> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
+> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
+> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
+> status 1f | signal 0172 | snr 0172 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal 0190 | snr 0190 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
 
-Results of the daily build of v4l-dvb:
+Are you amping up or splitting the signal in any way? If so, for test
+purposes remove anything that can degrade or improve RF. It looks like
+the tuner gets into lock briefly but falls out, implying abnormal RF
+conditions. When it locks you have perfect SNR, kind of implying that
+the signal may be too strong.
 
-date:        Fri Oct  2 19:00:03 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13044:6b7617d4a0be
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Additionally, for all your testing, repeat the tests on tuner#2 by
+azap -a1 -r c112.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.27-armv5-ixp: ERRORS
-linux-2.6.28-armv5-ixp: ERRORS
-linux-2.6.29.1-armv5-ixp: ERRORS
-linux-2.6.30-armv5-ixp: ERRORS
-linux-2.6.31-armv5-ixp: ERRORS
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: OK
-linux-2.6.27-powerpc64: ERRORS
-linux-2.6.28-powerpc64: ERRORS
-linux-2.6.29.1-powerpc64: ERRORS
-linux-2.6.30-powerpc64: ERRORS
-linux-2.6.31-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-x86_64: WARNINGS
-sparse (linux-2.6.31): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+Additionally, try channel 83 or edit the conf file and add some lower
+channels in the 40-80 range where the RF characteristics would be
+wildly different. I'd like to see how the card performs in these
+circumstances for you.
 
-Detailed results are available here:
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L2 specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
