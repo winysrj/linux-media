@@ -1,604 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2330 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932394AbZJLOxz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Oct 2009 10:53:55 -0400
-Message-ID: <f3dc8b382adf85d6460c9222af114b80.squirrel@webmail.xs4all.nl>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE401554D6A8B@dlee06.ent.ti.com>
-References: <A69FA2915331DC488A831521EAE36FE40155470801@dlee06.ent.ti.com>
-    <1bffb2b104ecaf3e42081fd536c07930.squirrel@webmail.xs4all.nl>
-    <A69FA2915331DC488A831521EAE36FE40154EE1939@dlee06.ent.ti.com>
-    <200910102039.26514.hverkuil@xs4all.nl>
-    <A69FA2915331DC488A831521EAE36FE401554D6A8B@dlee06.ent.ti.com>
-Date: Mon, 12 Oct 2009 16:53:16 +0200
-Subject: RE: RFC (v1.1): V4L - Support for video timings at the
- input/output interface
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Received: from mail.navvo.net ([74.208.67.6]:50272 "EHLO mail.navvo.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755742AbZJ0Px7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Oct 2009 11:53:59 -0400
+Message-ID: <4AE71793.3090502@ridgerun.com>
+Date: Tue, 27 Oct 2009 09:53:55 -0600
+From: Santiago Nunez-Corrales <snunez@ridgerun.com>
+Reply-To: santiago.nunez@ridgerun.com
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: "Narnakaje, Snehaprabha" <nsnehaprabha@ti.com>
+CC: Kevin Hilman <khilman@deeprootsystems.com>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <1255617794-1401-1-git-send-email-santiago.nunez@ridgerun.com>	<87skdk7aul.fsf@deeprootsystems.com> <4AE1E903.4030605@ridgerun.com> <87y6mxalep.fsf@deeprootsystems.com> <7A436F7769CA33409C6B44B358BFFF0C012ACE7054@dlee02.ent.ti.com>
+In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0C012ACE7054@dlee02.ent.ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: Re: [PATCH 2/6 v5] Support for TVP7002 in dm365 board
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Sneha,
 
-> Hans,
->
-> So the only change will be about renaming the flags..
->
-> Do you expect LCD VESA timings defined by V4L2_DV_BT_656_1120 timing type?
 
-As far as I am aware, yes. But I have little experience with LCDs.
+So, if I got it right, have_tvp7002 is unnecessary since that 
+initialization is done via the CPLD interface. Therefore, all I need to 
+do is actually remove the logic for the device from board-dm365-evm.h. 
+Am I right? If so, should I also remove the logic for tvp5146?
 
-> I will update the RFC with capabilities flags renamed as discussed and
-> re-send it and work on implementation based on this version.
+Regards,
 
-Great!
-
-        Hans
-
+Narnakaje, Snehaprabha wrote:
+> Santiago, Kevin,
 >
-> Murali Karicheri
-> Software Design Engineer
-> Texas Instruments Inc.
-> Germantown, MD 20874
-> email: m-karicheri2@ti.com
+>   
+>> -----Original Message-----
+>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>> Sent: Monday, October 26, 2009 5:35 PM
+>> To: santiago.nunez@ridgerun.com
+>> Cc: Narnakaje, Snehaprabha; davinci-linux-open-
+>> source@linux.davincidsp.com; todd.fischer@ridgerun.com; linux-
+>> media@vger.kernel.org
+>> Subject: Re: [PATCH 2/6 v5] Support for TVP7002 in dm365 board
+>>
+>> Santiago Nunez-Corrales <snunez@ridgerun.com> writes:
+>>
+>>     
+>>> Kevin Hilman wrote:
+>>>       
+>>>> <santiago.nunez@ridgerun.com> writes:
+>>>>
+>>>>
+>>>>         
+>>>>> From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+>>>>>
+>>>>> This patch provides support for TVP7002 in architecture definitions
+>>>>> within DM365.
+>>>>>
+>>>>> Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+>>>>> ---
+>>>>>  arch/arm/mach-davinci/board-dm365-evm.c |  170
+>>>>>           
+>> ++++++++++++++++++++++++++++++-
+>>     
+>>>>>  1 files changed, 166 insertions(+), 4 deletions(-)
+>>>>>
+>>>>> diff --git a/arch/arm/mach-davinci/board-dm365-evm.c b/arch/arm/mach-
+>>>>>           
+>> davinci/board-dm365-evm.c
+>>     
+>>>>> index a1d5e7d..6c544d3 100644
+>>>>> --- a/arch/arm/mach-davinci/board-dm365-evm.c
+>>>>> +++ b/arch/arm/mach-davinci/board-dm365-evm.c
+>>>>> @@ -38,6 +38,11 @@
+>>>>>  #include <mach/common.h>
+>>>>>  #include <mach/mmc.h>
+>>>>>  #include <mach/nand.h>
+>>>>> +#include <mach/gpio.h>
+>>>>> +#include <linux/videodev2.h>
+>>>>> +#include <media/tvp514x.h>
+>>>>> +#include <media/tvp7002.h>
+>>>>> +#include <media/davinci/videohd.h>
+>>>>>    static inline int have_imager(void)
+>>>>> @@ -48,8 +53,11 @@ static inline int have_imager(void)
+>>>>>   static inline int have_tvp7002(void)
+>>>>>  {
+>>>>> -	/* REVISIT when it's supported, trigger via Kconfig */
+>>>>> +#ifdef CONFIG_VIDEO_TVP7002
+>>>>> +	return 1;
+>>>>> +#else
+>>>>>  	return 0;
+>>>>> +#endif
+>>>>>
+>>>>>           
+>>>> I've said this before, but I'll say it again.  I don't like the
+>>>> #ifdef-on-Kconfig-option here.
+>>>>
+>>>> Can you add a probe hook to the platform_data so that when the tvp7002
+>>>> is found it can call pdata->probe() which could then set a flag
+>>>> for use by have_tvp7002().
+>>>>
+>>>> This will have he same effect without the ifdef since if the driver
+>>>> is not compiled in, its probe can never be triggered.
+>>>>
+>>>> Kevin
+>>>>
+>>>>
+>>>>         
+>>> Kevin,
+>>>
+>>> I've been working on this particular implementation. This
+>>> board-dm365-evm.c is specific to the board, therefore I don't still
+>>> get the point of not having those values wired to the board file, but
+>>> I know it'd be nice to have the CPLD configuration triggered upon
+>>> TVP7002 detection. I see two options:
+>>>       
+>> Having them in the board file is appropriate, what I object to is the
+>> selection by Kconfig.  Run-time detection is always preferred when
+>> possible.
+>>     
 >
->>-----Original Message-----
->>From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
->>Sent: Saturday, October 10, 2009 2:39 PM
->>To: Karicheri, Muralidharan
->>Cc: linux-media@vger.kernel.org
->>Subject: Re: RFC (v1.1): V4L - Support for video timings at the
->>input/output interface
->>
->>On Saturday 10 October 2009 17:07:36 Karicheri, Muralidharan wrote:
->>> Hans,
->>>
->>> ________________________________________
->>> From: Hans Verkuil [hverkuil@xs4all.nl]
->>> Sent: Friday, October 09, 2009 10:43 AM
->>> To: Karicheri, Muralidharan
->>> Cc: linux-media@vger.kernel.org
->>> Subject: Re: RFC (v1.1): V4L - Support for video timings at the
->>input/output interface
->>>
->>> i Murali,
->>>
->>> Reading through this I noticed that there was one thing that is
->>> probably
->>> no longer needed: now that we have the SUPPORTS_CUSTOM_TIMING
->>> capability
->>> there is no need to include the CUSTOM preset when enumerating presets.
->>> Instead I suggest that the INVALID preset define takes the place of the
->>> CUSTOM preset.
->>>
->>> [MK] Ok.
->>>
->>> Also, these capabilities should probably be renamed to
->>> V4L2_IN_CAP_STD/PRESETS/CUSTOM.
->>>
->>> This is more in line with the current naming convention.
->>>
->>>
->>> [MK] I think this is only partially correct. These presets applies to
->>OUTPUT as well. So We might want to
->>> define V4L2_OUT_CAP_STD/PRESETS/CUSTOM as well or Keep it as is.
->>
->>I got confused here by the tuner and modulator flags where the tuner
->> flags
->>are reused by the modulator flags. Sorry about that.
->>
->>So I think it is best to have both V4L2_IN_CAP and V4L2_OUT_CAP defines.
->>These
->>may initially be the same, but I would not be surprised if we start
->> seeing
->>caps that are unique to either input or output in the future. Just my
->>opinion,
->>though.
->>
->>>
->>>
->>> Otherwise I think this is pretty good.
->>>
->>> One thing: did you check against the FB API? We should have at least
->>> the
->>> same timing parameters as they have (it is my understanding that
->>> timings
->>> can also be setup through the FB API).
->>>
->>> In FB, following parameters defined for video mode..... I have mapped
->>> it
->>to
->>> timing parameter below. I have used modedb.c to understand the
->>> parameters.
->>>
->>> Probably add a timing type for VESA and a structure similar to
->>fb_videomode???
->>>
->>> struct fb_videomode {
->>>         const char *name;       /* optional */       - Missing in our
->>> API
->>
->>I don't see a good reason for adding this.
->>
->>>         u32 refresh;            /* optional */             - Missing in
->>out API.
->>
->>This can be calculated from the other arguments.
->>
->>>         u32 xres;                                                     -
->>width
->>>         u32 yres;                                                     -
->>height
->>>         u32 pixclock; -                                           -
->>pixelclock
->>>         u32 left_margin;                                       -
->>hfrontporch (should we rename to left_margin ??)
->>>         u32 right_margin;                                    -  Need to
->>derive - should we add right margin??
->>>         u32 upper_margin;                                 -
->>> vfrontporch
->>(should we rename to upper margin??)
->>>         u32 lower_margin;                                  - Need to
->>derive - should we add lower margin??)
->>
->>h/vfrontporch is more standard than margin, so I vote for keeping that
->>terminology. Neither should we add right/lower margin. We have total
->>width/height instead which is also more commonly used.
->>
->>>         u32 hsync_len;                                        -  hsync
->>> -
->>better to rename this as hsync_len
->>>         u32 vsync_len;                                        - vsync -
->>better to rename
->>
->>No need for a rename IMHO. If we do that, then hfrontporch and htotal
->> also
->>need to be renamed.
->>
->>The important bit is that all the same timings are represented here.
->>
->>>         u32 sync;                                                 -
->>polarities
->>>         u32 vmode;                                             -
->>interlaced
->>>         u32 flag;                                                   -
->>Missing. May be add this ???
->>
->>Are there any flags defined? We have reserved fields that we can utilize
->> in
->>the future.
->>
->>Regards,
->>
->>       Hans
->>
->>> };
->>>
->>> Out timing definition.....
->>>
->>> > /* bt.656/bt.1120 timing data */
->>> > struct v4l2_bt_timings {
->>> >     __u32      interlaced;
->>> >     __u64      pixelclock;
->>> >     __u32      width, height;
->>> >     __u32      polarities;
->>> >     __u32      hfrontporch, hsync, htotal;
->>> >     __u32      vfrontporch, vsync, vtotal;
->>> >     /* timings for bottom frame for interlaced formats */
->>> >     __u32      il_vtotal;
->>> >     __u32      reserved[16];
->>> > };
->>>
->>>
->>> Regards,
->>>
->>>          Hans
->>>
->>> > Hello,
->>> >
->>> > Here is the version 1.1 of the RFC which will be used for
->>> implementing
->>> > the video timing APIs in the V4L2 core. Please review and let me know
->>> > if I have missed something. Following are the changes incorporated in
->>this
->>> > version :-
->>> >
->>> > 1) Added width and height parameters in the struct
->>> v4l2_dv_enum_presets
->>> >
->>> > 2) Corrected duplicate values in the defined preset values
->>> >
->>> > 3) Added following capability to indicate if the driver supports
->>setting
->>> > standards through existing S_STD IOCTL.
->>> >
->>> >       #define V4L2_SUPPORTS_STD                0x00000004
->>> >
->>> > 4) Removed negative Polarity masks
->>> >
->>> > 5) Added issue #7 for camera sensor frame size/frame rate setting.
->>> >
->>> >
->>===========================================================================
->>=
->>> > RFC (v1.1): V4L - Support for video timings at the input/output
->>interface
->>> >
->>> > Version : 1.1
->>> >
->>> > Background
->>> > -----------
->>> >
->>> > Currently v4l2 specification supports capturing video frames from TV
->>> > signals using tuners (input type V4L2_INPUT_TYPE_TUNER) and baseband
->>> TV
->>> > signals (V4L2_INPUT_TYPE_CAMERA) and sensors. Similarly on the output
->>> > side, the signals could be TV signal (V4L2_OUTPUT_TYPE_MODULATOR),
->>> > baseband TV signal (V4L2_OUTPUT_TYPE_ANALOG) or hybrid analog VGA
->>overlay
->>> > (V4L2_OUTPUT_TYPE_ANALOGVGAOVERLAY) which output from a graphics card
->>and
->>> > then use chromakeying to replace part of the picture with the video.
->>> > V4L2_OUTPUT_TYPE_ANALOG & V4L2_INPUT_TYPE_CAMERA are for analog
->>interfaces
->>> > that includes composite, S-Video and VGA (for output only). Note that
->>even
->>> > though VGA is a supported output, we don't have anyway to set the
->>standard
->>> > or timing on the output. Standard ids are only defined for TVs using
->>> > v4l2_std_id and a set of bit masks  defined for analog TV standards.
->>> >
->>> > Today we have a wide variety of different interfaces available to
->>> > transmit/receive video or graphics content between source device and
->>> > destination device. Following are some of the interfaces used in
->>addition
->>> > to the ones described in the v4l2 specification.
->>> >
->>> > Component analog input/output interface - ED/HD video
->>> > DVI - Digital only, ANALOG only, DVI integrated that support Digital
->>and
->>> >       Analog;
->>> >       Dual Link - Where second data link is used for higher bandwidth
->>> > SDI - Serial digital interface standardized by SMPTE
->>> > HDMI - HD video and Audio
->>> > DisplayPort - digital audio/video interconnect by VESA
->>> >
->>> > V4L2 specification currently defined NTSC/PAL/SECAM (all variants)
->>> > standards for describing the timing of the signal transmitted over
->>these
->>> > interfaces. Even though the specification defined ANALOG output type
->>for
->>> > VGA, there are no ways to set the timings used for output to VGA or
->>> LCD
->>> > display monitors. Some of the proprietary implementations used
->>> existing
->>> > standards IOCTL, VIDIOC_S_STD, to set these timings over these
->>interfaces.
->>> > For example, TI SoCs have Video Processing Back End (VPBE) on various
->>> > media SOCs (Eg, DM6446, DM355 etc) that can output signal for Analog
->>> TV
->>> > and VGA interfaces (using Digital LCD port) and support timings for
->>> > displaying SD and HD videos (1080i, 1080p and 720p) as well as over
->>> VGA
->>> > interface to a CRT or LCD display monitor. So we need to enhance the
->>v4l2
->>> > specification to allow applications to set these timings in the
->>> capture
->>or
->>> > output devices. This RFC proposes to add new IOCTLs for
->>> setting/getting
->>> > timings over the different interfaces described above and freeze the
->>the
->>> > use of existing standards IOCTL and standards IDs for analog TVs
->>> only.
->>> >
->>> > Timings
->>> > -------
->>> >
->>> > The timings at the analog or digital interface that are not covered
->>> by
->>the
->>> > v4l2_std_id can be defined using a set of preset values that are used
->>by
->>> > the hardware where the timings are predefined or by a set of timing
->>values
->>> > which can be configured at the hardware to generate the signal
->>> expected
->>at
->>> > the interface. The former will be used for hardware like
->>TVP7002/THS8200
->>> > which specifies preset timing required for output HD video such
->>> > 1080i50/60, 720p50/60 etc. The latter can be used for hardware that
->>> > requires configuration of frame timing such as front porch, hsync
->>length,
->>> > vsync length, pixel clock etc. For example the earlier mentioned TI
->>SOCs
->>> > have a Digital LCD port that can be configured to output different
->>timing
->>> > values expected by LCD Display monitors.
->>> >
->>> > Preset timings (defined by VESA, SMPTE or BT.656/BT.1120 or others)
->>> can
->>be
->>> > defined by the following structure:-
->>> >
->>> > struct v4l2_dv_preset {
->>> >     __u32    preset;
->>> >     __u32    reserved[4];
->>> > };
->>> >
->>> > Where preset is one of the following values:-
->>> >
->>> > #define         V4L2_DV_CUSTOM         0x00000000
->>> > #define       V4L2_DV_480I59_94      0x00000001
->>> > #define       V4L2_DV_480I60         0x00000002
->>> > #define       V4L2_DV_480P23_976     0x00000003
->>> > #define       V4L2_DV_480P24         0x00000004
->>> > #define       V4L2_DV_480P29_97      0x00000005
->>> > #define       V4L2_DV_480P30         0x00000006
->>> > #define       V4L2_DV_576I50         0x00000007
->>> > #define       V4L2_DV_576P25         0x00000008
->>> > #define       V4L2_DV_576P50         0x00000009
->>> > #define       V4L2_DV_720P23_976     0x0000000A
->>> > #define       V4L2_DV_720P24         0x0000000B
->>> > #define       V4L2_DV_720P25         0x0000000C
->>> > #define       V4L2_DV_720P29_97      0x0000000D
->>> > #define       V4L2_DV_720P30         0x0000000E
->>> > #define       V4L2_DV_720P50         0x0000000F
->>> > #define       V4L2_DV_720P59_94      0x00000010
->>> > #define       V4L2_DV_720P60         0x00000011
->>> > #define       V4L2_DV_1080I50        0x00000012
->>> > #define       V4L2_DV_1080I59_94     0x00000013
->>> > #define       V4L2_DV_1080I60        0x00000014
->>> > #define       V4L2_DV_1080P23_976    0x00000015
->>> > #define       V4L2_DV_1080P24        0x00000016
->>> > #define       V4L2_DV_1080P25        0x00000017
->>> > #define       V4L2_DV_1080P29_97     0x00000018
->>> > #define       V4L2_DV_1080P30        0x00000019
->>> > #define       V4L2_DV_1080P60        0x00000020
->>> >
->>> >
->>> > /* Following preset value is used by driver to indicate there is no
->>signal
->>> >  detected or could not lock to the signal for VIDIOC_QUERY_DV_PRESET.
->>> > */
->>> > #define       V4L2_DV_INVALID       0xFFFFFFFF
->>> >
->>> >
->>> > This list is expected grow over time. So a bit mask is not used for
->>this
->>> > (Unlike analog TV standards) so that many presets can be defined as
->>needed
->>> > in the future.
->>> >
->>> > To enumerate the DV preset timings available, applications call
->>> > VIDIOC_ENUM_DV_PRESETS using the following structure:-
->>> >
->>> > struct v4l2_dv_enum_presets {
->>> >         __u32     index;
->>> >         __u32     preset;
->>> >         __u8      name[32]; /* Name of the preset timing */
->>> >         __u32     width;
->>> >         __u32     height;
->>> >         __u32     reserved[4];
->>> > };
->>> >
->>> > Application set/get the preset by calling VIDIOC_S/G_DV_PRESET using
->>> > v4l2_dv_preset structure.
->>> >
->>> > Also add a capabilities field in the input and output structure to
->>support
->>> > presets
->>> >
->>> > /*
->>> >  *      V I D E O   I N P U T S
->>> >  */
->>> > struct v4l2_input {
->>> >         __u32        index;             /*  Which input */
->>> >         __u8         name[32];          /*  Label */
->>> >         __u32        type;              /*  Type of input */
->>> >         __u32        audioset;          /*  Associated audios
->>(bitfield)
->>> > */
->>> >         __u32        tuner;             /*  Associated tuner */
->>> >         v4l2_std_id  std;
->>> >         __u32        status;
->>> >         __u32        capabilities;
->>> >         __u32        reserved[3];
->>> > };
->>> >
->>> > /*
->>> >  *      V I D E O   O U T P U T S
->>> >  */
->>> > struct v4l2_output {
->>> >         __u32        index;             /*  Which output */
->>> >         __u8         name[32];          /*  Label */
->>> >         __u32        type;              /*  Type of output */
->>> >         __u32        audioset;          /*  Associated audios
->>(bitfield)
->>> > */
->>> >         __u32        modulator;         /*  Associated modulator */
->>> >         v4l2_std_id  std;
->>> >         __u32        capabilities;
->>> >         __u32        reserved[3];
->>> > };
->>> >
->>> > where capabilities can be one or more of the following:-
->>> >
->>> > #define V4L2_SUPPORTS_PRESETS        0x00000001
->>> > #define V4L2_SUPPORTS_CUSTOM_TIMINGS 0x00000002
->>> > #define V4L2_SUPPORTS_STD              0x00000004
->>> >
->>> > For setting custom timing at the device, following structure is used
->>which
->>> > defines the complete set of timing values required at the input and
->>output
->>> > interface:-
->>> >
->>> > /* timing data values specified by various standards such as BT.1120,
->>> > BT.656 etc. */
->>> >
->>> > /* bt.656/bt.1120 timing data */
->>> > struct v4l2_bt_timings {
->>> >     __u32      interlaced;
->>> >     __u64      pixelclock;
->>> >     __u32      width, height;
->>> >     __u32      polarities;
->>> >     __u32      hfrontporch, hsync, htotal;
->>> >     __u32      vfrontporch, vsync, vtotal;
->>> >     /* timings for bottom frame for interlaced formats */
->>> >     __u32      il_vtotal;
->>> >     __u32      reserved[16];
->>> > };
->>> >
->>> >
->>> > interlaced - Interlaced or progressive. use following values:-
->>> >
->>> > #define V4L2_DV_INTERLACED      0
->>> > #define V4L2_DV_PROGRESSIVE    1
->>> >
->>> > pixelclock - expressed in HZ. So for 74.25MHz, use 74250000.
->>> > width - number of pixels in horizontal direction
->>> > height - number of lines in vertical direction
->>> > polarities - Bit mask for following polarities to begin with
->>> > (if polarity bit is not set, corresponding polarity is assumed to be
->>> > negative)
->>> >
->>> > #define V4L2_DV_VSYNC_POS_POL    0x00000001
->>> > #define V4L2_DV_HSYNC_POS_POL    0x00000002
->>> >
->>> > hfrontporch,hsync, and htotal for horizontal direction and
->>> vfrontporch,
->>> > vsync, and vtotal for vertical direction. il_vtotal is the number of
->>> > vertical lines for interlaced video for bottom field.
->>> >
->>> > To define a particular timing type, following enum is used:-
->>> >
->>> > enum v4l2_dv_timings_type {
->>> >         V4L2_DV_BT_656_1120,
->>> > };
->>> >
->>> > This will allow adding new timing types in the future.
->>> >
->>> > If the driver supports a set of custom timing, it can be set/get
->>> using
->>> > VIDIOC_S/G_DV_TIMINGS IOCTL and specifying timings using the
->>> structure
->>> >
->>> > struct v4l2_dv_timings {
->>> >         enum v4l2_dv_timings_type type;
->>> >         union {
->>> >                 struct v4l2_bt_timings bt;
->>> >                 __u32 reserved[32];
->>> >         };
->>> > };
->>> >
->>> >
->>> > If the driver supports custom timing as well as Presets, it will
->>> return
->>> > V4L2_DV_CUSTOM along with other preset timings for the
->>> > VIDIOC_ENUM_DV_PRESETS IOCTL call. Application can then call
->>> > VIDIOC_S/G_TIMING to get/set custom timings at the driver.
->>> >
->>> > To detect a preset timing at the input application calls
->>> > VIDIOC_QUERY_DV_PRESET which returns the preset using the
->>v4l2_dv_preset
->>> > structure.
->>> >
->>> > Following summarize the new ioctls added by this RFC
->>> >
->>> > #define VIDIOC_ENUM_DV_PRESETS   _IOWR('V', 79, struct
->>> > v4l2_dv_enum_presets)
->>> > #define VIDIOC_S_DV_PRESET       _IOWR('V', 80, struct
->>> v4l2_dv_preset)
->>> > #define VIDIOC_G_DV_PRESET       _IOWR('V', 81, struct
->>> v4l2_dv_preset)
->>> > #define VIDIOC_QUERY_DV_PRESET   _IOR('V',  82, struct
->>> v4l2_dv_preset)
->>> > #define VIDIOC_S_DV_TIMINGS      _IOWR('V', 83, struct
->>> v4l2_dv_timings)
->>> > #define VIDIOC_G_DV_TIMINGS      _IOWR('V', 84, struct
->>> v4l2_dv_timings)
->>> >
->>> > Open issues
->>> > -----------
->>> >
->>> > 1.How to handle an HDMI transmitter? It can be put in two different
->>modes:
->>> > DVI compatible
->>> > or HDMI compatible. Some of the choices are
->>> >         a) enumerate them as two different outputs when enumerating.
->>> >         b) adding a status bit on the input.
->>> >         c) change it using a control
->>> >
->>> > 2. Detecting whether there is an analog or digital signal on an DVI-I
->>> > input:
->>> >       a) add new status field value for v4l2_input ?
->>> >          #define  V4L2_IN_ST_DVI_ANALOG_DETECTED    0x10000000
->>> >          #define  V4L2_IN_ST_DVI_DIGITAL_DETECTED   0x20000000
->>> >
->>> > 3. Detecting an EDID.
->>> >       a) adding a status field in v4l2_output and two new ioctls that
->>can set
->>> > the EDID for an input or retrieve it for an output. It should also be
->>> > added as an input/output capability.
->>> >
->>> > 4. ATSC bits in v4l2_std_id: how are they used? Are they used at all
->>for
->>> > that matter?
->>> > 5. There are a lot of status bits defined in v4l2_input, but only a
->>> few
->>> > are actually used. What are we going to do with that?
->>> >
->>> > 6. HDMI requires additional investigation. HDMI defines a whole bunch
->>of
->>> > infoframe fields. Most of these can probably be exported as
->>> controls??
->>Is
->>> > HDMI audio handled by alsa?
->>> >
->>> > 7. Can sensor driver use the same API for setting frame size and
->>> frame
->>> > rate? It was discussed and the general agreement was to use this API
->>only
->>> > for video timing.
->>> >
->>> >
->>> > Murali Karicheri
->>> > Software Design Engineer
->>> > Texas Instruments Inc.
->>> > Germantown, MD 20874
->>> > email: m-karicheri2@ti.com
->>> >
->>> > --
->>> > To unsubscribe from this list: send the line "unsubscribe
->>> linux-media"
->>in
->>> > the body of a message to majordomo@vger.kernel.org
->>> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>> >
->>>
->>>
->>> --
->>> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
->>>
->>>
->>>
->>>
->>
->>
->>
->>--
->>Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+> We have this CPLD init API - evm_init_cpld() called from the dm365_evm_init() function. The CPLD init API was trying to initialize the CPLD, based on the default configuration. I believe David Brownell had this placeholder for have_imager() and have_tvp7002() APIs since, we have different CPLD settings for the imager, tvp7002 and tvp5146 for the video input source.
 >
+>   
+>>> 1. Do the callback function inside pdata and initialize it at driver
+>>> load time (tvp7002_probe). Set tvp5146 as default and override when
+>>> driver loads (and restore when unloads).
+>>>       
+>> This is the preferred option to me.
+>>     
 >
+> We can decide on the default video input source to be TVP5146. However we do not need a new callback function. We already have the VPFE .setup_input callback API dm365evm_setup_video_input() for the same purpose. The VPFE .setup_input API is called when each of the decoders (sub-devices) registered with VPFE capture driver. It is also called when the application decides on an input source and switches between the input sources.
 >
+> So, TVP5146 remains as the default video input source, only until VPFE probe is called, which registers the all decoders (sub-devices) defined in the VPFE platform data. This also means that the last decoder in the VPFE platform data remains active after boot-up. One can change the order in the VPFE platform data if a particular input source needs to remain active after boot-up. Note that application can always switch the input-source at run time.
+>
+> I quickly tried removing the have_imager() construct in the evm_init_cpld() and here is the output -
+>
+> Starting kernel ...
+>
+> Uncompressing Linux...............................................................................................
+> ........................................ done, booting the kernel.
+> Linux version 2.6.32-rc2-davinci1-dirty 
+> ...
+> CPU: Testing write buffer coherency: ok
+> DaVinci: 8 gpio irqs
+> NET: Registered protocol family 16
+> EVM: tvp5146 SD video input
+> bio: create slab <bio-0> at 0
+> SCSI subsystem initialized
+> ...
+> vpfe_init
+> vpfe-capture: vpss clock vpss_master enabled
+> vpfe-capture vpfe-capture: v4l2 device registered
+> vpfe-capture vpfe-capture: video device registered
+> EVM: switch to tvp5146 SD video input
+> tvp514x 1-005d: tvp514x 1-005d decoder driver registered !!
+> vpfe-capture vpfe-capture: v4l2 sub device tvp5146 registered
+> EVM: switch to tvp7002 HD video input
+> tvp7002 1-005c: tvp7002 1-005c decoder driver registered !!
+> vpfe-capture vpfe-capture: v4l2 sub device tvp7002 registered
+> ths7353 1-002e: chip found @ 0x5c (DaVinci I2C adapter)
+> vpfe-capture vpfe-capture: v4l2 sub device ths7353 registered
+> ...
+>
+> As you can see, the default video input source is TVP5146 and it has been video input source has been switched to TVP7002.
+>
+> Thanks
+> Sneha
+>
+>   
+>>> 2. Add an entry to sysfs such that it can be user-configurable whether
+>>> to activate one of the other regardless of whether tvp5156 or tvp7002
+>>> are actually there (the only result would be fail to access the
+>>> device).
+>>>       
+>> Why do you need sysfs options for switching?  Wouldn't building as
+>> modules and loading/unloading the needed modules serve the same
+>> purpose?
+>>
+>> Remeber that the 'probe' isn't going to be called until the
+>> platform_driver
+>> is registered, and that will (usually) happen at module load time.
+>>
+>>     
+>>> Sneha, do you have any suggestions on this one?
+>>>       
+>> Kevin
+>>
+>>     
+>
+>   
 
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Santiago Nunez-Corrales, Eng.
+RidgeRun Engineering, LLC
+
+Guayabos, Curridabat
+San Jose, Costa Rica
++(506) 2271 1487
++(506) 8313 0536
+http://www.ridgerun.com
+
 
