@@ -1,42 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:59128 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S932071AbZJ3OAt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Oct 2009 10:00:49 -0400
-Date: Fri, 30 Oct 2009 15:01:02 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH 1/9] soc-camera: remove no longer needed struct members
-In-Reply-To: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
-Message-ID: <Pine.LNX.4.64.0910301402420.4378@axis700.grange>
-References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from bombadil.infradead.org ([18.85.46.34]:54944 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753955AbZJ0Mgh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Oct 2009 08:36:37 -0400
+Date: Tue, 27 Oct 2009 10:36:00 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Pawel Osciak <p.osciak@samsung.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	Tomasz Fujak <t.fujak@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Pawel Osciak <p.osciak@samsung.com>
+Subject: Re: V4L2_MEMORY_USERPTR support in videobuf-core
+Message-ID: <20091027103600.109b9afb@pedra.chehab.org>
+In-Reply-To: <E4D3F24EA6C9E54F817833EAE0D912AC07D2F45C6B@bssrvexch01.BS.local>
+References: <E4D3F24EA6C9E54F817833EAE0D912AC07D2F45C6B@bssrvexch01.BS.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- include/media/soc_camera.h |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+Em Tue, 27 Oct 2009 11:59:54 +0100
+Pawel Osciak <p.osciak@samsung.com> escreveu:
 
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index 3d74e60..c5afc8c 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -24,8 +24,6 @@ struct soc_camera_device {
- 	struct device *pdev;		/* Platform device */
- 	s32 user_width;
- 	s32 user_height;
--	unsigned short width_min;
--	unsigned short height_min;
- 	unsigned short y_skip_top;	/* Lines to skip at the top */
- 	unsigned char iface;		/* Host number */
- 	unsigned char devnum;		/* Device number per host */
--- 
-1.6.2.4
+> Hello,
+> could anybody confirm that there is no full/working support for USERPTR in
+> current videobuf-core? That is the conclusion I came up with after a more 
+> thorough investigation.
+> 
+> I am currently working to fix that, and will hopefully be posting patches in
+> the coming days/weeks. Is there any other development effort underway related
+> to this problem?
 
+Hi Pawel,
+
+The last time I tested the support for userptr at videobuf-core, it were
+working on x86 plataforms. On that time, I used vivi with videobuf-dma-sg
+for such tests (it were before its conversion to use videobuf-vmalloc).
+As support for userptr on videobuf-vmalloc is missing, vivi can't be used
+for such tests anymore (a good contribution would be to add userptr support
+on videobuf-vmalloc).
+
+Maybe you're suffering some platform-specific issues.
+
+
+
+Cheers,
+Mauro
