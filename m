@@ -1,127 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2718 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755365AbZJZTPE (ORCPT
+Received: from mail07mass.ifxnetworks.com ([190.60.24.77]:46144 "EHLO
+	tutopia.com.br" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754076AbZJ1TwZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Oct 2009 15:15:04 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id n9QJF7dk012041
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 26 Oct 2009 20:15:08 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 26 Oct 2009 20:15:07 +0100 (CET)
-Message-Id: <200910261915.n9QJF7dk012041@smtp-vbr5.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Wed, 28 Oct 2009 15:52:25 -0400
+Received: from unknown (HELO [10.0.0.1]) (vnishimoto@tutopia.com.br@[200.158.237.30])
+          (envelope-sender <vnishimoto@tutopia.com.br>)
+          by mail07mass.ifxnetworks.com (qmail-ldap-1.03) with SMTP
+          for <linux-media@vger.kernel.org>; 28 Oct 2009 19:45:49 -0000
+Message-ID: <4AE89F6B.7010700@tutopia.com.br>
+Date: Wed, 28 Oct 2009 17:45:47 -0200
+From: Vagner Nishimoto <vnishimoto@tutopia.com.br>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+CC: pboettcher@kernellabs.com
+Subject: [PATCH] Add support for Geniatech/MyGica U870 remote control
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of v4l-dvb:
+This patch add codes for the "Total Media In Hand" remote control used by
+Geniatech/MyGica U870 and X8507.
 
-date:        Mon Oct 26 19:00:03 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13164:c4beabacadb3
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Thank's
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-rc3-armv5: ERRORS
-linux-2.6.32-rc3-armv5-davinci: ERRORS
-linux-2.6.27-armv5-ixp: ERRORS
-linux-2.6.28-armv5-ixp: ERRORS
-linux-2.6.29.1-armv5-ixp: ERRORS
-linux-2.6.30-armv5-ixp: ERRORS
-linux-2.6.31-armv5-ixp: ERRORS
-linux-2.6.32-rc3-armv5-ixp: ERRORS
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: ERRORS
-linux-2.6.32-rc3-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-rc3-i686: ERRORS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-rc3-m32r: ERRORS
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: OK
-linux-2.6.32-rc3-mips: ERRORS
-linux-2.6.27-powerpc64: ERRORS
-linux-2.6.28-powerpc64: ERRORS
-linux-2.6.29.1-powerpc64: ERRORS
-linux-2.6.30-powerpc64: ERRORS
-linux-2.6.31-powerpc64: ERRORS
-linux-2.6.32-rc3-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-rc3-x86_64: ERRORS
-sparse (linux-2.6.31): OK
-sparse (linux-2.6.32-rc3): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+Signed-off-by: Vagner Nishimoto <vnishimoto@tutopia.com.br>
 
-Detailed results are available here:
+--- a/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	2009-09-20
+15:14:20.000000000 -0300
++++ b/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	2009-10-26
+03:34:52.062907991 -0200
+@@ -926,6 +926,43 @@ static struct dvb_usb_rc_key dib0700_rc_
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+ 	{ 0x8618, KEY_RECORD },
+ 	{ 0x861a, KEY_STOP },
++
++	/* Key codes for the Total Media In Hand (Geniatech/MyGica U870 remote control) */
++	{ 0x0038, KEY_TV },
++	{ 0x000c, KEY_MEDIA },
++	{ 0x0001, KEY_1 },
++	{ 0x0002, KEY_2 },
++	{ 0x0003, KEY_3 },
++	{ 0x0004, KEY_4 },
++	{ 0x0005, KEY_5 },
++	{ 0x0006, KEY_6 },
++	{ 0x0007, KEY_7 },
++	{ 0x0008, KEY_8 },
++	{ 0x0009, KEY_9 },
++	{ 0x0000, KEY_0 },
++	{ 0x000a, KEY_MUTE },
++	{ 0x0029, KEY_ESC },
++	{ 0x0012, KEY_CHANNELUP },
++	{ 0x0013, KEY_CHANNELDOWN },
++	{ 0x002b, KEY_VOLUMEUP },
++	{ 0x002c, KEY_VOLUMEDOWN },
++	{ 0x0020, KEY_UP },
++	{ 0x0021, KEY_DOWN },
++	{ 0x0011, KEY_LEFT },
++	{ 0x0010, KEY_RIGHT },
++	{ 0x000d, KEY_OK },
++	{ 0x001f, KEY_RECORD },
++	{ 0x0017, KEY_PLAY },
++	{ 0x0016, KEY_PAUSE },
++	{ 0x000b, KEY_STOP },
++	{ 0x0027, KEY_FASTFORWARD },
++	{ 0x0026, KEY_REWIND },
++	{ 0x001e, KEY_TIME },
++	{ 0x000e, KEY_CAMERA },
++	{ 0x002d, KEY_MENU },
++	{ 0x000f, KEY_ZOOM },
++	{ 0x0014, KEY_SHUFFLE },
++	{ 0x0025, KEY_POWER },
+ };
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L2 specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+ /* STK7700P: Hauppauge Nova-T Stick, AVerMedia Volar */
