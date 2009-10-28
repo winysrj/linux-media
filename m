@@ -1,92 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:62712 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932131AbZJ3N7j (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Oct 2009 09:59:39 -0400
-Message-ID: <4AEAF14E.3090707@tripleplay-services.com>
-Date: Fri, 30 Oct 2009 13:59:42 +0000
-From: Lou Otway <louis.otway@tripleplay-services.com>
-MIME-Version: 1.0
-To: "pierre.gronlier" <ticapix@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Determining MAC address or Serial Number
-References: <4AEAB4A6.6050502@tripleplay-services.com> <hcehh0$u72$1@ger.gmane.org>
-In-Reply-To: <hcehh0$u72$1@ger.gmane.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Received: from mail1.radix.net ([207.192.128.31]:56064 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756655AbZJ1Brn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Oct 2009 21:47:43 -0400
+Subject: Re: [PATCH 0/7] kfifo: new API v0.6
+From: Andy Walls <awalls@radix.net>
+To: Stefani Seibold <stefani@seibold.net>
+Cc: Andi Kleen <andi@firstfloor.org>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Amerigo Wang <xiyou.wangcong@gmail.com>,
+	Joe Perches <joe@perches.com>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain
+Date: Tue, 27 Oct 2009 21:49:31 -0400
+Message-Id: <1256694571.3131.26.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-pierre.gronlier wrote:
-> Lou Otway wrote, On 10/30/2009 10:40 AM:
->   
->> Hi,
->>
->> I'm trying to find a way to be able to uniquely identify each device in
->> a PC and was hoping to use either serial or MAC for this purpose.
->>
->> I've looked at the documentation but can't find a generic way to read
->> back serial numbers or MAC addresses from V4L devices? Does such a
->> function exist?
->>     
->
->
-> Hi Lou,
->
-> I'm using the mac address to identify each device and to do so I created
-> this script which use dvbnet to create network interface from the dvb card.
->
-> a=<your adapter>
-> n=<your net device>
-> for ex. /dev/dvb/adapter1/net0 => a=1, n=0
->
->
-> # get mac address
-> iface=$(sudo /usr/bin/dvbnet -a $a -n $n -p 0 | awk '/device/ {print $3}')
-> sleep 1
-> mac_address=$(/sbin/ifconfig $iface | awk '/HWaddr/ {print $5}' | tr -d
-> ':' | tr A-Z a-z)
-> num=$(sudo /usr/bin/dvbnet -a $a -n $n -l | grep 'Found device ' | awk
-> '{print $3}' | tr -d ':')
-> sleep 1
-> sudo /usr/bin/dvbnet -a $a -n $n -d $num 1> /dev/null
->
->
->
-> AFAIK, mac address are known only from the kernel and are not directly
-> exposed to the userland. I you manage to do something "cleaner", let me
-> know :)
->
->
-> Regards
->
-> pierre gr.
->
->
->   
-> re majordomo info at  http://vger.kernel.org/majordomo-info.html
->   
-Thanks Pierre,
 
-Unfortunately only some of my devices reported a MAC address, I guess 
-that not all drivers have this feature built in. I think the same 
-problem will hold true for serial devices so I will look at another way 
-to list my devices.
+> One thing is that the new API is not compatible with the old one. I
+> had a look at the current user of the old kfifo API and it is was easy
+> to adapt it to the new API. These are the files which currently use
+> the kfifo API:
+> 
+> drivers/char/nozomi.c
+> drivers/char/sonypi.c
+> drivers/infiniband/hw/cxgb3/cxio_resource.c
+> drivers/media/video/meye.c
+> drivers/net/wireless/libertas/main.c
+> drivers/platform/x86/fujitsu-laptop.c
+> drivers/platform/x86/sony-laptop.c
+> drivers/scsi/libiscsi.c
+> drivers/scsi/libiscsi_tcp.c
+> drivers/scsi/libsrp.c
+> drivers/usb/host/fhci.h
+> net/dccp/probe.c
+> drivers/usb/serial/usb-serial.c
+> drivers/usb/serial/generic.c
 
-I was thinking to use lshw or lspci to give me a list of devices, from 
-that I can build my own table of devices each one with a unique value to 
-differentiate it from others. My worry is that the output from lshw or 
-lspci isn't sufficiently detailed to allow me to differentiate between 
-devices.
+Here's a V4L-DVB cx23885 module change, that is on its way upstream,
+that uses kfifo as is:
 
-Thanks,
+http://linuxtv.org/hg/v4l-dvb/rev/a2d8d3d88c6d
 
-Lou
+Do you really have to break the old API?
 
-
-
-
-
-
+Regards,
+Andy
 
