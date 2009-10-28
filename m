@@ -1,22 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.8])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n9L7Zq9G002157
-	for <video4linux-list@redhat.com>; Wed, 21 Oct 2009 03:35:52 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n9L7ZdD7013545
-	for <video4linux-list@redhat.com>; Wed, 21 Oct 2009 03:35:40 -0400
-Date: Wed, 21 Oct 2009 09:35:43 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-In-Reply-To: <uws2p437l.wl%morimoto.kuninori@renesas.com>
-Message-ID: <Pine.LNX.4.64.0910210934030.4163@axis700.grange>
-References: <uws2p437l.wl%morimoto.kuninori@renesas.com>
+Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.11])
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id n9S8HVk1025346
+	for <video4linux-list@redhat.com>; Wed, 28 Oct 2009 04:17:31 -0400
+Received: from smtpin2.mailsecure.in (SMTPIN2.mailsecure.in [121.241.224.3])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n9S8HKI0025856
+	for <video4linux-list@redhat.com>; Wed, 28 Oct 2009 04:17:21 -0400
+Content-class: urn:content-classes:message
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: V4L-Linux <video4linux-list@redhat.com>
-Subject: Re: Question about v4l-dvb capture-example
+Date: Wed, 28 Oct 2009 13:46:57 +0530
+Message-ID: <9D5E1752379A43408015F7FE9846611504EDD067@CHNEXVS01.VSNLXCHANGE.COM>
+From: "Anantha Krishnan H" <ananthakrishnan@tataelxsi.co.in>
+To: <video4linux-list@redhat.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Subject: Overview of V4L2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,26 +27,14 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello Morimoto-san,
+Hi all
+    Can anyone give me an overview regarding how V4L2 works and how the V4L=
+2 API s are used?I just know the basics that V4L2 is an Application Program=
+ming Interface provided by the Linux Kernel for communicating with video de=
+vices lie webcams,TV Tuner cards etc...
 
-On Wed, 21 Oct 2009, Kuninori Morimoto wrote:
-
-> Dear all
-> 
-> Does 2.6.32-rcX git can use v4l-dvb capture-example ?
-> I can not get correct image on EcoVec + ov772x
-
-You're talking about arch/sh/boards/mach-ecovec24, right? AFAICS, the 
-mainline version doesn't have any camera support. Could you, please, 
-verify this with migor? If the problem is also present on it, it 
-definitely has to be fixed.
-
-> # I get correct image if I use mplayer
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
+Thanks & Regards
+Ananth
 
 --
 video4linux-list mailing list
