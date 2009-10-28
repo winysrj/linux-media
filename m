@@ -1,199 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42099 "EHLO bear.ext.ti.com"
+Received: from www.freemail.gr ([81.171.104.45]:34949 "EHLO www.freemail.gr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753294AbZJETOQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Oct 2009 15:14:16 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-CC: Marek Szyprowski <m.szyprowski@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	Tomasz Fujak <t.fujak@samsung.com>,
-	Pawel Osciak <p.osciak@samsung.com>
-Date: Tue, 6 Oct 2009 00:43:22 +0530
-Subject: RE: Mem2Mem V4L2 devices [RFC]
-Message-ID: <19F8576C6E063C45BE387C64729E73940436CF8FEF@dbde02.ent.ti.com>
-References: <E4D3F24EA6C9E54F817833EAE0D912AC077151C64F@bssrvexch01.BS.local>
-	 <1254500705.16625.35.camel@iivanov.int.mm-sol.com>
-	 <19F8576C6E063C45BE387C64729E73940436CF8DCB@dbde02.ent.ti.com>
-	 <001801ca45c3$a14826c0$e3d87440$%szyprowski@samsung.com>
-	 <19F8576C6E063C45BE387C64729E73940436CF8FE8@dbde02.ent.ti.com>
-	 <1254769004.10214.12.camel@violet.int.mm-sol.com>
-	 <19F8576C6E063C45BE387C64729E73940436CF8FEC@dbde02.ent.ti.com>
- <1254769765.10214.17.camel@violet.int.mm-sol.com>
-In-Reply-To: <1254769765.10214.17.camel@violet.int.mm-sol.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	id S1757016AbZJ1Alw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Oct 2009 20:41:52 -0400
+Reply-To: scoop_yo@freemail.gr
+From: scoop_yo@freemail.gr
+To: linux-media@vger.kernel.org
+Subject: Lifeview hybrid saa7134 pci driver not working anymore pt2
+Date: Wed, 28 Oct 2009 02:25:09 +0200
+Message-Id: <4ae78f655868f8.31336853@freemail.gr>
+MIME-version: 1.0
+Content-type: multipart/mixed; boundary="=_4ae78f655b5562.53763585=_";
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+To l^mula aut| e_mai se loqv^ MIME. E\m to pq|cqalla akkgkocqav_ar sar dem jatakaba_mei
+aut^ tg loqv^, ]ma l]qor ^ to s}moko tou lgm}lator lpoqe_ ma lg diab\fetai.
+
+--=_4ae78f655b5562.53763585=_
+Content-Type: text/plain; charset="iso-8859-7"
+
+pt1 is here http://linuxtv.org/pipermail/linux-dvb/2009-August/032334.html
+
+I have a Lifeview Hybrid Pci card and since around August 2009 the driver doesn't work in 64bit linux but works only in 32bit linux.
+Now, I am using vanilla 2.6.31.5 source with latest mercurial v4b-dvb snapshot.
+
+I tried today again in my 64bit system to see if the driver works but again I discovered that it just doesn't work. I am using the same firmware on both 32 and 64bit linux installations and in 32bits I have no problem, everything works. I am choosing the same options in both 32 and 64bit installations.
+
+The error that I get is in the attachement.
+It complains about firmware but the firmware is exactly the same with my 32bit installation where things work. 
+
+What's wrong with the saa7134 driver ?
 
 
-Thanks,
-Vaibhav Hiremath
-Platform Support Products
-Texas Instruments Inc
-Ph: +91-80-25099927
 
-> -----Original Message-----
-> From: Ivan T. Ivanov [mailto:iivanov@mm-sol.com]
-> Sent: Tuesday, October 06, 2009 12:39 AM
-> To: Hiremath, Vaibhav
-> Cc: Marek Szyprowski; linux-media@vger.kernel.org;
-> kyungmin.park@samsung.com; Tomasz Fujak; Pawel Osciak
-> Subject: RE: Mem2Mem V4L2 devices [RFC]
-> 
-> On Tue, 2009-10-06 at 00:31 +0530, Hiremath, Vaibhav wrote:
-> > > -----Original Message-----
-> > > From: Ivan T. Ivanov [mailto:iivanov@mm-sol.com]
-> > > Sent: Tuesday, October 06, 2009 12:27 AM
-> > > To: Hiremath, Vaibhav
-> > > Cc: Marek Szyprowski; linux-media@vger.kernel.org;
-> > > kyungmin.park@samsung.com; Tomasz Fujak; Pawel Osciak
-> > > Subject: RE: Mem2Mem V4L2 devices [RFC]
-> > >
-> > >
-> > <snip>
-> > > > > > > last thing which should be done is to QBUF 2 buffers and
-> > > call
-> > > > > > > STREAMON.
-> > > > > > >
-> > > > > > [Hiremath, Vaibhav] IMO, this implementation is not
-> streaming
-> > > > > model, we are trying to fit mem-to-mem
-> > > > > > forcefully to streaming.
-> > > > >
-> > > > > Why this does not fit streaming? I see no problems with
-> > > streaming
-> > > > > over mem2mem device with only one video node. You just queue
-> > > input
-> > > > > and output buffers (they are distinguished by 'type'
-> parameter)
-> > > on
-> > > > > the same video node.
-> > > > >
-> > > > [Hiremath, Vaibhav] Do we create separate queue of buffers
-> based
-> > > on type? I think we don't.
-> > > >
-> > > > App1		App2		App3		...		AppN
-> > > >   |		 |		|		|		  |
-> > > >    -----------------------------------------------
-> > > > 				|
-> > > > 			/dev/video0
-> > > > 				|
-> > > > 			Resizer Driver
-> > >
-> > >  why not? they can be per file handler input/output queue. and
-> we
-> > >  can do time sharing use of resizer driver like Marek suggests.
-> > >
-> > [Hiremath, Vaibhav] Ivan,
-> > File handle based queue and buffer type based queue are two
-> different terms.
-> 
-> really? ;)
-> 
-> >
-> > Yes, definitely we have to create separate queues for each file
-> handle to support multiple channels. But my question was for buffer
-> type, CAPTURE and OUTPUT.
-> >
-> 
-> let me see. you concern is that for very big frames 1X Mpix,
-> managing
-> separate buffers for input and output will be waste of space
-> for operations like downs calling. i know that such operations can
-> be
-> done in-place ;). but what about up-scaling. this also should
-> be possible, but with some very dirty hacks.
-> 
-[Hiremath, Vaibhav] Dirty hacks??? 
-I think, for upscaling we have to have 2 separate buffers, I do not see any options here.
 
-Thanks,
-Vaibhav
+--=_4ae78f655b5562.53763585=_
+Content-Type: text/x-log
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="new_tuner.log"
 
-> iivanov
-> 
-> > Thanks,
-> > Vaibhav
-> >
-> > >
-> > > >
-> > > > Everyone will be doing streamon, and in normal use case every
-> > > application must be getting buffers from another module (another
-> > > driver, codecs, DSP, etc...) in multiple streams, 0,
-> 1,2,3,4....N
-> > > >
-> > > > Every application will start streaming with (mostly) fixed
-> scaling
-> > > factor which mostly never changes. This one video node approach
-> is
-> > > possible only with constraint that, the application will always
-> > > queue only 2 buffers with one CAPTURE and one with OUTPUT type.
-> > >
-> > > i don't see how 2 device node approach can help with this case.
-> > > even in "normal" video capture device you should stop streaming
-> > > when change buffer sizes.
-> > >
-> > > > He has to wait till first/second gets finished, you can't
-> queue
-> > > multiple buffers (input and output) simultaneously.
-> > >
-> > > actually this should be possible.
-> > >
-> > > iivanov
-> > >
-> > > >
-> > > > I do agree here with you that we need to investigate on
-> whether we
-> > > really have such use-case. Does it make sense to put such
-> constraint
-> > > on application? What is the impact? Again in case of down-
-> scaling,
-> > > application may want to use same buffer as input, which is
-> easily
-> > > possible with single node approach.
-> > > >
-> > > > Thanks,
-> > > > Vaibhav
-> > > >
-> > > > > > We have to put some constraints -
-> > > > > >
-> > > > > > 	- Driver will treat index 0 as input always,
-> > > irrespective of
-> > > > > number of buffers queued.
-> > > > > > 	- Or, application should not queue more that 2 buffers.
-> > > > > > 	- Multi-channel use-case????
-> > > > > >
-> > > > > > I think we have to have 2 device nodes which are capable
-> of
-> > > > > streaming multiple buffers, both are
-> > > > > > queuing the buffers.
-> > > > >
-> > > > > In one video node approach there can be 2 buffer queues in
-> one
-> > > video
-> > > > > node, for input and output respectively.
-> > > > >
-> > > > > > The constraint would be the buffers must be mapped one-to-
-> one.
-> > > > >
-> > > > > Right, each queued input buffer must have corresponding
-> output
-> > > > > buffer.
-> > > > >
-> > > > > Best regards
-> > > > > --
-> > > > > Marek Szyprowski
-> > > > > Samsung Poland R&D Center
-> > > > >
-> > > > >
-> > > >
-> > >
-> >
-> 
+TGludXggdmlkZW8gY2FwdHVyZSBpbnRlcmZhY2U6IHYyLjAwCnNhYTcxMzAvMzQ6IHY0bDIg
+ZHJpdmVyIHZlcnNpb24gMC4yLjE1IGxvYWRlZApBQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsg
+W0FQQzJdIGVuYWJsZWQgYXQgSVJRIDE3CnNhYTcxMzQgMDAwMDowNTowNy4wOiBQQ0kgSU5U
+IEEgLT4gTGlua1tBUEMyXSAtPiBHU0kgMTcgKGxldmVsLCBsb3cpIC0+IElSUSAxNwpzYWE3
+MTMzWzBdOiBmb3VuZCBhdCAwMDAwOjA1OjA3LjAsIHJldjogMjA5LCBpcnE6IDE3LCBsYXRl
+bmN5OiAzMiwgbW1pbzogMHhkMDAwMDAwMApzYWE3MTMzWzBdOiBzdWJzeXN0ZW06IDUxNjg6
+MzMwNiwgYm9hcmQ6IExpZmVWaWV3IEZseURWQi1UIEh5YnJpZCBDYXJkYnVzL01TSSBUViBA
+bnl3aGVyZSBBL0QgTkIgW2NhcmQ9OTQsYXV0b2RldGVjdGVkXQpzYWE3MTMzWzBdOiBib2Fy
+ZCBpbml0OiBncGlvIGlzIDIxMDAwMApJUlEgMTcvc2FhNzEzM1swXTogSVJRRl9ESVNBQkxF
+RCBpcyBub3QgZ3VhcmFudGVlZCBvbiBzaGFyZWQgSVJRcwpzYWE3MTMzWzBdOiBpMmMgZWVw
+cm9tIDAwOiA2OCA1MSAwNiAzMyA1NCAyMCAxYyAwMCA0MyA0MyBhOSAxYyA1NSBkMiBiMiA5
+MgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDEwOiAwMCAwMCA2MiAwOCBmZiAyMCBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDIwOiAwMSA0
+MCAwMSAwMyAwMyAwMSAwMSAwMyAwOCBmZiAwMSAxNiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBd
+OiBpMmMgZWVwcm9tIDMwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDQwOiBmZiAyMSAwMCBjMiA5NiAx
+MCAwNSAwMSAwMSAxNiAzMiAxNSBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9t
+IDUwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpz
+YWE3MTMzWzBdOiBpMmMgZWVwcm9tIDYwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDcwOiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBp
+MmMgZWVwcm9tIDgwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDkwOiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGEw
+OiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3
+MTMzWzBdOiBpMmMgZWVwcm9tIGIwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGMwOiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMg
+ZWVwcm9tIGQwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGUwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGYwOiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgppMmMtYWRh
+cHRlciBpMmMtMjogSW52YWxpZCA3LWJpdCBhZGRyZXNzIDB4N2EKdHVuZXIgMi0wMDRiOiBj
+aGlwIGZvdW5kIEAgMHg5NiAoc2FhNzEzM1swXSkKdGRhODI5eCAyLTAwNGI6IHNldHRpbmcg
+dHVuZXIgYWRkcmVzcyB0byA2MQp0ZGE4Mjl4IDItMDA0YjogdHlwZSBzZXQgdG8gdGRhODI5
+MCs3NWEKc2FhNzEzM1swXTogcmVnaXN0ZXJlZCBkZXZpY2UgdmlkZW8wIFt2NGwyXQpzYWE3
+MTMzWzBdOiByZWdpc3RlcmVkIGRldmljZSB2YmkwCnNhYTcxMzNbMF06IHJlZ2lzdGVyZWQg
+ZGV2aWNlIHJhZGlvMApzYWE3MTM0IEFMU0EgZHJpdmVyIGZvciBETUEgc291bmQgbG9hZGVk
+CklSUSAxNy9zYWE3MTMzWzBdOiBJUlFGX0RJU0FCTEVEIGlzIG5vdCBndWFyYW50ZWVkIG9u
+IHNoYXJlZCBJUlFzCnNhYTcxMzNbMF0vYWxzYTogc2FhNzEzM1swXSBhdCAweGQwMDAwMDAw
+IGlycSAxNyByZWdpc3RlcmVkIGFzIGNhcmQgLTEKZHZiX2luaXQoKSBhbGxvY2F0aW5nIDEg
+ZnJvbnRlbmQKRFZCOiByZWdpc3RlcmluZyBuZXcgYWRhcHRlciAoc2FhNzEzM1swXSkKRFZC
+OiByZWdpc3RlcmluZyBhZGFwdGVyIDAgZnJvbnRlbmQgMCAoUGhpbGlwcyBUREExMDA0Nkgg
+RFZCLVQpLi4uCnRkYTEwMDR4OiBzZXR0aW5nIHVwIHBsbHMgZm9yIDQ4TUh6IHNhbXBsaW5n
+IGNsb2NrCnRkYTEwMDR4OiBmb3VuZCBmaXJtd2FyZSByZXZpc2lvbiBlYSAtLSBpbnZhbGlk
+CnRkYTEwMDR4OiB0cnlpbmcgdG8gYm9vdCBmcm9tIGVlcHJvbQp0ZGExMDA0eDogZm91bmQg
+ZmlybXdhcmUgcmV2aXNpb24gZWEgLS0gaW52YWxpZAp0ZGExMDA0eDogd2FpdGluZyBmb3Ig
+ZmlybXdhcmUgdXBsb2FkLi4uCnNhYTcxMzQgMDAwMDowNTowNy4wOiBmaXJtd2FyZTogcmVx
+dWVzdGluZyBkdmItZmUtdGRhMTAwNDYuZncKdGRhMTAwNHg6IEVycm9yIGR1cmluZyBmaXJt
+d2FyZSB1cGxvYWQKdGRhMTAwNHg6IGZvdW5kIGZpcm13YXJlIHJldmlzaW9uIGVhIC0tIGlu
+dmFsaWQKdGRhMTAwNHg6IGZpcm13YXJlIHVwbG9hZCBmYWlsZWQKdGRhODI3eF9wcm9iZV92
+ZXJzaW9uOiBjb3VsZCBub3QgcmVhZCBmcm9tIHR1bmVyIGF0IGFkZHI6IDB4YzIKCg==
+
+--=_4ae78f655b5562.53763585=_--
 
