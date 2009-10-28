@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.8])
+Received: from mx1.redhat.com (ext-mx08.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.12])
 	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id n9LFKuQg000684
-	for <video4linux-list@redhat.com>; Wed, 21 Oct 2009 11:20:56 -0400
-Received: from exprod7og121.obsmtp.com (exprod7og121.obsmtp.com [64.18.2.20])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n9LFKiqp028189
-	for <video4linux-list@redhat.com>; Wed, 21 Oct 2009 11:20:44 -0400
-Received: by mail-fx0-f226.google.com with SMTP id 26so10784293fxm.23
-	for <video4linux-list@redhat.com>; Wed, 21 Oct 2009 08:20:43 -0700 (PDT)
+	id n9SFpRL6003278
+	for <video4linux-list@redhat.com>; Wed, 28 Oct 2009 11:51:27 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n9SFpC9B010027
+	for <video4linux-list@redhat.com>; Wed, 28 Oct 2009 11:51:12 -0400
+Date: Wed, 28 Oct 2009 16:51:23 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+In-Reply-To: <ud4599hup.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0910281617210.4524@axis700.grange>
+References: <ud4599hup.wl%morimoto.kuninori@renesas.com>
 MIME-Version: 1.0
-Date: Wed, 21 Oct 2009 17:20:43 +0200
-Message-ID: <aaaa95950910210820r59edd33dga953ca44b0745628@mail.gmail.com>
-From: Sigmund Augdal <sigmund@snap.tv>
-To: video4linux-list@redhat.com
-Content-Type: multipart/mixed; boundary=002215401592b6c7c30476738516
-Subject: [PATCH] driver support for VIDIOC_QUERYSTD and enhanced
-	VIDIOC_ENUMINPUT for WinTV PVR-150
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: V4L-Linux <video4linux-list@redhat.com>
+Subject: Re: [PATCH 2/4] soc-camera: tw9910: add hsync control support for
+ platform
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,95 +29,142 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
---002215401592b6c7c30476738516
-Content-Type: text/plain; charset=ISO-8859-1
+Hello Morimoto-san
 
-Attached is a patch that contains driver side changes to implement the
-features that were added to v4l2-ctl by my two previous patches. It is based
-on an old kernel and is only tested for one single capture card, so this
-patch is provided for reference only, not for inclusion into the drivers as
-is.
+On Wed, 30 Sep 2009, Kuninori Morimoto wrote:
 
-Best regards
+> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> ---
+>  drivers/media/video/tw9910.c |   30 +++++++++++++-----------------
+>  include/media/tw9910.h       |    2 ++
+>  2 files changed, 15 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/media/video/tw9910.c b/drivers/media/video/tw9910.c
+> index 4652483..8e3d9e0 100644
+> --- a/drivers/media/video/tw9910.c
+> +++ b/drivers/media/video/tw9910.c
+> @@ -193,6 +193,10 @@
+>  #define RTSEL_FIELD 0x06 /* 0110 = FIELD */
+>  #define RTSEL_RTCO  0x07 /* 0111 = RTCO ( Real Time Control ) */
+>  
+> +/* HSYNC default */
+> +#define HSTART 0x0160
+> +#define HEND   0x0300
+> +
 
-Sigmund Augdal
+Ok, with this patch you switch all tw9910 users to hstart = 0x160 instead 
+of 0x260. The users currently in the mainline are exactly one - migor. I 
+tried that, and here's what I've got:
 
---002215401592b6c7c30476738516
-Content-Type: application/octet-stream; name="pvr150_enuminput_querystd.patch"
-Content-Disposition: attachment; filename="pvr150_enuminput_querystd.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_g128dmqn0
+http://download.open-technology.de/tw9910/
 
-ZGlmZiAtdXJwIC14ICcqLmtvJyAteCAnKi5tb2QuKicgLXggJyouY21kJyAteCAnKi5vJyBsaW51
-eC0yLjYuMjQtc25hcHR2LXI0NjgzL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gyNTg0MC9jeDI1ODQw
-LWNvcmUuYyBsaW51eC1hbmFsb2ctaW1wcm92ZW1lbnQvZHJpdmVycy9tZWRpYS92aWRlby9jeDI1
-ODQwL2N4MjU4NDAtY29yZS5jCi0tLSBsaW51eC0yLjYuMjQtc25hcHR2LXI0NjgzL2RyaXZlcnMv
-bWVkaWEvdmlkZW8vY3gyNTg0MC9jeDI1ODQwLWNvcmUuYwkyMDA5LTA0LTI4IDE1OjI5OjEyLjAw
-MDAwMDAwMCArMDMwMAorKysgbGludXgtYW5hbG9nLWltcHJvdmVtZW50L2RyaXZlcnMvbWVkaWEv
-dmlkZW8vY3gyNTg0MC9jeDI1ODQwLWNvcmUuYwkyMDA5LTEwLTIxIDE2OjQwOjQ3Ljg1NjQxMzcy
-MiArMDMwMApAQCAtNTY3LDEzICs1NjcsMTMgQEAgc3RhdGljIGludCBzZXRfdjRsc3RkKHN0cnVj
-dCBpMmNfY2xpZW50IAogCXJldHVybiAwOwogfQogCi12NGwyX3N0ZF9pZCBjeDI1ODQwX2dldF92
-NGxzdGQoc3RydWN0IGkyY19jbGllbnQgKiBjbGllbnQpCitzdGF0aWMgdjRsMl9zdGRfaWQgY3gy
-NTg0MF9nZXRfdjRsc3RkX2ludGVybmFsKHN0cnVjdCBpMmNfY2xpZW50ICogY2xpZW50LCBpbnQg
-YXV0b2RldGVjdCkKIHsKIAlzdHJ1Y3QgY3gyNTg0MF9zdGF0ZSAqc3RhdGUgPSBpMmNfZ2V0X2Ns
-aWVudGRhdGEoY2xpZW50KTsKIAkvKiBjaGVjayBWSURfRk1UX1NFTCBmaXJzdCAqLwogCXU4IGZt
-dCA9IGN4MjU4NDBfcmVhZChjbGllbnQsIDB4NDAwKSAmIDB4ZjsKIAotCWlmICghZm10KSB7CisJ
-aWYgKCFmbXQgfHwgYXV0b2RldGVjdCkgewogCQkvKiBjaGVjayBBRkRfRk1UX1NUQVQgaWYgc2V0
-IHRvIGF1dG9kZXRlY3QgKi8KIAkJZm10ID0gY3gyNTg0MF9yZWFkKGNsaWVudCwgMHg0MGQpICYg
-MHhmOwogCX0KQEAgLTU5OSw2ICs1OTksMTEgQEAgdjRsMl9zdGRfaWQgY3gyNTg0MF9nZXRfdjRs
-c3RkKHN0cnVjdCBpMgogCX0KIH0KIAordjRsMl9zdGRfaWQgY3gyNTg0MF9nZXRfdjRsc3RkKHN0
-cnVjdCBpMmNfY2xpZW50ICogY2xpZW50KQoreworICAgIHJldHVybiBjeDI1ODQwX2dldF92NGxz
-dGRfaW50ZXJuYWwoY2xpZW50LCAwKTsKK30KKwogLyogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gKi8KIAogc3Rh
-dGljIGludCBzZXRfdjRsY3RybChzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50LCBzdHJ1Y3QgdjRs
-Ml9jb250cm9sICpjdHJsKQpAQCAtOTgzLDYgKzk4OCw3IEBAIHN0YXRpYyBpbnQgY3gyNTg0MF9j
-b21tYW5kKHN0cnVjdCBpMmNfY2wKIAlzdHJ1Y3QgY3gyNTg0MF9zdGF0ZSAqc3RhdGUgPSBpMmNf
-Z2V0X2NsaWVudGRhdGEoY2xpZW50KTsKIAlzdHJ1Y3QgdjRsMl90dW5lciAqdnQgPSBhcmc7CiAJ
-c3RydWN0IHY0bDJfcm91dGluZyAqcm91dGUgPSBhcmc7CisJc3RydWN0IHY0bDJfaW5wdXQgKnZp
-biA9IGFyZzsKIAogCS8qIGlnbm9yZSB0aGVzZSBjb21tYW5kcyAqLwogCXN3aXRjaCAoY21kKSB7
-CkBAIC0xMTAzLDYgKzExMDksMTcgQEAgc3RhdGljIGludCBjeDI1ODQwX2NvbW1hbmQoc3RydWN0
-IGkyY19jbAogCQlzdGF0ZS0+cmFkaW8gPSAwOwogCQlyZXR1cm4gc2V0X3Y0bHN0ZChjbGllbnQs
-ICoodjRsMl9zdGRfaWQgKilhcmcpOwogCisJY2FzZSBWSURJT0NfUVVFUllTVEQ6CisJCSoodjRs
-Ml9zdGRfaWQgKilhcmcgPSBjeDI1ODQwX2dldF92NGxzdGRfaW50ZXJuYWwoY2xpZW50LCAxKTsK
-KwkJYnJlYWs7CisKKwljYXNlIFZJRElPQ19FTlVNSU5QVVQ6CisJCS8qIEFzc3VtaW5nIHRoZSBk
-cml2ZXIgd2lsbCBvbmx5IHByb3BhZ2F0ZSB0aGUgaW9jdGwgaGVyZSBpZiBpdCBhbGxyZWFkeSBj
-aGVja2VkIHRoYXQgdGhlIGFza2VkIGZvciBpbmRleCBpcyB0aGUgY3VycmVudGx5IHNlbGVjdGVk
-IGluZGV4LCBzbyB3ZSBuZWVkIG5vdCBib3RoZXIgd2l0aCByb3V0aW5nIGFuZCBzdWNoICovCisJ
-CWlmICghKGN4MjU4NDBfcmVhZChjbGllbnQsIDB4NDBlKSAmIDB4MjApKSB7CisJCQl2aW4tPnN0
-YXR1cyA9IFY0TDJfSU5fU1RfTk9fU0lHTkFMOworCQl9CisJCWJyZWFrOworCiAJY2FzZSBBVURD
-X1NFVF9SQURJTzoKIAkJc3RhdGUtPnJhZGlvID0gMTsKIAkJYnJlYWs7CmRpZmYgLXVycCAteCAn
-Ki5rbycgLXggJyoubW9kLionIC14ICcqLmNtZCcgLXggJyoubycgbGludXgtMi42LjI0LXNuYXB0
-di1yNDY4My9kcml2ZXJzL21lZGlhL3ZpZGVvL2l2dHYvaXZ0di1pb2N0bC5jIGxpbnV4LWFuYWxv
-Zy1pbXByb3ZlbWVudC9kcml2ZXJzL21lZGlhL3ZpZGVvL2l2dHYvaXZ0di1pb2N0bC5jCi0tLSBs
-aW51eC0yLjYuMjQtc25hcHR2LXI0NjgzL2RyaXZlcnMvbWVkaWEvdmlkZW8vaXZ0di9pdnR2LWlv
-Y3RsLmMJMjAwOS0wNC0yOCAxNToyOToxMi4wMDAwMDAwMDAgKzAzMDAKKysrIGxpbnV4LWFuYWxv
-Zy1pbXByb3ZlbWVudC9kcml2ZXJzL21lZGlhL3ZpZGVvL2l2dHYvaXZ0di1pb2N0bC5jCTIwMDkt
-MTAtMjEgMTY6NDE6NDguMDU0Nzc4MTk5ICswMzAwCkBAIC03OTcsOSArNzk3LDE0IEBAIGludCBp
-dnR2X3Y0bDJfaW9jdGxzKHN0cnVjdCBpdnR2ICppdHYsIHMKIAogCWNhc2UgVklESU9DX0VOVU1J
-TlBVVDp7CiAJCXN0cnVjdCB2NGwyX2lucHV0ICp2aW4gPSBhcmc7CisJCWludCByZXQ7CiAKIAkJ
-Lyogc2V0IGl0IHRvIGRlZmF1bHRzIGZyb20gb3VyIHRhYmxlICovCi0JCXJldHVybiBpdnR2X2dl
-dF9pbnB1dChpdHYsIHZpbi0+aW5kZXgsIHZpbik7CisJCXJldCA9IGl2dHZfZ2V0X2lucHV0KGl0
-diwgdmluLT5pbmRleCwgdmluKTsKKwkJaWYgKHZpbi0+aW5kZXggPT0gaXR2LT5hY3RpdmVfaW5w
-dXQpIHsKKwkJCWl2dHZfY2FsbF9pMmNfY2xpZW50cyhpdHYsIFZJRElPQ19FTlVNSU5QVVQsIHZp
-bik7CisJCX0KKwkJcmV0dXJuIHJldDsKIAl9CiAKIAljYXNlIFZJRElPQ19FTlVNT1VUUFVUOnsK
-QEAgLTEwODAsNiArMTA4NSwxMiBAQCBpbnQgaXZ0dl92NGwyX2lvY3RscyhzdHJ1Y3QgaXZ0diAq
-aXR2LCBzCiAJCWJyZWFrOwogCX0KIAorCWNhc2UgVklESU9DX1FVRVJZU1REOiB7CisJCXN0cnVj
-dCB2NGwyX3N0ZF9pZCAqc3RkID0gYXJnOworCQlpdnR2X2NhbGxfaTJjX2NsaWVudHMoaXR2LCBW
-SURJT0NfUVVFUllTVEQsIHN0ZCk7CisJCWJyZWFrOworCX0KKwogCWNhc2UgVklESU9DX1NfVFVO
-RVI6IHsJLyogU2V0dGluZyB0dW5lciBjYW4gb25seSBzZXQgYXVkaW8gbW9kZSAqLwogCQlzdHJ1
-Y3QgdjRsMl90dW5lciAqdnQgPSBhcmc7CiAKQEAgLTE2NTEsNiArMTY2Miw3IEBAIHN0YXRpYyBp
-bnQgaXZ0dl92NGwyX2RvX2lvY3RsKHN0cnVjdCBpbm8KIAljYXNlIFZJRElPQ19TX0ZSRVFVRU5D
-WToKIAljYXNlIFZJRElPQ19FTlVNU1REOgogCWNhc2UgVklESU9DX0dfU1REOgorCWNhc2UgVklE
-SU9DX1FVRVJZU1REOgogCWNhc2UgVklESU9DX1NfU1REOgogCWNhc2UgVklESU9DX1NfVFVORVI6
-CiAJY2FzZSBWSURJT0NfR19UVU5FUjoK
---002215401592b6c7c30476738516
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+as you see, the snapshot with 0x260 - current mainline value - the image 
+is squeezed from sides and padded at the bottom. Which is already not 
+perfect. Is this also what you're getting in your tests? With 0x160 it is 
+also shifted to the right.
+
+So, so far this patch doesn't seem like a very good idea to me?
+
+Thanks
+Guennadi
+
+>  /*
+>   * structure
+>   */
+> @@ -217,11 +221,6 @@ struct tw9910_cropping_ctrl {
+>  	u16 hactive;
+>  };
+>  
+> -struct tw9910_hsync_ctrl {
+> -	u16 start;
+> -	u16 end;
+> -};
+> -
+>  struct tw9910_priv {
+>  	struct v4l2_subdev                subdev;
+>  	struct tw9910_video_info       *info;
+> @@ -347,11 +346,6 @@ static const struct tw9910_cropping_ctrl tw9910_cropping_ctrl = {
+>  	.hactive = 0x02D0,
+>  };
+>  
+> -static const struct tw9910_hsync_ctrl tw9910_hsync_ctrl = {
+> -	.start = 0x0260,
+> -	.end   = 0x0300,
+> -};
+> -
+>  /*
+>   * general function
+>   */
+> @@ -418,19 +412,19 @@ static int tw9910_set_cropping(struct i2c_client *client,
+>  }
+>  
+>  static int tw9910_set_hsync(struct i2c_client *client,
+> -			    const struct tw9910_hsync_ctrl *hsync)
+> +			    const u16 start, const u16 end)
+>  {
+>  	int ret;
+>  
+>  	/* bit 10 - 3 */
+>  	ret = i2c_smbus_write_byte_data(client, HSGEGIN,
+> -					(hsync->start & 0x07F8) >> 3);
+> +					(start & 0x07F8) >> 3);
+>  	if (ret < 0)
+>  		return ret;
+>  
+>  	/* bit 10 - 3 */
+>  	ret = i2c_smbus_write_byte_data(client, HSEND,
+> -					(hsync->end & 0x07F8) >> 3);
+> +					(end & 0x07F8) >> 3);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> @@ -440,9 +434,9 @@ static int tw9910_set_hsync(struct i2c_client *client,
+>  		return ret;
+>  
+>  	ret = i2c_smbus_write_byte_data(client, HSLOWCTL,
+> -					(ret & 0x88)                 |
+> -					(hsync->start & 0x0007) << 4 |
+> -					(hsync->end   & 0x0007));
+> +					(ret   & 0x88)        |
+> +					(start & 0x0007) << 4 |
+> +					(end   & 0x0007));
+>  
+>  	return ret;
+>  }
+> @@ -697,7 +691,9 @@ static int tw9910_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+>  	/*
+>  	 * set hsync
+>  	 */
+> -	ret = tw9910_set_hsync(client, &tw9910_hsync_ctrl);
+> +	ret = tw9910_set_hsync(client,
+> +			       HSTART + priv->info->start_offset,
+> +			       HEND   + priv->info->end_offset);
+>  	if (ret < 0)
+>  		goto tw9910_set_fmt_error;
+>  
+> diff --git a/include/media/tw9910.h b/include/media/tw9910.h
+> index 73231e7..6ddb654 100644
+> --- a/include/media/tw9910.h
+> +++ b/include/media/tw9910.h
+> @@ -33,6 +33,8 @@ struct tw9910_video_info {
+>  	unsigned long          buswidth;
+>  	enum tw9910_mpout_pin  mpout;
+>  	struct soc_camera_link link;
+> +	u16 start_offset;
+> +	u16 end_offset;
+>  };
+>  
+>  
+> -- 
+> 1.6.0.4
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---002215401592b6c7c30476738516--
