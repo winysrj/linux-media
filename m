@@ -1,126 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3854 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760858AbZJISH6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Oct 2009 14:07:58 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id n99I7GhW048964
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 9 Oct 2009 20:07:21 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 9 Oct 2009 20:07:16 +0200 (CEST)
-Message-Id: <200910091807.n99I7GhW048964@smtp-vbr6.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from bombadil.infradead.org ([18.85.46.34]:44900 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757334AbZJ1Fh2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Oct 2009 01:37:28 -0400
+Date: Wed, 28 Oct 2009 03:36:36 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Andy Walls <awalls@radix.net>,
+	Stefani Seibold <stefani@seibold.net>,
+	Andi Kleen <andi@firstfloor.org>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Amerigo Wang <xiyou.wangcong@gmail.com>,
+	Joe Perches <joe@perches.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/7] kfifo: new API v0.6
+Message-ID: <20091028033636.07e547b4@pedra.chehab.org>
+In-Reply-To: <20091028032049.GB7744@basil.fritz.box>
+References: <1256694571.3131.26.camel@palomino.walls.org>
+	<20091028032049.GB7744@basil.fritz.box>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Em Wed, 28 Oct 2009 04:20:49 +0100
+Andi Kleen <andi@firstfloor.org> escreveu:
 
-Results of the daily build of v4l-dvb:
+With respect to the kfifo series of patches:
 
-date:        Fri Oct  9 19:00:03 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13083:89b7e6d5854a
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-rc3-armv5: ERRORS
-linux-2.6.32-rc3-armv5-davinci: ERRORS
-linux-2.6.27-armv5-ixp: ERRORS
-linux-2.6.28-armv5-ixp: ERRORS
-linux-2.6.29.1-armv5-ixp: ERRORS
-linux-2.6.30-armv5-ixp: ERRORS
-linux-2.6.31-armv5-ixp: ERRORS
-linux-2.6.32-rc3-armv5-ixp: ERRORS
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: ERRORS
-linux-2.6.32-rc3-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-rc3-i686: ERRORS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-rc3-m32r: ERRORS
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: OK
-linux-2.6.32-rc3-mips: ERRORS
-linux-2.6.27-powerpc64: ERRORS
-linux-2.6.28-powerpc64: ERRORS
-linux-2.6.29.1-powerpc64: ERRORS
-linux-2.6.30-powerpc64: ERRORS
-linux-2.6.31-powerpc64: ERRORS
-linux-2.6.32-rc3-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-rc3-x86_64: ERRORS
-sparse (linux-2.6.31): OK
-sparse (linux-2.6.32-rc3): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+> > Here's a V4L-DVB cx23885 module change, that is on its way upstream,
+> > that uses kfifo as is:
+> > 
+> > http://linuxtv.org/hg/v4l-dvb/rev/a2d8d3d88c6d
+> > 
+> > Do you really have to break the old API?
+> 
+> That was extensively discussed in the original patch kit submission,
+> and yes there are good reasons. You will just have to adapt
+> the driver if it gets in after the new kfifo patches; if kfifo
+> gets in later it'll have to adapt it.
 
-Detailed results are available here:
+I agree. The current kfifo implementation is very limited that can't be
+used on several places. Changing its implementation to be generic enough
+requires changing the API, since, on several places, we don't want to have
+a spinlock. So, as we'll need to change the API anyway, better to do it at the
+right way.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+That's said, i7core_edac will also need the new kfifo API for 2.6.33, so I'll
+have to handle this upstream change anyway. So, the faster this change went into
+upstream, the better, since I'll hold my pull requests to happen after it.
 
-Full logs are available here:
+Since I'll have 2 -git trees depending on this change (i7core_edac and v4l-dvb),
+the better is if you could put the kfifo code on a git tree that won't be
+rebased. This way, we can make our trees based on kfifo -git tree, having
+everything rebased there to avoid any merge or bisect conflict (in my case,
+cx23885 will need to be rebased, and i7core_edac will need kfifo -git objects
+for a new NMI-aware fifo implementation using kfifo)
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-The V4L2 specification failed to build, but the last compiled spec is here:
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+Cheers,
+Mauro
