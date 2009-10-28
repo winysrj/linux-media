@@ -1,102 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:60152 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:44920 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751045AbZJEHwl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Oct 2009 03:52:41 -0400
-Received: from x2.grafnetz ([192.168.0.4])
-	by duron.grafnetz with esmtps (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
-	(Exim 4.69)
-	(envelope-from <grafgrimm77@gmx.de>)
-	id 1MuiMD-0004LY-R6
-	for linux-media@vger.kernel.org; Mon, 05 Oct 2009 09:51:52 +0200
-Date: Mon, 5 Oct 2009 09:51:44 +0200
-From: Mario Bachmann <grafgrimm77@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: dib3000mb dvb-t with kernel 2.6.32-rc3 do not work
-Message-ID: <20091005095144.3551deb3@x2.grafnetz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	id S1754952AbZJ1QhD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Oct 2009 12:37:03 -0400
+Date: Wed, 28 Oct 2009 17:37:09 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: finalising soc-camera conversion to v4l2-subdev
+Message-ID: <Pine.LNX.4.64.0910281653010.4524@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi there, 
+Hi all
 
-with kernel 2.6.30.8 my "TwinhanDTV USB-Ter USB1.1 / Magic Box I"
-worked. 
+As some of you will know, soc-camera framework is undergoing a conversion 
+to the v4l2-subdev API. Most of the legacy soc-camera client API has been 
+ported over to v4l2-subdev. Final conversion is blocked by missing 
+functionality in the current v4l2 subsystem. Namely video bus 
+configuration and data format negotiation. And from the progress of 
+respective RFCs it looks like this could take a while to get them into the 
+mainline, which is also understandable, given the amount of work. So, the 
+question is - can we work out a way to finalise the porting yet before the 
+final versions of those RFCs make it upstream? OTOH, we certainly do not 
+want to have to create a solution, which will have to be thrown away 
+completely later.
 
-Now with kernel 2.6.32-rc3 (and 2.6.31.1) the modules seems to be
-loaded fine, but tzap/kaffeine/mplayer can not tune to a channel:
+We could decide to
 
-dmesg says:
-dvb-usb: found a 'TwinhanDTV USB-Ter USB1.1 / Magic Box I / HAMA USB1.1 DVB-T device' in warm state.
-dvb-usb: will use the device's hardware PID filter (table count: 16).
-DVB: registering new adapter (TwinhanDTV USB-Ter USB1.1 / Magic Box I / HAMA USB1.1 DVB-T device)
-DVB: registering adapter 0 frontend 0 (DiBcom 3000M-B DVB-T)...
-dibusb: This device has the Thomson Cable onboard. Which is default.
-input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:04.0/usb4/4-2/input/input5
-dvb-usb: schedule remote query interval to 150 msecs.
-dvb-usb: TwinhanDTV USB-Ter USB1.1 / Magic Box I / HAMA USB1.1 DVB-T device successfully initialized and connected.
-usbcore: registered new interface driver dvb_usb_dibusb_mb
+1. make bus configuration optional. If no data provided - use defaults.
 
-grep DVB .config says (no chaanges between 2.6.30.8 and 2.6.32-rc3):
-CONFIG_DVB_CORE=m
-CONFIG_DVB_MAX_ADAPTERS=8
-CONFIG_DVB_CAPTURE_DRIVERS=y
-CONFIG_DVB_USB=m
-CONFIG_DVB_USB_DIBUSB_MB=m
-CONFIG_DVB_DIB3000MB=m
-CONFIG_DVB_PLL=m
+2. use something like the proposed imagebus API for data format 
+negotiation. Even if it will be eventually strongly modified for new 
+"Media Controller & Co." APIs, it already exists, so, the time has already 
+been spent on it, and mainlining it will not require much more time. But 
+I'm open to other ideas too.
 
-lsmod |grep dvb
-dvb_usb_dibusb_mb      16715  0 
-dvb_usb_dibusb_common     3559  1 dvb_usb_dibusb_mb
-dvb_pll                 8604  1 dvb_usb_dibusb_mb
-dib3000mb              10969  1 dvb_usb_dibusb_mb
-dvb_usb                13737  2 dvb_usb_dibusb_mb,dvb_usb_dibusb_common
-dvb_core               85727  1 dvb_usb
+OR
 
-tzap arte -r
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-reading channels from file '/home/grafrotz/.tzap/channels.conf'
-tuning to 602000000 Hz
-video pid 0x00c9, audio pid 0x00ca
-status 00 | signal 0000 | snr 0000 | ber 001fffff | unc 0000ffff | 
-status 00 | signal 0000 | snr 0000 | ber 001fffff | unc 0000ffff | 
-status 04 | signal 0000 | snr 0000 | ber 001fffff | unc 0000ffff | 
-status 04 | signal 0000 | snr 0000 | ber 001fffff | unc 0000ffff | 
-status 04 | signal 0000 | snr 0000 | ber 001fffff | unc 0000ffff | 
-status 04 | signal 00b2 | snr 0000 | ber 001fffff | unc 0000ffff | 
-status 04 | signal 0000 | snr 0000 | ber 001fffff | unc 0000ffff | 
-status 04 | signal 0000 | snr 0000 | ber 001fffff | unc 0000ffff | 
-status 04 | signal 0000 | snr 0000 | ber 001fffff | unc 0000ffff | 
-status 04 | signal 0000 | snr 0000 | ber 001fffff | unc 0000ffff | 
-status 04 | signal 0000 | snr 0000 | ber 001fffff | unc 0000ffff | 
+3. use some intermediate solution - something, that we think will later 
+allow an easy enough extension to the new APIs when they appear.
 
-and so on. The signal-values are zero or near zero, but when i boot the old kernel 2.6.30.8, t can tune without problems. 
+Opinions?
 
-kaffeine DVB says:
-Using DVB device 0:0 "DiBcom 3000M-B DVB-T"
-tuning DVB-T to 602000000 Hz
-inv:2 bw:0 fecH:2 fecL:9 mod:1 tm:1 gi:3 hier:0
-................
-
-Not able to lock to the signal on the given frequency
-Frontend closed
-Tuning delay: 2611 ms
-
-mplayer dvb://arte   says:
-MPlayer SVN-r29699-4.4.1 (C) 2000-2009 MPlayer Team
-
-Spiele dvb://arte.
-dvb_tune Freq: 602000000
-Not able to lock to the signal on the given frequency, timeout: 30
-dvb_tune, TUNING FAILED
-ERROR, COULDN'T SET CHANNEL  13: Konnte 'dvb://arte' nicht öffnen.
-
-
-Beenden... (Dateiende erreicht)
-
-
-Greetings
-Mario
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
