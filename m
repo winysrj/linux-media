@@ -1,91 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:49969 "EHLO mail1.radix.net"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45172 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755290AbZJKMEE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Oct 2009 08:04:04 -0400
-Subject: Re: [PATCH] AVerTV MCE 116 Plus radio
-From: Andy Walls <awalls@radix.net>
-To: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
-Cc: ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
-In-Reply-To: <20091011010039.GA4726@moon>
-References: <20091006080406.GA22207@moon> <20091006081159.GB22207@moon>
-	 <20091011010039.GA4726@moon>
-Content-Type: text/plain
-Date: Sun, 11 Oct 2009 08:05:35 -0400
-Message-Id: <1255262735.3151.16.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	id S1751449AbZJ1OHF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Oct 2009 10:07:05 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Pawel Osciak <p.osciak@samsung.com>,
+	"'Mauro Carvalho Chehab'" <mchehab@infradead.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	Tomasz Fujak <t.fujak@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Date: Wed, 28 Oct 2009 09:06:58 -0500
+Subject: RE: V4L2_MEMORY_USERPTR support in videobuf-core
+Message-ID: <A69FA2915331DC488A831521EAE36FE401557148D5@dlee06.ent.ti.com>
+References: <E4D3F24EA6C9E54F817833EAE0D912AC07D2F45C6B@bssrvexch01.BS.local>
+ <20091027103600.109b9afb@pedra.chehab.org>
+ <002701ca5721$0cda97b0$268fc710$%osciak@samsung.com>
+In-Reply-To: <002701ca5721$0cda97b0$268fc710$%osciak@samsung.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2009-10-11 at 04:01 +0300, Aleksandr V. Piskunov wrote:
-> On Tue, Oct 06, 2009 at 11:11:59AM +0300, Aleksandr V. Piskunov wrote:
-> > On Tue, Oct 06, 2009 at 11:04:06AM +0300, Aleksandr V. Piskunov wrote:
-> > > Added FM radio support to Avermedia AVerTV MCE 116 Plus card
-> > > 
-> > 
-> > What leaves me puzzled, radio only works ok with ivtv newi2c=1
-> > 
-> > With default newi2c audio is tinny, metallic, with some strange static.
-> > Similar problem with pvr-150 was reported years ago, guess issue is still
-> > unresolved, perhaps something with cx25840..
-> 
-> This particular "tinny" audio problem is definitely I2C speed related, to be
-> more precise, audio only goes bad if i2c-algo-bit is being run with udelay
-> less than 15, i.e. i2c bus frequency is higher than 30 KHz.
-> 
-> So with default udelay=10 or udelay=5 (optimal for IR reciever on that board)
-> radio goes bad. Running with newi2c=1 is ok, but again it isn't optimal for IR
-> reciever on AVerTV M116.
-> 
-> I2C reads/writes to cx25840 themself are ok, verified using register readback
-> after each write/write4. Problem seems to be that with cx25840 register writes
-> coming too fast on higher i2c bus speed, switching register 0x808 _from_ 
-> TV standard autodetection mode (0xff) _to_ FM radio mode (0xf9) leaves chip 
-> audio detection routine in inconsistent state.
-> 
-> The only solution I found is to do standard routine (assert_reset + write +
-> deassert_reset) followed by 50ms delay and another reset.
-> 
-> Following patch works_for_me, can be improved to only delay/doublereset when
-> really needed, etc. Andy, could you comment/review?
+Pawel,
 
-Aleksandr,
+We have been using USERPTR IO in our vpfe capture driver. I also want to
+acknowledge the fact that the core layer expects index contrary to API
+specs as you have pointed....
 
-I will when I get time.  This past week and next few weeks are very busy
-for me for personal (non-linux) reasons.  I'll try to get caught up with
-the patches I still have to rework and then look at this.
+>Even if that was the case though, would an application be supposed to
+>arbitrarily choose what index to pass? If so, how would it know what range
+>is valid? And even if it would, the next check:
+>(buf->state != VIDEOBUF_NEEDS_INIT && buf_state != VIDEOBUF_IDLE) would
+>most
 
-Obviously, your patch is fairly straightforward and looks OK.  I just
-haven't checked for any implications.  The "general" tinny audio problem
-with the CX25840 on ivtv boards is *always* resolved with an audio
-microcontroller reset.
+Why would this fails? The range that we use is based on the count in REQBUF.
+This is similar to MMAP case. If for the same index, if you pass different pointer in QBUF, the core calls the buf_release() (which would set the
+buffer state back to VIDEOBUF_NEEDS_INIT). So it works fine even if the
+user ptr is different for same index.
 
-The problem is the microcontroller may restart its detection loop and
-tinny audio may return.  Can you run FM radio for a long time (a day ?),
-and see if it ever goes back to tinny audio?
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+email: m-karicheri2@ti.com
 
-Regards,
-Andy
-
-> 
-> diff --git a/linux/drivers/media/video/cx25840/cx25840-core.c b/linux/drivers/media/video/cx25840/cx25840-core.c
-> --- a/linux/drivers/media/video/cx25840/cx25840-core.c
-> +++ b/linux/drivers/media/video/cx25840/cx25840-core.c
-> @@ -626,7 +642,13 @@
->  	if (state->radio) {
->  		cx25840_write(client, 0x808, 0xf9);
->  		cx25840_write(client, 0x80b, 0x00);
-> -	}
-> +		/* Double reset cx2384x after setting FM radio mode, helps to
-> +		   avoid "tinny" audio when ivtv I2C bus is being run on
-> +		   frequency higher than 30 KHz */
-> +		cx25840_and_or(client, 0x810, ~0x01, 0);
-> +		msleep(50);
-> +		cx25840_and_or(client, 0x810, ~0x01, 1);
-> +	}	
->  	else if (std & V4L2_STD_525_60) {
->  		/* Certain Hauppauge PVR150 models have a hardware bug
->  		   that causes audio to drop out. For these models the
-> 
+>-----Original Message-----
+>From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>owner@vger.kernel.org] On Behalf Of Pawel Osciak
+>Sent: Tuesday, October 27, 2009 12:18 PM
+>To: 'Mauro Carvalho Chehab'
+>Cc: linux-media@vger.kernel.org; kyungmin.park@samsung.com; Tomasz Fujak;
+>Marek Szyprowski
+>Subject: RE: V4L2_MEMORY_USERPTR support in videobuf-core
+>
+>Hi Mauro,
+>thank you for your reply.
+>
+>On Tuesday, October 27, 2009 1:36 PM
+>Mauro Carvalho Chehab [mailto:mchehab@infradead.org] wrote:
+>
+>>> could anybody confirm that there is no full/working support for USERPTR
+>in
+>>> current videobuf-core? That is the conclusion I came up with after a
+>more
+>>> thorough investigation.
+>>>
+>>> I am currently working to fix that, and will hopefully be posting
+>patches in
+>>> the coming days/weeks. Is there any other development effort underway
+>related
+>>> to this problem?
+>>
+>> (...)
+>>The last time I tested the support for userptr at videobuf-core, it were
+>>working on x86 plataforms. On that time, I used vivi with videobuf-dma-sg
+>>for such tests (it were before its conversion to use videobuf-vmalloc).
+>>As support for userptr on videobuf-vmalloc is missing, vivi can't be used
+>>for such tests anymore (a good contribution would be to add userptr
+>support
+>>on videobuf-vmalloc).
+>
+>I might be missing something, but for me the path looks as follows
+>(sources: kernel, LWN articles, V4L2 API Specification):
+>
+>1. open, query, format, other stuff, unimportant
+>2. VIDEOBUF_REQBUFS - pass type and set memory to V4L2_MEMORY_USERPTR only.
+>3. VIDEOBUF_QUERYBUFS - only for memory-mapped I/O, so not called.
+>4. VIDEOBUF_QBUF - pass type, memory, userptr and length fields only.
+>
+>As the API Specification states in section 3.3:
+>"No buffers are allocated beforehands, consequently they are not indexed
+>and
+>cannot be queried like mapped buffers with the VIDIOC_QUERYBUF ioctl."
+>
+>But when one calls QBUF, videobuf_qbuf() uses b->index for all types of
+>memory.
+>I have found no mention in the API Specs about passing/returning indexes in
+>USERPTR, quite the contrary, they actually state that indexes are not used
+>in that mode for neither REQBUFS nor QBUF at all.
+>
+>Even if that was the case though, would an application be supposed to
+>arbitrarily choose what index to pass? If so, how would it know what range
+>is valid? And even if it would, the next check:
+>(buf->state != VIDEOBUF_NEEDS_INIT && buf_state != VIDEOBUF_IDLE) would
+>most
+>probably fail anyway.
+>
+>How to enqueue and handle multiple userptr buffers?
+>
+>Best regards
+>--
+>Pawel Osciak
+>Linux Platform Group
+>Samsung Poland R&D Center
+>
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
