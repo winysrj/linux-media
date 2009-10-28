@@ -1,52 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.navvo.net ([74.208.67.6]:54215 "EHLO mail.navvo.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756527AbZJ0SDF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2009 14:03:05 -0400
-Message-ID: <4AE735D7.3040007@ridgerun.com>
-Date: Tue, 27 Oct 2009 12:03:03 -0600
-From: Santiago Nunez-Corrales <snunez@ridgerun.com>
-Reply-To: santiago.nunez@ridgerun.com
+Received: from one.firstfloor.org ([213.235.205.2]:44889 "EHLO
+	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932532AbZJ1DUp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Oct 2009 23:20:45 -0400
+Date: Wed, 28 Oct 2009 04:20:49 +0100
+From: Andi Kleen <andi@firstfloor.org>
+To: Andy Walls <awalls@radix.net>
+Cc: Stefani Seibold <stefani@seibold.net>,
+	Andi Kleen <andi@firstfloor.org>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Amerigo Wang <xiyou.wangcong@gmail.com>,
+	Joe Perches <joe@perches.com>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 0/7] kfifo: new API v0.6
+Message-ID: <20091028032049.GB7744@basil.fritz.box>
+References: <1256694571.3131.26.camel@palomino.walls.org>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: "davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"Narnakaje, Snehaprabha" <nsnehaprabha@ti.com>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"Grosen, Mark" <mgrosen@ti.com>,
-	Diego Dompe <diego.dompe@ridgerun.com>,
-	"todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: [PATCH 0/4 v5] Support for TVP7002 in DM365
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1256694571.3131.26.camel@palomino.walls.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series of patches provide support for the TVP7002 decoder in DM365.
+> Here's a V4L-DVB cx23885 module change, that is on its way upstream,
+> that uses kfifo as is:
+> 
+> http://linuxtv.org/hg/v4l-dvb/rev/a2d8d3d88c6d
+> 
+> Do you really have to break the old API?
 
-Support includes:
+That was extensively discussed in the original patch kit submission,
+and yes there are good reasons. You will just have to adapt
+the driver if it gets in after the new kfifo patches; if kfifo
+gets in later it'll have to adapt it.
 
-* Inclusion of the chip in v4l2 definitions
-* Definition in board specific data structures
-* Linking within the VPFE architecture
-* Definition of TVP7002 specific data structures
-* Kconfig and Makefile support
-
-This series corrects many issued pointed out by Snehaprabha Narnakaje, 
-Muralidharan Karicheri, Vaibhav Hiremath and Hans Verkuil and solves 
-testing problems.  Tested on DM365 TI EVM with resolutions 720p, 
-1080i@60, 576P and 480P with video capture application. Includes latest 
-revisions from Hans. This driver depends upon board-dm365-evm.c and 
-vpfe_capture.c to be ready for complete integration.
-
+-Andi
 -- 
-Santiago Nunez-Corrales, Eng.
-RidgeRun Engineering, LLC
-
-Guayabos, Curridabat
-San Jose, Costa Rica
-+(506) 2271 1487
-+(506) 8313 0536
-http://www.ridgerun.com
-
-
+ak@linux.intel.com -- Speaking for myself only.
