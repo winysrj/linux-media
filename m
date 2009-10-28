@@ -1,57 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1871 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751548AbZJIGSA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Oct 2009 02:18:00 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Jun Nie <niej0001@gmail.com>
-Subject: Re: Support on discontinuous planer buffer and stride
-Date: Fri, 9 Oct 2009 08:17:20 +0200
-Cc: g.liakhovetski@gmx.de, linux-media <linux-media@vger.kernel.org>
-References: <7c34ac520909222330k73380177sbf103345f5d3d7ec@mail.gmail.com> <7c34ac520910082207i2beacffbhd89a38244370cf39@mail.gmail.com>
-In-Reply-To: <7c34ac520910082207i2beacffbhd89a38244370cf39@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:52257 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751394AbZJ1Mkc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Oct 2009 08:40:32 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 28 Oct 2009 18:10:30 +0530
+Subject: RE: [PATCH 1/4] V4L2: Added New V4L2 CIDs
+ VIDIOC_S/G_COLOR_SPACE_CONV
+Message-ID: <19F8576C6E063C45BE387C64729E73940436EEAE1B@dbde02.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1255688360-6278-1-git-send-email-hvaibhav@ti.com>
+ <200910161426.52344.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <200910161426.52344.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-Message-Id: <200910090817.20736.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-T24gRnJpZGF5IDA5IE9jdG9iZXIgMjAwOSAwNzowNzozMiBKdW4gTmllIHdyb3RlOgo+IDIwMDkv
-OS8yMyBKdW4gTmllIDxuaWVqMDAwMUBnbWFpbC5jb20+Ogo+ID4gSGksCj4gPiCgoKCgIEkgcmUt
-c2VuZCB0aGlzIGVtYWlsIGZvciB0aGUgbGFzdCBvbmUgaXMgcmVqZWN0ZWQgYnkgc3lzdGVtLiBJ
-IGFtCj4gPiBzb3JyeSBpZiB5b3UgZ3V5cyByZWNlaXZlZCBib3RoLgo+ID4KPiA+IKCgoKAgSSBh
-bSBvcHRpbWl6aW5nIHZpZGVvIHBsYXliYWNrIHdpdGggb3ZlcmxheSB3aXRoIFY0TDIgZHJpdmVy
-LiBUaGUKPiA+IHZpZGVvIGNvbnRlbnQgaXMgYSBzdWItcmVnaW9uIG9mIGNvZGVjIG91dHB1dC4g
-VGh1cyBhIG1lbW9yeSBjb3B5IGlzCj4gPiBuZWNlc3NhcnkuCj4gPiCgoKAgSXMgdGhlcmUgcGxh
-biB0byBzdXBwb3J0IGZvciBzdHJpZGUgYW5kIGRpc2NyZXRlIFlVViBwbGFuZXIgaW4KPiA+IGtl
-cm5lbD8gU3VjaCBhcyBiZWxvdyBjaGFuZ2VzIGNhbiBoZWxwIG11Y2ggZm9yIG15IHVzYWdlIGNh
-c2UuCj4gPgo+ID4gLS0tIGEvaW5jbHVkZS9saW51eC92aWRlb2RldjIuaAo+ID4gKysrIGIvaW5j
-bHVkZS9saW51eC92aWRlb2RldjIuaAo+ID4gQEAgLTUyOSw3ICs1MjksMjAgQEAgc3RydWN0IHY0
-bDJfYnVmZmVyIHsKPiA+IKCgoKCgoKCgoKCgoKCgoCBfX3UzMqCgoKCgoKCgoKAgb2Zmc2V0Owo+
-ID4goKCgoKCgoKCgoKCgoKCgIHVuc2lnbmVkIGxvbmegoCB1c2VycHRyOwo+ID4goKCgoKCgoCB9
-IG07Cj4gPiAroKCgoKCgIC8qIFVWL0dCIGxvY2F0aW9uIGlzIHZhbGlkIG9ubHkgaW4gcGxhbmVy
-IGNhc2UgKi8KPiA+ICugoKCgoKAgdW5pb24gewo+ID4gK6CgoKCgoKCgoKCgoKCgIF9fdTMyoKCg
-oKCgoKCgoCBvZmZzZXRfdWc7Cj4gPiAroKCgoKCgoKCgoKCgoKAgdW5zaWduZWQgbG9uZ6CgIHVz
-ZXJwdHJfdWc7Cj4gPiAroKCgoKCgIH0gbV91ZzsKPiA+ICugoKCgoKAgdW5pb24gewo+ID4gK6Cg
-oKCgoKCgoKCgoKCgIF9fdTMyoKCgoKCgoKCgoCBvZmZzZXRfdmI7Cj4gPiAroKCgoKCgoKCgoKCg
-oKAgdW5zaWduZWQgbG9uZ6CgIHVzZXJwdHJfdmI7Cj4gPiAroKCgoKCgIH0gbV92YjsKPiA+IKCg
-oKCgoKAgX191MzKgoKCgoKCgoKCgoKCgoKCgoKAgbGVuZ3RoOwo+ID4gK6CgoKCgoCAvKiBzdHJp
-ZGUgb2YgWVVWIG9yIFJHQiAqLwo+ID4gK6CgoKCgoCBfX3UzMqCgoKCgoKCgoKCgoKCgoKCgoCBz
-dHJpZGVfeXI7Cj4gPiAroKCgoKCgIF9fdTMyoKCgoKCgoKCgoKCgoKCgoKCgIHN0cmlkZV91ZzsK
-PiA+ICugoKCgoKAgX191MzKgoKCgoKCgoKCgoKCgoKCgoKAgc3RyaWRlX3ZiOwo+ID4goKCgoKCg
-oCBfX3UzMqCgoKCgoKCgoKCgoKCgoKCgoCBpbnB1dDsKPiA+IKCgoKCgoKAgX191MzKgoKCgoKCg
-oKCgoKCgoKCgoKAgcmVzZXJ2ZWQ7Cj4gPiCgfTsKPiA+Cj4gPiCgoKAgSWYgc3VjaCBjaGFuZ2Ug
-aXMgYWNjZXB0YWJsZSBmb3IgZXZlcnlvbmUsIEkgbWF5IGhlbHAgb24gdGhlIGltcGxlbWVudGF0
-aW9uLgo+ID4goKCgIEFueSBjb21tZW50cyBhcmUgd2VsY29tZS4KPiA+Cj4gPiBKdW4KPiA+Cj4g
-Cj4gSGksIEhhbnMvR3Vlbm5hZGkKPiAKPiAgICAgIFdoYXQgZG8geW91IHRoaW5rIG9mICBzdXBw
-b3J0aW5nIHRoaXMgZmVhdHVyZT8KPiAKPiBKdW4KPiAKPiAKCldlbGwsIGl0IGlzIGRlZmluaXRl
-bHkgbm90IHBvc3NpYmxlIHRvIGRvIGl0IGluIHRoaXMgbWFubmVyIHNpbmNlIGNoYW5naW5nCnRo
-ZSBzaXplIG9mIHN0cnVjdCB2NGwyX2J1ZmZlciB3aWxsIGJyZWFrIHRoZSBBUEkuIEZ1cnRoZXJt
-b3JlLCBzb21ldGhpbmcgbGlrZQp0aGlzIHdpbGwgb25seSB3b3JrIGlmIHRoZSBETUEgZW5naW5l
-IGNhbiBoYW5kbGUgc3RyaWRlcy4gSXMgdGhhdCB0aGUgY2FzZQpmb3IgeW91ciBoYXJkd2FyZT8g
-SSBkb24ndCB0aGluayB5b3UgbWVudGlvbmVkIHdoYXQgdGhlIGhhcmR3YXJlIGlzIHlvdSB1c2Uu
-CgpSZWdhcmRzLAoKCUhhbnMKCi0tIApIYW5zIFZlcmt1aWwgLSB2aWRlbzRsaW51eCBkZXZlbG9w
-ZXIgLSBzcG9uc29yZWQgYnkgVEFOREJFUkcgVGVsZWNvbQo=
+
+> -----Original Message-----
+> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> Sent: Friday, October 16, 2009 5:57 PM
+> To: Hiremath, Vaibhav
+> Cc: linux-media@vger.kernel.org
+> Subject: Re: [PATCH 1/4] V4L2: Added New V4L2 CIDs
+> VIDIOC_S/G_COLOR_SPACE_CONV
+> 
+> Hi,
+> 
+> On Friday 16 October 2009 12:19:20 hvaibhav@ti.com wrote:
+> > From: Vaibhav Hiremath <hvaibhav@ti.com>
+> >
+> >
+> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > ---
+> >  drivers/media/video/v4l2-ioctl.c |   19 +++++++++++++++++++
+> >  include/linux/videodev2.h        |   14 ++++++++++++++
+> >  include/media/v4l2-ioctl.h       |    4 ++++
+> >  3 files changed, 37 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/drivers/media/video/v4l2-ioctl.c
+> >  b/drivers/media/video/v4l2-ioctl.c index 30cc334..d3140e0 100644
+> > --- a/drivers/media/video/v4l2-ioctl.c
+> > +++ b/drivers/media/video/v4l2-ioctl.c
+> > @@ -284,6 +284,8 @@ static const char *v4l2_ioctls[] = {
+> >  	[_IOC_NR(VIDIOC_DBG_G_CHIP_IDENT)] =
+> "VIDIOC_DBG_G_CHIP_IDENT",
+> >  	[_IOC_NR(VIDIOC_S_HW_FREQ_SEEK)]   = "VIDIOC_S_HW_FREQ_SEEK",
+> >  #endif
+> > +	[_IOC_NR(VIDIOC_S_COLOR_SPACE_CONV)]   =
+> "VIDIOC_S_COLOR_SPACE_CONV",
+> > +	[_IOC_NR(VIDIOC_G_COLOR_SPACE_CONV)]   =
+> "VIDIOC_G_COLOR_SPACE_CONV",
+> >  };
+> >  #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+> >
+> 
+> This should go through a control, not an ioctl. Strings control have
+> recently
+> been introduced, it should be fairly easy to create binary controls
+> for such
+> cases.
+> 
+[Hiremath, Vaibhav] I am really not sure how we can fit this into string control.
+
+Atleast from OMAP3 point of view we need nine 11 bit signed coeff. We can not use string control here but we can leverage same mechanism.
+
+I can have __s32 * in v4l2_ext_control which will point to array of nine 11 bit coeff.
+
+Again there is control over full or limited range conversion.
+
+Thanks,
+Vaibhav
+> --
+> Regards,
+> 
+> Laurent Pinchart
+
