@@ -1,73 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from jordan.toaster.net ([69.36.241.228]:1208 "EHLO
-	jordan.toaster.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932148AbZJ0JHx (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:46196 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754287AbZJ2Nyy convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2009 05:07:53 -0400
-Received: from [127.0.0.1] (slazar@localhost.toaster.net [127.0.0.1])
-	by jordan.toaster.net (8.13.3/8.12.11) with ESMTP id n9R8mOhw015536
-	for <linux-media@vger.kernel.org>; Tue, 27 Oct 2009 00:48:24 -0800 (PST)
-	(envelope-from knife@toaster.net)
-Message-ID: <4AE6B3C7.8020803@toaster.net>
-Date: Tue, 27 Oct 2009 01:48:07 -0700
-From: Sean <knife@toaster.net>
+	Thu, 29 Oct 2009 09:54:54 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"'Mauro Carvalho Chehab'" <mchehab@infradead.org>
+Date: Thu, 29 Oct 2009 08:54:50 -0500
+Subject: RE: [PATCH V2] Davinci VPFE Capture: Add support for Control ioctls
+Message-ID: <A69FA2915331DC488A831521EAE36FE40155714F14@dlee06.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1256799064-25031-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <1256799064-25031-1-git-send-email-hvaibhav@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: capture-example.c crash on close_device()
-References: <4A79E6A3.7050508@toaster.net>
-In-Reply-To: <4A79E6A3.7050508@toaster.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm still having trouble with capture-example.c completely locking up my 
-system. The same os image on other hardware works fine. Where do I start 
-looking? What can I do to debug this issue?
+Acked-by Muralidharan Karicheri <m-karicheri2@ti.com>
 
-Sean
+Mauro, could you please merge this to your v4l-dvb tree?
 
-Sean wrote:
-> Hi,
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+email: m-karicheri2@ti.com
+
+>-----Original Message-----
+>From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>owner@vger.kernel.org] On Behalf Of hvaibhav@ti.com
+>Sent: Thursday, October 29, 2009 2:51 AM
+>To: linux-media@vger.kernel.org
+>Cc: Hiremath, Vaibhav
+>Subject: [PATCH V2] Davinci VPFE Capture: Add support for Control ioctls
 >
-> I have compiled kernel 2.6.30 from kernel.org, and I have also 
-> compiled capture-example.c from the mercurial depository. These work 
-> on laptop hardware, but on my DM&P e-box 2300SX (with vortex86 cpu), 
-> capture-example.c crashes the system. Complete lockup, no keyboard, 
-> etc. I turned on all debuging in gspca_main, i.e. options gspca_main 
-> debug=0x1FF. I also put print statements in capture-example.c in 
-> main() before each function call. Here is the output below. Has anyone 
-> had this problem?
+>From: Vaibhav Hiremath <hvaibhav@ti.com>
 >
-> -------
-> # capture-example -r
-> <snip>
-> gspca: packet [28] o:28644 l:126
-> gspca: add t:2 l:126
-> gspca: packet [31] o:31713 l:630
-> pac207: SOF found, bytes to analyze: 630. Frame starts at byte #19
-> gspca: add t:3 l:14
-> gspca: frame complete len:26496 q:1 i:0 o:1
-> gspca: add t:1 l:0
-> gspca: add t:2 l:600
-> gspca: poll
-> gspca: read (202752)
-> gspca: dqbuf
-> gspca: frame wait q:1 i:0 o:0
-> gspca: autogain: lum: 252, desired: 102, steps: 5
-> gspca: dqbuf 1
-> gspca: qbuf 1
-> gspca: qbuf q:0 i:0 o:0
-> .stop_capturing()
-> uninit_device()
-> close_device()
-> gspca: capture-example close
-> gspca: kill transfer
-> gspca: isoc irq
-> gspca: isoc irq
-> gspca: isoc irq
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>Added support for Control IOCTL,
+>	- s_ctrl
+>	- g_ctrl
+>	- queryctrl
 >
+>Change from last patch:
+>	- added room for error return in queryctrl function.
+>
+>Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+>---
+> drivers/media/video/davinci/vpfe_capture.c |   43
+>++++++++++++++++++++++++++++
+> 1 files changed, 43 insertions(+), 0 deletions(-)
+>
+>diff --git a/drivers/media/video/davinci/vpfe_capture.c
+>b/drivers/media/video/davinci/vpfe_capture.c
+>index abe21e4..8275d02 100644
+>--- a/drivers/media/video/davinci/vpfe_capture.c
+>+++ b/drivers/media/video/davinci/vpfe_capture.c
+>@@ -1368,6 +1368,46 @@ static int vpfe_g_std(struct file *file, void *priv,
+>v4l2_std_id *std_id)
+> 	return 0;
+> }
+>
+>+static int vpfe_queryctrl(struct file *file, void *priv,
+>+		struct v4l2_queryctrl *qctrl)
+>+{
+>+	struct vpfe_device *vpfe_dev = video_drvdata(file);
+>+	struct vpfe_subdev_info *sdinfo;
+>+	int ret = 0;
+>+
+>+	sdinfo = vpfe_dev->current_subdev;
+>+
+>+	ret = v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo->grp_id,
+>+					 core, queryctrl, qctrl);
+>+
+>+	if (ret)
+>+		qctrl->flags |= V4L2_CTRL_FLAG_DISABLED;
+>+
+>+	return ret;
+>+}
+>+
+>+static int vpfe_g_ctrl(struct file *file, void *priv, struct v4l2_control
+>*ctrl)
+>+{
+>+	struct vpfe_device *vpfe_dev = video_drvdata(file);
+>+	struct vpfe_subdev_info *sdinfo;
+>+
+>+	sdinfo = vpfe_dev->current_subdev;
+>+
+>+	return v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo->grp_id,
+>+					 core, g_ctrl, ctrl);
+>+}
+>+
+>+static int vpfe_s_ctrl(struct file *file, void *priv, struct v4l2_control
+>*ctrl)
+>+{
+>+	struct vpfe_device *vpfe_dev = video_drvdata(file);
+>+	struct vpfe_subdev_info *sdinfo;
+>+
+>+	sdinfo = vpfe_dev->current_subdev;
+>+
+>+	return v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo->grp_id,
+>+					 core, s_ctrl, ctrl);
+>+}
+>+
+> /*
+>  *  Videobuf operations
+>  */
+>@@ -1939,6 +1979,9 @@ static const struct v4l2_ioctl_ops vpfe_ioctl_ops = {
+> 	.vidioc_querystd	 = vpfe_querystd,
+> 	.vidioc_s_std		 = vpfe_s_std,
+> 	.vidioc_g_std		 = vpfe_g_std,
+>+	.vidioc_queryctrl	 = vpfe_queryctrl,
+>+	.vidioc_g_ctrl		 = vpfe_g_ctrl,
+>+	.vidioc_s_ctrl		 = vpfe_s_ctrl,
+> 	.vidioc_reqbufs		 = vpfe_reqbufs,
+> 	.vidioc_querybuf	 = vpfe_querybuf,
+> 	.vidioc_qbuf		 = vpfe_qbuf,
+>--
+>1.6.2.4
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
