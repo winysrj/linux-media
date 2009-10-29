@@ -1,86 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:39486 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755868AbZJ0QTt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2009 12:19:49 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Received: from eu_spt2 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0KS600JPWLD48W50@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 27 Oct 2009 16:19:52 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0KS600C9WLD4E8@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 27 Oct 2009 16:19:52 +0000 (GMT)
-Date: Tue, 27 Oct 2009 17:17:59 +0100
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: RE: V4L2_MEMORY_USERPTR support in videobuf-core
-In-reply-to: <20091027103600.109b9afb@pedra.chehab.org>
-To: 'Mauro Carvalho Chehab' <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	Tomasz Fujak <t.fujak@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <002701ca5721$0cda97b0$268fc710$%osciak@samsung.com>
-Content-language: pl
-References: <E4D3F24EA6C9E54F817833EAE0D912AC07D2F45C6B@bssrvexch01.BS.local>
- <20091027103600.109b9afb@pedra.chehab.org>
+Received: from mail.gmx.net ([213.165.64.20]:48489 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752525AbZJ2MsL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Oct 2009 08:48:11 -0400
+Date: Thu, 29 Oct 2009 13:48:18 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: finalising soc-camera conversion to v4l2-subdev
+In-Reply-To: <200910291211.16665.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.0910291338310.4340@axis700.grange>
+References: <Pine.LNX.4.64.0910281653010.4524@axis700.grange>
+ <200910291211.16665.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-thank you for your reply.
+Hi Laurent
 
-On Tuesday, October 27, 2009 1:36 PM
-Mauro Carvalho Chehab [mailto:mchehab@infradead.org] wrote:
+On Thu, 29 Oct 2009, Laurent Pinchart wrote:
 
->> could anybody confirm that there is no full/working support for USERPTR in
->> current videobuf-core? That is the conclusion I came up with after a more
->> thorough investigation.
->>
->> I am currently working to fix that, and will hopefully be posting patches in
->> the coming days/weeks. Is there any other development effort underway related
->> to this problem?
->
-> (...)
->The last time I tested the support for userptr at videobuf-core, it were
->working on x86 plataforms. On that time, I used vivi with videobuf-dma-sg
->for such tests (it were before its conversion to use videobuf-vmalloc).
->As support for userptr on videobuf-vmalloc is missing, vivi can't be used
->for such tests anymore (a good contribution would be to add userptr support
->on videobuf-vmalloc).
+> Hi Guennadi,
+> 
+> On Wednesday 28 October 2009 17:37:09 Guennadi Liakhovetski wrote:
+> > Hi all
+> > 
+> > As some of you will know, soc-camera framework is undergoing a conversion to
+> > the v4l2-subdev API. Most of the legacy soc-camera client API has been
+> > ported over to v4l2-subdev. Final conversion is blocked by missing
+> > functionality in the current v4l2 subsystem. Namely video bus configuration
+> > and data format negotiation. And from the progress of respective RFCs it
+> > looks like this could take a while to get them into the mainline, which is
+> > also understandable, given the amount of work. So, the question is - can we
+> > work out a way to finalise the porting yet before the final versions of
+> > those RFCs make it upstream? OTOH, we certainly do not want to have to
+> > create a solution, which will have to be thrown away completely later.
+> 
+> Right, but we could design a temporary solution that goes in the right 
+> direction and "fix" the code later. In that case the temporary solution must 
+> be clearly marked as such, as we don't want to keep it around for API and ABI 
+> compatibility reasons.
 
-I might be missing something, but for me the path looks as follows
-(sources: kernel, LWN articles, V4L2 API Specification):
+Agree.
 
-1. open, query, format, other stuff, unimportant
-2. VIDEOBUF_REQBUFS - pass type and set memory to V4L2_MEMORY_USERPTR only.
-3. VIDEOBUF_QUERYBUFS - only for memory-mapped I/O, so not called.
-4. VIDEOBUF_QBUF - pass type, memory, userptr and length fields only.
+> > We could decide to
+> > 
+> > 1. make bus configuration optional. If no data provided - use defaults.
+> 
+> Would that really work ?
 
-As the API Specification states in section 3.3:
-"No buffers are allocated beforehands, consequently they are not indexed and
-cannot be queried like mapped buffers with the VIDIOC_QUERYBUF ioctl."
+Well, we should be able to make at least one (USB or whatever) camera work 
+per soc-camera sensor driver:-) Which means, soc-camera native 
+configurations set bus configuration explicitly anyway, and we make 
+default match that one non-soc-camera card. It is relatively improbable, 
+that some driver will get used by more than one card and that they will 
+have incompatible configurations;) Then we'll have to think how to solve 
+that.
 
-But when one calls QBUF, videobuf_qbuf() uses b->index for all types of memory.
-I have found no mention in the API Specs about passing/returning indexes in
-USERPTR, quite the contrary, they actually state that indexes are not used
-in that mode for neither REQBUFS nor QBUF at all.
+> > 2. use something like the proposed imagebus API for data format negotiation.
+> > Even if it will be eventually strongly modified for new "Media Controller &
+> > Co." APIs, it already exists, so, the time has already been spent on it, and
+> > mainlining it will not require much more time. But I'm open to other ideas
+> > too.
+> > 
+> > OR
+> > 
+> > 3. use some intermediate solution - something, that we think will later
+> > allow an easy enough extension to the new APIs when they appear.
+> 
+> 2 and 3 are similar in my opinion.
 
-Even if that was the case though, would an application be supposed to
-arbitrarily choose what index to pass? If so, how would it know what range
-is valid? And even if it would, the next check:
-(buf->state != VIDEOBUF_NEEDS_INIT && buf_state != VIDEOBUF_IDLE) would most
-probably fail anyway.
+The numbering is not very logical, it should have been 2.1 instead of 2, 
+and 2.2 instead of 3.
 
-How to enqueue and handle multiple userptr buffers?
+That's good that that's also your opinion:-) That means my imagebus is not 
+too far off the track.
 
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
+> The current imagebus API proposal controls 
+> whole subdevices while it should act at the pad level. Pads will be introduced 
+> with the media controller, so we could
+> 
+> - use a subdev-level imagebus API, allowing the soc-camera conversion to 
+> subdev, and port the code to pad level latter, or
+> 
+> - introduce subdev pads operations now and use them for the imagebus API
+> 
+> The second solution would take more time as we need to agree on the subdev 
+> pads operations. I'm ok with the first solution, as long as you agree to port 
+> the code to the new subdev pads operations later :-)
 
+You know, noone can see the future:-) But so far I don't see anything that 
+would hinder me from doing that.
 
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
