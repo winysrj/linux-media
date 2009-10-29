@@ -1,22 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.viadmin.org ([195.145.128.101])
+Received: from mail-vw0-f173.google.com ([209.85.212.173])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <henrik-dvb@prak.org>) id 1MvqQm-0006WF-An
-	for linux-dvb@linuxtv.org; Thu, 08 Oct 2009 12:41:09 +0200
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by www.viadmin.org (Postfix) with ESMTP id 2237355D08
-	for <linux-dvb@linuxtv.org>; Thu,  8 Oct 2009 12:40:33 +0200 (CEST)
-Received: from www.viadmin.org ([127.0.0.1])
-	by localhost (www.viadmin.org [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id AjsrRkfh3XaC for <linux-dvb@linuxtv.org>;
-	Thu,  8 Oct 2009 12:40:22 +0200 (CEST)
-Date: Thu, 8 Oct 2009 12:40:22 +0200
-From: "H. Langos" <henrik-dvb@prak.org>
-To: linux-dvb@linuxtv.org
-Message-ID: <20091008104022.GE6384@www.viadmin.org>
+	(envelope-from <falconix@gmail.com>) id 1N3d4G-0004Qa-FN
+	for linux-dvb@linuxtv.org; Thu, 29 Oct 2009 23:02:05 +0100
+Received: by vws3 with SMTP id 3so429162vws.3
+	for <linux-dvb@linuxtv.org>; Thu, 29 Oct 2009 15:01:30 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] linuxtv.org/wiki sleepers in the user database ;-)
+Date: Thu, 29 Oct 2009 23:01:29 +0100
+Message-ID: <e39f6bb10910291501o5e423d9epecb82b922769f259@mail.gmail.com>
+From: Anders <falconix@gmail.com>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Elgato eyeTV DTT Deluxe 2009
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -25,32 +19,63 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0788384902=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--===============0788384902==
+Content-Type: multipart/alternative; boundary=001636c5bea7ba705704771a0d9d
 
-I just took a look at the users list
-http://www.linuxtv.org/wiki/index.php/Special:ListUsers
-to find out how it comes that we have > 6400 users but hardly any
-changes in the wiki.
+--001636c5bea7ba705704771a0d9d
+Content-Type: text/plain; charset=UTF-8
 
-Of course this is mostly due to the fact that users are a bunch of lazy
-bastards ;-) ... but apart from that there are several hundred "users" with
-names that consist of 6 random hex characters. Their "User contributions" 
-list is as empty as their "Logs" page.
+I have just bought an Elgato eyeTV DTT Deluxe 2009 usb dongle, and I knew
+that there is no support for it from linuxtv when i bought it.
 
-My guess is that they are left over from some stupid kid's wiki spamming
-attack. Is it possible to put those zombies out of their missery to 
-avoid them being resurrected for some attack later?
+This is where I am, i don't know wich hardware it is in it and don't want to
+open it because it seems imposible without destroy anything.
+Just in case if it was running the same hardware as Elgato eyeTV DTT Deluxe
+i tried to just change the USB device id in the dvb-usb-ids.h with no sucess
+when i run lsusb i still only sees its ID with out any name. So they doesn't
+seems to be compatible with each other.
 
-cheers
--henrik
+I have started a wikipage
+http://www.linuxtv.org/wiki/index.php/Elgato_EyeTV_DTT_deluxe_v2
+where i gather information, so is there something more i can do to get more
+information about my dongle?
+
+--001636c5bea7ba705704771a0d9d
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+I have just bought an Elgato eyeTV DTT Deluxe 2009 usb dongle, and I knew t=
+hat there is no support for it from linuxtv when i bought it.<br><br>This i=
+s where I am, i don&#39;t know wich hardware it is in it and don&#39;t want=
+ to open it because it seems imposible without destroy anything. <br>
+Just in case if it was running the same hardware as Elgato eyeTV DTT Deluxe=
+ i tried to just change the USB device id in the dvb-usb-ids.h with no suce=
+ss<br>when i run lsusb i still only sees its ID with out any name. So they =
+doesn&#39;t seems to be compatible with each other.<br>
+<br>I have started a wikipage <a href=3D"http://www.linuxtv.org/wiki/index.=
+php/Elgato_EyeTV_DTT_deluxe_v2">http://www.linuxtv.org/wiki/index.php/Elgat=
+o_EyeTV_DTT_deluxe_v2</a><br>where i gather information, so is there someth=
+ing more i can do to get more information about my dongle?<br>
+
+
+--001636c5bea7ba705704771a0d9d--
+
+
+--===============0788384902==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0788384902==--
