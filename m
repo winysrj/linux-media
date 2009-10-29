@@ -1,75 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail02d.mail.t-online.hu ([84.2.42.7]:60618 "EHLO
-	mail02d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933328AbZJaXNh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Oct 2009 19:13:37 -0400
-Message-ID: <4AECC4A0.7080801@freemail.hu>
-Date: Sun, 01 Nov 2009 00:13:36 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-CC: Thomas Kaiser <thomas@kaiser-linux.li>,
-	Theodore Kilgore <kilgota@auburn.edu>,
-	Kyle Guinn <elyk03@gmail.com>
-Subject: [PATCH 02/21] gspca pac7302/pac7311: separate sd_desc
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from bear.ext.ti.com ([192.94.94.41]:55705 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756509AbZJ2GvF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Oct 2009 02:51:05 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9T6p657013744
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 29 Oct 2009 01:51:08 -0500
+From: hvaibhav@ti.com
+To: linux-media@vger.kernel.org
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH V2] Davinci VPFE Capture: Add support for Control ioctls
+Date: Thu, 29 Oct 2009 12:21:04 +0530
+Message-Id: <1256799064-25031-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Move the sensor specific decision temporary to sd_probe. Create an sd_desc
-for PAC7302 and one for PAC7311.
+Added support for Control IOCTL,
+	- s_ctrl
+	- g_ctrl
+	- queryctrl
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
-Cc: Thomas Kaiser <thomas@kaiser-linux.li>
-Cc: Theodore Kilgore <kilgota@auburn.edu>
-Cc: Kyle Guinn <elyk03@gmail.com>
+Change from last patch:
+	- added room for error return in queryctrl function.
+	
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 ---
-diff -uprN b/drivers/media/video/gspca/pac7311.c c/drivers/media/video/gspca/pac7311.c
---- b/drivers/media/video/gspca/pac7311.c	2009-10-30 17:09:52.000000000 +0100
-+++ c/drivers/media/video/gspca/pac7311.c	2009-10-30 17:05:09.000000000 +0100
-@@ -1078,8 +1078,22 @@ static int sd_getvflip(struct gspca_dev
+ drivers/media/video/davinci/vpfe_capture.c |   43 ++++++++++++++++++++++++++++
+ 1 files changed, 43 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
+index abe21e4..8275d02 100644
+--- a/drivers/media/video/davinci/vpfe_capture.c
++++ b/drivers/media/video/davinci/vpfe_capture.c
+@@ -1368,6 +1368,46 @@ static int vpfe_g_std(struct file *file, void *priv, v4l2_std_id *std_id)
  	return 0;
  }
 
--/* sub-driver description */
--static struct sd_desc sd_desc = {
-+/* sub-driver description for pac7302 */
-+static struct sd_desc pac7302_sd_desc = {
-+	.name = MODULE_NAME,
-+	.ctrls = sd_ctrls,
-+	.nctrls = ARRAY_SIZE(sd_ctrls),
-+	.config = sd_config,
-+	.init = sd_init,
-+	.start = sd_start,
-+	.stopN = sd_stopN,
-+	.stop0 = sd_stop0,
-+	.pkt_scan = sd_pkt_scan,
-+	.dq_callback = do_autogain,
-+};
++static int vpfe_queryctrl(struct file *file, void *priv,
++		struct v4l2_queryctrl *qctrl)
++{
++	struct vpfe_device *vpfe_dev = video_drvdata(file);
++	struct vpfe_subdev_info *sdinfo;
++	int ret = 0;
 +
-+/* sub-driver description for pac7311 */
-+static struct sd_desc pac7311_sd_desc = {
- 	.name = MODULE_NAME,
- 	.ctrls = sd_ctrls,
- 	.nctrls = ARRAY_SIZE(sd_ctrls),
-@@ -1117,8 +1131,12 @@ MODULE_DEVICE_TABLE(usb, device_table);
- static int sd_probe(struct usb_interface *intf,
- 			const struct usb_device_id *id)
- {
--	return gspca_dev_probe(intf, id, &sd_desc, sizeof(struct sd),
--				THIS_MODULE);
-+	if (id->driver_info == SENSOR_PAC7302)
-+		return gspca_dev_probe(intf, id, &pac7302_sd_desc,
-+				sizeof(struct sd), THIS_MODULE);
-+	else
-+		return gspca_dev_probe(intf, id, &pac7311_sd_desc,
-+				sizeof(struct sd), THIS_MODULE);
- }
++	sdinfo = vpfe_dev->current_subdev;
++
++	ret = v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo->grp_id,
++					 core, queryctrl, qctrl);
++
++	if (ret)
++		qctrl->flags |= V4L2_CTRL_FLAG_DISABLED;
++
++	return ret;
++}
++
++static int vpfe_g_ctrl(struct file *file, void *priv, struct v4l2_control *ctrl)
++{
++	struct vpfe_device *vpfe_dev = video_drvdata(file);
++	struct vpfe_subdev_info *sdinfo;
++
++	sdinfo = vpfe_dev->current_subdev;
++
++	return v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo->grp_id,
++					 core, g_ctrl, ctrl);
++}
++
++static int vpfe_s_ctrl(struct file *file, void *priv, struct v4l2_control *ctrl)
++{
++	struct vpfe_device *vpfe_dev = video_drvdata(file);
++	struct vpfe_subdev_info *sdinfo;
++
++	sdinfo = vpfe_dev->current_subdev;
++
++	return v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo->grp_id,
++					 core, s_ctrl, ctrl);
++}
++
+ /*
+  *  Videobuf operations
+  */
+@@ -1939,6 +1979,9 @@ static const struct v4l2_ioctl_ops vpfe_ioctl_ops = {
+ 	.vidioc_querystd	 = vpfe_querystd,
+ 	.vidioc_s_std		 = vpfe_s_std,
+ 	.vidioc_g_std		 = vpfe_g_std,
++	.vidioc_queryctrl	 = vpfe_queryctrl,
++	.vidioc_g_ctrl		 = vpfe_g_ctrl,
++	.vidioc_s_ctrl		 = vpfe_s_ctrl,
+ 	.vidioc_reqbufs		 = vpfe_reqbufs,
+ 	.vidioc_querybuf	 = vpfe_querybuf,
+ 	.vidioc_qbuf		 = vpfe_qbuf,
+--
+1.6.2.4
 
- static struct usb_driver sd_driver = {
