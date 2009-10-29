@@ -1,54 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:34686 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1758524AbZJEIL4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Oct 2009 04:11:56 -0400
-Received: from lyakh (helo=localhost)
-	by axis700.grange with local-esmtp (Exim 4.63)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1Muif5-0001ME-2S
-	for linux-media@vger.kernel.org; Mon, 05 Oct 2009 10:11:15 +0200
-Date: Mon, 5 Oct 2009 10:11:15 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] fix use-after-free Oops, resulting from a driver-core API
- change
-Message-ID: <Pine.LNX.4.64.0910051005490.4337@axis700.grange>
+Received: from gv-out-0910.google.com ([216.239.58.191]:31309 "EHLO
+	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752899AbZJ2M7b convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Oct 2009 08:59:31 -0400
+Received: by gv-out-0910.google.com with SMTP id r4so244748gve.37
+        for <linux-media@vger.kernel.org>; Thu, 29 Oct 2009 05:59:35 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <4AE92913.4050209@acm.org>
+References: <4AE8F99E.5010701@acm.org>
+	 <829197380910282040t6fce747aoca318911e76aa23f@mail.gmail.com>
+	 <4AE91E54.2030409@acm.org>
+	 <829197380910282156l6bea177g79f38eb973335e27@mail.gmail.com>
+	 <4AE92913.4050209@acm.org>
+Date: Thu, 29 Oct 2009 08:59:33 -0400
+Message-ID: <829197380910290559u78b05d89x9342f440d2067be5@mail.gmail.com>
+Subject: Re: HVR-950Q problem under MythTV
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Bob Cunningham <rcunning@acm.org>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit b4028437876866aba4747a655ede00f892089e14 has broken again re-use of 
-device objects across device_register() / device_unregister() cycles. Fix 
-soc-camera by nullifying the struct after device_unregister().
+On Thu, Oct 29, 2009 at 1:33 AM, Bob Cunningham <rcunning@acm.org> wrote:
+> I spoke too soon: Switching between SD and HD channels (or vice-versa)
+> always works the first time, but generally dies the next time I try.  The
+> behavior is very inconsistent:  If I switch from SD to HD 720p or higher,
+> the tuner goes away the next time I try to tune an SD channel.  If I switch
+> between SD and 480i HD channels, I can do so up to 4 times before it stops
+> working.
+>
+> I can switch among SD channels with no problem, and I can switch between HD
+> channels of any resolution with no problem.  Only switching back and forth
+> between HD and SD causes the problem, and it always happens, sooner or
+> later.
+>
+> Is there a way to force a "quick & dirty" device reinitialization?  Right
+> now, I'm killing mythfrontend and mythbackend, re-plugging the HVR-950Q, and
+> restarting mythbackend and mythfrontend.  Probably overkill.  Is there an
+> easier way?
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index 59aa7a3..36e617b 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -1160,13 +1160,15 @@ void soc_camera_host_unregister(struct soc_camera_host *ici)
- 		if (icd->iface == ici->nr) {
- 			/* The bus->remove will be called */
- 			device_unregister(&icd->dev);
--			/* Not before device_unregister(), .remove
--			 * needs parent to call ici->ops->remove() */
--			icd->dev.parent = NULL;
--
--			/* If the host module is loaded again, device_register()
--			 * would complain "already initialised" */
--			memset(&icd->dev.kobj, 0, sizeof(icd->dev.kobj));
-+			/*
-+			 * Not before device_unregister(), .remove
-+			 * needs parent to call ici->ops->remove().
-+			 * If the host module is loaded again, device_register()
-+			 * would complain "already initialised," since 2.6.32
-+			 * this is also needed to prevent use-after-free of the
-+			 * device private data.
-+			 */
-+			memset(&icd->dev, 0, sizeof(icd->dev));
- 		}
- 	}
- 
+In this context, we are not talking about SD versus HD - we're talking
+about analog versus digital.  You should have no trouble switching
+between SD ATSC channels and HD ATSC channels (since the hardware
+literally cannot tell the difference).  However, it's not *too*
+surprising to find issues going back and forth between analog and
+digital.
+
+Are you sure you put both the analog and digtial video sources into
+the same recording group?  If not, it's possible that MythTV will
+attempt to use both the analog and digtial parts of the card at the
+same time, which is not permitted by the hardware.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
