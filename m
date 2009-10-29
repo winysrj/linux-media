@@ -1,128 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from h206.core.ignum.cz ([217.31.49.206]:40295 "EHLO
-	h206.core.ignum.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756914AbZJHTr5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Oct 2009 15:47:57 -0400
-Message-ID: <4ACE41AE.7070008@pragl.cz>
-Date: Thu, 08 Oct 2009 21:46:54 +0200
-From: Miroslav Pragl - mailing lists <lists.subscriber@pragl.cz>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:43109 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754806AbZJ2Ouz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Oct 2009 10:50:55 -0400
+Received: by bwz27 with SMTP id 27so2404227bwz.21
+        for <linux-media@vger.kernel.org>; Thu, 29 Oct 2009 07:50:59 -0700 (PDT)
+Message-ID: <4AE9ABE6.90706@gmail.com>
+Date: Thu, 29 Oct 2009 21:51:18 +0700
+From: flinkdeldinky <flinkdeldinky@gmail.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: SebaX75 <sebax75@yahoo.it>, linux-media@vger.kernel.org
-Subject: Re: Pinnace 320e (PCTV Hybrid Pro Stick) support
-References: <2D9D466571BB4CCEB9FD981D65F8FBFC@MirekPNB>	 <829197380910080736g4b30e0e8m21f1d3b876a15ce6@mail.gmail.com>	 <C3EF2005C0C34F008FA0B59B48782D75@MirekPNB> <829197380910081204r6b8c779dsf32c61b718df77f0@mail.gmail.com>
-In-Reply-To: <829197380910081204r6b8c779dsf32c61b718df77f0@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: linux-media@vger.kernel.org
+Subject: [PATCH]
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-GREAT, works perfectly! Thanks a lot!
+The following patch provides functionality for the STLabs PCI card. 
+It's a saa7134 card.  I may be the only guy still using it!  I've been
+compiling it the code for each kernel I use for years now.
 
-MP
-> comment out line 181 of file v4l/em28xx-cards.c so it looks like:
-> //   {EM2880_R04_GPO,        0x04,   0xff,          100},/* zl10353 reset */
->    
+Iif you guys accept this patch you may want to add the following
+documentation somewhere (I don't know where to put it):
+This card is auto detected as a 10 MOONS card, that doesn't work though.
 
-scan /usr/share/dvb/dvb-t/cz-Praha
-scanning /usr/share/dvb/dvb-t/cz-Praha
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 634000000 0 2 9 3 1 3 0
-initial transponder 674000000 0 2 9 3 1 3 0
-initial transponder 730000000 0 2 9 3 1 3 0
-initial transponder 778000000 0 2 9 3 1 3 0
-initial transponder 818000000 0 2 9 3 1 2 0
- >>> tune to: 
-634000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-Network Name 'CESKE RADIOKOMUNIKACE'
-0x0000 0x0202: pmt_pid 0x0190 CESKE RADIOKOMUNIKACE -- NOVA CINEMA (running)
-0x0000 0x0201: pmt_pid 0x0064 CESKE RADIOKOMUNIKACE --  NOVA (running)
-0x0000 0x0801: pmt_pid 0x012c CESKE RADIOKOMUNIKACE -- BARRANDOV TV 
-(running)
-0x0000 0x0302: pmt_pid 0x01f4 CESKE RADIOKOMUNIKACE -- Prima COOL (running)
-0x0000 0x0301: pmt_pid 0x00c8 CESKE RADIOKOMUNIKACE -- PRIMA (running)
- >>> tune to: 
-674000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-Network Name 'Sit 3 Czech Digital Group'
-0x0301 0x0303: pmt_pid 0x0000 CDG -- Prima (MPEG-4 HD) (running)
-0x0301 0x0501: pmt_pid 0x0000 CDG -- Noe TV (running)
-0x0301 0x0601: pmt_pid 0x0000 CDG -- PublicTV (running)
-0x0301 0x0701: pmt_pid 0x0000 CDG -- Z1 (running)
-0x0301 0x4301: pmt_pid 0x0000 CDG -- Proglas (running)
- >>> tune to: 
-730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-0x0000 0x0101: pmt_pid 0x0100 Ceska televize -- CT 1 (running)
-0x0000 0x0102: pmt_pid 0x0200 Ceska televize -- CT 2 (running)
-0x0000 0x0103: pmt_pid 0x0300 Ceska televize -- CT 24 (running)
-0x0000 0x0104: pmt_pid 0x0400 Ceska televize -- CT 4 (running)
-0x0000 0x4101: pmt_pid 0x1000 Ceska televize -- CRo1-Radiozurnal     
-(running)
-0x0000 0x4102: pmt_pid 0x1100 Ceska televize -- CRo2-Praha           
-(running)
-0x0000 0x4103: pmt_pid 0x1200 Ceska televize -- CRo3-Vltava          
-(running)
-0x0000 0x4104: pmt_pid 0x1300 Ceska televize -- CRo Radio Wave      
-(running)
-0x0000 0x4105: pmt_pid 0x1400 Ceska televize -- CRo D-dur            
-(running)
-0x0000 0x4106: pmt_pid 0x1500 Ceska televize -- CRo Leonardo         
-(running)
-0x0000 0x4107: pmt_pid 0x1600 Ceska televize -- CRo Radio Cesko      
-(running)
-Network Name 'SIT 1 CESKA TELEVIZE'
- >>> tune to: 
-778000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-Network Name 'Sit 3-Czech Digital Group'
-0x0000 0x0601: pmt_pid 0x0300 CDG -- PublicTV (running)
-0x0000 0x0701: pmt_pid 0x0400 CDG -- Z1 (running)
-0x0000 0x4301: pmt_pid 0x1000 CDG -- Proglas (running)
- >>> tune to: 
-818000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
- >>> tune to: 
-818000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE 
-(tuning failed)
-WARNING: >>> tuning failed!!!
-dumping lists (24 services)
-NOVA 
-CINEMA:634000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:401:411:514
-  NOVA:634000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:101:111:513
-BARRANDOV 
-TV:634000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:301:311:2049
-Prima 
-COOL:634000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:501:511:770
-PRIMA:634000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:201:211:769
-Prima (MPEG-4 
-HD):674000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:1281:1282:771
-Noe 
-TV:674000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:513:514:1281
-PublicTV:674000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:769:770:1537
-Z1:674000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:1025:1026:1793
-Proglas:674000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:4097:17153
-CT 
-1:730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:257:273:257
-CT 
-2:730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:513:529:258
-CT 
-24:730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:769:785:259
-CT 
-4:730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:1025:1041:260
-CRo1-Radiozurnal    
-:730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:4113:16641
-CRo2-Praha          
-:730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:4369:16642
-CRo3-Vltava         
-:730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:4625:16643
-CRo Radio Wave     
-:730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:4881:16644
-CRo D-dur           
-:730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:5137:16645
-CRo Leonardo        
-:730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:5393:16646
-CRo Radio Cesko     
-:730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:5649:16647
-PublicTV:778000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:769:770:1537
-Z1:778000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:1025:1026:1793
-Proglas:778000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:4097:17153
-Done.
+I load saa7134 as follows:
+saa7134 card=175 tuner=5
+
+Everything on the card seems to function and that includes the firewire
+port.  I don't know about the remote control though.
+
+Tuners 3, 5, 14, 20, 28, 29, 24, 48 seem to work equally well. Those are
+all
+the PAL BG tuners. I spot checked several non PAL BG tuners and none worked.
+
+
+diff -r d6c09c3711b5
+linux/drivers/media/video/saa7134/saa7134-cards.c          
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c Sun Sep 20
+15:14:21 2009
++0000                                                                        
+ 
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c Thu Oct 29
+14:54:31 2009
++0700                                                                        
+ 
+@@ -5342,7 +5342,38
+@@                                                          
+                        .amux   =
+LINE2,                                        
+                }
+},                                                            
+       
+},                                                                      
+-                                                                             
+ 
++       [SAA7134_BOARD_STLAB_PCI_TV7130] =
+{                                    
++       /* "Aidan Gill"
+*/                                                      
++               .name = "ST Lab ST Lab PCI-TV7130
+",                            
++               .audio_clock =
+0x00200000,                                      
++               .tuner_type =
+TUNER_LG_PAL_NEW_TAPC,                            
++               .radio_type     =
+UNSET,                                        
++               .tuner_addr     =
+ADDR_UNSET,                                   
++               .radio_addr     =
+ADDR_UNSET,                                   
++               .gpiomask =
+0x7000,                                             
++               .inputs =
+{{                                                    
++                       .name =
+name_tv,                                        
++                       .vmux =
+1,                                              
++                       .amux =
+LINE2,                                          
++                       .gpio =
+0x0000,                                         
++                       .tv =
+1,                                                
++               },
+{                                                            
++                       .name =
+name_comp1,                                     
++                       .vmux =
+3,                                              
++                       .amux =
+LINE1,                                          
++                       .gpio =
+0x2000,                                         
++               },
+{                                                            
++                       .name =
+name_svideo,                                    
++                       .vmux =
+0,                                              
++                       .amux =
+LINE1,                                          
++                       .gpio =
+0x2000,                                         
++               }
+},                                                            
++               .mute =
+{                                                       
++                       .name =
+name_mute,                                      
++                       .amux =
+TV,                                             
++                       .gpio =
+0x3000,                                         
++              
+},                                                              
++      
+},                                                                      
+ };                                                                           
+ 
+                                                                              
+ 
+ const unsigned int saa7134_bcount =
+ARRAY_SIZE(saa7134_boards);                
+@@ -6487,6 +6518,12
+@@                                                          
+                .subdevice    =
+0x4847,                                         
+                .driver_data  =
+SAA7134_BOARD_ASUS_EUROPA_HYBRID,               
+        },
+{                                                                    
++               .vendor       =
+PCI_VENDOR_ID_PHILIPS,                          
++               .device       =
+PCI_DEVICE_ID_PHILIPS_SAA7130,                  
++               .subvendor    = 
+PCI_VENDOR_ID_PHILIPS,                         
++               .subdevice    = 0x2001,
++               .driver_data  = SAA7134_BOARD_STLAB_PCI_TV7130,
++       }, {
+                /* --- boards without eeprom + subsystem ID --- */
+                .vendor       = PCI_VENDOR_ID_PHILIPS,
+                .device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+diff -r d6c09c3711b5 linux/drivers/media/video/saa7134/saa7134.h
+--- a/linux/drivers/media/video/saa7134/saa7134.h       Sun Sep 20
+15:14:21 2009 +0000
++++ b/linux/drivers/media/video/saa7134/saa7134.h       Thu Oct 29
+14:54:31 2009 +0700
+@@ -299,6 +299,7 @@
+ #define SAA7134_BOARD_ROVERMEDIA_LINK_PRO_FM 172
+ #define SAA7134_BOARD_ZOLID_HYBRID_PCI         173
+ #define SAA7134_BOARD_ASUS_EUROPA_HYBRID       174
++#define SAA7134_BOARD_STLAB_PCI_TV7130         175
+
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
+
+Signed-off-by: Michael Wellman <flinkdeldinky@gmail.com>
 
