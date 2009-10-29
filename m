@@ -1,85 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4142 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750971AbZJVWSV (ORCPT
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:48376 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753098AbZJ2QHE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Oct 2009 18:18:21 -0400
-Message-ID: <3815ae099e769727cd4cb21abf338a18.squirrel@webmail.xs4all.nl>
-Date: Fri, 23 Oct 2009 00:18:08 +0200
-Subject: Re: Details about DVB frontend API
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "Jean Delvare" <khali@linux-fr.org>,
-	"LMML" <linux-media@vger.kernel.org>
+	Thu, 29 Oct 2009 12:07:04 -0400
+Received: by bwz27 with SMTP id 27so2489061bwz.21
+        for <linux-media@vger.kernel.org>; Thu, 29 Oct 2009 09:07:08 -0700 (PDT)
+To: linux-media@vger.kernel.org
+Subject: [PATCH video4linux] For STLabs PCI saa7134 analog receiver card
+From: flinkdeldinky <flinkdeldinky@gmail.com>
+Date: Thu, 29 Oct 2009 23:07:28 +0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200910292307.28202.flinkdeldinky@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The following patch provides functionality for the STLabs PCI TV receiver card. It only adds some information to saa7134.h and saa7134-cards.c
 
-> Em Thu, 22 Oct 2009 21:13:30 +0200
-> Jean Delvare <khali@linux-fr.org> escreveu:
->
->> Hi folks,
->>
->> I am looking for details regarding the DVB frontend API. I've read
->> linux-dvb-api-1.0.0.pdf, it roughly explains what the FE_READ_BER,
->> FE_READ_SNR, FE_READ_SIGNAL_STRENGTH and FE_READ_UNCORRECTED_BLOCKS
->> commands return, however it does not give any information about how the
->> returned values should be interpreted (or, seen from the other end, how
->> the frontend kernel drivers should encode these values.) If there
->> documentation available that would explain this?
->>
->> For example, the signal strength. All I know so far is that this is a
->> 16-bit value. But then what? Do greater values represent stronger
->> signal or weaker signal? Are 0x0000 and 0xffff special values? Is the
->> returned value meaningful even when FE_HAS_SIGNAL is 0? When
->> FE_HAS_LOCK is 0? Is the scale linear, or do some values have
->> well-defined meanings, or is it arbitrary and each driver can have its
->> own scale? What are the typical use cases by user-space application for
->> this value?
->>
->> That's the kind of details I'd like to know, not only for the signal
->> strength, but also for the SNR, BER and UB. Without this information,
->> it seems a little difficult to have consistent frontend drivers.
->
-> We all want to know about that ;)
->
-> Seriously, the lack of a description of the meaning of the ranges for
-> those
-> read values were already widely discussed at LMML and at the legacy dvb
-> ML.
-> We should return this discussion again and decide what would be the better
-> way to describe those values.
->
-> My suggestion is that someone summarize the proposals we had and give some
-> time
-> for people vote. After that, we just commit the most voted one, and commit
-> the
-> patches for it. A pending question that should also be discussed is what
-> we will
-> do with those dvb devices where we simply don't know what scale it uses.
-> There
-> are several of them.
->
-> Btw, the new official documentation is the media infrastructure docbook
-> that
-> can be found at the Kernel and at:
-> 	http://linuxtv.org/downloads/v4l-dvb-apis
->
-> This covers both DVB and V4L API's.
+The card is auto detected as a 10 MOONS card but that will not work.
 
-We did discuss this briefly during the v4l-dvb mini-summit and I know Mike
-Krufky knew what to do about this, but for the life of me I can't remember
-what it was. I should have made a note of it...
+I load the saa7134 module with:
+saa7134 card=175 tuner=5
 
-Mike, can you refresh my memory?
+I have not tested the remote control or the s-video.  Everything else works.
 
-Thanks,
+Tuners 3, 5, 14, 20, 28, 29, 48 seem to work equally well.
 
-         Hans
+diff -r d6c09c3711b5 linux/drivers/media/video/saa7134/saa7134-cards.c          
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c Sun Sep 20 15:14:21 2009 +0000                                                                          
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c Thu Oct 29 14:54:31 2009 +0700                                                                          
+@@ -5342,7 +5342,38 @@                                                          
+                        .amux   = LINE2,                                        
+                } },                                                            
+        },                                                                      
+-                                                                               
++       [SAA7134_BOARD_STLAB_PCI_TV7130] = {                                    
++       /* "Aidan Gill" */                                                      
++               .name = "ST Lab ST Lab PCI-TV7130 ",                            
++               .audio_clock = 0x00200000,                                      
++               .tuner_type = TUNER_LG_PAL_NEW_TAPC,                            
++               .radio_type     = UNSET,                                        
++               .tuner_addr     = ADDR_UNSET,                                   
++               .radio_addr     = ADDR_UNSET,                                   
++               .gpiomask = 0x7000,                                             
++               .inputs = {{                                                    
++                       .name = name_tv,                                        
++                       .vmux = 1,                                              
++                       .amux = LINE2,                                          
++                       .gpio = 0x0000,                                         
++                       .tv = 1,                                                
++               }, {                                                            
++                       .name = name_comp1,                                     
++                       .vmux = 3,                                              
++                       .amux = LINE1,                                          
++                       .gpio = 0x2000,                                         
++               }, {                                                            
++                       .name = name_svideo,                                    
++                       .vmux = 0,                                              
++                       .amux = LINE1,                                          
++                       .gpio = 0x2000,                                         
++               } },                                                            
++               .mute = {                                                       
++                       .name = name_mute,                                      
++                       .amux = TV,                                             
++                       .gpio = 0x3000,                                         
++               },                                                              
++       },                                                                      
+ };                                                                             
+                                                                                
+ const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);                
+@@ -6487,6 +6518,12 @@                                                          
+                .subdevice    = 0x4847,                                         
+                .driver_data  = SAA7134_BOARD_ASUS_EUROPA_HYBRID,               
+        }, {                                                                    
++               .vendor       = PCI_VENDOR_ID_PHILIPS,                          
++               .device       = PCI_DEVICE_ID_PHILIPS_SAA7130,                  
++               .subvendor    =  PCI_VENDOR_ID_PHILIPS,                         
++               .subdevice    = 0x2001,
++               .driver_data  = SAA7134_BOARD_STLAB_PCI_TV7130,
++       }, {
+                /* --- boards without eeprom + subsystem ID --- */
+                .vendor       = PCI_VENDOR_ID_PHILIPS,
+                .device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+diff -r d6c09c3711b5 linux/drivers/media/video/saa7134/saa7134.h
+--- a/linux/drivers/media/video/saa7134/saa7134.h       Sun Sep 20 15:14:21 2009 +0000
++++ b/linux/drivers/media/video/saa7134/saa7134.h       Thu Oct 29 14:54:31 2009 +0700
+@@ -299,6 +299,7 @@
+ #define SAA7134_BOARD_ROVERMEDIA_LINK_PRO_FM 172
+ #define SAA7134_BOARD_ZOLID_HYBRID_PCI         173
+ #define SAA7134_BOARD_ASUS_EUROPA_HYBRID       174
++#define SAA7134_BOARD_STLAB_PCI_TV7130         175
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
 
+Signed-off-by: Michael Wellman <flinkdeldinky@gmail.com>
