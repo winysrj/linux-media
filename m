@@ -1,66 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:49655 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754179AbZJ3Ubv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Oct 2009 16:31:51 -0400
-Date: Fri, 30 Oct 2009 21:31:55 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: RE: [PATCH 2/9] v4l: add new v4l2-subdev sensor operations, use
- g_skip_top_lines in soc-camera
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE40155798784@dlee06.ent.ti.com>
-Message-ID: <Pine.LNX.4.64.0910302126060.4378@axis700.grange>
-References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
- <Pine.LNX.4.64.0910301403550.4378@axis700.grange>
- <A69FA2915331DC488A831521EAE36FE40155798784@dlee06.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1989 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755225AbZJ2TZp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Oct 2009 15:25:45 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id n9TJPjd1055502
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 29 Oct 2009 20:25:49 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 29 Oct 2009 20:25:45 +0100 (CET)
+Message-Id: <200910291925.n9TJPjd1055502@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 30 Oct 2009, Karicheri, Muralidharan wrote:
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> Guennadi,
-> 
-> 
-> > 	mt9m111->rect.left	= MT9M111_MIN_DARK_COLS;
-> > 	mt9m111->rect.top	= MT9M111_MIN_DARK_ROWS;
-> >diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
-> >index 6966f64..57e04e9 100644
-> >--- a/drivers/media/video/mt9t031.c
-> >+++ b/drivers/media/video/mt9t031.c
-> >@@ -301,9 +301,9 @@ static int mt9t031_set_params(struct soc_camera_device
-> >*icd,
-> > 		ret = reg_write(client, MT9T031_WINDOW_WIDTH, rect->width - 1);
-> > 	if (ret >= 0)
-> > 		ret = reg_write(client, MT9T031_WINDOW_HEIGHT,
-> >-				rect->height + icd->y_skip_top - 1);
-> >+				rect->height - 1);
+Results of the daily build of v4l-dvb:
 
-> Why y_skip_top is removed?
+date:        Thu Oct 29 19:00:11 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13234:4ae02a41d03d
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Because noone ever said they needed it?
+linux-2.6.22.19-armv5: WARNINGS
+linux-2.6.23.12-armv5: WARNINGS
+linux-2.6.24.7-armv5: WARNINGS
+linux-2.6.25.11-armv5: WARNINGS
+linux-2.6.26-armv5: WARNINGS
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-rc3-armv5: ERRORS
+linux-2.6.32-rc3-armv5-davinci: ERRORS
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29.1-armv5-ixp: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.32-rc3-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.32-rc3-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-rc3-i686: ERRORS
+linux-2.6.23.12-m32r: WARNINGS
+linux-2.6.24.7-m32r: WARNINGS
+linux-2.6.25.11-m32r: WARNINGS
+linux-2.6.26-m32r: WARNINGS
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-rc3-m32r: ERRORS
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.32-rc3-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: OK
+linux-2.6.32-rc3-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-rc3-x86_64: ERRORS
+sparse (linux-2.6.31): OK
+sparse (linux-2.6.32-rc3): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-> When I connect the sensor output to our SOC 
-> input and do format conversion and resize on the fly (frame by frame 
-> conversion before writing to SDRAM) I have found that the frame 
-> completion interrupt fails to get generated with zero value for 
-> y_skip_top. I have used a value
-> of 10 and it worked fine for me. So I would like to have a 
-> s_skip_top_lines() in the sensor operations which can be called to 
-> update this value from the host/bridge driver.
+Detailed results are available here:
 
-Hm, strange, that's actually not the purpose of this parameter. Wouldn't 
-it work for you just as well, if you just request 10 more lines when 
-sending s_fmt from your bridge driver?
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
