@@ -1,16 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-yx0-f178.google.com ([209.85.210.178])
+Received: from mail-bw0-f227.google.com ([209.85.218.227])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <theunis.potgieter@gmail.com>) id 1My3Zn-0002e2-6X
-	for linux-dvb@linuxtv.org; Wed, 14 Oct 2009 15:07:35 +0200
-Received: by yxe8 with SMTP id 8so11135184yxe.17
-	for <linux-dvb@linuxtv.org>; Wed, 14 Oct 2009 06:07:01 -0700 (PDT)
+	(envelope-from <dehqan65@gmail.com>) id 1N3cGr-0007gx-AF
+	for linux-dvb@linuxtv.org; Thu, 29 Oct 2009 22:11:01 +0100
+Received: by bwz27 with SMTP id 27so3460433bwz.1
+	for <linux-dvb@linuxtv.org>; Thu, 29 Oct 2009 14:10:28 -0700 (PDT)
 MIME-Version: 1.0
-Date: Wed, 14 Oct 2009 15:07:00 +0200
-Message-ID: <23582ca0910140607v54a15d46y7ac834a3b6255af3@mail.gmail.com>
-From: Theunis Potgieter <theunis.potgieter@gmail.com>
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] request driver for cards
+In-Reply-To: <1C29C2C980F9432EADFF0F6A3D14A085@JackPC>
+References: <1C29C2C980F9432EADFF0F6A3D14A085@JackPC>
+Date: Fri, 30 Oct 2009 00:40:27 +0330
+Message-ID: <267bb6670910291410r50d0efacgd094385d43b9e1a4@mail.gmail.com>
+From: a dehqan <dehqan65@gmail.com>
+To: matthias@tevii.com, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] some questions before buy
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -19,61 +21,61 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============2082131072=="
+Content-Type: multipart/mixed; boundary="===============2097175201=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============2082131072==
-Content-Type: multipart/alternative; boundary=001485f78c2497e12b0475e4d618
+--===============2097175201==
+Content-Type: multipart/alternative; boundary=0016364c77a936e12a04771957b9
 
---001485f78c2497e12b0475e4d618
+--0016364c77a936e12a04771957b9
 Content-Type: text/plain; charset=ISO-8859-1
 
-Hi, what is the procedure to request drivers for specific new, perhaps
-unknown supported cards?
+In The Name Of God The compassionate merciful
 
-I did have a look at http://www.linuxtv.org/wiki/index.php/Main_Page but it
-didn't contain any information about supported cards. Neither did
-/usr/src/linux/Documentation/dvb/cards.txt for the following brands:
+Thanks for your attention ;
 
-name, site:
-Compro, S300 http://www.comprousa.com/en/product/s300/s300.html
-K-World VS-DVB-S 100/IS,
-http://global.kworld-global.com/main/prod_in.aspx?mnuid=1248&modid=6&pcid=46&ifid=16&prodid=98
+In S650 specification is written :
+Support SDTV and HDTV (MPEG-4 AVC/ H.264 and MPEG-2 Standard)
+And In S660 specification is written  :Support HDTV (MPEG-4 AVC/ H.264 up to
+1080i)
+Does that mean S660 does not support SDTV ?
 
-Perhaps I shouldn't waste time if I could find a dual/twin tuner card for
-dvb-s or dvb-s2. Are there any recommended twin-tuner pci-e cards that is
-support and can actually be bought by the average consumer?
+About S660 , Is it's driver behavior better thatn S650 driver ? Someone told
+that S650 driver has problem with S2 channels  and hangs on them . Does S660
+driver also have these problems ?
 
-Thanks
+Also How about showing S2 channels for laptops ?
 
---001485f78c2497e12b0475e4d618
+Which one of USB DVB-s/s2 cards do you advice for linux ? Is tevii best of
+them <http://www.linuxtv.org/wiki/index.php/DVB-S2_USB_Devices>?
+
+
+Regards dehqan
+
+--0016364c77a936e12a04771957b9
 Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-Hi, what is the procedure to request drivers for specific new, perhaps unkn=
-own supported cards?<br><br>I did have a look at <a href=3D"http://www.linu=
-xtv.org/wiki/index.php/Main_Page">http://www.linuxtv.org/wiki/index.php/Mai=
-n_Page</a> but it didn&#39;t contain any information about supported cards.=
- Neither did /usr/src/linux/Documentation/dvb/cards.txt for the following b=
-rands:<br>
-<br>name, site:<br>Compro, S300 <a href=3D"http://www.comprousa.com/en/prod=
-uct/s300/s300.html">http://www.comprousa.com/en/product/s300/s300.html</a><=
-br>K-World VS-DVB-S 100/IS, <a href=3D"http://global.kworld-global.com/main=
-/prod_in.aspx?mnuid=3D1248&amp;modid=3D6&amp;pcid=3D46&amp;ifid=3D16&amp;pr=
-odid=3D98">http://global.kworld-global.com/main/prod_in.aspx?mnuid=3D1248&a=
-mp;modid=3D6&amp;pcid=3D46&amp;ifid=3D16&amp;prodid=3D98</a><br>
-<br>Perhaps I shouldn&#39;t waste time if I could find a dual/twin tuner ca=
-rd for dvb-s or dvb-s2. Are there any recommended twin-tuner pci-e cards th=
-at is support and can actually be bought by the average consumer?<br><br>
-Thanks<br><br><br><br>
+In The Name Of God The compassionate merciful<br><br>Thanks for your attent=
+ion ;<br><br>In S650 specification is written :<br>Support SDTV and HDTV (M=
+PEG-4 AVC/ H.264 and MPEG-2 Standard)<br>And In S660 specification is writt=
+en=A0 :Support HDTV (MPEG-4 AVC/ H.264 up to 1080i)<br>
+Does that mean S660 does not support SDTV ?<br><br>About S660 , Is it&#39;s=
+ driver behavior better thatn S650 driver ? Someone told that S650 driver h=
+as problem with S2 channels=A0 and hangs on them . Does S660 driver also ha=
+ve these problems ?<br>
+<br>Also How about showing S2 channels for laptops ?<br><br>Which one of US=
+B DVB-s/s2 cards do you advice for linux ? Is tevii best of <a href=3D"http=
+://www.linuxtv.org/wiki/index.php/DVB-S2_USB_Devices">them</a>?<br><br><br>
+Regards dehqan<br><br><br><br>
 
---001485f78c2497e12b0475e4d618--
+--0016364c77a936e12a04771957b9--
 
 
---===============2082131072==
+--===============2097175201==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -84,4 +86,4 @@ linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============2082131072==--
+--===============2097175201==--
