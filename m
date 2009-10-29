@@ -1,69 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail00a.mail.t-online.hu ([84.2.40.5]:54219 "EHLO
-	mail00a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751417AbZJCHfd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2009 03:35:33 -0400
-Message-ID: <4AC6FEC5.4000808@freemail.hu>
-Date: Sat, 03 Oct 2009 09:35:33 +0200
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>,
-	Thomas Kaiser <thomas@kaiser-linux.li>
-CC: V4L Mailing List <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: [PATCH 1/3] pac7311: remove magic value for SKIP
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from devils.ext.ti.com ([198.47.26.153]:51115 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750707AbZJ2Fm5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Oct 2009 01:42:57 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9T5gxu4019346
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 29 Oct 2009 00:43:01 -0500
+From: hvaibhav@ti.com
+To: linux-media@vger.kernel.org
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH 1/1] v4l2 doc: Added S/G_ROTATE, S/G_BG_COLOR information
+Date: Thu, 29 Oct 2009 11:12:57 +0530
+Message-Id: <1256794977-32473-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Change the magic value 0xaa to SKIP for better understandability.
 
-The change was tested with Labtec Webcam 2200.
-
-Signed-off-by: Márton Németh <nm127@freemail.hu>
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 ---
-diff -upr a/drivers/media/video/gspca/pac7311.c b/drivers/media/video/gspca/pac7311.c
---- a/drivers/media/video/gspca/pac7311.c	2009-09-28 17:40:19.000000000 +0200
-+++ b/drivers/media/video/gspca/pac7311.c	2009-10-03 08:27:36.000000000 +0200
-@@ -316,7 +316,8 @@ static const __u8 start_7302[] = {
- 	0, 0				/* end of sequence */
- };
+ v4l2-spec/controls.sgml |   20 +++++++++++++++++++-
+ 1 files changed, 19 insertions(+), 1 deletions(-)
 
--/* page 3 - the value 0xaa says skip the index - see reg_w_page() */
-+#define SKIP		0xaa
-+/* page 3 - the value SKIP says skip the index - see reg_w_page() */
- static const __u8 page3_7302[] = {
- 	0x90, 0x40, 0x03, 0x50, 0xc2, 0x01, 0x14, 0x16,
- 	0x14, 0x12, 0x00, 0x00, 0x00, 0x02, 0x33, 0x00,
-@@ -383,13 +384,13 @@ static const __u8 start_7311[] = {
- 	0, 0				/* end of sequence */
- };
+diff --git a/v4l2-spec/controls.sgml b/v4l2-spec/controls.sgml
+index 477a970..a675f30 100644
+--- a/v4l2-spec/controls.sgml
++++ b/v4l2-spec/controls.sgml
+@@ -281,10 +281,28 @@ minimum value disables backlight compensation.</entry>
+ <constant>V4L2_COLORFX_SEPIA</constant> (2).</entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>V4L2_CID_ROTATE</constant></entry>
++	    <entry>integer</entry>
++	    <entry>Rotates the image by specified angle. Common angles are 90,
++	    270 and 180. Rotating the image to 90 and 270 will reverse the height
++	    and width of the display window. It is necessary to set the new height and
++	    width of the picture using S_FMT ioctl, see <xref linkend="vidioc-g-fmt"> according to
++	    the rotation angle selected.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_CID_BG_COLOR</constant></entry>
++	    <entry>integer</entry>
++	    <entry>Sets the background color on the current output device.
++	    Background color needs to be specified in the RGB24 format. The
++	    supplied 32 bit value is interpreted as bits 0-7 Red color information,
++	    bits 8-15 Green color information, bits 16-23 Blue color
++	    information and bits 24-31 must be zero.</entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>V4L2_CID_LASTP1</constant></entry>
+ 	    <entry></entry>
+ 	    <entry>End of the predefined control IDs (currently
+-<constant>V4L2_CID_COLORFX</constant> + 1).</entry>
++<constant>V4L2_CID_BG_COLOR</constant> + 1).</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_CID_PRIVATE_BASE</constant></entry>
+-- 
+1.6.2.4
 
--/* page 4 - the value 0xaa says skip the index - see reg_w_page() */
-+/* page 4 - the value SKIP says skip the index - see reg_w_page() */
- static const __u8 page4_7311[] = {
--	0xaa, 0xaa, 0x04, 0x54, 0x07, 0x2b, 0x09, 0x0f,
--	0x09, 0x00, 0xaa, 0xaa, 0x07, 0x00, 0x00, 0x62,
--	0x08, 0xaa, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x03, 0xa0, 0x01, 0xf4, 0xaa,
--	0xaa, 0x00, 0x08, 0xaa, 0x03, 0xaa, 0x00, 0x68,
-+	SKIP, SKIP, 0x04, 0x54, 0x07, 0x2b, 0x09, 0x0f,
-+	0x09, 0x00, SKIP, SKIP, 0x07, 0x00, 0x00, 0x62,
-+	0x08, SKIP, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x03, 0xa0, 0x01, 0xf4, SKIP,
-+	SKIP, 0x00, 0x08, SKIP, 0x03, SKIP, 0x00, 0x68,
- 	0xca, 0x10, 0x06, 0x78, 0x00, 0x00, 0x00, 0x00,
- 	0x23, 0x28, 0x04, 0x11, 0x00, 0x00
- };
-@@ -438,7 +439,7 @@ static void reg_w_page(struct gspca_dev
- 	int index;
-
- 	for (index = 0; index < len; index++) {
--		if (page[index] == 0xaa)		/* skip this index */
-+		if (page[index] == SKIP)		/* skip this index */
- 			continue;
- 		gspca_dev->usb_buf[0] = page[index];
- 		usb_control_msg(gspca_dev->dev,
