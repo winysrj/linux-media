@@ -1,160 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39432 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759203AbZJPOXl convert rfc822-to-8bit (ORCPT
+Received: from mail-in-08.arcor-online.net ([151.189.21.48]:38258 "EHLO
+	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756825AbZJ2XkO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Oct 2009 10:23:41 -0400
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9GEN4CG012827
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 16 Oct 2009 09:23:04 -0500
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id n9GEN41l027519
-	for <linux-media@vger.kernel.org>; Fri, 16 Oct 2009 09:23:04 -0500 (CDT)
-Received: from dsbe71.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id n9GEN3h2017190
-	for <linux-media@vger.kernel.org>; Fri, 16 Oct 2009 09:23:03 -0500 (CDT)
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Fri, 16 Oct 2009 09:23:02 -0500
-Subject: RE: [PATCH 5/6] Davinci VPFE Capture: Add support for Control ioctls
-Message-ID: <A69FA2915331DC488A831521EAE36FE4015555F56A@dlee06.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1255446614-16847-1-git-send-email-hvaibhav@ti.com>
- <19F8576C6E063C45BE387C64729E73940436DB2130@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940436DB2130@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Thu, 29 Oct 2009 19:40:14 -0400
+Subject: Re: [PATCH video4linux] For STLabs PCI saa7134 analog receiver card
+From: hermann pitton <hermann-pitton@arcor.de>
+To: flinkdeldinky <flinkdeldinky@gmail.com>
+Cc: linux-media@vger.kernel.org, Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <200910292307.28202.flinkdeldinky@gmail.com>
+References: <200910292307.28202.flinkdeldinky@gmail.com>
+Content-Type: text/plain
+Date: Fri, 30 Oct 2009 00:38:59 +0100
+Message-Id: <1256859539.3270.23.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Michael,
 
+Am Donnerstag, den 29.10.2009, 23:07 +0700 schrieb flinkdeldinky:
+> The following patch provides functionality for the STLabs PCI TV receiver card. It only adds some information to saa7134.h and saa7134-cards.c
+> 
+> The card is auto detected as a 10 MOONS card but that will not work.
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-phone: 301-407-9583
-email: m-karicheri2@ti.com
+I still can't see how your card could make it in that way and how Mauro
+could make a decision in that direction, assuming you pass patchwork
+once.
 
->-----Original Message-----
->From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->owner@vger.kernel.org] On Behalf Of Hiremath, Vaibhav
->Sent: Tuesday, October 13, 2009 11:28 AM
->To: Hiremath, Vaibhav; linux-media@vger.kernel.org
->Subject: RE: [PATCH 5/6] Davinci VPFE Capture: Add support for Control
->ioctls
->
->> -----Original Message-----
->> From: Hiremath, Vaibhav
->> Sent: Tuesday, October 13, 2009 8:40 PM
->> To: linux-media@vger.kernel.org
->> Cc: Hiremath, Vaibhav
->> Subject: [PATCH 5/6] Davinci VPFE Capture: Add support for Control
->> ioctls
->>
->> From: Vaibhav Hiremath <hvaibhav@ti.com>
->>
->> Added support for Control IOCTL,
->> 	- s_ctrl
->> 	- g_ctrl
->> 	- queryctrl
->>
->[Hiremath, Vaibhav] I am in the process of cleaning up of support for
->AM3517 Capture driver, which is almost same as DM6446 CCDC. Then I would
->want to finish up with OMAP3 Display driver part before moving to Media
->Controller support for MEM-to-MEM (like, Resizer).
->
->Just FYI, I will be going for vacation for 1 & 1/2 week starting from
->coming Friday. But I will make sure that I will submit patches for Display
->(OMAP3 & AM3517) and AM3517 Capture driver before that.
->
->Thanks,
->Vaibhav
->> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
->> ---
->>  drivers/media/video/davinci/vpfe_capture.c |   43
->> ++++++++++++++++++++++++++++
->>  1 files changed, 43 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/media/video/davinci/vpfe_capture.c
->> b/drivers/media/video/davinci/vpfe_capture.c
->> index abe21e4..f77d99b 100644
->> --- a/drivers/media/video/davinci/vpfe_capture.c
->> +++ b/drivers/media/video/davinci/vpfe_capture.c
->> @@ -1368,6 +1368,46 @@ static int vpfe_g_std(struct file *file, void
->> *priv, v4l2_std_id *std_id)
->>  	return 0;
->>  }
->>
->> +static int vpfe_queryctrl(struct file *file, void *priv,
->> +		struct v4l2_queryctrl *qctrl)
->> +{
->> +	struct vpfe_device *vpfe_dev = video_drvdata(file);
->> +	struct vpfe_subdev_info *sdinfo;
->> +	int ret = 0;
->> +
->> +	sdinfo = vpfe_dev->current_subdev;
->> +
->> +	ret = v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo-
->> >grp_id,
->> +					 core, queryctrl, qctrl);
->> +
->> +	if (ret)
->> +		qctrl->flags |= V4L2_CTRL_FLAG_DISABLED;
-What is this for ? Why don't we return error to user instead. I see there is a function v4l2_ctrl_check() in the v4l2 core which translates this to -EINVAL. So better to return an -EINVAL to user instead IMO. I am ok with rest of the changes.
->> +
->> +	return 0;
->> +}
->> +
->> +static int vpfe_g_ctrl(struct file *file, void *priv, struct
->> v4l2_control *ctrl)
->> +{
->> +	struct vpfe_device *vpfe_dev = video_drvdata(file);
->> +	struct vpfe_subdev_info *sdinfo;
->> +
->> +	sdinfo = vpfe_dev->current_subdev;
->> +
->> +	return v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo-
->> >grp_id,
->> +					 core, g_ctrl, ctrl);
->> +}
->> +
->> +static int vpfe_s_ctrl(struct file *file, void *priv, struct
->> v4l2_control *ctrl)
->> +{
->> +	struct vpfe_device *vpfe_dev = video_drvdata(file);
->> +	struct vpfe_subdev_info *sdinfo;
->> +
->> +	sdinfo = vpfe_dev->current_subdev;
->> +
->> +	return v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo-
->> >grp_id,
->> +					 core, s_ctrl, ctrl);
->> +}
->> +
->>  /*
->>   *  Videobuf operations
->>   */
->> @@ -1939,6 +1979,9 @@ static const struct v4l2_ioctl_ops
->> vpfe_ioctl_ops = {
->>  	.vidioc_querystd	 = vpfe_querystd,
->>  	.vidioc_s_std		 = vpfe_s_std,
->>  	.vidioc_g_std		 = vpfe_g_std,
->> +	.vidioc_queryctrl	 = vpfe_queryctrl,
->> +	.vidioc_g_ctrl		 = vpfe_g_ctrl,
->> +	.vidioc_s_ctrl		 = vpfe_s_ctrl,
->>  	.vidioc_reqbufs		 = vpfe_reqbufs,
->>  	.vidioc_querybuf	 = vpfe_querybuf,
->>  	.vidioc_qbuf		 = vpfe_qbuf,
->> --
->> 1.6.2.4
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I load the saa7134 module with:
+> saa7134 card=175 tuner=5
+
+In that case, having the Philips reference boards 0x2001 subdevice twice
+now for a saa7130, remove the auto detection for the 10MOONS too and
+drop the one for yours.
+
+Also, the tuners are different, but not everybody has the opportunity to
+test them on their differences. In this case, tuner=5 and
+TUNER_LG_PAL_NEW_TAPC makes a big difference for the UHF switch.
+Likely you can't test it and sit on a clone anyway.
+
+See more inline.
+
+> I have not tested the remote control or the s-video.  Everything else works.
+> 
+> Tuners 3, 5, 14, 20, 28, 29, 48 seem to work equally well.
+> 
+> diff -r d6c09c3711b5 linux/drivers/media/video/saa7134/saa7134-cards.c          
+> --- a/linux/drivers/media/video/saa7134/saa7134-cards.c Sun Sep 20 15:14:21 2009 +0000                                                                          
+> +++ b/linux/drivers/media/video/saa7134/saa7134-cards.c Thu Oct 29 14:54:31 2009 +0700
+
+Run at least "make checkpatch" once on recent mercurial v4l-dvb.
+
+For what I can see, you have spaces instead of tabs in front of your
+lines and also you are filling them up with useless spaces at the ends
+and for new lines. 
+
+>                                                                           
+> @@ -5342,7 +5342,38 @@                                                          
+>                         .amux   = LINE2,                                        
+>                 } },                                                            
+>         },                                                                      
+> -                                                                               
+> +       [SAA7134_BOARD_STLAB_PCI_TV7130] = {                                    
+> +       /* "Aidan Gill" */                                                      
+> +               .name = "ST Lab ST Lab PCI-TV7130 ",                            
+> +               .audio_clock = 0x00200000,                                      
+> +               .tuner_type = TUNER_LG_PAL_NEW_TAPC,                            
+> +               .radio_type     = UNSET,                                        
+> +               .tuner_addr     = ADDR_UNSET,                                   
+> +               .radio_addr     = ADDR_UNSET,                                   
+> +               .gpiomask = 0x7000,
+
+There is one unused gpio pin high in that mask, should it be needed for
+something ..., don't we have a same card already?
+
+>                                              
+> +               .inputs = {{                                                    
+> +                       .name = name_tv,                                        
+> +                       .vmux = 1,                                              
+> +                       .amux = LINE2,                                          
+> +                       .gpio = 0x0000,                                         
+> +                       .tv = 1,                                                
+> +               }, {                                                            
+> +                       .name = name_comp1,                                     
+> +                       .vmux = 3,                                              
+> +                       .amux = LINE1,                                          
+> +                       .gpio = 0x2000,                                         
+> +               }, {                                                            
+> +                       .name = name_svideo,                                    
+> +                       .vmux = 0,                                              
+> +                       .amux = LINE1,                                          
+> +                       .gpio = 0x2000,
+
+Most often comp2 is on vmux 0. S-Video can only be on vmux 6,7,8 or 9.
+Put it on 8 and comment it as untested.
+
+>                                          
+> +               } },                                                            
+> +               .mute = {                                                       
+> +                       .name = name_mute,                                      
+> +                       .amux = TV,                                             
+> +                       .gpio = 0x3000,                                         
+> +               },                                                              
+> +       },                                                                      
+>  };                                                                             
+>                                                                                 
+>  const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);                
+> @@ -6487,6 +6518,12 @@                                                          
+>                 .subdevice    = 0x4847,                                         
+>                 .driver_data  = SAA7134_BOARD_ASUS_EUROPA_HYBRID,               
+>         }, {                                                                    
+> +               .vendor       = PCI_VENDOR_ID_PHILIPS,                          
+> +               .device       = PCI_DEVICE_ID_PHILIPS_SAA7130,                  
+> +               .subvendor    =  PCI_VENDOR_ID_PHILIPS,                         
+> +               .subdevice    = 0x2001,
+> +               .driver_data  = SAA7134_BOARD_STLAB_PCI_TV7130,
+> +       }, {
+
+Throw that away with the 10MOONS stuff, or find some eeprom detection.
+
+>                 /* --- boards without eeprom + subsystem ID --- */
+>                 .vendor       = PCI_VENDOR_ID_PHILIPS,
+>                 .device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+> diff -r d6c09c3711b5 linux/drivers/media/video/saa7134/saa7134.h
+> --- a/linux/drivers/media/video/saa7134/saa7134.h       Sun Sep 20 15:14:21 2009 +0000
+> +++ b/linux/drivers/media/video/saa7134/saa7134.h       Thu Oct 29 14:54:31 2009 +0700
+> @@ -299,6 +299,7 @@
+>  #define SAA7134_BOARD_ROVERMEDIA_LINK_PRO_FM 172
+>  #define SAA7134_BOARD_ZOLID_HYBRID_PCI         173
+>  #define SAA7134_BOARD_ASUS_EUROPA_HYBRID       174
+> +#define SAA7134_BOARD_STLAB_PCI_TV7130         175
+> 
+>  #define SAA7134_MAXBOARDS 32
+>  #define SAA7134_INPUT_MAX 8
+> 
+> Signed-off-by: Michael Wellman <flinkdeldinky@gmail.com>
+
+Cheers,
+Hermann
+
 
