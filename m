@@ -1,45 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52472 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752499AbZJaI66 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Oct 2009 04:58:58 -0400
-Message-ID: <4AEBFC0F.6060808@redhat.com>
-Date: Sat, 31 Oct 2009 06:57:51 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:38039 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756311AbZJ3T6Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Oct 2009 15:58:24 -0400
+Received: by bwz27 with SMTP id 27so3982269bwz.21
+        for <linux-media@vger.kernel.org>; Fri, 30 Oct 2009 12:58:28 -0700 (PDT)
 MIME-Version: 1.0
-To: Michael Hunold <hunold@linuxtv.org>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	johann.friedrichs@web.de
-Subject: Re: [PATCH] saa7146 memory leakage in pagetable-handling, v2
-References: <4ACC4631.3040002@linuxtv.org>
-In-Reply-To: <4ACC4631.3040002@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20091030195527.GC25153@rice.edu>
+References: <20091030195527.GC25153@rice.edu>
+Date: Fri, 30 Oct 2009 15:58:28 -0400
+Message-ID: <83bcf6340910301258u209544b7le333157921ec67fb@mail.gmail.com>
+Subject: Re: Hauppage HVR-2250 Tuning problems
+From: Steven Toth <stoth@kernellabs.com>
+To: "Ross J. Reedstrom" <reedstrm@rice.edu>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Michael Hunold escreveu:
-> Hello Mauro,
->
-> on Mon, 28 Sep 2009 Johann Friedrichs sent a patch to linux-media in
-> order to fix a memory leak in my saa7146 driver.
->
-> He contacted me and together we have come up with a new patch that fixes
-> the problem more explicitely.
->
-> Would you please be so kind and manually pick up this patch and provide
-> it upstream?
->   
-No problem.
+> Is this useful info? I've got the whole log, and haven't updated the
+> code yet. I'm willing to do tests, compile other changesets, etc.
 
-Applied, thanks!
-> All kudos belong to Johann Friedrich for finding the bug and providing
-> the initial fix.
->
-> Best regards
-> Michael Hunold.
->
->
->   
+Hi Ross,
 
+Thanks for writing.
+
+Do you have an AMD based system?
+
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
