@@ -1,80 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2-g21.free.fr ([212.27.42.2]:37115 "EHLO smtp2-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751003AbZJEVzf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Oct 2009 17:55:35 -0400
-Message-ID: <4ACA6B25.9090605@free.fr>
-Date: Mon, 05 Oct 2009 23:54:45 +0200
-From: matthieu castet <castet.matthieu@free.fr>
-MIME-Version: 1.0
-To: =?ISO-8859-1?Q?D=EAnis_Goes?= <denishark@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: tm6010 status
-References: <4AC8C44E.4050103@free.fr> <f326ee1a0910040910p3400a8a7idd91a280e638bec5@mail.gmail.com>
-In-Reply-To: <f326ee1a0910040910p3400a8a7idd91a280e638bec5@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:3990 "EHLO
+	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756722AbZJ3TZk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Oct 2009 15:25:40 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr3.xs4all.nl (8.13.8/8.13.8) with ESMTP id n9UJPeLD004611
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 30 Oct 2009 20:25:44 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 30 Oct 2009 20:25:40 +0100 (CET)
+Message-Id: <200910301925.n9UJPeLD004611@smtp-vbr3.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Dênis Goes wrote:
-> Hi Matthieu...
-> I made the same answer yesterday... I want to help in development for use my
-> PixelView 405 USB.
-> 
-> Do you have the correct tridvid.sys file to extract the firmware ?
-> 
-No, I took the firmware (for the tuner) somewhere on internet.
+Results of the daily build of v4l-dvb:
 
-Some time ago I have done some usb sniffing on Windows for my HVR900H, study the linux driver and start
-some analysis [2].
+date:        Fri Oct 30 19:00:03 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13234:4ae02a41d03d
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-I found some strange thing on i2c bus [1]. Then I figure out what should be done to make
-work the digital part.
-But because of lack of time and motivation (like everybody ;) ), I stopped working on this.
+linux-2.6.22.19-armv5: WARNINGS
+linux-2.6.23.12-armv5: WARNINGS
+linux-2.6.24.7-armv5: WARNINGS
+linux-2.6.25.11-armv5: WARNINGS
+linux-2.6.26-armv5: WARNINGS
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-rc3-armv5: ERRORS
+linux-2.6.32-rc3-armv5-davinci: ERRORS
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29.1-armv5-ixp: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.32-rc3-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.32-rc3-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-rc3-i686: ERRORS
+linux-2.6.23.12-m32r: WARNINGS
+linux-2.6.24.7-m32r: WARNINGS
+linux-2.6.25.11-m32r: WARNINGS
+linux-2.6.26-m32r: WARNINGS
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-rc3-m32r: ERRORS
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.32-rc3-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: OK
+linux-2.6.32-rc3-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-rc3-x86_64: ERRORS
+sparse (linux-2.6.31): OK
+sparse (linux-2.6.32-rc3): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-Matthieu
+Detailed results are available here:
 
-[1] 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg00987.html
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-[2]
-== i2c ==
-0x1f zl
-0xa0 eeprom
-0xa2 ??? (0xff)
-0xa4
-0xa6->0xac ??? (0xff)
-0xae 
-0xc2 (tuner)
-== gpio ==
-0 (WP eeprom ?? )
-1 ZL RESET
-2 tuner_reset_gpio
-4 input sel ???
-5 (led green)
-7 (led blue)
-== eeprom format ==
-0x0-0x3 : magic ???
-0x4-0x15 : GetDescriptor device
-0xc VID
-0xE PID
-0x10 DID
-0x12 iManufacturer
-0x13 Product string
-0x14 SerialNumber
+Full logs are available here:
 
-0x40 string size (10 03) ???
-0x42-0x4f (Product string @32)
-0x94 string size (16 03)
-0x96-0xa9 (SerialNumber @64)
-0x16 string size (02 03)
-0x18-     (iManufacturer @16)
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-0x60 : iConfiguration index ???
-0x6a string size (0a 03)
-0x6c (iConfiguration @48)
+The V4L2 specification failed to build, but the last compiled spec is here:
 
-where is mac address and rev ???
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
