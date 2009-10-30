@@ -1,94 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:58954 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754944AbZJCNRP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 3 Oct 2009 09:17:15 -0400
-Subject: Re: AVerTV MCE 116 Plus remote
-From: Andy Walls <awalls@radix.net>
-To: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Oldrich Jedlicka <oldium.pro@seznam.cz>
-In-Reply-To: <20091002214909.GA4761@moon>
-References: <20091002214909.GA4761@moon>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 03 Oct 2009 09:19:07 -0400
-Message-Id: <1254575947.3169.11.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mail-pz0-f188.google.com ([209.85.222.188]:61363 "EHLO
+	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932717AbZJ3Rne convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Oct 2009 13:43:34 -0400
+Received: by pzk26 with SMTP id 26so2045043pzk.4
+        for <linux-media@vger.kernel.org>; Fri, 30 Oct 2009 10:43:38 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <83bcf6340910280712ue562142i5ef891fe2b701f3d@mail.gmail.com>
+References: <8d0bb7650910261544i4ebed975rf81ec6bc38076927@mail.gmail.com>
+	 <a413d4880910261623x44d106f4h167a7dab80a4a3f8@mail.gmail.com>
+	 <83bcf6340910270717n12066fb8oa4870eb3214d7597@mail.gmail.com>
+	 <8d0bb7650910270755v38f37f6fh3937e9727493854c@mail.gmail.com>
+	 <83bcf6340910270920i4323faf8mb5b482b75bda7291@mail.gmail.com>
+	 <8d0bb7650910272244wfdbdda0kae6bec6cd94e2bcc@mail.gmail.com>
+	 <83bcf6340910280708t67fdfbffw88dc4594ca527359@mail.gmail.com>
+	 <83bcf6340910280712ue562142i5ef891fe2b701f3d@mail.gmail.com>
+Date: Fri, 30 Oct 2009 11:43:37 -0600
+Message-ID: <8d0bb7650910301043n3ba0b37ja78d78370a9e5ca7@mail.gmail.com>
+Subject: Re: Hauppage HVR-2250 Tuning problems
+From: dan <danwalkeriv@gmail.com>
+To: Steven Toth <stoth@kernellabs.com>
+Cc: Another Sillyname <anothersname@googlemail.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2009-10-03 at 00:49 +0300, Aleksandr V. Piskunov wrote:
-> Preliminary version of patch adding support for AVerTV MCE 116 Plus remote.
-> This board has an IR sensor is connected to EM78P153S, general purpose 8-bit
-> microcontroller with a 1024 Ã— 13 bits of OTP-ROM. According to i2cdetect, it is
-> sitting on address 0x40.
-> 
-> Patch allows ir-kbd-i2c to probe cx2341x boards for this address. Manually
-> loading ir-kbd-i2c now detects remote, every key is working as expected.
-> 
-> As I understand, current I2C/probing code is being redesigned/refactored. Sheer
-> amount of #ifdefs for every second kernel version is making my eyes bleed, so
-> please somebody involved check if patch is ok. 
+Steven,
+
+I tried adding some 2 way splitters for attenuation.  Each one was
+-3dB, and I got up to about 5 total, with no change.
+
+I didn't get a chance to try under windows (for various reasons mostly
+related to time and lack of a Windows install CD), but I did get some
+evidence that it might be the card.  I have a friend at work with the
+same card which he has been using without problems for a while now (in
+Fedora 10).  He took my card home and swapped it for his working card
+and it didn't work.  He said that he got a message saying that the
+card couldn't lock and that he could either try waiting longer or try
+another channel.  He did both and he still couldn't get a lock.
+Unless there is some other reason that you can't just swap two working
+HVR-2250s in a working system and have the system still work, I'm
+inclined to believe I got a bad one.
+
+--dan
 
 
-Aleksandr,
-
-
-> Should I also add the 0x40 address to addr_list[] in ivtv-i2c.c? How to point
-> ivtv to this remote and autoload ir-kbd-i2c?
-
-No.
-
-
-At first glance, this patch doesn't look safe for all ivtv boards so:
-
-	Naked-by: Andy Walls <awalls@radix.net>
-
-
-In ivtv-i2c.c I see:
-
-	#define IVTV_MSP3400_I2C_ADDR           0x40
-
-It is probably not good to assume that only an IR microcontroller could
-be at I2C address 0x40 for a CX2341x adapter.
-
-I will work up an ivtv specific change similar to what I did in
-cx18-cards.c and cx18-i2c.c for IR on the HVR-1600 for bringing up the
-IR for the M116 cards alone.
-
-What kernel version do you use?
-
-Regards,
-Andy
-
-
-> diff --git a/linux/drivers/media/video/ir-kbd-i2c.c b/linux/drivers/media/video/ir-kbd-i2c.c
-> --- a/linux/drivers/media/video/ir-kbd-i2c.c
-> +++ b/linux/drivers/media/video/ir-kbd-i2c.c
-> @@ -461,7 +461,7 @@
->  		}
->  		break;
->  	case 0x40:
-> -		name        = "AVerMedia Cardbus remote";
-> +		name        = "AVerMedia RM-FP/RM-KH remote";
->  		ir->get_key = get_key_avermedia_cardbus;
->  		ir_type     = IR_TYPE_OTHER;
->  		ir_codes    = &ir_codes_avermedia_cardbus_table;
-> @@ -706,8 +706,12 @@
->  			ir_attach(adap, msg.addr, 0, 0);
->  	}
->  
-> -	/* Special case for AVerMedia Cardbus remote */
-> -	if (adap->id == I2C_HW_SAA7134) {
-> +	/* Special case for AVerMedia remotes:
-> +	   * AVerTV Hybrid+FM Cardbus
-> +	   * AVerTV MCE 116 Plus
-> +	   * probably others with RM-FP, RM-KH remotes and microcontroller
-> +	     chip @ 0x40 */
-> +	if ((adap->id == I2C_HW_SAA7134) || (adap->id == I2C_HW_B_CX2341X)) {
->  		unsigned char subaddr, data;
->  		struct i2c_msg msg[] = { { .addr = 0x40, .flags = 0,
->  					   .buf = &subaddr, .len = 1},
-
-
+On Wed, Oct 28, 2009 at 8:12 AM, Steven Toth <stoth@kernellabs.com> wrote:
+> On Wed, Oct 28, 2009 at 10:08 AM, Steven Toth <stoth@kernellabs.com> wrote:
+>> On Wed, Oct 28, 2009 at 1:44 AM, dan <danwalkeriv@gmail.com> wrote:
+>>> I do have 2 2-way splitters between the card in the wall.  I tried
+>>> hooking the card straight to the cable outlet on the wall and ran some
+>>> more tests.  It's a little difficult, because there's only one cable
+>>> outlet in my whole apartment, and it means doing some re-arranging and
+>>> being offline while I'm running the tests.
+>>
+>> Removing splitters proves it's probably not a weak signal issue (also
+>> the SNR or 39 on the TV).  Can you apply some attenuation to reduce
+>> the overall rf strength? I'm thinking it's too hot.
+>>
+>> Something must be using your second tuner, mythtv maybe?
+>
+> Oh, and please try the card under windows ideally on the same PC using
+> the same antenna feed, to rule out any card specific issues.
+>
+> --
+> Steven Toth - Kernel Labs
+> http://www.kernellabs.com
+>
