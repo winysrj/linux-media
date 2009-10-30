@@ -1,131 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f217.google.com ([209.85.219.217]:62539 "EHLO
-	mail-ew0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751768AbZJTJtG convert rfc822-to-8bit (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:62712 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932131AbZJ3N7j (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Oct 2009 05:49:06 -0400
-Received: by ewy17 with SMTP id 17so5150536ewy.39
-        for <linux-media@vger.kernel.org>; Tue, 20 Oct 2009 02:49:10 -0700 (PDT)
+	Fri, 30 Oct 2009 09:59:39 -0400
+Message-ID: <4AEAF14E.3090707@tripleplay-services.com>
+Date: Fri, 30 Oct 2009 13:59:42 +0000
+From: Lou Otway <louis.otway@tripleplay-services.com>
 MIME-Version: 1.0
-Date: Tue, 20 Oct 2009 11:49:10 +0200
-Message-ID: <e425a9f30910200249j214708f5q3836877fd2388ca@mail.gmail.com>
-Subject: Lifeview lv8h pci-e
-From: Oinatz Aspiazu <oaspiazu@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: "pierre.gronlier" <ticapix@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Determining MAC address or Serial Number
+References: <4AEAB4A6.6050502@tripleplay-services.com> <hcehh0$u72$1@ger.gmane.org>
+In-Reply-To: <hcehh0$u72$1@ger.gmane.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'd like to help to anyone who needs testing for this card.
-It seems that everyhting is recognized but the cx23885 needs something
-just to make it work.
+pierre.gronlier wrote:
+> Lou Otway wrote, On 10/30/2009 10:40 AM:
+>   
+>> Hi,
+>>
+>> I'm trying to find a way to be able to uniquely identify each device in
+>> a PC and was hoping to use either serial or MAC for this purpose.
+>>
+>> I've looked at the documentation but can't find a generic way to read
+>> back serial numbers or MAC addresses from V4L devices? Does such a
+>> function exist?
+>>     
+>
+>
+> Hi Lou,
+>
+> I'm using the mac address to identify each device and to do so I created
+> this script which use dvbnet to create network interface from the dvb card.
+>
+> a=<your adapter>
+> n=<your net device>
+> for ex. /dev/dvb/adapter1/net0 => a=1, n=0
+>
+>
+> # get mac address
+> iface=$(sudo /usr/bin/dvbnet -a $a -n $n -p 0 | awk '/device/ {print $3}')
+> sleep 1
+> mac_address=$(/sbin/ifconfig $iface | awk '/HWaddr/ {print $5}' | tr -d
+> ':' | tr A-Z a-z)
+> num=$(sudo /usr/bin/dvbnet -a $a -n $n -l | grep 'Found device ' | awk
+> '{print $3}' | tr -d ':')
+> sleep 1
+> sudo /usr/bin/dvbnet -a $a -n $n -d $num 1> /dev/null
+>
+>
+>
+> AFAIK, mac address are known only from the kernel and are not directly
+> exposed to the userland. I you manage to do something "cleaner", let me
+> know :)
+>
+>
+> Regards
+>
+> pierre gr.
+>
+>
+>   
+> re majordomo info at  http://vger.kernel.org/majordomo-info.html
+>   
+Thanks Pierre,
 
-Thanks
+Unfortunately only some of my devices reported a MAC address, I guess 
+that not all drivers have this feature built in. I think the same 
+problem will hold true for serial devices so I will look at another way 
+to list my devices.
 
-2009/10/13 Oinatz Aspiazu <oaspiazu@gmail.com>:
-> Hello:
-> I'm using an Arch Linux, kernel 2.6.30-ARCH.
-> I've a Lifeview LV8H pci-e dvb-t (low profile card) , that says:
-> # lspci -vv
->     03:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI
-> Video and Audio Decoder (rev 02)
->        Subsystem: Conexant Systems, Inc. Device ec80
->        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-> Stepping- SERR- FastB2B- DisINTx-
->        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
-> <TAbort- <MAbort- >SERR- <PERR- INTx-
->        Latency: 0, Cache Line Size: 64 bytes
->        Interrupt: pin A routed to IRQ 17
->        Region 0: Memory at fe800000 (64-bit, non-prefetchable) [size=2M]
->        Capabilities: <access denied>
->        Kernel driver in use: cx23885
->        Kernel modules: cx23885
-> cx23885 driver version 0.0.2 loaded
->
-> The cx23885 module, is supported by the kernel but does not seem to work for
-> this device. If i load the module without parameters, I get:
-> # dmesg | grep cx23885
-> ACPI: PCI Interrupt Link [LNEA] enabled at IRQ 17
-> cx23885 0000:03:00.0: PCI INT A -> Link[LNEA] -> GSI 17 (level, low) -> IRQ
-> 17
-> cx23885[0]: Your board isn't known (yet) to the driver.
-> cx23885[0]: Try to pick one of the existing card configs via
-> cx23885[0]: card=<n> insmod option.  Updating to the latest
-> cx23885[0]: version might help as well.
-> cx23885[0]: Here is a list of valid choices for the card=<n> insmod option:
-> cx23885[0]:    card=0 -> UNKNOWN/GENERIC
-> cx23885[0]:    card=1 -> Hauppauge WinTV-HVR1800lp
-> cx23885[0]:    card=2 -> Hauppauge WinTV-HVR1800
-> cx23885[0]:    card=3 -> Hauppauge WinTV-HVR1250
-> cx23885[0]:    card=4 -> DViCO FusionHDTV5 Express
-> cx23885[0]:    card=5 -> Hauppauge WinTV-HVR1500Q
-> cx23885[0]:    card=6 -> Hauppauge WinTV-HVR1500
-> cx23885[0]:    card=7 -> Hauppauge WinTV-HVR1200
-> cx23885[0]:    card=8 -> Hauppauge WinTV-HVR1700
-> cx23885[0]:    card=9 -> Hauppauge WinTV-HVR1400
-> cx23885[0]:    card=10 -> DViCO FusionHDTV7 Dual Express
-> cx23885[0]:    card=11 -> DViCO FusionHDTV DVB-T Dual Express
-> cx23885[0]:    card=12 -> Leadtek Winfast PxDVR3200 H
-> cx23885[0]:    card=13 -> Compro VideoMate E650F
-> cx23885[0]:    card=14 -> TurboSight TBS 6920
-> cx23885[0]:    card=15 -> TeVii S470
-> cx23885[0]:    card=16 -> DVBWorld DVB-S2 2005
-> cx23885[0]:    card=17 -> NetUP Dual DVB-S2 CI
-> CORE cx23885[0]: subsystem: 14f1:ec80, board: UNKNOWN/GENERIC
-> [card=0,autodetect
-> ed]
-> cx23885_dev_checkrevision() Hardware revision = 0xb0
-> cx23885[0]/0: found at 0000:03:00.0, rev: 2, irq: 17, latency: 0, mmio:
-> 0xfe8000
-> 00
-> cx23885 0000:03:00.0: setting latency timer to 64
-> IRQ 17/cx23885[0]: IRQF_DISABLED is not guaranteed on shared IRQs
->
-> Loading card=4, all the devices /dev/dvb/ are created (frontend,..). I get:
->
-> # dmesg | grep cx23885
-> Código: Seleccionar todo
->     cx23885 driver version 0.0.2 loaded
->     cx23885 0000:03:00.0: PCI INT A -> Link[LNEA] -> GSI 17 (level, low) ->
-> IRQ 17
->     CORE cx23885[0]: subsystem: 14f1:ec80, board: DViCO FusionHDTV5 Express
-> [card=4,insmod option]
->     cx23885_dvb_register() allocating 1 frontend(s)
->     cx23885[0]: cx23885 based dvb card
->     DVB: registering new adapter (cx23885[0])
->     cx23885_dev_checkrevision() Hardware revision = 0xb0
->     cx23885[0]/0: found at 0000:03:00.0, rev: 2, irq: 17, latency: 0, mmio:
-> 0xfe800000
->     cx23885 0000:03:00.0: setting latency timer to 64
->     IRQ 17/cx23885[0]: IRQF_DISABLED is not guaranteed on shared IRQs
->
-> Going to Kaffeine or making an scan from the console, it says that is in
-> mode ATSC and that is not compatable.
-> I'm living in Spain, and I have used this card as a PAL system.
->
->     initial transponder 546000000 0 3 9 1 0 0 0
->     initial transponder 578000000 0 2 9 3 0 0 0
->     initial transponder 625833000 0 2 9 3 0 0 0
->     initial transponder 705833000 0 3 9 1 0 0 0
->     initial transponder 649833000 0 3 9 1 0 0 0
->     initial transponder 673833000 0 3 9 1 0 0 0
->     WARNING: frontend type (ATSC) is not compatible with requested tuning
-> type (OFDM)
->     WARNING: frontend type (ATSC) is not compatible with requested tuning
-> type (OFDM)
->     WARNING: frontend type (ATSC) is not compatible with requested tuning
-> type (OFDM)
->     WARNING: frontend type (ATSC) is not compatible with requested tuning
-> type (OFDM)
->     WARNING: frontend type (ATSC) is not compatible with requested tuning
-> type (OFDM)
->     WARNING: frontend type (ATSC) is not compatible with requested tuning
-> type (OFDM)
->     ERROR: initial tuning failed
->
-> I've tried all options from the driver from the list. Only card=4, seems to
-> be valid.
-> Anyone can help me?
-> Thanks and sorry for my english,
-> Oinatz Aspiazu
+I was thinking to use lshw or lspci to give me a list of devices, from 
+that I can build my own table of devices each one with a unique value to 
+differentiate it from others. My worry is that the output from lshw or 
+lspci isn't sufficiently detailed to allow me to differentiate between 
+devices.
+
+Thanks,
+
+Lou
+
+
+
+
+
+
+
