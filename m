@@ -1,68 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:54627 "EHLO
-	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751257AbZJXQbz (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:59119 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932162AbZJ3Oeh convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Oct 2009 12:31:55 -0400
-Received: by pzk1 with SMTP id 1so291184pzk.33
-        for <linux-media@vger.kernel.org>; Sat, 24 Oct 2009 09:32:00 -0700 (PDT)
-Message-ID: <4AE32BFD.1090000@gmail.com>
-Date: Sun, 25 Oct 2009 00:31:57 +0800
-From: "David T. L. Wong" <davidtlwong@gmail.com>
+	Fri, 30 Oct 2009 10:34:37 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Date: Fri, 30 Oct 2009 09:34:35 -0500
+Subject: RE: [PATCH/RFC 0/9 v2] Image-bus API and accompanying soc-camera
+ patches
+Message-ID: <A69FA2915331DC488A831521EAE36FE40155798775@dlee06.ent.ti.com>
+References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: v4l-dvb <linux-media@vger.kernel.org>
-Subject: Re: Details about DVB frontend API
-References: <20091022211330.6e84c6e7@hyperion.delvare>
-In-Reply-To: <20091022211330.6e84c6e7@hyperion.delvare>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jean Delvare wrote:
-> Hi folks,
-> 
-> I am looking for details regarding the DVB frontend API. I've read
-> linux-dvb-api-1.0.0.pdf, it roughly explains what the FE_READ_BER,
-> FE_READ_SNR, FE_READ_SIGNAL_STRENGTH and FE_READ_UNCORRECTED_BLOCKS
-> commands return, however it does not give any information about how the
-> returned values should be interpreted (or, seen from the other end, how
-> the frontend kernel drivers should encode these values.) If there
-> documentation available that would explain this?
-> 
-> For example, the signal strength. All I know so far is that this is a
-> 16-bit value. But then what? Do greater values represent stronger
-> signal or weaker signal? Are 0x0000 and 0xffff special values? Is the
-> returned value meaningful even when FE_HAS_SIGNAL is 0? When
-> FE_HAS_LOCK is 0? Is the scale linear, or do some values have
-> well-defined meanings, or is it arbitrary and each driver can have its
-> own scale? What are the typical use cases by user-space application for
-> this value?
-> 
-> That's the kind of details I'd like to know, not only for the signal
-> strength, but also for the SNR, BER and UB. Without this information,
-> it seems a little difficult to have consistent frontend drivers.
-> 
-> Thanks,
+Guennadi,
 
-Hi all,
+Thanks for updating the driver. I will integrate it when I get a chance and let you know if I see any issues.
 
-   I am a bit late in this discussion.
+BTW, Is there someone developing a driver for MT9P031 sensor which is very similar to MT9T031? Do you suggest a separate driver for this sensor or
+add the support in MT9T031? I need a driver for this and plan to add it soon.
 
-   I just want to raise out a problem of the current architecture of FE 
-+ tuner.
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+email: m-karicheri2@ti.com
 
-   Indeed, the actual "Signal Strength" can only be get from tuner. 
-Tuner has amplifier internally and AGC. So demod can never know the 
-accurate signal strength. Demod only roughly knows signal-to-noise ratio.
+>-----Original Message-----
+>From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+>Sent: Friday, October 30, 2009 10:01 AM
+>To: Linux Media Mailing List
+>Cc: Hans Verkuil; Laurent Pinchart; Sakari Ailus; Karicheri, Muralidharan
+>Subject: [PATCH/RFC 0/9 v2] Image-bus API and accompanying soc-camera
+>patches
+>
+>Hi all
+>
+>As discussed yesterday, we sant to finalise the conversion of soc-camera
+>to v4l2-subdev. The presented 9 patches consist of a couple of clean-ups,
+>minor additions to existing APIs, and, most importantly, the second
+>version of the image-bus API. It hardly changed since v1, only got
+>extended with a couple more formats and driver conversions. The last patch
+>modifies mt9t031 sensor driver to enable its use outside of soc-camera.
+>Muralidharan, hopefully you'd be able to test it. I'll provide more
+>comments in the respective mail. A complete current patch-stack is
+>available at
+>
+>http://download.open-technology.de/soc-camera/20091030/
+>
+>based on 2.6.32-rc5. Patches, not included with these mails have either
+>been already pushed via hg, or posted to the list earlier.
+>
+>Thanks
+>Guennadi
+>---
+>Guennadi Liakhovetski, Ph.D.
+>Freelance Open-Source Software Developer
+>http://www.open-technology.de/
 
-   Correct me if I am wrong that I found FE == Demod in current code.
-Thus, asking FE to report the signal strength is not appropriate.
-
-   To achieve reporting actual signal strength, in commercial 
-proprietary code, it is a combination of readings from tuner + demod. 
-Which in turn,
-should sit in card/dongle specific code.
-
-Regards,
-David T.L. Wong
