@@ -1,98 +1,303 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.freemail.gr ([81.171.104.45]:60717 "EHLO www.freemail.gr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751247AbZJ1STk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Oct 2009 14:19:40 -0400
-Received: from www.freemail.gr (www.freemail.gr [127.0.0.1])
-	by www.freemail.gr (8.12.11.20060308/8.12.11) with SMTP id n9SIJie5023559
-	for <linux-media@vger.kernel.org>; Wed, 28 Oct 2009 20:19:44 +0200
-Reply-To: scoop_yo@freemail.gr
-From: scoop_yo@freemail.gr
-To: linux-media@vger.kernel.org
-Subject: Lifeview hybrid saa7134 pci driver not working anymore pt2
-Date: Wed, 28 Oct 2009 20:19:44 +0200
-Message-Id: <4ae88b401d9217.37011969@freemail.gr>
-MIME-version: 1.0
-Content-type: multipart/mixed; boundary="=_4ae88b403ce4e9.88322003=_";
+Received: from mail.gmx.net ([213.165.64.20]:48559 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S932141AbZJ3OBW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Oct 2009 10:01:22 -0400
+Date: Fri, 30 Oct 2009 15:01:36 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: [PATCH/RFC 9/9] mt9t031: make the use of the soc-camera client API
+ optional
+In-Reply-To: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
+Message-ID: <Pine.LNX.4.64.0910301442570.4378@axis700.grange>
+References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To l^mula aut| e_mai se loqv^ MIME. E\m to pq|cqalla akkgkocqav_ar sar dem jatakaba_mei
-aut^ tg loqv^, ]ma l]qor ^ to s}moko tou lgm}lator lpoqe_ ma lg diab\fetai.
+Now that we have moved most of the functions over to the v4l2-subdev API, only
+quering and setting bus parameters are still performed using the legacy
+soc-camera client API. Make the use of this API optional for mt9t031.
 
---=_4ae88b403ce4e9.88322003=_
-Content-Type: text/plain; charset="iso-8859-7"
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-pt1 is here http://linuxtv.org/pipermail/linux-dvb/2009-August/032334.html
+Muralidharan, this one is for you to test. To differentiate between the 
+soc-camera case and a generic user I check i2c client's platform data 
+(client->dev.platform_data), so, you have to make sure your user doesn't 
+use that field for something else.
+
+One more note: I'm not sure about where v4l2_device_unregister_subdev() 
+should be called. In soc-camera the core calls 
+v4l2_i2c_new_subdev_board(), which then calls 
+v4l2_device_register_subdev(). Logically, it's also the core that then 
+calls v4l2_device_unregister_subdev(). Whereas I see many other client 
+drivers call v4l2_device_unregister_subdev() internally. So, if your 
+bridge driver does not call v4l2_device_unregister_subdev() itself and 
+expects the client to call it, there will be a slight problem with that 
+too.
+
+ drivers/media/video/mt9t031.c |  146 ++++++++++++++++++++---------------------
+ 1 files changed, 70 insertions(+), 76 deletions(-)
+
+diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
+index c95c277..49357bd 100644
+--- a/drivers/media/video/mt9t031.c
++++ b/drivers/media/video/mt9t031.c
+@@ -204,6 +204,59 @@ static unsigned long mt9t031_query_bus_param(struct soc_camera_device *icd)
+ 	return soc_camera_apply_sensor_flags(icl, MT9T031_BUS_PARAM);
+ }
  
- I have a Lifeview Hybrid Pci card and since around August 2009 the driver doesn't work in 64bit linux but works only in 32bit linux.
- Now, I am using vanilla 2.6.31.5 source with latest mercurial v4b-dvb snapshot.
++static const struct v4l2_queryctrl mt9t031_controls[] = {
++	{
++		.id		= V4L2_CID_VFLIP,
++		.type		= V4L2_CTRL_TYPE_BOOLEAN,
++		.name		= "Flip Vertically",
++		.minimum	= 0,
++		.maximum	= 1,
++		.step		= 1,
++		.default_value	= 0,
++	}, {
++		.id		= V4L2_CID_HFLIP,
++		.type		= V4L2_CTRL_TYPE_BOOLEAN,
++		.name		= "Flip Horizontally",
++		.minimum	= 0,
++		.maximum	= 1,
++		.step		= 1,
++		.default_value	= 0,
++	}, {
++		.id		= V4L2_CID_GAIN,
++		.type		= V4L2_CTRL_TYPE_INTEGER,
++		.name		= "Gain",
++		.minimum	= 0,
++		.maximum	= 127,
++		.step		= 1,
++		.default_value	= 64,
++		.flags		= V4L2_CTRL_FLAG_SLIDER,
++	}, {
++		.id		= V4L2_CID_EXPOSURE,
++		.type		= V4L2_CTRL_TYPE_INTEGER,
++		.name		= "Exposure",
++		.minimum	= 1,
++		.maximum	= 255,
++		.step		= 1,
++		.default_value	= 255,
++		.flags		= V4L2_CTRL_FLAG_SLIDER,
++	}, {
++		.id		= V4L2_CID_EXPOSURE_AUTO,
++		.type		= V4L2_CTRL_TYPE_BOOLEAN,
++		.name		= "Automatic Exposure",
++		.minimum	= 0,
++		.maximum	= 1,
++		.step		= 1,
++		.default_value	= 1,
++	}
++};
++
++static struct soc_camera_ops mt9t031_ops = {
++	.set_bus_param		= mt9t031_set_bus_param,
++	.query_bus_param	= mt9t031_query_bus_param,
++	.controls		= mt9t031_controls,
++	.num_controls		= ARRAY_SIZE(mt9t031_controls),
++};
++
+ /* target must be _even_ */
+ static u16 mt9t031_skip(s32 *source, s32 target, s32 max)
+ {
+@@ -223,10 +276,9 @@ static u16 mt9t031_skip(s32 *source, s32 target, s32 max)
+ }
  
- I tried today again in my 64bit system to see if the driver works but again I discovered that it just doesn't work. I am using the same firmware on both 32 and 64bit linux installations and in 32bits I have no problem, everything works. I am choosing the same options in both 32 and 64bit installations.
+ /* rect is the sensor rectangle, the caller guarantees parameter validity */
+-static int mt9t031_set_params(struct soc_camera_device *icd,
++static int mt9t031_set_params(struct i2c_client *client,
+ 			      struct v4l2_rect *rect, u16 xskip, u16 yskip)
+ {
+-	struct i2c_client *client = to_i2c_client(to_soc_camera_control(icd));
+ 	struct mt9t031 *mt9t031 = to_mt9t031(client);
+ 	int ret;
+ 	u16 xbin, ybin;
+@@ -307,7 +359,7 @@ static int mt9t031_set_params(struct soc_camera_device *icd,
+ 		if (ret >= 0) {
+ 			const u32 shutter_max = MT9T031_MAX_HEIGHT + vblank;
+ 			const struct v4l2_queryctrl *qctrl =
+-				soc_camera_find_qctrl(icd->ops,
++				soc_camera_find_qctrl(&mt9t031_ops,
+ 						      V4L2_CID_EXPOSURE);
+ 			mt9t031->exposure = (shutter_max / 2 + (total_h - 1) *
+ 				 (qctrl->maximum - qctrl->minimum)) /
+@@ -333,7 +385,6 @@ static int mt9t031_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+ 	struct v4l2_rect rect = a->c;
+ 	struct i2c_client *client = sd->priv;
+ 	struct mt9t031 *mt9t031 = to_mt9t031(client);
+-	struct soc_camera_device *icd = client->dev.platform_data;
  
- The error that I get is in the attachement.
- It complains about firmware but the firmware is exactly the same with my 32bit installation where things work.
+ 	rect.width = ALIGN(rect.width, 2);
+ 	rect.height = ALIGN(rect.height, 2);
+@@ -344,7 +395,7 @@ static int mt9t031_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+ 	soc_camera_limit_side(&rect.top, &rect.height,
+ 		     MT9T031_ROW_SKIP, MT9T031_MIN_HEIGHT, MT9T031_MAX_HEIGHT);
  
- What's wrong with the saa7134 driver ?
-
-
---=_4ae88b403ce4e9.88322003=_
-Content-Type: text/x-log
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="new_tuner.log"
-
-TGludXggdmlkZW8gY2FwdHVyZSBpbnRlcmZhY2U6IHYyLjAwCnNhYTcxMzAvMzQ6IHY0bDIg
-ZHJpdmVyIHZlcnNpb24gMC4yLjE1IGxvYWRlZApBQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsg
-W0FQQzJdIGVuYWJsZWQgYXQgSVJRIDE3CnNhYTcxMzQgMDAwMDowNTowNy4wOiBQQ0kgSU5U
-IEEgLT4gTGlua1tBUEMyXSAtPiBHU0kgMTcgKGxldmVsLCBsb3cpIC0+IElSUSAxNwpzYWE3
-MTMzWzBdOiBmb3VuZCBhdCAwMDAwOjA1OjA3LjAsIHJldjogMjA5LCBpcnE6IDE3LCBsYXRl
-bmN5OiAzMiwgbW1pbzogMHhkMDAwMDAwMApzYWE3MTMzWzBdOiBzdWJzeXN0ZW06IDUxNjg6
-MzMwNiwgYm9hcmQ6IExpZmVWaWV3IEZseURWQi1UIEh5YnJpZCBDYXJkYnVzL01TSSBUViBA
-bnl3aGVyZSBBL0QgTkIgW2NhcmQ9OTQsYXV0b2RldGVjdGVkXQpzYWE3MTMzWzBdOiBib2Fy
-ZCBpbml0OiBncGlvIGlzIDIxMDAwMApJUlEgMTcvc2FhNzEzM1swXTogSVJRRl9ESVNBQkxF
-RCBpcyBub3QgZ3VhcmFudGVlZCBvbiBzaGFyZWQgSVJRcwpzYWE3MTMzWzBdOiBpMmMgZWVw
-cm9tIDAwOiA2OCA1MSAwNiAzMyA1NCAyMCAxYyAwMCA0MyA0MyBhOSAxYyA1NSBkMiBiMiA5
-MgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDEwOiAwMCAwMCA2MiAwOCBmZiAyMCBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDIwOiAwMSA0
-MCAwMSAwMyAwMyAwMSAwMSAwMyAwOCBmZiAwMSAxNiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBd
-OiBpMmMgZWVwcm9tIDMwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDQwOiBmZiAyMSAwMCBjMiA5NiAx
-MCAwNSAwMSAwMSAxNiAzMiAxNSBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9t
-IDUwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpz
-YWE3MTMzWzBdOiBpMmMgZWVwcm9tIDYwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDcwOiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBp
-MmMgZWVwcm9tIDgwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDkwOiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGEw
-OiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3
-MTMzWzBdOiBpMmMgZWVwcm9tIGIwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGMwOiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMg
-ZWVwcm9tIGQwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGUwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGYwOiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgppMmMtYWRh
-cHRlciBpMmMtMjogSW52YWxpZCA3LWJpdCBhZGRyZXNzIDB4N2EKdHVuZXIgMi0wMDRiOiBj
-aGlwIGZvdW5kIEAgMHg5NiAoc2FhNzEzM1swXSkKdGRhODI5eCAyLTAwNGI6IHNldHRpbmcg
-dHVuZXIgYWRkcmVzcyB0byA2MQp0ZGE4Mjl4IDItMDA0YjogdHlwZSBzZXQgdG8gdGRhODI5
-MCs3NWEKc2FhNzEzM1swXTogcmVnaXN0ZXJlZCBkZXZpY2UgdmlkZW8wIFt2NGwyXQpzYWE3
-MTMzWzBdOiByZWdpc3RlcmVkIGRldmljZSB2YmkwCnNhYTcxMzNbMF06IHJlZ2lzdGVyZWQg
-ZGV2aWNlIHJhZGlvMApzYWE3MTM0IEFMU0EgZHJpdmVyIGZvciBETUEgc291bmQgbG9hZGVk
-CklSUSAxNy9zYWE3MTMzWzBdOiBJUlFGX0RJU0FCTEVEIGlzIG5vdCBndWFyYW50ZWVkIG9u
-IHNoYXJlZCBJUlFzCnNhYTcxMzNbMF0vYWxzYTogc2FhNzEzM1swXSBhdCAweGQwMDAwMDAw
-IGlycSAxNyByZWdpc3RlcmVkIGFzIGNhcmQgLTEKZHZiX2luaXQoKSBhbGxvY2F0aW5nIDEg
-ZnJvbnRlbmQKRFZCOiByZWdpc3RlcmluZyBuZXcgYWRhcHRlciAoc2FhNzEzM1swXSkKRFZC
-OiByZWdpc3RlcmluZyBhZGFwdGVyIDAgZnJvbnRlbmQgMCAoUGhpbGlwcyBUREExMDA0Nkgg
-RFZCLVQpLi4uCnRkYTEwMDR4OiBzZXR0aW5nIHVwIHBsbHMgZm9yIDQ4TUh6IHNhbXBsaW5n
-IGNsb2NrCnRkYTEwMDR4OiBmb3VuZCBmaXJtd2FyZSByZXZpc2lvbiBlYSAtLSBpbnZhbGlk
-CnRkYTEwMDR4OiB0cnlpbmcgdG8gYm9vdCBmcm9tIGVlcHJvbQp0ZGExMDA0eDogZm91bmQg
-ZmlybXdhcmUgcmV2aXNpb24gZWEgLS0gaW52YWxpZAp0ZGExMDA0eDogd2FpdGluZyBmb3Ig
-ZmlybXdhcmUgdXBsb2FkLi4uCnNhYTcxMzQgMDAwMDowNTowNy4wOiBmaXJtd2FyZTogcmVx
-dWVzdGluZyBkdmItZmUtdGRhMTAwNDYuZncKdGRhMTAwNHg6IEVycm9yIGR1cmluZyBmaXJt
-d2FyZSB1cGxvYWQKdGRhMTAwNHg6IGZvdW5kIGZpcm13YXJlIHJldmlzaW9uIGVhIC0tIGlu
-dmFsaWQKdGRhMTAwNHg6IGZpcm13YXJlIHVwbG9hZCBmYWlsZWQKdGRhODI3eF9wcm9iZV92
-ZXJzaW9uOiBjb3VsZCBub3QgcmVhZCBmcm9tIHR1bmVyIGF0IGFkZHI6IDB4YzIKCg==
-
---=_4ae88b403ce4e9.88322003=_--
+-	return mt9t031_set_params(icd, &rect, mt9t031->xskip, mt9t031->yskip);
++	return mt9t031_set_params(client, &rect, mt9t031->xskip, mt9t031->yskip);
+ }
+ 
+ static int mt9t031_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+@@ -391,7 +442,6 @@ static int mt9t031_s_fmt(struct v4l2_subdev *sd,
+ {
+ 	struct i2c_client *client = sd->priv;
+ 	struct mt9t031 *mt9t031 = to_mt9t031(client);
+-	struct soc_camera_device *icd = client->dev.platform_data;
+ 	u16 xskip, yskip;
+ 	struct v4l2_rect rect = mt9t031->rect;
+ 
+@@ -403,7 +453,7 @@ static int mt9t031_s_fmt(struct v4l2_subdev *sd,
+ 	yskip = mt9t031_skip(&rect.height, imgf->height, MT9T031_MAX_HEIGHT);
+ 
+ 	/* mt9t031_set_params() doesn't change width and height */
+-	return mt9t031_set_params(icd, &rect, xskip, yskip);
++	return mt9t031_set_params(client, &rect, xskip, yskip);
+ }
+ 
+ /*
+@@ -476,59 +526,6 @@ static int mt9t031_s_register(struct v4l2_subdev *sd,
+ }
+ #endif
+ 
+-static const struct v4l2_queryctrl mt9t031_controls[] = {
+-	{
+-		.id		= V4L2_CID_VFLIP,
+-		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+-		.name		= "Flip Vertically",
+-		.minimum	= 0,
+-		.maximum	= 1,
+-		.step		= 1,
+-		.default_value	= 0,
+-	}, {
+-		.id		= V4L2_CID_HFLIP,
+-		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+-		.name		= "Flip Horizontally",
+-		.minimum	= 0,
+-		.maximum	= 1,
+-		.step		= 1,
+-		.default_value	= 0,
+-	}, {
+-		.id		= V4L2_CID_GAIN,
+-		.type		= V4L2_CTRL_TYPE_INTEGER,
+-		.name		= "Gain",
+-		.minimum	= 0,
+-		.maximum	= 127,
+-		.step		= 1,
+-		.default_value	= 64,
+-		.flags		= V4L2_CTRL_FLAG_SLIDER,
+-	}, {
+-		.id		= V4L2_CID_EXPOSURE,
+-		.type		= V4L2_CTRL_TYPE_INTEGER,
+-		.name		= "Exposure",
+-		.minimum	= 1,
+-		.maximum	= 255,
+-		.step		= 1,
+-		.default_value	= 255,
+-		.flags		= V4L2_CTRL_FLAG_SLIDER,
+-	}, {
+-		.id		= V4L2_CID_EXPOSURE_AUTO,
+-		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+-		.name		= "Automatic Exposure",
+-		.minimum	= 0,
+-		.maximum	= 1,
+-		.step		= 1,
+-		.default_value	= 1,
+-	}
+-};
+-
+-static struct soc_camera_ops mt9t031_ops = {
+-	.set_bus_param		= mt9t031_set_bus_param,
+-	.query_bus_param	= mt9t031_query_bus_param,
+-	.controls		= mt9t031_controls,
+-	.num_controls		= ARRAY_SIZE(mt9t031_controls),
+-};
+-
+ static int mt9t031_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+ {
+ 	struct i2c_client *client = sd->priv;
+@@ -565,7 +562,6 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+ {
+ 	struct i2c_client *client = sd->priv;
+ 	struct mt9t031 *mt9t031 = to_mt9t031(client);
+-	struct soc_camera_device *icd = client->dev.platform_data;
+ 	const struct v4l2_queryctrl *qctrl;
+ 	int data;
+ 
+@@ -657,7 +653,8 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+ 
+ 			if (set_shutter(client, total_h) < 0)
+ 				return -EIO;
+-			qctrl = soc_camera_find_qctrl(icd->ops, V4L2_CID_EXPOSURE);
++			qctrl = soc_camera_find_qctrl(&mt9t031_ops,
++						      V4L2_CID_EXPOSURE);
+ 			mt9t031->exposure = (shutter_max / 2 + (total_h - 1) *
+ 				 (qctrl->maximum - qctrl->minimum)) /
+ 				shutter_max + qctrl->minimum;
+@@ -751,18 +748,16 @@ static int mt9t031_probe(struct i2c_client *client,
+ 	struct mt9t031 *mt9t031;
+ 	struct soc_camera_device *icd = client->dev.platform_data;
+ 	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
+-	struct soc_camera_link *icl;
+ 	int ret;
+ 
+-	if (!icd) {
+-		dev_err(&client->dev, "MT9T031: missing soc-camera data!\n");
+-		return -EINVAL;
+-	}
++	if (icd) {
++		struct soc_camera_link *icl = to_soc_camera_link(icd);
++		if (!icl) {
++			dev_err(&client->dev, "MT9T031 driver needs platform data\n");
++			return -EINVAL;
++		}
+ 
+-	icl = to_soc_camera_link(icd);
+-	if (!icl) {
+-		dev_err(&client->dev, "MT9T031 driver needs platform data\n");
+-		return -EINVAL;
++		icd->ops = &mt9t031_ops;
+ 	}
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
+@@ -777,9 +772,6 @@ static int mt9t031_probe(struct i2c_client *client,
+ 
+ 	v4l2_i2c_subdev_init(&mt9t031->subdev, client, &mt9t031_subdev_ops);
+ 
+-	/* Second stage probe - when a capture adapter is there */
+-	icd->ops		= &mt9t031_ops;
+-
+ 	mt9t031->rect.left	= MT9T031_COLUMN_SKIP;
+ 	mt9t031->rect.top	= MT9T031_ROW_SKIP;
+ 	mt9t031->rect.width	= MT9T031_MAX_WIDTH;
+@@ -801,7 +793,8 @@ static int mt9t031_probe(struct i2c_client *client,
+ 	mt9t031_disable(client);
+ 
+ 	if (ret) {
+-		icd->ops = NULL;
++		if (icd)
++			icd->ops = NULL;
+ 		i2c_set_clientdata(client, NULL);
+ 		kfree(mt9t031);
+ 	}
+@@ -814,7 +807,8 @@ static int mt9t031_remove(struct i2c_client *client)
+ 	struct mt9t031 *mt9t031 = to_mt9t031(client);
+ 	struct soc_camera_device *icd = client->dev.platform_data;
+ 
+-	icd->ops = NULL;
++	if (icd)
++		icd->ops = NULL;
+ 	i2c_set_clientdata(client, NULL);
+ 	client->driver = NULL;
+ 	kfree(mt9t031);
+-- 
+1.6.2.4
 
