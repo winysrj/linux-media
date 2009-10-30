@@ -1,115 +1,376 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:52590 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753001AbZJBXKA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Oct 2009 19:10:00 -0400
-Received: from list by lo.gmane.org with local (Exim 4.50)
-	id 1MtrGF-0002CN-KB
-	for linux-media@vger.kernel.org; Sat, 03 Oct 2009 01:10:03 +0200
-Received: from proxysb02.ext.ti.com ([192.94.94.106])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sat, 03 Oct 2009 01:10:03 +0200
-Received: from rtivy by proxysb02.ext.ti.com with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sat, 03 Oct 2009 01:10:03 +0200
-To: linux-media@vger.kernel.org
-From: Robert Tivy <rtivy@ti.com>
-Subject: Re: [RFC] Global video buffers pool
-Date: Fri, 2 Oct 2009 22:57:29 +0000 (UTC)
-Message-ID: <loom.20091003T005632-488@post.gmane.org>
-References: <200909161746.39754.laurent.pinchart@ideasonboard.com> <D019E777779A4345963526A1797F28D409E78C5B57@NOK-EUMSG-02.mgdnok.nokia.com> <200909282354.25563.laurent.pinchart@ideasonboard.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:49601 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S932103AbZJ3OAw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Oct 2009 10:00:52 -0400
+Date: Fri, 30 Oct 2009 15:01:06 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: [PATCH 2/9] v4l: add new v4l2-subdev sensor operations, use
+ g_skip_top_lines in soc-camera
+In-Reply-To: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
+Message-ID: <Pine.LNX.4.64.0910301403550.4378@axis700.grange>
+References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart <laurent.pinchart <at> ideasonboard.com> writes:
+Introduce new v4l2-subdev sensor operations, move .enum_framesizes() and
+.enum_frameintervals() methods to it, add a new .g_skip_top_lines() method
+and switch soc-camera to use it instead of .y_skip_top soc_camera_device
+member, which can now be removed.
 
-> 
-> Hi Stefan,
-> 
-> On Monday 28 September 2009 16:04:58 Stefan.Kost <at> nokia.com wrote:
-> > hi,
-> > 
-> > >-----Original Message-----
-> > >From: ext Laurent Pinchart [mailto:laurent.pinchart <at> ideasonboard.com]
-> > >Sent: 16 September, 2009 18:47
-> > >To: linux-media <at> vger.kernel.org; Hans Verkuil; Sakari Ailus;
-> > >Cohen David.A (Nokia-D/Helsinki); Koskipaa Antti
-> > >(Nokia-D/Helsinki); Zutshi Vimarsh (Nokia-D/Helsinki); Kost
-> > >Stefan (Nokia-D/Helsinki)
-> > >Subject: [RFC] Global video buffers pool
-> > >
-> > > Hi everybody,
-> > >
-> > > I didn't want to miss this year's pretty flourishing RFC
-> > > season, so here's another one about a global video buffers pool.
-> > 
-> > Sorry for ther very late reply.
-> 
-> No worries, better late than never.
-> 
-> > I have been thinking about the problem on a bit broader scale and see the
-> > need for something more kernel wide. E.g. there is some work done from 
-intel
-> > for graphics:
-> > http://keithp.com/blogs/gem_update/
-> > 
-> > and this is not so much embedded even. If there buffer pools are
-> > v4l2specific then we need to make all those other subsystems like xvideo,
-> > opengl, dsp-bridges become v4l2 media controllers.
-> 
-> The global video buffers pool topic has been discussed during the v4l2 mini-
-> summit at Portland last week, and we all agreed that it needs more research.
-> 
-> The idea of having pools at the media controller level has been dropped in 
-> favor of a kernel-wide video buffers pool. Whether we can make the buffers 
-> pool not v4l2-specific still needs to be tested. As you have pointed out, we 
-> currently have a GPU memory manager in the kernel, and being able to 
-interact 
-> with it would be very interesting if we want to DMA video data to OpenGL 
-> texture buffers for instance. I'm not sure if that would be possible though, 
-> as the GPU and the video acquisition hardware might have different memory 
-> requirements, at least in the general case. I will contact the GEM guys at 
-> Intel to discuss the topic.
-> 
-> If we can't share the buffers between the GPU and the rest of the system, we 
-> could at least create a V4L2 wrapper on top of the DSP bridge core (which 
-will 
-> require a major cleanup/restructuring), making it possible to share video 
-> buffers between the ISP and the DSP.
-> 
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+Reviewed-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ drivers/media/video/mt9m001.c             |   30 ++++++++++++++++++++------
+ drivers/media/video/mt9m111.c             |    1 -
+ drivers/media/video/mt9t031.c             |    8 ++----
+ drivers/media/video/mt9v022.c             |   32 ++++++++++++++++++++--------
+ drivers/media/video/pxa_camera.c          |    9 ++++++-
+ drivers/media/video/soc_camera_platform.c |    1 -
+ include/media/soc_camera.h                |    1 -
+ include/media/v4l2-subdev.h               |   13 +++++++++++
+ 8 files changed, 69 insertions(+), 26 deletions(-)
 
-
-TI has been providing this sort of contiguous buffer support for quite a few 
-years now.  TI provides a SW package named LinuxUtils, and it contains a 
-module named CMEM (stand for Contiguous MEMory manager).
-
-Latest LinuxUtils release, contains cdocs of CMEM:
-http://software-
-dl.ti.com/dsps/dsps_public_sw/sdo_sb/targetcontent/linuxutils/2_24_03/exports/l
-inuxutils_2_24_03.tar.gz
-
-And the background/usage article here:
-http://tiexpressdsp.com/index.php/CMEM_Overview
-
-CMEM solves lots of the same sorts of things that the driver described in this 
-thread does.  However, it doesn't integrate into other drivers, and it's 
-accessed through the CMEM user interface.  Also, CMEM alleviates some of the 
-issues raised in this thread since it uses memory not known to the kernel 
-(user "carves out" a chunk by reducing kernel memory through u-boot mem= 
-param), which IMO can be both good and bad (good - alleviates 
-locking/unavailable memory issues, bad - doesn't cooperate with the kernel in 
-getting memory, requiring user intervention).
-
-Regards,
-
-Robert Tivy
-MGTS
-Systems Software
-Texas Instruments, Santa Barbara
-
-
+diff --git a/drivers/media/video/mt9m001.c b/drivers/media/video/mt9m001.c
+index 45388d2..17be2d4 100644
+--- a/drivers/media/video/mt9m001.c
++++ b/drivers/media/video/mt9m001.c
+@@ -82,6 +82,7 @@ struct mt9m001 {
+ 	int model;	/* V4L2_IDENT_MT9M001* codes from v4l2-chip-ident.h */
+ 	unsigned int gain;
+ 	unsigned int exposure;
++	unsigned short y_skip_top;	/* Lines to skip at the top */
+ 	unsigned char autoexposure;
+ };
+ 
+@@ -222,7 +223,7 @@ static int mt9m001_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+ 	soc_camera_limit_side(&rect.top, &rect.height,
+ 		     MT9M001_ROW_SKIP, MT9M001_MIN_HEIGHT, MT9M001_MAX_HEIGHT);
+ 
+-	total_h = rect.height + icd->y_skip_top + vblank;
++	total_h = rect.height + mt9m001->y_skip_top + vblank;
+ 
+ 	/* Blanking and start values - default... */
+ 	ret = reg_write(client, MT9M001_HORIZONTAL_BLANKING, hblank);
+@@ -239,7 +240,7 @@ static int mt9m001_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+ 		ret = reg_write(client, MT9M001_WINDOW_WIDTH, rect.width - 1);
+ 	if (!ret)
+ 		ret = reg_write(client, MT9M001_WINDOW_HEIGHT,
+-				rect.height + icd->y_skip_top - 1);
++				rect.height + mt9m001->y_skip_top - 1);
+ 	if (!ret && mt9m001->autoexposure) {
+ 		ret = reg_write(client, MT9M001_SHUTTER_WIDTH, total_h);
+ 		if (!ret) {
+@@ -327,13 +328,13 @@ static int mt9m001_s_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
+ static int mt9m001_try_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
+ {
+ 	struct i2c_client *client = sd->priv;
+-	struct soc_camera_device *icd = client->dev.platform_data;
++	struct mt9m001 *mt9m001 = to_mt9m001(client);
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+ 
+ 	v4l_bound_align_image(&pix->width, MT9M001_MIN_WIDTH,
+ 		MT9M001_MAX_WIDTH, 1,
+-		&pix->height, MT9M001_MIN_HEIGHT + icd->y_skip_top,
+-		MT9M001_MAX_HEIGHT + icd->y_skip_top, 0, 0);
++		&pix->height, MT9M001_MIN_HEIGHT + mt9m001->y_skip_top,
++		MT9M001_MAX_HEIGHT + mt9m001->y_skip_top, 0, 0);
+ 
+ 	if (pix->pixelformat == V4L2_PIX_FMT_SBGGR8 ||
+ 	    pix->pixelformat == V4L2_PIX_FMT_SBGGR16)
+@@ -552,7 +553,7 @@ static int mt9m001_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+ 		if (ctrl->value) {
+ 			const u16 vblank = 25;
+ 			unsigned int total_h = mt9m001->rect.height +
+-				icd->y_skip_top + vblank;
++				mt9m001->y_skip_top + vblank;
+ 			if (reg_write(client, MT9M001_SHUTTER_WIDTH,
+ 				      total_h) < 0)
+ 				return -EIO;
+@@ -655,6 +656,16 @@ static void mt9m001_video_remove(struct soc_camera_device *icd)
+ 		icl->free_bus(icl);
+ }
+ 
++static int mt9m001_g_skip_top_lines(struct v4l2_subdev *sd, u32 *lines)
++{
++	struct i2c_client *client = sd->priv;
++	struct mt9m001 *mt9m001 = to_mt9m001(client);
++
++	*lines = mt9m001->y_skip_top;
++
++	return 0;
++}
++
+ static struct v4l2_subdev_core_ops mt9m001_subdev_core_ops = {
+ 	.g_ctrl		= mt9m001_g_ctrl,
+ 	.s_ctrl		= mt9m001_s_ctrl,
+@@ -675,9 +686,14 @@ static struct v4l2_subdev_video_ops mt9m001_subdev_video_ops = {
+ 	.cropcap	= mt9m001_cropcap,
+ };
+ 
++static struct v4l2_subdev_sensor_ops mt9m001_subdev_sensor_ops = {
++	.g_skip_top_lines	= mt9m001_g_skip_top_lines,
++};
++
+ static struct v4l2_subdev_ops mt9m001_subdev_ops = {
+ 	.core	= &mt9m001_subdev_core_ops,
+ 	.video	= &mt9m001_subdev_video_ops,
++	.sensor	= &mt9m001_subdev_sensor_ops,
+ };
+ 
+ static int mt9m001_probe(struct i2c_client *client,
+@@ -714,8 +730,8 @@ static int mt9m001_probe(struct i2c_client *client,
+ 
+ 	/* Second stage probe - when a capture adapter is there */
+ 	icd->ops		= &mt9m001_ops;
+-	icd->y_skip_top		= 0;
+ 
++	mt9m001->y_skip_top	= 0;
+ 	mt9m001->rect.left	= MT9M001_COLUMN_SKIP;
+ 	mt9m001->rect.top	= MT9M001_ROW_SKIP;
+ 	mt9m001->rect.width	= MT9M001_MAX_WIDTH;
+diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+index 90da699..30db625 100644
+--- a/drivers/media/video/mt9m111.c
++++ b/drivers/media/video/mt9m111.c
+@@ -1019,7 +1019,6 @@ static int mt9m111_probe(struct i2c_client *client,
+ 
+ 	/* Second stage probe - when a capture adapter is there */
+ 	icd->ops		= &mt9m111_ops;
+-	icd->y_skip_top		= 0;
+ 
+ 	mt9m111->rect.left	= MT9M111_MIN_DARK_COLS;
+ 	mt9m111->rect.top	= MT9M111_MIN_DARK_ROWS;
+diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
+index 6966f64..57e04e9 100644
+--- a/drivers/media/video/mt9t031.c
++++ b/drivers/media/video/mt9t031.c
+@@ -301,9 +301,9 @@ static int mt9t031_set_params(struct soc_camera_device *icd,
+ 		ret = reg_write(client, MT9T031_WINDOW_WIDTH, rect->width - 1);
+ 	if (ret >= 0)
+ 		ret = reg_write(client, MT9T031_WINDOW_HEIGHT,
+-				rect->height + icd->y_skip_top - 1);
++				rect->height - 1);
+ 	if (ret >= 0 && mt9t031->autoexposure) {
+-		unsigned int total_h = rect->height + icd->y_skip_top + vblank;
++		unsigned int total_h = rect->height + vblank;
+ 		ret = set_shutter(client, total_h);
+ 		if (ret >= 0) {
+ 			const u32 shutter_max = MT9T031_MAX_HEIGHT + vblank;
+@@ -656,8 +656,7 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+ 		if (ctrl->value) {
+ 			const u16 vblank = MT9T031_VERTICAL_BLANK;
+ 			const u32 shutter_max = MT9T031_MAX_HEIGHT + vblank;
+-			unsigned int total_h = mt9t031->rect.height +
+-				icd->y_skip_top + vblank;
++			unsigned int total_h = mt9t031->rect.height + vblank;
+ 
+ 			if (set_shutter(client, total_h) < 0)
+ 				return -EIO;
+@@ -773,7 +772,6 @@ static int mt9t031_probe(struct i2c_client *client,
+ 
+ 	/* Second stage probe - when a capture adapter is there */
+ 	icd->ops		= &mt9t031_ops;
+-	icd->y_skip_top		= 0;
+ 
+ 	mt9t031->rect.left	= MT9T031_COLUMN_SKIP;
+ 	mt9t031->rect.top	= MT9T031_ROW_SKIP;
+diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
+index 995607f..b71898f 100644
+--- a/drivers/media/video/mt9v022.c
++++ b/drivers/media/video/mt9v022.c
+@@ -97,6 +97,7 @@ struct mt9v022 {
+ 	__u32 fourcc;
+ 	int model;	/* V4L2_IDENT_MT9V022* codes from v4l2-chip-ident.h */
+ 	u16 chip_control;
++	unsigned short y_skip_top;	/* Lines to skip at the top */
+ };
+ 
+ static struct mt9v022 *to_mt9v022(const struct i2c_client *client)
+@@ -265,7 +266,6 @@ static int mt9v022_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+ 	struct i2c_client *client = sd->priv;
+ 	struct mt9v022 *mt9v022 = to_mt9v022(client);
+ 	struct v4l2_rect rect = a->c;
+-	struct soc_camera_device *icd = client->dev.platform_data;
+ 	int ret;
+ 
+ 	/* Bayer format - even size lengths */
+@@ -287,10 +287,10 @@ static int mt9v022_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+ 	if (ret >= 0) {
+ 		if (ret & 1) /* Autoexposure */
+ 			ret = reg_write(client, MT9V022_MAX_TOTAL_SHUTTER_WIDTH,
+-					rect.height + icd->y_skip_top + 43);
++					rect.height + mt9v022->y_skip_top + 43);
+ 		else
+ 			ret = reg_write(client, MT9V022_TOTAL_SHUTTER_WIDTH,
+-					rect.height + icd->y_skip_top + 43);
++					rect.height + mt9v022->y_skip_top + 43);
+ 	}
+ 	/* Setup frame format: defaults apart from width and height */
+ 	if (!ret)
+@@ -309,7 +309,7 @@ static int mt9v022_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+ 		ret = reg_write(client, MT9V022_WINDOW_WIDTH, rect.width);
+ 	if (!ret)
+ 		ret = reg_write(client, MT9V022_WINDOW_HEIGHT,
+-				rect.height + icd->y_skip_top);
++				rect.height + mt9v022->y_skip_top);
+ 
+ 	if (ret < 0)
+ 		return ret;
+@@ -410,15 +410,15 @@ static int mt9v022_s_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
+ static int mt9v022_try_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
+ {
+ 	struct i2c_client *client = sd->priv;
+-	struct soc_camera_device *icd = client->dev.platform_data;
++	struct mt9v022 *mt9v022 = to_mt9v022(client);
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+ 	int align = pix->pixelformat == V4L2_PIX_FMT_SBGGR8 ||
+ 		pix->pixelformat == V4L2_PIX_FMT_SBGGR16;
+ 
+ 	v4l_bound_align_image(&pix->width, MT9V022_MIN_WIDTH,
+ 		MT9V022_MAX_WIDTH, align,
+-		&pix->height, MT9V022_MIN_HEIGHT + icd->y_skip_top,
+-		MT9V022_MAX_HEIGHT + icd->y_skip_top, align, 0);
++		&pix->height, MT9V022_MIN_HEIGHT + mt9v022->y_skip_top,
++		MT9V022_MAX_HEIGHT + mt9v022->y_skip_top, align, 0);
+ 
+ 	return 0;
+ }
+@@ -787,6 +787,16 @@ static void mt9v022_video_remove(struct soc_camera_device *icd)
+ 		icl->free_bus(icl);
+ }
+ 
++static int mt9v022_g_skip_top_lines(struct v4l2_subdev *sd, u32 *lines)
++{
++	struct i2c_client *client = sd->priv;
++	struct mt9v022 *mt9v022 = to_mt9v022(client);
++
++	*lines = mt9v022->y_skip_top;
++
++	return 0;
++}
++
+ static struct v4l2_subdev_core_ops mt9v022_subdev_core_ops = {
+ 	.g_ctrl		= mt9v022_g_ctrl,
+ 	.s_ctrl		= mt9v022_s_ctrl,
+@@ -807,9 +817,14 @@ static struct v4l2_subdev_video_ops mt9v022_subdev_video_ops = {
+ 	.cropcap	= mt9v022_cropcap,
+ };
+ 
++static struct v4l2_subdev_sensor_ops mt9v022_subdev_sensor_ops = {
++	.g_skip_top_lines	= mt9v022_g_skip_top_lines,
++};
++
+ static struct v4l2_subdev_ops mt9v022_subdev_ops = {
+ 	.core	= &mt9v022_subdev_core_ops,
+ 	.video	= &mt9v022_subdev_video_ops,
++	.sensor	= &mt9v022_subdev_sensor_ops,
+ };
+ 
+ static int mt9v022_probe(struct i2c_client *client,
+@@ -851,8 +866,7 @@ static int mt9v022_probe(struct i2c_client *client,
+ 	 * MT9V022 _really_ corrupts the first read out line.
+ 	 * TODO: verify on i.MX31
+ 	 */
+-	icd->y_skip_top		= 1;
+-
++	mt9v022->y_skip_top	= 1;
+ 	mt9v022->rect.left	= MT9V022_COLUMN_SKIP;
+ 	mt9v022->rect.top	= MT9V022_ROW_SKIP;
+ 	mt9v022->rect.width	= MT9V022_MAX_WIDTH;
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index 51b683c..4df09a6 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -1051,8 +1051,13 @@ static void pxa_camera_setup_cicr(struct soc_camera_device *icd,
+ {
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+ 	struct pxa_camera_dev *pcdev = ici->priv;
++	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+ 	unsigned long dw, bpp;
+-	u32 cicr0, cicr1, cicr2, cicr3, cicr4 = 0;
++	u32 cicr0, cicr1, cicr2, cicr3, cicr4 = 0, y_skip_top;
++	int ret = v4l2_subdev_call(sd, sensor, g_skip_top_lines, &y_skip_top);
++
++	if (ret < 0)
++		y_skip_top = 0;
+ 
+ 	/* Datawidth is now guaranteed to be equal to one of the three values.
+ 	 * We fix bit-per-pixel equal to data-width... */
+@@ -1118,7 +1123,7 @@ static void pxa_camera_setup_cicr(struct soc_camera_device *icd,
+ 
+ 	cicr2 = 0;
+ 	cicr3 = CICR3_LPF_VAL(icd->user_height - 1) |
+-		CICR3_BFW_VAL(min((unsigned short)255, icd->y_skip_top));
++		CICR3_BFW_VAL(min((u32)255, y_skip_top));
+ 	cicr4 |= pcdev->mclk_divisor;
+ 
+ 	__raw_writel(cicr1, pcdev->base + CICR1);
+diff --git a/drivers/media/video/soc_camera_platform.c b/drivers/media/video/soc_camera_platform.c
+index b6a575c..c7c9151 100644
+--- a/drivers/media/video/soc_camera_platform.c
++++ b/drivers/media/video/soc_camera_platform.c
+@@ -128,7 +128,6 @@ static int soc_camera_platform_probe(struct platform_device *pdev)
+ 	/* Set the control device reference */
+ 	dev_set_drvdata(&icd->dev, &pdev->dev);
+ 
+-	icd->y_skip_top		= 0;
+ 	icd->ops		= &soc_camera_platform_ops;
+ 
+ 	ici = to_soc_camera_host(icd->dev.parent);
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index c5afc8c..218639f 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -24,7 +24,6 @@ struct soc_camera_device {
+ 	struct device *pdev;		/* Platform device */
+ 	s32 user_width;
+ 	s32 user_height;
+-	unsigned short y_skip_top;	/* Lines to skip at the top */
+ 	unsigned char iface;		/* Host number */
+ 	unsigned char devnum;		/* Device number per host */
+ 	unsigned char buswidth;		/* See comment in .c */
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index d411345..04193eb 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -227,8 +227,20 @@ struct v4l2_subdev_video_ops {
+ 	int (*s_crop)(struct v4l2_subdev *sd, struct v4l2_crop *crop);
+ 	int (*g_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
+ 	int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
++};
++
++/**
++ * struct v4l2_subdev_sensor_ops - v4l2-subdev sensor operations
++ * @enum_framesizes: enumerate supported framesizes
++ * @enum_frameintervals: enumerate supported frame format intervals
++ * @g_skip_top_lines: number of lines at the top of the image to be skipped.
++ *		      This is needed for some sensors, that always corrupt
++ *		      several top lines of the output image.
++ */
++struct v4l2_subdev_sensor_ops {
+ 	int (*enum_framesizes)(struct v4l2_subdev *sd, struct v4l2_frmsizeenum *fsize);
+ 	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct v4l2_frmivalenum *fival);
++	int (*g_skip_top_lines)(struct v4l2_subdev *sd, u32 *lines);
+ };
+ 
+ struct v4l2_subdev_ops {
+@@ -236,6 +248,7 @@ struct v4l2_subdev_ops {
+ 	const struct v4l2_subdev_tuner_ops *tuner;
+ 	const struct v4l2_subdev_audio_ops *audio;
+ 	const struct v4l2_subdev_video_ops *video;
++	const struct v4l2_subdev_sensor_ops *sensor;
+ };
+ 
+ #define V4L2_SUBDEV_NAME_SIZE 32
+-- 
+1.6.2.4
 
