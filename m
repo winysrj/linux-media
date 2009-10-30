@@ -1,53 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f218.google.com ([209.85.220.218]:65501 "EHLO
-	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751324AbZJVEQd (ORCPT
+Received: from cooker.cnx.rice.edu ([168.7.5.70]:60425 "EHLO
+	cooker.cnx.rice.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754155AbZJ3UVF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Oct 2009 00:16:33 -0400
-Received: by fxm18 with SMTP id 18so8662199fxm.37
-        for <linux-media@vger.kernel.org>; Wed, 21 Oct 2009 21:16:37 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <114221.71254.qm@web32706.mail.mud.yahoo.com>
-References: <510991.99153.qm@web32703.mail.mud.yahoo.com>
-	 <114221.71254.qm@web32706.mail.mud.yahoo.com>
-Date: Thu, 22 Oct 2009 00:16:36 -0400
-Message-ID: <829197380910212116k7c14069fuebecd6bf3075983@mail.gmail.com>
-Subject: Re: Kworld 315U help?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Franklin Meng <fmeng2002@yahoo.com>
+	Fri, 30 Oct 2009 16:21:05 -0400
+Date: Fri, 30 Oct 2009 15:21:09 -0500
+From: "Ross J. Reedstrom" <reedstrm@rice.edu>
+To: Steven Toth <stoth@kernellabs.com>
 Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: Re: Hauppage HVR-2250 Tuning problems
+Message-ID: <20091030202109.GE25153@rice.edu>
+References: <20091030195527.GC25153@rice.edu> <83bcf6340910301258u209544b7le333157921ec67fb@mail.gmail.com> <20091030200922.GD25153@rice.edu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20091030200922.GD25153@rice.edu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 22, 2009 at 12:03 AM, Franklin Meng <fmeng2002@yahoo.com> wrote:
-> Here are some more stuff in the trace that was not decoded by the parse_em28xx script..
->
-> So what we know from this list of unknowns...
->
-> 0xa0 is the eeprom
-> 0x4a is the SAA
-> 0x42 ??.
-> 0xd0 ??
-> 0x20 ??
-> 0xc6 ??
-> 0xc4 ??
-> 0xc2 Thomson tuner.
+Additional info: 
+This system is an HP 'Media Center' m9040n, came with the HVR-1800
+mentioned, I also have an pcHDTV-2000 (yes, the original) in there. 
+Motherboard is an ASUS IPIBL-LA, w/ an nVidia GeForce 8400GS.
 
-c4 and c6 are probably also the tuner.  I know that K-World makes some
-products with the same name but different regions.  Is your version of
-the 315U an ATSC hybrid tuner?  If so, then one of those addresses is
-probably the demod.
+Ross
+MB specs at:
 
-Also, the trace you sent is just an excerpt, but it's possible that
-the driver is probing for devices and the requests are failing because
-the hardware isn't present (the Windows driver supports a variety of
-different hardware combinations).  Usually you can tell by looking for
-a read from register 0x05 immediately after the i2c read.  If register
-0x05 is nonzero, then the i2c read operation failed.
+http://h10025.www1.hp.com/ewfrf/wc/document?docname=c01077641&tmp_track_link=ot_recdoc/c01154933/en_us/c01077641/loc:1&lc=en&dlc=en&cc=us
 
-Devin
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+On Fri, Oct 30, 2009 at 03:09:22PM -0500, Ross J. Reedstrom wrote:
+> Nope, Intel:
+> 
+> processor       : 0
+> vendor_id       : GenuineIntel
+> cpu family      : 6
+> model           : 15
+> model name      : Intel(R) Core(TM)2 Quad CPU    Q6600  @ 2.40GHz
+> stepping        : 11
+> 
+> [...]
+> 
+> Ross
+> 
+> On Fri, Oct 30, 2009 at 03:58:28PM -0400, Steven Toth wrote:
+> > > Is this useful info? I've got the whole log, and haven't updated the
+> > > code yet. I'm willing to do tests, compile other changesets, etc.
+> > 
+> > Hi Ross,
+> > 
+> > Thanks for writing.
+> > 
+> > Do you have an AMD based system?
+> > 
+> > -- 
+> > Steven Toth - Kernel Labs
+> > http://www.kernellabs.com
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
