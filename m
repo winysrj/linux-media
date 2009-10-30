@@ -1,98 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55386 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751063AbZJPKaC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Oct 2009 06:30:02 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9GATNed030256
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 16 Oct 2009 05:29:25 -0500
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>
-Date: Fri, 16 Oct 2009 15:59:17 +0530
-Subject: RE: [Resubmition PATCH] Davinci VPFE Capture: Take i2c adapter id
- through platform data
-Message-ID: <19F8576C6E063C45BE387C64729E73940436DB27DB@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1255688821-6655-1-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <1255688821-6655-1-git-send-email-hvaibhav@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail.gmx.net ([213.165.64.20]:33968 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754118AbZJ3UMG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Oct 2009 16:12:06 -0400
+Date: Fri, 30 Oct 2009 21:12:26 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: RE: [PATCH/RFC 0/9 v2] Image-bus API and accompanying soc-camera
+ patches
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40155798775@dlee06.ent.ti.com>
+Message-ID: <Pine.LNX.4.64.0910302058210.4378@axis700.grange>
+References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE40155798775@dlee06.ent.ti.com>
 MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> -----Original Message-----
-> From: Hiremath, Vaibhav
-> Sent: Friday, October 16, 2009 3:57 PM
-> To: linux-media@vger.kernel.org
-> Cc: davinci-linux-open-source@linux.davincidsp.com; Hiremath,
-> Vaibhav
-> Subject: [Resubmition PATCH] Davinci VPFE Capture: Take i2c adapter
-> id through platform data
+On Fri, 30 Oct 2009, Karicheri, Muralidharan wrote:
+
+> Guennadi,
 > 
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> Thanks for updating the driver. I will integrate it when I get a chance and let you know if I see any issues.
 > 
-> The I2C adapter ID is actually depends on Board and may vary,
-> Davinci
-> uses id=1, but in case of AM3517 id=3.
-> 
-> Changes:
-> 	- Fixed review comments (Typo) from Sergei
-> 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> ---
->  drivers/media/video/davinci/vpfe_capture.c |    3 +--
->  include/media/davinci/vpfe_capture.h       |    2 ++
->  2 files changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/video/davinci/vpfe_capture.c
-> b/drivers/media/video/davinci/vpfe_capture.c
-> index dc32de0..c3c37e7 100644
-> --- a/drivers/media/video/davinci/vpfe_capture.c
-> +++ b/drivers/media/video/davinci/vpfe_capture.c
-> @@ -2228,8 +2228,7 @@ static __init int vpfe_probe(struct
-> platform_device *pdev)
->  	platform_set_drvdata(pdev, vpfe_dev);
->  	/* set driver private data */
->  	video_set_drvdata(vpfe_dev->video_dev, vpfe_dev);
-> -	i2c_adap = i2c_get_adapter(1);
-> -	vpfe_cfg = pdev->dev.platform_data;
-> +	i2c_adap = i2c_get_adapter(vpfe_cfg->i2c_adapter_id);
->  	num_subdevs = vpfe_cfg->num_subdevs;
->  	vpfe_dev->sd = kmalloc(sizeof(struct v4l2_subdev *) *
-> num_subdevs,
->  				GFP_KERNEL);
-> diff --git a/include/media/davinci/vpfe_capture.h
-> b/include/media/davinci/vpfe_capture.h
-> index e8272d1..fc83d98 100644
-> --- a/include/media/davinci/vpfe_capture.h
-> +++ b/include/media/davinci/vpfe_capture.h
-> @@ -94,6 +94,8 @@ struct vpfe_subdev_info {
->  struct vpfe_config {
->  	/* Number of sub devices connected to vpfe */
->  	int num_subdevs;
-> +	/* I2C Bus adapter no */
-> +	int i2c_adapter_id;
->  	/* information about each subdev */
->  	struct vpfe_subdev_info *sub_devs;
->  	/* evm card info */
-[Hiremath, Vaibhav] Murali,
+> BTW, Is there someone developing a driver for MT9P031 sensor which is 
+> very similar to MT9T031? Do you suggest a separate driver for this 
+> sensor or
+> add the support in MT9T031? I need a driver for this and plan to add it soon.
 
-If you do not have any comments with these series of patches, can you please ack them?
+It depends on the difference between mt9t031 and mt9p031, of course. I had 
+a brief look at the mt9p031 datasheet while placing it next to mt9t031, 
+and for my taste there are already too many differences to pack them in 
+one driver. MT9T031 was also very similar to MT9M001, I think, but 
+copy-pasting actually served me a bad service:-) there turned out to be 
+too many subtle differences in the end.
 
-Hans/Kevin,
-
-Can you please merge these patches to respective repo., they should get applied cleanly.
-
-Thanks,
-Vaibhav
-
-> --
-> 1.6.2.4
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
