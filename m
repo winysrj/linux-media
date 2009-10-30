@@ -1,54 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:54377 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:59128 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S932088AbZJ0IEX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2009 04:04:23 -0400
-Date: Tue, 27 Oct 2009 09:04:25 +0100 (CET)
+	id S932071AbZJ3OAt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Oct 2009 10:00:49 -0400
+Date: Fri, 30 Oct 2009 15:01:02 +0100 (CET)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Cohen David Abraham <david.cohen@nokia.com>,
-	"Koskipaa Antti (Nokia-D/Helsinki)" <antti.koskipaa@nokia.com>,
-	Zutshi Vimarsh <vimarsh.zutshi@nokia.com>
-Subject: Re: RFCv2: Media controller proposal
-In-Reply-To: <4AB7B66E.6080308@maxwell.research.nokia.com>
-Message-ID: <Pine.LNX.4.64.0910270854300.4828@axis700.grange>
-References: <200909100913.09065.hverkuil@xs4all.nl> <200909112123.44778.hverkuil@xs4all.nl>
- <20090911165937.776a638d@caramujo.chehab.org> <200909112215.15155.hverkuil@xs4all.nl>
- <20090911183758.31184072@caramujo.chehab.org> <4AB7B66E.6080308@maxwell.research.nokia.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: [PATCH 1/9] soc-camera: remove no longer needed struct members
+In-Reply-To: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
+Message-ID: <Pine.LNX.4.64.0910301402420.4378@axis700.grange>
+References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
-
-(repeating my preamble from a previous post)
-
-This is a general comment to the whole "media controller" work: having 
-given a talk at the ELC-E in Grenoble on soc-camera, I mentioned briefly a 
-few related RFCs, including this one. I've got a couple of comments back, 
-including the following ones (which is to say, opinions are not mine and 
-may or may not be relevant, I'm just fulfilling my promise to pass them 
-on;)):
-
-1) what about DVB? Wouldn't they also benefit from such an API? I wasn't 
-able to reply to the question, whether the DVB folks know about this and 
-have a chance to take part in the discussion and eventually use this API?
-
-2) what I am even less sure about is, whether ALSA / ASoC have been 
-mentioned as possible users of MC, or, at least, possible sources for 
-ideas. ASoC has definitely been mentioned as an audio analog of 
-soc-camera, so, I'll be looking at that - at least at their documentation 
-- to see if I can borrow some of their ideas:-)
-
-Thanks
-Guennadi
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ include/media/soc_camera.h |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
+
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index 3d74e60..c5afc8c 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -24,8 +24,6 @@ struct soc_camera_device {
+ 	struct device *pdev;		/* Platform device */
+ 	s32 user_width;
+ 	s32 user_height;
+-	unsigned short width_min;
+-	unsigned short height_min;
+ 	unsigned short y_skip_top;	/* Lines to skip at the top */
+ 	unsigned char iface;		/* Host number */
+ 	unsigned char devnum;		/* Device number per host */
+-- 
+1.6.2.4
+
