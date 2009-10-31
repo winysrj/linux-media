@@ -1,96 +1,256 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:57121 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1761525AbZJJU3O (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Oct 2009 16:29:14 -0400
-From: Michael G <miga_miga@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: 2.6.32 dvbdev error / Cinergy XS [0ccd:0043]
-Date: Sat, 10 Oct 2009 22:19:23 +0200
+Received: from mail02a.mail.t-online.hu ([84.2.40.7]:56689 "EHLO
+	mail02a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933367AbZJaXPE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Oct 2009 19:15:04 -0400
+Message-ID: <4AECC4F5.4040705@freemail.hu>
+Date: Sun, 01 Nov 2009 00:15:01 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200910102219.23667.miga_miga@gmx.de>
+To: Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+CC: Thomas Kaiser <thomas@kaiser-linux.li>,
+	Theodore Kilgore <kilgota@auburn.edu>,
+	Kyle Guinn <elyk03@gmail.com>
+Subject: [PATCH 10/21] gspca pac7302/pac7311: separate brightness and color
+ controls
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-can someone please help me to get my
-Cinergy XS (Bus 001 Device 010: ID 0ccd:0043 TerraTec Electronic GmbH)
-to run in a 2.6.32 RC3 gentoo system?
+From: Márton Németh <nm127@freemail.hu>
 
-When I use the in-kernel driver I'll get the following output:
-usb 1-1: new high speed USB device using ehci_hcd and address 10                             
-usb 1-1: configuration #1 chosen from 1 choice                                               
-em28xx: New device TerraTec Electronic GmbH Cinergy T USB XS @ 480 Mbps 
-(0ccd:0043, interface 0, class 0)
-em28xx #0: chip ID is em2870                                                                             
-em28xx #0: i2c eeprom 00: 1a eb 67 95 cd 0c 43 00 c0 12 81 00 6a 24 8e 34                               
-em28xx #0: i2c eeprom 10: 00 00 06 57 02 0c 00 00 00 00 00 00 00 00 00 00                               
-em28xx #0: i2c eeprom 20: 44 00 00 00 f0 10 01 00 00 00 00 00 5b 00 00 00                               
-em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01 00 00 ee 2d 46 4a                               
-em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                               
-em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                               
-em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 24 03 43 00 69 00                               
-em28xx #0: i2c eeprom 70: 6e 00 65 00 72 00 67 00 79 00 20 00 54 00 20 00                               
-em28xx #0: i2c eeprom 80: 55 00 53 00 42 00 20 00 58 00 53 00 00 00 34 03                               
-em28xx #0: i2c eeprom 90: 54 00 65 00 72 00 72 00 61 00 54 00 65 00 63 00                               
-em28xx #0: i2c eeprom a0: 20 00 45 00 6c 00 65 00 63 00 74 00 72 00 6f 00                               
-em28xx #0: i2c eeprom b0: 6e 00 69 00 63 00 20 00 47 00 6d 00 62 00 48 00                               
-em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                               
-em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                               
-em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                               
-em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x339064dc
-em28xx #0: EEPROM info:
-em28xx #0:      No audio on board.
-em28xx #0:      500mA max power
-em28xx #0:      Table at 0x06, strings=0x246a, 0x348e, 0x0000
-em28xx #0: Identified as Terratec Cinergy T XS (card=43)
-em28xx #0:
+Separate the controls for PAC7302 and for PAC7311. Separate the brightness
+and color controls. The ctrl_dis setting is no longer necessary because the
+brightness and saturation controls are only listed among PAC7302 controls.
 
-em28xx #0: The support for this board weren't valid yet.
-em28xx #0: Please send a report of having this working
-em28xx #0: not to V4L mailing list (and/or to other addresses)
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+Cc: Thomas Kaiser <thomas@kaiser-linux.li>
+Cc: Theodore Kilgore <kilgota@auburn.edu>
+Cc: Kyle Guinn <elyk03@gmail.com>
+---
+diff -uprN j/drivers/media/video/gspca/pac7311.c k/drivers/media/video/gspca/pac7311.c
+--- j/drivers/media/video/gspca/pac7311.c	2009-10-30 18:00:55.000000000 +0100
++++ k/drivers/media/video/gspca/pac7311.c	2009-10-31 07:13:44.000000000 +0100
+@@ -81,12 +81,12 @@ struct sd {
+ };
 
-Chip ID is not zero. It is not a TEA5767
-tuner 0-0060: chip found @ 0xc0 (em28xx #0)
-xc2028 0-0060: creating new instance
-xc2028 0-0060: type set to XCeive xc2028/xc3028 tuner
-usb 1-1: firmware: requesting xc3028-v27.fw
-xc2028 0-0060: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 
-firmware, ver 2.7
-xc2028 0-0060: Loading firmware for type=BASE (1), id 0000000000000000.
-xc2028 0-0060: Loading firmware for type=(0), id 000000000000b700.
-SCODE (20000000), id 000000000000b700:
-xc2028 0-0060: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000), id 
-0000000000008000.
-xc2028 0-0060: Incorrect readback of firmware version.
-xc2028 0-0060: Loading firmware for type=BASE (1), id 0000000000000000.
-xc2028 0-0060: Loading firmware for type=(0), id 000000000000b700.
-SCODE (20000000), id 000000000000b700:
-xc2028 0-0060: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000), id 
-0000000000008000.
-xc2028 0-0060: Incorrect readback of firmware version.
-em28xx #0: v4l2 driver version 0.1.2
-em28xx #0: V4L2 video device registered as /dev/video1 
+ /* V4L2 controls supported by the driver */
+-static int sd_setbrightness(struct gspca_dev *gspca_dev, __s32 val);
+-static int sd_getbrightness(struct gspca_dev *gspca_dev, __s32 *val);
++static int pac7302_sd_setbrightness(struct gspca_dev *gspca_dev, __s32 val);
++static int pac7302_sd_getbrightness(struct gspca_dev *gspca_dev, __s32 *val);
+ static int sd_setcontrast(struct gspca_dev *gspca_dev, __s32 val);
+ static int sd_getcontrast(struct gspca_dev *gspca_dev, __s32 *val);
+-static int sd_setcolors(struct gspca_dev *gspca_dev, __s32 val);
+-static int sd_getcolors(struct gspca_dev *gspca_dev, __s32 *val);
++static int pac7302_sd_setcolors(struct gspca_dev *gspca_dev, __s32 val);
++static int pac7302_sd_getcolors(struct gspca_dev *gspca_dev, __s32 *val);
+ static int sd_setautogain(struct gspca_dev *gspca_dev, __s32 val);
+ static int sd_getautogain(struct gspca_dev *gspca_dev, __s32 *val);
+ static int sd_sethflip(struct gspca_dev *gspca_dev, __s32 val);
+@@ -98,9 +98,8 @@ static int sd_getgain(struct gspca_dev *
+ static int sd_setexposure(struct gspca_dev *gspca_dev, __s32 val);
+ static int sd_getexposure(struct gspca_dev *gspca_dev, __s32 *val);
 
+-static struct ctrl sd_ctrls[] = {
++static struct ctrl pac7302_sd_ctrls[] = {
+ /* This control is pac7302 only */
+-#define BRIGHTNESS_IDX 0
+ 	{
+ 	    {
+ 		.id      = V4L2_CID_BRIGHTNESS,
+@@ -113,8 +112,8 @@ static struct ctrl sd_ctrls[] = {
+ #define BRIGHTNESS_DEF 0x10
+ 		.default_value = BRIGHTNESS_DEF,
+ 	    },
+-	    .set = sd_setbrightness,
+-	    .get = sd_getbrightness,
++	    .set = pac7302_sd_setbrightness,
++	    .get = pac7302_sd_getbrightness,
+ 	},
+ /* This control is for both the 7302 and the 7311 */
+ 	{
+@@ -133,7 +132,6 @@ static struct ctrl sd_ctrls[] = {
+ 	    .get = sd_getcontrast,
+ 	},
+ /* This control is pac7302 only */
+-#define SATURATION_IDX 2
+ 	{
+ 	    {
+ 		.id      = V4L2_CID_SATURATION,
+@@ -146,8 +144,102 @@ static struct ctrl sd_ctrls[] = {
+ #define COLOR_DEF 127
+ 		.default_value = COLOR_DEF,
+ 	    },
+-	    .set = sd_setcolors,
+-	    .get = sd_getcolors,
++	    .set = pac7302_sd_setcolors,
++	    .get = pac7302_sd_getcolors,
++	},
++/* All controls below are for both the 7302 and the 7311 */
++	{
++	    {
++		.id      = V4L2_CID_GAIN,
++		.type    = V4L2_CTRL_TYPE_INTEGER,
++		.name    = "Gain",
++		.minimum = 0,
++#define GAIN_MAX 255
++		.maximum = GAIN_MAX,
++		.step    = 1,
++#define GAIN_DEF 127
++#define GAIN_KNEE 255 /* Gain seems to cause little noise on the pac73xx */
++		.default_value = GAIN_DEF,
++	    },
++	    .set = sd_setgain,
++	    .get = sd_getgain,
++	},
++	{
++	    {
++		.id      = V4L2_CID_EXPOSURE,
++		.type    = V4L2_CTRL_TYPE_INTEGER,
++		.name    = "Exposure",
++		.minimum = 0,
++#define EXPOSURE_MAX 255
++		.maximum = EXPOSURE_MAX,
++		.step    = 1,
++#define EXPOSURE_DEF  16 /*  32 ms / 30 fps */
++#define EXPOSURE_KNEE 50 /* 100 ms / 10 fps */
++		.default_value = EXPOSURE_DEF,
++	    },
++	    .set = sd_setexposure,
++	    .get = sd_getexposure,
++	},
++	{
++	    {
++		.id      = V4L2_CID_AUTOGAIN,
++		.type    = V4L2_CTRL_TYPE_BOOLEAN,
++		.name    = "Auto Gain",
++		.minimum = 0,
++		.maximum = 1,
++		.step    = 1,
++#define AUTOGAIN_DEF 1
++		.default_value = AUTOGAIN_DEF,
++	    },
++	    .set = sd_setautogain,
++	    .get = sd_getautogain,
++	},
++	{
++	    {
++		.id      = V4L2_CID_HFLIP,
++		.type    = V4L2_CTRL_TYPE_BOOLEAN,
++		.name    = "Mirror",
++		.minimum = 0,
++		.maximum = 1,
++		.step    = 1,
++#define HFLIP_DEF 0
++		.default_value = HFLIP_DEF,
++	    },
++	    .set = sd_sethflip,
++	    .get = sd_gethflip,
++	},
++	{
++	    {
++		.id      = V4L2_CID_VFLIP,
++		.type    = V4L2_CTRL_TYPE_BOOLEAN,
++		.name    = "Vflip",
++		.minimum = 0,
++		.maximum = 1,
++		.step    = 1,
++#define VFLIP_DEF 0
++		.default_value = VFLIP_DEF,
++	    },
++	    .set = sd_setvflip,
++	    .get = sd_getvflip,
++	},
++};
++
++static struct ctrl pac7311_sd_ctrls[] = {
++/* This control is for both the 7302 and the 7311 */
++	{
++	    {
++		.id      = V4L2_CID_CONTRAST,
++		.type    = V4L2_CTRL_TYPE_INTEGER,
++		.name    = "Contrast",
++		.minimum = 0,
++#define CONTRAST_MAX 255
++		.maximum = CONTRAST_MAX,
++		.step    = 1,
++#define CONTRAST_DEF 127
++		.default_value = CONTRAST_DEF,
++	    },
++	    .set = sd_setcontrast,
++	    .get = sd_getcontrast,
+ 	},
+ /* All controls below are for both the 7302 and the 7311 */
+ 	{
+@@ -547,8 +639,6 @@ static int pac7311_sd_config(struct gspc
+ 	PDEBUG(D_CONF, "Find Sensor PAC7311");
+ 	cam->cam_mode = vga_mode;
+ 	cam->nmodes = ARRAY_SIZE(vga_mode);
+-	gspca_dev->ctrl_dis = (1 << BRIGHTNESS_IDX)
+-			| (1 << SATURATION_IDX);
 
-No /dev/dvb, so no DVT-T. I tried to use the latest v4l-dvb but I can't 
-compile it:
+ 	sd->brightness = BRIGHTNESS_DEF;
+ 	sd->contrast = CONTRAST_DEF;
+@@ -1022,7 +1112,7 @@ static void pac7311_sd_pkt_scan(struct g
+ 	gspca_frame_add(gspca_dev, INTER_PACKET, frame, data, len);
+ }
 
-/root/v4l-dvb/v4l/dvbdev.c: In function 'init_dvbdev':
-/root/v4l-dvb/v4l/dvbdev.c:516: error: 'struct class' has no member named 
-'nodename'
-make[3]: *** [/root/v4l-dvb/v4l/dvbdev.o] Error 1
-make[2]: *** [_module_/root/v4l-dvb/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-2.6.32-rc3'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/root/v4l-dvb/v4l'
-make: *** [all] Error 2
+-static int sd_setbrightness(struct gspca_dev *gspca_dev, __s32 val)
++static int pac7302_sd_setbrightness(struct gspca_dev *gspca_dev, __s32 val)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
 
-Any help is appreciated!
+@@ -1032,7 +1122,7 @@ static int sd_setbrightness(struct gspca
+ 	return 0;
+ }
 
-Thanks,
-Michael
+-static int sd_getbrightness(struct gspca_dev *gspca_dev, __s32 *val)
++static int pac7302_sd_getbrightness(struct gspca_dev *gspca_dev, __s32 *val)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+
+@@ -1062,7 +1152,7 @@ static int sd_getcontrast(struct gspca_d
+ 	return 0;
+ }
+
+-static int sd_setcolors(struct gspca_dev *gspca_dev, __s32 val)
++static int pac7302_sd_setcolors(struct gspca_dev *gspca_dev, __s32 val)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+
+@@ -1072,7 +1162,7 @@ static int sd_setcolors(struct gspca_dev
+ 	return 0;
+ }
+
+-static int sd_getcolors(struct gspca_dev *gspca_dev, __s32 *val)
++static int pac7302_sd_getcolors(struct gspca_dev *gspca_dev, __s32 *val)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+
+@@ -1186,8 +1276,8 @@ static int sd_getvflip(struct gspca_dev
+ /* sub-driver description for pac7302 */
+ static struct sd_desc pac7302_sd_desc = {
+ 	.name = MODULE_NAME,
+-	.ctrls = sd_ctrls,
+-	.nctrls = ARRAY_SIZE(sd_ctrls),
++	.ctrls = pac7302_sd_ctrls,
++	.nctrls = ARRAY_SIZE(pac7302_sd_ctrls),
+ 	.config = pac7302_sd_config,
+ 	.init = pac7302_sd_init,
+ 	.start = pac7302_sd_start,
+@@ -1200,8 +1290,8 @@ static struct sd_desc pac7302_sd_desc =
+ /* sub-driver description for pac7311 */
+ static struct sd_desc pac7311_sd_desc = {
+ 	.name = MODULE_NAME,
+-	.ctrls = sd_ctrls,
+-	.nctrls = ARRAY_SIZE(sd_ctrls),
++	.ctrls = pac7311_sd_ctrls,
++	.nctrls = ARRAY_SIZE(pac7311_sd_ctrls),
+ 	.config = pac7311_sd_config,
+ 	.init = pac7311_sd_init,
+ 	.start = pac7311_sd_start,
