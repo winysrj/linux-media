@@ -1,44 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f208.google.com ([209.85.219.208]:60330 "EHLO
-	mail-ew0-f208.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750974AbZJ1OIp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Oct 2009 10:08:45 -0400
-Received: by ewy4 with SMTP id 4so773964ewy.37
-        for <linux-media@vger.kernel.org>; Wed, 28 Oct 2009 07:08:50 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:26154 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755974AbZJaJxk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Oct 2009 05:53:40 -0400
+Message-ID: <4AEC08F0.70205@redhat.com>
+Date: Sat, 31 Oct 2009 07:52:48 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <8d0bb7650910272244wfdbdda0kae6bec6cd94e2bcc@mail.gmail.com>
-References: <8d0bb7650910261544i4ebed975rf81ec6bc38076927@mail.gmail.com>
-	 <a413d4880910261623x44d106f4h167a7dab80a4a3f8@mail.gmail.com>
-	 <83bcf6340910270717n12066fb8oa4870eb3214d7597@mail.gmail.com>
-	 <8d0bb7650910270755v38f37f6fh3937e9727493854c@mail.gmail.com>
-	 <83bcf6340910270920i4323faf8mb5b482b75bda7291@mail.gmail.com>
-	 <8d0bb7650910272244wfdbdda0kae6bec6cd94e2bcc@mail.gmail.com>
-Date: Wed, 28 Oct 2009 10:08:47 -0400
-Message-ID: <83bcf6340910280708t67fdfbffw88dc4594ca527359@mail.gmail.com>
-Subject: Re: Hauppage HVR-2250 Tuning problems
-From: Steven Toth <stoth@kernellabs.com>
-To: dan <danwalkeriv@gmail.com>
-Cc: Another Sillyname <anothersname@googlemail.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: HoP <jpetrous@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] isl6421.c - added optional features: tone control and
+ 	temporary diseqc overcurrent
+References: <846899810910241711s6fb5939fq3a693a92a2a76310@mail.gmail.com>
+In-Reply-To: <846899810910241711s6fb5939fq3a693a92a2a76310@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 28, 2009 at 1:44 AM, dan <danwalkeriv@gmail.com> wrote:
-> I do have 2 2-way splitters between the card in the wall.  I tried
-> hooking the card straight to the cable outlet on the wall and ran some
-> more tests.  It's a little difficult, because there's only one cable
-> outlet in my whole apartment, and it means doing some re-arranging and
-> being offline while I'm running the tests.
+HoP escreveu:
+> Hi,
+>
+> this is my first kernel patch, so all comments are welcome.
+>   
+First of all, please check all your patches with checkpatch, to be sure
+that they don't have any CodingStyle troubles. There are some on your
+patch (the better is to read README.patches for more info useful
+for developers).
+> Attached patch adds two optional (so, disabled by default
+> and therefore could not break any compatibility) features:
+>
+> 1, tone_control=1
+> When enabled, ISL6421 overrides frontend's tone control
+> function (fe->ops.set_tone) by its own one.
+>   
+On your comments, the better is to describe why someone would need
+to use such option. You should also add a quick hint about that at the
+option description.
+> 2, overcurrent_enable=1
+> When enabled, overcurrent protection is disabled during
+> sending diseqc command. Such option is usable when ISL6421
+> catch overcurrent threshold and starts limiting output.
+> Note: protection is disabled only during sending
+> of diseqc command, until next set_tone() usage.
+> What typically means only max up to few hundreds of ms.
+> WARNING: overcurrent_enable=1 is dangerous
+> and can damage your device. Use with care
+> and only if you really know what you do.
+>   
+I'm not sure if it is a good idea to have this... Why/when someone would 
+need this?
 
-Removing splitters proves it's probably not a weak signal issue (also
-the SNR or 39 on the TV).  Can you apply some attenuation to reduce
-the overall rf strength? I'm thinking it's too hot.
+If we go ahead and add this one, you should add a notice about it at the 
+parameter.
+I would also print a big WARNING message at the dmesg if the module were 
+loaded
+with this option turned on.
+> /Honza
+>
+> Signed-off-by: Jan Petrous <jpetrous@gmail.com>
+> ---
+>   
 
-Something must be using your second tuner, mythtv maybe?
-
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
