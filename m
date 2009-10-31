@@ -1,45 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:43831 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935168AbZJORMd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Oct 2009 13:12:33 -0400
-Received: from list by lo.gmane.org with local (Exim 4.50)
-	id 1MyTrn-0002NA-RI
-	for linux-media@vger.kernel.org; Thu, 15 Oct 2009 19:11:55 +0200
-Received: from 92-234-3-28.cable.ubr10.dals.blueyonder.co.uk ([92.234.3.28])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Thu, 15 Oct 2009 19:11:55 +0200
-Received: from mariofutire by 92-234-3-28.cable.ubr10.dals.blueyonder.co.uk with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Thu, 15 Oct 2009 19:11:55 +0200
-To: linux-media@vger.kernel.org
-From: Andrea <mariofutire@googlemail.com>
-Subject: Re: Has anybody tried Freeview HD in UK
-Date: Thu, 15 Oct 2009 18:11:27 +0100
-Message-ID: <hb7l3v$20p$1@ger.gmane.org>
-References: <hb57qt$vmd$1@ger.gmane.org> <4AD62FA1.10504@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <4AD62FA1.10504@iki.fi>
+Received: from mail01a.mail.t-online.hu ([84.2.40.6]:51868 "EHLO
+	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933343AbZJaXPX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Oct 2009 19:15:23 -0400
+Message-ID: <4AECC505.4040201@freemail.hu>
+Date: Sun, 01 Nov 2009 00:15:17 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+MIME-Version: 1.0
+To: Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+CC: Thomas Kaiser <thomas@kaiser-linux.li>,
+	Theodore Kilgore <kilgota@auburn.edu>,
+	Kyle Guinn <elyk03@gmail.com>
+Subject: [PATCH 11/21] gspca pac7302/pac7311: separate contrast control
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 14/10/09 21:08, Antti Palosaari wrote:
->
-> In my understanding they will start new DVB-T2 standard and due to that
-> new devices are needed. There is no DVB-T2 devices publicly sold
-> currently. Few vendors like Pace and Humax have public prototypes.
->
-> Basically new demodulator chips are needed and I don't know if there is
-> any publicly released.
->
-> Finland will also start DVB-T2 SFN (Single Frequency Network) with h.264
-> during next year. There is two VHF muxes currently reserved for that.
->
-> Antti
+From: Márton Németh <nm127@freemail.hu>
 
-and in a few years we'll be ready for a new switchover!
-I was hoping to be able to receive it like for the last HD trial.
+Separate the contrast control. Remove the run-time decision for
+PAC7302 and PAC7311 sensors.
+
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+Cc: Thomas Kaiser <thomas@kaiser-linux.li>
+Cc: Theodore Kilgore <kilgota@auburn.edu>
+Cc: Kyle Guinn <elyk03@gmail.com>
+---
+diff -uprN k/drivers/media/video/gspca/pac7311.c l/drivers/media/video/gspca/pac7311.c
+--- k/drivers/media/video/gspca/pac7311.c	2009-10-31 07:13:44.000000000 +0100
++++ l/drivers/media/video/gspca/pac7311.c	2009-10-31 07:21:22.000000000 +0100
+@@ -83,8 +83,10 @@ struct sd {
+ /* V4L2 controls supported by the driver */
+ static int pac7302_sd_setbrightness(struct gspca_dev *gspca_dev, __s32 val);
+ static int pac7302_sd_getbrightness(struct gspca_dev *gspca_dev, __s32 *val);
+-static int sd_setcontrast(struct gspca_dev *gspca_dev, __s32 val);
+-static int sd_getcontrast(struct gspca_dev *gspca_dev, __s32 *val);
++static int pac7302_sd_setcontrast(struct gspca_dev *gspca_dev, __s32 val);
++static int pac7311_sd_setcontrast(struct gspca_dev *gspca_dev, __s32 val);
++static int pac7302_sd_getcontrast(struct gspca_dev *gspca_dev, __s32 *val);
++static int pac7311_sd_getcontrast(struct gspca_dev *gspca_dev, __s32 *val);
+ static int pac7302_sd_setcolors(struct gspca_dev *gspca_dev, __s32 val);
+ static int pac7302_sd_getcolors(struct gspca_dev *gspca_dev, __s32 *val);
+ static int sd_setautogain(struct gspca_dev *gspca_dev, __s32 val);
+@@ -128,8 +130,8 @@ static struct ctrl pac7302_sd_ctrls[] =
+ #define CONTRAST_DEF 127
+ 		.default_value = CONTRAST_DEF,
+ 	    },
+-	    .set = sd_setcontrast,
+-	    .get = sd_getcontrast,
++	    .set = pac7302_sd_setcontrast,
++	    .get = pac7302_sd_getcontrast,
+ 	},
+ /* This control is pac7302 only */
+ 	{
+@@ -238,8 +240,8 @@ static struct ctrl pac7311_sd_ctrls[] =
+ #define CONTRAST_DEF 127
+ 		.default_value = CONTRAST_DEF,
+ 	    },
+-	    .set = sd_setcontrast,
+-	    .get = sd_getcontrast,
++	    .set = pac7311_sd_setcontrast,
++	    .get = pac7311_sd_getcontrast,
+ 	},
+ /* All controls below are for both the 7302 and the 7311 */
+ 	{
+@@ -1130,21 +1132,37 @@ static int pac7302_sd_getbrightness(stru
+ 	return 0;
+ }
+
+-static int sd_setcontrast(struct gspca_dev *gspca_dev, __s32 val)
++static int pac7302_sd_setcontrast(struct gspca_dev *gspca_dev, __s32 val)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+
+ 	sd->contrast = val;
+ 	if (gspca_dev->streaming) {
+-		if (sd->sensor == SENSOR_PAC7302)
+-			pac7302_setbrightcont(gspca_dev);
+-		else
+-			pac7311_setcontrast(gspca_dev);
++		pac7302_setbrightcont(gspca_dev);
++	}
++	return 0;
++}
++
++static int pac7311_sd_setcontrast(struct gspca_dev *gspca_dev, __s32 val)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++
++	sd->contrast = val;
++	if (gspca_dev->streaming) {
++		pac7311_setcontrast(gspca_dev);
+ 	}
+ 	return 0;
+ }
+
+-static int sd_getcontrast(struct gspca_dev *gspca_dev, __s32 *val)
++static int pac7302_sd_getcontrast(struct gspca_dev *gspca_dev, __s32 *val)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++
++	*val = sd->contrast;
++	return 0;
++}
++
++static int pac7311_sd_getcontrast(struct gspca_dev *gspca_dev, __s32 *val)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
 
