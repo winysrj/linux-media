@@ -1,88 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f227.google.com ([209.85.220.227]:63826 "EHLO
-	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752654AbZJJVmw convert rfc822-to-8bit (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.154]:26163 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752984AbZJaQXX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Oct 2009 17:42:52 -0400
-Received: by fxm27 with SMTP id 27so7492351fxm.17
-        for <linux-media@vger.kernel.org>; Sat, 10 Oct 2009 14:42:12 -0700 (PDT)
+	Sat, 31 Oct 2009 12:23:23 -0400
+Received: by fg-out-1718.google.com with SMTP id d23so276915fga.1
+        for <linux-media@vger.kernel.org>; Sat, 31 Oct 2009 09:23:27 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1300720110@web.de>
-References: <1300720110@web.de>
-Date: Sat, 10 Oct 2009 17:42:12 -0400
-Message-ID: <829197380910101442y118fee00pa883f8deaf9bfde5@mail.gmail.com>
-Subject: Re: em28xx: new board id [0ccd:10a2]
+In-Reply-To: <4AEC2F03.6050205@gmail.com>
+References: <4AEC2F03.6050205@gmail.com>
+Date: Sat, 31 Oct 2009 12:23:27 -0400
+Message-ID: <829197380910310923nf45eba5o29083127328c5d47@mail.gmail.com>
+Subject: Re: [linux-dvb] somebody messed something on xc2028 code?
 From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: =?ISO-8859-1?Q?Andr=E9_Richter?= <ScorpWare@web.de>
-Cc: linux-media@vger.kernel.org
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Oct 10, 2009 at 12:25 PM, André Richter <ScorpWare@web.de> wrote:
-> Hi,
+On Sat, Oct 31, 2009 at 8:35 AM, Albert Comerma
+<albert.comerma@gmail.com> wrote:
+> Hi all, I just updated my ubuntu to karmic and found with surprise that with
+> 2.6.31 kernel my device does not work... It seems to be related to the
+> xc2028 code part since the kernel explosion happens when you try to tune the
+> device, here it's my dmesg, any idea?
 >
-> I've made tests with my TerraTec board:
->
-> Model: TerraTec H5
-> Vendor/Product id: [0ccd:10a2].
->
-> Tests made:
->     The original em28xx module does not work
->     (unknown device).
->     Tests made with own em2884 module (code reused
->     from em28xx module - kernel 2.6.30): output
->     attached as file.
->
->     Registration works up to i2c eeprom check, but
->     all eeprom data are 0xff.
->
->     I could not found the right communication in
->     the UsbSnoop.log files (1st 50k lines attached).
->
->     All this features do not work:
->     - Analog TV / FM Radio
->     - DVB-T / DVB-C
->     - Composite / S-Video
->
-> Tested-by: André Richter <scorpware@web.de>
->
-> Informations from TerraTec:
->     USB: Empia em2884
->     Decoder: Micronas DRX-K
->     Tuner: NXP TDA 18271
->
-> Informations from others:
->     Micronas chips --> now from Trident Micro
->     DVB Decoder: DRX-39xxKxx (3926KA1 ?)
->     Composite:   AVF-4910BA1 ?
->     EEPROM:      ACE 24C32 ?
->     Chipset:     APB 7202A ?
->
-> I want to help to develop the em28xx module support
-> for my device, but I need more understanding of snoop
-> file syntax (were I can find the reg address, ...).
-> Also, I have no idea to use the tda18271 module for
-> em28xx. Please write me, how I can help you.
-> You can write me in german or english.
->
-> Regards
-> André
+> Albert
 
-Hello André,
-
-The em2884 isn't really the issue here - I can have it working in a
-matter of hours if needed.  The problem with this device is the drx-k,
-for which there is no driver, and no developer willing to invest the
-50-60 hours that would probably be required to reverse engineer it and
-write a driver.
-
-Regarding the eeprom - the current code doesn't work because it's a
-16-bit eeprom.  Like the em2874, the eeprom parsing code should be
-skipped entirely, since you can end up corrupting the eeprom.
-
-I would suggest you return the device and buy something that is supported.
+Oh, you're using the stock 2.6.31 which didn't get my fix yet.  Please
+try the latest v4l-dvb tree and see if it still happens.
 
 Devin
 
