@@ -1,73 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35883 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751146AbZJTQjH convert rfc822-to-8bit (ORCPT
+Received: from mail01d.mail.t-online.hu ([84.2.42.6]:60547 "EHLO
+	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933316AbZJaXNY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Oct 2009 12:39:07 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "santiago.nunez@ridgerun.com" <santiago.nunez@ridgerun.com>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>
-CC: "Narnakaje, Snehaprabha" <nsnehaprabha@ti.com>,
-	Diego Dompe <diego.dompe@ridgerun.com>,
-	"todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>,
-	"Grosen, Mark" <mgrosen@ti.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Tue, 20 Oct 2009 11:39:01 -0500
-Subject: RE: [PATCH 0/6 v5] Support for TVP7002 in DM365
-Message-ID: <A69FA2915331DC488A831521EAE36FE40155609EC2@dlee06.ent.ti.com>
-References: <4AD734B2.8050601@ridgerun.com>
-In-Reply-To: <4AD734B2.8050601@ridgerun.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Sat, 31 Oct 2009 19:13:24 -0400
+Message-ID: <4AECC494.7050402@freemail.hu>
+Date: Sun, 01 Nov 2009 00:13:24 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
+To: Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+CC: Thomas Kaiser <thomas@kaiser-linux.li>,
+	Theodore Kilgore <kilgota@auburn.edu>,
+	Kyle Guinn <elyk03@gmail.com>
+Subject: [PATCH 01/21] gspca pac7302/pac7311: add prefix for sensor specific
+ functions
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Santiago,
+From: Márton Németh <nm127@freemail.hu>
 
-When you are submitting the next set of patches, please include only TVP7002 driver and Kconfig/Makefile changes for TVP7002. The vpfe capture driver in the upstream tree is not up to date with the Arago tree that we use for development. So as such your patches for board/platform code, vpfe capture etc may not work in upstream. I hope to update the upstream tree in few weeks from now. Also your tvp7002 patch needs to use the video timings APIs that I am currently developing. I plan to send a patch for this in a day or two for review to this mailing list.
+There are some functions which are already sensor specific. Mark them
+with pac7302_ or pac7311_ prefix
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-email: m-karicheri2@ti.com
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+Cc: Thomas Kaiser <thomas@kaiser-linux.li>
+Cc: Theodore Kilgore <kilgota@auburn.edu>
+Cc: Kyle Guinn <elyk03@gmail.com>
+---
+diff -uprN a/drivers/media/video/gspca/pac7311.c b/drivers/media/video/gspca/pac7311.c
+--- a/drivers/media/video/gspca/pac7311.c	2009-10-30 16:12:05.000000000 +0100
++++ b/drivers/media/video/gspca/pac7311.c	2009-10-30 17:09:52.000000000 +0100
+@@ -543,7 +543,7 @@ static int sd_config(struct gspca_dev *g
+ }
 
->-----Original Message-----
->From: Santiago Nunez-Corrales [mailto:snunez@ridgerun.com]
->Sent: Thursday, October 15, 2009 10:42 AM
->To: davinci-linux-open-source@linux.davincidsp.com
->Cc: Narnakaje, Snehaprabha; Karicheri, Muralidharan; Diego Dompe;
->todd.fischer@ridgerun.com; Grosen, Mark; Linux Media Mailing List
->Subject: [PATCH 0/6 v5] Support for TVP7002 in DM365
->
->This series of patches provide support for the TVP7002 decoder in DM365.
->Support
->includes:
->
->* Inclusion of the chip in v4l2 definitions
->* Definition in board specific data structures
->* Linking within the VPFE architecture
->* Definition of TVP7002 specific data structures
->* Kconfig and Makefile support
->
->The v5 series corrects many issued pointed out by Snehaprabha Narnakaje,
->Muralidharan Karicheri, Vaibhav Hiremath and Hans Verkuil and solves
->testing
-> problems.  Tested on DM365 TI EVM with resolutions 720p, 1080i@60, 576P
->and
-> 480P.
->
->--
->Santiago Nunez-Corrales, Eng.
->RidgeRun Engineering, LLC
->
->Guayabos, Curridabat
->San Jose, Costa Rica
->+(506) 2271 1487
->+(506) 8313 0536
->http://www.ridgerun.com
->
+ /* This function is used by pac7302 only */
+-static void setbrightcont(struct gspca_dev *gspca_dev)
++static void pac7302_setbrightcont(struct gspca_dev *gspca_dev)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 	int i, v;
+@@ -570,7 +570,7 @@ static void setbrightcont(struct gspca_d
+ }
+
+ /* This function is used by pac7311 only */
+-static void setcontrast(struct gspca_dev *gspca_dev)
++static void pac7311_setcontrast(struct gspca_dev *gspca_dev)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+
+@@ -581,7 +581,7 @@ static void setcontrast(struct gspca_dev
+ }
+
+ /* This function is used by pac7302 only */
+-static void setcolors(struct gspca_dev *gspca_dev)
++static void pac7302_setcolors(struct gspca_dev *gspca_dev)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 	int i, v;
+@@ -700,11 +700,11 @@ static int sd_start(struct gspca_dev *gs
+
+ 	if (sd->sensor == SENSOR_PAC7302) {
+ 		reg_w_var(gspca_dev, start_7302);
+-		setbrightcont(gspca_dev);
+-		setcolors(gspca_dev);
++		pac7302_setbrightcont(gspca_dev);
++		pac7302_setcolors(gspca_dev);
+ 	} else {
+ 		reg_w_var(gspca_dev, start_7311);
+-		setcontrast(gspca_dev);
++		pac7311_setcontrast(gspca_dev);
+ 	}
+ 	setgain(gspca_dev);
+ 	setexposure(gspca_dev);
+@@ -923,7 +923,7 @@ static int sd_setbrightness(struct gspca
+
+ 	sd->brightness = val;
+ 	if (gspca_dev->streaming)
+-		setbrightcont(gspca_dev);
++		pac7302_setbrightcont(gspca_dev);
+ 	return 0;
+ }
+
+@@ -942,9 +942,9 @@ static int sd_setcontrast(struct gspca_d
+ 	sd->contrast = val;
+ 	if (gspca_dev->streaming) {
+ 		if (sd->sensor == SENSOR_PAC7302)
+-			setbrightcont(gspca_dev);
++			pac7302_setbrightcont(gspca_dev);
+ 		else
+-			setcontrast(gspca_dev);
++			pac7311_setcontrast(gspca_dev);
+ 	}
+ 	return 0;
+ }
+@@ -963,7 +963,7 @@ static int sd_setcolors(struct gspca_dev
+
+ 	sd->colors = val;
+ 	if (gspca_dev->streaming)
+-		setcolors(gspca_dev);
++		pac7302_setcolors(gspca_dev);
+ 	return 0;
+ }
 
