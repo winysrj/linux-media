@@ -1,51 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailrelay003.isp.belgacom.be ([195.238.6.53]:4200 "EHLO
-	mailrelay003.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751163AbZJCPBe (ORCPT
+Received: from mail01d.mail.t-online.hu ([84.2.42.6]:64963 "EHLO
+	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933303AbZJaXOG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 3 Oct 2009 11:01:34 -0400
-Received: from [192.168.1.4] (athloroad.xperim.be [192.168.1.4])
-	(authenticated bits=0)
-	by via.xperim.be (8.14.2/8.14.2/Debian-2build1) with ESMTP id n93EvGDm013783
-	for <linux-media@vger.kernel.org>; Sat, 3 Oct 2009 16:57:17 +0200
-Message-ID: <4AC7664B.3090404@computer.org>
-Date: Sat, 03 Oct 2009 16:57:15 +0200
-From: Jan Ceuleers <jan.ceuleers@computer.org>
+	Sat, 31 Oct 2009 19:14:06 -0400
+Message-ID: <4AECC4BD.4000700@freemail.hu>
+Date: Sun, 01 Nov 2009 00:14:05 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [PATCH] drivers/media/video/em28xx: memset region size error
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+CC: Thomas Kaiser <thomas@kaiser-linux.li>,
+	Theodore Kilgore <kilgota@auburn.edu>,
+	Kyle Guinn <elyk03@gmail.com>
+Subject: [PATCH 05/21] gspca pac7302/pac7311: separate init
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->From 2082ccb34a1ef5f67ec0618ed05d2f15c67d1da0 Mon Sep 17 00:00:00 2001
-From: Jan Ceuleers <jan.ceuleers@computer.org>
-Date: Sat, 3 Oct 2009 16:51:31 +0200
-Subject: [PATCH] drivers/media/video/em28xx: memset region size error
+From: Márton Németh <nm127@freemail.hu>
 
-The size of the region to be memset() should be the size
-of the target rather than the size of the pointer to it.
+Separate the init function. Remove the run-time decision for
+PAC7302 and PAC7311 sensors.
 
-Compile-tested only.
-
-Signed-off-by: Jan Ceuleers <jan.ceuleers@computer.org>
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+Cc: Thomas Kaiser <thomas@kaiser-linux.li>
+Cc: Theodore Kilgore <kilgota@auburn.edu>
+Cc: Kyle Guinn <elyk03@gmail.com>
 ---
- drivers/media/video/em28xx/em28xx-cards.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+diff -uprN e/drivers/media/video/gspca/pac7311.c f/drivers/media/video/gspca/pac7311.c
+--- e/drivers/media/video/gspca/pac7311.c	2009-10-30 17:27:57.000000000 +0100
++++ f/drivers/media/video/gspca/pac7311.c	2009-10-30 18:04:30.000000000 +0100
+@@ -698,15 +698,18 @@ static void sethvflip(struct gspca_dev *
+ 	reg_w(gspca_dev, 0x11, 0x01);
+ }
 
-diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
-index bdb249b..dd4f19b 100644
---- a/drivers/media/video/em28xx/em28xx-cards.c
-+++ b/drivers/media/video/em28xx/em28xx-cards.c
-@@ -2234,7 +2234,7 @@ void em28xx_register_i2c_ir(struct em28xx *dev)
- 	if (disable_ir)
- 		return;
- 
--	memset(&dev->info, 0, sizeof(&dev->info));
-+	memset(&dev->info, 0, sizeof(dev->info));
- 	memset(&dev->init_data, 0, sizeof(dev->init_data));
- 	strlcpy(dev->info.type, "ir_video", I2C_NAME_SIZE);
- 
--- 
-1.5.4.3
+-/* this function is called at probe and resume time */
+-static int sd_init(struct gspca_dev *gspca_dev)
++/* this function is called at probe and resume time for pac7302 */
++static int pac7302_sd_init(struct gspca_dev *gspca_dev)
+ {
+-	struct sd *sd = (struct sd *) gspca_dev;
++	reg_w_seq(gspca_dev, init_7302, sizeof init_7302);
+
+-	if (sd->sensor == SENSOR_PAC7302)
+-		reg_w_seq(gspca_dev, init_7302, sizeof init_7302);
+-	else
+-		reg_w_seq(gspca_dev, init_7311, sizeof init_7311);
++	return 0;
++}
++
++/* this function is called at probe and resume time for pac7311 */
++static int pac7311_sd_init(struct gspca_dev *gspca_dev)
++{
++	reg_w_seq(gspca_dev, init_7311, sizeof init_7311);
+
+ 	return 0;
+ }
+@@ -1156,7 +1159,7 @@ static struct sd_desc pac7302_sd_desc =
+ 	.ctrls = sd_ctrls,
+ 	.nctrls = ARRAY_SIZE(sd_ctrls),
+ 	.config = pac7302_sd_config,
+-	.init = sd_init,
++	.init = pac7302_sd_init,
+ 	.start = sd_start,
+ 	.stopN = sd_stopN,
+ 	.stop0 = sd_stop0,
+@@ -1170,7 +1173,7 @@ static struct sd_desc pac7311_sd_desc =
+ 	.ctrls = sd_ctrls,
+ 	.nctrls = ARRAY_SIZE(sd_ctrls),
+ 	.config = pac7311_sd_config,
+-	.init = sd_init,
++	.init = pac7311_sd_init,
+ 	.start = sd_start,
+ 	.stopN = sd_stopN,
+ 	.stop0 = sd_stop0,
