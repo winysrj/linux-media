@@ -1,68 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp102.mail.ukl.yahoo.com ([77.238.184.34]:21233 "HELO
-	smtp102.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1758810AbZJOXkK (ORCPT
+Received: from mail-pz0-f188.google.com ([209.85.222.188]:45408 "EHLO
+	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933328AbZJaXEc convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Oct 2009 19:40:10 -0400
-Message-ID: <4AD7B2AF.8000602@yahoo.it>
-Date: Fri, 16 Oct 2009 01:39:27 +0200
-From: SebaX75 <sebax75@yahoo.it>
+	Sat, 31 Oct 2009 19:04:32 -0400
+Received: by pzk26 with SMTP id 26so2565216pzk.4
+        for <linux-media@vger.kernel.org>; Sat, 31 Oct 2009 16:04:37 -0700 (PDT)
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: em28xx DVB modeswitching change: call for testers
-References: <829197380910132052w155116ecrcea808abe87a57a6@mail.gmail.com>
-In-Reply-To: <829197380910132052w155116ecrcea808abe87a57a6@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <303a8ee30910311546x41f919fey9e6acfbd161c0de8@mail.gmail.com>
+References: <4ADED23C.2080002@uq.edu.au>
+	 <303a8ee30910211233r111d3378vedc1672f68728717@mail.gmail.com>
+	 <1257002647.3333.7.camel@pc07.localdom.local>
+	 <303a8ee30910310948o107387c5g2d89665ea2bcde7e@mail.gmail.com>
+	 <ef52a95d0910311508v644e998bke9e7955aa32d5da6@mail.gmail.com>
+	 <303a8ee30910311543h178879d2wf79fd0045b8e6eb@mail.gmail.com>
+	 <303a8ee30910311546x41f919fey9e6acfbd161c0de8@mail.gmail.com>
+Date: Sun, 1 Nov 2009 10:04:37 +1100
+Message-ID: <ef52a95d0910311604w5c696aean73e19af06014dee1@mail.gmail.com>
+Subject: Re: Leadtek DTV-1000S
+From: Michael Obst <m.obst@ugrad.unimelb.edu.au>
+To: Michael Krufky <mkrufky@kernellabs.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller ha scritto:
-> Hello all,
-> 
-> I have setup a tree that removes the mode switching code when
-> starting/stopping streaming.  If you have one of the em28xx dvb
-> devices mentioned in the previous thread and volunteered to test,
-> please try out the following tree:
-> 
-> http://kernellabs.com/hg/~dheitmueller/em28xx-modeswitch
-> 
-> In particular, this should work for those of you who reported problems
-> with zl10353 based devices like the Pinnacle 320e (or Dazzle) and were
-> using that one line change I sent this week.  It should also work with
-> Antti's Reddo board without needing his patch to move the demod reset
-> into the tuner_gpio.
-> 
-> This also brings us one more step forward to setting up the locking
-> properly so that applications cannot simultaneously open the analog
-> and dvb side of the device.
-> 
-> Thanks for your help,
-> 
-> Devin
+This problem is reproducible and occurs the same from a cold boot or
+inserting saa7134. Analog tv has never worked on this card, I was
+under the impression there was no analog tuner on the card (looking at
+http://www.leadtek.com/eng/tv_tuner/image/digital_tv.pdf). The info
+was simply from doing a modprobe on saa7134. The only lines in the
+dmesg that were different from the old driver was
 
-Hi Devin,
-excuse my late, but I've done some test.
+saa7130[0]/alsa: Leadtek Winfast DTV1000S doesn't support digital audio
 
-The scanning now work correctly and without problem, all MUX was tuned 
-and channel recognized.
+So I guess the analog part has always failed
 
-With mplayer no problem, for a new channel I must stop the actual 
-channel viewing and start a new one instance of mplayer.
+I am using the nvidia driver and a driver for my wireless card, I will
+turn these off and see if I can get a different result.
 
-I've a problem with kaffeine, and this problem before was not present 
-(I've not tested with the previous temporary patch).
-To reproduce the problem, is necessary a channel change, and the two 
-channel must be on a different MUX: the first double click on new 
-channel name display an "Impossible to tune", if I do a new double click 
-the channel was opened. Is like the adapter was resetted, but not 
-reinitialized on new frequency.
-Logically the problem not appears if I stop the transmission between the 
-channel change or if I change channel that are located on the same MUX.
+During tuning for digital tv with the old driver I got
 
-I hope to have explained well the thing.
+[ 1081.808505] tda18271: performing RF tracking filter calibration
+[ 1086.152006] tda18271: RF tracking filter calibration complete
+[ 1091.020535] hda-intel: IRQ timing workaround is activated for card
+#0. Suggest a bigger bdl_pos_adj.
 
-Thanks and bye,
-Sebastian
 
+The final line did not appear when I tried to tune using the new version
+
+[ 1225.904503] tda18271: performing RF tracking filter calibration
+[ 1230.272003] tda18271: RF tracking filter calibration complete
+
+
+Thanks
+Michael Obst
+
+2009/11/1 Michael Krufky <mkrufky@kernellabs.com>:
+> On Sat, Oct 31, 2009 at 6:43 PM, Michael Krufky <mkrufky@kernellabs.com> wrote:
+>> On Sat, Oct 31, 2009 at 6:08 PM, Michael Obst
+>> <m.obst@ugrad.unimelb.edu.au> wrote:
+>>> Hi,
+>>>    Thanks for fixing this, I can confirm that it now compiles and
+>>> inserts and the remote works, so does the av input to the tvcard
+>>> however the card does not seem to be able to tune any channels, I have
+>>> checked the old driver and that is still able to tune in channels. The
+>>> output from my dmesg is below.
+>>>
+>>> Thanks
+>>> Michael Obst
+>>
+>> Michael,
+>>
+>> This is an interesting problem -- the part of your dmesg that stands
+>> out to me is this:
+>>
+>>> [  502.928544] tuner 0-0060: chip found @ 0xc0 (saa7130[0])
+>>> [  502.960501] tda8290: no gate control were provided!
+>>
+>> That error message was added as a safety measure -- it shouldn't be
+>> possible to ever hit that code path.  Are you running any non-GPL
+>> binary drivers on your system, such as NVIDIA or anything else?
+>>
+>> Let me explain:
+>>
+>> The "no gate control were provided!" message was added by Mauro to the
+>> tda8290 driver, mainly as a check to ensure that we don't call a null
+>> function pointer.  The gate control is actually provided by the
+>> tda8290 driver itself, by either tda8290_i2c_bridge or
+>> tda8295_i2c_bridge, depending on which hardware is present.  In your
+>> case, it's a tda8290.
+>>
+>> The function pointer is filled during the tda829x_attach() function,
+>> before we call the tda829x_find_tuner function, where this error
+>> message is displayed.  The only way for this to have occurred, as far
+>> as I can tell,  is if the probe to detect the tda8290 itself had
+>> failed.
+>>
+>> Have you repeated your test with the same problem each time, or did
+>> this only happen once?
+>>
+>> Can you try again, from a cold reboot?
+>>
+>> Also, I'm just assuming that this failure occurred during a digital
+>> tune -- is that correct?  Does analog television work?
+>>
+>> If the problem is reproducible, can you also show us dmesg during a failed tune?
+>>
+>> I'm very interested in hearing more about this -- please let me know.
+>
+> Oops, on second look, seems that the error occurred during analog
+> bring-up ... does digital tv work?
+>
+> -Mike
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
