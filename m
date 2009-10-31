@@ -1,164 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web32706.mail.mud.yahoo.com ([68.142.207.250]:24651 "HELO
-	web32706.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750742AbZJVEDZ convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Oct 2009 00:03:25 -0400
-Message-ID: <114221.71254.qm@web32706.mail.mud.yahoo.com>
-Date: Wed, 21 Oct 2009 21:03:29 -0700 (PDT)
-From: Franklin Meng <fmeng2002@yahoo.com>
-Subject: Re: Kworld 315U help?
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <510991.99153.qm@web32703.mail.mud.yahoo.com>
+Received: from mail01d.mail.t-online.hu ([84.2.42.6]:51400 "EHLO
+	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933340AbZJaXNz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Oct 2009 19:13:55 -0400
+Message-ID: <4AECC4B4.8080401@freemail.hu>
+Date: Sun, 01 Nov 2009 00:13:56 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+CC: Thomas Kaiser <thomas@kaiser-linux.li>,
+	Theodore Kilgore <kilgota@auburn.edu>,
+	Kyle Guinn <elyk03@gmail.com>
+Subject: [PATCH 04/21] gspca pac7302/pac7311: separate config
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Here are some more stuff in the trace that was not decoded by the parse_em28xx script..  
+From: MÃ¡rton NÃ©meth <nm127@freemail.hu>
 
-So what we know from this list of unknowns... 
+Separate the config function. Remove the run-time decision for
+PAC7302 and PAC7311 sensors.
 
-0xa0 is the eeprom
-0x4a is the SAA
-0x42 ??. 
-0xd0 ??
-0x20 ?? 
-0xc6 ??
-0xc4 ??
-0xc2 Thomson tuner.  
+Signed-off-by: MÃ¡rton NÃ©meth <nm127@freemail.hu>
+Cc: Thomas Kaiser <thomas@kaiser-linux.li>
+Cc: Theodore Kilgore <kilgota@auburn.edu>
+Cc: Kyle Guinn <elyk03@gmail.com>
+---
+diff -uprN d/drivers/media/video/gspca/pac7311.c e/drivers/media/video/gspca/pac7311.c
+--- d/drivers/media/video/gspca/pac7311.c	2009-10-30 17:15:51.000000000 +0100
++++ e/drivers/media/video/gspca/pac7311.c	2009-10-30 17:27:57.000000000 +0100
+@@ -509,8 +509,8 @@ static void reg_w_var(struct gspca_dev *
+ 	/* not reached */
+ }
 
-unknown: c0 02 00 00 42 00 01 00 <<< fd                                                 
-unknown: c0 02 00 00 4a 00 01 00 <<< 11                                                 
-unknown: 40 03 00 00 a0 00 01 00 >>> 2d                                                 
-unknown: c0 02 00 00 a0 00 01 00 <<< 1c                                                 
-unknown: c0 02 00 00 20 00 01 00 <<< fe                                                 
-unknown: c0 02 00 00 d0 00 01 00 <<< 10                                                 
-unknown: 40 03 00 00 a0 00 01 00 >>> 0a                                                 
-unknown: c0 02 00 00 a0 00 01 00 <<< 5a                                                 
-unknown: 40 03 00 00 a0 00 01 00 >>> 2e                                                 
-unknown: c0 02 00 00 a0 00 01 00 <<< 00                                                 
-unknown: 40 03 00 00 a0 00 01 00 >>> 0a                                                 
-unknown: c0 02 00 00 a0 00 01 00 <<< 5a                                                 
-unknown: c0 02 00 00 c6 00 01 00 <<< 00                                                 
-unknown: c0 02 00 00 c4 00 01 00 <<< 10                                                 
-unknown: c0 02 00 00 c2 00 01 00 <<< b4            
+-/* this function is called at probe time */
+-static int sd_config(struct gspca_dev *gspca_dev,
++/* this function is called at probe time for pac7302 */
++static int pac7302_sd_config(struct gspca_dev *gspca_dev,
+ 			const struct usb_device_id *id)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+@@ -519,17 +519,36 @@ static int sd_config(struct gspca_dev *g
+ 	cam = &gspca_dev->cam;
 
-Anyone know what are at the other addresses?  I don't know if they are important or not.  
+ 	sd->sensor = id->driver_info;
+-	if (sd->sensor == SENSOR_PAC7302) {
+-		PDEBUG(D_CONF, "Find Sensor PAC7302");
+-		cam->cam_mode = &vga_mode[2];	/* only 640x480 */
+-		cam->nmodes = 1;
+-	} else {
+-		PDEBUG(D_CONF, "Find Sensor PAC7311");
+-		cam->cam_mode = vga_mode;
+-		cam->nmodes = ARRAY_SIZE(vga_mode);
+-		gspca_dev->ctrl_dis = (1 << BRIGHTNESS_IDX)
+-				| (1 << SATURATION_IDX);
+-	}
++	PDEBUG(D_CONF, "Find Sensor PAC7302");
++	cam->cam_mode = &vga_mode[2];	/* only 640x480 */
++	cam->nmodes = 1;
++
++	sd->brightness = BRIGHTNESS_DEF;
++	sd->contrast = CONTRAST_DEF;
++	sd->colors = COLOR_DEF;
++	sd->gain = GAIN_DEF;
++	sd->exposure = EXPOSURE_DEF;
++	sd->autogain = AUTOGAIN_DEF;
++	sd->hflip = HFLIP_DEF;
++	sd->vflip = VFLIP_DEF;
++	return 0;
++}
++
++/* this function is called at probe time for pac7311 */
++static int pac7311_sd_config(struct gspca_dev *gspca_dev,
++			const struct usb_device_id *id)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++	struct cam *cam;
++
++	cam = &gspca_dev->cam;
++
++	sd->sensor = id->driver_info;
++	PDEBUG(D_CONF, "Find Sensor PAC7311");
++	cam->cam_mode = vga_mode;
++	cam->nmodes = ARRAY_SIZE(vga_mode);
++	gspca_dev->ctrl_dis = (1 << BRIGHTNESS_IDX)
++			| (1 << SATURATION_IDX);
 
-Thanks,
-Franklin Meng
-
---- On Wed, 10/21/09, Franklin Meng <fmeng2002@yahoo.com> wrote:
-
-> From: Franklin Meng <fmeng2002@yahoo.com>
-> Subject: Re: Kworld 315U help?
-> To: "Devin Heitmueller" <dheitmueller@kernellabs.com>
-> Cc: linux-media@vger.kernel.org
-> Date: Wednesday, October 21, 2009, 8:06 AM
-> Devin, 
-> 
-> Thanks for the info..  Should the parse_em28xx.pl
-> script be updated to reflect this?  I'm assuming other
-> em28xx boards also have the eeprom at address 0xa0.  
-> 
-> There are a couple more entries that I am unsure
-> about..  I'll post those when I get home tonight. 
-> 
-> 
-> Are you interested in looking at some traces?  I am
-> pretty sure I have most of the analog and input stuff
-> figured out though I probably don't have the GPIO sequence
-> correct.  Anyways, if your interested I can send you
-> what I know.  
-> 
-> Thanks
-> Franklin Meng
-> 
-> --- On Wed, 10/21/09, Devin Heitmueller <dheitmueller@kernellabs.com>
-> wrote:
-> 
-> > From: Devin Heitmueller <dheitmueller@kernellabs.com>
-> > Subject: Re: Kworld 315U help?
-> > To: "Franklin Meng" <fmeng2002@yahoo.com>
-> > Cc: linux-media@vger.kernel.org
-> > Date: Wednesday, October 21, 2009, 5:55 AM
-> > On Wed, Oct 21, 2009 at 1:35 AM,
-> > Franklin Meng <fmeng2002@yahoo.com>
-> > wrote:
-> > > I was wondering if someone would be able to help
-> me
-> > with getting the analog and inputs for the Kworld
-> 315U
-> > working.  I was able to get the digital part working
-> with
-> > help from Douglas Schilling and wanted to get the
-> remaining
-> > portions of the device working.
-> > >
-> > > I have traces but have not made much progress.
->  In
-> > addition I also have some questions about the
-> information
-> > that the parse_em28xx.pl skips and does not decode.
-> > >
-> > > For example here is some of the data that doesn't
-> seem
-> > to be decoded..
-> > > unknown: 40 03 00 00 a0 00 01 00 >>> 08
-> > > unknown: c0 02 00 00 a0 00 01 00 <<< d0
-> > > unknown: 40 03 00 00 a0 00 01 00 >>> 08
-> > > unknown: c0 02 00 00 a0 00 01 00 <<< d0
-> > > unknown: 40 03 00 00 a0 00 01 00 >>> 22
-> > > unknown: c0 02 00 00 a0 00 01 00 <<< 01
-> > > unknown: 40 03 00 00 a0 00 01 00 >>> 04
-> > > unknown: c0 02 00 00 a0 00 02 00 <<< 1a
-> eb
-> > > unknown: 40 03 00 00 a0 00 01 00 >>> 20
-> > > unknown: c0 02 00 00 a0 00 01 00 <<< 46
-> > > unknown: 40 03 00 00 a0 00 01 00 >>> 14
-> > > unknown: c0 02 00 00 a0 00 04 00 <<< 4e
-> 07 01
-> > 00
-> > >
-> > > Anyways, any help that can be provided is
-> > appreciated.
-> > 
-> > Those look like i2c commands to the onboard eeprom,
-> which
-> > is at i2c
-> > address 0xa0.  For example:
-> > 
-> > unknown: 40 03 00 00 a0 00 01 00 >>> 04 
-> >      // set eeprom read offset to 0x04
-> > unknown: c0 02 00 00 a0 00 02 00 <<< 1a eb 
-> > // read two bytes back from eeprom
-> > 
-> > Cheers,
-> > 
-> > Devin
-> > 
-> > -- 
-> > Devin J. Heitmueller - Kernel Labs
-> > http://www.kernellabs.com
-> > --
-> > To unsubscribe from this list: send the line
-> "unsubscribe
-> > linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> 
-> 
->       
-> --
-> To unsubscribe from this list: send the line "unsubscribe
-> linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
-      
+ 	sd->brightness = BRIGHTNESS_DEF;
+ 	sd->contrast = CONTRAST_DEF;
+@@ -1136,7 +1155,7 @@ static struct sd_desc pac7302_sd_desc =
+ 	.name = MODULE_NAME,
+ 	.ctrls = sd_ctrls,
+ 	.nctrls = ARRAY_SIZE(sd_ctrls),
+-	.config = sd_config,
++	.config = pac7302_sd_config,
+ 	.init = sd_init,
+ 	.start = sd_start,
+ 	.stopN = sd_stopN,
+@@ -1150,7 +1169,7 @@ static struct sd_desc pac7311_sd_desc =
+ 	.name = MODULE_NAME,
+ 	.ctrls = sd_ctrls,
+ 	.nctrls = ARRAY_SIZE(sd_ctrls),
+-	.config = sd_config,
++	.config = pac7311_sd_config,
+ 	.init = sd_init,
+ 	.start = sd_start,
+ 	.stopN = sd_stopN,
