@@ -1,265 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:1753 "EHLO
-	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754438AbZJOVhw (ORCPT
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:63334 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757846AbZJaQV0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Oct 2009 17:37:52 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC] Video events, version 2
-Date: Thu, 15 Oct 2009 23:37:06 +0200
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Zutshi Vimarsh (Nokia-D-MSW/Helsinki)" <vimarsh.zutshi@nokia.com>,
-	Ivan Ivanov <iivanov@mm-sol.com>,
-	Cohen David Abraham <david.cohen@nokia.com>,
-	Guru Raj <gururaj.nagendra@intel.com>
-References: <4AD5CBD6.4030800@maxwell.research.nokia.com> <200910141948.33666.hverkuil@xs4all.nl> <200910152311.33709.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <200910152311.33709.laurent.pinchart@ideasonboard.com>
+	Sat, 31 Oct 2009 12:21:26 -0400
+Received: by bwz27 with SMTP id 27so4683876bwz.21
+        for <linux-media@vger.kernel.org>; Sat, 31 Oct 2009 09:21:29 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200910152337.06794.hverkuil@xs4all.nl>
+In-Reply-To: <4AEC2F03.6050205@gmail.com>
+References: <4AEC2F03.6050205@gmail.com>
+Date: Sat, 31 Oct 2009 12:21:28 -0400
+Message-ID: <829197380910310921k42f9ae5fkafa6edc318e61bf6@mail.gmail.com>
+Subject: Re: [linux-dvb] somebody messed something on xc2028 code?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 15 October 2009 23:11:33 Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> On Wednesday 14 October 2009 19:48:33 Hans Verkuil wrote:
-> > On Wednesday 14 October 2009 15:02:14 Sakari Ailus wrote:
-> > > Here's the second version of the video events RFC. It's based on Laurent
-> > > Pinchart's original RFC. My aim is to address the issues found in the
-> > > old RFC during the V4L-DVB mini-summit in the Linux plumbers conference
-> > > 2009. To get a good grasp of the problem at hand it's probably a good
-> > > idea read the original RFC as well:
-> > >
-> > > <URL:http://www.spinics.net/lists/linux-media/msg10217.html>
-> 
-> Thanks for the RFC update.
-> 
-> > > Changes to version 1
-> > > ----------------------------------
-> > >
-> > > struct video_event has been renamed to v4l2_event. The struct is used in
-> > > userspace and V4L related structures appear to have v4l2 prefix so that
-> > > should be better than video.
-> 
-> In the end we will probably rename that to media_ or something similar in the 
-> big media controller rename (if that ever happens). For now let's keep v4l2_, 
-> that will be more consistent.
-> 
-> > > The "entity" field has been removed from the struct v4l2_event since the
-> > > subdevices will have their own device nodes --- the events should come
-> > > from them instead of the media controller. Video nodes could be used for
-> > > events, too.
-> 
-> I would still keep the entity field. It would allow for parents to report 
-> children events and there could be use cases for that.
+On Sat, Oct 31, 2009 at 8:35 AM, Albert Comerma
+<albert.comerma@gmail.com> wrote:
+> Hi all, I just updated my ubuntu to karmic and found with surprise that with
+> 2.6.31 kernel my device does not work... It seems to be related to the
+> xc2028 code part since the kernel explosion happens when you try to tune the
+> device, here it's my dmesg, any idea?
+>
+> Albert
+>
+> [ 1622.032196] usb 1-1: new high speed USB device using ehci_hcd and address
+> 4
+> [ 1622.166041] usb 1-1: configuration #1 chosen from 1 choice
+> [ 1622.167341] dvb-usb: found a 'Pinnacle Expresscard 320cx' in cold state,
+> will try to load a firmware
+> [ 1622.167353] usb 1-1: firmware: requesting dvb-usb-dib0700-1.20.fw
+> [ 1622.188465] dvb-usb: downloading firmware from file
+> 'dvb-usb-dib0700-1.20.fw'
+> [ 1622.396737] dib0700: firmware started successfully.
+> [ 1622.900198] dvb-usb: found a 'Pinnacle Expresscard 320cx' in warm state.
+> [ 1622.900308] dvb-usb: will pass the complete MPEG2 transport stream to the
+> software demuxer.
+> [ 1622.900759] DVB: registering new adapter (Pinnacle Expresscard 320cx)
+> [ 1623.157839] DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
+> [ 1623.158165] xc2028 4-0061: creating new instance
+> [ 1623.158173] xc2028 4-0061: type set to XCeive xc2028/xc3028 tuner
+> [ 1623.158333] input: IR-receiver inside an USB DVB receiver as
+> /devices/pci0000:00/0000:00:1a.7/usb1/1-1/input/input16
+> [ 1623.158418] dvb-usb: schedule remote query interval to 50 msecs.
+> [ 1623.158427] dvb-usb: Pinnacle Expresscard 320cx successfully initialized
+> and connected.
+> [ 1670.979678] CE: hpet increasing min_delta_ns to 15000 nsec
+> [ 1753.316527] BUG: unable to handle kernel NULL pointer dereference at
+> 00000008
+> [ 1753.316543] IP: [<c03a8a13>] _request_firmware+0x1f3/0x250
+> [ 1753.316562] *pde = 00000000
+> [ 1753.316570] Oops: 0000 [#2] SMP
+> [ 1753.316578] last sysfs file:
+> /sys/devices/LNXSYSTM:00/device:00/PNP0C0A:00/power_supply/BAT0/charge_full
+> [ 1753.316586] Modules linked in: tuner_xc2028 dvb_usb_dib0700 dib7000p
+> dib7000m dvb_usb dvb_core dib3000mc dibx000_common dib0070 hidp binfmt_misc
+> vboxnetflt vboxnetadp vboxdrv ppdev parport_pc snd_hda_codec_idt
+> snd_hda_intel snd_hda_codec snd_hwdep snd_pcm_oss snd_mixer_oss snd_pcm arc4
+> ecb snd_seq_dummy snd_seq_oss iwlagn bridge stp bnep snd_seq_midi iwlcore
+> snd_rawmidi joydev iptable_nat snd_seq_midi_event mac80211 nf_nat snd_seq
+> nf_conntrack_ipv4 nf_conntrack nf_defrag_ipv4 snd_timer snd_seq_device
+> iptable_mangle snd sbp2 dell_wmi psmouse iptable_filter serio_raw ip_tables
+> soundcore x_tables snd_page_alloc cfg80211 uvcvideo videodev v4l1_compat
+> sdhci_pci sdhci led_class lp btusb dell_laptop dcdbas nvidia(P) parport
+> usbhid dm_raid45 xor ohci1394 video output ieee1394 tg3 intel_agp agpgart
+> [ 1753.316753]
 
-We can always convert one of the reserved fields to an entity field in the
-future. Adding support in the new API for an even newer and as yet highly
-experimental API is not a good idea.
+This was actually a regression related to the dib7000 driver and any
+tuner that uses request_firmware().  I checked in a fix for one board
+that hit it.  It was introduced because 2.6.28 started using the first
+parameter passed to request_firmware(), and the dib7000 driver was
+sending null.
 
-> > > A few reserved fields have been added. There are new ioctls as well for
-> > > enumeration and (un)subscribing.
-> > >
-> > >
-> > > Interface description
-> > > ---------------------
-> > >
-> > > Event type is either a standard event or private event. Standard events
-> > > will be defined in videodev2.h. Private event types begin from
-> > > V4L2_EVENT_PRIVATE. Some high order bits could be reserved for future
-> > > use.
-> > >
-> > > #define V4L2_EVENT_PRIVATE_START	0x08000000
-> > > #define V4L2_EVENT_RESERVED		0x10000000
-> > 
-> > Suggestion: use the V4L2_EV_ prefix perhaps instead of the longer
-> >  V4L2_EVENT?
-> 
-> EV could be confused with electron volt, exposure value, or even escape 
-> velocity (don't underestimate the use of V4L2 in the spaceship market ;-)). On 
-> a more serious note, while I like to keep identifiers short, is the 3 
-> characters gain worth it here ?
-> 
-> > > VIDIOC_ENUM_EVENT is used to enumerate the available event types. It
-> > > works a bit the same way than VIDIOC_ENUM_FMT i.e. you get the next
-> > > event type by calling it with the last type in the type field. The
-> > > difference is that the range is not continuous like in querying controls.
-> > 
-> > Question: why do we need an ENUM_EVENT? I don't really see a use-case for
-> >  this.
-> > 
-> > Also note that there are three methods in use for enumerating within V4L:
-> > 
-> > 1) there is an index field in the struct that starts at 0 and that the
-> > application increases by 1 until the ioctl returns an error.
-> > 
-> > 2) old-style controls where just enumerated from CID_BASE to CID_LASTP1,
-> > which is very, very ugly.
-> > 
-> > 3) controls new-style allow one to set bit 31 on the control ID and in that
-> > case the ioctl will give you the first control with an ID that is higher
-> >  than the specified ID.
-> > 
-> > 1 or 3 are both valid options IMHO.
-> > 
-> > But again, I don't see why we need it in the first place.
-> 
-> Applications will only subscribe to the events they can handle, so I don't 
-> think enumeration is really required. We might want to provide "subscribe to 
-> all" and "subscribe to none" options though, maybe as special events 
-> (V4L2_EVENT_NONE, V4L2_EVENT_ALL)
+Can you clarify which bridge your device uses.
 
-Nice idea. Although we only need an EVENT_ALL. 'Subscribe to none' equals
-'unsubscribe all' after all :-)
-
-> > > VIDIOC_G_EVENT is used to get events. sequence is the event sequence
-> > > number and the data is specific to driver or event type.
-> 
-> For efficiency reasons a V4L2_G_EVENTS ioctl could also be provided to 
-> retrieve multiple events.
-> 
-> struct v4l2_events {
-> 	__u32 count;
-> 	struct v4l2_event __user *events;
-> };
-> 
-> #define VIDIOC_G_EVENTS _IOW('V', xx, struct v4l2_events)
-
-Hmm. Premature optimization. Perhaps as a future extension.
-
-> > > The user will get the information that there's an event through
-> > > exception file descriptors by using select(2). When an event is
-> > > available the poll handler sets POLLPRI which wakes up select. -EINVAL
-> > > will be returned if there are no pending events.
-> > >
-> > > VIDIOC_SUBSCRIBE_EVENT and VIDIOC_UNSUBSCRIBE_EVENT are used to
-> > > subscribe and unsubscribe from events. The argument is event type.
-> > 
-> > Two event types can be defined already (used by ivtv):
-> > 
-> > #define V4L2_EVENT_DECODER_STOPPED   1
-> > #define V4L2_EVENT_OUTPUT_VSYNC      2
-> > 
-> > > struct v4l2_eventdesc {
-> > > 	__u32		type;
-> > > 	__u8		description[64];
-> > > 	__u32		reserved[4];
-> > > };
-> > >
-> > > struct v4l2_event {
-> > > 	__u32		type;
-> > > 	__u32		sequence;
-> > > 	struct timeval	timestamp;
-> > > 	__u8		data[64];
-> > 
-> > This should be a union:
-> > 
-> > 
-> > union {
-> > 	enum v4l2_field ev_output_vsync;
-> > 	__u8 data[64];
-> > };
-> 
-> The union will grow pretty big and I'm scared it would soon become a mess.
-
-But otherwise apps need to unpack the data array. That's very user-unfriendly.
-I've no problem with big unions.
-
-As an aside: I think that eventually videodev2.h should be split up. Especially
-the control section should be moved to a separate header and just be included
-by videodev2.h.
-
-> 
-> > > 	__u32		reserved[4];
-> > > };
-> > >
-> > > #define VIDIOC_ENUM_EVENT	_IORW('V', 83, struct v4l2_eventdesc)
-> > > #define VIDIOC_G_EVENT		_IOR('V', 84, struct v4l2_event)
-> > > #define VIDIOC_SUBSCRIBE_EVENT	_IOW('V', 85, __u32)
-> > > #define VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 86, __u32)
-> > 
-> > For (un)subscribe I suggest that we also use a struct with the event type
-> > and a few reserved fields.
-> 
-> Agreed.
-> 
-> > > As it was discussed in the LPC, event subscriptions should be bound to
-> > > file handle. The implementation, however, is not visible to userspace.
-> > > This is why I'm not specifying it in this RFC.
-> > >
-> > > While the number of possible standard (and probably private) events
-> > > would be quite small and the implementation could be a bit field, I do
-> > > see that the interface must be using types passed as numbers instead of
-> > > bit fields.
-> > >
-> > > Is it necessary to buffer events of same type or will an event replace
-> > > an older event of the same type? It probably depends on event type which
-> > > is better. This is also a matter of implementation.
-> > >
-> > >
-> > > Comments and questions are more than welcome.
-> > 
-> > Here's a mixed bag of idea/comments:
-> > 
-> > We need to define what to do when you unsubscribe an event and there are
-> >  still events of that type pending. Do we remove those pending events as
-> >  well? I think we should just keep them, but I'm open for other opinions.
-> 
-> It would be easier to keep them and I don't think that would hurt.
-> 
-> > I was wondering if a 'count' field in v4l2_event might be useful: e.g. if
-> >  you get multiple identical events, and that event is already registered,
-> >  then you can just increase the count rather than adding the same event
-> >  again. This might be overengineering, though. And to be honest, I can't
-> >  think of a use-case, but it's something to keep in mind perhaps.
-> 
-> That's called events compression in the GUI world. The main reason to 
-> implement this is efficiency when dealing with events that can occur at a high 
-> frequency. For instance, when moving a window and thus exposing previously 
-> unexposed parts that need to be redrawn, compressing all the redraw events 
-> generated while the window moves make sense. There could be use cases in the 
-> media world as well, but I think this is a case of overengineering at the 
-> moment. We can always implement it later, and I don't think a count field 
-> would be useful anyway, as events that could be repeated will probably be 
-> intermixed with other events.
-> 
-> > Would we ever need a VIDIOC_S_EVENT to let the application set an event?
-> > ('software events').
-> 
-> Using a kernel driver to pass information from one userspace application to 
-> another doesn't seem like a very good design IMHO. Let's not do that for now.
-> 
-> > Rather than naming the ioctl VIDIOC_G_EVENT, perhaps VIDIOC_DQEVENT might
-> > be more appropriate.
-> 
-> No preference there.
-> 
-> > How do we prevent the event queue from overflowing? Just hardcode a
-> > watermark? Alternatively, when subscribing an event we can also pass the
-> > maximum number of allowed events as an argument.
-> 
-> We can't prevent it from overflowing if the userspace application isn't fast 
-> enough. In that case events will be discarded, and the application will find 
-> out using the sequence number.
-
-Obviously, but my question is whether we use a fixed internal queue or
-whether we make this something that the application can configure.
-
-That said, I think the initial implementation should be that the subscribe
-ioctl gets a struct with the event type and a few reserved fields so that
-in the future we can use one of the reserved fields as a configuration
-parameter. So for now we just have some default watermark that is set by the
-driver.
-
-Regards,
-
-	Hans
+Devin
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
