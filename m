@@ -1,161 +1,256 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f210.google.com ([209.85.218.210]:42980 "EHLO
-	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752013AbZJKPsA convert rfc822-to-8bit (ORCPT
+Received: from mail-in-09.arcor-online.net ([151.189.21.49]:52664 "EHLO
+	mail-in-09.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757640AbZJaC4z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Oct 2009 11:48:00 -0400
-Received: by bwz6 with SMTP id 6so2637383bwz.37
-        for <linux-media@vger.kernel.org>; Sun, 11 Oct 2009 08:47:22 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <200910111006.46716.miga_miga@gmx.de>
-References: <200910102219.23667.miga_miga@gmx.de>
-	 <829197380910101448w4240eb35g8f51daca2b7c961c@mail.gmail.com>
-	 <200910111006.46716.miga_miga@gmx.de>
-Date: Sun, 11 Oct 2009 11:47:22 -0400
-Message-ID: <829197380910110847x2dad7b8ased2514817c996c2@mail.gmail.com>
-Subject: Re: 2.6.32 dvbdev error / Cinergy XS [0ccd:0043]
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Michael G <miga_miga@gmx.de>
+	Fri, 30 Oct 2009 22:56:55 -0400
+Subject: Re: [PATCH video4linux] For STLabs PCI saa7134 analog receiver card
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Flink Dinky <flinkdeldinky@gmail.com>
 Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <48bf42dd0910300803q8b98f1an3935901358cf3bf9@mail.gmail.com>
+References: <200910292307.28202.flinkdeldinky@gmail.com>
+	 <1256859539.3270.23.camel@pc07.localdom.local>
+	 <48bf42dd0910300803q8b98f1an3935901358cf3bf9@mail.gmail.com>
+Content-Type: text/plain
+Date: Sat, 31 Oct 2009 03:54:06 +0100
+Message-Id: <1256957646.4272.42.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Oct 11, 2009 at 4:06 AM, Michael G <miga_miga@gmx.de> wrote:
-> Am Samstag, 10. Oktober 2009 23:48:37 schrieb Devin Heitmueller:
->> On Sat, Oct 10, 2009 at 4:19 PM, Michael G <miga_miga@gmx.de> wrote:
->> > Hi,
->> > can someone please help me to get my
->> > Cinergy XS (Bus 001 Device 010: ID 0ccd:0043 TerraTec Electronic GmbH)
->> > to run in a 2.6.32 RC3 gentoo system?
->> >
->> > When I use the in-kernel driver I'll get the following output:
->> > usb 1-1: new high speed USB device using ehci_hcd and address 10
->> > usb 1-1: configuration #1 chosen from 1 choice
->> > em28xx: New device TerraTec Electronic GmbH Cinergy T USB XS @ 480 Mbps
->> > (0ccd:0043, interface 0, class 0)
->> > em28xx #0: chip ID is em2870
->> > em28xx #0: i2c eeprom 00: 1a eb 67 95 cd 0c 43 00 c0 12 81 00 6a 24 8e 34
->> > em28xx #0: i2c eeprom 10: 00 00 06 57 02 0c 00 00 00 00 00 00 00 00 00 00
->> > em28xx #0: i2c eeprom 20: 44 00 00 00 f0 10 01 00 00 00 00 00 5b 00 00 00
->> > em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01 00 00 ee 2d 46 4a
->> > em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->> > em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->> > em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 24 03 43 00 69 00
->> > em28xx #0: i2c eeprom 70: 6e 00 65 00 72 00 67 00 79 00 20 00 54 00 20 00
->> > em28xx #0: i2c eeprom 80: 55 00 53 00 42 00 20 00 58 00 53 00 00 00 34 03
->> > em28xx #0: i2c eeprom 90: 54 00 65 00 72 00 72 00 61 00 54 00 65 00 63 00
->> > em28xx #0: i2c eeprom a0: 20 00 45 00 6c 00 65 00 63 00 74 00 72 00 6f 00
->> > em28xx #0: i2c eeprom b0: 6e 00 69 00 63 00 20 00 47 00 6d 00 62 00 48 00
->> > em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->> > em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->> > em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->> > em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->> > em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x339064dc
->> > em28xx #0: EEPROM info:
->> > em28xx #0:      No audio on board.
->> > em28xx #0:      500mA max power
->> > em28xx #0:      Table at 0x06, strings=0x246a, 0x348e, 0x0000
->> > em28xx #0: Identified as Terratec Cinergy T XS (card=43)
->> > em28xx #0:
->> >
->> > em28xx #0: The support for this board weren't valid yet.
->> > em28xx #0: Please send a report of having this working
->> > em28xx #0: not to V4L mailing list (and/or to other addresses)
->> >
->> > Chip ID is not zero. It is not a TEA5767
->> > tuner 0-0060: chip found @ 0xc0 (em28xx #0)
->> > xc2028 0-0060: creating new instance
->> > xc2028 0-0060: type set to XCeive xc2028/xc3028 tuner
->> > usb 1-1: firmware: requesting xc3028-v27.fw
->> > xc2028 0-0060: Loading 80 firmware images from xc3028-v27.fw, type:
->> > xc2028 firmware, ver 2.7
->> > xc2028 0-0060: Loading firmware for type=BASE (1), id 0000000000000000.
->> > xc2028 0-0060: Loading firmware for type=(0), id 000000000000b700.
->> > SCODE (20000000), id 000000000000b700:
->> > xc2028 0-0060: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000),
->> > id 0000000000008000.
->> > xc2028 0-0060: Incorrect readback of firmware version.
->> > xc2028 0-0060: Loading firmware for type=BASE (1), id 0000000000000000.
->> > xc2028 0-0060: Loading firmware for type=(0), id 000000000000b700.
->> > SCODE (20000000), id 000000000000b700:
->> > xc2028 0-0060: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000),
->> > id 0000000000008000.
->> > xc2028 0-0060: Incorrect readback of firmware version.
->> > em28xx #0: v4l2 driver version 0.1.2
->> > em28xx #0: V4L2 video device registered as /dev/video1
->> >
->> >
->> > No /dev/dvb, so no DVT-T. I tried to use the latest v4l-dvb but I can't
->> > compile it:
->> >
->> > /root/v4l-dvb/v4l/dvbdev.c: In function 'init_dvbdev':
->> > /root/v4l-dvb/v4l/dvbdev.c:516: error: 'struct class' has no member named
->> > 'nodename'
->> > make[3]: *** [/root/v4l-dvb/v4l/dvbdev.o] Error 1
->> > make[2]: *** [_module_/root/v4l-dvb/v4l] Error 2
->> > make[2]: Leaving directory `/usr/src/linux-2.6.32-rc3'
->> > make[1]: *** [default] Error 2
->> > make[1]: Leaving directory `/root/v4l-dvb/v4l'
->> > make: *** [all] Error 2
->> >
->> > Any help is appreciated!
->> >
->> > Thanks,
->> > Michael
->>
->> Hello Michael,
->>
->> Don't bother trying to compile the latest v4l-dvb code.  It's not
->> supported even in the latest code (and there is presently no work
->> going on to add support).
->>
->> Devin
->
-> Hi Devin,
-> thanks for the info. I'll keep waiting and hoping :)
->
-> Just a quick addition. With 2.6.30 an em28xx-new it runs an the dmesg output
-> looks like this:
->
-> usb 1-1: new high speed USB device using ehci_hcd and address 14
-> usb 1-1: configuration #1 chosen from 1 choice
-> em28xx v4l2 driver version 0.0.1 loaded
-> em28xx: new video device (0ccd:0043): interface 0, class 255
-> em28xx: device is attached to a USB 2.0 bus
-> em28xx #0: Alternate settings: 8
-> em28xx #0: Alternate setting 0, max size= 0
-> em28xx #0: Alternate setting 1, max size= 0
-> em28xx #0: Alternate setting 2, max size= 1448
-> em28xx #0: Alternate setting 3, max size= 2048
-> em28xx #0: Alternate setting 4, max size= 2304
-> em28xx #0: Alternate setting 5, max size= 2580
-> em28xx #0: Alternate setting 6, max size= 2892
-> em28xx #0: Alternate setting 7, max size= 3072
-> em28xx-video.c: New Terratec XS Detected
-> em28xx #0: Found Terratec Cinergy T XS (MT2060)
-> usbcore: registered new interface driver em28xx
-> em2880-dvb.c: DVB Init
-> MT2060: successfully identified (IF1 = 1220)
-> DVB: registering new adapter (em2880 DVB-T)
-> DVB: registering adapter 0 frontend 0 (Zarlink ZL10353 DVB-T)...
-> Em28xx: Initialized (Em2880 DVB Extension) extension
->
-> Cheers,
-> Michael
+Hello Michael,
 
-Yes, you are correct in that it did work in the out-of-kerne
-em28xx-new driver.  No developer has had any interest in making it
-work in the mainline (and I'm too busy with other things to do it,
-especially since I don't have the hardware).
+Am Freitag, den 30.10.2009, 22:03 +0700 schrieb Flink Dinky:
+> Hello Hermann, I apologize to you and the list about the quality of my
+> patch.  I'm not really a programmer.  I've been using the patch below
+> for years now and it was cobbled together from the windows Dscaler tv
+> program.
 
-I'm not arguing that it cannot be made to work - just that I know for
-sure it doesn't work now and no developers are planning on working on
-it a this time.
+patches are always welcome and coding style is not a problem.
 
-Devin
+But especially on saa7130 devices, we have a lot of different OEMs using
+invalid PCI subsystem IDs derived from the original Philips PCI
+vendor/device IDs and they do create a mess. 
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+> After reading your email I looked through the saa7134-cards.c and
+> found what looked like an identical card which is listed in saa7134.h
+> as:
+> #define SAA7134_BOARD_10MOONSTVMASTER3     116
+> 
+> if I load the saa7134 module like this:
+> modprobe saa7134 card=116 tuner=5
+> 
+> It works just the same as my patch.
+
+Yes, that is what happens in most such cases if you start to look
+closer. But also all three pins high in the mask turned to 0 seem to be
+needed to get TV sound from the tuner then.
+
+However, there are still variants of such cards, some with and some
+without analog radio, also with different remotes etc.
+
+In this case, to know if the remote does work too now, could help to
+make a decision how to further deal with it.
+
+> My card is a no name brand.  It's an STLabs PCI TV Tuner card with a
+> firewire port (which is autodetected by the kernel and has always
+> worked).
+
+There are _some_ of such ST cards and it is not more no name than
+others.
+
+Also for cards with old can/tin tuners per TV standard, but sold
+globally with different tuners, we can't detect the tuner type, and in
+most cases it is not even worth to think about, if the tuner type might
+be coded somewhere in eeprom content or placement of gpio resistors,
+since they already fail on proper usage of the PCI subvendor and device.
+
+In most cases they don't have any further info than this mistake in the
+eeprom.
+
+> I'm probably the only guy still using this card but what if I'm not?
+> Can you put something in the Documentation to let them know?
+
+Thanks for your report, seems to be around in India and China ...
+
+We should still remove that early invalid and now duplicate 10moons
+saa7130 from auto detection and can of course start some guide lines for
+how to deal with such cards in CARDLIST.saa7134 too, but we'll need
+links to the old bttv-gallery.de and the current wiki to really help
+people to identify such unpleasant cards most easily, if we have enough
+there.
+
+Cheers,
+Hermann
+
+> If you need any info email me with instructions on what to do.
+> Otherwise my problem is solved.
+> 
+> Thanks for your help.
+> 
+> On Fri, Oct 30, 2009 at 6:38 AM, hermann pitton
+> <hermann-pitton@arcor.de> wrote:
+>         Hi Michael,
+>         
+>         Am Donnerstag, den 29.10.2009, 23:07 +0700 schrieb
+>         flinkdeldinky:
+>         > The following patch provides functionality for the STLabs
+>         PCI TV receiver card. It only adds some information to
+>         saa7134.h and saa7134-cards.c
+>         >
+>         > The card is auto detected as a 10 MOONS card but that will
+>         not work.
+>         
+>         
+>         I still can't see how your card could make it in that way and
+>         how Mauro
+>         could make a decision in that direction, assuming you pass
+>         patchwork
+>         once.
+>         
+>         > I load the saa7134 module with:
+>         > saa7134 card=175 tuner=5
+>         
+>         
+>         In that case, having the Philips reference boards 0x2001
+>         subdevice twice
+>         now for a saa7130, remove the auto detection for the 10MOONS
+>         too and
+>         drop the one for yours.
+>         
+>         Also, the tuners are different, but not everybody has the
+>         opportunity to
+>         test them on their differences. In this case, tuner=5 and
+>         TUNER_LG_PAL_NEW_TAPC makes a big difference for the UHF
+>         switch.
+>         Likely you can't test it and sit on a clone anyway.
+>         
+>         See more inline.
+>         
+>         > I have not tested the remote control or the s-video.
+>          Everything else works.
+>         >
+>         > Tuners 3, 5, 14, 20, 28, 29, 48 seem to work equally well.
+>         >
+>         > diff -r d6c09c3711b5
+>         linux/drivers/media/video/saa7134/saa7134-cards.c
+>         > --- a/linux/drivers/media/video/saa7134/saa7134-cards.c Sun
+>         Sep 20 15:14:21 2009 +0000
+>         > +++ b/linux/drivers/media/video/saa7134/saa7134-cards.c Thu
+>         Oct 29 14:54:31 2009 +0700
+>         
+>         
+>         Run at least "make checkpatch" once on recent mercurial
+>         v4l-dvb.
+>         
+>         For what I can see, you have spaces instead of tabs in front
+>         of your
+>         lines and also you are filling them up with useless spaces at
+>         the ends
+>         and for new lines.
+>         
+>         >
+>         > @@ -5342,7 +5342,38 @@
+>         >                         .amux   = LINE2,
+>         >                 } },
+>         >         },
+>         > -
+>         > +       [SAA7134_BOARD_STLAB_PCI_TV7130] = {
+>         > +       /* "Aidan Gill" */
+>         > +               .name = "ST Lab ST Lab PCI-TV7130 ",
+>         > +               .audio_clock = 0x00200000,
+>         > +               .tuner_type = TUNER_LG_PAL_NEW_TAPC,
+>         > +               .radio_type     = UNSET,
+>         > +               .tuner_addr     = ADDR_UNSET,
+>         > +               .radio_addr     = ADDR_UNSET,
+>         > +               .gpiomask = 0x7000,
+>         
+>         
+>         There is one unused gpio pin high in that mask, should it be
+>         needed for
+>         something ..., don't we have a same card already?
+>         
+>         >
+>         > +               .inputs = {{
+>         > +                       .name = name_tv,
+>         > +                       .vmux = 1,
+>         > +                       .amux = LINE2,
+>         > +                       .gpio = 0x0000,
+>         > +                       .tv = 1,
+>         > +               }, {
+>         > +                       .name = name_comp1,
+>         > +                       .vmux = 3,
+>         > +                       .amux = LINE1,
+>         > +                       .gpio = 0x2000,
+>         > +               }, {
+>         > +                       .name = name_svideo,
+>         > +                       .vmux = 0,
+>         > +                       .amux = LINE1,
+>         > +                       .gpio = 0x2000,
+>         
+>         
+>         Most often comp2 is on vmux 0. S-Video can only be on vmux
+>         6,7,8 or 9.
+>         Put it on 8 and comment it as untested.
+>         
+>         >
+>         > +               } },
+>         > +               .mute = {
+>         > +                       .name = name_mute,
+>         > +                       .amux = TV,
+>         > +                       .gpio = 0x3000,
+>         > +               },
+>         > +       },
+>         >  };
+>         >
+>         >  const unsigned int saa7134_bcount =
+>         ARRAY_SIZE(saa7134_boards);
+>         > @@ -6487,6 +6518,12 @@
+>         >                 .subdevice    = 0x4847,
+>         >                 .driver_data  =
+>         SAA7134_BOARD_ASUS_EUROPA_HYBRID,
+>         >         }, {
+>         > +               .vendor       = PCI_VENDOR_ID_PHILIPS,
+>         > +               .device       =
+>         PCI_DEVICE_ID_PHILIPS_SAA7130,
+>         > +               .subvendor    =  PCI_VENDOR_ID_PHILIPS,
+>         > +               .subdevice    = 0x2001,
+>         > +               .driver_data  =
+>         SAA7134_BOARD_STLAB_PCI_TV7130,
+>         > +       }, {
+>         
+>         
+>         Throw that away with the 10MOONS stuff, or find some eeprom
+>         detection.
+>         
+>         >                 /* --- boards without eeprom + subsystem ID
+>         --- */
+>         >                 .vendor       = PCI_VENDOR_ID_PHILIPS,
+>         >                 .device       =
+>         PCI_DEVICE_ID_PHILIPS_SAA7134,
+>         > diff -r d6c09c3711b5
+>         linux/drivers/media/video/saa7134/saa7134.h
+>         > --- a/linux/drivers/media/video/saa7134/saa7134.h       Sun
+>         Sep 20 15:14:21 2009 +0000
+>         > +++ b/linux/drivers/media/video/saa7134/saa7134.h       Thu
+>         Oct 29 14:54:31 2009 +0700
+>         > @@ -299,6 +299,7 @@
+>         >  #define SAA7134_BOARD_ROVERMEDIA_LINK_PRO_FM 172
+>         >  #define SAA7134_BOARD_ZOLID_HYBRID_PCI         173
+>         >  #define SAA7134_BOARD_ASUS_EUROPA_HYBRID       174
+>         > +#define SAA7134_BOARD_STLAB_PCI_TV7130         175
+>         >
+>         >  #define SAA7134_MAXBOARDS 32
+>         >  #define SAA7134_INPUT_MAX 8
+>         >
+>         > Signed-off-by: Michael Wellman <flinkdeldinky@gmail.com>
+>         
+>         
+>         Cheers,
+>         Hermann
+>         
+>         
+> 
+
