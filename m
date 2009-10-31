@@ -1,37 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:29119 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755467AbZJVNvc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Oct 2009 09:51:32 -0400
-Date: Thu, 22 Oct 2009 15:51:21 +0200
-From: Jiri Pirko <jpirko@redhat.com>
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net, eric.dumazet@gmail.com,
-	jeffrey.t.kirsher@intel.com, jesse.brandeburg@intel.com,
-	bruce.w.allan@intel.com, peter.p.waskiewicz.jr@intel.com,
-	john.ronciak@intel.com, e1000-devel@lists.sourceforge.net,
-	mchehab@infradead.org, linux-media@vger.kernel.org
-Subject: [PATCH net-next-2.6 0/4] net: change the way mc_list is accessed
-Message-ID: <20091022135120.GC2868@psychotron.lab.eng.brq.redhat.com>
+Received: from mail01d.mail.t-online.hu ([84.2.42.6]:60229 "EHLO
+	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933303AbZJaXNO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Oct 2009 19:13:14 -0400
+Message-ID: <4AECC486.7080404@freemail.hu>
+Date: Sun, 01 Nov 2009 00:13:10 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+CC: Thomas Kaiser <thomas@kaiser-linux.li>,
+	Theodore Kilgore <kilgota@auburn.edu>,
+	Kyle Guinn <elyk03@gmail.com>
+Subject: [PATCH 00/21] gspca pac7302/pac7311: separate the two drivers
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In a struct net_device, multicast addresses are stored using a self-made linked
-list. To convert this to list_head list there would be needed to do the change
-in all (literally all) network device drivers at once.
+Hi,
 
-To solve this situation and also to make device drivers' code prettier I'm
-introducing several multicast list helpers which can (and in the future they
-should) be used to access mc list. Once all drivers will use these helpers,
-we can easily convert to list_head.
+the following patchset refactores the Pixart PAC7311 subdriver. The
+current situation is that the code contains a lot of decisions
+like this:
 
-The part of this patchset are also 3 examples of a usage of the helpers.
+    if (sd->sensor == SENSOR_PAC7302) {
+        ... do this ...
+    } else {
+        ... do something else ...
+    }
 
-Kindly asking for review.
+The sensor type is determined using the USB Vendor ID and Product
+ID which means that the decisions shown are not really necessary.
 
-Thanks,
+The goal of the patchset is to have a PAC7302 and a PAC7311 subdriver
+which have the benefit that there is no decision necessary on sensor
+type at runtime. The common functions can be extracted later but this
+would be a different patchset.
 
-Jirka
+Regards,
+
+	Márton Németh
+
