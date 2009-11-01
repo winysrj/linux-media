@@ -1,56 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gv-out-0910.google.com ([216.239.58.189]:34713 "EHLO
-	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754017AbZKPU4J (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2009 15:56:09 -0500
-Received: by gv-out-0910.google.com with SMTP id r4so741256gve.37
-        for <linux-media@vger.kernel.org>; Mon, 16 Nov 2009 12:56:14 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4B01BABE.4060609@gmail.com>
-References: <4AFE92ED.2060208@gmail.com> <4AFEAB15.9010509@gmail.com>
-	 <829197380911140634j49c05cd0s90aed57b9ae61436@mail.gmail.com>
-	 <4AFF1203.3080401@gmail.com>
-	 <829197380911150719w7ea0749ei2a1350f1e12b866d@mail.gmail.com>
-	 <4B001ECD.9030609@gmail.com>
-	 <829197380911152055w233edf18ve36b821571198d04@mail.gmail.com>
-	 <4B01B168.50403@gmail.com>
-	 <829197380911161228u425db80ag20d01359aa4b7472@mail.gmail.com>
-	 <4B01BABE.4060609@gmail.com>
-Date: Mon, 16 Nov 2009 15:56:14 -0500
-Message-ID: <829197380911161256r58a44e03j6ab93255549a3cd6@mail.gmail.com>
-Subject: Re: [PATCH] em28xx: fix for Dikom DK300 hybrid USB tuner (aka Kworld
-	VS-DVB-T 323UR ) (digital mode)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: "Andrea.Amorosi76@gmail.com" <Andrea.Amorosi76@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail1.radix.net ([207.192.128.31]:41369 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751018AbZKAXNY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Nov 2009 18:13:24 -0500
+Subject: Re: cx18: YUV frame alignment improvements
+From: Andy Walls <awalls@radix.net>
+To: Brandon Jenkins <bcjenkins@tvwhere.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org, ivtv-devel@ivtvdriver.org,
+	Simon Farnsworth <simon.farnsworth@onelan.com>
+In-Reply-To: <1257116354.3076.14.camel@palomino.walls.org>
+References: <1257020204.3087.18.camel@palomino.walls.org>
+	 <829197380910311328u2879c45ep2023a99058112549@mail.gmail.com>
+	 <1257036094.3181.7.camel@palomino.walls.org>
+	 <de8cad4d0910311925u28895ca9q454ccf0ac1032302@mail.gmail.com>
+	 <1257079055.3061.19.camel@palomino.walls.org>
+	 <de8cad4d0911011010g1bb3d595ge87e3b168ce41c32@mail.gmail.com>
+	 <1257116354.3076.14.camel@palomino.walls.org>
+Content-Type: text/plain
+Date: Sun, 01 Nov 2009 18:15:59 -0500
+Message-Id: <1257117359.3076.22.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 16, 2009 at 3:49 PM, Andrea.Amorosi76@gmail.com
-<Andrea.Amorosi76@gmail.com> wrote:
-> The usb is the following:
-> Bus 002 Device 010: ID eb1a:e312 eMPIA Technology, Inc.
-> (I don't remember what it was previously, but it seems wrong how can I be
-> sure about that?).
-> I have put back the driver to the original state, but still it doesn't work.
-> Did I have to reprogram the eprom? If so, it is possible via usb?
-> Thank you,
-> Andrea
->
-> PS I've found an old dmesg.
-> The USB ID is wrong! The old one was eb1a:e323
+On Sun, 2009-11-01 at 17:59 -0500, Andy Walls wrote:
+> On Sun, 2009-11-01 at 13:10 -0500, Brandon Jenkins wrote:
+> > Hi Andy,
+> > 
+> > The panic happens upon reboot and it is only 1 line of text oddly shifted.
+> > 
+> > Kernel panic - not syncing: DMA: Memory would be corrupted
+> > 
+> > If I switch back to the current v4l-dvb drivers no issue. To switch
+> > back I have to boot from a USB drive.
+> 
+> Brandon,
+> 
+> Eww.  OK.  Nevermind performing any more data collection.  I'm going to
+> use a new strategy (when I find the time).
 
-Ok, so that confirms that indeed the eeprom was corrupted.  I would
-suggest you hack the USB_DEVICE() entry in em28xx-cards.c to be
-eb1a:e312.  This will allow the driver to load and the i2c device to
-be setup.  Then use the eeprom repair script to rewrite the eeprom.
-At that point you should be able to remove the hack, because the USB
-ID will be back to eb1a:e323.
+I forgot to mention that the panic you are running into is in the
+Software IO Memory Managment Unit Translate Look-aside Buffer (SW IOMMU
+TLB) in
 
-Devin
+	linux/lib/swiotlb.c
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Your machine must not have a hardware IO MMU (and mine must).
+
+The software IOMMU is trying to allocate a bounce buffer for DMA and it
+can't get one of the needed size (i.e. 607.5 kB) and the fallback static
+buffer isn't big enough either (it is only 32 kB).  That's why the panic
+happens.
+
+This certainly means that, in the general linux user case, very large
+DMA buffers are bad.
+
+So now I know....
+
+
+Regards,
+Andy
+
