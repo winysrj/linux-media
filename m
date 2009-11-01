@@ -1,80 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59249 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757417AbZKFOdT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Nov 2009 09:33:19 -0500
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Cohen David Abraham <david.cohen@nokia.com>,
-	=?iso-8859-1?Q?Koskip=E4=E4_Antti_Jussi_Petteri?=
-	<antti.koskipaa@nokia.com>,
-	Toivonen Tuukka Olli Artturi <tuukka.o.toivonen@nokia.com>,
-	"Zutshi Vimarsh (Nokia-D-MSW/Helsinki)" <vimarsh.zutshi@nokia.com>,
-	"talvala@stanford.edu" <talvala@stanford.edu>,
-	"Aguirre, Sergio" <saaguirre@ti.com>,
-	Ivan Ivanov <iivanov@mm-sol.com>,
-	Stan Varbanov <svarbanov@mm-sol.com>,
-	Valeri Ivanov <vivanov@mm-sol.com>,
-	Atanas Filipov <afilipov@mm-sol.com>
-Date: Fri, 6 Nov 2009 20:03:03 +0530
-Subject: RE: OMAP 3 ISP and N900 sensor driver update
-Message-ID: <19F8576C6E063C45BE387C64729E73940436F93CE2@dbde02.ent.ti.com>
-References: <4AF41BDE.4040908@maxwell.research.nokia.com>
-In-Reply-To: <4AF41BDE.4040908@maxwell.research.nokia.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+Received: from ppsw-0.csi.cam.ac.uk ([131.111.8.130]:59758 "EHLO
+	ppsw-0.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752966AbZKARoR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Nov 2009 12:44:17 -0500
+Message-ID: <4AEDC90A.7050005@cam.ac.uk>
+Date: Sun, 01 Nov 2009 17:44:42 +0000
+From: Jonathan Cameron <jic23@cam.ac.uk>
 MIME-Version: 1.0
+To: dean_go Zhang <dean_go@eledsn.com>
+CC: linux-arm-kernel@lists.infradead.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Soc camera:Is there anyone dealing with ov9650chip?Let's talk
+ about 	soc camera driver.
+References: <65c69abb0910300528j2bffc2b8i8eb07254725f8de7@mail.gmail.com>
+In-Reply-To: <65c69abb0910300528j2bffc2b8i8eb07254725f8de7@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+dean_go Zhang wrote:
+> I'm reading to documentation in linux-2.6.30,and ov7670 driver ,and I'm
+> trying to make a driver for ov9650.
+> 
+>     struct soc_camera_ops provides .probe and .remove methods, which are
+>     called by
+>     the soc-camera core, when a camera is matched against or removed
+>     from a camera
+>     host bus, .init, .release, .suspend, and .resume are called from the
+>     camera host
+>     driver as discussed above. Other members of this struct provide
+>     respective V4L2
+>     functionality.
+> 
+>  
+> This is from the documentation,but I didn't find any thing about
+> soc_camera_host_device in ov7670's driver code.
+> Does anyone know how to make a v4l2 soc camera driver? 
+This isn't really an arm related question.  Should really be asked on
+linux-media. (now cc'd along with Guennadi)
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Sakari Ailus
-> Sent: Friday, November 06, 2009 6:22 PM
-> To: linux-media@vger.kernel.org
-> Cc: Laurent Pinchart; Hans Verkuil; Cohen David Abraham; Koskipää
-> Antti Jussi Petteri; Toivonen Tuukka Olli Artturi; Zutshi Vimarsh
-> (Nokia-D-MSW/Helsinki); talvala@stanford.edu; Aguirre, Sergio; Ivan
-> Ivanov; Stan Varbanov; Valeri Ivanov; Atanas Filipov
-> Subject: OMAP 3 ISP and N900 sensor driver update
-> 
-> Hi,
-> 
-> I have updated the OMAP 3 ISP driver in Gitorious:
-> 
-> <URL:http://www.gitorious.org/omap3camera>
-> 
-> Major changes since the last update:
-> 
-> - The Nokia N900 (aka rx-51) sensor drivers are available (will be
-> posted to the list shortly)
-> - Say goodbye to v4l2-int-device, welcome the v4l2_subdevice
-> interface
-> (thanks to Laurent Pinchart)
-[Hiremath, Vaibhav] Thanks Sakari and Laurent, this will definitely unblock me.
+Having said that...
 
-Thanks,
-Vaibhav
+The reason you aren't finding soc camera related stuff in the ov7670 driver
+is that it isn't currently a soc camera driver.  There is ongoing work to
+move the soc-camera framework fully over to using v4l2-subdevs thus allowing
+drivers like this one to work both with soc-camera interfaces and others.
 
-> - Miscellaneous stability fixes and cleanups
-> - H3A rework (by David Cohen)
-> - Resizer rework (by Antti Koskipää)
-> 
-> The next task is then the moving to Media controller, I guess.
-> 
-> Cheers,
-> 
-> --
-> Sakari Ailus
-> sakari.ailus@maxwell.research.nokia.com
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-
-> media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+There are still a few elements being cleaned up (primarily to do with
+negotiation of image formats) that make it tricky for a single driver to
+directly support use through soc camera and without it. 
+
+I would suggest looking in the linux-media archive for
+Guennanadi Liakhovetski's latest imagebus patches for what still needs doing.
+
+In meantime, the following patch against 2.6.32-rc5 adds soc camera support to the
+ov7670 driver.  I've been posting updates tracking Guennadi's changes to soc camera
+to linux-media (though I haven't had a chance to do the recent imagebus changes yet).
+
+Unfortunately omnivision aren't exactly free with datasheets (I can get the ov9650 from
+google but not the ov9640), so I can't check, but based purely on numbering how does
+this chip compare to the ov9640 which as a driver in kernel (probably in a queue
+for next merge window? - it's certainly in the tree Guennadi is using and has been
+posted to linux-media)
+
+Google did however give me this hit, which mentions an ov9650 driver
+http://marex-hnd.blogspot.com/2009/08/omnivision-ov9640-hacking-part-iv.html
+Perhaps Guennadi has more info on this?
+
+
+>From 408902c5584796924f8f9903f6c7338db4a0fd0f Mon Sep 17 00:00:00 2001
+From: Jonathan Cameron <jic23@cam.ac.uk>
+Date: Sat, 4 Jul 2009 13:25:06 +0000
+Subject: [PATCH 02/10] ov7670: Temporary soc-camera support
+
+Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
+---
+ drivers/media/video/ov7670.c |   50 ++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 50 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/video/ov7670.c b/drivers/media/video/ov7670.c
+index 0e2184e..910a499 100644
+--- a/drivers/media/video/ov7670.c
++++ b/drivers/media/video/ov7670.c
+@@ -19,6 +19,8 @@
+ #include <media/v4l2-chip-ident.h>
+ #include <media/v4l2-i2c-drv.h>
+ 
++#include <media/soc_camera.h>
++#include <linux/autoconf.h>
+ 
+ MODULE_AUTHOR("Jonathan Corbet <corbet@lwn.net>");
+ MODULE_DESCRIPTION("A low-level driver for OmniVision ov7670 sensors");
+@@ -745,6 +747,10 @@ static int ov7670_s_fmt(struct v4l2_subdev *sd, struct v4l2_format *fmt)
+ 	struct ov7670_info *info = to_state(sd);
+ 	unsigned char com7, clkrc = 0;
+ 
++	ret = ov7670_init(sd, 0);
++	if (ret)
++		return ret;
++
+ 	ret = ov7670_try_fmt_internal(sd, fmt, &ovfmt, &wsize);
+ 	if (ret)
+ 		return ret;
+@@ -1239,6 +1245,41 @@ static const struct v4l2_subdev_ops ov7670_ops = {
+ };
+ 
+ /* ----------------------------------------------------------------------- */
++static unsigned long ov7670_soc_query_bus_param(struct soc_camera_device *icd)
++{
++	struct soc_camera_link *icl = to_soc_camera_link(icd);
++
++	unsigned long flags = SOCAM_PCLK_SAMPLE_RISING | SOCAM_MASTER |
++		SOCAM_VSYNC_ACTIVE_HIGH | SOCAM_HSYNC_ACTIVE_HIGH |
++		SOCAM_DATAWIDTH_8 | SOCAM_DATA_ACTIVE_HIGH;
++
++	return soc_camera_apply_sensor_flags(icl, flags);
++}
++
++/* This device only supports one bus option */
++static int ov7670_soc_set_bus_param(struct soc_camera_device *icd,
++				    unsigned long flags)
++{
++	return 0;
++}
++
++static struct soc_camera_ops ov7670_soc_ops = {
++	.set_bus_param = ov7670_soc_set_bus_param,
++	.query_bus_param = ov7670_soc_query_bus_param,
++};
++
++#define SETFOURCC(type) .name = (#type), .fourcc = (V4L2_PIX_FMT_ ## type)
++static const struct soc_camera_data_format ov7670_soc_fmt_lists[] = {
++	{
++		SETFOURCC(YUYV),
++		.depth = 16,
++		.colorspace = V4L2_COLORSPACE_JPEG,
++	}, {
++		SETFOURCC(RGB565),
++		.depth = 16,
++		.colorspace = V4L2_COLORSPACE_SRGB,
++	},
++};
+ 
+ static int ov7670_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
+@@ -1246,7 +1287,16 @@ static int ov7670_probe(struct i2c_client *client,
+ 	struct v4l2_subdev *sd;
+ 	struct ov7670_info *info;
+ 	int ret;
++	struct soc_camera_device *icd = client->dev.platform_data;
++
++	if (!icd) {
++		dev_err(&client->dev, "OV7670: missing soc-camera data!\n");
++		return -EINVAL;
++	}
+ 
++	icd->ops = &ov7670_soc_ops;
++	icd->formats = ov7670_soc_fmt_lists;
++	icd->num_formats = ARRAY_SIZE(ov7670_soc_fmt_lists);
+ 	info = kzalloc(sizeof(struct ov7670_info), GFP_KERNEL);
+ 	if (info == NULL)
+ 		return -ENOMEM;
+-- 
+1.6.3.3
+
+
 
