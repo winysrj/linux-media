@@ -1,164 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.221.174]:60024 "EHLO
+Received: from mail-qy0-f174.google.com ([209.85.221.174]:38309 "EHLO
 	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751577AbZKGNDG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Nov 2009 08:03:06 -0500
-Received: by qyk4 with SMTP id 4so800230qyk.33
-        for <linux-media@vger.kernel.org>; Sat, 07 Nov 2009 05:03:11 -0800 (PST)
+	with ESMTP id S1751361AbZKAG1o convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Nov 2009 01:27:44 -0500
+Received: by qyk4 with SMTP id 4so2123523qyk.33
+        for <linux-media@vger.kernel.org>; Sat, 31 Oct 2009 23:27:49 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <156a113e0911070435w4be2b9dfo17f8e9c910bab437@mail.gmail.com>
-References: <6174dfda0911061223k75f31fd5je33a8e75e9e3c391@mail.gmail.com>
-	 <6174dfda0911061258u254ba6bbh4610291a904edc0a@mail.gmail.com>
-	 <156a113e0911061716t758d7ee3ta709b406c2f074a1@mail.gmail.com>
-	 <6174dfda0911070246v61b5b3f5rdea26406066e3fa4@mail.gmail.com>
-	 <156a113e0911070435w4be2b9dfo17f8e9c910bab437@mail.gmail.com>
-Date: Sat, 7 Nov 2009 14:03:10 +0100
-Message-ID: <156a113e0911070503i10aebbb3j8ffdab0868b6caac@mail.gmail.com>
-Subject: Re: em28xx based USB Hybrid (Analog & DVB-T) TV Tuner not supported
-From: Magnus Alm <magnus.alm@gmail.com>
-To: Johan Mutsaerts <johmut@gmail.com>
+In-Reply-To: <303a8ee30910311617v586db724wdafe1c94ef508a17@mail.gmail.com>
+References: <4ADED23C.2080002@uq.edu.au>
+	 <303a8ee30910211233r111d3378vedc1672f68728717@mail.gmail.com>
+	 <1257002647.3333.7.camel@pc07.localdom.local>
+	 <303a8ee30910310948o107387c5g2d89665ea2bcde7e@mail.gmail.com>
+	 <ef52a95d0910311508v644e998bke9e7955aa32d5da6@mail.gmail.com>
+	 <303a8ee30910311543h178879d2wf79fd0045b8e6eb@mail.gmail.com>
+	 <303a8ee30910311546x41f919fey9e6acfbd161c0de8@mail.gmail.com>
+	 <ef52a95d0910311604w5c696aean73e19af06014dee1@mail.gmail.com>
+	 <303a8ee30910311617v586db724wdafe1c94ef508a17@mail.gmail.com>
+Date: Sun, 1 Nov 2009 02:27:49 -0400
+Message-ID: <303a8ee30910312327v1a1d98d9xa29f6723a47b6b58@mail.gmail.com>
+Subject: Re: Leadtek DTV-1000S
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Michael Obst <m.obst@ugrad.unimelb.edu.au>
 Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Well, maybe you where more right than me...
+On Sat, Oct 31, 2009 at 7:17 PM, Michael Krufky <mkrufky@kernellabs.com> wrote:
+>> 2009/11/1 Michael Krufky <mkrufky@kernellabs.com>:
+>>> On Sat, Oct 31, 2009 at 6:43 PM, Michael Krufky <mkrufky@kernellabs.com> wrote:
+>>>> On Sat, Oct 31, 2009 at 6:08 PM, Michael Obst
+>>>> <m.obst@ugrad.unimelb.edu.au> wrote:
+>>>>> Hi,
+>>>>>    Thanks for fixing this, I can confirm that it now compiles and
+>>>>> inserts and the remote works, so does the av input to the tvcard
+>>>>> however the card does not seem to be able to tune any channels, I have
+>>>>> checked the old driver and that is still able to tune in channels. The
+>>>>> output from my dmesg is below.
+>>>>>
+>>>>> Thanks
+>>>>> Michael Obst
+>>>>
+>>>> Michael,
+>>>>
+>>>> This is an interesting problem -- the part of your dmesg that stands
+>>>> out to me is this:
+>>>>
+>>>>> [  502.928544] tuner 0-0060: chip found @ 0xc0 (saa7130[0])
+>>>>> [  502.960501] tda8290: no gate control were provided!
+>>>>
+>>>> That error message was added as a safety measure -- it shouldn't be
+>>>> possible to ever hit that code path.  Are you running any non-GPL
+>>>> binary drivers on your system, such as NVIDIA or anything else?
+>>>>
+>>>> Let me explain:
+>>>>
+>>>> The "no gate control were provided!" message was added by Mauro to the
+>>>> tda8290 driver, mainly as a check to ensure that we don't call a null
+>>>> function pointer.  The gate control is actually provided by the
+>>>> tda8290 driver itself, by either tda8290_i2c_bridge or
+>>>> tda8295_i2c_bridge, depending on which hardware is present.  In your
+>>>> case, it's a tda8290.
+>>>>
+>>>> The function pointer is filled during the tda829x_attach() function,
+>>>> before we call the tda829x_find_tuner function, where this error
+>>>> message is displayed.  The only way for this to have occurred, as far
+>>>> as I can tell,  is if the probe to detect the tda8290 itself had
+>>>> failed.
+>>>>
+>>>> Have you repeated your test with the same problem each time, or did
+>>>> this only happen once?
+>>>>
+>>>> Can you try again, from a cold reboot?
+>>>>
+>>>> Also, I'm just assuming that this failure occurred during a digital
+>>>> tune -- is that correct?  Does analog television work?
+>>>>
+>>>> If the problem is reproducible, can you also show us dmesg during a failed tune?
+>>>>
+>>>> I'm very interested in hearing more about this -- please let me know.
+>>>
+>>> Oops, on second look, seems that the error occurred during analog
+>>> bring-up ... does digital tv work?
+>>>
+>>> -Mike
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>
+>
+> On Sat, Oct 31, 2009 at 7:04 PM, Michael Obst
+> <m.obst@ugrad.unimelb.edu.au> wrote:
+>> This problem is reproducible and occurs the same from a cold boot or
+>> inserting saa7134. Analog tv has never worked on this card, I was
+>> under the impression there was no analog tuner on the card (looking at
+>> http://www.leadtek.com/eng/tv_tuner/image/digital_tv.pdf). The info
+>> was simply from doing a modprobe on saa7134. The only lines in the
+>> dmesg that were different from the old driver was
+>>
+>> saa7130[0]/alsa: Leadtek Winfast DTV1000S doesn't support digital audio
+>>
+>> So I guess the analog part has always failed
+>>
+>> I am using the nvidia driver and a driver for my wireless card, I will
+>> turn these off and see if I can get a different result.
+>>
+>> During tuning for digital tv with the old driver I got
+>>
+>> [ 1081.808505] tda18271: performing RF tracking filter calibration
+>> [ 1086.152006] tda18271: RF tracking filter calibration complete
+>> [ 1091.020535] hda-intel: IRQ timing workaround is activated for card
+>> #0. Suggest a bigger bdl_pos_adj.
+>>
+>>
+>> The final line did not appear when I tried to tune using the new version
+>>
+>> [ 1225.904503] tda18271: performing RF tracking filter calibration
+>> [ 1230.272003] tda18271: RF tracking filter calibration complete
+>
+> Michael,
+>
+> The policy on this mailing list is to reply BELOW the quoted text.
+> Please keep this in mind for the future.
+>
+> I didn't realize the board had a saa7130 chipset -- That explains a
+> lot.  This means that there actually is no tda8290 on the board.  (the
+> tda8290 is usually found inside the saa7131 chipset)
+>
+> You can remove the line, TUNER_PHILIPS_TDA8290 from the card
+> definition in saa7134-cards.c -- replace it with TUNER_ABSENT.
+>
+> That shouldn't fix the problem, but it would be interesting to hear if
+> it changes anything.  I see that communication with the tuner is
+> working properly...  It's taking 5 seconds to complete the rf tracking
+> filter calibration in either case, so we know that the line of
+> communication to the tuner itself isn't a problem.
+>
+> I think this will be easier if we meet in irc.  Can you meed me in
+> #linuxtv on irc.freenode.net?
+>
+> If not, please enable module option debug=1 to tda18271 and send back
+> full dmesg, unedited, including startup of the device and a tune
+> attempt.
+>
+> Also, enable debug=1 for the tda10048 module -- maybe something
+> changed there.  I just tested this code with my ATSC saa7134 board
+> that uses the tda18271, and it's working fine, so I doubt it's the
+> tuner persay, but we should investigate anyway.
+>
+> -Mike
+>
 
->From em28xx-dvb.c
+For any interested readers, Michael did some testing and helped me to
+find the cause of the problem... Turns out one of my recent tda18271
+changesets broke the std_map override functionality of the tda18271
+driver -- I already pushed up a fix and requested merge to the master
+branch.
 
-	case EM2880_BOARD_TERRATEC_HYBRID_XS:
-	case EM2881_BOARD_PINNACLE_HYBRID_PRO:
-		dvb->frontend = dvb_attach(zl10353_attach,
-					   &em28xx_zl10353_xc3028_no_i2c_gate,
-					   &dev->i2c_adap);
-		if (dvb->frontend == NULL) {
-			/* This board could have either a zl10353 or a mt352.
-			   If the chip id isn't for zl10353, try mt352 */
-			dvb->frontend = dvb_attach(mt352_attach,
-						   &terratec_xs_mt352_cfg,
-						   &dev->i2c_adap);
-		}
+For those that want their dtv1000s board working with the latest code,
+use the following tree:
 
+http://kernellabs.com/hg/~mkrufky/dtv1000s-fix
 
-2009/11/7 Magnus Alm <magnus.alm@gmail.com>:
-> Hi
->
-> I read some where that trying different card types for a DVB tuner can
-> potentially cause damage to them.
->
-> You are probably right about the firmare.
-> Do you have a link to the manufacture of your stick?
-> I tried to google the name of it but couldn't found an exact match.
->
-> The EM2881_BOARD_PINNACLE_HYBRID_PRO uses it's XC3028 to getter with a
-> ZARLINK456
-> as you can see from the following line in em28xx-cards.c
->
-> case EM2881_BOARD_PINNACLE_HYBRID_PRO:
->                ctl->demod = XC3028_FE_ZARLINK456;
->                break;
->
-> It is probably not compliant with your  Zarlink MT352.
->
-> There is a mt352 module tho, but I guess it doesn't get loaded when
-> you plug your stick in.
->
-> I'll pooke around a bit.....
->
-> PS
-> Use the "reply all", so others can see your mails, since I'm probably
-> one of the least competent guys/gals on this mailing list.
-> DS
->
->
->
-> 2009/11/7 Johan Mutsaerts <johmut@gmail.com>:
->> Hi Magnus,
->>
->> Thanks for a quick reply. Here is some more detailed information:
->>
->> My USB device ID is 0xeb1a:0x2881 it is eMPIA based.
->>
->> These are the components inside
->> - Empia EM2880
->> - Texas Instruments 5150AM1
->> - XCeive XC3028
->> - Empia EMP202
->> - Zarlink MT352
->>
->> Difficult for me to get to the windows stuff....
->>
->> No /dev/dvb/.... is generated ? Could it have something to do with no Firmware ?
->>
->> I found my device to be quite similar to the Pinnacle Hybrid Pro so I tried
->> sudo rmmod em28xx-dvb
->> sudo rmmod em28xx-alsa
->> sudo rmmod em28xx
->> sudo modprobe em28xx card=53 and card=56
->> sudo modprobe em28xx-alsa
->> sudo modprobe em28xx-dvb
->> However with not much success.
->> Card=53 cased MeTV to see a tuner but no channels could be found....
->>
->> TIA for any assistance you can provide.
->>
->> Best Regards,
->> Johan
->>
->> 2009/11/7 Magnus Alm <magnus.alm@gmail.com>:
->>> Hi!
->>>
->>> The dmesg didn't reveal what tuner your stick/card has, it's probably
->>> a XC2028/XC3028 or something like that.
->>> Easiest way to find out would be if you could open the cover and have
->>> a look inside.
->>>
->>> If you have access to windows and the pvr program that came with the
->>> tuner you could do a usb-sniff.
->>>
->>> http://www.pcausa.com/Utilities/UsbSnoop/
->>> or
->>> http://benoit.papillault.free.fr/usbsnoop/
->>>
->>> Switch between different inputs while doing the log, like "dvb",
->>> "analog" and if it has "svideo"/"composite" input.
->>>
->>> copy the windows log to unix and parse the output with parser.pl (I've
->>> added is as an attachment.)
->>> I think there is a new parser somewhere, but I forgot the name of it.
->>>
->>> I'm also not sure how I used it, but I think it was like this: perl
->>> parser.pl < "your_windows_log" > "parsed_log"
->>> That log is needed to  find out what "gpio" your tuner needs for
->>> different settings.
->>>
->>> Don't be scared of the size of the windows log, it gets large, often a
->>> few hundred MB.
->>> The parsed log is much smaller,  a few hundred KB.
->>>
->>> That is all I can think about atm.
->>>
->>> /Magnus Alm
->>>
->>>
->>> 2009/11/6 Johan Mutsaerts <johmut@gmail.com>:
->>>> Hi,
->>>>
->>>> I have an iDream UTVHYL2 USB TV Tuner (with IR remote control) that I
->>>> cannot get to work with Ubuntu (9.04, 2.6.28-16). I have successfully
->>>> compiled and installed the em28xx-new driver from linuxtv.org. No
->>>> /dev/dvb/adapter... is created and that is where it ends for me know.
->>>> MyTV claims no adapter is detected.
->>>>
->>>> I have attached the output of lsusb and dmesg as requested...
->>>>
->>>> Please let me know what more I can do and what exactly it is you can do ?
->>>>
->>>> Thanks in advance and
->>>> Best Regards,
->>>> Johan (Belgium)
->>>>
->>>
->>
->
+I will delete the tree once the fix is merged into the v4l-dvb master branch.
+
+-Mike
