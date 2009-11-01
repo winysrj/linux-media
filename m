@@ -1,52 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:44394
-	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757946AbZKXENQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2009 23:13:16 -0500
-Message-ID: <4B0B5E84.1030305@wilsonet.com>
-Date: Mon, 23 Nov 2009 23:18:12 -0500
-From: Jarod Wilson <jarod@wilsonet.com>
-MIME-Version: 1.0
-To: Christoph Bartelmus <lirc@bartelmus.de>
-CC: dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	khc@pm.waw.pl, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, superm1@ubuntu.com
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
- Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-References: <BDRabhTZjFB@christoph>
-In-Reply-To: <BDRabhTZjFB@christoph>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mail1.radix.net ([207.192.128.31]:41050 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753717AbZKAW5M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Nov 2009 17:57:12 -0500
+Subject: Re: cx18: YUV frame alignment improvements
+From: Andy Walls <awalls@radix.net>
+To: Brandon Jenkins <bcjenkins@tvwhere.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org, ivtv-devel@ivtvdriver.org,
+	Simon Farnsworth <simon.farnsworth@onelan.com>
+In-Reply-To: <de8cad4d0911011010g1bb3d595ge87e3b168ce41c32@mail.gmail.com>
+References: <1257020204.3087.18.camel@palomino.walls.org>
+	 <829197380910311328u2879c45ep2023a99058112549@mail.gmail.com>
+	 <1257036094.3181.7.camel@palomino.walls.org>
+	 <de8cad4d0910311925u28895ca9q454ccf0ac1032302@mail.gmail.com>
+	 <1257079055.3061.19.camel@palomino.walls.org>
+	 <de8cad4d0911011010g1bb3d595ge87e3b168ce41c32@mail.gmail.com>
+Content-Type: text/plain
+Date: Sun, 01 Nov 2009 17:59:14 -0500
+Message-Id: <1257116354.3076.14.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/23/2009 04:10 PM, Christoph Bartelmus wrote:
-> Hi Jarod,
->
-> on 23 Nov 09 at 14:17, Jarod Wilson wrote:
->>> Krzysztof Halasa wrote:
-> [...]
->>> If you see patch 3/3, of the lirc submission series, you'll notice a driver
->>> that has hardware decoding, but, due to lirc interface, the driver
->>> generates pseudo pulse/space code for it to work via lirc interface.
->
->> Historically, this is true.
->
-> No, it's not.
-> I think you misunderstood the code. The comment may be a bit misleading,
-> too.
-> Early iMON devices did not decode in hardware and the part of the driver
-> that Krzystof is referring to is translating a bit-stream of the sampled
-> input data into pulse/space durations.
+On Sun, 2009-11-01 at 13:10 -0500, Brandon Jenkins wrote:
+> On Sun, Nov 1, 2009 at 7:37 AM, Andy Walls <awalls@radix.net> wrote:
+> > On Sat, 2009-10-31 at 22:25 -0400, Brandon Jenkins wrote:
+> >> On Sat, Oct 31, 2009 at 8:41 PM, Andy Walls <awalls@radix.net> wrote:
+> >> > On Sat, 2009-10-31 at 16:28 -0400, Devin Heitmueller wrote:
+> >> >> On Sat, Oct 31, 2009 at 4:16 PM, Andy Walls <awalls@radix.net> wrote:
 
-Sorry, no, I know the newer devices don't actually send pulse/data info 
-out to userspace, just hex codes that correspond to key presses. What I 
-meant was "onboard decoding devices can operate as pure input devices or 
-in classic lirc mode", leaving out the details on exactly what they were 
-sending out to userspace. :)
+> > Could you provide the panic to me?  Off-list is fine.
+> >
+> > If I can't get this large buffer scheme to work for the general case to
+> > mainatin YUV frame alignment, I'll have to figure out what will likely
+> > be a much more complex scheme to ensure alignment is maintained in for
+> > YUV streams. :(
+> >
+> > Oh, well.
+> >
+> > Regards,
+> > Andy
+> >
+> >
+> >
+> Hi Andy,
+> 
+> The panic happens upon reboot and it is only 1 line of text oddly shifted.
+> 
+> Kernel panic - not syncing: DMA: Memory would be corrupted
+> 
+> If I switch back to the current v4l-dvb drivers no issue. To switch
+> back I have to boot from a USB drive.
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+Brandon,
+
+Eww.  OK.  Nevermind performing any more data collection.  I'm going to
+use a new strategy (when I find the time).
+
+(Thinking out loud ...)
+Working under the assumptions that:
+
+1. The encoder always returns 720 pixels worth of data per line (no
+matter what the scaling)
+
+2. The software HM12 decoders can only deal with full, not partial,
+16x8x2 UV macroblocks at 4:2:0, so scaled YUV height needs to be in
+multiples of 32 lines
+
+3. The CX23418 actually can handle Memory Descriptor Lists (MDLs) with
+more than one buffer per list
+
+I'm going to use the MDLs to actually hold buffer lists with multiple
+buffers, where individual buffers are 720 * 32 * 3 / 2 = 33.75 kB each.
+That way I can build up buffer lists to hold precisely one frame of YUV
+data at a time, no matter what the scaling, and then know that if the
+cx18 driver misses an incoming MDL notification, the YUV frames will
+stay aligned.  The 33.75 kB buffers should be no problem from a DMA
+perspective, compared to 607.5 kB buffers.
+
+The pain is that the cx18 driver right now has the hard-coded assumption
+that there is only one buffer per MDL.  It will take a bit of effort to
+fix that assumption in the driver and generalize it to having 1 or more
+buffers per MDL.
+
+
+Anyway, thanks for the testing.
+
+Regards,
+Andy
+
+
