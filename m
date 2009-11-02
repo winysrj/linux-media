@@ -1,22 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx09.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.13])
-	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id nA598iQB006130
-	for <video4linux-list@redhat.com>; Thu, 5 Nov 2009 04:08:44 -0500
-Received: from mail-px0-f187.google.com (mail-px0-f187.google.com
-	[209.85.216.187])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id nA598X6k018842
-	for <video4linux-list@redhat.com>; Thu, 5 Nov 2009 04:08:34 -0500
-Received: by pxi17 with SMTP id 17so3139009pxi.20
-	for <video4linux-list@redhat.com>; Thu, 05 Nov 2009 01:08:33 -0800 (PST)
+Received: from mx1.redhat.com (ext-mx02.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.6])
+	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id nA2KOH9n028487
+	for <video4linux-list@redhat.com>; Mon, 2 Nov 2009 15:24:17 -0500
+Received: from mail-bw0-f214.google.com (mail-bw0-f214.google.com
+	[209.85.218.214])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id nA2KO0Qa008929
+	for <video4linux-list@redhat.com>; Mon, 2 Nov 2009 15:24:01 -0500
+Received: by bwz6 with SMTP id 6so6867813bwz.11
+	for <video4linux-list@redhat.com>; Mon, 02 Nov 2009 12:24:00 -0800 (PST)
 MIME-Version: 1.0
-Date: Thu, 5 Nov 2009 10:08:33 +0100
-Message-ID: <fe6fd5f60911050108w58713a74qa33c496fbb9542ec@mail.gmail.com>
-From: Carlos Lavin <carlos.lavin@vista-silicon.com>
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
-Subject: function to_soc_camera_link(icd);
+In-Reply-To: <4AEE9AAA.80104@st.com>
+References: <4AEE9AAA.80104@st.com>
+Date: Mon, 2 Nov 2009 20:23:59 +0000
+Message-ID: <5387cd30911021223u2c1349b8gd7baca736f8fbae6@mail.gmail.com>
+From: Nick Morrott <knowledgejunkie@gmail.com>
+To: v4l <video4linux-list@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Subject: Re: hvr1300 DVB regression
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,13 +30,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-hello!, any people to know to used this function:
+2009/11/2 Raffaele BELARDI <raffaele.belardi@st.com>:
+> I'm no longer able with recent kernels to tune DVB channels with my
+> HVR1300. This is a mythtv box but I replicated the problem using
+> www.linuxtv.org utilities to exclude mythtv issues.
+>
+> Using kernel 2.6.26-r4 and 2.6.27-r8 I am able to tune both analog and
+> DVB channels.
+> Using kernel 2.6.30-r6 I can only tune to analog channels. 'dvbscan'
+> returns no channel info.
+>
+> I suspect a tuner problem.
 
-to_soc_camera_link(icd)
+Have you read https://bugs.launchpad.net/mythtv/+bug/439163 and
+comments (esp. https://bugs.launchpad.net/mythtv/+bug/439163/comments/50)?
 
- i make a driver and i have a problem whit this function, this function is
-used for the version 2.6.32 but i want to use for the version 2.6.30, this
-driver is for a sensor ov7670, but i don't know how i used it.
+Cheers,
+Nick
+
+-- 
+Nick Morrott
+
+MythTV Official wiki:
+http://mythtv.org/wiki/
+MythTV users list archive:
+http://www.gossamer-threads.com/lists/mythtv/users
+
+"An investment in knowledge always pays the best interest." - Benjamin Franklin
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
