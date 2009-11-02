@@ -1,52 +1,24 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:16156 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751073AbZKISee (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Nov 2009 13:34:34 -0500
-Date: Mon, 9 Nov 2009 16:33:58 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES for 2.6.32] V4L/DVB fixes
-Message-ID: <20091109163358.78183665@pedra.chehab.org>
-In-Reply-To: <alpine.LFD.2.01.0911091001410.31845@localhost.localdomain>
-References: <20091107143757.5a9453dc@pedra.chehab.org>
-	<alpine.LFD.2.01.0911091001410.31845@localhost.localdomain>
-Mime-Version: 1.0
+Received: from mx202.nociplan.com.ar ([201.216.250.144]:64446 "EHLO
+	ip1-vg1.iplannetworks.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1754667AbZKBM5H convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Nov 2009 07:57:07 -0500
+Date: Mon, 2 Nov 2009 04:46:28 -0800
+Message-ID: <48FAB31100059827@ms1.iplannetworks.net>
+From: "British Tobacco Company" <git@iplanmail.com.ar>
+Subject: Contact Sir.Donald Lukas
+Reply-To: sir_donaldluka@hotmail.com
+MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 9 Nov 2009 10:02:05 -0800 (PST)
-Linus Torvalds <torvalds@linux-foundation.org> escreveu:
 
-> 
-> 
-> On Sat, 7 Nov 2009, Mauro Carvalho Chehab wrote:
-> > 
-> > Please pull from:
-> >         ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git for_linus
-> 
-> 	"Already up-to-date."
-> 
-> Forgot to push it out?
+You have been awarded 1,000,000.00 Pounds by the British Tobacco Promotion,
+send your  
+name country occupation
 
-Sorry.
 
-Should be there already.
-
-$ git push origin
-Counting objects: 911, done.
-Delta compression using up to 8 threads.
-Compressing objects: 100% (138/138), done.
-Writing objects: 100% (648/648), 102.81 KiB, done.
-Total 648 (delta 512), reused 637 (delta 502)
-To ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
-   3f48258..22370ef  for_linus -> for_linus
-
--- 
-
-Cheers,
-Mauro
