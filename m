@@ -1,56 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:37831 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750826AbZKDHWE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2009 02:22:04 -0500
-Date: Wed, 4 Nov 2009 05:21:29 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Trying to compile for kernel version 2.6.28
-Message-ID: <20091104052129.2e2dad47@pedra.chehab.org>
-In-Reply-To: <4AF0500B.3070401@hoogenraad.net>
-References: <4AF0500B.3070401@hoogenraad.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail.gmx.net ([213.165.64.20]:60793 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S932378AbZKBWv2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Nov 2009 17:51:28 -0500
+Message-ID: <4AEF6272.7050602@gmx.de>
+Date: Mon, 02 Nov 2009 23:51:30 +0100
+From: Andreas Regel <andreas.regel@gmx.de>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: [PATCH 8/9] stv090x: additional check for packet delineator lock
+ in stv090x_read_status
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jan,
+This patch add an additional check for packet delineator lock in stv090x_read_status in case of a tuned DVB-S2 signal.
 
-Em Tue, 03 Nov 2009 16:45:15 +0100
-Jan Hoogenraad <jan-conceptronic@hoogenraad.net> escreveu:
+Signed-off-by: Andreas Regel <andreas.regel@gmx.de>
 
-> At this moment, I cannot figure out how to compile v4l with kernel 
-> version 2.6.28.
-> I see, however, that the daily build reports:
-> linux-2.6.28-i686: OK
-
-Yes, and that's correct. It does compile from scratch with 2.6.28.
-
-If you look at v4l/versions.txt, this is already marked to compile only with
-kernels 2.6.31 or newer. It should be noticed, however, that the building system
-won't touch at your .config if you just do an hg update (or hg pull -u).
-
-You'll need to ask it explicitly to process versions.txt again, by calling one of
-the alternatives bellow that re-generates a v4l/.config.
-
-If you are using a customized config, you'll need to call either one of those:
-	make menuconfig
-	make config
-	make xconfig
-	  or
-	make gconfig
-
-(in this specific case, just entering there and saving the config is enough - there's
-no need to touch on any items)
-
-Or, at the simple case were you're just building everything, you'll need to do:
-	make allmodconfig
-
-A side effect of touching at v4l/.config is that all (selected) drivers will
-recompile again.
-
-Cheers,
-Mauro
+diff -r 07782fabbff1 linux/drivers/media/dvb/frontends/stv090x.c
+--- a/linux/drivers/media/dvb/frontends/stv090x.c	Mon Nov 02 23:09:33 2009 +0100
++++ b/linux/drivers/media/dvb/frontends/stv090x.c	Mon Nov 02 23:15:41 2009 +0100
+@@ -4136,7 +4136,6 @@
+ 	return DVBFE_ALGO_SEARCH_ERROR;
+ }
+ 
+-/* FIXME! */
+ static int stv090x_read_status(struct dvb_frontend *fe, enum fe_status *status)
+ {
+ 	struct stv090x_state *state = fe->demodulator_priv;
+@@ -4158,9 +4157,15 @@
+ 		dprintk(FE_DEBUG, 1, "Delivery system: DVB-S2");
+ 		reg = STV090x_READ_DEMOD(state, DSTATUS);
+ 		if (STV090x_GETFIELD_Px(reg, LOCK_DEFINITIF_FIELD)) {
+-			reg = STV090x_READ_DEMOD(state, TSSTATUS);
+-			if (STV090x_GETFIELD_Px(reg, TSFIFO_LINEOK_FIELD)) {
+-				*status = FE_HAS_CARRIER | FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
++			reg = STV090x_READ_DEMOD(state, PDELSTATUS1);
++			if (STV090x_GETFIELD_Px(reg, PKTDELIN_LOCK_FIELD)) {
++				reg = STV090x_READ_DEMOD(state, TSSTATUS);
++				if (STV090x_GETFIELD_Px(reg, TSFIFO_LINEOK_FIELD)) {
++					*status = FE_HAS_CARRIER |
++						  FE_HAS_VITERBI |
++						  FE_HAS_SYNC |
++						  FE_HAS_LOCK;
++				}
+ 			}
+ 		}
+ 		break;
