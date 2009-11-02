@@ -1,184 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:33842 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752994AbZKFHmZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Nov 2009 02:42:25 -0500
-Date: Fri, 6 Nov 2009 08:42:33 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: Re: [PATCH/RFC 7/9 v2] v4l: add an image-bus API for configuring
- v4l2 subdev pixel and frame formats
-In-Reply-To: <200911060747.26999.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.0911060824130.4389@axis700.grange>
-References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
- <200911051911.17196.hverkuil@xs4all.nl> <Pine.LNX.4.64.0911051941320.5620@axis700.grange>
- <200911060747.26999.hverkuil@xs4all.nl>
+Received: from mail-ew0-f228.google.com ([209.85.219.228]:56202 "EHLO
+	mail-ew0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754232AbZKBNhR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Nov 2009 08:37:17 -0500
+Received: by ewy28 with SMTP id 28so4821707ewy.18
+        for <linux-media@vger.kernel.org>; Mon, 02 Nov 2009 05:37:20 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <b3a495710911020528oe1df259yad30f3fb5f7868b4@mail.gmail.com>
+References: <b3a495710911020528oe1df259yad30f3fb5f7868b4@mail.gmail.com>
+Date: Mon, 2 Nov 2009 08:37:20 -0500
+Message-ID: <829197380911020537jd400aacme8d649ddc8dd2e34@mail.gmail.com>
+Subject: Re: 1164:1f08 YUAN High-Tech STK7700PH kernel crash in Ubuntu 9.10
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Patrick Byrne <pjlbyrne@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 6 Nov 2009, Hans Verkuil wrote:
+On Mon, Nov 2, 2009 at 8:28 AM, Patrick Byrne <pjlbyrne@gmail.com> wrote:
+> Hi,
+>
+> I have an Aopen MP45-DR mini-pc. I am trying to get a DVB-T card
+> working in it. The DVB card is a Mini-PCI express card. It fits on a
+> minicard slot inside the pc.
+>
+> I can activate the 'Firmware for DVB cards' in the Hardware Drivers applet:
+<snip>
 
-> On Thursday 05 November 2009 19:56:04 Guennadi Liakhovetski wrote:
-> > On Thu, 5 Nov 2009, Hans Verkuil wrote:
-> > 
-> > > On Thursday 05 November 2009 17:51:50 Guennadi Liakhovetski wrote:
-> > > > On Thu, 5 Nov 2009, Hans Verkuil wrote:
-> > > > 
-> > > > > On Friday 30 October 2009 15:01:27 Guennadi Liakhovetski wrote:
-> > > > > > Video subdevices, like cameras, decoders, connect to video bridges over
-> > > > > > specialised busses. Data is being transferred over these busses in various
-> > > > > > formats, which only loosely correspond to fourcc codes, describing how video
-> > > > > > data is stored in RAM. This is not a one-to-one correspondence, therefore we
-> > > > > > cannot use fourcc codes to configure subdevice output data formats. This patch
-> > > > > > adds codes for several such on-the-bus formats and an API, similar to the
-> > > > > > familiar .s_fmt(), .g_fmt(), .try_fmt(), .enum_fmt() API for configuring those
-> > > > > > codes. After all users of the old API in struct v4l2_subdev_video_ops are
-> > > > > > converted, the API will be removed.
-> > > > > 
-> > > > > OK, this seems to completely disregard points raised in my earlier "bus and
-> > > > > data format negotiation" RFC which is available here once www.mail-archive.org
-> > > > > is working again:
-> > > > > 
-> > > > > http://www.mail-archive.com/linux-media%40vger.kernel.org/msg09644.html
-> > > > > 
-> > > > > BTW, ignore the 'Video timings' section of that RFC. That part is wrong.
-> > > > > 
-> > > > > The big problem I have with this proposal is the unholy mixing of bus and
-> > > > > memory formatting. That should be completely separated. Only the bridge
-> > > > > knows how a bus format can be converted into which memory (pixel) formats.
-> > > > 
-> > > > Please, explain why only the bridge knows about that.
-> > > > 
-> > > > My model is the following:
-> > > > 
-> > > > 1. we define various data formats on the bus. Each such format variation 
-> > > > gets a unique identification.
-> > > > 
-> > > > 2. given a data format ID the data format is perfectly defined. This 
-> > > > means, you do not have to have a special knowledge about this specific 
-> > > > format to be able to handle it in some _generic_ way. A typical such 
-> > > > generic handling on a bridge is, for instance, copying the data into 
-> > > > memory "one-to-one." For example, if a sensor delivers 10 bit monochrome 
-> > > > data over an eight bit bus as follows
-> > > > 
-> > > > y7 y6 y5 y4 y3 y2 y1 y0   xx xx xx xx xx xx y9 y8 ...
-> > > > 
-> > > > then _any_ bridge, capable of just copying data from the bus bytewise into 
-> > > > RAM will be able to produce little-endian 10-bit grey pixel format in RAM. 
-> > > > This handling is _not_ bridge specific. This is what I call packing.
-> > > 
-> > > Of course it is bridge dependent. It is the bridge that takes data from the
-> > > bus and puts it in memory. In many cases that is done very simply by bytewise
-> > > copying. Other bridges can do RGB to YUV or vice versa conversions or can do
-> > > endianness conversion or can do JPEG/MPEG compression on the fly or whatever
-> > > else hardware designers will think of.
-> > > 
-> > > It's no doubt true for the SoCs you have been working with, but it is not so
-> > > simple in general.
-> > 
-> > Ok, I forgot to mention one more point in the model:
-> > 
-> > 4. Each bridge has _two_ ways to process data: data-format-specific and 
-> > generic (pass-through). It's the _former_ one that is bridge specific, 
-> > quite right! For a bridge to be able to process a data format, that it can 
-> > process in a _special_ way, it doesn't need v4l2_imgbus_pixelfmt, it's 
-> > only for data-formats, that bridges do _not_ know specifically they need 
-> > it. In that _generic_ case it is not bridge-specific and a bridge driver 
-> > can just look into the respective v4l2_imgbus_pixelfmt descriptor.
-> > 
-> > Consider the following: a bridge can process N formats in a specific way. 
-> > It knows which bits in which order represent which colours, etc. In such a 
-> > case you just tell the driver "format X" and that's all it has to know 
-> > about it to be able to handle it.
-> > 
-> > The sensor, connected to the bridge, can also provide format Y, which the 
-> > bridge doesn't know about. So what, there's then no way to use that 
-> > format? Or do we have to add a _special_ handling rule for each format to 
-> > each bridge driver?...
-> > 
-> > > > 3. Therefore, each bridge, capable of handling of some "generic" data 
-> > > > using some specific packing, can perfectly look through data-format 
-> > > > descriptors, see if it finds any with the supported packing, and if so, it 
-> > > > _then_ knows, that it can use that specific data format and the specific 
-> > > > packing to produce the resulting pixel format from the format descriptor.
-> > > > 
-> > > > > A bus format is also separate from the colorspace: that is an independent
-> > > > > piece of data.
-> > > > 
-> > > > Sure. TBH, I do not quite how enum v4l2_colorspace is actually used. Is it 
-> > > > uniquely defined by each pixel format? So, it can be derived from that? 
-> > > > Then it is indeed redundant. Can drop, don't care about it that much.
-> > > 
-> > > It's independent from the pixel format. So the same pixel (or bus) format can
-> > > have different colorspaces.
-> > 
-> > Then I do not understand what a colourspace means in v4l context. You mean 
-> > a yuv format can belong to a jpeg, or an srgb space?...
-> 
-> No, it's not that extreme, but e.g. the same yuv format can be used with
-> different colorspaces depending on the source. I don't have the datasheet
-> handy but I know that for HDMI inputs there are different RGB colorspaces
-> depending on the input resolution. So while the dataformat is the same,
-> the colorspace will be different.
+This was fixed quite some time ago in the v4l-dvb trunk and the Ubuntu
+maintainers just haven't backported the fix into their tree.  It's
+being tracked here:
 
-Ok, so, you mean something like colour components are assigned in the same 
-way in data tuples, but, for example, colour value ranges can be 
-different?
+https://bugs.launchpad.net/ubuntu/+source/linux/+bug/429662
 
-As for whether a colour-space field is needed in struct 
-v4l2_imgbus_pixelfmt, actually, I think, it is. Otherwise how would you 
-reply to G_FMT and TRY_FMT requests?
+So you can install the latest v4l-dvb tree via the instructions at
+http://linuxtv.org/repo or you can complain to your distribution
+maintainers to backport the fix.
 
-> > > > > Personally I would just keep using v4l2_pix_format, except
-> > > > > that the fourcc field refers to a busimg format rather than a pixel format
-> > > > > in the case of subdevs. In most non-sensor drivers this field is completely
-> > > > > ignored anyway since the bus format is fixed.
-> > > > 
-> > > > Example: there are cameras, that can be configured to pad 2 bits from the 
-> > > > incomplete byte above to 10 either in high or in low bits. Do you want to 
-> > > > introduce a new FOURCC code for those two formats? This is an example of 
-> > > > what I call packing.
-> > > 
-> > > If this happens in the sensor, then yes.
-> > 
-> > No, those are two data formats, as produced by a camera sensor on the bus. 
-> > What is made out of them in RAM is a completely separate issue.
-> > 
-> > > > > I don't mind if you do a bus format to pixel format mapping inside soc-camera,
-> > > > > but it shouldn't spill over into the v4l core code.
-> > > > 
-> > > > Don't understand. This is not for soc-camera only. This infrastructure 
-> > > > should be used by all subdev drivers, communicating aver a data bus. The 
-> > > > distinction is quite clear to me: if two entities connect over a bus, they 
-> > > > use an image-bus data format to describe the data format. If they write 
-> > > > and read from RAM - that's pixel format.
-> > > 
-> > > We agree about that, but why then does struct v4l2_imgbus_framefmt contain
-> > > memory-related fields like packing, order and bits_per_sample? A subdev driver
-> > > does not care about that. All it has are X pins through which the data has to
-> > > pass. How that will look like in memory it doesn't know and doesn't care.
-> > 
-> > That's right. subdev drivers do not care about v4l2_imgbus_framefmt, it's 
-> > only bridge drivers, that do.
-> 
-> I think most of my objections would probably go away if you redid your subdev
-> API so that the subdev only gets the data format and none of the packing data.
-> 
-> The subdev API should not contain anything that it doesn't need. Otherwise it
-> becomes very confusing.
+Cheers,
 
-Sorry, I grepped drivers and headers for v4l2_imgbus_pixelfmt and only see 
-it used in host drivers. Can you point out more precisely what you mean?
+Devin
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
