@@ -1,83 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from jack.mail.tiscali.it ([213.205.33.53]:39540 "EHLO
-	jack.mail.tiscali.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751579AbZKNWVl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Nov 2009 17:21:41 -0500
-Message-ID: <4AFF2D63.3090207@gmail.com>
-Date: Sat, 14 Nov 2009 23:21:23 +0100
-From: "Andrea.Amorosi76@gmail.com" <Andrea.Amorosi76@gmail.com>
+Received: from mail-gx0-f212.google.com ([209.85.217.212]:40737 "EHLO
+	mail-gx0-f212.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755257AbZKBPO3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Nov 2009 10:14:29 -0500
+Received: by gxk4 with SMTP id 4so4263645gxk.8
+        for <linux-media@vger.kernel.org>; Mon, 02 Nov 2009 07:14:33 -0800 (PST)
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: "linux-media@vger.kernel.org >> Linux Media Mailing List"
-	<linux-media@vger.kernel.org>
-Subject: [PATCH] em28xx: fix for Dikom DK300 hybrid USB tuner (aka Kworld
- 	VS-DVB-T 323UR )
-References: <4AFE92ED.2060208@gmail.com> <4AFEAB15.9010509@gmail.com> <829197380911140634j49c05cd0s90aed57b9ae61436@mail.gmail.com>
-In-Reply-To: <829197380911140634j49c05cd0s90aed57b9ae61436@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <000001ca5bc4$10493030$9b65a8c0@Sensysserver.local>
+References: <000001ca5bc4$10493030$9b65a8c0@Sensysserver.local>
+Date: Mon, 2 Nov 2009 16:14:32 +0100
+Message-ID: <c4e36d110911020714s16d5599h14b30ce99181a042@mail.gmail.com>
+Subject: Re: [linux-dvb] NOVA-TD exeriences?
+From: Zdenek Kabelac <zdenek.kabelac@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fix the Dikom DK300 hybrid usb card which is recognized as a
-Kworld VS-DVB-T 323UR (card=54).
+2009/11/2 Magnus Hörlin <magnus@alefors.se>:
+> Hi. I would be happy to hear if anyone has tried both the NOVA-TD and the
+> NOVA-T. The NOVA-T has always worked perfectly here but I would like to know
+> if the -TD will do the job of two NOVA-T's. And there also seems to be a new
+> version out with two small antenna connectors instead of the previous
+> configuration. Anyone tried it? Does it come with an antenna adaptor cable?
+> http://www.hauppauge.de/de/pics/novatdstick_top.jpg
+> Thankful for any info.
 
-The patch adds digital tv and solves analog tv audio bad quality issue.
+Well I've this usb stick with these two small connectors - and it runs
+just fine.
 
-Signed-off-by: Andrea Amorosi <Andrea.Amorosi76@gmail.com>
+Though I think there is some problem with suspend/resume recently
+(2.6.32-rc5)  and it needs some inspection.
 
-diff -r aba823ecaea6 linux/drivers/media/video/em28xx/em28xx-cards.c
---- a/linux/drivers/media/video/em28xx/em28xx-cards.c    Thu Nov 12 
-12:21:05 2009 -0200
-+++ b/linux/drivers/media/video/em28xx/em28xx-cards.c    Sat Nov 14 
-23:10:47 2009 +0100
-@@ -1422,18 +1422,24 @@
-         .tuner_type   = TUNER_XC2028,
-         .tuner_gpio   = default_tuner_gpio,
-         .decoder      = EM28XX_TVP5150,
-+                .mts_firmware = 1,
-+                .has_dvb      = 1,
-+                .dvb_gpio     = 
-kworld_330u_digital,                                                                                                                                                         
+But it works just fine for dual dvb-t viewing.
 
-         .input        = { {
-             .type     = EM28XX_VMUX_TELEVISION,
-             .vmux     = TVP5150_COMPOSITE0,
-             .amux     = EM28XX_AMUX_VIDEO,
-+            .gpio     = default_analog,
-         }, {
-             .type     = EM28XX_VMUX_COMPOSITE1,
-             .vmux     = TVP5150_COMPOSITE1,
-             .amux     = EM28XX_AMUX_LINE_IN,
-+            .gpio     = default_analog,
-         }, {
-             .type     = EM28XX_VMUX_SVIDEO,
-             .vmux     = TVP5150_SVIDEO,
-             .amux     = EM28XX_AMUX_LINE_IN,
-+            .gpio     = default_analog,
-         } },
-     },
-     [EM2882_BOARD_TERRATEC_HYBRID_XS] = {
-@@ -2143,6 +2149,7 @@
-         ctl->demod = XC3028_FE_DEFAULT;
-         break;
-     case EM2883_BOARD_KWORLD_HYBRID_330U:
-+    case EM2882_BOARD_KWORLD_VS_DVBT:
-         ctl->demod = XC3028_FE_CHINA;
-         ctl->fname = XC2028_DEFAULT_FIRMWARE;
-         break;
-diff -r aba823ecaea6 linux/drivers/media/video/em28xx/em28xx-dvb.c
---- a/linux/drivers/media/video/em28xx/em28xx-dvb.c    Thu Nov 12 
-12:21:05 2009 -0200
-+++ b/linux/drivers/media/video/em28xx/em28xx-dvb.c    Sat Nov 14 
-23:10:47 2009 +0100
-@@ -504,6 +504,7 @@
-         break;
-     case EM2880_BOARD_TERRATEC_HYBRID_XS:
-     case EM2881_BOARD_PINNACLE_HYBRID_PRO:
-+    case EM2882_BOARD_KWORLD_VS_DVBT:
-         dvb->frontend = dvb_attach(zl10353_attach,
-                        &em28xx_zl10353_xc3028_no_i2c_gate,
-                        &dev->i2c_adap);
+And yes - it contains two small antennas with small connectors and
+one adapter for normal antenna - i.e. 1 antenna input goes to 2 small
+antenna connectors.
 
+
+Zdenek
