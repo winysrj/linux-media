@@ -1,104 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:4831 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760395AbZKZMgv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 07:36:51 -0500
-Message-ID: <4B0E765C.2080806@redhat.com>
-Date: Thu, 26 Nov 2009 10:36:44 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from banach.math.auburn.edu ([131.204.45.3]:53196 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753690AbZKBDhi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Nov 2009 22:37:38 -0500
+Date: Sun, 1 Nov 2009 21:43:13 -0600 (CST)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: =?ISO-8859-15?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+cc: Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>,
+	V4L Mailing List <linux-media@vger.kernel.org>,
+	Thomas Kaiser <thomas@kaiser-linux.li>,
+	Theodore Kilgore <kilgota@auburn.edu>,
+	Kyle Guinn <elyk03@gmail.com>
+Subject: Re: [PATCH 1/3] gspca pac7302/pac7311: simplify pac_find_sof
+In-Reply-To: <4AEE04CB.5060802@freemail.hu>
+Message-ID: <alpine.LNX.2.00.0911012112421.7702@banach.math.auburn.edu>
+References: <4AEE04CB.5060802@freemail.hu>
 MIME-Version: 1.0
-To: Krzysztof Halasa <khc@pm.waw.pl>
-CC: Jarod Wilson <jarod@redhat.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-kernel@vger.kernel.org,
-	Mario Limonciello <superm1@ubuntu.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Janne Grunau <j@jannau.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
- Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-References: <200910200956.33391.jarod@redhat.com>	<200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com>	<4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain>	<4B0AC65C.806@redhat.com> <m3zl6dq8ig.fsf@intrepid.localdomain>
-In-Reply-To: <m3zl6dq8ig.fsf@intrepid.localdomain>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="-863829203-1087670364-1257133393=:7702"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Krzysztof Halasa wrote:
-> Mauro Carvalho Chehab <mchehab@redhat.com> writes:
-> 
->> If you see patch 3/3, of the lirc submission series, you'll notice a driver
->> that has hardware decoding, but, due to lirc interface, the driver generates
->> pseudo pulse/space code for it to work via lirc interface.
-> 
-> IOW the driver generates artificial pulse code for lircd?
-> I think - pure bloat. lircd can get events from input layer without
-> problems. Perhaps I misunderstood?
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-lircd supports input layer interface. Yet, patch 3/3 exports both devices
-that support only pulse/space raw mode and devices that generate scan
-codes via the raw mode interface. It does it by generating artificial
-pulse codes.
-> 
->> It is very bad to have two interfaces for the same thing, because people
->> may do things like that.
-> 
-> I think having a "raw" scan code interface + the key code "cooked" mode
-> is beneficial. For remotes lacking the raw interface only the latter
-> could be used.
+---863829203-1087670364-1257133393=:7702
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: 8BIT
 
-It sounds an interesting idea.
 
->> Are you meaning that we should do more than one RC per input event
->> interface?
-> 
-> I think so. Why not?
-> 
-> For example, one of my remotes generates codes from at least two RC5
-> groups (in only one "mode"). Currently a remote is limited to only one
-> RC5 group.
 
-Yet, both are RC5. This can already be handled by the input layer.
-See dvb-usb implementation.
+On Sun, 1 Nov 2009, Németh Márton wrote:
 
-The issue I see is to support at the same time NEC and RC5 protocols. While
-this may work with some devices, for others, the hardware won't allow.
+> From: Márton Németh <nm127@freemail.hu>
+>
+> Remove struct sd dependency from pac_find_sof() function implementation.
+> This step prepares separation of pac7302 and pac7311 specific parts of
+> struct sd.
+>
+> Signed-off-by: Márton Németh <nm127@freemail.hu>
+> Cc: Thomas Kaiser <thomas@kaiser-linux.li>
+> Cc: Theodore Kilgore <kilgota@auburn.edu>
+> Cc: Kyle Guinn <elyk03@gmail.com>
 
-> 
-> I think the mapping should be: key = proto + group + raw code, while
-> key2 could be different_proto + different group (if any) + another code.
+<snip>
 
-This may work for protocols up to RC5, that uses either 8 or 16 bits.
-However, RC6 mode 6 codes can be 32 bits, and we have "only" 32 bits
-for a scancode. So, we don't have spare bits to represent a protocol, 
-if we consider RC6 mode 6 codes as well.
+Szia Marton,
 
->> If so, why do you think we need to handle more than one IR protocol at
->> the same time?
-> 
-> Why not?
-> There are X-in-1 remotes on the market for years. They can "speak" many
-> protocols at once. One may want to have a protocol to handle DVD apps
-> while another for DVB etc.
-> And someone may want to use several different remotes, why not?
-> Personally I use two different remotes (both set to speak RC5 but what
-> if I couldn't set the protocol?). Sure, it requires a bit of hackery
-> (not with pulse code and lircd).
-> 
->> I think this will just make the driver more complex without need.
-> 
-> Not much more, and there is a need.
+As long as these things work, I would not mind at all. But perhaps this is 
+a good occasion to bring up an issue which seems to me very much related. 
+It is the following:
 
-See above. Also, several protocols have a way to check if a keystroke were
-properly received. When handling just one protocol, we can use this to double
-check the key. However, on a multiprotocol mode, we'll need to disable this
-feature.
+Along with the (it seems to be never-ending) work on the mr97310a driver, 
+I have been working on a driver for the sn9c2028 cameras. The driver at 
+this point functions, and seems to function quite well. But it also seems 
+to me that the code needs quite a bit of polishing before it is 
+publicized. Since I have been very much preoccupied with finishing the 
+mr97310a driver (why does the last 5% of a job sometimes take the most 
+time?) this final polishing of the sn9c2028 driver has not yet occurred, 
+sorry to say.
 
-PS.: For those following those discussions that want to know more about
-IR protocols, a good reference is at:
-	http://www.sbprojects.com/knowledge/ir/ir.htm
+But here is the point. The sn9c2028 cameras have a structure which seems 
+similar to the mr97310a cameras. They use a similar decompression 
+algorithm. They have a similar frame header. Specifically, the sn9c2028 
+frame header starts with the five bytes
 
-Unfortunately, it doesn't describe RC6 mode 6.
+                 0xff, 0xff, 0x00, 0xc4, 0xc4
 
-Cheers,
-Mauro.
+whereas the pac_common frame header starts with the five bytes
+
+                 0xff, 0xff, 0x00, 0xff, 0x96
+
+Right now, for my own use, I have written a file sn9c2028.h which 
+essentially duplicates the functionality of pac_common.h and contains a 
+function which searches for the sn9c2028 SOF marker instead of searching 
+for the pac SOF marker. Is this necessarily the good, permanent solution? 
+I am not so sure about that.
+
+Perhaps when making changes it is a good time to think over the idea of 
+combining things which are in fact not very much different. After all, 
+another set of cameras might come along, too, which essentially requires 
+yet another minor variation on the same basic algorithm. Then we are 
+supposed to have three .h files with three functions which have the same 
+code and just search for slightly different strings?
+
+I am well aware that you started out to do something different, but how 
+does this strike you?
+
+
+Theodore Kilgore
+---863829203-1087670364-1257133393=:7702--
