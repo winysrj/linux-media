@@ -1,15 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from m13-179.163.com ([220.181.13.179])
-	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <wdy9927@163.com>) id 1N62Bq-0005eO-G6
-	for linux-dvb@linuxtv.org; Thu, 05 Nov 2009 14:15:51 +0100
-Date: Thu, 5 Nov 2009 21:15:33 +0800 (CST)
-From: wdy9927 <wdy9927@163.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-Message-ID: <25694071.578071257426933010.JavaMail.coremail@app179.163.com>
+Received: from 78.218.95.91.static.ter-s.siw.siwnet.net ([91.95.218.78]
+	helo=alefors.se) by mail.linuxtv.org with esmtp (Exim 4.69)
+	(envelope-from <magnus@alefors.se>) id 1N4xNC-0008VF-8j
+	for linux-dvb@linuxtv.org; Mon, 02 Nov 2009 14:55:06 +0100
+Received: from TERMINAL1 ([10.0.0.1]:38174)
+	by alefors.se with [XMail 1.26 ESMTP Server]
+	id <SE4> for <linux-dvb@linuxtv.org> from <magnus@alefors.se>;
+	Mon, 2 Nov 2009 14:54:59 +0100
+From: =?iso-8859-1?Q?Magnus_H=F6rlin?= <magnus@alefors.se>
+To: <linux-dvb@linuxtv.org>
+Date: Mon, 2 Nov 2009 14:54:57 +0100
+Message-ID: <000001ca5bc4$10493030$9b65a8c0@Sensysserver.local>
 MIME-Version: 1.0
-Subject: [linux-dvb] How to create a filter which can filte a whole
- packet(188 byte with 0x47)
+Subject: [linux-dvb] NOVA-TD exeriences?
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -18,46 +21,25 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0314685547=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0314685547==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_151420_13094285.1257426933010"
-
-------=_Part_151420_13094285.1257426933010
-Content-Type: text/plain; charset=gbk
-Content-Transfer-Encoding: base64
-
-aXQgc2VlbXMgbGlrZSB0aGUgc2VjX2ZpbHRlciBhbmQgdGhlIHBlc19maWx0ZXIgY2Fubid0IGRv
-IHRoYXQuCmlzIHRoZXJlIG90aGVyIHdheXM/CgoKIA==
-------=_Part_151420_13094285.1257426933010
-Content-Type: text/html; charset=gbk
-Content-Transfer-Encoding: base64
-
-PERJVj5pdCBzZWVtcyBsaWtlIHRoZSBzZWNfZmlsdGVyIGFuZCB0aGUgcGVzX2ZpbHRlciBjYW5u
-J3QgZG8gdGhhdC48L0RJVj4KPERJVj5pcyB0aGVyZSBvdGhlciB3YXlzPzwvRElWPgo8RElWPjxC
-Uj48QlI+Jm5ic3A7PC9ESVY+PGJyPjxicj48c3BhbiB0aXRsZT0ibmV0ZWFzZWZvb3RlciIvPjxo
-ci8+CjxhIGhyZWY9Imh0dHA6Ly9hbGx5ZXMubmllLjE2My5jb20vbWFpbi9hZGZjbGljaz9kYj1h
-ZmFuaWUmYmlkPTEyNTQsNjExLDIzJmNpZD0xNDUsNCwxJnNpZD0xMzUxJnNob3c9aWdub3JlJnVy
-bD1odHRwOi8vdHgyLjE2My5jb20vZmFiLmh0bWwiPjA5xOrQwr36M0TW98H3zfjTzqG2zOzPwreh
-obejrM340tfB+cTq0trXyrTy1Ow8L2E+Cjwvc3Bhbj4=
-------=_Part_151420_13094285.1257426933010--
+Hi. I would be happy to hear if anyone has tried both the NOVA-TD and the
+NOVA-T. The NOVA-T has always worked perfectly here but I would like to know
+if the -TD will do the job of two NOVA-T's. And there also seems to be a new
+version out with two small antenna connectors instead of the previous
+configuration. Anyone tried it? Does it come with an antenna adaptor cable?
+http://www.hauppauge.de/de/pics/novatdstick_top.jpg
+Thankful for any info.
+/Magnus H
 
 
-
---===============0314685547==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0314685547==--
