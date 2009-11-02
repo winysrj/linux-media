@@ -1,44 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.navvo.net ([74.208.67.6]:53173 "EHLO mail.navvo.net"
+Received: from mx38.mail.ru ([94.100.176.52]:58338 "EHLO mx38.mail.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753151AbZK0WbG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Nov 2009 17:31:06 -0500
-From: santiago.nunez@ridgerun.com
-To: davinci-linux-open-source@linux.davincidsp.com
-Cc: linux-media@vger.kernel.org, nsnehaprabha@ti.com,
-	m-karicheri2@ti.com, diego.dompe@ridgerun.com,
-	todd.fischer@ridgerun.com, mgrosen@ti.com,
-	Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-Date: Fri, 27 Nov 2009 16:31:30 -0600
-Message-Id: <1259361090-14473-1-git-send-email-santiago.nunez@ridgerun.com>
-Subject: [PATCH 1/4 v10] Support for TVP7002 in v4l2 definitions
+	id S932425AbZKBUND (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Nov 2009 15:13:03 -0500
+Date: Mon, 2 Nov 2009 23:17:35 +0300
+From: Goga777 <goga777@bk.ru>
+To: linux-dvb@linuxtv.org
+Cc: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Struggling with Astra 2D (Freesat) / Happauage
+ Nova-HD-S2
+Message-ID: <20091102231735.63fd30c4@bk.ru>
+In-Reply-To: <hcnd9s$c1f$1@ger.gmane.org>
+References: <hcnd9s$c1f$1@ger.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=KOI8-R
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+Приветствую, TD
 
-This patch provides required chip identification definitions
-within v4l2. Included only definitions for TVP7002.
+you have to use scan-s2
+http://mercurial.intuxication.org/hg/scan-s2
 
-Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
----
- include/media/v4l2-chip-ident.h |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+or
 
-diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
-index cf16689..7e80c4f 100644
---- a/include/media/v4l2-chip-ident.h
-+++ b/include/media/v4l2-chip-ident.h
-@@ -129,6 +129,9 @@ enum {
- 	V4L2_IDENT_SAA6752HS = 6752,
- 	V4L2_IDENT_SAA6752HS_AC3 = 6753,
- 
-+	/* module tvp7002: just ident 7002 */
-+	V4L2_IDENT_TVP7002 = 7002,
-+
- 	/* module adv7170: just ident 7170 */
- 	V4L2_IDENT_ADV7170 = 7170,
- 
--- 
-1.6.0.4
+dvb2010 scan
+http://hg.kewl.org/dvb2010/
 
+
+also you can use szap-s2
+http://mercurial.intuxication.org/hg/szap-s2
