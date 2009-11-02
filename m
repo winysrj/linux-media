@@ -1,102 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gv-out-0910.google.com ([216.239.58.191]:62782 "EHLO
-	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754623AbZKMSBP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Nov 2009 13:01:15 -0500
-Received: by gv-out-0910.google.com with SMTP id r4so524066gve.37
-        for <linux-media@vger.kernel.org>; Fri, 13 Nov 2009 10:01:20 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <18b102300911130901g3ad57ec4x99c78e7803ec773f@mail.gmail.com>
-References: <18b102300911130901g3ad57ec4x99c78e7803ec773f@mail.gmail.com>
-Date: Fri, 13 Nov 2009 13:01:20 -0500
-Message-ID: <829197380911131001g75708155tba65e0ac3cb5b505@mail.gmail.com>
-Subject: Re: Help with Sabrent TV-USBHD (Syntek Teledongle) on Ubuntu Karmic
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: James Klaas <jklaas@appalachian.dyndns.org>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41280 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755650AbZKBQOj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Nov 2009 11:14:39 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Date: Mon, 2 Nov 2009 10:14:35 -0600
+Subject: RE: [PATCH 2/9] v4l: add new v4l2-subdev sensor operations, use
+ g_skip_top_lines in soc-camera
+Message-ID: <A69FA2915331DC488A831521EAE36FE40155798D72@dlee06.ent.ti.com>
+References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
+ <Pine.LNX.4.64.0910301403550.4378@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE40155798784@dlee06.ent.ti.com>
+ <Pine.LNX.4.64.0910302126060.4378@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0910302126060.4378@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 13, 2009 at 12:01 PM, James Klaas
-<jklaas@appalachian.dyndns.org> wrote:
-> I recently updated my play/work/fiddle with workstation and I wanted
-> to see if my USB card still worked (OK, it never really worked).
->
-> Previously, I was running Ubuntu 9.04 with a version retrieved from
-> mercurial with the patch from
-> http://linuxtv.org/hg/~mkrufky/teledongle/raw-rev/676e2f4475ed.  It
-> patched without error, compiled without error and installed against
-> the stock kernel without error.  When I loaded it, it complained about
-> not being the right kind of firmware (which was noted in the
-> discussion on the device) but otherwise it seemed to load fine
-> (unfortunately, I don't seem to have a dmesg from that).  When I tried
-> using it to tune anything, it would tune a couple things, but put them
-> on channels that were far different than the ones found by other dvb
-> cards.  It did however manage to pick up the SCTE-65 data using the
-> scte65scan utility.
->
-> Now that I've upgraded to 9.10, it no longer seems to find the tuner.
-> I retrieved v4l-dvb via mercurial yesterday (12 Nov, 2009) applied the
-> patch (which applied with a couple of offsets but no errors) and built
-> the source.  I had to disable the FireDTV driver, but other than that,
-> it compiled with some warnings but no errors.  It installed fine over
-> the stock kernel.  However, when I load it, I now get the following
-> errors in dmesg:
->
-> [   93.770329] au0828 driver loaded
-> [   94.160154] au0828: i2c bus registered
-> [   94.201922] tveeprom 1-0050: Huh, no eeprom present (err=-5)?
-> [   94.204976] tuner 1-0000: chip found @ 0x0 (au0828)
-> [   94.271442] tuner-simple 1-0000: unable to probe Temic PAL (4002
-> FH5), proceeding anyway.
-> [   94.271452] tuner-simple 1-0000: creating new instance
-> [   94.271459] tuner-simple 1-0000: type set to 0 (Temic PAL (4002 FH5))
-> [   94.313325] tuner-simple 1-0000: i2c i/o error: rc == -5 (should be 4)
-> [   94.340407] au8522 1-0047: creating new instance
-> [   94.383357] au8522_writereg: writereg error (reg == 0xa4, val ==
-> 0x0020, ret == -5)
-> [   94.424364] au8522_writereg: writereg error (reg == 0x106, val ==
-> 0x0001, ret == -5)
-> [   94.465503] au8522_writereg: writereg error (reg == 0x106, val ==
-> 0x0001, ret == -5)
-> [   94.501336] tda18271 1-0060: creating new instance
-> [   94.543412] au8522_writereg: writereg error (reg == 0x106, val ==
-> 0x0001, ret == -5)
-> [   94.666327] au8522_writereg: writereg error (reg == 0x106, val ==
-> 0x0000, ret == -5)
-> [   94.666339] tda18271_read_regs: [1-0060|M] ERROR: i2c_transfer returned: -5
-> [   94.666347] Unknown device detected @ 1-0060, device not supported.
-> [   94.707712] au8522_writereg: writereg error (reg == 0x106, val ==
-> 0x0001, ret == -5)
-> [   94.789369] au8522_writereg: writereg error (reg == 0x106, val ==
-> 0x0000, ret == -5)
-> [   94.789376] tda18271_read_regs: [1-0060|M] ERROR: i2c_transfer returned: -5
-> [   94.789381] Unknown device detected @ 1-0060, device not supported.
-> [   94.789387] tda18271_attach: [1-0060|M] error -22 on line 1272
-> [   94.789393] tda18271 1-0060: destroying instance
-> [   94.853137] mt2131 I2C read failed
-> [   94.853350] DVB: registering new adapter (au0828)
-> [   94.853359] DVB: registering adapter 1 frontend 0 (Auvitek AU8522
-> QAM/8VSB Frontend)...
-> [   94.853943] Registered device AU0828 [Syntek Teledongle [EXPERIMENTAL]]
->
-> Did something not patch correctly?  The patch from mkrufky is now
-> nearly a year old.  I'd really like to contribute somehow, but I have
-> no idea where I should start.
->
-> Thank you for taking a look at this.
+Guennadi,
 
-I would start by reviewing the previous thread/discussion on this
-particular topic with subject line: "au0828: experimental support for
-Syntek Teledongle [05e1:0400]"
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+phone: 301-407-9583
+email: m-karicheri2@ti.com
 
-http://linuxtv.org/pipermail/linux-dvb/2009-August/032306.html
+>-----Original Message-----
+>From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>owner@vger.kernel.org] On Behalf Of Guennadi Liakhovetski
+>Sent: Friday, October 30, 2009 4:32 PM
+>To: Karicheri, Muralidharan
+>Cc: Linux Media Mailing List; Hans Verkuil; Laurent Pinchart; Sakari Ailus
+>Subject: RE: [PATCH 2/9] v4l: add new v4l2-subdev sensor operations, use
+>g_skip_top_lines in soc-camera
+>
+>On Fri, 30 Oct 2009, Karicheri, Muralidharan wrote:
+>
+>> Guennadi,
+>>
+>>
+>> > 	mt9m111->rect.left	= MT9M111_MIN_DARK_COLS;
+>> > 	mt9m111->rect.top	= MT9M111_MIN_DARK_ROWS;
+>> >diff --git a/drivers/media/video/mt9t031.c
+>b/drivers/media/video/mt9t031.c
+>> >index 6966f64..57e04e9 100644
+>> >--- a/drivers/media/video/mt9t031.c
+>> >+++ b/drivers/media/video/mt9t031.c
+>> >@@ -301,9 +301,9 @@ static int mt9t031_set_params(struct
+>soc_camera_device
+>> >*icd,
+>> > 		ret = reg_write(client, MT9T031_WINDOW_WIDTH, rect->width - 1);
+>> > 	if (ret >= 0)
+>> > 		ret = reg_write(client, MT9T031_WINDOW_HEIGHT,
+>> >-				rect->height + icd->y_skip_top - 1);
+>> >+				rect->height - 1);
+>
+>> Why y_skip_top is removed?
+>
+>Because noone ever said they needed it?
+>
+I suggest you keep it. It can have default 0. I have not viewed the resulting image for the top line to see if it is corrupted. I just
+use it to display it to my display device and I am not seeing any
+corruption. I need to view the image at some point to check if it has
+any corruption.
+>> When I connect the sensor output to our SOC
+>> input and do format conversion and resize on the fly (frame by frame
+>> conversion before writing to SDRAM) I have found that the frame
+>> completion interrupt fails to get generated with zero value for
+>> y_skip_top. I have used a value
+>> of 10 and it worked fine for me. So I would like to have a
+>> s_skip_top_lines() in the sensor operations which can be called to
+>> update this value from the host/bridge driver.
+>
+>Hm, strange, that's actually not the purpose of this parameter. Wouldn't
+>it work for you just as well, if you just request 10 more lines when
+>sending s_fmt from your bridge driver?
+Ok. It might work by asking some additional lines from the bridge driver.
+I will try this out.
+>
+>Thanks
+>Guennadi
+>---
+>Guennadi Liakhovetski, Ph.D.
+>Freelance Open-Source Software Developer
+>http://www.open-technology.de/
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
