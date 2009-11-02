@@ -1,41 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from khc.piap.pl ([195.187.100.11]:42871 "EHLO khc.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750752AbZKZRqe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 12:46:34 -0500
-From: Krzysztof Halasa <khc@pm.waw.pl>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@redhat.com>, linux-kernel@vger.kernel.org,
-	Mario Limonciello <superm1@ubuntu.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Janne Grunau <j@jannau.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was: Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-References: <200910200956.33391.jarod@redhat.com>
-	<200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com>
-	<4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain>
-	<20091123173726.GE17813@core.coreip.homeip.net>
-	<m3r5rpq818.fsf@intrepid.localdomain>
-	<20091126052155.GD23244@core.coreip.homeip.net>
-Date: Thu, 26 Nov 2009 18:46:38 +0100
-In-Reply-To: <20091126052155.GD23244@core.coreip.homeip.net> (Dmitry
-	Torokhov's message of "Wed, 25 Nov 2009 21:21:55 -0800")
-Message-ID: <m31vjlw54x.fsf@intrepid.localdomain>
+Received: from mail01d.mail.t-online.hu ([84.2.42.6]:64759 "EHLO
+	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752051AbZKBFps (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Nov 2009 00:45:48 -0500
+Message-ID: <4AEE720A.50101@freemail.hu>
+Date: Mon, 02 Nov 2009 06:45:46 +0100
+From: =?ISO-8859-2?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+CC: Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>,
+	V4L Mailing List <linux-media@vger.kernel.org>,
+	Thomas Kaiser <thomas@kaiser-linux.li>,
+	Theodore Kilgore <kilgota@auburn.edu>,
+	Kyle Guinn <elyk03@gmail.com>
+Subject: Re: [PATCH 1/3] gspca pac7302/pac7311: simplify pac_find_sof
+References: <4AEE04CB.5060802@freemail.hu> <alpine.LNX.2.00.0911012112421.7702@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.0911012112421.7702@banach.math.auburn.edu>
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dmitry Torokhov <dmitry.torokhov@gmail.com> writes:
+Theodore Kilgore wrote:
+> 
+> On Sun, 1 Nov 2009, Németh Márton wrote:
+>> Remove struct sd dependency from pac_find_sof() function implementation.
+>> This step prepares separation of pac7302 and pac7311 specific parts of
+>> struct sd.
+> [...]
+> But here is the point. The sn9c2028 cameras have a structure which seems 
+> similar to the mr97310a cameras. They use a similar decompression 
+> algorithm. They have a similar frame header. Specifically, the sn9c2028 
+> frame header starts with the five bytes
+> 
+>                  0xff, 0xff, 0x00, 0xc4, 0xc4
+> 
+> whereas the pac_common frame header starts with the five bytes
+> 
+>                  0xff, 0xff, 0x00, 0xff, 0x96
+> 
+> Right now, for my own use, I have written a file sn9c2028.h which 
+> essentially duplicates the functionality of pac_common.h and contains a 
+> function which searches for the sn9c2028 SOF marker instead of searching 
+> for the pac SOF marker. Is this necessarily the good, permanent solution? 
+> I am not so sure about that.
 
-> In what way the key interface is unsufficient for delivering button
-> events?
+I think the pac_find_sof() is a special case. To find a SOF sequence in
+a bigger buffer in general needs to first analyze the SOF sequence for
+repeated bytes. If there are repeated bytes the search have to be
+continued in a different way, see the state machine currently in the
+pac_common.h. To find the sn9c2028 frame header a different state machine
+is needed. It might be possible to implement a search function which
+can find any SOF sequence but I am afraid that this algorithm would be
+too complicated because of the search string analysis.
 
-At present: 128 different keys only (RC5: one group). One remote per
-device only.
+> Perhaps when making changes it is a good time to think over the idea of 
+> combining things which are in fact not very much different. After all, 
+> another set of cameras might come along, too, which essentially requires 
+> yet another minor variation on the same basic algorithm. Then we are 
+> supposed to have three .h files with three functions which have the same 
+> code and just search for slightly different strings?
+> 
+> I am well aware that you started out to do something different, but how 
+> does this strike you?
 
-The protocol itself doesn't have the above limitations, but has others,
-with are acceptable for key input.
--- 
-Krzysztof Halasa
+I was also thinking about not just duplicate the code but find functions
+which are similar. My thinking was that first I try to separate the
+pac7302 and pac7311 subdrivers and get feedback. If this change was
+accepted I would look for common functions not only in pac7302 and pac7311
+but also in the gspca family of subdrivers.
+
+My first candidate would be the low level reg_w*() and reg_r*() functions.
+I haven't finished the analysis but it seems that most of the time the
+usb_control_msg() parameters are the same except the request and
+requesttype parameter. The request contains a number specific to the
+device. The requesttype usually contains USB_RECIP_DEVICE or
+USB_RECIP_INTERFACE. This means that these function can be extracted
+to a common helper module or to gspca_main and introduce the request
+and requesttype values somehow to struct sd_desc in gspca.h.
+
+Regards,
+
+	Márton Németh
+
