@@ -1,74 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:38691
-	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751558AbZKWTR3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2009 14:17:29 -0500
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was: Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-Mime-Version: 1.0 (Apple Message framework v1077)
-Content-Type: text/plain; charset=us-ascii
-From: Jarod Wilson <jarod@wilsonet.com>
-In-Reply-To: <4B0AC65C.806@redhat.com>
-Date: Mon, 23 Nov 2009 14:17:29 -0500
-Cc: Krzysztof Halasa <khc@pm.waw.pl>, Jarod Wilson <jarod@redhat.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-kernel@vger.kernel.org,
-	Mario Limonciello <superm1@ubuntu.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Janne Grunau <j@jannau.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <BDC6A41E-67C0-4952-94E9-D405C7209394@wilsonet.com>
-References: <200910200956.33391.jarod@redhat.com>	<200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com>	<4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain> <4B0AC65C.806@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail.gmx.net ([213.165.64.20]:48668 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1757229AbZKBWvT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Nov 2009 17:51:19 -0500
+Message-ID: <4AEF6269.9060709@gmx.de>
+Date: Mon, 02 Nov 2009 23:51:21 +0100
+From: Andreas Regel <andreas.regel@gmx.de>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: [PATCH 6/9] stv090x: several small fixes
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm a bit short on time to write up a more complete reply to anything in this thread at the moment, but a few quick notes interspersed below.
+This patch contains several fixes for the stv090x driver:
+- added missing else
+- use calculated timeout instead of fixed one
+- use correct frequency when doing zigzag scan
+- added missing read of GENCFG register
 
+Signed-off-by: Andreas Regel <andreas.regel@gmx.de>
 
-On Nov 23, 2009, at 12:29 PM, Mauro Carvalho Chehab wrote:
-
-> Krzysztof Halasa wrote:
->> Mauro Carvalho Chehab <mchehab@redhat.com> writes:
-...
->>> Considering the common case
->>> where the lirc driver will be associated with a media input device, the
->>> IR type can be detected automatically on kernel. However, advanced users may
->>> opt to use other IR types than what's provided with the device they
->>> bought.
->> 
->> I think most users would want to do that, though I don't have hard
->> numbers of course. Why use a number of RCs simultaneously while one will
->> do?
-> 
-> If you're building a dedicated hardware to act as a MCE, it makes sense to
-> use just one IR to control your TV and your hardware, but the common usage
-> is to add a TV board or stick to your desktop to see TV. For this,
-> the standard IR fits well.
-
-The main use case that I have personal experience using IR and capture devices is with MythTV. Its not at all uncommon for a MythTV user to have a setup where the capture devices are attached to a completely different system from the system where the IR part needs to be. MythTV is client-server -- the backend server does the video capture via the capture devices, and the frontend client plays back the video, and its the frontend client that you navigate via an IR remote control. There are quite a few available IR options that are NOT tied to a video capture device at all -- the mceusb and imon drivers submitted in my patch series are actually two such beasts.
-
-And particularly with the mceusb receivers, because they support damn near every IR protocol under the sun at any carrier frequency, using a remote other than the bundled one is quite common. Most people's set top boxes and/or televisions and/or AV receivers come with a remote capable of controlling multiple devices, and many bundled remotes are, quite frankly, utter garbage. I use a Logitech Harmony 880 universal remote myself.
-
-
->>> It should also be noticed that not all the already-existing IR drivers
->>> on kernel can provide a lirc interface, since several devices have
->>> their own IR decoding chips inside the hardware.
->> 
->> Right. I think they shouldn't use lirc interface, so it doesn't matter.
-> 
-> If you see patch 3/3, of the lirc submission series, you'll notice a driver
-> that has hardware decoding, but, due to lirc interface, the driver generates
-> pseudo pulse/space code for it to work via lirc interface.
-
-Historically, this is true. But the version I submitted actually defaults to operating as a pure input layer device for all the imon devices that do onboard decoding. There are older imon devices that don't do onboard decoding, and I retained "legacy", if you will, lirc interface support in this pass of the driver for the onboard decode devices for those that want to keep things running as they always have (via a modparam).
-
-More replyification later tonight...
-
--- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
-
+diff -r e87448c29625 linux/drivers/media/dvb/frontends/stv090x.c
+--- a/linux/drivers/media/dvb/frontends/stv090x.c	Mon Nov 02 22:43:25 2009 +0100
++++ b/linux/drivers/media/dvb/frontends/stv090x.c	Mon Nov 02 23:02:34 2009 +0100
+@@ -2167,9 +2167,7 @@
+ 			}
+ 			if (STV090x_WRITE_DEMOD(state, CARHDR, 0x40) < 0)
+ 				goto err;
+-		}
+-
+-		if (state->srate < 10000000) {
++		} else if (state->srate < 10000000) {
+ 			if (STV090x_WRITE_DEMOD(state, CARFREQ, 0x4c) < 0)
+ 				goto err;
+ 		} else {
+@@ -2420,7 +2418,7 @@
+ 				goto err;
+ 
+ 			if (state->config->tuner_set_frequency) {
+-				if (state->config->tuner_set_frequency(fe, state->frequency) < 0)
++				if (state->config->tuner_set_frequency(fe, freq) < 0)
+ 					goto err;
+ 			}
+ 
+@@ -2598,7 +2596,7 @@
+ static int stv090x_blind_search(struct stv090x_state *state)
+ {
+ 	u32 agc2, reg, srate_coarse;
+-	s32 timeout_dmd = 500, cpt_fail, agc2_ovflw, i;
++	s32 cpt_fail, agc2_ovflw, i;
+ 	u8 k_ref, k_max, k_min;
+ 	int coarse_fail, lock;
+ 
+@@ -2642,7 +2640,8 @@
+ 				srate_coarse = stv090x_srate_srch_fine(state);
+ 				if (srate_coarse != 0) {
+ 					stv090x_get_lock_tmg(state);
+-					lock = stv090x_get_dmdlock(state, timeout_dmd);
++					lock = stv090x_get_dmdlock(state,
++							state->DemodTimeout);
+ 				} else {
+ 					lock = 0;
+ 				}
+@@ -2804,7 +2803,7 @@
+ 						goto err;
+ 
+ 					if (state->config->tuner_set_frequency) {
+-						if (state->config->tuner_set_frequency(fe, state->frequency) < 0)
++						if (state->config->tuner_set_frequency(fe, freq) < 0)
+ 							goto err;
+ 					}
+ 
+@@ -3865,7 +3864,7 @@
+ 	struct dvb_frontend *fe = &state->frontend;
+ 	enum stv090x_signal_state signal_state = STV090x_NOCARRIER;
+ 	u32 reg;
+-	s32 timeout_dmd = 500, timeout_fec = 50, agc1_power, power_iq = 0, i;
++	s32 agc1_power, power_iq = 0, i;
+ 	int lock = 0, low_sr = 0, no_signal = 0;
+ 
+ 	reg = STV090x_READ_DEMOD(state, TSCFGH);
+@@ -4030,10 +4029,10 @@
+ 		lock = stv090x_blind_search(state);
+ 
+ 	else if (state->algo == STV090x_COLD_SEARCH)
+-		lock = stv090x_get_coldlock(state, timeout_dmd);
++		lock = stv090x_get_coldlock(state, state->DemodTimeout);
+ 
+ 	else if (state->algo == STV090x_WARM_SEARCH)
+-		lock = stv090x_get_dmdlock(state, timeout_dmd);
++		lock = stv090x_get_dmdlock(state, state->DemodTimeout);
+ 
+ 	if ((!lock) && (state->algo == STV090x_COLD_SEARCH)) {
+ 		if (!low_sr) {
+@@ -4068,8 +4067,9 @@
+ 				goto err;
+ 		}
+ 
+-		if (stv090x_get_lock(state, timeout_fec, timeout_fec)) {
+-			lock = 1;
++		lock = stv090x_get_lock(state, state->FecTimeout,
++				state->FecTimeout);
++		if (lock) {
+ 			if (state->delsys == STV090x_DVBS2) {
+ 				stv090x_set_s2rolloff(state);
+ 
+@@ -4096,7 +4096,6 @@
+ 			if (STV090x_WRITE_DEMOD(state, ERRCTRL2, 0xc1) < 0)
+ 				goto err;
+ 		} else {
+-			lock = 0;
+ 			signal_state = STV090x_NODATA;
+ 			no_signal = stv090x_chk_signal(state);
+ 		}
+@@ -4580,6 +4579,8 @@
+ static int stv090x_ldpc_mode(struct stv090x_state *state, enum stv090x_mode ldpc_mode)
+ {
+ 	u32 reg = 0;
++
++	reg = stv090x_read_reg(state, STV090x_GENCFG);
+ 
+ 	switch (ldpc_mode) {
+ 	case STV090x_DUAL:
