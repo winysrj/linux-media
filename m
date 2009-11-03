@@ -1,101 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:47018 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756032AbZKMKKA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Nov 2009 05:10:00 -0500
-Message-ID: <4AFD306F.1020802@s5r6.in-berlin.de>
-Date: Fri, 13 Nov 2009 11:09:51 +0100
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Received: from mail-ew0-f207.google.com ([209.85.219.207]:52206 "EHLO
+	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755553AbZKCEkg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Nov 2009 23:40:36 -0500
+Received: by ewy3 with SMTP id 3so1631134ewy.37
+        for <linux-media@vger.kernel.org>; Mon, 02 Nov 2009 20:40:40 -0800 (PST)
+Date: Tue, 3 Nov 2009 05:40:35 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: TD <topper.doggle@googlemail.com>
+cc: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Struggling with Astra 2D (Freesat) / Happauage
+ Nova-HD-S2
+In-Reply-To: <hcnsfa$v70$1@ger.gmane.org>
+Message-ID: <alpine.DEB.2.01.0911030516050.29421@ybpnyubfg.ybpnyqbznva>
+References: <hcnd9s$c1f$1@ger.gmane.org> <20091102231735.63fd30c4@bk.ru> <hcnsfa$v70$1@ger.gmane.org>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] firedtv: fix regression: tuning fails due to bogus error
- return
-References: <4ADA149E.1070704@s5r6.in-berlin.de> <4ADA26D0.6010108@s5r6.in-berlin.de> <tkrat.de5abfc32fa5476d@s5r6.in-berlin.de>
-In-Reply-To: <tkrat.de5abfc32fa5476d@s5r6.in-berlin.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stefan Richter wrote on 2009-10-17:
-> Since 2.6.32(-rc1), DVB core checks the return value of
-> dvb_frontend_ops.set_frontend.  Now it becomes apparent that firedtv
-> always returned a bogus value from its set_frontend method.
+On Tue, 3 Nov 2009, TD wrote:
+
+> On 2009-11-02, Goga777 <goga777@bk.ru> wrote:
+> > Приветствую, TD
+> >
+> > you have to use scan-s2
+> > http://mercurial.intuxication.org/hg/scan-s2
 > 
-> Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
-
-Hi Mauro,
-
-when you committed this, you added "CC: stable@kernel.org".  This is not
-necessary, 2.6.32-rc1 is the first kernel version with the regression
-(see changelog).
-
-Well, OK, the patch would become necessary in -stable if somebody was to
-put the new set_frontend return code check in dvb core into -stable. But
-I hope nobody is going to do that; it'd be a bad idea.
-
-Furthermore...
-
-> ---
->  drivers/media/dvb/firewire/firedtv-avc.c |    7 +++++--
->  drivers/media/dvb/firewire/firedtv-fe.c  |    8 +-------
->  2 files changed, 6 insertions(+), 9 deletions(-)
+> Hi, and thanks for your quick reply.
 > 
-> Index: linux-2.6.32-rc5/drivers/media/dvb/firewire/firedtv-avc.c
-> ===================================================================
-> --- linux-2.6.32-rc5.orig/drivers/media/dvb/firewire/firedtv-avc.c
-> +++ linux-2.6.32-rc5/drivers/media/dvb/firewire/firedtv-avc.c
-> @@ -573,8 +573,11 @@ int avc_tuner_dsd(struct firedtv *fdtv,
->  
->  	msleep(500);
->  #if 0
-> -	/* FIXME: */
-> -	/* u8 *status was an out-parameter of avc_tuner_dsd, unused by caller */
-> +	/*
-> +	 * FIXME:
-> +	 * u8 *status was an out-parameter of avc_tuner_dsd, unused by caller
-> +	 * Check for AVC_RESPONSE_ACCEPTED here instead?
-> +	 */
->  	if (status)
->  		*status = r->operand[2];
->  #endif
+> I tried it but no better:
+> <snip>
+> initial transponder DVB-S  12692000 V 19532000 1/2 AUTO AUTO
+> initial transponder DVB-S2 12692000 V 19532000 1/2 AUTO AUTO
+> ----------------------------------> Using DVB-S
+> >>> tune to: 11720:hC34S0:S0.0W:29500:
 
-...the firedtv-avc.c part of the patch vanished when you committed it. I
-guess this was accident, not deliberate --- otherwise a note in the
-changelog below of my Signed-off-by would have been appreciated.
+First of all, some background info, in case you aren't aware:
 
-I will resubmit this missing comment change or a variation of it or even
-a fix of the FIXME sometime in the future.
+All Freesat services are presently DVB-S.  There are currently
+no DVB-S2 transponders carrying any FTA services, although
+there is always the possibility that the existing FTA HD services
+which are on DVB-S transponders may move to DVB-S2 in the not-
+too-distant future, particularly when the terrestrial UK
+DVB-T2 services start before the end of the year, and Channel 4
+and Five join the existing ITV and BBC HD services.
 
-> Index: linux-2.6.32-rc5/drivers/media/dvb/firewire/firedtv-fe.c
-> ===================================================================
-> --- linux-2.6.32-rc5.orig/drivers/media/dvb/firewire/firedtv-fe.c
-> +++ linux-2.6.32-rc5/drivers/media/dvb/firewire/firedtv-fe.c
-> @@ -141,18 +141,12 @@ static int fdtv_read_uncorrected_blocks(
->  	return -EOPNOTSUPP;
->  }
->  
-> -#define ACCEPTED 0x9
-> -
->  static int fdtv_set_frontend(struct dvb_frontend *fe,
->  			     struct dvb_frontend_parameters *params)
->  {
->  	struct firedtv *fdtv = fe->sec_priv;
->  
-> -	/* FIXME: avc_tuner_dsd never returns ACCEPTED. Check status? */
-> -	if (avc_tuner_dsd(fdtv, params) != ACCEPTED)
-> -		return -EINVAL;
-> -	else
-> -		return 0; /* not sure of this... */
-> +	return avc_tuner_dsd(fdtv, params);
->  }
->  
->  static int fdtv_get_frontend(struct dvb_frontend *fe,
-> 
+Therefore the failure to tune DVB-S2 transponders has nothing
+to do with reception of Freesat.
 
--- 
-Stefan Richter
--=====-==--= =-== -==-=
-http://arcgraph.de/sr/
+
+Enough background, what I see from the above is that the
+frequency of 11720 has a symbol rate of 29500 which I know
+is what is used by the BSkyB encrypted programmes.  So your
+ability to tune isn't going to help you see any additional
+services, just as those in your original post are also
+scrambled Sky programmes.
+
+If it concerns you that you can't tune this DVB-S2 transponder,
+then you'll need the advice of others with DVB-S2 familiarity.
+
+
+
+> and the channels.conf was no better than before - it didn't include *one* BBC
+> channel, for example.
+
+The BBC channels, as well as most ITV, Channel 4, and similar
+``interesting'' Freesat services, are on the Astra 2D satellite,
+as per your subject.  This bird covers the frequencies from
+10714250 h 22000 through 10935500 v 22000.  Its footprint is
+a narrow beam focussed on the UK, and can only be received
+with some difficulty elsewhere that the remaining signals
+from the other Astra and Eurobird satellites deliver useable
+signals.  That is, were you to be somewhere outside the UK,
+you might need to more accurately position your dish.  But
+that shouldn't be your problem as per your original message.
+
+
+> Once I got it working, same:
+> Astra 2A/2B/2D/Eurobird 1 (28.2E) 10714 H DVB-S QPSK 22000 5/6 ONID:0 TID:0
+> AGC:0% SNR:0% 
+>     Can't tune
+
+> Where do I go from here?
+
+I note that your first listed frequency is 11720, just above
+the transition from low to high band, in your first message.
+Do you get any results with success at any frequencies below 
+11700, and do your successes above 11700 include both horizontal
+and vertically polarised services?
+
+If you have a complete lack of any results with one particular
+polarisation/band combination, then suspect possibly your
+cabling, unless a regular FTA/Freesat/Sky receiver connected
+to the same is able to successfully find all services.
+
+You should be able to receive services from 11200 to 11700
+in both bands with DVB-S, as well as above 11700, as the
+former are not on a particular spotbeam.
+
+Hope this info helps.  Feel free to send me off-list your
+`scan' output (DVB-S) if you can't spot any patterns.
+
+
+thanks,
+barry bouwsma
