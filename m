@@ -1,43 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from killer.cirr.com ([192.67.63.5]:65140 "EHLO killer.cirr.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752001AbZKLDfu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Nov 2009 22:35:50 -0500
-Received: from afc by tashi.lonestar.org with local (Exim 4.69)
-	(envelope-from <afc@shibaya.lonestar.org>)
-	id 1N8QRo-00056e-SY
-	for linux-media@vger.kernel.org; Wed, 11 Nov 2009 22:34:12 -0500
-Date: Wed, 11 Nov 2009 22:34:12 -0500
-From: "A. F. Cano" <afc@shibaya.lonestar.org>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2169 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750889AbZKCTZj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Nov 2009 14:25:39 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id nA3JPgki079814
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 3 Nov 2009 20:25:43 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 3 Nov 2009 20:25:42 +0100 (CET)
+Message-Id: <200911031925.nA3JPgki079814@smtp-vbr5.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: Re: Procmail won't route this list (linux-media) correctly.  Help!
-Message-ID: <20091112033412.GA19562@shibaya.lonestar.org>
-References: <20091112031647.GA17951@shibaya.lonestar.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20091112031647.GA17951@shibaya.lonestar.org>
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 11, 2009 at 10:16:47PM -0500, I wrote:
-> Hi,
-> 
-> This is the only mailing list that I receive that procmail doesn't
-> handle properly.  All the others get sent to their own mailboxes.
-> What is so strange about the headers of this list?
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Arrgh!!!  One change after I sent this email fixed it.  Please ignore
-the request for help.
+Results of the daily build of v4l-dvb:
 
-It turns out that I had too much stuff in the procmail recipe.
+date:        Tue Nov  3 19:00:06 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13272:a8e1140e4c9a
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-This works:
-> :0:
-> * ^TO(linux-dvb@linuxtv.org|linux-media@vger.kernel.org)
-> $LINUXDVBFOLDER
+linux-2.6.22.19-armv5: WARNINGS
+linux-2.6.23.12-armv5: WARNINGS
+linux-2.6.24.7-armv5: WARNINGS
+linux-2.6.25.11-armv5: WARNINGS
+linux-2.6.26-armv5: WARNINGS
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-rc3-armv5: ERRORS
+linux-2.6.32-rc3-armv5-davinci: ERRORS
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29.1-armv5-ixp: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.32-rc3-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.32-rc3-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-rc3-i686: ERRORS
+linux-2.6.23.12-m32r: WARNINGS
+linux-2.6.24.7-m32r: WARNINGS
+linux-2.6.25.11-m32r: WARNINGS
+linux-2.6.26-m32r: WARNINGS
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-rc3-m32r: ERRORS
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.32-rc3-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: OK
+linux-2.6.32-rc3-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-rc3-x86_64: ERRORS
+sparse (linux-2.6.31): OK
+sparse (linux-2.6.32-rc3): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-Sorry for the distraction.
+Detailed results are available here:
 
-A.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
