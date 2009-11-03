@@ -1,108 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out26.alice.it ([85.33.2.26]:3048 "EHLO
-	smtp-out26.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754852AbZKDJOe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2009 04:14:34 -0500
-Date: Wed, 4 Nov 2009 10:14:29 +0100
+Received: from smtp-out113.alice.it ([85.37.17.113]:4261 "EHLO
+	smtp-out113.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753580AbZKCNpp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Nov 2009 08:45:45 -0500
+Date: Tue, 3 Nov 2009 14:45:36 +0100
 From: Antonio Ospite <ospite@studenti.unina.it>
-To: Eric Miao <eric.y.miao@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org,
-	openezx-devel@lists.openezx.org, Bart Visscher <bartv@thisnet.nl>,
-	linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 1/3] ezx: Add camera support for A780 and A910 EZX
- phones
-Message-Id: <20091104101429.23338a42.ospite@studenti.unina.it>
-In-Reply-To: <f17812d70911032238i3ae6fa19g24720662b9079f24@mail.gmail.com>
-References: <1257266734-28673-1-git-send-email-ospite@studenti.unina.it>
-	<1257266734-28673-2-git-send-email-ospite@studenti.unina.it>
-	<f17812d70911032238i3ae6fa19g24720662b9079f24@mail.gmail.com>
+To: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: Re: pxa_camera + mt9m1111:  image shifted (was: Failed to configure
+ for format 50323234)
+Message-Id: <20091103144536.1c487f79.ospite@studenti.unina.it>
+In-Reply-To: <4AC992EA.2070905@hni.uni-paderborn.de>
+References: <20091002213530.104a5009.ospite@studenti.unina.it>
+	<Pine.LNX.4.64.0910030116270.12093@axis700.grange>
+	<20091003161328.36419315.ospite@studenti.unina.it>
+	<Pine.LNX.4.64.0910040024070.5857@axis700.grange>
+	<20091004171924.7579b589.ospite@studenti.unina.it>
+	<4AC992EA.2070905@hni.uni-paderborn.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; protocol="application/pgp-signature";
  micalg="PGP-SHA1";
- boundary="Signature=_Wed__4_Nov_2009_10_14_29_+0100_Dd9EfKLSVewWptbc"
+ boundary="Signature=_Tue__3_Nov_2009_14_45_36_+0100_P7og/J5APh7/oEqC"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Signature=_Wed__4_Nov_2009_10_14_29_+0100_Dd9EfKLSVewWptbc
-Content-Type: text/plain; charset=ISO-8859-1
+--Signature=_Tue__3_Nov_2009_14_45_36_+0100_P7og/J5APh7/oEqC
+Content-Type: text/plain; charset=US-ASCII
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 4 Nov 2009 14:38:40 +0800
-Eric Miao <eric.y.miao@gmail.com> wrote:
+On Mon, 05 Oct 2009 08:32:10 +0200
+Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de> wrote:
 
-> Hi Antonio,
->=20
-> Patch looks generally OK except for the MFP/GPIO usage, check my
-> comments below, thanks.
+> Antonio Ospite schrieb:
+> > On Sun, 4 Oct 2009 00:31:24 +0200 (CEST)
+> > Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> >
+> >>> Anyways your patch works, but the picture is now shifted, see:
+> >>> http://people.openezx.org/ao2/a780-pxa-camera-mt9m111-shifted.jpg
+> >>>
+> >>> Is this because of the new cropping code?
+> >>>      =20
+> >> Hm, it shouldn't be. Does it look always like this - reproducible? Wha=
+t=20
+> >> program are you using? What about other geometry configurations? Have =
+you=20
+> >> ever seen this with previous kernel versions? New cropping - neither=20
+> >> mplayer nor gstreamer use cropping normally. This seems more like a HS=
+YNC=20
+> >> problem to me. Double-check platform data? Is it mioa701 or some custo=
+m=20
+> >> board?
+> >>
+
+Platform data: if I set SOCAM_HSYNC_ACTIVE_HIGH the result is even
+"wronger", with or without SOCAM_HSYNC_ACTIVE_LOW I get the same
+result, now reproducible, see below.
+
 >
-
-Ok, will resend ASAP. Some questions inlined below after your comments.
-
-> > +/* camera */
-> > +static int a780_pxacamera_init(struct device *dev)
-> > +{
-> > + =A0 =A0 =A0 int err;
-> > +
-> > + =A0 =A0 =A0 /*
-> > + =A0 =A0 =A0 =A0* GPIO50_GPIO is CAM_EN: active low
-> > + =A0 =A0 =A0 =A0* GPIO19_GPIO is CAM_RST: active high
-> > + =A0 =A0 =A0 =A0*/
-> > + =A0 =A0 =A0 err =3D gpio_request(MFP_PIN_GPIO50, "nCAM_EN");
+> Only for your information. Maybe it helps to reproduce the error.
 >=20
-> Mmm... MFP !=3D GPIO, so this probably should be written simply as:
->=20
-> #define GPIO_nCAM_EN	(50)
->
+> I have the same problem with my own ov9655 driver on a pxa platform=20
+> since I update to kernel 2.6.30
+> and add crop support. Every  first open of the camera after system reset=
+=20
+> the image looks like yours.
+> If I use the camera the next time without changing the resolution=20
+> everything is OK. Only during the
+> first open the resolution of the camera is changed  and function fmt set=
+=20
+> in the ov9655 driver is called
+> twice. I use the camera with my one program and it doesn't use crop.
 
-If the use of parentheses here is recommended, should I send another
-patch to add them to current defines for GPIOs in ezx.c, for style
-consistency?
+Thanks Stefan, now I can reproduce the problem.
+1. Boot the system
+2. Capture an image with capture-example from v4l2-apps.
 
-> or (which tends to be more accurate but not necessary)
->=20
-> #define GPIO_nCAM_EN	mfp_to_gpio(MFP_PIN_GPIO50)
->
+Then I have the shift as in the picture above on the *first* device
+open, if I open the device again and capture a second time, without
+rebooting, the picture is fine.
 
-For me it is the same, just tell me if you really prefer this one.
-
-> > +
-> > +static int a780_pxacamera_power(struct device *dev, int on)
-> > +{
-> > + =A0 =A0 =A0 gpio_set_value(MFP_PIN_GPIO50, on ? 0 : 1);
->=20
-> 	gpio_set_value(GPIO_nCAM_EN, on ? 0 : 1);
->=20
-> > +
-> > +#if 0
-> > + =A0 =A0 =A0 /*
-> > + =A0 =A0 =A0 =A0* This is reported to resolve the "vertical line in vi=
-ew finder"
-> > + =A0 =A0 =A0 =A0* issue (LIBff11930), in the original source code rele=
-ased by
-> > + =A0 =A0 =A0 =A0* Motorola, but we never experienced the problem, so w=
-e don't use
-> > + =A0 =A0 =A0 =A0* this for now.
-> > + =A0 =A0 =A0 =A0*
-> > + =A0 =A0 =A0 =A0* AP Kernel camera driver: set TC_MM_EN to low when ca=
-mera is running
-> > + =A0 =A0 =A0 =A0* and TC_MM_EN to high when camera stops.
-> > + =A0 =A0 =A0 =A0*
-> > + =A0 =A0 =A0 =A0* BP Software: if TC_MM_EN is low, BP do not shut off =
-26M clock, but
-> > + =A0 =A0 =A0 =A0* BP can sleep itself.
-> > + =A0 =A0 =A0 =A0*/
-> > + =A0 =A0 =A0 gpio_set_value(MFP_PIN_GPIO99, on ? 0 : 1);
-> > +#endif
->=20
-> This is a little bit confusing - can we remove this for this stage?
->
-
-Ok, I am removing it for now. I might put this note in again in
-future, hopefully with a better description.
-
-[...]
+I'll let you know if I find more clues of what is causing this
+behavior.
 
 Thanks,
    Antonio
@@ -119,15 +100,15 @@ Q: Why is top-posting such a bad thing?
 A: Top-posting.
 Q: What is the most annoying thing in e-mail?
 
---Signature=_Wed__4_Nov_2009_10_14_29_+0100_Dd9EfKLSVewWptbc
+--Signature=_Tue__3_Nov_2009_14_45_36_+0100_P7og/J5APh7/oEqC
 Content-Type: application/pgp-signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.10 (GNU/Linux)
 
-iEYEARECAAYFAkrxRfUACgkQ5xr2akVTsAGVYgCfWgY97O/HW1fcxTGqZpLsRsPd
-WxcAoJAmum6MubGw0EKzRPQZ1am4FsHu
-=sDh8
+iEYEARECAAYFAkrwNAAACgkQ5xr2akVTsAHq2ACgpE73WYXzdAEkcRwm9JfeDxf7
+ks0An06ZJbWZPQrZD0Af38oigyoT+dm9
+=9d8r
 -----END PGP SIGNATURE-----
 
---Signature=_Wed__4_Nov_2009_10_14_29_+0100_Dd9EfKLSVewWptbc--
+--Signature=_Tue__3_Nov_2009_14_45_36_+0100_P7og/J5APh7/oEqC--
