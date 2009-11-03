@@ -1,116 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail02a.mail.t-online.hu ([84.2.40.7]:51731 "EHLO
-	mail02a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753619AbZKAV7q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Nov 2009 16:59:46 -0500
-Message-ID: <4AEE04D4.1040203@freemail.hu>
-Date: Sun, 01 Nov 2009 22:59:48 +0100
-From: =?ISO-8859-2?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-CC: Thomas Kaiser <thomas@kaiser-linux.li>,
-	Theodore Kilgore <kilgota@auburn.edu>,
-	Kyle Guinn <elyk03@gmail.com>
-Subject: [PATCH 2/3] gspca pac7302/pac7311: extract pac_start_frame
-Content-Type: text/plain; charset=ISO-8859-2
+Received: from mail-in-01.arcor-online.net ([151.189.21.41]:39775 "EHLO
+	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757576AbZKCBGn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Nov 2009 20:06:43 -0500
+Subject: Re: [PATCH] Multifrontend support for saa7134
+From: hermann pitton <hermann-pitton@arcor.de>
+To: =?UTF-8?Q?Luk=C3=A1=C5=A1?= Karas <lukas.karas@centrum.cz>
+Cc: linux-media@vger.kernel.org, Petr Fiala <petr.fiala@gmail.com>
+In-Reply-To: <1257043250.16827.17.camel@pc07.localdom.local>
+References: <200910312121.21926.lukas.karas@centrum.cz>
+	 <1257043250.16827.17.camel@pc07.localdom.local>
+Content-Type: text/plain; charset=UTF-8
+Date: Tue, 03 Nov 2009 02:02:08 +0100
+Message-Id: <1257210128.31771.17.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+Hi,
 
-Creating the start of the frame is done in the same way for pac7302
-and for pac7311. Extract this common part to the pac_start_frame()
-function.
+Am Sonntag, den 01.11.2009, 03:40 +0100 schrieb hermann pitton:
+> Hi Lukas, Petr and Eddi,
+> 
+> thanks for working on it.
+> 
+> Am Samstag, den 31.10.2009, 21:21 +0100 schrieb LukÃ¡Å¡ Karas:
+> > Hi all, 
+> > here is patch for multifrontend support in saa7134 driver. It is derived from 
+> > patches on page http://tux.dpeddi.com/lr319sta/
+> > 
+> > This patch has effect on these cards:
+> >  * FlyDVB Trio
+> >  * Medion MD8800 Quadro
+> >  * ASUSTeK Tiger 3in1
+> 
+> The a little bit hidden low profile triple CTX948 is also involved, just
+> to have it mentioned. We treat it like the Medion MD8800 Quadro, CTX944,
+> with subsystem 16be:0007.
+> 
+> > It was tested with FlyDVB Trio card.
+> > If you could, please test it with other cards too.
+> 
+> Some first tests on the CTX944 don't look such promising yet.
+> On DVB-T only one transponder remains and even that one is heavily
+> disturbed.
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
-Cc: Thomas Kaiser <thomas@kaiser-linux.li>
-Cc: Theodore Kilgore <kilgota@auburn.edu>
-Cc: Kyle Guinn <elyk03@gmail.com>
----
-diff -uprN b/drivers/media/video/gspca/pac7311.c c/drivers/media/video/gspca/pac7311.c
---- b/drivers/media/video/gspca/pac7311.c	2009-11-01 18:11:22.000000000 +0100
-+++ c/drivers/media/video/gspca/pac7311.c	2009-11-01 18:16:41.000000000 +0100
-@@ -816,7 +816,7 @@ static void do_autogain(struct gspca_dev
- }
+just some small updates on it, unfortunately I don't have the time
+currently it deserves.
 
- /* JPEG header, part 1 */
--static const unsigned char pac7311_jpeg_header1[] = {
-+static const unsigned char pac_jpeg_header1[] = {
-   0xff, 0xd8,		/* SOI: Start of Image */
+The triple CTX948 shows the same behaviour, not such surprising.
 
-   0xff, 0xc0,		/* SOF0: Start of Frame (Baseline DCT) */
-@@ -827,7 +827,7 @@ static const unsigned char pac7311_jpeg_
- };
+But, the Trio has two separate tuners for analog and DVB-T and the DVB-T
+problem seems only to be with hybrid devices.
 
- /* JPEG header, continued */
--static const unsigned char pac7311_jpeg_header2[] = {
-+static const unsigned char pac_jpeg_header2[] = {
-   0x03,			/* Number of image components: 3 */
-   0x01, 0x21, 0x00,	/* ID=1, Subsampling 1x1, Quantization table: 0 */
-   0x02, 0x11, 0x01,	/* ID=2, Subsampling 2x1, Quantization table: 1 */
-@@ -843,6 +843,26 @@ static const unsigned char pac7311_jpeg_
-   0x00			/* Successive approximation: 0 */
- };
+It is also on such silicon hybrid tuners without multiple frontends.
 
-+static void pac_start_frame(struct gspca_dev *gspca_dev,
-+		struct gspca_frame *frame,
-+		__u16 lines, __u16 samples_per_line)
-+{
-+	unsigned char tmpbuf[4];
-+
-+	gspca_frame_add(gspca_dev, FIRST_PACKET, frame,
-+		pac_jpeg_header1, sizeof(pac_jpeg_header1));
-+
-+	tmpbuf[0] = lines >> 8;
-+	tmpbuf[1] = lines & 0xff;
-+	tmpbuf[2] = samples_per_line >> 8;
-+	tmpbuf[3] = samples_per_line & 0xff;
-+
-+	gspca_frame_add(gspca_dev, INTER_PACKET, frame,
-+		tmpbuf, sizeof(tmpbuf));
-+	gspca_frame_add(gspca_dev, INTER_PACKET, frame,
-+		pac_jpeg_header2, sizeof(pac_jpeg_header2));
-+}
-+
- /* this function is run at interrupt level */
- static void sd_pkt_scan(struct gspca_dev *gspca_dev,
- 			struct gspca_frame *frame,	/* target */
-@@ -854,7 +874,6 @@ static void sd_pkt_scan(struct gspca_dev
+So, likely some bug for hybrid tuner initialization, unfortunately
+i2c_debug and related tuner debug seem not to catch it and i2c gate
+control reports as being operable.
 
- 	sof = pac_find_sof(&sd->sof_read, data, len);
- 	if (sof) {
--		unsigned char tmpbuf[4];
- 		int n, lum_offset, footer_length;
+Devices with FMD1216ME/I MK3 hybrid do still work for DVB-T!
 
- 		if (sd->sensor == SENSOR_PAC7302) {
-@@ -896,23 +915,14 @@ static void sd_pkt_scan(struct gspca_dev
- 			atomic_set(&sd->avg_lum, -1);
+> On DVB-S only about one third of the previous services is still
+> available. Lots of such.
+> 
+> saa7133[1]/dvb: saa7134_dvb_bus_ctrl(acquire=0) returns 0
+> saa7133[1]/dvb: saa7134_dvb_bus_ctrl(acquire=1)
+> saa7133[1]/dvb: saa7134_dvb_bus_ctrl(acquire=1) returns 0
+> tda10086_diseqc_wait: diseqc queue not ready, command may be lost.
+> tda10086_diseqc_wait: diseqc queue not ready, command may be lost.
+> tda10086_diseqc_wait: diseqc queue not ready, command may be lost.
+> tda10086_diseqc_wait: diseqc queue not ready, command may be lost.
+> saa7133[1]/dvb: saa7134_dvb_bus_ctrl(acquire=0)
+> saa7133[1]/dvb: saa7134_dvb_bus_ctrl(acquire=0) returns 0
+> saa7133[1]/dvb: saa7134_dvb_bus_ctrl(acquire=1)
+> saa7133[1]/dvb: saa7134_dvb_bus_ctrl(acquire=1) returns 0
+> saa7133[1]/dvb: saa7134_dvb_bus_ctrl(acquire=0)
+> 
+> I do have the Asus Tiger 3in1 and the triple CTX948 too, but can't
+> promise when I get time to test on those less complicated devices.
 
- 		/* Start the new frame with the jpeg header */
--		gspca_frame_add(gspca_dev, FIRST_PACKET, frame,
--			pac7311_jpeg_header1, sizeof(pac7311_jpeg_header1));
- 		if (sd->sensor == SENSOR_PAC7302) {
- 			/* The PAC7302 has the image rotated 90 degrees */
--			tmpbuf[0] = gspca_dev->width >> 8;
--			tmpbuf[1] = gspca_dev->width & 0xff;
--			tmpbuf[2] = gspca_dev->height >> 8;
--			tmpbuf[3] = gspca_dev->height & 0xff;
-+			pac_start_frame(gspca_dev, frame,
-+				gspca_dev->width, gspca_dev->height);
- 		} else {
--			tmpbuf[0] = gspca_dev->height >> 8;
--			tmpbuf[1] = gspca_dev->height & 0xff;
--			tmpbuf[2] = gspca_dev->width >> 8;
--			tmpbuf[3] = gspca_dev->width & 0xff;
-+			pac_start_frame(gspca_dev, frame,
-+				gspca_dev->height, gspca_dev->width);
- 		}
--		gspca_frame_add(gspca_dev, INTER_PACKET, frame, tmpbuf, 4);
--		gspca_frame_add(gspca_dev, INTER_PACKET, frame,
--			pac7311_jpeg_header2, sizeof(pac7311_jpeg_header2));
- 	}
- 	gspca_frame_add(gspca_dev, INTER_PACKET, frame, data, len);
- }
+If the above "diseqc queue not ready" appears, it fails, but a second
+attempt almost always works. Might be some unsynced timing problems
+between the different LNB supplies. (need to get the Tiger 3in1 up too)
+
+However, it is very close to fully working already.
+
+Cheers,
+Hermann
+
+
+
