@@ -1,470 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:51439 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760253AbZKZKdB (ORCPT
+Received: from mx.stud.uni-hannover.de ([130.75.176.3]:54070 "EHLO
+	studserv5d.stud.uni-hannover.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752503AbZKDLRP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 05:33:01 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from eu_spt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0KTP00CH8PB63A80@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 26 Nov 2009 10:33:06 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0KTP00EB4PB574@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 26 Nov 2009 10:33:05 +0000 (GMT)
-Date: Thu, 26 Nov 2009 11:32:52 +0100
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: [EXAMPLE v1] Mem-to-mem userspace test application.
-In-reply-to: <1259231572-20334-1-git-send-email-p.osciak@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, m.szyprowski@samsung.com,
-	p.osciak@samsung.com
-Message-id: <1259231572-20334-4-git-send-email-p.osciak@samsung.com>
-References: <1259231572-20334-1-git-send-email-p.osciak@samsung.com>
+	Wed, 4 Nov 2009 06:17:15 -0500
+Message-ID: <4AF162BC.4010700@stud.uni-hannover.de>
+Date: Wed, 04 Nov 2009 12:17:16 +0100
+From: Soeren Moch <Soeren.Moch@stud.uni-hannover.de>
+MIME-Version: 1.0
+To: zdenek.kabelac@gmail.com
+CC: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] NOVA-TD exeriences?
+References: <4AEF5FE5.2000607@stud.uni-hannover.de>
+In-Reply-To: <4AEF5FE5.2000607@stud.uni-hannover.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an example application for testing mem-to-mem framework using
-mem2mem-testdev device.
+Zdenek Kabelac wrote:
+ > 2009/11/3 Zdenek Kabelac <zdenek.kabelac@gmail.com>:
+ >> 2009/11/2 Soeren Moch <Soeren.Moch@stud.uni-hannover.de>:
+ >>>>> Hi. I would be happy to hear if anyone has tried both the NOVA-TD and
+ >>>>> the
+ >>>>> NOVA-T. The NOVA-T has always worked perfectly here but I would 
+like to
+ >>>>> know
+ >>>>> if the -TD will do the job of two NOVA-T's. And there also seems 
+to be a
+ >>>>> new
+ >>>>> version out with two small antenna connectors instead of the previous
+ >>>>> configuration. Anyone tried it? Does it come with an antenna adaptor
+ >>>>> cable?
+ >>>>> http://www.hauppauge.de/de/pics/novatdstick_top.jpg
+ >>>>> Thankful for any info.
+ >>>> Well I've this usb stick with these two small connectors - and it runs
+ >>>> just fine.
+ >>>>
+ >>>> Though I think there is some problem with suspend/resume recently
+ >>>> (2.6.32-rc5)  and it needs some inspection.
+ >>>>
+ >>>> But it works just fine for dual dvb-t viewing.
+ >>>>
+ >>>> And yes - it contains two small antennas with small connectors and
+ >>>> one adapter for normal antenna - i.e. 1 antenna input goes to 2 small
+ >>>> antenna connectors.
+ >>> zdenek, your nova-td stick works just fine for dual dvb-t viewing?
+ >>> I always had this problem:
+ >>> When one channel is streaming and the other channel is switched on, the
+ >>> stream of the already running channel gets broken.
+ >>> see also:
+ >>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg06376.html
+ >>>
+ >>> Can you please test this case on your nova-td stick?
+ >> I'll recheck in the evening whether there are no regression, but I've
+ >> been able to get 3 dvb-t independent (different mux) TV streams (with
+ >> the usage of the second stick Aver Hybrid Volar HX & proprietary Aver
+ >> driver) with 2.6.29/30 vanilla kernels played at the same time on my
+ >> C2D T61.
+ >>
+ >
+ >
+ > Ok - I could confirm, I'm able to play two different muxes at the same
+ > time from this USB stick. And I do not experience any stream damage.
+ > I'm running Fedora Rawhide with vanilla kernel 2.6.32-rc5, kaffeine
+ > 0.8.7 for the first adapter and relatively fresh mplayer compilation
+ > for the second adapter
+ >
+ > Thought there are things to be reported and fixed (some USB regression
+ > I guess) - I'll handle this via lkml.
+ >
+ >
+ > Anyway here is dmesg USB stick identification (labeled  WinTV  Nova-TD)
+ >
+ > USB device found, idVendor=2040, idProduct=5200
+ > USB device strings: Mfr=1, Product=2, SerialNumber=3
+ > Product: NovaT 500Stick
+ >
+ > Regards
+ >
+ > Zdenek
+ >
 
-It is intended to be executed multiple times in parallel to test multi-instance
-operation and scheduling. Each process can be configured differently using
-command-line arguments.
+Very strange. Playing of two different muxes is also no problem for me, 
+as long
+as no new stream is started (of course after switching off one of the 
+streams
+before). In the start moment of the new the stream the already running 
+stream
+is disturbed and I see a demaged group of pictures in the old stream. After
+these few pictures the stream is running fine again.
 
-The application opens video test device and framebuffer, sets up params,
-queues src/dst buffers and displays processed results on the framebuffer.
+I cannot imagine that this is a specific problem of my stick, however,
+thank you for testing!
 
-Configurable parameters: starting point on the framebuffer, width/height of
-buffers, transaction length (in buffers), transaction duration, total number
-of frames to be processed.
+Regards,
+Soeren
 
-Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-Reviewed-by: Kyungmin Park <kyungmin.park@samsung.com>
----
 
---- /dev/null	2009-11-17 07:51:25.574927259 +0100
-+++ process-vmalloc.c	2009-11-26 11:00:26.000000000 +0100
-@@ -0,0 +1,420 @@
-+/**
-+ * process-vmalloc.c
-+ * Capture+output (process) V4L2 device tester.
-+ *
-+ * Pawel Osciak, p.osciak@samsung.com
-+ * 2009, Samsung Electronics Co., Ltd.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version
-+ */
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <assert.h>
-+#include <time.h>
-+#include <errno.h>
-+
-+#include <fcntl.h>
-+#include <unistd.h>
-+#include <sys/ioctl.h>
-+#include <sys/types.h>
-+#include <stdint.h>
-+
-+#include <linux/fb.h>
-+#include <linux/videodev2.h>
-+
-+#include <sys/mman.h>
-+
-+#define V4L2_CID_TRANS_TIME_MSEC        (V4L2_CID_PRIVATE_BASE)
-+#define V4L2_CID_TRANS_NUM_BUFS         (V4L2_CID_PRIVATE_BASE + 1)
-+
-+#define VIDEO_DEV_NAME	"/dev/video0"
-+#define FB_DEV_NAME	"/dev/fb0"
-+#define NUM_BUFS	4
-+#define NUM_FRAMES	16
-+
-+#define perror_exit(cond, func)\
-+	if (cond) {\
-+		fprintf(stderr, "%s:%d: ", __func__, __LINE__);\
-+		perror(func);\
-+		exit(EXIT_FAILURE);\
-+	}
-+
-+#define error_exit(cond, func)\
-+	if (cond) {\
-+		fprintf(stderr, "%s:%d: failed\n", func, __LINE__);\
-+		exit(EXIT_FAILURE);\
-+	}
-+
-+#define perror_ret(cond, func)\
-+	if (cond) {\
-+		fprintf(stderr, "%s:%d: ", __func__, __LINE__);\
-+		perror(func);\
-+		return ret;\
-+	}
-+
-+#define memzero(x)\
-+	memset(&(x), 0, sizeof (x));
-+
-+#define PROCESS_DEBUG 1
-+#ifdef PROCESS_DEBUG
-+#define debug(msg, ...)\
-+	fprintf(stderr, "%s: " msg, __func__, ##__VA_ARGS__);
-+#else
-+#define debug(msg, ...)
-+#endif
-+
-+static int vid_fd, fb_fd;
-+static void *fb_addr;
-+static char *p_src_buf[NUM_BUFS], *p_dst_buf[NUM_BUFS];
-+static size_t src_buf_size[NUM_BUFS], dst_buf_size[NUM_BUFS];
-+static uint32_t num_src_bufs = 0, num_dst_bufs = 0;
-+
-+/* Command-line params */
-+int initial_delay = 0;
-+int fb_x, fb_y, width, height;
-+int translen = 1;
-+/* For displaying multi-buffer transaction simulations, indicates current
-+ * buffer in an ongoing transaction */
-+int curr_buf = 0;
-+int transtime = 1000;
-+int num_frames = 0;
-+off_t fb_off, fb_line_w, fb_buf_w;
-+struct fb_var_screeninfo fbinfo;
-+
-+static void init_video_dev(void)
-+{
-+	int ret;
-+	struct v4l2_capability cap;
-+	struct v4l2_format fmt;
-+	struct v4l2_control ctrl;
-+
-+	vid_fd = open(VIDEO_DEV_NAME, O_RDWR | O_NONBLOCK, 0);
-+	perror_exit(vid_fd < 0, "open");
-+
-+	ctrl.id = V4L2_CID_TRANS_TIME_MSEC;
-+	ctrl.value = transtime;
-+	ret = ioctl(vid_fd, VIDIOC_S_CTRL, &ctrl);
-+	perror_exit(ret != 0, "ioctl");
-+
-+	ctrl.id = V4L2_CID_TRANS_NUM_BUFS;
-+	ctrl.value = translen;
-+	ret = ioctl(vid_fd, VIDIOC_S_CTRL, &ctrl);
-+	perror_exit(ret != 0, "ioctl");
-+
-+	ret = ioctl(vid_fd, VIDIOC_QUERYCAP, &cap);
-+	perror_exit(ret != 0, "ioctl");
-+
-+	if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
-+		fprintf(stderr, "Device does not support capture\n");
-+		exit(EXIT_FAILURE);
-+	}
-+	if (!(cap.capabilities & V4L2_CAP_VIDEO_OUTPUT)) {
-+		fprintf(stderr, "Device does not support output\n");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	/* Set format for capture */
-+	fmt.type		= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	fmt.fmt.pix.width	= width;
-+	fmt.fmt.pix.height	= height;
-+	fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565X;
-+	fmt.fmt.pix.field	= V4L2_FIELD_ANY;
-+
-+	ret = ioctl(vid_fd, VIDIOC_S_FMT, &fmt);
-+	perror_exit(ret != 0, "ioctl");
-+
-+	/* The same format for output */
-+	fmt.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+	fmt.fmt.pix.width	= width;
-+	fmt.fmt.pix.height	= height;
-+	fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565X;
-+	fmt.fmt.pix.field	= V4L2_FIELD_ANY;
-+	
-+	ret = ioctl(vid_fd, VIDIOC_S_FMT, &fmt);
-+	perror_exit(ret != 0, "ioctl");
-+}
-+
-+static void gen_src_buf(void *p, size_t size)
-+{
-+	uint8_t val;
-+
-+	val = rand() % 256;
-+	memset(p, val, size);
-+}
-+
-+static void gen_dst_buf(void *p, size_t size)
-+{
-+	/* White */
-+	memset(p, 255, 0);
-+}
-+
-+static int read_frame(int last)
-+{
-+	struct v4l2_buffer buf;
-+	int ret;
-+	int j;
-+	char * p_fb = fb_addr + fb_off;
-+
-+	memzero(buf);
-+
-+	buf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+	buf.memory	= V4L2_MEMORY_MMAP;
-+
-+	ret = ioctl(vid_fd, VIDIOC_DQBUF, &buf);
-+	debug("Dequeued source buffer, index: %d\n", buf.index);
-+	if (ret) {
-+		switch (errno) {
-+		case EAGAIN:
-+			debug("Got EAGAIN\n");
-+			return 0;
-+
-+		case EIO:
-+			debug("Got EIO\n");
-+			return 0;
-+
-+		default:
-+			perror("ioctl");
-+			return 0;
-+		}
-+	}
-+
-+	/* Verify we've got a correct buffer */
-+	assert(buf.index < num_src_bufs);
-+
-+	/* Enqueue back the buffer (note that the index is preserved) */
-+	if (!last) {
-+		gen_src_buf(p_src_buf[buf.index], src_buf_size[buf.index]);
-+		buf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+		buf.memory	= V4L2_MEMORY_MMAP;
-+		ret = ioctl(vid_fd, VIDIOC_QBUF, &buf);
-+		perror_ret(ret != 0, "ioctl");
-+	}
-+
-+
-+	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+
-+	debug("Dequeuing destination buffer\n");
-+	ret = ioctl(vid_fd, VIDIOC_DQBUF, &buf);
-+	if (ret) {
-+		switch (errno) {
-+		case EAGAIN:
-+			debug("Got EAGAIN\n");
-+			return 0;
-+
-+		case EIO:
-+			debug("Got EIO\n");
-+			return 0;
-+
-+		default:
-+			perror("ioctl");
-+			return 1;
-+		}
-+	}
-+	debug("Dequeued dst buffer, index: %d\n", buf.index);
-+	/* Verify we've got a correct buffer */
-+	assert(buf.index < num_dst_bufs);
-+
-+	debug("Current buffer in the transaction: %d\n", curr_buf);
-+	p_fb += curr_buf * (height / translen) * fb_line_w;
-+	++curr_buf;
-+	if (curr_buf >= translen)
-+		curr_buf = 0;
-+
-+	/* Display results */
-+	for (j = 0; j < height / translen; ++j) {
-+		memcpy(p_fb, (void *)p_dst_buf[buf.index], fb_buf_w);
-+		p_fb += fb_line_w;
-+	}
-+
-+	/* Enqueue back the buffer */
-+	if (!last) {
-+		gen_dst_buf(p_dst_buf[buf.index], dst_buf_size[buf.index]);
-+		ret = ioctl(vid_fd, VIDIOC_QBUF, &buf);
-+		perror_ret(ret != 0, "ioctl");
-+		debug("Enqueued back dst buffer\n");
-+	}
-+
-+	return 0;
-+}
-+
-+void init_usage(int argc, char *argv[])
-+{
-+	if (argc != 9) {
-+		printf("Usage: %s initial_delay bufs_per_transaction "
-+			"trans_length_msec num_frames fb_offset_x fb_offset_y "
-+			"width height\n", argv[0]);
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	initial_delay = atoi(argv[1]);
-+	translen = atoi(argv[2]);
-+	transtime = atoi(argv[3]);
-+	num_frames = atoi(argv[4]);
-+	fb_x = atoi(argv[5]);
-+	fb_y = atoi(argv[6]);
-+	width = atoi(argv[7]);
-+	height = atoi(argv[8]);
-+	debug("NEW PROCESS: fb_x: %d, fb_y: %d, width: %d, height: %d, "
-+		"translen: %d, transtime: %d, num_frames: %d\n",
-+		fb_x, fb_y, width, height, translen, transtime, num_frames);
-+}
-+
-+void init_fb(void)
-+{
-+	int ret;
-+	size_t map_size;
-+
-+	fb_fd = open(FB_DEV_NAME, O_RDWR, 0);
-+	perror_exit(fb_fd < 0, "open");
-+
-+	ret = ioctl(fb_fd, FBIOGET_VSCREENINFO, &fbinfo);
-+	perror_exit(ret != 0, "ioctl");
-+	debug("fbinfo: xres: %d, xres_virt: %d, yres: %d, yres_virt: %d\n",
-+		fbinfo.xres, fbinfo.xres_virtual,
-+		fbinfo.yres, fbinfo.yres_virtual);
-+
-+	fb_line_w= fbinfo.xres_virtual * (fbinfo.bits_per_pixel >> 3);
-+	fb_off = fb_y * fb_line_w + fb_x * (fbinfo.bits_per_pixel >> 3);
-+	fb_buf_w = width * (fbinfo.bits_per_pixel >> 3);
-+	map_size = fb_line_w * fbinfo.yres_virtual;
-+
-+	fb_addr = mmap(0, map_size, PROT_WRITE | PROT_READ,
-+			MAP_SHARED, fb_fd, 0);
-+	perror_exit(fb_addr == MAP_FAILED, "mmap");
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	int ret = 0;
-+	int i;
-+	struct v4l2_buffer buf;
-+	struct v4l2_requestbuffers reqbuf;
-+	enum v4l2_buf_type type;
-+	int last = 0;
-+
-+	init_usage(argc, argv);
-+	init_fb();
-+
-+	srand(time(NULL) ^ getpid());
-+	sleep(initial_delay);
-+
-+	init_video_dev();
-+
-+	memzero(reqbuf);
-+	reqbuf.count	= NUM_BUFS;
-+	reqbuf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+	type		= V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+	reqbuf.memory	= V4L2_MEMORY_MMAP;
-+	ret = ioctl(vid_fd, VIDIOC_REQBUFS, &reqbuf);
-+	perror_exit(ret != 0, "ioctl");
-+	num_src_bufs = reqbuf.count;
-+	debug("Got %d src buffers\n", num_src_bufs);
-+
-+	reqbuf.count	= NUM_BUFS;
-+	reqbuf.type	= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	type		= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	ret = ioctl(vid_fd, VIDIOC_REQBUFS, &reqbuf);
-+	perror_exit(ret != 0, "ioctl");
-+	num_dst_bufs = reqbuf.count;
-+	debug("Got %d dst buffers\n", num_dst_bufs);
-+
-+	for (i = 0; i < num_src_bufs; ++i) {
-+		buf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+		buf.memory	= V4L2_MEMORY_MMAP;
-+		buf.index	= i;
-+
-+		ret = ioctl(vid_fd, VIDIOC_QUERYBUF, &buf);
-+		perror_exit(ret != 0, "ioctl");
-+		debug("QUERYBUF returned offset: %x\n", buf.m.offset);
-+
-+		src_buf_size[i] = buf.length;
-+		p_src_buf[i] = mmap(NULL, buf.length,
-+				    PROT_READ | PROT_WRITE, MAP_SHARED,
-+				    vid_fd, buf.m.offset);
-+		perror_exit(MAP_FAILED == p_src_buf[i], "mmap");
-+	}
-+
-+	for (i = 0; i < num_dst_bufs; ++i) {
-+		buf.type	= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+		buf.memory	= V4L2_MEMORY_MMAP;
-+		buf.index	= i;
-+
-+		ret = ioctl(vid_fd, VIDIOC_QUERYBUF, &buf);
-+		perror_exit(ret != 0, "ioctl");
-+		debug("QUERYBUF returned offset: %x\n", buf.m.offset);
-+
-+		dst_buf_size[i] = buf.length;
-+		p_dst_buf[i] = mmap(NULL, buf.length,
-+				    PROT_READ | PROT_WRITE, MAP_SHARED,
-+				    vid_fd, buf.m.offset);
-+		perror_exit(MAP_FAILED == p_dst_buf[i], "mmap");
-+	}
-+
-+	for (i = 0; i < num_src_bufs; ++i) {
-+
-+		gen_src_buf(p_src_buf[i], src_buf_size[i]);
-+
-+		memzero(buf);
-+		buf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+		buf.memory	= V4L2_MEMORY_MMAP;
-+		buf.index	= i;
-+
-+		ret = ioctl(vid_fd, VIDIOC_QBUF, &buf);
-+		perror_exit(ret != 0, "ioctl");
-+	}
-+
-+	for (i = 0; i < num_dst_bufs; ++i) {
-+		memzero(buf);
-+		buf.type	= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+		buf.memory	= V4L2_MEMORY_MMAP;
-+		buf.index	= i;
-+
-+		ret = ioctl(vid_fd, VIDIOC_QBUF, &buf);
-+		perror_exit(ret != 0, "ioctl");
-+	}
-+
-+	ret = ioctl(vid_fd, VIDIOC_STREAMON, &type);
-+	debug("STREAMON (%d): %d\n", VIDIOC_STREAMON, ret);
-+	perror_exit(ret != 0, "ioctl");
-+
-+	while (num_frames) {
-+		fd_set read_fds;
-+		int r;
-+
-+		FD_ZERO(&read_fds);
-+		FD_SET(vid_fd, &read_fds);
-+
-+		debug("Before select");
-+		r = select(vid_fd + 1, &read_fds, NULL, NULL, 0);
-+		perror_exit(r < 0, "select");
-+		debug("After select");
-+
-+		if (num_frames == 1)
-+			last = 1;
-+		if (read_frame(last)) {
-+			fprintf(stderr, "Read frame failed\n");
-+			break;
-+		}
-+		--num_frames;
-+		printf("FRAMES LEFT: %d\n", num_frames);
-+	}
-+
-+
-+done:
-+	close(vid_fd);
-+	close(fb_fd);
-+
-+	for (i = 0; i < num_src_bufs; ++i)
-+		munmap(p_src_buf[i], src_buf_size[i]);
-+
-+	for (i = 0; i < num_dst_bufs; ++i)
-+		munmap(p_dst_buf[i], dst_buf_size[i]);
-+
-+	return ret;
-+}
-+
