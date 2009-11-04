@@ -1,86 +1,386 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:38016 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753291AbZKLQUY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Nov 2009 11:20:24 -0500
-Date: Thu, 12 Nov 2009 11:20:29 -0500 (EST)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Andrew Morton <akpm@linux-foundation.org>
-cc: knife@toaster.net, <bugzilla-daemon@bugzilla.kernel.org>,
-	<linux-media@vger.kernel.org>,
-	USB list <linux-usb@vger.kernel.org>,
-	Ingo Molnar <mingo@elte.hu>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	"H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [Bugme-new] [Bug 14564] New: capture-example sleeping function
- called from invalid context at arch/x86/mm/fault.c
-In-Reply-To: <20091111152127.0c97a620.akpm@linux-foundation.org>
-Message-ID: <Pine.LNX.4.44L0.0911121058210.3000-100000@iolanthe.rowland.org>
+Received: from mail.gmx.net ([213.165.64.20]:43581 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1756916AbZKDQtN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Nov 2009 11:49:13 -0500
+Date: Wed, 4 Nov 2009 17:49:28 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: [PATCH/RFC 9/9 v2] mt9t031: make the use of the soc-camera client
+ API optional
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40155798D56@dlee06.ent.ti.com>
+Message-ID: <Pine.LNX.4.64.0911041703000.4837@axis700.grange>
+References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
+ <Pine.LNX.4.64.0910301442570.4378@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE401557987F6@dlee06.ent.ti.com>
+ <Pine.LNX.4.64.0910302112300.4378@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE40155798D56@dlee06.ent.ti.com>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 11 Nov 2009, Andrew Morton wrote:
+Now that we have moved most of the functions over to the v4l2-subdev API, only
+quering and setting bus parameters are still performed using the legacy
+soc-camera client API. Make the use of this API optional for mt9t031.
 
-> > http://bugzilla.kernel.org/show_bug.cgi?id=14564
-> > 
-> >            Summary: capture-example sleeping function called from invalid
-> >                     context at arch/x86/mm/fault.c
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-> We oopsed in td_free() (see below).  But as part of that oops
-> processing the kernel entered do_page_fault() and emitted a
-> might_sleep() warning because we took a pagefault with local interrupts
-> disabled.
-> 
-> This is undesirable behaviour from the low-level x86 fault code and I
-> don't think it normally happens.
-> 
-> Did we break something in x86 land, or is this oops sufficiently weird
-> and whacky to bypass existing checks for this false positive?
+On Mon, 2 Nov 2009, Karicheri, Muralidharan wrote:
 
-No, what happened was a structure containing a linked-list entry got
-freed while it was still on the list.  Then when the driver walked
-through the list, it attempted to dereference a list pointer that had
-been poisoned.  More or less by coincidence, the poison value
-represented a paged-out address rather than an invalid address, so a
-page fault occurred.  That's what caused the oops.
+> >> >+static struct soc_camera_ops mt9t031_ops = {
+> >> >+	.set_bus_param		= mt9t031_set_bus_param,
+> >> >+	.query_bus_param	= mt9t031_query_bus_param,
+> >> >+	.controls		= mt9t031_controls,
+> >> >+	.num_controls		= ARRAY_SIZE(mt9t031_controls),
+> >> >+};
+> >> >+
+> >>
+> >> [MK] Why don't you implement queryctrl ops in core? query_bus_param
+> >> & set_bus_param() can be implemented as a sub device operation as well
+> >> right? I think we need to get the bus parameter RFC implemented and
+> >> this driver could be targeted for it's first use so that we could
+> >> work together to get it accepted. I didn't get a chance to study your
+> >> bus image format RFC, but plan to review it soon and to see if it can be
+> >> used in my platform as well. For use of this driver in our platform,
+> >> all reference to soc_ must be removed. I am ok if the structure is
+> >> re-used, but if this driver calls any soc_camera function, it canot
+> >> be used in my platform.
+> >
+> >Why? Some soc-camera functions are just library functions, you just have
+> >to build soc-camera into your kernel. (also see below)
+> >
+> My point is that the control is for the sensor device, so why to implement
+> queryctrl in SoC camera? Just for this I need to include SOC camera in 
+> my build? That doesn't make any sense at all. IMHO, queryctrl() 
+> logically belongs to this sensor driver which can be called from the 
+> bridge driver using sudev API call. Any reverse dependency from MT9T031 
+> to SoC camera to be removed if it is to be re-used across other 
+> platforms. Can we agree on this?
 
-> > BUG: unable to handle kernel paging request at a7a7a7c3                         
-> > IP: [<c11c5cef>] td_free+0x23/0x75                                              
+In general I'm sure you understand, that there are lots of functions in 
+the kernel, that we use in specific modules, not because they interact 
+with other systems, but because they implement some common functionality 
+and just reduce code-duplication. And I can well imagine that in many such 
+cases using just one or a couple of such functions will pull a much larger 
+pile of unused code with them. But in this case those calls can indeed be 
+very easily eliminated. Please have a look at the version below.
 
-> >  [<c1155a42>] ? tty_ldisc_deref+0x8/0xa                                         
-> >  [<c1150c1c>] ? tty_write+0x1b1/0x1c2                                           
-> >  [<c1152d69>] ? n_tty_write+0x0/0x2e6                                           
-> >  [<c1150a6b>] ? tty_write+0x0/0x1c2                                             
-> >  [<c106431d>] ? vfs_write+0xe3/0xfa                                             
-> >  [<c1002858>] ? restore_all_notrace+0x0/0x18                                    
-> >  [<c106e3e2>] ? sys_ioctl+0x2c/0x45                                             
-> >  [<c1002825>] ? syscall_call+0x7/0xb                                            
-> > Code: e5 e8 bf 7b e9 ff 5d c3 55 89 e5 57 89 c7 56 89 d6 53 8b 42 28 89 c2 c1
-> > ea 06 31 d0 83 e0 3f 8d 94 87 cc 00 00 00 eb 03 8d 50 1c <8b> 02 85 c0 74 0b 39 
-> > EIP: [<c11c5cef>] td_free+0x23/0x75 SS:ESP 0068:c6785cb8                        
-> > CR2: 00000000a7a7a7c3                                                           
-> 
-> And here's the real oops.  drivers/usb/host/ohci-mem.c:td_free()
-> dereferenced a7a7a7c3.  Which looks like
-> 
-> /********** drivers/base/dmapool.c **********/
-> #define	POOL_POISON_FREED	0xa7	/* !inuse */
-> #define	POOL_POISON_ALLOCATED	0xa9	/* !initted */
+> Did you have a chance to compare the driver file that I had sent to you?
 
-If I'm reading this correctly, the bad dereference occurred in the
-second source line:
+I looked at it, but it is based on an earlier version of the driver, so, 
+it wasn't very easy to compare. Maybe you could send a diff against the 
+mainline version, on which it is based?
 
-		prev = &(*prev)->td_hash;
-	if (*prev)
+Thanks
+Guennadi
 
-The original value in *prev was 0xa7a7a7a7 and the offset of td_hash is
-0x1c, causing the offending address to be 0xa7a7a7c3.
+ drivers/media/video/mt9t031.c |  167 +++++++++++++++++++++--------------------
+ 1 files changed, 85 insertions(+), 82 deletions(-)
 
-I have no idea why a struct td would have been freed while it was still 
-in use.
-
-Alan Stern
+diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
+index c95c277..86bf8f6 100644
+--- a/drivers/media/video/mt9t031.c
++++ b/drivers/media/video/mt9t031.c
+@@ -204,6 +204,71 @@ static unsigned long mt9t031_query_bus_param(struct soc_camera_device *icd)
+ 	return soc_camera_apply_sensor_flags(icl, MT9T031_BUS_PARAM);
+ }
+ 
++enum {
++	MT9T031_CTRL_VFLIP,
++	MT9T031_CTRL_HFLIP,
++	MT9T031_CTRL_GAIN,
++	MT9T031_CTRL_EXPOSURE,
++	MT9T031_CTRL_EXPOSURE_AUTO,
++};
++
++static const struct v4l2_queryctrl mt9t031_controls[] = {
++	[MT9T031_CTRL_VFLIP] = {
++		.id		= V4L2_CID_VFLIP,
++		.type		= V4L2_CTRL_TYPE_BOOLEAN,
++		.name		= "Flip Vertically",
++		.minimum	= 0,
++		.maximum	= 1,
++		.step		= 1,
++		.default_value	= 0,
++	},
++	[MT9T031_CTRL_HFLIP] = {
++		.id		= V4L2_CID_HFLIP,
++		.type		= V4L2_CTRL_TYPE_BOOLEAN,
++		.name		= "Flip Horizontally",
++		.minimum	= 0,
++		.maximum	= 1,
++		.step		= 1,
++		.default_value	= 0,
++	},
++	[MT9T031_CTRL_GAIN] = {
++		.id		= V4L2_CID_GAIN,
++		.type		= V4L2_CTRL_TYPE_INTEGER,
++		.name		= "Gain",
++		.minimum	= 0,
++		.maximum	= 127,
++		.step		= 1,
++		.default_value	= 64,
++		.flags		= V4L2_CTRL_FLAG_SLIDER,
++	},
++	[MT9T031_CTRL_EXPOSURE] = {
++		.id		= V4L2_CID_EXPOSURE,
++		.type		= V4L2_CTRL_TYPE_INTEGER,
++		.name		= "Exposure",
++		.minimum	= 1,
++		.maximum	= 255,
++		.step		= 1,
++		.default_value	= 255,
++		.flags		= V4L2_CTRL_FLAG_SLIDER,
++	},
++	[MT9T031_CTRL_EXPOSURE_AUTO] = {
++		.id		= V4L2_CID_EXPOSURE_AUTO,
++		.type		= V4L2_CTRL_TYPE_BOOLEAN,
++		.name		= "Automatic Exposure",
++		.minimum	= 0,
++		.maximum	= 1,
++		.step		= 1,
++		.default_value	= 1,
++	}
++};
++
++static struct soc_camera_ops mt9t031_ops = {
++	.set_bus_param		= mt9t031_set_bus_param,
++	.query_bus_param	= mt9t031_query_bus_param,
++	.controls		= mt9t031_controls,
++	.num_controls		= ARRAY_SIZE(mt9t031_controls),
++};
++
+ /* target must be _even_ */
+ static u16 mt9t031_skip(s32 *source, s32 target, s32 max)
+ {
+@@ -223,10 +288,9 @@ static u16 mt9t031_skip(s32 *source, s32 target, s32 max)
+ }
+ 
+ /* rect is the sensor rectangle, the caller guarantees parameter validity */
+-static int mt9t031_set_params(struct soc_camera_device *icd,
++static int mt9t031_set_params(struct i2c_client *client,
+ 			      struct v4l2_rect *rect, u16 xskip, u16 yskip)
+ {
+-	struct i2c_client *client = to_i2c_client(to_soc_camera_control(icd));
+ 	struct mt9t031 *mt9t031 = to_mt9t031(client);
+ 	int ret;
+ 	u16 xbin, ybin;
+@@ -307,8 +371,7 @@ static int mt9t031_set_params(struct soc_camera_device *icd,
+ 		if (ret >= 0) {
+ 			const u32 shutter_max = MT9T031_MAX_HEIGHT + vblank;
+ 			const struct v4l2_queryctrl *qctrl =
+-				soc_camera_find_qctrl(icd->ops,
+-						      V4L2_CID_EXPOSURE);
++				&mt9t031_controls[MT9T031_CTRL_EXPOSURE];
+ 			mt9t031->exposure = (shutter_max / 2 + (total_h - 1) *
+ 				 (qctrl->maximum - qctrl->minimum)) /
+ 				shutter_max + qctrl->minimum;
+@@ -333,7 +396,6 @@ static int mt9t031_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+ 	struct v4l2_rect rect = a->c;
+ 	struct i2c_client *client = sd->priv;
+ 	struct mt9t031 *mt9t031 = to_mt9t031(client);
+-	struct soc_camera_device *icd = client->dev.platform_data;
+ 
+ 	rect.width = ALIGN(rect.width, 2);
+ 	rect.height = ALIGN(rect.height, 2);
+@@ -344,7 +406,7 @@ static int mt9t031_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+ 	soc_camera_limit_side(&rect.top, &rect.height,
+ 		     MT9T031_ROW_SKIP, MT9T031_MIN_HEIGHT, MT9T031_MAX_HEIGHT);
+ 
+-	return mt9t031_set_params(icd, &rect, mt9t031->xskip, mt9t031->yskip);
++	return mt9t031_set_params(client, &rect, mt9t031->xskip, mt9t031->yskip);
+ }
+ 
+ static int mt9t031_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+@@ -391,7 +453,6 @@ static int mt9t031_s_fmt(struct v4l2_subdev *sd,
+ {
+ 	struct i2c_client *client = sd->priv;
+ 	struct mt9t031 *mt9t031 = to_mt9t031(client);
+-	struct soc_camera_device *icd = client->dev.platform_data;
+ 	u16 xskip, yskip;
+ 	struct v4l2_rect rect = mt9t031->rect;
+ 
+@@ -403,7 +464,7 @@ static int mt9t031_s_fmt(struct v4l2_subdev *sd,
+ 	yskip = mt9t031_skip(&rect.height, imgf->height, MT9T031_MAX_HEIGHT);
+ 
+ 	/* mt9t031_set_params() doesn't change width and height */
+-	return mt9t031_set_params(icd, &rect, xskip, yskip);
++	return mt9t031_set_params(client, &rect, xskip, yskip);
+ }
+ 
+ /*
+@@ -476,59 +537,6 @@ static int mt9t031_s_register(struct v4l2_subdev *sd,
+ }
+ #endif
+ 
+-static const struct v4l2_queryctrl mt9t031_controls[] = {
+-	{
+-		.id		= V4L2_CID_VFLIP,
+-		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+-		.name		= "Flip Vertically",
+-		.minimum	= 0,
+-		.maximum	= 1,
+-		.step		= 1,
+-		.default_value	= 0,
+-	}, {
+-		.id		= V4L2_CID_HFLIP,
+-		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+-		.name		= "Flip Horizontally",
+-		.minimum	= 0,
+-		.maximum	= 1,
+-		.step		= 1,
+-		.default_value	= 0,
+-	}, {
+-		.id		= V4L2_CID_GAIN,
+-		.type		= V4L2_CTRL_TYPE_INTEGER,
+-		.name		= "Gain",
+-		.minimum	= 0,
+-		.maximum	= 127,
+-		.step		= 1,
+-		.default_value	= 64,
+-		.flags		= V4L2_CTRL_FLAG_SLIDER,
+-	}, {
+-		.id		= V4L2_CID_EXPOSURE,
+-		.type		= V4L2_CTRL_TYPE_INTEGER,
+-		.name		= "Exposure",
+-		.minimum	= 1,
+-		.maximum	= 255,
+-		.step		= 1,
+-		.default_value	= 255,
+-		.flags		= V4L2_CTRL_FLAG_SLIDER,
+-	}, {
+-		.id		= V4L2_CID_EXPOSURE_AUTO,
+-		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+-		.name		= "Automatic Exposure",
+-		.minimum	= 0,
+-		.maximum	= 1,
+-		.step		= 1,
+-		.default_value	= 1,
+-	}
+-};
+-
+-static struct soc_camera_ops mt9t031_ops = {
+-	.set_bus_param		= mt9t031_set_bus_param,
+-	.query_bus_param	= mt9t031_query_bus_param,
+-	.controls		= mt9t031_controls,
+-	.num_controls		= ARRAY_SIZE(mt9t031_controls),
+-};
+-
+ static int mt9t031_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+ {
+ 	struct i2c_client *client = sd->priv;
+@@ -565,15 +573,9 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+ {
+ 	struct i2c_client *client = sd->priv;
+ 	struct mt9t031 *mt9t031 = to_mt9t031(client);
+-	struct soc_camera_device *icd = client->dev.platform_data;
+ 	const struct v4l2_queryctrl *qctrl;
+ 	int data;
+ 
+-	qctrl = soc_camera_find_qctrl(&mt9t031_ops, ctrl->id);
+-
+-	if (!qctrl)
+-		return -EINVAL;
+-
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_VFLIP:
+ 		if (ctrl->value)
+@@ -592,6 +594,7 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+ 			return -EIO;
+ 		break;
+ 	case V4L2_CID_GAIN:
++		qctrl = &mt9t031_controls[MT9T031_CTRL_GAIN];
+ 		if (ctrl->value > qctrl->maximum || ctrl->value < qctrl->minimum)
+ 			return -EINVAL;
+ 		/* See Datasheet Table 7, Gain settings. */
+@@ -631,6 +634,7 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+ 		mt9t031->gain = ctrl->value;
+ 		break;
+ 	case V4L2_CID_EXPOSURE:
++		qctrl = &mt9t031_controls[MT9T031_CTRL_EXPOSURE];
+ 		/* mt9t031 has maximum == default */
+ 		if (ctrl->value > qctrl->maximum || ctrl->value < qctrl->minimum)
+ 			return -EINVAL;
+@@ -657,7 +661,7 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+ 
+ 			if (set_shutter(client, total_h) < 0)
+ 				return -EIO;
+-			qctrl = soc_camera_find_qctrl(icd->ops, V4L2_CID_EXPOSURE);
++			qctrl = &mt9t031_controls[MT9T031_CTRL_EXPOSURE];
+ 			mt9t031->exposure = (shutter_max / 2 + (total_h - 1) *
+ 				 (qctrl->maximum - qctrl->minimum)) /
+ 				shutter_max + qctrl->minimum;
+@@ -665,6 +669,8 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+ 		} else
+ 			mt9t031->autoexposure = 0;
+ 		break;
++	default:
++		return -EINVAL;
+ 	}
+ 	return 0;
+ }
+@@ -751,18 +757,16 @@ static int mt9t031_probe(struct i2c_client *client,
+ 	struct mt9t031 *mt9t031;
+ 	struct soc_camera_device *icd = client->dev.platform_data;
+ 	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
+-	struct soc_camera_link *icl;
+ 	int ret;
+ 
+-	if (!icd) {
+-		dev_err(&client->dev, "MT9T031: missing soc-camera data!\n");
+-		return -EINVAL;
+-	}
++	if (icd) {
++		struct soc_camera_link *icl = to_soc_camera_link(icd);
++		if (!icl) {
++			dev_err(&client->dev, "MT9T031 driver needs platform data\n");
++			return -EINVAL;
++		}
+ 
+-	icl = to_soc_camera_link(icd);
+-	if (!icl) {
+-		dev_err(&client->dev, "MT9T031 driver needs platform data\n");
+-		return -EINVAL;
++		icd->ops = &mt9t031_ops;
+ 	}
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
+@@ -777,9 +781,6 @@ static int mt9t031_probe(struct i2c_client *client,
+ 
+ 	v4l2_i2c_subdev_init(&mt9t031->subdev, client, &mt9t031_subdev_ops);
+ 
+-	/* Second stage probe - when a capture adapter is there */
+-	icd->ops		= &mt9t031_ops;
+-
+ 	mt9t031->rect.left	= MT9T031_COLUMN_SKIP;
+ 	mt9t031->rect.top	= MT9T031_ROW_SKIP;
+ 	mt9t031->rect.width	= MT9T031_MAX_WIDTH;
+@@ -801,7 +802,8 @@ static int mt9t031_probe(struct i2c_client *client,
+ 	mt9t031_disable(client);
+ 
+ 	if (ret) {
+-		icd->ops = NULL;
++		if (icd)
++			icd->ops = NULL;
+ 		i2c_set_clientdata(client, NULL);
+ 		kfree(mt9t031);
+ 	}
+@@ -814,7 +816,8 @@ static int mt9t031_remove(struct i2c_client *client)
+ 	struct mt9t031 *mt9t031 = to_mt9t031(client);
+ 	struct soc_camera_device *icd = client->dev.platform_data;
+ 
+-	icd->ops = NULL;
++	if (icd)
++		icd->ops = NULL;
+ 	i2c_set_clientdata(client, NULL);
+ 	client->driver = NULL;
+ 	kfree(mt9t031);
+-- 
+1.6.2.4
 
