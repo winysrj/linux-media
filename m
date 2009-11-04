@@ -1,106 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.221.174]:52101 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752246AbZKDJUC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2009 04:20:02 -0500
-Received: by qyk4 with SMTP id 4so3302233qyk.33
-        for <linux-media@vger.kernel.org>; Wed, 04 Nov 2009 01:20:07 -0800 (PST)
+Received: from perceval.irobotique.be ([92.243.18.41]:60509 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756359AbZKDOmJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2009 09:42:09 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH 5/8] drivers/media/video/uvc: Use %pUl to print UUIDs
+Date: Wed, 4 Nov 2009 15:42:30 +0100
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-kernel@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-media@vger.kernel.org
+References: <1254890742-28245-1-git-send-email-joe@perches.com> <200910312010.39785.laurent.pinchart@ideasonboard.com> <1257017258.1917.138.camel@Joe-Laptop.home>
+In-Reply-To: <1257017258.1917.138.camel@Joe-Laptop.home>
 MIME-Version: 1.0
-In-Reply-To: <20091104101429.23338a42.ospite@studenti.unina.it>
-References: <1257266734-28673-1-git-send-email-ospite@studenti.unina.it>
-	<1257266734-28673-2-git-send-email-ospite@studenti.unina.it>
-	<f17812d70911032238i3ae6fa19g24720662b9079f24@mail.gmail.com>
-	<20091104101429.23338a42.ospite@studenti.unina.it>
-From: Eric Miao <eric.y.miao@gmail.com>
-Date: Wed, 4 Nov 2009 17:19:47 +0800
-Message-ID: <f17812d70911040119g6eb1f254pa78dd8519afef61d@mail.gmail.com>
-Subject: Re: [PATCH 1/3] ezx: Add camera support for A780 and A910 EZX phones
-To: Antonio Ospite <ospite@studenti.unina.it>
-Cc: linux-arm-kernel@lists.infradead.org,
-	openezx-devel@lists.openezx.org, Bart Visscher <bartv@thisnet.nl>,
-	linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200911041542.30543.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 4, 2009 at 5:14 PM, Antonio Ospite <ospite@studenti.unina.it> wrote:
-> On Wed, 4 Nov 2009 14:38:40 +0800
-> Eric Miao <eric.y.miao@gmail.com> wrote:
->
->> Hi Antonio,
->>
->> Patch looks generally OK except for the MFP/GPIO usage, check my
->> comments below, thanks.
->>
->
-> Ok, will resend ASAP. Some questions inlined below after your comments.
->
->> > +/* camera */
->> > +static int a780_pxacamera_init(struct device *dev)
->> > +{
->> > +       int err;
->> > +
->> > +       /*
->> > +        * GPIO50_GPIO is CAM_EN: active low
->> > +        * GPIO19_GPIO is CAM_RST: active high
->> > +        */
->> > +       err = gpio_request(MFP_PIN_GPIO50, "nCAM_EN");
->>
->> Mmm... MFP != GPIO, so this probably should be written simply as:
->>
->> #define GPIO_nCAM_EN  (50)
->>
->
-> If the use of parentheses here is recommended, should I send another
-> patch to add them to current defines for GPIOs in ezx.c, for style
-> consistency?
+Hi Joe,
 
-I don't actually care about that - with or without parentheses are both OK
-to me, though Guennadi recommends removing them, so it would be
-just OK to left them untouched.
+On Saturday 31 October 2009 20:27:38 Joe Perches wrote:
+> On Sat, 2009-10-31 at 20:10 +0100, Laurent Pinchart wrote:
+> > On Saturday 31 October 2009 10:07:01 Mauro Carvalho Chehab wrote:
+> > > I'm assuming that those printk patches from Joe to uvc will go via your
+> > >  tree, so please submit a pull request when they'll be ready for
+> > > upstream.
+> >
+> > I'll submit the pull request as soon as the printk core patch hits
+> > upstream.
+> 
+> I believe Andrew Morton has picked up the patches for
+> his mm-commits set.  If you do nothing, these should
+> show up in Linus' tree after awhile.
 
->
->> or (which tends to be more accurate but not necessary)
->>
->> #define GPIO_nCAM_EN  mfp_to_gpio(MFP_PIN_GPIO50)
->>
->
-> For me it is the same, just tell me if you really prefer this one.
->
+Thanks for the notice.
 
-OK, the first/simple one pls
+Andrew, could you please drop drivers-media-video-uvc-use-%pul-to-print-
+uuids.patch ? I will push it through the v4l-dvb tree as I need to add 
+backward compatibility support.
 
->> > +
->> > +static int a780_pxacamera_power(struct device *dev, int on)
->> > +{
->> > +       gpio_set_value(MFP_PIN_GPIO50, on ? 0 : 1);
->>
->>       gpio_set_value(GPIO_nCAM_EN, on ? 0 : 1);
->>
->> > +
->> > +#if 0
->> > +       /*
->> > +        * This is reported to resolve the "vertical line in view finder"
->> > +        * issue (LIBff11930), in the original source code released by
->> > +        * Motorola, but we never experienced the problem, so we don't use
->> > +        * this for now.
->> > +        *
->> > +        * AP Kernel camera driver: set TC_MM_EN to low when camera is running
->> > +        * and TC_MM_EN to high when camera stops.
->> > +        *
->> > +        * BP Software: if TC_MM_EN is low, BP do not shut off 26M clock, but
->> > +        * BP can sleep itself.
->> > +        */
->> > +       gpio_set_value(MFP_PIN_GPIO99, on ? 0 : 1);
->> > +#endif
->>
->> This is a little bit confusing - can we remove this for this stage?
->>
->
-> Ok, I am removing it for now. I might put this note in again in
-> future, hopefully with a better description.
->
+-- 
+Regards,
 
-That would be good.
+Laurent Pinchart
