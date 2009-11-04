@@ -1,203 +1,437 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway09.websitewelcome.com ([64.5.52.12]:44716 "HELO
-	gateway09.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1757909AbZKJTeT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Nov 2009 14:34:19 -0500
-Received: from [66.15.212.169] (port=18759 helo=[10.140.5.16])
-	by gator886.hostgator.com with esmtpsa (SSLv3:AES256-SHA:256)
-	(Exim 4.69)
-	(envelope-from <pete@sensoray.com>)
-	id 1N7wNK-00066j-Tn
-	for linux-media@vger.kernel.org; Tue, 10 Nov 2009 13:27:36 -0600
-Subject: [PATCH 3/5] s2250: Change module structure
-From: Pete Eberlein <pete@sensoray.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain
-Date: Tue, 10 Nov 2009 11:21:37 -0800
-Message-Id: <1257880897.21307.1105.camel@pete-desktop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from devils.ext.ti.com ([198.47.26.153]:59713 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757125AbZKDQ5g convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2009 11:57:36 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Date: Wed, 4 Nov 2009 10:57:31 -0600
+Subject: RE: [PATCH/RFC 9/9 v2] mt9t031: make the use of the soc-camera
+ client API optional
+Message-ID: <A69FA2915331DC488A831521EAE36FE40155833A4C@dlee06.ent.ti.com>
+References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
+ <Pine.LNX.4.64.0910301442570.4378@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE401557987F6@dlee06.ent.ti.com>
+ <Pine.LNX.4.64.0910302112300.4378@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE40155798D56@dlee06.ent.ti.com>
+ <Pine.LNX.4.64.0911041703000.4837@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0911041703000.4837@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pete Eberlein <pete@sensoray.com>
+Guennadi,
 
-The s2250-board i2c module was converted to use v4l2-i2c-drv.h in
-preparation for its subdev conversion.  This change prevented the
-s2250-loader from being initialized within the same module due to
-the module_init and module_exit function definitions in v4l2-i2c-drv.h.
-Therefore, s2250-loader is now its own module, and the header for
-exporting s2250-loader functions is no longer needed.
+Thanks for the reply. I will have a chance to work on this
+sometime in the next two weeks as I am pre-occupied with other
+items. I will definitely try to use this version and do my
+testing and let you know the result.
 
-The s2250 i2c module name was "2220-board" in some places, and was
-changed to "s2250".
+Will this apply cleanly to the v4l-dvb linux-next branch?
 
-Priority: normal
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+phone: 301-407-9583
+email: m-karicheri2@ti.com
 
-Signed-off-by: Pete Eberlein <pete@sensoray.com>
-
-diff -r 99e4a0cf6788 -r 5fe2031944d4 linux/drivers/staging/go7007/Makefile
---- a/linux/drivers/staging/go7007/Makefile	Tue Nov 10 10:47:34 2009 -0800
-+++ b/linux/drivers/staging/go7007/Makefile	Tue Nov 10 10:54:51 2009 -0800
-@@ -5,7 +5,7 @@
- 
- obj-$(CONFIG_VIDEO_GO7007) += go7007.o
- obj-$(CONFIG_VIDEO_GO7007_USB) += go7007-usb.o
--obj-$(CONFIG_VIDEO_GO7007_USB_S2250_BOARD) += s2250.o
-+obj-$(CONFIG_VIDEO_GO7007_USB_S2250_BOARD) += s2250.o s2250-loader.o
- obj-$(CONFIG_VIDEO_GO7007_SAA7113) += wis-saa7113.o
- obj-$(CONFIG_VIDEO_GO7007_OV7640) += wis-ov7640.o
- obj-$(CONFIG_VIDEO_GO7007_SAA7115) += wis-saa7115.o
-@@ -17,7 +17,7 @@
- go7007-objs += go7007-v4l2.o go7007-driver.o go7007-i2c.o go7007-fw.o \
- 		snd-go7007.o
- 
--s2250-objs += s2250-board.o s2250-loader.o
-+s2250-objs += s2250-board.o
- 
- # Uncomment when the saa7134 patches get into upstream
- #ifneq ($(CONFIG_VIDEO_SAA7134),)
-diff -r 99e4a0cf6788 -r 5fe2031944d4 linux/drivers/staging/go7007/go7007-driver.c
---- a/linux/drivers/staging/go7007/go7007-driver.c	Tue Nov 10 10:47:34 2009 -0800
-+++ b/linux/drivers/staging/go7007/go7007-driver.c	Tue Nov 10 10:54:51 2009 -0800
-@@ -219,7 +219,7 @@
- 		modname = "wis-ov7640";
- 		break;
- 	case I2C_DRIVERID_S2250:
--		modname = "s2250-board";
-+		modname = "s2250";
- 		break;
- 	default:
- 		modname = NULL;
-diff -r 99e4a0cf6788 -r 5fe2031944d4 linux/drivers/staging/go7007/go7007-usb.c
---- a/linux/drivers/staging/go7007/go7007-usb.c	Tue Nov 10 10:47:34 2009 -0800
-+++ b/linux/drivers/staging/go7007/go7007-usb.c	Tue Nov 10 10:54:51 2009 -0800
-@@ -425,7 +425,7 @@
- 		.num_i2c_devs	 = 1,
- 		.i2c_devs	 = {
- 			{
--				.type	= "s2250_board",
-+				.type	= "s2250",
- 				.id	= I2C_DRIVERID_S2250,
- 				.addr	= 0x43,
- 			},
-diff -r 99e4a0cf6788 -r 5fe2031944d4 linux/drivers/staging/go7007/s2250-board.c
---- a/linux/drivers/staging/go7007/s2250-board.c	Tue Nov 10 10:47:34 2009 -0800
-+++ b/linux/drivers/staging/go7007/s2250-board.c	Tue Nov 10 10:54:51 2009 -0800
-@@ -20,10 +20,13 @@
- #include <linux/usb.h>
- #include <linux/i2c.h>
- #include <linux/videodev2.h>
-+#include <media/v4l2-device.h>
- #include <media/v4l2-common.h>
--#include "s2250-loader.h"
-+#include <media/v4l2-i2c-drv.h>
- #include "go7007-priv.h"
--#include "wis-i2c.h"
-+
-+MODULE_DESCRIPTION("Sensoray 2250/2251 i2c v4l2 subdev driver");
-+MODULE_LICENSE("GPL v2");
- 
- #define TLV320_ADDRESS      0x34
- #define VPX322_ADDR_ANALOGCONTROL1	0x02
-@@ -575,7 +578,7 @@
- 	dec->audio = audio;
- 	i2c_set_clientdata(client, dec);
- 
--	printk(KERN_DEBUG
-+	printk(KERN_INFO
- 	       "s2250: initializing video decoder on %s\n",
- 	       adapter->name);
- 
-@@ -648,46 +651,20 @@
- 	return 0;
- }
- 
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
- static struct i2c_device_id s2250_id[] = {
--	{ "s2250_board", 0 },
-+	{ "s2250", 0 },
- 	{ }
- };
-+MODULE_DEVICE_TABLE(i2c, s2250_id);
- 
--static struct i2c_driver s2250_driver = {
--	.driver = {
--		.name	= "Sensoray 2250 board driver",
--	},
--	.probe		= s2250_probe,
--	.remove		= s2250_remove,
--	.command	= s2250_command,
--	.id_table	= s2250_id,
-+#endif
-+static struct v4l2_i2c_driver_data v4l2_i2c_data = {
-+	.name = "s2250",
-+	.probe = s2250_probe,
-+	.remove = s2250_remove,
-+	.command = s2250_command,
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
-+	.id_table = s2250_id,
-+#endif
- };
--
--static int __init s2250_init(void)
--{
--	int r;
--
--	r = s2250loader_init();
--	if (r < 0)
--		return r;
--
--	r = i2c_add_driver(&s2250_driver);
--	if (r < 0)
--		s2250loader_cleanup();
--
--	return r;
--}
--
--static void __exit s2250_cleanup(void)
--{
--	i2c_del_driver(&s2250_driver);
--
--	s2250loader_cleanup();
--}
--
--module_init(s2250_init);
--module_exit(s2250_cleanup);
--
--MODULE_AUTHOR("");
--MODULE_DESCRIPTION("Board driver for Sensoryray 2250");
--MODULE_LICENSE("GPL v2");
-diff -r 99e4a0cf6788 -r 5fe2031944d4 linux/drivers/staging/go7007/s2250-loader.c
---- a/linux/drivers/staging/go7007/s2250-loader.c	Tue Nov 10 10:47:34 2009 -0800
-+++ b/linux/drivers/staging/go7007/s2250-loader.c	Tue Nov 10 10:54:51 2009 -0800
-@@ -162,7 +162,7 @@
- 	.id_table	= s2250loader_ids,
- };
- 
--int s2250loader_init(void)
-+static int __init s2250loader_init(void)
- {
- 	int r;
- 	unsigned i = 0;
-@@ -179,11 +179,15 @@
- 	printk(KERN_INFO "s2250loader_init: driver registered\n");
- 	return 0;
- }
--EXPORT_SYMBOL(s2250loader_init);
-+module_init(s2250loader_init);
- 
--void s2250loader_cleanup(void)
-+static void __exit s2250loader_cleanup(void)
- {
- 	printk(KERN_INFO "s2250loader_cleanup\n");
- 	usb_deregister(&s2250loader_driver);
- }
--EXPORT_SYMBOL(s2250loader_cleanup);
-+module_exit(s2250loader_cleanup);
-+
-+MODULE_AUTHOR("");
-+MODULE_DESCRIPTION("firmware loader for Sensoray 2250/2251");
-+MODULE_LICENSE("GPL v2");
+>-----Original Message-----
+>From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+>Sent: Wednesday, November 04, 2009 11:49 AM
+>To: Karicheri, Muralidharan
+>Cc: Linux Media Mailing List; Hans Verkuil; Laurent Pinchart; Sakari Ailus
+>Subject: [PATCH/RFC 9/9 v2] mt9t031: make the use of the soc-camera client
+>API optional
+>
+>Now that we have moved most of the functions over to the v4l2-subdev API,
+>only
+>quering and setting bus parameters are still performed using the legacy
+>soc-camera client API. Make the use of this API optional for mt9t031.
+>
+>Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>---
+>
+>On Mon, 2 Nov 2009, Karicheri, Muralidharan wrote:
+>
+>> >> >+static struct soc_camera_ops mt9t031_ops = {
+>> >> >+	.set_bus_param		= mt9t031_set_bus_param,
+>> >> >+	.query_bus_param	= mt9t031_query_bus_param,
+>> >> >+	.controls		= mt9t031_controls,
+>> >> >+	.num_controls		= ARRAY_SIZE(mt9t031_controls),
+>> >> >+};
+>> >> >+
+>> >>
+>> >> [MK] Why don't you implement queryctrl ops in core? query_bus_param
+>> >> & set_bus_param() can be implemented as a sub device operation as well
+>> >> right? I think we need to get the bus parameter RFC implemented and
+>> >> this driver could be targeted for it's first use so that we could
+>> >> work together to get it accepted. I didn't get a chance to study your
+>> >> bus image format RFC, but plan to review it soon and to see if it can
+>be
+>> >> used in my platform as well. For use of this driver in our platform,
+>> >> all reference to soc_ must be removed. I am ok if the structure is
+>> >> re-used, but if this driver calls any soc_camera function, it canot
+>> >> be used in my platform.
+>> >
+>> >Why? Some soc-camera functions are just library functions, you just have
+>> >to build soc-camera into your kernel. (also see below)
+>> >
+>> My point is that the control is for the sensor device, so why to
+>implement
+>> queryctrl in SoC camera? Just for this I need to include SOC camera in
+>> my build? That doesn't make any sense at all. IMHO, queryctrl()
+>> logically belongs to this sensor driver which can be called from the
+>> bridge driver using sudev API call. Any reverse dependency from MT9T031
+>> to SoC camera to be removed if it is to be re-used across other
+>> platforms. Can we agree on this?
+>
+>In general I'm sure you understand, that there are lots of functions in
+>the kernel, that we use in specific modules, not because they interact
+>with other systems, but because they implement some common functionality
+>and just reduce code-duplication. And I can well imagine that in many such
+>cases using just one or a couple of such functions will pull a much larger
+>pile of unused code with them. But in this case those calls can indeed be
+>very easily eliminated. Please have a look at the version below.
+>
+>> Did you have a chance to compare the driver file that I had sent to you?
+>
+>I looked at it, but it is based on an earlier version of the driver, so,
+>it wasn't very easy to compare. Maybe you could send a diff against the
+>mainline version, on which it is based?
+>
+>Thanks
+>Guennadi
+>
+> drivers/media/video/mt9t031.c |  167 +++++++++++++++++++++----------------
+>----
+> 1 files changed, 85 insertions(+), 82 deletions(-)
+>
+>diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
+>index c95c277..86bf8f6 100644
+>--- a/drivers/media/video/mt9t031.c
+>+++ b/drivers/media/video/mt9t031.c
+>@@ -204,6 +204,71 @@ static unsigned long mt9t031_query_bus_param(struct
+>soc_camera_device *icd)
+> 	return soc_camera_apply_sensor_flags(icl, MT9T031_BUS_PARAM);
+> }
+>
+>+enum {
+>+	MT9T031_CTRL_VFLIP,
+>+	MT9T031_CTRL_HFLIP,
+>+	MT9T031_CTRL_GAIN,
+>+	MT9T031_CTRL_EXPOSURE,
+>+	MT9T031_CTRL_EXPOSURE_AUTO,
+>+};
+>+
+>+static const struct v4l2_queryctrl mt9t031_controls[] = {
+>+	[MT9T031_CTRL_VFLIP] = {
+>+		.id		= V4L2_CID_VFLIP,
+>+		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+>+		.name		= "Flip Vertically",
+>+		.minimum	= 0,
+>+		.maximum	= 1,
+>+		.step		= 1,
+>+		.default_value	= 0,
+>+	},
+>+	[MT9T031_CTRL_HFLIP] = {
+>+		.id		= V4L2_CID_HFLIP,
+>+		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+>+		.name		= "Flip Horizontally",
+>+		.minimum	= 0,
+>+		.maximum	= 1,
+>+		.step		= 1,
+>+		.default_value	= 0,
+>+	},
+>+	[MT9T031_CTRL_GAIN] = {
+>+		.id		= V4L2_CID_GAIN,
+>+		.type		= V4L2_CTRL_TYPE_INTEGER,
+>+		.name		= "Gain",
+>+		.minimum	= 0,
+>+		.maximum	= 127,
+>+		.step		= 1,
+>+		.default_value	= 64,
+>+		.flags		= V4L2_CTRL_FLAG_SLIDER,
+>+	},
+>+	[MT9T031_CTRL_EXPOSURE] = {
+>+		.id		= V4L2_CID_EXPOSURE,
+>+		.type		= V4L2_CTRL_TYPE_INTEGER,
+>+		.name		= "Exposure",
+>+		.minimum	= 1,
+>+		.maximum	= 255,
+>+		.step		= 1,
+>+		.default_value	= 255,
+>+		.flags		= V4L2_CTRL_FLAG_SLIDER,
+>+	},
+>+	[MT9T031_CTRL_EXPOSURE_AUTO] = {
+>+		.id		= V4L2_CID_EXPOSURE_AUTO,
+>+		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+>+		.name		= "Automatic Exposure",
+>+		.minimum	= 0,
+>+		.maximum	= 1,
+>+		.step		= 1,
+>+		.default_value	= 1,
+>+	}
+>+};
+>+
+>+static struct soc_camera_ops mt9t031_ops = {
+>+	.set_bus_param		= mt9t031_set_bus_param,
+>+	.query_bus_param	= mt9t031_query_bus_param,
+>+	.controls		= mt9t031_controls,
+>+	.num_controls		= ARRAY_SIZE(mt9t031_controls),
+>+};
+>+
+> /* target must be _even_ */
+> static u16 mt9t031_skip(s32 *source, s32 target, s32 max)
+> {
+>@@ -223,10 +288,9 @@ static u16 mt9t031_skip(s32 *source, s32 target, s32
+>max)
+> }
+>
+> /* rect is the sensor rectangle, the caller guarantees parameter validity
+>*/
+>-static int mt9t031_set_params(struct soc_camera_device *icd,
+>+static int mt9t031_set_params(struct i2c_client *client,
+> 			      struct v4l2_rect *rect, u16 xskip, u16 yskip)
+> {
+>-	struct i2c_client *client =
+>to_i2c_client(to_soc_camera_control(icd));
+> 	struct mt9t031 *mt9t031 = to_mt9t031(client);
+> 	int ret;
+> 	u16 xbin, ybin;
+>@@ -307,8 +371,7 @@ static int mt9t031_set_params(struct soc_camera_device
+>*icd,
+> 		if (ret >= 0) {
+> 			const u32 shutter_max = MT9T031_MAX_HEIGHT + vblank;
+> 			const struct v4l2_queryctrl *qctrl =
+>-				soc_camera_find_qctrl(icd->ops,
+>-						      V4L2_CID_EXPOSURE);
+>+				&mt9t031_controls[MT9T031_CTRL_EXPOSURE];
+> 			mt9t031->exposure = (shutter_max / 2 + (total_h - 1) *
+> 				 (qctrl->maximum - qctrl->minimum)) /
+> 				shutter_max + qctrl->minimum;
+>@@ -333,7 +396,6 @@ static int mt9t031_s_crop(struct v4l2_subdev *sd,
+>struct v4l2_crop *a)
+> 	struct v4l2_rect rect = a->c;
+> 	struct i2c_client *client = sd->priv;
+> 	struct mt9t031 *mt9t031 = to_mt9t031(client);
+>-	struct soc_camera_device *icd = client->dev.platform_data;
+>
+> 	rect.width = ALIGN(rect.width, 2);
+> 	rect.height = ALIGN(rect.height, 2);
+>@@ -344,7 +406,7 @@ static int mt9t031_s_crop(struct v4l2_subdev *sd,
+>struct v4l2_crop *a)
+> 	soc_camera_limit_side(&rect.top, &rect.height,
+> 		     MT9T031_ROW_SKIP, MT9T031_MIN_HEIGHT, MT9T031_MAX_HEIGHT);
+>
+>-	return mt9t031_set_params(icd, &rect, mt9t031->xskip, mt9t031-
+>>yskip);
+>+	return mt9t031_set_params(client, &rect, mt9t031->xskip, mt9t031-
+>>yskip);
+> }
+>
+> static int mt9t031_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+>@@ -391,7 +453,6 @@ static int mt9t031_s_fmt(struct v4l2_subdev *sd,
+> {
+> 	struct i2c_client *client = sd->priv;
+> 	struct mt9t031 *mt9t031 = to_mt9t031(client);
+>-	struct soc_camera_device *icd = client->dev.platform_data;
+> 	u16 xskip, yskip;
+> 	struct v4l2_rect rect = mt9t031->rect;
+>
+>@@ -403,7 +464,7 @@ static int mt9t031_s_fmt(struct v4l2_subdev *sd,
+> 	yskip = mt9t031_skip(&rect.height, imgf->height, MT9T031_MAX_HEIGHT);
+>
+> 	/* mt9t031_set_params() doesn't change width and height */
+>-	return mt9t031_set_params(icd, &rect, xskip, yskip);
+>+	return mt9t031_set_params(client, &rect, xskip, yskip);
+> }
+>
+> /*
+>@@ -476,59 +537,6 @@ static int mt9t031_s_register(struct v4l2_subdev *sd,
+> }
+> #endif
+>
+>-static const struct v4l2_queryctrl mt9t031_controls[] = {
+>-	{
+>-		.id		= V4L2_CID_VFLIP,
+>-		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+>-		.name		= "Flip Vertically",
+>-		.minimum	= 0,
+>-		.maximum	= 1,
+>-		.step		= 1,
+>-		.default_value	= 0,
+>-	}, {
+>-		.id		= V4L2_CID_HFLIP,
+>-		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+>-		.name		= "Flip Horizontally",
+>-		.minimum	= 0,
+>-		.maximum	= 1,
+>-		.step		= 1,
+>-		.default_value	= 0,
+>-	}, {
+>-		.id		= V4L2_CID_GAIN,
+>-		.type		= V4L2_CTRL_TYPE_INTEGER,
+>-		.name		= "Gain",
+>-		.minimum	= 0,
+>-		.maximum	= 127,
+>-		.step		= 1,
+>-		.default_value	= 64,
+>-		.flags		= V4L2_CTRL_FLAG_SLIDER,
+>-	}, {
+>-		.id		= V4L2_CID_EXPOSURE,
+>-		.type		= V4L2_CTRL_TYPE_INTEGER,
+>-		.name		= "Exposure",
+>-		.minimum	= 1,
+>-		.maximum	= 255,
+>-		.step		= 1,
+>-		.default_value	= 255,
+>-		.flags		= V4L2_CTRL_FLAG_SLIDER,
+>-	}, {
+>-		.id		= V4L2_CID_EXPOSURE_AUTO,
+>-		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+>-		.name		= "Automatic Exposure",
+>-		.minimum	= 0,
+>-		.maximum	= 1,
+>-		.step		= 1,
+>-		.default_value	= 1,
+>-	}
+>-};
+>-
+>-static struct soc_camera_ops mt9t031_ops = {
+>-	.set_bus_param		= mt9t031_set_bus_param,
+>-	.query_bus_param	= mt9t031_query_bus_param,
+>-	.controls		= mt9t031_controls,
+>-	.num_controls		= ARRAY_SIZE(mt9t031_controls),
+>-};
+>-
+> static int mt9t031_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control
+>*ctrl)
+> {
+> 	struct i2c_client *client = sd->priv;
+>@@ -565,15 +573,9 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd,
+>struct v4l2_control *ctrl)
+> {
+> 	struct i2c_client *client = sd->priv;
+> 	struct mt9t031 *mt9t031 = to_mt9t031(client);
+>-	struct soc_camera_device *icd = client->dev.platform_data;
+> 	const struct v4l2_queryctrl *qctrl;
+> 	int data;
+>
+>-	qctrl = soc_camera_find_qctrl(&mt9t031_ops, ctrl->id);
+>-
+>-	if (!qctrl)
+>-		return -EINVAL;
+>-
+> 	switch (ctrl->id) {
+> 	case V4L2_CID_VFLIP:
+> 		if (ctrl->value)
+>@@ -592,6 +594,7 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd,
+>struct v4l2_control *ctrl)
+> 			return -EIO;
+> 		break;
+> 	case V4L2_CID_GAIN:
+>+		qctrl = &mt9t031_controls[MT9T031_CTRL_GAIN];
+> 		if (ctrl->value > qctrl->maximum || ctrl->value < qctrl-
+>>minimum)
+> 			return -EINVAL;
+> 		/* See Datasheet Table 7, Gain settings. */
+>@@ -631,6 +634,7 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd,
+>struct v4l2_control *ctrl)
+> 		mt9t031->gain = ctrl->value;
+> 		break;
+> 	case V4L2_CID_EXPOSURE:
+>+		qctrl = &mt9t031_controls[MT9T031_CTRL_EXPOSURE];
+> 		/* mt9t031 has maximum == default */
+> 		if (ctrl->value > qctrl->maximum || ctrl->value < qctrl-
+>>minimum)
+> 			return -EINVAL;
+>@@ -657,7 +661,7 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd,
+>struct v4l2_control *ctrl)
+>
+> 			if (set_shutter(client, total_h) < 0)
+> 				return -EIO;
+>-			qctrl = soc_camera_find_qctrl(icd->ops,
+>V4L2_CID_EXPOSURE);
+>+			qctrl = &mt9t031_controls[MT9T031_CTRL_EXPOSURE];
+> 			mt9t031->exposure = (shutter_max / 2 + (total_h - 1) *
+> 				 (qctrl->maximum - qctrl->minimum)) /
+> 				shutter_max + qctrl->minimum;
+>@@ -665,6 +669,8 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd,
+>struct v4l2_control *ctrl)
+> 		} else
+> 			mt9t031->autoexposure = 0;
+> 		break;
+>+	default:
+>+		return -EINVAL;
+> 	}
+> 	return 0;
+> }
+>@@ -751,18 +757,16 @@ static int mt9t031_probe(struct i2c_client *client,
+> 	struct mt9t031 *mt9t031;
+> 	struct soc_camera_device *icd = client->dev.platform_data;
+> 	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
+>-	struct soc_camera_link *icl;
+> 	int ret;
+>
+>-	if (!icd) {
+>-		dev_err(&client->dev, "MT9T031: missing soc-camera data!\n");
+>-		return -EINVAL;
+>-	}
+>+	if (icd) {
+>+		struct soc_camera_link *icl = to_soc_camera_link(icd);
+>+		if (!icl) {
+>+			dev_err(&client->dev, "MT9T031 driver needs platform
+>data\n");
+>+			return -EINVAL;
+>+		}
+>
+>-	icl = to_soc_camera_link(icd);
+>-	if (!icl) {
+>-		dev_err(&client->dev, "MT9T031 driver needs platform data\n");
+>-		return -EINVAL;
+>+		icd->ops = &mt9t031_ops;
+> 	}
+>
+> 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
+>@@ -777,9 +781,6 @@ static int mt9t031_probe(struct i2c_client *client,
+>
+> 	v4l2_i2c_subdev_init(&mt9t031->subdev, client, &mt9t031_subdev_ops);
+>
+>-	/* Second stage probe - when a capture adapter is there */
+>-	icd->ops		= &mt9t031_ops;
+>-
+> 	mt9t031->rect.left	= MT9T031_COLUMN_SKIP;
+> 	mt9t031->rect.top	= MT9T031_ROW_SKIP;
+> 	mt9t031->rect.width	= MT9T031_MAX_WIDTH;
+>@@ -801,7 +802,8 @@ static int mt9t031_probe(struct i2c_client *client,
+> 	mt9t031_disable(client);
+>
+> 	if (ret) {
+>-		icd->ops = NULL;
+>+		if (icd)
+>+			icd->ops = NULL;
+> 		i2c_set_clientdata(client, NULL);
+> 		kfree(mt9t031);
+> 	}
+>@@ -814,7 +816,8 @@ static int mt9t031_remove(struct i2c_client *client)
+> 	struct mt9t031 *mt9t031 = to_mt9t031(client);
+> 	struct soc_camera_device *icd = client->dev.platform_data;
+>
+>-	icd->ops = NULL;
+>+	if (icd)
+>+		icd->ops = NULL;
+> 	i2c_set_clientdata(client, NULL);
+> 	client->driver = NULL;
+> 	kfree(mt9t031);
+>--
+>1.6.2.4
+>
 
