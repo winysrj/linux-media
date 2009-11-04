@@ -1,48 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from khc.piap.pl ([195.187.100.11]:56635 "EHLO khc.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758701AbZKZQl0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 11:41:26 -0500
-From: Krzysztof Halasa <khc@pm.waw.pl>
-To: Gerd Hoffmann <kraxel@redhat.com>
-Cc: Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	dheitmueller@kernellabs.com, dmitry.torokhov@gmail.com,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, mchehab@redhat.com, superm1@ubuntu.com
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was: Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-References: <BDZbPXRZjFB@christoph> <4B0DBC2D.1010603@redhat.com>
-Date: Thu, 26 Nov 2009 17:41:28 +0100
-In-Reply-To: <4B0DBC2D.1010603@redhat.com> (Gerd Hoffmann's message of "Thu,
-	26 Nov 2009 00:22:21 +0100")
-Message-ID: <m38wdtw85j.fsf@intrepid.localdomain>
+Received: from mail.gmx.net ([213.165.64.20]:51702 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1755239AbZKDLTl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Nov 2009 06:19:41 -0500
+Message-ID: <4AF16351.1040409@gmx.de>
+Date: Wed, 04 Nov 2009 12:19:45 +0100
+From: Andreas Regel <andreas.regel@gmx.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: =?ISO-8859-1?Q?Magnus_H=F6rlin?= <magnus@alefors.se>
+CC: linux-media@vger.kernel.org
+Subject: Re: TT S2-1600 and NOVA-HD-S2 tuning problems on some transponders
+References: <000001ca5d3a$c9a65d10$9b65a8c0@Sensysserver.local>
+In-Reply-To: <000001ca5d3a$c9a65d10$9b65a8c0@Sensysserver.local>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Gerd Hoffmann <kraxel@redhat.com> writes:
+Hi Magnus,
 
-> Why not?  With RC5 remotes applications can get the device address
-> bits for example, which right now are simply get lost in the ir code
-> -> 
-> keycode conversion step.
+Magnus Hörlin schrieb:
+> The S2-1600's are more inconsistent. They have problems tuning to 11421,
+> 12130, 12226 and 12341 MHz. Sometimes they do and once locked, they run
+> forever with perfect reception. I don't understand why there's a problem
+> with these transponders since they tune just fine to transponders with the
+> same SR, polarisation and nearby frequencies. Very greateful for any input.
 
-Right, this in fact makes the input layer interface unusable for many
-remotes at this time.
-I think the address (aka group) should be just a part of the key
-("command") code, IIRC this is what lirc RC5 does (I'm presently using
-a custom "media" version of RC5).
+The stv090x driver as it is in current hg repository has some known issues with locking reliability.
 
-> I know that lircd does matching instead of decoding, which allows to
-> handle unknown encodings.  Thats why I think there will always be
-> cases which only lircd will be able to handle (using raw samples).
->
-> That doesn't make attempts to actually decode the IR samples a useless
-> exercise though ;)
+Please try the patches that I sent two days ago to the list.
 
-Sure. Especially RC5-like protos are simple to decode, and it's very
-reliable, even with a very unstable remote clock source (such as
-RC-based = resistor + capacitor).
--- 
-Krzysztof Halasa
+Andreas
