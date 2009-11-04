@@ -1,94 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:41050 "EHLO mail1.radix.net"
+Received: from bear.ext.ti.com ([192.94.94.41]:35294 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753717AbZKAW5M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Nov 2009 17:57:12 -0500
-Subject: Re: cx18: YUV frame alignment improvements
-From: Andy Walls <awalls@radix.net>
-To: Brandon Jenkins <bcjenkins@tvwhere.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org, ivtv-devel@ivtvdriver.org,
-	Simon Farnsworth <simon.farnsworth@onelan.com>
-In-Reply-To: <de8cad4d0911011010g1bb3d595ge87e3b168ce41c32@mail.gmail.com>
-References: <1257020204.3087.18.camel@palomino.walls.org>
-	 <829197380910311328u2879c45ep2023a99058112549@mail.gmail.com>
-	 <1257036094.3181.7.camel@palomino.walls.org>
-	 <de8cad4d0910311925u28895ca9q454ccf0ac1032302@mail.gmail.com>
-	 <1257079055.3061.19.camel@palomino.walls.org>
-	 <de8cad4d0911011010g1bb3d595ge87e3b168ce41c32@mail.gmail.com>
-Content-Type: text/plain
-Date: Sun, 01 Nov 2009 17:59:14 -0500
-Message-Id: <1257116354.3076.14.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	id S1751732AbZKDSbf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2009 13:31:35 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Neil Johnson <realdealneil@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 4 Nov 2009 12:31:39 -0600
+Subject: RE: still image capture with video preview
+Message-ID: <A69FA2915331DC488A831521EAE36FE40155833B30@dlee06.ent.ti.com>
+References: <3d7d5c150911040913i5486bd07r3a465a2f7d2d5a3e@mail.gmail.com>
+In-Reply-To: <3d7d5c150911040913i5486bd07r3a465a2f7d2d5a3e@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2009-11-01 at 13:10 -0500, Brandon Jenkins wrote:
-> On Sun, Nov 1, 2009 at 7:37 AM, Andy Walls <awalls@radix.net> wrote:
-> > On Sat, 2009-10-31 at 22:25 -0400, Brandon Jenkins wrote:
-> >> On Sat, Oct 31, 2009 at 8:41 PM, Andy Walls <awalls@radix.net> wrote:
-> >> > On Sat, 2009-10-31 at 16:28 -0400, Devin Heitmueller wrote:
-> >> >> On Sat, Oct 31, 2009 at 4:16 PM, Andy Walls <awalls@radix.net> wrote:
+Hi Neil,
 
-> > Could you provide the panic to me?  Off-list is fine.
-> >
-> > If I can't get this large buffer scheme to work for the general case to
-> > mainatin YUV frame alignment, I'll have to figure out what will likely
-> > be a much more complex scheme to ensure alignment is maintained in for
-> > YUV streams. :(
-> >
-> > Oh, well.
-> >
-> > Regards,
-> > Andy
-> >
-> >
-> >
-> Hi Andy,
-> 
-> The panic happens upon reboot and it is only 1 line of text oddly shifted.
-> 
-> Kernel panic - not syncing: DMA: Memory would be corrupted
-> 
-> If I switch back to the current v4l-dvb drivers no issue. To switch
-> back I have to boot from a USB drive.
+Interesting use case. I am thinking of doing the same for
+vpfe capture drive and here is what I am thinking of doing.
 
-Brandon,
+1) sensor driver MT9P031 configures either full capture(2592x1944)
+(No skipping or binning) and video mode (VGA or 480p or any other
+resolution through skipping & binning) through S_FMT. MT9T031
+driver in kernel is doing this already (except for supporting
+a specific frame rate) and MT9P031 driver may do the same.
 
-Eww.  OK.  Nevermind performing any more data collection.  I'm going to
-use a new strategy (when I find the time).
+2) Application switch the video node between these two modes (video
+vs still capture)
 
-(Thinking out loud ...)
-Working under the assumptions that:
+For video (may use 3 or more VGA buffers)
 
-1. The encoder always returns 720 pixels worth of data per line (no
-matter what the scaling)
+using S_FMT, REQBUF, QUERYBUF (optional), mmap (optional)
+QBUF, STREAMON...
 
-2. The software HM12 decoders can only deal with full, not partial,
-16x8x2 UV macroblocks at 4:2:0, so scaled YUV height needs to be in
-multiples of 32 lines
+When ready for still capture, application do switching to still capture
+by doing STREAMOFF, S_FMT, REQBUF (use USERPTR), 
+QBUF (one 5M buffer) and STREAMON. When finished, switch back to video
+again. Here the switching time is critical and to be optimized.
 
-3. The CX23418 actually can handle Memory Descriptor Lists (MDLs) with
-more than one buffer per list
+BTW, are you planning to send the mt9p031 driver for review? I was looking
+to see if I can re-use the same in vpfe capture. Also Are you configuring video mode in sensor driver at a specific frame rate? and finally are you using Snapshot mode in sensor for still capture? 
 
-I'm going to use the MDLs to actually hold buffer lists with multiple
-buffers, where individual buffers are 720 * 32 * 3 / 2 = 33.75 kB each.
-That way I can build up buffer lists to hold precisely one frame of YUV
-data at a time, no matter what the scaling, and then know that if the
-cx18 driver misses an incoming MDL notification, the YUV frames will
-stay aligned.  The 33.75 kB buffers should be no problem from a DMA
-perspective, compared to 607.5 kB buffers.
+Thanks.
 
-The pain is that the cx18 driver right now has the hard-coded assumption
-that there is only one buffer per MDL.  It will take a bit of effort to
-fix that assumption in the driver and generalize it to having 1 or more
-buffers per MDL.
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+email: m-karicheri2@ti.com
 
-
-Anyway, thanks for the testing.
-
-Regards,
-Andy
-
+>-----Original Message-----
+>From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>owner@vger.kernel.org] On Behalf Of Neil Johnson
+>Sent: Wednesday, November 04, 2009 12:13 PM
+>To: linux-media@vger.kernel.org
+>Subject: still image capture with video preview
+>
+>linux-media,
+>
+>I previously posted this on the video4linux-list, but linux-media
+>seems a more appropriate place.
+>
+>I am developing on the OMAP3 system using a micron/aptina mt9p031
+>5-megapixel imager.  This CMOs imager supports full image capture
+>(2592x1944 pixels) or you can capture subregions using skipping and
+>binning.  We have proven both capabilities, but would like to be able
+>to capture both VGA sized video and still images without using
+>separate drivers.
+>
+>So far, I have not found any support for capturing large images and
+>video through a single driver interface.  Does such a capability exist
+>within v4l2?  One possible way to solve the problem is to allocate N
+>buffers of the full 5-megapixel size (they end up being 10-MB for each
+>buffer since I'm using 16-bits per pixel), and then using a small
+>portion of that for video.  This is less desirable since when I'm
+>capturing video, I only need 640x480 size buffers, and I should only
+>need one snapshot buffer at a time (I'm not streaming them in, just
+>take a snapshot and go back to live video capture).  Is there a way to
+>allocate a side-buffer for the 5-megapixel image and also allocate
+>"normal" sized buffers for video within the same driver?  Any
+>recommendations on how to accomplish such a thing?  I would think that
+>camera-phones using linux would have run up against this.  Thanks,
+>
+>Neil Johnson
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
