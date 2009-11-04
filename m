@@ -1,49 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:58704 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759227AbZKZIDa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 03:03:30 -0500
-Date: 26 Nov 2009 08:28:00 +0100
-From: lirc@bartelmus.de (Christoph Bartelmus)
-To: kraxel@redhat.com
-Cc: awalls@radix.net
-Cc: dheitmueller@kernellabs.com
-Cc: dmitry.torokhov@gmail.com
-Cc: j@jannau.net
-Cc: jarod@redhat.com
-Cc: jarod@wilsonet.com
-Cc: khc@pm.waw.pl
-Cc: linux-input@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com
-Cc: superm1@ubuntu.com
-Message-ID: <BDcbfiXJjFB@christoph>
-In-Reply-To: <4B0DBC2D.1010603@redhat.com>
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was: Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:38086
+	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932744AbZKDW4m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2009 17:56:42 -0500
+Subject: Re: [PATCH 0/3 v2] linux infrared remote control drivers
+Mime-Version: 1.0 (Apple Message framework v1076)
+Content-Type: text/plain; charset=us-ascii; format=flowed; delsp=yes
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <200910200956.33391.jarod@redhat.com>
+Date: Wed, 4 Nov 2009 17:56:31 -0500
+Cc: linux-kernel@vger.kernel.org, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org, Janne Grunau <j@jannau.net>,
+	Christoph Bartelmus <lirc@bartelmus.de>
+Content-Transfer-Encoding: 7bit
+Message-Id: <C5A8E7EC-81D6-49AA-A65F-9F5D3DED1690@wilsonet.com>
+References: <200910200956.33391.jarod@redhat.com>
+To: Jarod Wilson <jarod@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gerd,
+On Oct 20, 2009, at 9:56 AM, Jarod Wilson wrote:
 
-on 26 Nov 09 at 00:22, Gerd Hoffmann wrote:
-[...]
->> To sum it up: I don't think this information will be useful at all for
->> lircd or anyone else.
-[...]
-> I know that lircd does matching instead of decoding, which allows to
-> handle unknown encodings.  Thats why I think there will always be cases
-> which only lircd will be able to handle (using raw samples).
->
-> That doesn't make attempts to actually decode the IR samples a useless
-> exercise though ;)
+> This here is a second go at submitting linux infrared remote control
+> (lirc) drivers for kernel inclusion, with a much smaller patch set  
+> that
+> includes only the core lirc driver and two device drivers, all three  
+> of
+> which have been heavily updated since the last submission, based on
+> feedback received.
 
-Well, in my opinion it is kind of useless. I don't see any use case or any  
-demand for passing this kind of information to userspace, at least in the  
-LIRC context.
-If there's no demand, why bother?
+Hm. Submitting this while the vast majority of people who might review  
+it were at the Japan Linux Symposium seems like it might have been a  
+bad idea. Or does no feedback mean its all good and ready to be  
+merged? ;)
 
-Christoph
+-- 
+Jarod Wilson
+jarod@wilsonet.com
+
+
+
