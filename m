@@ -1,117 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:52679 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756670AbZKRAit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2009 19:38:49 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, mchehab@infradead.org,
-	sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH/RFC] V4L core cleanups
-Date: Wed, 18 Nov 2009 01:38:41 +0100
-Message-Id: <1258504731-8430-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail01a.mail.t-online.hu ([84.2.40.6]:60499 "EHLO
+	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751473AbZKDGUW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2009 01:20:22 -0500
+Message-ID: <4AF11D25.1080607@freemail.hu>
+Date: Wed, 04 Nov 2009 07:20:21 +0100
+From: =?ISO-8859-2?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+MIME-Version: 1.0
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: Hans de Goede <hdegoede@redhat.com>,
+	V4L Mailing List <linux-media@vger.kernel.org>,
+	Thomas Kaiser <thomas@kaiser-linux.li>,
+	Theodore Kilgore <kilgota@auburn.edu>,
+	Kyle Guinn <elyk03@gmail.com>
+Subject: Re: [PATCH 3/3] gspca pac7302/pac7311: separate the two subdrivers
+References: <4AEE04DE.2060300@freemail.hu>
+In-Reply-To: <4AEE04DE.2060300@freemail.hu>
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everybody,
+Dear Jef,
 
-this patch sets attemp to clean up the V4L core to remove the
-video_device::minor and video_device::num references in most drivers.
+although I tested my patch on my development computer together with Labtec
+Webcam 2200 (gspca_pac7302 driver) it seems that the patch may cause regression
+on some computers. For example I tested the gspca_pac7302 driver from
+http://linuxtv.org/hg/~jfrancois/gspca/ on top of Linux kernel 2.6.32-rc5 on
+an EeePC 901. I get the following error message in dmesg:
 
-There are two reasons for this. The first one is that drivers really
-shouldn't care about those fields, especially the minor number. This
-doesn't mean a driver can't request a specific device number, that
-remains a perfectly valid use case, but most use cases of those fields
-after device registration shouldn't be needed.
+[ 4476.992201] usb 3-2: new full speed USB device using uhci_hcd and address 11
+[ 4477.230485] usb 3-2: New USB device found, idVendor=093a, idProduct=2626
+[ 4477.230507] usb 3-2: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+[ 4477.231139] usb 3-2: configuration #1 chosen from 1 choice
+[ 4477.417456] Linux video capture interface: v2.00
+[ 4477.437131] gspca: main v2.7.0 registered
+[ 4477.443214] gspca: probing 093a:2626
+[ 4477.453491] gspca: /dev/video0 created
+[ 4477.453541] gspca: probing 093a:2626
+[ 4477.453549] gspca: intf != 0
+[ 4477.453598] gspca: probing 093a:2626
+[ 4477.453605] gspca: intf != 0
+[ 4477.453755] usbcore: registered new interface driver pac7302
+[ 4477.453771] pac7302: registered
+[ 4489.552153] gspca: set alt 8 err -71
 
-The second reason is that most drivers use those fields in bogus ways,
-making it obvious they shouldn't have cared about them in the first
-place :-) We've had a video_drvdata function for a long time, but many
-drivers still have their own private minor -> data mapping lists for
-historical reasons. That code is error prone and completely unneeded.
+I bisected the problem on EeePC 901 and the changeset 13373:99c23949b411
+(gspca - pac7302/pac7311: Separate the two subdrivers.) was marked as the first bad
+commit.
 
-So this patch sets tries to clean up the V4L core by porting drivers to
-the most "recent" APIs (which are actually quite old) and introducing a
-new helper function.
+On my development computer the same configuration works correctly:
 
-The first two patches add and use the video_device_node_name function.
-The function returns a const pointer to the video device name. On
-systems using udev, the name is passed as a hint to udev and will likely
-become the /dev device node name, unless overwritten by udev rules (I've
-heard that some distributions put the V4L device nodes in /dev/v4l).
-Some drivers erroneously created the name from the video_device::minor
-field instead of video_device::num, which is fixed by the second patch.
+[ 7872.020222] usb 3-1: new full speed USB device using uhci_hcd and address 4
+[ 7872.251240] usb 3-1: configuration #1 chosen from 1 choice
+[ 7872.744755] Linux video capture interface: v2.00
+[ 7872.785032] gspca: main v2.7.0 registered
+[ 7872.797061] gspca: probing 093a:2626
+[ 7872.807577] gspca: /dev/video0 created
+[ 7872.809747] usbcore: registered new interface driver pac7302
+[ 7872.809798] pac7302: registered
 
-This is an example video_device_node_name usage typical from what can be
-found in the second patch.
-
--       printk(KERN_INFO "bttv%d: registered device radio%d\n",
--              btv->c.nr, btv->radio_dev->num);
-+       printk(KERN_INFO "bttv%d: registered device %s\n",
-+              btv->c.nr, video_device_node_name(btv->radio_dev));
-
-The third patch removes left video_device::num usage from the drivers.
-The field was used to create information strings that shouldn't include
-the device node name (such as video_device::name) or that should be
-created using a stable identifier (such as i2c_adapter::name).
-
-The fourth, fifth and sixth patches replace video_is_unregistered with
-video_is_registered and use the new function in device drivers. As
-explained in the fourth patch commit message, the rationale behind that
-is to have video_is_registered return false when called on an
-initialized but not yet registered video_device instance. The function
-can be used instead of checking video_device::minor manually, making it
-less error-prone as drivers don't need to make sure they
-video_device::minor to -1 correctly for all error paths.
-
-A typical use case is
-
--       if (-1 != dev->radio_dev->minor)
-+       if (video_is_registered(dev->radio_dev))
-                video_unregister_device(dev->radio_dev);
-        else
-                video_device_release(dev->radio_dev);
-
-The seventh patch replace local minor to data lists by video_drvdata().
-The function has been there for a long time but wasn't used by many
-drivers, probably because they were written before it was available, or,
-for some of them, because they were written based on drivers that were
-not using it. This patch removes lots of identical unneeded code blocks,
-making the result less bug-prone.
-
-The eight patch removes now unneeded video_device::minor assignments to
--1, as the previous patches made them unneeded.
-
-The last patch removes a few more video_device::minor users. As
-explained in the patch description, the field was used either to
-
-- test for error conditions that can't happen anymore with the current
-  v4l-dvb core,
-- store the value in a driver private field that isn't used anymore,
-- check the video device type where video_device::vfl_type should be
-  used, or
-- create the name of a kernel thread that should get a stable name.
-
-There are still two video_device::num users and those can easily be
-removed. Hans Verkuil is working on a patch, as one of the drivers is
-the ivtv driver and the other one is based on the same code.
-
-There are also still a few video_device::minor users. One of them is
-the pvrusb2 driver that creates sysfs attributes storing the minor
-numbers of the device nodes created by the driver. I'm not sure what to
-do about that one. All the others are V4L1 drivers that need the minor
-number for the VIDIOCGUNIT ioctl. Hopefully that will die when the
-drivers will be ported to V4L2 :-)
-
-I've split the patches into core and device patches to make them easier
-to apply on my work trees. I'll merge the core and device code together
-when submitting a pull request to avoid bisection errors.
-
-I'll send a pull request after receiving (and incorporating) your
-comments, or in a few days if there's no comments.
+Is the separated driver working for you?
+Do you have any idea what could went wrong? Maybe some timing problem?
 
 Regards,
 
-Laurent Pinchart
+	Márton Németh
 
+Németh Márton wrote:
+> From: Márton Németh <nm127@freemail.hu>
+> 
+> All PAC7311 specific functions remain in pac7311.c. All PAC7302 specific
+> functions are moved to pac7302.c. The USB device table is also divided into
+> two parts. This makes it possible to remove the sensor specific decisions
+> from different functions and also remove sensor infromation from the USB
+> device table.
+> 
+> The common functions are just copied to both subdrivers. These common
+> functions can be separated later to a common file or helper module.
+> 
+> Signed-off-by: Márton Németh <nm127@freemail.hu>
+> Cc: Thomas Kaiser <thomas@kaiser-linux.li>
+> Cc: Theodore Kilgore <kilgota@auburn.edu>
+> Cc: Kyle Guinn <elyk03@gmail.com>
