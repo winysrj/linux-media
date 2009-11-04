@@ -1,101 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:1581 "EHLO
-	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751353AbZKLH3r convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Nov 2009 02:29:47 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: =?utf-8?q?N=C3=A9meth_M=C3=A1rton?= <nm127@freemail.hu>
-Subject: Re: [PATCH] v4l2-dbg: report fail reason to the user
-Date: Thu, 12 Nov 2009 08:29:40 +0100
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-References: <4AF6BA72.4070809@freemail.hu> <4AF8F8EB.8090705@freemail.hu> <4AFBB7FD.5090607@freemail.hu>
-In-Reply-To: <4AFBB7FD.5090607@freemail.hu>
+Received: from mail.gmx.net ([213.165.64.20]:32842 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1756008AbZKDTO5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Nov 2009 14:14:57 -0500
+Date: Wed, 4 Nov 2009 20:15:16 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Antonio Ospite <ospite@studenti.unina.it>
+cc: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: Re: pxa_camera + mt9m1111:  image shifted (was: Failed to configure
+ for format 50323234)
+In-Reply-To: <20091103144536.1c487f79.ospite@studenti.unina.it>
+Message-ID: <Pine.LNX.4.64.0911042014370.4837@axis700.grange>
+References: <20091002213530.104a5009.ospite@studenti.unina.it>
+ <Pine.LNX.4.64.0910030116270.12093@axis700.grange>
+ <20091003161328.36419315.ospite@studenti.unina.it>
+ <Pine.LNX.4.64.0910040024070.5857@axis700.grange>
+ <20091004171924.7579b589.ospite@studenti.unina.it> <4AC992EA.2070905@hni.uni-paderborn.de>
+ <20091103144536.1c487f79.ospite@studenti.unina.it>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200911120829.40193.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 12 November 2009 08:23:41 Németh Márton wrote:
-> From: Márton Németh <nm127@freemail.hu>
+On Tue, 3 Nov 2009, Antonio Ospite wrote:
+
+> On Mon, 05 Oct 2009 08:32:10 +0200
+> Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de> wrote:
 > 
-> Report the fail reason to the user when writing a register even if
-> the verbose mode is switched off.
+> > Antonio Ospite schrieb:
+> > > On Sun, 4 Oct 2009 00:31:24 +0200 (CEST)
+> > > Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> > >
+> > >>> Anyways your patch works, but the picture is now shifted, see:
+> > >>> http://people.openezx.org/ao2/a780-pxa-camera-mt9m111-shifted.jpg
+> > >>>
+> > >>> Is this because of the new cropping code?
+> > >>>       
+> > >> Hm, it shouldn't be. Does it look always like this - reproducible? What 
+> > >> program are you using? What about other geometry configurations? Have you 
+> > >> ever seen this with previous kernel versions? New cropping - neither 
+> > >> mplayer nor gstreamer use cropping normally. This seems more like a HSYNC 
+> > >> problem to me. Double-check platform data? Is it mioa701 or some custom 
+> > >> board?
+> > >>
 > 
-> Remove duplicated code ioctl() call which may cause different ioctl()
-> function call in case of verbose and non verbose if not handled carefully.
+> Platform data: if I set SOCAM_HSYNC_ACTIVE_HIGH the result is even
+> "wronger", with or without SOCAM_HSYNC_ACTIVE_LOW I get the same
+> result, now reproducible, see below.
 > 
-> Signed-off-by: Márton Németh <nm127@freemail.hu>
-> ---
-> diff -r 60f784aa071d v4l2-apps/util/v4l2-dbg.cpp
-> --- a/v4l2-apps/util/v4l2-dbg.cpp	Wed Nov 11 18:28:53 2009 +0100
-> +++ b/v4l2-apps/util/v4l2-dbg.cpp	Thu Nov 12 08:21:20 2009 +0100
-> @@ -353,14 +353,21 @@
->  static int doioctl(int fd, int request, void *parm, const char *name)
->  {
->  	int retVal;
-> +	int ioctl_errno;
+> >
+> > Only for your information. Maybe it helps to reproduce the error.
+> > 
+> > I have the same problem with my own ov9655 driver on a pxa platform 
+> > since I update to kernel 2.6.30
+> > and add crop support. Every  first open of the camera after system reset 
+> > the image looks like yours.
+> > If I use the camera the next time without changing the resolution 
+> > everything is OK. Only during the
+> > first open the resolution of the camera is changed  and function fmt set 
+> > in the ov9655 driver is called
+> > twice. I use the camera with my one program and it doesn't use crop.
 > 
->  	if (!options[OptVerbose]) return ioctl(fd, request, parm);
->  	retVal = ioctl(fd, request, parm);
-> -	printf("%s: ", name);
-> -	if (retVal < 0)
-> -		printf("failed: %s\n", strerror(errno));
-> -	else
-> -		printf("ok\n");
-> +	if (options[OptVerbose]) {
-> +		/* Save errno because printf() may modify it */
-> +		ioctl_errno = errno;
-> +		printf("%s: ", name);
-> +		if (retVal < 0)
-> +			printf("failed: %s\n", strerror(errno));
-> +		else
-> +			printf("ok\n");
-
-I'm an idiot for not realizing this when I did the first review, but this
-can be done without making a copy of errno. Just do this:
-
-	if (options[OptVerbose]) {
-		if (retVal < 0)
-			printf("%s: failed: %s\n", name, strerror(errno));
-		else
-			printf("%s: ok\n", name);
-
-Much simpler :-)
-
-Can you change this and post again? Then I'll add it to my pending pull
-request.
-
-Thanks,
-
-	Hans
-
-> +		/* Restore errno for caller's use */
-> +		errno = ioctl_errno;
-> +	}
+> Thanks Stefan, now I can reproduce the problem.
+> 1. Boot the system
+> 2. Capture an image with capture-example from v4l2-apps.
 > 
->  	return retVal;
->  }
-> @@ -586,8 +593,8 @@
+> Then I have the shift as in the picture above on the *first* device
+> open, if I open the device again and capture a second time, without
+> rebooting, the picture is fine.
 > 
->  				printf(" set to 0x%llx\n", set_reg.val);
->  			} else {
-> -				printf("Failed to set register 0x%08llx value 0x%llx\n",
-> -					set_reg.reg, set_reg.val);
-> +				printf("Failed to set register 0x%08llx value 0x%llx: %s\n",
-> +					set_reg.reg, set_reg.val, strerror(errno));
->  			}
->  			set_reg.reg++;
->  		}
-> 
+> I'll let you know if I find more clues of what is causing this
+> behavior.
 
+Yes, please do. I'll try to find some time to double-check this with my 
+setup.
 
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
