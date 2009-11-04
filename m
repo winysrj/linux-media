@@ -1,72 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:55669 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752901AbZKPPwf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2009 10:52:35 -0500
-Received: by qw-out-2122.google.com with SMTP id 3so1090395qwe.37
-        for <linux-media@vger.kernel.org>; Mon, 16 Nov 2009 07:52:41 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4B016937.7010906@rug.nl>
-References: <4B016937.7010906@rug.nl>
-Date: Mon, 16 Nov 2009 10:52:40 -0500
-Message-ID: <829197380911160752lcbfd202gcdbed97b85238bd2@mail.gmail.com>
-Subject: Re: xawtv and v4lctl with usbvision kernel driver
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Sietse Achterop <s.achterop@rug.nl>
+Received: from psmtp09.wxs.nl ([195.121.247.23]:33664 "EHLO psmtp09.wxs.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755351AbZKDNaf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Nov 2009 08:30:35 -0500
+Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
+ by psmtp09.wxs.nl
+ (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
+ with ESMTP id <0KSL00BO96V08P@psmtp09.wxs.nl> for linux-media@vger.kernel.org;
+ Wed, 04 Nov 2009 14:30:38 +0100 (MET)
+Date: Wed, 04 Nov 2009 14:30:35 +0100
+From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Subject: Re: Trying to compile for kernel version 2.6.28
+In-reply-to: <20091104052129.2e2dad47@pedra.chehab.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
 Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Message-id: <4AF181FB.7010003@hoogenraad.net>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <4AF0500B.3070401@hoogenraad.net>
+ <20091104052129.2e2dad47@pedra.chehab.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 16, 2009 at 10:01 AM, Sietse Achterop <s.achterop@rug.nl> wrote:
->    Dear all,
->
-> Context:
->  debian/lenny with usb frame grabber:
->     Zoran Co. Personal Media Division (Nogatech) Hauppauge WinTV Pro (PAL/SECAM)
->  This uses the usbvision driver.
->
-> The problem is that while xawtv works OK with color, v4lctl ONLY shows the frames
-> in black-and-white.
->
-> I understood that the usbvision driver needs some attention, e.g. a command like
-> "v4lctl setinput 2" is not working, it will keep using setting 0.
-> Because I need 2 (S-video) I patched the driver to always use 2 by setting
-> channel=2 in "usbvision_muxsel" to permanently select that channel.
-> With that usbvision module loaded I am getting pictures, but in BLACK_AND_WHITE,
-> as mentioned.
->
-> When starting "xawtv", it works fine!
->
-> With a simple opencv application I do an
->        CvCapture* capture = cvCaptureFromCAM( cnum );
->                 ...
->        cam = (CvCaptureCAM_V4L*)capture;
->                 ...
->        ioctl(cam->deviceHandle,VIDIOC_G_FMT,&format))
->                 ...
-> and find that the format is YV12, but the picture is black-and-white.
-> But YV12 is a color format.
->
-> The question is, how to get proper color pictures when using v4lctl or other
-> simple applications with this driver.
->
->  Thanks in advance,
->    Sietse Achterop
+Thanks a lot.
+Only syncing my sources every 2 months, I forgot about the
+	make allmodconfig
 
-I don't know about that board in particular, but on some boards the
-composite and s-video are actually wired together (sharing the luma
-line), so if you have the device configured in "composite" mode but
-have the s-video plugged in, then you will get a black/white image
-(since it expects to see both luma/chroma on the one pin that provides
-luma).
+I keep
+  http://linuxtv.org/hg/~jhoogenraad/rtl2831-r2.
+in sync until Antti's sources have been tested, and IR support is put 
+in, so that these sticks can be supported from the normal kernel.
 
-I had this issue on the HVR-950q.
+Mauro Carvalho Chehab wrote:
+> Hi Jan,
+> 
+> Em Tue, 03 Nov 2009 16:45:15 +0100
+> Jan Hoogenraad <jan-conceptronic@hoogenraad.net> escreveu:
+> 
+>> At this moment, I cannot figure out how to compile v4l with kernel 
+>> version 2.6.28.
+>> I see, however, that the daily build reports:
+>> linux-2.6.28-i686: OK
+> 
+> Yes, and that's correct. It does compile from scratch with 2.6.28.
+> 
+> If you look at v4l/versions.txt, this is already marked to compile only with
+> kernels 2.6.31 or newer. It should be noticed, however, that the building system
+> won't touch at your .config if you just do an hg update (or hg pull -u).
+> 
+> You'll need to ask it explicitly to process versions.txt again, by calling one of
+> the alternatives bellow that re-generates a v4l/.config.
+> 
+> If you are using a customized config, you'll need to call either one of those:
+> 	make menuconfig
+> 	make config
+> 	make xconfig
+> 	  or
+> 	make gconfig
+> 
+> (in this specific case, just entering there and saving the config is enough - there's
+> no need to touch on any items)
+> 
+> Or, at the simple case were you're just building everything, you'll need to do:
+> 	make allmodconfig
+> 
+> A side effect of touching at v4l/.config is that all (selected) drivers will
+> recompile again.
+> 
+> Cheers,
+> Mauro
+> 
 
-Devin
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Jan Hoogenraad
+Hoogenraad Interface Services
+Postbus 2717
+3500 GS Utrecht
