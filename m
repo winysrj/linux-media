@@ -1,48 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.juropnet.hu ([212.24.188.131]:45723 "EHLO mail.juropnet.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751251AbZKPLiy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2009 06:38:54 -0500
-Received: from kabelnet-198-154.juropnet.hu ([91.147.198.154])
-	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69)
-	(envelope-from <istvan_v@mailbox.hu>)
-	id 1N9zTQ-0001Q0-DM
-	for linux-media@vger.kernel.org; Mon, 16 Nov 2009 12:10:26 +0100
-Message-ID: <4B0133A0.2090904@mailbox.hu>
-Date: Mon, 16 Nov 2009 12:12:32 +0100
-From: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
+Received: from kelvin.aketzu.net ([81.22.244.161]:49739 "EHLO
+	kelvin.aketzu.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755803AbZKDRRB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2009 12:17:01 -0500
+Date: Wed, 4 Nov 2009 19:08:44 +0200
+From: Anssi Kolehmainen <anssi@aketzu.net>
+To: henrik@kurelid.se, linux-media@vger.kernel.org
+Subject: Firedtv stops working after a while
+Message-ID: <20091104170844.GB18091@aketzu.net>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Newbie question about choosing a TV tuner card for Linux
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi! Can someone give me advice on which of these PCI TV tuner cards I
-should buy for use on Linux ? All are from a similar price range, but
-I do not know how they compare in terms of Linux support and picture
-quality.
+Hi,
 
- - Leadtek DTV 1800H
-   A relatively cheap card based on CX2388x and XC3028 (?). I read it is
-   a good value for the price, and may be supported on Linux, although
-   some tricks/patches could be needed to get it to work.
- - Leadtek DTV 2000H
-   Similar to the above card, but is an older model, the tuner is an
-   FMD1216 in a tin can, and it is somewhat more expensive. Is that only
-   because of more bundled Windows software, or is the different tuner a
-   better one quality-wise ? How does the Linux support compare ?
- - AVerMedia Hybrid PCI+FM (A16AR or A16D)
-   I think the cards currently available with this name are the newer
-   A16D version, which uses SAA713x and XC3028. I would assume it is not
-   a better card than the DTV 1800H, but the SAA713x is better supported
-   on Linux ?
- - AVerMedia Studio 703 (M17H)
-   This is an analogue-only card (not necessarily a problem, since not
-   many DVB-T channels can be received where I live), and the only
-   information I found about it is that it uses a "Philips/NXP" chipset.
-   It is not included in the CARDLIST files of the kernel, so maybe it
-   is not supported on Linux ?
+I have Firedtv DVB-C/CI adapter and for some reason it stops working
+after a while. Typically it takes something like 5 hours (which makes
+debugging fun).  I have vdr 1.7.9 as the dvb viewer (with xine plugin),
+kernel 2.6.31 x86_64, latest v4l-dvb drivers from hg and the few
+remaining patches from firesat.kurelid.se.
 
+Vdr spews following to syslog [1]:
+Nov  4 03:00:42 maxwell vdr: [26241] frontend 0 timed out while tuning to channel 400, tp 266
+Nov  4 03:13:35 maxwell vdr: [26242] ERROR: can't set filter (pid=18, tid=40, mask=C0): Input/output error
+Nov  4 03:13:36 maxwell vdr: [26241] frontend 0 lost lock on channel 180, tp 322
+Nov  4 03:13:37 maxwell vdr: [26242] ERROR: can't set filter (pid=0, tid=00, mask=FF): Input/output error
+Nov  4 03:13:39 maxwell vdr: [26241] frontend 0 timed out while tuning to channel 180, tp 322
+Nov  4 03:13:40 maxwell vdr: [26241] frontend 0 regained lock on channel 180, tp 322
+Nov  4 03:13:52 maxwell vdr: [26242] ERROR: can't set filter (pid=16, tid=40, mask=FF): Device or resource busy
+Nov  4 03:13:52 maxwell vdr: [26242] ERROR: can't set filter (pid=3306, tid=02, mask=FF): Device or resource busy
+Nov  4 03:13:53 maxwell vdr: [26242] ERROR: can't set filter (pid=3306, tid=02, mask=FF): Device or resource busy
+
+whereas kernel says [2]:
+<3>[548957.448338] firedtv 0012870036002e6f-0: FCP response timed out
+<3>[548957.448343] firedtv 0012870036002e6f-0: can't set PIDs
+<4>[548974.380505] DVB (dvb_dmxdev_filter_start): could not alloc feed
+<4>[548974.380864] DVB (dvb_dmxdev_filter_start): could not alloc feed
+ + lots of fancy FCP communication debugging thanks to firedtv debug=-1
+
+Kernel-time 548975 corresponds with real time 03:13:35. Computer
+start was at 1256748240. I had to log kernel messages to separate file
+so it wouldn't eat all space with syslog files.
+
+Trivial workaround is to rmmod firedtv + modprobe firedtv but it is
+rather annoying.  The freeze might be connected to vdr doing EPG scan
+and trying to check all channels but manually triggering that scan
+doesn't cause any malfunctions.
+
+Any ideas what I should try?
+
+1: http://aketzu.net/firedtv-syslog.bz2
+2: http://aketzu.net/firedtv-kmsg.bz2 (206M uncompressed, 14M compressed)
+
+-- 
+Anssi Kolehmainen
+anssi.kolehmainen@iki.fi
+040-5085390
