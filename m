@@ -1,91 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:59994 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752473AbZK1X2h (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Nov 2009 18:28:37 -0500
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR  system?
-From: Andy Walls <awalls@radix.net>
-To: Jon Smirl <jonsmirl@gmail.com>
-Cc: Krzysztof Halasa <khc@pm.waw.pl>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	maximlevitsky@gmail.com, mchehab@redhat.com,
-	stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
-In-Reply-To: <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>
-References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc>
-	 <9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>
-	 <m3aay6y2m1.fsf@intrepid.localdomain>
-	 <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>
-Content-Type: text/plain
-Date: Sat, 28 Nov 2009 18:26:55 -0500
-Message-Id: <1259450815.3137.19.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:57356 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755803AbZKDRNC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2009 12:13:02 -0500
+Received: by bwz27 with SMTP id 27so9098960bwz.21
+        for <linux-media@vger.kernel.org>; Wed, 04 Nov 2009 09:13:06 -0800 (PST)
+MIME-Version: 1.0
+Date: Wed, 4 Nov 2009 10:13:05 -0700
+Message-ID: <3d7d5c150911040913i5486bd07r3a465a2f7d2d5a3e@mail.gmail.com>
+Subject: still image capture with video preview
+From: Neil Johnson <realdealneil@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jon,
+linux-media,
 
-On Sat, 2009-11-28 at 12:37 -0500, Jon Smirl wrote:
-> On Sat, Nov 28, 2009 at 12:35 PM, Krzysztof Halasa <khc@pm.waw.pl> wrote:
-> > Jon Smirl <jonsmirl@gmail.com> writes:
-> >
-> >> There are two very basic things that we need to reach consensus on first.
-> >>
-> >> 1) Unification with mouse/keyboard in evdev - put IR on equal footing.
+I previously posted this on the video4linux-list, but linux-media
+seems a more appropriate place.
 
-The only thing this buys for the user is remote/products bundles that
-work out of the box.  That can only be a solution for the 80% case.
+I am developing on the OMAP3 system using a micron/aptina mt9p031
+5-megapixel imager.  This CMOs imager supports full image capture
+(2592x1944 pixels) or you can capture subregions using skipping and
+binning.  We have proven both capabilities, but would like to be able
+to capture both VGA sized video and still images without using
+separate drivers.
 
-I don't hear users crying out "Please integrate IR with the input
-system".  I do hear users say "I want my remote to work", and "How can I
-make my remote work?".  Users are not specifically asking for this
-integration of IR and the input system - a technical nuance.  If such a
-tecnical desire-ment drives excessive rework, I doubt anyone will care
-enough about IR to follow through to make a complete system.
+So far, I have not found any support for capturing large images and
+video through a single driver interface.  Does such a capability exist
+within v4l2?  One possible way to solve the problem is to allocate N
+buffers of the full 5-megapixel size (they end up being 10-MB for each
+buffer since I'm using 16-bits per pixel), and then using a small
+portion of that for video.  This is less desirable since when I'm
+capturing video, I only need 640x480 size buffers, and I should only
+need one snapshot buffer at a time (I'm not streaming them in, just
+take a snapshot and go back to live video capture).  Is there a way to
+allocate a side-buffer for the 5-megapixel image and also allocate
+"normal" sized buffers for video within the same driver?  Any
+recommendations on how to accomplish such a thing?  I would think that
+camera-phones using linux would have run up against this.  Thanks,
 
-What does "equal footing" mean as an incentive anyway?  The opportunity
-to reimplement *everything* that exists for IR already over again in
-kernel-space for the sake of developer technical desires?  That's just a
-lot of work for "not invented here" syndrome.  IR transceivers are
-arguably superior to keyboards and mice anyway because they can transmit
-data too.
-
-
-> >> 2) Specific tools (xmodmap, setkeycodes, etc or the LIRC ones) or
-> >> generic tools (ls, mkdir, echo) for configuration
-> >
-> > I think we can do this gradually:
-> > 1. Merging the lirc drivers. The only stable thing needed is lirc
-> >   interface.
-> 
-> Doing that locks in a user space API that needs to be supported
-> forever. We need to think this API through before locking it in.
-
-No one get things right the first time - No one.
-
-Most designs are iterated with prototypes in the commercial world.
-Prototypes keep costs low so you can throw it away easily and try a new
-approach, if the current approach is not panning out
-
-Only governements try to get everything right on the first go.  It takes
-them too long and the end product is usually still hosed.
-
-Whatever gets developed won't be locked in for 20 years, that's absurd.
-Technology moves on 6 month to two year cycles.  Linux changes ABIs too.
-V4L transitioned from V4L1 to V4L2 and that's happened in less than 20
-years for a much more complex set of devices with a more varied set of
-userspace apps.
-
-Regards,
-Andy
-
-> > 2. Changing IR input layer interface ("media" drivers and adding to lirc
-> >   drivers).
-> > --
-> > Krzysztof Halasa
-
-
+Neil Johnson
