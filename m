@@ -1,59 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38294 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752069AbZKZWOZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 17:14:25 -0500
-Message-ID: <4B0EFDBA.8000905@redhat.com>
-Date: Thu, 26 Nov 2009 20:14:18 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from fg-out-1718.google.com ([72.14.220.154]:35374 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752513AbZKEXvB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Nov 2009 18:51:01 -0500
+Received: by fg-out-1718.google.com with SMTP id d23so2670098fga.1
+        for <linux-media@vger.kernel.org>; Thu, 05 Nov 2009 15:51:06 -0800 (PST)
 MIME-Version: 1.0
-To: Christoph Bartelmus <lirc@bartelmus.de>
-CC: dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	khc@pm.waw.pl, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
- Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-References: <BDccCqq3jFB@christoph>
-In-Reply-To: <BDccCqq3jFB@christoph>
+In-Reply-To: <25126.64.213.30.2.1257464759.squirrel@webmail.exetel.com.au>
+References: <20764.64.213.30.2.1257390002.squirrel@webmail.exetel.com.au>
+	 <829197380911042051l295e9796g65fe1b163f72a70c@mail.gmail.com>
+	 <26256.64.213.30.2.1257398603.squirrel@webmail.exetel.com.au>
+	 <829197380911050602t30bc69d0sd0b269c39bf759e@mail.gmail.com>
+	 <702870ef0911051257k52c142e8ne1b32506f1efb45c@mail.gmail.com>
+	 <829197380911051304g1544e277s870f869be14e1a18@mail.gmail.com>
+	 <25126.64.213.30.2.1257464759.squirrel@webmail.exetel.com.au>
+Date: Thu, 5 Nov 2009 18:51:06 -0500
+Message-ID: <829197380911051551q3b844c5ek490a5eb7c96783e9@mail.gmail.com>
+Subject: Re: bisected regression in tuner-xc2028 on DVICO dual digital 4
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Robert Lowery <rglowery@exemail.com.au>
+Cc: Vincent McIntyre <vincent.mcintyre@gmail.com>,
+	linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Christoph Bartelmus wrote:
-> Hi Mauro,
-> 
-> on 26 Nov 09 at 18:59, Mauro Carvalho Chehab wrote:
->> Christoph Bartelmus wrote:
-> [...]
->>>> lircd supports input layer interface. Yet, patch 3/3 exports both devices
->>>> that support only pulse/space raw mode and devices that generate scan
->>>> codes via the raw mode interface. It does it by generating artificial
->>>> pulse codes.
->>> Nonsense! There's no generation of artificial pulse codes in the drivers.
->>> The LIRC interface includes ways to pass decoded IR codes of arbitrary
->>> length to userspace.
-> 
->> I might have got wrong then a comment in the middle of the
->> imon_incoming_packet() of the SoundGraph iMON IR patch:
-> 
-> Indeed, you got it wrong.
-> As I already explained before, this device samples the signal at a  
-> constant rate and delivers the current level in a bit-array. This data is  
-> then condensed to pulse/space data.
+On Thu, Nov 5, 2009 at 6:45 PM, Robert Lowery <rglowery@exemail.com.au> wrote:
+> Do you mean something like this (untested) patch?  I'll try it out tonight.
+>
+> diff -r 43878f8dbfb0 linux/drivers/media/dvb/dvb-usb/cxusb.c
+> --- a/linux/drivers/media/dvb/dvb-usb/cxusb.c   Sun Nov 01 07:17:46 2009
+> -0200
+> +++ b/linux/drivers/media/dvb/dvb-usb/cxusb.c   Fri Nov 06 10:39:38 2009
+> +1100
+> @@ -666,6 +666,14 @@
+>        .parallel_ts = 1,
+>  };
+>
+> +static struct zl10353_config cxusb_zl10353_xc3028_config_no_i2c_gate = {
+> +       .demod_address = 0x0f,
+> +       .if2 = 45600,
+> +       .no_tuner = 1,
+> +       .parallel_ts = 1,
+> +       .disable_i2c_gate_ctrl = 1,
+> +};
+> +
+>  static struct mt352_config cxusb_mt352_xc3028_config = {
+>        .demod_address = 0x0f,
+>        .if2 = 4560,
+> @@ -897,7 +905,7 @@
+>        cxusb_bluebird_gpio_pulse(adap->dev, 0x02, 1);
+>
+>        if ((adap->fe = dvb_attach(zl10353_attach,
+> -                                  &cxusb_zl10353_xc3028_config,
+> +                                  &cxusb_zl10353_xc3028_config_no_i2c_gate,
+>                                   &adap->dev->i2c_adap)) == NULL)
+>                return -EIO;
 
-Ah, ok. It is now clear to me. 
+Wow, that looks shockingly similar to the patch I did for an em28xx
+boards a couple of months ago, even down to the part where you added
+"_no_i2c_gate" to the end!  :-)
 
-IMHO, it would be better to explain this at the source code, since the 
-imon_incoming_packet() is a little complex. 
+Yeah, that's the fix, although from the diff I can't tell if you're
+doing it for all zl10353 boards in cxusb.c or just yours.  I would
+have to see the source to know for sure.
 
-It would help the review process if those big routines could be broken into
- a few functions. While this improves code readability, it shouldn't 
-affect performance, as gcc will handle the static functions used only once
-as inline.
+Devin
 
-> Christoph
-
-Cheers,
-Mauro.
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
