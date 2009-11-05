@@ -1,53 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-07.arcor-online.net ([151.189.21.47]:42266 "EHLO
-	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757447AbZKMU2K (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Nov 2009 15:28:10 -0500
-Subject: Re: [linux-dvb] Most stable DVB-S2 PCI Card?
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Jonas Kvinge <linuxtv@closetothewind.net>
-Cc: Magnus =?ISO-8859-1?Q?H=F6rlin?= <magnus@alefors.se>,
-	linux-media@vger.kernel.org
-In-Reply-To: <4AFDBD6A.8020005@closetothewind.net>
-References: <72748420-1243012937-cardhu_decombobulator_blackberry.rim.net-428520223-@bxe1214.bisx.prod.on.blackberry>
-	 <1a297b360905221035ra3ddfe3vb3be4d2029865a39@mail.gmail.com>
-	 <4AFCB38D.3050301@closetothewind.net> <4AFD9F39.5010808@alefors.se>
-	 <4AFDBD6A.8020005@closetothewind.net>
-Content-Type: text/plain; charset=UTF-8
-Date: Fri, 13 Nov 2009 21:28:34 +0100
-Message-Id: <1258144114.3242.35.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mail.gmx.net ([213.165.64.20]:56311 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1756507AbZKEQ3N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Nov 2009 11:29:13 -0500
+Date: Thu, 5 Nov 2009 17:29:29 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: Re: [PATCH 4/9] v4l: Add a 10-bit monochrome and missing 8- and
+ 10-bit Bayer fourcc codes
+In-Reply-To: <200911051545.27931.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.0911051728220.5620@axis700.grange>
+References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
+ <Pine.LNX.4.64.0910301405590.4378@axis700.grange> <200911051545.27931.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Thu, 5 Nov 2009, Hans Verkuil wrote:
 
-Am Freitag, den 13.11.2009, 21:11 +0100 schrieb Jonas Kvinge:
-> > I have four of them and they work perfectly, but not out of the box from
-> > the v4l-dvb tree. If it's patched with the patches posted on this list a
-> > few weeks ago by Andreas Regel (or used with his repo at
-> > http://powarman.dyndns.org/hg/v4l-dvb) it locks perfectly on every
-> > transonder on 1.0W, without them it does not. I also have an S2-3200 and
-> > a NOVA-HD-S2 but they can't handle all transponders symbol rates so I
-> > highly recommend the S2-1600. Bought them for <Ã¢Â‚Â¬50 in Germany.
-> > 
-> > /Magnus H
-> > 
-> > 
+> On Friday 30 October 2009 15:01:14 Guennadi Liakhovetski wrote:
+> > The 16-bit monochrome fourcc code has been previously abused for a 10-bit
+> > format, add a new 10-bit code instead. Also add missing 8- and 10-bit Bayer
+> > fourcc codes for completeness.
 > 
-> Why aren't those patches in the official repo?
-> 
-> 
-> Jonas
+> I'm fairly certain that you also have to document these new formats in the
+> DocBook documentation. Run 'make spec' to verify this.
 
-as stated several times here, Mauro was in Japan for Linux conferences,
-so is in delay and they are still marked as NEW in patchwork.
+You mean hg-documentation, don't you? These are _kernel_ git-patches so 
+far. When I prepare a pull request I'll (try not to forget to) add the 
+docs too.
 
-http://patchwork.kernel.org/project/linux-media/list/?page=2
-
-Cheers,
-Hermann
-
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
