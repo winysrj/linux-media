@@ -1,81 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11608 "EHLO mx1.redhat.com"
+Received: from psmtp13.wxs.nl ([195.121.247.25]:61331 "EHLO psmtp13.wxs.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753793AbZKWRuw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2009 12:50:52 -0500
-Message-ID: <4B0ACB70.9090707@redhat.com>
-Date: Mon, 23 Nov 2009 15:50:40 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: James Mastros <james@mastros.biz>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	Jarod Wilson <jarod@redhat.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-kernel@vger.kernel.org,
-	Mario Limonciello <superm1@ubuntu.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Janne Grunau <j@jannau.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
- 	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-References: <200910200956.33391.jarod@redhat.com>	 <200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com>	 <4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain>	 <829197380911230720k233c3c86t659180d1413aa0dd@mail.gmail.com> <abc933c50911230905g60e2071bpbee9318817d56fb5@mail.gmail.com>
-In-Reply-To: <abc933c50911230905g60e2071bpbee9318817d56fb5@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	id S1758834AbZKEUEX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Nov 2009 15:04:23 -0500
+Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
+ by psmtp13.wxs.nl
+ (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
+ with ESMTP id <0KSN007ENJRF87@psmtp13.wxs.nl> for linux-media@vger.kernel.org;
+ Thu, 05 Nov 2009 21:04:28 +0100 (MET)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by localhost (8.14.3/8.14.3/Debian-6) with ESMTP id nA5K3T6T000790	for
+ <linux-media@vger.kernel.org>; Thu, 05 Nov 2009 21:03:30 +0100
+Date: Thu, 05 Nov 2009 21:03:25 +0100
+From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Subject: Make file request: default adddepmod instead of allyesmod
+To: Linux-Media <linux-media@vger.kernel.org>
+Message-id: <4AF32F8D.4090900@hoogenraad.net>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-James Mastros wrote:
-> 2009/11/23 Devin Heitmueller <dheitmueller@kernellabs.com>:
->> Just bear in mind that with the current in-kernel code, users do *not
->> * have to manually select the RC code to use if they are using the
->> default remote that shipped with the product.
-> This could still happen, if LIRC checks the identifiers of the
-> reciving device, and has a database that tells it mappings between
-> those devices and the remote controls that shipped with them.
+I tried to guide a newbie through compiling v4l.
+v4l did not compile right away, because of a problem in one of the drivers
 
-True, but this means that everyone with an IR will need to use lirc.
+http://ubuntuforums.org/showthread.php?p=8241469#post8241469
 
-/me thinks that, whatever decided with those lirc drivers, this should be applied also to the existing V4L/DVB drivers.
+a workaroudn was proposed:
 
-IMO, it would be better to load the tables at the boot time (or at the 
-corresponding hotplug event, for USB devices).
+http://ubuntuforums.org/showthread.php?t=1305228
 
-> However, it occours to me that the IR circumstances map pretty well to
-> what happens with ps/2 and serial devices now:
-> 
-> 1: There are a variety of drivers for serio computer-side hardware,
-> each of which speaks the serio interface to the next-higher level.
-> These corrospond to the drivers for IR recievers.
-> 2: There's a raw serio interface, for those wishing to do strange things.
-> 3: There's also a variety of things that take data, using the kernel
-> serio API, and decode it into input events -- the ps2 keyboard driver,
-> the basic mouse driver, the advanced mice drivers. 
+I myself have not experienced this problem as I have used make alldepmod, where the offending driver was not selected.
 
-Seems an interesting model.
+Can the default config be reprogrammed from all yes (which might easily fail on certain kernel versions) to the all dep config ?
 
-> This is where the
-> interface falls down a little bit -- the ps2 keyboard driver is the
-> closest analogue to what I'm suggesting.  The ps2 keyboard driver
-> creates scancode events, which map nicely to what the keyboard is
-> sending -- these are, for ex, rc5 codes.  It will also produce
-> key-up/key-down events, if it has a keymap loaded.  (This is the
-> difference with a ps2 keyboard -- a ps2 keyboard gets a map assigned
-> to it at boottime, so it works out-of-box.  This isn't really possible
-> with an IR remote -- though perhaps rc5 is standarized enough, I don't
-> think other protocols neccessarly are.)
+That way, new users have more chance to have a succesful make right away.
 
-Even with RC5, there are some vendors that implement it differently on his
-IR (for example, using VCR and/or TV group for the keys).
-
-> Userspace would have to load a keymap; those don't really belong in
-> kernel code.  Of course, userspace could look at the device
-> identifiers to pick a reasonable default keymap if it's not configured
-> to load another, solving the out-of-box experince.
-
-I like this idea. We currently have hundreds of IR keymaps already in kernel.
-It seems good to remove from kernel and let udev load those.
-
-Cheers,
-Mauro.
