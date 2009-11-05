@@ -1,58 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:51510 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753751AbZKBJgq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Nov 2009 04:36:46 -0500
-Message-ID: <4AEEA838.8080006@tripleplay-services.com>
-Date: Mon, 02 Nov 2009 09:36:56 +0000
-From: Lou Otway <louis.otway@tripleplay-services.com>
+Received: from acorn.exetel.com.au ([220.233.0.21]:44146 "EHLO
+	acorn.exetel.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750752AbZKEC76 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2009 21:59:58 -0500
+Received: from localhost ([127.0.0.1] helo=webmail.exetel.com.au)
+	by acorn.exetel.com.au with esmtp (Exim 4.68)
+	(envelope-from <rglowery@exemail.com.au>)
+	id 1N5sZu-0003cJ-Mi
+	for linux-media@vger.kernel.org; Thu, 05 Nov 2009 14:00:02 +1100
+Message-ID: <20764.64.213.30.2.1257390002.squirrel@webmail.exetel.com.au>
+Date: Thu, 5 Nov 2009 14:00:02 +1100 (EST)
+Subject: bisected regression in tuner-xc2028 on DVICO dual digital 4
+From: "Robert Lowery" <rglowery@exemail.com.au>
+To: linux-media@vger.kernel.org
 MIME-Version: 1.0
-To: Michael Durket <durket@rlucier-home2.stanford.edu>
-CC: linux-media@vger.kernel.org
-Subject: Re: DVB-S2 card recommendation?
-References: <D2EBA0C6-9E47-4473-935E-4CF96553AB29@rlucier-home2.stanford.edu>
-In-Reply-To: <D2EBA0C6-9E47-4473-935E-4CF96553AB29@rlucier-home2.stanford.edu>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Michael Durket wrote:
-> Is there a DVB-S2 card on the market yet with these features:
->
->     1) DVB-S2 (QPSK, 8PSK) and DVB-S modes fully supported in Linux
->         (i.e. not experimental, not requiring sifting through 
-> different driver sources
->         to try to find one that works)
->
->     2) Has no software/hardware data rate limitations (i.e. all symbol 
-> rates supported, no problems locking
->         any symbol rate the card supports)
->
->     3) Available to U.S. purchasers (no country restrictions when 
-> trying to buy the card)
->
->     4) Delivers a full transport stream without filtering of any kind 
-> by the hardware.
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-I've been using the Turbosight TBS6920 for a while now, with very good 
-results. It's a PCI device based on the Conexant CX23885 chipset. I'm 
-pretty sure it meets all your requirements.
+Hi,
 
-I've also used the TechnoTrend TT-S3200 which is PCI based but there do 
-appear some problems with some of the more exotic symbol rates. I've 
-used a patch to support high symbol rates but my question as to the 
-safety of doing this remains unanswered. There should be a new S2 card 
-from TechnoTrend, the TT-S6400 but it has been delayed since early in 
-the year and who knows if it will ever see the light of day.
+I have been having some difficulties getting my DVICO dual digital 4
+(rev1) working with recent kernels, failing to tune and getting errors
+like the following
 
-All the best,
+kernel: [ 315.032076] dvb-usb: bulk message failed: -110 (4/0)
+kernel: [ 315.032080] cxusb: i2c read failed
 
-Lou
+and making the machine very slow as documented at
+https://bugs.launchpad.net/ubuntu/+source/linux-meta/+bug/459523
 
+Using the v4l-dvb tree, I was able to bisect the issue down to
+http://linuxtv.org/hg/v4l-dvb/rev/7276a5854219
+
+At first I though I could workaround the issue by setting no_poweroff=1,
+but that did not work.  The following diff did however resolve the issue.
+
+diff -r 43878f8dbfb0 linux/drivers/media/common/tuners/tuner-xc2028.c
+--- a/linux/drivers/media/common/tuners/tuner-xc2028.c        Sun Nov 01
+07:17:46
+2009 -0200
++++ b/linux/drivers/media/common/tuners/tuner-xc2028.c        Tue Nov 03
+14:24:05
+2009 +1100
+@@ -1240,7 +1240,7 @@
+         .get_frequency     = xc2028_get_frequency,
+         .get_rf_strength   = xc2028_signal,
+         .set_params        = xc2028_set_params,
+-        .sleep             = xc2028_sleep,
++        //.sleep             = xc2028_sleep,
+ #if 0
+         int (*get_bandwidth)(struct dvb_frontend *fe, u32 *bandwidth);
+         int (*get_status)(struct dvb_frontend *fe, u32 *status);
+
+This led me to dvb_frontend.c where I could see i2c_gate_ctrl() was being
+called if .sleep was non zero.  Setting dvb_powerdown_on_sleep=0 worked
+around the issue by stoppign i2c_gate_ctrl() being called, so I suspect
+i2c_gate_ctrl() is triggering the issue somehow.
+
+Any thoughts on a proper solution for this issue?
+
+-Rob
 
 
 
