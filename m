@@ -1,40 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail02d.mail.t-online.hu ([84.2.42.7]:51299 "EHLO
-	mail02d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752955AbZKWS1P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2009 13:27:15 -0500
-Message-ID: <4B0AD3F8.2010606@freemail.hu>
-Date: Mon, 23 Nov 2009 19:27:04 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2227 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754084AbZKEMol (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Nov 2009 07:44:41 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 1/4] V4L2: Added New V4L2 CIDs VIDIOC_S/G_COLOR_SPACE_CONV
+Date: Thu, 5 Nov 2009 13:44:42 +0100
+Cc: hvaibhav@ti.com, linux-media@vger.kernel.org
+References: <hvaibhav@ti.com> <200910162226.54573.hverkuil@xs4all.nl> <200910201422.03987.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <200910201422.03987.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: =?UTF-8?B?R3VzdGF2byBDaGHDrW4gRHVtaXQ=?= <g@0xff.cl>
-CC: Hans de Goede <hdegoede@redhat.com>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: VFlip problem in gspca_pac7311
-References: <20091123141042.47feac9e@0xff.cl>
-In-Reply-To: <20091123141042.47feac9e@0xff.cl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200911051344.42591.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-Gustavo Chaín Dumit wrote:
-> Hi
+On Tuesday 20 October 2009 14:22:03 Laurent Pinchart wrote:
+> On Friday 16 October 2009 22:26:53 Hans Verkuil wrote:
+> > On Friday 16 October 2009 14:26:52 Laurent Pinchart wrote:
+> > > Hi,
+> > >
+> > > On Friday 16 October 2009 12:19:20 hvaibhav@ti.com wrote:
+> > > > From: Vaibhav Hiremath <hvaibhav@ti.com>
+> > > >
+> > > >
+> > > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > > > ---
+> > > >  drivers/media/video/v4l2-ioctl.c |   19 +++++++++++++++++++
+> > > >  include/linux/videodev2.h        |   14 ++++++++++++++
+> > > >  include/media/v4l2-ioctl.h       |    4 ++++
+> > > >  3 files changed, 37 insertions(+), 0 deletions(-)
+> > > >
+> > > > diff --git a/drivers/media/video/v4l2-ioctl.c
+> > > >  b/drivers/media/video/v4l2-ioctl.c index 30cc334..d3140e0 100644
+> > > > --- a/drivers/media/video/v4l2-ioctl.c
+> > > > +++ b/drivers/media/video/v4l2-ioctl.c
+> > > > @@ -284,6 +284,8 @@ static const char *v4l2_ioctls[] = {
+> > > >  	[_IOC_NR(VIDIOC_DBG_G_CHIP_IDENT)] = "VIDIOC_DBG_G_CHIP_IDENT",
+> > > >  	[_IOC_NR(VIDIOC_S_HW_FREQ_SEEK)]   = "VIDIOC_S_HW_FREQ_SEEK",
+> > > >  #endif
+> > > > +	[_IOC_NR(VIDIOC_S_COLOR_SPACE_CONV)]   = "VIDIOC_S_COLOR_SPACE_CONV",
+> > > > +	[_IOC_NR(VIDIOC_G_COLOR_SPACE_CONV)]   = "VIDIOC_G_COLOR_SPACE_CONV",
+> > > >  };
+> > > >  #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+> > >
+> > > This should go through a control, not an ioctl. Strings control have
+> > > recently been introduced, it should be fairly easy to create binary
+> > > controls for such cases.
+> > 
+> > I'm not sure whether this should be seen as a control. That feels like an
+> > abuse of the control framework to me.
+> > 
+> > Actually, shouldn't this be something for a subdev node? I.e. an omap2/3
+> > specific ioctl?
 > 
-> I'm testing a Pixart Imaging device (0x93a:0x2622)
-> Everything works fine, but vertical orientation. Image looks rotated.
-> So I wrote a little hack to prevent it.
-> [...]
-> Any one has the same problem ?
+> I would see it as a subdev control. Even though this is a complex control that 
+> uses a matrix instead of a simple integer value, I believe this kind of use 
+> cases qualify for the control API. They're really controls, i.e. values that 
+> apply to a block in the video pipeline to tune its behavior.
 
-You might want to have a look to libv4l ( http://freshmeat.net/projects/libv4l )
-and the v4lcontrol_flags[] in
-http://linuxtv.org/hg/v4l-dvb/file/2f87f537fb2b/v4l2-apps/libv4l/libv4lconvert/control/libv4lcontrol.c .
-This user space library has a list of laptops where the webcams are installed
-for example upside down.
+You have a good point here. It is similar in behavior to e.g. a brightness
+control.
 
 Regards,
 
-	Márton Németh
+	Hans
+
+>  
+> > It might be good to refresh our memory of how this is supposed to be used.
+> 
+
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
