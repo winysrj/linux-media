@@ -1,80 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:65502 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755666AbZKMUfX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Nov 2009 15:35:23 -0500
-Received: by bwz27 with SMTP id 27so3867023bwz.21
-        for <linux-media@vger.kernel.org>; Fri, 13 Nov 2009 12:35:27 -0800 (PST)
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4916 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756073AbZKEQSS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Nov 2009 11:18:18 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: hvaibhav@ti.com
+Subject: Re: [PATCH V2] Davinci VPFE Capture: Add support for Control ioctls
+Date: Thu, 5 Nov 2009 17:18:20 +0100
+Cc: linux-media@vger.kernel.org
+References: <hvaibhav@ti.com> <1256799064-25031-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <1256799064-25031-1-git-send-email-hvaibhav@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <20091113202746.GA24318@pathfinder.pcs.usp.br>
-References: <20091113193405.GA9499@pathfinder.pcs.usp.br>
-	 <62e5edd40911131204w2b8203eexc079ae46d88f1d0d@mail.gmail.com>
-	 <20091113202746.GA24318@pathfinder.pcs.usp.br>
-Date: Fri, 13 Nov 2009 15:35:26 -0500
-Message-ID: <c2fe070d0911131235m2e7a5b66hfe6366b0bf4cca0b@mail.gmail.com>
-Subject: Re: new sensor for a t613 camera
-From: leandro Costantino <lcostantino@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200911051718.20801.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nicolau,
-Are you able to give me some usb traces?
-there's a little how to
-http://deaglecito.blogspot.com/2008/10/new-sensor-merge-faq-tascorp-17a10128.html
-here.
+On Thursday 29 October 2009 07:51:04 hvaibhav@ti.com wrote:
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> Added support for Control IOCTL,
+> 	- s_ctrl
+> 	- g_ctrl
+> 	- queryctrl
+> 
+> Change from last patch:
+> 	- added room for error return in queryctrl function.
+> 	
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> ---
+>  drivers/media/video/davinci/vpfe_capture.c |   43 ++++++++++++++++++++++++++++
+>  1 files changed, 43 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
+> index abe21e4..8275d02 100644
+> --- a/drivers/media/video/davinci/vpfe_capture.c
+> +++ b/drivers/media/video/davinci/vpfe_capture.c
+> @@ -1368,6 +1368,46 @@ static int vpfe_g_std(struct file *file, void *priv, v4l2_std_id *std_id)
+>  	return 0;
+>  }
+> 
+> +static int vpfe_queryctrl(struct file *file, void *priv,
+> +		struct v4l2_queryctrl *qctrl)
+> +{
+> +	struct vpfe_device *vpfe_dev = video_drvdata(file);
+> +	struct vpfe_subdev_info *sdinfo;
+> +	int ret = 0;
+> +
+> +	sdinfo = vpfe_dev->current_subdev;
+> +
+> +	ret = v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo->grp_id,
+> +					 core, queryctrl, qctrl);
+> +
+> +	if (ret)
+> +		qctrl->flags |= V4L2_CTRL_FLAG_DISABLED;
 
-I don't have too much time now, but i can take a look and made some
-changes to test and guide you.
+Please remove this bogus flag. Just do:
 
-Best Regards
-Costantino Leandro
+	return v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo->grp_id,
+				 core, queryctrl, qctrl);
 
-On Fri, Nov 13, 2009 at 3:27 PM, Nicolau Werneck <nwerneck@gmail.com> wrote:
-> On Fri, Nov 13, 2009 at 09:04:23PM +0100, Erik Andrén wrote:
->> 2009/11/13 Nicolau Werneck <nwerneck@gmail.com>:
->> > Hello.
->> >
->> > I bought me a new webcam. lsusb said me it was a 17a1:0128 device, for
->> > which the gspca_t613 module is available. But it did not recognize the
->> > sensor number, 0x0802.
->> >
->> > I fiddled with the driver source code, and just made it recognize it
->> > as a 0x0803 sensor, called "others" in the code, and I did get images
->> > from the camera. But the colors are extremely wrong, like the contrast
->> > was set to a very high number. It's probably some soft of color
->> > encoding gone wrong...
->> >
->> > How can I start hacking this driver to try to make my camera work
->> > under Linux?
->> >
->>
->> If possible you could open the camera to investigate if there is
->> anything printed on the sensor chip. This might give you a clue to
->> what sensor it is.
->
-> Thanks for redirecting me.
->
-> I opened it (So much for the warranty seal...), but there is just
-> huge black blob of goo over the chip, as usual these days.
->
-> ++nicolau
->
+Simple and effective.
+
+Regards,
+
+	Hans
+
+> +
+> +	return ret;
+> +}
+> +
+> +static int vpfe_g_ctrl(struct file *file, void *priv, struct v4l2_control *ctrl)
+> +{
+> +	struct vpfe_device *vpfe_dev = video_drvdata(file);
+> +	struct vpfe_subdev_info *sdinfo;
+> +
+> +	sdinfo = vpfe_dev->current_subdev;
+> +
+> +	return v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo->grp_id,
+> +					 core, g_ctrl, ctrl);
+> +}
+> +
+> +static int vpfe_s_ctrl(struct file *file, void *priv, struct v4l2_control *ctrl)
+> +{
+> +	struct vpfe_device *vpfe_dev = video_drvdata(file);
+> +	struct vpfe_subdev_info *sdinfo;
+> +
+> +	sdinfo = vpfe_dev->current_subdev;
+> +
+> +	return v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo->grp_id,
+> +					 core, s_ctrl, ctrl);
+> +}
+> +
+>  /*
+>   *  Videobuf operations
+>   */
+> @@ -1939,6 +1979,9 @@ static const struct v4l2_ioctl_ops vpfe_ioctl_ops = {
+>  	.vidioc_querystd	 = vpfe_querystd,
+>  	.vidioc_s_std		 = vpfe_s_std,
+>  	.vidioc_g_std		 = vpfe_g_std,
+> +	.vidioc_queryctrl	 = vpfe_queryctrl,
+> +	.vidioc_g_ctrl		 = vpfe_g_ctrl,
+> +	.vidioc_s_ctrl		 = vpfe_s_ctrl,
+>  	.vidioc_reqbufs		 = vpfe_reqbufs,
+>  	.vidioc_querybuf	 = vpfe_querybuf,
+>  	.vidioc_qbuf		 = vpfe_qbuf,
 > --
-> Nicolau Werneck <nwerneck@gmail.com>          1AAB 4050 1999 BDFF 4862
-> http://www.lti.pcs.usp.br/~nwerneck           4A33 D2B5 648B 4789 0327
-> Linux user #460716
->
->
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v1.4.9 (GNU/Linux)
->
-> iEYEARECAAYFAkr9wUIACgkQ0rVki0eJAycSegCfRQyYN54CNH2thIo/PHBnVaL9
-> avAAoMe6ihIbvX23kM1ir2sJK32q6jxm
-> =HI4V
-> -----END PGP SIGNATURE-----
->
->
+> 1.6.2.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
