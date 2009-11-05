@@ -1,366 +1,399 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp240.poczta.interia.pl ([217.74.64.240]:35638 "EHLO
-	smtp240.poczta.interia.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753307AbZK0KXF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Nov 2009 05:23:05 -0500
-Date: Fri, 27 Nov 2009 11:24:13 +0100
-From: Krzysztof Helt <krzysztof.h1@poczta.fm>
-To: linux-media@vger.kernel.org
-Cc: Takashi Iwai <tiwai@suse.de>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] New driver for the radio FM module on Miro PCM20 sound card
-Message-Id: <20091127112413.77e5d1ff.krzysztof.h1@poczta.fm>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4206 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754916AbZKEP6A (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Nov 2009 10:58:00 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH/RFC 9/9 v2] mt9t031: make the use of the soc-camera client API optional
+Date: Thu, 5 Nov 2009 16:57:59 +0100
+Cc: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange> <A69FA2915331DC488A831521EAE36FE40155798D56@dlee06.ent.ti.com> <Pine.LNX.4.64.0911041703000.4837@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0911041703000.4837@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200911051657.59303.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+On Wednesday 04 November 2009 17:49:28 Guennadi Liakhovetski wrote:
+> Now that we have moved most of the functions over to the v4l2-subdev API, only
+> quering and setting bus parameters are still performed using the legacy
+> soc-camera client API. Make the use of this API optional for mt9t031.
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+> 
+> On Mon, 2 Nov 2009, Karicheri, Muralidharan wrote:
+> 
+> > >> >+static struct soc_camera_ops mt9t031_ops = {
+> > >> >+	.set_bus_param		= mt9t031_set_bus_param,
+> > >> >+	.query_bus_param	= mt9t031_query_bus_param,
+> > >> >+	.controls		= mt9t031_controls,
+> > >> >+	.num_controls		= ARRAY_SIZE(mt9t031_controls),
+> > >> >+};
+> > >> >+
+> > >>
+> > >> [MK] Why don't you implement queryctrl ops in core? query_bus_param
+> > >> & set_bus_param() can be implemented as a sub device operation as well
+> > >> right? I think we need to get the bus parameter RFC implemented and
+> > >> this driver could be targeted for it's first use so that we could
+> > >> work together to get it accepted. I didn't get a chance to study your
+> > >> bus image format RFC, but plan to review it soon and to see if it can be
+> > >> used in my platform as well. For use of this driver in our platform,
+> > >> all reference to soc_ must be removed. I am ok if the structure is
+> > >> re-used, but if this driver calls any soc_camera function, it canot
+> > >> be used in my platform.
+> > >
+> > >Why? Some soc-camera functions are just library functions, you just have
+> > >to build soc-camera into your kernel. (also see below)
+> > >
+> > My point is that the control is for the sensor device, so why to implement
+> > queryctrl in SoC camera? Just for this I need to include SOC camera in 
+> > my build? That doesn't make any sense at all. IMHO, queryctrl() 
+> > logically belongs to this sensor driver which can be called from the 
+> > bridge driver using sudev API call. Any reverse dependency from MT9T031 
+> > to SoC camera to be removed if it is to be re-used across other 
+> > platforms. Can we agree on this?
+> 
+> In general I'm sure you understand, that there are lots of functions in 
+> the kernel, that we use in specific modules, not because they interact 
+> with other systems, but because they implement some common functionality 
+> and just reduce code-duplication. And I can well imagine that in many such 
+> cases using just one or a couple of such functions will pull a much larger 
+> pile of unused code with them. But in this case those calls can indeed be 
+> very easily eliminated. Please have a look at the version below.
 
-This is recreated driver for the FM module found on Miro
-PCM20 sound cards. This driver was removed around the 2.6.2x
-kernels because it relied on the removed OSS module. Now, it
-uses a current ALSA module (snd-miro) and is adapted to v4l2
-layer.
+I'm not following this, I'm afraid. The sensor drivers should just support
+queryctrl and should use v4l2_ctrl_query_fill() from v4l2-common.c to fill
+in the v4l2_queryctrl struct.
 
-It provides only basic functionality: frequency changing and
-FM module muting.
+This will also make it easy to convert them to the control framework that I
+am working on.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
----
-This is the third version of the patch with fixed issues pointed
-by Takashi Iwai.
+Regards,
 
- drivers/media/radio/Kconfig           |   18 +++
- drivers/media/radio/Makefile          |    1 +
- drivers/media/radio/radio-miropcm20.c |  270 +++++++++++++++++++++++++++++++++
- 3 files changed, 289 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/radio/radio-miropcm20.c
+	Hans
 
-diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-index a87a477..b134553 100644
---- a/drivers/media/radio/Kconfig
-+++ b/drivers/media/radio/Kconfig
-@@ -195,6 +195,24 @@ config RADIO_MAESTRO
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called radio-maestro.
- 
-+config RADIO_MIROPCM20
-+	tristate "miroSOUND PCM20 radio"
-+	depends on ISA && VIDEO_V4L2
-+	select SND_MIRO
-+	---help---
-+	  Choose Y here if you have this FM radio card. You also need to enable
-+	  the ALSA sound system. This choice automatically selects the ALSA
-+	  sound card driver "Miro miroSOUND PCM1pro/PCM12/PCM20radio" as this
-+	  is required for the radio-miropcm20.
-+
-+	  In order to control your radio card, you will need to use programs
-+	  that are compatible with the Video For Linux API.  Information on
-+	  this API and pointers to "v4l" programs may be found at
-+	  <file:Documentation/video4linux/API.html>.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called radio-miropcm20.
-+
- config RADIO_SF16FMI
- 	tristate "SF16FMI Radio"
- 	depends on ISA && VIDEO_V4L2
-diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
-index 2a1be3b..8a63d54 100644
---- a/drivers/media/radio/Makefile
-+++ b/drivers/media/radio/Makefile
-@@ -18,6 +18,7 @@ obj-$(CONFIG_RADIO_TRUST) += radio-trust.o
- obj-$(CONFIG_I2C_SI4713) += si4713-i2c.o
- obj-$(CONFIG_RADIO_SI4713) += radio-si4713.o
- obj-$(CONFIG_RADIO_MAESTRO) += radio-maestro.o
-+obj-$(CONFIG_RADIO_MIROPCM20) += radio-miropcm20.o
- obj-$(CONFIG_USB_DSBR) += dsbr100.o
- obj-$(CONFIG_RADIO_SI470X) += si470x/
- obj-$(CONFIG_USB_MR800) += radio-mr800.o
-diff --git a/drivers/media/radio/radio-miropcm20.c b/drivers/media/radio/radio-miropcm20.c
-new file mode 100644
-index 0000000..4ff8854
---- /dev/null
-+++ b/drivers/media/radio/radio-miropcm20.c
-@@ -0,0 +1,270 @@
-+/* Miro PCM20 radio driver for Linux radio support
-+ * (c) 1998 Ruurd Reitsma <R.A.Reitsma@wbmt.tudelft.nl>
-+ * Thanks to Norberto Pellici for the ACI device interface specification
-+ * The API part is based on the radiotrack driver by M. Kirkwood
-+ * This driver relies on the aci mixer provided by the snd-miro
-+ * ALSA driver.
-+ * Look there for further info...
-+ */
-+
-+/* What ever you think about the ACI, version 0x07 is not very well!
-+ * I can't get frequency, 'tuner status', 'tuner flags' or mute/mono
-+ * conditions...                Robert
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/videodev2.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ioctl.h>
-+#include <sound/aci.h>
-+
-+static int radio_nr = -1;
-+module_param(radio_nr, int, 0);
-+MODULE_PARM_DESC(radio_nr, "Set radio device number (/dev/radioX).  Default: -1 (autodetect)");
-+
-+static int mono;
-+module_param(mono, bool, 0);
-+MODULE_PARM_DESC(mono, "Force tuner into mono mode.");
-+
-+struct pcm20 {
-+	struct v4l2_device v4l2_dev;
-+	struct video_device vdev;
-+	unsigned long freq;
-+	int muted;
-+	struct snd_miro_aci *aci;
-+};
-+
-+static struct pcm20 pcm20_card = {
-+	.freq   = 87*16000,
-+	.muted  = 1,
-+};
-+
-+static int pcm20_mute(struct pcm20 *dev, unsigned char mute)
-+{
-+	dev->muted = mute;
-+	return snd_aci_cmd(dev->aci, ACI_SET_TUNERMUTE, mute, -1);
-+}
-+
-+static int pcm20_stereo(struct pcm20 *dev, unsigned char stereo)
-+{
-+	return snd_aci_cmd(dev->aci, ACI_SET_TUNERMONO, !stereo, -1);
-+}
-+
-+static int pcm20_setfreq(struct pcm20 *dev, unsigned long freq)
-+{
-+	unsigned char freql;
-+	unsigned char freqh;
-+	struct snd_miro_aci *aci = dev->aci;
-+
-+	dev->freq = freq;
-+
-+	freq /= 160;
-+	if (!(aci->aci_version == 0x07 || aci->aci_version >= 0xb0))
-+		freq /= 10;  /* I don't know exactly which version
-+			      * needs this hack */
-+	freql = freq & 0xff;
-+	freqh = freq >> 8;
-+
-+	pcm20_stereo(dev, !mono);
-+	return snd_aci_cmd(aci, ACI_WRITE_TUNE, freql, freqh);
-+}
-+
-+static const struct v4l2_file_operations pcm20_fops = {
-+	.owner		= THIS_MODULE,
-+	.ioctl		= video_ioctl2,
-+};
-+
-+static int vidioc_querycap(struct file *file, void *priv,
-+				struct v4l2_capability *v)
-+{
-+	strlcpy(v->driver, "Miro PCM20", sizeof(v->driver));
-+	strlcpy(v->card, "Miro PCM20", sizeof(v->card));
-+	strlcpy(v->bus_info, "ISA", sizeof(v->bus_info));
-+	v->version = 0x1;
-+	v->capabilities = V4L2_CAP_TUNER | V4L2_CAP_RADIO;
-+	return 0;
-+}
-+
-+static int vidioc_g_tuner(struct file *file, void *priv,
-+				struct v4l2_tuner *v)
-+{
-+	if (v->index)	/* Only 1 tuner */
-+		return -EINVAL;
-+	strlcpy(v->name, "FM", sizeof(v->name));
-+	v->type = V4L2_TUNER_RADIO;
-+	v->rangelow = 87*16000;
-+	v->rangehigh = 108*16000;
-+	v->signal = 0xffff;
-+	v->rxsubchans = V4L2_TUNER_SUB_MONO | V4L2_TUNER_SUB_STEREO;
-+	v->capability = V4L2_TUNER_CAP_LOW;
-+	v->audmode = V4L2_TUNER_MODE_MONO;
-+	return 0;
-+}
-+
-+static int vidioc_s_tuner(struct file *file, void *priv,
-+				struct v4l2_tuner *v)
-+{
-+	return v->index ? -EINVAL : 0;
-+}
-+
-+static int vidioc_g_frequency(struct file *file, void *priv,
-+				struct v4l2_frequency *f)
-+{
-+	struct pcm20 *dev = video_drvdata(file);
-+
-+	if (f->tuner != 0)
-+		return -EINVAL;
-+
-+	f->type = V4L2_TUNER_RADIO;
-+	f->frequency = dev->freq;
-+	return 0;
-+}
-+
-+
-+static int vidioc_s_frequency(struct file *file, void *priv,
-+				struct v4l2_frequency *f)
-+{
-+	struct pcm20 *dev = video_drvdata(file);
-+
-+	if (f->tuner != 0 || f->type != V4L2_TUNER_RADIO)
-+		return -EINVAL;
-+
-+	dev->freq = f->frequency;
-+	pcm20_setfreq(dev, f->frequency);
-+	return 0;
-+}
-+
-+static int vidioc_queryctrl(struct file *file, void *priv,
-+				struct v4l2_queryctrl *qc)
-+{
-+	switch (qc->id) {
-+	case V4L2_CID_AUDIO_MUTE:
-+		return v4l2_ctrl_query_fill(qc, 0, 1, 1, 1);
-+	}
-+	return -EINVAL;
-+}
-+
-+static int vidioc_g_ctrl(struct file *file, void *priv,
-+				struct v4l2_control *ctrl)
-+{
-+	struct pcm20 *dev = video_drvdata(file);
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_AUDIO_MUTE:
-+		ctrl->value = dev->muted;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static int vidioc_s_ctrl(struct file *file, void *priv,
-+				struct v4l2_control *ctrl)
-+{
-+	struct pcm20 *dev = video_drvdata(file);
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_AUDIO_MUTE:
-+		pcm20_mute(dev, ctrl->value);
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static int vidioc_g_input(struct file *filp, void *priv, unsigned int *i)
-+{
-+	*i = 0;
-+	return 0;
-+}
-+
-+static int vidioc_s_input(struct file *filp, void *priv, unsigned int i)
-+{
-+	return i ? -EINVAL : 0;
-+}
-+
-+static int vidioc_g_audio(struct file *file, void *priv,
-+				struct v4l2_audio *a)
-+{
-+	a->index = 0;
-+	strlcpy(a->name, "Radio", sizeof(a->name));
-+	a->capability = V4L2_AUDCAP_STEREO;
-+	return 0;
-+}
-+
-+static int vidioc_s_audio(struct file *file, void *priv,
-+				struct v4l2_audio *a)
-+{
-+	return a->index ? -EINVAL : 0;
-+}
-+
-+static const struct v4l2_ioctl_ops pcm20_ioctl_ops = {
-+	.vidioc_querycap    = vidioc_querycap,
-+	.vidioc_g_tuner     = vidioc_g_tuner,
-+	.vidioc_s_tuner     = vidioc_s_tuner,
-+	.vidioc_g_frequency = vidioc_g_frequency,
-+	.vidioc_s_frequency = vidioc_s_frequency,
-+	.vidioc_queryctrl   = vidioc_queryctrl,
-+	.vidioc_g_ctrl      = vidioc_g_ctrl,
-+	.vidioc_s_ctrl      = vidioc_s_ctrl,
-+	.vidioc_g_audio     = vidioc_g_audio,
-+	.vidioc_s_audio     = vidioc_s_audio,
-+	.vidioc_g_input     = vidioc_g_input,
-+	.vidioc_s_input     = vidioc_s_input,
-+};
-+
-+static int __init pcm20_init(void)
-+{
-+	struct pcm20 *dev = &pcm20_card;
-+	struct v4l2_device *v4l2_dev = &dev->v4l2_dev;
-+	int res;
-+
-+	dev->aci = snd_aci_get_aci();
-+	if (dev->aci == NULL) {
-+		v4l2_err(v4l2_dev,
-+			 "you must load the snd-miro driver first!\n");
-+		return -ENODEV;
-+	}
-+	strlcpy(v4l2_dev->name, "miropcm20", sizeof(v4l2_dev->name));
-+
-+
-+	res = v4l2_device_register(NULL, v4l2_dev);
-+	if (res < 0) {
-+		v4l2_err(v4l2_dev, "could not register v4l2_device\n");
-+		return -EINVAL;
-+	}
-+
-+	strlcpy(dev->vdev.name, v4l2_dev->name, sizeof(dev->vdev.name));
-+	dev->vdev.v4l2_dev = v4l2_dev;
-+	dev->vdev.fops = &pcm20_fops;
-+	dev->vdev.ioctl_ops = &pcm20_ioctl_ops;
-+	dev->vdev.release = video_device_release_empty;
-+	video_set_drvdata(&dev->vdev, dev);
-+
-+	if (video_register_device(&dev->vdev, VFL_TYPE_RADIO, radio_nr) < 0)
-+		goto fail;
-+
-+	v4l2_info(v4l2_dev, "Mirosound PCM20 Radio tuner\n");
-+	return 0;
-+fail:
-+	v4l2_device_unregister(v4l2_dev);
-+	return -EINVAL;
-+}
-+
-+MODULE_AUTHOR("Ruurd Reitsma, Krzysztof Helt");
-+MODULE_DESCRIPTION("A driver for the Miro PCM20 radio card.");
-+MODULE_LICENSE("GPL");
-+
-+static void __exit pcm20_cleanup(void)
-+{
-+	struct pcm20 *dev = &pcm20_card;
-+
-+	video_unregister_device(&dev->vdev);
-+	v4l2_device_unregister(&dev->v4l2_dev);
-+}
-+
-+module_init(pcm20_init);
-+module_exit(pcm20_cleanup);
+> 
+> > Did you have a chance to compare the driver file that I had sent to you?
+> 
+> I looked at it, but it is based on an earlier version of the driver, so, 
+> it wasn't very easy to compare. Maybe you could send a diff against the 
+> mainline version, on which it is based?
+> 
+> Thanks
+> Guennadi
+> 
+>  drivers/media/video/mt9t031.c |  167 +++++++++++++++++++++--------------------
+>  1 files changed, 85 insertions(+), 82 deletions(-)
+> 
+> diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
+> index c95c277..86bf8f6 100644
+> --- a/drivers/media/video/mt9t031.c
+> +++ b/drivers/media/video/mt9t031.c
+> @@ -204,6 +204,71 @@ static unsigned long mt9t031_query_bus_param(struct soc_camera_device *icd)
+>  	return soc_camera_apply_sensor_flags(icl, MT9T031_BUS_PARAM);
+>  }
+>  
+> +enum {
+> +	MT9T031_CTRL_VFLIP,
+> +	MT9T031_CTRL_HFLIP,
+> +	MT9T031_CTRL_GAIN,
+> +	MT9T031_CTRL_EXPOSURE,
+> +	MT9T031_CTRL_EXPOSURE_AUTO,
+> +};
+> +
+> +static const struct v4l2_queryctrl mt9t031_controls[] = {
+> +	[MT9T031_CTRL_VFLIP] = {
+> +		.id		= V4L2_CID_VFLIP,
+> +		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+> +		.name		= "Flip Vertically",
+> +		.minimum	= 0,
+> +		.maximum	= 1,
+> +		.step		= 1,
+> +		.default_value	= 0,
+> +	},
+> +	[MT9T031_CTRL_HFLIP] = {
+> +		.id		= V4L2_CID_HFLIP,
+> +		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+> +		.name		= "Flip Horizontally",
+> +		.minimum	= 0,
+> +		.maximum	= 1,
+> +		.step		= 1,
+> +		.default_value	= 0,
+> +	},
+> +	[MT9T031_CTRL_GAIN] = {
+> +		.id		= V4L2_CID_GAIN,
+> +		.type		= V4L2_CTRL_TYPE_INTEGER,
+> +		.name		= "Gain",
+> +		.minimum	= 0,
+> +		.maximum	= 127,
+> +		.step		= 1,
+> +		.default_value	= 64,
+> +		.flags		= V4L2_CTRL_FLAG_SLIDER,
+> +	},
+> +	[MT9T031_CTRL_EXPOSURE] = {
+> +		.id		= V4L2_CID_EXPOSURE,
+> +		.type		= V4L2_CTRL_TYPE_INTEGER,
+> +		.name		= "Exposure",
+> +		.minimum	= 1,
+> +		.maximum	= 255,
+> +		.step		= 1,
+> +		.default_value	= 255,
+> +		.flags		= V4L2_CTRL_FLAG_SLIDER,
+> +	},
+> +	[MT9T031_CTRL_EXPOSURE_AUTO] = {
+> +		.id		= V4L2_CID_EXPOSURE_AUTO,
+> +		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+> +		.name		= "Automatic Exposure",
+> +		.minimum	= 0,
+> +		.maximum	= 1,
+> +		.step		= 1,
+> +		.default_value	= 1,
+> +	}
+> +};
+> +
+> +static struct soc_camera_ops mt9t031_ops = {
+> +	.set_bus_param		= mt9t031_set_bus_param,
+> +	.query_bus_param	= mt9t031_query_bus_param,
+> +	.controls		= mt9t031_controls,
+> +	.num_controls		= ARRAY_SIZE(mt9t031_controls),
+> +};
+> +
+>  /* target must be _even_ */
+>  static u16 mt9t031_skip(s32 *source, s32 target, s32 max)
+>  {
+> @@ -223,10 +288,9 @@ static u16 mt9t031_skip(s32 *source, s32 target, s32 max)
+>  }
+>  
+>  /* rect is the sensor rectangle, the caller guarantees parameter validity */
+> -static int mt9t031_set_params(struct soc_camera_device *icd,
+> +static int mt9t031_set_params(struct i2c_client *client,
+>  			      struct v4l2_rect *rect, u16 xskip, u16 yskip)
+>  {
+> -	struct i2c_client *client = to_i2c_client(to_soc_camera_control(icd));
+>  	struct mt9t031 *mt9t031 = to_mt9t031(client);
+>  	int ret;
+>  	u16 xbin, ybin;
+> @@ -307,8 +371,7 @@ static int mt9t031_set_params(struct soc_camera_device *icd,
+>  		if (ret >= 0) {
+>  			const u32 shutter_max = MT9T031_MAX_HEIGHT + vblank;
+>  			const struct v4l2_queryctrl *qctrl =
+> -				soc_camera_find_qctrl(icd->ops,
+> -						      V4L2_CID_EXPOSURE);
+> +				&mt9t031_controls[MT9T031_CTRL_EXPOSURE];
+>  			mt9t031->exposure = (shutter_max / 2 + (total_h - 1) *
+>  				 (qctrl->maximum - qctrl->minimum)) /
+>  				shutter_max + qctrl->minimum;
+> @@ -333,7 +396,6 @@ static int mt9t031_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+>  	struct v4l2_rect rect = a->c;
+>  	struct i2c_client *client = sd->priv;
+>  	struct mt9t031 *mt9t031 = to_mt9t031(client);
+> -	struct soc_camera_device *icd = client->dev.platform_data;
+>  
+>  	rect.width = ALIGN(rect.width, 2);
+>  	rect.height = ALIGN(rect.height, 2);
+> @@ -344,7 +406,7 @@ static int mt9t031_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+>  	soc_camera_limit_side(&rect.top, &rect.height,
+>  		     MT9T031_ROW_SKIP, MT9T031_MIN_HEIGHT, MT9T031_MAX_HEIGHT);
+>  
+> -	return mt9t031_set_params(icd, &rect, mt9t031->xskip, mt9t031->yskip);
+> +	return mt9t031_set_params(client, &rect, mt9t031->xskip, mt9t031->yskip);
+>  }
+>  
+>  static int mt9t031_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+> @@ -391,7 +453,6 @@ static int mt9t031_s_fmt(struct v4l2_subdev *sd,
+>  {
+>  	struct i2c_client *client = sd->priv;
+>  	struct mt9t031 *mt9t031 = to_mt9t031(client);
+> -	struct soc_camera_device *icd = client->dev.platform_data;
+>  	u16 xskip, yskip;
+>  	struct v4l2_rect rect = mt9t031->rect;
+>  
+> @@ -403,7 +464,7 @@ static int mt9t031_s_fmt(struct v4l2_subdev *sd,
+>  	yskip = mt9t031_skip(&rect.height, imgf->height, MT9T031_MAX_HEIGHT);
+>  
+>  	/* mt9t031_set_params() doesn't change width and height */
+> -	return mt9t031_set_params(icd, &rect, xskip, yskip);
+> +	return mt9t031_set_params(client, &rect, xskip, yskip);
+>  }
+>  
+>  /*
+> @@ -476,59 +537,6 @@ static int mt9t031_s_register(struct v4l2_subdev *sd,
+>  }
+>  #endif
+>  
+> -static const struct v4l2_queryctrl mt9t031_controls[] = {
+> -	{
+> -		.id		= V4L2_CID_VFLIP,
+> -		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+> -		.name		= "Flip Vertically",
+> -		.minimum	= 0,
+> -		.maximum	= 1,
+> -		.step		= 1,
+> -		.default_value	= 0,
+> -	}, {
+> -		.id		= V4L2_CID_HFLIP,
+> -		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+> -		.name		= "Flip Horizontally",
+> -		.minimum	= 0,
+> -		.maximum	= 1,
+> -		.step		= 1,
+> -		.default_value	= 0,
+> -	}, {
+> -		.id		= V4L2_CID_GAIN,
+> -		.type		= V4L2_CTRL_TYPE_INTEGER,
+> -		.name		= "Gain",
+> -		.minimum	= 0,
+> -		.maximum	= 127,
+> -		.step		= 1,
+> -		.default_value	= 64,
+> -		.flags		= V4L2_CTRL_FLAG_SLIDER,
+> -	}, {
+> -		.id		= V4L2_CID_EXPOSURE,
+> -		.type		= V4L2_CTRL_TYPE_INTEGER,
+> -		.name		= "Exposure",
+> -		.minimum	= 1,
+> -		.maximum	= 255,
+> -		.step		= 1,
+> -		.default_value	= 255,
+> -		.flags		= V4L2_CTRL_FLAG_SLIDER,
+> -	}, {
+> -		.id		= V4L2_CID_EXPOSURE_AUTO,
+> -		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+> -		.name		= "Automatic Exposure",
+> -		.minimum	= 0,
+> -		.maximum	= 1,
+> -		.step		= 1,
+> -		.default_value	= 1,
+> -	}
+> -};
+> -
+> -static struct soc_camera_ops mt9t031_ops = {
+> -	.set_bus_param		= mt9t031_set_bus_param,
+> -	.query_bus_param	= mt9t031_query_bus_param,
+> -	.controls		= mt9t031_controls,
+> -	.num_controls		= ARRAY_SIZE(mt9t031_controls),
+> -};
+> -
+>  static int mt9t031_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+>  {
+>  	struct i2c_client *client = sd->priv;
+> @@ -565,15 +573,9 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+>  {
+>  	struct i2c_client *client = sd->priv;
+>  	struct mt9t031 *mt9t031 = to_mt9t031(client);
+> -	struct soc_camera_device *icd = client->dev.platform_data;
+>  	const struct v4l2_queryctrl *qctrl;
+>  	int data;
+>  
+> -	qctrl = soc_camera_find_qctrl(&mt9t031_ops, ctrl->id);
+> -
+> -	if (!qctrl)
+> -		return -EINVAL;
+> -
+>  	switch (ctrl->id) {
+>  	case V4L2_CID_VFLIP:
+>  		if (ctrl->value)
+> @@ -592,6 +594,7 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+>  			return -EIO;
+>  		break;
+>  	case V4L2_CID_GAIN:
+> +		qctrl = &mt9t031_controls[MT9T031_CTRL_GAIN];
+>  		if (ctrl->value > qctrl->maximum || ctrl->value < qctrl->minimum)
+>  			return -EINVAL;
+>  		/* See Datasheet Table 7, Gain settings. */
+> @@ -631,6 +634,7 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+>  		mt9t031->gain = ctrl->value;
+>  		break;
+>  	case V4L2_CID_EXPOSURE:
+> +		qctrl = &mt9t031_controls[MT9T031_CTRL_EXPOSURE];
+>  		/* mt9t031 has maximum == default */
+>  		if (ctrl->value > qctrl->maximum || ctrl->value < qctrl->minimum)
+>  			return -EINVAL;
+> @@ -657,7 +661,7 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+>  
+>  			if (set_shutter(client, total_h) < 0)
+>  				return -EIO;
+> -			qctrl = soc_camera_find_qctrl(icd->ops, V4L2_CID_EXPOSURE);
+> +			qctrl = &mt9t031_controls[MT9T031_CTRL_EXPOSURE];
+>  			mt9t031->exposure = (shutter_max / 2 + (total_h - 1) *
+>  				 (qctrl->maximum - qctrl->minimum)) /
+>  				shutter_max + qctrl->minimum;
+> @@ -665,6 +669,8 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+>  		} else
+>  			mt9t031->autoexposure = 0;
+>  		break;
+> +	default:
+> +		return -EINVAL;
+>  	}
+>  	return 0;
+>  }
+> @@ -751,18 +757,16 @@ static int mt9t031_probe(struct i2c_client *client,
+>  	struct mt9t031 *mt9t031;
+>  	struct soc_camera_device *icd = client->dev.platform_data;
+>  	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
+> -	struct soc_camera_link *icl;
+>  	int ret;
+>  
+> -	if (!icd) {
+> -		dev_err(&client->dev, "MT9T031: missing soc-camera data!\n");
+> -		return -EINVAL;
+> -	}
+> +	if (icd) {
+> +		struct soc_camera_link *icl = to_soc_camera_link(icd);
+> +		if (!icl) {
+> +			dev_err(&client->dev, "MT9T031 driver needs platform data\n");
+> +			return -EINVAL;
+> +		}
+>  
+> -	icl = to_soc_camera_link(icd);
+> -	if (!icl) {
+> -		dev_err(&client->dev, "MT9T031 driver needs platform data\n");
+> -		return -EINVAL;
+> +		icd->ops = &mt9t031_ops;
+>  	}
+>  
+>  	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
+> @@ -777,9 +781,6 @@ static int mt9t031_probe(struct i2c_client *client,
+>  
+>  	v4l2_i2c_subdev_init(&mt9t031->subdev, client, &mt9t031_subdev_ops);
+>  
+> -	/* Second stage probe - when a capture adapter is there */
+> -	icd->ops		= &mt9t031_ops;
+> -
+>  	mt9t031->rect.left	= MT9T031_COLUMN_SKIP;
+>  	mt9t031->rect.top	= MT9T031_ROW_SKIP;
+>  	mt9t031->rect.width	= MT9T031_MAX_WIDTH;
+> @@ -801,7 +802,8 @@ static int mt9t031_probe(struct i2c_client *client,
+>  	mt9t031_disable(client);
+>  
+>  	if (ret) {
+> -		icd->ops = NULL;
+> +		if (icd)
+> +			icd->ops = NULL;
+>  		i2c_set_clientdata(client, NULL);
+>  		kfree(mt9t031);
+>  	}
+> @@ -814,7 +816,8 @@ static int mt9t031_remove(struct i2c_client *client)
+>  	struct mt9t031 *mt9t031 = to_mt9t031(client);
+>  	struct soc_camera_device *icd = client->dev.platform_data;
+>  
+> -	icd->ops = NULL;
+> +	if (icd)
+> +		icd->ops = NULL;
+>  	i2c_set_clientdata(client, NULL);
+>  	client->driver = NULL;
+>  	kfree(mt9t031);
+
+
+
 -- 
-1.6.4
-
-
-----------------------------------------------------------------------
-Internetowi nie placa! Otworz Konto Direct.
-Kliknij >> http://link.interia.pl/f2448
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
