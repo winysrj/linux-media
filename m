@@ -1,18 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28])
+Received: from m13-179.163.com ([220.181.13.179])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <robm@fastmail.fm>) id 1N7K16-00058R-HR
-	for linux-dvb@linuxtv.org; Mon, 09 Nov 2009 03:30:05 +0100
-Message-ID: <41DCD9CC54F249248C883873F6C2B560@Atticus>
-From: "Rob Mueller" <robm@fastmail.fm>
-To: "shacky" <shacky83@gmail.com>
-References: <7fedbc910911060752y215adeccm6dc4d35131c62746@mail.gmail.com>	<c4e36d110911060755rb4303f7pe5f91b5988e9d101@mail.gmail.com>	<7fedbc910911060806s15ecbbfdwb19bbad52682e4cb@mail.gmail.com><200911061611.24120.linuxtv@mfraz.orangehome.co.uk>
-	<4AF4E821.8020709@finalfiler.com>
-In-Reply-To: <4AF4E821.8020709@finalfiler.com>
-Date: Mon, 9 Nov 2009 13:29:43 +1100
+	(envelope-from <wdy9927@163.com>) id 1N62Bq-0005eO-G6
+	for linux-dvb@linuxtv.org; Thu, 05 Nov 2009 14:15:51 +0100
+Date: Thu, 5 Nov 2009 21:15:33 +0800 (CST)
+From: wdy9927 <wdy9927@163.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
+Message-ID: <25694071.578071257426933010.JavaMail.coremail@app179.163.com>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Dual tuner DVB-T card on Linux
+Subject: [linux-dvb] How to create a filter which can filte a whole
+ packet(188 byte with 0x47)
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -21,39 +18,46 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: multipart/mixed; boundary="===============0314685547=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--===============0314685547==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_151420_13094285.1257426933010"
 
->> I'm using the Hauppauge Nova-T 500 Dual DVB-T.
->>
-> I'll second that with one proviso; it is essential to turn the LNA (Low 
-> Noise Amplifier) on. See this thread:
->
-> http://www.gossamer-threads.com/lists/mythtv/users/402992
->
-> A system shutdown and cold restart seems to be essential to reset the 
-> card.
->
-> Other than that, it's an excellent choice, imo.
+------=_Part_151420_13094285.1257426933010
+Content-Type: text/plain; charset=gbk
+Content-Transfer-Encoding: base64
 
-I have also been using a Nova-T 500 PCI card for about 18 months and have 
-been very happy with it. Works fine out of the box with recent Ubunutu 
-versions (8.10 and up is my memory).
+aXQgc2VlbXMgbGlrZSB0aGUgc2VjX2ZpbHRlciBhbmQgdGhlIHBlc19maWx0ZXIgY2Fubid0IGRv
+IHRoYXQuCmlzIHRoZXJlIG90aGVyIHdheXM/CgoKIA==
+------=_Part_151420_13094285.1257426933010
+Content-Type: text/html; charset=gbk
+Content-Transfer-Encoding: base64
 
-Do turn on the LNA, and if you're in Australia, enable the work around for 
-ABC/SBS problems. See bottom of the wiki for details.
+PERJVj5pdCBzZWVtcyBsaWtlIHRoZSBzZWNfZmlsdGVyIGFuZCB0aGUgcGVzX2ZpbHRlciBjYW5u
+J3QgZG8gdGhhdC48L0RJVj4KPERJVj5pcyB0aGVyZSBvdGhlciB3YXlzPzwvRElWPgo8RElWPjxC
+Uj48QlI+Jm5ic3A7PC9ESVY+PGJyPjxicj48c3BhbiB0aXRsZT0ibmV0ZWFzZWZvb3RlciIvPjxo
+ci8+CjxhIGhyZWY9Imh0dHA6Ly9hbGx5ZXMubmllLjE2My5jb20vbWFpbi9hZGZjbGljaz9kYj1h
+ZmFuaWUmYmlkPTEyNTQsNjExLDIzJmNpZD0xNDUsNCwxJnNpZD0xMzUxJnNob3c9aWdub3JlJnVy
+bD1odHRwOi8vdHgyLjE2My5jb20vZmFiLmh0bWwiPjA5xOrQwr36M0TW98H3zfjTzqG2zOzPwreh
+obejrM340tfB+cTq0trXyrTy1Ow8L2E+Cjwvc3Bhbj4=
+------=_Part_151420_13094285.1257426933010--
 
-http://www.mythtv.org/wiki/Hauppauge_WinTV_Nova-T_500_PCI
 
-Rob
 
+--===============0314685547==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0314685547==--
