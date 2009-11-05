@@ -1,103 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:62450 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750849AbZKHHgQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 Nov 2009 02:36:16 -0500
-Message-ID: <4AF6762F.6040208@redhat.com>
-Date: Sun, 08 Nov 2009 08:41:35 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1847 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755586AbZKEOWL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Nov 2009 09:22:11 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: RFCv2: Media controller proposal
+Date: Thu, 5 Nov 2009 15:22:09 +0100
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Cohen David Abraham <david.cohen@nokia.com>,
+	"Koskipaa Antti (Nokia-D/Helsinki)" <antti.koskipaa@nokia.com>,
+	Zutshi Vimarsh <vimarsh.zutshi@nokia.com>
+References: <200909100913.09065.hverkuil@xs4all.nl> <Pine.LNX.4.64.0910270854300.4828@axis700.grange> <829197380910270656s18d0ce9n87f452888b6983ba@mail.gmail.com>
+In-Reply-To: <829197380910270656s18d0ce9n87f452888b6983ba@mail.gmail.com>
 MIME-Version: 1.0
-To: =?ISO-8859-2?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-CC: Jean-Francois Moine <moinejf@free.fr>,
-	V4L Mailing List <linux-media@vger.kernel.org>,
-	Thomas Kaiser <thomas@kaiser-linux.li>,
-	Theodore Kilgore <kilgota@auburn.edu>,
-	Kyle Guinn <elyk03@gmail.com>
-Subject: Re: [PATCH 3/3] gspca pac7302/pac7311: separate the two subdrivers
-References: <4AEE04DE.2060300@freemail.hu> <4AF11D25.1080607@freemail.hu>
-In-Reply-To: <4AF11D25.1080607@freemail.hu>
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200911051522.10007.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Németh,
+On Tuesday 27 October 2009 14:56:24 Devin Heitmueller wrote:
+> On Tue, Oct 27, 2009 at 4:04 AM, Guennadi Liakhovetski
+> <g.liakhovetski@gmx.de> wrote:
+> > Hi
+> >
+> > (repeating my preamble from a previous post)
+> >
+> > This is a general comment to the whole "media controller" work: having
+> > given a talk at the ELC-E in Grenoble on soc-camera, I mentioned briefly a
+> > few related RFCs, including this one. I've got a couple of comments back,
+> > including the following ones (which is to say, opinions are not mine and
+> > may or may not be relevant, I'm just fulfilling my promise to pass them
+> > on;)):
+> >
+> > 1) what about DVB? Wouldn't they also benefit from such an API? I wasn't
+> > able to reply to the question, whether the DVB folks know about this and
+> > have a chance to take part in the discussion and eventually use this API?
+> 
+> The extent to which DVB applies is that the DVB devices will appear in
+> the MC enumeration.  This will allow userland to be able to see
+> "hybrid devices" where both DVB and analog are tied to the same tuner
+> and cannot be used at the same time.
+> 
+> > 2) what I am even less sure about is, whether ALSA / ASoC have been
+> > mentioned as possible users of MC, or, at least, possible sources for
+> > ideas. ASoC has definitely been mentioned as an audio analog of
+> > soc-camera, so, I'll be looking at that - at least at their documentation
+> > - to see if I can borrow some of their ideas:-)
+> 
+> ALSA devices will definitely be available, although at this point I
+> have no reason to believe this will require changes the ALSA code
+> itself.  All of the changes involve enumeration within v4l to find the
+> correct ALSA device associated with the tuner and report the correct
+> card number.  The ALSA case is actually my foremost concern with
+> regards to the MC API, since it will solve the problem related to
+> applications such as tvtime figuring out which ALSA device to playback
+> audio on.
+> 
+> Devin
+> 
 
-I'm getting similar reports for other (non pac73xx) model webcams with
-2.6.32 on eeepc's and other computers using the uhci usb driver.
-
-Can you try installing an older kernel (so 2.6.30) and then building
-and installing the latest v4l-dvb tree (with your changes in) over that ?
-
-I think what you are seeing here is a bug outside of the v4l subsystem,
-this is just a hunch though.
+Does anyone know if alsa has similar routing problems as we have for SoCs?
+Currently the MC can be used to discover and change the routing of video streams,
+but it would be very easy indeed to include audio streams (or any type of
+stream for that matter) as well.
 
 Regards,
 
-Hans
+	Hans
 
-
-
-On 11/04/2009 07:20 AM, Németh Márton wrote:
-> Dear Jef,
->
-> although I tested my patch on my development computer together with Labtec
-> Webcam 2200 (gspca_pac7302 driver) it seems that the patch may cause regression
-> on some computers. For example I tested the gspca_pac7302 driver from
-> http://linuxtv.org/hg/~jfrancois/gspca/ on top of Linux kernel 2.6.32-rc5 on
-> an EeePC 901. I get the following error message in dmesg:
->
-> [ 4476.992201] usb 3-2: new full speed USB device using uhci_hcd and address 11
-> [ 4477.230485] usb 3-2: New USB device found, idVendor=093a, idProduct=2626
-> [ 4477.230507] usb 3-2: New USB device strings: Mfr=0, Product=0, SerialNumber=0
-> [ 4477.231139] usb 3-2: configuration #1 chosen from 1 choice
-> [ 4477.417456] Linux video capture interface: v2.00
-> [ 4477.437131] gspca: main v2.7.0 registered
-> [ 4477.443214] gspca: probing 093a:2626
-> [ 4477.453491] gspca: /dev/video0 created
-> [ 4477.453541] gspca: probing 093a:2626
-> [ 4477.453549] gspca: intf != 0
-> [ 4477.453598] gspca: probing 093a:2626
-> [ 4477.453605] gspca: intf != 0
-> [ 4477.453755] usbcore: registered new interface driver pac7302
-> [ 4477.453771] pac7302: registered
-> [ 4489.552153] gspca: set alt 8 err -71
->
-> I bisected the problem on EeePC 901 and the changeset 13373:99c23949b411
-> (gspca - pac7302/pac7311: Separate the two subdrivers.) was marked as the first bad
-> commit.
->
-> On my development computer the same configuration works correctly:
->
-> [ 7872.020222] usb 3-1: new full speed USB device using uhci_hcd and address 4
-> [ 7872.251240] usb 3-1: configuration #1 chosen from 1 choice
-> [ 7872.744755] Linux video capture interface: v2.00
-> [ 7872.785032] gspca: main v2.7.0 registered
-> [ 7872.797061] gspca: probing 093a:2626
-> [ 7872.807577] gspca: /dev/video0 created
-> [ 7872.809747] usbcore: registered new interface driver pac7302
-> [ 7872.809798] pac7302: registered
->
-> Is the separated driver working for you?
-> Do you have any idea what could went wrong? Maybe some timing problem?
->
-> Regards,
->
-> 	Márton Németh
->
-> Németh Márton wrote:
->> From: Márton Németh<nm127@freemail.hu>
->>
->> All PAC7311 specific functions remain in pac7311.c. All PAC7302 specific
->> functions are moved to pac7302.c. The USB device table is also divided into
->> two parts. This makes it possible to remove the sensor specific decisions
->> from different functions and also remove sensor infromation from the USB
->> device table.
->>
->> The common functions are just copied to both subdrivers. These common
->> functions can be separated later to a common file or helper module.
->>
->> Signed-off-by: Márton Németh<nm127@freemail.hu>
->> Cc: Thomas Kaiser<thomas@kaiser-linux.li>
->> Cc: Theodore Kilgore<kilgota@auburn.edu>
->> Cc: Kyle Guinn<elyk03@gmail.com>
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
