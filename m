@@ -1,77 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:42399 "EHLO
-	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753460AbZKGVvw convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Nov 2009 16:51:52 -0500
-From: Ben Hutchings <ben@decadent.org.uk>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Sat, 07 Nov 2009 21:51:55 +0000
-Message-ID: <1257630715.15927.431.camel@localhost>
+Received: from smtp.nokia.com ([192.100.122.233]:26619 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756205AbZKEOGL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Nov 2009 09:06:11 -0500
+Subject: Re: A driver for TI WL1273 FM Radio
+From: m7aalton <matti.j.aaltonen@nokia.com>
+Reply-To: matti.j.aaltonen@nokia.com
+To: ext Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux-Media <linux-media@vger.kernel.org>,
+	"Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>
+In-Reply-To: <200911051418.28467.hverkuil@xs4all.nl>
+References: <1249729833-24975-1-git-send-email-eduardo.valentin@nokia.com>
+	 <1249729833-24975-3-git-send-email-eduardo.valentin@nokia.com>
+	 <1256283953.5953.148.camel@masi.ntc.nokia.com>
+	 <200911051418.28467.hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Thu, 05 Nov 2009 16:05:56 +0200
+Message-Id: <1257429956.5953.264.camel@masi.ntc.nokia.com>
 Mime-Version: 1.0
-Subject: [PATCH 35/75] pvrusb2: declare MODULE_FIRMWARE
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
----
- drivers/media/video/pvrusb2/pvrusb2-devattr.c |    4 ++++
- drivers/media/video/pvrusb2/pvrusb2-hdw.c     |    1 +
- 2 files changed, 5 insertions(+), 0 deletions(-)
+On Thu, 2009-11-05 at 14:18 +0100, ext Hans Verkuil wrote:
+> On Friday 23 October 2009 09:45:53 m7aalton wrote:
+> > Hi.
+> > 
+> > I have written a driver for the TI WL1273 FM Radio but it's not yet
+> > quite ready for up-streaming because of its interface. Now I've started
+> > to change the interface to v4l2 and I'm following Eduardo Valentin's
+> > Si4713 TX driver as an example. However, WL1273 radio has RX and TX so
+> > there are things that Eduardo's driver doesn't cover. For example: the
+> > driver needs a mode switch for switching between TX and RX. Should that
+> > be implemented as an extended control or should there be a new IOCTL
+> > added to the v4l2 API? etc...
+> 
+> So if I understand this correctly, then this device can only transmit or
+> receive, but not both at the same time?
 
-diff --git a/drivers/media/video/pvrusb2/pvrusb2-devattr.c b/drivers/media/video/pvrusb2/pvrusb2-devattr.c
-index e4d7c13..aa65a8d 100644
---- a/drivers/media/video/pvrusb2/pvrusb2-devattr.c
-+++ b/drivers/media/video/pvrusb2/pvrusb2-devattr.c
-@@ -56,6 +56,7 @@ static const struct pvr2_device_client_desc pvr2_cli_29xxx[] = {
- static const char *pvr2_fw1_names_29xxx[] = {
- 		"v4l-pvrusb2-29xxx-01.fw",
- };
-+MODULE_FIRMWARE("v4l-pvrusb2-29xxx-01.fw");
- 
- static const struct pvr2_device_desc pvr2_device_29xxx = {
- 		.description = "WinTV PVR USB2 Model Category 29xxx",
-@@ -89,6 +90,7 @@ static const struct pvr2_device_client_desc pvr2_cli_24xxx[] = {
- static const char *pvr2_fw1_names_24xxx[] = {
- 		"v4l-pvrusb2-24xxx-01.fw",
- };
-+MODULE_FIRMWARE("v4l-pvrusb2-24xxx-01.fw");
- 
- static const struct pvr2_device_desc pvr2_device_24xxx = {
- 		.description = "WinTV PVR USB2 Model Category 24xxx",
-@@ -338,6 +340,7 @@ static const struct pvr2_device_client_desc pvr2_cli_73xxx[] = {
- static const char *pvr2_fw1_names_73xxx[] = {
- 		"v4l-pvrusb2-73xxx-01.fw",
- };
-+MODULE_FIRMWARE("v4l-pvrusb2-73xxx-01.fw");
- 
- static const struct pvr2_device_desc pvr2_device_73xxx = {
- 		.description = "WinTV HVR-1900 Model Category 73xxx",
-@@ -443,6 +446,7 @@ static const struct pvr2_dvb_props pvr2_751xx_dvb_props = {
- static const char *pvr2_fw1_names_75xxx[] = {
- 		"v4l-pvrusb2-73xxx-01.fw",
- };
-+MODULE_FIRMWARE("v4l-pvrusb2-73xxx-01.fw");
- 
- static const struct pvr2_device_desc pvr2_device_750xx = {
- 		.description = "WinTV HVR-1950 Model Category 750xx",
-diff --git a/drivers/media/video/pvrusb2/pvrusb2-hdw.c b/drivers/media/video/pvrusb2/pvrusb2-hdw.c
-index 4c1a2a5..97a6713 100644
---- a/drivers/media/video/pvrusb2/pvrusb2-hdw.c
-+++ b/drivers/media/video/pvrusb2/pvrusb2-hdw.c
-@@ -1674,6 +1674,7 @@ int pvr2_upload_firmware2(struct pvr2_hdw *hdw)
- 	return ret;
- }
- 
-+MODULE_FIRMWARE(CX2341X_FIRM_ENC_FILENAME);
- 
- static const char *pvr2_get_state_name(unsigned int st)
- {
--- 
-1.6.5.2
+Yes, it cannot receive and transmit at the same time.
 
+> If that's the case, then I wonder if it isn't enough to let it depend on
+> whether VIDIOC_S_AUDOUT or VIDIOC_S_AUDIO was called last.
+
+OK. That sounds fine.
+
+> > Also I've added some things to the ivtv-radio tool. Should I try to
+> > "up-stream" those as well?
+> 
+> Perhaps we should take the opportunity to merge this tool as v4l2-radio
+> into the v4l2-apps/util directory of the master v4l-dvb repository.
+> 
+> It would be really nice if it can be used to test the transmitter
+> features and RDS receiver as well, i.e. extending and improving this tool.
+
+I have some code for testing rds reception, I'll include that or at
+least a part of it to v4l2-radio...
+
+> I like having such fairly low-level and easy to debug utilities. They are
+> a great tool to verify the proper functioning of hardware like this.
+> 
+> Regards,
+> 
+> 	Hans
+
+Thanks for comments,
+Matti
 
 
