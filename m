@@ -1,133 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f192.google.com ([209.85.221.192]:52968 "EHLO
-	mail-qy0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750919AbZKZPsU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 10:48:20 -0500
-MIME-Version: 1.0
-In-Reply-To: <4B0E9493.1090200@redhat.com>
-References: <BDZb9P9ZjFB@christoph> <m3skc25wpx.fsf@intrepid.localdomain>
-	 <E6F196CB-8F9E-4618-9283-F8F67D1D3EAF@wilsonet.com>
-	 <829197380911251020y6f330f15mba32920ac63e97d3@mail.gmail.com>
-	 <4B0DA885.7010601@redhat.com> <4B0E9493.1090200@redhat.com>
-Date: Thu, 26 Nov 2009 10:48:26 -0500
-Message-ID: <9e4733910911260748v454d3b0bvcc6bfc86823cdd39@mail.gmail.com>
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
-	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Gerd Hoffmann <kraxel@redhat.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, superm1@ubuntu.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3722 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758454AbZKETpC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Nov 2009 14:45:02 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id nA5Jj7kQ046589
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 5 Nov 2009 20:45:07 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 5 Nov 2009 20:45:07 +0100 (CET)
+Message-Id: <200911051945.nA5Jj7kQ046589@smtp-vbr16.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 26, 2009 at 9:45 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Gerd Hoffmann wrote:
->> On 11/25/09 19:20, Devin Heitmueller wrote:
->>> On Wed, Nov 25, 2009 at 1:07 PM, Jarod Wilson<jarod@wilsonet.com>
->>> wrote:
->>>> Took me a minute to figure out exactly what you were talking
->>>> about. You're referring to the current in-kernel decoding done on
->>>> an ad-hoc basis for assorted remotes bundled with capture devices,
->>>> correct?
->>>>
->>>> Admittedly, unifying those and the lirc driven devices hasn't
->>>> really been on my radar.
->>
->> I think at the end of the day we'll want to have all IR drivers use the
->> same interface.  The way the current in-kernel input layer drivers work
->> obviously isn't perfect too, so we *must* consider both worlds to get a
->> good solution for long-term ...
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-I made an attempt at implementing all of this a year ago.
-http://lkml.org/lkml/2008/11/5/233
+Results of the daily build of v4l-dvb:
 
-All of this kernel code is tiny, about 20K including a driver.
+date:        Thu Nov  5 19:00:08 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13316:c57f47cfb0e8
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Basic flow works like this:
+linux-2.6.22.19-armv5: WARNINGS
+linux-2.6.23.12-armv5: WARNINGS
+linux-2.6.24.7-armv5: WARNINGS
+linux-2.6.25.11-armv5: WARNINGS
+linux-2.6.26-armv5: WARNINGS
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29.1-armv5: WARNINGS
+linux-2.6.30-armv5: WARNINGS
+linux-2.6.31-armv5: WARNINGS
+linux-2.6.32-rc3-armv5: ERRORS
+linux-2.6.32-rc3-armv5-davinci: ERRORS
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.31-armv5-ixp: WARNINGS
+linux-2.6.32-rc3-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.32-rc3-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-rc3-i686: WARNINGS
+linux-2.6.23.12-m32r: WARNINGS
+linux-2.6.24.7-m32r: WARNINGS
+linux-2.6.25.11-m32r: WARNINGS
+linux-2.6.26-m32r: WARNINGS
+linux-2.6.27-m32r: WARNINGS
+linux-2.6.28-m32r: WARNINGS
+linux-2.6.29.1-m32r: WARNINGS
+linux-2.6.30-m32r: WARNINGS
+linux-2.6.31-m32r: WARNINGS
+linux-2.6.32-rc3-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: WARNINGS
+linux-2.6.32-rc3-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: WARNINGS
+linux-2.6.32-rc3-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-rc3-x86_64: ERRORS
+sparse (linux-2.6.31): OK
+sparse (linux-2.6.32-rc3): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-Add a new IR data type to the input framework
-http://lkml.org/lkml/2008/11/5/234
+Detailed results are available here:
 
-Example mceusb IR input driver
-http://lkml.org/lkml/2008/11/5/238
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-In-kernel decoding of core IR protocols - RC5, RC6, etc
-http://lkml.org/lkml/2008/11/5/234
+Full logs are available here:
 
-Decoded core protocols pass through a translation map based on configfs
-When core protocol matches an entry in configfs it is turned into a
-keycode event.
-http://lkml.org/lkml/2008/11/5/235
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-You make a directory in /configfs/remotes for each remote you have.
-Making the directory creates a new evdev device.  Under the directory
-make an entry for each command generated by the device. These entries
-cause the decoded IR data to be mapped into keycodes on the new evdev
-device. udev would load these configfs mappings at boot time...
+The V4L2 specification failed to build, but the last compiled spec is here:
 
-mkdir /config/remotes/sony
- -- this creates a new evdev device
-mkdir remotes/sony/one
-echo 7 >remotes/sony/one/protocol
-echo 264 >remotes/sony/one/command
-echo 2 >remotes/sony/one/keycode
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
 
-This transforms a button push of 1 on my remote into a key stroke for KEY_1
+The DVB API specification failed to build, but the last compiled spec is here:
 
- *   configfs root
- *   --remotes
- *   ----specific remote
- *   ------keymap
- *   --------protocol
- *   --------device
- *   --------command
- *   --------keycode
- *   ------repeat keymaps
- *   --------....
- *   ----another remote
- *   ------more keymaps
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
-You can map the 1 button from multiple remotes to KEY_1 if you want. Or
-you can use a single remote to create multiple virtual keyboards.
-
--------------------------
-
-Raw IR pulse data is available in a FIFO via sysfs. You can use this
-to figure out new remote protocols.
-
-Two input events are generated
-1) an event for the decoded raw IR protocol
-2) a keycode event if thedecoded raw IR protocol matches an entry in
-the configfs
-
-You can also send pulses.
-
-------
-
-If you want to script this, you would have a user space task that
-watches for either the decoded IR codes or the mapped keycodes.
-
-This system also works with user space device drivers. They can inject
-input events into the early event flow and they will get processed as
-if the event originated in the kernel.
-
----------------------
-
-Sure you could push the protocol decoding code (RC5, etc) into user
-space. Seems like a lot of hassle to move about 3KB of code out of the
-kernel.
-
-
--- 
-Jon Smirl
-jonsmirl@gmail.com
