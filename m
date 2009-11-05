@@ -1,68 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:42403 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1759562AbZKFTpu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Nov 2009 14:45:50 -0500
-Date: Fri, 6 Nov 2009 20:46:05 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Antonio Ospite <ospite@studenti.unina.it>
-cc: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: Re: pxa_camera + mt9m1111:  image shifted (was: Failed to configure
- for format 50323234)
-In-Reply-To: <20091103144536.1c487f79.ospite@studenti.unina.it>
-Message-ID: <Pine.LNX.4.64.0911062036590.4389@axis700.grange>
-References: <20091002213530.104a5009.ospite@studenti.unina.it>
- <Pine.LNX.4.64.0910030116270.12093@axis700.grange>
- <20091003161328.36419315.ospite@studenti.unina.it>
- <Pine.LNX.4.64.0910040024070.5857@axis700.grange>
- <20091004171924.7579b589.ospite@studenti.unina.it> <4AC992EA.2070905@hni.uni-paderborn.de>
- <20091103144536.1c487f79.ospite@studenti.unina.it>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2631 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755066AbZKEM42 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Nov 2009 07:56:28 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Subject: Re: [PATCH] V4L: adding digital video timings APIs
+Date: Thu, 5 Nov 2009 13:56:29 +0100
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+References: <1256164939-21803-1-git-send-email-m-karicheri2@ti.com> <76889a5297f775ff3e951ae3af801f96.squirrel@webmail.xs4all.nl> <A69FA2915331DC488A831521EAE36FE4015568EF61@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE4015568EF61@dlee06.ent.ti.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200911051356.29540.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 3 Nov 2009, Antonio Ospite wrote:
-
-> On Mon, 05 Oct 2009 08:32:10 +0200
-> Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de> wrote:
+On Friday 23 October 2009 22:44:34 Karicheri, Muralidharan wrote:
+> Hans,
 > 
-> > Only for your information. Maybe it helps to reproduce the error.
-> > 
-> > I have the same problem with my own ov9655 driver on a pxa platform 
-> > since I update to kernel 2.6.30
-> > and add crop support. Every  first open of the camera after system reset 
-> > the image looks like yours.
-> > If I use the camera the next time without changing the resolution 
-> > everything is OK. Only during the
-> > first open the resolution of the camera is changed  and function fmt set 
-> > in the ov9655 driver is called
-> > twice. I use the camera with my one program and it doesn't use crop.
+> >> following IOCTLS :-
+> >>
+> >>  -  verify the new v4l2_input capabilities flag added
+> >>  -  Enumerate available presets using VIDIOC_ENUM_DV_PRESETS
+> >>  -  Set one of the supported preset using VIDIOC_S_DV_PRESET
+> >>  -  Get current preset using VIDIOC_G_DV_PRESET
+> >>  -  Detect current preset using VIDIOC_QUERY_DV_PRESET
+> >>  -  Using stub functions in tvp7002, verify VIDIOC_S_DV_TIMINGS
+> >>     and VIDIOC_G_DV_TIMINGS ioctls are received at the sub device.
+> >>
+> >> TODOs :
+> >>
+> >>  - Test it on a 64bit platform - I need help here since I don't have the
+> >> platform.
+> >>  - Add documentation (Can someone tell me which file to modify in the
+> >> kernel tree?).
+> >
+> >Use the spec in media-spec/v4l.
 > 
-> Thanks Stefan, now I can reproduce the problem.
-> 1. Boot the system
-> 2. Capture an image with capture-example from v4l2-apps.
+> [MK] Where can I access this? Is this part of kernel tree (I couldn't find
+> it under Documentation/video4linux/ under the kernel tree? Is it just updating a text file or I need to have some tool installed to access
+> this documentation and update it.
+
+This has been moved around quite a bit lately. It is now in
+linux/Documentation/DocBook/v4l. You build it using 'make media-spec'.
+
+> >Please also add support to v4l2-ctl.cpp in v4l2-apps/util! That's handy
+> >for testing.
+> [MK] Are you referring to the following repository for this?
 > 
-> Then I have the shift as in the picture above on the *first* device
-> open, if I open the device again and capture a second time, without
-> rebooting, the picture is fine.
+> http://linuxtv.org/hg/~dougsland/tool/file/5b884b36bbab
+> 
+> Is there a way I can do a git clone for this?
 
-Ok, tried gstreamer on my pxa board with a mt9v022 camera. Indeed, in the 
-beginning the frame is shifted, but then it stabilises on its own. TBH, I 
-never paid attention to such temporary self-healing problems. Have you 
-tried capturing several frames in a row? is it only the first one that's 
-shifted? Then, perhaps, the easiest would be to throw it away on PXA. 
-Don't think I saw it on other platforms, at least not consistently. So, 
-just have to check a couple of platforms and cameras, and if indeed it's 
-only the case on PXA with all cameras, we'll have to throw one frame away.
+Both the doc and the v4l2-ctl.cpp utility are in the master hg repository
+(linuxtv.org/hg/v4l-dvb). The utility can be found here: v4l2-apps/util.
+Build it using 'make apps'. The patches of the timings API, docs and utils
+should all be done against the master hg tree since that is that latest and
+greatest tree.
 
-Robert? Any idea?
+> 
+> >
+> >Setting the input/output capabilities should be done in v4l2-ioctl.c
+> >rather than in the drivers. All the info you need to set these bits is
+> >available in the core after all.
+> >
+> 
+> [MK] Could you explain this to me? In my prototype, I had tvp5146 that
+> implements S_STD and tvp7002 that implements S_PRESET. Since bridge driver
+> has all the knowledge about the sub devices and their capabilities, it can
+> set the flag for each of the input that it supports (currently I am
+> setting this flag in the board setup file that describes all the inputs using v4l2_input structure). So it is a matter of setting relevant cap flag in this file for each of the input based on what the sub device supports. I am not sure how core can figure this out?
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+The problem is that we don't want to go through all drivers in order to set
+the input/output capability flags. However, v4l2_ioctl.c can easily check
+whether the v4l2_ioctl_ops struct has set vidioc_s_std, vidioc_s_dv_preset
+and/or vidioc_s_dv_timings and fill in the caps accordingly. If this is done
+before the vidioc_enum_input/output is called, then the driver can override
+what v4l2_ioctl.c did if that is needed.
+
+> 
+> >I also noticed that not all new ioctls are part of video_ops. Aren't they
+> >all required?
+> >
+> [MK] All new ioctls are supported in video_ops. I am not sure what you are
+> referring to. For sub device ops, only few are required since bridge device
+> can handle the rest.
+
+OK.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
