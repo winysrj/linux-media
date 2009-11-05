@@ -1,50 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gv-out-0910.google.com ([216.239.58.191]:6429 "EHLO
-	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751629AbZKQOoP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2009 09:44:15 -0500
-Received: by gv-out-0910.google.com with SMTP id r4so13894gve.37
-        for <linux-media@vger.kernel.org>; Tue, 17 Nov 2009 06:44:20 -0800 (PST)
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2964 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755619AbZKEOTL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Nov 2009 09:19:11 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC] Restructure video_device
+Date: Thu, 5 Nov 2009 15:19:06 +0100
+Cc: linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+References: <200910231625.40822.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <200910231625.40822.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <C5BCB298-B166-4F9D-998C-EE58C5AF8B78@wilsonet.com>
-References: <15cfa2a50910071839j58026d10we2ccbaeb26527abc@mail.gmail.com>
-	 <0C6DEB14-B32A-4A20-B569-16B2A028CE25@wilsonet.com>
-	 <15cfa2a50910091827l449f0fb0t2974219b6ea76608@mail.gmail.com>
-	 <4B00D91B.1000906@wilsonet.com> <4B00DB5B.10109@wilsonet.com>
-	 <409C0215-68B1-4F90-A8E0-EBAF4F02AC1A@wilsonet.com>
-	 <4B023AC9.8080403@linuxtv.org>
-	 <15cfa2a50911162203w1ad1584bhfdbe0213421abd6a@mail.gmail.com>
-	 <C5BCB298-B166-4F9D-998C-EE58C5AF8B78@wilsonet.com>
-Date: Tue, 17 Nov 2009 09:44:19 -0500
-Message-ID: <15cfa2a50911170644h15680f08hc2ae695ac4deb5ae@mail.gmail.com>
-Subject: Re: KWorld UB435-Q Support
-From: Robert Cicconetti <grythumn@gmail.com>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-media@vger.kernel.org,
-	Douglas Schilling Landgraf <dougsland@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200911051519.06843.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 17, 2009 at 9:15 AM, Jarod Wilson <jarod@wilsonet.com> wrote:
->> It happened at every tuning operation, and made mythfrontend unhappy
->> (unable to tune after the first channel). I disabled the check for
->> RF_CAL_OK which triggered the recalibration, and mythfrontend worked.
->
-> Yeah, tuning is much quicker here if I skip that check as well, but its definitely not the proper fix.
->
->> The stick has been plugged in for a few months, so presumably would've
->> caught on fire by now if it was going to. It would be nice if the
->> tuning delay went away, though.. it still takes ~6 seconds to switch
->> frequencies.
->
-> Wait, it still takes that long with the check gone? I didn't poke for very long with the check disabled, mostly focusing on trying to figure out why things are going haywire.
+On Friday 23 October 2009 16:25:40 Laurent Pinchart wrote:
+> Hi everybody,
+> 
+> while working on device node support for subdevs I ran into an issue with the 
+> way v4l2 objects are structured.
+> 
+> We currently have the following structure:
+> 
+> - video_device represents a device that complies with the V4L1 or V4L2 API. 
+> Every video_device has a corresponding device node.
+> 
+> - v4l2_device represents a high-level media device that handles sub-devices. 
+> With the new media controller infrastructure a v4l2_device will have a device 
+> node as well.
+> 
+> - v4l2_subdev represents a sub-device. As for v4l2_device's, the new media 
+> controller infrastructure will give a device node for every sub-device.
+> 
+> - v4l2_entity is the structure that both v4l2_subdev and video_device derive 
+> from. Most of the media controller code will deal with entities rather than 
+> sub-devices or video devices, as most operations (such as discovering the 
+> topology and create links) do not depend on the exact nature of the entity. 
+> New types of entities could be introduced later.
+> 
+> Both the video_device and v4l2_subdev structure inherit from v4l2_entity, so 
+> both of them have a v4l2_entity field. With v4l2_device and v4l2_subdev now 
+> needing to devices to have device nodes created, the v4l2_device and 
+> v4l2_subdev structure both have a video_device field.
+> 
+> This isn't clean for two reasons:
+> 
+> - v4l2_device isn't a v4l2_entity, so it should inherit from a structure 
+> (video_device) that itself inherits from v4l2_entity. 
+> 
+> - v4l2_subdev shouldn't inherit twice from v4l2_entity, once directly and once 
+> through video_device.
 
-Okay.. couple of unscientific tests later show I was wrong above:
-First tuning, ~5-6 seconds to lock.
-Later tunings, ~3 seconds to lock.
+I agree.
 
-This is with my hack to remove the recalibrations.
+> To fix this I would like to refactor the video_device structure and cut it in 
+> two pieces. One of them will deal with device node related tasks, being mostly 
+> V4L1/V4L2 agnostic, and the other will inherit from the first and add 
+> V4L1/V4L2 support (tvnorms/current_norm/ioctl_ops fields from the current 
+> video_device structure), as well as media controller support (inheriting from 
+> v4l2_entity).
+> 
+> My plan was to create a video_devnode structure for the low-level device node 
 
--Bob
+Let's call it v4l2_devnode to be consistent with the current naming convention.
+
+> related structure, and keeping the video_device name for the higher level 
+> structure. v4l2_device, v4l2_subdev and video_device would then all have a 
+> video_devnode field.
+> 
+> While this isn't exactly difficult, it would require changing a lot of 
+> drivers, as some field will be moved from video_device to 
+> video_device::video_devnode. Some of those fields are internal, some of them 
+> are accessed by drivers while they shouldn't in most cases (the minor field 
+> for instance), and some are public (name, parent).
+> 
+> I would like to have your opinion on whether you think this proposal is 
+> acceptable or whether you see a better and cleaner way to restructure the 
+> video device code structures.
+> 
+
+I have two issues with this:
+
+1) Is it really necessary to do this now? We are still in the prototyping
+phase and I think it is probably more efficient right now to hack around this
+and postpone the real fix (as described above) until we are sure that the mc
+concept is working correctly.
+
+2) I'm not sure whether the final media controller will and should be part
+of the v4l framework at all. I think that this is something that can be used
+separately from the v4l subsystem. So we should be very careful about
+integrating this too closely in v4l. Again, this is not much of an issue
+while prototyping, but it definitely will need some careful thinking when we
+do the final implementation.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
