@@ -1,127 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from anny.lostinspace.de ([80.190.182.2]:60946 "EHLO
-	anny.lostinspace.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751661AbZKVSJA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Nov 2009 13:09:00 -0500
-Received: from server.idefix.lan (ppp-93-104-109-205.dynamic.mnet-online.de [93.104.109.205])
-	(authenticated bits=0)
-	by anny.lostinspace.de (8.14.3/8.14.3) with ESMTP id nAMI7Zod016142
-	for <linux-media@vger.kernel.org>; Sun, 22 Nov 2009 19:07:39 +0100 (CET)
-	(envelope-from idefix@fechner.net)
-Received: from localhost (unknown [127.0.0.1])
-	by server.idefix.lan (Postfix) with ESMTP id 2D7AD95C5B
-	for <linux-media@vger.kernel.org>; Sun, 22 Nov 2009 19:08:59 +0100 (CET)
-Received: from server.idefix.lan ([127.0.0.1])
-	by localhost (server.idefix.lan [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id 33yCiVLbqwOv for <linux-media@vger.kernel.org>;
-	Sun, 22 Nov 2009 19:08:55 +0100 (CET)
-Received: from idefix-mobil.idefix.lan (idefix-mobil.idefix.lan [192.168.1.15])
-	by server.idefix.lan (Postfix) with ESMTPA id CF83895BFA
-	for <linux-media@vger.kernel.org>; Sun, 22 Nov 2009 19:08:54 +0100 (CET)
-Message-ID: <4B097E37.10402@fechner.net>
-Date: Sun, 22 Nov 2009 19:08:55 +0100
-From: Matthias Fechner <idefix@fechner.net>
-Reply-To: linux-media@vger.kernel.org
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4098 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752179AbZKESLS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Nov 2009 13:11:18 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH/RFC 7/9 v2] v4l: add an image-bus API for configuring v4l2 subdev pixel and frame formats
+Date: Thu, 5 Nov 2009 19:11:17 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange> <200911051641.15978.hverkuil@xs4all.nl> <Pine.LNX.4.64.0911051729570.5620@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0911051729570.5620@axis700.grange>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: IR Receiver on an Tevii S470
-References: <4B0459B1.50600@fechner.net> <4B081F0B.1060204@fechner.net>	 <1258836102.1794.7.camel@localhost>  <200911220303.36715.liplianin@me.by> <1258858102.3072.14.camel@palomino.walls.org>
-In-Reply-To: <1258858102.3072.14.camel@palomino.walls.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200911051911.17196.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy,
+On Thursday 05 November 2009 17:51:50 Guennadi Liakhovetski wrote:
+> On Thu, 5 Nov 2009, Hans Verkuil wrote:
+> 
+> > On Friday 30 October 2009 15:01:27 Guennadi Liakhovetski wrote:
+> > > Video subdevices, like cameras, decoders, connect to video bridges over
+> > > specialised busses. Data is being transferred over these busses in various
+> > > formats, which only loosely correspond to fourcc codes, describing how video
+> > > data is stored in RAM. This is not a one-to-one correspondence, therefore we
+> > > cannot use fourcc codes to configure subdevice output data formats. This patch
+> > > adds codes for several such on-the-bus formats and an API, similar to the
+> > > familiar .s_fmt(), .g_fmt(), .try_fmt(), .enum_fmt() API for configuring those
+> > > codes. After all users of the old API in struct v4l2_subdev_video_ops are
+> > > converted, the API will be removed.
+> > 
+> > OK, this seems to completely disregard points raised in my earlier "bus and
+> > data format negotiation" RFC which is available here once www.mail-archive.org
+> > is working again:
+> > 
+> > http://www.mail-archive.com/linux-media%40vger.kernel.org/msg09644.html
+> > 
+> > BTW, ignore the 'Video timings' section of that RFC. That part is wrong.
+> > 
+> > The big problem I have with this proposal is the unholy mixing of bus and
+> > memory formatting. That should be completely separated. Only the bridge
+> > knows how a bus format can be converted into which memory (pixel) formats.
+> 
+> Please, explain why only the bridge knows about that.
+> 
+> My model is the following:
+> 
+> 1. we define various data formats on the bus. Each such format variation 
+> gets a unique identification.
+> 
+> 2. given a data format ID the data format is perfectly defined. This 
+> means, you do not have to have a special knowledge about this specific 
+> format to be able to handle it in some _generic_ way. A typical such 
+> generic handling on a bridge is, for instance, copying the data into 
+> memory "one-to-one." For example, if a sensor delivers 10 bit monochrome 
+> data over an eight bit bus as follows
+> 
+> y7 y6 y5 y4 y3 y2 y1 y0   xx xx xx xx xx xx y9 y8 ...
+> 
+> then _any_ bridge, capable of just copying data from the bus bytewise into 
+> RAM will be able to produce little-endian 10-bit grey pixel format in RAM. 
+> This handling is _not_ bridge specific. This is what I call packing.
 
-Andy Walls wrote:
-> Thank you.  I will probably need you for testing when ready.
->
->
-> I was planning to do step 1 above for HVR-1800 IR anyway.
->
-> I will estimate that I may have something ready by about Christmas (25
-> December 2009), unless work becomes very busy.
->   
+Of course it is bridge dependent. It is the bridge that takes data from the
+bus and puts it in memory. In many cases that is done very simply by bytewise
+copying. Other bridges can do RGB to YUV or vice versa conversions or can do
+endianness conversion or can do JPEG/MPEG compression on the fly or whatever
+else hardware designers will think of.
 
-thanks a lot for your answer.
-I uploaded two pictures I did from the card, you can find it here:
-http://fechner.net/tevii-s470/
+It's no doubt true for the SoCs you have been working with, but it is not so
+simple in general.
+ 
+> 3. Therefore, each bridge, capable of handling of some "generic" data 
+> using some specific packing, can perfectly look through data-format 
+> descriptors, see if it finds any with the supported packing, and if so, it 
+> _then_ knows, that it can use that specific data format and the specific 
+> packing to produce the resulting pixel format from the format descriptor.
+> 
+> > A bus format is also separate from the colorspace: that is an independent
+> > piece of data.
+> 
+> Sure. TBH, I do not quite how enum v4l2_colorspace is actually used. Is it 
+> uniquely defined by each pixel format? So, it can be derived from that? 
+> Then it is indeed redundant. Can drop, don't care about it that much.
 
-It is a CX23885.
-The driver I use is the ds3000.
-lspci says:
-02:00.0 Multimedia video controller: Conexant Device 8852 (rev 02)
-    Subsystem: Device d470:9022
-    Flags: bus master, fast devsel, latency 0, IRQ 19
-    Memory at fac00000 (64-bit, non-prefetchable) [size=2M]
-    Capabilities: [40] Express Endpoint, MSI 00
-    Capabilities: [80] Power Management version 2
-    Capabilities: [90] Vital Product Data <?>
-    Capabilities: [a0] Message Signalled Interrupts: Mask- 64bit+ 
-Count=1/1 Enable-
-    Capabilities: [100] Advanced Error Reporting
-        UESta:    DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- 
-RxOF- MalfTLP- ECRC- UnsupReq+ ACSVoil-
-        UEMsk:    DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- 
-RxOF- MalfTLP- ECRC- UnsupReq- ACSVoil-
-        UESvrt:    DLP+ SDES- TLP- FCP+ CmpltTO- CmpltAbrt- UnxCmplt- 
-RxOF+ MalfTLP+ ECRC- UnsupReq- ACSVoil-
-        CESta:    RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr-
-        CESta:    RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr-
-        AERCap:    First Error Pointer: 14, GenCap- CGenEn- ChkCap- ChkEn-
-    Capabilities: [200] Virtual Channel <?>
-    Kernel driver in use: cx23885
-    Kernel modules: cx23885
+It's independent from the pixel format. So the same pixel (or bus) format can
+have different colorspaces.
 
-lsmod says:
-Module                  Size  Used by
-lirc_serial            10740  1
-snd_mixer_oss          12428  0
-lirc_dev                9512  3 lirc_serial
-snd_hda_codec_nvhdmi     3976  1
-ds3000                 12820  1
-snd_hda_codec_realtek   184292  1
-cx23885               105116  9
-cx2341x                10784  1 cx23885
-v4l2_common            15428  2 cx23885,cx2341x
-nvidia               8860344  44
-videodev               34080  2 cx23885,v4l2_common
-v4l1_compat            11252  1 videodev
-videobuf_dma_sg        11176  1 cx23885
-videobuf_dvb            6308  1 cx23885
-dvb_core               78492  2 cx23885,videobuf_dvb
-videobuf_core          16280  3 cx23885,videobuf_dma_sg,videobuf_dvb
-snd_hda_intel          22004  1
-ir_common              46132  1 cx23885
-snd_hda_codec          55908  3 
-snd_hda_codec_nvhdmi,snd_hda_codec_realtek,snd_hda_intel
-btcx_risc               4244  1 cx23885
-tveeprom               10652  1 cx23885
-snd_pcm                63812  3 snd_hda_intel,snd_hda_codec
-snd_timer              17584  1 snd_pcm
-ehci_hcd               29628  0
-ohci_hcd               19664  0
-snd                    49728  7 
-snd_mixer_oss,snd_hda_codec_realtek,snd_hda_intel,snd_hda_codec,snd_pcm,snd_timer
-usbcore               117380  2 ehci_hcd,ohci_hcd
-i2c_nforce2             6092  0
-serio_raw               4708  0
-soundcore               6276  1 snd
-i2c_core               19848  7 
-ds3000,cx23885,v4l2_common,nvidia,videodev,tveeprom,i2c_nforce2
-snd_page_alloc          7952  2 snd_hda_intel,snd_pcm
-evdev                   8148  4
+> > Personally I would just keep using v4l2_pix_format, except
+> > that the fourcc field refers to a busimg format rather than a pixel format
+> > in the case of subdevs. In most non-sensor drivers this field is completely
+> > ignored anyway since the bus format is fixed.
+> 
+> Example: there are cameras, that can be configured to pad 2 bits from the 
+> incomplete byte above to 10 either in high or in low bits. Do you want to 
+> introduce a new FOURCC code for those two formats? This is an example of 
+> what I call packing.
+
+If this happens in the sensor, then yes.
+
+> > I don't mind if you do a bus format to pixel format mapping inside soc-camera,
+> > but it shouldn't spill over into the v4l core code.
+> 
+> Don't understand. This is not for soc-camera only. This infrastructure 
+> should be used by all subdev drivers, communicating aver a data bus. The 
+> distinction is quite clear to me: if two entities connect over a bus, they 
+> use an image-bus data format to describe the data format. If they write 
+> and read from RAM - that's pixel format.
+
+We agree about that, but why then does struct v4l2_imgbus_framefmt contain
+memory-related fields like packing, order and bits_per_sample? A subdev driver
+does not care about that. All it has are X pins through which the data has to
+pass. How that will look like in memory it doesn't know and doesn't care.
+
+> > Laurent is also correct that this should be eventually pad-specific, but
+> > we can ignore that for now.
+> > 
+> > I'm also missing the bus hardware configuration (polarities, sampling on
+> > rising or falling edge). What happened to that? Or is that a next step?
+> 
+> It is separate, yes.
+
+I saw that as well. I had a lot of emails to go through :-)
+
+Regards,
+
+	Hans
+
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> 
+> 
 
 
-I can test any patch when you have one ready, currently I'm using lirc 
-together with a TechnoTrend RemoteControl.
-Thanks a lot and have a nice week
-
-Best regards,
-Matthias
 
 -- 
-"Programming today is a race between software engineers striving to build bigger and better idiot-proof programs, and the universe trying to produce bigger and better idiots. So far, the universe is winning." -- Rich Cook
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
