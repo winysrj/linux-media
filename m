@@ -1,232 +1,235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46921 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754923AbZKRPZY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 10:25:24 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
-Date: Wed, 18 Nov 2009 09:25:28 -0600
-Subject: RE: [PATCH] Davinci VPFE Capture: Add Suspend/Resume Support
-Message-ID: <A69FA2915331DC488A831521EAE36FE401559C5F1E@dlee06.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1258544075-28771-1-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <1258544075-28771-1-git-send-email-hvaibhav@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from smtp-roam2.Stanford.EDU ([171.67.219.89]:41525 "EHLO
+	smtp-roam.stanford.edu" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751123AbZKEAWZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2009 19:22:25 -0500
+Message-ID: <4AF218C9.5070103@stanford.edu>
+Date: Wed, 04 Nov 2009 16:14:01 -0800
+From: Eino-Ville Talvala <talvala@stanford.edu>
 MIME-Version: 1.0
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Neil Johnson <realdealneil@gmail.com>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Subject: Re: still image capture with video preview
+References: <3d7d5c150911040913i5486bd07r3a465a2f7d2d5a3e@mail.gmail.com>	 <A69FA2915331DC488A831521EAE36FE40155833B30@dlee06.ent.ti.com> <3d7d5c150911041124r4b952303hf9c0a9e11897621d@mail.gmail.com>
+In-Reply-To: <3d7d5c150911041124r4b952303hf9c0a9e11897621d@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Vaibhav,
+Been meaning to write a note about this for a bit - this seems like a 
+good time.
 
-Did you validate suspend & resume operations on AM3517?
+I'm one of the students working on the Frankencamera at Stanford 
+University (https://graphics.stanford.edu/projects/camera-2.0/), in 
+collaboration with Nokia and others.  Having a live viewfinder stream 
+and then quickly switching to capture one (or typically many in our 
+case) full-frame images is a very basic requirement for our project.
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-phone: 301-407-9583
-email: m-karicheri2@ti.com
+This general use case - basic to the operation of any point-and-shoot 
+camera - is one of our few frustrations with the current V4L2 
+infrastructure that is very hard to work around without rearchitecting 
+quite a bit of code.  Perhaps a userptr still image buffer will be a bit 
+faster, but there's still quite a bit of overhead in the entire 
+'streamoff-reconfigure-rebuffer-streamon' pipeline, especially if 
+'streamoff/streamon', as it typically would, resets (maybe even powers 
+off) and reconfigures the whole imager chip.
 
->-----Original Message-----
->From: Hiremath, Vaibhav
->Sent: Wednesday, November 18, 2009 6:35 AM
->To: linux-media@vger.kernel.org
->Cc: hverkuil@xs4all.nl; Karicheri, Muralidharan; Hiremath, Vaibhav
->Subject: [PATCH] Davinci VPFE Capture: Add Suspend/Resume Support
+Our current camera is also OMAP3530 based, using the MT9P031 Aptina 
+sensor via the Elphel 10338 camera tile 
+(http://www3.elphel.com/importwiki?title=10338).  We have our own 
+MT9P031 driver using the v4l2-int-device method (since the OMAP3 ISP 
+driver we have hasn't moved to v4l2-sub-device yet), which can change 
+just fine between 640x480 and 5 MP modes using the above method, but the 
+latency to the user is substantial - the 'shutter lag' is very poor.  
+The sensor itself can trivially switch resolutions on every frame 
+boundary, as far as the datasheet claims at least (it's hard to test 
+this without the software infrastructure yet), and it can certainly 
+handle switching subsampling modes or the region of interest on every 
+frame.  So we expect resolution switching to work just as well.
+
+There are some hardware restrictions here as well - the OMAP3 ISP 
+preview pipeline does need to know the resolution of the incoming image, 
+if it is used for demosaicing/white balance/etc.  We haven't tried to 
+modify the existing ISP driver (our version is behind the latest version 
+by quite a bit) to see how fast it could switch sections on an off - for 
+our purposes, we'd much rather capture raw Bayer data when dealing with 
+the 5 MP full frames.  However, the input CCDC pipe seems to not care 
+about resolution at all, so it should be able to handle an input stream 
+that, say, alternates between 640x480 and 5MP on every other frame.  The 
+rest of the software architecture won't, of course.
+
+I don't know what a clear solution to this would be, at the V4L2 level.  
+For the single special case of  live viewfinder->snapshot->live 
+viewfinder, one could just have a 5 MP alternate buffer associated with 
+the device and a vctrl that triggers the driver to store a full frame to it.
+
+A more general approach would be to allow the V4L2 buffers to change 
+size dynamically (presumably allocated from some sort of memmapped pool 
+defined by the app) so that a stream of varying-resolution frames could 
+be handled. This would likely complicate things for all the people who 
+don't care about this sort of thing, of course.
+
+I'm sure people more familiar with V4L2 have a better idea on how 
+something like this could be implemented, and I'd be very interested in 
+hearing about it - we'll likely have to try to hack a solution for 
+ourselves at some point in the near future, and if anyone has a 
+suggestion on the cleanest way to go about it, I'd love to know.  Our 
+current plan is to use what Neil mentioned - allocate 5 MP buffers, but 
+in viewfinder mode, only fill 640x480 worth of pixels, and trust our app 
+to deal with it right.
+
+While I'm at it, a second feature we'd love to see in V4L2 is some way 
+to pass the sensor settings that were used for a given captured frame 
+along with the buffer.  The spec currently doesn't (and can't) say 
+anything about what the latency between setting the exposure vctrl, and 
+receiving frames with the new exposure setting is, so writing routines 
+such as autoexposure becomes much more frustrating.  The capture driver 
+is the only place that might know about that relationship between 
+settings and frames, and should have some way of letting the user space 
+know.  We hacked up something repurposing the 'input' field as such an 
+indicator, but it's very much a hack.
+
+Thanks,
+
+Eino-Ville (Eddy) Talvala
+Camera 2.0 Project, Computer Graphics Lab
+Stanford University
+
+
+On 11/4/2009 11:24 AM, Neil Johnson wrote:
+> Hi Murali,
 >
->From: Vaibhav Hiremath <hvaibhav@ti.com>
+> On Wed, Nov 4, 2009 at 11:31 AM, Karicheri, Muralidharan
+> <m-karicheri2@ti.com>  wrote:
+>    
+>> Hi Neil,
+>>
+>> Interesting use case. I am thinking of doing the same for
+>> vpfe capture drive and here is what I am thinking of doing.
+>>      
+> I started my testing with the DaVinci 6446 (using the DVEVM from TI),
+> using the LeopardImaging add-on board, but we made a hardware switch
+> to the OMAP3530 because of its size and low-heat characteristics.
+> I've been trying to leverage existing code on the DaVinci when
+> possible, but the drivers have diverged a bit.  (especially in the
+> VPFE vs Camera ISP)
 >
->Validated on AM3517 Platform.
+>    
+>> 1) sensor driver MT9P031 configures either full capture(2592x1944)
+>> (No skipping or binning) and video mode (VGA or 480p or any other
+>> resolution through skipping&  binning) through S_FMT. MT9T031
+>> driver in kernel is doing this already (except for supporting
+>> a specific frame rate) and MT9P031 driver may do the same.
+>>      
+> At this point I have hard-coded the kernel to either do full capture
+> or VGA/480P-sized capture.  I've been able to take full-sized still
+> images when the kernel is configured that way (camera isp and sensor
+> must both be configured).  I can also compile the kernel such that I
+> capture 30 fps VGA or 480P (both isp and sensor configured again).
+> However, when I configure the kernel to capture full-sized images
+> (2592x1944), the isp gets configured upon the call to open(), so the
+> previewer/resizer buffers are huge.  Then, I can configure the sensor
+> to capture at a smaller resolution, but the frame rate gets reduced to
+> about 5 fps.
 >
->Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
->---
-> drivers/media/video/davinci/ccdc_hw_device.h |    4 +
-> drivers/media/video/davinci/dm644x_ccdc.c    |   87
->++++++++++++++++++++++++++
-> drivers/media/video/davinci/vpfe_capture.c   |   29 ++++++---
-> 3 files changed, 112 insertions(+), 8 deletions(-)
+> Ideally, I wouldn't allocate such large buffers if I were just
+> capturing video.  I may be doing something wrong with the sensor
+> configuration, so I'm exploring that.
 >
->diff --git a/drivers/media/video/davinci/ccdc_hw_device.h
->b/drivers/media/video/davinci/ccdc_hw_device.h
->index 86b9b35..2a1ead4 100644
->--- a/drivers/media/video/davinci/ccdc_hw_device.h
->+++ b/drivers/media/video/davinci/ccdc_hw_device.h
->@@ -91,6 +91,10 @@ struct ccdc_hw_ops {
-> 	void (*setfbaddr) (unsigned long addr);
-> 	/* Pointer to function to get field id */
-> 	int (*getfid) (void);
->+
->+	/* suspend/resume support */
->+	void (*save_context)(void);
->+	void (*restore_context)(void);
-> };
+>    
+>> 2) Application switch the video node between these two modes (video
+>> vs still capture)
+>>
+>> For video (may use 3 or more VGA buffers)
+>>
+>> using S_FMT, REQBUF, QUERYBUF (optional), mmap (optional)
+>> QBUF, STREAMON...
+>>
+>> When ready for still capture, application do switching to still capture
+>> by doing STREAMOFF, S_FMT, REQBUF (use USERPTR),
+>> QBUF (one 5M buffer) and STREAMON. When finished, switch back to video
+>> again. Here the switching time is critical and to be optimized.
+>>      
+> I'm considering this, too.  However, up to this point, all my attempts
+> to use USERPTR have failed.  I need to revisit that and see where
+> exactly it's failing and why.  I'm not sure that my driver fully
+> supports it, and the documentation on USERPTR has been a bit scarce,
+> so I may not be doing it properly.
 >
-> struct ccdc_hw_device {
->diff --git a/drivers/media/video/davinci/dm644x_ccdc.c
->b/drivers/media/video/davinci/dm644x_ccdc.c
->index 5dff8d9..fdab823 100644
->--- a/drivers/media/video/davinci/dm644x_ccdc.c
->+++ b/drivers/media/video/davinci/dm644x_ccdc.c
->@@ -88,6 +88,10 @@ static void *__iomem ccdc_base_addr;
-> static int ccdc_addr_size;
-> static enum vpfe_hw_if_type ccdc_if_type;
+>    
+>> BTW, are you planning to send the mt9p031 driver for review? I was looking
+>> to see if I can re-use the same in vpfe capture.
+>>      
+> My kernel source tree is a bit of an amalgamation from a variety of
+> sources.  So, it doesn't lend itself well to creating a patch and
+> sending it upstream for review.  What base should I work off of so
+> that I can submit a good patch?
 >
->+#define CCDC_SZ_REGS			SZ_1K
->+
->+static u32 ccdc_ctx[CCDC_SZ_REGS / sizeof(u32)];
->+
-> /* register access routines */
-> static inline u32 regr(u32 offset)
-> {
->@@ -834,6 +838,87 @@ static int ccdc_set_hw_if_params(struct
->vpfe_hw_if_param *params)
-> 	return 0;
-> }
 >
->+static void ccdc_save_context(void)
->+{
->+	ccdc_ctx[CCDC_PCR] = regr(CCDC_PCR);
->+	ccdc_ctx[CCDC_SYN_MODE] = regr(CCDC_SYN_MODE);
->+	ccdc_ctx[CCDC_HD_VD_WID] = regr(CCDC_HD_VD_WID);
->+	ccdc_ctx[CCDC_PIX_LINES] = regr(CCDC_PIX_LINES);
->+	ccdc_ctx[CCDC_HORZ_INFO] = regr(CCDC_HORZ_INFO);
->+	ccdc_ctx[CCDC_VERT_START] = regr(CCDC_VERT_START);
->+	ccdc_ctx[CCDC_VERT_LINES] = regr(CCDC_VERT_LINES);
->+	ccdc_ctx[CCDC_CULLING] = regr(CCDC_CULLING);
->+	ccdc_ctx[CCDC_HSIZE_OFF] = regr(CCDC_HSIZE_OFF);
->+	ccdc_ctx[CCDC_SDOFST] = regr(CCDC_SDOFST);
->+	ccdc_ctx[CCDC_SDR_ADDR] = regr(CCDC_SDR_ADDR);
->+	ccdc_ctx[CCDC_CLAMP] = regr(CCDC_CLAMP);
->+	ccdc_ctx[CCDC_DCSUB] = regr(CCDC_DCSUB);
->+	ccdc_ctx[CCDC_COLPTN] = regr(CCDC_COLPTN);
->+	ccdc_ctx[CCDC_BLKCMP] = regr(CCDC_BLKCMP);
->+	ccdc_ctx[CCDC_FPC] = regr(CCDC_FPC);
->+	ccdc_ctx[CCDC_FPC_ADDR] = regr(CCDC_FPC_ADDR);
->+	ccdc_ctx[CCDC_VDINT] = regr(CCDC_VDINT);
->+	ccdc_ctx[CCDC_ALAW] = regr(CCDC_ALAW);
->+	ccdc_ctx[CCDC_REC656IF] = regr(CCDC_REC656IF);
->+	ccdc_ctx[CCDC_CCDCFG] = regr(CCDC_CCDCFG);
->+	ccdc_ctx[CCDC_FMTCFG] = regr(CCDC_FMTCFG);
->+	ccdc_ctx[CCDC_FMT_HORZ] = regr(CCDC_FMT_HORZ);
->+	ccdc_ctx[CCDC_FMT_VERT] = regr(CCDC_FMT_VERT);
->+	ccdc_ctx[CCDC_FMT_ADDR0] = regr(CCDC_FMT_ADDR0);
->+	ccdc_ctx[CCDC_FMT_ADDR1] = regr(CCDC_FMT_ADDR1);
->+	ccdc_ctx[CCDC_FMT_ADDR2] = regr(CCDC_FMT_ADDR2);
->+	ccdc_ctx[CCDC_FMT_ADDR3] = regr(CCDC_FMT_ADDR3);
->+	ccdc_ctx[CCDC_FMT_ADDR4] = regr(CCDC_FMT_ADDR4);
->+	ccdc_ctx[CCDC_FMT_ADDR5] = regr(CCDC_FMT_ADDR5);
->+	ccdc_ctx[CCDC_FMT_ADDR6] = regr(CCDC_FMT_ADDR6);
->+	ccdc_ctx[CCDC_FMT_ADDR7] = regr(CCDC_FMT_ADDR7);
->+	ccdc_ctx[CCDC_PRGEVEN_0] = regr(CCDC_PRGEVEN_0);
->+	ccdc_ctx[CCDC_PRGEVEN_1] = regr(CCDC_PRGEVEN_1);
->+	ccdc_ctx[CCDC_PRGODD_0] = regr(CCDC_PRGODD_0);
->+	ccdc_ctx[CCDC_PRGODD_1] = regr(CCDC_PRGODD_1);
->+	ccdc_ctx[CCDC_VP_OUT] = regr(CCDC_VP_OUT);
->+}
->+
->+static void ccdc_restore_context(void)
->+{
->+	regw(ccdc_ctx[CCDC_SYN_MODE], CCDC_SYN_MODE);
->+	regw(ccdc_ctx[CCDC_HD_VD_WID], CCDC_HD_VD_WID);
->+	regw(ccdc_ctx[CCDC_PIX_LINES], CCDC_PIX_LINES);
->+	regw(ccdc_ctx[CCDC_HORZ_INFO], CCDC_HORZ_INFO);
->+	regw(ccdc_ctx[CCDC_VERT_START], CCDC_VERT_START);
->+	regw(ccdc_ctx[CCDC_VERT_LINES], CCDC_VERT_LINES);
->+	regw(ccdc_ctx[CCDC_CULLING], CCDC_CULLING);
->+	regw(ccdc_ctx[CCDC_HSIZE_OFF], CCDC_HSIZE_OFF);
->+	regw(ccdc_ctx[CCDC_SDOFST], CCDC_SDOFST);
->+	regw(ccdc_ctx[CCDC_SDR_ADDR], CCDC_SDR_ADDR);
->+	regw(ccdc_ctx[CCDC_CLAMP], CCDC_CLAMP);
->+	regw(ccdc_ctx[CCDC_DCSUB], CCDC_DCSUB);
->+	regw(ccdc_ctx[CCDC_COLPTN], CCDC_COLPTN);
->+	regw(ccdc_ctx[CCDC_BLKCMP], CCDC_BLKCMP);
->+	regw(ccdc_ctx[CCDC_FPC], CCDC_FPC);
->+	regw(ccdc_ctx[CCDC_FPC_ADDR], CCDC_FPC_ADDR);
->+	regw(ccdc_ctx[CCDC_VDINT], CCDC_VDINT);
->+	regw(ccdc_ctx[CCDC_ALAW], CCDC_ALAW);
->+	regw(ccdc_ctx[CCDC_REC656IF], CCDC_REC656IF);
->+	regw(ccdc_ctx[CCDC_CCDCFG], CCDC_CCDCFG);
->+	regw(ccdc_ctx[CCDC_FMTCFG], CCDC_FMTCFG);
->+	regw(ccdc_ctx[CCDC_FMT_HORZ], CCDC_FMT_HORZ);
->+	regw(ccdc_ctx[CCDC_FMT_VERT], CCDC_FMT_VERT);
->+	regw(ccdc_ctx[CCDC_FMT_ADDR0], CCDC_FMT_ADDR0);
->+	regw(ccdc_ctx[CCDC_FMT_ADDR1], CCDC_FMT_ADDR1);
->+	regw(ccdc_ctx[CCDC_FMT_ADDR2], CCDC_FMT_ADDR2);
->+	regw(ccdc_ctx[CCDC_FMT_ADDR3], CCDC_FMT_ADDR3);
->+	regw(ccdc_ctx[CCDC_FMT_ADDR4], CCDC_FMT_ADDR4);
->+	regw(ccdc_ctx[CCDC_FMT_ADDR5], CCDC_FMT_ADDR5);
->+	regw(ccdc_ctx[CCDC_FMT_ADDR6], CCDC_FMT_ADDR6);
->+	regw(ccdc_ctx[CCDC_FMT_ADDR7], CCDC_FMT_ADDR7);
->+	regw(ccdc_ctx[CCDC_PRGEVEN_0], CCDC_PRGEVEN_0);
->+	regw(ccdc_ctx[CCDC_PRGEVEN_1], CCDC_PRGEVEN_1);
->+	regw(ccdc_ctx[CCDC_PRGODD_0], CCDC_PRGODD_0);
->+	regw(ccdc_ctx[CCDC_PRGODD_1], CCDC_PRGODD_1);
->+	regw(ccdc_ctx[CCDC_VP_OUT], CCDC_VP_OUT);
->+	regw(ccdc_ctx[CCDC_PCR], CCDC_PCR);
->+}
-> static struct ccdc_hw_device ccdc_hw_dev = {
-> 	.name = "DM6446 CCDC",
-> 	.owner = THIS_MODULE,
->@@ -858,6 +943,8 @@ static struct ccdc_hw_device ccdc_hw_dev = {
-> 		.get_line_length = ccdc_get_line_length,
-> 		.setfbaddr = ccdc_setfbaddr,
-> 		.getfid = ccdc_getfid,
->+		.save_context = ccdc_save_context,
->+		.restore_context = ccdc_restore_context,
-> 	},
-> };
+>    
+>> Also Are you configuring video mode in sensor driver at a specific frame rate? and finally are>  you using Snapshot mode in sensor for still capture?
+>>      
+> I have tuned the vertical and horizontal blanking to output 720x480 at
+> 30 fps.  I am using the OMAP-generated cam_clk at 36 MHz.  I have done
+> some experimentation using snapshot mode, but only to test that a
+> mechanical shutter opens and closes based on strobe pulses, not
+> actually capturing mechanically-shuttered images yet...hopefully I'll
+> be doing that soon.
 >
->diff --git a/drivers/media/video/davinci/vpfe_capture.c
->b/drivers/media/video/davinci/vpfe_capture.c
->index 9c859a7..9b6b254 100644
->--- a/drivers/media/video/davinci/vpfe_capture.c
->+++ b/drivers/media/video/davinci/vpfe_capture.c
->@@ -2394,18 +2394,31 @@ static int vpfe_remove(struct platform_device
->*pdev)
-> 	return 0;
-> }
+>    
+>> Thanks.
+>>
+>> Murali Karicheri
+>> Software Design Engineer
+>> Texas Instruments Inc.
+>> Germantown, MD 20874
+>> email: m-karicheri2@ti.com
+>>
+>>      
+>>> -----Original Message-----
+>>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>>> owner@vger.kernel.org] On Behalf Of Neil Johnson
+>>> Sent: Wednesday, November 04, 2009 12:13 PM
+>>> To: linux-media@vger.kernel.org
+>>> Subject: still image capture with video preview
+>>>
+>>> linux-media,
+>>>
+>>> I previously posted this on the video4linux-list, but linux-media
+>>> seems a more appropriate place.
+>>>
+>>> I am developing on the OMAP3 system using a micron/aptina mt9p031
+>>> 5-megapixel imager.  This CMOs imager supports full image capture
+>>> (2592x1944 pixels) or you can capture subregions using skipping and
+>>> binning.  We have proven both capabilities, but would like to be able
+>>> to capture both VGA sized video and still images without using
+>>> separate drivers.
+>>>
+>>> So far, I have not found any support for capturing large images and
+>>> video through a single driver interface.  Does such a capability exist
+>>> within v4l2?  One possible way to solve the problem is to allocate N
+>>> buffers of the full 5-megapixel size (they end up being 10-MB for each
+>>> buffer since I'm using 16-bits per pixel), and then using a small
+>>> portion of that for video.  This is less desirable since when I'm
+>>> capturing video, I only need 640x480 size buffers, and I should only
+>>> need one snapshot buffer at a time (I'm not streaming them in, just
+>>> take a snapshot and go back to live video capture).  Is there a way to
+>>> allocate a side-buffer for the 5-megapixel image and also allocate
+>>> "normal" sized buffers for video within the same driver?  Any
+>>> recommendations on how to accomplish such a thing?  I would think that
+>>> camera-phones using linux would have run up against this.  Thanks,
+>>>
+>>> Neil Johnson
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>        
+>>
+>>      
 >
->-static int
->-vpfe_suspend(struct device *dev)
->+static int vpfe_suspend(struct device *dev)
-> {
->-	/* add suspend code here later */
->-	return -1;
->+	struct vpfe_device *vpfe_dev = dev_get_drvdata(dev);;
->+
->+	if (ccdc_dev->hw_ops.save_context)
->+		ccdc_dev->hw_ops.save_context();
->+	ccdc_dev->hw_ops.enable(0);
->+
->+	if (vpfe_dev)
->+		vpfe_disable_clock(vpfe_dev);
->+
->+	return 0;
-> }
 >
->-static int
->-vpfe_resume(struct device *dev)
->+static int vpfe_resume(struct device *dev)
-> {
->-	/* add resume code here later */
->-	return -1;
->+	struct vpfe_device *vpfe_dev = dev_get_drvdata(dev);;
->+
->+	if (vpfe_dev)
->+		vpfe_enable_clock(vpfe_dev);
->+
->+	if (ccdc_dev->hw_ops.restore_context)
->+		ccdc_dev->hw_ops.restore_context();
->+
->+	return 0;
-> }
->
-> static struct dev_pm_ops vpfe_dev_pm_ops = {
->--
->1.6.2.4
+>    
 
