@@ -1,51 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:19036 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751006AbZKZSzi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 13:55:38 -0500
-Message-ID: <4B0ECF1B.1090103@redhat.com>
-Date: Thu, 26 Nov 2009 16:55:23 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Krzysztof Halasa <khc@pm.waw.pl>
-CC: Christoph Bartelmus <lirc@bartelmus.de>, jarod@wilsonet.com,
-	awalls@radix.net, dmitry.torokhov@gmail.com, j@jannau.net,
-	jarod@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
- Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-References: <BDcbizrJjFB@christoph> <4B0EABF8.9000902@redhat.com> <m3r5rlupcb.fsf@intrepid.localdomain>
-In-Reply-To: <m3r5rlupcb.fsf@intrepid.localdomain>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:36213
+	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751193AbZKED20 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2009 22:28:26 -0500
+Subject: Re: [PATCH 0/3 v2] linux infrared remote control drivers
+Mime-Version: 1.0 (Apple Message framework v1076)
+Content-Type: text/plain; charset=us-ascii; format=flowed; delsp=yes
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <1257379629.3074.13.camel@palomino.walls.org>
+Date: Wed, 4 Nov 2009 22:28:26 -0500
+Cc: Jarod Wilson <jarod@redhat.com>, linux-kernel@vger.kernel.org,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Janne Grunau <j@jannau.net>,
+	Christoph Bartelmus <lirc@bartelmus.de>
 Content-Transfer-Encoding: 7bit
+Message-Id: <2958557D-F4C1-43AC-B004-7C18C5632CC0@wilsonet.com>
+References: <200910200956.33391.jarod@redhat.com> <C5A8E7EC-81D6-49AA-A65F-9F5D3DED1690@wilsonet.com> <1257379629.3074.13.camel@palomino.walls.org>
+To: Andy Walls <awalls@radix.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Krzysztof Halasa wrote:
-> Mauro Carvalho Chehab <mchehab@redhat.com> writes:
-> 
->> 1) the developer that adds the hardware also adds the IR code. He has
->> the hardware and the IR for testing, so it means a faster development
->> cycle than waiting for someone else with the same hardware and IR to
->> recode it on some other place. You should remember that not all
->> developers use lirc;
-> 
-> It's fine, but please - no keymaps in the kernel (except for fixed
-> receivers, i.e. the ones which can only work with their own dedicated
-> remote, and which don't pass RC5/etc. code).
-> 
-> The existing keymaps (those which can be used with lirc) have to be
-> moved to userspace as well.
+On Nov 4, 2009, at 7:07 PM, Andy Walls wrote:
 
-The removal of the existing keymaps from kernel depends on having an application
-to be called from udev to load the proper keymaps when a device is probed.
+> On Wed, 2009-11-04 at 17:56 -0500, Jarod Wilson wrote:
+>> On Oct 20, 2009, at 9:56 AM, Jarod Wilson wrote:
+>>
+>>> This here is a second go at submitting linux infrared remote control
+>>> (lirc) drivers for kernel inclusion, with a much smaller patch set
+>>> that
+>>> includes only the core lirc driver and two device drivers, all three
+>>> of
+>>> which have been heavily updated since the last submission, based on
+>>> feedback received.
+>>
+>> Hm. Submitting this while the vast majority of people who might  
+>> review
+>> it were at the Japan Linux Symposium seems like it might have been a
+>> bad idea. Or does no feedback mean its all good and ready to be
+>> merged? ;)
+>
+> Silence is concurrence. :)
+>
+> Actually I will note, that lirc_dev.h uses kfifo:
+>
+> http://git.wilsonet.com/linux-2.6-lirc.git/?a=blob_plain;f=drivers/input/lirc/lirc_dev.h;hb=f47f5e852d08f174c303d0ed53649733190014f7
+>
+> but it least it appear to be nicely wrappered in that file. Moving  
+> to a
+> new kfifo implementation should be fairly easy, if the kfifo change
+> makes it in first.
 
-After having it for a while, we should deprecate the in-kernel keymaps
-and move them to userspace.
+Yeah, been keeping an eye on your own kfifo usage discussion w/lirc's  
+usage in mind... Thank you for blazing that trail. ;)
 
-I also think that it is important to remove the 7 bits limitation from all drivers
-and re-generate the keymaps, since they'll change after it.
+-- 
+Jarod Wilson
+jarod@wilsonet.com
 
-cheers,
-Mauro.
+
+
