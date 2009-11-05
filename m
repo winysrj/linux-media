@@ -1,48 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from anny.lostinspace.de ([80.190.182.2]:57737 "EHLO
-	anny.lostinspace.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932396AbZKRUkA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 15:40:00 -0500
-Received: from server.idefix.lan (ppp-93-104-109-205.dynamic.mnet-online.de [93.104.109.205])
-	(authenticated bits=0)
-	by anny.lostinspace.de (8.14.3/8.14.3) with ESMTP id nAIKUY26046196
-	for <linux-media@vger.kernel.org>; Wed, 18 Nov 2009 21:30:38 +0100 (CET)
-	(envelope-from idefix@fechner.net)
-Received: from localhost (unknown [127.0.0.1])
-	by server.idefix.lan (Postfix) with ESMTP id 3721695C54
-	for <linux-media@vger.kernel.org>; Wed, 18 Nov 2009 21:31:53 +0100 (CET)
-Received: from server.idefix.lan ([127.0.0.1])
-	by localhost (server.idefix.lan [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id KdGapAnqr0Hv for <linux-media@vger.kernel.org>;
-	Wed, 18 Nov 2009 21:31:48 +0100 (CET)
-Received: from [192.168.0.151] (idefix.idefix.lan [192.168.0.151])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by server.idefix.lan (Postfix) with ESMTPSA id D1D6695C52
-	for <linux-media@vger.kernel.org>; Wed, 18 Nov 2009 21:31:48 +0100 (CET)
-Message-ID: <4B0459B1.50600@fechner.net>
-Date: Wed, 18 Nov 2009 21:31:45 +0100
-From: Matthias Fechner <idefix@fechner.net>
+Received: from mail.gmx.net ([213.165.64.20]:55710 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751495AbZKEAEq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Nov 2009 19:04:46 -0500
+Date: Thu, 5 Nov 2009 01:04:51 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: RE: [PATCH/RFC 9/9 v2] mt9t031: make the use of the soc-camera client
+ API optional
+In-Reply-To: <Pine.LNX.4.64.0911041822450.4837@axis700.grange>
+Message-ID: <Pine.LNX.4.64.0911050102470.4837@axis700.grange>
+References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
+ <Pine.LNX.4.64.0910301442570.4378@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE401557987F6@dlee06.ent.ti.com>
+ <Pine.LNX.4.64.0910302112300.4378@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE40155798D56@dlee06.ent.ti.com>
+ <Pine.LNX.4.64.0911041703000.4837@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE40155833A4C@dlee06.ent.ti.com>
+ <Pine.LNX.4.64.0911041822450.4837@axis700.grange>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: IR Receiver on an Tevii S470
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Wed, 4 Nov 2009, Guennadi Liakhovetski wrote:
 
-I bought some days ago a Tevii S470 DVB-S2 (PCI-E) card and got it 
-running with the driver from:
-http://mercurial.intuxication.org/hg/s2-liplianin
+> On Wed, 4 Nov 2009, Karicheri, Muralidharan wrote:
+> 
+> > Guennadi,
+> > 
+> > Thanks for the reply. I will have a chance to work on this
+> > sometime in the next two weeks as I am pre-occupied with other
+> > items. I will definitely try to use this version and do my
+> > testing and let you know the result.
+> > 
+> > Will this apply cleanly to the v4l-dvb linux-next branch?
+> 
+> Maybe you can apply the whole set of 9 patches to it, not sure. Better yet 
+> get the complete stack from the location I provided in the introductory 
+> mail (0/9) and apply it as instructed there. Just beware, that there are 
+> still some older patch versions, which you would have to replace with the 
+> ones from this thread. I'll try to update that stack shortly.
 
-But I was not successfull in got the IR receiver working.
-It seems that it is not supported yet by the driver.
+The current stack, based on 2.6.32-rc5, is at
 
-Is there maybe some code available to get the IR receiver with evdev 
-running?
+http://download.open-technology.de/soc-camera/20091105/
 
-Thanks a lot,
-Matthias
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
