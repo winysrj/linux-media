@@ -1,204 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:40483 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751748AbZKTKFA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2009 05:05:00 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	mchehab@infradead.org
-Subject: [PATCH] v4l: vm_area_struct::vm_ops isn't const on pre-2.6.32
-Date: Fri, 20 Nov 2009 11:05:30 +0100
+Received: from mail-gx0-f226.google.com ([209.85.217.226]:42385 "EHLO
+	mail-gx0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753102AbZKEQCS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Nov 2009 11:02:18 -0500
+Received: by gxk26 with SMTP id 26so159446gxk.1
+        for <linux-media@vger.kernel.org>; Thu, 05 Nov 2009 08:02:23 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200911201105.30314.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <200911051522.10007.hverkuil@xs4all.nl>
+References: <200909100913.09065.hverkuil@xs4all.nl>
+	 <Pine.LNX.4.64.0910270854300.4828@axis700.grange>
+	 <829197380910270656s18d0ce9n87f452888b6983ba@mail.gmail.com>
+	 <200911051522.10007.hverkuil@xs4all.nl>
+Date: Thu, 5 Nov 2009 11:02:22 -0500
+Message-ID: <829197380911050802w501bb060xe763ccc6583e9eba@mail.gmail.com>
+Subject: Re: RFCv2: Media controller proposal
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Cohen David Abraham <david.cohen@nokia.com>,
+	"Koskipaa Antti (Nokia-D/Helsinki)" <antti.koskipaa@nokia.com>,
+	Zutshi Vimarsh <vimarsh.zutshi@nokia.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The vm_area_struct::vm_ops field became const on 2.6.32. All v4l drivers
-have been changed to declare their vm_operations_struct as const, which
-introduced warnings when compiling on pre-2.6.32 kernels.
+On Thu, Nov 5, 2009 at 9:22 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Does anyone know if alsa has similar routing problems as we have for SoCs?
+> Currently the MC can be used to discover and change the routing of video streams,
+> but it would be very easy indeed to include audio streams (or any type of
+> stream for that matter) as well.
+>
+> Regards,
+>
+>        Hans
 
-Fix the warnings by not declaring the vm_operations_struct as const on
-pre-2.6.32 kernels.
+As far as I have seen, generally speaking the audio rerouting is done
+automatically when changing video sources (and doesn't get done by
+ALSA itself but rather in the code for the decoder or bridge).  In
+theory people might want to be able to play with the routing through
+some sort of ALSA controls, but I don't think anyone is doing that
+now.
 
-kernel-sync
+Devin
 
-Priority: normal
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-diff -r 7477df192a59 -r 36e9f5dfbfa5 linux/drivers/media/video/cafe_ccic.c
---- a/linux/drivers/media/video/cafe_ccic.c	Wed Nov 18 05:12:04 2009 -0200
-+++ b/linux/drivers/media/video/cafe_ccic.c	Fri Nov 20 10:54:25 2009 +0100
-@@ -1326,7 +1326,11 @@
- 	mutex_unlock(&sbuf->cam->s_mutex);
- }
- 
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 32)
-+static struct vm_operations_struct cafe_v4l_vm_ops = {
-+#else
- static const struct vm_operations_struct cafe_v4l_vm_ops = {
-+#endif
- 	.open = cafe_v4l_vm_open,
- 	.close = cafe_v4l_vm_close
- };
-diff -r 7477df192a59 -r 36e9f5dfbfa5 linux/drivers/media/video/et61x251/et61x251_core.c
---- a/linux/drivers/media/video/et61x251/et61x251_core.c	Wed Nov 18 05:12:04 2009 -0200
-+++ b/linux/drivers/media/video/et61x251/et61x251_core.c	Fri Nov 20 10:54:25 2009 +0100
-@@ -1500,7 +1500,11 @@
- }
- 
- 
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 32)
-+static struct vm_operations_struct et61x251_vm_ops = {
-+#else
- static const struct vm_operations_struct et61x251_vm_ops = {
-+#endif
- 	.open = et61x251_vm_open,
- 	.close = et61x251_vm_close,
- };
-diff -r 7477df192a59 -r 36e9f5dfbfa5 linux/drivers/media/video/gspca/gspca.c
---- a/linux/drivers/media/video/gspca/gspca.c	Wed Nov 18 05:12:04 2009 -0200
-+++ b/linux/drivers/media/video/gspca/gspca.c	Fri Nov 20 10:54:25 2009 +0100
-@@ -103,7 +103,11 @@
- 		frame->v4l2_buf.flags &= ~V4L2_BUF_FLAG_MAPPED;
- }
- 
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 32)
-+static struct vm_operations_struct gspca_vm_ops = {
-+#else
- static const struct vm_operations_struct gspca_vm_ops = {
-+#endif
- 	.open		= gspca_vm_open,
- 	.close		= gspca_vm_close,
- };
-diff -r 7477df192a59 -r 36e9f5dfbfa5 linux/drivers/media/video/sn9c102/sn9c102_core.c
---- a/linux/drivers/media/video/sn9c102/sn9c102_core.c	Wed Nov 18 05:12:04 2009 -0200
-+++ b/linux/drivers/media/video/sn9c102/sn9c102_core.c	Fri Nov 20 10:54:25 2009 +0100
-@@ -2081,7 +2081,11 @@
- }
- 
- 
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 32)
-+static struct vm_operations_struct sn9c102_vm_ops = {
-+#else
- static const struct vm_operations_struct sn9c102_vm_ops = {
-+#endif
- 	.open = sn9c102_vm_open,
- 	.close = sn9c102_vm_close,
- };
-diff -r 7477df192a59 -r 36e9f5dfbfa5 linux/drivers/media/video/stk-webcam.c
---- a/linux/drivers/media/video/stk-webcam.c	Wed Nov 18 05:12:04 2009 -0200
-+++ b/linux/drivers/media/video/stk-webcam.c	Fri Nov 20 10:54:25 2009 +0100
-@@ -791,7 +791,11 @@
- 	if (sbuf->mapcount == 0)
- 		sbuf->v4lbuf.flags &= ~V4L2_BUF_FLAG_MAPPED;
- }
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 32)
-+static struct vm_operations_struct stk_v4l_vm_ops = {
-+#else
- static const struct vm_operations_struct stk_v4l_vm_ops = {
-+#endif
- 	.open = stk_v4l_vm_open,
- 	.close = stk_v4l_vm_close
- };
-diff -r 7477df192a59 -r 36e9f5dfbfa5 linux/drivers/media/video/uvc/uvc_v4l2.c
---- a/linux/drivers/media/video/uvc/uvc_v4l2.c	Wed Nov 18 05:12:04 2009 -0200
-+++ b/linux/drivers/media/video/uvc/uvc_v4l2.c	Fri Nov 20 10:54:25 2009 +0100
-@@ -1061,7 +1061,11 @@
- 	buffer->vma_use_count--;
- }
- 
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 32)
-+static struct vm_operations_struct uvc_vm_ops = {
-+#else
- static const struct vm_operations_struct uvc_vm_ops = {
-+#endif
- 	.open		= uvc_vm_open,
- 	.close		= uvc_vm_close,
- };
-diff -r 7477df192a59 -r 36e9f5dfbfa5 linux/drivers/media/video/videobuf-dma-contig.c
---- a/linux/drivers/media/video/videobuf-dma-contig.c	Wed Nov 18 05:12:04 2009 -0200
-+++ b/linux/drivers/media/video/videobuf-dma-contig.c	Fri Nov 20 10:54:25 2009 +0100
-@@ -107,7 +107,11 @@
- 	}
- }
- 
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 32)
-+static struct vm_operations_struct videobuf_vm_ops = {
-+#else
- static const struct vm_operations_struct videobuf_vm_ops = {
-+#endif
- 	.open     = videobuf_vm_open,
- 	.close    = videobuf_vm_close,
- };
-diff -r 7477df192a59 -r 36e9f5dfbfa5 linux/drivers/media/video/videobuf-dma-sg.c
---- a/linux/drivers/media/video/videobuf-dma-sg.c	Wed Nov 18 05:12:04 2009 -0200
-+++ b/linux/drivers/media/video/videobuf-dma-sg.c	Fri Nov 20 10:54:25 2009 +0100
-@@ -422,8 +422,11 @@
- }
- #endif
- 
--static const struct vm_operations_struct videobuf_vm_ops =
--{
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 32)
-+static struct vm_operations_struct videobuf_vm_ops = {
-+#else
-+static const struct vm_operations_struct videobuf_vm_ops = {
-+#endif
- 	.open     = videobuf_vm_open,
- 	.close    = videobuf_vm_close,
- #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 24)
-diff -r 7477df192a59 -r 36e9f5dfbfa5 linux/drivers/media/video/videobuf-vmalloc.c
---- a/linux/drivers/media/video/videobuf-vmalloc.c	Wed Nov 18 05:12:04 2009 -0200
-+++ b/linux/drivers/media/video/videobuf-vmalloc.c	Fri Nov 20 10:54:25 2009 +0100
-@@ -117,8 +117,11 @@
- 	return;
- }
- 
--static const struct vm_operations_struct videobuf_vm_ops =
--{
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 32)
-+static struct vm_operations_struct videobuf_vm_ops = {
-+#else
-+static const struct vm_operations_struct videobuf_vm_ops = {
-+#endif
- 	.open     = videobuf_vm_open,
- 	.close    = videobuf_vm_close,
- };
-diff -r 7477df192a59 -r 36e9f5dfbfa5 linux/drivers/media/video/zc0301/zc0301_core.c
---- a/linux/drivers/media/video/zc0301/zc0301_core.c	Wed Nov 18 05:12:04 2009 -0200
-+++ b/linux/drivers/media/video/zc0301/zc0301_core.c	Fri Nov 20 10:54:25 2009 +0100
-@@ -939,7 +939,11 @@
- }
- 
- 
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 32)
-+static struct vm_operations_struct zc0301_vm_ops = {
-+#else
- static const struct vm_operations_struct zc0301_vm_ops = {
-+#endif
- 	.open = zc0301_vm_open,
- 	.close = zc0301_vm_close,
- };
-diff -r 7477df192a59 -r 36e9f5dfbfa5 linux/drivers/media/video/zoran/zoran_driver.c
---- a/linux/drivers/media/video/zoran/zoran_driver.c	Wed Nov 18 05:12:04 2009 -0200
-+++ b/linux/drivers/media/video/zoran/zoran_driver.c	Fri Nov 20 10:54:25 2009 +0100
-@@ -3180,7 +3180,11 @@
- 	mutex_unlock(&zr->resource_lock);
- }
- 
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 32)
-+static struct vm_operations_struct zoran_vm_ops = {
-+#else
- static const struct vm_operations_struct zoran_vm_ops = {
-+#endif
- 	.open = zoran_vm_open,
- 	.close = zoran_vm_close,
- };
 
 -- 
-Laurent Pinchart
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
