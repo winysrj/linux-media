@@ -1,36 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from karen.lavabit.com ([72.249.41.33]:44442 "EHLO karen.lavabit.com"
+Received: from mail.navvo.net ([74.208.67.6]:41430 "EHLO mail.navvo.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752672AbZKQO4i convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2009 09:56:38 -0500
-Received: from h.earth.lavabit.com (h.earth.lavabit.com [192.168.111.17])
-	by karen.lavabit.com (Postfix) with ESMTP id 2879B11B7E5
-	for <linux-media@vger.kernel.org>; Tue, 17 Nov 2009 08:56:44 -0600 (CST)
-Received: from hal9001.localnet (netblock-68-183-201-219.dslextreme.com [68.183.201.219])
-	by lavabit.com with ESMTP id SRO0B1JOPNNR
-	for <linux-media@vger.kernel.org>; Tue, 17 Nov 2009 08:56:41 -0600
-From: Andreas Schlehahn <califdreas@lavabit.com>
-To: linux-media@vger.kernel.org
-Subject: Support for AVerTVHD Duet - A188
-Date: Tue, 17 Nov 2009 06:56:38 -0800
+	id S1757672AbZKETDP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Nov 2009 14:03:15 -0500
+Message-ID: <4AF3217E.5030802@ridgerun.com>
+Date: Thu, 05 Nov 2009 13:03:26 -0600
+From: Santiago Nunez-Corrales <snunez@ridgerun.com>
+Reply-To: santiago.nunez@ridgerun.com
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <200911170656.38447.califdreas@lavabit.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"Narnakaje, Snehaprabha" <nsnehaprabha@ti.com>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"Grosen, Mark" <mgrosen@ti.com>,
+	Diego Dompe <diego.dompe@ridgerun.com>,
+	"todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>
+References: <4AF1B89C.5000108@ridgerun.com> <200911051721.58407.hverkuil@xs4all.nl>
+In-Reply-To: <200911051721.58407.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: Re: [PATCH 0/4 v6] Support for TVP7002 in DM365
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Good Morning!
-I could not find the AVerTVHD Duet A188 in the wiki, and searching the mailing 
-list did not produce much either.
+My apologies, found that I had the wrong mailing list email for linux-media.
 
-Is the card now supported in Linux?
+Sending patches (hopefully) for the last time.
 
-Thanks!
+
+Santiago.
+
+Hans Verkuil wrote:
+> On Wednesday 04 November 2009 18:23:40 Santiago Nunez-Corrales wrote:
+>   
+>> This series of patches provide support for the TVP7002 decoder in DM365.
+>>
+>> Support includes:
+>>
+>> * Inclusion of the chip in v4l2 definitions
+>> * Definition of TVP7002 specific data structures
+>> * Kconfig and Makefile support
+>>
+>> This series corrects many issued pointed out by Snehaprabha Narnakaje,
+>> Muralidharan Karicheri, Vaibhav Hiremath and Hans Verkuil and solves
+>> testing problems.  Tested on DM365 TI EVM with resolutions 720p,
+>> 1080i@60, 576P and 480P with video capture application and video
+>> output in 480P, 576P, 720P and 1080I. This driver depends upon 
+>> board-dm365-evm.c and vpfe_capture.c to be ready for complete 
+>> integration. Uses the new V4L2 DV API sent by Muralidharan Karicheri.
+>>
+>>
+>>     
+>
+> Erm, where is the rest of the series? :-)
+>
+> Regards,
+>
+> 	Hans
+>
+>   
+
 
 -- 
-Mit freundlichen Grüßen / Best Regards
-Andreas Schlehahn
+Santiago Nunez-Corrales, Eng.
+RidgeRun Engineering, LLC
+
+Guayabos, Curridabat
+San Jose, Costa Rica
++(506) 2271 1487
++(506) 8313 0536
+http://www.ridgerun.com
+
 
