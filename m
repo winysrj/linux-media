@@ -1,122 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:35624 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932513AbZKRTBo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 14:01:44 -0500
-Date: Wed, 18 Nov 2009 20:01:34 +0100 (CET)
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Subject: [PATCH 3/6] firedtv: remove an unnecessary function argument
-To: linux-media@vger.kernel.org
-cc: linux1394-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
-In-Reply-To: <tkrat.7dc1f889fd1b69ad@s5r6.in-berlin.de>
-Message-ID: <tkrat.798c5f822d0963e6@s5r6.in-berlin.de>
-References: <tkrat.7dc1f889fd1b69ad@s5r6.in-berlin.de>
+Received: from mail.gmx.net ([213.165.64.20]:38241 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1755904AbZKEQ7e (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Nov 2009 11:59:34 -0500
+Date: Thu, 5 Nov 2009 17:59:51 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH/RFC 9/9 v2] mt9t031: make the use of the soc-camera client
+ API optional
+In-Reply-To: <200911051657.59303.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.0911051753540.5620@axis700.grange>
+References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE40155798D56@dlee06.ent.ti.com>
+ <Pine.LNX.4.64.0911041703000.4837@axis700.grange> <200911051657.59303.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=us-ascii
-Content-Disposition: INLINE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All read transactions initiated by firedtv are only quadlet-sized, hence
-the backend->read call can be simplified a little.
+On Thu, 5 Nov 2009, Hans Verkuil wrote:
 
-Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+> On Wednesday 04 November 2009 17:49:28 Guennadi Liakhovetski wrote:
+> > Now that we have moved most of the functions over to the v4l2-subdev API, only
+> > quering and setting bus parameters are still performed using the legacy
+> > soc-camera client API. Make the use of this API optional for mt9t031.
+> > 
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > ---
+> > 
+> > On Mon, 2 Nov 2009, Karicheri, Muralidharan wrote:
+> > 
+> > > >> >+static struct soc_camera_ops mt9t031_ops = {
+> > > >> >+	.set_bus_param		= mt9t031_set_bus_param,
+> > > >> >+	.query_bus_param	= mt9t031_query_bus_param,
+> > > >> >+	.controls		= mt9t031_controls,
+> > > >> >+	.num_controls		= ARRAY_SIZE(mt9t031_controls),
+> > > >> >+};
+> > > >> >+
+> > > >>
+> > > >> [MK] Why don't you implement queryctrl ops in core? query_bus_param
+> > > >> & set_bus_param() can be implemented as a sub device operation as well
+> > > >> right? I think we need to get the bus parameter RFC implemented and
+> > > >> this driver could be targeted for it's first use so that we could
+> > > >> work together to get it accepted. I didn't get a chance to study your
+> > > >> bus image format RFC, but plan to review it soon and to see if it can be
+> > > >> used in my platform as well. For use of this driver in our platform,
+> > > >> all reference to soc_ must be removed. I am ok if the structure is
+> > > >> re-used, but if this driver calls any soc_camera function, it canot
+> > > >> be used in my platform.
+> > > >
+> > > >Why? Some soc-camera functions are just library functions, you just have
+> > > >to build soc-camera into your kernel. (also see below)
+> > > >
+> > > My point is that the control is for the sensor device, so why to implement
+> > > queryctrl in SoC camera? Just for this I need to include SOC camera in 
+> > > my build? That doesn't make any sense at all. IMHO, queryctrl() 
+> > > logically belongs to this sensor driver which can be called from the 
+> > > bridge driver using sudev API call. Any reverse dependency from MT9T031 
+> > > to SoC camera to be removed if it is to be re-used across other 
+> > > platforms. Can we agree on this?
+> > 
+> > In general I'm sure you understand, that there are lots of functions in 
+> > the kernel, that we use in specific modules, not because they interact 
+> > with other systems, but because they implement some common functionality 
+> > and just reduce code-duplication. And I can well imagine that in many such 
+> > cases using just one or a couple of such functions will pull a much larger 
+> > pile of unused code with them. But in this case those calls can indeed be 
+> > very easily eliminated. Please have a look at the version below.
+> 
+> I'm not following this, I'm afraid. The sensor drivers should just support
+> queryctrl and should use v4l2_ctrl_query_fill() from v4l2-common.c to fill
+> in the v4l2_queryctrl struct.
+
+I think, this is unrelated. Muralidharan just complained about the 
+soc_camera_find_qctrl() function being used in client subdev drivers, that 
+were to be converted to v4l2-subdev, specifically, in mt9t031.c. And I 
+just explained, that that's just a pretty trivial library function, that 
+does not introduce any restrictions on how that subdev driver can be used 
+in non-soc-camera configurations, apart from the need to build and load 
+the soc-camera module. In other words, any v4l2-device bridge driver 
+should be able to communicate with such a subdev driver, calling that 
+function.
+
+> This will also make it easy to convert them to the control framework that I
+> am working on.
+
+Thanks
+Guennadi
 ---
- drivers/media/dvb/firewire/firedtv-1394.c |    4 ++--
- drivers/media/dvb/firewire/firedtv-avc.c  |    8 ++++----
- drivers/media/dvb/firewire/firedtv-fw.c   |    5 ++---
- drivers/media/dvb/firewire/firedtv.h      |    2 +-
- 4 files changed, 9 insertions(+), 10 deletions(-)
-
-Index: linux-2.6.32-rc7/drivers/media/dvb/firewire/firedtv-1394.c
-===================================================================
---- linux-2.6.32-rc7.orig/drivers/media/dvb/firewire/firedtv-1394.c
-+++ linux-2.6.32-rc7/drivers/media/dvb/firewire/firedtv-1394.c
-@@ -101,9 +101,9 @@ static int node_lock(struct firedtv *fdt
- 	return ret;
- }
- 
--static int node_read(struct firedtv *fdtv, u64 addr, void *data, size_t len)
-+static int node_read(struct firedtv *fdtv, u64 addr, void *data)
- {
--	return hpsb_node_read(node_of(fdtv), addr, data, len);
-+	return hpsb_node_read(node_of(fdtv), addr, data, 4);
- }
- 
- static int node_write(struct firedtv *fdtv, u64 addr, void *data, size_t len)
-Index: linux-2.6.32-rc7/drivers/media/dvb/firewire/firedtv-avc.c
-===================================================================
---- linux-2.6.32-rc7.orig/drivers/media/dvb/firewire/firedtv-avc.c
-+++ linux-2.6.32-rc7/drivers/media/dvb/firewire/firedtv-avc.c
-@@ -1236,14 +1236,14 @@ int avc_ca_get_mmi(struct firedtv *fdtv,
- 
- #define CMP_OUTPUT_PLUG_CONTROL_REG_0	0xfffff0000904ULL
- 
--static int cmp_read(struct firedtv *fdtv, void *buf, u64 addr, size_t len)
-+static int cmp_read(struct firedtv *fdtv, u64 addr, __be32 *data)
- {
- 	int ret;
- 
- 	if (mutex_lock_interruptible(&fdtv->avc_mutex))
- 		return -EINTR;
- 
--	ret = fdtv->backend->read(fdtv, addr, buf, len);
-+	ret = fdtv->backend->read(fdtv, addr, data);
- 	if (ret < 0)
- 		dev_err(fdtv->device, "CMP: read I/O error\n");
- 
-@@ -1293,7 +1293,7 @@ int cmp_establish_pp_connection(struct f
- 	int attempts = 0;
- 	int ret;
- 
--	ret = cmp_read(fdtv, opcr, opcr_address, 4);
-+	ret = cmp_read(fdtv, opcr_address, opcr);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -1357,7 +1357,7 @@ void cmp_break_pp_connection(struct fire
- 	u64 opcr_address = CMP_OUTPUT_PLUG_CONTROL_REG_0 + (plug << 2);
- 	int attempts = 0;
- 
--	if (cmp_read(fdtv, opcr, opcr_address, 4) < 0)
-+	if (cmp_read(fdtv, opcr_address, opcr) < 0)
- 		return;
- 
- repeat:
-Index: linux-2.6.32-rc7/drivers/media/dvb/firewire/firedtv-fw.c
-===================================================================
---- linux-2.6.32-rc7.orig/drivers/media/dvb/firewire/firedtv-fw.c
-+++ linux-2.6.32-rc7/drivers/media/dvb/firewire/firedtv-fw.c
-@@ -46,10 +46,9 @@ static int node_lock(struct firedtv *fdt
- 	return node_req(fdtv, addr, data, 8, TCODE_LOCK_COMPARE_SWAP);
- }
- 
--static int node_read(struct firedtv *fdtv, u64 addr, void *data, size_t len)
-+static int node_read(struct firedtv *fdtv, u64 addr, void *data)
- {
--	return node_req(fdtv, addr, data, len, len == 4 ?
--			TCODE_READ_QUADLET_REQUEST : TCODE_READ_BLOCK_REQUEST);
-+	return node_req(fdtv, addr, data, 4, TCODE_READ_QUADLET_REQUEST);
- }
- 
- static int node_write(struct firedtv *fdtv, u64 addr, void *data, size_t len)
-Index: linux-2.6.32-rc7/drivers/media/dvb/firewire/firedtv.h
-===================================================================
---- linux-2.6.32-rc7.orig/drivers/media/dvb/firewire/firedtv.h
-+++ linux-2.6.32-rc7/drivers/media/dvb/firewire/firedtv.h
-@@ -74,7 +74,7 @@ struct firedtv;
- 
- struct firedtv_backend {
- 	int (*lock)(struct firedtv *fdtv, u64 addr, __be32 data[]);
--	int (*read)(struct firedtv *fdtv, u64 addr, void *data, size_t len);
-+	int (*read)(struct firedtv *fdtv, u64 addr, void *data);
- 	int (*write)(struct firedtv *fdtv, u64 addr, void *data, size_t len);
- 	int (*start_iso)(struct firedtv *fdtv);
- 	void (*stop_iso)(struct firedtv *fdtv);
-
--- 
-Stefan Richter
--=====-==--= =-== =--=-
-http://arcgraph.de/sr/
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
