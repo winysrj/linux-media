@@ -1,86 +1,228 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:55475 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751622AbZK2STF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2009 13:19:05 -0500
-MIME-Version: 1.0
-In-Reply-To: <20091129124011.4d8a6080@lxorguk.ukuu.org.uk>
-References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc>
-	 <9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>
-	 <m3aay6y2m1.fsf@intrepid.localdomain>
-	 <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>
-	 <1259469121.3125.28.camel@palomino.walls.org>
-	 <20091129124011.4d8a6080@lxorguk.ukuu.org.uk>
-Date: Sun, 29 Nov 2009 13:19:10 -0500
-Message-ID: <9e4733910911291019l27e5fea2x3db268311842b17@mail.gmail.com>
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
-	system?
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Andy Walls <awalls@radix.net>, Krzysztof Halasa <khc@pm.waw.pl>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	maximlevitsky@gmail.com, mchehab@redhat.com,
-	stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-out26.alice.it ([85.33.2.26]:3336 "EHLO
+	smtp-out26.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751006AbZKEWoj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Nov 2009 17:44:39 -0500
+Date: Thu, 5 Nov 2009 23:44:29 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-arm-kernel@lists.infradead.org,
+	Eric Miao <eric.y.miao@gmail.com>,
+	openezx-devel@lists.openezx.org, Bart Visscher <bartv@thisnet.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/3 v2] ezx: Add camera support for A780 and A910 EZX
+ phones
+Message-Id: <20091105234429.ef855e2d.ospite@studenti.unina.it>
+In-Reply-To: <Pine.LNX.4.64.0911050040160.4837@axis700.grange>
+References: <f17812d70911040119g6eb1f254pa78dd8519afef61d@mail.gmail.com>
+	<1257367650-15056-1-git-send-email-ospite@studenti.unina.it>
+	<Pine.LNX.4.64.0911050040160.4837@axis700.grange>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Thu__5_Nov_2009_23_44_29_+0100_rbV/1aF2TM8duYY5"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Nov 29, 2009 at 7:40 AM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
->> BTW, circa 1995 my serial mouse "Just Worked" in Linux.  Sometime around
+--Signature=_Thu__5_Nov_2009_23_44_29_+0100_rbV/1aF2TM8duYY5
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, 5 Nov 2009 00:53:46 +0100 (CET)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+
+> On Wed, 4 Nov 2009, Antonio Ospite wrote:
+>=20
+> > Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+> > Signed-off-by: Bart Visscher <bartv@thisnet.nl>
+>=20
+> Is this patch going via Bart? Or should this be an Acked-by?
 >
-> Correct X11 just talked to the serial ports. In fact that is still the
-> way to configure it if you want any sanity in life.
+
+Bart did the initial research and wrote a first, partially working,
+version of the patch for A780, then I made it work and refactored it,
+adding code for A910. So I put two SOBs here as we are both the
+authors, in a sense.
+
+> > Changes since previous version:
+> >   Addressed all the comments from Eric and Guennadi.
+>=20
+> I said I still wanted to have a better look at it, so, basically, I just=
+=20
+> think you have a typo in two comments:
 >
->> and serial connected IRs.  It's also too convenient to access USB IR
->> hardware from existing userspace drivers to bother porting into the
->> kernel.
+
+Or the code is wrong, even if it works :)
+Let's sort this out.
+
+[...]=20
+> > +/* camera */
+> > +static int a780_pxacamera_init(struct device *dev)
+> > +{
+> > +	int err;
+> > +
+> > +	/*
+> > +	 * GPIO50_nCAM_EN is active low
+> > +	 * GPIO19_GEN1_CAM_RST is active high
+> > +	 */
+> > +	err =3D gpio_request(GPIO50_nCAM_EN, "nCAM_EN");
+> > +	if (err) {
+> > +		pr_err("%s: Failed to request nCAM_EN\n", __func__);
+> > +		goto fail;
+> > +	}
+> > +
+> > +	err =3D gpio_request(GPIO19_GEN1_CAM_RST, "CAM_RST");
+> > +	if (err) {
+> > +		pr_err("%s: Failed to request CAM_RST\n", __func__);
+> > +		goto fail_gpio_cam_rst;
+> > +	}
+> > +
+> > +	gpio_direction_output(GPIO50_nCAM_EN, 0);
+> > +	gpio_direction_output(GPIO19_GEN1_CAM_RST, 1);
+>=20
+> Don't understand this, are you sure your comments are correct? This would=
+=20
+> mean, that in init() you enable the camera and hold it in reset.
 >
-> Userspace needs a way to identify IR hardware and to interface with it
-> using the right protocol. It's not clear the kernel needs to provide
-> anything more than minimal hardware interfaces in most case - be that
-> serial, libusb, ...
 
-That's a description of the current system and it is driver chaos.
+I am pretty confident the comments are right,
+they came from runtime analysis with gpiotool on original firmware.
 
-Half of the drivers are in user space and there are two different
-classes of kernel driver - LIRC and V4L.
-A lot of the hardware doesn't identify itself.
-There are two types of IR data in use - pulse timing and decoded protocol.
+The reset happens when bringing the signal from low to high, so
+holding it high or low it's basically the same here, and given how=20
+a780_pxacamera_reset() works I decided to keep it high.
 
-IR is an input device. We have a nice evdev input subsystem and it has
-been demonstrated that IR can work with it.
+I also need to put CAM_EN active in init(), because of how
+soc_camera_probe() works, adding some debug I get this call sequence
+(with CAM_EN not active):
 
-Everybody keeps complaining that they want IR to "just work".
-Consolidating all of this (under 50K of code)  driver support in the
-kernel is the way to make it "just work".
+Linux video capture interface: v2.00
+pxa27x-camera pxa27x-camera.0: Limiting master clock to 26000000
+pxa27x-camera pxa27x-camera.0: LCD clock 104000000Hz, target freq 26000000H=
+z, divisor 1
+pxa27x-camera pxa27x-camera.0: got DMA channel 1
+pxa27x-camera pxa27x-camera.0: got DMA channel (U) 2
+pxa27x-camera pxa27x-camera.0: got DMA channel (V) 3
+camera 0-0: Probing 0-0
+camera 0-0: soc_camera_probe: power 1
+--> a780_pxacamera_power: called. on: 1  !on: 0
+camera 0-0: soc_camera_probe: reset
+--> a780_pxacamera_reset: called
+pxa27x-camera pxa27x-camera.0: Registered platform device at cc8a5380 data =
+c03a40a8
+pxa27x-camera pxa27x-camera.0: pxa_camera_activate: Init gpios
+--> a780_pxacamera_init: called
+pxa27x-camera pxa27x-camera.0: PXA Camera driver attached to camera 0
+camera 0-0: mt9m111_video_probe: called
+i2c: error: exhausted retries
+i2c: msg_num: 0 msg_idx: -2000 msg_ptr: 0
+i2c: ICR: 000007e0 ISR: 00000002
+i2c: log: [00000446:000007e0]=20
+mt9m111 0-005d: read  reg.00d -> ffffff87
+mt9m111 0-005d: mt9m11x init failed: -121
+mt9m111: probe of 0-005d failed with error -121
+pxa27x-camera pxa27x-camera.0: PXA Camera driver detached from camera 0
+camera 0-0: soc_camera_probe: power 0
+a780_pxacamera_power: called. on: 0  !on: 1
+camera: probe of 0-0 failed with error -12
 
-For example. Some IR devices only record pulse timing data. There are
-various protocols - RC5, RC6, etc for turning these pulse timing into
-a decode IR command. This is about 20K of code. Does it really make
-sense to create a device, push this data out into user space, decode
-it there, then inject the results back into the kernel (uinput) for
-further processing by the input subsystem?
+See? It's power(), reset(), init().
+Maybe the problem is in soc_camera_probe()?
 
-This decoding is getting done in user space because half of the IR
-drivers are in user space. But the other half of them aren't in user
-space and that set can't work in user space.  Most of the user space
-drivers can be pushed into the kernel where they'll automatically load
-when the device is detected.
+> > +
+> > +	return 0;
+> > +
+> > +fail_gpio_cam_rst:
+> > +	gpio_free(GPIO50_nCAM_EN);
+> > +fail:
+> > +	return err;
+> > +}
+> > +
+> > +static int a780_pxacamera_power(struct device *dev, int on)
+> > +{
+> > +	gpio_set_value(GPIO50_nCAM_EN, !on);
+>=20
+> This agrees with the comment above, but then why do you enable it=20
+> immediately in init?
+>
 
-Some of the drivers can't be moved like the IR over ALSA. But is
-attaching an IR diode to the mic input of your sound card really a
-device or is it a hack that should be dealt with in user space?
-Another type is IR hardware that toggles the DTR output of a serial
-port at 40Khz to make a signal. Same thing is done with parallel
-ports. Those force the system into a bit-banging timing loop for
-1/10th second.
+See above.
 
+> > +	return 0;
+> > +}
+> > +
+> > +static int a780_pxacamera_reset(struct device *dev)
+> > +{
+> > +	gpio_set_value(GPIO19_GEN1_CAM_RST, 0);
+> > +	msleep(10);
+> > +	gpio_set_value(GPIO19_GEN1_CAM_RST, 1);
+>=20
+> This, however, seems to contradict the comment and confirm the code above=
+=20
+> - looks like your reset pin is active low too?
+>
 
--- 
-Jon Smirl
-jonsmirl@gmail.com
+Well, reset happens when bringing the GPIO to HIGH but only after some
+time it was LOW, so I consider it "active high" but maybe I am messing up
+with terminology here?
+
+[...]
+> > +static struct soc_camera_link a780_iclink =3D {
+> > +	.bus_id         =3D 0,
+> > +	.flags          =3D SOCAM_SENSOR_INVERT_PCLK,
+>=20
+> Do you have schematics or have you found this out experimentally? What=20
+> happens if you don't invert pclk?
+>
+
+I've found this experimentally, and I think I was the reason why you
+introduced SOCAM_SENSOR_INVERT_PCLK, see
+http://thread.gmane.org/gmane.comp.video.video4linux/40592
+
+If I don't invert pixelclock I get a picture like this:
+http://people.openezx.org/ao2/a780-not-yet.jpg
+
+[...]
+>=20
+> A general question for the ezx.c: wouldn't it be better to convert that=20
+> full-of-ifdef's file to a mach-pxa/ezx/ directory?
+>
+
+Actually we are fine using a single file, there are many parts shared
+between different platform generations and different phones, and often
+when we change something for a phone we had to do a similar change for
+the others, so living into a single file is a little bit easier.
+
+Sure that the ifdefs can be reorganized and reduced, and I will do
+that when most of the out-of-tree stuff is in.
+
+BTW, many thanks again for the review.
+
+Ciao ciao,
+   Antonio
+
+--=20
+Antonio Ospite
+http://ao2.it
+
+PGP public key ID: 0x4553B001
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing in e-mail?
+
+--Signature=_Thu__5_Nov_2009_23_44_29_+0100_rbV/1aF2TM8duYY5
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAkrzVU0ACgkQ5xr2akVTsAEhFQCffDB3VUTfuqgBvVztmATcJq1F
+GxgAn08x+HwYI59oTvPcmAD1GLh1PNcn
+=ifnf
+-----END PGP SIGNATURE-----
+
+--Signature=_Thu__5_Nov_2009_23_44_29_+0100_rbV/1aF2TM8duYY5--
