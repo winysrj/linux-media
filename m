@@ -1,130 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpq2.gn.mail.iss.as9143.net ([212.54.34.165]:54625 "EHLO
-	smtpq2.gn.mail.iss.as9143.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752189AbZKANfS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Nov 2009 08:35:18 -0500
-Received: from [212.54.34.133] (helo=smtp2.gn.mail.iss.as9143.net)
-	by smtpq2.gn.mail.iss.as9143.net with esmtp (Exim 4.69)
-	(envelope-from <gerryford@casema.nl>)
-	id 1N4aGl-0004Zj-TN
-	for linux-media@vger.kernel.org; Sun, 01 Nov 2009 14:14:55 +0100
-Received: from 5ed16a93.cable.ziggo.nl ([94.209.106.147] helo=[192.168.0.5])
-	by smtp2.gn.mail.iss.as9143.net with esmtp (Exim 4.69)
-	(envelope-from <gerryford@casema.nl>)
-	id 1N4aGh-000463-Q5
-	for linux-media@vger.kernel.org; Sun, 01 Nov 2009 14:14:52 +0100
-Subject: EM2880 - leadtek winfast usb ii
-From: Gerry Ford <gerryford@casema.nl>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Sun, 01 Nov 2009 14:14:51 +0100
-Message-Id: <1257081291.3234.2.camel@localhost.localdomain>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:33605 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1757031AbZKESzq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Nov 2009 13:55:46 -0500
+Date: Thu, 5 Nov 2009 19:56:04 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: Re: [PATCH/RFC 7/9 v2] v4l: add an image-bus API for configuring
+ v4l2 subdev pixel and frame formats
+In-Reply-To: <200911051911.17196.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.0911051941320.5620@axis700.grange>
+References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
+ <200911051641.15978.hverkuil@xs4all.nl> <Pine.LNX.4.64.0911051729570.5620@axis700.grange>
+ <200911051911.17196.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Device is a Leadtek Winfast usb II box
+On Thu, 5 Nov 2009, Hans Verkuil wrote:
 
-usb 1-8: new high speed USB device using ehci_hcd and address 4
-usb 1-8: configuration #1 chosen from 1 choice
-em28xx: New device @ 480 Mbps (eb1a:2800, interface 0, class 0)
-em28xx #0: Identified as Unknown EM2800 video grabber (card=0)
-em28xx #0: em28xx chip ID = 2
-em28xx #0: board has no eeprom
-em28xx #0: found i2c device @ 0x30 [???]
-em28xx #0: found i2c device @ 0x3e [???]
-em28xx #0: found i2c device @ 0x4a [saa7113h]
-em28xx #0: found i2c device @ 0x86 [tda9887]
-em28xx #0: found i2c device @ 0xb0 [tda9874]
-em28xx #0: found i2c device @ 0xc2 [tuner (analog)]
-em28xx #0: Your board has no unique USB ID and thus need a hint to be
-detected.
-em28xx #0: You may try to use card=<n> insmod option to workaround that.
-em28xx #0: Please send an email with this log to:
-em28xx #0: 	V4L Mailing List <linux-media@vger.kernel.org>
-em28xx #0: Board eeprom hash is 0x00000000
-em28xx #0: Board i2c devicelist hash is 0x81bb00dc
-em28xx #0: Here is a list of valid choices for the card=<n> insmod
-option:
-em28xx #0:     card=0 -> Unknown EM2800 video grabber
-em28xx #0:     card=1 -> Unknown EM2750/28xx video grabber
-em28xx #0:     card=2 -> Terratec Cinergy 250 USB
-em28xx #0:     card=3 -> Pinnacle PCTV USB 2
-em28xx #0:     card=4 -> Hauppauge WinTV USB 2
-em28xx #0:     card=5 -> MSI VOX USB 2.0
-em28xx #0:     card=6 -> Terratec Cinergy 200 USB
-em28xx #0:     card=7 -> Leadtek Winfast USB II
-em28xx #0:     card=8 -> Kworld USB2800
-em28xx #0:     card=9 -> Pinnacle Dazzle DVC 90/100/101/107 / Kaiser
-Baas Video to DVD maker
-em28xx #0:     card=10 -> Hauppauge WinTV HVR 900
-em28xx #0:     card=11 -> Terratec Hybrid XS
-em28xx #0:     card=12 -> Kworld PVR TV 2800 RF
-em28xx #0:     card=13 -> Terratec Prodigy XS
-em28xx #0:     card=14 -> SIIG AVTuner-PVR / Pixelview Prolink PlayTV
-USB 2.0
-em28xx #0:     card=15 -> V-Gear PocketTV
-em28xx #0:     card=16 -> Hauppauge WinTV HVR 950
-em28xx #0:     card=17 -> Pinnacle PCTV HD Pro Stick
-em28xx #0:     card=18 -> Hauppauge WinTV HVR 900 (R2)
-em28xx #0:     card=19 -> EM2860/SAA711X Reference Design
-em28xx #0:     card=20 -> AMD ATI TV Wonder HD 600
-em28xx #0:     card=21 -> eMPIA Technology, Inc. GrabBeeX+ Video Encoder
-em28xx #0:     card=22 -> Unknown EM2750/EM2751 webcam grabber
-em28xx #0:     card=23 -> Huaqi DLCW-130
-em28xx #0:     card=24 -> D-Link DUB-T210 TV Tuner
-em28xx #0:     card=25 -> Gadmei UTV310
-em28xx #0:     card=26 -> Hercules Smart TV USB 2.0
-em28xx #0:     card=27 -> Pinnacle PCTV USB 2 (Philips FM1216ME)
-em28xx #0:     card=28 -> Leadtek Winfast USB II Deluxe
-em28xx #0:     card=29 -> <NULL>
-em28xx #0:     card=30 -> Videology 20K14XUSB USB2.0
-em28xx #0:     card=31 -> Usbgear VD204v9
-em28xx #0:     card=32 -> Supercomp USB 2.0 TV
-em28xx #0:     card=33 -> <NULL>
-em28xx #0:     card=34 -> Terratec Cinergy A Hybrid XS
-em28xx #0:     card=35 -> Typhoon DVD Maker
-em28xx #0:     card=36 -> NetGMBH Cam
-em28xx #0:     card=37 -> Gadmei UTV330
-em28xx #0:     card=38 -> Yakumo MovieMixer
-em28xx #0:     card=39 -> KWorld PVRTV 300U
-em28xx #0:     card=40 -> Plextor ConvertX PX-TV100U
-em28xx #0:     card=41 -> Kworld 350 U DVB-T
-em28xx #0:     card=42 -> Kworld 355 U DVB-T
-em28xx #0:     card=43 -> Terratec Cinergy T XS
-em28xx #0:     card=44 -> Terratec Cinergy T XS (MT2060)
-em28xx #0:     card=45 -> Pinnacle PCTV DVB-T
-em28xx #0:     card=46 -> Compro, VideoMate U3
-em28xx #0:     card=47 -> KWorld DVB-T 305U
-em28xx #0:     card=48 -> KWorld DVB-T 310U
-em28xx #0:     card=49 -> MSI DigiVox A/D
-em28xx #0:     card=50 -> MSI DigiVox A/D II
-em28xx #0:     card=51 -> Terratec Hybrid XS Secam
-em28xx #0:     card=52 -> DNT DA2 Hybrid
-em28xx #0:     card=53 -> Pinnacle Hybrid Pro
-em28xx #0:     card=54 -> Kworld VS-DVB-T 323UR
-em28xx #0:     card=55 -> Terratec Hybrid XS (em2882)
-em28xx #0:     card=56 -> Pinnacle Hybrid Pro (2)
-em28xx #0:     card=57 -> Kworld PlusTV HD Hybrid 330
-em28xx #0:     card=58 -> Compro VideoMate ForYou/Stereo
-em28xx #0:     card=59 -> <NULL>
-em28xx #0:     card=60 -> Hauppauge WinTV HVR 850
-em28xx #0:     card=61 -> Pixelview PlayTV Box 4 USB 2.0
-em28xx #0:     card=62 -> Gadmei TVR200
-em28xx #0:     card=63 -> Kaiomy TVnPC U2
-em28xx #0:     card=64 -> Easy Cap Capture DC-60
-em28xx #0:     card=65 -> IO-DATA GV-MVP/SZ
-em28xx #0:     card=66 -> Empire dual TV
-em28xx #0:     card=67 -> Terratec Grabby
-em28xx #0:     card=68 -> Terratec AV350
-em28xx #0:     card=69 -> KWorld ATSC 315U HDTV TV Box
-saa7115 1-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
-em28xx #0: Config register raw data: 0x89
-em28xx #0: v4l2 driver version 0.1.2
-em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
-usb 1-8: New USB device found, idVendor=eb1a, idProduct=2800
-usb 1-8: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+> On Thursday 05 November 2009 17:51:50 Guennadi Liakhovetski wrote:
+> > On Thu, 5 Nov 2009, Hans Verkuil wrote:
+> > 
+> > > On Friday 30 October 2009 15:01:27 Guennadi Liakhovetski wrote:
+> > > > Video subdevices, like cameras, decoders, connect to video bridges over
+> > > > specialised busses. Data is being transferred over these busses in various
+> > > > formats, which only loosely correspond to fourcc codes, describing how video
+> > > > data is stored in RAM. This is not a one-to-one correspondence, therefore we
+> > > > cannot use fourcc codes to configure subdevice output data formats. This patch
+> > > > adds codes for several such on-the-bus formats and an API, similar to the
+> > > > familiar .s_fmt(), .g_fmt(), .try_fmt(), .enum_fmt() API for configuring those
+> > > > codes. After all users of the old API in struct v4l2_subdev_video_ops are
+> > > > converted, the API will be removed.
+> > > 
+> > > OK, this seems to completely disregard points raised in my earlier "bus and
+> > > data format negotiation" RFC which is available here once www.mail-archive.org
+> > > is working again:
+> > > 
+> > > http://www.mail-archive.com/linux-media%40vger.kernel.org/msg09644.html
+> > > 
+> > > BTW, ignore the 'Video timings' section of that RFC. That part is wrong.
+> > > 
+> > > The big problem I have with this proposal is the unholy mixing of bus and
+> > > memory formatting. That should be completely separated. Only the bridge
+> > > knows how a bus format can be converted into which memory (pixel) formats.
+> > 
+> > Please, explain why only the bridge knows about that.
+> > 
+> > My model is the following:
+> > 
+> > 1. we define various data formats on the bus. Each such format variation 
+> > gets a unique identification.
+> > 
+> > 2. given a data format ID the data format is perfectly defined. This 
+> > means, you do not have to have a special knowledge about this specific 
+> > format to be able to handle it in some _generic_ way. A typical such 
+> > generic handling on a bridge is, for instance, copying the data into 
+> > memory "one-to-one." For example, if a sensor delivers 10 bit monochrome 
+> > data over an eight bit bus as follows
+> > 
+> > y7 y6 y5 y4 y3 y2 y1 y0   xx xx xx xx xx xx y9 y8 ...
+> > 
+> > then _any_ bridge, capable of just copying data from the bus bytewise into 
+> > RAM will be able to produce little-endian 10-bit grey pixel format in RAM. 
+> > This handling is _not_ bridge specific. This is what I call packing.
+> 
+> Of course it is bridge dependent. It is the bridge that takes data from the
+> bus and puts it in memory. In many cases that is done very simply by bytewise
+> copying. Other bridges can do RGB to YUV or vice versa conversions or can do
+> endianness conversion or can do JPEG/MPEG compression on the fly or whatever
+> else hardware designers will think of.
+> 
+> It's no doubt true for the SoCs you have been working with, but it is not so
+> simple in general.
 
+Ok, I forgot to mention one more point in the model:
 
+4. Each bridge has _two_ ways to process data: data-format-specific and 
+generic (pass-through). It's the _former_ one that is bridge specific, 
+quite right! For a bridge to be able to process a data format, that it can 
+process in a _special_ way, it doesn't need v4l2_imgbus_pixelfmt, it's 
+only for data-formats, that bridges do _not_ know specifically they need 
+it. In that _generic_ case it is not bridge-specific and a bridge driver 
+can just look into the respective v4l2_imgbus_pixelfmt descriptor.
+
+Consider the following: a bridge can process N formats in a specific way. 
+It knows which bits in which order represent which colours, etc. In such a 
+case you just tell the driver "format X" and that's all it has to know 
+about it to be able to handle it.
+
+The sensor, connected to the bridge, can also provide format Y, which the 
+bridge doesn't know about. So what, there's then no way to use that 
+format? Or do we have to add a _special_ handling rule for each format to 
+each bridge driver?...
+
+> > 3. Therefore, each bridge, capable of handling of some "generic" data 
+> > using some specific packing, can perfectly look through data-format 
+> > descriptors, see if it finds any with the supported packing, and if so, it 
+> > _then_ knows, that it can use that specific data format and the specific 
+> > packing to produce the resulting pixel format from the format descriptor.
+> > 
+> > > A bus format is also separate from the colorspace: that is an independent
+> > > piece of data.
+> > 
+> > Sure. TBH, I do not quite how enum v4l2_colorspace is actually used. Is it 
+> > uniquely defined by each pixel format? So, it can be derived from that? 
+> > Then it is indeed redundant. Can drop, don't care about it that much.
+> 
+> It's independent from the pixel format. So the same pixel (or bus) format can
+> have different colorspaces.
+
+Then I do not understand what a colourspace means in v4l context. You mean 
+a yuv format can belong to a jpeg, or an srgb space?...
+
+> > > Personally I would just keep using v4l2_pix_format, except
+> > > that the fourcc field refers to a busimg format rather than a pixel format
+> > > in the case of subdevs. In most non-sensor drivers this field is completely
+> > > ignored anyway since the bus format is fixed.
+> > 
+> > Example: there are cameras, that can be configured to pad 2 bits from the 
+> > incomplete byte above to 10 either in high or in low bits. Do you want to 
+> > introduce a new FOURCC code for those two formats? This is an example of 
+> > what I call packing.
+> 
+> If this happens in the sensor, then yes.
+
+No, those are two data formats, as produced by a camera sensor on the bus. 
+What is made out of them in RAM is a completely separate issue.
+
+> > > I don't mind if you do a bus format to pixel format mapping inside soc-camera,
+> > > but it shouldn't spill over into the v4l core code.
+> > 
+> > Don't understand. This is not for soc-camera only. This infrastructure 
+> > should be used by all subdev drivers, communicating aver a data bus. The 
+> > distinction is quite clear to me: if two entities connect over a bus, they 
+> > use an image-bus data format to describe the data format. If they write 
+> > and read from RAM - that's pixel format.
+> 
+> We agree about that, but why then does struct v4l2_imgbus_framefmt contain
+> memory-related fields like packing, order and bits_per_sample? A subdev driver
+> does not care about that. All it has are X pins through which the data has to
+> pass. How that will look like in memory it doesn't know and doesn't care.
+
+That's right. subdev drivers do not care about v4l2_imgbus_framefmt, it's 
+only bridge drivers, that do.
+
+> > > Laurent is also correct that this should be eventually pad-specific, but
+> > > we can ignore that for now.
+> > > 
+> > > I'm also missing the bus hardware configuration (polarities, sampling on
+> > > rising or falling edge). What happened to that? Or is that a next step?
+> > 
+> > It is separate, yes.
+> 
+> I saw that as well. I had a lot of emails to go through :-)
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
