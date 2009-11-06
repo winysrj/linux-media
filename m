@@ -1,41 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from static-88-194-224-77.ipcom.comunitel.net ([77.224.194.88]:58987
-	"EHLO panicking.kicks-ass.org" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1755201AbZKIW77 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Nov 2009 17:59:59 -0500
-Received: from michael.panicking ([192.168.0.192] ident=michael)
-	by panicking.kicks-ass.org with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69)
-	(envelope-from <michael@panicking.kicks-ass.org>)
-	id 1N7drI-0006g2-VH
-	for linux-media@vger.kernel.org; Tue, 10 Nov 2009 00:41:17 +0100
-Message-ID: <4AF89498.3000103@panicking.kicks-ass.org>
-Date: Mon, 09 Nov 2009 23:15:52 +0100
-From: Michael Trimarchi <michael@panicking.kicks-ass.org>
-MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: ov538-ov7690
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail.navvo.net ([74.208.67.6]:48029 "EHLO mail.navvo.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751104AbZKFPfo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Nov 2009 10:35:44 -0500
+From: santiago.nunez@ridgerun.com
+To: davinci-linux-open-source@linux.davincidsp.com
+Cc: linux-media@vger.kernel.org, nsnehaprabha@ti.com,
+	m-karicheri2@ti.com, diego.dompe@ridgerun.com,
+	todd.fischer@ridgerun.com, mgrosen@ti.com,
+	Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+Date: Fri,  6 Nov 2009 09:35:40 -0600
+Message-Id: <1257521740-23507-1-git-send-email-santiago.nunez@ridgerun.com>
+Subject: [PATCH 1/4 v6] Support for TVP7002 in v4l2 definitions
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all
+From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
 
-I'm working on the ov538 bridge with the ov7690 camera connected. Somentimes I receive
+This patch provides required chip identification definitions
+within v4l2.
 
-[ 1268.146705] gspca: ISOC data error: [110] len=1020, status=-71
-[ 1270.946739] gspca: ISOC data error: [114] len=1020, status=-71
-[ 1271.426689] gspca: ISOC data error: [82] len=1020, status=-71
-[ 1273.314640] gspca: ISOC data error: [1] len=1020, status=-71
-[ 1274.114661] gspca: ISOC data error: [17] len=1020, status=-71
-[ 1274.658718] gspca: ISOC data error: [125] len=1020, status=-71
-[ 1274.834666] gspca: ISOC data error: [21] len=1020, status=-71
-[ 1275.666684] gspca: ISOC data error: [94] len=1020, status=-71
-[ 1275.826645] gspca: ISOC data error: [40] len=1020, status=-71
-[ 1276.226721] gspca: ISOC data error: [100] len=1020, status=-71
+Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+---
+ include/media/v4l2-chip-ident.h |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-This error from the usb, how are they related to the camera?
+diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
+index cf16689..688b7ed 100644
+--- a/include/media/v4l2-chip-ident.h
++++ b/include/media/v4l2-chip-ident.h
+@@ -129,6 +129,9 @@ enum {
+ 	V4L2_IDENT_SAA6752HS = 6752,
+ 	V4L2_IDENT_SAA6752HS_AC3 = 6753,
+ 
++	/* module tvp7002: just ident 7002 */
++	V4L2_IDENT_TVP7002 = 7002,
++
+ 	/* module adv7170: just ident 7170 */
+ 	V4L2_IDENT_ADV7170 = 7170,
+ 
+@@ -147,9 +150,15 @@ enum {
+ 	/* module ths7303: just ident 7303 */
+ 	V4L2_IDENT_THS7303 = 7303,
+ 
++	/* module ths7353: just ident 7353 */
++	V4L2_IDENT_THS7353 = 7353,
++
+ 	/* module adv7343: just ident 7343 */
+ 	V4L2_IDENT_ADV7343 = 7343,
+ 
++	/* module ths8200: just ident 8200 */
++	V4L2_IDENT_THS8200 = 8200,
++
+ 	/* module wm8739: just ident 8739 */
+ 	V4L2_IDENT_WM8739 = 8739,
+ 
+-- 
+1.6.0.4
 
-Michael
