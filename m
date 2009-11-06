@@ -1,70 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f187.google.com ([209.85.210.187]:46957 "EHLO
-	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754986AbZKMPDR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Nov 2009 10:03:17 -0500
-Received: by yxe17 with SMTP id 17so2970746yxe.33
-        for <linux-media@vger.kernel.org>; Fri, 13 Nov 2009 07:03:22 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <156a113e0911130643y6c548599q548c1aec92bf7b1f@mail.gmail.com>
-References: <156a113e0911130643y6c548599q548c1aec92bf7b1f@mail.gmail.com>
-Date: Fri, 13 Nov 2009 10:03:21 -0500
-Message-ID: <829197380911130703v600c782eo1158d737c0dc13d0@mail.gmail.com>
-Subject: Re: I found I bug in tvtime, where do I report it?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Magnus Alm <magnus.alm@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3644 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759641AbZKFTvh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Nov 2009 14:51:37 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id nA6JpfOL051553
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 6 Nov 2009 20:51:41 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 6 Nov 2009 20:51:41 +0100 (CET)
+Message-Id: <200911061951.nA6JpfOL051553@smtp-vbr4.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 13, 2009 at 9:43 AM, Magnus Alm <magnus.alm@gmail.com> wrote:
-> Hi!
->
-> If this is the right place, I can as well try to describe it now.
-> (And I hope I makes sense.)
->
-> The bug is about the "Enable/Disable signal detection".
->
-> As it is now in  videoinput.c:
->
-> int videoinput_check_for_signal( videoinput_t *vidin, int check_freq_present )
-> {
->    if(  videoinput_freq_present( vidin ) || !check_freq_present ) {
->        switch( vidin->cur_tuner_state ) {
->        case TUNER_STATE_NO_SIGNAL:
->
->
-> Should be:
->
-> int videoinput_check_for_signal( videoinput_t *vidin, int check_freq_present )
-> {
->    if( !check_freq_present || videoinput_freq_present( vidin )) {
->        switch( vidin->cur_tuner_state ) {
->        case TUNER_STATE_NO_SIGNAL:
->
-> So just switch place for "videoinput_freq_present( vidin )" and
-> "!check_freq_present" so it actually cares if you disable signal
-> detection.
->
-> With this change, disabling signal detection will remove the frame
-> drops I have in tvtime.
->
->
-> Cheers, have a nice weekend.
-> Magnus Alm
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
->From a maintainership standpoint, tvtime is effectively dead.  I've
-been planning on setting up a new hg tree over at
-http://kernellabs.com/hg since I have some patches I want to get in
-there too.  I can add yours to the series.
+Results of the daily build of v4l-dvb:
 
-Cheers,
+date:        Fri Nov  6 19:00:06 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13326:40705fec2fb2
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Devin
+linux-2.6.22.19-armv5: WARNINGS
+linux-2.6.23.12-armv5: WARNINGS
+linux-2.6.24.7-armv5: WARNINGS
+linux-2.6.25.11-armv5: WARNINGS
+linux-2.6.26-armv5: WARNINGS
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29.1-armv5: WARNINGS
+linux-2.6.30-armv5: WARNINGS
+linux-2.6.31-armv5: WARNINGS
+linux-2.6.32-rc3-armv5: ERRORS
+linux-2.6.32-rc3-armv5-davinci: ERRORS
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.31-armv5-ixp: WARNINGS
+linux-2.6.32-rc3-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.32-rc3-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-rc3-i686: WARNINGS
+linux-2.6.23.12-m32r: WARNINGS
+linux-2.6.24.7-m32r: WARNINGS
+linux-2.6.25.11-m32r: WARNINGS
+linux-2.6.26-m32r: WARNINGS
+linux-2.6.27-m32r: WARNINGS
+linux-2.6.28-m32r: WARNINGS
+linux-2.6.29.1-m32r: WARNINGS
+linux-2.6.30-m32r: WARNINGS
+linux-2.6.31-m32r: WARNINGS
+linux-2.6.32-rc3-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: WARNINGS
+linux-2.6.32-rc3-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: WARNINGS
+linux-2.6.32-rc3-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-rc3-x86_64: ERRORS
+sparse (linux-2.6.31): OK
+sparse (linux-2.6.32-rc3): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
