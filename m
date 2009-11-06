@@ -1,52 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:41915 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759736AbZKLBEG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Nov 2009 20:04:06 -0500
-Subject: Re: cx18: Reprise of YUV frame alignment improvements
-From: Andy Walls <awalls@radix.net>
-To: Brandon Jenkins <bcjenkins@tvwhere.com>
-Cc: ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
-In-Reply-To: <de8cad4d0911111638m3de0d417x60d71d8d331e03f0@mail.gmail.com>
-References: <1257913905.28958.32.camel@palomino.walls.org>
-	 <de8cad4d0911111638m3de0d417x60d71d8d331e03f0@mail.gmail.com>
-Content-Type: text/plain
-Date: Wed, 11 Nov 2009 20:06:46 -0500
-Message-Id: <1257988006.4065.4.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-qy0-f174.google.com ([209.85.221.174]:55027 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753474AbZKFXTL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Nov 2009 18:19:11 -0500
+Received: by qyk4 with SMTP id 4so658880qyk.33
+        for <linux-media@vger.kernel.org>; Fri, 06 Nov 2009 15:19:16 -0800 (PST)
+MIME-Version: 1.0
+Date: Sat, 7 Nov 2009 00:19:16 +0100
+Message-ID: <156a113e0911061519w7da4e29ag9a8d85a76df679a9@mail.gmail.com>
+Subject: "Winfast tv USB II" and "Winfast tv USB II Deluxe" share same ID
+	(0413:6023), I maybe found a way to tell them apart.
+From: Magnus Alm <magnus.alm@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2009-11-11 at 19:38 -0500, Brandon Jenkins wrote:
-> On Tue, Nov 10, 2009 at 11:31 PM, Andy Walls <awalls@radix.net> wrote:
-> >
-> > Could folks give this cx18 code a test to make sure their primary use
-> > cases didn't break?
-> >
-> >
-> > Regards,
-> > Andy
-> >
-> Andy,
-> 
-> I have loaded the drivers (also pulling in Devin's change request too)
-> and am running with 3 cards and SageTV. I'll let you know if something
-> pops up, but nothing thus far.
-> 
-> Brandon
+Hi!
+
+Since "Winfast tv USB II2 is a EM2800 board and "Winfast tv USB II
+Deluxe" is a EM2820, I made this little hack in em28xx-cards.c
+(the lines I added in "em28xx_usb_probe" is marked with "*")
+
+snprintf(dev->name, 29, "em28xx #%d", nr);
+	dev->devno = nr;
+	dev->model = id->driver_info;
+*      if (dev->model == EM2800_BOARD_LEADTEK_WINFAST_USBII)
+*		/* Leadtek didn't make a new product id for Winfast tv usbii deluxe. */
+*		retval = check_leadtek_winfast_usbii_model(&dev, udev, interface,
+nr);
+	dev->alt   = -1;
 
 
-Thanks a bunch.  It's nice to have someone with a system capable of
-being highly loaded to try to break things. :)
+And the function:
 
-For myself, after 1 day I haven't noticed anything.  Though my normal
-use case is simple live Digital TV viewing with MythTV - not terribly
-stressing.
 
-I assume you mean the mxl5005s and s5h1409 changes for clear QAM when
-you say Devin's change.
+/* Check if EM2800_BOARD_LEADTEK_WINFAST_USBII really is what it is or
+is his/her younger sister/brother,
+with the same ID. */
+static int check_leadtek_winfast_usbii_model(struct em28xx
+**devhandle, struct usb_device *udev,
+			   struct usb_interface *interface,
+			   int minor)
+{
+	struct em28xx *dev = *devhandle;
+	int retval;
+	
+	dev->udev = udev;
+	mutex_init(&dev->ctrl_urb_lock);
+	spin_lock_init(&dev->slock);
+	init_waitqueue_head(&dev->open);
+	init_waitqueue_head(&dev->wait_frame);
+	init_waitqueue_head(&dev->wait_stream);
 
-Regards,
-Andy
+	dev->em28xx_read_reg = em28xx_read_reg;
+		
+	retval = em28xx_read_reg(dev, EM28XX_R0A_CHIPID);
+	if (retval == 18)
+		dev->model = EM2820_BOARD_LEADTEK_WINFAST_USBII_DELUXE;
+		em28xx_set_model(dev);
+		return 0;
+}
 
+I don't think it should interfere with any other boards, but I might be wrong.
+It seems to work here atleast.
+
+/Magnus Alm
