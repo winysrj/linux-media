@@ -1,16 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-ew0-f219.google.com ([209.85.219.219])
+Received: from fg-out-1718.google.com ([72.14.220.158])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <bjornjorgensen@gmail.com>) id 1NFEW8-0008Ev-V2
-	for linux-dvb@linuxtv.org; Mon, 30 Nov 2009 23:14:49 +0100
-Received: by ewy19 with SMTP id 19so4362643ewy.1
-	for <linux-dvb@linuxtv.org>; Mon, 30 Nov 2009 14:14:15 -0800 (PST)
+	(envelope-from <shacky83@gmail.com>) id 1N6R7P-0006Ld-Hh
+	for linux-dvb@linuxtv.org; Fri, 06 Nov 2009 16:52:56 +0100
+Received: by fg-out-1718.google.com with SMTP id 16so308981fgg.5
+	for <linux-dvb@linuxtv.org>; Fri, 06 Nov 2009 07:52:52 -0800 (PST)
 MIME-Version: 1.0
-Date: Mon, 30 Nov 2009 23:14:14 +0100
-Message-ID: <1c335d470911301414g2a6cb185t42fa15ff3c6cfac@mail.gmail.com>
-From: =?ISO-8859-1?Q?Bj=F8rn_J=F8rgensen?= <bjornjorgensen@gmail.com>
+Date: Fri, 6 Nov 2009 16:52:52 +0100
+Message-ID: <7fedbc910911060752y215adeccm6dc4d35131c62746@mail.gmail.com>
+From: shacky <shacky83@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] TERRATEC Cinergy C PCI & CI, HD problems with sync
+Subject: [linux-dvb] Dual tuner DVB-T card on Linux
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -25,20 +25,14 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi, I have this TERRATEC Cinergy C PCI & CI, HD, card. I have follow
-this guide http://dolot.kipdola.com/wiki/Install_S2API for installing
-it, but it don't seems to work. I get a lot of "blop blup" sounds and
-some out of sync picture. I have installed hts-tvheadend and are using
-xbmc to play show it. its the same problems on sd and hd. i have also
-tried kaffeine, but the same problems.
-Its ubuntu 9.10 and kernel 2.6.31-15-generic #50-Ubuntu SMP
-I can play 1080p files on the same pc and no problems.
+Hi.
 
-in dmesg i get many
-[ 5960.873141] mantis stop feed and dma
-[ 5960.873281] mantis start feed & dma
-[ 5981.315566] mantis stop feed and dma
-[ 5981.315710] mantis start feed & dma
+Could you help me to find any DVB-T dual input/tuner card that work
+with Linux without problems?
+I need to record two programs in the same time with MythTV..
+
+Thank you very much!
+Bye.
 
 _______________________________________________
 linux-dvb users mailing list
