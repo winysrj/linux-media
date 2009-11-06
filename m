@@ -1,201 +1,266 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:59980 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751165AbZKCXKN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Nov 2009 18:10:13 -0500
-Received: by bwz27 with SMTP id 27so8209181bwz.21
-        for <linux-media@vger.kernel.org>; Tue, 03 Nov 2009 15:10:17 -0800 (PST)
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2499 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753750AbZKFI2r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Nov 2009 03:28:47 -0500
+Message-ID: <b584835285fc5b2ca2541b01bbe3d206.squirrel@webmail.xs4all.nl>
+In-Reply-To: <Pine.LNX.4.64.0911060824130.4389@axis700.grange>
+References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
+    <200911051911.17196.hverkuil@xs4all.nl>
+    <Pine.LNX.4.64.0911051941320.5620@axis700.grange>
+    <200911060747.26999.hverkuil@xs4all.nl>
+    <Pine.LNX.4.64.0911060824130.4389@axis700.grange>
+Date: Fri, 6 Nov 2009 09:28:47 +0100
+Subject: Re: [PATCH/RFC 7/9 v2] v4l: add an image-bus API for configuring
+ v4l2 subdev pixel and frame formats
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+Cc: "Linux Media Mailing List" <linux-media@vger.kernel.org>,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Sakari Ailus" <sakari.ailus@maxwell.research.nokia.com>,
+	"Muralidharan Karicheri" <m-karicheri2@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <4AEC08F0.70205@redhat.com>
-References: <846899810910241711s6fb5939fq3a693a92a2a76310@mail.gmail.com>
-	 <4AEC08F0.70205@redhat.com>
-Date: Wed, 4 Nov 2009 00:10:17 +0100
-Message-ID: <846899810911031510p252dadfeu3fa058c7b8733270@mail.gmail.com>
-Subject: Re: [PATCH] isl6421.c - added optional features: tone control and
-	temporary diseqc overcurrent
-From: HoP <jpetrous@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, Ales Jurik <ajurik@quick.cz>
-Content-Type: multipart/mixed; boundary=001485f792f0ee338304777f98ca
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---001485f792f0ee338304777f98ca
-Content-Type: text/plain; charset=ISO-8859-1
 
-Hi Mauro,
-
-thank you for your valued hints. I'm commenting inside
-message:
-
-> First of all, please check all your patches with checkpatch, to be sure
-> that they don't have any CodingStyle troubles. There are some on your
-> patch (the better is to read README.patches for more info useful
-> for developers).
-
-Did checkpatch testing and has fixed all errors/warnings except
-of 3 warning regarding longer line (all 3 lines has exactly
-one char over 80, so I guess it should not bother much).
-Of course if this rule is a must, then I can fix that also).
-
->>
->> Attached patch adds two optional (so, disabled by default
->> and therefore could not break any compatibility) features:
->>
->> 1, tone_control=1
->> When enabled, ISL6421 overrides frontend's tone control
->> function (fe->ops.set_tone) by its own one.
->>
+> On Fri, 6 Nov 2009, Hans Verkuil wrote:
 >
-> On your comments, the better is to describe why someone would need
-> to use such option. You should also add a quick hint about that at the
-> option description.
-
-Well, I'm not sure I can make some good hint why such option can
-be useful by someone. I can only say that isl6121 has possibility
-to drive 22k tone, so why not enable usage of it?
-
-Of course, we made such code because we were using exactly
-this way of 22k control in our device.
-
+>> On Thursday 05 November 2009 19:56:04 Guennadi Liakhovetski wrote:
+>> > On Thu, 5 Nov 2009, Hans Verkuil wrote:
+>> >
+>> > > On Thursday 05 November 2009 17:51:50 Guennadi Liakhovetski wrote:
+>> > > > On Thu, 5 Nov 2009, Hans Verkuil wrote:
+>> > > >
+>> > > > > On Friday 30 October 2009 15:01:27 Guennadi Liakhovetski wrote:
+>> > > > > > Video subdevices, like cameras, decoders, connect to video
+>> bridges over
+>> > > > > > specialised busses. Data is being transferred over these
+>> busses in various
+>> > > > > > formats, which only loosely correspond to fourcc codes,
+>> describing how video
+>> > > > > > data is stored in RAM. This is not a one-to-one
+>> correspondence, therefore we
+>> > > > > > cannot use fourcc codes to configure subdevice output data
+>> formats. This patch
+>> > > > > > adds codes for several such on-the-bus formats and an API,
+>> similar to the
+>> > > > > > familiar .s_fmt(), .g_fmt(), .try_fmt(), .enum_fmt() API for
+>> configuring those
+>> > > > > > codes. After all users of the old API in struct
+>> v4l2_subdev_video_ops are
+>> > > > > > converted, the API will be removed.
+>> > > > >
+>> > > > > OK, this seems to completely disregard points raised in my
+>> earlier "bus and
+>> > > > > data format negotiation" RFC which is available here once
+>> www.mail-archive.org
+>> > > > > is working again:
+>> > > > >
+>> > > > > http://www.mail-archive.com/linux-media%40vger.kernel.org/msg09644.html
+>> > > > >
+>> > > > > BTW, ignore the 'Video timings' section of that RFC. That part
+>> is wrong.
+>> > > > >
+>> > > > > The big problem I have with this proposal is the unholy mixing
+>> of bus and
+>> > > > > memory formatting. That should be completely separated. Only the
+>> bridge
+>> > > > > knows how a bus format can be converted into which memory
+>> (pixel) formats.
+>> > > >
+>> > > > Please, explain why only the bridge knows about that.
+>> > > >
+>> > > > My model is the following:
+>> > > >
+>> > > > 1. we define various data formats on the bus. Each such format
+>> variation
+>> > > > gets a unique identification.
+>> > > >
+>> > > > 2. given a data format ID the data format is perfectly defined.
+>> This
+>> > > > means, you do not have to have a special knowledge about this
+>> specific
+>> > > > format to be able to handle it in some _generic_ way. A typical
+>> such
+>> > > > generic handling on a bridge is, for instance, copying the data
+>> into
+>> > > > memory "one-to-one." For example, if a sensor delivers 10 bit
+>> monochrome
+>> > > > data over an eight bit bus as follows
+>> > > >
+>> > > > y7 y6 y5 y4 y3 y2 y1 y0   xx xx xx xx xx xx y9 y8 ...
+>> > > >
+>> > > > then _any_ bridge, capable of just copying data from the bus
+>> bytewise into
+>> > > > RAM will be able to produce little-endian 10-bit grey pixel format
+>> in RAM.
+>> > > > This handling is _not_ bridge specific. This is what I call
+>> packing.
+>> > >
+>> > > Of course it is bridge dependent. It is the bridge that takes data
+>> from the
+>> > > bus and puts it in memory. In many cases that is done very simply by
+>> bytewise
+>> > > copying. Other bridges can do RGB to YUV or vice versa conversions
+>> or can do
+>> > > endianness conversion or can do JPEG/MPEG compression on the fly or
+>> whatever
+>> > > else hardware designers will think of.
+>> > >
+>> > > It's no doubt true for the SoCs you have been working with, but it
+>> is not so
+>> > > simple in general.
+>> >
+>> > Ok, I forgot to mention one more point in the model:
+>> >
+>> > 4. Each bridge has _two_ ways to process data: data-format-specific
+>> and
+>> > generic (pass-through). It's the _former_ one that is bridge specific,
+>> > quite right! For a bridge to be able to process a data format, that it
+>> can
+>> > process in a _special_ way, it doesn't need v4l2_imgbus_pixelfmt, it's
+>> > only for data-formats, that bridges do _not_ know specifically they
+>> need
+>> > it. In that _generic_ case it is not bridge-specific and a bridge
+>> driver
+>> > can just look into the respective v4l2_imgbus_pixelfmt descriptor.
+>> >
+>> > Consider the following: a bridge can process N formats in a specific
+>> way.
+>> > It knows which bits in which order represent which colours, etc. In
+>> such a
+>> > case you just tell the driver "format X" and that's all it has to know
+>> > about it to be able to handle it.
+>> >
+>> > The sensor, connected to the bridge, can also provide format Y, which
+>> the
+>> > bridge doesn't know about. So what, there's then no way to use that
+>> > format? Or do we have to add a _special_ handling rule for each format
+>> to
+>> > each bridge driver?...
+>> >
+>> > > > 3. Therefore, each bridge, capable of handling of some "generic"
+>> data
+>> > > > using some specific packing, can perfectly look through
+>> data-format
+>> > > > descriptors, see if it finds any with the supported packing, and
+>> if so, it
+>> > > > _then_ knows, that it can use that specific data format and the
+>> specific
+>> > > > packing to produce the resulting pixel format from the format
+>> descriptor.
+>> > > >
+>> > > > > A bus format is also separate from the colorspace: that is an
+>> independent
+>> > > > > piece of data.
+>> > > >
+>> > > > Sure. TBH, I do not quite how enum v4l2_colorspace is actually
+>> used. Is it
+>> > > > uniquely defined by each pixel format? So, it can be derived from
+>> that?
+>> > > > Then it is indeed redundant. Can drop, don't care about it that
+>> much.
+>> > >
+>> > > It's independent from the pixel format. So the same pixel (or bus)
+>> format can
+>> > > have different colorspaces.
+>> >
+>> > Then I do not understand what a colourspace means in v4l context. You
+>> mean
+>> > a yuv format can belong to a jpeg, or an srgb space?...
 >>
->> 2, overcurrent_enable=1
->> When enabled, overcurrent protection is disabled during
->> sending diseqc command. Such option is usable when ISL6421
->> catch overcurrent threshold and starts limiting output.
->> Note: protection is disabled only during sending
->> of diseqc command, until next set_tone() usage.
->> What typically means only max up to few hundreds of ms.
->> WARNING: overcurrent_enable=1 is dangerous
->> and can damage your device. Use with care
->> and only if you really know what you do.
+>> No, it's not that extreme, but e.g. the same yuv format can be used with
+>> different colorspaces depending on the source. I don't have the
+>> datasheet
+>> handy but I know that for HDMI inputs there are different RGB
+>> colorspaces
+>> depending on the input resolution. So while the dataformat is the same,
+>> the colorspace will be different.
+>
+> Ok, so, you mean something like colour components are assigned in the same
+> way in data tuples, but, for example, colour value ranges can be
+> different?
+
+Right.
+
+> As for whether a colour-space field is needed in struct
+> v4l2_imgbus_pixelfmt, actually, I think, it is. Otherwise how would you
+> reply to G_FMT and TRY_FMT requests?
+
+Yes, it definitely needs to be passed one way or another.
+
+>
+>> > > > > Personally I would just keep using v4l2_pix_format, except
+>> > > > > that the fourcc field refers to a busimg format rather than a
+>> pixel format
+>> > > > > in the case of subdevs. In most non-sensor drivers this field is
+>> completely
+>> > > > > ignored anyway since the bus format is fixed.
+>> > > >
+>> > > > Example: there are cameras, that can be configured to pad 2 bits
+>> from the
+>> > > > incomplete byte above to 10 either in high or in low bits. Do you
+>> want to
+>> > > > introduce a new FOURCC code for those two formats? This is an
+>> example of
+>> > > > what I call packing.
+>> > >
+>> > > If this happens in the sensor, then yes.
+>> >
+>> > No, those are two data formats, as produced by a camera sensor on the
+>> bus.
+>> > What is made out of them in RAM is a completely separate issue.
+>> >
+>> > > > > I don't mind if you do a bus format to pixel format mapping
+>> inside soc-camera,
+>> > > > > but it shouldn't spill over into the v4l core code.
+>> > > >
+>> > > > Don't understand. This is not for soc-camera only. This
+>> infrastructure
+>> > > > should be used by all subdev drivers, communicating aver a data
+>> bus. The
+>> > > > distinction is quite clear to me: if two entities connect over a
+>> bus, they
+>> > > > use an image-bus data format to describe the data format. If they
+>> write
+>> > > > and read from RAM - that's pixel format.
+>> > >
+>> > > We agree about that, but why then does struct v4l2_imgbus_framefmt
+>> contain
+>> > > memory-related fields like packing, order and bits_per_sample? A
+>> subdev driver
+>> > > does not care about that. All it has are X pins through which the
+>> data has to
+>> > > pass. How that will look like in memory it doesn't know and doesn't
+>> care.
+>> >
+>> > That's right. subdev drivers do not care about v4l2_imgbus_framefmt,
+>> it's
+>> > only bridge drivers, that do.
 >>
+>> I think most of my objections would probably go away if you redid your
+>> subdev
+>> API so that the subdev only gets the data format and none of the packing
+>> data.
+>>
+>> The subdev API should not contain anything that it doesn't need.
+>> Otherwise it
+>> becomes very confusing.
 >
-> I'm not sure if it is a good idea to have this... Why/when someone would
-> need this?
->
+> Sorry, I grepped drivers and headers for v4l2_imgbus_pixelfmt and only see
+> it used in host drivers. Can you point out more precisely what you mean?
 
-I know that it is a bit dangerous option, so I can understand you can
-don't like it :)
+Aargh! I confused enum v4l2_imgbus_pixelcode with struct
+v4l2_imgbus_pixelfmt! Forget what I said, I'll do another review this
+weekend.
 
-But I would like to note again - such way of using is permitted
-by datasheet (otherwise it would not be even possible to enable it)
-and we learnt when used correctly (it is enabled only within diseqc
-sequence), it boost rotor moving or fixes using some "power-eating"
-diseqc switches.
+Regards,
 
-If you still feel it is better to not support bit strange mode, then
-I can live with "#if 0" commented out blocks or adding some
-kernel config option with something like ISL6421_ENABLE_OVERCURRENT
-or so.
+        Hans
 
-> If we go ahead and add this one, you should add a notice about it at the
-> parameter.
-> I would also print a big WARNING message at the dmesg if the module were
-> loaded
-> with this option turned on.
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
-Added some WARNING printing to dmesg when option is enabled.
-
-Regards
-
-/Honza
-
----
-
-Signed-off-by: Jan Petrous <jpetrous@gmail.com>
-Signed-off-by: Ales Jurik <ajurik@quick.cz>
-
---001485f792f0ee338304777f98ca
-Content-Type: text/x-patch; charset=US-ASCII; name="isl6421-tonectrl_overcurr.patch"
-Content-Disposition: attachment; filename="isl6421-tonectrl_overcurr.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_g1l9me8c0
-
-ZGlmZiAtciA5ZDliYzkyZDdjMzMgZHJpdmVycy9tZWRpYS9kdmIvZnJvbnRlbmRzL2lzbDY0MjEu
-YwotLS0gYS9kcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvaXNsNjQyMS5jCVNhdCBTZXAgMTkg
-MTI6NDg6NDQgMjAwOSArMDIwMAorKysgYi9kcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvaXNs
-NjQyMS5jCVR1ZSBOb3YgMDMgMjM6MjM6MDUgMjAwOSArMDEwMApAQCAtMyw2ICszLDkgQEAKICAq
-CiAgKiBDb3B5cmlnaHQgKEMpIDIwMDYgQW5kcmV3IGRlIFF1aW5jZXkKICAqIENvcHlyaWdodCAo
-QykgMjAwNiBPbGl2ZXIgRW5kcmlzcworICogQ29weXJpZ2h0IChDKSAyMDA5IEFsZXMgSnVyaWsg
-YW5kIEphbiBQZXRyb3VzIChhZGRlZCBvcHRpb25hbCAyMmsgdG9uZQorICogICAgICAgICAgICAg
-ICAgICAgIHN1cHBvcnQgYW5kIHRlbXBvcmFyeSBkaXNlcWMgb3ZlcmN1cnJlbnQgZW5hYmxlIHVu
-dGlsCisgKiAgICAgICAgICAgICAgICAgICAgbmV4dCBjb21tYW5kIC0gc2V0IHZvbHRhZ2Ugb3Ig
-dG9uZSkKICAqCiAgKiBUaGlzIHByb2dyYW0gaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGNhbiByZWRp
-c3RyaWJ1dGUgaXQgYW5kL29yCiAgKiBtb2RpZnkgaXQgdW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBH
-TlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZQpAQCAtMzUsMTIgKzM4LDIzIEBACiAjaW5jbHVkZSAi
-ZHZiX2Zyb250ZW5kLmgiCiAjaW5jbHVkZSAiaXNsNjQyMS5oIgogCitzdGF0aWMgaW50IHRvbmVf
-Y29udHJvbDsKK21vZHVsZV9wYXJhbSh0b25lX2NvbnRyb2wsIGludCwgU19JUlVHTyk7CitNT0RV
-TEVfUEFSTV9ERVNDKHRvbmVfY29udHJvbCwgIlNldCBJU0w2NDIxIHRvIGNvbnRyb2wgMjJrSHog
-dG9uZSIpOworCitzdGF0aWMgaW50IG92ZXJjdXJyZW50X2VuYWJsZTsKK21vZHVsZV9wYXJhbShv
-dmVyY3VycmVudF9lbmFibGUsIGludCwgU19JUlVHTyk7CitNT0RVTEVfUEFSTV9ERVNDKG92ZXJj
-dXJyZW50X2VuYWJsZSwgIlNldCBJU0w2NDIxIHRvIHRlbXBvcmFyeSBlbmFibGUgIgorCQkib3Zl
-cmN1cnJlbnQgd2hlbiBkaXNlcWMgY29tbWFuZCBpcyBhY3RpdmUiKTsKKwogc3RydWN0IGlzbDY0
-MjEgewogCXU4CQkJY29uZmlnOwogCXU4CQkJb3ZlcnJpZGVfb3I7CiAJdTgJCQlvdmVycmlkZV9h
-bmQ7CiAJc3RydWN0IGkyY19hZGFwdGVyCSppMmM7CiAJdTgJCQlpMmNfYWRkcjsKKwlpbnQgKCpk
-aXNlcWNfc2VuZF9tYXN0ZXJfY21kX29yaWcpKHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlLAorCQkJ
-c3RydWN0IGR2Yl9kaXNlcWNfbWFzdGVyX2NtZCAqY21kKTsKIH07CiAKIHN0YXRpYyBpbnQgaXNs
-NjQyMV9zZXRfdm9sdGFnZShzdHJ1Y3QgZHZiX2Zyb250ZW5kICpmZSwgZmVfc2VjX3ZvbHRhZ2Vf
-dCB2b2x0YWdlKQpAQCAtNjAsNiArNzQsNTUgQEAgc3RhdGljIGludCBpc2w2NDIxX3NldF92b2x0
-YWdlKHN0cnVjdCBkdgogCQlicmVhazsKIAljYXNlIFNFQ19WT0xUQUdFXzE4OgogCQlpc2w2NDIx
-LT5jb25maWcgfD0gKElTTDY0MjFfRU4xIHwgSVNMNjQyMV9WU0VMMSk7CisJCWJyZWFrOworCWRl
-ZmF1bHQ6CisJCXJldHVybiAtRUlOVkFMOworCX07CisKKwlpc2w2NDIxLT5jb25maWcgfD0gaXNs
-NjQyMS0+b3ZlcnJpZGVfb3I7CisJaXNsNjQyMS0+Y29uZmlnICY9IGlzbDY0MjEtPm92ZXJyaWRl
-X2FuZDsKKworCXJldHVybiAoaTJjX3RyYW5zZmVyKGlzbDY0MjEtPmkyYywgJm1zZywgMSkgPT0g
-MSkgPyAwIDogLUVJTzsKK30KKworc3RhdGljIGludCBpc2w2NDIxX3NlbmRfZGlzZXFjKHN0cnVj
-dCBkdmJfZnJvbnRlbmQgKmZlLAorCQkJCXN0cnVjdCBkdmJfZGlzZXFjX21hc3Rlcl9jbWQgKmNt
-ZCkKK3sKKwlzdHJ1Y3QgaXNsNjQyMSAqaXNsNjQyMSA9IChzdHJ1Y3QgaXNsNjQyMSAqKSBmZS0+
-c2VjX3ByaXY7CisJc3RydWN0IGkyY19tc2cgbXNnID0gewkuYWRkciA9IGlzbDY0MjEtPmkyY19h
-ZGRyLCAuZmxhZ3MgPSAwLAorCQkJCS5idWYgPSAmaXNsNjQyMS0+Y29uZmlnLAorCQkJCS5sZW4g
-PSBzaXplb2YoaXNsNjQyMS0+Y29uZmlnKSB9OworCisJaXNsNjQyMS0+Y29uZmlnIHw9IElTTDY0
-MjFfRENMOworCisJaXNsNjQyMS0+Y29uZmlnIHw9IGlzbDY0MjEtPm92ZXJyaWRlX29yOworCWlz
-bDY0MjEtPmNvbmZpZyAmPSBpc2w2NDIxLT5vdmVycmlkZV9hbmQ7CisKKwlpZiAoaTJjX3RyYW5z
-ZmVyKGlzbDY0MjEtPmkyYywgJm1zZywgMSkgIT0gMSkKKwkJcmV0dXJuIC1FSU87CisKKwlpc2w2
-NDIxLT5jb25maWcgJj0gfklTTDY0MjFfRENMOworCisJcmV0dXJuIGlzbDY0MjEtPmRpc2VxY19z
-ZW5kX21hc3Rlcl9jbWRfb3JpZyhmZSwgY21kKTsKK30KKworc3RhdGljIGludCBpc2w2NDIxX3Nl
-dF90b25lKHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlLCBmZV9zZWNfdG9uZV9tb2RlX3QgdG9uZSkK
-K3sKKwlzdHJ1Y3QgaXNsNjQyMSAqaXNsNjQyMSA9IChzdHJ1Y3QgaXNsNjQyMSAqKSBmZS0+c2Vj
-X3ByaXY7CisJc3RydWN0IGkyY19tc2cgbXNnID0gewkuYWRkciA9IGlzbDY0MjEtPmkyY19hZGRy
-LCAuZmxhZ3MgPSAwLAorCQkJCS5idWYgPSAmaXNsNjQyMS0+Y29uZmlnLAorCQkJCS5sZW4gPSBz
-aXplb2YoaXNsNjQyMS0+Y29uZmlnKSB9OworCisJaXNsNjQyMS0+Y29uZmlnICY9IH4oSVNMNjQy
-MV9FTlQxKTsKKworCXByaW50ayhLRVJOX0lORk8gIiVzOiAlc1xuIiwgX19mdW5jX18sICgodG9u
-ZSA9PSBTRUNfVE9ORV9PRkYpID8KKwkJCQkiT2ZmIiA6ICJPbiIpKTsKKworCXN3aXRjaCAodG9u
-ZSkgeworCWNhc2UgU0VDX1RPTkVfT046CisJCWlzbDY0MjEtPmNvbmZpZyB8PSBJU0w2NDIxX0VO
-VDE7CisJCWJyZWFrOworCWNhc2UgU0VDX1RPTkVfT0ZGOgogCQlicmVhazsKIAlkZWZhdWx0Ogog
-CQlyZXR1cm4gLUVJTlZBTDsKQEAgLTkxLDE4ICsxNTQsMjYgQEAgc3RhdGljIGludCBpc2w2NDIx
-X2VuYWJsZV9oaWdoX2xuYl92b2x0YQogCiBzdGF0aWMgdm9pZCBpc2w2NDIxX3JlbGVhc2Uoc3Ry
-dWN0IGR2Yl9mcm9udGVuZCAqZmUpCiB7CisJc3RydWN0IGlzbDY0MjEgKmlzbDY0MjEgPSAoc3Ry
-dWN0IGlzbDY0MjEgKikgZmUtPnNlY19wcml2OworCiAJLyogcG93ZXIgb2ZmICovCiAJaXNsNjQy
-MV9zZXRfdm9sdGFnZShmZSwgU0VDX1ZPTFRBR0VfT0ZGKTsKKworCWlmIChvdmVyY3VycmVudF9l
-bmFibGUpCisJCWZlLT5vcHMuZGlzZXFjX3NlbmRfbWFzdGVyX2NtZCA9CisJCQlpc2w2NDIxLT5k
-aXNlcWNfc2VuZF9tYXN0ZXJfY21kX29yaWc7CiAKIAkvKiBmcmVlICovCiAJa2ZyZWUoZmUtPnNl
-Y19wcml2KTsKIAlmZS0+c2VjX3ByaXYgPSBOVUxMOwogfQogCi1zdHJ1Y3QgZHZiX2Zyb250ZW5k
-ICppc2w2NDIxX2F0dGFjaChzdHJ1Y3QgZHZiX2Zyb250ZW5kICpmZSwgc3RydWN0IGkyY19hZGFw
-dGVyICppMmMsIHU4IGkyY19hZGRyLAotCQkgICB1OCBvdmVycmlkZV9zZXQsIHU4IG92ZXJyaWRl
-X2NsZWFyKQorc3RydWN0IGR2Yl9mcm9udGVuZCAqaXNsNjQyMV9hdHRhY2goc3RydWN0IGR2Yl9m
-cm9udGVuZCAqZmUsCisJCXN0cnVjdCBpMmNfYWRhcHRlciAqaTJjLCB1OCBpMmNfYWRkciwgdTgg
-b3ZlcnJpZGVfc2V0LAorCQl1OCBvdmVycmlkZV9jbGVhcikKIHsKIAlzdHJ1Y3QgaXNsNjQyMSAq
-aXNsNjQyMSA9IGttYWxsb2Moc2l6ZW9mKHN0cnVjdCBpc2w2NDIxKSwgR0ZQX0tFUk5FTCk7CisK
-IAlpZiAoIWlzbDY0MjEpCiAJCXJldHVybiBOVUxMOwogCkBAIC0xMzEsNiArMjAyLDMzIEBAIHN0
-cnVjdCBkdmJfZnJvbnRlbmQgKmlzbDY0MjFfYXR0YWNoKHN0cnUKIAkvKiBvdmVycmlkZSBmcm9u
-dGVuZCBvcHMgKi8KIAlmZS0+b3BzLnNldF92b2x0YWdlID0gaXNsNjQyMV9zZXRfdm9sdGFnZTsK
-IAlmZS0+b3BzLmVuYWJsZV9oaWdoX2xuYl92b2x0YWdlID0gaXNsNjQyMV9lbmFibGVfaGlnaF9s
-bmJfdm9sdGFnZTsKKwlpZiAodG9uZV9jb250cm9sKQorCQlmZS0+b3BzLnNldF90b25lID0gaXNs
-NjQyMV9zZXRfdG9uZTsKKworCXByaW50ayhLRVJOX0lORk8gIklTTDY0MjEgYXR0YWNoZWQgb24g
-YWRkcj0leFxuIiwgaTJjX2FkZHIpOworCisJaWYgKG92ZXJjdXJyZW50X2VuYWJsZSkgeworCQlp
-ZiAoKG92ZXJyaWRlX3NldCAmIElTTDY0MjFfRENMKSB8fAorCQkJCShvdmVycmlkZV9jbGVhciAm
-IElTTDY0MjFfRENMKSkgeworCQkJLyogdGhlcmUgaXMgbm8gc2Vuc2UgdG8gdXNlIG92ZXJjdXJy
-ZW50X2VuYWJsZQorCQkJICogd2l0aCBEQ0wgYml0IHNldCBpbiBhbnkgb3ZlcnJpZGUgYnl0ZSAq
-LworCQkJaWYgKG92ZXJyaWRlX3NldCAmIElTTDY0MjFfRENMKQorCQkJCXByaW50ayhLRVJOX1dB
-Uk5JTkcgIklTTDY0MjEgb3ZlcmN1cnJlbnRfZW5hYmxlIgorCQkJCQkJIiB3aXRoIERDTCBiaXQg
-aW4gb3ZlcnJpZGVfc2V0LCIKKwkJCQkJCSIgb3ZlcmN1cnJlbnRfZW5hYmxlIGlnbm9yZWRcbiIp
-OworCQkJaWYgKG92ZXJyaWRlX2NsZWFyICYgSVNMNjQyMV9EQ0wpCisJCQkJcHJpbnRrKEtFUk5f
-V0FSTklORyAiSVNMNjQyMSBvdmVyY3VycmVudF9lbmFibGUiCisJCQkJCQkiIHdpdGggRENMIGJp
-dCBpbiBvdmVycmlkZV9jbGVhciwiCisJCQkJCQkiIG92ZXJjdXJyZW50X2VuYWJsZSBpZ25vcmVk
-XG4iKTsKKwkJfSBlbHNlIHsKKwkJCXByaW50ayhLRVJOX1dBUk5JTkcgIklTTDY0MjEgb3ZlcmN1
-cnJlbnRfZW5hYmxlICIKKwkJCQkJIiBhY3RpdmF0ZWQuIFdBUk5JTkc6IGl0IGNhbiBiZSAiCisJ
-CQkJCSIgZGFuZ2Vyb3VzIGZvciB5b3VyIGhhcmR3YXJlISIpOworCQkJaXNsNjQyMS0+ZGlzZXFj
-X3NlbmRfbWFzdGVyX2NtZF9vcmlnID0KKwkJCQlmZS0+b3BzLmRpc2VxY19zZW5kX21hc3Rlcl9j
-bWQ7CisJCQlmZS0+b3BzLmRpc2VxY19zZW5kX21hc3Rlcl9jbWQgPSBpc2w2NDIxX3NlbmRfZGlz
-ZXFjOworCQl9CisJfQogCiAJcmV0dXJuIGZlOwogfQo=
---001485f792f0ee338304777f98ca--
