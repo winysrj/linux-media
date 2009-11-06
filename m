@@ -1,122 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-10.arcor-online.net ([151.189.21.50]:57204 "EHLO
-	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751009AbZK0WSs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Nov 2009 17:18:48 -0500
-Subject: Re: Compile error saa7134 - compro videomate S350
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Dominic Fernandes <dalf198@yahoo.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <214960.24182.qm@web110609.mail.gq1.yahoo.com>
-References: <754577.88092.qm@web110614.mail.gq1.yahoo.com>
-	 <1259025174.5511.24.camel@pc07.localdom.local>
-	 <990417.69725.qm@web110607.mail.gq1.yahoo.com>
-	 <1259107698.2535.10.camel@localhost>
-	 <623705.13034.qm@web110608.mail.gq1.yahoo.com>
-	 <1259172867.3335.7.camel@pc07.localdom.local>
-	 <214960.24182.qm@web110609.mail.gq1.yahoo.com>
-Content-Type: text/plain
-Date: Fri, 27 Nov 2009 23:14:10 +0100
-Message-Id: <1259360050.6061.22.camel@pc07.localdom.local>
-Mime-Version: 1.0
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1138 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751873AbZKFHBH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Nov 2009 02:01:07 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: Re: Finished my email backlog, let me know if I missed anything
+Date: Fri, 6 Nov 2009 08:01:07 +0100
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <200911051730.53642.hverkuil@xs4all.nl> <19F8576C6E063C45BE387C64729E73940436F93B96@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940436F93B96@dbde02.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200911060801.07987.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-Am Freitag, den 27.11.2009, 02:12 -0800 schrieb Dominic Fernandes:
-> Hi Hermann,
+On Friday 06 November 2009 07:49:47 Hiremath, Vaibhav wrote:
 > 
-> > unload the driver with "modprobe -vr saa7134-alsa saa7134-dvb".
+> > -----Original Message-----
+> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> > owner@vger.kernel.org] On Behalf Of Hans Verkuil
+> > Sent: Thursday, November 05, 2009 10:01 PM
+> > To: linux-media@vger.kernel.org
+> > Subject: Finished my email backlog, let me know if I missed anything
+> > 
+> > Hi all,
+> > 
+> > As I've been away/busy for a few weeks I had a large pile of pending
+> > emails.
+> > I went through it all today, but if I missed anything then please
+> > remind me.
+> > 
+> [Hiremath, Vaibhav] Hans, there are some patches which I posted which need to be merged. Can you have look at it?
+
+Sure, I'll go through them this weekend.
+
+Thanks for reminding me!
+
+Regards,
+
+	Hans
+
 > 
-> When I tried this I got the message "FATAL: saa7134-alsa is in use" (or something like that).
-
-that are mixers and such using saa7134-alsa. They prevent you from
-unloading saa7134 too. With "options saa7134 alsa=0" the alsa device is
-not created.
-
-> >You might have to close mixers using saa7134-alsa previously.
-> > With "modinfo saa7134" you get available options.
+> VPFE - 6 patches
+>  - Davinci VPFE Capture: Specify device pointer in videobuf_queue_dma_contig_init
+> - Davinci VPFE Capture:Replaced IRQ_VDINT1 with vpfe_dev->ccdc_irq1
+> - Davinci VPFE Capture: Add support for Control ioctls[note: posting again]
+> - TVP514x:Switch to automode for s_input/querystd
+> - Davinci VPFE Capture: Take i2c adapter id through platform data
 > 
-> I wasn't sure what to look for here, there was a lot of info. being displayed.
-
-I just tried to tell that you can force a card=number.
-
-> I carried on with "modprobe -v saa7134 card=169" command.  I ran dmesg to see the status of the card.  It did get the card id 169 but the board decription came up as unknown instead of the name of the videomate S350.  Is this expected?
-
-No, "modprobe -v saa7134" should show if something in etc/modules.d
-or /etc/modprobe.conf overrides your card=169 command line.
-
-If I force a card=96 to card=169 it looks like that.
-
-saa7130/34: v4l2 driver version 0.2.15 loaded
-saa7133[0]: setting pci latency timer to 64
-saa7133[0]: found at 0000:04:01.0, rev: 209, irq: 22, latency: 64, mmio: 0xfebff800
-saa7133[0]: subsystem: 16be:0008, board: Compro VideoMate S350/S300 [card=169,insmod option]
-saa7133[0]: board init: gpio is 0
-saa7133[0]: gpio: mode=0x0008000 in=0x0000000 out=0x0008000 [pre-init]
-input: saa7134 IR (Compro VideoMate S3 as /class/input/input6
-IRQ 22/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-saa7133[0]: i2c eeprom 00: be 16 08 00 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
-saa7133[0]: i2c eeprom 10: 00 ff 86 0f ff 20 ff 00 01 50 32 79 01 3c ca 50
-saa7133[0]: i2c eeprom 20: 01 40 01 02 02 03 01 0f 0f ff 00 3c 02 51 96 2b
-saa7133[0]: i2c eeprom 30: a7 58 7a 1f 03 8e 84 5e da 7a 04 b3 05 87 b2 3c
-saa7133[0]: i2c eeprom 40: ff 28 00 c0 96 10 03 01 c0 1c fd 79 44 9f c2 8f
-saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: registered device video0 [v4l2]
-saa7133[0]: registered device vbi0
-saa7133[1]: setting pci latency timer to 64
-saa7133[1]: found at 0000:04:02.0, rev: 209, irq: 20, latency: 64, mmio: 0xfebff000
-saa7133[1]: subsystem: 16be:0007, board: Medion Md8800 Quadro [card=96,autodetected]
-saa7133[1]: board init: gpio is 0
-saa7133[1]: gpio: mode=0x0000000 in=0x0000000 out=0x0000000 [pre-init]
-IRQ 20/saa7133[1]: IRQF_DISABLED is not guaranteed on shared IRQs
-saa7133[1]: i2c eeprom 00: be 16 07 00 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
-saa7133[1]: i2c eeprom 10: 00 ff 86 0f ff 20 ff 00 01 50 32 79 01 3c ca 50
-saa7133[1]: i2c eeprom 20: 01 40 01 02 02 03 01 00 06 ff 00 23 02 51 96 2b
-saa7133[1]: i2c eeprom 30: a7 58 7a 1f 03 8e 84 5e da 7a 04 b3 05 87 b2 3c
-saa7133[1]: i2c eeprom 40: ff 28 00 c0 96 10 03 00 c0 1c fd 79 44 9f c2 8f
-
-Note, saa7134 gpio_tracking=1 is enabled.
-saa7133[0]: gpio: mode=0x0008000 in=0x0000000 out=0x0008000 [pre-init]
-
-Means gpio 15 is set to 1, output.
-
-
-> The modification of the GPIO address "Instead of 0x8000 used in Jan's patch, use 0xC000 for GPIO setup" I'm not sure what I changed was the correct value.  Looking at the code lines I found relate to the Remote that I had changed (saa7134-cards.c):
+> OMAP - 2 patches
+> 
+> - V4L2: Added CID's V4L2_CID_ROTATE/BG_COLOR
+> - v4l2 doc: Added S/G_ROTATE, S/G_BG_COLOR information
+> - V4L2: Add Capability and Flag field for Croma Key
+> - OMAP2/3 V4L2:Add support for OMAP2/3 V4L2 driver ontop of DSS2[Note: need to repost again]
 > 
 > 
-> +	case SAA7134_BOARD_VIDEOMATE_S350:
-> +		dev->has_remote = SAA7134_REMOTE_GPIO;
-> +		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x00008000, 0x00008000);
-> +		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00008000);
-> +		break;
+> Thanks,
+> Vaibhav
 > 
-> Which leads to the question where the GPIO address of 0x8000 is currently specified?
+> > Regards,
+> > 
+> > 	Hans
+> > 
+> > --
+> > Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-
+> > media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+> 
 
-This is exactly caused by and only by the above, likely powering up some
-chip.
-
-If you change all to 0x0000c000, gpio 14 and 15 are set to 1, output.
-
-Don't know what exactly is going on with your card variant, but such are
-the reports.
-
-Cheers,
-Hermann
 
 
-
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
