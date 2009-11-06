@@ -1,83 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:49867 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753016AbZK1TQQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Nov 2009 14:16:16 -0500
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR  system?
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: Jon Smirl <jonsmirl@gmail.com>
-Cc: Krzysztof Halasa <khc@pm.waw.pl>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Christoph Bartelmus <christoph@bartelmus.de>,
-	jarod@wilsonet.com, awalls@radix.net, dmitry.torokhov@gmail.com,
-	j@jannau.net, jarod@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, superm1@ubuntu.com
-In-Reply-To: <9e4733910911281056s77e9bc8frd9200a81ebab8d7e@mail.gmail.com>
-References: <9e4733910911270757j648e39ecl7487b7e6c43db828@mail.gmail.com>
-	 <4B104971.4020800@s5r6.in-berlin.de>
-	 <1259370501.11155.14.camel@maxim-laptop>
-	 <m37hta28w9.fsf@intrepid.localdomain>
-	 <1259419368.18747.0.camel@maxim-laptop>
-	 <m3zl66y8mo.fsf@intrepid.localdomain>
-	 <1259422559.18747.6.camel@maxim-laptop>
-	 <9e4733910911280845y5cf06836l1640e9fc8b1740cf@mail.gmail.com>
-	 <1259433959.3658.0.camel@maxim-laptop>
-	 <9e4733910911281056s77e9bc8frd9200a81ebab8d7e@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 28 Nov 2009 21:16:14 +0200
-Message-ID: <1259435775.3658.7.camel@maxim-laptop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from bear.ext.ti.com ([192.94.94.41]:59326 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751779AbZKFGgj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Nov 2009 01:36:39 -0500
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Fri, 6 Nov 2009 12:06:35 +0530
+Subject: RE: [PATCH V2] Davinci VPFE Capture: Add support for Control ioctls
+Message-ID: <19F8576C6E063C45BE387C64729E73940436F93B87@dbde02.ent.ti.com>
+References: <hvaibhav@ti.com> <200911051718.20801.hverkuil@xs4all.nl>
+ <19F8576C6E063C45BE387C64729E73940436F93B41@dbde02.ent.ti.com>
+ <200911060733.23738.hverkuil@xs4all.nl>
+In-Reply-To: <200911060733.23738.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2009-11-28 at 13:56 -0500, Jon Smirl wrote: 
-> On Sat, Nov 28, 2009 at 1:45 PM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
-> > On Sat, 2009-11-28 at 11:45 -0500, Jon Smirl wrote:
-> >> What are other examples of user space IR drivers?
-> >>
+
+> -----Original Message-----
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> Sent: Friday, November 06, 2009 12:03 PM
+> To: Hiremath, Vaibhav
+> Cc: linux-media@vger.kernel.org
+> Subject: Re: [PATCH V2] Davinci VPFE Capture: Add support for
+> Control ioctls
+> 
+> On Friday 06 November 2009 06:30:42 Hiremath, Vaibhav wrote:
+> > > -----Original Message-----
+> > > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> > > owner@vger.kernel.org] On Behalf Of Hans Verkuil
+> > > Sent: Thursday, November 05, 2009 9:48 PM
+> > > To: Hiremath, Vaibhav
+> > > Cc: linux-media@vger.kernel.org
+> > > Subject: Re: [PATCH V2] Davinci VPFE Capture: Add support for
+> > > Control ioctls
+> > >
+> > > On Thursday 29 October 2009 07:51:04 hvaibhav@ti.com wrote:
+<snip>
+> > >
+> > > Please remove this bogus flag. Just do:
+> > >
+> > [Hiremath, Vaibhav] Hans, while implementing this ioctl I was also
+> thinking the same, but v4l2_ctrl_check do check this flag and also
+> in V4L2 spec it has been mentioned that
+> > "This control is permanently disabled and should be ignored by the
+> application."
 > >
-> > many libusb based drivers?
+> > So I thought this may be useful for standard applications, we
+> still have some drivers do use this flag actually.
 > 
-> If these drivers are for specific USB devices it is straight forward
-> to turn them into kernel based drivers. If we are going for plug and
-> play this needs to happen. All USB device drivers can be implemented
-> in user space, but that doesn't mean you want to do that. Putting
-> device drivers in the kernel subjects them to code inspection, they
-> get shipped everywhere, they autoload when the device is inserted,
-> they participate in suspend/resume, etc.
+> The use of this flag is for very specific cases as is documented in
+> a footnote
+> in the v4l2 spec:
 > 
-> If these are generic USB serial devices being used to implement IR
-> that's the hobbyist model and the driver should stay in user space and
-> use event injection.
+> "V4L2_CTRL_FLAG_DISABLED was intended for two purposes: Drivers can
+> skip predefined
+> controls not supported by the hardware (although returning EINVAL
+> would do as well),
+> or disable predefined and private controls after hardware detection
+> without the
+> trouble of reordering control arrays and indices (EINVAL cannot be
+> used to skip
+> private controls because it would prematurely end the enumeration)."
 > 
-> If a ft232 has been used to build a USB IR receiver you should program
-> a specific USB ID into it rather than leaving the generic one in. FTDI
-> will assign you a specific USB ID out of their ID space for free,  you
-> don't need to pay to get one from the USB forum. Once you put a
-> specific ID into the ft232 it will trigger the load of the correct
-> in-kernel driver.
+> In both cases you would only check for this flag if queryctrl
+> returns 0, so
+> setting the flag AND returning an error is unnecessary.
+> 
+[Hiremath, Vaibhav] Make sense. I will update the patch and submit it again.
 
-If we could put *all* lirc drivers in the kernel and put the generic
-decoding algorithm, then it might be begin to look a bit more sane.
-And write  tool to upload the existing lirc config files to kernel.
-This would essentially we same as porting the lirc to the kernel.
-I don't see much gains of this, and this way or another, alsa input
-won't be possible.
+Thanks,
+Vaibhav
 
-Christoph Bartelmus, Jarod Wilson, what do you think?
-
-Regards,
-Maxim Levitsky
-
-
-
-
-
-
-
-
+> Regards,
+> 
+> 	Hans
+> 
+> >
+> > Thanks,
+> > Vaibhav
+> >
+> > > 	return v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo-
+> > > >grp_id,
+> > > 				 core, queryctrl, qctrl);
+> > >
+> > > Simple and effective.
+> > >
+> > > Regards,
+> > >
+> > > 	Hans
+> > >
+> > > > +
+> > > > +	return ret;
+> > > > +}
+> > > > +
+> > > > +static int vpfe_g_ctrl(struct file *file, void *priv, struct
+> > > v4l2_control *ctrl)
+> > > > +{
+> > > > +	struct vpfe_device *vpfe_dev = video_drvdata(file);
+> > > > +	struct vpfe_subdev_info *sdinfo;
+> > > > +
+> > > > +	sdinfo = vpfe_dev->current_subdev;
+> > > > +
+> > > > +	return v4l2_device_call_until_err(&vpfe_dev->v4l2_dev,
+> sdinfo-
+> > > >grp_id,
+> > > > +					 core, g_ctrl, ctrl);
+> > > > +}
+> > > > +
+> > > > +static int vpfe_s_ctrl(struct file *file, void *priv, struct
+> > > v4l2_control *ctrl)
+> > > > +{
+> > > > +	struct vpfe_device *vpfe_dev = video_drvdata(file);
+> > > > +	struct vpfe_subdev_info *sdinfo;
+> > > > +
+> > > > +	sdinfo = vpfe_dev->current_subdev;
+> > > > +
+> > > > +	return v4l2_device_call_until_err(&vpfe_dev->v4l2_dev,
+> sdinfo-
+> > > >grp_id,
+> > > > +					 core, s_ctrl, ctrl);
+> > > > +}
+> > > > +
+> > > >  /*
+> > > >   *  Videobuf operations
+> > > >   */
+> > > > @@ -1939,6 +1979,9 @@ static const struct v4l2_ioctl_ops
+> > > vpfe_ioctl_ops = {
+> > > >  	.vidioc_querystd	 = vpfe_querystd,
+> > > >  	.vidioc_s_std		 = vpfe_s_std,
+> > > >  	.vidioc_g_std		 = vpfe_g_std,
+> > > > +	.vidioc_queryctrl	 = vpfe_queryctrl,
+> > > > +	.vidioc_g_ctrl		 = vpfe_g_ctrl,
+> > > > +	.vidioc_s_ctrl		 = vpfe_s_ctrl,
+> > > >  	.vidioc_reqbufs		 = vpfe_reqbufs,
+> > > >  	.vidioc_querybuf	 = vpfe_querybuf,
+> > > >  	.vidioc_qbuf		 = vpfe_qbuf,
+> > > > --
+> > > > 1.6.2.4
+> > > >
+> > > > --
+> > > > To unsubscribe from this list: send the line "unsubscribe
+> linux-
+> > > media" in
+> > > > the body of a message to majordomo@vger.kernel.org
+> > > > More majordomo info at  http://vger.kernel.org/majordomo-
+> info.html
+> > > >
+> > >
+> > >
+> > >
+> > > --
+> > > Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> Telecom
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-
+> > > media" in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-
+> info.html
+> >
+> >
+> >
+> 
+> 
+> 
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
