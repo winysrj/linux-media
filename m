@@ -1,80 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:53078 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752306AbZK2RR1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2009 12:17:27 -0500
-Date: Sun, 29 Nov 2009 09:17:26 -0800
-From: Greg KH <greg@kroah.com>
-To: Jon Smirl <jonsmirl@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-input@vger.kernel.org
-Subject: Re: [IR-RFC PATCH v4 2/6] Core IR module
-Message-ID: <20091129171726.GB4993@kroah.com>
-References: <20091127013217.7671.32355.stgit@terra> <20091127013423.7671.36546.stgit@terra>
+Received: from smtp.nokia.com ([192.100.105.134]:49038 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759229AbZKFMvr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Nov 2009 07:51:47 -0500
+Message-ID: <4AF41BDE.4040908@maxwell.research.nokia.com>
+Date: Fri, 06 Nov 2009 14:51:42 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20091127013423.7671.36546.stgit@terra>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Cohen David Abraham <david.cohen@nokia.com>,
+	=?ISO-8859-1?Q?Koskip=E4=E4?=
+	 =?ISO-8859-1?Q?_Antti_Jussi_Petteri?= <antti.koskipaa@nokia.com>,
+	Toivonen Tuukka Olli Artturi <tuukka.o.toivonen@nokia.com>,
+	"Zutshi Vimarsh (Nokia-D-MSW/Helsinki)" <vimarsh.zutshi@nokia.com>,
+	talvala@stanford.edu,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	Ivan Ivanov <iivanov@mm-sol.com>,
+	Stan Varbanov <svarbanov@mm-sol.com>,
+	Valeri Ivanov <vivanov@mm-sol.com>,
+	Atanas Filipov <afilipov@mm-sol.com>
+Subject: OMAP 3 ISP and N900 sensor driver update
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> +static ssize_t ir_raw_show(struct device *dev,
-> +				 struct device_attribute *attr, char *buf)
-> +{
-> +	struct input_dev *input_dev = to_input_dev(dev);
-> +	unsigned int i, count = 0;
-> +
-> +	for (i = input_dev->ir->raw.tail; i != input_dev->ir->raw.head; ) {
-> +
-> +		count += snprintf(&buf[count], PAGE_SIZE - 1, "%i\n", input_dev->ir->raw.buffer[i++]);
-> +		if (i > ARRAY_SIZE(input_dev->ir->raw.buffer))
-> +			i = 0;
-> +		if (count >= PAGE_SIZE - 1) {
-> +			input_dev->ir->raw.tail = i;
-> +			return PAGE_SIZE - 1;
-> +		}
-> +	}
-> +	input_dev->ir->raw.tail = i;
-> +	return count;
-> +}
+Hi,
 
-This looks like it violates the "one value per sysfs file" rule that we
-have.  What exactly are you outputting here?  It does not look like this
-belongs in sysfs at all.
+I have updated the OMAP 3 ISP driver in Gitorious:
 
-> +static ssize_t ir_raw_store(struct device *dev,
-> +				  struct device_attribute *attr,
-> +				  const char *buf,
-> +				  size_t count)
-> +{
-> +	struct ir_device *ir = to_input_dev(dev)->ir;
-> +	long delta;
-> +	int i = count;
-> +	int first = 0;
-> +
-> +	if (!ir->xmit)
-> +		return count;
-> +	ir->send.count = 0;
-> +
-> +	while (i > 0) {
-> +		i -= strict_strtoul(&buf[i], i, &delta);
-> +		while ((buf[i] != '\n') && (i > 0))
-> +			i--;
-> +		i--;
-> +		/* skip leading zeros */
-> +		if ((delta > 0) && !first)
-> +			continue;
-> +
-> +		ir->send.buffer[ir->send.count++] = abs(delta);
-> +	}
-> +
-> +	ir->xmit(ir->private, ir->send.buffer, ir->send.count, ir->raw.carrier, ir->raw.xmitter);
-> +
-> +	return count;
-> +}
+<URL:http://www.gitorious.org/omap3camera>
 
-What type of data are you expecting here?  More than one value?
+Major changes since the last update:
 
-thanks,
+- The Nokia N900 (aka rx-51) sensor drivers are available (will be 
+posted to the list shortly)
+- Say goodbye to v4l2-int-device, welcome the v4l2_subdevice interface 
+(thanks to Laurent Pinchart)
+- Miscellaneous stability fixes and cleanups
+- H3A rework (by David Cohen)
+- Resizer rework (by Antti Koskip‰‰)
 
-greg k-h
+The next task is then the moving to Media controller, I guess.
+
+Cheers,
+
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
