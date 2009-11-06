@@ -1,314 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37978 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757748AbZKRRFj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 12:05:39 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
-Date: Wed, 18 Nov 2009 11:05:43 -0600
-Subject: RE: [PATCH] Davinci VPFE Capture: Add Suspend/Resume Support
-Message-ID: <A69FA2915331DC488A831521EAE36FE401559C6032@dlee06.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1258544075-28771-1-git-send-email-hvaibhav@ti.com>
- <A69FA2915331DC488A831521EAE36FE401559C5F1E@dlee06.ent.ti.com>
- <19F8576C6E063C45BE387C64729E7394043702BAB1@dbde02.ent.ti.com>
- <A69FA2915331DC488A831521EAE36FE401559C5FC0@dlee06.ent.ti.com>
- <19F8576C6E063C45BE387C64729E7394043702BAE5@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394043702BAE5@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from smtprelay04.ispgateway.de ([80.67.31.38]:47889 "EHLO
+	smtprelay04.ispgateway.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751831AbZKFJdv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Nov 2009 04:33:51 -0500
+Date: Fri, 6 Nov 2009 10:30:37 +0100
+From: Lars Noschinski <lars@public.noschinski.de>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: linux-media@vger.kernel.org
+Subject: Re: pac7311
+Message-ID: <20091106093037.GA2956@lars.home.noschinski.de>
+References: <20091105233843.GA27459@lars.home.noschinski.de> <20091106083626.3fbe8428@tele>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20091106083626.3fbe8428@tele>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi!
 
+* Jean-Francois Moine <moinejf@free.fr> [09-11-06 09:43]:
+> On Fri, 6 Nov 2009 00:38:43 +0100
+> Lars Noschinski <lars@public.noschinski.de> wrote:
+> 
+> > I'm using a webcam which identifies itself as
+> > 
+> >     093a:2603 Pixart Imaging, Inc. PAC7312 Camera
+> > 
+> > and is sort-of supported by the gspca_pac7311 module. "sort-of"
+> > because the image alternates quickly between having a red tint or a
+> > green tint (using the gspca driver from
+> > http://linuxtv.org/hg/~jfrancois/gspca/ on a 2.6.31 kernel; occurs
+> > also with plain 2.6.31).
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-phone: 301-407-9583
-email: m-karicheri2@ti.com
+It is Philipps SPC500NC.
 
->-----Original Message-----
->From: Hiremath, Vaibhav
->Sent: Wednesday, November 18, 2009 11:52 AM
->To: Karicheri, Muralidharan; linux-media@vger.kernel.org
->Cc: hverkuil@xs4all.nl
->Subject: RE: [PATCH] Davinci VPFE Capture: Add Suspend/Resume Support
->
->
->> -----Original Message-----
->> From: Karicheri, Muralidharan
->> Sent: Wednesday, November 18, 2009 9:55 PM
->> To: Hiremath, Vaibhav; linux-media@vger.kernel.org
->> Cc: hverkuil@xs4all.nl
->> Subject: RE: [PATCH] Davinci VPFE Capture: Add Suspend/Resume
->> Support
->>
->> Vaibhav,
->>
->> Just wondering how to test this on DaVinci platforms.
->> Could you tell what you did to test this?
->>
->[Hiremath, Vaibhav] Enable CONFIG_PM in your defconfig and issue following
->command -
->
-># echo mem > /sys/power/state
->
+> > Is there something I can do to debug/fix this problem?
 
-What is the expected result?
+First of all, 
+> 
+> First, which viewer do you run and does it use the v4l2 library?
 
-Thanks
+I'm using ekiga which uses libpt's v4l2 support. The libpt package
+depends on the libv4l package, which contains libv4l2, so it probably
+uses the v4l2 library.
 
-Murali
->Thanks,
->Vaibhav
->
->> Murali Karicheri
->> Software Design Engineer
->> Texas Instruments Inc.
->> Germantown, MD 20874
->> phone: 301-407-9583
->> email: m-karicheri2@ti.com
->>
->> >-----Original Message-----
->> >From: Hiremath, Vaibhav
->> >Sent: Wednesday, November 18, 2009 10:36 AM
->> >To: Karicheri, Muralidharan; linux-media@vger.kernel.org
->> >Cc: hverkuil@xs4all.nl
->> >Subject: RE: [PATCH] Davinci VPFE Capture: Add Suspend/Resume
->> Support
->> >
->> >
->> >> -----Original Message-----
->> >> From: Karicheri, Muralidharan
->> >> Sent: Wednesday, November 18, 2009 8:55 PM
->> >> To: Hiremath, Vaibhav; linux-media@vger.kernel.org
->> >> Cc: hverkuil@xs4all.nl
->> >> Subject: RE: [PATCH] Davinci VPFE Capture: Add Suspend/Resume
->> >> Support
->> >>
->> >> Vaibhav,
->> >>
->> >> Did you validate suspend & resume operations on AM3517?
->> >>
->> >[Hiremath, Vaibhav] yes, I think I mentioned in my patch. Do you
->> see any
->> >issues?
->> >
->> >Thanks,
->> >Vaibhav
->> >
->> >> Murali Karicheri
->> >> Software Design Engineer
->> >> Texas Instruments Inc.
->> >> Germantown, MD 20874
->> >> phone: 301-407-9583
->> >> email: m-karicheri2@ti.com
->> >>
->> >> >-----Original Message-----
->> >> >From: Hiremath, Vaibhav
->> >> >Sent: Wednesday, November 18, 2009 6:35 AM
->> >> >To: linux-media@vger.kernel.org
->> >> >Cc: hverkuil@xs4all.nl; Karicheri, Muralidharan; Hiremath,
->> Vaibhav
->> >> >Subject: [PATCH] Davinci VPFE Capture: Add Suspend/Resume
->> Support
->> >> >
->> >> >From: Vaibhav Hiremath <hvaibhav@ti.com>
->> >> >
->> >> >Validated on AM3517 Platform.
->> >> >
->> >> >Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
->> >> >---
->> >> > drivers/media/video/davinci/ccdc_hw_device.h |    4 +
->> >> > drivers/media/video/davinci/dm644x_ccdc.c    |   87
->> >> >++++++++++++++++++++++++++
->> >> > drivers/media/video/davinci/vpfe_capture.c   |   29 ++++++---
->> >> > 3 files changed, 112 insertions(+), 8 deletions(-)
->> >> >
->> >> >diff --git a/drivers/media/video/davinci/ccdc_hw_device.h
->> >> >b/drivers/media/video/davinci/ccdc_hw_device.h
->> >> >index 86b9b35..2a1ead4 100644
->> >> >--- a/drivers/media/video/davinci/ccdc_hw_device.h
->> >> >+++ b/drivers/media/video/davinci/ccdc_hw_device.h
->> >> >@@ -91,6 +91,10 @@ struct ccdc_hw_ops {
->> >> > 	void (*setfbaddr) (unsigned long addr);
->> >> > 	/* Pointer to function to get field id */
->> >> > 	int (*getfid) (void);
->> >> >+
->> >> >+	/* suspend/resume support */
->> >> >+	void (*save_context)(void);
->> >> >+	void (*restore_context)(void);
->> >> > };
->> >> >
->> >> > struct ccdc_hw_device {
->> >> >diff --git a/drivers/media/video/davinci/dm644x_ccdc.c
->> >> >b/drivers/media/video/davinci/dm644x_ccdc.c
->> >> >index 5dff8d9..fdab823 100644
->> >> >--- a/drivers/media/video/davinci/dm644x_ccdc.c
->> >> >+++ b/drivers/media/video/davinci/dm644x_ccdc.c
->> >> >@@ -88,6 +88,10 @@ static void *__iomem ccdc_base_addr;
->> >> > static int ccdc_addr_size;
->> >> > static enum vpfe_hw_if_type ccdc_if_type;
->> >> >
->> >> >+#define CCDC_SZ_REGS			SZ_1K
->> >> >+
->> >> >+static u32 ccdc_ctx[CCDC_SZ_REGS / sizeof(u32)];
->> >> >+
->> >> > /* register access routines */
->> >> > static inline u32 regr(u32 offset)
->> >> > {
->> >> >@@ -834,6 +838,87 @@ static int ccdc_set_hw_if_params(struct
->> >> >vpfe_hw_if_param *params)
->> >> > 	return 0;
->> >> > }
->> >> >
->> >> >+static void ccdc_save_context(void)
->> >> >+{
->> >> >+	ccdc_ctx[CCDC_PCR] = regr(CCDC_PCR);
->> >> >+	ccdc_ctx[CCDC_SYN_MODE] = regr(CCDC_SYN_MODE);
->> >> >+	ccdc_ctx[CCDC_HD_VD_WID] = regr(CCDC_HD_VD_WID);
->> >> >+	ccdc_ctx[CCDC_PIX_LINES] = regr(CCDC_PIX_LINES);
->> >> >+	ccdc_ctx[CCDC_HORZ_INFO] = regr(CCDC_HORZ_INFO);
->> >> >+	ccdc_ctx[CCDC_VERT_START] = regr(CCDC_VERT_START);
->> >> >+	ccdc_ctx[CCDC_VERT_LINES] = regr(CCDC_VERT_LINES);
->> >> >+	ccdc_ctx[CCDC_CULLING] = regr(CCDC_CULLING);
->> >> >+	ccdc_ctx[CCDC_HSIZE_OFF] = regr(CCDC_HSIZE_OFF);
->> >> >+	ccdc_ctx[CCDC_SDOFST] = regr(CCDC_SDOFST);
->> >> >+	ccdc_ctx[CCDC_SDR_ADDR] = regr(CCDC_SDR_ADDR);
->> >> >+	ccdc_ctx[CCDC_CLAMP] = regr(CCDC_CLAMP);
->> >> >+	ccdc_ctx[CCDC_DCSUB] = regr(CCDC_DCSUB);
->> >> >+	ccdc_ctx[CCDC_COLPTN] = regr(CCDC_COLPTN);
->> >> >+	ccdc_ctx[CCDC_BLKCMP] = regr(CCDC_BLKCMP);
->> >> >+	ccdc_ctx[CCDC_FPC] = regr(CCDC_FPC);
->> >> >+	ccdc_ctx[CCDC_FPC_ADDR] = regr(CCDC_FPC_ADDR);
->> >> >+	ccdc_ctx[CCDC_VDINT] = regr(CCDC_VDINT);
->> >> >+	ccdc_ctx[CCDC_ALAW] = regr(CCDC_ALAW);
->> >> >+	ccdc_ctx[CCDC_REC656IF] = regr(CCDC_REC656IF);
->> >> >+	ccdc_ctx[CCDC_CCDCFG] = regr(CCDC_CCDCFG);
->> >> >+	ccdc_ctx[CCDC_FMTCFG] = regr(CCDC_FMTCFG);
->> >> >+	ccdc_ctx[CCDC_FMT_HORZ] = regr(CCDC_FMT_HORZ);
->> >> >+	ccdc_ctx[CCDC_FMT_VERT] = regr(CCDC_FMT_VERT);
->> >> >+	ccdc_ctx[CCDC_FMT_ADDR0] = regr(CCDC_FMT_ADDR0);
->> >> >+	ccdc_ctx[CCDC_FMT_ADDR1] = regr(CCDC_FMT_ADDR1);
->> >> >+	ccdc_ctx[CCDC_FMT_ADDR2] = regr(CCDC_FMT_ADDR2);
->> >> >+	ccdc_ctx[CCDC_FMT_ADDR3] = regr(CCDC_FMT_ADDR3);
->> >> >+	ccdc_ctx[CCDC_FMT_ADDR4] = regr(CCDC_FMT_ADDR4);
->> >> >+	ccdc_ctx[CCDC_FMT_ADDR5] = regr(CCDC_FMT_ADDR5);
->> >> >+	ccdc_ctx[CCDC_FMT_ADDR6] = regr(CCDC_FMT_ADDR6);
->> >> >+	ccdc_ctx[CCDC_FMT_ADDR7] = regr(CCDC_FMT_ADDR7);
->> >> >+	ccdc_ctx[CCDC_PRGEVEN_0] = regr(CCDC_PRGEVEN_0);
->> >> >+	ccdc_ctx[CCDC_PRGEVEN_1] = regr(CCDC_PRGEVEN_1);
->> >> >+	ccdc_ctx[CCDC_PRGODD_0] = regr(CCDC_PRGODD_0);
->> >> >+	ccdc_ctx[CCDC_PRGODD_1] = regr(CCDC_PRGODD_1);
->> >> >+	ccdc_ctx[CCDC_VP_OUT] = regr(CCDC_VP_OUT);
->> >> >+}
->> >> >+
->> >> >+static void ccdc_restore_context(void)
->> >> >+{
->> >> >+	regw(ccdc_ctx[CCDC_SYN_MODE], CCDC_SYN_MODE);
->> >> >+	regw(ccdc_ctx[CCDC_HD_VD_WID], CCDC_HD_VD_WID);
->> >> >+	regw(ccdc_ctx[CCDC_PIX_LINES], CCDC_PIX_LINES);
->> >> >+	regw(ccdc_ctx[CCDC_HORZ_INFO], CCDC_HORZ_INFO);
->> >> >+	regw(ccdc_ctx[CCDC_VERT_START], CCDC_VERT_START);
->> >> >+	regw(ccdc_ctx[CCDC_VERT_LINES], CCDC_VERT_LINES);
->> >> >+	regw(ccdc_ctx[CCDC_CULLING], CCDC_CULLING);
->> >> >+	regw(ccdc_ctx[CCDC_HSIZE_OFF], CCDC_HSIZE_OFF);
->> >> >+	regw(ccdc_ctx[CCDC_SDOFST], CCDC_SDOFST);
->> >> >+	regw(ccdc_ctx[CCDC_SDR_ADDR], CCDC_SDR_ADDR);
->> >> >+	regw(ccdc_ctx[CCDC_CLAMP], CCDC_CLAMP);
->> >> >+	regw(ccdc_ctx[CCDC_DCSUB], CCDC_DCSUB);
->> >> >+	regw(ccdc_ctx[CCDC_COLPTN], CCDC_COLPTN);
->> >> >+	regw(ccdc_ctx[CCDC_BLKCMP], CCDC_BLKCMP);
->> >> >+	regw(ccdc_ctx[CCDC_FPC], CCDC_FPC);
->> >> >+	regw(ccdc_ctx[CCDC_FPC_ADDR], CCDC_FPC_ADDR);
->> >> >+	regw(ccdc_ctx[CCDC_VDINT], CCDC_VDINT);
->> >> >+	regw(ccdc_ctx[CCDC_ALAW], CCDC_ALAW);
->> >> >+	regw(ccdc_ctx[CCDC_REC656IF], CCDC_REC656IF);
->> >> >+	regw(ccdc_ctx[CCDC_CCDCFG], CCDC_CCDCFG);
->> >> >+	regw(ccdc_ctx[CCDC_FMTCFG], CCDC_FMTCFG);
->> >> >+	regw(ccdc_ctx[CCDC_FMT_HORZ], CCDC_FMT_HORZ);
->> >> >+	regw(ccdc_ctx[CCDC_FMT_VERT], CCDC_FMT_VERT);
->> >> >+	regw(ccdc_ctx[CCDC_FMT_ADDR0], CCDC_FMT_ADDR0);
->> >> >+	regw(ccdc_ctx[CCDC_FMT_ADDR1], CCDC_FMT_ADDR1);
->> >> >+	regw(ccdc_ctx[CCDC_FMT_ADDR2], CCDC_FMT_ADDR2);
->> >> >+	regw(ccdc_ctx[CCDC_FMT_ADDR3], CCDC_FMT_ADDR3);
->> >> >+	regw(ccdc_ctx[CCDC_FMT_ADDR4], CCDC_FMT_ADDR4);
->> >> >+	regw(ccdc_ctx[CCDC_FMT_ADDR5], CCDC_FMT_ADDR5);
->> >> >+	regw(ccdc_ctx[CCDC_FMT_ADDR6], CCDC_FMT_ADDR6);
->> >> >+	regw(ccdc_ctx[CCDC_FMT_ADDR7], CCDC_FMT_ADDR7);
->> >> >+	regw(ccdc_ctx[CCDC_PRGEVEN_0], CCDC_PRGEVEN_0);
->> >> >+	regw(ccdc_ctx[CCDC_PRGEVEN_1], CCDC_PRGEVEN_1);
->> >> >+	regw(ccdc_ctx[CCDC_PRGODD_0], CCDC_PRGODD_0);
->> >> >+	regw(ccdc_ctx[CCDC_PRGODD_1], CCDC_PRGODD_1);
->> >> >+	regw(ccdc_ctx[CCDC_VP_OUT], CCDC_VP_OUT);
->> >> >+	regw(ccdc_ctx[CCDC_PCR], CCDC_PCR);
->> >> >+}
->> >> > static struct ccdc_hw_device ccdc_hw_dev = {
->> >> > 	.name = "DM6446 CCDC",
->> >> > 	.owner = THIS_MODULE,
->> >> >@@ -858,6 +943,8 @@ static struct ccdc_hw_device ccdc_hw_dev = {
->> >> > 		.get_line_length = ccdc_get_line_length,
->> >> > 		.setfbaddr = ccdc_setfbaddr,
->> >> > 		.getfid = ccdc_getfid,
->> >> >+		.save_context = ccdc_save_context,
->> >> >+		.restore_context = ccdc_restore_context,
->> >> > 	},
->> >> > };
->> >> >
->> >> >diff --git a/drivers/media/video/davinci/vpfe_capture.c
->> >> >b/drivers/media/video/davinci/vpfe_capture.c
->> >> >index 9c859a7..9b6b254 100644
->> >> >--- a/drivers/media/video/davinci/vpfe_capture.c
->> >> >+++ b/drivers/media/video/davinci/vpfe_capture.c
->> >> >@@ -2394,18 +2394,31 @@ static int vpfe_remove(struct
->> >> platform_device
->> >> >*pdev)
->> >> > 	return 0;
->> >> > }
->> >> >
->> >> >-static int
->> >> >-vpfe_suspend(struct device *dev)
->> >> >+static int vpfe_suspend(struct device *dev)
->> >> > {
->> >> >-	/* add suspend code here later */
->> >> >-	return -1;
->> >> >+	struct vpfe_device *vpfe_dev = dev_get_drvdata(dev);;
->> >> >+
->> >> >+	if (ccdc_dev->hw_ops.save_context)
->> >> >+		ccdc_dev->hw_ops.save_context();
->> >> >+	ccdc_dev->hw_ops.enable(0);
->> >> >+
->> >> >+	if (vpfe_dev)
->> >> >+		vpfe_disable_clock(vpfe_dev);
->> >> >+
->> >> >+	return 0;
->> >> > }
->> >> >
->> >> >-static int
->> >> >-vpfe_resume(struct device *dev)
->> >> >+static int vpfe_resume(struct device *dev)
->> >> > {
->> >> >-	/* add resume code here later */
->> >> >-	return -1;
->> >> >+	struct vpfe_device *vpfe_dev = dev_get_drvdata(dev);;
->> >> >+
->> >> >+	if (vpfe_dev)
->> >> >+		vpfe_enable_clock(vpfe_dev);
->> >> >+
->> >> >+	if (ccdc_dev->hw_ops.restore_context)
->> >> >+		ccdc_dev->hw_ops.restore_context();
->> >> >+
->> >> >+	return 0;
->> >> > }
->> >> >
->> >> > static struct dev_pm_ops vpfe_dev_pm_ops = {
->> >> >--
->> >> >1.6.2.4
+I could try another viewer for debugging, if this is of any use, but
+ekiga is what I care about.
 
+> Then, a bug in the pac7311 driver has been found yesterday. Did you
+> get/try this last one?
+
+Tip of my tree is 13436:f353aa2982f2, which seems to be the latest one.
+
+After rebooting my computer this morning, the cam worked for a few
+minutes without those color glitches. Then, after turning off the light
+in my room and turning it on again, the image started alternating
+quickly between light and dark.  I tried to get rid of it with
+re-plugging the device, but this soon led to the original problem
+(red/green tints). I tried another reboot, but no luck.
+
+ - Lars.
