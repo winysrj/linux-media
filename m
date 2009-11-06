@@ -1,47 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail02a.mail.t-online.hu ([84.2.40.7]:60511 "EHLO
-	mail02a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752500AbZK2MPf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2009 07:15:35 -0500
-Message-ID: <4B1265E9.1040505@freemail.hu>
-Date: Sun, 29 Nov 2009 13:15:37 +0100
-From: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+Received: from gv-out-0910.google.com ([216.239.58.191]:6247 "EHLO
+	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759352AbZKFPzE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Nov 2009 10:55:04 -0500
+Received: by gv-out-0910.google.com with SMTP id r4so173046gve.37
+        for <linux-media@vger.kernel.org>; Fri, 06 Nov 2009 07:55:09 -0800 (PST)
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] gspca sunplus: propagate error for higher level
-References: <4B093DDD.5@freemail.hu>	<4B10CD81.7060909@freemail.hu> <20091128191717.5164a003@tele>
-In-Reply-To: <20091128191717.5164a003@tele>
+In-Reply-To: <7fedbc910911060752y215adeccm6dc4d35131c62746@mail.gmail.com>
+References: <7fedbc910911060752y215adeccm6dc4d35131c62746@mail.gmail.com>
+Date: Fri, 6 Nov 2009 16:55:08 +0100
+Message-ID: <c4e36d110911060755rb4303f7pe5f91b5988e9d101@mail.gmail.com>
+Subject: Re: [linux-dvb] Dual tuner DVB-T card on Linux
+From: Zdenek Kabelac <zdenek.kabelac@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jean-Francois Moine wrote:
-> On Sat, 28 Nov 2009 08:13:05 +0100
-> Németh Márton <nm127@freemail.hu> wrote:
-> 
->> what do you think about this patch?
-> 
-> Hi Márton,
-> 
-> There are many other drivers where the usb_control_msg() errors are not
-> tested nor propagated to higher levels. Generally, this does not matter:
-> the errors are signalled at the lowest level, and they seldom occur.
-> Thus, I don't think your patch is useful...
+2009/11/6 shacky <shacky83@gmail.com>:
+> Hi.
+>
+> Could you help me to find any DVB-T dual input/tuner card that work
+> with Linux without problems?
+> I need to record two programs in the same time with MythTV..
 
-I think that the return value of the usb_control_msg() is to be evaluated.
-If other drivers also not evaluating the usb_control_msg() *they* has to
-be fixed.
 
-The benefit would be that the userspace program can recognise error condition
-faster and react accordingly. For example the USB device can be unplugged any
-time. In this case there is no use to continue sending URBs. Otherwise the user
-program thinks that everything went on correctly and the user will be surprised
-how come that he or she unplugged a device and it is still working.
+WinNova Hauppage
+You could have either PCI or USB version.
 
-Regards,
+Work relatively well - open source drivers are easy to fix in case of problems.
 
-	Márton Németh
-
+Zdenek
