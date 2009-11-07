@@ -1,122 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01d.mail.t-online.hu ([84.2.42.6]:62298 "EHLO
-	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751254AbZKGJlS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Nov 2009 04:41:18 -0500
-Message-ID: <4AF540BF.8000905@freemail.hu>
-Date: Sat, 07 Nov 2009 10:41:19 +0100
-From: =?ISO-8859-2?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] gspca pac7302: simplify init sequence
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 8bit
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:47591 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753075AbZKGVr4 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Nov 2009 16:47:56 -0500
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Date: Sat, 07 Nov 2009 21:47:56 +0000
+Message-ID: <1257630476.15927.400.camel@localhost>
+Mime-Version: 1.0
+Subject: [PATCH 10/75] V4L/DVB: declare MODULE_FIRMWARE for modules using
+ XC2028 and XC3028L tuners
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
-
-The init sequence contains register writes which are overwritten later.
-Remove these redundant writes from the init sequence.
-
-The patch was tested together with Labtec Webcam 2200 (USB ID 093a:2626).
-
-Signed-off-by: Márton Németh <nm127@freemail.hu>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
-diff -upr b/linux/drivers/media/video/gspca/pac7302.c c/linux/drivers/media/video/gspca/pac7302.c
---- b/linux/drivers/media/video/gspca/pac7302.c	2009-11-07 09:08:16.000000000 +0100
-+++ c/linux/drivers/media/video/gspca/pac7302.c	2009-11-07 10:33:57.000000000 +0100
-@@ -49,6 +49,18 @@
-    -/0x27	Seems to toggle various gains on / off, Setting bit 7 seems to
- 		completely disable the analog amplification block. Set to 0x68
- 		for max gain, 0x14 for minimal gain.
-+
-+   The registers are accessed in the following functions:
-+
-+   Page | Register   | Function
-+   -----+------------+---------------------------------------------------
-+    0   | 0x0f..0x20 | setcolors()
-+    0   | 0xa2..0xab | setbrightcont()
-+    0   | 0xdc       | setbrightcont(), setcolors()
-+    3   | 0x02       | setexposure()
-+    3   | 0x10       | setgain()
-+    3   | 0x11       | setcolors(), setgain(), setexposure(), sethvflip()
-+    3   | 0x21       | sethvflip()
- */
+I'm not really sure whether it's better to do this in the drivers which
+specify which firmware file to use, or just once in the xc2028 tuner
+driver.  Your call.
 
- #define MODULE_NAME "pac7302"
-@@ -247,9 +259,8 @@ static const __u8 start_7302[] = {
- 	0xff, 1,	0x00,		/* page 0 */
- 	0x00, 12,	0x01, 0x40, 0x40, 0x40, 0x01, 0xe0, 0x02, 0x80,
- 			0x00, 0x00, 0x00, 0x00,
--	0x0d, 24,	0x03, 0x01, 0x00, 0xb5, 0x07, 0xcb, 0x00, 0x00,
--			0x07, 0xc8, 0x00, 0xea, 0x07, 0xcf, 0x07, 0xf7,
--			0x07, 0x7e, 0x01, 0x0b, 0x00, 0x00, 0x00, 0x11,
-+	0x0d, 2,	0x03, 0x01,
-+	0x21, 4,	0x00, 0x00, 0x00, 0x11,
- 	0x26, 2,	0xaa, 0xaa,
- 	0x2e, 1,	0x31,
- 	0x38, 1,	0x01,
-@@ -264,8 +275,6 @@ static const __u8 start_7302[] = {
- 	0x7d, 23,	0x01, 0x01, 0x58, 0x46, 0x50, 0x3c, 0x50, 0x3c,
- 			0x54, 0x46, 0x54, 0x56, 0x52, 0x50, 0x52, 0x50,
- 			0x56, 0x64, 0xa4, 0x00, 0xda, 0x00, 0x00,
--	0xa2, 10,	0x22, 0x2c, 0x3c, 0x54, 0x69, 0x7c, 0x9c, 0xb9,
--			0xd2, 0xeb,
- 	0xaf, 1,	0x02,
- 	0xb5, 2,	0x08, 0x08,
- 	0xb8, 2,	0x08, 0x88,
-@@ -309,26 +318,32 @@ static const __u8 start_7302[] = {
- #define SKIP		0xaa
- /* page 3 - the value SKIP says skip the index - see reg_w_page() */
- static const __u8 page3_7302[] = {
--	0x90, 0x40, 0x03, 0x50, 0xc2, 0x01, 0x14, 0x16,
--	0x14, 0x12, 0x00, 0x00, 0x00, 0x02, 0x33, 0x00,
--	0x0f, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x47, 0x01, 0xb3, 0x01, 0x00,
--	0x00, 0x08, 0x00, 0x00, 0x0d, 0x00, 0x00, 0x21,
--	0x00, 0x00, 0x00, 0x54, 0xf4, 0x02, 0x52, 0x54,
--	0xa4, 0xb8, 0xe0, 0x2a, 0xf6, 0x00, 0x00, 0x00,
--	0x00, 0x1e, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0xfc, 0x00, 0xf2, 0x1f, 0x04, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0xc0, 0xc0, 0x10, 0x00, 0x00,
--	0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0x40, 0xff, 0x03, 0x19, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0xc8, 0xc8, 0xc8,
--	0xc8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x50,
--	0x08, 0x10, 0x24, 0x40, 0x00, 0x00, 0x00, 0x00,
--	0x01, 0x00, 0x02, 0x47, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0x02, 0xfa, 0x00, 0x64, 0x5a, 0x28, 0x00,
--	0x00
-+	/* 0x00 */ 0x90, 0x40,
-+			       SKIP, /* accessed in setexposure() */
-+				     0x50, 0xc2, 0x01, 0x14, 0x16,
-+	/* 0x08 */ 0x14, 0x12, 0x00, 0x00, 0x00, 0x02, 0x33, 0x00,
-+	/* 0x10 */ SKIP, /* accessed in setgain() */
-+			 SKIP, /* accessed in setcolors() */
-+			       0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	/* 0x18 */ 0x00, 0x00, 0x00, 0x47, 0x01, 0xb3, 0x01, 0x00,
-+	/* 0x20 */ 0x00,
-+			 SKIP, /* accessed in sethvflip() */
-+			       0x00, 0x00, 0x0d, 0x00, 0x00, 0x21,
-+	/* 0x28 */ 0x00, 0x00, 0x00, 0x54, 0xf4, 0x02, 0x52, 0x54,
-+	/* 0x30 */ 0xa4, 0xb8, 0xe0, 0x2a, 0xf6, 0x00, 0x00, 0x00,
-+	/* 0x38 */ 0x00, 0x1e, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	/* 0x40 */ 0x00, 0xfc, 0x00, 0xf2, 0x1f, 0x04, 0x00, 0x00,
-+	/* 0x48 */ 0x00, 0x00, 0x00, 0xc0, 0xc0, 0x10, 0x00, 0x00,
-+	/* 0x50 */ 0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	/* 0x58 */ 0x00, 0x40, 0xff, 0x03, 0x19, 0x00, 0x00, 0x00,
-+	/* 0x60 */ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	/* 0x68 */ 0x00, 0x00, 0x00, 0x00, 0x00, 0xc8, 0xc8, 0xc8,
-+	/* 0x70 */ 0xc8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x50,
-+	/* 0x78 */ 0x08, 0x10, 0x24, 0x40, 0x00, 0x00, 0x00, 0x00,
-+	/* 0x80 */ 0x01, 0x00, 0x02, 0x47, 0x00, 0x00, 0x00, 0x00,
-+	/* 0x88 */ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	/* 0x90 */ 0x00, 0x02, 0xfa, 0x00, 0x64, 0x5a, 0x28, 0x00,
-+	/* 0x98 */ 0x00
+Ben.
+
+ drivers/media/dvb/dvb-usb/cxusb.c           |    1 +
+ drivers/media/dvb/dvb-usb/dib0700_devices.c |    1 +
+ drivers/media/video/cx18/cx18-driver.c      |    1 +
+ drivers/media/video/cx23885/cx23885-dvb.c   |    3 +++
+ drivers/media/video/cx88/cx88-cards.c       |    2 ++
+ drivers/media/video/em28xx/em28xx-cards.c   |    3 +++
+ drivers/media/video/ivtv/ivtv-driver.c      |    1 +
+ drivers/media/video/saa7134/saa7134-cards.c |    2 ++
+ 8 files changed, 14 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/dvb/dvb-usb/cxusb.c b/drivers/media/dvb/dvb-usb/cxusb.c
+index f65591f..bc44d30 100644
+--- a/drivers/media/dvb/dvb-usb/cxusb.c
++++ b/drivers/media/dvb/dvb-usb/cxusb.c
+@@ -1863,3 +1863,4 @@ MODULE_AUTHOR("Chris Pascoe <c.pascoe@itee.uq.edu.au>");
+ MODULE_DESCRIPTION("Driver for Conexant USB2.0 hybrid reference design");
+ MODULE_VERSION("1.0-alpha");
+ MODULE_LICENSE("GPL");
++MODULE_FIRMWARE(XC2028_DEFAULT_FIRMWARE);
+diff --git a/drivers/media/dvb/dvb-usb/dib0700_devices.c b/drivers/media/dvb/dvb-usb/dib0700_devices.c
+index 684146f..d003ff0 100644
+--- a/drivers/media/dvb/dvb-usb/dib0700_devices.c
++++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c
+@@ -408,6 +408,7 @@ static struct xc2028_ctrl stk7700ph_xc3028_ctrl = {
+ 	.max_len = 64,
+ 	.demod = XC3028_FE_DIBCOM52,
  };
++MODULE_FIRMWARE(XC2028_DEFAULT_FIRMWARE);
+ 
+ static struct xc2028_config stk7700ph_xc3028_config = {
+ 	.i2c_addr = 0x61,
+diff --git a/drivers/media/video/cx18/cx18-driver.c b/drivers/media/video/cx18/cx18-driver.c
+index e12082b..6fdd57e 100644
+--- a/drivers/media/video/cx18/cx18-driver.c
++++ b/drivers/media/video/cx18/cx18-driver.c
+@@ -237,6 +237,7 @@ MODULE_AUTHOR("Hans Verkuil");
+ MODULE_DESCRIPTION("CX23418 driver");
+ MODULE_SUPPORTED_DEVICE("CX23418 MPEG2 encoder");
+ MODULE_LICENSE("GPL");
++MODULE_FIRMWARE(XC2028_DEFAULT_FIRMWARE);
+ 
+ MODULE_VERSION(CX18_VERSION);
+ 
+diff --git a/drivers/media/video/cx23885/cx23885-dvb.c b/drivers/media/video/cx23885/cx23885-dvb.c
+index f4f046c..fe8331a 100644
+--- a/drivers/media/video/cx23885/cx23885-dvb.c
++++ b/drivers/media/video/cx23885/cx23885-dvb.c
+@@ -956,6 +956,9 @@ static int dvb_register(struct cx23885_tsport *port)
+ 	return ret;
+ }
+ 
++MODULE_FIRMWARE(XC2028_DEFAULT_FIRMWARE);
++MODULE_FIRMWARE(XC3028L_DEFAULT_FIRMWARE);
++
+ int cx23885_dvb_register(struct cx23885_tsport *port)
+ {
+ 
+diff --git a/drivers/media/video/cx88/cx88-cards.c b/drivers/media/video/cx88/cx88-cards.c
+index 7330a2d..4a91dd9 100644
+--- a/drivers/media/video/cx88/cx88-cards.c
++++ b/drivers/media/video/cx88/cx88-cards.c
+@@ -3080,6 +3080,8 @@ void cx88_setup_xc3028(struct cx88_core *core, struct xc2028_ctrl *ctl)
+ }
+ EXPORT_SYMBOL_GPL(cx88_setup_xc3028);
+ 
++MODULE_FIRMWARE(XC2028_DEFAULT_FIRMWARE);
++
+ static void cx88_card_setup(struct cx88_core *core)
+ {
+ 	static u8 eeprom[256];
+diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
+index 4fd91f5..8c2048b 100644
+--- a/drivers/media/video/em28xx/em28xx-cards.c
++++ b/drivers/media/video/em28xx/em28xx-cards.c
+@@ -2090,6 +2090,9 @@ static void em28xx_setup_xc3028(struct em28xx *dev, struct xc2028_ctrl *ctl)
+ 	}
+ }
+ 
++MODULE_FIRMWARE(XC2028_DEFAULT_FIRMWARE);
++MODULE_FIRMWARE(XC3028L_DEFAULT_FIRMWARE);
++
+ static void em28xx_tuner_setup(struct em28xx *dev)
+ {
+ 	struct tuner_setup           tun_setup;
+diff --git a/drivers/media/video/ivtv/ivtv-driver.c b/drivers/media/video/ivtv/ivtv-driver.c
+index 7cdbc1a..4c74142 100644
+--- a/drivers/media/video/ivtv/ivtv-driver.c
++++ b/drivers/media/video/ivtv/ivtv-driver.c
+@@ -254,6 +254,7 @@ MODULE_SUPPORTED_DEVICE
+     ("CX23415/CX23416 MPEG2 encoder (WinTV PVR-150/250/350/500,\n"
+ 		"\t\t\tYuan MPG series and similar)");
+ MODULE_LICENSE("GPL");
++MODULE_FIRMWARE(XC2028_DEFAULT_FIRMWARE);
+ 
+ MODULE_VERSION(IVTV_VERSION);
+ 
+diff --git a/drivers/media/video/saa7134/saa7134-cards.c b/drivers/media/video/saa7134/saa7134-cards.c
+index 7e40d6d..e137203 100644
+--- a/drivers/media/video/saa7134/saa7134-cards.c
++++ b/drivers/media/video/saa7134/saa7134-cards.c
+@@ -7029,6 +7029,8 @@ static void saa7134_tuner_setup(struct saa7134_dev *dev)
+ 	}
+ }
+ 
++MODULE_FIRMWARE(XC2028_DEFAULT_FIRMWARE);
++
+ /* stuff which needs working i2c */
+ int saa7134_board_init2(struct saa7134_dev *dev)
+ {
+-- 
+1.6.5.2
 
- static int reg_w_buf(struct gspca_dev *gspca_dev,
+
+
