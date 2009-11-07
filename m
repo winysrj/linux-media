@@ -1,100 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3728 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1749667AbZKZVhI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 16:37:08 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id nAQLbCmW061365
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 26 Nov 2009 22:37:12 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 26 Nov 2009 22:37:12 +0100 (CET)
-Message-Id: <200911262137.nAQLbCmW061365@smtp-vbr5.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: OK
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:42390 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753444AbZKGVvf convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Nov 2009 16:51:35 -0500
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Date: Sat, 07 Nov 2009 21:51:38 +0000
+Message-ID: <1257630698.15927.426.camel@localhost>
+Mime-Version: 1.0
+Subject: [PATCH 32/75] cx88-blackbird: declare MODULE_FIRMWARE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/media/video/cx88/cx88-blackbird.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Results of the daily build of v4l-dvb:
+diff --git a/drivers/media/video/cx88/cx88-blackbird.c b/drivers/media/video/cx88/cx88-blackbird.c
+index fbdc1cd..da62b37 100644
+--- a/drivers/media/video/cx88/cx88-blackbird.c
++++ b/drivers/media/video/cx88/cx88-blackbird.c
+@@ -42,6 +42,7 @@
+ MODULE_DESCRIPTION("driver for cx2388x/cx23416 based mpeg encoder cards");
+ MODULE_AUTHOR("Jelle Foks <jelle@foks.us>, Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]");
+ MODULE_LICENSE("GPL");
++MODULE_FIRMWARE(CX2341X_FIRM_ENC_FILENAME);
+ 
+ static unsigned int mpegbufs = 32;
+ module_param(mpegbufs,int,0644);
+-- 
+1.6.5.2
 
-date:        Thu Nov 26 20:48:58 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13527:b3695bd384cc
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
 
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-rc8-armv5: OK
-linux-2.6.32-rc8-armv5-davinci: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.32-rc8-armv5-ixp: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.32-rc8-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: OK
-linux-2.6.31-i686: OK
-linux-2.6.32-rc8-i686: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-rc8-m32r: OK
-linux-2.6.30-mips: OK
-linux-2.6.31-mips: OK
-linux-2.6.32-rc8-mips: OK
-linux-2.6.30-powerpc64: OK
-linux-2.6.31-powerpc64: OK
-linux-2.6.32-rc8-powerpc64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: OK
-linux-2.6.31-x86_64: OK
-linux-2.6.32-rc8-x86_64: OK
-spec: OK
-sparse (linux-2.6.31): ERRORS
-sparse (linux-2.6.32-rc8): ERRORS
-linux-2.6.16.61-i686: OK
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: OK
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
