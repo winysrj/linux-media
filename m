@@ -1,118 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48565 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757273AbZKSQ0B convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2009 11:26:01 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Thu, 19 Nov 2009 10:26:00 -0600
-Subject: RE: Help in adding documentation
-Message-ID: <A69FA2915331DC488A831521EAE36FE40155A51446@dlee06.ent.ti.com>
-References: <A69FA2915331DC488A831521EAE36FE401559C59A2@dlee06.ent.ti.com>
- <200911180819.11199.hverkuil@xs4all.nl> <4B03A11D.9090404@infradead.org>
- <200911180832.35450.hverkuil@xs4all.nl>
-In-Reply-To: <200911180832.35450.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-MIME-Version: 1.0
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1422 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752638AbZKGTub (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Nov 2009 14:50:31 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id nA7JoZXK000620
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 7 Nov 2009 20:50:35 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 7 Nov 2009 20:50:35 +0100 (CET)
+Message-Id: <200911071950.nA7JoZXK000620@smtp-vbr8.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-BTW,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-I don't know what is qt4/qt3 that you are referring to.
-I see qv4l2 in the directory v4l2-apps/qv4l2. 
+Results of the daily build of v4l-dvb:
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-phone: 301-407-9583
-email: m-karicheri2@ti.com
+date:        Sat Nov  7 19:00:06 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13327:19c0469c02c3
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
->-----Original Message-----
->From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
->Sent: Wednesday, November 18, 2009 2:33 AM
->To: Mauro Carvalho Chehab
->Cc: Karicheri, Muralidharan; linux-media@vger.kernel.org
->Subject: Re: Help in adding documentation
->
->On Wednesday 18 November 2009 08:24:13 Mauro Carvalho Chehab wrote:
->> Hans Verkuil wrote:
->> > On Wednesday 18 November 2009 08:04:10 Mauro Carvalho Chehab wrote:
->> >> Karicheri, Muralidharan escreveu:
->> >>> Mauro,
->> >>>
->> >>> Thanks to your help, I could finish my documentation today.
->> >>>
->> >>> But I have another issue with the v4l2-apps.
->> >>>
->> >>> When I do make apps, it doesn't seem to build. I get the following
->error
->> >>> logs... Is this broken?
->> >> Well... no, it is not really broken, but the build system for v4l2-
->apps
->> >> needs serious improvements. There are some know issues on it:
->> >> 	- It doesn't check/warn if you don't have all the dependencies
->> >> 	  (qv4l2 and v4l2-sysfs-path require some development libraries
->> >> 	   that aren't available per default when gcc is installed - I
->> >> 	   think the other files there are ok);
->> >> 	- make only works fine when calling on certain directories (it used
->to work
->> >> 	  fine if you call it from /v4l2-apps/*) - but, since some patch, it
->now requires
->> >> 	  that you call make from /v4l2-apps, in order to create v4l2-
->apps/include.
->> >> 	  After having it created, make can be called from a /v4l2-apps
->subdir;
->> >> 	- for some places (libv4l - maybe there are other places?), you need
->to
->> >> 	  have the latest headers installed, as it doesn't use the one at the
->tree.
->> >> 	- qv4l2 only compiles with qt3.
->> >
->> > I have a qt4 version available in my v4l-dvb-qv4l2 tree. Just no time
->to work
->> > on a series of patches to merge it in the main repo. And it is missing
->string
->> > control support.
->> >
->> > If anyone is interested, then feel free to do that work. This new qt4
->version
->> > is much better than the qt3 version.
->>
->> IMO, the better is to have both versions on separate dirs, and let the
->building
->> system to check if qt4 is available. If so, build the qt4 version instead
->of
->> qt3 (a configure script, for example). Otherwise, warn users that it is
->compiling
->> a legacy application, due to the lack of the proper dependencies.
->
->I'm not going to maintain the qt3 version. Personally I think it is
->pointless
->having two tools for this and it only creates confusion and unnecessary
->maintenance cost. Of course, all this is moot as long as the new version is
->still unmerged.
->
->BTW: everything inside v4l2-apps should use the generated headers inside
->v4l2-apps/include. These are generated from the headers in the tree and yes,
->it would be nice if v4l2-apps/Makefile would have a proper dependency to
->generate them. Now only the top-level Makefile knows about it. After that
->include directory is generated you can do a make in v4l2-apps.
->
->But libv4l should use those headers and not the installed headers.
->Something
->may have been broken since when I last wrote that code.
->
->Regards,
->
->	Hans
->
->--
->Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+linux-2.6.22.19-armv5: WARNINGS
+linux-2.6.23.12-armv5: WARNINGS
+linux-2.6.24.7-armv5: WARNINGS
+linux-2.6.25.11-armv5: WARNINGS
+linux-2.6.26-armv5: WARNINGS
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29.1-armv5: WARNINGS
+linux-2.6.30-armv5: WARNINGS
+linux-2.6.31-armv5: WARNINGS
+linux-2.6.32-rc3-armv5: ERRORS
+linux-2.6.32-rc3-armv5-davinci: ERRORS
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.31-armv5-ixp: WARNINGS
+linux-2.6.32-rc3-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.32-rc3-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-rc3-i686: WARNINGS
+linux-2.6.23.12-m32r: WARNINGS
+linux-2.6.24.7-m32r: WARNINGS
+linux-2.6.25.11-m32r: WARNINGS
+linux-2.6.26-m32r: WARNINGS
+linux-2.6.27-m32r: WARNINGS
+linux-2.6.28-m32r: WARNINGS
+linux-2.6.29.1-m32r: WARNINGS
+linux-2.6.30-m32r: WARNINGS
+linux-2.6.31-m32r: WARNINGS
+linux-2.6.32-rc3-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: WARNINGS
+linux-2.6.32-rc3-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: WARNINGS
+linux-2.6.32-rc3-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-rc3-x86_64: ERRORS
+sparse (linux-2.6.31): OK
+sparse (linux-2.6.32-rc3): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
