@@ -1,48 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1385 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934717AbZKYOew (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2009 09:34:52 -0500
-Received: from tschai.localnet (cm-84.208.105.24.getinternet.no [84.208.105.24])
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id nAPEYrwS070165
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 25 Nov 2009 15:34:57 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: RFC: dvb valgrind patches?
-Date: Wed, 25 Nov 2009 15:34:59 +0100
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200911251534.59479.hverkuil@xs4all.nl>
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:42371 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753409AbZKGVu4 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Nov 2009 16:50:56 -0500
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Date: Sat, 07 Nov 2009 21:50:59 +0000
+Message-ID: <1257630659.15927.420.camel@localhost>
+Mime-Version: 1.0
+Subject: [PATCH 26/75] ttusb-dec: declare MODULE_FIRMWARE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/media/dvb/ttusb-dec/ttusb_dec.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-In dvb-spec there are several valgrind patches that add support to valgrind for
-the dvb ioctls. However, these patches no longer apply to the latest valgrind
-(and probably haven't for a *very* long time), so unless someone wants to port
-these to recent valgrind versions I propose to delete them in two weeks time.
-
-I took a very quick look and it seems that these valgrind files would need to
-be patched:
-
-./include/vki/vki-linux.h
-./coregrind/m_syswrap/syswrap-linux.c
-
-Of course, if someone is going to port these patches to the latest valgrind,
-then those patches should be mailed to the valgrind maintainer for inclusion
-in valgrind itself. That's much better than trying to maintain them in our
-tree.
-
-Regards,
-
-	Hans
-
+diff --git a/drivers/media/dvb/ttusb-dec/ttusb_dec.c b/drivers/media/dvb/ttusb-dec/ttusb_dec.c
+index d91e063..f835852 100644
+--- a/drivers/media/dvb/ttusb-dec/ttusb_dec.c
++++ b/drivers/media/dvb/ttusb-dec/ttusb_dec.c
+@@ -1781,3 +1781,6 @@ MODULE_AUTHOR("Alex Woods <linux-dvb@giblets.org>");
+ MODULE_DESCRIPTION(DRIVER_NAME);
+ MODULE_LICENSE("GPL");
+ MODULE_DEVICE_TABLE(usb, ttusb_dec_table);
++MODULE_FIRMWARE("dvb-ttusb-dec-2000t.fw");
++MODULE_FIRMWARE("dvb-ttusb-dec-2540t.fw");
++MODULE_FIRMWARE("dvb-ttusb-dec-3000s.fw");
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+1.6.5.2
+
+
+
