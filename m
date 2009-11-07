@@ -1,49 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:58542 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752174AbZKRKj0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 05:39:26 -0500
-From: Juergen Beisert <jbe@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Date: Wed, 18 Nov 2009 11:39:18 +0100
-Cc: Antonio Ospite <ospite@studenti.unina.it>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Eric Miao <eric.y.miao@gmail.com>,
-	linux-arm-kernel@lists.infradead.org,
-	Mike Rapoport <mike@compulab.co.il>,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-References: <1258495463-26029-1-git-send-email-ospite@studenti.unina.it> <1258495463-26029-3-git-send-email-ospite@studenti.unina.it> <Pine.LNX.4.64.0911181110180.5702@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0911181110180.5702@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200911181139.19336.jbe@pengutronix.de>
-Subject: Re: [PATCH 2/3] pcm990-baseboard: don't use pxa_camera init() callback
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:42365 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753401AbZKGVul convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Nov 2009 16:50:41 -0500
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Date: Sat, 07 Nov 2009 21:50:44 +0000
+Message-ID: <1257630644.15927.417.camel@localhost>
+Mime-Version: 1.0
+Subject: [PATCH 24/75] smsmdtv/smsusb: declare MODULE_FIRMWARE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mittwoch, 18. November 2009, Guennadi Liakhovetski wrote:
-> On Tue, 17 Nov 2009, Antonio Ospite wrote:
-> > pxa_camera init() is going to be removed.
-> > Configure PXA CIF pins directly in machine init function.
->
-> Same comment as to patch 1/3.
->
-> > Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
->
-> Even though the change seems obvious, it better be tested - in case
-> someone reconfigures camera pins somewhere after
-> pcm990_baseboard_init()... Juergen, would you be able to test it?
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/media/dvb/siano/sms-cards.c  |    4 ++++
+ drivers/media/dvb/siano/smscoreapi.c |    7 +++++++
+ drivers/media/dvb/siano/smsusb.c     |    4 ++++
+ 3 files changed, 15 insertions(+), 0 deletions(-)
 
-Lets see, if I can grab some hardware.
-
-jbe
-
+diff --git a/drivers/media/dvb/siano/sms-cards.c b/drivers/media/dvb/siano/sms-cards.c
+index e216389..9c425d7 100644
+--- a/drivers/media/dvb/siano/sms-cards.c
++++ b/drivers/media/dvb/siano/sms-cards.c
+@@ -96,6 +96,10 @@ static struct sms_board sms_boards[] = {
+ 		.type = SMS_VEGA,
+ 	},
+ };
++MODULE_FIRMWARE("sms1xxx-stellar-dvbt-01.fw");
++MODULE_FIRMWARE("sms1xxx-nova-a-dvbt-01.fw");
++MODULE_FIRMWARE("sms1xxx-nova-b-dvbt-01.fw");
++MODULE_FIRMWARE("sms1xxx-hcw-55xxx-dvbt-02.fw");
+ 
+ struct sms_board *sms_get_board(int id)
+ {
+diff --git a/drivers/media/dvb/siano/smscoreapi.c b/drivers/media/dvb/siano/smscoreapi.c
+index ca758bc..c613f0d 100644
+--- a/drivers/media/dvb/siano/smscoreapi.c
++++ b/drivers/media/dvb/siano/smscoreapi.c
+@@ -790,6 +790,13 @@ static char *smscore_fw_lkup[][SMS_NUM_OF_DEVICE_TYPES] = {
+ 	/*CMMB*/
+ 	{"none", "none", "none", "cmmb_vega_12mhz.inp"}
+ };
++MODULE_FIRMWARE("dvb_nova_12mhz.inp");
++MODULE_FIRMWARE("dvb_nova_12mhz_b0.inp");
++MODULE_FIRMWARE("tdmb_nova_12mhz.inp");
++MODULE_FIRMWARE("tdmb_nova_12mhz_b0.inp");
++MODULE_FIRMWARE("isdbt_nova_12mhz.inp");
++MODULE_FIRMWARE("isdbt_nova_12mhz_b0.inp");
++MODULE_FIRMWARE("cmmb_vega_12mhz.inp");
+ 
+ static inline char *sms_get_fw_name(struct smscore_device_t *coredev,
+ 				    int mode, enum sms_device_type_st type)
+diff --git a/drivers/media/dvb/siano/smsusb.c b/drivers/media/dvb/siano/smsusb.c
+index 8f88a58..a97bf96 100644
+--- a/drivers/media/dvb/siano/smsusb.c
++++ b/drivers/media/dvb/siano/smsusb.c
+@@ -193,6 +193,10 @@ static char *smsusb1_fw_lkup[] = {
+ 	"none",
+ 	"dvbt_bda_stellar_usb.inp",
+ };
++MODULE_FIRMWARE("dvbt_stellar_usb.inp");
++MODULE_FIRMWARE("dvbh_stellar_usb.inp");
++MODULE_FIRMWARE("tdmb_stellar_usb.inp");
++MODULE_FIRMWARE("dvbt_bda_stellar_usb.inp");
+ 
+ static inline char *sms_get_fw_name(int mode, int board_id)
+ {
 -- 
-Pengutronix e.K.                              | Juergen Beisert             |
-Linux Solutions for Science and Industry      | Phone: +49-8766-939 228     |
-Vertretung Sued/Muenchen, Germany             | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686              | http://www.pengutronix.de/  |
+1.6.5.2
+
+
+
