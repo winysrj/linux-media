@@ -1,82 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1236 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751680AbZKRHTP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 02:19:15 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: Help in adding documentation
-Date: Wed, 18 Nov 2009 08:19:11 +0100
-Cc: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <A69FA2915331DC488A831521EAE36FE401559C59A2@dlee06.ent.ti.com> <A69FA2915331DC488A831521EAE36FE401559C5D80@dlee06.ent.ti.com> <4B039C6A.8090907@infradead.org>
-In-Reply-To: <4B039C6A.8090907@infradead.org>
+Received: from qw-out-2122.google.com ([74.125.92.27]:8373 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751800AbZKGMfW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Nov 2009 07:35:22 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so346240qwe.37
+        for <linux-media@vger.kernel.org>; Sat, 07 Nov 2009 04:35:27 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200911180819.11199.hverkuil@xs4all.nl>
+In-Reply-To: <6174dfda0911070246v61b5b3f5rdea26406066e3fa4@mail.gmail.com>
+References: <6174dfda0911061223k75f31fd5je33a8e75e9e3c391@mail.gmail.com>
+	 <6174dfda0911061258u254ba6bbh4610291a904edc0a@mail.gmail.com>
+	 <156a113e0911061716t758d7ee3ta709b406c2f074a1@mail.gmail.com>
+	 <6174dfda0911070246v61b5b3f5rdea26406066e3fa4@mail.gmail.com>
+Date: Sat, 7 Nov 2009 13:35:26 +0100
+Message-ID: <156a113e0911070435w4be2b9dfo17f8e9c910bab437@mail.gmail.com>
+Subject: Re: em28xx based USB Hybrid (Analog & DVB-T) TV Tuner not supported
+From: Magnus Alm <magnus.alm@gmail.com>
+To: Johan Mutsaerts <johmut@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 18 November 2009 08:04:10 Mauro Carvalho Chehab wrote:
-> Karicheri, Muralidharan escreveu:
-> > Mauro,
-> > 
-> > Thanks to your help, I could finish my documentation today.
-> > 
-> > But I have another issue with the v4l2-apps.
-> > 
-> > When I do make apps, it doesn't seem to build. I get the following error
-> > logs... Is this broken?
-> 
-> Well... no, it is not really broken, but the build system for v4l2-apps
-> needs serious improvements. There are some know issues on it:
-> 	- It doesn't check/warn if you don't have all the dependencies
-> 	  (qv4l2 and v4l2-sysfs-path require some development libraries
-> 	   that aren't available per default when gcc is installed - I
-> 	   think the other files there are ok);
-> 	- make only works fine when calling on certain directories (it used to work
-> 	  fine if you call it from /v4l2-apps/*) - but, since some patch, it now requires
-> 	  that you call make from /v4l2-apps, in order to create v4l2-apps/include.
-> 	  After having it created, make can be called from a /v4l2-apps subdir;
-> 	- for some places (libv4l - maybe there are other places?), you need to
-> 	  have the latest headers installed, as it doesn't use the one at the tree.
-> 	- qv4l2 only compiles with qt3.
+Hi
 
-I have a qt4 version available in my v4l-dvb-qv4l2 tree. Just no time to work
-on a series of patches to merge it in the main repo. And it is missing string
-control support.
+I read some where that trying different card types for a DVB tuner can
+potentially cause damage to them.
 
-If anyone is interested, then feel free to do that work. This new qt4 version
-is much better than the qt3 version.
+You are probably right about the firmare.
+Do you have a link to the manufacture of your stick?
+I tried to google the name of it but couldn't found an exact match.
 
-Regards,
+The EM2881_BOARD_PINNACLE_HYBRID_PRO uses it's XC3028 to getter with a
+ZARLINK456
+as you can see from the following line in em28xx-cards.c
 
-	Hans
+case EM2881_BOARD_PINNACLE_HYBRID_PRO:
+		ctl->demod = XC3028_FE_ZARLINK456;
+		break;
 
-> 
-> Patches are welcome to fix those issues and improve the v4l2-apps building system.
-> 
-> > make[3]: Entering directory `/local/mkaricheri/davinci_git/video_timing/new_v4l2-dvb/v4l-dvb-aba823ecaea6/v4l2-apps/libv4l'
-> > make -C libv4lconvert V4L2_LIB_VERSION=0.6.2-test all
-> > make[4]: Entering directory `/local/mkaricheri/davinci_git/video_timing/new_v4l2-dvb/v4l-dvb-aba823ecaea6/v4l2-apps/libv4l/libv4lconvert'
-> > cc -Wp,-MMD,"libv4lconvert.d",-MQ,"libv4lconvert.o",-MP -c -I../include -I../../../include -fvisibility=hidden -fPIC -DLIBDIR=\"/usr/local/lib\" -DLIBSUBDIR=\"libv4l\" -g -O1 -Wall -Wno-unused -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -o libv4lconvert.o libv4lconvert.c
-> > In file included from libv4lconvert.c:25:
-> > ../include/libv4lconvert.h:100: warning: "struct v4l2_frmsizeenum" declared inside parameter list
-> > ../include/libv4lconvert.h:100: warning: its scope is only this definition or declaration, which is probably not what you want
-> > ../include/libv4lconvert.h:105: warning: "struct v4l2_frmivalenum" declared inside parameter list
-> 
-> In this specific case, it is trying to compile against /usr/include/linux/videodev2.h, instead of using
-> the in-tree header file.
-> 
-> Cheers,
-> Mauro.
-> 
+It is probably not compliant with your  Zarlink MT352.
+
+There is a mt352 module tho, but I guess it doesn't get loaded when
+you plug your stick in.
+
+I'll pooke around a bit.....
+
+PS
+Use the "reply all", so others can see your mails, since I'm probably
+one of the least competent guys/gals on this mailing list.
+DS
 
 
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+2009/11/7 Johan Mutsaerts <johmut@gmail.com>:
+> Hi Magnus,
+>
+> Thanks for a quick reply. Here is some more detailed information:
+>
+> My USB device ID is 0xeb1a:0x2881 it is eMPIA based.
+>
+> These are the components inside
+> - Empia EM2880
+> - Texas Instruments 5150AM1
+> - XCeive XC3028
+> - Empia EMP202
+> - Zarlink MT352
+>
+> Difficult for me to get to the windows stuff....
+>
+> No /dev/dvb/.... is generated ? Could it have something to do with no Firmware ?
+>
+> I found my device to be quite similar to the Pinnacle Hybrid Pro so I tried
+> sudo rmmod em28xx-dvb
+> sudo rmmod em28xx-alsa
+> sudo rmmod em28xx
+> sudo modprobe em28xx card=53 and card=56
+> sudo modprobe em28xx-alsa
+> sudo modprobe em28xx-dvb
+> However with not much success.
+> Card=53 cased MeTV to see a tuner but no channels could be found....
+>
+> TIA for any assistance you can provide.
+>
+> Best Regards,
+> Johan
+>
+> 2009/11/7 Magnus Alm <magnus.alm@gmail.com>:
+>> Hi!
+>>
+>> The dmesg didn't reveal what tuner your stick/card has, it's probably
+>> a XC2028/XC3028 or something like that.
+>> Easiest way to find out would be if you could open the cover and have
+>> a look inside.
+>>
+>> If you have access to windows and the pvr program that came with the
+>> tuner you could do a usb-sniff.
+>>
+>> http://www.pcausa.com/Utilities/UsbSnoop/
+>> or
+>> http://benoit.papillault.free.fr/usbsnoop/
+>>
+>> Switch between different inputs while doing the log, like "dvb",
+>> "analog" and if it has "svideo"/"composite" input.
+>>
+>> copy the windows log to unix and parse the output with parser.pl (I've
+>> added is as an attachment.)
+>> I think there is a new parser somewhere, but I forgot the name of it.
+>>
+>> I'm also not sure how I used it, but I think it was like this: perl
+>> parser.pl < "your_windows_log" > "parsed_log"
+>> That log is needed to  find out what "gpio" your tuner needs for
+>> different settings.
+>>
+>> Don't be scared of the size of the windows log, it gets large, often a
+>> few hundred MB.
+>> The parsed log is much smaller,  a few hundred KB.
+>>
+>> That is all I can think about atm.
+>>
+>> /Magnus Alm
+>>
+>>
+>> 2009/11/6 Johan Mutsaerts <johmut@gmail.com>:
+>>> Hi,
+>>>
+>>> I have an iDream UTVHYL2 USB TV Tuner (with IR remote control) that I
+>>> cannot get to work with Ubuntu (9.04, 2.6.28-16). I have successfully
+>>> compiled and installed the em28xx-new driver from linuxtv.org. No
+>>> /dev/dvb/adapter... is created and that is where it ends for me know.
+>>> MyTV claims no adapter is detected.
+>>>
+>>> I have attached the output of lsusb and dmesg as requested...
+>>>
+>>> Please let me know what more I can do and what exactly it is you can do ?
+>>>
+>>> Thanks in advance and
+>>> Best Regards,
+>>> Johan (Belgium)
+>>>
+>>
+>
