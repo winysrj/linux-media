@@ -1,50 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:35710 "EHLO znsun1.ifh.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757118AbZKWMYe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2009 07:24:34 -0500
-Date: Mon, 23 Nov 2009 13:24:34 +0100 (CET)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: grafgrimm77@gmx.de
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: dibusb-common.c FE_HAS_LOCK problem
-In-Reply-To: <20091123123338.7273255b@x2.grafnetz>
-Message-ID: <alpine.LRH.2.00.0911231321270.14263@pub1.ifh.de>
-References: <20091107105614.7a51f2f5@x2.grafnetz> <alpine.LRH.2.00.0911191630250.12734@pub2.ifh.de> <20091121182514.61b39d23@x2.grafnetz> <alpine.LRH.2.00.0911230947540.14263@pub1.ifh.de> <20091123120310.5b10c9cc@x2.grafnetz> <alpine.LRH.2.00.0911231206450.14263@pub1.ifh.de>
- <20091123123338.7273255b@x2.grafnetz>
+Received: from mail02d.mail.t-online.hu ([84.2.42.7]:56857 "EHLO
+	mail02d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750871AbZKGH1Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Nov 2009 02:27:24 -0500
+Message-ID: <4AF5215E.8090601@freemail.hu>
+Date: Sat, 07 Nov 2009 08:27:26 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+To: Jean-Francois Moine <moinejf@free.fr>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] gspca pac7302: remove redundant stream off command
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 23 Nov 2009, grafgrimm77@gmx.de wrote:
-> [..]
-> ----- hello stupid I2C access ----
-> Pid: 255, comm: khubd Tainted: P       A   2.6.31.6 #1
-> Call Trace:
-> [<ffffffffa0042292>] ? dibusb_i2c_xfer+0xe2/0x130 [dvb_usb_dibusb_common]
-> [<ffffffff81341dc1>] ? i2c_transfer+0x91/0xe0
-> [<ffffffffa0059081>] ? dib3000_write_reg+0x51/0x70 [dib3000mb]
-> [<ffffffffa00855c9>] ? dvb_pll_attach+0xa9/0x238 [dvb_pll]
-> [..]
+From: Márton Németh <nm127@freemail.hu>
 
-Voila.
+The stream off command is sent to the device twice, one is enough.
 
-This is the access with makes the dvb-pll-driver not create the tuner 
-driver.
+The patch was tested together with Labtec Webcam 2200 (USB ID 093a:2626).
 
-This is (I forgot the correct name) read-without-write-i2caccess. It is 
-bad handled by the dibusb-driver and it can destroy the eeprom on the USB 
-side.
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+diff -r 40705fec2fb2 linux/drivers/media/video/gspca/pac7302.c
+--- a/linux/drivers/media/video/gspca/pac7302.c	Fri Nov 06 15:54:49 2009 -0200
++++ b/linux/drivers/media/video/gspca/pac7302.c	Sat Nov 07 08:21:19 2009 +0100
+@@ -627,8 +627,8 @@
 
-Please try whether the attached patch fixes the whole situation for you.
+ static void sd_stopN(struct gspca_dev *gspca_dev)
+ {
++	/* stop stream */
+ 	reg_w(gspca_dev, 0xff, 0x01);
+-	reg_w(gspca_dev, 0x78, 0x00);
+ 	reg_w(gspca_dev, 0x78, 0x00);
+ }
 
-If so, please send back a line like this:
-
-Tested-by: Your name <email>
-
-thanks,
---
-
-Patrick
-http://www.kernellabs.com/
