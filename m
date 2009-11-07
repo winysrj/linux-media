@@ -1,93 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:56557 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751277AbZKDW5F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2009 17:57:05 -0500
-Date: Wed, 4 Nov 2009 20:56:30 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Magnus Alm <magnus.alm@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:23910 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752060AbZKGOtW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Nov 2009 09:49:22 -0500
+Date: Sat, 7 Nov 2009 12:49:22 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: e9hack <e9hack@googlemail.com>
 Cc: linux-media@vger.kernel.org
-Subject: Re: Patch for "Leadtek Winfast TV USB II Deluxe" (with IR)
-Message-ID: <20091104205630.585fac72@pedra.chehab.org>
-In-Reply-To: <156a113e0910290641n348a8500v7f1a3df3ddd395d9@mail.gmail.com>
-References: <156a113e0910290641n348a8500v7f1a3df3ddd395d9@mail.gmail.com>
+Subject: Re: bug in changeset 13239:54535665f94b ?
+Message-ID: <20091107124922.7fbf8445@pedra.chehab.org>
+In-Reply-To: <4AF57E8E.5070109@googlemail.com>
+References: <4AEDB05E.1090704@googlemail.com>
+	<20091107104113.0df4593b@pedra.chehab.org>
+	<4AF57E8E.5070109@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Magnus,
+Em Sat, 07 Nov 2009 15:05:02 +0100
+e9hack <e9hack@googlemail.com> escreveu:
 
-Em Thu, 29 Oct 2009 14:41:15 +0100
-Magnus Alm <magnus.alm@gmail.com> escreveu:
-
-> Hi!
+> Mauro Carvalho Chehab schrieb:
 > 
-> I managed to get the remote working now in both in Ubuntu 9.04 (kernel
-> 2.6.28-16) and Ubuntu 9.10 (kernel 2.6.31-14).
+> > I agree. We need first to stop DMA activity, and then release the page tables.
+> > 
+> > Could you please test if the enclosed patch fixes the issue?
 > 
-> There is one difference tho, in the 2.6.28-16 kernel the remote
-> doesn't do anything without configuring lirc.
-> In 2.6.31-14 I can for example adjust volume in X and use the numeric
-> keys to change channels in tvtime without lirc.
-> Don't know why, it just works like that.
+> Hi Mauro,
 > 
-> I've added 3 different examples for a patch as attachment, since the
-> remote can be enabled different ways.
-> (They also changes the basic config for my board.)
-> 
-> ex1.patch only works for kernel 2.6.31.
-> 
-> ex2.patch works for both 2.6.31 and 2.6.28 but can in the future cause
-> problems for boards that would like to use adress 0x1f (0x3e) for IR.
-> (Because of the "case 0x1f" for my board.)
-> 
-> ex3.patch is a combination of ex1 and ex2. where it is depending on if
-> kernel version is higher or lower than 2.6.30.
-> 
-> Dunno which one that would be most suitable.
+> your patch doesn't solve the problem, because saa7146_dma_free() doesn't stop a running
+> dma transfer of the saa7146.
 
-The better is to follow what's specified at the InfraRed section of the API
-spec:
-	http://www.linuxtv.org/downloads/v4l-dvb-apis/ch17.html
+Well, it should be stopping it. The logic is to wait for an incoming dma
+transfer and then disable dma transfers:
 
-It is up to the userspace apps to adopt the standard.
+void saa7146_dma_free(struct saa7146_dev *dev,struct videobuf_queue *q,
+                                                struct saa7146_buf *buf)
+{
+        struct videobuf_dmabuf *dma=videobuf_to_dma(&buf->vb);
+        DEB_EE(("dev:%p, buf:%p\n",dev,buf));
 
-Also, you can easily replace the table at userspace or use lirc.
+        BUG_ON(in_interrupt());
 
-> Another thing is that my board finds an IR device at 0x18 (0x30), but
-> ir-polling doesn't work at that address, so if any board in the future
-> needs that added
-> 0x1f needs to stand before 0x18.
-> This is for the funtion in em28xx-cards if kernel higher than 2.6.30:
-> 
-> 	const unsigned short addr_list[] = {
-> 		 0x1f, 0x30, 0x47, I2C_CLIENT_END			
-> 	};
-> 
-> or in  ir-kbd-i2c for kernel lower than 2.6.30:
-> 
-> static const int probe_em28XX[] = { 0x1f, 0x30, 0x47, -1 };
+        videobuf_waiton(&buf->vb,0,0);
+        videobuf_dma_unmap(q, dma);
+        videobuf_dma_free(dma);
+        buf->vb.state = VIDEOBUF_NEEDS_INIT;
+}
 
-Please send a patch for it.
+Maybe the code for dma_unmap is incomplete?
 
-> 
-> I guess you also might have objections in how I'm naming stuff like
-> "get_key_lwtu2d", maybe it's a bit obscure...
+> Since last weekend, I'm using the attached patch. I'm not
+> sure, if the functionality of video_end() must be split. Maybe the last part of
+> video_end() must be execute at the end of vidioc_streamoff().
 
-Yes, it is. Please choose a better name ;)
+It is not safe to stop at streamoff(), since applications may close the device
+without calling streamoff. The kernel driver should be able to handle such
+situations as well.
 
-Also, please don't add two separate functions (one for 2.6.30 or lower and
-another for upper kernels).
+So, if my patch doesn't work, we'll need to add more bits at saa7146_dma_free().
 
-The most important thing is to send the patches at -p1 format, and to send
-your Signed-off-by. Please read 
-	http://www.linuxtv.org/hg/v4l-dvb/raw-file/tip/README.patches
-
-For more info about how to submit a patch.
-
-
+-- 
 
 Cheers,
 Mauro
