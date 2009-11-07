@@ -1,63 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:47287 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750934AbZKIRbT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2009 12:31:19 -0500
-Date: Mon, 9 Nov 2009 15:30:46 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Valerio Bontempi <valerio.bontempi@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [XC3028] Terretec Cinergy T XS wrong firmware xc3028-v27.fw
-Message-ID: <20091109153046.5a488106@pedra.chehab.org>
-In-Reply-To: <ad6681df0911090919i717a7ac3occdf8e260def2193@mail.gmail.com>
-References: <ad6681df0911090313t17652362v2e92c465b60a92e4@mail.gmail.com>
-	<20091109144647.2f876934@pedra.chehab.org>
-	<ad6681df0911090919i717a7ac3occdf8e260def2193@mail.gmail.com>
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:42399 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753460AbZKGVvw convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Nov 2009 16:51:52 -0500
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Date: Sat, 07 Nov 2009 21:51:55 +0000
+Message-ID: <1257630715.15927.431.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH 35/75] pvrusb2: declare MODULE_FIRMWARE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 9 Nov 2009 18:19:34 +0100
-Valerio Bontempi <valerio.bontempi@gmail.com> escreveu:
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/media/video/pvrusb2/pvrusb2-devattr.c |    4 ++++
+ drivers/media/video/pvrusb2/pvrusb2-hdw.c     |    1 +
+ 2 files changed, 5 insertions(+), 0 deletions(-)
 
-> Hi All,
-> 
-> first thank you for your quick support.
-> I have already extracted and installed the xc3028-v27.fw firmware file
-> following the instructions contained in
-> http://www.linuxtv.org/wiki/index.php/Xceive_XC3028/XC2028#How_to_Obtain_the_Firmware
-> 
-> but with no luck, the device is detected but the dvb device /dev/dvb
-> is not created
+diff --git a/drivers/media/video/pvrusb2/pvrusb2-devattr.c b/drivers/media/video/pvrusb2/pvrusb2-devattr.c
+index e4d7c13..aa65a8d 100644
+--- a/drivers/media/video/pvrusb2/pvrusb2-devattr.c
++++ b/drivers/media/video/pvrusb2/pvrusb2-devattr.c
+@@ -56,6 +56,7 @@ static const struct pvr2_device_client_desc pvr2_cli_29xxx[] = {
+ static const char *pvr2_fw1_names_29xxx[] = {
+ 		"v4l-pvrusb2-29xxx-01.fw",
+ };
++MODULE_FIRMWARE("v4l-pvrusb2-29xxx-01.fw");
+ 
+ static const struct pvr2_device_desc pvr2_device_29xxx = {
+ 		.description = "WinTV PVR USB2 Model Category 29xxx",
+@@ -89,6 +90,7 @@ static const struct pvr2_device_client_desc pvr2_cli_24xxx[] = {
+ static const char *pvr2_fw1_names_24xxx[] = {
+ 		"v4l-pvrusb2-24xxx-01.fw",
+ };
++MODULE_FIRMWARE("v4l-pvrusb2-24xxx-01.fw");
+ 
+ static const struct pvr2_device_desc pvr2_device_24xxx = {
+ 		.description = "WinTV PVR USB2 Model Category 24xxx",
+@@ -338,6 +340,7 @@ static const struct pvr2_device_client_desc pvr2_cli_73xxx[] = {
+ static const char *pvr2_fw1_names_73xxx[] = {
+ 		"v4l-pvrusb2-73xxx-01.fw",
+ };
++MODULE_FIRMWARE("v4l-pvrusb2-73xxx-01.fw");
+ 
+ static const struct pvr2_device_desc pvr2_device_73xxx = {
+ 		.description = "WinTV HVR-1900 Model Category 73xxx",
+@@ -443,6 +446,7 @@ static const struct pvr2_dvb_props pvr2_751xx_dvb_props = {
+ static const char *pvr2_fw1_names_75xxx[] = {
+ 		"v4l-pvrusb2-73xxx-01.fw",
+ };
++MODULE_FIRMWARE("v4l-pvrusb2-73xxx-01.fw");
+ 
+ static const struct pvr2_device_desc pvr2_device_750xx = {
+ 		.description = "WinTV HVR-1950 Model Category 750xx",
+diff --git a/drivers/media/video/pvrusb2/pvrusb2-hdw.c b/drivers/media/video/pvrusb2/pvrusb2-hdw.c
+index 4c1a2a5..97a6713 100644
+--- a/drivers/media/video/pvrusb2/pvrusb2-hdw.c
++++ b/drivers/media/video/pvrusb2/pvrusb2-hdw.c
+@@ -1674,6 +1674,7 @@ int pvr2_upload_firmware2(struct pvr2_hdw *hdw)
+ 	return ret;
+ }
+ 
++MODULE_FIRMWARE(CX2341X_FIRM_ENC_FILENAME);
+ 
+ static const char *pvr2_get_state_name(unsigned int st)
+ {
+-- 
+1.6.5.2
 
-The creation of the DVB interface is not related to firmware. It means that
-the driver you're using doesn't know yet how to make DVB available on your
-device.
-> 
-> Attached you find the v4l-info output.
-> 
-> I think that the extracted firmware is not the right one, since the
-> device is detected correctly.
-> 
-> Just two note:
-> first: until kernel 2.6.31 I was able to use this device compiling
-> em28xx-new source tree, but this driver version is no more compatible
-> with last kernel versions.
-> second: I tried to compile last v4l-dvb source code but the compilation failed.
-> 
-> Is there a way to solve this problem?
-> 
-> Thanks a lot.
-> 
-> Valerio
-> 
-You should try to use the latest driver available at
-http://linuvtv.org/hg/v4l-dvb
 
-I may be mistaken, but the DVB support for this device were added recently. I
-suspect that they were added at 2.6.32-rc1 kernel.
 
-Cheers,
-Mauro
