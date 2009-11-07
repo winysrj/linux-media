@@ -1,54 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:63863 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752249AbZK1Pf7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Nov 2009 10:35:59 -0500
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR 	system?
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: Krzysztof Halasa <khc@pm.waw.pl>
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Jon Smirl <jonsmirl@gmail.com>,
-	Christoph Bartelmus <christoph@bartelmus.de>,
-	jarod@wilsonet.com, awalls@radix.net, dmitry.torokhov@gmail.com,
-	j@jannau.net, jarod@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, superm1@ubuntu.com
-In-Reply-To: <m3zl66y8mo.fsf@intrepid.localdomain>
-References: <9e4733910911270757j648e39ecl7487b7e6c43db828@mail.gmail.com>
-	 <4B104971.4020800@s5r6.in-berlin.de>
-	 <1259370501.11155.14.camel@maxim-laptop>
-	 <m37hta28w9.fsf@intrepid.localdomain>
-	 <1259419368.18747.0.camel@maxim-laptop>
-	 <m3zl66y8mo.fsf@intrepid.localdomain>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 28 Nov 2009 17:35:59 +0200
-Message-ID: <1259422559.18747.6.camel@maxim-laptop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:64387 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752069AbZKGPZH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Nov 2009 10:25:07 -0500
+Received: by bwz27 with SMTP id 27so2104916bwz.21
+        for <linux-media@vger.kernel.org>; Sat, 07 Nov 2009 07:25:11 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <156a113e0911070435w4be2b9dfo17f8e9c910bab437@mail.gmail.com>
+References: <6174dfda0911061223k75f31fd5je33a8e75e9e3c391@mail.gmail.com>
+	 <6174dfda0911061258u254ba6bbh4610291a904edc0a@mail.gmail.com>
+	 <156a113e0911061716t758d7ee3ta709b406c2f074a1@mail.gmail.com>
+	 <6174dfda0911070246v61b5b3f5rdea26406066e3fa4@mail.gmail.com>
+	 <156a113e0911070435w4be2b9dfo17f8e9c910bab437@mail.gmail.com>
+Date: Sat, 7 Nov 2009 10:25:10 -0500
+Message-ID: <829197380911070725y12c984bamb1d157419b991c9a@mail.gmail.com>
+Subject: Re: em28xx based USB Hybrid (Analog & DVB-T) TV Tuner not supported
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Magnus Alm <magnus.alm@gmail.com>
+Cc: Johan Mutsaerts <johmut@gmail.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2009-11-28 at 16:25 +0100, Krzysztof Halasa wrote: 
-> Maxim Levitsky <maximlevitsky@gmail.com> writes:
-> 
-> >> And that's good. Especially for a popular and simple protocol such as
-> >> RC5.
-> >> Actually, it's not about adding the decoder. It's about fixing it.
-> >> I can fix it.
-> >
-> > This is nonsense.
-> 
-> You forgot to say why do you think so.
+On Sat, Nov 7, 2009 at 7:35 AM, Magnus Alm <magnus.alm@gmail.com> wrote:
+> Hi
+>
+> I read some where that trying different card types for a DVB tuner can
+> potentially cause damage to them.
+>
+> You are probably right about the firmare.
+> Do you have a link to the manufacture of your stick?
+> I tried to google the name of it but couldn't found an exact match.
+>
+> The EM2881_BOARD_PINNACLE_HYBRID_PRO uses it's XC3028 to getter with a
+> ZARLINK456
+> as you can see from the following line in em28xx-cards.c
+>
+> case EM2881_BOARD_PINNACLE_HYBRID_PRO:
+>                ctl->demod = XC3028_FE_ZARLINK456;
+>                break;
+>
+> It is probably not compliant with your  Zarlink MT352.
+>
+> There is a mt352 module tho, but I guess it doesn't get loaded when
+> you plug your stick in.
+>
+> I'll pooke around a bit.....
+>
+> PS
+> Use the "reply all", so others can see your mails, since I'm probably
+> one of the least competent guys/gals on this mailing list.
+> DS
+>
+>
+>
+> 2009/11/7 Johan Mutsaerts <johmut@gmail.com>:
+>> Hi Magnus,
+>>
+>> Thanks for a quick reply. Here is some more detailed information:
+>>
+>> My USB device ID is 0xeb1a:0x2881 it is eMPIA based.
+>>
+>> These are the components inside
+>> - Empia EM2880
+>> - Texas Instruments 5150AM1
+>> - XCeive XC3028
+>> - Empia EMP202
+>> - Zarlink MT352
+>>
+>> Difficult for me to get to the windows stuff....
+>>
+>> No /dev/dvb/.... is generated ? Could it have something to do with no Firmware ?
+>>
+>> I found my device to be quite similar to the Pinnacle Hybrid Pro so I tried
+>> sudo rmmod em28xx-dvb
+>> sudo rmmod em28xx-alsa
+>> sudo rmmod em28xx
+>> sudo modprobe em28xx card=53 and card=56
+>> sudo modprobe em28xx-alsa
+>> sudo modprobe em28xx-dvb
+>> However with not much success.
+>> Card=53 cased MeTV to see a tuner but no channels could be found....
+>>
+>> TIA for any assistance you can provide.
+>>
+>> Best Regards,
+>> Johan
+>>
+>> 2009/11/7 Magnus Alm <magnus.alm@gmail.com>:
+>>> Hi!
+>>>
+>>> The dmesg didn't reveal what tuner your stick/card has, it's probably
+>>> a XC2028/XC3028 or something like that.
+>>> Easiest way to find out would be if you could open the cover and have
+>>> a look inside.
+>>>
+>>> If you have access to windows and the pvr program that came with the
+>>> tuner you could do a usb-sniff.
+>>>
+>>> http://www.pcausa.com/Utilities/UsbSnoop/
+>>> or
+>>> http://benoit.papillault.free.fr/usbsnoop/
+>>>
+>>> Switch between different inputs while doing the log, like "dvb",
+>>> "analog" and if it has "svideo"/"composite" input.
+>>>
+>>> copy the windows log to unix and parse the output with parser.pl (I've
+>>> added is as an attachment.)
+>>> I think there is a new parser somewhere, but I forgot the name of it.
+>>>
+>>> I'm also not sure how I used it, but I think it was like this: perl
+>>> parser.pl < "your_windows_log" > "parsed_log"
+>>> That log is needed to  find out what "gpio" your tuner needs for
+>>> different settings.
+>>>
+>>> Don't be scared of the size of the windows log, it gets large, often a
+>>> few hundred MB.
+>>> The parsed log is much smaller,  a few hundred KB.
+>>>
+>>> That is all I can think about atm.
+>>>
+>>> /Magnus Alm
+>>>
+>>>
+>>> 2009/11/6 Johan Mutsaerts <johmut@gmail.com>:
+>>>> Hi,
+>>>>
+>>>> I have an iDream UTVHYL2 USB TV Tuner (with IR remote control) that I
+>>>> cannot get to work with Ubuntu (9.04, 2.6.28-16). I have successfully
+>>>> compiled and installed the em28xx-new driver from linuxtv.org. No
+>>>> /dev/dvb/adapter... is created and that is where it ends for me know.
+>>>> MyTV claims no adapter is detected.
+>>>>
+>>>> I have attached the output of lsusb and dmesg as requested...
+>>>>
+>>>> Please let me know what more I can do and what exactly it is you can do ?
+>>>>
+>>>> Thanks in advance and
+>>>> Best Regards,
+>>>> Johan (Belgium)
 
-Because frankly, I am sick of this discussion.
-Generic decoder that lirc has is actually much better and more tolerant
-that protocol specific decoders that you propose,
+I'm away from Internet access so I can't write an extended answer, but
+I can tell you that XC3028_FE_ZARLINK456 is appropriate for both the
+zarlink zl10353 and m352.
 
-You claim you 'fix' the decoder, right?
-But what about all these lirc userspace drivers?
-How they are supposed to use that 'fixed' decoder.
+Devin
 
-
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
