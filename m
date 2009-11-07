@@ -1,46 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gv-out-0910.google.com ([216.239.58.186]:47479 "EHLO
-	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755652AbZKFQwJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Nov 2009 11:52:09 -0500
-Received: by gv-out-0910.google.com with SMTP id r4so192458gve.37
-        for <linux-media@vger.kernel.org>; Fri, 06 Nov 2009 08:52:14 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <200911061611.24120.linuxtv@mfraz.orangehome.co.uk>
-References: <7fedbc910911060752y215adeccm6dc4d35131c62746@mail.gmail.com>
-	 <c4e36d110911060755rb4303f7pe5f91b5988e9d101@mail.gmail.com>
-	 <7fedbc910911060806s15ecbbfdwb19bbad52682e4cb@mail.gmail.com>
-	 <200911061611.24120.linuxtv@mfraz.orangehome.co.uk>
-Date: Fri, 6 Nov 2009 17:52:14 +0100
-Message-ID: <c4e36d110911060852j7dab9d4cpcc2f34f933a4833@mail.gmail.com>
-Subject: Re: [linux-dvb] Dual tuner DVB-T card on Linux
-From: Zdenek Kabelac <zdenek.kabelac@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:47612 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753324AbZKGVtZ convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Nov 2009 16:49:25 -0500
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Date: Sat, 07 Nov 2009 21:49:28 +0000
+Message-ID: <1257630568.15927.406.camel@localhost>
+Mime-Version: 1.0
+Subject: [PATCH 14/75] bcm3510: declare MODULE_FIRMWARE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/11/6 Mark Fraser <linuxtv@mfraz.orangehome.co.uk>:
-> On Friday 06 Nov 2009 16:06:05 shacky wrote:
->> > WinNova Hauppage
->> > You could have either PCI or USB version.
->> > Work relatively well - open source drivers are easy to fix in case of
->> > problems.
->>
->> Thank you for your answer.
->> I'm looking for this model on the Hauppauge website, but I only found
->> many models of the "WinTV Nova" type.
->> Could you help me please?
->
-> I'm using the Hauppauge Nova-T 500 Dual DVB-T.
->
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/media/dvb/frontends/bcm3510.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Yes - this I've meant for PCI version - it is actually  USB card on
-PCI device - thus  you should be aware you need motherboard that
-handles USB2.0 - but I assume that you do no try to use this on some
-ancient USB1.1 board.
+diff --git a/drivers/media/dvb/frontends/bcm3510.c b/drivers/media/dvb/frontends/bcm3510.c
+index cf5e576..a08bd1f 100644
+--- a/drivers/media/dvb/frontends/bcm3510.c
++++ b/drivers/media/dvb/frontends/bcm3510.c
+@@ -852,3 +852,4 @@ static struct dvb_frontend_ops bcm3510_ops = {
+ MODULE_DESCRIPTION("Broadcom BCM3510 ATSC (8VSB/16VSB & ITU J83 AnnexB FEC QAM64/256) demodulator driver");
+ MODULE_AUTHOR("Patrick Boettcher <patrick.boettcher@desy.de>");
+ MODULE_LICENSE("GPL");
++MODULE_FIRMWARE(BCM3510_DEFAULT_FIRMWARE);
+-- 
+1.6.5.2
 
-Look with USB stick discussion from this week for dual USB version.
 
-Zdenek
+
