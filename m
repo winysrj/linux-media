@@ -1,269 +1,248 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34650 "EHLO comal.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:39253 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755835AbZKRQZR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 11:25:17 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
-Date: Wed, 18 Nov 2009 10:25:21 -0600
-Subject: RE: [PATCH] Davinci VPFE Capture: Add Suspend/Resume Support
-Message-ID: <A69FA2915331DC488A831521EAE36FE401559C5FC0@dlee06.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1258544075-28771-1-git-send-email-hvaibhav@ti.com>
- <A69FA2915331DC488A831521EAE36FE401559C5F1E@dlee06.ent.ti.com>
- <19F8576C6E063C45BE387C64729E7394043702BAB1@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394043702BAB1@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	id S1751686AbZKGNuZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Nov 2009 08:50:25 -0500
+Message-ID: <4AF57C74.8020402@redhat.com>
+Date: Sat, 07 Nov 2009 14:56:04 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
+To: Sean <knife@toaster.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: Another gpsca kernel BUG when disconnecting camera while streaming
+ with mmap
+References: <4AF14B43.6060303@toaster.net>
+In-Reply-To: <4AF14B43.6060303@toaster.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Vaibhav,
+Hi,
 
-Just wondering how to test this on DaVinci platforms.
-Could you tell what you did to test this?
+On 11/04/2009 10:37 AM, Sean wrote:
+> Hi, I am having a bug when removing my pac207 camera while
+> capture-example is streaming with mmap. It doesn't always do it. This is
+> a complete lock up - num lock key stops functioning. A related bug also
+> happens sometimes when capture-example finishes, that output is included.
+>
+> Debug kernel is 2.6.31.5, v4l-dvb version is f6680fa8e7ec.
+> (http://linuxtv.org/hg/v4l-dvb/archive/f6680fa8e7ec.tar.bz2) This is on
+> low end 486 hardware, 128MB ram, 300Mhz cpu.
+>
+> Let me know if I can try anything or if you need more output.
+>
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-phone: 301-407-9583
-email: m-karicheri2@ti.com
+This does not seem to be a gspca specific bug, but you are simply running
+out of memory.
 
->-----Original Message-----
->From: Hiremath, Vaibhav
->Sent: Wednesday, November 18, 2009 10:36 AM
->To: Karicheri, Muralidharan; linux-media@vger.kernel.org
->Cc: hverkuil@xs4all.nl
->Subject: RE: [PATCH] Davinci VPFE Capture: Add Suspend/Resume Support
+The error:
+"unable to handle kernel paging request"
+
+Means the kernel could not find a free memory page for some data structure
+it needed to allocate for itself at the time the oops happened.
+
+Regards,
+
+Hans
+
+
+
+> ------------------
+> pac207 camera removal - complete lock up:
+> ------------------
+> [root@X-Linux]:~ # capture-example
+> ..............................usb 4-2: USB disconnect, address 6
+> BUG: unable to handle kernel paging request at a7a7a7c3
+> IP: [<c11c5cef>] td_free+0x23/0x75
+> *pde = 00000000
+> Oops: 0000 [#1] DEBUG_PAGEALLOC
+> last sysfs file:
+> Modules linked in: gspca_pac207 gspca_main videodev v4l1_compat
+>
+> Pid: 160, comm: khubd Not tainted (2.6.31.5 #2)
+> EIP: 0060:[<c11c5cef>] EFLAGS: 00000087 CPU: 0
+> EIP is at td_free+0x23/0x75
+> EAX: a7a7a7a7 EBX: c6b46bf0 ECX: c6b46ce4 EDX: a7a7a7c3
+> ESI: c6b97880 EDI: c6b46cd4 EBP: c798de78 ESP: c798de6c
+> DS: 007b ES: 007b FS: 0000 GS: 0000 SS: 0068
+> Process khubd (pid: 160, ti=c798c000 task=c7994338 task.ti=c798c000)
+> Stack:
+> c6b46bf0 000003e8 c6b46cd4 c798dea4 c11c8175 c6532ea0 c6b46bf0 00000000
+> <0> c11b518a 00000286 c6b96000 c6b46bf0 c6532ea0 c14062e5 c798deb4 c11b4428
+> <0> c6b36bf0 c6532ea0 c798dec8 c11b5b3f 014234b3 00000006 00000000 c798deec
+> Call Trace:
+> [<c11c8175>] ? ohci_endpoint_disable+0x113/0x192
+> [<c11b518a>] ? usb_free_urb+0x11/0x13
+> [<c11b4428>] ? usb_hcd_disable_endpoint+0x2e/0x32
+> [<c11b5b3f>] ? usb_disable_endpoint+0x6d/0x72
+> [<c11b5bad>] ? usb_disable_device+0x69/0x13a
+> [<c1017619>] ? printk+0x15/0x17
+> [<c11b12a8>] ? usb_disconnect+0xa1/0xf7
+> [<c11b18bf>] ? hub_thread+0x484/0xcec
+> [<c12e23cd>] ? schedule+0x3b0/0x3d5
+> [<c1026151>] ? autoremove_wake_function+0x0/0x33
+> [<c11b143b>] ? hub_thread+0x0/0xcec
+> [<c10260aa>] ? kthread+0x6b/0x71
+> [<c102603f>] ? kthread+0x0/0x71
+> [<c1002f97>] ? kernel_thread_helper+0x7/0x10
+> Code: e5 e8 bf 7b e9 ff 5d c3 55 89 e5 57 89 c7 56 89 d6 53 8b 42 28 89
+> c2 c1 ea 06 31 d0 83 e0 3f 8d 94 87 cc 00 00 00 eb 03 8d 50 1c <8b> 02
+> 85 c0 74 0b 39 f0 75 f3 8b 46 1c 89 02 eb 29 8b 06 25 00
+> EIP: [<c11c5cef>] td_free+0x23/0x75 SS:ESP 0068:c798de6c
+> CR2: 00000000a7a7a7c3
+> ---[ end trace 2ee1dbf620895015 ]---
+> BUG: spinlock lockup on CPU#0, swapper/0, c6b46cd4
+> Pid: 0, comm: swapper Tainted: G D 2.6.31.5 #2
+> Call Trace:
+> [<c111e85c>] _raw_spin_lock+0xad/0xc9
+> [<c12e4210>] _spin_lock_irqsave+0x46/0x5a
+> [<c11c991e>] ohci_hub_status_data+0x1d/0x1d8
+> [<c11b3779>] usb_hcd_poll_rh_status+0x49/0x148
+> [<c11b3880>] rh_timer_func+0x8/0xa
+> [<c101dcbe>] run_timer_softirq+0x154/0x1c3
+> [<c101dc59>] ? run_timer_softirq+0xef/0x1c3
+> [<c11b3878>] ? rh_timer_func+0x0/0xa
+> [<c101a7d9>] __do_softirq+0x9f/0x14d
+> [<c101a8b1>] do_softirq+0x2a/0x42
+> [<c101ab94>] irq_exit+0x33/0x35
+> [<c1004086>] do_IRQ+0x5b/0x71
+> [<c1002e6e>] common_interrupt+0x2e/0x40
+> [<c10018f8>] ? cpu_idle+0x1b/0x35
+> [<c1006d03>] ? default_idle+0x59/0x9c
+> [<c12e007b>] ? sdhci_pci_probe+0x410/0x42c
+> [<c1006d05>] ? default_idle+0x5b/0x9c
+> [<c10018fe>] cpu_idle+0x21/0x35
+> [<c12d3c31>] rest_init+0x4d/0x4f
+> [<c15ed72e>] start_kernel+0x2a6/0x2ad
+> [<c15ed068>] i386_start_kernel+0x68/0x6d
 >
 >
->> -----Original Message-----
->> From: Karicheri, Muralidharan
->> Sent: Wednesday, November 18, 2009 8:55 PM
->> To: Hiremath, Vaibhav; linux-media@vger.kernel.org
->> Cc: hverkuil@xs4all.nl
->> Subject: RE: [PATCH] Davinci VPFE Capture: Add Suspend/Resume
->> Support
->>
->> Vaibhav,
->>
->> Did you validate suspend & resume operations on AM3517?
->>
->[Hiremath, Vaibhav] yes, I think I mentioned in my patch. Do you see any
->issues?
+> ------------------
+> capture-example crash on program end:
+> ------------------
+> [root@X-Linux]:~ # capture-example
+> ......................................................................BUG:
+> sleeping function called from invalid context at arch/x86/mm/fault.c:1069
+> in_atomic(): 0, irqs_disabled(): 1, pid: 1183, name: capture-example
+> 4 locks held by capture-example/1183:
+> #0: (&gspca_dev->queue_lock){+.+.+.}, at: [<c8866fbb>]
+> vidioc_streamoff+0x3b/0xb4 [gspca_main]
+> #1: (&gspca_dev->usb_lock){+.+.+.}, at: [<c8866fce>]
+> vidioc_streamoff+0x4e/0xb4 [gspca_main]
+> #2: (&ohci->lock){-.-...}, at: [<c11c8093>]
+> ohci_endpoint_disable+0x31/0x192
+> #3: (&mm->mmap_sem){++++++}, at: [<c100c168>] do_page_fault+0xc1/0x1fe
+> irq event stamp: 11502
+> hardirqs last enabled at (11501): [<c12e41a0>] _spin_unlock_irq+0x22/0x26
+> hardirqs last disabled at (11502): [<c12e41da>]
+> _spin_lock_irqsave+0x10/0x5a
+> softirqs last enabled at (11486): [<c101a87f>] __do_softirq+0x145/0x14d
+> softirqs last disabled at (11481): [<c101a8b1>] do_softirq+0x2a/0x42
+> Pid: 1183, comm: capture-example Not tainted 2.6.31.5 #2
+> Call Trace:
+> [<c101222d>] __might_sleep+0xcb/0xd0
+> [<c100c1ad>] do_page_fault+0x106/0x1fe
+> [<c100c0a7>] ? do_page_fault+0x0/0x1fe
+> [<c12e43c3>] error_code+0x63/0x70
+> [<c100c0a7>] ? do_page_fault+0x0/0x1fe
+> [<c11c5cef>] ? td_free+0x23/0x75
+> [<c11c8175>] ohci_endpoint_disable+0x113/0x192
+> [<c11b4428>] usb_hcd_disable_endpoint+0x2e/0x32
+> [<c11b5b3f>] usb_disable_endpoint+0x6d/0x72
+> [<c11b5cae>] usb_disable_interface+0x30/0x3f
+> [<c11b70ac>] usb_set_interface+0x11b/0x1a0
+> [<c8866efe>] gspca_set_alt0+0x23/0x46 [gspca_main]
+> [<c8866f56>] gspca_stream_off+0x35/0x5f [gspca_main]
+> [<c8866fd9>] vidioc_streamoff+0x59/0xb4 [gspca_main]
+> [<c881c24a>] __video_do_ioctl+0x17c5/0x39c3 [videodev]
+> [<c1032fa1>] ? __lock_acquire+0x6ef/0x755
+> [<c102f436>] ? lock_release_holdtime+0x81/0x86
+> [<c103315c>] ? lock_release_non_nested+0xab/0x1cf
+> [<c105382f>] ? might_fault+0x3d/0x79
+> [<c105382f>] ? might_fault+0x3d/0x79
+> [<c11123d4>] ? copy_from_user+0x31/0x54
+> [<c881e74b>] video_ioctl2+0x303/0x3ea [videodev]
+> [<c102f436>] ? lock_release_holdtime+0x81/0x86
+> [<c12e430e>] ? _spin_unlock_irqrestore+0x36/0x3c
+> [<c103086c>] ? trace_hardirqs_on_caller+0x104/0x12b
+> [<c103089e>] ? trace_hardirqs_on+0xb/0xd
+> [<c881e448>] ? video_ioctl2+0x0/0x3ea [videodev]
+> [<c881a6c8>] v4l2_unlocked_ioctl+0x2e/0x32 [videodev]
+> [<c881a69a>] ? v4l2_unlocked_ioctl+0x0/0x32 [videodev]
+> [<c106dd91>] vfs_ioctl+0x19/0x50
+> [<c106e36b>] do_vfs_ioctl+0x458/0x4a3
+> [<c1155a42>] ? tty_ldisc_deref+0x8/0xa
+> [<c1150c1c>] ? tty_write+0x1b1/0x1c2
+> [<c1152d69>] ? n_tty_write+0x0/0x2e6
+> [<c1150a6b>] ? tty_write+0x0/0x1c2
+> [<c106431d>] ? vfs_write+0xe3/0xfa
+> [<c1002858>] ? restore_all_notrace+0x0/0x18
+> [<c106e3e2>] sys_ioctl+0x2c/0x45
+> [<c1002825>] syscall_call+0x7/0xb
+> BUG: unable to handle kernel paging request at a7a7a7c3
+> IP: [<c11c5cef>] td_free+0x23/0x75
+> *pde = 00000000
+> Oops: 0000 [#1] DEBUG_PAGEALLOC
+> last sysfs file:
+> Modules linked in: gspca_pac207 gspca_main videodev v4l1_compat
 >
->Thanks,
->Vaibhav
+> Pid: 1183, comm: capture-example Not tainted (2.6.31.5 #2)
+> EIP: 0060:[<c11c5cef>] EFLAGS: 00000083 CPU: 0
+> EIP is at td_free+0x23/0x75
+> EAX: a7a7a7a7 EBX: c6b46bf0 ECX: c6b46ce4 EDX: a7a7a7c3
+> ESI: c6b90840 EDI: c6b46cd4 EBP: c652dcc4 ESP: c652dcb8
+> DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
+> Process capture-example (pid: 1183, ti=c652c000 task=c66fc338
+> task.ti=c652c000)
+> Stack:
+> c6b46bf0 000003e8 c6b46cd4 c652dcf0 c11c8175 c6bb7ea0 c6b46bf0 00000000
+> <0> c6b46bf0 00000292 c6b83040 c6b46bf0 c6bb7ea0 c6baced8 c652dd00 c11b4428
+> <0> c6b44bf0 c6bb7ea0 c652dd14 c11b5b3f 01bb8df0 000000dc 00000005 c652dd30
+> Call Trace:
+> [<c11c8175>] ? ohci_endpoint_disable+0x113/0x192
+> [<c11b4428>] ? usb_hcd_disable_endpoint+0x2e/0x32
+> [<c11b5b3f>] ? usb_disable_endpoint+0x6d/0x72
+> [<c11b5cae>] ? usb_disable_interface+0x30/0x3f
+> [<c11b70ac>] ? usb_set_interface+0x11b/0x1a0
+> [<c8866efe>] ? gspca_set_alt0+0x23/0x46 [gspca_main]
+> [<c8866f56>] ? gspca_stream_off+0x35/0x5f [gspca_main]
+> [<c8866fd9>] ? vidioc_streamoff+0x59/0xb4 [gspca_main]
+> [<c881c24a>] ? __video_do_ioctl+0x17c5/0x39c3 [videodev]
+> [<c1032fa1>] ? __lock_acquire+0x6ef/0x755
+> [<c102f436>] ? lock_release_holdtime+0x81/0x86
+> [<c103315c>] ? lock_release_non_nested+0xab/0x1cf
+> [<c105382f>] ? might_fault+0x3d/0x79
+> [<c105382f>] ? might_fault+0x3d/0x79
+> [<c11123d4>] ? copy_from_user+0x31/0x54
+> [<c881e74b>] ? video_ioctl2+0x303/0x3ea [videodev]
+> [<c102f436>] ? lock_release_holdtime+0x81/0x86
+> [<c12e430e>] ? _spin_unlock_irqrestore+0x36/0x3c
+> [<c103086c>] ? trace_hardirqs_on_caller+0x104/0x12b
+> [<c103089e>] ? trace_hardirqs_on+0xb/0xd
+> [<c881e448>] ? video_ioctl2+0x0/0x3ea [videodev]
+> [<c881a6c8>] ? v4l2_unlocked_ioctl+0x2e/0x32 [videodev]
+> [<c881a69a>] ? v4l2_unlocked_ioctl+0x0/0x32 [videodev]
+> [<c106dd91>] ? vfs_ioctl+0x19/0x50
+> [<c106e36b>] ? do_vfs_ioctl+0x458/0x4a3
+> [<c1155a42>] ? tty_ldisc_deref+0x8/0xa
+> [<c1150c1c>] ? tty_write+0x1b1/0x1c2
+> [<c1152d69>] ? n_tty_write+0x0/0x2e6
+> [<c1150a6b>] ? tty_write+0x0/0x1c2
+> [<c106431d>] ? vfs_write+0xe3/0xfa
+> [<c1002858>] ? restore_all_notrace+0x0/0x18
+> [<c106e3e2>] ? sys_ioctl+0x2c/0x45
+> [<c1002825>] ? syscall_call+0x7/0xb
+> Code: e5 e8 bf 7b e9 ff 5d c3 55 89 e5 57 89 c7 56 89 d6 53 8b 42 28 89
+> c2 c1 ea 06 31 d0 83 e0 3f 8d 94 87 cc 00 00 00 eb 03 8d 50 1c <8b> 02
+> 85 c0 74 0b 39 f0 75 f3 8b 46 1c 89 02 eb 29 8b 06 25 00
+> EIP: [<c11c5cef>] td_free+0x23/0x75 SS:ESP 0068:c652dcb8
+> CR2: 00000000a7a7a7c3
+> ---[ end trace 0f832b0b46200cb4 ]---
 >
->> Murali Karicheri
->> Software Design Engineer
->> Texas Instruments Inc.
->> Germantown, MD 20874
->> phone: 301-407-9583
->> email: m-karicheri2@ti.com
->>
->> >-----Original Message-----
->> >From: Hiremath, Vaibhav
->> >Sent: Wednesday, November 18, 2009 6:35 AM
->> >To: linux-media@vger.kernel.org
->> >Cc: hverkuil@xs4all.nl; Karicheri, Muralidharan; Hiremath, Vaibhav
->> >Subject: [PATCH] Davinci VPFE Capture: Add Suspend/Resume Support
->> >
->> >From: Vaibhav Hiremath <hvaibhav@ti.com>
->> >
->> >Validated on AM3517 Platform.
->> >
->> >Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
->> >---
->> > drivers/media/video/davinci/ccdc_hw_device.h |    4 +
->> > drivers/media/video/davinci/dm644x_ccdc.c    |   87
->> >++++++++++++++++++++++++++
->> > drivers/media/video/davinci/vpfe_capture.c   |   29 ++++++---
->> > 3 files changed, 112 insertions(+), 8 deletions(-)
->> >
->> >diff --git a/drivers/media/video/davinci/ccdc_hw_device.h
->> >b/drivers/media/video/davinci/ccdc_hw_device.h
->> >index 86b9b35..2a1ead4 100644
->> >--- a/drivers/media/video/davinci/ccdc_hw_device.h
->> >+++ b/drivers/media/video/davinci/ccdc_hw_device.h
->> >@@ -91,6 +91,10 @@ struct ccdc_hw_ops {
->> > 	void (*setfbaddr) (unsigned long addr);
->> > 	/* Pointer to function to get field id */
->> > 	int (*getfid) (void);
->> >+
->> >+	/* suspend/resume support */
->> >+	void (*save_context)(void);
->> >+	void (*restore_context)(void);
->> > };
->> >
->> > struct ccdc_hw_device {
->> >diff --git a/drivers/media/video/davinci/dm644x_ccdc.c
->> >b/drivers/media/video/davinci/dm644x_ccdc.c
->> >index 5dff8d9..fdab823 100644
->> >--- a/drivers/media/video/davinci/dm644x_ccdc.c
->> >+++ b/drivers/media/video/davinci/dm644x_ccdc.c
->> >@@ -88,6 +88,10 @@ static void *__iomem ccdc_base_addr;
->> > static int ccdc_addr_size;
->> > static enum vpfe_hw_if_type ccdc_if_type;
->> >
->> >+#define CCDC_SZ_REGS			SZ_1K
->> >+
->> >+static u32 ccdc_ctx[CCDC_SZ_REGS / sizeof(u32)];
->> >+
->> > /* register access routines */
->> > static inline u32 regr(u32 offset)
->> > {
->> >@@ -834,6 +838,87 @@ static int ccdc_set_hw_if_params(struct
->> >vpfe_hw_if_param *params)
->> > 	return 0;
->> > }
->> >
->> >+static void ccdc_save_context(void)
->> >+{
->> >+	ccdc_ctx[CCDC_PCR] = regr(CCDC_PCR);
->> >+	ccdc_ctx[CCDC_SYN_MODE] = regr(CCDC_SYN_MODE);
->> >+	ccdc_ctx[CCDC_HD_VD_WID] = regr(CCDC_HD_VD_WID);
->> >+	ccdc_ctx[CCDC_PIX_LINES] = regr(CCDC_PIX_LINES);
->> >+	ccdc_ctx[CCDC_HORZ_INFO] = regr(CCDC_HORZ_INFO);
->> >+	ccdc_ctx[CCDC_VERT_START] = regr(CCDC_VERT_START);
->> >+	ccdc_ctx[CCDC_VERT_LINES] = regr(CCDC_VERT_LINES);
->> >+	ccdc_ctx[CCDC_CULLING] = regr(CCDC_CULLING);
->> >+	ccdc_ctx[CCDC_HSIZE_OFF] = regr(CCDC_HSIZE_OFF);
->> >+	ccdc_ctx[CCDC_SDOFST] = regr(CCDC_SDOFST);
->> >+	ccdc_ctx[CCDC_SDR_ADDR] = regr(CCDC_SDR_ADDR);
->> >+	ccdc_ctx[CCDC_CLAMP] = regr(CCDC_CLAMP);
->> >+	ccdc_ctx[CCDC_DCSUB] = regr(CCDC_DCSUB);
->> >+	ccdc_ctx[CCDC_COLPTN] = regr(CCDC_COLPTN);
->> >+	ccdc_ctx[CCDC_BLKCMP] = regr(CCDC_BLKCMP);
->> >+	ccdc_ctx[CCDC_FPC] = regr(CCDC_FPC);
->> >+	ccdc_ctx[CCDC_FPC_ADDR] = regr(CCDC_FPC_ADDR);
->> >+	ccdc_ctx[CCDC_VDINT] = regr(CCDC_VDINT);
->> >+	ccdc_ctx[CCDC_ALAW] = regr(CCDC_ALAW);
->> >+	ccdc_ctx[CCDC_REC656IF] = regr(CCDC_REC656IF);
->> >+	ccdc_ctx[CCDC_CCDCFG] = regr(CCDC_CCDCFG);
->> >+	ccdc_ctx[CCDC_FMTCFG] = regr(CCDC_FMTCFG);
->> >+	ccdc_ctx[CCDC_FMT_HORZ] = regr(CCDC_FMT_HORZ);
->> >+	ccdc_ctx[CCDC_FMT_VERT] = regr(CCDC_FMT_VERT);
->> >+	ccdc_ctx[CCDC_FMT_ADDR0] = regr(CCDC_FMT_ADDR0);
->> >+	ccdc_ctx[CCDC_FMT_ADDR1] = regr(CCDC_FMT_ADDR1);
->> >+	ccdc_ctx[CCDC_FMT_ADDR2] = regr(CCDC_FMT_ADDR2);
->> >+	ccdc_ctx[CCDC_FMT_ADDR3] = regr(CCDC_FMT_ADDR3);
->> >+	ccdc_ctx[CCDC_FMT_ADDR4] = regr(CCDC_FMT_ADDR4);
->> >+	ccdc_ctx[CCDC_FMT_ADDR5] = regr(CCDC_FMT_ADDR5);
->> >+	ccdc_ctx[CCDC_FMT_ADDR6] = regr(CCDC_FMT_ADDR6);
->> >+	ccdc_ctx[CCDC_FMT_ADDR7] = regr(CCDC_FMT_ADDR7);
->> >+	ccdc_ctx[CCDC_PRGEVEN_0] = regr(CCDC_PRGEVEN_0);
->> >+	ccdc_ctx[CCDC_PRGEVEN_1] = regr(CCDC_PRGEVEN_1);
->> >+	ccdc_ctx[CCDC_PRGODD_0] = regr(CCDC_PRGODD_0);
->> >+	ccdc_ctx[CCDC_PRGODD_1] = regr(CCDC_PRGODD_1);
->> >+	ccdc_ctx[CCDC_VP_OUT] = regr(CCDC_VP_OUT);
->> >+}
->> >+
->> >+static void ccdc_restore_context(void)
->> >+{
->> >+	regw(ccdc_ctx[CCDC_SYN_MODE], CCDC_SYN_MODE);
->> >+	regw(ccdc_ctx[CCDC_HD_VD_WID], CCDC_HD_VD_WID);
->> >+	regw(ccdc_ctx[CCDC_PIX_LINES], CCDC_PIX_LINES);
->> >+	regw(ccdc_ctx[CCDC_HORZ_INFO], CCDC_HORZ_INFO);
->> >+	regw(ccdc_ctx[CCDC_VERT_START], CCDC_VERT_START);
->> >+	regw(ccdc_ctx[CCDC_VERT_LINES], CCDC_VERT_LINES);
->> >+	regw(ccdc_ctx[CCDC_CULLING], CCDC_CULLING);
->> >+	regw(ccdc_ctx[CCDC_HSIZE_OFF], CCDC_HSIZE_OFF);
->> >+	regw(ccdc_ctx[CCDC_SDOFST], CCDC_SDOFST);
->> >+	regw(ccdc_ctx[CCDC_SDR_ADDR], CCDC_SDR_ADDR);
->> >+	regw(ccdc_ctx[CCDC_CLAMP], CCDC_CLAMP);
->> >+	regw(ccdc_ctx[CCDC_DCSUB], CCDC_DCSUB);
->> >+	regw(ccdc_ctx[CCDC_COLPTN], CCDC_COLPTN);
->> >+	regw(ccdc_ctx[CCDC_BLKCMP], CCDC_BLKCMP);
->> >+	regw(ccdc_ctx[CCDC_FPC], CCDC_FPC);
->> >+	regw(ccdc_ctx[CCDC_FPC_ADDR], CCDC_FPC_ADDR);
->> >+	regw(ccdc_ctx[CCDC_VDINT], CCDC_VDINT);
->> >+	regw(ccdc_ctx[CCDC_ALAW], CCDC_ALAW);
->> >+	regw(ccdc_ctx[CCDC_REC656IF], CCDC_REC656IF);
->> >+	regw(ccdc_ctx[CCDC_CCDCFG], CCDC_CCDCFG);
->> >+	regw(ccdc_ctx[CCDC_FMTCFG], CCDC_FMTCFG);
->> >+	regw(ccdc_ctx[CCDC_FMT_HORZ], CCDC_FMT_HORZ);
->> >+	regw(ccdc_ctx[CCDC_FMT_VERT], CCDC_FMT_VERT);
->> >+	regw(ccdc_ctx[CCDC_FMT_ADDR0], CCDC_FMT_ADDR0);
->> >+	regw(ccdc_ctx[CCDC_FMT_ADDR1], CCDC_FMT_ADDR1);
->> >+	regw(ccdc_ctx[CCDC_FMT_ADDR2], CCDC_FMT_ADDR2);
->> >+	regw(ccdc_ctx[CCDC_FMT_ADDR3], CCDC_FMT_ADDR3);
->> >+	regw(ccdc_ctx[CCDC_FMT_ADDR4], CCDC_FMT_ADDR4);
->> >+	regw(ccdc_ctx[CCDC_FMT_ADDR5], CCDC_FMT_ADDR5);
->> >+	regw(ccdc_ctx[CCDC_FMT_ADDR6], CCDC_FMT_ADDR6);
->> >+	regw(ccdc_ctx[CCDC_FMT_ADDR7], CCDC_FMT_ADDR7);
->> >+	regw(ccdc_ctx[CCDC_PRGEVEN_0], CCDC_PRGEVEN_0);
->> >+	regw(ccdc_ctx[CCDC_PRGEVEN_1], CCDC_PRGEVEN_1);
->> >+	regw(ccdc_ctx[CCDC_PRGODD_0], CCDC_PRGODD_0);
->> >+	regw(ccdc_ctx[CCDC_PRGODD_1], CCDC_PRGODD_1);
->> >+	regw(ccdc_ctx[CCDC_VP_OUT], CCDC_VP_OUT);
->> >+	regw(ccdc_ctx[CCDC_PCR], CCDC_PCR);
->> >+}
->> > static struct ccdc_hw_device ccdc_hw_dev = {
->> > 	.name = "DM6446 CCDC",
->> > 	.owner = THIS_MODULE,
->> >@@ -858,6 +943,8 @@ static struct ccdc_hw_device ccdc_hw_dev = {
->> > 		.get_line_length = ccdc_get_line_length,
->> > 		.setfbaddr = ccdc_setfbaddr,
->> > 		.getfid = ccdc_getfid,
->> >+		.save_context = ccdc_save_context,
->> >+		.restore_context = ccdc_restore_context,
->> > 	},
->> > };
->> >
->> >diff --git a/drivers/media/video/davinci/vpfe_capture.c
->> >b/drivers/media/video/davinci/vpfe_capture.c
->> >index 9c859a7..9b6b254 100644
->> >--- a/drivers/media/video/davinci/vpfe_capture.c
->> >+++ b/drivers/media/video/davinci/vpfe_capture.c
->> >@@ -2394,18 +2394,31 @@ static int vpfe_remove(struct
->> platform_device
->> >*pdev)
->> > 	return 0;
->> > }
->> >
->> >-static int
->> >-vpfe_suspend(struct device *dev)
->> >+static int vpfe_suspend(struct device *dev)
->> > {
->> >-	/* add suspend code here later */
->> >-	return -1;
->> >+	struct vpfe_device *vpfe_dev = dev_get_drvdata(dev);;
->> >+
->> >+	if (ccdc_dev->hw_ops.save_context)
->> >+		ccdc_dev->hw_ops.save_context();
->> >+	ccdc_dev->hw_ops.enable(0);
->> >+
->> >+	if (vpfe_dev)
->> >+		vpfe_disable_clock(vpfe_dev);
->> >+
->> >+	return 0;
->> > }
->> >
->> >-static int
->> >-vpfe_resume(struct device *dev)
->> >+static int vpfe_resume(struct device *dev)
->> > {
->> >-	/* add resume code here later */
->> >-	return -1;
->> >+	struct vpfe_device *vpfe_dev = dev_get_drvdata(dev);;
->> >+
->> >+	if (vpfe_dev)
->> >+		vpfe_enable_clock(vpfe_dev);
->> >+
->> >+	if (ccdc_dev->hw_ops.restore_context)
->> >+		ccdc_dev->hw_ops.restore_context();
->> >+
->> >+	return 0;
->> > }
->> >
->> > static struct dev_pm_ops vpfe_dev_pm_ops = {
->> >--
->> >1.6.2.4
-
+>
+> Sean Lazar
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at http://vger.kernel.org/majordomo-info.html
