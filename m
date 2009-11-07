@@ -1,631 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53598 "EHLO bear.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:60217 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932394AbZKRTBj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 14:01:39 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>
-Date: Wed, 18 Nov 2009 13:01:43 -0600
-Subject: RE: [PATCH v2] V4L - Adding Digital Video Timings APIs
-Message-ID: <A69FA2915331DC488A831521EAE36FE401559C6120@dlee06.ent.ti.com>
-References: <1258563824-1310-1-git-send-email-m-karicheri2@ti.com>
- <200911181908.51793.hverkuil@xs4all.nl>
-In-Reply-To: <200911181908.51793.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-MIME-Version: 1.0
+	id S1752282AbZKGQiA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Nov 2009 11:38:00 -0500
+Date: Sat, 7 Nov 2009 14:37:57 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [GIT PATCHES for 2.6.32] V4L/DVB fixes
+Message-ID: <20091107143757.5a9453dc@pedra.chehab.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans,
+Linus,
 
-Thanks for reviewing this. I will try to send an updated patch today.
+Please pull from:
+        ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git for_linus
 
-BTW, I have posted the documentation patch to the list for review.
+For a couple of fixes:
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-phone: 301-407-9583
-email: m-karicheri2@ti.com
+   - v4l-core: fix use-after-free Oops;
+   - Build system: fix build dependency for dib0700 and pt1;
+   - Some fixes for panic and oops conditions, on dib0700 and em28xx;
+   - An old, hard to notice frame order error at bttv driver (noticed only with certain
+     de-interlacing algorithms);
+   - Several fixes on drivers (tda18271, gspca, sh_mobile_ceu_camera, pxa_camera, bttv,
+	smsusb, s2255, firedtv, pxa-camera, ce6230, uvcvideo and saa7134).
 
->-----Original Message-----
->From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
->Sent: Wednesday, November 18, 2009 1:09 PM
->To: Karicheri, Muralidharan
->Cc: linux-media@vger.kernel.org; davinci-linux-open-
->source@linux.davincidsp.com
->Subject: Re: [PATCH v2] V4L - Adding Digital Video Timings APIs
->
->On Wednesday 18 November 2009 18:03:44 m-karicheri2@ti.com wrote:
->> From: Muralidharan Karicheri <m-karicheri2@ti.com>
->>
->> This is the second version of the digital video timings APIs
->implementation.
->> This adds comment from previous version. I would like to have this
->> merged to 2.6.33
->
->Me too :-)
->
->> This adds the above APIs to the v4l2 core. This is based on version v1.2
->> of the RFC titled "V4L - Support for video timings at the input/output
->interface"
->> Following new ioctls are added:-
->>
->>      - VIDIOC_ENUM_DV_PRESETS
->>      - VIDIOC_S_DV_PRESET
->>      - VIDIOC_G_DV_PRESET
->>      - VIDIOC_QUERY_DV_PRESET
->>      - VIDIOC_S_DV_TIMINGS
->>      - VIDIOC_G_DV_TIMINGS
->>
->> Please refer to the RFC for the details. This code was tested using vpfe
->> capture driver on TI's DM365. Following is the test configuration used :-
->>
->> Blue Ray HD DVD source -> TVP7002 -> DM365 (VPFE) ->DDR
->>
->> A draft version of the TVP7002 driver (currently being reviewed in the
->mailing
->> list) was used that supports V4L2_DV_1080I60 & V4L2_DV_720P60 presets.
->>
->> A loopback video capture application was used for testing these APIs.
->This calls
->> following IOCTLS :-
->>
->>  -  verify the new v4l2_input capabilities flag added
->>  -  Enumerate available presets using VIDIOC_ENUM_DV_PRESETS
->>  -  Set one of the supported preset using VIDIOC_S_DV_PRESET
->>  -  Get current preset using VIDIOC_G_DV_PRESET
->>  -  Detect current preset using VIDIOC_QUERY_DV_PRESET
->>  -  Using stub functions in tvp7002, verify VIDIOC_S_DV_TIMINGS
->>     and VIDIOC_G_DV_TIMINGS ioctls are received at the sub device.
->>
->> TODOs :
->>
->>  - Test it on a 64bit platform - I need help here since I don't have the
->platform.
->
->It compiles without warnings :-)
->
->>  - Add documentation (I will send another patch for this today).
->>  - Update v4l2-apps for the new ioctl (will send another patch after
->>    compilation issue is resolved)
->>
->> Please review this and let me know your comments.
->
->I found a few small things, see comments below.
->
->> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
->> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
->> ---
->> Applies to V4L-DVB linux-next branch
->>
->>  drivers/media/video/v4l2-compat-ioctl32.c |    7 ++
->>  drivers/media/video/v4l2-ioctl.c          |  148
->+++++++++++++++++++++++++++++
->>  include/linux/videodev2.h                 |  136
->++++++++++++++++++++++++++-
->>  include/media/v4l2-ioctl.h                |   15 +++
->>  include/media/v4l2-subdev.h               |   21 ++++
->>  5 files changed, 325 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c
->b/drivers/media/video/v4l2-compat-ioctl32.c
->> index 997975d..9277448 100644
->> --- a/drivers/media/video/v4l2-compat-ioctl32.c
->> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
->> @@ -1077,6 +1077,13 @@ long v4l2_compat_ioctl32(struct file *file,
->unsigned int cmd, unsigned long arg)
->>      case VIDIOC_DBG_G_REGISTER:
->>      case VIDIOC_DBG_G_CHIP_IDENT:
->>      case VIDIOC_S_HW_FREQ_SEEK:
->> +    case VIDIOC_ENUM_DV_PRESETS:
->> +    case VIDIOC_S_DV_PRESET:
->> +    case VIDIOC_G_DV_PRESET:
->> +    case VIDIOC_QUERY_DV_PRESET:
->> +    case VIDIOC_S_DV_TIMINGS:
->> +    case VIDIOC_G_DV_TIMINGS:
->> +
->
->No need for this extra empty line.
->
->>              ret = do_video_ioctl(file, cmd, arg);
->>              break;
->>
->> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-
->ioctl.c
->> index 30cc334..9593720 100644
->> --- a/drivers/media/video/v4l2-ioctl.c
->> +++ b/drivers/media/video/v4l2-ioctl.c
->> @@ -284,6 +284,12 @@ static const char *v4l2_ioctls[] = {
->>      [_IOC_NR(VIDIOC_DBG_G_CHIP_IDENT)] = "VIDIOC_DBG_G_CHIP_IDENT",
->>      [_IOC_NR(VIDIOC_S_HW_FREQ_SEEK)]   = "VIDIOC_S_HW_FREQ_SEEK",
->>  #endif
->> +    [_IOC_NR(VIDIOC_ENUM_DV_PRESETS)]  = "VIDIOC_ENUM_DV_PRESETS",
->> +    [_IOC_NR(VIDIOC_S_DV_PRESET)]      = "VIDIOC_S_DV_PRESET",
->> +    [_IOC_NR(VIDIOC_G_DV_PRESET)]      = "VIDIOC_G_DV_PRESET",
->> +    [_IOC_NR(VIDIOC_QUERY_DV_PRESET)]  = "VIDIOC_QUERY_DV_PRESET",
->> +    [_IOC_NR(VIDIOC_S_DV_TIMINGS)]     = "VIDIOC_S_DV_TIMINGS",
->> +    [_IOC_NR(VIDIOC_G_DV_TIMINGS)]     = "VIDIOC_G_DV_TIMINGS",
->>  };
->>  #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
->>
->> @@ -1135,6 +1141,19 @@ static long __video_do_ioctl(struct file *file,
->>      {
->>              struct v4l2_input *p = arg;
->>
->> +            /**
->> +             * We set the flags for CAP_PRESETS, CAP_CUSTOM_TIMINGS &
->> +             * CAP_STD here based on ioctl handler provided by the
->> +             * driver. If the driver doesn't support these
->> +             * for a specific input, it must override these flags.
->> +             */
->> +            if (ops->vidioc_s_std)
->> +                    p->capabilities |= V4L2_IN_CAP_STD;
->> +            if (ops->vidioc_s_dv_preset)
->> +                    p->capabilities |= V4L2_IN_CAP_PRESETS;
->> +            if (ops->vidioc_s_dv_timings)
->> +                    p->capabilities |= V4L2_IN_CAP_CUSTOM_TIMINGS;
->> +
->>              if (!ops->vidioc_enum_input)
->>                      break;
->>
->> @@ -1179,6 +1198,19 @@ static long __video_do_ioctl(struct file *file,
->>              if (!ops->vidioc_enum_output)
->>                      break;
->>
->> +            /**
->> +             * We set the flags for CAP_PRESETS, CAP_CUSTOM_TIMINGS &
->> +             * CAP_STD here based on ioctl handler provided by the
->> +             * driver. If the driver doesn't support these
->> +             * for a specific output , it must override these flags.
->
->Nitpick: remove space before comma.
->
->> +             */
->> +            if (ops->vidioc_s_std)
->> +                    p->capabilities |= V4L2_OUT_CAP_STD;
->> +            if (ops->vidioc_s_dv_preset)
->> +                    p->capabilities |= V4L2_OUT_CAP_PRESETS;
->> +            if (ops->vidioc_s_dv_timings)
->> +                    p->capabilities |= V4L2_OUT_CAP_CUSTOM_TIMINGS;
->> +
->>              ret = ops->vidioc_enum_output(file, fh, p);
->>              if (!ret)
->>                      dbgarg(cmd, "index=%d, name=%s, type=%d, "
->> @@ -1794,6 +1826,122 @@ static long __video_do_ioctl(struct file *file,
->>              }
->>              break;
->>      }
->> +    case VIDIOC_ENUM_DV_PRESETS:
->> +    {
->> +            struct v4l2_dv_enum_preset *p = arg;
->> +
->> +            if (!ops->vidioc_enum_dv_presets)
->> +                    break;
->> +
->> +            ret = ops->vidioc_enum_dv_presets(file, fh, p);
->> +            if (!ret)
->> +                    dbgarg(cmd,
->> +                            "index=%d, preset=%d, name=%s, width=%d,"
->> +                            " height=%d ",
->> +                            p->index, p->preset, p->name, p->width,
->> +                            p->height);
->> +            break;
->> +    }
->> +    case VIDIOC_S_DV_PRESET:
->> +    {
->> +            struct v4l2_dv_preset *p = arg;
->> +
->> +            if (!ops->vidioc_s_dv_preset)
->> +                    break;
->> +
->> +            dbgarg(cmd, "preset=%d\n", p->preset);
->> +            ret = ops->vidioc_s_dv_preset(file, fh, p);
->> +            break;
->> +    }
->> +    case VIDIOC_G_DV_PRESET:
->> +    {
->> +            struct v4l2_dv_preset *p = arg;
->> +
->> +            if (!ops->vidioc_g_dv_preset)
->> +                    break;
->> +
->> +            ret = ops->vidioc_g_dv_preset(file, fh, p);
->> +            if (!ret)
->> +                    dbgarg(cmd, "preset=%d\n", p->preset);
->> +            break;
->> +    }
->> +    case VIDIOC_QUERY_DV_PRESET:
->> +    {
->> +            struct v4l2_dv_preset *p = arg;
->> +
->> +            if (!ops->vidioc_query_dv_preset)
->> +                    break;
->> +
->> +            ret = ops->vidioc_query_dv_preset(file, fh, p);
->> +            if (!ret)
->> +                    dbgarg(cmd, "preset=%d\n", p->preset);
->> +            break;
->> +    }
->> +    case VIDIOC_S_DV_TIMINGS:
->> +    {
->> +            struct v4l2_dv_timings *p = arg;
->> +
->> +            if (!ops->vidioc_s_dv_timings)
->> +                    break;
->> +
->> +            dbgarg(cmd, "type=%d", p->type);
->> +            switch (p->type) {
->> +            case V4L2_DV_BT_656_1120:
->> +                    dbgarg2("interlaced=%d, pixelclock=%lld,"
->
->Rather than break up the debug line, I would suggest removing the 'type='
->debug
->line and prefix this one with "bt-656/1120: ".
->
->> +                            " width=%d, height=%d, polarities=%x,"
->> +                            " hfrontporch=%d, hsync=%d, hbackporch=%d,"
->> +                            " vfrontporch=%d, vsync=%d, vbackporch=%d,"
->> +                            " il_vfrontporch=%d, il_vsync=%d,"
->> +                            " il_vbackporch=%d\n",
->> +                            p->bt.interlaced, p->bt.pixelclock,
->> +                            p->bt.width, p->bt.height, p->bt.polarities,
->> +                            p->bt.hfrontporch, p->bt.hsync,
->> +                            p->bt.hbackporch, p->bt.vfrontporch,
->> +                            p->bt.vsync, p->bt.vbackporch,
->> +                            p->bt.il_vfrontporch, p->bt.il_vsync,
->> +                            p->bt.il_vbackporch);
->> +                    ret = ops->vidioc_s_dv_timings(file, fh, p);
->> +                    break;
->> +            default:
->> +                    dbgarg2("- Unknown type!\n");
->
->This will then become "Unknown type %d!\n".
->
->> +                    break;
->> +            }
->> +            break;
->> +    }
->> +    case VIDIOC_G_DV_TIMINGS:
->> +    {
->> +            struct v4l2_dv_timings *p = arg;
->> +
->> +            if (!ops->vidioc_g_dv_timings)
->> +                    break;
->> +
->> +            dbgarg(cmd, "type=%d", p->type);
->
->Ditto.
->
->> +            ret = ops->vidioc_g_dv_timings(file, fh, p);
->> +            if (!ret) {
->> +                    switch (p->type) {
->> +                    case V4L2_DV_BT_656_1120:
->> +                            dbgarg2("interlaced=%d, pixelclock=%lld,"
->> +                                    " width=%d, height=%d, polarities=%x,"
->> +                                    " hfrontporch=%d, hsync=%d,"
->> +                                    " hbackporch=%d, vfrontporch=%d,"
->> +                                    " vsync=%d, vbackporch=%d,"
->> +                                    " il_vfrontporch=%d, il_vsync=%d,"
->> +                                    " il_vbackporch=%d\n",
->> +                                    p->bt.interlaced, p->bt.pixelclock,
->> +                                    p->bt.width, p->bt.height,
->> +                                    p->bt.polarities, p->bt.hfrontporch,
->> +                                    p->bt.hsync, p->bt.hbackporch,
->> +                                    p->bt.vfrontporch, p->bt.vsync,
->> +                                    p->bt.vbackporch, p->bt.il_vfrontporch,
->> +                                    p->bt.il_vsync, p->bt.il_vbackporch);
->> +                            break;
->> +                    default:
->> +                            dbgarg2("- Unknown type!\n");
->> +                            break;
->> +                    }
->> +            }
->> +            break;
->> +    }
->>
->>      default:
->>      {
->> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
->> index cfde111..5bcc4ab 100644
->> --- a/include/linux/videodev2.h
->> +++ b/include/linux/videodev2.h
->> @@ -731,6 +731,119 @@ struct v4l2_standard {
->>  };
->>
->>  /*
->> + *  V I D E O       T I M I N G S   D V     P R E S E T
->> + */
->> +struct v4l2_dv_preset {
->> +    __u32   preset;
->> +    __u32   reserved[4];
->> +};
->> +
->> +/*
->> + *  D V     P R E S E T S   E N U M E R A T I O N
->> + */
->> +struct v4l2_dv_enum_preset {
->> +    __u32   index;
->> +    __u32   preset;
->> +    __u8    name[32]; /* Name of the preset timing */
->> +    __u32   width;
->> +    __u32   height;
->> +    __u32   reserved[4];
->> +};
->> +
->> +/*
->> + *  D V     P R E S E T     V A L U E S
->> + */
->> +#define             V4L2_DV_PRESET_BASE     0x00000000
->
->Why do we need a PRESET_BASE define? I'd just start counting at 0.
->
->> +#define             V4L2_DV_INVALID         (V4L2_DV_PRESET_BASE + 0)
->> +/* BT.1362 */
->
->Append this define at the end of the previous line. Without the PRESET_BASE
->there is enough room for it.
->
->> +#define             V4L2_DV_480P59_94       (V4L2_DV_PRESET_BASE + 1)
->> +/* BT.1362 */
->> +#define             V4L2_DV_576P50          (V4L2_DV_PRESET_BASE + 2)
->> +/* SMPTE 296M */
->> +#define             V4L2_DV_720P24          (V4L2_DV_PRESET_BASE + 3)
->> +/* SMPTE 296M */
->> +#define             V4L2_DV_720P25          (V4L2_DV_PRESET_BASE + 4)
->> +/* SMPTE 296M */
->> +#define             V4L2_DV_720P30          (V4L2_DV_PRESET_BASE + 5)
->> +/* SMPTE 296M */
->> +#define             V4L2_DV_720P50          (V4L2_DV_PRESET_BASE + 6)
->> +/* SMPTE 274M */
->> +#define             V4L2_DV_720P59_94       (V4L2_DV_PRESET_BASE + 7)
->> +/* SMPTE 274M/296M */
->> +#define             V4L2_DV_720P60          (V4L2_DV_PRESET_BASE + 8)
->> +/* BT.1120/ SMPTE 274M */
->> +#define             V4L2_DV_1080I29_97      (V4L2_DV_PRESET_BASE + 9)
->> +/* BT.1120/ SMPTE 274M */
->> +#define             V4L2_DV_1080I30         (V4L2_DV_PRESET_BASE + 10)
->> +/* BT.1120 */
->> +#define             V4L2_DV_1080I25         (V4L2_DV_PRESET_BASE + 11)
->> +/* SMPTE 296M */
->> +#define             V4L2_DV_1080I50         (V4L2_DV_PRESET_BASE + 12)
->> +/* SMPTE 296M */
->> +#define             V4L2_DV_1080I60         (V4L2_DV_PRESET_BASE + 13)
->> +/* SMPTE 296M */
->> +#define             V4L2_DV_1080P24         (V4L2_DV_PRESET_BASE + 14)
->> +/* SMPTE 296M */
->> +#define             V4L2_DV_1080P25         (V4L2_DV_PRESET_BASE + 15)
->> +/* SMPTE 296M */
->> +#define             V4L2_DV_1080P30         (V4L2_DV_PRESET_BASE + 16)
->> +/* BT.1120 */
->> +#define             V4L2_DV_1080P50         (V4L2_DV_PRESET_BASE + 17)
->> +/* BT.1120 */
->> +#define             V4L2_DV_1080P60         (V4L2_DV_PRESET_BASE + 18)
->> +
->> +/*
->> + *  D V     B T     T I M I N G S
->> + */
->> +
->> +/* BT.656/BT.1120 timing data */
->> +struct v4l2_bt_timings {
->> +    __u32   width;          /* width in pixels */
->> +    __u32   height;         /* height in lines */
->> +    __u32   interlaced;     /* Interlaced or progressive */
->> +    __u32   polarities;     /* Positive or negative polarity */
->> +    __u64   pixelclock;     /* Pixel clock in HZ. Ex. 74.25MHz->74250000 */
->> +    __u32   hfrontporch;    /* Horizpontal front porch in pixels */
->> +    __u32   hsync;          /* Horizontal Sync length in pixels */
->> +    __u32   hbackporch;     /* Horizontal back porch in pixels */
->> +    __u32   vfrontporch;    /* Vertical front porch in pixels */
->> +    __u32   vsync;          /* Vertical Sync length in lines */
->> +    __u32   vbackporch;     /* Vertical back porch in lines */
->> +    __u32   il_vfrontporch; /* Vertical front porch for bottom field of
->> +                             * interlaced field formats
->> +                             */
->> +    __u32   il_vsync;       /* Vertical sync length for bottom field of
->> +                             * interlaced field formats
->> +                             */
->> +    __u32   il_vbackporch;  /* Vertical back porch for bottom field of
->> +                             * interlaced field formats
->> +                             */
->> +    __u32   reserved[16];
->> +};
->> +
->> +/* Interlaced or progressive format */
->> +#define     V4L2_DV_PROGRESSIVE     0
->> +#define     V4L2_DV_INTERLACED      1
->> +
->> +/* Polarities. If bit is not set, it is assumed to be negative polarity
->*/
->> +#define V4L2_DV_VSYNC_POS_POL       0x00000001
->> +#define V4L2_DV_HSYNC_POS_POL       0x00000002
->> +
->> +/* BT.656/1120 timing type */
->> +enum v4l2_dv_timings_type {
->> +    V4L2_DV_BT_656_1120,
->> +};
->
->I forgot something: we shouldn't use enums as that can give problems on
->some
->architectures (ARM being one of them, I believe). So this should become a
->define and the type field below a __u32.
->
->> +
->> +/* DV timings */
->> +struct v4l2_dv_timings {
->> +    enum v4l2_dv_timings_type type;
->> +    union {
->> +            struct v4l2_bt_timings  bt;
->> +            __u32   reserved[32];
->> +    };
->> +};
->> +
->> +/*
->>   *  V I D E O   I N P U T S
->>   */
->>  struct v4l2_input {
->> @@ -741,7 +854,8 @@ struct v4l2_input {
->>      __u32        tuner;             /*  Associated tuner */
->>      v4l2_std_id  std;
->>      __u32        status;
->> -    __u32        reserved[4];
->> +    __u32        capabilities;
->> +    __u32        reserved[3];
->>  };
->>
->>  /*  Values for the 'type' field */
->> @@ -772,6 +886,11 @@ struct v4l2_input {
->>  #define V4L2_IN_ST_NO_ACCESS   0x02000000  /* Conditional access denied
->*/
->>  #define V4L2_IN_ST_VTR         0x04000000  /* VTR time constant */
->>
->> +/* capabilities flags */
->> +#define V4L2_IN_CAP_PRESETS         0x00000001 /* Supports DV_PRESETS
->*/
->> +#define V4L2_IN_CAP_CUSTOM_TIMINGS  0x00000002 /* Supports Custom
->timings */
->> +#define V4L2_IN_CAP_STD                     0x00000004 /* Supports STD */
->
->I suggest changing the comments to "Supports S_DV_PRESET",
->"Support S_DV_TIMINGS" and "Support S_STD". That's a bit more consistent
->and
->it is also clear that the capability refers to whether an ioctl is
->supported
->or not for that particular input.
->
->> +
->>  /*
->>   *  V I D E O   O U T P U T S
->>   */
->> @@ -782,13 +901,19 @@ struct v4l2_output {
->>      __u32        audioset;          /*  Associated audios (bitfield) */
->>      __u32        modulator;         /*  Associated modulator */
->>      v4l2_std_id  std;
->> -    __u32        reserved[4];
->> +    __u32        capabilities;
->> +    __u32        reserved[3];
->>  };
->>  /*  Values for the 'type' field */
->>  #define V4L2_OUTPUT_TYPE_MODULATOR          1
->>  #define V4L2_OUTPUT_TYPE_ANALOG                     2
->>  #define V4L2_OUTPUT_TYPE_ANALOGVGAOVERLAY   3
->>
->> +/* capabilities flags */
->> +#define V4L2_OUT_CAP_PRESETS                0x00000001 /* Supports DV_PRESETS
->*/
->> +#define V4L2_OUT_CAP_CUSTOM_TIMINGS 0x00000002 /* Supports Custom
->timings */
->> +#define V4L2_OUT_CAP_STD            0x00000004 /* Supports STD */
->
->Ditto.
->
->> +
->>  /*
->>   *  C O N T R O L S
->>   */
->> @@ -1621,6 +1746,13 @@ struct v4l2_dbg_chip_ident {
->>  #endif
->>
->>  #define VIDIOC_S_HW_FREQ_SEEK        _IOW('V', 82, struct
->v4l2_hw_freq_seek)
->> +#define     VIDIOC_ENUM_DV_PRESETS  _IOWR('V', 83, struct
->v4l2_dv_enum_preset)
->> +#define     VIDIOC_S_DV_PRESET      _IOWR('V', 84, struct v4l2_dv_preset)
->> +#define     VIDIOC_G_DV_PRESET      _IOWR('V', 85, struct v4l2_dv_preset)
->> +#define     VIDIOC_QUERY_DV_PRESET  _IOR('V',  86, struct v4l2_dv_preset)
->> +#define     VIDIOC_S_DV_TIMINGS     _IOWR('V', 87, struct v4l2_dv_timings)
->> +#define     VIDIOC_G_DV_TIMINGS     _IOWR('V', 88, struct v4l2_dv_timings)
->> +
->>  /* Reminder: when adding new ioctls please add support for them to
->>     drivers/media/video/v4l2-compat-ioctl32.c as well! */
->>
->> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
->> index 7a4529d..e8ba0f2 100644
->> --- a/include/media/v4l2-ioctl.h
->> +++ b/include/media/v4l2-ioctl.h
->> @@ -239,6 +239,21 @@ struct v4l2_ioctl_ops {
->>      int (*vidioc_enum_frameintervals) (struct file *file, void *fh,
->>                                         struct v4l2_frmivalenum *fival);
->>
->> +    /* DV Timings IOCTLs */
->> +    int (*vidioc_enum_dv_presets) (struct file *file, void *fh,
->> +                                   struct v4l2_dv_enum_preset *preset);
->> +
->> +    int (*vidioc_s_dv_preset) (struct file *file, void *fh,
->> +                               struct v4l2_dv_preset *preset);
->> +    int (*vidioc_g_dv_preset) (struct file *file, void *fh,
->> +                               struct v4l2_dv_preset *preset);
->> +    int (*vidioc_query_dv_preset) (struct file *file, void *fh,
->> +                                    struct v4l2_dv_preset *qpreset);
->> +    int (*vidioc_s_dv_timings) (struct file *file, void *fh,
->> +                                struct v4l2_dv_timings *timings);
->> +    int (*vidioc_g_dv_timings) (struct file *file, void *fh,
->> +                                struct v4l2_dv_timings *timings);
->> +
->>      /* For other private ioctls */
->>      long (*vidioc_default)         (struct file *file, void *fh,
->>                                      int cmd, void *arg);
->> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
->> index 88c13d6..92634da 100644
->> --- a/include/media/v4l2-subdev.h
->> +++ b/include/media/v4l2-subdev.h
->> @@ -217,6 +217,19 @@ struct v4l2_subdev_audio_ops {
->>
->>     s_routing: see s_routing in audio_ops, except this version is for
->video
->>      devices.
->> +
->> +   s_dv_preset: set dv (Digital Video) preset in the sub device. Similar
->to
->> +    s_std()
->> +
->> +   query_dv_preset: query dv preset in the sub device. This is similar
->to
->> +    querystd()
->> +
->> +   s_dv_timings(): Set custom dv timings in the sub device. This is used
->> +    when sub device is capable of setting detailed timing information
->> +    in the hardware to generate/detect the video signal.
->> +
->> +   g_dv_timings(): Get custom dv timings in the sub device.
->> +
->>   */
->>  struct v4l2_subdev_video_ops {
->>      int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32
->config);
->> @@ -240,6 +253,14 @@ struct v4l2_subdev_video_ops {
->>      int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
->>      int (*enum_framesizes)(struct v4l2_subdev *sd, struct
->v4l2_frmsizeenum *fsize);
->>      int (*enum_frameintervals)(struct v4l2_subdev *sd, struct
->v4l2_frmivalenum *fival);
->> +    int (*s_dv_preset)(struct v4l2_subdev *sd,
->> +                    struct v4l2_dv_preset *preset);
->> +    int (*query_dv_preset)(struct v4l2_subdev *sd,
->> +                    struct v4l2_dv_preset *preset);
->> +    int (*s_dv_timings)(struct v4l2_subdev *sd,
->> +                    struct v4l2_dv_timings *timings);
->> +    int (*g_dv_timings)(struct v4l2_subdev *sd,
->> +                    struct v4l2_dv_timings *timings);
->>  };
->>
->>  /*
->
->Regards,
->
->       Hans
->
->PS: If I have time (no guarantees!), then I'll try to do some 64-bit
->testing
->this weekend.
->
->--
->Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Cheers,
+Mauro.
 
+---
+
+ drivers/media/common/tuners/tda18271-fe.c      |    8 ++--
+ drivers/media/dvb/dvb-usb/Kconfig              |    2 +-
+ drivers/media/dvb/dvb-usb/ce6230.c             |    2 +-
+ drivers/media/dvb/dvb-usb/dib0700_devices.c    |   15 ++++-----
+ drivers/media/dvb/firewire/firedtv-avc.c       |   38 ++++++++++++-----------
+ drivers/media/dvb/firewire/firedtv-fe.c        |    8 +----
+ drivers/media/dvb/frontends/dib0070.h          |    7 ++++-
+ drivers/media/dvb/frontends/dib7000p.c         |    5 +++
+ drivers/media/dvb/pt1/pt1.c                    |    1 +
+ drivers/media/dvb/siano/smsusb.c               |    6 ++++
+ drivers/media/video/bt8xx/bttv-driver.c        |   33 +++++++++++++++++---
+ drivers/media/video/em28xx/em28xx-audio.c      |    5 +++
+ drivers/media/video/gspca/m5602/m5602_s5k4aa.c |   20 ++++++++++++
+ drivers/media/video/gspca/mr97310a.c           |    2 +-
+ drivers/media/video/gspca/ov519.c              |    2 +-
+ drivers/media/video/gspca/stv06xx/stv06xx.c    |    3 +-
+ drivers/media/video/pxa_camera.c               |    5 ++-
+ drivers/media/video/s2255drv.c                 |    5 ---
+ drivers/media/video/saa7134/saa7134-cards.c    |    1 +
+ drivers/media/video/saa7134/saa7134-ts.c       |    6 ++-
+ drivers/media/video/saa7134/saa7134.h          |    1 +
+ drivers/media/video/saa7164/saa7164-cmd.c      |    2 +-
+ drivers/media/video/sh_mobile_ceu_camera.c     |    4 +-
+ drivers/media/video/soc_camera.c               |   16 +++++----
+ drivers/media/video/uvc/uvc_ctrl.c             |    2 +-
+ drivers/media/video/uvc/uvc_video.c            |    3 +-
+ 26 files changed, 133 insertions(+), 69 deletions(-)
+
+Devin Heitmueller (1):
+      V4L/DVB (13190): em28xx: fix panic that can occur when starting audio streaming
+
+Erik Andrén (3):
+      V4L/DVB (13255): gspca - m5602-s5k4aa: Add vflip quirk for the Bruneinit laptop
+      V4L/DVB (13256): gspca - m5602-s5k4aa: Add another MSI GX700 vflip quirk
+      V4L/DVB (13257): gspca - m5602-s5k4aa: Add vflip for Fujitsu Amilo Xi 2528
+
+Guennadi Liakhovetski (3):
+      V4L/DVB (13129): sh_mobile_ceu_camera: fix cropping for scaling clients
+      V4L/DVB (13131): pxa_camera: fix camera pixel format configuration
+      V4L/DVB (13132): fix use-after-free Oops, resulting from a driver-core API change
+
+HIRANO Takahito (1):
+      V4L/DVB (13167): pt1: Fix a compile error on arm
+
+Hans de Goede (1):
+      V4L/DVB (13122): gscpa - stv06xx + ov518: dont discard every other frame
+
+Henrik Kurelid (1):
+      V4L/DVB (13237): firedtv: length field corrupt in ca2host if length>127
+
+Jean Delvare (1):
+      V4L/DVB (13287): ce6230 - saa7164-cmd: Fix wrong sizeof
+
+Jonathan Cameron (1):
+      V4L/DVB (13286): pxa-camera: Fix missing sched.h
+
+Laurent Pinchart (2):
+      V4L/DVB (13309): uvcvideo: Ignore the FIX_BANDWIDTH for compressed video
+      V4L/DVB (13311): uvcvideo: Fix compilation warning with 2.6.32 due to type mismatch with abs()
+
+Martin Samek (1):
+      V4L/DVB (13079): dib0700: fixed xc2028 firmware loading kernel oops
+
+Michael Krufky (5):
+      V4L/DVB (13048): dib0070: fix build dependency when driver is disabled
+      V4L/DVB (13107): tda18271: fix overflow in FM radio frequency calculation
+      V4L/DVB (13202): smsusb: add autodetection support for three additional Hauppauge USB IDs
+      V4L/DVB (13313): saa7134: add support for FORCE_TS_VALID mode for mpeg ts input
+      V4L/DVB (13314): saa7134: set ts_force_val for the Hauppauge WinTV HVR-1150
+
+Mike Isely (3):
+      V4L/DVB (13169): bttv: Fix potential out-of-order field processing
+      V4L/DVB (13170): bttv: Fix reversed polarity error when switching video standard
+      V4L/DVB (13230): s2255drv: Don't conditionalize video buffer completion on waiting processes
+
+Patrick Boettcher (1):
+      V4L/DVB (13050): DIB0700: fix-up USB device ID for Terratec/Leadtek
+
+Seth Barry (1):
+      V4L/DVB (13109): tda18271: fix signedness issue in tda18271_rf_tracking_filters_init
+
+Stefan Richter (1):
+      V4L/DVB (13240): firedtv: fix regression: tuning fails due to bogus error return
+
+Theodore Kilgore (1):
+      V4L/DVB (13264): gspca_mr97310a: Change vstart for CIF sensor type 1 cams
+
+---------------------------------------------------
+V4L/DVB development is hosted at http://linuxtv.org
