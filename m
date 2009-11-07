@@ -1,58 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:54074 "EHLO smtp3-g21.free.fr"
+Received: from mx1.redhat.com ([209.132.183.28]:23376 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933775AbZKXSCL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Nov 2009 13:02:11 -0500
-Date: Tue, 24 Nov 2009 19:02:09 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Gustavo =?ISO-8859-1?Q?Cha=EDn?= Dumit <g@0xff.cl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: VFlip problem in gspca_pac7311
-Message-ID: <20091124190209.67d6a2f7@tele>
-In-Reply-To: <20091123141042.47feac9e@0xff.cl>
-References: <20091123141042.47feac9e@0xff.cl>
+	id S1751841AbZKGMlY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Nov 2009 07:41:24 -0500
+Date: Sat, 7 Nov 2009 10:41:13 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: e9hack <e9hack@googlemail.com>
+Cc: linux-media@vger.kernel.org, johann.friedrichs@web.de,
+	hunold@linuxtv.org
+Subject: Re: bug in changeset 13239:54535665f94b ?
+Message-ID: <20091107104113.0df4593b@pedra.chehab.org>
+In-Reply-To: <4AEDB05E.1090704@googlemail.com>
+References: <4AEDB05E.1090704@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 23 Nov 2009 14:10:42 -0300
-Gustavo Chaín Dumit <g@0xff.cl> wrote:
-> I'm testing a Pixart Imaging device (0x93a:0x2622)
-> Everything works fine, but vertical orientation. Image looks rotated.
-> So I wrote a little hack to prevent it.
+Hi Hartmut,
+
+Em Sun, 01 Nov 2009 16:59:26 +0100
+e9hack <e9hack@googlemail.com> escreveu:
+
+> Hi,
 > 
-> diff --git a/drivers/media/video/gspca/pac7311.c
-> b/drivers/media/video/gspca/pac 7311.c
-> index 0527144..f7904ec 100644
-> --- a/drivers/media/video/gspca/pac7311.c
-> +++ b/drivers/media/video/gspca/pac7311.c
-> @@ -690,27 +690,28 @@ static int sd_start(struct gspca_dev *gspca_dev)
->         }
->         setgain(gspca_dev);
->         setexposure(gspca_dev);
-> -       sethvflip(gspca_dev);
-> +       if (gspca_dev->dev->descriptor.idProduct != 0x2622)
-> +               sethvflip(gspca_dev);
+> something is wrong in changeset 13239:54535665f94b. After applying it, I get page faults
+> in various applications:
+> ...
 > 
-> Any one has the same problem ?
+> If I remove the call to release_all_pagetables() in buffer_release(), I don't see this
+> page faults.
 
-Yes, other people have the same problem with this webcam. I was
-changing the driver when I found a problem.
 
-The vertical and horizontal flips are set in the register 0x21 of the
-page 3. The function sethvflip() sets 0x08 for Hflip and 0x04 for
-Vflip. By default, this register is set to 0x08 and when sethvflip() is
-called, it sets back the value to 0 (no H nor V flip).
+Em Mon, 2 Nov 2009 21:27:44 +0100
+e9hack@googlemail.com escreveu:
 
-As your patch prevents sethvflip to be called, the value 0x08 should be
-Vflip and not Hflip. May you confirm that changing Vflip by program
-(v4l2ucp, v4l2-ctl...)  does mirroring?
+> the BUG is in vidioc_streamoff() for the saa7146. This function
+> releases all buffers first, and stops the capturing and dma tranfer of
+> the saa7146 as second. If the page table, which is currently used by
+> the saa7146, is modified by another thread, the saa7146 writes
+> anywhere to the physical RAM. IMHO vidioc_streamoff() must stop the
+> saa7146 first and may then release the buffers.
 
-Regards.
+I agree. We need first to stop DMA activity, and then release the page tables.
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Could you please test if the enclosed patch fixes the issue?
+
+Cheers,
+Mauro
+
+saa7146: stop DMA before de-allocating DMA scatter/gather page buffers
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/linux/drivers/media/common/saa7146_video.c b/linux/drivers/media/common/saa7146_video.c
+--- a/linux/drivers/media/common/saa7146_video.c
++++ b/linux/drivers/media/common/saa7146_video.c
+@@ -1334,9 +1334,9 @@ static void buffer_release(struct videob
+ 
+ 	DEB_CAP(("vbuf:%p\n",vb));
+ 
++	saa7146_dma_free(dev,q,buf);
++
+ 	release_all_pagetables(dev, buf);
+-
+-	saa7146_dma_free(dev,q,buf);
+ }
+ 
+ static struct videobuf_queue_ops video_qops = {
