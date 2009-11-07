@@ -1,148 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:42776 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751814AbZKTQcF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2009 11:32:05 -0500
-Subject: Help request: switching multiple TS stream audio PIDs on the fly
- with xine-ui and mplayer
-From: Chicken Shack <chicken.shack@gmx.de>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Fri, 20 Nov 2009 17:32:30 +0100
-Message-Id: <1258734750.11079.2.camel@brian.bconsult.de>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-qy0-f174.google.com ([209.85.221.174]:50542 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758445AbZKGBQt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Nov 2009 20:16:49 -0500
+Received: by qyk4 with SMTP id 4so686737qyk.33
+        for <linux-media@vger.kernel.org>; Fri, 06 Nov 2009 17:16:54 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <6174dfda0911061258u254ba6bbh4610291a904edc0a@mail.gmail.com>
+References: <6174dfda0911061223k75f31fd5je33a8e75e9e3c391@mail.gmail.com>
+	 <6174dfda0911061258u254ba6bbh4610291a904edc0a@mail.gmail.com>
+Date: Sat, 7 Nov 2009 02:16:53 +0100
+Message-ID: <156a113e0911061716t758d7ee3ta709b406c2f074a1@mail.gmail.com>
+Subject: Re: em28xx based USB Hybrid (Analog & DVB-T) TV Tuner not supported
+From: Magnus Alm <magnus.alm@gmail.com>
+To: Johan Mutsaerts <johmut@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=00151757666240471c0477bdb727
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+--00151757666240471c0477bdb727
+Content-Type: text/plain; charset=ISO-8859-1
 
-I'd be really very thankful for any contribution on the following issue:
+Hi!
 
-1. My motivation:
-I do not like: KDE 4, kaffeine, xawtv and vdr for reasons I do not want
-to discuss here.
-I prefer to watch DVB-S TV with xine-ui and / or gmplayer.
+The dmesg didn't reveal what tuner your stick/card has, it's probably
+a XC2028/XC3028 or something like that.
+Easiest way to find out would be if you could open the cover and have
+a look inside.
 
-2. The current state of development:
-Xine-lib supports multiple audio PIDs demuxing TS streams since version
-1.1.5.
-Mplayer only supports one audio PID (usually the first one that it
-finds).
+If you have access to windows and the pvr program that came with the
+tuner you could do a usb-sniff.
 
-3. My intention:
-Switching audio PIDs of DVB-S streams on the fly with the appropriate
-GUIs xine-ui and gmplayer.
+http://www.pcausa.com/Utilities/UsbSnoop/
+or
+http://benoit.papillault.free.fr/usbsnoop/
 
-4. My contribution:
-A patch for the scan utility (part of the DVB utils) that features all
-available audio PIDs
-producing a _non-vdr_ output format.
-This patch is not only necessary for revealing multiple audio tracks of
-a DVB TV channel in case
-you're producing a non-vdr channels.conf.
-It also keeps up compatibility with mplayer which cannot (yet) handle
-channel lists in vdr format.
+Switch between different inputs while doing the log, like "dvb",
+"analog" and if it has "svideo"/"composite" input.
 
---- a/scan.patch
-+++ b/scan.patch
-@@ -0,0 +1,88 @@
---- a/util/scan/scan.c
-+++ b/util/scan/scan.c
-@@ -1260,7 +1260,7 @@
- static LIST_HEAD(running_filters);
- static LIST_HEAD(waiting_filters);
- static int n_running;
--#define MAX_RUNNING 27
-+#define MAX_RUNNING 10
- static struct pollfd poll_fds[MAX_RUNNING];
- static struct section_buf* poll_section_bufs[MAX_RUNNING];
+copy the windows log to unix and parse the output with parser.pl (I've
+added is as an attachment.)
+I think there is a new parser somewhere, but I forgot the name of it.
 
-@@ -2035,6 +2035,8 @@
- 						    sat_number(t),
- 						    s->video_pid,
- 						    s->audio_pid,
-+						    s->audio_lang,
-+						    s->audio_num,
- 						    s->service_id);
- 			  default:
- 				break;
---- a/util/scan/dump-zap.c
-+++ b/util/scan/dump-zap.c
-@@ -75,7 +75,6 @@
- 		fprintf (f, "%c:", polarity);
- 		fprintf (f, "%d:", sat_number);
- 		fprintf (f, "%i", p->u.qpsk.symbol_rate / 1000); /* channels.conf
-wants kBaud */
--		/*fprintf (f, "%s", fec_name[p->u.qpsk.fec_inner]);*/
- 		break;
+I'm also not sure how I used it, but I think it was like this: perl
+parser.pl < "your_windows_log" > "parsed_log"
+That log is needed to  find out what "gpio" your tuner needs for
+different settings.
 
- 	case FE_QAM:
-@@ -114,12 +113,27 @@
- 				 struct dvb_frontend_parameters *p,
- 				 char polarity,
- 				 int sat_number,
--				 uint16_t video_pid,
-+				 int video_pid,
- 				 uint16_t *audio_pid,
--				 uint16_t service_id)
-+				 char audio_lang[][4],
-+				 int audio_num,
-+				 int service_id)
- {
-+	int i;
-+	if (video_pid || audio_pid[0]) {
- 	fprintf (f, "%s:", service_name);
- 	zap_dump_dvb_parameters (f, type, p, polarity, sat_number);
-+		fprintf (f, ":%i:", video_pid);
-+		fprintf (f, "%i", audio_pid[0]);
-+		if (audio_lang && audio_lang[0][0])
-+			fprintf (f, "=%.4s", audio_lang[0]);
-+	        for (i = 1; i < audio_num; i++)
-+	        {
-+			fprintf (f, ",%i", audio_pid[i]);
-+			if (audio_lang && audio_lang[i][0])
-+				fprintf (f, "=%.4s", audio_lang[i]);
-+		}
-+		fprintf (f, ":%d", service_id);
--	fprintf (f, ":%i:%i:%i", video_pid, audio_pid[0], service_id);
- 	fprintf (f, "\n");
- }
-+}
---- a/util/scan/dump-zap.h
-+++ b/util/scan/dump-zap.h
-@@ -1,19 +1,17 @@
- #ifndef __DUMP_ZAP_H__
- #define __DUMP_ZAP_H__
--
- #include <stdint.h>
- #include <linux/dvb/frontend.h>
--
- extern void zap_dump_dvb_parameters (FILE *f, fe_type_t type,
- 		struct dvb_frontend_parameters *t, char polarity, int sat);
--
- extern void zap_dump_service_parameter_set (FILE *f,
- 				 const char *service_name,
- 				 fe_type_t type,
--				 struct dvb_frontend_parameters *t,
-+				 struct dvb_frontend_parameters *p,
- 				 char polarity, int sat,
--				 uint16_t video_pid,
-+				 int video_pid,
- 				 uint16_t *audio_pid,
--				 uint16_t service_id);
-+				 char audio_lang[][4],
-+				 int audio_num,
-+				 int service_id);
--
- #endif
+Don't be scared of the size of the windows log, it gets large, often a
+few hundred MB.
+The parsed log is much smaller,  a few hundred KB.
 
-5. Your contribution?
+That is all I can think about atm.
 
-Who can give me hints about how and where patching xine-ui and gmplayer
-appropriately so that multiple audio TS PIDS can be changed on the fly?
-Who can offer appropriate patches?
-
-Thanks
+/Magnus Alm
 
 
+2009/11/6 Johan Mutsaerts <johmut@gmail.com>:
+> Hi,
+>
+> I have an iDream UTVHYL2 USB TV Tuner (with IR remote control) that I
+> cannot get to work with Ubuntu (9.04, 2.6.28-16). I have successfully
+> compiled and installed the em28xx-new driver from linuxtv.org. No
+> /dev/dvb/adapter... is created and that is where it ends for me know.
+> MyTV claims no adapter is detected.
+>
+> I have attached the output of lsusb and dmesg as requested...
+>
+> Please let me know what more I can do and what exactly it is you can do ?
+>
+> Thanks in advance and
+> Best Regards,
+> Johan (Belgium)
+>
+
+--00151757666240471c0477bdb727
+Content-Type: application/x-perl; name="parser.pl"
+Content-Disposition: attachment; filename="parser.pl"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g1po41nd2
+
+IyEvdXNyL2Jpbi9wZXJsCiR1cmJyZXF1ZXN0PTA7CnVzZSBTd2l0Y2g7CgokZW5hYmxlZD0xOwok
+c2V0dXBwYWNrZXQ9MDsKJHVyYnJlcXVlc3Q9IjAwMDAwMSI7CiRzZWxlY3RpbnRlcmZhY2U9MDsK
+JGVuYWJsZWRpc29jPTE7CiRkaXJlY3Rpb249MDsKJGRpcl9vdXQgPSAwOwokYnVsayA9IDA7CiRk
+aXJfaW4gPSAxOwpteSAldXJiaGFzaD0oKTsKd2hpbGUgKDw+KXsKIyAgPDw8ICBVUkIgMSBjb21p
+bmcgYmFjayAgPDw8CiMgWzQyIG1zXSAgPj4+ICBVUkIgMiBnb2luZyBkb3duICA+Pj4KICAgICAg
+ICBpZigvPj4+Lyl7CiAgICAgICAgICAgICAgICBpZigvXFsoXGR7MSx9KSBtc1xdICA+Pj4gIFVS
+QiAoXGR7MSx9KS8pewogICAgICAgICAgICAgICAgICAgICAgICAkdXJicmVxdWVzdD1zcHJpbnRm
+KCIlMDZkIiwkMik7CiAgICAgICAgICAgICAgICAgICAgICAgICR0aW1pbmc9JDE7CiAgICAgICAg
+ICAgICAgICB9CiAgICAgICAgICAgICAgICAkZW5hYmxlZD0xOwoJCSRidWxrPTA7CiAgICAgICAg
+ICAgICAgICAkc2V0dXBwYWNrZXQ9MDsKICAgICAgICAgICAgICAgICRzZWxlY3RpbnRlcmZhY2U9
+MDsKCQkkZGlyZWN0aW9uPSRkaXJfb3V0CiAgICAgICAgfQogICAgICAgIGlmKC88PDwvKXsKICAg
+ICAgICAgICAgICAgIGlmKC9cWyhcZHsxLH0pIG1zXF0gIDw8PCAgVVJCIChcZHsxLH0pLyl7CiAg
+ICAgICAgICAgICAgICAgICAgICAgICR1cmJyZXF1ZXN0PXNwcmludGYoIiUwNmQiLCQyKTsKICAg
+ICAgICAgICAgICAgICAgICAgICAgJHRpbWluZz0kMTsKICAgICAgICAgICAgICAgIH0KICAgICAg
+ICAgICAgICAgICRlbmFibGVkPTE7CgkJJGJ1bGs9MDsKICAgICAgICAgICAgICAgICRzZXR1cHBh
+Y2tldD0wOwogICAgICAgICAgICAgICAgJHNlbGVjdGludGVyZmFjZT0wOwoJCSRkaXJlY3Rpb249
+JGRpcl9pbjsKICAgICAgICB9CiAgICAgICAgaWYoL0lTT0NIX1RSQU5TRkVSLyl7CiAgICAgICAg
+ICAgICAgICAkZW5hYmxlZD0wOwogICAgICAgICAgICAgICAgJHskdXJiaGFzaHskdXJicmVxdWVz
+dH17J3JlbWFyayd9fVswXT0iSVNPQ0hfVFJBTlNGRVIgLSAobm90IHBhcnNlZClcbiI7CiAgICAg
+ICAgfQogICAgICAgICR1cmJoYXNoeyR1cmJyZXF1ZXN0fXsndGltaW5nJ309JHRpbWluZzsKICAg
+ICAgICBpZigkc2VsZWN0aW50ZXJmYWNlPT0xKXsKICAgICAgICAjIEludGVyZmFjZTogQWx0ZXJu
+YXRlU2V0dGluZyAgPSA3CiAgICAgICAgICAgICAgICBpZigvSW50ZXJmYWNlOiBBbHRlcm5hdGVT
+ZXR0aW5nICA9IChcZHsxLH0pLyl7CiAgICAgICAgICAgICAgICAgICAgICAgIHB1c2goQHskdXJi
+aGFzaHskdXJicmVxdWVzdH17J3JlbWFyayd9fSxzcHJpbnRmKCJDaGFuZ2luZyB0byBBbHRlcm5h
+dGl2ZSBTZXR0aW5nIFslMDV4XVxuIixoZXgoJDEpKSk7CiAgICAgICAgICAgICAgICB9CiAgICAg
+ICAgfQogICAgICAgIGlmKC9VUkJfRlVOQ1RJT05fU0VMRUNUX0lOVEVSRkFDRS8pewogICAgICAg
+ICAgICAgICAgJHNlbGVjdGludGVyZmFjZT0xOwogICAgICAgIH0KICAgICAgICBpZigvVVJCX0ZV
+TkNUSU9OX1JFU0VUX1BJUEUvKXsKICAgICAgICAgICAgICAgIHB1c2goQHskdXJiaGFzaHskdXJi
+cmVxdWVzdH17J3JlbWFyayd9fSwiRnVuY3Rpb24gcmVzZXQgcGlwZSAobG9vayBhdCB0aGUgbG9n
+cylcbiIpOwogICAgICAgIH0KICAgICAgICBpZigvVVJCX0ZVTkNUSU9OX0dFVF9DVVJSRU5UX0ZS
+QU1FX05VTUJFUi8pewogICAgICAgICAgICAgICAgcHVzaChAeyR1cmJoYXNoeyR1cmJyZXF1ZXN0
+fXsncmVtYXJrJ319LCJGVU5DVElPTl9HRVRfQ1VSUkVOVF9GUkFNRV9OVU1CRVIgKGxvb2sgYXQg
+dGhlIGxvZ3MpXG4iKTsKICAgICAgICB9CiAgICAgICAgaWYoL1VSQl9GVU5DVElPTl9TRUxFQ1Rf
+Q09ORklHVVJBVElPTi8pewogICAgICAgICAgICAgICAgcHVzaChAeyR1cmJoYXNoeyR1cmJyZXF1
+ZXN0fXsncmVtYXJrJ319LCJVUkJfRlVOQ1RJT05fU0VMRUNUX0NPTkZJR1VSQVRJT05cbiIpOwog
+ICAgICAgIH0KICAgICAgICBpZigkZW5hYmxlZD09MSl7CiAgICAgICAgICAgICAgICBpZigkc2V0
+dXBwYWNrZXQ9PTEpewogICAgICAgICAgICAgICAgICAgICAgICBpZigvXGR7NH06ICguKikvKXsK
+CQkJCWZvcmVhY2ggJGlkYiAoa2V5cyAleyR1cmJoYXNoeyR1cmJyZXF1ZXN0fX0pewoJCQkJCWlm
+KCRpZGIgZXEgIm91dCIpewoJCQkJCQlwcmludGxvZygpOwoJCQkJCQkldXJiaGFzaD0oKTsKCQkJ
+CQl9CgkJCQl9CgkJCQlwdXNoKEB7JHVyYmhhc2h7JHVyYnJlcXVlc3R9eydvdXQnfX0sJDEpOwog
+ICAgICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICAgICAgICAgICR1cmJoYXNo
+eyR1cmJyZXF1ZXN0fXsndGltaW5nJ309JHRpbWluZzsKICAgICAgICAgICAgICAgIH0gZWxzZSB7
+CiAgICAgICAgICAgICAgICAgICAgICAgIGlmKC9cZHs0fTogKC4qKS8pewoJCQkJaWYoJHVyYmhh
+c2h7JHVyYnJlcXVlc3R9eyd0eXBlJ30gZXEgImJ1bGsiIGFuZCAkZGlyZWN0aW9uID09ICRkaXJf
+b3V0KSB7CgkJCQkJICAgICAgIHB1c2goQHskdXJiaGFzaHskdXJicmVxdWVzdH17J291dCd9fSwk
+MSk7CgkJCQl9IGVsc2lmICgkdXJiaGFzaHskdXJicmVxdWVzdH17J3R5cGUnfSBlcSAiYnVsayIg
+YW5kICRkaXJlY3Rpb24gPT0gJGRpcl9pbikgewoJCQkJCSAgICAgICBwdXNoKEB7JHVyYmhhc2h7
+JHVyYnJlcXVlc3R9eydpbid9fSwkMSk7CgkJCQl9IGVsc2UgewoJCQkJCSAgICAgICBwdXNoKEB7
+JHVyYmhhc2h7JHVyYnJlcXVlc3R9eydpbid9fSwkMSk7CgkJCQl9CgkJCX0KICAgICAgICAgICAg
+ICAgIH0KICAgICAgICAgICAgICAgIGlmKC9TZXR1cFBhY2tldC4qLyl7CiAgICAgICAgICAgICAg
+ICAgICAgICAgICRzZXR1cHBhY2tldD0xOwogICAgICAgICAgICAgICAgfQoJCWlmKC9lbmRwb2lu
+dCAoLiopXF0vKXsKCQkJJGVuZHBvaW50ID0gc3Vic3RyKCQxLC01LDUpOwoJCQlpZigkYnVsaz0x
+KXsKCQkJCSR1cmJoYXNoeyR1cmJyZXF1ZXN0fXsnZW5kcG9pbnQnfT0kZW5kcG9pbnQ7CgkJCX0K
+CQl9CgkJaWYoL1VSQl9GVU5DVElPTl9DT05UUk9MX1RSQU5TRkVSLyl7CgkJCSR1cmJoYXNoeyR1
+cmJyZXF1ZXN0fXsndHlwZSd9PSJjb250cm9sIjsKCQl9IGVsc2lmKC9VUkJfRlVOQ1RJT05fQlVM
+S19PUl9JTlRFUlJVUFRfVFJBTlNGRVIvKXsKCQkJJHVyYmhhc2h7JHVyYnJlcXVlc3R9eyd0eXBl
+J309ImJ1bGsiOwoJCQkkYnVsaz0xOwoJCX0KICAgICAgICB9IAoJCn0KCnByaW50bG9nKCV1cmJo
+YXNoKTsKCiMgcGVybCBhbGxvd3MgcmVhbGx5IGRpcnR5IHRyaWNrcwpzdWIgcHJpbnRsb2d7Cglw
+cmludCAiLS0tLS0tLS0tLS0tLSBORVcgQ0FQVFVSRUQgU0VTU0lPTiAtLS0tLS0tLS0tLVxuIjsK
+CWZvcmVhY2ggJGluZGV4a2V5IChzb3J0IGtleXMgJXVyYmhhc2gpewoJCWlmICgkdXJiaGFzaHsk
+aW5kZXhrZXl9eyd0eXBlJ30gZXEgImNvbnRyb2wiICl7CgkJCXByaW50ICIkaW5kZXhrZXk6ICAi
+OwoJCQlpZigkdXJiaGFzaHskaW5kZXhrZXl9eydyZW1hcmsnfVswXSBuZSAiIil7CgkJCQlwcmlu
+dCAkdXJiaGFzaHskaW5kZXhrZXl9eydyZW1hcmsnfVswXTsKCQkJCW5leHQ7CgkJCX0KCQkJcHJp
+bnQgIk9VVDogIjsKCQkJcHJpbnRmKCIlMDZkIG1zICUwNmQgbXMgIiwkdXJiaGFzaHtzcHJpbnRm
+KCIlMDZkIiwoJGluZGV4a2V5KzEpKX17J3RpbWluZyd9LSR1cmJoYXNoeyRpbmRleGtleX17J3Rp
+bWluZyd9LCR1cmJoYXNoeyRpbmRleGtleX17J3RpbWluZyd9KTsKCQkJZm9yZWFjaCAkb3V0a2V5
+IChAeyR1cmJoYXNoeyRpbmRleGtleX17J291dCd9fSl7CgkJCQlwcmludCAiJG91dGtleSAiOwoJ
+CQkJaWYoc3Vic3RyKCRvdXRrZXksMCwxKSBlcSAiNCIpewoJCQkJCSRvdXRnb2luZz0xOwoJCQkJ
+CSR3dmFsPXN1YnN0cigkb3V0a2V5LDksMik7ICNjaGFuZ2VkCgkJCQkJJHd2YWwuPXN1YnN0cigk
+b3V0a2V5LDYsMik7CgkJCQkJJHJlZz1zdWJzdHIoJG91dGtleSwxNSwyKTsKCQkJCQkkcmVnLj1z
+dWJzdHIoJG91dGtleSwxMiwyKTsKCQkJCQkkYnJlcT1zdWJzdHIoJG91dGtleSwzLDIpOwoKCQkJ
+CX0gZWxzZSB7CgkJCQkJJG91dGdvaW5nPTA7CgkJCQkJJHd2YWw9c3Vic3RyKCRvdXRrZXksOSwy
+KTsgI2NoYW5nZWQKCQkJCQkkd3ZhbC49c3Vic3RyKCRvdXRrZXksNiwyKTsKCQkJCQkkcmVnPXN1
+YnN0cigkb3V0a2V5LDE1LDIpOwoJCQkJCSRyZWcuPXN1YnN0cigkb3V0a2V5LDEyLDIpOwoJCQkJ
+CSRicmVxPXN1YnN0cigkb3V0a2V5LDMsMik7CgoJCQkJfQoJCQl9CgkJCWlmKCRvdXRnb2luZyA9
+PSAxKXsKCQkJCXByaW50ICI+Pj4gIjsKCQkJfSBlbHNlIHsKCQkJCXByaW50ICI8PDwgIjsKCQkJ
+fQoJCQlmb3JlYWNoICRpbmtleSAoQHskdXJiaGFzaHskaW5kZXhrZXl9eydpbid9fSl7CgkJCQlw
+cmludCAiICRpbmtleSI7CgkJCX0KCQkJcHJpbnQgIlxuIjsKCQl9IGVsc2UgewoJCQlwcmludCAi
+JGluZGV4a2V5OiAgIjsKCQkJaWYoJHVyYmhhc2h7JGluZGV4a2V5fXsncmVtYXJrJ31bMF0gbmUg
+IiIpewoJCQkJcHJpbnQgJHVyYmhhc2h7JGluZGV4a2V5fXsncmVtYXJrJ31bMF07CgkJCQluZXh0
+OwoJCQl9CgkJCXByaW50ICJPVVQ6ICI7CgkJCXByaW50ZigiJTA2ZCBtcyAlMDZkIG1zICIsJHVy
+Ymhhc2h7c3ByaW50ZigiJTA2ZCIsKCRpbmRleGtleSsxKSl9eyd0aW1pbmcnfS0kdXJiaGFzaHsk
+aW5kZXhrZXl9eyd0aW1pbmcnfSwkdXJiaGFzaHskaW5kZXhrZXl9eyd0aW1pbmcnfSk7CgkJCWlm
+KCQjeyR1cmJoYXNoeyRpbmRleGtleX17J291dCd9fSA+PSAwKXsKCQkJCXByaW50ZigiQlVMS1sl
+MDVkXSA+Pj4gIiwkdXJiaGFzaHskaW5kZXhrZXl9eydlbmRwb2ludCd9KTsKCQkJfSBlbHNlIHsK
+CQkJCXByaW50ZigiQlVMS1slMDVkXSA8PDwgIiwkdXJiaGFzaHskaW5kZXhrZXl9eydlbmRwb2lu
+dCd9KTsKCQkJfQoJCQlmb3JlYWNoICRvdXRrZXkgKEB7JHVyYmhhc2h7JGluZGV4a2V5fXsnb3V0
+J319KXsKCQkJCXByaW50ICIkb3V0a2V5ICI7CgkJCX0KCQkJZm9yZWFjaCAkaW5rZXkgKEB7JHVy
+Ymhhc2h7JGluZGV4a2V5fXsnaW4nfX0pewoJCQkJcHJpbnQgIiRpbmtleSAiOwoJCQl9CgkJCXBy
+aW50ICJcbiI7CgkJfQoJfQp9Cg==
+--00151757666240471c0477bdb727--
