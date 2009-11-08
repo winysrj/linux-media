@@ -1,27 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp5.freeserve.com ([193.252.22.152])
+Received: from mail-px0-f182.google.com ([209.85.216.182])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <linuxtv@mfraz.orangehome.co.uk>) id 1N6RPu-0000jo-GZ
-	for linux-dvb@linuxtv.org; Fri, 06 Nov 2009 17:12:03 +0100
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf3424.me.freeserve.com (SMTP Server) with ESMTP id DB1981C00084
-	for <linux-dvb@linuxtv.org>; Fri,  6 Nov 2009 17:11:24 +0100 (CET)
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf3424.me.freeserve.com (SMTP Server) with ESMTP id C8E9C1C00085
-	for <linux-dvb@linuxtv.org>; Fri,  6 Nov 2009 17:11:24 +0100 (CET)
-Received: from rachael.localnet (unknown [91.108.106.217])
-	by mwinf3424.me.freeserve.com (SMTP Server) with ESMTP id A3FEC1C00084
-	for <linux-dvb@linuxtv.org>; Fri,  6 Nov 2009 17:11:24 +0100 (CET)
-From: Mark Fraser <linuxtv@mfraz.orangehome.co.uk>
-To: linux-dvb@linuxtv.org
-Date: Fri, 6 Nov 2009 16:11:23 +0000
-References: <7fedbc910911060752y215adeccm6dc4d35131c62746@mail.gmail.com>
-	<c4e36d110911060755rb4303f7pe5f91b5988e9d101@mail.gmail.com>
-	<7fedbc910911060806s15ecbbfdwb19bbad52682e4cb@mail.gmail.com>
-In-Reply-To: <7fedbc910911060806s15ecbbfdwb19bbad52682e4cb@mail.gmail.com>
+	(envelope-from <roshan@olenepal.org>) id 1N72x7-00051b-8L
+	for linux-dvb@linuxtv.org; Sun, 08 Nov 2009 09:16:49 +0100
+Received: by pxi12 with SMTP id 12so313519pxi.3
+	for <linux-dvb@linuxtv.org>; Sun, 08 Nov 2009 00:16:14 -0800 (PST)
 MIME-Version: 1.0
-Message-Id: <200911061611.24120.linuxtv@mfraz.orangehome.co.uk>
-Subject: Re: [linux-dvb] Dual tuner DVB-T card on Linux
+From: roshan karki <roshan@olenepal.org>
+Date: Sun, 8 Nov 2009 14:00:54 +0545
+Message-ID: <73e59df30911080015m20d72df3rff62a546ee1264c4@mail.gmail.com>
+To: dheitmueller@kernellabs.com
+Cc: linux-dvb@linuxtv.org
+Subject: [linux-dvb] analog support for dib0700
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -30,29 +20,60 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0613095309=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Friday 06 Nov 2009 16:06:05 shacky wrote:
-> > WinNova Hauppage
-> > You could have either PCI or USB version.
-> > Work relatively well - open source drivers are easy to fix in case of
-> > problems.
-> 
-> Thank you for your answer.
-> I'm looking for this model on the Hauppauge website, but I only found
-> many models of the "WinTV Nova" type.
-> Could you help me please?
+--===============0613095309==
+Content-Type: multipart/alternative; boundary=001636ed66f0c39e3b0477d7b00d
 
-I'm using the Hauppauge Nova-T 500 Dual DVB-T.
+--001636ed66f0c39e3b0477d7b00d
+Content-Type: text/plain; charset=ISO-8859-1
+
+Hello,
+
+I was wondering if you decided to write analog support for dib0700. As I
+can't find anything related to it in chagelists I'm pretty sure you didn't
+find enough request for it.
+
+Hope I didn't bother you much.
+
+--001636ed66f0c39e3b0477d7b00d
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<font class=3D"Apple-style-span" face=3D"arial, sans-serif"><span class=3D"=
+Apple-style-span" style=3D"border-collapse: collapse;">Hello,</span></font>=
+<div><font class=3D"Apple-style-span" face=3D"arial, sans-serif"><span clas=
+s=3D"Apple-style-span" style=3D"border-collapse: collapse;"><br>
+
+</span></font></div><div><font class=3D"Apple-style-span" face=3D"arial, sa=
+ns-serif"><span class=3D"Apple-style-span" style=3D"border-collapse: collap=
+se;">I was wondering if you decided to write analog support for dib0700. As=
+ I can&#39;t find anything related to it in chagelists I&#39;m pretty sure =
+you didn&#39;t find enough request for it.</span></font></div>
+
+<div><font class=3D"Apple-style-span" face=3D"arial, sans-serif"><span clas=
+s=3D"Apple-style-span" style=3D"border-collapse: collapse;"><br></span></fo=
+nt></div><div><font class=3D"Apple-style-span" face=3D"arial, sans-serif"><=
+span class=3D"Apple-style-span" style=3D"border-collapse: collapse;">Hope I=
+ didn&#39;t bother you much.</span></font></div>
 
 
+--001636ed66f0c39e3b0477d7b00d--
+
+
+--===============0613095309==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0613095309==--
