@@ -1,194 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58813 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753824AbZKRPUD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 10:20:03 -0500
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
-Date: Wed, 18 Nov 2009 20:50:03 +0530
-Subject: RE: [PATCH] VPFE Capture: Add call back function for interrupt
- clear to vpfe_cfg
-Message-ID: <19F8576C6E063C45BE387C64729E7394043702BAA6@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1258544101-28830-1-git-send-email-hvaibhav@ti.com>
- <A69FA2915331DC488A831521EAE36FE401559C5ED4@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE401559C5ED4@dlee06.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:46679 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751428AbZKHCku convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Nov 2009 21:40:50 -0500
+Received: by bwz27 with SMTP id 27so2397222bwz.21
+        for <linux-media@vger.kernel.org>; Sat, 07 Nov 2009 18:40:54 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <702870ef0911070328v4d39afd9kc2469fb3e78ba203@mail.gmail.com>
+References: <20764.64.213.30.2.1257390002.squirrel@webmail.exetel.com.au>
+	 <829197380911051304g1544e277s870f869be14e1a18@mail.gmail.com>
+	 <25126.64.213.30.2.1257464759.squirrel@webmail.exetel.com.au>
+	 <829197380911051551q3b844c5ek490a5eb7c96783e9@mail.gmail.com>
+	 <39786.64.213.30.2.1257466403.squirrel@webmail.exetel.com.au>
+	 <40380.64.213.30.2.1257474692.squirrel@webmail.exetel.com.au>
+	 <829197380911051843r4a55bddcje8c014f5548ca247@mail.gmail.com>
+	 <702870ef0911061659q208b73c3te7d62f5a220e9499@mail.gmail.com>
+	 <829197380911061743o64c4661gfdee5c65f680904e@mail.gmail.com>
+	 <702870ef0911070328v4d39afd9kc2469fb3e78ba203@mail.gmail.com>
+Date: Sat, 7 Nov 2009 21:40:54 -0500
+Message-ID: <829197380911071840l41fbaa8et58641ea99ad79b94@mail.gmail.com>
+Subject: Re: bisected regression in tuner-xc2028 on DVICO dual digital 4
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Vincent McIntyre <vincent.mcintyre@gmail.com>
+Cc: Robert Lowery <rglowery@exemail.com.au>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sat, Nov 7, 2009 at 6:28 AM, Vincent McIntyre
+<vincent.mcintyre@gmail.com> wrote:
+> Hi Devin
+>
+>> please confirm exactly which of your boards is not working.
+>
+> Sorry for being unclear.
+>
+> I have three test setups I am working with, all on the same computer.
+> 1. Ubuntu Hardy, kernel 2.6.24-23-rt and drivers from v4l-dvb tip.
+> 2. Ubuntu Karmic, kernel 2.6.31-14-generic, stock Ubuntu drivers.
+> 3. Ubuntu Karmic, kernel 2.6.31-14-generic, v4l-dvb tip.
+>
+> Setups 2 & 3 are the same install, on a separate hard disk from setup 1.
+> I change between 2 & 3 by installing the v4l modules or restoring the
+> ubuntu stuff from backup. (rsync -av --delete).
+>
+> The computer has two DVB-T cards.
+>
+> First device is the same as Robert's, I believe. It has two tuners. lsusb gives:
+> Bus 003 Device 003: ID 0fe9:db78 DVICO FusionHDTV DVB-T Dual Digital 4
+> (ZL10353+xc2028/xc3028) (initialized)
+> Bus 003 Device 002: ID 0fe9:db78 DVICO FusionHDTV DVB-T Dual Digital 4
+> (ZL10353+xc2028/xc3028) (initialized)
+> I have a 'rev1' version of this board.
+>
+>
+> Second device is DViCO FusionHDTV Dual Digital Express, a PCIe card
+> based on cx23885[1] It also has two tuners. lspci gives:
+> 04:00.0 Multimedia video controller [0400]: Conexant Systems, Inc.
+> CX23885 PCI Video and Audio Decoder [14f1:8852] (rev 02)
+>        Subsystem: DViCO Corporation Device [18ac:db78]
+>        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+> Stepping- SERR- FastB2B- DisINTx-
+>        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
+> <TAbort- <MAbort- >SERR- <PERR- INTx-
+>        Latency: 0, Cache Line Size: 64 bytes
+>        Interrupt: pin A routed to IRQ 19
+>        Region 0: Memory at 90000000 (64-bit, non-prefetchable) [size=2M]
+>        Capabilities: <access denied>
+>        Kernel driver in use: cx23885
+>        Kernel modules: cx23885
+>
+> With Robert's patch compiled in:
+>  * On setup 1
+>  I am able to tune both cards and there are no errors from the cxusb module
+>   or dvb-usb anymore.
+>   I tested each of the four tuners, by running dvbscan with
+> appropriate arguments to
+>   select the right /dev/dvb/adapterN.
+>
+>   I just realised I should probably revert the patch and check which
+> tuners show the
+>   original problem. Before I was taking the default choice (adapter0,
+> I think) which is
+>    one of lhe Dual Digital 4 tuners.
+>
+>  * I have yet to test setup 2,
+>   I have built the patched kernel module but the box is back 'in
+> production' right now.
+>   I plan to test tomorrow.
+>
+>  * On setup 3. I attempted to tune using dvbscan, w_scan and vlc.
+>   Again, I was not specific about which tuner the applications should use.
+>   So to answer your question, I think it is the lsusb id 0fe9:db78
+> that is unable to tune.
+>   I will check the tuners individually, tomorrow.
+>
+>   My impression was that the failures were because of API differences
+> between the
+>   applications (all provided as part of the ubuntu install) and the
+> V4L modules. I have
+>   not tried to build v4l-apps from the mercurial tree.
+>
+> So, I hope this makes things clearer. Happy to run tests if you have
+> any time to look at this.
 
-> -----Original Message-----
-> From: Karicheri, Muralidharan
-> Sent: Wednesday, November 18, 2009 8:33 PM
-> To: Hiremath, Vaibhav; linux-media@vger.kernel.org
-> Cc: hverkuil@xs4all.nl
-> Subject: RE: [PATCH] VPFE Capture: Add call back function for
-> interrupt clear to vpfe_cfg
-> 
-> Vaibhav,
-> 
-> In the interrupt handler, it is better to add something like
-> below... The
-> same piece of code is repeated many times...
-> 
-> When ready to return IRQ_HANDLED
-> 
-> goto clear_int;
-> 
-> 
-> clear_int:
-> 	if (vpfe_dev->cfg->clr_intr)
-> 			vpfe_dev->cfg->clr_intr(irq);
-> 	return IRQ_HANDLED;
-> 
-[Hiremath, Vaibhav] Actually the earlier implementation was exactly same using goto statement, but since there are only 4 instances, so removed goto statement.
+Hello Vince,
 
-Ok, I will update it and submit it again.
+I think the next step at this point is for you to definitively find a
+use case that does not work with the latest v4l-dvb tip and Robert's
+patch, and include exactly what kernel you tested with and which board
+is having the problem (including the PCI or USB ID).
+
+At this point, your description seems a bit vague in terms of what is
+working and what is not.  If you do the additional testing to narrow
+down specifically the failure case you are experiencing, I will see
+what I can do.
+
+That said, I'm preparing a tree with Robert's patch since I am pretty
+confident at least his particular problem is now addressed.
 
 Thanks,
-Vaibhav
 
-> Murali Karicheri
-> Software Design Engineer
-> Texas Instruments Inc.
-> Germantown, MD 20874
-> phone: 301-407-9583
-> email: m-karicheri2@ti.com
-> 
-> >-----Original Message-----
-> >From: Hiremath, Vaibhav
-> >Sent: Wednesday, November 18, 2009 6:35 AM
-> >To: linux-media@vger.kernel.org
-> >Cc: hverkuil@xs4all.nl; Karicheri, Muralidharan; Hiremath, Vaibhav
-> >Subject: [PATCH] VPFE Capture: Add call back function for interrupt
-> clear
-> >to vpfe_cfg
-> >
-> >From: Vaibhav Hiremath <hvaibhav@ti.com>
-> >
-> >For the devices like AM3517, it is expected that driver clears the
-> >interrupt in ISR. Since this is device spcific, callback function
-> >added to the platform_data.
-> >
-> >Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> >---
-> > drivers/media/video/davinci/vpfe_capture.c |   26
-> >++++++++++++++++++++++++--
-> > include/media/davinci/vpfe_capture.h       |    2 ++
-> > 2 files changed, 26 insertions(+), 2 deletions(-)
-> >
-> >diff --git a/drivers/media/video/davinci/vpfe_capture.c
-> >b/drivers/media/video/davinci/vpfe_capture.c
-> >index 9b6b254..4c5152e 100644
-> >--- a/drivers/media/video/davinci/vpfe_capture.c
-> >+++ b/drivers/media/video/davinci/vpfe_capture.c
-> >@@ -563,6 +563,11 @@ static int vpfe_initialize_device(struct
-> vpfe_device
-> >*vpfe_dev)
-> > 	ret = ccdc_dev->hw_ops.open(vpfe_dev->pdev);
-> > 	if (!ret)
-> > 		vpfe_dev->initialized = 1;
-> >+
-> >+	/* Clear all VPFE/CCDC interrupts */
-> >+	if (vpfe_dev->cfg->clr_intr)
-> >+		vpfe_dev->cfg->clr_intr(-1);
-> >+
-> > unlock:
-> > 	mutex_unlock(&ccdc_lock);
-> > 	return ret;
-> >@@ -663,8 +668,11 @@ static irqreturn_t vpfe_isr(int irq, void
-> *dev_id)
-> > 	field = vpfe_dev->fmt.fmt.pix.field;
-> >
-> > 	/* if streaming not started, don't do anything */
-> >-	if (!vpfe_dev->started)
-> >+	if (!vpfe_dev->started) {
-> >+		if (vpfe_dev->cfg->clr_intr)
-> >+			vpfe_dev->cfg->clr_intr(irq);
-> > 		return IRQ_HANDLED;
-> >+	}
-> >
-> > 	/* only for 6446 this will be applicable */
-> > 	if (NULL != ccdc_dev->hw_ops.reset)
-> >@@ -676,6 +684,8 @@ static irqreturn_t vpfe_isr(int irq, void
-> *dev_id)
-> > 			"frame format is progressive...\n");
-> > 		if (vpfe_dev->cur_frm != vpfe_dev->next_frm)
-> > 			vpfe_process_buffer_complete(vpfe_dev);
-> >+		if (vpfe_dev->cfg->clr_intr)
-> >+			vpfe_dev->cfg->clr_intr(irq);
-> > 		return IRQ_HANDLED;
-> > 	}
-> >
-> >@@ -703,6 +713,8 @@ static irqreturn_t vpfe_isr(int irq, void
-> *dev_id)
-> > 			if (field == V4L2_FIELD_SEQ_TB)
-> > 				vpfe_schedule_bottom_field(vpfe_dev);
-> >
-> >+			if (vpfe_dev->cfg->clr_intr)
-> >+				vpfe_dev->cfg->clr_intr(irq);
-> > 			return IRQ_HANDLED;
-> > 		}
-> > 		/*
-> >@@ -723,6 +735,9 @@ static irqreturn_t vpfe_isr(int irq, void
-> *dev_id)
-> > 		 */
-> > 		vpfe_dev->field_id = fid;
-> > 	}
-> >+	if (vpfe_dev->cfg->clr_intr)
-> >+		vpfe_dev->cfg->clr_intr(irq);
-> >+
-> > 	return IRQ_HANDLED;
-> > }
-> >
-> >@@ -734,8 +749,11 @@ static irqreturn_t vdint1_isr(int irq, void
-> *dev_id)
-> > 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "\nInside
-> vdint1_isr...\n");
-> >
-> > 	/* if streaming not started, don't do anything */
-> >-	if (!vpfe_dev->started)
-> >+	if (!vpfe_dev->started) {
-> >+		if (vpfe_dev->cfg->clr_intr)
-> >+			vpfe_dev->cfg->clr_intr(irq);
-> > 		return IRQ_HANDLED;
-> >+	}
-> >
-> > 	spin_lock(&vpfe_dev->dma_queue_lock);
-> > 	if ((vpfe_dev->fmt.fmt.pix.field == V4L2_FIELD_NONE) &&
-> >@@ -743,6 +761,10 @@ static irqreturn_t vdint1_isr(int irq, void
-> *dev_id)
-> > 	    vpfe_dev->cur_frm == vpfe_dev->next_frm)
-> > 		vpfe_schedule_next_buffer(vpfe_dev);
-> > 	spin_unlock(&vpfe_dev->dma_queue_lock);
-> >+
-> >+	if (vpfe_dev->cfg->clr_intr)
-> >+		vpfe_dev->cfg->clr_intr(irq);
-> >+
-> > 	return IRQ_HANDLED;
-> > }
-> >
-> >diff --git a/include/media/davinci/vpfe_capture.h
-> >b/include/media/davinci/vpfe_capture.h
-> >index fc83d98..5a21265 100644
-> >--- a/include/media/davinci/vpfe_capture.h
-> >+++ b/include/media/davinci/vpfe_capture.h
-> >@@ -104,6 +104,8 @@ struct vpfe_config {
-> > 	char *ccdc;
-> > 	/* setup function for the input path */
-> > 	int (*setup_input)(enum vpfe_subdev_id id);
-> >+	/* Function for Clearing the interrupt */
-> >+	void (*clr_intr)(int vdint);
-> > 	/* number of clocks */
-> > 	int num_clocks;
-> > 	/* clocks used for vpfe capture */
-> >--
-> >1.6.2.4
+Devin
 
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
