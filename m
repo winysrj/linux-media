@@ -1,143 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx.stud.uni-hannover.de ([130.75.176.3]:36277 "EHLO
-	studserv5d.stud.uni-hannover.de" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753253AbZKTX7D (ORCPT
+Received: from mail-in-14.arcor-online.net ([151.189.21.54]:48073 "EHLO
+	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751735AbZKHXh7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2009 18:59:03 -0500
-Message-ID: <4B072D3F.8060807@stud.uni-hannover.de>
-Date: Sat, 21 Nov 2009 00:58:55 +0100
-From: Soeren Moch <Soeren.Moch@stud.uni-hannover.de>
-MIME-Version: 1.0
-To: magnus@alefors.se
-CC: linux-media@vger.kernel.org
-Subject: Re: SV: [linux-dvb] NOVA-TD exeriences?
-References: <4AEF5FE5.2000607@stud.uni-hannover.de> <4AF162BC.4010700@stud.uni-hannover.de> <4B0694F7.7070604@stud.uni-hannover.de> <4B06A22D.4090404@stud.uni-hannover.de>
-In-Reply-To: <4B06A22D.4090404@stud.uni-hannover.de>
-Content-Type: multipart/mixed;
- boundary="------------010306020301050409040507"
+	Sun, 8 Nov 2009 18:37:59 -0500
+Subject: Re: [PATCH 10/75] V4L/DVB: declare MODULE_FIRMWARE for modules
+	using  XC2028 and XC3028L tuners
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Ben Hutchings <ben@decadent.org.uk>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org
+In-Reply-To: <20091108012042.798835dd@pedra.chehab.org>
+References: <1257630476.15927.400.camel@localhost>
+	 <1257644240.6895.5.camel@palomino.walls.org>
+	 <829197380911071744q50fc6e18o527322e1120b9689@mail.gmail.com>
+	 <1257645834.15927.634.camel@localhost>
+	 <20091108012042.798835dd@pedra.chehab.org>
+Content-Type: text/plain
+Date: Mon, 09 Nov 2009 00:32:29 +0100
+Message-Id: <1257723149.3249.50.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------010306020301050409040507
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi,
 
-Soeren Moch schrieb:
->  > >  > Hi again. Just got my two new NOVA-TD's and at a first glance they
->  > > seemed to
->  > >  > perform well. Closer inspections however revealed that I see 
-> exactly
->  > > the same
->  > >  > issues as Soeren. Watching live TV with VDR on one adaptor while
->  > > constantly
->  > >  > retuning the other one using:
->  > >  > while true;do tzap -x svt1;done
->  > >  > gives a short glitch in the VDR stream on almost every tzap. 
-> Another
->  > > 100EUR down
->  > >  > the drain. I'll probably buy four NOVA-T's instead just like I
->  > > planned to at
->  > >  > first.
->  > >  >
->  > >  > /Magnus H
->  > >
->  > > Slowly, slowly. Magnus, you want to support dibcom with another 
-> 100EUR for
->  > > there poor performance in fixing the firmware?
->  > > Please test my patches, the nova-td is running fine with these 
-> patches,
->  > > at least for me.
->  > >
->  > > Patrick, any progress here? Will dibcom fix the firmware, or will you
->  > > integrate the
->  > > patches? Or what can I do to go on?
->  > >
->  > > Regards,
->  > > Soeren
->  > >
->  > >
->  >
->  > Thanks Soeren, maybe I jumped to the wrong conclusions here. I actually
->  > thought this came down to bad hardware design instead of a 
-> driver/firmware
->  > issue. Unfortunately your patches made no difference here but I won't 
-> give
->  > up that easily. If they made your problems disapperar there should be 
-> hope
->  > for me too and I'll be glad to help in the development. I can live 
-> with the
->  > glitches in the mean time if there's hope for improvement since I mostly
->  > watch DVB-S these days. I'm running the stock Ubuntu Karmic 2.6.31 
-> kernel
->  > and standard linuxtv drivers from hg. I also have four TT S2-1600 
-> cards in
->  > there.
->  > /Magnus
+Am Sonntag, den 08.11.2009, 01:20 -0200 schrieb Mauro Carvalho Chehab:
+> Hi Ben,
 > 
-> Magnus, can you send the USB-IDs of your nova-td-sticks, please?
-> Since I activated the workaround only for stk7700d_dib7000p_mt2266,
-> there might be another funtion to fix your sticks.
+> > > It's not clear to me what this MODULE_FIRMWARE is going to be used
+> > > for, but if it's for some sort of module dependency system, then it
+> > > definitely should *not* be a dependency for em28xx.  There are lots of
+> > > em28xx based devices that do not use the xc3028, and those users
+> > > should not be expected to go out and find/extract the firmware for
+> > > some tuner they don't have.
+> > 
+> > This information is currently used by initramfs builders to find
+> > required firmware files.  I also use this information in the Debian
+> > kernel upgrade script to warn if a currently loaded driver may require
+> > firmware in the new kernel version and the firmware is not installed.
+> > This is important during the transition of various drivers from built-in
+> > to separate firmware.
+> > 
+> > Neither of these uses applies to TV tuners, but the information may
+> > still be useful in installers.
 > 
-> Soeren
+> > > Also, how does this approach handle the situation where there are two
+> > > different possible firmwares depending on the card using the firmware.
+> > >  As in the example above, you the xc3028 can require either the xc3028
+> > > or xc3028L firmware depending on the board they have.  Does this
+> > > change now result in both firmware images being required?
+> > 
+> > It really depends on how the information is used.  Given that there are
+> > many drivers that load different firmware files for different devices
+> > (or even support multiple different versions with different names), it
+> > would be rather stupid to treat these declaration as requirements.
 > 
+> I agree. An interesting case happens with devices that uses tda10046 DVB demods.
+> They have the firmware stored internally on their eeprom. Those firmwares can be
+> replaced by a different version loaded in ram, but, in general, they work
+> properly with the eeprom one. So, even having the firmware load code there,
+> the firmware at /lib/firmware is optional.
+
+Mauro, that could lead to some misunderstanding of the current use
+conditions, at least on saa7134.
+
+Minor annotations, the tda10046 does not store firmware internally, but
+there are cards which have an extra eeprom to store such firmware.
+
+If such a firmware eeprom is found and correctly configured, the driver
+in all cases will load the firmware from that eeprom and all other
+firmware in /lib/firmware is ignored.
+
+If not, the firmware will be loaded from /lib/firmware.
+
+For all what I know, firmware revisions 26 and 29 are both valid
+"enough", correspondents to what we can load either from TechnoTrend or
+LifeView with the getfirmware script, and might be either stored in an
+extra eeprom or loaded from host/file.
+
+Prior revisions had issues with missing freqs, in what combination ever.
+
+We also can't totally exclude, given the whole mass of such, that in
+some cases firmware eeproms might exist on some boards, but are not
+correctly configured and load from host only because of that.
+
+The tendency seen overall is that competitors save the few cents for an
+extra firmware eeprom these days ...
+
+Cheers,
+Hermann
+
+> -
 > 
+> I don't see any reason why we should add MODULE_FIRMWARE for v4l/dvb devices.
+> As you said, its primary usage is focused on booting a machine, and none
+> of those devices would affect booting. 
+> 
+> As you pointed, the secondary usage doesn't seem to apply to those devices as
+> well, and seems to be distro-specific, since different distros use different
+> methods to check for firmware dependencies, generally relying at the package
+> metadata. To make things worse, several of those firmwares still don't have any
+> redistribution rights license that would be required for its inclusion on a distro
+> package.
+> 
+> Also, as this macro have no current usage that would make sense for those
+> drivers, I'm afraid that, as time goes by, people will simply forget to
+> keep it updated, since they'll need to add the same firmware name on two
+> different places.
+> 
+> That's said, for now, the better is to not add those macros for the devices
+> under /drivers/media. They'll just waste some space at the object file, and
+> require an additional maintenance care for no good reason.
+> 
+> Cheers,
+> Mauro
 
-OK, my nova-td device id is 2040:9580, for 2040:5200 the attached extended
-patch version may help. (I have no access to such device.)
-Please test.
 
-Soeren
-
-
---------------010306020301050409040507
-Content-Type: text/x-patch;
- name="nova-td2.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="nova-td2.patch"
-
---- linux.orig/drivers/media/dvb/dvb-usb/dib0700_devices.c	2009-11-20 23:39:51.000000000 +0100
-+++ linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	2009-11-21 00:47:09.000000000 +0100
-@@ -303,6 +303,9 @@ static int stk7700d_frontend_attach(stru
- 	adap->fe = dvb_attach(dib7000p_attach, &adap->dev->i2c_adap,0x80+(adap->id << 1),
- 				&stk7700d_dib7000p_mt2266_config[adap->id]);
- 
-+        adap->props.streaming_ctrl = NULL;
-+        dib0700_streaming_ctrl(adap, 1);
-+
- 	return adap->fe == NULL ? -ENODEV : 0;
- }
- 
-@@ -1710,12 +1713,20 @@ static int stk7070pd_frontend_attach0(st
- 	}
- 
- 	adap->fe = dvb_attach(dib7000p_attach, &adap->dev->i2c_adap, 0x80, &stk7070pd_dib7000p_config[0]);
-+
-+        adap->props.streaming_ctrl = NULL;
-+        dib0700_streaming_ctrl(adap, 1);
-+
- 	return adap->fe == NULL ? -ENODEV : 0;
- }
- 
- static int stk7070pd_frontend_attach1(struct dvb_usb_adapter *adap)
- {
- 	adap->fe = dvb_attach(dib7000p_attach, &adap->dev->i2c_adap, 0x82, &stk7070pd_dib7000p_config[1]);
-+
-+        adap->props.streaming_ctrl = NULL;
-+        dib0700_streaming_ctrl(adap, 1);
-+
- 	return adap->fe == NULL ? -ENODEV : 0;
- }
- 
-@@ -1968,7 +1979,7 @@ MODULE_DEVICE_TABLE(usb, dib0700_usb_id_
- 	.streaming_ctrl   = dib0700_streaming_ctrl, \
- 	.stream = { \
- 		.type = USB_BULK, \
--		.count = 4, \
-+		.count = 1, \
- 		.endpoint = ep, \
- 		.u = { \
- 			.bulk = { \
-
---------------010306020301050409040507--
