@@ -1,94 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acorn.exetel.com.au ([220.233.0.21]:47048 "EHLO
-	acorn.exetel.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759236AbZKFANX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Nov 2009 19:13:23 -0500
-Message-ID: <39786.64.213.30.2.1257466403.squirrel@webmail.exetel.com.au>
-In-Reply-To: <829197380911051551q3b844c5ek490a5eb7c96783e9@mail.gmail.com>
-References: <20764.64.213.30.2.1257390002.squirrel@webmail.exetel.com.au>
-    <829197380911042051l295e9796g65fe1b163f72a70c@mail.gmail.com>
-    <26256.64.213.30.2.1257398603.squirrel@webmail.exetel.com.au>
-    <829197380911050602t30bc69d0sd0b269c39bf759e@mail.gmail.com>
-    <702870ef0911051257k52c142e8ne1b32506f1efb45c@mail.gmail.com>
-    <829197380911051304g1544e277s870f869be14e1a18@mail.gmail.com>
-    <25126.64.213.30.2.1257464759.squirrel@webmail.exetel.com.au>
-    <829197380911051551q3b844c5ek490a5eb7c96783e9@mail.gmail.com>
-Date: Fri, 6 Nov 2009 11:13:23 +1100 (EST)
-Subject: Re: bisected regression in tuner-xc2028 on DVICO dual digital 4
-From: "Robert Lowery" <rglowery@exemail.com.au>
-To: "Devin Heitmueller" <dheitmueller@kernellabs.com>
-Cc: "Vincent McIntyre" <vincent.mcintyre@gmail.com>,
-	linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from mail-pz0-f188.google.com ([209.85.222.188]:61626 "EHLO
+	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752445AbZKHIlp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Nov 2009 03:41:45 -0500
+Received: by pzk26 with SMTP id 26so1521692pzk.4
+        for <linux-media@vger.kernel.org>; Sun, 08 Nov 2009 00:41:51 -0800 (PST)
+From: hiranotaka@zng.jp
+Date: Sun, 08 Nov 2009 17:42:28 +0900
+Message-Id: <87eio9xv9n.fsf@wei.zng.jp>
+To: mchehab@infradead.org, linux-media@vger.kernel.org
+Subject: [PATCH] pt1: Support FE_READ_SNR
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> On Thu, Nov 5, 2009 at 6:45 PM, Robert Lowery <rglowery@exemail.com.au>
-> wrote:
->> Do you mean something like this (untested) patch?  I'll try it out
->> tonight.
->>
->> diff -r 43878f8dbfb0 linux/drivers/media/dvb/dvb-usb/cxusb.c
->> --- a/linux/drivers/media/dvb/dvb-usb/cxusb.c   Sun Nov 01 07:17:46 2009
->> -0200
->> +++ b/linux/drivers/media/dvb/dvb-usb/cxusb.c   Fri Nov 06 10:39:38 2009
->> +1100
->> @@ -666,6 +666,14 @@
->>        .parallel_ts = 1,
->>  };
->>
->> +static struct zl10353_config cxusb_zl10353_xc3028_config_no_i2c_gate =
->> {
->> +       .demod_address = 0x0f,
->> +       .if2 = 45600,
->> +       .no_tuner = 1,
->> +       .parallel_ts = 1,
->> +       .disable_i2c_gate_ctrl = 1,
->> +};
->> +
->>  static struct mt352_config cxusb_mt352_xc3028_config = {
->>        .demod_address = 0x0f,
->>        .if2 = 4560,
->> @@ -897,7 +905,7 @@
->>        cxusb_bluebird_gpio_pulse(adap->dev, 0x02, 1);
->>
->>        if ((adap->fe = dvb_attach(zl10353_attach,
->> -                                  &cxusb_zl10353_xc3028_config,
->> +                                
->>  &cxusb_zl10353_xc3028_config_no_i2c_gate,
->>                                   &adap->dev->i2c_adap)) == NULL)
->>                return -EIO;
->
-> Wow, that looks shockingly similar to the patch I did for an em28xx
-> boards a couple of months ago, even down to the part where you added
-> "_no_i2c_gate" to the end!  :-)
+pt1: Support FE_READ_SNR
 
-I might have got some inspiration from somewhere :)
+Signed-off-by: HIRANO Takahito <hiranotaka@zng.info>
 
->
-> Yeah, that's the fix, although from the diff I can't tell if you're
-> doing it for all zl10353 boards in cxusb.c or just yours.  I would
-> have to see the source to know for sure.
-
-I only changed cxusb_dualdig4_frontend_attach() so it should be just my
-board.  The only other board that was using cxusb_zl10353_xc3028_config
-was cxusb_nano2_frontend_attach(), but I left that as is since I don't
-know if that board is similarily affected.
-
-I'l try it out tonight and confirm it fixes the problem
-
-Thanks for your help
-
--Rob
-
->
-> Devin
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
->
-
-
+diff -r bb412b4e19a0 -r b386a38c7a1e linux/drivers/media/dvb/pt1/va1j5jf8007s.c
+--- a/linux/drivers/media/dvb/pt1/va1j5jf8007s.c	Sun Nov 01 03:59:42 2009 +0900
++++ b/linux/drivers/media/dvb/pt1/va1j5jf8007s.c	Sun Nov 08 17:37:13 2009 +0900
+@@ -48,6 +48,60 @@
+ 	enum va1j5jf8007s_tune_state tune_state;
+ };
+ 
++static int va1j5jf8007s_read_snr(struct dvb_frontend *fe, u16 *snr)
++{
++	struct va1j5jf8007s_state *state;
++	u8 addr;
++	int i;
++	u8 write_buf[1], read_buf[1];
++	struct i2c_msg msgs[2];
++	s32 word, x1, x2, x3, x4, x5, y;
++
++	state = fe->demodulator_priv;
++	addr = state->config->demod_address;
++
++	word = 0;
++	for (i = 0; i < 2; i++) {
++		write_buf[0] = 0xbc + i;
++
++		msgs[0].addr = addr;
++		msgs[0].flags = 0;
++		msgs[0].len = sizeof(write_buf);
++		msgs[0].buf = write_buf;
++
++		msgs[1].addr = addr;
++		msgs[1].flags = I2C_M_RD;
++		msgs[1].len = sizeof(read_buf);
++		msgs[1].buf = read_buf;
++
++		if (i2c_transfer(state->adap, msgs, 2) != 2)
++			return -EREMOTEIO;
++
++		word <<= 8;
++		word |= read_buf[0];
++	}
++
++	word -= 3000;
++	if (word < 0)
++		word = 0;
++
++	x1 = int_sqrt(word << 16) * ((15625ll << 21) / 1000000);
++	x2 = (s64)x1 * x1 >> 31;
++	x3 = (s64)x2 * x1 >> 31;
++	x4 = (s64)x2 * x2 >> 31;
++	x5 = (s64)x4 * x1 >> 31;
++
++	y = (58857ll << 23) / 1000;
++	y -= (s64)x1 * ((89565ll << 24) / 1000) >> 30;
++	y += (s64)x2 * ((88977ll << 24) / 1000) >> 28;
++	y -= (s64)x3 * ((50259ll << 25) / 1000) >> 27;
++	y += (s64)x4 * ((14341ll << 27) / 1000) >> 27;
++	y -= (s64)x5 * ((16346ll << 30) / 10000) >> 28;
++
++	*snr = y < 0 ? 0 : y >> 15;
++	return 0;
++}
++
+ static int va1j5jf8007s_get_frontend_algo(struct dvb_frontend *fe)
+ {
+ 	return DVBFE_ALGO_HW;
+@@ -536,6 +590,7 @@
+ 			FE_CAN_GUARD_INTERVAL_AUTO | FE_CAN_HIERARCHY_AUTO,
+ 	},
+ 
++	.read_snr = va1j5jf8007s_read_snr,
+ 	.get_frontend_algo = va1j5jf8007s_get_frontend_algo,
+ 	.read_status = va1j5jf8007s_read_status,
+ 	.tune = va1j5jf8007s_tune,
+diff -r bb412b4e19a0 -r b386a38c7a1e linux/drivers/media/dvb/pt1/va1j5jf8007t.c
+--- a/linux/drivers/media/dvb/pt1/va1j5jf8007t.c	Sun Nov 01 03:59:42 2009 +0900
++++ b/linux/drivers/media/dvb/pt1/va1j5jf8007t.c	Sun Nov 08 17:37:13 2009 +0900
+@@ -46,6 +46,52 @@
+ 	enum va1j5jf8007t_tune_state tune_state;
+ };
+ 
++static int va1j5jf8007t_read_snr(struct dvb_frontend *fe, u16 *snr)
++{
++	struct va1j5jf8007t_state *state;
++	u8 addr;
++	int i;
++	u8 write_buf[1], read_buf[1];
++	struct i2c_msg msgs[2];
++	s32 word, x, y;
++
++	state = fe->demodulator_priv;
++	addr = state->config->demod_address;
++
++	word = 0;
++	for (i = 0; i < 3; i++) {
++		write_buf[0] = 0x8b + i;
++
++		msgs[0].addr = addr;
++		msgs[0].flags = 0;
++		msgs[0].len = sizeof(write_buf);
++		msgs[0].buf = write_buf;
++
++		msgs[1].addr = addr;
++		msgs[1].flags = I2C_M_RD;
++		msgs[1].len = sizeof(read_buf);
++		msgs[1].buf = read_buf;
++
++		if (i2c_transfer(state->adap, msgs, 2) != 2)
++			return -EREMOTEIO;
++
++		word <<= 8;
++		word |= read_buf[0];
++	}
++
++	if (!word)
++		return -EIO;
++
++	x = 10 * (intlog10(0x540000 * 100 / word) - (2 << 24));
++	y = (24ll << 46) / 1000000;
++	y = ((s64)y * x >> 30) - (16ll << 40) / 10000;
++	y = ((s64)y * x >> 29) + (398ll << 35) / 10000;
++	y = ((s64)y * x >> 30) + (5491ll << 29) / 10000;
++	y = ((s64)y * x >> 30) + (30965ll << 23) / 10000;
++	*snr = y >> 15;
++	return 0;
++}
++
+ static int va1j5jf8007t_get_frontend_algo(struct dvb_frontend *fe)
+ {
+ 	return DVBFE_ALGO_HW;
+@@ -393,6 +439,7 @@
+ 			FE_CAN_GUARD_INTERVAL_AUTO | FE_CAN_HIERARCHY_AUTO,
+ 	},
+ 
++	.read_snr = va1j5jf8007t_read_snr,
+ 	.get_frontend_algo = va1j5jf8007t_get_frontend_algo,
+ 	.read_status = va1j5jf8007t_read_status,
+ 	.tune = va1j5jf8007t_tune,
