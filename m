@@ -1,179 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3613 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752206AbZKRHPq (ORCPT
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:60485 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751044AbZKHByG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 02:15:46 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: v4l: Replace video_is_unregistered with video_is_registered
-Date: Wed, 18 Nov 2009 08:15:41 +0100
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1258504731-8430-1-git-send-email-laurent.pinchart@ideasonboard.com> <1258504731-8430-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1258504731-8430-5-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200911180815.41389.hverkuil@xs4all.nl>
+	Sat, 7 Nov 2009 20:54:06 -0500
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Andy Walls <awalls@radix.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media <linux-media@vger.kernel.org>
+In-Reply-To: <1257644422.6895.8.camel@palomino.walls.org>
+References: <1257630681.15927.423.camel@localhost>
+	 <1257644422.6895.8.camel@palomino.walls.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-S0beu7D3epMmxCTaC8kD"
+Date: Sun, 08 Nov 2009 01:53:58 +0000
+Message-ID: <1257645238.15927.624.camel@localhost>
+Mime-Version: 1.0
+Subject: Re: [PATCH 29/75] cx18: declare MODULE_FIRMWARE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 18 November 2009 01:38:45 Laurent Pinchart wrote:
-> Replace the video_is_unregistered function by a video_is_registered
-> function. The V4L2_FL_UNREGISTERED flag is replaced by a
-> V4L2_FL_REGISTERED flag.
-> 
-> This change makes the video_is_registered function return coherent
-> results when called on an initialize but not yet registered video_device
-> instance. The function can now be used instead of checking
-> video_device::minor.
 
-Much better than what I wrote originally! I like this!
+--=-S0beu7D3epMmxCTaC8kD
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
+On Sat, 2009-11-07 at 20:40 -0500, Andy Walls wrote:
+> On Sat, 2009-11-07 at 21:51 +0000, Ben Hutchings wrote:
+> > Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+> > ---
+> >  drivers/media/video/cx18/cx18-av-firmware.c |    1 +
+> >  drivers/media/video/cx18/cx18-dvb.c         |    2 ++
+> >  drivers/media/video/cx18/cx18-firmware.c    |    3 +++
+> >  3 files changed, 6 insertions(+), 0 deletions(-)
+> >=20
+> > diff --git a/drivers/media/video/cx18/cx18-av-firmware.c b/drivers/medi=
+a/video/cx18/cx18-av-firmware.c
+> > index b9e8cc5..137445c 100644
+> > --- a/drivers/media/video/cx18/cx18-av-firmware.c
+> > +++ b/drivers/media/video/cx18/cx18-av-firmware.c
+> > @@ -32,6 +32,7 @@
+> >  #define CX18_AI1_MUX_INVALID 0x30
+> > =20
+> >  #define FWFILE "v4l-cx23418-dig.fw"
+> > +MODULE_FIRMWARE(FWFILE);
+> > =20
+> >  static int cx18_av_verifyfw(struct cx18 *cx, const struct firmware *fw=
+)
+> >  {
+> > diff --git a/drivers/media/video/cx18/cx18-dvb.c b/drivers/media/video/=
+cx18/cx18-dvb.c
+> > index 51a0c33..9f70168 100644
+> > --- a/drivers/media/video/cx18/cx18-dvb.c
+> > +++ b/drivers/media/video/cx18/cx18-dvb.c
+> > @@ -131,6 +131,8 @@ static int yuan_mpc718_mt352_reqfw(struct cx18_stre=
+am *stream,
+> >  	return ret;
+> >  }
+> > =20
+> > +MODULE_FIRMWARE("dvb-cx18-mpc718-mt352.fw");
+> > +
+>=20
+> Ben,
+>=20
+> This particular firmware is only needed by one relatively rare TV card.
+> Is there any way for MODULE_FIRMWARE advertisements to hint at
+> "mandatory" vs. "particular case(s)"?
 
-	Hans
+No, but perhaps there ought to be.  In this case the declaration could
+be left out for now.  It is only critical to list all firmware in
+drivers that may be needed for booting.
 
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Index: v4l-dvb-mc-uvc/linux/drivers/media/video/v4l2-dev.c
-> ===================================================================
-> --- v4l-dvb-mc-uvc.orig/linux/drivers/media/video/v4l2-dev.c
-> +++ v4l-dvb-mc-uvc/linux/drivers/media/video/v4l2-dev.c
-> @@ -227,7 +227,7 @@ static ssize_t v4l2_read(struct file *fi
->  
->  	if (!vdev->fops->read)
->  		return -EINVAL;
-> -	if (video_is_unregistered(vdev))
-> +	if (!video_is_registered(vdev))
->  		return -EIO;
->  	return vdev->fops->read(filp, buf, sz, off);
->  }
-> @@ -239,7 +239,7 @@ static ssize_t v4l2_write(struct file *f
->  
->  	if (!vdev->fops->write)
->  		return -EINVAL;
-> -	if (video_is_unregistered(vdev))
-> +	if (!video_is_registered(vdev))
->  		return -EIO;
->  	return vdev->fops->write(filp, buf, sz, off);
->  }
-> @@ -248,7 +248,7 @@ static unsigned int v4l2_poll(struct fil
->  {
->  	struct video_device *vdev = video_devdata(filp);
->  
-> -	if (!vdev->fops->poll || video_is_unregistered(vdev))
-> +	if (!vdev->fops->poll || !video_is_registered(vdev))
->  		return DEFAULT_POLLMASK;
->  	return vdev->fops->poll(filp, poll);
->  }
-> @@ -288,7 +288,7 @@ static unsigned long v4l2_get_unmapped_a
->  
->  	if (!vdev->fops->get_unmapped_area)
->  		return -ENOSYS;
-> -	if (video_is_unregistered(vdev))
-> +	if (!video_is_registered(vdev))
->  		return -ENODEV;
->  	return vdev->fops->get_unmapped_area(filp, addr, len, pgoff, flags);
->  }
-> @@ -298,8 +298,7 @@ static int v4l2_mmap(struct file *filp, 
->  {
->  	struct video_device *vdev = video_devdata(filp);
->  
-> -	if (!vdev->fops->mmap ||
-> -	    video_is_unregistered(vdev))
-> +	if (!vdev->fops->mmap || !video_is_registered(vdev))
->  		return -ENODEV;
->  	return vdev->fops->mmap(filp, vm);
->  }
-> @@ -315,7 +314,7 @@ static int v4l2_open(struct inode *inode
->  	vdev = video_devdata(filp);
->  	/* return ENODEV if the video device has been removed
->  	   already or if it is not registered anymore. */
-> -	if (vdev == NULL || video_is_unregistered(vdev)) {
-> +	if (vdev == NULL || !video_is_registered(vdev)) {
->  		mutex_unlock(&videodev_lock);
->  		return -ENODEV;
->  	}
-> @@ -623,6 +622,7 @@ static int __video_register_device(struc
->  			name_base, nr, video_device_node_name(vdev));
->  
->  	/* Part 5: Activate this minor. The char device can now be used. */
-> +	set_bit(V4L2_FL_REGISTERED, &vdev->flags);
->  	mutex_lock(&videodev_lock);
->  	video_device[vdev->minor] = vdev;
->  	mutex_unlock(&videodev_lock);
-> @@ -661,11 +661,11 @@ EXPORT_SYMBOL(video_register_device_no_w
->  void video_unregister_device(struct video_device *vdev)
->  {
->  	/* Check if vdev was ever registered at all */
-> -	if (!vdev || vdev->minor < 0)
-> +	if (!vdev || !video_is_registered(vdev))
->  		return;
->  
->  	mutex_lock(&videodev_lock);
-> -	set_bit(V4L2_FL_UNREGISTERED, &vdev->flags);
-> +	clear_bit(V4L2_FL_REGISTERED, &vdev->flags);
->  	mutex_unlock(&videodev_lock);
->  #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 19)
->  	class_device_unregister(&vdev->dev);
-> Index: v4l-dvb-mc-uvc/linux/include/media/v4l2-dev.h
-> ===================================================================
-> --- v4l-dvb-mc-uvc.orig/linux/include/media/v4l2-dev.h
-> +++ v4l-dvb-mc-uvc/linux/include/media/v4l2-dev.h
-> @@ -28,10 +28,10 @@ struct v4l2_ioctl_callbacks;
->  struct video_device;
->  struct v4l2_device;
->  
-> -/* Flag to mark the video_device struct as unregistered.
-> -   Drivers can set this flag if they want to block all future
-> -   device access. It is set by video_unregister_device. */
-> -#define V4L2_FL_UNREGISTERED	(0)
-> +/* Flag to mark the video_device struct as registered.
-> +   Drivers can clear this flag if they want to block all future
-> +   device access. It is cleared by video_unregister_device. */
-> +#define V4L2_FL_REGISTERED	(0)
->  
->  struct v4l2_file_operations {
->  	struct module *owner;
-> @@ -100,9 +100,7 @@ struct video_device
->  /* Register video devices. Note that if video_register_device fails,
->     the release() callback of the video_device structure is *not* called, so
->     the caller is responsible for freeing any data. Usually that means that
-> -   you call video_device_release() on failure.
-> -
-> -   Also note that vdev->minor is set to -1 if the registration failed. */
-> +   you call video_device_release() on failure. */
->  int __must_check video_register_device(struct video_device *vdev, int type, int nr);
->  
->  /* Same as video_register_device, but no warning is issued if the desired
-> @@ -110,7 +108,7 @@ int __must_check video_register_device(s
->  int __must_check video_register_device_no_warn(struct video_device *vdev, int type, int nr);
->  
->  /* Unregister video devices. Will do nothing if vdev == NULL or
-> -   vdev->minor < 0. */
-> +   video_is_registered() returns false. */
->  void video_unregister_device(struct video_device *vdev);
->  
->  /* helper functions to alloc/release struct video_device, the
-> @@ -162,9 +160,9 @@ static inline const char *video_device_n
->  #endif
->  }
->  
-> -static inline int video_is_unregistered(struct video_device *vdev)
-> +static inline int video_is_registered(struct video_device *vdev)
->  {
-> -	return test_bit(V4L2_FL_UNREGISTERED, &vdev->flags);
-> +	return test_bit(V4L2_FL_REGISTERED, &vdev->flags);
->  }
->  
->  #endif /* _V4L2_DEV_H */
-> 
+Ben.
 
+--=20
+Ben Hutchings
+The generation of random numbers is too important to be left to chance.
+                                                            - Robert Coveyo=
+u
 
+--=-S0beu7D3epMmxCTaC8kD
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iQIVAwUASvYksOe/yOyVhhEJAQLvbg//dB0wBWg1Yf8EZSMGKgaFtaDSbHGWuDXK
+pyYlgk2gY5Udhq2kSYt8A+UWBADfoNWWV7wiQnLJfLi2IiQ3BeZr20WxUEz4fdwr
+LVJVNZMIsXTEDQCE467PG9yGYjqU9WOjUDOaEtW4wNEvvJXgIbxQTcocbAo1+W0G
+QnD90f0cbb279/apoYhvuiB7gNbEdD27sz36C0vh8l6gYDeKdwRRRwk7ooXpo+si
+yU+PIH2kemzbfHN1sRTlQJDvXk7kXaMLBaYZ9JxbBOQmR6r4BxfSdFpUtiVpqfsy
+wk7CtvUOF8Cqfav4/AG3+xizgGe1+mDEKK1v8tbIdob8L7MMMNktTQjr1PIgeiLj
+E2adPL6W1Avi/R8Oseh5TF+sdrZuUc/BFOMF9zD1ueauEEWQw+RQU0Mva3cz6Xyb
+VmviVUlla/pT8NDrI+PwO5rv19WY32UhFQS1MX6ddgyyqBx+Xqvjm+2Oc/05xo+o
+02md4RNlOmHpwD1o9rQarE5lFQjHrfssyG7N+eFzOLybaejcsnagoMJ4ZVvyvejt
+eobVMs7e+O3m0/MdLvzrI+0Yyw7xt3IdlCzM3V0HbYEFLPLPlvNaCL3Ule9+KsC2
+nXkR/qaHgdTTW2tFr8Cx4r77nVC8GaLXrr24fXDh150RRp4vcOYd43bYalIQ7q70
+7GIYOiNiLP0=
+=CWkn
+-----END PGP SIGNATURE-----
+
+--=-S0beu7D3epMmxCTaC8kD--
