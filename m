@@ -1,127 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4657 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757912AbZKJTwH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Nov 2009 14:52:07 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id nAAJqAHo028422
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 10 Nov 2009 20:52:10 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 10 Nov 2009 20:52:10 +0100 (CET)
-Message-Id: <200911101952.nAAJqAHo028422@smtp-vbr11.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail1.radix.net ([207.192.128.31]:39320 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751821AbZKHBjN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Nov 2009 20:39:13 -0500
+Subject: Re: [PATCH 29/75] cx18: declare MODULE_FIRMWARE
+From: Andy Walls <awalls@radix.net>
+To: Ben Hutchings <ben@decadent.org.uk>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media <linux-media@vger.kernel.org>
+In-Reply-To: <1257630681.15927.423.camel@localhost>
+References: <1257630681.15927.423.camel@localhost>
+Content-Type: text/plain
+Date: Sat, 07 Nov 2009 20:40:22 -0500
+Message-Id: <1257644422.6895.8.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Sat, 2009-11-07 at 21:51 +0000, Ben Hutchings wrote:
+> Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+> ---
+>  drivers/media/video/cx18/cx18-av-firmware.c |    1 +
+>  drivers/media/video/cx18/cx18-dvb.c         |    2 ++
+>  drivers/media/video/cx18/cx18-firmware.c    |    3 +++
+>  3 files changed, 6 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/cx18/cx18-av-firmware.c b/drivers/media/video/cx18/cx18-av-firmware.c
+> index b9e8cc5..137445c 100644
+> --- a/drivers/media/video/cx18/cx18-av-firmware.c
+> +++ b/drivers/media/video/cx18/cx18-av-firmware.c
+> @@ -32,6 +32,7 @@
+>  #define CX18_AI1_MUX_INVALID 0x30
+>  
+>  #define FWFILE "v4l-cx23418-dig.fw"
+> +MODULE_FIRMWARE(FWFILE);
+>  
+>  static int cx18_av_verifyfw(struct cx18 *cx, const struct firmware *fw)
+>  {
+> diff --git a/drivers/media/video/cx18/cx18-dvb.c b/drivers/media/video/cx18/cx18-dvb.c
+> index 51a0c33..9f70168 100644
+> --- a/drivers/media/video/cx18/cx18-dvb.c
+> +++ b/drivers/media/video/cx18/cx18-dvb.c
+> @@ -131,6 +131,8 @@ static int yuan_mpc718_mt352_reqfw(struct cx18_stream *stream,
+>  	return ret;
+>  }
+>  
+> +MODULE_FIRMWARE("dvb-cx18-mpc718-mt352.fw");
+> +
 
-Results of the daily build of v4l-dvb:
+Ben,
 
-date:        Tue Nov 10 19:00:05 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13327:19c0469c02c3
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+This particular firmware is only needed by one relatively rare TV card.
+Is there any way for MODULE_FIRMWARE advertisements to hint at
+"mandatory" vs. "particular case(s)"?
 
-linux-2.6.22.19-armv5: WARNINGS
-linux-2.6.23.12-armv5: WARNINGS
-linux-2.6.24.7-armv5: WARNINGS
-linux-2.6.25.11-armv5: WARNINGS
-linux-2.6.26-armv5: WARNINGS
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29.1-armv5: WARNINGS
-linux-2.6.30-armv5: WARNINGS
-linux-2.6.31-armv5: WARNINGS
-linux-2.6.32-rc6-armv5: ERRORS
-linux-2.6.32-rc6-armv5-davinci: ERRORS
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.31-armv5-ixp: WARNINGS
-linux-2.6.32-rc6-armv5-ixp: ERRORS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.31-armv5-omap2: ERRORS
-linux-2.6.32-rc6-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-rc6-i686: WARNINGS
-linux-2.6.23.12-m32r: WARNINGS
-linux-2.6.24.7-m32r: WARNINGS
-linux-2.6.25.11-m32r: WARNINGS
-linux-2.6.26-m32r: WARNINGS
-linux-2.6.27-m32r: WARNINGS
-linux-2.6.28-m32r: WARNINGS
-linux-2.6.29.1-m32r: WARNINGS
-linux-2.6.30-m32r: WARNINGS
-linux-2.6.31-m32r: WARNINGS
-linux-2.6.32-rc6-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: WARNINGS
-linux-2.6.32-rc6-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: WARNINGS
-linux-2.6.32-rc6-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-rc6-x86_64: ERRORS
-sparse (linux-2.6.31): OK
-sparse (linux-2.6.32-rc6): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+Regards,
+Andy
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The V4L2 specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+>  static int yuan_mpc718_mt352_init(struct dvb_frontend *fe)
+>  {
+>  	struct cx18_dvb *dvb = container_of(fe->dvb,
+> diff --git a/drivers/media/video/cx18/cx18-firmware.c b/drivers/media/video/cx18/cx18-firmware.c
+> index 83cd559..4ac4b81 100644
+> --- a/drivers/media/video/cx18/cx18-firmware.c
+> +++ b/drivers/media/video/cx18/cx18-firmware.c
+> @@ -446,3 +446,6 @@ int cx18_firmware_init(struct cx18 *cx)
+>  	cx18_write_reg_expect(cx, 0x14001400, 0xc78110, 0x00001400, 0x14001400);
+>  	return 0;
+>  }
+> +
+> +MODULE_FIRMWARE("v4l-cx23418-cpu.fw");
+> +MODULE_FIRMWARE("v4l-cx23418-apu.fw");
 
