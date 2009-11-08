@@ -1,64 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gv-out-0910.google.com ([216.239.58.184]:50631 "EHLO
-	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758595AbZKEVEX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Nov 2009 16:04:23 -0500
-Received: by gv-out-0910.google.com with SMTP id r4so136698gve.37
-        for <linux-media@vger.kernel.org>; Thu, 05 Nov 2009 13:04:28 -0800 (PST)
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:50088 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752796AbZKHBox convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Nov 2009 20:44:53 -0500
+Received: by bwz27 with SMTP id 27so2380700bwz.21
+        for <linux-media@vger.kernel.org>; Sat, 07 Nov 2009 17:44:57 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <702870ef0911051257k52c142e8ne1b32506f1efb45c@mail.gmail.com>
-References: <20764.64.213.30.2.1257390002.squirrel@webmail.exetel.com.au>
-	 <829197380911042051l295e9796g65fe1b163f72a70c@mail.gmail.com>
-	 <26256.64.213.30.2.1257398603.squirrel@webmail.exetel.com.au>
-	 <829197380911050602t30bc69d0sd0b269c39bf759e@mail.gmail.com>
-	 <702870ef0911051257k52c142e8ne1b32506f1efb45c@mail.gmail.com>
-Date: Thu, 5 Nov 2009 16:04:26 -0500
-Message-ID: <829197380911051304g1544e277s870f869be14e1a18@mail.gmail.com>
-Subject: Re: bisected regression in tuner-xc2028 on DVICO dual digital 4
+In-Reply-To: <1257644240.6895.5.camel@palomino.walls.org>
+References: <1257630476.15927.400.camel@localhost>
+	 <1257644240.6895.5.camel@palomino.walls.org>
+Date: Sat, 7 Nov 2009 20:44:57 -0500
+Message-ID: <829197380911071744q50fc6e18o527322e1120b9689@mail.gmail.com>
+Subject: Re: [PATCH 10/75] V4L/DVB: declare MODULE_FIRMWARE for modules using
+	XC2028 and XC3028L tuners
 From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Vincent McIntyre <vincent.mcintyre@gmail.com>
-Cc: Robert Lowery <rglowery@exemail.com.au>,
+To: Andy Walls <awalls@radix.net>
+Cc: Ben Hutchings <ben@decadent.org.uk>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
 	linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 5, 2009 at 3:57 PM, Vincent McIntyre
-<vincent.mcintyre@gmail.com> wrote:
-> I have one of these too.
+On Sat, Nov 7, 2009 at 8:37 PM, Andy Walls <awalls@radix.net> wrote:
+> On Sat, 2009-11-07 at 21:47 +0000, Ben Hutchings wrote:
+>> Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+>> ---
+>> I'm not really sure whether it's better to do this in the drivers which
+>> specify which firmware file to use, or just once in the xc2028 tuner
+>> driver.  Your call.
+>>
+>> Ben.
 >
-> lsusb:
-> Bus 003 Device 003: ID 0fe9:db78 DVICO FusionHDTV DVB-T Dual Digital 4
-> (ZL10353+xc2028/xc3028) (initialized)
-> Bus 003 Device 002: ID 0fe9:db78 DVICO FusionHDTV DVB-T Dual Digital 4
-> (ZL10353+xc2028/xc3028) (initialized)
+> Ben,
 >
-> In addition I have a "DViCO Dual Digital Express" which is a PCIe card
-> based on Conexant, with the Zarlink frontend.
-> lspci:
-> 04:00.0 Multimedia video controller [0400]: Conexant Systems, Inc.
-> CX23885 PCI Video and Audio Decoder [14f1:8852] (rev 02)
->        Subsystem: DViCO Corporation Device [18ac:db78]
->        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-> Stepping- SERR- FastB2B- DisINTx-
->        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
-> <TAbort- <MAbort- >SERR- <PERR- INTx-
->        Latency: 0, Cache Line Size: 64 bytes
->        Interrupt: pin A routed to IRQ 19
->        Region 0: Memory at 90000000 (64-bit, non-prefetchable) [size=2M]
->        Capabilities: <access denied>
->        Kernel driver in use: cx23885
->        Kernel modules: cx23885
+> I would suspect it's better left in the xc2028 tuner driver module.
+>
+> Rationale:
+>
+> a. it will be consistent with other modules like the cx25840 module.
+> ivtv and cx23885 load the cx25840 module yet the MODULE_FIRMWARE
+> advertisement for the CX2584[0123] or CX2388[578] A/V core firmware is
+> in the cx25840 module.
+>
+> b. not every ivtv or cx18 supported TV card, for example, needs the
+> XCeive tuner chip firmware, so it's not a strict requirement for those
+> modules.  It is a strict(-er) requirement for the xc2028 module.
+>
+> My $0.02
+>
+> Regards,
+> Andy
 
-Crap.  This is the price I pay for not having noticed Robert included
-a launchpad ticket with the dmesg output.
+It's not clear to me what this MODULE_FIRMWARE is going to be used
+for, but if it's for some sort of module dependency system, then it
+definitely should *not* be a dependency for em28xx.  There are lots of
+em28xx based devices that do not use the xc3028, and those users
+should not be expected to go out and find/extract the firmware for
+some tuner they don't have.
 
-Yeah, it's a zl10353, so I know what the problem is.  Let me look at
-the code and send you a patch for testing.  If you don't hear back
-from me within 24 hours, ping me again.
-
-Cheers,
+Also, how does this approach handle the situation where there are two
+different possible firmwares depending on the card using the firmware.
+ As in the example above, you the xc3028 can require either the xc3028
+or xc3028L firmware depending on the board they have.  Does this
+change now result in both firmware images being required?
 
 Devin
 
