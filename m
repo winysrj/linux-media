@@ -1,143 +1,95 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:8373 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751800AbZKGMfW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Nov 2009 07:35:22 -0500
-Received: by qw-out-2122.google.com with SMTP id 3so346240qwe.37
-        for <linux-media@vger.kernel.org>; Sat, 07 Nov 2009 04:35:27 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <6174dfda0911070246v61b5b3f5rdea26406066e3fa4@mail.gmail.com>
-References: <6174dfda0911061223k75f31fd5je33a8e75e9e3c391@mail.gmail.com>
-	 <6174dfda0911061258u254ba6bbh4610291a904edc0a@mail.gmail.com>
-	 <156a113e0911061716t758d7ee3ta709b406c2f074a1@mail.gmail.com>
-	 <6174dfda0911070246v61b5b3f5rdea26406066e3fa4@mail.gmail.com>
-Date: Sat, 7 Nov 2009 13:35:26 +0100
-Message-ID: <156a113e0911070435w4be2b9dfo17f8e9c910bab437@mail.gmail.com>
-Subject: Re: em28xx based USB Hybrid (Analog & DVB-T) TV Tuner not supported
-From: Magnus Alm <magnus.alm@gmail.com>
-To: Johan Mutsaerts <johmut@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
-Sender: linux-media-owner@vger.kernel.org
-List-ID: <linux-media.vger.kernel.org>
+Return-path: <video4linux-list-bounces@redhat.com>
+Received: from mx1.redhat.com (ext-mx02.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.6])
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id nA8Mej92005681
+	for <video4linux-list@redhat.com>; Sun, 8 Nov 2009 17:40:45 -0500
+Received: from mail-in-04.arcor-online.net (mail-in-04.arcor-online.net
+	[151.189.21.44])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id nA8Meic2012192
+	for <video4linux-list@redhat.com>; Sun, 8 Nov 2009 17:40:44 -0500
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Pavle Predic <pavle.predic@yahoo.co.uk>
+In-Reply-To: <163605.48700.qm@web28403.mail.ukl.yahoo.com>
+References: <163605.48700.qm@web28403.mail.ukl.yahoo.com>
+Content-Type: text/plain
+Date: Sun, 08 Nov 2009 23:35:08 +0100
+Message-Id: <1257719708.3249.27.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: Leadtek Winfast TV2100
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+List-ID: <video4linux-list@redhat.com>
 
-Hi
+Hi Pavle,
 
-I read some where that trying different card types for a DVB tuner can
-potentially cause damage to them.
+Am Sonntag, den 08.11.2009, 17:11 +0000 schrieb Pavle Predic:
+> Did anyone manage to get this card working on Linux? I got the picture out of the box, but it's impossible to get any sound from the damned thing. The card is not on CARDLIST.saa7134, but I assume a similar card/tuner combination can be used. But which? By the way, I got the speakers connected directly to card output, I'm not even trying to get it working with my sound card. I can hear clicks when loading/unloading modules, so it's alive but not set up properly.
+> 
+> Any info would be greatly appreciated. Perhaps someone knows of another card that is similar to this one?
+> 
+> Card info:
+> Chipset: saa7134
+> Tuner: Tvision TVF88T5-B/DFF
+> Card numbers that produce picture (modprobe saa7134 card=$n): 3, 7, 10, 16, 34, 35, 45, 46, 47, 48, 51, 63, 64, 68
 
-You are probably right about the firmare.
-Do you have a link to the manufacture of your stick?
-I tried to google the name of it but couldn't found an exact match.
+that is not enough information yet.
 
-The EM2881_BOARD_PINNACLE_HYBRID_PRO uses it's XC3028 to getter with a
-ZARLINK456
-as you can see from the following line in em28xx-cards.c
+The correct tuner for this one is tuner=69.
 
-case EM2881_BOARD_PINNACLE_HYBRID_PRO:
-		ctl->demod = XC3028_FE_ZARLINK456;
-		break;
+Only with this one you will have also radio support.
 
-It is probably not compliant with your  Zarlink MT352.
+Since you mail from an UK mail provider, this tuner is not expected to
+work with PAL-I TV stereo sound there, but radio would work.
 
-There is a mt352 module tho, but I guess it doesn't get loaded when
-you plug your stick in.
+Else, if neither amux = TV nor amux = LINE1 or LINE2 (LINE inputs for TV
+sound are only found on saa7130 chips, except there is also an extra TV
+mono section directly from the tuner)  work for TV sound, most often an
+external audio mux is in the way and needs to be configured correctly
+with saa7134 gpio pins. Looking also at the minor chips on the card with
+more than 3 pins can reveal such a mux.
 
-I'll pooke around a bit.....
+There is also a software test on such hardware, succeeding in most
+cases.
 
-PS
-Use the "reply all", so others can see your mails, since I'm probably
-one of the least competent guys/gals on this mailing list.
-DS
+By default, external analog audio input is looped through to analog
+audio out, on which you are listening, if the driver is unloaded.
+
+On a saa7134 chip, on saa7130 are some known specials, you should hear
+the incoming sound directly on your headphones or what else you might be
+using directly connected to your card, trying on LINE1 and LINE2 for
+that.
+
+If not, you can expect that such a mux chip needs to be treated
+correctly.
+
+The DScaler (deinterlace.sf.net) regspy.exe often can help to identify
+such gpios in use, else you must trace lines and resistors on it.
+
+In general, an absolute minimum is to provide related "dmesg" after
+loading the driver _without_ having tried on other cards previously.
+
+Please read more on the linuxtv.org wiki about adding support for a new
+card.
+
+Cheers,
+Hermann
 
 
 
-2009/11/7 Johan Mutsaerts <johmut@gmail.com>:
-> Hi Magnus,
->
-> Thanks for a quick reply. Here is some more detailed information:
->
-> My USB device ID is 0xeb1a:0x2881 it is eMPIA based.
->
-> These are the components inside
-> - Empia EM2880
-> - Texas Instruments 5150AM1
-> - XCeive XC3028
-> - Empia EMP202
-> - Zarlink MT352
->
-> Difficult for me to get to the windows stuff....
->
-> No /dev/dvb/.... is generated ? Could it have something to do with no Firmware ?
->
-> I found my device to be quite similar to the Pinnacle Hybrid Pro so I tried
-> sudo rmmod em28xx-dvb
-> sudo rmmod em28xx-alsa
-> sudo rmmod em28xx
-> sudo modprobe em28xx card=53 and card=56
-> sudo modprobe em28xx-alsa
-> sudo modprobe em28xx-dvb
-> However with not much success.
-> Card=53 cased MeTV to see a tuner but no channels could be found....
->
-> TIA for any assistance you can provide.
->
-> Best Regards,
-> Johan
->
-> 2009/11/7 Magnus Alm <magnus.alm@gmail.com>:
->> Hi!
->>
->> The dmesg didn't reveal what tuner your stick/card has, it's probably
->> a XC2028/XC3028 or something like that.
->> Easiest way to find out would be if you could open the cover and have
->> a look inside.
->>
->> If you have access to windows and the pvr program that came with the
->> tuner you could do a usb-sniff.
->>
->> http://www.pcausa.com/Utilities/UsbSnoop/
->> or
->> http://benoit.papillault.free.fr/usbsnoop/
->>
->> Switch between different inputs while doing the log, like "dvb",
->> "analog" and if it has "svideo"/"composite" input.
->>
->> copy the windows log to unix and parse the output with parser.pl (I've
->> added is as an attachment.)
->> I think there is a new parser somewhere, but I forgot the name of it.
->>
->> I'm also not sure how I used it, but I think it was like this: perl
->> parser.pl < "your_windows_log" > "parsed_log"
->> That log is needed to  find out what "gpio" your tuner needs for
->> different settings.
->>
->> Don't be scared of the size of the windows log, it gets large, often a
->> few hundred MB.
->> The parsed log is much smaller,  a few hundred KB.
->>
->> That is all I can think about atm.
->>
->> /Magnus Alm
->>
->>
->> 2009/11/6 Johan Mutsaerts <johmut@gmail.com>:
->>> Hi,
->>>
->>> I have an iDream UTVHYL2 USB TV Tuner (with IR remote control) that I
->>> cannot get to work with Ubuntu (9.04, 2.6.28-16). I have successfully
->>> compiled and installed the em28xx-new driver from linuxtv.org. No
->>> /dev/dvb/adapter... is created and that is where it ends for me know.
->>> MyTV claims no adapter is detected.
->>>
->>> I have attached the output of lsusb and dmesg as requested...
->>>
->>> Please let me know what more I can do and what exactly it is you can do ?
->>>
->>> Thanks in advance and
->>> Best Regards,
->>> Johan (Belgium)
->>>
->>
->
+
+
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
