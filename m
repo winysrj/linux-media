@@ -1,60 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:58482 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751812AbZKRHYp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 02:24:45 -0500
-Message-ID: <4B03A11D.9090404@infradead.org>
-Date: Wed, 18 Nov 2009 05:24:13 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from einhorn.in-berlin.de ([192.109.42.8]:36291 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750845AbZKHV26 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Nov 2009 16:28:58 -0500
+Date: Sun, 8 Nov 2009 22:28:45 +0100 (CET)
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: [PATCH 1/4] firedtv: move remote control workqueue handling into rc
+ source file
+To: linux-media@vger.kernel.org
+cc: linux1394-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
+In-Reply-To: <tkrat.ce889fb60854a648@s5r6.in-berlin.de>
+Message-ID: <tkrat.fb15c3478b505864@s5r6.in-berlin.de>
+References: <tkrat.ce889fb60854a648@s5r6.in-berlin.de>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Help in adding documentation
-References: <A69FA2915331DC488A831521EAE36FE401559C59A2@dlee06.ent.ti.com> <A69FA2915331DC488A831521EAE36FE401559C5D80@dlee06.ent.ti.com> <4B039C6A.8090907@infradead.org> <200911180819.11199.hverkuil@xs4all.nl>
-In-Reply-To: <200911180819.11199.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; CHARSET=us-ascii
+Content-Disposition: INLINE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
-> On Wednesday 18 November 2009 08:04:10 Mauro Carvalho Chehab wrote:
->> Karicheri, Muralidharan escreveu:
->>> Mauro,
->>>
->>> Thanks to your help, I could finish my documentation today.
->>>
->>> But I have another issue with the v4l2-apps.
->>>
->>> When I do make apps, it doesn't seem to build. I get the following error
->>> logs... Is this broken?
->> Well... no, it is not really broken, but the build system for v4l2-apps
->> needs serious improvements. There are some know issues on it:
->> 	- It doesn't check/warn if you don't have all the dependencies
->> 	  (qv4l2 and v4l2-sysfs-path require some development libraries
->> 	   that aren't available per default when gcc is installed - I
->> 	   think the other files there are ok);
->> 	- make only works fine when calling on certain directories (it used to work
->> 	  fine if you call it from /v4l2-apps/*) - but, since some patch, it now requires
->> 	  that you call make from /v4l2-apps, in order to create v4l2-apps/include.
->> 	  After having it created, make can be called from a /v4l2-apps subdir;
->> 	- for some places (libv4l - maybe there are other places?), you need to
->> 	  have the latest headers installed, as it doesn't use the one at the tree.
->> 	- qv4l2 only compiles with qt3.
-> 
-> I have a qt4 version available in my v4l-dvb-qv4l2 tree. Just no time to work
-> on a series of patches to merge it in the main repo. And it is missing string
-> control support.
-> 
-> If anyone is interested, then feel free to do that work. This new qt4 version
-> is much better than the qt3 version.
+Preparation for the port of firedtv to the firewire-core kernel API:
+Canceling of the remote control workqueue job is factored into
+firedtv-rc.c.  Plus trivial whitespace change.
 
-IMO, the better is to have both versions on separate dirs, and let the building
-system to check if qt4 is available. If so, build the qt4 version instead of
-qt3 (a configure script, for example). Otherwise, warn users that it is compiling
-a legacy application, due to the lack of the proper dependencies.
+Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+---
+ drivers/media/dvb/firewire/firedtv-1394.c |    5 +++--
+ drivers/media/dvb/firewire/firedtv-rc.c   |    2 ++
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-Cheers,
-Mauro.
+Index: linux-2.6.31.4/drivers/media/dvb/firewire/firedtv-1394.c
+===================================================================
+--- linux-2.6.31.4.orig/drivers/media/dvb/firewire/firedtv-1394.c
++++ linux-2.6.31.4/drivers/media/dvb/firewire/firedtv-1394.c
+@@ -212,6 +212,7 @@ static int node_probe(struct device *dev
+ 		goto fail;
+ 
+ 	avc_register_remote_control(fdtv);
++
+ 	return 0;
+ fail:
+ 	spin_lock_irq(&node_list_lock);
+@@ -220,6 +221,7 @@ fail:
+ 	fdtv_unregister_rc(fdtv);
+ fail_free:
+ 	kfree(fdtv);
++
+ 	return err;
+ }
+ 
+@@ -233,10 +235,9 @@ static int node_remove(struct device *de
+ 	list_del(&fdtv->list);
+ 	spin_unlock_irq(&node_list_lock);
+ 
+-	cancel_work_sync(&fdtv->remote_ctrl_work);
+ 	fdtv_unregister_rc(fdtv);
+-
+ 	kfree(fdtv);
++
+ 	return 0;
+ }
+ 
+Index: linux-2.6.31.4/drivers/media/dvb/firewire/firedtv-rc.c
+===================================================================
+--- linux-2.6.31.4.orig/drivers/media/dvb/firewire/firedtv-rc.c
++++ linux-2.6.31.4/drivers/media/dvb/firewire/firedtv-rc.c
+@@ -14,6 +14,7 @@
+ #include <linux/kernel.h>
+ #include <linux/string.h>
+ #include <linux/types.h>
++#include <linux/workqueue.h>
+ 
+ #include "firedtv.h"
+ 
+@@ -163,6 +164,7 @@ fail:
+ 
+ void fdtv_unregister_rc(struct firedtv *fdtv)
+ {
++	cancel_work_sync(&fdtv->remote_ctrl_work);
+ 	kfree(fdtv->remote_ctrl_dev->keycode);
+ 	input_unregister_device(fdtv->remote_ctrl_dev);
+ }
+
+-- 
+Stefan Richter
+-=====-==--= =-== -=---
+http://arcgraph.de/sr/
+
