@@ -1,46 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f221.google.com ([209.85.220.221]:59176 "EHLO
-	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754289AbZKRJz2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 04:55:28 -0500
-Received: by fxm21 with SMTP id 21so950672fxm.21
-        for <linux-media@vger.kernel.org>; Wed, 18 Nov 2009 01:55:33 -0800 (PST)
+Received: from mail.gmx.net ([213.165.64.20]:59184 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753864AbZKHOJO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 8 Nov 2009 09:09:14 -0500
+Received: from lyakh (helo=localhost)
+	by axis700.grange with local-esmtp (Exim 4.63)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1N78SX-000633-8V
+	for linux-media@vger.kernel.org; Sun, 08 Nov 2009 15:09:37 +0100
+Date: Sun, 8 Nov 2009 15:09:37 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] soc-camera: properly initialise the device object when
+ reusing
+Message-ID: <Pine.LNX.4.64.0911081508400.19545@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <200911181042.40579.laurent.pinchart@ideasonboard.com>
-References: <1258504731-8430-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	 <829197380911180056i5102b87bw2926a7b38608570d@mail.gmail.com>
-	 <4c8e56e69e0b1619dd4e5c32d45b8374.squirrel@webmail.xs4all.nl>
-	 <200911181042.40579.laurent.pinchart@ideasonboard.com>
-Date: Wed, 18 Nov 2009 04:55:32 -0500
-Message-ID: <829197380911180155s65b66353t6b6094cca5a95192@mail.gmail.com>
-Subject: Re: v4l: Use the video_drvdata function in drivers
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	mchehab@infradead.org, sakari.ailus@maxwell.research.nokia.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 18, 2009 at 4:42 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> I will setup a test tree to help maintainers test the changes. I can split
-> some patches if needed, but how would that help exactly ?
+Commit ef373189f62413803b7b816c972fc154c488cdc0 "fix use-after-free Oops,
+resulting from a driver-core API change" fixed the Oops, but didn't correct
+missing device object initialisation. This patch makes unloading and reloading
+of soc-camera host- and client-drivers possible again.
 
-Hello Laurent,
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-In this case, splitting up the patch would just make it easier to
-review, and potentially to check in changes for specific bridges as
-they are validated (as opposed to all at once).  However, even just
-having all your changes in a tree that can be checked out and tested
-by users is probably "good enough" and would still provide
-considerable value.
+This is the second of the two patches, that I'm going to push upstream for 
+2.6.32 inclusion.
 
-Cheers,
+ drivers/media/video/soc_camera.c |   17 ++++++++++++-----
+ 1 files changed, 12 insertions(+), 5 deletions(-)
 
-Devin
-
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index 36e617b..95fdeb2 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -1097,6 +1097,13 @@ static int default_s_crop(struct soc_camera_device *icd, struct v4l2_crop *a)
+ 	return v4l2_subdev_call(sd, video, s_crop, a);
+ }
+ 
++static void soc_camera_device_init(struct device *dev, void *pdata)
++{
++	dev->platform_data	= pdata;
++	dev->bus		= &soc_camera_bus_type;
++	dev->release		= dummy_release;
++}
++
+ int soc_camera_host_register(struct soc_camera_host *ici)
+ {
+ 	struct soc_camera_host *ix;
+@@ -1158,6 +1165,7 @@ void soc_camera_host_unregister(struct soc_camera_host *ici)
+ 
+ 	list_for_each_entry(icd, &devices, list) {
+ 		if (icd->iface == ici->nr) {
++			void *pdata = icd->dev.platform_data;
+ 			/* The bus->remove will be called */
+ 			device_unregister(&icd->dev);
+ 			/*
+@@ -1169,6 +1177,7 @@ void soc_camera_host_unregister(struct soc_camera_host *ici)
+ 			 * device private data.
+ 			 */
+ 			memset(&icd->dev, 0, sizeof(icd->dev));
++			soc_camera_device_init(&icd->dev, pdata);
+ 		}
+ 	}
+ 
+@@ -1200,10 +1209,7 @@ static int soc_camera_device_register(struct soc_camera_device *icd)
+ 		 * man, stay reasonable... */
+ 		return -ENOMEM;
+ 
+-	icd->devnum = num;
+-	icd->dev.bus = &soc_camera_bus_type;
+-
+-	icd->dev.release	= dummy_release;
++	icd->devnum		= num;
+ 	icd->use_count		= 0;
+ 	icd->host_priv		= NULL;
+ 	mutex_init(&icd->video_lock);
+@@ -1311,12 +1317,13 @@ static int __devinit soc_camera_pdrv_probe(struct platform_device *pdev)
+ 	icd->iface = icl->bus_id;
+ 	icd->pdev = &pdev->dev;
+ 	platform_set_drvdata(pdev, icd);
+-	icd->dev.platform_data = icl;
+ 
+ 	ret = soc_camera_device_register(icd);
+ 	if (ret < 0)
+ 		goto escdevreg;
+ 
++	soc_camera_device_init(&icd->dev, icl);
++
+ 	icd->user_width		= DEFAULT_WIDTH;
+ 	icd->user_height	= DEFAULT_HEIGHT;
+ 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.6.2.4
+
