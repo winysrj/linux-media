@@ -1,76 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from webmail.meta.ua ([194.0.131.19]:40839 "EHLO webmail.meta.ua"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759457AbZKYTAl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2009 14:00:41 -0500
-Message-ID: <46842.95.132.81.101.1259175646.metamail@webmail.meta.ua>
-In-Reply-To: <1258314943.3276.3.camel@pc07.localdom.local>
-References: <1258292980.3235.14.camel@pc07.localdom.local>
-    <58364.95.133.222.95.1258298152.metamail@webmail.meta.ua>
-    <1258314943.3276.3.camel@pc07.localdom.local>
-Date: Wed, 25 Nov 2009 21:00:46 +0200 (EEST)
-Subject: Re: Tuner drivers
-From: rulet1@meta.ua
-To: "hermann pitton" <hermann-pitton@arcor.de>
-Cc: rulet1@meta.ua, linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain;charset=windows-1251
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:1928 "EHLO
+	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754255AbZKHTuS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Nov 2009 14:50:18 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr17.xs4all.nl (8.13.8/8.13.8) with ESMTP id nA8JoMq7052880
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 8 Nov 2009 20:50:22 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 8 Nov 2009 20:50:22 +0100 (CET)
+Message-Id: <200911081950.nA8JoMq7052880@smtp-vbr17.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->
-> Am Sonntag, den 15.11.2009, 17:15 +0200 schrieb rulet1@meta.ua:
->> > Hi,
->> >
->> > Am Sonntag, den 15.11.2009, 14:42 +0200 schrieb rulet1@meta.ua:
->> >> How to do that?:
->> >>
->> >> "You are forced to use saa7134-alsa dma sound"
->> >>
->> >
->> > a problem is that I can't tell for sure which analog TV standard you
->> > currently use in the Ukraine, either it is still SECAM DK or you
->> changed
->> > to some PAL already.
->> >
->> > Try to get the details, also about the sound system.
->> >
->> > If it is still SECAM DK, you need to force the option "secam=DK".
->> >
->> > With "audio_debug=1" you can see if the drivers finds the pilots, the
->> > first sound carrier and the second carrier and also the stereo system
->> in
->> > use. This counts also for PAL standards.
->> >
->> > This way you can already see if the driver can lock on the audio
->> > carriers in "dmesg" without hearing anything yet.
->> >
->> > Then saa7134-alsa should provide TV sound on your card.
->> > http://linuxtv.org/wiki/index.php/Saa7134-alsa
->> >
->> > Cheers,
->> > Hermann
->> >
->> >
->> >
->> > Where to put the option "secam=DK" on Ubuntu 9.10?
->> >
->
-> Don't have it, but would guess /etc/modprobe.d or use a
-> deprecated /etc/modprobe.conf and "depmod -a" or close all mixers using
-> saa7134, "modprobe -vr saa7134-alsa" and "modprobe saa7134 secam=DK".
->
-> Hermann
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at http://vger.kernel.org/majordomo-info.html
->
-Forget about it, this tuner is just not for Linux...
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-______________________________
-Моя почта живет на Мете http://webmail.meta.ua
+Results of the daily build of v4l-dvb:
+
+date:        Sun Nov  8 19:00:04 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13327:19c0469c02c3
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
+
+linux-2.6.22.19-armv5: WARNINGS
+linux-2.6.23.12-armv5: WARNINGS
+linux-2.6.24.7-armv5: WARNINGS
+linux-2.6.25.11-armv5: WARNINGS
+linux-2.6.26-armv5: WARNINGS
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29.1-armv5: WARNINGS
+linux-2.6.30-armv5: WARNINGS
+linux-2.6.31-armv5: WARNINGS
+linux-2.6.32-rc3-armv5: ERRORS
+linux-2.6.32-rc3-armv5-davinci: ERRORS
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.31-armv5-ixp: WARNINGS
+linux-2.6.32-rc3-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.32-rc3-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-rc3-i686: WARNINGS
+linux-2.6.23.12-m32r: WARNINGS
+linux-2.6.24.7-m32r: WARNINGS
+linux-2.6.25.11-m32r: WARNINGS
+linux-2.6.26-m32r: WARNINGS
+linux-2.6.27-m32r: WARNINGS
+linux-2.6.28-m32r: WARNINGS
+linux-2.6.29.1-m32r: WARNINGS
+linux-2.6.30-m32r: WARNINGS
+linux-2.6.31-m32r: WARNINGS
+linux-2.6.32-rc3-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: WARNINGS
+linux-2.6.32-rc3-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: WARNINGS
+linux-2.6.32-rc3-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-rc3-x86_64: ERRORS
+sparse (linux-2.6.31): OK
+sparse (linux-2.6.32-rc3): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
