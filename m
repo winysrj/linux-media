@@ -1,76 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:64964 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752091AbZKAMeu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Nov 2009 07:34:50 -0500
-Subject: Re: cx18: YUV frame alignment improvements
-From: Andy Walls <awalls@radix.net>
-To: Brandon Jenkins <bcjenkins@tvwhere.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org, ivtv-devel@ivtvdriver.org,
-	Simon Farnsworth <simon.farnsworth@onelan.com>
-In-Reply-To: <de8cad4d0910311925u28895ca9q454ccf0ac1032302@mail.gmail.com>
-References: <1257020204.3087.18.camel@palomino.walls.org>
-	 <829197380910311328u2879c45ep2023a99058112549@mail.gmail.com>
-	 <1257036094.3181.7.camel@palomino.walls.org>
-	 <de8cad4d0910311925u28895ca9q454ccf0ac1032302@mail.gmail.com>
-Content-Type: text/plain
-Date: Sun, 01 Nov 2009 07:37:35 -0500
-Message-Id: <1257079055.3061.19.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1646 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753665AbZKITuW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2009 14:50:22 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id nA9JoO1t044929
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 9 Nov 2009 20:50:25 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 9 Nov 2009 20:50:24 +0100 (CET)
+Message-Id: <200911091950.nA9JoO1t044929@smtp-vbr8.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2009-10-31 at 22:25 -0400, Brandon Jenkins wrote:
-> On Sat, Oct 31, 2009 at 8:41 PM, Andy Walls <awalls@radix.net> wrote:
-> > On Sat, 2009-10-31 at 16:28 -0400, Devin Heitmueller wrote:
-> >> On Sat, Oct 31, 2009 at 4:16 PM, Andy Walls <awalls@radix.net> wrote:
-> >
-> >>
-> >> Hi Andy,
-> >>
-> >> How does this code work if the cx23418 scaler is used (resulting in
-> >> the size of the frames to be non-constant)?  Or is the scaler not
-> >> currently supported in the driver?
-> >
-> > I also forgot to mention, changing size while the encoder has an analog
-> > stream running (MPEG, VBI, YUV, IDX) is not permitted by the firmware.
-> > So this change works just fine as it computes the buffer size to use
-> > just as it sets up to start the capture.
-> >
-> > Regards,
-> > Andy
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> Hi Andy,
+Results of the daily build of v4l-dvb:
 
-Hi Brandon,
+date:        Mon Nov  9 19:00:03 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13327:19c0469c02c3
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-> I tried to pull your changes and received an error on a missing .hg.
+linux-2.6.22.19-armv5: WARNINGS
+linux-2.6.23.12-armv5: WARNINGS
+linux-2.6.24.7-armv5: WARNINGS
+linux-2.6.25.11-armv5: WARNINGS
+linux-2.6.26-armv5: WARNINGS
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29.1-armv5: WARNINGS
+linux-2.6.30-armv5: WARNINGS
+linux-2.6.31-armv5: WARNINGS
+linux-2.6.32-rc3-armv5: ERRORS
+linux-2.6.32-rc3-armv5-davinci: ERRORS
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.31-armv5-ixp: WARNINGS
+linux-2.6.32-rc3-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.32-rc3-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-rc3-i686: WARNINGS
+linux-2.6.23.12-m32r: WARNINGS
+linux-2.6.24.7-m32r: WARNINGS
+linux-2.6.25.11-m32r: WARNINGS
+linux-2.6.26-m32r: WARNINGS
+linux-2.6.27-m32r: WARNINGS
+linux-2.6.28-m32r: WARNINGS
+linux-2.6.29.1-m32r: WARNINGS
+linux-2.6.30-m32r: WARNINGS
+linux-2.6.31-m32r: WARNINGS
+linux-2.6.32-rc3-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: WARNINGS
+linux-2.6.32-rc3-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: WARNINGS
+linux-2.6.32-rc3-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-rc3-x86_64: ERRORS
+sparse (linux-2.6.31): OK
+sparse (linux-2.6.32-rc3): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-Sorry, I can't help there.  The following should work:
+Detailed results are available here:
 
-hg clone http://linuxtv.org/hg/~awalls/cx18-yuv
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
+Full logs are available here:
 
-> Subsequently, I downloaded the bz2 file and upon reboot I received a
-> kernel panic due to DMA issues.
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-Did it fail on MPEG or Digital TS captures or on a YUV capture?
+The V4L2 specification failed to build, but the last compiled spec is here:
 
-Did you try setting enc_yuv_bufs=0, to inhibit YUV buffer allocation, to
-see if the panic went away?
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
 
-Could you provide the panic to me?  Off-list is fine.
+The DVB API specification failed to build, but the last compiled spec is here:
 
-If I can't get this large buffer scheme to work for the general case to
-mainatin YUV frame alignment, I'll have to figure out what will likely
-be a much more complex scheme to ensure alignment is maintained in for
-YUV streams. :(
-
-Oh, well.
-
-Regards,
-Andy
-
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
