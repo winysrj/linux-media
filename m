@@ -1,46 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gv-out-0910.google.com ([216.239.58.184]:27800 "EHLO
-	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754187AbZKIQt6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2009 11:49:58 -0500
-Received: by gv-out-0910.google.com with SMTP id r4so255050gve.37
-        for <linux-media@vger.kernel.org>; Mon, 09 Nov 2009 08:50:03 -0800 (PST)
+Received: from mail-px0-f204.google.com ([209.85.216.204]:34226 "EHLO
+	mail-px0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751092AbZKIEEF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Nov 2009 23:04:05 -0500
+Received: by pxi42 with SMTP id 42so1852128pxi.5
+        for <linux-media@vger.kernel.org>; Sun, 08 Nov 2009 20:04:09 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <cd9524450911082159p39f922b9r73d731b62789e7a8@mail.gmail.com>
+In-Reply-To: <829197380911081834v445d36c1yd931c5af69a21505@mail.gmail.com>
 References: <cd9524450911081743y92a616amfcb8c6c069112240@mail.gmail.com>
-	 <829197380911081752x707d9e2bs99f4dc044544d66f@mail.gmail.com>
-	 <cd9524450911081801i5e8d97f4nd5864d46a66c676e@mail.gmail.com>
-	 <829197380911081834v445d36c1yd931c5af69a21505@mail.gmail.com>
-	 <cd9524450911081958v57b77d27iae3ab37ffef1ee8d@mail.gmail.com>
-	 <829197380911082006s5a575789rd1e2881e874177cd@mail.gmail.com>
-	 <cd9524450911082035j7fa14b75q2b9edcdb1b1e85c3@mail.gmail.com>
-	 <829197380911082047i5111615eo9e900290455b81dd@mail.gmail.com>
-	 <cd9524450911082117h632bc437t28124ba727e7f915@mail.gmail.com>
-	 <cd9524450911082159p39f922b9r73d731b62789e7a8@mail.gmail.com>
-Date: Mon, 9 Nov 2009 11:50:02 -0500
-Message-ID: <829197380911090850m21f6aceewfd30a56bda8af4ef@mail.gmail.com>
+	<829197380911081752x707d9e2bs99f4dc044544d66f@mail.gmail.com>
+	<cd9524450911081801i5e8d97f4nd5864d46a66c676e@mail.gmail.com>
+	<829197380911081834v445d36c1yd931c5af69a21505@mail.gmail.com>
+From: Barry Williams <bazzawill@gmail.com>
+Date: Mon, 9 Nov 2009 14:28:30 +1030
+Message-ID: <cd9524450911081958v57b77d27iae3ab37ffef1ee8d@mail.gmail.com>
 Subject: Re: bisected regression in tuner-xc2028 on DVICO dual digital 4
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Barry Williams <bazzawill@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
 Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 9, 2009 at 12:59 AM, Barry Williams <bazzawill@gmail.com> wrote:
-> I appear to be good at doing silly things I of course forgot I
-> unplugged the antenna cable from my first box to watch normal tv so
-> that is why it is not tuning. However now my rev 1 tuner appears to no
-> longer be working mythtv says it is asleep here is the output from
-> dmesg.
+On Mon, Nov 9, 2009 at 1:04 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> On Sun, Nov 8, 2009 at 9:01 PM, Barry Williams <bazzawill@gmail.com> wrote:
+>> On the first box I have
+>> Bus 003 Device 003: ID 0fe9:db98 DVICO
+>> Bus 003 Device 002: ID 0fe9:db98 DVICO
+>>
+>> on the second
+>> Bus 001 Device 003: ID 0fe9:db78 DVICO FusionHDTV DVB-T Dual Digital 4
+>> (ZL10353+xc2028/xc3028) (initialized)
+>> Bus 001 Device 002: ID 0fe9:db78 DVICO FusionHDTV DVB-T Dual Digital 4
+>> (ZL10353+xc2028/xc3028) (initialized)
+>
+> And on which of the two systems are you still having the tuning
+> problem with?  Also, did you reboot after you installed the patch?
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+>
 
-Could you please clarify what you mean?  Are you saying that the patch
-for the 0fe9:db78 device does not work?  And what do you mean by
-"mythtv says it is asleep"?  Can you please provide an exact error
-message?
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Hi Devin
+I did not reboot after installing the patch somehow I thought simply
+removing the module (as I had done to restore some stability to my
+system) and reloading the module after the patch would be all I need.
+Well I learned that is not the case my apologies for not trying that
+first. So your tree fixed my second system with the rev 1 tuner.
+However my first system with the rev 2 card while now stable with your
+tree will not tune.
+Barry
