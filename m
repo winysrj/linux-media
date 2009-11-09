@@ -1,60 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acorn.exetel.com.au ([220.233.0.21]:49387 "EHLO
-	acorn.exetel.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753898AbZKJAPX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2009 19:15:23 -0500
-Message-ID: <34578.64.213.30.2.1257812125.squirrel@webmail.exetel.com.au>
-In-Reply-To: <829197380911091611m5d534cffvde5334c81fc2515c@mail.gmail.com>
-References: <ad6681df0911090313t17652362v2e92c465b60a92e4@mail.gmail.com>
-    <20091109144647.2f876934@pedra.chehab.org>
-    <13029.64.213.30.2.1257810088.squirrel@webmail.exetel.com.au>
-    <829197380911091611m5d534cffvde5334c81fc2515c@mail.gmail.com>
-Date: Tue, 10 Nov 2009 11:15:25 +1100 (EST)
-Subject: Re: [XC3028] Terretec Cinergy T XS wrong firmware xc3028-v27.fw
-From: "Robert Lowery" <rglowery@exemail.com.au>
-To: "Devin Heitmueller" <dheitmueller@kernellabs.com>
-Cc: "Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-MIME-Version: 1.0
+Received: from fg-out-1718.google.com ([72.14.220.156]:13636 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751067AbZKIWJ3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2009 17:09:29 -0500
+Received: by fg-out-1718.google.com with SMTP id d23so936990fga.1
+        for <linux-media@vger.kernel.org>; Mon, 09 Nov 2009 14:09:34 -0800 (PST)
+Date: Tue, 10 Nov 2009 01:09:49 +0300
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: oliver@neukum.org, dougsland@gmail.com
+Subject: [patch] radio-mr800 - autosuspend for radio-mr800 driver
+Message-Id: <20091110010949.494ee080.klimov.linux@gmail.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> On Mon, Nov 9, 2009 at 6:41 PM, Robert Lowery <rglowery@exemail.com.au>
-> wrote:
->> Although the xc3028-v27.fw generated from
->> HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip using the above process works
->> fine
->> for me, the firmware is a couple of years old now and I can't help
->> wondering if there might be a newer version in the latest Windows
->> drivers
->> out there containing performance or stability fixes it in.
->>
->> Do you think it would be worthwhile extracting a newer version of
->> firmware?
->
-> That is the latest version of the firmware for that chip.  Xceive has
-> not updated it since then, given that they are focusing on newer
-> products like the xc5000 and xc3028L.
->
-> Your problem has nothing to do with the firmware.  The issue is the
-> driver support for your particular device was only added recently
-> (after Ubuntu did their kernel freeze for Karmic).  The work
-> associated with adding support for devices is nontrivial, and I
-> typically only do it when people report that their device needs
-> support.
->
-> Devin
-Sorry Devin,
 
-I shoudn't have hijacked this thread.  My question was general in nature
-and not related to the issues being discussed in this thread.
+From: Oliver Neukum <oliver@neukum.org>
 
-If v2.7 is the latest firmware released by Xceive for the xc3028 then that
-answers my question
+Patch adds autosuspend support for mr800 radio driver.
 
-Thanks
+Priority: normal
 
--Rob
+Signed-off-by: Oliver Neukum <oliver@neukum.org>
+Acked-by: Alexey Klimov <klimov.linux@gmail.com>
 
+--
+diff -r 19c0469c02c3 linux/drivers/media/radio/radio-mr800.c
+--- a/linux/drivers/media/radio/radio-mr800.c	Sat Nov 07 15:51:01 2009 -0200
++++ b/linux/drivers/media/radio/radio-mr800.c	Tue Nov 10 00:38:19 2009 +0300
+@@ -133,6 +133,7 @@
+ struct amradio_device {
+ 	/* reference to USB and video device */
+ 	struct usb_device *usbdev;
++	struct usb_interface *intf;
+ 	struct video_device videodev;
+ 	struct v4l2_device v4l2_dev;
+ 
+@@ -166,7 +167,7 @@
+ 	.reset_resume		= usb_amradio_resume,
+ #endif
+ 	.id_table		= usb_amradio_device_table,
+-	.supports_autosuspend	= 0,
++	.supports_autosuspend	= 1,
+ };
+ 
+ /* switch on/off the radio. Send 8 bytes to device */
+@@ -509,9 +510,15 @@
+ 	}
+ 
+ 	file->private_data = radio;
++	retval = usb_autopm_get_interface(radio->intf);
++	if (retval)
++		goto unlock;
+ 
+-	if (unlikely(!radio->initialized))
++	if (unlikely(!radio->initialized)) {
+ 		retval = usb_amradio_init(radio);
++		if (retval)
++			usb_autopm_put_interface(radio->intf);
++	}
+ 
+ unlock:
+ 	mutex_unlock(&radio->lock);
+@@ -528,6 +535,8 @@
+ 
+ 	if (!radio->usbdev)
+ 		retval = -EIO;
++	else
++		usb_autopm_put_interface(radio->intf);
+ 
+ 	mutex_unlock(&radio->lock);
+ 	return retval;
+@@ -669,6 +678,7 @@
+ 	radio->videodev.release = usb_amradio_video_device_release;
+ 
+ 	radio->usbdev = interface_to_usbdev(intf);
++	radio->intf = intf;
+ 	radio->curfreq = 95.16 * FREQ_MUL;
+ 
+ 	mutex_init(&radio->lock);
+
+
+
+-- 
+Alexey Klimov
