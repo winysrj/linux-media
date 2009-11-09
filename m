@@ -1,86 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f180.google.com ([209.85.216.180]:65520 "EHLO
-	mail-px0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753920AbZKXIEf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Nov 2009 03:04:35 -0500
+Received: from perceval.irobotique.be ([92.243.18.41]:47837 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754737AbZKIJfU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2009 04:35:20 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC] Restructure video_device
+Date: Mon, 9 Nov 2009 10:36:00 +0100
+Cc: linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+References: <200910231625.40822.laurent.pinchart@ideasonboard.com> <200911061123.59977.laurent.pinchart@ideasonboard.com> <200911071336.33364.hverkuil@xs4all.nl>
+In-Reply-To: <200911071336.33364.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20091124080006.GB14488@bicker>
-References: <51d384e10911230137q7553b8c4x5ba3aca3e8edbc77@mail.gmail.com>
-	 <20091124080006.GB14488@bicker>
-Date: Tue, 24 Nov 2009 16:04:41 +0800
-Message-ID: <51d384e10911240004t47bb3d18g4e95e52d83b99e06@mail.gmail.com>
-Subject: Re: [PATCH] dvb-core: Fix ULE decapsulation bug when less than 4
-	bytes of ULE SNDU is packed into the remaining bytes of a MPEG2-TS frame
-From: Ang Way Chuang <wcang79@gmail.com>
-To: Dan Carpenter <error27@gmail.com>,
-	Ang Way Chuang <wcang79@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200911091036.00243.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Okay, resending. Hope it won't do line wrapping.
+Hi Hans,
 
-ULE (Unidirectional Lightweight Encapsulation RFC 4326) decapsulation
-code has a bug that incorrectly treats ULE SNDU packed into the
-remaining 2 or 3 bytes of a MPEG2-TS frame as having invalid pointer
-field on the subsequent MPEG2-TS frame.
+On Saturday 07 November 2009 13:36:33 Hans Verkuil wrote:
+> On Friday 06 November 2009 11:23:59 Laurent Pinchart wrote:
+> > Hi Hans,
+> >
+> > On Thursday 05 November 2009 15:19:06 Hans Verkuil wrote:
+> > > On Friday 23 October 2009 16:25:40 Laurent Pinchart wrote:
+> > > > Hi everybody,
+> > > >
+> > > > while working on device node support for subdevs I ran into an issue
+> > > > with the way v4l2 objects are structured.
+> > > >
+> > > > We currently have the following structure:
+> > > >
+> > > > - video_device represents a device that complies with the V4L1 or
+> > > > V4L2 API. Every video_device has a corresponding device node.
+> > > >
+> > > > - v4l2_device represents a high-level media device that handles
+> > > > sub-devices. With the new media controller infrastructure a
+> > > > v4l2_device will have a device node as well.
+> > > >
+> > > > - v4l2_subdev represents a sub-device. As for v4l2_device's, the new
+> > > > media controller infrastructure will give a device node for every
+> > > > sub-device.
+> > > >
+> > > > - v4l2_entity is the structure that both v4l2_subdev and video_device
+> > > > derive from. Most of the media controller code will deal with
+> > > > entities rather than sub-devices or video devices, as most operations
+> > > > (such as discovering the topology and create links) do not depend on
+> > > > the exact nature of the entity. New types of entities could be
+> > > > introduced later.
+> > > >
+> > > > Both the video_device and v4l2_subdev structure inherit from
+> > > > v4l2_entity, so both of them have a v4l2_entity field. With
+> > > > v4l2_device and v4l2_subdev now needing to devices to have device
+> > > > nodes created, the v4l2_device and v4l2_subdev structure both have a
+> > > > video_device field.
+> > > >
+> > > > This isn't clean for two reasons:
+> > > >
+> > > > - v4l2_device isn't a v4l2_entity, so it should inherit from a
+> > > > structure (video_device) that itself inherits from v4l2_entity.
+> > > >
+> > > > - v4l2_subdev shouldn't inherit twice from v4l2_entity, once directly
+> > > > and once through video_device.
+> > >
+> > > I agree.
+> > >
+> > > > To fix this I would like to refactor the video_device structure and
+> > > > cut it in two pieces. One of them will deal with device node related
+> > > > tasks, being mostly V4L1/V4L2 agnostic, and the other will inherit
+> > > > from the first and add V4L1/V4L2 support
+> > > > (tvnorms/current_norm/ioctl_ops fields from the current video_device
+> > > > structure), as well as media controller support (inheriting from
+> > > > v4l2_entity).
+> > > >
+> > > > My plan was to create a video_devnode structure for the low-level
+> > > > device node
+> > >
+> > > Let's call it v4l2_devnode to be consistent with the current naming
+> > >  convention.
+> >
+> > Ok.
+> >
+> > > > related structure, and keeping the video_device name for the higher
+> > > > level structure. v4l2_device, v4l2_subdev and video_device would then
+> > > > all have a video_devnode field.
+> > > >
+> > > > While this isn't exactly difficult, it would require changing a lot
+> > > > of drivers, as some field will be moved from video_device to
+> > > > video_device::video_devnode. Some of those fields are internal, some
+> > > > of them are accessed by drivers while they shouldn't in most cases
+> > > > (the minor field for instance), and some are public (name, parent).
+> > > >
+> > > > I would like to have your opinion on whether you think this proposal
+> > > > is acceptable or whether you see a better and cleaner way to
+> > > > restructure the video device code structures.
+> > >
+> > > I have two issues with this:
+> > >
+> > > 1) Is it really necessary to do this now? We are still in the
+> > > prototyping phase and I think it is probably more efficient right now
+> > > to hack around this and postpone the real fix (as described above)
+> > > until we are sure that the mc concept is working correctly.
+> >
+> > The media controller prototyping code is, as usual with prototyping
+> > codes, a bit messy. Splitting the device node management part from
+> > video_device into v4l2_devnode will make the media controller code easier
+> > to understand for outsiders (by outsider I mean every person who haven't
+> > been actively working on the code, so that includes pretty much
+> > everybody). I think it's worth it, especially given that I've already
+> > written the patches. They can live in the media controller tree of
+> > course, we don't have to apply them to mainline at the moment.
+> 
+> Ah, it's only for the mc tree. I was getting the impression that you wanted
+>  to do this for the mainline tree as well. But if it is just for the mc
+>  tree, then go ahead. You can just do it in your own tree; as far as I am
+>  concerned your tree is leading for now.
 
-This patch was generated and tested against v2.6.32-rc8. Similar patch
-was applied and tested using 2.6.27 which is similar to the latest
-dvb_net.c, except for network device statistical data structure. I
-suspect that this bug was introduced in kernel version 2.6.15, but had
-not verified it.
+Ok. I just wanted to make sure there was no huge issue with the proposed 
+change. I want to avoid writing code that I'll have to completely redesign 
+later.
 
-Care has been taken not to introduce more bug by fixing this bug, but
-please scrutinize the code for I always produces buggy code.
+> > > 2) I'm not sure whether the final media controller will and should be
+> > > part of the v4l framework at all. I think that this is something that
+> > > can be used separately from the v4l subsystem.
+> >
+> > I think it should not be part of the v4l subsystem. ALSA will benefit
+> > from the media controller, and so might other subsystems such as GPU. A
+> > media_ prefix would be much nicer.
+> 
+> I agree, but let's postpone such decisions until later.
+> 
+> > >  So we should be very careful about integrating this too closely in
+> > > v4l. Again, this is not much of an issue while prototyping, but it
+> > > definitely will need some careful thinking when we do the final
+> > > implementation.
+> >
+> > Agreed. Let's rename v4l2_devnode to media_devnode in the future then :-)
 
-Signed-off-by: Ang Way Chuang <wcang@nav6.org>
----
-diff --git a/drivers/media/dvb/dvb-core/dvb_net.c
-b/drivers/media/dvb/dvb-core/dvb_net.c
-index 0241a7c..7e0db86 100644
---- a/drivers/media/dvb/dvb-core/dvb_net.c
-+++ b/drivers/media/dvb/dvb-core/dvb_net.c
-@@ -458,8 +458,9 @@ static void dvb_net_ule( struct net_device *dev,
-const u8 *buf, size_t buf_len )
- 						       "field: %u.\n", priv->ts_count, *from_where);
+-- 
+Regards,
 
- 						/* Drop partly decoded SNDU, reset state, resync on PUSI. */
--						if (priv->ule_skb) {
--							dev_kfree_skb( priv->ule_skb );
-+						if (priv->ule_skb || priv->ule_sndu_remain) {
-+							if (priv->ule_skb)
-+								dev_kfree_skb( priv->ule_skb );
- 							dev->stats.rx_errors++;
- 							dev->stats.rx_frame_errors++;
- 						}
-@@ -533,6 +534,7 @@ static void dvb_net_ule( struct net_device *dev,
-const u8 *buf, size_t buf_len )
- 				from_where += 2;
- 			}
-
-+			priv->ule_sndu_remain = priv->ule_sndu_len + 2;
- 			/*
- 			 * State of current TS:
- 			 *   ts_remain (remaining bytes in the current TS cell)
-@@ -542,6 +544,7 @@ static void dvb_net_ule( struct net_device *dev,
-const u8 *buf, size_t buf_len )
- 			 */
- 			switch (ts_remain) {
- 				case 1:
-+					priv->ule_sndu_remain--;
- 					priv->ule_sndu_type = from_where[0] << 8;
- 					priv->ule_sndu_type_1 = 1; /* first byte of ule_type is set. */
- 					ts_remain -= 1; from_where += 1;
-@@ -555,6 +558,7 @@ static void dvb_net_ule( struct net_device *dev,
-const u8 *buf, size_t buf_len )
- 				default: /* complete ULE header is present in current TS. */
- 					/* Extract ULE type field. */
- 					if (priv->ule_sndu_type_1) {
-+						priv->ule_sndu_type_1 = 0;
- 						priv->ule_sndu_type |= from_where[0];
- 						from_where += 1; /* points to payload start. */
- 						ts_remain -= 1;
+Laurent Pinchart
