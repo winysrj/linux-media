@@ -1,69 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60632 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752318AbZK3ReV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Nov 2009 12:34:21 -0500
-Message-ID: <4B140200.9020503@redhat.com>
-Date: Mon, 30 Nov 2009 15:33:52 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail.gmx.net ([213.165.64.20]:60680 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751046AbZKIUjG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2009 15:39:06 -0500
+Date: Mon, 9 Nov 2009 21:39:08 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Ian Molton <ian@mnementh.co.uk>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH/RFC] tmio_mmc: keep card-detect interrupts enabled
+In-Reply-To: <c09aa50a0911091218i681449e0r5cb96b9db3e0def6@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0911092134440.4289@axis700.grange>
+References: <Pine.LNX.4.64.0911061127240.4389@axis700.grange>
+ <c09aa50a0911090242l35d0dfb2vec0cdeff8b86d33e@mail.gmail.com>
+ <Pine.LNX.4.64.0911091530030.4289@axis700.grange>
+ <c09aa50a0911091218i681449e0r5cb96b9db3e0def6@mail.gmail.com>
 MIME-Version: 1.0
-To: kevin granade <kevin.granade@gmail.com>
-CC: Andy Walls <awalls@radix.net>, Ray Lee <ray-lk@madrabbit.org>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	Jon Smirl <jonsmirl@gmail.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR 	system?
-References: <m3r5riy7py.fsf@intrepid.localdomain>	 <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>	 <1259469121.3125.28.camel@palomino.walls.org>	 <20091129124011.4d8a6080@lxorguk.ukuu.org.uk>	 <1259515703.3284.11.camel@maxim-laptop>	 <2c0942db0911290949p89ae64bjc3c7501c2de6930c@mail.gmail.com>	 <1259537732.5231.11.camel@palomino.walls.org>	 <4B13B2FA.4050600@redhat.com>	 <1259585852.3093.31.camel@palomino.walls.org>	 <4B13C799.4060906@redhat.com> <7004b08e0911300814tb474f96s42ec56ca2e43cf7a@mail.gmail.com>
-In-Reply-To: <7004b08e0911300814tb474f96s42ec56ca2e43cf7a@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-kevin granade wrote:
-> On Mon, Nov 30, 2009 at 7:24 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
+(re-adding accidentally dropped ML)
+
+On Mon, 9 Nov 2009, Ian Molton wrote:
+
+> Well, I presume we want to know when the card gets removed :)
+
+Sure, that's why we shouldn't mask those interrupts:-) If they do get 
+masked and missed, I do not know, if the interrupt remains pending in this 
+case, because they never get detected then:)
+
 > 
->> After the boot, a device can open the raw API, disabling any in-kernel
->> decoding/handling and handle IR directly. Alternatively, an udev rule
->> can load a different keymap based on some config written on a file.
-> 
-> This idea of the in-kernel decoding being disabled when the raw API is
-> opened worries me.  What guarantees that the following scenario will
-> not happen?
-> 
-> User uses apps which retrieve the decoded IR messages from the kernel.
-> User installs an app which decodes messages via the raw API (not lirc).
-> User's other applications no longer receive IR messages.
-> 
-> I know the assumption has been that "only lirc will use the raw API",
-> but this seems like a poor assumption for an API design to me.
+> 2009/11/9 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> > Hi Ian
+> >
+> > Why did you drop all CCs?
+> >
+> > On Mon, 9 Nov 2009, Ian Molton wrote:
+> >
+> >> I havent looked at the consequences for the driver if a insert IRQ
+> >> occurs during IO, however it seems logical that we should not
+> >> permanently mask the IRQ.
+> >>
+> >> I presume that the IRQ remains pending?
+> >
+> > Don't know, never checked. Is this important to know?
+> >
+> > Thanks
+> > Guennadi
+> >
+> >>
+> >> 2009/11/6 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> >> > On SuperH platforms the SDHI controller does not produce any command IRQs
+> >> > after a completed IO. This leads to card-detect interrupts staying
+> >> > disabled. Do not disable card-detect interrupts on DATA IRQs.
+> >> >
+> >> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> >> > ---
+> >> >
+> >> > Marked as RFC because I'm not really sure this is a correct approach to
+> >> > fix this problem, and whether this will have negative effect on other
+> >> > tmio_mmc MFD users.
+> >> >
+> >> > diff --git a/drivers/mmc/host/tmio_mmc.h b/drivers/mmc/host/tmio_mmc.h
+> >> > index c676767..0b31d44 100644
+> >> > --- a/drivers/mmc/host/tmio_mmc.h
+> >> > +++ b/drivers/mmc/host/tmio_mmc.h
+> >> > @@ -55,10 +55,8 @@
+> >> >  /* Define some IRQ masks */
+> >> >  /* This is the mask used at reset by the chip */
+> >> >  #define TMIO_MASK_ALL           0x837f031d
+> >> > -#define TMIO_MASK_READOP  (TMIO_STAT_RXRDY | TMIO_STAT_DATAEND | \
+> >> > -               TMIO_STAT_CARD_REMOVE | TMIO_STAT_CARD_INSERT)
+> >> > -#define TMIO_MASK_WRITEOP (TMIO_STAT_TXRQ | TMIO_STAT_DATAEND | \
+> >> > -               TMIO_STAT_CARD_REMOVE | TMIO_STAT_CARD_INSERT)
+> >> > +#define TMIO_MASK_READOP  (TMIO_STAT_RXRDY | TMIO_STAT_DATAEND)
+> >> > +#define TMIO_MASK_WRITEOP (TMIO_STAT_TXRQ | TMIO_STAT_DATAEND)
+> >> >  #define TMIO_MASK_CMD     (TMIO_STAT_CMDRESPEND | TMIO_STAT_CMDTIMEOUT | \
+> >> >                TMIO_STAT_CARD_REMOVE | TMIO_STAT_CARD_INSERT)
+> >> >  #define TMIO_MASK_IRQ     (TMIO_MASK_READOP | TMIO_MASK_WRITEOP | TMIO_MASK_CMD)
 
-All those questions are theoretical, as we haven't a raw API code
-already merged in kernel. So, this is just my understanding on how
-this should work.
-
-If the user wants to use the raw interface, it is because the in-kernel
-decoding is not appropriate for his usage (at least while such application
-is opened). So, not disabling the evdev output seems senseless.
-
-Btw, this is the same behavior that happens when some application directly 
-opens an evdev interface, instead of letting it to be redirected to stdin.
-
-> A related question, what is an application developer who wishes to
-> decode the raw IR signal (for whatever reason) to do?  Are they
-> *required* to implement full decoding and feed all the messages back
-> to the kernel so they don't break other applications?
-
-If such application won't do it, the IR will stop working, while the
-application is in use.
-
-Cheers,
-Mauro.
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
