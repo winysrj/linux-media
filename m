@@ -1,80 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from psmtp09.wxs.nl ([195.121.247.23]:33664 "EHLO psmtp09.wxs.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755351AbZKDNaf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Nov 2009 08:30:35 -0500
-Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
- by psmtp09.wxs.nl
- (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
- with ESMTP id <0KSL00BO96V08P@psmtp09.wxs.nl> for linux-media@vger.kernel.org;
- Wed, 04 Nov 2009 14:30:38 +0100 (MET)
-Date: Wed, 04 Nov 2009 14:30:35 +0100
-From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-Subject: Re: Trying to compile for kernel version 2.6.28
-In-reply-to: <20091104052129.2e2dad47@pedra.chehab.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from bombadil.infradead.org ([18.85.46.34]:47287 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750934AbZKIRbT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2009 12:31:19 -0500
+Date: Mon, 9 Nov 2009 15:30:46 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Valerio Bontempi <valerio.bontempi@gmail.com>
 Cc: linux-media@vger.kernel.org
-Message-id: <4AF181FB.7010003@hoogenraad.net>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <4AF0500B.3070401@hoogenraad.net>
- <20091104052129.2e2dad47@pedra.chehab.org>
+Subject: Re: [XC3028] Terretec Cinergy T XS wrong firmware xc3028-v27.fw
+Message-ID: <20091109153046.5a488106@pedra.chehab.org>
+In-Reply-To: <ad6681df0911090919i717a7ac3occdf8e260def2193@mail.gmail.com>
+References: <ad6681df0911090313t17652362v2e92c465b60a92e4@mail.gmail.com>
+	<20091109144647.2f876934@pedra.chehab.org>
+	<ad6681df0911090919i717a7ac3occdf8e260def2193@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks a lot.
-Only syncing my sources every 2 months, I forgot about the
-	make allmodconfig
+Em Mon, 9 Nov 2009 18:19:34 +0100
+Valerio Bontempi <valerio.bontempi@gmail.com> escreveu:
 
-I keep
-  http://linuxtv.org/hg/~jhoogenraad/rtl2831-r2.
-in sync until Antti's sources have been tested, and IR support is put 
-in, so that these sticks can be supported from the normal kernel.
+> Hi All,
+> 
+> first thank you for your quick support.
+> I have already extracted and installed the xc3028-v27.fw firmware file
+> following the instructions contained in
+> http://www.linuxtv.org/wiki/index.php/Xceive_XC3028/XC2028#How_to_Obtain_the_Firmware
+> 
+> but with no luck, the device is detected but the dvb device /dev/dvb
+> is not created
 
-Mauro Carvalho Chehab wrote:
-> Hi Jan,
+The creation of the DVB interface is not related to firmware. It means that
+the driver you're using doesn't know yet how to make DVB available on your
+device.
 > 
-> Em Tue, 03 Nov 2009 16:45:15 +0100
-> Jan Hoogenraad <jan-conceptronic@hoogenraad.net> escreveu:
+> Attached you find the v4l-info output.
 > 
->> At this moment, I cannot figure out how to compile v4l with kernel 
->> version 2.6.28.
->> I see, however, that the daily build reports:
->> linux-2.6.28-i686: OK
+> I think that the extracted firmware is not the right one, since the
+> device is detected correctly.
 > 
-> Yes, and that's correct. It does compile from scratch with 2.6.28.
+> Just two note:
+> first: until kernel 2.6.31 I was able to use this device compiling
+> em28xx-new source tree, but this driver version is no more compatible
+> with last kernel versions.
+> second: I tried to compile last v4l-dvb source code but the compilation failed.
 > 
-> If you look at v4l/versions.txt, this is already marked to compile only with
-> kernels 2.6.31 or newer. It should be noticed, however, that the building system
-> won't touch at your .config if you just do an hg update (or hg pull -u).
+> Is there a way to solve this problem?
 > 
-> You'll need to ask it explicitly to process versions.txt again, by calling one of
-> the alternatives bellow that re-generates a v4l/.config.
+> Thanks a lot.
 > 
-> If you are using a customized config, you'll need to call either one of those:
-> 	make menuconfig
-> 	make config
-> 	make xconfig
-> 	  or
-> 	make gconfig
+> Valerio
 > 
-> (in this specific case, just entering there and saving the config is enough - there's
-> no need to touch on any items)
-> 
-> Or, at the simple case were you're just building everything, you'll need to do:
-> 	make allmodconfig
-> 
-> A side effect of touching at v4l/.config is that all (selected) drivers will
-> recompile again.
-> 
-> Cheers,
-> Mauro
-> 
+You should try to use the latest driver available at
+http://linuvtv.org/hg/v4l-dvb
 
+I may be mistaken, but the DVB support for this device were added recently. I
+suspect that they were added at 2.6.32-rc1 kernel.
 
--- 
-Jan Hoogenraad
-Hoogenraad Interface Services
-Postbus 2717
-3500 GS Utrecht
+Cheers,
+Mauro
