@@ -1,105 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48161 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754151AbZKTWxN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2009 17:53:13 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH - v1]V4L - Adding helper function to get dv preset description
-Date: Fri, 20 Nov 2009 17:53:18 -0500
-Message-Id: <1258757598-14216-1-git-send-email-m-karicheri2@ti.com>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:48915 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752562AbZKIEre (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Nov 2009 23:47:34 -0500
+Received: by bwz27 with SMTP id 27so3062051bwz.21
+        for <linux-media@vger.kernel.org>; Sun, 08 Nov 2009 20:47:39 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <cd9524450911082035j7fa14b75q2b9edcdb1b1e85c3@mail.gmail.com>
+References: <cd9524450911081743y92a616amfcb8c6c069112240@mail.gmail.com>
+	 <829197380911081752x707d9e2bs99f4dc044544d66f@mail.gmail.com>
+	 <cd9524450911081801i5e8d97f4nd5864d46a66c676e@mail.gmail.com>
+	 <829197380911081834v445d36c1yd931c5af69a21505@mail.gmail.com>
+	 <cd9524450911081958v57b77d27iae3ab37ffef1ee8d@mail.gmail.com>
+	 <829197380911082006s5a575789rd1e2881e874177cd@mail.gmail.com>
+	 <cd9524450911082035j7fa14b75q2b9edcdb1b1e85c3@mail.gmail.com>
+Date: Sun, 8 Nov 2009 23:47:39 -0500
+Message-ID: <829197380911082047i5111615eo9e900290455b81dd@mail.gmail.com>
+Subject: Re: bisected regression in tuner-xc2028 on DVICO dual digital 4
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Barry Williams <bazzawill@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+On Sun, Nov 8, 2009 at 11:35 PM, Barry Williams <bazzawill@gmail.com> wrote:
+> Devin
+> Attached is the output from dmesg, I hope you're right
+> Thanks
+> Barry
 
-Resending adding Reviewed-by...
+Ah, based on the dmesg I can see it wasn't what I thought it was (I
+saw it was dib7000 and improperly assumed it had an xc3028 tuner like
+the rev1 board does).
 
-Updated based on review comments 
+You should probably start a new thread on the mailing list regarding
+the problems you are having with this tuner.  And you will probably
+need to bisect the v4l-dvb tree and see when the breakage was
+introduced.
 
-This patch adds a helper function to get description of a digital
-video preset added by the video timing API. This will be usefull for drivers
-implementing the above API.
+Devin
 
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
-NOTE: depends on the patch that adds video timing API.
----
-Applies to V4L-DVB linux-next branch
- drivers/media/video/v4l2-common.c |   43 +++++++++++++++++++++++++++++++++++++
- include/media/v4l2-common.h       |    7 ++++++
- 2 files changed, 50 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
-index f5a93ae..8b13d8e 100644
---- a/drivers/media/video/v4l2-common.c
-+++ b/drivers/media/video/v4l2-common.c
-@@ -1015,3 +1015,46 @@ void v4l_bound_align_image(u32 *w, unsigned int wmin, unsigned int wmax,
- 	}
- }
- EXPORT_SYMBOL_GPL(v4l_bound_align_image);
-+
-+/**
-+ * v4l_fill_dv_preset_info - fill description of a digital video preset
-+ * @preset - preset value
-+ * @info - pointer to struct v4l2_dv_enum_preset
-+ *
-+ * drivers can use this helper function to fill description of dv preset
-+ * in info.
-+ */
-+int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset *info)
-+{
-+	static const struct v4l2_dv_preset_info dv_presets[] = {
-+		{0, 0, "Invalid"},/* V4L2_DV_INVALID */
-+		{720,  480, "480p@59.94"},/* V4L2_DV_480P59_94 */
-+		{720,  576, "576p@50"},/* V4L2_DV_576P50 */
-+		{1280, 720, "720p@24"},/* V4L2_DV_720P24 */
-+		{1280, 720, "720p@25"},/* V4L2_DV_720P25 */
-+		{1280, 720, "720p@30"},/* V4L2_DV_720P30 */
-+		{1280, 720, "720p@50"},/* V4L2_DV_720P50 */
-+		{1280, 720, "720p@59.94"},/* V4L2_DV_720P59_94 */
-+		{1280, 720, "720p@60"},/* V4L2_DV_720P60 */
-+		{1920, 1080, "1080i@29.97"},/* V4L2_DV_1080I29_97 */
-+		{1920, 1080, "1080i@30"},/* V4L2_DV_1080I30 */
-+		{1920, 1080, "1080i@25"},/* V4L2_DV_1080I25 */
-+		{1920, 1080, "1080i@50"},/* V4L2_DV_1080I50 */
-+		{1920, 1080, "1080i@60"},/* V4L2_DV_1080I60 */
-+		{1920, 1080, "1080p@24"},/* V4L2_DV_1080P24 */
-+		{1920, 1080, "1080p@25"},/* V4L2_DV_1080P25 */
-+		{1920, 1080, "1080p@30"},/* V4L2_DV_1080P30 */
-+		{1920, 1080, "1080p@50"},/* V4L2_DV_1080P50 */
-+		{1920, 1080, "1080p@60"},/* V4L2_DV_1080P60 */
-+	};
-+
-+	if (info == NULL || preset >= ARRAY_SIZE(dv_presets))
-+		return -EINVAL;
-+
-+	info->preset = preset;
-+	info->width = dv_presets[preset].width;
-+	info->height = dv_presets[preset].height;
-+	strcpy(info->name, dv_presets[preset].name);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(v4l_fill_dv_preset_info);
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index 1c25b10..6ec9986 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -213,4 +213,11 @@ void v4l_bound_align_image(unsigned int *w, unsigned int wmin,
- 			   unsigned int hmax, unsigned int halign,
- 			   unsigned int salign);
- 
-+struct v4l2_dv_preset_info {
-+	u16 width;
-+	u16 height;
-+	const char *name;
-+};
-+
-+int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset *info);
- #endif /* V4L2_COMMON_H_ */
 -- 
-1.6.0.4
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
