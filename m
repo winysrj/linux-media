@@ -1,72 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-05.arcor-online.net ([151.189.21.45]:34335 "EHLO
-	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757281AbZKXBKL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2009 20:10:11 -0500
-Subject: Re: [PATCH] Multifrontend support for saa7134
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Mauro Carvalho Chehab <maurochehab@gmail.com>
-Cc: =?UTF-8?Q?Luk=C3=A1=C5=A1?= Karas <lukas.karas@centrum.cz>,
-	linux-media@vger.kernel.org, Petr Fiala <petr.fiala@gmail.com>
-In-Reply-To: <4B0AB281.4080802@gmail.com>
-References: <200910312121.21926.lukas.karas@centrum.cz>
-	 <4B0AB281.4080802@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Date: Tue, 24 Nov 2009 02:08:16 +0100
-Message-Id: <1259024896.5511.19.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from acorn.exetel.com.au ([220.233.0.21]:53442 "EHLO
+	acorn.exetel.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753042AbZKICyR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Nov 2009 21:54:17 -0500
+Message-ID: <20035.64.213.30.2.1257735258.squirrel@webmail.exetel.com.au>
+In-Reply-To: <cd9524450911081801i5e8d97f4nd5864d46a66c676e@mail.gmail.com>
+References: <cd9524450911081743y92a616amfcb8c6c069112240@mail.gmail.com>
+    <829197380911081752x707d9e2bs99f4dc044544d66f@mail.gmail.com>
+    <cd9524450911081801i5e8d97f4nd5864d46a66c676e@mail.gmail.com>
+Date: Mon, 9 Nov 2009 13:54:18 +1100 (EST)
+Subject: Re: bisected regression in tuner-xc2028 on DVICO dual digital 4
+From: "Robert Lowery" <rglowery@exemail.com.au>
+To: "Barry Williams" <bazzawill@gmail.com>
+Cc: "Devin Heitmueller" <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+> On Mon, Nov 9, 2009 at 12:22 PM, Devin Heitmueller
+> <dheitmueller@kernellabs.com> wrote:
+>> On Sun, Nov 8, 2009 at 8:43 PM, Barry Williams <bazzawill@gmail.com>
+>> wrote:
+>>> Hi Devin
+>>> I tried your tree and I seem to get the same problem on one box I get
+>>> the flood of 'dvb-usb: bulk message failed: -110 (1/0'.
+>> <snip>
+>>
+>> Can you please confirm the USB ID of the board you are having the
+>> problem with (by running "lsusb" from a terminal window)?
+>>
+>> Thanks,
+>>
+>> Devin
+>> --
+>
+>
+> On the first box I have
+> Bus 003 Device 003: ID 0fe9:db98 DVICO
+> Bus 003 Device 002: ID 0fe9:db98 DVICO
+>
+> on the second
+> Bus 001 Device 003: ID 0fe9:db78 DVICO FusionHDTV DVB-T Dual Digital 4
+> (ZL10353+xc2028/xc3028) (initialized)
+> Bus 001 Device 002: ID 0fe9:db78 DVICO FusionHDTV DVB-T Dual Digital 4
+> (ZL10353+xc2028/xc3028) (initialized)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+Barry,
 
-Am Montag, den 23.11.2009, 14:04 -0200 schrieb Mauro Carvalho Chehab:
-> Hi Lukáš/Hermann,
-> 
-> Any news about this patch? I'll mark it as RFC at the patchwork, since it seems that this is not finished yet. Please let me know if you make some progress.
-> 
-> > @@ -1352,6 +1353,7 @@ struct saa7134_board saa7134_boards[] =
-> >  		.tuner_addr     = ADDR_UNSET,
-> >  		.radio_addr     = ADDR_UNSET,
-> >  		 .mpeg           = SAA7134_MPEG_DVB,
-> > +		 .num_frontends  = 1,
-> >  		 .inputs         = {{
-> >  			 .name = name_tv,
-> >  			 .vmux = 1,
-> 
-> Just one suggestion here: it is a way better to assume that an "uninitialized" value (e. g. num_frontends = 0) for num_frontends to mean that just one frontend exists. This saves space at the initialization segment
-> of the module and avoids the risk of someone forget to add num_frontends=0.
-> 
-> cheers,
-> Mauro.
+I have the Dual Digital 4 rev1 card which corresponds to the 0fe9:db78
+card.  0fe9:db98 is the Dual Digital 4 rev2 card which I believe uses
+completely different hardware and it's behavior is unchanged by my patch
+which only targets the rev1 card.
 
-I currently don't have time to work on it and Lukáš' time is also
-limited.
+I suspect the problems you are still reporting are from the different
+cards, completely unrelated to my fix.
 
-We stay in contact and I can provide a device not yet working for me to
-him, if he wants. I'll keep you posted. You can have one too ;)
+Would you be able to retest after removing the rev2 cards from the machine?
 
-Currently the hardware reset in saa7134-dvb.c seems to break tda8275a
-hybrid tuners on my saa7131e devices for DVB-T. This is not restricted
-to the devices with multiple frontends, but also hits such with single
-frontend only. The TRIO has two tda8275a, they are not in use as hybrid
-tuners and don't need extra initialization again, that might be the
-difference.
-
-We should avoid such saa7133 hardware reset on those cards not needing
-it in any case, means all with single frontend.
-
-ON DVB-S is also a regression visible, in one of two cases needs a
-second tuning attempt now and it also seems to be related to the
-hardware reset, since without works fine like previously.
-
-Patch is not ready yet for inclusion.
-
-Cheers,
-Hermann
-
-
+-Rob
 
 
