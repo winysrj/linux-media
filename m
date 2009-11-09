@@ -1,152 +1,308 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:64387 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752069AbZKGPZH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Nov 2009 10:25:07 -0500
-Received: by bwz27 with SMTP id 27so2104916bwz.21
-        for <linux-media@vger.kernel.org>; Sat, 07 Nov 2009 07:25:11 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <156a113e0911070435w4be2b9dfo17f8e9c910bab437@mail.gmail.com>
-References: <6174dfda0911061223k75f31fd5je33a8e75e9e3c391@mail.gmail.com>
-	 <6174dfda0911061258u254ba6bbh4610291a904edc0a@mail.gmail.com>
-	 <156a113e0911061716t758d7ee3ta709b406c2f074a1@mail.gmail.com>
-	 <6174dfda0911070246v61b5b3f5rdea26406066e3fa4@mail.gmail.com>
-	 <156a113e0911070435w4be2b9dfo17f8e9c910bab437@mail.gmail.com>
-Date: Sat, 7 Nov 2009 10:25:10 -0500
-Message-ID: <829197380911070725y12c984bamb1d157419b991c9a@mail.gmail.com>
-Subject: Re: em28xx based USB Hybrid (Analog & DVB-T) TV Tuner not supported
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Magnus Alm <magnus.alm@gmail.com>
-Cc: Johan Mutsaerts <johmut@gmail.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from fb2.tech.numericable.fr ([82.216.111.50]:39511 "EHLO
+	fb2.tech.numericable.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754642AbZKIMU1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2009 07:20:27 -0500
+Received: from smtp6.tech.numericable.fr (smtp6.nc.sdv.fr [10.0.0.83])
+	by fb2.tech.numericable.fr (Postfix) with ESMTP id 671751B9EC8
+	for <linux-media@vger.kernel.org>; Mon,  9 Nov 2009 13:10:26 +0100 (CET)
+Date: Mon, 9 Nov 2009 13:09:04 +0100
+From: Guy Martin <gmsoft@tuxicoman.be>
+To: linux-media@vger.kernel.org
+Cc: abos@hanno.de, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] What is the status of the driver TT CT-3650
+Message-ID: <20091109130904.6c46e405@borg.bxl.tuxicoman.be>
+In-Reply-To: <4AF7F51B.5070501@hanno.de>
+References: <87fxa2uurr.fsf@musikcheck.dk>
+	<4AF7F51B.5070501@hanno.de>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/a9JcR/ua63hUPl/xRK/4TZ6"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 7, 2009 at 7:35 AM, Magnus Alm <magnus.alm@gmail.com> wrote:
-> Hi
->
-> I read some where that trying different card types for a DVB tuner can
-> potentially cause damage to them.
->
-> You are probably right about the firmare.
-> Do you have a link to the manufacture of your stick?
-> I tried to google the name of it but couldn't found an exact match.
->
-> The EM2881_BOARD_PINNACLE_HYBRID_PRO uses it's XC3028 to getter with a
-> ZARLINK456
-> as you can see from the following line in em28xx-cards.c
->
-> case EM2881_BOARD_PINNACLE_HYBRID_PRO:
->                ctl->demod = XC3028_FE_ZARLINK456;
->                break;
->
-> It is probably not compliant with your  Zarlink MT352.
->
-> There is a mt352 module tho, but I guess it doesn't get loaded when
-> you plug your stick in.
->
-> I'll pooke around a bit.....
->
-> PS
-> Use the "reply all", so others can see your mails, since I'm probably
-> one of the least competent guys/gals on this mailing list.
-> DS
->
->
->
-> 2009/11/7 Johan Mutsaerts <johmut@gmail.com>:
->> Hi Magnus,
->>
->> Thanks for a quick reply. Here is some more detailed information:
->>
->> My USB device ID is 0xeb1a:0x2881 it is eMPIA based.
->>
->> These are the components inside
->> - Empia EM2880
->> - Texas Instruments 5150AM1
->> - XCeive XC3028
->> - Empia EMP202
->> - Zarlink MT352
->>
->> Difficult for me to get to the windows stuff....
->>
->> No /dev/dvb/.... is generated ? Could it have something to do with no Firmware ?
->>
->> I found my device to be quite similar to the Pinnacle Hybrid Pro so I tried
->> sudo rmmod em28xx-dvb
->> sudo rmmod em28xx-alsa
->> sudo rmmod em28xx
->> sudo modprobe em28xx card=53 and card=56
->> sudo modprobe em28xx-alsa
->> sudo modprobe em28xx-dvb
->> However with not much success.
->> Card=53 cased MeTV to see a tuner but no channels could be found....
->>
->> TIA for any assistance you can provide.
->>
->> Best Regards,
->> Johan
->>
->> 2009/11/7 Magnus Alm <magnus.alm@gmail.com>:
->>> Hi!
->>>
->>> The dmesg didn't reveal what tuner your stick/card has, it's probably
->>> a XC2028/XC3028 or something like that.
->>> Easiest way to find out would be if you could open the cover and have
->>> a look inside.
->>>
->>> If you have access to windows and the pvr program that came with the
->>> tuner you could do a usb-sniff.
->>>
->>> http://www.pcausa.com/Utilities/UsbSnoop/
->>> or
->>> http://benoit.papillault.free.fr/usbsnoop/
->>>
->>> Switch between different inputs while doing the log, like "dvb",
->>> "analog" and if it has "svideo"/"composite" input.
->>>
->>> copy the windows log to unix and parse the output with parser.pl (I've
->>> added is as an attachment.)
->>> I think there is a new parser somewhere, but I forgot the name of it.
->>>
->>> I'm also not sure how I used it, but I think it was like this: perl
->>> parser.pl < "your_windows_log" > "parsed_log"
->>> That log is needed to  find out what "gpio" your tuner needs for
->>> different settings.
->>>
->>> Don't be scared of the size of the windows log, it gets large, often a
->>> few hundred MB.
->>> The parsed log is much smaller,  a few hundred KB.
->>>
->>> That is all I can think about atm.
->>>
->>> /Magnus Alm
->>>
->>>
->>> 2009/11/6 Johan Mutsaerts <johmut@gmail.com>:
->>>> Hi,
->>>>
->>>> I have an iDream UTVHYL2 USB TV Tuner (with IR remote control) that I
->>>> cannot get to work with Ubuntu (9.04, 2.6.28-16). I have successfully
->>>> compiled and installed the em28xx-new driver from linuxtv.org. No
->>>> /dev/dvb/adapter... is created and that is where it ends for me know.
->>>> MyTV claims no adapter is detected.
->>>>
->>>> I have attached the output of lsusb and dmesg as requested...
->>>>
->>>> Please let me know what more I can do and what exactly it is you can do ?
->>>>
->>>> Thanks in advance and
->>>> Best Regards,
->>>> Johan (Belgium)
+--MP_/a9JcR/ua63hUPl/xRK/4TZ6
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-I'm away from Internet access so I can't write an extended answer, but
-I can tell you that XC3028_FE_ZARLINK456 is appropriate for both the
-zarlink zl10353 and m352.
 
-Devin
+Hanno,
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+I've been working on having the CT-3650 supported however I didn't go
+very farther than having the dvb-c frontend to work. Nothing else
+works : no CI, no DVB-T, no IR.
+
+I've attached a patch which is working for me. Again, only the dvb-c
+interface works. Also this patch should definitely not go upstream.
+The cold firmware should not be used but it's there because I erased
+the eeprom of my card by mistake.
+
+I'm still planning to have a better support for this card but I
+unfortunately have other things to work on before.
+
+HTH,
+  Guy
+
+
+On Mon, 09 Nov 2009 11:55:23 +0100
+Hanno Zulla <abos@hanno.de> wrote:
+
+> Hi,
+> 
+> > Anyone know how to get this working or this card is in a working
+> > state under linux. Because if it not working yet I will stop
+> > wasting my time
+> 
+> Second that request. Is anybody working on a driver for this device?
+> Is it worth waiting?
+> 
+> Technotrend DVB products have been good for me in the past and this
+> combination of DVB-C with CI is something well suited for my next vdr
+> hardware setup.
+> 
+> Thanks,
+> 
+> Hanno
+> 
+
+
+--MP_/a9JcR/ua63hUPl/xRK/4TZ6
+Content-Type: text/x-patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=ct3650-dvbc.patch
+
+diff -r 6f58a5d8c7c6 linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+--- a/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Sat Aug 29 09:01:54 2009 -0300
++++ b/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Sat Nov 07 12:27:27 2009 +0100
+@@ -61,7 +61,7 @@
+ #define USB_VID_HUMAX_COEX			0x10b9
+ 
+ /* Product IDs */
+-#define USB_PID_ADSTECH_USB2_COLD			0xa333
++//#define USB_PID_ADSTECH_USB2_COLD			0xa333
+ #define USB_PID_ADSTECH_USB2_WARM			0xa334
+ #define USB_PID_AFATECH_AF9005				0x9020
+ #define USB_PID_AFATECH_AF9015_9015			0x9015
+@@ -178,6 +178,7 @@
+ #define USB_PID_AVERMEDIA_A850				0x850a
+ #define USB_PID_AVERMEDIA_A805				0xa805
+ #define USB_PID_TECHNOTREND_CONNECT_S2400               0x3006
++#define USB_PID_TECHNOTREND_CONNECT_CT3650		0x300d
+ #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY	0x005a
+ #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY_2	0x0081
+ #define USB_PID_TERRATEC_CINERGY_HT_USB_XE		0x0058
+diff -r 6f58a5d8c7c6 linux/drivers/media/dvb/dvb-usb/ttusb2.c
+--- a/linux/drivers/media/dvb/dvb-usb/ttusb2.c	Sat Aug 29 09:01:54 2009 -0300
++++ b/linux/drivers/media/dvb/dvb-usb/ttusb2.c	Sat Nov 07 12:27:27 2009 +0100
+@@ -29,6 +29,9 @@
+ 
+ #include "tda826x.h"
+ #include "tda10086.h"
++#include "tda1002x.h"
++#include "tda827x.h"
++#include "tda10048.h"
+ #include "lnbp21.h"
+ 
+ /* debug */
+@@ -159,7 +162,34 @@
+ 	.xtal_freq = TDA10086_XTAL_16M,
+ };
+ 
+-static int ttusb2_frontend_attach(struct dvb_usb_adapter *adap)
++static struct tda10023_config tda10023_config = {
++	.demod_address = 0x0c,
++	.invert = 0,
++	.xtal = 16000000,
++	.pll_m = 11,
++	.pll_p = 3,
++	.pll_n = 1,
++	.deltaf = 0xa511,
++};
++
++static struct tda10048_config tda10048_config = {
++	.demod_address  = 0x8,
++	.output_mode    = TDA10048_SERIAL_OUTPUT,
++	.fwbulkwritelen = TDA10048_BULKWRITE_50,
++	.inversion      = TDA10048_INVERSION_ON,
++	.dtv6_if_freq_khz = TDA10048_IF_3300,
++	.dtv7_if_freq_khz = TDA10048_IF_3800,
++	.dtv8_if_freq_khz = TDA10048_IF_4300,
++	.clk_freq_khz	= TDA10048_CLK_16000,
++	.disable_gate_access = 1,
++};
++
++static struct tda827x_config tda827x_config = {
++	.config = 0,
++//	.switch_addr = 0x4b,
++};
++
++static int ttusb2_frontend_tda10086_attach(struct dvb_usb_adapter *adap)
+ {
+ 	if (usb_set_interface(adap->dev->udev,0,3) < 0)
+ 		err("set interface to alts=3 failed");
+@@ -172,7 +202,40 @@
+ 	return 0;
+ }
+ 
+-static int ttusb2_tuner_attach(struct dvb_usb_adapter *adap)
++static int ttusb2_frontend_tda10048_attach(struct dvb_usb_adapter *adap)
++{
++	if (usb_set_interface(adap->dev->udev,0,3) < 0)
++		err("set interface to alts=3 failed");
++
++	if ((adap->fe = dvb_attach(tda10048_attach, &tda10048_config, &adap->dev->i2c_adap)) == NULL) {
++		deb_info("TDA10048 attach failed\n");
++		return -ENODEV;
++	}
++
++	return 0;
++}
++
++static int ttusb2_frontend_tda10023_attach(struct dvb_usb_adapter *adap)
++{
++	if (usb_set_interface(adap->dev->udev,0,3) < 0)
++		err("set interface to alts=3 failed");
++	if ((adap->fe = dvb_attach(tda10023_attach, &tda10023_config, &adap->dev->i2c_adap, 0x48)) == NULL) {
++		deb_info("TDA10023 attach failed\n");
++		return -ENODEV;
++	}
++	return 0;
++}
++
++static int ttusb2_tuner_tda827x_attach(struct dvb_usb_adapter *adap) {
++
++	if (dvb_attach(tda827x_attach, adap->fe, 0x60, &adap->dev->i2c_adap, &tda827x_config) == NULL) {
++		printk(KERN_ERR "%s: No tda827x found!\n", __func__);
++		return -ENODEV;
++	}
++	return 0;
++}
++
++static int ttusb2_tuner_tda826x_attach(struct dvb_usb_adapter *adap)
+ {
+ 	if (dvb_attach(tda826x_attach, adap->fe, 0x60, &adap->dev->i2c_adap, 0) == NULL) {
+ 		deb_info("TDA8263 attach failed\n");
+@@ -189,6 +252,7 @@
+ /* DVB USB Driver stuff */
+ static struct dvb_usb_device_properties ttusb2_properties;
+ static struct dvb_usb_device_properties ttusb2_properties_s2400;
++static struct dvb_usb_device_properties ttusb2_properties_ct3650;
+ 
+ static int ttusb2_probe(struct usb_interface *intf,
+ 		const struct usb_device_id *id)
+@@ -196,6 +260,8 @@
+ 	if (0 == dvb_usb_device_init(intf, &ttusb2_properties,
+ 				     THIS_MODULE, NULL, adapter_nr) ||
+ 	    0 == dvb_usb_device_init(intf, &ttusb2_properties_s2400,
++				     THIS_MODULE, NULL, adapter_nr) ||
++	    0 == dvb_usb_device_init(intf, &ttusb2_properties_ct3650,
+ 				     THIS_MODULE, NULL, adapter_nr))
+ 		return 0;
+ 	return -ENODEV;
+@@ -206,6 +272,9 @@
+ 	{ USB_DEVICE(USB_VID_PINNACLE, USB_PID_PCTV_450E) },
+ 	{ USB_DEVICE(USB_VID_TECHNOTREND,
+ 		USB_PID_TECHNOTREND_CONNECT_S2400) },
++	{ USB_DEVICE(USB_VID_TECHNOTREND,
++		USB_PID_TECHNOTREND_CONNECT_CT3650) },
++	{ USB_DEVICE(0x04b4, 0x8613) },
+ 	{}		/* Terminating entry */
+ };
+ MODULE_DEVICE_TABLE (usb, ttusb2_table);
+@@ -223,8 +292,8 @@
+ 		{
+ 			.streaming_ctrl   = NULL, // ttusb2_streaming_ctrl,
+ 
+-			.frontend_attach  = ttusb2_frontend_attach,
+-			.tuner_attach     = ttusb2_tuner_attach,
++			.frontend_attach  = ttusb2_frontend_tda10086_attach,
++			.tuner_attach     = ttusb2_tuner_tda826x_attach,
+ 
+ 			/* parameter for the MPEG2-data transfer */
+ 			.stream = {
+@@ -275,8 +344,8 @@
+ 		{
+ 			.streaming_ctrl   = NULL,
+ 
+-			.frontend_attach  = ttusb2_frontend_attach,
+-			.tuner_attach     = ttusb2_tuner_attach,
++			.frontend_attach  = ttusb2_frontend_tda10086_attach,
++			.tuner_attach     = ttusb2_tuner_tda826x_attach,
+ 
+ 			/* parameter for the MPEG2-data transfer */
+ 			.stream = {
+@@ -310,6 +379,72 @@
+ 	}
+ };
+ 
++static struct dvb_usb_device_properties ttusb2_properties_ct3650 = {
++	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
++
++	.usb_ctrl = CYPRESS_FX2,
++	.firmware = "dvb-usb-tt-ct3650-01.fw",
++
++	.size_of_priv = sizeof(struct ttusb2_state),
++
++	.num_adapters = 1,
++	.adapter = {
++		{
++			.streaming_ctrl   = NULL,
++
++			.frontend_attach  = ttusb2_frontend_tda10023_attach,
++			.tuner_attach = ttusb2_tuner_tda827x_attach,
++
++			.stream = {
++				.type = USB_ISOC,
++				.count = 5,
++				.endpoint = 0x02,
++				.u = {
++					.isoc = {
++						.framesperurb = 4,
++						.framesize = 940,
++						.interval = 1,
++					}
++				}
++			}
++		},
++/*		{
++			.streaming_ctrl   = NULL,
++
++			.frontend_attach  = ttusb2_frontend_tda10048_attach,
++			.tuner_attach = ttusb2_tuner_tda827x_attach,
++
++			.stream = {
++				.type = USB_ISOC,
++				.count = 5,
++				.endpoint = 0x02,
++				.u = {
++					.isoc = {
++						.framesperurb = 4,
++						.framesize = 940,
++						.interval = 1,
++					}
++				}
++			}
++		},*/
++	},
++
++	.power_ctrl       = ttusb2_power_ctrl,
++	.identify_state   = ttusb2_identify_state,
++
++	.i2c_algo         = &ttusb2_i2c_algo,
++
++	.generic_bulk_ctrl_endpoint = 0x01,
++
++	.num_device_descs = 1,
++	.devices = {
++		{   "Technotrend TT-connect CT-3650",
++			.warm_ids = { &ttusb2_table[3], NULL }, 
++			.cold_ids = { &ttusb2_table[4], NULL },
++		},
++	}
++};
++
+ static struct usb_driver ttusb2_driver = {
+ 	.name		= "dvb_usb_ttusb2",
+ 	.probe		= ttusb2_probe,
+
+--MP_/a9JcR/ua63hUPl/xRK/4TZ6--
