@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound1-1.us4.outblaze.com ([208.36.123.129])
+Received: from out4.smtp.messagingengine.com ([66.111.4.28])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <guzowskip@linuxmail.org>) id 1NAElC-0003TT-WD
-	for linux-dvb@linuxtv.org; Tue, 17 Nov 2009 04:29:43 +0100
-Received: from wfilter3.us4.outblaze.com (wfilter3.us4.outblaze.com.int
-	[192.168.8.242])
-	by outbound1-1.us4.outblaze.com (Postfix) with ESMTP id 307B87A061C
-	for <linux-dvb@linuxtv.org>; Tue, 17 Nov 2009 03:29:37 +0000 (GMT)
+	(envelope-from <robm@fastmail.fm>) id 1N7K16-00058R-HR
+	for linux-dvb@linuxtv.org; Mon, 09 Nov 2009 03:30:05 +0100
+Message-ID: <41DCD9CC54F249248C883873F6C2B560@Atticus>
+From: "Rob Mueller" <robm@fastmail.fm>
+To: "shacky" <shacky83@gmail.com>
+References: <7fedbc910911060752y215adeccm6dc4d35131c62746@mail.gmail.com>	<c4e36d110911060755rb4303f7pe5f91b5988e9d101@mail.gmail.com>	<7fedbc910911060806s15ecbbfdwb19bbad52682e4cb@mail.gmail.com><200911061611.24120.linuxtv@mfraz.orangehome.co.uk>
+	<4AF4E821.8020709@finalfiler.com>
+In-Reply-To: <4AF4E821.8020709@finalfiler.com>
+Date: Mon, 9 Nov 2009 13:29:43 +1100
 MIME-Version: 1.0
-From: guzowskip@linuxmail.org
-To: linux-dvb@linuxtv.org
-Date: Mon, 16 Nov 2009 21:29:36 -0600
-Message-Id: <20091117032936.D7AF71CE833@ws1-6.us4.outblaze.com>
-Subject: [linux-dvb] Video lost after OS upgrade
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Dual tuner DVB-T card on Linux
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -21,86 +21,39 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0382889259=="
-Mime-version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
 
---===============0382889259==
-Content-Transfer-Encoding: 7bit
-Content-Type: multipart/alternative; boundary="_----------=_125842857663592"
+>> I'm using the Hauppauge Nova-T 500 Dual DVB-T.
+>>
+> I'll second that with one proviso; it is essential to turn the LNA (Low 
+> Noise Amplifier) on. See this thread:
+>
+> http://www.gossamer-threads.com/lists/mythtv/users/402992
+>
+> A system shutdown and cold restart seems to be essential to reset the 
+> card.
+>
+> Other than that, it's an excellent choice, imo.
 
-This is a multi-part message in MIME format.
+I have also been using a Nova-T 500 PCI card for about 18 months and have 
+been very happy with it. Works fine out of the box with recent Ubunutu 
+versions (8.10 and up is my memory).
 
---_----------=_125842857663592
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Do turn on the LNA, and if you're in Australia, enable the work around for 
+ABC/SBS problems. See bottom of the wiki for details.
 
-Hello all,
+http://www.mythtv.org/wiki/Hauppauge_WinTV_Nova-T_500_PCI
 
-I was happily watching TV with mplayer from my cable set-top box via a
-Pinnacle HDTV Pro USB Stick and Ubuntu 9.04.=A0
+Rob
 
-The command I was using and which worked was/is:=A0
-
-mplayer -vo xv tv:// -tv
-driver=3Dv4l2:alsa:immediatemode=3D0:adevice=3Dhw.1,0:norm=3Dntsc:chanlist=
-=3Dus-cable:channel=3D3
-
-After ugrading to Ubuntu 9.10, when I launch mplayer with this command, I
-get an empty black window with no video or audio.=A0 Any ideas and/or=A0 he=
-lp
-would be greatly appreciated.
-
-Paul in NW FL, USA
-
---=20
-Be Yourself @ mail.com!
-Choose From 200+ Email Addresses
-Get a Free Account at www.mail.com!
-
-
---_----------=_125842857663592
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/html; charset="iso-8859-1"
-
-Hello all,<br><br>I was happily watching TV with mplayer from my cable set-=
-top box via a Pinnacle HDTV Pro USB Stick and Ubuntu 9.04.&nbsp; <br><br>Th=
-e command I was using and which worked was/is:&nbsp; <br><br>mplayer -vo xv=
- tv:// -tv driver=3Dv4l2:alsa:immediatemode=3D0:adevice=3Dhw.1,0:norm=3Dnts=
-c:chanlist=3Dus-cable:channel=3D3<br><br>After ugrading to Ubuntu 9.10, whe=
-n I launch mplayer with this command, I get an empty black window with no v=
-ideo or audio.&nbsp; Any ideas and/or&nbsp; help would be greatly appreciat=
-ed.<br><br>Paul in NW FL, USA<br><br><br>
-<div>
-
-</div>
-<BR>
-
---=20
-<div>Be Yourself @ mail.com <br>
-Choose From 200+ Email Addresses<br>
-Get a <b>Free</b> Account at <a href=3D"http://www.mail.com" target=3D"_bla=
-nk">www.mail.com</a>!</div>
-
---_----------=_125842857663592--
-
-
-
---===============0382889259==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0382889259==--
