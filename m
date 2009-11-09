@@ -1,79 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:52394 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753473AbZKRJiF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 04:38:05 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: v4l: Use the video_drvdata function in drivers
-Date: Wed, 18 Nov 2009 10:38:31 +0100
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	mchehab@infradead.org, sakari.ailus@maxwell.research.nokia.com
-References: <1258504731-8430-1-git-send-email-laurent.pinchart@ideasonboard.com> <200911180801.48950.hverkuil@xs4all.nl> <829197380911180056i5102b87bw2926a7b38608570d@mail.gmail.com>
-In-Reply-To: <829197380911180056i5102b87bw2926a7b38608570d@mail.gmail.com>
+Received: from auth-1.ukservers.net ([217.10.138.153]:54328 "EHLO
+	auth-1.ukservers.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750999AbZKIQjF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2009 11:39:05 -0500
+Message-ID: <4AF83EAB.4040104@tangobravo.co.uk>
+Date: Mon, 09 Nov 2009 16:09:15 +0000
+From: Tim Borgeaud <tim@tangobravo.co.uk>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: linux-media@vger.kernel.org
+CC: udia@siano-ms.com
+Subject: Siano DVB driver and locking/sleeping
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <200911181038.31139.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Devin,
+I am actually a FreeBSD user that has been using some Linux DVB driver 
+code to create a kernel module for FreeBSD. I am working at getting 
+various bits of Linux driver code to compile on FreeBSD (see 
+http://www.tangobravo.co.uk/v4l-compat).
 
-On Wednesday 18 November 2009 09:56:12 Devin Heitmueller wrote:
-> On Wed, Nov 18, 2009 at 2:01 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > Very nice cleanup!
-> 
-> The last time I saw one of these relatively innocent-looking changes
-> being done across all drivers without testing, it introduced a rather
-> nasty and hard to find OOPS into one of my drivers and I had to fix
-> it:
-> 
-> http://linuxtv.org/hg/v4l-dvb/rev/5a54038a66c9
-> 
-> Is there some reason this is one massive patch instead of individual
-> patches for each driver?
+During development of compatibility code (to allow Linux driver source to 
+be used more easily with FreeBSD) I have happened to take a look at the 
+source code for the siano driver (drivers/media/dvb/siano/).
 
-It was just easier to do so in a single patch, there's no other particular 
-reason. The patch can be split.
+Within the smscoreapi.c source code there is some code, concerning locking 
+and waiting, that seems to run contrary to my expectations. It leads me to 
+suspect that my "emulation" of Linux locking and waiting (sleeping) 
+functionality may be incomplete or, just possibly, that the siano driver 
+code could do with some adjustment.
 
-> How confident are we that this *really* isn't going to break some bridge
-> without anyone realizing it?  Is this going to be some situation where it
-> just "goes in" and then the maintainers of individual bridges are going to
-> have to clean up the mess when users start complaining?
 
-Hopefully not. I haven't changed the drivers blindly but I've tried to 
-understand the logic behind every piece of code I changed. Obviously a bug can 
-still slip in, regardless of how careful we are.
+In smscoreapi.c there are two functions: smscore_getbuffer and 
+smscore_putbuffer. These appear to be synchronized using a spin lock.
 
-So to answer your question, no, the patch will not blindly introduce a mess 
-that will need to be cleaned by driver maintainers, but a bug could still get 
-in.
+In smscore_getbuffer:
+-----------------------------------------------------------------------
+   DEFINE_WAIT(wait);
 
-> If there are going to be a series of cleanups such as this, perhaps it
-> makes sense for Laurent to setup a tree with all the proposed fixes,
-> and put out a call for testers so we can be more confident that it
-> doesn't screw anything up.
+   spin_lock_irqsave(&coredev->bufferslock, flags);
 
-Good idea, I'll do that. I'll incorporate the review comments and I'll send a 
-link to the tree to the mailing list.
+   /* This function must return a valid buffer, since the buffer list is
+    * finite, we check that there is an available buffer, if not, we wait
+    * until such buffer become available.
+    */
 
-> Don't get me wrong, I'm all for seeing these things cleaned up, and
-> the more functionality in the core the better.  But I am admittedly a
-> bit nervous to see huge patches touching all the drivers where I am
-> pretty sure that the developer probably only tested it on a couple of
-> drivers and is assuming it works across all.
+   prepare_to_wait(&coredev->buffer_mng_waitq, &wait, TASK_INTERRUPTIBLE);
 
-I share your concern. Unfortunately I can't test all the changes myself 
-(unless people start sending me lots of hardware samples, but in that case 
-I'll probably have to move to a bigger house :-)).
+   if (list_empty(&coredev->buffers))
+           schedule();
 
-By the way, how would splitting the patches help solve (or at least mitigate) 
-the problem ?
+   finish_wait(&coredev->buffer_mng_waitq, &wait);
 
--- 
-Regards,
+   cb = (struct smscore_buffer_t *) coredev->buffers.next;
+   list_del(&cb->entry);
 
-Laurent Pinchart
+   spin_unlock_irqrestore(&coredev->bufferslock, flags);
+-------------------------------------------------------------------------------
+
+It appears that schedule() could be invoked while the coredev->bufferslock 
+spinlock is held. I was under the impression that one should not hold a 
+spin lock while calling a function that may cause a thread to sleep.
+
+This suggests that either:
+
+1) The schedule() drops the spin lock in some way that I am unaware of. 
+I'd like to know if I need to investigate such functionality of schedule().
+
+2) It is permissible to sleep with a spin lock held and that in this case 
+deadlock could not be caused.
+
+
+In addition, smscore_putbuffer simply consists of:
+------------------------------------------------------------------------- 
+        wake_up_interruptible(&coredev->buffer_mng_waitq);
+list_add_locked(&cb->entry, &coredev->buffers, &coredev->bufferslock);
+-------------------------------------------------------------------------
+
+I am not certain how the synchronization works. However, without better 
+knowledge of when certain events may take place in the Linux kernel, it 
+appears that the wake_up_interruptible in smscore_putbuffer completes 
+before any new buffer is actually added to the coredev->buffers list.
+
+As far as I can tell, if a thread is made to sleep inside 
+smscore_getbuffer and the coredev->bufferslock is held during the sleep, 
+the thread will wait for a second thread to execute the 
+wake_up_interruptible in smscore_putbuffer (perhaps why the spin lock 
+cannot be held before the wake_up?).
+
+Then, if the sleeping thread does not actually get woken until after the 
+list_add_locked is invoked (from smscore_putbuffer), deadlock would appear 
+possible since the list_add_locked function call will end up spinning 
+while waiting for the spin lock to be released (by the sleeping thread).
+
+If the sleeping thread is woken and resumes before the list_add_locked 
+completes (i.e. before it obtains the spin lock), then it would seem 
+possible that the two statements in smscore_getbuffer:
+
+   cb = (struct smscore_buffer_t *) coredev->buffers.next;
+   list_del(&cb->entry);
+
+Will not produce the desired results. The buffers list will be empty and
+coredev->buffers->next == &coredev->buffers (not the address of a 
+smscore_buffer_t).
+
+Even if the spin lock is dropped in schedule(), there might exist a race 
+where, after the wake_up_interruptible it might be possible for the woken 
+thread to try to retrieve the next buffer before the list_add_locked 
+completes.
+
+Is there some synchronization in the siano driver or some functionality of 
+Linux that I am unaware of that would prevent these potential problems?
+
+
+Tim
