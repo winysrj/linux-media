@@ -1,68 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.221.174]:55027 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753474AbZKFXTL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Nov 2009 18:19:11 -0500
-Received: by qyk4 with SMTP id 4so658880qyk.33
-        for <linux-media@vger.kernel.org>; Fri, 06 Nov 2009 15:19:16 -0800 (PST)
-MIME-Version: 1.0
-Date: Sat, 7 Nov 2009 00:19:16 +0100
-Message-ID: <156a113e0911061519w7da4e29ag9a8d85a76df679a9@mail.gmail.com>
-Subject: "Winfast tv USB II" and "Winfast tv USB II Deluxe" share same ID
-	(0413:6023), I maybe found a way to tell them apart.
-From: Magnus Alm <magnus.alm@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail1.radix.net ([207.192.128.31]:34215 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751031AbZKIMA4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Nov 2009 07:00:56 -0500
+Subject: Re: [PATCH 29/75] cx18: declare MODULE_FIRMWARE
+From: Andy Walls <awalls@radix.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Ben Hutchings <ben@decadent.org.uk>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media <linux-media@vger.kernel.org>
+In-Reply-To: <200911091106.38894.hverkuil@xs4all.nl>
+References: <1257630681.15927.423.camel@localhost>
+	 <1257645238.15927.624.camel@localhost>
+	 <1257646136.7399.18.camel@palomino.walls.org>
+	 <200911091106.38894.hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Mon, 09 Nov 2009 07:03:02 -0500
+Message-Id: <1257768182.3851.31.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+On Mon, 2009-11-09 at 11:06 +0100, Hans Verkuil wrote:
+> On Sunday 08 November 2009 03:08:56 Andy Walls wrote:
+> > On Sun, 2009-11-08 at 01:53 +0000, Ben Hutchings wrote:
+> > > On Sat, 2009-11-07 at 20:40 -0500, Andy Walls wrote:
+> > > > On Sat, 2009-11-07 at 21:51 +0000, Ben Hutchings wrote:
+> > 
+> > > > >  
+> > > > > +MODULE_FIRMWARE("dvb-cx18-mpc718-mt352.fw");
+> > > > > +
+> > > > 
+> > > > Ben,
+> > > > 
+> > > > This particular firmware is only needed by one relatively rare TV card.
+> > > > Is there any way for MODULE_FIRMWARE advertisements to hint at
+> > > > "mandatory" vs. "particular case(s)"?
+> > > 
+> > > No, but perhaps there ought to be.  In this case the declaration could
+> > > be left out for now.  It is only critical to list all firmware in
+> > > drivers that may be needed for booting.
+> > 
+> > OK.  I don't know that a TV card driver is every *needed* for booting.
+> > Maybe one day when I can net-boot with cable-modem like
+> > functionality... ;)
+> > 
+> > 
+> > I'm OK with the MODULE_FIRMWARE announcements in cx18 so long as
+> > automatic behaviors like
+> > 
+> > 1. persistent, repeatitive, or truly alarming user warnings, or
+> > 2. refusing to load the module due to missing firmware files
+> > 
+> > don't happen.
+> 
+> I agree with Andy here.
+> 
+> In the case of ivtv and cx18 (unless that changed since the last time I worked
+> on it) the cx firmware is actually not loaded when the module is inited but on
+> the first open() call. So it is not even that clear to me whether we want to
+> have these fairly large fw files in an initramfs image at all.
+> 
 
-Since "Winfast tv USB II2 is a EM2800 board and "Winfast tv USB II
-Deluxe" is a EM2820, I made this little hack in em28xx-cards.c
-(the lines I added in "em28xx_usb_probe" is marked with "*")
+I've been thinking about this all a bit more since I read Mauro's
+comment.
 
-snprintf(dev->name, 29, "em28xx #%d", nr);
-	dev->devno = nr;
-	dev->model = id->driver_info;
-*      if (dev->model == EM2800_BOARD_LEADTEK_WINFAST_USBII)
-*		/* Leadtek didn't make a new product id for Winfast tv usbii deluxe. */
-*		retval = check_leadtek_winfast_usbii_model(&dev, udev, interface,
-nr);
-	dev->alt   = -1;
+MODULE_FIRMWARE() is essentially turning kernel driver modules into an
+interactive, read-only, database for (a particular set of ?) end users.
 
+The process of keeping MODULE_FIRMWARE declarations up to date will run
+into all the incentive, governance, and maintenance problems that any
+database has.  Due to lack incentive structure, one will end up with
+missing data at any point in time, as the current patch series points
+out.
 
-And the function:
+It may be better to keep tabs on module firmware image names with a
+database outside of the kernel *.[ch] files.  It could be a simple as a
+text file somewhere.  I suspect it would have just as likely a chance or
+better of being up to date at any point in time.  That would also be a
+bit more flexible.  One could add additional fields to the records for
+amplifying information (e.g required, optional, card xyz) without
+perturbing a slew of kernel *.[ch] files.
 
+My $0.02.
 
-/* Check if EM2800_BOARD_LEADTEK_WINFAST_USBII really is what it is or
-is his/her younger sister/brother,
-with the same ID. */
-static int check_leadtek_winfast_usbii_model(struct em28xx
-**devhandle, struct usb_device *udev,
-			   struct usb_interface *interface,
-			   int minor)
-{
-	struct em28xx *dev = *devhandle;
-	int retval;
-	
-	dev->udev = udev;
-	mutex_init(&dev->ctrl_urb_lock);
-	spin_lock_init(&dev->slock);
-	init_waitqueue_head(&dev->open);
-	init_waitqueue_head(&dev->wait_frame);
-	init_waitqueue_head(&dev->wait_stream);
+Regards,
+Andy
 
-	dev->em28xx_read_reg = em28xx_read_reg;
-		
-	retval = em28xx_read_reg(dev, EM28XX_R0A_CHIPID);
-	if (retval == 18)
-		dev->model = EM2820_BOARD_LEADTEK_WINFAST_USBII_DELUXE;
-		em28xx_set_model(dev);
-		return 0;
-}
-
-I don't think it should interfere with any other boards, but I might be wrong.
-It seems to work here atleast.
-
-/Magnus Alm
