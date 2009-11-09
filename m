@@ -1,164 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out113.alice.it ([85.37.17.113]:3562 "EHLO
-	smtp-out113.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752199AbZKLOlP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Nov 2009 09:41:15 -0500
-Date: Thu, 12 Nov 2009 15:41:06 +0100
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Eric Miao <eric.y.miao@gmail.com>,
-	openezx-devel@lists.openezx.org, Bart Visscher <bartv@thisnet.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/3 v3] Add camera support for A780 and A910 EZX phones
-Message-Id: <20091112154106.a00bbb95.ospite@studenti.unina.it>
-In-Reply-To: <Pine.LNX.4.64.0911111857430.4072@axis700.grange>
-References: <Pine.LNX.4.64.0911101037280.5074@axis700.grange>
-	<1257937317-16655-1-git-send-email-ospite@studenti.unina.it>
-	<Pine.LNX.4.64.0911111857430.4072@axis700.grange>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Thu__12_Nov_2009_15_41_07_+0100_nA=yk7gkjC=+WM1="
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2635 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755861AbZKINLt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2009 08:11:49 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: Re: Finished my email backlog, let me know if I missed anything
+Date: Mon, 9 Nov 2009 14:11:48 +0100
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <200911051730.53642.hverkuil@xs4all.nl> <19F8576C6E063C45BE387C64729E73940436F93B96@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940436F93B96@dbde02.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200911091411.48040.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Signature=_Thu__12_Nov_2009_15_41_07_+0100_nA=yk7gkjC=+WM1=
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Vaibhav,
 
-On Wed, 11 Nov 2009 19:02:11 +0100 (CET)
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+I've reviewed these patches, see comments below.
 
-> Hi Antonio
->=20
-> Still one more nitpick:
->
+On Friday 06 November 2009 07:49:47 Hiremath, Vaibhav wrote:
+> 
+> > -----Original Message-----
+> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> > owner@vger.kernel.org] On Behalf Of Hans Verkuil
+> > Sent: Thursday, November 05, 2009 10:01 PM
+> > To: linux-media@vger.kernel.org
+> > Subject: Finished my email backlog, let me know if I missed anything
+> > 
+> > Hi all,
+> > 
+> > As I've been away/busy for a few weeks I had a large pile of pending
+> > emails.
+> > I went through it all today, but if I missed anything then please
+> > remind me.
+> > 
+> [Hiremath, Vaibhav] Hans, there are some patches which I posted which need to be merged. Can you have look at it?
+> 
+> VPFE - 6 patches
 
-Comments below.
+I discovered that vpif_display.c does not compile at all due to a duplicate
+config pointer. This is both in our tree and in 2.6.32-rc6.
 
-> On Wed, 11 Nov 2009, Antonio Ospite wrote:
->=20
-[...]
-> > =20
-> > +/* camera */
-> > +static int a780_camera_init(void)
->=20
-> This function returns an error but...
->=20
-> > +{
-> > +	int err;
-> > +
-> > +	/*
-> > +	 * GPIO50_nCAM_EN is active low
-> > +	 * GPIO19_GEN1_CAM_RST is active on rising edge
-> > +	 */
-> > +	err =3D gpio_request(GPIO50_nCAM_EN, "nCAM_EN");
-> > +	if (err) {
-> > +		pr_err("%s: Failed to request nCAM_EN\n", __func__);
-> > +		goto fail;
-> > +	}
-[...]
-> > +	return err;
-> > +}
-> > +
-[...]
-> >  static void __init a780_init(void)
-> > @@ -699,6 +782,9 @@ static void __init a780_init(void)
-> > =20
-> >  	pxa_set_keypad_info(&a780_keypad_platform_data);
-> > =20
-> > +	a780_camera_init();
->=20
-> ...it is not used. So, I would either make it void, or check the return=20
-> code, and maybe even not register the camera since it's going to be=20
-> useless anyway? Same for a910.
->
+I've made a patch for that. If you're OK with it then I pass it on to Mauro.
 
-Actually I was keeping returning an error just in case there would be a
-soc-camera .init() someday. But it's indeed a good idea to check the
-return value once that we have it.
+I also noticed that vpif_capture.c/h were missing in v4l-dvb, so I copied them
+from 2.6.32-rc6.
 
-I am inlining here only the incremental change for a faster review,
-I am going to send v4 of the patch separately for you ACK, hopefully :).
+>  - Davinci VPFE Capture: Specify device pointer in videobuf_queue_dma_contig_init
 
-Note, now the return value of platform_device_register is ignored but
-this is not grave, I guess.
+OK.
 
-Thanks for your time,
-   Antonio
+> - Davinci VPFE Capture:Replaced IRQ_VDINT1 with vpfe_dev->ccdc_irq1
 
-diff --git a/arch/arm/mach-pxa/ezx.c b/arch/arm/mach-pxa/ezx.c
-index 74423a6..1a73b7b 100644
---- a/arch/arm/mach-pxa/ezx.c
-+++ b/arch/arm/mach-pxa/ezx.c
-@@ -767,7 +767,6 @@ static struct platform_device a780_camera =3D {
-=20
- static struct platform_device *a780_devices[] __initdata =3D {
- 	&a780_gpio_keys,
--	&a780_camera,
- };
-=20
- static void __init a780_init(void)
-@@ -782,8 +781,10 @@ static void __init a780_init(void)
-=20
- 	pxa_set_keypad_info(&a780_keypad_platform_data);
-=20
--	a780_camera_init();
--	pxa_set_camera_info(&a780_pxacamera_platform_data);
-+	if (a780_camera_init() =3D=3D 0) {
-+		pxa_set_camera_info(&a780_pxacamera_platform_data);
-+		platform_device_register(&a780_camera);
-+	}
-=20
- 	platform_add_devices(ARRAY_AND_SIZE(ezx_devices));
- 	platform_add_devices(ARRAY_AND_SIZE(a780_devices));
-@@ -1026,7 +1027,6 @@ static struct platform_device a910_camera =3D {
-=20
- static struct platform_device *a910_devices[] __initdata =3D {
- 	&a910_gpio_keys,
--	&a910_camera,
- };
-=20
- static void __init a910_init(void)
-@@ -1041,8 +1041,10 @@ static void __init a910_init(void)
-=20
- 	pxa_set_keypad_info(&a910_keypad_platform_data);
-=20
--	a910_camera_init();
--	pxa_set_camera_info(&a910_pxacamera_platform_data);
-+	if (a910_camera_init() =3D=3D 0) {
-+		pxa_set_camera_info(&a910_pxacamera_platform_data);
-+		platform_device_register(&a910_camera);
-+	}
-=20
- 	platform_add_devices(ARRAY_AND_SIZE(ezx_devices));
- 	platform_add_devices(ARRAY_AND_SIZE(a910_devices));
+OK.
+
+> - Davinci VPFE Capture: Add support for Control ioctls[note: posting again]
+
+Waiting for your new post.
+
+> - TVP514x:Switch to automode for s_input/querystd
+
+Reviewed. See comments in the review of this particular patch.
+
+> - Davinci VPFE Capture: Take i2c adapter id through platform data
+
+OK, but I split up the original patch into two: first adding the new field,
+then the arch patch can be applied, and then the final vpfe_capture.c change
+can be done. This ensures that a bisect will hopefully still work.
+
+> 
+> OMAP - 2 patches
+> 
+> - V4L2: Added CID's V4L2_CID_ROTATE/BG_COLOR
+
+OK.
+
+> - v4l2 doc: Added S/G_ROTATE, S/G_BG_COLOR information
+
+OK.
+
+> - V4L2: Add Capability and Flag field for Croma Key
+
+Missing documentation!
+
+BTW: the correct place to find the doc sources is in
+linux/Documentation/DocBook/v4l/ in the master v4l-dvb mercurial repository.
+
+> - OMAP2/3 V4L2:Add support for OMAP2/3 V4L2 driver ontop of DSS2[Note: need to repost again]
+
+I wait for the repost and review it then.
+
+My tree with all the pending patches is available here:
+
+http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-vaibhav
+
+Regards,
+
+	Hans
 
 
---=20
-Antonio Ospite
-http://ao2.it
-
-PGP public key ID: 0x4553B001
-
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
-A: Top-posting.
-Q: What is the most annoying thing in e-mail?
-
---Signature=_Thu__12_Nov_2009_15_41_07_+0100_nA=yk7gkjC=+WM1=
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEARECAAYFAkr8HoMACgkQ5xr2akVTsAEOyQCdGWHaYdfiTRUcf9Jfw19O0QUw
-t2EAn0cXhNu34ggQyUZOOpHC0jReQ7+N
-=jYzD
------END PGP SIGNATURE-----
-
---Signature=_Thu__12_Nov_2009_15_41_07_+0100_nA=yk7gkjC=+WM1=--
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
