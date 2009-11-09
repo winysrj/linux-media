@@ -1,72 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f202.google.com ([209.85.211.202]:58615 "EHLO
-	mail-yw0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757384AbZKTDZB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2009 22:25:01 -0500
-Received: by mail-yw0-f202.google.com with SMTP id 40so1937121ywh.33
-        for <linux-media@vger.kernel.org>; Thu, 19 Nov 2009 19:25:07 -0800 (PST)
-From: Huang Shijie <shijie8@gmail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org, Huang Shijie <shijie8@gmail.com>
-Subject: [PATCH 04/11] add Kconfig and Makefile for tlg2300
-Date: Fri, 20 Nov 2009 11:24:46 +0800
-Message-Id: <1258687493-4012-5-git-send-email-shijie8@gmail.com>
-In-Reply-To: <1258687493-4012-4-git-send-email-shijie8@gmail.com>
-References: <1258687493-4012-1-git-send-email-shijie8@gmail.com>
- <1258687493-4012-2-git-send-email-shijie8@gmail.com>
- <1258687493-4012-3-git-send-email-shijie8@gmail.com>
- <1258687493-4012-4-git-send-email-shijie8@gmail.com>
+Received: from gv-out-0910.google.com ([216.239.58.185]:55908 "EHLO
+	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751688AbZKIUGf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2009 15:06:35 -0500
+Received: by gv-out-0910.google.com with SMTP id r4so296124gve.37
+        for <linux-media@vger.kernel.org>; Mon, 09 Nov 2009 12:06:39 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <664add070911091203g3aeb0bf8tc54aa0d7f9037565@mail.gmail.com>
+References: <303c92ca0911091106s72910abdmb0df8c3fa7a4cf1b@mail.gmail.com>
+	 <303c92ca0911091113j5f181335w45518676330c5f32@mail.gmail.com>
+	 <829197380911091141s4941cd08r2ddfb1457a1ced8a@mail.gmail.com>
+	 <664add070911091203g3aeb0bf8tc54aa0d7f9037565@mail.gmail.com>
+Date: Mon, 9 Nov 2009 15:06:39 -0500
+Message-ID: <829197380911091206j5202512axa1ccf1c245c6d686@mail.gmail.com>
+Subject: Re: Terratec Cinergy Hybrid T USB XS FM and 2.6.31 : no more support
+	?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Florent NOUVELLON <flonouvellon@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-add Kconfig and Makefile for tlg2300.
+On Mon, Nov 9, 2009 at 3:03 PM, Florent NOUVELLON
+<flonouvellon@gmail.com> wrote:
+> Right, this was supported in em28xx-new project (for krnl 2.6.30), now
+> aborted. I tried to make myself a dirty patch to 2.6.31but I lack competence
+> to do that !
+>
+>
+> Don't you think there could be a way to use previous em28xx-new data to hack
+> kernel em28xx drivers ?
+> I could make some test if you wish...
 
-Signed-off-by: Huang Shijie <shijie8@gmail.com>
----
- drivers/media/video/tlg2300/Kconfig  |   16 ++++++++++++++++
- drivers/media/video/tlg2300/Makefile |    9 +++++++++
- 2 files changed, 25 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/tlg2300/Kconfig
- create mode 100644 drivers/media/video/tlg2300/Makefile
+Probably.  I have no intention of going within ten miles of the
+em28xx-new code though.  if you get your device working in the
+mainline, feel free to submit patches and they will be merged
+upstream.  I just don't have the time (nor the hardware) to dedicate
+to getting that device to work.
 
-diff --git a/drivers/media/video/tlg2300/Kconfig b/drivers/media/video/tlg2300/Kconfig
-new file mode 100644
-index 0000000..2c29ec6
---- /dev/null
-+++ b/drivers/media/video/tlg2300/Kconfig
-@@ -0,0 +1,16 @@
-+config VIDEO_TLG2300
-+	tristate "Telegent TLG2300 USB video capture support"
-+	depends on VIDEO_DEV && I2C && INPUT && SND && DVB_CORE
-+	select VIDEO_TUNER
-+	select VIDEO_TVEEPROM
-+	select VIDEO_IR
-+	select VIDEOBUF_VMALLOC
-+	select SND_PCM
-+	select VIDEOBUF_DVB
-+
-+	---help---
-+	  This is a video4linux driver for Telegent tlg2300 based TV cards.
-+	  The driver supports V4L2, DVB-T and radio.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called poseidon
-diff --git a/drivers/media/video/tlg2300/Makefile b/drivers/media/video/tlg2300/Makefile
-new file mode 100644
-index 0000000..558c1ad
---- /dev/null
-+++ b/drivers/media/video/tlg2300/Makefile
-@@ -0,0 +1,9 @@
-+poseidon-objs := pd-bufqueue.o pd-video.o pd-alsa.o pd-dvb.o pd-vbi.o pd-radio.o pd-main.o
-+
-+obj-$(CONFIG_VIDEO_TLG2300) += poseidon.o
-+
-+EXTRA_CFLAGS += -Idrivers/media/video
-+EXTRA_CFLAGS += -Idrivers/media/common/tuners
-+EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
-+EXTRA_CFLAGS += -Idrivers/media/dvb/frontends
-+
+Cheers,
+
+Devin
+
 -- 
-1.6.0.6
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
