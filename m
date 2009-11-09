@@ -1,291 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49737 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752540AbZKTPHu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2009 10:07:50 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Date: Fri, 20 Nov 2009 09:07:45 -0600
-Subject: RE: [PATCH/RFC 7/9 v2] v4l: add an image-bus API for configuring
- v4l2 subdev pixel and frame formats
-Message-ID: <A69FA2915331DC488A831521EAE36FE40155A5191F@dlee06.ent.ti.com>
-References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
- <200911151723.59743.hverkuil@xs4all.nl>
- <Pine.LNX.4.64.0911192213100.6767@axis700.grange>
- <200911201329.10963.hverkuil@xs4all.nl>
-In-Reply-To: <200911201329.10963.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mail.gmx.net ([213.165.64.20]:46090 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753863AbZKIVKS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Nov 2009 16:10:18 -0500
+Date: Mon, 9 Nov 2009 21:54:38 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: S_FMT @ sensor driver & bridge driver
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE401558ABB3F@dlee06.ent.ti.com>
+Message-ID: <Pine.LNX.4.64.0911092056450.4289@axis700.grange>
+References: <A69FA2915331DC488A831521EAE36FE401558AB985@dlee06.ent.ti.com>
+ <200911091615.43017.hverkuil@xs4all.nl> <A69FA2915331DC488A831521EAE36FE401558ABB3F@dlee06.ent.ti.com>
 MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Mon, 9 Nov 2009, Karicheri, Muralidharan wrote:
 
-I guess this is only one part of the required API support for setting
-bus configuration for which I had sent an RFC some time back. I am sure
-we need to set bus image/data format in vpfe/vpbe drivers of DMxxx.
-I am starting to do more upstream work for vpfe capture & display drivers and would like to submit an updated RFC for bus configuration. I am not sure if someone is already working on that RFC. 
+> >-----Original Message-----
+> >From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> >Sent: Monday, November 09, 2009 10:16 AM
+> >To: Karicheri, Muralidharan
+> >Cc: linux-media@vger.kernel.org
+> >Subject: Re: S_FMT @ sensor driver & bridge driver
+> >
+> >On Monday 09 November 2009 15:48:35 Karicheri, Muralidharan wrote:
+> >> Hello,
+> >>
+> >> Currently the S_FMT IOCTL is used to configure the image resolution
+> >> and (there by scaler settings) at the sensor (example MT9T031).
+> >> Platforms like TI's DMxxx VPFE has Resizer in the pipeline that can
+> >> be used as well by application to either zoom in a specific region
+> >> of the capture image from the sensor or scale it up for some other
+> >> reason. To do this we need to issue two S_FMT commands, 1st to set
+> >> the capture frame resolution at the sensor and second to configure
+> >> resize ration at the SOC Resizer. With the current API, I don't see
+> >> a way this can be done. I wish we had some extra bytes in the S_FMT
+> >structure to add a flag that can indicate if S_FMT applies to the
+> >> sensor or at the SOC (bridge). One way to implement this is to add
+> >> a control to tell the bridge driver to send a specific IOCTL command
+> >> to the sensor. Another use of such a command will be for control.
+> >> For example if a specific control such as White balance is available
+> >> at the SOC pipeline as well as at the sensor, then application can
+> >> use the above control to direct that IOCTL command to the specific
+> >> device.
+> >>
+> >> You might argue that Media controller will allow you to direct
+> >> such commands directly to the target device. This is true for
+> >> control example I have mentioned above. But when applying
+> >> S_FMT at the sensor, we might want to passing it through the
+> >> bridge driver (as is the case with VPFE) so that it can request
+> >> extra lines to be captured as overhead to allow processing the
+> >> frame at the SOC pipeline in real time. So I do see this control
+> >> command staying even after we have media controller. Let me know
+> >> if you disagree with this proposal or have alternative to implement
+> >> the same. If I don't hear anything against this approach, I would
+> >> like to send patch to implement this control for vpfe capture
+> >> driver.
+> >
+> >I don't think this is a good idea. This is something that is highly
+> >hw dependent and as such should be done as part of the hw-specific
+> >subdev API that we will get in the future.
+> >
+> >The S_FMT ioctl is really a best-effort when it comes to SoCs. I.e.
+> >the S_FMT driver implementation should just try to do the best setup
+> >it can do (within reason).
+> >
+> >I wonder if we shouldn't start implementing the code needed to get subdev
+> >device nodes: if we have those, then it becomes much easier to start
+> >implementing hw-specific features. We don't need the media controller for
+> >that initially.
+> >
+> It is hardware dependent. I strongly feel we need to have device node for
+> sub device so that we can make changes to existing drivers like to ccdc to
+> remove the experimental ioctl and add the same to the sub device driver.
+> Assuming we have a device node, do you think we could add the extra line
+> requirement that I had mentioned to the platform data of the sub device?
+> 
+> So application does the following to start streaming in the sensor
+> 
+> 1) Issue S_FMT to the sensor (mt9t031 for example)
+> 	(set resolution to 1280x720), sub device driver adds extra lines if
+> 	 needed for a specific platform)
+> 2) Issue a S_FMT to the video node. At this point, bridge driver issue
+> 	g_fmt() to the sensor sub device to get current image size, frame
+> 	format, pixel format etc. Set the resizer resize ration based on the
+> 	sensor input image size and required final image size at the video
+> 	node.
 
-Looks like we need to have two APIs at sub-device level for handling this.
-One for image data format (Which is addressed by this RFC) and other for hardware signals like polarities, bus type etc. Any comments?
+You might want to have a look at 
+http://www.spinics.net/lists/linux-media/msg11926.html and at the 
+inplementation in drivers/media/video/sh_mobile_ceu_camera.c. In short - 
+without configuring the client and the host separately we try to configure 
+the client as good as possible to optimise for bus-usage, and then adjust 
+for user-request on the host. BTW, it might be a good idea to implement 
+this algorithm generically for all host drivers.
 
-BTW, I didn't have a chance to go over Guennadi's RFC for bus image format
-so far and hope to spend sometime on this next week. 
+> If this is fine, then what it takes to add device node to a sub device?
+> I know that Laurent is already working on the Media controller and adding
+> video node to sub device is one of the development items. Probably a
+> patch to add video node to sub device can then be pushed first so that
+> drivers can leverage on this framework to implement hardware dependent
+> features. Otherwise, we need something on the interim to implement the
+> above feature in vpfe capture.
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-phone: 301-407-9583
-email: m-karicheri2@ti.com
-
->-----Original Message-----
->From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
->Sent: Friday, November 20, 2009 7:29 AM
->To: Guennadi Liakhovetski
->Cc: Linux Media Mailing List; Laurent Pinchart; Sakari Ailus; Karicheri,
->Muralidharan
->Subject: Re: [PATCH/RFC 7/9 v2] v4l: add an image-bus API for configuring
->v4l2 subdev pixel and frame formats
->
->On Thursday 19 November 2009 23:33:22 Guennadi Liakhovetski wrote:
->> Hi Hans
->>
->> On Sun, 15 Nov 2009, Hans Verkuil wrote:
->>
->> [snip]
->>
->> > > > > +s32 v4l2_imgbus_bytes_per_line(u32 width,
->> > > > > +			       const struct v4l2_imgbus_pixelfmt *imgf)
->> > > > > +{
->> > > > > +	switch (imgf->packing) {
->> > > > > +	case V4L2_IMGBUS_PACKING_NONE:
->> > > > > +		return width * imgf->bits_per_sample / 8;
->> > > > > +	case V4L2_IMGBUS_PACKING_2X8_PADHI:
->> > > > > +	case V4L2_IMGBUS_PACKING_2X8_PADLO:
->> > > > > +	case V4L2_IMGBUS_PACKING_EXTEND16:
->> > > > > +		return width * 2;
->> > > > > +	}
->> > > > > +	return -EINVAL;
->> > > > > +}
->> > > > > +EXPORT_SYMBOL(v4l2_imgbus_bytes_per_line);
->> > > >
->> > > > As you know, I am not convinced that this code belongs in the core.
->> > > > I do not think this translation from IMGBUS to PIXFMT is generic
->> > > > enough. However, if you just make this part of soc-camera then I am
->> > > > OK with this.
->> > >
->> > > Are you referring to a specific function like
->> > > v4l2_imgbus_bytes_per_line or to the whole v4l2-imagebus.c?
->> >
->> > I'm referring to the whole file.
->> >
->> > > The whole file and the
->> > > v4l2_imgbus_get_fmtdesc() function must be available to all drivers,
->> > > not just to soc-camera, if we want to use {enum,g,s,try}_imgbus_fmt
->> > > API in other drivers too, and we do want to use them, if we want to
->> > > re-use client drivers.
->> >
->> > The sub-device drivers do not need this source. They just need to
->> > report the supported image bus formats. And I am far from convinced
->> > that other bridge drivers can actually reuse your v4l2-imagebus.c code.
->>
->> You mean, all non-soc-camera bridge drivers only handle special client
->> formats, no generic pass-through?
->
->That's correct. It's never been a problem until now. Usually the format is
->fixed, so there is nothing to configure.
->
->> What about other SoC v4l host drivers,
->> not using soc-camera, and willing to switch to v4l2-subdev? Like OMAPs,
->> etc? I'm sure they would want to be able to use the pass-through mode
->
->And if they can reuse your code, then we will rename it to v4l2-busimage.c
->
->But I have my doubts about that. I don't like that code, but I also don't
->have the time to think about a better alternative. As long as it is
->soc-camera specific, then I don't mind. And if omap3 can reuse it, then I
->clearly was wrong and we can rename it and make it part of the core
->framework.
->
->> > If they can, then we can always rename it from e.g. soc-imagebus.c to
->> > v4l2-imagebus.c. Right now I prefer to keep it inside soc-camera where
->> > is clearly does work and when other people start implementing imagebus
->> > support, then we can refer them to the work you did in soc-camera and
->> > we'll see what happens.
->>
->> You know how it happens - some authors do not know about some hidden
->> code, during the review noone realises, that they are re-implementing
->> that... Eventually you end up with duplicated customised sub-optimal
->> code. Fresh example - the whole soc-camera framework:-) I only learned
->> about int-device after soc-camera has already been submitted in its
->> submission form. And I did ask on lists whether there was any code for
->> such systems:-)
->
->All the relevant omap developers are CC-ed in this discussion, and I'm also
->paying fairly close attention to anything SoC related.
->
->> I do not quite understand what disturbs you about making this API global.
->> It is a completely internal API - no exposure to user-space. We can
->> modify or remove it any time.
->>
->> Then think about wider exposure, testing. If you like we can make it a
->> separate module and make soc-camera select it. And we can always degrade
->> it back to soc-camera-specific:-)
->
->Making this API global means that it becomes part of the framework. And I
->want to pay a lot more attention to that code than we did in the past. So I
->have to be convinced that it is code that is really reusable by other
->drivers. And I am not convinced about that. Since I know omap3 will need
->this soon, I want to wait for their experiences with your code before
->making this part of the framework.
->
->> > > > One other comment to throw into the pot: what about calling this
->> > > > just V4L2_BUS_FMT...? So imgbus becomes just bus. For some reason I
->> > > > find imgbus a bit odd. Probably because I think of it more as a
->> > > > video bus or even as a more general data bus. For all I know it
->> > > > might be used in the future to choose between different types of
->> > > > histogram data or something like that.
->> > >
->> > > It might well be not the best namespace choice. But just "bus" OTOH
->> > > seems way too generic to me. Maybe some (multi)mediabus? Or is even
->> > > that too generic? It certainly depends on the scope which we foresee
->> > > for this API.
->> >
->> > Hmm, I like that: 'mediabus'. Much better IMHO than imagebus. Image bus
->> > is too specific to sensor, I think. Media bus is more generic (also for
->> > video and audio formats), but it still clearly refers to the media data
->> > flowing over the bus rather than e.g. control data.
->>
->> Well, do we really think it might ever become relevant for audio? We're
->> having problems adopting it generically for video even:-)
->
->Or VBI data, or whatever we might need in the future that is related to
->media.
->
->> > > > > +	V4L2_IMGBUS_FMT_YUYV,
->> > > > > +	V4L2_IMGBUS_FMT_YVYU,
->> > > > > +	V4L2_IMGBUS_FMT_UYVY,
->> > > > > +	V4L2_IMGBUS_FMT_VYUY,
->> > > > > +	V4L2_IMGBUS_FMT_VYUY_SMPTE170M_8,
->> > > > > +	V4L2_IMGBUS_FMT_VYUY_SMPTE170M_16,
->> > > > > +	V4L2_IMGBUS_FMT_RGB555,
->> > > > > +	V4L2_IMGBUS_FMT_RGB555X,
->> > > > > +	V4L2_IMGBUS_FMT_RGB565,
->> > > > > +	V4L2_IMGBUS_FMT_RGB565X,
->> > > > > +	V4L2_IMGBUS_FMT_SBGGR8,
->> > > > > +	V4L2_IMGBUS_FMT_SGBRG8,
->> > > > > +	V4L2_IMGBUS_FMT_SGRBG8,
->> > > > > +	V4L2_IMGBUS_FMT_SRGGB8,
->> > > > > +	V4L2_IMGBUS_FMT_SBGGR10,
->> > > > > +	V4L2_IMGBUS_FMT_SGBRG10,
->> > > > > +	V4L2_IMGBUS_FMT_SGRBG10,
->> > > > > +	V4L2_IMGBUS_FMT_SRGGB10,
->> > > > > +	V4L2_IMGBUS_FMT_GREY,
->> > > > > +	V4L2_IMGBUS_FMT_Y16,
->> > > > > +	V4L2_IMGBUS_FMT_Y10,
->> > > > > +	V4L2_IMGBUS_FMT_SBGGR10_2X8_PADHI_BE,
->> > > > > +	V4L2_IMGBUS_FMT_SBGGR10_2X8_PADLO_BE,
->> > > > > +	V4L2_IMGBUS_FMT_SBGGR10_2X8_PADHI_LE,
->> > > > > +	V4L2_IMGBUS_FMT_SBGGR10_2X8_PADLO_LE,
->> > > >
->> > > > Obviously the meaning of these formats need to be documented in
->> > > > this header as well. Are all these imgbus formats used? Anything
->> > > > that is not used shouldn't be in this list IMHO.
->> > >
->> > > A few of them are, yes, some might not actually be used yes, but have
->> > > been added for completenes. We can have a better look at them and
->> > > maybe throw a couple of them away, yes.
->> > >
->> > > Document - yes. But, please, under linux/Documentation/video4linux/.
->> >
->> > The problem is that people will forget to add it to the documentation
->> > when they add new formats. We have that problem already with PIXFMT,
->> > and there you actually get an error or warning when building the
->> > documentation.
->> >
->> > I think that the chances of keeping the documentation up to date are
->> > much higher if we document it at the same place that these formats are
->> > defined.
->>
->> Ah, you mean docbook in the code - sure, better yet. I meant in the
->> kernel as opposed to the hg documentation collection.
->>
->> > > > > +};
->> > > > > +
->> > > > > +/**
->> > > > > + * struct v4l2_imgbus_pixelfmt - Data format on the image bus
->> > > > > + * @fourcc:		Fourcc code...
->> > > > > + * @colorspace:		and colorspace, that will be obtained
->if the
->> > > > > data is + *			stored in memory in the following way:
->> > > > > + * @bits_per_sample:	How many bits the bridge has to sample
->> > > > > + * @packing:		Type of sample-packing, that has to be used
->> > > > > + * @order:		Sample order when storing in memory
->> > > > > + */
->> > > > > +struct v4l2_imgbus_pixelfmt {
->> > > > > +	u32				fourcc;
->> > > > > +	enum v4l2_colorspace		colorspace;
->> > > > > +	const char			*name;
->> > > > > +	enum v4l2_imgbus_packing	packing;
->> > > > > +	enum v4l2_imgbus_order		order;
->> > > > > +	u8				bits_per_sample;
->> > > > > +};
->> > > >
->> > > > Ditto for this struct. Note that the colorspace field should be
->> > > > moved to imgbus_framefmt.
->> > >
->> > > Hm, not sure. Consider a simple scenario: user issues S_FMT. Host
->> > > driver cannot handle that pixel-format in a "special" way, so, it
->> > > goes for "pass-through," so it has to find an enum
->> > > v4l2_imgbus_pixelcode value, from which it can generate the requested
->> > > pixel-format _and_ colorspace. To do that it scans the internal
->> > > pixel/data format translation table to look for the specific
->> > > pixel-format and colorspace value, and issues s_imgbus_fmt to the
->> > > client with the respective pixelcode.
->> > >
->> > > Of course, this could ylso be done differently. In fact, I just do
->> > > not know what client drivers know about colorspaces. Are they fixed
->> > > per data format, and thus also uniquely defined by the latter? If so,
->> > > no client-visible struct needs it. If some pixelcodes can exist with
->> > > different colorspaces, then yes, we might want to pass the colorspace
->> > > with s_imgbus_fmt in struct v4l2_imgbus_framefmt instead of
->> > > allocating separate pixelcodes for them.
->> >
->> > Yes, some video devices have image bus formats that can deliver
->> > different colorspaces. For example, HDMI receivers will typically get
->> > information of the colorspace as part of the datastream. So the same
->> > YCbCr bus format might use either the ITU601 or ITU709 colorspace.
->> >
->> > Typically for receivers calling g_imgbus_fmt() will return the
->> > colorspace it currently receives but it will ignore any attempt to set
->> > the colorspace.
->> >
->> > When programming a HDMI transmitter you will typically have to provide
->> > the colorspace when you set the format since it needs that information
->> > to fill in the colorspace information that it will generate in the
->> > datastream.
->> >
->> > What is not needed is that you attempt to match a pixelformat to a
->> > busformat and colorspace pair. You can ignore the colorspace for that.
->>
->> Ok, thanks, I'll change that.
->
->We are really almost there: rename imgbus to mediabus and rename to
->v4l2-imagebus.c to soc-mediabus.c (which we might change back in the
->future). It would be really nice to get this in for 2.6.33.
->
->Regards,
->
->	Hans
->
->--
->Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
