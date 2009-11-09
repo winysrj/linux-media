@@ -1,48 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:35416 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759771AbZKLBot (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Nov 2009 20:44:49 -0500
-Date: Thu, 12 Nov 2009 02:44:52 +0100 (CET)
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Subject: Re: [PATCH 0/4] DVB: firedtv: port to new firewire driver stack
-To: linux-media@vger.kernel.org
-cc: linux1394-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
-In-Reply-To: <tkrat.ce889fb60854a648@s5r6.in-berlin.de>
-Message-ID: <tkrat.f5c6b067dba96030@s5r6.in-berlin.de>
-References: <tkrat.ce889fb60854a648@s5r6.in-berlin.de>
+Received: from mail-ew0-f207.google.com ([209.85.219.207]:33500 "EHLO
+	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753511AbZKIITB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2009 03:19:01 -0500
+Received: by ewy3 with SMTP id 3so2871803ewy.37
+        for <linux-media@vger.kernel.org>; Mon, 09 Nov 2009 00:19:05 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=us-ascii
-Content-Disposition: INLINE
+Date: Mon, 9 Nov 2009 09:19:05 +0100
+Message-ID: <885896af0911090019p6e0c784fq5b3e8f20e00d479c@mail.gmail.com>
+Subject: v4l-dvb status
+From: Giacomo <delleceste@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stefan Richter wrote:
-> [PATCH 1/4] firedtv: move remote control workqueue handling into rc source file
-> [PATCH 2/4] firedtv: reform lock transaction backend call
-> [PATCH 3/4] firedtv: add missing include, rename a constant
-> [PATCH 4/4] firedtv: port to new firewire core
-> 
->  drivers/media/dvb/firewire/Kconfig        |    7
->  drivers/media/dvb/firewire/Makefile       |    1
->  drivers/media/dvb/firewire/firedtv-1394.c |   37 +-
->  drivers/media/dvb/firewire/firedtv-avc.c  |   50 +-
->  drivers/media/dvb/firewire/firedtv-dvb.c  |   15
->  drivers/media/dvb/firewire/firedtv-fw.c   |  385 ++++++++++++++++++++++
->  drivers/media/dvb/firewire/firedtv-rc.c   |    2
->  drivers/media/dvb/firewire/firedtv.h      |   17
->  8 files changed, 471 insertions(+), 43 deletions(-)
+good morning to all in the list.
 
-These patches are now also available in the v2.6.31 based "firedtv"
-branch at
+I have a few questions, back trying to install v4l-dvb kernel drivers
+after some time.
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/ieee1394/linux1394-2.6.git firedtv
+1. Is the project going to support kernel 2.6.31?
 
-This branch is also merged into linux1394-2.6.git for-next and thereby
-linux-next.git.
+2. I used to use tvtime + sox for the usb audio, with big problems
+causing audio
+   desynchronization with large delay with respect to the video: do
+the (new) drivers
+   solve the issue?
+  -  I also remember that there was an integrated version of
+tvtime/usb audio in hg repositories,
+     is it still maintained? is there a particular version to download
+to correctly build it?
+
+3. It's two years since I first installed v4l-dvb drivers, and still I
+encounter problems to find all
+   the channels with tvtime.
+   Is there some module parameter to provide for the module em28xx for
+Pinnacle PCTV USB2,
+   for the Italian standards?
+
+Thanks in advance for any hint and the great work done on v4l-dvb project
+
+Giacomo
+
 -- 
-Stefan Richter
--=====-==--= =-== -==--
-http://arcgraph.de/sr/
+Giacomo S.
+http://www.giacomos.it
 
+- - - - - - - - - - - - - - - - - - - - - -
+
+* Aprile 2008: iqfire-wall, un progetto
+  open source che implementa un
+  filtro di pacchetti di rete per Linux,
+  e` disponibile per il download qui:
+  http://sourceforge.net/projects/ipfire-wall
+
+* Informazioni e pagina web ufficiale:
+  http://www.giacomos.it/iqfire/index.html
+
+- - - - - - - - - - - - - - - - - - - - - -
+
+ . ''  `.
+:   :'    :
+ `.  ` '
+    `- Debian GNU/Linux -- The power of freedom
+        http://www.debian.org
