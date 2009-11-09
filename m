@@ -1,76 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.navvo.net ([74.208.67.6]:41430 "EHLO mail.navvo.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757672AbZKETDP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Nov 2009 14:03:15 -0500
-Message-ID: <4AF3217E.5030802@ridgerun.com>
-Date: Thu, 05 Nov 2009 13:03:26 -0600
-From: Santiago Nunez-Corrales <snunez@ridgerun.com>
-Reply-To: santiago.nunez@ridgerun.com
+Received: from mail-1.epublica.de ([213.238.59.6]:36491 "EHLO
+	mail-1.epublica.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751657AbZKILU6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2009 06:20:58 -0500
+Message-ID: <4AF7F51B.5070501@hanno.de>
+Date: Mon, 09 Nov 2009 11:55:23 +0100
+From: Hanno Zulla <abos@hanno.de>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"Narnakaje, Snehaprabha" <nsnehaprabha@ti.com>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"Grosen, Mark" <mgrosen@ti.com>,
-	Diego Dompe <diego.dompe@ridgerun.com>,
-	"todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>
-References: <4AF1B89C.5000108@ridgerun.com> <200911051721.58407.hverkuil@xs4all.nl>
-In-Reply-To: <200911051721.58407.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: linux-media@vger.kernel.org
+CC: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] What is the status of the driver TT CT-3650
+References: <87fxa2uurr.fsf@musikcheck.dk>
+In-Reply-To: <87fxa2uurr.fsf@musikcheck.dk>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH 0/4 v6] Support for TVP7002 in DM365
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-My apologies, found that I had the wrong mailing list email for linux-media.
+Hi,
 
-Sending patches (hopefully) for the last time.
+> Anyone know how to get this working or this card is in a working state
+> under linux. Because if it not working yet I will stop wasting my time
 
+Second that request. Is anybody working on a driver for this device? Is
+it worth waiting?
 
-Santiago.
+Technotrend DVB products have been good for me in the past and this
+combination of DVB-C with CI is something well suited for my next vdr
+hardware setup.
 
-Hans Verkuil wrote:
-> On Wednesday 04 November 2009 18:23:40 Santiago Nunez-Corrales wrote:
->   
->> This series of patches provide support for the TVP7002 decoder in DM365.
->>
->> Support includes:
->>
->> * Inclusion of the chip in v4l2 definitions
->> * Definition of TVP7002 specific data structures
->> * Kconfig and Makefile support
->>
->> This series corrects many issued pointed out by Snehaprabha Narnakaje,
->> Muralidharan Karicheri, Vaibhav Hiremath and Hans Verkuil and solves
->> testing problems.  Tested on DM365 TI EVM with resolutions 720p,
->> 1080i@60, 576P and 480P with video capture application and video
->> output in 480P, 576P, 720P and 1080I. This driver depends upon 
->> board-dm365-evm.c and vpfe_capture.c to be ready for complete 
->> integration. Uses the new V4L2 DV API sent by Muralidharan Karicheri.
->>
->>
->>     
->
-> Erm, where is the rest of the series? :-)
->
-> Regards,
->
-> 	Hans
->
->   
+Thanks,
 
-
--- 
-Santiago Nunez-Corrales, Eng.
-RidgeRun Engineering, LLC
-
-Guayabos, Curridabat
-San Jose, Costa Rica
-+(506) 2271 1487
-+(506) 8313 0536
-http://www.ridgerun.com
-
-
+Hanno
