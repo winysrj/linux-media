@@ -1,44 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp9.rug.nl ([129.125.60.9]:35109 "EHLO smtp9.rug.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753226AbZKQLGp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2009 06:06:45 -0500
-Received: from [129.125.21.104] (f5selfip-4-60.service.rug.nl [129.125.60.248])
-	by smtp9.rug.nl (8.14.3/8.14.3) with ESMTP id nAHB6oXq019338
-	for <linux-media@vger.kernel.org>; Tue, 17 Nov 2009 12:06:50 +0100
-Message-ID: <4B0283CA.5060408@rug.nl>
-Date: Tue, 17 Nov 2009 12:06:50 +0100
-From: Sietse Achterop <s.achterop@rug.nl>
-MIME-Version: 1.0
-CC: linux-media@vger.kernel.org
-Subject: Re: xawtv and v4lctl with usbvision kernel driver
-References: <4B016937.7010906@rug.nl> <829197380911160752lcbfd202gcdbed97b85238bd2@mail.gmail.com>
-In-Reply-To: <829197380911160752lcbfd202gcdbed97b85238bd2@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from bombadil.infradead.org ([18.85.46.34]:46842 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754844AbZKIMe4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2009 07:34:56 -0500
+Date: Mon, 9 Nov 2009 10:34:15 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Andy Walls <awalls@radix.net>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Ben Hutchings <ben@decadent.org.uk>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 29/75] cx18: declare MODULE_FIRMWARE
+Message-ID: <20091109103415.19b98b1f@pedra.chehab.org>
+In-Reply-To: <1257768182.3851.31.camel@palomino.walls.org>
+References: <1257630681.15927.423.camel@localhost>
+	<1257645238.15927.624.camel@localhost>
+	<1257646136.7399.18.camel@palomino.walls.org>
+	<200911091106.38894.hverkuil@xs4all.nl>
+	<1257768182.3851.31.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
-> On Mon, Nov 16, 2009 at 10:01 AM, Sietse Achterop <s.achterop@rug.nl> wrote:
+Em Mon, 09 Nov 2009 07:03:02 -0500
+Andy Walls <awalls@radix.net> escreveu:
 
->> Context:
->>  debian/lenny with usb frame grabber:
->>     Zoran Co. Personal Media Division (Nogatech) Hauppauge WinTV Pro (PAL/SECAM)
->>  This uses the usbvision driver.
->>
->> The problem is that while xawtv works OK with color, v4lctl ONLY shows the frames
->> in black-and-white.
+> On Mon, 2009-11-09 at 11:06 +0100, Hans Verkuil wrote:
+> > On Sunday 08 November 2009 03:08:56 Andy Walls wrote:
+> > > On Sun, 2009-11-08 at 01:53 +0000, Ben Hutchings wrote:
+> > > > On Sat, 2009-11-07 at 20:40 -0500, Andy Walls wrote:
+> > > > > On Sat, 2009-11-07 at 21:51 +0000, Ben Hutchings wrote:
+> > > 
+> > > > > >  
+> > > > > > +MODULE_FIRMWARE("dvb-cx18-mpc718-mt352.fw");
+> > > > > > +
+> > > > > 
+> > > > > Ben,
+> > > > > 
+> > > > > This particular firmware is only needed by one relatively rare TV card.
+> > > > > Is there any way for MODULE_FIRMWARE advertisements to hint at
+> > > > > "mandatory" vs. "particular case(s)"?
+> > > > 
+> > > > No, but perhaps there ought to be.  In this case the declaration could
+> > > > be left out for now.  It is only critical to list all firmware in
+> > > > drivers that may be needed for booting.
+> > > 
+> > > OK.  I don't know that a TV card driver is every *needed* for booting.
+> > > Maybe one day when I can net-boot with cable-modem like
+> > > functionality... ;)
+> > > 
+> > > 
+> > > I'm OK with the MODULE_FIRMWARE announcements in cx18 so long as
+> > > automatic behaviors like
+> > > 
+> > > 1. persistent, repeatitive, or truly alarming user warnings, or
+> > > 2. refusing to load the module due to missing firmware files
+> > > 
+> > > don't happen.
+> > 
+> > I agree with Andy here.
+> > 
+> > In the case of ivtv and cx18 (unless that changed since the last time I worked
+> > on it) the cx firmware is actually not loaded when the module is inited but on
+> > the first open() call. So it is not even that clear to me whether we want to
+> > have these fairly large fw files in an initramfs image at all.
+> > 
+> 
+> I've been thinking about this all a bit more since I read Mauro's
+> comment.
+> 
+> MODULE_FIRMWARE() is essentially turning kernel driver modules into an
+> interactive, read-only, database for (a particular set of ?) end users.
+> 
+> The process of keeping MODULE_FIRMWARE declarations up to date will run
+> into all the incentive, governance, and maintenance problems that any
+> database has.  Due to lack incentive structure, one will end up with
+> missing data at any point in time, as the current patch series points
+> out.
+> 
+> It may be better to keep tabs on module firmware image names with a
+> database outside of the kernel *.[ch] files.  It could be a simple as a
+> text file somewhere.  I suspect it would have just as likely a chance or
+> better of being up to date at any point in time.  That would also be a
+> bit more flexible.  One could add additional fields to the records for
+> amplifying information (e.g required, optional, card xyz) without
+> perturbing a slew of kernel *.[ch] files.
 
-> I don't know about that board in particular, but on some boards the
-> composite and s-video are actually wired together (sharing the luma
-> line), so if you have the device configured in "composite" mode but
-> have the s-video plugged in, then you will get a black/white image
-> (since it expects to see both luma/chroma on the one pin that provides
-> luma).
-  Hi Devin,
-     Thanks for your reponse, but xawtv happely shows color, so I don't think
-thats the issue,
- Thanks again,
-    Sietse
+Yes, this will work better, IMHO, but won't cover the few cases where you
+only know the frontend/tuner at the runtime, after probing the device
+or reading the device eeprom.
+
+If the need is to detect the firmware needs during installation, upgrades
+or hardware changes, the simplest way is to use an userspace tool for the
+request_firmware hotplug interface that catches the firmware requests after
+loading and opening a V4L/DVB device. This will catch all cases and will
+be a way easier than maintaining a database.
+
+
+Cheers,
+Mauro
