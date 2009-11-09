@@ -1,61 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f194.google.com ([209.85.221.194]:60829 "EHLO
-	mail-qy0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751737AbZK1Tcl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Nov 2009 14:32:41 -0500
+Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:1163 "EHLO
+	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755007AbZKIMjz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2009 07:39:55 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: hvaibhav@ti.com
+Subject: Re: [PATCH 6/6] TVP514x:Switch to automode for s_input/querystd
+Date: Mon, 9 Nov 2009 13:39:52 +0100
+Cc: linux-media@vger.kernel.org, Brijesh Jadav <brijesh.j@ti.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+References: <hvaibhav@ti.com> <1255446779-16969-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <1255446779-16969-1-git-send-email-hvaibhav@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <4B117A4C.1070304@s5r6.in-berlin.de>
-References: <9e4733910911270757j648e39ecl7487b7e6c43db828@mail.gmail.com>
-	 <1259370501.11155.14.camel@maxim-laptop>
-	 <m37hta28w9.fsf@intrepid.localdomain>
-	 <1259419368.18747.0.camel@maxim-laptop>
-	 <m3zl66y8mo.fsf@intrepid.localdomain>
-	 <1259422559.18747.6.camel@maxim-laptop>
-	 <9e4733910911280845y5cf06836l1640e9fc8b1740cf@mail.gmail.com>
-	 <1259433959.3658.0.camel@maxim-laptop>
-	 <9e4733910911281056s77e9bc8frd9200a81ebab8d7e@mail.gmail.com>
-	 <4B117A4C.1070304@s5r6.in-berlin.de>
-Date: Sat, 28 Nov 2009 14:32:46 -0500
-Message-ID: <9e4733910911281132m5d0cce31t5544c5a6361813bd@mail.gmail.com>
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
-	system?
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	Christoph Bartelmus <christoph@bartelmus.de>,
-	jarod@wilsonet.com, awalls@radix.net, dmitry.torokhov@gmail.com,
-	j@jannau.net, jarod@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, superm1@ubuntu.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200911091339.52771.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 28, 2009 at 2:30 PM, Stefan Richter
-<stefanr@s5r6.in-berlin.de> wrote:
-> Jon Smirl wrote:
->> If these drivers are for specific USB devices it is straight forward
->> to turn them into kernel based drivers. If we are going for plug and
->> play this needs to happen. All USB device drivers can be implemented
->> in user space, but that doesn't mean you want to do that. Putting
->> device drivers in the kernel subjects them to code inspection, they
->> get shipped everywhere, they autoload when the device is inserted,
->> they participate in suspend/resume, etc.
->
-> Huh?  Userspace implementations /can/ be code-reviewed (but they can't
-> crash your machine), they /can/ be and are shipped everywhere, they /do/
-> auto-load when the device is inserted.  And if there should be an issue
-> with power management (is there any?), then improve the ABI and libusb
-> can surely be improved.  I don't see why a device with a userspace
-> driver cannot be included in power management.
+Hi Vaibhav,
 
-If you want a micro-kernel there are plenty to pick from. Linux has
-chosen not to be a micro-kernel. The Linux model is device drivers in
-the kernel.
+See the review comments below.
+
+On Tuesday 13 October 2009 17:12:59 hvaibhav@ti.com wrote:
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> Driver should switch to AutoSwitch mode on S_INPUT and QUERYSTD ioctls.
+> It has been observed that, if user configure the standard explicitely
+> then driver preserves the old settings.
+> 
+> Reviewed by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+> ---
+>  drivers/media/video/tvp514x.c |   17 +++++++++++++++++
+>  1 files changed, 17 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/tvp514x.c b/drivers/media/video/tvp514x.c
+> index 2443726..0b0412d 100644
+> --- a/drivers/media/video/tvp514x.c
+> +++ b/drivers/media/video/tvp514x.c
+> @@ -523,10 +523,18 @@ static int tvp514x_querystd(struct v4l2_subdev *sd, v4l2_std_id *std_id)
+>  	enum tvp514x_std current_std;
+>  	enum tvp514x_input input_sel;
+>  	u8 sync_lock_status, lock_mask;
+> +	int err;
+> 
+>  	if (std_id == NULL)
+>  		return -EINVAL;
+> 
+> +	err = tvp514x_write_reg(sd, REG_VIDEO_STD,
+> +			VIDEO_STD_AUTO_SWITCH_BIT);
+> +	if (err < 0)
+> +		return err;
+> +
+> +	msleep(LOCK_RETRY_DELAY);
+> +
+
+We have a problem here with the V4L2 spec.
+
+The spec says that the standard should not change unless set explicitly by
+the user. So switching to auto mode in querystd is not correct.
+
+Is it possible to detect the standard without switching to automode? If it is,
+then that's the preferred solution.
+
+If it cannot be done, then we need to extend the API and add support for a
+proper way of enabling automode.
+
+This is actually a long standing issue that used to be pretty low prio since
+it is very rare to see 'spontaneous' switches from e.g. PAL to NTSC.
+
+But with the upcoming timings API for HDTV this will become much more common.
+(e.g. switching from 1080p to 720p).
+
+We need to define this quite carefully. In particular what will happen if the
+standard switches while streaming. How does that relate to a scaler setup with
+S_FMT? Do we know when this happens so that we can notify the application? Can
+we lock the standard when starting capturing?
+
+My gut feeling is that AUTO detect should only be allowed if the application
+can be notified when the standard changes, or if the standard can be locked
+when streaming starts.
+
+The second part that is needed is some way to set the receiver into auto
+switching mode. For SDTV that probably means adding a new AUTO standard bit.
+Although to be honest I'm not keen on having to add something to v4l2_std_id.
+
+For the HDTV timings API we probably need to add an AUTO preset.
+
+Murali, can you think about this a bit and see how that will work out?
+
+>  	/* get the current standard */
+>  	current_std = tvp514x_get_current_std(sd);
+>  	if (current_std == STD_INVALID)
+> @@ -643,6 +651,15 @@ static int tvp514x_s_routing(struct v4l2_subdev *sd,
+>  		/* Index out of bound */
+>  		return -EINVAL;
+> 
+> +	/* Since this api is goint to detect the input, it is required
+> +	   to set the standard in the auto switch mode */
+> +	err = tvp514x_write_reg(sd, REG_VIDEO_STD,
+> +			VIDEO_STD_AUTO_SWITCH_BIT);
+
+Huh? I don't see what s_routing has to do with auto switch mode.
+
+> +	if (err < 0)
+> +		return err;
+> +
+> +	msleep(LOCK_RETRY_DELAY);
+> +
+>  	input_sel = input;
+>  	output_sel = output;
+> 
+> --
+> 1.6.2.4
+> 
+
+Regards,
+
+	Hans
+
 
 -- 
-Jon Smirl
-jonsmirl@gmail.com
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
