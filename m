@@ -1,84 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:4588 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751539AbZK1Qpq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Nov 2009 11:45:46 -0500
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:56288 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752670AbZKICBq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Nov 2009 21:01:46 -0500
+Received: by pwi3 with SMTP id 3so337590pwi.21
+        for <linux-media@vger.kernel.org>; Sun, 08 Nov 2009 18:01:51 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <1259422559.18747.6.camel@maxim-laptop>
-References: <9e4733910911270757j648e39ecl7487b7e6c43db828@mail.gmail.com>
-	 <4B104971.4020800@s5r6.in-berlin.de>
-	 <1259370501.11155.14.camel@maxim-laptop>
-	 <m37hta28w9.fsf@intrepid.localdomain>
-	 <1259419368.18747.0.camel@maxim-laptop>
-	 <m3zl66y8mo.fsf@intrepid.localdomain>
-	 <1259422559.18747.6.camel@maxim-laptop>
-Date: Sat, 28 Nov 2009 11:45:51 -0500
-Message-ID: <9e4733910911280845y5cf06836l1640e9fc8b1740cf@mail.gmail.com>
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
-	system?
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Krzysztof Halasa <khc@pm.waw.pl>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Christoph Bartelmus <christoph@bartelmus.de>,
-	jarod@wilsonet.com, awalls@radix.net, dmitry.torokhov@gmail.com,
-	j@jannau.net, jarod@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, superm1@ubuntu.com
+In-Reply-To: <829197380911081752x707d9e2bs99f4dc044544d66f@mail.gmail.com>
+References: <cd9524450911081743y92a616amfcb8c6c069112240@mail.gmail.com>
+	<829197380911081752x707d9e2bs99f4dc044544d66f@mail.gmail.com>
+From: Barry Williams <bazzawill@gmail.com>
+Date: Mon, 9 Nov 2009 12:31:30 +1030
+Message-ID: <cd9524450911081801i5e8d97f4nd5864d46a66c676e@mail.gmail.com>
+Subject: Re: bisected regression in tuner-xc2028 on DVICO dual digital 4
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 28, 2009 at 10:35 AM, Maxim Levitsky
-<maximlevitsky@gmail.com> wrote:
-> On Sat, 2009-11-28 at 16:25 +0100, Krzysztof Halasa wrote:
->> Maxim Levitsky <maximlevitsky@gmail.com> writes:
->>
->> >> And that's good. Especially for a popular and simple protocol such as
->> >> RC5.
->> >> Actually, it's not about adding the decoder. It's about fixing it.
->> >> I can fix it.
->> >
->> > This is nonsense.
->>
->> You forgot to say why do you think so.
+On Mon, Nov 9, 2009 at 12:22 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> On Sun, Nov 8, 2009 at 8:43 PM, Barry Williams <bazzawill@gmail.com> wrote:
+>> Hi Devin
+>> I tried your tree and I seem to get the same problem on one box I get
+>> the flood of 'dvb-usb: bulk message failed: -110 (1/0'.
+> <snip>
 >
-> Because frankly, I am sick of this discussion.
-> Generic decoder that lirc has is actually much better and more tolerant
-> that protocol specific decoders that you propose,
+> Can you please confirm the USB ID of the board you are having the
+> problem with (by running "lsusb" from a terminal window)?
+>
+> Thanks,
+>
+> Devin
+> --
 
-Porting the decoder engine from lirc into the kernel is also a possibility.
 
-I'm asking to have an architecture design discussion, not to pick one
-of the various implementations. This is something that we have to live
-with for twenty years and it is a giant pain to change if we get wrong
-initially.
+On the first box I have
+Bus 003 Device 003: ID 0fe9:db98 DVICO
+Bus 003 Device 002: ID 0fe9:db98 DVICO
 
-> You claim you 'fix' the decoder, right?
-> But what about all these lirc userspace drivers?
-> How they are supposed to use that 'fixed' decoder.
-
-Some of that user space hardware belongs in the trash can and will
-never work reliably in a modern system. For example - sitting in a
-tight user space loop reading the DTS bit from a serial port or
-parallel port and then using the system clock to derive IR timings.
-That process is going to be inaccurate or it is going to make video
-frames drop. Big banging from user space is completely unreliable.
-
-If you really want to use your microphone input as a DAC channel, run
-a little app that reads the ALSA input and converts it to a timing
-stream and then inject this data into the kernel input system using
-uevent.
-
-Both of these are hobbyist class solutions. They are extremely cheap
-but they are unreliable and create large CPU loads.  But some people
-want to use a $300 CPU to eliminate $2 worth of IR hardware. This type
-of hardware will continue to work via event injection. But neither of
-these solutions belong in the kernel.
-
-What are other examples of user space IR drivers?
-
--- 
-Jon Smirl
-jonsmirl@gmail.com
+on the second
+Bus 001 Device 003: ID 0fe9:db78 DVICO FusionHDTV DVB-T Dual Digital 4
+(ZL10353+xc2028/xc3028) (initialized)
+Bus 001 Device 002: ID 0fe9:db78 DVICO FusionHDTV DVB-T Dual Digital 4
+(ZL10353+xc2028/xc3028) (initialized)
