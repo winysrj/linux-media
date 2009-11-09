@@ -1,47 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f202.google.com ([209.85.211.202]:58615 "EHLO
-	mail-yw0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757305AbZKTDY4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2009 22:24:56 -0500
-Received: by mail-yw0-f202.google.com with SMTP id 40so1937121ywh.33
-        for <linux-media@vger.kernel.org>; Thu, 19 Nov 2009 19:25:02 -0800 (PST)
-From: Huang Shijie <shijie8@gmail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org, Huang Shijie <shijie8@gmail.com>
-Subject: [PATCH 02/11] add maitainers for tlg2300
-Date: Fri, 20 Nov 2009 11:24:44 +0800
-Message-Id: <1258687493-4012-3-git-send-email-shijie8@gmail.com>
-In-Reply-To: <1258687493-4012-2-git-send-email-shijie8@gmail.com>
-References: <1258687493-4012-1-git-send-email-shijie8@gmail.com>
- <1258687493-4012-2-git-send-email-shijie8@gmail.com>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:57032 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753425AbZKIWRC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2009 17:17:02 -0500
+Received: by bwz27 with SMTP id 27so3998275bwz.21
+        for <linux-media@vger.kernel.org>; Mon, 09 Nov 2009 14:17:06 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20091109215613.34D829C44F@smtp01.udag.de>
+References: <20091109215613.34D829C44F@smtp01.udag.de>
+Date: Mon, 9 Nov 2009 17:17:05 -0500
+Message-ID: <829197380911091417k73feb40at7db0ad01ef79d23e@mail.gmail.com>
+Subject: Re: Problems with Terratec Hybrid USB XS
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Sven Tischer <Sven@tischers.net>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-add maitainers for the driver.
+On Mon, Nov 9, 2009 at 4:56 PM, Sven Tischer <Sven@tischers.net> wrote:
+>
+> Hello,
+> i get this message while connecting my terratec Hybrid USB XS to Ubuntu 9.10
 
-Signed-off-by: Huang Shijie <shijie8@gmail.com>
----
- MAINTAINERS |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+The support was added after 2.6.31 went out.  Install the latest
+v4l-dvb code using the following instructions:
+http://linuxtv.org/repo
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 60299a9..a8f02d6 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -5673,6 +5673,12 @@ F:	Documentation/networking/z8530drv.txt
- F:	drivers/net/hamradio/*scc.c
- F:	drivers/net/hamradio/z8530.h
- 
-+TLG2300 VIDEO DRIVER
-+M:	Huang Shijie <shijie8@gmail.com>
-+M:	Kang Yong <kongyong@telegent.com>
-+M:	Zhang Xiaobing<xbzhang@telegent.com>
-+S:	Supported
-+
- ZD1211RW WIRELESS DRIVER
- M:	Daniel Drake <dsd@gentoo.org>
- M:	Ulrich Kunitz <kune@deine-taler.de>
+Devin
+
 -- 
-1.6.0.6
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
