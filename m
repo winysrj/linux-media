@@ -1,53 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caffeine.csclub.uwaterloo.ca ([129.97.134.17]:38115 "EHLO
-	caffeine.csclub.uwaterloo.ca" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752696AbZK3RnN (ORCPT
+Received: from gateway05.websitewelcome.com ([64.5.52.8]:54972 "HELO
+	gateway05.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1757876AbZKJTeI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Nov 2009 12:43:13 -0500
-Date: Mon, 30 Nov 2009 12:45:12 -0500
-To: Andy Walls <awalls@radix.net>
-Cc: Jon Smirl <jonsmirl@gmail.com>, Krzysztof Halasa <khc@pm.waw.pl>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	maximlevitsky@gmail.com, mchehab@redhat.com,
-	stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
-	IR  system?
-Message-ID: <20091130174512.GA762@caffeine.csclub.uwaterloo.ca>
-References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc> <9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com> <m3aay6y2m1.fsf@intrepid.localdomain> <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com> <1259450815.3137.19.camel@palomino.walls.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1259450815.3137.19.camel@palomino.walls.org>
-From: lsorense@csclub.uwaterloo.ca (Lennart Sorensen)
+	Tue, 10 Nov 2009 14:34:08 -0500
+Received: from [66.15.212.169] (port=18739 helo=[10.140.5.16])
+	by gator886.hostgator.com with esmtpsa (SSLv3:AES256-SHA:256)
+	(Exim 4.69)
+	(envelope-from <pete@sensoray.com>)
+	id 1N7wNA-00060L-Oh
+	for linux-media@vger.kernel.org; Tue, 10 Nov 2009 13:27:25 -0600
+Subject: [PATCH 2/5] s2250: Mutex function usage.
+From: Pete Eberlein <pete@sensoray.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain
+Date: Tue, 10 Nov 2009 11:21:31 -0800
+Message-Id: <1257880891.21307.1104.camel@pete-desktop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 28, 2009 at 06:26:55PM -0500, Andy Walls wrote:
-> The only thing this buys for the user is remote/products bundles that
-> work out of the box.  That can only be a solution for the 80% case.
-> 
-> I don't hear users crying out "Please integrate IR with the input
-> system".  I do hear users say "I want my remote to work", and "How can I
-> make my remote work?".  Users are not specifically asking for this
-> integration of IR and the input system - a technical nuance.  If such a
-> tecnical desire-ment drives excessive rework, I doubt anyone will care
-> enough about IR to follow through to make a complete system.
+From: Pete Eberlein <pete@sensoray.com>
 
-Please integrate it so I can stop having issues with the lirc moduels
-when going to a new kernel version.
+Fix mutex function usage, which was overlooked in a previous patch.
 
-> What does "equal footing" mean as an incentive anyway?  The opportunity
-> to reimplement *everything* that exists for IR already over again in
-> kernel-space for the sake of developer technical desires?  That's just a
-> lot of work for "not invented here" syndrome.  IR transceivers are
-> arguably superior to keyboards and mice anyway because they can transmit
-> data too.
+Priority: normal
 
-I have no idea.  I am sure you guys will come up with a great interface.
-I just use lirc with my mythtv box.
+Signed-off-by: Pete Eberlein <pete@sensoray.com>
 
--- 
-Len Sorensen
+diff -r a603ad1e6a1c -r 99e4a0cf6788 linux/drivers/staging/go7007/s2250-board.c
+--- a/linux/drivers/staging/go7007/s2250-board.c	Tue Nov 10 10:41:56 2009 -0800
++++ b/linux/drivers/staging/go7007/s2250-board.c	Tue Nov 10 10:47:34 2009 -0800
+@@ -261,7 +261,7 @@
+ 
+ 	memset(buf, 0xcd, 6);
+ 	usb = go->hpi_context;
+-	if (down_interruptible(&usb->i2c_lock) != 0) {
++	if (mutex_lock_interruptible(&usb->i2c_lock) != 0) {
+ 		printk(KERN_INFO "i2c lock failed\n");
+ 		kfree(buf);
+ 		return -EINTR;
+@@ -270,7 +270,7 @@
+ 		kfree(buf);
+ 		return -EFAULT;
+ 	}
+-	up(&usb->i2c_lock);
++	mutex_unlock(&usb->i2c_lock);
+ 
+ 	*val = (buf[0] << 8) | buf[1];
+ 	kfree(buf);
+
