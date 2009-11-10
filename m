@@ -1,81 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:33695 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752525AbZKZXpQ (ORCPT
+Received: from ey-out-2122.google.com ([74.125.78.24]:20529 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751205AbZKJHlW convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 18:45:16 -0500
-Date: Thu, 26 Nov 2009 15:45:17 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Gerd Hoffmann <kraxel@redhat.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, superm1@ubuntu.com
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
-	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-Message-ID: <20091126234517.GF6936@core.coreip.homeip.net>
-References: <BDZb9P9ZjFB@christoph> <m3skc25wpx.fsf@intrepid.localdomain> <E6F196CB-8F9E-4618-9283-F8F67D1D3EAF@wilsonet.com> <829197380911251020y6f330f15mba32920ac63e97d3@mail.gmail.com> <4B0DA885.7010601@redhat.com>
+	Tue, 10 Nov 2009 02:41:22 -0500
+Received: by ey-out-2122.google.com with SMTP id 4so139942eyf.19
+        for <linux-media@vger.kernel.org>; Mon, 09 Nov 2009 23:41:26 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4B0DA885.7010601@redhat.com>
+In-Reply-To: <20091109160058.7ef4a0ea@pedra.chehab.org>
+References: <885896af0911090019p6e0c784fq5b3e8f20e00d479c@mail.gmail.com>
+	 <20091109160058.7ef4a0ea@pedra.chehab.org>
+Date: Tue, 10 Nov 2009 08:41:26 +0100
+Message-ID: <885896af0911092341l7408a888v4fee7c43b2350a02@mail.gmail.com>
+Subject: Re: v4l-dvb status
+From: Giacomo <delleceste@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 25, 2009 at 10:58:29PM +0100, Gerd Hoffmann wrote:
+Thanks!
+
+2009/11/9 Mauro Carvalho Chehab <mchehab@infradead.org>:
+> Hi Giacomo,
 >
-> (1) ir code (say rc5) -> keycode conversion looses information.
+> Em Mon, 9 Nov 2009 09:19:05 +0100
+> Giacomo <delleceste@gmail.com> escreveu:
 >
-> I think this can easily be addressed by adding a IR event type to the  
-> input layer, which could look like this:
+>> good morning to all in the list.
+>>
+>> I have a few questions, back trying to install v4l-dvb kernel drivers
+>> after some time.
+>>
+>> 1. Is the project going to support kernel 2.6.31?
 >
->   input_event->type  = EV_IR
->   input_event->code  = IR_RC5
->   input_event->value = <rc5 value>
+> Huh? This project is for upstream kernel drivers. All drivers produced go to
+> kernel.
+
+Yes, I imagined.. but since still it does not compile on 2.6.31... I
+just wanted to know..
+anyway I managed compiling the drivers commenting inside a Makefile
+the driver that
+refused to..
+
 >
-> In case the 32bit value is too small we might want send two events  
-> instead, with ->code being set to IR_<code>_1 and IR_<code>_2
+>> 2. I used to use tvtime + sox for the usb audio, with big problems
+>> causing audio
+>>    desynchronization with large delay with respect to the video: do
+>> the (new) drivers
+>>    solve the issue?
+>>   -  I also remember that there was an integrated version of
+>> tvtime/usb audio in hg repositories,
+>>      is it still maintained? is there a particular version to download
+>> to correctly build it?
 >
-> Advantages:
->   * Applications (including lircd) can get access to the unmodified
->     rc5/rc6/... codes.
->   * All the ir-code -> keycode mapping magic can be handled by the
->     core input layer then.  All the driver needs to do is to pass on
->     the information which keymap should be loaded by default (for the
->     bundled remote if any).  The configuration can happen in userspace
->     (sysfs attribute + udev + small utility in tools/ir/).
->   * lirc drivers which get ir codes from the hardware can be converted
->     to pure input layer drivers without regressions.  lircd is not
->     required any more.
+> tvtime stopped being maintained on 2005. You may find a few patches for it on
+> some places, but there are some issues on those patches.
+>
+> Currently, you'll find a good support for V4L2 with mplayer. It generally
+> synchronizes audio and video well.
+
+I'll try it! Anyway, just yesterday playing with sox I found out a
+satisfying configuration
+for audio and video synchronization... the fact is that in most of
+forums the posted information
+is often wrong, and there is a lack of good `official' documentation,
+leaving these kind of things
+only for out-and-out specialists!
+
+Thanks for your attention!
+
+ciao Giacomo
+
+>
+>> 3. It's two years since I first installed v4l-dvb drivers, and still I
+>> encounter problems to find all
+>>    the channels with tvtime.
+>>    Is there some module parameter to provide for the module em28xx for
+>> Pinnacle PCTV USB2,
+>>    for the Italian standards?
+>
+> You should be sure to select the proper video standard used in Italy. Maybe your
+> device tuner is different than the one configured at the driver. Different tuners
+> generally have different cut-off frequencies between the 3 bands (low VHF, high VHF,
+> UHF). If you are using a different tuner, you may not be able to see the channels that
+> are close to the cut-off frequencies.
+>
+> Currently, there are two variants of PCTV:
+>
+>        [EM2820_BOARD_PINNACLE_USB_2] = {
+>                .name         = "Pinnacle PCTV USB 2",
+>                .tuner_type   = TUNER_LG_PAL_NEW_TAPC,
+>
+>        [EM2820_BOARD_PINNACLE_USB_2_FM1216ME] = {
+>                .name         = "Pinnacle PCTV USB 2 (Philips FM1216ME)",
+>                .tuner_type   = TUNER_PHILIPS_FM1216ME_MK3,
+>
+> Each with a different tuner. The better way is to open your device and see
+> what's labeled at the metal can inside it, to be sure what variant are you
+> using.
+>
+> You may also play with the tuner by passing a parameter to the kernel driver specifying your
+> tuner model, based on the numbers at:
+>
+>        linux/Documentation/video4linux/CARDLIST.tuner
+>>
+>> Thanks in advance for any hint and the great work done on v4l-dvb project
+>>
+>> Giacomo
+>>
+>
+>
+>
+>
+> Cheers,
+> Mauro
 >
 
-I think we need to separate 2 kinds of applications since they have
-different requirements as far as interface goes:
 
-1. "Reguilar" user-space applications interested in receiving keystrokes
-from user and reacting to them. Movie players, CD players, MythTV-like
-applications and so on. Those, to my understanding, are not concerned
-with the fine details of RC5, RC6, NEC and so forth protocol decoding
-and just want to know when to start playing, when to stop and when to
-revind. That class of applications is best served by current input layer
-since it unifies data coming from IR, keyboards, button devices and so
-forth.
-
-2. "System" applications that are interested in protocol decoding. Those
-need interface best suited for IR and nothing else. This protocol is
-appears is better kept separate from the evdev input protocol. In case
-where we rely solely on such userspace application(s) to perform protocol
-decoding we should route input events back to kernel through uinput for
-consumption by "class 1" applications.
-
-
-We use this approach for PS/2 (serio allows binding either psmouse/atkbd
-or serio_raw to provide alternate interfaces depending on the users
-need), USB hid allows raw access as well, maybe we should follow the
-suit here.
 
 -- 
-Dmitry
+Giacomo S.
+http://www.giacomos.it
+
+- - - - - - - - - - - - - - - - - - - - - -
+
+* Aprile 2008: iqfire-wall, un progetto
+  open source che implementa un
+  filtro di pacchetti di rete per Linux,
+  e` disponibile per il download qui:
+  http://sourceforge.net/projects/ipfire-wall
+
+* Informazioni e pagina web ufficiale:
+  http://www.giacomos.it/iqfire/index.html
+
+- - - - - - - - - - - - - - - - - - - - - -
+
+ . ''  `.
+:   :'    :
+ `.  ` '
+    `- Debian GNU/Linux -- The power of freedom
+        http://www.debian.org
