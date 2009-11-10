@@ -1,42 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:23760 "EHLO mx1.redhat.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60503 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753901AbZKHQNH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 Nov 2009 11:13:07 -0500
-Message-ID: <4AF6EF59.90206@redhat.com>
-Date: Sun, 08 Nov 2009 17:18:33 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: =?ISO-8859-2?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-CC: Jean-Francois Moine <moinejf@free.fr>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: pac7302: INFO: possible circular locking dependency detected
-References: <4AF48F80.4000809@freemail.hu> <4AF68BC6.4040801@redhat.com> <4AF695CC.7040809@freemail.hu>
-In-Reply-To: <4AF695CC.7040809@freemail.hu>
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 8bit
+	id S1750841AbZKJN4B (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Nov 2009 08:56:01 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAADu462017224
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 10 Nov 2009 07:56:06 -0600
+From: hvaibhav@ti.com
+To: linux-media@vger.kernel.org
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH] Davinci VPFE Capture: Add support for Control ioctls
+Date: Tue, 10 Nov 2009 19:26:02 +0530
+Message-Id: <1257861362-8219-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-On 11/08/2009 10:56 AM, Németh Márton wrote:
-> Hi,
->
-> Hans de Goede wrote:
->> [snip]
->>
->> About the usb control msg errors, I don't think they are related to this issue at all, no real
->> world app ever does a streamon and an mmap at the same time. As said if we could serialize mmap and
->> ioctl at a high enough level, things would be fine too.
->
-> I am using http://moinejf.free.fr/svv.c . In the start_capturing() function it calls the
-> VIDIOC_STREAMON ioctl in case of memory mapped mode. Is this wrong? Or do you mean under
-> "at the same time" that VIDIOC_STREAMON and mmap() is called from different tasks/threads?
->
+Added support for Control IOCTL,
+	- s_ctrl
+	- g_ctrl
+	- queryctrl
 
-Yes from 2 different threads, which are both the stream owner (so operating on the same FD).
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ drivers/media/video/davinci/vpfe_capture.c |   38 ++++++++++++++++++++++++++++
+ 1 files changed, 38 insertions(+), 0 deletions(-)
 
-Regards,
+diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
+index abe21e4..9c859a7 100644
+--- a/drivers/media/video/davinci/vpfe_capture.c
++++ b/drivers/media/video/davinci/vpfe_capture.c
+@@ -1368,6 +1368,41 @@ static int vpfe_g_std(struct file *file, void *priv, v4l2_std_id *std_id)
+ 	return 0;
+ }
+ 
++static int vpfe_queryctrl(struct file *file, void *priv,
++		struct v4l2_queryctrl *qctrl)
++{
++	struct vpfe_device *vpfe_dev = video_drvdata(file);
++	struct vpfe_subdev_info *sdinfo;
++
++	sdinfo = vpfe_dev->current_subdev;
++
++	return v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo->grp_id,
++					 core, queryctrl, qctrl);
++
++}
++
++static int vpfe_g_ctrl(struct file *file, void *priv, struct v4l2_control *ctrl)
++{
++	struct vpfe_device *vpfe_dev = video_drvdata(file);
++	struct vpfe_subdev_info *sdinfo;
++
++	sdinfo = vpfe_dev->current_subdev;
++
++	return v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo->grp_id,
++					 core, g_ctrl, ctrl);
++}
++
++static int vpfe_s_ctrl(struct file *file, void *priv, struct v4l2_control *ctrl)
++{
++	struct vpfe_device *vpfe_dev = video_drvdata(file);
++	struct vpfe_subdev_info *sdinfo;
++
++	sdinfo = vpfe_dev->current_subdev;
++
++	return v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo->grp_id,
++					 core, s_ctrl, ctrl);
++}
++
+ /*
+  *  Videobuf operations
+  */
+@@ -1939,6 +1974,9 @@ static const struct v4l2_ioctl_ops vpfe_ioctl_ops = {
+ 	.vidioc_querystd	 = vpfe_querystd,
+ 	.vidioc_s_std		 = vpfe_s_std,
+ 	.vidioc_g_std		 = vpfe_g_std,
++	.vidioc_queryctrl	 = vpfe_queryctrl,
++	.vidioc_g_ctrl		 = vpfe_g_ctrl,
++	.vidioc_s_ctrl		 = vpfe_s_ctrl,
+ 	.vidioc_reqbufs		 = vpfe_reqbufs,
+ 	.vidioc_querybuf	 = vpfe_querybuf,
+ 	.vidioc_qbuf		 = vpfe_qbuf,
+-- 
+1.6.2.4
 
-Hans
