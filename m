@@ -1,55 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from khc.piap.pl ([195.187.100.11]:46356 "EHLO khc.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752839AbZK1RVj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Nov 2009 12:21:39 -0500
-From: Krzysztof Halasa <khc@pm.waw.pl>
-To: lirc@bartelmus.de (Christoph Bartelmus)
-Cc: awalls@radix.net, dmitry.torokhov@gmail.com, j@jannau.net,
-	jarod@redhat.com, jarod@wilsonet.com, jonsmirl@gmail.com,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, maximlevitsky@gmail.com,
-	mchehab@redhat.com, stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR 	system?
-References: <BDkdITRHqgB@lirc>
-Date: Sat, 28 Nov 2009 18:21:42 +0100
-In-Reply-To: <BDkdITRHqgB@lirc> (Christoph Bartelmus's message of "28 Nov 2009
-	17:47:00 +0100")
-Message-ID: <m3einiy389.fsf@intrepid.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from xenotime.net ([72.52.64.118]:54118 "HELO xenotime.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1755158AbZKJQJ4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Nov 2009 11:09:56 -0500
+Received: from chimera.site ([96.253.169.185]) by xenotime.net for <linux-media@vger.kernel.org>; Tue, 10 Nov 2009 08:10:00 -0800
+Date: Tue, 10 Nov 2009 08:10:00 -0800
+From: Randy Dunlap <rdunlap@xenotime.net>
+To: Michael Trimarchi <michael@panicking.kicks-ass.org>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: ov538-ov7690
+Message-Id: <20091110081000.9e7c7717.rdunlap@xenotime.net>
+In-Reply-To: <4AF93DE5.6060901@panicking.kicks-ass.org>
+References: <4AF89498.3000103@panicking.kicks-ass.org>
+	<4AF93DE5.6060901@panicking.kicks-ass.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-lirc@bartelmus.de (Christoph Bartelmus) writes:
+On Tue, 10 Nov 2009 11:18:13 +0100 Michael Trimarchi wrote:
 
-> Nobody here doubts that you can implement a working RC-5 decoder. It's  
-> really easy. I'll give you an example why Maxim thinks that the generic  
-> LIRC approach has advantages:
+> Hi,
+> 
+> Michael Trimarchi wrote:
+> > Hi all
+> > 
+> > I'm working on the ov538 bridge with the ov7690 camera connected. 
+> > Somentimes I receive
+> > 
+> > [ 1268.146705] gspca: ISOC data error: [110] len=1020, status=-71
+> > [ 1270.946739] gspca: ISOC data error: [114] len=1020, status=-71
+> > [ 1271.426689] gspca: ISOC data error: [82] len=1020, status=-71
+> > [ 1273.314640] gspca: ISOC data error: [1] len=1020, status=-71
+> > [ 1274.114661] gspca: ISOC data error: [17] len=1020, status=-71
+> > [ 1274.658718] gspca: ISOC data error: [125] len=1020, status=-71
+> > [ 1274.834666] gspca: ISOC data error: [21] len=1020, status=-71
+> > [ 1275.666684] gspca: ISOC data error: [94] len=1020, status=-71
+> > [ 1275.826645] gspca: ISOC data error: [40] len=1020, status=-71
+> > [ 1276.226721] gspca: ISOC data error: [100] len=1020, status=-71
+> > 
+> > This error from the usb, how are they related to the camera?
 
-But surely not when compared to an in-kernel decoder _and_ the one in
-lircd? :-)
+-71 = -EPROTO (from include/asm-generic/errno.h).
 
-> Look at the Streamzap remote (I think Jarod submitted the lirc_streamzap  
-> driver in his patchset):
-> http://lirc.sourceforge.net/remotes/streamzap/PC_Remote
->
-> This remote uses RC-5. But some of the developers must have thought that  
-> it may be a smart idea to use 14 bits instead the standard 13 bits for  
-> this remote. In LIRC you won't care, because this is configurable and  
-> irrecord will figure it out automatically for you. In the proposed kernel  
-> decoders I have seen until now, you will have to treat this case specially  
-> in the decoder because you expect 13 bits for RC-5, not 14.
+-EPROTO in USB drivers means (from Documentation/usb/error-codes.txt):
 
-Well, the 14-bit RC5 is de-facto standard for some time now. One of the
-start bits, inverted, now functions as the MSB of the command code.
-13-bit receiver implementations (at least these aimed at "foreign"
-remotes) are obsolete.
+-EPROTO (*, **)		a) bitstuff error
+			b) no response packet received within the
+			   prescribed bus turn-around time
+			c) unknown USB error
 
-> Well, it can be done. But you'll have to add another IR protocol define  
-> for RC-5_14, which will become very ugly with many non-standard protocol  
-> variations.
+footnotes:
+(*) Error codes like -EPROTO, -EILSEQ and -EOVERFLOW normally indicate
+hardware problems such as bad devices (including firmware) or cables.
 
-No, the 14-bit version is designed to be backward compatible.
--- 
-Krzysztof Halasa
+(**) This is also one of several codes that different kinds of host
+controller use to indicate a transfer has failed because of device
+disconnect.  In the interval before the hub driver starts disconnect
+processing, devices may receive such fault reports for every request.
+
+
+> Ok, this is not a big issue because I can use vlc to test the camera. But anybody
+> knows why camorama, camstream, cheese crash during test. is it driver depend? or not?
+
+Could be driver.  Easily could be a device problem too.
+
+---
+~Randy
