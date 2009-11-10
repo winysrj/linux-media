@@ -1,86 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2364 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752074AbZKSHZM (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.158]:5768 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750918AbZKJFfE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2009 02:25:12 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: m-karicheri2@ti.com
-Subject: Re: [PATCH v3] V4L - Adding Digital Video Timings APIs
-Date: Thu, 19 Nov 2009 08:25:12 +0100
-Cc: linux-media@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com
-References: <1258584239-12092-1-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1258584239-12092-1-git-send-email-m-karicheri2@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200911190825.12788.hverkuil@xs4all.nl>
+	Tue, 10 Nov 2009 00:35:04 -0500
+Received: by fg-out-1718.google.com with SMTP id e12so1515508fga.1
+        for <linux-media@vger.kernel.org>; Mon, 09 Nov 2009 21:35:08 -0800 (PST)
+Date: Tue, 10 Nov 2009 13:37:43 +0900
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: linux-media@vger.kernel.org, video4linux-list@redhat.com
+Subject: [PATCH] Add new TV cards of Beholder
+Message-ID: <20091110133743.21cb7dc5@glory.loctelecom.ru>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/4EnK_Or6Av.+P+4JDr_57Ua"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 18 November 2009 23:43:59 m-karicheri2@ti.com wrote:
-> From: Muralidharan Karicheri <m-karicheri2@ti.com>
-> 
-> Some minor updates (comment format) made to previous v3.
-> 
-> This is v3 of the digital video timings APIs implementation.
-> This has updates based on comments received against v2 of the patch. Hopefully
-> this can be merged to 2.6.33 if there are no more comments.
-> 
-> This adds the above APIs to the v4l2 core. This is based on version v1.2
-> of the RFC titled "V4L - Support for video timings at the input/output interface"
-> Following new ioctls are added:-
-> 
-> 	- VIDIOC_ENUM_DV_PRESETS
-> 	- VIDIOC_S_DV_PRESET
-> 	- VIDIOC_G_DV_PRESET
-> 	- VIDIOC_QUERY_DV_PRESET
-> 	- VIDIOC_S_DV_TIMINGS
-> 	- VIDIOC_G_DV_TIMINGS
-> 
-> Please refer to the RFC for the details. This code was tested using vpfe
-> capture driver on TI's DM365. Following is the test configuration used :-
-> 
-> Blue Ray HD DVD source -> TVP7002 -> DM365 (VPFE) ->DDR
-> 
-> A draft version of the TVP7002 driver (currently being reviewed in the mailing
-> list) was used that supports V4L2_DV_1080I60 & V4L2_DV_720P60 presets. 
-> 
-> A loopback video capture application was used for testing these APIs. This calls
-> following IOCTLS :-
-> 
->  -  verify the new v4l2_input capabilities flag added
->  -  Enumerate available presets using VIDIOC_ENUM_DV_PRESETS
->  -  Set one of the supported preset using VIDIOC_S_DV_PRESET
->  -  Get current preset using VIDIOC_G_DV_PRESET
->  -  Detect current preset using VIDIOC_QUERY_DV_PRESET
->  -  Using stub functions in tvp7002, verify VIDIOC_S_DV_TIMINGS
->     and VIDIOC_G_DV_TIMINGS ioctls are received at the sub device. 
->  -  Tested on 64bit platform by Hans Verkuil
-> 	
-> TODOs :
-> 
->  - Update v4l2-apps for the new ioctl (will send another patch after
->    compilation issue is resolved)
-> 
-> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+--MP_/4EnK_Or6Av.+P+4JDr_57Ua
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-I actually had not signed off on this yet, but now I do:
+Hi All
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+Add new TV cards of Beholder for autodetect.
 
-Thanks!
+diff -r 3919b17dc88e linux/drivers/staging/tm6000/tm6000-cards.c
+--- a/linux/drivers/staging/tm6000/tm6000-cards.c	Wed Oct 14 12:52:55 2009 -0300
++++ b/linux/drivers/staging/tm6000/tm6000-cards.c	Tue Nov 10 08:05:15 2009 +0900
+@@ -33,6 +33,7 @@
+ #include "tm6000.h"
+ #include "tm6000-regs.h"
+ #include "tuner-xc2028.h"
++#include "tuner-xc5000.h"
+ 
+ #define TM6000_BOARD_UNKNOWN			0
+ #define TM5600_BOARD_GENERIC			1
+@@ -193,6 +194,36 @@
+ 		},
+ 		.gpio_addr_tun_reset = TM6000_GPIO_2,
+ 	},
++	[TM6010_BOARD_BEHOLD_WANDER] = {
++		.name         = "Beholder Wander DVB-T/TV/FM USB2.0",
++		.tuner_type   = TUNER_XC5000,
++		.tuner_addr   = 0xc2 >> 1,
++		.demod_addr   = 0x1e >> 1,
++		.type         = TM6010,
++		.caps = {
++			.has_tuner    = 1,
++			.has_dvb      = 1,
++			.has_zl10353  = 1,
++			.has_eeprom   = 1,
++			.has_remote   = 1,
++		},
++		.gpio_addr_tun_reset = TM6000_GPIO_2,
++	},
++	[TM6010_BOARD_BEHOLD_VOYAGER] = {
++		.name         = "Beholder Voyager TV/FM USB2.0",
++		.tuner_type   = TUNER_XC5000,
++		.tuner_addr   = 0xc2 >> 1,
++		.type         = TM6010,
++		.caps = {
++			.has_tuner    = 1,
++			.has_dvb      = 0,
++			.has_zl10353  = 0,
++			.has_eeprom   = 1,
++			.has_remote   = 1,
++		},
++		.gpio_addr_tun_reset = TM6000_GPIO_2,
++	},
++
+ };
+ 
+ /* table of devices that work with this driver */
+@@ -203,6 +234,8 @@
+ 	{ USB_DEVICE(0x14aa, 0x0620), .driver_info = TM6000_BOARD_FREECOM_AND_SIMILAR },
+ 	{ USB_DEVICE(0x06e1, 0xb339), .driver_info = TM6000_BOARD_ADSTECH_MINI_DUAL_TV },
+ 	{ USB_DEVICE(0x2040, 0x6600), .driver_info = TM6010_BOARD_HAUPPAUGE_900H },
++	{ USB_DEVICE(0x6000, 0xdec0), .driver_info = TM6010_BOARD_BEHOLD_WANDER },
++	{ USB_DEVICE(0x6000, 0xdec1), .driver_info = TM6010_BOARD_BEHOLD_VOYAGER },
+ 	{ },
+ };
+ 
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
 
-	Hans
+With my best regards, Dmitry.
 
-> Reviewed-by: Randy Dunlap <randy.dunlap@oracle.com>
+--MP_/4EnK_Or6Av.+P+4JDr_57Ua
+Content-Type: text/x-patch; name=behold_usb.patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=behold_usb.patch
 
+diff -r 3919b17dc88e linux/drivers/staging/tm6000/tm6000-cards.c
+--- a/linux/drivers/staging/tm6000/tm6000-cards.c	Wed Oct 14 12:52:55 2009 -0300
++++ b/linux/drivers/staging/tm6000/tm6000-cards.c	Tue Nov 10 08:05:15 2009 +0900
+@@ -33,6 +33,7 @@
+ #include "tm6000.h"
+ #include "tm6000-regs.h"
+ #include "tuner-xc2028.h"
++#include "tuner-xc5000.h"
+ 
+ #define TM6000_BOARD_UNKNOWN			0
+ #define TM5600_BOARD_GENERIC			1
+@@ -193,6 +194,36 @@
+ 		},
+ 		.gpio_addr_tun_reset = TM6000_GPIO_2,
+ 	},
++	[TM6010_BOARD_BEHOLD_WANDER] = {
++		.name         = "Beholder Wander DVB-T/TV/FM USB2.0",
++		.tuner_type   = TUNER_XC5000,
++		.tuner_addr   = 0xc2 >> 1,
++		.demod_addr   = 0x1e >> 1,
++		.type         = TM6010,
++		.caps = {
++			.has_tuner    = 1,
++			.has_dvb      = 1,
++			.has_zl10353  = 1,
++			.has_eeprom   = 1,
++			.has_remote   = 1,
++		},
++		.gpio_addr_tun_reset = TM6000_GPIO_2,
++	},
++	[TM6010_BOARD_BEHOLD_VOYAGER] = {
++		.name         = "Beholder Voyager TV/FM USB2.0",
++		.tuner_type   = TUNER_XC5000,
++		.tuner_addr   = 0xc2 >> 1,
++		.type         = TM6010,
++		.caps = {
++			.has_tuner    = 1,
++			.has_dvb      = 0,
++			.has_zl10353  = 0,
++			.has_eeprom   = 1,
++			.has_remote   = 1,
++		},
++		.gpio_addr_tun_reset = TM6000_GPIO_2,
++	},
++
+ };
+ 
+ /* table of devices that work with this driver */
+@@ -203,6 +234,8 @@
+ 	{ USB_DEVICE(0x14aa, 0x0620), .driver_info = TM6000_BOARD_FREECOM_AND_SIMILAR },
+ 	{ USB_DEVICE(0x06e1, 0xb339), .driver_info = TM6000_BOARD_ADSTECH_MINI_DUAL_TV },
+ 	{ USB_DEVICE(0x2040, 0x6600), .driver_info = TM6010_BOARD_HAUPPAUGE_900H },
++	{ USB_DEVICE(0x6000, 0xdec0), .driver_info = TM6010_BOARD_BEHOLD_WANDER },
++	{ USB_DEVICE(0x6000, 0xdec1), .driver_info = TM6010_BOARD_BEHOLD_VOYAGER },
+ 	{ },
+ };
+ 
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
 
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+--MP_/4EnK_Or6Av.+P+4JDr_57Ua--
