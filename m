@@ -1,91 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pro10.proekspert.ee ([212.47.207.10]:33116 "HELO
-	mail.proekspert.ee" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754098AbZKMIhU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Nov 2009 03:37:20 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by mail.proekspert.ee (Postfix) with ESMTP id 7FC1C248690
-	for <linux-media@vger.kernel.org>; Fri, 13 Nov 2009 10:37:24 +0200 (EET)
-Received: from mail.proekspert.ee ([127.0.0.1])
-	by localhost (mail.proekspert.ee [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id NZnkKi8aIMlX for <linux-media@vger.kernel.org>;
-	Fri, 13 Nov 2009 10:37:23 +0200 (EET)
-Received: from mail.proekspert.ee (mail.proekspert.ee [192.168.50.1])
-	by mail.proekspert.ee (Postfix) with ESMTP id 8B2BB24868E
-	for <linux-media@vger.kernel.org>; Fri, 13 Nov 2009 10:37:23 +0200 (EET)
-Date: Fri, 13 Nov 2009 10:37:23 +0200 (EET)
-From: Lauri Laanmets <lauri.laanmets@proekspert.ee>
-To: linux-media@vger.kernel.org
-Message-ID: <28911112.17998.1258101443429.JavaMail.root@mail>
-In-Reply-To: <5247569.9431255416845783.JavaMail.root@mail>
-Subject: Fwd: DVB support for MSI DigiVox A/D II and KWorld 320U
+Received: from mail.gmx.net ([213.165.64.20]:42003 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1756446AbZKJOgd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Nov 2009 09:36:33 -0500
+Date: Tue, 10 Nov 2009 15:36:49 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH/RFC 9/9 v2] mt9t031: make the use of the soc-camera client
+ API optional
+In-Reply-To: <200911101454.14124.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.0911101529450.5074@axis700.grange>
+References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
+ <Pine.LNX.4.64.0911051753540.5620@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE4015583406A@dlee06.ent.ti.com>
+ <200911101454.14124.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+On Tue, 10 Nov 2009, Laurent Pinchart wrote:
 
-I have managed to attach the device without any error messages now but the tuning and playback of DVB still doesn't work. I get a lot of these error messages:
+> Hi Guennadi,
+> 
+> On Thursday 05 November 2009 18:07:09 Karicheri, Muralidharan wrote:
+> > Guennadi,
+> > 
+> > >> in the v4l2_queryctrl struct.
+> > >
+> > >I think, this is unrelated. Muralidharan just complained about the
+> > >soc_camera_find_qctrl() function being used in client subdev drivers, that
+> > >were to be converted to v4l2-subdev, specifically, in mt9t031.c. And I
+> > >just explained, that that's just a pretty trivial library function, that
+> > >does not introduce any restrictions on how that subdev driver can be used
+> > >in non-soc-camera configurations, apart from the need to build and load
+> > >the soc-camera module. In other words, any v4l2-device bridge driver
+> > >should be able to communicate with such a subdev driver, calling that
+> > >function.
+> > 
+> > If soc_camera_find_qctrl() is such a generic function, why don't you
+> > move it to v4l2-common.c so that other platforms doesn't have to build
+> > SOC camera sub system to use this function? Your statement reinforce
+> > this.
+> 
+> I second this. Hans is working on a controls framework that should (hopefully 
+> :-)) make drivers simpler by handling common tasks in the v4l core.
 
-[  247.268152] em28xx #0: reading i2c device failed (error=-110)
-[  247.268161] xc2028 1-0061: i2c input error: rc = -110 (should be 2)
+Well, if you look at the function itself and at how it got replaced in 
+this version of the patch by O(1) operations, you'll, probably, agree, 
+that avoiding that function where possible is better than making it 
+generic. But if there are any legitimate users for it - sure, can make it 
+generic too.
 
-and
+> Do you have any plan to work on the bus hardware configuration API ? When that 
+> will be available the mt9t031 driver could be made completely soc-camera-free.
 
-[  433.232124] xc2028 1-0061: Loading SCODE for type=DTV6 ATSC OREN538 SCODE HAS_IF_5580 (60110020), id 0000000000000000.
-[  433.256017] xc2028 1-0061: Incorrect readback of firmware version.
-[  433.372019] xc2028 1-0061: Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
-[  437.940029] xc2028 1-0061: Loading firmware for type=D2620 DTV78 (108), id 0000000000000000.
+I'd love to first push the proposed image-bus upstream. Even with just 
+that many drivers can already be re-used. As for bus configuration, I 
+thought there were enough people working on it already:-) If not, maybe I 
+could have a look at it, but we better reach some agreement on that 
+beforehand to avoid duplicating the effort.
 
-Do anybody have an idea what to do next? Or maybe somebody is willing to help me understanding the mcentral code because that one works fine.
-
-Regards
-Lauri
-
------ Forwarded Message -----
-From: "Lauri Laanmets" <lauri.laanmets@proekspert.ee>
-To: "Devin Heitmueller" <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-Sent: Tuesday, October 13, 2009 9:54:05 AM
-Subject: Re: DVB support for MSI DigiVox A/D II and KWorld 320U
-
-Hello
-
-> Check the dvb_gpio setting in the board profile.  On some of those
-> boards you need to take put one of the GPO pins high to take the demod
-> out of reset.  The KWorld 315u and 330u are both like that.
-
-Absolutely true. Using the same pin setting as KWorld 330U made the I2C communication work correctly and the device is found.
-
-Now the trouble is that scanning channels doesn't work, blue LED doesn't light up and the device is not heated up.
-
-I'm quite newbie in this field, is there a good way to know what registers to set exactly?
-
-I see that the working "mcentral" code had the following setting:
-
-#define EETI_DEFAULT_GPIO {						\
-	.ts1_on     = _BIT_VAL(EM28XX_GPIO0,  0, 0), 			\
-	.a_on       = _BIT_VAL(EM28XX_GPIO1,  0, 0), 			\
-	.xc3028_sec = _BIT_VAL(EM28XX_GPIO2,  1, 0), 			\
-	/* reserved */							\
-	.t1_reset   = _BIT_VAL(EM28XX_GPIO4,  0, 1), 			\
-	/* reserved */							\
-	.t1_on      = _BIT_VAL(EM28XX_GPIO6,  0, 0), 			\
-	.t2_on      = _BIT_VAL(EM28XX_GPIO7,  1, 0), 			\
-									\
-	.l1_on      = _BIT_VAL(EM28XX_GOP2,   1, 0), 			\
-	.d1_reset   = _BIT_VAL(EM28XX_GOP3,   0, 1), 			\
-}
-
-But the v4l-dvb uses:
-
-static struct em28xx_reg_seq kworld_330u_digital[] = {
-	{EM28XX_R08_GPIO,	0x6e,	~EM_GPIO_4,	10},
-	{EM2880_R04_GPO,	0x08,	0xff,		10},
-	{ -1,			-1,	-1,		-1},
-};
-
-Lauri
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
