@@ -1,106 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out113.alice.it ([85.37.17.113]:3252 "EHLO
-	smtp-out113.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755772AbZKSKh1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2009 05:37:27 -0500
-Date: Thu, 19 Nov 2009 11:37:19 +0100
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>
-Subject: Re: [RFC, PATCH] gspca: implement vidioc_enum_frameintervals
-Message-Id: <20091119113719.566ba78e.ospite@studenti.unina.it>
-In-Reply-To: <4B04FCF6.2060505@redhat.com>
-References: <20091117114147.09889427.ospite@studenti.unina.it>
-	<4B04FCF6.2060505@redhat.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Thu__19_Nov_2009_11_37_19_+0100_SarQtaHnqiS2T+H_"
+Received: from mail.gmx.net ([213.165.64.20]:47141 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750841AbZKJOLA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Nov 2009 09:11:00 -0500
+Date: Tue, 10 Nov 2009 15:11:15 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: Re: [PATCH 2/9] v4l: add new v4l2-subdev sensor operations, use
+ g_skip_top_lines in soc-camera
+In-Reply-To: <200911101355.28339.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.0911101459560.5074@axis700.grange>
+References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
+ <Pine.LNX.4.64.0910301403550.4378@axis700.grange>
+ <200911101355.28339.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Signature=_Thu__19_Nov_2009_11_37_19_+0100_SarQtaHnqiS2T+H_
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue, 10 Nov 2009, Laurent Pinchart wrote:
 
-On Thu, 19 Nov 2009 09:08:22 +0100
-Hans de Goede <hdegoede@redhat.com> wrote:
+> Hi Guennadi,
+> 
+> On Friday 30 October 2009 15:01:06 Guennadi Liakhovetski wrote:
+> > Introduce new v4l2-subdev sensor operations, move .enum_framesizes() and
+> > .enum_frameintervals() methods to it,
+> 
+> I understand that we need sensor-specific operations, but I'm not sure if 
+> those two are really unneeded for "non-sensor" video.
 
-> Hi,
->
+I suspect that wasn't my idea:-) Ok, found:
 
-Hi, thanks for commenting on this.
+http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/8990/focus=9078
 
-> On 11/17/2009 11:41 AM, Antonio Ospite wrote:
-> > Hi,
-> >
-> > gspca does not implement vidioc_enum_frameintervals yet, so even if a
-> > camera can support multiple frame rates (or frame intervals) there is
-> > still no way to enumerate them from userspace.
-> >
-> > The following is just a quick and dirty implementation to show the
-> > problem and to have something to base the discussion on. In the patch
-> > there is also a working example of use with the ov534 subdriver.
-> >
-> > Someone with a better knowledge of gspca and v4l internals can suggest
-> > better solutions.
-> >
->=20
->=20
-> Does the ov534 driver actually support selecting a framerate from the
-> list this patch adds, and does it then honor the selection ?
->
+> Speaking about enum_framesizes() and enum_frameintervals(), wouldn't it be 
+> better to provide a static array of data instead of a callback function ? That 
+> should be dealt with in another patch set of course.
 
-Yes it does, it can set framerates as per the list I added (in fact I
-got the list looking at what the driver supports), and I can also see
-it honors the framerate setting, from guvcview fps counter in the
-capture window title. So only framerate enumeration is missing.
+TBH, I don't understand why these methods are needed at all. Why the 
+existing {S,G,TRY}_FMT are not enough. So, obviously, this isn't a 
+question to me either.
 
-> In my experience framerates with webcams are varying all the time, as
-> the lighting conditions change and the cam needs to change its exposure
-> setting to match, resulting in changed framerates.
->=20
-> So to me this does not seem very useful for webcams.
->
+> > add a new .g_skip_top_lines() method and switch soc-camera to use it instead
+> > of .y_skip_top soc_camera_device member, which can now be removed.
+> 
+> BTW, the lines of "garbage" you get at the beginning of the image is actually 
+> probably meta-data (such as exposure settings). Maybe the g_skip_top_lines() 
+> operation could be renamed to something meta-data related. Applications could 
+> also be interested in getting the data.
 
-As long as the chips involved (bridge, ISP, sensor) are powerful or
-smart enough then the camera won't have problems.
-I guess that for ov534/ov538 the usb bandwidth is the limiting factor
-for the framerates, as we are using a raw format.
+Aha, that's interesting, thanks! Yes, we could easily rename it to 
+.g_metadata_lines() or something like that.
 
-> Regards,
->=20
-> Hans
-
-Btw, did you take a look at the patch anyway? Can you suggest a better
-place where to put the structures needed for this functionality?
-
-Regards,
-   Antonio
-
---=20
-Antonio Ospite
-http://ao2.it
-
-PGP public key ID: 0x4553B001
-
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
-A: Top-posting.
-Q: What is the most annoying thing in e-mail?
-
---Signature=_Thu__19_Nov_2009_11_37_19_+0100_SarQtaHnqiS2T+H_
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEARECAAYFAksFH98ACgkQ5xr2akVTsAEQDwCfU3vrg66YysEbKStravJG9K9s
-NYEAoIltMu7Ugv7qNWyyy66U2BAByhCJ
-=cLGh
------END PGP SIGNATURE-----
-
---Signature=_Thu__19_Nov_2009_11_37_19_+0100_SarQtaHnqiS2T+H_--
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
