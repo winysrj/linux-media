@@ -1,95 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-01.arcor-online.net ([151.189.21.41]:39775 "EHLO
-	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757576AbZKCBGn (ORCPT
+Received: from mail-qy0-f194.google.com ([209.85.221.194]:62032 "EHLO
+	mail-qy0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750830AbZKJPNm convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Nov 2009 20:06:43 -0500
-Subject: Re: [PATCH] Multifrontend support for saa7134
-From: hermann pitton <hermann-pitton@arcor.de>
-To: =?UTF-8?Q?Luk=C3=A1=C5=A1?= Karas <lukas.karas@centrum.cz>
-Cc: linux-media@vger.kernel.org, Petr Fiala <petr.fiala@gmail.com>
-In-Reply-To: <1257043250.16827.17.camel@pc07.localdom.local>
-References: <200910312121.21926.lukas.karas@centrum.cz>
-	 <1257043250.16827.17.camel@pc07.localdom.local>
+	Tue, 10 Nov 2009 10:13:42 -0500
+Received: by qyk32 with SMTP id 32so45994qyk.4
+        for <linux-media@vger.kernel.org>; Tue, 10 Nov 2009 07:13:48 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20091110134837.207bb92a.ospite@studenti.unina.it>
+References: <1257266734-28673-1-git-send-email-ospite@studenti.unina.it>
+	<1257266734-28673-2-git-send-email-ospite@studenti.unina.it>
+	<f17812d70911032238i3ae6fa19g24720662b9079f24@mail.gmail.com>
+	<20091110134837.207bb92a.ospite@studenti.unina.it>
+From: Eric Miao <eric.y.miao@gmail.com>
+Date: Tue, 10 Nov 2009 23:13:28 +0800
+Message-ID: <f17812d70911100713p3b51aac8k4e59c5df0b58a680@mail.gmail.com>
+Subject: Re: [PATCH 1/3] ezx: Add camera support for A780 and A910 EZX phones
+To: Antonio Ospite <ospite@studenti.unina.it>
+Cc: linux-arm-kernel@lists.infradead.org,
+	openezx-devel@lists.openezx.org, Bart Visscher <bartv@thisnet.nl>,
+	linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 Content-Type: text/plain; charset=UTF-8
-Date: Tue, 03 Nov 2009 02:02:08 +0100
-Message-Id: <1257210128.31771.17.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Tue, Nov 10, 2009 at 8:48 PM, Antonio Ospite
+<ospite@studenti.unina.it> wrote:
+> On Wed, 4 Nov 2009 14:38:40 +0800
+> Eric Miao <eric.y.miao@gmail.com> wrote:
+>
+>> Hi Antonio,
+>>
+>> Patch looks generally OK except for the MFP/GPIO usage...
+>
+> Eric,
+>
+> while I was at it I also checked the original code Motorola released.
+>
+> It has:
+>     PGSR(GPIO_CAM_EN) |= GPIO_bit(GPIO_CAM_EN);
+>     PGSR(GPIO_CAM_RST)|= GPIO_bit(GPIO_CAM_RST);
+>
+> After checking PXA manual and arch/arm/mach-pxa/mfp-pxa2xx.c,
+> I'd translate this to:
+>
+> diff --git a/arch/arm/mach-pxa/ezx.c b/arch/arm/mach-pxa/ezx.c
+> index 77286a2..6a47a9d 100644
+> --- a/arch/arm/mach-pxa/ezx.c
+> +++ b/arch/arm/mach-pxa/ezx.c
+> @@ -281,8 +281,8 @@ static unsigned long gen1_pin_config[] __initdata = {
+>        GPIO94_CIF_DD_5,
+>        GPIO17_CIF_DD_6,
+>        GPIO108_CIF_DD_7,
+> -       GPIO50_GPIO,                            /* CAM_EN */
+> -       GPIO19_GPIO,                            /* CAM_RST */
+> +       GPIO50_GPIO | MFP_LPM_DRIVE_HIGH,       /* CAM_EN */
+> +       GPIO19_GPIO | MFP_LPM_DRIVE_HIGH,       /* CAM_RST */
+>
+>        /* EMU */
+>        GPIO120_GPIO,                           /* EMU_MUX1 */
+> @@ -338,8 +338,8 @@ static unsigned long gen2_pin_config[] __initdata = {
+>        GPIO48_CIF_DD_5,
+>        GPIO93_CIF_DD_6,
+>        GPIO12_CIF_DD_7,
+> -       GPIO50_GPIO,                            /* CAM_EN */
+> -       GPIO28_GPIO,                            /* CAM_RST */
+> +       GPIO50_GPIO | MFP_LPM_DRIVE_HIGH,       /* CAM_EN */
+> +       GPIO28_GPIO | MFP_LPM_DRIVE_HIGH,       /* CAM_RST */
+>        GPIO17_GPIO,                            /* CAM_FLASH */
+>  };
+>  #endif
+>
+>
+> Is that right?
 
-Am Sonntag, den 01.11.2009, 03:40 +0100 schrieb hermann pitton:
-> Hi Lukas, Petr and Eddi,
-> 
-> thanks for working on it.
-> 
-> Am Samstag, den 31.10.2009, 21:21 +0100 schrieb Lukáš Karas:
-> > Hi all, 
-> > here is patch for multifrontend support in saa7134 driver. It is derived from 
-> > patches on page http://tux.dpeddi.com/lr319sta/
-> > 
-> > This patch has effect on these cards:
-> >  * FlyDVB Trio
-> >  * Medion MD8800 Quadro
-> >  * ASUSTeK Tiger 3in1
-> 
-> The a little bit hidden low profile triple CTX948 is also involved, just
-> to have it mentioned. We treat it like the Medion MD8800 Quadro, CTX944,
-> with subsystem 16be:0007.
-> 
-> > It was tested with FlyDVB Trio card.
-> > If you could, please test it with other cards too.
-> 
-> Some first tests on the CTX944 don't look such promising yet.
-> On DVB-T only one transponder remains and even that one is heavily
-> disturbed.
+That's right.
 
-just some small updates on it, unfortunately I don't have the time
-currently it deserves.
+> I am putting also this into the next version I am going to send for
+> submission, if you don't object.
 
-The triple CTX948 shows the same behaviour, not such surprising.
-
-But, the Trio has two separate tuners for analog and DVB-T and the DVB-T
-problem seems only to be with hybrid devices.
-
-It is also on such silicon hybrid tuners without multiple frontends.
-
-So, likely some bug for hybrid tuner initialization, unfortunately
-i2c_debug and related tuner debug seem not to catch it and i2c gate
-control reports as being operable.
-
-Devices with FMD1216ME/I MK3 hybrid do still work for DVB-T!
-
-> On DVB-S only about one third of the previous services is still
-> available. Lots of such.
-> 
-> saa7133[1]/dvb: saa7134_dvb_bus_ctrl(acquire=0) returns 0
-> saa7133[1]/dvb: saa7134_dvb_bus_ctrl(acquire=1)
-> saa7133[1]/dvb: saa7134_dvb_bus_ctrl(acquire=1) returns 0
-> tda10086_diseqc_wait: diseqc queue not ready, command may be lost.
-> tda10086_diseqc_wait: diseqc queue not ready, command may be lost.
-> tda10086_diseqc_wait: diseqc queue not ready, command may be lost.
-> tda10086_diseqc_wait: diseqc queue not ready, command may be lost.
-> saa7133[1]/dvb: saa7134_dvb_bus_ctrl(acquire=0)
-> saa7133[1]/dvb: saa7134_dvb_bus_ctrl(acquire=0) returns 0
-> saa7133[1]/dvb: saa7134_dvb_bus_ctrl(acquire=1)
-> saa7133[1]/dvb: saa7134_dvb_bus_ctrl(acquire=1) returns 0
-> saa7133[1]/dvb: saa7134_dvb_bus_ctrl(acquire=0)
-> 
-> I do have the Asus Tiger 3in1 and the triple CTX948 too, but can't
-> promise when I get time to test on those less complicated devices.
-
-If the above "diseqc queue not ready" appears, it fails, but a second
-attempt almost always works. Might be some unsynced timing problems
-between the different LNB supplies. (need to get the Tiger 3in1 up too)
-
-However, it is very close to fully working already.
-
-Cheers,
-Hermann
-
-
-
+No I won't, feel free to.
