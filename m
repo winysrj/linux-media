@@ -1,70 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpout.karoo.kcom.com ([212.50.160.34]:17710 "EHLO
-	smtpout.karoo.kcom.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752103AbZKSQrj (ORCPT
+Received: from mail-ew0-f217.google.com ([209.85.219.217]:52690 "EHLO
+	mail-ew0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751214AbZKJMt4 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2009 11:47:39 -0500
-Received: from [192.168.1.239] ([192.168.1.239])
-	by zebra.wentnet.com (8.14.3/8.14.3/SuSE Linux 0.8) with ESMTP id nAJGlaTI003615
-	for <linux-media@vger.kernel.org>; Thu, 19 Nov 2009 16:47:38 GMT
-Message-ID: <4B0576A7.7000103@orange.fr>
-Date: Thu, 19 Nov 2009 16:47:35 +0000
-From: Andy Low <andrew.low@orange.fr>
+	Tue, 10 Nov 2009 07:49:56 -0500
+Received: by ewy17 with SMTP id 17so444736ewy.17
+        for <linux-media@vger.kernel.org>; Tue, 10 Nov 2009 04:50:01 -0800 (PST)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [Fwd: Anyone got a KWorld USB DVB-T TV Stick II (VS-DVB-T 395U) to
- work properly?]
+In-Reply-To: <921ad39e0911100440v6f146d1ci5858517cffdc0457@mail.gmail.com>
+References: <921ad39e0911100419p3ca39ea4ycd5ac84322555fc2@mail.gmail.com>
+	 <b40acdb70911100426w46119c79y4226088ca3196254@mail.gmail.com>
+	 <921ad39e0911100440v6f146d1ci5858517cffdc0457@mail.gmail.com>
+Date: Tue, 10 Nov 2009 13:50:00 +0100
+Message-ID: <b40acdb70911100450i4902900eu92c3529de9b5b9a0@mail.gmail.com>
+Subject: =?windows-1252?Q?Re=3A_tw68=2Dv2=2Ftw68=2Di2c=2Ec=3A145=3A_error=3A_unknown_field_=91?=
+	=?windows-1252?Q?client=5Fregister=92_specified_in_initializer?=
+From: Domenico Andreoli <cavokz@gmail.com>
+To: Roman Gaufman <hackeron@gmail.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Hi
 
-I have just bought a KWorld USB DVB-T TV Stick II (VS-DVB-T 395U). It
-works well in Windows but it will only receive 2 of the 6 local
-multiplexes under linux.
+On Tue, Nov 10, 2009 at 1:40 PM, Roman Gaufman <hackeron@gmail.com> wrote:
+> Thanks, managed to compile but getting -1 Unknown symbol in module now
+> - any ideas?
+>
+> # make
+> make -C /lib/modules/2.6.31-14-generic/build M=/root/tw68-v2 modules
+> make[1]: Entering directory `/usr/src/linux-headers-2.6.31-14-generic'
+>  CC [M]  /root/tw68-v2/tw68-core.o
+>  CC [M]  /root/tw68-v2/tw68-cards.o
+>  CC [M]  /root/tw68-v2/tw68-video.o
+>  CC [M]  /root/tw68-v2/tw68-controls.o
+>  CC [M]  /root/tw68-v2/tw68-fileops.o
+>  CC [M]  /root/tw68-v2/tw68-ioctls.o
+>  CC [M]  /root/tw68-v2/tw68-vbi.o
+>  CC [M]  /root/tw68-v2/tw68-ts.o
+>  CC [M]  /root/tw68-v2/tw68-risc.o
+>  CC [M]  /root/tw68-v2/tw68-input.o
+>  CC [M]  /root/tw68-v2/tw68-tvaudio.o
+>  LD [M]  /root/tw68-v2/tw68.o
+>  Building modules, stage 2.
+>  MODPOST 1 modules
+>  CC      /root/tw68-v2/tw68.mod.o
+>  LD [M]  /root/tw68-v2/tw68.ko
+> make[1]: Leaving directory `/usr/src/linux-headers-2.6.31-14-generic'
+> # insmod tw68.ko
+> insmod: error inserting 'tw68.ko': -1 Unknown symbol in module
 
-I have tried it with OpenSuse 11.2 (kernel 2.6.31)  both out of the box
-and with v4l from linuxtv.org/hg/~anttip/af9015.
-Also with Opensuse 11.0 (kernel 2.6.25) with v4l from
-linuxtv.org/hg/~anttip/af9015.
+dmesg would show which symbol is missing. the quick hack i suggest is
+to load the bttv driver with "modprobe bttv", which brings in all the usual
+v4l2 modules, unload it and the reload the tw68.ko
 
-The results are always the same...
+ciao,
+Domenico
 
-It is recognised and loads correctly according to /var/log/messages:
-
-...kernel: usb 2-7: new high speed USB device using ehci_hcd and address 5
-...kernel: usb 2-7: configuration #1 chosen from 1 choice
-...kernel: dvb-usb: found a 'KWorld USB DVB-T TV Stick II (VS-DVB-T
-395U)' in cold state, will try to load a firmware
-...kernel: dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
-...kernel: dvb-usb: found a 'KWorld USB DVB-T TV Stick II (VS-DVB-T
-395U)' in warm state.
-...kernel: dvb-usb: will pass the complete MPEG2 transport stream to the
-software demuxer.
-...kernel: DVB: registering new adapter (KWorld USB DVB-T TV Stick II
-(VS-DVB-T 395U))
-...kernel: af9013: firmware version:4.95.0
-...kernel: DVB: registering adapter 0 frontend 0 (Afatech AF9013 DVB-T)...
-...kernel: Quantek QT1010 successfully identified.
-...kernel: input: IR-receiver inside an USB DVB receiver as
-/devices/pci0000:00/0000:00:0b.1/usb2/2-7/input/input6
-...kernel: dvb-usb: schedule remote query interval to 150 msecs.
-...kernel: dvb-usb: KWorld USB DVB-T TV Stick II (VS-DVB-T 395U)
-successfully initialized and connected.
-...kernel: usb 2-7: New USB device found, idVendor=1b80, idProduct=e39b
-...kernel: usb 2-7: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-...kernel: usb 2-7: Product: DVB-T 2
-...kernel: usb 2-7: Manufacturer: Afatech
-
-Using AUTOSCAN in Kaffeine finds just 2 multiplexes and plays them well
-with no errors.  During the search it shows good signal strength on
-various other channels but doesn't get lock.  Similar behaviour using
-the scan utility.  The 2 multiplexes it does find have the same
-parameters (apart from frequency!) I0B8C34D34M16T2G32Y0.
-
-Any suggestions?  Many thanks,  Andy
-
-
-
+-----[ Domenico Andreoli, aka cavok
+ --[ http://www.dandreoli.com/gpgkey.asc
+   ---[ 3A0F 2F80 F79C 678A 8936  4FEE 0677 9033 A20E BC50
