@@ -1,42 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:38086
-	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932744AbZKDW4m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2009 17:56:42 -0500
-Subject: Re: [PATCH 0/3 v2] linux infrared remote control drivers
-Mime-Version: 1.0 (Apple Message framework v1076)
-Content-Type: text/plain; charset=us-ascii; format=flowed; delsp=yes
-From: Jarod Wilson <jarod@wilsonet.com>
-In-Reply-To: <200910200956.33391.jarod@redhat.com>
-Date: Wed, 4 Nov 2009 17:56:31 -0500
-Cc: linux-kernel@vger.kernel.org, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org, Janne Grunau <j@jannau.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Content-Transfer-Encoding: 7bit
-Message-Id: <C5A8E7EC-81D6-49AA-A65F-9F5D3DED1690@wilsonet.com>
-References: <200910200956.33391.jarod@redhat.com>
-To: Jarod Wilson <jarod@redhat.com>
+Received: from smtp-out13.alice.it ([85.33.2.18]:3147 "EHLO
+	smtp-out13.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750880AbZKJMtc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Nov 2009 07:49:32 -0500
+Date: Tue, 10 Nov 2009 13:48:37 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Eric Miao <eric.y.miao@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org,
+	openezx-devel@lists.openezx.org, Bart Visscher <bartv@thisnet.nl>,
+	linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 1/3] ezx: Add camera support for A780 and A910 EZX
+ phones
+Message-Id: <20091110134837.207bb92a.ospite@studenti.unina.it>
+In-Reply-To: <f17812d70911032238i3ae6fa19g24720662b9079f24@mail.gmail.com>
+References: <1257266734-28673-1-git-send-email-ospite@studenti.unina.it>
+	<1257266734-28673-2-git-send-email-ospite@studenti.unina.it>
+	<f17812d70911032238i3ae6fa19g24720662b9079f24@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Tue__10_Nov_2009_13_48_37_+0100_IkvK5DuMu0Z7RAQ8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Oct 20, 2009, at 9:56 AM, Jarod Wilson wrote:
+--Signature=_Tue__10_Nov_2009_13_48_37_+0100_IkvK5DuMu0Z7RAQ8
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> This here is a second go at submitting linux infrared remote control
-> (lirc) drivers for kernel inclusion, with a much smaller patch set  
-> that
-> includes only the core lirc driver and two device drivers, all three  
-> of
-> which have been heavily updated since the last submission, based on
-> feedback received.
+On Wed, 4 Nov 2009 14:38:40 +0800
+Eric Miao <eric.y.miao@gmail.com> wrote:
 
-Hm. Submitting this while the vast majority of people who might review  
-it were at the Japan Linux Symposium seems like it might have been a  
-bad idea. Or does no feedback mean its all good and ready to be  
-merged? ;)
+> Hi Antonio,
+>=20
+> Patch looks generally OK except for the MFP/GPIO usage...
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+Eric,
+
+while I was at it I also checked the original code Motorola released.
+
+It has:
+     PGSR(GPIO_CAM_EN) |=3D GPIO_bit(GPIO_CAM_EN);
+     PGSR(GPIO_CAM_RST)|=3D GPIO_bit(GPIO_CAM_RST);
+
+After checking PXA manual and arch/arm/mach-pxa/mfp-pxa2xx.c,
+I'd translate this to:
+
+diff --git a/arch/arm/mach-pxa/ezx.c b/arch/arm/mach-pxa/ezx.c
+index 77286a2..6a47a9d 100644
+--- a/arch/arm/mach-pxa/ezx.c
++++ b/arch/arm/mach-pxa/ezx.c
+@@ -281,8 +281,8 @@ static unsigned long gen1_pin_config[] __initdata =3D {
+        GPIO94_CIF_DD_5,
+        GPIO17_CIF_DD_6,
+        GPIO108_CIF_DD_7,
+-       GPIO50_GPIO,                            /* CAM_EN */
+-       GPIO19_GPIO,                            /* CAM_RST */
++       GPIO50_GPIO | MFP_LPM_DRIVE_HIGH,       /* CAM_EN */
++       GPIO19_GPIO | MFP_LPM_DRIVE_HIGH,       /* CAM_RST */
+
+        /* EMU */
+        GPIO120_GPIO,                           /* EMU_MUX1 */
+@@ -338,8 +338,8 @@ static unsigned long gen2_pin_config[] __initdata =3D {
+        GPIO48_CIF_DD_5,
+        GPIO93_CIF_DD_6,
+        GPIO12_CIF_DD_7,
+-       GPIO50_GPIO,                            /* CAM_EN */
+-       GPIO28_GPIO,                            /* CAM_RST */
++       GPIO50_GPIO | MFP_LPM_DRIVE_HIGH,       /* CAM_EN */
++       GPIO28_GPIO | MFP_LPM_DRIVE_HIGH,       /* CAM_RST */
+        GPIO17_GPIO,                            /* CAM_FLASH */
+ };
+ #endif
 
 
+Is that right?
+I am putting also this into the next version I am going to send for
+submission, if you don't object.
 
+Thanks,
+   Antonio
+
+--=20
+Antonio Ospite
+http://ao2.it
+
+PGP public key ID: 0x4553B001
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing in e-mail?
+
+--Signature=_Tue__10_Nov_2009_13_48_37_+0100_IkvK5DuMu0Z7RAQ8
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAkr5YSUACgkQ5xr2akVTsAFWJwCfTvAyQfMpCR0+m3qiLjIyLQTe
+UXgAn3O22pauc+JMBJiygEAu64x3WU+t
+=4sHx
+-----END PGP SIGNATURE-----
+
+--Signature=_Tue__10_Nov_2009_13_48_37_+0100_IkvK5DuMu0Z7RAQ8--
