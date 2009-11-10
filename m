@@ -1,63 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pro10.proekspert.ee ([212.47.207.10]:40056 "HELO
-	mail.proekspert.ee" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755070AbZKMI7w convert rfc822-to-8bit (ORCPT
+Received: from mail-fx0-f221.google.com ([209.85.220.221]:41124 "EHLO
+	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756692AbZKJPt1 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Nov 2009 03:59:52 -0500
-Date: Fri, 13 Nov 2009 10:59:55 +0200 (EET)
-From: Lauri Laanmets <lauri.laanmets@proekspert.ee>
-To: Markus Rechberger <mrechberger@gmail.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <3933453.18034.1258102795094.JavaMail.root@mail>
-In-Reply-To: <d9def9db0911130047i2cc2eccyc9807f63fb5e9647@mail.gmail.com>
-Subject: Re: DVB support for MSI DigiVox A/D II and KWorld 320U
+	Tue, 10 Nov 2009 10:49:27 -0500
+Received: by fxm21 with SMTP id 21so152335fxm.21
+        for <linux-media@vger.kernel.org>; Tue, 10 Nov 2009 07:49:32 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <829197380911100739k1b1a1c78t97c5a9dddae89b00@mail.gmail.com>
+References: <ad6681df0911090313t17652362v2e92c465b60a92e4@mail.gmail.com>
+	<20091109144647.2f876934@pedra.chehab.org> <ad6681df0911090919i717a7ac3occdf8e260def2193@mail.gmail.com>
+	<829197380911090933y76e53e57o940520a0e7912092@mail.gmail.com>
+	<829197380911090935r1d0abbdcq49f2d76c8a1618f5@mail.gmail.com>
+	<ad6681df0911090956r12424564uf9384d53ee5c6ffa@mail.gmail.com>
+	<829197380911091040l46e40bf8t783bbdf3590b1244@mail.gmail.com>
+	<ad6681df0911100139u6ea649c7rcc8c2f840167d4bc@mail.gmail.com>
+	<829197380911100739k1b1a1c78t97c5a9dddae89b00@mail.gmail.com>
+From: Valerio Bontempi <valerio.bontempi@gmail.com>
+Date: Tue, 10 Nov 2009 16:49:12 +0100
+Message-ID: <ad6681df0911100749p13bc917al2390f85d471e2765@mail.gmail.com>
+Subject: Re: [XC3028] Terretec Cinergy T XS wrong firmware xc3028-v27.fw
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
-
-Sorry if I wasn't clear enough. I'm trying to get V4l code working. So I'm playing around with GPIO's and have managed to get the I2C communication working but something is still missing. I was thinking that because mcentral code worked, maybe some information can be taken over from it but the code is so much different, I do not understand it fully.
-
-Or what should I try next?
-
-Lauri
-
------ Original Message -----
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Lauri Laanmets" <lauri.laanmets@proekspert.ee>
-Cc: linux-media@vger.kernel.org
-Sent: Friday, November 13, 2009 10:47:03 AM
-Subject: Re: DVB support for MSI DigiVox A/D II and KWorld 320U
-
-On Fri, Nov 13, 2009 at 4:37 PM, Lauri Laanmets
-<lauri.laanmets@proekspert.ee> wrote:
-> Hello
+2009/11/10 Devin Heitmueller <dheitmueller@kernellabs.com>:
+> On Tue, Nov 10, 2009 at 4:39 AM, Valerio Bontempi
+> <valerio.bontempi@gmail.com> wrote:
+>> Yes I rebooted the system after compiling and installing through 'make
+>> install' last v4l-dvb source, but with no luck, /dev/dvb device is
+>> still not present.
+>>
+>> Attached you can find the full dmesg, since system boot
+>>
+>> Thanks a lot again.
+>>
+>>
+>> P.s. Sorry for top posting, it's gmail0s default and sometimes I forget.
 >
-> I have managed to attach the device without any error messages now but the tuning and playback of DVB still doesn't work. I get a lot of these error messages:
+> Hello Valerio,
 >
-> [  247.268152] em28xx #0: reading i2c device failed (error=-110)
-> [  247.268161] xc2028 1-0061: i2c input error: rc = -110 (should be 2)
+> Now that I have taken another look at the dmesg output, I see that
+> this device is 0ccd:0043 and *not* 0ccd:0042. �This prompted me to
+> take another look at the driver, and indeed that board is not
+> presently supported. �It's the DVB only version of the board (as
+> opposed to the hybrid).
 >
-> and
+> I can probably make it work, but it's a rather old board and not
+> terribly high on my list of priorities.
 >
-> [  433.232124] xc2028 1-0061: Loading SCODE for type=DTV6 ATSC OREN538 SCODE HAS_IF_5580 (60110020), id 0000000000000000.
-> [  433.256017] xc2028 1-0061: Incorrect readback of firmware version.
-> [  433.372019] xc2028 1-0061: Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
-> [  437.940029] xc2028 1-0061: Loading firmware for type=D2620 DTV78 (108), id 0000000000000000.
+> Devin
 >
-> Do anybody have an idea what to do next? Or maybe somebody is willing to help me understanding the mcentral code because that one works fine.
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
 >
 
-Due some fundamental problems we do not recommend to use the
-em28xx-new code, it can damage your device(!)
+Hi Devin,
 
-We are now working together with several manufacturers since we
-accepted their restrictions we got indepth details about how to handle
-those devices correctly in order to prevent damaged devices. Even if
-it works fine for you it might break the device the next day. The only
-way to get it right is to cooperate with the chip design companies.
+I feared about that
+So, in this moment my only possibilities available to make it work are:
+- use an older kernel (<=2.6.27) to compile successfully em28xx-new
+(maybe it could be better to use older linux distro)
+- make em28xx-new to compile on 2.6.31 kernel version
+- wait for device support on next kernel releases
 
-Markus
+I have good programming knowledge, but few with C and driver
+programming, so if you can suggest me how can I modify em28xx-new
+sources to make them work on 2.6.31, then I can try to adjust them and
+then make this driver available just waiting for kernel support.
+
+Thanks a lot
+
+Valerio
