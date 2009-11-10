@@ -1,44 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from khc.piap.pl ([195.187.100.11]:37897 "EHLO khc.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752856AbZK1TzA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Nov 2009 14:55:00 -0500
-From: Krzysztof Halasa <khc@pm.waw.pl>
-To: Jon Smirl <jonsmirl@gmail.com>
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	maximlevitsky@gmail.com, mchehab@redhat.com, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
-References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc>
-	<9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>
-	<4B116954.5050706@s5r6.in-berlin.de>
-	<9e4733910911281058i1b28f33bh64c724a89dcb8cf5@mail.gmail.com>
-Date: Sat, 28 Nov 2009 20:55:03 +0100
-In-Reply-To: <9e4733910911281058i1b28f33bh64c724a89dcb8cf5@mail.gmail.com>
-	(Jon Smirl's message of "Sat, 28 Nov 2009 13:58:27 -0500")
-Message-ID: <m3ws1awhk8.fsf@intrepid.localdomain>
+Received: from smtp1.infomaniak.ch ([84.16.68.89]:47068 "EHLO
+	smtp1.infomaniak.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751431AbZKJHeo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Nov 2009 02:34:44 -0500
+Received: from IO.local (61-140.4-85.fix.bluewin.ch [85.4.140.61])
+	(authenticated bits=0)
+	by smtp1.infomaniak.ch (8.14.2/8.14.2) with ESMTP id nAA7Nv4g028498
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 10 Nov 2009 08:24:01 +0100
+Message-ID: <4AF9150D.2070601@deckpoint.ch>
+Date: Tue, 10 Nov 2009 08:23:57 +0100
+From: Thomas Kernen <tkernen@deckpoint.ch>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: linux-media@vger.kernel.org
+Subject: Re: v4l-dvb compile broken with stock Ubuntu Karmic build (firedtv-ieee1394.c
+ errors)
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jon Smirl <jonsmirl@gmail.com> writes:
+Hello,
 
-> EVIOCSKEYCODE is lacking, first parameter is an INT. Some decoded IR
-> codes are over 32b. Christoph posted an example that needs 128b.
+I came across this thread from June 2009 in the news archives about 
+Ubuntu Karmic and v4l-dvb compile broken with stock Ubuntu Karmic build:
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/7161
 
-This only means that the existing interface is limited.
+I've just come across this issue myself after an upgrade of a server to 
+the Ubuntu Karmic release.
 
-> This
-> is a problem with ioctls, they change size depending on platform and
-> endianess.
+Is there any plans to attempt to mitigate this so that other users would 
+not be impacted?
 
-But not this: you can use fixed-width u16, u32, u64 and e.g. u8[x].
-I don't know an arch which changes int sizes depending on endianness,
-is there any?
-32/64 binary compatibility needs some minimal effort.
--- 
-Krzysztof Halasa
+Regards,
+Thomas
