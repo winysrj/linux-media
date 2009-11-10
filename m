@@ -1,126 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40207 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752972AbZKSSBj convert rfc822-to-8bit (ORCPT
+Received: from smtp-out13.alice.it ([85.33.2.18]:1210 "EHLO
+	smtp-out13.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753085AbZKJJaM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2009 13:01:39 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Thu, 19 Nov 2009 10:23:38 -0600
-Subject: RE: Help in adding documentation
-Message-ID: <A69FA2915331DC488A831521EAE36FE40155A5143D@dlee06.ent.ti.com>
-References: <A69FA2915331DC488A831521EAE36FE401559C59A2@dlee06.ent.ti.com>
- <200911180819.11199.hverkuil@xs4all.nl> <4B03A11D.9090404@infradead.org>
- <200911180832.35450.hverkuil@xs4all.nl>
-In-Reply-To: <200911180832.35450.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-MIME-Version: 1.0
+	Tue, 10 Nov 2009 04:30:12 -0500
+Date: Tue, 10 Nov 2009 10:29:50 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-arm-kernel@lists.infradead.org,
+	Eric Miao <eric.y.miao@gmail.com>,
+	openezx-devel@lists.openezx.org, Bart Visscher <bartv@thisnet.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/3 v2] ezx: Add camera support for A780 and A910 EZX
+ phones
+Message-Id: <20091110102950.497af1fb.ospite@studenti.unina.it>
+In-Reply-To: <20091106182910.a3b48c41.ospite@studenti.unina.it>
+References: <f17812d70911040119g6eb1f254pa78dd8519afef61d@mail.gmail.com>
+	<1257367650-15056-1-git-send-email-ospite@studenti.unina.it>
+	<Pine.LNX.4.64.0911050040160.4837@axis700.grange>
+	<20091105234429.ef855e2d.ospite@studenti.unina.it>
+	<Pine.LNX.4.64.0911061419220.4389@axis700.grange>
+	<20091106182910.a3b48c41.ospite@studenti.unina.it>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Tue__10_Nov_2009_10_29_50_+0100_plt/Wj.iVQilW8lH"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans & Mauro,
+--Signature=_Tue__10_Nov_2009_10_29_50_+0100_plt/Wj.iVQilW8lH
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I tried building from v4l2-apps directory, but it doesn't help me
-either. 
+Ping.
 
-(qv4l2 and v4l2-sysfs-path require some development libraries
-that aren't available per default when gcc is installed - I
+Guennadi, did you see the patch below? Or I should completely remove
+the .init() callback like you said in another message?
+As I said, my humble preference would be to keep GPIOs setup local to
+the driver somehow, but you just tell me what to do :)
 
-What are all the libraries it requires? I need to do cross compile
-for arm. What do I need to do to let the build system pull required
-libraries from the code sorcery arm tool chain that I use? Any help
-to build the application v4l2-ctl.cpp will be helpful.
+On Fri, 6 Nov 2009 18:29:10 +0100
+Antonio Ospite <ospite@studenti.unina.it> wrote:
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-phone: 301-407-9583
-email: m-karicheri2@ti.com
+> On Fri, 6 Nov 2009 15:11:55 +0100 (CET)
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+>=20
+> > On Thu, 5 Nov 2009, Antonio Ospite wrote:
+> >=20
+> > > See? It's power(), reset(), init().
+> > > Maybe the problem is in soc_camera_probe()?
+> >=20
+> > Sorry, you'd have to elaborate more on this. So, what's wrong with that=
+=20
+> > sequence? it doesn't make sense to reset a powered down device or reset=
+=20
+> > after init or whatever...
+> >
+>=20
+> I mean, when probing (or even opening) the device, pxacamera.init()
+> is now called *after* the power ON and reset. If I kept disabled (high)
+> nCAM_EN in init(), as it should've been, this would have overridden
+> the previous power(1) call.
+>=20
+> Isn't init() in pxacamera platform data meant to initialize the device
+> before it can be powered ON? In fact I am requesting the gpios in
+> a780_pxacamera_init, and if power() or reset() are called before it, then
+> they will be invalid, because the gpios have not been requested yet.
+>=20
+> Moreover, pxacamera.init() is called in pxa_camera_activate, which is
+> called in pxa_camera_add_device, which in turn is invoked by
+> soc_camera_open() every time.
+> Shouldn't the init() method, where I request gpios, be called
+> only on probe?
+>=20
+> Let me be more schematic, when probing the camera we have:
+>=20
+> soc_camera_probe()         /* same in soc_camera_open! */
+> |-	icl->power(1)
+> |-	icl->reset()
+> |-	icd->ops->add()
+> 	|-	pxacamera.init()  /* requesting gpios here! */
+> |-	video_dev_create(icd)
+> |-	...
+>=20
+> Maybe we should have something like:
+>=20
+> pxacamera.init()           /* request gpios only once! on probe. */
+> soc_camera_probe()         /* same in soc_camera_open */
+> |-	icl->power(1)
+> |-	icl->reset()
+> |-	icd->ops->add()
+> |-	video_dev_create(icd)
+> |-	...
+>=20
+> Or, I'm missing what init() is supposed to do :)
+> Does a patch like this make sense to you?
+> (I've read the other mail about removing .init just before hitting Send,
+> this can be an alternative to removing it, having GPIOs setup in the
+> user driver seems clearer to me.)
+>=20
+> diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_c=
+amera.c
+> index 6952e96..3101bcb 100644
+> --- a/drivers/media/video/pxa_camera.c
+> +++ b/drivers/media/video/pxa_camera.c
+> @@ -881,18 +882,8 @@ static void recalculate_fifo_timeout(struct pxa_came=
+ra_dev *pcdev,
+> =20
+>  static void pxa_camera_activate(struct pxa_camera_dev *pcdev)
+>  {
+> -	struct pxacamera_platform_data *pdata =3D pcdev->pdata;
+> -	struct device *dev =3D pcdev->soc_host.v4l2_dev.dev;
+>  	u32 cicr4 =3D 0;
+> =20
+> -	dev_dbg(dev, "Registered platform device at %p data %p\n",
+> -		pcdev, pdata);
+> -
+> -	if (pdata && pdata->init) {
+> -		dev_dbg(dev, "%s: Init gpios\n", __func__);
+> -		pdata->init(dev);
+> -	}
+> -
+>  	/* disable all interrupts */
+>  	__raw_writel(0x3ff, pcdev->base + CICR0);
+> =20
+> @@ -1651,6 +1644,17 @@ static int __devinit pxa_camera_probe(struct platf=
+orm_device *pdev)
+>  	pcdev->res =3D res;
+> =20
+>  	pcdev->pdata =3D pdev->dev.platform_data;
+> +
+> +	dev_dbg(&pdev->dev, "Registered platform device at %p data %p\n",
+> +		pcdev, pcdev->pdata);
+> +
+> +	if (pcdev->pdata && pcdev->pdata->init) {
+> +		dev_dbg(&pdev->dev, "%s: Init gpios\n", __func__);
+> +		err =3D pcdev->pdata->init(&pdev->dev);
+> +		if (err)
+> +			goto exit_clk;
+> +	}
+> +
+>  	pcdev->platform_flags =3D pcdev->pdata->flags;
+>  	if (!(pcdev->platform_flags & (PXA_CAMERA_DATAWIDTH_8 |
+>  			PXA_CAMERA_DATAWIDTH_9 | PXA_CAMERA_DATAWIDTH_10))) {
 
->-----Original Message-----
->From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
->Sent: Wednesday, November 18, 2009 2:33 AM
->To: Mauro Carvalho Chehab
->Cc: Karicheri, Muralidharan; linux-media@vger.kernel.org
->Subject: Re: Help in adding documentation
->
->On Wednesday 18 November 2009 08:24:13 Mauro Carvalho Chehab wrote:
->> Hans Verkuil wrote:
->> > On Wednesday 18 November 2009 08:04:10 Mauro Carvalho Chehab wrote:
->> >> Karicheri, Muralidharan escreveu:
->> >>> Mauro,
->> >>>
->> >>> Thanks to your help, I could finish my documentation today.
->> >>>
->> >>> But I have another issue with the v4l2-apps.
->> >>>
->> >>> When I do make apps, it doesn't seem to build. I get the following
->error
->> >>> logs... Is this broken?
->> >> Well... no, it is not really broken, but the build system for v4l2-
->apps
->> >> needs serious improvements. There are some know issues on it:
->> >> 	- It doesn't check/warn if you don't have all the dependencies
->> >> 	  (qv4l2 and v4l2-sysfs-path require some development libraries
->> >> 	   that aren't available per default when gcc is installed - I
->> >> 	   think the other files there are ok);
->> >> 	- make only works fine when calling on certain directories (it used
->to work
->> >> 	  fine if you call it from /v4l2-apps/*) - but, since some patch, it
->now requires
->> >> 	  that you call make from /v4l2-apps, in order to create v4l2-
->apps/include.
->> >> 	  After having it created, make can be called from a /v4l2-apps
->subdir;
->> >> 	- for some places (libv4l - maybe there are other places?), you need
->to
->> >> 	  have the latest headers installed, as it doesn't use the one at the
->tree.
->> >> 	- qv4l2 only compiles with qt3.
->> >
->> > I have a qt4 version available in my v4l-dvb-qv4l2 tree. Just no time
->to work
->> > on a series of patches to merge it in the main repo. And it is missing
->string
->> > control support.
->> >
->> > If anyone is interested, then feel free to do that work. This new qt4
->version
->> > is much better than the qt3 version.
->>
->> IMO, the better is to have both versions on separate dirs, and let the
->building
->> system to check if qt4 is available. If so, build the qt4 version instead
->of
->> qt3 (a configure script, for example). Otherwise, warn users that it is
->compiling
->> a legacy application, due to the lack of the proper dependencies.
->
->I'm not going to maintain the qt3 version. Personally I think it is
->pointless
->having two tools for this and it only creates confusion and unnecessary
->maintenance cost. Of course, all this is moot as long as the new version is
->still unmerged.
->
->BTW: everything inside v4l2-apps should use the generated headers inside
->v4l2-apps/include. These are generated from the headers in the tree and yes,
->it would be nice if v4l2-apps/Makefile would have a proper dependency to
->generate them. Now only the top-level Makefile knows about it. After that
->include directory is generated you can do a make in v4l2-apps.
->
->But libv4l should use those headers and not the installed headers.
->Something
->may have been broken since when I last wrote that code.
->
->Regards,
->
->	Hans
->
->--
->Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+--=20
+Antonio Ospite
+http://ao2.it
 
+PGP public key ID: 0x4553B001
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing in e-mail?
+
+--Signature=_Tue__10_Nov_2009_10_29_50_+0100_plt/Wj.iVQilW8lH
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAkr5Mo4ACgkQ5xr2akVTsAFiFQCfSh2pMEOHHsHF0zG142EAgX2R
+vzoAoJsCrcfD8SDErfg4bJSaqAcmrQYD
+=T/nX
+-----END PGP SIGNATURE-----
+
+--Signature=_Tue__10_Nov_2009_10_29_50_+0100_plt/Wj.iVQilW8lH--
