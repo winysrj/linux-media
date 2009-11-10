@@ -1,45 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpout.karoo.kcom.com ([212.50.160.34]:60187 "EHLO
-	smtpout.karoo.kcom.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754638AbZKVVII (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Nov 2009 16:08:08 -0500
-Received: from [10.1.1.4] (uranus.local [10.1.1.4])
-	by sedna.local (Postfix) with ESMTP id C028C5C1B
-	for <linux-media@vger.kernel.org>; Sun, 22 Nov 2009 21:08:13 +0000 (GMT)
-Message-ID: <4B09A834.3000309@gmail.com>
-Date: Sun, 22 Nov 2009 21:08:04 +0000
-From: Stacey <cardcaptorstacey@gmail.com>
+Received: from acorn.exetel.com.au ([220.233.0.21]:49387 "EHLO
+	acorn.exetel.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753898AbZKJAPX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2009 19:15:23 -0500
+Message-ID: <34578.64.213.30.2.1257812125.squirrel@webmail.exetel.com.au>
+In-Reply-To: <829197380911091611m5d534cffvde5334c81fc2515c@mail.gmail.com>
+References: <ad6681df0911090313t17652362v2e92c465b60a92e4@mail.gmail.com>
+    <20091109144647.2f876934@pedra.chehab.org>
+    <13029.64.213.30.2.1257810088.squirrel@webmail.exetel.com.au>
+    <829197380911091611m5d534cffvde5334c81fc2515c@mail.gmail.com>
+Date: Tue, 10 Nov 2009 11:15:25 +1100 (EST)
+Subject: Re: [XC3028] Terretec Cinergy T XS wrong firmware xc3028-v27.fw
+From: "Robert Lowery" <rglowery@exemail.com.au>
+To: "Devin Heitmueller" <dheitmueller@kernellabs.com>
+Cc: "Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: V4L-DVB modules not loading
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sorry, I don't know who to send this to. Not sure if it is a bug or not.
+> On Mon, Nov 9, 2009 at 6:41 PM, Robert Lowery <rglowery@exemail.com.au>
+> wrote:
+>> Although the xc3028-v27.fw generated from
+>> HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip using the above process works
+>> fine
+>> for me, the firmware is a couple of years old now and I can't help
+>> wondering if there might be a newer version in the latest Windows
+>> drivers
+>> out there containing performance or stability fixes it in.
+>>
+>> Do you think it would be worthwhile extracting a newer version of
+>> firmware?
+>
+> That is the latest version of the firmware for that chip.  Xceive has
+> not updated it since then, given that they are focusing on newer
+> products like the xc5000 and xc3028L.
+>
+> Your problem has nothing to do with the firmware.  The issue is the
+> driver support for your particular device was only added recently
+> (after Ubuntu did their kernel freeze for Karmic).  The work
+> associated with adding support for devices is nontrivial, and I
+> typically only do it when people report that their device needs
+> support.
+>
+> Devin
+Sorry Devin,
 
-I followed your very helpful tutorial perfectly:
-http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers 
-  but it hasn't quite worked.
+I shoudn't have hijacked this thread.  My question was general in nature
+and not related to the issues being discussed in this thread.
 
-I've built the module okay. It installed correctly and copied the files
-into /lib/modules/2.6.31-14-generic/kernel/drivers/media/dvb/dvb-usb.
-After that I rebooted (since it was easier for me). Then I got to the
-"If the Modules load correctly" section to find that nothing has worked
-at all.
-
-I've checked my system log and it's recognising the USB device when I
-enter it but it isn't doing anything with it. The tutorial says you
-should be able to see the modules in /proc/modules but the modules
-folder doesn't even exist. The /dev/dvb/ folder has not been created
-either.
-
-I have a EyeTV Diversity and have the antenna plugged in.
-
-I will provide as much information as you need. I really want to get
-this working. :)
+If v2.7 is the latest firmware released by Xceive for the xc3028 then that
+answers my question
 
 Thanks
-~ Stacey
+
+-Rob
+
