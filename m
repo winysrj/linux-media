@@ -1,88 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37376 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756309AbZKJOpp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Nov 2009 09:45:45 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAAEjlUk021129
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 10 Nov 2009 08:45:50 -0600
-From: hvaibhav@ti.com
-To: linux-media@vger.kernel.org
-Cc: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH] v4l2 doc: Added FBUF_CAP_SRC_CHROMAKEY/FLAG_SRC_CHROMAKEY
-Date: Tue, 10 Nov 2009 20:15:45 +0530
-Message-Id: <1257864345-13595-1-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
+Received: from xenotime.net ([72.52.64.118]:41366 "HELO xenotime.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752260AbZKJRJH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Nov 2009 12:09:07 -0500
+Received: from chimera.site ([96.253.169.185]) by xenotime.net for <linux-media@vger.kernel.org>; Tue, 10 Nov 2009 09:09:11 -0800
+Date: Tue, 10 Nov 2009 09:09:10 -0800
+From: Randy Dunlap <rdunlap@xenotime.net>
+To: Michael Trimarchi <michael@panicking.kicks-ass.org>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: ov538-ov7690
+Message-Id: <20091110090910.18f32748.rdunlap@xenotime.net>
+In-Reply-To: <4AF99A03.7070303@panicking.kicks-ass.org>
+References: <4AF89498.3000103@panicking.kicks-ass.org>
+	<4AF93DE5.6060901@panicking.kicks-ass.org>
+	<20091110081000.9e7c7717.rdunlap@xenotime.net>
+	<4AF99A03.7070303@panicking.kicks-ass.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+On Tue, 10 Nov 2009 17:51:15 +0100 Michael Trimarchi wrote:
+
+> Hi,
+> 
+> Randy Dunlap wrote:
+> > On Tue, 10 Nov 2009 11:18:13 +0100 Michael Trimarchi wrote:
+> > 
+> >> Hi,
+> >>
+> >> Michael Trimarchi wrote:
+> >>> Hi all
+> >>>
+> >>> I'm working on the ov538 bridge with the ov7690 camera connected. 
+> >>> Somentimes I receive
+> >>>
+> >>> [ 1268.146705] gspca: ISOC data error: [110] len=1020, status=-71
+> >>> [ 1270.946739] gspca: ISOC data error: [114] len=1020, status=-71
+> >>> [ 1271.426689] gspca: ISOC data error: [82] len=1020, status=-71
+> >>> [ 1273.314640] gspca: ISOC data error: [1] len=1020, status=-71
+> >>> [ 1274.114661] gspca: ISOC data error: [17] len=1020, status=-71
+> >>> [ 1274.658718] gspca: ISOC data error: [125] len=1020, status=-71
+> >>> [ 1274.834666] gspca: ISOC data error: [21] len=1020, status=-71
+> >>> [ 1275.666684] gspca: ISOC data error: [94] len=1020, status=-71
+> >>> [ 1275.826645] gspca: ISOC data error: [40] len=1020, status=-71
+> >>> [ 1276.226721] gspca: ISOC data error: [100] len=1020, status=-71
+> >>>
+> >>> This error from the usb, how are they related to the camera?
+> > 
+> > -71 = -EPROTO (from include/asm-generic/errno.h).
+> > 
+> > -EPROTO in USB drivers means (from Documentation/usb/error-codes.txt):
+> > 
+> > -EPROTO (*, **)		a) bitstuff error
+> > 			b) no response packet received within the
+> > 			   prescribed bus turn-around time
+> > 			c) unknown USB error
+> > 
+> > footnotes:
+> > (*) Error codes like -EPROTO, -EILSEQ and -EOVERFLOW normally indicate
+> > hardware problems such as bad devices (including firmware) or cables.
+> > 
+> 
+> OK, but it's a failure of the ehci transaction on my laptop and seems that is
+> not so frequent. I think that can be a cable problem.
+
+Probably could be a cable problem.
+
+If you suspect that it is a USB (ehci) problem, you should raise this issue
+on the linux-usb@vger.kernel.org mailing list.
+
+> > (**) This is also one of several codes that different kinds of host
+> > controller use to indicate a transfer has failed because of device
+> > disconnect.  In the interval before the hub driver starts disconnect
+> > processing, devices may receive such fault reports for every request.
+> > 
+> > 
+> >> Ok, this is not a big issue because I can use vlc to test the camera. But anybody
+> >> knows why camorama, camstream, cheese crash during test. is it driver depend? or not?
+> > 
+> > Could be driver.  Easily could be a device problem too.
+> 
+> I think that it can be a vl2 vl1 problem. Because now I can manage in skype too using
+> the v4l1-compat library. Maybe my 2.6.32-rc5 is too new :(
+
+I don't even know what vl2 vl1 means. ;)
 
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 ---
- linux/Documentation/DocBook/v4l/videodev2.h.xml   |    2 ++
- linux/Documentation/DocBook/v4l/vidioc-g-fbuf.xml |   17 +++++++++++++++++
- 2 files changed, 19 insertions(+), 0 deletions(-)
-
-diff --git a/linux/Documentation/DocBook/v4l/videodev2.h.xml b/linux/Documentation/DocBook/v4l/videodev2.h.xml
-index 9700206..eef7ba4 100644
---- a/linux/Documentation/DocBook/v4l/videodev2.h.xml
-+++ b/linux/Documentation/DocBook/v4l/videodev2.h.xml
-@@ -565,6 +565,7 @@ struct <link linkend="v4l2-framebuffer">v4l2_framebuffer</link> {
- #define V4L2_FBUF_CAP_LOCAL_ALPHA       0x0010
- #define V4L2_FBUF_CAP_GLOBAL_ALPHA      0x0020
- #define V4L2_FBUF_CAP_LOCAL_INV_ALPHA   0x0040
-+#define V4L2_FBUF_CAP_SRC_CHROMAKEY     0x0080
- /*  Flags for the 'flags' field. */
- #define V4L2_FBUF_FLAG_PRIMARY          0x0001
- #define V4L2_FBUF_FLAG_OVERLAY          0x0002
-@@ -572,6 +573,7 @@ struct <link linkend="v4l2-framebuffer">v4l2_framebuffer</link> {
- #define V4L2_FBUF_FLAG_LOCAL_ALPHA      0x0008
- #define V4L2_FBUF_FLAG_GLOBAL_ALPHA     0x0010
- #define V4L2_FBUF_FLAG_LOCAL_INV_ALPHA  0x0020
-+#define V4L2_FBUF_FLAG_SRC_CHROMAKEY    0x0040
- 
- struct <link linkend="v4l2-clip">v4l2_clip</link> {
-         struct <link linkend="v4l2-rect">v4l2_rect</link>        c;
-diff --git a/linux/Documentation/DocBook/v4l/vidioc-g-fbuf.xml b/linux/Documentation/DocBook/v4l/vidioc-g-fbuf.xml
-index f701706..e7dda48 100644
---- a/linux/Documentation/DocBook/v4l/vidioc-g-fbuf.xml
-+++ b/linux/Documentation/DocBook/v4l/vidioc-g-fbuf.xml
-@@ -336,6 +336,13 @@ alpha value. Alpha blending makes no sense for destructive overlays.</entry>
- inverted alpha channel of the framebuffer or VGA signal. Alpha
- blending makes no sense for destructive overlays.</entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_FBUF_CAP_SRC_CHROMAKEY</constant></entry>
-+	    <entry>0x0080</entry>
-+	    <entry>The device supports Source Chroma-keying. Framebuffer pixels
-+with the chroma-key colors are replaced by video pixels, which is exactly opposite of
-+<constant>V4L2_FBUF_CAP_CHROMAKEY</constant></entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-@@ -411,6 +418,16 @@ images, but with an inverted alpha value. The blend function is:
- output = framebuffer pixel * (1 - alpha) + video pixel * alpha. The
- actual alpha depth depends on the framebuffer pixel format.</entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_FBUF_FLAG_SRC_CHROMAKEY</constant></entry>
-+	    <entry>0x0040</entry>
-+	    <entry>Use source chroma-keying. The source chroma-key color is
-+determined by the <structfield>chromakey</structfield> field of
-+&v4l2-window; and negotiated with the &VIDIOC-S-FMT; ioctl, see <xref
-+linkend="overlay" /> and <xref linkend="osd" />.
-+Both chroma-keying are mutual exclusive to each other, so same
-+<structfield>chromakey</structfield> field of &v4l2-window; is being used.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
--- 
-1.6.2.4
-
+~Randy
