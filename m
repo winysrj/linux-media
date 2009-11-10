@@ -1,56 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from khc.piap.pl ([195.187.100.11]:55001 "EHLO khc.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751539AbZK1Poi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Nov 2009 10:44:38 -0500
-From: Krzysztof Halasa <khc@pm.waw.pl>
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Jon Smirl <jonsmirl@gmail.com>,
-	Christoph Bartelmus <christoph@bartelmus.de>,
-	jarod@wilsonet.com, awalls@radix.net, dmitry.torokhov@gmail.com,
-	j@jannau.net, jarod@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR 	system?
-References: <9e4733910911270757j648e39ecl7487b7e6c43db828@mail.gmail.com>
-	<4B104971.4020800@s5r6.in-berlin.de>
-	<1259370501.11155.14.camel@maxim-laptop>
-	<m37hta28w9.fsf@intrepid.localdomain>
-	<1259419368.18747.0.camel@maxim-laptop>
-	<m3zl66y8mo.fsf@intrepid.localdomain>
-	<1259422559.18747.6.camel@maxim-laptop>
-Date: Sat, 28 Nov 2009 16:44:41 +0100
-In-Reply-To: <1259422559.18747.6.camel@maxim-laptop> (Maxim Levitsky's message
-	of "Sat, 28 Nov 2009 17:35:59 +0200")
-Message-ID: <m3r5riy7py.fsf@intrepid.localdomain>
+Received: from mail-ew0-f207.google.com ([209.85.219.207]:36792 "EHLO
+	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756044AbZKJP2f (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Nov 2009 10:28:35 -0500
+Received: by ewy3 with SMTP id 3so133024ewy.37
+        for <linux-media@vger.kernel.org>; Tue, 10 Nov 2009 07:28:39 -0800 (PST)
+Date: Tue, 10 Nov 2009 16:28:36 +0100
+From: Domenico Andreoli <cavokz@gmail.com>
+To: Roman Gaufman <hackeron@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: tw68-v2/tw68-i2c.c:145: error: unknown field
+ ???client_register??? specified in initializer
+Message-ID: <20091110152836.GA6860@raptus.dandreoli.com>
+References: <921ad39e0911100419p3ca39ea4ycd5ac84322555fc2@mail.gmail.com>
+ <b40acdb70911100426w46119c79y4226088ca3196254@mail.gmail.com>
+ <921ad39e0911100440v6f146d1ci5858517cffdc0457@mail.gmail.com>
+ <b40acdb70911100450i4902900eu92c3529de9b5b9a0@mail.gmail.com>
+ <921ad39e0911100516i6e930650m65b5e133d581f93e@mail.gmail.com>
+ <921ad39e0911100548i6f115aduba39b3b7fc570f58@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <921ad39e0911100548i6f115aduba39b3b7fc570f58@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Maxim Levitsky <maximlevitsky@gmail.com> writes:
+On Tue, Nov 10, 2009 at 01:48:43PM +0000, Roman Gaufman wrote:
+> I swapped my graphics card and techwell DVR card places and now it
+> works, thanks you!!!
 
-> Generic decoder that lirc has is actually much better and more tolerant
-> that protocol specific decoders that you propose,
+could you please try the following patch swapping the boards back to
+the original order?
 
-Actually, it is not the case. Why do you think it's better (let alone
-"much better")? Have you at least seen my RC5 decoder?
+--- a/tw68-core.c
++++ b/tw68-core.c
+@@ -695,8 +695,7 @@ static int __devinit tw68_initdev(struct pci_dev *pci_dev,
+        tw68_hw_init1(dev);
+ 
+        /* get irq */
+-       err = request_irq(pci_dev->irq, tw68_irq,
+-                         IRQF_SHARED | IRQF_DISABLED, dev->name, dev);
++       err = request_irq(pci_dev->irq, tw68_irq, IRQF_SHARED, dev->name, dev);
+        if (err < 0) {
+                printk(KERN_ERR "%s: can't get IRQ %d\n",
+                       dev->name, pci_dev->irq);
 
-> You claim you 'fix' the decoder, right?
-
-Sure.
-
-> But what about all these lirc userspace drivers?
-
-Nothing. They are not relevant and obviously have to use lircd.
-If you can have userspace driver, you can have lircd as well.
-
-> How they are supposed to use that 'fixed' decoder.
-
-They are not.
-
-Is it a problem for you?
-How is your keyboard supposed to use scanner driver?
--- 
-Krzysztof Halasa
+-----[ Domenico Andreoli, aka cavok
+ --[ http://www.dandreoli.com/gpgkey.asc
+   ---[ 3A0F 2F80 F79C 678A 8936  4FEE 0677 9033 A20E BC50
