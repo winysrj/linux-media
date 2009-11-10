@@ -1,61 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:36213
-	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751193AbZKED20 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2009 22:28:26 -0500
-Subject: Re: [PATCH 0/3 v2] linux infrared remote control drivers
-Mime-Version: 1.0 (Apple Message framework v1076)
-Content-Type: text/plain; charset=us-ascii; format=flowed; delsp=yes
-From: Jarod Wilson <jarod@wilsonet.com>
-In-Reply-To: <1257379629.3074.13.camel@palomino.walls.org>
-Date: Wed, 4 Nov 2009 22:28:26 -0500
-Cc: Jarod Wilson <jarod@redhat.com>, linux-kernel@vger.kernel.org,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Janne Grunau <j@jannau.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Content-Transfer-Encoding: 7bit
-Message-Id: <2958557D-F4C1-43AC-B004-7C18C5632CC0@wilsonet.com>
-References: <200910200956.33391.jarod@redhat.com> <C5A8E7EC-81D6-49AA-A65F-9F5D3DED1690@wilsonet.com> <1257379629.3074.13.camel@palomino.walls.org>
-To: Andy Walls <awalls@radix.net>
+Received: from mail.gmx.net ([213.165.64.20]:54201 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753001AbZKJJjE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Nov 2009 04:39:04 -0500
+Date: Tue, 10 Nov 2009 10:39:12 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Antonio Ospite <ospite@studenti.unina.it>
+cc: linux-arm-kernel@lists.infradead.org,
+	Eric Miao <eric.y.miao@gmail.com>,
+	openezx-devel@lists.openezx.org, Bart Visscher <bartv@thisnet.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/3 v2] ezx: Add camera support for A780 and A910 EZX
+ phones
+In-Reply-To: <20091110102950.497af1fb.ospite@studenti.unina.it>
+Message-ID: <Pine.LNX.4.64.0911101037280.5074@axis700.grange>
+References: <f17812d70911040119g6eb1f254pa78dd8519afef61d@mail.gmail.com>
+ <1257367650-15056-1-git-send-email-ospite@studenti.unina.it>
+ <Pine.LNX.4.64.0911050040160.4837@axis700.grange>
+ <20091105234429.ef855e2d.ospite@studenti.unina.it>
+ <Pine.LNX.4.64.0911061419220.4389@axis700.grange>
+ <20091106182910.a3b48c41.ospite@studenti.unina.it>
+ <20091110102950.497af1fb.ospite@studenti.unina.it>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Nov 4, 2009, at 7:07 PM, Andy Walls wrote:
+On Tue, 10 Nov 2009, Antonio Ospite wrote:
 
-> On Wed, 2009-11-04 at 17:56 -0500, Jarod Wilson wrote:
->> On Oct 20, 2009, at 9:56 AM, Jarod Wilson wrote:
->>
->>> This here is a second go at submitting linux infrared remote control
->>> (lirc) drivers for kernel inclusion, with a much smaller patch set
->>> that
->>> includes only the core lirc driver and two device drivers, all three
->>> of
->>> which have been heavily updated since the last submission, based on
->>> feedback received.
->>
->> Hm. Submitting this while the vast majority of people who might  
->> review
->> it were at the Japan Linux Symposium seems like it might have been a
->> bad idea. Or does no feedback mean its all good and ready to be
->> merged? ;)
->
-> Silence is concurrence. :)
->
-> Actually I will note, that lirc_dev.h uses kfifo:
->
-> http://git.wilsonet.com/linux-2.6-lirc.git/?a=blob_plain;f=drivers/input/lirc/lirc_dev.h;hb=f47f5e852d08f174c303d0ed53649733190014f7
->
-> but it least it appear to be nicely wrappered in that file. Moving  
-> to a
-> new kfifo implementation should be fairly easy, if the kfifo change
-> makes it in first.
+> Ping.
+> 
+> Guennadi, did you see the patch below? Or I should completely remove
+> the .init() callback like you said in another message?
+> As I said, my humble preference would be to keep GPIOs setup local to
+> the driver somehow, but you just tell me what to do :)
 
-Yeah, been keeping an eye on your own kfifo usage discussion w/lirc's  
-usage in mind... Thank you for blazing that trail. ;)
+Yes, please make GPIO config static and remove .init.
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
