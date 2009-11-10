@@ -1,57 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from khc.piap.pl ([195.187.100.11]:54141 "EHLO khc.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758813AbZKYQxq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2009 11:53:46 -0500
-From: Krzysztof Halasa <khc@pm.waw.pl>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Andy Walls <awalls@radix.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, mchehab@redhat.com, superm1@ubuntu.com
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was: Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-References: <BDRae8rZjFB@christoph>
-	<1259024037.3871.36.camel@palomino.walls.org>
-	<6D934408-B713-49B6-A197-46CE663455AC@wilsonet.com>
-Date: Wed, 25 Nov 2009 17:53:49 +0100
-In-Reply-To: <6D934408-B713-49B6-A197-46CE663455AC@wilsonet.com> (Jarod
-	Wilson's message of "Tue, 24 Nov 2009 08:32:40 -0500")
-Message-ID: <m3fx827dgi.fsf@intrepid.localdomain>
+Received: from ey-out-2122.google.com ([74.125.78.26]:61958 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751965AbZKJM0z convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Nov 2009 07:26:55 -0500
+Received: by ey-out-2122.google.com with SMTP id 4so187455eyf.19
+        for <linux-media@vger.kernel.org>; Tue, 10 Nov 2009 04:27:00 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <921ad39e0911100419p3ca39ea4ycd5ac84322555fc2@mail.gmail.com>
+References: <921ad39e0911100419p3ca39ea4ycd5ac84322555fc2@mail.gmail.com>
+Date: Tue, 10 Nov 2009 13:26:59 +0100
+Message-ID: <b40acdb70911100426w46119c79y4226088ca3196254@mail.gmail.com>
+Subject: =?windows-1252?Q?Re=3A_tw68=2Dv2=2Ftw68=2Di2c=2Ec=3A145=3A_error=3A_unknown_field_=91?=
+	=?windows-1252?Q?client=5Fregister=92_specified_in_initializer?=
+From: Domenico Andreoli <cavokz@gmail.com>
+To: Roman Gaufman <hackeron@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jarod Wilson <jarod@wilsonet.com> writes:
+Hi,
 
-> The bulk of breakage in lirc I've personally had to deal with has
-> mostly come in the form of kernel interface changes, which would
-> definitely be mitigated by not having to maintain the drivers
-> out-of-tree any longer.
+On Tue, Nov 10, 2009 at 1:19 PM, Roman Gaufman <hackeron@gmail.com> wrote:
+> Hey, I'm trying to compile tw68 and I'm getting the following:
+>
+> make -C /lib/modules/2.6.31-14-generic/build M=/root/tw68-v2 modules
+> make[1]: Entering directory `/usr/src/linux-headers-2.6.31-14-generic'
+>  CC [M]  /root/tw68-v2/tw68-core.o
+>  CC [M]  /root/tw68-v2/tw68-cards.o
+>  CC [M]  /root/tw68-v2/tw68-i2c.o
+> /root/tw68-v2/tw68-i2c.c:145: error: unknown field ‘client_register’
+> specified in initializer
+> /root/tw68-v2/tw68-i2c.c:145: warning: missing braces around initializer
+> /root/tw68-v2/tw68-i2c.c:145: warning: (near initialization for
+> ‘tw68_adap_sw_template.dev_released’)
+> /root/tw68-v2/tw68-i2c.c:145: warning: initialization makes integer
+> from pointer without a cast
+> /root/tw68-v2/tw68-i2c.c:145: error: initializer element is not
+> computable at load time
+> /root/tw68-v2/tw68-i2c.c:145: error: (near initialization for
+> ‘tw68_adap_sw_template.dev_released.done’)
+> make[2]: *** [/root/tw68-v2/tw68-i2c.o] Error 1
+> make[1]: *** [_module_/root/tw68-v2] Error 2
+> make[1]: Leaving directory `/usr/src/linux-headers-2.6.31-14-generic'
+> make: *** [all] Error 2
+>
+> Any ideas?
 
-Certainly.
+yes, the i2c part got outdated by some kernel change. anyway it is still
+not used so you can safely remove tw68-i2c.c from Makefile.
 
-> Now, I'm all for "improving" things and integrating better with the
-> input subsystem, but what I don't really want to do is break
-> compatibility with the existing setups on thousands (and thousands?)
-> of MythTV boxes around the globe. The lirc userspace can be pretty
-> nimble. If we can come up with a shiny new way that raw IR can be
-> passed out through an input device, I'm pretty sure lirc userspace can
-> be adapted to handle that.
+regards,
+Domenico
 
-Lirc can already handle input layer. Since both ways require userspace
-changes, why not do it the right way the first time? Most of the code
-is already written.
-
-> If a new input-layer-based transmit interface is developed, we can
-> take advantage of that too. But there's already a very mature lirc
-> interface for doing all of this. So why not start with adding things
-> more or less as they exist right now and evolve the drivers into an
-> idealized form? Getting *something* into the kernel in the first place
-> is a huge step in that direction.
-
-What I see as potentially problematic is breaking compatibility multiple
-times.
--- 
-Krzysztof Halasa
+-----[ Domenico Andreoli, aka cavok
+ --[ http://www.dandreoli.com/gpgkey.asc
+   ---[ 3A0F 2F80 F79C 678A 8936  4FEE 0677 9033 A20E BC50
