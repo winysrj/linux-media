@@ -1,60 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kelvin.aketzu.net ([81.22.244.161]:49739 "EHLO
-	kelvin.aketzu.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755803AbZKDRRB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2009 12:17:01 -0500
-Date: Wed, 4 Nov 2009 19:08:44 +0200
-From: Anssi Kolehmainen <anssi@aketzu.net>
-To: henrik@kurelid.se, linux-media@vger.kernel.org
-Subject: Firedtv stops working after a while
-Message-ID: <20091104170844.GB18091@aketzu.net>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1825 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757947AbZKKR7M (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Nov 2009 12:59:12 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [RFC] Video events, version 2.2
+Date: Wed, 11 Nov 2009 18:59:09 +0100
+Cc: "Ivan T. Ivanov" <iivanov@mm-sol.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Zutshi Vimarsh (Nokia-D-MSW/Helsinki)" <vimarsh.zutshi@nokia.com>,
+	Cohen David Abraham <david.cohen@nokia.com>,
+	Guru Raj <gururaj.nagendra@intel.com>,
+	Mike Krufky <mkrufky@linuxtv.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <4AE182DD.6060103@maxwell.research.nokia.com> <200911110819.59521.hverkuil@xs4all.nl> <4AFAF490.6090507@maxwell.research.nokia.com>
+In-Reply-To: <4AFAF490.6090507@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
+Message-Id: <200911111859.09500.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Wednesday 11 November 2009 18:29:52 Sakari Ailus wrote:
+> Hans Verkuil wrote:
+> > On Saturday 24 October 2009 23:56:24 Sakari Ailus wrote:
+> >> Ivan T. Ivanov wrote:
+> >>> Hi Sakari, 
+> >> Hi,
+> >>
+> >>> On Fri, 2009-10-23 at 13:18 +0300, Sakari Ailus wrote:
+> >> [clip]
+> >>>> struct v4l2_event {
+> >>>> 	__u32		count;
+> >>>> 	__u32		type;
+> >>>> 	__u32		sequence;
+> >>>> 	struct timeval	timestamp;
+> >>> Can we use 'struct timespec' here. This will force actual 
+> >>> implementation to use high-resolution source if possible, 
+> >>> and remove hundreds gettimeofday() in user space, which 
+> >>> should be used for event synchronization, with more 
+> >>> power friendly clock_getres(CLOCK_MONOTONIC).
+> >> Good point. I originally picked timeval since it was used in 
+> >> v4l2_buffer. The spec tells to use gettimeofday() for system time but 
+> >> clock skewing is causes problems in video encoding. 
+> >> clock_getres(CLOCK_MONOTONIC) is free of clock skewing and thus should 
+> >> be more suitable for this kind of use.
+> >>
+> >> I also propose to use timespec instead of timeval.
+> >>
+> > 
+> > Hi Sakari,
+> > 
+> > What is that status of the event API? It is my impression that it is pretty
+> > much finished. Sakari, can you make a final 2.3 RFC? Then Guru can take over
+> > and start the implementation.
+> 
+> Ah.
+> 
+> One thing that I was still wondering was that are there use cases where 
+> other kind of time stamps might be useful? I guess that when the V4L2 
+> was designed no-one though of the need for time stamps of different 
+> type. So are there use cases where gettimeofday() style stamps would 
+> still be better?
 
-I have Firedtv DVB-C/CI adapter and for some reason it stops working
-after a while. Typically it takes something like 5 hours (which makes
-debugging fun).  I have vdr 1.7.9 as the dvb viewer (with xine plugin),
-kernel 2.6.31 x86_64, latest v4l-dvb drivers from hg and the few
-remaining patches from firesat.kurelid.se.
+If you ever need to relate an event to a specific captured frame, then that
+might well be useful. But I can't think of an actual use case, though.
 
-Vdr spews following to syslog [1]:
-Nov  4 03:00:42 maxwell vdr: [26241] frontend 0 timed out while tuning to channel 400, tp 266
-Nov  4 03:13:35 maxwell vdr: [26242] ERROR: can't set filter (pid=18, tid=40, mask=C0): Input/output error
-Nov  4 03:13:36 maxwell vdr: [26241] frontend 0 lost lock on channel 180, tp 322
-Nov  4 03:13:37 maxwell vdr: [26242] ERROR: can't set filter (pid=0, tid=00, mask=FF): Input/output error
-Nov  4 03:13:39 maxwell vdr: [26241] frontend 0 timed out while tuning to channel 180, tp 322
-Nov  4 03:13:40 maxwell vdr: [26241] frontend 0 regained lock on channel 180, tp 322
-Nov  4 03:13:52 maxwell vdr: [26242] ERROR: can't set filter (pid=16, tid=40, mask=FF): Device or resource busy
-Nov  4 03:13:52 maxwell vdr: [26242] ERROR: can't set filter (pid=3306, tid=02, mask=FF): Device or resource busy
-Nov  4 03:13:53 maxwell vdr: [26242] ERROR: can't set filter (pid=3306, tid=02, mask=FF): Device or resource busy
+> In that case we might choose to leave it driver's decision to decide 
+> what kind of timestamps to use and in that case application would just 
+> have to know. The alternative would be to use union and a flag telling 
+> what's in there.
+> 
 
-whereas kernel says [2]:
-<3>[548957.448338] firedtv 0012870036002e6f-0: FCP response timed out
-<3>[548957.448343] firedtv 0012870036002e6f-0: can't set PIDs
-<4>[548974.380505] DVB (dvb_dmxdev_filter_start): could not alloc feed
-<4>[548974.380864] DVB (dvb_dmxdev_filter_start): could not alloc feed
- + lots of fancy FCP communication debugging thanks to firedtv debug=-1
+Let's go with timespec. If we need to add an event that has to relate to
+a specific captured frame then it is always possible to add a struct timeval
+as part of the event data for that particular event.
 
-Kernel-time 548975 corresponds with real time 03:13:35. Computer
-start was at 1256748240. I had to log kernel messages to separate file
-so it wouldn't eat all space with syslog files.
+Regards,
 
-Trivial workaround is to rmmod firedtv + modprobe firedtv but it is
-rather annoying.  The freeze might be connected to vdr doing EPG scan
-and trying to check all channels but manually triggering that scan
-doesn't cause any malfunctions.
-
-Any ideas what I should try?
-
-1: http://aketzu.net/firedtv-syslog.bz2
-2: http://aketzu.net/firedtv-kmsg.bz2 (206M uncompressed, 14M compressed)
+	Hans
 
 -- 
-Anssi Kolehmainen
-anssi.kolehmainen@iki.fi
-040-5085390
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
