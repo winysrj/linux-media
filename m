@@ -1,70 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:38233 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750827AbZKWNln (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2009 08:41:43 -0500
-Date: Mon, 23 Nov 2009 14:41:38 +0100
-From: grafgrimm77@gmx.de
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: dibusb-common.c FE_HAS_LOCK problem
-Message-ID: <20091123144138.5a27485b@x2.grafnetz>
-In-Reply-To: <alpine.LRH.2.00.0911231418350.14263@pub1.ifh.de>
-References: <20091107105614.7a51f2f5@x2.grafnetz>
-	<alpine.LRH.2.00.0911191630250.12734@pub2.ifh.de>
-	<20091121182514.61b39d23@x2.grafnetz>
-	<alpine.LRH.2.00.0911230947540.14263@pub1.ifh.de>
-	<20091123120310.5b10c9cc@x2.grafnetz>
-	<alpine.LRH.2.00.0911231206450.14263@pub1.ifh.de>
-	<20091123123338.7273255b@x2.grafnetz>
-	<alpine.LRH.2.00.0911231321270.14263@pub1.ifh.de>
-	<alpine.LRH.2.00.0911231418350.14263@pub1.ifh.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from ganesha.gnumonks.org ([213.95.27.120]:43393 "EHLO
+	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751164AbZKKHM7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Nov 2009 02:12:59 -0500
+Date: Wed, 11 Nov 2009 16:12:50 +0900
+From: Harald Welte <laforge@gnumonks.org>
+To: linux-media@vger.kernel.org
+Cc: Jin-Sung Yang <jsgood.yang@samsung.com>
+Subject: Re: [RFC] Global video buffers pool / Samsung SoC's
+Message-ID: <20091111071250.GV4047@prithivi.gnumonks.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Mon, 23 Nov 2009 14:19:10 +0100 (CET)
-schrieb Patrick Boettcher <pboettcher@kernellabs.com>:
+Hi Guennadi and others,
 
-> On Mon, 23 Nov 2009, Patrick Boettcher wrote:
-> 
-> > On Mon, 23 Nov 2009, grafgrimm77@gmx.de wrote:
-> >> [..]
-> >> ----- hello stupid I2C access ----
-> >> Pid: 255, comm: khubd Tainted: P       A   2.6.31.6 #1
-> >> Call Trace:
-> >> [<ffffffffa0042292>] ? dibusb_i2c_xfer+0xe2/0x130 [dvb_usb_dibusb_common]
-> >> [<ffffffff81341dc1>] ? i2c_transfer+0x91/0xe0
-> >> [<ffffffffa0059081>] ? dib3000_write_reg+0x51/0x70 [dib3000mb]
-> >> [<ffffffffa00855c9>] ? dvb_pll_attach+0xa9/0x238 [dvb_pll]
-> >> [..]
-> >
-> > Voila.
-> >
-> > This is the access with makes the dvb-pll-driver not create the tuner driver.
-> >
-> > This is (I forgot the correct name) read-without-write-i2caccess. It is bad 
-> > handled by the dibusb-driver and it can destroy the eeprom on the USB side.
-> >
-> > Please try whether the attached patch fixes the whole situation for you.
-> >
-> > If so, please send back a line like this:
-> >
-> > Tested-by: Your name <email>
-> 
-> The patch attached.
-> 
-> --
-> 
-> Patrick Boettcher - Kernel Labs
-> http://www.kernellabs.com/
+first of all sorry for breaking the thread, but I am new to this list
+and could not find the message-id of the original mails nor a .mbox
+format archive for the list :(
 
-Hi Patrick, 
+As I was one of the people giving comments to Guennadi's talk at ELCE,
+let me give some feedback here, too.
 
-your patch [dibusb-common-fix  text/PLAIN (1054 bytes)] works here. 
+I'm currently helping the Samsung System LSI Linux kernel team with
+bringing their various ports for their ARM SoCs mainline.  So far we
+have excluded much of the multimedia related parts due to the complexity
+and lack of kernel infrastructure.
 
-Tested-by: Mario Bachmann <grafgrimm77@gmx.de>
+Let me briefly describe the SoCs in question: They have an ARM9, ARM11
+or Cortex-A8 core and multiple video input and output paths, such as
+* camera interface
+* 2d acceleration engine
+* 3d acceleration engine
+* post-processor (colorspace conversion, scaling, rotating)
+* LCM output for classic digital RGB+sync interfaces
+* TV scaler
+* TV encoder
+* HDMI interface (simple serial-HDMI with DMA from/to system memory)
+* Transport Stream interface (MPEG-transport stream input with PID
+  filter which can DMA to system memory
+* MIPI-HSI LCM output device
+* Multi-Function codec for H.264 and other stuff
+* Hardware JPEG codec.
+plus even some more that I might have missed.
 
-Mario
+One of the issues is that, at least in many current and upcoming
+products, all those integrated peripherals can only use physically
+contiguous memory.
+
+For the classic output path (e.g. Xorg+EXA+XAA+3D), that is fine.  The
+framebuffer driver can simply allocate some large chunk of physical
+system memory at boot time, map that into userspace and be happy.  This
+includes things like Xvideo support in the Xserver.  Also, HDMI output
+and TV output can be handled inside X or switch to a new KMS model.
+
+However, the input side looks quite different,  On the one hand, we have
+the camera driver, but possibly HDMI input and transport stream input,
+are less easy.
+
+also, given the plethora of such subsytems in a device, you definitely
+don't want to have one static big boot-time allocation for each of those
+devices.  You don't want to waste that much memory all the time just in
+case at some time you start an application that actually needs this.
+Also, it is unlikely that all of the subsystems will operate at the same
+time.
+
+So having an in-kernel allocator for physically contiguous memory is
+something that is needed to properly support this hardware.  At boot
+time you allocate one big pool, from which you then on-demand allocate
+and free physically contiguous buffers, even at much later time.
+
+Furthermore, think of something like the JPEG codec acceleration, which
+you also want to use zero-copy from userspace.  So userpsace (like
+libjpeg for decode, or a camera application for encode)would also need
+to be able to allocate such a buffer inside the kernel for input and
+output data of the codec, mmap it, put its jpeg data into it and then
+run the actual codec.
+
+How would that relate to the proposed global video buffers pool? Well,
+I think before thinking strictly about video buffers for camera chips,
+we have to think much more generically!
+
+Also, has anyone investigated if GEM or TTM could be used in unmodified
+or modified form for this?  After all, they are intended to allocate
+(and possibly map) video buffers...
+
+Regards,
+	Harald
+-- 
+- Harald Welte <laforge@gnumonks.org>           http://laforge.gnumonks.org/
+============================================================================
+"Privacy in residential applications is a desirable marketing option."
+                                                  (ETSI EN 300 175-7 Ch. A6)
