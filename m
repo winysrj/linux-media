@@ -1,140 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:45116 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750787AbZK1VeL (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4234 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758765AbZKKTux (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Nov 2009 16:34:11 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: vandrove@vc.cvut.cz
-Subject: radio-sf16fmi: add autoprobing
-Date: Sat, 28 Nov 2009 22:34:07 +0100
-Cc: linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200911282234.08713.linux@rainbow-software.org>
+	Wed, 11 Nov 2009 14:50:53 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id nABJosbu086380
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 11 Nov 2009 20:50:58 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 11 Nov 2009 20:50:54 +0100 (CET)
+Message-Id: <200911111950.nABJosbu086380@smtp-vbr13.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add automatic probing of ports 0x284 and 0x384 to radio-sf16fmi if no card is
-found using PnP.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+Results of the daily build of v4l-dvb:
 
---- linux-source-2.6.31/drivers/media/radio/Kconfig.1	2009-11-28 21:40:32.000000000 +0100
-+++ linux-source-2.6.31/drivers/media/radio/Kconfig	2009-11-28 21:32:58.000000000 +0100
-@@ -199,10 +199,7 @@
- 	tristate "SF16-FMI/SF16-FMP Radio"
- 	depends on ISA && VIDEO_V4L2
- 	---help---
--	  Choose Y here if you have one of these FM radio cards.  If you
--	  compile the driver into the kernel and your card is not PnP one, you
--	  have to add "sf16fm=<io>" to the kernel command line (I/O address is
--	  0x284 or 0x384).
-+	  Choose Y here if you have one of these FM radio cards.
- 
- 	  In order to control your radio card, you will need to use programs
- 	  that are compatible with the Video For Linux API.  Information on
---- linux-source-2.6.31/drivers/media/radio/radio-sf16fmi.c.1	2009-11-28 21:27:22.000000000 +0100
-+++ linux-source-2.6.31/drivers/media/radio/radio-sf16fmi.c	2009-11-28 22:15:57.000000000 +0100
-@@ -54,6 +54,7 @@ struct fmi
- 
- static struct fmi fmi_card;
- static struct pnp_dev *dev;
-+bool pnp_attached;
- 
- /* freq is in 1/16 kHz to internal number, hw precision is 50 kHz */
- /* It is only useful to give freq in interval of 800 (=0.05Mhz),
-@@ -316,26 +317,54 @@ static int __init fmi_init(void)
- {
- 	struct fmi *fmi = &fmi_card;
- 	struct v4l2_device *v4l2_dev = &fmi->v4l2_dev;
--	int res;
-+	int res, i;
-+	int probe_ports[] = { 0, 0x284, 0x384 };
- 
--	if (io < 0)
--		io = isapnp_fmi_probe();
--	strlcpy(v4l2_dev->name, "sf16fmi", sizeof(v4l2_dev->name));
--	fmi->io = io;
--	if (fmi->io < 0) {
--		v4l2_err(v4l2_dev, "No PnP card found.\n");
--		return fmi->io;
-+	if (io < 0) {
-+		for (i = 0; i < ARRAY_SIZE(probe_ports); i++) {
-+			io = probe_ports[i];
-+			if (io == 0) {
-+				io = isapnp_fmi_probe();
-+				if (io < 0)
-+					continue;
-+				pnp_attached = 1;
-+			}
-+			if (!request_region(io, 2, "radio-sf16fmi")) {
-+				if (pnp_attached)
-+					pnp_device_detach(dev);
-+				io = -1;
-+				continue;
-+			}
-+			if (pnp_attached ||
-+			    ((inb(io) & 0xf9) == 0xf9 && (inb(io) & 0x4) == 0))
-+				break;
-+			release_region(io, 2);
-+			io = -1;
-+		}
-+	} else {
-+		if (!request_region(io, 2, "radio-sf16fmi")) {
-+			printk(KERN_ERR "radio-sf16fmi: port %#x already in use\n", io);
-+			return -EBUSY;
-+		}
-+		if (inb(io) == 0xff) {
-+			printk(KERN_ERR "radio-sf16fmi: card not present at %#x\n", io);
-+			release_region(io, 2);
-+			return -ENODEV;
-+		}
- 	}
--	if (!request_region(io, 2, "radio-sf16fmi")) {
--		v4l2_err(v4l2_dev, "port 0x%x already in use\n", fmi->io);
--		pnp_device_detach(dev);
--		return -EBUSY;
-+	if (io < 0) {
-+		printk(KERN_ERR "radio-sf16fmi: no cards found\n");
-+		return -ENODEV;
- 	}
- 
-+	strlcpy(v4l2_dev->name, "sf16fmi", sizeof(v4l2_dev->name));
-+	fmi->io = io;
-+
- 	res = v4l2_device_register(NULL, v4l2_dev);
- 	if (res < 0) {
- 		release_region(fmi->io, 2);
--		pnp_device_detach(dev);
-+		if (pnp_attached)
-+			pnp_device_detach(dev);
- 		v4l2_err(v4l2_dev, "Could not register v4l2_device\n");
- 		return res;
- 	}
-@@ -352,7 +381,8 @@ static int __init fmi_init(void)
- 	if (video_register_device(&fmi->vdev, VFL_TYPE_RADIO, radio_nr) < 0) {
- 		v4l2_device_unregister(v4l2_dev);
- 		release_region(fmi->io, 2);
--		pnp_device_detach(dev);
-+		if (pnp_attached)
-+			pnp_device_detach(dev);
- 		return -EINVAL;
- 	}
- 
-@@ -369,7 +399,7 @@ static void __exit fmi_exit(void)
- 	video_unregister_device(&fmi->vdev);
- 	v4l2_device_unregister(&fmi->v4l2_dev);
- 	release_region(fmi->io, 2);
--	if (dev)
-+	if (dev && pnp_attached)
- 		pnp_device_detach(dev);
- }
- 
+date:        Wed Nov 11 19:00:04 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13327:19c0469c02c3
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
+linux-2.6.22.19-armv5: WARNINGS
+linux-2.6.23.12-armv5: WARNINGS
+linux-2.6.24.7-armv5: WARNINGS
+linux-2.6.25.11-armv5: WARNINGS
+linux-2.6.26-armv5: WARNINGS
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29.1-armv5: WARNINGS
+linux-2.6.30-armv5: WARNINGS
+linux-2.6.31-armv5: WARNINGS
+linux-2.6.32-rc6-armv5: ERRORS
+linux-2.6.32-rc6-armv5-davinci: ERRORS
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.31-armv5-ixp: WARNINGS
+linux-2.6.32-rc6-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.32-rc6-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-rc6-i686: WARNINGS
+linux-2.6.23.12-m32r: WARNINGS
+linux-2.6.24.7-m32r: WARNINGS
+linux-2.6.25.11-m32r: WARNINGS
+linux-2.6.26-m32r: WARNINGS
+linux-2.6.27-m32r: WARNINGS
+linux-2.6.28-m32r: WARNINGS
+linux-2.6.29.1-m32r: WARNINGS
+linux-2.6.30-m32r: WARNINGS
+linux-2.6.31-m32r: WARNINGS
+linux-2.6.32-rc6-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: WARNINGS
+linux-2.6.32-rc6-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: WARNINGS
+linux-2.6.32-rc6-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-rc6-x86_64: ERRORS
+sparse (linux-2.6.31): OK
+sparse (linux-2.6.32-rc6): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
--- 
-Ondrej Zary
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
