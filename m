@@ -1,47 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from khc.piap.pl ([195.187.100.11]:41221 "EHLO khc.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751421AbZK3UHR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Nov 2009 15:07:17 -0500
-From: Krzysztof Halasa <khc@pm.waw.pl>
-To: kevin granade <kevin.granade@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andy Walls <awalls@radix.net>, Ray Lee <ray-lk@madrabbit.org>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	Jon Smirl <jonsmirl@gmail.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
-References: <m3r5riy7py.fsf@intrepid.localdomain>
-	<9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>
-	<1259469121.3125.28.camel@palomino.walls.org>
-	<20091129124011.4d8a6080@lxorguk.ukuu.org.uk>
-	<1259515703.3284.11.camel@maxim-laptop>
-	<2c0942db0911290949p89ae64bjc3c7501c2de6930c@mail.gmail.com>
-	<1259537732.5231.11.camel@palomino.walls.org>
-	<4B13B2FA.4050600@redhat.com>
-	<1259585852.3093.31.camel@palomino.walls.org>
-	<4B13C799.4060906@redhat.com>
-	<7004b08e0911300814tb474f96s42ec56ca2e43cf7a@mail.gmail.com>
-Date: Mon, 30 Nov 2009 21:07:20 +0100
-In-Reply-To: <7004b08e0911300814tb474f96s42ec56ca2e43cf7a@mail.gmail.com>
-	(kevin granade's message of "Mon, 30 Nov 2009 10:14:19 -0600")
-Message-ID: <m3einfvksn.fsf@intrepid.localdomain>
+Received: from smtp.nokia.com ([192.100.122.233]:59386 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753509AbZKKVbS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Nov 2009 16:31:18 -0500
+Message-ID: <4AFB2D14.1010305@maxwell.research.nokia.com>
+Date: Wed, 11 Nov 2009 23:31:00 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"Zutshi Vimarsh (Nokia-D-MSW/Helsinki)" <vimarsh.zutshi@nokia.com>,
+	Ivan Ivanov <iivanov@mm-sol.com>,
+	Cohen David Abraham <david.cohen@nokia.com>,
+	Guru Raj <gururaj.nagendra@intel.com>,
+	Mike Krufky <mkrufky@linuxtv.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [RFC] Video events, version 2.3
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-kevin granade <kevin.granade@gmail.com> writes:
+Hi,
 
-> This idea of the in-kernel decoding being disabled when the raw API is
-> opened worries me.
 
-I don't think we need to disable the in-kernel decoding automatically.
-That would be rather unfortunate.
+Here's the version 2.3 of the video events RFC which hopefully will be 
+the final one. It's based on Laurent Pinchart's original RFC and 
+versions 2, 2.1 and 2.2 which I wrote. The old RFC is available here:
+
+<URL:http://www.spinics.net/lists/linux-media/msg11254.html>
+
+Changes to version 2.2
+--------------------
+
+- The timestamp has changed from struct timeval (do_gettimeofday()) to 
+struct timespec (clock_getres(CLOCK_MONOTONIC)).
+
+Interface description
+---------------------
+
+Event type is either a standard event or private event. Standard events
+will be defined in videodev2.h. Private event types begin from
+V4L2_EVENT_PRIVATE_START. The four topmost bits of the type should not
+be used for the moment.
+
+#define V4L2_EVENT_ALL			0
+#define V4L2_EVENT_PRIVATE_START	0x08000000
+
+VIDIOC_DQEVENT is used to get events. count is number of pending events
+after the current one. sequence is the event type sequence number and
+the data is specific to event type.
+
+The user will get the information that there's an event through
+exception file descriptors by using select(2). When an event is
+available the poll handler sets POLLPRI which wakes up select. -EINVAL
+will be returned if there are no pending events.
+
+VIDIOC_SUBSCRIBE_EVENT and VIDIOC_UNSUBSCRIBE_EVENT are used to
+subscribe and unsubscribe from events. The argument is struct
+v4l2_event_subscription which now only contains the type field for the
+event type. Every event can be subscribed or unsubscribed by one ioctl
+by using special type V4L2_EVENT_ALL.
+
+
+struct v4l2_event {
+	__u32		count;
+	__u32		type;
+	__u32		sequence;
+	struct timespec	timestamp;
+	__u32		reserved[8];
+	__u8		data[64];
+};
+
+struct v4l2_event_subscription {
+	__u32		type;
+	__u32		reserved[8];
+};
+
+#define VIDIOC_DQEVENT		_IOR('V', 84, struct v4l2_event)
+#define VIDIOC_SUBSCRIBE_EVENT	_IOW('V', 85, struct
+				     v4l2_event_subscription)
+#define VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 86, struct
+				      v4l2_event_subscription)
+
+
+The size of the event queue is decided by the driver. Which events will
+be discarded on queue overflow depends on the implementation.
+
+
+Questions
+---------
+
+None on my side.
+
+Comments and questions are still very very welcome.
+
 -- 
-Krzysztof Halasa
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
+
+
