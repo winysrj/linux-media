@@ -1,334 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:44911 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752206AbZKRGVZ (ORCPT
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:43046 "EHLO
+	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755318AbZKKMRG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 01:21:25 -0500
-Received: from epmmp1 (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0KTA006Y2KBT99@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 18 Nov 2009 15:21:30 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0KTA00M6LKBTS8@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 18 Nov 2009 15:21:29 +0900 (KST)
-Date: Wed, 18 Nov 2009 15:21:30 +0900
-From: Joonyoung Shim <jy0922.shim@samsung.com>
-Subject: [PATCH 2/3] radio-si470x: move some file operations to common file
-To: linux-media@vger.kernel.org
-Cc: tobias.lorenz@gmx.net, mchehab@infradead.org,
-	kyungmin.park@samsung.com
-Message-id: <4B03926A.6030401@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7BIT
+	Wed, 11 Nov 2009 07:17:06 -0500
+Received: by yxe17 with SMTP id 17so855759yxe.33
+        for <linux-media@vger.kernel.org>; Wed, 11 Nov 2009 04:17:12 -0800 (PST)
+Message-ID: <4AFAAB44.1000001@gmail.com>
+Date: Wed, 11 Nov 2009 13:17:08 +0100
+From: Ryan Raasch <ryan.raasch@gmail.com>
+MIME-Version: 1.0
+To: Carlos Lavin <carlos.lavin@vista-silicon.com>,
+	v4l2_linux <linux-media@vger.kernel.org>
+Subject: Re: module ov7670.c
+References: <fe6fd5f60911110136t5f0f97fcjcd849916df6fda0c@mail.gmail.com>	 <4AFA97A0.10908@gmail.com> <fe6fd5f60911110320x45475aa4j38930660e9b2e81b@mail.gmail.com>
+In-Reply-To: <fe6fd5f60911110320x45475aa4j38930660e9b2e81b@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The read and poll file operations of the si470x usb driver can be used
-also equally on the si470x i2c driver, so they go to the common file.
 
-Signed-off-by: Joonyoung Shim <jy0922.shim@samsung.com>
----
- drivers/media/radio/si470x/radio-si470x-common.c |   98 ++++++++++++++++++++++
- drivers/media/radio/si470x/radio-si470x-i2c.c    |   15 +---
- drivers/media/radio/si470x/radio-si470x-usb.c    |   97 +---------------------
- drivers/media/radio/si470x/radio-si470x.h        |    3 +-
- 4 files changed, 104 insertions(+), 109 deletions(-)
 
-diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
-index 7296cf4..f4645d4 100644
---- a/drivers/media/radio/si470x/radio-si470x-common.c
-+++ b/drivers/media/radio/si470x/radio-si470x-common.c
-@@ -426,6 +426,104 @@ int si470x_rds_on(struct si470x_device *radio)
- 
- 
- /**************************************************************************
-+ * File Operations Interface
-+ **************************************************************************/
-+
-+/*
-+ * si470x_fops_read - read RDS data
-+ */
-+static ssize_t si470x_fops_read(struct file *file, char __user *buf,
-+		size_t count, loff_t *ppos)
-+{
-+	struct si470x_device *radio = video_drvdata(file);
-+	int retval = 0;
-+	unsigned int block_count = 0;
-+
-+	/* switch on rds reception */
-+	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
-+		si470x_rds_on(radio);
-+
-+	/* block if no new data available */
-+	while (radio->wr_index == radio->rd_index) {
-+		if (file->f_flags & O_NONBLOCK) {
-+			retval = -EWOULDBLOCK;
-+			goto done;
-+		}
-+		if (wait_event_interruptible(radio->read_queue,
-+			radio->wr_index != radio->rd_index) < 0) {
-+			retval = -EINTR;
-+			goto done;
-+		}
-+	}
-+
-+	/* calculate block count from byte count */
-+	count /= 3;
-+
-+	/* copy RDS block out of internal buffer and to user buffer */
-+	mutex_lock(&radio->lock);
-+	while (block_count < count) {
-+		if (radio->rd_index == radio->wr_index)
-+			break;
-+
-+		/* always transfer rds complete blocks */
-+		if (copy_to_user(buf, &radio->buffer[radio->rd_index], 3))
-+			/* retval = -EFAULT; */
-+			break;
-+
-+		/* increment and wrap read pointer */
-+		radio->rd_index += 3;
-+		if (radio->rd_index >= radio->buf_size)
-+			radio->rd_index = 0;
-+
-+		/* increment counters */
-+		block_count++;
-+		buf += 3;
-+		retval += 3;
-+	}
-+	mutex_unlock(&radio->lock);
-+
-+done:
-+	return retval;
-+}
-+
-+
-+/*
-+ * si470x_fops_poll - poll RDS data
-+ */
-+static unsigned int si470x_fops_poll(struct file *file,
-+		struct poll_table_struct *pts)
-+{
-+	struct si470x_device *radio = video_drvdata(file);
-+	int retval = 0;
-+
-+	/* switch on rds reception */
-+	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
-+		si470x_rds_on(radio);
-+
-+	poll_wait(file, &radio->read_queue, pts);
-+
-+	if (radio->rd_index != radio->wr_index)
-+		retval = POLLIN | POLLRDNORM;
-+
-+	return retval;
-+}
-+
-+
-+/*
-+ * si470x_fops - file operations interface
-+ */
-+static const struct v4l2_file_operations si470x_fops = {
-+	.owner			= THIS_MODULE,
-+	.read			= si470x_fops_read,
-+	.poll			= si470x_fops_poll,
-+	.ioctl			= video_ioctl2,
-+	.open			= si470x_fops_open,
-+	.release		= si470x_fops_release,
-+};
-+
-+
-+
-+/**************************************************************************
-  * Video4Linux Interface
-  **************************************************************************/
- 
-diff --git a/drivers/media/radio/si470x/radio-si470x-i2c.c b/drivers/media/radio/si470x/radio-si470x-i2c.c
-index 2d53b6a..4816a6d 100644
---- a/drivers/media/radio/si470x/radio-si470x-i2c.c
-+++ b/drivers/media/radio/si470x/radio-si470x-i2c.c
-@@ -173,7 +173,7 @@ int si470x_disconnect_check(struct si470x_device *radio)
- /*
-  * si470x_fops_open - file open
-  */
--static int si470x_fops_open(struct file *file)
-+int si470x_fops_open(struct file *file)
- {
- 	struct si470x_device *radio = video_drvdata(file);
- 	int retval = 0;
-@@ -194,7 +194,7 @@ static int si470x_fops_open(struct file *file)
- /*
-  * si470x_fops_release - file release
-  */
--static int si470x_fops_release(struct file *file)
-+int si470x_fops_release(struct file *file)
- {
- 	struct si470x_device *radio = video_drvdata(file);
- 	int retval = 0;
-@@ -215,17 +215,6 @@ static int si470x_fops_release(struct file *file)
- }
- 
- 
--/*
-- * si470x_fops - file operations interface
-- */
--const struct v4l2_file_operations si470x_fops = {
--	.owner		= THIS_MODULE,
--	.ioctl		= video_ioctl2,
--	.open		= si470x_fops_open,
--	.release	= si470x_fops_release,
--};
--
--
- 
- /**************************************************************************
-  * Video4Linux Interface
-diff --git a/drivers/media/radio/si470x/radio-si470x-usb.c b/drivers/media/radio/si470x/radio-si470x-usb.c
-index f2d0e1d..a96e1b9 100644
---- a/drivers/media/radio/si470x/radio-si470x-usb.c
-+++ b/drivers/media/radio/si470x/radio-si470x-usb.c
-@@ -509,89 +509,9 @@ resubmit:
-  **************************************************************************/
- 
- /*
-- * si470x_fops_read - read RDS data
-- */
--static ssize_t si470x_fops_read(struct file *file, char __user *buf,
--		size_t count, loff_t *ppos)
--{
--	struct si470x_device *radio = video_drvdata(file);
--	int retval = 0;
--	unsigned int block_count = 0;
--
--	/* switch on rds reception */
--	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
--		si470x_rds_on(radio);
--
--	/* block if no new data available */
--	while (radio->wr_index == radio->rd_index) {
--		if (file->f_flags & O_NONBLOCK) {
--			retval = -EWOULDBLOCK;
--			goto done;
--		}
--		if (wait_event_interruptible(radio->read_queue,
--			radio->wr_index != radio->rd_index) < 0) {
--			retval = -EINTR;
--			goto done;
--		}
--	}
--
--	/* calculate block count from byte count */
--	count /= 3;
--
--	/* copy RDS block out of internal buffer and to user buffer */
--	mutex_lock(&radio->lock);
--	while (block_count < count) {
--		if (radio->rd_index == radio->wr_index)
--			break;
--
--		/* always transfer rds complete blocks */
--		if (copy_to_user(buf, &radio->buffer[radio->rd_index], 3))
--			/* retval = -EFAULT; */
--			break;
--
--		/* increment and wrap read pointer */
--		radio->rd_index += 3;
--		if (radio->rd_index >= radio->buf_size)
--			radio->rd_index = 0;
--
--		/* increment counters */
--		block_count++;
--		buf += 3;
--		retval += 3;
--	}
--	mutex_unlock(&radio->lock);
--
--done:
--	return retval;
--}
--
--
--/*
-- * si470x_fops_poll - poll RDS data
-- */
--static unsigned int si470x_fops_poll(struct file *file,
--		struct poll_table_struct *pts)
--{
--	struct si470x_device *radio = video_drvdata(file);
--	int retval = 0;
--
--	/* switch on rds reception */
--	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
--		si470x_rds_on(radio);
--
--	poll_wait(file, &radio->read_queue, pts);
--
--	if (radio->rd_index != radio->wr_index)
--		retval = POLLIN | POLLRDNORM;
--
--	return retval;
--}
--
--
--/*
-  * si470x_fops_open - file open
-  */
--static int si470x_fops_open(struct file *file)
-+int si470x_fops_open(struct file *file)
- {
- 	struct si470x_device *radio = video_drvdata(file);
- 	int retval;
-@@ -645,7 +565,7 @@ done:
- /*
-  * si470x_fops_release - file release
-  */
--static int si470x_fops_release(struct file *file)
-+int si470x_fops_release(struct file *file)
- {
- 	struct si470x_device *radio = video_drvdata(file);
- 	int retval = 0;
-@@ -688,19 +608,6 @@ done:
- }
- 
- 
--/*
-- * si470x_fops - file operations interface
-- */
--const struct v4l2_file_operations si470x_fops = {
--	.owner		= THIS_MODULE,
--	.read		= si470x_fops_read,
--	.poll		= si470x_fops_poll,
--	.ioctl		= video_ioctl2,
--	.open		= si470x_fops_open,
--	.release	= si470x_fops_release,
--};
--
--
- 
- /**************************************************************************
-  * Video4Linux Interface
-diff --git a/drivers/media/radio/si470x/radio-si470x.h b/drivers/media/radio/si470x/radio-si470x.h
-index d0af194..f646f79 100644
---- a/drivers/media/radio/si470x/radio-si470x.h
-+++ b/drivers/media/radio/si470x/radio-si470x.h
-@@ -212,7 +212,6 @@ struct si470x_device {
- /**************************************************************************
-  * Common Functions
-  **************************************************************************/
--extern const struct v4l2_file_operations si470x_fops;
- extern struct video_device si470x_viddev_template;
- int si470x_get_register(struct si470x_device *radio, int regnr);
- int si470x_set_register(struct si470x_device *radio, int regnr);
-@@ -221,5 +220,7 @@ int si470x_set_freq(struct si470x_device *radio, unsigned int freq);
- int si470x_start(struct si470x_device *radio);
- int si470x_stop(struct si470x_device *radio);
- int si470x_rds_on(struct si470x_device *radio);
-+int si470x_fops_open(struct file *file);
-+int si470x_fops_release(struct file *file);
- int si470x_vidioc_querycap(struct file *file, void *priv,
- 		struct v4l2_capability *capability);
--- 
-1.6.0.4
+Carlos Lavin wrote:
+> i am asking that if it is possible to start a module without MODULE_INIT 
+> function in the body of program.
+> 
+It looks as though all drivers that use v4l2_i2c_driver_data DO NOT use 
+the module_init function.
+
+According to commit 14386c2b7793652a656021a3345cff3b0f6771f9, 
+v4l2_subdev is used instead. However, this is different for me also.
+
+
+Ryan
+
+> 
+> 2009/11/11 Ryan Raasch <ryan.raasch@gmail.com 
+> <mailto:ryan.raasch@gmail.com>>
+> 
+> 
+> 
+>     Carlos Lavin wrote:
+> 
+>         i don't know that it pass with this module, ov7670.c , because i
+>         don't see
+>         in the screen of my Pc this modulo when the kernel is load. this
+>         module
+>         haven't the module_init  function , and i don't know if it is
+>         possible to
+>         run it without this function. the version kernel where i work is
+>         2.6.30,
+>         also i have patched this modulo for works with the library
+>         soc_camera.h
+>         can anybody help me? I am rookie in this topics.
+>         thanks.
+>         --
+> 
+>     What are you asking?
+> 
+>     Ryan
+> 
+>         video4linux-list mailing list
+>         Unsubscribe mailto:video4linux-list-request@redhat.com
+>         <mailto:video4linux-list-request@redhat.com>?subject=unsubscribe
+>         https://www.redhat.com/mailman/listinfo/video4linux-list
+> 
+> 
