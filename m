@@ -1,32 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from paja.nic.funet.fi ([193.166.3.10]:63089 "EHLO paja.nic.funet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753110AbZKWRTo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2009 12:19:44 -0500
-Received: (from localhost user: 'kouhia' uid#241 fake: STDIN
-	(kouhia@paja.nic.funet.fi)) by nic.funet.fi id S77688AbZKWPYcKKXeQ
-	for <linux-media@vger.kernel.org>; Mon, 23 Nov 2009 17:24:32 +0200
-From: Juhana Sadeharju <kouhia@nic.funet.fi>
-To: linux-media@vger.kernel.org
-Subject: Video extractor?
-Message-Id: <S77688AbZKWPYcKKXeQ/20091123152432Z+8457@nic.funet.fi>
-Date: Mon, 23 Nov 2009 17:24:32 +0200
+Received: from sorrow.cyrius.com ([65.19.161.204]:53523 "EHLO
+	sorrow.cyrius.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758464AbZKKTHD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Nov 2009 14:07:03 -0500
+Date: Wed, 11 Nov 2009 19:06:59 +0000
+From: Martin Michlmayr <tbm@cyrius.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH] videobuf-dma-contig.c: add missing #include
+Message-ID: <20091111190659.GF2197@deprecation.cyrius.com>
+References: <20091031102850.GA3850@deprecation.cyrius.com>
+ <20091111155329.GA3731@deprecation.cyrius.com>
+ <Pine.LNX.4.64.0911111936470.4072@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0911111936470.4072@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+* Guennadi Liakhovetski <g.liakhovetski@gmx.de> [2009-11-11 19:38]:
+> > Are there any comments regarding the build fix I submitted?  This
+> > issue is still there, as you can see at
+> > http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+> 
+> Oh, I'm afraid, I've unwillingly stolen your patch:
+> 
+> http://linuxtv.org/hg/~gliakhovetski/v4l-dvb?cmd=changeset;node=d5defdb8768d
+> 
+> Sorry about that. But if your patch landed in patchwork, which it should, 
+> thenmaybe yours will be used in the end.
 
-Is there a video editor which can be used to extract pieces
-of video to file? Two of the editors in Ubuntu failed to load
-the DVB TS streamfile, Kino converted it to DV format, and slowly.
-That is bad. And I don't know what DV format is, and how to convert
-it losslessly back to DVB TS format.
+Yes, it's here: http://patchwork.kernel.org/patch/56763/
 
-Simplest would be if Xine would be equipped with "mark begin",
-"mark end", and "extract to file" commands. The marks should
-be at 188 byte packet boundaries. I could write viewer myself
-using libxine but it takes time. Are Xine people reading this?
-
-In any case, I got feeling basic tools are still missing from
-Linux media software catalogue. I need the tool in my projects.
-
-Juhana
+Maybe you can add your acked-by.
+-- 
+Martin Michlmayr
+http://www.cyrius.com/
