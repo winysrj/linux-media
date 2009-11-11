@@ -1,37 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from anny.lostinspace.de ([80.190.182.2]:57567 "EHLO
-	anny.lostinspace.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755708AbZKZQn3 (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:47926 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758730AbZKKAIl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 11:43:29 -0500
-Message-ID: <4B0EB017.5000601@fechner.net>
-Date: Thu, 26 Nov 2009 17:43:03 +0100
-From: Matthias Fechner <idefix@fechner.net>
+	Tue, 10 Nov 2009 19:08:41 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Martin Rod <martin.rod@email.cz>
+Subject: Re: MSI StarCam Racer - No valid video chain found
+Date: Wed, 11 Nov 2009 01:09:26 +0100
+Cc: linux-media@vger.kernel.org
+References: <4AED4C3B.3020706@email.cz> <200911041609.29721.laurent.pinchart@ideasonboard.com> <4AF1FA24.4090608@email.cz>
+In-Reply-To: <4AF1FA24.4090608@email.cz>
 MIME-Version: 1.0
-To: Andy Walls <awalls@radix.net>
-CC: Jean Delvare <khali@linux-fr.org>, linux-media@vger.kernel.org,
-	Jarod Wilson <jarod@wilsonet.com>,
-	"Igor M. Liplianin" <liplianin@me.by>, stoth@kernellabs.com
-Subject: Re: IR Receiver on an Tevii S470
-References: <4B0459B1.50600@fechner.net> <4B081F0B.1060204@fechner.net>	 <1258836102.1794.7.camel@localhost> <200911220303.36715.liplianin@me.by>	 <1258858102.3072.14.camel@palomino.walls.org> <4B097E37.10402@fechner.net>	 <1258920707.4201.16.camel@palomino.walls.org>	 <4B099E37.5070405@fechner.net> <20091122213230.38650f8d@hyperion.delvare>	 <1258935479.1896.29.camel@localhost>	 <20091123095435.310fcdf3@hyperion.delvare> <1259108724.3069.22.camel@palomino.walls.org>
-In-Reply-To: <1259108724.3069.22.camel@palomino.walls.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <200911110109.26415.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy,
+Hi Martin,
 
-Andy Walls wrote:
-> I will inspect and test these with my HVR-1850 (CX23888) loaner board
-> this weekend (hopefully).
->   
+On Wednesday 04 November 2009 23:03:16 Martin Rod wrote:
+> Hi Laurent,
+> 
+> I send you  log file with trace (kernel 2.6.30.9)
 
-if you want me to test something on the Tevii S470 card, please let me know.
+Thanks. The log shows that your problem comes from UVC descriptors parsing. 
+This has been fixed in 2.6.31, so you should upgrade to at least that version 
+or install the latest uvcvideo driver.
+ 
+> I have tried this kernel (on UBNT RouterStation and OpenWrt) with results:
+> 
+> 2.6.28.10. -  camera works, I tried only snapshots (I have to use
+> external power for USB, without  external  power  sometimes works,
+> sometimes  no ...)
+> 2.6.31.5 - kernel copmpiles ok, but uvcvideo module was missing, I don't
+> know why ...
 
-Bye,
-Matthias
+Check that the uvcvideo driver is selected using make menuconfig.
 
 -- 
-"Programming today is a race between software engineers striving to build bigger and better idiot-proof programs, and the universe trying to produce bigger and better idiots. So far, the universe is winning." -- Rich Cook
+Regards,
 
+Laurent Pinchart
