@@ -1,54 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:56081 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752298AbZK2TuF (ORCPT
+Received: from comal.ext.ti.com ([198.47.26.152]:51937 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759325AbZKKVpN convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2009 14:50:05 -0500
-Date: 29 Nov 2009 20:49:00 +0100
-From: lirc@bartelmus.de (Christoph Bartelmus)
-To: jonsmirl@gmail.com
-Cc: alan@lxorguk.ukuu.org.uk
-Cc: awalls@radix.net
-Cc: dmitry.torokhov@gmail.com
-Cc: j@jannau.net
-Cc: jarod@redhat.com
-Cc: jarod@wilsonet.com
-Cc: khc@pm.waw.pl
-Cc: linux-input@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Cc: maximlevitsky@gmail.com
-Cc: mchehab@redhat.com
-Cc: ray-lk@madrabbit.org
-Cc: stefanr@s5r6.in-berlin.de
-Cc: superm1@ubuntu.com
-Message-ID: <BDodzfumqgB@lirc>
-In-Reply-To: <9e4733910911291116r66dda6dap591d1b0f322f9663@mail.gmail.com>
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
-MIME-Version: 1.0
+	Wed, 11 Nov 2009 16:45:13 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+Date: Wed, 11 Nov 2009 15:45:15 -0600
+Subject: RE: [PATCH] V4L: adding digital video timings APIs
+Message-ID: <A69FA2915331DC488A831521EAE36FE40155936998@dlee06.ent.ti.com>
+References: <1256164939-21803-1-git-send-email-m-karicheri2@ti.com>
+ <76889a5297f775ff3e951ae3af801f96.squirrel@webmail.xs4all.nl>
+ <A69FA2915331DC488A831521EAE36FE4015568EF61@dlee06.ent.ti.com>
+ <200911051356.29540.hverkuil@xs4all.nl>
+In-Reply-To: <200911051356.29540.hverkuil@xs4all.nl>
+Content-Language: en-US
 Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hans,
 
-on 29 Nov 09 at 14:16, Jon Smirl wrote:
-> On Sun, Nov 29, 2009 at 2:04 PM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
->>> Jon is asking for an architecture discussion, y'know, with use cases.
-[...]
-> So we're just back to the status quo of last year which is to do
-> nothing except some minor clean up.
+>> [MK] Could you explain this to me? In my prototype, I had tvp5146 that
+>> implements S_STD and tvp7002 that implements S_PRESET. Since bridge
+>driver
+>> has all the knowledge about the sub devices and their capabilities, it
+>can
+>> set the flag for each of the input that it supports (currently I am
+>> setting this flag in the board setup file that describes all the inputs
+>using v4l2_input structure). So it is a matter of setting relevant cap flag
+>in this file for each of the input based on what the sub device supports. I
+>am not sure how core can figure this out?
 >
-> We'll be back here again next year repeating this until IR gets
-> redesigned into something fairly invisible like keyboard and mouse
-> drivers.
+>The problem is that we don't want to go through all drivers in order to set
+>the input/output capability flags. However, v4l2_ioctl.c can easily check
+>whether the v4l2_ioctl_ops struct has set vidioc_s_std, vidioc_s_dv_preset
+>and/or vidioc_s_dv_timings and fill in the caps accordingly. If this is
+>done
+>before the vidioc_enum_input/output is called, then the driver can override
+>what v4l2_ioctl.c did if that is needed.
+>
 
-Last year everyone complained that LIRC does not support evdev - so I  
-added support for evdev.
+Why do we need to do that? Why not leave it to the bridge driver to set that
+flag since it knows all encoder/decoder connected to it and whether current encoder/decoder has support for S_STD or S_PRESET looking at the sub dev ops.
+If we set them at the core, as you explained, then bridge driver needs to
+override it. That is not clean IMO.
 
-This year everyone complains that LIRC is not plug'n'play - we'll fix that  
-'til next year.
+Murali
 
-There's progress. ;-)
+>Regards,
+>
+>	Hans
+>
+>--
+>Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
-Christoph
