@@ -1,69 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:49819 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752989AbZKLDlf (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:39713 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757674AbZKKR0O convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Nov 2009 22:41:35 -0500
-Received: by ey-out-2122.google.com with SMTP id 9so452859eyd.19
-        for <linux-media@vger.kernel.org>; Wed, 11 Nov 2009 19:41:40 -0800 (PST)
-Date: Thu, 12 Nov 2009 04:41:14 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Stefan <chouffe1@gmail.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: problems receiving channels with technotrend S-3200
-In-Reply-To: <f19975e80911111012v444f85b7t108b70539a428792@mail.gmail.com>
-Message-ID: <alpine.DEB.2.01.0911120429020.15764@ybpnyubfg.ybpnyqbznva>
-References: <f19975e80911111012v444f85b7t108b70539a428792@mail.gmail.com>
+	Wed, 11 Nov 2009 12:26:14 -0500
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>
+CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Cohen David Abraham <david.cohen@nokia.com>,
+	=?iso-8859-1?Q?Koskip=E4=E4_Antti_Jussi_Petteri?=
+	<antti.koskipaa@nokia.com>,
+	Toivonen Tuukka Olli Artturi <tuukka.o.toivonen@nokia.com>,
+	"Zutshi Vimarsh (Nokia-D-MSW/Helsinki)" <vimarsh.zutshi@nokia.com>,
+	"talvala@stanford.edu" <talvala@stanford.edu>,
+	"Aguirre, Sergio" <saaguirre@ti.com>,
+	Ivan Ivanov <iivanov@mm-sol.com>,
+	Stan Varbanov <svarbanov@mm-sol.com>,
+	Valeri Ivanov <vivanov@mm-sol.com>,
+	Atanas Filipov <afilipov@mm-sol.com>
+Date: Wed, 11 Nov 2009 22:55:56 +0530
+Subject: RE: OMAP 3 ISP and N900 sensor driver update
+Message-ID: <19F8576C6E063C45BE387C64729E73940436F94663@dbde02.ent.ti.com>
+References: <4AF41BDE.4040908@maxwell.research.nokia.com>
+ <A69FA2915331DC488A831521EAE36FE401558AB44B@dlee06.ent.ti.com>
+ <200911091506.27980.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <200911091506.27980.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 11 Nov 2009, Stefan wrote:
 
-> I'v problems with receiving dvb-s channels especially all the bbc
-> channels on freesat (Astra 28.2) .
-> The card is working fine for all the dutch channels (canaal digitaal)
-> and in windows i have no problem receiving bbc hd
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Laurent Pinchart
+> Sent: Monday, November 09, 2009 7:36 PM
+> To: Karicheri, Muralidharan
+> Cc: Sakari Ailus; linux-media@vger.kernel.org; Hans Verkuil; Cohen
+> David Abraham; Koskipää Antti Jussi Petteri; Toivonen Tuukka Olli
+> Artturi; Zutshi Vimarsh (Nokia-D-MSW/Helsinki);
+> talvala@stanford.edu; Aguirre, Sergio; Ivan Ivanov; Stan Varbanov;
+> Valeri Ivanov; Atanas Filipov
+> Subject: Re: OMAP 3 ISP and N900 sensor driver update
 > 
-> But as soon as i tune in to for example bbchd or bbc1 i do get a lock
-> but no data.
+> Hi Murali,
 > 
-> # dvbstream -f 10847000 -p v -s 22000 -v 5500 -a 5501 -o > bbchd.mpg
+> On Friday 06 November 2009 16:25:01 Karicheri, Muralidharan wrote:
+> > Sakari,
+> >
+> > Thanks for the update...
+> >
+> > Who is working on the CCDC driver for OMAP35xx?
+> 
+> Just for the sake of correctness, we're working on an OMAP34xx, not
+> an
+> OMAP35xx. I don't think that makes a big difference though.
+> 
+[Hiremath, Vaibhav] OMAP3430 and OMAP3530 are exactly same devices.
 
-> tuning DVB-S to Freq: 1097000, Pol:V Srate=22000000, 22kHz tone=off, LNB: 0
+> As far as I know nobody on our side is currently working on the CCDC
+> driver.
+> We're focusing on the previewer and resizer first.
+> 
+[Hiremath, Vaibhav] I believe I should be able to see the current development activity on sakari's repo, right?
 
-> When i try to record bvn (a fta channel)
+Thanks,
+Vaibhav
+> > After a week or so, I need to start migrating the CCDC driver to
+> sub device
+> > interface so that application can directly configure the
+> parameters with out
+> > having to go through video node. Ultimately it is expected that
+> ccdc will
+> > have a device node that will allow application to open the device
+> and
+> > configure the parameters (in the context of Media controller). But
+> to begin
+> > with I intend to port the existing CCDC driver for DM6446 and
+> DM355 to sub
+> > device interface. Since the VPFE IPs are common across DM6446 &
+> OMAP 35xx,
+> > we could use a common sub device across both platforms.
+> 
+> Coordinating our efforts on that front would indeed be very nice.
+> 
+> > So I this context, could you please update me on the CCDC
+> development
+> > on OMAP platform that you work?
+> 
+> I haven't checked the Davinci VPFE drivers recently. I suppose they
+> already
+> use the v4l2_subdev interface for their I2C sensors and tuners. If
+> not, that
+> would be the first step.
+> 
+> On the OMAP34xx platform, the ISP driver is already somehow
+> separated from the
+> omap34xxcam driver, although not nicely. In a nutshell, here's the
+> current
+> plan. Parts 1 and 2 are already implemented and code is available in
+> Sakari's
+> linux-omap tree.
+> 
+> 1. Board code registers an omap34xxcam platform device. The platform
+> data
+> contains an array of v4l2_subdev_i2c_board_info structures filled
+> with
+> information about all I2C sub-devices (sensor, flash controller,
+> lens
+> controller, ...).
+> 
+> 2. The omap34xxcam driver is loaded. Its probe function is called
+> with a
+> pointer to the platform device. The driver registers a v4l2_device
+> and creates
+> I2C subdevices using the data supplied through platform data.
+> 
+> 3. The omap34xxcam driver calls the ISP core with a pointer to the
+> v4l2_device
+> structure to register all ISP subdevices. The ISP core maintains
+> pointers to
+> the ISP subdevices.
+> 
+> As ISP submodules (CCDC, previewer, resizer) are not truly
+> independent, we
+> were not planning to split them into separate kernel modules. The
+> ISP core
+> needs to call explicitly into the submodules for instance to
+> dispatch
+> interrupts.
+> 
+> It should be possible to use a single CCDC code base across multiple
+> platforms. The ISP core module would depend on the CCDC module
+> directly. I'm
+> not sure how the CCDC module should be called though. An omap prefix
+> won't
+> work, as it's used on Davinci as well, and an ISP prefix is too
+> generic. Do
+> you have any internal code name for the ISP device used on Davinci
+> and OMAP
+> platforms ?
+> 
+> The code will be pushed to linux-omap when available, but I can't
+> commit to
+> any deadline. If you start working on the Davinci driver before we
+> post
+> anything, could you please post patches and/or RFCs on the linux-
+> media mailing
+> list (and CC'ing us) ? Confronting our ideas as soon as possible
+> will
+> (hopefully) avoid diverging too much in our implementations.
+> 
+> --
+> Regards,
+> 
+> Laurent Pinchart
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-
+> media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-But not found on the same satellite...
-
-
-> # dvbstream -f 12574000 -p h -s 22000 -v 515 -a 96 -o > bvn.mpg
-
-> tuning DVB-S to Freq: 1974000, Pol:H Srate=22000000, 22kHz tone=off, LNB: 0
-
-
-These indicate you are attempting to stream from the same DiSEqC
-LNB number.  Your BVN is found at Astra 19E2 while the BBC
-domestic services are broadcast at Astra 28E2.
-
-You need to add a `-D #' to indicate which LNB position your
-Astra 28E2 can be received, which is obviously not the default
-(A or 1/2 or 1/4 or whatever) in your DiSEqC switch, as part of
-your commandline.
-
-Also note that you may need to record more of the stream in
-order to properly decode and play the BBC HD file than just
-the video payload.  The particular values I used last time I
-looked (the BSkyB/Freesat services have a habit of changing
-for no good reason) were 0  258  5500  5502  5503  5504  5501
-if that helps, including subtitles and all.
-
-Note that there is an active DVB-S transponder at the same
-frequency on Astra 19E2, last time I checked (more than a year
-ago, sorry) explaining why you are able to lock successfully
-on the wrong satellite position for the Freesat services.
-
-
-thanks
-barry bouwsma
