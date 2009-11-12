@@ -1,88 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:60680 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751046AbZKIUjG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2009 15:39:06 -0500
-Date: Mon, 9 Nov 2009 21:39:08 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Ian Molton <ian@mnementh.co.uk>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH/RFC] tmio_mmc: keep card-detect interrupts enabled
-In-Reply-To: <c09aa50a0911091218i681449e0r5cb96b9db3e0def6@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0911092134440.4289@axis700.grange>
-References: <Pine.LNX.4.64.0911061127240.4389@axis700.grange>
- <c09aa50a0911090242l35d0dfb2vec0cdeff8b86d33e@mail.gmail.com>
- <Pine.LNX.4.64.0911091530030.4289@axis700.grange>
- <c09aa50a0911091218i681449e0r5cb96b9db3e0def6@mail.gmail.com>
+Received: from mail02a.mail.t-online.hu ([84.2.40.7]:55989 "EHLO
+	mail02a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751647AbZKLIQJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Nov 2009 03:16:09 -0500
+Message-ID: <4AFBC44B.1060900@freemail.hu>
+Date: Thu, 12 Nov 2009 09:16:11 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Hans de Goede <hdegoede@redhat.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] v4l2-dbg: report fail reason to the user
+References: <4AF6BA72.4070809@freemail.hu> <4AF8F8EB.8090705@freemail.hu> <4AFBB7FD.5090607@freemail.hu> <200911120829.40193.hverkuil@xs4all.nl>
+In-Reply-To: <200911120829.40193.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(re-adding accidentally dropped ML)
+From: MÃ¡rton NÃ©meth <nm127@freemail.hu>
 
-On Mon, 9 Nov 2009, Ian Molton wrote:
+Report the fail reason to the user when writing a register even if
+the verbose mode is switched off.
 
-> Well, I presume we want to know when the card gets removed :)
+Remove duplicated code ioctl() call which may cause different ioctl()
+function call in case of verbose and non verbose if not handled carefully.
 
-Sure, that's why we shouldn't mask those interrupts:-) If they do get 
-masked and missed, I do not know, if the interrupt remains pending in this 
-case, because they never get detected then:)
-
-> 
-> 2009/11/9 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> > Hi Ian
-> >
-> > Why did you drop all CCs?
-> >
-> > On Mon, 9 Nov 2009, Ian Molton wrote:
-> >
-> >> I havent looked at the consequences for the driver if a insert IRQ
-> >> occurs during IO, however it seems logical that we should not
-> >> permanently mask the IRQ.
-> >>
-> >> I presume that the IRQ remains pending?
-> >
-> > Don't know, never checked. Is this important to know?
-> >
-> > Thanks
-> > Guennadi
-> >
-> >>
-> >> 2009/11/6 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> >> > On SuperH platforms the SDHI controller does not produce any command IRQs
-> >> > after a completed IO. This leads to card-detect interrupts staying
-> >> > disabled. Do not disable card-detect interrupts on DATA IRQs.
-> >> >
-> >> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> >> > ---
-> >> >
-> >> > Marked as RFC because I'm not really sure this is a correct approach to
-> >> > fix this problem, and whether this will have negative effect on other
-> >> > tmio_mmc MFD users.
-> >> >
-> >> > diff --git a/drivers/mmc/host/tmio_mmc.h b/drivers/mmc/host/tmio_mmc.h
-> >> > index c676767..0b31d44 100644
-> >> > --- a/drivers/mmc/host/tmio_mmc.h
-> >> > +++ b/drivers/mmc/host/tmio_mmc.h
-> >> > @@ -55,10 +55,8 @@
-> >> >  /* Define some IRQ masks */
-> >> >  /* This is the mask used at reset by the chip */
-> >> >  #define TMIO_MASK_ALL           0x837f031d
-> >> > -#define TMIO_MASK_READOP  (TMIO_STAT_RXRDY | TMIO_STAT_DATAEND | \
-> >> > -               TMIO_STAT_CARD_REMOVE | TMIO_STAT_CARD_INSERT)
-> >> > -#define TMIO_MASK_WRITEOP (TMIO_STAT_TXRQ | TMIO_STAT_DATAEND | \
-> >> > -               TMIO_STAT_CARD_REMOVE | TMIO_STAT_CARD_INSERT)
-> >> > +#define TMIO_MASK_READOP  (TMIO_STAT_RXRDY | TMIO_STAT_DATAEND)
-> >> > +#define TMIO_MASK_WRITEOP (TMIO_STAT_TXRQ | TMIO_STAT_DATAEND)
-> >> >  #define TMIO_MASK_CMD     (TMIO_STAT_CMDRESPEND | TMIO_STAT_CMDTIMEOUT | \
-> >> >                TMIO_STAT_CARD_REMOVE | TMIO_STAT_CARD_INSERT)
-> >> >  #define TMIO_MASK_IRQ     (TMIO_MASK_READOP | TMIO_MASK_WRITEOP | TMIO_MASK_CMD)
-
-Thanks
-Guennadi
+Signed-off-by: MÃ¡rton NÃ©meth <nm127@freemail.hu>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+diff -r 60f784aa071d v4l2-apps/util/v4l2-dbg.cpp
+--- a/v4l2-apps/util/v4l2-dbg.cpp	Wed Nov 11 18:28:53 2009 +0100
++++ b/v4l2-apps/util/v4l2-dbg.cpp	Thu Nov 12 09:15:17 2009 +0100
+@@ -354,13 +354,14 @@
+ {
+ 	int retVal;
+
+-	if (!options[OptVerbose]) return ioctl(fd, request, parm);
+ 	retVal = ioctl(fd, request, parm);
+-	printf("%s: ", name);
+-	if (retVal < 0)
+-		printf("failed: %s\n", strerror(errno));
+-	else
+-		printf("ok\n");
++	if (options[OptVerbose]) {
++		printf("%s: ", name);
++		if (retVal < 0)
++			printf("failed: %s\n", strerror(errno));
++		else
++			printf("ok\n");
++	}
+
+ 	return retVal;
+ }
+@@ -586,8 +587,8 @@
+
+ 				printf(" set to 0x%llx\n", set_reg.val);
+ 			} else {
+-				printf("Failed to set register 0x%08llx value 0x%llx\n",
+-					set_reg.reg, set_reg.val);
++				printf("Failed to set register 0x%08llx value 0x%llx: %s\n",
++					set_reg.reg, set_reg.val, strerror(errno));
+ 			}
+ 			set_reg.reg++;
+ 		}
+
