@@ -1,73 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:2417 "EHLO
-	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751993AbZKOLXR (ORCPT
+Received: from mailout5.samsung.com ([203.254.224.35]:60142 "EHLO
+	mailout5.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751344AbZKLLGp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Nov 2009 06:23:17 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Pete Eberlein <pete@sensoray.com>
-Subject: Re: [PATCH 2/5] s2250: Mutex function usage.
-Date: Sun, 15 Nov 2009 12:23:13 +0100
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <1257880891.21307.1104.camel@pete-desktop>
-In-Reply-To: <1257880891.21307.1104.camel@pete-desktop>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200911151223.13885.hverkuil@xs4all.nl>
+	Thu, 12 Nov 2009 06:06:45 -0500
+Received: from epmmp1 (mailout5.samsung.com [203.254.224.35])
+ by mailout1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0KSZ008X8TJDKZ@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 12 Nov 2009 20:06:49 +0900 (KST)
+Received: from AMDC159 ([106.116.37.153])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0KSZ00MQITICQY@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 12 Nov 2009 20:06:49 +0900 (KST)
+Date: Thu, 12 Nov 2009 12:04:06 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [RFC] Global video buffers pool / Samsung SoC's
+In-reply-to: <20091111071250.GV4047@prithivi.gnumonks.org>
+To: 'Harald Welte' <laforge@gnumonks.org>, linux-media@vger.kernel.org
+Cc: 'Jin-Sung Yang' <jsgood.yang@samsung.com>,
+	'Kyungmin Park' <kmpark@infradead.org>,
+	Tomasz Fujak <t.fujak@samsung.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <007d01ca6387$dd072c10$97158430$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <20091111071250.GV4047@prithivi.gnumonks.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 10 November 2009 20:21:31 Pete Eberlein wrote:
-> From: Pete Eberlein <pete@sensoray.com>
-> 
-> Fix mutex function usage, which was overlooked in a previous patch.
-> 
-> Priority: normal
-> 
-> Signed-off-by: Pete Eberlein <pete@sensoray.com>
-> 
-> diff -r a603ad1e6a1c -r 99e4a0cf6788 linux/drivers/staging/go7007/s2250-board.c
-> --- a/linux/drivers/staging/go7007/s2250-board.c	Tue Nov 10 10:41:56 2009 -0800
-> +++ b/linux/drivers/staging/go7007/s2250-board.c	Tue Nov 10 10:47:34 2009 -0800
-> @@ -261,7 +261,7 @@
->  
->  	memset(buf, 0xcd, 6);
->  	usb = go->hpi_context;
-> -	if (down_interruptible(&usb->i2c_lock) != 0) {
-> +	if (mutex_lock_interruptible(&usb->i2c_lock) != 0) {
->  		printk(KERN_INFO "i2c lock failed\n");
->  		kfree(buf);
->  		return -EINTR;
-> @@ -270,7 +270,7 @@
->  		kfree(buf);
->  		return -EFAULT;
->  	}
-> -	up(&usb->i2c_lock);
-> +	mutex_unlock(&usb->i2c_lock);
->  
->  	*val = (buf[0] << 8) | buf[1];
->  	kfree(buf);
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+Hello,
 
-Looks good. I'll prepare a pull request for this one and ask Mauro to get this
-fix into 2.6.32-rcX as well since it produces a compiler warning.
+On Wednesday, November 11, 2009 8:13 AM Harald Welte wrote:
 
-I'll also ask Mauro to get the missing drivers/staging/go7007/s2250-loader.h
-into 2.6.32-rcX: it apparently fell on the floor when the go7007 driver was
-updated in 2.6.32.
+> Hi Guennadi and others,
+> 
+> first of all sorry for breaking the thread, but I am new to this list
+> and could not find the message-id of the original mails nor a .mbox
+> format archive for the list :(
+> 
+> As I was one of the people giving comments to Guennadi's talk at ELCE,
+> let me give some feedback here, too.
+> 
+> I'm currently helping the Samsung System LSI Linux kernel team with
+> bringing their various ports for their ARM SoCs mainline.  So far we
+> have excluded much of the multimedia related parts due to the complexity
+> and lack of kernel infrastructure.
+> 
+> Let me briefly describe the SoCs in question: They have an ARM9, ARM11
+> or Cortex-A8 core and multiple video input and output paths, such as
+> * camera interface
+> * 2d acceleration engine
+> * 3d acceleration engine
+> * post-processor (colorspace conversion, scaling, rotating)
+> * LCM output for classic digital RGB+sync interfaces
+> * TV scaler
+> * TV encoder
+> * HDMI interface (simple serial-HDMI with DMA from/to system memory)
+> * Transport Stream interface (MPEG-transport stream input with PID
+>   filter which can DMA to system memory
+> * MIPI-HSI LCM output device
+> * Multi-Function codec for H.264 and other stuff
+> * Hardware JPEG codec.
+> plus even some more that I might have missed.
+> 
+> One of the issues is that, at least in many current and upcoming
+> products, all those integrated peripherals can only use physically
+> contiguous memory.
+> 
+> For the classic output path (e.g. Xorg+EXA+XAA+3D), that is fine.  The
+> framebuffer driver can simply allocate some large chunk of physical
+> system memory at boot time, map that into userspace and be happy.  This
+> includes things like Xvideo support in the Xserver.  Also, HDMI output
+> and TV output can be handled inside X or switch to a new KMS model.
+> 
+> However, the input side looks quite different,  On the one hand, we have
+> the camera driver, but possibly HDMI input and transport stream input,
+> are less easy.
+> 
+> also, given the plethora of such subsytems in a device, you definitely
+> don't want to have one static big boot-time allocation for each of those
+> devices.  You don't want to waste that much memory all the time just in
+> case at some time you start an application that actually needs this.
+> Also, it is unlikely that all of the subsystems will operate at the same
+> time.
+> 
+> So having an in-kernel allocator for physically contiguous memory is
+> something that is needed to properly support this hardware.  At boot
+> time you allocate one big pool, from which you then on-demand allocate
+> and free physically contiguous buffers, even at much later time.
+> 
+> Furthermore, think of something like the JPEG codec acceleration, which
+> you also want to use zero-copy from userspace.  So userpsace (like
+> libjpeg for decode, or a camera application for encode)would also need
+> to be able to allocate such a buffer inside the kernel for input and
+> output data of the codec, mmap it, put its jpeg data into it and then
+> run the actual codec.
+> 
+> How would that relate to the proposed global video buffers pool? Well,
+> I think before thinking strictly about video buffers for camera chips,
+> we have to think much more generically!
 
-Regards,
+We have been working on multimedia drivers for Samsung SoCs for a while
+and we already got through all these problems.
 
-	Hans
+The current version of our drivers use private ioctls, zero-copy user
+space memory access and our custom memory manager. Our solution is described
+in the following thread: 
+http://article.gmane.org/gmane.linux.ports.arm.kernel/66463
+We posted it as a base (or reference) for the discussion on Global Video
+Buffers Pool.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+We also found that most of the multimedia devices (FIMC, JPEG, Rotator/Scaler,
+MFC, Post Processor, TVOUT, maybe others) can be successfully wrapped into V4L2
+framework. We only need to extend the framework a bit, but this is doable and
+has been discussed on V4L2 mini summit on LPC 2009. 
+
+The most important issue is how the device that only processes multimedia data
+from one buffer in system memory to another should be implemented in V4L2
+framework. Quite long, but successful discussion can be found here:
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/10668/
+We are currently implementing a reference test driver for v4l2 mem2mem device.
+
+The other important issues that came up while preparing multimedia drivers
+for v4l2 framework is the proper support for multi-plane buffers (like these
+required by MFC on newer Samsung SoCs). Here are more details:
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/11212/
+
+Best regards
+--
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
