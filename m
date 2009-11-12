@@ -1,39 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp107.mail.ukl.yahoo.com ([77.238.184.39]:45972 "HELO
-	smtp107.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751353AbZKITdy (ORCPT
+Received: from comal.ext.ti.com ([198.47.26.152]:45511 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751825AbZKLPem convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Nov 2009 14:33:54 -0500
-Message-ID: <4AF86E91.4070702@rocketmail.com>
-Date: Mon, 09 Nov 2009 19:33:37 +0000
-From: g_remlin <g_remlin@rocketmail.com>
+	Thu, 12 Nov 2009 10:34:42 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+Date: Thu, 12 Nov 2009 09:34:46 -0600
+Subject: RE: [PATCH] V4L: adding digital video timings APIs
+Message-ID: <A69FA2915331DC488A831521EAE36FE40155936BBF@dlee06.ent.ti.com>
+References: <1256164939-21803-1-git-send-email-m-karicheri2@ti.com>
+ <200911051356.29540.hverkuil@xs4all.nl>
+ <A69FA2915331DC488A831521EAE36FE40155936998@dlee06.ent.ti.com>
+ <200911120718.26622.hverkuil@xs4all.nl>
+In-Reply-To: <200911120718.26622.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: saa7416 woes
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since the day my local transmitter 'upgraded' my budget DVB-T will no 
-longer tune any station (tested with various apps, on various recent 
-kernels), gut feeling is this may be a kernel driver issue.
+>
+>Actually, the bridge driver only needs to override if it has multiple
+>inputs
+>where the capability flags differ (i.e. some inputs only support S_STD and
+>others only support S_DV_PRESET).
+>
+>In all other cases the core will fill it in correctly.
+>
+>Doing it in the core ensures that the capability flags will be filled in so
+>drivers don't need to remember doing this. The alternative is that you have
+>to
+>go through ALL existing drivers and add the new SUPPORTS_STD capability
+>flag.
+>
 
-I know the transmission mode for all channels included changes from 2K, 
-& QAM16  to 8K, & QAM64, and suspect this may be the reason (or one hell 
-of a coincidence), can anyone offer any advice as what to do to obtain 
-meaningful information to include in a bug report posting.
+That is a good point to have it in the core. I will update the patch
+and send it.
 
-PS. I tested the DVB-T card under WindowsXP and it (the hardware with 
-the Windows software) works OK. I live in one of the first areas of the 
-UK to 'upgrade'.
+>But even then I am pretty certain that people will forget to set this flag
+>for new upcoming drivers.
+>
+>So I prefer to have this set in the core and only drivers that have mixed
+>inputs/outputs need to do a bit more work.
+>
+>Regards,
+>
+>	Hans
+>
+>>
+>> Murali
+>>
+>> >Regards,
+>> >
+>> >	Hans
+>> >
+>> >--
+>> >Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+>>
+>>
+>>
+>
+>
+>
+>--
+>Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
-lspci -v
-
-02:09.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-         Subsystem: Technotrend Systemtechnik GmbH 
-Technotrend-Budget/Hauppauge WinTV-NOVA-T DVB card
-         Flags: bus master, medium devsel, latency 32, IRQ 17
-         Memory at e3001000 (32-bit, non-prefetchable) [size=512]
-         Kernel driver in use: budget dvb
-         Kernel modules: budget
