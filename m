@@ -1,84 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from static-88-194-224-77.ipcom.comunitel.net ([77.224.194.88]:44809
-	"EHLO panicking.kicks-ass.org" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1757165AbZKJQzN (ORCPT
+Received: from mailout5.samsung.com ([203.254.224.35]:45724 "EHLO
+	mailout5.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759905AbZKLBae (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Nov 2009 11:55:13 -0500
-Message-ID: <4AF99A03.7070303@panicking.kicks-ass.org>
-Date: Tue, 10 Nov 2009 17:51:15 +0100
-From: Michael Trimarchi <michael@panicking.kicks-ass.org>
-MIME-Version: 1.0
-To: Randy Dunlap <rdunlap@xenotime.net>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: ov538-ov7690
-References: <4AF89498.3000103@panicking.kicks-ass.org>	<4AF93DE5.6060901@panicking.kicks-ass.org> <20091110081000.9e7c7717.rdunlap@xenotime.net>
-In-Reply-To: <20091110081000.9e7c7717.rdunlap@xenotime.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Wed, 11 Nov 2009 20:30:34 -0500
+Received: from epmmp1 (mailout5.samsung.com [203.254.224.35])
+ by mailout1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0KSZ000SB2UWYS@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 12 Nov 2009 10:30:32 +0900 (KST)
+Received: from JSGOODMAIN ([12.23.109.106])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0KSZ006NA2TW47@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 12 Nov 2009 10:29:56 +0900 (KST)
+Date: Thu, 12 Nov 2009 10:35:16 +0900
+From: Jinsung Yang <jsgood.yang@samsung.com>
+Subject: RE: [RFC] Global video buffers pool / Samsung SoC's
+In-reply-to: <Pine.LNX.4.64.0911111926560.4072@axis700.grange>
+To: 'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>
+Cc: 'Harald Welte' <laforge@gnumonks.org>,
+	'Linux Media Mailing List' <linux-media@vger.kernel.org>,
+	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
+Message-id: <009b01ca6338$63859e20$2a90da60$%yang@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=windows-1252
+Content-language: ko
+Content-transfer-encoding: 7BIT
+References: <20091111071250.GV4047@prithivi.gnumonks.org>
+ <Pine.LNX.4.64.0911111926560.4072@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi, thank you for your reply.
+Harald may be in flight now :)
 
-Randy Dunlap wrote:
-> On Tue, 10 Nov 2009 11:18:13 +0100 Michael Trimarchi wrote:
-> 
->> Hi,
->>
->> Michael Trimarchi wrote:
->>> Hi all
->>>
->>> I'm working on the ov538 bridge with the ov7690 camera connected. 
->>> Somentimes I receive
->>>
->>> [ 1268.146705] gspca: ISOC data error: [110] len=1020, status=-71
->>> [ 1270.946739] gspca: ISOC data error: [114] len=1020, status=-71
->>> [ 1271.426689] gspca: ISOC data error: [82] len=1020, status=-71
->>> [ 1273.314640] gspca: ISOC data error: [1] len=1020, status=-71
->>> [ 1274.114661] gspca: ISOC data error: [17] len=1020, status=-71
->>> [ 1274.658718] gspca: ISOC data error: [125] len=1020, status=-71
->>> [ 1274.834666] gspca: ISOC data error: [21] len=1020, status=-71
->>> [ 1275.666684] gspca: ISOC data error: [94] len=1020, status=-71
->>> [ 1275.826645] gspca: ISOC data error: [40] len=1020, status=-71
->>> [ 1276.226721] gspca: ISOC data error: [100] len=1020, status=-71
->>>
->>> This error from the usb, how are they related to the camera?
-> 
-> -71 = -EPROTO (from include/asm-generic/errno.h).
-> 
-> -EPROTO in USB drivers means (from Documentation/usb/error-codes.txt):
-> 
-> -EPROTO (*, **)		a) bitstuff error
-> 			b) no response packet received within the
-> 			   prescribed bus turn-around time
-> 			c) unknown USB error
-> 
-> footnotes:
-> (*) Error codes like -EPROTO, -EILSEQ and -EOVERFLOW normally indicate
-> hardware problems such as bad devices (including firmware) or cables.
-> 
+> One question to your SoCs though - do they have SRAM? usable and
+> sufficient for graphics buffers? In any case any such implementation will
+> have to be able to handle RAMs other than main system memory too,
+> including card memory, NUMA, sparse RAM, etc., which is probably obvious
+> anyway.
+All Samsung SoCs have no SRAMs for graphic buffers, just having system
+memory.
+And what is worse, in case of 2 system memory banks,
+some kinds of hardware need to allocate buffers to improve performance at
+each bank separately.
+This is just a kind of sample, Samsung SoCs have many special cases.
+(Of course, we are trying to add IOMMU to resolve buffer issues at next SoCs
+products)
 
-OK, but it's a failure of the ehci transaction on my laptop and seems that is
-not so frequent. I think that can be a cable problem.
-
-> (**) This is also one of several codes that different kinds of host
-> controller use to indicate a transfer has failed because of device
-> disconnect.  In the interval before the hub driver starts disconnect
-> processing, devices may receive such fault reports for every request.
-> 
-> 
->> Ok, this is not a big issue because I can use vlc to test the camera. But anybody
->> knows why camorama, camstream, cheese crash during test. is it driver depend? or not?
-> 
-> Could be driver.  Easily could be a device problem too.
-
-I think that it can be a vl2 vl1 problem. Because now I can manage in skype too using
-the v4l1-compat library. Maybe my 2.6.32-rc5 is too new :(
-
-Michael
-
-> 
-> ---
-> ~Randy
-> 
+Best Regards
+--
+Jinsung, Yang <jsgood.yang@samsung.com>
+AP Development Team
+System LSI, Semiconductor Business
+SAMSUNG Electronics Co., LTD
 
