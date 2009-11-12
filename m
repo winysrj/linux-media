@@ -1,54 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.infomaniak.ch ([84.16.68.89]:35636 "EHLO
-	smtp1.infomaniak.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757600AbZKKPys (ORCPT
+Received: from ey-out-2122.google.com ([74.125.78.27]:49819 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752989AbZKLDlf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Nov 2009 10:54:48 -0500
-Received: from IO.local (61-140.4-85.fix.bluewin.ch [85.4.140.61])
-	(authenticated bits=0)
-	by smtp1.infomaniak.ch (8.14.2/8.14.2) with ESMTP id nABFsmL6017131
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 11 Nov 2009 16:54:53 +0100
-Message-ID: <4AFADE49.9070600@deckpoint.ch>
-Date: Wed, 11 Nov 2009 16:54:49 +0100
-From: Thomas Kernen <tkernen@deckpoint.ch>
+	Wed, 11 Nov 2009 22:41:35 -0500
+Received: by ey-out-2122.google.com with SMTP id 9so452859eyd.19
+        for <linux-media@vger.kernel.org>; Wed, 11 Nov 2009 19:41:40 -0800 (PST)
+Date: Thu, 12 Nov 2009 04:41:14 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Stefan <chouffe1@gmail.com>
+cc: linux-media@vger.kernel.org
+Subject: Re: problems receiving channels with technotrend S-3200
+In-Reply-To: <f19975e80911111012v444f85b7t108b70539a428792@mail.gmail.com>
+Message-ID: <alpine.DEB.2.01.0911120429020.15764@ybpnyubfg.ybpnyqbznva>
+References: <f19975e80911111012v444f85b7t108b70539a428792@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: v4l-dvb compile broken with stock Ubuntu Karmic build (firedtv-ieee1394.c
- errors)
-References: <4AF9150D.2070601@deckpoint.ch>
-In-Reply-To: <4AF9150D.2070601@deckpoint.ch>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thomas Kernen wrote:
-> Hello,
-> 
-> I came across this thread from June 2009 in the news archives about 
-> Ubuntu Karmic and v4l-dvb compile broken with stock Ubuntu Karmic build:
-> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/7161 
-> 
-> 
-> I've just come across this issue myself after an upgrade of a server to 
-> the Ubuntu Karmic release.
-> 
-> Is there any plans to attempt to mitigate this so that other users would 
-> not be impacted?
-> 
-> Regards,
-> Thomas
+On Wed, 11 Nov 2009, Stefan wrote:
 
-I don't like answering my own messages but hopefully this will be useful 
-to other users too who may come across the same issue as I and didn't do 
-enough research before asking the question.
+> I'v problems with receiving dvb-s channels especially all the bbc
+> channels on freesat (Astra 28.2) .
+> The card is working fine for all the dutch channels (canaal digitaal)
+> and in windows i have no problem receiving bbc hd
+> 
+> But as soon as i tune in to for example bbchd or bbc1 i do get a lock
+> but no data.
+> 
+> # dvbstream -f 10847000 -p v -s 22000 -v 5500 -a 5501 -o > bbchd.mpg
 
-Ubuntu Karmic is missing some Firewire/IEEE1394 files in the 
-kernel-headers package.
+> tuning DVB-S to Freq: 1097000, Pol:V Srate=22000000, 22kHz tone=off, LNB: 0
 
-Workaround:
-in the v4l folder, open the .config file, find the line with 
-"CONFIG_DVB_FIREDTV=m" and change to "CONFIG_DVB_FIREDTV=n".
+> When i try to record bvn (a fta channel)
 
-Thomas
+But not found on the same satellite...
+
+
+> # dvbstream -f 12574000 -p h -s 22000 -v 515 -a 96 -o > bvn.mpg
+
+> tuning DVB-S to Freq: 1974000, Pol:H Srate=22000000, 22kHz tone=off, LNB: 0
+
+
+These indicate you are attempting to stream from the same DiSEqC
+LNB number.  Your BVN is found at Astra 19E2 while the BBC
+domestic services are broadcast at Astra 28E2.
+
+You need to add a `-D #' to indicate which LNB position your
+Astra 28E2 can be received, which is obviously not the default
+(A or 1/2 or 1/4 or whatever) in your DiSEqC switch, as part of
+your commandline.
+
+Also note that you may need to record more of the stream in
+order to properly decode and play the BBC HD file than just
+the video payload.  The particular values I used last time I
+looked (the BSkyB/Freesat services have a habit of changing
+for no good reason) were 0  258  5500  5502  5503  5504  5501
+if that helps, including subtitles and all.
+
+Note that there is an active DVB-S transponder at the same
+frequency on Astra 19E2, last time I checked (more than a year
+ago, sorry) explaining why you are able to lock successfully
+on the wrong satellite position for the Freesat services.
+
+
+thanks
+barry bouwsma
