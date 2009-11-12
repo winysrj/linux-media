@@ -1,50 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dangerbird.closetothewind.net ([82.134.87.117]:43433 "EHLO
-	dangerbird.closetothewind.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754758AbZKMBQ5 (ORCPT
+Received: from mail02d.mail.t-online.hu ([84.2.42.7]:61885 "EHLO
+	mail02d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751291AbZKLGwv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Nov 2009 20:16:57 -0500
-Received: from [192.168.1.22] ([213.153.15.207])
-	by dangerbird.closetothewind.net (8.14.3/8.14.3/SuSE Linux 0.8) with ESMTP id nAD1H1EV031116
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 13 Nov 2009 02:17:01 +0100
-Message-ID: <4AFCB38D.3050301@closetothewind.net>
-Date: Fri, 13 Nov 2009 02:17:01 +0100
-From: Jonas Kvinge <linuxtv@closetothewind.net>
+	Thu, 12 Nov 2009 01:52:51 -0500
+Received: from [192.168.1.64] (dsl5402C46E.pool.t-online.hu [84.2.196.110])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail02d.mail.t-online.hu (Postfix) with ESMTPSA id 720917590E2
+	for <linux-media@vger.kernel.org>; Thu, 12 Nov 2009 07:52:32 +0100 (CET)
+Message-ID: <4AFBB0C3.8000509@freemail.hu>
+Date: Thu, 12 Nov 2009 07:52:51 +0100
+From: =?ISO-8859-2?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Most stable DVB-S2 PCI Card?
-References: <72748420-1243012937-cardhu_decombobulator_blackberry.rim.net-428520223-@bxe1214.bisx.prod.on.blackberry> <1a297b360905221035ra3ddfe3vb3be4d2029865a39@mail.gmail.com>
-In-Reply-To: <1a297b360905221035ra3ddfe3vb3be4d2029865a39@mail.gmail.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+To: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] decode_tm6000: fix include path
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Manu Abraham wrote:
-> On Fri, May 22, 2009 at 9:23 PM, Bob Ingraham <bobi@brin.com> wrote:
->> Hello,
->>
->> What is the most stable DVB-S2 PCI card?
->>
->> I've read through the wiki DVB-2 PCI section, but am not confident after reading this what the answer is.
->>
->> Running Fedora Core 10 at the moment, but am willing to upgrade to 11 or perform custom patches to get something going.
->>
->> No need for CI or DiSEQ support, just highly stable/reliable DVB-2 tuning/reception under Linux.
->>
->> Any recommendations would be most appreciated!
->>
-> 
-> 
-> If you don't need the CI part, The TT S2-1600 is a 2nd generation DVB-S2 PCI
-> card with great performance (supports Symbol rates upto 60MSPS), with support
-> out of the box from the v4l-dvb tree.
-> 
-> Regards,
-> Manu
+From: Márton Németh <nm127@freemail.hu>
 
-I think I will try that card. Is the card tested to be working by many?
+The include path is changed from ../lib to ../lib4vl2util .
 
-
-Jonas
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+diff -r 60f784aa071d v4l2-apps/util/decode_tm6000.c
+--- a/v4l2-apps/util/decode_tm6000.c	Wed Nov 11 18:28:53 2009 +0100
++++ b/v4l2-apps/util/decode_tm6000.c	Thu Nov 12 07:49:43 2009 +0100
+@@ -16,7 +16,7 @@
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+-#include "../lib/v4l2_driver.h"
++#include "../libv4l2util/v4l2_driver.h"
+ #include <stdio.h>
+ #include <string.h>
+ #include <argp.h>
