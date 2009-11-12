@@ -1,121 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:40304 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751977AbZK1LLM (ORCPT
+Received: from mail-in-10.arcor-online.net ([151.189.21.50]:46198 "EHLO
+	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753096AbZKLUki (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Nov 2009 06:11:12 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: vandrove@vc.cvut.cz
-Subject: radio-sf16fmi: fix mute, add SF16-FMP to texts
-Date: Sat, 28 Nov 2009 12:04:30 +0100
+	Thu, 12 Nov 2009 15:40:38 -0500
+Subject: Re: Tuner drivers
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Ruslan <rulet1@meta.ua>
 Cc: linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+In-Reply-To: <loom.20091112T190450-643@post.gmane.org>
+References: <loom.20091112T190450-643@post.gmane.org>
+Content-Type: text/plain
+Date: Thu, 12 Nov 2009 21:37:53 +0100
+Message-Id: <1258058273.8348.14.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200911281204.32570.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix completely broken mute handling radio-sf16fmi.
-The sound was muted immediately after tuning in KRadio.
-Also fix typos and add SF16-FMP to the texts.
+Hi,
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+Am Donnerstag, den 12.11.2009, 18:05 +0000 schrieb Ruslan:
+> Who is making or was making driver for Analog Aver Super 007 tuner?
+> I wanted to ask why there is no sound?
+> 
 
-diff -urp linux-source-2.6.31-orig/drivers/media/radio/Kconfig linux-source-2.6.31/drivers/media/radio/Kconfig
---- linux-source-2.6.31-orig/drivers/media/radio/Kconfig	2009-09-10 00:13:59.000000000 +0200
-+++ linux-source-2.6.31/drivers/media/radio/Kconfig	2009-11-28 11:51:42.000000000 +0100
-@@ -196,7 +196,7 @@ config RADIO_MAESTRO
- 	  module will be called radio-maestro.
- 
- config RADIO_SF16FMI
--	tristate "SF16FMI Radio"
-+	tristate "SF16-FMI/SF16-FMP Radio"
- 	depends on ISA && VIDEO_V4L2
- 	---help---
- 	  Choose Y here if you have one of these FM radio cards.  If you
-diff -urp linux-source-2.6.31-orig/drivers/media/radio/radio-sf16fmi.c linux-source-2.6.31/drivers/media/radio/radio-sf16fmi.c
---- linux-source-2.6.31-orig/drivers/media/radio/radio-sf16fmi.c	2009-09-10 00:13:59.000000000 +0200
-+++ linux-source-2.6.31/drivers/media/radio/radio-sf16fmi.c	2009-11-28 11:39:35.000000000 +0100
-@@ -1,4 +1,4 @@
--/* SF16FMI radio driver for Linux radio support
-+/* SF16-FMI and SF16-FMP radio driver for Linux radio support
-  * heavily based on rtrack driver...
-  * (c) 1997 M. Kirkwood
-  * (c) 1998 Petr Vandrovec, vandrove@vc.cvut.cz
-@@ -11,7 +11,7 @@
-  *
-  *  Frequency control is done digitally -- ie out(port,encodefreq(95.8));
-  *  No volume control - only mute/unmute - you have to use line volume
-- *  control on SB-part of SF16FMI
-+ *  control on SB-part of SF16-FMI/SF16-FMP
-  *
-  * Converted to V4L2 API by Mauro Carvalho Chehab <mchehab@infradead.org>
-  */
-@@ -30,14 +30,14 @@
- #include <media/v4l2-ioctl.h>
- 
- MODULE_AUTHOR("Petr Vandrovec, vandrove@vc.cvut.cz and M. Kirkwood");
--MODULE_DESCRIPTION("A driver for the SF16MI radio.");
-+MODULE_DESCRIPTION("A driver for the SF16-FMI and SF16-FMP radio.");
- MODULE_LICENSE("GPL");
- 
- static int io = -1;
- static int radio_nr = -1;
- 
- module_param(io, int, 0);
--MODULE_PARM_DESC(io, "I/O address of the SF16MI card (0x284 or 0x384)");
-+MODULE_PARM_DESC(io, "I/O address of the SF16-FMI or SF16-FMP card (0x284 or 0x384)");
- module_param(radio_nr, int, 0);
- 
- #define RADIO_VERSION KERNEL_VERSION(0, 0, 2)
-@@ -47,7 +47,7 @@ struct fmi
- 	struct v4l2_device v4l2_dev;
- 	struct video_device vdev;
- 	int io;
--	int curvol; /* 1 or 0 */
-+	bool mute;
- 	unsigned long curfreq; /* freq in kHz */
- 	struct mutex lock;
+http://linuxtv.org/hg/v4l-dvb/annotate/d480cd6efe5b/linux/drivers/media/video/saa7134/saa7134.h#249
+
+"hg export 6072" delivers the patch.
+
+# HG changeset patch
+# User Michael Krufky <mkrufky@linuxtv.org>
+# Date 1187630090 14400
+# Node ID d480cd6efe5b50fb41c4e137f18ce4ae93ab096c
+# Parent  db2a922a8498fdb5d759b1134566e19e7da30b68
+saa7134: add DVB-T support for Avermedia Super 007
+
+From: Edgar Simo <bobbens@gmail.com>
+
+add DVB-T support for Avermedia Super 007
+
+Analog television is untested.  The device lacks input adapters for radio,
+svideo & composite -- seems to be a DVB-T ONLY device.
+
+Signed-off-by: Edgar Simo <bobbens@gmail.com>
+Acked-by: Hermann Pitton <hermann-pitton@arcor.de>
+Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
+
+diff -r db2a922a8498 -r d480cd6efe5b linux/Documentation/video4linux/CARDLIST.saa7134
+--- a/linux/Documentation/video4linux/CARDLIST.saa7134	Mon Aug 20 13:06:00 2007 -0400
++++ b/linux/Documentation/video4linux/CARDLIST.saa7134	Mon Aug 20 13:14:50 2007 -0400
+@@ -115,3 +115,4 @@
+ 114 -> KWorld DVB-T 210                         [17de:7250]
+ 115 -> Sabrent PCMCIA TV-PCB05                  [0919:2003]
+ 116 -> 10MOONS TM300 TV Card                    [1131:2304]
++117 -> Avermedia Super 007                      [1461:f01d]
+diff -r db2a922a8498 -r d480cd6efe5b linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Mon Aug 20 13:06:00 2007 -0400
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Mon Aug 20 13:14:50 2007 -0400
+@@ -3573,6 +3573,22 @@
+ 			.gpio = 0x3000,
+ 		},
+ 	},
++	[SAA7134_BOARD_AVERMEDIA_SUPER_007] = {
++		.name           = "Avermedia Super 007",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_TDA8290,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tuner_config   = 0,
++		.mpeg           = SAA7134_MPEG_DVB,
++		.inputs = {{
++			.name   = name_tv, /* FIXME: analog tv untested */
++			.vmux   = 1,
++			.amux   = TV,
++			.tv     = 1,
++		}},
++	},
  };
-@@ -105,7 +105,7 @@ static inline int fmi_setfreq(struct fmi
- 	outbits(8, 0xC0, fmi->io);
- 	msleep(143);		/* was schedule_timeout(HZ/7) */
- 	mutex_unlock(&fmi->lock);
--	if (fmi->curvol)
-+	if (!fmi->mute)
- 		fmi_unmute(fmi);
- 	return 0;
- }
-@@ -116,7 +116,7 @@ static inline int fmi_getsigstr(struct f
- 	int res;
  
- 	mutex_lock(&fmi->lock);
--	val = fmi->curvol ? 0x08 : 0x00;	/* unmute/mute */
-+	val = fmi->mute ? 0x00 : 0x08;	/* mute/unmute */
- 	outb(val, fmi->io);
- 	outb(val | 0x10, fmi->io);
- 	msleep(143); 		/* was schedule_timeout(HZ/7) */
-@@ -204,7 +204,7 @@ static int vidioc_g_ctrl(struct file *fi
+ const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);
+@@ -4296,6 +4312,12 @@
+ 		.subdevice    = 0x2304,
+ 		.driver_data  = SAA7134_BOARD_10MOONSTVMASTER3,
+ 	},{
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
++		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
++		.subdevice    = 0xf01d, /* AVerTV DVB-T Super 007 */
++		.driver_data  = SAA7134_BOARD_AVERMEDIA_SUPER_007,
++	},{
+ 		/* --- boards without eeprom + subsystem ID --- */
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+@@ -4640,6 +4662,7 @@
+ 		break;
+ 	case SAA7134_BOARD_PHILIPS_TIGER:
+ 	case SAA7134_BOARD_PHILIPS_TIGER_S:
++	case SAA7134_BOARD_AVERMEDIA_SUPER_007:
+ 		{
+ 		u8 data[] = { 0x3c, 0x33, 0x60};
+ 		struct i2c_msg msg = {.addr=0x08, .flags=0, .buf=data, .len = sizeof(data)};
+diff -r db2a922a8498 -r d480cd6efe5b linux/drivers/media/video/saa7134/saa7134-dvb.c
+--- a/linux/drivers/media/video/saa7134/saa7134-dvb.c	Mon Aug 20 13:06:00 2007 -0400
++++ b/linux/drivers/media/video/saa7134/saa7134-dvb.c	Mon Aug 20 13:14:50 2007 -0400
+@@ -763,6 +763,21 @@
+ 	.request_firmware = philips_tda1004x_request_firmware
+ };
  
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUDIO_MUTE:
--		ctrl->value = fmi->curvol;
-+		ctrl->value = fmi->mute;
- 		return 0;
- 	}
- 	return -EINVAL;
-@@ -221,7 +221,7 @@ static int vidioc_s_ctrl(struct file *fi
- 			fmi_mute(fmi);
- 		else
- 			fmi_unmute(fmi);
--		fmi->curvol = ctrl->value;
-+		fmi->mute = ctrl->value;
- 		return 0;
- 	}
- 	return -EINVAL;
++static struct tda1004x_config avermedia_super_007_config = {
++	.demod_address = 0x08,
++	.invert        = 1,
++	.invert_oclk   = 0,
++	.xtal_freq     = TDA10046_XTAL_16M,
++	.agc_config    = TDA10046_AGC_TDA827X,
++	.gpio_config   = TDA10046_GP01_I,
++	.if_freq       = TDA10046_FREQ_045,
++	.i2c_gate      = 0x4b,
++	.tuner_address = 0x60,
++	.tuner_config  = 0,
++	.antenna_switch= 1,
++	.request_firmware = philips_tda1004x_request_firmware
++};
++
+ /* ------------------------------------------------------------------
+  * special case: this card uses saa713x GPIO22 for the mode switch
+  */
+@@ -1025,6 +1040,9 @@
+ 	case SAA7134_BOARD_ASUSTeK_P7131_HYBRID_LNA:
+ 		configure_tda827x_fe(dev, &asus_p7131_hybrid_lna_config);
+ 		break;
++	case SAA7134_BOARD_AVERMEDIA_SUPER_007:
++		configure_tda827x_fe(dev, &avermedia_super_007_config);
++		break;
+ 	default:
+ 		wprintk("Huh? unknown DVB card?\n");
+ 		break;
+diff -r db2a922a8498 -r d480cd6efe5b linux/drivers/media/video/saa7134/saa7134.h
+--- a/linux/drivers/media/video/saa7134/saa7134.h	Mon Aug 20 13:06:00 2007 -0400
++++ b/linux/drivers/media/video/saa7134/saa7134.h	Mon Aug 20 13:14:50 2007 -0400
+@@ -246,6 +246,7 @@
+ #define SAA7134_BOARD_KWORLD_DVBT_210 114
+ #define SAA7134_BOARD_SABRENT_TV_PCB05     115
+ #define SAA7134_BOARD_10MOONSTVMASTER3     116
++#define SAA7134_BOARD_AVERMEDIA_SUPER_007  117
+ 
+ #define SAA7134_MAXBOARDS 8
+ #define SAA7134_INPUT_MAX 8
 
--- 
-Ondrej Zary
+Mike worked with Edgar on IRC and I asked to test if there really is an
+additional LNA on it, which was set initially. Turned out there is none.
+
+This is a hybrid device, but there was no work on the analog part done.
+Note the FIXME: "analog tv untested".
+
+AverMedia almost always uses an external mux chip for the analog audio
+routing. That might be the reason for the missing sound.
+
+If it has no analog audio out for TV sound, you must try to use
+saa7134-alsa at first too with "sox", "arecord/aplay" or
+"mplayer/mencoder". Some instructions for saa7134-alsa are on the wiki.
+
+Cheers,
+Hermann
+
+
+
+
+
+
