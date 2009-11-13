@@ -1,120 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.navvo.net ([74.208.67.6]:37403 "EHLO mail.navvo.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759607AbZKYTjR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2009 14:39:17 -0500
-From: santiago.nunez@ridgerun.com
-To: davinci-linux-open-source@linux.davincidsp.com
-Cc: linux-media@vger.kernel.org, nsnehaprabha@ti.com,
-	m-karicheri2@ti.com, diego.dompe@ridgerun.com,
-	todd.fischer@ridgerun.com, mgrosen@ti.com,
-	Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-Date: Wed, 25 Nov 2009 13:39:30 -0600
-Message-Id: <1259177970-14947-1-git-send-email-santiago.nunez@ridgerun.com>
-Subject: [PATCH 4/4 v8] Menu support for TVP7002 in DM365
+Received: from dangerbird.closetothewind.net ([82.134.87.117]:43433 "EHLO
+	dangerbird.closetothewind.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754758AbZKMBQ5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Nov 2009 20:16:57 -0500
+Received: from [192.168.1.22] ([213.153.15.207])
+	by dangerbird.closetothewind.net (8.14.3/8.14.3/SuSE Linux 0.8) with ESMTP id nAD1H1EV031116
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 13 Nov 2009 02:17:01 +0100
+Message-ID: <4AFCB38D.3050301@closetothewind.net>
+Date: Fri, 13 Nov 2009 02:17:01 +0100
+From: Jonas Kvinge <linuxtv@closetothewind.net>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Most stable DVB-S2 PCI Card?
+References: <72748420-1243012937-cardhu_decombobulator_blackberry.rim.net-428520223-@bxe1214.bisx.prod.on.blackberry> <1a297b360905221035ra3ddfe3vb3be4d2029865a39@mail.gmail.com>
+In-Reply-To: <1a297b360905221035ra3ddfe3vb3be4d2029865a39@mail.gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+Manu Abraham wrote:
+> On Fri, May 22, 2009 at 9:23 PM, Bob Ingraham <bobi@brin.com> wrote:
+>> Hello,
+>>
+>> What is the most stable DVB-S2 PCI card?
+>>
+>> I've read through the wiki DVB-2 PCI section, but am not confident after reading this what the answer is.
+>>
+>> Running Fedora Core 10 at the moment, but am willing to upgrade to 11 or perform custom patches to get something going.
+>>
+>> No need for CI or DiSEQ support, just highly stable/reliable DVB-2 tuning/reception under Linux.
+>>
+>> Any recommendations would be most appreciated!
+>>
+> 
+> 
+> If you don't need the CI part, The TT S2-1600 is a 2nd generation DVB-S2 PCI
+> card with great performance (supports Symbol rates upto 60MSPS), with support
+> out of the box from the v4l-dvb tree.
+> 
+> Regards,
+> Manu
 
-This patch provides menu configuration options for the TVP7002
-decoder driver in DM365.
+I think I will try that card. Is the card tested to be working by many?
 
-Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
----
- drivers/media/video/Kconfig  |   41 +++++++++++++++++++++++++++++++++++++++++
- drivers/media/video/Makefile |    3 +++
- 2 files changed, 44 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index e6186b3..de3328b 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -392,6 +392,15 @@ config VIDEO_TVP5150
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called tvp5150.
- 
-+config VIDEO_TVP7002
-+	tristate "Texas Instruments TVP7002 video decoder"
-+	depends on VIDEO_V4L2 && I2C
-+	---help---
-+	  Support for the Texas Instruments TVP7002 video decoder.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called tvp7002.
-+
- config VIDEO_VPX3220
- 	tristate "vpx3220a, vpx3216b & vpx3214c video decoders"
- 	depends on VIDEO_V4L2 && I2C
-@@ -466,6 +475,29 @@ config VIDEO_THS7303
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called ths7303.
- 
-+config VIDEO_THS7353
-+	tristate "THS7353 Video Amplifier"
-+	depends on I2C
-+	help
-+	  Support for TI THS7353 video amplifier
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called ths7353.
-+
-+config VIDEO_THS7353_LUMA_CHANNEL
-+	int "THS7353 channel number for Luma Input"
-+	default 3
-+	depends on VIDEO_THS7353
-+	help
-+	  Select the luma channel number for the THS7353 input.
-+
-+	  THS7353 has three identical channels. For the component
-+	  interface, luma input will be connected to one of these
-+	  channels and cb and cr will be connected to other channels
-+	  This config option is used to select the luma input channel
-+	  number. Possible values for this option are 1,2 or 3. Any
-+	  other value will result in value 2.
-+
- config VIDEO_ADV7343
- 	tristate "ADV7343 video encoder"
- 	depends on I2C
-@@ -475,6 +507,15 @@ config VIDEO_ADV7343
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called adv7343.
- 
-+config VIDEO_THS8200
-+	tristate "THS8200 video encoder"
-+	depends on I2C
-+	help
-+	  Support for Analog Devices I2C bus based THS8200 encoder.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called ths8200.
-+
- comment "Video improvement chips"
- 
- config VIDEO_UPD64031A
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index e541932..5327ff4 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -47,15 +47,18 @@ obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
- obj-$(CONFIG_VIDEO_ADV7175) += adv7175.o
- obj-$(CONFIG_VIDEO_ADV7180) += adv7180.o
- obj-$(CONFIG_VIDEO_ADV7343) += adv7343.o
-+obj-$(CONFIG_VIDEO_THS8200) += ths8200.o
- obj-$(CONFIG_VIDEO_VPX3220) += vpx3220.o
- obj-$(CONFIG_VIDEO_BT819) += bt819.o
- obj-$(CONFIG_VIDEO_BT856) += bt856.o
- obj-$(CONFIG_VIDEO_BT866) += bt866.o
- obj-$(CONFIG_VIDEO_KS0127) += ks0127.o
- obj-$(CONFIG_VIDEO_THS7303) += ths7303.o
-+obj-$(CONFIG_VIDEO_THS7353) += ths7353.o
- obj-$(CONFIG_VIDEO_VINO) += indycam.o
- obj-$(CONFIG_VIDEO_TVP5150) += tvp5150.o
- obj-$(CONFIG_VIDEO_TVP514X) += tvp514x.o
-+obj-$(CONFIG_VIDEO_TVP7002) += tvp7002.o
- obj-$(CONFIG_VIDEO_MSP3400) += msp3400.o
- obj-$(CONFIG_VIDEO_CS5345) += cs5345.o
- obj-$(CONFIG_VIDEO_CS53L32A) += cs53l32a.o
--- 
-1.6.0.4
-
+Jonas
