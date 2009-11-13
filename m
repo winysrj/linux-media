@@ -1,59 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp05.mail.tnz.yahoo.co.jp ([203.216.246.68]:35617 "HELO
-	smtp05.mail.tnz.yahoo.co.jp" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750885AbZKLHCN (ORCPT
+Received: from pro10.proekspert.ee ([212.47.207.10]:40056 "HELO
+	mail.proekspert.ee" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755070AbZKMI7w convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Nov 2009 02:02:13 -0500
-Message-ID: <4AFBB2F8.2070904@yahoo.co.jp>
-Date: Thu, 12 Nov 2009 16:02:16 +0900
-From: Akihiro TSUKADA <tskd2@yahoo.co.jp>
+	Fri, 13 Nov 2009 03:59:52 -0500
+Date: Fri, 13 Nov 2009 10:59:55 +0200 (EET)
+From: Lauri Laanmets <lauri.laanmets@proekspert.ee>
+To: Markus Rechberger <mrechberger@gmail.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <3933453.18034.1258102795094.JavaMail.root@mail>
+In-Reply-To: <d9def9db0911130047i2cc2eccyc9807f63fb5e9647@mail.gmail.com>
+Subject: Re: DVB support for MSI DigiVox A/D II and KWorld 320U
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] dvb-usb-friio: accept center-shifted frequency
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd2@yahoo.co.jp>
+Hi
 
-This patch adds a fix to accept frequency with its center shifted.
+Sorry if I wasn't clear enough. I'm trying to get V4l code working. So I'm playing around with GPIO's and have managed to get the I2C communication working but something is still missing. I was thinking that because mcentral code worked, maybe some information can be taken over from it but the code is so much different, I do not understand it fully.
 
-The driver used to accept center frequencies of the normal UHF band channels,
-but in ISDB-T, center frequency is shifted with 1/7MHz.
-It was shifted internally in the driver,
-but this patch enables to accept both types of frequency.
+Or what should I try next?
 
-Priority: normal
+Lauri
 
-Signed-off-by: Akihiro Tsukada <tskd2@yahoo.co.jp>
----
- friio-fe.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+----- Original Message -----
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Lauri Laanmets" <lauri.laanmets@proekspert.ee>
+Cc: linux-media@vger.kernel.org
+Sent: Friday, November 13, 2009 10:47:03 AM
+Subject: Re: DVB support for MSI DigiVox A/D II and KWorld 320U
 
-diff --git a/linux/drivers/media/dvb/dvb-usb/friio-fe.c b/linux/drivers/media/dvb/dvb-usb/friio-fe.c
---- a/linux/drivers/media/dvb/dvb-usb/friio-fe.c
-+++ b/linux/drivers/media/dvb/dvb-usb/friio-fe.c
-@@ -134,11 +134,13 @@ static int jdvbt90502_pll_set_freq(struc
- 	deb_fe("%s: freq=%d, step=%d\n", __func__, freq,
- 	       state->frontend.ops.info.frequency_stepsize);
- 	/* freq -> oscilator frequency conversion. */
--	/* freq: 473,000,000 + n*6,000,000 (no 1/7MHz shift to center freq) */
--	/* add 400[1/7 MHZ] = 57.142857MHz.   57MHz for the IF,  */
--	/*                                   1/7MHz for center freq shift */
-+	/* freq: 473,000,000 + n*6,000,000 [+ 142857 (center freq. shift)] */
- 	f = freq / state->frontend.ops.info.frequency_stepsize;
--	f += 400;
-+	/* add 399[1/7 MHZ] = 57MHz for the IF  */
-+	f += 399;
-+	/* add center frequency shift if necessary */
-+	if (f % 7 == 0)
-+		f++;
- 	pll_freq_cmd[DEMOD_REDIRECT_REG] = JDVBT90502_2ND_I2C_REG; /* 0xFE */
- 	pll_freq_cmd[ADDRESS_BYTE] = state->config.pll_address << 1;
- 	pll_freq_cmd[DIVIDER_BYTE1] = (f >> 8) & 0x7F;
+On Fri, Nov 13, 2009 at 4:37 PM, Lauri Laanmets
+<lauri.laanmets@proekspert.ee> wrote:
+> Hello
+>
+> I have managed to attach the device without any error messages now but the tuning and playback of DVB still doesn't work. I get a lot of these error messages:
+>
+> [  247.268152] em28xx #0: reading i2c device failed (error=-110)
+> [  247.268161] xc2028 1-0061: i2c input error: rc = -110 (should be 2)
+>
+> and
+>
+> [  433.232124] xc2028 1-0061: Loading SCODE for type=DTV6 ATSC OREN538 SCODE HAS_IF_5580 (60110020), id 0000000000000000.
+> [  433.256017] xc2028 1-0061: Incorrect readback of firmware version.
+> [  433.372019] xc2028 1-0061: Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
+> [  437.940029] xc2028 1-0061: Loading firmware for type=D2620 DTV78 (108), id 0000000000000000.
+>
+> Do anybody have an idea what to do next? Or maybe somebody is willing to help me understanding the mcentral code because that one works fine.
+>
 
---------------------------------------
-GyaO! - Anime, Dramas, Movies, and Music videos [FREE]
-http://pr.mail.yahoo.co.jp/gyao/
+Due some fundamental problems we do not recommend to use the
+em28xx-new code, it can damage your device(!)
+
+We are now working together with several manufacturers since we
+accepted their restrictions we got indepth details about how to handle
+those devices correctly in order to prevent damaged devices. Even if
+it works fine for you it might break the device the next day. The only
+way to get it right is to cooperate with the chip design companies.
+
+Markus
