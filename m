@@ -1,86 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f173.google.com ([209.85.216.173]:52072 "EHLO
-	mail-px0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752934AbZK1Cyg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Nov 2009 21:54:36 -0500
-Date: Fri, 27 Nov 2009 18:54:37 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Krzysztof Halasa <khc@pm.waw.pl>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Jarod Wilson <jarod@redhat.com>, linux-kernel@vger.kernel.org,
-	Mario Limonciello <superm1@ubuntu.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Janne Grunau <j@jannau.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
-	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-Message-ID: <20091128025437.GN6936@core.coreip.homeip.net>
-References: <4B0A765F.7010204@redhat.com> <4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain> <4B0AB60B.2030006@s5r6.in-berlin.de> <4B0AC8C9.6080504@redhat.com> <m34oolrnwd.fsf@intrepid.localdomain> <4B0E71B6.4080808@redhat.com> <m3my29up3y.fsf@intrepid.localdomain> <4B0ED19B.9030409@redhat.com> <20091128003918.628d4b84@pedra>
+Received: from www.viadmin.org ([195.145.128.101]:47956 "EHLO www.viadmin.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752346AbZKMQI5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Nov 2009 11:08:57 -0500
+Date: Fri, 13 Nov 2009 17:08:50 +0100
+From: "H. Langos" <henrik-dvb@prak.org>
+To: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Organizing ALL device data in linuxtv wiki
+Message-ID: <20091113160850.GY31295@www.viadmin.org>
+References: <20091112173130.GV31295@www.viadmin.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20091128003918.628d4b84@pedra>
+In-Reply-To: <20091112173130.GV31295@www.viadmin.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 28, 2009 at 12:39:18AM -0200, Mauro Carvalho Chehab wrote:
-> Em Thu, 26 Nov 2009 17:06:03 -0200
-> Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
-> 
-> > Krzysztof Halasa wrote:
-> > > Mauro Carvalho Chehab <mchehab@redhat.com> writes:
-> > > 
-> > >> Technically, it is not hard to port this solution to the other
-> > >> drivers, but the issue is that we don't have all those IR's to know
-> > >> what is the complete scancode that each key produces. So, the hardest
-> > >> part is to find a way for doing it without causing regressions, and to
-> > >> find a group of people that will help testing the new way.
-> > > 
-> > > We don't want to "port it" to other drivers. We need to have a common
-> > > module which does all RCx decoding. The individual drivers should be as
-> > > simple as possible, something that I outlined in a previous mail.
-> > 
-> > With the current 7bits mask applied to almost all devices, it is probably not very
-> > useful for those who want to use generic IRs. We really need to port the solution
-> > we've done on dvb-usb to the other drivers, allowing them to have the entire
-> > scancode at the tables while keep supporting table replacement. 
-> > 
-> > The issue is that we currently have only 7bits of the scan codes produced by the IR's.
-> > So, we need to re-generate the keycode tables for each IR after the changes got applied.
-> 
-> Ok, I got some time to add support for tables with the full scan codes at the V4L drivers.
-> In order to not break all tables, I've confined the changes to just one device (HVR-950,
-> at the em28xx driver). The patches were already committed at the -hg development tree.
-> 
-> In order to support tables with the full scan codes, all that is needed is to add the 
-> RC5 address + RC5 data when calling ir_input_keydown. So, the change is as simple as:
-> 
-> -			ir_input_keydown(ir->input, &ir->ir,
-> -					 poll_result.rc_data[0]);
-> +			ir_input_keydown(ir->input, &ir->ir,
-> +					 poll_result.rc_address << 8 |
-> +					 poll_result.rc_data[0]);
-> +		else
-> 
-> An example of such patch can be seen at:
-> 	http://linuxtv.org/hg/v4l-dvb/rev/9c38704cfd56
-> 
-> There are still some work to do, since, currently, the drivers will use a table with a fixed
-> size. So, you can replace the current values, but it is not possible to add new keys.
-> 
-> The fix for it is simple, but we need to think what would be the better way for it. There are
-> two alternatives:
-> 	- A table with a fixed size (like 128 or 256 entries - maybe a modprobe parameter
-> could be used to change its size);
-> 	- some way to increase/reduce the table size. In this case, we'll likely need some
-> ioctl for it.
-> 
+Hi Devin,
 
-Hmm, why can't you just resize it when you get EVIOCSKEYCODE for
-scancode that would be out of bounds for the current table (if using
-table approach)?
+I'm sorry. I just realized that I was only subscribed to linux-dvb but 
+not to linux-media. I fixed that now but my reply to your emails will 
+not have the correct In-Reply-To/References headers.
 
--- 
-Dmitry
+> I have to wonder if maybe we are simply using the wrong tool for the
+> job.  Perhaps it would make sense to make a really simple web frontend
+> to a simple database for devices.  At least initially it would only
+> really need two tables.  Something along the lines of the following
+...
+> A simple db frontend like the above would allow users to search on
+> most of the relevant properties they care about (seeing all devices by
+> a single manufacturer, looking up devices by USB ID or PCI ID, looking
+> for devices that support a certain standard, etc)
+
+I've spent some time discussing the pro and contra of an external database
+versus a wiki based approach with some of the other wiki admins:
+http://www.linuxtv.org/wiki/index.php/User_talk:Hlangos#Further_ramblings...
+
+The most important point there I guess is, that writing a database app is
+a piece of cake and a rather nice way of brushing up on one's SQL foo, 
+but keeping it structure-wise updated for years to come is hard and 
+boring work.
+
+Also you have to keep in mind that your database app would need to have
+at leasts: revision control, undo, user administration.
+I'll not go into details but opening such an application to the public 
+would need a good amount of hard work and not to forget, security reviews.
+Stuff that the wiki already has, and (most important) somebody else is
+doing that boring maintenance work so that we can concentrate on the 
+content. 
+
+(I know that user administration could be "borrowed" from the mediawiki
+but interfacing those applications will mean that you have to keep updating
+your code as the mediawiki code evolves.)
+
+> I feel like the freeform nature of wikis just lends to the information
+> not being in a structured manner
+
+True, true.
+
+> I don't doubt that a wiki can be mangled to do something like this, 
+
+Well. I had some doubts in the begining. :-)
+
+> but a real database seems like such a cleaner alternative.
+
+Cleaner, yes. But I'd rather have it dirty and full of information
+than clean, static and empty. (Oh no .. there comes the bazaar 
+and cathedral metaphor again ... :-) )
+
+The device data is structure wise rather heterogenious. So a relational
+database might not be a very efficient way of capturing it.
+In my eyes a more valid contendor to the wiki approach would be something
+with a document oriented database like couchdb. But still you'd have
+to do write all the boring infrastructure stuff like user administration,
+history, undo...
+
+TWiki has the ability to rather nicely blend structured data with 
+unstructured wiki articles. But I thought it more prudent to get 
+something done with the tools at hand than spend still more time 
+looking for the perfect tool ;-)
+
+> Just a quick afterthought - bear in mind the schema I proposed is
+> something I only spent about two minutes on.  It would almost
+> certainly need some more tweaking/cleanup etc.  It meant to
+> communicate a concept, so don't get too tied up in the details of the
+> exact implementation.
+
+
+Jim has collected the attributes he deems important here:
+http://www.linuxtv.org/wiki/index.php/User:Jimbley#Semantics
+
+Howeever I see some problems with the envisioned level of detail 
+regarding linux support when scaled to hundrets of devices:
+http://www.linuxtv.org/wiki/index.php/User_talk:Jimbley#Device_Database
+
+We also had a discussion about the different users and the level of
+detail they'd need:
+http://www.linuxtv.org/wiki/index.php/User_talk:CityK#Help_with_wiki_integration
+
+
+Two more things:
+
+1.) The wiki approach allows for different "databases" to be maintained
+separately (by different people) and still have results shown in one 
+resulting table.
+
+This could be useful for Vendor pages (listing all devices by that vendor
+independent of the boradcasting standard) or for a broadcasting
+standard page that lists all e.g. ATSC devices regardless of wether they
+have a USB or PCI interface. The only implication of splitting the 
+databases is that you need to add one line in your "querry" for each 
+database.
+
+
+2.) Different devices (regardless of wether they are in the same
+"database" or in different ones) can have different sets of attributes.
+
+If you feel that ATSC device should have separate attributes for 
+"8VSB" and "QAM" you just simply add those attributes to your
+devices and write a table template that will display those 
+attributes (and ignore things like "firmware" or "url")
+
+The only attributes I'd like to have in all devices are "vendor",
+"device" and "did" (Device ID).
+
+-henrik
+
+PS: As you see from the number of links to widely different pages, 
+a wiki is NOT a good solution for discussions. Just to avoid the 
+impression that wiki's are my "new hammer". :-)
+
