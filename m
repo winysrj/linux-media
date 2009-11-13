@@ -1,311 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway04.websitewelcome.com ([64.5.52.7]:54369 "HELO
-	gateway04.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1757913AbZKJTel (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3377 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754707AbZKMHVO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Nov 2009 14:34:41 -0500
-Received: from [66.15.212.169] (port=18817 helo=[10.140.5.16])
-	by gator886.hostgator.com with esmtpsa (SSLv3:AES256-SHA:256)
-	(Exim 4.69)
-	(envelope-from <pete@sensoray.com>)
-	id 1N7wNh-0006Hi-7v
-	for linux-media@vger.kernel.org; Tue, 10 Nov 2009 13:27:57 -0600
-Subject: [PATCH 5/5] go7007: subdev conversion
-From: Pete Eberlein <pete@sensoray.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain
-Date: Tue, 10 Nov 2009 11:21:44 -0800
-Message-Id: <1257880904.21307.1109.camel@pete-desktop>
-Mime-Version: 1.0
+	Fri, 13 Nov 2009 02:21:14 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Stefan Lippers-Hollmann" <s.L-H@gmx.de>
+Subject: Re: V4L/DVB (12859): go7007: semaphore -> mutex conversion
+Date: Fri, 13 Nov 2009 08:21:13 +0100
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Greg KH <gregkh@suse.de>, Ross Cohen <rcohen@snurgle.org>,
+	linux-media@vger.kernel.org
+References: <200909211659.n8LGxVXZ000601@hera.kernel.org> <200911130101.29882.s.L-H@gmx.de>
+In-Reply-To: <200911130101.29882.s.L-H@gmx.de>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200911130821.13559.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pete Eberlein <pete@sensoray.com>
+On Friday 13 November 2009 01:01:27 Stefan Lippers-Hollmann wrote:
+> Hi
+> 
+> On Friday 13 November 2009, Linux Kernel Mailing List wrote:
+> > Gitweb:     http://git.kernel.org/linus/fd9a40da1db372833e1af6397d2f6c94ceff3dad
+> > Commit:     fd9a40da1db372833e1af6397d2f6c94ceff3dad
+> > Parent:     028d4c989ab9e839471739332d185f8f158b0043
+> > Author:     Mauro Carvalho Chehab <mchehab@redhat.com>
+> > AuthorDate: Tue Sep 15 11:07:59 2009 -0300
+> > Committer:  Mauro Carvalho Chehab <mchehab@redhat.com>
+> > CommitDate: Sat Sep 19 00:13:37 2009 -0300
+> > 
+> >     V4L/DVB (12859): go7007: semaphore -> mutex conversion
+> >     
+> >     Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+> >     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> As already noticed by Pascal Terjan <pterjan@gmail.com>
+> 	http://lkml.indiana.edu/hypermail/linux/kernel/0909.3/00062.html
+> go7007 currently fails to build in 2.6.32-rc6-git5
+> 
+>   LD      drivers/staging/go7007/built-in.o                                                      
+>   CC [M]  drivers/staging/go7007/go7007-v4l2.o                                                   
+>   CC [M]  drivers/staging/go7007/go7007-driver.o                                                 
+>   CC [M]  drivers/staging/go7007/go7007-i2c.o                                                    
+>   CC [M]  drivers/staging/go7007/go7007-fw.o                                                     
+>   CC [M]  drivers/staging/go7007/snd-go7007.o                                                    
+>   CC [M]  drivers/staging/go7007/s2250-board.o                                                   
+> drivers/staging/go7007/s2250-board.c:24:26: error: s2250-loader.h: No such file or directory     
+> drivers/staging/go7007/s2250-board.c: In function 'read_reg_fp':                                 
+> drivers/staging/go7007/s2250-board.c:264: warning: passing argument 1 of 'down_interruptible' from incompatible pointer type                                                                      
+> drivers/staging/go7007/s2250-board.c:273: warning: passing argument 1 of 'up' from incompatible pointer type                                                                                      
+> drivers/staging/go7007/s2250-board.c: In function 's2250_init':                                  
+> drivers/staging/go7007/s2250-board.c:670: error: implicit declaration of function 's2250loader_init'                                                                                              
+> drivers/staging/go7007/s2250-board.c:676: error: implicit declaration of function 's2250loader_cleanup'                                                                                           
+> make[6]: *** [drivers/staging/go7007/s2250-board.o] Error 1                                      
+> make[5]: *** [drivers/staging/go7007] Error 2                                                    
+> make[4]: *** [drivers/staging] Error 2                                                           
+> make[3]: *** [drivers] Error 2        
+> 
+> >  drivers/staging/go7007/go7007-driver.c |   12 +++---
+> >  drivers/staging/go7007/go7007-i2c.c    |   12 +++---
+> >  drivers/staging/go7007/go7007-priv.h   |    6 +-
+> >  drivers/staging/go7007/go7007-usb.c    |   10 ++--
+> >  drivers/staging/go7007/go7007-v4l2.c   |   66 ++++++++++++++++----------------
+> >  drivers/staging/go7007/go7007.txt      |    4 +-
+> >  drivers/staging/go7007/s2250-board.c   |   18 ++++-----
+> >  drivers/staging/go7007/s2250-loader.c  |    8 ++--
+> >  drivers/staging/go7007/snd-go7007.c    |    2 +-
+> >  9 files changed, 68 insertions(+), 70 deletions(-)
+> 
+> [...]
+> > diff --git a/drivers/staging/go7007/s2250-board.c b/drivers/staging/go7007/s2250-board.c
+> > index b398db4..f35f077 100644
+> > --- a/drivers/staging/go7007/s2250-board.c
+> > +++ b/drivers/staging/go7007/s2250-board.c
+> > @@ -21,12 +21,10 @@
+> >  #include <linux/i2c.h>
+> >  #include <linux/videodev2.h>
+> >  #include <media/v4l2-common.h>
+> > +#include "s2250-loader.h"
+> 
+> s2250-loader.h is neither available in 
+> 	git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+> nor
+> 	git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
+> although it seems to have been included in Hans' initial pull request 
+> 	http://www.mail-archive.com/linux-media@vger.kernel.org/msg09506.html
+> 
+> >  #include "go7007-priv.h"
+> >  #include "wis-i2c.h"
+> >  
+> > -extern int s2250loader_init(void);
+> > -extern void s2250loader_cleanup(void);
+> > -
+> >  #define TLV320_ADDRESS      0x34
+> >  #define VPX322_ADDR_ANALOGCONTROL1	0x02
+> >  #define VPX322_ADDR_BRIGHTNESS0		0x0127
+> [...]
+> 
+> This is a regression since 2.6.31.
+> 
+> Regards
+> 	Stefan Lippers-Hollmann
+> 
 
-Convert the go7007 driver to v4l2 subdev interface, using v4l2 i2c
-subdev functions instead of i2c functions directly.  The v4l2 ioctl ops
-functions call subdev ops instead of i2c commands.
+Thanks for reporting this. I have already received patches and will review
+and queue them this weekend. I wasn't aware that 2.6.32 was also broken,
+so this will be a high-prio item for me.
 
-Priority: normal
+We should catch these things with the daily build process that we have, but
+the daily build is effectively broken at the moment. I hope to address that
+this weekend as well to get that back on track. I've been just too busy the
+last two months to give it the attention it needs :-(
 
-Signed-off-by: Pete Eberlein <pete@sensoray.com>
+This is the second compilation error that was introduced in 2.6.32. I found
+another one in the davinci drivers. This is really bad...
 
-diff -r a44341b7bf67 -r 76b500418fae linux/drivers/staging/go7007/go7007-driver.c
---- a/linux/drivers/staging/go7007/go7007-driver.c	Tue Nov 10 10:56:51 2009 -0800
-+++ b/linux/drivers/staging/go7007/go7007-driver.c	Tue Nov 10 11:20:10 2009 -0800
-@@ -193,7 +193,8 @@
- static int init_i2c_module(struct i2c_adapter *adapter, const char *type,
- 			   int id, int addr)
- {
--	struct i2c_board_info info;
-+	struct go7007 *go = i2c_get_adapdata(adapter);
-+	struct v4l2_device *v4l2_dev = &go->v4l2_dev;
- 	char *modname;
- 
- 	switch (id) {
-@@ -225,14 +226,10 @@
- 		modname = NULL;
- 		break;
- 	}
--	if (modname != NULL)
--		request_module(modname);
- 
--	memset(&info, 0, sizeof(struct i2c_board_info));
--	info.addr = addr;
--	strlcpy(info.type, type, I2C_NAME_SIZE);
--	if (!i2c_new_device(adapter, &info))
-+	if (v4l2_i2c_new_subdev(v4l2_dev, adapter, modname, type, addr, NULL))
- 		return 0;
-+
- 	if (modname != NULL)
- 		printk(KERN_INFO
- 			"go7007: probing for module %s failed\n", modname);
-@@ -262,6 +259,11 @@
- 	if (ret < 0)
- 		return -1;
- 
-+	/* v4l2 init must happen before i2c subdevs */
-+	ret = go7007_v4l2_init(go);
-+	if (ret < 0)
-+		return ret;
-+
- 	if (!go->i2c_adapter_online &&
- 			go->board_info->flags & GO7007_BOARD_USE_ONBOARD_I2C) {
- 		if (go7007_i2c_init(go) < 0)
-@@ -282,7 +284,7 @@
- 		go->audio_enabled = 1;
- 		go7007_snd_init(go);
- 	}
--	return go7007_v4l2_init(go);
-+	return 0;
- }
- EXPORT_SYMBOL(go7007_register_encoder);
- 
-diff -r a44341b7bf67 -r 76b500418fae linux/drivers/staging/go7007/go7007-v4l2.c
---- a/linux/drivers/staging/go7007/go7007-v4l2.c	Tue Nov 10 10:56:51 2009 -0800
-+++ b/linux/drivers/staging/go7007/go7007-v4l2.c	Tue Nov 10 11:20:10 2009 -0800
-@@ -29,6 +29,7 @@
- #include <linux/videodev2.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
-+#include <media/v4l2-subdev.h>
- #include <linux/i2c.h>
- #include <linux/mutex.h>
- #include <linux/uaccess.h>
-@@ -46,6 +47,9 @@
- #define	V4L2_MPEG_VIDEO_ENCODING_MPEG_4   3
- #endif
- 
-+#define call_all(dev, o, f, args...) \
-+	v4l2_device_call_until_err(dev, 0, o, f, ##args)
-+
- static void deactivate_buffer(struct go7007_buffer *gobuf)
- {
- 	int i;
-@@ -247,19 +251,23 @@
- 		go->modet_map[i] = 0;
- 
- 	if (go->board_info->sensor_flags & GO7007_SENSOR_SCALING) {
--		struct video_decoder_resolution res;
-+		struct v4l2_format res;
- 
--		res.width = width;
-+		if (fmt != NULL) {
-+			res = *fmt;
-+		} else {
-+			res.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+			res.fmt.pix.width = width;
-+		}
-+
- 		if (height > sensor_height / 2) {
--			res.height = height / 2;
-+			res.fmt.pix.height = height / 2;
- 			go->encoder_v_halve = 0;
- 		} else {
--			res.height = height;
-+			res.fmt.pix.height = height;
- 			go->encoder_v_halve = 1;
- 		}
--		if (go->i2c_adapter_online)
--			i2c_clients_command(&go->i2c_adapter,
--					DECODER_SET_RESOLUTION, &res);
-+		call_all(&go->v4l2_dev, video, s_fmt, &res);
- 	} else {
- 		if (width <= sensor_width / 4) {
- 			go->encoder_h_halve = 1;
-@@ -385,7 +393,7 @@
- }
- #endif
- 
--static int mpeg_queryctrl(struct v4l2_queryctrl *ctrl)
-+static int mpeg_query_ctrl(struct v4l2_queryctrl *ctrl)
- {
- 	static const u32 mpeg_ctrls[] = {
- 		V4L2_CID_MPEG_CLASS,
-@@ -973,51 +981,35 @@
- 			   struct v4l2_queryctrl *query)
- {
- 	struct go7007 *go = ((struct go7007_file *) priv)->go;
-+	int id = query->id;
- 
--	if (!go->i2c_adapter_online)
--		return -EIO;
-+	if (0 == call_all(&go->v4l2_dev, core, queryctrl, query))
-+		return 0;
- 
--	i2c_clients_command(&go->i2c_adapter, VIDIOC_QUERYCTRL, query);
--
--	return (!query->name[0]) ? mpeg_queryctrl(query) : 0;
-+	query->id = id;
-+	return mpeg_query_ctrl(query);
- }
- 
- static int vidioc_g_ctrl(struct file *file, void *priv,
- 				struct v4l2_control *ctrl)
- {
- 	struct go7007 *go = ((struct go7007_file *) priv)->go;
--	struct v4l2_queryctrl query;
- 
--	if (!go->i2c_adapter_online)
--		return -EIO;
-+	if (0 == call_all(&go->v4l2_dev, core, g_ctrl, ctrl))
-+		return 0;
- 
--	memset(&query, 0, sizeof(query));
--	query.id = ctrl->id;
--	i2c_clients_command(&go->i2c_adapter, VIDIOC_QUERYCTRL, &query);
--	if (query.name[0] == 0)
--		return mpeg_g_ctrl(ctrl, go);
--	i2c_clients_command(&go->i2c_adapter, VIDIOC_G_CTRL, ctrl);
--
--	return 0;
-+	return mpeg_g_ctrl(ctrl, go);
- }
- 
- static int vidioc_s_ctrl(struct file *file, void *priv,
- 				struct v4l2_control *ctrl)
- {
- 	struct go7007 *go = ((struct go7007_file *) priv)->go;
--	struct v4l2_queryctrl query;
- 
--	if (!go->i2c_adapter_online)
--		return -EIO;
-+	if (0 == call_all(&go->v4l2_dev, core, s_ctrl, ctrl))
-+		return 0;
- 
--	memset(&query, 0, sizeof(query));
--	query.id = ctrl->id;
--	i2c_clients_command(&go->i2c_adapter, VIDIOC_QUERYCTRL, &query);
--	if (query.name[0] == 0)
--		return mpeg_s_ctrl(ctrl, go);
--	i2c_clients_command(&go->i2c_adapter, VIDIOC_S_CTRL, ctrl);
--
--	return 0;
-+	return mpeg_s_ctrl(ctrl, go);
- }
- 
- static int vidioc_g_parm(struct file *filp, void *priv,
-@@ -1135,8 +1127,7 @@
- 	if (go->streaming)
- 		return -EBUSY;
- 
--	if (!(go->board_info->sensor_flags & GO7007_SENSOR_TV) &&
--			*std != 0)
-+	if (!(go->board_info->sensor_flags & GO7007_SENSOR_TV) && *std != 0)
- 		return -EINVAL;
- 
- 	if (*std == 0)
-@@ -1146,9 +1137,7 @@
- 			go->input == go->board_info->num_inputs - 1) {
- 		if (!go->i2c_adapter_online)
- 			return -EIO;
--		i2c_clients_command(&go->i2c_adapter,
--					VIDIOC_S_STD, std);
--		if (!*std) /* hack to indicate EINVAL from tuner */
-+		if (call_all(&go->v4l2_dev, core, s_std, *std) < 0)
- 			return -EINVAL;
- 	}
- 
-@@ -1164,9 +1153,7 @@
- 	} else
- 		return -EINVAL;
- 
--	if (go->i2c_adapter_online)
--		i2c_clients_command(&go->i2c_adapter,
--					VIDIOC_S_STD, std);
-+	call_all(&go->v4l2_dev, core, s_std, *std);
- 	set_capture_size(go, NULL, 0);
- 
- 	return 0;
-@@ -1180,7 +1167,7 @@
- 			go->input == go->board_info->num_inputs - 1) {
- 		if (!go->i2c_adapter_online)
- 			return -EIO;
--		i2c_clients_command(&go->i2c_adapter, VIDIOC_QUERYSTD, std);
-+		return call_all(&go->v4l2_dev, video, querystd, std);
- 	} else if (go->board_info->sensor_flags & GO7007_SENSOR_TV)
- 		*std = V4L2_STD_NTSC | V4L2_STD_PAL | V4L2_STD_SECAM;
- 	else
-@@ -1238,14 +1225,8 @@
- 		return -EBUSY;
- 
- 	go->input = input;
--	if (go->i2c_adapter_online) {
--		i2c_clients_command(&go->i2c_adapter, VIDIOC_S_INPUT,
--			&go->board_info->inputs[input].video_input);
--		i2c_clients_command(&go->i2c_adapter, VIDIOC_S_AUDIO,
--			&go->board_info->inputs[input].audio_input);
--	}
- 
--	return 0;
-+	return call_all(&go->v4l2_dev, video, s_routing, input, 0, 0);
- }
- 
- static int vidioc_g_tuner(struct file *file, void *priv,
-@@ -1260,10 +1241,7 @@
- 	if (!go->i2c_adapter_online)
- 		return -EIO;
- 
--	i2c_clients_command(&go->i2c_adapter, VIDIOC_G_TUNER, t);
--
--	t->index = 0;
--	return 0;
-+	return call_all(&go->v4l2_dev, tuner, g_tuner, t);
- }
- 
- static int vidioc_s_tuner(struct file *file, void *priv,
-@@ -1287,9 +1265,7 @@
- 		break;
- 	}
- 
--	i2c_clients_command(&go->i2c_adapter, VIDIOC_S_TUNER, t);
--
--	return 0;
-+	return call_all(&go->v4l2_dev, tuner, s_tuner, t);
- }
- 
- static int vidioc_g_frequency(struct file *file, void *priv,
-@@ -1303,8 +1279,8 @@
- 		return -EIO;
- 
- 	f->type = V4L2_TUNER_ANALOG_TV;
--	i2c_clients_command(&go->i2c_adapter, VIDIOC_G_FREQUENCY, f);
--	return 0;
-+
-+	return call_all(&go->v4l2_dev, tuner, g_frequency, f);
- }
- 
- static int vidioc_s_frequency(struct file *file, void *priv,
-@@ -1317,9 +1293,7 @@
- 	if (!go->i2c_adapter_online)
- 		return -EIO;
- 
--	i2c_clients_command(&go->i2c_adapter, VIDIOC_S_FREQUENCY, f);
--
--	return 0;
-+	return call_all(&go->v4l2_dev, tuner, s_frequency, f);
- }
- 
- static int vidioc_cropcap(struct file *file, void *priv,
+Fellow v4l-dvb developers: please don't let me be the only one who pays
+attention to the daily build report! Just the fact that it is running on
+my computer doesn't mean that I have to be the one to fix issues!
 
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
