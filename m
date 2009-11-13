@@ -1,72 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:42014 "EHLO mail1.radix.net"
+Received: from setoy.chost.de ([217.160.209.225]:51919 "EHLO smtp.chost.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754748AbZKQMH2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2009 07:07:28 -0500
-Subject: Re: [PATCH 17/21] workqueue: simple reimplementation of
- SINGLE_THREAD workqueue
-From: Andy Walls <awalls@radix.net>
-To: Tejun Heo <tj@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	jeff@garzik.org, mingo@elte.hu, akpm@linux-foundation.org,
-	jens.axboe@oracle.com, rusty@rustcorp.com.au,
-	cl@linux-foundation.org, dhowells@redhat.com,
-	arjan@linux.intel.com, torvalds@linux-foundation.org,
-	avi@redhat.com, peterz@infradead.org, andi@firstfloor.org,
-	fweisbec@gmail.com
-In-Reply-To: <4B023340.90004@kernel.org>
-References: <1258391726-30264-1-git-send-email-tj@kernel.org>
-	 <1258391726-30264-18-git-send-email-tj@kernel.org>
-	 <1258418872.4096.28.camel@palomino.walls.org>  <4B023340.90004@kernel.org>
-Content-Type: text/plain
-Date: Tue, 17 Nov 2009 07:05:25 -0500
-Message-Id: <1258459525.3214.17.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	id S932236AbZKMUr2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Nov 2009 15:47:28 -0500
+Date: Fri, 13 Nov 2009 21:40:50 +0100
+From: Sascha Silbe <sascha-ml-linux-kernel-media@silbe.org>
+To: linux-media@vger.kernel.org
+Subject: Recommended DVB-C USB device?
+Message-ID: <20091113204050.GA1965@twin.sascha.silbe.org>
+Reply-To: Sascha Silbe <sascha-ml-reply-to-2009-4@silbe.org>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="liOOAslEiF7prFVr"
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2009-11-17 at 14:23 +0900, Tejun Heo wrote:
-> Hello,
-> 
-> 11/17/2009 09:47 AM, Andy Walls wrote:
-> > An important property of the single threaded workqueue, upon which the
-> > cx18 driver relies, is that work objects will be processed strictly in
-> > the order in which they were queued.  The cx18 driver has a pool of
-> > "work orders" and multiple active work orders can be queued up on the
-> > workqueue especially if multiple streams are active.  If these work
-> > orders were to be processed out of order, video artifacts would result
-> > in video display applications.
-> 
-> That's an interesting use of single thread workqueue.  Most of single
-> thread workqueues seem to be made single thread just to save number of
-> threads.  Some seem to depend on single thread of execution but I
-> never knew there are ones which depend on the exact execution order.
-> Do you think that usage is wide-spread?
 
-I doubt it.
+--liOOAslEiF7prFVr
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Most that I have seen use the singlethreaded workqueue object with a
-queue depth of essentially 1 for syncronization - as you have noted.
+Hi!
 
+I'd like to get a DVB-C USB (2.0) device to replace the current analog=20
+framegrabber. It needs to work well on Linux/ARMv5TE; proprietary=20
+host-side drivers are no-go.
+Are there any devices where datasheets are available or you even got=20
+help from the manufacturer? Is there any device you would recommend? Or=20
+at least best of the bad breed with good chances to improve?
 
->   Implementing strict ordering
-> shouldn't be too difficult but I can't help but feeling that such
-> assumption is abuse of implementation detail.
+The wiki isn't much of a help when trying to decide what to buy, only=20
+what not to buy (USB1, discontinued, silently replaced by incompatible=20
+model). At best, it says "already working fine for most" (what about the=20
+others? where isn't it working and why?).
 
-Hmmm, does not the "queue" in workqueue mean "FIFO"?
+CU Sascha
 
-If not for strict ordering, why else would a driver absolutely need a
-singlethreaded workqueue object?  It seems to me the strict ording is
-the driving requirement for a singlethreaded workqueue at all.  Your
-patch series indicates to me that the performance and synchronization
-use cases are not driving requirements for a singlethreaded workqueue.
+--=20
+http://sascha.silbe.org/
+http://www.infra-silbe.de/
+--liOOAslEiF7prFVr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-Thanks for your consideration.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
 
-Regards,
-Andy
+iQEcBAEBAgAGBQJK/cRPAAoJELpz82VMF3Daio0IAKS3AaqT8l4ZnPG6DH5rBINT
+mSG9cqvD8BuPFHEzi1gEgN7Xh/rDwEBUS4PZ4qFB/n1V9VBP6KCiEL6EV0w84MUx
+tC8f89gZv6cUhbkCBG83E88OI0kehovA9Hw3eL+tIGpMoA9QAAB5r7vVMvIiLTn8
+8jEOBo1qzMzSuzrfJyuISCffp78PiGorNAFZZDNTGGzp19JFxksge8kQaDeHTN+o
+uSsTPR4mcsiCXt453pEZj28j0WsQY6tX+BcPAfcXok3yMSY9bMfnMepPFgHVnMPJ
+CKkS3SlLiKgeBSA+dOGnEoiLxvOEtrWNNDRlInmYe9dM0hN4RBwfN6uK3Qp/i5U=
+=3kqU
+-----END PGP SIGNATURE-----
 
-> Thanks.
-
-
+--liOOAslEiF7prFVr--
