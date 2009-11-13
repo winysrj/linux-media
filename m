@@ -1,50 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:42261 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757980AbZKJU0T (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Nov 2009 15:26:19 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Philipp Wiesner" <p.wiesner@gmx.net>
-Subject: Re: soc_camera, v4l2 api, gstreamer: setting errno ?
-Date: Tue, 10 Nov 2009 21:27:00 +0100
-Cc: linux-media@vger.kernel.org
-References: <20091110161318.44980@gmx.net>
-In-Reply-To: <20091110161318.44980@gmx.net>
+Received: from mail.gmx.net ([213.165.64.20]:37055 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751695AbZKMHzj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Nov 2009 02:55:39 -0500
+Date: Fri, 13 Nov 2009 08:55:47 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] soc-camera: sh_mobile_ceu_camera: remove unused label
+In-Reply-To: <upr7rm8i9.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0911130853220.4601@axis700.grange>
+References: <upr7rm8i9.wl%morimoto.kuninori@renesas.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200911102127.00348.laurent.pinchart@ideasonboard.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+Hi Mauro
 
-On Tuesday 10 November 2009 17:13:18 Philipp Wiesner wrote:
-> I'm having some trouble using gstreamer with soc_camera and am a
-> modified tw9910 driver. I had difficulties compiling the latest sources
-> for my target so I'm using old kernel and gstreamer versions. But my
-> question may still be valid, because the problem doesn't seem to be fixed
-> and this may be interesting for driver programming in the future.
+here's one more patch for 2.6.32:
+
+On Tue, 10 Nov 2009, Kuninori Morimoto wrote:
+
+> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> ---
+> >> Guennadi
 > 
-> The part I'm suspecting is
+> I'm very very very sorry.
+> I forgot remove this label in "sh_mobile_ceu_camera: call pm_runtime_disable"
+
+Would it be possible to merge it with the previous one
+
+http://linuxtv.org/hg/~gliakhovetski/v4l-dvb/rev/56fb79be71c8
+
+in your git? Shall I just push it into my hg for you to pick up?
+
 > 
->   if (v4l2_ioctl (fd, VIDIOC_S_FMT, &format) < 0) {
->     if (errno != EINVAL)
->       goto set_fmt_failed;
+>  drivers/media/video/sh_mobile_ceu_camera.c |    1 -
+>  1 files changed, 0 insertions(+), 1 deletions(-)
 > 
-> [v4l2src_calls.c,1223]
-> According to V4L2 api documentation drivers should set errno, but all
->  drivers I've seen in the soc_camera framework (including soc_camera.c)
->  only 'return -errno'. Should device drivers (like tw9910) set errno or
->  should soc_camera use return values and set errno? Is it correct that none
->  of them happens at the moment?
+> diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+> index aa3e4af..bcfccc2 100644
+> --- a/drivers/media/video/sh_mobile_ceu_camera.c
+> +++ b/drivers/media/video/sh_mobile_ceu_camera.c
+> @@ -1857,7 +1857,6 @@ static int __devinit sh_mobile_ceu_probe(struct platform_device *pdev)
+>  
+>  exit_free_clk:
+>  	pm_runtime_disable(&pdev->dev);
+> -exit_free_irq:
+>  	free_irq(pcdev->irq, pcdev);
+>  exit_release_mem:
+>  	if (platform_get_resource(pdev, IORESOURCE_MEM, 1))
+> -- 
+> 1.6.3.3
+> 
 
-errno is a userspace variable. Kernel drivers return a negative error code 
-which is stored into errno by the ioctl() function in glibc.
-
--- 
-Regards,
-
-Laurent Pinchart
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
