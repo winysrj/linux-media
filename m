@@ -1,33 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp103.mail.ukl.yahoo.com ([77.238.184.35]:42720 "HELO
-	smtp103.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1756684AbZKUSM5 (ORCPT
+Received: from dangerbird.closetothewind.net ([82.134.87.117]:44206 "EHLO
+	dangerbird.closetothewind.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757357AbZKMULT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Nov 2009 13:12:57 -0500
-Message-ID: <4B082F2B.6070700@rocketmail.com>
-Date: Sat, 21 Nov 2009 18:19:23 +0000
-From: g_remlin <g_remlin@rocketmail.com>
+	Fri, 13 Nov 2009 15:11:19 -0500
+Message-ID: <4AFDBD6A.8020005@closetothewind.net>
+Date: Fri, 13 Nov 2009 21:11:22 +0100
+From: Jonas Kvinge <linuxtv@closetothewind.net>
 MIME-Version: 1.0
-To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: CH???, Bandwidth 8MHz, Fec_Hi 1/2, Modulation QAM64, Mode 8K,
- Guard 1/4, fails to tune\demux
-References: <4B06F484.5050700@rocketmail.com> <alpine.DEB.2.01.0911211443110.6168@ybpnyubfg.ybpnyqbznva>
-In-Reply-To: <alpine.DEB.2.01.0911211443110.6168@ybpnyubfg.ybpnyqbznva>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To: =?UTF-8?B?TWFnbnVzIEjDtnJsaW4=?= <magnus@alefors.se>,
+	linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Most stable DVB-S2 PCI Card?
+References: <72748420-1243012937-cardhu_decombobulator_blackberry.rim.net-428520223-@bxe1214.bisx.prod.on.blackberry> <1a297b360905221035ra3ddfe3vb3be4d2029865a39@mail.gmail.com> <4AFCB38D.3050301@closetothewind.net> <4AFD9F39.5010808@alefors.se>
+In-Reply-To: <4AFD9F39.5010808@alefors.se>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Barry, thanks for taking the time to reply (my previous more 
-informative post was ignored).
 
-This is the Terrestrial transmission standard being rolled out across 
-the UK, I live in one of the first areas to be upgraded to the new 
-standard. Since the change, my DVB-T PCI card will no longer tune 
-(despite the signal level being indicated as OK in Kaffeine). I have 
-confirmed the card does work correctly under Windows XP with the 
-original card software, so it does not appear to be a hardware issue. I 
-have tried numerous apps and various kernels, all without success. Any 
-guidance as to what to try next, be it how to gather info for a bug 
-report, or even a solution :), would be greatly appreciated.
+> I have four of them and they work perfectly, but not out of the box from
+> the v4l-dvb tree. If it's patched with the patches posted on this list a
+> few weeks ago by Andreas Regel (or used with his repo at
+> http://powarman.dyndns.org/hg/v4l-dvb) it locks perfectly on every
+> transonder on 1.0W, without them it does not. I also have an S2-3200 and
+> a NOVA-HD-S2 but they can't handle all transponders symbol rates so I
+> highly recommend the S2-1600. Bought them for <Ã¢ÂÂ¬50 in Germany.
+> 
+> /Magnus H
+> 
+> 
+
+Why aren't those patches in the official repo?
+
+
+Jonas
+
