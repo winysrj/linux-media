@@ -1,115 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1723 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759322AbZKYTsH (ORCPT
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60958 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756760AbZKMWgE convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2009 14:48:07 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: santiago.nunez@ridgerun.com
-Subject: Re: [PATCH 2/4 v8] Definitions for TVP7002 in DM365
-Date: Wed, 25 Nov 2009 20:48:06 +0100
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	linux-media@vger.kernel.org, nsnehaprabha@ti.com,
-	m-karicheri2@ti.com, diego.dompe@ridgerun.com,
-	todd.fischer@ridgerun.com, mgrosen@ti.com
-References: <1259177948-14878-1-git-send-email-santiago.nunez@ridgerun.com>
-In-Reply-To: <1259177948-14878-1-git-send-email-santiago.nunez@ridgerun.com>
+	Fri, 13 Nov 2009 17:36:04 -0500
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id nADMa9b7002907
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 13 Nov 2009 16:36:09 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id nADMa9R8013940
+	for <linux-media@vger.kernel.org>; Fri, 13 Nov 2009 16:36:09 -0600 (CST)
+Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id nADMa9dR008282
+	for <linux-media@vger.kernel.org>; Fri, 13 Nov 2009 16:36:09 -0600 (CST)
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Fri, 13 Nov 2009 16:36:07 -0600
+Subject: Documentation - How do I add v4l2 documentation under media-specs ?
+Message-ID: <A69FA2915331DC488A831521EAE36FE4015593740C@dlee06.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200911252048.06863.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 25 November 2009 20:39:08 santiago.nunez@ridgerun.com wrote:
-> From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-> 
-> This patch provides the required definitions for the TVP7002 driver
-> in DM365.
-> 
-> Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-> ---
->  drivers/media/video/tvp7002_reg.h |  150 +++++++++++++++++++++++++++++++++++++
->  include/media/tvp7002.h           |   54 +++++++++++++
->  2 files changed, 204 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/tvp7002_reg.h
->  create mode 100644 include/media/tvp7002.h
-> 
+Hi,
 
-<cut>
+I need to update the V4l2 documentation for the video timing API. I have got the relevant tree downloaded and did make media-spec
 
-> diff --git a/include/media/tvp7002.h b/include/media/tvp7002.h
-> new file mode 100644
-> index 0000000..220e833
-> --- /dev/null
-> +++ b/include/media/tvp7002.h
-> @@ -0,0 +1,54 @@
-> +/* Texas Instruments Triple 8-/10-BIT 165-/110-MSPS Video and Graphics
-> + * Digitizer with Horizontal PLL registers
-> + *
-> + * Copyright (C) 2009 Texas Instruments Inc
-> + * Author: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-> + *
-> + * This code is partially based upon the TVP5150 driver
-> + * written by Mauro Carvalho Chehab (mchehab@infradead.org),
-> + * the TVP514x driver written by Vaibhav Hiremath <hvaibhav@ti.com>
-> + * and the TVP7002 driver in the TI LSP 2.10.00.14
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-> + */
-> +#ifndef _TVP7002_H_
-> +#define _TVP7002_H_
-> +
-> +/* Platform-dependent data
-> + *
-> + * clk_polarity:
-> + * 			0 -> data clocked out on rising edge of DATACLK signal
-> + * 			1 -> data clocked out on falling edge of DATACLK signal
-> + * hs_polarity:
-> + * 			0 -> active low HSYNC output
-> + * 			1 -> active high HSYNC output
-> + * sog_polarity:
-> + * 			0 -> normal operation
-> + * 			1 -> operation with polarity inverted
-> + * vs_polarity:
-> + * 			0 -> active low VSYNC output
-> + * 			1 -> active high VSYNC output
-> + * fid_polariry:
+I got the media.html under media-specs/media-single/media.html after the build.
 
-typo: polariry -> polarity
+When I open this file in a web browser, I see the document with a Table of
+contents and links. I need to add a sections for the video timing API, which involves adding two sections, one on DV_PRESET and other on DV_TIMING. How do a developer typically add documentation? Do I need to use a xml editor?
+I am not that familiar with xml/html notations (except for the simple tags)
+and wondering how I can update the documents. Any help will be appreciated.
 
-> + * 			0 -> even field ID output
-> + * 			1 -> odd field ID output
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+email: m-karicheri2@ti.com
 
-This isn't clear to me: what do you mean with 'even field ID output'?
-
-Regards,
-
-	Hans
-
-> + */
-> +struct tvp7002_config {
-> +	u8 clk_polarity;
-> +	u8 hs_polarity;
-> +	u8 vs_polarity;
-> +	u8 fid_polarity;
-> +	u8 sog_polarity;
-> +};
-> +#endif
-> 
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
