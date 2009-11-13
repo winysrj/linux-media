@@ -1,56 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3011 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752197AbZKRGp5 (ORCPT
+Received: from mail-yw0-f202.google.com ([209.85.211.202]:34424 "EHLO
+	mail-yw0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932070AbZKMTSx convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 01:45:57 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Joonyoung Shim <jy0922.shim@samsung.com>
-Subject: Re: [PATCH 2/3] radio-si470x: move some file operations to common file
-Date: Wed, 18 Nov 2009 07:45:40 +0100
-Cc: linux-media@vger.kernel.org, tobias.lorenz@gmx.net,
-	mchehab@infradead.org, kyungmin.park@samsung.com
-References: <4B03926A.6030401@samsung.com> <200911180742.41935.hverkuil@xs4all.nl>
-In-Reply-To: <200911180742.41935.hverkuil@xs4all.nl>
+	Fri, 13 Nov 2009 14:18:53 -0500
+Received: by ywh40 with SMTP id 40so1581229ywh.33
+        for <linux-media@vger.kernel.org>; Fri, 13 Nov 2009 11:18:59 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200911180745.40879.hverkuil@xs4all.nl>
+In-Reply-To: <829197380911131001g75708155tba65e0ac3cb5b505@mail.gmail.com>
+References: <18b102300911130901g3ad57ec4x99c78e7803ec773f@mail.gmail.com>
+	 <829197380911131001g75708155tba65e0ac3cb5b505@mail.gmail.com>
+Date: Fri, 13 Nov 2009 14:18:59 -0500
+Message-ID: <18b102300911131118w5ce83bbclad2462d1a160ab45@mail.gmail.com>
+Subject: Re: Help with Sabrent TV-USBHD (Syntek Teledongle) on Ubuntu Karmic
+From: James Klaas <jklaas@appalachian.dyndns.org>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 18 November 2009 07:42:41 Hans Verkuil wrote:
-> On Wednesday 18 November 2009 07:21:30 Joonyoung Shim wrote:
-> > The read and poll file operations of the si470x usb driver can be used
-> > also equally on the si470x i2c driver, so they go to the common file.
-> > 
-> > Signed-off-by: Joonyoung Shim <jy0922.shim@samsung.com>
-> 
-> Why on earth is the i2c driver registering a radio device? If I understand
-> it correctly the usb and i2c driver are both registering a radio device
-> where there should be only one!
-> 
-> i2c drivers should in general never register video devices. That's the task
-> of the bridge driver.
-> 
-> Does anyone know why the current driver behaves like this? I think that should
-> be fixed first.
-> 
-> Regards,
-> 
-> 	Hans
-> 
+On Fri, Nov 13, 2009 at 1:01 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> On Fri, Nov 13, 2009 at 12:01 PM, James Klaas
+> <jklaas@appalachian.dyndns.org> wrote:
+>> I recently updated my play/work/fiddle with workstation and I wanted
+>> to see if my USB card still worked (OK, it never really worked).
+>>
+>> Previously, I was running Ubuntu 9.04 with a version retrieved from
+>> mercurial with the patch from
+>> http://linuxtv.org/hg/~mkrufky/teledongle/raw-rev/676e2f4475ed.  It
+>> patched without error, compiled without error and installed against
+>> the stock kernel without error.  When I loaded it, it complained about
+>> not being the right kind of firmware (which was noted in the
+>> discussion on the device) but otherwise it seemed to load fine
+>> (unfortunately, I don't seem to have a dmesg from that).  When I tried
+>> using it to tune anything, it would tune a couple things, but put them
+>> on channels that were far different than the ones found by other dvb
+>> cards.  It did however manage to pick up the SCTE-65 data using the
+>> scte65scan utility.
+>>
+>> Now that I've upgraded to 9.10, it no longer seems to find the tuner.
+>> I retrieved v4l-dvb via mercurial yesterday (12 Nov, 2009) applied the
+>> patch (which applied with a couple of offsets but no errors) and built
+>> the source.  I had to disable the FireDTV driver, but other than that,
+>> it compiled with some warnings but no errors.  It installed fine over
+>> the stock kernel.  However, when I load it, I now get the following
+>> errors in dmesg:
+>>
+>> [   93.770329] au0828 driver loaded
+>> [   94.160154] au0828: i2c bus registered
+>> [   94.201922] tveeprom 1-0050: Huh, no eeprom present (err=-5)?
+>> [   94.204976] tuner 1-0000: chip found @ 0x0 (au0828)
+>> [   94.271442] tuner-simple 1-0000: unable to probe Temic PAL (4002
+>> FH5), proceeding anyway.
+>> [   94.271452] tuner-simple 1-0000: creating new instance
+>> [   94.271459] tuner-simple 1-0000: type set to 0 (Temic PAL (4002 FH5))
+>> [   94.313325] tuner-simple 1-0000: i2c i/o error: rc == -5 (should be 4)
+>> [   94.340407] au8522 1-0047: creating new instance
+>> [   94.383357] au8522_writereg: writereg error (reg == 0xa4, val ==
+>> 0x0020, ret == -5)
+>> [   94.424364] au8522_writereg: writereg error (reg == 0x106, val ==
+>> 0x0001, ret == -5)
+>> [   94.465503] au8522_writereg: writereg error (reg == 0x106, val ==
+>> 0x0001, ret == -5)
+>> [   94.501336] tda18271 1-0060: creating new instance
+>> [   94.543412] au8522_writereg: writereg error (reg == 0x106, val ==
+>> 0x0001, ret == -5)
+>> [   94.666327] au8522_writereg: writereg error (reg == 0x106, val ==
+>> 0x0000, ret == -5)
+>> [   94.666339] tda18271_read_regs: [1-0060|M] ERROR: i2c_transfer returned: -5
+>> [   94.666347] Unknown device detected @ 1-0060, device not supported.
+>> [   94.707712] au8522_writereg: writereg error (reg == 0x106, val ==
+>> 0x0001, ret == -5)
+>> [   94.789369] au8522_writereg: writereg error (reg == 0x106, val ==
+>> 0x0000, ret == -5)
+>> [   94.789376] tda18271_read_regs: [1-0060|M] ERROR: i2c_transfer returned: -5
+>> [   94.789381] Unknown device detected @ 1-0060, device not supported.
+>> [   94.789387] tda18271_attach: [1-0060|M] error -22 on line 1272
+>> [   94.789393] tda18271 1-0060: destroying instance
+>> [   94.853137] mt2131 I2C read failed
+>> [   94.853350] DVB: registering new adapter (au0828)
+>> [   94.853359] DVB: registering adapter 1 frontend 0 (Auvitek AU8522
+>> QAM/8VSB Frontend)...
+>> [   94.853943] Registered device AU0828 [Syntek Teledongle [EXPERIMENTAL]]
+>>
+>> Did something not patch correctly?  The patch from mkrufky is now
+>> nearly a year old.  I'd really like to contribute somehow, but I have
+>> no idea where I should start.
+>>
+>> Thank you for taking a look at this.
+>
+> I would start by reviewing the previous thread/discussion on this
+> particular topic with subject line: "au0828: experimental support for
+> Syntek Teledongle [05e1:0400]"
+>
+> http://linuxtv.org/pipermail/linux-dvb/2009-August/032306.html
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+>
 
-It's too early in the morning. Forget what I said :-)
+Ah, thanks.  I somehow missed that thread.
 
-The two drivers are independent, the usb driver doesn't depend on the i2c
-driver. Now it makes a lot more sense.
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+James
