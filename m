@@ -1,186 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:51682 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753639AbZKQTrS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2009 14:47:18 -0500
-Message-ID: <4B02FDA4.5030508@infradead.org>
-Date: Tue, 17 Nov 2009 17:46:44 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Jean Delvare <khali@linux-fr.org>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: Details about DVB frontend API
-References: <20091022211330.6e84c6e7@hyperion.delvare>	 <20091023051025.597c05f4@caramujo.chehab.org> <1a297b360910221329o4b832f4ewaee08872120bfea0@mail.gmail.com>
-In-Reply-To: <1a297b360910221329o4b832f4ewaee08872120bfea0@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from psmtp04.wxs.nl ([195.121.247.13]:54107 "EHLO psmtp04.wxs.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754944AbZKMQit (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Nov 2009 11:38:49 -0500
+Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
+ by psmtp04.wxs.nl
+ (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
+ with ESMTP id <0KT200BSC3KRMD@psmtp04.wxs.nl> for linux-media@vger.kernel.org;
+ Fri, 13 Nov 2009 17:38:52 +0100 (MET)
+Date: Fri, 13 Nov 2009 17:38:50 +0100
+From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Subject: Re: [linux-dvb] Organizing ALL device data in linuxtv wiki
+In-reply-to: <20091113160850.GY31295@www.viadmin.org>
+To: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Message-id: <4AFD8B9A.7000309@hoogenraad.net>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <20091112173130.GV31295@www.viadmin.org>
+ <20091113160850.GY31295@www.viadmin.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Manu Abraham escreveu:
-> On Fri, Oct 23, 2009 at 12:10 AM, Mauro Carvalho Chehab
-> <mchehab@infradead.org> wrote:
->> Em Thu, 22 Oct 2009 21:13:30 +0200
->> Jean Delvare <khali@linux-fr.org> escreveu:
->>
->>> Hi folks,
->>>
->>> I am looking for details regarding the DVB frontend API. I've read
->>> linux-dvb-api-1.0.0.pdf, it roughly explains what the FE_READ_BER,
->>> FE_READ_SNR, FE_READ_SIGNAL_STRENGTH and FE_READ_UNCORRECTED_BLOCKS
->>> commands return, however it does not give any information about how the
->>> returned values should be interpreted (or, seen from the other end, how
->>> the frontend kernel drivers should encode these values.) If there
->>> documentation available that would explain this?
->>>
->>> For example, the signal strength. All I know so far is that this is a
->>> 16-bit value. But then what? Do greater values represent stronger
->>> signal or weaker signal? Are 0x0000 and 0xffff special values? Is the
->>> returned value meaningful even when FE_HAS_SIGNAL is 0? When
->>> FE_HAS_LOCK is 0? Is the scale linear, or do some values have
->>> well-defined meanings, or is it arbitrary and each driver can have its
->>> own scale? What are the typical use cases by user-space application for
->>> this value?
->>>
->>> That's the kind of details I'd like to know, not only for the signal
->>> strength, but also for the SNR, BER and UB. Without this information,
->>> it seems a little difficult to have consistent frontend drivers.
->> We all want to know about that ;)
->>
->> Seriously, the lack of a description of the meaning of the ranges for those
->> read values were already widely discussed at LMML and at the legacy dvb ML.
->> We should return this discussion again and decide what would be the better
->> way to describe those values.
->>
->> My suggestion is that someone summarize the proposals we had and give some time
->> for people vote. After that, we just commit the most voted one, and commit the
->> patches for it. A pending question that should also be discussed is what we will
->> do with those dvb devices where we simply don't know what scale it uses. There
->> are several of them.
+Would it be possible to store this information in the CODE archives, and 
+extract it from there ?
+Right now, I end up putting essentially the same information into 
+structures in the driver and into documentation.
+This is hard to keep synchronised.
+
+Basic information like device IDs, vendors, demod types, tuners, etc is 
+already in place in the driver codes.
+
+Getting data from the hg archives (including development branches) 
+sounds like a cleaner solution.
+
+H. Langos wrote:
+> Hi Devin,
+> 
+> I'm sorry. I just realized that I was only subscribed to linux-dvb but 
+> not to linux-media. I fixed that now but my reply to your emails will 
+> not have the correct In-Reply-To/References headers.
+> 
+>> I have to wonder if maybe we are simply using the wrong tool for the
+>> job.  Perhaps it would make sense to make a really simple web frontend
+>> to a simple database for devices.  At least initially it would only
+>> really need two tables.  Something along the lines of the following
+> ...
+>> A simple db frontend like the above would allow users to search on
+>> most of the relevant properties they care about (seeing all devices by
+>> a single manufacturer, looking up devices by USB ID or PCI ID, looking
+>> for devices that support a certain standard, etc)
+> 
+> I've spent some time discussing the pro and contra of an external database
+> versus a wiki based approach with some of the other wiki admins:
+> http://www.linuxtv.org/wiki/index.php/User_talk:Hlangos#Further_ramblings...
+> 
+> The most important point there I guess is, that writing a database app is
+> a piece of cake and a rather nice way of brushing up on one's SQL foo, 
+> but keeping it structure-wise updated for years to come is hard and 
+> boring work.
+> 
+> Also you have to keep in mind that your database app would need to have
+> at leasts: revision control, undo, user administration.
+> I'll not go into details but opening such an application to the public 
+> would need a good amount of hard work and not to forget, security reviews.
+> Stuff that the wiki already has, and (most important) somebody else is
+> doing that boring maintenance work so that we can concentrate on the 
+> content. 
+> 
+> (I know that user administration could be "borrowed" from the mediawiki
+> but interfacing those applications will mean that you have to keep updating
+> your code as the mediawiki code evolves.)
+> 
+>> I feel like the freeform nature of wikis just lends to the information
+>> not being in a structured manner
+> 
+> True, true.
+> 
+>> I don't doubt that a wiki can be mangled to do something like this, 
+> 
+> Well. I had some doubts in the begining. :-)
+> 
+>> but a real database seems like such a cleaner alternative.
+> 
+> Cleaner, yes. But I'd rather have it dirty and full of information
+> than clean, static and empty. (Oh no .. there comes the bazaar 
+> and cathedral metaphor again ... :-) )
+> 
+> The device data is structure wise rather heterogenious. So a relational
+> database might not be a very efficient way of capturing it.
+> In my eyes a more valid contendor to the wiki approach would be something
+> with a document oriented database like couchdb. But still you'd have
+> to do write all the boring infrastructure stuff like user administration,
+> history, undo...
+> 
+> TWiki has the ability to rather nicely blend structured data with 
+> unstructured wiki articles. But I thought it more prudent to get 
+> something done with the tools at hand than spend still more time 
+> looking for the perfect tool ;-)
+> 
+>> Just a quick afterthought - bear in mind the schema I proposed is
+>> something I only spent about two minutes on.  It would almost
+>> certainly need some more tweaking/cleanup etc.  It meant to
+>> communicate a concept, so don't get too tied up in the details of the
+>> exact implementation.
 > 
 > 
-> Sometime back, (some time in April) i proposed a patch which addressed
-> the issue to scale "even those devices which have a weird scale or
-> none". Though based on an older tree of mine, here is the patch again.
-> If it looks good enough, i can port the patch to accomodate other
-> devices as well.
+> Jim has collected the attributes he deems important here:
+> http://www.linuxtv.org/wiki/index.php/User:Jimbley#Semantics
+> 
+> Howeever I see some problems with the envisioned level of detail 
+> regarding linux support when scaled to hundrets of devices:
+> http://www.linuxtv.org/wiki/index.php/User_talk:Jimbley#Device_Database
+> 
+> We also had a discussion about the different users and the level of
+> detail they'd need:
+> http://www.linuxtv.org/wiki/index.php/User_talk:CityK#Help_with_wiki_integration
 > 
 > 
-> Regards,
-> Manu
+> Two more things:
+> 
+> 1.) The wiki approach allows for different "databases" to be maintained
+> separately (by different people) and still have results shown in one 
+> resulting table.
+> 
+> This could be useful for Vendor pages (listing all devices by that vendor
+> independent of the boradcasting standard) or for a broadcasting
+> standard page that lists all e.g. ATSC devices regardless of wether they
+> have a USB or PCI interface. The only implication of splitting the 
+> databases is that you need to add one line in your "querry" for each 
+> database.
+> 
+> 
+> 2.) Different devices (regardless of wether they are in the same
+> "database" or in different ones) can have different sets of attributes.
+> 
+> If you feel that ATSC device should have separate attributes for 
+> "8VSB" and "QAM" you just simply add those attributes to your
+> devices and write a table template that will display those 
+> attributes (and ignore things like "firmware" or "url")
+> 
+> The only attributes I'd like to have in all devices are "vendor",
+> "device" and "did" (Device ID).
+> 
+> -henrik
+> 
+> PS: As you see from the number of links to widely different pages, 
+> a wiki is NOT a good solution for discussions. Just to avoid the 
+> impression that wiki's are my "new hammer". :-)
+> 
+> 
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 > 
 
-Manu,
 
-Sorry for not answering earlier. Due to my travels, I had a very big backlog here
-to handle.
-
-I prefer a solution like you've proposed of creating a new set of API calls for
-it, instead of re-defining the current calls.
-
-Yet, I have a few comments:
-
-diff -r b5505a985f24 linux/include/linux/dvb/frontend.h
---- a/linux/include/linux/dvb/frontend.h	Sat Feb 21 01:12:09 2009 +0400
-+++ b/linux/include/linux/dvb/frontend.h	Tue Apr 07 18:19:22 2009 +0400
-@@ -645,4 +645,118 @@
- };
- #define DVBFE_GET_EVENT			_IOR('o', 86, struct dvbfe_event)
- 
-+/* Frontend General Statistics
-+ * General parameters
-+ * FE_*_UNKNOWN:
-+ *	Parameter is unknown to the frontend and doesn't really
-+ *	make any sense for an application.
-+ *
-+ * FE_*_RELATIVE:
-+ *	Parameter is relative on the basis of a ceil - floor basis
-+ *	Format is based on empirical test to determine
-+ *	the floor and ceiling values. This format is exactly the
-+ *	same format as the existing statistics implementation.
-+ */
-+enum fecap_quality_params {
-+	FE_QUALITY_UNKNOWN		= 0,
-+	FE_QUALITY_SNR			= (1 <<  0),
-+	FE_QUALITY_CNR			= (1 <<  1),
-+	FE_QUALITY_EsNo			= (1 <<  2),
-+	FE_QUALITY_EbNo			= (1 <<  3),
-+	FE_QUALITY_RELATIVE		= (1 << 31),
-+};
-+
-+enum fecap_scale_params {
-+	FE_SCALE_UNKNOWN		= 0,
-+	FE_SCALE_dB			= (1 <<  0),
-+	FE_SCALE_RELATIVE		= (1 << 31),
-+};
-+
-+enum fecap_error_params {
-+	FE_ERROR_UNKNOWN		= 0,
-+	FE_ERROR_BER			= (1 <<  0),
-+	FE_ERROR_PER			= (1 <<  1),
-+	FE_ERROR_RELATIVE		= (1 << 31),
-+};
-+
-+enum fecap_unc_params {
-+	FE_UNC_UNKNOWN			= 0,
-+	FE_UNC_RELATIVE			= (1 << 31),
-+};
-+
-+/* General parameters
-+ * width:
-+ * 	Specifies the width of the field
-+ *
-+ * exponent:
-+ *	Specifies the multiplier for the respective field
-+ *	MSB:1bit indicates the signdness of the parameter
-+ */
-+struct fecap_quality {
-+	enum fecap_quality_params	params;
-+	enum fecap_scale_params		scale;
-+
-+	__u32				width;
-+	__s32				exponent;
-+};
-+
-+struct fecap_strength {
-+	enum fecap_scale_params		params;
-+	__u32				width;
-+	__s32				exponent;
-+};
-+
-+struct fecap_error {
-+	enum fecap_error_params		params;
-+	__u32 				width;
-+	__s32 				exponent;
-+};
-+
-+struct fecap_statistics {
-+	struct fecap_quality		quality;
-+	struct fecap_strength		strength;
-+	struct fecap_error		error;
-+	enum fecap_unc_params		unc;
-+};
-
-I don't like the idea of creating structs grouping those parameters. While for
-certain devices this may mean a more direct approach, for others, this may
-not make sense, due to the way their API's were implemented (for example,
-devices with firmware may need several calls to get all those info).
-
-+#define FE_STATISTICS_CAPS		_IOR('o', 84, struct fecap_statistics)
-+#define FE_SIGNAL_LEVEL			_IOR('o', 85, __u32)
-+#define FE_SIGNAL_STATS			_IOR('o', 86, struct fesignal_stat)
-
-Instead of defining 3 new ioctls, the better is to use the DVBS2API, maybe extending it to allow
-receiving more than one parameter at the same time (with an approach similar to what we did
-with V4L extended CTRLs API).
-
-We are already redefining some existing ioctls there, so it would be clearer for the
-userspace developers what would be the new way to retrieve frontend stats, as we can
-simply say that DVBS2API features superseeds the equivalent DVB v3 ioctls.
-
-Comments?
-
-Cheers,
-Mauro.
+-- 
+Jan Hoogenraad
+Hoogenraad Interface Services
+Postbus 2717
+3500 GS Utrecht
