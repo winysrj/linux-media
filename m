@@ -1,58 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.sea5.speakeasy.net ([69.17.117.3]:33185 "EHLO
-	mail1.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753270AbZKZW7p (ORCPT
+Received: from mail-in-07.arcor-online.net ([151.189.21.47]:49501 "EHLO
+	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932559AbZKNAwy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 17:59:45 -0500
-Date: Thu, 26 Nov 2009 14:59:50 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-cc: Krzysztof Halasa <khc@pm.waw.pl>, Jarod Wilson <jarod@redhat.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-kernel@vger.kernel.org,
-	Mario Limonciello <superm1@ubuntu.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Janne Grunau <j@jannau.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
- Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-In-Reply-To: <4B0ED238.6060306@redhat.com>
-Message-ID: <Pine.LNX.4.58.0911261450590.30284@shell2.speakeasy.net>
-References: <200910200956.33391.jarod@redhat.com> <200910200958.50574.jarod@redhat.com>
- <4B0A765F.7010204@redhat.com> <4B0A81BF.4090203@redhat.com>
- <m36391tjj3.fsf@intrepid.localdomain> <4B0AC65C.806@redhat.com>
- <m3zl6dq8ig.fsf@intrepid.localdomain> <4B0E765C.2080806@redhat.com>
- <m3iqcxuotd.fsf@intrepid.localdomain> <4B0ED238.6060306@redhat.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Fri, 13 Nov 2009 19:52:54 -0500
+Subject: Re: Tuner drivers
+From: hermann pitton <hermann-pitton@arcor.de>
+To: rulet1@meta.ua, Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <1258143870.3242.31.camel@pc07.localdom.local>
+References: <1258058273.8348.14.camel@pc07.localdom.local>
+	 <49907.95.132.6.235.1258066094.metamail@webmail.meta.ua>
+	 <1258073462.8348.35.camel@pc07.localdom.local>
+	 <36685.95.133.109.178.1258107794.metamail@webmail.meta.ua>
+	 <1258143870.3242.31.camel@pc07.localdom.local>
+Content-Type: text/plain
+Date: Sat, 14 Nov 2009 01:52:35 +0100
+Message-Id: <1258159955.3234.9.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 26 Nov 2009, Mauro Carvalho Chehab wrote:
-> >> See above. Also, several protocols have a way to check if a keystroke were
-> >> properly received. When handling just one protocol, we can use this to double
-> >> check the key. However, on a multiprotocol mode, we'll need to disable this
-> >> feature.
-> >
-> > I don't think so. We can pass the space/mark data to all (configured,
-> > i.e. with active mapping) protocol handlers at once. Should a check
-> > fail, we ignore the data. Perhaps another protocol will make some sense
-> > out of it.
->
-> What happens if it succeeds on two protocol handlers?
+Hi,
 
-Then you use the protocol that fits best.  For instance decoding with one
-protocol might produce a scancode that isn't assigned to any key, while
-another protocol produces an assigned scancode.  Clearly then the latter is
-most likely to be correct.  It also possible to have a space/mark length
-that is within the allowable tolerances for one remote, but is even closer
-another remote.  You don't want to just find *a* match, you want to find
-the *best* match.
+[snip]
+> 
+> That one came in over Mauro and he added the NEC gpio remote support.
+> 
+> http://linuxtv.org/hg/v4l-dvb/rev/fa0de4f2637a
+> 
+> If you are in Russia, you likely have to use "options saa7134 secam=DK"
+> or modprobe the driver with that. Please read the output of "modinfo
+> saa7134".
+> 
+> Enable audio_debug=1 for saa7134.
+> 
+> echo 1 > /sys/module/saa7134/parameters/audio_debug
+> 
+> If you switch the TV app to SECAM it should start to detect the DK audio
+> carriers. Please report if this should still fail, since I can't test it
+> myself. You see it in dmesg.
+> 
+> Also I can see in the Avermedia user manual that it has only analog
+> audio in but no out.
+> 
+> You are forced to use saa7134-alsa dma sound.
+> 
+> Hope this helps.
 
-The in kernel code in v4l is very simple in that it is only designed to
-work with one procotol and one remote.  Once you have multiple remotes of
-any type things become much more complicted.  Keep in mind that remotes
-that aren't even intended to be used with the computer but are used in the
-same room will still be received by the receiver.  It's not enough to
-decode the signals you expect to receive, you must also not get confused by
-random signals destined for somewhere else.
+since we are on such ;)
+
+
+3.1 --- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Thu Jun 26 17:03:00 2008 -0300
+     3.2 +++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Thu Jun 26 17:03:00 2008 -0300
+     3.3 @@ -3710,6 +3710,40 @@
+     3.4  			.tv     = 1,
+     3.5  		}},
+     3.6  	},
+     3.7 +	[SAA7134_BOARD_AVERMEDIA_M135A] = {
+     3.8 +		.name           = "Avermedia PCI pure analog (M135A)",
+     3.9 +		.audio_clock    = 0x00187de7,
+    3.10 +		.tuner_type     = TUNER_PHILIPS_TDA8290,
+    3.11 +		.radio_type     = UNSET,
+    3.12 +		.tuner_addr     = ADDR_UNSET,
+    3.13 +		.radio_addr     = ADDR_UNSET,
+    3.14 +		.tuner_config   = 2,
+    3.15 +		.gpiomask       = 0x020200000,
+    3.16 +		.inputs         = {{
+
+I guess the tuner_config = 2 might be bogus on that one?
+
+Any tests previously ?
+
+Cheers,
+Hermann
+
+
+
+
