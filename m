@@ -1,77 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.uniroma2.it ([160.80.6.16]:40580 "EHLO smtp.uniroma2.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753100AbZK3T3v (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Nov 2009 14:29:51 -0500
-Received: from lists.uniroma2.it (lists.uniroma2.it [160.80.1.182])
-	by smtp.uniroma2.it (8.13.6/8.13.6) with ESMTP id nAUKCWgQ028532
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 30 Nov 2009 21:12:34 +0100
-Received: from apple-juice.homenet.telecomitalia.it (host21-215-dynamic.18-79-r.retail.telecomitalia.it [79.18.215.21])
-	(authenticated bits=0)
-	by lists.uniroma2.it (8.13.1/8.13.1) with ESMTP id nAUJEZwq002687
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 30 Nov 2009 20:14:35 +0100
-Message-ID: <4B14195D.6000205@autistici.org>
-Date: Mon, 30 Nov 2009 20:13:33 +0100
-From: "OrazioPirataDelloSpazio (Lorenzo)" <ziducaixao@autistici.org>
+Received: from jack.mail.tiscali.it ([213.205.33.53]:35247 "EHLO
+	jack.mail.tiscali.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751432AbZKNNFq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Nov 2009 08:05:46 -0500
+Message-ID: <4AFEAB15.9010509@gmail.com>
+Date: Sat, 14 Nov 2009 14:05:25 +0100
+From: "Andrea.Amorosi76@gmail.com" <Andrea.Amorosi76@gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: DIY Satellite Web Radio
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig4ED987A93660AF70DBAFC6D7"
+To: "linux-media@vger.kernel.org >> Linux Media Mailing List"
+	<linux-media@vger.kernel.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [PATCH] em28xx: fix for Dikom DK300 hybrid USB tuner (aka Kworld
+ VS-DVB-T 323UR ) (digital mode)
+References: <4AFE92ED.2060208@gmail.com>
+In-Reply-To: <4AFE92ED.2060208@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig4ED987A93660AF70DBAFC6D7
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+Continuing the testing for the analog part of the device, I've 
+discovered that the main kernel driver (the one without the proposed 
+patch)  works better,  even if not perfectly, as far as analog tv is 
+concerned.
+In detail analog sound is present but is very low and noisy  (it seems 
+to be listening to a very  distant radio station).
+So there is something in the patch that breaks the analog tv sound 
+(which however is not very usable in the main driver being so noisy).
+Which one of the modified setting can interfer with the analog tv sound?
+Thank you,
+Andrea
 
-Hi all,
-I'm not a DVB expert but I'm wondering if this idea is feasible:
-For an "amateur" web radio, for what I know, it is really hard to
-being listened in cars, like people do with commercial satellite radio
-[1] . Basically this is unaffortable for private user and this is
-probably the most relevant factor that penalize web radios againt
-terrestrial one.
+Andrea.Amorosi76@gmail.com ha scritto:
+> This patch fix the Dikom DK300 hybrid usb card which is recognized as a
+> Kworld VS-DVB-T 323UR (card=54) by the main driver, but with no tv
+> available in Kaffeine.
+> The patch solves the problem for the digital part of the tuner.
+> Analog tv has no audio (both video e audio devices are created but
+> mplayer complains with the following message:
+> Error reading audio: Input/output error).
+> Moreover the /dev/video sometime is not deleted when the device is
+> unplugged.
+>
+> Signed-off-by: Andrea Amorosi <Andrea.Amorosi76@gmail.com>
+>
+> diff -r aba823ecaea6 linux/drivers/media/video/em28xx/em28xx-cards.c
+> --- a/linux/drivers/media/video/em28xx/em28xx-cards.c    Thu Nov 12
+> 12:21:05 2009 -0200
+> +++ b/linux/drivers/media/video/em28xx/em28xx-cards.c    Sat Nov 14
+> 00:33:49 2009 +0100
+> @@ -1422,6 +1422,9 @@
+>          .tuner_type   = TUNER_XC2028,
+>          .tuner_gpio   = default_tuner_gpio,
+>          .decoder      = EM28XX_TVP5150,
+> +                .mts_firmware = 1,
+> +                .has_dvb      = 1,
+> +                .dvb_gpio     = kworld_330u_digital,
+>
+>
+>          .input        = { {
+>              .type     = EM28XX_VMUX_TELEVISION,
+>              .vmux     = TVP5150_COMPOSITE0,
+> @@ -2143,6 +2146,7 @@
+>          ctl->demod = XC3028_FE_DEFAULT;
+>          break;
+>      case EM2883_BOARD_KWORLD_HYBRID_330U:
+> +    case EM2882_BOARD_KWORLD_VS_DVBT:
+>          ctl->demod = XC3028_FE_CHINA;
+>          ctl->fname = XC2028_DEFAULT_FIRMWARE;
+>          break;
+> diff -r aba823ecaea6 linux/drivers/media/video/em28xx/em28xx-dvb.c
+> --- a/linux/drivers/media/video/em28xx/em28xx-dvb.c    Thu Nov 12 
+> 12:21:05
+> 2009 -0200
+> +++ b/linux/drivers/media/video/em28xx/em28xx-dvb.c    Sat Nov 14 
+> 00:33:49
+> 2009 +0100
+> @@ -504,6 +504,7 @@
+>          break;
+>      case EM2880_BOARD_TERRATEC_HYBRID_XS:
+>      case EM2881_BOARD_PINNACLE_HYBRID_PRO:
+> +    case EM2882_BOARD_KWORLD_VS_DVBT:
+>          dvb->frontend = dvb_attach(zl10353_attach,
+>                         &em28xx_zl10353_xc3028_no_i2c_gate,
+>                         &dev->i2c_adap);
+>
+>
+>
+>
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-My question is: is there any way to use the current, cheap, satellite
-internet connections to stream some data above all the coverage of a geo
-satellite? and make the receiver handy (so without any dishes) ?
-
-Probably by introducing some _very_ redundant code inside the stream
-that we upload through the modem and that the satellite will stream from
-the sky, we can get some S/N db. The patch to do at the receiver is just
-software or maybe hardware?
-
-
-
-
-Lorenzo
-
-
-[1] http://www.xmradio.com/
-
-
-
---------------enig4ED987A93660AF70DBAFC6D7
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG/MacGPG2 v2.0.12 (Darwin)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iQEcBAEBAgAGBQJLFBlhAAoJEBuiD2h8GyB+or4H/0J5Czv7D3kDNH3jVpraPXeT
-3IDeKdCyxwA8K/fiRBOYIMr7UUtijVxR4q23qUzI4mqcZfEyMrTOuAV5OUomt1ki
-6Wd9z5YlnvR2CGxWfFKYWt7Ri6pRSFkPHT/L5H0V0l6s3q3zpqvlb2VSGBIIGlos
-ZXk95+IEL/hledbXClgBffmzjf6Yk2JTjk1Q33eekLcwJ5fLjJ7fFJ17Uc1LwWTe
-P3BOPH4jdqj7fk5fT7L3U2sprrKKSAu0Vj6jpvrjv9YBVdY3gy1XZAKZZp0P8NvK
-1qAL4O7MiPwioXGk+YV8MnZ15ZX23EFnp9jOPYI/+3EGUg4qFeOqV9D+BjY0Umc=
-=OB3k
------END PGP SIGNATURE-----
-
---------------enig4ED987A93660AF70DBAFC6D7--
