@@ -1,54 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f219.google.com ([209.85.219.219]:48935 "EHLO
-	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754648AbZKZM7M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 07:59:12 -0500
-Received: by ewy19 with SMTP id 19so405341ewy.21
-        for <linux-media@vger.kernel.org>; Thu, 26 Nov 2009 04:59:16 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4B0E62AB.9080008@tin.it>
-References: <4B0E62AB.9080008@tin.it>
-Date: Thu, 26 Nov 2009 07:59:16 -0500
-Message-ID: <83bcf6340911260459p4b202a68k78f2484387054b9c@mail.gmail.com>
-Subject: Re: Help needed with Hauppauge WinTV HVR-4000
-From: Steven Toth <stoth@kernellabs.com>
-To: Alan Ferrero <alanf@tin.it>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from vena.lwn.net ([206.168.112.25]:58949 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751613AbZKNXIV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Nov 2009 18:08:21 -0500
+Date: Sat, 14 Nov 2009 16:08:24 -0700
+From: Jonathan Corbet <corbet@lwn.net>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org
+Subject: [PATCH] Make struct videobuf_queue_ops constant
+Message-ID: <20091114160824.28266c03@bike.lwn.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 26, 2009 at 6:12 AM, Alan Ferrero <alanf@tin.it> wrote:
-> Hi!
->
-> I posted yesterday the following message to the mythtv-users mailing
-> list, but they answered me it's more suitable to post it in your mailing
-> list.
->
-> Alan
->
-> Hi!
->
-> I REALLY need some help with the Hauppauge WinTV HVR-4000
-> (http://www.hauppauge.it/site/products/data_hvr4000.html).
->
-> Days ago I installed Mythbuntu 9.10 (64 bit) on my HTPC, but I soon
-> found out the tv card didn't work.
-> Later, I learned that both firmware and driver included in Karmic were
-> bugged and didn't work.
-> So I followed the instructions reported at
-> http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000 to
-> install firmware 1.20.79.0 and instructions reported at
-> https://bugs.launchpad.net/mythbuntu/+bug/439163?comments=all to install
-> the patched driver (from: http://hg.kewl.org/v4l-dvb-20091103/).
->
-> The end result? Nothing!
->
-> Unfortunately, my HVR-4000 doesn't work yet!
+The videobuf_queue_ops function vector is not declared constant, but
+there's no need for the videobuf layer to ever change it.  Make it const so
+that videobuf users can make their operations const without warnings.
 
-Test it on windows, the hardware could be faulty.
+Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+---
+ drivers/media/video/videobuf-core.c       |    2 +-
+ drivers/media/video/videobuf-dma-contig.c |    2 +-
+ drivers/media/video/videobuf-dma-sg.c     |    2 +-
+ drivers/media/video/videobuf-vmalloc.c    |    2 +-
+ include/media/videobuf-core.h             |    4 ++--
+ include/media/videobuf-dma-contig.h       |    2 +-
+ include/media/videobuf-dma-sg.h           |    2 +-
+ include/media/videobuf-vmalloc.h          |    2 +-
+ 8 files changed, 9 insertions(+), 9 deletions(-)
 
+diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
+index 8e93c6f..2fdc5b3 100644
+--- a/drivers/media/video/videobuf-core.c
++++ b/drivers/media/video/videobuf-core.c
+@@ -110,7 +110,7 @@ EXPORT_SYMBOL_GPL(videobuf_queue_to_vmalloc);
+ 
+ 
+ void videobuf_queue_core_init(struct videobuf_queue *q,
+-			 struct videobuf_queue_ops *ops,
++			 const struct videobuf_queue_ops *ops,
+ 			 struct device *dev,
+ 			 spinlock_t *irqlock,
+ 			 enum v4l2_buf_type type,
+diff --git a/drivers/media/video/videobuf-dma-contig.c b/drivers/media/video/videobuf-dma-contig.c
+index 635ffc7..49650ca 100644
+--- a/drivers/media/video/videobuf-dma-contig.c
++++ b/drivers/media/video/videobuf-dma-contig.c
+@@ -428,7 +428,7 @@ static struct videobuf_qtype_ops qops = {
+ };
+ 
+ void videobuf_queue_dma_contig_init(struct videobuf_queue *q,
+-				    struct videobuf_queue_ops *ops,
++				    const struct videobuf_queue_ops *ops,
+ 				    struct device *dev,
+ 				    spinlock_t *irqlock,
+ 				    enum v4l2_buf_type type,
+diff --git a/drivers/media/video/videobuf-dma-sg.c b/drivers/media/video/videobuf-dma-sg.c
+index 032ebae..f50e6b5 100644
+--- a/drivers/media/video/videobuf-dma-sg.c
++++ b/drivers/media/video/videobuf-dma-sg.c
+@@ -702,7 +702,7 @@ void *videobuf_sg_alloc(size_t size)
+ }
+ 
+ void videobuf_queue_sg_init(struct videobuf_queue* q,
+-			 struct videobuf_queue_ops *ops,
++			 const struct videobuf_queue_ops *ops,
+ 			 struct device *dev,
+ 			 spinlock_t *irqlock,
+ 			 enum v4l2_buf_type type,
+diff --git a/drivers/media/video/videobuf-vmalloc.c b/drivers/media/video/videobuf-vmalloc.c
+index 35f3900..99d646e 100644
+--- a/drivers/media/video/videobuf-vmalloc.c
++++ b/drivers/media/video/videobuf-vmalloc.c
+@@ -391,7 +391,7 @@ static struct videobuf_qtype_ops qops = {
+ };
+ 
+ void videobuf_queue_vmalloc_init(struct videobuf_queue* q,
+-			 struct videobuf_queue_ops *ops,
++			 const struct videobuf_queue_ops *ops,
+ 			 void *dev,
+ 			 spinlock_t *irqlock,
+ 			 enum v4l2_buf_type type,
+diff --git a/include/media/videobuf-core.h b/include/media/videobuf-core.h
+index 1c5946c..316fdcc 100644
+--- a/include/media/videobuf-core.h
++++ b/include/media/videobuf-core.h
+@@ -166,7 +166,7 @@ struct videobuf_queue {
+ 	enum v4l2_field            field;
+ 	enum v4l2_field            last;   /* for field=V4L2_FIELD_ALTERNATE */
+ 	struct videobuf_buffer     *bufs[VIDEO_MAX_FRAME];
+-	struct videobuf_queue_ops  *ops;
++	const struct videobuf_queue_ops  *ops;
+ 	struct videobuf_qtype_ops  *int_ops;
+ 
+ 	unsigned int               streaming:1;
+@@ -195,7 +195,7 @@ void *videobuf_queue_to_vmalloc (struct videobuf_queue* q,
+ 				 struct videobuf_buffer *buf);
+ 
+ void videobuf_queue_core_init(struct videobuf_queue *q,
+-			 struct videobuf_queue_ops *ops,
++			 const struct videobuf_queue_ops *ops,
+ 			 struct device *dev,
+ 			 spinlock_t *irqlock,
+ 			 enum v4l2_buf_type type,
+diff --git a/include/media/videobuf-dma-contig.h b/include/media/videobuf-dma-contig.h
+index 5493866..ebaa9bc 100644
+--- a/include/media/videobuf-dma-contig.h
++++ b/include/media/videobuf-dma-contig.h
+@@ -17,7 +17,7 @@
+ #include <media/videobuf-core.h>
+ 
+ void videobuf_queue_dma_contig_init(struct videobuf_queue *q,
+-				    struct videobuf_queue_ops *ops,
++				    const struct videobuf_queue_ops *ops,
+ 				    struct device *dev,
+ 				    spinlock_t *irqlock,
+ 				    enum v4l2_buf_type type,
+diff --git a/include/media/videobuf-dma-sg.h b/include/media/videobuf-dma-sg.h
+index dda47f0..53e72f7 100644
+--- a/include/media/videobuf-dma-sg.h
++++ b/include/media/videobuf-dma-sg.h
+@@ -103,7 +103,7 @@ struct videobuf_dmabuf *videobuf_to_dma (struct videobuf_buffer *buf);
+ void *videobuf_sg_alloc(size_t size);
+ 
+ void videobuf_queue_sg_init(struct videobuf_queue* q,
+-			 struct videobuf_queue_ops *ops,
++			 const struct videobuf_queue_ops *ops,
+ 			 struct device *dev,
+ 			 spinlock_t *irqlock,
+ 			 enum v4l2_buf_type type,
+diff --git a/include/media/videobuf-vmalloc.h b/include/media/videobuf-vmalloc.h
+index e87222c..1ffdb66 100644
+--- a/include/media/videobuf-vmalloc.h
++++ b/include/media/videobuf-vmalloc.h
+@@ -30,7 +30,7 @@ struct videobuf_vmalloc_memory
+ };
+ 
+ void videobuf_queue_vmalloc_init(struct videobuf_queue* q,
+-			 struct videobuf_queue_ops *ops,
++			 const struct videobuf_queue_ops *ops,
+ 			 void *dev,
+ 			 spinlock_t *irqlock,
+ 			 enum v4l2_buf_type type,
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+1.6.2.5
+
