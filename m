@@ -1,50 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f207.google.com ([209.85.219.207]:46129 "EHLO
-	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751031AbZKJPD1 (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2783 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751441AbZKNTuY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Nov 2009 10:03:27 -0500
-Received: by ewy3 with SMTP id 3so107582ewy.37
-        for <linux-media@vger.kernel.org>; Tue, 10 Nov 2009 07:03:32 -0800 (PST)
-Date: Tue, 10 Nov 2009 16:03:28 +0100
-From: Domenico Andreoli <cavokz@gmail.com>
-To: Roman Gaufman <hackeron@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: tw68-v2/tw68-i2c.c:145: error: unknown field
- ???client_register??? specified in initializer
-Message-ID: <20091110150328.GA4514@raptus.dandreoli.com>
-References: <921ad39e0911100419p3ca39ea4ycd5ac84322555fc2@mail.gmail.com>
- <b40acdb70911100426w46119c79y4226088ca3196254@mail.gmail.com>
- <921ad39e0911100440v6f146d1ci5858517cffdc0457@mail.gmail.com>
- <b40acdb70911100450i4902900eu92c3529de9b5b9a0@mail.gmail.com>
- <921ad39e0911100516i6e930650m65b5e133d581f93e@mail.gmail.com>
- <921ad39e0911100548i6f115aduba39b3b7fc570f58@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <921ad39e0911100548i6f115aduba39b3b7fc570f58@mail.gmail.com>
+	Sat, 14 Nov 2009 14:50:24 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id nAEJoOLs004026
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 14 Nov 2009 20:50:29 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 14 Nov 2009 20:50:25 +0100 (CET)
+Message-Id: <200911141950.nAEJoOLs004026@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 10, 2009 at 01:48:43PM +0000, Roman Gaufman wrote:
-> I swapped my graphics card and techwell DVR card places and now it
-> works, thanks you!!!
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-have you a PCI-E techwell board?
+Results of the daily build of v4l-dvb:
 
-i'm taking the driver out of the freezer trying to get rid of
-the IRQF_DISABLED warning flag. i'm interested in seeing your
-/proc/interrupts, if possible, before and after the boards swap.
+date:        Sat Nov 14 19:00:07 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13333:e341e9e85af2
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-> Only 1 question, the readme says there is no audio yet - any ideas
-> when/if audio will be available? :)
+linux-2.6.22.19-armv5: WARNINGS
+linux-2.6.23.12-armv5: WARNINGS
+linux-2.6.24.7-armv5: WARNINGS
+linux-2.6.25.11-armv5: WARNINGS
+linux-2.6.26-armv5: WARNINGS
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29.1-armv5: WARNINGS
+linux-2.6.30-armv5: WARNINGS
+linux-2.6.31-armv5: WARNINGS
+linux-2.6.32-rc6-armv5: ERRORS
+linux-2.6.32-rc6-armv5-davinci: ERRORS
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.31-armv5-ixp: WARNINGS
+linux-2.6.32-rc6-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.32-rc6-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-rc6-i686: WARNINGS
+linux-2.6.23.12-m32r: WARNINGS
+linux-2.6.24.7-m32r: WARNINGS
+linux-2.6.25.11-m32r: WARNINGS
+linux-2.6.26-m32r: WARNINGS
+linux-2.6.27-m32r: WARNINGS
+linux-2.6.28-m32r: WARNINGS
+linux-2.6.29.1-m32r: WARNINGS
+linux-2.6.30-m32r: WARNINGS
+linux-2.6.31-m32r: WARNINGS
+linux-2.6.32-rc6-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: WARNINGS
+linux-2.6.32-rc6-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: WARNINGS
+linux-2.6.32-rc6-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-rc6-x86_64: ERRORS
+sparse (linux-2.6.31): OK
+sparse (linux-2.6.32-rc6): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-bad news here, i can't promise anything. anyway i'd like to push this
-driver to kernel staging and audio support is required for this step. so
-it is one of my topmost TODO entries.
+Detailed results are available here:
 
-Domenico
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
------[ Domenico Andreoli, aka cavok
- --[ http://www.dandreoli.com/gpgkey.asc
-   ---[ 3A0F 2F80 F79C 678A 8936  4FEE 0677 9033 A20E BC50
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
