@@ -1,53 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4968 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752293AbZKOLyj (ORCPT
+Received: from mail-in-11.arcor-online.net ([151.189.21.51]:48390 "EHLO
+	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752966AbZKONvr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Nov 2009 06:54:39 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Pete Eberlein <pete@sensoray.com>
-Subject: Re: [PATCH 5/5] go7007: subdev conversion
-Date: Sun, 15 Nov 2009 12:54:34 +0100
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <1257880904.21307.1109.camel@pete-desktop>
-In-Reply-To: <1257880904.21307.1109.camel@pete-desktop>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+	Sun, 15 Nov 2009 08:51:47 -0500
+Subject: Re: Tuner drivers
+From: hermann pitton <hermann-pitton@arcor.de>
+To: rulet1@meta.ua
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <53772.95.133.222.95.1258288950.metamail@webmail.meta.ua>
+References: <1258073462.8348.35.camel@pc07.localdom.local>
+	 <36685.95.133.109.178.1258107794.metamail@webmail.meta.ua>
+	 <1258143870.3242.31.camel@pc07.localdom.local>
+	 <53772.95.133.222.95.1258288950.metamail@webmail.meta.ua>
+Content-Type: text/plain
+Date: Sun, 15 Nov 2009 14:49:40 +0100
+Message-Id: <1258292980.3235.14.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200911151254.34324.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 10 November 2009 20:21:44 Pete Eberlein wrote:
-> From: Pete Eberlein <pete@sensoray.com>
+Hi,
+
+Am Sonntag, den 15.11.2009, 14:42 +0200 schrieb rulet1@meta.ua:
+> How to do that?:
 > 
-> Convert the go7007 driver to v4l2 subdev interface, using v4l2 i2c
-> subdev functions instead of i2c functions directly.  The v4l2 ioctl ops
-> functions call subdev ops instead of i2c commands.
+> "You are forced to use saa7134-alsa dma sound"
 > 
-> Priority: normal
-> 
-> Signed-off-by: Pete Eberlein <pete@sensoray.com>
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+a problem is that I can't tell for sure which analog TV standard you
+currently use in the Ukraine, either it is still SECAM DK or you changed
+to some PAL already.
 
-Again, nice work!
+Try to get the details, also about the sound system.
 
-It's in much better shape now.
+If it is still SECAM DK, you need to force the option "secam=DK".
 
-When all this is in we need to take a good look at this and see what
-needs to be done to move this driver out of staging.
+With "audio_debug=1" you can see if the drivers finds the pilots, the
+first sound carrier and the second carrier and also the stereo system in
+use. This counts also for PAL standards.
 
-One thing that needs to be fixed before that can happen is that I
-noticed the use of lock_kernel in s2250-loader.c: this should be done
-differently. The BKL is slowly being removed throughout the kernel so it
-should be removed here as well.
+This way you can already see if the driver can lock on the audio
+carriers in "dmesg" without hearing anything yet.
 
-Regards,
+Then saa7134-alsa should provide TV sound on your card.
+http://linuxtv.org/wiki/index.php/Saa7134-alsa
 
-	Hans
+Cheers,
+Hermann
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+
+
+
+
