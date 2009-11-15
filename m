@@ -1,64 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33228 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752884AbZKZWHw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 17:07:52 -0500
-Message-ID: <4B0EFC30.80208@redhat.com>
-Date: Thu, 26 Nov 2009 20:07:44 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4968 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752293AbZKOLyj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Nov 2009 06:54:39 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Pete Eberlein <pete@sensoray.com>
+Subject: Re: [PATCH 5/5] go7007: subdev conversion
+Date: Sun, 15 Nov 2009 12:54:34 +0100
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <1257880904.21307.1109.camel@pete-desktop>
+In-Reply-To: <1257880904.21307.1109.camel@pete-desktop>
 MIME-Version: 1.0
-To: Krzysztof Halasa <khc@pm.waw.pl>
-CC: Jarod Wilson <jarod@redhat.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-kernel@vger.kernel.org,
-	Mario Limonciello <superm1@ubuntu.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Janne Grunau <j@jannau.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
- Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-References: <200910200956.33391.jarod@redhat.com>	<200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com>	<4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain>	<4B0AC65C.806@redhat.com> <m3zl6dq8ig.fsf@intrepid.localdomain>	<4B0E765C.2080806@redhat.com> <m3iqcxuotd.fsf@intrepid.localdomain>	<4B0ED238.6060306@redhat.com> <m3pr75rpqa.fsf@intrepid.localdomain>	<4B0EED7D.90204@redhat.com> <m3ljhtrn83.fsf@intrepid.localdomain>
-In-Reply-To: <m3ljhtrn83.fsf@intrepid.localdomain>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200911151254.34324.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Krzysztof Halasa wrote:
-> Mauro Carvalho Chehab <mchehab@redhat.com> writes:
+On Tuesday 10 November 2009 20:21:44 Pete Eberlein wrote:
+> From: Pete Eberlein <pete@sensoray.com>
 > 
->> No. All the other API functions there work with 32 bits for scancodes.
+> Convert the go7007 driver to v4l2 subdev interface, using v4l2 i2c
+> subdev functions instead of i2c functions directly.  The v4l2 ioctl ops
+> functions call subdev ops instead of i2c commands.
 > 
-> We don't need them, do we? We need a new ioctl for changing key mappings
-> anyway (a single ioctl for setting the whole table I think), and we can
-> have arbitrary length of scan codes there.
+> Priority: normal
+> 
+> Signed-off-by: Pete Eberlein <pete@sensoray.com>
 
-Why do you want to replace everything into a single shot? Had you ever tried
-to replace a scancode table with the current API?
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-$ wc ./keycodes/dib0700_rc_keys
- 216  432 3541 ./keycodes/dib0700_rc_keys
+Again, nice work!
 
-This is the biggest table we have: 216 scancodes. It has codes for several 
-different IR's bound together into the same table.
+It's in much better shape now.
 
-Let's replace the entire table (tested on a dib8076 reference design device):
+When all this is in we need to take a good look at this and see what
+needs to be done to move this driver out of staging.
 
-$ time ./keytable ./keycodes/dib0700_rc_keys
+One thing that needs to be fixed before that can happen is that I
+noticed the use of lock_kernel in s2250-loader.c: this should be done
+differently. The BKL is slowly being removed throughout the kernel so it
+should be removed here as well.
 
-real    0m0.029s
-user    0m0.000s
-sys     0m0.027s
+Regards,
 
-Don't you think that 29ms to replace 216 codes to be fast enough, especially since
-you only need to do it once after plugging a device?
+	Hans
 
-Also, if you want to control your device with two different IR controllers, the better
-is to allow adding new keycodes there, instead of just allowing the replacement
-of the entire table.
-
-Maybe we'll need some extensions there, for example to extend the size of the dynamic
-table, but I don't see any timing issue here.
-
-Cheers,
-Mauro
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
