@@ -1,59 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.158]:49555 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752192AbZKGQAK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Nov 2009 11:00:10 -0500
-Received: by fg-out-1718.google.com with SMTP id e12so668353fga.1
-        for <linux-media@vger.kernel.org>; Sat, 07 Nov 2009 08:00:14 -0800 (PST)
-Message-ID: <4AF5998A.6060602@googlemail.com>
-Date: Sat, 07 Nov 2009 17:00:10 +0100
-From: e9hack <e9hack@googlemail.com>
+Received: from webmail.meta.ua ([194.0.131.19]:43037 "EHLO webmail.meta.ua"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752825AbZKOPPt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Nov 2009 10:15:49 -0500
+Message-ID: <58364.95.133.222.95.1258298152.metamail@webmail.meta.ua>
+In-Reply-To: <1258292980.3235.14.camel@pc07.localdom.local>
+References: <1258143870.3242.31.camel@pc07.localdom.local>
+    <53772.95.133.222.95.1258288950.metamail@webmail.meta.ua>
+    <1258292980.3235.14.camel@pc07.localdom.local>
+Date: Sun, 15 Nov 2009 17:15:52 +0200 (EEST)
+Subject: Re: Tuner drivers
+From: rulet1@meta.ua
+To: "hermann pitton" <hermann-pitton@arcor.de>
+Cc: rulet1@meta.ua, linux-media@vger.kernel.org
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: bug in changeset 13239:54535665f94b ?
-References: <4AEDB05E.1090704@googlemail.com>	<20091107104113.0df4593b@pedra.chehab.org>	<4AF57E8E.5070109@googlemail.com> <20091107124922.7fbf8445@pedra.chehab.org>
-In-Reply-To: <20091107124922.7fbf8445@pedra.chehab.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;charset=windows-1251
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab schrieb:
-> Em Sat, 07 Nov 2009 15:05:02 +0100
-> e9hack <e9hack@googlemail.com> escreveu:
-> 
->> Mauro Carvalho Chehab schrieb:
+> Hi,
+>
+> Am Sonntag, den 15.11.2009, 14:42 +0200 schrieb rulet1@meta.ua:
+>> How to do that?:
 >>
->>> I agree. We need first to stop DMA activity, and then release the page tables.
->>>
->>> Could you please test if the enclosed patch fixes the issue?
->> Hi Mauro,
+>> "You are forced to use saa7134-alsa dma sound"
 >>
->> your patch doesn't solve the problem, because saa7146_dma_free() doesn't stop a running
->> dma transfer of the saa7146.
-> 
-> Well, it should be stopping it. The logic is to wait for an incoming dma
-> transfer and then disable dma transfers:
-> 
-> void saa7146_dma_free(struct saa7146_dev *dev,struct videobuf_queue *q,
->                                                 struct saa7146_buf *buf)
-> {
->         struct videobuf_dmabuf *dma=videobuf_to_dma(&buf->vb);
->         DEB_EE(("dev:%p, buf:%p\n",dev,buf));
-> 
->         BUG_ON(in_interrupt());
-> 
->         videobuf_waiton(&buf->vb,0,0);
->         videobuf_dma_unmap(q, dma);
->         videobuf_dma_free(dma);
->         buf->vb.state = VIDEOBUF_NEEDS_INIT;
-> }
+>
+> a problem is that I can't tell for sure which analog TV standard you
+> currently use in the Ukraine, either it is still SECAM DK or you changed
+> to some PAL already.
+>
+> Try to get the details, also about the sound system.
+>
+> If it is still SECAM DK, you need to force the option "secam=DK".
+>
+> With "audio_debug=1" you can see if the drivers finds the pilots, the
+> first sound carrier and the second carrier and also the stereo system in
+> use. This counts also for PAL standards.
+>
+> This way you can already see if the driver can lock on the audio
+> carriers in "dmesg" without hearing anything yet.
+>
+> Then saa7134-alsa should provide TV sound on your card.
+> http://linuxtv.org/wiki/index.php/Saa7134-alsa
+>
+> Cheers,
+> Hermann
+>
+>
+>
+> Where to put the option "secam=DK" on Ubuntu 9.10?
+>
+>
 
-In my case, videobuf_queue_cancel() is called previously. videobuf_queue_cancel() wakes up
-all buffers, but it doesn't handle the currently by the saa7146 used buffer. queue->curr
-points to this buffer. Waiting for an incoming dma transfer in saa7146_dma_free() has no
-effect for such a buffer.
 
-Regards,
-Hartmut
+______________________________
+Настоящая украинская почта http://webmail.meta.ua/
+
