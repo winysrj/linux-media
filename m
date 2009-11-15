@@ -1,127 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1984 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757873AbZKXTpA (ORCPT
+Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:1051 "EHLO
+	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752047AbZKOLZj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Nov 2009 14:45:00 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id nAOJj5J3095769
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 24 Nov 2009 20:45:06 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 24 Nov 2009 20:45:05 +0100 (CET)
-Message-Id: <200911241945.nAOJj5J3095769@smtp-vbr6.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Sun, 15 Nov 2009 06:25:39 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Pete Eberlein <pete@sensoray.com>
+Subject: Re: [PATCH 2/5] s2250: Mutex function usage.
+Date: Sun, 15 Nov 2009 12:25:38 +0100
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <1257880891.21307.1104.camel@pete-desktop> <200911151223.13885.hverkuil@xs4all.nl>
+In-Reply-To: <200911151223.13885.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200911151225.38424.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Sunday 15 November 2009 12:23:13 Hans Verkuil wrote:
+> On Tuesday 10 November 2009 20:21:31 Pete Eberlein wrote:
+> > From: Pete Eberlein <pete@sensoray.com>
+> > 
+> > Fix mutex function usage, which was overlooked in a previous patch.
+> > 
+> > Priority: normal
+> > 
+> > Signed-off-by: Pete Eberlein <pete@sensoray.com>
+> > 
+> > diff -r a603ad1e6a1c -r 99e4a0cf6788 linux/drivers/staging/go7007/s2250-board.c
+> > --- a/linux/drivers/staging/go7007/s2250-board.c	Tue Nov 10 10:41:56 2009 -0800
+> > +++ b/linux/drivers/staging/go7007/s2250-board.c	Tue Nov 10 10:47:34 2009 -0800
+> > @@ -261,7 +261,7 @@
+> >  
+> >  	memset(buf, 0xcd, 6);
+> >  	usb = go->hpi_context;
+> > -	if (down_interruptible(&usb->i2c_lock) != 0) {
+> > +	if (mutex_lock_interruptible(&usb->i2c_lock) != 0) {
+> >  		printk(KERN_INFO "i2c lock failed\n");
+> >  		kfree(buf);
+> >  		return -EINTR;
+> > @@ -270,7 +270,7 @@
+> >  		kfree(buf);
+> >  		return -EFAULT;
+> >  	}
+> > -	up(&usb->i2c_lock);
+> > +	mutex_unlock(&usb->i2c_lock);
+> >  
+> >  	*val = (buf[0] << 8) | buf[1];
+> >  	kfree(buf);
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> > 
+> 
+> Looks good. I'll prepare a pull request for this one and ask Mauro to get this
+> fix into 2.6.32-rcX as well since it produces a compiler warning.
+> 
+> I'll also ask Mauro to get the missing drivers/staging/go7007/s2250-loader.h
+> into 2.6.32-rcX: it apparently fell on the floor when the go7007 driver was
+> updated in 2.6.32.
 
-Results of the daily build of v4l-dvb:
+A quick follow-up: I noticed that the third patch actually removed the loader
+header. However, this patch series (except for the second patch) won't go to
+2.6.32 but to 2.6.33. So 2.6.32 still needs that header.
 
-date:        Tue Nov 24 19:00:10 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13473:32b2a1875752
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Regards,
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-rc8-armv5: OK
-linux-2.6.32-rc8-armv5-davinci: ERRORS
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.31-armv5-ixp: WARNINGS
-linux-2.6.32-rc8-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.31-armv5-omap2: ERRORS
-linux-2.6.32-rc8-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: ERRORS
-linux-2.6.27-i686: ERRORS
-linux-2.6.28-i686: ERRORS
-linux-2.6.29.1-i686: ERRORS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-rc8-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-rc8-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: WARNINGS
-linux-2.6.32-rc8-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: WARNINGS
-linux-2.6.32-rc8-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-rc8-x86_64: WARNINGS
-sparse (linux-2.6.31): OK
-sparse (linux-2.6.32-rc8): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+	Hans
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The V4L2 specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
