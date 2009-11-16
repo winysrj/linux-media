@@ -1,70 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4262 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750787AbZKEQ1t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Nov 2009 11:27:49 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Jiri Kosina <jkosina@suse.cz>
-Subject: Re: [BUG] radio-gemtek-pci.c: double mutex_lock
-Date: Thu, 5 Nov 2009 17:27:29 +0100
-Cc: Alexander Strakh <strakh@ispras.ru>,
-	Vladimir Shebordaev <vshebordaev@mail.ru>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org,
-	Linux Kernlel Mailing List <linux-kernel@vger.kernel.org>
-References: <200910081852.50816.strakh@ispras.ru> <alpine.LRH.2.00.0910082046370.12171@twin.jikos.cz>
-In-Reply-To: <alpine.LRH.2.00.0910082046370.12171@twin.jikos.cz>
+Received: from smtp1.infomaniak.ch ([84.16.68.89]:36987 "EHLO
+	smtp1.infomaniak.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753592AbZKPWex (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Nov 2009 17:34:53 -0500
+Message-ID: <4B01D38F.2050603@deckpoint.ch>
+Date: Mon, 16 Nov 2009 23:34:55 +0100
+From: Thomas Kernen <tkernen@deckpoint.ch>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: Julian Scheel <julian@jusst.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: Ubuntu karmic, 2.6.31-14 + KNC1 DVB-S2 = GPF
+References: <4B004ABD.9090903@deckpoint.ch> <200911161243.24994.julian@jusst.de>
+In-Reply-To: <200911161243.24994.julian@jusst.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200911051727.29973.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 08 October 2009 20:47:25 Jiri Kosina wrote:
-> On Thu, 8 Oct 2009, Alexander Strakh wrote:
+Julian Scheel wrote:
+>> It would appear that since I've upgraded to Ubuntu Karmic and the
+>> 2.6.31-14 kernel, my KNC1 DVB-S2 now enjoys a GPF when I use scan-s2.
+>>
+>> Has anyone else come across this issue with a KNC1 card? Any suggestions
+>> what I can do to trace the issue?
 > 
-> > 	KERNEL_VERSION: 2.6.31
-> > 	DESCRIBE:
-> > In driver ./drivers/media/radio/radio-gemtek-pci.c 
-> > mutex_lock is called first time in line 184, then in line 186 
-> > gemtek_pci_setfrequency is called.
-> > 
-> > 182 static void gemtek_pci_unmute(struct gemtek_pci *card)
-> > 183 {
-> > 184		mutex_lock(&card->lock);
-> > 185		if (card->mute) {
-> > 186         	gemtek_pci_setfrequency(card, card->current_frequency);
-> > 187			card->mute = false;
-> > 188		}
-> > 189		mutex_unlock(&card->lock);190 }
-> > 
-> > In gemtek_pci_setfrequency we call mutex_lock again in line 152
-> > 
-> > 144 static void gemtek_pci_setfrequency(struct gemtek_pci *card, unsigned long 
-> > frequency)
-> > 145 {
-> > 146         int i;
-> > 147         u32 value = frequency / 200 + 856;
-> > 148         u16 mask = 0x8000;
-> > 149         u8 last_byte;
-> > 150         u32 port = card->iobase;
-> > 151
-> > 152         mutex_lock(&card->lock);
-> 
-> Good catch. Adding Hans, who added the (incorrect) locking into 
-> gemtek_pci_unmute(), to CC.
-> 
+> Which gcc version are you using?
+> If you run a gcc 4.4 could you try to compile the v4l-dvb tree with a gcc-4.3 
+> and see if it helps?
 
-Thanks, I've committed a fix and will post a pull request later today.
+Hi Julian,
 
-Sorry for the late reply, but I've been abroad for some time.
+I did recompile with gcc-4.3 as you suggested and yes that solved the 
+issue. My card now works fine with v4l-dvb complied with gcc 4.3.
+
+Since gcc 4.4 is the default GCC version with Ubuntu Karmic (9.10), I 
+expect others will run into the same issue.
 
 Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Thomas
