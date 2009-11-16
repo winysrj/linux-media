@@ -1,146 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56434 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756262AbZKQWoO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2009 17:44:14 -0500
-Message-Id: <200911172243.nAHMhfAv029259@imap1.linux-foundation.org>
-Subject: [patch 5/5] dvb: make struct videobuf_queue_ops constant
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	corbet@lwn.net
-From: akpm@linux-foundation.org
-Date: Tue, 17 Nov 2009 14:43:41 -0800
+Received: from mx1.redhat.com ([209.132.183.28]:9166 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751294AbZKPIhR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Nov 2009 03:37:17 -0500
+Message-ID: <4B0110CF.1060907@redhat.com>
+Date: Mon, 16 Nov 2009 09:43:59 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ANSI_X3.4-1968
+To: =?ISO-8859-2?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+CC: Jean-Francois Moine <moinejf@free.fr>,
+	V4L Mailing List <linux-media@vger.kernel.org>,
+	linux-input@vger.kernel.org
+Subject: Re: [RFC, PATCH] gspca pac7302: add support for camera button
+References: <4AFFC00F.6060704@freemail.hu> <4AFFD685.9060209@redhat.com> <4B00F804.2090203@freemail.hu>
+In-Reply-To: <4B00F804.2090203@freemail.hu>
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jonathan Corbet <corbet@lwn.net>
+Hi,
 
-The videobuf_queue_ops function vector is not declared constant, but
-there's no need for the videobuf layer to ever change it.  Make it const
-so that videobuf users can make their operations const without warnings.
+On 11/16/2009 07:58 AM, Németh Márton wrote:
+> Hi,
+> Hans de Goede wrote:
+>> Hi,
+>>
+>> Thanks for working on this! I think it would be great if we could
+>> get support for camera buttons in general into gspca.
+>>
+>> I've not looked closely at your code yet, have you looked at
+>> the camera button code in the gspca sn9c20x.c driver? Also I would really
+>
+> As you proposed I had a look on sn9c20x. It seems that sn9c20x uses register read
+> via USB control message. The pac7302 uses interrupt endpoint. So it looks like
+> quite different to me. Currently I see the common point in the connection
+> to input subsystem only.
+>
 
-Signed-off-by: Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+Ah you are right, oops, most camera's use an interrupt end point so I assumed
+sn9c20x would be the same, my bad.
 
- drivers/media/video/videobuf-core.c       |    2 +-
- drivers/media/video/videobuf-dma-contig.c |    2 +-
- drivers/media/video/videobuf-dma-sg.c     |    2 +-
- drivers/media/video/videobuf-vmalloc.c    |    2 +-
- include/media/videobuf-core.h             |    4 ++--
- include/media/videobuf-dma-contig.h       |    2 +-
- include/media/videobuf-dma-sg.h           |    2 +-
- include/media/videobuf-vmalloc.h          |    2 +-
- 8 files changed, 9 insertions(+), 9 deletions(-)
+>> like to see as much of the button handling code as possible go into
+>> the gspca core. AFAIK many many camera's use an usb interrupt ep for this, so
+>> I would like to see the setting up and cleanup of this interrupt ep be in
+>> the core (as said before see the sn9c20x driver for another driver which
+>> does such things).
+>
+> Unfortunately I do not know how the USB descriptors of other webcams look like.
+> I have access to two webcams which are handled by gspca:
+>
 
-diff -puN drivers/media/video/videobuf-core.c~dvb-make-struct-videobuf_queue_ops-constant drivers/media/video/videobuf-core.c
---- a/drivers/media/video/videobuf-core.c~dvb-make-struct-videobuf_queue_ops-constant
-+++ a/drivers/media/video/videobuf-core.c
-@@ -110,7 +110,7 @@ EXPORT_SYMBOL_GPL(videobuf_queue_to_vmal
- 
- 
- void videobuf_queue_core_init(struct videobuf_queue *q,
--			 struct videobuf_queue_ops *ops,
-+			 const struct videobuf_queue_ops *ops,
- 			 struct device *dev,
- 			 spinlock_t *irqlock,
- 			 enum v4l2_buf_type type,
-diff -puN drivers/media/video/videobuf-dma-contig.c~dvb-make-struct-videobuf_queue_ops-constant drivers/media/video/videobuf-dma-contig.c
---- a/drivers/media/video/videobuf-dma-contig.c~dvb-make-struct-videobuf_queue_ops-constant
-+++ a/drivers/media/video/videobuf-dma-contig.c
-@@ -428,7 +428,7 @@ static struct videobuf_qtype_ops qops = 
- };
- 
- void videobuf_queue_dma_contig_init(struct videobuf_queue *q,
--				    struct videobuf_queue_ops *ops,
-+				    const struct videobuf_queue_ops *ops,
- 				    struct device *dev,
- 				    spinlock_t *irqlock,
- 				    enum v4l2_buf_type type,
-diff -puN drivers/media/video/videobuf-dma-sg.c~dvb-make-struct-videobuf_queue_ops-constant drivers/media/video/videobuf-dma-sg.c
---- a/drivers/media/video/videobuf-dma-sg.c~dvb-make-struct-videobuf_queue_ops-constant
-+++ a/drivers/media/video/videobuf-dma-sg.c
-@@ -702,7 +702,7 @@ void *videobuf_sg_alloc(size_t size)
- }
- 
- void videobuf_queue_sg_init(struct videobuf_queue* q,
--			 struct videobuf_queue_ops *ops,
-+			 const struct videobuf_queue_ops *ops,
- 			 struct device *dev,
- 			 spinlock_t *irqlock,
- 			 enum v4l2_buf_type type,
-diff -puN drivers/media/video/videobuf-vmalloc.c~dvb-make-struct-videobuf_queue_ops-constant drivers/media/video/videobuf-vmalloc.c
---- a/drivers/media/video/videobuf-vmalloc.c~dvb-make-struct-videobuf_queue_ops-constant
-+++ a/drivers/media/video/videobuf-vmalloc.c
-@@ -391,7 +391,7 @@ static struct videobuf_qtype_ops qops = 
- };
- 
- void videobuf_queue_vmalloc_init(struct videobuf_queue* q,
--			 struct videobuf_queue_ops *ops,
-+			 const struct videobuf_queue_ops *ops,
- 			 void *dev,
- 			 spinlock_t *irqlock,
- 			 enum v4l2_buf_type type,
-diff -puN include/media/videobuf-core.h~dvb-make-struct-videobuf_queue_ops-constant include/media/videobuf-core.h
---- a/include/media/videobuf-core.h~dvb-make-struct-videobuf_queue_ops-constant
-+++ a/include/media/videobuf-core.h
-@@ -166,7 +166,7 @@ struct videobuf_queue {
- 	enum v4l2_field            field;
- 	enum v4l2_field            last;   /* for field=V4L2_FIELD_ALTERNATE */
- 	struct videobuf_buffer     *bufs[VIDEO_MAX_FRAME];
--	struct videobuf_queue_ops  *ops;
-+	const struct videobuf_queue_ops  *ops;
- 	struct videobuf_qtype_ops  *int_ops;
- 
- 	unsigned int               streaming:1;
-@@ -195,7 +195,7 @@ void *videobuf_queue_to_vmalloc (struct 
- 				 struct videobuf_buffer *buf);
- 
- void videobuf_queue_core_init(struct videobuf_queue *q,
--			 struct videobuf_queue_ops *ops,
-+			 const struct videobuf_queue_ops *ops,
- 			 struct device *dev,
- 			 spinlock_t *irqlock,
- 			 enum v4l2_buf_type type,
-diff -puN include/media/videobuf-dma-contig.h~dvb-make-struct-videobuf_queue_ops-constant include/media/videobuf-dma-contig.h
---- a/include/media/videobuf-dma-contig.h~dvb-make-struct-videobuf_queue_ops-constant
-+++ a/include/media/videobuf-dma-contig.h
-@@ -17,7 +17,7 @@
- #include <media/videobuf-core.h>
- 
- void videobuf_queue_dma_contig_init(struct videobuf_queue *q,
--				    struct videobuf_queue_ops *ops,
-+				    const struct videobuf_queue_ops *ops,
- 				    struct device *dev,
- 				    spinlock_t *irqlock,
- 				    enum v4l2_buf_type type,
-diff -puN include/media/videobuf-dma-sg.h~dvb-make-struct-videobuf_queue_ops-constant include/media/videobuf-dma-sg.h
---- a/include/media/videobuf-dma-sg.h~dvb-make-struct-videobuf_queue_ops-constant
-+++ a/include/media/videobuf-dma-sg.h
-@@ -103,7 +103,7 @@ struct videobuf_dmabuf *videobuf_to_dma 
- void *videobuf_sg_alloc(size_t size);
- 
- void videobuf_queue_sg_init(struct videobuf_queue* q,
--			 struct videobuf_queue_ops *ops,
-+			 const struct videobuf_queue_ops *ops,
- 			 struct device *dev,
- 			 spinlock_t *irqlock,
- 			 enum v4l2_buf_type type,
-diff -puN include/media/videobuf-vmalloc.h~dvb-make-struct-videobuf_queue_ops-constant include/media/videobuf-vmalloc.h
---- a/include/media/videobuf-vmalloc.h~dvb-make-struct-videobuf_queue_ops-constant
-+++ a/include/media/videobuf-vmalloc.h
-@@ -30,7 +30,7 @@ struct videobuf_vmalloc_memory
- };
- 
- void videobuf_queue_vmalloc_init(struct videobuf_queue* q,
--			 struct videobuf_queue_ops *ops,
-+			 const struct videobuf_queue_ops *ops,
- 			 void *dev,
- 			 spinlock_t *irqlock,
- 			 enum v4l2_buf_type type,
-_
+No problem, just put all the input code in pac7302.c for now, we will abstract it
+later when we add support for the button on other camera's too.
+
+<snip>
+
+> Comparing these two endpoints shows the common and different points:
+> Common: interface class, endpoint direction, endpoint type.
+> Different: interface number, sub class, protocol, endpoint address, max
+>             packet size, interval.
+>
+> Maybe the second example is not a good one because I don't know whether
+> the interrupt endpoint is used for buttons or not.
+>
+> Do you have access to webcams equipped with button? Could you please
+> send the device descriptor (lsusb -v) about these devices in order
+> the common points can be identified for interrupt endpoints?
+>
+
+As the author/maintainer of quite a few drivers and libv4l author I have
+build up quite a test camera collection, I'll send you the lsusb -v output
+of a few in a private mail. But as said before, for now I think you can just put
+the input code inside pac7302.c, then later on we can try to abstract it.
+
+Regards,
+
+Hans
