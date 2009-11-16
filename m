@@ -1,63 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:44448 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751350AbZKZNXR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 08:23:17 -0500
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
- Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-From: Andy Walls <awalls@radix.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Krzysztof Halasa <khc@pm.waw.pl>, Jarod Wilson <jarod@redhat.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-kernel@vger.kernel.org,
-	Mario Limonciello <superm1@ubuntu.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Janne Grunau <j@jannau.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-In-Reply-To: <4B0E765C.2080806@redhat.com>
-References: <200910200956.33391.jarod@redhat.com>
-	 <200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com>
-	 <4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain>
-	 <4B0AC65C.806@redhat.com> <m3zl6dq8ig.fsf@intrepid.localdomain>
-	 <4B0E765C.2080806@redhat.com>
-Content-Type: text/plain
-Date: Thu, 26 Nov 2009 08:22:13 -0500
-Message-Id: <1259241733.3062.44.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from gv-out-0910.google.com ([216.239.58.191]:3878 "EHLO
+	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753831AbZKPUrD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Nov 2009 15:47:03 -0500
+Received: by gv-out-0910.google.com with SMTP id r4so738203gve.37
+        for <linux-media@vger.kernel.org>; Mon, 16 Nov 2009 12:47:08 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4B01B841.7000506@gmail.com>
+References: <4AFE92ED.2060208@gmail.com> <4AFEAB15.9010509@gmail.com>
+	 <829197380911140634j49c05cd0s90aed57b9ae61436@mail.gmail.com>
+	 <4AFF1203.3080401@gmail.com>
+	 <829197380911150719w7ea0749ei2a1350f1e12b866d@mail.gmail.com>
+	 <4B001ECD.9030609@gmail.com>
+	 <829197380911152055w233edf18ve36b821571198d04@mail.gmail.com>
+	 <4B01B168.50403@gmail.com>
+	 <829197380911161228u425db80ag20d01359aa4b7472@mail.gmail.com>
+	 <4B01B841.7000506@gmail.com>
+Date: Mon, 16 Nov 2009 15:47:08 -0500
+Message-ID: <829197380911161247n1647ce06p994e68858da7097e@mail.gmail.com>
+Subject: Re: [PATCH] em28xx: fix for Dikom DK300 hybrid USB tuner (aka Kworld
+	VS-DVB-T 323UR ) (digital mode)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: "Andrea.Amorosi76@gmail.com" <Andrea.Amorosi76@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2009-11-26 at 10:36 -0200, Mauro Carvalho Chehab wrote:
-> Krzysztof Halasa wrote:
-> > Mauro Carvalho Chehab <mchehab@redhat.com> writes:
+On Mon, Nov 16, 2009 at 3:38 PM, Andrea.Amorosi76@gmail.com
+<Andrea.Amorosi76@gmail.com> wrote:
+> The usb is the following:
+> Bus 002 Device 010: ID eb1a:e312 eMPIA Technology, Inc.
+> (I don't remember what it was previously, but it seems wrong how can I be
+> sure about that?).
+> I have put back the driver to the original state, but still it doesn't work.
+> Did I have to reprogram the eprom? If so, it is possible via usb?
+> Thank you,
+> Andrea
 
+Well, according to em28xx-cards.c, the EM2882_BOARD_KWORLD_VS_DVBT is
+eb1a:e323.  You can probably just the USB_DEVICE() entry to say e312,
+and that will allow the driver to load (at which point you can then
+reprogram the eeprom back to its previous state).
 
-> PS.: For those following those discussions that want to know more about
-> IR protocols, a good reference is at:
-> 	http://www.sbprojects.com/knowledge/ir/ir.htm
-> 
-> Unfortunately, it doesn't describe RC6 mode 6.
+I assume that when you used the eeprom rewrite script, that you used a
+copy of *YOUR* dmesg output from before the problem?  You cannot use
+someone else's dmesg output, as that may not actually match your
+device.
 
-RC-6 Mode 0 and Mode 6A is briefly describe here:
+Devin
 
-http://www.picbasic.nl/frameload_uk.htm?http://www.picbasic.nl/rc5-rc6_transceiver_uk.htm
-
-That page is slightly wrong, as there is some data coded in the header
-such as the RC-6 Mode.
-
-This page is an older version of the sbprojects.com RC-6 page, before
-the information on RC-6 Mode 6A was removed:
-
-http://slycontrol.ru/scr/kb/rc6.htm
-
-
-My personal opinion is that, for non-technical reasons, RC-6 Mode 6A
-decoding should not be included in the kernel.  That's why I didn't do
-it for the HVR-1850/CX23888.
-
-
-Regards,
-Andy
-
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
