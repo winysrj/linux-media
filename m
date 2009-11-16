@@ -1,16 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.24])
+Received: from krauklis.latnet.lv ([92.240.66.73])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <tstrelar@gmail.com>) id 1NEW7N-0007fl-G3
-	for linux-dvb@linuxtv.org; Sat, 28 Nov 2009 23:50:18 +0100
-Received: by ey-out-2122.google.com with SMTP id 9so675248eyd.39
-	for <linux-dvb@linuxtv.org>; Sat, 28 Nov 2009 14:50:13 -0800 (PST)
-MIME-Version: 1.0
-Date: Sat, 28 Nov 2009 23:50:13 +0100
-Message-ID: <355c45860911281450g70094174u7805884d669dd5ea@mail.gmail.com>
-From: Tomislav Strelar <tstrelar@gmail.com>
+	(envelope-from <blondais@latnet.lv>) id 1NA3JJ-0008RH-PM
+	for linux-dvb@linuxtv.org; Mon, 16 Nov 2009 16:16:10 +0100
+Received: from localhost (localhost [127.0.0.1])
+	by krauklis.latnet.lv (Postfix) with ESMTP id F137F140D1
+	for <linux-dvb@linuxtv.org>; Mon, 16 Nov 2009 17:16:05 +0200 (EET)
+Received: from krauklis.latnet.lv ([127.0.0.1])
+	by localhost (krauklis.latnet.lv [127.0.0.1]) (amavisd-new, port 11141)
+	with ESMTP id kyt0Io+TNcDc for <linux-dvb@linuxtv.org>;
+	Mon, 16 Nov 2009 17:16:01 +0200 (EET)
+Received: from localhost (clients.latnet.lv [92.240.64.12])
+	by krauklis.latnet.lv (Postfix) with ESMTP id B7EBD140AD
+	for <linux-dvb@linuxtv.org>; Mon, 16 Nov 2009 17:13:45 +0200 (EET)
+Message-ID: <1258384425.4b016c29afaf2@online.sigmanet.lv>
+Date: Mon, 16 Nov 2009 17:13:45 +0200
+From: blondais@latnet.lv
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Build fails when compiling dvb_frontend.c
+MIME-Version: 1.0
+Subject: [linux-dvb] kworld 380u, qt1010, em28xx
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -25,38 +33,44 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello everyone.
+Hi,
 
-I am trying to build v4l-dvb device drivers according to instruction
-on linuxTV wiki
-http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+There's a lot of mails can be found on internet about my problem but hardly any
+gives answer for subj.
+Year ago, this was ok, there where ~mrec dvb-kernel available. Now it is gone,
+and my problem raised again - cannot find the way to get my kworld 380u to work
+properly, even by changing idProduct=e359 for somehow working kworld355u in file
+linux/drivers/media/video/em28xx/em28xx-cards.c:
+==
+	{ USB_DEVICE(0xeb1a, 0xe359),
+			.driver_info = EM2870_BOARD_KWORLD_355U },
+==
 
-but it fails when compiling dvb_frontend.c
-
-This is what I get:
-
-/home/tomislav/src/v4l-dvb-e341e9e85af2/v4l/dvb_frontend.c: In
-function 'dvb_frontend_stop':
-/home/tomislav/src/v4l-dvb-e341e9e85af2/v4l/dvb_frontend.c:707: error:
-implicit declaration of function 'init_MUTEX'
-make[3]: *** [/home/tomislav/src/v4l-dvb-e341e9e85af2/v4l/dvb_frontend.o]
-Error 1
-make[3]: *** Waiting for unfinished jobs....
-make[2]: *** [_module_/home/tomislav/src/v4l-dvb-e341e9e85af2/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-headers-2.6.31-9-rt'
-
-Kerner version is
-Linux version 2.6.31-9-rt (buildd@yellow) (gcc version 4.4.1 (Ubuntu
-4.4.1-4ubuntu8) ) #152-Ubuntu SMP PREEMPT RT Thu Oct 15 13:22:24 UTC
-2009
+Can anyone lead me where to look or change next?
 
 
-I've searched everywhere, and I haven't find similar problem. Can
-someone give me a hint what am I doing wrong. And just to say, I'm far
-from being a linux expert. :)
+Specs:
+Box: Slackware 13.0, Linux 2.6.29.6-smp.
+Item: Kworld 380U DVB-T USB stick
+Dmesg before compiling dvb kernel from linuxtv.org:
+Nov 16 16:54:04 dtv kernel: usb 1-1: new high speed USB device using ehci_hcd
+and address 4
+Nov 16 16:54:04 dtv kernel: usb 1-1: New USB device found, idVendor=eb1a,
+idProduct=e359
+Nov 16 16:54:04 dtv kernel: usb 1-1: New USB device strings: Mfr=0, Product=1,
+SerialNumber=0
+Nov 16 16:54:04 dtv kernel: usb 1-1: Product: USB 2870 Device
+Nov 16 16:54:04 dtv kernel: usb 1-1: configuration #1 chosen from 1 choice
 
-Thank you,
-Tomislav
+
+Modules made from http://linuxtv.org/hg/v4l-dvb/ do not create devices in
+/dev/dvb/ probably because of qt1010 firmware?
+
+
+--
+blondais
+
+
 
 _______________________________________________
 linux-dvb users mailing list
