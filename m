@@ -1,201 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.rz.uni-frankfurt.de ([141.2.22.233]:56617 "EHLO
-	mailout.rz.uni-frankfurt.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755815AbZKWLKY (ORCPT
+Received: from comal.ext.ti.com ([198.47.26.152]:44284 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751144AbZKPOvG convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2009 06:10:24 -0500
-Received: from smtpauth.cluster.uni-frankfurt.de ([10.2.22.4] helo=smtpauth2.rz.uni-frankfurt.de)
-	by mailout.rz.uni-frankfurt.de with esmtp (Exim 4.69)
-	(envelope-from <mbachman@stud.uni-frankfurt.de>)
-	id 1NCWoQ-0005Jn-1C
-	for linux-media@vger.kernel.org; Mon, 23 Nov 2009 12:10:30 +0100
-Received: from p4fdd5c16.dip.t-dialin.net ([79.221.92.22] helo=duron.grafnetz)
-	by smtpauth2.rz.uni-frankfurt.de with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.69)
-	(envelope-from <mbachman@stud.uni-frankfurt.de>)
-	id 1NCWnX-0001tE-7r
-	for linux-media@vger.kernel.org; Mon, 23 Nov 2009 12:09:40 +0100
-Received: from x2.grafnetz ([192.168.0.4])
-	by duron.grafnetz with esmtps (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
-	(Exim 4.69)
-	(envelope-from <mbachman@stud.uni-frankfurt.de>)
-	id 1NCWnN-0001nW-SZ
-	for linux-media@vger.kernel.org; Mon, 23 Nov 2009 12:09:34 +0100
-Date: Mon, 23 Nov 2009 12:03:10 +0100
-From: Mario Bachmann <mbachman@stud.uni-frankfurt.de> (by way of Mario
-	Bachmann <mbachman@stud.uni-frankfurt.de>)
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-ID: <20091123120310.5b10c9cc@x2.grafnetz>
-In-Reply-To: <alpine.LRH.2.00.0911230947540.14263@pub1.ifh.de>
-References: <20091107105614.7a51f2f5@x2.grafnetz>
- <alpine.LRH.2.00.0911191630250.12734@pub2.ifh.de>
- <20091121182514.61b39d23@x2.grafnetz>
- <alpine.LRH.2.00.0911230947540.14263@pub1.ifh.de>
-Mime-Version: 1.0
+	Mon, 16 Nov 2009 09:51:06 -0500
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAGEpBb5022445
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 16 Nov 2009 08:51:11 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id nAGEpBiC027082
+	for <linux-media@vger.kernel.org>; Mon, 16 Nov 2009 08:51:11 -0600 (CST)
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAGEpBYh017023
+	for <linux-media@vger.kernel.org>; Mon, 16 Nov 2009 08:51:11 -0600 (CST)
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Mon, 16 Nov 2009 08:51:09 -0600
+Subject: RE: [PATCH] DM644x CCDC: Add 10bit BT support
+Message-ID: <A69FA2915331DC488A831521EAE36FE401559C536C@dlee06.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1258349415-18499-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <1258349415-18499-1-git-send-email-hvaibhav@ti.com>
+Content-Language: en-US
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Subject: Re: dibusb-common.c FE_HAS_LOCK problem
+Content-Transfer-Encoding: 7BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Mon, 23 Nov 2009 10:01:36 +0100 (CET)
-schrieb Patrick Boettcher <pboettcher@kernellabs.com>:
+Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
 
-> Hi Mario,
-> 
-> On Sat, 21 Nov 2009, grafgrimm77@gmx.de wrote:
-> 
-> > Am Thu, 19 Nov 2009 16:37:18 +0100 (CET)
-> > schrieb Patrick Boettcher <pboettcher@kernellabs.com>:
-> >
-> >> On Sat, 7 Nov 2009, Mario Bachmann wrote:
-> >>
-> >>> Hi there,
-> >>>
-> >>> I tried linux-2.6.31.5 and tuning still does not work:
-> >>> tuning to 738000000 Hz
-> >>> video pid 0x0131, audio pid 0x0132
-> >>> status 00 | signal 0000 | snr 0000 | ber 001fffff | unc 0000ffff |
-> >>> status 00 | signal 0000 | snr 0000 | ber 001fffff | unc 0000ffff |
-> >>> status 00 | signal 0000 | snr 0000 | ber 001fffff | unc 0000ffff |
-> >>> status 04 | signal 0000 | snr 0000 | ber 001fffff | unc 0000ffff |
-> >>>
-> >>> With some changes for the following file it works again:
-> >>> /usr/src/linux/drivers/media/dvb/dvb-usb/dibusb-common.c
-> >>>
-> >>> diff -Naur dibusb-common.c-ORIGINAL dibusb-common.c
-> >>>
-> >>> --- dibusb-common.c-ORIGINAL	2009-11-07 10:30:43.705344308 +0100
-> >>> +++ dibusb-common.c	2009-11-07 10:33:49.969345253 +0100
-> >>> @@ -133,17 +133,14 @@
-> >>>
-> >>> 	for (i = 0; i < num; i++) {
-> >>> 		/* write/read request */
-> >>> -		if (i+1 < num && (msg[i].flags & I2C_M_RD) == 0
-> >>> -					  && (msg[i+1].flags & I2C_M_RD)) {
-> >>> +		if (i+1 < num && (msg[i+1].flags & I2C_M_RD)) {
-> >>> 			if (dibusb_i2c_msg(d, msg[i].addr, msg[i].buf,msg[i].len,
-> >>> 						msg[i+1].buf,msg[i+1].len) < 0)
-> >>> 				break;
-> >>> 			i++;
-> >>> -		} else if ((msg[i].flags & I2C_M_RD) == 0) {
-> >>> +		} else
-> >>> 			if (dibusb_i2c_msg(d, msg[i].addr, msg[i].buf,msg[i].len,NULL,0) < 0)
-> >>> 				break;
-> >>> -		} else
-> >>> -			break;
-> >>> 	}
-> >>
-> >> Doing it is reverting a fix which avoids that uncontrolled i2c-access from
-> >> userspace is destroying the USB-eeprom.
-> >>
-> >> I understand that this is breaking the tuning for your board. I'm just not
-> >> understanding why.
-> >>
-> >> If you have some time to debug this issue, could you please try the
-> >> following:
-> >>
-> >> One of the devices for your board is trying to do an I2c access which is
-> >> falling into the last 'else'-branch - can you add a printk to find out
-> >> which one it is? The access must be wrongly constructed and must be fixed
-> >> in that driver.
-> >>
-> >> thanks,
-> >>
-> >> PS: if you don't have time to do it, please tell so.
-> >>
-> >> --
-> >>
-> >> Patrick
-> >> http://www.kernellabs.com/
-> >
-> > I do not understand exactly. printk what? Could you please give me a
-> > complete piece of code with the printk command? Would be great!
-> >
-> > My printk-tries ends up in an "Oops".
-> 
-> There is a
->  	} else
->  		break;
-> 
-> sequence in dibusb_i2c_xfer
-> 
-> instead of break, please add something like
-> 
-> printk(KERN_ERR "----- hello stupid I2C access ----\n");
-> 
-> recompile and load the new module, then check whether the line is 
-> appearing in /var/log/messages or /var/log/syslog when you tune the board.
-> 
-> If this is the case, try to identify which device is issuing the access by 
-> printing the i2c-address of struct i2c_msg.
-> 
-> HTH,
-> --
-> 
-> Patrick
-> http://www.kernellabs.com/
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+phone: 301-407-9583
+email: m-karicheri2@ti.com
 
-Hello Patrick, 
+>-----Original Message-----
+>From: Hiremath, Vaibhav
+>Sent: Monday, November 16, 2009 12:30 AM
+>To: linux-media@vger.kernel.org
+>Cc: Karicheri, Muralidharan; Hiremath, Vaibhav
+>Subject: [PATCH] DM644x CCDC: Add 10bit BT support
+>
+>From: Vaibhav Hiremath <hvaibhav@ti.com>
+>
+>
+>Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+>Reviewed-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+>---
+> drivers/media/video/davinci/dm644x_ccdc.c      |   17 +++++++++++++----
+> drivers/media/video/davinci/dm644x_ccdc_regs.h |    8 ++++++++
+> 2 files changed, 21 insertions(+), 4 deletions(-)
+>
+>diff --git a/drivers/media/video/davinci/dm644x_ccdc.c
+>b/drivers/media/video/davinci/dm644x_ccdc.c
+>index 2f19a91..9d601b4 100644
+>--- a/drivers/media/video/davinci/dm644x_ccdc.c
+>+++ b/drivers/media/video/davinci/dm644x_ccdc.c
+>@@ -394,7 +394,11 @@ void ccdc_config_ycbcr(void)
+> 		 * configure the FID, VD, HD pin polarity,
+> 		 * fld,hd pol positive, vd negative, 8-bit data
+> 		 */
+>-		syn_mode |= CCDC_SYN_MODE_VD_POL_NEGATIVE |
+>CCDC_SYN_MODE_8BITS;
+>+		syn_mode |= CCDC_SYN_MODE_VD_POL_NEGATIVE;
+>+		if (ccdc_if_type == VPFE_BT656_10BIT)
+>+			syn_mode |= CCDC_SYN_MODE_10BITS;
+>+		else
+>+			syn_mode |= CCDC_SYN_MODE_8BITS;
+> 	} else {
+> 		/* y/c external sync mode */
+> 		syn_mode |= (((params->fid_pol & CCDC_FID_POL_MASK) <<
+>@@ -413,8 +417,13 @@ void ccdc_config_ycbcr(void)
+> 	 * configure the order of y cb cr in SDRAM, and disable latch
+> 	 * internal register on vsync
+> 	 */
+>-	regw((params->pix_order << CCDC_CCDCFG_Y8POS_SHIFT) |
+>-		 CCDC_LATCH_ON_VSYNC_DISABLE, CCDC_CCDCFG);
+>+	if (ccdc_if_type == VPFE_BT656_10BIT)
+>+		regw((params->pix_order << CCDC_CCDCFG_Y8POS_SHIFT) |
+>+			CCDC_LATCH_ON_VSYNC_DISABLE | CCDC_CCDCFG_BW656_10BIT,
+>+			CCDC_CCDCFG);
+>+	else
+>+		regw((params->pix_order << CCDC_CCDCFG_Y8POS_SHIFT) |
+>+			CCDC_LATCH_ON_VSYNC_DISABLE, CCDC_CCDCFG);
+>
+> 	/*
+> 	 * configure the horizontal line offset. This should be a
+>@@ -429,7 +438,6 @@ void ccdc_config_ycbcr(void)
+>
+> 	ccdc_sbl_reset();
+> 	dev_dbg(dev, "\nEnd of ccdc_config_ycbcr...\n");
+>-	ccdc_readregs();
+> }
+>
+> static void ccdc_config_black_clamp(struct ccdc_black_clamp *bclamp)
+>@@ -822,6 +830,7 @@ static int ccdc_set_hw_if_params(struct
+>vpfe_hw_if_param *params)
+> 	case VPFE_BT656:
+> 	case VPFE_YCBCR_SYNC_16:
+> 	case VPFE_YCBCR_SYNC_8:
+>+	case VPFE_BT656_10BIT:
+> 		ccdc_hw_params_ycbcr.vd_pol = params->vdpol;
+> 		ccdc_hw_params_ycbcr.hd_pol = params->hdpol;
+> 		break;
+>diff --git a/drivers/media/video/davinci/dm644x_ccdc_regs.h
+>b/drivers/media/video/davinci/dm644x_ccdc_regs.h
+>index 6e5d053..b18d166 100644
+>--- a/drivers/media/video/davinci/dm644x_ccdc_regs.h
+>+++ b/drivers/media/video/davinci/dm644x_ccdc_regs.h
+>@@ -135,11 +135,19 @@
+> #define CCDC_SYN_MODE_INPMOD_SHIFT		12
+> #define CCDC_SYN_MODE_INPMOD_MASK		3
+> #define CCDC_SYN_MODE_8BITS			(7 << 8)
+>+#define CCDC_SYN_MODE_10BITS			(6 << 8)
+>+#define CCDC_SYN_MODE_11BITS			(5 << 8)
+>+#define CCDC_SYN_MODE_12BITS			(4 << 8)
+>+#define CCDC_SYN_MODE_13BITS			(3 << 8)
+>+#define CCDC_SYN_MODE_14BITS			(2 << 8)
+>+#define CCDC_SYN_MODE_15BITS			(1 << 8)
+>+#define CCDC_SYN_MODE_16BITS			(0 << 8)
+> #define CCDC_SYN_FLDMODE_MASK			1
+> #define CCDC_SYN_FLDMODE_SHIFT			7
+> #define CCDC_REC656IF_BT656_EN			3
+> #define CCDC_SYN_MODE_VD_POL_NEGATIVE		(1 << 2)
+> #define CCDC_CCDCFG_Y8POS_SHIFT			11
+>+#define CCDC_CCDCFG_BW656_10BIT 		(1 << 5)
+> #define CCDC_SDOFST_FIELD_INTERLEAVED		0x249
+> #define CCDC_NO_CULLING				0xffff00ff
+> #endif
+>--
+>1.6.2.4
 
-I tried it with Kernel 2.6.31.6 (same as before). 
-
-I made the printk-change, recompiled and reloaded the modules and pluged in my Twinhan Magic Box...
-It definately jumps in the last else-branch and shows "hello stupid I2C access", but no KERN_ERR ?!
-
-dmesg
-usb 4-2: new full speed USB device using ohci_hcd and address 4
-usb 4-2: configuration #1 chosen from 1 choice
-dvb-usb: found a 'TwinhanDTV USB-Ter USB1.1 / Magic Box I / HAMA USB1.1 DVB-T device' in cold state, will try to load a firmware
-usb 4-2: firmware: requesting dvb-usb-dibusb-5.0.0.11.fw
-dvb-usb: downloading firmware from file 'dvb-usb-dibusb-5.0.0.11.fw'
-usbcore: registered new interface driver dvb_usb_dibusb_mb
-usb 4-2: USB disconnect, address 4
-dvb-usb: generic DVB-USB module successfully deinitialized and disconnected.
-usb 4-2: new full speed USB device using ohci_hcd and address 5
-usb 4-2: configuration #1 chosen from 1 choice
-dvb-usb: found a 'TwinhanDTV USB-Ter USB1.1 / Magic Box I / HAMA USB1.1 DVB-T device' in warm state.
-dvb-usb: will use the device's hardware PID filter (table count: 16).
-DVB: registering new adapter (TwinhanDTV USB-Ter USB1.1 / Magic Box I / HAMA USB1.1 DVB-T device)
-DVB: registering adapter 0 frontend 0 (DiBcom 3000M-B DVB-T)...
-dibusb: This device has the Thomson Cable onboard. Which is default.
------ hello stupid I2C access ----
-input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:04.0/usb4/4-2/input/input5
-dvb-usb: schedule remote query interval to 150 msecs.
-dvb-usb: TwinhanDTV USB-Ter USB1.1 / Magic Box I / HAMA USB1.1 DVB-T device successfully initialized and connected.
-
-tail -30 /var/log/messages
-Nov 23 11:49:46 x2 kernel: usb 4-2: new full speed USB device using ohci_hcd and address 4
-Nov 23 11:49:46 x2 kernel: usb 4-2: configuration #1 chosen from 1 choice
-Nov 23 11:49:46 x2 kernel: dvb-usb: found a 'TwinhanDTV USB-Ter USB1.1 / Magic Box I / HAMA USB1.1 DVB-T device' in cold state, will try to load a firmware
-Nov 23 11:49:46 x2 kernel: usb 4-2: firmware: requesting dvb-usb-dibusb-5.0.0.11.fw
-Nov 23 11:49:46 x2 kernel: dvb-usb: downloading firmware from file 'dvb-usb-dibusb-5.0.0.11.fw'
-Nov 23 11:49:48 x2 kernel: usbcore: registered new interface driver dvb_usb_dibusb_mb
-Nov 23 11:49:48 x2 kernel: usb 4-2: USB disconnect, address 4
-Nov 23 11:49:48 x2 kernel: dvb-usb: generic DVB-USB module successfully deinitialized and disconnected.
-Nov 23 11:49:50 x2 kernel: usb 4-2: new full speed USB device using ohci_hcd and address 5
-Nov 23 11:49:50 x2 kernel: usb 4-2: configuration #1 chosen from 1 choice
-Nov 23 11:49:50 x2 kernel: dvb-usb: found a 'TwinhanDTV USB-Ter USB1.1 / Magic Box I / HAMA USB1.1 DVB-T device' in warm state.
-Nov 23 11:49:50 x2 kernel: dvb-usb: will use the device's hardware PID filter (table count: 16).
-Nov 23 11:49:50 x2 kernel: DVB: registering new adapter (TwinhanDTV USB-Ter USB1.1 / Magic Box I / HAMA USB1.1 DVB-T device)
-Nov 23 11:49:50 x2 kernel: DVB: registering adapter 0 frontend 0 (DiBcom 3000M-B DVB-T)...
-Nov 23 11:49:50 x2 kernel: dibusb: This device has the Thomson Cable onboard. Which is default.
-Nov 23 11:49:50 x2 kernel: ----- hello stupid I2C access ----
-Nov 23 11:49:50 x2 kernel: input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:04.0/usb4/4-2/input/input5
-Nov 23 11:49:50 x2 kernel: dvb-usb: schedule remote query interval to 150 msecs.
-Nov 23 11:49:50 x2 kernel: dvb-usb: TwinhanDTV USB-Ter USB1.1 / Magic Box I / HAMA USB1.1 DVB-T device successfully initialized and connected.
-
-Hey, without the break-command, tuning seems to work:
-$ tzap pro7 -r
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-reading channels from file '/home/grafrotz/.tzap/channels.conf'
-tuning to 738000000 Hz
-video pid 0x0131, audio pid 0x0132
-status 00 | signal 0000 | snr 0000 | ber 001fffff | unc 0000ffff | 
-status 1f | signal 0b20 | snr 008d | ber 001fffff | unc 0000ffff | FE_HAS_LOCK
-status 1f | signal f4dd | snr 0077 | ber 00000770 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal ffff | snr 008c | ber 00000770 | unc 00000000 | FE_HAS_LOCK
-
-Greetings
-Mario
