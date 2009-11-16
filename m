@@ -1,64 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:50129 "EHLO mail1.radix.net"
+Received: from mail.juropnet.hu ([212.24.188.131]:45723 "EHLO mail.juropnet.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753264AbZKKE3x (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Nov 2009 23:29:53 -0500
-Subject: cx18: Reprise of YUV frame alignment improvements
-From: Andy Walls <awalls@radix.net>
-To: ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Tue, 10 Nov 2009 23:31:45 -0500
-Message-Id: <1257913905.28958.32.camel@palomino.walls.org>
-Mime-Version: 1.0
+	id S1751251AbZKPLiy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Nov 2009 06:38:54 -0500
+Received: from kabelnet-198-154.juropnet.hu ([91.147.198.154])
+	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <istvan_v@mailbox.hu>)
+	id 1N9zTQ-0001Q0-DM
+	for linux-media@vger.kernel.org; Mon, 16 Nov 2009 12:10:26 +0100
+Message-ID: <4B0133A0.2090904@mailbox.hu>
+Date: Mon, 16 Nov 2009 12:12:32 +0100
+From: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Newbie question about choosing a TV tuner card for Linux
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-OK, here's my second attempt at getting rid of cx18 YUV frame alignment
-and tearing issues.
+Hi! Can someone give me advice on which of these PCI TV tuner cards I
+should buy for use on Linux ? All are from a similar price range, but
+I do not know how they compare in terms of Linux support and picture
+quality.
 
-	http://linuxtv.org/hg/~awalls/cx18-yuv2
-
-This change primarily implements full scatter-gather buffer handling
-between the cx18 driver and the CX23418 firmware.  That in turn allows
-me to set the MDL size to have exactly one YUV frame per MDL transfer
-from the encoder to eliminate frame alignment issues, while using very
-small buffers that should not have anyone's machine go into a panic.  (I
-also tweaked the VBI transfer size while I was at it.)
-
-I'm pretty happy with the results.  I can run this set of streams
-simultaneously from one HVR-1600 and have witnessed no new cx18 driver
-issues on my machine:
-
-YUV:  mplayer /dev/video32 -demuxer rawvideo -rawvideo w=720:h=480:format=hm12:ntsc
-PCM:  aplay -f dat < /dev/video24
-VBI:  ~/build/zvbi-0.2.30/test/osc -2
-MPEG: mplayer /dev/video0 -cache 8192
-ATSC: mplayer dvb://WTTG\ DT -cache 8192
-
-(ALSA or my soundcard couldn't mix together 3 streams of audio out to my
-speakers though.  Only 2 streams, PCM and MPEG audio, were audible).
-
-The cx18 default YUV buffer size is now 3 * 33.75 kB = 3 full HM12
-macroblock sets that cover 32 screen lines for each macroblock set.  A
-full NTSC frame requires 15 * 33.75 kB and a full PAL frame requires 18
-* 33.75 kB which is why I picked 3 * 33.75 kB.  I don't anticipate
-anyone having problems with this new default YUV buffer size of about
-~102 kB, since the current default YUV buffer size is 128 kB.
-
-(BTW the cx18 driver restricts YUV captures to sizes which are a
-multiple of 32 lines in height.  I believe the reasoning is that the
-software HM12 decoders may not gracefully handle a partial macroblock
-set when not a multiple of 32 lines.  This changeset is robust enough to
-handle lifting that restriction, if someone has a smart HM12 decoder
-that can handle partial macroblocks sensibly.)
-
-
-
-Could folks give this cx18 code a test to make sure their primary use
-cases didn't break?
-
-
-Regards,
-Andy
+ - Leadtek DTV 1800H
+   A relatively cheap card based on CX2388x and XC3028 (?). I read it is
+   a good value for the price, and may be supported on Linux, although
+   some tricks/patches could be needed to get it to work.
+ - Leadtek DTV 2000H
+   Similar to the above card, but is an older model, the tuner is an
+   FMD1216 in a tin can, and it is somewhat more expensive. Is that only
+   because of more bundled Windows software, or is the different tuner a
+   better one quality-wise ? How does the Linux support compare ?
+ - AVerMedia Hybrid PCI+FM (A16AR or A16D)
+   I think the cards currently available with this name are the newer
+   A16D version, which uses SAA713x and XC3028. I would assume it is not
+   a better card than the DTV 1800H, but the SAA713x is better supported
+   on Linux ?
+ - AVerMedia Studio 703 (M17H)
+   This is an analogue-only card (not necessarily a problem, since not
+   many DVB-T channels can be received where I live), and the only
+   information I found about it is that it uses a "Philips/NXP" chipset.
+   It is not included in the CARDLIST files of the kernel, so maybe it
+   is not supported on Linux ?
 
