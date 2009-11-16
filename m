@@ -1,108 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.26]:4745 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751907AbZK0TVJ convert rfc822-to-8bit (ORCPT
+Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:50373
+	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752978AbZKPWKh convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Nov 2009 14:21:09 -0500
-MIME-Version: 1.0
-In-Reply-To: <874oof6b9u.fsf@tac.ki.iif.hu>
-References: <9e4733910911270757j648e39ecl7487b7e6c43db828@mail.gmail.com>
-	 <BDgcsm11qgB@lirc>
-	 <9e4733910911270949s3e8b5ba9qfe5025d490ad0cfa@mail.gmail.com>
-	 <874oof6b9u.fsf@tac.ki.iif.hu>
-Date: Fri, 27 Nov 2009 14:21:13 -0500
-Message-ID: <9e4733910911271121j452aa796j543f1fc3f6de7028@mail.gmail.com>
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
-	system?
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Ferenc Wagner <wferi@niif.hu>
-Cc: Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	christoph@bartelmus.de, dmitry.torokhov@gmail.com, j@jannau.net,
-	jarod@redhat.com, jarod@wilsonet.com, khc@pm.waw.pl,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, mchehab@redhat.com, superm1@ubuntu.com
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 16 Nov 2009 17:10:37 -0500
+Subject: Re: KWorld UB435-Q Support
+Mime-Version: 1.0 (Apple Message framework v1077)
+Content-Type: text/plain; charset=us-ascii
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <4B00DB5B.10109@wilsonet.com>
+Date: Mon, 16 Nov 2009 17:10:39 -0500
+Cc: Robert Cicconetti <grythumn@gmail.com>,
+	Mike Krufky <mkrufky@linuxtv.org>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>
 Content-Transfer-Encoding: 8BIT
+Message-Id: <409C0215-68B1-4F90-A8E0-EBAF4F02AC1A@wilsonet.com>
+References: <15cfa2a50910071839j58026d10we2ccbaeb26527abc@mail.gmail.com>	 <0C6DEB14-B32A-4A20-B569-16B2A028CE25@wilsonet.com> <15cfa2a50910091827l449f0fb0t2974219b6ea76608@mail.gmail.com> <4B00D91B.1000906@wilsonet.com> <4B00DB5B.10109@wilsonet.com>
+To: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 27, 2009 at 2:03 PM, Ferenc Wagner <wferi@niif.hu> wrote:
-> Jon Smirl <jonsmirl@gmail.com> writes:
->
->> On Fri, Nov 27, 2009 at 12:29 PM, Christoph Bartelmus <lirc@bartelmus.de> wrote:
->>
->>>> Maybe we decide to take the existing LIRC system as is and not
->>>> integrate it into the input subsystem. But I think there is a window
->>>> here to update the LIRC design to use the latest kernel features.
->>>
->>> If it ain't broke, don't fix it.  [...]
->>>
->>> We already agreed last year that we can include an interface in
->>> lirc_dev that feeds the signal data to an in-kernel decoder if noone
->>> from userspace reads it.  [...]
->>>
->>> I also understand that people want to avoid dependency on external
->>> userspace tools. All I can tell you is that the lirc tools already do
->>> support everything you need for IR control. And as it includes a lot of
->>> drivers that are implemented in userspace already, LIRC will just continue
->>> to do it's work even when there is an alternative in-kernel.
->>
->> Christoph, take what you know from all of the years of working on LIRC
->> and design the perfect in-kernel system.
->
-> Hi,
->
-> I'm reading this thread with great interest.  Thank you (plural) for the
-> very informative conversation, I think I learnt a lot.  But now I
-> somehow lost the point, please correct me if the following is wrong.
->
-> It looks like having lirc_dev (or a similar raw interface) is a must.
-> It could be disguised as an input device, or changed in various ways,
-> but is it worth the effort?  As I understand Christoph, he does not want
-> to do so, because he finds it wasted work, and also there's already a
-> *single* user space daemon using it and doing everything users could
-> want.  Except for plug&play.
+On Nov 15, 2009, at 11:55 PM, Jarod Wilson wrote:
 
-The high level summary:
+> On 11/15/2009 11:46 PM, Jarod Wilson wrote:
+>> On 10/09/2009 09:27 PM, Robert Cicconetti wrote:
+>>> On Wed, Oct 7, 2009 at 10:08 PM, Jarod Wilson<jarod@wilsonet.com> wrote:
+>>>> On Oct 7, 2009, at 9:39 PM, Robert Cicconetti wrote:
+>>>>> Okay... I built the tip of the archive linked above. It works with my
+>>>>> UB435-Q fairly well, built against 2.6.28-15-generic #52-Ubuntu SMP
+>>>>> x86_64. I've been able to stream QAM256 content for several hours
+>>>>> reliably. Mythfrontend works somewhat... it'll tune the initial
+>>>>> channel, but fails afterward. I suspect it is timing out while waiting
+>>>>> for the RF tracking filter calibration... it adds about 6 seconds to
+>>>>> every tuning operation.
+>>>>> 
+>>>>> [ 812.465930] tda18271: performing RF tracking filter calibration
+>>>>> [ 818.572446] tda18271: RF tracking filter calibration complete
+>>>>> [ 818.953946] tda18271: performing RF tracking filter calibration
+>>>>> [ 825.093211] tda18271: RF tracking filter calibration complete
+>>>>> 
+>>>>> Any suggestions? Further data needed?
+>>>> 
+>>>> Nothing off the top of my head, no. But I've got a UB435-Q of my own
+>>>> now,
+>>>> sitting on my desk waiting for me to poke at it... Not sure when I'll
+>>>> have
+>>>> time to actually poke at it though. :\
+>>> 
+>>> A little further poking yields that RF_CAL_OK in EP1 is 0, which is
+>>> why it keeps recalibrating.
+>>> 
+>>> I've commented out the part of the code that recalibrates if RF_CAL_OK
+>>> is 0; EP1 always seems to be c6... and now mythfrontend is happy. :)
+>>> 
+>>> This is not a long term solution, but as ugly hacks go it was pretty
+>>> straight forward. :)
+>> 
+>> Finally got around to poking at this again. Forward-ported the patches
+>> to the current v4l-dvb tip
+> 
+> Meant to include this:
+> 
+> http://wilsonet.com/jarod/junk/kworld-a340-20091115/
+> 
+>> , and gave 'em a spin with my own UB435-Q, as
+>> well as a 340U that Doug gave me when he was in town a bit ago. Both are
+>> working just fine with my QAM feed here at the house, albeit with the
+>> same lengthy delay when changing channels you (Robert) mentioned. At a
+>> glance, I was hoping simply setting rf_cal_on_startup for the
+>> card-specific tda18271_config would remove the delay, but neither a 0 or
+>> a 1 seems to particularly help with tuning delays. Hoping maybe Mike has
+>> an idea on this part...
+>> 
+>> In related news, I actually managed to get my original 340U with the C1
+>> tuner to work briefly as well, and with the same code, no tuning delays.
+>> Seems either the PCB is cracked or the usb connector is just that bad,
+>> and it only works when positioned just so...
+> 
+> I'll give all three sticks I've got here a quick spin with an OTA signal tomorrow too. But I think I'm not seeing any significant reason to not move forward with trying to get this code finally merged.
 
-LIRC has developed it's own way of doing things. It has its own device
-protocol, user space daemon, tools, etc. No one is denying that all of
-that works.
-
-The alternative is to rework IR to use standard kernel interfaces
-(evdev, sysfs, configfs), standard user space tools (udev, ls, mkdir,
-cat) and make the daemon optional.
-
-Since IR hasn't been added to the kernel yet we are still free to
-design the user space API before locking it in stone for the next
-twenty years.
-
-
-This is an architectural debate, not a debate on specific features.
-
-
->
-> On the other hand, a one-liner could make in-kernel decoding possible,
-> so those who haven't got lircd running could have plug&play easily, if
-> somebody writes the necessary in-kernel decoders to feed the input
-> subsystem (which lircd also does, through uinput).
->
-> But even if you can't find anybody at the moment to write those, this is
-> still good stuff (I don't know about the code), which is hurt by being
-> developed out of kernel.  Is there any reason to keep this so?
-> Admittedly, I don't know why /dev/mouse is evil, maybe I'd understand if
-
-/dev/mouse is evil because it is possible to read partial mouse
-messages. evdev fixes things so that you only get complete messages.
-
-> somebody pointed me to some reading.
-> --
-> Thanks,
-> Feri.
->
-
-
+All three check out with an OTA signal as well. I'll try to poke at the tuning delay thing a bit more tonight, but I'm inclined to send off formal patches Real Soon Now.
 
 -- 
-Jon Smirl
-jonsmirl@gmail.com
+Jarod Wilson
+jarod@wilsonet.com
+
+
+
