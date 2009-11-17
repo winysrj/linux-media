@@ -1,130 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43899 "EHLO mx1.redhat.com"
+Received: from mail1.radix.net ([207.192.128.31]:42014 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751416AbZK2QSm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2009 11:18:42 -0500
-Message-ID: <4B129EC6.1060604@redhat.com>
-Date: Sun, 29 Nov 2009 14:18:14 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Jon Smirl <jonsmirl@gmail.com>
-CC: Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, khc@pm.waw.pl,
-	awalls@radix.net, dmitry.torokhov@gmail.com, j@jannau.net,
-	jarod@redhat.com, jarod@wilsonet.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	maximlevitsky@gmail.com, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR 	system?
-References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc>	 <9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>	 <4B116954.5050706@s5r6.in-berlin.de>	 <9e4733910911281058i1b28f33bh64c724a89dcb8cf5@mail.gmail.com>	 <4B117DEA.3030400@s5r6.in-berlin.de>	 <9e4733910911281208t23c938a2l7537e248e1eda4ae@mail.gmail.com>	 <4B11881B.7000204@s5r6.in-berlin.de>	 <9e4733910911281246r65670e1free76e98ff4a23822@mail.gmail.com>	 <4B119A36.8020903@s5r6.in-berlin.de> <9e4733910911281410i75bf19b7xa4dfd6ad1dc1b748@mail.gmail.com>
-In-Reply-To: <9e4733910911281410i75bf19b7xa4dfd6ad1dc1b748@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	id S1754748AbZKQMH2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Nov 2009 07:07:28 -0500
+Subject: Re: [PATCH 17/21] workqueue: simple reimplementation of
+ SINGLE_THREAD workqueue
+From: Andy Walls <awalls@radix.net>
+To: Tejun Heo <tj@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	jeff@garzik.org, mingo@elte.hu, akpm@linux-foundation.org,
+	jens.axboe@oracle.com, rusty@rustcorp.com.au,
+	cl@linux-foundation.org, dhowells@redhat.com,
+	arjan@linux.intel.com, torvalds@linux-foundation.org,
+	avi@redhat.com, peterz@infradead.org, andi@firstfloor.org,
+	fweisbec@gmail.com
+In-Reply-To: <4B023340.90004@kernel.org>
+References: <1258391726-30264-1-git-send-email-tj@kernel.org>
+	 <1258391726-30264-18-git-send-email-tj@kernel.org>
+	 <1258418872.4096.28.camel@palomino.walls.org>  <4B023340.90004@kernel.org>
+Content-Type: text/plain
+Date: Tue, 17 Nov 2009 07:05:25 -0500
+Message-Id: <1258459525.3214.17.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jon Smirl wrote:
-> On Sat, Nov 28, 2009 at 4:46 PM, Stefan Richter
-> <stefanr@s5r6.in-berlin.de> wrote:
->> Jon Smirl wrote:
->>> On Sat, Nov 28, 2009 at 3:29 PM, Stefan Richter
->>> <stefanr@s5r6.in-berlin.de> wrote:
->>>> Jon Smirl wrote:
->>>>> We have one IR receiver device and multiple remotes. How does the
->>>>> input system know how many devices to create corresponding to how many
->>>>> remotes you have?
->>>> If several remotes are to be used on the same receiver, then they
->>>> necessarily need to generate different scancodes, don't they?  Otherwise
->>                                          ^^^^^^^^^
->> I referred to scancodes, not keycodes.
->>
->>>> the input driver wouldn't be able to route their events to the
->>>> respective subdevice.  But if they do generate different scancodes,
->>>> there is no need to create subdevices just for EVIOCSKEYCODE's sake. (It
->>>> might still be desirable to have subdevices for other reasons perhaps.)
->>> Multiple remotes will have duplicate buttons (1, 2 ,3, power, mute,
->>> etc) these should get mapped into the standard keycodes. You need to
->>> devices to key things straight.
->>>
->>> Push button 1 on Remote A. That should generate a KP_1 on the evdev
->>> interface for that remote.
->>> Push button 1 on Remote B. That should generate a KP_1 on the evdev
->>> interface for that remote.
->>>
->>> Scenario for this - a mutifunction remote that is controlling two
->>> different devices/apps. In one mode the 1 might be a channel number,
->>> in the other mode it might be a telephone number.
->>>
->>> The user may chose to make button 1 on both remote A/B map to KP_1 on
->>> a single interface.
->>>
->>> Scenario for this - I want to use two different remotes to control a
->>> single device.
->>>
->>> ---------------------
->>>
->>> I handled that in configds like this:
->>> /configfs - mount the basic configfs
->>> /configfs/remotes (created by loading IR support)
->>> mkdir /configfs/remotes/remote_A  - this causes the input subdevice to
->>> be created, the name of it appears in the created directory.
->> [...]
->>
->> I'm lost.  If there are two remotes sending to a single receiver, and
->> their sets of scancodes do not overlap, then all is fine.  You can map
->> either set of scancodes to keycodes independently.  But if their ranges
+On Tue, 2009-11-17 at 14:23 +0900, Tejun Heo wrote:
+> Hello,
 > 
-> You can do this, but now the events from both remotes are occurring on
-> a single evdev device. If I assign Remote_A_1 to KP_1 what am I going
-> to assign to Remote_B_1?
+> 11/17/2009 09:47 AM, Andy Walls wrote:
+> > An important property of the single threaded workqueue, upon which the
+> > cx18 driver relies, is that work objects will be processed strictly in
+> > the order in which they were queued.  The cx18 driver has a pool of
+> > "work orders" and multiple active work orders can be queued up on the
+> > workqueue especially if multiple streams are active.  If these work
+> > orders were to be processed out of order, video artifacts would result
+> > in video display applications.
 > 
->> of scancodes do overlap, then even the creation of subdevices does not
->> help --- the driver has no way to tell which of the remotes sent the
->> signal in order to select the corresponding input subdevice, does it?
-> 
-> The scancodes are always unique even among different remotes.
-> 
-> I have three apps: mythtv, voip and home automation.  How can I use a
-> remote(s) to control these three apps? The concept of keyboard focus
-> doesn't map very well to remote controls.
-> 
-> My idea was to create an evdev device for each app:
-> mythtv - Remote_A_1 mapped KP_1, etc
-> voip -  Remote_B_1 mapped KP_1, etc
-> home automation - etc
-> 
-> Note that there probably aren't really three remotes (A,B,C), it a
-> multi-function remote. Picking a different context on a multi-function
-> remote doesn't generate an event.
+> That's an interesting use of single thread workqueue.  Most of single
+> thread workqueues seem to be made single thread just to save number of
+> threads.  Some seem to depend on single thread of execution but I
+> never knew there are ones which depend on the exact execution order.
+> Do you think that usage is wide-spread?
 
-In this case, the evdev interface won't solve the issue alone. Some sort
-of userspace tool will need to identify what application is expecting that
-code and should redirect it to that application. So, you'll basically need
-a table like:
+I doubt it.
 
-	scancode -> application PID | keycode
+Most that I have seen use the singlethreaded workqueue object with a
+queue depth of essentially 1 for syncronization - as you have noted.
 
-And, IMO, such mapping schema is better handled at userspace. 
 
-Yet, I don't see how your configfs proposal will solve this issue, as userspace
-will keep receiving duplicated events (in different evdev interfaces, but
-still the same keycode will be sent to userspace). You might be
-considering that each application will open a different set of evdev interfaces,
-and getting exclusive locks, but this will require a setup per-application, or
-to have some proxy program that will open all different evdev interfaces and do the
-keycode redirects.
+>   Implementing strict ordering
+> shouldn't be too difficult but I can't help but feeling that such
+> assumption is abuse of implementation detail.
 
-On a scenario that different scancodes will produce the same KEY events, but
-each duplicated scancode will be sent to a different application, the better 
-would be to have an evdev interface that will output directly the scancode
-and let an userspace program to "focus" the keystroke to the corresponding
-application.
+Hmmm, does not the "queue" in workqueue mean "FIFO"?
 
-IMHO, the biggest LIRC benefit over a pure evdev interface, from user's 
-perspective, is that it can redirect a keycode to a specific application.
+If not for strict ordering, why else would a driver absolutely need a
+singlethreaded workqueue object?  It seems to me the strict ording is
+the driving requirement for a singlethreaded workqueue at all.  Your
+patch series indicates to me that the performance and synchronization
+use cases are not driving requirements for a singlethreaded workqueue.
 
-Cheers,
-Mauro.
+Thanks for your consideration.
 
+Regards,
+Andy
+
+> Thanks.
 
 
