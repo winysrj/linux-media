@@ -1,52 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:60608 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750812AbZKEAEY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Nov 2009 19:04:24 -0500
-Subject: Re: [PATCH 0/3 v2] linux infrared remote control drivers
-From: Andy Walls <awalls@radix.net>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Jarod Wilson <jarod@redhat.com>, linux-kernel@vger.kernel.org,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Janne Grunau <j@jannau.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-In-Reply-To: <C5A8E7EC-81D6-49AA-A65F-9F5D3DED1690@wilsonet.com>
-References: <200910200956.33391.jarod@redhat.com>
-	 <C5A8E7EC-81D6-49AA-A65F-9F5D3DED1690@wilsonet.com>
-Content-Type: text/plain
-Date: Wed, 04 Nov 2009 19:07:09 -0500
-Message-Id: <1257379629.3074.13.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43175 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756579AbZKQWoT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Nov 2009 17:44:19 -0500
+Message-Id: <200911172243.nAHMhbGX029146@imap1.linux-foundation.org>
+Subject: [patch 1/5] konicawc.c: possible buffer overflow while use strncat
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
+	strakh@ispras.ru
+From: akpm@linux-foundation.org
+Date: Tue, 17 Nov 2009 14:43:37 -0800
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2009-11-04 at 17:56 -0500, Jarod Wilson wrote:
-> On Oct 20, 2009, at 9:56 AM, Jarod Wilson wrote:
-> 
-> > This here is a second go at submitting linux infrared remote control
-> > (lirc) drivers for kernel inclusion, with a much smaller patch set  
-> > that
-> > includes only the core lirc driver and two device drivers, all three  
-> > of
-> > which have been heavily updated since the last submission, based on
-> > feedback received.
-> 
-> Hm. Submitting this while the vast majority of people who might review  
-> it were at the Japan Linux Symposium seems like it might have been a  
-> bad idea. Or does no feedback mean its all good and ready to be  
-> merged? ;)
+From: Alexander Strakh <strakh@ispras.ru>
 
-Silence is concurrence. :)
+	In driver ./drivers/media/video/usbvideo/konicawc.c in line 227:
 
-Actually I will note, that lirc_dev.h uses kfifo:
+227         usb_make_path(dev, cam->input_physname, sizeof(cam->input_physname));
 
-http://git.wilsonet.com/linux-2.6-lirc.git/?a=blob_plain;f=drivers/input/lirc/lirc_dev.h;hb=f47f5e852d08f174c303d0ed53649733190014f7
+After this line we use strncat:
 
-but it least it appear to be nicely wrappered in that file. Moving to a
-new kfifo implementation should be fairly easy, if the kfifo change
-makes it in first.
+228         strncat(cam->input_physname, "/input0", sizeof(cam->input_physname));
 
-Regards,
-Andy
+where sizeof(cam->input_physname) returns length of cam->input_phisname
+without length for null-symbol.  But this parameter must be - "maximum
+numbers of bytes to copy", i.e.:
+sizeof(cam->input_physname)-strlen(cam->input_physname)-1.
 
+In this case, after call to usb_make_path the similar drivers use strlcat.
+
+Like in drivers/hid/usbhid/hid-core.c:
+1152         usb_make_path(dev, hid->phys, sizeof(hid->phys));
+1153         strlcat(hid->phys, "/input", sizeof(hid->phys));
+
+Found by Linux Driver Verification Project.
+
+Use strlcat instead of strncat.
+
+Signed-off-by: Alexander Strakh <strakh@ispras.ru>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/media/video/usbvideo/konicawc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff -puN drivers/media/video/usbvideo/konicawc.c~konicawcc-possible-buffer-overflow-while-use-strncat drivers/media/video/usbvideo/konicawc.c
+--- a/drivers/media/video/usbvideo/konicawc.c~konicawcc-possible-buffer-overflow-while-use-strncat
++++ a/drivers/media/video/usbvideo/konicawc.c
+@@ -225,7 +225,7 @@ static void konicawc_register_input(stru
+ 	int error;
+ 
+ 	usb_make_path(dev, cam->input_physname, sizeof(cam->input_physname));
+-	strncat(cam->input_physname, "/input0", sizeof(cam->input_physname));
++	strlcat(cam->input_physname, "/input0", sizeof(cam->input_physname));
+ 
+ 	cam->input = input_dev = input_allocate_device();
+ 	if (!input_dev) {
+_
