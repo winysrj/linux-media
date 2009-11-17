@@ -1,72 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dzilna.latnet.lv ([92.240.66.75]:50558 "EHLO dzilna.latnet.lv"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752620AbZKPPn3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2009 10:43:29 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by dzilna.latnet.lv (Postfix) with ESMTP id 3BADEB3CE3
-	for <linux-media@vger.kernel.org>; Mon, 16 Nov 2009 17:36:00 +0200 (EET)
-Received: from dzilna.latnet.lv ([127.0.0.1])
-	by localhost (dzilna.latnet.lv [127.0.0.1]) (amavisd-new, port 11141)
-	with ESMTP id 2NUknqf0dlT3 for <linux-media@vger.kernel.org>;
-	Mon, 16 Nov 2009 17:35:53 +0200 (EET)
-Received: from localhost (clients.latnet.lv [92.240.64.12])
-	by dzilna.latnet.lv (Postfix) with ESMTP id 80CBFB3C2C
-	for <linux-media@vger.kernel.org>; Mon, 16 Nov 2009 17:19:12 +0200 (EET)
-Message-ID: <1258384752.4b016d7078962@online.sigmanet.lv>
-Date: Mon, 16 Nov 2009 17:19:12 +0200
-From: Agris =?windows-1257?b?UHVk4m5z?= <agris.pudans@latnet.lv>
-To: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] kworld 380u, qt1010, em28xx
-References: <1258384425.4b016c29afaf2@online.sigmanet.lv>
-In-Reply-To: <1258384425.4b016c29afaf2@online.sigmanet.lv>
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:54971 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753226AbZKQKAR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Nov 2009 05:00:17 -0500
+Received: by pzk1 with SMTP id 1so3474312pzk.33
+        for <linux-media@vger.kernel.org>; Tue, 17 Nov 2009 02:00:23 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=windows-1257
-Content-Transfer-Encoding: 8bit
+Date: Tue, 17 Nov 2009 18:00:22 +0800
+Message-ID: <51d384e10911170200k269820bboe737a4f3fdec9fba@mail.gmail.com>
+Subject: [PATCH] dvb-core: Fix ULE decapsulation bug when less than 4 bytes of
+	ULE SNDU is packed into the remaining bytes of a MPEG2-TS frame
+From: Ang Way Chuang <wcang79@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hilmar Linder <hlinder@cosy.sbg.ac.at>,
+	Wolfram Stering <wstering@cosy.sbg.ac.at>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Forwarded from linux-dvb to linux-media.
+ULE (Unidirectional Lightweight Encapsulation RFC 4326) decapsulation
+code has a bug that incorrectly treats ULE SNDU packed into the remaining
+2 or 3 bytes of a MPEG2-TS frame as having invalid pointer field on the
+subsequent MPEG2-TS frame.
 
-Citçju blondais@latnet.lv:
+This patch was generated against v2.6.32-rc7, however it wasn't tested
+using that kernel. Similar patch was applied and tested using 2.6.27 which
+is similar to the latest dvb_net.c, except for network device statistical data
+structure. I suspect that this bug was introduced in kernel version 2.6.15,
+but had not verified it.
 
-> Hi,
->
-> There's a lot of mails can be found on internet about my problem but hardly
-> any
-> gives answer for subj.
-> Year ago, this was ok, there where ~mrec dvb-kernel available. Now it is
-> gone,
-> and my problem raised again - cannot find the way to get my kworld 380u to
-> work
-> properly, even by changing idProduct=e359 for somehow working kworld355u in
-> file
-> linux/drivers/media/video/em28xx/em28xx-cards.c:
-> ==
-> 	{ USB_DEVICE(0xeb1a, 0xe359),
-> 			.driver_info = EM2870_BOARD_KWORLD_355U },
-> ==
->
-> Can anyone lead me where to look or change next?
->
->
-> Specs:
-> Box: Slackware 13.0, Linux 2.6.29.6-smp.
-> Item: Kworld 380U DVB-T USB stick
-> Dmesg before compiling dvb kernel from linuxtv.org:
-> Nov 16 16:54:04 dtv kernel: usb 1-1: new high speed USB device using ehci_hcd
-> and address 4
-> Nov 16 16:54:04 dtv kernel: usb 1-1: New USB device found, idVendor=eb1a,
-> idProduct=e359
-> Nov 16 16:54:04 dtv kernel: usb 1-1: New USB device strings: Mfr=0,
-> Product=1,
-> SerialNumber=0
-> Nov 16 16:54:04 dtv kernel: usb 1-1: Product: USB 2870 Device
-> Nov 16 16:54:04 dtv kernel: usb 1-1: configuration #1 chosen from 1 choice
->
->
-> Modules made from http://linuxtv.org/hg/v4l-dvb/ do not create devices in
-> /dev/dvb/ probably because of qt1010 firmware?
->
->
+Care has been taken not to introduce more bug by fixing this bug, but
+please scrutinize the code for I always produces buggy code.
 
+Signed-off-by: Ang Way Chuang <wcang@nav6.org>
+---
+diff --git a/drivers/media/dvb/dvb-core/dvb_net.c
+b/drivers/media/dvb/dvb-core/dvb_net.c
+index 0241a7c..a521395 100644
+--- a/drivers/media/dvb/dvb-core/dvb_net.c
++++ b/drivers/media/dvb/dvb-core/dvb_net.c
+@@ -533,6 +533,7 @@ static void dvb_net_ule( struct net_device *dev,
+const u8 *buf, size_t buf_len )
+ 				from_where += 2;
+ 			}
+
++			priv->ule_sndu_remain = priv->ule_sndu_len + 2;
+ 			/*
+ 			 * State of current TS:
+ 			 *   ts_remain (remaining bytes in the current TS cell)
+@@ -542,6 +543,7 @@ static void dvb_net_ule( struct net_device *dev,
+const u8 *buf, size_t buf_len )
+ 			 */
+ 			switch (ts_remain) {
+ 				case 1:
++					priv->ule_sndu_remain--;
+ 					priv->ule_sndu_type = from_where[0] << 8;
+ 					priv->ule_sndu_type_1 = 1; /* first byte of ule_type is set. */
+ 					ts_remain -= 1; from_where += 1;
+@@ -555,6 +557,7 @@ static void dvb_net_ule( struct net_device *dev,
+const u8 *buf, size_t buf_len )
+ 				default: /* complete ULE header is present in current TS. */
+ 					/* Extract ULE type field. */
+ 					if (priv->ule_sndu_type_1) {
++						priv->ule_sndu_type_1 = 0;
+ 						priv->ule_sndu_type |= from_where[0];
+ 						from_where += 1; /* points to payload start. */
+ 						ts_remain -= 1;
