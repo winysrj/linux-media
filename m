@@ -1,16 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-fx0-f224.google.com ([209.85.220.224])
+Received: from outbound1-1.us4.outblaze.com ([208.36.123.129])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <robert.longfield@gmail.com>) id 1NCzlh-0007gY-E4
-	for linux-dvb@linuxtv.org; Tue, 24 Nov 2009 19:05:38 +0100
-Received: by fxm24 with SMTP id 24so3914104fxm.11
-	for <linux-dvb@linuxtv.org>; Tue, 24 Nov 2009 10:05:02 -0800 (PST)
+	(envelope-from <guzowskip@linuxmail.org>) id 1NAElC-0003TT-WD
+	for linux-dvb@linuxtv.org; Tue, 17 Nov 2009 04:29:43 +0100
+Received: from wfilter3.us4.outblaze.com (wfilter3.us4.outblaze.com.int
+	[192.168.8.242])
+	by outbound1-1.us4.outblaze.com (Postfix) with ESMTP id 307B87A061C
+	for <linux-dvb@linuxtv.org>; Tue, 17 Nov 2009 03:29:37 +0000 (GMT)
 MIME-Version: 1.0
-Date: Tue, 24 Nov 2009 13:05:01 -0500
-Message-ID: <34373e030911241005r7f499297y1a84a93e0696f550@mail.gmail.com>
-From: Robert Longfield <robert.longfield@gmail.com>
+From: guzowskip@linuxmail.org
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Hauppauge PVR-150 Vertical sync issue?
+Date: Mon, 16 Nov 2009 21:29:36 -0600
+Message-Id: <20091117032936.D7AF71CE833@ws1-6.us4.outblaze.com>
+Subject: [linux-dvb] Video lost after OS upgrade
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -19,70 +21,78 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1716951661=="
+Content-Type: multipart/mixed; boundary="===============0382889259=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1716951661==
-Content-Type: multipart/alternative; boundary=001636416e65ed93f2047921c771
+This is a multi-part message in MIME format.
 
---001636416e65ed93f2047921c771
-Content-Type: text/plain; charset=ISO-8859-1
+--===============0382889259==
+Content-Transfer-Encoding: 7bit
+Content-Type: multipart/alternative; boundary="_----------=_125842857663592"
 
-I have a PVR-150 card running on mythbuntu 9 and it appears that my card is
-suffering a vertical (and possibly a horizontal) sync issue.
+This is a multi-part message in MIME format.
 
-The video jumps around, shifts from side to side, up and down and when it
-shifts the video wraps. I'm including a link to a screen shot showing the
-vertical sync problem
-
-http://imagebin.ca/view/6fS-14Yi.html
-
-This is pretty tame to what happens sometimes. I haven't noticed this on all
-channels as we are mostly using this to record shows for my son.
-
-Here is my setup. Pentium 4 2 Ghz with a gig of ram. 40 gig OS drive, 150
-gig drive for recording, 250 gig drive for backup and storage, a dvd-burner.
-The 150 gig drive is on a Promise Ultra133 TX2 card but exhibits no issues
-on reads or writes.
-I have cable connected to the internal tuner of my PVR-150 card and S-video
-from an Nvidia card (running Nvidea drivers) out to the TV.
-
-I don't know what else I can provide to help out but let me know and I'll
-get it.
-
-Thanks,
--Rob
-
---001636416e65ed93f2047921c771
-Content-Type: text/html; charset=ISO-8859-1
+--_----------=_125842857663592
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 
-I have a PVR-150 card running on mythbuntu 9 and it appears that my card is=
- suffering a vertical (and possibly a horizontal) sync issue.<br><br>The vi=
-deo jumps around, shifts from side to side, up and down and when it shifts =
-the video wraps. I&#39;m including a link to a screen shot showing the vert=
-ical sync problem<br>
-<br><a href=3D"http://imagebin.ca/view/6fS-14Yi.html">http://imagebin.ca/vi=
-ew/6fS-14Yi.html</a><br><br>This is pretty tame to what happens sometimes. =
-I haven&#39;t noticed this on all channels as we are mostly using this to r=
-ecord shows for my son.<br>
-<br>Here is my setup. Pentium 4 2 Ghz with a gig of ram. 40 gig OS drive, 1=
-50 gig drive for recording, 250 gig drive for backup and storage, a dvd-bur=
-ner.<br>The 150 gig drive is on a Promise Ultra133 TX2 card but exhibits no=
- issues on reads or writes.<br>
-I have cable connected to the internal tuner of my PVR-150 card and S-video=
- from an Nvidia card (running Nvidea drivers) out to the TV.<br><br>I don&#=
-39;t know what else I can provide to help out but let me know and I&#39;ll =
-get it.<br>
-<br>Thanks,<br>-Rob<br>=20
+Hello all,
 
---001636416e65ed93f2047921c771--
+I was happily watching TV with mplayer from my cable set-top box via a
+Pinnacle HDTV Pro USB Stick and Ubuntu 9.04.=A0
+
+The command I was using and which worked was/is:=A0
+
+mplayer -vo xv tv:// -tv
+driver=3Dv4l2:alsa:immediatemode=3D0:adevice=3Dhw.1,0:norm=3Dntsc:chanlist=
+=3Dus-cable:channel=3D3
+
+After ugrading to Ubuntu 9.10, when I launch mplayer with this command, I
+get an empty black window with no video or audio.=A0 Any ideas and/or=A0 he=
+lp
+would be greatly appreciated.
+
+Paul in NW FL, USA
+
+--=20
+Be Yourself @ mail.com!
+Choose From 200+ Email Addresses
+Get a Free Account at www.mail.com!
 
 
---===============1716951661==
+--_----------=_125842857663592
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="iso-8859-1"
+
+Hello all,<br><br>I was happily watching TV with mplayer from my cable set-=
+top box via a Pinnacle HDTV Pro USB Stick and Ubuntu 9.04.&nbsp; <br><br>Th=
+e command I was using and which worked was/is:&nbsp; <br><br>mplayer -vo xv=
+ tv:// -tv driver=3Dv4l2:alsa:immediatemode=3D0:adevice=3Dhw.1,0:norm=3Dnts=
+c:chanlist=3Dus-cable:channel=3D3<br><br>After ugrading to Ubuntu 9.10, whe=
+n I launch mplayer with this command, I get an empty black window with no v=
+ideo or audio.&nbsp; Any ideas and/or&nbsp; help would be greatly appreciat=
+ed.<br><br>Paul in NW FL, USA<br><br><br>
+<div>
+
+</div>
+<BR>
+
+--=20
+<div>Be Yourself @ mail.com <br>
+Choose From 200+ Email Addresses<br>
+Get a <b>Free</b> Account at <a href=3D"http://www.mail.com" target=3D"_bla=
+nk">www.mail.com</a>!</div>
+
+--_----------=_125842857663592--
+
+
+
+--===============0382889259==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -93,4 +103,4 @@ linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1716951661==--
+--===============0382889259==--
