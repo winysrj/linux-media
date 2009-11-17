@@ -1,106 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:40794 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755928AbZKIOFz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2009 09:05:55 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Subject: Re: OMAP 3 ISP and N900 sensor driver update
-Date: Mon, 9 Nov 2009 15:06:27 +0100
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Cohen David Abraham <david.cohen@nokia.com>,
-	=?iso-8859-1?q?Koskip=E4=E4_Antti_Jussi_Petteri?=
-	<antti.koskipaa@nokia.com>,
-	Toivonen Tuukka Olli Artturi <tuukka.o.toivonen@nokia.com>,
-	"Zutshi Vimarsh (Nokia-D-MSW/Helsinki)" <vimarsh.zutshi@nokia.com>,
-	"talvala@stanford.edu" <talvala@stanford.edu>,
-	"Aguirre, Sergio" <saaguirre@ti.com>,
-	Ivan Ivanov <iivanov@mm-sol.com>,
-	Stan Varbanov <svarbanov@mm-sol.com>,
-	Valeri Ivanov <vivanov@mm-sol.com>,
-	Atanas Filipov <afilipov@mm-sol.com>
-References: <4AF41BDE.4040908@maxwell.research.nokia.com> <A69FA2915331DC488A831521EAE36FE401558AB44B@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE401558AB44B@dlee06.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200911091506.27980.laurent.pinchart@ideasonboard.com>
+Received: from smtp-out01.alice.it ([85.33.2.12]:4807 "EHLO
+	smtp-out01.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754836AbZKQKwH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Nov 2009 05:52:07 -0500
+Date: Tue, 17 Nov 2009 11:41:47 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: Jean-Francois Moine <moinejf@free.fr>
+Subject: [RFC, PATCH] gspca: implement vidioc_enum_frameintervals
+Message-Id: <20091117114147.09889427.ospite@studenti.unina.it>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Tue__17_Nov_2009_11_41_47_+0100_4_FZxpW41s9TvfxY"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Murali,
+--Signature=_Tue__17_Nov_2009_11_41_47_+0100_4_FZxpW41s9TvfxY
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Friday 06 November 2009 16:25:01 Karicheri, Muralidharan wrote:
-> Sakari,
-> 
-> Thanks for the update...
-> 
-> Who is working on the CCDC driver for OMAP35xx?
+Hi,
 
-Just for the sake of correctness, we're working on an OMAP34xx, not an 
-OMAP35xx. I don't think that makes a big difference though.
+gspca does not implement vidioc_enum_frameintervals yet, so even if a
+camera can support multiple frame rates (or frame intervals) there is
+still no way to enumerate them from userspace.
 
-As far as I know nobody on our side is currently working on the CCDC driver. 
-We're focusing on the previewer and resizer first.
+The following is just a quick and dirty implementation to show the
+problem and to have something to base the discussion on. In the patch
+there is also a working example of use with the ov534 subdriver.
 
-> After a week or so, I need to start migrating the CCDC driver to sub device
-> interface so that application can directly configure the parameters with out
-> having to go through video node. Ultimately it is expected that ccdc will
-> have a device node that will allow application to open the device and
-> configure the parameters (in the context of Media controller). But to begin
-> with I intend to port the existing CCDC driver for DM6446 and DM355 to sub
-> device interface. Since the VPFE IPs are common across DM6446 & OMAP 35xx,
-> we could use a common sub device across both platforms.
+Someone with a better knowledge of gspca and v4l internals can suggest
+better solutions.
 
-Coordinating our efforts on that front would indeed be very nice.
+The tests has been done using 'luvcview -L', the output before the
+patch:
+    $ luvcview -d /dev/video1 -L
+    luvcview 0.2.6
 
-> So I this context, could you please update me on the CCDC development
-> on OMAP platform that you work?
+    SDL information:
+      Video driver: x11
+      A window manager is available
+    Device information:
+      Device path:  /dev/video1
+    { pixelformat =3D 'YUYV', description =3D 'YUYV' }
+    { discrete: width =3D 320, height =3D 240 }
+	    Time interval between frame:
+    1/40, 1/30, { discrete: width =3D 640, height =3D 480 }
+	    Time interval between frame:
 
-I haven't checked the Davinci VPFE drivers recently. I suppose they already 
-use the v4l2_subdev interface for their I2C sensors and tuners. If not, that 
-would be the first step.
 
-On the OMAP34xx platform, the ISP driver is already somehow separated from the 
-omap34xxcam driver, although not nicely. In a nutshell, here's the current 
-plan. Parts 1 and 2 are already implemented and code is available in Sakari's 
-linux-omap tree.
+And the output after it:
+    $ luvcview -d /dev/video1 -L
+    luvcview 0.2.6
 
-1. Board code registers an omap34xxcam platform device. The platform data 
-contains an array of v4l2_subdev_i2c_board_info structures filled with 
-information about all I2C sub-devices (sensor, flash controller, lens 
-controller, ...).
+    SDL information:
+      Video driver: x11
+      A window manager is available
+    Device information:
+      Device path:  /dev/video1
+    { pixelformat =3D 'YUYV', description =3D 'YUYV' }
+    { discrete: width =3D 320, height =3D 240 }
+	    Time interval between frame: 1/125, 1/100, 1/75, 1/60, 1/50, 1/40, 1/3=
+0,
+    { discrete: width =3D 640, height =3D 480 }
+	    Time interval between frame: 1/60, 1/50, 1/40, 1/30, 1/15,=20
 
-2. The omap34xxcam driver is loaded. Its probe function is called with a 
-pointer to the platform device. The driver registers a v4l2_device and creates 
-I2C subdevices using the data supplied through platform data.
+Thanks,
+   Antonio
 
-3. The omap34xxcam driver calls the ISP core with a pointer to the v4l2_device 
-structure to register all ISP subdevices. The ISP core maintains pointers to 
-the ISP subdevices.
+diff -r 182b5f8fa160 linux/drivers/media/video/gspca/gspca.c
+--- a/linux/drivers/media/video/gspca/gspca.c	Sun Nov 15 10:05:30 2009 +0100
++++ b/linux/drivers/media/video/gspca/gspca.c	Tue Nov 17 11:39:21 2009 +0100
+@@ -995,6 +995,37 @@
+ 	return -EINVAL;
+ }
+=20
++static int vidioc_enum_frameintervals(struct file *filp, void *priv,
++				      struct v4l2_frmivalenum *fival)
++{
++	struct gspca_dev *gspca_dev =3D priv;
++	int mode =3D wxh_to_mode(gspca_dev, fival->width, fival->height);
++	int i;
++	__u32 index =3D 0;
++
++	if (gspca_dev->cam.mode_framerates =3D=3D NULL ||
++			gspca_dev->cam.mode_framerates[mode].nrates =3D=3D 0)
++		return -EINVAL;
++
++	/* FIXME: Needed? */
++	if (fival->pixel_format !=3D
++			gspca_dev->cam.cam_mode[mode].pixelformat)
++		return -EINVAL;
++
++	for (i =3D 0; i < gspca_dev->cam.mode_framerates[mode].nrates; i++) {
++		if (fival->index =3D=3D index) {
++			fival->type =3D V4L2_FRMSIZE_TYPE_DISCRETE;
++			fival->discrete.numerator =3D 1;
++			fival->discrete.denominator =3D
++				gspca_dev->cam.mode_framerates[mode].rates[i];
++			return 0;
++		}
++		index++;
++	}
++
++	return -EINVAL;
++}
++
+ static void gspca_release(struct video_device *vfd)
+ {
+ 	struct gspca_dev *gspca_dev =3D container_of(vfd, struct gspca_dev, vdev);
+@@ -1987,6 +2018,7 @@
+ 	.vidioc_g_parm		=3D vidioc_g_parm,
+ 	.vidioc_s_parm		=3D vidioc_s_parm,
+ 	.vidioc_enum_framesizes =3D vidioc_enum_framesizes,
++	.vidioc_enum_frameintervals =3D vidioc_enum_frameintervals,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.vidioc_g_register	=3D vidioc_g_register,
+ 	.vidioc_s_register	=3D vidioc_s_register,
+diff -r 182b5f8fa160 linux/drivers/media/video/gspca/gspca.h
+--- a/linux/drivers/media/video/gspca/gspca.h	Sun Nov 15 10:05:30 2009 +0100
++++ b/linux/drivers/media/video/gspca/gspca.h	Tue Nov 17 11:39:21 2009 +0100
+@@ -45,11 +45,17 @@
+ /* image transfers */
+ #define MAX_NURBS 4		/* max number of URBs */
+=20
++struct framerates {
++	int *rates;
++	int nrates;
++};
++
+ /* device information - set at probe time */
+ struct cam {
+ 	int bulk_size;		/* buffer size when image transfer by bulk */
+ 	const struct v4l2_pix_format *cam_mode;	/* size nmodes */
+ 	char nmodes;
++	const struct framerates *mode_framerates; /* size nmode, like cam_mode */
+ 	__u8 bulk_nurbs;	/* number of URBs in bulk mode
+ 				 * - cannot be > MAX_NURBS
+ 				 * - when 0 and bulk_size !=3D 0 means
+diff -r 182b5f8fa160 linux/drivers/media/video/gspca/ov534.c
+--- a/linux/drivers/media/video/gspca/ov534.c	Sun Nov 15 10:05:30 2009 +0100
++++ b/linux/drivers/media/video/gspca/ov534.c	Tue Nov 17 11:39:21 2009 +0100
+@@ -287,6 +287,20 @@
+ 	 .priv =3D 0},
+ };
+=20
++static int qvga_rates[] =3D {125, 100, 75, 60, 50, 40, 30};
++static int vga_rates[] =3D {60, 50, 40, 30, 15};
++
++static const struct framerates ov772x_framerates[] =3D {
++	{ /* 320x240 */
++		.rates =3D qvga_rates,
++		.nrates =3D ARRAY_SIZE(qvga_rates),
++	},
++	{ /* 640x480 */
++		.rates =3D vga_rates,
++		.nrates =3D ARRAY_SIZE(vga_rates),
++	},
++};
++
+ static const struct v4l2_pix_format ov965x_mode[] =3D {
+ 	{320, 240, V4L2_PIX_FMT_JPEG, V4L2_FIELD_NONE,
+ 	 .bytesperline =3D 320,
+@@ -1411,6 +1425,7 @@
+ 	if (sd->sensor =3D=3D SENSOR_OV772X) {
+ 		cam->cam_mode =3D ov772x_mode;
+ 		cam->nmodes =3D ARRAY_SIZE(ov772x_mode);
++		cam->mode_framerates =3D ov772x_framerates;
+=20
+ 		cam->bulk =3D 1;
+ 		cam->bulk_size =3D 16384;
 
-As ISP submodules (CCDC, previewer, resizer) are not truly independent, we 
-were not planning to split them into separate kernel modules. The ISP core 
-needs to call explicitly into the submodules for instance to dispatch 
-interrupts.
 
-It should be possible to use a single CCDC code base across multiple 
-platforms. The ISP core module would depend on the CCDC module directly. I'm 
-not sure how the CCDC module should be called though. An omap prefix won't 
-work, as it's used on Davinci as well, and an ISP prefix is too generic. Do 
-you have any internal code name for the ISP device used on Davinci and OMAP 
-platforms ?
+--=20
+Antonio Ospite
+http://ao2.it
 
-The code will be pushed to linux-omap when available, but I can't commit to 
-any deadline. If you start working on the Davinci driver before we post 
-anything, could you please post patches and/or RFCs on the linux-media mailing 
-list (and CC'ing us) ? Confronting our ideas as soon as possible will 
-(hopefully) avoid diverging too much in our implementations.
+PGP public key ID: 0x4553B001
 
--- 
-Regards,
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing in e-mail?
 
-Laurent Pinchart
+--Signature=_Tue__17_Nov_2009_11_41_47_+0100_4_FZxpW41s9TvfxY
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAksCfesACgkQ5xr2akVTsAGQtQCgnuSYueDSBnExiQfBlNqR1T+G
+alcAn3HDV3ayUriKLOdYDfHJv/gItRF0
+=I8rf
+-----END PGP SIGNATURE-----
+
+--Signature=_Tue__17_Nov_2009_11_41_47_+0100_4_FZxpW41s9TvfxY--
