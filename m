@@ -1,48 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpout.karoo.kcom.com ([212.50.160.34]:14323 "EHLO
-	smtpout.karoo.kcom.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754568AbZKSWSG (ORCPT
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52094 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755410AbZKQQ7S convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2009 17:18:06 -0500
-Message-ID: <4B05C41E.20509@orange.fr>
-Date: Thu, 19 Nov 2009 22:18:06 +0000
-From: Andy Low <andrew.low@orange.fr>
+	Tue, 17 Nov 2009 11:59:18 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 17 Nov 2009 10:58:54 -0600
+Subject: RE: Help in adding documentation
+Message-ID: <A69FA2915331DC488A831521EAE36FE401559C5A38@dlee06.ent.ti.com>
+References: <A69FA2915331DC488A831521EAE36FE401559C59A2@dlee06.ent.ti.com>
+ <20091117142820.1e62a362@pedra.chehab.org>
+In-Reply-To: <20091117142820.1e62a362@pedra.chehab.org>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: [Fwd: Anyone got a KWorld USB DVB-T TV Stick II (VS-DVB-T 395U)
- to work properly?]
-References: <4B0576A7.7000103@orange.fr> <4B05879A.4040602@iki.fi>
-In-Reply-To: <4B05879A.4040602@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Mauro,
 
+Thanks for your reply. I made progress after my email. My new file
+is being processed by Makefile now. I have some issues with some
+tags.
 
-Antti Palosaari wrote:
 >
-> On 11/19/2009 06:47 PM, Andy Low wrote:
->> ...kernel: Quantek QT1010 successfully identified.
+>This probably means that videodev2.h has it defined, while you didn't have
+
+Do you mean videodev2.h.xml? I see there videodev2.h under linux/include. Do I need to copy my latest videodev2.h to that directory?
+
+>the
+>link id created at the xml file you've created.
 >
-> The reason is QT1010 which does not perform very well. Generally it
-> locks better to weak signals, you can try weaker antenna and signal
-> attenuator.
+>You probably need a tag like:
 >
-> Antti
+><table pgwide="1" frame="none" id="v4l2-dv-enum-presets">
+><!-- your enum table -->
+></table>
+>
+>
+>Cheers,
+>Mauro
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Thanks for your very fast response!!
-
-I have tried again with various different arrangements of antennas.  Any
-further reduction in signal strength causes the working multiplexes to
-be lost.  Checking the relative signal strengths on my working dvb-t
-system, the 2 multiplexes that the KWorld stick can receive are the 2
-most powerful.  Maybe I need more signal, not less?  Under Windows the
-KWorld works very well on all multiplexes - surely this means that the
-QT1010 is OK here and that the linux drivers should be able to work?? 
-The multiplexes that work are both FEC_3_4 and QAM16.  None of the
-FEC_2_3/QAM64 channels work.  Could it be that the receiver is not being
-set up correctly?
-
-Thanks again for any suggestions.  Andy
