@@ -1,41 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:42345 "EHLO
-	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753365AbZKGVt4 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Nov 2009 16:49:56 -0500
-From: Ben Hutchings <ben@decadent.org.uk>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Sat, 07 Nov 2009 21:49:58 +0000
-Message-ID: <1257630598.15927.411.camel@localhost>
-Mime-Version: 1.0
-Subject: [PATCH 18/75] or51132: declare MODULE_FIRMWARE
+Received: from smtp9.rug.nl ([129.125.60.9]:35109 "EHLO smtp9.rug.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753226AbZKQLGp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Nov 2009 06:06:45 -0500
+Received: from [129.125.21.104] (f5selfip-4-60.service.rug.nl [129.125.60.248])
+	by smtp9.rug.nl (8.14.3/8.14.3) with ESMTP id nAHB6oXq019338
+	for <linux-media@vger.kernel.org>; Tue, 17 Nov 2009 12:06:50 +0100
+Message-ID: <4B0283CA.5060408@rug.nl>
+Date: Tue, 17 Nov 2009 12:06:50 +0100
+From: Sietse Achterop <s.achterop@rug.nl>
+MIME-Version: 1.0
+CC: linux-media@vger.kernel.org
+Subject: Re: xawtv and v4lctl with usbvision kernel driver
+References: <4B016937.7010906@rug.nl> <829197380911160752lcbfd202gcdbed97b85238bd2@mail.gmail.com>
+In-Reply-To: <829197380911160752lcbfd202gcdbed97b85238bd2@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
----
- drivers/media/dvb/frontends/or51132.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+Devin Heitmueller wrote:
+> On Mon, Nov 16, 2009 at 10:01 AM, Sietse Achterop <s.achterop@rug.nl> wrote:
 
-diff --git a/drivers/media/dvb/frontends/or51132.c b/drivers/media/dvb/frontends/or51132.c
-index 38e67ac..1b6529d 100644
---- a/drivers/media/dvb/frontends/or51132.c
-+++ b/drivers/media/dvb/frontends/or51132.c
-@@ -615,6 +615,8 @@ MODULE_DESCRIPTION("OR51132 ATSC [pcHDTV HD-3000] (8VSB & ITU J83 AnnexB FEC QAM
- MODULE_AUTHOR("Kirk Lapray");
- MODULE_AUTHOR("Trent Piepho");
- MODULE_LICENSE("GPL");
-+MODULE_FIRMWARE(OR51132_VSB_FIRMWARE);
-+MODULE_FIRMWARE(OR51132_QAM_FIRMWARE);
- 
- EXPORT_SYMBOL(or51132_attach);
- 
--- 
-1.6.5.2
+>> Context:
+>>  debian/lenny with usb frame grabber:
+>>     Zoran Co. Personal Media Division (Nogatech) Hauppauge WinTV Pro (PAL/SECAM)
+>>  This uses the usbvision driver.
+>>
+>> The problem is that while xawtv works OK with color, v4lctl ONLY shows the frames
+>> in black-and-white.
 
-
-
+> I don't know about that board in particular, but on some boards the
+> composite and s-video are actually wired together (sharing the luma
+> line), so if you have the device configured in "composite" mode but
+> have the s-video plugged in, then you will get a black/white image
+> (since it expects to see both luma/chroma on the one pin that provides
+> luma).
+  Hi Devin,
+     Thanks for your reponse, but xawtv happely shows color, so I don't think
+thats the issue,
+ Thanks again,
+    Sietse
