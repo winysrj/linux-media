@@ -1,72 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f194.google.com ([209.85.221.194]:49663 "EHLO
-	mail-qy0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751904AbZK1S4T (ORCPT
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:62526 "EHLO
+	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752606AbZKQVKl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Nov 2009 13:56:19 -0500
+	Tue, 17 Nov 2009 16:10:41 -0500
+Received: by yxe17 with SMTP id 17so444245yxe.33
+        for <linux-media@vger.kernel.org>; Tue, 17 Nov 2009 13:10:47 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <1259433959.3658.0.camel@maxim-laptop>
-References: <9e4733910911270757j648e39ecl7487b7e6c43db828@mail.gmail.com>
-	 <4B104971.4020800@s5r6.in-berlin.de>
-	 <1259370501.11155.14.camel@maxim-laptop>
-	 <m37hta28w9.fsf@intrepid.localdomain>
-	 <1259419368.18747.0.camel@maxim-laptop>
-	 <m3zl66y8mo.fsf@intrepid.localdomain>
-	 <1259422559.18747.6.camel@maxim-laptop>
-	 <9e4733910911280845y5cf06836l1640e9fc8b1740cf@mail.gmail.com>
-	 <1259433959.3658.0.camel@maxim-laptop>
-Date: Sat, 28 Nov 2009 13:56:25 -0500
-Message-ID: <9e4733910911281056s77e9bc8frd9200a81ebab8d7e@mail.gmail.com>
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
-	system?
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Krzysztof Halasa <khc@pm.waw.pl>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Christoph Bartelmus <christoph@bartelmus.de>,
-	jarod@wilsonet.com, awalls@radix.net, dmitry.torokhov@gmail.com,
-	j@jannau.net, jarod@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, superm1@ubuntu.com
-Content-Type: text/plain; charset=ISO-8859-1
+From: Rutger Nijlunsing <rutger.nijlunsing@gmail.com>
+Date: Tue, 17 Nov 2009 22:10:27 +0100
+Message-ID: <55e8f4c10911171310x3969d848l3e209c175585ace4@mail.gmail.com>
+Subject: em28xx not detected: "Please send an email with this log to
+	linux-media@vger.kernel.org"
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 28, 2009 at 1:45 PM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
-> On Sat, 2009-11-28 at 11:45 -0500, Jon Smirl wrote:
->> What are other examples of user space IR drivers?
->>
->
-> many libusb based drivers?
+Hi,
 
-If these drivers are for specific USB devices it is straight forward
-to turn them into kernel based drivers. If we are going for plug and
-play this needs to happen. All USB device drivers can be implemented
-in user space, but that doesn't mean you want to do that. Putting
-device drivers in the kernel subjects them to code inspection, they
-get shipped everywhere, they autoload when the device is inserted,
-they participate in suspend/resume, etc.
+I've got a MSI VOX USB2.0 Video grabber (analog TV in, USB framegrabber out)
+which is partially detected with Linux 2.6.31-11-generic (Ubuntu version).
+The logs suggest that I E-mail the output of the logs to here, so
+that's what I do.
 
-If these are generic USB serial devices being used to implement IR
-that's the hobbyist model and the driver should stay in user space and
-use event injection.
+The dmesg log says:
+[ 6672.753915] em28xx: New device @ 480 Mbps (eb1a:2820, interface 0, class 0)
+[ 6672.754323] em28xx #0: chip ID is em2820 (or em2710)
+[ 6672.844662] em28xx #0: board has no eeprom
+[ 6672.856403] em28xx #0: Identified as Unknown EM2750/28xx video
+grabber (card=1)
+[ 6672.871904] em28xx #0: found i2c device @ 0x42 [???]
+[ 6672.878901] em28xx #0: found i2c device @ 0x66 [???]
+[ 6672.879273] em28xx #0: found i2c device @ 0x68 [???]
+[ 6672.885150] em28xx #0: found i2c device @ 0x86 [tda9887]
+[ 6672.896149] em28xx #0: found i2c device @ 0xc0 [tuner (analog)]
+[ 6672.896523] em28xx #0: found i2c device @ 0xc2 [tuner (analog)]
+[ 6672.907900] em28xx #0: Your board has no unique USB ID and thus
+need a hint to be detected.
+[ 6672.907906] em28xx #0: You may try to use card=<n> insmod option to
+workaround that.
+[ 6672.907908] em28xx #0: Please send an email with this log to:
+[ 6672.907911] em28xx #0:       V4L Mailing List <linux-media@vger.kernel.org>
+[ 6672.907914] em28xx #0: Board eeprom hash is 0x00000000
+[ 6672.907916] em28xx #0: Board i2c devicelist hash is 0x742400f0
 
-If a ft232 has been used to build a USB IR receiver you should program
-a specific USB ID into it rather than leaving the generic one in. FTDI
-will assign you a specific USB ID out of their ID space for free,  you
-don't need to pay to get one from the USB forum. Once you put a
-specific ID into the ft232 it will trigger the load of the correct
-in-kernel driver.
+When adding the 'card=5' option, the log changes to:
+[10013.346671] em28xx: New device @ 480 Mbps (eb1a:2820, interface 0, class 0)
+[10013.347112] em28xx #0: chip ID is em2820 (or em2710)
+[10013.449303] em28xx #0: board has no eeprom
+[10013.449985] em28xx #0: Identified as MSI VOX USB 2.0 (card=5)
+[10013.848477] saa7115 1-0021: saa7114 found (1f7114d0e000000) @ 0x42
+(em28xx #0)
+[10016.177760] tuner 1-0043: chip found @ 0x86 (em28xx #0)
+[10016.177869] tda9887 1-0043: creating new instance
+[10016.177873] tda9887 1-0043: tda988[5/6/7] found
+[10016.192029] All bytes are equal. It is not a TEA5767
+[10016.192163] tuner 1-0060: chip found @ 0xc0 (em28xx #0)
+[10016.193010] tuner-simple 1-0060: creating new instance
+[10016.193015] tuner-simple 1-0060: type set to 37 (LG PAL (newer TAPC series))
+[10016.240382] em28xx #0: Config register raw data: 0x00
+[10016.372077] em28xx #0: v4l2 driver version 0.1.2
+[10016.836166] em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
+[10016.848106] usbcore: registered new interface driver em28xx
+[10016.848114] em28xx driver loaded
 
+Now xawtv and mplayer do not seem to work:
 
->
-> Regards,
-> Maxim Levitsky
->
->
+"xawtv" hangs when changing input.
 
+"mplayer tv://" gives
+v4l2: current audio mode is : MONO
+v4l2: ioctl set format failed: Invalid argument
+v4l2: ioctl set format failed: Invalid argument
+v4l2: ioctl set format failed: Invalid argument
+v4l2: ioctl queue buffer failed: Cannot allocate memory
+v4l2: 0 frames successfully processed, 0 frames dropped.
 
+Any ideas?
 
--- 
-Jon Smirl
-jonsmirl@gmail.com
+Rutger.
