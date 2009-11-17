@@ -1,202 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47699 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751568AbZKRLej (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 06:34:39 -0500
-From: hvaibhav@ti.com
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, m-karicheri2@ti.com,
-	Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH] Davinci VPFE Capture: Add Suspend/Resume Support
-Date: Wed, 18 Nov 2009 17:04:35 +0530
-Message-Id: <1258544075-28771-1-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
+Received: from mail-gx0-f226.google.com ([209.85.217.226]:60447 "EHLO
+	mail-gx0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753523AbZKQOhw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Nov 2009 09:37:52 -0500
+Received: by gxk26 with SMTP id 26so43337gxk.1
+        for <linux-media@vger.kernel.org>; Tue, 17 Nov 2009 06:37:57 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <C5BCB298-B166-4F9D-998C-EE58C5AF8B78@wilsonet.com>
+References: <15cfa2a50910071839j58026d10we2ccbaeb26527abc@mail.gmail.com>
+	 <0C6DEB14-B32A-4A20-B569-16B2A028CE25@wilsonet.com>
+	 <15cfa2a50910091827l449f0fb0t2974219b6ea76608@mail.gmail.com>
+	 <4B00D91B.1000906@wilsonet.com> <4B00DB5B.10109@wilsonet.com>
+	 <409C0215-68B1-4F90-A8E0-EBAF4F02AC1A@wilsonet.com>
+	 <4B023AC9.8080403@linuxtv.org>
+	 <15cfa2a50911162203w1ad1584bhfdbe0213421abd6a@mail.gmail.com>
+	 <C5BCB298-B166-4F9D-998C-EE58C5AF8B78@wilsonet.com>
+Date: Tue, 17 Nov 2009 09:37:56 -0500
+Message-ID: <829197380911170637h6a7918fcl461c01d70ab20599@mail.gmail.com>
+Subject: Re: KWorld UB435-Q Support
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Robert Cicconetti <grythumn@gmail.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	linux-media@vger.kernel.org,
+	Douglas Schilling Landgraf <dougsland@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+On Tue, Nov 17, 2009 at 9:15 AM, Jarod Wilson <jarod@wilsonet.com> wrote:
+> On Nov 17, 2009, at 1:03 AM, Robert Cicconetti wrote:
+>
+>> On Tue, Nov 17, 2009 at 12:55 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+>>>>>>>> [ 812.465930] tda18271: performing RF tracking filter calibration
+>>>>>>>> [ 818.572446] tda18271: RF tracking filter calibration complete
+>>>>>>>> [ 818.953946] tda18271: performing RF tracking filter calibration
+>>>>>>>> [ 825.093211] tda18271: RF tracking filter calibration complete
+>>>
+>>>
+>>> If you see this happen more than once consecutively, and there is only 1
+>>> silicon tuner present, then it means something very bad is happening, and
+>>> there is a chance of burning out a part.  I still wouldnt not recommend any
+>>> mainline merge until you can prevent this behavior -- I suspect that a GPIO
+>>> reset is being toggled where it shouldnt be, which should be harmless ...
+>>> but until we fix it, we cant be sure what damage might get done...
+>>>
+>>> The RF tracking filter calibration is a procedure that should only happen
+>>> once while the tuner is powered on -- it should *only* be repeated if the
+>>> tuner indicated that calibration is necessary, and that would only happen
+>>> after a hardware reset.
+>>>
+>>> This still looks fishy to me...
+>
+> Agreed. I did manage to dig into this some more last night, something is definitely still awry. Here's a dmesg dump with some extra debug spew added in key spots:
+>
+> ...
+> em28xx driver loaded
+> tda18271 4-0060: creating new instance
+> TDA18271HD/C2 detected @ 4-0060
+> tda18271: R_EP1 is 0xce
+> cal is not initialized (cal_initialized=false)...
+> tda18271: performing RF tracking filter calibration
+> tda18271: RF tracking filter calibration complete (0xde)
+> DVB: registering new adapter (em28xx #0)
+> DVB: registering adapter 0 frontend 0 (LG Electronics LGDT3304 VSB/QAM Frontend)...
+> em28xx #0: Successfully loaded em28xx-dvb
+> Em28xx: Initialized (Em28xx dvb Extension) extension
+>
+> 1st tuning attempt
+>
+> tda18271: R_EP1 is 0x00
+> cal is not initialized (cal_initialized=true)...
+> tda18271: performing RF tracking filter calibration
+> tda18271: RF tracking filter calibration complete (0x00)
+> tda18271: R_EP1 is 0x00
+> cal is not initialized (cal_initialized=true)...
+> tda18271: performing RF tracking filter calibration
+> tda18271: RF tracking filter calibration complete (0x00)
+>
+> 2nd tuning attempt
+>
+> tda18271: R_EP1 is 0x00
+> cal is not initialized (cal_initialized=true)...
+> tda18271: performing RF tracking filter calibration
+> tda18271: RF tracking filter calibration complete (0x00)
+> tda18271: R_EP1 is 0x00
+> cal is not initialized (cal_initialized=true)...
+> tda18271: performing RF tracking filter calibration
+> tda18271: RF tracking filter calibration complete (0x00)
+>
+> I'll try tweaking the GPIO reset mask and whatnot, definitely does seem like something's getting reset that shouldn't, because you can clearly see that cal *was* initialized, then R_EP1 got zeroed out.
+>
+>> It happened at every tuning operation, and made mythfrontend unhappy
+>> (unable to tune after the first channel). I disabled the check for
+>> RF_CAL_OK which triggered the recalibration, and mythfrontend worked.
+>
+> Yeah, tuning is much quicker here if I skip that check as well, but its definitely not the proper fix.
+>
+>> The stick has been plugged in for a few months, so presumably would've
+>> caught on fire by now if it was going to. It would be nice if the
+>> tuning delay went away, though.. it still takes ~6 seconds to switch
+>> frequencies.
+>
+> Wait, it still takes that long with the check gone? I didn't poke for very long with the check disabled, mostly focusing on trying to figure out why things are going haywire.
+>
+>> I have not yet compiled and tested the lastest patches from Jarod.
+>
+> Really shouldn't be any difference from what you've got, they're just rebased to the latest v4l-dvb tree.
 
-Validated on AM3517 Platform.
+Hey Jarod,
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- drivers/media/video/davinci/ccdc_hw_device.h |    4 +
- drivers/media/video/davinci/dm644x_ccdc.c    |   87 ++++++++++++++++++++++++++
- drivers/media/video/davinci/vpfe_capture.c   |   29 ++++++---
- 3 files changed, 112 insertions(+), 8 deletions(-)
+I haven't seen your exact GPIO config but I noticed something
+recently:  the em28xx driver runs the dvb_gpio sequence whenever
+starting streaming, not just whenever opening the DVB frontend.  This
+means that if your dvb_gpio definition strobes the tda18271 reset (as
+opposed to just taking it out of reset), then the chip will get reset
+whenever the streaming is started (a real problem if multiple tuning
+attempts are performed without closing the frontend first).
 
-diff --git a/drivers/media/video/davinci/ccdc_hw_device.h b/drivers/media/video/davinci/ccdc_hw_device.h
-index 86b9b35..2a1ead4 100644
---- a/drivers/media/video/davinci/ccdc_hw_device.h
-+++ b/drivers/media/video/davinci/ccdc_hw_device.h
-@@ -91,6 +91,10 @@ struct ccdc_hw_ops {
- 	void (*setfbaddr) (unsigned long addr);
- 	/* Pointer to function to get field id */
- 	int (*getfid) (void);
-+
-+	/* suspend/resume support */
-+	void (*save_context)(void);
-+	void (*restore_context)(void);
- };
- 
- struct ccdc_hw_device {
-diff --git a/drivers/media/video/davinci/dm644x_ccdc.c b/drivers/media/video/davinci/dm644x_ccdc.c
-index 5dff8d9..fdab823 100644
---- a/drivers/media/video/davinci/dm644x_ccdc.c
-+++ b/drivers/media/video/davinci/dm644x_ccdc.c
-@@ -88,6 +88,10 @@ static void *__iomem ccdc_base_addr;
- static int ccdc_addr_size;
- static enum vpfe_hw_if_type ccdc_if_type;
- 
-+#define CCDC_SZ_REGS			SZ_1K
-+
-+static u32 ccdc_ctx[CCDC_SZ_REGS / sizeof(u32)];
-+
- /* register access routines */
- static inline u32 regr(u32 offset)
- {
-@@ -834,6 +838,87 @@ static int ccdc_set_hw_if_params(struct vpfe_hw_if_param *params)
- 	return 0;
- }
- 
-+static void ccdc_save_context(void)
-+{
-+	ccdc_ctx[CCDC_PCR] = regr(CCDC_PCR);
-+	ccdc_ctx[CCDC_SYN_MODE] = regr(CCDC_SYN_MODE);
-+	ccdc_ctx[CCDC_HD_VD_WID] = regr(CCDC_HD_VD_WID);
-+	ccdc_ctx[CCDC_PIX_LINES] = regr(CCDC_PIX_LINES);
-+	ccdc_ctx[CCDC_HORZ_INFO] = regr(CCDC_HORZ_INFO);
-+	ccdc_ctx[CCDC_VERT_START] = regr(CCDC_VERT_START);
-+	ccdc_ctx[CCDC_VERT_LINES] = regr(CCDC_VERT_LINES);
-+	ccdc_ctx[CCDC_CULLING] = regr(CCDC_CULLING);
-+	ccdc_ctx[CCDC_HSIZE_OFF] = regr(CCDC_HSIZE_OFF);
-+	ccdc_ctx[CCDC_SDOFST] = regr(CCDC_SDOFST);
-+	ccdc_ctx[CCDC_SDR_ADDR] = regr(CCDC_SDR_ADDR);
-+	ccdc_ctx[CCDC_CLAMP] = regr(CCDC_CLAMP);
-+	ccdc_ctx[CCDC_DCSUB] = regr(CCDC_DCSUB);
-+	ccdc_ctx[CCDC_COLPTN] = regr(CCDC_COLPTN);
-+	ccdc_ctx[CCDC_BLKCMP] = regr(CCDC_BLKCMP);
-+	ccdc_ctx[CCDC_FPC] = regr(CCDC_FPC);
-+	ccdc_ctx[CCDC_FPC_ADDR] = regr(CCDC_FPC_ADDR);
-+	ccdc_ctx[CCDC_VDINT] = regr(CCDC_VDINT);
-+	ccdc_ctx[CCDC_ALAW] = regr(CCDC_ALAW);
-+	ccdc_ctx[CCDC_REC656IF] = regr(CCDC_REC656IF);
-+	ccdc_ctx[CCDC_CCDCFG] = regr(CCDC_CCDCFG);
-+	ccdc_ctx[CCDC_FMTCFG] = regr(CCDC_FMTCFG);
-+	ccdc_ctx[CCDC_FMT_HORZ] = regr(CCDC_FMT_HORZ);
-+	ccdc_ctx[CCDC_FMT_VERT] = regr(CCDC_FMT_VERT);
-+	ccdc_ctx[CCDC_FMT_ADDR0] = regr(CCDC_FMT_ADDR0);
-+	ccdc_ctx[CCDC_FMT_ADDR1] = regr(CCDC_FMT_ADDR1);
-+	ccdc_ctx[CCDC_FMT_ADDR2] = regr(CCDC_FMT_ADDR2);
-+	ccdc_ctx[CCDC_FMT_ADDR3] = regr(CCDC_FMT_ADDR3);
-+	ccdc_ctx[CCDC_FMT_ADDR4] = regr(CCDC_FMT_ADDR4);
-+	ccdc_ctx[CCDC_FMT_ADDR5] = regr(CCDC_FMT_ADDR5);
-+	ccdc_ctx[CCDC_FMT_ADDR6] = regr(CCDC_FMT_ADDR6);
-+	ccdc_ctx[CCDC_FMT_ADDR7] = regr(CCDC_FMT_ADDR7);
-+	ccdc_ctx[CCDC_PRGEVEN_0] = regr(CCDC_PRGEVEN_0);
-+	ccdc_ctx[CCDC_PRGEVEN_1] = regr(CCDC_PRGEVEN_1);
-+	ccdc_ctx[CCDC_PRGODD_0] = regr(CCDC_PRGODD_0);
-+	ccdc_ctx[CCDC_PRGODD_1] = regr(CCDC_PRGODD_1);
-+	ccdc_ctx[CCDC_VP_OUT] = regr(CCDC_VP_OUT);
-+}
-+
-+static void ccdc_restore_context(void)
-+{
-+	regw(ccdc_ctx[CCDC_SYN_MODE], CCDC_SYN_MODE);
-+	regw(ccdc_ctx[CCDC_HD_VD_WID], CCDC_HD_VD_WID);
-+	regw(ccdc_ctx[CCDC_PIX_LINES], CCDC_PIX_LINES);
-+	regw(ccdc_ctx[CCDC_HORZ_INFO], CCDC_HORZ_INFO);
-+	regw(ccdc_ctx[CCDC_VERT_START], CCDC_VERT_START);
-+	regw(ccdc_ctx[CCDC_VERT_LINES], CCDC_VERT_LINES);
-+	regw(ccdc_ctx[CCDC_CULLING], CCDC_CULLING);
-+	regw(ccdc_ctx[CCDC_HSIZE_OFF], CCDC_HSIZE_OFF);
-+	regw(ccdc_ctx[CCDC_SDOFST], CCDC_SDOFST);
-+	regw(ccdc_ctx[CCDC_SDR_ADDR], CCDC_SDR_ADDR);
-+	regw(ccdc_ctx[CCDC_CLAMP], CCDC_CLAMP);
-+	regw(ccdc_ctx[CCDC_DCSUB], CCDC_DCSUB);
-+	regw(ccdc_ctx[CCDC_COLPTN], CCDC_COLPTN);
-+	regw(ccdc_ctx[CCDC_BLKCMP], CCDC_BLKCMP);
-+	regw(ccdc_ctx[CCDC_FPC], CCDC_FPC);
-+	regw(ccdc_ctx[CCDC_FPC_ADDR], CCDC_FPC_ADDR);
-+	regw(ccdc_ctx[CCDC_VDINT], CCDC_VDINT);
-+	regw(ccdc_ctx[CCDC_ALAW], CCDC_ALAW);
-+	regw(ccdc_ctx[CCDC_REC656IF], CCDC_REC656IF);
-+	regw(ccdc_ctx[CCDC_CCDCFG], CCDC_CCDCFG);
-+	regw(ccdc_ctx[CCDC_FMTCFG], CCDC_FMTCFG);
-+	regw(ccdc_ctx[CCDC_FMT_HORZ], CCDC_FMT_HORZ);
-+	regw(ccdc_ctx[CCDC_FMT_VERT], CCDC_FMT_VERT);
-+	regw(ccdc_ctx[CCDC_FMT_ADDR0], CCDC_FMT_ADDR0);
-+	regw(ccdc_ctx[CCDC_FMT_ADDR1], CCDC_FMT_ADDR1);
-+	regw(ccdc_ctx[CCDC_FMT_ADDR2], CCDC_FMT_ADDR2);
-+	regw(ccdc_ctx[CCDC_FMT_ADDR3], CCDC_FMT_ADDR3);
-+	regw(ccdc_ctx[CCDC_FMT_ADDR4], CCDC_FMT_ADDR4);
-+	regw(ccdc_ctx[CCDC_FMT_ADDR5], CCDC_FMT_ADDR5);
-+	regw(ccdc_ctx[CCDC_FMT_ADDR6], CCDC_FMT_ADDR6);
-+	regw(ccdc_ctx[CCDC_FMT_ADDR7], CCDC_FMT_ADDR7);
-+	regw(ccdc_ctx[CCDC_PRGEVEN_0], CCDC_PRGEVEN_0);
-+	regw(ccdc_ctx[CCDC_PRGEVEN_1], CCDC_PRGEVEN_1);
-+	regw(ccdc_ctx[CCDC_PRGODD_0], CCDC_PRGODD_0);
-+	regw(ccdc_ctx[CCDC_PRGODD_1], CCDC_PRGODD_1);
-+	regw(ccdc_ctx[CCDC_VP_OUT], CCDC_VP_OUT);
-+	regw(ccdc_ctx[CCDC_PCR], CCDC_PCR);
-+}
- static struct ccdc_hw_device ccdc_hw_dev = {
- 	.name = "DM6446 CCDC",
- 	.owner = THIS_MODULE,
-@@ -858,6 +943,8 @@ static struct ccdc_hw_device ccdc_hw_dev = {
- 		.get_line_length = ccdc_get_line_length,
- 		.setfbaddr = ccdc_setfbaddr,
- 		.getfid = ccdc_getfid,
-+		.save_context = ccdc_save_context,
-+		.restore_context = ccdc_restore_context,
- 	},
- };
- 
-diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
-index 9c859a7..9b6b254 100644
---- a/drivers/media/video/davinci/vpfe_capture.c
-+++ b/drivers/media/video/davinci/vpfe_capture.c
-@@ -2394,18 +2394,31 @@ static int vpfe_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
--static int
--vpfe_suspend(struct device *dev)
-+static int vpfe_suspend(struct device *dev)
- {
--	/* add suspend code here later */
--	return -1;
-+	struct vpfe_device *vpfe_dev = dev_get_drvdata(dev);;
-+
-+	if (ccdc_dev->hw_ops.save_context)
-+		ccdc_dev->hw_ops.save_context();
-+	ccdc_dev->hw_ops.enable(0);
-+
-+	if (vpfe_dev)
-+		vpfe_disable_clock(vpfe_dev);
-+
-+	return 0;
- }
- 
--static int
--vpfe_resume(struct device *dev)
-+static int vpfe_resume(struct device *dev)
- {
--	/* add resume code here later */
--	return -1;
-+	struct vpfe_device *vpfe_dev = dev_get_drvdata(dev);;
-+
-+	if (vpfe_dev)
-+		vpfe_enable_clock(vpfe_dev);
-+
-+	if (ccdc_dev->hw_ops.restore_context)
-+		ccdc_dev->hw_ops.restore_context();
-+
-+	return 0;
- }
- 
- static struct dev_pm_ops vpfe_dev_pm_ops = {
+Mauro seems to think this is intended behavior, although I cannot see
+how this could possibly be correct, especially since the .init()
+callback is not called in that case.  I setup a tree to remove the
+call, but never got far enough into the testing to confirm whether it
+broke any improperly configured boards depending on the incorrect
+behavior.
+
+As a test, you might want to check your dvb_gpio config and see if you
+are pulling anything low and then high, and just remove the line that
+sets the pin low and see if the recalibration still occurs.
+
+Devin
+
 -- 
-1.6.2.4
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
