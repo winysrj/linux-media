@@ -1,36 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:33996 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751406AbZKIBwz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Nov 2009 20:52:55 -0500
-Received: by bwz27 with SMTP id 27so2994349bwz.21
-        for <linux-media@vger.kernel.org>; Sun, 08 Nov 2009 17:53:00 -0800 (PST)
+Received: from comal.ext.ti.com ([198.47.26.152]:57538 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751445AbZKQONU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Nov 2009 09:13:20 -0500
+From: "Y, Kishore" <kishore.y@ti.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Date: Tue, 17 Nov 2009 19:45:52 +0530
+Subject: [RFC] [PATCH] omap_vout: default colorspace for RGB565 set to SRGB
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940254299E0F@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-In-Reply-To: <cd9524450911081743y92a616amfcb8c6c069112240@mail.gmail.com>
-References: <cd9524450911081743y92a616amfcb8c6c069112240@mail.gmail.com>
-Date: Sun, 8 Nov 2009 20:52:59 -0500
-Message-ID: <829197380911081752x707d9e2bs99f4dc044544d66f@mail.gmail.com>
-Subject: Re: bisected regression in tuner-xc2028 on DVICO dual digital 4
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Barry Williams <bazzawill@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Nov 8, 2009 at 8:43 PM, Barry Williams <bazzawill@gmail.com> wrote:
-> Hi Devin
-> I tried your tree and I seem to get the same problem on one box I get
-> the flood of 'dvb-usb: bulk message failed: -110 (1/0'.
-<snip>
+This patch is dependent on the patch
+[PATCH 4/4] OMAP2/3 V4L2: Add support for OMAP2/3 V4L2 driver on top of DSS2
 
-Can you please confirm the USB ID of the board you are having the
-problem with (by running "lsusb" from a terminal window)?
+>From 41b85f02f441771ace6c42ee08475ab7be04eb90 Mon Sep 17 00:00:00 2001
+From: Kishore Y <kishore.y@ti.com>
+Date: Wed, 11 Nov 2009 19:47:14 +0530
+Subject: [PATCH] omap_vout: default colorspace for RGB565 set to SRGB
 
-Thanks,
+Default video format is set to RGB565 and the colorspace is set to
+JPEG. Best colorspace for RGB565 is SRGB and hence changed to it.
 
-Devin
+Signed-off-by: Kishore Y <kishore.y@ti.com>
+---
+ drivers/media/video/omap/omap_vout.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index 6118665..7092ef2 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -2078,7 +2078,7 @@ static int __init omap_vout_setup_video_data(struct omap_vout_device *vout)
+ 	pix->bytesperline = pix->width * 2;
+ 	pix->sizeimage = pix->bytesperline * pix->height;
+ 	pix->priv = 0;
+-	pix->colorspace = V4L2_COLORSPACE_JPEG;
++	pix->colorspace = V4L2_COLORSPACE_SRGB;
+ 
+ 	vout->bpp = RGB565_BPP;
+ 	vout->fbuf.fmt.width  =  display->panel.timings.x_res;
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.5.4.3
+
+
+Regards,
+Kishore Y
+Ph:- +918039813085
+
