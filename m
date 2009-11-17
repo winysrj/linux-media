@@ -1,84 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-05.arcor-online.net ([151.189.21.45]:33520 "EHLO
-	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753050AbZK0CxU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 21:53:20 -0500
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
-	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	Jarod Wilson <jarod@redhat.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-kernel@vger.kernel.org,
-	Mario Limonciello <superm1@ubuntu.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Janne Grunau <j@jannau.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-In-Reply-To: <Pine.LNX.4.58.0911261450590.30284@shell2.speakeasy.net>
-References: <200910200956.33391.jarod@redhat.com>
-	 <200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com>
-	 <4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain>
-	 <4B0AC65C.806@redhat.com> <m3zl6dq8ig.fsf@intrepid.localdomain>
-	 <4B0E765C.2080806@redhat.com> <m3iqcxuotd.fsf@intrepid.localdomain>
-	 <4B0ED238.6060306@redhat.com>
-	 <Pine.LNX.4.58.0911261450590.30284@shell2.speakeasy.net>
-Content-Type: text/plain
-Date: Fri, 27 Nov 2009 03:50:13 +0100
-Message-Id: <1259290213.3253.11.camel@pc07.localdom.local>
-Mime-Version: 1.0
+Received: from hera.kernel.org ([140.211.167.34]:55043 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752830AbZKQFXM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Nov 2009 00:23:12 -0500
+Message-ID: <4B023340.90004@kernel.org>
+Date: Tue, 17 Nov 2009 14:23:12 +0900
+From: Tejun Heo <tj@kernel.org>
+MIME-Version: 1.0
+To: Andy Walls <awalls@radix.net>
+CC: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	jeff@garzik.org, mingo@elte.hu, akpm@linux-foundation.org,
+	jens.axboe@oracle.com, rusty@rustcorp.com.au,
+	cl@linux-foundation.org, dhowells@redhat.com,
+	arjan@linux.intel.com, torvalds@linux-foundation.org,
+	avi@redhat.com, peterz@infradead.org, andi@firstfloor.org,
+	fweisbec@gmail.com
+Subject: Re: [PATCH 17/21] workqueue: simple reimplementation of SINGLE_THREAD
+ workqueue
+References: <1258391726-30264-1-git-send-email-tj@kernel.org>	 <1258391726-30264-18-git-send-email-tj@kernel.org> <1258418872.4096.28.camel@palomino.walls.org>
+In-Reply-To: <1258418872.4096.28.camel@palomino.walls.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello,
 
-Am Donnerstag, den 26.11.2009, 14:59 -0800 schrieb Trent Piepho:
-> On Thu, 26 Nov 2009, Mauro Carvalho Chehab wrote:
-> > >> See above. Also, several protocols have a way to check if a keystroke were
-> > >> properly received. When handling just one protocol, we can use this to double
-> > >> check the key. However, on a multiprotocol mode, we'll need to disable this
-> > >> feature.
-> > >
-> > > I don't think so. We can pass the space/mark data to all (configured,
-> > > i.e. with active mapping) protocol handlers at once. Should a check
-> > > fail, we ignore the data. Perhaps another protocol will make some sense
-> > > out of it.
-> >
-> > What happens if it succeeds on two protocol handlers?
-> 
-> Then you use the protocol that fits best.  For instance decoding with one
-> protocol might produce a scancode that isn't assigned to any key, while
-> another protocol produces an assigned scancode.  Clearly then the latter is
-> most likely to be correct.  It also possible to have a space/mark length
-> that is within the allowable tolerances for one remote, but is even closer
-> another remote.  You don't want to just find *a* match, you want to find
-> the *best* match.
-> 
-> The in kernel code in v4l is very simple in that it is only designed to
-> work with one procotol and one remote.  Once you have multiple remotes of
-> any type things become much more complicted.  Keep in mind that remotes
-> that aren't even intended to be used with the computer but are used in the
-> same room will still be received by the receiver.  It's not enough to
-> decode the signals you expect to receive, you must also not get confused by
-> random signals destined for somewhere else.
+11/17/2009 09:47 AM, Andy Walls wrote:
+> An important property of the single threaded workqueue, upon which the
+> cx18 driver relies, is that work objects will be processed strictly in
+> the order in which they were queued.  The cx18 driver has a pool of
+> "work orders" and multiple active work orders can be queued up on the
+> workqueue especially if multiple streams are active.  If these work
+> orders were to be processed out of order, video artifacts would result
+> in video display applications.
 
-Giving some random living room these days, likely open to the kids
-rooms, you have to take that into account.
+That's an interesting use of single thread workqueue.  Most of single
+thread workqueues seem to be made single thread just to save number of
+threads.  Some seem to depend on single thread of execution but I
+never knew there are ones which depend on the exact execution order.
+Do you think that usage is wide-spread?  Implementing strict ordering
+shouldn't be too difficult but I can't help but feeling that such
+assumption is abuse of implementation detail.
 
-Another point, if decoding from IRQs generated by the remote, there is
-flawed hardware around, needing to poll IRQs in some timely manner to
-get it to something at all.
+Thanks.
 
-This will break such remotes. Never seen?
-
-For me the first priority is, that existing remotes are not broken.
-
-Don't tell you have done a nice job just now, but are unfortunately in
-need of testers ... 
-
-Cheers,
-Hermann
-
-
+-- 
+tejun
