@@ -1,82 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gv-out-0910.google.com ([216.239.58.191]:41892 "EHLO
-	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750891AbZKWRM0 convert rfc822-to-8bit (ORCPT
+Received: from smtp-OUT05A.alice.it ([85.33.3.5]:1091 "EHLO
+	smtp-OUT05A.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756156AbZKQWMq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2009 12:12:26 -0500
-MIME-Version: 1.0
-In-Reply-To: <abc933c50911230905g60e2071bpbee9318817d56fb5@mail.gmail.com>
-References: <200910200956.33391.jarod@redhat.com>
-	 <200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com>
-	 <4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain>
-	 <829197380911230720k233c3c86t659180d1413aa0dd@mail.gmail.com>
-	 <abc933c50911230905g60e2071bpbee9318817d56fb5@mail.gmail.com>
-Date: Mon, 23 Nov 2009 12:12:30 -0500
-Message-ID: <829197380911230912i53d57dc2h10a5c31c79c9f1c@mail.gmail.com>
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
-	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: James Mastros <james@mastros.biz>
-Cc: Krzysztof Halasa <khc@pm.waw.pl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@redhat.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-kernel@vger.kernel.org,
-	Mario Limonciello <superm1@ubuntu.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Janne Grunau <j@jannau.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Tue, 17 Nov 2009 17:12:46 -0500
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Eric Miao <eric.y.miao@gmail.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Mike Rapoport <mike@compulab.co.il>,
+	Juergen Beisert <j.beisert@pengutronix.de>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH 3/3] pxa_camera: remove init() callback
+Date: Tue, 17 Nov 2009 23:04:23 +0100
+Message-Id: <1258495463-26029-4-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <1258495463-26029-1-git-send-email-ospite@studenti.unina.it>
+References: <1258495463-26029-1-git-send-email-ospite@studenti.unina.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 23, 2009 at 12:05 PM, James Mastros <james@mastros.biz> wrote:
-> 2009/11/23 Devin Heitmueller <dheitmueller@kernellabs.com>:
->> Just bear in mind that with the current in-kernel code, users do *not
->> * have to manually select the RC code to use if they are using the
->> default remote that shipped with the product.
-> This could still happen, if LIRC checks the identifiers of the
-> reciving device, and has a database that tells it mappings between
-> those devices and the remote controls that shipped with them.
-> However, it occours to me that the IR circumstances map pretty well to
-> what happens with ps/2 and serial devices now:
->
-> 1: There are a variety of drivers for serio computer-side hardware,
-> each of which speaks the serio interface to the next-higher level.
-> These corrospond to the drivers for IR recievers.
-> 2: There's a raw serio interface, for those wishing to do strange things.
-> 3: There's also a variety of things that take data, using the kernel
-> serio API, and decode it into input events -- the ps2 keyboard driver,
-> the basic mouse driver, the advanced mice drivers.  This is where the
-> interface falls down a little bit -- the ps2 keyboard driver is the
-> closest analogue to what I'm suggesting.  The ps2 keyboard driver
-> creates scancode events, which map nicely to what the keyboard is
-> sending -- these are, for ex, rc5 codes.  It will also produce
-> key-up/key-down events, if it has a keymap loaded.  (This is the
-> difference with a ps2 keyboard -- a ps2 keyboard gets a map assigned
-> to it at boottime, so it works out-of-box.  This isn't really possible
-> with an IR remote -- though perhaps rc5 is standarized enough, I don't
-> think other protocols neccessarly are.)
->
-> Userspace would have to load a keymap; those don't really belong in
-> kernel code.  Of course, userspace could look at the device
-> identifiers to pick a reasonable default keymap if it's not configured
-> to load another, solving the out-of-box experince.
+pxa_camera init() callback is sometimes abused to setup MFP for PXA CIF, or
+even to request GPIOs to be used by the camera *sensor*. These initializations
+can be performed statically in machine init functions.
 
-I think perhaps before we go much further into this, we may wish to
-come up with a set of use cases and expected behavior.  I worry that
-part of the problem here is people are thinking of how their
-particular cards behave, and few people have a holistic picture of all
-the possible scenarios.  Whatever implementation we come up, we should
-be confident that it meets the requirements of *all* the various
-hardware implementations.
+The current semantics for this init() callback is ambiguous anyways, it is
+invoked in pxa_camera_activate(), hence at device node open, but its users use
+it like a generic initialization to be done at module init time (configure
+MFP, request GPIOs for *sensor* control).
 
-I will try to draft up some requirements/use cases if people think
-this would be worthwhile.
+Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+---
+ arch/arm/mach-pxa/include/mach/camera.h |    2 --
+ drivers/media/video/pxa_camera.c        |   10 ----------
+ 2 files changed, 0 insertions(+), 12 deletions(-)
 
-Devin
-
+diff --git a/arch/arm/mach-pxa/include/mach/camera.h b/arch/arm/mach-pxa/include/mach/camera.h
+index 31abe6d..6709b1c 100644
+--- a/arch/arm/mach-pxa/include/mach/camera.h
++++ b/arch/arm/mach-pxa/include/mach/camera.h
+@@ -35,8 +35,6 @@
+ #define PXA_CAMERA_VSP		0x400
+ 
+ struct pxacamera_platform_data {
+-	int (*init)(struct device *);
+-
+ 	unsigned long flags;
+ 	unsigned long mclk_10khz;
+ };
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index 51b683c..49f2bf9 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -882,18 +882,8 @@ static void recalculate_fifo_timeout(struct pxa_camera_dev *pcdev,
+ 
+ static void pxa_camera_activate(struct pxa_camera_dev *pcdev)
+ {
+-	struct pxacamera_platform_data *pdata = pcdev->pdata;
+-	struct device *dev = pcdev->soc_host.v4l2_dev.dev;
+ 	u32 cicr4 = 0;
+ 
+-	dev_dbg(dev, "Registered platform device at %p data %p\n",
+-		pcdev, pdata);
+-
+-	if (pdata && pdata->init) {
+-		dev_dbg(dev, "%s: Init gpios\n", __func__);
+-		pdata->init(dev);
+-	}
+-
+ 	/* disable all interrupts */
+ 	__raw_writel(0x3ff, pcdev->base + CICR0);
+ 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.6.5.2
+
