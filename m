@@ -1,44 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:58304 "EHLO smtp3-g21.free.fr"
+Received: from comal.ext.ti.com ([198.47.26.152]:38432 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752548AbZKOKXw convert rfc822-to-8bit (ORCPT
+	id S1753023AbZKQQAK convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Nov 2009 05:23:52 -0500
-Date: Sun, 15 Nov 2009 11:24:03 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Dotan Cohen <dotancohen@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: MSI StarCam 370i: The right way?
-Message-ID: <20091115112403.3cd66c6f@tele>
-In-Reply-To: <880dece00911150139v22f2bdf5nc201f44546e62ce5@mail.gmail.com>
-References: <880dece00911140735n14f79fb6k6e854a5a852ff6fe@mail.gmail.com>
-	<20091115094342.759cee65@tele>
-	<880dece00911150139v22f2bdf5nc201f44546e62ce5@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Tue, 17 Nov 2009 11:00:10 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 17 Nov 2009 10:00:07 -0600
+Subject: RE: Help in adding documentation
+Message-ID: <A69FA2915331DC488A831521EAE36FE401559C59A2@dlee06.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 15 Nov 2009 11:39:40 +0200
-Dotan Cohen <dotancohen@gmail.com> wrote:
+After compilation I get the following error
 
-> > If the driver gspca_sonixj does not work, you may try its last
-> > version from LinuxTv.org (many bugs have been found since kernel
-> > 2.6.31).
-> >
-> 
-> Thank you Jean-Francois. Is unplug/replug the only way to switch
-> drivers? Apparently neither driver works, where is a good place to get
-> the snc102 driver to try as well? Googling "snc102 linux driver" did
-> not lead me to any place to download it.
+Error: no ID for contstraint linkend: v4l2-dv-enum-presets.
 
-I don't think anybody still works on the sn9c102 driver. As told above,
-you should get the last gspca_sonixj driver from LinuxTv.org. Please,
-read the gspca_README.txt of my home page (see below).
+v4l2-dv-enum-presets is the new structure type added. 
 
-Regards.
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+phone: 301-407-9583
+email: m-karicheri2@ti.com
+
+>-----Original Message-----
+>From: Karicheri, Muralidharan
+>Sent: Tuesday, November 17, 2009 10:58 AM
+>To: 'Mauro Carvalho Chehab'
+>Cc: 'Hans Verkuil'; linux-media@vger.kernel.org
+>Subject: Help in adding documentation
+>
+>Hi Mauro,
+>
+>Is there some instructions on adding new sections in the v4l2 documentation.
+>I had been struggling yesterday to add my documentation for video timing
+>API. It is easy to make minor documentation changes. But since I am adding
+>new ioctls, Looks like I need to create vidioc-<xxx>.xml under DoCBook/v4l/
+>directory since media-specs/Makefile is generating videodev2.h.xml
+>automatically (I learned it in the hard way). I have added the IOCTL name
+>in media-specs/Makefile and also added the structure name. But somehow, the
+>videodev2.h.xml file doesn't show my structure types documented in vidioc-
+><xxx>.xml. Any idea what could be wrong?
+>
+>Murali Karicheri
+>Software Design Engineer
+>Texas Instruments Inc.
+>Germantown, MD 20874
+>phone: 301-407-9583
+>email: m-karicheri2@ti.com
+
