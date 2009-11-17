@@ -1,45 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60958 "EHLO arroyo.ext.ti.com"
+Received: from hera.kernel.org ([140.211.167.34]:51191 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756760AbZKMWgE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Nov 2009 17:36:04 -0500
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id nADMa9b7002907
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 13 Nov 2009 16:36:09 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id nADMa9R8013940
-	for <linux-media@vger.kernel.org>; Fri, 13 Nov 2009 16:36:09 -0600 (CST)
-Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id nADMa9dR008282
-	for <linux-media@vger.kernel.org>; Fri, 13 Nov 2009 16:36:09 -0600 (CST)
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Fri, 13 Nov 2009 16:36:07 -0600
-Subject: Documentation - How do I add v4l2 documentation under media-specs ?
-Message-ID: <A69FA2915331DC488A831521EAE36FE4015593740C@dlee06.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	id S1752256AbZKQQNp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Nov 2009 11:13:45 -0500
+Message-ID: <4B02CB53.9020708@kernel.org>
+Date: Wed, 18 Nov 2009 01:12:03 +0900
+From: Tejun Heo <tj@kernel.org>
 MIME-Version: 1.0
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Andy Walls <awalls@radix.net>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, jeff@garzik.org, mingo@elte.hu,
+	akpm@linux-foundation.org, jens.axboe@oracle.com,
+	rusty@rustcorp.com.au, cl@linux-foundation.org,
+	dhowells@redhat.com, arjan@linux.intel.com, avi@redhat.com,
+	peterz@infradead.org, andi@firstfloor.org, fweisbec@gmail.com
+Subject: Re: [PATCH 17/21] workqueue: simple reimplementation of SINGLE_THREAD
+ workqueue
+References: <1258391726-30264-1-git-send-email-tj@kernel.org>  <1258391726-30264-18-git-send-email-tj@kernel.org> <1258418872.4096.28.camel@palomino.walls.org> <4B023340.90004@kernel.org> <alpine.LFD.2.01.0911170701480.9384@localhost.localdomain>
+In-Reply-To: <alpine.LFD.2.01.0911170701480.9384@localhost.localdomain>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hello, Linus.
 
-I need to update the V4l2 documentation for the video timing API. I have got the relevant tree downloaded and did make media-spec
+11/18/2009 12:05 AM, Linus Torvalds wrote:
+>> Do you think that usage is wide-spread?  Implementing strict ordering
+>> shouldn't be too difficult but I can't help but feeling that such
+>> assumption is abuse of implementation detail.
+> 
+> I think it would be good if it were more than an implementation detail, 
+> and was something documented and known.
+> 
+> The less random and timing-dependent our interfaces are, the better off we 
+> are. Guaranteeing that a single-threaded workqueue is done in order seems 
+> to me to be a GoodThing(tm), regardless of whether much code depends on 
+> it.
+> 
+> Of course, if there is some fundamental reason why it wouldn't be the 
+> case, that's another thing. But if you think uit should be easy, and since 
+> there _are_ users, then it shouldn't be seen as an "implementation 
+> detail". It's a feature.
 
-I got the media.html under media-specs/media-single/media.html after the build.
+I might have been too early with the 'easy' part but I definitely can
+give it a shot.  What do you think about the scheduler notifier
+implementation?  It seems we'll end up with three callbacks.  It can
+either be three hlist_heads in the struct_task linking each ops or
+single hilst_head links ops tables (like the current preempt
+notifiers).  Which one should I go with?
 
-When I open this file in a web browser, I see the document with a Table of
-contents and links. I need to add a sections for the video timing API, which involves adding two sections, one on DV_PRESET and other on DV_TIMING. How do a developer typically add documentation? Do I need to use a xml editor?
-I am not that familiar with xml/html notations (except for the simple tags)
-and wondering how I can update the documents. Any help will be appreciated.
+Thanks.
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-email: m-karicheri2@ti.com
-
+-- 
+tejun
