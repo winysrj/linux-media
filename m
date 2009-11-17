@@ -1,49 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:48279 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750765AbZKJMyt (ORCPT
+Received: from smtp-out13.alice.it ([85.33.2.18]:4572 "EHLO
+	smtp-out13.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753977AbZKQWIX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Nov 2009 07:54:49 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 2/9] v4l: add new v4l2-subdev sensor operations, use g_skip_top_lines in soc-camera
-Date: Tue, 10 Nov 2009 13:55:28 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange> <Pine.LNX.4.64.0910301403550.4378@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0910301403550.4378@axis700.grange>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200911101355.28339.laurent.pinchart@ideasonboard.com>
+	Tue, 17 Nov 2009 17:08:23 -0500
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Eric Miao <eric.y.miao@gmail.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Mike Rapoport <mike@compulab.co.il>,
+	Juergen Beisert <j.beisert@pengutronix.de>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH 1/3] em-x270: don't use pxa_camera init() callback
+Date: Tue, 17 Nov 2009 23:04:21 +0100
+Message-Id: <1258495463-26029-2-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <1258495463-26029-1-git-send-email-ospite@studenti.unina.it>
+References: <1258495463-26029-1-git-send-email-ospite@studenti.unina.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+pxa_camera init() is going to be removed.
 
-On Friday 30 October 2009 15:01:06 Guennadi Liakhovetski wrote:
-> Introduce new v4l2-subdev sensor operations, move .enum_framesizes() and
-> .enum_frameintervals() methods to it,
+Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+---
+ arch/arm/mach-pxa/em-x270.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
 
-I understand that we need sensor-specific operations, but I'm not sure if 
-those two are really unneeded for "non-sensor" video.
-
-Speaking about enum_framesizes() and enum_frameintervals(), wouldn't it be 
-better to provide a static array of data instead of a callback function ? That 
-should be dealt with in another patch set of course.
-
-> add a new .g_skip_top_lines() method and switch soc-camera to use it instead
-> of .y_skip_top soc_camera_device member, which can now be removed.
-
-BTW, the lines of "garbage" you get at the beginning of the image is actually 
-probably meta-data (such as exposure settings). Maybe the g_skip_top_lines() 
-operation could be renamed to something meta-data related. Applications could 
-also be interested in getting the data.
-
+diff --git a/arch/arm/mach-pxa/em-x270.c b/arch/arm/mach-pxa/em-x270.c
+index aec7f42..f71f34c 100644
+--- a/arch/arm/mach-pxa/em-x270.c
++++ b/arch/arm/mach-pxa/em-x270.c
+@@ -967,7 +967,7 @@ static inline void em_x270_init_gpio_keys(void) {}
+ #if defined(CONFIG_VIDEO_PXA27x) || defined(CONFIG_VIDEO_PXA27x_MODULE)
+ static struct regulator *em_x270_camera_ldo;
+ 
+-static int em_x270_sensor_init(struct device *dev)
++static int em_x270_sensor_init(void)
+ {
+ 	int ret;
+ 
+@@ -996,7 +996,6 @@ static int em_x270_sensor_init(struct device *dev)
+ }
+ 
+ struct pxacamera_platform_data em_x270_camera_platform_data = {
+-	.init	= em_x270_sensor_init,
+ 	.flags  = PXA_CAMERA_MASTER | PXA_CAMERA_DATAWIDTH_8 |
+ 		PXA_CAMERA_PCLK_EN | PXA_CAMERA_MCLK_EN,
+ 	.mclk_10khz = 2600,
+@@ -1049,8 +1048,10 @@ static struct platform_device em_x270_camera = {
+ 
+ static void  __init em_x270_init_camera(void)
+ {
+-	pxa_set_camera_info(&em_x270_camera_platform_data);
+-	platform_device_register(&em_x270_camera);
++	if (em_x270_sensor_init() == 0) {
++		pxa_set_camera_info(&em_x270_camera_platform_data);
++		platform_device_register(&em_x270_camera);
++	}
+ }
+ #else
+ static inline void em_x270_init_camera(void) {}
 -- 
-Regards,
+1.6.5.2
 
-Laurent Pinchart
