@@ -1,64 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:8587 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756585AbZKWM65 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2009 07:58:57 -0500
-Message-ID: <4B0A8710.9060104@redhat.com>
-Date: Mon, 23 Nov 2009 10:58:56 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56434 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756262AbZKQWoO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Nov 2009 17:44:14 -0500
+Message-Id: <200911172243.nAHMhfAv029259@imap1.linux-foundation.org>
+Subject: [patch 5/5] dvb: make struct videobuf_queue_ops constant
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
+	corbet@lwn.net
+From: akpm@linux-foundation.org
+Date: Tue, 17 Nov 2009 14:43:41 -0800
 MIME-Version: 1.0
-To: Jarod Wilson <jarod@redhat.com>
-CC: linux-kernel@vger.kernel.org, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org, Janne Grunau <j@jannau.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [PATCH 3/3 v2] lirc driver for SoundGraph iMON IR receivers and
- displays
-References: <200910200956.33391.jarod@redhat.com> <200910201000.57536.jarod@redhat.com>
-In-Reply-To: <200910201000.57536.jarod@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jarod Wilson wrote:
-> lirc driver for SoundGraph iMON IR receivers and displays
-> 
-> Successfully tested with multiple devices with and without displays.
-> 
+From: Jonathan Corbet <corbet@lwn.net>
 
+The videobuf_queue_ops function vector is not declared constant, but
+there's no need for the videobuf layer to ever change it.  Make it const
+so that videobuf users can make their operations const without warnings.
 
-> +static struct usb_device_id imon_usb_id_table[] = {
-> +	/* TriGem iMON (IR only) -- TG_iMON.inf */
-> +	{ USB_DEVICE(0x0aa8, 0x8001) },
-...
+Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Another set of USB vendor ID's... this time, vendors weren't described. The
-same comment I did on patch 2/3 applies here... IMO, we should really try
-to create a global list of vendors/devices on kernel. Of course this is not
-a non-go issue, as it is already present on several other USB drivers.
+ drivers/media/video/videobuf-core.c       |    2 +-
+ drivers/media/video/videobuf-dma-contig.c |    2 +-
+ drivers/media/video/videobuf-dma-sg.c     |    2 +-
+ drivers/media/video/videobuf-vmalloc.c    |    2 +-
+ include/media/videobuf-core.h             |    4 ++--
+ include/media/videobuf-dma-contig.h       |    2 +-
+ include/media/videobuf-dma-sg.h           |    2 +-
+ include/media/videobuf-vmalloc.h          |    2 +-
+ 8 files changed, 9 insertions(+), 9 deletions(-)
 
-> +
-> +	/*
-> +	 * Translate received data to pulse and space lengths.
-> +	 * Received data is active low, i.e. pulses are 0 and
-> +	 * spaces are 1.
-> +	 *
-> +	 * My original algorithm was essentially similar to
-> +	 * Changwoo Ryu's with the exception that he switched
-> +	 * the incoming bits to active high and also fed an
-> +	 * initial space to LIRC at the start of a new sequence
-> +	 * if the previous bit was a pulse.
-> +	 *
-> +	 * I've decided to adopt his algorithm.
-> +	 */
-> +
-
-Before digging into all code details, am I wrong or this device has the
-pulse/space decoding inside the chip?
-
-In this case, we shouldn't really be converting their IR keystroke events into
-a pseudo set of pulse/space marks, but use the standard events interface.
-
-Cheers,
-Mauro.
-
+diff -puN drivers/media/video/videobuf-core.c~dvb-make-struct-videobuf_queue_ops-constant drivers/media/video/videobuf-core.c
+--- a/drivers/media/video/videobuf-core.c~dvb-make-struct-videobuf_queue_ops-constant
++++ a/drivers/media/video/videobuf-core.c
+@@ -110,7 +110,7 @@ EXPORT_SYMBOL_GPL(videobuf_queue_to_vmal
+ 
+ 
+ void videobuf_queue_core_init(struct videobuf_queue *q,
+-			 struct videobuf_queue_ops *ops,
++			 const struct videobuf_queue_ops *ops,
+ 			 struct device *dev,
+ 			 spinlock_t *irqlock,
+ 			 enum v4l2_buf_type type,
+diff -puN drivers/media/video/videobuf-dma-contig.c~dvb-make-struct-videobuf_queue_ops-constant drivers/media/video/videobuf-dma-contig.c
+--- a/drivers/media/video/videobuf-dma-contig.c~dvb-make-struct-videobuf_queue_ops-constant
++++ a/drivers/media/video/videobuf-dma-contig.c
+@@ -428,7 +428,7 @@ static struct videobuf_qtype_ops qops = 
+ };
+ 
+ void videobuf_queue_dma_contig_init(struct videobuf_queue *q,
+-				    struct videobuf_queue_ops *ops,
++				    const struct videobuf_queue_ops *ops,
+ 				    struct device *dev,
+ 				    spinlock_t *irqlock,
+ 				    enum v4l2_buf_type type,
+diff -puN drivers/media/video/videobuf-dma-sg.c~dvb-make-struct-videobuf_queue_ops-constant drivers/media/video/videobuf-dma-sg.c
+--- a/drivers/media/video/videobuf-dma-sg.c~dvb-make-struct-videobuf_queue_ops-constant
++++ a/drivers/media/video/videobuf-dma-sg.c
+@@ -702,7 +702,7 @@ void *videobuf_sg_alloc(size_t size)
+ }
+ 
+ void videobuf_queue_sg_init(struct videobuf_queue* q,
+-			 struct videobuf_queue_ops *ops,
++			 const struct videobuf_queue_ops *ops,
+ 			 struct device *dev,
+ 			 spinlock_t *irqlock,
+ 			 enum v4l2_buf_type type,
+diff -puN drivers/media/video/videobuf-vmalloc.c~dvb-make-struct-videobuf_queue_ops-constant drivers/media/video/videobuf-vmalloc.c
+--- a/drivers/media/video/videobuf-vmalloc.c~dvb-make-struct-videobuf_queue_ops-constant
++++ a/drivers/media/video/videobuf-vmalloc.c
+@@ -391,7 +391,7 @@ static struct videobuf_qtype_ops qops = 
+ };
+ 
+ void videobuf_queue_vmalloc_init(struct videobuf_queue* q,
+-			 struct videobuf_queue_ops *ops,
++			 const struct videobuf_queue_ops *ops,
+ 			 void *dev,
+ 			 spinlock_t *irqlock,
+ 			 enum v4l2_buf_type type,
+diff -puN include/media/videobuf-core.h~dvb-make-struct-videobuf_queue_ops-constant include/media/videobuf-core.h
+--- a/include/media/videobuf-core.h~dvb-make-struct-videobuf_queue_ops-constant
++++ a/include/media/videobuf-core.h
+@@ -166,7 +166,7 @@ struct videobuf_queue {
+ 	enum v4l2_field            field;
+ 	enum v4l2_field            last;   /* for field=V4L2_FIELD_ALTERNATE */
+ 	struct videobuf_buffer     *bufs[VIDEO_MAX_FRAME];
+-	struct videobuf_queue_ops  *ops;
++	const struct videobuf_queue_ops  *ops;
+ 	struct videobuf_qtype_ops  *int_ops;
+ 
+ 	unsigned int               streaming:1;
+@@ -195,7 +195,7 @@ void *videobuf_queue_to_vmalloc (struct 
+ 				 struct videobuf_buffer *buf);
+ 
+ void videobuf_queue_core_init(struct videobuf_queue *q,
+-			 struct videobuf_queue_ops *ops,
++			 const struct videobuf_queue_ops *ops,
+ 			 struct device *dev,
+ 			 spinlock_t *irqlock,
+ 			 enum v4l2_buf_type type,
+diff -puN include/media/videobuf-dma-contig.h~dvb-make-struct-videobuf_queue_ops-constant include/media/videobuf-dma-contig.h
+--- a/include/media/videobuf-dma-contig.h~dvb-make-struct-videobuf_queue_ops-constant
++++ a/include/media/videobuf-dma-contig.h
+@@ -17,7 +17,7 @@
+ #include <media/videobuf-core.h>
+ 
+ void videobuf_queue_dma_contig_init(struct videobuf_queue *q,
+-				    struct videobuf_queue_ops *ops,
++				    const struct videobuf_queue_ops *ops,
+ 				    struct device *dev,
+ 				    spinlock_t *irqlock,
+ 				    enum v4l2_buf_type type,
+diff -puN include/media/videobuf-dma-sg.h~dvb-make-struct-videobuf_queue_ops-constant include/media/videobuf-dma-sg.h
+--- a/include/media/videobuf-dma-sg.h~dvb-make-struct-videobuf_queue_ops-constant
++++ a/include/media/videobuf-dma-sg.h
+@@ -103,7 +103,7 @@ struct videobuf_dmabuf *videobuf_to_dma 
+ void *videobuf_sg_alloc(size_t size);
+ 
+ void videobuf_queue_sg_init(struct videobuf_queue* q,
+-			 struct videobuf_queue_ops *ops,
++			 const struct videobuf_queue_ops *ops,
+ 			 struct device *dev,
+ 			 spinlock_t *irqlock,
+ 			 enum v4l2_buf_type type,
+diff -puN include/media/videobuf-vmalloc.h~dvb-make-struct-videobuf_queue_ops-constant include/media/videobuf-vmalloc.h
+--- a/include/media/videobuf-vmalloc.h~dvb-make-struct-videobuf_queue_ops-constant
++++ a/include/media/videobuf-vmalloc.h
+@@ -30,7 +30,7 @@ struct videobuf_vmalloc_memory
+ };
+ 
+ void videobuf_queue_vmalloc_init(struct videobuf_queue* q,
+-			 struct videobuf_queue_ops *ops,
++			 const struct videobuf_queue_ops *ops,
+ 			 void *dev,
+ 			 spinlock_t *irqlock,
+ 			 enum v4l2_buf_type type,
+_
