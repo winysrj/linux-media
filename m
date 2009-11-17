@@ -1,106 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:45732
-	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751390AbZKQOPD convert rfc822-to-8bit (ORCPT
+Received: from mail-yw0-f176.google.com ([209.85.211.176]:50863 "EHLO
+	mail-yw0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752283AbZKQUlP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2009 09:15:03 -0500
-Subject: Re: KWorld UB435-Q Support
-Mime-Version: 1.0 (Apple Message framework v1077)
-Content-Type: text/plain; charset=us-ascii
-From: Jarod Wilson <jarod@wilsonet.com>
-In-Reply-To: <15cfa2a50911162203w1ad1584bhfdbe0213421abd6a@mail.gmail.com>
-Date: Tue, 17 Nov 2009 09:15:06 -0500
-Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-media@vger.kernel.org,
-	Douglas Schilling Landgraf <dougsland@gmail.com>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <C5BCB298-B166-4F9D-998C-EE58C5AF8B78@wilsonet.com>
-References: <15cfa2a50910071839j58026d10we2ccbaeb26527abc@mail.gmail.com> <0C6DEB14-B32A-4A20-B569-16B2A028CE25@wilsonet.com> <15cfa2a50910091827l449f0fb0t2974219b6ea76608@mail.gmail.com> <4B00D91B.1000906@wilsonet.com> <4B00DB5B.10109@wilsonet.com> <409C0215-68B1-4F90-A8E0-EBAF4F02AC1A@wilsonet.com> <4B023AC9.8080403@linuxtv.org> <15cfa2a50911162203w1ad1584bhfdbe0213421abd6a@mail.gmail.com>
-To: Robert Cicconetti <grythumn@gmail.com>
+	Tue, 17 Nov 2009 15:41:15 -0500
+Received: by ywh6 with SMTP id 6so405983ywh.4
+        for <linux-media@vger.kernel.org>; Tue, 17 Nov 2009 12:41:20 -0800 (PST)
+Date: Tue, 17 Nov 2009 18:41:12 -0200
+From: Nicolau Werneck <nwerneck@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: new sensor for a t613 camera
+Message-ID: <20091117204112.GA27785@pathfinder.pcs.usp.br>
+References: <20091113193405.GA9499@pathfinder.pcs.usp.br> <62e5edd40911131204w2b8203eexc079ae46d88f1d0d@mail.gmail.com> <20091113202746.GA24318@pathfinder.pcs.usp.br> <c2fe070d0911131235m2e7a5b66hfe6366b0bf4cca0b@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="EVF5PPMfhYS0aIcm"
+Content-Disposition: inline
+In-Reply-To: <c2fe070d0911131235m2e7a5b66hfe6366b0bf4cca0b@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Nov 17, 2009, at 1:03 AM, Robert Cicconetti wrote:
 
-> On Tue, Nov 17, 2009 at 12:55 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
->>>>>>> [ 812.465930] tda18271: performing RF tracking filter calibration
->>>>>>> [ 818.572446] tda18271: RF tracking filter calibration complete
->>>>>>> [ 818.953946] tda18271: performing RF tracking filter calibration
->>>>>>> [ 825.093211] tda18271: RF tracking filter calibration complete
->> 
->> 
->> If you see this happen more than once consecutively, and there is only 1
->> silicon tuner present, then it means something very bad is happening, and
->> there is a chance of burning out a part.  I still wouldnt not recommend any
->> mainline merge until you can prevent this behavior -- I suspect that a GPIO
->> reset is being toggled where it shouldnt be, which should be harmless ...
->> but until we fix it, we cant be sure what damage might get done...
->> 
->> The RF tracking filter calibration is a procedure that should only happen
->> once while the tuner is powered on -- it should *only* be repeated if the
->> tuner indicated that calibration is necessary, and that would only happen
->> after a hardware reset.
->> 
->> This still looks fishy to me...
+--EVF5PPMfhYS0aIcm
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Agreed. I did manage to dig into this some more last night, something is definitely still awry. Here's a dmesg dump with some extra debug spew added in key spots:
+Hello, people.
 
-...
-em28xx driver loaded
-tda18271 4-0060: creating new instance
-TDA18271HD/C2 detected @ 4-0060
-tda18271: R_EP1 is 0xce
-cal is not initialized (cal_initialized=false)...
-tda18271: performing RF tracking filter calibration
-tda18271: RF tracking filter calibration complete (0xde)
-DVB: registering new adapter (em28xx #0)
-DVB: registering adapter 0 frontend 0 (LG Electronics LGDT3304 VSB/QAM Frontend)...
-em28xx #0: Successfully loaded em28xx-dvb
-Em28xx: Initialized (Em28xx dvb Extension) extension
+I did it! I looked at the log and modified the driver to support my
+webcam. It's working!! I'm sending an image attached. :]
 
-1st tuning attempt
+I'll clean up my code now, and submit a patch later. Help is
+appreciated, because I don't have much experience contributing to
+large projects...
 
-tda18271: R_EP1 is 0x00
-cal is not initialized (cal_initialized=true)...
-tda18271: performing RF tracking filter calibration
-tda18271: RF tracking filter calibration complete (0x00)
-tda18271: R_EP1 is 0x00
-cal is not initialized (cal_initialized=true)...
-tda18271: performing RF tracking filter calibration
-tda18271: RF tracking filter calibration complete (0x00)
+This webcam is a very cheap one, quite easy to find these days. I
+hope the support will be appreciated by many users.
 
-2nd tuning attempt
 
-tda18271: R_EP1 is 0x00
-cal is not initialized (cal_initialized=true)...
-tda18271: performing RF tracking filter calibration
-tda18271: RF tracking filter calibration complete (0x00)
-tda18271: R_EP1 is 0x00
-cal is not initialized (cal_initialized=true)...
-tda18271: performing RF tracking filter calibration
-tda18271: RF tracking filter calibration complete (0x00)
-
-I'll try tweaking the GPIO reset mask and whatnot, definitely does seem like something's getting reset that shouldn't, because you can clearly see that cal *was* initialized, then R_EP1 got zeroed out.
-
-> It happened at every tuning operation, and made mythfrontend unhappy
-> (unable to tune after the first channel). I disabled the check for
-> RF_CAL_OK which triggered the recalibration, and mythfrontend worked.
-
-Yeah, tuning is much quicker here if I skip that check as well, but its definitely not the proper fix.
-
-> The stick has been plugged in for a few months, so presumably would've
-> caught on fire by now if it was going to. It would be nice if the
-> tuning delay went away, though.. it still takes ~6 seconds to switch
-> frequencies.
-
-Wait, it still takes that long with the check gone? I didn't poke for very long with the check disabled, mostly focusing on trying to figure out why things are going haywire.
-
-> I have not yet compiled and tested the lastest patches from Jarod.
-
-Really shouldn't be any difference from what you've got, they're just rebased to the latest v4l-dvb tree.
-
--- 
-Jarod Wilson
-jarod@wilsonet.com
+See you,
+   ++nicolau
 
 
 
+
+On Fri, Nov 13, 2009 at 03:35:26PM -0500, leandro Costantino wrote:
+> Hi Nicolau,
+> Are you able to give me some usb traces?
+> there's a little how to
+> http://deaglecito.blogspot.com/2008/10/new-sensor-merge-faq-tascorp-17a10=
+128.html
+> here.
+>=20
+> I don't have too much time now, but i can take a look and made some
+> changes to test and guide you.
+>=20
+> Best Regards
+> Costantino Leandro
+>=20
+> On Fri, Nov 13, 2009 at 3:27 PM, Nicolau Werneck <nwerneck@gmail.com> wro=
+te:
+> > On Fri, Nov 13, 2009 at 09:04:23PM +0100, Erik Andr=E9n wrote:
+> >> 2009/11/13 Nicolau Werneck <nwerneck@gmail.com>:
+> >> > Hello.
+> >> >
+> >> > I bought me a new webcam. lsusb said me it was a 17a1:0128 device, f=
+or
+> >> > which the gspca_t613 module is available. But it did not recognize t=
+he
+> >> > sensor number, 0x0802.
+> >> >
+> >> > I fiddled with the driver source code, and just made it recognize it
+> >> > as a 0x0803 sensor, called "others" in the code, and I did get images
+> >> > from the camera. But the colors are extremely wrong, like the contra=
+st
+> >> > was set to a very high number. It's probably some soft of color
+> >> > encoding gone wrong...
+> >> >
+> >> > How can I start hacking this driver to try to make my camera work
+> >> > under Linux?
+> >> >
+> >>
+> >> If possible you could open the camera to investigate if there is
+> >> anything printed on the sensor chip. This might give you a clue to
+> >> what sensor it is.
+> >
+> > Thanks for redirecting me.
+> >
+> > I opened it (So much for the warranty seal...), but there is just
+> > huge black blob of goo over the chip, as usual these days.
+> >
+> > ++nicolau
+> >
+> > --
+> > Nicolau Werneck <nwerneck@gmail.com> =A0 =A0 =A0 =A0 =A01AAB 4050 1999 =
+BDFF 4862
+> > http://www.lti.pcs.usp.br/~nwerneck =A0 =A0 =A0 =A0 =A0 4A33 D2B5 648B =
+4789 0327
+> > Linux user #460716
+> >
+> >
+> > -----BEGIN PGP SIGNATURE-----
+> > Version: GnuPG v1.4.9 (GNU/Linux)
+> >
+> > iEYEARECAAYFAkr9wUIACgkQ0rVki0eJAycSegCfRQyYN54CNH2thIo/PHBnVaL9
+> > avAAoMe6ihIbvX23kM1ir2sJK32q6jxm
+> > =3DHI4V
+> > -----END PGP SIGNATURE-----
+> >
+> >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--=20
+Nicolau Werneck <nwerneck@gmail.com>          1AAB 4050 1999 BDFF 4862
+http://www.lti.pcs.usp.br/~nwerneck           4A33 D2B5 648B 4789 0327
+Linux user #460716
+
+
+--EVF5PPMfhYS0aIcm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAksDCmgACgkQ0rVki0eJAyfs3QCeJz8skhHixReBoIShZeRiKafv
+IQ0AoIi24OnTEPe77UUhw8U6RztAMsjO
+=5NY4
+-----END PGP SIGNATURE-----
+
+--EVF5PPMfhYS0aIcm--
