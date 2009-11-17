@@ -1,100 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2209 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753015AbZK1TsL (ORCPT
+Received: from gv-out-0910.google.com ([216.239.58.191]:6429 "EHLO
+	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751629AbZKQOoP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Nov 2009 14:48:11 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id nASJmGD3012493
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 28 Nov 2009 20:48:16 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 28 Nov 2009 20:48:16 +0100 (CET)
-Message-Id: <200911281948.nASJmGD3012493@smtp-vbr6.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: WARNINGS
+	Tue, 17 Nov 2009 09:44:15 -0500
+Received: by gv-out-0910.google.com with SMTP id r4so13894gve.37
+        for <linux-media@vger.kernel.org>; Tue, 17 Nov 2009 06:44:20 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <C5BCB298-B166-4F9D-998C-EE58C5AF8B78@wilsonet.com>
+References: <15cfa2a50910071839j58026d10we2ccbaeb26527abc@mail.gmail.com>
+	 <0C6DEB14-B32A-4A20-B569-16B2A028CE25@wilsonet.com>
+	 <15cfa2a50910091827l449f0fb0t2974219b6ea76608@mail.gmail.com>
+	 <4B00D91B.1000906@wilsonet.com> <4B00DB5B.10109@wilsonet.com>
+	 <409C0215-68B1-4F90-A8E0-EBAF4F02AC1A@wilsonet.com>
+	 <4B023AC9.8080403@linuxtv.org>
+	 <15cfa2a50911162203w1ad1584bhfdbe0213421abd6a@mail.gmail.com>
+	 <C5BCB298-B166-4F9D-998C-EE58C5AF8B78@wilsonet.com>
+Date: Tue, 17 Nov 2009 09:44:19 -0500
+Message-ID: <15cfa2a50911170644h15680f08hc2ae695ac4deb5ae@mail.gmail.com>
+Subject: Re: KWorld UB435-Q Support
+From: Robert Cicconetti <grythumn@gmail.com>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-media@vger.kernel.org,
+	Douglas Schilling Landgraf <dougsland@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Tue, Nov 17, 2009 at 9:15 AM, Jarod Wilson <jarod@wilsonet.com> wrote:
+>> It happened at every tuning operation, and made mythfrontend unhappy
+>> (unable to tune after the first channel). I disabled the check for
+>> RF_CAL_OK which triggered the recalibration, and mythfrontend worked.
+>
+> Yeah, tuning is much quicker here if I skip that check as well, but its definitely not the proper fix.
+>
+>> The stick has been plugged in for a few months, so presumably would've
+>> caught on fire by now if it was going to. It would be nice if the
+>> tuning delay went away, though.. it still takes ~6 seconds to switch
+>> frequencies.
+>
+> Wait, it still takes that long with the check gone? I didn't poke for very long with the check disabled, mostly focusing on trying to figure out why things are going haywire.
 
-Results of the daily build of v4l-dvb:
+Okay.. couple of unscientific tests later show I was wrong above:
+First tuning, ~5-6 seconds to lock.
+Later tunings, ~3 seconds to lock.
 
-date:        Sat Nov 28 19:00:06 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13536:9c38704cfd56
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+This is with my hack to remove the recalibrations.
 
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-rc8-armv5: OK
-linux-2.6.32-rc8-armv5-davinci: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.32-rc8-armv5-ixp: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.32-rc8-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: OK
-linux-2.6.31-i686: OK
-linux-2.6.32-rc8-i686: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-rc8-m32r: OK
-linux-2.6.30-mips: OK
-linux-2.6.31-mips: OK
-linux-2.6.32-rc8-mips: OK
-linux-2.6.30-powerpc64: OK
-linux-2.6.31-powerpc64: OK
-linux-2.6.32-rc8-powerpc64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: OK
-linux-2.6.31-x86_64: OK
-linux-2.6.32-rc8-x86_64: OK
-spec: OK
-sparse (linux-2.6.31): ERRORS
-sparse (linux-2.6.32-rc8): ERRORS
-linux-2.6.16.61-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-Bob
