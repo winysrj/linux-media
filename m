@@ -1,109 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out13.alice.it ([85.33.2.18]:3147 "EHLO
-	smtp-out13.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750880AbZKJMtc (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:49150 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757291AbZKRPwu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Nov 2009 07:49:32 -0500
-Date: Tue, 10 Nov 2009 13:48:37 +0100
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: Eric Miao <eric.y.miao@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org,
-	openezx-devel@lists.openezx.org, Bart Visscher <bartv@thisnet.nl>,
-	linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 1/3] ezx: Add camera support for A780 and A910 EZX
- phones
-Message-Id: <20091110134837.207bb92a.ospite@studenti.unina.it>
-In-Reply-To: <f17812d70911032238i3ae6fa19g24720662b9079f24@mail.gmail.com>
-References: <1257266734-28673-1-git-send-email-ospite@studenti.unina.it>
-	<1257266734-28673-2-git-send-email-ospite@studenti.unina.it>
-	<f17812d70911032238i3ae6fa19g24720662b9079f24@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Tue__10_Nov_2009_13_48_37_+0100_IkvK5DuMu0Z7RAQ8"
+	Wed, 18 Nov 2009 10:52:50 -0500
+From: hvaibhav@ti.com
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, m-karicheri2@ti.com,
+	Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH V2] VPFE Capture: Add call back function for interrupt clear to vpfe_cfg
+Date: Wed, 18 Nov 2009 21:22:49 +0530
+Message-Id: <1258559569-1056-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Signature=_Tue__10_Nov_2009_13_48_37_+0100_IkvK5DuMu0Z7RAQ8
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-On Wed, 4 Nov 2009 14:38:40 +0800
-Eric Miao <eric.y.miao@gmail.com> wrote:
+For the devices like AM3517, it is expected that driver clears the
+interrupt in ISR. Since this is device spcific, callback function
+added to the platform_data.
 
-> Hi Antonio,
->=20
-> Patch looks generally OK except for the MFP/GPIO usage...
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ drivers/media/video/davinci/vpfe_capture.c |   24 ++++++++++++++++++++----
+ include/media/davinci/vpfe_capture.h       |    2 ++
+ 2 files changed, 22 insertions(+), 4 deletions(-)
 
-Eric,
+diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
+index 9b6b254..46e2939 100644
+--- a/drivers/media/video/davinci/vpfe_capture.c
++++ b/drivers/media/video/davinci/vpfe_capture.c
+@@ -563,6 +563,11 @@ static int vpfe_initialize_device(struct vpfe_device *vpfe_dev)
+ 	ret = ccdc_dev->hw_ops.open(vpfe_dev->pdev);
+ 	if (!ret)
+ 		vpfe_dev->initialized = 1;
++
++	/* Clear all VPFE/CCDC interrupts */
++	if (vpfe_dev->cfg->clr_intr)
++		vpfe_dev->cfg->clr_intr(-1);
++
+ unlock:
+ 	mutex_unlock(&ccdc_lock);
+ 	return ret;
+@@ -664,7 +669,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
 
-while I was at it I also checked the original code Motorola released.
+ 	/* if streaming not started, don't do anything */
+ 	if (!vpfe_dev->started)
+-		return IRQ_HANDLED;
++		goto clear_intr;
 
-It has:
-     PGSR(GPIO_CAM_EN) |=3D GPIO_bit(GPIO_CAM_EN);
-     PGSR(GPIO_CAM_RST)|=3D GPIO_bit(GPIO_CAM_RST);
+ 	/* only for 6446 this will be applicable */
+ 	if (NULL != ccdc_dev->hw_ops.reset)
+@@ -676,7 +681,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
+ 			"frame format is progressive...\n");
+ 		if (vpfe_dev->cur_frm != vpfe_dev->next_frm)
+ 			vpfe_process_buffer_complete(vpfe_dev);
+-		return IRQ_HANDLED;
++		goto clear_intr;
+ 	}
 
-After checking PXA manual and arch/arm/mach-pxa/mfp-pxa2xx.c,
-I'd translate this to:
+ 	/* interlaced or TB capture check which field we are in hardware */
+@@ -703,7 +708,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
+ 			if (field == V4L2_FIELD_SEQ_TB)
+ 				vpfe_schedule_bottom_field(vpfe_dev);
 
-diff --git a/arch/arm/mach-pxa/ezx.c b/arch/arm/mach-pxa/ezx.c
-index 77286a2..6a47a9d 100644
---- a/arch/arm/mach-pxa/ezx.c
-+++ b/arch/arm/mach-pxa/ezx.c
-@@ -281,8 +281,8 @@ static unsigned long gen1_pin_config[] __initdata =3D {
-        GPIO94_CIF_DD_5,
-        GPIO17_CIF_DD_6,
-        GPIO108_CIF_DD_7,
--       GPIO50_GPIO,                            /* CAM_EN */
--       GPIO19_GPIO,                            /* CAM_RST */
-+       GPIO50_GPIO | MFP_LPM_DRIVE_HIGH,       /* CAM_EN */
-+       GPIO19_GPIO | MFP_LPM_DRIVE_HIGH,       /* CAM_RST */
+-			return IRQ_HANDLED;
++			goto clear_intr;
+ 		}
+ 		/*
+ 		 * if one field is just being captured configure
+@@ -723,6 +728,10 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
+ 		 */
+ 		vpfe_dev->field_id = fid;
+ 	}
++clear_intr:
++	if (vpfe_dev->cfg->clr_intr)
++		vpfe_dev->cfg->clr_intr(irq);
++
+ 	return IRQ_HANDLED;
+ }
 
-        /* EMU */
-        GPIO120_GPIO,                           /* EMU_MUX1 */
-@@ -338,8 +338,8 @@ static unsigned long gen2_pin_config[] __initdata =3D {
-        GPIO48_CIF_DD_5,
-        GPIO93_CIF_DD_6,
-        GPIO12_CIF_DD_7,
--       GPIO50_GPIO,                            /* CAM_EN */
--       GPIO28_GPIO,                            /* CAM_RST */
-+       GPIO50_GPIO | MFP_LPM_DRIVE_HIGH,       /* CAM_EN */
-+       GPIO28_GPIO | MFP_LPM_DRIVE_HIGH,       /* CAM_RST */
-        GPIO17_GPIO,                            /* CAM_FLASH */
- };
- #endif
+@@ -734,8 +743,11 @@ static irqreturn_t vdint1_isr(int irq, void *dev_id)
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "\nInside vdint1_isr...\n");
 
+ 	/* if streaming not started, don't do anything */
+-	if (!vpfe_dev->started)
++	if (!vpfe_dev->started) {
++		if (vpfe_dev->cfg->clr_intr)
++			vpfe_dev->cfg->clr_intr(irq);
+ 		return IRQ_HANDLED;
++	}
 
-Is that right?
-I am putting also this into the next version I am going to send for
-submission, if you don't object.
+ 	spin_lock(&vpfe_dev->dma_queue_lock);
+ 	if ((vpfe_dev->fmt.fmt.pix.field == V4L2_FIELD_NONE) &&
+@@ -743,6 +755,10 @@ static irqreturn_t vdint1_isr(int irq, void *dev_id)
+ 	    vpfe_dev->cur_frm == vpfe_dev->next_frm)
+ 		vpfe_schedule_next_buffer(vpfe_dev);
+ 	spin_unlock(&vpfe_dev->dma_queue_lock);
++
++	if (vpfe_dev->cfg->clr_intr)
++		vpfe_dev->cfg->clr_intr(irq);
++
+ 	return IRQ_HANDLED;
+ }
 
-Thanks,
-   Antonio
+diff --git a/include/media/davinci/vpfe_capture.h b/include/media/davinci/vpfe_capture.h
+index fc83d98..5a21265 100644
+--- a/include/media/davinci/vpfe_capture.h
++++ b/include/media/davinci/vpfe_capture.h
+@@ -104,6 +104,8 @@ struct vpfe_config {
+ 	char *ccdc;
+ 	/* setup function for the input path */
+ 	int (*setup_input)(enum vpfe_subdev_id id);
++	/* Function for Clearing the interrupt */
++	void (*clr_intr)(int vdint);
+ 	/* number of clocks */
+ 	int num_clocks;
+ 	/* clocks used for vpfe capture */
+--
+1.6.2.4
 
---=20
-Antonio Ospite
-http://ao2.it
-
-PGP public key ID: 0x4553B001
-
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
-A: Top-posting.
-Q: What is the most annoying thing in e-mail?
-
---Signature=_Tue__10_Nov_2009_13_48_37_+0100_IkvK5DuMu0Z7RAQ8
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEARECAAYFAkr5YSUACgkQ5xr2akVTsAFWJwCfTvAyQfMpCR0+m3qiLjIyLQTe
-UXgAn3O22pauc+JMBJiygEAu64x3WU+t
-=4sHx
------END PGP SIGNATURE-----
-
---Signature=_Tue__10_Nov_2009_13_48_37_+0100_IkvK5DuMu0Z7RAQ8--
