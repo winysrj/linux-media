@@ -1,109 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:47223 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751593AbZKXBuY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2009 20:50:24 -0500
-Subject: Re: cx18: Reprise of YUV frame alignment improvements
-From: Andy Walls <awalls@radix.net>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
-In-Reply-To: <829197380911230909u27f6df33icbbc52c5268a1658@mail.gmail.com>
-References: <1257913905.28958.32.camel@palomino.walls.org>
-	 <829197380911221904uedc18e5qbc9a37cfcee23b5d@mail.gmail.com>
-	 <1258978370.3058.25.camel@palomino.walls.org>
-	 <829197380911230909u27f6df33icbbc52c5268a1658@mail.gmail.com>
-Content-Type: text/plain
-Date: Mon, 23 Nov 2009 20:49:06 -0500
-Message-Id: <1259027346.3871.76.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from perceval.irobotique.be ([92.243.18.41]:52686 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756682AbZKRAiv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Nov 2009 19:38:51 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, mchehab@infradead.org,
+	sakari.ailus@maxwell.research.nokia.com
+Subject: v4l: Remove video_device::num usage from device drivers
+Date: Wed, 18 Nov 2009 01:38:44 +0100
+Message-Id: <1258504731-8430-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1258504731-8430-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1258504731-8430-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2009-11-23 at 12:09 -0500, Devin Heitmueller wrote:
-> On Mon, Nov 23, 2009 at 7:12 AM, Andy Walls <awalls@radix.net> wrote:
-> > 5. If you don't give an MDL back to the firmware, it never uses it
-> > again.  That's why you see the sweep-up log messages.  As soon as an MDL
-> > is skipped *on the order of the depth* of q_busy times, when looking for
-> > the currently DMA_DONE'd MDL, that skipped MDL must have been dropped.
-> > It is picked up and put back into rotation then.
-> 
-> Perhaps I am misinterpreting the definition of "sweep-up" in this
-> context.  Don't the buffers get forcefully returned to the pool at
-> that point?  
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-You've got it right.
-
-
-> If so, why would I see the same error over and over long
-> after the CPU utilization has dropped back to a reasonable level.
-> 
-> I feel like I must be missing something here.
-> 
-> 1.  CPU load goes up (ok)
-> 2.  Packets start to get dropped (expected)
-> 3.  CPU load goes back down (ok)
-> 4.  Packets continue to get dropped and never recycled, even after
-> minutes of virtually no CPU load?
-> 
-> I can totally appreciate the notion that the video would look choppy
-> when the system is otherwise under high load, but my expectation would
-> be that once the load drops back to 0, the video should look fine
-> (perhaps with some small window of time where it is still recovering).
-
-
-OK the messages are coming from the sweep up implementation, let's
-assume it's not working right (which is reasonable to me).
-
-The sweep up algorithm relies on an assumption.
-
-Assumption: The firmware uses MDL on a FIFO basis based on the order in
-which we submitted the MDLs to the firmware.  Thus, the order of MDLs in
-the q_busy linked list should match how the firmware returns them.
-
-Given that the decision to perform sweep up is based on the absolute
-current depth of q_busy (was the buffer skipped q_busy.depth - 1 times
-or more?), it turns out that
-
-a. For large numbers of MDLs on q_busy, the assumption needs to only be
-approximately true.
-
-b. For very small numbers of MDLs on q_busy (i.e. 2), the assumption
-needs to be strictly true or errant sweep-ups happen.
-
-So I suspect for the case of the CX23418 firmware only having 1 MDL and
-use giving it another MDL, the CX23418 might use the one we just gave it
-first - violating the assumption amd causing errant sweep ups.
-
-
-The fix is simple: don't sweep up a skipped buffer that meets the
-current 
-
-	skipped > = (q_busy.depth -1)
-
-criteria in the case of
-
-	q_full.depth > q_free.depth + qbusy.depth
-
-Which says if we've got a lot of MDLs tied up waiting for the
-application to read them, don't both sweeping up potentially lost
-buffers until the q_busy.depth increases.  Since "lost" MDLs stay on
-q_busy and are counted in q_busy.depth, this will always end up
-returning MDLs to the firmware as the application reads data and returns
-MDLs.
-
-
-
-Of course that's all speculation about the problem.  If you could
-reproduce the condition and then
-
-# echo 271 > /sys/modules/cx18/parameters/debug
-
-to record the sequence of CX18_DE_SET_MDLs and DMA_DONE sequence numbers
-for the YUIV stream, it might provide conifrmation of what is going on.
-271 is high volume messages for info, warning, mailbox, and dma debug
-messages.  It will write a lot to your logs.
-
-Regards,
-Andy
-
+Index: v4l-dvb-mc-uvc/linux/drivers/media/video/vivi.c
+===================================================================
+--- v4l-dvb-mc-uvc.orig/linux/drivers/media/video/vivi.c
++++ v4l-dvb-mc-uvc/linux/drivers/media/video/vivi.c
+@@ -1376,9 +1376,6 @@ static int __init vivi_create_instance(i
+ 	/* Now that everything is fine, let's add it to device list */
+ 	list_add_tail(&dev->vivi_devlist, &vivi_devlist);
+ 
+-	snprintf(vfd->name, sizeof(vfd->name), "%s (%i)",
+-			vivi_template.name, vfd->num);
+-
+ 	if (video_nr >= 0)
+ 		video_nr++;
+ 
+Index: v4l-dvb-mc-uvc/linux/drivers/media/video/w9968cf.c
+===================================================================
+--- v4l-dvb-mc-uvc.orig/linux/drivers/media/video/w9968cf.c
++++ v4l-dvb-mc-uvc/linux/drivers/media/video/w9968cf.c
+@@ -2891,8 +2891,7 @@ static long w9968cf_v4l_ioctl(struct fil
+ 			.minwidth = cam->minwidth,
+ 			.minheight = cam->minheight,
+ 		};
+-		sprintf(cap.name, "W996[87]CF USB Camera #%d",
+-			cam->v4ldev->num);
++		sprintf(cap.name, "W996[87]CF USB Camera");
+ 		cap.maxwidth = (cam->upscaling && w9968cf_vpp)
+ 			       ? max((u16)W9968CF_MAX_WIDTH, cam->maxwidth)
+ 				 : cam->maxwidth;
+Index: v4l-dvb-mc-uvc/linux/drivers/media/video/usbvision/usbvision-i2c.c
+===================================================================
+--- v4l-dvb-mc-uvc.orig/linux/drivers/media/video/usbvision/usbvision-i2c.c
++++ v4l-dvb-mc-uvc/linux/drivers/media/video/usbvision/usbvision-i2c.c
+@@ -219,8 +219,8 @@ int usbvision_i2c_register(struct usb_us
+ 	memcpy(&usbvision->i2c_adap, &i2c_adap_template,
+ 	       sizeof(struct i2c_adapter));
+ 
+-	sprintf(usbvision->i2c_adap.name + strlen(usbvision->i2c_adap.name),
+-		" #%d", usbvision->vdev->num);
++	sprintf(usbvision->i2c_adap.name, "%s-%d-%s", i2c_adap_template.name,
++		usbvision->dev->bus->busnum, usbvision->dev->devpath);
+ 	PDEBUG(DBG_I2C,"Adaptername: %s", usbvision->i2c_adap.name);
+ 	usbvision->i2c_adap.dev.parent = &usbvision->dev->dev;
+ 
