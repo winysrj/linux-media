@@ -1,55 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:14463 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752187AbZK3UnU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Nov 2009 15:43:20 -0500
-Message-ID: <4B142E2C.1020108@redhat.com>
-Date: Mon, 30 Nov 2009 18:42:20 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from einhorn.in-berlin.de ([192.109.42.8]:35613 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932552AbZKRTBY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Nov 2009 14:01:24 -0500
+Date: Wed, 18 Nov 2009 20:01:14 +0100 (CET)
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: [PATCH 2/6] firedtv: packet requeuing is likely to succeed
+To: linux-media@vger.kernel.org
+cc: linux1394-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
+In-Reply-To: <tkrat.7dc1f889fd1b69ad@s5r6.in-berlin.de>
+Message-ID: <tkrat.f550f773f3d1da7d@s5r6.in-berlin.de>
+References: <tkrat.7dc1f889fd1b69ad@s5r6.in-berlin.de>
 MIME-Version: 1.0
-To: "OrazioPirataDelloSpazio (Lorenzo)" <ziducaixao@autistici.org>
-CC: linux-media@vger.kernel.org
-Subject: Re: DIY Satellite Web Radio
-References: <4B14195D.6000205@autistici.org>
-In-Reply-To: <4B14195D.6000205@autistici.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; CHARSET=us-ascii
+Content-Disposition: INLINE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 30-11-2009 17:13, OrazioPirataDelloSpazio (Lorenzo) escreveu:
-> Hi all,
-> I'm not a DVB expert but I'm wondering if this idea is feasible:
-> For an "amateur" web radio, for what I know, it is really hard to
-> being listened in cars, like people do with commercial satellite radio
-> [1] . Basically this is unaffortable for private user and this is
-> probably the most relevant factor that penalize web radios againt
-> terrestrial one.
-> 
-> My question is: is there any way to use the current, cheap, satellite
-> internet connections to stream some data above all the coverage of a geo
-> satellite? and make the receiver handy (so without any dishes) ?
+Packet DMA buffers are queued either initially all at once (then, a
+queueing failure will cause firedtv to release the DMA context as a
+whole) or subsequently one by one as they recycled after use (then a
+failure is extremely unlikely).  Therefore we can be a little less
+cautious when counting at which packet buffer to set the interrupt flag.
 
-Receiving sat signals without dishes? From some trials we had on a telco
-I used to work, You would need to use a network of low-orbit satellites,
-carefully choosing the better frequencies and it will provide you
-low bandwidth.
+Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+---
+ drivers/media/dvb/firewire/firedtv-fw.c |   13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-This will likely cost a lot of money, if you find someone providing a
-service like that. One trial for such network were the Iridum
-project. AFAIK, the original company bankrupted due to the very high costs of
-launching and managing about a hundred satellite network.
+Index: linux-2.6.32-rc7/drivers/media/dvb/firewire/firedtv-fw.c
+===================================================================
+--- linux-2.6.32-rc7.orig/drivers/media/dvb/firewire/firedtv-fw.c
++++ linux-2.6.32-rc7/drivers/media/dvb/firewire/firedtv-fw.c
+@@ -79,19 +79,14 @@ struct firedtv_receive_context {
+ static int queue_iso(struct firedtv_receive_context *ctx, int index)
+ {
+ 	struct fw_iso_packet p;
+-	int err;
+ 
+ 	p.payload_length = MAX_PACKET_SIZE;
+-	p.interrupt = !(ctx->interrupt_packet & (IRQ_INTERVAL - 1));
++	p.interrupt = !(++ctx->interrupt_packet & (IRQ_INTERVAL - 1));
+ 	p.skip = 0;
+ 	p.header_length = ISO_HEADER_SIZE;
+ 
+-	err = fw_iso_context_queue(ctx->context, &p, &ctx->buffer,
+-				   index * MAX_PACKET_SIZE);
+-	if (!err)
+-		ctx->interrupt_packet++;
+-
+-	return err;
++	return fw_iso_context_queue(ctx->context, &p, &ctx->buffer,
++				    index * MAX_PACKET_SIZE);
+ }
+ 
+ static void handle_iso(struct fw_iso_context *context, u32 cycle,
+@@ -150,7 +145,7 @@ static int start_iso(struct firedtv *fdt
+ 	if (err)
+ 		goto fail_context_destroy;
+ 
+-	ctx->interrupt_packet = 1;
++	ctx->interrupt_packet = 0;
+ 	ctx->current_packet = 0;
+ 
+ 	for (i = 0; i < N_PAGES; i++)
 
-I'm not tracking such things nowadays, but I won't doubt that you would
-find someone providing this kind of services. I think the telephones that
-are onboard of some flight companies use a satellite service like that.
+-- 
+Stefan Richter
+-=====-==--= =-== =--=-
+http://arcgraph.de/sr/
 
-> Probably by introducing some _very_ redundant code inside the stream
-> that we upload through the modem and that the satellite will stream from
-> the sky, we can get some S/N db. The patch to do at the receiver is just
-> software or maybe hardware?
-
-You'll likely need to design an special hardware for such usage.
-
-Cheers,
-Mauro.
