@@ -1,34 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gv-out-0910.google.com ([216.239.58.191]:6247 "EHLO
-	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759352AbZKFPzE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Nov 2009 10:55:04 -0500
-Received: by gv-out-0910.google.com with SMTP id r4so173046gve.37
-        for <linux-media@vger.kernel.org>; Fri, 06 Nov 2009 07:55:09 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <7fedbc910911060752y215adeccm6dc4d35131c62746@mail.gmail.com>
-References: <7fedbc910911060752y215adeccm6dc4d35131c62746@mail.gmail.com>
-Date: Fri, 6 Nov 2009 16:55:08 +0100
-Message-ID: <c4e36d110911060755rb4303f7pe5f91b5988e9d101@mail.gmail.com>
-Subject: Re: [linux-dvb] Dual tuner DVB-T card on Linux
-From: Zdenek Kabelac <zdenek.kabelac@gmail.com>
+Received: from einhorn.in-berlin.de ([192.109.42.8]:35601 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758311AbZKRTAc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Nov 2009 14:00:32 -0500
+Date: Wed, 18 Nov 2009 20:00:18 +0100 (CET)
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: [PATCH 0/6] DVB: firedtv: simplifications and a portability fix
 To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-Content-Type: text/plain; charset=ISO-8859-1
+cc: linux1394-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
+Message-ID: <tkrat.7dc1f889fd1b69ad@s5r6.in-berlin.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; CHARSET=us-ascii
+Content-Disposition: INLINE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/11/6 shacky <shacky83@gmail.com>:
-> Hi.
->
-> Could you help me to find any DVB-T dual input/tuner card that work
-> with Linux without problems?
-> I need to record two programs in the same time with MythTV..
+The following three patches are applicable after "firedtv: port to new
+firewire core" from 2009-11-08:
 
+[PATCH 1/6] firedtv: shrink buffer pointer table
+[PATCH 2/6] firedtv: packet requeuing is likely to succeed
+[PATCH 3/6] firedtv: remove an unnecessary function argument
 
-WinNova Hauppage
-You could have either PCI or USB version.
+The rest of this patch set additionally requires the latest firedtv as
+of 2.6.32-rc7:
 
-Work relatively well - open source drivers are easy to fix in case of problems.
+[PATCH 4/6] firedtv: do not DMA-map stack addresses
+[PATCH 5/6] firedtv: remove check for interrupting signal
+[PATCH 6/6] firedtv: reduce memset()s
 
-Zdenek
+ drivers/media/dvb/firewire/firedtv-1394.c |   13
+ drivers/media/dvb/firewire/firedtv-avc.c  |  520 +++++++++++-----------
+ drivers/media/dvb/firewire/firedtv-dvb.c  |    1
+ drivers/media/dvb/firewire/firedtv-fw.c   |   39 -
+ drivers/media/dvb/firewire/firedtv.h      |    8
+ 5 files changed, 306 insertions(+), 275 deletions(-)
+-- 
+Stefan Richter
+-=====-==--= =-== =--=-
+http://arcgraph.de/sr/
+
