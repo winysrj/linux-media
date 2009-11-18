@@ -1,132 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.viadmin.org ([195.145.128.101]:47956 "EHLO www.viadmin.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752346AbZKMQI5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Nov 2009 11:08:57 -0500
-Date: Fri, 13 Nov 2009 17:08:50 +0100
-From: "H. Langos" <henrik-dvb@prak.org>
-To: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Organizing ALL device data in linuxtv wiki
-Message-ID: <20091113160850.GY31295@www.viadmin.org>
-References: <20091112173130.GV31295@www.viadmin.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20091112173130.GV31295@www.viadmin.org>
+Received: from perceval.irobotique.be ([92.243.18.41]:52679 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756670AbZKRAit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Nov 2009 19:38:49 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, mchehab@infradead.org,
+	sakari.ailus@maxwell.research.nokia.com
+Subject: [PATCH/RFC] V4L core cleanups
+Date: Wed, 18 Nov 2009 01:38:41 +0100
+Message-Id: <1258504731-8430-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Devin,
+Hi everybody,
 
-I'm sorry. I just realized that I was only subscribed to linux-dvb but 
-not to linux-media. I fixed that now but my reply to your emails will 
-not have the correct In-Reply-To/References headers.
+this patch sets attemp to clean up the V4L core to remove the
+video_device::minor and video_device::num references in most drivers.
 
-> I have to wonder if maybe we are simply using the wrong tool for the
-> job.  Perhaps it would make sense to make a really simple web frontend
-> to a simple database for devices.  At least initially it would only
-> really need two tables.  Something along the lines of the following
-...
-> A simple db frontend like the above would allow users to search on
-> most of the relevant properties they care about (seeing all devices by
-> a single manufacturer, looking up devices by USB ID or PCI ID, looking
-> for devices that support a certain standard, etc)
+There are two reasons for this. The first one is that drivers really
+shouldn't care about those fields, especially the minor number. This
+doesn't mean a driver can't request a specific device number, that
+remains a perfectly valid use case, but most use cases of those fields
+after device registration shouldn't be needed.
 
-I've spent some time discussing the pro and contra of an external database
-versus a wiki based approach with some of the other wiki admins:
-http://www.linuxtv.org/wiki/index.php/User_talk:Hlangos#Further_ramblings...
+The second reason is that most drivers use those fields in bogus ways,
+making it obvious they shouldn't have cared about them in the first
+place :-) We've had a video_drvdata function for a long time, but many
+drivers still have their own private minor -> data mapping lists for
+historical reasons. That code is error prone and completely unneeded.
 
-The most important point there I guess is, that writing a database app is
-a piece of cake and a rather nice way of brushing up on one's SQL foo, 
-but keeping it structure-wise updated for years to come is hard and 
-boring work.
+So this patch sets tries to clean up the V4L core by porting drivers to
+the most "recent" APIs (which are actually quite old) and introducing a
+new helper function.
 
-Also you have to keep in mind that your database app would need to have
-at leasts: revision control, undo, user administration.
-I'll not go into details but opening such an application to the public 
-would need a good amount of hard work and not to forget, security reviews.
-Stuff that the wiki already has, and (most important) somebody else is
-doing that boring maintenance work so that we can concentrate on the 
-content. 
+The first two patches add and use the video_device_node_name function.
+The function returns a const pointer to the video device name. On
+systems using udev, the name is passed as a hint to udev and will likely
+become the /dev device node name, unless overwritten by udev rules (I've
+heard that some distributions put the V4L device nodes in /dev/v4l).
+Some drivers erroneously created the name from the video_device::minor
+field instead of video_device::num, which is fixed by the second patch.
 
-(I know that user administration could be "borrowed" from the mediawiki
-but interfacing those applications will mean that you have to keep updating
-your code as the mediawiki code evolves.)
+This is an example video_device_node_name usage typical from what can be
+found in the second patch.
 
-> I feel like the freeform nature of wikis just lends to the information
-> not being in a structured manner
+-       printk(KERN_INFO "bttv%d: registered device radio%d\n",
+-              btv->c.nr, btv->radio_dev->num);
++       printk(KERN_INFO "bttv%d: registered device %s\n",
++              btv->c.nr, video_device_node_name(btv->radio_dev));
 
-True, true.
+The third patch removes left video_device::num usage from the drivers.
+The field was used to create information strings that shouldn't include
+the device node name (such as video_device::name) or that should be
+created using a stable identifier (such as i2c_adapter::name).
 
-> I don't doubt that a wiki can be mangled to do something like this, 
+The fourth, fifth and sixth patches replace video_is_unregistered with
+video_is_registered and use the new function in device drivers. As
+explained in the fourth patch commit message, the rationale behind that
+is to have video_is_registered return false when called on an
+initialized but not yet registered video_device instance. The function
+can be used instead of checking video_device::minor manually, making it
+less error-prone as drivers don't need to make sure they
+video_device::minor to -1 correctly for all error paths.
 
-Well. I had some doubts in the begining. :-)
+A typical use case is
 
-> but a real database seems like such a cleaner alternative.
+-       if (-1 != dev->radio_dev->minor)
++       if (video_is_registered(dev->radio_dev))
+                video_unregister_device(dev->radio_dev);
+        else
+                video_device_release(dev->radio_dev);
 
-Cleaner, yes. But I'd rather have it dirty and full of information
-than clean, static and empty. (Oh no .. there comes the bazaar 
-and cathedral metaphor again ... :-) )
+The seventh patch replace local minor to data lists by video_drvdata().
+The function has been there for a long time but wasn't used by many
+drivers, probably because they were written before it was available, or,
+for some of them, because they were written based on drivers that were
+not using it. This patch removes lots of identical unneeded code blocks,
+making the result less bug-prone.
 
-The device data is structure wise rather heterogenious. So a relational
-database might not be a very efficient way of capturing it.
-In my eyes a more valid contendor to the wiki approach would be something
-with a document oriented database like couchdb. But still you'd have
-to do write all the boring infrastructure stuff like user administration,
-history, undo...
+The eight patch removes now unneeded video_device::minor assignments to
+-1, as the previous patches made them unneeded.
 
-TWiki has the ability to rather nicely blend structured data with 
-unstructured wiki articles. But I thought it more prudent to get 
-something done with the tools at hand than spend still more time 
-looking for the perfect tool ;-)
+The last patch removes a few more video_device::minor users. As
+explained in the patch description, the field was used either to
 
-> Just a quick afterthought - bear in mind the schema I proposed is
-> something I only spent about two minutes on.  It would almost
-> certainly need some more tweaking/cleanup etc.  It meant to
-> communicate a concept, so don't get too tied up in the details of the
-> exact implementation.
+- test for error conditions that can't happen anymore with the current
+  v4l-dvb core,
+- store the value in a driver private field that isn't used anymore,
+- check the video device type where video_device::vfl_type should be
+  used, or
+- create the name of a kernel thread that should get a stable name.
 
+There are still two video_device::num users and those can easily be
+removed. Hans Verkuil is working on a patch, as one of the drivers is
+the ivtv driver and the other one is based on the same code.
 
-Jim has collected the attributes he deems important here:
-http://www.linuxtv.org/wiki/index.php/User:Jimbley#Semantics
+There are also still a few video_device::minor users. One of them is
+the pvrusb2 driver that creates sysfs attributes storing the minor
+numbers of the device nodes created by the driver. I'm not sure what to
+do about that one. All the others are V4L1 drivers that need the minor
+number for the VIDIOCGUNIT ioctl. Hopefully that will die when the
+drivers will be ported to V4L2 :-)
 
-Howeever I see some problems with the envisioned level of detail 
-regarding linux support when scaled to hundrets of devices:
-http://www.linuxtv.org/wiki/index.php/User_talk:Jimbley#Device_Database
+I've split the patches into core and device patches to make them easier
+to apply on my work trees. I'll merge the core and device code together
+when submitting a pull request to avoid bisection errors.
 
-We also had a discussion about the different users and the level of
-detail they'd need:
-http://www.linuxtv.org/wiki/index.php/User_talk:CityK#Help_with_wiki_integration
+I'll send a pull request after receiving (and incorporating) your
+comments, or in a few days if there's no comments.
 
+Regards,
 
-Two more things:
-
-1.) The wiki approach allows for different "databases" to be maintained
-separately (by different people) and still have results shown in one 
-resulting table.
-
-This could be useful for Vendor pages (listing all devices by that vendor
-independent of the boradcasting standard) or for a broadcasting
-standard page that lists all e.g. ATSC devices regardless of wether they
-have a USB or PCI interface. The only implication of splitting the 
-databases is that you need to add one line in your "querry" for each 
-database.
-
-
-2.) Different devices (regardless of wether they are in the same
-"database" or in different ones) can have different sets of attributes.
-
-If you feel that ATSC device should have separate attributes for 
-"8VSB" and "QAM" you just simply add those attributes to your
-devices and write a table template that will display those 
-attributes (and ignore things like "firmware" or "url")
-
-The only attributes I'd like to have in all devices are "vendor",
-"device" and "did" (Device ID).
-
--henrik
-
-PS: As you see from the number of links to widely different pages, 
-a wiki is NOT a good solution for discussions. Just to avoid the 
-impression that wiki's are my "new hammer". :-)
+Laurent Pinchart
 
