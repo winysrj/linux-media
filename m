@@ -1,82 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:59059 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754597AbZKMRod (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2479 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754582AbZKRTXc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Nov 2009 12:44:33 -0500
-Message-ID: <4AFD9AE9.3090007@maxwell.research.nokia.com>
-Date: Fri, 13 Nov 2009 19:44:09 +0200
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+	Wed, 18 Nov 2009 14:23:32 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Subject: Re: [PATCH v2] V4L - Adding Digital Video Timings APIs
+Date: Wed, 18 Nov 2009 20:23:33 +0100
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+References: <1258563824-1310-1-git-send-email-m-karicheri2@ti.com> <200911181908.51793.hverkuil@xs4all.nl> <A69FA2915331DC488A831521EAE36FE401559C6120@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE401559C6120@dlee06.ent.ti.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	"Ivan T. Ivanov" <iivanov@mm-sol.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Zutshi Vimarsh (Nokia-D-MSW/Helsinki)" <vimarsh.zutshi@nokia.com>,
-	Cohen David Abraham <david.cohen@nokia.com>,
-	Guru Raj <gururaj.nagendra@intel.com>,
-	Mike Krufky <mkrufky@linuxtv.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	"Kost Stefan (Nokia-M/Helsinki)" <Stefan.Kost@nokia.com>
-Subject: Re: [RFC] Video events, version 2.2
-References: <4AE182DD.6060103@maxwell.research.nokia.com>	<200911110819.59521.hverkuil@xs4all.nl>	<4AFAF490.6090507@maxwell.research.nokia.com>	<200911111859.09500.hverkuil@xs4all.nl> <20091113132947.0d307bfd@pedra.chehab.org>
-In-Reply-To: <20091113132947.0d307bfd@pedra.chehab.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_1mEBLJ3v4P+9b4Y"
+Message-Id: <200911182023.34005.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
-[clip]
->>>> Hi Sakari,
->>>>
->>>> What is that status of the event API? It is my impression that it is pretty
->>>> much finished. Sakari, can you make a final 2.3 RFC? Then Guru can take over
->>>> and start the implementation.
->>> Ah.
->>>
->>> One thing that I was still wondering was that are there use cases where 
->>> other kind of time stamps might be useful? I guess that when the V4L2 
->>> was designed no-one though of the need for time stamps of different 
->>> type. So are there use cases where gettimeofday() style stamps would 
->>> still be better?
->> If you ever need to relate an event to a specific captured frame, then that
->> might well be useful. But I can't think of an actual use case, though.
->>
->>> In that case we might choose to leave it driver's decision to decide 
->>> what kind of timestamps to use and in that case application would just 
->>> have to know. The alternative would be to use union and a flag telling 
->>> what's in there.
->>>
->> Let's go with timespec. If we need to add an event that has to relate to
->> a specific captured frame then it is always possible to add a struct timeval
->> as part of the event data for that particular event.
+--Boundary-00=_1mEBLJ3v4P+9b4Y
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+On Wednesday 18 November 2009 20:01:43 Karicheri, Muralidharan wrote:
+> Hans,
 > 
-> I don't agree. It is better to use the same timestamp type used by the streaming
-> interface. Having two different ways to represent it for the same devices is
-> confusing, and changing it later doesn't make sense. I foresee some cases where
-> correlating the two timestamps would be a need.
+> Thanks for reviewing this. I will try to send an updated patch today.
+> 
+> BTW, I have posted the documentation patch to the list for review.
 
-timespec style timestamps are superior in video encoding, for example. 
-timeval is wall clock time which is unsuitable for video encoding due to 
-clock slewing and daylight saving time.
+I did some quick 64-bit tests and discovered that we need to add the packed
+attribute to struct v4l2_bt_timings and struct v4l2_dv_timings in order to
+prevent nasty 32-bit to 64-bit conversions in v4l2-compat-ioctl32.c.
 
-ALSA and Gstreamer use monotonic clock (someone correct me if I'm 
-wrong!, cc Stefan Kost) which is more usable for multimedia 
-applications. The rate for gettimeofday() clock is different than 
-clock_getres(CLOCK_MONOTONIC) which in practice means that the process 
-acquiring the video buffers must call clock_getres() after VIDIOC_DQBUF 
-to properly timestamp the buffers. This kind of timestamping, however, 
-depends on the process' ability to run immediately.
+See below:
 
-I wouldn't want to carry this kind of problems on to the event interface.
+> >> +/*
+> >> + *  D V     B T     T I M I N G S
+> >> + */
+> >> +
+> >> +/* BT.656/BT.1120 timing data */
+> >> +struct v4l2_bt_timings {
+> >> +    __u32   width;          /* width in pixels */
+> >> +    __u32   height;         /* height in lines */
+> >> +    __u32   interlaced;     /* Interlaced or progressive */
+> >> +    __u32   polarities;     /* Positive or negative polarity */
+> >> +    __u64   pixelclock;     /* Pixel clock in HZ. Ex. 74.25MHz->74250000 */
+> >> +    __u32   hfrontporch;    /* Horizpontal front porch in pixels */
+> >> +    __u32   hsync;          /* Horizontal Sync length in pixels */
+> >> +    __u32   hbackporch;     /* Horizontal back porch in pixels */
+> >> +    __u32   vfrontporch;    /* Vertical front porch in pixels */
+> >> +    __u32   vsync;          /* Vertical Sync length in lines */
+> >> +    __u32   vbackporch;     /* Vertical back porch in lines */
+> >> +    __u32   il_vfrontporch; /* Vertical front porch for bottom field of
+> >> +                             * interlaced field formats
+> >> +                             */
+> >> +    __u32   il_vsync;       /* Vertical sync length for bottom field of
+> >> +                             * interlaced field formats
+> >> +                             */
+> >> +    __u32   il_vbackporch;  /* Vertical back porch for bottom field of
+> >> +                             * interlaced field formats
+> >> +                             */
+> >> +    __u32   reserved[16];
+> >> +};
 
-One possibility would be also to create events when new video buffers 
-become available. Then both the event and the corresponding video buffer 
-would be available, having the same field_count. Perhaps not pretty but 
-would well make it possible to compare the timestamps.
+End with:
+
+} __attribute__ ((packed));
+
+> >> +
+> >> +/* Interlaced or progressive format */
+> >> +#define     V4L2_DV_PROGRESSIVE     0
+> >> +#define     V4L2_DV_INTERLACED      1
+> >> +
+> >> +/* Polarities. If bit is not set, it is assumed to be negative polarity
+> >*/
+> >> +#define V4L2_DV_VSYNC_POS_POL       0x00000001
+> >> +#define V4L2_DV_HSYNC_POS_POL       0x00000002
+> >> +
+> >> +/* BT.656/1120 timing type */
+> >> +enum v4l2_dv_timings_type {
+> >> +    V4L2_DV_BT_656_1120,
+> >> +};
+> >
+> >I forgot something: we shouldn't use enums as that can give problems on
+> >some
+> >architectures (ARM being one of them, I believe). So this should become a
+> >define and the type field below a __u32.
+> >
+> >> +
+> >> +/* DV timings */
+> >> +struct v4l2_dv_timings {
+> >> +    enum v4l2_dv_timings_type type;
+> >> +    union {
+> >> +            struct v4l2_bt_timings  bt;
+> >> +            __u32   reserved[32];
+> >> +    };
+> >> +};
+
+Ditto.
+
+I also attached a small diff for the v4l2-apps/test/ioctl-test.c source which
+I used to test this.
+
+The patch is Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+
+You can include this when you post the v4l2-apps patches.
+
+Regards,
+
+	Hans
 
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+
+--Boundary-00=_1mEBLJ3v4P+9b4Y
+Content-Type: text/x-diff;
+  charset="iso-8859-15";
+  name="ioctl.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="ioctl.diff"
+
+diff -r 19ac1f4cde54 v4l2-apps/test/ioctl-test.c
+--- a/v4l2-apps/test/ioctl-test.c	Tue Nov 17 20:30:42 2009 -0200
++++ b/v4l2-apps/test/ioctl-test.c	Wed Nov 18 19:30:38 2009 +0100
+@@ -91,6 +91,8 @@
+ 	struct v4l2_dbg_register p_v4l2_dbg_register;
+ 	struct v4l2_dbg_chip_ident p_v4l2_dbg_chip_ident;
+ 	struct v4l2_hw_freq_seek p_v4l2_hw_freq_seek;
++	struct v4l2_dv_preset p_v4l2_dv_preset;
++	struct v4l2_dv_timings p_v4l2_dv_timings;
+ };
+ 
+ #define ioc(cmd) { cmd, #cmd }
+@@ -197,6 +199,12 @@
+ 	ioc(VIDIOC_DBG_G_REGISTER),	/* struct v4l2_register */
+ 	ioc(VIDIOC_DBG_G_CHIP_IDENT),	/* struct v4l2_dbg_chip_ident */
+ 	ioc(VIDIOC_S_HW_FREQ_SEEK),	/* struct v4l2_hw_freq_seek */
++	ioc(VIDIOC_ENUM_DV_PRESETS),	/* struct v4l2_dv_enum_preset */
++	ioc(VIDIOC_S_DV_PRESET),	/* struct v4l2_dv_preset */
++	ioc(VIDIOC_G_DV_PRESET),	/* struct v4l2_dv_preset */
++	ioc(VIDIOC_QUERY_DV_PRESET),	/* struct v4l2_dv_preset */
++	ioc(VIDIOC_S_DV_TIMINGS),	/* struct v4l2_dv_timings */
++	ioc(VIDIOC_G_DV_TIMINGS),	/* struct v4l2_dv_timings */
+ #ifdef __OLD_VIDIOC_
+ 	ioc(VIDIOC_OVERLAY_OLD),	/* int */
+ 	ioc(VIDIOC_S_PARM_OLD),		/* struct v4l2_streamparm */
+
+--Boundary-00=_1mEBLJ3v4P+9b4Y--
