@@ -1,120 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.navvo.net ([74.208.67.6]:39189 "EHLO mail.navvo.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752569AbZKZUEb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 15:04:31 -0500
-From: santiago.nunez@ridgerun.com
-To: davinci-linux-open-source@linux.davincidsp.com
-Cc: linux-media@vger.kernel.org, nsnehaprabha@ti.com,
-	m-karicheri2@ti.com, diego.dompe@ridgerun.com,
-	todd.fischer@ridgerun.com, mgrosen@ti.com,
-	Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-Date: Thu, 26 Nov 2009 14:04:48 -0600
-Message-Id: <1259265888-550-1-git-send-email-santiago.nunez@ridgerun.com>
-Subject: [PATCH 4/4 v9] Menu support for TVP7002 in DM365
+Received: from smtp-out113.alice.it ([85.37.17.113]:1499 "EHLO
+	smtp-out113.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757679AbZKRRCv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Nov 2009 12:02:51 -0500
+Date: Wed, 18 Nov 2009 18:02:16 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Eric Miao <eric.y.miao@gmail.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Mike Rapoport <mike@compulab.co.il>,
+	Juergen Beisert <j.beisert@pengutronix.de>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: Re: [PATCH 1/3] em-x270: don't use pxa_camera init() callback
+Message-Id: <20091118180216.7d769c3e.ospite@studenti.unina.it>
+In-Reply-To: <Pine.LNX.4.64.0911181107540.5702@axis700.grange>
+References: <1258495463-26029-1-git-send-email-ospite@studenti.unina.it>
+	<1258495463-26029-2-git-send-email-ospite@studenti.unina.it>
+	<Pine.LNX.4.64.0911181107540.5702@axis700.grange>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Wed__18_Nov_2009_18_02_16_+0100_EjxAmkot05ieymnl"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+--Signature=_Wed__18_Nov_2009_18_02_16_+0100_EjxAmkot05ieymnl
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This patch provides menu configuration options for the TVP7002
-decoder driver in DM365.
+On Wed, 18 Nov 2009 11:10:06 +0100 (CET)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
 
-Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
----
- drivers/media/video/Kconfig  |   41 +++++++++++++++++++++++++++++++++++++++++
- drivers/media/video/Makefile |    3 +++
- 2 files changed, 44 insertions(+), 0 deletions(-)
+> On Tue, 17 Nov 2009, Antonio Ospite wrote:
+>=20
+> > pxa_camera init() is going to be removed.
+>=20
+> My nitpick here would be - I would put it the other way round. We do not=
+=20
+> remove .init() in platforms, because it is going to be removed, but rathe=
+r=20
+> we perform initialisation statically, because we think this is better so,=
+=20
+> and then .init becomes useless and gets removed.
+>=20
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index e6186b3..de3328b 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -392,6 +392,15 @@ config VIDEO_TVP5150
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called tvp5150.
- 
-+config VIDEO_TVP7002
-+	tristate "Texas Instruments TVP7002 video decoder"
-+	depends on VIDEO_V4L2 && I2C
-+	---help---
-+	  Support for the Texas Instruments TVP7002 video decoder.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called tvp7002.
-+
- config VIDEO_VPX3220
- 	tristate "vpx3220a, vpx3216b & vpx3214c video decoders"
- 	depends on VIDEO_V4L2 && I2C
-@@ -466,6 +475,29 @@ config VIDEO_THS7303
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called ths7303.
- 
-+config VIDEO_THS7353
-+	tristate "THS7353 Video Amplifier"
-+	depends on I2C
-+	help
-+	  Support for TI THS7353 video amplifier
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called ths7353.
-+
-+config VIDEO_THS7353_LUMA_CHANNEL
-+	int "THS7353 channel number for Luma Input"
-+	default 3
-+	depends on VIDEO_THS7353
-+	help
-+	  Select the luma channel number for the THS7353 input.
-+
-+	  THS7353 has three identical channels. For the component
-+	  interface, luma input will be connected to one of these
-+	  channels and cb and cr will be connected to other channels
-+	  This config option is used to select the luma input channel
-+	  number. Possible values for this option are 1,2 or 3. Any
-+	  other value will result in value 2.
-+
- config VIDEO_ADV7343
- 	tristate "ADV7343 video encoder"
- 	depends on I2C
-@@ -475,6 +507,15 @@ config VIDEO_ADV7343
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called adv7343.
- 
-+config VIDEO_THS8200
-+	tristate "THS8200 video encoder"
-+	depends on I2C
-+	help
-+	  Support for Analog Devices I2C bus based THS8200 encoder.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called ths8200.
-+
- comment "Video improvement chips"
- 
- config VIDEO_UPD64031A
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index e541932..5327ff4 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -47,15 +47,18 @@ obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
- obj-$(CONFIG_VIDEO_ADV7175) += adv7175.o
- obj-$(CONFIG_VIDEO_ADV7180) += adv7180.o
- obj-$(CONFIG_VIDEO_ADV7343) += adv7343.o
-+obj-$(CONFIG_VIDEO_THS8200) += ths8200.o
- obj-$(CONFIG_VIDEO_VPX3220) += vpx3220.o
- obj-$(CONFIG_VIDEO_BT819) += bt819.o
- obj-$(CONFIG_VIDEO_BT856) += bt856.o
- obj-$(CONFIG_VIDEO_BT866) += bt866.o
- obj-$(CONFIG_VIDEO_KS0127) += ks0127.o
- obj-$(CONFIG_VIDEO_THS7303) += ths7303.o
-+obj-$(CONFIG_VIDEO_THS7353) += ths7353.o
- obj-$(CONFIG_VIDEO_VINO) += indycam.o
- obj-$(CONFIG_VIDEO_TVP5150) += tvp5150.o
- obj-$(CONFIG_VIDEO_TVP514X) += tvp514x.o
-+obj-$(CONFIG_VIDEO_TVP7002) += tvp7002.o
- obj-$(CONFIG_VIDEO_MSP3400) += msp3400.o
- obj-$(CONFIG_VIDEO_CS5345) += cs5345.o
- obj-$(CONFIG_VIDEO_CS53L32A) += cs53l32a.o
--- 
-1.6.0.4
+TBH, I am persuaded that the current use of init() is ambiguous /per se/
+and so we'd just better not use it at all. If static initialization for
+sensor GPIOs is better, well I just trust you on that.
+However, the point here is not about static/dynamic initialization, it
+is more about pxa_camera init() used one time to configure MFP pins, and
+another time to request resources for the *sensor*, and in both cases
+(mis)used as it was going to be called at _module_init_ time only, which
+it wasn't.
 
+So, can you see why I consider these changes (patches 1 and 2) as
+merely functional to the removal of init() from pxa_camera?
+
+Anyhow, if you don't like references to a future change without an
+explanation I can arrange something in commit messages for the first
+two patches :)
+
+Regards,
+   Antonio
+
+--=20
+Antonio Ospite
+http://ao2.it
+
+PGP public key ID: 0x4553B001
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing in e-mail?
+
+--Signature=_Wed__18_Nov_2009_18_02_16_+0100_EjxAmkot05ieymnl
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAksEKJgACgkQ5xr2akVTsAHlUwCgghkEfmE7sLxHRsZG28RQaSFg
+ZREAoIm7KYFgWeinY5X0PfOIQsSV/qmj
+=OkgW
+-----END PGP SIGNATURE-----
+
+--Signature=_Wed__18_Nov_2009_18_02_16_+0100_EjxAmkot05ieymnl--
