@@ -1,90 +1,236 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:34215 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751031AbZKIMA4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Nov 2009 07:00:56 -0500
-Subject: Re: [PATCH 29/75] cx18: declare MODULE_FIRMWARE
-From: Andy Walls <awalls@radix.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Ben Hutchings <ben@decadent.org.uk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media <linux-media@vger.kernel.org>
-In-Reply-To: <200911091106.38894.hverkuil@xs4all.nl>
-References: <1257630681.15927.423.camel@localhost>
-	 <1257645238.15927.624.camel@localhost>
-	 <1257646136.7399.18.camel@palomino.walls.org>
-	 <200911091106.38894.hverkuil@xs4all.nl>
-Content-Type: text/plain
-Date: Mon, 09 Nov 2009 07:03:02 -0500
-Message-Id: <1257768182.3851.31.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from qw-out-2122.google.com ([74.125.92.26]:47704 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752386AbZKRPfu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Nov 2009 10:35:50 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so277756qwe.37
+        for <linux-media@vger.kernel.org>; Wed, 18 Nov 2009 07:35:56 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4B03FEFC.4@infradead.org>
+References: <20091022211330.6e84c6e7@hyperion.delvare>
+	 <20091023051025.597c05f4@caramujo.chehab.org>
+	 <1a297b360910221329o4b832f4ewaee08872120bfea0@mail.gmail.com>
+	 <4B02FDA4.5030508@infradead.org>
+	 <829197380911171155j36ba858ejfca9e4c36689ab62@mail.gmail.com>
+	 <4B032973.60002@infradead.org>
+	 <829197380911180132j619a5a02gead3f3f91e68f524@mail.gmail.com>
+	 <4B03FEFC.4@infradead.org>
+Date: Wed, 18 Nov 2009 10:35:55 -0500
+Message-ID: <829197380911180735n358eb6cq547f57a787369e45@mail.gmail.com>
+Subject: Re: Details about DVB frontend API
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Manu Abraham <abraham.manu@gmail.com>,
+	Jean Delvare <khali@linux-fr.org>,
+	LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2009-11-09 at 11:06 +0100, Hans Verkuil wrote:
-> On Sunday 08 November 2009 03:08:56 Andy Walls wrote:
-> > On Sun, 2009-11-08 at 01:53 +0000, Ben Hutchings wrote:
-> > > On Sat, 2009-11-07 at 20:40 -0500, Andy Walls wrote:
-> > > > On Sat, 2009-11-07 at 21:51 +0000, Ben Hutchings wrote:
-> > 
-> > > > >  
-> > > > > +MODULE_FIRMWARE("dvb-cx18-mpc718-mt352.fw");
-> > > > > +
-> > > > 
-> > > > Ben,
-> > > > 
-> > > > This particular firmware is only needed by one relatively rare TV card.
-> > > > Is there any way for MODULE_FIRMWARE advertisements to hint at
-> > > > "mandatory" vs. "particular case(s)"?
-> > > 
-> > > No, but perhaps there ought to be.  In this case the declaration could
-> > > be left out for now.  It is only critical to list all firmware in
-> > > drivers that may be needed for booting.
-> > 
-> > OK.  I don't know that a TV card driver is every *needed* for booting.
-> > Maybe one day when I can net-boot with cable-modem like
-> > functionality... ;)
-> > 
-> > 
-> > I'm OK with the MODULE_FIRMWARE announcements in cx18 so long as
-> > automatic behaviors like
-> > 
-> > 1. persistent, repeatitive, or truly alarming user warnings, or
-> > 2. refusing to load the module due to missing firmware files
-> > 
-> > don't happen.
-> 
-> I agree with Andy here.
-> 
-> In the case of ivtv and cx18 (unless that changed since the last time I worked
-> on it) the cx firmware is actually not loaded when the module is inited but on
-> the first open() call. So it is not even that clear to me whether we want to
-> have these fairly large fw files in an initramfs image at all.
-> 
+On Wed, Nov 18, 2009 at 9:04 AM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> Devin Heitmueller wrote:
+>> On Tue, Nov 17, 2009 at 5:53 PM, Mauro Carvalho Chehab
+>> <mchehab@infradead.org> wrote:
+>>> We shouldn't write API's thinking on some specific use case or aplication.
+>>> If there's a problem with zap, the fix should be there, not at the kernel.
+>>
+>> Your response suggests I must have poorly described the problem.  Zap
+>> is just one example where having an "inconsistent" view of the various
+>> performance counters is easily visible.  If you're trying to write
+>> something like an application to control antenna orientation, the fact
+>> that you cannot ask for a single view of all counters can be a real
+>> problem.  Having to make separate ioctl calls for each field can cause
+>> real problems here.
+>>
+>> I disagree strongly with your assertion that we should not considering
+>> specific use cases when writing an API.
+>
+> That's not what I've said (or maybe I haven't said it clear enough).
+> I'm saying that we shouldn't look for one particular use case only.
+> In other words, the API should cover all use cases that makes sense.
+>
+>>In this case, Manu's
+>> approach provides the ability to get a single consistent view of all
+>> the counters (for those drivers which can support it)
+>
+> No. To get all counters, you'll need to call 3 ioctls. The status were
+> grouped around 3 groups of counters on his proposal. I'm sure Manu has some
+> explanation why he thinks that 3 is better then 2 or 4 calls, but the point
+> is: should we really group them on a fixed way?
+>
+> Btw, by using S2API, we'll break it into different commands. Yet, we can
+> call all of them at once, if needed, as the API defines it as:
+>
+> struct dtv_property {
+>        __u32 cmd;
+>        __u32 reserved[3];
+>        union {
+>                __u32 data;
+>                struct {
+>                        __u8 data[32];
+>                        __u32 len;
+>                        __u32 reserved1[3];
+>                        void *reserved2;
+>                } buffer;
+>        } u;
+>        int result;
+> } __attribute__ ((packed));
+>
+> struct dtv_properties {
+>        __u32 num;
+>        struct dtv_property *props;
+> };
+>
+> #define FE_SET_PROPERTY            _IOW('o', 82, struct dtv_properties)
+> #define FE_GET_PROPERTY            _IOR('o', 83, struct dtv_properties)
+>
+> So, all needed commands can be grouped together to provide an atomic read.
+>
+>>> Also, the above mentioned problem can happen even if there's just one API
+>>> call from userspace to kernel or if the driver needs to do separate,
+>>> serialized calls to firmware (or a serialized calculus) to get the
+>>> three measures.
+>>
+>> True, the accuracy in which a given driver can provide accurate data
+>> is tied to the quality of the hardware implementation.  However, for
+>> well engineered hardware, Manu's proposed API affords the ability to
+>> accurately report a consistent view of the information.  The existing
+>> implementation restricts all drivers to working as well as the
+>> worst-case hardware implementation.
+>
+> Imagining that some application will need to retrieve all quality indicators
+> at the same time, as they were grouped into 3 groups, even on a perfect
+> hardware, you won't be able to get all of them at the sime time,
+> since you'll need to call 3 ioctls.
+>
+>>>> For what it's worth, we have solved this problem in hwmon driver the
+>>>> following way: we cache related values (read from the same register or
+>>>> set of registers) for ~1 second. When user-space requests the
+>>>> information, if the cache is fresh it is used, otherwise the cache is
+>>>> first refreshed. That way we ensure that data returned to nearby
+>>>> user-space calls are taken from the same original register value. One
+>>>> advantage is that we thus did not have to map the API to the hardware
+>>>> register constraints and thus have the guarantee that all hardware
+>>>> designs fit.
+>>>>
+>>>> I don't know if a similar logic would help for DVB.
+>>> This could be an alternative, if implemented at the right way. However,
+>>> I suspect that it would be better to do such things at libdvb.
+>>>
+>>> For example, caching measures for 1 second may be too much, if userspace is
+>>> doing a scan, while, when streaming, this timeout can be fine.
+>>
+>> Jean's caching approach for hwmon is fine for something like the
+>> chassis temperature, which doesn't change that rapidly.  However, it's
+>> probably not appropriate for things like SNR and strength counters,
+>> where near real-time feedback can be useful in things like controlling
+>> a rotor.
+>
+> I agree.
+>
+> Yet, you won't have this feedback in real-time, since calculating
+> QoS indicators require some time. So, after moving the rotor, you'll need
+> to wait for some time, in order to allow the frontend to recalculate the
+> QoS after the movement. There's a problem here, not addressed by none of
+> the proposals: when the QoS indicators will reflect the rotor movement?
+>
+> If you just read the QoS indicator in a register, you're likely getting a
+> cached value from the last time the hardware did the calculus.
+>
+> So, if you really need to know the QoS value after changing the antenna
+> position, you'll need to wait for some time before reading the QoS.
+>
+> This time will likely depend on how the frontend chip QoS logic is
+> implemented internally. Also, some indicators are dependent of the bit rate
+> (like frame error counters).
+>
+> Imagining the best case where the developer knows how to estimate this time,
+> we would need a way to report this time to userspace or to generate an event
+> after having the measure done.
+>
+>> One more point worth noting - the approach of returning all the
+>> counters in one ioctl can actually be cheaper in terms of the number
+>> of register read operations.  I've seen a number of drivers where we
+>> hit the same register three or four times, since all of various fields
+>> are based on the same register.  Having a single call actually allows
+>> all the duplicate register reads to be eliminated in those cases, the
+>> driver reads the register once and then populates all the fields in
+>> one shot based on the result.
+>
+> True.
+>
+>> I was actually against Manu's proposal the last time it was put out
+>> there, as I felt just normalizing the existing API would be *good
+>> enough* for the vast majority of applications.  However, if we have
+>> decided to give up on the existing API entirely and write a whole new
+>> API, we might as well do it right this time and build an API that
+>> satisfies all the people who plan to make use of it.
+>
+> In general, I don't like to deprecate userspace API's. This means too much
+> work for kernel and for userspace developers.
+>
+> However, in this specific case, there are several cons against
+> normalizing the existing API is that:
+>
+>        1) We will never know the scale used by some drivers. So, on some
+> drivers, it will keep representing data at some arbitrary scale;
+>
+>        2) Reverse-engineered drivers will never have a proper scale, as
+> the developer has no way to check for sure what scale is reported by the
+> device;
+>
+>        3) Existing applications might break, since we'll change the
+>           scale of existing drivers;
+>
+>        4) There are no way for applications written after the change to
+>           check if that driver is providing the value at the proposed scale;
+>
+> The beauty of Manu's approach is that it supports all devices, even those
+> were we'll never know what scale is used. So, all 4 cons are solved by
+> creating a new API.
+>
+> However, as-is, it has some drawbacks:
+>
+>        1) arbitrary groups of QoS measures;
+>        2) structs are fixed. So, if changes would be needed later, or if more
+>           QoS indicators would be needed, we'll have troubles.
+>        3) due to (2), it is not future-proof, since it may need to be deprecated
+>           if more QoS indicators would need to be added to a certain QoS group.
+>
+> However, if we port his proposal to S2API approach, we'll have a future-proof
+> approach, as adding more QoS is as simple as creating another S2API command.
+>
+> Cheers,
+> Mauro.
 
-I've been thinking about this all a bit more since I read Mauro's
-comment.
+Two other points we should definitely consider in defining this API:
 
-MODULE_FIRMWARE() is essentially turning kernel driver modules into an
-interactive, read-only, database for (a particular set of ?) end users.
+1.  We should provide some example raw values for different modulation
+schemes, as well for the different scales and quality types.  This
+will help application developers who may not have access to signals
+for testing because of geography and want some confidence it will
+still work.  It will also allow people adding support for new
+demodulators to have some reference values that their new drivers
+should be similar to.  I know I've had situations where I was adding a
+new demod driver and wondered, "what should the values look like?".  I
+think this also explains one reason we ended up with different
+standards, since people likely copied the behavior of whatever other
+device they happen to have that already worked.
 
-The process of keeping MODULE_FIRMWARE declarations up to date will run
-into all the incentive, governance, and maintenance problems that any
-database has.  Due to lack incentive structure, one will end up with
-missing data at any point in time, as the current patch series points
-out.
+2.  We should define the various possible error codes that can occur.
+For example, in the DVBv3 API, demods are supposed to return ENOSIGNAL
+when they are unable to provide an accurate reading (for example, many
+demods cannot provide SNR data when there is no signal lock).  The API
+should be explicit and we should be make sure that new drivers
+conform.  For example, patches that have stub implementations for the
+SNR and strength callbacks which just return zero should be rejected
+and the submitter should fix the implementation to return ENOSYS.
 
-It may be better to keep tabs on module firmware image names with a
-database outside of the kernel *.[ch] files.  It could be a simple as a
-text file somewhere.  I suspect it would have just as likely a chance or
-better of being up to date at any point in time.  That would also be a
-bit more flexible.  One could add additional fields to the records for
-amplifying information (e.g required, optional, card xyz) without
-perturbing a slew of kernel *.[ch] files.
+Devin
 
-My $0.02.
-
-Regards,
-Andy
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
