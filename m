@@ -1,84 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2105 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752206AbZKRHG1 (ORCPT
+Received: from mail-fx0-f221.google.com ([209.85.220.221]:59176 "EHLO
+	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754289AbZKRJz2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 02:06:27 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: v4l: Add video_device_node_name function
-Date: Wed, 18 Nov 2009 08:06:22 +0100
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1258504731-8430-1-git-send-email-laurent.pinchart@ideasonboard.com> <1258504731-8430-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1258504731-8430-2-git-send-email-laurent.pinchart@ideasonboard.com>
+	Wed, 18 Nov 2009 04:55:28 -0500
+Received: by fxm21 with SMTP id 21so950672fxm.21
+        for <linux-media@vger.kernel.org>; Wed, 18 Nov 2009 01:55:33 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200911180806.22428.hverkuil@xs4all.nl>
+In-Reply-To: <200911181042.40579.laurent.pinchart@ideasonboard.com>
+References: <1258504731-8430-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	 <829197380911180056i5102b87bw2926a7b38608570d@mail.gmail.com>
+	 <4c8e56e69e0b1619dd4e5c32d45b8374.squirrel@webmail.xs4all.nl>
+	 <200911181042.40579.laurent.pinchart@ideasonboard.com>
+Date: Wed, 18 Nov 2009 04:55:32 -0500
+Message-ID: <829197380911180155s65b66353t6b6094cca5a95192@mail.gmail.com>
+Subject: Re: v4l: Use the video_drvdata function in drivers
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	mchehab@infradead.org, sakari.ailus@maxwell.research.nokia.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 18 November 2009 01:38:42 Laurent Pinchart wrote:
-> Many drivers access the device number (video_device::v4l2_devnode::num)
-> in order to print the video device node name. Add and use a helper
-> function to retrieve the video_device node name.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+On Wed, Nov 18, 2009 at 4:42 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> I will setup a test tree to help maintainers test the changes. I can split
+> some patches if needed, but how would that help exactly ?
 
-Can you also add a bit of documentation for this function in
-Documentation/video4linux/v4l2-framework.txt? It should go in the section
-"video_device helper functions".
+Hello Laurent,
 
-And update that file as well when the num and minor fields go away.
+In this case, splitting up the patch would just make it easier to
+review, and potentially to check in changes for specific bridges as
+they are validated (as opposed to all at once).  However, even just
+having all your changes in a tree that can be checked out and tested
+by users is probably "good enough" and would still provide
+considerable value.
 
-The same is also true for the new registration function.
+Cheers,
 
-Thanks,
-
-	Hans
-
-> 
-> Index: v4l-dvb-mc-uvc/linux/drivers/media/video/v4l2-dev.c
-> ===================================================================
-> --- v4l-dvb-mc-uvc.orig/linux/drivers/media/video/v4l2-dev.c
-> +++ v4l-dvb-mc-uvc/linux/drivers/media/video/v4l2-dev.c
-> @@ -619,8 +619,8 @@ static int __video_register_device(struc
->  	vdev->dev.release = v4l2_device_release;
->  
->  	if (nr != -1 && nr != vdev->num && warn_if_nr_in_use)
-> -		printk(KERN_WARNING "%s: requested %s%d, got %s%d\n",
-> -				__func__, name_base, nr, name_base, vdev->num);
-> +		printk(KERN_WARNING "%s: requested %s%d, got %s\n", __func__,
-> +			name_base, nr, video_device_node_name(vdev));
->  
->  	/* Part 5: Activate this minor. The char device can now be used. */
->  	mutex_lock(&videodev_lock);
-> Index: v4l-dvb-mc-uvc/linux/include/media/v4l2-dev.h
-> ===================================================================
-> --- v4l-dvb-mc-uvc.orig/linux/include/media/v4l2-dev.h
-> +++ v4l-dvb-mc-uvc/linux/include/media/v4l2-dev.h
-> @@ -153,6 +153,15 @@ static inline void *video_drvdata(struct
->  	return video_get_drvdata(video_devdata(file));
->  }
->  
-> +static inline const char *video_device_node_name(struct video_device *vdev)
-> +{
-> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 19)
-> +	return vdev->dev.class_id;
-> +#else
-> +	return dev_name(&vdev->dev);
-> +#endif
-> +}
-> +
->  static inline int video_is_unregistered(struct video_device *vdev)
->  {
->  	return test_bit(V4L2_FL_UNREGISTERED, &vdev->flags);
-> 
-
-
+Devin
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
