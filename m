@@ -1,91 +1,334 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp01.udag.de ([89.31.137.29]:57771 "EHLO smtp01.udag.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751167AbZKIWPY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Nov 2009 17:15:24 -0500
-Received: from localhost (oceanix.udag.de [89.31.137.27])
-	by smtp01.udag.de (Postfix) with ESMTP id 34D829C44F
-	for <linux-media@vger.kernel.org>; Mon,  9 Nov 2009 22:56:12 +0100 (CET)
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="ISO-8859-1"
-MIME-Version: 1.0
-From: "Sven Tischer" <Sven@tischers.net>
+Received: from mailout1.samsung.com ([203.254.224.24]:44911 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752206AbZKRGVZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Nov 2009 01:21:25 -0500
+Received: from epmmp1 (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0KTA006Y2KBT99@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 18 Nov 2009 15:21:30 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0KTA00M6LKBTS8@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 18 Nov 2009 15:21:29 +0900 (KST)
+Date: Wed, 18 Nov 2009 15:21:30 +0900
+From: Joonyoung Shim <jy0922.shim@samsung.com>
+Subject: [PATCH 2/3] radio-si470x: move some file operations to common file
 To: linux-media@vger.kernel.org
-Subject: Problems with Terratec Hybrid USB XS
-Message-Id: <20091109215613.34D829C44F@smtp01.udag.de>
-Date: Mon,  9 Nov 2009 22:56:12 +0100 (CET)
+Cc: tobias.lorenz@gmx.net, mchehab@infradead.org,
+	kyungmin.park@samsung.com
+Message-id: <4B03926A.6030401@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The read and poll file operations of the si470x usb driver can be used
+also equally on the si470x i2c driver, so they go to the common file.
 
-Hello,
-i get this message while connecting my terratec Hybrid USB XS to Ubuntu 9.10
+Signed-off-by: Joonyoung Shim <jy0922.shim@samsung.com>
+---
+ drivers/media/radio/si470x/radio-si470x-common.c |   98 ++++++++++++++++++++++
+ drivers/media/radio/si470x/radio-si470x-i2c.c    |   15 +---
+ drivers/media/radio/si470x/radio-si470x-usb.c    |   97 +---------------------
+ drivers/media/radio/si470x/radio-si470x.h        |    3 +-
+ 4 files changed, 104 insertions(+), 109 deletions(-)
 
-[    7.561527] usb 1-8: new high speed USB device using ehci_hcd and address 5
-[    7.712973] usb 1-8: configuration #1 chosen from 1 choice
-[    7.906708] em28xx: New device TerraTec Electronic GmbH Cinergy Hybrid T USB XS (2882) @ 480 Mbps (0ccd:005e, interface 0, class 0)
-[    7.906904] em28xx #0: chip ID is em2882/em2883
-[    7.968084] usb 2-1: new low speed USB device using uhci_hcd and address 2
-[    8.158102] usb 2-1: configuration #1 chosen from 1 choice
-[    8.278805] em28xx #0: i2c eeprom 00: 1a eb 67 95 cd 0c 5e 00 d0 12 5c 03 9e 40 de 1c
-[    8.278841] em28xx #0: i2c eeprom 10: 6a 34 27 57 46 07 01 00 00 00 00 00 00 00 00 00
-[    8.278875] em28xx #0: i2c eeprom 20: 46 00 01 00 f0 10 31 00 b8 00 14 00 5b 1e 00 00
-[    8.278906] em28xx #0: i2c eeprom 30: 00 00 20 40 20 6e 02 20 10 01 00 00 00 00 00 00
-[    8.278941] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[    8.278973] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[    8.279003] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 34 03 54 00 65 00
-[    8.279036] em28xx #0: i2c eeprom 70: 72 00 72 00 61 00 54 00 65 00 63 00 20 00 45 00
-[    8.279070] em28xx #0: i2c eeprom 80: 6c 00 65 00 63 00 74 00 72 00 6f 00 6e 00 69 00
-[    8.279103] em28xx #0: i2c eeprom 90: 63 00 20 00 47 00 6d 00 62 00 48 00 00 00 40 03
-[    8.279135] em28xx #0: i2c eeprom a0: 43 00 69 00 6e 00 65 00 72 00 67 00 79 00 20 00
-[    8.279164] em28xx #0: i2c eeprom b0: 48 00 79 00 62 00 72 00 69 00 64 00 20 00 54 00
-[    8.279193] em28xx #0: i2c eeprom c0: 20 00 55 00 53 00 42 00 20 00 58 00 53 00 20 00
-[    8.279224] em28xx #0: i2c eeprom d0: 28 00 32 00 38 00 38 00 32 00 29 00 00 00 1c 03
-[    8.279256] em28xx #0: i2c eeprom e0: 30 00 36 00 31 00 32 00 30 00 32 00 30 00 30 00
-[    8.279288] em28xx #0: i2c eeprom f0: 34 00 38 00 32 00 34 00 00 00 00 00 00 00 00 00
-[    8.279324] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x6513b2be
-[    8.279331] em28xx #0: EEPROM info:
-[    8.279337] em28xx #0:	AC97 audio (5 sample rates)
-[    8.279343] em28xx #0:	500mA max power
-[    8.279351] em28xx #0:	Table at 0x27, strings=0x409e, 0x1cde, 0x346a
-[    8.293136] em28xx #0: Identified as Terratec Hybrid XS (em2882) (card=55)
-[    8.293147] em28xx #0: 
-[    8.293150] 
-[    8.293158] em28xx #0: The support for this board weren't valid yet.
-[    8.293166] em28xx #0: Please send a report of having this working
-[    8.293174] em28xx #0: not to V4L mailing list (and/or to other addresses)
-[    8.293178] 
-[    8.367181] tvp5150 2-005c: chip found @ 0xb8 (em28xx #0)
-[    8.409317] tuner 2-0061: chip found @ 0xc2 (em28xx #0)
-[    8.548712] xc2028 2-0061: creating new instance
-[    8.548721] xc2028 2-0061: type set to XCeive xc2028/xc3028 tuner
-[    8.548739] usb 1-8: firmware: requesting xc3028-v27.fw
-[    8.593615] usbcore: registered new interface driver hiddev
-[    8.606545] input: USB Optical Mouse as /devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1:1.0/input/input9
-[    8.606842] generic-usb 0003:0461:4D17.0001: input,hidraw0: USB HID v1.11 Mouse [USB Optical Mouse] on usb-0000:00:1d.0-1/input0
-[    8.606899] usbcore: registered new interface driver usbhid
-[    8.606911] usbhid: v2.6:USB HID core driver
-[    8.613601] xc2028 2-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
-[    8.665571] xc2028 2-0061: Loading firmware for type=BASE (1), id 0000000000000000.
-
-[   10.631931] xc2028 2-0061: Loading firmware for type=(0), id 000000000000b700.
-[   10.648764] SCODE (20000000), id 000000000000b700:
-[   10.648787] xc2028 2-0061: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000), id 0000000000008000.
-[   10.833110] em28xx #0: Config register raw data: 0xd0
-[   10.833848] em28xx #0: AC97 vendor ID = 0xffffffff
-[   10.834801] em28xx #0: AC97 features = 0x6a90
-[   10.834810] em28xx #0: Empia 202 AC97 audio processor detected
-[   10.972632] tvp5150 2-005c: tvp5150am1 detected.
-[   11.095362] em28xx #0: v4l2 driver version 0.1.2
-[   11.227453] em28xx #0: V4L2 device registered as /dev/video1 and /dev/vbi0
-[   11.246162] usbcore: registered new interface driver em28xx
-[   11.246175] em28xx driver loaded
-[   11.268371] em28xx-audio.c: probing for em28x1 non standard usbaudio
-[   11.268383] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
-[   11.271206] Em28xx: Initialized (Em28xx Audio Extension) extension
-[   11.482349] tvp5150 2-005c: tvp5150am1 detected.
-[   12.173607] tvp5150 2-005c: tvp5150am1 detected.
-
-
-
-can you please help me to get this stick running?
+diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
+index 7296cf4..f4645d4 100644
+--- a/drivers/media/radio/si470x/radio-si470x-common.c
++++ b/drivers/media/radio/si470x/radio-si470x-common.c
+@@ -426,6 +426,104 @@ int si470x_rds_on(struct si470x_device *radio)
+ 
+ 
+ /**************************************************************************
++ * File Operations Interface
++ **************************************************************************/
++
++/*
++ * si470x_fops_read - read RDS data
++ */
++static ssize_t si470x_fops_read(struct file *file, char __user *buf,
++		size_t count, loff_t *ppos)
++{
++	struct si470x_device *radio = video_drvdata(file);
++	int retval = 0;
++	unsigned int block_count = 0;
++
++	/* switch on rds reception */
++	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
++		si470x_rds_on(radio);
++
++	/* block if no new data available */
++	while (radio->wr_index == radio->rd_index) {
++		if (file->f_flags & O_NONBLOCK) {
++			retval = -EWOULDBLOCK;
++			goto done;
++		}
++		if (wait_event_interruptible(radio->read_queue,
++			radio->wr_index != radio->rd_index) < 0) {
++			retval = -EINTR;
++			goto done;
++		}
++	}
++
++	/* calculate block count from byte count */
++	count /= 3;
++
++	/* copy RDS block out of internal buffer and to user buffer */
++	mutex_lock(&radio->lock);
++	while (block_count < count) {
++		if (radio->rd_index == radio->wr_index)
++			break;
++
++		/* always transfer rds complete blocks */
++		if (copy_to_user(buf, &radio->buffer[radio->rd_index], 3))
++			/* retval = -EFAULT; */
++			break;
++
++		/* increment and wrap read pointer */
++		radio->rd_index += 3;
++		if (radio->rd_index >= radio->buf_size)
++			radio->rd_index = 0;
++
++		/* increment counters */
++		block_count++;
++		buf += 3;
++		retval += 3;
++	}
++	mutex_unlock(&radio->lock);
++
++done:
++	return retval;
++}
++
++
++/*
++ * si470x_fops_poll - poll RDS data
++ */
++static unsigned int si470x_fops_poll(struct file *file,
++		struct poll_table_struct *pts)
++{
++	struct si470x_device *radio = video_drvdata(file);
++	int retval = 0;
++
++	/* switch on rds reception */
++	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
++		si470x_rds_on(radio);
++
++	poll_wait(file, &radio->read_queue, pts);
++
++	if (radio->rd_index != radio->wr_index)
++		retval = POLLIN | POLLRDNORM;
++
++	return retval;
++}
++
++
++/*
++ * si470x_fops - file operations interface
++ */
++static const struct v4l2_file_operations si470x_fops = {
++	.owner			= THIS_MODULE,
++	.read			= si470x_fops_read,
++	.poll			= si470x_fops_poll,
++	.ioctl			= video_ioctl2,
++	.open			= si470x_fops_open,
++	.release		= si470x_fops_release,
++};
++
++
++
++/**************************************************************************
+  * Video4Linux Interface
+  **************************************************************************/
+ 
+diff --git a/drivers/media/radio/si470x/radio-si470x-i2c.c b/drivers/media/radio/si470x/radio-si470x-i2c.c
+index 2d53b6a..4816a6d 100644
+--- a/drivers/media/radio/si470x/radio-si470x-i2c.c
++++ b/drivers/media/radio/si470x/radio-si470x-i2c.c
+@@ -173,7 +173,7 @@ int si470x_disconnect_check(struct si470x_device *radio)
+ /*
+  * si470x_fops_open - file open
+  */
+-static int si470x_fops_open(struct file *file)
++int si470x_fops_open(struct file *file)
+ {
+ 	struct si470x_device *radio = video_drvdata(file);
+ 	int retval = 0;
+@@ -194,7 +194,7 @@ static int si470x_fops_open(struct file *file)
+ /*
+  * si470x_fops_release - file release
+  */
+-static int si470x_fops_release(struct file *file)
++int si470x_fops_release(struct file *file)
+ {
+ 	struct si470x_device *radio = video_drvdata(file);
+ 	int retval = 0;
+@@ -215,17 +215,6 @@ static int si470x_fops_release(struct file *file)
+ }
+ 
+ 
+-/*
+- * si470x_fops - file operations interface
+- */
+-const struct v4l2_file_operations si470x_fops = {
+-	.owner		= THIS_MODULE,
+-	.ioctl		= video_ioctl2,
+-	.open		= si470x_fops_open,
+-	.release	= si470x_fops_release,
+-};
+-
+-
+ 
+ /**************************************************************************
+  * Video4Linux Interface
+diff --git a/drivers/media/radio/si470x/radio-si470x-usb.c b/drivers/media/radio/si470x/radio-si470x-usb.c
+index f2d0e1d..a96e1b9 100644
+--- a/drivers/media/radio/si470x/radio-si470x-usb.c
++++ b/drivers/media/radio/si470x/radio-si470x-usb.c
+@@ -509,89 +509,9 @@ resubmit:
+  **************************************************************************/
+ 
+ /*
+- * si470x_fops_read - read RDS data
+- */
+-static ssize_t si470x_fops_read(struct file *file, char __user *buf,
+-		size_t count, loff_t *ppos)
+-{
+-	struct si470x_device *radio = video_drvdata(file);
+-	int retval = 0;
+-	unsigned int block_count = 0;
+-
+-	/* switch on rds reception */
+-	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
+-		si470x_rds_on(radio);
+-
+-	/* block if no new data available */
+-	while (radio->wr_index == radio->rd_index) {
+-		if (file->f_flags & O_NONBLOCK) {
+-			retval = -EWOULDBLOCK;
+-			goto done;
+-		}
+-		if (wait_event_interruptible(radio->read_queue,
+-			radio->wr_index != radio->rd_index) < 0) {
+-			retval = -EINTR;
+-			goto done;
+-		}
+-	}
+-
+-	/* calculate block count from byte count */
+-	count /= 3;
+-
+-	/* copy RDS block out of internal buffer and to user buffer */
+-	mutex_lock(&radio->lock);
+-	while (block_count < count) {
+-		if (radio->rd_index == radio->wr_index)
+-			break;
+-
+-		/* always transfer rds complete blocks */
+-		if (copy_to_user(buf, &radio->buffer[radio->rd_index], 3))
+-			/* retval = -EFAULT; */
+-			break;
+-
+-		/* increment and wrap read pointer */
+-		radio->rd_index += 3;
+-		if (radio->rd_index >= radio->buf_size)
+-			radio->rd_index = 0;
+-
+-		/* increment counters */
+-		block_count++;
+-		buf += 3;
+-		retval += 3;
+-	}
+-	mutex_unlock(&radio->lock);
+-
+-done:
+-	return retval;
+-}
+-
+-
+-/*
+- * si470x_fops_poll - poll RDS data
+- */
+-static unsigned int si470x_fops_poll(struct file *file,
+-		struct poll_table_struct *pts)
+-{
+-	struct si470x_device *radio = video_drvdata(file);
+-	int retval = 0;
+-
+-	/* switch on rds reception */
+-	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
+-		si470x_rds_on(radio);
+-
+-	poll_wait(file, &radio->read_queue, pts);
+-
+-	if (radio->rd_index != radio->wr_index)
+-		retval = POLLIN | POLLRDNORM;
+-
+-	return retval;
+-}
+-
+-
+-/*
+  * si470x_fops_open - file open
+  */
+-static int si470x_fops_open(struct file *file)
++int si470x_fops_open(struct file *file)
+ {
+ 	struct si470x_device *radio = video_drvdata(file);
+ 	int retval;
+@@ -645,7 +565,7 @@ done:
+ /*
+  * si470x_fops_release - file release
+  */
+-static int si470x_fops_release(struct file *file)
++int si470x_fops_release(struct file *file)
+ {
+ 	struct si470x_device *radio = video_drvdata(file);
+ 	int retval = 0;
+@@ -688,19 +608,6 @@ done:
+ }
+ 
+ 
+-/*
+- * si470x_fops - file operations interface
+- */
+-const struct v4l2_file_operations si470x_fops = {
+-	.owner		= THIS_MODULE,
+-	.read		= si470x_fops_read,
+-	.poll		= si470x_fops_poll,
+-	.ioctl		= video_ioctl2,
+-	.open		= si470x_fops_open,
+-	.release	= si470x_fops_release,
+-};
+-
+-
+ 
+ /**************************************************************************
+  * Video4Linux Interface
+diff --git a/drivers/media/radio/si470x/radio-si470x.h b/drivers/media/radio/si470x/radio-si470x.h
+index d0af194..f646f79 100644
+--- a/drivers/media/radio/si470x/radio-si470x.h
++++ b/drivers/media/radio/si470x/radio-si470x.h
+@@ -212,7 +212,6 @@ struct si470x_device {
+ /**************************************************************************
+  * Common Functions
+  **************************************************************************/
+-extern const struct v4l2_file_operations si470x_fops;
+ extern struct video_device si470x_viddev_template;
+ int si470x_get_register(struct si470x_device *radio, int regnr);
+ int si470x_set_register(struct si470x_device *radio, int regnr);
+@@ -221,5 +220,7 @@ int si470x_set_freq(struct si470x_device *radio, unsigned int freq);
+ int si470x_start(struct si470x_device *radio);
+ int si470x_stop(struct si470x_device *radio);
+ int si470x_rds_on(struct si470x_device *radio);
++int si470x_fops_open(struct file *file);
++int si470x_fops_release(struct file *file);
+ int si470x_vidioc_querycap(struct file *file, void *priv,
+ 		struct v4l2_capability *capability);
+-- 
+1.6.0.4
