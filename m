@@ -1,116 +1,460 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f182.google.com ([209.85.211.182]:51579 "EHLO
-	mail-yw0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750918AbZK2HOw (ORCPT
+Received: from einhorn.in-berlin.de ([192.109.42.8]:35640 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932459AbZKRTDm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2009 02:14:52 -0500
-Date: Sat, 28 Nov 2009 23:14:54 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Mike Lampard <mike@mtgambier.net>
-Cc: Jon Smirl <jonsmirl@gmail.com>,
-	Christoph Bartelmus <christoph@bartelmus.de>,
-	jarod@wilsonet.com, awalls@radix.net, j@jannau.net,
-	jarod@redhat.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
-	IR system?
-Message-ID: <20091129071454.GV6936@core.coreip.homeip.net>
-References: <9e4733910911270757j648e39ecl7487b7e6c43db828@mail.gmail.com> <200911291317.03612.mike@mtgambier.net> <20091129045549.GQ6936@core.coreip.homeip.net> <200911291601.53368.mike@mtgambier.net>
+	Wed, 18 Nov 2009 14:03:42 -0500
+Date: Wed, 18 Nov 2009 20:03:31 +0100 (CET)
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: [PATCH 6/6] firedtv: reduce memset()s
+To: linux-media@vger.kernel.org
+cc: linux1394-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
+In-Reply-To: <tkrat.7dc1f889fd1b69ad@s5r6.in-berlin.de>
+Message-ID: <tkrat.534a0b95df131b2e@s5r6.in-berlin.de>
+References: <tkrat.7dc1f889fd1b69ad@s5r6.in-berlin.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <200911291601.53368.mike@mtgambier.net>
+Content-Type: TEXT/PLAIN; CHARSET=us-ascii
+Content-Disposition: INLINE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Nov 29, 2009 at 04:01:53PM +1030, Mike Lampard wrote:
-> On Sun, 29 Nov 2009 03:25:49 pm Dmitry Torokhov wrote:
-> > On Sun, Nov 29, 2009 at 01:17:03PM +1030, Mike Lampard wrote:
-> > > On Sat, 28 Nov 2009 02:27:59 am Jon Smirl wrote:
-> > > > On Fri, Nov 27, 2009 at 2:45 AM, Christoph Bartelmus
-> > > >
-> > > > <christoph@bartelmus.de> wrote:
-> > > > > Hi Mauro,
-> > > > >
-> > > > > on 26 Nov 09 at 14:25, Mauro Carvalho Chehab wrote:
-> > > > >> Christoph Bartelmus wrote:
-> > > > >
-> > > > > [...]
-> > > > >
-> > > > >>> But I'm still a bit hesitant about the in-kernel decoding. Maybe
-> > > > >>> it's just because I'm not familiar at all with input layer toolset.
-> > > > >
-> > > > > [...]
-> > > > >
-> > > > >> I hope it helps for you to better understand how this works.
-> > > > >
-> > > > > So the plan is to have two ways of using IR in the future which are
-> > > > > incompatible to each other, the feature-set of one being a subset of
-> > > > > the other?
-> > > >
-> > > > Take advantage of the fact that we don't have a twenty year old legacy
-> > > > API already in the kernel. Design an IR API that uses current kernel
-> > > > systems. Christoph, ignore the code I wrote and make a design proposal
-> > > > that addresses these goals...
-> > > >
-> > > > 1) Unified input in Linux using evdev. IR is on equal footing with
-> > > > mouse and keyboard.
-> > >
-> > > I think this a case where automating setup can be over-emphasised (in the
-> > > remote-as-keyboard case).
-> > >
-> > > Apologies in advance if I've misunderstood the idea of utilising the
-> > > 'input subsystem' for IR.  If the plan is to offer dedicated IR events
-> > > via a yet-to- be-announced input event subsystem and to optionally
-> > > disallow acting as a keyboard via a module option or similar then please
-> > > ignore the following.
-> > >
-> > > Whilst having remotes come through the input subsystem might be 'the
-> > > correct thing' from a purely technical standpoint, as an end-user I find
-> > > the use-case for remotes completely different in one key aspect: 
-> > > Keyboards and mice are generally foreground-app input devices, whereas
-> > > remotes are often controlling daemons sitting in the background piping
-> > > media through dedicated devices.  As an example I have a VDR instance
-> > > running in the background on my desktop machine outputting to a TV in
-> > > another room via a pci mpeg decoder - I certainly don't want the VDR
-> > > remote control interacting with my X11 desktop in any way unless I go out
-> > > of my way to set it up to do so, nor do I want it interacting with other
-> > > applications (such as MPD piping music around the house) that are
-> > > controlled via other remotes in other rooms unless specified.
-> > >
-> > > Setting this up with Lircd was easy, how would a kernel-based proposal
-> > > handle this?
-> > 
-> > Why would that be different really? On my keyboard there is a key for
-> > e-mail application (and many others) - what HID calls Application Launch
-> > keys IIRC. There also application control keys and system control keys,
-> > KEY_COFFEE aka KEY_SCREENLOCK. Those are not to be consumed by
-> > foreground application but by daemons/session-wide application.
-> > 
-> In my real-world examples above, both VDR and MPD are started at system start 
-> and are not associated with any user-initiated sessions (X login etc) - they 
-> are not X11 clients.  Their only input is via Lircd.  Conversely todays 
-> Xserver (if I read my logfiles correctly) consumes all input event devices by 
-> default, turning them into keypresses for its client apps.  This is exactly 
-> the wrong behaviour for my use-case.  In order to ensure that my daemons 
-> receive their input I must first ensure that X doesn't receive those events - 
-> assuming this is possible it still complicates matters further than they are 
-> today (I'd need a simple way of automatically differentiating between remote 
-> devices and keyboard devices) .
+Before each FCP transdaction, the entire 512 bytes of the FCP frame were
+cleared, then values filled in.
 
-But the setup you described only works for you because lirc is the only
-consumer using the device _for now_. As soon as there are more users you
-will have to solve the same isssue as with evdev being consumed but
-different applications. As soon as somebody says "gosh, I really don't
-want my KDE application to depend on lircm why does not X provide RC
-data the same way it provides key presses?" your setup goes south.
+Clear only the bytes between filled-in bytes and end of the
+  - request frame, or
+  - response frame if data from a larger response will be needed, or
+  - whole frame if data from a variable length response will be taken.
 
-As to how to solve such specific needs - there could be different
-solutions. EVIOCGRAB can be used to gain exclusive access (but that
-again breaks when there appears another application wanting exclusive
-access). Applications can limit themselves to opening only specific
-event devices (and igonre others).
+Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+---
+ drivers/media/dvb/firewire/firedtv-avc.c |  146 ++++++++++-------------
+ 1 file changed, 65 insertions(+), 81 deletions(-)
+
+Index: linux-2.6.32-rc7/drivers/media/dvb/firewire/firedtv-avc.c
+===================================================================
+--- linux-2.6.32-rc7.orig/drivers/media/dvb/firewire/firedtv-avc.c
++++ linux-2.6.32-rc7/drivers/media/dvb/firewire/firedtv-avc.c
+@@ -87,6 +87,21 @@ struct avc_response_frame {
+ 	u8 operand[509];
+ };
+ 
++#define LAST_OPERAND (509 - 1)
++
++static inline void clear_operands(struct avc_command_frame *c, int from, int to)
++{
++	memset(&c->operand[from], 0, to - from + 1);
++}
++
++static void pad_operands(struct avc_command_frame *c, int from)
++{
++	int to = ALIGN(from, 4);
++
++	if (from <= to && to <= LAST_OPERAND)
++		clear_operands(c, from, to);
++}
++
+ #define AVC_DEBUG_READ_DESCRIPTOR              0x0001
+ #define AVC_DEBUG_DSIT                         0x0002
+ #define AVC_DEBUG_DSD                          0x0004
+@@ -303,8 +318,8 @@ static int add_pid_filter(struct firedtv
+  * tuning command for setting the relative LNB frequency
+  * (not supported by the AVC standard)
+  */
+-static void avc_tuner_tuneqpsk(struct firedtv *fdtv,
+-			       struct dvb_frontend_parameters *params)
++static int avc_tuner_tuneqpsk(struct firedtv *fdtv,
++			      struct dvb_frontend_parameters *params)
+ {
+ 	struct avc_command_frame *c = (void *)fdtv->avc_data;
+ 
+@@ -356,14 +371,15 @@ static void avc_tuner_tuneqpsk(struct fi
+ 		c->operand[13] = 0x1;
+ 		c->operand[14] = 0xff;
+ 		c->operand[15] = 0xff;
+-		fdtv->avc_data_length = 20;
++
++		return 16;
+ 	} else {
+-		fdtv->avc_data_length = 16;
++		return 13;
+ 	}
+ }
+ 
+-static void avc_tuner_dsd_dvb_c(struct firedtv *fdtv,
+-				struct dvb_frontend_parameters *params)
++static int avc_tuner_dsd_dvb_c(struct firedtv *fdtv,
++			       struct dvb_frontend_parameters *params)
+ {
+ 	struct avc_command_frame *c = (void *)fdtv->avc_data;
+ 
+@@ -427,13 +443,11 @@ static void avc_tuner_dsd_dvb_c(struct f
+ 	c->operand[20] = 0x00;
+ 	c->operand[21] = 0x00;
+ 
+-	/* Add PIDs to filter */
+-	fdtv->avc_data_length =
+-		ALIGN(22 + add_pid_filter(fdtv, &c->operand[22]) + 3, 4);
++	return 22 + add_pid_filter(fdtv, &c->operand[22]);
+ }
+ 
+-static void avc_tuner_dsd_dvb_t(struct firedtv *fdtv,
+-				struct dvb_frontend_parameters *params)
++static int avc_tuner_dsd_dvb_t(struct firedtv *fdtv,
++			       struct dvb_frontend_parameters *params)
+ {
+ 	struct dvb_ofdm_parameters *ofdm = &params->u.ofdm;
+ 	struct avc_command_frame *c = (void *)fdtv->avc_data;
+@@ -531,32 +545,31 @@ static void avc_tuner_dsd_dvb_t(struct f
+ 	c->operand[15] = 0x00; /* network_ID[0] */
+ 	c->operand[16] = 0x00; /* network_ID[1] */
+ 
+-	/* Add PIDs to filter */
+-	fdtv->avc_data_length =
+-		ALIGN(17 + add_pid_filter(fdtv, &c->operand[17]) + 3, 4);
++	return 17 + add_pid_filter(fdtv, &c->operand[17]);
+ }
+ 
+ int avc_tuner_dsd(struct firedtv *fdtv,
+ 		  struct dvb_frontend_parameters *params)
+ {
+ 	struct avc_command_frame *c = (void *)fdtv->avc_data;
+-	int ret;
++	int pos, ret;
+ 
+ 	mutex_lock(&fdtv->avc_mutex);
+ 
+-	memset(c, 0, sizeof(*c));
+-
+ 	c->ctype   = AVC_CTYPE_CONTROL;
+ 	c->subunit = AVC_SUBUNIT_TYPE_TUNER | fdtv->subunit;
+ 
+ 	switch (fdtv->type) {
+ 	case FIREDTV_DVB_S:
+-	case FIREDTV_DVB_S2: avc_tuner_tuneqpsk(fdtv, params); break;
+-	case FIREDTV_DVB_C: avc_tuner_dsd_dvb_c(fdtv, params); break;
+-	case FIREDTV_DVB_T: avc_tuner_dsd_dvb_t(fdtv, params); break;
++	case FIREDTV_DVB_S2: pos = avc_tuner_tuneqpsk(fdtv, params); break;
++	case FIREDTV_DVB_C: pos = avc_tuner_dsd_dvb_c(fdtv, params); break;
++	case FIREDTV_DVB_T: pos = avc_tuner_dsd_dvb_t(fdtv, params); break;
+ 	default:
+ 		BUG();
+ 	}
++	pad_operands(c, pos);
++
++	fdtv->avc_data_length = ALIGN(3 + pos, 4);
+ 	ret = avc_write(fdtv);
+ #if 0
+ 	/*
+@@ -585,8 +598,6 @@ int avc_tuner_set_pids(struct firedtv *f
+ 
+ 	mutex_lock(&fdtv->avc_mutex);
+ 
+-	memset(c, 0, sizeof(*c));
+-
+ 	c->ctype   = AVC_CTYPE_CONTROL;
+ 	c->subunit = AVC_SUBUNIT_TYPE_TUNER | fdtv->subunit;
+ 	c->opcode  = AVC_OPCODE_DSD;
+@@ -608,6 +619,7 @@ int avc_tuner_set_pids(struct firedtv *f
+ 			c->operand[pos++] = 0x00; /* tableID */
+ 			c->operand[pos++] = 0x00; /* filter_length */
+ 		}
++	pad_operands(c, pos);
+ 
+ 	fdtv->avc_data_length = ALIGN(3 + pos, 4);
+ 	ret = avc_write(fdtv);
+@@ -629,8 +641,6 @@ int avc_tuner_get_ts(struct firedtv *fdt
+ 
+ 	mutex_lock(&fdtv->avc_mutex);
+ 
+-	memset(c, 0, sizeof(*c));
+-
+ 	c->ctype   = AVC_CTYPE_CONTROL;
+ 	c->subunit = AVC_SUBUNIT_TYPE_TUNER | fdtv->subunit;
+ 	c->opcode  = AVC_OPCODE_DSIT;
+@@ -644,9 +654,12 @@ int avc_tuner_get_ts(struct firedtv *fdt
+ 	c->operand[4] = 0x00;	/* antenna number */
+ 	c->operand[5] = 0x0; 	/* system_specific_search_flags */
+ 	c->operand[6] = sl;	/* system_specific_multiplex selection_length */
+-	c->operand[7] = 0x00;	/* valid_flags [0] */
+-	c->operand[8] = 0x00;	/* valid_flags [1] */
+-	c->operand[7 + sl] = 0x00; /* nr_of_dsit_sel_specs (always 0) */
++	/*
++	 * operand[7]: valid_flags[0]
++	 * operand[8]: valid_flags[1]
++	 * operand[7 + sl]: nr_of_dsit_sel_specs (always 0)
++	 */
++	clear_operands(c, 7, 24);
+ 
+ 	fdtv->avc_data_length = fdtv->type == FIREDTV_DVB_T ? 24 : 28;
+ 	ret = avc_write(fdtv);
+@@ -669,8 +682,6 @@ int avc_identify_subunit(struct firedtv 
+ 
+ 	mutex_lock(&fdtv->avc_mutex);
+ 
+-	memset(c, 0, sizeof(*c));
+-
+ 	c->ctype   = AVC_CTYPE_CONTROL;
+ 	c->subunit = AVC_SUBUNIT_TYPE_TUNER | fdtv->subunit;
+ 	c->opcode  = AVC_OPCODE_READ_DESCRIPTOR;
+@@ -682,6 +693,7 @@ int avc_identify_subunit(struct firedtv 
+ 	c->operand[4] = 0x08; /* length lowbyte  */
+ 	c->operand[5] = 0x00; /* offset highbyte */
+ 	c->operand[6] = 0x0d; /* offset lowbyte  */
++	clear_operands(c, 7, 8); /* padding */
+ 
+ 	fdtv->avc_data_length = 12;
+ 	ret = avc_write(fdtv);
+@@ -710,19 +722,18 @@ int avc_tuner_status(struct firedtv *fdt
+ 
+ 	mutex_lock(&fdtv->avc_mutex);
+ 
+-	memset(c, 0, sizeof(*c));
+-
+ 	c->ctype   = AVC_CTYPE_CONTROL;
+ 	c->subunit = AVC_SUBUNIT_TYPE_TUNER | fdtv->subunit;
+ 	c->opcode  = AVC_OPCODE_READ_DESCRIPTOR;
+ 
+ 	c->operand[0] = DESCRIPTOR_TUNER_STATUS;
+ 	c->operand[1] = 0xff;	/* read_result_status */
+-	c->operand[2] = 0x00;	/* reserved */
+-	c->operand[3] = 0;	/* SIZEOF_ANTENNA_INPUT_INFO >> 8; */
+-	c->operand[4] = 0;	/* SIZEOF_ANTENNA_INPUT_INFO & 0xff; */
+-	c->operand[5] = 0x00;
+-	c->operand[6] = 0x00;
++	/*
++	 * operand[2]: reserved
++	 * operand[3]: SIZEOF_ANTENNA_INPUT_INFO >> 8
++	 * operand[4]: SIZEOF_ANTENNA_INPUT_INFO & 0xff
++	 */
++	clear_operands(c, 2, 31);
+ 
+ 	fdtv->avc_data_length = 12;
+ 	ret = avc_write(fdtv);
+@@ -788,12 +799,10 @@ int avc_lnb_control(struct firedtv *fdtv
+ {
+ 	struct avc_command_frame *c = (void *)fdtv->avc_data;
+ 	struct avc_response_frame *r = (void *)fdtv->avc_data;
+-	int i, j, k, ret;
++	int pos, j, k, ret;
+ 
+ 	mutex_lock(&fdtv->avc_mutex);
+ 
+-	memset(c, 0, sizeof(*c));
+-
+ 	c->ctype   = AVC_CTYPE_CONTROL;
+ 	c->subunit = AVC_SUBUNIT_TYPE_TUNER | fdtv->subunit;
+ 	c->opcode  = AVC_OPCODE_VENDOR;
+@@ -802,23 +811,21 @@ int avc_lnb_control(struct firedtv *fdtv
+ 	c->operand[1] = SFE_VENDOR_DE_COMPANYID_1;
+ 	c->operand[2] = SFE_VENDOR_DE_COMPANYID_2;
+ 	c->operand[3] = SFE_VENDOR_OPCODE_LNB_CONTROL;
+-
+ 	c->operand[4] = voltage;
+ 	c->operand[5] = nrdiseq;
+ 
+-	i = 6;
+-
++	pos = 6;
+ 	for (j = 0; j < nrdiseq; j++) {
+-		c->operand[i++] = diseqcmd[j].msg_len;
++		c->operand[pos++] = diseqcmd[j].msg_len;
+ 
+ 		for (k = 0; k < diseqcmd[j].msg_len; k++)
+-			c->operand[i++] = diseqcmd[j].msg[k];
++			c->operand[pos++] = diseqcmd[j].msg[k];
+ 	}
++	c->operand[pos++] = burst;
++	c->operand[pos++] = conttone;
++	pad_operands(c, pos);
+ 
+-	c->operand[i++] = burst;
+-	c->operand[i++] = conttone;
+-
+-	fdtv->avc_data_length = ALIGN(3 + i, 4);
++	fdtv->avc_data_length = ALIGN(3 + pos, 4);
+ 	ret = avc_write(fdtv);
+ 	if (ret < 0)
+ 		goto out;
+@@ -840,8 +847,6 @@ int avc_register_remote_control(struct f
+ 
+ 	mutex_lock(&fdtv->avc_mutex);
+ 
+-	memset(c, 0, sizeof(*c));
+-
+ 	c->ctype   = AVC_CTYPE_NOTIFY;
+ 	c->subunit = AVC_SUBUNIT_TYPE_UNIT | 7;
+ 	c->opcode  = AVC_OPCODE_VENDOR;
+@@ -850,6 +855,7 @@ int avc_register_remote_control(struct f
+ 	c->operand[1] = SFE_VENDOR_DE_COMPANYID_1;
+ 	c->operand[2] = SFE_VENDOR_DE_COMPANYID_2;
+ 	c->operand[3] = SFE_VENDOR_OPCODE_REGISTER_REMOTE_CONTROL;
++	c->operand[4] = 0; /* padding */
+ 
+ 	fdtv->avc_data_length = 8;
+ 	ret = avc_write(fdtv);
+@@ -878,8 +884,6 @@ int avc_tuner_host2ca(struct firedtv *fd
+ 
+ 	mutex_lock(&fdtv->avc_mutex);
+ 
+-	memset(c, 0, sizeof(*c));
+-
+ 	c->ctype   = AVC_CTYPE_CONTROL;
+ 	c->subunit = AVC_SUBUNIT_TYPE_TUNER | fdtv->subunit;
+ 	c->opcode  = AVC_OPCODE_VENDOR;
+@@ -890,8 +894,7 @@ int avc_tuner_host2ca(struct firedtv *fd
+ 	c->operand[3] = SFE_VENDOR_OPCODE_HOST2CA;
+ 	c->operand[4] = 0; /* slot */
+ 	c->operand[5] = SFE_VENDOR_TAG_CA_APPLICATION_INFO; /* ca tag */
+-	c->operand[6] = 0; /* more/last */
+-	c->operand[7] = 0; /* length */
++	clear_operands(c, 6, 8);
+ 
+ 	fdtv->avc_data_length = 12;
+ 	ret = avc_write(fdtv);
+@@ -937,8 +940,6 @@ int avc_ca_app_info(struct firedtv *fdtv
+ 
+ 	mutex_lock(&fdtv->avc_mutex);
+ 
+-	memset(c, 0, sizeof(*c));
+-
+ 	c->ctype   = AVC_CTYPE_STATUS;
+ 	c->subunit = AVC_SUBUNIT_TYPE_TUNER | fdtv->subunit;
+ 	c->opcode  = AVC_OPCODE_VENDOR;
+@@ -949,6 +950,7 @@ int avc_ca_app_info(struct firedtv *fdtv
+ 	c->operand[3] = SFE_VENDOR_OPCODE_CA2HOST;
+ 	c->operand[4] = 0; /* slot */
+ 	c->operand[5] = SFE_VENDOR_TAG_CA_APPLICATION_INFO; /* ca tag */
++	clear_operands(c, 6, LAST_OPERAND);
+ 
+ 	fdtv->avc_data_length = 12;
+ 	ret = avc_write(fdtv);
+@@ -979,8 +981,6 @@ int avc_ca_info(struct firedtv *fdtv, ch
+ 
+ 	mutex_lock(&fdtv->avc_mutex);
+ 
+-	memset(c, 0, sizeof(*c));
+-
+ 	c->ctype   = AVC_CTYPE_STATUS;
+ 	c->subunit = AVC_SUBUNIT_TYPE_TUNER | fdtv->subunit;
+ 	c->opcode  = AVC_OPCODE_VENDOR;
+@@ -991,6 +991,7 @@ int avc_ca_info(struct firedtv *fdtv, ch
+ 	c->operand[3] = SFE_VENDOR_OPCODE_CA2HOST;
+ 	c->operand[4] = 0; /* slot */
+ 	c->operand[5] = SFE_VENDOR_TAG_CA_APPLICATION_INFO; /* ca tag */
++	clear_operands(c, 6, LAST_OPERAND);
+ 
+ 	fdtv->avc_data_length = 12;
+ 	ret = avc_write(fdtv);
+@@ -1020,8 +1021,6 @@ int avc_ca_reset(struct firedtv *fdtv)
+ 
+ 	mutex_lock(&fdtv->avc_mutex);
+ 
+-	memset(c, 0, sizeof(*c));
+-
+ 	c->ctype   = AVC_CTYPE_CONTROL;
+ 	c->subunit = AVC_SUBUNIT_TYPE_TUNER | fdtv->subunit;
+ 	c->opcode  = AVC_OPCODE_VENDOR;
+@@ -1064,8 +1063,6 @@ int avc_ca_pmt(struct firedtv *fdtv, cha
+ 
+ 	mutex_lock(&fdtv->avc_mutex);
+ 
+-	memset(c, 0, sizeof(*c));
+-
+ 	c->ctype   = AVC_CTYPE_CONTROL;
+ 	c->subunit = AVC_SUBUNIT_TYPE_TUNER | fdtv->subunit;
+ 	c->opcode  = AVC_OPCODE_VENDOR;
+@@ -1096,7 +1093,7 @@ int avc_ca_pmt(struct firedtv *fdtv, cha
+ 
+ 	c->operand[12] = 0x02; /* Table id=2 */
+ 	c->operand[13] = 0x80; /* Section syntax + length */
+-	/* c->operand[14] = XXXprogram_info_length + 12; */
++
+ 	c->operand[15] = msg[1]; /* Program number */
+ 	c->operand[16] = msg[2];
+ 	c->operand[17] = 0x01; /* Version number=0 + current/next=1 */
+@@ -1144,12 +1141,7 @@ int avc_ca_pmt(struct firedtv *fdtv, cha
+ 			write_pos += es_info_length;
+ 		}
+ 	}
+-
+-	/* CRC */
+-	c->operand[write_pos++] = 0x00;
+-	c->operand[write_pos++] = 0x00;
+-	c->operand[write_pos++] = 0x00;
+-	c->operand[write_pos++] = 0x00;
++	write_pos += 4; /* CRC */
+ 
+ 	c->operand[7] = 0x82;
+ 	c->operand[8] = (write_pos - 10) >> 8;
+@@ -1161,6 +1153,7 @@ int avc_ca_pmt(struct firedtv *fdtv, cha
+ 	c->operand[write_pos - 3] = (crc32_csum >> 16) & 0xff;
+ 	c->operand[write_pos - 2] = (crc32_csum >>  8) & 0xff;
+ 	c->operand[write_pos - 1] = (crc32_csum >>  0) & 0xff;
++	pad_operands(c, write_pos);
+ 
+ 	fdtv->avc_data_length = ALIGN(3 + write_pos, 4);
+ 	ret = avc_write(fdtv);
+@@ -1186,8 +1179,6 @@ int avc_ca_get_time_date(struct firedtv 
+ 
+ 	mutex_lock(&fdtv->avc_mutex);
+ 
+-	memset(c, 0, sizeof(*c));
+-
+ 	c->ctype   = AVC_CTYPE_STATUS;
+ 	c->subunit = AVC_SUBUNIT_TYPE_TUNER | fdtv->subunit;
+ 	c->opcode  = AVC_OPCODE_VENDOR;
+@@ -1198,8 +1189,7 @@ int avc_ca_get_time_date(struct firedtv 
+ 	c->operand[3] = SFE_VENDOR_OPCODE_CA2HOST;
+ 	c->operand[4] = 0; /* slot */
+ 	c->operand[5] = SFE_VENDOR_TAG_CA_DATE_TIME; /* ca tag */
+-	c->operand[6] = 0; /* more/last */
+-	c->operand[7] = 0; /* length */
++	clear_operands(c, 6, LAST_OPERAND);
+ 
+ 	fdtv->avc_data_length = 12;
+ 	ret = avc_write(fdtv);
+@@ -1222,8 +1212,6 @@ int avc_ca_enter_menu(struct firedtv *fd
+ 
+ 	mutex_lock(&fdtv->avc_mutex);
+ 
+-	memset(c, 0, sizeof(*c));
+-
+ 	c->ctype   = AVC_CTYPE_STATUS;
+ 	c->subunit = AVC_SUBUNIT_TYPE_TUNER | fdtv->subunit;
+ 	c->opcode  = AVC_OPCODE_VENDOR;
+@@ -1234,8 +1222,7 @@ int avc_ca_enter_menu(struct firedtv *fd
+ 	c->operand[3] = SFE_VENDOR_OPCODE_HOST2CA;
+ 	c->operand[4] = 0; /* slot */
+ 	c->operand[5] = SFE_VENDOR_TAG_CA_ENTER_MENU;
+-	c->operand[6] = 0; /* more/last */
+-	c->operand[7] = 0; /* length */
++	clear_operands(c, 6, 8);
+ 
+ 	fdtv->avc_data_length = 12;
+ 	ret = avc_write(fdtv);
+@@ -1255,8 +1242,6 @@ int avc_ca_get_mmi(struct firedtv *fdtv,
+ 
+ 	mutex_lock(&fdtv->avc_mutex);
+ 
+-	memset(c, 0, sizeof(*c));
+-
+ 	c->ctype   = AVC_CTYPE_STATUS;
+ 	c->subunit = AVC_SUBUNIT_TYPE_TUNER | fdtv->subunit;
+ 	c->opcode  = AVC_OPCODE_VENDOR;
+@@ -1267,8 +1252,7 @@ int avc_ca_get_mmi(struct firedtv *fdtv,
+ 	c->operand[3] = SFE_VENDOR_OPCODE_CA2HOST;
+ 	c->operand[4] = 0; /* slot */
+ 	c->operand[5] = SFE_VENDOR_TAG_CA_MMI;
+-	c->operand[6] = 0; /* more/last */
+-	c->operand[7] = 0; /* length */
++	clear_operands(c, 6, LAST_OPERAND);
+ 
+ 	fdtv->avc_data_length = 12;
+ 	ret = avc_write(fdtv);
 
 -- 
-Dmitry
+Stefan Richter
+-=====-==--= =-== =--=-
+http://arcgraph.de/sr/
+
