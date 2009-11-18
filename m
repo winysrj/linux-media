@@ -1,127 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4234 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758765AbZKKTux (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2105 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752206AbZKRHG1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Nov 2009 14:50:53 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id nABJosbu086380
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 11 Nov 2009 20:50:58 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 11 Nov 2009 20:50:54 +0100 (CET)
-Message-Id: <200911111950.nABJosbu086380@smtp-vbr13.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Wed, 18 Nov 2009 02:06:27 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: v4l: Add video_device_node_name function
+Date: Wed, 18 Nov 2009 08:06:22 +0100
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1258504731-8430-1-git-send-email-laurent.pinchart@ideasonboard.com> <1258504731-8430-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1258504731-8430-2-git-send-email-laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200911180806.22428.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Wednesday 18 November 2009 01:38:42 Laurent Pinchart wrote:
+> Many drivers access the device number (video_device::v4l2_devnode::num)
+> in order to print the video device node name. Add and use a helper
+> function to retrieve the video_device node name.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Results of the daily build of v4l-dvb:
+Can you also add a bit of documentation for this function in
+Documentation/video4linux/v4l2-framework.txt? It should go in the section
+"video_device helper functions".
 
-date:        Wed Nov 11 19:00:04 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13327:19c0469c02c3
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+And update that file as well when the num and minor fields go away.
 
-linux-2.6.22.19-armv5: WARNINGS
-linux-2.6.23.12-armv5: WARNINGS
-linux-2.6.24.7-armv5: WARNINGS
-linux-2.6.25.11-armv5: WARNINGS
-linux-2.6.26-armv5: WARNINGS
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29.1-armv5: WARNINGS
-linux-2.6.30-armv5: WARNINGS
-linux-2.6.31-armv5: WARNINGS
-linux-2.6.32-rc6-armv5: ERRORS
-linux-2.6.32-rc6-armv5-davinci: ERRORS
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.31-armv5-ixp: WARNINGS
-linux-2.6.32-rc6-armv5-ixp: ERRORS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.31-armv5-omap2: ERRORS
-linux-2.6.32-rc6-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-rc6-i686: WARNINGS
-linux-2.6.23.12-m32r: WARNINGS
-linux-2.6.24.7-m32r: WARNINGS
-linux-2.6.25.11-m32r: WARNINGS
-linux-2.6.26-m32r: WARNINGS
-linux-2.6.27-m32r: WARNINGS
-linux-2.6.28-m32r: WARNINGS
-linux-2.6.29.1-m32r: WARNINGS
-linux-2.6.30-m32r: WARNINGS
-linux-2.6.31-m32r: WARNINGS
-linux-2.6.32-rc6-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: WARNINGS
-linux-2.6.32-rc6-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: WARNINGS
-linux-2.6.32-rc6-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-rc6-x86_64: ERRORS
-sparse (linux-2.6.31): OK
-sparse (linux-2.6.32-rc6): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+The same is also true for the new registration function.
 
-Detailed results are available here:
+Thanks,
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+	Hans
 
-Full logs are available here:
+> 
+> Index: v4l-dvb-mc-uvc/linux/drivers/media/video/v4l2-dev.c
+> ===================================================================
+> --- v4l-dvb-mc-uvc.orig/linux/drivers/media/video/v4l2-dev.c
+> +++ v4l-dvb-mc-uvc/linux/drivers/media/video/v4l2-dev.c
+> @@ -619,8 +619,8 @@ static int __video_register_device(struc
+>  	vdev->dev.release = v4l2_device_release;
+>  
+>  	if (nr != -1 && nr != vdev->num && warn_if_nr_in_use)
+> -		printk(KERN_WARNING "%s: requested %s%d, got %s%d\n",
+> -				__func__, name_base, nr, name_base, vdev->num);
+> +		printk(KERN_WARNING "%s: requested %s%d, got %s\n", __func__,
+> +			name_base, nr, video_device_node_name(vdev));
+>  
+>  	/* Part 5: Activate this minor. The char device can now be used. */
+>  	mutex_lock(&videodev_lock);
+> Index: v4l-dvb-mc-uvc/linux/include/media/v4l2-dev.h
+> ===================================================================
+> --- v4l-dvb-mc-uvc.orig/linux/include/media/v4l2-dev.h
+> +++ v4l-dvb-mc-uvc/linux/include/media/v4l2-dev.h
+> @@ -153,6 +153,15 @@ static inline void *video_drvdata(struct
+>  	return video_get_drvdata(video_devdata(file));
+>  }
+>  
+> +static inline const char *video_device_node_name(struct video_device *vdev)
+> +{
+> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 19)
+> +	return vdev->dev.class_id;
+> +#else
+> +	return dev_name(&vdev->dev);
+> +#endif
+> +}
+> +
+>  static inline int video_is_unregistered(struct video_device *vdev)
+>  {
+>  	return test_bit(V4L2_FL_UNREGISTERED, &vdev->flags);
+> 
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-The V4L2 specification failed to build, but the last compiled spec is here:
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
