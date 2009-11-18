@@ -1,73 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:51569 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752556AbZK0OhJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Nov 2009 09:37:09 -0500
-Date: Fri, 27 Nov 2009 15:37:19 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Antonio Ospite <ospite@studenti.unina.it>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Eric Miao <eric.y.miao@gmail.com>,
-	linux-arm-kernel@lists.infradead.org,
-	Mike Rapoport <mike@compulab.co.il>,
-	Juergen Beisert <j.beisert@pengutronix.de>,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: Re: [PATCH 3/3] pxa_camera: remove init() callback
-In-Reply-To: <20091127153230.d042d92e.ospite@studenti.unina.it>
-Message-ID: <Pine.LNX.4.64.0911271535580.4383@axis700.grange>
-References: <1258495463-26029-1-git-send-email-ospite@studenti.unina.it>
- <1258495463-26029-4-git-send-email-ospite@studenti.unina.it>
- <Pine.LNX.4.64.0911271503460.4383@axis700.grange>
- <20091127153230.d042d92e.ospite@studenti.unina.it>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53825 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932511AbZKRUlc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Nov 2009 15:41:32 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 18 Nov 2009 14:41:30 -0600
+Subject: RE: Help in adding documentation
+Message-ID: <A69FA2915331DC488A831521EAE36FE40155A510FD@dlee06.ent.ti.com>
+References: <A69FA2915331DC488A831521EAE36FE401559C59A2@dlee06.ent.ti.com>
+ <20091117142820.1e62a362@pedra.chehab.org>
+ <A69FA2915331DC488A831521EAE36FE401559C5A38@dlee06.ent.ti.com>
+ <4B02E444.3020707@infradead.org>
+ <A69FA2915331DC488A831521EAE36FE401559C60B9@dlee06.ent.ti.com>
+ <4B044F6E.8010008@infradead.org>
+In-Reply-To: <4B044F6E.8010008@infradead.org>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 27 Nov 2009, Antonio Ospite wrote:
+Mauro,
 
-> On Fri, 27 Nov 2009 15:06:53 +0100 (CET)
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> 
-> > On Tue, 17 Nov 2009, Antonio Ospite wrote:
-> > 
-> > > pxa_camera init() callback is sometimes abused to setup MFP for PXA CIF, or
-> > > even to request GPIOs to be used by the camera *sensor*. These initializations
-> > > can be performed statically in machine init functions.
-> > > 
-> > > The current semantics for this init() callback is ambiguous anyways, it is
-> > > invoked in pxa_camera_activate(), hence at device node open, but its users use
-> > > it like a generic initialization to be done at module init time (configure
-> > > MFP, request GPIOs for *sensor* control).
-> > > 
-> > > Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
-> > 
-> > Antonio, to make the merging easier and avoid imposing extra dependencies, 
-> > I would postpone this to 2.6.34, and just remove uses of .init() by 
-> > pxa-camera users as per your other two patches. Would this be ok with you?
-> > 
-> > Thanks
-> > Guennadi
-> >
-> 
-> Perfectly fine with me.
-> 
-> Feel also free to anticipate me and edit the commit messages to
-> whatever you want in the first two patches. Now that we aren't removing
-> init() immediately after these it makes even more sense to change the
-> phrasing from a future referencing
-> 	"init() is going to be removed"
-> to a more present focused
-> 	"better not to use init() at all"
-> form.
+Thanks. I will use diff method, since just for this I don't
+have to learn yet another version control system :)
 
-I cannot edit those subject lines, because I will not be handling those 
-patches, they will go via the PXA tree, that's why it is easier to wait 
-with the pxa patch.
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+phone: 301-407-9583
+email: m-karicheri2@ti.com
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+>-----Original Message-----
+>From: Mauro Carvalho Chehab [mailto:mchehab@infradead.org]
+>Sent: Wednesday, November 18, 2009 2:48 PM
+>To: Karicheri, Muralidharan
+>Cc: Hans Verkuil; linux-media@vger.kernel.org
+>Subject: Re: Help in adding documentation
+>
+>Karicheri, Muralidharan wrote:
+>> Mauro,
+>>
+>> Is there specific way to create patch for this documentation?
+>>
+>> Can I just do following commands and send one patch?
+>>
+>> Baseline tree - v4l-dvb-base (original)
+>> Changed tree -  v4l-dvb-change
+>>
+>> diff -uNr v4l-dvb-base v4l-dvb-change >media-doc.patch
+>
+>Well, this should work, however the better way is to clone the
+>tree with hg, modify it and do
+>	hg diff >media-doc.patch
+>
+>Mercurial is not that different from cvs, svn or git, so you can
+>also commit patches there and later export them for sending via email.
+>
+>>
+>> Murali Karicheri
+>> Software Design Engineer
+>> Texas Instruments Inc.
+>> Germantown, MD 20874
+>> phone: 301-407-9583
+>> email: m-karicheri2@ti.com
+>>
+>>> -----Original Message-----
+>>> From: Mauro Carvalho Chehab [mailto:mchehab@infradead.org]
+>>> Sent: Tuesday, November 17, 2009 12:58 PM
+>>> To: Karicheri, Muralidharan
+>>> Cc: Hans Verkuil; linux-media@vger.kernel.org
+>>> Subject: Re: Help in adding documentation
+>>>
+>>> Karicheri, Muralidharan escreveu:
+>>>> Mauro,
+>>>>
+>>>> Thanks for your reply. I made progress after my email. My new file
+>>>> is being processed by Makefile now. I have some issues with some
+>>>> tags.
+>>>>
+>>>>> This probably means that videodev2.h has it defined, while you didn't
+>>> have
+>>>> Do you mean videodev2.h.xml? I see there videodev2.h under
+>linux/include.
+>>> Do I need to copy my latest videodev2.h to that directory?
+>>>
+>>> videodev2.h.xml is generated automatically by Makefile, from videodev2.h.
+>>>
+>>> Basically, Makefile scripts will parse it, search for certain
+>>> structs/enums/ioctls and
+>>> generate videodev2.h.xml.
+>>>
+>>> What happens is that you likely declared the presets enum on videodev2.h,
+>>> and the
+>>> enum got detected, producing a <linkend> tag. However, as you didn't
+>define
+>>> the
+>>> reference ID for that tag on your xml file, you got an error.
+>>>>> the
+>>>>> link id created at the xml file you've created.
+>>>>>
+>>>>> You probably need a tag like:
+>>>>>
+>>>>> <table pgwide="1" frame="none" id="v4l2-dv-enum-presets">
+>>>>> <!-- your enum table -->
+>>>>> </table>
+>>>>>
+>>>>>
+>>>>> Cheers,
+>>>>> Mauro
+>>>>> --
+>>>>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>>> in
+>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+
