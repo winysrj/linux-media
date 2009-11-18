@@ -1,437 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59713 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757125AbZKDQ5g convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2009 11:57:36 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Date: Wed, 4 Nov 2009 10:57:31 -0600
-Subject: RE: [PATCH/RFC 9/9 v2] mt9t031: make the use of the soc-camera
- client API optional
-Message-ID: <A69FA2915331DC488A831521EAE36FE40155833A4C@dlee06.ent.ti.com>
-References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
- <Pine.LNX.4.64.0910301442570.4378@axis700.grange>
- <A69FA2915331DC488A831521EAE36FE401557987F6@dlee06.ent.ti.com>
- <Pine.LNX.4.64.0910302112300.4378@axis700.grange>
- <A69FA2915331DC488A831521EAE36FE40155798D56@dlee06.ent.ti.com>
- <Pine.LNX.4.64.0911041703000.4837@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0911041703000.4837@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from smtp2e.orange.fr ([80.12.242.112]:41647 "EHLO smtp2e.orange.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755956AbZKRJzj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Nov 2009 04:55:39 -0500
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2e11.orange.fr (SMTP Server) with ESMTP id E22948000196
+	for <linux-media@vger.kernel.org>; Wed, 18 Nov 2009 10:55:43 +0100 (CET)
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2e11.orange.fr (SMTP Server) with ESMTP id D6DBF80001B7
+	for <linux-media@vger.kernel.org>; Wed, 18 Nov 2009 10:55:43 +0100 (CET)
+Received: from [192.168.1.11] (ANantes-551-1-61-38.w92-135.abo.wanadoo.fr [92.135.188.38])
+	by mwinf2e11.orange.fr (SMTP Server) with ESMTP id 486368000196
+	for <linux-media@vger.kernel.org>; Wed, 18 Nov 2009 10:55:43 +0100 (CET)
+Message-ID: <4B03C4A5.70006@gmail.com>
+Date: Wed, 18 Nov 2009 10:55:49 +0100
+From: Morvan Le Meut <mlemeut@gmail.com>
 MIME-Version: 1.0
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: (Saa7134) Re: ADS-Tech Instant TV PCI, no remote support, giving
+ up.
+References: <4AA53C05.10203@gmail.com> <4AA61508.9040506@gmail.com> <op.uzxmzlj86dn9rq@crni> <4AA62C38.3050208@gmail.com> <4AA63434.1010709@gmail.com> <4AA683BD.6070601@gmail.com> <4AA695EE.70800@gmail.com> <4AA767F2.50702@gmail.com> <op.uzzfgyvj3xmt7q@crni> <4AA77240.2040504@gmail.com> <4AA77683.7010201@gmail.com> <4AA7C266.3000509@gmail.com> <op.uzzz96se6dn9rq@crni> <4AA7E166.7030906@gmail.com> <4AA81785.5000806@gmail.com> <4AA8BB20.4040701@gmail.com> <4AA919CA.20701@gmail.com> <4AAA0247.8020004@gmail.com>
+In-Reply-To: <4AAA0247.8020004@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi,
+Hello,
+just a little update ( even if nobody seems to be interested :p ) :
+I've been using this configuration for a while, and because i tend to 
+forget to reinstall that patch for each kernel update, i found out some 
+strange things.
+First, very rarely ( it must have happened three times at most until now 
+), the remotes keys tends to be misidentified as keyboards keys 
+shortcuts : "volume up" seems to like to be identified as "search files" 
+in Gnome.
+Second, the stability of the whole OS seems to suffer from my hack.I'm 
+not very certain about that since my computer have a tendency to hangs 
+when playing a video with the proprietary Nvidia driver and flash 
+loaded, but my computer tend to shut down all on its own ( like pressing 
+the power button for more than 3 secs ) only when i enable the remote 
+support. It take a while ( maybe a day or two ), and i've see it happen 
+only once ( but it happened at least one other time while i was away 
+from the computer, it could have been a power grid failure )
 
-Thanks for the reply. I will have a chance to work on this
-sometime in the next two weeks as I am pre-occupied with other
-items. I will definitely try to use this version and do my
-testing and let you know the result.
+> Since i don't know where to look, i finally decided to use a basic 
+> incorrect keymap :
+> /* ADS Tech Instant TV PCI Remote */
+> static struct ir_scancode ir_codes_adstech_pci[] = {
+>    /* too many repeating codes : incorrect gpio ?. */
+>       
+>    { 0x1f, KEY_MUTE },
+>    { 0x1d, KEY_SEARCH },
+>    { 0x17, KEY_EPG },        /* Guide */
+>    { 0x0f, KEY_UP },
+>    { 0x6, KEY_DOWN },
+>    { 0x16, KEY_LEFT },
+>    { 0x1e, KEY_RIGHT },
+>    { 0x0e, KEY_SELECT },        /* Enter */
+>    { 0x1a, KEY_INFO },
+>    { 0x12, KEY_EXIT },
+>    { 0x19, KEY_PREVIOUS },
+>    { 0x11, KEY_NEXT },
+>    { 0x18, KEY_REWIND },
+>    { 0x10, KEY_FORWARD },
+>    { 0x4, KEY_PLAYPAUSE },
+>    { 0x07, KEY_STOP },
+>    { 0x1b, KEY_RECORD },
+>    { 0x13, KEY_TUNER },        /* Live */
+>    { 0x0a, KEY_A },
+>    { 0x03, KEY_PROG1 },        /* 1 */
+>    { 0x01, KEY_PROG2 },        /* 2 */
+>    { 0x0, KEY_VIDEO },
+>    { 0x0b, KEY_CHANNELUP },
+>    { 0x08, KEY_CHANNELDOWN },
+>    { 0x15, KEY_VOLUMEUP },
+>    { 0x1c, KEY_VOLUMEDOWN },
+> };
+> 
+> struct ir_scancode_table ir_codes_adstech_pci_table = {
+>    .scan = ir_codes_adstech_pci,
+>    .size = ARRAY_SIZE(ir_codes_adstech_pci),
+> };
+> EXPORT_SYMBOL_GPL(ir_codes_adstech_pci_table);
+> 
+> No numbers in favor of arrows and ch+/- Vol+/- . Well 246 will be arrows 
+> and  5 select, 7 and 8 are undefined, 9 become vol-, 1 epg and 3 is tuner.
+> If someone, one day, wants to find that missig bit, i'll be happy to 
+> help. ( Strange anyway : it's as if there was a 0x7f mask even when i 
+> specify a 0xff one )
+> Feel free to write a patch.
+> 
+> Morvan Le Meut a écrit :
+>> um .. help, please ?
+>> how can i make the driver read 1011011 instead of 011011 when i press 
+>> Power instead of record on the remote ?
+>>
+>> thanks
+>>
+>>
+>>
+>>
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
 
-Will this apply cleanly to the v4l-dvb linux-next branch?
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-phone: 301-407-9583
-email: m-karicheri2@ti.com
 
->-----Original Message-----
->From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
->Sent: Wednesday, November 04, 2009 11:49 AM
->To: Karicheri, Muralidharan
->Cc: Linux Media Mailing List; Hans Verkuil; Laurent Pinchart; Sakari Ailus
->Subject: [PATCH/RFC 9/9 v2] mt9t031: make the use of the soc-camera client
->API optional
->
->Now that we have moved most of the functions over to the v4l2-subdev API,
->only
->quering and setting bus parameters are still performed using the legacy
->soc-camera client API. Make the use of this API optional for mt9t031.
->
->Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->---
->
->On Mon, 2 Nov 2009, Karicheri, Muralidharan wrote:
->
->> >> >+static struct soc_camera_ops mt9t031_ops = {
->> >> >+	.set_bus_param		= mt9t031_set_bus_param,
->> >> >+	.query_bus_param	= mt9t031_query_bus_param,
->> >> >+	.controls		= mt9t031_controls,
->> >> >+	.num_controls		= ARRAY_SIZE(mt9t031_controls),
->> >> >+};
->> >> >+
->> >>
->> >> [MK] Why don't you implement queryctrl ops in core? query_bus_param
->> >> & set_bus_param() can be implemented as a sub device operation as well
->> >> right? I think we need to get the bus parameter RFC implemented and
->> >> this driver could be targeted for it's first use so that we could
->> >> work together to get it accepted. I didn't get a chance to study your
->> >> bus image format RFC, but plan to review it soon and to see if it can
->be
->> >> used in my platform as well. For use of this driver in our platform,
->> >> all reference to soc_ must be removed. I am ok if the structure is
->> >> re-used, but if this driver calls any soc_camera function, it canot
->> >> be used in my platform.
->> >
->> >Why? Some soc-camera functions are just library functions, you just have
->> >to build soc-camera into your kernel. (also see below)
->> >
->> My point is that the control is for the sensor device, so why to
->implement
->> queryctrl in SoC camera? Just for this I need to include SOC camera in
->> my build? That doesn't make any sense at all. IMHO, queryctrl()
->> logically belongs to this sensor driver which can be called from the
->> bridge driver using sudev API call. Any reverse dependency from MT9T031
->> to SoC camera to be removed if it is to be re-used across other
->> platforms. Can we agree on this?
->
->In general I'm sure you understand, that there are lots of functions in
->the kernel, that we use in specific modules, not because they interact
->with other systems, but because they implement some common functionality
->and just reduce code-duplication. And I can well imagine that in many such
->cases using just one or a couple of such functions will pull a much larger
->pile of unused code with them. But in this case those calls can indeed be
->very easily eliminated. Please have a look at the version below.
->
->> Did you have a chance to compare the driver file that I had sent to you?
->
->I looked at it, but it is based on an earlier version of the driver, so,
->it wasn't very easy to compare. Maybe you could send a diff against the
->mainline version, on which it is based?
->
->Thanks
->Guennadi
->
-> drivers/media/video/mt9t031.c |  167 +++++++++++++++++++++----------------
->----
-> 1 files changed, 85 insertions(+), 82 deletions(-)
->
->diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
->index c95c277..86bf8f6 100644
->--- a/drivers/media/video/mt9t031.c
->+++ b/drivers/media/video/mt9t031.c
->@@ -204,6 +204,71 @@ static unsigned long mt9t031_query_bus_param(struct
->soc_camera_device *icd)
-> 	return soc_camera_apply_sensor_flags(icl, MT9T031_BUS_PARAM);
-> }
->
->+enum {
->+	MT9T031_CTRL_VFLIP,
->+	MT9T031_CTRL_HFLIP,
->+	MT9T031_CTRL_GAIN,
->+	MT9T031_CTRL_EXPOSURE,
->+	MT9T031_CTRL_EXPOSURE_AUTO,
->+};
->+
->+static const struct v4l2_queryctrl mt9t031_controls[] = {
->+	[MT9T031_CTRL_VFLIP] = {
->+		.id		= V4L2_CID_VFLIP,
->+		.type		= V4L2_CTRL_TYPE_BOOLEAN,
->+		.name		= "Flip Vertically",
->+		.minimum	= 0,
->+		.maximum	= 1,
->+		.step		= 1,
->+		.default_value	= 0,
->+	},
->+	[MT9T031_CTRL_HFLIP] = {
->+		.id		= V4L2_CID_HFLIP,
->+		.type		= V4L2_CTRL_TYPE_BOOLEAN,
->+		.name		= "Flip Horizontally",
->+		.minimum	= 0,
->+		.maximum	= 1,
->+		.step		= 1,
->+		.default_value	= 0,
->+	},
->+	[MT9T031_CTRL_GAIN] = {
->+		.id		= V4L2_CID_GAIN,
->+		.type		= V4L2_CTRL_TYPE_INTEGER,
->+		.name		= "Gain",
->+		.minimum	= 0,
->+		.maximum	= 127,
->+		.step		= 1,
->+		.default_value	= 64,
->+		.flags		= V4L2_CTRL_FLAG_SLIDER,
->+	},
->+	[MT9T031_CTRL_EXPOSURE] = {
->+		.id		= V4L2_CID_EXPOSURE,
->+		.type		= V4L2_CTRL_TYPE_INTEGER,
->+		.name		= "Exposure",
->+		.minimum	= 1,
->+		.maximum	= 255,
->+		.step		= 1,
->+		.default_value	= 255,
->+		.flags		= V4L2_CTRL_FLAG_SLIDER,
->+	},
->+	[MT9T031_CTRL_EXPOSURE_AUTO] = {
->+		.id		= V4L2_CID_EXPOSURE_AUTO,
->+		.type		= V4L2_CTRL_TYPE_BOOLEAN,
->+		.name		= "Automatic Exposure",
->+		.minimum	= 0,
->+		.maximum	= 1,
->+		.step		= 1,
->+		.default_value	= 1,
->+	}
->+};
->+
->+static struct soc_camera_ops mt9t031_ops = {
->+	.set_bus_param		= mt9t031_set_bus_param,
->+	.query_bus_param	= mt9t031_query_bus_param,
->+	.controls		= mt9t031_controls,
->+	.num_controls		= ARRAY_SIZE(mt9t031_controls),
->+};
->+
-> /* target must be _even_ */
-> static u16 mt9t031_skip(s32 *source, s32 target, s32 max)
-> {
->@@ -223,10 +288,9 @@ static u16 mt9t031_skip(s32 *source, s32 target, s32
->max)
-> }
->
-> /* rect is the sensor rectangle, the caller guarantees parameter validity
->*/
->-static int mt9t031_set_params(struct soc_camera_device *icd,
->+static int mt9t031_set_params(struct i2c_client *client,
-> 			      struct v4l2_rect *rect, u16 xskip, u16 yskip)
-> {
->-	struct i2c_client *client =
->to_i2c_client(to_soc_camera_control(icd));
-> 	struct mt9t031 *mt9t031 = to_mt9t031(client);
-> 	int ret;
-> 	u16 xbin, ybin;
->@@ -307,8 +371,7 @@ static int mt9t031_set_params(struct soc_camera_device
->*icd,
-> 		if (ret >= 0) {
-> 			const u32 shutter_max = MT9T031_MAX_HEIGHT + vblank;
-> 			const struct v4l2_queryctrl *qctrl =
->-				soc_camera_find_qctrl(icd->ops,
->-						      V4L2_CID_EXPOSURE);
->+				&mt9t031_controls[MT9T031_CTRL_EXPOSURE];
-> 			mt9t031->exposure = (shutter_max / 2 + (total_h - 1) *
-> 				 (qctrl->maximum - qctrl->minimum)) /
-> 				shutter_max + qctrl->minimum;
->@@ -333,7 +396,6 @@ static int mt9t031_s_crop(struct v4l2_subdev *sd,
->struct v4l2_crop *a)
-> 	struct v4l2_rect rect = a->c;
-> 	struct i2c_client *client = sd->priv;
-> 	struct mt9t031 *mt9t031 = to_mt9t031(client);
->-	struct soc_camera_device *icd = client->dev.platform_data;
->
-> 	rect.width = ALIGN(rect.width, 2);
-> 	rect.height = ALIGN(rect.height, 2);
->@@ -344,7 +406,7 @@ static int mt9t031_s_crop(struct v4l2_subdev *sd,
->struct v4l2_crop *a)
-> 	soc_camera_limit_side(&rect.top, &rect.height,
-> 		     MT9T031_ROW_SKIP, MT9T031_MIN_HEIGHT, MT9T031_MAX_HEIGHT);
->
->-	return mt9t031_set_params(icd, &rect, mt9t031->xskip, mt9t031-
->>yskip);
->+	return mt9t031_set_params(client, &rect, mt9t031->xskip, mt9t031-
->>yskip);
-> }
->
-> static int mt9t031_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
->@@ -391,7 +453,6 @@ static int mt9t031_s_fmt(struct v4l2_subdev *sd,
-> {
-> 	struct i2c_client *client = sd->priv;
-> 	struct mt9t031 *mt9t031 = to_mt9t031(client);
->-	struct soc_camera_device *icd = client->dev.platform_data;
-> 	u16 xskip, yskip;
-> 	struct v4l2_rect rect = mt9t031->rect;
->
->@@ -403,7 +464,7 @@ static int mt9t031_s_fmt(struct v4l2_subdev *sd,
-> 	yskip = mt9t031_skip(&rect.height, imgf->height, MT9T031_MAX_HEIGHT);
->
-> 	/* mt9t031_set_params() doesn't change width and height */
->-	return mt9t031_set_params(icd, &rect, xskip, yskip);
->+	return mt9t031_set_params(client, &rect, xskip, yskip);
-> }
->
-> /*
->@@ -476,59 +537,6 @@ static int mt9t031_s_register(struct v4l2_subdev *sd,
-> }
-> #endif
->
->-static const struct v4l2_queryctrl mt9t031_controls[] = {
->-	{
->-		.id		= V4L2_CID_VFLIP,
->-		.type		= V4L2_CTRL_TYPE_BOOLEAN,
->-		.name		= "Flip Vertically",
->-		.minimum	= 0,
->-		.maximum	= 1,
->-		.step		= 1,
->-		.default_value	= 0,
->-	}, {
->-		.id		= V4L2_CID_HFLIP,
->-		.type		= V4L2_CTRL_TYPE_BOOLEAN,
->-		.name		= "Flip Horizontally",
->-		.minimum	= 0,
->-		.maximum	= 1,
->-		.step		= 1,
->-		.default_value	= 0,
->-	}, {
->-		.id		= V4L2_CID_GAIN,
->-		.type		= V4L2_CTRL_TYPE_INTEGER,
->-		.name		= "Gain",
->-		.minimum	= 0,
->-		.maximum	= 127,
->-		.step		= 1,
->-		.default_value	= 64,
->-		.flags		= V4L2_CTRL_FLAG_SLIDER,
->-	}, {
->-		.id		= V4L2_CID_EXPOSURE,
->-		.type		= V4L2_CTRL_TYPE_INTEGER,
->-		.name		= "Exposure",
->-		.minimum	= 1,
->-		.maximum	= 255,
->-		.step		= 1,
->-		.default_value	= 255,
->-		.flags		= V4L2_CTRL_FLAG_SLIDER,
->-	}, {
->-		.id		= V4L2_CID_EXPOSURE_AUTO,
->-		.type		= V4L2_CTRL_TYPE_BOOLEAN,
->-		.name		= "Automatic Exposure",
->-		.minimum	= 0,
->-		.maximum	= 1,
->-		.step		= 1,
->-		.default_value	= 1,
->-	}
->-};
->-
->-static struct soc_camera_ops mt9t031_ops = {
->-	.set_bus_param		= mt9t031_set_bus_param,
->-	.query_bus_param	= mt9t031_query_bus_param,
->-	.controls		= mt9t031_controls,
->-	.num_controls		= ARRAY_SIZE(mt9t031_controls),
->-};
->-
-> static int mt9t031_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control
->*ctrl)
-> {
-> 	struct i2c_client *client = sd->priv;
->@@ -565,15 +573,9 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd,
->struct v4l2_control *ctrl)
-> {
-> 	struct i2c_client *client = sd->priv;
-> 	struct mt9t031 *mt9t031 = to_mt9t031(client);
->-	struct soc_camera_device *icd = client->dev.platform_data;
-> 	const struct v4l2_queryctrl *qctrl;
-> 	int data;
->
->-	qctrl = soc_camera_find_qctrl(&mt9t031_ops, ctrl->id);
->-
->-	if (!qctrl)
->-		return -EINVAL;
->-
-> 	switch (ctrl->id) {
-> 	case V4L2_CID_VFLIP:
-> 		if (ctrl->value)
->@@ -592,6 +594,7 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd,
->struct v4l2_control *ctrl)
-> 			return -EIO;
-> 		break;
-> 	case V4L2_CID_GAIN:
->+		qctrl = &mt9t031_controls[MT9T031_CTRL_GAIN];
-> 		if (ctrl->value > qctrl->maximum || ctrl->value < qctrl-
->>minimum)
-> 			return -EINVAL;
-> 		/* See Datasheet Table 7, Gain settings. */
->@@ -631,6 +634,7 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd,
->struct v4l2_control *ctrl)
-> 		mt9t031->gain = ctrl->value;
-> 		break;
-> 	case V4L2_CID_EXPOSURE:
->+		qctrl = &mt9t031_controls[MT9T031_CTRL_EXPOSURE];
-> 		/* mt9t031 has maximum == default */
-> 		if (ctrl->value > qctrl->maximum || ctrl->value < qctrl-
->>minimum)
-> 			return -EINVAL;
->@@ -657,7 +661,7 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd,
->struct v4l2_control *ctrl)
->
-> 			if (set_shutter(client, total_h) < 0)
-> 				return -EIO;
->-			qctrl = soc_camera_find_qctrl(icd->ops,
->V4L2_CID_EXPOSURE);
->+			qctrl = &mt9t031_controls[MT9T031_CTRL_EXPOSURE];
-> 			mt9t031->exposure = (shutter_max / 2 + (total_h - 1) *
-> 				 (qctrl->maximum - qctrl->minimum)) /
-> 				shutter_max + qctrl->minimum;
->@@ -665,6 +669,8 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd,
->struct v4l2_control *ctrl)
-> 		} else
-> 			mt9t031->autoexposure = 0;
-> 		break;
->+	default:
->+		return -EINVAL;
-> 	}
-> 	return 0;
-> }
->@@ -751,18 +757,16 @@ static int mt9t031_probe(struct i2c_client *client,
-> 	struct mt9t031 *mt9t031;
-> 	struct soc_camera_device *icd = client->dev.platform_data;
-> 	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
->-	struct soc_camera_link *icl;
-> 	int ret;
->
->-	if (!icd) {
->-		dev_err(&client->dev, "MT9T031: missing soc-camera data!\n");
->-		return -EINVAL;
->-	}
->+	if (icd) {
->+		struct soc_camera_link *icl = to_soc_camera_link(icd);
->+		if (!icl) {
->+			dev_err(&client->dev, "MT9T031 driver needs platform
->data\n");
->+			return -EINVAL;
->+		}
->
->-	icl = to_soc_camera_link(icd);
->-	if (!icl) {
->-		dev_err(&client->dev, "MT9T031 driver needs platform data\n");
->-		return -EINVAL;
->+		icd->ops = &mt9t031_ops;
-> 	}
->
-> 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
->@@ -777,9 +781,6 @@ static int mt9t031_probe(struct i2c_client *client,
->
-> 	v4l2_i2c_subdev_init(&mt9t031->subdev, client, &mt9t031_subdev_ops);
->
->-	/* Second stage probe - when a capture adapter is there */
->-	icd->ops		= &mt9t031_ops;
->-
-> 	mt9t031->rect.left	= MT9T031_COLUMN_SKIP;
-> 	mt9t031->rect.top	= MT9T031_ROW_SKIP;
-> 	mt9t031->rect.width	= MT9T031_MAX_WIDTH;
->@@ -801,7 +802,8 @@ static int mt9t031_probe(struct i2c_client *client,
-> 	mt9t031_disable(client);
->
-> 	if (ret) {
->-		icd->ops = NULL;
->+		if (icd)
->+			icd->ops = NULL;
-> 		i2c_set_clientdata(client, NULL);
-> 		kfree(mt9t031);
-> 	}
->@@ -814,7 +816,8 @@ static int mt9t031_remove(struct i2c_client *client)
-> 	struct mt9t031 *mt9t031 = to_mt9t031(client);
-> 	struct soc_camera_device *icd = client->dev.platform_data;
->
->-	icd->ops = NULL;
->+	if (icd)
->+		icd->ops = NULL;
-> 	i2c_set_clientdata(client, NULL);
-> 	client->driver = NULL;
-> 	kfree(mt9t031);
->--
->1.6.2.4
->
+
 
