@@ -1,95 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:41138
-	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752415AbZK0CXm (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:59401 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758281AbZKRUKc convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 21:23:42 -0500
-Message-ID: <4B0F3963.8040701@wilsonet.com>
-Date: Thu, 26 Nov 2009 21:28:51 -0500
-From: Jarod Wilson <jarod@wilsonet.com>
+	Wed, 18 Nov 2009 15:10:32 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+Date: Wed, 18 Nov 2009 14:10:36 -0600
+Subject: RE: [PATCH v2] V4L - Adding Digital Video Timings APIs
+Message-ID: <A69FA2915331DC488A831521EAE36FE401559C61B2@dlee06.ent.ti.com>
+References: <1258563824-1310-1-git-send-email-m-karicheri2@ti.com>
+ <200911181908.51793.hverkuil@xs4all.nl>
+ <A69FA2915331DC488A831521EAE36FE401559C6120@dlee06.ent.ti.com>
+ <200911182023.34005.hverkuil@xs4all.nl>
+In-Reply-To: <200911182023.34005.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: Krzysztof Halasa <khc@pm.waw.pl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@redhat.com>, linux-kernel@vger.kernel.org,
-	Mario Limonciello <superm1@ubuntu.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Janne Grunau <j@jannau.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
- Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-References: <200910200956.33391.jarod@redhat.com> <200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com> <4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain> <20091123173726.GE17813@core.coreip.homeip.net> <4B0B6321.3050001@wilsonet.com> <20091126053109.GE23244@core.coreip.homeip.net> <A910E742-51B5-45E0-AD80-B9AE0728D9FB@wilsonet.com> <20091126232311.GD6936@core.coreip.homeip.net>
-In-Reply-To: <20091126232311.GD6936@core.coreip.homeip.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/26/2009 06:23 PM, Dmitry Torokhov wrote:
-> On Thu, Nov 26, 2009 at 01:16:01AM -0500, Jarod Wilson wrote:
->> On Nov 26, 2009, at 12:31 AM, Dmitry Torokhov wrote:
->>
->>> On Mon, Nov 23, 2009 at 11:37:53PM -0500, Jarod Wilson wrote:
->>>> On 11/23/2009 12:37 PM, Dmitry Torokhov wrote:
->>>>> On Mon, Nov 23, 2009 at 03:14:56PM +0100, Krzysztof Halasa wrote:
->>>>>> Mauro Carvalho Chehab<mchehab@redhat.com>   writes:
->>>>>>
->>>>>>> Event input has the advantage that the keystrokes will provide an unique
->>>>>>> representation that is independent of the device.
->>>>>>
->>>>>> This can hardly work as the only means, the remotes have different keys,
->>>>>> the user almost always has to provide customized key<>function mapping.
->>>>>>
->>>>>
->>>>> Is it true? I would expect the remotes to have most of the keys to have
->>>>> well-defined meanings (unless it is one of the programmable remotes)...
->>>>
->>>> Its the cases like programmable universal remotes that really throw
->>>> things for a loop. That, and people wanting to use random remote X that
->>>> came with the amp or tv or set top box, with IR receiver Y.
->>>
->>> Right, but still the keys usually do have the well-defined meaning,
->>
->> Except when they don't. I have two very similar remotes, one that was bundled with a system from CaptiveWorks, and one that was bundled with an Antec Veris IR/LCD (SoundGraph iMON rebrand). Outside of the Antec remote having a mouse pad instead of up/down/left/right/enter, they have an identical layout, and the keys in the same locations on the remotes send the same IR signal. But the button names vary a LOT between the two. So on the DVD key on the Antec and the MUTE key on the CW send the same signal. Same with Audio vs. Eject, TV vs. History, etc. Moral of the story is that not all IR protocols spell things out particularly well for what a given code should actually mean.
+Hans,
+
+Thanks for doing the 64-bit test. I will incorporate
+the below comments along with the other comments and will
+post v3 of the patch with you included in the sign off.
+
+Regards,
+
+Murali
 >
-> I guess we are talking about different things. While the 2 remotes may
-> use different protocols to communicate
-
-The remotes use the exact same protocol. Their respective bundled 
-receivers however, do translate key presses differently. Perhaps this is 
-a bad example though, because both of these remotes came with receivers 
-that do onboard decoding. But there's nothing stopping me from wanting 
-to use either of these remotes with an mceusb IR transceiver.
-
-> and may use the same codes to
-> mean different things they buttons have well-defined meaning and we
-> could map that to input keycodes. Then what is left is to load the
-> proper mapping for particular device into the kernel.
-
-In this case, its not the device, but the remote, that we need a 
-different mapping for.
-
-> This can be done
-> either automatically (when we know the mapping) or with the help of the
-> user (owner of the system).
-
-Yep, that'd work. Just trying to illustrate that the same code doesn't 
-always mean anywhere near the same thing from one remote to another.
-
->>> teh
->>> issue is in mapping raw code to the appropriate keycode. This can be
->>> done either by lirc config file (when lirc is used) or by some other
->>> means.
->>
->> The desire to map a button press to multiple keystrokes isn't uncommon either, though I presume that's doable within the input layer context too.
+>I did some quick 64-bit tests and discovered that we need to add the packed
+>attribute to struct v4l2_bt_timings and struct v4l2_dv_timings in order to
+>prevent nasty 32-bit to 64-bit conversions in v4l2-compat-ioctl32.c.
 >
-> No, at present we expect 1:1 button->event mapping leaving macro
-> expansion (i.e. KEY_PROG1 ->  "do some multi-step sequence" to
-> userspace).
-
-Hm. So ctrl-x, alt-tab, etc. would have to be faked in userspace 
-somehow. Bummer.
-
--- 
-Jarod Wilson
-jarod@wilsonet.com
+>See below:
+>
+>> >> +/*
+>> >> + *  D V     B T     T I M I N G S
+>> >> + */
+>> >> +
+>> >> +/* BT.656/BT.1120 timing data */
+>> >> +struct v4l2_bt_timings {
+>> >> +    __u32   width;          /* width in pixels */
+>> >> +    __u32   height;         /* height in lines */
+>> >> +    __u32   interlaced;     /* Interlaced or progressive */
+>> >> +    __u32   polarities;     /* Positive or negative polarity */
+>> >> +    __u64   pixelclock;     /* Pixel clock in HZ. Ex. 74.25MHz-
+>>74250000 */
+>> >> +    __u32   hfrontporch;    /* Horizpontal front porch in pixels */
+>> >> +    __u32   hsync;          /* Horizontal Sync length in pixels */
+>> >> +    __u32   hbackporch;     /* Horizontal back porch in pixels */
+>> >> +    __u32   vfrontporch;    /* Vertical front porch in pixels */
+>> >> +    __u32   vsync;          /* Vertical Sync length in lines */
+>> >> +    __u32   vbackporch;     /* Vertical back porch in lines */
+>> >> +    __u32   il_vfrontporch; /* Vertical front porch for bottom field
+>of
+>> >> +                             * interlaced field formats
+>> >> +                             */
+>> >> +    __u32   il_vsync;       /* Vertical sync length for bottom field
+>of
+>> >> +                             * interlaced field formats
+>> >> +                             */
+>> >> +    __u32   il_vbackporch;  /* Vertical back porch for bottom field
+>of
+>> >> +                             * interlaced field formats
+>> >> +                             */
+>> >> +    __u32   reserved[16];
+>> >> +};
+>
+>End with:
+>
+>} __attribute__ ((packed));
+>
+>> >> +
+>> >> +/* Interlaced or progressive format */
+>> >> +#define     V4L2_DV_PROGRESSIVE     0
+>> >> +#define     V4L2_DV_INTERLACED      1
+>> >> +
+>> >> +/* Polarities. If bit is not set, it is assumed to be negative
+>polarity
+>> >*/
+>> >> +#define V4L2_DV_VSYNC_POS_POL       0x00000001
+>> >> +#define V4L2_DV_HSYNC_POS_POL       0x00000002
+>> >> +
+>> >> +/* BT.656/1120 timing type */
+>> >> +enum v4l2_dv_timings_type {
+>> >> +    V4L2_DV_BT_656_1120,
+>> >> +};
+>> >
+>> >I forgot something: we shouldn't use enums as that can give problems on
+>> >some
+>> >architectures (ARM being one of them, I believe). So this should become
+>a
+>> >define and the type field below a __u32.
+>> >
+>> >> +
+>> >> +/* DV timings */
+>> >> +struct v4l2_dv_timings {
+>> >> +    enum v4l2_dv_timings_type type;
+>> >> +    union {
+>> >> +            struct v4l2_bt_timings  bt;
+>> >> +            __u32   reserved[32];
+>> >> +    };
+>> >> +};
+>
+>Ditto.
+>
+>I also attached a small diff for the v4l2-apps/test/ioctl-test.c source
+>which
+>I used to test this.
+>
+>The patch is Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+>
+>You can include this when you post the v4l2-apps patches.
+>
+>Regards,
+>
+>	Hans
+>
+>--
+>Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
