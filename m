@@ -1,66 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:53284 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751209AbZKUA2O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2009 19:28:14 -0500
-Date: Sat, 21 Nov 2009 01:26:56 +0100 (CET)
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Subject: Re: [PATCH 0/6] DVB: firedtv: simplifications and a portability fix
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: linux1394-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
-In-Reply-To: <tkrat.7dc1f889fd1b69ad@s5r6.in-berlin.de>
-Message-ID: <tkrat.b94d6be3d9a0bad9@s5r6.in-berlin.de>
-References: <tkrat.7dc1f889fd1b69ad@s5r6.in-berlin.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=us-ascii
-Content-Disposition: INLINE
+Received: from dns1.tnr.at ([62.99.154.7]:37555 "EHLO mail.tnr.at"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752270AbZKRJFD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Nov 2009 04:05:03 -0500
+Date: Wed, 18 Nov 2009 10:05:18 +0100
+From: Andreas Feuersinger <andreas.feuersinger@spintower.eu>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Driver for NXP SAA7154
+Message-ID: <20091118100518.08e147ee@devenv1>
+In-Reply-To: <630a05e93817ce501eb6a0ddd6246a39.squirrel@webmail.xs4all.nl>
+References: <20091118084516.375817ff@devenv1>
+	<630a05e93817ce501eb6a0ddd6246a39.squirrel@webmail.xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18 Nov, Stefan Richter wrote:
-> The following three patches are applicable after "firedtv: port to new
-> firewire core" from 2009-11-08:
-...
-> The rest of this patch set additionally requires the latest firedtv as
-> of 2.6.32-rc7:
-...
+Hi Hans
 
-I updated the "firedtv" branch at
+Thank you for your reply!
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/ieee1394/linux1394-2.6.git firedtv
+On Wed, 18 Nov 2009 09:20:53 +0100
+"Hans Verkuil" <hverkuil@xs4all.nl> wrote:
+> > I wonder if there is work in progress for a Linux driver supporting
+> > the NXP SAA7154 Multistandard video decoder with comb filter,
+[..]
+> > Datasheet:
+> > http://www.nxp.com/documents/data_sheet/SAA7154E_SAA7154H.pdf
 
-now (based on v2.6.31 but having a merge from v2.6.32-rc8 in it due to
-above mentioned requirement).
+> I think it will have to be a new driver, partially based on the
+> current saa7115.c driver (at least the composite/S-Video input part
+> seems to be very similar to that one). The good news is that the
+> datasheet is available, that will help a lot.
 
-Mauro, please harvest the posted 4 + 6 patches from the mailing list, or
-pull or cherry-pick them from linux1394-2.6.git firedtv.  Thanks.
+Is it possible for you to estimate time and effort for writing the
+driver? I don't really have experience in Linux driver writing so far.
+How much help could one expect?
+Are there other people interested in or willing to write the driver? 
 
-Stefan Richter (11):
-      firedtv: move remote control workqueue handling into rc source file
-      firedtv: reform lock transaction backend call
-      firedtv: add missing include, rename a constant
-      firedtv: port to new firewire core
-      firedtv: shrink buffer pointer table
-      firedtv: packet requeuing is likely to succeed
-      firedtv: remove an unnecessary function argument
-      Merge tag 'v2.6.32-rc8' into firedtv
-      firedtv: do not DMA-map stack addresses
-      firedtv: remove check for interrupting signal
-      firedtv: reduce memset()s
+I considered asking people from Linux Driver Project for assistance...
 
- drivers/media/dvb/firewire/Kconfig        |    7 +-
- drivers/media/dvb/firewire/Makefile       |    1 +
- drivers/media/dvb/firewire/firedtv-1394.c |   42 +-
- drivers/media/dvb/firewire/firedtv-avc.c  |  566 +++++++++++----------
- drivers/media/dvb/firewire/firedtv-dvb.c  |   16 +-
- drivers/media/dvb/firewire/firedtv-fw.c   |  376 ++++++++++++++
- drivers/media/dvb/firewire/firedtv-rc.c   |    2 +
- drivers/media/dvb/firewire/firedtv.h      |   23 +-
- 8 files changed, 746 insertions(+), 287 deletions(-)
--- 
-Stefan Richter
--=====-==--= =-== =-=-=
-http://arcgraph.de/sr/
+Sorry for asking probably silly questions, I am new to the kernel
+development process.
 
+Regards,
+	Andreas
