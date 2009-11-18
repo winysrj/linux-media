@@ -1,58 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:16276 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752844AbZKWWgz (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:51532 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756970AbZKRJc0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2009 17:36:55 -0500
+	Wed, 18 Nov 2009 04:32:26 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: v4l: Use the video_drvdata function in drivers
+Date: Wed, 18 Nov 2009 10:32:52 +0100
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1258504731-8430-1-git-send-email-laurent.pinchart@ideasonboard.com> <1258504731-8430-8-git-send-email-laurent.pinchart@ideasonboard.com> <200911180801.48950.hverkuil@xs4all.nl>
+In-Reply-To: <200911180801.48950.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <m36390rhzp.fsf@intrepid.localdomain>
-References: <BDRae8rZjFB@christoph> <m3einork1o.fsf@intrepid.localdomain>
-	 <829197380911231354y764e01b7hc0c5721b3ebf1f26@mail.gmail.com>
-	 <m36390rhzp.fsf@intrepid.localdomain>
-Date: Mon, 23 Nov 2009 17:37:00 -0500
-Message-ID: <829197380911231437v909a111rcc2967af3e4fffa2@mail.gmail.com>
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
-	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Krzysztof Halasa <khc@pm.waw.pl>
-Cc: Christoph Bartelmus <lirc@bartelmus.de>, dmitry.torokhov@gmail.com,
-	j@jannau.net, jarod@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, superm1@ubuntu.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200911181032.52676.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 23, 2009 at 5:31 PM, Krzysztof Halasa <khc@pm.waw.pl> wrote:
-> Devin Heitmueller <dheitmueller@kernellabs.com> writes:
->
->> There is an argument to be made that since it may be desirable for
->> both IR receivers and transmitters to share the same table of remote
->> control definitions, it might make sense to at least *consider* how
->> the IR transmitter interface is going to work, even if it is decided
->> to not implement such a design in the first revision.
->>
->> Personally, I would hate to see a situation where we find out that we
->> took a bad approach because nobody considered what would be required
->> for IR transmitters to reuse the same remote control definition data.
->
-> I briefly though about such possibility, but dismissed it with
-> assumption that we won't transmit the same codes (including "key" codes)
-> that we receive.
+On Wednesday 18 November 2009 08:01:48 Hans Verkuil wrote:
+> On Wednesday 18 November 2009 01:38:48 Laurent Pinchart wrote:
+> > Fix all device drivers to use the video_drvdata function instead of
+> > maintaining a local list of minor to private data mappings. Call
+> > video_set_drvdata to register the driver private pointer when not
+> > already done.
+> >
+> > Where applicable, the local list of mappings is completely removed when
+> > it becomes unused.
+> >
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> Very nice cleanup!
 
-I'm not specifically suggesting that you would want to transmit the
-same codes that you receive, but you probably want the database of
-remote control definitions to be shared.
+Thank you.
 
-For example, you might want the IR receiver to be listening for codes
-using the "Universal Remote Control XYZ" profile and the IR
-transmitter pretending to be "Cable Company Remote Control ABC" when
-blasting IR codes to the cable box.  Ideally, there would be a single
-shared database of the definitions of the remote controls, regardless
-of whether you are IR receiving or transmitting.
+> But you need to check the lock_kernel calls carefully, I think one is now
+> unbalanced:
 
-Devin
+[snip]
+
+Thanks for catching this. I tried to be quite careful but this one slipped in. 
+I was planning to recheck all the patches for this kind of issue, so now is a 
+good time to do so :-)
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Regards,
+
+Laurent Pinchart
