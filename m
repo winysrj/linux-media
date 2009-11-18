@@ -1,93 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:53672 "EHLO
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:59576 "EHLO
 	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752693AbZKJMkF convert rfc822-to-8bit (ORCPT
+	with ESMTP id S1752434AbZKRI4I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Nov 2009 07:40:05 -0500
-Received: by bwz27 with SMTP id 27so4465895bwz.21
-        for <linux-media@vger.kernel.org>; Tue, 10 Nov 2009 04:40:09 -0800 (PST)
+	Wed, 18 Nov 2009 03:56:08 -0500
+Received: by bwz27 with SMTP id 27so838070bwz.21
+        for <linux-media@vger.kernel.org>; Wed, 18 Nov 2009 00:56:13 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <b40acdb70911100426w46119c79y4226088ca3196254@mail.gmail.com>
-References: <921ad39e0911100419p3ca39ea4ycd5ac84322555fc2@mail.gmail.com>
-	 <b40acdb70911100426w46119c79y4226088ca3196254@mail.gmail.com>
-Date: Tue, 10 Nov 2009 12:40:08 +0000
-Message-ID: <921ad39e0911100440v6f146d1ci5858517cffdc0457@mail.gmail.com>
-Subject: =?UTF-8?Q?Re=3A_tw68=2Dv2=2Ftw68=2Di2c=2Ec=3A145=3A_error=3A_unknown_field_=E2=80=98?=
-	=?UTF-8?Q?client=5Fregister=E2=80=99_specified_in_initializer?=
-From: Roman Gaufman <hackeron@gmail.com>
-To: Domenico Andreoli <cavokz@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <200911180801.48950.hverkuil@xs4all.nl>
+References: <1258504731-8430-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	 <1258504731-8430-8-git-send-email-laurent.pinchart@ideasonboard.com>
+	 <200911180801.48950.hverkuil@xs4all.nl>
+Date: Wed, 18 Nov 2009 03:56:12 -0500
+Message-ID: <829197380911180056i5102b87bw2926a7b38608570d@mail.gmail.com>
+Subject: Re: v4l: Use the video_drvdata function in drivers
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, mchehab@infradead.org,
+	sakari.ailus@maxwell.research.nokia.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks, managed to compile but getting -1 Unknown symbol in module now
-- any ideas?
+On Wed, Nov 18, 2009 at 2:01 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Very nice cleanup!
 
-# make
-make -C /lib/modules/2.6.31-14-generic/build M=/root/tw68-v2 modules
-make[1]: Entering directory `/usr/src/linux-headers-2.6.31-14-generic'
-  CC [M]  /root/tw68-v2/tw68-core.o
-  CC [M]  /root/tw68-v2/tw68-cards.o
-  CC [M]  /root/tw68-v2/tw68-video.o
-  CC [M]  /root/tw68-v2/tw68-controls.o
-  CC [M]  /root/tw68-v2/tw68-fileops.o
-  CC [M]  /root/tw68-v2/tw68-ioctls.o
-  CC [M]  /root/tw68-v2/tw68-vbi.o
-  CC [M]  /root/tw68-v2/tw68-ts.o
-  CC [M]  /root/tw68-v2/tw68-risc.o
-  CC [M]  /root/tw68-v2/tw68-input.o
-  CC [M]  /root/tw68-v2/tw68-tvaudio.o
-  LD [M]  /root/tw68-v2/tw68.o
-  Building modules, stage 2.
-  MODPOST 1 modules
-  CC      /root/tw68-v2/tw68.mod.o
-  LD [M]  /root/tw68-v2/tw68.ko
-make[1]: Leaving directory `/usr/src/linux-headers-2.6.31-14-generic'
-# insmod tw68.ko
-insmod: error inserting 'tw68.ko': -1 Unknown symbol in module
-# uname -a
-Linux xanview-dev 2.6.31-14-generic #48-Ubuntu SMP Fri Oct 16 14:05:01
-UTC 2009 x86_64 GNU/Linux
+The last time I saw one of these relatively innocent-looking changes
+being done across all drivers without testing, it introduced a rather
+nasty and hard to find OOPS into one of my drivers and I had to fix
+it:
 
+http://linuxtv.org/hg/v4l-dvb/rev/5a54038a66c9
 
-2009/11/10 Domenico Andreoli <cavokz@gmail.com>:
-> Hi,
->
-> On Tue, Nov 10, 2009 at 1:19 PM, Roman Gaufman <hackeron@gmail.com> wrote:
->> Hey, I'm trying to compile tw68 and I'm getting the following:
->>
->> make -C /lib/modules/2.6.31-14-generic/build M=/root/tw68-v2 modules
->> make[1]: Entering directory `/usr/src/linux-headers-2.6.31-14-generic'
->>  CC [M]  /root/tw68-v2/tw68-core.o
->>  CC [M]  /root/tw68-v2/tw68-cards.o
->>  CC [M]  /root/tw68-v2/tw68-i2c.o
->> /root/tw68-v2/tw68-i2c.c:145: error: unknown field ‘client_register’
->> specified in initializer
->> /root/tw68-v2/tw68-i2c.c:145: warning: missing braces around initializer
->> /root/tw68-v2/tw68-i2c.c:145: warning: (near initialization for
->> ‘tw68_adap_sw_template.dev_released’)
->> /root/tw68-v2/tw68-i2c.c:145: warning: initialization makes integer
->> from pointer without a cast
->> /root/tw68-v2/tw68-i2c.c:145: error: initializer element is not
->> computable at load time
->> /root/tw68-v2/tw68-i2c.c:145: error: (near initialization for
->> ‘tw68_adap_sw_template.dev_released.done’)
->> make[2]: *** [/root/tw68-v2/tw68-i2c.o] Error 1
->> make[1]: *** [_module_/root/tw68-v2] Error 2
->> make[1]: Leaving directory `/usr/src/linux-headers-2.6.31-14-generic'
->> make: *** [all] Error 2
->>
->> Any ideas?
->
-> yes, the i2c part got outdated by some kernel change. anyway it is still
-> not used so you can safely remove tw68-i2c.c from Makefile.
->
-> regards,
-> Domenico
->
-> -----[ Domenico Andreoli, aka cavok
->  --[ http://www.dandreoli.com/gpgkey.asc
->   ---[ 3A0F 2F80 F79C 678A 8936  4FEE 0677 9033 A20E BC50
->
+Is there some reason this is one massive patch instead of individual
+patches for each driver?  How confident are we that this *really*
+isn't going to break some bridge without anyone realizing it?  Is this
+going to be some situation where it just "goes in" and then the
+maintainers of individual bridges are going to have to clean up the
+mess when users start complaining?
+
+If there are going to be a series of cleanups such as this, perhaps it
+makes sense for Laurent to setup a tree with all the proposed fixes,
+and put out a call for testers so we can be more confident that it
+doesn't screw anything up.
+
+Don't get me wrong, I'm all for seeing these things cleaned up, and
+the more functionality in the core the better.  But I am admittedly a
+bit nervous to see huge patches touching all the drivers where I am
+pretty sure that the developer probably only tested it on a couple of
+drivers and is assuming it works across all.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
