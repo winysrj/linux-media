@@ -1,67 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atlantis.8hz.com ([212.129.237.78]:61428 "EHLO atlantis.8hz.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932705AbZKYVjz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2009 16:39:55 -0500
-Date: Wed, 25 Nov 2009 21:32:46 +0000
-From: Sean Young <sean@mess.org>
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Trent Piepho <xyzzy@speakeasy.org>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@redhat.com>, linux-kernel@vger.kernel.org,
-	Mario Limonciello <superm1@ubuntu.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Janne Grunau <j@jannau.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: IR raw input is not sutable for input system
-Message-ID: <20091125213246.GA44831@atlantis.8hz.com>
-References: <200910200956.33391.jarod@redhat.com> <200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com> <4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain> <20091123173726.GE17813@core.coreip.homeip.net> <4B0B6321.3050001@wilsonet.com> <1259105571.28219.20.camel@maxim-laptop> <Pine.LNX.4.58.0911241918390.30284@shell2.speakeasy.net> <1259155734.4875.23.camel@maxim-laptop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1259155734.4875.23.camel@maxim-laptop>
+Received: from einhorn.in-berlin.de ([192.109.42.8]:35610 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753872AbZKRTBH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Nov 2009 14:01:07 -0500
+Date: Wed, 18 Nov 2009 20:00:55 +0100 (CET)
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: [PATCH 1/6] firedtv: shrink buffer pointer table
+To: linux-media@vger.kernel.org
+cc: linux1394-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
+In-Reply-To: <tkrat.7dc1f889fd1b69ad@s5r6.in-berlin.de>
+Message-ID: <tkrat.6b9442a2f97654ef@s5r6.in-berlin.de>
+References: <tkrat.7dc1f889fd1b69ad@s5r6.in-berlin.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; CHARSET=us-ascii
+Content-Disposition: INLINE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 25, 2009 at 03:28:54PM +0200, Maxim Levitsky wrote:
-> On Tue, 2009-11-24 at 19:32 -0800, Trent Piepho wrote: 
-> > On Wed, 25 Nov 2009, Maxim Levitsky wrote:
-> > > Its not the case.
-> > > There are many protocols, I know that by experimenting with my universal
-> > > remote. There are many receivers, and all have different accuracy.
-> > > Most remotes aren't designed to be used with PC, thus user has to invent
-> > > mapping between buttons and actions.
-> > > Its is not possible to identify remotes accurately, many remotes send
-> > > just a 8 bit integer that specifies the 'model' thus many remotes can
-> > > share it.
-> > 
-> > The signal recevied by the ir receiver contains glitches.  Depending on the
-> > receiver there can be quite a few.  It is also not trivial to turn the raw
-> > signal sent by the remote into a digital value, even if you know what to
-> > expect.  It takes digital signal processing techniques to turn the messy
-> > sequence of inaccurate mark and space lengths into a best guess at what
-> > digital code the remote sent.
-> Exactly
-> 
-> > 
-> > It's like turning raw VBI data into decoded ASCII teletext from a simulated
-> > keyboard device, all in the kernel.
-> You hit a nail on the head with this one.
+Cache only addresses of whole pages, not of each buffer chunk.  Besides,
+page addresses can be obtained by page_address() instead of kmap() since
+they were allocated in lowmem.
 
-Absolutely. There are a number of use cases when you want access to the 
-space-pulse (i.e. IR) information. For debugging purposes; support for 
-non-standard remotes. Being able to do a precise recording of IR activity
-so you can replay without parsing. One could even imagine IR being used 
-for completely different purposes than "key strokes", so the kernel
-should not enforce this "policy".
+Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+---
+ drivers/media/dvb/firewire/firedtv-fw.c |   19 ++++++++-----------
+ 1 file changed, 8 insertions(+), 11 deletions(-)
 
-In the past I've spent time dissecting the IR output of a strange remote, 
-I would hate to think this would not be possible due to mad kernel 
-interfaces which cater just for drooling in front of the telly with
-your *new* remote.
+Index: linux-2.6.32-rc7/drivers/media/dvb/firewire/firedtv-fw.c
+===================================================================
+--- linux-2.6.32-rc7.orig/drivers/media/dvb/firewire/firedtv-fw.c
++++ linux-2.6.32-rc7/drivers/media/dvb/firewire/firedtv-fw.c
+@@ -6,9 +6,9 @@
+ #include <linux/errno.h>
+ #include <linux/firewire.h>
+ #include <linux/firewire-constants.h>
+-#include <linux/highmem.h>
+ #include <linux/kernel.h>
+ #include <linux/list.h>
++#include <linux/mm.h>
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
+ #include <linux/types.h>
+@@ -73,7 +73,7 @@ struct firedtv_receive_context {
+ 	struct fw_iso_buffer buffer;
+ 	int interrupt_packet;
+ 	int current_packet;
+-	char *packets[N_PACKETS];
++	char *pages[N_PAGES];
+ };
+ 
+ static int queue_iso(struct firedtv_receive_context *ctx, int index)
+@@ -100,7 +100,7 @@ static void handle_iso(struct fw_iso_con
+ 	struct firedtv *fdtv = data;
+ 	struct firedtv_receive_context *ctx = fdtv->backend_data;
+ 	__be32 *h, *h_end;
+-	int i = ctx->current_packet, length, err;
++	int length, err, i = ctx->current_packet;
+ 	char *p, *p_end;
+ 
+ 	for (h = header, h_end = h + header_length / 4; h < h_end; h++) {
+@@ -110,7 +110,8 @@ static void handle_iso(struct fw_iso_con
+ 			length = MAX_PACKET_SIZE;
+ 		}
+ 
+-		p = ctx->packets[i];
++		p = ctx->pages[i / PACKETS_PER_PAGE]
++				+ (i % PACKETS_PER_PAGE) * MAX_PACKET_SIZE;
+ 		p_end = p + length;
+ 
+ 		for (p += CIP_HEADER_SIZE + MPEG2_TS_HEADER_SIZE; p < p_end;
+@@ -130,8 +131,7 @@ static int start_iso(struct firedtv *fdt
+ {
+ 	struct firedtv_receive_context *ctx;
+ 	struct fw_device *device = device_of(fdtv);
+-	char *p;
+-	int i, j, k, err;
++	int i, err;
+ 
+ 	ctx = kmalloc(sizeof(*ctx), GFP_KERNEL);
+ 	if (!ctx)
+@@ -153,11 +153,8 @@ static int start_iso(struct firedtv *fdt
+ 	ctx->interrupt_packet = 1;
+ 	ctx->current_packet = 0;
+ 
+-	for (i = 0, k = 0; k < N_PAGES; k++) {
+-		p = kmap(ctx->buffer.pages[k]);
+-		for (j = 0; j < PACKETS_PER_PAGE && i < N_PACKETS; j++, i++)
+-			ctx->packets[i] = p + j * MAX_PACKET_SIZE;
+-	}
++	for (i = 0; i < N_PAGES; i++)
++		ctx->pages[i] = page_address(ctx->buffer.pages[i]);
+ 
+ 	for (i = 0; i < N_PACKETS; i++) {
+ 		err = queue_iso(ctx, i);
 
+-- 
+Stefan Richter
+-=====-==--= =-== =--=-
+http://arcgraph.de/sr/
 
-Sean
