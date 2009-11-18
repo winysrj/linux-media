@@ -1,225 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1661 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752620AbZKTMlQ (ORCPT
+Received: from comal.ext.ti.com ([198.47.26.152]:43593 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758023AbZKRSTT convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2009 07:41:16 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: m-karicheri2@ti.com
-Subject: Re: [PATCH] Adding helper function to get dv preset description
-Date: Fri, 20 Nov 2009 13:41:18 +0100
-Cc: linux-media@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com
-References: <1258646987-21515-1-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1258646987-21515-1-git-send-email-m-karicheri2@ti.com>
+	Wed, 18 Nov 2009 13:19:19 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 18 Nov 2009 12:19:16 -0600
+Subject: RE: Help in adding documentation
+Message-ID: <A69FA2915331DC488A831521EAE36FE401559C60B9@dlee06.ent.ti.com>
+References: <A69FA2915331DC488A831521EAE36FE401559C59A2@dlee06.ent.ti.com>
+ <20091117142820.1e62a362@pedra.chehab.org>
+ <A69FA2915331DC488A831521EAE36FE401559C5A38@dlee06.ent.ti.com>
+ <4B02E444.3020707@infradead.org>
+In-Reply-To: <4B02E444.3020707@infradead.org>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200911201341.18922.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 19 November 2009 17:09:47 m-karicheri2@ti.com wrote:
-> From: Muralidharan Karicheri <m-karicheri2@ti.com>
+Mauro,
+
+Is there specific way to create patch for this documentation?
+
+Can I just do following commands and send one patch?
+
+Baseline tree - v4l-dvb-base (original)
+Changed tree -  v4l-dvb-change
+
+diff -uNr v4l-dvb-base v4l-dvb-change >media-doc.patch
+
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+phone: 301-407-9583
+email: m-karicheri2@ti.com
+
+>-----Original Message-----
+>From: Mauro Carvalho Chehab [mailto:mchehab@infradead.org]
+>Sent: Tuesday, November 17, 2009 12:58 PM
+>To: Karicheri, Muralidharan
+>Cc: Hans Verkuil; linux-media@vger.kernel.org
+>Subject: Re: Help in adding documentation
 >
-> This patch add a helper function to get description of a digital
-> video preset added by the video timing API. Hope this will be
-> usefull for drivers implementing the above API.
+>Karicheri, Muralidharan escreveu:
+>> Mauro,
+>>
+>> Thanks for your reply. I made progress after my email. My new file
+>> is being processed by Makefile now. I have some issues with some
+>> tags.
+>>
+>>> This probably means that videodev2.h has it defined, while you didn't
+>have
+>>
+>> Do you mean videodev2.h.xml? I see there videodev2.h under linux/include.
+>Do I need to copy my latest videodev2.h to that directory?
 >
-> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-> NOTE: depends on the patch that adds video timing API.
-
-This is very inefficient memory-wise. struct v4l2_dv_enum_preset takes 52 
-bytes and since I expect that we will see a lot of presets in the future, 
-this can add up very quickly.
-
-IMHO it is better to make a separate struct:
-
-struct v4l2_dv_preset_info {
-	u16 width;
-	u16 height;
-	const char *name;
-};
-
-static const struct v4l2_dv_preset_info dv_presets[] = {
-	{    0,    0, "Invalid" },	/* V4L2_DV_INVALID */
-	{  720,  480, "480p@59.94" },	/* V4L2_DV_480P59_94 */
-};
-
-This is a lot more compact, especially with the strings.
-
-> ---
-> Applies to V4L-DVB linux-next branch
+>videodev2.h.xml is generated automatically by Makefile, from videodev2.h.
 >
->  drivers/media/video/v4l2-common.c |  135
-> +++++++++++++++++++++++++++++++++++++ include/media/v4l2-common.h       |
->    1 +
->  2 files changed, 136 insertions(+), 0 deletions(-)
+>Basically, Makefile scripts will parse it, search for certain
+>structs/enums/ioctls and
+>generate videodev2.h.xml.
 >
-> diff --git a/drivers/media/video/v4l2-common.c
-> b/drivers/media/video/v4l2-common.c index f5a93ae..245e727 100644
-> --- a/drivers/media/video/v4l2-common.c
-> +++ b/drivers/media/video/v4l2-common.c
-> @@ -1015,3 +1015,138 @@ void v4l_bound_align_image(u32 *w, unsigned int
-> wmin, unsigned int wmax, }
->  }
->  EXPORT_SYMBOL_GPL(v4l_bound_align_image);
-> +
-> +/**
-> + * v4l_fill_dv_preset_info - fill description of a digital video preset
-> + * @preset - preset value
-> + * @info - pointer to struct v4l2_dv_enum_preset
-> + *
-> + * drivers can use this helper function to fill description of dv preset
-> + * in info.
-> + */
-> +int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset
-> *info) +{
-> +	static const struct v4l2_dv_enum_preset dv_presets[] = {
-> +		{
-> +			.preset	= V4L2_DV_480P59_94,
-> +			.name = "480p@59.94",
-> +			.width = 720,
-> +			.height = 480,
-> +		},
-> +		{
-> +			.preset	= V4L2_DV_576P50,
-> +			.name = "576p@50",
-> +			.width = 720,
-> +			.height = 576,
-> +		},
-> +		{
-> +			.preset	= V4L2_DV_720P24,
-> +			.name = "720p@24",
-> +			.width = 1280,
-> +			.height = 720,
-> +		},
-> +		{
-> +			.preset	= V4L2_DV_720P25,
-> +			.name = "720p@25",
-> +			.width = 1280,
-> +			.height = 720,
-> +		},
-> +		{
-> +			.preset	= V4L2_DV_720P30,
-> +			.name = "720p@30",
-> +			.width = 1280,
-> +			.height = 720,
-> +		},
-> +		{
-> +			.preset	= V4L2_DV_720P50,
-> +			.name = "720p@50",
-> +			.width = 1280,
-> +			.height = 720,
-> +		},
-> +		{
-> +			.preset	= V4L2_DV_720P59_94,
-> +			.name = "720p@59.94",
-> +			.width = 1280,
-> +			.height = 720,
-> +		},
-> +		{
-> +			.preset	= V4L2_DV_720P60,
-> +			.name = "720p@60",
-> +			.width = 1280,
-> +			.height = 720,
-> +		},
-> +		{
-> +			.preset	= V4L2_DV_1080I29_97,
-> +			.name = "1080i@29.97",
-> +			.width = 1920,
-> +			.height = 1080,
-> +		},
-> +		{
-> +			.preset	= V4L2_DV_1080I30,
-> +			.name = "1080i@30",
-> +			.width = 1920,
-> +			.height = 1080,
-> +		},
-> +		{
-> +			.preset	= V4L2_DV_1080I25,
-> +			.name = "1080i@25",
-> +			.width = 1920,
-> +			.height = 1080,
-> +		},
-> +		{
-> +			.preset	= V4L2_DV_1080I50,
-> +			.name = "1080i@50",
-> +			.width = 1920,
-> +			.height = 1080,
-> +		},
-> +		{
-> +			.preset	= V4L2_DV_1080I60,
-> +			.name = "1080i@60",
-> +			.width = 1920,
-> +			.height = 1080,
-> +		},
-> +		{
-> +			.preset	= V4L2_DV_1080P24,
-> +			.name = "1080p@24",
-> +			.width = 1920,
-> +			.height = 1080,
-> +		},
-> +		{
-> +			.preset	= V4L2_DV_1080P25,
-> +			.name = "1080p@25",
-> +			.width = 1920,
-> +			.height = 1080,
-> +		},
-> +		{
-> +			.preset	= V4L2_DV_1080P30,
-> +			.name = "1080p@30",
-> +			.width = 1920,
-> +			.height = 1080,
-> +		},
-> +		{
-> +			.preset	= V4L2_DV_1080P50,
-> +			.name = "1080p@50",
-> +			.width = 1920,
-> +			.height = 1080,
-> +		},
-> +		{
-> +			.preset	= V4L2_DV_1080P60,
-> +			.name = "1080p@60",
-> +			.width = 1920,
-> +			.height = 1080,
-> +		},
-> +	};
-> +	int i;
-> +
-> +	if (info == NULL)
-> +		return -EINVAL;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(dv_presets); i++) {
-> +		if (preset == dv_presets[i].preset) {
-> +			memcpy(info, &dv_presets[i], sizeof(*info));
-
-Shorter to just do: *info = dv_presets[i];
-
-Regards,
-
-	Hans
-
-> +			return 0;
-> +		}
-> +	}
-> +	return -EINVAL;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l_fill_dv_preset_info);
-> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-> index 1c25b10..ddc040f 100644
-> --- a/include/media/v4l2-common.h
-> +++ b/include/media/v4l2-common.h
-> @@ -213,4 +213,5 @@ void v4l_bound_align_image(unsigned int *w, unsigned
-> int wmin, unsigned int hmax, unsigned int halign,
->  			   unsigned int salign);
+>What happens is that you likely declared the presets enum on videodev2.h,
+>and the
+>enum got detected, producing a <linkend> tag. However, as you didn't define
+>the
+>reference ID for that tag on your xml file, you got an error.
+>>
+>>> the
+>>> link id created at the xml file you've created.
+>>>
+>>> You probably need a tag like:
+>>>
+>>> <table pgwide="1" frame="none" id="v4l2-dv-enum-presets">
+>>> <!-- your enum table -->
+>>> </table>
+>>>
+>>>
+>>> Cheers,
+>>> Mauro
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
 >
-> +int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset
-> *info); #endif /* V4L2_COMMON_H_ */
 
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
