@@ -1,167 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:36936 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755508AbZKWSjd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2009 13:39:33 -0500
-Content-Type: multipart/mixed; boundary="========GMX206901259001568451361"
-Date: Mon, 23 Nov 2009 19:39:28 +0100
-From: "Kai Tiwisina" <kai_tiwisina@gmx.de>
-Message-ID: <20091123183928.206900@gmx.net>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58813 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753824AbZKRPUD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Nov 2009 10:20:03 -0500
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
+Date: Wed, 18 Nov 2009 20:50:03 +0530
+Subject: RE: [PATCH] VPFE Capture: Add call back function for interrupt
+ clear to vpfe_cfg
+Message-ID: <19F8576C6E063C45BE387C64729E7394043702BAA6@dbde02.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1258544101-28830-1-git-send-email-hvaibhav@ti.com>
+ <A69FA2915331DC488A831521EAE36FE401559C5ED4@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE401559C5ED4@dlee06.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Subject: image capture with ov9655 camera and intel pxa270C5C520
-To: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---========GMX206901259001568451361
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 
-Hello,
+> -----Original Message-----
+> From: Karicheri, Muralidharan
+> Sent: Wednesday, November 18, 2009 8:33 PM
+> To: Hiremath, Vaibhav; linux-media@vger.kernel.org
+> Cc: hverkuil@xs4all.nl
+> Subject: RE: [PATCH] VPFE Capture: Add call back function for
+> interrupt clear to vpfe_cfg
+> 
+> Vaibhav,
+> 
+> In the interrupt handler, it is better to add something like
+> below... The
+> same piece of code is repeated many times...
+> 
+> When ready to return IRQ_HANDLED
+> 
+> goto clear_int;
+> 
+> 
+> clear_int:
+> 	if (vpfe_dev->cfg->clr_intr)
+> 			vpfe_dev->cfg->clr_intr(irq);
+> 	return IRQ_HANDLED;
+> 
+[Hiremath, Vaibhav] Actually the earlier implementation was exactly same using goto statement, but since there are only 4 instances, so removed goto statement.
 
-my name is Kai Tiwisina and i'm a student in germany and i'm trying to 
-communicate with a Omnivision ov9655 camera which is atteched with my 
-embedded linux system via the v4l commands.
+Ok, I will update it and submit it again.
 
-I've written a small testprogram which should grow step by step while i'm 
-trying one ioctl after another.
-Everything worked fine until i tried to use the VIDIOC_S_FMT ioctl. It's 
-always giving me an "invalid argument" failure and i don't know why.
+Thanks,
+Vaibhav
 
-Perhaps someone of you is able to help me with this ioctl and give an 
-advice for a simple flow chart for a single frame image capture. Which 
-ioctl steps are neccessary and where do i need loops and for what, because 
-the capture-example.c from bytesex.org is way too general for my purpose.
+> Murali Karicheri
+> Software Design Engineer
+> Texas Instruments Inc.
+> Germantown, MD 20874
+> phone: 301-407-9583
+> email: m-karicheri2@ti.com
+> 
+> >-----Original Message-----
+> >From: Hiremath, Vaibhav
+> >Sent: Wednesday, November 18, 2009 6:35 AM
+> >To: linux-media@vger.kernel.org
+> >Cc: hverkuil@xs4all.nl; Karicheri, Muralidharan; Hiremath, Vaibhav
+> >Subject: [PATCH] VPFE Capture: Add call back function for interrupt
+> clear
+> >to vpfe_cfg
+> >
+> >From: Vaibhav Hiremath <hvaibhav@ti.com>
+> >
+> >For the devices like AM3517, it is expected that driver clears the
+> >interrupt in ISR. Since this is device spcific, callback function
+> >added to the platform_data.
+> >
+> >Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> >---
+> > drivers/media/video/davinci/vpfe_capture.c |   26
+> >++++++++++++++++++++++++--
+> > include/media/davinci/vpfe_capture.h       |    2 ++
+> > 2 files changed, 26 insertions(+), 2 deletions(-)
+> >
+> >diff --git a/drivers/media/video/davinci/vpfe_capture.c
+> >b/drivers/media/video/davinci/vpfe_capture.c
+> >index 9b6b254..4c5152e 100644
+> >--- a/drivers/media/video/davinci/vpfe_capture.c
+> >+++ b/drivers/media/video/davinci/vpfe_capture.c
+> >@@ -563,6 +563,11 @@ static int vpfe_initialize_device(struct
+> vpfe_device
+> >*vpfe_dev)
+> > 	ret = ccdc_dev->hw_ops.open(vpfe_dev->pdev);
+> > 	if (!ret)
+> > 		vpfe_dev->initialized = 1;
+> >+
+> >+	/* Clear all VPFE/CCDC interrupts */
+> >+	if (vpfe_dev->cfg->clr_intr)
+> >+		vpfe_dev->cfg->clr_intr(-1);
+> >+
+> > unlock:
+> > 	mutex_unlock(&ccdc_lock);
+> > 	return ret;
+> >@@ -663,8 +668,11 @@ static irqreturn_t vpfe_isr(int irq, void
+> *dev_id)
+> > 	field = vpfe_dev->fmt.fmt.pix.field;
+> >
+> > 	/* if streaming not started, don't do anything */
+> >-	if (!vpfe_dev->started)
+> >+	if (!vpfe_dev->started) {
+> >+		if (vpfe_dev->cfg->clr_intr)
+> >+			vpfe_dev->cfg->clr_intr(irq);
+> > 		return IRQ_HANDLED;
+> >+	}
+> >
+> > 	/* only for 6446 this will be applicable */
+> > 	if (NULL != ccdc_dev->hw_ops.reset)
+> >@@ -676,6 +684,8 @@ static irqreturn_t vpfe_isr(int irq, void
+> *dev_id)
+> > 			"frame format is progressive...\n");
+> > 		if (vpfe_dev->cur_frm != vpfe_dev->next_frm)
+> > 			vpfe_process_buffer_complete(vpfe_dev);
+> >+		if (vpfe_dev->cfg->clr_intr)
+> >+			vpfe_dev->cfg->clr_intr(irq);
+> > 		return IRQ_HANDLED;
+> > 	}
+> >
+> >@@ -703,6 +713,8 @@ static irqreturn_t vpfe_isr(int irq, void
+> *dev_id)
+> > 			if (field == V4L2_FIELD_SEQ_TB)
+> > 				vpfe_schedule_bottom_field(vpfe_dev);
+> >
+> >+			if (vpfe_dev->cfg->clr_intr)
+> >+				vpfe_dev->cfg->clr_intr(irq);
+> > 			return IRQ_HANDLED;
+> > 		}
+> > 		/*
+> >@@ -723,6 +735,9 @@ static irqreturn_t vpfe_isr(int irq, void
+> *dev_id)
+> > 		 */
+> > 		vpfe_dev->field_id = fid;
+> > 	}
+> >+	if (vpfe_dev->cfg->clr_intr)
+> >+		vpfe_dev->cfg->clr_intr(irq);
+> >+
+> > 	return IRQ_HANDLED;
+> > }
+> >
+> >@@ -734,8 +749,11 @@ static irqreturn_t vdint1_isr(int irq, void
+> *dev_id)
+> > 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "\nInside
+> vdint1_isr...\n");
+> >
+> > 	/* if streaming not started, don't do anything */
+> >-	if (!vpfe_dev->started)
+> >+	if (!vpfe_dev->started) {
+> >+		if (vpfe_dev->cfg->clr_intr)
+> >+			vpfe_dev->cfg->clr_intr(irq);
+> > 		return IRQ_HANDLED;
+> >+	}
+> >
+> > 	spin_lock(&vpfe_dev->dma_queue_lock);
+> > 	if ((vpfe_dev->fmt.fmt.pix.field == V4L2_FIELD_NONE) &&
+> >@@ -743,6 +761,10 @@ static irqreturn_t vdint1_isr(int irq, void
+> *dev_id)
+> > 	    vpfe_dev->cur_frm == vpfe_dev->next_frm)
+> > 		vpfe_schedule_next_buffer(vpfe_dev);
+> > 	spin_unlock(&vpfe_dev->dma_queue_lock);
+> >+
+> >+	if (vpfe_dev->cfg->clr_intr)
+> >+		vpfe_dev->cfg->clr_intr(irq);
+> >+
+> > 	return IRQ_HANDLED;
+> > }
+> >
+> >diff --git a/include/media/davinci/vpfe_capture.h
+> >b/include/media/davinci/vpfe_capture.h
+> >index fc83d98..5a21265 100644
+> >--- a/include/media/davinci/vpfe_capture.h
+> >+++ b/include/media/davinci/vpfe_capture.h
+> >@@ -104,6 +104,8 @@ struct vpfe_config {
+> > 	char *ccdc;
+> > 	/* setup function for the input path */
+> > 	int (*setup_input)(enum vpfe_subdev_id id);
+> >+	/* Function for Clearing the interrupt */
+> >+	void (*clr_intr)(int vdint);
+> > 	/* number of clocks */
+> > 	int num_clocks;
+> > 	/* clocks used for vpfe capture */
+> >--
+> >1.6.2.4
 
-Thanks in advance
-
-Kai Tiwisina    
-
-
--- 
-Jetzt kostenlos herunterladen: Internet Explorer 8 und Mozilla Firefox 3.5 -
-sicherer, schneller und einfacher! http://portal.gmx.net/de/go/atbrowser
-
---========GMX206901259001568451361
-Content-Type: application/octet-stream; name="stream_test.c"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="stream_test.c"
-
-LyoNCiA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09DQogTmFtZSAgICAgICAgOiBzdHJlYW1fdGVzdC5jDQog
-QXV0aG9yICAgICAgOiBLYWkgVGl3aXNpbmENCiBWZXJzaW9uICAgICA6DQogRGVzY3JpcHRpb24g
-OiBPdXRwdXQgb2YgY2FtZXJhIHN0cmVhbSBpbiB0byB0ZXh0LWZpbGUNCiA9PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09DQogKi8NCg0KI2luY2x1ZGUgPHN0ZGlvLmg+DQojaW5jbHVkZSA8c3RkbGliLmg+DQoj
-aW5jbHVkZSA8c3RyaW5nLmg+DQojaW5jbHVkZSA8ZmNudGwuaD4gICAgICAgICAgICAgIC8vIG9w
-ZW4oKSBpcyBpbiBoZXJlDQojaW5jbHVkZSA8dW5pc3RkLmg+CQkJCS8vIGNsb3NlKCkgaXMgaW4g
-aGVyZQ0KI2luY2x1ZGUgPGVycm5vLmg+CQkJCS8vIHVzZWQgZm9yIGRlc29sdmluZyBlcnJvciBu
-dW1iZXJzDQojaW5jbHVkZSA8c3lzL2lvY3RsLmg+CQkJLy8gaW9jdGwoKSBpcyBpbiBoZXJlDQoj
-aW5jbHVkZSA8c3lzL21tYW4uaD4NCiNpbmNsdWRlIDxsaW51eC92aWRlb2Rldi5oPgkJLy8ganBl
-Z19tYXJrZXJzIGFyZSBkZWZpbmVkIGluIGhlcmUNCiNpbmNsdWRlIDxhc20vdHlwZXMuaD4JCQkv
-LyBmb3IgdmlkZW9kZXYyLmgNCiNpbmNsdWRlIDxsaW51eC92aWRlb2RldjIuaD4JLy8gVklESU9D
-X1FVRVJZQ0FQICYgc3RydWN0IHY0bHNfY2FwYWJpbGl0eSBhcmUgZGVmaW5lZCBpbiBoZXJlDQoN
-CiNkZWZpbmUgQ0xFQVIoeCkgbWVtc2V0KCYoeCksIDAsIHNpemVvZih4KSkNCg0Kdm9pZCBwcmlu
-dF9lcnJubyhjaGFyICpzKTsJLy9yZXR1cm5zIGVycm5vIGFyZ3VtZW50IGFzIHZhbHVlIGFuZCBl
-eHByZXNzaW9uDQp2b2lkIG9wZW5fZGV2aWNlKCk7CS8vb3BlbnMgYSB2NGwgZGV2aWNlIHJldHVy
-bmluZyBuZXcgZmlsZSBkZXNjcmlwdG9yIGFuZCBnaXZlcyBlcnJvciBpbmZvIGlmIG5lY2Vzc2Fy
-eQ0Kdm9pZCBxdWVyeV9jYXAoKTsNCnZvaWQgcmVxdWVzdF9idWZmZXIoKTsNCnZvaWQgc3RyZWFt
-X29uKCk7DQp2b2lkIHF1ZXJ5X2J1ZmZlcigpOw0Kdm9pZCBtZW1vcnlfbWFwcGluZygpOw0Kdm9p
-ZCBzdHJlYW1fb2ZmKCk7DQp2b2lkIGdldF9mb3JtYXQoKTsNCnZvaWQgc2V0X2Zvcm1hdCgpOw0K
-DQoNCnN0YXRpYyBzdHJ1Y3QgdjRsMl9yZXF1ZXN0YnVmZmVycyBidWZmZXI7DQpzdGF0aWMgc3Ry
-dWN0IHY0bDJfYnVmZmVyIHFfYnVmZmVyOw0Kc3RhdGljIHN0cnVjdCB2NGwyX2Zvcm1hdCBmX3R5
-cGU7DQoNCnN0YXRpYyBpbnQgZmQ7CQkJCQkJCQkvLyBmZCBpcyB0aGUgZmlsZSBkZXNjcmlwdG9y
-DQoNCmludCBtYWluKHZvaWQpDQp7DQoJb3Blbl9kZXZpY2UoKTsNCglwcmludGYoIlxuXG4qTmV3
-IGZpbGUgZGVzY3JpcHRvcjogJWkqXG5cbiIsZmQpOw0KCXF1ZXJ5X2NhcCgpOw0KCXJlcXVlc3Rf
-YnVmZmVyKCk7DQoJZ2V0X2Zvcm1hdCgpOw0KCXNldF9mb3JtYXQoKTsNCglnZXRfZm9ybWF0KCk7
-DQoJLy9zdHJlYW1fb24oKTsNCgkvL3F1ZXJ5X2J1ZmZlcigpOw0KCS8vbWVtb3J5X21hcHBpbmco
-KTsNCgkvL3N0cmVhbV9vZmYoKTsNCgljbG9zZShmZCk7CQkJCQkJLy9jbG9zZXMgY29ubmVjdGlv
-biB0byBkZXZpY2UNCglyZXR1cm4gMDsNCn0NCg0Kdm9pZCBwcmludF9lcnJubyhjaGFyICpzKQ0K
-ew0KCXByaW50ZigiUHJvY2VzcyAlcyBmYWlsZWQgJWQsICVzXG4iLCBzLCBlcnJubywgc3RyZXJy
-b3IoZXJybm8pKTsNCglleGl0KEVYSVRfRkFJTFVSRSk7DQp9DQoNCnZvaWQgb3Blbl9kZXZpY2Uo
-KQ0Kew0KCWludCBzdGF0dXM7DQoJc3RhdHVzPW9wZW4oIi9kZXYvdmlkZW8wIixPX1JEV1IpOwkv
-L0xvb2sgdXAgYXJndW1lbnRzIGZvciB2NGwyIG9wZW4oKSBpbiB2NGxfZG9rdS5wZGYNCglpZihz
-dGF0dXM9PS0xKQkJCQkJCS8vRGV2aWNlX25hbWUgaGFzIHRvIGluY2x1ZGUgdGhlIHdob2xlIHBh
-dGgsIGhlcmUgL2Rldg0KCXsNCgkJcHJpbnRfZXJybm8oIm9wZW5fZGV2aWNlIik7DQoJfQ0KCWVs
-c2UNCgl7DQoJCWZkPXN0YXR1czsNCgl9DQp9DQoNCnZvaWQgcXVlcnlfY2FwKCkNCnsNCglpbnQg
-c3RhdHVzOw0KCXN0cnVjdCB2NGwyX2NhcGFiaWxpdHkgY2FtZXJhX2NhcDsgLy8gY2FtZXJhX2Nh
-cCBzaG91bGQgYmUgcmVwcmVzZW50YXRpdmUgZm9yIHRoZSBiZWJvdCdzIGNhbQ0KCXN0YXR1cz1p
-b2N0bChmZCxWSURJT0NfUVVFUllDQVAsJmNhbWVyYV9jYXApOyAvLyBkZXNjcmlwdGlvbiBvbiBQ
-YWdlIDE4OCBpbiB2NGxfZG9rdS5wZGYNCglpZihzdGF0dXM9PS0xKQ0KCXsNCgkJcHJpbnRfZXJy
-bm8oIkRldGVybWluYXRpb24gb2YgZGV2aWNlIGNhcGFiaWxpdGllcyIpOw0KCX0NCgllbHNlDQoJ
-ew0KCQlwcmludGYoImRyaXZlcjpcdCVzXG4iLGNhbWVyYV9jYXAuZHJpdmVyKTsNCgkJcHJpbnRm
-KCJjYXJkOlx0JXNcbiIsY2FtZXJhX2NhcC5jYXJkKTsNCgkJcHJpbnRmKCJidXNfaW5mbzpcdCVz
-XG4iLGNhbWVyYV9jYXAuYnVzX2luZm8pOw0KCQlwcmludGYoInZlcnNpb246XHQldS4ldS4ldVxu
-IiwoY2FtZXJhX2NhcC52ZXJzaW9uID4+IDE2KSYweEZGLChjYW1lcmFfY2FwLnZlcnNpb24gPj4g
-OCkmMHhGRixjYW1lcmFfY2FwLnZlcnNpb24mMHhGRik7DQoJCXByaW50ZigiY2FwYWJpbGl0aWVz
-Olx0JXgoSEVYKVxuIixjYW1lcmFfY2FwLmNhcGFiaWxpdGllcyk7DQoJfQ0KfQ0KDQp2b2lkIHJl
-cXVlc3RfYnVmZmVyKCkNCnsNCglpbnQgc3RhdHVzOw0KCW1lbXNldCgmYnVmZmVyLDAsc2l6ZW9m
-KGJ1ZmZlcikpOw0KCWJ1ZmZlci50eXBlPVY0TDJfQlVGX1RZUEVfVklERU9fQ0FQVFVSRTsNCgli
-dWZmZXIubWVtb3J5PVY0TDJfTUVNT1JZX01NQVA7DQoJYnVmZmVyLmNvdW50PTI7DQoJc3RhdHVz
-PWlvY3RsKGZkLFZJRElPQ19SRVFCVUZTLCZidWZmZXIpOw0KCWlmKHN0YXR1cz09LTEpDQoJew0K
-CQlwcmludF9lcnJubygicmVxdWVzdCBidWZmZXIiKTsNCgl9DQoJZWxzZQ0KCXsNCgkJcHJpbnRm
-KCJidWZmZXIgYWxsb2NhdGVkICVpIHRpbWVzICVpXG4iLHNpemVvZihidWZmZXIpLHNpemVvZih1
-bnNpZ25lZCBjaGFyKSk7DQoJfQ0KDQp9DQoNCnZvaWQgc3RyZWFtX29uKCkNCnsNCglpbnQgc3Rh
-dHVzOw0KCXN0YXR1cz1pb2N0bChmZCxWSURJT0NfU1RSRUFNT04sJmJ1ZmZlci50eXBlKTsNCglp
-ZihzdGF0dXM9PS0xKQ0KCXsNCgkJcHJpbnRfZXJybm8oImFjdGl2YXRpbmcgc3RyZWFtaW5nIGRl
-dmljZSIpOw0KCX0NCgllbHNlDQoJew0KCQlwcmludGYoInN0cmVhbWluZyBkZXZpY2UgYWN0aXZh
-dGVkXG4iKTsNCgl9DQp9DQoNCnZvaWQgcXVlcnlfYnVmZmVyKCkNCnsNCglpbnQgc3RhdHVzOw0K
-CXFfYnVmZmVyLnR5cGU9VjRMMl9CVUZfVFlQRV9WSURFT19DQVBUVVJFOw0KCXFfYnVmZmVyLmlu
-ZGV4PTE7DQoJc3RhdHVzPWlvY3RsKGZkLFZJRElPQ19RVUVSWUJVRiwmcV9idWZmZXIpOw0KCWlm
-KHN0YXR1cz09LTEpDQoJew0KCQlwcmludF9lcnJubygicXVlcnlpbmcgYnVmZmVyIGluZm9ybWF0
-aW9ucyIpOw0KCX0NCgllbHNlDQoJew0KCQlwcmludGYoImluZGV4Olx0JXVcbiIscV9idWZmZXIu
-aW5kZXgpOw0KCQlwcmludGYoImJ1ZmZlcl90eXBlOlx0JXVcbiIscV9idWZmZXIudHlwZSk7DQoJ
-CXByaW50ZigiYnl0ZXMgdXNlZDpcdCV1XG4iLHFfYnVmZmVyLmJ5dGVzdXNlZCk7DQoJCXByaW50
-ZigiZmxhZ3M6XHQldVxuIixxX2J1ZmZlci5mbGFncyk7DQoJCXByaW50ZigiZmllbGQ6XHQldVxu
-IixxX2J1ZmZlci5maWVsZCk7DQoJCS8vcHJpbnRmKCJ0aW1lX3N0YW1wOlx0JWlcbiIscV9idWZm
-ZXIudGltZXN0YW1wKTsNCgkJLy9wcmludGYoInRpbWVfY29kZTpcdCVpXG4iLHFfYnVmZmVyLnRp
-bWVjb2RlKTsNCgkJcHJpbnRmKCJzZXF1ZW5jZTpcdCV1XG4iLHFfYnVmZmVyLnNlcXVlbmNlKTsN
-CgkJcHJpbnRmKCJtZW1vcnk6XHQldVxuIixxX2J1ZmZlci5tZW1vcnkpOw0KCQlwcmludGYoIm9m
-ZnNldDpcdCV1XG4iLHFfYnVmZmVyLm0ub2Zmc2V0KTsNCgkJcHJpbnRmKCJ1c2VyX3BvaW50ZXI6
-XHQlbHVcbiIscV9idWZmZXIubS51c2VycHRyKTsNCgkJcHJpbnRmKCJsZW5ndGg6XHQldVxuIixx
-X2J1ZmZlci5sZW5ndGgpOw0KCQlwcmludGYoImlucHV0Olx0JXVcbiIscV9idWZmZXIuaW5wdXQp
-Ow0KCQlwcmludGYoIlxuXG5zdHJlYW1pbmcgZGV2aWNlIGFjdGl2YXRlZFxuIik7DQoJfQ0KfQ0K
-DQp2b2lkIG1lbW9yeV9tYXBwaW5nKCkNCnsNCglpbnQgaSxqLHN0YXR1czsNCgljaGFyICptZW0s
-KnRlbXA7DQoJRklMRSogZnA7DQoJbWVtPW1tYXAoTlVMTCxxX2J1ZmZlci5sZW5ndGgsUFJPVF9S
-RUFEfFBST1RfV1JJVEUsTUFQX1NIQVJFRCxmZCxxX2J1ZmZlci5tLm9mZnNldCk7DQoJaWYobWVt
-PT1NQVBfRkFJTEVEKQ0KCXsNCgkJcHJpbnRfZXJybm8oIm1lbW9yeSBtYXBwaW5nIik7DQoJfQ0K
-CWVsc2UNCgl7DQoJCXRlbXA9bWVtOw0KCQlnZXRfZm9ybWF0KGZkKTsNCgkJZnA9Zm9wZW4oIi9o
-b21lL3Jvb3QvaW1hZ2UudHh0IiwicisiKTsNCgkJZm9yKGk9MDtpPGZfdHlwZS5mbXQucGl4Lmhl
-aWdodDtpKyspDQoJCXsNCgkJCWZvcihqPTA7ajxmX3R5cGUuZm10LnBpeC53aWR0aDtqKyspDQoJ
-CQl7DQoJCQkJZnByaW50ZihmcCwiJWNcdCIsKnRlbXApOw0KCQkJCXRlbXArKzsNCgkJCX0NCgkJ
-CWZwcmludGYoZnAsIlxuIik7DQoJCX0NCgkJc3RhdHVzPW11bm1hcChtZW0scV9idWZmZXIubGVu
-Z3RoKTsNCgkJaWYoc3RhdHVzPT0tMSkNCgkJew0KCQkJcHJpbnRfZXJybm8oIm1lbW9yeSB1bm1h
-cHBpbmciKTsNCgkJfQ0KCX0NCn0NCg0Kdm9pZCBzdHJlYW1fb2ZmKCkNCnsNCglpbnQgc3RhdHVz
-Ow0KCXN0YXR1cz1pb2N0bChmZCxWSURJT0NfU1RSRUFNT0ZGLCZidWZmZXIudHlwZSk7DQoJaWYo
-c3RhdHVzPT0tMSkNCgl7DQoJCXByaW50X2Vycm5vKCJkZWFjdGl2YXRpbmcgc3RyZWFtaW5nIGRl
-dmljZSIpOw0KCX0NCgllbHNlDQoJew0KCQlwcmludGYoInN0cmVhbWluZyBkZXZpY2UgZGVhY3Rp
-dmF0ZWRcbiIpOw0KCX0NCn0NCg0Kdm9pZCBnZXRfZm9ybWF0KCkNCnsNCglpbnQgc3RhdHVzOw0K
-CS8vc3RydWN0IHY0bDJfZm9ybWF0IGZfdHlwZTsNCglmX3R5cGUudHlwZT0xOw0KCXN0YXR1cz1p
-b2N0bChmZCxWSURJT0NfR19GTVQsJmZfdHlwZSk7DQoJaWYoc3RhdHVzPT0tMSkNCgl7DQoJCXBy
-aW50X2Vycm5vKCJnZXRfZm9ybWF0Iik7DQoJfQ0KCWVsc2UNCgl7DQoJCXByaW50ZigiXG5cbmJ1
-ZmZlciB0eXBlOlx0JWlcbiIsZl90eXBlLnR5cGUpOw0KCQlwcmludGYoImltYWdlIHNpemU6XHQl
-aXglaSBwaXhlbHMgXG4iLGZfdHlwZS5mbXQucGl4LndpZHRoLGZfdHlwZS5mbXQucGl4LmhlaWdo
-dCk7DQoJCXByaW50ZigicGl4ZWxmb3JtYXQ6XHQlaVxuIixmX3R5cGUuZm10LnBpeC5waXhlbGZv
-cm1hdCk7DQoJCXByaW50ZigidjRsMiBmaWVsZC10eXBlOlx0JWlcbiIsZl90eXBlLmZtdC5waXgu
-ZmllbGQpOw0KCQlwcmludGYoImJ5dGVzIHBlciBsaW5lOlx0JWlcbiIsZl90eXBlLmZtdC5waXgu
-Ynl0ZXNwZXJsaW5lKTsNCgkJcHJpbnRmKCJpbWFnZSBzaXplOlx0JWlcbiIsZl90eXBlLmZtdC5w
-aXguc2l6ZWltYWdlKTsNCgkJcHJpbnRmKCJ2NGwyX2NvbG9yc3BhY2UtdHlwZTpcdCVpXG4iLGZf
-dHlwZS5mbXQucGl4LmNvbG9yc3BhY2UpOw0KCX0NCn0NCg0Kdm9pZCBzZXRfZm9ybWF0KCkNCnsN
-CglpbnQgc3RhdHVzOw0KCUNMRUFSKGZfdHlwZSk7DQoJZl90eXBlLnR5cGU9VjRMMl9CVUZfVFlQ
-RV9WSURFT19DQVBUVVJFOw0KCS8vZl90eXBlLmZtdC5waXguY29sb3JzcGFjZT1WNEwyX0NPTE9S
-U1BBQ0VfU1JHQjsNCglmX3R5cGUuZm10LnBpeC5waXhlbGZvcm1hdD1WNEwyX1BJWF9GTVRfUkdC
-NTU1Ow0KCWZfdHlwZS5mbXQucGl4LmZpZWxkPVY0TDJfRklFTERfTk9ORTsNCglmX3R5cGUuZm10
-LnBpeC5oZWlnaHQ9NjQwOw0KCWZfdHlwZS5mbXQucGl4LndpZHRoPTQ4MDsNCgkvL2ZfdHlwZS5m
-bXQucGl4LmJ5dGVzcGVybGluZT1mX3R5cGUuZm10LnBpeC53aWR0aCozOw0KCS8vZl90eXBlLmZt
-dC5waXguc2l6ZWltYWdlPWZfdHlwZS5mbXQucGl4LmJ5dGVzcGVybGluZSpmX3R5cGUuZm10LnBp
-eC5oZWlnaHQ7DQoNCglzdGF0dXM9aW9jdGwoZmQsVklESU9DX1NfRk1ULCZmX3R5cGUpOw0KCWlm
-KHN0YXR1cz09LTEpDQoJew0KCQlwcmludF9lcnJubygic2V0X2Zvcm1hdCIpOw0KCX0NCgllbHNl
-DQoJew0KCQlwcmludGYoIlxuXG5idWZmZXIgdHlwZTpcdCVpXG4iLGZfdHlwZS50eXBlKTsNCgkJ
-cHJpbnRmKCJpbWFnZSBzaXplOlx0JWl4JWkgcGl4ZWxzIFxuIixmX3R5cGUuZm10LnBpeC53aWR0
-aCxmX3R5cGUuZm10LnBpeC5oZWlnaHQpOw0KCQlwcmludGYoInBpeGVsZm9ybWF0Olx0JWlcbiIs
-Zl90eXBlLmZtdC5waXgucGl4ZWxmb3JtYXQpOw0KCQlwcmludGYoInY0bDIgZmllbGQtdHlwZTpc
-dCVpXG4iLGZfdHlwZS5mbXQucGl4LmZpZWxkKTsNCgkJcHJpbnRmKCJieXRlcyBwZXIgbGluZTpc
-dCVpXG4iLGZfdHlwZS5mbXQucGl4LmJ5dGVzcGVybGluZSk7DQoJCXByaW50ZigiaW1hZ2Ugc2l6
-ZTpcdCVpXG4iLGZfdHlwZS5mbXQucGl4LnNpemVpbWFnZSk7DQoJCXByaW50ZigidjRsMl9jb2xv
-cnNwYWNlLXR5cGU6XHQlaVxuIixmX3R5cGUuZm10LnBpeC5jb2xvcnNwYWNlKTsNCgl9DQp9DQo=
---========GMX206901259001568451361--
