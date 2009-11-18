@@ -1,67 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f219.google.com ([209.85.219.219]:50289 "EHLO
-	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755710AbZKZQBL convert rfc822-to-8bit (ORCPT
+Received: from einhorn.in-berlin.de ([192.109.42.8]:35636 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932464AbZKRTDM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 11:01:11 -0500
-Received: by ewy19 with SMTP id 19so577381ewy.21
-        for <linux-media@vger.kernel.org>; Thu, 26 Nov 2009 08:01:17 -0800 (PST)
+	Wed, 18 Nov 2009 14:03:12 -0500
+Date: Wed, 18 Nov 2009 20:03:03 +0100 (CET)
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: [PATCH 5/6] firedtv: remove check for interrupting signal
+To: linux-media@vger.kernel.org
+cc: linux1394-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
+In-Reply-To: <tkrat.7dc1f889fd1b69ad@s5r6.in-berlin.de>
+Message-ID: <tkrat.9de6666bf8c2cf11@s5r6.in-berlin.de>
+References: <tkrat.7dc1f889fd1b69ad@s5r6.in-berlin.de>
 MIME-Version: 1.0
-In-Reply-To: <200911251721.26506.laurent.pinchart@ideasonboard.com>
-References: <200911181354.06529.laurent.pinchart@ideasonboard.com>
-	 <200911251721.26506.laurent.pinchart@ideasonboard.com>
-Date: Thu, 26 Nov 2009 11:01:16 -0500
-Message-ID: <83bcf6340911260801l551afdd1i70f3254424cc782e@mail.gmail.com>
-Subject: Re: [PATCH/RFC v2] V4L core cleanups HG tree
-From: Steven Toth <stoth@kernellabs.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, stoth@linuxtv.org, hverkuil@xs4all.nl,
-	mchehab@infradead.org, srinivasa.deevi@conexant.com,
-	dean@sensoray.com, palash.bandyopadhyay@conexant.com,
-	awalls@radix.net, dheitmueller@kernellabs.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; CHARSET=us-ascii
+Content-Disposition: INLINE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 25, 2009 at 11:21 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hopefully CC'ing the au0828, cx231xx, cx23885, s2255 and cx25821 maintainers.
->
-> Could you please ack patch http://linuxtv.org/hg/~pinchartl/v4l-dvb-
-> cleanup/rev/7a762df57149 ? The patch should be committed to v4l-dvb in time
-> for 2.6.33.
->
-> On Wednesday 18 November 2009 13:54:06 Laurent Pinchart wrote:
->> Hi everybody,
->>
->> the V4L cleanup patches are now available from
->>
->> http://linuxtv.org/hg/~pinchartl/v4l-dvb-cleanup
->>
->> The tree will be rebased if needed (or rather dropped and recreated as hg
->> doesn't provide a rebase operation), so please don't pull from it yet if
->>  you don't want to have to throw the patches away manually later.
->>
->> I've incorporated the comments received so far and went through all the
->> patches to spot bugs that could have sneaked in.
->>
->> Please test the code against the driver(s) you maintain. The changes are
->> small, *should* not create any issue, but the usual bug can still sneak in.
->>
->> I can't wait for an explicit ack from all maintainers (mostly because I
->>  don't know you all), so I'll send a pull request in a week if there's no
->>  blocking issue. I'd like this to get in 2.6.33 if possible.
+FCP transactions as well as CMP transactions were serialized with
+mutex_lock_interruptible.  It is extremely unlikly though that a signal
+will arrive while a concurrent process holds the mutex.  And even if one
+does, the duration of a transaction is reasonably short (1.2 seconds if
+all retries time out, usually much shorter).
 
-I have a pile of testing in the next few days. In light of Devin's
-OOPS I'll test the cx88 and cx23885 changes and report back by sunday.
+Hence simplify the code to plain mutex_lock.
 
-Thanks for the cleanups Laurent.
+Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+---
+ drivers/media/dvb/firewire/firedtv-avc.c |   51 ++++++++---------------
+ 1 file changed, 17 insertions(+), 34 deletions(-)
 
-Regards,
-
-- Steve
+Index: linux-2.6.32-rc7/drivers/media/dvb/firewire/firedtv-avc.c
+===================================================================
+--- linux-2.6.32-rc7.orig/drivers/media/dvb/firewire/firedtv-avc.c
++++ linux-2.6.32-rc7/drivers/media/dvb/firewire/firedtv-avc.c
+@@ -542,8 +542,7 @@ int avc_tuner_dsd(struct firedtv *fdtv,
+ 	struct avc_command_frame *c = (void *)fdtv->avc_data;
+ 	int ret;
+ 
+-	if (mutex_lock_interruptible(&fdtv->avc_mutex))
+-		return -EINTR;
++	mutex_lock(&fdtv->avc_mutex);
+ 
+ 	memset(c, 0, sizeof(*c));
+ 
+@@ -584,8 +583,7 @@ int avc_tuner_set_pids(struct firedtv *f
+ 	if (pidc > 16 && pidc != 0xff)
+ 		return -EINVAL;
+ 
+-	if (mutex_lock_interruptible(&fdtv->avc_mutex))
+-		return -EINTR;
++	mutex_lock(&fdtv->avc_mutex);
+ 
+ 	memset(c, 0, sizeof(*c));
+ 
+@@ -629,8 +627,7 @@ int avc_tuner_get_ts(struct firedtv *fdt
+ 	struct avc_command_frame *c = (void *)fdtv->avc_data;
+ 	int ret, sl;
+ 
+-	if (mutex_lock_interruptible(&fdtv->avc_mutex))
+-		return -EINTR;
++	mutex_lock(&fdtv->avc_mutex);
+ 
+ 	memset(c, 0, sizeof(*c));
+ 
+@@ -670,8 +667,7 @@ int avc_identify_subunit(struct firedtv 
+ 	struct avc_response_frame *r = (void *)fdtv->avc_data;
+ 	int ret;
+ 
+-	if (mutex_lock_interruptible(&fdtv->avc_mutex))
+-		return -EINTR;
++	mutex_lock(&fdtv->avc_mutex);
+ 
+ 	memset(c, 0, sizeof(*c));
+ 
+@@ -712,8 +708,7 @@ int avc_tuner_status(struct firedtv *fdt
+ 	struct avc_response_frame *r = (void *)fdtv->avc_data;
+ 	int length, ret;
+ 
+-	if (mutex_lock_interruptible(&fdtv->avc_mutex))
+-		return -EINTR;
++	mutex_lock(&fdtv->avc_mutex);
+ 
+ 	memset(c, 0, sizeof(*c));
+ 
+@@ -795,8 +790,7 @@ int avc_lnb_control(struct firedtv *fdtv
+ 	struct avc_response_frame *r = (void *)fdtv->avc_data;
+ 	int i, j, k, ret;
+ 
+-	if (mutex_lock_interruptible(&fdtv->avc_mutex))
+-		return -EINTR;
++	mutex_lock(&fdtv->avc_mutex);
+ 
+ 	memset(c, 0, sizeof(*c));
+ 
+@@ -844,8 +838,7 @@ int avc_register_remote_control(struct f
+ 	struct avc_command_frame *c = (void *)fdtv->avc_data;
+ 	int ret;
+ 
+-	if (mutex_lock_interruptible(&fdtv->avc_mutex))
+-		return -EINTR;
++	mutex_lock(&fdtv->avc_mutex);
+ 
+ 	memset(c, 0, sizeof(*c));
+ 
+@@ -883,8 +876,7 @@ int avc_tuner_host2ca(struct firedtv *fd
+ 	struct avc_command_frame *c = (void *)fdtv->avc_data;
+ 	int ret;
+ 
+-	if (mutex_lock_interruptible(&fdtv->avc_mutex))
+-		return -EINTR;
++	mutex_lock(&fdtv->avc_mutex);
+ 
+ 	memset(c, 0, sizeof(*c));
+ 
+@@ -943,8 +935,7 @@ int avc_ca_app_info(struct firedtv *fdtv
+ 	struct avc_response_frame *r = (void *)fdtv->avc_data;
+ 	int pos, ret;
+ 
+-	if (mutex_lock_interruptible(&fdtv->avc_mutex))
+-		return -EINTR;
++	mutex_lock(&fdtv->avc_mutex);
+ 
+ 	memset(c, 0, sizeof(*c));
+ 
+@@ -986,8 +977,7 @@ int avc_ca_info(struct firedtv *fdtv, ch
+ 	struct avc_response_frame *r = (void *)fdtv->avc_data;
+ 	int pos, ret;
+ 
+-	if (mutex_lock_interruptible(&fdtv->avc_mutex))
+-		return -EINTR;
++	mutex_lock(&fdtv->avc_mutex);
+ 
+ 	memset(c, 0, sizeof(*c));
+ 
+@@ -1028,8 +1018,7 @@ int avc_ca_reset(struct firedtv *fdtv)
+ 	struct avc_command_frame *c = (void *)fdtv->avc_data;
+ 	int ret;
+ 
+-	if (mutex_lock_interruptible(&fdtv->avc_mutex))
+-		return -EINTR;
++	mutex_lock(&fdtv->avc_mutex);
+ 
+ 	memset(c, 0, sizeof(*c));
+ 
+@@ -1073,8 +1062,7 @@ int avc_ca_pmt(struct firedtv *fdtv, cha
+ 	if (unlikely(avc_debug & AVC_DEBUG_APPLICATION_PMT))
+ 		debug_pmt(msg, length);
+ 
+-	if (mutex_lock_interruptible(&fdtv->avc_mutex))
+-		return -EINTR;
++	mutex_lock(&fdtv->avc_mutex);
+ 
+ 	memset(c, 0, sizeof(*c));
+ 
+@@ -1196,8 +1184,7 @@ int avc_ca_get_time_date(struct firedtv 
+ 	struct avc_response_frame *r = (void *)fdtv->avc_data;
+ 	int ret;
+ 
+-	if (mutex_lock_interruptible(&fdtv->avc_mutex))
+-		return -EINTR;
++	mutex_lock(&fdtv->avc_mutex);
+ 
+ 	memset(c, 0, sizeof(*c));
+ 
+@@ -1233,8 +1220,7 @@ int avc_ca_enter_menu(struct firedtv *fd
+ 	struct avc_command_frame *c = (void *)fdtv->avc_data;
+ 	int ret;
+ 
+-	if (mutex_lock_interruptible(&fdtv->avc_mutex))
+-		return -EINTR;
++	mutex_lock(&fdtv->avc_mutex);
+ 
+ 	memset(c, 0, sizeof(*c));
+ 
+@@ -1267,8 +1253,7 @@ int avc_ca_get_mmi(struct firedtv *fdtv,
+ 	struct avc_response_frame *r = (void *)fdtv->avc_data;
+ 	int ret;
+ 
+-	if (mutex_lock_interruptible(&fdtv->avc_mutex))
+-		return -EINTR;
++	mutex_lock(&fdtv->avc_mutex);
+ 
+ 	memset(c, 0, sizeof(*c));
+ 
+@@ -1306,8 +1291,7 @@ static int cmp_read(struct firedtv *fdtv
+ {
+ 	int ret;
+ 
+-	if (mutex_lock_interruptible(&fdtv->avc_mutex))
+-		return -EINTR;
++	mutex_lock(&fdtv->avc_mutex);
+ 
+ 	ret = fdtv->backend->read(fdtv, addr, data);
+ 	if (ret < 0)
+@@ -1322,8 +1306,7 @@ static int cmp_lock(struct firedtv *fdtv
+ {
+ 	int ret;
+ 
+-	if (mutex_lock_interruptible(&fdtv->avc_mutex))
+-		return -EINTR;
++	mutex_lock(&fdtv->avc_mutex);
+ 
+ 	/* data[] is stack-allocated and should not be DMA-mapped. */
+ 	memcpy(fdtv->avc_data, data, 8);
 
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Stefan Richter
+-=====-==--= =-== =--=-
+http://arcgraph.de/sr/
+
