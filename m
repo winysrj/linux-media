@@ -1,53 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:41675 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S934100AbZKXVwP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Nov 2009 16:52:15 -0500
-Date: Tue, 24 Nov 2009 22:52:17 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Ryan Raasch <ryan.raasch@gmail.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Camera sensor
-In-Reply-To: <4B0BE393.2080904@gmail.com>
-Message-ID: <Pine.LNX.4.64.0911242244360.4680@axis700.grange>
-References: <4B0BE393.2080904@gmail.com>
+Received: from perceval.irobotique.be ([92.243.18.41]:52394 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753473AbZKRJiF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Nov 2009 04:38:05 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: v4l: Use the video_drvdata function in drivers
+Date: Wed, 18 Nov 2009 10:38:31 +0100
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	mchehab@infradead.org, sakari.ailus@maxwell.research.nokia.com
+References: <1258504731-8430-1-git-send-email-laurent.pinchart@ideasonboard.com> <200911180801.48950.hverkuil@xs4all.nl> <829197380911180056i5102b87bw2926a7b38608570d@mail.gmail.com>
+In-Reply-To: <829197380911180056i5102b87bw2926a7b38608570d@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200911181038.31139.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 24 Nov 2009, Ryan Raasch wrote:
+Hi Devin,
 
-> Hello,
+On Wednesday 18 November 2009 09:56:12 Devin Heitmueller wrote:
+> On Wed, Nov 18, 2009 at 2:01 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > Very nice cleanup!
 > 
-> I have implemented a driver for the LZ0P374 Sharp CCD camera sensor. I have
-> been using an old kernel, and now i am updating to the new soc_camera
-> framework. My question is, is there anyone using this sensor? We bought the
-> sensor with absolutely no documents, support to be found (lucky to get driver
-> running).
+> The last time I saw one of these relatively innocent-looking changes
+> being done across all drivers without testing, it introduced a rather
+> nasty and hard to find OOPS into one of my drivers and I had to fix
+> it:
+> 
+> http://linuxtv.org/hg/v4l-dvb/rev/5a54038a66c9
+> 
+> Is there some reason this is one massive patch instead of individual
+> patches for each driver?
 
-I've recently implemented a driver for a rj54n1cb0c camera, and I've seen 
-it being referred to as lz0p398m... A simplified version of it is 
-currently in the linux-next tree, and a more complete version has been 
-submitted for review to the list. Would be interesting if you could dig 
-out that driver from the mailing list archives and see how similar it is 
-to your camera.
+It was just easier to do so in a single patch, there's no other particular 
+reason. The patch can be split.
 
-You can also see the patch-stack here
+> How confident are we that this *really* isn't going to break some bridge
+> without anyone realizing it?  Is this going to be some situation where it
+> just "goes in" and then the maintainers of individual bridges are going to
+> have to clean up the mess when users start complaining?
 
-http://download.open-technology.de/soc-camera/20091105/
+Hopefully not. I haven't changed the drivers blindly but I've tried to 
+understand the logic behind every piece of code I changed. Obviously a bug can 
+still slip in, regardless of how careful we are.
 
-apply it to linux 2.6.32-rc5 and look at the resulting 
-drivers/media/video/rj54n1cb0c.c file.
+So to answer your question, no, the patch will not blindly introduce a mess 
+that will need to be cleaned by driver maintainers, but a bug could still get 
+in.
 
-> It was found on the Sandgate 2P Sophia Systems development kit. The sensor is
-> mainly (only) sold in Asia. But at the time of our product release (~2006),
-> this was the only CCD camera sensor to be found in quantities less than
-> millions.
+> If there are going to be a series of cleanups such as this, perhaps it
+> makes sense for Laurent to setup a tree with all the proposed fixes,
+> and put out a call for testers so we can be more confident that it
+> doesn't screw anything up.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Good idea, I'll do that. I'll incorporate the review comments and I'll send a 
+link to the tree to the mailing list.
+
+> Don't get me wrong, I'm all for seeing these things cleaned up, and
+> the more functionality in the core the better.  But I am admittedly a
+> bit nervous to see huge patches touching all the drivers where I am
+> pretty sure that the developer probably only tested it on a couple of
+> drivers and is assuming it works across all.
+
+I share your concern. Unfortunately I can't test all the changes myself 
+(unless people start sending me lots of hardware samples, but in that case 
+I'll probably have to move to a bigger house :-)).
+
+By the way, how would splitting the patches help solve (or at least mitigate) 
+the problem ?
+
+-- 
+Regards,
+
+Laurent Pinchart
