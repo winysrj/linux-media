@@ -1,68 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail02a.mail.t-online.hu ([84.2.40.7]:55989 "EHLO
-	mail02a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751647AbZKLIQJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Nov 2009 03:16:09 -0500
-Message-ID: <4AFBC44B.1060900@freemail.hu>
-Date: Thu, 12 Nov 2009 09:16:11 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Received: from compulab.co.il ([67.18.134.219]:53528 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752871AbZKRGek (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Nov 2009 01:34:40 -0500
+Message-ID: <4B039576.3020105@compulab.co.il>
+Date: Wed, 18 Nov 2009 08:34:30 +0200
+From: Mike Rapoport <mike@compulab.co.il>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Hans de Goede <hdegoede@redhat.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] v4l2-dbg: report fail reason to the user
-References: <4AF6BA72.4070809@freemail.hu> <4AF8F8EB.8090705@freemail.hu> <4AFBB7FD.5090607@freemail.hu> <200911120829.40193.hverkuil@xs4all.nl>
-In-Reply-To: <200911120829.40193.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Antonio Ospite <ospite@studenti.unina.it>
+CC: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Eric Miao <eric.y.miao@gmail.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Juergen Beisert <j.beisert@pengutronix.de>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: Re: [PATCH 1/3] em-x270: don't use pxa_camera init() callback
+References: <1258495463-26029-1-git-send-email-ospite@studenti.unina.it> <1258495463-26029-2-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <1258495463-26029-2-git-send-email-ospite@studenti.unina.it>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
 
-Report the fail reason to the user when writing a register even if
-the verbose mode is switched off.
 
-Remove duplicated code ioctl() call which may cause different ioctl()
-function call in case of verbose and non verbose if not handled carefully.
+Antonio Ospite wrote:
+> pxa_camera init() is going to be removed.
+> 
+> Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+> ---
+>  arch/arm/mach-pxa/em-x270.c |    9 +++++----
+>  1 files changed, 5 insertions(+), 4 deletions(-)
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
-diff -r 60f784aa071d v4l2-apps/util/v4l2-dbg.cpp
---- a/v4l2-apps/util/v4l2-dbg.cpp	Wed Nov 11 18:28:53 2009 +0100
-+++ b/v4l2-apps/util/v4l2-dbg.cpp	Thu Nov 12 09:15:17 2009 +0100
-@@ -354,13 +354,14 @@
- {
- 	int retVal;
+Acked-by: Mike Rapoport <mike@compulab.co.il>
 
--	if (!options[OptVerbose]) return ioctl(fd, request, parm);
- 	retVal = ioctl(fd, request, parm);
--	printf("%s: ", name);
--	if (retVal < 0)
--		printf("failed: %s\n", strerror(errno));
--	else
--		printf("ok\n");
-+	if (options[OptVerbose]) {
-+		printf("%s: ", name);
-+		if (retVal < 0)
-+			printf("failed: %s\n", strerror(errno));
-+		else
-+			printf("ok\n");
-+	}
+> diff --git a/arch/arm/mach-pxa/em-x270.c b/arch/arm/mach-pxa/em-x270.c
+> index aec7f42..f71f34c 100644
+> --- a/arch/arm/mach-pxa/em-x270.c
+> +++ b/arch/arm/mach-pxa/em-x270.c
+> @@ -967,7 +967,7 @@ static inline void em_x270_init_gpio_keys(void) {}
+>  #if defined(CONFIG_VIDEO_PXA27x) || defined(CONFIG_VIDEO_PXA27x_MODULE)
+>  static struct regulator *em_x270_camera_ldo;
+>  
+> -static int em_x270_sensor_init(struct device *dev)
+> +static int em_x270_sensor_init(void)
+>  {
+>  	int ret;
+>  
+> @@ -996,7 +996,6 @@ static int em_x270_sensor_init(struct device *dev)
+>  }
+>  
+>  struct pxacamera_platform_data em_x270_camera_platform_data = {
+> -	.init	= em_x270_sensor_init,
+>  	.flags  = PXA_CAMERA_MASTER | PXA_CAMERA_DATAWIDTH_8 |
+>  		PXA_CAMERA_PCLK_EN | PXA_CAMERA_MCLK_EN,
+>  	.mclk_10khz = 2600,
+> @@ -1049,8 +1048,10 @@ static struct platform_device em_x270_camera = {
+>  
+>  static void  __init em_x270_init_camera(void)
+>  {
+> -	pxa_set_camera_info(&em_x270_camera_platform_data);
+> -	platform_device_register(&em_x270_camera);
+> +	if (em_x270_sensor_init() == 0) {
+> +		pxa_set_camera_info(&em_x270_camera_platform_data);
+> +		platform_device_register(&em_x270_camera);
+> +	}
+>  }
+>  #else
+>  static inline void em_x270_init_camera(void) {}
 
- 	return retVal;
- }
-@@ -586,8 +587,8 @@
-
- 				printf(" set to 0x%llx\n", set_reg.val);
- 			} else {
--				printf("Failed to set register 0x%08llx value 0x%llx\n",
--					set_reg.reg, set_reg.val);
-+				printf("Failed to set register 0x%08llx value 0x%llx: %s\n",
-+					set_reg.reg, set_reg.val, strerror(errno));
- 			}
- 			set_reg.reg++;
- 		}
+-- 
+Sincerely yours,
+Mike.
 
