@@ -1,209 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01d.mail.t-online.hu ([84.2.42.6]:58455 "EHLO
-	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758230AbZKDVfe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2009 16:35:34 -0500
-Message-ID: <4AF1F3A3.6000107@freemail.hu>
-Date: Wed, 04 Nov 2009 22:35:31 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Received: from bear.ext.ti.com ([192.94.94.41]:36494 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752986AbZKSRBa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Nov 2009 12:01:30 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Thu, 19 Nov 2009 11:01:28 -0600
+Subject: RE: Help in adding documentation
+Message-ID: <A69FA2915331DC488A831521EAE36FE40155A5149B@dlee06.ent.ti.com>
+References: <A69FA2915331DC488A831521EAE36FE401559C59A2@dlee06.ent.ti.com>
+ <200911180819.11199.hverkuil@xs4all.nl> <4B03A11D.9090404@infradead.org>
+ <200911180832.35450.hverkuil@xs4all.nl>
+ <A69FA2915331DC488A831521EAE36FE40155A51446@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40155A51446@dlee06.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] gspca pac7302/pac7311: handle return value of usb_control_msg()
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+Hans,
 
-The function usb_control_msg() can return error any time so at least
-warn the user if an error happens. No message is printed in case of
-normal operation.
+It is hard for me to get the v4l2-apps compile on my build environment.
+Unless someone can help me to resolve the build issue, I wouldn't be able to update the v4l2-apps or Alternately someone volunteer to add this support
+based on the API.
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
-diff -r e628f4381170 linux/drivers/media/video/gspca/pac7302.c
---- a/linux/drivers/media/video/gspca/pac7302.c	Mon Nov 02 14:00:48 2009 +0100
-+++ b/linux/drivers/media/video/gspca/pac7302.c	Wed Nov 04 23:30:53 2009 +0100
-@@ -335,27 +335,40 @@
- 		  __u8 index,
- 		  const char *buffer, int len)
- {
-+	int ret;
-+
- 	memcpy(gspca_dev->usb_buf, buffer, len);
--	usb_control_msg(gspca_dev->dev,
-+	ret = usb_control_msg(gspca_dev->dev,
- 			usb_sndctrlpipe(gspca_dev->dev, 0),
- 			1,		/* request */
- 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
- 			0,		/* value */
- 			index, gspca_dev->usb_buf, len,
- 			500);
-+	if (ret < 0)
-+		PDEBUG(D_ERR, "reg_w_buf(): "
-+		"Failed to write registers to index 0x%x, error %i",
-+		index, ret);
- }
+Thanks and regards,
 
- #if 0 /* not used */
- static __u8 reg_r(struct gspca_dev *gspca_dev,
- 			     __u8 index)
- {
--	usb_control_msg(gspca_dev->dev,
-+	int ret;
-+
-+	ret = usb_control_msg(gspca_dev->dev,
- 			usb_rcvctrlpipe(gspca_dev->dev, 0),
- 			0,			/* request */
- 			USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
- 			0,			/* value */
- 			index, gspca_dev->usb_buf, 1,
- 			500);
-+	if (ret < 0)
-+		PDEBUG(D_ERR, "reg_r(): "
-+		"Failed to read register from index 0x%x, error %i",
-+		index, ret);
-+
- 	return gspca_dev->usb_buf[0];
- }
- #endif
-@@ -364,13 +377,19 @@
- 		  __u8 index,
- 		  __u8 value)
- {
-+	int ret;
-+
- 	gspca_dev->usb_buf[0] = value;
--	usb_control_msg(gspca_dev->dev,
-+	ret = usb_control_msg(gspca_dev->dev,
- 			usb_sndctrlpipe(gspca_dev->dev, 0),
- 			0,			/* request */
- 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
- 			0, index, gspca_dev->usb_buf, 1,
- 			500);
-+	if (ret < 0)
-+		PDEBUG(D_ERR, "reg_w(): "
-+		"Failed to write register to index 0x%x, value 0x%x, error %i",
-+		index, value, ret);
- }
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+phone: 301-407-9583
+email: m-karicheri2@ti.com
 
- static void reg_w_seq(struct gspca_dev *gspca_dev,
-@@ -387,17 +406,23 @@
- 			const __u8 *page, int len)
- {
- 	int index;
-+	int ret;
-
- 	for (index = 0; index < len; index++) {
- 		if (page[index] == SKIP)		/* skip this index */
- 			continue;
- 		gspca_dev->usb_buf[0] = page[index];
--		usb_control_msg(gspca_dev->dev,
-+		ret = usb_control_msg(gspca_dev->dev,
- 				usb_sndctrlpipe(gspca_dev->dev, 0),
- 				0,			/* request */
- 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
- 				0, index, gspca_dev->usb_buf, 1,
- 				500);
-+		if (ret < 0)
-+			PDEBUG(D_ERR, "reg_w_page(): "
-+			"Failed to write register to index 0x%x, "
-+			"value 0x%x, error %i",
-+			index, page[index], ret);
- 	}
- }
-
-diff -r e628f4381170 linux/drivers/media/video/gspca/pac7311.c
---- a/linux/drivers/media/video/gspca/pac7311.c	Mon Nov 02 14:00:48 2009 +0100
-+++ b/linux/drivers/media/video/gspca/pac7311.c	Wed Nov 04 23:30:53 2009 +0100
-@@ -263,27 +263,40 @@
- 		  __u8 index,
- 		  const char *buffer, int len)
- {
-+	int ret;
-+
- 	memcpy(gspca_dev->usb_buf, buffer, len);
--	usb_control_msg(gspca_dev->dev,
-+	ret = usb_control_msg(gspca_dev->dev,
- 			usb_sndctrlpipe(gspca_dev->dev, 0),
- 			1,		/* request */
- 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
- 			0,		/* value */
- 			index, gspca_dev->usb_buf, len,
- 			500);
-+	if (ret < 0)
-+		PDEBUG(D_ERR, "reg_w_buf(): "
-+		"Failed to write registers to index 0x%x, error %i",
-+		index, ret);
- }
-
- #if 0 /* not used */
- static __u8 reg_r(struct gspca_dev *gspca_dev,
- 			     __u8 index)
- {
--	usb_control_msg(gspca_dev->dev,
-+	int ret;
-+
-+	ret = usb_control_msg(gspca_dev->dev,
- 			usb_rcvctrlpipe(gspca_dev->dev, 0),
- 			0,			/* request */
- 			USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
- 			0,			/* value */
- 			index, gspca_dev->usb_buf, 1,
- 			500);
-+	if (ret < 0)
-+		PDEBUG(D_ERR, "reg_r(): "
-+		"Failed to read register from index 0x%x, error %i",
-+		index, ret);
-+
- 	return gspca_dev->usb_buf[0];
- }
- #endif
-@@ -292,13 +305,19 @@
- 		  __u8 index,
- 		  __u8 value)
- {
-+	int ret;
-+
- 	gspca_dev->usb_buf[0] = value;
--	usb_control_msg(gspca_dev->dev,
-+	ret = usb_control_msg(gspca_dev->dev,
- 			usb_sndctrlpipe(gspca_dev->dev, 0),
- 			0,			/* request */
- 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
- 			0, index, gspca_dev->usb_buf, 1,
- 			500);
-+	if (ret < 0)
-+		PDEBUG(D_ERR, "reg_w(): "
-+		"Failed to write register to index 0x%x, value 0x%x, error %i",
-+		index, value, ret);
- }
-
- static void reg_w_seq(struct gspca_dev *gspca_dev,
-@@ -315,17 +334,23 @@
- 			const __u8 *page, int len)
- {
- 	int index;
-+	int ret;
-
- 	for (index = 0; index < len; index++) {
- 		if (page[index] == SKIP)		/* skip this index */
- 			continue;
- 		gspca_dev->usb_buf[0] = page[index];
--		usb_control_msg(gspca_dev->dev,
-+		ret = usb_control_msg(gspca_dev->dev,
- 				usb_sndctrlpipe(gspca_dev->dev, 0),
- 				0,			/* request */
- 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
- 				0, index, gspca_dev->usb_buf, 1,
- 				500);
-+		if (ret < 0)
-+			PDEBUG(D_ERR, "reg_w_page(): "
-+			"Failed to write register to index 0x%x, "
-+			"value 0x%x, error %i",
-+			index, page[index], ret);
- 	}
- }
+>-----Original Message-----
+>From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>owner@vger.kernel.org] On Behalf Of Karicheri, Muralidharan
+>Sent: Thursday, November 19, 2009 11:26 AM
+>To: Hans Verkuil; Mauro Carvalho Chehab
+>Cc: linux-media@vger.kernel.org
+>Subject: RE: Help in adding documentation
+>
+>BTW,
+>
+>I don't know what is qt4/qt3 that you are referring to.
+>I see qv4l2 in the directory v4l2-apps/qv4l2.
+>
+>Murali Karicheri
+>Software Design Engineer
+>Texas Instruments Inc.
+>Germantown, MD 20874
+>phone: 301-407-9583
+>email: m-karicheri2@ti.com
+>
+>>-----Original Message-----
+>>From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+>>Sent: Wednesday, November 18, 2009 2:33 AM
+>>To: Mauro Carvalho Chehab
+>>Cc: Karicheri, Muralidharan; linux-media@vger.kernel.org
+>>Subject: Re: Help in adding documentation
+>>
+>>On Wednesday 18 November 2009 08:24:13 Mauro Carvalho Chehab wrote:
+>>> Hans Verkuil wrote:
+>>> > On Wednesday 18 November 2009 08:04:10 Mauro Carvalho Chehab wrote:
+>>> >> Karicheri, Muralidharan escreveu:
+>>> >>> Mauro,
+>>> >>>
+>>> >>> Thanks to your help, I could finish my documentation today.
+>>> >>>
+>>> >>> But I have another issue with the v4l2-apps.
+>>> >>>
+>>> >>> When I do make apps, it doesn't seem to build. I get the following
+>>error
+>>> >>> logs... Is this broken?
+>>> >> Well... no, it is not really broken, but the build system for v4l2-
+>>apps
+>>> >> needs serious improvements. There are some know issues on it:
+>>> >> 	- It doesn't check/warn if you don't have all the dependencies
+>>> >> 	  (qv4l2 and v4l2-sysfs-path require some development libraries
+>>> >> 	   that aren't available per default when gcc is installed - I
+>>> >> 	   think the other files there are ok);
+>>> >> 	- make only works fine when calling on certain directories (it
+>used
+>>to work
+>>> >> 	  fine if you call it from /v4l2-apps/*) - but, since some
+>patch, it
+>>now requires
+>>> >> 	  that you call make from /v4l2-apps, in order to create v4l2-
+>>apps/include.
+>>> >> 	  After having it created, make can be called from a /v4l2-apps
+>>subdir;
+>>> >> 	- for some places (libv4l - maybe there are other places?), you
+>need
+>>to
+>>> >> 	  have the latest headers installed, as it doesn't use the one
+>at the
+>>tree.
+>>> >> 	- qv4l2 only compiles with qt3.
+>>> >
+>>> > I have a qt4 version available in my v4l-dvb-qv4l2 tree. Just no time
+>>to work
+>>> > on a series of patches to merge it in the main repo. And it is missing
+>>string
+>>> > control support.
+>>> >
+>>> > If anyone is interested, then feel free to do that work. This new qt4
+>>version
+>>> > is much better than the qt3 version.
+>>>
+>>> IMO, the better is to have both versions on separate dirs, and let the
+>>building
+>>> system to check if qt4 is available. If so, build the qt4 version
+>instead
+>>of
+>>> qt3 (a configure script, for example). Otherwise, warn users that it is
+>>compiling
+>>> a legacy application, due to the lack of the proper dependencies.
+>>
+>>I'm not going to maintain the qt3 version. Personally I think it is
+>>pointless
+>>having two tools for this and it only creates confusion and unnecessary
+>>maintenance cost. Of course, all this is moot as long as the new version
+>is
+>>still unmerged.
+>>
+>>BTW: everything inside v4l2-apps should use the generated headers inside
+>>v4l2-apps/include. These are generated from the headers in the tree and
+>yes,
+>>it would be nice if v4l2-apps/Makefile would have a proper dependency to
+>>generate them. Now only the top-level Makefile knows about it. After that
+>>include directory is generated you can do a make in v4l2-apps.
+>>
+>>But libv4l should use those headers and not the installed headers.
+>>Something
+>>may have been broken since when I last wrote that code.
+>>
+>>Regards,
+>>
+>>	Hans
+>>
+>>--
+>>Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
