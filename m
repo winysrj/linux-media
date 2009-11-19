@@ -1,59 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:52682 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756591AbZKRAit (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:48565 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757273AbZKSQ0B convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2009 19:38:49 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, mchehab@infradead.org,
-	sakari.ailus@maxwell.research.nokia.com
-Subject: v4l: Add video_device_node_name function
-Date: Wed, 18 Nov 2009 01:38:42 +0100
-Message-Id: <1258504731-8430-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1258504731-8430-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1258504731-8430-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Thu, 19 Nov 2009 11:26:01 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Thu, 19 Nov 2009 10:26:00 -0600
+Subject: RE: Help in adding documentation
+Message-ID: <A69FA2915331DC488A831521EAE36FE40155A51446@dlee06.ent.ti.com>
+References: <A69FA2915331DC488A831521EAE36FE401559C59A2@dlee06.ent.ti.com>
+ <200911180819.11199.hverkuil@xs4all.nl> <4B03A11D.9090404@infradead.org>
+ <200911180832.35450.hverkuil@xs4all.nl>
+In-Reply-To: <200911180832.35450.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Many drivers access the device number (video_device::v4l2_devnode::num)
-in order to print the video device node name. Add and use a helper
-function to retrieve the video_device node name.
+BTW,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+I don't know what is qt4/qt3 that you are referring to.
+I see qv4l2 in the directory v4l2-apps/qv4l2. 
 
-Index: v4l-dvb-mc-uvc/linux/drivers/media/video/v4l2-dev.c
-===================================================================
---- v4l-dvb-mc-uvc.orig/linux/drivers/media/video/v4l2-dev.c
-+++ v4l-dvb-mc-uvc/linux/drivers/media/video/v4l2-dev.c
-@@ -619,8 +619,8 @@ static int __video_register_device(struc
- 	vdev->dev.release = v4l2_device_release;
- 
- 	if (nr != -1 && nr != vdev->num && warn_if_nr_in_use)
--		printk(KERN_WARNING "%s: requested %s%d, got %s%d\n",
--				__func__, name_base, nr, name_base, vdev->num);
-+		printk(KERN_WARNING "%s: requested %s%d, got %s\n", __func__,
-+			name_base, nr, video_device_node_name(vdev));
- 
- 	/* Part 5: Activate this minor. The char device can now be used. */
- 	mutex_lock(&videodev_lock);
-Index: v4l-dvb-mc-uvc/linux/include/media/v4l2-dev.h
-===================================================================
---- v4l-dvb-mc-uvc.orig/linux/include/media/v4l2-dev.h
-+++ v4l-dvb-mc-uvc/linux/include/media/v4l2-dev.h
-@@ -153,6 +153,15 @@ static inline void *video_drvdata(struct
- 	return video_get_drvdata(video_devdata(file));
- }
- 
-+static inline const char *video_device_node_name(struct video_device *vdev)
-+{
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 19)
-+	return vdev->dev.class_id;
-+#else
-+	return dev_name(&vdev->dev);
-+#endif
-+}
-+
- static inline int video_is_unregistered(struct video_device *vdev)
- {
- 	return test_bit(V4L2_FL_UNREGISTERED, &vdev->flags);
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+phone: 301-407-9583
+email: m-karicheri2@ti.com
+
+>-----Original Message-----
+>From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+>Sent: Wednesday, November 18, 2009 2:33 AM
+>To: Mauro Carvalho Chehab
+>Cc: Karicheri, Muralidharan; linux-media@vger.kernel.org
+>Subject: Re: Help in adding documentation
+>
+>On Wednesday 18 November 2009 08:24:13 Mauro Carvalho Chehab wrote:
+>> Hans Verkuil wrote:
+>> > On Wednesday 18 November 2009 08:04:10 Mauro Carvalho Chehab wrote:
+>> >> Karicheri, Muralidharan escreveu:
+>> >>> Mauro,
+>> >>>
+>> >>> Thanks to your help, I could finish my documentation today.
+>> >>>
+>> >>> But I have another issue with the v4l2-apps.
+>> >>>
+>> >>> When I do make apps, it doesn't seem to build. I get the following
+>error
+>> >>> logs... Is this broken?
+>> >> Well... no, it is not really broken, but the build system for v4l2-
+>apps
+>> >> needs serious improvements. There are some know issues on it:
+>> >> 	- It doesn't check/warn if you don't have all the dependencies
+>> >> 	  (qv4l2 and v4l2-sysfs-path require some development libraries
+>> >> 	   that aren't available per default when gcc is installed - I
+>> >> 	   think the other files there are ok);
+>> >> 	- make only works fine when calling on certain directories (it used
+>to work
+>> >> 	  fine if you call it from /v4l2-apps/*) - but, since some patch, it
+>now requires
+>> >> 	  that you call make from /v4l2-apps, in order to create v4l2-
+>apps/include.
+>> >> 	  After having it created, make can be called from a /v4l2-apps
+>subdir;
+>> >> 	- for some places (libv4l - maybe there are other places?), you need
+>to
+>> >> 	  have the latest headers installed, as it doesn't use the one at the
+>tree.
+>> >> 	- qv4l2 only compiles with qt3.
+>> >
+>> > I have a qt4 version available in my v4l-dvb-qv4l2 tree. Just no time
+>to work
+>> > on a series of patches to merge it in the main repo. And it is missing
+>string
+>> > control support.
+>> >
+>> > If anyone is interested, then feel free to do that work. This new qt4
+>version
+>> > is much better than the qt3 version.
+>>
+>> IMO, the better is to have both versions on separate dirs, and let the
+>building
+>> system to check if qt4 is available. If so, build the qt4 version instead
+>of
+>> qt3 (a configure script, for example). Otherwise, warn users that it is
+>compiling
+>> a legacy application, due to the lack of the proper dependencies.
+>
+>I'm not going to maintain the qt3 version. Personally I think it is
+>pointless
+>having two tools for this and it only creates confusion and unnecessary
+>maintenance cost. Of course, all this is moot as long as the new version is
+>still unmerged.
+>
+>BTW: everything inside v4l2-apps should use the generated headers inside
+>v4l2-apps/include. These are generated from the headers in the tree and yes,
+>it would be nice if v4l2-apps/Makefile would have a proper dependency to
+>generate them. Now only the top-level Makefile knows about it. After that
+>include directory is generated you can do a make in v4l2-apps.
+>
+>But libv4l should use those headers and not the installed headers.
+>Something
+>may have been broken since when I last wrote that code.
+>
+>Regards,
+>
+>	Hans
+>
+>--
+>Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+
