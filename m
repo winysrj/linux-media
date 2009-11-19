@@ -1,48 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:56301 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752933AbZKZWGL (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:40207 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752972AbZKSSBj convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 17:06:11 -0500
-Date: 26 Nov 2009 23:05:00 +0100
-From: lirc@bartelmus.de (Christoph Bartelmus)
-To: mchehab@redhat.com
-Cc: dmitry.torokhov@gmail.com
-Cc: j@jannau.net
-Cc: jarod@redhat.com
-Cc: khc@pm.waw.pl
-Cc: linux-input@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Cc: superm1@ubuntu.com
-Message-ID: <BDccCqq3jFB@christoph>
-In-Reply-To: <4B0EEC21.9010001@redhat.com>
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was: Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-MIME-Version: 1.0
+	Thu, 19 Nov 2009 13:01:39 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Thu, 19 Nov 2009 10:23:38 -0600
+Subject: RE: Help in adding documentation
+Message-ID: <A69FA2915331DC488A831521EAE36FE40155A5143D@dlee06.ent.ti.com>
+References: <A69FA2915331DC488A831521EAE36FE401559C59A2@dlee06.ent.ti.com>
+ <200911180819.11199.hverkuil@xs4all.nl> <4B03A11D.9090404@infradead.org>
+ <200911180832.35450.hverkuil@xs4all.nl>
+In-Reply-To: <200911180832.35450.hverkuil@xs4all.nl>
+Content-Language: en-US
 Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hans & Mauro,
 
-on 26 Nov 09 at 18:59, Mauro Carvalho Chehab wrote:
-> Christoph Bartelmus wrote:
-[...]
->>> lircd supports input layer interface. Yet, patch 3/3 exports both devices
->>> that support only pulse/space raw mode and devices that generate scan
->>> codes via the raw mode interface. It does it by generating artificial
->>> pulse codes.
+I tried building from v4l2-apps directory, but it doesn't help me
+either. 
+
+(qv4l2 and v4l2-sysfs-path require some development libraries
+that aren't available per default when gcc is installed - I
+
+What are all the libraries it requires? I need to do cross compile
+for arm. What do I need to do to let the build system pull required
+libraries from the code sorcery arm tool chain that I use? Any help
+to build the application v4l2-ctl.cpp will be helpful.
+
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+phone: 301-407-9583
+email: m-karicheri2@ti.com
+
+>-----Original Message-----
+>From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+>Sent: Wednesday, November 18, 2009 2:33 AM
+>To: Mauro Carvalho Chehab
+>Cc: Karicheri, Muralidharan; linux-media@vger.kernel.org
+>Subject: Re: Help in adding documentation
+>
+>On Wednesday 18 November 2009 08:24:13 Mauro Carvalho Chehab wrote:
+>> Hans Verkuil wrote:
+>> > On Wednesday 18 November 2009 08:04:10 Mauro Carvalho Chehab wrote:
+>> >> Karicheri, Muralidharan escreveu:
+>> >>> Mauro,
+>> >>>
+>> >>> Thanks to your help, I could finish my documentation today.
+>> >>>
+>> >>> But I have another issue with the v4l2-apps.
+>> >>>
+>> >>> When I do make apps, it doesn't seem to build. I get the following
+>error
+>> >>> logs... Is this broken?
+>> >> Well... no, it is not really broken, but the build system for v4l2-
+>apps
+>> >> needs serious improvements. There are some know issues on it:
+>> >> 	- It doesn't check/warn if you don't have all the dependencies
+>> >> 	  (qv4l2 and v4l2-sysfs-path require some development libraries
+>> >> 	   that aren't available per default when gcc is installed - I
+>> >> 	   think the other files there are ok);
+>> >> 	- make only works fine when calling on certain directories (it used
+>to work
+>> >> 	  fine if you call it from /v4l2-apps/*) - but, since some patch, it
+>now requires
+>> >> 	  that you call make from /v4l2-apps, in order to create v4l2-
+>apps/include.
+>> >> 	  After having it created, make can be called from a /v4l2-apps
+>subdir;
+>> >> 	- for some places (libv4l - maybe there are other places?), you need
+>to
+>> >> 	  have the latest headers installed, as it doesn't use the one at the
+>tree.
+>> >> 	- qv4l2 only compiles with qt3.
+>> >
+>> > I have a qt4 version available in my v4l-dvb-qv4l2 tree. Just no time
+>to work
+>> > on a series of patches to merge it in the main repo. And it is missing
+>string
+>> > control support.
+>> >
+>> > If anyone is interested, then feel free to do that work. This new qt4
+>version
+>> > is much better than the qt3 version.
 >>
->> Nonsense! There's no generation of artificial pulse codes in the drivers.
->> The LIRC interface includes ways to pass decoded IR codes of arbitrary
->> length to userspace.
+>> IMO, the better is to have both versions on separate dirs, and let the
+>building
+>> system to check if qt4 is available. If so, build the qt4 version instead
+>of
+>> qt3 (a configure script, for example). Otherwise, warn users that it is
+>compiling
+>> a legacy application, due to the lack of the proper dependencies.
+>
+>I'm not going to maintain the qt3 version. Personally I think it is
+>pointless
+>having two tools for this and it only creates confusion and unnecessary
+>maintenance cost. Of course, all this is moot as long as the new version is
+>still unmerged.
+>
+>BTW: everything inside v4l2-apps should use the generated headers inside
+>v4l2-apps/include. These are generated from the headers in the tree and yes,
+>it would be nice if v4l2-apps/Makefile would have a proper dependency to
+>generate them. Now only the top-level Makefile knows about it. After that
+>include directory is generated you can do a make in v4l2-apps.
+>
+>But libv4l should use those headers and not the installed headers.
+>Something
+>may have been broken since when I last wrote that code.
+>
+>Regards,
+>
+>	Hans
+>
+>--
+>Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
-> I might have got wrong then a comment in the middle of the
-> imon_incoming_packet() of the SoundGraph iMON IR patch:
-
-Indeed, you got it wrong.
-As I already explained before, this device samples the signal at a  
-constant rate and delivers the current level in a bit-array. This data is  
-then condensed to pulse/space data.
-
-Christoph
