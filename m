@@ -1,28 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (ext-mx06.extmail.prod.ext.phx2.redhat.com
 	[10.5.110.10])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id nACGZsUF017750
-	for <video4linux-list@redhat.com>; Thu, 12 Nov 2009 11:35:54 -0500
-Received: from mail-iw0-f194.google.com (mail-iw0-f194.google.com
-	[209.85.223.194])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id nACGZrBY019035
-	for <video4linux-list@redhat.com>; Thu, 12 Nov 2009 11:35:53 -0500
-Received: by iwn32 with SMTP id 32so1824568iwn.23
-	for <video4linux-list@redhat.com>; Thu, 12 Nov 2009 08:35:53 -0800 (PST)
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id nAJMQvph004070
+	for <video4linux-list@redhat.com>; Thu, 19 Nov 2009 17:26:57 -0500
+Received: from mail-fx0-f224.google.com (mail-fx0-f224.google.com
+	[209.85.220.224])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id nAJMQkro004893
+	for <video4linux-list@redhat.com>; Thu, 19 Nov 2009 17:26:47 -0500
+Received: by fxm24 with SMTP id 24so1197027fxm.11
+	for <video4linux-list@redhat.com>; Thu, 19 Nov 2009 14:26:46 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <4AFC31DE.6060708@gmail.com>
-References: <e858e0620911120339t68172862i7f6ec38e88bcf426@mail.gmail.com>
-	<4AFC127F.4070300@gmail.com>
-	<e858e0620911120754q597b95aah7cb3a0e997a71f02@mail.gmail.com>
-	<4AFC31DE.6060708@gmail.com>
-From: Shun-Yu Chang <shunyu.chang@gmail.com>
-Date: Fri, 13 Nov 2009 00:35:33 +0800
-Message-ID: <e858e0620911120835j5a746a89iec9bb754d46e85c3@mail.gmail.com>
-To: Ryan Raasch <ryan.raasch@gmail.com>
+Date: Thu, 19 Nov 2009 16:26:46 -0600
+Message-ID: <6bd2c7ce0911191426i356a6dabm628d25c59c7c6a79@mail.gmail.com>
+From: Dan Vacura <danvacura@gmail.com>
+To: video4linux-list@redhat.com
 Content-Type: text/plain; charset=ISO-8859-1
-Cc: V4L-Linux <video4linux-list@redhat.com>
-Subject: Re: Camera preview, thin lines in the frames
+Content-Transfer-Encoding: 8bit
+Subject: buffer timestamps issue with do_gettimeofday
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,133 +29,42 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Nov 13, 2009 at 12:03 AM, Ryan Raasch <ryan.raasch@gmail.com> wrote:
+Hello all,
 
->
->
-> Shun-Yu Chang wrote:
->
->>
->>
->> On Thu, Nov 12, 2009 at 9:49 PM, Ryan Raasch <ryan.raasch@gmail.com<mailto:
->> ryan.raasch@gmail.com>> wrote:
->>
->>
->>
->>    Shun-Yu Chang wrote:
->>
->>        Hello, list:
->>           I am new to v4l2.  I am working on integrating a usb camera
->>        device on
->>        the beagleboard(Omap3530 dev board).
->>           Now I met a camera preview issue that is there are thin lines
->>        coming out
->>        in the frames.
->>           I still have no idea how to describe this exactly. It's like
->>        the images
->>        shows here,
->>           http://0xlab.org/~jeremy/camera_preview.html<http://0xlab.org/%7Ejeremy/camera_preview.html>
->>        <http://0xlab.org/%7Ejeremy/camera_preview.html>
->>
->>
->>
->>    I have two guesses. One is the jpeg compression ,or is it jpeg? Try
->>    saving in raw RGB or Ycbcr format and viewing with imagemagick.
->>
->>
->>    The raw data I got is yuyv422. I used the mmap way. I tried to convert
->> raw data to yuv420 and jpg files both.  I used ffmpeg to convert yuv420
->> files to jpg files and I can still see the lines.
->>    I don't know how to use imagemagick to see yuv files...
->>
->>
->>
->>    Does this happen in live preview? Maybe write data from camera
->>    directly to screen to see if happening there.
->>
->>
->>    It happens in live preview.  So I save the frames directly into files
->> to verify.
->>
->>
-> But if you save the files, you don't know if the compression is the
-> problem. You need to visually look on the screen with a magnifying glass or
-> something...
+I'm curious as to why the following recommendation, found here
+http://v4l2spec.bytesex.org/spec/x15446.htm, has changed to use
+do_gettimeofday(...):
 
 
-       Got your point, I will try to output to the screen without any
-compression later.
+"The struct v4l2_buffer timestamp was changed to a 64 bit integer,
+containing the sampling or output time of the frame in nanoseconds.
+Additionally timestamps will be in absolute system time, not starting
+from zero at the beginning of a stream. The data type name for
+timestamps is stamp_t, defined as a signed 64-bit integer. Output
+devices should not send a buffer out until the time in the timestamp
+field has arrived. I would like to follow SGI's lead, and adopt a
+multimedia timestamping system like their UST (Unadjusted System
+Time). See http://reality.sgi.com/cpirazzi_engr/lg/time/intro.html.
+[This link is no longer valid.] UST uses timestamps that are 64-bit
+signed integers (not struct timeval's) and given in nanosecond units.
+The UST clock starts at zero when the system is booted and runs
+continuously and uniformly. It takes a little over 292 years for UST
+to overflow. There is no way to set the UST clock. The regular Linux
+time-of-day clock can be changed periodically, which would cause
+errors if it were being used for timestamping a multimedia stream. A
+real UST style clock will require some support in the kernel that is
+not there yet."
 
+I am trying to develop a solution that uses the timestamps for video
+encode and when NTP updates occur that go in the past, it's difficult
+to establish a positive time delta between subsequent buffers.  Also,
+the last comment about getting a real UST clock does exist in the
+kernel now: ktime_get_ts(...).
 
->
->
->
->>
->>    The second would be the FIFO (hadn't worked with omap before) levels
->>    of the data lines to the processor in the kernel.
->>
->>    Look at the system processor (top) usage to see how much cpu% is
->>    being used. USB has high overhead.
->>
->>      the top command shows
->>    PID CPU% S  #THR     VSS     RSS UID      Name
->>  1012  56% R     1  55000K  54468K root     capture_test
->>  241  40% R     1      0K      0K root     pdflush
->>    [....Omit, others are 0%. .....]
->>    After grabing the first 100 frames to files, capture_test exits.
->>
->>
-> Looks pretty busy to me. Maybe you could kill the pdflush, don't save to
-> files, and look at the display with a magnifying glass.
->
->
->     I don't quite understand about FIFO levels of the data lines part.
->>    Could give an instruction where I can start to look into?
->>
->>
-> It probrably has dma priorities. So if other drivers in the system
-> (network, usb, display, etc.) use a lot of cpu time, the camera dma might be
-> delayed.
->
->
-> Are you saving the files over network (nfs)?
+Thanks,
 
+Dan
 
-    No, they are saved to files on the target, then transferred back to my
-laptop.
-
-
-
->
->     Thanks for your reply..
->>
->>    Regards,
->>    -Jeremy
->>
->>
->>
->>
->>    Regards,
->>    Ryan
->>
->>
->>           I modified capture.c sample to save the frames to picture
->>        files.  So in
->>        my guess,  the problem is not in userspace. And this is not
->>        happen on my
->>        laptop with the usb camera.
->>           Could anybody give me a clue ?  Any one would be thankful.
->>
->>
->>
->>
->>
->>
-
-
--- 
-Regards,
--Jeremy
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
