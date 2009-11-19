@@ -1,102 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from outbound-mail03.westnet.com.au ([203.10.1.244]:15863 "EHLO
-	outbound-mail03.westnet.com.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751525AbZK2FcZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2009 00:32:25 -0500
-From: Mike Lampard <mike@mtgambier.net>
-Reply-To: mike@mtgambier.net
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR system?
-Date: Sun, 29 Nov 2009 16:01:53 +1030
-Cc: Jon Smirl <jonsmirl@gmail.com>,
-	Christoph Bartelmus <christoph@bartelmus.de>,
-	jarod@wilsonet.com, awalls@radix.net, j@jannau.net,
-	jarod@redhat.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, superm1@ubuntu.com
-References: <9e4733910911270757j648e39ecl7487b7e6c43db828@mail.gmail.com> <200911291317.03612.mike@mtgambier.net> <20091129045549.GQ6936@core.coreip.homeip.net>
-In-Reply-To: <20091129045549.GQ6936@core.coreip.homeip.net>
+Received: from www.viadmin.org ([195.145.128.101]:46648 "EHLO www.viadmin.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752262AbZKSQsg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Nov 2009 11:48:36 -0500
+Date: Thu, 19 Nov 2009 17:48:31 +0100
+From: "H. Langos" <henrik-dvb@prak.org>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Organizing ALL device data in linuxtv wiki
+Message-ID: <20091119164831.GI31295@www.viadmin.org>
+References: <20091112173130.GV31295@www.viadmin.org> <20091113160850.GY31295@www.viadmin.org> <4AFD8B9A.7000309@hoogenraad.net>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200911291601.53368.mike@mtgambier.net>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4AFD8B9A.7000309@hoogenraad.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 29 Nov 2009 03:25:49 pm Dmitry Torokhov wrote:
-> On Sun, Nov 29, 2009 at 01:17:03PM +1030, Mike Lampard wrote:
-> > On Sat, 28 Nov 2009 02:27:59 am Jon Smirl wrote:
-> > > On Fri, Nov 27, 2009 at 2:45 AM, Christoph Bartelmus
-> > >
-> > > <christoph@bartelmus.de> wrote:
-> > > > Hi Mauro,
-> > > >
-> > > > on 26 Nov 09 at 14:25, Mauro Carvalho Chehab wrote:
-> > > >> Christoph Bartelmus wrote:
-> > > >
-> > > > [...]
-> > > >
-> > > >>> But I'm still a bit hesitant about the in-kernel decoding. Maybe
-> > > >>> it's just because I'm not familiar at all with input layer toolset.
-> > > >
-> > > > [...]
-> > > >
-> > > >> I hope it helps for you to better understand how this works.
-> > > >
-> > > > So the plan is to have two ways of using IR in the future which are
-> > > > incompatible to each other, the feature-set of one being a subset of
-> > > > the other?
-> > >
-> > > Take advantage of the fact that we don't have a twenty year old legacy
-> > > API already in the kernel. Design an IR API that uses current kernel
-> > > systems. Christoph, ignore the code I wrote and make a design proposal
-> > > that addresses these goals...
-> > >
-> > > 1) Unified input in Linux using evdev. IR is on equal footing with
-> > > mouse and keyboard.
-> >
-> > I think this a case where automating setup can be over-emphasised (in the
-> > remote-as-keyboard case).
-> >
-> > Apologies in advance if I've misunderstood the idea of utilising the
-> > 'input subsystem' for IR.  If the plan is to offer dedicated IR events
-> > via a yet-to- be-announced input event subsystem and to optionally
-> > disallow acting as a keyboard via a module option or similar then please
-> > ignore the following.
-> >
-> > Whilst having remotes come through the input subsystem might be 'the
-> > correct thing' from a purely technical standpoint, as an end-user I find
-> > the use-case for remotes completely different in one key aspect: 
-> > Keyboards and mice are generally foreground-app input devices, whereas
-> > remotes are often controlling daemons sitting in the background piping
-> > media through dedicated devices.  As an example I have a VDR instance
-> > running in the background on my desktop machine outputting to a TV in
-> > another room via a pci mpeg decoder - I certainly don't want the VDR
-> > remote control interacting with my X11 desktop in any way unless I go out
-> > of my way to set it up to do so, nor do I want it interacting with other
-> > applications (such as MPD piping music around the house) that are
-> > controlled via other remotes in other rooms unless specified.
-> >
-> > Setting this up with Lircd was easy, how would a kernel-based proposal
-> > handle this?
-> 
-> Why would that be different really? On my keyboard there is a key for
-> e-mail application (and many others) - what HID calls Application Launch
-> keys IIRC. There also application control keys and system control keys,
-> KEY_COFFEE aka KEY_SCREENLOCK. Those are not to be consumed by
-> foreground application but by daemons/session-wide application.
-> 
-In my real-world examples above, both VDR and MPD are started at system start 
-and are not associated with any user-initiated sessions (X login etc) - they 
-are not X11 clients.  Their only input is via Lircd.  Conversely todays 
-Xserver (if I read my logfiles correctly) consumes all input event devices by 
-default, turning them into keypresses for its client apps.  This is exactly 
-the wrong behaviour for my use-case.  In order to ensure that my daemons 
-receive their input I must first ensure that X doesn't receive those events - 
-assuming this is possible it still complicates matters further than they are 
-today (I'd need a simple way of automatically differentiating between remote 
-devices and keyboard devices) .
+Hi Jan,
 
-Mike
+In order to ease the maintenance work I have started to include direkt
+links from the device's entry in the wiki to the source repository's 
+history of the driver.
+
+E.g. In the entry for Avermedia AverTV A800 you'll 
+see "Supported in kernel since 2.6.13". 
+
+Now the word "kernel" is a hyperlink to the history page of the a800 
+driver in Linus's kernel repository.
+
+I could change it to point directly at the driver source but my guess is
+that the history will be the thing that you'll look at first anyway.
+
+The only additional information one has to enter per device is a parameter
+for the {{Supported in Kernel}} template
+instead of
+{{Supported in Kernel|since=2.6.25}}
+you write
+{{Supported in Kernel|since=2.6.25|file=drivers/media/dvb/dvb-usb/dib0700_devices.c}}
+I could have shortened the path but I wanted to keep it generic.
+
+Does that look usable/helpful? Is history the right landing page?
+
+Is there anything besides Documentation/dvb/cards.txt that I could take
+a look at? Currently that file looks rather outdated so reading the 
+driver source instead seems more promising.
+
+cheers
+-henrik
+
+PS: Same can be done for drivers that are maintained in main hg repository and
+in branches but I'd like some feedback first. 
+
+On Fri, Nov 13, 2009 at 05:38:50PM +0100, Jan Hoogenraad wrote:
+> Would it be possible to store this information in the CODE archives, and  
+> extract it from there ?
+> Right now, I end up putting essentially the same information into  
+> structures in the driver and into documentation.
+> This is hard to keep synchronised.
+>
+> Basic information like device IDs, vendors, demod types, tuners, etc is  
+> already in place in the driver codes.
+>
+> Getting data from the hg archives (including development branches)  
+> sounds like a cleaner solution.
+>
+> H. Langos wrote:
+>> Hi Devin,
+>>
+>> I'm sorry. I just realized that I was only subscribed to linux-dvb but  
+>> not to linux-media. I fixed that now but my reply to your emails will  
+>> not have the correct In-Reply-To/References headers.
+>>
+>>> I have to wonder if maybe we are simply using the wrong tool for the
+>>> job.  Perhaps it would make sense to make a really simple web frontend
+>>> to a simple database for devices.  At least initially it would only
+>>> really need two tables.  Something along the lines of the following
+>> ...
+>>> A simple db frontend like the above would allow users to search on
+>>> most of the relevant properties they care about (seeing all devices by
+>>> a single manufacturer, looking up devices by USB ID or PCI ID, looking
+>>> for devices that support a certain standard, etc)
+>>
+>> I've spent some time discussing the pro and contra of an external database
+>> versus a wiki based approach with some of the other wiki admins:
+>> http://www.linuxtv.org/wiki/index.php/User_talk:Hlangos#Further_ramblings...
+>>
+>> The most important point there I guess is, that writing a database app is
+>> a piece of cake and a rather nice way of brushing up on one's SQL foo,  
+>> but keeping it structure-wise updated for years to come is hard and  
+>> boring work.
+>>
+>> Also you have to keep in mind that your database app would need to have
+>> at leasts: revision control, undo, user administration.
+>> I'll not go into details but opening such an application to the public  
+>> would need a good amount of hard work and not to forget, security 
+>> reviews.
+>> Stuff that the wiki already has, and (most important) somebody else is
+>> doing that boring maintenance work so that we can concentrate on the  
+>> content. 
+>>
+>> (I know that user administration could be "borrowed" from the mediawiki
+>> but interfacing those applications will mean that you have to keep updating
+>> your code as the mediawiki code evolves.)
+>>
+>>> I feel like the freeform nature of wikis just lends to the information
+>>> not being in a structured manner
+>>
+>> True, true.
+>>
+>>> I don't doubt that a wiki can be mangled to do something like this, 
+>>
+>> Well. I had some doubts in the begining. :-)
+>>
+>>> but a real database seems like such a cleaner alternative.
+>>
+>> Cleaner, yes. But I'd rather have it dirty and full of information
+>> than clean, static and empty. (Oh no .. there comes the bazaar and 
+>> cathedral metaphor again ... :-) )
+>>
+>> The device data is structure wise rather heterogenious. So a relational
+>> database might not be a very efficient way of capturing it.
+>> In my eyes a more valid contendor to the wiki approach would be something
+>> with a document oriented database like couchdb. But still you'd have
+>> to do write all the boring infrastructure stuff like user administration,
+>> history, undo...
+>>
+>> TWiki has the ability to rather nicely blend structured data with  
+>> unstructured wiki articles. But I thought it more prudent to get  
+>> something done with the tools at hand than spend still more time  
+>> looking for the perfect tool ;-)
+>>
+>>> Just a quick afterthought - bear in mind the schema I proposed is
+>>> something I only spent about two minutes on.  It would almost
+>>> certainly need some more tweaking/cleanup etc.  It meant to
+>>> communicate a concept, so don't get too tied up in the details of the
+>>> exact implementation.
+>>
+>>
+>> Jim has collected the attributes he deems important here:
+>> http://www.linuxtv.org/wiki/index.php/User:Jimbley#Semantics
+>>
+>> Howeever I see some problems with the envisioned level of detail  
+>> regarding linux support when scaled to hundrets of devices:
+>> http://www.linuxtv.org/wiki/index.php/User_talk:Jimbley#Device_Database
+>>
+>> We also had a discussion about the different users and the level of
+>> detail they'd need:
+>> http://www.linuxtv.org/wiki/index.php/User_talk:CityK#Help_with_wiki_integration
+>>
+>>
+>> Two more things:
+>>
+>> 1.) The wiki approach allows for different "databases" to be maintained
+>> separately (by different people) and still have results shown in one  
+>> resulting table.
+>>
+>> This could be useful for Vendor pages (listing all devices by that vendor
+>> independent of the boradcasting standard) or for a broadcasting
+>> standard page that lists all e.g. ATSC devices regardless of wether they
+>> have a USB or PCI interface. The only implication of splitting the  
+>> databases is that you need to add one line in your "querry" for each  
+>> database.
+>>
+>>
+>> 2.) Different devices (regardless of wether they are in the same
+>> "database" or in different ones) can have different sets of attributes.
+>>
+>> If you feel that ATSC device should have separate attributes for  
+>> "8VSB" and "QAM" you just simply add those attributes to your
+>> devices and write a table template that will display those attributes 
+>> (and ignore things like "firmware" or "url")
+>>
+>> The only attributes I'd like to have in all devices are "vendor",
+>> "device" and "did" (Device ID).
+>>
+>> -henrik
+>>
+>> PS: As you see from the number of links to widely different pages, a 
+>> wiki is NOT a good solution for discussions. Just to avoid the  
+>> impression that wiki's are my "new hammer". :-)
+>>
+>>
+>> _______________________________________________
+>> linux-dvb users mailing list
+>> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+>> linux-dvb@linuxtv.org
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>
+>
+>
+> -- 
+> Jan Hoogenraad
+> Hoogenraad Interface Services
+> Postbus 2717
+> 3500 GS Utrecht
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
