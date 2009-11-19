@@ -1,85 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43309 "EHLO mx1.redhat.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:54721 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752154AbZK3KmL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Nov 2009 05:42:11 -0500
-Message-ID: <4B13A161.7050405@redhat.com>
-Date: Mon, 30 Nov 2009 08:41:37 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1753226AbZKSO0G convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Nov 2009 09:26:06 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+Date: Thu, 19 Nov 2009 08:26:10 -0600
+Subject: RE: [PATCH v3] V4L - Adding Digital Video Timings APIs
+Message-ID: <A69FA2915331DC488A831521EAE36FE40155A51350@dlee06.ent.ti.com>
+References: <1258584239-12092-1-git-send-email-m-karicheri2@ti.com>
+ <200911190825.12788.hverkuil@xs4all.nl>
+In-Reply-To: <200911190825.12788.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-To: Christoph Bartelmus <lirc@bartelmus.de>
-CC: jonsmirl@gmail.com, awalls@radix.net, dmitry.torokhov@gmail.com,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com, khc@pm.waw.pl,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR  system?
-References: <BDodiKlXqgB@lirc>
-In-Reply-To: <BDodiKlXqgB@lirc>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Christoph Bartelmus wrote:
-> Hi Jon,
-> 
-> on 27 Nov 09 at 12:49, Jon Smirl wrote:
-> [...]
->> Christoph, take what you know from all of the years of working on LIRC
->> and design the perfect in-kernel system. This is the big chance to
->> redesign IR support and get rid of any past mistakes. Incorporate any
->> useful chunks of code and knowledge from the existing LIRC into the
->> new design. Drop legacy APIs, get rid of daemons, etc. You can do this
->> redesign in parallel with existing LIRC. Everyone can continue using
->> the existing code while the new scheme is being built. Think of it as
->> LIRC 2.0. You can lead this design effort, you're the most experience
->> developer in the IR area.
-> 
-> This is a very difficult thing for me to do. I must admit that I'm very  
-> biased.
-> Because lircd is the only userspace application that uses the LIRC kernel  
-> interface, we never had any problems changing the interface when needed.
-> I can't say there's much legacy stuff inside. I'm quite happy with the  
-> interface.
+Hans,
 
-It makes sense currently, but, once added at kernel, you won't be able
-to change it again, without huge efforts. So, if the interface has any 
-trouble, we need to correct it before adding at the kernel. You should
-remember that a kernel driver shouldn't be bound to an specific userspace
-application. So, the same kernel interface should work with all lircd's
-starting from the version where the interface was added. In other words,
-it should be possible to use let's say a 5 year-old lirc with a brand 
-new kernel.
+My mistake. I had a confusion on if you had signed-off this patch
+or the application diff that you had sent.
 
-Also, some non lirc applications may arise, using the same kernel interface.
-So, the API stability needs to be kept.
+Could you add this to your tree and send a pull request to Mauro?
 
-> The other thing is that I can't really move the decoder from userspace to  
-> kernel because there are way too many userspace drivers that do require a  
-> userspace decoder. LIRC also is running on FreeBSD, MacOS and even Cygwin.  
-> So letting the userspace drivers take advantage of a potential Linux in- 
-> kernel decoder is not an option for me either.
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+phone: 301-407-9583
+email: m-karicheri2@ti.com
 
-You can take advantage of a in-kernel decoder. Instead of receiving raw
-pulse/space, you'll be receiving keystrokes (or scancodes).
+>-----Original Message-----
+>From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+>Sent: Thursday, November 19, 2009 2:25 AM
+>To: Karicheri, Muralidharan
+>Cc: linux-media@vger.kernel.org; davinci-linux-open-
+>source@linux.davincidsp.com
+>Subject: Re: [PATCH v3] V4L - Adding Digital Video Timings APIs
+>
+>On Wednesday 18 November 2009 23:43:59 m-karicheri2@ti.com wrote:
+>> From: Muralidharan Karicheri <m-karicheri2@ti.com>
+>>
+>> Some minor updates (comment format) made to previous v3.
+>>
+>> This is v3 of the digital video timings APIs implementation.
+>> This has updates based on comments received against v2 of the patch.
+>Hopefully
+>> this can be merged to 2.6.33 if there are no more comments.
+>>
+>> This adds the above APIs to the v4l2 core. This is based on version v1.2
+>> of the RFC titled "V4L - Support for video timings at the input/output
+>interface"
+>> Following new ioctls are added:-
+>>
+>> 	- VIDIOC_ENUM_DV_PRESETS
+>> 	- VIDIOC_S_DV_PRESET
+>> 	- VIDIOC_G_DV_PRESET
+>> 	- VIDIOC_QUERY_DV_PRESET
+>> 	- VIDIOC_S_DV_TIMINGS
+>> 	- VIDIOC_G_DV_TIMINGS
+>>
+>> Please refer to the RFC for the details. This code was tested using vpfe
+>> capture driver on TI's DM365. Following is the test configuration used :-
+>>
+>> Blue Ray HD DVD source -> TVP7002 -> DM365 (VPFE) ->DDR
+>>
+>> A draft version of the TVP7002 driver (currently being reviewed in the
+>mailing
+>> list) was used that supports V4L2_DV_1080I60 & V4L2_DV_720P60 presets.
+>>
+>> A loopback video capture application was used for testing these APIs.
+>This calls
+>> following IOCTLS :-
+>>
+>>  -  verify the new v4l2_input capabilities flag added
+>>  -  Enumerate available presets using VIDIOC_ENUM_DV_PRESETS
+>>  -  Set one of the supported preset using VIDIOC_S_DV_PRESET
+>>  -  Get current preset using VIDIOC_G_DV_PRESET
+>>  -  Detect current preset using VIDIOC_QUERY_DV_PRESET
+>>  -  Using stub functions in tvp7002, verify VIDIOC_S_DV_TIMINGS
+>>     and VIDIOC_G_DV_TIMINGS ioctls are received at the sub device.
+>>  -  Tested on 64bit platform by Hans Verkuil
+>>
+>> TODOs :
+>>
+>>  - Update v4l2-apps for the new ioctl (will send another patch after
+>>    compilation issue is resolved)
+>>
+>> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+>> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+>
+>I actually had not signed off on this yet, but now I do:
+>
+>Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+>
+>Thanks!
+>
+>	Hans
+>
+>> Reviewed-by: Randy Dunlap <randy.dunlap@oracle.com>
+>
+>
+>
+>
+>--
+>Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
-Probably, it doesn't make sense to port every single IR protocol decoder
-to kernel. We need there support for the protocols that come with the IR shipped
-with the devices (I think that currently we have RC5, RC4, NEC and pulse-distance), 
-and the most used procolos at the universal IR's (RC5 may be enough?).
-
->> Take advantage of this window to make a
->> design that is fully integrated with Linux - put IR on equal footing
->> with the keyboard and mouse as it should be.
-> 
-> That's a question that I have not answered for myself concludingly.
-> Is a remote control really on exactly the same level as a keyboard or  
-> mouse?
-
-On some devices like STB and TV sets (most of modern LCD/Plasma TV's run Linux),
-they are at the same level. I'd say that the same applies to PC's that
-the user has dedicated to work as an MCE.
-
-Cheers,
-Mauro.
