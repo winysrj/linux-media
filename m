@@ -1,56 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60844 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752153AbZKZTGV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 14:06:21 -0500
-Message-ID: <4B0ED19B.9030409@redhat.com>
-Date: Thu, 26 Nov 2009 17:06:03 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtpout.karoo.kcom.com ([212.50.160.34]:17710 "EHLO
+	smtpout.karoo.kcom.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752103AbZKSQrj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Nov 2009 11:47:39 -0500
+Received: from [192.168.1.239] ([192.168.1.239])
+	by zebra.wentnet.com (8.14.3/8.14.3/SuSE Linux 0.8) with ESMTP id nAJGlaTI003615
+	for <linux-media@vger.kernel.org>; Thu, 19 Nov 2009 16:47:38 GMT
+Message-ID: <4B0576A7.7000103@orange.fr>
+Date: Thu, 19 Nov 2009 16:47:35 +0000
+From: Andy Low <andrew.low@orange.fr>
 MIME-Version: 1.0
-To: Krzysztof Halasa <khc@pm.waw.pl>
-CC: Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Jarod Wilson <jarod@redhat.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-kernel@vger.kernel.org,
-	Mario Limonciello <superm1@ubuntu.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Janne Grunau <j@jannau.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
- Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-References: <200910200956.33391.jarod@redhat.com>	<200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com>	<4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain>	<4B0AB60B.2030006@s5r6.in-berlin.de> <4B0AC8C9.6080504@redhat.com>	<m34oolrnwd.fsf@intrepid.localdomain> <4B0E71B6.4080808@redhat.com> <m3my29up3y.fsf@intrepid.localdomain>
-In-Reply-To: <m3my29up3y.fsf@intrepid.localdomain>
+To: linux-media@vger.kernel.org
+Subject: [Fwd: Anyone got a KWorld USB DVB-T TV Stick II (VS-DVB-T 395U) to
+ work properly?]
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Krzysztof Halasa wrote:
-> Mauro Carvalho Chehab <mchehab@redhat.com> writes:
-> 
->> Technically, it is not hard to port this solution to the other
->> drivers, but the issue is that we don't have all those IR's to know
->> what is the complete scancode that each key produces. So, the hardest
->> part is to find a way for doing it without causing regressions, and to
->> find a group of people that will help testing the new way.
-> 
-> We don't want to "port it" to other drivers. We need to have a common
-> module which does all RCx decoding. The individual drivers should be as
-> simple as possible, something that I outlined in a previous mail.
+Hi!
 
-With the current 7bits mask applied to almost all devices, it is probably not very
-useful for those who want to use generic IRs. We really need to port the solution
-we've done on dvb-usb to the other drivers, allowing them to have the entire
-scancode at the tables while keep supporting table replacement. 
+I have just bought a KWorld USB DVB-T TV Stick II (VS-DVB-T 395U). It
+works well in Windows but it will only receive 2 of the 6 local
+multiplexes under linux.
 
-The issue is that we currently have only 7bits of the scan codes produced by the IR's.
-So, we need to re-generate the keycode tables for each IR after the changes got applied.
+I have tried it with OpenSuse 11.2 (kernel 2.6.31)  both out of the box
+and with v4l from linuxtv.org/hg/~anttip/af9015.
+Also with Opensuse 11.0 (kernel 2.6.25) with v4l from
+linuxtv.org/hg/~anttip/af9015.
 
-With respect to a common module, unfortunately most of the work should be done on
-each driver, since the code that communicates with the hardware is specific to each
-device. There is a common code (at ir-common.ko) with helper decoding routines.
+The results are always the same...
 
-Please feel free to send us contributions to improve the current code.
+It is recognised and loads correctly according to /var/log/messages:
 
-Cheers,
-Mauro.
+...kernel: usb 2-7: new high speed USB device using ehci_hcd and address 5
+...kernel: usb 2-7: configuration #1 chosen from 1 choice
+...kernel: dvb-usb: found a 'KWorld USB DVB-T TV Stick II (VS-DVB-T
+395U)' in cold state, will try to load a firmware
+...kernel: dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
+...kernel: dvb-usb: found a 'KWorld USB DVB-T TV Stick II (VS-DVB-T
+395U)' in warm state.
+...kernel: dvb-usb: will pass the complete MPEG2 transport stream to the
+software demuxer.
+...kernel: DVB: registering new adapter (KWorld USB DVB-T TV Stick II
+(VS-DVB-T 395U))
+...kernel: af9013: firmware version:4.95.0
+...kernel: DVB: registering adapter 0 frontend 0 (Afatech AF9013 DVB-T)...
+...kernel: Quantek QT1010 successfully identified.
+...kernel: input: IR-receiver inside an USB DVB receiver as
+/devices/pci0000:00/0000:00:0b.1/usb2/2-7/input/input6
+...kernel: dvb-usb: schedule remote query interval to 150 msecs.
+...kernel: dvb-usb: KWorld USB DVB-T TV Stick II (VS-DVB-T 395U)
+successfully initialized and connected.
+...kernel: usb 2-7: New USB device found, idVendor=1b80, idProduct=e39b
+...kernel: usb 2-7: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+...kernel: usb 2-7: Product: DVB-T 2
+...kernel: usb 2-7: Manufacturer: Afatech
+
+Using AUTOSCAN in Kaffeine finds just 2 multiplexes and plays them well
+with no errors.  During the search it shows good signal strength on
+various other channels but doesn't get lock.  Similar behaviour using
+the scan utility.  The 2 multiplexes it does find have the same
+parameters (apart from frequency!) I0B8C34D34M16T2G32Y0.
+
+Any suggestions?  Many thanks,  Andy
+
+
+
