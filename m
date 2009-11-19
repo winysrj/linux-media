@@ -1,111 +1,440 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:56832 "EHLO mail1.radix.net"
+Received: from mx1.redhat.com ([209.132.183.28]:65407 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752106AbZK3M7X (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Nov 2009 07:59:23 -0500
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR  system?
-From: Andy Walls <awalls@radix.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Ray Lee <ray-lk@madrabbit.org>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	Jon Smirl <jonsmirl@gmail.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
-In-Reply-To: <4B13B2FA.4050600@redhat.com>
-References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc>
-	 <9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>
-	 <m3aay6y2m1.fsf@intrepid.localdomain>
-	 <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>
-	 <1259469121.3125.28.camel@palomino.walls.org>
-	 <20091129124011.4d8a6080@lxorguk.ukuu.org.uk>
-	 <1259515703.3284.11.camel@maxim-laptop>
-	 <2c0942db0911290949p89ae64bjc3c7501c2de6930c@mail.gmail.com>
-	 <1259537732.5231.11.camel@palomino.walls.org> <4B13B2FA.4050600@redhat.com>
-Content-Type: text/plain
-Date: Mon, 30 Nov 2009 07:57:32 -0500
-Message-Id: <1259585852.3093.31.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	id S1753282AbZKSIpi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Nov 2009 03:45:38 -0500
+Message-ID: <4B05074B.1030407@redhat.com>
+Date: Thu, 19 Nov 2009 09:52:27 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+CC: Jean-Francois Moine <moinejf@free.fr>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC, PATCH 1/2] gspca: add input support for interrupt endpoints
+References: <4B04F7E0.1090803@freemail.hu>
+In-Reply-To: <4B04F7E0.1090803@freemail.hu>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2009-11-30 at 09:56 -0200, Mauro Carvalho Chehab wrote:
-> Andy Walls wrote:
-> > On Sun, 2009-11-29 at 09:49 -0800, Ray Lee wrote:
-> >> On Sun, Nov 29, 2009 at 9:28 AM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
-> >>> This has zero advantages besides good developer feeling that "My system
-> >>> has one less daemon..."
-> >> Surely it's clear that having an unnecessary daemon is introducing
-> >> another point of failure?
-> > 
-> > A failure in a userspace IR daemon is worst case loss of IR
-> > functionality.
-> > 
-> > A failure in kernel space can oops or panic the machine.
-> 
-> If IR is the only interface between the user and the system (like in a TV
-> or a Set Top Box), both will give you the same practical result: the system
-> will be broken, if you got a crash at the IR driver.
+Hi Márton,
 
-Yes, true.  I had forgotten about the embedded space.
+On 11/19/2009 08:46 AM, Németh Márton wrote:
+> From: Márton Németh<nm127@freemail.hu>
+>
+> Add helper functions for interrupt endpoint based input handling.
+>
 
-Nonetheless I'd still rather debug a problem with a dead process in
-userspace than an oops or panic (not that an end user cares) and avoid
-the risk of filesystem corruption.
+First of all many many thanks for doing this!
 
-> Userspace is much more flexible.
-> 
-> Why? The flexibility about the same on both kernelspace and userspace,
-> except for the boot time.
+> Signed-off-by: Márton Németh<nm127@freemail.hu>
+> ---
+> Hi,
+>
+> maybe a new configuration option should bealso introduced?
 
-I suppose my best answer to that is question back to you: Why does udev
-run in userspace versus a kernel thread?
+I'm personally not a big fan of adding more configuration options,
+what should be done instead is make the compilation dependent on the
+CONFIG_INPUT kernel config option, I see no reason not to enable this
+when CONFIG_INPUT is enabled.
 
+Some other remarks, you are using:
+printk(KERN_DEBUG
+In various places, please use
+PDEBUG(D_FOO
+instead so that the output can be controlled using the gspca module's
+debug parameter.
 
-My personal thoughts on why user space is more flexible:
+And in gspca_input_connect() you are setting name to "pac7302", this
+needs to be generalized somehow, and also you are not setting the
+input device's parent there, I think we need to fix that too
+(although I'm not sure what it should be set to).
 
-1. You have all of *NIX available to you to use as tools to achieve your
-requirements.
-
-2. You are not constrained to use C.
-
-3. You can link in libraries with functions that are not available in
-the kernel.  (udev has libudev IIRC to handle complexities)
-
-4. Reading a configuration file or other file from the filesystem is
-trivial - file access from usespace is easy.
-
-5. You don't have to be concerned about the running context (am I
-allowed to sleep here or not?).
-
-
-
-
-
-
-> A kernelspace input device driver can start working since boot time.
-> On the other hand, an userspace device driver will be available only 
-> after mounting the filesystems and starting the deamons 
-> (e. g. after running inittab). 
-> 
-> So, you cannot catch a key that would be affecting the boot 
-> (for example to ask the kernel to run a different runlevel or entering
-> on some administrative mode).
-
-Right.  That's another requirement that makes sense, if we're talking
-about systems that don't have any other keyboard handy to the user.
-
-So are we optimizing for the embedded/STB and HTPC with no keyboard use
-case, or the desktop or HTPC with a keyboard for maintencance?
-
+Other then that this looks good, I cannot wait till it is merged,
+then I can start adding support for the button of all 30+ webcams
+I have over here :)
 
 Regards,
-Andy
+
+Hans
 
 
+>
+> Regards,
+>
+> 	Márton Németh
+> ---
+> diff -r 182b5f8fa160 linux/drivers/media/video/gspca/Makefile
+> --- a/linux/drivers/media/video/gspca/Makefile	Sun Nov 15 10:05:30 2009 +0100
+> +++ b/linux/drivers/media/video/gspca/Makefile	Thu Nov 19 08:42:12 2009 +0100
+> @@ -1,4 +1,5 @@
+>   obj-$(CONFIG_USB_GSPCA)          += gspca_main.o
+> +obj-$(CONFIG_USB_GSPCA)          += gspca_input.o
+>   obj-$(CONFIG_USB_GSPCA_CONEX)    += gspca_conex.o
+>   obj-$(CONFIG_USB_GSPCA_ETOMS)    += gspca_etoms.o
+>   obj-$(CONFIG_USB_GSPCA_FINEPIX)  += gspca_finepix.o
+> @@ -30,6 +31,7 @@
+>   obj-$(CONFIG_USB_GSPCA_ZC3XX)    += gspca_zc3xx.o
+>
+>   gspca_main-objs     := gspca.o
+> +gspca_input-objs    := input.o
+>   gspca_conex-objs    := conex.o
+>   gspca_etoms-objs    := etoms.o
+>   gspca_finepix-objs  := finepix.o
+> diff -r 182b5f8fa160 linux/drivers/media/video/gspca/gspca.c
+> --- a/linux/drivers/media/video/gspca/gspca.c	Sun Nov 15 10:05:30 2009 +0100
+> +++ b/linux/drivers/media/video/gspca/gspca.c	Thu Nov 19 08:42:12 2009 +0100
+> @@ -40,6 +40,9 @@
+>   #include<media/v4l2-ioctl.h>
+>
+>   #include "gspca.h"
+> +
+> +#include<linux/input.h>
+> +#include "input.h"
+>
+>   /* global values */
+>   #define DEF_NURBS 3		/* default number of URBs */
+> @@ -499,11 +502,13 @@
+>   			i, ep->desc.bEndpointAddress);
+>   	gspca_dev->alt = i;		/* memorize the current alt setting */
+>   	if (gspca_dev->nbalt>  1) {
+> +		gspca_input_destroy_urb(gspca_dev);
+>   		ret = usb_set_interface(gspca_dev->dev, gspca_dev->iface, i);
+>   		if (ret<  0) {
+>   			err("set alt %d err %d", i, ret);
+> -			return NULL;
+> +			ep = NULL;
+>   		}
+> +		gspca_input_create_urb(gspca_dev);
+>   	}
+>   	return ep;
+>   }
+> @@ -707,7 +712,9 @@
+>   		if (gspca_dev->sd_desc->stopN)
+>   			gspca_dev->sd_desc->stopN(gspca_dev);
+>   		destroy_urbs(gspca_dev);
+> +		gspca_input_destroy_urb(gspca_dev);
+>   		gspca_set_alt0(gspca_dev);
+> +		gspca_input_create_urb(gspca_dev);
+>   	}
+>
+>   	/* always call stop0 to free the subdriver's resources */
+> @@ -2088,6 +2095,11 @@
+>
+>   	usb_set_intfdata(intf, gspca_dev);
+>   	PDEBUG(D_PROBE, "/dev/video%d created", gspca_dev->vdev.num);
+> +
+> +	ret = gspca_input_connect(gspca_dev, id);
+> +	if (0<= ret)
+> +		ret = gspca_input_create_urb(gspca_dev);
+> +
+>   	return 0;
+>   out:
+>   	kfree(gspca_dev->usb_buf);
+> @@ -2105,6 +2117,7 @@
+>   void gspca_disconnect(struct usb_interface *intf)
+>   {
+>   	struct gspca_dev *gspca_dev = usb_get_intfdata(intf);
+> +	struct input_dev *input_dev;
+>
+>   	PDEBUG(D_PROBE, "/dev/video%d disconnect", gspca_dev->vdev.num);
+>   	mutex_lock(&gspca_dev->usb_lock);
+> @@ -2113,6 +2126,13 @@
+>   	if (gspca_dev->streaming) {
+>   		destroy_urbs(gspca_dev);
+>   		wake_up_interruptible(&gspca_dev->wq);
+> +	}
+> +
+> +	gspca_input_destroy_urb(gspca_dev);
+> +	input_dev = gspca_dev->input_dev;
+> +	if (input_dev) {
+> +		gspca_dev->input_dev = NULL;
+> +		input_unregister_device(input_dev);
+>   	}
+>
+>   	/* the device is freed at exit of this function */
+> @@ -2140,6 +2160,7 @@
+>   	if (gspca_dev->sd_desc->stopN)
+>   		gspca_dev->sd_desc->stopN(gspca_dev);
+>   	destroy_urbs(gspca_dev);
+> +	gspca_input_destroy_urb(gspca_dev);
+>   	gspca_set_alt0(gspca_dev);
+>   	if (gspca_dev->sd_desc->stop0)
+>   		gspca_dev->sd_desc->stop0(gspca_dev);
+> @@ -2153,6 +2174,7 @@
+>
+>   	gspca_dev->frozen = 0;
+>   	gspca_dev->sd_desc->init(gspca_dev);
+> +	gspca_input_create_urb(gspca_dev);
+>   	if (gspca_dev->streaming)
+>   		return gspca_init_transfer(gspca_dev);
+>   	return 0;
+> diff -r 182b5f8fa160 linux/drivers/media/video/gspca/gspca.h
+> --- a/linux/drivers/media/video/gspca/gspca.h	Sun Nov 15 10:05:30 2009 +0100
+> +++ b/linux/drivers/media/video/gspca/gspca.h	Thu Nov 19 08:42:12 2009 +0100
+> @@ -81,6 +81,9 @@
+>   typedef void (*cam_pkt_op) (struct gspca_dev *gspca_dev,
+>   				u8 *data,
+>   				int len);
+> +typedef int (*cam_int_pkt_op) (struct gspca_dev *gspca_dev,
+> +				u8 *data,
+> +				int len);
+>
+>   struct ctrl {
+>   	struct v4l2_queryctrl qctrl;
+> @@ -116,6 +119,7 @@
+>   	cam_reg_op get_register;
+>   #endif
+>   	cam_ident_op get_chip_ident;
+> +	cam_int_pkt_op int_pkt_scan;
+>   };
+>
+>   /* packet types when moving from iso buf to frame buf */
+> @@ -138,6 +142,7 @@
+>   	struct module *module;		/* subdriver handling the device */
+>   	struct usb_device *dev;
+>   	struct file *capt_file;		/* file doing video capture */
+> +	struct input_dev *input_dev;
+>
+>   	struct cam cam;				/* device information */
+>   	const struct sd_desc *sd_desc;		/* subdriver description */
+> @@ -147,6 +152,7 @@
+>   #define USB_BUF_SZ 64
+>   	__u8 *usb_buf;				/* buffer for USB exchanges */
+>   	struct urb *urb[MAX_NURBS];
+> +	struct urb *int_urb;
+>
+>   	__u8 *frbuf;				/* buffer for nframes */
+>   	struct gspca_frame frame[GSPCA_MAX_FRAMES];
+> diff -r 182b5f8fa160 linux/drivers/media/video/gspca/input.c
+> --- /dev/null	Thu Jan 01 00:00:00 1970 +0000
+> +++ b/linux/drivers/media/video/gspca/input.c	Thu Nov 19 08:42:12 2009 +0100
+> @@ -0,0 +1,193 @@
+> +/*
+> + * Input handling for gspca USB camera drivers
+> + *
+> + * Copyright (C) 2009 Márton Németh<nm127@freemail.hu>
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License as published by the
+> + * Free Software Foundation; either version 2 of the License, or (at your
+> + * option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+> + * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+> + * for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software Foundation,
+> + * Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +
+> +#define MODULE_NAME "gspca_input"
+> +
+> +#include<linux/init.h>
+> +#include<linux/module.h>
+> +#include<linux/input.h>
+> +
+> +#include "gspca.h"
+> +#include "input.h"
+> +
+> +MODULE_AUTHOR("Márton Németh<nm127@freemail.hu>");
+> +MODULE_DESCRIPTION("GSPCA USB Camera Input Driver");
+> +MODULE_LICENSE("GPL");
+> +
+> +#define DRIVER_VERSION_NUMBER	KERNEL_VERSION(0, 0, 1)
+> +
+> +#if LINUX_VERSION_CODE<  KERNEL_VERSION(2, 6, 19)
+> +static void int_irq(struct urb *urb, struct pt_regs *regs)
+> +#else
+> +static void int_irq(struct urb *urb)
+> +#endif
+> +{
+> +	struct gspca_dev *gspca_dev = (struct gspca_dev *) urb->context;
+> +	int ret;
+> +	int i;
+> +
+> +	printk(KERN_DEBUG "int_irq()\n");
+> +	printk(KERN_DEBUG "urb->status: %i\n", urb->status);
+> +	if (urb->status == 0) {
+> +		printk(KERN_DEBUG "urb->actual_length: %u\n", urb->actual_length);
+> +		for (i = 0; i<  urb->actual_length; i++) {
+> +			printk(KERN_DEBUG "urb->transfer_buffer[%i]=0x%x\n",
+> +				i, ((u8*)urb->transfer_buffer)[i]);
+> +		}
+> +		if (gspca_dev->sd_desc->int_pkt_scan(gspca_dev,
+> +		    urb->transfer_buffer, urb->actual_length)<  0) {
+> +			printk(KERN_DEBUG "Unknown packet received\n");
+> +		}
+> +
+> +		ret = usb_submit_urb(urb, GFP_ATOMIC);
+> +		printk(KERN_DEBUG "resubmit urb: %i\n", ret);
+> +	}
+> +
+> +}
+> +
+> +int gspca_input_connect(struct gspca_dev *gspca_dev, const struct usb_device_id *id)
+> +{
+> +	struct input_dev *input_dev;
+> +	int err = 0;
+> +
+> +	gspca_dev->input_dev = NULL;
+> +	if (gspca_dev->sd_desc->int_pkt_scan)  {
+> +		printk(KERN_DEBUG "allocating input device\n");
+> +		input_dev = input_allocate_device();
+> +		if (!input_dev)
+> +			return -ENOMEM;
+> +
+> +		input_dev->name = "pac7302";
+> +		//input_dev->phys = "camera";
+> +		input_dev->id.bustype = BUS_USB;
+> +		input_dev->id.vendor = le16_to_cpu(id->idVendor);
+> +		input_dev->id.product = le16_to_cpu(id->idProduct);
+> +		input_dev->id.version = le16_to_cpu(id->bcdDevice_hi);
+> +		//input_dev->id.version = le16_to_cpu(id->bcdDevice_lo);
+> +
+> +		input_dev->evbit[0] = BIT_MASK(EV_KEY);
+> +		input_dev->keybit[BIT_WORD(KEY_CAMERA)] = BIT_MASK(KEY_CAMERA);
+> +		//input_dev->dev.parent = ;
+> +
+> +		printk(KERN_DEBUG "registering input device\n");
+> +		err = input_register_device(input_dev);
+> +		if (err) {
+> +			printk(KERN_DEBUG "input device registration failed\n");
+> +			input_dev->dev.parent = NULL;
+> +			input_free_device(input_dev);
+> +		} else {
+> +			gspca_dev->input_dev = input_dev;
+> +		}
+> +	}
+> +
+> +	return err;
+> +}
+> +EXPORT_SYMBOL(gspca_input_connect);
+> +
+> +int gspca_input_create_urb(struct gspca_dev *gspca_dev)
+> +{
+> +	int ret = -EINVAL;
+> +	struct usb_interface *intf;
+> +	struct usb_host_interface *intf_desc;
+> +	struct usb_endpoint_descriptor *ep;
+> +	int i;
+> +	struct urb *urb;
+> +	void* buffer = NULL;
+> +	unsigned int buffer_len;
+> +	int interval;
+> +	struct usb_device *dev;
+> +
+> +	if (gspca_dev->sd_desc->int_pkt_scan)  {
+> +		intf = usb_ifnum_to_if(gspca_dev->dev, gspca_dev->iface);
+> +		intf_desc = intf->cur_altsetting;
+> +		for (i = 0; i<  intf_desc->desc.bNumEndpoints; i++) {
+> +			ep =&intf_desc->endpoint[i].desc;
+> +			if ((ep->bEndpointAddress&  USB_DIR_IN)&&
+> +			    ((ep->bmAttributes&  USB_ENDPOINT_XFERTYPE_MASK)
+> +				== USB_ENDPOINT_XFER_INT)) {
+> +
+> +				buffer_len = ep->wMaxPacketSize;
+> +				interval = ep->bInterval;
+> +				printk(KERN_DEBUG "found int in endpoint: 0x%x\n", ep->bEndpointAddress);
+> +				printk(KERN_DEBUG " - buffer_len = %u\n", buffer_len);
+> +				printk(KERN_DEBUG " - interval = %u\n", interval);
+> +
+> +				dev = gspca_dev->dev;
+> +				gspca_dev->int_urb = NULL;
+> +
+> +				buffer = kmalloc(ep->wMaxPacketSize, GFP_KERNEL);
+> +				if (buffer)
+> +					urb = usb_alloc_urb(0, GFP_KERNEL);
+> +				else {
+> +					printk(KERN_DEBUG "buffer allocation failed\n");
+> +					kfree(buffer);
+> +					urb = NULL;
+> +				}
+> +				if (buffer&&  urb) {
+> +					usb_fill_int_urb(urb, dev,
+> +						usb_rcvintpipe(dev, ep->bEndpointAddress),
+> +						buffer, buffer_len,
+> +						int_irq, (void*)gspca_dev, interval);
+> +					gspca_dev->int_urb = urb;
+> +					ret = usb_submit_urb(urb, GFP_KERNEL);
+> +					printk(KERN_DEBUG "usb_submit_urb() returns %i\n", ret);
+> +				} else
+> +					printk(KERN_DEBUG "URB allocation failed\n");
+> +
+> +			}
+> +
+> +		}
+> +	}
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL(gspca_input_create_urb);
+> +
+> +void gspca_input_destroy_urb(struct gspca_dev *gspca_dev)
+> +{
+> +	struct urb *urb;
+> +
+> +	urb = gspca_dev->int_urb;
+> +	if (urb) {
+> +		gspca_dev->int_urb = NULL;
+> +		usb_kill_urb(urb);
+> +		usb_buffer_free(gspca_dev->dev,
+> +				urb->transfer_buffer_length,
+> +				urb->transfer_buffer,
+> +				urb->transfer_dma);
+> +		usb_free_urb(urb);
+> +	}
+> +}
+> +EXPORT_SYMBOL(gspca_input_destroy_urb);
+> +
+> +static int __init gspca_input_init(void)
+> +{
+> +	info("v%d.%d.%d registered",
+> +		(DRIVER_VERSION_NUMBER>>  16)&  0xff,
+> +		(DRIVER_VERSION_NUMBER>>  8)&  0xff,
+> +		DRIVER_VERSION_NUMBER&  0xff);
+> +	return 0;
+> +}
+> +static void __exit gspca_input_exit(void)
+> +{
+> +	info("deregistered");
+> +}
+> +
+> +module_init(gspca_input_init);
+> +module_exit(gspca_input_exit);
+> diff -r 182b5f8fa160 linux/drivers/media/video/gspca/input.h
+> --- /dev/null	Thu Jan 01 00:00:00 1970 +0000
+> +++ b/linux/drivers/media/video/gspca/input.h	Thu Nov 19 08:42:12 2009 +0100
+> @@ -0,0 +1,30 @@
+> +/*
+> + * Input handling for gspca USB camera drivers
+> + *
+> + * Copyright (C) 2009 Márton Németh<nm127@freemail.hu>
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License as published by the
+> + * Free Software Foundation; either version 2 of the License, or (at your
+> + * option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+> + * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+> + * for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software Foundation,
+> + * Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +
+> +#ifndef GSPCA_INPUT_H
+> +#define GSPCA_INPUT_H
+> +
+> +#include "gspca.h"
+> +
+> +int gspca_input_connect(struct gspca_dev *gspca_dev, const struct usb_device_id *id);
+> +int gspca_input_create_urb(struct gspca_dev *gspca_dev);
+> +void gspca_input_destroy_urb(struct gspca_dev *gspca_dev);
+> +
+> +#endif
