@@ -1,128 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f192.google.com ([209.85.221.192]:38110 "EHLO
-	mail-qy0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751722AbZK3NXA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Nov 2009 08:23:00 -0500
+Received: from mail.gmx.net ([213.165.64.20]:52692 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754197AbZKSUkm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Nov 2009 15:40:42 -0500
+Date: Thu, 19 Nov 2009 21:40:47 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2] soc-camera: tw9910: modify V/H outpit pin setting to
+ use VALID
+In-Reply-To: <ur5rzz5cn.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0911192133310.6767@axis700.grange>
+References: <uzl6r6re1.wl%morimoto.kuninori@renesas.com>
+ <Pine.LNX.4.64.0911130829360.4601@axis700.grange> <u7htun4tr.wl%morimoto.kuninori@renesas.com>
+ <Pine.LNX.4.64.0911131051350.4601@axis700.grange> <ur5rzz5cn.wl%morimoto.kuninori@renesas.com>
 MIME-Version: 1.0
-In-Reply-To: <1259585852.3093.31.camel@palomino.walls.org>
-References: <m3r5riy7py.fsf@intrepid.localdomain>
-	 <m3aay6y2m1.fsf@intrepid.localdomain>
-	 <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>
-	 <1259469121.3125.28.camel@palomino.walls.org>
-	 <20091129124011.4d8a6080@lxorguk.ukuu.org.uk>
-	 <1259515703.3284.11.camel@maxim-laptop>
-	 <2c0942db0911290949p89ae64bjc3c7501c2de6930c@mail.gmail.com>
-	 <1259537732.5231.11.camel@palomino.walls.org>
-	 <4B13B2FA.4050600@redhat.com>
-	 <1259585852.3093.31.camel@palomino.walls.org>
-Date: Mon, 30 Nov 2009 08:23:05 -0500
-Message-ID: <9e4733910911300523y69b66963t36db6d52def6679d@mail.gmail.com>
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
-	system?
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Andy Walls <awalls@radix.net>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Ray Lee <ray-lk@madrabbit.org>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 30, 2009 at 7:57 AM, Andy Walls <awalls@radix.net> wrote:
-> I suppose my best answer to that is question back to you: Why does udev
-> run in userspace versus a kernel thread?
+On Mon, 16 Nov 2009, Kuninori Morimoto wrote:
 
-Because udev is a scripting system. I've always said that the
-scripting piece of IR belongs in user space. IR scripting should be
-optional, none of the systems I work on need it.
+> 
+> Dear Guennadi
+> 
+> Thank you
+> 
+> > Oh, indeed. Ok, but can you add proper support for both high and low 
+> > polarities?
+> 
+> I think your order will be added in next patch.
+> "Add polarities support"
+> I will send it
+> OK ?
 
-This is the event flow being built...
+Ok, we can do that too.
 
-device timing data
- -- send timing data to user space
- -- do protocol decode (40K code)
- -- send decoded data back to kernel
-other devices that decode in HW add events here
- -- send decoded data to user space
- -- map to keys (30K code)
- -- send keys back to kernel
-apps listen for keys
- -- send keys back to user space
- -- user space apps act on key (possibly run scripts)
+> By the way.
+> Maybe I should ask you about it.
+> 
+> My question is that who select ACTIVE HI / LOW ?
+> 
+> ---------------------
+> 	unsigned long flags = SOCAM_PCLK_SAMPLE_RISING | SOCAM_MASTER |
+> 		SOCAM_VSYNC_ACTIVE_HIGH | SOCAM_HSYNC_ACTIVE_HIGH |
+> +		SOCAM_VSYNC_ACTIVE_LOW | SOCAM_HSYNC_ACTIVE_LOW |
+> 		SOCAM_DATA_ACTIVE_HIGH | priv->info->buswidth;
+> ---------------------
+> 
+> If I add above, and (for example) CEU - tw9910 case,
+> tw9910_query_bus_param will be used in
+> sh_mobile_ceu_set_bus_param.
+> 
+> Then, the answer from soc_camera_bus_param_compatible
+> have both xSYNC_ACTIVE_HIGH/LOW.
+> In this case, CEU behavior will be LOW,
+> though it have HIGH.
+> Please check it.
+> 
+> In my opinion, the answer from soc_camera_bus_param_compatible
+> should not have both ACTIVE HIGH/LOW.
+> This value will be used in tw9910_set_bus_param too.
 
-I'd like to see...
+Right, sh_mobile_ceu_camera.c support for clients, that support both high 
+and low polarities of various signals is incorrect. Here's what should 
+happen:
 
-device timing data
--- user space can inject timing data from user space drivers
-do protocol decode (40K code)
-other devices that decode in HW add events here
--- user space can inject decoded data from user space drivers
-map to keys (30K code)
-apps listen for keys
- -- send keys back to user space
- -- user space apps act on key (possibly run scripts)
+1. the host supports both high and low polarity of a specific signal
+2. the client also supports both of them
+3. the host then should choose one of them, preferably according to 
+platform configuration
+4. the host should use the chosen polarity to configure the client and 
+itself
 
+This is how the pxa_camera.c driver does it in pxa_camera_set_bus_param(). 
+What actually happens in sh_mobile_ceu_camera.c, is that it keeps both 
+polarities in its call to the client, so, the client picks up randomly one 
+of them, then the host does the same. So, with a probability of 1/2 they 
+will choose opposite polarities:-)
 
+> I guess, to add your order, we needs more than 2 patches.
+> 
+> "modify soc_camera_bus_param_compatible behavior"
 
->
-> My personal thoughts on why user space is more flexible:
->
-> 1. You have all of *NIX available to you to use as tools to achieve your
-> requirements.
->
-> 2. You are not constrained to use C.
->
-> 3. You can link in libraries with functions that are not available in
-> the kernel.  (udev has libudev IIRC to handle complexities)
->
-> 4. Reading a configuration file or other file from the filesystem is
-> trivial - file access from usespace is easy.
->
-> 5. You don't have to be concerned about the running context (am I
-> allowed to sleep here or not?).
->
->
->
->
->
->
->> A kernelspace input device driver can start working since boot time.
->> On the other hand, an userspace device driver will be available only
->> after mounting the filesystems and starting the deamons
->> (e. g. after running inittab).
->>
->> So, you cannot catch a key that would be affecting the boot
->> (for example to ask the kernel to run a different runlevel or entering
->> on some administrative mode).
->
-> Right.  That's another requirement that makes sense, if we're talking
-> about systems that don't have any other keyboard handy to the user.
->
-> So are we optimizing for the embedded/STB and HTPC with no keyboard use
-> case, or the desktop or HTPC with a keyboard for maintencance?
->
->
-> Regards,
-> Andy
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-input" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+No. We should fix the sh-CEU driver.
 
+> "tw9910: Add polarities support"
 
-
--- 
-Jon Smirl
-jonsmirl@gmail.com
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
