@@ -1,76 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:60526 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751658AbZKCRGy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Nov 2009 12:06:54 -0500
-Received: by qw-out-2122.google.com with SMTP id 9so1364998qwb.37
-        for <linux-media@vger.kernel.org>; Tue, 03 Nov 2009 09:06:59 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1257117359.3076.22.camel@palomino.walls.org>
-References: <1257020204.3087.18.camel@palomino.walls.org>
-	 <829197380910311328u2879c45ep2023a99058112549@mail.gmail.com>
-	 <1257036094.3181.7.camel@palomino.walls.org>
-	 <de8cad4d0910311925u28895ca9q454ccf0ac1032302@mail.gmail.com>
-	 <1257079055.3061.19.camel@palomino.walls.org>
-	 <de8cad4d0911011010g1bb3d595ge87e3b168ce41c32@mail.gmail.com>
-	 <1257116354.3076.14.camel@palomino.walls.org>
-	 <1257117359.3076.22.camel@palomino.walls.org>
-Date: Tue, 3 Nov 2009 12:06:58 -0500
-Message-ID: <de8cad4d0911030906i224145beg126c1069a163bd84@mail.gmail.com>
-Subject: Re: cx18: YUV frame alignment improvements
-From: Brandon Jenkins <bcjenkins@tvwhere.com>
-To: Andy Walls <awalls@radix.net>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org, ivtv-devel@ivtvdriver.org,
-	Simon Farnsworth <simon.farnsworth@onelan.com>
+Received: from smtp3-g21.free.fr ([212.27.42.3]:40682 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750803AbZKTJTg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Nov 2009 04:19:36 -0500
+Date: Fri, 20 Nov 2009 10:19:51 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-input@vger.kernel.org,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC, PATCH 1/2] gspca: add input support for interrupt
+ endpoints
+Message-ID: <20091120101951.720e5703@tele>
+In-Reply-To: <4B0641C2.1050200@freemail.hu>
+References: <4B04F7E0.1090803@freemail.hu>
+ <4B05074B.1030407@redhat.com>
+ <4B0641C2.1050200@freemail.hu>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Nov 1, 2009 at 6:15 PM, Andy Walls <awalls@radix.net> wrote:
-> On Sun, 2009-11-01 at 17:59 -0500, Andy Walls wrote:
->> On Sun, 2009-11-01 at 13:10 -0500, Brandon Jenkins wrote:
->> > Hi Andy,
->> >
->> > The panic happens upon reboot and it is only 1 line of text oddly shifted.
->> >
->> > Kernel panic - not syncing: DMA: Memory would be corrupted
->> >
->> > If I switch back to the current v4l-dvb drivers no issue. To switch
->> > back I have to boot from a USB drive.
->>
->> Brandon,
->>
->> Eww.  OK.  Nevermind performing any more data collection.  I'm going to
->> use a new strategy (when I find the time).
->
-> I forgot to mention that the panic you are running into is in the
-> Software IO Memory Managment Unit Translate Look-aside Buffer (SW IOMMU
-> TLB) in
->
->        linux/lib/swiotlb.c
->
-> Your machine must not have a hardware IO MMU (and mine must).
->
-> The software IOMMU is trying to allocate a bounce buffer for DMA and it
-> can't get one of the needed size (i.e. 607.5 kB) and the fallback static
-> buffer isn't big enough either (it is only 32 kB).  That's why the panic
-> happens.
->
-> This certainly means that, in the general linux user case, very large
-> DMA buffers are bad.
->
-> So now I know....
->
->
-> Regards,
-> Andy
->
->
-Hi Andy,
+Hi,
 
-How would I know if I have/don't have a HW IO MMU and maybe isn't
-enabled correctly? Separately, I also have three cards running too.
+On Fri, 20 Nov 2009 08:14:10 +0100
+Németh Márton <nm127@freemail.hu> wrote:
+> Hans de Goede wrote:
+> > On 11/19/2009 08:46 AM, Németh Márton wrote:  
+> >> Add helper functions for interrupt endpoint based input handling.  
+> > First of all many many thanks for doing this!  
+> 
+> You are welcome :-) . My goal is to just make my webcam working
+> properly...
 
-Brandon
+Many thanks from me too. This job will be useful for other webcams.
+
+	[snip]
+> > I'm personally not a big fan of adding more configuration options,
+> > what should be done instead is make the compilation dependent on the
+> > CONFIG_INPUT kernel config option, I see no reason not to enable
+> > this when CONFIG_INPUT is enabled.  
+> 
+> I added dependency on CONFIG_INPUT.
+
+The option USB_GSPCA_SN9C20X_EVDEV should be removed too.
+
+> > Some other remarks, you are using:
+> > printk(KERN_DEBUG
+> > In various places, please use
+> > PDEBUG(D_FOO
+> > instead so that the output can be controlled using the gspca
+> > module's debug parameter.  
+> 
+> I created a PDEBUG_INPUT() for this otherwise there is a circular
+> dependency between gspca_main and gspca_input because of the variable
+> gspca_debug.
+
+That is because you created a separate module.
+
+> > And in gspca_input_connect() you are setting name to "pac7302", this
+> > needs to be generalized somehow,  
+> 
+> I use now gspca_dev->sd_desc->name.
+
+OK for me.
+
+> > and also you are not setting the
+> > input device's parent there, I think we need to fix that too
+> > (although I'm not sure what it should be set to).  
+> 
+> I don't know what to use there, maybe somebody on the linux-input
+> mailing list could tell.
+
+sn9c20x sets it to &gspca_dev->dev->dev.
+
+> Also, I am not sure about setting of input_dev->id.version.
+
+It seems it can be EV_VERSION only.
+
+> Unfortunately I still get the following error when I start streaming,
+> stop streaming or unplug the device:
+> 
+> [ 6876.780726] uhci_hcd 0000:00:10.1: dma_pool_free buffer-32,
+> de0ad168/1e0ad168 (bad dma)
+
+As there is no 'break' in gspca_input_create_urb(), many URBs are
+created.
+
+> Please find the new version of this patch later in this mail.
+
+Here are some other remarks:
+
+- As the input functions are called from the gspca main only, and as
+  they cannot be used by other drivers, there is no need to have a
+  separate module.
+
+- Almost all other webcams who have buttons ask for polling. So, the
+  'int_urb' should be pac7302 dependent (in 'struct sd' and not in
+  'struct gspca_dev').
+
+Cheers.
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
