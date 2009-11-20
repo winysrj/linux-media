@@ -1,74 +1,25 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:42784 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752176AbZKVBER convert rfc822-to-8bit (ORCPT
+Received: from smtp107.mail.ukl.yahoo.com ([77.238.184.39]:45813 "HELO
+	smtp107.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753643AbZKTTu1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Nov 2009 20:04:17 -0500
-Received: by bwz27 with SMTP id 27so4243702bwz.21
-        for <linux-media@vger.kernel.org>; Sat, 21 Nov 2009 17:04:21 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Andy Walls <awalls@radix.net>
-Subject: Re: IR Receiver on an Tevii S470
-Date: Sun, 22 Nov 2009 03:03:36 +0200
-Cc: Matthias Fechner <idefix@fechner.net>, linux-media@vger.kernel.org
-References: <4B0459B1.50600@fechner.net> <4B081F0B.1060204@fechner.net> <1258836102.1794.7.camel@localhost>
-In-Reply-To: <1258836102.1794.7.camel@localhost>
+	Fri, 20 Nov 2009 14:50:27 -0500
+Message-ID: <4B06F484.5050700@rocketmail.com>
+Date: Fri, 20 Nov 2009 19:56:52 +0000
+From: g_remlin <g_remlin@rocketmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200911220303.36715.liplianin@me.by>
+To: linux-media@vger.kernel.org
+Subject: CH???, Bandwidth 8MHz, Fec_Hi 1/2, Modulation QAM64, Mode 8K, Guard
+ 1/4, fails to tune\demux
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 21 ноября 2009 22:41:42 Andy Walls wrote:
-> On Sat, 2009-11-21 at 18:10 +0100, Matthias Fechner wrote:
-> > Hi,
-> >
-> > Matthias Fechner schrieb:
-> > > I bought some days ago a Tevii S470 DVB-S2 (PCI-E) card and got it
-> > > running with the driver from:
-> > > http://mercurial.intuxication.org/hg/s2-liplianin
-> > >
-> > > But I was not successfull in got the IR receiver working.
-> > > It seems that it is not supported yet by the driver.
-> > >
-> > > Is there maybe some code available to get the IR receiver with evdev
-> > > running?
->
-> What bridge chip does the TeVii S470 use: a CX23885, CX23887, or
-> CX23888?
->
-> Does the TeVii S470 have a separate microcontroller chip for IR
-> somewhere on the board, or does it not have one?  (If you can't tell,
-> just provide a list of the chip markings on the board.)
->
->
-> If the card is using the built in IR controller of the CX23888 than that
-> should be pretty easy to get working, we'll just need you to do some
-> experimentation with a patch.
->
-> If the card is using the built in IR controller in the CX23885, then
-> you'll have to wait until I port my CX23888 IR controller changes to
-> work with the IR controller in the CX23885.  That should be somewhat
-> straightforward, but will take time.  Then we'll still need you to
-> experiment with a patch.
->
-> If the card is using a separate IR microcontroller, I'm not sure where
-> to begin.... :P
->
-> Regards,
-> Andy
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-It's cx23885 definitely.
-Remote uses NEC codes.
-In any case I can test.
-
--- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+02:09.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
+         Subsystem: Technotrend Systemtechnik GmbH 
+Technotrend-Budget/Hauppauge WinTV-NOVA-T DVB card
+         Flags: bus master, medium devsel, latency 32, IRQ 17
+         Memory at e3001000 (32-bit, non-prefetchable) [size=512]
+         Kernel driver in use: budget dvb
+         Kernel modules: budget
