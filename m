@@ -1,309 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1195 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755891AbZKIPTD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2009 10:19:03 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: santiago.nunez@ridgerun.com
-Subject: Re: [PATCH 2/4 v6] Definitions for TVP7002 in DM365
-Date: Mon, 9 Nov 2009 16:18:54 +0100
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	linux-media@vger.kernel.org, nsnehaprabha@ti.com,
-	m-karicheri2@ti.com, diego.dompe@ridgerun.com,
-	todd.fischer@ridgerun.com, mgrosen@ti.com
-References: <1257522160-25798-1-git-send-email-santiago.nunez@ridgerun.com>
-In-Reply-To: <1257522160-25798-1-git-send-email-santiago.nunez@ridgerun.com>
+Received: from mail-fx0-f221.google.com ([209.85.220.221]:58256 "EHLO
+	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753887AbZKTQIr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Nov 2009 11:08:47 -0500
+Received: by fxm21 with SMTP id 21so3836940fxm.21
+        for <linux-media@vger.kernel.org>; Fri, 20 Nov 2009 08:08:52 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200911091618.54821.hverkuil@xs4all.nl>
+In-Reply-To: <200911201237.31537.julian@jusst.de>
+References: <20091022211330.6e84c6e7@hyperion.delvare>
+	 <4B02FDA4.5030508@infradead.org>
+	 <1a297b360911200129pe5af064wf9cf239851ac5c46@mail.gmail.com>
+	 <200911201237.31537.julian@jusst.de>
+Date: Fri, 20 Nov 2009 20:08:52 +0400
+Message-ID: <1a297b360911200808k12676112lf7a11f3dfd44a187@mail.gmail.com>
+Subject: Re: Details about DVB frontend API
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Julian Scheel <julian@jusst.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jean Delvare <khali@linux-fr.org>,
+	LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Santiago,
+On Fri, Nov 20, 2009 at 3:37 PM, Julian Scheel <julian@jusst.de> wrote:
+> Am Freitag, 20. November 2009 10:29:34 schrieb Manu Abraham:
+>> Let me explain a bit. The current issue that persists as Devin explained in
+>> another email explains things to a certain extend, but still i think it
+>> might be better to detail further.
+>>
+>> Generally a request can be classified to 3 basic types.
+>>
+>> 1. Request to acquire, retrieve acquisition details
+>> 2. Get information (device state, device info)
+>> 3. Get information (channel statistics)
+>>
+>>
+>> The first one for example is a request to say tune to a channel, get tuned
+>> channel details, or even other frontend specific commands such as SEC
+>> operations. These operations are not very critical with regards on a time
+>> scale, just that things could be shifted all along on the time scale, the
+>> worser the implementation, the larger the time "taken to carry around a
+>> larger set of information to handle the operation". Currently, the V3.x and
+>> the V5 implementation handles this. The V3 implementation is small and
+>>  fast, while the V5 implementation is "sluggish".
+>>
+>>
+>> The second one gets basic device information. The V3 implementation handled
+>> this to a certain extend, but the V5 implementation hardly handles this and
+>> the implementation is rather crude rather than being "sophisticated".
+>>
+>>
+>> The third aspect which is basically needed in most cases for debugging the
+>> channel properties. If all things were ideal, one wouldn't need to know the
+>> details on what's going on inside. So being in the far from ideal thing,
+>>  the requisite to know what happens internally is very much a need in all
+>>  cases. Another point to be noted is that this category of information is
+>>  very much critical on a timescale as these parameters are valid for a very
+>>  certain instances of time only. The more this information gets out of
+>>  sync, the more these values are meaningless. Also another point to be
+>>  noted is that all these values when read back together at the very same
+>>  instance only does make sense. It is indeed very hard to achieve this very
+>>  short timespan between each of the values being monitored. The larger the
+>>  bandwidth associated, the larger the error introduced in the readback of
+>>  the values within the same timeframe in between the reads. So the
+>>  timeframe has to be the very least possible in between this operation to
+>>  the device driver internals too..
+>>
+>>
+>> Although, i have pointed out with this patch what happens at the driver
+>> level and at the userspace level, There needs additions to the libdvb parts
+>> to handle whatever conversions from format x to y. This needs to be handled
+>> since it might not be very easy to be handled consistsently by all
+>> applications. So in this concept, the application can choose the format
+>> conversion from the library as well, such that the application can provide
+>> the statistics in either the the driver native format, or a unified format
+>> (conversion done by the library) if the user prefers it.
+>>
+>> > We are already redefining some existing ioctls there, so it would be
+>> > clearer for the userspace developers what would be the new way to
+>> > retrieve frontend stats, as we can simply say that DVBS2API features
+>> > superseeds the equivalent DVB v3 ioctls.
+>>
+>> As i have noted above, the statistics related calls have a meaning, if and
+>> only if it is hanled very fast and properly with no caching. Having a
+>> genarlized datastructure to handle this event, breaks up the whole meaning
+>> of having this call itself in this position.
+>>
+>> What an API generally does is to make things generalized. When one makes
+>> things "the most generalized way" an overhead is also associated with it in
+>> terms of performance. If things were possible, i would directly read from
+>> memory from an application from the hardware itself for processing data in
+>> such a scenario, rather than to make things very generalized. This is an
+>> area where concepts like data caching can be ruled out completely. We are
+>> already at a disadvantage with the kernel driver doing a copy_to_user
+>> itself. Ideally, a memory mapped to userspace would have been the ideal
+>> thing over here.
+>>
+>> It is just the question of having yet another set of statistics calls that
+>> handles the information properly or not.
+>
+> Hi Manu,
+>
+> thanks for the detailed explanation of your point. Actually I am not
+> completely familiar with how the S2API calls are handled internally. Still are
+> there any proven measurements about the timeframe the calls are being executed
+> within? - I absolutely see that reading signal statistics is a time critical
+> process, at least it is important to be able to assign the data to a specific
+> moment so it can be interpreted in conjunction with the data which is being
+> received in that moment.
 
-See review comments below:
 
-On Friday 06 November 2009 16:42:40 santiago.nunez@ridgerun.com wrote:
-> From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-> 
-> This patch provides the required definitions for the TVP7002 driver
-> in DM365.
-> 
-> Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-> ---
->  drivers/media/video/tvp7002_reg.h |  150 +++++++++++++++++++++++++++++++++++++
->  include/media/tvp7002.h           |   89 ++++++++++++++++++++++
->  2 files changed, 239 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/tvp7002_reg.h
->  create mode 100644 include/media/tvp7002.h
-> 
-> diff --git a/drivers/media/video/tvp7002_reg.h b/drivers/media/video/tvp7002_reg.h
-> new file mode 100644
-> index 0000000..0e34ca9
-> --- /dev/null
-> +++ b/drivers/media/video/tvp7002_reg.h
-> @@ -0,0 +1,150 @@
-> +/* Texas Instruments Triple 8-/10-BIT 165-/110-MSPS Video and Graphics
-> + * Digitizer with Horizontal PLL registers
-> + *
-> + * Copyright (C) 2009 Texas Instruments Inc
-> + * Author: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-> + *
-> + * This code is partially based upon the TVP5150 driver
-> + * written by Mauro Carvalho Chehab (mchehab@infradead.org),
-> + * the TVP514x driver written by Vaibhav Hiremath <hvaibhav@ti.com>
-> + * and the TVP7002 driver in the TI LSP 2.10.00.14
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-> + */
-> +
-> +/* Naming conventions
-> + * ------------------
-> + *
-> + * FDBK:  Feedback
-> + * DIV:   Divider
-> + * CTL:   Control
-> + * SEL:   Select
-> + * IN:    Input
-> + * OUT:   Output
-> + * R:     Red
-> + * G:     Green
-> + * B:     Blue
-> + * OFF:   Offset
-> + * THRS:  Threshold
-> + * DGTL:  Digital
-> + * LVL:   Level
-> + * PWR:   Power
-> + * MVIS:  Macrovision
-> + * W:     Width
-> + * H:     Height
-> + * ALGN:  Alignment
-> + * CLK:   Clocks
-> + * TOL:   Tolerance
-> + * BWTH:  Bandwidth
-> + * COEF:  Coefficient
-> + * STAT:  Status
-> + * AUTO:  Automatic
-> + * FLD:   Field
-> + * L:	  Line
-> + */
-> +
-> +#define TVP7002_CHIP_REV		0x00
-> +#define TVP7002_HPLL_FDBK_DIV_MSBS	0x01
-> +#define TVP7002_HPLL_FDBK_DIV_LSBS	0x02
-> +#define TVP7002_HPLL_CRTL		0x03
-> +#define TVP7002_HPLL_PHASE_SEL		0x04
-> +#define TVP7002_CLAMP_START		0x05
-> +#define TVP7002_CLAMP_W			0x06
-> +#define TVP7002_HSYNC_OUT_W		0x07
-> +#define TVP7002_B_FINE_GAIN		0x08
-> +#define TVP7002_G_FINE_GAIN		0x09
-> +#define TVP7002_R_FINE_GAIN		0x0a
-> +#define TVP7002_B_FINE_OFF_MSBS		0x0b
-> +#define TVP7002_G_FINE_OFF_MSBS         0x0c
-> +#define TVP7002_R_FINE_OFF_MSBS         0x0d
-> +#define TVP7002_SYNC_CTL_1		0x0e
-> +#define TVP7002_HPLL_AND_CLAMP_CTL	0x0f
-> +#define TVP7002_SYNC_ON_G_THRS		0x10
-> +#define TVP7002_SYNC_SEPARATOR_THRS	0x11
-> +#define TVP7002_HPLL_PRE_COAST		0x12
-> +#define TVP7002_HPLL_POST_COAST		0x13
-> +#define TVP7002_SYNC_DETECT_STAT	0x14
-> +#define TVP7002_OUT_FORMATTER		0x15
-> +#define TVP7002_MISC_CTL_1		0x16
-> +#define TVP7002_MISC_CTL_2              0x17
-> +#define TVP7002_MISC_CTL_3              0x18
-> +#define TVP7002_IN_MUX_SEL_1		0x19
-> +#define TVP7002_IN_MUX_SEL_2            0x1a
-> +#define TVP7002_B_AND_G_COARSE_GAIN	0x1b
-> +#define TVP7002_R_COARSE_GAIN		0x1c
-> +#define TVP7002_FINE_OFF_LSBS		0x1d
-> +#define TVP7002_B_COARSE_OFF		0x1e
-> +#define TVP7002_G_COARSE_OFF            0x1f
-> +#define TVP7002_R_COARSE_OFF            0x20
-> +#define TVP7002_HSOUT_OUT_START		0x21
-> +#define TVP7002_MISC_CTL_4		0x22
-> +#define TVP7002_B_DGTL_ALC_OUT_LSBS	0x23
-> +#define TVP7002_G_DGTL_ALC_OUT_LSBS     0x24
-> +#define TVP7002_R_DGTL_ALC_OUT_LSBS     0x25
-> +#define TVP7002_AUTO_LVL_CTL_ENABLE	0x26
-> +#define TVP7002_DGTL_ALC_OUT_MSBS	0x27
-> +#define TVP7002_AUTO_LVL_CTL_FILTER	0x28
-> +/* Reserved 0x29*/
-> +#define TVP7002_FINE_CLAMP_CTL		0x2a
-> +#define TVP7002_PWR_CTL			0x2b
-> +#define TVP7002_ADC_SETUP		0x2c
-> +#define TVP7002_COARSE_CLAMP_CTL	0x2d
-> +#define TVP7002_SOG_CLAMP		0x2e
-> +#define TVP7002_RGB_COARSE_CLAMP_CTL	0x2f
-> +#define TVP7002_SOG_COARSE_CLAMP_CTL	0x30
-> +#define TVP7002_ALC_PLACEMENT		0x31
-> +/* Reserved 0x32 */
-> +/* Reserved 0x33 */
-> +#define TVP7002_MVIS_STRIPPER_W		0x34
-> +#define TVP7002_VSYNC_ALGN		0x35
-> +#define TVP7002_SYNC_BYPASS		0x36
-> +#define TVP7002_L_FRAME_STAT_LSBS	0x37
-> +#define TVP7002_L_FRAME_STAT_MSBS	0x38
-> +#define TVP7002_CLK_L_STAT_LSBS		0x39
-> +#define TVP7002_CLK_L_STAT_MSBS      	0x3a
-> +#define TVP7002_HSYNC_W			0x3b
-> +#define TVP7002_VSYNC_W                 0x3c
-> +#define TVP7002_L_LENGTH_TOL 		0x3d
-> +/* Reserved 0x3e */
-> +#define TVP7002_VIDEO_BWTH_CTL		0x3f
-> +#define TVP7002_AVID_START_PIXEL_LSBS	0x40
-> +#define TVP7002_AVID_START_PIXEL_MSBS   0x41
-> +#define TVP7002_AVID_STOP_PIXEL_LSBS  	0x42
-> +#define TVP7002_AVID_STOP_PIXEL_MSBS    0x43
-> +#define TVP7002_VBLK_F_0_START_L_OFF	0x44
-> +#define TVP7002_VBLK_F_1_START_L_OFF    0x45
-> +#define TVP7002_VBLK_F_0_DURATION	0x46
-> +#define TVP7002_VBLK_F_1_DURATION       0x47
-> +#define TVP7002_FBIT_F_0_START_L_OFF	0x48
-> +#define TVP7002_FBIT_F_1_START_L_OFF    0x49
-> +#define TVP7002_YUV_Y_G_COEF_LSBS	0x4a
-> +#define TVP7002_YUV_Y_G_COEF_MSBS       0x4b
-> +#define TVP7002_YUV_Y_B_COEF_LSBS       0x4c
-> +#define TVP7002_YUV_Y_B_COEF_MSBS       0x4d
-> +#define TVP7002_YUV_Y_R_COEF_LSBS       0x4e
-> +#define TVP7002_YUV_Y_R_COEF_MSBS       0x4f
-> +#define TVP7002_YUV_U_G_COEF_LSBS       0x50
-> +#define TVP7002_YUV_U_G_COEF_MSBS       0x51
-> +#define TVP7002_YUV_U_B_COEF_LSBS       0x52
-> +#define TVP7002_YUV_U_B_COEF_MSBS       0x53
-> +#define TVP7002_YUV_U_R_COEF_LSBS       0x54
-> +#define TVP7002_YUV_U_R_COEF_MSBS       0x55
-> +#define TVP7002_YUV_V_G_COEF_LSBS       0x56
-> +#define TVP7002_YUV_V_G_COEF_MSBS       0x57
-> +#define TVP7002_YUV_V_B_COEF_LSBS       0x58
-> +#define TVP7002_YUV_V_B_COEF_MSBS       0x59
-> +#define TVP7002_YUV_V_R_COEF_LSBS       0x5a
-> +#define TVP7002_YUV_V_R_COEF_MSBS       0x5b
-> +
-> diff --git a/include/media/tvp7002.h b/include/media/tvp7002.h
-> new file mode 100644
-> index 0000000..6295e8c
-> --- /dev/null
-> +++ b/include/media/tvp7002.h
-> @@ -0,0 +1,89 @@
-> +/* Texas Instruments Triple 8-/10-BIT 165-/110-MSPS Video and Graphics
-> + * Digitizer with Horizontal PLL registers
-> + *
-> + * Copyright (C) 2009 Texas Instruments Inc
-> + * Author: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-> + *
-> + * This code is partially based upon the TVP5150 driver
-> + * written by Mauro Carvalho Chehab (mchehab@infradead.org),
-> + * the TVP514x driver written by Vaibhav Hiremath <hvaibhav@ti.com>
-> + * and the TVP7002 driver in the TI LSP 2.10.00.14
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-> + */
-> +#ifndef _TVP7002_H_
-> +#define _TVP7002_H_
-> +
-> +/* Read write definition for registers */
-> +#define TVP7002_READ			0
-> +#define TVP7002_WRITE			1
-> +#define TVP7002_RESERVED		2
-> +
-> +/* Total frame lines information */
-> +#define TVP7002_LINES_720       0x2EE
-> +#define TVP7002_LINES_1080_60   0x465
-> +#define TVP7002_LINES_1080_50   0x465
-> +
-> +/* Clocks per line assuming 6.5 MHz internal clock +- 6% */
-> +#define TVP7002_CPL_1080P_60_LOWER	90
-> +#define TVP7002_CPL_1080P_60_UPPER	102
-> +#define TVP7002_CPL_1080_60_LOWER	181
-> +#define TVP7002_CPL_1080_60_UPPER	205
-> +#define TVP7002_CPL_1080_50_LOWER	217
-> +#define TVP7002_CPL_1080_50_UPPER	245
-> +#define TVP7002_CPL_720P_50_LOWER	163
-> +#define TVP7002_CPL_720P_50_UPPER	183
-> +#define TVP7002_CPL_720P_60_LOWER	135
-> +#define TVP7002_CPL_720P_60_UPPER	153
-> +
-> +#define INTERLACED_VIDEO		0
-> +#define PROGRESSIVE_VIDEO		1
-> +
-> +/* Indexes for digital video presets */
-> +#define INDEX_720P60		0
-> +#define INDEX_1080I60		1
-> +#define INDEX_1080I50		2
-> +#define INDEX_720P50		3
-> +#define INDEX_1080P60		4
-> +#define INDEX_480P59_94		5
-> +#define INDEX_576P50		6
-> +
-> +/* Number of pixels and number of lines per frame for different standards */
-> +#define NTSC_NUM_ACTIVE_PIXELS          (720)
-> +#define NTSC_NUM_ACTIVE_LINES           (480)
-> +#define PAL_NUM_ACTIVE_PIXELS           (720)
-> +#define PAL_NUM_ACTIVE_LINES            (576)
-> +#define HD_720_NUM_ACTIVE_PIXELS        (1280)
-> +#define HD_720_NUM_ACTIVE_LINES         (720)
-> +#define HD_1080_NUM_ACTIVE_PIXELS       (1920)
-> +#define HD_1080_NUM_ACTIVE_LINES        (1080)
-> +
-> +/* Interlaced vs progressive mask and shift */
-> +#define TVP7002_IP_SHIFT		5
-> +#define TVP7002_INPR_MASK		(0x01 << TVP7002_IP_SHIFT)
-> +
-> +/* Shift for CPL and LPF registers */
-> +#define TVP7002_CL_SHIFT		8
-> +#define TVP7002_CL_MASK			0x0f
+Not only is it time critical, but it should also be "atomic", ie it
+should be all in one go, ie one single snapshot of an event, not
+events bunched together serially. Things wont seem that "atomic" on a
+system with a large load. Latency will have a significant effect on
+the statistics (values) read back, since it is again disjoint events.
 
-Are any of the defines above really needed outside the tvp7002 driver itself?
-If not, then these defines should be moved to tvp7002.c.
 
-> +
-> +/* Platform dependent data */
-> +struct tvp7002_config {
-> +	u8 clk_polarity;
-> +	u8 hs_polarity;
-> +	u8 vs_polarity;
-> +	u8 fid_polarity;
-> +	u8 sog_polarity;
-> +};
+> If this would be the only point where the delay is important one might be able
+> to overcome this by adding timestamps into the retrieved data, although I am
+> not sure if this would be feasible at all. Anyway having a very good and low-
+> delay statistics approach would allow realtime applications like sat-finders
+> to be implemented (provided, the hardware delivers good enough data).
+> This would let me vote for a direct IOCTL approach to gain the best possible
+> performance.
 
-This should have a comment telling how each value is interpreted.
-I assume it's something like 0 = negative polarity, 1 = positive,
-but I'm not sure.
+Time stamping would be helpful, prior to any processing by the library
+such that the time overhead for the calculations is offset, but that
+can be really useful within the same library alone. I can't imagine
+how time stamping can be helpful to result a low latency.
 
-> +#endif
+If you don't have a low latency, Consider this (even when you are able
+to ignore the statistics for any general processing, on the thought
+that "i can always live with those errors and i always had"):
+
+The error fedback into the loop for a sat positioner/rotor. The final
+calculated position will never be the actual position that you wanted
+the antenna to be at a certain location. The problem would be made
+worser by the different rotor speeds as well, to add to the nightmare.
+
+With the V5 operation, you bunch operations together in a serial
+manner, it is atomic to the sense that it happens or doesn't happen,
+but it is not atomic to the sense of any particular time frame. You
+just keep your fingers crossed that the CPU executes the event in the
+shortest frame. This won't hold good in all cases when there is a high
+latency on the system when there is a significant load.
+
+eg: You can imagine an IPTV headend streaming data, with a small CPU
+with multiple tuners and trying to compensate the offset that's
+introduced.
+
+Still worser situation: imagine a gyro stabilized setup, where the
+base itself is not that stationary.
+
+
+> Treating signal statistics as a seperate approach from configuring the
+> frontend would be tolerable for me, so that it could use a different API-
+> approach than the tuning, which goes with S2API.
+
+Some other points to be considered:
+
+* As of now, the get/set interface is not used for any signal statistics
+
+* Even if one prefers to normalize all parameters into one single
+standard, even then you wouldn't land with a get/set interface.
+
+* The generic get/set interface is good when you have an unknown set
+of parameters, such that one can keep adding in parameters.  Eg: most
+people favoured this approach when we had a larger set of modulations/
+error correction and other parameters.
+
+For the case what we have currently, we do not have such a varied set
+of parameters to consider.
+
 
 Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Manu
