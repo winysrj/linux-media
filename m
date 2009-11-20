@@ -1,66 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-16.arcor-online.net ([151.189.21.56]:59448 "EHLO
-	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753528AbZKOT6Z (ORCPT
+Received: from mail-yw0-f202.google.com ([209.85.211.202]:58615 "EHLO
+	mail-yw0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757384AbZKTDZB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Nov 2009 14:58:25 -0500
-Subject: Re: Tuner drivers
-From: hermann pitton <hermann-pitton@arcor.de>
-To: rulet1@meta.ua
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <58364.95.133.222.95.1258298152.metamail@webmail.meta.ua>
-References: <1258143870.3242.31.camel@pc07.localdom.local>
-	 <53772.95.133.222.95.1258288950.metamail@webmail.meta.ua>
-	 <1258292980.3235.14.camel@pc07.localdom.local>
-	 <58364.95.133.222.95.1258298152.metamail@webmail.meta.ua>
-Content-Type: text/plain
-Date: Sun, 15 Nov 2009 20:55:43 +0100
-Message-Id: <1258314943.3276.3.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 19 Nov 2009 22:25:01 -0500
+Received: by mail-yw0-f202.google.com with SMTP id 40so1937121ywh.33
+        for <linux-media@vger.kernel.org>; Thu, 19 Nov 2009 19:25:07 -0800 (PST)
+From: Huang Shijie <shijie8@gmail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org, Huang Shijie <shijie8@gmail.com>
+Subject: [PATCH 04/11] add Kconfig and Makefile for tlg2300
+Date: Fri, 20 Nov 2009 11:24:46 +0800
+Message-Id: <1258687493-4012-5-git-send-email-shijie8@gmail.com>
+In-Reply-To: <1258687493-4012-4-git-send-email-shijie8@gmail.com>
+References: <1258687493-4012-1-git-send-email-shijie8@gmail.com>
+ <1258687493-4012-2-git-send-email-shijie8@gmail.com>
+ <1258687493-4012-3-git-send-email-shijie8@gmail.com>
+ <1258687493-4012-4-git-send-email-shijie8@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+add Kconfig and Makefile for tlg2300.
 
-Am Sonntag, den 15.11.2009, 17:15 +0200 schrieb rulet1@meta.ua:
-> > Hi,
-> >
-> > Am Sonntag, den 15.11.2009, 14:42 +0200 schrieb rulet1@meta.ua:
-> >> How to do that?:
-> >>
-> >> "You are forced to use saa7134-alsa dma sound"
-> >>
-> >
-> > a problem is that I can't tell for sure which analog TV standard you
-> > currently use in the Ukraine, either it is still SECAM DK or you changed
-> > to some PAL already.
-> >
-> > Try to get the details, also about the sound system.
-> >
-> > If it is still SECAM DK, you need to force the option "secam=DK".
-> >
-> > With "audio_debug=1" you can see if the drivers finds the pilots, the
-> > first sound carrier and the second carrier and also the stereo system in
-> > use. This counts also for PAL standards.
-> >
-> > This way you can already see if the driver can lock on the audio
-> > carriers in "dmesg" without hearing anything yet.
-> >
-> > Then saa7134-alsa should provide TV sound on your card.
-> > http://linuxtv.org/wiki/index.php/Saa7134-alsa
-> >
-> > Cheers,
-> > Hermann
-> >
-> >
-> >
-> > Where to put the option "secam=DK" on Ubuntu 9.10?
-> >
+Signed-off-by: Huang Shijie <shijie8@gmail.com>
+---
+ drivers/media/video/tlg2300/Kconfig  |   16 ++++++++++++++++
+ drivers/media/video/tlg2300/Makefile |    9 +++++++++
+ 2 files changed, 25 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/tlg2300/Kconfig
+ create mode 100644 drivers/media/video/tlg2300/Makefile
 
-Don't have it, but would guess /etc/modprobe.d or use a
-deprecated /etc/modprobe.conf and "depmod -a" or close all mixers using
-saa7134, "modprobe -vr saa7134-alsa" and "modprobe saa7134 secam=DK".
-
-Hermann
- 
+diff --git a/drivers/media/video/tlg2300/Kconfig b/drivers/media/video/tlg2300/Kconfig
+new file mode 100644
+index 0000000..2c29ec6
+--- /dev/null
++++ b/drivers/media/video/tlg2300/Kconfig
+@@ -0,0 +1,16 @@
++config VIDEO_TLG2300
++	tristate "Telegent TLG2300 USB video capture support"
++	depends on VIDEO_DEV && I2C && INPUT && SND && DVB_CORE
++	select VIDEO_TUNER
++	select VIDEO_TVEEPROM
++	select VIDEO_IR
++	select VIDEOBUF_VMALLOC
++	select SND_PCM
++	select VIDEOBUF_DVB
++
++	---help---
++	  This is a video4linux driver for Telegent tlg2300 based TV cards.
++	  The driver supports V4L2, DVB-T and radio.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called poseidon
+diff --git a/drivers/media/video/tlg2300/Makefile b/drivers/media/video/tlg2300/Makefile
+new file mode 100644
+index 0000000..558c1ad
+--- /dev/null
++++ b/drivers/media/video/tlg2300/Makefile
+@@ -0,0 +1,9 @@
++poseidon-objs := pd-bufqueue.o pd-video.o pd-alsa.o pd-dvb.o pd-vbi.o pd-radio.o pd-main.o
++
++obj-$(CONFIG_VIDEO_TLG2300) += poseidon.o
++
++EXTRA_CFLAGS += -Idrivers/media/video
++EXTRA_CFLAGS += -Idrivers/media/common/tuners
++EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
++EXTRA_CFLAGS += -Idrivers/media/dvb/frontends
++
+-- 
+1.6.0.6
 
