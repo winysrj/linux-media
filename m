@@ -1,111 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01d.mail.t-online.hu ([84.2.42.6]:61434 "EHLO
-	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750767AbZKYFcM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2009 00:32:12 -0500
-Message-ID: <4B0CC15E.8070605@freemail.hu>
-Date: Wed, 25 Nov 2009 06:32:14 +0100
-From: =?ISO-8859-2?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab via Mercurial <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [hg:v4l-dvb] v4l2-dbg: report fail reason to the user
-References: <E1NCz3Z-0003qs-Qe@mail.linuxtv.org>
-In-Reply-To: <E1NCz3Z-0003qs-Qe@mail.linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 8bit
+Received: from bear.ext.ti.com ([192.94.94.41]:60759 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755459AbZKTVnb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Nov 2009 16:43:31 -0500
+From: m-karicheri2@ti.com
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	khilman@deeprootsystems.com
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: [PATCH 2/2] DaVinci - vpfe capture - converting ccdc to platform driver
+Date: Fri, 20 Nov 2009 16:43:34 -0500
+Message-Id: <1258753414-11514-2-git-send-email-m-karicheri2@ti.com>
+In-Reply-To: <1258753414-11514-1-git-send-email-m-karicheri2@ti.com>
+References: <1258753414-11514-1-git-send-email-m-karicheri2@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
-Patch from Mauro Carvalho Chehab wrote:
-> The patch number 13472 was added via Mauro Carvalho Chehab <mchehab@redhat.com>
-> to http://linuxtv.org/hg/v4l-dvb master development tree.
-> 
-> Kernel patches in this development tree may be modified to be backward
-> compatible with older kernels. Compatibility modifications will be
-> removed before inclusion into the mainstream Kernel
-> 
-> If anyone has any objections, please let us know by sending a message to:
-> 	Linux Media Mailing List <linux-media@vger.kernel.org>
-> 
-> ------
-> 
-> From: Mauro Carvalho Chehab  <mchehab@redhat.com>
-> v4l2-dbg: report fail reason to the user
-> 
-> 
-> Report the fail reason to the user when writing a register even if
-> the verbose mode is switched off.
-> 
-> Remove duplicated code ioctl() call which may cause different ioctl()
-> function call in case of verbose and non verbose if not handled carefully.
-> 
-> Priority: normal
-> 
-> [hverkuil@xs4all.nl: minor additional cleanup in doioctl()]
-> [mchehab@redhat.com: As I've already applied the original version, apply the diff version now]
-> Signed-off-by: Marton Nemeth <nm127@freemail.hu>
-> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> 
-> ---
-> 
->  v4l2-apps/util/v4l2-dbg.cpp |   17 ++++++++---------
->  1 file changed, 8 insertions(+), 9 deletions(-)
-> 
-> diff -r c1b0ff440683 -r 98a8e3a2b8b3 v4l2-apps/util/v4l2-dbg.cpp
-> --- a/v4l2-apps/util/v4l2-dbg.cpp	Tue Nov 10 17:14:51 2009 +0100
-> +++ b/v4l2-apps/util/v4l2-dbg.cpp	Tue Nov 24 15:18:02 2009 -0200
-> @@ -354,14 +354,13 @@
->  {
->  	int retVal;
->  
-> +	if (!options[OptVerbose]) return ioctl(fd, request, parm);
->  	retVal = ioctl(fd, request, parm);
-> -	if (options[OptVerbose]) {
-> -		printf("%s: ", name);
-> -		if (retVal < 0)
-> -			printf("failed: %s\n", strerror(errno));
-> -		else
-> -			printf("ok\n");
-> -	}
-> +	printf("%s: ", name);
-> +	if (retVal < 0)
-> +		printf("failed: %s\n", strerror(errno));
-> +	else
-> +		printf("ok\n");
->  
->  	return retVal;
->  }
-> @@ -587,8 +586,8 @@
->  
->  				printf(" set to 0x%llx\n", set_reg.val);
->  			} else {
-> -				printf("Failed to set register 0x%08llx value 0x%llx: %s\n",
-> -					set_reg.reg, set_reg.val, strerror(errno));
-> +				printf("Failed to set register 0x%08llx value 0x%llx\n",
-> +					set_reg.reg, set_reg.val);
->  			}
->  			set_reg.reg++;
->  		}
-> 
-> 
-> ---
-> 
-> Patch is available at: http://linuxtv.org/hg/v4l-dvb/rev/98a8e3a2b8b39732055f03533acf9aa8d0c896c2
-> 
-> 
+From: Muralidharan Karicheri <m-karicheri2@ti.com>
 
-Do you really want this patch? It does the opposite what the comment says: when
-the verbose mode is switched off, strerror(errno) is not printed at all.
-Actually this reverts changeset 13405:65a25dd73390 as far as I can see:
+This is the platform part for converting ccdc to platform driver.
 
-http://linuxtv.org/hg/v4l-dvb/log/98a8e3a2b8b3/v4l2-apps/util/v4l2-dbg.cpp
+Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+---
+Applies to linux-davinci tree
+ arch/arm/mach-davinci/dm355.c  |   27 +++++++++++++++------------
+ arch/arm/mach-davinci/dm644x.c |   18 +++++++++++++++++-
+ 2 files changed, 32 insertions(+), 13 deletions(-)
 
-Regards,
-
-	Márton Németh
+diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-davinci/dm355.c
+index dedf4d4..045cb0d 100644
+--- a/arch/arm/mach-davinci/dm355.c
++++ b/arch/arm/mach-davinci/dm355.c
+@@ -701,6 +701,10 @@ static struct resource vpfe_resources[] = {
+ 		.end            = IRQ_VDINT1,
+ 		.flags          = IORESOURCE_IRQ,
+ 	},
++};
++
++static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
++static struct resource dm355_ccdc_resource[] = {
+ 	/* CCDC Base address */
+ 	{
+ 		.flags          = IORESOURCE_MEM,
+@@ -708,8 +712,17 @@ static struct resource vpfe_resources[] = {
+ 		.end            = 0x01c70600 + 0x1ff,
+ 	},
+ };
++static struct platform_device dm355_ccdc_dev = {
++	.name           = "dm355_ccdc",
++	.id             = -1,
++	.num_resources  = ARRAY_SIZE(dm355_ccdc_resource),
++	.resource       = dm355_ccdc_resource,
++	.dev = {
++		.dma_mask               = &vpfe_capture_dma_mask,
++		.coherent_dma_mask      = DMA_BIT_MASK(32),
++	},
++};
+ 
+-static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
+ static struct platform_device vpfe_capture_dev = {
+ 	.name		= CAPTURE_DRV_NAME,
+ 	.id		= -1,
+@@ -860,17 +873,7 @@ static int __init dm355_init_devices(void)
+ 	davinci_cfg_reg(DM355_INT_EDMA_CC);
+ 	platform_device_register(&dm355_edma_device);
+ 	platform_device_register(&dm355_vpss_device);
+-	/*
+-	 * setup Mux configuration for vpfe input and register
+-	 * vpfe capture platform device
+-	 */
+-	davinci_cfg_reg(DM355_VIN_PCLK);
+-	davinci_cfg_reg(DM355_VIN_CAM_WEN);
+-	davinci_cfg_reg(DM355_VIN_CAM_VD);
+-	davinci_cfg_reg(DM355_VIN_CAM_HD);
+-	davinci_cfg_reg(DM355_VIN_YIN_EN);
+-	davinci_cfg_reg(DM355_VIN_CINL_EN);
+-	davinci_cfg_reg(DM355_VIN_CINH_EN);
++	platform_device_register(&dm355_ccdc_dev);
+ 	platform_device_register(&vpfe_capture_dev);
+ 
+ 	return 0;
+diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+index 2cd0081..982be1f 100644
+--- a/arch/arm/mach-davinci/dm644x.c
++++ b/arch/arm/mach-davinci/dm644x.c
+@@ -612,6 +612,11 @@ static struct resource vpfe_resources[] = {
+ 		.end            = IRQ_VDINT1,
+ 		.flags          = IORESOURCE_IRQ,
+ 	},
++};
++
++static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
++static struct resource dm644x_ccdc_resource[] = {
++	/* CCDC Base address */
+ 	{
+ 		.start          = 0x01c70400,
+ 		.end            = 0x01c70400 + 0xff,
+@@ -619,7 +624,17 @@ static struct resource vpfe_resources[] = {
+ 	},
+ };
+ 
+-static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
++static struct platform_device dm644x_ccdc_dev = {
++	.name           = "dm644x_ccdc",
++	.id             = -1,
++	.num_resources  = ARRAY_SIZE(dm644x_ccdc_resource),
++	.resource       = dm644x_ccdc_resource,
++	.dev = {
++		.dma_mask               = &vpfe_capture_dma_mask,
++		.coherent_dma_mask      = DMA_BIT_MASK(32),
++	},
++};
++
+ static struct platform_device vpfe_capture_dev = {
+ 	.name		= CAPTURE_DRV_NAME,
+ 	.id		= -1,
+@@ -772,6 +787,7 @@ static int __init dm644x_init_devices(void)
+ 	platform_device_register(&dm644x_edma_device);
+ 	platform_device_register(&dm644x_emac_device);
+ 	platform_device_register(&dm644x_vpss_device);
++	platform_device_register(&dm644x_ccdc_dev);
+ 	platform_device_register(&vpfe_capture_dev);
+ 
+ 	return 0;
+-- 
+1.6.0.4
 
