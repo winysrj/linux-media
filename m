@@ -1,80 +1,436 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:58667 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752503AbZK3OkR convert rfc822-to-8bit (ORCPT
+Received: from mail-yw0-f202.google.com ([209.85.211.202]:58615 "EHLO
+	mail-yw0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758266AbZKTDZ1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Nov 2009 09:40:17 -0500
-Received: by fxm5 with SMTP id 5so3740749fxm.28
-        for <linux-media@vger.kernel.org>; Mon, 30 Nov 2009 06:40:22 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20091129181543.189dd34c@tele>
-References: <4B093DDD.5@freemail.hu> <4B10CD81.7060909@freemail.hu>
-	 <20091128191717.5164a003@tele> <4B1265E9.1040505@freemail.hu>
-	 <20091129181543.189dd34c@tele>
-Date: Mon, 30 Nov 2009 22:40:22 +0800
-Message-ID: <d9def9db0911300640o2f787096r612ea20f207e75c6@mail.gmail.com>
-Subject: Re: [PATCH] gspca sunplus: propagate error for higher level
-From: Markus Rechberger <mrechberger@gmail.com>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Thu, 19 Nov 2009 22:25:27 -0500
+Received: by mail-yw0-f202.google.com with SMTP id 40so1937121ywh.33
+        for <linux-media@vger.kernel.org>; Thu, 19 Nov 2009 19:25:33 -0800 (PST)
+From: Huang Shijie <shijie8@gmail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org, Huang Shijie <shijie8@gmail.com>
+Subject: [PATCH 11/11] add FM support for tlg2300
+Date: Fri, 20 Nov 2009 11:24:53 +0800
+Message-Id: <1258687493-4012-12-git-send-email-shijie8@gmail.com>
+In-Reply-To: <1258687493-4012-11-git-send-email-shijie8@gmail.com>
+References: <1258687493-4012-1-git-send-email-shijie8@gmail.com>
+ <1258687493-4012-2-git-send-email-shijie8@gmail.com>
+ <1258687493-4012-3-git-send-email-shijie8@gmail.com>
+ <1258687493-4012-4-git-send-email-shijie8@gmail.com>
+ <1258687493-4012-5-git-send-email-shijie8@gmail.com>
+ <1258687493-4012-6-git-send-email-shijie8@gmail.com>
+ <1258687493-4012-7-git-send-email-shijie8@gmail.com>
+ <1258687493-4012-8-git-send-email-shijie8@gmail.com>
+ <1258687493-4012-9-git-send-email-shijie8@gmail.com>
+ <1258687493-4012-10-git-send-email-shijie8@gmail.com>
+ <1258687493-4012-11-git-send-email-shijie8@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/11/30 Jean-Francois Moine <moinejf@free.fr>:
-> On Sun, 29 Nov 2009 13:15:37 +0100
-> Németh Márton <nm127@freemail.hu> wrote:
->
->> I think that the return value of the usb_control_msg() is to be
->> evaluated. If other drivers also not evaluating the usb_control_msg()
->> *they* has to be fixed.
->>
->> The benefit would be that the userspace program can recognise error
->> condition faster and react accordingly. For example the USB device
->> can be unplugged any time. In this case there is no use to continue
->> sending URBs. Otherwise the user program thinks that everything went
->> on correctly and the user will be surprised how come that he or she
->> unplugged a device and it is still working.
->
-> I see 2 cases for getting errors in usb control messages:
->
-> - there are permanent problems in the USB subsystem
-> - device disconnection
->
-> The first case is detected immediately at probe time and the device
-> will not run (/dev/video<n> not created)
->
-> On device disconnection, if streaming is active, it is be stopped and
-> the device is marked for deletion. The only way to get errors in usb
-> control message is to change some control value at the same time the
-> device disconnects (i.e. disconnection while the ioctl runs in the
-> subdriver). The probability for this to occur is surely less than
-> 10**-9. Otherwise, once the disconnection is seen, no IO may be
-> performed.
->
-> If you want absolutely to propagate the errors at higher level, the
-> simplest way is to have an 'error' variable in the gspca descriptor.
-> You set it to 0 in gspca.c before calling the subdriver (i.e. just after
-> getting the usb_lock), you check it before calling usb_control_msg (in
-> the low level routines reg_r, reg_w..) , you set it if this last
-> function returns an error, and you get its value before releasing the
-> usb_lock. In this way, there are less changes and less code overhead.
->
+This module contains codes for radio.
+The radio use the ALSA audio as input.
 
-an example from one of my customers, there's one customer who uses a
-USB VOIP device,
-the device is actually bad designed and regulary hangs up and
-sometimes even resets
-the entire usb stack.
-That customer was previously using the em28xx kernel driver (which for
-some reason actually
-locked up the entire USB device/if it didn't cause some other corruptions...)
-Every check can just be appreciated, for sure alot usb kernel drivers
-do not handle errors
-properly at critical codeparts.
-Trent Piepho once suggested a macro for writing blocks of registers,
-this looked just fine actually.
+ The mplayer should be compiled with --enable-radio and
+	 --enable-radio-capture.
+The command runs as this(assume the alsa audio registers to card 1):
+	#mplayer radio://103.7/capture/ -radio
+		 adevice=hw=1,0:arate=48000 -rawaudio rate=48000:channels=2
 
-Markus
+Signed-off-by: Huang Shijie <shijie8@gmail.com>
+---
+ drivers/media/video/tlg2300/pd-radio.c |  383 ++++++++++++++++++++++++++++++++
+ 1 files changed, 383 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/tlg2300/pd-radio.c
+
+diff --git a/drivers/media/video/tlg2300/pd-radio.c b/drivers/media/video/tlg2300/pd-radio.c
+new file mode 100644
+index 0000000..2576f3a
+--- /dev/null
++++ b/drivers/media/video/tlg2300/pd-radio.c
+@@ -0,0 +1,383 @@
++#include <linux/init.h>
++#include <linux/list.h>
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/bitmap.h>
++#include <linux/usb.h>
++#include <linux/i2c.h>
++#include <media/v4l2-dev.h>
++#include <linux/version.h>
++#include <linux/mm.h>
++#include <linux/mutex.h>
++#include <media/v4l2-ioctl.h>
++#include <linux/sched.h>
++
++#include "pd-common.h"
++#include "vendorcmds.h"
++
++static int set_frequency(struct poseidon *p, __u32 frequency);
++static int poseidon_fm_close(struct file *filp);
++static int poseidon_fm_open(struct file *filp);
++static int __poseidon_fm_close(struct file *filp);
++
++#define TUNER_FREQ_MIN_FM 76000000
++#define TUNER_FREQ_MAX_FM 108000000
++
++static int poseidon_check_mode_radio(struct poseidon *p)
++{
++	int ret, radiomode;
++	u32 status;
++
++	set_current_state(TASK_INTERRUPTIBLE);
++	schedule_timeout(HZ/2);
++	ret = usb_set_interface(p->udev, 0, BULK_ALTERNATE_IFACE);
++	if (ret < 0)
++		goto out;
++
++	ret = set_tuner_mode(p, TLG_MODE_FM_RADIO);
++	if (ret != 0)
++		goto out;
++
++	ret = send_set_req(p, SGNL_SRC_SEL, TLG_SIG_SRC_ANTENNA, &status);
++	radiomode = get_audio_std(TLG_MODE_FM_RADIO, p->country_code);
++	ret = send_set_req(p, TUNER_AUD_ANA_STD, radiomode, &status);
++	ret |= send_set_req(p, TUNER_AUD_MODE,
++				TLG_TUNE_TVAUDIO_MODE_STEREO, &status);
++	ret |= send_set_req(p, AUDIO_SAMPLE_RATE_SEL,
++				ATV_AUDIO_RATE_48K, &status);
++	ret |= send_set_req(p, TUNE_FREQ_SELECT, TUNER_FREQ_MIN_FM, &status);
++out:
++	return ret;
++}
++
++static int pm_fm_suspend(struct poseidon *p)
++{
++	pm_alsa_suspend(p);
++	usb_set_interface(p->udev, 0, 0);
++	mdelay(2000);
++	return 0;
++}
++
++static int pm_fm_resume(struct poseidon *p)
++{
++	if (in_hibernation(p)) {
++		__poseidon_fm_close(p->file_for_stream);
++		return 0;
++	}
++	poseidon_check_mode_radio(p);
++	set_frequency(p, p->radio_data.fm_freq);
++	pm_alsa_resume(p);
++	return 0;
++}
++
++static int poseidon_fm_open(struct file *filp)
++{
++	struct video_device *vfd = video_devdata(filp);
++	struct poseidon *p = video_get_drvdata(vfd);
++	int ret = 0;
++
++	if (!p)
++		return -1;
++
++	mutex_lock(&p->lock);
++	if (p->state & POSEIDON_STATE_DISCONNECT) {
++		ret = -ENODEV;
++		goto out;
++	}
++
++	if (p->state && !(p->state & POSEIDON_STATE_FM)) {
++		ret = -EBUSY;
++		goto out;
++	}
++
++	usb_autopm_get_interface(p->interface);
++	if (0 == p->state) {
++		p->country_code = country_code;
++		set_debug_mode(vfd, debug_mode);
++
++		ret = poseidon_check_mode_radio(p);
++		if (ret < 0)
++			goto out;
++		p->state |= POSEIDON_STATE_FM;
++	}
++	p->radio_data.users++;
++	kref_get(&p->kref);
++	filp->private_data = p;
++out:
++	mutex_unlock(&p->lock);
++	return ret;
++}
++
++static int __poseidon_fm_close(struct file *filp)
++{
++	struct poseidon *p = filp->private_data;
++	struct radio_data *fm = &p->radio_data;
++	uint32_t status;
++
++	mutex_lock(&p->lock);
++	fm->users--;
++	if (0 == fm->users)
++		p->state &= ~POSEIDON_STATE_FM;
++
++	if (fm->is_radio_streaming && filp == p->file_for_stream) {
++		fm->is_radio_streaming = 0;
++		send_set_req(p, PLAY_SERVICE, TLG_TUNE_PLAY_SVC_STOP, &status);
++	}
++	mutex_unlock(&p->lock);
++
++	kref_put(&p->kref, poseidon_delete);
++	filp->private_data = NULL;
++	return 0;
++}
++
++static int poseidon_fm_close(struct file *filp)
++{
++	struct poseidon *p = filp->private_data;
++
++	__poseidon_fm_close(filp);
++	usb_autopm_put_interface(p->interface);
++	return 0;
++}
++
++static int vidioc_querycap(struct file *file, void *priv,
++			struct v4l2_capability *v)
++{
++	strlcpy(v->driver, "radio-tele", sizeof(v->driver));
++	strlcpy(v->card, "telegent Radio", sizeof(v->card));
++	sprintf(v->bus_info, "USB");
++	v->version = 0;
++	v->capabilities = V4L2_CAP_TUNER | V4L2_CAP_RADIO;
++	return 0;
++}
++
++static long pd_radio_ioctls(struct file *file,
++			unsigned int cmd, unsigned long arg)
++{
++	struct poseidon *p = file->private_data;
++	unsigned long ret;
++	int country_code;
++
++	if (in_hibernation(p))
++		return -1;
++
++	if (cmd == PD_COUNTRY_CODE) {
++		ret = copy_from_user(&country_code, (void __user *)arg,
++					sizeof(country_code));
++		if (0 == ret) {
++			p->country_code = country_code;
++			return 0;
++		} else
++			return -EAGAIN;
++	}
++	return video_ioctl2(file, cmd, arg);
++}
++
++static const struct v4l2_file_operations poseidon_fm_fops = {
++	.owner         = THIS_MODULE,
++	.open          = poseidon_fm_open,
++	.release       = poseidon_fm_close,
++	.ioctl	       = pd_radio_ioctls,
++};
++
++int tlg_fm_vidioc_g_tuner(struct file *file, void *priv, struct v4l2_tuner *vt)
++{
++	struct tuner_fm_sig_stat_s fm_stat = {};
++	int ret, status, count = 5;
++	struct poseidon *p = file->private_data;
++
++	if (vt->index != 0)
++		return -EINVAL;
++
++	vt->type	= V4L2_TUNER_RADIO;
++	vt->capability	= V4L2_TUNER_CAP_STEREO;
++	vt->rangelow	= TUNER_FREQ_MIN_FM / 62500;
++	vt->rangehigh	= TUNER_FREQ_MAX_FM / 62500;
++	vt->rxsubchans	= V4L2_TUNER_SUB_STEREO;
++	vt->audmode	= V4L2_TUNER_MODE_STEREO;
++	vt->signal	= 0;
++	vt->afc 	= 0;
++
++	mutex_lock(&p->lock);
++	ret = send_get_req(p, TUNER_STATUS, TLG_MODE_FM_RADIO,
++			      &fm_stat, &status, sizeof(fm_stat));
++
++	while (fm_stat.sig_lock_busy && count-- && !ret) {
++		set_current_state(TASK_INTERRUPTIBLE);
++		schedule_timeout(HZ);
++
++		ret = send_get_req(p, TUNER_STATUS, TLG_MODE_FM_RADIO,
++				  &fm_stat, &status, sizeof(fm_stat));
++	}
++	mutex_unlock(&p->lock);
++
++	if (ret || status) {
++		vt->signal = 0;
++	} else if ((fm_stat.sig_present || fm_stat.sig_locked)
++			&& fm_stat.sig_strength == 0) {
++		vt->signal = 0xffff;
++	} else
++		vt->signal = (fm_stat.sig_strength * 255 / 10) << 8;
++
++	return 0;
++}
++
++int fm_get_freq(struct file *file, void *priv, struct v4l2_frequency *argp)
++{
++	struct poseidon *p = file->private_data;
++
++	argp->frequency = p->radio_data.fm_freq;
++	return 0;
++}
++
++static int set_frequency(struct poseidon *p, __u32 frequency)
++{
++	__u32 freq ;
++	int ret, status, radiomode;
++
++	mutex_lock(&p->lock);
++
++	radiomode = get_audio_std(TLG_MODE_FM_RADIO, p->country_code);
++	/*NTSC 8,PAL 2 */
++	ret = send_set_req(p, TUNER_AUD_ANA_STD, radiomode, &status);
++
++	freq =  (frequency * 125) * 500 / 1000;/* kHZ */
++	if (freq < TUNER_FREQ_MIN_FM/1000 || freq > TUNER_FREQ_MAX_FM/1000) {
++		ret = -EINVAL;
++		goto error;
++	}
++
++	ret = send_set_req(p, TUNE_FREQ_SELECT, freq, &status);
++	if (ret < 0)
++		goto error ;
++	ret = send_set_req(p, TAKE_REQUEST, 0, &status);
++
++	set_current_state(TASK_INTERRUPTIBLE);
++	schedule_timeout(HZ/4);
++	if (!p->radio_data.is_radio_streaming) {
++		ret = send_set_req(p, TAKE_REQUEST, 0, &status);
++		ret = send_set_req(p, PLAY_SERVICE,
++				TLG_TUNE_PLAY_SVC_START, &status);
++		p->radio_data.is_radio_streaming = 1;
++	}
++	p->radio_data.fm_freq = frequency;
++error:
++	mutex_unlock(&p->lock);
++	return ret;
++}
++
++int fm_set_freq(struct file *file, void *priv, struct v4l2_frequency *argp)
++{
++	struct poseidon *p = file->private_data;
++
++	p->file_for_stream  = file;
++#ifdef CONFIG_PM
++	p->inode = file->f_dentry->d_inode;
++	p->pm_open = poseidon_fm_open;
++	p->pm_suspend = pm_fm_suspend;
++	p->pm_resume  = pm_fm_resume;
++#endif
++	return set_frequency(p, argp->frequency);
++}
++
++int tlg_fm_vidioc_g_ctrl(struct file *file, void *priv,
++		struct v4l2_control *arg)
++{
++    return 0;
++}
++
++int tlg_fm_vidioc_exts_ctrl(struct file *file, void *fh,
++		struct v4l2_ext_controls *a)
++{
++    return 0;
++}
++
++int tlg_fm_vidioc_s_ctrl(struct file *file, void *priv,
++		struct v4l2_control *arg)
++{
++    return 0;
++}
++
++int tlg_fm_vidioc_queryctrl(struct file *file, void *priv,
++		struct v4l2_queryctrl *arg)
++{
++	arg->minimum = 0;
++	arg->maximum = 65535;
++	return 0;
++}
++
++static int vidioc_s_tuner(struct file *file, void *priv, struct v4l2_tuner *vt)
++{
++	return vt->index > 0 ? -EINVAL : 0;
++}
++static int vidioc_s_audio(struct file *file, void *priv, struct v4l2_audio *va)
++{
++	return (va->index != 0) ? -EINVAL : 0;
++}
++
++static int vidioc_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
++{
++	a->index    = 0;
++	a->mode    = 0;
++	a->capability = V4L2_AUDCAP_STEREO;
++	strcpy(a->name, "Radio");
++	return 0;
++}
++
++static int vidioc_s_input(struct file *filp, void *priv, u32 i)
++{
++	return (i != 0) ? -EINVAL : 0;
++}
++
++static int vidioc_g_input(struct file *filp, void *priv, u32 *i)
++{
++	return (*i != 0) ? -EINVAL : 0;
++}
++
++static const struct v4l2_ioctl_ops poseidon_fm_ioctl_ops = {
++	.vidioc_querycap    = vidioc_querycap,
++	.vidioc_g_audio     = vidioc_g_audio,
++	.vidioc_s_audio     = vidioc_s_audio,
++	.vidioc_g_input     = vidioc_g_input,
++	.vidioc_s_input     = vidioc_s_input,
++	.vidioc_queryctrl   = tlg_fm_vidioc_queryctrl,
++	.vidioc_g_ctrl      = tlg_fm_vidioc_g_ctrl,
++	.vidioc_s_ctrl      = tlg_fm_vidioc_s_ctrl,
++	.vidioc_s_ext_ctrls = tlg_fm_vidioc_exts_ctrl,
++	.vidioc_s_tuner     = vidioc_s_tuner,
++	.vidioc_g_tuner     = tlg_fm_vidioc_g_tuner,
++	.vidioc_g_frequency = fm_get_freq,
++	.vidioc_s_frequency = fm_set_freq,
++};
++
++static struct video_device poseidon_fm_template = {
++	.name       = "telegent-FM",
++	.fops       = &poseidon_fm_fops,
++	.minor      = -1,
++	.release    = video_device_release,
++	.ioctl_ops  = &poseidon_fm_ioctl_ops,
++};
++
++int poseidon_fm_init(struct poseidon *p)
++{
++	struct video_device *fm_dev;
++
++	fm_dev = vdev_init(p, &poseidon_fm_template);
++	if (fm_dev == NULL)
++		return -1;
++
++	if (video_register_device(fm_dev, VFL_TYPE_RADIO, -1) < 0) {
++		video_device_release(fm_dev);
++		return -1;
++	}
++	p->radio_data.fm_dev = fm_dev;
++	return 0;
++}
++
++int poseidon_fm_exit(struct poseidon *p)
++{
++	if (p->radio_data.fm_dev) {
++		video_unregister_device(p->radio_data.fm_dev);
++		p->radio_data.fm_dev = NULL;
++	}
++	return 0;
++}
+-- 
+1.6.0.6
+
