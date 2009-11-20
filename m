@@ -1,44 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:54134 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S932378AbZKBUhJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Nov 2009 15:37:09 -0500
-Message-ID: <4AEF3FB5.9080001@gmx.de>
-Date: Mon, 02 Nov 2009 21:23:17 +0100
-From: Andreas Regel <andreas.regel@gmx.de>
+Received: from ey-out-2122.google.com ([74.125.78.26]:63438 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754662AbZKTSVW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Nov 2009 13:21:22 -0500
+Message-ID: <4B06E125.6090305@gmail.com>
+Date: Fri, 20 Nov 2009 19:34:13 +0100
+From: Roel Kluin <roel.kluin@gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [PATCH] stv6110x: fix r divider calculation
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	LKML <linux-kernel@vger.kernel.org>, mkrufky@linuxtv.org
+Subject: [PATCH] V4L/DVB: Fix test in copy_reg_bits()
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixed the calculation of the r divider in stv6110x_set_frequency. It had always the value 3 no matter what frequency was given.
+The reg_pair2[j].reg was tested twice.
 
-Signed-off-by: Andreas Regel <andreas.regel@gmx.de>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+---
+ drivers/media/common/tuners/mxl5007t.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff -r 43878f8dbfb0 linux/drivers/media/dvb/frontends/stv6110x.c
---- a/linux/drivers/media/dvb/frontends/stv6110x.c	Sun Nov 01 07:17:46 2009 -0200
-+++ b/linux/drivers/media/dvb/frontends/stv6110x.c	Mon Nov 02 21:02:22 2009 +0100
-@@ -95,7 +95,7 @@
- {
- 	struct stv6110x_state *stv6110x = fe->tuner_priv;
- 	u32 rDiv, divider;
--	s32 pVal, pCalc, rDivOpt = 0;
-+	s32 pVal, pCalc, rDivOpt = 0, pCalcOpt = 1000;
- 	u8 i;
+I think this was intended?
+
+diff --git a/drivers/media/common/tuners/mxl5007t.c b/drivers/media/common/tuners/mxl5007t.c
+index 2d02698..7eb1bf7 100644
+--- a/drivers/media/common/tuners/mxl5007t.c
++++ b/drivers/media/common/tuners/mxl5007t.c
+@@ -196,7 +196,7 @@ static void copy_reg_bits(struct reg_pair_t *reg_pair1,
+ 	i = j = 0;
  
- 	STV6110x_SETFIELD(stv6110x_regs[STV6110x_CTRL1], CTRL1_K, (REFCLOCK_MHz - 16));
-@@ -121,8 +121,10 @@
- 	for (rDiv = 0; rDiv <= 3; rDiv++) {
- 		pCalc = (REFCLOCK_kHz / 100) / R_DIV(rDiv);
- 
--		if ((abs((s32)(pCalc - pVal))) < (abs((s32)(1000 - pVal))))
-+		if ((abs((s32)(pCalc - pVal))) < (abs((s32)(pCalcOpt - pVal))))
- 			rDivOpt = rDiv;
-+
-+		pCalcOpt = (REFCLOCK_kHz / 100) / R_DIV(rDivOpt);
- 	}
- 
- 	divider = (frequency * R_DIV(rDivOpt) * pVal) / REFCLOCK_kHz;
+ 	while (reg_pair1[i].reg || reg_pair1[i].val) {
+-		while (reg_pair2[j].reg || reg_pair2[j].reg) {
++		while (reg_pair2[j].reg || reg_pair2[j].val) {
+ 			if (reg_pair1[i].reg != reg_pair2[j].reg) {
+ 				j++;
+ 				continue;
