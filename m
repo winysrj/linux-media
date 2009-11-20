@@ -1,54 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58616 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760140AbZKZJOY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 04:14:24 -0500
-Message-ID: <4B0E46E6.4030006@redhat.com>
-Date: Thu, 26 Nov 2009 10:14:14 +0100
-From: Gerd Hoffmann <kraxel@redhat.com>
+Received: from 78.218.95.91.static.ter-s.siw.siwnet.net ([91.95.218.78]:37074
+	"EHLO alefors.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752936AbZKTNo7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Nov 2009 08:44:59 -0500
+Received: from TERMINAL1 ([10.0.0.1]:48909)
+	by alefors.se with [XMail 1.26 ESMTP Server]
+	id <S5FF> for <linux-media@vger.kernel.org> from <magnus@alefors.se>;
+	Fri, 20 Nov 2009 14:45:02 +0100
+From: =?iso-8859-1?Q?Magnus_H=F6rlin?= <magnus@alefors.se>
+To: <linux-media@vger.kernel.org>
+Subject: SV: SV: [linux-dvb] NOVA-TD exeriences?
+Date: Fri, 20 Nov 2009 14:45:01 +0100
+Message-ID: <003401ca69e7$a8e7dd10$9b65a8c0@Sensysserver.local>
 MIME-Version: 1.0
-To: Jarod Wilson <jarod@wilsonet.com>
-CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Andy Walls <awalls@radix.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>, khc@pm.waw.pl,
-	j@jannau.net, jarod@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, superm1@ubuntu.com
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
- Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-References: <BDRae8rZjFB@christoph> <1259024037.3871.36.camel@palomino.walls.org> <20091126054938.GH23244@core.coreip.homeip.net> <6619F77F-446F-47ED-B9F5-6CFC00E3EA49@wilsonet.com>
-In-Reply-To: <6619F77F-446F-47ED-B9F5-6CFC00E3EA49@wilsonet.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+In-Reply-To: <4B0694F7.7070604@stud.uni-hannover.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/26/09 07:23, Jarod Wilson wrote:
-> Well, when mythtv was started, I don't know that there were many
-> input layer remotes around... lirc was definitely around though.
+>  >
+>  > Hi again. Just got my two new NOVA-TD's and at a first glance they
+> seemed to
+>  > perform well. Closer inspections however revealed that I see exactly
+> the same
+>  > issues as Soeren. Watching live TV with VDR on one adaptor while
+> constantly
+>  > retuning the other one using:
+>  > while true;do tzap -x svt1;done
+>  > gives a short glitch in the VDR stream on almost every tzap. Another
+> 100EUR down
+>  > the drain. I'll probably buy four NOVA-T's instead just like I
+> planned to at
+>  > first.
+>  >
+>  > /Magnus H
+> 
+> Slowly, slowly. Magnus, you want to support dibcom with another 100EUR for
+> there poor performance in fixing the firmware?
+> Please test my patches, the nova-td is running fine with these patches,
+> at least for me.
+> 
+> Patrick, any progress here? Will dibcom fix the firmware, or will you
+> integrate the
+> patches? Or what can I do to go on?
+> 
+> Regards,
+> Soeren
+> 
+> 
 
-lirc predates the input layer IR drivers by years, maybe even the input 
-layer itself.
+Thanks Soeren, maybe I jumped to the wrong conclusions here. I actually
+thought this came down to bad hardware design instead of a driver/firmware
+issue. Unfortunately your patches made no difference here but I won't give
+up that easily. If they made your problems disapperar there should be hope
+for me too and I'll be glad to help in the development. I can live with the
+glitches in the mean time if there's hope for improvement since I mostly
+watch DVB-S these days. I'm running the stock Ubuntu Karmic 2.6.31 kernel
+and standard linuxtv drivers from hg. I also have four TT S2-1600 cards in
+there.
+/Magnus
 
-The main reason for the input layer IR drivers appearing was lirc not 
-being mainline.  A in-kernel driver (bttv in that case) which depends on 
-a out-of-tree subsystem for IR support was simply a pain in the ass for 
-both maintainer (/me back then) and users.
-
-At least for IR hardware which allows access to the raw samples it 
-certainly makes sense to support lirc, additional to the current (or 
-improved) input layer support.
-
-> The lirc support in mythtv actually relies on mapping remote button
-> names as defined in lircd.conf to keyboard key strokes. As mentioned
-> elsewhere in this beast of a thread, mythtv doesn't currently support
-> things like KEY_PLAY, KEY_VOLUMEUP, KEY_CHANNELUP, etc. just yet, but
-> I intend on fixing that...
-
-lircd can handle the input layer as input as well, so you actually can 
-remap things via lircd even for pure input layer drivers.  mythtv 
-handling KEY_VOLUMEUP directly would be more elegant though.
-
-cheers,
-   Gerd
 
