@@ -1,126 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1422 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752638AbZKGTub (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Nov 2009 14:50:31 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id nA7JoZXK000620
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 7 Nov 2009 20:50:35 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 7 Nov 2009 20:50:35 +0100 (CET)
-Message-Id: <200911071950.nA7JoZXK000620@smtp-vbr8.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail.gmx.net ([213.165.64.20]:32895 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751887AbZKTMJh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Nov 2009 07:09:37 -0500
+Date: Fri, 20 Nov 2009 13:09:51 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2] soc-camera: tw9910: modify V/H outpit pin setting to
+ use VALID
+In-Reply-To: <uzl6r6re1.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0911201303430.4438@axis700.grange>
+References: <uzl6r6re1.wl%morimoto.kuninori@renesas.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Fri, 13 Nov 2009, Kuninori Morimoto wrote:
 
-Results of the daily build of v4l-dvb:
+> 
+> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> ---
+> v1 -> v2
+> 
+> o remove un-understandable explain.
+>   -> tw9910_query_bus_param need not modify now
+> o move OUTCTR1 setting to tw9910_set_bus_param
+> 
+>  drivers/media/video/tw9910.c |   38 ++++++++------------------------------
+>  1 files changed, 8 insertions(+), 30 deletions(-)
+> 
+> diff --git a/drivers/media/video/tw9910.c b/drivers/media/video/tw9910.c
+> index 6d8dede..82135f2 100644
+> --- a/drivers/media/video/tw9910.c
+> +++ b/drivers/media/video/tw9910.c
+> @@ -239,18 +239,6 @@ struct tw9910_priv {
+>  	u32                             revision;
+>  };
+>  
+> -/*
+> - * register settings
+> - */
+> -
+> -#define ENDMARKER { 0xff, 0xff }
+> -
+> -static const struct regval_list tw9910_default_regs[] =
+> -{
+> -	{ OUTCTR1, VSP_LO | VSSL_VVALID | HSP_HI | HSSL_HSYNC },
+> -	ENDMARKER,
+> -};
+> -
+>  static const enum v4l2_imgbus_pixelcode tw9910_color_codes[] = {
+>  	V4L2_IMGBUS_FMT_VYUY,
+>  };
+> @@ -463,20 +451,6 @@ static int tw9910_set_hsync(struct i2c_client *client,
+>  	return ret;
+>  }
+>  
+> -static int tw9910_write_array(struct i2c_client *client,
+> -			      const struct regval_list *vals)
+> -{
+> -	while (vals->reg_num != 0xff) {
+> -		int ret = i2c_smbus_write_byte_data(client,
+> -						    vals->reg_num,
+> -						    vals->value);
+> -		if (ret < 0)
+> -			return ret;
+> -		vals++;
+> -	}
+> -	return 0;
+> -}
+> -
+>  static void tw9910_reset(struct i2c_client *client)
+>  {
+>  	tw9910_mask_set(client, ACNTL1, SRESET, SRESET);
+> @@ -578,7 +552,14 @@ static int tw9910_s_stream(struct v4l2_subdev *sd, int enable)
+>  static int tw9910_set_bus_param(struct soc_camera_device *icd,
+>  				unsigned long flags)
+>  {
+> -	return 0;
+> +	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+> +	struct i2c_client *client = sd->priv;
+> +
+> +	/*
+> +	 * set OUTCTR1
+> +	 */
+> +	return i2c_smbus_write_byte_data(client, OUTCTR1,
+> +					 VSSL_VVALID | HSSL_DVALID);
 
-date:        Sat Nov  7 19:00:06 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13327:19c0469c02c3
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Hm, strange... This doesn't work at all for me. Getting only timeouts. 
+Have you tested this on Migo-R?
 
-linux-2.6.22.19-armv5: WARNINGS
-linux-2.6.23.12-armv5: WARNINGS
-linux-2.6.24.7-armv5: WARNINGS
-linux-2.6.25.11-armv5: WARNINGS
-linux-2.6.26-armv5: WARNINGS
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29.1-armv5: WARNINGS
-linux-2.6.30-armv5: WARNINGS
-linux-2.6.31-armv5: WARNINGS
-linux-2.6.32-rc3-armv5: ERRORS
-linux-2.6.32-rc3-armv5-davinci: ERRORS
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.31-armv5-ixp: WARNINGS
-linux-2.6.32-rc3-armv5-ixp: ERRORS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.31-armv5-omap2: ERRORS
-linux-2.6.32-rc3-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-rc3-i686: WARNINGS
-linux-2.6.23.12-m32r: WARNINGS
-linux-2.6.24.7-m32r: WARNINGS
-linux-2.6.25.11-m32r: WARNINGS
-linux-2.6.26-m32r: WARNINGS
-linux-2.6.27-m32r: WARNINGS
-linux-2.6.28-m32r: WARNINGS
-linux-2.6.29.1-m32r: WARNINGS
-linux-2.6.30-m32r: WARNINGS
-linux-2.6.31-m32r: WARNINGS
-linux-2.6.32-rc3-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: WARNINGS
-linux-2.6.32-rc3-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: WARNINGS
-linux-2.6.32-rc3-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-rc3-x86_64: ERRORS
-sparse (linux-2.6.31): OK
-sparse (linux-2.6.32-rc3): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+Thanks
+Guennadi
 
-Detailed results are available here:
+>  }
+>  
+>  static unsigned long tw9910_query_bus_param(struct soc_camera_device *icd)
+> @@ -681,9 +662,6 @@ static int tw9910_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+>  	 * reset hardware
+>  	 */
+>  	tw9910_reset(client);
+> -	ret = tw9910_write_array(client, tw9910_default_regs);
+> -	if (ret < 0)
+> -		goto tw9910_set_fmt_error;
+>  
+>  	/*
+>  	 * set bus width
+> -- 
+> 1.6.3.3
+> 
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The V4L2 specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
