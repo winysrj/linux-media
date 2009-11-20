@@ -1,290 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54102 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757679AbZKRQwc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 11:52:32 -0500
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
-Date: Wed, 18 Nov 2009 22:22:21 +0530
-Subject: RE: [PATCH] Davinci VPFE Capture: Add Suspend/Resume Support
-Message-ID: <19F8576C6E063C45BE387C64729E7394043702BAE5@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1258544075-28771-1-git-send-email-hvaibhav@ti.com>
- <A69FA2915331DC488A831521EAE36FE401559C5F1E@dlee06.ent.ti.com>
- <19F8576C6E063C45BE387C64729E7394043702BAB1@dbde02.ent.ti.com>
- <A69FA2915331DC488A831521EAE36FE401559C5FC0@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE401559C5FC0@dlee06.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail.gmx.net ([213.165.64.20]:57896 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750907AbZKTLYp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Nov 2009 06:24:45 -0500
+Date: Fri, 20 Nov 2009 12:24:58 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+cc: Linux-V4L2 <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] soc-camera: tw9910: Add sync polarity support
+In-Reply-To: <ud43dq5dn.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0911201054110.4438@axis700.grange>
+References: <ud43dq5dn.wl%morimoto.kuninori@renesas.com>
 MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, 20 Nov 2009, Kuninori Morimoto wrote:
 
-> -----Original Message-----
-> From: Karicheri, Muralidharan
-> Sent: Wednesday, November 18, 2009 9:55 PM
-> To: Hiremath, Vaibhav; linux-media@vger.kernel.org
-> Cc: hverkuil@xs4all.nl
-> Subject: RE: [PATCH] Davinci VPFE Capture: Add Suspend/Resume
-> Support
+> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> ---
+>  drivers/media/video/tw9910.c |   22 +++++++++++++++++++---
+>  1 files changed, 19 insertions(+), 3 deletions(-)
 > 
-> Vaibhav,
+> diff --git a/drivers/media/video/tw9910.c b/drivers/media/video/tw9910.c
+> index a4ba720..243207d 100644
+> --- a/drivers/media/video/tw9910.c
+> +++ b/drivers/media/video/tw9910.c
+> @@ -166,7 +166,7 @@
+>  #define VSSL_FIELD  0x20 /*   2 : FIELD  */
+>  #define VSSL_VVALID 0x30 /*   3 : VVALID */
+>  #define VSSL_ZERO   0x70 /*   7 : 0      */
+> -#define HSP_LOW     0x00 /* 0 : HS pin output polarity is active low */
+> +#define HSP_LO      0x00 /* 0 : HS pin output polarity is active low */
+
+I would remove field names with "0" values completely. Also see below
+
+>  #define HSP_HI      0x08 /* 1 : HS pin output polarity is active high.*/
+>  			 /* HS pin output control */
+>  #define HSSL_HACT   0x00 /*   0 : HACT   */
+> @@ -175,6 +175,11 @@
+>  #define HSSL_HLOCK  0x03 /*   3 : HLOCK  */
+>  #define HSSL_ASYNCW 0x04 /*   4 : ASYNCW */
+>  #define HSSL_ZERO   0x07 /*   7 : 0      */
+> +			 /* xSSL_xVALID polarity */
+> +#define VSP_V_LO    VSP_HI /* xSSL_xVALID case, polarity will be inverted */
+> +#define VSP_V_HI    VSP_LO
+> +#define HSP_V_LO    HSP_HI
+> +#define HSP_V_HI    HSP_LO
+
+I wouldn't add these - just add a comment below and use reverted 
+[HV]SP_{HI,LO} macros.
+
+>  /* ACNTL1 */
+>  #define SRESET      0x80 /* resets the device to its default state
+> @@ -513,12 +518,22 @@ static int tw9910_set_bus_param(struct soc_camera_device *icd,
+>  {
+>  	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+>  	struct i2c_client *client = sd->priv;
+> +	u8 val = VSSL_VVALID | HSSL_DVALID;
+>  
+>  	/*
+>  	 * set OUTCTR1
+>  	 */
+> -	return i2c_smbus_write_byte_data(client, OUTCTR1,
+> -					 VSSL_VVALID | HSSL_DVALID);
+> +	if (flags & SOCAM_HSYNC_ACTIVE_LOW)
+> +		val |= HSP_V_LO;
+> +	else
+> +		val |= HSP_V_HI;
+
+I think, for single-bit fields we usually only do
+
+	if (must_set)
+		val |= field;
+
+and leave the case
+
+	else
+		val |= 0;
+
+away. So, I would completely remove those macros with "0" value and only 
+do the "1" case. Then you'd just have
+
++	/*
++	 * We use VVALID and DVALID signals to control VSYNC and HSYNC
++	 * outputs, in this mode their polarity is inverted.
++	 */
++	if (flags & SOCAM_HSYNC_ACTIVE_LOW)
++		val |= HSP_HI;
+
+without any else, agree?
+
+> +
+> +	if (flags & SOCAM_VSYNC_ACTIVE_LOW)
+> +		val |= VSP_V_LO;
+> +	else
+> +		val |= VSP_V_HI;
+
+ditto.
+
+> +
+> +	return i2c_smbus_write_byte_data(client, OUTCTR1, val);
+>  }
+
+I think, I begin to understand what these *VALID signals are... Looks like 
+VVALID and DVALID are internal signals, which are not routed outside, but 
+you can select them as one of options to control HSYNC and VSYNC outputs.
+
+>  
+>  static unsigned long tw9910_query_bus_param(struct soc_camera_device *icd)
+> @@ -528,6 +543,7 @@ static unsigned long tw9910_query_bus_param(struct soc_camera_device *icd)
+>  	struct soc_camera_link *icl = to_soc_camera_link(icd);
+>  	unsigned long flags = SOCAM_PCLK_SAMPLE_RISING | SOCAM_MASTER |
+>  		SOCAM_VSYNC_ACTIVE_HIGH | SOCAM_HSYNC_ACTIVE_HIGH |
+> +		SOCAM_VSYNC_ACTIVE_LOW  | SOCAM_HSYNC_ACTIVE_LOW  |
+>  		SOCAM_DATA_ACTIVE_HIGH | priv->info->buswidth;
+>  
+>  	return soc_camera_apply_sensor_flags(icl, flags);
+> -- 
+> 1.6.3.3
 > 
-> Just wondering how to test this on DaVinci platforms.
-> Could you tell what you did to test this?
-> 
-[Hiremath, Vaibhav] Enable CONFIG_PM in your defconfig and issue following command -
 
-# echo mem > /sys/power/state
-
-Thanks,
-Vaibhav
-
-> Murali Karicheri
-> Software Design Engineer
-> Texas Instruments Inc.
-> Germantown, MD 20874
-> phone: 301-407-9583
-> email: m-karicheri2@ti.com
-> 
-> >-----Original Message-----
-> >From: Hiremath, Vaibhav
-> >Sent: Wednesday, November 18, 2009 10:36 AM
-> >To: Karicheri, Muralidharan; linux-media@vger.kernel.org
-> >Cc: hverkuil@xs4all.nl
-> >Subject: RE: [PATCH] Davinci VPFE Capture: Add Suspend/Resume
-> Support
-> >
-> >
-> >> -----Original Message-----
-> >> From: Karicheri, Muralidharan
-> >> Sent: Wednesday, November 18, 2009 8:55 PM
-> >> To: Hiremath, Vaibhav; linux-media@vger.kernel.org
-> >> Cc: hverkuil@xs4all.nl
-> >> Subject: RE: [PATCH] Davinci VPFE Capture: Add Suspend/Resume
-> >> Support
-> >>
-> >> Vaibhav,
-> >>
-> >> Did you validate suspend & resume operations on AM3517?
-> >>
-> >[Hiremath, Vaibhav] yes, I think I mentioned in my patch. Do you
-> see any
-> >issues?
-> >
-> >Thanks,
-> >Vaibhav
-> >
-> >> Murali Karicheri
-> >> Software Design Engineer
-> >> Texas Instruments Inc.
-> >> Germantown, MD 20874
-> >> phone: 301-407-9583
-> >> email: m-karicheri2@ti.com
-> >>
-> >> >-----Original Message-----
-> >> >From: Hiremath, Vaibhav
-> >> >Sent: Wednesday, November 18, 2009 6:35 AM
-> >> >To: linux-media@vger.kernel.org
-> >> >Cc: hverkuil@xs4all.nl; Karicheri, Muralidharan; Hiremath,
-> Vaibhav
-> >> >Subject: [PATCH] Davinci VPFE Capture: Add Suspend/Resume
-> Support
-> >> >
-> >> >From: Vaibhav Hiremath <hvaibhav@ti.com>
-> >> >
-> >> >Validated on AM3517 Platform.
-> >> >
-> >> >Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> >> >---
-> >> > drivers/media/video/davinci/ccdc_hw_device.h |    4 +
-> >> > drivers/media/video/davinci/dm644x_ccdc.c    |   87
-> >> >++++++++++++++++++++++++++
-> >> > drivers/media/video/davinci/vpfe_capture.c   |   29 ++++++---
-> >> > 3 files changed, 112 insertions(+), 8 deletions(-)
-> >> >
-> >> >diff --git a/drivers/media/video/davinci/ccdc_hw_device.h
-> >> >b/drivers/media/video/davinci/ccdc_hw_device.h
-> >> >index 86b9b35..2a1ead4 100644
-> >> >--- a/drivers/media/video/davinci/ccdc_hw_device.h
-> >> >+++ b/drivers/media/video/davinci/ccdc_hw_device.h
-> >> >@@ -91,6 +91,10 @@ struct ccdc_hw_ops {
-> >> > 	void (*setfbaddr) (unsigned long addr);
-> >> > 	/* Pointer to function to get field id */
-> >> > 	int (*getfid) (void);
-> >> >+
-> >> >+	/* suspend/resume support */
-> >> >+	void (*save_context)(void);
-> >> >+	void (*restore_context)(void);
-> >> > };
-> >> >
-> >> > struct ccdc_hw_device {
-> >> >diff --git a/drivers/media/video/davinci/dm644x_ccdc.c
-> >> >b/drivers/media/video/davinci/dm644x_ccdc.c
-> >> >index 5dff8d9..fdab823 100644
-> >> >--- a/drivers/media/video/davinci/dm644x_ccdc.c
-> >> >+++ b/drivers/media/video/davinci/dm644x_ccdc.c
-> >> >@@ -88,6 +88,10 @@ static void *__iomem ccdc_base_addr;
-> >> > static int ccdc_addr_size;
-> >> > static enum vpfe_hw_if_type ccdc_if_type;
-> >> >
-> >> >+#define CCDC_SZ_REGS			SZ_1K
-> >> >+
-> >> >+static u32 ccdc_ctx[CCDC_SZ_REGS / sizeof(u32)];
-> >> >+
-> >> > /* register access routines */
-> >> > static inline u32 regr(u32 offset)
-> >> > {
-> >> >@@ -834,6 +838,87 @@ static int ccdc_set_hw_if_params(struct
-> >> >vpfe_hw_if_param *params)
-> >> > 	return 0;
-> >> > }
-> >> >
-> >> >+static void ccdc_save_context(void)
-> >> >+{
-> >> >+	ccdc_ctx[CCDC_PCR] = regr(CCDC_PCR);
-> >> >+	ccdc_ctx[CCDC_SYN_MODE] = regr(CCDC_SYN_MODE);
-> >> >+	ccdc_ctx[CCDC_HD_VD_WID] = regr(CCDC_HD_VD_WID);
-> >> >+	ccdc_ctx[CCDC_PIX_LINES] = regr(CCDC_PIX_LINES);
-> >> >+	ccdc_ctx[CCDC_HORZ_INFO] = regr(CCDC_HORZ_INFO);
-> >> >+	ccdc_ctx[CCDC_VERT_START] = regr(CCDC_VERT_START);
-> >> >+	ccdc_ctx[CCDC_VERT_LINES] = regr(CCDC_VERT_LINES);
-> >> >+	ccdc_ctx[CCDC_CULLING] = regr(CCDC_CULLING);
-> >> >+	ccdc_ctx[CCDC_HSIZE_OFF] = regr(CCDC_HSIZE_OFF);
-> >> >+	ccdc_ctx[CCDC_SDOFST] = regr(CCDC_SDOFST);
-> >> >+	ccdc_ctx[CCDC_SDR_ADDR] = regr(CCDC_SDR_ADDR);
-> >> >+	ccdc_ctx[CCDC_CLAMP] = regr(CCDC_CLAMP);
-> >> >+	ccdc_ctx[CCDC_DCSUB] = regr(CCDC_DCSUB);
-> >> >+	ccdc_ctx[CCDC_COLPTN] = regr(CCDC_COLPTN);
-> >> >+	ccdc_ctx[CCDC_BLKCMP] = regr(CCDC_BLKCMP);
-> >> >+	ccdc_ctx[CCDC_FPC] = regr(CCDC_FPC);
-> >> >+	ccdc_ctx[CCDC_FPC_ADDR] = regr(CCDC_FPC_ADDR);
-> >> >+	ccdc_ctx[CCDC_VDINT] = regr(CCDC_VDINT);
-> >> >+	ccdc_ctx[CCDC_ALAW] = regr(CCDC_ALAW);
-> >> >+	ccdc_ctx[CCDC_REC656IF] = regr(CCDC_REC656IF);
-> >> >+	ccdc_ctx[CCDC_CCDCFG] = regr(CCDC_CCDCFG);
-> >> >+	ccdc_ctx[CCDC_FMTCFG] = regr(CCDC_FMTCFG);
-> >> >+	ccdc_ctx[CCDC_FMT_HORZ] = regr(CCDC_FMT_HORZ);
-> >> >+	ccdc_ctx[CCDC_FMT_VERT] = regr(CCDC_FMT_VERT);
-> >> >+	ccdc_ctx[CCDC_FMT_ADDR0] = regr(CCDC_FMT_ADDR0);
-> >> >+	ccdc_ctx[CCDC_FMT_ADDR1] = regr(CCDC_FMT_ADDR1);
-> >> >+	ccdc_ctx[CCDC_FMT_ADDR2] = regr(CCDC_FMT_ADDR2);
-> >> >+	ccdc_ctx[CCDC_FMT_ADDR3] = regr(CCDC_FMT_ADDR3);
-> >> >+	ccdc_ctx[CCDC_FMT_ADDR4] = regr(CCDC_FMT_ADDR4);
-> >> >+	ccdc_ctx[CCDC_FMT_ADDR5] = regr(CCDC_FMT_ADDR5);
-> >> >+	ccdc_ctx[CCDC_FMT_ADDR6] = regr(CCDC_FMT_ADDR6);
-> >> >+	ccdc_ctx[CCDC_FMT_ADDR7] = regr(CCDC_FMT_ADDR7);
-> >> >+	ccdc_ctx[CCDC_PRGEVEN_0] = regr(CCDC_PRGEVEN_0);
-> >> >+	ccdc_ctx[CCDC_PRGEVEN_1] = regr(CCDC_PRGEVEN_1);
-> >> >+	ccdc_ctx[CCDC_PRGODD_0] = regr(CCDC_PRGODD_0);
-> >> >+	ccdc_ctx[CCDC_PRGODD_1] = regr(CCDC_PRGODD_1);
-> >> >+	ccdc_ctx[CCDC_VP_OUT] = regr(CCDC_VP_OUT);
-> >> >+}
-> >> >+
-> >> >+static void ccdc_restore_context(void)
-> >> >+{
-> >> >+	regw(ccdc_ctx[CCDC_SYN_MODE], CCDC_SYN_MODE);
-> >> >+	regw(ccdc_ctx[CCDC_HD_VD_WID], CCDC_HD_VD_WID);
-> >> >+	regw(ccdc_ctx[CCDC_PIX_LINES], CCDC_PIX_LINES);
-> >> >+	regw(ccdc_ctx[CCDC_HORZ_INFO], CCDC_HORZ_INFO);
-> >> >+	regw(ccdc_ctx[CCDC_VERT_START], CCDC_VERT_START);
-> >> >+	regw(ccdc_ctx[CCDC_VERT_LINES], CCDC_VERT_LINES);
-> >> >+	regw(ccdc_ctx[CCDC_CULLING], CCDC_CULLING);
-> >> >+	regw(ccdc_ctx[CCDC_HSIZE_OFF], CCDC_HSIZE_OFF);
-> >> >+	regw(ccdc_ctx[CCDC_SDOFST], CCDC_SDOFST);
-> >> >+	regw(ccdc_ctx[CCDC_SDR_ADDR], CCDC_SDR_ADDR);
-> >> >+	regw(ccdc_ctx[CCDC_CLAMP], CCDC_CLAMP);
-> >> >+	regw(ccdc_ctx[CCDC_DCSUB], CCDC_DCSUB);
-> >> >+	regw(ccdc_ctx[CCDC_COLPTN], CCDC_COLPTN);
-> >> >+	regw(ccdc_ctx[CCDC_BLKCMP], CCDC_BLKCMP);
-> >> >+	regw(ccdc_ctx[CCDC_FPC], CCDC_FPC);
-> >> >+	regw(ccdc_ctx[CCDC_FPC_ADDR], CCDC_FPC_ADDR);
-> >> >+	regw(ccdc_ctx[CCDC_VDINT], CCDC_VDINT);
-> >> >+	regw(ccdc_ctx[CCDC_ALAW], CCDC_ALAW);
-> >> >+	regw(ccdc_ctx[CCDC_REC656IF], CCDC_REC656IF);
-> >> >+	regw(ccdc_ctx[CCDC_CCDCFG], CCDC_CCDCFG);
-> >> >+	regw(ccdc_ctx[CCDC_FMTCFG], CCDC_FMTCFG);
-> >> >+	regw(ccdc_ctx[CCDC_FMT_HORZ], CCDC_FMT_HORZ);
-> >> >+	regw(ccdc_ctx[CCDC_FMT_VERT], CCDC_FMT_VERT);
-> >> >+	regw(ccdc_ctx[CCDC_FMT_ADDR0], CCDC_FMT_ADDR0);
-> >> >+	regw(ccdc_ctx[CCDC_FMT_ADDR1], CCDC_FMT_ADDR1);
-> >> >+	regw(ccdc_ctx[CCDC_FMT_ADDR2], CCDC_FMT_ADDR2);
-> >> >+	regw(ccdc_ctx[CCDC_FMT_ADDR3], CCDC_FMT_ADDR3);
-> >> >+	regw(ccdc_ctx[CCDC_FMT_ADDR4], CCDC_FMT_ADDR4);
-> >> >+	regw(ccdc_ctx[CCDC_FMT_ADDR5], CCDC_FMT_ADDR5);
-> >> >+	regw(ccdc_ctx[CCDC_FMT_ADDR6], CCDC_FMT_ADDR6);
-> >> >+	regw(ccdc_ctx[CCDC_FMT_ADDR7], CCDC_FMT_ADDR7);
-> >> >+	regw(ccdc_ctx[CCDC_PRGEVEN_0], CCDC_PRGEVEN_0);
-> >> >+	regw(ccdc_ctx[CCDC_PRGEVEN_1], CCDC_PRGEVEN_1);
-> >> >+	regw(ccdc_ctx[CCDC_PRGODD_0], CCDC_PRGODD_0);
-> >> >+	regw(ccdc_ctx[CCDC_PRGODD_1], CCDC_PRGODD_1);
-> >> >+	regw(ccdc_ctx[CCDC_VP_OUT], CCDC_VP_OUT);
-> >> >+	regw(ccdc_ctx[CCDC_PCR], CCDC_PCR);
-> >> >+}
-> >> > static struct ccdc_hw_device ccdc_hw_dev = {
-> >> > 	.name = "DM6446 CCDC",
-> >> > 	.owner = THIS_MODULE,
-> >> >@@ -858,6 +943,8 @@ static struct ccdc_hw_device ccdc_hw_dev = {
-> >> > 		.get_line_length = ccdc_get_line_length,
-> >> > 		.setfbaddr = ccdc_setfbaddr,
-> >> > 		.getfid = ccdc_getfid,
-> >> >+		.save_context = ccdc_save_context,
-> >> >+		.restore_context = ccdc_restore_context,
-> >> > 	},
-> >> > };
-> >> >
-> >> >diff --git a/drivers/media/video/davinci/vpfe_capture.c
-> >> >b/drivers/media/video/davinci/vpfe_capture.c
-> >> >index 9c859a7..9b6b254 100644
-> >> >--- a/drivers/media/video/davinci/vpfe_capture.c
-> >> >+++ b/drivers/media/video/davinci/vpfe_capture.c
-> >> >@@ -2394,18 +2394,31 @@ static int vpfe_remove(struct
-> >> platform_device
-> >> >*pdev)
-> >> > 	return 0;
-> >> > }
-> >> >
-> >> >-static int
-> >> >-vpfe_suspend(struct device *dev)
-> >> >+static int vpfe_suspend(struct device *dev)
-> >> > {
-> >> >-	/* add suspend code here later */
-> >> >-	return -1;
-> >> >+	struct vpfe_device *vpfe_dev = dev_get_drvdata(dev);;
-> >> >+
-> >> >+	if (ccdc_dev->hw_ops.save_context)
-> >> >+		ccdc_dev->hw_ops.save_context();
-> >> >+	ccdc_dev->hw_ops.enable(0);
-> >> >+
-> >> >+	if (vpfe_dev)
-> >> >+		vpfe_disable_clock(vpfe_dev);
-> >> >+
-> >> >+	return 0;
-> >> > }
-> >> >
-> >> >-static int
-> >> >-vpfe_resume(struct device *dev)
-> >> >+static int vpfe_resume(struct device *dev)
-> >> > {
-> >> >-	/* add resume code here later */
-> >> >-	return -1;
-> >> >+	struct vpfe_device *vpfe_dev = dev_get_drvdata(dev);;
-> >> >+
-> >> >+	if (vpfe_dev)
-> >> >+		vpfe_enable_clock(vpfe_dev);
-> >> >+
-> >> >+	if (ccdc_dev->hw_ops.restore_context)
-> >> >+		ccdc_dev->hw_ops.restore_context();
-> >> >+
-> >> >+	return 0;
-> >> > }
-> >> >
-> >> > static struct dev_pm_ops vpfe_dev_pm_ops = {
-> >> >--
-> >> >1.6.2.4
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
