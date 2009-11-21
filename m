@@ -1,56 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:58621 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S932408AbZKBWvY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Nov 2009 17:51:24 -0500
-Message-ID: <4AEF626E.1070605@gmx.de>
-Date: Mon, 02 Nov 2009 23:51:26 +0100
-From: Andreas Regel <andreas.regel@gmx.de>
+Received: from mail01a.mail.t-online.hu ([84.2.40.6]:57547 "EHLO
+	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752185AbZKULQ4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Nov 2009 06:16:56 -0500
+Message-ID: <4B07CC2B.2020301@freemail.hu>
+Date: Sat, 21 Nov 2009 12:16:59 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [PATCH 7/9] stv090x: additional check for signal presence based on
- AGC1
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Hans de Goede <hdegoede@redhat.com>, linux-input@vger.kernel.org
+CC: Jean-Francois Moine <moinejf@free.fr>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC, PATCH 2/2] gspca pac7302: add support for camera button
+References: <4B04F7EA.4020804@freemail.hu> <4B0641CF.1000000@freemail.hu>
+In-Reply-To: <4B0641CF.1000000@freemail.hu>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds an additional check for signal presence based on AGC1.
+From: Márton Németh <nm127@freemail.hu>
 
-Signed-off-by: Andreas Regel <andreas.regel@gmx.de>
+Add support for snapshot button found on Labtec Webcam 2200.
 
-diff -r c6b33af45211 linux/drivers/media/dvb/frontends/stv090x.c
---- a/linux/drivers/media/dvb/frontends/stv090x.c	Mon Nov 02 23:03:44 2009 +0100
-+++ b/linux/drivers/media/dvb/frontends/stv090x.c	Mon Nov 02 23:08:29 2009 +0100
-@@ -3997,7 +3997,7 @@
- 	if ((agc1_power == 0) && (power_iq < STV090x_IQPOWER_THRESHOLD)) {
- 		dprintk(FE_ERROR, 1, "No Signal: POWER_IQ=0x%02x", power_iq);
- 		lock = 0;
--
-+		signal_state = STV090x_NOAGC1;
- 	} else {
- 		reg = STV090x_READ_DEMOD(state, DEMOD);
- 		STV090x_SETFIELD_Px(reg, SPECINV_CONTROL_FIELD, state->inversion);
-@@ -4021,9 +4021,8 @@
- 		}
- 	}
- 
--	/* need to check for AGC1 state */
--
--
-+	if (signal_state == STV090x_NOAGC1)
-+		return signal_state;
- 
- 	if (state->algo == STV090x_BLIND_SEARCH)
- 		lock = stv090x_blind_search(state);
-diff -r c6b33af45211 linux/drivers/media/dvb/frontends/stv090x_priv.h
---- a/linux/drivers/media/dvb/frontends/stv090x_priv.h	Mon Nov 02 23:03:44 2009 +0100
-+++ b/linux/drivers/media/dvb/frontends/stv090x_priv.h	Mon Nov 02 23:08:29 2009 +0100
-@@ -91,6 +91,7 @@
- 	STV090x_SEARCH_AGC2_TH_CUT30)
- 
- enum stv090x_signal_state {
-+	STV090x_NOAGC1,
- 	STV090x_NOCARRIER,
- 	STV090x_NODATA,
- 	STV090x_DATAOK,
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+diff -r abfdd03b800d linux/drivers/media/video/gspca/pac7302.c
+--- a/linux/drivers/media/video/gspca/pac7302.c	Thu Nov 19 10:34:21 2009 +0100
++++ b/linux/drivers/media/video/gspca/pac7302.c	Sat Nov 21 13:02:44 2009 +0100
+@@ -68,8 +68,10 @@
+
+ #define MODULE_NAME "pac7302"
+
++#include <linux/input.h>
+ #include <media/v4l2-chip-ident.h>
+ #include "gspca.h"
++#include "input.h"
+
+ MODULE_AUTHOR("Thomas Kaiser thomas@kaiser-linux.li");
+ MODULE_DESCRIPTION("Pixart PAC7302");
+@@ -1220,6 +1222,37 @@
+ }
+ #endif
+
++#ifdef CONFIG_INPUT
++static int sd_int_pkt_scan(struct gspca_dev *gspca_dev,
++			u8 *data,		/* interrupt packet data */
++			int len)		/* interrput packet length */
++{
++	int ret = -EINVAL;
++	u8 data0, data1;
++
++	if (len == 2) {
++		data0 = data[0];
++		data1 = data[1];
++		if ((data0 == 0x00 && data1 == 0x11) ||
++		    (data0 == 0x22 && data1 == 0x33) ||
++		    (data0 == 0x44 && data1 == 0x55) ||
++		    (data0 == 0x66 && data1 == 0x77) ||
++		    (data0 == 0x88 && data1 == 0x99) ||
++		    (data0 == 0xaa && data1 == 0xbb) ||
++		    (data0 == 0xcc && data1 == 0xdd) ||
++		    (data0 == 0xee && data1 == 0xff)) {
++			input_report_key(gspca_dev->input_dev, KEY_CAMERA, 1);
++			input_sync(gspca_dev->input_dev);
++			input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
++			input_sync(gspca_dev->input_dev);
++			ret = 0;
++		}
++	}
++
++	return ret;
++}
++#endif
++
+ /* sub-driver description for pac7302 */
+ static struct sd_desc sd_desc = {
+ 	.name = MODULE_NAME,
+@@ -1236,6 +1269,9 @@
+ 	.set_register = sd_dbg_s_register,
+ 	.get_chip_ident = sd_chip_ident,
+ #endif
++#ifdef CONFIG_INPUT
++	.int_pkt_scan = sd_int_pkt_scan,
++#endif
+ };
+
+ /* -- module initialisation -- */
+
