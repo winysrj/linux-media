@@ -1,40 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from khc.piap.pl ([195.187.100.11]:55302 "EHLO khc.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752756AbZK1Rk1 convert rfc822-to-8bit (ORCPT
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:35760 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756048AbZKUTZE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Nov 2009 12:40:27 -0500
-From: Krzysztof Halasa <khc@pm.waw.pl>
-To: Jon Smirl <jonsmirl@gmail.com>
-Cc: Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	maximlevitsky@gmail.com, mchehab@redhat.com,
-	stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
-References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc>
-	<9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>
-	<m3aay6y2m1.fsf@intrepid.localdomain>
-	<9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>
-Date: Sat, 28 Nov 2009 18:40:30 +0100
-In-Reply-To: <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>
-	(Jon Smirl's message of "Sat, 28 Nov 2009 12:37:40 -0500")
-Message-ID: <m3638uy2cx.fsf@intrepid.localdomain>
+	Sat, 21 Nov 2009 14:25:04 -0500
+Received: by ewy19 with SMTP id 19so627783ewy.21
+        for <linux-media@vger.kernel.org>; Sat, 21 Nov 2009 11:25:10 -0800 (PST)
+Date: Sat, 21 Nov 2009 20:25:05 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: g_remlin <g_remlin@rocketmail.com>
+cc: linux-media@vger.kernel.org
+Subject: Re: CH???, Bandwidth 8MHz, Fec_Hi 1/2, Modulation QAM64, Mode 8K,
+ Guard 1/4, fails to tune\demux
+In-Reply-To: <4B082F2B.6070700@rocketmail.com>
+Message-ID: <alpine.DEB.2.01.0911211932420.6168@ybpnyubfg.ybpnyqbznva>
+References: <4B06F484.5050700@rocketmail.com> <alpine.DEB.2.01.0911211443110.6168@ybpnyubfg.ybpnyqbznva> <4B082F2B.6070700@rocketmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jon Smirl <jonsmirl@gmail.com> writes:
+On Sat, 21 Nov 2009, g_remlin wrote:
 
->> 1. Merging the lirc drivers. The only stable thing needed is lirc
->>   interface.
->
-> Doing that locks in a user space API that needs to be supported
-> forever. We need to think this API through before locking it in.
+> Hi Barry, thanks for taking the time to reply (my previous more informative
 
-Sure, that's why I wrote about the need for it to be "stable".
--- 
-Krzysztof Halasa
+Happy to have helped, even though I didn't help.
+
+
+> This is the Terrestrial transmission standard being rolled out across the UK,
+
+Ah.  I assumed `CH' referred to the country, and the FEC of 1/2
+being that used for a robust yet low-bandwidth signal.
+
+Actually, there are a couple steps to the DSO in the UK, with the
+introduction in less than two weeks of the DVB-T2 standard at a
+few places, to allow HD broadcasts with some 36 or so Mbit/sec.
+
+This introduction will be taking place without any consumer
+equipment until next year, and cannot be received by existing
+hardware, as has been asked a few times on these lists.  In
+the areas where this happens (apart from places like Crystal
+Palace) this is happening by converting one multiplex from
+DVB-T to -T2.
+
+You probably are referring to the other part of DSO, which has
+meant the conversion from 2k to 8k transmission mode, and the
+use of 64QAM modulation.
+
+
+> I live in one of the first areas to be upgraded to the new standard. Since the
+> change, my DVB-T PCI card will no longer tune (despite the signal level being
+
+Once again I'll point out what in your Subject: is likely wrong,
+as these are not the values I know to be used in the UK:
+``Subject : Re: CH???, Bandwidth 8MHz, Fec_Hi 1/2, Modulation QAM64, Mode 8K,
+          Guard 1/4, fails to tune\demux''
+
+First off, the 1/2 FEC isn't used as that is used for a robust
+signal, as one would want from Handy-TV (DVB-H), and in the UK
+with its history of over-the-air broadcasting and rooftop aerials
+means that 2/3 and 3/4 are what I see listed (although the data
+I'm looking at appears to be pre-8k switchover).
+
+Also, the guard interval would not be 1/4 as the UK makes use of
+MFN frequencies, and this appears reflected in the value of 1/32
+listed in the old data.
+
+You might try to re-scan with the above values corrected, if this
+would be a reason why you can't lock onto a signal.
+
+
+thanks,
+barry bouwsma
