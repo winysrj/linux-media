@@ -1,108 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3191 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752787AbZKQOai (ORCPT
+Received: from anny.lostinspace.de ([80.190.182.2]:54519 "EHLO
+	anny.lostinspace.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756135AbZKURKn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2009 09:30:38 -0500
-Message-ID: <bcadba622a1f6b6a0c429c733e0af447.squirrel@webmail.xs4all.nl>
-In-Reply-To: <4B02AA78.6050102@infradead.org>
-References: <4B02AA78.6050102@infradead.org>
-Date: Tue, 17 Nov 2009 15:30:37 +0100
-Subject: Re: [Fwd: [PATCH 2.6.31.5 1/1] v4l2: add new define for last
- camera class 	control id]
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "Linux Media Mailing List" <linux-media@vger.kernel.org>,
-	"Bertrand" <ba@cykian.net>
+	Sat, 21 Nov 2009 12:10:43 -0500
+Received: from server.idefix.lan (ppp-93-104-109-205.dynamic.mnet-online.de [93.104.109.205])
+	(authenticated bits=0)
+	by anny.lostinspace.de (8.14.3/8.14.3) with ESMTP id nALH9Jwv036342
+	for <linux-media@vger.kernel.org>; Sat, 21 Nov 2009 18:09:23 +0100 (CET)
+	(envelope-from idefix@fechner.net)
+Received: from localhost (unknown [127.0.0.1])
+	by server.idefix.lan (Postfix) with ESMTP id C5A4995C53
+	for <linux-media@vger.kernel.org>; Sat, 21 Nov 2009 18:10:41 +0100 (CET)
+Received: from server.idefix.lan ([127.0.0.1])
+	by localhost (server.idefix.lan [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id QYQWEdC9pV-O for <linux-media@vger.kernel.org>;
+	Sat, 21 Nov 2009 18:10:36 +0100 (CET)
+Received: from [192.168.0.151] (idefix.idefix.lan [192.168.0.151])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by server.idefix.lan (Postfix) with ESMTPSA id 8B4E795C64
+	for <linux-media@vger.kernel.org>; Sat, 21 Nov 2009 18:10:36 +0100 (CET)
+Message-ID: <4B081F0B.1060204@fechner.net>
+Date: Sat, 21 Nov 2009 18:10:35 +0100
+From: Matthias Fechner <idefix@fechner.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: linux-media@vger.kernel.org
+Subject: Re: IR Receiver on an Tevii S470
+References: <4B0459B1.50600@fechner.net>
+In-Reply-To: <4B0459B1.50600@fechner.net>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
-> Hi Bertrand,
->
-> Please, always send patches c/c to:
->         linux-media@vger.kernel.org.
-> This way, people can better review it.
->
-> For more details, please read:
->         http://linuxtv.org/wiki/index.php/Development:_How_to_submit_patches
->
-> There are some additional details on how patch submission works at:
->         http://linuxtv.org/hg/v4l-dvb/file/tip/README.patches
->
-> I'm forwarding it to the ML. I'll comment about it there.
->
-> Cheers,
-> Mauro.
->
-> -------- Mensagem original --------
-> Assunto: [PATCH 2.6.31.5 1/1] v4l2: add new define for last camera class
-> 	control id
-> Data: Wed, 11 Nov 2009 22:00:24 +0100
-> De: Bertrand <ba@cykian.net>
-> Para: Mauro Carvalho Chehab <mchehab@infradead.org>
->
-> The videodev2.h file contains, among other things, defines that point
-> to the control properties of video devices.
->
-> For the standard video controls, there is a V4L2_CID_BASE define for
-> the base, and a pointer to the last control ID plus 1 named
-> V4L2_CID_LASTP1.
-> This allows automatic, version independent enumeration of the controls.
->
-> There are other controls which are specific to the camera class
-> devices. While there is a V4L2_CID_CAMERA_CLASS_BASE define, there was
-> none for the last one.
-> As a result it was not possible to do an enumeration of the controls
-> of that class. This patch corrects this by adding a
-> V4L2_CID_CAMERA_CLASS_LASTP1 define.
+Matthias Fechner schrieb:
+> I bought some days ago a Tevii S470 DVB-S2 (PCI-E) card and got it 
+> running with the driver from:
+> http://mercurial.intuxication.org/hg/s2-liplianin
+> 
+> But I was not successfull in got the IR receiver working.
+> It seems that it is not supported yet by the driver.
+> 
+> Is there maybe some code available to get the IR receiver with evdev 
+> running?
 
-Hi Bertrand,
+it seems to be not the correct mailing list, could some please suggest 
+where I can ask that question?
 
-Enumerating controls that are not part of the user controls or the private
-controls must use the V4L2_CTRL_FLAG_NEXT_CTRL flag when enumerating:
-
-http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec-single/v4l2.html#id2762121
-
-If a driver does not support that, then that driver should be fixed.
-
-Note that this can also be used for user and private controls, but most
-drivers do not do that. I'm working on a better driver framework that will
-handle this in the core inside of depending on the driver support.
-
-The old style of using LASTP defines is really bad and inflexible and
-should be avoided for extended controls.
-
-Regards,
-
-        Hans
-
->
-> Signed-off-by: Bertrand Achard <ba@cykian.net>
->
-> --- linux-2.6.31.5/include/linux/videodev2.h	2009-10-23 00:57:56.000000000
-> +0200
-> +++ linux-2.6.31.5-n/include/linux/videodev2.h	2009-11-11
-> 21:48:48.000000000 +0100
-> @@ -1147,6 +1147,8 @@ enum  v4l2_exposure_auto_type {
->
->  #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
->
-> +#define V4L2_CID_CAMERA_CLASS_LASTP1		(V4L2_CID_CAMERA_CLASS_BASE+17)
-> +
->  /*
->   *	T U N I N G
->   */
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
+Bye
+Matthias
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
+"Programming today is a race between software engineers striving to
+build bigger and better idiot-proof programs, and the universe trying to
+produce bigger and better idiots. So far, the universe is winning." --
+Rich Cook
