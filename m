@@ -1,127 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4249 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753778AbZKVTxo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Nov 2009 14:53:44 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id nAMJrnWU075450
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 22 Nov 2009 20:53:49 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 22 Nov 2009 20:53:49 +0100 (CET)
-Message-Id: <200911221953.nAMJrnWU075450@smtp-vbr1.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail1.radix.net ([207.192.128.31]:59256 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752516AbZKUUnS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Nov 2009 15:43:18 -0500
+Subject: Re: IR Receiver on an Tevii S470
+From: Andy Walls <awalls@radix.net>
+To: Matthias Fechner <idefix@fechner.net>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <4B081F0B.1060204@fechner.net>
+References: <4B0459B1.50600@fechner.net>  <4B081F0B.1060204@fechner.net>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 21 Nov 2009 15:41:42 -0500
+Message-Id: <1258836102.1794.7.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Sat, 2009-11-21 at 18:10 +0100, Matthias Fechner wrote:
+> Hi,
+> 
+> Matthias Fechner schrieb:
+> > I bought some days ago a Tevii S470 DVB-S2 (PCI-E) card and got it 
+> > running with the driver from:
+> > http://mercurial.intuxication.org/hg/s2-liplianin
+> > 
+> > But I was not successfull in got the IR receiver working.
+> > It seems that it is not supported yet by the driver.
+> > 
+> > Is there maybe some code available to get the IR receiver with evdev 
+> > running?
 
-Results of the daily build of v4l-dvb:
+What bridge chip does the TeVii S470 use: a CX23885, CX23887, or
+CX23888?
 
-date:        Sun Nov 22 19:00:05 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13372:8bff7e6c44d4
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Does the TeVii S470 have a separate microcontroller chip for IR
+somewhere on the board, or does it not have one?  (If you can't tell,
+just provide a list of the chip markings on the board.)
 
-linux-2.6.22.19-armv5: WARNINGS
-linux-2.6.23.12-armv5: WARNINGS
-linux-2.6.24.7-armv5: WARNINGS
-linux-2.6.25.11-armv5: WARNINGS
-linux-2.6.26-armv5: WARNINGS
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29.1-armv5: WARNINGS
-linux-2.6.30-armv5: WARNINGS
-linux-2.6.31-armv5: WARNINGS
-linux-2.6.32-rc8-armv5: OK
-linux-2.6.32-rc8-armv5-davinci: ERRORS
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.31-armv5-ixp: WARNINGS
-linux-2.6.32-rc8-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.31-armv5-omap2: ERRORS
-linux-2.6.32-rc8-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-rc8-i686: WARNINGS
-linux-2.6.23.12-m32r: WARNINGS
-linux-2.6.24.7-m32r: WARNINGS
-linux-2.6.25.11-m32r: WARNINGS
-linux-2.6.26-m32r: WARNINGS
-linux-2.6.27-m32r: WARNINGS
-linux-2.6.28-m32r: WARNINGS
-linux-2.6.29.1-m32r: WARNINGS
-linux-2.6.30-m32r: WARNINGS
-linux-2.6.31-m32r: WARNINGS
-linux-2.6.32-rc8-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: WARNINGS
-linux-2.6.32-rc8-mips: OK
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: WARNINGS
-linux-2.6.32-rc8-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-rc8-x86_64: WARNINGS
-sparse (linux-2.6.31): OK
-sparse (linux-2.6.32-rc8): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
 
-Detailed results are available here:
+If the card is using the built in IR controller of the CX23888 than that
+should be pretty easy to get working, we'll just need you to do some
+experimentation with a patch.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+If the card is using the built in IR controller in the CX23885, then
+you'll have to wait until I port my CX23888 IR controller changes to
+work with the IR controller in the CX23885.  That should be somewhat
+straightforward, but will take time.  Then we'll still need you to
+experiment with a patch.
 
-Full logs are available here:
+If the card is using a separate IR microcontroller, I'm not sure where
+to begin.... :P
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The V4L2 specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+Regards,
+Andy
 
