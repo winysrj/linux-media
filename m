@@ -1,105 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f188.google.com ([209.85.222.188]:59203 "EHLO
-	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757938AbZKEU5h convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Nov 2009 15:57:37 -0500
-Received: by pzk26 with SMTP id 26so251511pzk.4
-        for <linux-media@vger.kernel.org>; Thu, 05 Nov 2009 12:57:42 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <829197380911050602t30bc69d0sd0b269c39bf759e@mail.gmail.com>
-References: <20764.64.213.30.2.1257390002.squirrel@webmail.exetel.com.au>
-	 <829197380911042051l295e9796g65fe1b163f72a70c@mail.gmail.com>
-	 <26256.64.213.30.2.1257398603.squirrel@webmail.exetel.com.au>
-	 <829197380911050602t30bc69d0sd0b269c39bf759e@mail.gmail.com>
-Date: Fri, 6 Nov 2009 07:57:42 +1100
-Message-ID: <702870ef0911051257k52c142e8ne1b32506f1efb45c@mail.gmail.com>
-Subject: Re: bisected regression in tuner-xc2028 on DVICO dual digital 4
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Robert Lowery <rglowery@exemail.com.au>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail1.radix.net ([207.192.128.31]:43898 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754120AbZKUDkp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Nov 2009 22:40:45 -0500
+Subject: Re: [PATCH] AVerTV MCE 116 Plus radio
+From: Andy Walls <awalls@radix.net>
+To: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
+Cc: ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
+In-Reply-To: <20091011010039.GA4726@moon>
+References: <20091006080406.GA22207@moon> <20091006081159.GB22207@moon>
+	 <20091011010039.GA4726@moon>
+Content-Type: text/plain
+Date: Fri, 20 Nov 2009 22:39:27 -0500
+Message-Id: <1258774767.9080.1.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have one of these too.
+On Sun, 2009-10-11 at 04:01 +0300, Aleksandr V. Piskunov wrote:
+> On Tue, Oct 06, 2009 at 11:11:59AM +0300, Aleksandr V. Piskunov wrote:
+> > On Tue, Oct 06, 2009 at 11:04:06AM +0300, Aleksandr V. Piskunov wrote:
+> > > Added FM radio support to Avermedia AVerTV MCE 116 Plus card
+> > > 
+> > 
+> > What leaves me puzzled, radio only works ok with ivtv newi2c=1
+> > 
+> > With default newi2c audio is tinny, metallic, with some strange static.
+> > Similar problem with pvr-150 was reported years ago, guess issue is still
+> > unresolved, perhaps something with cx25840..
+> 
+> This particular "tinny" audio problem is definitely I2C speed related, to be
+> more precise, audio only goes bad if i2c-algo-bit is being run with udelay
+> less than 15, i.e. i2c bus frequency is higher than 30 KHz.
+> 
+> So with default udelay=10 or udelay=5 (optimal for IR reciever on that board)
+> radio goes bad. Running with newi2c=1 is ok, but again it isn't optimal for IR
+> reciever on AVerTV M116.
+> 
+> I2C reads/writes to cx25840 themself are ok, verified using register readback
+> after each write/write4. Problem seems to be that with cx25840 register writes
+> coming too fast on higher i2c bus speed, switching register 0x808 _from_ 
+> TV standard autodetection mode (0xff) _to_ FM radio mode (0xf9) leaves chip 
+> audio detection routine in inconsistent state.
+> 
+> The only solution I found is to do standard routine (assert_reset + write +
+> deassert_reset) followed by 50ms delay and another reset.
+> 
+> Following patch works_for_me, can be improved to only delay/doublereset when
+> really needed, etc. Andy, could you comment/review?
 
-lsusb:
-Bus 003 Device 003: ID 0fe9:db78 DVICO FusionHDTV DVB-T Dual Digital 4
-(ZL10353+xc2028/xc3028) (initialized)
-Bus 003 Device 002: ID 0fe9:db78 DVICO FusionHDTV DVB-T Dual Digital 4
-(ZL10353+xc2028/xc3028) (initialized)
+Aleksandr,
 
-In addition I have a "DViCO Dual Digital Express" which is a PCIe card
-based on Conexant, with the Zarlink frontend.
-lspci:
-04:00.0 Multimedia video controller [0400]: Conexant Systems, Inc.
-CX23885 PCI Video and Audio Decoder [14f1:8852] (rev 02)
-	Subsystem: DViCO Corporation Device [18ac:db78]
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-Stepping- SERR- FastB2B- DisINTx-
-	Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-	Latency: 0, Cache Line Size: 64 bytes
-	Interrupt: pin A routed to IRQ 19
-	Region 0: Memory at 90000000 (64-bit, non-prefetchable) [size=2M]
-	Capabilities: <access denied>
-	Kernel driver in use: cx23885
-	Kernel modules: cx23885
+Could you provide your Signed-off-by for this patch?  I'm going to
+commit it as is.
 
+Thanks,
+Andy
 
-
-More detail, including dmesg etc, at
-https://bugs.launchpad.net/ubuntu/+source/linux/+bug/459523
-
-On 11/6/09, Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
-> On Thu, Nov 5, 2009 at 12:23 AM, Robert Lowery <rglowery@exemail.com.au>
-> wrote:
->> Hi Devin,
->>
->> Thanks for your reply.
->>
->> I don't think your suggestion to use disable_power_mgmt will work as I
->> already tried setting the no_poweroff=1 kernel module without success (and
->> even tried recompiling with xc2028_sleep returning 0 immediately, but
->> until I stopped the .sleep being set at all in xc2028_dvb_tuner_ops, the
->> problem kept happening.
->>
->> The only thing that fixed it without code change was to set
->> dvb_powerdown_on_sleep=0.
->>
->> Looking at the below code from dvb_frontend.c, the only difference I could
->> see between setting no_poweroff=1 and not setting .sleep is the latter
->> stops i2c_gate_ctrl being called.
->>
->>        if (dvb_powerdown_on_sleep) {
->>                if (fe->ops.set_voltage)
->>                        fe->ops.set_voltage(fe, SEC_VOLTAGE_OFF);
->>                if (fe->ops.tuner_ops.sleep) {
->>                        if (fe->ops.i2c_gate_ctrl)
->>                                fe->ops.i2c_gate_ctrl(fe, 1);
->>                        fe->ops.tuner_ops.sleep(fe);
->>                        if (fe->ops.i2c_gate_ctrl)
->>                                fe->ops.i2c_gate_ctrl(fe, 0);
->>                }
->>                if (fe->ops.sleep)
->>                        fe->ops.sleep(fe);
->>        }
->>
->> I'm not very familiar with this code.  Am I missing something?
->>
->> -Rob
->
-> Could you please clarify exactly which card you have (PCI/USB ID)?
->
-> Devin
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
+> diff --git a/linux/drivers/media/video/cx25840/cx25840-core.c b/linux/drivers/media/video/cx25840/cx25840-core.c
+> --- a/linux/drivers/media/video/cx25840/cx25840-core.c
+> +++ b/linux/drivers/media/video/cx25840/cx25840-core.c
+> @@ -626,7 +642,13 @@
+>  	if (state->radio) {
+>  		cx25840_write(client, 0x808, 0xf9);
+>  		cx25840_write(client, 0x80b, 0x00);
+> -	}
+> +		/* Double reset cx2384x after setting FM radio mode, helps to
+> +		   avoid "tinny" audio when ivtv I2C bus is being run on
+> +		   frequency higher than 30 KHz */
+> +		cx25840_and_or(client, 0x810, ~0x01, 0);
+> +		msleep(50);
+> +		cx25840_and_or(client, 0x810, ~0x01, 1);
+> +	}	
+>  	else if (std & V4L2_STD_525_60) {
+>  		/* Certain Hauppauge PVR150 models have a hardware bug
+>  		   that causes audio to drop out. For these models the
+> 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> 
+
