@@ -1,127 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1276 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932224AbZKMTu2 (ORCPT
+Received: from 78.218.95.91.static.ter-s.siw.siwnet.net ([91.95.218.78]:42210
+	"EHLO alefors.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751295AbZKUIvE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Nov 2009 14:50:28 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id nADJoWb6086961
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 13 Nov 2009 20:50:32 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 13 Nov 2009 20:50:32 +0100 (CET)
-Message-Id: <200911131950.nADJoWb6086961@smtp-vbr6.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Sat, 21 Nov 2009 03:51:04 -0500
+Received: from [10.0.0.11] ([10.0.0.11]:46325)
+	by alefors.se with [XMail 1.26 ESMTP Server]
+	id <S62E> for <linux-media@vger.kernel.org> from <magnus@alefors.se>;
+	Sat, 21 Nov 2009 09:51:06 +0100
+Message-ID: <4B07A9F6.8040205@alefors.se>
+Date: Sat, 21 Nov 2009 09:51:02 +0100
+From: =?UTF-8?B?TWFnbnVzIEjDtnJsaW4=?= <magnus@alefors.se>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Subject: Re: SV: [linux-dvb] NOVA-TD exeriences?
+References: <4AEF5FE5.2000607@stud.uni-hannover.de> <4AF162BC.4010700@stud.uni-hannover.de> <4B0694F7.7070604@stud.uni-hannover.de> <4B06A22D.4090404@stud.uni-hannover.de> <4B072D3F.8060807@stud.uni-hannover.de>
+In-Reply-To: <4B072D3F.8060807@stud.uni-hannover.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Soeren Moch wrote:
+> OK, my nova-td device id is 2040:9580, for 2040:5200 the attached 
+> extended
+> patch version may help. (I have no access to such device.)
+> Please test.
+>
+> Soeren
+>
 
-Results of the daily build of v4l-dvb:
-
-date:        Fri Nov 13 19:00:04 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13328:aba823ecaea6
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
-
-linux-2.6.22.19-armv5: WARNINGS
-linux-2.6.23.12-armv5: WARNINGS
-linux-2.6.24.7-armv5: WARNINGS
-linux-2.6.25.11-armv5: WARNINGS
-linux-2.6.26-armv5: WARNINGS
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29.1-armv5: WARNINGS
-linux-2.6.30-armv5: WARNINGS
-linux-2.6.31-armv5: WARNINGS
-linux-2.6.32-rc6-armv5: ERRORS
-linux-2.6.32-rc6-armv5-davinci: ERRORS
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.31-armv5-ixp: WARNINGS
-linux-2.6.32-rc6-armv5-ixp: ERRORS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.31-armv5-omap2: ERRORS
-linux-2.6.32-rc6-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-rc6-i686: WARNINGS
-linux-2.6.23.12-m32r: WARNINGS
-linux-2.6.24.7-m32r: WARNINGS
-linux-2.6.25.11-m32r: WARNINGS
-linux-2.6.26-m32r: WARNINGS
-linux-2.6.27-m32r: WARNINGS
-linux-2.6.28-m32r: WARNINGS
-linux-2.6.29.1-m32r: WARNINGS
-linux-2.6.30-m32r: WARNINGS
-linux-2.6.31-m32r: WARNINGS
-linux-2.6.32-rc6-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: WARNINGS
-linux-2.6.32-rc6-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: WARNINGS
-linux-2.6.32-rc6-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-rc6-x86_64: ERRORS
-sparse (linux-2.6.31): OK
-sparse (linux-2.6.32-rc6): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L2 specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+Well, it did help thank you very much! Now I finally have four DVB-T and 
+four DVB-S2 adapters that can take any transponder I have access to 
+without problems. I haven't looked into your patches yet but I hope the 
+problems get solved in the main linuxtv tree soon, one way or the other.
+Thanks again,
+/Magnus H
 
