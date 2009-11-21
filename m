@@ -1,45 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:46478 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753173AbZKNOeJ convert rfc822-to-8bit (ORCPT
+Received: from mail01a.mail.t-online.hu ([84.2.40.6]:51624 "EHLO
+	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755479AbZKUQqS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Nov 2009 09:34:09 -0500
-Received: by bwz27 with SMTP id 27so4347342bwz.21
-        for <linux-media@vger.kernel.org>; Sat, 14 Nov 2009 06:34:14 -0800 (PST)
+	Sat, 21 Nov 2009 11:46:18 -0500
+Message-ID: <4B081954.5020907@freemail.hu>
+Date: Sat, 21 Nov 2009 17:46:12 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-In-Reply-To: <4AFEAB15.9010509@gmail.com>
-References: <4AFE92ED.2060208@gmail.com> <4AFEAB15.9010509@gmail.com>
-Date: Sat, 14 Nov 2009 09:34:14 -0500
-Message-ID: <829197380911140634j49c05cd0s90aed57b9ae61436@mail.gmail.com>
-Subject: Re: [PATCH] em28xx: fix for Dikom DK300 hybrid USB tuner (aka Kworld
-	VS-DVB-T 323UR ) (digital mode)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: "Andrea.Amorosi76@gmail.com" <Andrea.Amorosi76@gmail.com>
-Cc: "linux-media@vger.kernel.org >> Linux Media Mailing List"
-	<linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	v4L Mailing List <linux-media@vger.kernel.org>
+CC: cocci@diku.dk, LKML <linux-kernel@vger.kernel.org>
+Subject: [PATCH] dvb ttusb-dec: do not overwrite the first part of phys string
+References: <4B079CE0.60604@freemail.hu>
+In-Reply-To: <4B079CE0.60604@freemail.hu>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 14, 2009 at 8:05 AM, Andrea.Amorosi76@gmail.com
-<Andrea.Amorosi76@gmail.com> wrote:
-> Continuing the testing for the analog part of the device, I've discovered
-> that the main kernel driver (the one without the proposed patch)  works
-> better,  even if not perfectly, as far as analog tv is concerned.
-> In detail analog sound is present but is very low and noisy  (it seems to be
-> listening to a very  distant radio station).
-> So there is something in the patch that breaks the analog tv sound (which
-> however is not very usable in the main driver being so noisy).
-> Which one of the modified setting can interfer with the analog tv sound?
-> Thank you,
-> Andrea
+From: MÃ¡rton NÃ©meth <nm127@freemail.hu>
 
-Did you define an analog_gpio?  Or did you only define the digital
-gpio?  The enabling of digital mode may be turning off the audio
-encoder.
+Use strlcat() to append a string to the previously created first part.
 
-Devin
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+The semantic match that finds this kind of problem is as follows:
+(http://coccinelle.lip6.fr/)
+
+// <smpl>
+@@
+expression dev;
+expression phys;
+expression str;
+expression size;
+@@
+ 	usb_make_path(dev, phys, size);
+-	strlcpy(phys, str, size);
++	strlcat(phys, str, size);
+// </smpl>
+
+Signed-off-by: MÃ¡rton NÃ©meth <nm127@freemail.hu>
+---
+diff -u -p a/drivers/media/dvb/ttusb-dec/ttusb_dec.c b/drivers/media/dvb/ttusb-dec/ttusb_dec.c
+--- a/drivers/media/dvb/ttusb-dec/ttusb_dec.c 2009-09-10 00:13:59.000000000 +0200
++++ b/drivers/media/dvb/ttusb-dec/ttusb_dec.c 2009-11-21 17:30:10.000000000 +0100
+@@ -1198,7 +1198,7 @@ static int ttusb_init_rc( struct ttusb_d
+ 	int err;
+
+ 	usb_make_path(dec->udev, dec->rc_phys, sizeof(dec->rc_phys));
+-	strlcpy(dec->rc_phys, "/input0", sizeof(dec->rc_phys));
++	strlcat(dec->rc_phys, "/input0", sizeof(dec->rc_phys));
+
+ 	input_dev = input_allocate_device();
+ 	if (!input_dev)
+
