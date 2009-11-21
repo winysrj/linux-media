@@ -1,79 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.156]:51088 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753642AbZKZAHU convert rfc822-to-8bit (ORCPT
+Received: from mail-in-14.arcor-online.net ([151.189.21.54]:53890 "EHLO
+	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753623AbZKUAuB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2009 19:07:20 -0500
-Received: by fg-out-1718.google.com with SMTP id 19so241241fgg.1
-        for <linux-media@vger.kernel.org>; Wed, 25 Nov 2009 16:07:26 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <200911260102.40881.laurent.pinchart@ideasonboard.com>
-References: <200911181354.06529.laurent.pinchart@ideasonboard.com>
-	 <829197380911251506g4af4d72v85c6dfb55cb88d0a@mail.gmail.com>
-	 <200911260102.40881.laurent.pinchart@ideasonboard.com>
-Date: Wed, 25 Nov 2009 19:07:25 -0500
-Message-ID: <829197380911251607y5c9b4378y1c4f52b120c54698@mail.gmail.com>
-Subject: Re: [PATCH/RFC v2] V4L core cleanups HG tree
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	mchehab@infradead.org, sakari.ailus@maxwell.research.nokia.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Fri, 20 Nov 2009 19:50:01 -0500
+Subject: Re: [PATCH] em28xx: fix for "Leadtek winfast tv usbii deluxe"
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Magnus Alm <magnus.alm@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <1258763382.3261.15.camel@pc07.localdom.local>
+References: <156a113e0911130048p67ddbabfv263293de9f7f04d9@mail.gmail.com>
+	 <1258763382.3261.15.camel@pc07.localdom.local>
+Content-Type: text/plain
+Date: Sat, 21 Nov 2009 01:44:10 +0100
+Message-Id: <1258764250.3261.23.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 25, 2009 at 7:02 PM, Laurent Pinchart
-> Thank you very much for the report. Could you please try with the following
-> patch applied on top of the v4l-dvb-cleanup tree ?
->
-> diff -r 98e3929a1a2d linux/drivers/media/video/au0828/au0828-video.c
-> --- a/linux/drivers/media/video/au0828/au0828-video.c   Wed Nov 25 12:55:47 2009 +0100
-> +++ b/linux/drivers/media/video/au0828/au0828-video.c   Thu Nov 26 01:02:15 2009 +0100
-> @@ -697,10 +697,8 @@
->        dprintk(1, "au0828_release_resources called\n");
->        mutex_lock(&au0828_sysfs_lock);
->
-> -       if (dev->vdev) {
-> -               list_del(&dev->au0828list);
-> +       if (dev->vdev)
->                video_unregister_device(dev->vdev);
-> -       }
->        if (dev->vbi_dev)
->                video_unregister_device(dev->vbi_dev);
->
-> @@ -1671,7 +1669,6 @@
->        if (retval != 0) {
->                dprintk(1, "unable to register video device (error = %d).\n",
->                        retval);
-> -               list_del(&dev->au0828list);
->                video_device_release(dev->vdev);
->                return -ENODEV;
->        }
-> @@ -1683,7 +1680,6 @@
->        if (retval != 0) {
->                dprintk(1, "unable to register vbi device (error = %d).\n",
->                        retval);
-> -               list_del(&dev->au0828list);
->                video_device_release(dev->vbi_dev);
->                video_device_release(dev->vdev);
->                return -ENODEV;
-> diff -r 98e3929a1a2d linux/drivers/media/video/au0828/au0828.h
-> --- a/linux/drivers/media/video/au0828/au0828.h Wed Nov 25 12:55:47 2009 +0100
-> +++ b/linux/drivers/media/video/au0828/au0828.h Thu Nov 26 01:02:15 2009 +0100
-> @@ -192,7 +192,6 @@
->        struct au0828_dvb               dvb;
->
->        /* Analog */
-> -       struct list_head au0828list;
->        struct v4l2_device v4l2_dev;
->        int users;
->        unsigned int stream_on:1;       /* Locks streams */
+[...]
+> > diff -r 19c0469c02c3 linux/drivers/media/video/em28xx/em28xx-cards.c
+> > --- a/linux/drivers/media/video/em28xx/em28xx-cards.c	Sat Nov 07
+> > 15:51:01 2009 -0200
+> > +++ b/linux/drivers/media/video/em28xx/em28xx-cards.c	Fri Nov 13
+> > 09:40:40 2009 +0100
+> > @@ -466,21 +466,30 @@
+> >  		.name         = "Leadtek Winfast USB II Deluxe",
+> >  		.valid        = EM28XX_BOARD_NOT_VALIDATED,
+> >  		.tuner_type   = TUNER_PHILIPS_FM1216ME_MK3,
+> > -		.tda9887_conf = TDA9887_PRESENT,
+> > +		.has_ir_i2c   = 1,
+> > +		.tvaudio_addr = 0x58,
+> > +		.tda9887_conf = TDA9887_PRESENT |
+> > +				TDA9887_PORT2_ACTIVE |
+> > +				TDA9887_QSS,
+> 
+> just on a first look, where you have this TDA9887_QSS from?
+> 
+> It should still be "int" and qss is default.
+> 
+> Also TDA9887_PORT2_ACTIVE is default on this tuner since some years.
+> 
 
-Trying it now....
+On a second fly over, TDA9887_QSS is not that wrong, but there is still
+a plan to remove card specific tda9887 settings from the driver entries,
+IIRC, all such was once planned to be even moved into user space.
 
-Devin
+So repeating tuner defaults in driver specific card entries is not
+recommended. We have some very few hardware specific cases on which we
+don't know how to avoid it.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Maybe I did not follow close enough, then please excuse, but I can't see
+for what you need anything else as TDA9887_PRESENT ?
+
+Cheers,
+Hermann
+
+
+
+
