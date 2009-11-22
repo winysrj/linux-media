@@ -1,100 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:4168 "EHLO
-	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753167AbZK3Tsc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Nov 2009 14:48:32 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr3.xs4all.nl (8.13.8/8.13.8) with ESMTP id nAUJmbpK057441
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 30 Nov 2009 20:48:37 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 30 Nov 2009 20:48:37 +0100 (CET)
-Message-Id: <200911301948.nAUJmbpK057441@smtp-vbr3.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: WARNINGS
+Received: from poutre.nerim.net ([62.4.16.124]:63619 "EHLO poutre.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754115AbZKVU0k (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Nov 2009 15:26:40 -0500
+Date: Sun, 22 Nov 2009 21:26:44 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Andy Walls <awalls@radix.net>
+Cc: linux-media@vger.kernel.org, Matthias Fechner <idefix@fechner.net>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	"Igor M. Liplianin" <liplianin@me.by>
+Subject: Re: IR Receiver on an Tevii S470
+Message-ID: <20091122212644.301b7e63@hyperion.delvare>
+In-Reply-To: <1258920707.4201.16.camel@palomino.walls.org>
+References: <4B0459B1.50600@fechner.net>
+	<4B081F0B.1060204@fechner.net>
+	<1258836102.1794.7.camel@localhost>
+	<200911220303.36715.liplianin@me.by>
+	<1258858102.3072.14.camel@palomino.walls.org>
+	<4B097E37.10402@fechner.net>
+	<1258920707.4201.16.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi Andy,
 
-Results of the daily build of v4l-dvb:
+On Sun, 22 Nov 2009 15:11:47 -0500, Andy Walls wrote:
+> On Sun, 2009-11-22 at 19:08 +0100, Matthias Fechner wrote:
+> > thanks a lot for your answer.
+> > I uploaded two pictures I did from the card, you can find it here:
+> > http://fechner.net/tevii-s470/
+> > 
+> > It is a CX23885.
+> > The driver I use is the ds3000.
+> > lspci says:
+> [snip]
+> 
+> Thanks for the pictures.  OK so of the two other interesting chips on
+> the S470:
+> 
+> U4 is an I2C connected EEPROM - we don't care about that for IR.
+> 
+> U10 appears to perhaps be a Silicon Labs C8051F300 microcontroller or
+> similar:
+> 
+> http://www.silabs.com/products/mcu/smallmcu/Pages/C8051F30x.aspx
+> 
+> Since the 'F300 has an A/D convertor and has an SMBus interface
+> (compatable with the I2C bus), I suspect this chip could be the IR
+> controller on the TeVii S470.
+> 
+> Could you as root:
+> 
+> # modprobe cx23885
+> # modprobe i2c-dev
+> # i2c-detect -l
+> (to list all the i2c buses, including cx23885 mastered i2c buses)
+> # i2c-detect -y N
+> (to show the addresses in use on bus # N: only query the cx23885 buses)
+> 
+> 
+> i2c-detect was in the lm-sensors package last I checked.  (Jean can
+> correct me if I'm wrong.)
 
-date:        Mon Nov 30 19:00:03 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13538:e0cd9a337600
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+It is actually named "i2cdetect" (no dash). It used to live in the
+lm-sensors package (up to 2.10.x) but is now in i2c-tools:
 
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-rc8-armv5: OK
-linux-2.6.32-rc8-armv5-davinci: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.32-rc8-armv5-ixp: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.32-rc8-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: OK
-linux-2.6.31-i686: OK
-linux-2.6.32-rc8-i686: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-rc8-m32r: OK
-linux-2.6.30-mips: OK
-linux-2.6.31-mips: OK
-linux-2.6.32-rc8-mips: OK
-linux-2.6.30-powerpc64: OK
-linux-2.6.31-powerpc64: OK
-linux-2.6.32-rc8-powerpc64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: OK
-linux-2.6.31-x86_64: OK
-linux-2.6.32-rc8-x86_64: OK
-spec: OK
-sparse (linux-2.6.31): ERRORS
-sparse (linux-2.6.32-rc8): ERRORS
-linux-2.6.16.61-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+http://www.lm-sensors.org/wiki/I2CTools
 
-Detailed results are available here:
+> With that information, I should be able to figure out what I2C address
+> that microcontroller is listening to.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Jean Delvare
