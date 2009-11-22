@@ -1,112 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail02d.mail.t-online.hu ([84.2.42.7]:52758 "EHLO
-	mail02d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752968AbZKHMch (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Nov 2009 07:32:37 -0500
-Message-ID: <4AF6BA67.1090700@freemail.hu>
-Date: Sun, 08 Nov 2009 13:32:39 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Received: from anny.lostinspace.de ([80.190.182.2]:52155 "EHLO
+	anny.lostinspace.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753696AbZKVU0W (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Nov 2009 15:26:22 -0500
+Message-ID: <4B099E37.5070405@fechner.net>
+Date: Sun, 22 Nov 2009 21:25:27 +0100
+From: Matthias Fechner <idefix@fechner.net>
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/2] gspca pac7302: add debug register write interface
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Andy Walls <awalls@radix.net>
+CC: linux-media@vger.kernel.org, Jarod Wilson <jarod@wilsonet.com>,
+	Jean Delvare <khali@linux-fr.org>,
+	"Igor M. Liplianin" <liplianin@me.by>
+Subject: Re: IR Receiver on an Tevii S470
+References: <4B0459B1.50600@fechner.net> <4B081F0B.1060204@fechner.net>	 <1258836102.1794.7.camel@localhost>  <200911220303.36715.liplianin@me.by>	 <1258858102.3072.14.camel@palomino.walls.org>  <4B097E37.10402@fechner.net> <1258920707.4201.16.camel@palomino.walls.org>
+In-Reply-To: <1258920707.4201.16.camel@palomino.walls.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+Hi Andy,
 
-Add debug register write interface to pac7302 to be able to set
-for example the edge detect mode (bit 2 register 0x55) or the
-test pattern (bit 0..3, register 0x72) and test overlay (bit 4,
-register 0x72) from the user space. Only write of register
-page 0 is supported by this patch.
+Andy Walls wrote:
+>
+> # modprobe cx23885
+> # modprobe i2c-dev
+> # i2c-detect -l
+> (to list all the i2c buses, including cx23885 mastered i2c buses)
+>   
+i2c-0    smbus         SMBus nForce2 adapter at 4d00       SMBus adapter
+i2c-1    i2c           cx23885[0]                          I2C adapter
+i2c-2    i2c           cx23885[0]                          I2C adapter
+i2c-3    i2c           cx23885[0]                          I2C adapter
+i2c-4    i2c           NVIDIA i2c adapter                  I2C adapter
+i2c-5    i2c           NVIDIA i2c adapter                  I2C adapter
+i2c-6    i2c           NVIDIA i2c adapter                  I2C adapter
 
-The patch was tested together with Labtec Webcam 2200 (USB ID
-093a:2626).
+> # i2c-detect -y N
+> (to show the addresses in use on bus # N: only query the cx23885 buses)
+>
+>   
+vdrhd1 ~ # i2cdetect -y 1
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+30: 30 31 32 33 34 35 36 37 -- -- -- -- -- -- -- --
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+50: 50 51 52 53 54 55 56 57 58 59 5a 5b 5c 5d 5e 5f
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+70: -- -- -- -- -- -- -- --                        
+vdrhd1 ~ # i2cdetect -y 2
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+30: 30 31 32 33 34 35 36 37 -- -- -- -- -- -- -- --
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+50: 50 51 52 53 54 55 56 57 58 59 5a 5b 5c 5d 5e 5f
+60: -- -- -- -- -- -- -- -- 68 -- -- -- -- -- -- --
+70: -- -- -- -- -- -- -- --                        
+vdrhd1 ~ # i2cdetect -y 3
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+30: 30 31 32 33 34 35 36 37 -- -- -- -- -- -- -- --
+40: -- -- -- -- 44 -- -- -- -- -- -- -- 4c -- -- --
+50: 50 51 52 53 54 55 56 57 58 59 5a 5b 5c 5d 5e 5f
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+70: -- -- -- -- -- -- -- --                        
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
-This patch replaces http://linuxtv.org/hg/~jfrancois/v4l-dvb/rev/da22d3ea5fc7 and
-http://linuxtv.org/hg/~jfrancois/v4l-dvb/rev/9b3580f8fee8 .
----
-diff -upr b/linux/drivers/media/video/gspca/pac7302.c c/linux/drivers/media/video/gspca/pac7302.c
---- b/linux/drivers/media/video/gspca/pac7302.c	2009-11-08 11:39:00.000000000 +0100
-+++ c/linux/drivers/media/video/gspca/pac7302.c	2009-11-08 11:59:00.000000000 +0100
-@@ -53,6 +53,7 @@
+> i2c-detect was in the lm-sensors package last I checked.  (Jean can
+> correct me if I'm wrong.)
+>
+>   
+ok, it seems that the name of tool is different here, but I think it has 
+the same output.
 
- #define MODULE_NAME "pac7302"
+> Then we can work out how to read and decode it's data and add it to
+> ir-kbd-i2c at least.  Depending on how your kernel and LIRC versions
+> LIRC might still work with I2C IR chips too.
+>
+>   
+I will do my best to help you here.
 
-+#include <media/v4l2-chip-ident.h>
- #include "gspca.h"
+Bye,
+Matthias
 
- MODULE_AUTHOR("Thomas Kaiser thomas@kaiser-linux.li");
-@@ -982,6 +983,55 @@ static int sd_getvflip(struct gspca_dev
- 	return 0;
- }
+-- 
+"Programming today is a race between software engineers striving to build bigger and better idiot-proof programs, and the universe trying to produce bigger and better idiots. So far, the universe is winning." -- Rich Cook
 
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+static int sd_dbg_s_register(struct gspca_dev *gspca_dev,
-+			struct v4l2_dbg_register *reg)
-+{
-+	int ret = -EINVAL;
-+	__u8 index;
-+	__u8 value;
-+
-+	/* reg->reg: bit0..15: reserved for register index (wIndex is 16bit
-+			       long on the USB bus)
-+	*/
-+	if (reg->match.type == V4L2_CHIP_MATCH_HOST &&
-+	    reg->match.addr == 0 &&
-+	    (reg->reg < 0x000000ff) &&
-+	    (reg->val <= 0x000000ff)
-+	) {
-+		/* Currently writing to page 0 is only supported. */
-+		/* reg_w() only supports 8bit index */
-+		index = reg->reg & 0x000000ff;
-+		value = reg->val & 0x000000ff;
-+
-+		/* Note that there shall be no access to other page
-+		   by any other function between the page swith and
-+		   the actual register write */
-+		ret = reg_w(gspca_dev, 0xff, 0x00);	/* page 0 */
-+		if (0 <= ret)
-+			ret = reg_w(gspca_dev, index, value);
-+
-+		if (0 <= ret)
-+			ret = reg_w(gspca_dev, 0xdc, 0x01);
-+	}
-+	return ret;
-+}
-+
-+static int sd_chip_ident(struct gspca_dev *gspca_dev,
-+			struct v4l2_dbg_chip_ident *chip)
-+{
-+	int ret = -EINVAL;
-+
-+	if (chip->match.type == V4L2_CHIP_MATCH_HOST &&
-+	    chip->match.addr == 0) {
-+		chip->revision = 0;
-+		chip->ident = V4L2_IDENT_UNKNOWN;
-+		ret = 0;
-+	}
-+	return ret;
-+}
-+#endif
-+
- /* sub-driver description for pac7302 */
- static struct sd_desc sd_desc = {
- 	.name = MODULE_NAME,
-@@ -994,6 +1044,10 @@ static struct sd_desc sd_desc = {
- 	.stop0 = sd_stop0,
- 	.pkt_scan = sd_pkt_scan,
- 	.dq_callback = do_autogain,
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+	.set_register = sd_dbg_s_register,
-+	.get_chip_ident = sd_chip_ident,
-+#endif
- };
-
- /* -- module initialisation -- */
