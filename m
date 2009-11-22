@@ -1,44 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:56305 "EHLO smtp3-g21.free.fr"
+Received: from mx1.redhat.com ([209.132.183.28]:8996 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752120AbZK1SRM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Nov 2009 13:17:12 -0500
-Received: from smtp3-g21.free.fr (localhost [127.0.0.1])
-	by smtp3-g21.free.fr (Postfix) with ESMTP id 2FF468180C2
-	for <linux-media@vger.kernel.org>; Sat, 28 Nov 2009 19:17:13 +0100 (CET)
-Received: from tele (qrm29-1-82-245-201-222.fbx.proxad.net [82.245.201.222])
-	by smtp3-g21.free.fr (Postfix) with ESMTP id 25B5F81816C
-	for <linux-media@vger.kernel.org>; Sat, 28 Nov 2009 19:17:11 +0100 (CET)
-Date: Sat, 28 Nov 2009 19:17:17 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-Cc: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] gspca sunplus: propagate error for higher level
-Message-ID: <20091128191717.5164a003@tele>
-In-Reply-To: <4B10CD81.7060909@freemail.hu>
-References: <4B093DDD.5@freemail.hu>
-	<4B10CD81.7060909@freemail.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+	id S1754032AbZKVOTp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Nov 2009 09:19:45 -0500
+Message-ID: <4B094A30.3010501@redhat.com>
+Date: Sun, 22 Nov 2009 15:26:56 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: =?UTF-8?B?TWF0ZXVzeiBTenltYcWEc2tp?= <dasiek@onet.eu>
+CC: linux-media@vger.kernel.org
+Subject: Re: libv4l-0.6.2-test problem with compiling on 32 bit
+References: <200911221202.36703.dasiek@onet.eu>
+In-Reply-To: <200911221202.36703.dasiek@onet.eu>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 28 Nov 2009 08:13:05 +0100
-Németh Márton <nm127@freemail.hu> wrote:
+Hi,
 
-> what do you think about this patch?
+On 11/22/2009 12:02 PM, Mateusz SzymaÅ„ski wrote:
+> Good morning, I am using arch linux on 64 bit architecture, this version v4l
+> helped me to rotate view from my webcam, but only in 64 bit apps, like
+> mplayer, I have a problem with compiling it to 32 bits (for skype), I have 32
+> bit libs, but they are in /opt/lib32/usr/lib directory and during the
+> compiling i am receiving an error:
+>
+> [libv4l-0.6.2-test]$ make PREFIX=/usr CFLAGS=-m32 LDFLAGS=-m32
+> LIBDIR=/opt/lib32/usr
+> ...
+> /usr/bin/ld: skipping incompatible /usr/lib/gcc/x86_64-unknown-linux-
+> gnu/4.4.2/../../../librt.so when searching for -lrt
+> /usr/bin/ld: skipping incompatible /usr/lib/gcc/x86_64-unknown-linux-
+> gnu/4.4.2/../../../librt.a when searching for -lrt
+> /usr/bin/ld: skipping incompatible /usr/lib/librt.so when searching for -lrt
+> /usr/bin/ld: skipping incompatible /usr/lib/librt.a when searching for -lrt
+> /usr/bin/ld: cannot find -lrt
+> collect2: ld returned 1 exit status
+> make[1]: *** [libv4lconvert.so] Error 1
+>
+> In /opt/lib32/usr/lib, there are files librt.so and librt.a, but ld doesn't
+> seem to find them.
+>
+> $ cat /etc/ld.so.conf
+> #
+> # /etc/ld.so.conf
+> #
+>
+> # End of file
+> /usr/lib/libfakeroot
+> /opt/lib32/usr/lib
+> /opt/lib32/lib
+>
+> I would be grateful if You could help me with this problem.
+>
 
-Hi Márton,
+This is a problem specific to the way things are set up in your distro,
+please ask for help in one of the fora / mailinglists of your distro.
 
-There are many other drivers where the usb_control_msg() errors are not
-tested nor propagated to higher levels. Generally, this does not matter:
-the errors are signalled at the lowest level, and they seldom occur.
-Thus, I don't think your patch is useful...
+Regards,
 
-Regards.
-
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+hans
