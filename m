@@ -1,280 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from service1.sh.cvut.cz ([147.32.127.214]:39245 "EHLO
-	service1.sh.cvut.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754281AbZKYSOa convert rfc822-to-8bit (ORCPT
+Received: from mail02a.mail.t-online.hu ([84.2.40.7]:57254 "EHLO
+	mail02a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754987AbZKVPtr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2009 13:14:30 -0500
-From: =?utf-8?q?Luk=C3=A1=C5=A1_Karas?= <lukas.karas@centrum.cz>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] add support for IR on FlyDVB Trio (saa7134)
-Date: Wed, 25 Nov 2009 19:14:24 +0100
-References: <200909101412.07415.lukas.karas@centrum.cz> <200910271426.56878.lukas.karas@centrum.cz> <4B0BF68C.10602@infradead.org>
-In-Reply-To: <4B0BF68C.10602@infradead.org>
-Cc: linux-media@vger.kernel.org, Petr Fiala <petr.fiala@gmail.com>
+	Sun, 22 Nov 2009 10:49:47 -0500
+Message-ID: <4B095D9C.2060002@freemail.hu>
+Date: Sun, 22 Nov 2009 16:49:48 +0100
+From: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <200911251914.25259.lukas.karas@centrum.cz>
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: Hans de Goede <hdegoede@redhat.com>, linux-input@vger.kernel.org,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC, PATCH 1/2] gspca: add input support for interrupt endpoints
+References: <4B04F7E0.1090803@freemail.hu> <4B05074B.1030407@redhat.com> <4B0641C2.1050200@freemail.hu> <20091120101951.720e5703@tele> <4B07CC15.9010005@freemail.hu>
+In-Reply-To: <4B07CC15.9010005@freemail.hu>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro, 
+N�meth M�rton wrote:
+> Jean-Francois Moine wrote:
+>> On Fri, 20 Nov 2009 08:14:10 +0100
+>> N�meth M�rton <nm127@freemail.hu> wrote:
+>>> Unfortunately I still get the following error when I start streaming,
+>>> stop streaming or unplug the device:
+>>>
+>>> [ 6876.780726] uhci_hcd 0000:00:10.1: dma_pool_free buffer-32,
+>>> de0ad168/1e0ad168 (bad dma)
+>> As there is no 'break' in gspca_input_create_urb(), many URBs are
+>> created.
+> 
+> I added 'break' in the loop, which makes no real difference because
+> my device have only one interrupt in endpoint. The error message is
+> printed when the usb_buffer_free() is called in gspca_input_destroy_urb():
+> 
+> [ 6362.113264] gspca_input: Freeing buffer
+> [ 6362.113284] uhci_hcd 0000:00:1d.1: dma_pool_free buffer-32, f5ada948/35ada948 (bad dma)
+> [ 6362.113296] gspca_input: Freeing URB
 
-Dne Út 24. listopadu 2009 16:06:52 jste napsal(a): 
-> Hi Lukáš,
-> 
-> Lukáš Karas wrote:
-> > Hi Mauro,
-> >
-> > That isn't problem. Would it help you, if I send this patch as
-> > attachment?
-> >
-> > Regards,
-> > Lukas
-> >
-> > Dne Út 27. října 2009 13:06:22 jste napsal(a):
-> >> Hi Kukáš,
-> >>
-> >> Your patch were line-wrapped, so, I can't apply it. Could you please
-> >>  re-submit if it weren't already merged?
-> >>
-> >> Cheers,
-> >> Mauro.
-> >>
-> >> Em Thu, 10 Sep 2009 14:12:07 +0200
-> >>
-> >> Lukáš Karas <lukas.karas@centrum.cz> escreveu:
-> >>> Hi all, here is patch for driver saa7134, that add support for IR
-> >>> reciever on card LifeView FlyDVB Trio.
-> >>>
-> >>> I tested it on kernel 2.6.30
-> >>>
-> >>>
-> >>> Signed-off-by: Lukas Karas <lukas.karas@centrum.cz>
-> 
-> Your patch had some troubles to compile against upstream. Also, there were
->  some CodingStyle issues.
-> 
-> Could you please see if the fixes I've made didn't break it?
-> 
+The problem was that the URB buffer was allocated with kmalloc() and was freed
+with usb_buffer_free(). The right pair is usb_buffer_alloc() and usb_buffer_free().
 
-Everything is ok, IR works correctly. It was tested on kernel 2.6.31 i386.
+Regards,
 
-Tested-by: Petr Fiala <petr.fiala@gmail.com>
-
-> ---
-> 
-> saa7134: Add support for IR reciever on card LifeView FlyDVB Trio
-> 
-> From: Lukas Karas <lukas.karas@centrum.cz>
-> 
-> Priority: normal
-> 
-> [mchehab@redhat.com: CodingStyle fixes and ported upstream]
-> 
-> Signed-off-by: Lukas Karas <lukas.karas@centrum.cz>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> diff --git a/linux/drivers/media/video/ir-kbd-i2c.c
->  b/linux/drivers/media/video/ir-kbd-i2c.c ---
->  a/linux/drivers/media/video/ir-kbd-i2c.c
-> +++ b/linux/drivers/media/video/ir-kbd-i2c.c
-> @@ -437,6 +437,7 @@ static int ir_probe(struct i2c_client *c
->  		ir_type     = IR_TYPE_RC5;
->  		ir_codes    = &ir_codes_fusionhdtv_mce_table;
->  		break;
-> +	case 0x0b:
->  	case 0x47:
->  	case 0x71:
->  		if (adap->id == I2C_HW_B_CX2388x ||
-> @@ -507,7 +508,7 @@ static int ir_probe(struct i2c_client *c
-> 
->  	/* Make sure we are all setup before going on */
->  	if (!name || !ir->get_key || !ir_type || !ir_codes) {
-> -		dprintk(1, DEVNAME ": Unsupported device at address 0x%02x\n",
-> +		dprintk(1, ": Unsupported device at address 0x%02x\n",
->  			addr);
->  		err = -ENODEV;
->  		goto err_out_free;
-> @@ -715,6 +716,33 @@ static int ir_probe(struct i2c_adapter *
->  			ir_attach(adap, msg[0].addr, 0, 0);
->  	}
-> 
-> +	/* special case for LifeView FlyDVB Trio */
-> +	if (adap->id == I2C_HW_SAA7134) {
-> +		u8 temp = 0;
-> +		msg.buf = &temp;
-> +		msg.addr = 0x0b;
-> +		msg.len = 1;
-> +		msg.flags = 0;
-> +
-> +		/*
-> +		 * send weak up message to pic16C505 chip
-> +		 * @ LifeView FlyDVB Trio
-> +		 */
-> +		if (1 != i2c_transfer(adap, &msg, 1)) {
-> +			dprintk(1, "send wake up byte to pic16C505 failed\n");
-> +		} else {
-> +			msg.flags = I2C_M_RD;
-> +			rc = i2c_transfer(adap, &msg, 1);
-> +			dprintk(1, "probe 0x%02x @ %s: %s\n",
-> +					msg.addr, adap->name,
-> +					(1 == rc) ? "yes" : "no");
-> +			if (1 == rc)
-> +				ir_attach(adap, msg.addr, 0, 0);
-> +		}
-> +		msg.len = 0;
-> +		msg.flags = I2C_M_RD;
-> +	}
-> +
->  	return 0;
->  }
->  #else
-> diff --git a/linux/drivers/media/video/saa7134/saa7134-cards.c
->  b/linux/drivers/media/video/saa7134/saa7134-cards.c ---
->  a/linux/drivers/media/video/saa7134/saa7134-cards.c
-> +++ b/linux/drivers/media/video/saa7134/saa7134-cards.c
-> @@ -7295,9 +7295,31 @@ int saa7134_board_init2(struct saa7134_d
->  	}
->  	case SAA7134_BOARD_FLYDVB_TRIO:
->  	{
-> +		u8 temp = 0;
-> +		int rc;
->  		u8 data[] = { 0x3c, 0x33, 0x62};
->  		struct i2c_msg msg = {.addr=0x09, .flags=0, .buf=data, .len =
->  sizeof(data)}; i2c_transfer(&dev->i2c_adap, &msg, 1);
-> +
-> +		/*
-> +		 * send weak up message to pic16C505 chip
-> +		 * @ LifeView FlyDVB Trio
-> +		 */
-> +		msg.buf = &temp;
-> +		msg.addr = 0x0b;
-> +		msg.len = 1;
-> +		if (1 != i2c_transfer(&dev->i2c_adap, &msg, 1)) {
-> +			printk(KERN_WARNING "%s: send wake up byte to pic16C505"
-> +					"(IR chip) failed\n", dev->name);
-> +		} else {
-> +			msg.flags = I2C_M_RD;
-> +			rc = i2c_transfer(&dev->i2c_adap, &msg, 1);
-> +			printk(KERN_INFO "%s: probe IR chip @ i2c 0x%02x: %s\n",
-> +				   dev->name, msg.addr,
-> +				   (1 == rc) ? "yes" : "no");
-> +			if (rc == 1)
-> +				dev->has_remote = SAA7134_REMOTE_I2C;
-> +		}
->  		break;
->  	}
->  	case SAA7134_BOARD_ADS_DUO_CARDBUS_PTV331:
-> diff --git a/linux/drivers/media/video/saa7134/saa7134-input.c
->  b/linux/drivers/media/video/saa7134/saa7134-input.c ---
->  a/linux/drivers/media/video/saa7134/saa7134-input.c
-> +++ b/linux/drivers/media/video/saa7134/saa7134-input.c
-> @@ -132,6 +132,77 @@ static int build_key(struct saa7134_dev
-> 
->  /* --------------------- Chip specific I2C key builders -----------------
->  */
-> 
-> +static int get_key_flydvb_trio(struct IR_i2c *ir, u32 *ir_key, u32
->  *ir_raw) +{
-> +	int gpio;
-> +	int attempt = 0;
-> +	unsigned char b;
-> +
-> +	/* We need this to access GPI Used by the saa_readl macro. */
-> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 30)
-> +	struct saa7134_dev *dev = ir->c.adapter->algo_data;
-> +#else
-> +	struct saa7134_dev *dev = ir->c->adapter->algo_data;
-> +#endif
-> +
-> +	if (dev == NULL) {
-> +		dprintk("get_key_flydvb_trio: "
-> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 30)
-> +			 "gir->c.adapter->algo_data is NULL!\n");
-> +#else
-> +			 "gir->c->adapter->algo_data is NULL!\n");
-> +#endif
-> +		return -EIO;
-> +	}
-> +
-> +	/* rising SAA7134_GPIGPRESCAN reads the status */
-> +	saa_clearb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
-> +	saa_setb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
-> +
-> +	gpio = saa_readl(SAA7134_GPIO_GPSTATUS0 >> 2);
-> +
-> +	if (0x40000 & ~gpio)
-> +		return 0; /* No button press */
-> +
-> +	/* No button press - only before first key pressed */
-> +	if (b == 0xFF)
-> +		return 0;
-> +
-> +	/* poll IR chip */
-> +	/* weak up the IR chip */
-> +	b = 0;
-> +
-> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 30)
-> +	while (1 != i2c_master_send(&ir->c, &b, 1)) {
-> +#else
-> +	while (1 != i2c_master_send(ir->c, &b, 1)) {
-> +#endif
-> +		if ((attempt++) < 10) {
-> +			/*
-> +			 * wait a bit for next attempt -
-> +			 * I don't know how make it better
-> +			 */
-> +			msleep(10);
-> +			continue;
-> +		}
-> +		i2cdprintk("send wake up byte to pic16C505 (IR chip)"
-> +			   "failed %dx\n", attempt);
-> +		return -EIO;
-> +	}
-> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 30)
-> +	if (1 != i2c_master_recv(&ir->c, &b, 1)) {
-> +#else
-> +	if (1 != i2c_master_recv(ir->c, &b, 1)) {
-> +#endif
-> +		i2cdprintk("read error\n");
-> +		return -EIO;
-> +	}
-> +
-> +	*ir_key = b;
-> +	*ir_raw = b;
-> +	return 1;
-> +}
-> +
->  static int get_key_msi_tvanywhere_plus(struct IR_i2c *ir, u32 *ir_key,
->  				       u32 *ir_raw)
->  {
-> @@ -663,6 +734,7 @@ int saa7134_input_init1(struct saa7134_d
->  		mask_keyup   = 0x020000;
->  		polling      = 50; /* ms */
->  		break;
-> +	break;
->  	}
->  	if (NULL == ir_codes) {
->  		printk("%s: Oops: IR config error [card=%d]\n",
-> @@ -881,6 +953,18 @@ void saa7134_probe_i2c_ir(struct saa7134
->  		info.addr = 0x40;
->  		break;
->  #endif
-> +	case SAA7134_BOARD_FLYDVB_TRIO:
-> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 30)
-> +		snprintf(ir->c.name, sizeof(ir->c.name), "FlyDVB Trio");
-> +		ir->get_key   = get_key_flydvb_trio;
-> +		ir->ir_codes  = ir_codes_flydvb_table;
-> +#else
-> +		dev->init_data.name = "FlyDVB Trio";
-> +		dev->init_data.get_key = get_key_flydvb_trio;
-> +		dev->init_data.ir_codes = &ir_codes_flydvb_table;
-> +		info.addr = 0x0b;
-> +#endif
-> +		break;
->  	default:
->  		dprintk("No I2C IR support for board %x\n", dev->board);
->  		return;
-> 
+	M�rton N�meth
