@@ -1,73 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01a.mail.t-online.hu ([84.2.40.6]:53852 "EHLO
-	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751228AbZKLHXk (ORCPT
+Received: from smtpout.karoo.kcom.com ([212.50.160.34]:60187 "EHLO
+	smtpout.karoo.kcom.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754638AbZKVVII (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Nov 2009 02:23:40 -0500
-Message-ID: <4AFBB7FD.5090607@freemail.hu>
-Date: Thu, 12 Nov 2009 08:23:41 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+	Sun, 22 Nov 2009 16:08:08 -0500
+Received: from [10.1.1.4] (uranus.local [10.1.1.4])
+	by sedna.local (Postfix) with ESMTP id C028C5C1B
+	for <linux-media@vger.kernel.org>; Sun, 22 Nov 2009 21:08:13 +0000 (GMT)
+Message-ID: <4B09A834.3000309@gmail.com>
+Date: Sun, 22 Nov 2009 21:08:04 +0000
+From: Stacey <cardcaptorstacey@gmail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Hans de Goede <hdegoede@redhat.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] v4l2-dbg: report fail reason to the user
-References: <4AF6BA72.4070809@freemail.hu> <200911091116.06578.hverkuil@xs4all.nl> <4AF8F8EB.8090705@freemail.hu>
-In-Reply-To: <4AF8F8EB.8090705@freemail.hu>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: linux-media@vger.kernel.org
+Subject: V4L-DVB modules not loading
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+Sorry, I don't know who to send this to. Not sure if it is a bug or not.
 
-Report the fail reason to the user when writing a register even if
-the verbose mode is switched off.
+I followed your very helpful tutorial perfectly:
+http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers 
+  but it hasn't quite worked.
 
-Remove duplicated code ioctl() call which may cause different ioctl()
-function call in case of verbose and non verbose if not handled carefully.
+I've built the module okay. It installed correctly and copied the files
+into /lib/modules/2.6.31-14-generic/kernel/drivers/media/dvb/dvb-usb.
+After that I rebooted (since it was easier for me). Then I got to the
+"If the Modules load correctly" section to find that nothing has worked
+at all.
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
-diff -r 60f784aa071d v4l2-apps/util/v4l2-dbg.cpp
---- a/v4l2-apps/util/v4l2-dbg.cpp	Wed Nov 11 18:28:53 2009 +0100
-+++ b/v4l2-apps/util/v4l2-dbg.cpp	Thu Nov 12 08:21:20 2009 +0100
-@@ -353,14 +353,21 @@
- static int doioctl(int fd, int request, void *parm, const char *name)
- {
- 	int retVal;
-+	int ioctl_errno;
+I've checked my system log and it's recognising the USB device when I
+enter it but it isn't doing anything with it. The tutorial says you
+should be able to see the modules in /proc/modules but the modules
+folder doesn't even exist. The /dev/dvb/ folder has not been created
+either.
 
- 	if (!options[OptVerbose]) return ioctl(fd, request, parm);
- 	retVal = ioctl(fd, request, parm);
--	printf("%s: ", name);
--	if (retVal < 0)
--		printf("failed: %s\n", strerror(errno));
--	else
--		printf("ok\n");
-+	if (options[OptVerbose]) {
-+		/* Save errno because printf() may modify it */
-+		ioctl_errno = errno;
-+		printf("%s: ", name);
-+		if (retVal < 0)
-+			printf("failed: %s\n", strerror(errno));
-+		else
-+			printf("ok\n");
-+		/* Restore errno for caller's use */
-+		errno = ioctl_errno;
-+	}
+I have a EyeTV Diversity and have the antenna plugged in.
 
- 	return retVal;
- }
-@@ -586,8 +593,8 @@
+I will provide as much information as you need. I really want to get
+this working. :)
 
- 				printf(" set to 0x%llx\n", set_reg.val);
- 			} else {
--				printf("Failed to set register 0x%08llx value 0x%llx\n",
--					set_reg.reg, set_reg.val);
-+				printf("Failed to set register 0x%08llx value 0x%llx: %s\n",
-+					set_reg.reg, set_reg.val, strerror(errno));
- 			}
- 			set_reg.reg++;
- 		}
+Thanks
+~ Stacey
