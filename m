@@ -1,69 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acorn.exetel.com.au ([220.233.0.21]:53442 "EHLO
-	acorn.exetel.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753042AbZKICyR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Nov 2009 21:54:17 -0500
-Message-ID: <20035.64.213.30.2.1257735258.squirrel@webmail.exetel.com.au>
-In-Reply-To: <cd9524450911081801i5e8d97f4nd5864d46a66c676e@mail.gmail.com>
-References: <cd9524450911081743y92a616amfcb8c6c069112240@mail.gmail.com>
-    <829197380911081752x707d9e2bs99f4dc044544d66f@mail.gmail.com>
-    <cd9524450911081801i5e8d97f4nd5864d46a66c676e@mail.gmail.com>
-Date: Mon, 9 Nov 2009 13:54:18 +1100 (EST)
-Subject: Re: bisected regression in tuner-xc2028 on DVICO dual digital 4
-From: "Robert Lowery" <rglowery@exemail.com.au>
-To: "Barry Williams" <bazzawill@gmail.com>
-Cc: "Devin Heitmueller" <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4249 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753778AbZKVTxo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Nov 2009 14:53:44 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id nAMJrnWU075450
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 22 Nov 2009 20:53:49 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 22 Nov 2009 20:53:49 +0100 (CET)
+Message-Id: <200911221953.nAMJrnWU075450@smtp-vbr1.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> On Mon, Nov 9, 2009 at 12:22 PM, Devin Heitmueller
-> <dheitmueller@kernellabs.com> wrote:
->> On Sun, Nov 8, 2009 at 8:43 PM, Barry Williams <bazzawill@gmail.com>
->> wrote:
->>> Hi Devin
->>> I tried your tree and I seem to get the same problem on one box I get
->>> the flood of 'dvb-usb: bulk message failed: -110 (1/0'.
->> <snip>
->>
->> Can you please confirm the USB ID of the board you are having the
->> problem with (by running "lsusb" from a terminal window)?
->>
->> Thanks,
->>
->> Devin
->> --
->
->
-> On the first box I have
-> Bus 003 Device 003: ID 0fe9:db98 DVICO
-> Bus 003 Device 002: ID 0fe9:db98 DVICO
->
-> on the second
-> Bus 001 Device 003: ID 0fe9:db78 DVICO FusionHDTV DVB-T Dual Digital 4
-> (ZL10353+xc2028/xc3028) (initialized)
-> Bus 001 Device 002: ID 0fe9:db78 DVICO FusionHDTV DVB-T Dual Digital 4
-> (ZL10353+xc2028/xc3028) (initialized)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-Barry,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-I have the Dual Digital 4 rev1 card which corresponds to the 0fe9:db78
-card.  0fe9:db98 is the Dual Digital 4 rev2 card which I believe uses
-completely different hardware and it's behavior is unchanged by my patch
-which only targets the rev1 card.
+Results of the daily build of v4l-dvb:
 
-I suspect the problems you are still reporting are from the different
-cards, completely unrelated to my fix.
+date:        Sun Nov 22 19:00:05 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13372:8bff7e6c44d4
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Would you be able to retest after removing the rev2 cards from the machine?
+linux-2.6.22.19-armv5: WARNINGS
+linux-2.6.23.12-armv5: WARNINGS
+linux-2.6.24.7-armv5: WARNINGS
+linux-2.6.25.11-armv5: WARNINGS
+linux-2.6.26-armv5: WARNINGS
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29.1-armv5: WARNINGS
+linux-2.6.30-armv5: WARNINGS
+linux-2.6.31-armv5: WARNINGS
+linux-2.6.32-rc8-armv5: OK
+linux-2.6.32-rc8-armv5-davinci: ERRORS
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.31-armv5-ixp: WARNINGS
+linux-2.6.32-rc8-armv5-ixp: OK
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.32-rc8-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-rc8-i686: WARNINGS
+linux-2.6.23.12-m32r: WARNINGS
+linux-2.6.24.7-m32r: WARNINGS
+linux-2.6.25.11-m32r: WARNINGS
+linux-2.6.26-m32r: WARNINGS
+linux-2.6.27-m32r: WARNINGS
+linux-2.6.28-m32r: WARNINGS
+linux-2.6.29.1-m32r: WARNINGS
+linux-2.6.30-m32r: WARNINGS
+linux-2.6.31-m32r: WARNINGS
+linux-2.6.32-rc8-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: WARNINGS
+linux-2.6.32-rc8-mips: OK
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: WARNINGS
+linux-2.6.32-rc8-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-rc8-x86_64: WARNINGS
+sparse (linux-2.6.31): OK
+sparse (linux-2.6.32-rc8): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
--Rob
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
