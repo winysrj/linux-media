@@ -1,88 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:36291 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750845AbZKHV26 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Nov 2009 16:28:58 -0500
-Date: Sun, 8 Nov 2009 22:28:45 +0100 (CET)
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Subject: [PATCH 1/4] firedtv: move remote control workqueue handling into rc
- source file
-To: linux-media@vger.kernel.org
-cc: linux1394-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
-In-Reply-To: <tkrat.ce889fb60854a648@s5r6.in-berlin.de>
-Message-ID: <tkrat.fb15c3478b505864@s5r6.in-berlin.de>
-References: <tkrat.ce889fb60854a648@s5r6.in-berlin.de>
+Received: from mail02a.mail.t-online.hu ([84.2.40.7]:60366 "EHLO
+	mail02a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754567AbZKVPz0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Nov 2009 10:55:26 -0500
+Message-ID: <4B095EEF.9070205@freemail.hu>
+Date: Sun, 22 Nov 2009 16:55:27 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=us-ascii
-Content-Disposition: INLINE
+To: Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/2] gspca pac7302: add support for camera button
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Preparation for the port of firedtv to the firewire-core kernel API:
-Canceling of the remote control workqueue job is factored into
-firedtv-rc.c.  Plus trivial whitespace change.
+From: Márton Németh <nm127@freemail.hu>
 
-Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Add support for snapshot button found on Labtec Webcam 2200
+(USB ID 093a:2626).
+
+Signed-off-by: Márton Németh <nm127@freemail.hu>
 ---
- drivers/media/dvb/firewire/firedtv-1394.c |    5 +++--
- drivers/media/dvb/firewire/firedtv-rc.c   |    2 ++
- 2 files changed, 5 insertions(+), 2 deletions(-)
+diff -r bc16afd1e7a4 linux/drivers/media/video/gspca/pac7302.c
+--- a/linux/drivers/media/video/gspca/pac7302.c	Sat Nov 21 12:01:36 2009 +0100
++++ b/linux/drivers/media/video/gspca/pac7302.c	Sun Nov 22 16:40:34 2009 +0100
+@@ -68,8 +68,10 @@
 
-Index: linux-2.6.31.4/drivers/media/dvb/firewire/firedtv-1394.c
-===================================================================
---- linux-2.6.31.4.orig/drivers/media/dvb/firewire/firedtv-1394.c
-+++ linux-2.6.31.4/drivers/media/dvb/firewire/firedtv-1394.c
-@@ -212,6 +212,7 @@ static int node_probe(struct device *dev
- 		goto fail;
- 
- 	avc_register_remote_control(fdtv);
-+
- 	return 0;
- fail:
- 	spin_lock_irq(&node_list_lock);
-@@ -220,6 +221,7 @@ fail:
- 	fdtv_unregister_rc(fdtv);
- fail_free:
- 	kfree(fdtv);
-+
- 	return err;
- }
- 
-@@ -233,10 +235,9 @@ static int node_remove(struct device *de
- 	list_del(&fdtv->list);
- 	spin_unlock_irq(&node_list_lock);
- 
--	cancel_work_sync(&fdtv->remote_ctrl_work);
- 	fdtv_unregister_rc(fdtv);
--
- 	kfree(fdtv);
-+
- 	return 0;
- }
- 
-Index: linux-2.6.31.4/drivers/media/dvb/firewire/firedtv-rc.c
-===================================================================
---- linux-2.6.31.4.orig/drivers/media/dvb/firewire/firedtv-rc.c
-+++ linux-2.6.31.4/drivers/media/dvb/firewire/firedtv-rc.c
-@@ -14,6 +14,7 @@
- #include <linux/kernel.h>
- #include <linux/string.h>
- #include <linux/types.h>
-+#include <linux/workqueue.h>
- 
- #include "firedtv.h"
- 
-@@ -163,6 +164,7 @@ fail:
- 
- void fdtv_unregister_rc(struct firedtv *fdtv)
- {
-+	cancel_work_sync(&fdtv->remote_ctrl_work);
- 	kfree(fdtv->remote_ctrl_dev->keycode);
- 	input_unregister_device(fdtv->remote_ctrl_dev);
- }
+ #define MODULE_NAME "pac7302"
 
--- 
-Stefan Richter
--=====-==--= =-== -=---
-http://arcgraph.de/sr/
++#include <linux/input.h>
+ #include <media/v4l2-chip-ident.h>
+ #include "gspca.h"
++#include "input.h"
+
+ MODULE_AUTHOR("Thomas Kaiser thomas@kaiser-linux.li");
+ MODULE_DESCRIPTION("Pixart PAC7302");
+@@ -1220,6 +1222,37 @@
+ }
+ #endif
+
++#ifdef CONFIG_INPUT
++static int sd_int_pkt_scan(struct gspca_dev *gspca_dev,
++			u8 *data,		/* interrupt packet data */
++			int len)		/* interrput packet length */
++{
++	int ret = -EINVAL;
++	u8 data0, data1;
++
++	if (len == 2) {
++		data0 = data[0];
++		data1 = data[1];
++		if ((data0 == 0x00 && data1 == 0x11) ||
++		    (data0 == 0x22 && data1 == 0x33) ||
++		    (data0 == 0x44 && data1 == 0x55) ||
++		    (data0 == 0x66 && data1 == 0x77) ||
++		    (data0 == 0x88 && data1 == 0x99) ||
++		    (data0 == 0xaa && data1 == 0xbb) ||
++		    (data0 == 0xcc && data1 == 0xdd) ||
++		    (data0 == 0xee && data1 == 0xff)) {
++			input_report_key(gspca_dev->input_dev, KEY_CAMERA, 1);
++			input_sync(gspca_dev->input_dev);
++			input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
++			input_sync(gspca_dev->input_dev);
++			ret = 0;
++		}
++	}
++
++	return ret;
++}
++#endif
++
+ /* sub-driver description for pac7302 */
+ static struct sd_desc sd_desc = {
+ 	.name = MODULE_NAME,
+@@ -1235,6 +1268,9 @@
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.set_register = sd_dbg_s_register,
+ 	.get_chip_ident = sd_chip_ident,
++#endif
++#ifdef CONFIG_INPUT
++	.int_pkt_scan = sd_int_pkt_scan,
+ #endif
+ };
 
