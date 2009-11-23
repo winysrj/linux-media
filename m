@@ -1,56 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f226.google.com ([209.85.217.226]:38511 "EHLO
-	mail-gx0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753939AbZKDSmv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2009 13:42:51 -0500
-Received: by gxk26 with SMTP id 26so5029382gxk.1
-        for <linux-media@vger.kernel.org>; Wed, 04 Nov 2009 10:42:56 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <200911042033.48257.opensource@andmarios.com>
-References: <200909281850.25492.opensource@andmarios.com>
-	 <200909281909.15028.opensource@andmarios.com>
-	 <829197380910150853l6797a053qd2d9e05ec3b7552e@mail.gmail.com>
-	 <200911042033.48257.opensource@andmarios.com>
-Date: Wed, 4 Nov 2009 13:42:55 -0500
-Message-ID: <829197380911041042l1413e767vf96a0babbc4c78b0@mail.gmail.com>
-Subject: Re: [linux-dvb] KWORLD 323U, kernel panic when trying to access ALSA
-	interface
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Received: from n64.bullet.mail.sp1.yahoo.com ([98.136.44.189]:43306 "HELO
+	n64.bullet.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751781AbZKWSBA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Nov 2009 13:01:00 -0500
+Message-ID: <754577.88092.qm@web110614.mail.gq1.yahoo.com>
+Date: Mon, 23 Nov 2009 10:01:06 -0800 (PST)
+From: Dominic Fernandes <dalf198@yahoo.com>
+Subject: Compile error saa7134 - compro videomate S350
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/11/4 Marios Andreopoulos <opensource@andmarios.com>:
-> Just a small update.
->
-> After this message of yours: http://www.linuxtv.org/pipermail/linux-dvb/2009-October/032442.html
-> I tried again the v4l-dvb tree and now my card works without problems!
->
-> I don’t know what the problem was with your tree. I think another tree I had used previously copied it’s modules to a non standard location in /lib/modules/current-kernel/ and thus its modules took precedence over the kernels’, yours’ or v4l-dvb’s modules.
->
-> It just happened that I upgraded my kernel recently and found out that v4l-dvb works now.
->
-> Thanks!
+Hi,
 
-Well the fix I mentioned for the audio panic was merged on October
-29th (and that's the only change that's been made to the driver in
-five months).  This makes me think that perhaps you made some mistake
-when you tried out the testing tree I sent you.
+I need help to compile v4l-dvb drivers for saa7134 modules. 
+I'm new to v4l-dvb not sure how to get past the errors concerning
+undefined declarations found in saa7134-inputs.c file for the videomate
+S350 board, saying ir_codes, mask_keycodes, mask_keydown as undeclared:
 
-Regardless, it's a relief to hear that it's working for you now, since
-I didn't have any idea what the problem could be if it wasn't the
-crash that I fixed.
+snip:-
 
-I'll see about getting this backported to stable, since 2.6.31 users
-are likely to hit this issue as they upgrade to newer distros (such as
-the recently released Ubuntu 9.10).
+make[2]: Entering directory `/usr/src/linux-headers-2.6.31-14-generic'
+  CC [M]  /home/tvbox/v4l-dvb/v4l/saa7134-input.o
+/home/tvbox/v4l-dvb/v4l/saa7134-input.c: In function 'build_key':
+/home/tvbox/v4l-dvb/v4l/saa7134-input.c:90: error: 'ir_codes' undeclared (first use in this function)
+/home/tvbox/v4l-dvb/v4l/saa7134-input.c:90: error: (Each undeclared identifier is reported only once
+/home/tvbox/v4l-dvb/v4l/saa7134-input.c:90: error: for each function it appears in.)
+/home/tvbox/v4l-dvb/v4l/saa7134-input.c:90: error: 'ir_codes_videomate_s350' undeclared (first use in this function)
+/home/tvbox/v4l-dvb/v4l/saa7134-input.c:91: error: 'mask_keycode' undeclared (first use in this function)
+/home/tvbox/v4l-dvb/v4l/saa7134-input.c:92: error: 'mask_keydown' undeclared (first use in this function)
+make[3]: *** [/home/tvbox/v4l-dvb/v4l/saa7134-input.o] Error 1
+make[2]: *** [_module_/home/tvbox/v4l-dvb/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-headers-2.6.31-14-generic'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/home/tvbox/v4l-dvb/v4l'
+make: *** [all] Error 2
 
-Cheers,
+background:
+Justbought last week a new compro videomate s350 (dvb-s) card after seeing
+some positive feedback on forumes saying it is working.  But the card I
+got has a newer chip set incorporating a saa7135 device and after some
+searching found someone else also had the same issue back in June but
+managed to fix it with a few changes.  I trying to re-produce the
+actions (see link below) and re-build the drivers but I'm stuck at the
+compile stage (make all). 
 
-Devin
+http://osdir.com/ml/linux-media/2009-06/msg01256.html
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Can someone advise me on how get past the make error?
+
+Thanks,
+Dominic
+
+
+
+      
+
