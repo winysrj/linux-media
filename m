@@ -1,84 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-06.arcor-online.net ([151.189.21.46]:34204 "EHLO
-	mail-in-06.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751277AbZK3BbB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2009 20:31:01 -0500
-Subject: Re: Compile error saa7134 - compro videomate S350
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Dominic Fernandes <dalf198@yahoo.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <721764.95451.qm@web110610.mail.gq1.yahoo.com>
-References: <754577.88092.qm@web110614.mail.gq1.yahoo.com>
-	 <1259025174.5511.24.camel@pc07.localdom.local>
-	 <990417.69725.qm@web110607.mail.gq1.yahoo.com>
-	 <1259107698.2535.10.camel@localhost>
-	 <623705.13034.qm@web110608.mail.gq1.yahoo.com>
-	 <1259172867.3335.7.camel@pc07.localdom.local>
-	 <214960.24182.qm@web110609.mail.gq1.yahoo.com>
-	 <1259360050.6061.22.camel@pc07.localdom.local>
-	 <8049.95935.qm@web110610.mail.gq1.yahoo.com>
-	 <1259363687.6061.45.camel@pc07.localdom.local>
-	 <721764.95451.qm@web110610.mail.gq1.yahoo.com>
-Content-Type: text/plain
-Date: Mon, 30 Nov 2009 02:29:25 +0100
-Message-Id: <1259544565.4436.27.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from znsun1.ifh.de ([141.34.1.16]:35710 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757118AbZKWMYe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Nov 2009 07:24:34 -0500
+Date: Mon, 23 Nov 2009 13:24:34 +0100 (CET)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: grafgrimm77@gmx.de
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: dibusb-common.c FE_HAS_LOCK problem
+In-Reply-To: <20091123123338.7273255b@x2.grafnetz>
+Message-ID: <alpine.LRH.2.00.0911231321270.14263@pub1.ifh.de>
+References: <20091107105614.7a51f2f5@x2.grafnetz> <alpine.LRH.2.00.0911191630250.12734@pub2.ifh.de> <20091121182514.61b39d23@x2.grafnetz> <alpine.LRH.2.00.0911230947540.14263@pub1.ifh.de> <20091123120310.5b10c9cc@x2.grafnetz> <alpine.LRH.2.00.0911231206450.14263@pub1.ifh.de>
+ <20091123123338.7273255b@x2.grafnetz>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dominic,
+On Mon, 23 Nov 2009, grafgrimm77@gmx.de wrote:
+> [..]
+> ----- hello stupid I2C access ----
+> Pid: 255, comm: khubd Tainted: P       A   2.6.31.6 #1
+> Call Trace:
+> [<ffffffffa0042292>] ? dibusb_i2c_xfer+0xe2/0x130 [dvb_usb_dibusb_common]
+> [<ffffffff81341dc1>] ? i2c_transfer+0x91/0xe0
+> [<ffffffffa0059081>] ? dib3000_write_reg+0x51/0x70 [dib3000mb]
+> [<ffffffffa00855c9>] ? dvb_pll_attach+0xa9/0x238 [dvb_pll]
+> [..]
 
-Am Samstag, den 28.11.2009, 17:30 -0800 schrieb Dominic Fernandes: 
-> Hi Hermann,
-> 
-> I'm getting closer!!! 
-> 
-> I'm using ubuntu 9.10, unloading saa7134 alsa wasn't working for me so I put it into the blacklist which prevented it from loading and then I was able to do the "modprobe -vr saa7134-alsa saa7134-dvb" and "modprobe -v saa7134 card=16". 
-> 
-> And now the card recongnised correctly as the S350 and the dvb frontend loads.  
-> 
-> So, now I've plugged in the cable to the SAT dish which is pointing to Astra 19.2 and want to tune into some channels.
-> I installed dvb-apps and use the command below to create a channels.conf to use later:-
-> 
-> scan -x0 /usr/share/dvb/dvb-s/Astra-19.2E | tee channels.conf
-> 
-> but this soon concludes with tunning finished with no channels found.  I get a warning >>> tuning failed.
-> 
-> So, I tried both the modification of the GPIO address of xc0000 and what it 
-> was originally x8000 which gave the same tuning failed message.
-> 
-> Are there some other commands to test the DVB Frontend?
+Voila.
 
-if Astra-19.2E is unchanged in dvb-apps, it has not much.
+This is the access with makes the dvb-pll-driver not create the tuner 
+driver.
 
-# Astra 19.2E SDT info service transponder
-# freq pol sr fec
-S 12551500 V 22000000 5/6
+This is (I forgot the correct name) read-without-write-i2caccess. It is 
+bad handled by the dibusb-driver and it can destroy the eeprom on the USB 
+side.
 
-We don't even know if 13 and 18 Volts to the LNB work both for sure with
-that variant, IIRC. The report says just somehow works.
+Please try whether the attached patch fixes the whole situation for you.
 
-I think I would try with some peace of copper from a LNB cable into the
-RF connector and a Voltmeter, if there is any sign of life first, either
-using kaffeine with better files for scanning or the "setvoltage" tool
-in /test.
+If so, please send back a line like this:
 
-You might want to set dvb_powerdown_on_sleep=0 for dvb_core.
+Tested-by: Your name <email>
 
-For the other saa7134 driver cards currently is hacked on,
+thanks,
+--
 
-For Dominic with the Leadtek on the saa7134 driver, Terry, me or anyone
-else interested should provide some test patches.
-
-Why that AverMedia analog only in the Ukraine doesn't have sound even on
-PAL around there, is beyond my imagination, except it would not have
-ever been tested for TV sound, also beyond what I can imagine.
-
-Any log for obviously failing sound carrier detection is still missing.
-
-Cheers,
-Hermann
-
-
+Patrick
+http://www.kernellabs.com/
