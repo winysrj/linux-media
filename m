@@ -1,71 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:34679 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757000AbZKCCBS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Nov 2009 21:01:18 -0500
-Received: by bwz27 with SMTP id 27so7043010bwz.21
-        for <linux-media@vger.kernel.org>; Mon, 02 Nov 2009 18:01:22 -0800 (PST)
+Received: from hp3.statik.tu-cottbus.de ([141.43.120.68]:54324 "EHLO
+	hp3.statik.tu-cottbus.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755219AbZKWQTv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Nov 2009 11:19:51 -0500
+Message-ID: <4B0AB60B.2030006@s5r6.in-berlin.de>
+Date: Mon, 23 Nov 2009 17:19:23 +0100
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
 MIME-Version: 1.0
-In-Reply-To: <hcnsfa$v70$1@ger.gmane.org>
-References: <hcnd9s$c1f$1@ger.gmane.org> <20091102231735.63fd30c4@bk.ru>
-	 <hcnsfa$v70$1@ger.gmane.org>
-Date: Tue, 3 Nov 2009 02:01:21 +0000
-Message-ID: <a413d4880911021801t54d4eca8ra425c0957d8a6eb7@mail.gmail.com>
-Subject: Re: [linux-dvb] Struggling with Astra 2D (Freesat) / Happauage
-	Nova-HD-S2
-From: Another Sillyname <anothersname@googlemail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=KOI8-R
-Content-Transfer-Encoding: 8BIT
+To: Krzysztof Halasa <khc@pm.waw.pl>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@redhat.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	linux-kernel@vger.kernel.org,
+	Mario Limonciello <superm1@ubuntu.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Janne Grunau <j@jannau.net>,
+	Christoph Bartelmus <lirc@bartelmus.de>
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
+ Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+References: <200910200956.33391.jarod@redhat.com>	<200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com>	<4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain>
+In-Reply-To: <m36391tjj3.fsf@intrepid.localdomain>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/11/3 TD <topper.doggle@googlemail.com>:
-> On 2009-11-02, Goga777 <goga777@bk.ru> wrote:
->> ðÒÉ×ÅÔÓÔ×ÕÀ, TD
->>
->> you have to use scan-s2
->> http://mercurial.intuxication.org/hg/scan-s2
->
-> Hi, and thanks for your quick reply.
->
-> I tried it but no better:
-> <snip>
-> initial transponder DVB-S š12692000 V 19532000 1/2 AUTO AUTO
-> initial transponder DVB-S2 12692000 V 19532000 1/2 AUTO AUTO
-> ----------------------------------> Using DVB-S
->>>> tune to: 11720:hC34S0:S0.0W:29500:
-> DVB-S IF freq is 1120000
-> WARNING: >>> tuning failed!!!
->>>> tune to: 11720:hC34S0:S0.0W:29500: (tuning failed)
->
-> and the channels.conf was no better than before - it didn't include *one* BBC
-> channel, for example.
->
->>
->> or
->>
->> dvb2010 scan
->> http://hg.kewl.org/dvb2010/
->
-> Once I got it working, same:
-> Astra 2A/2B/2D/Eurobird 1 (28.2E) 10714 H DVB-S QPSK 22000 5/6 ONID:0 TID:0
-> AGC:0% SNR:0%
-> š šCan't tune
->
-> Astra 2A/2B/2D/Eurobird 1 (28.2E) 10729 V DVB-S QPSK 22000 5/6 ONID:0 TID:0
-> AGC:0% SNR:0%
-> š šCan't tune
->
-> Where do I go from here?
-> --
-> TD
->
->
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Krzysztof Halasa wrote:
+> Mauro Carvalho Chehab <mchehab@redhat.com> writes:
+> 
+>> Event input has the advantage that the keystrokes will provide an unique
+>> representation that is independent of the device.
+> 
+> This can hardly work as the only means, the remotes have different keys,
+> the user almost always has to provide customized key<>function mapping.
 
-Are you running myth .21 or .22?
+Modern input drivers in the mainline kernel have a scancode-to-keycode
+translation table (or equivalent) which can be overwritten by userspace.
+The mechanism to do that is the EVIOCSKEYCODE ioctl.
+
+(This is no recommendation for lirc.  I have no idea whether a
+pulse/space -> scancode -> keycode translation would be practical there.)
+-- 
+Stefan Richter
+-=====-==--= =-== =-===
+http://arcgraph.de/sr/
