@@ -1,128 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60759 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755459AbZKTVnb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2009 16:43:31 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	khilman@deeprootsystems.com
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH 2/2] DaVinci - vpfe capture - converting ccdc to platform driver
-Date: Fri, 20 Nov 2009 16:43:34 -0500
-Message-Id: <1258753414-11514-2-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1258753414-11514-1-git-send-email-m-karicheri2@ti.com>
-References: <1258753414-11514-1-git-send-email-m-karicheri2@ti.com>
+Received: from mail-fx0-f213.google.com ([209.85.220.213]:34983 "EHLO
+	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751505AbZKWRJS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Nov 2009 12:09:18 -0500
+Received: by fxm5 with SMTP id 5so4865060fxm.28
+        for <linux-media@vger.kernel.org>; Mon, 23 Nov 2009 09:09:24 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1258978370.3058.25.camel@palomino.walls.org>
+References: <1257913905.28958.32.camel@palomino.walls.org>
+	 <829197380911221904uedc18e5qbc9a37cfcee23b5d@mail.gmail.com>
+	 <1258978370.3058.25.camel@palomino.walls.org>
+Date: Mon, 23 Nov 2009 12:09:22 -0500
+Message-ID: <829197380911230909u27f6df33icbbc52c5268a1658@mail.gmail.com>
+Subject: Re: cx18: Reprise of YUV frame alignment improvements
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Andy Walls <awalls@radix.net>
+Cc: ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+On Mon, Nov 23, 2009 at 7:12 AM, Andy Walls <awalls@radix.net> wrote:
+> 5. If you don't give an MDL back to the firmware, it never uses it
+> again.  That's why you see the sweep-up log messages.  As soon as an MDL
+> is skipped *on the order of the depth* of q_busy times, when looking for
+> the currently DMA_DONE'd MDL, that skipped MDL must have been dropped.
+> It is picked up and put back into rotation then.
 
-This is the platform part for converting ccdc to platform driver.
+Perhaps I am misinterpreting the definition of "sweep-up" in this
+context.  Don't the buffers get forcefully returned to the pool at
+that point?  If so, why would I see the same error over and over long
+after the CPU utilization has dropped back to a reasonable level.
 
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
-Applies to linux-davinci tree
- arch/arm/mach-davinci/dm355.c  |   27 +++++++++++++++------------
- arch/arm/mach-davinci/dm644x.c |   18 +++++++++++++++++-
- 2 files changed, 32 insertions(+), 13 deletions(-)
+I feel like I must be missing something here.
 
-diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-davinci/dm355.c
-index dedf4d4..045cb0d 100644
---- a/arch/arm/mach-davinci/dm355.c
-+++ b/arch/arm/mach-davinci/dm355.c
-@@ -701,6 +701,10 @@ static struct resource vpfe_resources[] = {
- 		.end            = IRQ_VDINT1,
- 		.flags          = IORESOURCE_IRQ,
- 	},
-+};
-+
-+static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
-+static struct resource dm355_ccdc_resource[] = {
- 	/* CCDC Base address */
- 	{
- 		.flags          = IORESOURCE_MEM,
-@@ -708,8 +712,17 @@ static struct resource vpfe_resources[] = {
- 		.end            = 0x01c70600 + 0x1ff,
- 	},
- };
-+static struct platform_device dm355_ccdc_dev = {
-+	.name           = "dm355_ccdc",
-+	.id             = -1,
-+	.num_resources  = ARRAY_SIZE(dm355_ccdc_resource),
-+	.resource       = dm355_ccdc_resource,
-+	.dev = {
-+		.dma_mask               = &vpfe_capture_dma_mask,
-+		.coherent_dma_mask      = DMA_BIT_MASK(32),
-+	},
-+};
- 
--static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
- static struct platform_device vpfe_capture_dev = {
- 	.name		= CAPTURE_DRV_NAME,
- 	.id		= -1,
-@@ -860,17 +873,7 @@ static int __init dm355_init_devices(void)
- 	davinci_cfg_reg(DM355_INT_EDMA_CC);
- 	platform_device_register(&dm355_edma_device);
- 	platform_device_register(&dm355_vpss_device);
--	/*
--	 * setup Mux configuration for vpfe input and register
--	 * vpfe capture platform device
--	 */
--	davinci_cfg_reg(DM355_VIN_PCLK);
--	davinci_cfg_reg(DM355_VIN_CAM_WEN);
--	davinci_cfg_reg(DM355_VIN_CAM_VD);
--	davinci_cfg_reg(DM355_VIN_CAM_HD);
--	davinci_cfg_reg(DM355_VIN_YIN_EN);
--	davinci_cfg_reg(DM355_VIN_CINL_EN);
--	davinci_cfg_reg(DM355_VIN_CINH_EN);
-+	platform_device_register(&dm355_ccdc_dev);
- 	platform_device_register(&vpfe_capture_dev);
- 
- 	return 0;
-diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
-index 2cd0081..982be1f 100644
---- a/arch/arm/mach-davinci/dm644x.c
-+++ b/arch/arm/mach-davinci/dm644x.c
-@@ -612,6 +612,11 @@ static struct resource vpfe_resources[] = {
- 		.end            = IRQ_VDINT1,
- 		.flags          = IORESOURCE_IRQ,
- 	},
-+};
-+
-+static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
-+static struct resource dm644x_ccdc_resource[] = {
-+	/* CCDC Base address */
- 	{
- 		.start          = 0x01c70400,
- 		.end            = 0x01c70400 + 0xff,
-@@ -619,7 +624,17 @@ static struct resource vpfe_resources[] = {
- 	},
- };
- 
--static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
-+static struct platform_device dm644x_ccdc_dev = {
-+	.name           = "dm644x_ccdc",
-+	.id             = -1,
-+	.num_resources  = ARRAY_SIZE(dm644x_ccdc_resource),
-+	.resource       = dm644x_ccdc_resource,
-+	.dev = {
-+		.dma_mask               = &vpfe_capture_dma_mask,
-+		.coherent_dma_mask      = DMA_BIT_MASK(32),
-+	},
-+};
-+
- static struct platform_device vpfe_capture_dev = {
- 	.name		= CAPTURE_DRV_NAME,
- 	.id		= -1,
-@@ -772,6 +787,7 @@ static int __init dm644x_init_devices(void)
- 	platform_device_register(&dm644x_edma_device);
- 	platform_device_register(&dm644x_emac_device);
- 	platform_device_register(&dm644x_vpss_device);
-+	platform_device_register(&dm644x_ccdc_dev);
- 	platform_device_register(&vpfe_capture_dev);
- 
- 	return 0;
+1.  CPU load goes up (ok)
+2.  Packets start to get dropped (expected)
+3.  CPU load goes back down (ok)
+4.  Packets continue to get dropped and never recycled, even after
+minutes of virtually no CPU load?
+
+I can totally appreciate the notion that the video would look choppy
+when the system is otherwise under high load, but my expectation would
+be that once the load drops back to 0, the video should look fine
+(perhaps with some small window of time where it is still recovering).
+
+Devin
+
 -- 
-1.6.0.4
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
