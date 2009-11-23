@@ -1,134 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from n4-vm0.bullet.mail.gq1.yahoo.com ([67.195.9.7]:33891 "HELO
-	n4-vm0.bullet.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S933816AbZKXSBd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Nov 2009 13:01:33 -0500
-Message-ID: <990417.69725.qm@web110607.mail.gq1.yahoo.com>
-References: <754577.88092.qm@web110614.mail.gq1.yahoo.com> <1259025174.5511.24.camel@pc07.localdom.local>
-Date: Tue, 24 Nov 2009 10:01:37 -0800 (PST)
-From: Dominic Fernandes <dalf198@yahoo.com>
-Subject: Re: Compile error saa7134 - compro videomate S350
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <1259025174.5511.24.camel@pc07.localdom.local>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from mail1.radix.net ([207.192.128.31]:61699 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756585AbZKWMOv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Nov 2009 07:14:51 -0500
+Subject: Re: cx18: Reprise of YUV frame alignment improvements
+From: Andy Walls <awalls@radix.net>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
+In-Reply-To: <829197380911221904uedc18e5qbc9a37cfcee23b5d@mail.gmail.com>
+References: <1257913905.28958.32.camel@palomino.walls.org>
+	 <829197380911221904uedc18e5qbc9a37cfcee23b5d@mail.gmail.com>
+Content-Type: text/plain
+Date: Mon, 23 Nov 2009 07:12:50 -0500
+Message-Id: <1258978370.3058.25.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hermann,
-
-Thanks for responding. I managed to do the compile and install this time without errors on a fresh copy of the v4l-dvb drivers.
- 
-However, from the thread (link) it said  Changing the PCI Vendor
-ID to 0x7133 in the S350 patch, - which file and location would specify this?
-
-At the moment the dvb-s card is recognised as the compro T750 card (I made the other mod of changing the gpio to xc000 in saa7134-cards):
-
-   6.008121] saa7130/34: v4l2 driver version 0.2.15 loaded
-[    6.008173] saa7134 0000:03:01.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
-[    6.008180] saa7133[0]: found at 0000:03:01.0, rev: 209, irq: 17, latency: 64, mmio: 0xcfcff000
-[    6.008186] saa7133[0]: subsystem: 185b:c900, board: Compro VideoMate T750 [card=139,autodetected]
-[    6.008200] saa7133[0]: board init: gpio is 843f00
-[    6.008205] IRQ 17/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-[    6.160030] saa7133[0]: i2c eeprom 00: 5b 18 00 c9 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
-[    6.160052] saa7133[0]: i2c eeprom 10: 00 ff 86 0f ff 20 ff ff ff ff ff ff ff ff ff ff
-[    6.160071] saa7133[0]: i2c eeprom 20: 01 40 01 02 02 01 03 01 08 ff 00 87 ff ff ff ff
-[    6.160091] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[    6.160109] saa7133[0]: i2c eeprom 40: ff d6 00 c0 86 1c 02 01 02 ff ff ff ff ff ff ff
-[    6.160133] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff cb
-[    6.160144] saa7133[0]: i2c eeprom 60: 35 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[    6.160156] saa7133[0]: i2c eeprom 70: 00 00 00 01 4e c1 ff ff ff ff ff ff ff ff ff ff
-[    6.160167] saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[    6.160178] saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[    6.160190] saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[    6.160201] saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[    6.160212] saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[    6.160223] saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[    6.160235] saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[    6.160246] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[    6.313949] saa7133[0]: registered device video0 [v4l2]
-[    6.313978] saa7133[0]: registered device vbi0
-[    6.314003] saa7133[0]: registered device radio0
-
-thanks,
-Dominic
-
-
-
-
-
------ Original Message ----
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Dominic Fernandes <dalf198@yahoo.com>
-Cc: linux-media@vger.kernel.org
-Sent: Tue, November 24, 2009 1:12:54 AM
-Subject: Re: Compile error saa7134 - compro videomate S350
-
-Hi Dominic,
-
-Am Montag, den 23.11.2009, 10:01 -0800 schrieb Dominic Fernandes:
-> Hi,
+On Sun, 2009-11-22 at 22:04 -0500, Devin Heitmueller wrote:
+> On Tue, Nov 10, 2009 at 11:31 PM, Andy Walls <awalls@radix.net> wrote:
+> > OK, here's my second attempt at getting rid of cx18 YUV frame alignment
+> > and tearing issues.
+> >
+> >        http://linuxtv.org/hg/~awalls/cx18-yuv2
 > 
-> I need help to compile v4l-dvb drivers for saa7134 modules. 
-> I'm new to v4l-dvb not sure how to get past the errors concerning
-> undefined declarations found in saa7134-inputs.c file for the videomate
-> S350 board, saying ir_codes, mask_keycodes, mask_keydown as undeclared:
+> Hi Andy,
 > 
-> snip:-
+> I did some testing of your tree, using the following command
 > 
-> make[2]: Entering directory `/usr/src/linux-headers-2.6.31-14-generic'
->   CC [M]  /home/tvbox/v4l-dvb/v4l/saa7134-input.o
-> /home/tvbox/v4l-dvb/v4l/saa7134-input.c: In function 'build_key':
-> /home/tvbox/v4l-dvb/v4l/saa7134-input.c:90: error: 'ir_codes' undeclared (first use in this function)
-> /home/tvbox/v4l-dvb/v4l/saa7134-input.c:90: error: (Each undeclared identifier is reported only once
-> /home/tvbox/v4l-dvb/v4l/saa7134-input.c:90: error: for each function it appears in.)
-> /home/tvbox/v4l-dvb/v4l/saa7134-input.c:90: error: 'ir_codes_videomate_s350' undeclared (first use in this function)
-> /home/tvbox/v4l-dvb/v4l/saa7134-input.c:91: error: 'mask_keycode' undeclared (first use in this function)
-> /home/tvbox/v4l-dvb/v4l/saa7134-input.c:92: error: 'mask_keydown' undeclared (first use in this function)
-> make[3]: *** [/home/tvbox/v4l-dvb/v4l/saa7134-input.o] Error 1
-> make[2]: *** [_module_/home/tvbox/v4l-dvb/v4l] Error 2
-> make[2]: Leaving directory `/usr/src/linux-headers-2.6.31-14-generic'
-> make[1]: *** [default] Error 2
-> make[1]: Leaving directory `/home/tvbox/v4l-dvb/v4l'
-> make: *** [all] Error 2
+> mplayer /dev/video32 -demuxer rawvideo -rawvideo w=720:h=480:format=hm12:ntsc
 > 
-> background:
-> Justbought last week a new compro videomate s350 (dvb-s) card after seeing
-> some positive feedback on forumes saying it is working.  But the card I
-> got has a newer chip set incorporating a saa7135 device and after some
-> searching found someone else also had the same issue back in June but
-> managed to fix it with a few changes.  I trying to re-produce the
-> actions (see link below) and re-build the drivers but I'm stuck at the
-> compile stage (make all). 
+> and then in parallel run a series of make commands of the v4l-dvb tree
 > 
-> http://osdir.com/ml/linux-media/2009-06/msg01256.html
+> make -j2 && make unload && make -j2 && make unload && make -j2 && make
+> unload && make -j2 && make unload
 > 
-> Can someone advise me on how get past the make error?
+> I was definitely seeing the corruption by doing this test before your
+> patches (both frame alignment and colorspace problems as PCI frames
+> were being dropped).  After your change, I no longer see those
+> problems.  The picture never became misaligned.
+
+Great.  Thanks for the test.
+
+
+>  However, it would
+> appear that some sort of regression may have been introduced with the
+> buffer handling.
 > 
-> Thanks,
-> Dominic
+> I was seeing a continuous reporting of the following in dmesg, even
+> *after* I stopped generating the load by running the make commands.
 > 
+> [ 5175.703811] cx18-0: Could not find MDL 106 for stream encoder YUV
+> [ 5175.737380] cx18-0: Could not find MDL 111 for stream encoder YUV
+> [ 5175.804317] cx18-0: Skipped encoder YUV, MDL 96, 3 times - it must
+> have dropped out of rotation
+> [ 5175.804324] cx18-0: Skipped encoder YUV, MDL 101, 3 times - it must
+> have dropped out of rotation
+> [ 5175.904500] cx18-0: Skipped encoder YUV, MDL 96, 2 times - it must
+> have dropped out of rotation
+> [ 5176.204507] cx18-0: Skipped encoder YUV, MDL 101, 1 times - it must
+> have dropped out of rotation
+> [ 5176.204513] cx18-0: Skipped encoder YUV, MDL 96, 1 times - it must
+> have dropped out of rotation
+> [ 5176.204518] cx18-0: Could not find MDL 111 for stream encoder YUV
 
-hm, likely you are on some older/other stuff.
+Congratulations, you're seeing my buffer notification consistency check
+and sweep-up code in action.
 
-Igor had some merge conflict previously for the S350.
+In the early days of cx18 maintenance by me, the driver would stop
+"capturing" a stream after anywhere from an hour to an hour and a half -
+black screen in MythTV.  The original (current?) problem had a few
+components:
 
-Can't see it with current linuxtv.org mercurial v4l-dvb.
+1. There is only *one* CPU2EPU mailbox and all DMA_DONE notifications
+come through it.
 
-Please try with that.
+2. The CX23418 firmware does not wait long, at all, for you to pick up
+and acknowledge the CPU2EPU mailbox.  It is a shorter window when you
+have multiple streams running.
 
-Cheers,
-Hermann
+3. If you cleanly miss an MDL notification, you don't know which MDL you
+missed and you don't know how many bytes were used in it.  You drop it.
+
+4. If you get a half written mailbox, like in your MDL 111 message
+above, then you have a mailbox consistency problem which is logged, but
+you also drop the MDL.
+
+5. If you don't give an MDL back to the firmware, it never uses it
+again.  That's why you see the sweep-up log messages.  As soon as an MDL
+is skipped *on the order of the depth* of q_busy times, when looking for
+the currently DMA_DONE'd MDL, that skipped MDL must have been dropped.
+It is picked up and put back into rotation then.
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I will note that skipping an MDL 1 time and sweeping it up indicates the
+CX23418 firmware (q_busy) doesn't have a lot of MDLs to work with for
+that stream.  You need to devote more memory to that stream or have the
+application read them off faster (so the MDL goes from q_full to q_free
+to q_busy).
 
 
 
-      
+> I would expect to see frame drops while the system was under high
+> load, but I would expect that the errors would stop once the load fell
+> back to something reasonable.  However, they continue to accumulate
+> even after the make commands stop and the only thing running on the
+> system is mplayer (with a CPU load of around 10%).
+
+You likely have:
+
+1. a system-level interrupt handler latency problem
+
+and/or
+
+2. the cx18-NN-out/M workrer threads aren't being woken up often enough
+to give MDL's back to the CX23418 firmware fast enough.
+
+
+For #1, if there is a linux driver sharing the CX23418 interrupt line
+(as shown by cat /proc/interrupts) then try unloading that driver,
+moving the CX23418 to another PCI slot, or somehow else keeping some
+other linux device driver from masking the CX23418's IRQ line for too
+long.  The ahci disk controller driver is a known culprit with a time
+consuming error path in the top half of its IRQ handler.
+
+The easy solution to #2 is give enough memory for a few more MDLs for
+that stream with module parameters.
+
+
+> I think this tree is definitely on the right track, but it looks like
+> some edge case has been missed.
+
+What you see is normal.  I can take a look at things, but it's generally
+a system level issue.  One thing that can be done in the cx18 driver is
+to optimize the paths called by the out_work_handler, so that MDLs get
+back to the firmware with a minimum of delay. 
+
+It's never been a big deal, with lots of MDLs for a stream, to have one
+or two MDLs tied up.  With YUV only having very few MDLs, having an MDL
+tied up, not being given back to the firmware promptly, could ba a
+problem.
+
+Regards,
+Andy
+
+> Devin
+> 
 
