@@ -1,188 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33014 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753084AbZKSQLN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2009 11:11:13 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH] V4L - Adding helper function to get dv preset description
-Date: Thu, 19 Nov 2009 11:11:14 -0500
-Message-Id: <1258647074-21556-1-git-send-email-m-karicheri2@ti.com>
+Received: from fg-out-1718.google.com ([72.14.220.158]:24630 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752758AbZKWVyj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Nov 2009 16:54:39 -0500
+MIME-Version: 1.0
+In-Reply-To: <m3einork1o.fsf@intrepid.localdomain>
+References: <BDRae8rZjFB@christoph> <m3einork1o.fsf@intrepid.localdomain>
+Date: Mon, 23 Nov 2009 16:54:44 -0500
+Message-ID: <829197380911231354y764e01b7hc0c5721b3ebf1f26@mail.gmail.com>
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
+	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Krzysztof Halasa <khc@pm.waw.pl>
+Cc: Christoph Bartelmus <lirc@bartelmus.de>, dmitry.torokhov@gmail.com,
+	j@jannau.net, jarod@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	mchehab@redhat.com, superm1@ubuntu.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+On Mon, Nov 23, 2009 at 4:46 PM, Krzysztof Halasa <khc@pm.waw.pl> wrote:
+> lirc@bartelmus.de (Christoph Bartelmus) writes:
+>
+>>> I think we shouldn't at this time worry about IR transmitters.
+>>
+>> Sorry, but I have to disagree strongly.
+>> Any interface without transmitter support would be absolutely unacceptable
+>> for many LIRC users, including myself.
+>
+> I don't say don't use a transmitter.
+> I say the transmitter is not an input device, they are completely
+> independent functions. I can't see any reason to try and fit both in the
+> same interface - can you?
 
-Forgot the V4L prefix in subject. Resending it...
+There is an argument to be made that since it may be desirable for
+both IR receivers and transmitters to share the same table of remote
+control definitions, it might make sense to at least *consider* how
+the IR transmitter interface is going to work, even if it is decided
+to not implement such a design in the first revision.
 
-This patch add a helper function to get description of a digital
-video preset added by the video timing API. Hope this will be
-usefull for drivers implementing the above API.
+Personally, I would hate to see a situation where we find out that we
+took a bad approach because nobody considered what would be required
+for IR transmitters to reuse the same remote control definition data.
 
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-NOTE: depends on the patch that adds video timing API.
----
-Applies to V4L-DVB linux-next branch
+Devin
 
- drivers/media/video/v4l2-common.c |  135 +++++++++++++++++++++++++++++++++++++
- include/media/v4l2-common.h       |    1 +
- 2 files changed, 136 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
-index f5a93ae..245e727 100644
---- a/drivers/media/video/v4l2-common.c
-+++ b/drivers/media/video/v4l2-common.c
-@@ -1015,3 +1015,138 @@ void v4l_bound_align_image(u32 *w, unsigned int wmin, unsigned int wmax,
- 	}
- }
- EXPORT_SYMBOL_GPL(v4l_bound_align_image);
-+
-+/**
-+ * v4l_fill_dv_preset_info - fill description of a digital video preset
-+ * @preset - preset value
-+ * @info - pointer to struct v4l2_dv_enum_preset
-+ *
-+ * drivers can use this helper function to fill description of dv preset
-+ * in info.
-+ */
-+int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset *info)
-+{
-+	static const struct v4l2_dv_enum_preset dv_presets[] = {
-+		{
-+			.preset	= V4L2_DV_480P59_94,
-+			.name = "480p@59.94",
-+			.width = 720,
-+			.height = 480,
-+		},
-+		{
-+			.preset	= V4L2_DV_576P50,
-+			.name = "576p@50",
-+			.width = 720,
-+			.height = 576,
-+		},
-+		{
-+			.preset	= V4L2_DV_720P24,
-+			.name = "720p@24",
-+			.width = 1280,
-+			.height = 720,
-+		},
-+		{
-+			.preset	= V4L2_DV_720P25,
-+			.name = "720p@25",
-+			.width = 1280,
-+			.height = 720,
-+		},
-+		{
-+			.preset	= V4L2_DV_720P30,
-+			.name = "720p@30",
-+			.width = 1280,
-+			.height = 720,
-+		},
-+		{
-+			.preset	= V4L2_DV_720P50,
-+			.name = "720p@50",
-+			.width = 1280,
-+			.height = 720,
-+		},
-+		{
-+			.preset	= V4L2_DV_720P59_94,
-+			.name = "720p@59.94",
-+			.width = 1280,
-+			.height = 720,
-+		},
-+		{
-+			.preset	= V4L2_DV_720P60,
-+			.name = "720p@60",
-+			.width = 1280,
-+			.height = 720,
-+		},
-+		{
-+			.preset	= V4L2_DV_1080I29_97,
-+			.name = "1080i@29.97",
-+			.width = 1920,
-+			.height = 1080,
-+		},
-+		{
-+			.preset	= V4L2_DV_1080I30,
-+			.name = "1080i@30",
-+			.width = 1920,
-+			.height = 1080,
-+		},
-+		{
-+			.preset	= V4L2_DV_1080I25,
-+			.name = "1080i@25",
-+			.width = 1920,
-+			.height = 1080,
-+		},
-+		{
-+			.preset	= V4L2_DV_1080I50,
-+			.name = "1080i@50",
-+			.width = 1920,
-+			.height = 1080,
-+		},
-+		{
-+			.preset	= V4L2_DV_1080I60,
-+			.name = "1080i@60",
-+			.width = 1920,
-+			.height = 1080,
-+		},
-+		{
-+			.preset	= V4L2_DV_1080P24,
-+			.name = "1080p@24",
-+			.width = 1920,
-+			.height = 1080,
-+		},
-+		{
-+			.preset	= V4L2_DV_1080P25,
-+			.name = "1080p@25",
-+			.width = 1920,
-+			.height = 1080,
-+		},
-+		{
-+			.preset	= V4L2_DV_1080P30,
-+			.name = "1080p@30",
-+			.width = 1920,
-+			.height = 1080,
-+		},
-+		{
-+			.preset	= V4L2_DV_1080P50,
-+			.name = "1080p@50",
-+			.width = 1920,
-+			.height = 1080,
-+		},
-+		{
-+			.preset	= V4L2_DV_1080P60,
-+			.name = "1080p@60",
-+			.width = 1920,
-+			.height = 1080,
-+		},
-+	};
-+	int i;
-+
-+	if (info == NULL)
-+		return -EINVAL;
-+
-+	for (i = 0; i < ARRAY_SIZE(dv_presets); i++) {
-+		if (preset == dv_presets[i].preset) {
-+			memcpy(info, &dv_presets[i], sizeof(*info));
-+			return 0;
-+		}
-+	}
-+	return -EINVAL;
-+}
-+EXPORT_SYMBOL_GPL(v4l_fill_dv_preset_info);
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index 1c25b10..ddc040f 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -213,4 +213,5 @@ void v4l_bound_align_image(unsigned int *w, unsigned int wmin,
- 			   unsigned int hmax, unsigned int halign,
- 			   unsigned int salign);
- 
-+int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset *info);
- #endif /* V4L2_COMMON_H_ */
 -- 
-1.6.0.4
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
