@@ -1,91 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:47523 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757570AbZKXBd6 convert rfc822-to-8bit (ORCPT
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:52882 "EHLO
+	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751693AbZKWQEQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2009 20:33:58 -0500
+	Mon, 23 Nov 2009 11:04:16 -0500
+Received: by yxe17 with SMTP id 17so4785223yxe.33
+        for <linux-media@vger.kernel.org>; Mon, 23 Nov 2009 08:04:22 -0800 (PST)
+Message-ID: <4B0AB281.4080802@gmail.com>
+Date: Mon, 23 Nov 2009 14:04:17 -0200
+From: Mauro Carvalho Chehab <maurochehab@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <51d384e10911230137q7553b8c4x5ba3aca3e8edbc77@mail.gmail.com>
-References: <51d384e10911230137q7553b8c4x5ba3aca3e8edbc77@mail.gmail.com>
-Date: Tue, 24 Nov 2009 09:34:04 +0800
-Message-ID: <51d384e10911231734g744d4f6av8b393d99fee92105@mail.gmail.com>
-Subject: [PATCH] dvb-core: Fix ULE decapsulation bug when less than 4 bytes of
-	ULE SNDU is packed into the remaining bytes of a MPEG2-TS frame
-From: Ang Way Chuang <wcang79@gmail.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: =?windows-1252?Q?Luk=E1=9A_Karas?= <lukas.karas@centrum.cz>
+CC: linux-media@vger.kernel.org, Petr Fiala <petr.fiala@gmail.com>,
+	hermann pitton <hermann-pitton@arcor.de>
+Subject: Re: [PATCH] Multifrontend support for saa7134
+References: <200910312121.21926.lukas.karas@centrum.cz>
+In-Reply-To: <200910312121.21926.lukas.karas@centrum.cz>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ULE (Unidirectional Lightweight Encapsulation RFC 4326) decapsulation
-code has a bug that incorrectly treats ULE SNDU packed into the
-remaining 2 or 3 bytes of a MPEG2-TS frame as having invalid pointer
-field on the subsequent MPEG2-TS frame.
+Hi Lukáš/Hermann,
 
-This patch was generated and tested against v2.6.32-rc8. Similar patch
-was applied and tested using 2.6.27 which is similar to the latest
-dvb_net.c, except for network device statistical data structure. I
-suspect that this bug was introduced in kernel version 2.6.15, but had
-not verified it.
+Any news about this patch? I'll mark it as RFC at the patchwork, since it seems that this is not finished yet. Please let me know if you make some progress.
 
-Care has been taken not to introduce more bug by fixing this bug, but
-please scrutinize the code for I always produces buggy code.
+> @@ -1352,6 +1353,7 @@ struct saa7134_board saa7134_boards[] =
+>  		.tuner_addr     = ADDR_UNSET,
+>  		.radio_addr     = ADDR_UNSET,
+>  		 .mpeg           = SAA7134_MPEG_DVB,
+> +		 .num_frontends  = 1,
+>  		 .inputs         = {{
+>  			 .name = name_tv,
+>  			 .vmux = 1,
 
-Signed-off-by: Ang Way Chuang <wcang@nav6.org>
----
-diff --git a/drivers/media/dvb/dvb-core/dvb_net.c
-b/drivers/media/dvb/dvb-core/dvb_net.c
-index 0241a7c..7e0db86 100644
---- a/drivers/media/dvb/dvb-core/dvb_net.c
-+++ b/drivers/media/dvb/dvb-core/dvb_net.c
-@@ -458,8 +458,9 @@ static void dvb_net_ule( struct net_device *dev,
-const u8 *buf, size_t buf_len )
-                                                      "field: %u.\n",
-priv->ts_count, *from_where);
+Just one suggestion here: it is a way better to assume that an "uninitialized" value (e. g. num_frontends = 0) for num_frontends to mean that just one frontend exists. This saves space at the initialization segment
+of the module and avoids the risk of someone forget to add num_frontends=0.
 
-                                               /* Drop partly decoded
-SNDU, reset state, resync on PUSI. */
--                                               if (priv->ule_skb) {
--                                                       dev_kfree_skb(
-priv->ule_skb );
-+                                               if (priv->ule_skb ||
-priv->ule_sndu_remain) {
-+                                                       if (priv->ule_skb)
-+
-dev_kfree_skb( priv->ule_skb );
-                                                       dev->stats.rx_errors++;
-
-dev->stats.rx_frame_errors++;
-                                               }
-@@ -533,6 +534,7 @@ static void dvb_net_ule( struct net_device *dev,
-const u8 *buf, size_t buf_len )
-                               from_where += 2;
-                       }
-
-+                       priv->ule_sndu_remain = priv->ule_sndu_len + 2;
-                       /*
-                        * State of current TS:
-                        *   ts_remain (remaining bytes in the current TS cell)
-@@ -542,6 +544,7 @@ static void dvb_net_ule( struct net_device *dev,
-const u8 *buf, size_t buf_len )
-                        */
-                       switch (ts_remain) {
-                               case 1:
-+                                       priv->ule_sndu_remain--;
-                                       priv->ule_sndu_type = from_where[0] << 8;
-                                       priv->ule_sndu_type_1 = 1; /*
-first byte of ule_type is set. */
-                                       ts_remain -= 1; from_where += 1;
-@@ -555,6 +558,7 @@ static void dvb_net_ule( struct net_device *dev,
-const u8 *buf, size_t buf_len )
-                               default: /* complete ULE header is
-present in current TS. */
-                                       /* Extract ULE type field. */
-                                       if (priv->ule_sndu_type_1) {
-+                                               priv->ule_sndu_type_1 = 0;
-                                               priv->ule_sndu_type |=
-from_where[0];
-                                               from_where += 1; /*
-points to payload start. */
-                                               ts_remain -= 1;
+cheers,
+Mauro.
