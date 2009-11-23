@@ -1,42 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f188.google.com ([209.85.210.188]:59245 "EHLO
-	mail-yx0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754109AbZK2E7X (ORCPT
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:43188 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753460AbZKWAQN convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Nov 2009 23:59:23 -0500
-Date: Sat, 28 Nov 2009 20:59:25 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Jon Smirl <jonsmirl@gmail.com>
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, khc@pm.waw.pl,
-	awalls@radix.net, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	maximlevitsky@gmail.com, mchehab@redhat.com, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
-	IR system?
-Message-ID: <20091129045925.GS6936@core.coreip.homeip.net>
-References: <9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com> <4B116954.5050706@s5r6.in-berlin.de> <9e4733910911281058i1b28f33bh64c724a89dcb8cf5@mail.gmail.com> <4B117DEA.3030400@s5r6.in-berlin.de> <9e4733910911281208t23c938a2l7537e248e1eda4ae@mail.gmail.com> <4B11881B.7000204@s5r6.in-berlin.de> <9e4733910911281246r65670e1free76e98ff4a23822@mail.gmail.com> <4B119A36.8020903@s5r6.in-berlin.de> <9e4733910911281410i75bf19b7xa4dfd6ad1dc1b748@mail.gmail.com> <9e4733910911281418s702489e5t418eab5623c2af98@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	Sun, 22 Nov 2009 19:16:13 -0500
+Received: by bwz27 with SMTP id 27so4619389bwz.21
+        for <linux-media@vger.kernel.org>; Sun, 22 Nov 2009 16:16:18 -0800 (PST)
+To: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org,
+	Matthias Fechner <idefix@fechner.net>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Jean Delvare <khali@linux-fr.org>
+Subject: Re: IR Receiver on an Tevii S470
 Content-Disposition: inline
-In-Reply-To: <9e4733910911281418s702489e5t418eab5623c2af98@mail.gmail.com>
+From: "Igor M. Liplianin" <liplianin@me.by>
+Date: Mon, 23 Nov 2009 02:15:33 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <200911230215.33644.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 28, 2009 at 05:18:34PM -0500, Jon Smirl wrote:
-> I'm looking at a Sony multi-function remote right now. It has five
-> devices and forty keys. Each of the five devices can transmit 0-9,
-> power, volume, etc. It transmits 5*40 = 200 unique scancodes.
-> 
-> I want the five devices to correspond to five apps. What's the plan
-> for splitting those 200 scancodes into the five apps?
-> 
-> I did it by creating five evdev devices each mapping 40 scancodes.
-> That's lets me reuse KP_1 for each of the five apps.
-> 
+On 23 ноября 2009, "Igor M. Liplianin" <liplianin@me.by> wrote:
+> On Mon, 2009-11-23 at 00:29 +0200, Igor M. Liplianin wrote:
+> > On 22 ноября 2009 22:11:47 Andy Walls wrote:
+> > > On Sun, 2009-11-22 at 19:08 +0100, Matthias Fechner wrote:
+> > > > Hi Andy,
+> > > >
+> > > > Andy Walls wrote:
+> > > > > Thank you.  I will probably need you for testing when ready.
+> > > > >
+> > > > >
+> > > > > I was planning to do step 1 above for HVR-1800 IR anyway.
+> > > > >
+> > > > > I will estimate that I may have something ready by about Christmas
+> > > > > (25 December 2009), unless work becomes very busy.
+> > > >
+> > > > thanks a lot for your answer.
+> > > > I uploaded two pictures I did from the card, you can find it here:
+> > > > http://fechner.net/tevii-s470/
+> > > >
+> > > > It is a CX23885.
+> > > > The driver I use is the ds3000.
+> > > > lspci says:
+> > >
+> > > [snip]
+> > >
+> > > Matthias,
+> > >
+> > > Thanks for the pictures.  OK so of the two other interesting chips on
+> > > the S470:
+> > >
+> > > U4 is an I2C connected EEPROM - we don't care about that for IR.
+> > >
+> > > U10 appears to perhaps be a Silicon Labs C8051F300 microcontroller or
+> > > similar:
+> > >
+> > > http://www.silabs.com/products/mcu/smallmcu/Pages/C8051F30x.aspx
+> > >
+> > > Since the 'F300 has an A/D convertor and has an SMBus interface
+> > > (compatable with the I2C bus), I suspect this chip could be the IR
+> > > controller on the TeVii S470.
+> > >
+> > > Could you as root:
+> > >
+> > > # modprobe cx23885
+> > > # modprobe i2c-dev
+> > > # i2c-detect -l
+> > > (to list all the i2c buses, including cx23885 mastered i2c buses)
+> > > # i2c-detect -y N
+> > > (to show the addresses in use on bus # N: only query the cx23885 buses)
+> > >
+> > >
+> > > i2c-detect was in the lm-sensors package last I checked.  (Jean can
+> > > correct me if I'm wrong.)
+> > >
+> > > With that information, I should be able to figure out what I2C address
+> > > that microcontroller is listening to.
+> > >
+> > > Then we can work out how to read and decode it's data and add it to
+> > > ir-kbd-i2c at least.  Depending on how your kernel and LIRC versions
+> > > LIRC might still work with I2C IR chips too.
+> > >
+> > >
+> > > All presupposing of course that that 'F300 chip is for IR...
+> >
+> > Receiver connected to cx23885 IR_RX(pin 106). It is not difficult to
+> > track.
+>
+> Igor,
+>
+> Thank you.  I did not have a board to trace.  I will then stick with my
+> original plan since the F300 doesn't do the IR.
+I have cx23885 based Compro E650F DVB-T card. It shipped with RC6 type remote.
+So I can test RC6 too... And I will.
 
-KEY_NUMERIC_1 please (which should not be affected by numlock state).
+>
+> > F300 is for LNB power control.
+> > It connected to cx23885 GPIO pins:
+> > GPIO0 - data - P0.3 F300
+> > GPIO1 - reset - P0.2 F300
+> > GPIO2 - clk - P0.1 F300
+> > GPIO3 - busy - P0.0 F300
+> >
+> > Interface seems not I2C/SMBUS.
+> >
+> > Source code from TeVii:
+> > http://mercurial.intuxication.org/hg/s2-
+> > liplianin/file/d0dfe416e0f6/linux/drivers/media/video/cx23885/tevii_pwr.c
+>
+> Interesting....
+>
+>    static void Delay1mS(void)
+>    {
+> 	   udelay(800);
+>    }
+>
+> :D
+Your link to datasheet helps me a lot :)
+I will clear all that out and will commit to linuxtv soon.
+
+BR
+Igor
+>
+> Regards,
+> Andy
+>
+> > BR
+> > Igor
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 
 -- 
-Dmitry
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
+
