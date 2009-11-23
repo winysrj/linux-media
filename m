@@ -1,57 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:59256 "EHLO mail1.radix.net"
+Received: from khc.piap.pl ([195.187.100.11]:51766 "EHLO khc.piap.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752516AbZKUUnS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Nov 2009 15:43:18 -0500
-Subject: Re: IR Receiver on an Tevii S470
-From: Andy Walls <awalls@radix.net>
-To: Matthias Fechner <idefix@fechner.net>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <4B081F0B.1060204@fechner.net>
-References: <4B0459B1.50600@fechner.net>  <4B081F0B.1060204@fechner.net>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 21 Nov 2009 15:41:42 -0500
-Message-Id: <1258836102.1794.7.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	id S1753823AbZKWUqz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Nov 2009 15:46:55 -0500
+From: Krzysztof Halasa <khc@pm.waw.pl>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@redhat.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	linux-kernel@vger.kernel.org,
+	Mario Limonciello <superm1@ubuntu.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Janne Grunau <j@jannau.net>,
+	Christoph Bartelmus <lirc@bartelmus.de>
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was: Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+References: <200910200956.33391.jarod@redhat.com>
+	<200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com>
+	<4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain>
+	<4B0AC65C.806@redhat.com>
+	<BDC6A41E-67C0-4952-94E9-D405C7209394@wilsonet.com>
+Date: Mon, 23 Nov 2009 21:46:58 +0100
+In-Reply-To: <BDC6A41E-67C0-4952-94E9-D405C7209394@wilsonet.com> (Jarod
+	Wilson's message of "Mon, 23 Nov 2009 14:17:29 -0500")
+Message-ID: <m3vdh1q88t.fsf@intrepid.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2009-11-21 at 18:10 +0100, Matthias Fechner wrote:
-> Hi,
-> 
-> Matthias Fechner schrieb:
-> > I bought some days ago a Tevii S470 DVB-S2 (PCI-E) card and got it 
-> > running with the driver from:
-> > http://mercurial.intuxication.org/hg/s2-liplianin
-> > 
-> > But I was not successfull in got the IR receiver working.
-> > It seems that it is not supported yet by the driver.
-> > 
-> > Is there maybe some code available to get the IR receiver with evdev 
-> > running?
+Jarod Wilson <jarod@wilsonet.com> writes:
 
-What bridge chip does the TeVii S470 use: a CX23885, CX23887, or
-CX23888?
+> There are quite a few available IR options that are NOT tied to a
+> video capture device at all -- the mceusb and imon drivers submitted
+> in my patch series are actually two such beasts.
 
-Does the TeVii S470 have a separate microcontroller chip for IR
-somewhere on the board, or does it not have one?  (If you can't tell,
-just provide a list of the chip markings on the board.)
+Precisely. This also includes the parallel and serial port receivers,
+I'm under impression that they are, or at least were, the most common,
+due to their extreme simplicity.
 
+> And particularly with the mceusb receivers, because they support damn
+> near every IR protocol under the sun at any carrier frequency, using a
+> remote other than the bundled one is quite common. Most people's set
+> top boxes and/or televisions and/or AV receivers come with a remote
+> capable of controlling multiple devices, and many bundled remotes are,
+> quite frankly, utter garbage.
 
-If the card is using the built in IR controller of the CX23888 than that
-should be pretty easy to get working, we'll just need you to do some
-experimentation with a patch.
-
-If the card is using the built in IR controller in the CX23885, then
-you'll have to wait until I port my CX23888 IR controller changes to
-work with the IR controller in the CX23885.  That should be somewhat
-straightforward, but will take time.  Then we'll still need you to
-experiment with a patch.
-
-If the card is using a separate IR microcontroller, I'm not sure where
-to begin.... :P
-
-Regards,
-Andy
-
+This is precisely also my experience.
+-- 
+Krzysztof Halasa
