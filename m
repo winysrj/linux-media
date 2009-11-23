@@ -1,123 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3207 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753921AbZKYPAk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2009 10:00:40 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id nAPF0joV074251
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 25 Nov 2009 16:00:45 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 25 Nov 2009 16:00:45 +0100 (CET)
-Message-Id: <200911251500.nAPF0joV074251@smtp-vbr5.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from vena.lwn.net ([206.168.112.25]:50483 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753275AbZKWR3b (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Nov 2009 12:29:31 -0500
+Date: Mon, 23 Nov 2009 10:29:35 -0700
+From: Jonathan Corbet <corbet@lwn.net>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH, RFC] Fix videobuf_queue_vmalloc_init() prototype
+Message-ID: <20091123102935.1e89561e@bike.lwn.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+For whatever reason, the device structure pointer to
+videobuf_queue_vmalloc_init is typed "void *", even though it's passed
+right through to videobuf_queue_core_init(), which expects a struct
+device pointer.  The other videobuf implementations use struct device *;
+I think vmalloc should too.
 
-Results of the daily build of v4l-dvb:
+Signed-off-by: Jonathan Corbet <corbet@lwn.net>
 
-date:        Wed Nov 25 14:13:22 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13474:fb39ccbd9692
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
-
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-rc8-armv5: OK
-linux-2.6.32-rc8-armv5-davinci: ERRORS
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.31-armv5-ixp: WARNINGS
-linux-2.6.32-rc8-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.31-armv5-omap2: ERRORS
-linux-2.6.32-rc8-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: ERRORS
-linux-2.6.27-i686: ERRORS
-linux-2.6.28-i686: ERRORS
-linux-2.6.29.1-i686: ERRORS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-rc8-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-rc8-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: WARNINGS
-linux-2.6.32-rc8-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: WARNINGS
-linux-2.6.32-rc8-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-rc8-x86_64: WARNINGS
-spec: OK
-sparse (linux-2.6.31): OK
-sparse (linux-2.6.32-rc8): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+diff --git a/drivers/media/video/videobuf-vmalloc.c b/drivers/media/video/videobuf-vmalloc.c
+index 99d646e..d6e6a28 100644
+--- a/drivers/media/video/videobuf-vmalloc.c
++++ b/drivers/media/video/videobuf-vmalloc.c
+@@ -392,7 +392,7 @@ static struct videobuf_qtype_ops qops = {
+ 
+ void videobuf_queue_vmalloc_init(struct videobuf_queue* q,
+ 			 const struct videobuf_queue_ops *ops,
+-			 void *dev,
++			 struct device *dev,
+ 			 spinlock_t *irqlock,
+ 			 enum v4l2_buf_type type,
+ 			 enum v4l2_field field,
+diff --git a/include/media/videobuf-vmalloc.h b/include/media/videobuf-vmalloc.h
+index 1ffdb66..4b419a2 100644
+--- a/include/media/videobuf-vmalloc.h
++++ b/include/media/videobuf-vmalloc.h
+@@ -31,7 +31,7 @@ struct videobuf_vmalloc_memory
+ 
+ void videobuf_queue_vmalloc_init(struct videobuf_queue* q,
+ 			 const struct videobuf_queue_ops *ops,
+-			 void *dev,
++			 struct device *dev,
+ 			 spinlock_t *irqlock,
+ 			 enum v4l2_buf_type type,
+ 			 enum v4l2_field field,
