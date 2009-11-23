@@ -1,26 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (ext-mx09.extmail.prod.ext.phx2.redhat.com
 	[10.5.110.13])
-	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id nACNmChA025591
-	for <video4linux-list@redhat.com>; Thu, 12 Nov 2009 18:48:12 -0500
-Received: from mail-in-14.arcor-online.net (mail-in-14.arcor-online.net
-	[151.189.21.54])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id nACNm0I0008394
-	for <video4linux-list@redhat.com>; Thu, 12 Nov 2009 18:48:06 -0500
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id nAN2WDC2028885
+	for <video4linux-list@redhat.com>; Sun, 22 Nov 2009 21:32:13 -0500
+Received: from mail-in-11.arcor-online.net (mail-in-11.arcor-online.net
+	[151.189.21.51])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id nAN2VxwV010025
+	for <video4linux-list@redhat.com>; Sun, 22 Nov 2009 21:32:00 -0500
 From: hermann pitton <hermann-pitton@arcor.de>
-To: Roland Egli <roland.egli@gmx.net>
-In-Reply-To: <4AFC71A6.1020509@gmx.net>
-References: <4AF87D5D.5090205@gmx.net> <20091110145049.GA3282@bluebox.local>
-	<1257901606.3246.30.camel@pc07.localdom.local>
-	<4AFC71A6.1020509@gmx.net>
+To: Terry Wu <terrywu2009@gmail.com>
+In-Reply-To: <6ab2c27e0911221742g739380d1m10b517d25f451898@mail.gmail.com>
+References: <19415111.1258842824951.JavaMail.ngmail@webmail09.arcor-online.net>
+	<6ab2c27e0911220451y1777caaelc54dd9e70b974bac@mail.gmail.com>
+	<1258929022.7524.6.camel@pc07.localdom.local>
+	<6ab2c27e0911221723v5479a179kbe42a67ebb53a797@mail.gmail.com>
+	<6ab2c27e0911221742g739380d1m10b517d25f451898@mail.gmail.com>
 Content-Type: text/plain
-Date: Fri, 13 Nov 2009 00:44:50 +0100
-Message-Id: <1258069490.8348.24.camel@pc07.localdom.local>
+Date: Mon, 23 Nov 2009 03:30:27 +0100
+Message-Id: <1258943427.3257.28.camel@pc07.localdom.local>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com
-Subject: Re: Terratec Cinergy 600 TV MK3: Problem with Radio/RDS
+Subject: Re: Re: Leadtek Winfast TV2100
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,104 +34,72 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Hi, thanks again!
 
-Am Donnerstag, den 12.11.2009, 21:35 +0100 schrieb Roland Egli:
-> hermann pitton wrote:
-> > Hi,
-> >
-> > Am Dienstag, den 10.11.2009, 15:50 +0100 schrieb Hans J. Koch:
-> >   
-> >> On Mon, Nov 09, 2009 at 09:36:45PM +0100, Roland Egli wrote:
-> >>     
-> >>> Hi all
-> >>>
-> >>> I have the TV card "Terratec Cinergy 600 TV MK3" with SAA7134HL. The  
-> >>> tuner is a Philips FM1216ME/H-3 and there is an additional RDS decoder  
-> >>> SAA6588T.
-> >>>
-> >>> For loading the module I use
-> >>> $ modprobe saa7134 card=48 tuner=38
-> >>>
-> >>> TV works fine, but I have a problem with the radio. The sound is very  
-> >>> noisy, not stereo and there is as well no RDS reception (saa6588 module  
-> >>> is loaded as well).
-> >>>       
-> >> For RDS reception, you need a strong signal since the RDS carrier's
-> >> level is well below the audio carrier level. Your only chance is to
-> >> improve reception. What kind of antenna are you using? Are you sure it's
-> >> connected to the _radio_ antenna jack and not the TV?
-> >>
-> >> Thanks,
-> >> Hans
-> >>
-> >>     
-> >
-> > Hans, for what I know it makes no difference on that tuner, if radio
-> > comes in from the TV antenna connector or from the radio connector.
-> >
-> > At least we don't have some dedicated separating RF input switch for
-> > that.
-> >
-> > For example, the other way round, if you have a cable TV provider also
-> > providing radio, and radio freqs are not filtered from the TV input
-> > connected, radio will just work fine from the TV antenna connector and
-> > likely are all stereo. I can't tell anything for RDS.
-> >
-> > If you now also connect that cheap rabbit ears antenna mostly coming
-> > with such cards, this might lead to overlapping frequencies noticed as
-> > too much noise on radio. Maybe we still miss something, but it is not in
-> > the tuner specs.
-> >
-> > Me and one single other guy reported loud thrilling noise for radio if
-> > tuned into off on later driver revisions. I'm still not sure, if it is
-> > only caused by machine specific interferences, a network cable had some
-> > impact on it, but I saw/heard it later also on FMD hybrid devices on a
-> > different machine.
-> >
-> > To connect the rabbit ears to the radio antenna connector will turn that
-> > annoying noise into normal static. On that FMD hybrid you usually will
-> > have the better radio reception from a roof mounted antenna for DVB-T
-> > and there is also no active RF input switching like we only saw it later
-> > on silicon hybrid devices.
-> >
-> > For radio stereo it needs still some v4l2 app and kradio and mplayer
-> > with v4l2 radio support are still the best candidates, but I'm not on
-> > latest on radio apps around currently.
-> >
-> > Reception improvement is of course still the best key for all.
-> >
-> > Thanks,
-> > Hermann
-> >
-> >
-> >   
-> Thanks for the answers and your further quesions, which I can answer here:
-> - I receive Radio and TV via cable, so the signal strength is ok (for 
-> stereo and rds)
-> - There are no frequency-filters so the tuner gets the whole bandwith
-> - In Windows with the original Terratec-SW everything (incl. RDS) works 
-> fine.
+Am Montag, den 23.11.2009, 09:42 +0800 schrieb Terry Wu:
+> Hi,
 > 
-> So I assume, there must be a problem in the driver in the area of radio.
+>     Please refer to the attached JPEG file for the GPIO settings of
+> TV2100 with FM (PCB:B).
 > 
-> Thanks for further help in advance.
-> Roland
+>     Let me know if you need the information of TV2100 without FM
+> (PCB:A, TVF8533-BDF).
 > 
+> Terry Wu
 
-hm, Roland, radio sound is very noisy and not stereo.
+On a first look, if we start to count gpios from zero, we tell the same.
 
-To start from top and latest radio bug I do remember.
+The TVF8533_BDF I would have to look up. It is four to five years back.
 
-It is not _all_ only noise for radio with v4l1 apps and we don't deal
-with the bug described here you might eventually have fun with?
+If it uses that minor number TI chip without radio support, we treat it
+as tuner=69 too currently.
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg09814.html
+For all such older can tuners, widely different about the globe, counts,
+that we don't have any way to detect them. So first working, either NTSC
+or PAL, sits in the pool position and others have to think twice.
 
-Cheers,
+OEMs do code tuners into eeprom content, some do not at all, such doing
+it are in competition and don't follow the rules of the main chip
+manufacturer, Philips/NXP in that case, and go their own ways.
+
+So tuner tables are unstable across manufacturers.
+
+We often can't help that much in such cases, but implementing their own
+tuner eeprom detection into the linux drivers is of course still
+welcome. Hauppauge does it very successfully since years.
+
+We can't do much about it, if OEMs don't follow Philips or whom ever on
+such.
+
+Thanks,
 Hermann
 
 
+> 
+> 2009/11/23 Terry Wu <terrywu2009@gmail.com>:
+> > Hi,
+> >
+> >    The TVF88T5-BDFF data sheet is attached.
+> >
+> > Terry Wu
+> >
+> > 11/17/2003  06:39 PM            72,010 TVF5531-MF.pdf
+> > 03/12/2008  11:37 AM           555,285 TVF5533-MF-.pdf
+> > 02/24/2004  02:19 PM           120,727 TVF5533-MF.pdf
+> > 12/30/2003  06:59 PM            91,577 TVF5831-MFF.pdf
+> > 09/26/2005  10:20 AM           156,853 TVF78P3-MFF.pdf
+> > 11/17/2003  06:39 PM            67,947 TVF8531-BDF.pdf
+> > 11/17/2003  06:39 PM            67,715 TVF8531-DIF.pdf
+> > 03/12/2008  11:37 AM           509,340 TVF8533-BDF.pdf
+> > 03/12/2008  11:37 AM           507,295 TVF8533-DIF.pdf
+> > 12/30/2003  06:59 PM            87,921 TVF8831-BDFF.pdf
+> > 12/30/2003  06:59 PM            87,624 TVF8831-DIFF.pdf
+> > 09/26/2005  10:20 AM           176,525 TVF88P3-CFF.pdf
+> > 03/24/2006  10:48 AM           460,941 TVF88T5-BDFF.pdf
+> > 02/24/2004  02:19 PM           132,304 TVF9533-BDF.pdf
+> > 02/24/2004  02:19 PM           120,940 TVF9533-DIF.pdf
+> > 03/12/2008  11:37 AM           458,967 TVF99T5-BDFF.pdf
+> >
 
 
 --
