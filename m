@@ -1,142 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2982 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750832AbZKUJzZ (ORCPT
+Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:53929
+	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756087AbZKXEc6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Nov 2009 04:55:25 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: m-karicheri2@ti.com
-Subject: Re: [PATCH - v1]V4L - Adding helper function to get dv preset description
-Date: Sat, 21 Nov 2009 10:55:27 +0100
-Cc: linux-media@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com
-References: <1258757598-14216-1-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1258757598-14216-1-git-send-email-m-karicheri2@ti.com>
+	Mon, 23 Nov 2009 23:32:58 -0500
+Message-ID: <4B0B6321.3050001@wilsonet.com>
+Date: Mon, 23 Nov 2009 23:37:53 -0500
+From: Jarod Wilson <jarod@wilsonet.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: Krzysztof Halasa <khc@pm.waw.pl>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@redhat.com>, linux-kernel@vger.kernel.org,
+	Mario Limonciello <superm1@ubuntu.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Janne Grunau <j@jannau.net>,
+	Christoph Bartelmus <lirc@bartelmus.de>
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
+ Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+References: <200910200956.33391.jarod@redhat.com> <200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com> <4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain> <20091123173726.GE17813@core.coreip.homeip.net>
+In-Reply-To: <20091123173726.GE17813@core.coreip.homeip.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200911211055.27735.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 20 November 2009 23:53:18 m-karicheri2@ti.com wrote:
-> From: Muralidharan Karicheri <m-karicheri2@ti.com>
+On 11/23/2009 12:37 PM, Dmitry Torokhov wrote:
+> On Mon, Nov 23, 2009 at 03:14:56PM +0100, Krzysztof Halasa wrote:
+>> Mauro Carvalho Chehab<mchehab@redhat.com>  writes:
+>>
+>>> Event input has the advantage that the keystrokes will provide an unique
+>>> representation that is independent of the device.
+>>
+>> This can hardly work as the only means, the remotes have different keys,
+>> the user almost always has to provide customized key<>function mapping.
+>>
 >
-> Resending adding Reviewed-by...
->
-> Updated based on review comments
+> Is it true? I would expect the remotes to have most of the keys to have
+> well-defined meanings (unless it is one of the programmable remotes)...
 
-And see more review comments below!
+Its the cases like programmable universal remotes that really throw 
+things for a loop. That, and people wanting to use random remote X that 
+came with the amp or tv or set top box, with IR receiver Y.
 
-> This patch adds a helper function to get description of a digital
-> video preset added by the video timing API. This will be usefull for
-> drivers implementing the above API.
->
-> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
-> NOTE: depends on the patch that adds video timing API.
-> ---
-> Applies to V4L-DVB linux-next branch
->  drivers/media/video/v4l2-common.c |   43
-> +++++++++++++++++++++++++++++++++++++ include/media/v4l2-common.h       |
->    7 ++++++
->  2 files changed, 50 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/media/video/v4l2-common.c
-> b/drivers/media/video/v4l2-common.c index f5a93ae..8b13d8e 100644
-> --- a/drivers/media/video/v4l2-common.c
-> +++ b/drivers/media/video/v4l2-common.c
-> @@ -1015,3 +1015,46 @@ void v4l_bound_align_image(u32 *w, unsigned int
-> wmin, unsigned int wmax, }
->  }
->  EXPORT_SYMBOL_GPL(v4l_bound_align_image);
-> +
-> +/**
-> + * v4l_fill_dv_preset_info - fill description of a digital video preset
-> + * @preset - preset value
-> + * @info - pointer to struct v4l2_dv_enum_preset
-> + *
-> + * drivers can use this helper function to fill description of dv preset
-> + * in info.
-> + */
-> +int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset
-> *info) +{
-> +	static const struct v4l2_dv_preset_info dv_presets[] = {
-> +		{0, 0, "Invalid"},/* V4L2_DV_INVALID */
-> +		{720,  480, "480p@59.94"},/* V4L2_DV_480P59_94 */
-> +		{720,  576, "576p@50"},/* V4L2_DV_576P50 */
-> +		{1280, 720, "720p@24"},/* V4L2_DV_720P24 */
-> +		{1280, 720, "720p@25"},/* V4L2_DV_720P25 */
-> +		{1280, 720, "720p@30"},/* V4L2_DV_720P30 */
-> +		{1280, 720, "720p@50"},/* V4L2_DV_720P50 */
-> +		{1280, 720, "720p@59.94"},/* V4L2_DV_720P59_94 */
-> +		{1280, 720, "720p@60"},/* V4L2_DV_720P60 */
-> +		{1920, 1080, "1080i@29.97"},/* V4L2_DV_1080I29_97 */
-> +		{1920, 1080, "1080i@30"},/* V4L2_DV_1080I30 */
-> +		{1920, 1080, "1080i@25"},/* V4L2_DV_1080I25 */
-> +		{1920, 1080, "1080i@50"},/* V4L2_DV_1080I50 */
-> +		{1920, 1080, "1080i@60"},/* V4L2_DV_1080I60 */
-> +		{1920, 1080, "1080p@24"},/* V4L2_DV_1080P24 */
-> +		{1920, 1080, "1080p@25"},/* V4L2_DV_1080P25 */
-> +		{1920, 1080, "1080p@30"},/* V4L2_DV_1080P30 */
-> +		{1920, 1080, "1080p@50"},/* V4L2_DV_1080P50 */
-> +		{1920, 1080, "1080p@60"},/* V4L2_DV_1080P60 */
-
-Please add spaces after {, before } and before /*. Actually, it would be 
-nice if the comments all are aligned vertically, that makes this a nice 
-looking table.
-
-> +	};
-> +
-> +	if (info == NULL || preset >= ARRAY_SIZE(dv_presets))
-> +		return -EINVAL;
-> +
-> +	info->preset = preset;
-> +	info->width = dv_presets[preset].width;
-> +	info->height = dv_presets[preset].height;
-> +	strcpy(info->name, dv_presets[preset].name);
-
-Use strlcpy instead of strcpy. That prevents accidental buffer overruns.
-
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l_fill_dv_preset_info);
-> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-> index 1c25b10..6ec9986 100644
-> --- a/include/media/v4l2-common.h
-> +++ b/include/media/v4l2-common.h
-> @@ -213,4 +213,11 @@ void v4l_bound_align_image(unsigned int *w, unsigned
-> int wmin, unsigned int hmax, unsigned int halign,
->  			   unsigned int salign);
->
-> +struct v4l2_dv_preset_info {
-> +	u16 width;
-> +	u16 height;
-> +	const char *name;
-> +};
-
-This header is only used in v4l_fill_dv_preset_info, so can be defined 
-there:
-
-static const struct v4l2_dv_preset_info {
-	u16 width;
-	u16 height;
-	const char *name;
-} dv_presets[] = {
 ...
-};
+>> We need to handle more than one RC at a time, of course.
+>>
+>>> So, the basic question that should be decided is: should we create a new
+>>> userspace API for raw IR pulse/space
+>>
+>> I think so, doing the RCx proto handling in the kernel (but without
+>> RCx raw code<>  key mapping in this case due to multiple controllers
+>> etc.). Though it could probably use the input layer as well(?).
+>>
+>
+> I think if the data is used to do the primary protocol decoding then it
+> should be a separate interface that is processed by someone and then fed
+> into input subsystem (either in-kernel or through uinput).
+>
+> Again, I would prefer to keep EV_KEY/KEY_* as the primary event type for
+> keys and buttons on all devices.
 
-> +
-> +int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset
-> *info); #endif /* V4L2_COMMON_H_ */
-
-As usual, thanks for all your work on this!
-
-Regards,
-
-	Hans
+Current lircd actually inter-operates with the input subsystem quite 
+well for any and all supported remotes if their keys are mapped in their 
+respective lircd.conf file using standard input subsystem key names, and 
+the lirc daemon started with the --uinput param. lircd decodes the raw 
+IR, finds the mapping in its config, and happily passes it along to uinput.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Jarod Wilson
+jarod@wilsonet.com
