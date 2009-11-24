@@ -1,38 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:52677 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753381AbZKWSbe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2009 13:31:34 -0500
-Received: by fxm5 with SMTP id 5so4963043fxm.28
-        for <linux-media@vger.kernel.org>; Mon, 23 Nov 2009 10:31:40 -0800 (PST)
+Received: from web94703.mail.in2.yahoo.com ([203.104.17.142]:32953 "HELO
+	web94703.mail.in2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750930AbZKXHje convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Nov 2009 02:39:34 -0500
+Message-ID: <644170.21342.qm@web94703.mail.in2.yahoo.com>
+References: <271292.72699.qm@web94706.mail.in2.yahoo.com> <4B0AAAC4.4060605@panicking.kicks-ass.org>
+Date: Tue, 24 Nov 2009 13:09:38 +0530 (IST)
+From: Purushottam R S <purushottam_r_s@yahoo.com>
+Reply-To: Purushottam R S <purushottam_r_s@yahoo.com>
+Subject: Re: flicker/jumpy at the bottom of the video
+To: Michael Trimarchi <michael@panicking.kicks-ass.org>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <4B0AAAC4.4060605@panicking.kicks-ass.org>
 MIME-Version: 1.0
-In-Reply-To: <6B0271AF-79D7-4AB1-B6F7-AB5A553EE1B2@wilsonet.com>
-References: <a728f9f90911210918p4b1a4e2ajb3a8032d99f0cb5b@mail.gmail.com>
-	 <6B0271AF-79D7-4AB1-B6F7-AB5A553EE1B2@wilsonet.com>
-Date: Mon, 23 Nov 2009 13:31:39 -0500
-Message-ID: <a728f9f90911231031n3ad56c7fwe7581296d64a593e@mail.gmail.com>
-Subject: Re: ENE CIR driver
-From: Alex Deucher <alexdeucher@gmail.com>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Maxim Levitsky <maximlevitsky@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 21, 2009 at 1:30 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
-> On Nov 21, 2009, at 12:18 PM, Alex Deucher wrote:
->
->> Does anyone know if there is a driver or documentation available for
->> the ENE CIR controller that's incorporated into many of their keyboard
->> controllers?  If there is no driver but documentation, are there
->> drivers for other CIR controllers that could be used as a reference?
->
-> Maxim Levitsky authored lirc_ene0100, which is in the lirc tarball and my lirc git tree now, with the intention of submitting it for upstream kernel inclusion once (if?) we get the base lirc bits accepted.
->
+Added following property to pipeline, now it is better,
 
-Excellent.  thanks for the heads up.
+v4l2src always-copy=0 queue-size=4
 
-Alex
+regards
+Purush
+
+----- Original Message ----
+From: Michael Trimarchi <michael@panicking.kicks-ass.org>
+To: Purushottam R S <purushottam_r_s@yahoo.com>
+Cc: linux-media@vger.kernel.org
+Sent: Mon, 23 November, 2009 9:01:16 PM
+Subject: Re: flicker/jumpy at the bottom of the video
+
+Purushottam R S wrote:
+> Hi ,
+> 
+> I am using latest gspca driver from dvb for camera driver. But I see bottom of the video has flickering/jumping effect.
+> 
+> I have "Zippys" web camera, which is from Z-Star.  I have loaded the following drivers.
+> 1. gspca_zc3xx 44832 0 - Live 0xbf01f000
+> 2. gspca_main 23840 1 gspca_zc3xx, Live 0xbf014000
+> 3. videodev 36672 1 gspca_main, Live 0xbf006000
+> 4. v4l1_compat 14788 1 videodev, Live 0xbf000000
+> 
+> But otherwise there is no issue with video.
+> 
+> I tested using gst-launch pipeline.
+
+Can you try using vlc application. I have the same effect using v4l1 compat api
+
+Michael
+
+> 
+> regards
+> Purush
+> 
+> 
+> 
+>       The INTERNET now has a personality. YOURS! See your Yahoo! Homepage. http://in.yahoo.com/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
+      The INTERNET now has a personality. YOURS! See your Yahoo! Homepage. http://in.yahoo.com/
