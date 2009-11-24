@@ -1,57 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:51526
-	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752374AbZK3Eup convert rfc822-to-8bit (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:35817 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934050AbZKXVJB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2009 23:50:45 -0500
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
-Mime-Version: 1.0 (Apple Message framework v1077)
-Content-Type: text/plain; charset=us-ascii
-From: Jarod Wilson <jarod@wilsonet.com>
-In-Reply-To: <D9ED2E54-7B65-4841-AADF-110C8E51DD0E@gmail.com>
-Date: Sun, 29 Nov 2009 23:50:45 -0500
-Cc: Krzysztof Halasa <khc@pm.waw.pl>, Andy Walls <awalls@radix.net>,
-	Jon Smirl <jonsmirl@gmail.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	"j@jannau.net" <j@jannau.net>,
-	"jarod@redhat.com" <jarod@redhat.com>,
-	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"maximlevitsky@gmail.com" <maximlevitsky@gmail.com>,
-	"mchehab@redhat.com" <mchehab@redhat.com>,
-	"stefanr@s5r6.in-berlin.de" <stefanr@s5r6.in-berlin.de>,
-	"superm1@ubuntu.com" <superm1@ubuntu.com>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <AFCCABA5-177F-4FA5-827E-BFF216510943@wilsonet.com>
-References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc> <9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com> <m3aay6y2m1.fsf@intrepid.localdomain> <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com> <1259450815.3137.19.camel@palomino.walls.org> <m3ocml6ppt.fsf@intrepid.localdomain> <D9ED2E54-7B65-4841-AADF-110C8E51DD0E@gmail.com>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+	Tue, 24 Nov 2009 16:09:01 -0500
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
+	<u.kleine-koenig@pengutronix.de>
+To: linux-kernel@vger.kernel.org
+Cc: akpm@linux-foundation.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Magnus Damm <damm@igel.co.jp>,
+	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 33/38] don't use __exit_p to wrap sh_mobile_ceu_remove
+Date: Tue, 24 Nov 2009 22:07:28 +0100
+Message-Id: <1259096853-18909-33-git-send-email-u.kleine-koenig@pengutronix.de>
+In-Reply-To: <1259096853-18909-32-git-send-email-u.kleine-koenig@pengutronix.de>
+References: <1259096853-18909-1-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-2-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-3-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-4-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-5-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-6-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-7-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-8-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-9-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-10-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-11-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-12-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-13-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-14-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-15-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-16-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-17-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-18-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-19-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-20-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-21-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-22-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-23-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-24-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-25-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-26-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-27-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-28-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-29-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-30-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-31-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-32-git-send-email-u.kleine-koenig@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Nov 29, 2009, at 4:31 PM, Dmitry Torokhov wrote:
+The function sh_mobile_ceu_remove is defined using __devexit, so don't
+use __exit_p but __devexit_p to wrap it.
 
-> On Nov 29, 2009, at 12:27 PM, Krzysztof Halasa <khc@pm.waw.pl> wrote:
-> 
->> 1. Do we agree that a lirc (-style) kernel-user interface is needed at
->>  least?
->> 
->> 2. Is there any problem with lirc kernel-user interface?
->> 
->> If the answer for #1 is "yes" and for #2 is "no" then perhaps we merge
->> the Jarod's lirc patches (at least the core) so at least the
->> non-controversial part is done?
-> 
-> 
-> Isn't the meat of Jarod's patch the lirc interface?
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Magnus Damm <damm@igel.co.jp>
+Cc: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+Cc: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
+---
+ drivers/media/video/sh_mobile_ceu_camera.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Patch 1 was the lirc interface, 2 and 3 are individual device drivers that use it.
-
-/me has some catching up to do on this thread after being partially detached from the computer over the holiday weekend here in the US...
-
+diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+index 2f78b4f..e3e1ef2 100644
+--- a/drivers/media/video/sh_mobile_ceu_camera.c
++++ b/drivers/media/video/sh_mobile_ceu_camera.c
+@@ -1778,7 +1778,7 @@ static struct platform_driver sh_mobile_ceu_driver = {
+ 		.pm	= &sh_mobile_ceu_dev_pm_ops,
+ 	},
+ 	.probe		= sh_mobile_ceu_probe,
+-	.remove		= __exit_p(sh_mobile_ceu_remove),
++	.remove		= __devexit_p(sh_mobile_ceu_remove),
+ };
+ 
+ static int __init sh_mobile_ceu_init(void)
 -- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
+1.6.5.2
 
