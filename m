@@ -1,63 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.navvo.net ([74.208.67.6]:36590 "EHLO mail.navvo.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752753AbZK0WcI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Nov 2009 17:32:08 -0500
-From: santiago.nunez@ridgerun.com
-To: davinci-linux-open-source@linux.davincidsp.com
-Cc: linux-media@vger.kernel.org, nsnehaprabha@ti.com,
-	m-karicheri2@ti.com, diego.dompe@ridgerun.com,
-	todd.fischer@ridgerun.com, mgrosen@ti.com,
-	Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-Date: Fri, 27 Nov 2009 16:32:33 -0600
-Message-Id: <1259361153-14549-1-git-send-email-santiago.nunez@ridgerun.com>
-Subject: [PATCH 4/4 v10] Menu support for TVP7002 in DM365
+Received: from mail.uni-paderborn.de ([131.234.142.9]:18501 "EHLO
+	mail.uni-paderborn.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932371AbZKXJbb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Nov 2009 04:31:31 -0500
+Message-ID: <4B0BA3F5.2090408@hni.uni-paderborn.de>
+Date: Tue, 24 Nov 2009 10:14:29 +0100
+From: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
+MIME-Version: 1.0
+To: Kai Tiwisina <kai_tiwisina@gmx.de>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: image capture with ov9655 camera and intel pxa270C5C520
+References: <20091123183928.206900@gmx.net> <Pine.LNX.4.64.0911232131590.4207@axis700.grange> <4B0B30B8.5030602@gmx.de>
+In-Reply-To: <4B0B30B8.5030602@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+Hi,
 
-This patch provides menu configuration options for the TVP7002
-decoder driver in DM365. Includes only TVP7002.
+Kai Tiwisina schrieb:
+> Hello everyone,
+>
+> here is a little update to my question and to the source code.
+>
+> After i implemented an function with the VIDIOC_ENUM_FMT ioctl i 
+> recognized, that only two formats are support by the driver by now. 
+> (Thanks to Mr. Liakhovetski by the way ;) )
+> The output.txt shows the output of this function and mentions the two 
+> different types.
+>
+> One is definately the V4L2_PIX_FMT_YUYV format but i don't know the 
+> other one exactly...
+>
+> I changed my set_format function after i got this information and 
+> unfortunately nothing has changed...
+>
+> Perhaps there are some further possibilities to solve this Problem.
+>
+> Maybe there have some other v4l2 structures to be initialized, befor 
+> the VIDIOC_S_FMT ioctl runs?
+You have to set fmt.fmt.pix.field toV4L2_FIELD_ANY and only YUV is 
+supported at the moment.
 
-Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
----
- drivers/media/video/Kconfig  |    9 +++++++++
- drivers/media/video/Makefile |    1 +
- 2 files changed, 10 insertions(+), 0 deletions(-)
+Regards,
+    Stefan
+> Guennadi Liakhovetski wrote:
+>> Hi Kai
+>>
+>> On Mon, 23 Nov 2009, Kai Tiwisina wrote:
+>>
+>>  
+>>> Hello,
+>>>
+>>> my name is Kai Tiwisina and i'm a student in germany and i'm trying 
+>>> to communicate with a Omnivision ov9655 camera which is atteched 
+>>> with my embedded linux system via the v4l commands.
+>>>
+>>> I've written a small testprogram which should grow step by step 
+>>> while i'm trying one ioctl after another.
+>>> Everything worked fine until i tried to use the VIDIOC_S_FMT ioctl. 
+>>> It's always giving me an "invalid argument" failure and i don't know 
+>>> why.
+>>>     
+>>
+>> Since you don't seem to have the source of the driver at hand, I'd 
+>> suggest to use the VIDIOC_ENUM_FMT 
+>> http://v4l2spec.bytesex.org/spec/r8367.htm ioctl to enumerate all 
+>> pixel formats supported be the driver. If the driver you're using is 
+>> the same, that Stefan (cc'ed) has submitted to the list, then indeed 
+>> it does not support the V4L2_PIX_FMT_RGB555 format, that you're 
+>> requesting, only various YUV (and a Bayer?) formats.
+>>
+>>  
+>>> Perhaps someone of you is able to help me with this ioctl and give 
+>>> an advice for a simple flow chart for a single frame image capture. 
+>>> Which ioctl steps are neccessary and where do i need loops and for 
+>>> what, because the capture-example.c from bytesex.org is way too 
+>>> general for my purpose.
+>>>     
+>>
+>> Thanks
+>> Guennadi
+>> ---
+>> Guennadi Liakhovetski, Ph.D.
+>> Freelance Open-Source Software Developer
+>> http://www.open-technology.de/
+>>
+>>   
+>
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index e6186b3..25f5735 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -392,6 +392,15 @@ config VIDEO_TVP5150
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called tvp5150.
- 
-+config VIDEO_TVP7002
-+	tristate "Texas Instruments TVP7002 video decoder"
-+	depends on VIDEO_V4L2 && I2C
-+	---help---
-+	  Support for the Texas Instruments TVP7002 video decoder.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called tvp7002.
-+
- config VIDEO_VPX3220
- 	tristate "vpx3220a, vpx3216b & vpx3214c video decoders"
- 	depends on VIDEO_V4L2 && I2C
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index e541932..a4fff2a 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -56,6 +56,7 @@ obj-$(CONFIG_VIDEO_THS7303) += ths7303.o
- obj-$(CONFIG_VIDEO_VINO) += indycam.o
- obj-$(CONFIG_VIDEO_TVP5150) += tvp5150.o
- obj-$(CONFIG_VIDEO_TVP514X) += tvp514x.o
-+obj-$(CONFIG_VIDEO_TVP7002) += tvp7002.o
- obj-$(CONFIG_VIDEO_MSP3400) += msp3400.o
- obj-$(CONFIG_VIDEO_CS5345) += cs5345.o
- obj-$(CONFIG_VIDEO_CS53L32A) += cs53l32a.o
+
 -- 
-1.6.0.4
+Dipl.-Ing. Stefan Herbrechtsmeier
+
+Heinz Nixdorf Institute
+University of Paderborn 
+System and Circuit Technology 
+Fürstenallee 11
+D-33102 Paderborn (Germany)
+
+office : F0.415
+phone  : + 49 5251 - 60 6342
+fax    : + 49 5251 - 60 6351
+
+mailto : hbmeier@hni.upb.de
+
+www    : http://wwwhni.upb.de/sct/mitarbeiter/hbmeier
+
 
