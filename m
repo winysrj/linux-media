@@ -1,71 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:41354
-	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760031AbZKZR1j (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:50822 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932260AbZKXMzQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 12:27:39 -0500
-Message-ID: <4B0EBBB5.5090303@wilsonet.com>
-Date: Thu, 26 Nov 2009 12:32:37 -0500
-From: Jarod Wilson <jarod@wilsonet.com>
+	Tue, 24 Nov 2009 07:55:16 -0500
+Message-ID: <4B0BD795.1040709@infradead.org>
+Date: Tue, 24 Nov 2009 10:54:45 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Andy Walls <awalls@radix.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>, khc@pm.waw.pl,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, superm1@ubuntu.com
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
- Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-References: <BDRae8rZjFB@christoph> <1259024037.3871.36.camel@palomino.walls.org> <6D934408-B713-49B6-A197-46CE663455AC@wilsonet.com> <4B0E889C.9060405@redhat.com>
-In-Reply-To: <4B0E889C.9060405@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: German Galkin <galkinga@gmail.com>
+CC: linux-media@vger.kernel.org, Brian Johnson <brijohn@gmail.com>
+Subject: Re: [PATCH] sn9c20x: fixed exposure control for HV7131R sensor
+References: <1255989349.4536.22.camel@pexis.zodiac.net>
+In-Reply-To: <1255989349.4536.22.camel@pexis.zodiac.net>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/26/2009 08:54 AM, Mauro Carvalho Chehab wrote:
-> Jarod Wilson wrote:
->> On Nov 23, 2009, at 7:53 PM, Andy Walls wrote:
->>
->>> On Mon, 2009-11-23 at 22:11 +0100, Christoph Bartelmus wrote:
->> ...
->>> I generally don't understand the LIRC aversion I perceive in this thread
->>> (maybe I just have a skewed perception).  Aside for a video card's
->>> default remote setup, the suggestions so far don't strike me as any
->>> simpler for the end user than LIRC -- maybe I'm just used to LIRC.  LIRC
->>> already works for both transmit and receive and has existing support in
->>> applications such as MythTV and mplayer.
->>
->> There's one gripe I agree with, and that is that its still not plug-n-play.
->> Something where udev auto-loads a sane default remote config for say,
->> mceusb transceivers, and the stock mce remote Just Works would be nice,
->> but auto-config is mostly out the window the second you involve transmitters
->> and universal remotes anyway.
->
-> For several devices, an udev rule that auto-loads a sane default keymap does work.
-> Of course, this won't cover 100% of the usages, and I lirc is a very good way
-> of covering the holes.
->
->> But outside of that, I think objections are largely philosophical --
->> in a nutshell, the kernel has an input layer, remotes are input devices,
->> and lirc doesn't conform to input layer standards.
->
-> Yes. I think this is mainly the issue.
->
-> The other issue is how to migrate the existing drivers to a new API without
-> causing regressions. If we decide that IR's that receive raw pulse/code
-> should use the raw input interface, this means that a large task force will be
-> needed to convert the existing drivers to use it.
+Hi German,
 
-Aversion to regression is definitely a major concern. And why I'm liking 
-the idea of a hybrid approach, at least initially.
+Your patch got line-wrapped. Also, it doesn't apply. Please, resubmit it against
+the latest development tree.
 
-> What do you think of adding lirc at staging while we discuss/improve the API's and lircd
-> support for the input event interface? Do you think this would work?
+Cheers,
+Mauro.
 
-Sure, I don't see why not. And I've got another dozen or so drivers to 
-follow those first three... :)
+German Galkin wrote:
+> Made the range of exposure values (0-0x1770) distribute evenly through
+> HV7131R's exposure control bytes.
+> 
+> Signed-off-by: German Galkin <galkinga@gmail.com>
+> ---
+> diff --git a/drivers/media/video/gspca/sn9c20x.c
+> b/drivers/media/video/gspca/sn9c20x.c
+> index 99632a7..f173b35 100644
+> --- a/drivers/media/video/gspca/sn9c20x.c
+> +++ b/drivers/media/video/gspca/sn9c20x.c
+> @@ -1656,9 +1656,9 @@ static int set_exposure(struct gspca_dev
+> *gspca_dev)
+>         case SENSOR_HV7131R:
+>                 exp[0] |= (4 << 4);
+>                 exp[2] = 0x25;
+> -               exp[3] = ((sd->exposure * 0xffffff) / 0xffff) >> 16;
+> -               exp[4] = ((sd->exposure * 0xffffff) / 0xffff) >> 8;
+> -               exp[5] = ((sd->exposure * 0xffffff) / 0xffff) & 0xff;
+> +               exp[3] = (sd->exposure >> 5) & 0xff;
+> +               exp[4] = (sd->exposure << 3) & 0xff;
+> +               exp[5] = 0;
+>                 break;
+>         default:
+>                 return 0;
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
