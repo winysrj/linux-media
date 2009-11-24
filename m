@@ -1,109 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:34151 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752795AbZK0OfN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Nov 2009 09:35:13 -0500
-Date: Fri, 27 Nov 2009 15:35:27 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Paul Mundt <lethal@linux-sh.org>
-Subject: Re: [PATCH 2/2 v2] soc-camera: convert to the new mediabus API
-In-Reply-To: <9776d18eb5595d838cae99e1837d401c.squirrel@webmail.xs4all.nl>
-Message-ID: <Pine.LNX.4.64.0911271527340.4383@axis700.grange>
-References: <Pine.LNX.4.64.0911261509100.5450@axis700.grange>   
- <dc06c2b1fe49c7b64007ec24817e190a.squirrel@webmail.xs4all.nl>   
- <Pine.LNX.4.64.0911261822520.5450@axis700.grange>   
- <Pine.LNX.4.64.0911271349360.4383@axis700.grange>
- <9776d18eb5595d838cae99e1837d401c.squirrel@webmail.xs4all.nl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:46894
+	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932858AbZKXNcv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Nov 2009 08:32:51 -0500
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was: Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+Mime-Version: 1.0 (Apple Message framework v1077)
+Content-Type: text/plain; charset=us-ascii
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <1259024037.3871.36.camel@palomino.walls.org>
+Date: Tue, 24 Nov 2009 08:32:40 -0500
+Cc: Christoph Bartelmus <lirc@bartelmus.de>, khc@pm.waw.pl,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, mchehab@redhat.com, superm1@ubuntu.com
+Content-Transfer-Encoding: 8BIT
+Message-Id: <6D934408-B713-49B6-A197-46CE663455AC@wilsonet.com>
+References: <BDRae8rZjFB@christoph> <1259024037.3871.36.camel@palomino.walls.org>
+To: Andy Walls <awalls@radix.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 27 Nov 2009, Hans Verkuil wrote:
+On Nov 23, 2009, at 7:53 PM, Andy Walls wrote:
 
-> Hi Guennadi,
-> 
-> > Convert soc-camera core and all soc-camera drivers to the new mediabus
-> > API. This also takes soc-camera client drivers one step closer to also be
-> > usable with generic v4l2-subdev host drivers.
-> 
-> Just a quick question:
-> 
-> > @@ -323,28 +309,39 @@ static int mt9m001_s_fmt(struct v4l2_subdev *sd,
-> > struct v4l2_format *f)
-> >  	/* No support for scaling so far, just crop. TODO: use skipping */
-> >  	ret = mt9m001_s_crop(sd, &a);
-> >  	if (!ret) {
-> > -		pix->width = mt9m001->rect.width;
-> > -		pix->height = mt9m001->rect.height;
-> > -		mt9m001->fourcc = pix->pixelformat;
-> > +		mf->width	= mt9m001->rect.width;
-> > +		mf->height	= mt9m001->rect.height;
-> > +		mt9m001->fmt	= soc_mbus_find_datafmt(mf->code,
-> > +					mt9m001->fmts, mt9m001->num_fmts);
-> > +		mf->colorspace	= mt9m001->fmt->colorspace;
-> >  	}
-> >
-> >  	return ret;
-> >  }
-> >
-> > -static int mt9m001_try_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
-> > +static int mt9m001_try_fmt(struct v4l2_subdev *sd,
-> > +			   struct v4l2_mbus_framefmt *mf)
-> >  {
-> >  	struct i2c_client *client = sd->priv;
-> >  	struct mt9m001 *mt9m001 = to_mt9m001(client);
-> > -	struct v4l2_pix_format *pix = &f->fmt.pix;
-> > +	const struct soc_mbus_datafmt *fmt;
-> >
-> > -	v4l_bound_align_image(&pix->width, MT9M001_MIN_WIDTH,
-> > +	v4l_bound_align_image(&mf->width, MT9M001_MIN_WIDTH,
-> >  		MT9M001_MAX_WIDTH, 1,
-> > -		&pix->height, MT9M001_MIN_HEIGHT + mt9m001->y_skip_top,
-> > +		&mf->height, MT9M001_MIN_HEIGHT + mt9m001->y_skip_top,
-> >  		MT9M001_MAX_HEIGHT + mt9m001->y_skip_top, 0, 0);
-> >
-> > -	if (pix->pixelformat == V4L2_PIX_FMT_SBGGR8 ||
-> > -	    pix->pixelformat == V4L2_PIX_FMT_SBGGR16)
-> > -		pix->height = ALIGN(pix->height - 1, 2);
-> > +	if (mt9m001->fmts == mt9m001_colour_fmts)
-> > +		mf->height = ALIGN(mf->height - 1, 2);
-> > +
-> > +	fmt = soc_mbus_find_datafmt(mf->code, mt9m001->fmts,
-> > +				    mt9m001->num_fmts);
-> > +	if (!fmt) {
-> > +		fmt = mt9m001->fmt;
-> > +		mf->code = fmt->code;
-> > +	}
-> > +
-> > +	mf->colorspace	= fmt->colorspace;
-> >
-> >  	return 0;
-> >  }
-> 
-> Why do the sensor drivers use soc_mbus_find_datafmt? They only seem to be
-> interested in the colorspace field, but I don't see the reason for that.
-> Most if not all sensors have a fixed colorspace depending on the
-> pixelcode, so they can just ignore the colorspace that the caller
-> requested and replace it with their own.
+> On Mon, 2009-11-23 at 22:11 +0100, Christoph Bartelmus wrote:
+...
+> I generally don't understand the LIRC aversion I perceive in this thread
+> (maybe I just have a skewed perception).  Aside for a video card's
+> default remote setup, the suggestions so far don't strike me as any
+> simpler for the end user than LIRC -- maybe I'm just used to LIRC.  LIRC
+> already works for both transmit and receive and has existing support in
+> applications such as MythTV and mplayer.
 
-Right, that's exactly what's done here. mt9m001 and mt9v022 drivers 
-support different formats, depending on the exact detected or specified by 
-the user model. That's why they have to search for the requested format in 
-supported list. and then - yes, they just put the found format into user 
-request:
+There's one gripe I agree with, and that is that its still not plug-n-play. Something where udev auto-loads a sane default remote config for say, mceusb transceivers, and the stock mce remote Just Works would be nice, but auto-config is mostly out the window the second you involve transmitters and universal remotes anyway. But outside of that, I think objections are largely philosophical -- in a nutshell, the kernel has an input layer, remotes are input devices, and lirc doesn't conform to input layer standards. I do understand that argument, I just don't currently agree that all IR must go through the input layer before the drivers are acceptable for upstream -- especially since lircd can reinject decoded key presses into the input layer via uinput.
 
-> > +	mf->colorspace	= fmt->colorspace;
+> I believe Jarod's intent is to have the LIRC components, that need to be
+> in kernel modules, moved into kernel mainline to avoid the headaches of
+> out of kernel driver maintenance.  I'm not sure it is time well spent
+> for developers, or end users, to develop yet another IR receive
+> implementation in addition to the ones we suffer with now.
 
-> I didn't have time for a full review, so I might have missed something.
+Yeah, a fairly relevant factor in all this is that, despite not being in the linux kernel source tree proper-like, the lirc drivers and lirc have been in use for many years by lots of users. The likes of Fedora, Debian, Ubuntu, SUSE, Mandriva, etc. have all been shipping lirc drivers for years now. While lirc certainly isn't perfect (its not always the easiest thing for users to set up), it has actually proven itself pretty robust and useful in the field, once set up. The bulk of breakage in lirc I've personally had to deal with has mostly come in the form of kernel interface changes, which would definitely be mitigated by not having to maintain the drivers out-of-tree any longer.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Now, I'm all for "improving" things and integrating better with the input subsystem, but what I don't really want to do is break compatibility with the existing setups on thousands (and thousands?) of MythTV boxes around the globe. The lirc userspace can be pretty nimble. If we can come up with a shiny new way that raw IR can be passed out through an input device, I'm pretty sure lirc userspace can be adapted to handle that. If a new input-layer-based transmit interface is developed, we can take advantage of that too. But there's already a very mature lirc interface for doing all of this. So why not start with adding things more or less as they exist right now and evolve the drivers into an idealized form? Getting *something* into the kernel in the first place is a huge step in that direction.
+
+-- 
+Jarod Wilson
+jarod@wilsonet.com
+
+
+
