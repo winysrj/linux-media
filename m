@@ -1,61 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailsender.it.unideb.hu ([193.6.138.90]:47263 "EHLO
-	mailsender.it.unideb.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932830AbZKXLLS convert rfc822-to-8bit (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:44752 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934051AbZKXVIn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Nov 2009 06:11:18 -0500
-Subject: Re: Video extractor?
-From: Levente =?ISO-8859-1?Q?Nov=E1k?= <lnovak@dragon.unideb.hu>
-To: Wellington Terumi Uemura <wellingtonuemura@gmail.com>
-Cc: Juhana Sadeharju <kouhia@nic.funet.fi>, linux-media@vger.kernel.org
-In-Reply-To: <c85228170911231441v233a095fq266753e94e2c6458@mail.gmail.com>
-References: <S77688AbZKWPYcKKXeQ/20091123152432Z+8457@nic.funet.fi>
-	 <c85228170911231441v233a095fq266753e94e2c6458@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 24 Nov 2009 11:38:12 +0100
-Message-Id: <1259059092.20949.12.camel@novak.chem.klte.hu>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8BIT
+	Tue, 24 Nov 2009 16:08:43 -0500
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
+	<u.kleine-koenig@pengutronix.de>
+To: linux-kernel@vger.kernel.org
+Cc: akpm@linux-foundation.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@skynet.be>,
+	Alexey Klimov <klimov.linux@gmail.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 36/38] move vpss_remove to .devexit.text
+Date: Tue, 24 Nov 2009 22:07:31 +0100
+Message-Id: <1259096853-18909-36-git-send-email-u.kleine-koenig@pengutronix.de>
+In-Reply-To: <1259096853-18909-35-git-send-email-u.kleine-koenig@pengutronix.de>
+References: <1259096853-18909-1-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-2-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-3-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-4-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-5-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-6-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-7-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-8-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-9-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-10-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-11-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-12-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-13-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-14-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-15-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-16-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-17-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-18-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-19-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-20-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-21-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-22-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-23-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-24-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-25-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-26-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-27-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-28-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-29-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-30-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-31-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-32-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-33-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-34-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1259096853-18909-35-git-send-email-u.kleine-koenig@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009. 11. 23, hétfő keltezéssel 20.41-kor Wellington Terumi Uemura ezt
-írta:
+The function vpss_remove is used only wrapped by __devexit_p so define
+it using __devexit.
 
-> Since I got to know Linux OS (your linux OS brand here) back in 1996
-> not much was made so you can switch 100% from windows to linux. Yes,
-> today linux is much more easy to handle for a normal user, back in the
-> days we had to compile the kernel at the installation process, compile
-> your drivers and so on, but even today if you need some specific tools
-> in Linux that is trivial in Windows like virtualdub, avisynth (others)
-> you don't have it.
-> 
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@skynet.be>
+Cc: Alexey Klimov <klimov.linux@gmail.com>
+Cc: Muralidharan Karicheri <m-karicheri2@ti.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
+---
+ drivers/media/video/davinci/vpss.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-There are plenty of good video tools under Linux.
-
-> Make a dual boot installation to use windows based tools to do your basic work.
-> 
-> 2009/11/23 Juhana Sadeharju <kouhia@nic.funet.fi>:
-> >
-> > Is there a video editor which can be used to extract pieces
-> > of video to file? Two of the editors in Ubuntu failed to load
-> > the DVB TS streamfile, Kino converted it to DV format, and slowly.
-> > That is bad. And I don't know what DV format is, and how to convert
-> > it losslessly back to DVB TS format.
-
-You are using the wrong tool. Kino is for DV (Sony miniDV camcorder
-format) only.
-
-> > In any case, I got feeling basic tools are still missing from
-> > Linux media software catalogue. I need the tool in my projects.
-> >
-
-Have you tried kdenlive, cinelerra, avidemux, gopchop, or dvbcut? (These
-latter two are made exactly for cutting out from MPEG-PS or MPEG-TS
-streams while maintaining the audio/video sync.) I recommend dvbcut, it
-works well for me.
-
-Levente
-
-
+diff --git a/drivers/media/video/davinci/vpss.c b/drivers/media/video/davinci/vpss.c
+index 6d709ca..ed0472f 100644
+--- a/drivers/media/video/davinci/vpss.c
++++ b/drivers/media/video/davinci/vpss.c
+@@ -268,7 +268,7 @@ fail1:
+ 	return status;
+ }
+ 
+-static int vpss_remove(struct platform_device *pdev)
++static int __devexit vpss_remove(struct platform_device *pdev)
+ {
+ 	iounmap(oper_cfg.vpss_bl_regs_base);
+ 	release_mem_region(oper_cfg.r1->start, oper_cfg.len1);
+-- 
+1.6.5.2
 
