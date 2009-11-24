@@ -1,24 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx10.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.14])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id nACKa4rB002330
-	for <video4linux-list@redhat.com>; Thu, 12 Nov 2009 15:36:04 -0500
-Received: from mail14.bluewin.ch (mail14.bluewin.ch [195.186.19.62])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id nACKa3Ms017157
-	for <video4linux-list@redhat.com>; Thu, 12 Nov 2009 15:36:04 -0500
-Message-ID: <4AFC71A6.1020509@gmx.net>
-Date: Thu, 12 Nov 2009 21:35:50 +0100
-From: Roland Egli <roland.egli@gmx.net>
+Received: from mx1.redhat.com (ext-mx03.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.7])
+	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id nAODkIXu011481
+	for <video4linux-list@redhat.com>; Tue, 24 Nov 2009 08:46:18 -0500
+Received: from mail-qy0-f182.google.com (mail-qy0-f182.google.com
+	[209.85.221.182])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id nAODk20q011862
+	for <video4linux-list@redhat.com>; Tue, 24 Nov 2009 08:46:02 -0500
+Received: by qyk12 with SMTP id 12so3125216qyk.6
+	for <video4linux-list@redhat.com>; Tue, 24 Nov 2009 05:46:02 -0800 (PST)
+Message-ID: <4B0BE393.2080904@gmail.com>
+Date: Tue, 24 Nov 2009 14:45:55 +0100
+From: Ryan Raasch <ryan.raasch@gmail.com>
 MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-References: <4AF87D5D.5090205@gmx.net> <20091110145049.GA3282@bluebox.local>
-	<1257901606.3246.30.camel@pc07.localdom.local>
-In-Reply-To: <1257901606.3246.30.camel@pc07.localdom.local>
+To: V4L-Linux <video4linux-list@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Terratec Cinergy 600 TV MK3: Problem with Radio/RDS
+Subject: Camera sensor
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,87 +29,21 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-hermann pitton wrote:
-> Hi,
->
-> Am Dienstag, den 10.11.2009, 15:50 +0100 schrieb Hans J. Koch:
->   
->> On Mon, Nov 09, 2009 at 09:36:45PM +0100, Roland Egli wrote:
->>     
->>> Hi all
->>>
->>> I have the TV card "Terratec Cinergy 600 TV MK3" with SAA7134HL. The  
->>> tuner is a Philips FM1216ME/H-3 and there is an additional RDS decoder  
->>> SAA6588T.
->>>
->>> For loading the module I use
->>> $ modprobe saa7134 card=48 tuner=38
->>>
->>> TV works fine, but I have a problem with the radio. The sound is very  
->>> noisy, not stereo and there is as well no RDS reception (saa6588 module  
->>> is loaded as well).
->>>       
->> For RDS reception, you need a strong signal since the RDS carrier's
->> level is well below the audio carrier level. Your only chance is to
->> improve reception. What kind of antenna are you using? Are you sure it's
->> connected to the _radio_ antenna jack and not the TV?
->>
->> Thanks,
->> Hans
->>
->>     
->
-> Hans, for what I know it makes no difference on that tuner, if radio
-> comes in from the TV antenna connector or from the radio connector.
->
-> At least we don't have some dedicated separating RF input switch for
-> that.
->
-> For example, the other way round, if you have a cable TV provider also
-> providing radio, and radio freqs are not filtered from the TV input
-> connected, radio will just work fine from the TV antenna connector and
-> likely are all stereo. I can't tell anything for RDS.
->
-> If you now also connect that cheap rabbit ears antenna mostly coming
-> with such cards, this might lead to overlapping frequencies noticed as
-> too much noise on radio. Maybe we still miss something, but it is not in
-> the tuner specs.
->
-> Me and one single other guy reported loud thrilling noise for radio if
-> tuned into off on later driver revisions. I'm still not sure, if it is
-> only caused by machine specific interferences, a network cable had some
-> impact on it, but I saw/heard it later also on FMD hybrid devices on a
-> different machine.
->
-> To connect the rabbit ears to the radio antenna connector will turn that
-> annoying noise into normal static. On that FMD hybrid you usually will
-> have the better radio reception from a roof mounted antenna for DVB-T
-> and there is also no active RF input switching like we only saw it later
-> on silicon hybrid devices.
->
-> For radio stereo it needs still some v4l2 app and kradio and mplayer
-> with v4l2 radio support are still the best candidates, but I'm not on
-> latest on radio apps around currently.
->
-> Reception improvement is of course still the best key for all.
->
-> Thanks,
-> Hermann
->
->
->   
-Thanks for the answers and your further quesions, which I can answer here:
-- I receive Radio and TV via cable, so the signal strength is ok (for 
-stereo and rds)
-- There are no frequency-filters so the tuner gets the whole bandwith
-- In Windows with the original Terratec-SW everything (incl. RDS) works 
-fine.
+Hello,
 
-So I assume, there must be a problem in the driver in the area of radio.
+I have implemented a driver for the LZ0P374 Sharp CCD camera sensor. I 
+have been using an old kernel, and now i am updating to the new 
+soc_camera framework. My question is, is there anyone using this sensor? 
+We bought the sensor with absolutely no documents, support to be found 
+(lucky to get driver running).
 
-Thanks for further help in advance.
-Roland
+It was found on the Sandgate 2P Sophia Systems development kit. The 
+sensor is mainly (only) sold in Asia. But at the time of our product 
+release (~2006), this was the only CCD camera sensor to be found in 
+quantities less than millions.
 
+Thanks,
+Ryan
 
 --
 video4linux-list mailing list
