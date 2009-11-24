@@ -1,49 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.seznam.cz ([77.75.72.43]:33226 "EHLO smtp.seznam.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751408AbZKAIwF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Nov 2009 03:52:05 -0500
-Message-ID: <4AED4C3B.3020706@email.cz>
-Date: Sun, 01 Nov 2009 09:52:11 +0100
-From: Martin Rod <martin.rod@email.cz>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:44030 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758067AbZKXTfV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Nov 2009 14:35:21 -0500
+Received: by bwz27 with SMTP id 27so6338763bwz.21
+        for <linux-media@vger.kernel.org>; Tue, 24 Nov 2009 11:35:26 -0800 (PST)
 MIME-Version: 1.0
+Date: Tue, 24 Nov 2009 14:35:26 -0500
+Message-ID: <34373e030911241135r16d2097du23af6fbfb497e3cf@mail.gmail.com>
+Subject: Hauppauge PVR-150 Vertical sync issue?
+From: Robert Longfield <robert.longfield@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: MSI StarCam Racer - No valid video chain found
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+I have a PVR-150 card running on mythbuntu 9 and it appears that my
+card is suffering a vertical (and possibly a horizontal) sync issue.
 
-I use MSI StarCam Racer  on Debian Linux Lenny 2.6.26-1-686 and video 
-works without problem:
+The video jumps around, shifts from side to side, up and down and when
+it shifts the video wraps. I'm including a link to a screen shot
+showing the vertical sync problem
 
-usb 4-4: New USB device found, idVendor=0c45, idProduct=62e0
-usb 4-4: New USB device strings: Mfr=2, Product=1,SerialNumber=0
-usb 4-4: Product: USB 2.0 Camera
-usb 4-4: Manufacturer: Sonix Technology Co., Ltd.
+http://imagebin.ca/view/6fS-14Yi.html
 
-I  plan use this camera on OpenWrt, (UBNT Router Station, kernel 
-2.6.30.9) and kernel didn't open this device:
+This is pretty tame to what happens sometimes. I haven't noticed this
+on all channels as we are mostly using this to record shows for my
+son.
 
-Linux video capture interface: v2.00
-usbcore: registered new interface driver uvcvideo
-USB Video Class driver (v0.1.0)
-usb 1-1: new high speed USB device using ar71xx-ehci and address 2
-usb 1-1: configuration #1 chosen from 1 choice
-uvcvideo: Found UVC 1.00 device USB 2.0 Camera (0c45:62e0)
-uvcvideo: No valid video chain found.
+Here is my setup. Pentium 4 2 Ghz with a gig of ram. 40 gig OS drive,
+150 gig drive for recording, 250 gig drive for backup and storage, a
+dvd-burner.
+The 150 gig drive is on a Promise Ultra133 TX2 card but exhibits no
+issues on reads or writes.
+I have cable connected to the internal tuner of my PVR-150 card and
+S-video from an Nvidia card (running Nvidea drivers) out to the TV.
 
-Do you have any idea?
+I don't know what else I can provide to help out but let me know and
+I'll get it.
 
-Thanks and best regards,
-
-Martin
-
-
-
-
-
-
-
+Thanks,
+-Rob
