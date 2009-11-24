@@ -1,36 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gate1.ipvision.dk ([94.127.49.2]:39088 "EHLO gate1.ipvision.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752954AbZKNIRf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Nov 2009 03:17:35 -0500
-From: Benny Amorsen <benny+usenet@amorsen.dk>
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: linux-media@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 0/4] DVB: firedtv: port to new firewire driver stack
-References: <tkrat.ce889fb60854a648@s5r6.in-berlin.de>
-	<tkrat.f5c6b067dba96030@s5r6.in-berlin.de>
-Date: Sat, 14 Nov 2009 08:54:30 +0100
-In-Reply-To: <tkrat.f5c6b067dba96030@s5r6.in-berlin.de> (Stefan Richter's
-	message of "Thu, 12 Nov 2009 02:44:52 +0100 (CET)")
-Message-ID: <m3my2pbky1.fsf@ursa.amorsen.dk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from devils.ext.ti.com ([198.47.26.153]:45664 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934386AbZKXXgp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Nov 2009 18:36:45 -0500
+From: m-karicheri2@ti.com
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	khilman@deeprootsystems.com
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: [PATCH - v0 2/2] DaVinci - vpfe capture - Make clocks configurable
+Date: Tue, 24 Nov 2009 18:36:49 -0500
+Message-Id: <1259105809-22041-2-git-send-email-m-karicheri2@ti.com>
+In-Reply-To: <1259105809-22041-1-git-send-email-m-karicheri2@ti.com>
+References: <1259105809-22041-1-git-send-email-m-karicheri2@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stefan Richter <stefanr@s5r6.in-berlin.de> writes:
+From: Muralidharan Karicheri <m-karicheri2@ti.com>
 
-> These patches are now also available in the v2.6.31 based "firedtv"
-> branch at
->
->     git://git.kernel.org/pub/scm/linux/kernel/git/ieee1394/linux1394-2.6.git firedtv
->
-> This branch is also merged into linux1394-2.6.git for-next and thereby
-> linux-next.git.
+Adding the clocks in vpfe capture configuration
 
-It works beautifully! Tested on a FireDTV C/CI.
+Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+---
+ arch/arm/mach-davinci/board-dm355-evm.c  |    2 ++
+ arch/arm/mach-davinci/board-dm644x-evm.c |    2 ++
+ 2 files changed, 4 insertions(+), 0 deletions(-)
 
-
-/Benny
+diff --git a/arch/arm/mach-davinci/board-dm355-evm.c b/arch/arm/mach-davinci/board-dm355-evm.c
+index a9b650d..a28985c 100644
+--- a/arch/arm/mach-davinci/board-dm355-evm.c
++++ b/arch/arm/mach-davinci/board-dm355-evm.c
+@@ -239,6 +239,8 @@ static struct vpfe_config vpfe_cfg = {
+ 	.sub_devs = vpfe_sub_devs,
+ 	.card_name = "DM355 EVM",
+ 	.ccdc = "DM355 CCDC",
++	.num_clocks = 2,
++	.clocks = {"vpss_master", "vpss_slave"},
+ };
+ 
+ static struct platform_device *davinci_evm_devices[] __initdata = {
+diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
+index fd0398b..45beb99 100644
+--- a/arch/arm/mach-davinci/board-dm644x-evm.c
++++ b/arch/arm/mach-davinci/board-dm644x-evm.c
+@@ -250,6 +250,8 @@ static struct vpfe_config vpfe_cfg = {
+ 	.sub_devs = vpfe_sub_devs,
+ 	.card_name = "DM6446 EVM",
+ 	.ccdc = "DM6446 CCDC",
++	.num_clocks = 2,
++	.clocks = {"vpss_master", "vpss_slave"},
+ };
+ 
+ static struct platform_device rtc_dev = {
+-- 
+1.6.0.4
 
