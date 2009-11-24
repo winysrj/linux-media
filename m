@@ -1,200 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:51995 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757160AbZKROFS (ORCPT
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:47523 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757570AbZKXBd6 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 09:05:18 -0500
-Message-ID: <4B03FEFC.4@infradead.org>
-Date: Wed, 18 Nov 2009 12:04:44 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Mon, 23 Nov 2009 20:33:58 -0500
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Manu Abraham <abraham.manu@gmail.com>,
-	Jean Delvare <khali@linux-fr.org>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: Details about DVB frontend API
-References: <20091022211330.6e84c6e7@hyperion.delvare>	 <20091023051025.597c05f4@caramujo.chehab.org>	 <1a297b360910221329o4b832f4ewaee08872120bfea0@mail.gmail.com>	 <4B02FDA4.5030508@infradead.org>	 <829197380911171155j36ba858ejfca9e4c36689ab62@mail.gmail.com>	 <4B032973.60002@infradead.org> <829197380911180132j619a5a02gead3f3f91e68f524@mail.gmail.com>
-In-Reply-To: <829197380911180132j619a5a02gead3f3f91e68f524@mail.gmail.com>
+In-Reply-To: <51d384e10911230137q7553b8c4x5ba3aca3e8edbc77@mail.gmail.com>
+References: <51d384e10911230137q7553b8c4x5ba3aca3e8edbc77@mail.gmail.com>
+Date: Tue, 24 Nov 2009 09:34:04 +0800
+Message-ID: <51d384e10911231734g744d4f6av8b393d99fee92105@mail.gmail.com>
+Subject: [PATCH] dvb-core: Fix ULE decapsulation bug when less than 4 bytes of
+	ULE SNDU is packed into the remaining bytes of a MPEG2-TS frame
+From: Ang Way Chuang <wcang79@gmail.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
-> On Tue, Nov 17, 2009 at 5:53 PM, Mauro Carvalho Chehab
-> <mchehab@infradead.org> wrote:
->> We shouldn't write API's thinking on some specific use case or aplication.
->> If there's a problem with zap, the fix should be there, not at the kernel.
-> 
-> Your response suggests I must have poorly described the problem.  Zap
-> is just one example where having an "inconsistent" view of the various
-> performance counters is easily visible.  If you're trying to write
-> something like an application to control antenna orientation, the fact
-> that you cannot ask for a single view of all counters can be a real
-> problem.  Having to make separate ioctl calls for each field can cause
-> real problems here.
-> 
-> I disagree strongly with your assertion that we should not considering
-> specific use cases when writing an API. 
+ULE (Unidirectional Lightweight Encapsulation RFC 4326) decapsulation
+code has a bug that incorrectly treats ULE SNDU packed into the
+remaining 2 or 3 bytes of a MPEG2-TS frame as having invalid pointer
+field on the subsequent MPEG2-TS frame.
 
-That's not what I've said (or maybe I haven't said it clear enough). 
-I'm saying that we shouldn't look for one particular use case only.
-In other words, the API should cover all use cases that makes sense.
+This patch was generated and tested against v2.6.32-rc8. Similar patch
+was applied and tested using 2.6.27 which is similar to the latest
+dvb_net.c, except for network device statistical data structure. I
+suspect that this bug was introduced in kernel version 2.6.15, but had
+not verified it.
 
->In this case, Manu's
-> approach provides the ability to get a single consistent view of all
-> the counters (for those drivers which can support it)
+Care has been taken not to introduce more bug by fixing this bug, but
+please scrutinize the code for I always produces buggy code.
 
-No. To get all counters, you'll need to call 3 ioctls. The status were
-grouped around 3 groups of counters on his proposal. I'm sure Manu has some
-explanation why he thinks that 3 is better then 2 or 4 calls, but the point
-is: should we really group them on a fixed way?
+Signed-off-by: Ang Way Chuang <wcang@nav6.org>
+---
+diff --git a/drivers/media/dvb/dvb-core/dvb_net.c
+b/drivers/media/dvb/dvb-core/dvb_net.c
+index 0241a7c..7e0db86 100644
+--- a/drivers/media/dvb/dvb-core/dvb_net.c
++++ b/drivers/media/dvb/dvb-core/dvb_net.c
+@@ -458,8 +458,9 @@ static void dvb_net_ule( struct net_device *dev,
+const u8 *buf, size_t buf_len )
+                                                      "field: %u.\n",
+priv->ts_count, *from_where);
 
-Btw, by using S2API, we'll break it into different commands. Yet, we can
-call all of them at once, if needed, as the API defines it as:
+                                               /* Drop partly decoded
+SNDU, reset state, resync on PUSI. */
+-                                               if (priv->ule_skb) {
+-                                                       dev_kfree_skb(
+priv->ule_skb );
++                                               if (priv->ule_skb ||
+priv->ule_sndu_remain) {
++                                                       if (priv->ule_skb)
++
+dev_kfree_skb( priv->ule_skb );
+                                                       dev->stats.rx_errors++;
 
-struct dtv_property {
-        __u32 cmd;
-        __u32 reserved[3];
-        union {
-                __u32 data;
-                struct {
-                        __u8 data[32];
-                        __u32 len;
-                        __u32 reserved1[3];
-                        void *reserved2;
-                } buffer;
-        } u;
-        int result;
-} __attribute__ ((packed));
+dev->stats.rx_frame_errors++;
+                                               }
+@@ -533,6 +534,7 @@ static void dvb_net_ule( struct net_device *dev,
+const u8 *buf, size_t buf_len )
+                               from_where += 2;
+                       }
 
-struct dtv_properties {
-        __u32 num;
-        struct dtv_property *props;
-};
-
-#define FE_SET_PROPERTY            _IOW('o', 82, struct dtv_properties)
-#define FE_GET_PROPERTY            _IOR('o', 83, struct dtv_properties)
-
-So, all needed commands can be grouped together to provide an atomic read.
-
->> Also, the above mentioned problem can happen even if there's just one API
->> call from userspace to kernel or if the driver needs to do separate,
->> serialized calls to firmware (or a serialized calculus) to get the
->> three measures.
-> 
-> True, the accuracy in which a given driver can provide accurate data
-> is tied to the quality of the hardware implementation.  However, for
-> well engineered hardware, Manu's proposed API affords the ability to
-> accurately report a consistent view of the information.  The existing
-> implementation restricts all drivers to working as well as the
-> worst-case hardware implementation.
-
-Imagining that some application will need to retrieve all quality indicators
-at the same time, as they were grouped into 3 groups, even on a perfect
-hardware, you won't be able to get all of them at the sime time,
-since you'll need to call 3 ioctls.
-
->>> For what it's worth, we have solved this problem in hwmon driver the
->>> following way: we cache related values (read from the same register or
->>> set of registers) for ~1 second. When user-space requests the
->>> information, if the cache is fresh it is used, otherwise the cache is
->>> first refreshed. That way we ensure that data returned to nearby
->>> user-space calls are taken from the same original register value. One
->>> advantage is that we thus did not have to map the API to the hardware
->>> register constraints and thus have the guarantee that all hardware
->>> designs fit.
->>>
->>> I don't know if a similar logic would help for DVB.
->> This could be an alternative, if implemented at the right way. However,
->> I suspect that it would be better to do such things at libdvb.
->>
->> For example, caching measures for 1 second may be too much, if userspace is
->> doing a scan, while, when streaming, this timeout can be fine.
-> 
-> Jean's caching approach for hwmon is fine for something like the
-> chassis temperature, which doesn't change that rapidly.  However, it's
-> probably not appropriate for things like SNR and strength counters,
-> where near real-time feedback can be useful in things like controlling
-> a rotor.
-
-I agree. 
-
-Yet, you won't have this feedback in real-time, since calculating
-QoS indicators require some time. So, after moving the rotor, you'll need
-to wait for some time, in order to allow the frontend to recalculate the
-QoS after the movement. There's a problem here, not addressed by none of
-the proposals: when the QoS indicators will reflect the rotor movement?
-
-If you just read the QoS indicator in a register, you're likely getting a
-cached value from the last time the hardware did the calculus.
-
-So, if you really need to know the QoS value after changing the antenna
-position, you'll need to wait for some time before reading the QoS.
-
-This time will likely depend on how the frontend chip QoS logic is
-implemented internally. Also, some indicators are dependent of the bit rate
-(like frame error counters).
-
-Imagining the best case where the developer knows how to estimate this time,
-we would need a way to report this time to userspace or to generate an event
-after having the measure done.
- 
-> One more point worth noting - the approach of returning all the
-> counters in one ioctl can actually be cheaper in terms of the number
-> of register read operations.  I've seen a number of drivers where we
-> hit the same register three or four times, since all of various fields
-> are based on the same register.  Having a single call actually allows
-> all the duplicate register reads to be eliminated in those cases, the
-> driver reads the register once and then populates all the fields in
-> one shot based on the result.
-
-True.
-
-> I was actually against Manu's proposal the last time it was put out
-> there, as I felt just normalizing the existing API would be *good
-> enough* for the vast majority of applications.  However, if we have
-> decided to give up on the existing API entirely and write a whole new
-> API, we might as well do it right this time and build an API that
-> satisfies all the people who plan to make use of it.
-
-In general, I don't like to deprecate userspace API's. This means too much
-work for kernel and for userspace developers.
-
-However, in this specific case, there are several cons against
-normalizing the existing API is that:
-
-	1) We will never know the scale used by some drivers. So, on some
-drivers, it will keep representing data at some arbitrary scale;
-
-	2) Reverse-engineered drivers will never have a proper scale, as
-the developer has no way to check for sure what scale is reported by the
-device;
-
-	3) Existing applications might break, since we'll change the
-	   scale of existing drivers;
-
-	4) There are no way for applications written after the change to
-	   check if that driver is providing the value at the proposed scale;
-
-The beauty of Manu's approach is that it supports all devices, even those
-were we'll never know what scale is used. So, all 4 cons are solved by
-creating a new API.
-
-However, as-is, it has some drawbacks:
-
-	1) arbitrary groups of QoS measures;
-	2) structs are fixed. So, if changes would be needed later, or if more
-	   QoS indicators would be needed, we'll have troubles.
-	3) due to (2), it is not future-proof, since it may need to be deprecated
-	   if more QoS indicators would need to be added to a certain QoS group.
-
-However, if we port his proposal to S2API approach, we'll have a future-proof
-approach, as adding more QoS is as simple as creating another S2API command.
-
-Cheers,
-Mauro.
-	
-
-
-
++                       priv->ule_sndu_remain = priv->ule_sndu_len + 2;
+                       /*
+                        * State of current TS:
+                        *   ts_remain (remaining bytes in the current TS cell)
+@@ -542,6 +544,7 @@ static void dvb_net_ule( struct net_device *dev,
+const u8 *buf, size_t buf_len )
+                        */
+                       switch (ts_remain) {
+                               case 1:
++                                       priv->ule_sndu_remain--;
+                                       priv->ule_sndu_type = from_where[0] << 8;
+                                       priv->ule_sndu_type_1 = 1; /*
+first byte of ule_type is set. */
+                                       ts_remain -= 1; from_where += 1;
+@@ -555,6 +558,7 @@ static void dvb_net_ule( struct net_device *dev,
+const u8 *buf, size_t buf_len )
+                               default: /* complete ULE header is
+present in current TS. */
+                                       /* Extract ULE type field. */
+                                       if (priv->ule_sndu_type_1) {
++                                               priv->ule_sndu_type_1 = 0;
+                                               priv->ule_sndu_type |=
+from_where[0];
+                                               from_where += 1; /*
+points to payload start. */
+                                               ts_remain -= 1;
