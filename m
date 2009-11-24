@@ -1,25 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.8])
-	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id nA391UjV014832
-	for <video4linux-list@redhat.com>; Tue, 3 Nov 2009 04:01:30 -0500
-Received: from eu1sys200aog106.obsmtp.com (eu1sys200aog106.obsmtp.com
-	[207.126.144.121])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id nA391DEd030479
-	for <video4linux-list@redhat.com>; Tue, 3 Nov 2009 04:01:15 -0500
-Message-ID: <4AEFF179.4010900@st.com>
-Date: Tue, 03 Nov 2009 10:01:45 +0100
-From: Raffaele BELARDI <raffaele.belardi@st.com>
+Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.11])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id nAO18RBu015630
+	for <video4linux-list@redhat.com>; Mon, 23 Nov 2009 20:08:27 -0500
+Received: from mail-iw0-f178.google.com (mail-iw0-f178.google.com
+	[209.85.223.178])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id nAO18HCQ000370
+	for <video4linux-list@redhat.com>; Mon, 23 Nov 2009 20:08:18 -0500
+Received: by iwn8 with SMTP id 8so115255iwn.23
+	for <video4linux-list@redhat.com>; Mon, 23 Nov 2009 17:08:17 -0800 (PST)
 MIME-Version: 1.0
-To: Nick Morrott <knowledgejunkie@gmail.com>
-References: <4AEE9AAA.80104@st.com>
-	<5387cd30911021223u2c1349b8gd7baca736f8fbae6@mail.gmail.com>
-In-Reply-To: <5387cd30911021223u2c1349b8gd7baca736f8fbae6@mail.gmail.com>
+In-Reply-To: <DFBE50A7D200F942AAB7CB035A7120F676BE80@keycom-ad.keycom.local>
+References: <DFBE50A7D200F942AAB7CB035A7120F676BE80@keycom-ad.keycom.local>
+Date: Tue, 24 Nov 2009 09:08:17 +0800
+Message-ID: <6ab2c27e0911231708q71b6d7d7rf854bcb6bd5ba788@mail.gmail.com>
+From: Terry Wu <terrywu2009@gmail.com>
+To: Sean Lowry <sean.lowry@keycom.co.uk>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: v4l <video4linux-list@redhat.com>
-Subject: Re: hvr1300 DVB regression
+Cc: video4linux-list@redhat.com
+Subject: Re: uk-Llanddona (update)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,30 +31,39 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Nick Morrott wrote:
-> 2009/11/2 Raffaele BELARDI <raffaele.belardi@st.com>:
->> I'm no longer able with recent kernels to tune DVB channels with my
->> HVR1300. This is a mythtv box but I replicated the problem using
->> www.linuxtv.org utilities to exclude mythtv issues.
->>
->> Using kernel 2.6.26-r4 and 2.6.27-r8 I am able to tune both analog and
->> DVB channels.
->> Using kernel 2.6.30-r6 I can only tune to analog channels. 'dvbscan'
->> returns no channel info.
->>
->> I suspect a tuner problem.
-> 
-> Have you read https://bugs.launchpad.net/mythtv/+bug/439163 and
-> comments (esp. https://bugs.launchpad.net/mythtv/+bug/439163/comments/50)?
-> 
+Hi,
 
-No, I had not seen those. Looks like a bad patch
-(https://bugs.launchpad.net/mythtv/+bug/439163/comments/36). I'll give
-it a try.
+    You can check the following threads for more information:
+    http://www.ukfree.tv/simulation.php
+    http://www.ukfree.tv/fullstory.php?storyid=1107051057
 
-thanks,
+Terry Wu
 
-raffaele
+2009/11/23 Sean Lowry <sean.lowry@keycom.co.uk>:
+> All,
+>
+> Could someone update the dvb-t scan file for uk-Llanddona it has now be
+> switched over to full digital.
+>
+> # UK, Llanddona
+> # Auto-generated from http://www.dtg.org.uk/retailer/dtt_channels.html
+> # and http://www.ofcom.org.uk/static/reception_advice/index.asp.html
+> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+> T 762000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+> T 786000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+> T 730000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+> T 650000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+> T 674000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+> T 706000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+>
+> Thanks
+> Sean
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
 
 --
 video4linux-list mailing list
