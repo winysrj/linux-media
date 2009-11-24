@@ -1,28 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx05.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.9])
-	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id nACG3mC2020226
-	for <video4linux-list@redhat.com>; Thu, 12 Nov 2009 11:03:48 -0500
-Received: from mail-qy0-f185.google.com (mail-qy0-f185.google.com
-	[209.85.221.185])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id nACG3Rur024018
-	for <video4linux-list@redhat.com>; Thu, 12 Nov 2009 11:03:47 -0500
-Received: by mail-qy0-f185.google.com with SMTP id 15so93743qyk.23
-	for <video4linux-list@redhat.com>; Thu, 12 Nov 2009 08:03:47 -0800 (PST)
-Message-ID: <4AFC31DE.6060708@gmail.com>
-Date: Thu, 12 Nov 2009 17:03:42 +0100
-From: Ryan Raasch <ryan.raasch@gmail.com>
+Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.5])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id nAO5weiO009164
+	for <video4linux-list@redhat.com>; Tue, 24 Nov 2009 00:58:40 -0500
+Received: from mail-pw0-f82.google.com (mail-pw0-f82.google.com
+	[209.85.160.82])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id nAO5wPVS000644
+	for <video4linux-list@redhat.com>; Tue, 24 Nov 2009 00:58:25 -0500
+Received: by pwj15 with SMTP id 15so4681630pwj.11
+	for <video4linux-list@redhat.com>; Mon, 23 Nov 2009 21:58:25 -0800 (PST)
 MIME-Version: 1.0
-To: Shun-Yu Chang <shunyu.chang@gmail.com>
-References: <e858e0620911120339t68172862i7f6ec38e88bcf426@mail.gmail.com>
-	<4AFC127F.4070300@gmail.com>
-	<e858e0620911120754q597b95aah7cb3a0e997a71f02@mail.gmail.com>
-In-Reply-To: <e858e0620911120754q597b95aah7cb3a0e997a71f02@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: V4L-Linux <video4linux-list@redhat.com>
-Subject: Re: Camera preview, thin lines in the frames
+In-Reply-To: <968530b20911230124ma2bb253odd7002ff3122db21@mail.gmail.com>
+References: <25f5fcff0911230015x2cbc019aif097adbd6d437417@mail.gmail.com>
+	<968530b20911230124ma2bb253odd7002ff3122db21@mail.gmail.com>
+Date: Tue, 24 Nov 2009 11:28:24 +0530
+Message-ID: <25f5fcff0911232158v50effa18w9068d9fe3be4ee5e@mail.gmail.com>
+From: Niamathullah sharief <newbiesha@gmail.com>
+To: Mayank Mangla <mayyankk@gmail.com>, video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: 
+Subject: Re: Newbie
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,111 +32,33 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+no friend. i didnt have any source. but i am thinking to work with xawtv
+driver. is that ok?
 
 
-Shun-Yu Chang wrote:
-> 
-> 
-> On Thu, Nov 12, 2009 at 9:49 PM, Ryan Raasch <ryan.raasch@gmail.com 
-> <mailto:ryan.raasch@gmail.com>> wrote:
-> 
-> 
-> 
->     Shun-Yu Chang wrote:
-> 
->         Hello, list:
->            I am new to v4l2.  I am working on integrating a usb camera
->         device on
->         the beagleboard(Omap3530 dev board).
->            Now I met a camera preview issue that is there are thin lines
->         coming out
->         in the frames.
->            I still have no idea how to describe this exactly. It's like
->         the images
->         shows here,
->            http://0xlab.org/~jeremy/camera_preview.html
->         <http://0xlab.org/%7Ejeremy/camera_preview.html>
-> 
-> 
->     I have two guesses. One is the jpeg compression ,or is it jpeg? Try
->     saving in raw RGB or Ycbcr format and viewing with imagemagick.
-> 
-> 
->     The raw data I got is yuyv422. I used the mmap way. I tried to 
-> convert raw data to yuv420 and jpg files both.  I used ffmpeg to convert 
-> yuv420 files to jpg files and I can still see the lines.
->     I don't know how to use imagemagick to see yuv files...
-> 
-> 
-> 
->     Does this happen in live preview? Maybe write data from camera
->     directly to screen to see if happening there.
-> 
-> 
->     It happens in live preview.  So I save the frames directly into 
-> files to verify.
-> 
+On Mon, Nov 23, 2009 at 2:54 PM, Mayank Mangla <mayyankk@gmail.com> wrote:
 
-But if you save the files, you don't know if the compression is the 
-problem. You need to visually look on the screen with a magnifying glass 
-or something...
-
-> 
-> 
->     The second would be the FIFO (hadn't worked with omap before) levels
->     of the data lines to the processor in the kernel.
-> 
->     Look at the system processor (top) usage to see how much cpu% is
->     being used. USB has high overhead.
-> 
->  
->     the top command shows
->     PID CPU% S  #THR     VSS     RSS UID      Name
->  1012  56% R     1  55000K  54468K root     capture_test
->   241  40% R     1      0K      0K root     pdflush
->     [....Omit, others are 0%. .....]
->     After grabing the first 100 frames to files, capture_test exits.
-> 
-
-Looks pretty busy to me. Maybe you could kill the pdflush, don't save to 
-files, and look at the display with a magnifying glass.
-
->     I don't quite understand about FIFO levels of the data lines part.
->     Could give an instruction where I can start to look into?
-> 
-
-It probrably has dma priorities. So if other drivers in the system 
-(network, usb, display, etc.) use a lot of cpu time, the camera dma 
-might be delayed.
-
-
-Are you saving the files over network (nfs)?
-
->     Thanks for your reply..
-> 
->     Regards,
->     -Jeremy
-> 
-> 
->     
-> 
-> 
->     Regards,
->     Ryan
-> 
-> 
->            I modified capture.c sample to save the frames to picture
->         files.  So in
->         my guess,  the problem is not in userspace. And this is not
->         happen on my
->         laptop with the usb camera.
->            Could anybody give me a clue ?  Any one would be thankful.
-> 
-> 
-> 
-> 
-> 
-
+> Do you have source code for webcam driver?
+>
+>
+>
+> On Mon, Nov 23, 2009 at 1:45 PM, Niamathullah sharief <newbiesha@gmail.com
+> > wrote:
+>
+>> Hello,
+>>   I am newbie. I have some knowledge in Device drivers and modules. Now i
+>> am going to do research on how this web cam is working.for that whaT I
+>> HAVE
+>> TO DO?Is there any tutorial to know how webcam is working. How it is
+>> capturing?Please help me
+>> --
+>> video4linux-list mailing list
+>> Unsubscribe mailto:video4linux-list-request@redhat.com
+>> ?subject=unsubscribe
+>> https://www.redhat.com/mailman/listinfo/video4linux-list
+>>
+>
+>
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
