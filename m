@@ -1,41 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:42393 "EHLO
-	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753440AbZKGVvl convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Nov 2009 16:51:41 -0500
-From: Ben Hutchings <ben@decadent.org.uk>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Sat, 07 Nov 2009 21:51:44 +0000
-Message-ID: <1257630704.15927.427.camel@localhost>
-Mime-Version: 1.0
-Subject: [PATCH 33/75] dabusb: declare MODULE_FIRMWARE
+Received: from ey-out-2122.google.com ([74.125.78.25]:29537 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932121AbZKXIIX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Nov 2009 03:08:23 -0500
+Received: by ey-out-2122.google.com with SMTP id 4so1194776eyf.19
+        for <linux-media@vger.kernel.org>; Tue, 24 Nov 2009 00:08:28 -0800 (PST)
+Date: Tue, 24 Nov 2009 10:00:06 +0200
+From: Dan Carpenter <error27@gmail.com>
+To: Ang Way Chuang <wcang79@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] dvb-core: Fix ULE decapsulation bug when less than 4
+	bytes of ULE SNDU is packed into the remaining bytes of a MPEG2-TS
+	frame
+Message-ID: <20091124080006.GB14488@bicker>
+References: <51d384e10911230137q7553b8c4x5ba3aca3e8edbc77@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <51d384e10911230137q7553b8c4x5ba3aca3e8edbc77@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
----
- drivers/media/video/dabusb.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+On Mon, Nov 23, 2009 at 05:37:57PM +0800, Ang Way Chuang wrote:
+> --- a/drivers/media/dvb/dvb-core/dvb_net.c
+> +++ b/drivers/media/dvb/dvb-core/dvb_net.c
+> @@ -458,8 +458,9 @@ static void dvb_net_ule( struct net_device *dev,
+> const u8 *buf, size_t buf_len )
 
-diff --git a/drivers/media/video/dabusb.c b/drivers/media/video/dabusb.c
-index ee43876..9b413a3 100644
---- a/drivers/media/video/dabusb.c
-+++ b/drivers/media/video/dabusb.c
-@@ -913,6 +913,8 @@ static void __exit dabusb_cleanup (void)
- MODULE_AUTHOR( DRIVER_AUTHOR );
- MODULE_DESCRIPTION( DRIVER_DESC );
- MODULE_LICENSE("GPL");
-+MODULE_FIRMWARE("dabusb/firmware.fw");
-+MODULE_FIRMWARE("dabusb/bitstream.bin");
- 
- module_param(buffers, int, 0);
- MODULE_PARM_DESC (buffers, "Number of buffers (default=256)");
--- 
-1.6.5.2
+Your email client line broke the line starting with @@ into 2 lines so
+the patch doesn't apply.
 
+Could you resend the patch without line wrapping?
 
+regards,
+dan carpenter
 
