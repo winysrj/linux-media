@@ -1,73 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50959 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756676AbZKRNu2 convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1984 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757873AbZKXTpA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 08:50:28 -0500
-From: "Y, Kishore" <kishore.y@ti.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Date: Wed, 18 Nov 2009 19:20:29 +0530
-Subject: [PATCH] V4L2: clear buf when vrfb buf not allocated
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402543305C5@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-MIME-Version: 1.0
+	Tue, 24 Nov 2009 14:45:00 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id nAOJj5J3095769
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 24 Nov 2009 20:45:06 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 24 Nov 2009 20:45:05 +0100 (CET)
+Message-Id: <200911241945.nAOJj5J3095769@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->From 15246e4dfa6853d9aef48a4b8633f93efe40ed81 Mon Sep 17 00:00:00 2001
-From: Kishore Y <kishore.y@ti.com>
-Date: Thu, 12 Nov 2009 20:47:58 +0530
-Subject: [PATCH] V4L2: clear buf when vrfb buf not allocated
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-	buffer memory is set to 0 only for the first time
-before the vrfb buffer is allocated
+Results of the daily build of v4l-dvb:
 
-Signed-off-by:  Kishore Y <kishore.y@ti.com>
----
-This patch is dependent on the patch
-[PATCH 4/4] OMAP2/3 V4L2: Add support for OMAP2/3 V4L2 driver on top of DSS2
+date:        Tue Nov 24 19:00:10 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13473:32b2a1875752
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
- drivers/media/video/omap/omap_vout.c |   10 +++++++---
- 1 files changed, 7 insertions(+), 3 deletions(-)
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-rc8-armv5: OK
+linux-2.6.32-rc8-armv5-davinci: ERRORS
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.31-armv5-ixp: WARNINGS
+linux-2.6.32-rc8-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.31-armv5-omap2: ERRORS
+linux-2.6.32-rc8-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: ERRORS
+linux-2.6.27-i686: ERRORS
+linux-2.6.28-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-rc8-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-rc8-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: WARNINGS
+linux-2.6.32-rc8-mips: WARNINGS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: WARNINGS
+linux-2.6.32-rc8-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-rc8-x86_64: WARNINGS
+sparse (linux-2.6.31): OK
+sparse (linux-2.6.32-rc8): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
-index 7092ef2..0a9fdd7 100644
---- a/drivers/media/video/omap/omap_vout.c
-+++ b/drivers/media/video/omap/omap_vout.c
-@@ -223,9 +223,11 @@ static int omap_vout_allocate_vrfb_buffers(struct omap_vout_device *vout,
- 		unsigned int *count, int startindex)
- {
- 	int i, j;
-+	int buffer_set;
- 
- 	for (i = 0; i < *count; i++) {
--		if (!vout->smsshado_virt_addr[i]) {
-+		buffer_set = vout->smsshado_virt_addr[i];
-+		if (!buffer_set) {
- 			vout->smsshado_virt_addr[i] =
- 				omap_vout_alloc_buffer(vout->smsshado_size,
- 						&vout->smsshado_phy_addr[i]);
-@@ -247,8 +249,10 @@ static int omap_vout_allocate_vrfb_buffers(struct omap_vout_device *vout,
- 			*count = 0;
- 			return -ENOMEM;
- 		}
--		memset((void *) vout->smsshado_virt_addr[i], 0,
--				vout->smsshado_size);
-+		if (!buffer_set) {
-+			memset((void *) vout->smsshado_virt_addr[i], 0,
-+					vout->smsshado_size);
-+		}
- 	}
- 	return 0;
- }
--- 
-1.5.4.3
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Regards,
-Kishore Y
-Ph:- +918039813085
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
