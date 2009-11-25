@@ -1,85 +1,249 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5521 "EHLO mx1.redhat.com"
+Received: from mail.navvo.net ([74.208.67.6]:37372 "EHLO mail.navvo.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758914AbZKYXWd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2009 18:22:33 -0500
-Message-ID: <4B0DBC2D.1010603@redhat.com>
-Date: Thu, 26 Nov 2009 00:22:21 +0100
-From: Gerd Hoffmann <kraxel@redhat.com>
-MIME-Version: 1.0
-To: Christoph Bartelmus <lirc@bartelmus.de>
-CC: awalls@radix.net, dheitmueller@kernellabs.com,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, superm1@ubuntu.com
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
- Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-References: <BDZbPXRZjFB@christoph>
-In-Reply-To: <BDZbPXRZjFB@christoph>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1759591AbZKYTiz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Nov 2009 14:38:55 -0500
+From: santiago.nunez@ridgerun.com
+To: davinci-linux-open-source@linux.davincidsp.com
+Cc: linux-media@vger.kernel.org, nsnehaprabha@ti.com,
+	m-karicheri2@ti.com, diego.dompe@ridgerun.com,
+	todd.fischer@ridgerun.com, mgrosen@ti.com,
+	Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+Date: Wed, 25 Nov 2009 13:39:08 -0600
+Message-Id: <1259177948-14878-1-git-send-email-santiago.nunez@ridgerun.com>
+Subject: [PATCH 2/4 v8] Definitions for TVP7002 in DM365
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> (1) ir code (say rc5) ->  keycode conversion looses information.
->>
->> I think this can easily be addressed by adding a IR event type to the
->> input layer, which could look like this:
->>
->>     input_event->type  = EV_IR
->>     input_event->code  = IR_RC5
->>     input_event->value =<rc5 value>
->>
->> In case the 32bit value is too small we might want send two events
->> instead, with ->code being set to IR_<code>_1 and IR_<code>_2
->>
->> Advantages:
->>     * Applications (including lircd) can get access to the unmodified
->>       rc5/rc6/... codes.
->
-> Unfortunately with most hardware decoders the code that you get is only
-> remotely related to the actual code sent. Most RC-5 decoders strip off
-> start bits.
+From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
 
-I would include only the actual data bits in the payload anyway.
+This patch provides the required definitions for the TVP7002 driver
+in DM365.
 
-> Toggle-bits are thrown away. NEC decoders usually don't pass
-> through the address part.
+Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+---
+ drivers/media/video/tvp7002_reg.h |  150 +++++++++++++++++++++++++++++++++++++
+ include/media/tvp7002.h           |   54 +++++++++++++
+ 2 files changed, 204 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/tvp7002_reg.h
+ create mode 100644 include/media/tvp7002.h
 
-Too bad.  But information which isn't provided by the hardware can't be 
-passed up anyway, no matter what kernel/userspace interface is used. 
-Gone is gone.
-
-> There is no common standard which bit is sent first, LSB or MSB.
-
-Input layer would have to define a bit order.  And drivers which get it 
-the other way from the hardware have to convert.  Or maybe signal the 
-order and the input core then will convert if needed.
-
-> Checksums are thrown away.
-
-Don't include them.
-
-> To sum it up: I don't think this information will be useful at all for
-> lircd or anyone else.
-
-Why not?  With RC5 remotes applications can get the device address bits 
-for example, which right now are simply get lost in the ir code -> 
-keycode conversion step.
-
-> Actually lircd does not even know anything about
-> actual protocols. We only distinguish between certain protocol types, like
-> Manchester encoded, space encoded, pulse encoded etc. Everything else like
-> the actual timing is fully configurable.
-
-I know that lircd does matching instead of decoding, which allows to 
-handle unknown encodings.  Thats why I think there will always be cases 
-which only lircd will be able to handle (using raw samples).
-
-That doesn't make attempts to actually decode the IR samples a useless 
-exercise though ;)
-
-cheers,
-   Gerd
+diff --git a/drivers/media/video/tvp7002_reg.h b/drivers/media/video/tvp7002_reg.h
+new file mode 100644
+index 0000000..0e34ca9
+--- /dev/null
++++ b/drivers/media/video/tvp7002_reg.h
+@@ -0,0 +1,150 @@
++/* Texas Instruments Triple 8-/10-BIT 165-/110-MSPS Video and Graphics
++ * Digitizer with Horizontal PLL registers
++ *
++ * Copyright (C) 2009 Texas Instruments Inc
++ * Author: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
++ *
++ * This code is partially based upon the TVP5150 driver
++ * written by Mauro Carvalho Chehab (mchehab@infradead.org),
++ * the TVP514x driver written by Vaibhav Hiremath <hvaibhav@ti.com>
++ * and the TVP7002 driver in the TI LSP 2.10.00.14
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++/* Naming conventions
++ * ------------------
++ *
++ * FDBK:  Feedback
++ * DIV:   Divider
++ * CTL:   Control
++ * SEL:   Select
++ * IN:    Input
++ * OUT:   Output
++ * R:     Red
++ * G:     Green
++ * B:     Blue
++ * OFF:   Offset
++ * THRS:  Threshold
++ * DGTL:  Digital
++ * LVL:   Level
++ * PWR:   Power
++ * MVIS:  Macrovision
++ * W:     Width
++ * H:     Height
++ * ALGN:  Alignment
++ * CLK:   Clocks
++ * TOL:   Tolerance
++ * BWTH:  Bandwidth
++ * COEF:  Coefficient
++ * STAT:  Status
++ * AUTO:  Automatic
++ * FLD:   Field
++ * L:	  Line
++ */
++
++#define TVP7002_CHIP_REV		0x00
++#define TVP7002_HPLL_FDBK_DIV_MSBS	0x01
++#define TVP7002_HPLL_FDBK_DIV_LSBS	0x02
++#define TVP7002_HPLL_CRTL		0x03
++#define TVP7002_HPLL_PHASE_SEL		0x04
++#define TVP7002_CLAMP_START		0x05
++#define TVP7002_CLAMP_W			0x06
++#define TVP7002_HSYNC_OUT_W		0x07
++#define TVP7002_B_FINE_GAIN		0x08
++#define TVP7002_G_FINE_GAIN		0x09
++#define TVP7002_R_FINE_GAIN		0x0a
++#define TVP7002_B_FINE_OFF_MSBS		0x0b
++#define TVP7002_G_FINE_OFF_MSBS         0x0c
++#define TVP7002_R_FINE_OFF_MSBS         0x0d
++#define TVP7002_SYNC_CTL_1		0x0e
++#define TVP7002_HPLL_AND_CLAMP_CTL	0x0f
++#define TVP7002_SYNC_ON_G_THRS		0x10
++#define TVP7002_SYNC_SEPARATOR_THRS	0x11
++#define TVP7002_HPLL_PRE_COAST		0x12
++#define TVP7002_HPLL_POST_COAST		0x13
++#define TVP7002_SYNC_DETECT_STAT	0x14
++#define TVP7002_OUT_FORMATTER		0x15
++#define TVP7002_MISC_CTL_1		0x16
++#define TVP7002_MISC_CTL_2              0x17
++#define TVP7002_MISC_CTL_3              0x18
++#define TVP7002_IN_MUX_SEL_1		0x19
++#define TVP7002_IN_MUX_SEL_2            0x1a
++#define TVP7002_B_AND_G_COARSE_GAIN	0x1b
++#define TVP7002_R_COARSE_GAIN		0x1c
++#define TVP7002_FINE_OFF_LSBS		0x1d
++#define TVP7002_B_COARSE_OFF		0x1e
++#define TVP7002_G_COARSE_OFF            0x1f
++#define TVP7002_R_COARSE_OFF            0x20
++#define TVP7002_HSOUT_OUT_START		0x21
++#define TVP7002_MISC_CTL_4		0x22
++#define TVP7002_B_DGTL_ALC_OUT_LSBS	0x23
++#define TVP7002_G_DGTL_ALC_OUT_LSBS     0x24
++#define TVP7002_R_DGTL_ALC_OUT_LSBS     0x25
++#define TVP7002_AUTO_LVL_CTL_ENABLE	0x26
++#define TVP7002_DGTL_ALC_OUT_MSBS	0x27
++#define TVP7002_AUTO_LVL_CTL_FILTER	0x28
++/* Reserved 0x29*/
++#define TVP7002_FINE_CLAMP_CTL		0x2a
++#define TVP7002_PWR_CTL			0x2b
++#define TVP7002_ADC_SETUP		0x2c
++#define TVP7002_COARSE_CLAMP_CTL	0x2d
++#define TVP7002_SOG_CLAMP		0x2e
++#define TVP7002_RGB_COARSE_CLAMP_CTL	0x2f
++#define TVP7002_SOG_COARSE_CLAMP_CTL	0x30
++#define TVP7002_ALC_PLACEMENT		0x31
++/* Reserved 0x32 */
++/* Reserved 0x33 */
++#define TVP7002_MVIS_STRIPPER_W		0x34
++#define TVP7002_VSYNC_ALGN		0x35
++#define TVP7002_SYNC_BYPASS		0x36
++#define TVP7002_L_FRAME_STAT_LSBS	0x37
++#define TVP7002_L_FRAME_STAT_MSBS	0x38
++#define TVP7002_CLK_L_STAT_LSBS		0x39
++#define TVP7002_CLK_L_STAT_MSBS      	0x3a
++#define TVP7002_HSYNC_W			0x3b
++#define TVP7002_VSYNC_W                 0x3c
++#define TVP7002_L_LENGTH_TOL 		0x3d
++/* Reserved 0x3e */
++#define TVP7002_VIDEO_BWTH_CTL		0x3f
++#define TVP7002_AVID_START_PIXEL_LSBS	0x40
++#define TVP7002_AVID_START_PIXEL_MSBS   0x41
++#define TVP7002_AVID_STOP_PIXEL_LSBS  	0x42
++#define TVP7002_AVID_STOP_PIXEL_MSBS    0x43
++#define TVP7002_VBLK_F_0_START_L_OFF	0x44
++#define TVP7002_VBLK_F_1_START_L_OFF    0x45
++#define TVP7002_VBLK_F_0_DURATION	0x46
++#define TVP7002_VBLK_F_1_DURATION       0x47
++#define TVP7002_FBIT_F_0_START_L_OFF	0x48
++#define TVP7002_FBIT_F_1_START_L_OFF    0x49
++#define TVP7002_YUV_Y_G_COEF_LSBS	0x4a
++#define TVP7002_YUV_Y_G_COEF_MSBS       0x4b
++#define TVP7002_YUV_Y_B_COEF_LSBS       0x4c
++#define TVP7002_YUV_Y_B_COEF_MSBS       0x4d
++#define TVP7002_YUV_Y_R_COEF_LSBS       0x4e
++#define TVP7002_YUV_Y_R_COEF_MSBS       0x4f
++#define TVP7002_YUV_U_G_COEF_LSBS       0x50
++#define TVP7002_YUV_U_G_COEF_MSBS       0x51
++#define TVP7002_YUV_U_B_COEF_LSBS       0x52
++#define TVP7002_YUV_U_B_COEF_MSBS       0x53
++#define TVP7002_YUV_U_R_COEF_LSBS       0x54
++#define TVP7002_YUV_U_R_COEF_MSBS       0x55
++#define TVP7002_YUV_V_G_COEF_LSBS       0x56
++#define TVP7002_YUV_V_G_COEF_MSBS       0x57
++#define TVP7002_YUV_V_B_COEF_LSBS       0x58
++#define TVP7002_YUV_V_B_COEF_MSBS       0x59
++#define TVP7002_YUV_V_R_COEF_LSBS       0x5a
++#define TVP7002_YUV_V_R_COEF_MSBS       0x5b
++
+diff --git a/include/media/tvp7002.h b/include/media/tvp7002.h
+new file mode 100644
+index 0000000..220e833
+--- /dev/null
++++ b/include/media/tvp7002.h
+@@ -0,0 +1,54 @@
++/* Texas Instruments Triple 8-/10-BIT 165-/110-MSPS Video and Graphics
++ * Digitizer with Horizontal PLL registers
++ *
++ * Copyright (C) 2009 Texas Instruments Inc
++ * Author: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
++ *
++ * This code is partially based upon the TVP5150 driver
++ * written by Mauro Carvalho Chehab (mchehab@infradead.org),
++ * the TVP514x driver written by Vaibhav Hiremath <hvaibhav@ti.com>
++ * and the TVP7002 driver in the TI LSP 2.10.00.14
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++#ifndef _TVP7002_H_
++#define _TVP7002_H_
++
++/* Platform-dependent data
++ *
++ * clk_polarity:
++ * 			0 -> data clocked out on rising edge of DATACLK signal
++ * 			1 -> data clocked out on falling edge of DATACLK signal
++ * hs_polarity:
++ * 			0 -> active low HSYNC output
++ * 			1 -> active high HSYNC output
++ * sog_polarity:
++ * 			0 -> normal operation
++ * 			1 -> operation with polarity inverted
++ * vs_polarity:
++ * 			0 -> active low VSYNC output
++ * 			1 -> active high VSYNC output
++ * fid_polariry:
++ * 			0 -> even field ID output
++ * 			1 -> odd field ID output
++ */
++struct tvp7002_config {
++	u8 clk_polarity;
++	u8 hs_polarity;
++	u8 vs_polarity;
++	u8 fid_polarity;
++	u8 sog_polarity;
++};
++#endif
+-- 
+1.6.0.4
 
