@@ -1,72 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:45179 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750956AbZK3AGS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2009 19:06:18 -0500
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR  system?
-From: Andy Walls <awalls@radix.net>
-To: Christoph Bartelmus <lirc@bartelmus.de>
-Cc: jonsmirl@gmail.com, alan@lxorguk.ukuu.org.uk,
+Received: from mail-fx0-f213.google.com ([209.85.220.213]:44757 "EHLO
+	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759013AbZKYSUR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Nov 2009 13:20:17 -0500
+MIME-Version: 1.0
+In-Reply-To: <E6F196CB-8F9E-4618-9283-F8F67D1D3EAF@wilsonet.com>
+References: <BDZb9P9ZjFB@christoph> <m3skc25wpx.fsf@intrepid.localdomain>
+	 <E6F196CB-8F9E-4618-9283-F8F67D1D3EAF@wilsonet.com>
+Date: Wed, 25 Nov 2009 13:20:21 -0500
+Message-ID: <829197380911251020y6f330f15mba32920ac63e97d3@mail.gmail.com>
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
+	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
 	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	maximlevitsky@gmail.com, mchehab@redhat.com, ray-lk@madrabbit.org,
-	stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
-In-Reply-To: <BDodzfumqgB@lirc>
-References: <BDodzfumqgB@lirc>
-Content-Type: text/plain
-Date: Sun, 29 Nov 2009 19:05:30 -0500
-Message-Id: <1259539530.5231.36.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, mchehab@redhat.com, superm1@ubuntu.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2009-11-29 at 20:49 +0100, Christoph Bartelmus wrote:
-> Hi,
-> 
-> on 29 Nov 09 at 14:16, Jon Smirl wrote:
-> > On Sun, Nov 29, 2009 at 2:04 PM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
-> >>> Jon is asking for an architecture discussion, y'know, with use cases.
-> [...]
-> > So we're just back to the status quo of last year which is to do
-> > nothing except some minor clean up.
-> >
-> > We'll be back here again next year repeating this until IR gets
-> > redesigned into something fairly invisible like keyboard and mouse
-> > drivers.
-> 
-> Last year everyone complained that LIRC does not support evdev - so I  
-> added support for evdev.
-> 
-> This year everyone complains that LIRC is not plug'n'play - we'll fix that  
-> 'til next year.
+On Wed, Nov 25, 2009 at 1:07 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
+> Took me a minute to figure out exactly what you were talking about. You're referring to the current in-kernel decoding done on an ad-hoc basis for assorted remotes bundled with capture devices, correct?
+>
+> Admittedly, unifying those and the lirc driven devices hasn't really been on my radar.
 
-V4L-DVB is also making progress on the enumeration front.  At least for
-V4L devices a new media controller device node will be able to enumerate
-all devices associated with a video card (or embedded system or SoC).
->From one device node, an app should be able to discover all video, alsa,
-dvb, and framebuffer device nodes on a video card, find out about
-entities on the card, and set up the reconfigurable connections between
-entities on the card.  One should be able to discover subdevices on
-cards like IR controllers.
+This is one of the key use cases I would be very concerned with.  For
+many users who have bought tuner products, the bundled remotes work
+"out-of-the-box", regardless of whether lircd is installed.  I have no
+objection so much as to saying "well, you have to install the lircd
+service now", but there needs to be a way for the driver to
+automatically tell lirc what the default remote control should be, to
+avoid a regression in functionality.  We cannot go from a mode where
+it worked automatically to a mode where now inexperienced users now
+have to deal with the guts of getting lircd properly configured.
 
-The RFC before the mini-summit at the 2009 LPC is here:
-http://lwn.net/Articles/352623/
+If such an interface were available, I would see to it that at least
+all the devices I have added RC support for will continue to work
+(converting the in-kernel RC profiles to lirc RC profiles as needed
+and doing the associations with the driver).
 
+The other key thing I don't think we have given much thought to is the
+fact that in many tuners, the hardware does RC decoding and just
+returns NEC/RC5/RC6 codes.  And in many of those cases, the hardware
+has to be configured to know what format to receive.  We probably need
+some kernel API such that the hardware can tell lirc what formats are
+supported, and another API call to tell the hardware which mode to
+operate in.
 
-The V4L media controller entity discover mechanism won't completely
-solve the general discovery problem for IR.   It will be one way to
-discover IR devices associated with V4L supported peripherals.  I assume
-discovering USB IR-only devices by USB Id is not a problem.  That leaves
-serial port, parallel port and sound jack connected devices as the
-difficult ones to "discover". 
+This is why I think we really should put together a list of use cases,
+so that we can see how any given proposal addresses those use cases.
+I offered to do such, but nobody seemed really interested in this.
 
-Regards,
-Andy
+Devin
 
-> Christoph
-> --
-
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
