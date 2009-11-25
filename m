@@ -1,57 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f226.google.com ([209.85.217.226]:40142 "EHLO
-	mail-gx0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758276AbZKYLKl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2009 06:10:41 -0500
-Received: by gxk26 with SMTP id 26so7548670gxk.1
-        for <linux-media@vger.kernel.org>; Wed, 25 Nov 2009 03:10:47 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <uzl6ig9iy.wl%morimoto.kuninori@renesas.com>
-References: <uzl6ig9iy.wl%morimoto.kuninori@renesas.com>
-Date: Wed, 25 Nov 2009 20:10:47 +0900
-Message-ID: <aec7e5c30911250310m46442ff7r5bd0c745a0ad9f42@mail.gmail.com>
-Subject: Re: [PATCH] soc-camera: Add mt9t112 camera support
-From: Magnus Damm <magnus.damm@gmail.com>
-To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-Cc: Guennadi <g.liakhovetski@gmx.de>,
-	Linux-V4L2 <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from atlantis.8hz.com ([212.129.237.78]:61428 "EHLO atlantis.8hz.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932705AbZKYVjz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Nov 2009 16:39:55 -0500
+Date: Wed, 25 Nov 2009 21:32:46 +0000
+From: Sean Young <sean@mess.org>
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Trent Piepho <xyzzy@speakeasy.org>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@redhat.com>, linux-kernel@vger.kernel.org,
+	Mario Limonciello <superm1@ubuntu.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Janne Grunau <j@jannau.net>,
+	Christoph Bartelmus <lirc@bartelmus.de>
+Subject: Re: IR raw input is not sutable for input system
+Message-ID: <20091125213246.GA44831@atlantis.8hz.com>
+References: <200910200956.33391.jarod@redhat.com> <200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com> <4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain> <20091123173726.GE17813@core.coreip.homeip.net> <4B0B6321.3050001@wilsonet.com> <1259105571.28219.20.camel@maxim-laptop> <Pine.LNX.4.58.0911241918390.30284@shell2.speakeasy.net> <1259155734.4875.23.camel@maxim-laptop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1259155734.4875.23.camel@maxim-laptop>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 19, 2009 at 6:15 PM, Kuninori Morimoto
-<morimoto.kuninori@renesas.com> wrote:
-> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-> ---
->>> Guennadi
->
-> I add new number in v4l2-chip-ident.h
-> Is it OK for you ?
->
-> This camera is very picky.
-> So, it have a lot of constant value.
->
-> The register of mt9t112 and mt9t111 are same.
-> But I have mt9t112 only.
-> mt9t111 should also work, but I can not check.
->
-> This patch is based on your 20091105 patches.
->
->  drivers/media/video/Kconfig     |    6 +
->  drivers/media/video/Makefile    |    1 +
->  drivers/media/video/mt9t112.c   | 1158 +++++++++++++++++++++++++++++++++++++++
->  include/media/mt9t112.h         |   32 ++
->  include/media/v4l2-chip-ident.h |    2 +
->  5 files changed, 1199 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/mt9t112.c
->  create mode 100644 include/media/mt9t112.h
+On Wed, Nov 25, 2009 at 03:28:54PM +0200, Maxim Levitsky wrote:
+> On Tue, 2009-11-24 at 19:32 -0800, Trent Piepho wrote: 
+> > On Wed, 25 Nov 2009, Maxim Levitsky wrote:
+> > > Its not the case.
+> > > There are many protocols, I know that by experimenting with my universal
+> > > remote. There are many receivers, and all have different accuracy.
+> > > Most remotes aren't designed to be used with PC, thus user has to invent
+> > > mapping between buttons and actions.
+> > > Its is not possible to identify remotes accurately, many remotes send
+> > > just a 8 bit integer that specifies the 'model' thus many remotes can
+> > > share it.
+> > 
+> > The signal recevied by the ir receiver contains glitches.  Depending on the
+> > receiver there can be quite a few.  It is also not trivial to turn the raw
+> > signal sent by the remote into a digital value, even if you know what to
+> > expect.  It takes digital signal processing techniques to turn the messy
+> > sequence of inaccurate mark and space lengths into a best guess at what
+> > digital code the remote sent.
+> Exactly
+> 
+> > 
+> > It's like turning raw VBI data into decoded ASCII teletext from a simulated
+> > keyboard device, all in the kernel.
+> You hit a nail on the head with this one.
 
-Hi Morimoto-san,
+Absolutely. There are a number of use cases when you want access to the 
+space-pulse (i.e. IR) information. For debugging purposes; support for 
+non-standard remotes. Being able to do a precise recording of IR activity
+so you can replay without parsing. One could even imagine IR being used 
+for completely different purposes than "key strokes", so the kernel
+should not enforce this "policy".
 
-Do you have any mt9t112 platform data for the ecovec board? I'd like
-to try out this patch but I don't know which board specific parts that
-are missing!
+In the past I've spent time dissecting the IR output of a strange remote, 
+I would hate to think this would not be possible due to mad kernel 
+interfaces which cater just for drooling in front of the telly with
+your *new* remote.
 
-/ magnus
+
+Sean
