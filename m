@@ -1,66 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:47798 "EHLO smtp3-g21.free.fr"
+Received: from webmail.meta.ua ([194.0.131.19]:40839 "EHLO webmail.meta.ua"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752101AbZK2RPh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2009 12:15:37 -0500
-Date: Sun, 29 Nov 2009 18:15:43 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-Cc: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] gspca sunplus: propagate error for higher level
-Message-ID: <20091129181543.189dd34c@tele>
-In-Reply-To: <4B1265E9.1040505@freemail.hu>
-References: <4B093DDD.5@freemail.hu>
-	<4B10CD81.7060909@freemail.hu>
-	<20091128191717.5164a003@tele>
-	<4B1265E9.1040505@freemail.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	id S1759457AbZKYTAl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Nov 2009 14:00:41 -0500
+Message-ID: <46842.95.132.81.101.1259175646.metamail@webmail.meta.ua>
+In-Reply-To: <1258314943.3276.3.camel@pc07.localdom.local>
+References: <1258292980.3235.14.camel@pc07.localdom.local>
+    <58364.95.133.222.95.1258298152.metamail@webmail.meta.ua>
+    <1258314943.3276.3.camel@pc07.localdom.local>
+Date: Wed, 25 Nov 2009 21:00:46 +0200 (EEST)
+Subject: Re: Tuner drivers
+From: rulet1@meta.ua
+To: "hermann pitton" <hermann-pitton@arcor.de>
+Cc: rulet1@meta.ua, linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain;charset=windows-1251
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 29 Nov 2009 13:15:37 +0100
-Németh Márton <nm127@freemail.hu> wrote:
+>
+> Am Sonntag, den 15.11.2009, 17:15 +0200 schrieb rulet1@meta.ua:
+>> > Hi,
+>> >
+>> > Am Sonntag, den 15.11.2009, 14:42 +0200 schrieb rulet1@meta.ua:
+>> >> How to do that?:
+>> >>
+>> >> "You are forced to use saa7134-alsa dma sound"
+>> >>
+>> >
+>> > a problem is that I can't tell for sure which analog TV standard you
+>> > currently use in the Ukraine, either it is still SECAM DK or you
+>> changed
+>> > to some PAL already.
+>> >
+>> > Try to get the details, also about the sound system.
+>> >
+>> > If it is still SECAM DK, you need to force the option "secam=DK".
+>> >
+>> > With "audio_debug=1" you can see if the drivers finds the pilots, the
+>> > first sound carrier and the second carrier and also the stereo system
+>> in
+>> > use. This counts also for PAL standards.
+>> >
+>> > This way you can already see if the driver can lock on the audio
+>> > carriers in "dmesg" without hearing anything yet.
+>> >
+>> > Then saa7134-alsa should provide TV sound on your card.
+>> > http://linuxtv.org/wiki/index.php/Saa7134-alsa
+>> >
+>> > Cheers,
+>> > Hermann
+>> >
+>> >
+>> >
+>> > Where to put the option "secam=DK" on Ubuntu 9.10?
+>> >
+>
+> Don't have it, but would guess /etc/modprobe.d or use a
+> deprecated /etc/modprobe.conf and "depmod -a" or close all mixers using
+> saa7134, "modprobe -vr saa7134-alsa" and "modprobe saa7134 secam=DK".
+>
+> Hermann
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at http://vger.kernel.org/majordomo-info.html
+>
+Forget about it, this tuner is just not for Linux...
 
-> I think that the return value of the usb_control_msg() is to be
-> evaluated. If other drivers also not evaluating the usb_control_msg()
-> *they* has to be fixed.
-> 
-> The benefit would be that the userspace program can recognise error
-> condition faster and react accordingly. For example the USB device
-> can be unplugged any time. In this case there is no use to continue
-> sending URBs. Otherwise the user program thinks that everything went
-> on correctly and the user will be surprised how come that he or she
-> unplugged a device and it is still working.
+______________________________
+Ìîÿ ïî÷òà æèâåò íà Ìåòå http://webmail.meta.ua
 
-I see 2 cases for getting errors in usb control messages:
-
-- there are permanent problems in the USB subsystem
-- device disconnection
-
-The first case is detected immediately at probe time and the device
-will not run (/dev/video<n> not created)
-
-On device disconnection, if streaming is active, it is be stopped and
-the device is marked for deletion. The only way to get errors in usb
-control message is to change some control value at the same time the
-device disconnects (i.e. disconnection while the ioctl runs in the
-subdriver). The probability for this to occur is surely less than
-10**-9. Otherwise, once the disconnection is seen, no IO may be
-performed.
-
-If you want absolutely to propagate the errors at higher level, the
-simplest way is to have an 'error' variable in the gspca descriptor.
-You set it to 0 in gspca.c before calling the subdriver (i.e. just after
-getting the usb_lock), you check it before calling usb_control_msg (in
-the low level routines reg_r, reg_w..) , you set it if this last
-function returns an error, and you get its value before releasing the
-usb_lock. In this way, there are less changes and less code overhead.
-
-Regards.
-
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
