@@ -1,60 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:48411 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754139AbZKQEbm convert rfc822-to-8bit (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.152]:27243 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964951AbZKYWwB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2009 23:31:42 -0500
-Received: by bwz27 with SMTP id 27so6440685bwz.21
-        for <linux-media@vger.kernel.org>; Mon, 16 Nov 2009 20:31:47 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20091117032936.D7AF71CE833@ws1-6.us4.outblaze.com>
-References: <20091117032936.D7AF71CE833@ws1-6.us4.outblaze.com>
-Date: Mon, 16 Nov 2009 23:31:47 -0500
-Message-ID: <829197380911162031s4697794cr4732ab5165d7380c@mail.gmail.com>
-Subject: Re: [linux-dvb] Video lost after OS upgrade
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Wed, 25 Nov 2009 17:52:01 -0500
+Subject: Re: IR raw input is not sutable for input system
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: Krzysztof Halasa <khc@pm.waw.pl>
+Cc: Sean Young <sean@mess.org>, Trent Piepho <xyzzy@speakeasy.org>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@redhat.com>, linux-kernel@vger.kernel.org,
+	Mario Limonciello <superm1@ubuntu.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Janne Grunau <j@jannau.net>,
+	Christoph Bartelmus <lirc@bartelmus.de>
+In-Reply-To: <m3d43644q6.fsf@intrepid.localdomain>
+References: <200910200956.33391.jarod@redhat.com>
+	 <200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com>
+	 <4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain>
+	 <20091123173726.GE17813@core.coreip.homeip.net>
+	 <4B0B6321.3050001@wilsonet.com> <1259105571.28219.20.camel@maxim-laptop>
+	 <Pine.LNX.4.58.0911241918390.30284@shell2.speakeasy.net>
+	 <1259155734.4875.23.camel@maxim-laptop>
+	 <20091125213246.GA44831@atlantis.8hz.com>
+	 <m3d43644q6.fsf@intrepid.localdomain>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 26 Nov 2009 00:52:02 +0200
+Message-ID: <1259189522.15916.1.camel@maxim-laptop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 16, 2009 at 10:29 PM,  <guzowskip@linuxmail.org> wrote:
-> Hello all,
->
-> I was happily watching TV with mplayer from my cable set-top box via a
-> Pinnacle HDTV Pro USB Stick and Ubuntu 9.04.
->
-> The command I was using and which worked was/is:
->
-> mplayer -vo xv tv:// -tv
-> driver=v4l2:alsa:immediatemode=0:adevice=hw.1,0:norm=ntsc:chanlist=us-cable:channel=3
->
-> After ugrading to Ubuntu 9.10, when I launch mplayer with this command, I
-> get an empty black window with no video or audio.  Any ideas and/or  help
-> would be greatly appreciated.
->
-> Paul in NW FL, USA
+On Wed, 2009-11-25 at 23:30 +0100, Krzysztof Halasa wrote: 
+> Sean Young <sean@mess.org> writes:
+> 
+> > Absolutely. There are a number of use cases when you want access to the 
+> > space-pulse (i.e. IR) information.
+> 
+> I think nobody proposes otherwise (except for devices which can't pass
+> this info).
 
-Hello Paul,
+I think we were taking about such devices.
 
-I assume you are talking about the "800e" version of the HD Pro Stick
-(USB ID 2304:0227), right?
+I have no objection that devices that *do* decode the protocol, they
+should be handled inside kernel.
 
-http://linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_Pro_Stick_%28800e%29
+But devices that send raw pulse/space data should be handled in lirc
+that will feed the data back to the kernel via uinput.
 
-That device should continue to work under 9.10.  I noticed that your
-mplayer line did not specify which input to use.  Have you tried
-connecting something to the s-video or composite to see if you start
-getting a picture?  Typically you need to explicitly tell mplayer
-which input to use (I don't have the exact syntax in front of me, but
-it's in the mplayer man page).
+Best regards,
+Maxim Levitsky
 
-Also, you have the xc3028 firmware installed, right?  Are you seeing
-any errors in your dmesg output?
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
