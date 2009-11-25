@@ -1,62 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:61961 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751937AbZK2MHB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2009 07:07:01 -0500
-Date: 29 Nov 2009 12:24:00 +0100
-From: lirc@bartelmus.de (Christoph Bartelmus)
-To: stefanr@s5r6.in-berlin.de
-Cc: awalls@radix.net
-Cc: dmitry.torokhov@gmail.com
-Cc: j@jannau.net
-Cc: jarod@redhat.com
-Cc: jarod@wilsonet.com
-Cc: jonsmirl@gmail.com
-Cc: khc@pm.waw.pl
-Cc: linux-input@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Cc: maximlevitsky@gmail.com
-Cc: mchehab@redhat.com
-Cc: superm1@ubuntu.com
-Message-ID: <BDodb$iHqgB@lirc>
-In-Reply-To: <4B11881B.7000204@s5r6.in-berlin.de>
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR 	system?
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail.navvo.net ([74.208.67.6]:37349 "EHLO mail.navvo.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759589AbZKYTiq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Nov 2009 14:38:46 -0500
+From: santiago.nunez@ridgerun.com
+To: davinci-linux-open-source@linux.davincidsp.com
+Cc: linux-media@vger.kernel.org, nsnehaprabha@ti.com,
+	m-karicheri2@ti.com, diego.dompe@ridgerun.com,
+	todd.fischer@ridgerun.com, mgrosen@ti.com,
+	Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+Date: Wed, 25 Nov 2009 13:38:59 -0600
+Message-Id: <1259177939-14850-1-git-send-email-santiago.nunez@ridgerun.com>
+Subject: [PATCH 1/4 v8] Support for TVP7002 in v4l2 definitions
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Stefan,
+From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
 
-on 28 Nov 09 at 21:29, Stefan Richter wrote:
-> Jon Smirl wrote:
->> On Sat, Nov 28, 2009 at 2:45 PM, Stefan Richter
->> <stefanr@s5r6.in-berlin.de> wrote:
->>> Jon Smirl wrote:
->>>> Also, how do you create the devices for each remote? You would need to
->>>> create these devices before being able to do EVIOCSKEYCODE to them.
->>> The input subsystem creates devices on behalf of input drivers.  (Kernel
->>> drivers, that is.  Userspace drivers are per se not affected.)
->>
->> We have one IR receiver device and multiple remotes. How does the
->> input system know how many devices to create corresponding to how many
->> remotes you have?
+This patch provides required chip identification definitions
+within v4l2.
 
-> If several remotes are to be used on the same receiver, then they
-> necessarily need to generate different scancodes, don't they?  Otherwise
-> the input driver wouldn't be able to route their events to the
-> respective subdevice.
+Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+---
+ include/media/v4l2-chip-ident.h |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-Consider this case:
-Two remotes use different protocols. The scancodes after decoding happen  
-to overlap.
-Just using the scancodes you cannot distinguish between the remotes.  
-You'll need to add the protocol information to be able to solve this which  
-complicates the setup.
+diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
+index cf16689..b4b874f 100644
+--- a/include/media/v4l2-chip-ident.h
++++ b/include/media/v4l2-chip-ident.h
+@@ -129,6 +129,9 @@ enum {
+ 	V4L2_IDENT_SAA6752HS = 6752,
+ 	V4L2_IDENT_SAA6752HS_AC3 = 6753,
+ 
++	/* module tvp7002: just ident 7002 */
++	V4L2_IDENT_TVP7002 = 7002,
++
+ 	/* module adv7170: just ident 7170 */
+ 	V4L2_IDENT_ADV7170 = 7170,
+ 
+@@ -150,6 +153,12 @@ enum {
+ 	/* module adv7343: just ident 7343 */
+ 	V4L2_IDENT_ADV7343 = 7343,
+ 
++	/* module ths7353: just ident 7353 */
++	V4L2_IDENT_THS7353 = 7353,
++
++	/* module ths8200: just ident 8200 */
++	V4L2_IDENT_THS8200 = 8200,
++
+ 	/* module wm8739: just ident 8739 */
+ 	V4L2_IDENT_WM8739 = 8739,
+ 
+-- 
+1.6.0.4
 
-In LIRC this is solved by having protocol parameters and scancode mapping  
-in one place.
-
-Christoph
