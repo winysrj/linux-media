@@ -1,63 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out26.alice.it ([85.33.2.26]:3220 "EHLO
-	smtp-out26.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752885AbZKQWFY (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1385 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934717AbZKYOew (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2009 17:05:24 -0500
-From: Antonio Ospite <ospite@studenti.unina.it>
+	Wed, 25 Nov 2009 09:34:52 -0500
+Received: from tschai.localnet (cm-84.208.105.24.getinternet.no [84.208.105.24])
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id nAPEYrwS070165
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 25 Nov 2009 15:34:57 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antonio Ospite <ospite@studenti.unina.it>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Eric Miao <eric.y.miao@gmail.com>,
-	linux-arm-kernel@lists.infradead.org,
-	Mike Rapoport <mike@compulab.co.il>,
-	Juergen Beisert <j.beisert@pengutronix.de>,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH 0/3] pxa_camera: remove init() callback
-Date: Tue, 17 Nov 2009 23:04:20 +0100
-Message-Id: <1258495463-26029-1-git-send-email-ospite@studenti.unina.it>
+Subject: RFC: dvb valgrind patches?
+Date: Wed, 25 Nov 2009 15:34:59 +0100
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200911251534.59479.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi all,
 
-this series removes the init() callback from pxa_camera_platform_data, and
-fixes its users to do initialization statically at machine init time.
+In dvb-spec there are several valgrind patches that add support to valgrind for
+the dvb ioctls. However, these patches no longer apply to the latest valgrind
+(and probably haven't for a *very* long time), so unless someone wants to port
+these to recent valgrind versions I propose to delete them in two weeks time.
 
-Guennadi requested this change because there seems to be no use cases for
-dynamic initialization. I also believe that the current semantics for this
-init() callback is ambiguous anyways, it is invoked in pxa_camera_activate(),
-hence at device node open, but its users use it like a generic initialization
-to be done at module init time (configure MFP, request GPIOs for *sensor*
-control).
+I took a very quick look and it seems that these valgrind files would need to
+be patched:
 
-So removing it is definitely good.
-As a side note, If we were really exposing some dynamic and generic
-initialization, this could be done in soc-camera itself, not in pxa_camera
-anyways.
+./include/vki/vki-linux.h
+./coregrind/m_syswrap/syswrap-linux.c
 
-Thanks,
-   Antonio
+Of course, if someone is going to port these patches to the latest valgrind,
+then those patches should be mailed to the valgrind maintainer for inclusion
+in valgrind itself. That's much better than trying to maintain them in our
+tree.
 
-Antonio Ospite (3):
-  em-x270: don't use pxa_camera init() callback
-  pcm990-baseboard: don't use pxa_camera init() callback
-  pxa_camera: remove init() callback
+Regards,
 
- arch/arm/mach-pxa/em-x270.c             |    9 +++++----
- arch/arm/mach-pxa/include/mach/camera.h |    2 --
- arch/arm/mach-pxa/pcm990-baseboard.c    |    8 +-------
- drivers/media/video/pxa_camera.c        |   10 ----------
- 4 files changed, 6 insertions(+), 23 deletions(-)
+	Hans
 
---
-Antonio Ospite
-http://ao2.it
-
-PGP public key ID: 0x4553B001
-
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
-A: Top-posting.
-Q: What is the most annoying thing in e-mail?
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
