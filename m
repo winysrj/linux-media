@@ -1,53 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:49557 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751457AbZKRMrv (ORCPT
+Received: from mail-in-01.arcor-online.net ([151.189.21.41]:54255 "EHLO
+	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754714AbZKYWMT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 07:47:51 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: v4l: Add video_device_node_name function
-Date: Wed, 18 Nov 2009 13:48:17 +0100
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1258504731-8430-1-git-send-email-laurent.pinchart@ideasonboard.com> <1258504731-8430-2-git-send-email-laurent.pinchart@ideasonboard.com> <200911180806.22428.hverkuil@xs4all.nl>
-In-Reply-To: <200911180806.22428.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+	Wed, 25 Nov 2009 17:12:19 -0500
+Subject: Re: Tuner drivers
+From: hermann pitton <hermann-pitton@arcor.de>
+To: rulet1@meta.ua
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <46842.95.132.81.101.1259175646.metamail@webmail.meta.ua>
+References: <1258292980.3235.14.camel@pc07.localdom.local>
+	 <58364.95.133.222.95.1258298152.metamail@webmail.meta.ua>
+	 <1258314943.3276.3.camel@pc07.localdom.local>
+	 <46842.95.132.81.101.1259175646.metamail@webmail.meta.ua>
+Content-Type: text/plain
+Date: Wed, 25 Nov 2009 23:11:24 +0100
+Message-Id: <1259187084.3335.48.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <200911181348.18210.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi,
 
-On Wednesday 18 November 2009 08:06:22 Hans Verkuil wrote:
-> On Wednesday 18 November 2009 01:38:42 Laurent Pinchart wrote:
-> > Many drivers access the device number (video_device::v4l2_devnode::num)
-> > in order to print the video device node name. Add and use a helper
-> > function to retrieve the video_device node name.
+Am Mittwoch, den 25.11.2009, 21:00 +0200 schrieb rulet1@meta.ua:
 > >
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> Can you also add a bit of documentation for this function in
-> Documentation/video4linux/v4l2-framework.txt? It should go in the section
-> "video_device helper functions".
+> > Am Sonntag, den 15.11.2009, 17:15 +0200 schrieb rulet1@meta.ua:
+> >> > Hi,
+> >> >
+> >> > Am Sonntag, den 15.11.2009, 14:42 +0200 schrieb rulet1@meta.ua:
+> >> >> How to do that?:
+> >> >>
+> >> >> "You are forced to use saa7134-alsa dma sound"
+> >> >>
+> >> >
+> >> > a problem is that I can't tell for sure which analog TV standard you
+> >> > currently use in the Ukraine, either it is still SECAM DK or you
+> >> changed
+> >> > to some PAL already.
+> >> >
+> >> > Try to get the details, also about the sound system.
+> >> >
+> >> > If it is still SECAM DK, you need to force the option "secam=DK".
+> >> >
+> >> > With "audio_debug=1" you can see if the drivers finds the pilots, the
+> >> > first sound carrier and the second carrier and also the stereo system
+> >> in
+> >> > use. This counts also for PAL standards.
+> >> >
+> >> > This way you can already see if the driver can lock on the audio
+> >> > carriers in "dmesg" without hearing anything yet.
+> >> >
+> >> > Then saa7134-alsa should provide TV sound on your card.
+> >> > http://linuxtv.org/wiki/index.php/Saa7134-alsa
+> >> >
+> >> > Cheers,
+> >> > Hermann
+> >> >
+> >> >
+> >> >
+> >> > Where to put the option "secam=DK" on Ubuntu 9.10?
+> >> >
+> >
+> > Don't have it, but would guess /etc/modprobe.d or use a
+> > deprecated /etc/modprobe.conf and "depmod -a" or close all mixers using
+> > saa7134, "modprobe -vr saa7134-alsa" and "modprobe saa7134 secam=DK".
+> >
+> > Hermann
 
-Sure.
+> >
+> Forget about it, this tuner is just not for Linux...
 
-> And update that file as well when the num and minor fields go away.
+sorry, sounds pretty frustrated.
 
-The fields won't go away completely, as they're still needed by the v4l core. 
-I will document them as private when no drivers will be using them anymore.
- 
-> The same is also true for the new registration function.
+But I have no other choice, as to assume for now, that this card with
+that tuner is tested by those who did contribute it for sound too, like
+more than about 150 other such cards in this driver.
 
-Ok.
+We should have support for global analog TV sound on such, SECAM types
+need to be forced by user is the only extra that might hit you.
 
-Thanks for the review.
+No other single report for failing TV sound since years now.
 
--- 
-Regards,
+Eventually possible scenarios:
 
-Laurent Pinchart
+1. You have a different card with the same PCI subsystem as the known
+   one, but we don't know about that yet. Unlikely for AverMedia.
+
+2. you have a card with saa7133 chip, which can't decode PAL/SECAM
+   sound. Should not be available on any shelve in Europe.
+
+Debug route is: first have debug=1 for tda827x and tda8290. You reported
+already to have a picture from tuner, so this will report the tuner
+"locked" and we can skip that. Then saa7134 audio_debug=1 should report
+the TV audio system in use and detected. If detected, audio routing from
+tuner is correct and the rest is to properly use saa7134-alsa, since
+your card has no analog audio out connected.  
+
+For TV stereo sound decoding capable chips TV sound amux is always TV.
+
+The saa7135 and saa7131e can do it globally, the saa7134 would need
+extra chips for System-M/NTSC alike and the saa7133 for PAL/SECAM.
+
+This was always mentioned in the reference designs as a possibility, but
+until today no device is known to do such in reality on saa7134 and
+saa7133.
+
+Sorry, we don't have any dmesg/logs for it on the lists, but Mauro was
+working on the NEC IRQ remote support and most likely has verified
+working TV sound at least for System-M, maybe on a saa7133, but I would
+expect a saa7131e. (Needs more digging)
+
+Cheers,
+Hermann
+
+
+
+
+
+
+
+
+
+
+
