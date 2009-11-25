@@ -1,54 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.navvo.net ([74.208.67.6]:37330 "EHLO mail.navvo.net"
+Received: from khc.piap.pl ([195.187.100.11]:52066 "EHLO khc.piap.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758838AbZKYTi1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2009 14:38:27 -0500
-Message-ID: <4B0D87C1.5040500@ridgerun.com>
-Date: Wed, 25 Nov 2009 13:38:41 -0600
-From: Santiago Nunez-Corrales <snunez@ridgerun.com>
-Reply-To: santiago.nunez@ridgerun.com
+	id S933459AbZKYUtX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Nov 2009 15:49:23 -0500
+From: Krzysztof Halasa <khc@pm.waw.pl>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, mchehab@redhat.com, superm1@ubuntu.com
+Subject: Re: [RFC] Should we create a raw input interface for IR's ?
+References: <BDZb9P9ZjFB@christoph> <m3skc25wpx.fsf@intrepid.localdomain>
+	<E6F196CB-8F9E-4618-9283-F8F67D1D3EAF@wilsonet.com>
+	<829197380911251020y6f330f15mba32920ac63e97d3@mail.gmail.com>
+	<E88E119C-BB86-4F01-8C2C-E514AC6BA5E2@wilsonet.com>
+Date: Wed, 25 Nov 2009 21:49:28 +0100
+In-Reply-To: <E88E119C-BB86-4F01-8C2C-E514AC6BA5E2@wilsonet.com> (Jarod
+	Wilson's message of "Wed, 25 Nov 2009 13:43:24 -0500")
+Message-ID: <m3skc249ev.fsf@intrepid.localdomain>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: "davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"Narnakaje, Snehaprabha" <nsnehaprabha@ti.com>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"Grosen, Mark" <mgrosen@ti.com>,
-	Diego Dompe <diego.dompe@ridgerun.com>,
-	"todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: [PATCH 0/4 v8] Support for TVP7002 in DM365
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series of patches provide support for the TVP7002 decoder in DM365.
+Jarod Wilson <jarod@wilsonet.com> writes:
 
-Support includes:
+> Well, we've got a number of IOCTLs already, could extend those.
+> (Although its been suggested elsewhere that we replace the IOCTLs with
+> sysfs knobs).
 
-* Inclusion of the chip in v4l2 definitions
-* Definition of TVP7002 specific data structures
-* Kconfig and Makefile support
+Not sure if sysfs would be fast enough.
 
-This series corrects many issued pointed out by Snehaprabha Narnakaje,
-Muralidharan Karicheri, Vaibhav Hiremath and Hans Verkuil and solves
-testing problems.  Tested on DM365 TI EVM with resolutions 720p,
-1080i@60, 576P and 480P with video capture application and video
-output in 480P, 576P, 720P and 1080I. This driver depends upon
-board-dm365-evm.c and vpfe_capture.c to be ready for complete
-integration. Uses the new V4L2 DV API sent by Muralidharan Karicheri.
-Removed shadow register values.
+> A simple sysfs attr that contains the name of the default config file
+> for the bundled remote of a given receiver would seem simple enough to
+> implement.
 
-
+A model name maybe. Though there is this mapping thing which I think
+need ioctl().
 -- 
-Santiago Nunez-Corrales, Eng.
-RidgeRun Engineering, LLC
-
-Guayabos, Curridabat
-San Jose, Costa Rica
-+(506) 2271 1487
-+(506) 8313 0536
-http://www.ridgerun.com
-
-
-
+Krzysztof Halasa
