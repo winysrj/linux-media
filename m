@@ -1,113 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3665 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752141AbZKKHVL (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:55436 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932340AbZKYRXN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Nov 2009 02:21:11 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Subject: Re: [PATCH] V4L: adding digital video timings APIs
-Date: Wed, 11 Nov 2009 08:21:10 +0100
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>
-References: <1256164939-21803-1-git-send-email-m-karicheri2@ti.com> <A69FA2915331DC488A831521EAE36FE4015568EF61@dlee06.ent.ti.com> <200911051356.29540.hverkuil@xs4all.nl>
-In-Reply-To: <200911051356.29540.hverkuil@xs4all.nl>
+	Wed, 25 Nov 2009 12:23:13 -0500
+Date: 25 Nov 2009 18:20:00 +0100
+From: lirc@bartelmus.de (Christoph Bartelmus)
+To: khc@pm.waw.pl
+Cc: awalls@radix.net
+Cc: dmitry.torokhov@gmail.com
+Cc: j@jannau.net
+Cc: jarod@redhat.com
+Cc: jarod@wilsonet.com
+Cc: linux-input@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com
+Cc: superm1@ubuntu.com
+Message-ID: <BDZb9P9ZjFB@christoph>
+In-Reply-To: <m3fx827dgi.fsf@intrepid.localdomain>
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was: Re: [PATCH 1/3 v2] lirc core device driver infrastructure
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200911110821.10524.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 05 November 2009 13:56:29 Hans Verkuil wrote:
-> On Friday 23 October 2009 22:44:34 Karicheri, Muralidharan wrote:
-> > Hans,
-> > 
-> > >> following IOCTLS :-
-> > >>
-> > >>  -  verify the new v4l2_input capabilities flag added
-> > >>  -  Enumerate available presets using VIDIOC_ENUM_DV_PRESETS
-> > >>  -  Set one of the supported preset using VIDIOC_S_DV_PRESET
-> > >>  -  Get current preset using VIDIOC_G_DV_PRESET
-> > >>  -  Detect current preset using VIDIOC_QUERY_DV_PRESET
-> > >>  -  Using stub functions in tvp7002, verify VIDIOC_S_DV_TIMINGS
-> > >>     and VIDIOC_G_DV_TIMINGS ioctls are received at the sub device.
-> > >>
-> > >> TODOs :
-> > >>
-> > >>  - Test it on a 64bit platform - I need help here since I don't have the
-> > >> platform.
-> > >>  - Add documentation (Can someone tell me which file to modify in the
-> > >> kernel tree?).
-> > >
-> > >Use the spec in media-spec/v4l.
-> > 
-> > [MK] Where can I access this? Is this part of kernel tree (I couldn't find
-> > it under Documentation/video4linux/ under the kernel tree? Is it just updating a text file or I need to have some tool installed to access
-> > this documentation and update it.
-> 
-> This has been moved around quite a bit lately. It is now in
-> linux/Documentation/DocBook/v4l. You build it using 'make media-spec'.
-> 
-> > >Please also add support to v4l2-ctl.cpp in v4l2-apps/util! That's handy
-> > >for testing.
-> > [MK] Are you referring to the following repository for this?
-> > 
-> > http://linuxtv.org/hg/~dougsland/tool/file/5b884b36bbab
-> > 
-> > Is there a way I can do a git clone for this?
-> 
-> Both the doc and the v4l2-ctl.cpp utility are in the master hg repository
-> (linuxtv.org/hg/v4l-dvb). The utility can be found here: v4l2-apps/util.
-> Build it using 'make apps'. The patches of the timings API, docs and utils
-> should all be done against the master hg tree since that is that latest and
-> greatest tree.
-> 
-> > 
-> > >
-> > >Setting the input/output capabilities should be done in v4l2-ioctl.c
-> > >rather than in the drivers. All the info you need to set these bits is
-> > >available in the core after all.
-> > >
-> > 
-> > [MK] Could you explain this to me? In my prototype, I had tvp5146 that
-> > implements S_STD and tvp7002 that implements S_PRESET. Since bridge driver
-> > has all the knowledge about the sub devices and their capabilities, it can
-> > set the flag for each of the input that it supports (currently I am
-> > setting this flag in the board setup file that describes all the inputs using v4l2_input structure). So it is a matter of setting relevant cap flag in this file for each of the input based on what the sub device supports. I am not sure how core can figure this out?
-> 
-> The problem is that we don't want to go through all drivers in order to set
-> the input/output capability flags. However, v4l2_ioctl.c can easily check
-> whether the v4l2_ioctl_ops struct has set vidioc_s_std, vidioc_s_dv_preset
-> and/or vidioc_s_dv_timings and fill in the caps accordingly. If this is done
-> before the vidioc_enum_input/output is called, then the driver can override
-> what v4l2_ioctl.c did if that is needed.
-> 
-> > 
-> > >I also noticed that not all new ioctls are part of video_ops. Aren't they
-> > >all required?
-> > >
-> > [MK] All new ioctls are supported in video_ops. I am not sure what you are
-> > referring to. For sub device ops, only few are required since bridge device
-> > can handle the rest.
-> 
-> OK.
-> 
-> Regards,
-> 
-> 	Hans
-> 
+Hi,
 
-Hi Murali,
+on 25 Nov 09 at 17:53, Krzysztof Halasa wrote:
+> Jarod Wilson <jarod@wilsonet.com> writes:
+[...]
+>> nimble. If we can come up with a shiny new way that raw IR can be
+>> passed out through an input device, I'm pretty sure lirc userspace can
+>> be adapted to handle that.
 
-What is the status of this? It would be great if we can get this in for 2.6.33.
+As Trent already pointed out, adding support for raw IR through an input  
+device would require a new interface too. You just put the label "input  
+device" on it. This does not make much sense for me.
 
-Regards,
+> Lirc can already handle input layer. Since both ways require userspace
+> changes,
 
-	Hans
+I'm not sure what two ways you are talking about. With the patches posted  
+by Jarod, nothing has to be changed in userspace.
+Everything works, no code needs to be written and tested, everybody is  
+happy.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+We had exactly the same discussion around one year ago. I've seen no new  
+arguements in the current discussion and nobody came up with this shiny  
+new way of integrating LIRC into the input layer since last year. Maybe  
+it's about time to just accept that the LIRC interface is the way to go.
+
+Can we finally get the patch integrated, please?
+
+Christoph
