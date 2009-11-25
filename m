@@ -1,172 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:45998 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750899AbZK3KSG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Nov 2009 05:18:06 -0500
-Date: Mon, 30 Nov 2009 11:18:24 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Paul Mundt <lethal@linux-sh.org>
-Subject: Re: [PATCH 2/2 v2] soc-camera: convert to the new mediabus API
-In-Reply-To: <alpine.LNX.2.01.0911301006240.3107@alastor>
-Message-ID: <Pine.LNX.4.64.0911301100050.12689@axis700.grange>
-References: <Pine.LNX.4.64.0911261509100.5450@axis700.grange>   
- <dc06c2b1fe49c7b64007ec24817e190a.squirrel@webmail.xs4all.nl>   
- <Pine.LNX.4.64.0911261822520.5450@axis700.grange>   
- <Pine.LNX.4.64.0911271349360.4383@axis700.grange>
- <9776d18eb5595d838cae99e1837d401c.squirrel@webmail.xs4all.nl>
- <Pine.LNX.4.64.0911271527340.4383@axis700.grange> <alpine.LNX.2.01.0911301006240.3107@alastor>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail.navvo.net ([74.208.67.6]:37403 "EHLO mail.navvo.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759607AbZKYTjR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Nov 2009 14:39:17 -0500
+From: santiago.nunez@ridgerun.com
+To: davinci-linux-open-source@linux.davincidsp.com
+Cc: linux-media@vger.kernel.org, nsnehaprabha@ti.com,
+	m-karicheri2@ti.com, diego.dompe@ridgerun.com,
+	todd.fischer@ridgerun.com, mgrosen@ti.com,
+	Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+Date: Wed, 25 Nov 2009 13:39:30 -0600
+Message-Id: <1259177970-14947-1-git-send-email-santiago.nunez@ridgerun.com>
+Subject: [PATCH 4/4 v8] Menu support for TVP7002 in DM365
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 30 Nov 2009, Hans Verkuil wrote:
+From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
 
-> 
-> 
-> On Fri, 27 Nov 2009, Guennadi Liakhovetski wrote:
-> 
-> > On Fri, 27 Nov 2009, Hans Verkuil wrote:
-> > 
-> > > Hi Guennadi,
-> > > 
-> > > > Convert soc-camera core and all soc-camera drivers to the new mediabus
-> > > > API. This also takes soc-camera client drivers one step closer to also
-> > > > be
-> > > > usable with generic v4l2-subdev host drivers.
-> > > 
-> > > Just a quick question:
-> > > 
-> > > > @@ -323,28 +309,39 @@ static int mt9m001_s_fmt(struct v4l2_subdev *sd,
-> > > > struct v4l2_format *f)
-> > > >  	/* No support for scaling so far, just crop. TODO: use skipping */
-> > > >  	ret = mt9m001_s_crop(sd, &a);
-> > > >  	if (!ret) {
-> > > > -		pix->width = mt9m001->rect.width;
-> > > > -		pix->height = mt9m001->rect.height;
-> > > > -		mt9m001->fourcc = pix->pixelformat;
-> > > > +		mf->width	= mt9m001->rect.width;
-> > > > +		mf->height	= mt9m001->rect.height;
-> > > > +		mt9m001->fmt	= soc_mbus_find_datafmt(mf->code,
-> > > > +					mt9m001->fmts, mt9m001->num_fmts);
-> > > > +		mf->colorspace	= mt9m001->fmt->colorspace;
-> > > >  	}
-> > > > 
-> > > >  	return ret;
-> > > >  }
-> > > > 
-> > > > -static int mt9m001_try_fmt(struct v4l2_subdev *sd, struct v4l2_format
-> > > > *f)
-> > > > +static int mt9m001_try_fmt(struct v4l2_subdev *sd,
-> > > > +			   struct v4l2_mbus_framefmt *mf)
-> > > >  {
-> > > >  	struct i2c_client *client = sd->priv;
-> > > >  	struct mt9m001 *mt9m001 = to_mt9m001(client);
-> > > > -	struct v4l2_pix_format *pix = &f->fmt.pix;
-> > > > +	const struct soc_mbus_datafmt *fmt;
-> > > > 
-> > > > -	v4l_bound_align_image(&pix->width, MT9M001_MIN_WIDTH,
-> > > > +	v4l_bound_align_image(&mf->width, MT9M001_MIN_WIDTH,
-> > > >  		MT9M001_MAX_WIDTH, 1,
-> > > > -		&pix->height, MT9M001_MIN_HEIGHT + mt9m001->y_skip_top,
-> > > > +		&mf->height, MT9M001_MIN_HEIGHT + mt9m001->y_skip_top,
-> > > >  		MT9M001_MAX_HEIGHT + mt9m001->y_skip_top, 0, 0);
-> > > > 
-> > > > -	if (pix->pixelformat == V4L2_PIX_FMT_SBGGR8 ||
-> > > > -	    pix->pixelformat == V4L2_PIX_FMT_SBGGR16)
-> > > > -		pix->height = ALIGN(pix->height - 1, 2);
-> > > > +	if (mt9m001->fmts == mt9m001_colour_fmts)
-> > > > +		mf->height = ALIGN(mf->height - 1, 2);
-> > > > +
-> > > > +	fmt = soc_mbus_find_datafmt(mf->code, mt9m001->fmts,
-> > > > +				    mt9m001->num_fmts);
-> > > > +	if (!fmt) {
-> > > > +		fmt = mt9m001->fmt;
-> > > > +		mf->code = fmt->code;
-> > > > +	}
-> > > > +
-> > > > +	mf->colorspace	= fmt->colorspace;
-> > > > 
-> > > >  	return 0;
-> > > >  }
-> > > 
-> > > Why do the sensor drivers use soc_mbus_find_datafmt? They only seem to be
-> > > interested in the colorspace field, but I don't see the reason for that.
-> > > Most if not all sensors have a fixed colorspace depending on the
-> > > pixelcode, so they can just ignore the colorspace that the caller
-> > > requested and replace it with their own.
-> > 
-> > Right, that's exactly what's done here. mt9m001 and mt9v022 drivers
-> > support different formats, depending on the exact detected or specified by
-> > the user model. That's why they have to search for the requested format in
-> > supported list. and then - yes, they just put the found format into user
-> > request:
-> > 
-> > > > +	mf->colorspace	= fmt->colorspace;
-> > 
-> > > I didn't have time for a full review, so I might have missed something.
-> 
-> I looked at this more closely and I realized that I did indeed miss that
-> soc_mbus_find_datafmt just searched in the pixelcode -> colorspace mapping
-> array.
-> 
-> I also realized that there is no need for that data structure and function
-> to be soc-camera specific. I believe I said otherwise in an earlier review.
-> My apologies for that, all I can say is that I had very little time to do
-> the reviews...
+This patch provides menu configuration options for the TVP7002
+decoder driver in DM365.
 
-No, you did not say otherwise about _these_ struct and function - they 
-only appeared in v2 of the mediabus API, after you'd suggested to move 
-colorspace into struct v4l2_mbus_framefmt.
-
-> That said, there is no need for both the soc_mbus_datafmt struct and the
-> soc_mbus_find_datafmt function. These can easily be replaced by something
-> like this as a local function in each subdev:
-> 
-> static enum v4l2_colorspace mt9m111_g_colorspace(enum v4l2_mbus_pixelcode
-> code)
-> {
-> 	switch (code) {
-> 	case V4L2_MBUS_FMT_YUYV:
-> 	case V4L2_MBUS_FMT_YVYU:
-> 	case V4L2_MBUS_FMT_UYVY:
-> 	case V4L2_MBUS_FMT_VYUY:
-> 		return V4L2_COLORSPACE_JPEG;
-> 
-> 	case V4L2_MBUS_FMT_RGB555:
-> 	case V4L2_MBUS_FMT_RGB565:
-> 	case V4L2_MBUS_FMT_SBGGR8:
-> 	case V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE:
-> 		return V4L2_COLORSPACE_SRGB;
-> 
-> 	default:
-> 		return 0;
-> 	}
-> }
-> 
-> So if mt9m111_g_colorspace() returns 0, then the format wasn't found.
-> (Note that the compiler might give a warning for the return 0, so that might
-> need some editing)
-> 
-> Much simpler and much easier to understand.
-
-Drivers are not forced to use that small and trivial function - everyone 
-is welcome to reinvent the wheel:-) In many cases it is indeed an 
-overkill, like mt9t031, which only supports one format. However, in some 
-other drivers this is not that trivial. First, as I said, mt9m001 and 
-mt9v022 generate that array dynamically, depending on the chip version and 
-platform configuration. So, you anyway would have to iterate over the 
-array. In other drivers, like ov772x and the recently submitted mt9t112 
-this function is also used to retrieve register configuration for a 
-specific pixel code. So, I still think that function is useful, and being 
-kept under soc-camera mediabus extensions, and being inline, it shouldn't 
-cause too many problems.
-
-Thanks
-Guennadi
+Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
 ---
-Guennadi Liakhovetski
+ drivers/media/video/Kconfig  |   41 +++++++++++++++++++++++++++++++++++++++++
+ drivers/media/video/Makefile |    3 +++
+ 2 files changed, 44 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index e6186b3..de3328b 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -392,6 +392,15 @@ config VIDEO_TVP5150
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called tvp5150.
+ 
++config VIDEO_TVP7002
++	tristate "Texas Instruments TVP7002 video decoder"
++	depends on VIDEO_V4L2 && I2C
++	---help---
++	  Support for the Texas Instruments TVP7002 video decoder.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called tvp7002.
++
+ config VIDEO_VPX3220
+ 	tristate "vpx3220a, vpx3216b & vpx3214c video decoders"
+ 	depends on VIDEO_V4L2 && I2C
+@@ -466,6 +475,29 @@ config VIDEO_THS7303
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called ths7303.
+ 
++config VIDEO_THS7353
++	tristate "THS7353 Video Amplifier"
++	depends on I2C
++	help
++	  Support for TI THS7353 video amplifier
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called ths7353.
++
++config VIDEO_THS7353_LUMA_CHANNEL
++	int "THS7353 channel number for Luma Input"
++	default 3
++	depends on VIDEO_THS7353
++	help
++	  Select the luma channel number for the THS7353 input.
++
++	  THS7353 has three identical channels. For the component
++	  interface, luma input will be connected to one of these
++	  channels and cb and cr will be connected to other channels
++	  This config option is used to select the luma input channel
++	  number. Possible values for this option are 1,2 or 3. Any
++	  other value will result in value 2.
++
+ config VIDEO_ADV7343
+ 	tristate "ADV7343 video encoder"
+ 	depends on I2C
+@@ -475,6 +507,15 @@ config VIDEO_ADV7343
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called adv7343.
+ 
++config VIDEO_THS8200
++	tristate "THS8200 video encoder"
++	depends on I2C
++	help
++	  Support for Analog Devices I2C bus based THS8200 encoder.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called ths8200.
++
+ comment "Video improvement chips"
+ 
+ config VIDEO_UPD64031A
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index e541932..5327ff4 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -47,15 +47,18 @@ obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
+ obj-$(CONFIG_VIDEO_ADV7175) += adv7175.o
+ obj-$(CONFIG_VIDEO_ADV7180) += adv7180.o
+ obj-$(CONFIG_VIDEO_ADV7343) += adv7343.o
++obj-$(CONFIG_VIDEO_THS8200) += ths8200.o
+ obj-$(CONFIG_VIDEO_VPX3220) += vpx3220.o
+ obj-$(CONFIG_VIDEO_BT819) += bt819.o
+ obj-$(CONFIG_VIDEO_BT856) += bt856.o
+ obj-$(CONFIG_VIDEO_BT866) += bt866.o
+ obj-$(CONFIG_VIDEO_KS0127) += ks0127.o
+ obj-$(CONFIG_VIDEO_THS7303) += ths7303.o
++obj-$(CONFIG_VIDEO_THS7353) += ths7353.o
+ obj-$(CONFIG_VIDEO_VINO) += indycam.o
+ obj-$(CONFIG_VIDEO_TVP5150) += tvp5150.o
+ obj-$(CONFIG_VIDEO_TVP514X) += tvp514x.o
++obj-$(CONFIG_VIDEO_TVP7002) += tvp7002.o
+ obj-$(CONFIG_VIDEO_MSP3400) += msp3400.o
+ obj-$(CONFIG_VIDEO_CS5345) += cs5345.o
+ obj-$(CONFIG_VIDEO_CS53L32A) += cs53l32a.o
+-- 
+1.6.0.4
+
