@@ -1,57 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:54297 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751876AbZKQQXE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2009 11:23:04 -0500
-Message-ID: <4B02CD9D.80402@kernel.org>
-Date: Wed, 18 Nov 2009 01:21:49 +0900
-From: Tejun Heo <tj@kernel.org>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2155 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758770AbZKYQpu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Nov 2009 11:45:50 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH/RFC v2] V4L core cleanups HG tree
+Date: Wed, 25 Nov 2009 17:45:52 +0100
+Cc: linux-media@vger.kernel.org, stoth@linuxtv.org,
+	mchehab@infradead.org, srinivasa.deevi@conexant.com,
+	dean@sensoray.com, palash.bandyopadhyay@conexant.com,
+	awalls@radix.net, dheitmueller@kernellabs.com
+References: <200911181354.06529.laurent.pinchart@ideasonboard.com> <200911251721.26506.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <200911251721.26506.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Andy Walls <awalls@radix.net>
-CC: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	jeff@garzik.org, mingo@elte.hu, akpm@linux-foundation.org,
-	jens.axboe@oracle.com, rusty@rustcorp.com.au,
-	cl@linux-foundation.org, dhowells@redhat.com,
-	arjan@linux.intel.com, torvalds@linux-foundation.org,
-	avi@redhat.com, peterz@infradead.org, andi@firstfloor.org,
-	fweisbec@gmail.com
-Subject: Re: [PATCH 17/21] workqueue: simple reimplementation of SINGLE_THREAD
- workqueue
-References: <1258391726-30264-1-git-send-email-tj@kernel.org>	 <1258391726-30264-18-git-send-email-tj@kernel.org>	 <1258418872.4096.28.camel@palomino.walls.org>  <4B023340.90004@kernel.org> <1258459525.3214.17.camel@palomino.walls.org>
-In-Reply-To: <1258459525.3214.17.camel@palomino.walls.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <200911251745.52902.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-
-11/17/2009 09:05 PM, Andy Walls wrote:
->>   Implementing strict ordering
->> shouldn't be too difficult but I can't help but feeling that such
->> assumption is abuse of implementation detail.
+On Wednesday 25 November 2009 17:21:26 Laurent Pinchart wrote:
+> Hopefully CC'ing the au0828, cx231xx, cx23885, s2255 and cx25821 maintainers.
 > 
-> Hmmm, does not the "queue" in workqueue mean "FIFO"?
+> Could you please ack patch http://linuxtv.org/hg/~pinchartl/v4l-dvb-
+> cleanup/rev/7a762df57149 ? The patch should be committed to v4l-dvb in time 
+> for 2.6.33.
 
-I don't think it necessarily means strict execution ordering.
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-> If not for strict ordering, why else would a driver absolutely need a
-> singlethreaded workqueue object?  It seems to me the strict ording is
-> the driving requirement for a singlethreaded workqueue at all.  Your
-> patch series indicates to me that the performance and synchronization
-> use cases are not driving requirements for a singlethreaded workqueue.
+Regards,
 
-I still think the biggest reason why single threaded workqueue is used
-is just to reduce the number of threads hanging around.  I tried to
-audit single thread users some time ago.  My impression was that many
-of single thread work users did synchronization itself anyway while
-smaller portion depended on single threadedness.  I didn't notice the
-strict ordering requirement but then again I wasn't looking for them.
-It seems there are at least two cases depending on FIFO behavior, so
-let's see if we can retain the behavior for single threaded
-workqueues (maybe it should be renamed to ORDERED?).
+	Hans
 
-Thanks.
+> 
+> On Wednesday 18 November 2009 13:54:06 Laurent Pinchart wrote:
+> > Hi everybody,
+> > 
+> > the V4L cleanup patches are now available from
+> > 
+> > http://linuxtv.org/hg/~pinchartl/v4l-dvb-cleanup
+> > 
+> > The tree will be rebased if needed (or rather dropped and recreated as hg
+> > doesn't provide a rebase operation), so please don't pull from it yet if
+> >  you don't want to have to throw the patches away manually later.
+> > 
+> > I've incorporated the comments received so far and went through all the
+> > patches to spot bugs that could have sneaked in.
+> > 
+> > Please test the code against the driver(s) you maintain. The changes are
+> > small, *should* not create any issue, but the usual bug can still sneak in.
+> > 
+> > I can't wait for an explicit ack from all maintainers (mostly because I
+> >  don't know you all), so I'll send a pull request in a week if there's no
+> >  blocking issue. I'd like this to get in 2.6.33 if possible.
+> 
+> 
 
 -- 
-tejun
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
