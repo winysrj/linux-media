@@ -1,172 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:62146 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757392AbZKWMeE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2009 07:34:04 -0500
-Subject: Re: cx18: Reprise of YUV frame alignment improvements
-From: Andy Walls <awalls@radix.net>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
-In-Reply-To: <1258978370.3058.25.camel@palomino.walls.org>
-References: <1257913905.28958.32.camel@palomino.walls.org>
-	 <829197380911221904uedc18e5qbc9a37cfcee23b5d@mail.gmail.com>
-	 <1258978370.3058.25.camel@palomino.walls.org>
-Content-Type: text/plain
-Date: Mon, 23 Nov 2009 07:32:47 -0500
-Message-Id: <1258979567.3058.30.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-fx0-f213.google.com ([209.85.220.213]:42278 "EHLO
+	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759250AbZKYXGf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Nov 2009 18:06:35 -0500
+Received: by fxm5 with SMTP id 5so236715fxm.28
+        for <linux-media@vger.kernel.org>; Wed, 25 Nov 2009 15:06:40 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <200911181354.06529.laurent.pinchart@ideasonboard.com>
+References: <200911181354.06529.laurent.pinchart@ideasonboard.com>
+Date: Wed, 25 Nov 2009 18:06:40 -0500
+Message-ID: <829197380911251506g4af4d72v85c6dfb55cb88d0a@mail.gmail.com>
+Subject: Re: [PATCH/RFC v2] V4L core cleanups HG tree
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	mchehab@infradead.org, sakari.ailus@maxwell.research.nokia.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2009-11-23 at 07:12 -0500, Andy Walls wrote:
-> On Sun, 2009-11-22 at 22:04 -0500, Devin Heitmueller wrote:
-> > On Tue, Nov 10, 2009 at 11:31 PM, Andy Walls <awalls@radix.net> wrote:
-> > > OK, here's my second attempt at getting rid of cx18 YUV frame alignment
-> > > and tearing issues.
-> > >
-> > >        http://linuxtv.org/hg/~awalls/cx18-yuv2
-> > 
-> > Hi Andy,
-> > 
-> > I did some testing of your tree, using the following command
-> > 
-> > mplayer /dev/video32 -demuxer rawvideo -rawvideo w=720:h=480:format=hm12:ntsc
-> > 
-> > and then in parallel run a series of make commands of the v4l-dvb tree
-> > 
-> > make -j2 && make unload && make -j2 && make unload && make -j2 && make
-> > unload && make -j2 && make unload
-> > 
-> > I was definitely seeing the corruption by doing this test before your
-> > patches (both frame alignment and colorspace problems as PCI frames
-> > were being dropped).  After your change, I no longer see those
-> > problems.  The picture never became misaligned.
-> 
-> Great.  Thanks for the test.
-> 
-> 
-> >  However, it would
-> > appear that some sort of regression may have been introduced with the
-> > buffer handling.
-> > 
-> > I was seeing a continuous reporting of the following in dmesg, even
-> > *after* I stopped generating the load by running the make commands.
-> > 
-> > [ 5175.703811] cx18-0: Could not find MDL 106 for stream encoder YUV
-> > [ 5175.737380] cx18-0: Could not find MDL 111 for stream encoder YUV
-> > [ 5175.804317] cx18-0: Skipped encoder YUV, MDL 96, 3 times - it must
-> > have dropped out of rotation
-> > [ 5175.804324] cx18-0: Skipped encoder YUV, MDL 101, 3 times - it must
-> > have dropped out of rotation
-> > [ 5175.904500] cx18-0: Skipped encoder YUV, MDL 96, 2 times - it must
-> > have dropped out of rotation
-> > [ 5176.204507] cx18-0: Skipped encoder YUV, MDL 101, 1 times - it must
-> > have dropped out of rotation
-> > [ 5176.204513] cx18-0: Skipped encoder YUV, MDL 96, 1 times - it must
-> > have dropped out of rotation
-> > [ 5176.204518] cx18-0: Could not find MDL 111 for stream encoder YUV
-> 
-> Congratulations, you're seeing my buffer notification consistency check
-> and sweep-up code in action.
-> 
-> In the early days of cx18 maintenance by me, the driver would stop
-> "capturing" a stream after anywhere from an hour to an hour and a half -
-> black screen in MythTV.  The original (current?) problem had a few
-> components:
-> 
-> 1. There is only *one* CPU2EPU mailbox and all DMA_DONE notifications
-> come through it.
-> 
-> 2. The CX23418 firmware does not wait long, at all, for you to pick up
-> and acknowledge the CPU2EPU mailbox.  It is a shorter window when you
-> have multiple streams running.
-> 
-> 3. If you cleanly miss an MDL notification, you don't know which MDL you
-> missed and you don't know how many bytes were used in it.  You drop it.
-> 
-> 4. If you get a half written mailbox, like in your MDL 111 message
-> above, then you have a mailbox consistency problem which is logged, but
-> you also drop the MDL.
-> 
-> 5. If you don't give an MDL back to the firmware, it never uses it
-> again.  That's why you see the sweep-up log messages.  As soon as an MDL
-> is skipped *on the order of the depth* of q_busy times, when looking for
-> the currently DMA_DONE'd MDL, that skipped MDL must have been dropped.
-> It is picked up and put back into rotation then.
-> 
-> 
-> I will note that skipping an MDL 1 time and sweeping it up indicates the
-> CX23418 firmware (q_busy) doesn't have a lot of MDLs to work with for
-> that stream.  You need to devote more memory to that stream or have the
-> application read them off faster (so the MDL goes from q_full to q_free
-> to q_busy).
-> 
-> 
-> 
-> > I would expect to see frame drops while the system was under high
-> > load, but I would expect that the errors would stop once the load fell
-> > back to something reasonable.  However, they continue to accumulate
-> > even after the make commands stop and the only thing running on the
-> > system is mplayer (with a CPU load of around 10%).
-> 
-> You likely have:
-> 
-> 1. a system-level interrupt handler latency problem
-> 
-> and/or
-> 
-> 2. the cx18-NN-out/M workrer threads aren't being woken up often enough
-> to give MDL's back to the CX23418 firmware fast enough.
-
-One other possibility:
-
-3. Once mplayer got behind, it stayed behind to render frames on a
-smooth timeline.  That means more MDLs are intentionally being held on
-q_full by the application.
-
-
-> For #1, if there is a linux driver sharing the CX23418 interrupt line
-> (as shown by cat /proc/interrupts) then try unloading that driver,
-> moving the CX23418 to another PCI slot, or somehow else keeping some
-> other linux device driver from masking the CX23418's IRQ line for too
-> long.  The ahci disk controller driver is a known culprit with a time
-> consuming error path in the top half of its IRQ handler.
-> 
-> The easy solution to #2 is give enough memory for a few more MDLs for
-> that stream with module parameters.
-
-
-For number 3, for the YUV stream, we can make the assumption we can
-steal the 2nd MDL from the front of q_full and give it back to q_busy in
-low depth of q_busy situations.  That will result in a forceably dropped
-old frame for the application.
-
-Regards,
-Andy
-
-> > I think this tree is definitely on the right track, but it looks like
-> > some edge case has been missed.
-> 
-> What you see is normal.  I can take a look at things, but it's generally
-> a system level issue.  One thing that can be done in the cx18 driver is
-> to optimize the paths called by the out_work_handler, so that MDLs get
-> back to the firmware with a minimum of delay. 
-> 
-> It's never been a big deal, with lots of MDLs for a stream, to have one
-> or two MDLs tied up.  With YUV only having very few MDLs, having an MDL
-> tied up, not being given back to the firmware promptly, could ba a
-> problem.
-> 
-> Regards,
-> Andy
-> 
-> > Devin
-> > 
-> 
+On Wed, Nov 18, 2009 at 7:54 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi everybody,
+>
+> the V4L cleanup patches are now available from
+>
+> http://linuxtv.org/hg/~pinchartl/v4l-dvb-cleanup
+>
+> The tree will be rebased if needed (or rather dropped and recreated as hg
+> doesn't provide a rebase operation), so please don't pull from it yet if you
+> don't want to have to throw the patches away manually later.
+>
+> I've incorporated the comments received so far and went through all the
+> patches to spot bugs that could have sneaked in.
+>
+> Please test the code against the driver(s) you maintain. The changes are
+> small, *should* not create any issue, but the usual bug can still sneak in.
+>
+> I can't wait for an explicit ack from all maintainers (mostly because I don't
+> know you all), so I'll send a pull request in a week if there's no blocking
+> issue. I'd like this to get in 2.6.33 if possible.
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> Regards,
+>
+> Laurent Pinchart
 
+Hi Laurent,
+
+Well, I don't know what is wrong yet, but the au0828 driver now hits
+an OOPS with this tree whenever the device is disconnected, whereas
+with last night's v4l-dvb tip it was working fine.
+
+I'll dig into it now...
+
+[  254.972480] usb 1-3: USB disconnect, address 8
+[  254.973073] BUG: unable to handle kernel NULL pointer dereference at 00000004
+[  254.973083] IP: [<f8dc0142>] au0828_analog_unregister+0x32/0x90 [au0828]
+[  254.973101] *pde = 00000000
+[  254.973107] Oops: 0002 [#1] SMP
+[  254.973113] last sysfs file: /sys/devices/system/cpu/cpu1/topology/core_id
+[  254.973120] Modules linked in: xc5000 tuner au8522 au0828 dvb_core
+v4l2_common videodev v4l1_compat videobuf_vmalloc videobuf_core
+tveeprom snd_usb_audio snd_usb_lib binfmt_misc ppdev bridge stp bnep
+btusb arc4 ecb snd_hda_codec_idt snd_hda_intel snd_hda_codec snd_hwdep
+snd_pcm_oss snd_mixer_oss snd_pcm snd_seq_dummy joydev snd_seq_oss
+snd_seq_midi iptable_filter ath9k mac80211 ath appletouch ip_tables
+applesmc x_tables snd_rawmidi isight_firmware snd_seq_midi_event
+snd_seq snd_timer snd_seq_device led_class input_polldev cfg80211 snd
+soundcore snd_page_alloc sbp2 lp parport fbcon tileblit font bitblit
+softcursor hid_apple usbhid ohci1394 ieee1394 i915 drm i2c_algo_bit
+video output sky2 intel_agp agpgart [last unloaded: tveeprom]
+[  254.973243]
+[  254.973250] Pid: 26, comm: khubd Not tainted (2.6.31-15-generic
+#50-Ubuntu) MacBook2,1
+[  254.973256] EIP: 0060:[<f8dc0142>] EFLAGS: 00010286 CPU: 0
+[  254.973266] EIP is at au0828_analog_unregister+0x32/0x90 [au0828]
+[  254.973271] EAX: 00000000 EBX: ecf04800 ECX: ed8e4a00 EDX: 00000000
+[  254.973276] ESI: ee76a000 EDI: f8dc53c0 EBP: f7119e08 ESP: f7119e00
+[  254.973281]  DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
+[  254.973286] Process khubd (pid: 26, ti=f7118000 task=f70bcb60
+task.ti=f7118000)
+[  254.973290] Stack:
+[  254.973293]  ecf04800 ecf04800 f7119e20 f8dbd02b ecfe6800 ee76a000
+ee76a000 ee76a01c
+[  254.973307] <0> f7119e3c c0414d89 00000000 ecfe6800 ee76a01c
+f8dc53f4 c0778120 f7119e4c
+[  254.973322] <0> c03a2b9e ee76a050 ee76a01c f7119e5c c03a2cb0
+c0778120 ee76a01c f7119e70
+[  254.973337] Call Trace:
+[  254.973348]  [<f8dbd02b>] ? au0828_usb_disconnect+0x2b/0x80 [au0828]
+[  254.973362]  [<c0414d89>] ? usb_unbind_interface+0xe9/0x120
+[  254.973371]  [<c03a2b9e>] ? __device_release_driver+0x3e/0x90
+[  254.973379]  [<c03a2cb0>] ? device_release_driver+0x20/0x40
+[  254.973386]  [<c03a1ff3>] ? bus_remove_device+0x73/0x90
+[  254.973393]  [<c03a075f>] ? device_del+0xef/0x150
+.....
+
+
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
