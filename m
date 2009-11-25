@@ -1,46 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:52037 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750850AbZKFHg2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Nov 2009 02:36:28 -0500
-Date: Fri, 6 Nov 2009 08:36:26 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Lars Noschinski <lars@public.noschinski.de>
+Received: from mail-in-15.arcor-online.net ([151.189.21.55]:47780 "EHLO
+	mail-in-15.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755001AbZKYSO6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Nov 2009 13:14:58 -0500
+Subject: Re: Compile error saa7134 - compro videomate S350
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Dominic Fernandes <dalf198@yahoo.com>
 Cc: linux-media@vger.kernel.org
-Subject: Re: pac7311
-Message-ID: <20091106083626.3fbe8428@tele>
-In-Reply-To: <20091105233843.GA27459@lars.home.noschinski.de>
-References: <20091105233843.GA27459@lars.home.noschinski.de>
+In-Reply-To: <623705.13034.qm@web110608.mail.gq1.yahoo.com>
+References: <754577.88092.qm@web110614.mail.gq1.yahoo.com>
+	 <1259025174.5511.24.camel@pc07.localdom.local>
+	 <990417.69725.qm@web110607.mail.gq1.yahoo.com>
+	 <1259107698.2535.10.camel@localhost>
+	 <623705.13034.qm@web110608.mail.gq1.yahoo.com>
+Content-Type: text/plain
+Date: Wed, 25 Nov 2009 19:14:27 +0100
+Message-Id: <1259172867.3335.7.camel@pc07.localdom.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 6 Nov 2009 00:38:43 +0100
-Lars Noschinski <lars@public.noschinski.de> wrote:
+Hi Dominic,
 
-> I'm using a webcam which identifies itself as
+Am Mittwoch, den 25.11.2009, 08:31 -0800 schrieb Dominic Fernandes:
+> Hi Hermann,
 > 
->     093a:2603 Pixart Imaging, Inc. PAC7312 Camera
+> Thanks for your reply.  I'm a little lost in what to do next.
 > 
-> and is sort-of supported by the gspca_pac7311 module. "sort-of"
-> because the image alternates quickly between having a red tint or a
-> green tint (using the gspca driver from
-> http://linuxtv.org/hg/~jfrancois/gspca/ on a 2.6.31 kernel; occurs
-> also with plain 2.6.31).
-> 
-> Is there something I can do to debug/fix this problem?
+> How do I force the card to be recongised as card 169 (the compro videomate S350) instead of card 139?
 
-Hello Lars,
+unload the driver with "modprobe -vr saa7134-alsa saa7134-dvb".
 
-First, which viewer do you run and does it use the v4l2 library?
+You might have to close mixers using saa7134-alsa previously.
+With "modinfo saa7134" you get available options.
 
-Then, a bug in the pac7311 driver has been found yesterday. Did you
-get/try this last one?
+With "modprobe -v saa7134 card=169" you can force that card then.
 
-Regards.
+If we disable the T750 auto detection in saa7134-cards.c, both have to
+force the correct card number.
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Cheers,
+Hermann
+
+
+
