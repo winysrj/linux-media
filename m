@@ -1,159 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f215.google.com ([209.85.219.215]:50841 "EHLO
-	mail-ew0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754216AbZK2L4o (ORCPT
+Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:39448
+	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758796AbZKYSnZ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2009 06:56:44 -0500
-Received: by ewy7 with SMTP id 7so3374405ewy.28
-        for <linux-media@vger.kernel.org>; Sun, 29 Nov 2009 03:56:50 -0800 (PST)
-Date: Sun, 29 Nov 2009 11:55:56 +0000
-From: Albert Gall <ss3vdr@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: Skystar HD2 and s2-liplianin/mantis driver.
-Message-ID: <20091129115555.GA14492@localhost>
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="J/dobhs11T7y2rNN"
-Content-Disposition: inline
+	Wed, 25 Nov 2009 13:43:25 -0500
+Subject: Re: [RFC] Should we create a raw input interface for IR's ?
+Mime-Version: 1.0 (Apple Message framework v1077)
+Content-Type: text/plain; charset=us-ascii
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <829197380911251020y6f330f15mba32920ac63e97d3@mail.gmail.com>
+Date: Wed, 25 Nov 2009 13:43:24 -0500
+Cc: Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, mchehab@redhat.com, superm1@ubuntu.com
+Content-Transfer-Encoding: 8BIT
+Message-Id: <E88E119C-BB86-4F01-8C2C-E514AC6BA5E2@wilsonet.com>
+References: <BDZb9P9ZjFB@christoph> <m3skc25wpx.fsf@intrepid.localdomain> <E6F196CB-8F9E-4618-9283-F8F67D1D3EAF@wilsonet.com> <829197380911251020y6f330f15mba32920ac63e97d3@mail.gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Nov 25, 2009, at 1:20 PM, Devin Heitmueller wrote:
 
---J/dobhs11T7y2rNN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> On Wed, Nov 25, 2009 at 1:07 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
+>> Took me a minute to figure out exactly what you were talking about. You're referring to the current in-kernel decoding done on an ad-hoc basis for assorted remotes bundled with capture devices, correct?
+>> 
+>> Admittedly, unifying those and the lirc driven devices hasn't really been on my radar.
+> 
+> This is one of the key use cases I would be very concerned with.  For
+> many users who have bought tuner products, the bundled remotes work
+> "out-of-the-box", regardless of whether lircd is installed.  I have no
+> objection so much as to saying "well, you have to install the lircd
+> service now", but there needs to be a way for the driver to
+> automatically tell lirc what the default remote control should be, to
+> avoid a regression in functionality.  We cannot go from a mode where
+> it worked automatically to a mode where now inexperienced users now
+> have to deal with the guts of getting lircd properly configured.
 
-Hello list
+Agreed. Auto-config of lircd for remotes bundled with receivers is definitely on the TODO list. It sorta kinda works using gnome-lirc-properties, but well, that's not an actual lirc project component, and from what I've seen, its fairly incomplete (and reproduces a device ID list within its own code, that has never been fully updated to match the list of stuff the lirc drivers actually support).
 
-I try to build latest s2-liplianin drivers but make shows severals 
-warnings and module not load after build driver:
+> If such an interface were available, I would see to it that at least
+> all the devices I have added RC support for will continue to work
+> (converting the in-kernel RC profiles to lirc RC profiles as needed
+> and doing the associations with the driver).
+> 
+> The other key thing I don't think we have given much thought to is the
+> fact that in many tuners, the hardware does RC decoding and just
+> returns NEC/RC5/RC6 codes.  And in many of those cases, the hardware
+> has to be configured to know what format to receive.  We probably need
+> some kernel API such that the hardware can tell lirc what formats are
+> supported, and another API call to tell the hardware which mode to
+> operate in.
 
-WARNING: "ir_input_keydown" [s2-liplianin/v4l/mantis.ko] undefined!
-WARNING: "ir_codes_mantis_vp1041_table" [s2-liplianin/v4l/mantis.ko] undefined!
-WARNING: "ir_input_nokey" [s2-liplianin/v4l/mantis.ko] undefined!
-WARNING: "ir_input_init" [s2-liplianin/v4l/mantis.ko] undefined!
-WARNING: "ir_codes_mantis_vp2040_table" [s2-liplianin/v4l/mantis.ko] undefined!
-WARNING: "ir_codes_mantis_vp2033_table" [s2-liplianin/v4l/mantis.ko] undefined!
+Well, we've got a number of IOCTLs already, could extend those. (Although its been suggested elsewhere that we replace the IOCTLs with sysfs knobs). A simple sysfs attr that contains the name of the default config file for the bundled remote of a given receiver would seem simple enough to implement.
 
-My kernel is 2.6.31.4.
-The attached is full driver build log.
+> This is why I think we really should put together a list of use cases,
+> so that we can see how any given proposal addresses those use cases.
+> I offered to do such, but nobody seemed really interested in this.
 
-Any idea to fix this problem ?
+D'oh, sorry, I recall reading that email, but neglected to respond. Yes, I think that's useful, and would gladly contribute to the list.
 
---J/dobhs11T7y2rNN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="s2-liplianin-build.log"
+-- 
+Jarod Wilson
+jarod@wilsonet.com
 
-/usr/local/src/s2-liplianin|status:0|jobs:0|# make -j 2                        
-make -C /usr/local/src/s2-liplianin/v4l 
-make[1]: se ingresa al directorio `/usr/local/src/s2-liplianin/v4l'
-perl scripts/make_config_compat.pl /lib/modules/2.6.31.4/source ./.myconfig ./config-compat.h
-creating symbolic links...
-make -C firmware prep
-make[2]: Entering directory `/usr/local/src/s2-liplianin/v4l/firmware'
-make[2]: Leaving directory `/usr/local/src/s2-liplianin/v4l/firmware'
-make -C firmware
-make[2]: Entering directory `/usr/local/src/s2-liplianin/v4l/firmware'
-  CC  ihex2fw
-Generating vicam/firmware.fw
-Generating dabusb/firmware.fw
-Generating dabusb/bitstream.bin
-Generating ttusb-budget/dspbootcode.bin
-Generating cpia2/stv0672_vp4.bin
-Generating av7110/bootcode.bin
-make[2]: Leaving directory `/usr/local/src/s2-liplianin/v4l/firmware'
-Kernel build directory is /lib/modules/2.6.31.4/build
-make -C /lib/modules/2.6.31.4/build SUBDIRS=/usr/local/src/s2-liplianin/v4l  modules
-make[2]: Entering directory `/usr/src/linux-2.6.31.4'
-  CC [M]  /usr/local/src/s2-liplianin/v4l/tuner-xc2028.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/tuner-simple.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/tuner-types.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/mt20xx.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/tda8290.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/tea5767.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/tea5761.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/tda9887.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/xc5000.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/mc44s803.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/dvbdev.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/dmxdev.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/dvb_demux.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/dvb_filter.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/dvb_ca_en50221.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/dvb_frontend.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/dvb_net.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/dvb_ringbuffer.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/dvb_math.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/mantis_core.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/mantis_dma.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/mantis_pci.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/mantis_i2c.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/mantis_dvb.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/mantis_evm.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/mantis_hif.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/mantis_ca.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/mantis_pcmcia.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/mantis_vp1033.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/mantis_vp1034.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/mantis_vp1041.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/mantis_vp2033.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/mantis_vp2040.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/mantis_vp3030.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/mantis_rc.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/dvb-pll.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/stv0299.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/zl10353.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/mb86a16.o
-  CC [M]  /usr/local/src/s2-liplianin/v4l/cu1216.o
-/usr/local/src/s2-liplianin/v4l/cu1216.c:395: warning: 'cu1216_read_quality' defined but not used
-  LD [M]  /usr/local/src/s2-liplianin/v4l/mantis.o
-  LD [M]  /usr/local/src/s2-liplianin/v4l/dvb-core.o
-/usr/local/src/s2-liplianin/v4l/mb86a16.c:1885: warning: initialization from incompatible pointer type
-  Building modules, stage 2.
-  MODPOST 17 modules
-WARNING: "ir_input_keydown" [/usr/local/src/s2-liplianin/v4l/mantis.ko] undefined!
-WARNING: "ir_codes_mantis_vp1041_table" [/usr/local/src/s2-liplianin/v4l/mantis.ko] undefined!
-WARNING: "ir_input_nokey" [/usr/local/src/s2-liplianin/v4l/mantis.ko] undefined!
-WARNING: "ir_input_init" [/usr/local/src/s2-liplianin/v4l/mantis.ko] undefined!
-WARNING: "ir_codes_mantis_vp2040_table" [/usr/local/src/s2-liplianin/v4l/mantis.ko] undefined!
-WARNING: "ir_codes_mantis_vp2033_table" [/usr/local/src/s2-liplianin/v4l/mantis.ko] undefined!
-  CC      /usr/local/src/s2-liplianin/v4l/cu1216.mod.o
-  CC      /usr/local/src/s2-liplianin/v4l/dvb-core.mod.o
-  CC      /usr/local/src/s2-liplianin/v4l/dvb-pll.mod.o
-  CC      /usr/local/src/s2-liplianin/v4l/mantis.mod.o
-  CC      /usr/local/src/s2-liplianin/v4l/mb86a16.mod.o
-  CC      /usr/local/src/s2-liplianin/v4l/mc44s803.mod.o
-  CC      /usr/local/src/s2-liplianin/v4l/mt20xx.mod.o
-  CC      /usr/local/src/s2-liplianin/v4l/stv0299.mod.o
-  CC      /usr/local/src/s2-liplianin/v4l/tda8290.mod.o
-  CC      /usr/local/src/s2-liplianin/v4l/tda9887.mod.o
-  CC      /usr/local/src/s2-liplianin/v4l/tea5761.mod.o
-  CC      /usr/local/src/s2-liplianin/v4l/tea5767.mod.o
-  CC      /usr/local/src/s2-liplianin/v4l/tuner-simple.mod.o
-  CC      /usr/local/src/s2-liplianin/v4l/tuner-types.mod.o
-  CC      /usr/local/src/s2-liplianin/v4l/tuner-xc2028.mod.o
-  CC      /usr/local/src/s2-liplianin/v4l/xc5000.mod.o
-  CC      /usr/local/src/s2-liplianin/v4l/zl10353.mod.o
-  LD [M]  /usr/local/src/s2-liplianin/v4l/cu1216.ko
-  LD [M]  /usr/local/src/s2-liplianin/v4l/dvb-core.ko
-  LD [M]  /usr/local/src/s2-liplianin/v4l/dvb-pll.ko
-  LD [M]  /usr/local/src/s2-liplianin/v4l/mantis.ko
-  LD [M]  /usr/local/src/s2-liplianin/v4l/mb86a16.ko
-  LD [M]  /usr/local/src/s2-liplianin/v4l/mc44s803.ko
-  LD [M]  /usr/local/src/s2-liplianin/v4l/mt20xx.ko
-  LD [M]  /usr/local/src/s2-liplianin/v4l/stv0299.ko
-  LD [M]  /usr/local/src/s2-liplianin/v4l/tda8290.ko
-  LD [M]  /usr/local/src/s2-liplianin/v4l/tda9887.ko
-  LD [M]  /usr/local/src/s2-liplianin/v4l/tea5761.ko
-  LD [M]  /usr/local/src/s2-liplianin/v4l/tea5767.ko
-  LD [M]  /usr/local/src/s2-liplianin/v4l/tuner-simple.ko
-  LD [M]  /usr/local/src/s2-liplianin/v4l/tuner-types.ko
-  LD [M]  /usr/local/src/s2-liplianin/v4l/tuner-xc2028.ko
-  LD [M]  /usr/local/src/s2-liplianin/v4l/xc5000.ko
-  LD [M]  /usr/local/src/s2-liplianin/v4l/zl10353.ko
-make[2]: Leaving directory `/usr/src/linux-2.6.31.4'
-./scripts/rmmod.pl check
-found 17 modules
-make[1]: se sale del directorio `/usr/local/src/s2-liplianin/v4l'
-/usr/local/src/s2-liplianin|status:0|jobs:0|#
 
---J/dobhs11T7y2rNN--
+
