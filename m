@@ -1,59 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:39627 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752826AbZKHCF4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Nov 2009 21:05:56 -0500
-Subject: Re: [PATCH 29/75] cx18: declare MODULE_FIRMWARE
-From: Andy Walls <awalls@radix.net>
-To: Ben Hutchings <ben@decadent.org.uk>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media <linux-media@vger.kernel.org>
-In-Reply-To: <1257645238.15927.624.camel@localhost>
-References: <1257630681.15927.423.camel@localhost>
-	 <1257644422.6895.8.camel@palomino.walls.org>
-	 <1257645238.15927.624.camel@localhost>
-Content-Type: text/plain
-Date: Sat, 07 Nov 2009 21:08:56 -0500
-Message-Id: <1257646136.7399.18.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:63913 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759392AbZKZJh0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Nov 2009 04:37:26 -0500
+Received: by mail-pz0-f171.google.com with SMTP id 1so434529pzk.33
+        for <linux-media@vger.kernel.org>; Thu, 26 Nov 2009 01:37:33 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <50104.115.70.135.213.1259224041.squirrel@webmail.exetel.com.au>
+References: <33305.64.213.30.2.1259216241.squirrel@webmail.exetel.com.au>
+	 <50104.115.70.135.213.1259224041.squirrel@webmail.exetel.com.au>
+Date: Thu, 26 Nov 2009 20:37:33 +1100
+Message-ID: <702870ef0911260137r35f1784exc27498d0db3769c2@mail.gmail.com>
+Subject: Re: DViCO FusionHDTV DVB-T Dual Digital 4 (rev 1) tuning regression
+From: Vincent McIntyre <vincent.mcintyre@gmail.com>
+To: Robert Lowery <rglowery@exemail.com.au>
+Cc: mchehab@redhat.com, terrywu2009@gmail.com, awalls@radix.net,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2009-11-08 at 01:53 +0000, Ben Hutchings wrote:
-> On Sat, 2009-11-07 at 20:40 -0500, Andy Walls wrote:
-> > On Sat, 2009-11-07 at 21:51 +0000, Ben Hutchings wrote:
+Hi Rob
 
-> > >  
-> > > +MODULE_FIRMWARE("dvb-cx18-mpc718-mt352.fw");
-> > > +
-> > 
-> > Ben,
-> > 
-> > This particular firmware is only needed by one relatively rare TV card.
-> > Is there any way for MODULE_FIRMWARE advertisements to hint at
-> > "mandatory" vs. "particular case(s)"?
-> 
-> No, but perhaps there ought to be.  In this case the declaration could
-> be left out for now.  It is only critical to list all firmware in
-> drivers that may be needed for booting.
+would you mind very much posting a patch that implements these two reversions,
+so I can try it easily? My hg-fu is somewhat lacking...
+I have the same hardware and noticed what I think is the same issue,
+just with Channel 9.
+Another manifestation is huge BER and nonzero REC in the output from 'tzap'.
 
-OK.  I don't know that a TV card driver is every *needed* for booting.
-Maybe one day when I can net-boot with cable-modem like
-functionality... ;)
+Kind regards,
+Vince
 
 
-I'm OK with the MODULE_FIRMWARE announcements in cx18 so long as
-automatic behaviors like
-
-1. persistent, repeatitive, or truly alarming user warnings, or
-2. refusing to load the module due to missing firmware files
-
-don't happen.
-
-Regards,
-Andy
-
-> Ben.
-
-
+On 11/26/09, Robert Lowery <rglowery@exemail.com.au> wrote:
+>> Hi,
+>>
+>> After fixing up a hang on the DViCO FusionHDTV DVB-T Dual Digital 4 (rev
+>> 1) recently via http://linuxtv.org/hg/v4l-dvb/rev/1c11cb54f24d everything
+>> appeared to be ok, but I have now noticed certain channels in Australia
+>> are showing corruption which manifest themselves as blockiness and
+>> screeching audio.
+>>
+>> I have traced this issue down to
+>> http://linuxtv.org/hg/v4l-dvb/rev/e6a8672631a0 (Fix offset frequencies for
+>> DVB @ 6MHz)
+> Actually, in addition to the above changeset, I also had to revert
+> http://linuxtv.org/hg/v4l-dvb/rev/966ce12c444d (Fix 7 MHz DVB-T)  to get
+> things going.  Seems this one might have been an attempt to fix an issue
+> introduced by the latter, but for me both must be reverted.
+>
+> -Rob
+>
+>>
+>> In this change, the offset used by my card has been changed from 2750000
+>> to 2250000.
+>>
+>> The old code which works used to do something like
+>> offset = 2750000
+>> if (((priv->cur_fw.type & DTV7) &&
+>>     (priv->cur_fw.scode_table & (ZARLINK456 | DIBCOM52))) ||
+>>     ((priv->cur_fw.type & DTV78) && freq < 470000000))
+>>     offset -= 500000;
+>>
+>> In Australia, (type & DTV7) == true _BUT_ scode_table == 1<<29 == SCODE,
+>> so the subtraction is not done.
+>>
+>> The new code which does not work does
+>> if (priv->cur_fw.type & DTV7)
+>>     offset = 2250000;
+>> which appears to be off by 500khz causing the tuning regression for me.
+>>
+>> Could any one please advice why this check against scode_table &
+>> (ZARLINK456 | DIBCOM52) was removed?
+>>
+>> Thanks
+>>
+>> -Rob
+>>
+>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
