@@ -1,378 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:47909 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755453AbZKQBg4 (ORCPT
+Received: from mail-in-11.arcor-online.net ([151.189.21.51]:38828 "EHLO
+	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752097AbZKZECK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2009 20:36:56 -0500
-Received: by bwz27 with SMTP id 27so6349904bwz.21
-        for <linux-media@vger.kernel.org>; Mon, 16 Nov 2009 17:37:01 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Mauro Chehab <mchehab@infradead.org>, linux-media@vger.kernel.org
-Subject: [PATCH] Add Prof 7301 PCI DVB-S2 card
-Date: Tue, 17 Nov 2009 03:35:56 +0200
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+	Wed, 25 Nov 2009 23:02:10 -0500
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
+	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Andy Walls <awalls@radix.net>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, mchehab@redhat.com, superm1@ubuntu.com
+In-Reply-To: <1259206290.3060.50.camel@palomino.walls.org>
+References: <BDZb9P9ZjFB@christoph> <m3skc25wpx.fsf@intrepid.localdomain>
+	 <E6F196CB-8F9E-4618-9283-F8F67D1D3EAF@wilsonet.com>
+	 <1259206290.3060.50.camel@palomino.walls.org>
+Content-Type: text/plain
+Date: Thu, 26 Nov 2009 05:00:18 +0100
+Message-Id: <1259208018.3229.16.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200911170335.56527.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-# HG changeset patch
-# User Igor M. Liplianin <liplianin@me.by>
-# Date 1258420952 -7200
-# Node ID b7c6748070e3547ceedd00fe90d2d220c4568e32
-# Parent  e341e9e85af2f8190e2b2c087b4b7888e78905ee
-Add Prof 7301 PCI DVB-S2 card
 
-From: Igor M. Liplianin <liplianin@me.by>
+Am Mittwoch, den 25.11.2009, 22:31 -0500 schrieb Andy Walls:
+> On Wed, 2009-11-25 at 13:07 -0500, Jarod Wilson wrote:
+> > On Nov 25, 2009, at 12:40 PM, Krzysztof Halasa wrote:
+> > 
+> > > lirc@bartelmus.de (Christoph Bartelmus) writes:
+> > > 
+> > >> I'm not sure what two ways you are talking about. With the patches posted  
+> > >> by Jarod, nothing has to be changed in userspace.
+> > >> Everything works, no code needs to be written and tested, everybody is  
+> > >> happy.
+> > > 
+> > > The existing drivers use input layer. Do you want part of the tree to
+> > > use existing lirc interface while the other part uses their own
+> > > in-kernel (badly broken for example) code to do precisely the same
+> > > thing?
+> > 
+> > Took me a minute to figure out exactly what you were talking about. You're referring to the current in-kernel decoding done on an ad-hoc basis for assorted remotes bundled with capture devices, correct?
+> > 
+> > Admittedly, unifying those and the lirc driven devices hasn't really been on my radar.
+> 
+> It has been on mine.  I have been somewhat against the input subsystem
+> route for unification because it neglects transmitters and appears to
+> trade the userspace complexity we already have (i.e. LIRC configuration)
+> for another new (and hence less documented) configuration complexity for
+> end users.
+> 
+> My strategy for unification goes something like this:
+> 
+> 1. Get lirc_dev and the needed supporting headers in the kernel.  I will
+> concede LIRC is not perfect or beautiful, but I'll assert it is feature
+> complete for all the end user use cases that matter.
+> 
+> 2. Encapsulate all the various IR controller hardware handling in
+> V4L-DVB into v4l_subdevice objects and provide a uniform interface to IR
+> hardware internally via v4l2_subdev_ir_ops.  The exact nature of the IR
+> hardware is then mostly abstracted away: I2C bus microcontroller,
+> register block, GPIO line control of discretes devices, etc. can all be
+> accessed in a somewhat unifrom manner.
+> 
+> 3. In conjunction with 2, common IR handling routines that exist in
+> various drivers already can be broken out: RC-5 protocol handling, etc.
+> 
+> 4. Develop an internal interface so the v4l2_subdev object instance for
+> the IR hardware is exposed through a bridge driver's v4l2_device object.
+> 
+> 5. Develop the needed layer between lirc_dev and the v4l2_device object
+> to connect things up.
+> 
+> 
+> That unifies all the IR cats and dogs in V4L-DVB at the low levels and
+> glues them in a consistent manner to something up top (i.e. lirc_dev)
+> that already handles Rx, Tx, protocols, keymapping, etc.
+> 
+> My primary desire is to encapsulate or remove the complexity we
+> currently have in kernel with all the ad-hoc IR hardware handling and
+> get it unifrom and layered.  
+> 
+> The upper level glue to userspace doesn't have to be lirc_dev, but why
+> not?  It's there and the end users are familiair with it.  I have
+> set-top boxes, I need IR Tx.
+> 
+> 
+> 
+> > > We can have a good code for both, or we can end up with "badly broken"
+> > > media drivers and incompatible, suboptimal existing lirc interface
+> > > (though most probably much better in terms of quality, especially after
+> > > Jarod's work).
+> > 
+> > Well, is there any reason most of those drivers with
+> > currently-in-kernel-but-badly-broken decoding can't be converted to
+> > use the lirc interface if its merged into the kernel? 
+> 
+> I think all the V4L-DVB IR hardware can be.  I have not done sufficient
+> research on the Serial, USB and other devices to say personally.
+> 
+> 
+> > And/or, everything could converge on a new in-kernel decoding infra
+> > that wasn't badly broken. Sure, there may be two separate ways of
+> > doing essentially the same thing for a while, but meh. The lirc way
+> > works NOW for an incredibly wide variety of receivers, transmitters,
+> > IR protocols, etc.
+> 
+> Also LIRC has had years of requirements collection and refinement of use
+> cases.  Anything new implementation will likely end up converging to the
+> feature set LIRC already has implemented.
+> 
+> 
+> 
+> > I do concur that Just Works decoding for bundled remotes w/o having to
+> > configure anything would be nice, and one way to go about doing that
+> > certainly is via in-kernel IR decoding. But at the same time, the
+> > second you want to use something other than a bundled remote, things
+> > fall down, and having to do a bunch of setkeycode ops seems less
+> > optimal than simply dropping an appropriate lircd.conf in place.
+> 
+> 
+> >From a big picture perspective I would never see the OS kenrel as a good
+> place to address usability issues.  It seems more logical to fix
+> usability issues with a decent GUI application and good documentation.
+> (LIRC needs a configuration GUI!).  Expecting IR usability problems to
+> be eased by the kernel and command line utilties is - well -
+> optimistic. 
+> 
+> I'll add that there are too many factors that can be permuted by the end
+> user and OEM -- protocols, remote layouts, button codes, PC IR Rx/Tx
+> hardware, and Set top boxes feeding PC video capture devices -- that
+> generating defaults that "Just Work" is a generally unsolvable problem.
+> 
+> 
+> Regards,
+> Andy
+> 
 
-The card based on stv0903 demod, stb6100 tuner.
+It has something that seemingly can be discussed endlessly.
 
-Signed-off-by: Igor M. Liplianin <liplianin@me.by>
+By all good pros and cons, it takes much too long to see anything
+forthcoming soon.
 
-diff -r e341e9e85af2 -r b7c6748070e3 linux/Documentation/video4linux/CARDLIST.cx88
---- a/linux/Documentation/video4linux/CARDLIST.cx88	Fri Nov 13 22:22:03 2009 -0200
-+++ b/linux/Documentation/video4linux/CARDLIST.cx88	Tue Nov 17 03:22:32 2009 +0200
-@@ -81,3 +81,4 @@
-  80 -> Hauppauge WinTV-IR Only                             [0070:9290]
-  81 -> Leadtek WinFast DTV1800 Hybrid                      [107d:6654]
-  82 -> WinFast DTV2000 H rev. J                            [107d:6f2b]
-+ 83 -> Prof 7301 DVB-S/S2                                  [b034:3034]
-diff -r e341e9e85af2 -r b7c6748070e3 linux/drivers/media/dvb/frontends/stb6100_proc.h
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/linux/drivers/media/dvb/frontends/stb6100_proc.h	Tue Nov 17 03:22:32 2009 +0200
-@@ -0,0 +1,138 @@
-+/*
-+	STB6100 Silicon Tuner wrapper
-+	Copyright (C)2009 Igor M. Liplianin (liplianin@me.by)
-+
-+	This program is free software; you can redistribute it and/or modify
-+	it under the terms of the GNU General Public License as published by
-+	the Free Software Foundation; either version 2 of the License, or
-+	(at your option) any later version.
-+
-+	This program is distributed in the hope that it will be useful,
-+	but WITHOUT ANY WARRANTY; without even the implied warranty of
-+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+	GNU General Public License for more details.
-+
-+	You should have received a copy of the GNU General Public License
-+	along with this program; if not, write to the Free Software
-+	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+*/
-+
-+static int stb6100_get_freq(struct dvb_frontend *fe, u32 *frequency)
-+{
-+	struct dvb_frontend_ops	*frontend_ops = NULL;
-+	struct dvb_tuner_ops	*tuner_ops = NULL;
-+	struct tuner_state	state;
-+	int err = 0;
-+
-+	if (&fe->ops)
-+		frontend_ops = &fe->ops;
-+	if (&frontend_ops->tuner_ops)
-+		tuner_ops = &frontend_ops->tuner_ops;
-+	if (tuner_ops->get_state) {
-+		if (frontend_ops->i2c_gate_ctrl)
-+			frontend_ops->i2c_gate_ctrl(fe, 1);
-+
-+		err = tuner_ops->get_state(fe, DVBFE_TUNER_FREQUENCY, &state);
-+		if (err < 0) {
-+			printk(KERN_ERR "%s: Invalid parameter\n", __func__);
-+			return err;
-+		}
-+
-+		if (frontend_ops->i2c_gate_ctrl)
-+			frontend_ops->i2c_gate_ctrl(fe, 0);
-+
-+		*frequency = state.frequency;
-+	}
-+
-+	return 0;
-+}
-+
-+static int stb6100_set_freq(struct dvb_frontend *fe, u32 frequency)
-+{
-+	struct dvb_frontend_ops	*frontend_ops = NULL;
-+	struct dvb_tuner_ops	*tuner_ops = NULL;
-+	struct tuner_state	state;
-+	int err = 0;
-+
-+	state.frequency = frequency;
-+	if (&fe->ops)
-+		frontend_ops = &fe->ops;
-+	if (&frontend_ops->tuner_ops)
-+		tuner_ops = &frontend_ops->tuner_ops;
-+	if (tuner_ops->set_state) {
-+		if (frontend_ops->i2c_gate_ctrl)
-+			frontend_ops->i2c_gate_ctrl(fe, 1);
-+
-+		err = tuner_ops->set_state(fe, DVBFE_TUNER_FREQUENCY, &state);
-+		if (err < 0) {
-+			printk(KERN_ERR "%s: Invalid parameter\n", __func__);
-+			return err;
-+		}
-+
-+		if (frontend_ops->i2c_gate_ctrl)
-+			frontend_ops->i2c_gate_ctrl(fe, 0);
-+
-+	}
-+
-+	return 0;
-+}
-+
-+static int stb6100_get_bandw(struct dvb_frontend *fe, u32 *bandwidth)
-+{
-+	struct dvb_frontend_ops	*frontend_ops = NULL;
-+	struct dvb_tuner_ops	*tuner_ops = NULL;
-+	struct tuner_state	state;
-+	int err = 0;
-+
-+	if (&fe->ops)
-+		frontend_ops = &fe->ops;
-+	if (&frontend_ops->tuner_ops)
-+		tuner_ops = &frontend_ops->tuner_ops;
-+	if (tuner_ops->get_state) {
-+		if (frontend_ops->i2c_gate_ctrl)
-+			frontend_ops->i2c_gate_ctrl(fe, 1);
-+
-+		err = tuner_ops->get_state(fe, DVBFE_TUNER_BANDWIDTH, &state);
-+		if (err < 0) {
-+			printk(KERN_ERR "%s: Invalid parameter\n", __func__);
-+			return err;
-+		}
-+
-+		if (frontend_ops->i2c_gate_ctrl)
-+			frontend_ops->i2c_gate_ctrl(fe, 0);
-+
-+		*bandwidth = state.bandwidth;
-+	}
-+
-+	return 0;
-+}
-+
-+static int stb6100_set_bandw(struct dvb_frontend *fe, u32 bandwidth)
-+{
-+	struct dvb_frontend_ops	*frontend_ops = NULL;
-+	struct dvb_tuner_ops	*tuner_ops = NULL;
-+	struct tuner_state	state;
-+	int err = 0;
-+
-+	state.bandwidth = bandwidth;
-+	if (&fe->ops)
-+		frontend_ops = &fe->ops;
-+	if (&frontend_ops->tuner_ops)
-+		tuner_ops = &frontend_ops->tuner_ops;
-+	if (tuner_ops->set_state) {
-+		if (frontend_ops->i2c_gate_ctrl)
-+			frontend_ops->i2c_gate_ctrl(fe, 1);
-+
-+		err = tuner_ops->set_state(fe, DVBFE_TUNER_BANDWIDTH, &state);
-+		if (err < 0) {
-+			printk(KERN_ERR "%s: Invalid parameter\n", __func__);
-+			return err;
-+		}
-+
-+		if (frontend_ops->i2c_gate_ctrl)
-+			frontend_ops->i2c_gate_ctrl(fe, 0);
-+
-+	}
-+
-+	return 0;
-+}
-diff -r e341e9e85af2 -r b7c6748070e3 linux/drivers/media/dvb/frontends/stv0900.h
---- a/linux/drivers/media/dvb/frontends/stv0900.h	Fri Nov 13 22:22:03 2009 -0200
-+++ b/linux/drivers/media/dvb/frontends/stv0900.h	Tue Nov 17 03:22:32 2009 +0200
-@@ -48,6 +48,8 @@
- 	u8 tun2_maddress;
- 	u8 tun1_adc;/* 1 for stv6110, 2 for stb6100 */
- 	u8 tun2_adc;
-+	/* Set device param to start dma */
-+	int (*set_ts_params)(struct dvb_frontend *fe, int is_punctured);
- };
- 
- #if defined(CONFIG_DVB_STV0900) || (defined(CONFIG_DVB_STV0900_MODULE) \
-diff -r e341e9e85af2 -r b7c6748070e3 linux/drivers/media/dvb/frontends/stv0900_core.c
---- a/linux/drivers/media/dvb/frontends/stv0900_core.c	Fri Nov 13 22:22:03 2009 -0200
-+++ b/linux/drivers/media/dvb/frontends/stv0900_core.c	Tue Nov 17 03:22:32 2009 +0200
-@@ -1557,6 +1557,9 @@
- 
- 	dprintk("%s: ", __func__);
- 
-+	if (state->config->set_ts_params)
-+		state->config->set_ts_params(fe, 0);
-+
- 	p_result.locked = FALSE;
- 	p_search.path = state->demod;
- 	p_search.frequency = c->frequency;
-diff -r e341e9e85af2 -r b7c6748070e3 linux/drivers/media/video/cx88/Kconfig
---- a/linux/drivers/media/video/cx88/Kconfig	Fri Nov 13 22:22:03 2009 -0200
-+++ b/linux/drivers/media/video/cx88/Kconfig	Tue Nov 17 03:22:32 2009 +0200
-@@ -61,6 +61,8 @@
- 	select DVB_STV0299 if !DVB_FE_CUSTOMISE
- 	select DVB_STV0288 if !DVB_FE_CUSTOMISE
- 	select DVB_STB6000 if !DVB_FE_CUSTOMISE
-+	select DVB_STV0900 if !DVB_FE_CUSTOMISE
-+	select DVB_STB6100 if !DVB_FE_CUSTOMISE
- 	select MEDIA_TUNER_SIMPLE if !MEDIA_TUNER_CUSTOMISE
- 	---help---
- 	  This adds support for DVB/ATSC cards based on the
-diff -r e341e9e85af2 -r b7c6748070e3 linux/drivers/media/video/cx88/cx88-cards.c
---- a/linux/drivers/media/video/cx88/cx88-cards.c	Fri Nov 13 22:22:03 2009 -0200
-+++ b/linux/drivers/media/video/cx88/cx88-cards.c	Tue Nov 17 03:22:32 2009 +0200
-@@ -2108,6 +2108,18 @@
- 		},
- 		.mpeg           = CX88_MPEG_DVB,
- 	},
-+	[CX88_BOARD_PROF_7301] = {
-+		.name           = "Prof 7301 DVB-S/S2",
-+		.tuner_type     = UNSET,
-+		.radio_type     = UNSET,
-+		.tuner_addr     = ADDR_UNSET,
-+		.radio_addr     = ADDR_UNSET,
-+		.input          = { {
-+			.type   = CX88_VMUX_DVB,
-+			.vmux   = 0,
-+		} },
-+		.mpeg           = CX88_MPEG_DVB,
-+	},
- };
- 
- /* ------------------------------------------------------------------ */
-@@ -2568,6 +2580,10 @@
- 		.subvendor = 0x107d,
- 		.subdevice = 0x6618,
- 		.card      = CX88_BOARD_WINFAST_TV2000_XP_GLOBAL,
-+	}, {
-+		.subvendor = 0xb034,
-+		.subdevice = 0x3034,
-+		.card      = CX88_BOARD_PROF_7301,
- 	},
- };
- 
-@@ -3244,6 +3260,7 @@
- 	case  CX88_BOARD_TBS_8920:
- 	case  CX88_BOARD_PROF_6200:
- 	case  CX88_BOARD_PROF_7300:
-+	case  CX88_BOARD_PROF_7301:
- 	case  CX88_BOARD_SATTRADE_ST4200:
- 		cx_write(MO_GP0_IO, 0x8000);
- 		msleep(100);
-diff -r e341e9e85af2 -r b7c6748070e3 linux/drivers/media/video/cx88/cx88-dvb.c
---- a/linux/drivers/media/video/cx88/cx88-dvb.c	Fri Nov 13 22:22:03 2009 -0200
-+++ b/linux/drivers/media/video/cx88/cx88-dvb.c	Tue Nov 17 03:22:32 2009 +0200
-@@ -54,6 +54,9 @@
- #include "stv0288.h"
- #include "stb6000.h"
- #include "cx24116.h"
-+#include "stv0900.h"
-+#include "stb6100.h"
-+#include "stb6100_proc.h"
- 
- MODULE_DESCRIPTION("driver for cx2388x based DVB cards");
- MODULE_AUTHOR("Chris Pascoe <c.pascoe@itee.uq.edu.au>");
-@@ -580,6 +583,15 @@
- 	return 0;
- }
- 
-+static int stv0900_set_ts_param(struct dvb_frontend *fe,
-+	int is_punctured)
-+{
-+	struct cx8802_dev *dev = fe->dvb->priv;
-+	dev->ts_gen_cntrl = 0;
-+
-+	return 0;
-+}
-+
- static int cx24116_reset_device(struct dvb_frontend *fe)
- {
- 	struct cx8802_dev *dev = fe->dvb->priv;
-@@ -608,6 +620,23 @@
- 	.reset_device  = cx24116_reset_device,
- };
- 
-+static struct stv0900_config prof_7301_stv0900_config = {
-+	.demod_address = 0x6a,
-+/*	demod_mode = 0,*/
-+	.xtal = 27000000,
-+	.clkmode = 3,/* 0-CLKI, 2-XTALI, else AUTO */
-+	.diseqc_mode = 2,/* 2/3 PWM */
-+	.tun1_maddress = 0,/* 0x60 */
-+	.tun1_adc = 0,/* 2 Vpp */
-+	.path1_mode = 3,
-+	.set_ts_params = stv0900_set_ts_param,
-+};
-+
-+static struct stb6100_config prof_7301_stb6100_config = {
-+	.tuner_address = 0x60,
-+	.refclock = 27000000,
-+};
-+
- static struct stv0299_config tevii_tuner_sharp_config = {
- 	.demod_address = 0x68,
- 	.inittab = sharp_z0194a_inittab,
-@@ -1156,6 +1185,31 @@
- 				goto frontend_detach;
- 		}
- 		break;
-+	case CX88_BOARD_PROF_7301:{
-+		struct dvb_tuner_ops *tuner_ops = NULL;
-+
-+		fe0->dvb.frontend = dvb_attach(stv0900_attach,
-+						&prof_7301_stv0900_config,
-+						&core->i2c_adap, 0);
-+		if (fe0->dvb.frontend != NULL) {
-+			if (!dvb_attach(stb6100_attach, fe0->dvb.frontend,
-+					&prof_7301_stb6100_config,
-+					&core->i2c_adap))
-+				goto frontend_detach;
-+
-+			tuner_ops = &fe0->dvb.frontend->ops.tuner_ops;
-+			tuner_ops->set_frequency = stb6100_set_freq;
-+			tuner_ops->get_frequency = stb6100_get_freq;
-+			tuner_ops->set_bandwidth = stb6100_set_bandw;
-+			tuner_ops->get_bandwidth = stb6100_get_bandw;
-+
-+			core->prev_set_voltage =
-+					fe0->dvb.frontend->ops.set_voltage;
-+			fe0->dvb.frontend->ops.set_voltage =
-+					tevii_dvbs_set_voltage;
-+		}
-+		break;
-+		}
- 	default:
- 		printk(KERN_ERR "%s/2: The frontend of your DVB/ATSC card isn't supported yet\n",
- 		       core->name);
-diff -r e341e9e85af2 -r b7c6748070e3 linux/drivers/media/video/cx88/cx88-input.c
---- a/linux/drivers/media/video/cx88/cx88-input.c	Fri Nov 13 22:22:03 2009 -0200
-+++ b/linux/drivers/media/video/cx88/cx88-input.c	Tue Nov 17 03:22:32 2009 +0200
-@@ -309,6 +309,7 @@
- 	case CX88_BOARD_TBS_8920:
- 	case CX88_BOARD_TBS_8910:
- 	case CX88_BOARD_PROF_7300:
-+	case CX88_BOARD_PROF_7301:
- 	case CX88_BOARD_PROF_6200:
- 		ir_codes = &ir_codes_tbs_nec_table;
- 		ir_type = IR_TYPE_PD;
-@@ -462,6 +463,7 @@
- 	case CX88_BOARD_TBS_8920:
- 	case CX88_BOARD_TBS_8910:
- 	case CX88_BOARD_PROF_7300:
-+	case CX88_BOARD_PROF_7301:
- 	case CX88_BOARD_PROF_6200:
- 		ircode = ir_decode_pulsedistance(ir->samples, ir->scount, 1, 4);
- 
-diff -r e341e9e85af2 -r b7c6748070e3 linux/drivers/media/video/cx88/cx88.h
---- a/linux/drivers/media/video/cx88/cx88.h	Fri Nov 13 22:22:03 2009 -0200
-+++ b/linux/drivers/media/video/cx88/cx88.h	Tue Nov 17 03:22:32 2009 +0200
-@@ -239,6 +239,7 @@
- #define CX88_BOARD_HAUPPAUGE_IRONLY        80
- #define CX88_BOARD_WINFAST_DTV1800H        81
- #define CX88_BOARD_WINFAST_DTV2000H_J      82
-+#define CX88_BOARD_PROF_7301               83
- 
- enum cx88_itype {
- 	CX88_VMUX_COMPOSITE1 = 1,
+To remind, we had eleven 2.6.x test kernels, nothing on lirc came even
+close to it, and on 2.6.6 some first sign of life again ... IIRC.
+
+Including 2.5.x, how long is that?
+
+By all sympathy, it was a big peace of crap for much too long, simply
+ignoring the kernel development, and I don't have any tears for it
+getting dropped that time.
+
+We _need_ to live without it, that is the only reason for the IR input
+layer in kernel, and not any other way round.
+
+Gerd can of course tell better, but that is how I have it and there was
+a lot of work because of such lamers not coming by in time then.
+
+Cheers,
+Hermann
+
+
+
+
+
 
