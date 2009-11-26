@@ -1,39 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from csldevices.com ([77.75.105.137]:44563 "EHLO
-	mhall.vps.goscomb.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756585AbZKWLeW (ORCPT
+Received: from mail-px0-f180.google.com ([209.85.216.180]:35349 "EHLO
+	mail-px0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753422AbZKZX2H (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2009 06:34:22 -0500
-Message-ID: <4B0A6CCE.8080506@csldevices.co.uk>
-Date: Mon, 23 Nov 2009 11:06:54 +0000
-From: Philip Downer <phil@csldevices.co.uk>
+	Thu, 26 Nov 2009 18:28:07 -0500
+Date: Thu, 26 Nov 2009 15:28:09 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Krzysztof Halasa <khc@pm.waw.pl>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	mchehab@redhat.com, superm1@ubuntu.com
+Subject: Re: [RFC] Should we create a raw input interface for IR's ?
+Message-ID: <20091126232809.GE6936@core.coreip.homeip.net>
+References: <BDZb9P9ZjFB@christoph> <m3skc25wpx.fsf@intrepid.localdomain> <E6F196CB-8F9E-4618-9283-F8F67D1D3EAF@wilsonet.com> <829197380911251020y6f330f15mba32920ac63e97d3@mail.gmail.com> <E88E119C-BB86-4F01-8C2C-E514AC6BA5E2@wilsonet.com> <m3skc249ev.fsf@intrepid.localdomain> <20091126055302.GI23244@core.coreip.homeip.net> <m37htduo3i.fsf@intrepid.localdomain>
 MIME-Version: 1.0
-To: Stacey <cardcaptorstacey@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: V4L-DVB modules not loading
-References: <4B09A834.3000309@gmail.com>
-In-Reply-To: <4B09A834.3000309@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <m37htduo3i.fsf@intrepid.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stacey wrote:
-> I've built the module okay. It installed correctly and copied the files
-> into /lib/modules/2.6.31-14-generic/kernel/drivers/media/dvb/dvb-usb.
-> After that I rebooted (since it was easier for me). Then I got to the
-> "If the Modules load correctly" section to find that nothing has worked
-> at all.
->
-> I've checked my system log and it's recognising the USB device when I
-> enter it but it isn't doing anything with it. The tutorial says you
-> should be able to see the modules in /proc/modules but the modules
-> folder doesn't even exist. The /dev/dvb/ folder has not been created
-> either.
+On Thu, Nov 26, 2009 at 07:40:01PM +0100, Krzysztof Halasa wrote:
+> Dmitry Torokhov <dmitry.torokhov@gmail.com> writes:
+> 
+> > Why would sysfs write be slower than ioctl?
+> 
+> Sysfs is generally one-value, one-file. open, read/write, close.
+> ioctl() OTOH does everything (e.g. a whole key table) in one syscall.
 
-Could you post the output of dmesg (just run the command 'dmesg' from a 
-terminal) to the list, that should give us an idea of what is going on. 
-You might want to do this after a clean reboot (with the adapter plugged 
-in) so that there isn't too much information to wade through.
-
-Phil
+There are binary sysfs attributes. For ioctl you also need to open and
+close the device. Plus, how often do you expect to perform this
+operation? Don't you think you are trying to optimize something that
+does not have any real performavnce impact here?
+ 
+-- 
+Dmitry
