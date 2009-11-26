@@ -1,73 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:42003 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1756446AbZKJOgd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Nov 2009 09:36:33 -0500
-Date: Tue, 10 Nov 2009 15:36:49 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [PATCH/RFC 9/9 v2] mt9t031: make the use of the soc-camera client
- API optional
-In-Reply-To: <200911101454.14124.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.0911101529450.5074@axis700.grange>
-References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
- <Pine.LNX.4.64.0911051753540.5620@axis700.grange>
- <A69FA2915331DC488A831521EAE36FE4015583406A@dlee06.ent.ti.com>
- <200911101454.14124.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:34819
+	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932306AbZKZEqU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Nov 2009 23:46:20 -0500
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was: Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+Mime-Version: 1.0 (Apple Message framework v1077)
+Content-Type: text/plain; charset=us-ascii
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <m3638y5rrb.fsf@intrepid.localdomain>
+Date: Wed, 25 Nov 2009 23:46:21 -0500
+Cc: Andy Walls <awalls@radix.net>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, mchehab@redhat.com, superm1@ubuntu.com
+Content-Transfer-Encoding: 8BIT
+Message-Id: <E63F6C2B-71FD-440D-B659-DC7BB96BEDF6@wilsonet.com>
+References: <BDRae8rZjFB@christoph> <1259024037.3871.36.camel@palomino.walls.org> <6D934408-B713-49B6-A197-46CE663455AC@wilsonet.com> <m3fx827dgi.fsf@intrepid.localdomain> <4BFB11CF-1835-4AFA-BDC6-F42288A9A6F4@wilsonet.com> <m3638y5rrb.fsf@intrepid.localdomain>
+To: Krzysztof Halasa <khc@pm.waw.pl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 10 Nov 2009, Laurent Pinchart wrote:
+On Nov 25, 2009, at 2:27 PM, Krzysztof Halasa wrote:
 
-> Hi Guennadi,
+> Jarod Wilson <jarod@wilsonet.com> writes:
 > 
-> On Thursday 05 November 2009 18:07:09 Karicheri, Muralidharan wrote:
-> > Guennadi,
-> > 
-> > >> in the v4l2_queryctrl struct.
-> > >
-> > >I think, this is unrelated. Muralidharan just complained about the
-> > >soc_camera_find_qctrl() function being used in client subdev drivers, that
-> > >were to be converted to v4l2-subdev, specifically, in mt9t031.c. And I
-> > >just explained, that that's just a pretty trivial library function, that
-> > >does not introduce any restrictions on how that subdev driver can be used
-> > >in non-soc-camera configurations, apart from the need to build and load
-> > >the soc-camera module. In other words, any v4l2-device bridge driver
-> > >should be able to communicate with such a subdev driver, calling that
-> > >function.
-> > 
-> > If soc_camera_find_qctrl() is such a generic function, why don't you
-> > move it to v4l2-common.c so that other platforms doesn't have to build
-> > SOC camera sub system to use this function? Your statement reinforce
-> > this.
+>> Ah, but the approach I'd take to converting to in-kernel decoding[*]
+>> would be this:
+>> 
+>> 1) bring drivers in in their current state
+>>   - users keep using lirc as they always have
+>> 
+>> 2) add in-kernel decoding infra that feeds input layer
 > 
-> I second this. Hans is working on a controls framework that should (hopefully 
-> :-)) make drivers simpler by handling common tasks in the v4l core.
+> Well. I think the above is fine enough.
+> 
+>> 3) add option to use in-kernel decoding to existing lirc drivers
+>>   - users can keep using lirc as they always have
+>>   - users can optionally try out in-kernel decoding via a modparam
+>> 
+>> 4) switch the default mode from lirc decode to kernel decode for each lirc driver
+>>   - modparam can be used to continue using lirc interface instead
+>> 
+>> 5) assuming users aren't coming at us with pitchforks, because things don't actually work reliably with in-kernel decoding, deprecate the lirc interface in driver
+>> 
+>> 6) remove lirc interface from driver, its now a pure input device
+> 
+> But 3-6 are IMHO not useful. We don't need lirc _or_ input. We need
+> both at the same time: input for the general, simple case and for
+> consistency with receivers decoding in firmware/hardware; input for
+> special cases such as mapping the keys, protocols not supported by the
+> kernel and so on (also for in-tree media drivers where applicable).
+> 
+>> [*] assuming, of course, that it was actually agreed upon that
+>> in-kernel decoding was the right way, the only way, all others will be
+>> shot on sight. ;)
+> 
+> I think: in-kernel decoding only as the general, primary means. Not the
+> only one.
 
-Well, if you look at the function itself and at how it got replaced in 
-this version of the patch by O(1) operations, you'll, probably, agree, 
-that avoiding that function where possible is better than making it 
-generic. But if there are any legitimate users for it - sure, can make it 
-generic too.
+Okay, I read ya now. I got my wires crossed, thought you were advocating for dropping the lirc interface entirely. I think we're on the same page then. :)
 
-> Do you have any plan to work on the bus hardware configuration API ? When that 
-> will be available the mt9t031 driver could be made completely soc-camera-free.
+-- 
+Jarod Wilson
+jarod@wilsonet.com
 
-I'd love to first push the proposed image-bus upstream. Even with just 
-that many drivers can already be re-used. As for bus configuration, I 
-thought there were enough people working on it already:-) If not, maybe I 
-could have a look at it, but we better reach some agreement on that 
-beforehand to avoid duplicating the effort.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+
