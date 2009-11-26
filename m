@@ -1,14 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [194.176.161.3] (helo=deuromedia.de)
-	by mail.linuxtv.org with smtp (Exim 4.69)
-	(envelope-from <Doru.Marin@Deuromedia.ro>) id 1NE2Ee-0007iX-Ca
-	for linux-dvb@linuxtv.org; Fri, 27 Nov 2009 15:55:48 +0100
-Message-ID: <4B0FE7AC.3000002@Deuromedia.ro>
-Date: Fri, 27 Nov 2009 16:52:28 +0200
-From: Doru Marin <Doru.Marin@Deuromedia.ro>
+Received: from mail-ew0-f219.google.com ([209.85.219.219])
+	by mail.linuxtv.org with esmtp (Exim 4.69)
+	(envelope-from <kutil2010@gmail.com>) id 1NDm3H-0006sh-9W
+	for linux-dvb@linuxtv.org; Thu, 26 Nov 2009 22:38:59 +0100
+Received: by ewy19 with SMTP id 19so912732ewy.1
+	for <linux-dvb@linuxtv.org>; Thu, 26 Nov 2009 13:38:25 -0800 (PST)
 MIME-Version: 1.0
+Date: Thu, 26 Nov 2009 22:38:25 +0100
+Message-ID: <ba3c12bb0911261338x39249acavafb8afe4d82ba807@mail.gmail.com>
+From: kutil2010 <kutil2010@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Media-Pointer MP-S2 DVB-S2 tuning problem
+Subject: [linux-dvb] Rotor not working Skystar hd2(VP1041/STB0899) S2API
+	MYTHTV
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -23,22 +26,11 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+I have the same problem. Skystar HD2, a new S2-liplianin driver and
+motor Optikum DM3800 don't spin. Of course extra power cord connected.
+Logs without mistake. Is somebody, who knows the solution?
 
-I tested the experimental driver for Media-Pointer MP-S2 PCIe card and I
-got very strange timeouts for tunning.
-It takes five seconds or more to tune on a channel. By comparison with
-nGene driver (which tunes faster), this is terrible long time.
-For demodulation, it uses the same STV0900 demodulator like NetUP Dual
-Tuner cards.
-I'm curious, on NetUP devices, the timeout is similar ?
-Can be done anything to improve that ?
-
-Best regards,
-
-Doru Marin
-
-
+Tonda
 
 _______________________________________________
 linux-dvb users mailing list
