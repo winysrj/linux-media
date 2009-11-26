@@ -1,43 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:64021 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759658AbZKZARq (ORCPT
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:48361 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759364AbZKZIID (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2009 19:17:46 -0500
-Received: by fxm5 with SMTP id 5so274788fxm.28
-        for <linux-media@vger.kernel.org>; Wed, 25 Nov 2009 16:17:51 -0800 (PST)
+	Thu, 26 Nov 2009 03:08:03 -0500
+Date: Thu, 26 Nov 2009 00:08:04 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Christoph Bartelmus <lirc@bartelmus.de>
+Cc: jarod@wilsonet.com, awalls@radix.net, j@jannau.net,
+	jarod@redhat.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	mchehab@redhat.com, superm1@ubuntu.com
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
+	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+Message-ID: <20091126080804.GA28352@core.coreip.homeip.net>
+References: <4BFB11CF-1835-4AFA-BDC6-F42288A9A6F4@wilsonet.com> <BDcbizrJjFB@christoph>
 MIME-Version: 1.0
-In-Reply-To: <829197380911251607y5c9b4378y1c4f52b120c54698@mail.gmail.com>
-References: <200911181354.06529.laurent.pinchart@ideasonboard.com>
-	 <829197380911251506g4af4d72v85c6dfb55cb88d0a@mail.gmail.com>
-	 <200911260102.40881.laurent.pinchart@ideasonboard.com>
-	 <829197380911251607y5c9b4378y1c4f52b120c54698@mail.gmail.com>
-Date: Wed, 25 Nov 2009 19:17:51 -0500
-Message-ID: <829197380911251617j2d2fdf2fp88dfbe0cead83d4f@mail.gmail.com>
-Subject: Re: [PATCH/RFC v2] V4L core cleanups HG tree
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	mchehab@infradead.org, sakari.ailus@maxwell.research.nokia.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <BDcbizrJjFB@christoph>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 25, 2009 at 7:07 PM, Devin Heitmueller
-> Trying it now....
->
-> Devin
+On Thu, Nov 26, 2009 at 09:01:00AM +0100, Christoph Bartelmus wrote:
+> Hi,
+> 
+> on 25 Nov 09 at 12:44, Jarod Wilson wrote:
+> [...]
+> > Ah, but the approach I'd take to converting to in-kernel decoding[*] would
+> > be this:
+> [...]
+> > [*] assuming, of course, that it was actually agreed upon that in-kernel
+> > decoding was the right way, the only way, all others will be shot on sight.
+> 
+> I'm happy to see that the discussion is getting along.
+> But I'm still a bit hesitant about the in-kernel decoding. Maybe it's just  
+> because I'm not familiar at all with input layer toolset.
+> 
+> 1. For sure in-kernel decoding will require some assistance from userspace  
+> to load the mapping from IR codes to keys. So, if there needs to be a tool  
+> in userspace that does some kind of autodetection, why not have a tool  
+> that does some autodetection and autoconfigures lircd for the current  
+> device. Lots of code duplication in kernel saved. What's the actual  
+> benefit of in-kernel decoding?
 
-Ok, that seems to have resolved the issue.  Please make sure that
-patch gets added to your PULL request.
+Why are you mixing configuration and decoding? Configuration I expect
+will be done with the help of userspace. Udev is probably the best
+place.
 
-Wish I had found that myself 90 minutes earlier...  :-/
+> 
+> 2. What would be the format of the key map? lircd.conf files already exist  
+> for a lot of remote controls. Will we have a second incompatible format to  
+> map the keys in-kernel? Where are the tools that create the key maps for  
+> new remotes?
+> 
 
-Thanks,
+Same as the keymaps for the other input devices I'd expect.
 
-Devin
-
+> Maybe someone can shed some light on this.
+> 
+> Christoph
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Dmitry
