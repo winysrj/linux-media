@@ -1,126 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-01.arcor-online.net ([151.189.21.41]:54255 "EHLO
-	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754714AbZKYWMT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2009 17:12:19 -0500
-Subject: Re: Tuner drivers
-From: hermann pitton <hermann-pitton@arcor.de>
-To: rulet1@meta.ua
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <46842.95.132.81.101.1259175646.metamail@webmail.meta.ua>
-References: <1258292980.3235.14.camel@pc07.localdom.local>
-	 <58364.95.133.222.95.1258298152.metamail@webmail.meta.ua>
-	 <1258314943.3276.3.camel@pc07.localdom.local>
-	 <46842.95.132.81.101.1259175646.metamail@webmail.meta.ua>
-Content-Type: text/plain
-Date: Wed, 25 Nov 2009 23:11:24 +0100
-Message-Id: <1259187084.3335.48.camel@pc07.localdom.local>
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:12640 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751550AbZKZMRO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Nov 2009 07:17:14 -0500
+Message-ID: <4B0E71B6.4080808@redhat.com>
+Date: Thu, 26 Nov 2009 10:16:54 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Krzysztof Halasa <khc@pm.waw.pl>
+CC: Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Jarod Wilson <jarod@redhat.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	linux-kernel@vger.kernel.org,
+	Mario Limonciello <superm1@ubuntu.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Janne Grunau <j@jannau.net>,
+	Christoph Bartelmus <lirc@bartelmus.de>
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
+ Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+References: <200910200956.33391.jarod@redhat.com>	<200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com>	<4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain>	<4B0AB60B.2030006@s5r6.in-berlin.de> <4B0AC8C9.6080504@redhat.com> <m34oolrnwd.fsf@intrepid.localdomain>
+In-Reply-To: <m34oolrnwd.fsf@intrepid.localdomain>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Krzysztof Halasa wrote:
+> Mauro Carvalho Chehab <mchehab@redhat.com> writes:
+> 
+>>> (This is no recommendation for lirc.  I have no idea whether a
+>>> pulse/space -> scancode -> keycode translation would be practical
+>>> there.)
+> 
+> It would, but not exactly in the present shape.
+> 
+>> For example, there are several bttv and saa7134 devices that polls (or receive
+>> IRQ interrupts) to detect pulses (and the absense of them) in order to create
+>> a pulse/space code. The conversion from pulse/space to scancode is done inside
+>> the driver, with the help of some generic routines and based on the protocol
+>> specifications.
+> 
+> Right. There are currently several problems (I'm quite familiar with
+> saa713x RC5 code): the one that it barely works and is not implemented
+> for most such "GPIO/IRQ-driven" cards (as of 2.6.29 or so). This could
+> be fixed, I even have a working though quick&dirty patch. Another: the
+> RC5 allows for groups and codes within groups. The mapping can only use
+> one group, and there can only be one mapping. These design limitations
+> mean it's unusable in many cases.
 
-Am Mittwoch, den 25.11.2009, 21:00 +0200 schrieb rulet1@meta.ua:
-> >
-> > Am Sonntag, den 15.11.2009, 17:15 +0200 schrieb rulet1@meta.ua:
-> >> > Hi,
-> >> >
-> >> > Am Sonntag, den 15.11.2009, 14:42 +0200 schrieb rulet1@meta.ua:
-> >> >> How to do that?:
-> >> >>
-> >> >> "You are forced to use saa7134-alsa dma sound"
-> >> >>
-> >> >
-> >> > a problem is that I can't tell for sure which analog TV standard you
-> >> > currently use in the Ukraine, either it is still SECAM DK or you
-> >> changed
-> >> > to some PAL already.
-> >> >
-> >> > Try to get the details, also about the sound system.
-> >> >
-> >> > If it is still SECAM DK, you need to force the option "secam=DK".
-> >> >
-> >> > With "audio_debug=1" you can see if the drivers finds the pilots, the
-> >> > first sound carrier and the second carrier and also the stereo system
-> >> in
-> >> > use. This counts also for PAL standards.
-> >> >
-> >> > This way you can already see if the driver can lock on the audio
-> >> > carriers in "dmesg" without hearing anything yet.
-> >> >
-> >> > Then saa7134-alsa should provide TV sound on your card.
-> >> > http://linuxtv.org/wiki/index.php/Saa7134-alsa
-> >> >
-> >> > Cheers,
-> >> > Hermann
-> >> >
-> >> >
-> >> >
-> >> > Where to put the option "secam=DK" on Ubuntu 9.10?
-> >> >
-> >
-> > Don't have it, but would guess /etc/modprobe.d or use a
-> > deprecated /etc/modprobe.conf and "depmod -a" or close all mixers using
-> > saa7134, "modprobe -vr saa7134-alsa" and "modprobe saa7134 secam=DK".
-> >
-> > Hermann
+This is a current limitation, since the saa713x code converts the RC5 code into a 7bits
+scancode, by applying a mask. One of the reasons for that conversion is that the two 
+ioctls that allows reading/changing the keycode table (EVIOCSKEYCODE and EVIOCGKEYCODE)
+were implemented via a table with a fixed size of 128 entries.
 
-> >
-> Forget about it, this tuner is just not for Linux...
+We already have an implementation at the dvb-usb driver that uses a table without
+such limits, where the IR scancode is completely stored there. So, you can create
+any arbitrary scancode <--> keycode table there.
 
-sorry, sounds pretty frustrated.
+Technically, it is not hard to port this solution to the other drivers, but the issue
+is that we don't have all those IR's to know what is the complete scancode that
+each key produces. So, the hardest part is to find a way for doing it without
+causing regressions, and to find a group of people that will help testing the new way.
 
-But I have no other choice, as to assume for now, that this card with
-that tuner is tested by those who did contribute it for sound too, like
-more than about 150 other such cards in this driver.
+Maybe one alternative would be to add a modprobe parameter at the converted drivers
+to allow them to work with the old behavior, after their migration.
 
-We should have support for global analog TV sound on such, SECAM types
-need to be forced by user is the only extra that might hit you.
+>> Those devices where the decoding is done by software can support any
+>> IR protocols.
+> 
+> Yes, and there can be multiple remote controllers, and multiple code
+> groups within a remote.
+> 
+>> This can be solved by adding a few ioctls to enumerate the supported
+>> protocols and to select the one(s) that will be handled by the kernel
+>> driver.
+> 
+> The driver may have to handle many protocols simultaneously. This is not
+> a problem from a technical POV.
 
-No other single report for failing TV sound since years now.
+There are 3 different situations:
+	1) hardware where you can support multiple protocols at the same time;
+	2) hardware that supports one programmable protocol;
+	3) hardware that support just one (or a limited set) of protocols.
 
-Eventually possible scenarios:
+In general, (1) applies only to those devices that outputs a raw pulse/space code,
+where they just connect the IR sensor to a generic I/O pin and let the software
+to decode the code. This is the case of most of cheapest devices. Yet, you can
+find some cheap devices with low-cost micro-controllers with a dedicated firmware
+on its ROM, doing (2).
 
-1. You have a different card with the same PCI subsystem as the known
-   one, but we don't know about that yet. Unlikely for AverMedia.
+The most commonly found hardware, in general have a chip to decode IR pulse/space
+sequences, converting it on a scancode and implementing (3).
 
-2. you have a card with saa7133 chip, which can't decode PAL/SECAM
-   sound. Should not be available on any shelve in Europe.
-
-Debug route is: first have debug=1 for tda827x and tda8290. You reported
-already to have a picture from tuner, so this will report the tuner
-"locked" and we can skip that. Then saa7134 audio_debug=1 should report
-the TV audio system in use and detected. If detected, audio routing from
-tuner is correct and the rest is to properly use saa7134-alsa, since
-your card has no analog audio out connected.  
-
-For TV stereo sound decoding capable chips TV sound amux is always TV.
-
-The saa7135 and saa7131e can do it globally, the saa7134 would need
-extra chips for System-M/NTSC alike and the saa7133 for PAL/SECAM.
-
-This was always mentioned in the reference designs as a possibility, but
-until today no device is known to do such in reality on saa7134 and
-saa7133.
-
-Sorry, we don't have any dmesg/logs for it on the lists, but Mauro was
-working on the NEC IRQ remote support and most likely has verified
-working TV sound at least for System-M, maybe on a saa7133, but I would
-expect a saa7131e. (Needs more digging)
+That's said, a raw input interface, only fits on case (1). On the other hand, the
+existing input API works for all types of IR. However, we need to add the ioctls
+to allow protocol selection, to better handle (1) and (3).
 
 Cheers,
-Hermann
-
-
-
-
-
-
-
-
-
-
-
+Mauro.
