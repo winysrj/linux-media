@@ -1,70 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:34463
-	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752011AbZKPElS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Nov 2009 23:41:18 -0500
-Message-ID: <4B00D91B.1000906@wilsonet.com>
-Date: Sun, 15 Nov 2009 23:46:19 -0500
-From: Jarod Wilson <jarod@wilsonet.com>
+Received: from mx1.redhat.com ([209.132.183.28]:29092 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750826AbZKZRtY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Nov 2009 12:49:24 -0500
+Message-ID: <4B0EBF99.1070404@redhat.com>
+Date: Thu, 26 Nov 2009 15:49:13 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Robert Cicconetti <grythumn@gmail.com>
-CC: linux-media@vger.kernel.org, Mike Krufky <mkrufky@linuxtv.org>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>
-Subject: Re: KWorld UB435-Q Support
-References: <15cfa2a50910071839j58026d10we2ccbaeb26527abc@mail.gmail.com>	 <0C6DEB14-B32A-4A20-B569-16B2A028CE25@wilsonet.com> <15cfa2a50910091827l449f0fb0t2974219b6ea76608@mail.gmail.com>
-In-Reply-To: <15cfa2a50910091827l449f0fb0t2974219b6ea76608@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Jarod Wilson <jarod@wilsonet.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: Andy Walls <awalls@radix.net>,
+	Christoph Bartelmus <lirc@bartelmus.de>, khc@pm.waw.pl,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, superm1@ubuntu.com
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
+ Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+References: <BDRae8rZjFB@christoph> <1259024037.3871.36.camel@palomino.walls.org> <6D934408-B713-49B6-A197-46CE663455AC@wilsonet.com> <4B0E889C.9060405@redhat.com> <4B0EBBB5.5090303@wilsonet.com>
+In-Reply-To: <4B0EBBB5.5090303@wilsonet.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/09/2009 09:27 PM, Robert Cicconetti wrote:
-> On Wed, Oct 7, 2009 at 10:08 PM, Jarod Wilson<jarod@wilsonet.com>  wrote:
->> On Oct 7, 2009, at 9:39 PM, Robert Cicconetti wrote:
->>> Okay... I built the tip of the archive linked above. It works with my
->>> UB435-Q fairly well, built against 2.6.28-15-generic #52-Ubuntu SMP
->>> x86_64. I've been able to stream QAM256 content for several hours
->>> reliably. Mythfrontend works somewhat... it'll tune the initial
->>> channel, but fails afterward. I suspect it is timing out while waiting
->>> for the RF tracking filter calibration... it adds about 6 seconds to
->>> every tuning operation.
+Jarod Wilson wrote:
+> On 11/26/2009 08:54 AM, Mauro Carvalho Chehab wrote:
+>> Jarod Wilson wrote:
+>>> On Nov 23, 2009, at 7:53 PM, Andy Walls wrote:
 >>>
->>> [  812.465930] tda18271: performing RF tracking filter calibration
->>> [  818.572446] tda18271: RF tracking filter calibration complete
->>> [  818.953946] tda18271: performing RF tracking filter calibration
->>> [  825.093211] tda18271: RF tracking filter calibration complete
+>>>> On Mon, 2009-11-23 at 22:11 +0100, Christoph Bartelmus wrote:
+>>> ...
+>>>> I generally don't understand the LIRC aversion I perceive in this
+>>>> thread
+>>>> (maybe I just have a skewed perception).  Aside for a video card's
+>>>> default remote setup, the suggestions so far don't strike me as any
+>>>> simpler for the end user than LIRC -- maybe I'm just used to LIRC. 
+>>>> LIRC
+>>>> already works for both transmit and receive and has existing support in
+>>>> applications such as MythTV and mplayer.
 >>>
->>> Any suggestions? Further data needed?
+>>> There's one gripe I agree with, and that is that its still not
+>>> plug-n-play.
+>>> Something where udev auto-loads a sane default remote config for say,
+>>> mceusb transceivers, and the stock mce remote Just Works would be nice,
+>>> but auto-config is mostly out the window the second you involve
+>>> transmitters
+>>> and universal remotes anyway.
 >>
->> Nothing off the top of my head, no. But I've got a UB435-Q of my own now,
->> sitting on my desk waiting for me to poke at it... Not sure when I'll have
->> time to actually poke at it though. :\
->
-> A little further poking yields that RF_CAL_OK in EP1 is 0, which is
-> why it keeps recalibrating.
->
-> I've commented out the part of the code that recalibrates if RF_CAL_OK
-> is 0; EP1 always seems to be c6... and now mythfrontend is happy. :)
->
-> This is not a long term solution, but as ugly hacks go it was pretty
-> straight forward. :)
+>> For several devices, an udev rule that auto-loads a sane default
+>> keymap does work.
+>> Of course, this won't cover 100% of the usages, and I lirc is a very
+>> good way
+>> of covering the holes.
+>>
+>>> But outside of that, I think objections are largely philosophical --
+>>> in a nutshell, the kernel has an input layer, remotes are input devices,
+>>> and lirc doesn't conform to input layer standards.
+>>
+>> Yes. I think this is mainly the issue.
+>>
+>> The other issue is how to migrate the existing drivers to a new API
+>> without
+>> causing regressions. If we decide that IR's that receive raw pulse/code
+>> should use the raw input interface, this means that a large task force
+>> will be
+>> needed to convert the existing drivers to use it.
+> 
+> Aversion to regression is definitely a major concern. And why I'm liking
+> the idea of a hybrid approach, at least initially.
 
-Finally got around to poking at this again. Forward-ported the patches 
-to the current v4l-dvb tip, and gave 'em a spin with my own UB435-Q, as 
-well as a 340U that Doug gave me when he was in town a bit ago. Both are 
-working just fine with my QAM feed here at the house, albeit with the 
-same lengthy delay when changing channels you (Robert) mentioned. At a 
-glance, I was hoping simply setting rf_cal_on_startup for the 
-card-specific tda18271_config would remove the delay, but neither a 0 or 
-a 1 seems to particularly help with tuning delays. Hoping maybe Mike has 
-an idea on this part...
+Yes. This indeed seems to be a very good idea.
+> 
+>> What do you think of adding lirc at staging while we discuss/improve
+>> the API's and lircd
+>> support for the input event interface? Do you think this would work?
+> 
+> Sure, I don't see why not. And I've got another dozen or so drivers to
+> follow those first three... :)
 
-In related news, I actually managed to get my original 340U with the C1 
-tuner to work briefly as well, and with the same code, no tuning delays. 
-Seems either the PCB is cracked or the usb connector is just that bad, 
-and it only works when positioned just so...
+Ok. As you said you'll do some work at the patches, could you please send us v3
+in order to add it into drivers/staging? 
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+In the case of the API header file, I would tag at the header file that the API
+is experimental, so can be changed without prior announcements, etc (in order to
+avoid people to use and rely on it it outside lirc). IMO, the better is to keep
+such announcement there while we're still working at the hybrid approach, as we
+may need to change something during the development phase.
+
+Dmitry,
+
+While lirc is basically a series of input drivers, considering that they have lots
+in common with the input drivers at V4L/DVB and that we'll need to work on
+some glue to merge both, do you mind if I add the lirc drivers at drivers/staging from
+my trees? 
+
+Cheers,
+Mauro.
+
