@@ -1,72 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:26419 "EHLO mx1.redhat.com"
+Received: from mail1.radix.net ([207.192.128.31]:44448 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750918AbZK2Q0c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2009 11:26:32 -0500
-Message-ID: <4B12A275.3070902@redhat.com>
-Date: Sun, 29 Nov 2009 17:33:57 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: V4L Mailing List <linux-media@vger.kernel.org>,
-	=?ISO-8859-1?Q?N=E9me?= =?ISO-8859-1?Q?th_M=E1rton?=
-	<nm127@freemail.hu>
-Subject: Re: [PATCH] gspca main: reorganize loop
-References: <4B124BDF.50309@freemail.hu>	<20091129113834.6b47767a@tele>	<4B1258D2.7060706@freemail.hu> <20091129131511.2bb26f2b@tele>
-In-Reply-To: <20091129131511.2bb26f2b@tele>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+	id S1751350AbZKZNXR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Nov 2009 08:23:17 -0500
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
+ Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+From: Andy Walls <awalls@radix.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Krzysztof Halasa <khc@pm.waw.pl>, Jarod Wilson <jarod@redhat.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	linux-kernel@vger.kernel.org,
+	Mario Limonciello <superm1@ubuntu.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Janne Grunau <j@jannau.net>,
+	Christoph Bartelmus <lirc@bartelmus.de>
+In-Reply-To: <4B0E765C.2080806@redhat.com>
+References: <200910200956.33391.jarod@redhat.com>
+	 <200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com>
+	 <4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain>
+	 <4B0AC65C.806@redhat.com> <m3zl6dq8ig.fsf@intrepid.localdomain>
+	 <4B0E765C.2080806@redhat.com>
+Content-Type: text/plain
+Date: Thu, 26 Nov 2009 08:22:13 -0500
+Message-Id: <1259241733.3062.44.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Thu, 2009-11-26 at 10:36 -0200, Mauro Carvalho Chehab wrote:
+> Krzysztof Halasa wrote:
+> > Mauro Carvalho Chehab <mchehab@redhat.com> writes:
 
-On 11/29/2009 01:15 PM, Jean-Francois Moine wrote:
-> On Sun, 29 Nov 2009 12:19:46 +0100
-> Németh Márton<nm127@freemail.hu>  wrote:
->
->> Is there any subdriver where the isoc_nego() is implemented? I
->> couldn't find one. What would be the task of the isoc_nego()
->> function? Should it set the interface by calling usb_set_interface()
->> as the get_ep() does? Should it create URBs for the endpoint?
->>
->> Although I found the patch where the isoc_nego() was introduced
->> ( http://linuxtv.org/hg/v4l-dvb/rev/5a5b23605bdb56aec86c9a89de8ca8b8ae9cb925 )
->> it is not clear how the "ep" pointer is updated when not the
->> isoc_nego() is called instead of get_ep() in the current
->> implementation.
->
-> Hello Hans,
->
-> This function (isoc_nego) was added to fix the Mauro's problem with the
-> st6422. Was this problem solved in some other way, or is the fix still
-> waiting to be pulled?
->
 
-The fix is still waiting to be pulled, or actually to be made working :|
+> PS.: For those following those discussions that want to know more about
+> IR protocols, a good reference is at:
+> 	http://www.sbprojects.com/knowledge/ir/ir.htm
+> 
+> Unfortunately, it doesn't describe RC6 mode 6.
 
-First a quick summary of the need for the isoc_nego() function
-(and to only call get_ep() once). Some cams, at least those based on stv06xx
-bridges, have only 1 alt setting, but they have a register which allows
-one to tell it to send isoc frames which are never bigger then the value
-set in the register. I've tested this and it works as advertised,
-when you create isoc urbs with a size < wMaxPacketSize, then normally
-you will get -EMSGSIZE errors (iirc) as the camera sends isoc frames,
-larger then the buffers in the isoc urbs created, but if you then write the
-size you created the isoc urbs with to the register in question, things
-will work. So this works as expected.
+RC-6 Mode 0 and Mode 6A is briefly describe here:
 
-The problem is that the usb "scheduler" which checks the bandwidth constrains
-will always use wMaxPacketSize to check if there is enough bandwidth instead
-of the actual packet size of the isoc packets. So although I have a patch
-implementing the isoc_neg call for stv06xx cams, it does not actually help
-as although it is scaling back the bandwidth needed, the usb core does not
-see this and keeps returning -ENOSPC.
+http://www.picbasic.nl/frameload_uk.htm?http://www.picbasic.nl/rc5-rc6_transceiver_uk.htm
 
-After finding out about this I ran out of time. This reminds me that I need to
-send a message about this to the usb mailing list. I will do so now, and
-then we will see what will come from this.
+That page is slightly wrong, as there is some data coded in the header
+such as the RC-6 Mode.
+
+This page is an older version of the sbprojects.com RC-6 page, before
+the information on RC-6 Mode 6A was removed:
+
+http://slycontrol.ru/scr/kb/rc6.htm
+
+
+My personal opinion is that, for non-technical reasons, RC-6 Mode 6A
+decoding should not be included in the kernel.  That's why I didn't do
+it for the HVR-1850/CX23888.
+
 
 Regards,
+Andy
 
-Hans
+
