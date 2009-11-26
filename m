@@ -1,54 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.159]:18493 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752170AbZKGQ1O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Nov 2009 11:27:14 -0500
-Received: by fg-out-1718.google.com with SMTP id d23so189595fga.1
-        for <linux-media@vger.kernel.org>; Sat, 07 Nov 2009 08:27:18 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <6174dfda0911070731q535e9027q3a0feb483515436e@mail.gmail.com>
-References: <6174dfda0911061223k75f31fd5je33a8e75e9e3c391@mail.gmail.com>
-	 <6174dfda0911061258u254ba6bbh4610291a904edc0a@mail.gmail.com>
-	 <156a113e0911061716t758d7ee3ta709b406c2f074a1@mail.gmail.com>
-	 <6174dfda0911070246v61b5b3f5rdea26406066e3fa4@mail.gmail.com>
-	 <156a113e0911070435w4be2b9dfo17f8e9c910bab437@mail.gmail.com>
-	 <829197380911070725y12c984bamb1d157419b991c9a@mail.gmail.com>
-	 <6174dfda0911070731q535e9027q3a0feb483515436e@mail.gmail.com>
-Date: Sat, 7 Nov 2009 11:20:31 -0500
-Message-ID: <829197380911070820v156e1d6cu8ccc82aba11a2064@mail.gmail.com>
-Subject: Re: em28xx based USB Hybrid (Analog & DVB-T) TV Tuner not supported
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Johan Mutsaerts <johmut@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3728 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1749667AbZKZVhI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Nov 2009 16:37:08 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id nAQLbCmW061365
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 26 Nov 2009 22:37:12 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 26 Nov 2009 22:37:12 +0100 (CET)
+Message-Id: <200911262137.nAQLbCmW061365@smtp-vbr5.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 7, 2009 at 10:31 AM, Johan Mutsaerts <johmut@gmail.com> wrote:
-> Hi,
->
-> Something caught my eye while examining em28xx-dvb.c
->
-> #include "mt352.h"
-> #include "mt352_priv.h" /* FIXME */
->
-> What's the FIXME about ? Could it be a clue ?
->
-> What do you suggest I try/text ?
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Please don't top post.
+Results of the daily build of v4l-dvb:
 
-No, I just put that FIXME there because the driver really shouldn't be
-using the private headers.
+date:        Thu Nov 26 20:48:58 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13527:b3695bd384cc
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-I'm actually not in front of the code right now, so I cannot provide
-any recommendations.  I will be back home on Sunday though and at that
-point I can take a look at the code and offer some suggestions.
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-rc8-armv5: OK
+linux-2.6.32-rc8-armv5-davinci: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.32-rc8-armv5-ixp: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: OK
+linux-2.6.32-rc8-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: OK
+linux-2.6.31-i686: OK
+linux-2.6.32-rc8-i686: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-rc8-m32r: OK
+linux-2.6.30-mips: OK
+linux-2.6.31-mips: OK
+linux-2.6.32-rc8-mips: OK
+linux-2.6.30-powerpc64: OK
+linux-2.6.31-powerpc64: OK
+linux-2.6.32-rc8-powerpc64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: OK
+linux-2.6.31-x86_64: OK
+linux-2.6.32-rc8-x86_64: OK
+spec: OK
+sparse (linux-2.6.31): ERRORS
+sparse (linux-2.6.32-rc8): ERRORS
+linux-2.6.16.61-i686: OK
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: OK
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
-Cheers,
+Detailed results are available here:
 
-Devin
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
