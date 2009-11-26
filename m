@@ -1,112 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from jack.mail.tiscali.it ([213.205.33.53]:45182 "EHLO
-	jack.mail.tiscali.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751109AbZKNWrT (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.156]:51088 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753642AbZKZAHU convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Nov 2009 17:47:19 -0500
-Message-ID: <4AFF3364.5030403@gmail.com>
-Date: Sat, 14 Nov 2009 23:47:00 +0100
-From: "Andrea.Amorosi76@gmail.com" <Andrea.Amorosi76@gmail.com>
+	Wed, 25 Nov 2009 19:07:20 -0500
+Received: by fg-out-1718.google.com with SMTP id 19so241241fgg.1
+        for <linux-media@vger.kernel.org>; Wed, 25 Nov 2009 16:07:26 -0800 (PST)
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: "linux-media@vger.kernel.org >> Linux Media Mailing List"
-	<linux-media@vger.kernel.org>
-Subject: Re: [PATCH] em28xx: fix for Dikom DK300 hybrid USB tuner (aka Kworld
- 	VS-DVB-T 323UR )
-References: <4AFE92ED.2060208@gmail.com> <4AFEAB15.9010509@gmail.com> <829197380911140634j49c05cd0s90aed57b9ae61436@mail.gmail.com> <4AFF2D63.3090207@gmail.com>
-In-Reply-To: <4AFF2D63.3090207@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <200911260102.40881.laurent.pinchart@ideasonboard.com>
+References: <200911181354.06529.laurent.pinchart@ideasonboard.com>
+	 <829197380911251506g4af4d72v85c6dfb55cb88d0a@mail.gmail.com>
+	 <200911260102.40881.laurent.pinchart@ideasonboard.com>
+Date: Wed, 25 Nov 2009 19:07:25 -0500
+Message-ID: <829197380911251607y5c9b4378y1c4f52b120c54698@mail.gmail.com>
+Subject: Re: [PATCH/RFC v2] V4L core cleanups HG tree
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	mchehab@infradead.org, sakari.ailus@maxwell.research.nokia.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andrea.Amorosi76@gmail.com wrote:
-> This patch fix the Dikom DK300 hybrid usb card which is recognized as a
-> Kworld VS-DVB-T 323UR (card=54).
+On Wed, Nov 25, 2009 at 7:02 PM, Laurent Pinchart
+> Thank you very much for the report. Could you please try with the following
+> patch applied on top of the v4l-dvb-cleanup tree ?
 >
-> The patch adds digital tv and solves analog tv audio bad quality issue.
+> diff -r 98e3929a1a2d linux/drivers/media/video/au0828/au0828-video.c
+> --- a/linux/drivers/media/video/au0828/au0828-video.c   Wed Nov 25 12:55:47 2009 +0100
+> +++ b/linux/drivers/media/video/au0828/au0828-video.c   Thu Nov 26 01:02:15 2009 +0100
+> @@ -697,10 +697,8 @@
+>        dprintk(1, "au0828_release_resources called\n");
+>        mutex_lock(&au0828_sysfs_lock);
 >
-> Signed-off-by: Andrea Amorosi <Andrea.Amorosi76@gmail.com>
+> -       if (dev->vdev) {
+> -               list_del(&dev->au0828list);
+> +       if (dev->vdev)
+>                video_unregister_device(dev->vdev);
+> -       }
+>        if (dev->vbi_dev)
+>                video_unregister_device(dev->vbi_dev);
 >
-> diff -r aba823ecaea6 linux/drivers/media/video/em28xx/em28xx-cards.c
-> --- a/linux/drivers/media/video/em28xx/em28xx-cards.c    Thu Nov 12 
-> 12:21:05 2009 -0200
-> +++ b/linux/drivers/media/video/em28xx/em28xx-cards.c    Sat Nov 14 
-> 23:10:47 2009 +0100
-> @@ -1422,18 +1422,24 @@
->         .tuner_type   = TUNER_XC2028,
->         .tuner_gpio   = default_tuner_gpio,
->         .decoder      = EM28XX_TVP5150,
-> +                .mts_firmware = 1,
-> +                .has_dvb      = 1,
-> +                .dvb_gpio     = 
-> kworld_330u_digital,                                                                                                                                                         
+> @@ -1671,7 +1669,6 @@
+>        if (retval != 0) {
+>                dprintk(1, "unable to register video device (error = %d).\n",
+>                        retval);
+> -               list_del(&dev->au0828list);
+>                video_device_release(dev->vdev);
+>                return -ENODEV;
+>        }
+> @@ -1683,7 +1680,6 @@
+>        if (retval != 0) {
+>                dprintk(1, "unable to register vbi device (error = %d).\n",
+>                        retval);
+> -               list_del(&dev->au0828list);
+>                video_device_release(dev->vbi_dev);
+>                video_device_release(dev->vdev);
+>                return -ENODEV;
+> diff -r 98e3929a1a2d linux/drivers/media/video/au0828/au0828.h
+> --- a/linux/drivers/media/video/au0828/au0828.h Wed Nov 25 12:55:47 2009 +0100
+> +++ b/linux/drivers/media/video/au0828/au0828.h Thu Nov 26 01:02:15 2009 +0100
+> @@ -192,7 +192,6 @@
+>        struct au0828_dvb               dvb;
 >
->         .input        = { {
->             .type     = EM28XX_VMUX_TELEVISION,
->             .vmux     = TVP5150_COMPOSITE0,
->             .amux     = EM28XX_AMUX_VIDEO,
-> +            .gpio     = default_analog,
->         }, {
->             .type     = EM28XX_VMUX_COMPOSITE1,
->             .vmux     = TVP5150_COMPOSITE1,
->             .amux     = EM28XX_AMUX_LINE_IN,
-> +            .gpio     = default_analog,
->         }, {
->             .type     = EM28XX_VMUX_SVIDEO,
->             .vmux     = TVP5150_SVIDEO,
->             .amux     = EM28XX_AMUX_LINE_IN,
-> +            .gpio     = default_analog,
->         } },
->     },
->     [EM2882_BOARD_TERRATEC_HYBRID_XS] = {
-> @@ -2143,6 +2149,7 @@
->         ctl->demod = XC3028_FE_DEFAULT;
->         break;
->     case EM2883_BOARD_KWORLD_HYBRID_330U:
-> +    case EM2882_BOARD_KWORLD_VS_DVBT:
->         ctl->demod = XC3028_FE_CHINA;
->         ctl->fname = XC2028_DEFAULT_FIRMWARE;
->         break;
-> diff -r aba823ecaea6 linux/drivers/media/video/em28xx/em28xx-dvb.c
-> --- a/linux/drivers/media/video/em28xx/em28xx-dvb.c    Thu Nov 12 
-> 12:21:05 2009 -0200
-> +++ b/linux/drivers/media/video/em28xx/em28xx-dvb.c    Sat Nov 14 
-> 23:10:47 2009 +0100
-> @@ -504,6 +504,7 @@
->         break;
->     case EM2880_BOARD_TERRATEC_HYBRID_XS:
->     case EM2881_BOARD_PINNACLE_HYBRID_PRO:
-> +    case EM2882_BOARD_KWORLD_VS_DVBT:
->         dvb->frontend = dvb_attach(zl10353_attach,
->                        &em28xx_zl10353_xc3028_no_i2c_gate,
->                        &dev->i2c_adap);
->
->
-Should I remove the    "     .valid        = 
-EM28XX_BOARD_NOT_VALIDATED," line from the device, since I have 
-successfully tested it or the maintainer will remove it after having 
-received positive feedbacks from other users/developers?
+>        /* Analog */
+> -       struct list_head au0828list;
+>        struct v4l2_device v4l2_dev;
+>        int users;
+>        unsigned int stream_on:1;       /* Locks streams */
 
-For the sake of completeness, the device has a strange behaviour of its 
-two blue LEDs (whose light is visible because  the upper part of the 
-device is semi transparent):
-when the device is connected they turn on and then turn off after less 
-than a second;
-if I see analogue TV with Mplayer, one of them turn on and remain in 
-such a state till Mplayer is closed.
-if I see digital TV with Kaffeine, the other led remains off till I 
-select digital TV and a channel, but then it turns on and remain active 
-even if I close Kaffeine and open Mplayer to see analogue tv. In such a 
-case both the LEDs are turned on and the analogue one continue to behave 
-correctly because if I close mplayer it turns off. The digital led turns 
-off only if I reopen Kaffeine without selecting the digital TV.
-May this strange behaviour be the symptom of an incorrect switch off of 
-the digital part of the tuner when it is not used any more by some programs?
-Even my previous device (Empire dual pen) had such a strange behaviour 
-as far as the light is concerned, so I don't think it is a real problem.
-However if someone knows how to solve this, it is better.
+Trying it now....
 
-Best regards,
-Andrea
+Devin
 
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
