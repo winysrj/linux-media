@@ -1,42 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1659 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753083AbZKRG3r (ORCPT
+Received: from mail-px0-f180.google.com ([209.85.216.180]:60109 "EHLO
+	mail-px0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1749667AbZKZJ5I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 01:29:47 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: v4l: Use the new video_device_node_name function
-Date: Wed, 18 Nov 2009 07:29:40 +0100
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1258504731-8430-1-git-send-email-laurent.pinchart@ideasonboard.com> <1258504731-8430-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1258504731-8430-3-git-send-email-laurent.pinchart@ideasonboard.com>
+	Thu, 26 Nov 2009 04:57:08 -0500
+Received: by pxi10 with SMTP id 10so447125pxi.33
+        for <linux-media@vger.kernel.org>; Thu, 26 Nov 2009 01:57:14 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200911180729.40424.hverkuil@xs4all.nl>
+In-Reply-To: <702870ef0911260137r35f1784exc27498d0db3769c2@mail.gmail.com>
+References: <33305.64.213.30.2.1259216241.squirrel@webmail.exetel.com.au>
+	 <50104.115.70.135.213.1259224041.squirrel@webmail.exetel.com.au>
+	 <702870ef0911260137r35f1784exc27498d0db3769c2@mail.gmail.com>
+Date: Thu, 26 Nov 2009 20:57:14 +1100
+Message-ID: <702870ef0911260157q6c3f1279l4bcf8ae2ea6f91bf@mail.gmail.com>
+Subject: Re: DViCO FusionHDTV DVB-T Dual Digital 4 (rev 1) tuning regression
+From: Vincent McIntyre <vincent.mcintyre@gmail.com>
+To: Robert Lowery <rglowery@exemail.com.au>
+Cc: mchehab@redhat.com, terrywu2009@gmail.com, awalls@radix.net,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 18 November 2009 01:38:43 Laurent Pinchart wrote:
-> Fix all device drivers to use the new video_device_node_name function.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
+On 11/26/09, Vincent McIntyre <vincent.mcintyre@gmail.com> wrote:
 
-Using video_device_node_name() is a great improvement! Excellent work!
+> Another manifestation is huge BER and nonzero REC in the output from
+> 'tzap'.
+doh! I meant huge BER and nonzero UNC.
 
-One suggestion, though: I have to agree with the discussion you had with Mauro
-on irc yesterday about the /dev/ prefix. I think that should be removed and
-doing that in this patch as well makes a lot of sense. No need for a separate
-patch to do that as far as I am concerned.
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Apologies also for the top-post.
