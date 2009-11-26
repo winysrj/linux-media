@@ -1,95 +1,391 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:46940 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753721AbZKVUMr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Nov 2009 15:12:47 -0500
-Subject: Re: IR Receiver on an Tevii S470
-From: Andy Walls <awalls@radix.net>
-To: linux-media@vger.kernel.org, Matthias Fechner <idefix@fechner.net>
-Cc: Jarod Wilson <jarod@wilsonet.com>,
-	Jean Delvare <khali@linux-fr.org>,
-	"Igor M. Liplianin" <liplianin@me.by>
-In-Reply-To: <4B097E37.10402@fechner.net>
-References: <4B0459B1.50600@fechner.net> <4B081F0B.1060204@fechner.net>
-	 <1258836102.1794.7.camel@localhost>  <200911220303.36715.liplianin@me.by>
-	 <1258858102.3072.14.camel@palomino.walls.org>  <4B097E37.10402@fechner.net>
-Content-Type: text/plain
-Date: Sun, 22 Nov 2009 15:11:47 -0500
-Message-Id: <1258920707.4201.16.camel@palomino.walls.org>
-Mime-Version: 1.0
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1634 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759236AbZKZH5y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Nov 2009 02:57:54 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Subject: Re: [PATCH] New driver for the radio FM module on Miro PCM20 sound card
+Date: Thu, 26 Nov 2009 08:58:03 +0100
+Cc: linux-media@vger.kernel.org, Takashi Iwai <tiwai@suse.de>
+References: <20091124221236.92859c90.krzysztof.h1@poczta.fm>
+In-Reply-To: <20091124221236.92859c90.krzysztof.h1@poczta.fm>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <200911260858.03241.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2009-11-22 at 19:08 +0100, Matthias Fechner wrote:
-> Hi Andy,
+Hi Krzysztof,
+
+I did a quick review and found just two small things. If you fix those,
+then you can add a
+
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+
+line to your patch.
+
+Thanks,
+
+	Hans
+
+On Tuesday 24 November 2009 22:12:36 Krzysztof Helt wrote:
+> From: Krzysztof Helt <krzysztof.h1@wp.pl>
 > 
-> Andy Walls wrote:
-> > Thank you.  I will probably need you for testing when ready.
-> >
-> >
-> > I was planning to do step 1 above for HVR-1800 IR anyway.
-> >
-> > I will estimate that I may have something ready by about Christmas (25
-> > December 2009), unless work becomes very busy.
-> >   
+> This is recreated driver for the FM module found on Miro
+> PCM20 sound cards. This driver was removed around the 2.6.2x
+> kernels because it relied on the removed OSS module. Now, it
+> uses a current ALSA module (snd-miro) and is adapted to v4l2
+> layer.
 > 
-> thanks a lot for your answer.
-> I uploaded two pictures I did from the card, you can find it here:
-> http://fechner.net/tevii-s470/
+> It provides only basic functionality: frequency changing and
+> FM module muting.
 > 
-> It is a CX23885.
-> The driver I use is the ds3000.
-> lspci says:
-[snip]
-
-Matthias,
-
-Thanks for the pictures.  OK so of the two other interesting chips on
-the S470:
-
-U4 is an I2C connected EEPROM - we don't care about that for IR.
-
-U10 appears to perhaps be a Silicon Labs C8051F300 microcontroller or
-similar:
-
-http://www.silabs.com/products/mcu/smallmcu/Pages/C8051F30x.aspx
-
-Since the 'F300 has an A/D convertor and has an SMBus interface
-(compatable with the I2C bus), I suspect this chip could be the IR
-controller on the TeVii S470.
-
-Could you as root:
-
-# modprobe cx23885
-# modprobe i2c-dev
-# i2c-detect -l
-(to list all the i2c buses, including cx23885 mastered i2c buses)
-# i2c-detect -y N
-(to show the addresses in use on bus # N: only query the cx23885 buses)
-
-
-i2c-detect was in the lm-sensors package last I checked.  (Jean can
-correct me if I'm wrong.)
-
-With that information, I should be able to figure out what I2C address
-that microcontroller is listening to.
-
-Then we can work out how to read and decode it's data and add it to
-ir-kbd-i2c at least.  Depending on how your kernel and LIRC versions
-LIRC might still work with I2C IR chips too.
-
-
-All presupposing of course that that 'F300 chip is for IR...
-
-Regards,
-Andy
-
-> I can test any patch when you have one ready, currently I'm using lirc 
-> together with a TechnoTrend RemoteControl.
-> Thanks a lot and have a nice week
+> Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+> ---
+> This driver depends on changes to the snd-miro driver. These changes
+> are already accepted to the ALSA tree, but these changes 
+> won't be pushed into the 2.6.33 kernel.
 > 
-> Best regards,
-> Matthias
+>  drivers/media/radio/Kconfig           |   17 ++
+>  drivers/media/radio/Makefile          |    1 +
+>  drivers/media/radio/radio-miropcm20.c |  271 +++++++++++++++++++++++++++++++++
+>  3 files changed, 289 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/radio/radio-miropcm20.c
+> 
+> diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+> index a87a477..1c12f99 100644
+> --- a/drivers/media/radio/Kconfig
+> +++ b/drivers/media/radio/Kconfig
+> @@ -195,6 +195,23 @@ config RADIO_MAESTRO
+>  	  To compile this driver as a module, choose M here: the
+>  	  module will be called radio-maestro.
+>  
+> +config RADIO_MIROPCM20
+> +	tristate "miroSOUND PCM20 radio"
+> +	depends on ISA && VIDEO_V4L2
+> +	select SND_MIRO
+> +	---help---
+> +	  Choose Y here if you have this FM radio card. You also need to select
+> +	  the "Miro miroSOUND PCM1pro/PCM12/PCM20radio driver" ALSA sound card
+> +	  driver for this to work.
+> +
+> +	  In order to control your radio card, you will need to use programs
+> +	  that are compatible with the Video For Linux API.  Information on
+> +	  this API and pointers to "v4l" programs may be found at
+> +	  <file:Documentation/video4linux/API.html>.
+> +
+> +	  To compile this driver as a module, choose M here: the
+> +	  module will be called radio-miropcm20.
+> +
+>  config RADIO_SF16FMI
+>  	tristate "SF16FMI Radio"
+>  	depends on ISA && VIDEO_V4L2
+> diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
+> index 2a1be3b..8a63d54 100644
+> --- a/drivers/media/radio/Makefile
+> +++ b/drivers/media/radio/Makefile
+> @@ -18,6 +18,7 @@ obj-$(CONFIG_RADIO_TRUST) += radio-trust.o
+>  obj-$(CONFIG_I2C_SI4713) += si4713-i2c.o
+>  obj-$(CONFIG_RADIO_SI4713) += radio-si4713.o
+>  obj-$(CONFIG_RADIO_MAESTRO) += radio-maestro.o
+> +obj-$(CONFIG_RADIO_MIROPCM20) += radio-miropcm20.o
+>  obj-$(CONFIG_USB_DSBR) += dsbr100.o
+>  obj-$(CONFIG_RADIO_SI470X) += si470x/
+>  obj-$(CONFIG_USB_MR800) += radio-mr800.o
+> diff --git a/drivers/media/radio/radio-miropcm20.c b/drivers/media/radio/radio-miropcm20.c
+> new file mode 100644
+> index 0000000..0b6940c
+> --- /dev/null
+> +++ b/drivers/media/radio/radio-miropcm20.c
+> @@ -0,0 +1,271 @@
+> +/* Miro PCM20 radio driver for Linux radio support
+> + * (c) 1998 Ruurd Reitsma <R.A.Reitsma@wbmt.tudelft.nl>
+> + * Thanks to Norberto Pellici for the ACI device interface specification
+> + * The API part is based on the radiotrack driver by M. Kirkwood
+> + * This driver relies on the aci mixer provided by the snd-miro
+> + * ALSA driver.
+> + * Look there for further info...
+> + */
+> +
+> +/* Revision history:
+> + *
+> + *   1998        Ruurd Reitsma <R.A.Reitsma@wbmt.tudelft.nl>
+> + *   2000-09-05  Robert Siemer <Robert.Siemer@gmx.de>
+> + *        removed unfinished volume control (maybe adding it later again)
+> + *        use OSS-mixer; added stereo control
+> + */
+> +
+> +/* What ever you think about the ACI, version 0x07 is not very well!
+> + * I can't get frequency, 'tuner status', 'tuner flags' or mute/mono
+> + * conditions...                Robert
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/init.h>
+> +#include <linux/videodev2.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-ioctl.h>
+> +#include <sound/aci.h>
+> +
+> +static int radio_nr = -1;
+> +module_param(radio_nr, int, 0);
+> +
+> +static int mono;
+> +module_param(mono, bool, 0);
+> +MODULE_PARM_DESC(mono, "Force tuner into mono mode.");
+> +
+> +struct pcm20 {
+> +	struct v4l2_device v4l2_dev;
+> +	struct video_device vdev;
+> +	unsigned long freq;
+> +	int muted;
+> +	struct snd_miro_aci *aci;
+> +};
+> +
+> +static struct pcm20 pcm20_card = {
+> +	.freq   = 87*16000,
+> +	.muted  = 1,
+> +};
+> +
+> +static int pcm20_mute(struct pcm20 *dev, unsigned char mute)
+> +{
+> +	dev->muted = mute;
+> +	return snd_aci_cmd(dev->aci, ACI_SET_TUNERMUTE, mute, -1);
+> +}
+> +
+> +static int pcm20_stereo(struct pcm20 *dev, unsigned char stereo)
+> +{
+> +	return snd_aci_cmd(dev->aci, ACI_SET_TUNERMONO, !stereo, -1);
+> +}
+> +
+> +static int pcm20_setfreq(struct pcm20 *dev, unsigned long freq)
+> +{
+> +	unsigned char freql;
+> +	unsigned char freqh;
+> +	struct snd_miro_aci *aci = dev->aci;
+> +
+> +	dev->freq = freq;
+> +
+> +	freq /= 160;
+> +	if (!(aci->aci_version == 0x07 || aci->aci_version >= 0xb0))
+> +		freq /= 10;  /* I don't know exactly which version
+> +			      * needs this hack */
+> +	freql = freq & 0xff;
+> +	freqh = freq >> 8;
+> +
+> +	pcm20_stereo(dev, !mono);
+> +	return snd_aci_cmd(aci, ACI_WRITE_TUNE, freql, freqh);
+> +}
+> +
+> +static const struct v4l2_file_operations pcm20_fops = {
+> +	.owner		= THIS_MODULE,
+> +	.ioctl		= video_ioctl2,
+> +};
+> +
+> +static int vidioc_querycap(struct file *file, void *priv,
+> +				struct v4l2_capability *v)
+> +{
+> +	strlcpy(v->driver, "Miro PCM20", sizeof(v->driver));
+> +	strlcpy(v->card, "Miro PCM20", sizeof(v->card));
+> +	strlcpy(v->bus_info, "ISA", sizeof(v->bus_info));
+> +	v->version = 0x1;
+> +	v->capabilities = V4L2_CAP_TUNER | V4L2_CAP_RADIO;
+> +	return 0;
+> +}
+> +
+> +static int vidioc_g_tuner(struct file *file, void *priv,
+> +				struct v4l2_tuner *v)
+> +{
+> +	if (v->index)	/* Only 1 tuner */
+> +		return -EINVAL;
+> +	strlcpy(v->name, "FM", sizeof(v->name));
+> +	v->type = V4L2_TUNER_RADIO;
+> +	v->rangelow = 87*16000;
+> +	v->rangehigh = 108*16000;
+> +	v->signal = 0xffff;
+> +	v->rxsubchans = V4L2_TUNER_SUB_MONO | V4L2_TUNER_SUB_STEREO;
+> +	v->capability = V4L2_TUNER_CAP_LOW;
+> +	v->audmode = V4L2_TUNER_MODE_MONO;
+> +	return 0;
+> +}
+> +
+> +static int vidioc_s_tuner(struct file *file, void *priv,
+> +				struct v4l2_tuner *v)
+> +{
+> +	return v->index ? -EINVAL : 0;
+> +}
+> +
+> +static int vidioc_g_frequency(struct file *file, void *priv,
+> +				struct v4l2_frequency *f)
+> +{
+> +	struct pcm20 *dev = video_drvdata(file);
+> +
 
+This needs a check like this:
 
+        if (f->tuner != 0)
+                return -EINVAL;
+
+> +	f->type = V4L2_TUNER_RADIO;
+> +	f->frequency = dev->freq;
+> +	return 0;
+> +}
+> +
+> +
+> +static int vidioc_s_frequency(struct file *file, void *priv,
+> +				struct v4l2_frequency *f)
+> +{
+> +	struct pcm20 *dev = video_drvdata(file);
+
+This needs a check like this:
+
+        if (f->tuner != 0 || f->type != V4L2_TUNER_RADIO)
+                return -EINVAL;
+
+> +
+> +	dev->freq = f->frequency;
+> +	pcm20_setfreq(dev, f->frequency);
+> +	return 0;
+> +}
+> +
+> +static int vidioc_queryctrl(struct file *file, void *priv,
+> +				struct v4l2_queryctrl *qc)
+> +{
+> +	switch (qc->id) {
+> +	case V4L2_CID_AUDIO_MUTE:
+> +		return v4l2_ctrl_query_fill(qc, 0, 1, 1, 1);
+> +	}
+> +	return -EINVAL;
+> +}
+> +
+> +static int vidioc_g_ctrl(struct file *file, void *priv,
+> +				struct v4l2_control *ctrl)
+> +{
+> +	struct pcm20 *dev = video_drvdata(file);
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_AUDIO_MUTE:
+> +		ctrl->value = dev->muted;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +	return 0;
+> +}
+> +
+> +static int vidioc_s_ctrl(struct file *file, void *priv,
+> +				struct v4l2_control *ctrl)
+> +{
+> +	struct pcm20 *dev = video_drvdata(file);
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_AUDIO_MUTE:
+> +		pcm20_mute(dev, ctrl->value);
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +	return 0;
+> +}
+> +
+> +static int vidioc_g_input(struct file *filp, void *priv, unsigned int *i)
+> +{
+> +	*i = 0;
+> +	return 0;
+> +}
+> +
+> +static int vidioc_s_input(struct file *filp, void *priv, unsigned int i)
+> +{
+> +	return i ? -EINVAL : 0;
+> +}
+> +
+> +static int vidioc_g_audio(struct file *file, void *priv,
+> +				struct v4l2_audio *a)
+> +{
+> +	a->index = 0;
+> +	strlcpy(a->name, "Radio", sizeof(a->name));
+> +	a->capability = V4L2_AUDCAP_STEREO;
+> +	return 0;
+> +}
+> +
+> +static int vidioc_s_audio(struct file *file, void *priv,
+> +				struct v4l2_audio *a)
+> +{
+> +	return a->index ? -EINVAL : 0;
+> +}
+> +
+> +static const struct v4l2_ioctl_ops pcm20_ioctl_ops = {
+> +	.vidioc_querycap    = vidioc_querycap,
+> +	.vidioc_g_tuner     = vidioc_g_tuner,
+> +	.vidioc_s_tuner     = vidioc_s_tuner,
+> +	.vidioc_g_frequency = vidioc_g_frequency,
+> +	.vidioc_s_frequency = vidioc_s_frequency,
+> +	.vidioc_queryctrl   = vidioc_queryctrl,
+> +	.vidioc_g_ctrl      = vidioc_g_ctrl,
+> +	.vidioc_s_ctrl      = vidioc_s_ctrl,
+> +	.vidioc_g_audio     = vidioc_g_audio,
+> +	.vidioc_s_audio     = vidioc_s_audio,
+> +	.vidioc_g_input     = vidioc_g_input,
+> +	.vidioc_s_input     = vidioc_s_input,
+> +};
+> +
+> +static int __init pcm20_init(void)
+> +{
+> +	struct pcm20 *dev = &pcm20_card;
+> +	struct v4l2_device *v4l2_dev = &dev->v4l2_dev;
+> +	int res;
+> +
+> +	dev->aci = snd_aci_get_aci();
+> +	if (dev->aci == NULL) {
+> +		v4l2_err(v4l2_dev,
+> +			 "you must load the snd-miro driver first!\n");
+> +		return -ENODEV;
+> +	}
+> +	strlcpy(v4l2_dev->name, "miropcm20", sizeof(v4l2_dev->name));
+> +
+> +
+> +	res = v4l2_device_register(NULL, v4l2_dev);
+> +	if (res < 0) {
+> +		v4l2_err(v4l2_dev, "could not register v4l2_device\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	strlcpy(dev->vdev.name, v4l2_dev->name, sizeof(dev->vdev.name));
+> +	dev->vdev.v4l2_dev = v4l2_dev;
+> +	dev->vdev.fops = &pcm20_fops;
+> +	dev->vdev.ioctl_ops = &pcm20_ioctl_ops;
+> +	dev->vdev.release = video_device_release_empty;
+> +	video_set_drvdata(&dev->vdev, dev);
+> +
+> +	if (video_register_device(&dev->vdev, VFL_TYPE_RADIO, radio_nr) < 0)
+> +		goto fail;
+> +
+> +	v4l2_info(v4l2_dev, "Mirosound PCM20 Radio tuner\n");
+> +	return 0;
+> +fail:
+> +	v4l2_device_unregister(v4l2_dev);
+> +	return -EINVAL;
+> +}
+> +
+> +MODULE_AUTHOR("Ruurd Reitsma, Krzysztof Helt");
+> +MODULE_DESCRIPTION("A driver for the Miro PCM20 radio card.");
+> +MODULE_LICENSE("GPL");
+> +
+> +static void __exit pcm20_cleanup(void)
+> +{
+> +	struct pcm20 *dev = &pcm20_card;
+> +
+> +	video_unregister_device(&dev->vdev);
+> +	v4l2_device_unregister(&dev->v4l2_dev);
+> +}
+> +
+> +module_init(pcm20_init);
+> +module_exit(pcm20_cleanup);
+> 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
