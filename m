@@ -1,66 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01d.mail.t-online.hu ([84.2.42.6]:59913 "EHLO
-	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755957AbZKURC5 (ORCPT
+Received: from mail-px0-f180.google.com ([209.85.216.180]:48219 "EHLO
+	mail-px0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751697AbZKZFxC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Nov 2009 12:02:57 -0500
-Message-ID: <4B081D40.9030607@freemail.hu>
-Date: Sat, 21 Nov 2009 18:02:56 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+	Thu, 26 Nov 2009 00:53:02 -0500
+Date: Wed, 25 Nov 2009 21:53:02 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Krzysztof Halasa <khc@pm.waw.pl>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	mchehab@redhat.com, superm1@ubuntu.com
+Subject: Re: [RFC] Should we create a raw input interface for IR's ?
+Message-ID: <20091126055302.GI23244@core.coreip.homeip.net>
+References: <BDZb9P9ZjFB@christoph> <m3skc25wpx.fsf@intrepid.localdomain> <E6F196CB-8F9E-4618-9283-F8F67D1D3EAF@wilsonet.com> <829197380911251020y6f330f15mba32920ac63e97d3@mail.gmail.com> <E88E119C-BB86-4F01-8C2C-E514AC6BA5E2@wilsonet.com> <m3skc249ev.fsf@intrepid.localdomain>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@skynet.be>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-CC: cocci@diku.dk, LKML <linux-kernel@vger.kernel.org>
-Subject: [PATCH] usbvideo: limit the length of string creation
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <m3skc249ev.fsf@intrepid.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+On Wed, Nov 25, 2009 at 09:49:28PM +0100, Krzysztof Halasa wrote:
+> Jarod Wilson <jarod@wilsonet.com> writes:
+> 
+> > Well, we've got a number of IOCTLs already, could extend those.
+> > (Although its been suggested elsewhere that we replace the IOCTLs with
+> > sysfs knobs).
+> 
+> Not sure if sysfs would be fast enough.
+> 
 
-Use strlcat() to append a string to the previously created first part.
-The strlcat() function limits the size of the string to the whole
-destination buffer.
+Why would sysfs write be slower than ioctl?
 
-The semantic match that finds this kind of problem is as follows:
-(http://coccinelle.lip6.fr/)
-
-// <smpl>
-@@
-expression dev;
-expression phys;
-expression str;
-expression size;
-@@
- 	usb_make_path(dev, phys, size);
--	strncat(phys, str, size);
-+	strlcat(phys, str, size);
-// </smpl>
-
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
-diff -u -p a/drivers/media/video/usbvideo/konicawc.c b/drivers/media/video/usbvideo/konicawc.c
---- a/drivers/media/video/usbvideo/konicawc.c 2009-09-10 00:13:59.000000000 +0200
-+++ b/drivers/media/video/usbvideo/konicawc.c 2009-11-21 17:48:52.000000000 +0100
-@@ -225,7 +225,7 @@ static void konicawc_register_input(stru
- 	int error;
-
- 	usb_make_path(dev, cam->input_physname, sizeof(cam->input_physname));
--	strncat(cam->input_physname, "/input0", sizeof(cam->input_physname));
-+	strlcat(cam->input_physname, "/input0", sizeof(cam->input_physname));
-
- 	cam->input = input_dev = input_allocate_device();
- 	if (!input_dev) {
-diff -u -p a/drivers/media/video/usbvideo/quickcam_messenger.c b/drivers/media/video/usbvideo/quickcam_messenger.c
---- a/drivers/media/video/usbvideo/quickcam_messenger.c 2009-09-10 00:13:59.000000000 +0200
-+++ b/drivers/media/video/usbvideo/quickcam_messenger.c 2009-11-21 17:48:53.000000000 +0100
-@@ -89,7 +89,7 @@ static void qcm_register_input(struct qc
- 	int error;
-
- 	usb_make_path(dev, cam->input_physname, sizeof(cam->input_physname));
--	strncat(cam->input_physname, "/input0", sizeof(cam->input_physname));
-+	strlcat(cam->input_physname, "/input0", sizeof(cam->input_physname));
-
- 	cam->input = input_dev = input_allocate_device();
- 	if (!input_dev) {
+-- 
+Dmitry
