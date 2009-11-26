@@ -1,100 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx.stud.uni-hannover.de ([130.75.176.3]:54070 "EHLO
-	studserv5d.stud.uni-hannover.de" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752503AbZKDLRP (ORCPT
+Received: from mail-in-17.arcor-online.net ([151.189.21.57]:34073 "EHLO
+	mail-in-17.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759731AbZKZAbg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Nov 2009 06:17:15 -0500
-Message-ID: <4AF162BC.4010700@stud.uni-hannover.de>
-Date: Wed, 04 Nov 2009 12:17:16 +0100
-From: Soeren Moch <Soeren.Moch@stud.uni-hannover.de>
-MIME-Version: 1.0
-To: zdenek.kabelac@gmail.com
-CC: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] NOVA-TD exeriences?
-References: <4AEF5FE5.2000607@stud.uni-hannover.de>
-In-Reply-To: <4AEF5FE5.2000607@stud.uni-hannover.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	Wed, 25 Nov 2009 19:31:36 -0500
+Subject: Re: Tuner drivers
+From: hermann pitton <hermann-pitton@arcor.de>
+To: rulet1@meta.ua
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <43328.95.132.166.23.1259193974.metamail@webmail.meta.ua>
+References: <1259187084.3335.48.camel@pc07.localdom.local>
+	 <43103.95.132.166.23.1259188983.metamail@webmail.meta.ua>
+	 <1259192286.3335.64.camel@pc07.localdom.local>
+	 <43328.95.132.166.23.1259193974.metamail@webmail.meta.ua>
+Content-Type: text/plain
+Date: Thu, 26 Nov 2009 01:30:21 +0100
+Message-Id: <1259195421.3335.81.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Zdenek Kabelac wrote:
- > 2009/11/3 Zdenek Kabelac <zdenek.kabelac@gmail.com>:
- >> 2009/11/2 Soeren Moch <Soeren.Moch@stud.uni-hannover.de>:
- >>>>> Hi. I would be happy to hear if anyone has tried both the NOVA-TD and
- >>>>> the
- >>>>> NOVA-T. The NOVA-T has always worked perfectly here but I would 
-like to
- >>>>> know
- >>>>> if the -TD will do the job of two NOVA-T's. And there also seems 
-to be a
- >>>>> new
- >>>>> version out with two small antenna connectors instead of the previous
- >>>>> configuration. Anyone tried it? Does it come with an antenna adaptor
- >>>>> cable?
- >>>>> http://www.hauppauge.de/de/pics/novatdstick_top.jpg
- >>>>> Thankful for any info.
- >>>> Well I've this usb stick with these two small connectors - and it runs
- >>>> just fine.
- >>>>
- >>>> Though I think there is some problem with suspend/resume recently
- >>>> (2.6.32-rc5)  and it needs some inspection.
- >>>>
- >>>> But it works just fine for dual dvb-t viewing.
- >>>>
- >>>> And yes - it contains two small antennas with small connectors and
- >>>> one adapter for normal antenna - i.e. 1 antenna input goes to 2 small
- >>>> antenna connectors.
- >>> zdenek, your nova-td stick works just fine for dual dvb-t viewing?
- >>> I always had this problem:
- >>> When one channel is streaming and the other channel is switched on, the
- >>> stream of the already running channel gets broken.
- >>> see also:
- >>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg06376.html
- >>>
- >>> Can you please test this case on your nova-td stick?
- >> I'll recheck in the evening whether there are no regression, but I've
- >> been able to get 3 dvb-t independent (different mux) TV streams (with
- >> the usage of the second stick Aver Hybrid Volar HX & proprietary Aver
- >> driver) with 2.6.29/30 vanilla kernels played at the same time on my
- >> C2D T61.
- >>
- >
- >
- > Ok - I could confirm, I'm able to play two different muxes at the same
- > time from this USB stick. And I do not experience any stream damage.
- > I'm running Fedora Rawhide with vanilla kernel 2.6.32-rc5, kaffeine
- > 0.8.7 for the first adapter and relatively fresh mplayer compilation
- > for the second adapter
- >
- > Thought there are things to be reported and fixed (some USB regression
- > I guess) - I'll handle this via lkml.
- >
- >
- > Anyway here is dmesg USB stick identification (labeled  WinTV  Nova-TD)
- >
- > USB device found, idVendor=2040, idProduct=5200
- > USB device strings: Mfr=1, Product=2, SerialNumber=3
- > Product: NovaT 500Stick
- >
- > Regards
- >
- > Zdenek
- >
 
-Very strange. Playing of two different muxes is also no problem for me, 
-as long
-as no new stream is started (of course after switching off one of the 
-streams
-before). In the start moment of the new the stream the already running 
-stream
-is disturbed and I see a demaged group of pictures in the old stream. After
-these few pictures the stream is running fine again.
+Am Donnerstag, den 26.11.2009, 02:06 +0200 schrieb rulet1@meta.ua:
+> Your words:
+> 
+> "The huge delays in tvtime-scanner or xawtv scantv is a single experience
+> you report right now, nobody else".
+> 
+> So what -- maybe this is because nobody tells about it or just don't know
+> how to do that,
+> maybe because they don't have documentation and mailing lists in Russian
+> and Ukrainan,
+> or because the driver developers are English speaking and lives in
+> English-speaking countries,
+> haven't you think about that, or you think that everybody should know
+> english?
 
-I cannot imagine that this is a specific problem of my stick, however,
-thank you for testing!
+No, not at all, given my bad English too.
 
-Regards,
-Soeren
+We usually have enough people to come around any language barriers.
+
+There have always been high level developers from Russia and Ukraine is
+very lively too.
+
+I just tell, we have no other report for that driver globally, which
+would tell it broken on something currently.
+
+So it is either card specific, maybe not correctly enough identified,
+chip specific we can exclude with knowing it is a saa7131e now, or some
+less usual TV picture and sound system is in use.
+
+Easiest way to exclude that, is some other people from the Ukraine
+report that they are fine with tda8275a tuners and saa7131e or other
+such chips ... or not!
+
+I just try to narrow down the ground eventually worth digging ...
+
+Cheers,
+Hermann
+
+
+
 
 
