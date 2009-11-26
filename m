@@ -1,259 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-OUT05A.alice.it ([85.33.3.5]:3335 "EHLO
-	smtp-OUT05A.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750751AbZKCQ4m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Nov 2009 11:56:42 -0500
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: linux-arm-kernel@lists.infradead.org
-Cc: openezx-devel@lists.openezx.org,
-	Antonio Ospite <ospite@studenti.unina.it>,
-	Eric Miao <eric.y.miao@gmail.com>,
-	Bart Visscher <bartv@thisnet.nl>, linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH 1/3] ezx: Add camera support for A780 and A910 EZX phones
-Date: Tue,  3 Nov 2009 17:45:32 +0100
-Message-Id: <1257266734-28673-2-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1257266734-28673-1-git-send-email-ospite@studenti.unina.it>
-References: <1257266734-28673-1-git-send-email-ospite@studenti.unina.it>
+Received: from vsmtp14.tin.it ([212.216.176.118]:50277 "EHLO vsmtp14.tin.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752638AbZKZLSz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Nov 2009 06:18:55 -0500
+Received: from [192.168.1.4] (82.58.77.107) by vsmtp14.tin.it (8.5.113)
+        id 4AC9C0AF03DAF8D1 for linux-media@vger.kernel.org; Thu, 26 Nov 2009 12:13:05 +0100
+Message-ID: <4B0E62AB.9080008@tin.it>
+Date: Thu, 26 Nov 2009 12:12:43 +0100
+From: Alan Ferrero <alanf@tin.it>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Help needed with Hauppauge WinTV HVR-4000
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
-Signed-off-by: Bart Visscher <bartv@thisnet.nl>
----
- arch/arm/mach-pxa/ezx.c |  178 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 178 insertions(+), 0 deletions(-)
+Hi!
 
-diff --git a/arch/arm/mach-pxa/ezx.c b/arch/arm/mach-pxa/ezx.c
-index 588b265..9faa6e5 100644
---- a/arch/arm/mach-pxa/ezx.c
-+++ b/arch/arm/mach-pxa/ezx.c
-@@ -17,8 +17,11 @@
- #include <linux/delay.h>
- #include <linux/pwm_backlight.h>
- #include <linux/input.h>
-+#include <linux/gpio.h>
- #include <linux/gpio_keys.h>
- 
-+#include <media/soc_camera.h>
-+
- #include <asm/setup.h>
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
-@@ -29,6 +32,7 @@
- #include <plat/i2c.h>
- #include <mach/hardware.h>
- #include <mach/pxa27x_keypad.h>
-+#include <mach/camera.h>
- 
- #include "devices.h"
- #include "generic.h"
-@@ -683,8 +687,102 @@ static struct platform_device a780_gpio_keys = {
- 	},
- };
- 
-+/* camera */
-+static int a780_pxacamera_init(struct device *dev)
-+{
-+	int err;
-+
-+	/*
-+	 * GPIO50_GPIO is CAM_EN: active low
-+	 * GPIO19_GPIO is CAM_RST: active high
-+	 */
-+	err = gpio_request(MFP_PIN_GPIO50, "nCAM_EN");
-+	if (err) {
-+		pr_err("%s: Failed to request nCAM_EN\n", __func__);
-+		goto fail;
-+	}
-+
-+	err = gpio_request(MFP_PIN_GPIO19, "CAM_RST");
-+	if (err) {
-+		pr_err("%s: Failed to request CAM_RST\n", __func__);
-+		goto fail_gpio_cam_rst;
-+	}
-+
-+	gpio_direction_output(MFP_PIN_GPIO50, 0);
-+	gpio_direction_output(MFP_PIN_GPIO19, 1);
-+
-+	return 0;
-+
-+fail_gpio_cam_rst:
-+	gpio_free(MFP_PIN_GPIO50);
-+fail:
-+	return err;
-+}
-+
-+static int a780_pxacamera_power(struct device *dev, int on)
-+{
-+	gpio_set_value(MFP_PIN_GPIO50, on ? 0 : 1);
-+
-+#if 0
-+	/*
-+	 * This is reported to resolve the "vertical line in view finder"
-+	 * issue (LIBff11930), in the original source code released by
-+	 * Motorola, but we never experienced the problem, so we don't use
-+	 * this for now.
-+	 *
-+	 * AP Kernel camera driver: set TC_MM_EN to low when camera is running
-+	 * and TC_MM_EN to high when camera stops.
-+	 *
-+	 * BP Software: if TC_MM_EN is low, BP do not shut off 26M clock, but
-+	 * BP can sleep itself.
-+	 */
-+	gpio_set_value(MFP_PIN_GPIO99, on ? 0 : 1);
-+#endif
-+
-+	return 0;
-+}
-+
-+static int a780_pxacamera_reset(struct device *dev)
-+{
-+	gpio_set_value(MFP_PIN_GPIO19, 0);
-+	msleep(10);
-+	gpio_set_value(MFP_PIN_GPIO19, 1);
-+
-+	return 0;
-+}
-+
-+struct pxacamera_platform_data a780_pxacamera_platform_data = {
-+	.init	= a780_pxacamera_init,
-+	.flags  = PXA_CAMERA_MASTER | PXA_CAMERA_DATAWIDTH_8 |
-+		PXA_CAMERA_PCLK_EN | PXA_CAMERA_MCLK_EN,
-+	.mclk_10khz = 5000,
-+};
-+
-+static struct i2c_board_info a780_camera_i2c_board_info = {
-+	I2C_BOARD_INFO("mt9m111", 0x5d),
-+};
-+
-+static struct soc_camera_link a780_iclink = {
-+	.bus_id         = 0,
-+	.flags          = SOCAM_SENSOR_INVERT_PCLK,
-+	.i2c_adapter_id = 0,
-+	.board_info     = &a780_camera_i2c_board_info,
-+	.module_name    = "mt9m111",
-+	.power          = a780_pxacamera_power,
-+	.reset          = a780_pxacamera_reset,
-+};
-+
-+static struct platform_device a780_camera = {
-+	.name   = "soc-camera-pdrv",
-+	.id     = 0,
-+	.dev    = {
-+		.platform_data = &a780_iclink,
-+	},
-+};
-+
- static struct platform_device *a780_devices[] __initdata = {
- 	&a780_gpio_keys,
-+	&a780_camera,
- };
- 
- static void __init a780_init(void)
-@@ -699,6 +797,8 @@ static void __init a780_init(void)
- 
- 	pxa_set_keypad_info(&a780_keypad_platform_data);
- 
-+	pxa_set_camera_info(&a780_pxacamera_platform_data);
-+
- 	platform_add_devices(ARRAY_AND_SIZE(ezx_devices));
- 	platform_add_devices(ARRAY_AND_SIZE(a780_devices));
- }
-@@ -864,8 +964,84 @@ static struct platform_device a910_gpio_keys = {
- 	},
- };
- 
-+/* camera */
-+static int a910_pxacamera_init(struct device *dev)
-+{
-+	int err;
-+
-+	/*
-+	 * GPIO50_GPIO is CAM_EN: active low
-+	 * GPIO28_GPIO is CAM_RST: active high
-+	 */
-+	err = gpio_request(MFP_PIN_GPIO50, "nCAM_EN");
-+	if (err) {
-+		pr_err("%s: Failed to request nCAM_EN\n", __func__);
-+		goto fail;
-+	}
-+
-+	err = gpio_request(MFP_PIN_GPIO28, "CAM_RST");
-+	if (err) {
-+		pr_err("%s: Failed to request CAM_RST\n", __func__);
-+		goto fail_gpio_cam_rst;
-+	}
-+
-+	gpio_direction_output(MFP_PIN_GPIO50, 0);
-+	gpio_direction_output(MFP_PIN_GPIO28, 1);
-+
-+	return 0;
-+
-+fail_gpio_cam_rst:
-+	gpio_free(MFP_PIN_GPIO50);
-+fail:
-+	return err;
-+}
-+
-+static int a910_pxacamera_power(struct device *dev, int on)
-+{
-+	gpio_set_value(MFP_PIN_GPIO50, on ? 0 : 1);
-+	return 0;
-+}
-+
-+static int a910_pxacamera_reset(struct device *dev)
-+{
-+	gpio_set_value(MFP_PIN_GPIO28, 0);
-+	msleep(10);
-+	gpio_set_value(MFP_PIN_GPIO28, 1);
-+
-+	return 0;
-+}
-+
-+struct pxacamera_platform_data a910_pxacamera_platform_data = {
-+	.init	= a910_pxacamera_init,
-+	.flags  = PXA_CAMERA_MASTER | PXA_CAMERA_DATAWIDTH_8 |
-+		PXA_CAMERA_PCLK_EN | PXA_CAMERA_MCLK_EN,
-+	.mclk_10khz = 5000,
-+};
-+
-+static struct i2c_board_info a910_camera_i2c_board_info = {
-+	I2C_BOARD_INFO("mt9m111", 0x5d),
-+};
-+
-+static struct soc_camera_link a910_iclink = {
-+	.bus_id         = 0,
-+	.i2c_adapter_id = 0,
-+	.board_info     = &a910_camera_i2c_board_info,
-+	.module_name    = "mt9m111",
-+	.power          = a910_pxacamera_power,
-+	.reset          = a910_pxacamera_reset,
-+};
-+
-+static struct platform_device a910_camera = {
-+	.name   = "soc-camera-pdrv",
-+	.id     = 0,
-+	.dev    = {
-+		.platform_data = &a910_iclink,
-+	},
-+};
-+
- static struct platform_device *a910_devices[] __initdata = {
- 	&a910_gpio_keys,
-+	&a910_camera,
- };
- 
- static void __init a910_init(void)
-@@ -880,6 +1056,8 @@ static void __init a910_init(void)
- 
- 	pxa_set_keypad_info(&a910_keypad_platform_data);
- 
-+	pxa_set_camera_info(&a910_pxacamera_platform_data);
-+
- 	platform_add_devices(ARRAY_AND_SIZE(ezx_devices));
- 	platform_add_devices(ARRAY_AND_SIZE(a910_devices));
- }
--- 
-1.6.5.2
+I posted yesterday the following message to the mythtv-users mailing
+list, but they answered me it's more suitable to post it in your mailing
+list.
 
+Alan
+
+Hi!
+
+I REALLY need some help with the Hauppauge WinTV HVR-4000
+(http://www.hauppauge.it/site/products/data_hvr4000.html).
+
+Days ago I installed Mythbuntu 9.10 (64 bit) on my HTPC, but I soon
+found out the tv card didn't work.
+Later, I learned that both firmware and driver included in Karmic were
+bugged and didn't work.
+So I followed the instructions reported at
+http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000 to
+install firmware 1.20.79.0 and instructions reported at
+https://bugs.launchpad.net/mythbuntu/+bug/439163?comments=all to install
+the patched driver (from: http://hg.kewl.org/v4l-dvb-20091103/).
+
+The end result? Nothing!
+
+Unfortunately, my HVR-4000 doesn't work yet!
+
+Following, the kernel output I get:
+
+[    6.679458] cx88/0: cx2388x v4l2 driver version 0.0.7 loaded
+[    6.679901]   alloc irq_desc for 20 on node 0
+[    6.679904]   alloc kstat_irqs on node 0
+[    6.679910] cx8800 0000:04:05.0: PCI INT A -> GSI 20 (level, low) ->
+IRQ 20
+[    6.680357] cx88[0]: subsystem: 0070:6902, board: Hauppauge
+WinTV-HVR4000 DVB-S/S2/T/Hybrid [card=68,autodetected], frontend(s): 2
+[    6.680359] cx88[0]: TV tuner type 63, Radio tuner type -1
+[    6.744402] cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.7 loaded
+[    6.812134] cx88[0]: i2c init: enabling analog demod on
+HVR1300/3000/4000 tuner
+[    6.914028] tuner 1-0063: chip found @ 0xc6 (cx88[0])
+[    6.934826] cx2388x alsa driver version 0.0.7 loaded
+[    6.958954] tveeprom 1-0050: Hauppauge model 69009, rev B2D3, serial#
+6246101
+[    6.958956] tveeprom 1-0050: MAC address is 00-0D-FE-5F-4E-D5
+[    6.958958] tveeprom 1-0050: tuner model is Philips FMD1216MEX (idx
+133, type 78)
+[    6.958961] tveeprom 1-0050: TV standards PAL(B/G) PAL(I) SECAM(L/L')
+PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xf4)
+[    6.958962] tveeprom 1-0050: audio processor is CX882 (idx 33)
+[    6.958964] tveeprom 1-0050: decoder processor is CX882 (idx 25)
+[    6.958966] tveeprom 1-0050: has radio, has IR receiver, has no IR
+transmitter
+[    6.958967] cx88[0]: hauppauge eeprom: model=69009
+[    7.089365] Installing knfsd (copyright (C) 1996 okir@monad.swb.de).
+[    7.160819] tuner-simple 1-0063: creating new instance
+[    7.160822] tuner-simple 1-0063: type set to 78 (Philips FMD1216MEX
+MK3 Hybrid Tuner)
+[    7.162725] input: cx88 IR (Hauppauge WinTV-HVR400 as
+/devices/pci0000:00/0000:00:14.4/0000:04:05.0/input/input6
+[    7.162762] cx88[0]/0: found at 0000:04:05.0, rev: 5, irq: 20,
+latency: 64, mmio: 0xfd000000
+[    7.162772] IRQ 20/cx88[0]: IRQF_DISABLED is not guaranteed on shared
+IRQs
+[    7.183886] wm8775 1-001b: chip found @ 0x36 (cx88[0])
+[    7.191282] cx88[0]/0: registered device video0 [v4l2]
+[    7.191296] cx88[0]/0: registered device vbi0
+[    7.191312] cx88[0]/0: registered device radio0
+[    7.194932] cx88[0]/2: cx2388x 8802 Driver Manager
+[    7.194944] cx88-mpeg driver manager 0000:04:05.2: PCI INT A -> GSI
+20 (level, low) -> IRQ 20
+[    7.194953] cx88[0]/2: found at 0000:04:05.2, rev: 5, irq: 20,
+latency: 64, mmio: 0xfb000000
+[    7.194957] IRQ 20/cx88[0]: IRQF_DISABLED is not guaranteed on shared
+IRQs
+[    7.196646] cx88_audio 0000:04:05.1: PCI INT A -> GSI 20 (level, low)
+-> IRQ 20
+[    7.196656] IRQ 20/cx88[0]: IRQF_DISABLED is not guaranteed on shared
+IRQs
+[    7.196672] cx88[0]/1: CX88x/0: ALSA support for cx2388x boards
+[    7.304618] HDA Intel 0000:00:14.2: PCI INT A -> GSI 16 (level, low)
+-> IRQ 16
+[    7.432244] hda_codec: Unknown model for ALC888, trying auto-probe
+from BIOS...
+[    7.432438] input: HDA Digital PCBeep as
+/devices/pci0000:00/0000:00:14.2/input/input7
+[    7.436550] HDA Intel 0000:01:05.1: PCI INT B -> GSI 19 (level, low)
+-> IRQ 19
+[    7.436588] HDA Intel 0000:01:05.1: setting latency timer to 64
+[    7.484210] cx88/2: cx2388x dvb driver version 0.0.7 loaded
+[    7.484213] cx88/2: registering cx8802 driver, type: dvb access: shared
+[    7.484216] cx88[0]/2: subsystem: 0070:6902, board: Hauppauge
+WinTV-HVR4000 DVB-S/S2/T/Hybrid [card=68]
+[    7.484218] cx88[0]/2: cx2388x based DVB/ATSC card
+[    7.484220] cx8802_alloc_frontends() allocating 2 frontend(s)
+[    8.195059] cx88[0]/2: dvb_register failed (err = -22)
+[    8.195062] cx88[0]/2: cx8802 probe failed, err = -22
+
+As you can see, it reports a problem but I don't know how to fix it.
+
+Also, I strangely have no /dev/dvb/adapter0 in my system.
+
+PLEASE HELP!
+
+Many thanks,
+
+Alan
