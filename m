@@ -1,125 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:51081 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750919AbZKZToT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 14:44:19 -0500
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
- Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-From: Andy Walls <awalls@radix.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Krzysztof Halasa <khc@pm.waw.pl>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, superm1@ubuntu.com
-In-Reply-To: <4B0E8B32.3020509@redhat.com>
-References: <BDRae8rZjFB@christoph>
-	 <1259024037.3871.36.camel@palomino.walls.org>
-	 <m3k4xe7dtz.fsf@intrepid.localdomain>  <4B0E8B32.3020509@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 26 Nov 2009 14:43:34 -0500
-Message-Id: <1259264614.1781.47.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from acorn.exetel.com.au ([220.233.0.21]:59157 "EHLO
+	acorn.exetel.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752539AbZKZLWL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Nov 2009 06:22:11 -0500
+Message-ID: <56069.115.70.135.213.1259234530.squirrel@webmail.exetel.com.au>
+In-Reply-To: <702870ef0911260137r35f1784exc27498d0db3769c2@mail.gmail.com>
+References: <33305.64.213.30.2.1259216241.squirrel@webmail.exetel.com.au>
+    <50104.115.70.135.213.1259224041.squirrel@webmail.exetel.com.au>
+    <702870ef0911260137r35f1784exc27498d0db3769c2@mail.gmail.com>
+Date: Thu, 26 Nov 2009 22:22:10 +1100 (EST)
+Subject: Re: DViCO FusionHDTV DVB-T Dual Digital 4 (rev 1) tuning regression
+From: "Robert Lowery" <rglowery@exemail.com.au>
+To: "Vincent McIntyre" <vincent.mcintyre@gmail.com>
+Cc: mchehab@redhat.com, terrywu2009@gmail.com, awalls@radix.net,
+	linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: multipart/mixed;boundary="----=_20091126222210_53023"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2009-11-26 at 12:05 -0200, Mauro Carvalho Chehab wrote:
-> Krzysztof Halasa wrote:
-> > Andy Walls <awalls@radix.net> writes:
-> > 
-> >> I would also note that RC-6 Mode 6A, used by most MCE remotes, was
-> >> developed by Philips, but Microsoft has some sort of licensing interest
-> >> in it and it is almost surely encumbered somwhow:
-> > 
-> > I don't know about legal problems in some countries but from the
-> > technical POV handling the protocol in the kernel is more efficient
-> > or (/and) simpler.
-> 
-> A software licensing from Microsoft won't apply to Linux kernel, so I'm
-> assuming that you're referring to some patent that they could be filled
-> about RC6 mode 6A.
-> 
-> I don't know if is there any US patent pending about it (AFAIK, only US
-> accepts software patents), but there are some prior-art for IR key
-> decoding. So, I don't see what "innovation" RC6 would be adding. 
-> If it is some new way to transmit waves, the patent issues
-> aren't related to software, and the device manufacturer had already handled
-> it when they made their devices.
+------=_20091126222210_53023
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
+
+> Hi Rob
 >
->  If it is just a new keytable, this issue 
-> could be easily solved by loading the keytable via userspace.
-> 
-> Also, assuming that you can use the driver only with a hardware that comes
-> with a licensed software, the user has already the license for using it.
-> 
-> Do you have any details on what patents they are claiming?
+> would you mind very much posting a patch that implements these two
+> reversions,
+> so I can try it easily? My hg-fu is somewhat lacking...
+> I have the same hardware and noticed what I think is the same issue,
+> just with Channel 9.
+> Another manifestation is huge BER and nonzero REC in the output from
+> 'tzap'.
+>
+> Kind regards,
+> Vince
+revert patch attached
 
-The US Philips RC-6 patent is US Patent 5,877,702
+>
+>
+> On 11/26/09, Robert Lowery <rglowery@exemail.com.au> wrote:
+>>> Hi,
+>>>
+>>> After fixing up a hang on the DViCO FusionHDTV DVB-T Dual Digital 4
+>>> (rev
+>>> 1) recently via http://linuxtv.org/hg/v4l-dvb/rev/1c11cb54f24d
+>>> everything
+>>> appeared to be ok, but I have now noticed certain channels in Australia
+>>> are showing corruption which manifest themselves as blockiness and
+>>> screeching audio.
+>>>
+>>> I have traced this issue down to
+>>> http://linuxtv.org/hg/v4l-dvb/rev/e6a8672631a0 (Fix offset frequencies
+>>> for
+>>> DVB @ 6MHz)
+>> Actually, in addition to the above changeset, I also had to revert
+>> http://linuxtv.org/hg/v4l-dvb/rev/966ce12c444d (Fix 7 MHz DVB-T)  to get
+>> things going.  Seems this one might have been an attempt to fix an issue
+>> introduced by the latter, but for me both must be reverted.
+>>
+>> -Rob
+>>
+>>>
+>>> In this change, the offset used by my card has been changed from
+>>> 2750000
+>>> to 2250000.
+>>>
+>>> The old code which works used to do something like
+>>> offset = 2750000
+>>> if (((priv->cur_fw.type & DTV7) &&
+>>>     (priv->cur_fw.scode_table & (ZARLINK456 | DIBCOM52))) ||
+>>>     ((priv->cur_fw.type & DTV78) && freq < 470000000))
+>>>     offset -= 500000;
+>>>
+>>> In Australia, (type & DTV7) == true _BUT_ scode_table == 1<<29 ==
+>>> SCODE,
+>>> so the subtraction is not done.
+>>>
+>>> The new code which does not work does
+>>> if (priv->cur_fw.type & DTV7)
+>>>     offset = 2250000;
+>>> which appears to be off by 500khz causing the tuning regression for me.
+>>>
+>>> Could any one please advice why this check against scode_table &
+>>> (ZARLINK456 | DIBCOM52) was removed?
+>>>
+>>> Thanks
+>>>
+>>> -Rob
+>>>
+>>>
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>>> in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>> in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-http://www.google.com/patents?vid=USPAT5877702
+------=_20091126222210_53023
+Content-Type: application/octet-stream; name="revert.diff"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="revert.diff"
 
-Click on download PDF to get a copy of the whole patent.
-
-I am not a lawyer.  Philips claims' all appear to tie to a transmitter
-or receiver as part of a system, but most of the claims are about
-information and bit positions and lengths.
-
-
-I don't know for sure what Microsoft claims to be licensing.  I think it
-is the protocol itself:
-
-http://www.microsoft.com/presspass/Press/2002/Apr02/04-16FreestylePhilipsPR.mspx
-
-"Under the terms of the agreement, Microsoft and Philips will license to
-OEMs an IR protocol based on Philips proprietary RC6 IR technology. The
-patented and globally adopted solution minimizes interference from other
-remote-control devices in the household. Use of this established
-protocol will help ensure uniform development of Windows infrared
-remote-control products, which include infrared remote-control units and
-remote-control receivers..."
-
-http://download.microsoft.com/download/9/8/f/98f3fe47-dfc3-4e74-92a3-088782200fe7/TWEN05007_WinHEC05.ppt
-
-See Slide 5, which has the bullet: "How to License RC6"
-
-Since the content of the information field in RC-6 Mode 6A is left up to
-OEMs, I would not be surprised by bogus "innovations" in OEM patents
-about RC-6 Mode 6A contents.  I would not be at all surprised by
-something like "a bit to indicate a toggled remote key press in the
-information field" since RC-6's T bits for mode 6 indicate Mode 6A or
-Mode 6B and not toggles.
-
-
-IMO, given
-
-a. the dearth of public information about RC-6, indicating someone
-thinks it's their trade secret or intellectual property
-
-b. Microsoft claiming to license something related to the MCE remote
-protocols (which are obviously RC-6 Mode 6A),
-
-c. my inability to draw a "clear, bright line" that RC-6 Mode 6A
-encoding and decoding, as needed by MCE remotes, implemented in software
-doesn't violate anyone's government granted rights to exclusivity.
-
-I think it's much better to implement software RC-6 Mode 6A encoding and
-decoding in user space, doing only the minimum needed to get the
-hardware setup and going in the kernel.  
-
-Encoding/decoding of RC-6 by microcontrollers with firmware doesn't
-worry me. 
-
-
-Maybe I'm being too conservative here, but I have a personal interest in
-keeping Linux free and unencumbered even in the US which, I cannot deny,
-has a patent system that is screwed up.
-
-Regards,
-Andy
-
-> Cheers,
-> Mauro.
-
+ZGlmZiAtciAzMmIyYTE4NzU3NTIgbGludXgvZHJpdmVycy9tZWRpYS9jb21tb24vdHVuZXJzL3R1
+bmVyLXhjMjAyOC5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvY29tbW9uL3R1bmVycy90dW5l
+ci14YzIwMjguYwlGcmkgTm92IDIwIDEyOjQ3OjQwIDIwMDkgKzAxMDAKKysrIGIvbGludXgvZHJp
+dmVycy9tZWRpYS9jb21tb24vdHVuZXJzL3R1bmVyLXhjMjAyOC5jCVRodSBOb3YgMjYgMjI6MTk6
+MjQgMjAwOSArMTEwMApAQCAtOTM0LDI5ICs5MzQsMjMgQEAKIAkgKiB0aGF0IHhjMjAyOCB3aWxs
+IGJlIGluIGEgc2FmZSBzdGF0ZS4KIAkgKiBNYXliZSB0aGlzIG1pZ2h0IGFsc28gYmUgbmVlZGVk
+IGZvciBEVFYuCiAJICovCi0JaWYgKG5ld19tb2RlID09IFRfQU5BTE9HX1RWKQorCWlmIChuZXdf
+bW9kZSA9PSBUX0FOQUxPR19UVikgewogCQlyYyA9IHNlbmRfc2VxKHByaXYsIHsweDAwLCAweDAw
+fSk7Ci0KLQkvKgotCSAqIERpZ2l0YWwgbW9kZXMgcmVxdWlyZSBhbiBvZmZzZXQgdG8gYWRqdXN0
+IHRvIHRoZQotCSAqIHByb3BlciBmcmVxdWVuY3kuCi0JICogQW5hbG9nIG1vZGVzIHJlcXVpcmUg
+b2Zmc2V0ID0gMAotCSAqLwotCWlmIChuZXdfbW9kZSA9PSBUX0RJR0lUQUxfVFYpIHsKLQkJLyog
+U2V0cyB0aGUgb2Zmc2V0IGFjY29yZGluZyB3aXRoIGZpcm13YXJlICovCi0JCWlmIChwcml2LT5j
+dXJfZncudHlwZSAmIERUVjYpCi0JCQlvZmZzZXQgPSAxNzUwMDAwOwotCQllbHNlIGlmIChwcml2
+LT5jdXJfZncudHlwZSAmIERUVjcpCi0JCQlvZmZzZXQgPSAyMjUwMDAwOwotCQllbHNlCS8qIERU
+Vjggb3IgRFRWNzggKi8KLQkJCW9mZnNldCA9IDI3NTAwMDA7Ci0KKwl9IGVsc2UgaWYgKHByaXYt
+PmN1cl9mdy50eXBlICYgQVRTQykgeworCQlvZmZzZXQgPSAxNzUwMDAwOworCX0gZWxzZSB7CisJ
+CW9mZnNldCA9IDI3NTAwMDA7CisJCiAJCS8qCi0JCSAqIFdlIG11c3QgYWRqdXN0IHRoZSBvZmZz
+ZXQgYnkgNTAwa0h6ICB3aGVuCi0JCSAqIHR1bmluZyBhIDdNSHogVkhGIGNoYW5uZWwgd2l0aCBE
+VFY3OCBmaXJtd2FyZQotCQkgKiAodXNlZCBpbiBBdXN0cmFsaWEsIEl0YWx5IGFuZCBHZXJtYW55
+KQorCQkgKiBXZSBtdXN0IGFkanVzdCB0aGUgb2Zmc2V0IGJ5IDUwMGtIeiBpbiB0d28gY2FzZXMg
+aW4gb3JkZXIKKwkJICogdG8gY29ycmVjdGx5IGNlbnRlciB0aGUgSUYgb3V0cHV0OgorCQkgKiAx
+KSBXaGVuIHRoZSBaQVJMSU5LNDU2IG9yIERJQkNPTTUyIHRhYmxlcyB3ZXJlIGV4cGxpY2l0bHkK
+KwkJICogICAgc2VsZWN0ZWQgYW5kIGEgN01IeiBjaGFubmVsIGlzIHR1bmVkOworCQkgKiAyKSBX
+aGVuIHR1bmluZyBhIFZIRiBjaGFubmVsIHdpdGggRFRWNzggZmlybXdhcmUuCiAJCSAqLwotCQlp
+ZiAoKHByaXYtPmN1cl9mdy50eXBlICYgRFRWNzgpICYmIGZyZXEgPCA0NzAwMDAwMDApCisJCWlm
+ICgoKHByaXYtPmN1cl9mdy50eXBlICYgRFRWNykgJiYKKwkJICAgICAocHJpdi0+Y3VyX2Z3LnNj
+b2RlX3RhYmxlICYgKFpBUkxJTks0NTYgfCBESUJDT001MikpKSB8fAorCQkgICAgKChwcml2LT5j
+dXJfZncudHlwZSAmIERUVjc4KSAmJiBmcmVxIDwgNDcwMDAwMDAwKSkKIAkJCW9mZnNldCAtPSA1
+MDAwMDA7CiAJfQogCkBAIC0xMTE0LDE5ICsxMTA4LDggQEAKIAl9CiAKIAkvKiBBbGwgUy1jb2Rl
+IHRhYmxlcyBuZWVkIGEgMjAwa0h6IHNoaWZ0ICovCi0JaWYgKHByaXYtPmN0cmwuZGVtb2QpIHsK
+KwlpZiAocHJpdi0+Y3RybC5kZW1vZCkKIAkJZGVtb2QgPSBwcml2LT5jdHJsLmRlbW9kICsgMjAw
+OwotCQkvKgotCQkgKiBUaGUgRFRWNyBTLWNvZGUgdGFibGUgbmVlZHMgYSA3MDAga0h6IHNoaWZ0
+LgotCQkgKiBUaGFua3MgdG8gVGVycnkgV3UgPHRlcnJ5d3UyMDA5QGdtYWlsLmNvbT4gZm9yIHJl
+cG9ydGluZyB0aGlzCi0JCSAqCi0JCSAqIERUVjcgaXMgb25seSB1c2VkIGluIEF1c3RyYWxpYS4g
+IEdlcm1hbnkgb3IgSXRhbHkgbWF5IGFsc28KLQkJICogdXNlIHRoaXMgZmlybXdhcmUgYWZ0ZXIg
+aW5pdGlhbGl6YXRpb24sIGJ1dCBhIHR1bmUgdG8gYSBVSEYKLQkJICogY2hhbm5lbCBzaG91bGQg
+dGhlbiBjYXVzZSBEVFY3OCB0byBiZSB1c2VkLgotCQkgKi8KLQkJaWYgKHR5cGUgJiBEVFY3KQot
+CQkJZGVtb2QgKz0gNTAwOwotCX0KIAogCXJldHVybiBnZW5lcmljX3NldF9mcmVxKGZlLCBwLT5m
+cmVxdWVuY3ksCiAJCQkJVF9ESUdJVEFMX1RWLCB0eXBlLCAwLCBkZW1vZCk7Cg==
+------=_20091126222210_53023--
 
 
