@@ -1,249 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.navvo.net ([74.208.67.6]:37372 "EHLO mail.navvo.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759591AbZKYTiz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2009 14:38:55 -0500
-From: santiago.nunez@ridgerun.com
-To: davinci-linux-open-source@linux.davincidsp.com
-Cc: linux-media@vger.kernel.org, nsnehaprabha@ti.com,
-	m-karicheri2@ti.com, diego.dompe@ridgerun.com,
-	todd.fischer@ridgerun.com, mgrosen@ti.com,
-	Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-Date: Wed, 25 Nov 2009 13:39:08 -0600
-Message-Id: <1259177948-14878-1-git-send-email-santiago.nunez@ridgerun.com>
-Subject: [PATCH 2/4 v8] Definitions for TVP7002 in DM365
+Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:37537
+	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752715AbZKZGQA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Nov 2009 01:16:00 -0500
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was: Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+Mime-Version: 1.0 (Apple Message framework v1077)
+Content-Type: text/plain; charset=us-ascii
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <20091126053109.GE23244@core.coreip.homeip.net>
+Date: Thu, 26 Nov 2009 01:16:01 -0500
+Cc: Krzysztof Halasa <khc@pm.waw.pl>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@redhat.com>, linux-kernel@vger.kernel.org,
+	Mario Limonciello <superm1@ubuntu.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Janne Grunau <j@jannau.net>,
+	Christoph Bartelmus <lirc@bartelmus.de>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <A910E742-51B5-45E0-AD80-B9AE0728D9FB@wilsonet.com>
+References: <200910200956.33391.jarod@redhat.com> <200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com> <4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain> <20091123173726.GE17813@core.coreip.homeip.net> <4B0B6321.3050001@wilsonet.com> <20091126053109.GE23244@core.coreip.homeip.net>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+On Nov 26, 2009, at 12:31 AM, Dmitry Torokhov wrote:
 
-This patch provides the required definitions for the TVP7002 driver
-in DM365.
+> On Mon, Nov 23, 2009 at 11:37:53PM -0500, Jarod Wilson wrote:
+>> On 11/23/2009 12:37 PM, Dmitry Torokhov wrote:
+>>> On Mon, Nov 23, 2009 at 03:14:56PM +0100, Krzysztof Halasa wrote:
+>>>> Mauro Carvalho Chehab<mchehab@redhat.com>  writes:
+>>>> 
+>>>>> Event input has the advantage that the keystrokes will provide an unique
+>>>>> representation that is independent of the device.
+>>>> 
+>>>> This can hardly work as the only means, the remotes have different keys,
+>>>> the user almost always has to provide customized key<>function mapping.
+>>>> 
+>>> 
+>>> Is it true? I would expect the remotes to have most of the keys to have
+>>> well-defined meanings (unless it is one of the programmable remotes)...
+>> 
+>> Its the cases like programmable universal remotes that really throw  
+>> things for a loop. That, and people wanting to use random remote X that  
+>> came with the amp or tv or set top box, with IR receiver Y.
+> 
+> Right, but still the keys usually do have the well-defined meaning,
 
-Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
----
- drivers/media/video/tvp7002_reg.h |  150 +++++++++++++++++++++++++++++++++++++
- include/media/tvp7002.h           |   54 +++++++++++++
- 2 files changed, 204 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/tvp7002_reg.h
- create mode 100644 include/media/tvp7002.h
+Except when they don't. I have two very similar remotes, one that was bundled with a system from CaptiveWorks, and one that was bundled with an Antec Veris IR/LCD (SoundGraph iMON rebrand). Outside of the Antec remote having a mouse pad instead of up/down/left/right/enter, they have an identical layout, and the keys in the same locations on the remotes send the same IR signal. But the button names vary a LOT between the two. So on the DVD key on the Antec and the MUTE key on the CW send the same signal. Same with Audio vs. Eject, TV vs. History, etc. Moral of the story is that not all IR protocols spell things out particularly well for what a given code should actually mean.
 
-diff --git a/drivers/media/video/tvp7002_reg.h b/drivers/media/video/tvp7002_reg.h
-new file mode 100644
-index 0000000..0e34ca9
---- /dev/null
-+++ b/drivers/media/video/tvp7002_reg.h
-@@ -0,0 +1,150 @@
-+/* Texas Instruments Triple 8-/10-BIT 165-/110-MSPS Video and Graphics
-+ * Digitizer with Horizontal PLL registers
-+ *
-+ * Copyright (C) 2009 Texas Instruments Inc
-+ * Author: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-+ *
-+ * This code is partially based upon the TVP5150 driver
-+ * written by Mauro Carvalho Chehab (mchehab@infradead.org),
-+ * the TVP514x driver written by Vaibhav Hiremath <hvaibhav@ti.com>
-+ * and the TVP7002 driver in the TI LSP 2.10.00.14
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+/* Naming conventions
-+ * ------------------
-+ *
-+ * FDBK:  Feedback
-+ * DIV:   Divider
-+ * CTL:   Control
-+ * SEL:   Select
-+ * IN:    Input
-+ * OUT:   Output
-+ * R:     Red
-+ * G:     Green
-+ * B:     Blue
-+ * OFF:   Offset
-+ * THRS:  Threshold
-+ * DGTL:  Digital
-+ * LVL:   Level
-+ * PWR:   Power
-+ * MVIS:  Macrovision
-+ * W:     Width
-+ * H:     Height
-+ * ALGN:  Alignment
-+ * CLK:   Clocks
-+ * TOL:   Tolerance
-+ * BWTH:  Bandwidth
-+ * COEF:  Coefficient
-+ * STAT:  Status
-+ * AUTO:  Automatic
-+ * FLD:   Field
-+ * L:	  Line
-+ */
-+
-+#define TVP7002_CHIP_REV		0x00
-+#define TVP7002_HPLL_FDBK_DIV_MSBS	0x01
-+#define TVP7002_HPLL_FDBK_DIV_LSBS	0x02
-+#define TVP7002_HPLL_CRTL		0x03
-+#define TVP7002_HPLL_PHASE_SEL		0x04
-+#define TVP7002_CLAMP_START		0x05
-+#define TVP7002_CLAMP_W			0x06
-+#define TVP7002_HSYNC_OUT_W		0x07
-+#define TVP7002_B_FINE_GAIN		0x08
-+#define TVP7002_G_FINE_GAIN		0x09
-+#define TVP7002_R_FINE_GAIN		0x0a
-+#define TVP7002_B_FINE_OFF_MSBS		0x0b
-+#define TVP7002_G_FINE_OFF_MSBS         0x0c
-+#define TVP7002_R_FINE_OFF_MSBS         0x0d
-+#define TVP7002_SYNC_CTL_1		0x0e
-+#define TVP7002_HPLL_AND_CLAMP_CTL	0x0f
-+#define TVP7002_SYNC_ON_G_THRS		0x10
-+#define TVP7002_SYNC_SEPARATOR_THRS	0x11
-+#define TVP7002_HPLL_PRE_COAST		0x12
-+#define TVP7002_HPLL_POST_COAST		0x13
-+#define TVP7002_SYNC_DETECT_STAT	0x14
-+#define TVP7002_OUT_FORMATTER		0x15
-+#define TVP7002_MISC_CTL_1		0x16
-+#define TVP7002_MISC_CTL_2              0x17
-+#define TVP7002_MISC_CTL_3              0x18
-+#define TVP7002_IN_MUX_SEL_1		0x19
-+#define TVP7002_IN_MUX_SEL_2            0x1a
-+#define TVP7002_B_AND_G_COARSE_GAIN	0x1b
-+#define TVP7002_R_COARSE_GAIN		0x1c
-+#define TVP7002_FINE_OFF_LSBS		0x1d
-+#define TVP7002_B_COARSE_OFF		0x1e
-+#define TVP7002_G_COARSE_OFF            0x1f
-+#define TVP7002_R_COARSE_OFF            0x20
-+#define TVP7002_HSOUT_OUT_START		0x21
-+#define TVP7002_MISC_CTL_4		0x22
-+#define TVP7002_B_DGTL_ALC_OUT_LSBS	0x23
-+#define TVP7002_G_DGTL_ALC_OUT_LSBS     0x24
-+#define TVP7002_R_DGTL_ALC_OUT_LSBS     0x25
-+#define TVP7002_AUTO_LVL_CTL_ENABLE	0x26
-+#define TVP7002_DGTL_ALC_OUT_MSBS	0x27
-+#define TVP7002_AUTO_LVL_CTL_FILTER	0x28
-+/* Reserved 0x29*/
-+#define TVP7002_FINE_CLAMP_CTL		0x2a
-+#define TVP7002_PWR_CTL			0x2b
-+#define TVP7002_ADC_SETUP		0x2c
-+#define TVP7002_COARSE_CLAMP_CTL	0x2d
-+#define TVP7002_SOG_CLAMP		0x2e
-+#define TVP7002_RGB_COARSE_CLAMP_CTL	0x2f
-+#define TVP7002_SOG_COARSE_CLAMP_CTL	0x30
-+#define TVP7002_ALC_PLACEMENT		0x31
-+/* Reserved 0x32 */
-+/* Reserved 0x33 */
-+#define TVP7002_MVIS_STRIPPER_W		0x34
-+#define TVP7002_VSYNC_ALGN		0x35
-+#define TVP7002_SYNC_BYPASS		0x36
-+#define TVP7002_L_FRAME_STAT_LSBS	0x37
-+#define TVP7002_L_FRAME_STAT_MSBS	0x38
-+#define TVP7002_CLK_L_STAT_LSBS		0x39
-+#define TVP7002_CLK_L_STAT_MSBS      	0x3a
-+#define TVP7002_HSYNC_W			0x3b
-+#define TVP7002_VSYNC_W                 0x3c
-+#define TVP7002_L_LENGTH_TOL 		0x3d
-+/* Reserved 0x3e */
-+#define TVP7002_VIDEO_BWTH_CTL		0x3f
-+#define TVP7002_AVID_START_PIXEL_LSBS	0x40
-+#define TVP7002_AVID_START_PIXEL_MSBS   0x41
-+#define TVP7002_AVID_STOP_PIXEL_LSBS  	0x42
-+#define TVP7002_AVID_STOP_PIXEL_MSBS    0x43
-+#define TVP7002_VBLK_F_0_START_L_OFF	0x44
-+#define TVP7002_VBLK_F_1_START_L_OFF    0x45
-+#define TVP7002_VBLK_F_0_DURATION	0x46
-+#define TVP7002_VBLK_F_1_DURATION       0x47
-+#define TVP7002_FBIT_F_0_START_L_OFF	0x48
-+#define TVP7002_FBIT_F_1_START_L_OFF    0x49
-+#define TVP7002_YUV_Y_G_COEF_LSBS	0x4a
-+#define TVP7002_YUV_Y_G_COEF_MSBS       0x4b
-+#define TVP7002_YUV_Y_B_COEF_LSBS       0x4c
-+#define TVP7002_YUV_Y_B_COEF_MSBS       0x4d
-+#define TVP7002_YUV_Y_R_COEF_LSBS       0x4e
-+#define TVP7002_YUV_Y_R_COEF_MSBS       0x4f
-+#define TVP7002_YUV_U_G_COEF_LSBS       0x50
-+#define TVP7002_YUV_U_G_COEF_MSBS       0x51
-+#define TVP7002_YUV_U_B_COEF_LSBS       0x52
-+#define TVP7002_YUV_U_B_COEF_MSBS       0x53
-+#define TVP7002_YUV_U_R_COEF_LSBS       0x54
-+#define TVP7002_YUV_U_R_COEF_MSBS       0x55
-+#define TVP7002_YUV_V_G_COEF_LSBS       0x56
-+#define TVP7002_YUV_V_G_COEF_MSBS       0x57
-+#define TVP7002_YUV_V_B_COEF_LSBS       0x58
-+#define TVP7002_YUV_V_B_COEF_MSBS       0x59
-+#define TVP7002_YUV_V_R_COEF_LSBS       0x5a
-+#define TVP7002_YUV_V_R_COEF_MSBS       0x5b
-+
-diff --git a/include/media/tvp7002.h b/include/media/tvp7002.h
-new file mode 100644
-index 0000000..220e833
---- /dev/null
-+++ b/include/media/tvp7002.h
-@@ -0,0 +1,54 @@
-+/* Texas Instruments Triple 8-/10-BIT 165-/110-MSPS Video and Graphics
-+ * Digitizer with Horizontal PLL registers
-+ *
-+ * Copyright (C) 2009 Texas Instruments Inc
-+ * Author: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-+ *
-+ * This code is partially based upon the TVP5150 driver
-+ * written by Mauro Carvalho Chehab (mchehab@infradead.org),
-+ * the TVP514x driver written by Vaibhav Hiremath <hvaibhav@ti.com>
-+ * and the TVP7002 driver in the TI LSP 2.10.00.14
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+#ifndef _TVP7002_H_
-+#define _TVP7002_H_
-+
-+/* Platform-dependent data
-+ *
-+ * clk_polarity:
-+ * 			0 -> data clocked out on rising edge of DATACLK signal
-+ * 			1 -> data clocked out on falling edge of DATACLK signal
-+ * hs_polarity:
-+ * 			0 -> active low HSYNC output
-+ * 			1 -> active high HSYNC output
-+ * sog_polarity:
-+ * 			0 -> normal operation
-+ * 			1 -> operation with polarity inverted
-+ * vs_polarity:
-+ * 			0 -> active low VSYNC output
-+ * 			1 -> active high VSYNC output
-+ * fid_polariry:
-+ * 			0 -> even field ID output
-+ * 			1 -> odd field ID output
-+ */
-+struct tvp7002_config {
-+	u8 clk_polarity;
-+	u8 hs_polarity;
-+	u8 vs_polarity;
-+	u8 fid_polarity;
-+	u8 sog_polarity;
-+};
-+#endif
+> teh
+> issue is in mapping raw code to the appropriate keycode. This can be
+> done either by lirc config file (when lirc is used) or by some other
+> means.
+
+The desire to map a button press to multiple keystrokes isn't uncommon either, though I presume that's doable within the input layer context too.
+
+>> ...
+>>>> We need to handle more than one RC at a time, of course.
+>>>> 
+>>>>> So, the basic question that should be decided is: should we create a new
+>>>>> userspace API for raw IR pulse/space
+>>>> 
+>>>> I think so, doing the RCx proto handling in the kernel (but without
+>>>> RCx raw code<>  key mapping in this case due to multiple controllers
+>>>> etc.). Though it could probably use the input layer as well(?).
+>>>> 
+>>> 
+>>> I think if the data is used to do the primary protocol decoding then it
+>>> should be a separate interface that is processed by someone and then fed
+>>> into input subsystem (either in-kernel or through uinput).
+>>> 
+>>> Again, I would prefer to keep EV_KEY/KEY_* as the primary event type for
+>>> keys and buttons on all devices.
+>> 
+>> Current lircd actually inter-operates with the input subsystem quite  
+>> well for any and all supported remotes if their keys are mapped in their  
+>> respective lircd.conf file using standard input subsystem key names, and  
+>> the lirc daemon started with the --uinput param. lircd decodes the raw  
+>> IR, finds the mapping in its config, and happily passes it along to 
+>> uinput.
+> 
+> Right.
+> 
+> I guess the question is what is the interface we want the regular
+> userspace (i.e. not lircd) to use. Right now programs has to use 2
+> intercfaces - one lirc for dealing with remotes that are not using
+> the standard event interface and evdev for remotes using it as well
+> as the rest of the input devices.
+
+>From the mythtv perspective, using the input layer could yield a better out-of-the-box experience -- users don't have to set up an lircrc mapping that converts key names as specified in lircd.conf into commands (key strokes, actually) that mythtv understands. For example, a button labeled "Play" in lircd.conf has to be mapped to 'p' in ~/.lircrc for mythtv to do the right thing with it. If everything came through the input layer, be that natively or via lircd's uinput reinjection, there would be no need to do that extra mapping step, mythtv would simply handle a KEY_PLAY event. So at worst, one manual mapping to do -- IR signal to standard button name in lircd.conf -- instead of two. But the lircrc approach does also allow more flexibility, in that you can only have a certain app respond to a certain key, if so desired, and remap a key to a different function (KEY_RED, KEY_GREEN, KEY_BLUE, KEY_YELLOW -- what should their default functionality be? I know some users map a pair of those to mythtv's "skip to next commflag point" and "skip to prior commflag point").
+
+Unfortunately, mythtv currently doesn't handle KEY_PLAY, KEY_VOLUMEUP, etc., etc. at all right now, it operates purely on keys commonly found on a standard keyboard. Remedying that is on my TODO list for the next release, if I can carve out the time.
+
 -- 
-1.6.0.4
+Jarod Wilson
+jarod@wilsonet.com
+
+
 
