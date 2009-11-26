@@ -1,29 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from webmail.meta.ua ([194.0.131.19]:53991 "EHLO webmail.meta.ua"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753365AbZKZQSt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 11:18:49 -0500
-Message-ID: <50144.95.132.115.28.1259252334.metamail@webmail.meta.ua>
-In-Reply-To: <1258314943.3276.3.camel@pc07.localdom.local>
-References: <1258292980.3235.14.camel@pc07.localdom.local>
-    <58364.95.133.222.95.1258298152.metamail@webmail.meta.ua>
-    <1258314943.3276.3.camel@pc07.localdom.local>
-Date: Thu, 26 Nov 2009 18:18:54 +0200 (EEST)
-Subject: Re: Tuner drivers
-From: rulet1@meta.ua
-To: "hermann pitton" <hermann-pitton@arcor.de>
-Cc: rulet1@meta.ua, linux-media@vger.kernel.org
+Received: from moutng.kundenserver.de ([212.227.126.171]:54330 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751667AbZKZUoS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Nov 2009 15:44:18 -0500
+Date: 26 Nov 2009 21:37:00 +0100
+From: lirc@bartelmus.de (Christoph Bartelmus)
+To: mchehab@redhat.com
+Cc: dmitry.torokhov@gmail.com
+Cc: j@jannau.net
+Cc: jarod@redhat.com
+Cc: khc@pm.waw.pl
+Cc: linux-input@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Cc: superm1@ubuntu.com
+Message-ID: <BDcc3mfojFB@christoph>
+In-Reply-To: <4B0E765C.2080806@redhat.com>
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was: Re: [PATCH 1/3 v2] lirc core device driver infrastructure
 MIME-Version: 1.0
-Content-Type: text/plain;charset=windows-1251
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some channels in SECAM, some in PAL,
-but tvtime scanes channels very slow, it could take an houres... MythTV
-doesn't show anything.
+Hi Mauro,
 
+on 26 Nov 09 at 10:36, Mauro Carvalho Chehab wrote:
+[...]
+> lircd supports input layer interface. Yet, patch 3/3 exports both devices
+> that support only pulse/space raw mode and devices that generate scan
+> codes via the raw mode interface. It does it by generating artificial
+> pulse codes.
 
-______________________________
-Я пользуюсь почтой на Мете http://webmail.meta.ua
+Nonsense! There's no generation of artificial pulse codes in the drivers.
+The LIRC interface includes ways to pass decoded IR codes of arbitrary  
+length to userspace.
 
+Christoph
