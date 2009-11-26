@@ -1,40 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail02d.mail.t-online.hu ([84.2.42.7]:61885 "EHLO
-	mail02d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751291AbZKLGwv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Nov 2009 01:52:51 -0500
-Received: from [192.168.1.64] (dsl5402C46E.pool.t-online.hu [84.2.196.110])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mail02d.mail.t-online.hu (Postfix) with ESMTPSA id 720917590E2
-	for <linux-media@vger.kernel.org>; Thu, 12 Nov 2009 07:52:32 +0100 (CET)
-Message-ID: <4AFBB0C3.8000509@freemail.hu>
-Date: Thu, 12 Nov 2009 07:52:51 +0100
-From: =?ISO-8859-2?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+Received: from khc.piap.pl ([195.187.100.11]:40619 "EHLO khc.piap.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750919AbZKZV1E (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Nov 2009 16:27:04 -0500
+From: Krzysztof Halasa <khc@pm.waw.pl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Jarod Wilson <jarod@redhat.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	linux-kernel@vger.kernel.org,
+	Mario Limonciello <superm1@ubuntu.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Janne Grunau <j@jannau.net>,
+	Christoph Bartelmus <lirc@bartelmus.de>
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was: Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+References: <200910200956.33391.jarod@redhat.com>
+	<200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com>
+	<4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain>
+	<4B0AC65C.806@redhat.com> <m3zl6dq8ig.fsf@intrepid.localdomain>
+	<4B0E765C.2080806@redhat.com> <m3iqcxuotd.fsf@intrepid.localdomain>
+	<4B0ED238.6060306@redhat.com> <m3pr75rpqa.fsf@intrepid.localdomain>
+	<4B0EED7D.90204@redhat.com>
+Date: Thu, 26 Nov 2009 22:27:08 +0100
+In-Reply-To: <4B0EED7D.90204@redhat.com> (Mauro Carvalho Chehab's message of
+	"Thu, 26 Nov 2009 19:05:01 -0200")
+Message-ID: <m3ljhtrn83.fsf@intrepid.localdomain>
 MIME-Version: 1.0
-To: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] decode_tm6000: fix include path
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+Mauro Carvalho Chehab <mchehab@redhat.com> writes:
 
-The include path is changed from ../lib to ../lib4vl2util .
+> No. All the other API functions there work with 32 bits for scancodes.
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
-diff -r 60f784aa071d v4l2-apps/util/decode_tm6000.c
---- a/v4l2-apps/util/decode_tm6000.c	Wed Nov 11 18:28:53 2009 +0100
-+++ b/v4l2-apps/util/decode_tm6000.c	Thu Nov 12 07:49:43 2009 +0100
-@@ -16,7 +16,7 @@
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
--#include "../lib/v4l2_driver.h"
-+#include "../libv4l2util/v4l2_driver.h"
- #include <stdio.h>
- #include <string.h>
- #include <argp.h>
+We don't need them, do we? We need a new ioctl for changing key mappings
+anyway (a single ioctl for setting the whole table I think), and we can
+have arbitrary length of scan codes there.
+
+> (what's worse is that it is defined as "int" instead of "u32" - so the number
+> of bits is different on 32 and on 64 systems)
+
+Most (all?) 64-bit systems use 32-bit ints (and 64-bit longs).
+u32 and similar are for sure better.
+
+>> We signal both and hope it isn't self-destruct button.
+>> We can't fix it no matter how hard we try.
+>
+> We can fix. Just let the userspace select what protocol(s) is(are) enabled.
+
+Sure, I meant the situation when both protocols (and scan codes) where
+enabled and configured. If we don't use RCx in the mapping table, we
+don't pass anything to RCx routine. If we have RCx but don't have the
+scan code in question, we don't find the key in the table and thus we
+ignore it again.
+-- 
+Krzysztof Halasa
