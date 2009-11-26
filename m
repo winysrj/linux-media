@@ -1,51 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:52150 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751910AbZKSPKt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2009 10:10:49 -0500
-Date: Thu, 19 Nov 2009 16:11:05 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-cc: Kuninori Morimoto <morimoto.kuninori@renesas.com>,
-	Linux-V4L2 <linux-media@vger.kernel.org>
-Subject: RE: [PATCH] soc-camera: Add mt9t112 camera support
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE40155A51397@dlee06.ent.ti.com>
-Message-ID: <Pine.LNX.4.64.0911191607130.6767@axis700.grange>
-References: <uzl6ig9iy.wl%morimoto.kuninori@renesas.com>
- <A69FA2915331DC488A831521EAE36FE40155A51366@dlee06.ent.ti.com>
- <Pine.LNX.4.64.0911191546210.6767@axis700.grange>
- <A69FA2915331DC488A831521EAE36FE40155A51397@dlee06.ent.ti.com>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1115 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752881AbZKZWft (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Nov 2009 17:35:49 -0500
+Received: from tschai.localnet (cm-84.208.105.24.getinternet.no [84.208.105.24])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id nAQMZs78067740
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 26 Nov 2009 23:35:54 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: OK
+Date: Thu, 26 Nov 2009 23:36:03 +0100
+References: <200911262137.nAQLbCmW061365@smtp-vbr5.xs4all.nl>
+In-Reply-To: <200911262137.nAQLbCmW061365@smtp-vbr5.xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200911262336.03954.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 19 Nov 2009, Karicheri, Muralidharan wrote:
-
-> Guennadi,
+On Thursday 26 November 2009 22:37:12 Hans Verkuil wrote:
+> This message is generated daily by a cron job that builds v4l-dvb for
+> the kernels and architectures in the list below.
 > 
-> I am not sure what you mean by ATM sensor.
+> Results of the daily build of v4l-dvb:
+> 
+> date:        Thu Nov 26 20:48:58 CET 2009
+> path:        http://www.linuxtv.org/hg/v4l-dvb
+> changeset:   13527:b3695bd384cc
+> gcc version: gcc (GCC) 4.3.1
+> hardware:    x86_64
+> host os:     2.6.26
+> 
 
-ATM = "At the moment."
 
-> Is it not a
-> Aptina/Micron sensor giving Raw Bayer RGB or Yuv data?
+> sparse (linux-2.6.31): ERRORS
+> sparse (linux-2.6.32-rc8): ERRORS
+> 
+> Detailed results are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-I presume it is.
+Hi all,
 
-> Not sure what prevents it from interfacing with VPFE.
-> In otherwords, how is this different from mt9t031/mt9t001
-> in terms of hardware signals available to interface to
-> a SOC?
+I have enabled the sparse checker again in the daily build. Take a quick
+look at the log and check the sparse output against your driver code.
 
-It is not. It just has been developed for a host, using soc-camera. And so 
-you have to use soc-camera functionality, like query/set_bus_param, not 
-yet available in v4l2-subdev, to get this client driver to work with that 
-host driver.
+The 'bad constant expression' and 'cannot size expression' errors seem to be
+mostly bogus. But most of the others seem to warrant a closer look.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+I particularly liked this one:
+
+v4l/ir-functions.c:68:8: warning: memset with byte count of 0
+
+Someone should fix that one :-)
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
