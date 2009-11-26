@@ -1,187 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47117 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757092AbZKSQJm (ORCPT
+Received: from acorn.exetel.com.au ([220.233.0.21]:55671 "EHLO
+	acorn.exetel.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751286AbZKZGMr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2009 11:09:42 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH] Adding helper function to get dv preset description
-Date: Thu, 19 Nov 2009 11:09:47 -0500
-Message-Id: <1258646987-21515-1-git-send-email-m-karicheri2@ti.com>
+	Thu, 26 Nov 2009 01:12:47 -0500
+Message-ID: <31657.64.213.30.2.1259215966.squirrel@webmail.exetel.com.au>
+Date: Thu, 26 Nov 2009 17:12:46 +1100 (EST)
+Subject: DViCO FusionHDTV DVB-T Dual Digital 4 (rev 1) tuning regression
+From: "Robert Lowery" <rglowery@exemail.com.au>
+To: mchehab@redhat.com, terrywu2009@gmail.com, awalls@radix.net
+Cc: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+Hi,
 
-This patch add a helper function to get description of a digital
-video preset added by the video timing API. Hope this will be
-usefull for drivers implementing the above API.
+After fixing up a hang on the DViCO FusionHDTV DVB-T Dual Digital 4 (rev
+1) recently via http://linuxtv.org/hg/v4l-dvb/rev/1c11cb54f24d everything
+appeared to be ok, but I have now noticed certain channels in Australia
+are showing corruption which manifest themselves as blockiness and
+screeching audio.
 
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-NOTE: depends on the patch that adds video timing API.
----
-Applies to V4L-DVB linux-next branch
+I have traced this issue down to
+http://linuxtv.org/hg/v4l-dvb/rev/e6a8672631a0 (Fix offset frequencies for
+DVB @ 6MHz)
 
- drivers/media/video/v4l2-common.c |  135 +++++++++++++++++++++++++++++++++++++
- include/media/v4l2-common.h       |    1 +
- 2 files changed, 136 insertions(+), 0 deletions(-)
+In this change, the offset used by my card has been changed from 2750000
+to 2250000.
 
-diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
-index f5a93ae..245e727 100644
---- a/drivers/media/video/v4l2-common.c
-+++ b/drivers/media/video/v4l2-common.c
-@@ -1015,3 +1015,138 @@ void v4l_bound_align_image(u32 *w, unsigned int wmin, unsigned int wmax,
- 	}
- }
- EXPORT_SYMBOL_GPL(v4l_bound_align_image);
-+
-+/**
-+ * v4l_fill_dv_preset_info - fill description of a digital video preset
-+ * @preset - preset value
-+ * @info - pointer to struct v4l2_dv_enum_preset
-+ *
-+ * drivers can use this helper function to fill description of dv preset
-+ * in info.
-+ */
-+int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset *info)
-+{
-+	static const struct v4l2_dv_enum_preset dv_presets[] = {
-+		{
-+			.preset	= V4L2_DV_480P59_94,
-+			.name = "480p@59.94",
-+			.width = 720,
-+			.height = 480,
-+		},
-+		{
-+			.preset	= V4L2_DV_576P50,
-+			.name = "576p@50",
-+			.width = 720,
-+			.height = 576,
-+		},
-+		{
-+			.preset	= V4L2_DV_720P24,
-+			.name = "720p@24",
-+			.width = 1280,
-+			.height = 720,
-+		},
-+		{
-+			.preset	= V4L2_DV_720P25,
-+			.name = "720p@25",
-+			.width = 1280,
-+			.height = 720,
-+		},
-+		{
-+			.preset	= V4L2_DV_720P30,
-+			.name = "720p@30",
-+			.width = 1280,
-+			.height = 720,
-+		},
-+		{
-+			.preset	= V4L2_DV_720P50,
-+			.name = "720p@50",
-+			.width = 1280,
-+			.height = 720,
-+		},
-+		{
-+			.preset	= V4L2_DV_720P59_94,
-+			.name = "720p@59.94",
-+			.width = 1280,
-+			.height = 720,
-+		},
-+		{
-+			.preset	= V4L2_DV_720P60,
-+			.name = "720p@60",
-+			.width = 1280,
-+			.height = 720,
-+		},
-+		{
-+			.preset	= V4L2_DV_1080I29_97,
-+			.name = "1080i@29.97",
-+			.width = 1920,
-+			.height = 1080,
-+		},
-+		{
-+			.preset	= V4L2_DV_1080I30,
-+			.name = "1080i@30",
-+			.width = 1920,
-+			.height = 1080,
-+		},
-+		{
-+			.preset	= V4L2_DV_1080I25,
-+			.name = "1080i@25",
-+			.width = 1920,
-+			.height = 1080,
-+		},
-+		{
-+			.preset	= V4L2_DV_1080I50,
-+			.name = "1080i@50",
-+			.width = 1920,
-+			.height = 1080,
-+		},
-+		{
-+			.preset	= V4L2_DV_1080I60,
-+			.name = "1080i@60",
-+			.width = 1920,
-+			.height = 1080,
-+		},
-+		{
-+			.preset	= V4L2_DV_1080P24,
-+			.name = "1080p@24",
-+			.width = 1920,
-+			.height = 1080,
-+		},
-+		{
-+			.preset	= V4L2_DV_1080P25,
-+			.name = "1080p@25",
-+			.width = 1920,
-+			.height = 1080,
-+		},
-+		{
-+			.preset	= V4L2_DV_1080P30,
-+			.name = "1080p@30",
-+			.width = 1920,
-+			.height = 1080,
-+		},
-+		{
-+			.preset	= V4L2_DV_1080P50,
-+			.name = "1080p@50",
-+			.width = 1920,
-+			.height = 1080,
-+		},
-+		{
-+			.preset	= V4L2_DV_1080P60,
-+			.name = "1080p@60",
-+			.width = 1920,
-+			.height = 1080,
-+		},
-+	};
-+	int i;
-+
-+	if (info == NULL)
-+		return -EINVAL;
-+
-+	for (i = 0; i < ARRAY_SIZE(dv_presets); i++) {
-+		if (preset == dv_presets[i].preset) {
-+			memcpy(info, &dv_presets[i], sizeof(*info));
-+			return 0;
-+		}
-+	}
-+	return -EINVAL;
-+}
-+EXPORT_SYMBOL_GPL(v4l_fill_dv_preset_info);
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index 1c25b10..ddc040f 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -213,4 +213,5 @@ void v4l_bound_align_image(unsigned int *w, unsigned int wmin,
- 			   unsigned int hmax, unsigned int halign,
- 			   unsigned int salign);
- 
-+int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset *info);
- #endif /* V4L2_COMMON_H_ */
--- 
-1.6.0.4
+That is, the old code which works used to do something like
+offset = 2750000
+if (((priv->cur_fw.type & DTV7) &&
+    (priv->cur_fw.scode_table & (ZARLINK456 | DIBCOM52))) ||
+    ((priv->cur_fw.type & DTV78) && freq < 470000000))
+
+
 
