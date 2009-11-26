@@ -1,63 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay04.ispgateway.de ([80.67.31.38]:47889 "EHLO
-	smtprelay04.ispgateway.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751831AbZKFJdv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Nov 2009 04:33:51 -0500
-Date: Fri, 6 Nov 2009 10:30:37 +0100
-From: Lars Noschinski <lars@public.noschinski.de>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: linux-media@vger.kernel.org
-Subject: Re: pac7311
-Message-ID: <20091106093037.GA2956@lars.home.noschinski.de>
-References: <20091105233843.GA27459@lars.home.noschinski.de> <20091106083626.3fbe8428@tele>
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:61657 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751296AbZKZFle (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Nov 2009 00:41:34 -0500
+Date: Wed, 25 Nov 2009 21:41:35 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@redhat.com>, linux-kernel@vger.kernel.org,
+	Mario Limonciello <superm1@ubuntu.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Janne Grunau <j@jannau.net>,
+	Christoph Bartelmus <lirc@bartelmus.de>
+Subject: Re: IR raw input is not sutable for input system
+Message-ID: <20091126054135.GG23244@core.coreip.homeip.net>
+References: <200910200956.33391.jarod@redhat.com> <200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com> <4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain> <20091123173726.GE17813@core.coreip.homeip.net> <4B0B6321.3050001@wilsonet.com> <1259105571.28219.20.camel@maxim-laptop> <Pine.LNX.4.58.0911241918390.30284@shell2.speakeasy.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20091106083626.3fbe8428@tele>
+In-Reply-To: <Pine.LNX.4.58.0911241918390.30284@shell2.speakeasy.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
-
-* Jean-Francois Moine <moinejf@free.fr> [09-11-06 09:43]:
-> On Fri, 6 Nov 2009 00:38:43 +0100
-> Lars Noschinski <lars@public.noschinski.de> wrote:
+On Tue, Nov 24, 2009 at 07:32:42PM -0800, Trent Piepho wrote:
 > 
-> > I'm using a webcam which identifies itself as
-> > 
-> >     093a:2603 Pixart Imaging, Inc. PAC7312 Camera
-> > 
-> > and is sort-of supported by the gspca_pac7311 module. "sort-of"
-> > because the image alternates quickly between having a red tint or a
-> > green tint (using the gspca driver from
-> > http://linuxtv.org/hg/~jfrancois/gspca/ on a 2.6.31 kernel; occurs
-> > also with plain 2.6.31).
+> One thing that could be done, unless it has changed much since I wrote it
+> 10+ years ago, is to take the mark/space protocol the ir device uses and sent
+> that data to lircd via the input layer.  It would be less efficient, but
+> would avoid another kernel interface.  Of course the input layer to lircd
+> interface would be somewhat different than other input devices, so
+> it's not entirely correct to say another interface is avoided.
 
-It is Philipps SPC500NC.
+No, it would still be completely new interface that just happened to use
+input layer as transport. An ordinary program that would just want to
+react to play. pause, forward, etc buttons would have no idea what to do
+with the data so you'd still need a very specialized library to deal
+with the data.
 
-> > Is there something I can do to debug/fix this problem?
-
-First of all, 
-> 
-> First, which viewer do you run and does it use the v4l2 library?
-
-I'm using ekiga which uses libpt's v4l2 support. The libpt package
-depends on the libv4l package, which contains libv4l2, so it probably
-uses the v4l2 library.
-
-I could try another viewer for debugging, if this is of any use, but
-ekiga is what I care about.
-
-> Then, a bug in the pac7311 driver has been found yesterday. Did you
-> get/try this last one?
-
-Tip of my tree is 13436:f353aa2982f2, which seems to be the latest one.
-
-After rebooting my computer this morning, the cam worked for a few
-minutes without those color glitches. Then, after turning off the light
-in my room and turning it on again, the image started alternating
-quickly between light and dark.  I tried to get rid of it with
-re-plugging the device, but this soon led to the original problem
-(red/green tints). I tried another reboot, but no luck.
-
- - Lars.
+-- 
+Dmitry
