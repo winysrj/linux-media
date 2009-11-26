@@ -1,136 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:55191 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752943AbZK3Nn3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Nov 2009 08:43:29 -0500
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR  system?
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: Andy Walls <awalls@radix.net>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Ray Lee <ray-lk@madrabbit.org>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	Jon Smirl <jonsmirl@gmail.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
-In-Reply-To: <1259585852.3093.31.camel@palomino.walls.org>
-References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc>
-	 <9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>
-	 <m3aay6y2m1.fsf@intrepid.localdomain>
-	 <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>
-	 <1259469121.3125.28.camel@palomino.walls.org>
-	 <20091129124011.4d8a6080@lxorguk.ukuu.org.uk>
-	 <1259515703.3284.11.camel@maxim-laptop>
-	 <2c0942db0911290949p89ae64bjc3c7501c2de6930c@mail.gmail.com>
-	 <1259537732.5231.11.camel@palomino.walls.org> <4B13B2FA.4050600@redhat.com>
-	 <1259585852.3093.31.camel@palomino.walls.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 30 Nov 2009 15:43:28 +0200
-Message-ID: <1259588608.13049.16.camel@maxim-laptop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from khc.piap.pl ([195.187.100.11]:55394 "EHLO khc.piap.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751301AbZKZSSG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Nov 2009 13:18:06 -0500
+From: Krzysztof Halasa <khc@pm.waw.pl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Jarod Wilson <jarod@redhat.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	linux-kernel@vger.kernel.org,
+	Mario Limonciello <superm1@ubuntu.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Janne Grunau <j@jannau.net>,
+	Christoph Bartelmus <lirc@bartelmus.de>
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was: Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+References: <200910200956.33391.jarod@redhat.com>
+	<200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com>
+	<4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain>
+	<4B0AB60B.2030006@s5r6.in-berlin.de> <4B0AC8C9.6080504@redhat.com>
+	<m34oolrnwd.fsf@intrepid.localdomain> <4B0E71B6.4080808@redhat.com>
+Date: Thu, 26 Nov 2009 19:18:09 +0100
+In-Reply-To: <4B0E71B6.4080808@redhat.com> (Mauro Carvalho Chehab's message of
+	"Thu, 26 Nov 2009 10:16:54 -0200")
+Message-ID: <m3my29up3y.fsf@intrepid.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2009-11-30 at 07:57 -0500, Andy Walls wrote: 
-> On Mon, 2009-11-30 at 09:56 -0200, Mauro Carvalho Chehab wrote:
-> > Andy Walls wrote:
-> > > On Sun, 2009-11-29 at 09:49 -0800, Ray Lee wrote:
-> > >> On Sun, Nov 29, 2009 at 9:28 AM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
-> > >>> This has zero advantages besides good developer feeling that "My system
-> > >>> has one less daemon..."
-> > >> Surely it's clear that having an unnecessary daemon is introducing
-> > >> another point of failure?
-> > > 
-> > > A failure in a userspace IR daemon is worst case loss of IR
-> > > functionality.
-> > > 
-> > > A failure in kernel space can oops or panic the machine.
-> > 
-> > If IR is the only interface between the user and the system (like in a TV
-> > or a Set Top Box), both will give you the same practical result: the system
-> > will be broken, if you got a crash at the IR driver.
-> 
-> Yes, true.  I had forgotten about the embedded space.
-> 
-> Nonetheless I'd still rather debug a problem with a dead process in
-> userspace than an oops or panic (not that an end user cares) and avoid
-> the risk of filesystem corruption.
-> 
-> > Userspace is much more flexible.
-> > 
-> > Why? The flexibility about the same on both kernelspace and userspace,
-> > except for the boot time.
-> 
-> I suppose my best answer to that is question back to you: Why does udev
-> run in userspace versus a kernel thread?
-> 
-> 
-> My personal thoughts on why user space is more flexible:
-> 
-> 1. You have all of *NIX available to you to use as tools to achieve your
-> requirements.
-> 
-> 2. You are not constrained to use C.
-> 
-> 3. You can link in libraries with functions that are not available in
-> the kernel.  (udev has libudev IIRC to handle complexities)
-> 
-> 4. Reading a configuration file or other file from the filesystem is
-> trivial - file access from usespace is easy.
-> 
-> 5. You don't have to be concerned about the running context (am I
-> allowed to sleep here or not?).
+Mauro Carvalho Chehab <mchehab@redhat.com> writes:
 
+> Technically, it is not hard to port this solution to the other
+> drivers, but the issue is that we don't have all those IR's to know
+> what is the complete scancode that each key produces. So, the hardest
+> part is to find a way for doing it without causing regressions, and to
+> find a group of people that will help testing the new way.
 
-6. You can modify userspace driver easily to cope with all weird setups.
-Like you know that there are remotes that send whole packet of data that
-consist of many numbers that are also displayed on the LCD of the
-remote.
-Otherwise you will have to go through same fight for every minor thing
-you like to add to kernel...
-
-
-7. You don't have an ABI constraints, your userspace program can read a
-configuration file in any format you wish.
-I for example was thinking about putting all lirc config files into an
-sqllite database, and pulling them out when specific remote is detected.
-
-
-> 
-> 
-> 
-> 
-> 
-> 
-> > A kernelspace input device driver can start working since boot time.
-> > On the other hand, an userspace device driver will be available only 
-> > after mounting the filesystems and starting the deamons 
-> > (e. g. after running inittab). 
-> > 
-> > So, you cannot catch a key that would be affecting the boot 
-> > (for example to ask the kernel to run a different runlevel or entering
-> > on some administrative mode).
-> 
-> Right.  That's another requirement that makes sense, if we're talking
-> about systems that don't have any other keyboard handy to the user.
-> 
-> So are we optimizing for the embedded/STB and HTPC with no keyboard use
-> case, or the desktop or HTPC with a keyboard for maintencance?
-> 
-> 
-> Regards,
-> Andy
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+We don't want to "port it" to other drivers. We need to have a common
+module which does all RCx decoding. The individual drivers should be as
+simple as possible, something that I outlined in a previous mail.
+-- 
+Krzysztof Halasa
