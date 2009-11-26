@@ -1,78 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out114.alice.it ([85.37.17.114]:4027 "EHLO
-	smtp-out114.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750696AbZK0Ujp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Nov 2009 15:39:45 -0500
-Date: Fri, 27 Nov 2009 21:39:39 +0100
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: linux-media@vger.kernel.org
-Cc: Antonio Ospite <ospite@studenti.unina.it>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Eric Miao <eric.y.miao@gmail.com>,
-	linux-arm-kernel@lists.infradead.org,
-	Mike Rapoport <mike@compulab.co.il>,
-	Juergen Beisert <j.beisert@pengutronix.de>,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: Re: [PATCH 0/3] pxa_camera: remove init() callback
-Message-Id: <20091127213939.9bb235fa.ospite@studenti.unina.it>
-In-Reply-To: <1258495463-26029-1-git-send-email-ospite@studenti.unina.it>
-References: <1258495463-26029-1-git-send-email-ospite@studenti.unina.it>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Fri__27_Nov_2009_21_39_39_+0100_eFNtnEH.XsZrDv6."
+Received: from mail.navvo.net ([74.208.67.6]:39126 "EHLO mail.navvo.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752532AbZKZUDk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Nov 2009 15:03:40 -0500
+Message-ID: <4B0EDF2E.9040006@ridgerun.com>
+Date: Thu, 26 Nov 2009 14:03:58 -0600
+From: Santiago Nunez-Corrales <snunez@ridgerun.com>
+Reply-To: santiago.nunez@ridgerun.com
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: "davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"Narnakaje, Snehaprabha" <nsnehaprabha@ti.com>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"Grosen, Mark" <mgrosen@ti.com>,
+	Diego Dompe <diego.dompe@ridgerun.com>,
+	"todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: [PATCH 0/4 v9] Support for TVP7002 in DM365
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Signature=_Fri__27_Nov_2009_21_39_39_+0100_eFNtnEH.XsZrDv6.
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This series of patches provide support for the TVP7002 decoder in DM365.
 
-On Tue, 17 Nov 2009 23:04:20 +0100
-Antonio Ospite <ospite@studenti.unina.it> wrote:
+Support includes:
 
-> Hi,
->=20
-> this series removes the init() callback from pxa_camera_platform_data, and
-> fixes its users to do initialization statically at machine init time.
->=20
-[...]
-> Antonio Ospite (3):
->   em-x270: don't use pxa_camera init() callback
->   pcm990-baseboard: don't use pxa_camera init() callback
+* Inclusion of the chip in v4l2 definitions
+* Definition of TVP7002 specific data structures
+* Kconfig and Makefile support
 
-Eric, if Guennadi ACKs v2 for these two please apply them only, we are
-postponing the third one, hence you can discard it.
+This series corrects many issued pointed out by Snehaprabha Narnakaje,
+Muralidharan Karicheri, Vaibhav Hiremath and Hans Verkuil and solves
+testing problems.  Tested on DM365 TI EVM with resolutions 720p,
+1080i@60, 576P and 480P with video capture application and video
+output in 480P, 576P, 720P and 1080I. This driver depends upon
+board-dm365-evm.c and vpfe_capture.c to be ready for complete
+integration. Uses the new V4L2 DV API sent by Muralidharan Karicheri.
+Removed shadow register values. Removed unnecesary power down and up
+of the device (tests work fine). BTW, happy thanksgivings!
 
->   pxa_camera: remove init() callback
->=20
 
-Thanks,
-   Antonio
+-- 
+Santiago Nunez-Corrales, Eng.
+RidgeRun Engineering, LLC
 
---=20
-Antonio Ospite
-http://ao2.it
+Guayabos, Curridabat
+San Jose, Costa Rica
++(506) 2271 1487
++(506) 8313 0536
+http://www.ridgerun.com
 
-PGP public key ID: 0x4553B001
 
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
-A: Top-posting.
-Q: What is the most annoying thing in e-mail?
 
---Signature=_Fri__27_Nov_2009_21_39_39_+0100_eFNtnEH.XsZrDv6.
-Content-Type: application/pgp-signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
 
-iEYEARECAAYFAksQOQsACgkQ5xr2akVTsAHcqgCfTni8YHyk12OvfG9SiT/XVvv2
-GmoAn1fSPgksscLc/JeRh3gduCvsnwwB
-=SbDF
------END PGP SIGNATURE-----
-
---Signature=_Fri__27_Nov_2009_21_39_39_+0100_eFNtnEH.XsZrDv6.--
