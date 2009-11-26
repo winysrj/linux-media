@@ -1,71 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:45916 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752130AbZKQNwZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2009 08:52:25 -0500
-Message-ID: <4B02AA78.6050102@infradead.org>
-Date: Tue, 17 Nov 2009 11:51:52 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Bertrand <ba@cykian.net>
-Subject: [Fwd: [PATCH 2.6.31.5 1/1] v4l2: add new define for last camera class
- 	control id]
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail1.radix.net ([207.192.128.31]:36277 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758484AbZKZE1K (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Nov 2009 23:27:10 -0500
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
+ Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+From: Andy Walls <awalls@radix.net>
+To: Gerd Hoffmann <kraxel@redhat.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, mchehab@redhat.com, superm1@ubuntu.com
+In-Reply-To: <4B0DA885.7010601@redhat.com>
+References: <BDZb9P9ZjFB@christoph> <m3skc25wpx.fsf@intrepid.localdomain>
+	 <E6F196CB-8F9E-4618-9283-F8F67D1D3EAF@wilsonet.com>
+	 <829197380911251020y6f330f15mba32920ac63e97d3@mail.gmail.com>
+	 <4B0DA885.7010601@redhat.com>
+Content-Type: text/plain
+Date: Wed, 25 Nov 2009 23:26:02 -0500
+Message-Id: <1259209562.3060.92.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bertrand,
+On Wed, 2009-11-25 at 22:58 +0100, Gerd Hoffmann wrote:
+> On 11/25/09 19:20, Devin Heitmueller wrote:
+> > On Wed, Nov 25, 2009 at 1:07 PM, Jarod Wilson<jarod@wilsonet.com>
+> > wrote:
+> >> Took me a minute to figure out exactly what you were talking
+> >> about. You're referring to the current in-kernel decoding done on
+> >> an ad-hoc basis for assorted remotes bundled with capture devices,
+> >> correct?
+> >>
+> >> Admittedly, unifying those and the lirc driven devices hasn't
+> >> really been on my radar.
+> 
+> I think at the end of the day we'll want to have all IR drivers use the
+> same interface.  The way the current in-kernel input layer drivers work
+> obviously isn't perfect too, so we *must* consider both worlds to get a
+> good solution for long-term ...
+> 
+> > This is one of the key use cases I would be very concerned with. For
+> > many users who have bought tuner products, the bundled remotes work
+> > "out-of-the-box", regardless of whether lircd is installed.
+> 
+> I bet this simply isn't going to change.
+> 
+> > I have no objection so much as to saying "well, you have to install
+> > the lircd service now", but there needs to be a way for the driver to
+> >  automatically tell lirc what the default remote control should be,
+> > to avoid a regression in functionality.
+> 
+> *Requiring* lircd for the current in-kernel drivers doesn't make sense
+> at all.  Allowing lircd being used so it can do some more advanced stuff 
+> makes sense though.
+> 
+> > This is why I think we really should put together a list of use
+> > cases, so that we can see how any given proposal addresses those use
+> > cases. I offered to do such, but nobody seemed really interested in
+> > this.
+> 
+> Lets have a look at the problems the current input layer bits have 
+> compared to lirc:
+> 
+> 
+> (1) ir code (say rc5) -> keycode conversion looses information.
+> 
+> I think this can easily be addressed by adding a IR event type to the 
+> input layer, which could look like this:
+> 
+>    input_event->type  = EV_IR
+>    input_event->code  = IR_RC5
+>    input_event->value = <rc5 value>
+> 
+> In case the 32bit value is too small we might want send two events 
+> instead, with ->code being set to IR_<code>_1 and IR_<code>_2
 
-Please, always send patches c/c to:
-        linux-media@vger.kernel.org. 
-This way, people can better review it.
+RC-6 Mode 6A can be up to 67 bits:
 
-For more details, please read:
-        http://linuxtv.org/wiki/index.php/Development:_How_to_submit_patches
+http://www.picbasic.nl/frameload_uk.htm?http://www.picbasic.nl/rc5-rc6_transceiver_uk.htm
 
-There are some additional details on how patch submission works at:
-        http://linuxtv.org/hg/v4l-dvb/file/tip/README.patches
+(This page is slightly wrong, there is some data coded in the header
+such as the RC-6 Mode, but I can't remeber if it's biphase or not.)
 
-I'm forwarding it to the ML. I'll comment about it there.
+> Advantages:
+>    * Applications (including lircd) can get access to the unmodified
+>      rc5/rc6/... codes.
+>    * All the ir-code -> keycode mapping magic can be handled by the
+>      core input layer then.  All the driver needs to do is to pass on
+>      the information which keymap should be loaded by default (for the
+>      bundled remote if any).  The configuration can happen in userspace
+>      (sysfs attribute + udev + small utility in tools/ir/).
+>    * lirc drivers which get ir codes from the hardware can be converted
+>      to pure input layer drivers without regressions.  lircd is not
+>      required any more.
+> 
+> (2) input layer doesn't give access to the raw samples.
+> 
+> Not sure how to deal with that best.  Passing them through the input 
+> layer would certainly be possible to hack up.  But what would be the 
+> point?  The input layer wouldn't do any processing on them.  It wouldn't 
+> buy us much.  So we might want to simply stick with todays lirc 
+> interface for the raw samples.
+> 
+> Drivers which support both ir codes (be it by hardware or by in-kernel 
+> decoding) and raw samples would register two devices then, one input 
+> device and one lirc device.  It would probably a good idea to stop 
+> sending events to the input layer as soon as someone (most likely lircd) 
+> opens the lirc device to avoid keystrokes showing up twice.
+> 
+> By default the in-kernel bits will be at work, but optionally you can 
+> have lircd grab the raw samples and do fancy advanced decoding.
 
-Cheers,
-Mauro.
+(2a) Input layer doesn't help with raw samples:
 
--------- Mensagem original --------
-Assunto: [PATCH 2.6.31.5 1/1] v4l2: add new define for last camera class 	control id
-Data: Wed, 11 Nov 2009 22:00:24 +0100
-De: Bertrand <ba@cykian.net>
-Para: Mauro Carvalho Chehab <mchehab@infradead.org>
+So now what about devices that don't produce codes at all, but simply
+pulse width measurements?  Where's the infrastrucutre to perform low
+pass filtering to get rid of glitches and to perform oversampling to
+deal with pulse jitter, so that adding a new IR device isn't a pain
+incurred per driver?
 
-The videodev2.h file contains, among other things, defines that point
-to the control properties of video devices.
+I was quite dismayed at how much I had to reimplement here, just for
+RC-5 for the sake of the input layer and having a remote "Just Work":
 
-For the standard video controls, there is a V4L2_CID_BASE define for
-the base, and a pointer to the last control ID plus 1 named
-V4L2_CID_LASTP1.
-This allows automatic, version independent enumeration of the controls.
+http://linuxtv.org/hg/v4l-dvb/file/74ad936bcca2/linux/drivers/media/video/cx23885/cx23885-input.c
 
-There are other controls which are specific to the camera class
-devices. While there is a V4L2_CID_CAMERA_CLASS_BASE define, there was
-none for the last one.
-As a result it was not possible to do an enumeration of the controls
-of that class. This patch corrects this by adding a
-V4L2_CID_CAMERA_CLASS_LASTP1 define.
+lirc does all that stuff in spades.
 
-Signed-off-by: Bertrand Achard <ba@cykian.net>
 
---- linux-2.6.31.5/include/linux/videodev2.h	2009-10-23 00:57:56.000000000 +0200
-+++ linux-2.6.31.5-n/include/linux/videodev2.h	2009-11-11
-21:48:48.000000000 +0100
-@@ -1147,6 +1147,8 @@ enum  v4l2_exposure_auto_type {
+> (3) input layer doesn't allow transmitting IR codes.
+> 
+> If we keep the lirc interface for raw samples anyway, then we can keep 
+> it for sending too, problem solved ;)  How does sending hardware work 
+> btw?  Do they all accept just raw samples?  Or does some hardware also 
+> accept ir-codes?
 
- #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
+The Conexant chips' integrated IR Tx hardware expects a series of pulse
+widths and a flag for mark or space with each width.
 
-+#define V4L2_CID_CAMERA_CLASS_LASTP1		(V4L2_CID_CAMERA_CLASS_BASE+17)
-+
- /*
-  *	T U N I N G
-  */
+I'd have to research other implementations.
+
+Regards,
+Andy
+
+> cheers,
+>    Gerd
+
+
