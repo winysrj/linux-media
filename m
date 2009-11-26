@@ -1,93 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:42990 "EHLO znsun1.ifh.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756821AbZKSPnU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2009 10:43:20 -0500
-Date: Thu, 19 Nov 2009 16:43:18 +0100 (CET)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Aurelio Grego <80classics@gmail.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Terratec Cinergy T-Express
-In-Reply-To: <4AF2C79C.800@gmail.com>
-Message-ID: <alpine.LRH.2.00.0911191637580.12734@pub2.ifh.de>
-References: <4AF2C79C.800@gmail.com>
+Received: from mail-qy0-f192.google.com ([209.85.221.192]:39695 "EHLO
+	mail-qy0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751574AbZKZQDX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Nov 2009 11:03:23 -0500
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+In-Reply-To: <9e4733910911260748v454d3b0bvcc6bfc86823cdd39@mail.gmail.com>
+References: <BDZb9P9ZjFB@christoph> <m3skc25wpx.fsf@intrepid.localdomain>
+	 <E6F196CB-8F9E-4618-9283-F8F67D1D3EAF@wilsonet.com>
+	 <829197380911251020y6f330f15mba32920ac63e97d3@mail.gmail.com>
+	 <4B0DA885.7010601@redhat.com> <4B0E9493.1090200@redhat.com>
+	 <9e4733910911260748v454d3b0bvcc6bfc86823cdd39@mail.gmail.com>
+Date: Thu, 26 Nov 2009 11:03:25 -0500
+Message-ID: <9e4733910911260803q6f5cd6c0g5006e84f7733dc85@mail.gmail.com>
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
+	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Gerd Hoffmann <kraxel@redhat.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, superm1@ubuntu.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Aurelio,
+BTW, we used to have device specific user space interfaces for mouse
+and keyboard. These caused all sort of problems. A lot of work went
+into unifying them under evdev.  It will be years until the old,
+messed up interfaces can be totally removed.
 
-On Thu, 5 Nov 2009, Aurelio Grego wrote:
+I'm not in favor of repeating the problems with a device specific user
+space interface for IR. I believe all new input devices should
+implement the evdev framework.
 
-> Hi Patrick,
-> I'm writing you about a problem with Terratec Cinergy T-Express DVB-T
-> USB card.
-> The card is recognized by kernel, after compiling v4l-dvb sources
-> (v4l-dvb-fd679bbd8bb3.tar.gz).
-> Despite all, kaffeine and w_scan utility are not able to receive any
-> channels.
-> I've downloaded the required firmware from here:
-> http://www.wi-bw.tfh-wildau.de/~pboettch/home/files/dvb-usb-dib0700-1.20.fw
-> What can I do? I used recent Linux distributions with kernel 2.6.31, but
-> with no luck.
-> Thanks for your help and support.
->
-> dylan@linux-t9fm:~> dmesg | grep dvb
-> dvb-usb: found a 'Terratec Cinergy T Express' in cold state, will try to load a firmware
-> dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
-> dvb-usb: found a 'Terratec Cinergy T Express' in warm state.
-> dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-> dvb-usb: schedule remote query interval to 50 msecs.
-> dvb-usb: Terratec Cinergy T Express successfully initialized and connected.
-> usbcore: registered new interface driver dvb_usb_dib0700
->
-> dylan@linux-t9fm:~> lsusb
-> Bus 007 Device 005: ID 0ccd:0062 TerraTec Electronic GmbH
->
-> dylan@linux-t9fm:~/Desktop/w_scan-20090504> ./w_scan -ft -c IT -X >> /home/dylan
-> /channels.conf
-> w_scan version 20090502 (compiled for DVB API 5.0)
-> using settings for ITALY
-> DVB aerial
-> DVB-T Europe
-> frontend_type DVB-T, channellist 4
-> output format czap/tzap/szap/xine
-> Info: using DVB adapter auto detection.
->        /dev/dvb/adapter0/frontend0 -> DVB-T "DiBcom 7000PC": good  :-)
-> Using DVB-T frontend (adapter /dev/dvb/adapter0/frontend0)
-> -_-_-_-_ Getting frontend capabilities-_-_-_-_
-> Using DVB API 5.0
-> frontend DiBcom 7000PC supports
-> INVERSION_AUTO
-> QAM_AUTO
-> TRANSMISSION_MODE_AUTO
-> GUARD_INTERVAL_AUTO
-> HIERARCHY_AUTO
-> FEC_AUTO
-> -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
-> Scanning 7MHz frequencies...
-> 177500: (time: 00:00)
-> 184500: (time: 00:03)
-> 191500: (time: 00:06)
-> 198500: (time: 00:09)
-> 205500: (time: 00:12)
-> 212500: (time: 00:16)
-> 219500: (time: 00:19)
-> 226500: (time: 00:22)
-> Scanning 8MHz frequencies...
-> 474000: (time: 00:25) (time: 00:27) signal ok:
->        QAM_AUTO f = 474000 kHz I999B8C999D999T999G999Y999
-
-It seems that your reception quality is not good enough. Which means, that 
-either the antenna or the hardware or the driver are not correctly 
-set-up/written for your board.
-
-Can you try the windows driver which with the same antenna position?
-
-best regards,
-
---
-
-Patrick
-http://www.kernellabs.com/
+-- 
+Jon Smirl
+jonsmirl@gmail.com
