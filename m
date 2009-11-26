@@ -1,53 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:46693 "EHLO mail1.radix.net"
+Received: from khc.piap.pl ([195.187.100.11]:32980 "EHLO khc.piap.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757579AbZKXBPp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2009 20:15:45 -0500
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
- Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-From: Andy Walls <awalls@radix.net>
-To: Krzysztof Halasa <khc@pm.waw.pl>
-Cc: Christoph Bartelmus <lirc@bartelmus.de>, dmitry.torokhov@gmail.com,
-	j@jannau.net, jarod@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, superm1@ubuntu.com
-In-Reply-To: <m3einork1o.fsf@intrepid.localdomain>
-References: <BDRae8rZjFB@christoph>  <m3einork1o.fsf@intrepid.localdomain>
-Content-Type: text/plain
-Date: Mon, 23 Nov 2009 20:14:35 -0500
-Message-Id: <1259025275.3871.55.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	id S1750703AbZKZSgP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Nov 2009 13:36:15 -0500
+From: Krzysztof Halasa <khc@pm.waw.pl>
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Sean Young <sean@mess.org>, Trent Piepho <xyzzy@speakeasy.org>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@redhat.com>, linux-kernel@vger.kernel.org,
+	Mario Limonciello <superm1@ubuntu.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Janne Grunau <j@jannau.net>,
+	Christoph Bartelmus <lirc@bartelmus.de>
+Subject: Re: IR raw input is not sutable for input system
+References: <200910200956.33391.jarod@redhat.com>
+	<200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com>
+	<4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain>
+	<20091123173726.GE17813@core.coreip.homeip.net>
+	<4B0B6321.3050001@wilsonet.com>
+	<1259105571.28219.20.camel@maxim-laptop>
+	<Pine.LNX.4.58.0911241918390.30284@shell2.speakeasy.net>
+	<1259155734.4875.23.camel@maxim-laptop>
+	<20091125213246.GA44831@atlantis.8hz.com>
+	<m3d43644q6.fsf@intrepid.localdomain>
+	<1259189522.15916.1.camel@maxim-laptop>
+Date: Thu, 26 Nov 2009 19:36:18 +0100
+In-Reply-To: <1259189522.15916.1.camel@maxim-laptop> (Maxim Levitsky's message
+	of "Thu, 26 Nov 2009 00:52:02 +0200")
+Message-ID: <m3bpipuo9p.fsf@intrepid.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2009-11-23 at 22:46 +0100, Krzysztof Halasa wrote:
-> lirc@bartelmus.de (Christoph Bartelmus) writes:
-> 
-> >> I think we shouldn't at this time worry about IR transmitters.
-> >
-> > Sorry, but I have to disagree strongly.
-> > Any interface without transmitter support would be absolutely unacceptable
-> > for many LIRC users, including myself.
-> 
-> I don't say don't use a transmitter.
-> I say the transmitter is not an input device, they are completely
-> independent functions. I can't see any reason to try and fit both in the
-> same interface - can you?
+Maxim Levitsky <maximlevitsky@gmail.com> writes:
 
-The underlying hardware need not be completely independent.
+> But devices that send raw pulse/space data should be handled in lirc
+> that will feed the data back to the kernel via uinput.
 
-For example, the CX2584[0123], CX2388[578], CX23418, and CX2310[012]
-chips have IR hardware that shares a common timing source, interrupt
-line, interrupt status register, etc, between IR Rx and Tx.  They can
-also do things like loopback of Tx to Rx.
-
-That said, an underlying hardware implementation can be split up to user
-space with separate interfaces Tx and Rx.  The underlying driver module
-would have to manage the dependencies.  I would guess that would be
-easier for driver modules, if the userspace interfaces were designed
-with such combined IR Tx/Rx hardware in mind.
-
-Regards,
-Andy
-
+I still do want the in-kernel RCx decoding. And lirc pulse/space.
+-- 
+Krzysztof Halasa
