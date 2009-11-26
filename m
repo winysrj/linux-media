@@ -1,48 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hapkido.dreamhost.com ([66.33.216.122]:32961 "EHLO
-	hapkido.dreamhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752249AbZKWRMA convert rfc822-to-8bit (ORCPT
+Received: from anny.lostinspace.de ([80.190.182.2]:57567 "EHLO
+	anny.lostinspace.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755708AbZKZQn3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2009 12:12:00 -0500
-Received: from homiemail-a20.g.dreamhost.com (caiajhbdcaid.dreamhost.com [208.97.132.83])
-	by hapkido.dreamhost.com (Postfix) with ESMTP id F2BEF17B6CA
-	for <linux-media@vger.kernel.org>; Mon, 23 Nov 2009 09:12:10 -0800 (PST)
-Received: from localhost.localdomain (unknown [190.54.55.123])
-	by homiemail-a20.g.dreamhost.com (Postfix) with ESMTPA id 6155C7EC06A
-	for <linux-media@vger.kernel.org>; Mon, 23 Nov 2009 09:11:07 -0800 (PST)
-Date: Mon, 23 Nov 2009 14:10:42 -0300
-From: Gustavo =?UTF-8?B?Q2hhw61u?= Dumit <g@0xff.cl>
-To: linux-media@vger.kernel.org
-Subject: VFlip problem in gspca_pac7311
-Message-ID: <20091123141042.47feac9e@0xff.cl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Thu, 26 Nov 2009 11:43:29 -0500
+Message-ID: <4B0EB017.5000601@fechner.net>
+Date: Thu, 26 Nov 2009 17:43:03 +0100
+From: Matthias Fechner <idefix@fechner.net>
+MIME-Version: 1.0
+To: Andy Walls <awalls@radix.net>
+CC: Jean Delvare <khali@linux-fr.org>, linux-media@vger.kernel.org,
+	Jarod Wilson <jarod@wilsonet.com>,
+	"Igor M. Liplianin" <liplianin@me.by>, stoth@kernellabs.com
+Subject: Re: IR Receiver on an Tevii S470
+References: <4B0459B1.50600@fechner.net> <4B081F0B.1060204@fechner.net>	 <1258836102.1794.7.camel@localhost> <200911220303.36715.liplianin@me.by>	 <1258858102.3072.14.camel@palomino.walls.org> <4B097E37.10402@fechner.net>	 <1258920707.4201.16.camel@palomino.walls.org>	 <4B099E37.5070405@fechner.net> <20091122213230.38650f8d@hyperion.delvare>	 <1258935479.1896.29.camel@localhost>	 <20091123095435.310fcdf3@hyperion.delvare> <1259108724.3069.22.camel@palomino.walls.org>
+In-Reply-To: <1259108724.3069.22.camel@palomino.walls.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+Hi Andy,
 
-I'm testing a Pixart Imaging device (0x93a:0x2622)
-Everything works fine, but vertical orientation. Image looks rotated.
-So I wrote a little hack to prevent it.
+Andy Walls wrote:
+> I will inspect and test these with my HVR-1850 (CX23888) loaner board
+> this weekend (hopefully).
+>   
 
-diff --git a/drivers/media/video/gspca/pac7311.c
-b/drivers/media/video/gspca/pac 7311.c
-index 0527144..f7904ec 100644
---- a/drivers/media/video/gspca/pac7311.c
-+++ b/drivers/media/video/gspca/pac7311.c
-@@ -690,27 +690,28 @@ static int sd_start(struct gspca_dev *gspca_dev)
-        }
-        setgain(gspca_dev);
-        setexposure(gspca_dev);
--       sethvflip(gspca_dev);
-+       if (gspca_dev->dev->descriptor.idProduct != 0x2622)
-+               sethvflip(gspca_dev);
+if you want me to test something on the Tevii S470 card, please let me know.
 
-Any one has the same problem ?
-Thanks!
+Bye,
+Matthias
 
 -- 
-Gustavo Chaín Dumit
-http://0xff.cl
+"Programming today is a race between software engineers striving to build bigger and better idiot-proof programs, and the universe trying to produce bigger and better idiots. So far, the universe is winning." -- Rich Cook
+
