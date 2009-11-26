@@ -1,72 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:43516
-	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751365AbZKEDlW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2009 22:41:22 -0500
-Subject: Re: [PATCH 0/3 v2] linux infrared remote control drivers
-Mime-Version: 1.0 (Apple Message framework v1076)
-Content-Type: text/plain; charset=us-ascii; format=flowed; delsp=yes
-From: Jarod Wilson <jarod@wilsonet.com>
-In-Reply-To: <20091104223136.62cfc791@pedra.chehab.org>
-Date: Wed, 4 Nov 2009 22:41:12 -0500
-Cc: Jarod Wilson <jarod@redhat.com>, linux-kernel@vger.kernel.org,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Janne Grunau <j@jannau.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Content-Transfer-Encoding: 7bit
-Message-Id: <FC2F0E81-776F-4A97-88FC-1F246BC2E5DF@wilsonet.com>
-References: <200910200956.33391.jarod@redhat.com> <C5A8E7EC-81D6-49AA-A65F-9F5D3DED1690@wilsonet.com> <20091104223136.62cfc791@pedra.chehab.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mail5.sea5.speakeasy.net ([69.17.117.7]:59516 "EHLO
+	mail5.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752922AbZKZXJw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Nov 2009 18:09:52 -0500
+Date: Thu, 26 Nov 2009 15:09:58 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+cc: Christoph Bartelmus <lirc@bartelmus.de>, dmitry.torokhov@gmail.com,
+	j@jannau.net, jarod@redhat.com, khc@pm.waw.pl,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, superm1@ubuntu.com
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
+ Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+In-Reply-To: <4B0EEC21.9010001@redhat.com>
+Message-ID: <Pine.LNX.4.58.0911261505120.30284@shell2.speakeasy.net>
+References: <BDcc3mfojFB@christoph> <4B0EEC21.9010001@redhat.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Nov 4, 2009, at 7:31 PM, Mauro Carvalho Chehab wrote:
-
-> Em Wed, 4 Nov 2009 17:56:31 -0500
-> Jarod Wilson <jarod@wilsonet.com> escreveu:
+On Thu, 26 Nov 2009, Mauro Carvalho Chehab wrote:
+> >> lircd supports input layer interface. Yet, patch 3/3 exports both devices
+> >> that support only pulse/space raw mode and devices that generate scan
+> >> codes via the raw mode interface. It does it by generating artificial
+> >> pulse codes.
+> >
+> > Nonsense! There's no generation of artificial pulse codes in the drivers.
+> > The LIRC interface includes ways to pass decoded IR codes of arbitrary
+> > length to userspace.
 >
->> On Oct 20, 2009, at 9:56 AM, Jarod Wilson wrote:
->>
->>> This here is a second go at submitting linux infrared remote control
->>> (lirc) drivers for kernel inclusion, with a much smaller patch set
->>> that
->>> includes only the core lirc driver and two device drivers, all three
->>> of
->>> which have been heavily updated since the last submission, based on
->>> feedback received.
->>
->> Hm. Submitting this while the vast majority of people who might  
->> review
->> it were at the Japan Linux Symposium seems like it might have been a
->> bad idea.
+> I might have got wrong then a comment in the middle of the
+> imon_incoming_packet() of the SoundGraph iMON IR patch:
 >
-> True :) Such long trips generally affects the week before (to finish  
-> some
-> pending stuff before traveling) and the week after, where we have a  
-> big
-> backlog to handle.
->
->> Or does no feedback mean its all good and ready to be
->> merged? ;)
->
-> They are on my queue. I was handling a long pile of patches for the  
-> existing
-> drivers during last week. I intend to send the fixes upstream during  
-> this week,
-> and then going to analyze the lirc patches.
+> +	/*
+> +	 * Translate received data to pulse and space lengths.
+> +	 * Received data is active low, i.e. pulses are 0 and
+> +	 * spaces are 1.
 
-I'd heard as much, but figured I should go ahead with the fishing  
-expedition just the same to see if we couldn't hook anyone else too...
+I'm not sure about this specific code, but what is likely
+going on here is the waveform is being RLE encoding.
 
-> It would be wonderful to get also some feedback from the event/input  
-> people.
+For example, a cx88 receiver has two ways of being connected (without
+using an external decoder chip).  One generates an IRQ on each
+edge of the signal.  The time between IRQs gives mark/space lengths
+which is what lirc expects.  This is how a simple serial port receiver
+works too.
 
-Yeah, I think that's probably the folks who really have the final say  
-on this, as we're ultimately (mostly) input devices.
-
--- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
-
+Another connections effectivly samples the waveform one bit deep at IIRC
+4kHz.  I think that's what the code you are looking at gets.  The code
+extracts the edges from the waveform and returns the time between them.  In
+effect one is run length encoding a sequence of bits.
