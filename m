@@ -1,107 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2964 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755619AbZKEOTL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Nov 2009 09:19:11 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC] Restructure video_device
-Date: Thu, 5 Nov 2009 15:19:06 +0100
-Cc: linux-media@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-References: <200910231625.40822.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <200910231625.40822.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:48786 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760278AbZKZO2Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Nov 2009 09:28:16 -0500
+Message-ID: <4B0E9071.60002@redhat.com>
+Date: Thu, 26 Nov 2009 12:28:01 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: Jarod Wilson <jarod@wilsonet.com>
+CC: Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, superm1@ubuntu.com
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
+ Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+References: <BDZb9P9ZjFB@christoph> <m3skc25wpx.fsf@intrepid.localdomain> <E6F196CB-8F9E-4618-9283-F8F67D1D3EAF@wilsonet.com>
+In-Reply-To: <E6F196CB-8F9E-4618-9283-F8F67D1D3EAF@wilsonet.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200911051519.06843.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 23 October 2009 16:25:40 Laurent Pinchart wrote:
-> Hi everybody,
+Jarod Wilson wrote:
+> On Nov 25, 2009, at 12:40 PM, Krzysztof Halasa wrote:
 > 
-> while working on device node support for subdevs I ran into an issue with the 
-> way v4l2 objects are structured.
+>> lirc@bartelmus.de (Christoph Bartelmus) writes:
+>>
+>>> I'm not sure what two ways you are talking about. With the patches posted  
+>>> by Jarod, nothing has to be changed in userspace.
+>>> Everything works, no code needs to be written and tested, everybody is  
+>>> happy.
+>> The existing drivers use input layer. Do you want part of the tree to
+>> use existing lirc interface while the other part uses their own
+>> in-kernel (badly broken for example) code to do precisely the same
+>> thing?
 > 
-> We currently have the following structure:
-> 
-> - video_device represents a device that complies with the V4L1 or V4L2 API. 
-> Every video_device has a corresponding device node.
-> 
-> - v4l2_device represents a high-level media device that handles sub-devices. 
-> With the new media controller infrastructure a v4l2_device will have a device 
-> node as well.
-> 
-> - v4l2_subdev represents a sub-device. As for v4l2_device's, the new media 
-> controller infrastructure will give a device node for every sub-device.
-> 
-> - v4l2_entity is the structure that both v4l2_subdev and video_device derive 
-> from. Most of the media controller code will deal with entities rather than 
-> sub-devices or video devices, as most operations (such as discovering the 
-> topology and create links) do not depend on the exact nature of the entity. 
-> New types of entities could be introduced later.
-> 
-> Both the video_device and v4l2_subdev structure inherit from v4l2_entity, so 
-> both of them have a v4l2_entity field. With v4l2_device and v4l2_subdev now 
-> needing to devices to have device nodes created, the v4l2_device and 
-> v4l2_subdev structure both have a video_device field.
-> 
-> This isn't clean for two reasons:
-> 
-> - v4l2_device isn't a v4l2_entity, so it should inherit from a structure 
-> (video_device) that itself inherits from v4l2_entity. 
-> 
-> - v4l2_subdev shouldn't inherit twice from v4l2_entity, once directly and once 
-> through video_device.
+> Took me a minute to figure out exactly what you were talking about. You're referring to the
+> current in-kernel decoding done on an ad-hoc basis for assorted remotes 
+> bundled with capture devices, correct?
 
-I agree.
+They are not limited to the currently bundled IR's, since almost all drivers allow
+replacing the existing scancode/keycode table to a new onw.
 
-> To fix this I would like to refactor the video_device structure and cut it in 
-> two pieces. One of them will deal with device node related tasks, being mostly 
-> V4L1/V4L2 agnostic, and the other will inherit from the first and add 
-> V4L1/V4L2 support (tvnorms/current_norm/ioctl_ops fields from the current 
-> video_device structure), as well as media controller support (inheriting from 
-> v4l2_entity).
+> Admittedly, unifying those and the lirc driven devices hasn't really been on my radar.
+
+It should be done. Having two ways for doing the same thing is not an option. We'll
+need to unify them sooner or later. The sooner, the better.
+
+>> We can have a good code for both, or we can end up with "badly broken"
+>> media drivers and incompatible, suboptimal existing lirc interface
+>> (though most probably much better in terms of quality, especially after
+>> Jarod's work).
 > 
-> My plan was to create a video_devnode structure for the low-level device node 
+> Well, is there any reason most of those drivers with 
+> currently-in-kernel-but-badly-broken decoding can't be converted to
+> use the lirc interface if its merged into the kernel?
 
-Let's call it v4l2_devnode to be consistent with the current naming convention.
+> And/or, everything
+> could converge on a new in-kernel decoding infra that wasn't badly broken.
+> Sure, there may be two separate ways of doing essentially the same thing
+> for a while, but meh. The lirc way works NOW for an incredibly wide
+> variety of receivers, transmitters, IR protocols, etc.
 
-> related structure, and keeping the video_device name for the higher level 
-> structure. v4l2_device, v4l2_subdev and video_device would then all have a 
-> video_devnode field.
-> 
-> While this isn't exactly difficult, it would require changing a lot of 
-> drivers, as some field will be moved from video_device to 
-> video_device::video_devnode. Some of those fields are internal, some of them 
-> are accessed by drivers while they shouldn't in most cases (the minor field 
-> for instance), and some are public (name, parent).
-> 
-> I would like to have your opinion on whether you think this proposal is 
-> acceptable or whether you see a better and cleaner way to restructure the 
-> video device code structures.
-> 
+Yes: the same drivers support both pulse/space and in-hardware scancode conversion.
+In order to use the raw pulse/space API, they'll need to generate pseudo pulse/space's.
+This would be a dirty solution, IMHO.
 
-I have two issues with this:
+Also, changing the drivers would not be that easy, since it will require lots of
+tests with IR's and devices that the developers won't have. This is a weaker argument,
+since no matter what decided, we'll need to change the drivers code (on lirc drivers
+or on the in-kernel drivers) even without having all hardware available.
 
-1) Is it really necessary to do this now? We are still in the prototyping
-phase and I think it is probably more efficient right now to hack around this
-and postpone the real fix (as described above) until we are sure that the mc
-concept is working correctly.
+> I do concur that Just Works decoding for bundled remotes w/o having to 
+> configure anything would be nice, and one way to go about doing that 
+> certainly is via in-kernel IR decoding. But at the same time, the second
+> you want to use something other than a bundled remote, things fall down, 
+> and having to do a bunch of setkeycode ops seems less optimal than simply 
+> dropping an appropriate lircd.conf in place.
 
-2) I'm not sure whether the final media controller will and should be part
-of the v4l framework at all. I think that this is something that can be used
-separately from the v4l subsystem. So we should be very careful about
-integrating this too closely in v4l. Again, this is not much of an issue
-while prototyping, but it definitely will need some careful thinking when we
-do the final implementation.
+I don't see this as an issue. We have by far too much work to be done in kernelspace
+than the changes that are needed on userspace.
 
-Regards,
+Replace the entire scancode table with setkeycode ops is very fast, and needs to be
+done only once, at lirc startup. Once you load the new IR code at the driver,
+the kernel will send the new keycodes to lirc.
 
-	Hans
+It doesn't seem hard to modify lirc to do read the lircd.conf table and replace the
+IR scancodes at the in-kernel driver. It took me half an hour to write my own keycode
+loader code, and you can use it as the basis for such feature:
+	http://linuxtv.org/hg/v4l-dvb/file/tip/v4l2-apps/util/keytable.c
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+
+Cheers,
+Mauro.
+
+
