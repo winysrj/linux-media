@@ -1,50 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:1849 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753025AbZK2V71 (ORCPT
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:64925 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753081AbZKZFtg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2009 16:59:27 -0500
-Message-ID: <4B12EEC2.3030207@gmail.com>
-Date: Sun, 29 Nov 2009 22:59:30 +0100
-From: Artur Skawina <art.08.09@gmail.com>
+	Thu, 26 Nov 2009 00:49:36 -0500
+Date: Wed, 25 Nov 2009 21:49:38 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Andy Walls <awalls@radix.net>
+Cc: Christoph Bartelmus <lirc@bartelmus.de>, khc@pm.waw.pl,
+	j@jannau.net, jarod@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	mchehab@redhat.com, superm1@ubuntu.com
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
+	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+Message-ID: <20091126054938.GH23244@core.coreip.homeip.net>
+References: <BDRae8rZjFB@christoph> <1259024037.3871.36.camel@palomino.walls.org>
 MIME-Version: 1.0
-To: mike@mtgambier.net
-CC: Jon Smirl <jonsmirl@gmail.com>,
-	Christoph Bartelmus <christoph@bartelmus.de>,
-	jarod@wilsonet.com, awalls@radix.net, dmitry.torokhov@gmail.com,
-	j@jannau.net, jarod@redhat.com, khc@pm.waw.pl,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, mchehab@redhat.com, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR system?
-References: <9e4733910911270757j648e39ecl7487b7e6c43db828@mail.gmail.com> <200911291317.03612.mike@mtgambier.net>
-In-Reply-To: <200911291317.03612.mike@mtgambier.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1259024037.3871.36.camel@palomino.walls.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mike Lampard wrote:
-> an example I have a VDR instance running in the background on my desktop 
-> machine outputting to a TV in another room via a pci mpeg decoder - I 
-> certainly don't want the VDR remote control interacting with my X11 desktop in 
-> any way unless I go out of my way to set it up to do so, nor do I want it 
-> interacting with other applications (such as MPD piping music around the 
-> house) that are controlled via other remotes in other rooms unless specified.
+On Mon, Nov 23, 2009 at 07:53:57PM -0500, Andy Walls wrote:
+> On Mon, 2009-11-23 at 22:11 +0100, Christoph Bartelmus wrote:
+> > Czesc Krzysztof,
+> > 
+> > on 23 Nov 09 at 15:14, Krzysztof Halasa wrote:
+> > [...]
+> > > I think we shouldn't at this time worry about IR transmitters.
+> > 
+> > Sorry, but I have to disagree strongly.
+> > Any interface without transmitter support would be absolutely unacceptable  
+> > for many LIRC users, including myself.
 > 
-> Setting this up with Lircd was easy, how would a kernel-based proposal handle 
-> this?
+> I agree with Christoph.  
+> 
+> Is it that the input subsystem is better developed and seen as a
+> leverage point for development and thus an "easier" place to get results
+> earlier?  If so, then one should definitely deal with transmitters early
+> in the design, as that is where the most unknowns lie.
+> 
+> With the end of analog TV, people will have STBs feeding analog only
+> video cards.  Being able to change the channel on the STB with an IR
+> transmitter controlled by applications like MythTV is essential.
+> 
+> 
+> And on some different notes:
+> 
+> I generally don't understand the LIRC aversion I perceive in this thread
+> (maybe I just have a skewed perception).  Aside for a video card's
+> default remote setup, the suggestions so far don't strike me as any
+> simpler for the end user than LIRC -- maybe I'm just used to LIRC.  LIRC
+> already works for both transmit and receive and has existing support in
+> applications such as MythTV and mplayer.
 
-eg
+Is it that LIRC supports MythTV and mplayer or MythTV and mplayer are
+forced to support lirc because the remores are not available through
+other means? I believe it is the latter and applications writers would
+be happy to reduce number of ways they get button data.
 
-EV="/dev/input/"$( cd "/sys/class/input" &&
-   ( grep -l 'X10' event*/device/name || grep -l 'X10' event*/device/manufacturer ) |
-   sed -e 's,/.*,,' )
+I don't think there is LIRC aversion per se. We are just trying to
+decide whether multiple interfaces for the same data is needed. And
+I don't think that we will completely reject userspace components. Just
+as input subsystem allows for userspace drivers I do not think why we
+can't have the same for the LIRC. But I do think that the primary
+interface for regular userspace consumers (read mplayer and MythTV and
+the likes) should be input event interface (EV_KEY/KEY_*).
 
-./vdr [...] -P "remote -i $EV"
-
-This is how it has worked for years, so there's no reason it wouldn't work w/ any
-future scheme. The remote buttons normally arrive as normal kbd keys; once an app
-grabs the input device corresponding to a remote, it receives the events exclusively.
-
-artur
+-- 
+Dmitry
