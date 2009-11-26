@@ -1,73 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49092 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752460AbZK3J7v (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Nov 2009 04:59:51 -0500
-Message-ID: <4B139721.5030808@redhat.com>
-Date: Mon, 30 Nov 2009 07:57:53 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:45146 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753364AbZKZXXJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Nov 2009 18:23:09 -0500
+Date: Thu, 26 Nov 2009 15:23:11 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Krzysztof Halasa <khc@pm.waw.pl>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@redhat.com>, linux-kernel@vger.kernel.org,
+	Mario Limonciello <superm1@ubuntu.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Janne Grunau <j@jannau.net>,
+	Christoph Bartelmus <lirc@bartelmus.de>
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
+	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+Message-ID: <20091126232311.GD6936@core.coreip.homeip.net>
+References: <200910200956.33391.jarod@redhat.com> <200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com> <4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain> <20091123173726.GE17813@core.coreip.homeip.net> <4B0B6321.3050001@wilsonet.com> <20091126053109.GE23244@core.coreip.homeip.net> <A910E742-51B5-45E0-AD80-B9AE0728D9FB@wilsonet.com>
 MIME-Version: 1.0
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-CC: Jon Smirl <jonsmirl@gmail.com>, Andy Walls <awalls@radix.net>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	maximlevitsky@gmail.com, stefanr@s5r6.in-berlin.de,
-	superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR  system?
-References: <m3r5riy7py.fsf@intrepid.localdomain>	<BDkdITRHqgB@lirc>	<9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>	<m3aay6y2m1.fsf@intrepid.localdomain>	<9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>	<1259469121.3125.28.camel@palomino.walls.org>	<20091129124011.4d8a6080@lxorguk.ukuu.org.uk>	<9e4733910911291019l27e5fea2x3db268311842b17@mail.gmail.com> <20091129190059.02c2a0ff@lxorguk.ukuu.org.uk>
-In-Reply-To: <20091129190059.02c2a0ff@lxorguk.ukuu.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <A910E742-51B5-45E0-AD80-B9AE0728D9FB@wilsonet.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alan,
+On Thu, Nov 26, 2009 at 01:16:01AM -0500, Jarod Wilson wrote:
+> On Nov 26, 2009, at 12:31 AM, Dmitry Torokhov wrote:
+> 
+> > On Mon, Nov 23, 2009 at 11:37:53PM -0500, Jarod Wilson wrote:
+> >> On 11/23/2009 12:37 PM, Dmitry Torokhov wrote:
+> >>> On Mon, Nov 23, 2009 at 03:14:56PM +0100, Krzysztof Halasa wrote:
+> >>>> Mauro Carvalho Chehab<mchehab@redhat.com>  writes:
+> >>>> 
+> >>>>> Event input has the advantage that the keystrokes will provide an unique
+> >>>>> representation that is independent of the device.
+> >>>> 
+> >>>> This can hardly work as the only means, the remotes have different keys,
+> >>>> the user almost always has to provide customized key<>function mapping.
+> >>>> 
+> >>> 
+> >>> Is it true? I would expect the remotes to have most of the keys to have
+> >>> well-defined meanings (unless it is one of the programmable remotes)...
+> >> 
+> >> Its the cases like programmable universal remotes that really throw  
+> >> things for a loop. That, and people wanting to use random remote X that  
+> >> came with the amp or tv or set top box, with IR receiver Y.
+> > 
+> > Right, but still the keys usually do have the well-defined meaning,
+> 
+> Except when they don't. I have two very similar remotes, one that was bundled with a system from CaptiveWorks, and one that was bundled with an Antec Veris IR/LCD (SoundGraph iMON rebrand). Outside of the Antec remote having a mouse pad instead of up/down/left/right/enter, they have an identical layout, and the keys in the same locations on the remotes send the same IR signal. But the button names vary a LOT between the two. So on the DVD key on the Antec and the MUTE key on the CW send the same signal. Same with Audio vs. Eject, TV vs. History, etc. Moral of the story is that not all IR protocols spell things out particularly well for what a given code should actually mean.
 
-Alan Cox wrote:
+I guess we are talking about different things. While the 2 remotes may
+use different protocols to communicate and may use the same codes to
+mean different things they buttons have well-defined meaning and we
+could map that to input keycodes. Then what is left is to load the
+proper mapping for particular device into the kernel. This can be done
+either automatically (when we know the mapping) or with the help of the
+user (owner of the system).
 
-> Does it really make sense to put big chunks of protocol decoding crap for
-> an interface which runs at about 1 character per second on a good day
-> into the kernel ? Does it really make sense ot move 50K of code from user
-> context to kernel context where it must meet strict security
-> requirements, be extensively audited and cannot be paged. For embedded
-> users will also have to be highly modular so no unused bits are loaded.
+> 
+> > teh
+> > issue is in mapping raw code to the appropriate keycode. This can be
+> > done either by lirc config file (when lirc is used) or by some other
+> > means.
+> 
+> The desire to map a button press to multiple keystrokes isn't uncommon either, though I presume that's doable within the input layer context too.
 
-The same logic would apply to mouse, keyboards and serial consoles. 
-It is possible to move everything to userspace. 
+No, at present we expect 1:1 button->event mapping leaving macro
+expansion (i.e. KEY_PROG1 -> "do some multi-step sequence" to
+userspace).
 
-However, there are some reassons for they to be in kernelspace:
-	- you may need them during boot time;
-	- they are mandatory to allow the users interaction;
-	- you need low latency.
-
-The same arguments apply to IR, especially on embedded devices: some devices,
-like TVs, Set Top TV boxes and IPTV Set Top Boxes have IR as their primary
-input device.
-
-Also, as changing a digital TV or an IP TV channel requires to discard the current
-MPEG stream and getting a newer one, and it requires a large time until you'll
-be able to output something to the user, one of the needs is to handle IR keystrokes
-(especially channel up/down) as fast as possible, to try to minimize the discomfort
-of changing a channel.
-
-Using an approach where you'll send a raw event to userspace, process there and return
-back to kernel will increase the latency and can only be done after when loading
-the SYSV runlevel stuff.
-
-On the other hand, we already have IR decoding in-kernel. Most of the code are
-at:
-	drivers/media/common/ir-functions.c
-
-But there are also some other decoders at bttv, saa7134 and cx88 drivers.
-
-In the case of drivers/media stuff, there common case is that the drivers have
-support for both space/pulse decoding and in-hardware decoding. On both cases,
-the scancode is converted to a keystroke via evdev. IMHO, we shouldn't really
-consider dropping those decoders from kernel.
-
-Cheers,
-Mauro. 
+-- 
+Dmitry
