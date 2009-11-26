@@ -1,37 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:42120 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753400AbZKQJ42 (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:56301 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752933AbZKZWGL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2009 04:56:28 -0500
-Received: by pwi3 with SMTP id 3so3867395pwi.21
-        for <linux-media@vger.kernel.org>; Tue, 17 Nov 2009 01:56:33 -0800 (PST)
+	Thu, 26 Nov 2009 17:06:11 -0500
+Date: 26 Nov 2009 23:05:00 +0100
+From: lirc@bartelmus.de (Christoph Bartelmus)
+To: mchehab@redhat.com
+Cc: dmitry.torokhov@gmail.com
+Cc: j@jannau.net
+Cc: jarod@redhat.com
+Cc: khc@pm.waw.pl
+Cc: linux-input@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Cc: superm1@ubuntu.com
+Message-ID: <BDccCqq3jFB@christoph>
+In-Reply-To: <4B0EEC21.9010001@redhat.com>
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was: Re: [PATCH 1/3 v2] lirc core device driver infrastructure
 MIME-Version: 1.0
-Date: Tue, 17 Nov 2009 17:56:33 +0800
-Message-ID: <51d384e10911170156x1e8f18afh48369a4cd664b45f@mail.gmail.com>
-Subject: [PATCH] dvb-core: Fix ULE decapsulation bug when less than 4 bytes of
-	ULE SNDU is packed into the remaining bytes of a MPEG2-TS frame
-From: Ang Way Chuang <wcang79@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hilmar Linder <hlinder@cosy.sbg.ac.at>,
-	Wolfram Stering <wstering@cosy.sbg.ac.at>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ULE (Unidirectional Lightweight Encapsulation RFC 4326) decapsulation
-code has a bug that incorrectly treats ULE SNDU packed into the remaining
-2 or 3 bytes of a MPEG2-TS frame as having invalid pointer field on the
-subsequent MPEG2-TS frame.
+Hi Mauro,
 
-This patch was generated against v2.6.32-rc7, however it wasn't tested
-using that kernel. Similar patch was applied and tested using 2.6.27 which
-is similar to the latest dvb_net.c, except for network device statistical data
-structure. I suspect that this bug was introduced in kernel version 2.6.15,
-but had not verified it.
+on 26 Nov 09 at 18:59, Mauro Carvalho Chehab wrote:
+> Christoph Bartelmus wrote:
+[...]
+>>> lircd supports input layer interface. Yet, patch 3/3 exports both devices
+>>> that support only pulse/space raw mode and devices that generate scan
+>>> codes via the raw mode interface. It does it by generating artificial
+>>> pulse codes.
+>>
+>> Nonsense! There's no generation of artificial pulse codes in the drivers.
+>> The LIRC interface includes ways to pass decoded IR codes of arbitrary
+>> length to userspace.
 
-Care has been taken not to introduce more bug by fixing this bug, but
-please scrutinize the code for I always produces buggy code.
+> I might have got wrong then a comment in the middle of the
+> imon_incoming_packet() of the SoundGraph iMON IR patch:
 
-Signed-off-by: Ang Way Chuang <wcang@nav6.org>
+Indeed, you got it wrong.
+As I already explained before, this device samples the signal at a  
+constant rate and delivers the current level in a bit-array. This data is  
+then condensed to pulse/space data.
+
+Christoph
