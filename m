@@ -1,113 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.uni-paderborn.de ([131.234.142.9]:18501 "EHLO
-	mail.uni-paderborn.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932371AbZKXJbb (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2382 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752576AbZK0OZB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Nov 2009 04:31:31 -0500
-Message-ID: <4B0BA3F5.2090408@hni.uni-paderborn.de>
-Date: Tue, 24 Nov 2009 10:14:29 +0100
-From: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
+	Fri, 27 Nov 2009 09:25:01 -0500
+Message-ID: <9776d18eb5595d838cae99e1837d401c.squirrel@webmail.xs4all.nl>
+In-Reply-To: <Pine.LNX.4.64.0911271349360.4383@axis700.grange>
+References: <Pine.LNX.4.64.0911261509100.5450@axis700.grange>
+    <dc06c2b1fe49c7b64007ec24817e190a.squirrel@webmail.xs4all.nl>
+    <Pine.LNX.4.64.0911261822520.5450@axis700.grange>
+    <Pine.LNX.4.64.0911271349360.4383@axis700.grange>
+Date: Fri, 27 Nov 2009 15:25:01 +0100
+Subject: Re: [PATCH 2/2 v2] soc-camera: convert to the new mediabus API
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+Cc: "Linux Media Mailing List" <linux-media@vger.kernel.org>,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Sakari Ailus" <sakari.ailus@maxwell.research.nokia.com>,
+	"Paul Mundt" <lethal@linux-sh.org>
 MIME-Version: 1.0
-To: Kai Tiwisina <kai_tiwisina@gmx.de>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: image capture with ov9655 camera and intel pxa270C5C520
-References: <20091123183928.206900@gmx.net> <Pine.LNX.4.64.0911232131590.4207@axis700.grange> <4B0B30B8.5030602@gmx.de>
-In-Reply-To: <4B0B30B8.5030602@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Guennadi,
 
-Kai Tiwisina schrieb:
-> Hello everyone,
+> Convert soc-camera core and all soc-camera drivers to the new mediabus
+> API. This also takes soc-camera client drivers one step closer to also be
+> usable with generic v4l2-subdev host drivers.
+
+Just a quick question:
+
+> @@ -323,28 +309,39 @@ static int mt9m001_s_fmt(struct v4l2_subdev *sd,
+> struct v4l2_format *f)
+>  	/* No support for scaling so far, just crop. TODO: use skipping */
+>  	ret = mt9m001_s_crop(sd, &a);
+>  	if (!ret) {
+> -		pix->width = mt9m001->rect.width;
+> -		pix->height = mt9m001->rect.height;
+> -		mt9m001->fourcc = pix->pixelformat;
+> +		mf->width	= mt9m001->rect.width;
+> +		mf->height	= mt9m001->rect.height;
+> +		mt9m001->fmt	= soc_mbus_find_datafmt(mf->code,
+> +					mt9m001->fmts, mt9m001->num_fmts);
+> +		mf->colorspace	= mt9m001->fmt->colorspace;
+>  	}
 >
-> here is a little update to my question and to the source code.
+>  	return ret;
+>  }
 >
-> After i implemented an function with the VIDIOC_ENUM_FMT ioctl i 
-> recognized, that only two formats are support by the driver by now. 
-> (Thanks to Mr. Liakhovetski by the way ;) )
-> The output.txt shows the output of this function and mentions the two 
-> different types.
+> -static int mt9m001_try_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
+> +static int mt9m001_try_fmt(struct v4l2_subdev *sd,
+> +			   struct v4l2_mbus_framefmt *mf)
+>  {
+>  	struct i2c_client *client = sd->priv;
+>  	struct mt9m001 *mt9m001 = to_mt9m001(client);
+> -	struct v4l2_pix_format *pix = &f->fmt.pix;
+> +	const struct soc_mbus_datafmt *fmt;
 >
-> One is definately the V4L2_PIX_FMT_YUYV format but i don't know the 
-> other one exactly...
+> -	v4l_bound_align_image(&pix->width, MT9M001_MIN_WIDTH,
+> +	v4l_bound_align_image(&mf->width, MT9M001_MIN_WIDTH,
+>  		MT9M001_MAX_WIDTH, 1,
+> -		&pix->height, MT9M001_MIN_HEIGHT + mt9m001->y_skip_top,
+> +		&mf->height, MT9M001_MIN_HEIGHT + mt9m001->y_skip_top,
+>  		MT9M001_MAX_HEIGHT + mt9m001->y_skip_top, 0, 0);
 >
-> I changed my set_format function after i got this information and 
-> unfortunately nothing has changed...
+> -	if (pix->pixelformat == V4L2_PIX_FMT_SBGGR8 ||
+> -	    pix->pixelformat == V4L2_PIX_FMT_SBGGR16)
+> -		pix->height = ALIGN(pix->height - 1, 2);
+> +	if (mt9m001->fmts == mt9m001_colour_fmts)
+> +		mf->height = ALIGN(mf->height - 1, 2);
+> +
+> +	fmt = soc_mbus_find_datafmt(mf->code, mt9m001->fmts,
+> +				    mt9m001->num_fmts);
+> +	if (!fmt) {
+> +		fmt = mt9m001->fmt;
+> +		mf->code = fmt->code;
+> +	}
+> +
+> +	mf->colorspace	= fmt->colorspace;
 >
-> Perhaps there are some further possibilities to solve this Problem.
->
-> Maybe there have some other v4l2 structures to be initialized, befor 
-> the VIDIOC_S_FMT ioctl runs?
-You have to set fmt.fmt.pix.field toV4L2_FIELD_ANY and only YUV is 
-supported at the moment.
+>  	return 0;
+>  }
+
+Why do the sensor drivers use soc_mbus_find_datafmt? They only seem to be
+interested in the colorspace field, but I don't see the reason for that.
+Most if not all sensors have a fixed colorspace depending on the
+pixelcode, so they can just ignore the colorspace that the caller
+requested and replace it with their own.
+
+I didn't have time for a full review, so I might have missed something.
 
 Regards,
-    Stefan
-> Guennadi Liakhovetski wrote:
->> Hi Kai
->>
->> On Mon, 23 Nov 2009, Kai Tiwisina wrote:
->>
->>  
->>> Hello,
->>>
->>> my name is Kai Tiwisina and i'm a student in germany and i'm trying 
->>> to communicate with a Omnivision ov9655 camera which is atteched 
->>> with my embedded linux system via the v4l commands.
->>>
->>> I've written a small testprogram which should grow step by step 
->>> while i'm trying one ioctl after another.
->>> Everything worked fine until i tried to use the VIDIOC_S_FMT ioctl. 
->>> It's always giving me an "invalid argument" failure and i don't know 
->>> why.
->>>     
->>
->> Since you don't seem to have the source of the driver at hand, I'd 
->> suggest to use the VIDIOC_ENUM_FMT 
->> http://v4l2spec.bytesex.org/spec/r8367.htm ioctl to enumerate all 
->> pixel formats supported be the driver. If the driver you're using is 
->> the same, that Stefan (cc'ed) has submitted to the list, then indeed 
->> it does not support the V4L2_PIX_FMT_RGB555 format, that you're 
->> requesting, only various YUV (and a Bayer?) formats.
->>
->>  
->>> Perhaps someone of you is able to help me with this ioctl and give 
->>> an advice for a simple flow chart for a single frame image capture. 
->>> Which ioctl steps are neccessary and where do i need loops and for 
->>> what, because the capture-example.c from bytesex.org is way too 
->>> general for my purpose.
->>>     
->>
->> Thanks
->> Guennadi
->> ---
->> Guennadi Liakhovetski, Ph.D.
->> Freelance Open-Source Software Developer
->> http://www.open-technology.de/
->>
->>   
->
 
+        Hans
 
 -- 
-Dipl.-Ing. Stefan Herbrechtsmeier
-
-Heinz Nixdorf Institute
-University of Paderborn 
-System and Circuit Technology 
-Fürstenallee 11
-D-33102 Paderborn (Germany)
-
-office : F0.415
-phone  : + 49 5251 - 60 6342
-fax    : + 49 5251 - 60 6351
-
-mailto : hbmeier@hni.upb.de
-
-www    : http://wwwhni.upb.de/sct/mitarbeiter/hbmeier
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
