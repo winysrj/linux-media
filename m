@@ -1,443 +1,435 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56506 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755473AbZKTVnb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2009 16:43:31 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	khilman@deeprootsystems.com
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH 1/2] V4L - vpfe_capture - convert ccdc drivers to platform drivers
-Date: Fri, 20 Nov 2009 16:43:33 -0500
-Message-Id: <1258753414-11514-1-git-send-email-m-karicheri2@ti.com>
+Received: from qw-out-2122.google.com ([74.125.92.26]:18051 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751407AbZK0BeW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Nov 2009 20:34:22 -0500
+Subject: [IR-RFC PATCH v4 3/6] Configfs support for IR
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-input@vger.kernel.org
+From: Jon Smirl <jonsmirl@gmail.com>
+Date: Thu, 26 Nov 2009 20:34:25 -0500
+Message-ID: <20091127013425.7671.82158.stgit@terra>
+In-Reply-To: <20091127013217.7671.32355.stgit@terra>
+References: <20091127013217.7671.32355.stgit@terra>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+Now uses configfs to build mappings from remote buttons to key strokes. When ir-core loads it creates /config/remotes. Make a directory for each remote you have; this will cause a new input devices to be created. Inside these directories make a directory for each key on the remote. In the key directory attributes fill in the protocol, device, command, keycode. Since this is configfs all of this can be easily scripted.
 
-Current implementation defines ccdc memory map in vpfe capture platform
-file and update the same in ccdc through a function call. This will not
-scale well. For example for DM365 CCDC, there are are additional memory
-map for Linear table. So it is cleaner to define memory map for ccdc 
-driver in the platform file and read it by the ccdc platform driver during
-probe.
+Now when a key is pressed on a remote, the configfs directories are searched for a match on protocol, device, command. If a matches is found, a key stroke corresponding to keycode is created and sent on the input device that was created when the directory for the remote was made.
 
-This is only for review purpose only.
-
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+The configfs directories are pretty flexible. You can use them to map multiple remotes to the same key stroke, or send a single button push to multiple apps.
 ---
-Applies to linux-davinci tree
- drivers/media/video/davinci/dm355_ccdc.c   |   90 +++++++++++++++++++++++----
- drivers/media/video/davinci/dm644x_ccdc.c  |   78 ++++++++++++++++++++----
- drivers/media/video/davinci/vpfe_capture.c |   56 ++---------------
- 3 files changed, 148 insertions(+), 76 deletions(-)
+ drivers/input/ir/Makefile      |    2 
+ drivers/input/ir/ir-configfs.c |  348 ++++++++++++++++++++++++++++++++++++++++
+ drivers/input/ir/ir-core.c     |   15 +-
+ 3 files changed, 354 insertions(+), 11 deletions(-)
+ create mode 100644 drivers/input/ir/ir-configfs.c
 
-diff --git a/drivers/media/video/davinci/dm355_ccdc.c b/drivers/media/video/davinci/dm355_ccdc.c
-index 4629cab..ff81f07 100644
---- a/drivers/media/video/davinci/dm355_ccdc.c
-+++ b/drivers/media/video/davinci/dm355_ccdc.c
-@@ -37,6 +37,7 @@
- #include <linux/platform_device.h>
- #include <linux/uaccess.h>
- #include <linux/videodev2.h>
-+#include <mach/mux.h>
- #include <media/davinci/dm355_ccdc.h>
- #include <media/davinci/vpss.h>
- #include "dm355_ccdc_regs.h"
-@@ -64,7 +65,6 @@ static struct ccdc_params_raw ccdc_hw_params_raw = {
- 	},
- 	.config_params = {
- 		.datasft = 2,
--		.data_sz = CCDC_DATA_10BITS,
- 		.mfilt1 = CCDC_NO_MEDIAN_FILTER1,
- 		.mfilt2 = CCDC_NO_MEDIAN_FILTER2,
- 		.alaw = {
-@@ -105,7 +105,6 @@ static struct ccdc_params_ycbcr ccdc_hw_params_ycbcr = {
+diff --git a/drivers/input/ir/Makefile b/drivers/input/ir/Makefile
+index 6acb665..2ccdda3 100644
+--- a/drivers/input/ir/Makefile
++++ b/drivers/input/ir/Makefile
+@@ -4,5 +4,5 @@
+ # Each configuration option enables a list of files.
  
- static enum vpfe_hw_if_type ccdc_if_type;
- static void *__iomem ccdc_base_addr;
--static int ccdc_addr_size;
+ obj-$(CONFIG_INPUT_IR)		+= ir.o
+-ir-objs := ir-core.o
++ir-objs := ir-core.o ir-configfs.o
  
- /* Raw Bayer formats */
- static u32 ccdc_raw_bayer_pix_formats[] =
-@@ -126,12 +125,6 @@ static inline void regw(u32 val, u32 offset)
- 	__raw_writel(val, ccdc_base_addr + offset);
- }
- 
--static void ccdc_set_ccdc_base(void *addr, int size)
--{
--	ccdc_base_addr = addr;
--	ccdc_addr_size = size;
--}
--
- static void ccdc_enable(int en)
- {
- 	unsigned int temp;
-@@ -938,7 +931,6 @@ static struct ccdc_hw_device ccdc_hw_dev = {
- 	.hw_ops = {
- 		.open = ccdc_open,
- 		.close = ccdc_close,
--		.set_ccdc_base = ccdc_set_ccdc_base,
- 		.enable = ccdc_enable,
- 		.enable_out_to_sdram = ccdc_enable_output_to_sdram,
- 		.set_hw_if_params = ccdc_set_hw_if_params,
-@@ -959,19 +951,89 @@ static struct ccdc_hw_device ccdc_hw_dev = {
- 	},
- };
- 
--static int dm355_ccdc_init(void)
-+static int __init dm355_ccdc_probe(struct platform_device *pdev)
- {
--	printk(KERN_NOTICE "dm355_ccdc_init\n");
--	if (vpfe_register_ccdc_device(&ccdc_hw_dev) < 0)
--		return -1;
-+	static resource_size_t  res_len;
-+	struct resource	*res;
-+	int status = 0;
+diff --git a/drivers/input/ir/ir-configfs.c b/drivers/input/ir/ir-configfs.c
+new file mode 100644
+index 0000000..e0819bb
+--- /dev/null
++++ b/drivers/input/ir/ir-configfs.c
+@@ -0,0 +1,348 @@
++/*
++ * Configfs routines for IR support
++ *
++ *   configfs root
++ *   --remotes
++ *   ----specific remote
++ *   ------keymap
++ *   --------protocol
++ *   --------device
++ *   --------command
++ *   --------keycode
++ *   ------repeat keymaps
++ *   --------....
++ *   ----another remote
++ *   ------more keymaps
++ *   --------....
++ *
++ * Copyright (C) 2008 Jon Smirl <jonsmirl@gmail.com>
++ */
 +
-+	/**
-+	 * first try to register with vpfe. If not correct platform, then we
-+	 * don't have to iomap
-+	 */
-+	status = vpfe_register_ccdc_device(&ccdc_hw_dev);
-+	if (status < 0)
-+		return status;
++#include <linux/kernel.h>
++#include <linux/device.h>
++#include <linux/input.h>
 +
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res) {
-+		status = -ENOENT;
-+		goto fail_nores;
-+	}
-+	res_len = res->end - res->start + 1;
++#include "ir.h"
 +
-+	res = request_mem_region(res->start, res_len, res->name);
-+	if (!res) {
-+		status = -EBUSY;
-+		goto fail_nores;
-+	}
-+
-+	ccdc_base_addr = ioremap_nocache(res->start, res_len);
-+	if (!ccdc_base_addr) {
-+		status = -EBUSY;
-+		goto fail;
-+	}
-+	/**
-+	 * setup Mux configuration for vpfe input and register
-+	 * vpfe capture platform device
-+	 */
-+	davinci_cfg_reg(DM355_VIN_PCLK);
-+	davinci_cfg_reg(DM355_VIN_CAM_WEN);
-+	davinci_cfg_reg(DM355_VIN_CAM_VD);
-+	davinci_cfg_reg(DM355_VIN_CAM_HD);
-+	davinci_cfg_reg(DM355_VIN_YIN_EN);
-+	davinci_cfg_reg(DM355_VIN_CINL_EN);
-+	davinci_cfg_reg(DM355_VIN_CINH_EN);
-+
- 	printk(KERN_NOTICE "%s is registered with vpfe.\n",
- 		ccdc_hw_dev.name);
- 	return 0;
-+fail:
-+	release_mem_region(res->start, res_len);
-+fail_nores:
-+	vpfe_unregister_ccdc_device(&ccdc_hw_dev);
-+	return status;
- }
- 
--static void dm355_ccdc_exit(void)
-+static int dm355_ccdc_remove(struct platform_device *pdev)
- {
-+	struct resource	*res;
-+
-+	iounmap(ccdc_base_addr);
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (res)
-+		release_mem_region(res->start, res->end - res->start + 1);
- 	vpfe_unregister_ccdc_device(&ccdc_hw_dev);
-+	return 0;
-+}
-+
-+static struct platform_driver dm355_ccdc_driver = {
-+	.driver = {
-+		.name	= "dm355_ccdc",
-+		.owner = THIS_MODULE,
-+	},
-+	.remove = __devexit_p(dm355_ccdc_remove),
-+	.probe = dm355_ccdc_probe,
++struct keymap {
++	struct config_item item;
++	int protocol;
++	int device;
++	int command;
++	int keycode;
 +};
 +
-+static int dm355_ccdc_init(void)
++static inline struct keymap *to_keymap(struct config_item *item)
 +{
-+	return platform_driver_register(&dm355_ccdc_driver);
++	return item ? container_of(item, struct keymap, item) : NULL;
 +}
 +
-+static void dm355_ccdc_exit(void)
-+{
-+	platform_driver_unregister(&dm355_ccdc_driver);
- }
- 
- module_init(dm355_ccdc_init);
-diff --git a/drivers/media/video/davinci/dm644x_ccdc.c b/drivers/media/video/davinci/dm644x_ccdc.c
-index 2f19a91..2469b41 100644
---- a/drivers/media/video/davinci/dm644x_ccdc.c
-+++ b/drivers/media/video/davinci/dm644x_ccdc.c
-@@ -85,7 +85,6 @@ static u32 ccdc_raw_yuv_pix_formats[] =
- 	{V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_YUYV};
- 
- static void *__iomem ccdc_base_addr;
--static int ccdc_addr_size;
- static enum vpfe_hw_if_type ccdc_if_type;
- 
- /* register access routines */
-@@ -99,12 +98,6 @@ static inline void regw(u32 val, u32 offset)
- 	__raw_writel(val, ccdc_base_addr + offset);
- }
- 
--static void ccdc_set_ccdc_base(void *addr, int size)
--{
--	ccdc_base_addr = addr;
--	ccdc_addr_size = size;
--}
--
- static void ccdc_enable(int flag)
- {
- 	regw(flag, CCDC_PCR);
-@@ -838,7 +831,6 @@ static struct ccdc_hw_device ccdc_hw_dev = {
- 	.hw_ops = {
- 		.open = ccdc_open,
- 		.close = ccdc_close,
--		.set_ccdc_base = ccdc_set_ccdc_base,
- 		.reset = ccdc_sbl_reset,
- 		.enable = ccdc_enable,
- 		.set_hw_if_params = ccdc_set_hw_if_params,
-@@ -859,19 +851,79 @@ static struct ccdc_hw_device ccdc_hw_dev = {
- 	},
- };
- 
--static int dm644x_ccdc_init(void)
-+static int __init dm644x_ccdc_probe(struct platform_device *pdev)
- {
--	printk(KERN_NOTICE "dm644x_ccdc_init\n");
--	if (vpfe_register_ccdc_device(&ccdc_hw_dev) < 0)
--		return -1;
-+	static resource_size_t  res_len;
-+	struct resource	*res;
-+	int status = 0;
-+
-+	/**
-+	 * first try to register with vpfe. If not correct platform, then we
-+	 * don't have to iomap
-+	 */
-+	status = vpfe_register_ccdc_device(&ccdc_hw_dev);
-+	if (status < 0)
-+		return status;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res) {
-+		status = -ENOENT;
-+		goto fail_nores;
-+	}
-+
-+	res_len = res->end - res->start + 1;
-+
-+	res = request_mem_region(res->start, res_len, res->name);
-+	if (!res) {
-+		status = -EBUSY;
-+		goto fail_nores;
-+	}
-+
-+	ccdc_base_addr = ioremap_nocache(res->start, res_len);
-+	if (!ccdc_base_addr) {
-+		status = -EBUSY;
-+		goto fail;
-+	}
-+
- 	printk(KERN_NOTICE "%s is registered with vpfe.\n",
- 		ccdc_hw_dev.name);
- 	return 0;
-+fail:
-+	release_mem_region(res->start, res_len);
-+fail_nores:
-+	vpfe_unregister_ccdc_device(&ccdc_hw_dev);
-+	return status;
-+}
-+
-+static int dm644x_ccdc_remove(struct platform_device *pdev)
-+{
-+	struct resource	*res;
-+
-+	iounmap(ccdc_base_addr);
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (res)
-+		release_mem_region(res->start, res->end - res->start + 1);
-+	vpfe_unregister_ccdc_device(&ccdc_hw_dev);
-+	return 0;
-+}
-+
-+static struct platform_driver dm644x_ccdc_driver = {
-+	.driver = {
-+		.name	= "dm644x_ccdc",
-+		.owner = THIS_MODULE,
-+	},
-+	.remove = __devexit_p(dm644x_ccdc_remove),
-+	.probe = dm644x_ccdc_probe,
++struct remote {
++	struct config_group group;
++	struct input_dev *input;
 +};
 +
-+static int dm644x_ccdc_init(void)
++static inline struct remote *to_remote(struct config_group *group)
 +{
-+	return platform_driver_register(&dm644x_ccdc_driver);
- }
- 
- static void dm644x_ccdc_exit(void)
- {
--	vpfe_unregister_ccdc_device(&ccdc_hw_dev);
-+	platform_driver_unregister(&dm644x_ccdc_driver);
- }
- 
- module_init(dm644x_ccdc_init);
-diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
-index 402ce43..cad60e3 100644
---- a/drivers/media/video/davinci/vpfe_capture.c
-+++ b/drivers/media/video/davinci/vpfe_capture.c
-@@ -108,9 +108,6 @@ struct ccdc_config {
- 	int vpfe_probed;
- 	/* name of ccdc device */
- 	char name[32];
--	/* for storing mem maps for CCDC */
--	int ccdc_addr_size;
--	void *__iomem ccdc_addr;
- };
- 
- /* data structures */
-@@ -230,7 +227,6 @@ int vpfe_register_ccdc_device(struct ccdc_hw_device *dev)
- 	BUG_ON(!dev->hw_ops.set_image_window);
- 	BUG_ON(!dev->hw_ops.get_image_window);
- 	BUG_ON(!dev->hw_ops.get_line_length);
--	BUG_ON(!dev->hw_ops.setfbaddr);
- 	BUG_ON(!dev->hw_ops.getfid);
- 
- 	mutex_lock(&ccdc_lock);
-@@ -241,25 +237,23 @@ int vpfe_register_ccdc_device(struct ccdc_hw_device *dev)
- 		 * walk through it during vpfe probe
- 		 */
- 		printk(KERN_ERR "vpfe capture not initialized\n");
--		ret = -1;
-+		ret = -EFAULT;
- 		goto unlock;
- 	}
- 
- 	if (strcmp(dev->name, ccdc_cfg->name)) {
- 		/* ignore this ccdc */
--		ret = -1;
-+		ret = -EINVAL;
- 		goto unlock;
- 	}
- 
- 	if (ccdc_dev) {
- 		printk(KERN_ERR "ccdc already registered\n");
--		ret = -1;
-+		ret = -EINVAL;
- 		goto unlock;
- 	}
- 
- 	ccdc_dev = dev;
--	dev->hw_ops.set_ccdc_base(ccdc_cfg->ccdc_addr,
--				  ccdc_cfg->ccdc_addr_size);
- unlock:
- 	mutex_unlock(&ccdc_lock);
- 	return ret;
-@@ -1338,7 +1332,7 @@ static int vpfe_reqbufs(struct file *file, void *priv,
- 	vpfe_dev->memory = req_buf->memory;
- 	videobuf_queue_dma_contig_init(&vpfe_dev->buffer_queue,
- 				&vpfe_videobuf_qops,
--				NULL,
-+				vpfe_dev->pdev,
- 				&vpfe_dev->irqlock,
- 				req_buf->type,
- 				vpfe_dev->fmt.fmt.pix.field,
-@@ -1883,46 +1877,22 @@ static __init int vpfe_probe(struct platform_device *pdev)
- 	}
- 	vpfe_dev->ccdc_irq1 = res1->start;
- 
--	/* Get address base of CCDC */
--	res1 = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res1) {
--		v4l2_err(pdev->dev.driver,
--			"Unable to get register address map\n");
--		ret = -ENOENT;
--		goto probe_disable_clock;
--	}
--
--	ccdc_cfg->ccdc_addr_size = res1->end - res1->start + 1;
--	if (!request_mem_region(res1->start, ccdc_cfg->ccdc_addr_size,
--				pdev->dev.driver->name)) {
--		v4l2_err(pdev->dev.driver,
--			"Failed request_mem_region for ccdc base\n");
--		ret = -ENXIO;
--		goto probe_disable_clock;
--	}
--	ccdc_cfg->ccdc_addr = ioremap_nocache(res1->start,
--					     ccdc_cfg->ccdc_addr_size);
--	if (!ccdc_cfg->ccdc_addr) {
--		v4l2_err(pdev->dev.driver, "Unable to ioremap ccdc addr\n");
--		ret = -ENXIO;
--		goto probe_out_release_mem1;
--	}
--
- 	ret = request_irq(vpfe_dev->ccdc_irq0, vpfe_isr, IRQF_DISABLED,
- 			  "vpfe_capture0", vpfe_dev);
- 
- 	if (0 != ret) {
- 		v4l2_err(pdev->dev.driver, "Unable to request interrupt\n");
--		goto probe_out_unmap1;
-+		goto probe_disable_clock;
- 	}
- 
++	return group ? container_of(group, struct remote, group) : NULL;
++}
 +
- 	/* Allocate memory for video device */
- 	vfd = video_device_alloc();
- 	if (NULL == vfd) {
- 		ret = -ENOMEM;
- 		v4l2_err(pdev->dev.driver,
- 			"Unable to alloc video device\n");
--		goto probe_out_release_irq;
-+		goto probe_disable_clock;
- 	}
++
++static struct configfs_attribute item_protocol = {
++	.ca_owner = THIS_MODULE,
++	.ca_name = "protocol",
++	.ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute item_device = {
++	.ca_owner = THIS_MODULE,
++	.ca_name = "device",
++	.ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute item_command = {
++	.ca_owner = THIS_MODULE,
++	.ca_name = "command",
++	.ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute item_keycode = {
++	.ca_owner = THIS_MODULE,
++	.ca_name = "keycode",
++	.ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static ssize_t item_show(struct config_item *item,
++				      struct configfs_attribute *attr,
++				      char *page)
++{
++	struct keymap *keymap = to_keymap(item);
++
++	if (attr == &item_protocol)
++		return sprintf(page, "%d\n", keymap->protocol);
++	if (attr == &item_device)
++		return sprintf(page, "%d\n", keymap->device);
++	if (attr == &item_command)
++		return sprintf(page, "%d\n", keymap->command);
++	return sprintf(page, "%d\n", keymap->keycode);
++}
++
++static ssize_t item_store(struct config_item *item,
++				       struct configfs_attribute *attr,
++				       const char *page, size_t count)
++{
++	struct keymap *keymap = to_keymap(item);
++	struct remote *remote;
++	unsigned long tmp;
++	char *p = (char *) page;
++
++	tmp = simple_strtoul(p, &p, 10);
++	if (!p || (*p && (*p != '\n')))
++		return -EINVAL;
++
++	if (tmp > INT_MAX)
++		return -ERANGE;
++
++	if (attr == &item_protocol)
++		keymap->protocol = tmp;
++	else if (attr == &item_device)
++		keymap->device = tmp;
++	else if (attr == &item_command)
++		keymap->command = tmp;
++	else {
++		if (tmp < KEY_MAX) {
++			remote = to_remote(to_config_group(item->ci_parent));
++			set_bit(tmp, remote->input->keybit);
++			keymap->keycode = tmp;
++		}
++	}
++	return count;
++}
++
++static void keymap_release(struct config_item *item)
++{
++	struct keymap *keymap = to_keymap(item);
++	struct remote *remote = to_remote(to_config_group(item->ci_parent));
++
++	printk("keymap release\n");
++	clear_bit(keymap->keycode, remote->input->keybit);
++	kfree(keymap);
++}
++
++static struct configfs_item_operations keymap_ops = {
++	.release = keymap_release,
++	.show_attribute = item_show,
++	.store_attribute = item_store,
++};
++
++/* Start the definition of the all of the attributes
++ * in a single keymap directory
++ */
++static struct configfs_attribute *keymap_attrs[] = {
++	&item_protocol,
++	&item_device,
++	&item_command,
++	&item_keycode,
++	NULL,
++};
++
++static struct config_item_type keymap_type = {
++	.ct_item_ops = &keymap_ops,
++	.ct_attrs	= keymap_attrs,
++	.ct_owner	= THIS_MODULE,
++};
++
++static struct config_item *make_keymap(struct config_group *group, const char *name)
++{
++	struct keymap *keymap;
++
++	keymap = kzalloc(sizeof(*keymap), GFP_KERNEL);
++	if (!keymap)
++		return ERR_PTR(-ENOMEM);
++
++	config_item_init_type_name(&keymap->item, name, &keymap_type);
++	return &keymap->item;
++}
++
++/*
++ * Note that, since no extra work is required on ->drop_item(),
++ * no ->drop_item() is provided.
++ */
++static struct configfs_group_operations remote_group_ops = {
++	.make_item = make_keymap,
++};
++
++static ssize_t remote_show(struct config_item *item,
++					 struct configfs_attribute *attr,
++					 char *page)
++{
++	struct config_group *group = to_config_group(item);
++	struct remote *remote  = to_remote(group);
++	const char *path;
++
++	if (strcmp(attr->ca_name, "path") == 0) {
++		path = kobject_get_path(&remote->input->dev.kobj, GFP_KERNEL);
++		strcpy(page, path);
++		kfree(path);
++		return strlen(page);
++	}
++	return sprintf(page,
++"Map for a specific remote\n"
++"Remote signals matching this map will be translated into keyboard/mouse events\n");
++}
++
++static void remote_release(struct config_item *item)
++{
++	struct config_group *group = to_config_group(item);
++	struct remote *remote  = to_remote(group);
++
++	printk("remote_release\n");
++	input_free_device(remote->input);
++	kfree(remote);
++}
++
++static struct configfs_item_operations remote_item_ops = {
++	.release	= remote_release,
++	.show_attribute	= remote_show,
++};
++
++static struct configfs_attribute remote_attr_description = {
++	.ca_owner = THIS_MODULE,
++	.ca_name = "description",
++	.ca_mode = S_IRUGO,
++};
++
++static struct configfs_attribute remote_attr_path = {
++	.ca_owner = THIS_MODULE,
++	.ca_name = "path",
++	.ca_mode = S_IRUGO,
++};
++
++static struct configfs_attribute *remote_attrs[] = {
++	&remote_attr_description,
++	&remote_attr_path,
++	NULL,
++};
++
++static struct config_item_type remote_type = {
++	.ct_item_ops	= &remote_item_ops,
++	.ct_group_ops	= &remote_group_ops,
++	.ct_attrs	= remote_attrs,
++	.ct_owner	= THIS_MODULE,
++};
++
++/* Top level remotes directory for all remotes */
++
++/* Create a new remote group */
++static struct config_group *make_remote(struct config_group *parent, const char *name)
++{
++	struct remote *remote;
++	int ret;
++
++	remote = kzalloc(sizeof(*remote), GFP_KERNEL);
++	if (!remote)
++		return ERR_PTR(-ENOMEM);
++
++	remote->input = input_allocate_device();
++	if (!remote->input) {
++		ret = -ENOMEM;
++		goto free_mem;
++	}
++	remote->input->id.bustype = BUS_VIRTUAL;
++	remote->input->name = name;
++	remote->input->phys = "remotes";
++
++	remote->input->evbit[0] = BIT_MASK(EV_KEY);
++
++	ret = input_register_device(remote->input);
++	if (ret)
++		goto free_input;
++
++	config_group_init_type_name(&remote->group, name, &remote_type);
++	return &remote->group;
++
++ free_input:
++	input_free_device(remote->input);
++ free_mem:
++	kfree(remote);
++	return ERR_PTR(ret);
++}
++
++static ssize_t remotes_show_description(struct config_item *item,
++					struct configfs_attribute *attr,
++					char *page)
++{
++	return sprintf(page,
++"This subsystem allows the creation of IR remote control maps.\n"
++"Maps allow IR signals to be mapped into key strokes or mouse events.\n");
++}
++
++static struct configfs_item_operations remotes_item_ops = {
++	.show_attribute	= remotes_show_description,
++};
++
++static struct configfs_attribute remotes_attr_description = {
++	.ca_owner = THIS_MODULE,
++	.ca_name = "description",
++	.ca_mode = S_IRUGO,
++};
++
++static struct configfs_attribute *remotes_attrs[] = {
++	&remotes_attr_description,
++	NULL,
++};
++
++/*
++ * Note that, since no extra work is required on ->drop_item(),
++ * no ->drop_item() is provided.
++ */
++static struct configfs_group_operations remotes_group_ops = {
++	.make_group	= make_remote,
++};
++
++static struct config_item_type remotes_type = {
++	.ct_item_ops	= &remotes_item_ops,
++	.ct_group_ops	= &remotes_group_ops,
++	.ct_attrs	= remotes_attrs,
++	.ct_owner	= THIS_MODULE,
++};
++
++struct configfs_subsystem input_ir_remotes = {
++	.su_group = {
++		.cg_item = {
++			.ci_namebuf = "remotes",
++			.ci_type = &remotes_type,
++		},
++	},
++};
++
++void input_ir_translate(struct input_dev *dev, int protocol, int device, int command)
++{
++	struct config_item *i, *j;
++	struct config_group *g;
++	struct remote *remote;
++	struct keymap *keymap;
++
++	/* generate the IR format event */
++	input_report_ir(dev, IR_PROTOCOL, protocol);
++	input_report_ir(dev, IR_DEVICE, device);
++	input_report_ir(dev, IR_COMMAND, command);
++	input_sync(dev);
++
++    mutex_lock(&input_ir_remotes.su_mutex);
++
++    /* search the translation maps to translate into key stroke */
++    list_for_each_entry(i, &input_ir_remotes.su_group.cg_children, ci_entry) {
++    	g = to_config_group(i);
++        list_for_each_entry(j, &g->cg_children, ci_entry) {
++        	keymap = to_keymap(j);
++        	if ((keymap->protocol == protocol) && (keymap->device == device)
++        			&& (keymap->command == command)) {
++				remote = to_remote(g);
++				input_report_key(remote->input, keymap->keycode, 1);
++				input_sync(remote->input);
++        	}
++        }
++    }
++    mutex_unlock(&input_ir_remotes.su_mutex);
++}
+diff --git a/drivers/input/ir/ir-core.c b/drivers/input/ir/ir-core.c
+index 85adfcb..9c81bac 100644
+--- a/drivers/input/ir/ir-core.c
++++ b/drivers/input/ir/ir-core.c
+@@ -10,15 +10,6 @@
  
- 	/* Initialize field of video device */
-@@ -2036,12 +2006,6 @@ probe_out_v4l2_unregister:
- probe_out_video_release:
- 	if (vpfe_dev->video_dev->minor == -1)
- 		video_device_release(vpfe_dev->video_dev);
--probe_out_release_irq:
--	free_irq(vpfe_dev->ccdc_irq0, vpfe_dev);
--probe_out_unmap1:
--	iounmap(ccdc_cfg->ccdc_addr);
--probe_out_release_mem1:
--	release_mem_region(res1->start, res1->end - res1->start + 1);
- probe_disable_clock:
- 	vpfe_disable_clock(vpfe_dev);
- 	mutex_unlock(&ccdc_lock);
-@@ -2057,7 +2021,6 @@ probe_free_dev_mem:
- static int vpfe_remove(struct platform_device *pdev)
+ #include "ir.h"
+ 
+-void input_ir_translate(struct input_dev *dev, int protocol, int device, int command)
+-{
+-	/* generate the IR format event */
+-	input_report_ir(dev, IR_PROTOCOL, protocol);
+-	input_report_ir(dev, IR_DEVICE, device);
+-	input_report_ir(dev, IR_COMMAND, command);
+-	input_sync(dev);
+-}
+-
+ static int encode_sony(struct ir_device *ir, struct ir_command *command)
  {
- 	struct vpfe_device *vpfe_dev = platform_get_drvdata(pdev);
--	struct resource *res;
+ 	/* Sony SIRC IR code */
+@@ -725,11 +716,15 @@ void input_ir_destroy(struct input_dev *dev)
  
- 	v4l2_info(pdev->dev.driver, "vpfe_remove\n");
+ static int __init input_ir_init(void)
+ {
+-	return 0;
++	config_group_init(&input_ir_remotes.su_group);
++	mutex_init(&input_ir_remotes.su_mutex);
++
++	return configfs_register_subsystem(&input_ir_remotes);
+ }
+ module_init(input_ir_init);
  
-@@ -2065,11 +2028,6 @@ static int vpfe_remove(struct platform_device *pdev)
- 	kfree(vpfe_dev->sd);
- 	v4l2_device_unregister(&vpfe_dev->v4l2_dev);
- 	video_unregister_device(vpfe_dev->video_dev);
--	mutex_lock(&ccdc_lock);
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	release_mem_region(res->start, res->end - res->start + 1);
--	iounmap(ccdc_cfg->ccdc_addr);
--	mutex_unlock(&ccdc_lock);
- 	vpfe_disable_clock(vpfe_dev);
- 	kfree(vpfe_dev);
- 	kfree(ccdc_cfg);
--- 
-1.6.0.4
+ static void __exit input_ir_exit(void)
+ {
++	configfs_unregister_subsystem(&input_ir_remotes);
+ }
+ module_exit(input_ir_exit);
 
