@@ -1,54 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail5.sea5.speakeasy.net ([69.17.117.7]:59516 "EHLO
-	mail5.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752922AbZKZXJw (ORCPT
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:58020 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752018AbZK0Pnn convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 18:09:52 -0500
-Date: Thu, 26 Nov 2009 15:09:58 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-cc: Christoph Bartelmus <lirc@bartelmus.de>, dmitry.torokhov@gmail.com,
-	j@jannau.net, jarod@redhat.com, khc@pm.waw.pl,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, superm1@ubuntu.com
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
- Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-In-Reply-To: <4B0EEC21.9010001@redhat.com>
-Message-ID: <Pine.LNX.4.58.0911261505120.30284@shell2.speakeasy.net>
-References: <BDcc3mfojFB@christoph> <4B0EEC21.9010001@redhat.com>
+	Fri, 27 Nov 2009 10:43:43 -0500
+Received: by ewy19 with SMTP id 19so1539640ewy.21
+        for <linux-media@vger.kernel.org>; Fri, 27 Nov 2009 07:43:48 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <83bcf6340911260801l551afdd1i70f3254424cc782e@mail.gmail.com>
+References: <200911181354.06529.laurent.pinchart@ideasonboard.com>
+	 <200911251721.26506.laurent.pinchart@ideasonboard.com>
+	 <83bcf6340911260801l551afdd1i70f3254424cc782e@mail.gmail.com>
+Date: Fri, 27 Nov 2009 10:43:48 -0500
+Message-ID: <83bcf6340911270743j2def0109i1ff567f699d8369b@mail.gmail.com>
+Subject: Re: [PATCH/RFC v2] V4L core cleanups HG tree
+From: Steven Toth <stoth@kernellabs.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, stoth@linuxtv.org, hverkuil@xs4all.nl,
+	mchehab@infradead.org, srinivasa.deevi@conexant.com,
+	dean@sensoray.com, palash.bandyopadhyay@conexant.com,
+	awalls@radix.net, dheitmueller@kernellabs.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 26 Nov 2009, Mauro Carvalho Chehab wrote:
-> >> lircd supports input layer interface. Yet, patch 3/3 exports both devices
-> >> that support only pulse/space raw mode and devices that generate scan
-> >> codes via the raw mode interface. It does it by generating artificial
-> >> pulse codes.
-> >
-> > Nonsense! There's no generation of artificial pulse codes in the drivers.
-> > The LIRC interface includes ways to pass decoded IR codes of arbitrary
-> > length to userspace.
+>>> I can't wait for an explicit ack from all maintainers (mostly because I
+>>>  don't know you all), so I'll send a pull request in a week if there's no
+>>>  blocking issue. I'd like this to get in 2.6.33 if possible.
 >
-> I might have got wrong then a comment in the middle of the
-> imon_incoming_packet() of the SoundGraph iMON IR patch:
+> I have a pile of testing in the next few days. In light of Devin's
+> OOPS I'll test the cx88 and cx23885 changes and report back by sunday.
 >
-> +	/*
-> +	 * Translate received data to pulse and space lengths.
-> +	 * Received data is active low, i.e. pulses are 0 and
-> +	 * spaces are 1.
+> Thanks for the cleanups Laurent.
 
-I'm not sure about this specific code, but what is likely
-going on here is the waveform is being RLE encoding.
+I'm fine with the cx88 and cx23885 changes.
 
-For example, a cx88 receiver has two ways of being connected (without
-using an external decoder chip).  One generates an IRQ on each
-edge of the signal.  The time between IRQs gives mark/space lengths
-which is what lirc expects.  This is how a simple serial port receiver
-works too.
+Acked-By: Steven Toth <stoth@kernellabs.com>
 
-Another connections effectivly samples the waveform one bit deep at IIRC
-4kHz.  I think that's what the code you are looking at gets.  The code
-extracts the edges from the waveform and returns the time between them.  In
-effect one is run length encoding a sequence of bits.
+
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
