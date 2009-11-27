@@ -1,74 +1,246 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.uniroma2.it ([160.80.6.16]:42759 "EHLO smtp.uniroma2.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751409AbZK3Vvj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Nov 2009 16:51:39 -0500
-Received: from lists.uniroma2.it (lists.uniroma2.it [160.80.1.182])
-	by smtp.uniroma2.it (8.13.6/8.13.6) with ESMTP id nAUMna7d031794
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 30 Nov 2009 23:49:38 +0100
-Received: from apple-juice.local (host220-230-dynamic.22-79-r.retail.telecomitalia.it [79.22.230.220])
-	(authenticated bits=0)
-	by lists.uniroma2.it (8.13.1/8.13.1) with ESMTP id nAULpcBY002837
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 30 Nov 2009 22:51:40 +0100
-Message-ID: <4B143E29.4090307@autistici.org>
-Date: Mon, 30 Nov 2009 22:50:33 +0100
-From: "OrazioPirataDelloSpazio (Lorenzo)" <ziducaixao@autistici.org>
+Received: from qw-out-2122.google.com ([74.125.92.25]:59852 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752392AbZK0BeY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Nov 2009 20:34:24 -0500
+Subject: [IR-RFC PATCH v4 4/6] GPT driver for in-kernel IR support.
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-input@vger.kernel.org
+From: Jon Smirl <jonsmirl@gmail.com>
+Date: Thu, 26 Nov 2009 20:34:27 -0500
+Message-ID: <20091127013427.7671.52935.stgit@terra>
+In-Reply-To: <20091127013217.7671.32355.stgit@terra>
+References: <20091127013217.7671.32355.stgit@terra>
 MIME-Version: 1.0
-CC: linux-media@vger.kernel.org
-Subject: Re: DIY Satellite Web Radio
-References: <4B14195D.6000205@autistici.org> <4B142E2C.1020108@redhat.com>
-In-Reply-To: <4B142E2C.1020108@redhat.com>
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig799A2F20E14180EA8E94FDEC"
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig799A2F20E14180EA8E94FDEC
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+GPT is a GPIO pin that is cable able of measuring the lenght of pulses.
+GPTs are common on embedded systems
+---
+ drivers/input/ir/Kconfig  |    6 +
+ drivers/input/ir/Makefile |    3 +
+ drivers/input/ir/ir-gpt.c |  184 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 193 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/input/ir/ir-gpt.c
 
-Mauro Carvalho Chehab ha scritto:
-> Receiving sat signals without dishes? From some trials we had on a telc=
-o
-> I used to work, You would need to use a network of low-orbit satellites=
-,
-> carefully choosing the better frequencies and it will provide you
-> low bandwidth.
-I also believed this, but their use geostationary orbit [1] and
-terrestrial devices handly and without dishes [2] [3].
-I belive they should rely on some very robust modulation e channel
-coding, but unfortunately I didn't find any specification.
+diff --git a/drivers/input/ir/Kconfig b/drivers/input/ir/Kconfig
+index a6f3f25..172c0c6 100644
+--- a/drivers/input/ir/Kconfig
++++ b/drivers/input/ir/Kconfig
+@@ -12,4 +12,10 @@ menuconfig INPUT_IR
+ 
+ if INPUT_IR
+ 
++config IR_GPT
++	tristate "GPT Based IR Receiver"
++	default m
++	help
++	  Driver for GPT-based IR receiver found on Digispeaker
++
+ endif
+diff --git a/drivers/input/ir/Makefile b/drivers/input/ir/Makefile
+index 2ccdda3..ab0da3f 100644
+--- a/drivers/input/ir/Makefile
++++ b/drivers/input/ir/Makefile
+@@ -6,3 +6,6 @@
+ obj-$(CONFIG_INPUT_IR)		+= ir.o
+ ir-objs := ir-core.o ir-configfs.o
+ 
++
++obj-$(CONFIG_IR_GPT)		+= ir-gpt.o
++
+diff --git a/drivers/input/ir/ir-gpt.c b/drivers/input/ir/ir-gpt.c
+new file mode 100644
+index 0000000..41d2fa6
+--- /dev/null
++++ b/drivers/input/ir/ir-gpt.c
+@@ -0,0 +1,184 @@
++/*
++ * GPT timer based IR device
++ *
++ * Copyright (C) 2008 Jon Smirl <jonsmirl@gmail.com>
++ */
++
++#define DEBUG
++
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/interrupt.h>
++#include <linux/device.h>
++#include <linux/of_device.h>
++#include <linux/of_platform.h>
++#include <linux/input.h>
++#include <asm/io.h>
++#include <asm/mpc52xx.h>
++
++struct ir_gpt {
++	struct input_dev *input;
++	int irq, previous;
++	struct mpc52xx_gpt __iomem *regs;
++};
++
++/*
++ * Interrupt handlers
++ */
++static irqreturn_t dpeak_ir_irq(int irq, void *_ir)
++{
++	struct ir_gpt *ir_gpt = _ir;
++	int sample, count, delta, bit, wrap;
++
++	sample = in_be32(&ir_gpt->regs->status);
++	out_be32(&ir_gpt->regs->status, 0xF);
++
++	count = sample >> 16;
++	wrap = (sample >> 12) & 7;
++	bit = (sample >> 8) & 1;
++
++	delta = count - ir_gpt->previous;
++	delta += wrap * 0x10000;
++
++	ir_gpt->previous = count;
++
++	if (bit)
++		delta = -delta;
++
++	input_ir_queue(ir_gpt->input, delta);
++
++	return IRQ_HANDLED;
++}
++
++
++/* ---------------------------------------------------------------------
++ * OF platform bus binding code:
++ * - Probe/remove operations
++ * - OF device match table
++ */
++static int __devinit ir_gpt_of_probe(struct of_device *op,
++				      const struct of_device_id *match)
++{
++	struct ir_gpt *ir_gpt;
++	struct resource res;
++	int ret, rc;
++
++	dev_dbg(&op->dev, "ir_gpt_of_probe\n");
++
++	/* Allocate and initialize the driver private data */
++	ir_gpt = kzalloc(sizeof *ir_gpt, GFP_KERNEL);
++	if (!ir_gpt)
++		return -ENOMEM;
++
++	ir_gpt->input = input_allocate_device();
++	if (!ir_gpt->input) {
++		ret = -ENOMEM;
++		goto free_mem;
++	}
++	ret = input_ir_create(ir_gpt->input, ir_gpt, NULL);
++	if (ret)
++		goto free_input;
++
++	ir_gpt->input->id.bustype = BUS_HOST;
++	ir_gpt->input->name = "GPT IR Receiver";
++
++	ir_gpt->input->irbit[0] |= BIT_MASK(IR_CAP_RECEIVE_36K);
++	ir_gpt->input->irbit[0] |= BIT_MASK(IR_CAP_RECEIVE_38K);
++	ir_gpt->input->irbit[0] |= BIT_MASK(IR_CAP_RECEIVE_40K);
++	ir_gpt->input->irbit[0] |= BIT_MASK(IR_CAP_RECEIVE_RAW);
++
++	ret = input_register_device(ir_gpt->input);
++	if (ret)
++		goto free_input;
++	ret = input_ir_register(ir_gpt->input);
++	if (ret)
++		goto free_input;
++
++	/* Fetch the registers and IRQ of the GPT */
++	if (of_address_to_resource(op->node, 0, &res)) {
++		dev_err(&op->dev, "Missing reg property\n");
++		ret = -ENODEV;
++		goto free_input;
++	}
++	ir_gpt->regs = ioremap(res.start, 1 + res.end - res.start);
++	if (!ir_gpt->regs) {
++		dev_err(&op->dev, "Could not map registers\n");
++		ret = -ENODEV;
++		goto free_input;
++	}
++	ir_gpt->irq = irq_of_parse_and_map(op->node, 0);
++	if (ir_gpt->irq == NO_IRQ) {
++		ret = -ENODEV;
++		goto free_input;
++	}
++	dev_dbg(&op->dev, "ir_gpt_of_probe irq=%d\n", ir_gpt->irq);
++
++	rc = request_irq(ir_gpt->irq, &dpeak_ir_irq, IRQF_SHARED,
++			 "gpt-ir", ir_gpt);
++	dev_dbg(&op->dev, "ir_gpt_of_probe request irq rc=%d\n", rc);
++
++	/* set prescale to ? */
++	out_be32(&ir_gpt->regs->count, 0x00870000);
++
++	/* Select input capture, enable the counter, and interrupt */
++	out_be32(&ir_gpt->regs->mode, 0x0);
++	out_be32(&ir_gpt->regs->mode, 0x00000501);
++
++	/* Save what we've done so it can be found again later */
++	dev_set_drvdata(&op->dev, ir_gpt);
++
++	printk("GPT IR Receiver driver\n");
++
++	return 0;
++
++free_input:
++	input_free_device(ir_gpt->input);
++free_mem:
++	kfree(ir_gpt);
++	return ret;
++}
++
++static int __devexit ir_gpt_of_remove(struct of_device *op)
++{
++	struct ir_gpt *ir_gpt = dev_get_drvdata(&op->dev);
++
++	dev_dbg(&op->dev, "ir_gpt_remove()\n");
++
++	input_unregister_device(ir_gpt->input);
++	kfree(ir_gpt);
++	dev_set_drvdata(&op->dev, NULL);
++
++	return 0;
++}
++
++/* Match table for of_platform binding */
++static struct of_device_id ir_gpt_match[] __devinitdata = {
++	{ .compatible = "gpt-ir", },
++	{}
++};
++MODULE_DEVICE_TABLE(of, ir_gpt_match);
++
++static struct of_platform_driver ir_gpt_driver = {
++	.match_table = ir_gpt_match,
++	.probe = ir_gpt_of_probe,
++	.remove = __devexit_p(ir_gpt_of_remove),
++	.driver = {
++		.name = "ir-gpt",
++		.owner = THIS_MODULE,
++	},
++};
++
++/* ---------------------------------------------------------------------
++ * Module setup and teardown; simply register the of_platform driver
++ */
++static int __init ir_gpt_init(void)
++{
++	return of_register_platform_driver(&ir_gpt_driver);
++}
++module_init(ir_gpt_init);
++
++static void __exit ir_gpt_exit(void)
++{
++	of_unregister_platform_driver(&ir_gpt_driver);
++}
++module_exit(ir_gpt_exit);
 
-Lorenzo
-
-
-[1]http://en.wikipedia.org/wiki/XM_Satellite_Radio
-[2]http://shop.xmradio.com/xm/ctl10600/cp49770/si4025808/cl1/xmp3_portabl=
-e_radio_with_home_kit
-[3]http://shop.xmradio.com/xm/ctl10600/cp56879/si4343009/cl1/xm_direct_2
-
-
---------------enig799A2F20E14180EA8E94FDEC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG/MacGPG2 v2.0.12 (Darwin)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iQEcBAEBAgAGBQJLFD4vAAoJEBuiD2h8GyB+wPwH/RzR/qEeRQ0qVyDt8b0xTGIs
-28GXj0nhe28PCjloHlc6fnAgVVpvhkr6psaSfFOPMYgi5kQT2r6z3hegco+vl9kt
-dPFXZRgA3JNC69QtLnafiPJi6Y8/K+x37lO/5hpO5PsUGFivP1sLzSTdrW/dCkd3
-K25MNgJ612UEN9ynEOAmp67MigSj3/KDuwg5+pY2b2cdPMns775FurANdN+bRWAu
-3insuOCt6L6PTmatZnm6Go5GekqlrK2HqfjlpAPRz0X4UWXfo8UzUmhyvan8xa1k
-cLxRTlQiHIIdHo+qS8/GV3ndLdzo4akYBJjxZZUSWZqNEphBljMXCfDIFVevCkg=
-=KLIh
------END PGP SIGNATURE-----
-
---------------enig799A2F20E14180EA8E94FDEC--
