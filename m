@@ -1,40 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:53646 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751868AbZKCMnW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Nov 2009 07:43:22 -0500
-Received: from list by lo.gmane.org with local (Exim 4.50)
-	id 1N5IjN-0006DY-Sw
-	for linux-media@vger.kernel.org; Tue, 03 Nov 2009 13:43:25 +0100
-Received: from 78-105-205-147.zone3.bethere.co.uk ([78.105.205.147])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 03 Nov 2009 13:43:25 +0100
-Received: from topper.doggle by 78-105-205-147.zone3.bethere.co.uk with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 03 Nov 2009 13:43:25 +0100
-To: linux-media@vger.kernel.org
-From: TD <topper.doggle@googlemail.com>
-Subject: Re: [linux-dvb] Struggling with Astra 2D (Freesat) / Happauage
-  Nova-HD-S2
-Date: Tue, 3 Nov 2009 12:43:07 +0000 (UTC)
-Message-ID: <hcp8gr$odq$1@ger.gmane.org>
-References: <hcnd9s$c1f$1@ger.gmane.org> <20091102231735.63fd30c4@bk.ru>
- <hcnsfa$v70$1@ger.gmane.org>
- <a413d4880911021801t54d4eca8ra425c0957d8a6eb7@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from einhorn.in-berlin.de ([192.109.42.8]:37948 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750956AbZK0VuL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Nov 2009 16:50:11 -0500
+Message-ID: <4B104971.4020800@s5r6.in-berlin.de>
+Date: Fri, 27 Nov 2009 22:49:37 +0100
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+MIME-Version: 1.0
+To: Jon Smirl <jonsmirl@gmail.com>
+CC: Christoph Bartelmus <christoph@bartelmus.de>, jarod@wilsonet.com,
+	awalls@radix.net, dmitry.torokhov@gmail.com, j@jannau.net,
+	jarod@redhat.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	mchehab@redhat.com, superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR 	system?
+References: <9e4733910911270757j648e39ecl7487b7e6c43db828@mail.gmail.com>
+In-Reply-To: <9e4733910911270757j648e39ecl7487b7e6c43db828@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2009-11-03, Another Sillyname <anothersname@googlemail.com> wrote:
->
-> Are you running myth .21 or .22?
+Jon Smirl wrote:
+> 3) No special tools - use mkdir, echo, cat, shell scripts to build maps
 
-Hi,
+>From the POV of a distributor, there is always a special tool required.
+Whether it is implemented in bash, Python, or C doesn't make a
+difference to him.
 
-I'm running 0.22-fixes.
+For an enduser whose distributor doesn't package that tool, it also
+doesn't matter whether it is bash or Python.  (C is awkward because it
+needs to be run through gcc first.)  A Pyton tool can operate the
+existing EVIOCSKEYCODE interface just as well as a C tool.
+
+Your mkdir/ echo/ cat programs would still just this:  Programs.  Sure,
+these programs would be interpreted by an interpreter which is installed
+everywhere, and the data they operate on is in a clear text format.  The
+downside is that these programs do not exist yet.
+
+> 5) Direct multi-app support - no daemon
+
+Think of lircd (when it feeds into uinput) as of a userspace driver
+rather than a daemon.  The huge benefit of a userspace driver is that it
+can load configuration files.
+
+Multi-app support is provided by evdev of course.
+
+> What are other goals for this subsystem?
+
+  - Minimal development cost; reduced maintenance cost relative
+    the to status quo.
+
+  - No regressions would be best.
 -- 
-TD
-
+Stefan Richter
+-=====-==--= =-== ==-==
+http://arcgraph.de/sr/
