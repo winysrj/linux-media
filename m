@@ -1,110 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f202.google.com ([209.85.211.202]:34424 "EHLO
-	mail-yw0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932070AbZKMTSx convert rfc822-to-8bit (ORCPT
+Received: from mail-qy0-f192.google.com ([209.85.221.192]:38463 "EHLO
+	mail-qy0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751510AbZK0D67 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Nov 2009 14:18:53 -0500
-Received: by ywh40 with SMTP id 40so1581229ywh.33
-        for <linux-media@vger.kernel.org>; Fri, 13 Nov 2009 11:18:59 -0800 (PST)
+	Thu, 26 Nov 2009 22:58:59 -0500
 MIME-Version: 1.0
-In-Reply-To: <829197380911131001g75708155tba65e0ac3cb5b505@mail.gmail.com>
-References: <18b102300911130901g3ad57ec4x99c78e7803ec773f@mail.gmail.com>
-	 <829197380911131001g75708155tba65e0ac3cb5b505@mail.gmail.com>
-Date: Fri, 13 Nov 2009 14:18:59 -0500
-Message-ID: <18b102300911131118w5ce83bbclad2462d1a160ab45@mail.gmail.com>
-Subject: Re: Help with Sabrent TV-USBHD (Syntek Teledongle) on Ubuntu Karmic
-From: James Klaas <jklaas@appalachian.dyndns.org>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
+In-Reply-To: <4B0F43B3.4090804@wilsonet.com>
+References: <20091127013217.7671.32355.stgit@terra>
+	 <4B0F43B3.4090804@wilsonet.com>
+Date: Thu, 26 Nov 2009 22:58:59 -0500
+Message-ID: <9e4733910911261958w2911f69dk4ab747b4bf12461@mail.gmail.com>
+Subject: Re: [IR-RFC PATCH v4 0/6] In-kernel IR support using evdev
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-input@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 13, 2009 at 1:01 PM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> On Fri, Nov 13, 2009 at 12:01 PM, James Klaas
-> <jklaas@appalachian.dyndns.org> wrote:
->> I recently updated my play/work/fiddle with workstation and I wanted
->> to see if my USB card still worked (OK, it never really worked).
->>
->> Previously, I was running Ubuntu 9.04 with a version retrieved from
->> mercurial with the patch from
->> http://linuxtv.org/hg/~mkrufky/teledongle/raw-rev/676e2f4475ed.  It
->> patched without error, compiled without error and installed against
->> the stock kernel without error.  When I loaded it, it complained about
->> not being the right kind of firmware (which was noted in the
->> discussion on the device) but otherwise it seemed to load fine
->> (unfortunately, I don't seem to have a dmesg from that).  When I tried
->> using it to tune anything, it would tune a couple things, but put them
->> on channels that were far different than the ones found by other dvb
->> cards.  It did however manage to pick up the SCTE-65 data using the
->> scte65scan utility.
->>
->> Now that I've upgraded to 9.10, it no longer seems to find the tuner.
->> I retrieved v4l-dvb via mercurial yesterday (12 Nov, 2009) applied the
->> patch (which applied with a couple of offsets but no errors) and built
->> the source.  I had to disable the FireDTV driver, but other than that,
->> it compiled with some warnings but no errors.  It installed fine over
->> the stock kernel.  However, when I load it, I now get the following
->> errors in dmesg:
->>
->> [   93.770329] au0828 driver loaded
->> [   94.160154] au0828: i2c bus registered
->> [   94.201922] tveeprom 1-0050: Huh, no eeprom present (err=-5)?
->> [   94.204976] tuner 1-0000: chip found @ 0x0 (au0828)
->> [   94.271442] tuner-simple 1-0000: unable to probe Temic PAL (4002
->> FH5), proceeding anyway.
->> [   94.271452] tuner-simple 1-0000: creating new instance
->> [   94.271459] tuner-simple 1-0000: type set to 0 (Temic PAL (4002 FH5))
->> [   94.313325] tuner-simple 1-0000: i2c i/o error: rc == -5 (should be 4)
->> [   94.340407] au8522 1-0047: creating new instance
->> [   94.383357] au8522_writereg: writereg error (reg == 0xa4, val ==
->> 0x0020, ret == -5)
->> [   94.424364] au8522_writereg: writereg error (reg == 0x106, val ==
->> 0x0001, ret == -5)
->> [   94.465503] au8522_writereg: writereg error (reg == 0x106, val ==
->> 0x0001, ret == -5)
->> [   94.501336] tda18271 1-0060: creating new instance
->> [   94.543412] au8522_writereg: writereg error (reg == 0x106, val ==
->> 0x0001, ret == -5)
->> [   94.666327] au8522_writereg: writereg error (reg == 0x106, val ==
->> 0x0000, ret == -5)
->> [   94.666339] tda18271_read_regs: [1-0060|M] ERROR: i2c_transfer returned: -5
->> [   94.666347] Unknown device detected @ 1-0060, device not supported.
->> [   94.707712] au8522_writereg: writereg error (reg == 0x106, val ==
->> 0x0001, ret == -5)
->> [   94.789369] au8522_writereg: writereg error (reg == 0x106, val ==
->> 0x0000, ret == -5)
->> [   94.789376] tda18271_read_regs: [1-0060|M] ERROR: i2c_transfer returned: -5
->> [   94.789381] Unknown device detected @ 1-0060, device not supported.
->> [   94.789387] tda18271_attach: [1-0060|M] error -22 on line 1272
->> [   94.789393] tda18271 1-0060: destroying instance
->> [   94.853137] mt2131 I2C read failed
->> [   94.853350] DVB: registering new adapter (au0828)
->> [   94.853359] DVB: registering adapter 1 frontend 0 (Auvitek AU8522
->> QAM/8VSB Frontend)...
->> [   94.853943] Registered device AU0828 [Syntek Teledongle [EXPERIMENTAL]]
->>
->> Did something not patch correctly?  The patch from mkrufky is now
->> nearly a year old.  I'd really like to contribute somehow, but I have
->> no idea where I should start.
->>
->> Thank you for taking a look at this.
+On Thu, Nov 26, 2009 at 10:12 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
+>> Raw mode. There are three sysfs attributes - ir_raw, ir_carrier,
+>> ir_xmitter. Read from ir_raw to get the raw timing data from the IR
+>> device. Set carrier and active xmitters and then copy raw data to
+>> ir_raw to send. These attributes may be better on a debug switch. You
+>> would use raw mode when decoding a new protocol. After you figure out
+>> the new protocol, write an in-kernel encoder/decoder for it.
 >
-> I would start by reviewing the previous thread/discussion on this
-> particular topic with subject line: "au0828: experimental support for
-> Syntek Teledongle [05e1:0400]"
->
-> http://linuxtv.org/pipermail/linux-dvb/2009-August/032306.html
->
-> Devin
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
->
+> Also neglected to recall there was raw IR data access too. However, a few
+> things... One, this is, in some sense, cheating, as its not an input layer
+> interface being used. :) Granted though, it *is* an existing kernel
+> interface being used, instead of adding a new one. Two, there's no userspace
+> to do anything with it at this time. I mean, sure, in theory, writing it
+> wouldn't be that hard, but we can already do the same thing using the lirc
+> interface, and already have userspace code for it. I think users need/desire
+> to use raw IR modes may be more prevalent that most people think.
 
-Ah, thanks.  I somehow missed that thread.
+I would view raw mode as a developer interface which would be used to
+implement a new protocol decode engine.  There is an assumption in my
+design that all IR timings can be decoded/constructed by a protocol
+engine.  Sure we may end up with 40 protocol engines, but they are
+only about 50 lines of code. You could put each engine into a loadable
+module if you want.
 
-James
+You see raw data used a lot with Sony remotes. Sony remotes mix
+multiple protocols in a single remote. The irrecord program does not
+understand these mixed protocols and generates a raw mode config file.
+The mixed protocols don't bother the protocol state machine system.
+This happens with other mixed protocol remotes too.
+
+> Two drivers are supplied. mceusb2 implements send and receive support
+>> for the Microsoft USB IR dongle.
+>
+> I'd be game to try hacking up the lirc_mceusb driver (which has, since your
+> work was done, merged mce v1 and v2 transceiver support) to support both
+> your in-kernel interface and the lirc interface as an example of the hybrid
+> approach I'm thinking of.
+>
+>> Code is only lightly tested. Encoders and decoders have not been
+>> written for all protocols. Repeat is not handled for any protocol. I'm
+>> looking for help. There are 15 more existing LIRC drivers.
+>
+> And there's the hangup for me. The lirc drivers and interface have been
+> pretty heavily battle-tested over years and years in the field. And there
+> are those 15 more drivers that already work with the lirc interface. I'm
+> woefully short on time to work on any porting myself, and about to get even
+> shorter with some new responsibilities at work requiring even more of my
+> attention.
+>
+> If we go with a hybrid approach, all those existing drivers can be brought
+> in supporting just the lirc interface initially, and have in-kernel decode
+> support added as folks have time to work on them, if it actually makes sense
+> for those devices.
+>
+> Just trying to find a happy middle ground that minimizes regressions for
+> users *and* gives us maximum flexibility.
+
+You are going to have to choose. Recreate the problems of type
+specific devices like /dev/mouse and /dev/kbd that evdev was created
+to fix, or skip those type specific devices and go straight to evdev.
+We've known for years the /dev/mouse was badly broken. How many more
+years is it going to be before it can be removed? /dev/lirc has the
+same type of problems that /dev/mouse has. The only reason that
+/dev/lirc works now is because there is a single app that uses it.
+
+Also, implementing a new evdev based system in the kernel in no way
+breaks existing lirc installations. Just don't load the new
+implementation and everything works exactly the same way as before.
+
+I'd go the evdev only route for in-kernel and leave existing lirc out
+of tree. Existing lirc will continue to work. This is probably the
+most stable strategy, even more so than a hybrid approach. The
+in-kernel implementation will then be free to evolve without the
+constraint of legacy APIs. As people become happy with it they can
+switch over.
+
+
+-- 
+Jon Smirl
+jonsmirl@gmail.com
