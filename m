@@ -1,82 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4563 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755679AbZKRJWN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 04:22:13 -0500
-Message-ID: <a1d2e45aaaf1471c831534dec280a3c9.squirrel@webmail.xs4all.nl>
-In-Reply-To: <20091118100518.08e147ee@devenv1>
-References: <20091118084516.375817ff@devenv1>
-    <630a05e93817ce501eb6a0ddd6246a39.squirrel@webmail.xs4all.nl>
-    <20091118100518.08e147ee@devenv1>
-Date: Wed, 18 Nov 2009 10:22:18 +0100
-Subject: Re: Driver for NXP SAA7154
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Andreas Feuersinger" <andreas.feuersinger@spintower.eu>
-Cc: linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mail1.radix.net ([207.192.128.31]:41659 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752048AbZK0VL0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Nov 2009 16:11:26 -0500
+Subject: cx25840: GPIO settings wrong for HVR-1850 IR Tx
+From: Andy Walls <awalls@radix.net>
+To: linux-media@vger.kernel.org, stoth@kernellabs.com
+Cc: mkrufky@kernellabs.com, hverkuil@xs4all.nl
+Content-Type: text/plain; charset="UTF-8"
+Date: Fri, 27 Nov 2009 16:10:32 -0500
+Message-Id: <1259356232.2353.13.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Steve,
 
-> Hi Hans
->
-> Thank you for your reply!
->
-> On Wed, 18 Nov 2009 09:20:53 +0100
-> "Hans Verkuil" <hverkuil@xs4all.nl> wrote:
->> > I wonder if there is work in progress for a Linux driver supporting
->> > the NXP SAA7154 Multistandard video decoder with comb filter,
-> [..]
->> > Datasheet:
->> > http://www.nxp.com/documents/data_sheet/SAA7154E_SAA7154H.pdf
->
->> I think it will have to be a new driver, partially based on the
->> current saa7115.c driver (at least the composite/S-Video input part
->> seems to be very similar to that one). The good news is that the
->> datasheet is available, that will help a lot.
->
-> Is it possible for you to estimate time and effort for writing the
-> driver? I don't really have experience in Linux driver writing so far.
+This code in cx25840-core.c mucks up HVR-1850 IR Tx:
 
-How long it will take depends on many factors. But I would guess between
-2-8 weeks, depending on the experience of the developer, how much of
-saa7115 can be reused, and how much of the functionality of the device has
-to be available in the initial driver. I mean, if you need to support
-complex features like raw and/or sliced VBI on the input side, then that
-will add to the time.
+        /* Drive GPIO2 direction and values for HVR1700
+         * where an onboard mux selects the output of demodulator
+         * vs the 417. Failure to set this results in no DTV.
+         * It's safe to set this across all Hauppauge boards
+         * currently, regardless of the board type.
+         */
+        cx25840_write(client, 0x160, 0x1d);
+        cx25840_write(client, 0x164, 0x00);
 
-Some parts like the VGA input (which needs support for non-PAL/NTSC
-resolutions) require video4linux core support that is not yet available,
-although I expect/hope that we will have that very soon.
+This changes the IR_TX pin to act as GPIO_20 and defaults it to low,
+keeping the IR Transmitter LED illuminated.
 
-> How much help could one expect?
+Setting register 0x160 to 0x1f makes the pin the IR Tx function again.
+I don't want to hack it in there though, as I don't know the
+implications for other CX2388[578] boards.  I also perceive the cx23885
+module GPIOs could be an easy place to introduce regressions if not
+careful.
 
-On this list people can give you pointers and do code reviews. Actual
-coding is another matter.
 
-> Are there other people interested in or willing to write the driver?
->
-> I considered asking people from Linux Driver Project for assistance...
+Steve and Hans,
 
-That's definitely a possibility, although such a request might end up on
-this list anyway.
+Any ideas?
 
-The important thing is that whoever is going to develop such a driver
-needs the hardware to test it with.
+I know on the list I had bantered around a configure, enable, set, get
+etc v4l2_subdev ops for gpio, but I can't remember the details nor the
+requirements.
 
->
-> Sorry for asking probably silly questions, I am new to the kernel
-> development process.
-
-Not silly at all!
+The cx25840 module really needs a way for the cx23885 bridge driver to
+set GPIOs cleanly.
 
 Regards,
-
-        Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Andy
 
