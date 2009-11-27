@@ -1,92 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:44774 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934057AbZKXVIo (ORCPT
+Received: from qw-out-2122.google.com ([74.125.92.24]:63275 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752040AbZK0P5y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Nov 2009 16:08:44 -0500
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
-	<u.kleine-koenig@pengutronix.de>
-To: linux-kernel@vger.kernel.org
-Cc: akpm@linux-foundation.org,
-	Laurent Pinchart <laurent.pinchart@skynet.be>,
-	Alexey Klimov <klimov.linux@gmail.com>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 34/38] move vpfe_remove to .devexit.text
-Date: Tue, 24 Nov 2009 22:07:29 +0100
-Message-Id: <1259096853-18909-34-git-send-email-u.kleine-koenig@pengutronix.de>
-In-Reply-To: <1259096853-18909-33-git-send-email-u.kleine-koenig@pengutronix.de>
-References: <1259096853-18909-1-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-2-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-3-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-4-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-5-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-6-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-7-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-8-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-9-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-10-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-11-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-12-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-13-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-14-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-15-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-16-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-17-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-18-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-19-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-20-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-21-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-22-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-23-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-24-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-25-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-26-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-27-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-28-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-29-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-30-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-31-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-32-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-33-git-send-email-u.kleine-koenig@pengutronix.de>
+	Fri, 27 Nov 2009 10:57:54 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Date: Fri, 27 Nov 2009 10:57:59 -0500
+Message-ID: <9e4733910911270757j648e39ecl7487b7e6c43db828@mail.gmail.com>
+Subject: [RFC] What are the goals for the architecture of an in-kernel IR
+	system?
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Christoph Bartelmus <christoph@bartelmus.de>
+Cc: jarod@wilsonet.com, awalls@radix.net, dmitry.torokhov@gmail.com,
+	j@jannau.net, jarod@redhat.com, khc@pm.waw.pl,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, mchehab@redhat.com, superm1@ubuntu.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The function vpfe_remove is used only wrapped by __devexit_p so define
-it using __devexit.
+On Fri, Nov 27, 2009 at 2:45 AM, Christoph Bartelmus
+<christoph@bartelmus.de> wrote:
+> Hi Mauro,
+>
+> on 26 Nov 09 at 14:25, Mauro Carvalho Chehab wrote:
+>> Christoph Bartelmus wrote:
+> [...]
+>>> But I'm still a bit hesitant about the in-kernel decoding. Maybe it's just
+>>> because I'm not familiar at all with input layer toolset.
+> [...]
+>> I hope it helps for you to better understand how this works.
+>
+> So the plan is to have two ways of using IR in the future which are
+> incompatible to each other, the feature-set of one being a subset of the
+> other?
 
-Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
-Cc: Laurent Pinchart <laurent.pinchart@skynet.be>
-Cc: Alexey Klimov <klimov.linux@gmail.com>
-Cc: Muralidharan Karicheri <m-karicheri2@ti.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org
----
- drivers/media/video/davinci/vpfe_capture.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Take advantage of the fact that we don't have a twenty year old legacy
+API already in the kernel. Design an IR API that uses current kernel
+systems. Christoph, ignore the code I wrote and make a design proposal
+that addresses these goals...
 
-diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
-index 402ce43..902c59c 100644
---- a/drivers/media/video/davinci/vpfe_capture.c
-+++ b/drivers/media/video/davinci/vpfe_capture.c
-@@ -2054,7 +2054,7 @@ probe_free_dev_mem:
- /*
-  * vpfe_remove : It un-register device from V4L2 driver
-  */
--static int vpfe_remove(struct platform_device *pdev)
-+static int __devexit vpfe_remove(struct platform_device *pdev)
- {
- 	struct vpfe_device *vpfe_dev = platform_get_drvdata(pdev);
- 	struct resource *res;
+1) Unified input in Linux using evdev. IR is on equal footing with
+mouse and keyboard.
+2) plug and play for basic systems - you only need an external app for scripting
+3) No special tools - use mkdir, echo, cat, shell scripts to build maps
+4) Use of modern Linux features like sysfs, configfs and udev.
+5) Direct multi-app support - no daemon
+6) Hide timing data from user as much as possible.
+
+What are other goals for this subsystem?
+
+Maybe we decide to take the existing LIRC system as is and not
+integrate it into the input subsystem. But I think there is a window
+here to update the LIRC design to use the latest kernel features. We
+don't want to build another /dev/mouse and have to rip it out in five
+years.
+
+>
+> When designing the key mapping in the kernel you should be aware that
+> there are remotes out there that send a sequence of scan codes for some
+> buttons, e.g.
+> http://lirc.sourceforge.net/remotes/pioneer/CU-VSX159
+
+This is good input.
+
+
 -- 
-1.6.5.2
-
+Jon Smirl
+jonsmirl@gmail.com
