@@ -1,72 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:64925 "EHLO
-	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753081AbZKZFtg (ORCPT
+Received: from smtp-out113.alice.it ([85.37.17.113]:4060 "EHLO
+	smtp-out113.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751287AbZK0OsP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 00:49:36 -0500
-Date: Wed, 25 Nov 2009 21:49:38 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Andy Walls <awalls@radix.net>
-Cc: Christoph Bartelmus <lirc@bartelmus.de>, khc@pm.waw.pl,
-	j@jannau.net, jarod@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, superm1@ubuntu.com
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
-	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-Message-ID: <20091126054938.GH23244@core.coreip.homeip.net>
-References: <BDRae8rZjFB@christoph> <1259024037.3871.36.camel@palomino.walls.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1259024037.3871.36.camel@palomino.walls.org>
+	Fri, 27 Nov 2009 09:48:15 -0500
+Date: Fri, 27 Nov 2009 15:47:22 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Eric Miao <eric.y.miao@gmail.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Mike Rapoport <mike@compulab.co.il>,
+	Juergen Beisert <j.beisert@pengutronix.de>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: Re: [PATCH 3/3] pxa_camera: remove init() callback
+Message-Id: <20091127154722.0347b956.ospite@studenti.unina.it>
+In-Reply-To: <Pine.LNX.4.64.0911271535580.4383@axis700.grange>
+References: <1258495463-26029-1-git-send-email-ospite@studenti.unina.it>
+	<1258495463-26029-4-git-send-email-ospite@studenti.unina.it>
+	<Pine.LNX.4.64.0911271503460.4383@axis700.grange>
+	<20091127153230.d042d92e.ospite@studenti.unina.it>
+	<Pine.LNX.4.64.0911271535580.4383@axis700.grange>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Fri__27_Nov_2009_15_47_22_+0100_bEEqU3fb1=ZWatt9"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 23, 2009 at 07:53:57PM -0500, Andy Walls wrote:
-> On Mon, 2009-11-23 at 22:11 +0100, Christoph Bartelmus wrote:
-> > Czesc Krzysztof,
-> > 
-> > on 23 Nov 09 at 15:14, Krzysztof Halasa wrote:
-> > [...]
-> > > I think we shouldn't at this time worry about IR transmitters.
-> > 
-> > Sorry, but I have to disagree strongly.
-> > Any interface without transmitter support would be absolutely unacceptable  
-> > for many LIRC users, including myself.
-> 
-> I agree with Christoph.  
-> 
-> Is it that the input subsystem is better developed and seen as a
-> leverage point for development and thus an "easier" place to get results
-> earlier?  If so, then one should definitely deal with transmitters early
-> in the design, as that is where the most unknowns lie.
-> 
-> With the end of analog TV, people will have STBs feeding analog only
-> video cards.  Being able to change the channel on the STB with an IR
-> transmitter controlled by applications like MythTV is essential.
-> 
-> 
-> And on some different notes:
-> 
-> I generally don't understand the LIRC aversion I perceive in this thread
-> (maybe I just have a skewed perception).  Aside for a video card's
-> default remote setup, the suggestions so far don't strike me as any
-> simpler for the end user than LIRC -- maybe I'm just used to LIRC.  LIRC
-> already works for both transmit and receive and has existing support in
-> applications such as MythTV and mplayer.
+--Signature=_Fri__27_Nov_2009_15_47_22_+0100_bEEqU3fb1=ZWatt9
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Is it that LIRC supports MythTV and mplayer or MythTV and mplayer are
-forced to support lirc because the remores are not available through
-other means? I believe it is the latter and applications writers would
-be happy to reduce number of ways they get button data.
+On Fri, 27 Nov 2009 15:37:19 +0100 (CET)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
 
-I don't think there is LIRC aversion per se. We are just trying to
-decide whether multiple interfaces for the same data is needed. And
-I don't think that we will completely reject userspace components. Just
-as input subsystem allows for userspace drivers I do not think why we
-can't have the same for the LIRC. But I do think that the primary
-interface for regular userspace consumers (read mplayer and MythTV and
-the likes) should be input event interface (EV_KEY/KEY_*).
+> On Fri, 27 Nov 2009, Antonio Ospite wrote:
+>=20
+> > On Fri, 27 Nov 2009 15:06:53 +0100 (CET)
+> > Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> >=20
+> > > On Tue, 17 Nov 2009, Antonio Ospite wrote:
+> > >=20
+> > > > pxa_camera init() callback is sometimes abused to setup MFP for PXA=
+ CIF, or
+> > > > even to request GPIOs to be used by the camera *sensor*. These init=
+ializations
+> > > > can be performed statically in machine init functions.
+> > > >=20
+> > > > The current semantics for this init() callback is ambiguous anyways=
+, it is
+> > > > invoked in pxa_camera_activate(), hence at device node open, but it=
+s users use
+> > > > it like a generic initialization to be done at module init time (co=
+nfigure
+> > > > MFP, request GPIOs for *sensor* control).
+> > > >=20
+> > > > Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+> > >=20
+> > > Antonio, to make the merging easier and avoid imposing extra dependen=
+cies,=20
+> > > I would postpone this to 2.6.34, and just remove uses of .init() by=20
+> > > pxa-camera users as per your other two patches. Would this be ok with=
+ you?
+> > >=20
+> > > Thanks
+> > > Guennadi
+> > >
+> >=20
+> > Perfectly fine with me.
+> >=20
+> > Feel also free to anticipate me and edit the commit messages to
+> > whatever you want in the first two patches. Now that we aren't removing
+> > init() immediately after these it makes even more sense to change the
+> > phrasing from a future referencing
+> > 	"init() is going to be removed"
+> > to a more present focused
+> > 	"better not to use init() at all"
+> > form.
+>=20
+> I cannot edit those subject lines, because I will not be handling those=20
+> patches, they will go via the PXA tree, that's why it is easier to wait=20
+> with the pxa patch.
+>
 
--- 
-Dmitry
+I see, I am sending a v2 for the first two patches with changed commit
+messages in some hours then. Sorry for the delay.
+
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+
+Regards,
+   Antonio
+
+--=20
+Antonio Ospite
+http://ao2.it
+
+PGP public key ID: 0x4553B001
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing in e-mail?
+
+--Signature=_Fri__27_Nov_2009_15_47_22_+0100_bEEqU3fb1=ZWatt9
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAksP5noACgkQ5xr2akVTsAGTXgCeMmIYmkArZrhII6lc1bmX9lZx
+6/wAoKm3L5BWkpqFOR6zdFqtqqcNcANy
+=F5NG
+-----END PGP SIGNATURE-----
+
+--Signature=_Fri__27_Nov_2009_15_47_22_+0100_bEEqU3fb1=ZWatt9--
