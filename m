@@ -1,54 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.navvo.net ([74.208.67.6]:42359 "EHLO mail.navvo.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758201AbZKJVql (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Nov 2009 16:46:41 -0500
-Message-ID: <4AF9DF49.2080305@ridgerun.com>
-Date: Tue, 10 Nov 2009 15:46:49 -0600
-From: Santiago Nunez-Corrales <snunez@ridgerun.com>
-Reply-To: santiago.nunez@ridgerun.com
+Received: from mail-qy0-f192.google.com ([209.85.221.192]:49565 "EHLO
+	mail-qy0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751145AbZK0Deu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Nov 2009 22:34:50 -0500
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: "davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"Narnakaje, Snehaprabha" <nsnehaprabha@ti.com>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"Grosen, Mark" <mgrosen@ti.com>,
-	Diego Dompe <diego.dompe@ridgerun.com>,
-	"todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: [PATCH 0/4 v7] Support for TVP7002 in DM365
+In-Reply-To: <4B0F43B3.4090804@wilsonet.com>
+References: <20091127013217.7671.32355.stgit@terra>
+	 <4B0F43B3.4090804@wilsonet.com>
+Date: Thu, 26 Nov 2009 22:34:55 -0500
+Message-ID: <9e4733910911261934u43804e4bt6baa4302f302b536@mail.gmail.com>
+Subject: Re: [IR-RFC PATCH v4 0/6] In-kernel IR support using evdev
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-input@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series of patches provide support for the TVP7002 decoder in DM365.
+On Thu, Nov 26, 2009 at 10:12 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
+> This part... Not so wild about. The common thought I'm seeing from people is
+> that we should be using setkeycode to load keymaps. I mean, sure, I suppose
+> this could be abstracted away so the user never sees it, but it seems to be
+> reinventing a way to set up key mapping when setkeycode already exists, and
+> is used by a number of existing IR devices in the v4l/dvb subsystem (as well
+> as misc things like the ati rf remotes, iirc). Is there some distinct
+> advantage to going this route vs. setkeycode that I'm missing?
 
-Support includes:
+The configfs scheme and keymaps offer the same abilities. One is an
+ancient binary protocol and the other one uses Unix standard commands
+like mkdir and echo to build the map. You need special commands -
+setkeycodes, getkeycodes, showkey, loadkeys, xmodmap, dump-keys to use
+a keymap.  I've been using Linux forever and I can't remember how
+these commands work.
 
-* Inclusion of the chip in v4l2 definitions
-* Definition of TVP7002 specific data structures
-* Kconfig and Makefile support
+Keymaps are a binary protocol written by Risto Kankkunen in 1993.
+Configfs was added by Oracle about two years ago but it has not been
+used for mapping purposes.
 
-This series corrects many issued pointed out by Snehaprabha Narnakaje,
-Muralidharan Karicheri, Vaibhav Hiremath and Hans Verkuil and solves
-testing problems.  Tested on DM365 TI EVM with resolutions 720p,
-1080i@60, 576P and 480P with video capture application and video
-output in 480P, 576P, 720P and 1080I. This driver depends upon
-board-dm365-evm.c and vpfe_capture.c to be ready for complete
-integration. Uses the new V4L2 DV API sent by Muralidharan Karicheri.
+It's another discussion, but if IR goes the configfs route I'd
+consider writing a patch to switch keymaps/keycodes onto the configfs
+model. It is a huge advantage to get rid of these pointless special
+purpose commands that nobody knows how to use. I'd keep the legacy
+IOCTLs working and redirect the data structure to a configfs one
+instead of the existing structure.
 
-Latest changes from Hans included.
-
+The same idea is behind getting rid of IOCTLs and using sysfs. Normal
+Unix commands can manipulate sysfs. IOCTLs have problems with strace,
+endianess and the size of int (32/64b).
 
 -- 
-Santiago Nunez-Corrales, Eng.
-RidgeRun Engineering, LLC
-
-Guayabos, Curridabat
-San Jose, Costa Rica
-+(506) 2271 1487
-+(506) 8313 0536
-http://www.ridgerun.com
-
-
+Jon Smirl
+jonsmirl@gmail.com
