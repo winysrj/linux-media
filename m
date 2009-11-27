@@ -1,56 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-11.arcor-online.net ([151.189.21.51]:48390 "EHLO
-	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752966AbZKONvr (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:49319 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752892AbZK0Aec (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Nov 2009 08:51:47 -0500
-Subject: Re: Tuner drivers
-From: hermann pitton <hermann-pitton@arcor.de>
-To: rulet1@meta.ua
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <53772.95.133.222.95.1258288950.metamail@webmail.meta.ua>
-References: <1258073462.8348.35.camel@pc07.localdom.local>
-	 <36685.95.133.109.178.1258107794.metamail@webmail.meta.ua>
-	 <1258143870.3242.31.camel@pc07.localdom.local>
-	 <53772.95.133.222.95.1258288950.metamail@webmail.meta.ua>
-Content-Type: text/plain
-Date: Sun, 15 Nov 2009 14:49:40 +0100
-Message-Id: <1258292980.3235.14.camel@pc07.localdom.local>
-Mime-Version: 1.0
+	Thu, 26 Nov 2009 19:34:32 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Krzysztof Halasa <khc@pm.waw.pl>
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was: Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+Date: Fri, 27 Nov 2009 00:34:30 +0000
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@redhat.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	linux-kernel@vger.kernel.org,
+	Mario Limonciello <superm1@ubuntu.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Janne Grunau <j@jannau.net>,
+	Christoph Bartelmus <lirc@bartelmus.de>
+References: <200910200956.33391.jarod@redhat.com> <4B0EFC30.80208@redhat.com> <m38wdsstsv.fsf@intrepid.localdomain>
+In-Reply-To: <m38wdsstsv.fsf@intrepid.localdomain>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <200911270034.30957.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-Am Sonntag, den 15.11.2009, 14:42 +0200 schrieb rulet1@meta.ua:
-> How to do that?:
+On Friday 27 November 2009 00:19:44 Krzysztof Halasa wrote:
+> Mauro Carvalho Chehab <mchehab@redhat.com> writes:
 > 
-> "You are forced to use saa7134-alsa dma sound"
+> > Why do you want to replace everything into a single shot?
 > 
+> Why not? It seems simpler to me. We need to change this anyway.
 
-a problem is that I can't tell for sure which analog TV standard you
-currently use in the Ukraine, either it is still SECAM DK or you changed
-to some PAL already.
+ioctls with a variable argument length are a pain for 32 bit
+emulation and stuff like strace. You either need to encode
+the variable length into the ioctl cmd, making it variable
+as well, or use a pointer in the data structure, which requires
+conversion.
 
-Try to get the details, also about the sound system.
+Ideally, ioctl arguments have a constant layout, no pointers
+and are at most 64 bits long.
 
-If it is still SECAM DK, you need to force the option "secam=DK".
-
-With "audio_debug=1" you can see if the drivers finds the pilots, the
-first sound carrier and the second carrier and also the stereo system in
-use. This counts also for PAL standards.
-
-This way you can already see if the driver can lock on the audio
-carriers in "dmesg" without hearing anything yet.
-
-Then saa7134-alsa should provide TV sound on your card.
-http://linuxtv.org/wiki/index.php/Saa7134-alsa
-
-Cheers,
-Hermann
-
-
-
-
-
+	Arnd <><
