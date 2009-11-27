@@ -1,45 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:39976 "EHLO
-	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751060AbZK2MjO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2009 07:39:14 -0500
-Date: Sun, 29 Nov 2009 12:40:11 +0000
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-To: Andy Walls <awalls@radix.net>
-Cc: Jon Smirl <jonsmirl@gmail.com>, Krzysztof Halasa <khc@pm.waw.pl>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	maximlevitsky@gmail.com, mchehab@redhat.com,
-	stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR  system?
-Message-ID: <20091129124011.4d8a6080@lxorguk.ukuu.org.uk>
-In-Reply-To: <1259469121.3125.28.camel@palomino.walls.org>
-References: <m3r5riy7py.fsf@intrepid.localdomain>
-	<BDkdITRHqgB@lirc>
-	<9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>
-	<m3aay6y2m1.fsf@intrepid.localdomain>
-	<9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>
-	<1259469121.3125.28.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail.navvo.net ([74.208.67.6]:53159 "EHLO mail.navvo.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753129AbZK0Wa6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Nov 2009 17:30:58 -0500
+Message-ID: <4B105339.3080200@ridgerun.com>
+Date: Fri, 27 Nov 2009 16:31:21 -0600
+From: Santiago Nunez-Corrales <snunez@ridgerun.com>
+Reply-To: santiago.nunez@ridgerun.com
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: "davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"Narnakaje, Snehaprabha" <nsnehaprabha@ti.com>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"Grosen, Mark" <mgrosen@ti.com>,
+	Diego Dompe <diego.dompe@ridgerun.com>,
+	"todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
+Subject: [PATCH 0/4 v10] Support for TVP7002 in DM365
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> BTW, circa 1995 my serial mouse "Just Worked" in Linux.  Sometime around
+This series of patches provide support for the TVP7002 decoder in DM365.
 
-Correct X11 just talked to the serial ports. In fact that is still the
-way to configure it if you want any sanity in life.
+Support includes:
 
-> and serial connected IRs.  It's also too convenient to access USB IR
-> hardware from existing userspace drivers to bother porting into the
-> kernel.
+* Inclusion of the chip in v4l2 definitions
+* Definition of TVP7002 specific data structures
+* Kconfig and Makefile support
 
-Userspace needs a way to identify IR hardware and to interface with it
-using the right protocol. It's not clear the kernel needs to provide
-anything more than minimal hardware interfaces in most case - be that
-serial, libusb, ...
+This series corrects many issued pointed out by Snehaprabha Narnakaje,
+Muralidharan Karicheri, Vaibhav Hiremath and Hans Verkuil and solves
+testing problems.  Tested on DM365 TI EVM with resolutions 720p,
+1080i@60, 576P and 480P with video capture application and video
+output in 480P, 576P, 720P and 1080I. This driver depends upon
+board-dm365-evm.c and vpfe_capture.c to be ready for complete
+integration. Uses the new V4L2 DV API sent by Muralidharan Karicheri.
+Removed shadow register values. Removed unnecesary power down and up
+of the device (tests work fine). Improved readability.
+
+
+-- 
+Santiago Nunez-Corrales, Eng.
+RidgeRun Engineering, LLC
+
+Guayabos, Curridabat
+San Jose, Costa Rica
++(506) 2271 1487
++(506) 8313 0536
+http://www.ridgerun.com
