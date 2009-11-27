@@ -1,63 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:52686 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756682AbZKRAiv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2009 19:38:51 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, mchehab@infradead.org,
-	sakari.ailus@maxwell.research.nokia.com
-Subject: v4l: Remove video_device::num usage from device drivers
-Date: Wed, 18 Nov 2009 01:38:44 +0100
-Message-Id: <1258504731-8430-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1258504731-8430-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1258504731-8430-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from rouge.crans.org ([138.231.136.3]:49875 "EHLO rouge.crans.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752845AbZK0OZR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Nov 2009 09:25:17 -0500
+Message-ID: <4B0FDD66.9090903@crans.org>
+Date: Fri, 27 Nov 2009 15:08:38 +0100
+From: Brice Dubost <dubost@crans.org>
+MIME-Version: 1.0
+To: Benedict bdc091 <bdc091@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: how to get a registered adapter name
+References: <746d58780909140842o8952bf1g8f7851eee9ec0093@mail.gmail.com>
+In-Reply-To: <746d58780909140842o8952bf1g8f7851eee9ec0093@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Benedict bdc091 wrote:
+> Hi list,
+> 
+> I'd like to enumerate connected DVB devices from my softawre, based on
+> DVB API V3.
+> Thank to ioctl FE_GET_INFO, I'm able to get frontends name, but they
+> are not "clear" enough for users.
+> 
+> After a "quick look" in /var/log/messages I discovered that adapters
+> name are much expressives:
+> 
+>> ...
+>> DVB: registering new adapter (ASUS My Cinema U3000 Mini DVBT Tuner)
+>> DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
+>> ...
+> 
+> So, I tried to figure out a way to get "ASUS My Cinema U3000 Mini DVBT
+> Tuner" string from adapter, instead of "DiBcom 7000PC" from adapter's
+> frontend...
+> Unsuccefully so far.
+> 
+> Any suggestions?
+> 
 
-Index: v4l-dvb-mc-uvc/linux/drivers/media/video/vivi.c
-===================================================================
---- v4l-dvb-mc-uvc.orig/linux/drivers/media/video/vivi.c
-+++ v4l-dvb-mc-uvc/linux/drivers/media/video/vivi.c
-@@ -1376,9 +1376,6 @@ static int __init vivi_create_instance(i
- 	/* Now that everything is fine, let's add it to device list */
- 	list_add_tail(&dev->vivi_devlist, &vivi_devlist);
- 
--	snprintf(vfd->name, sizeof(vfd->name), "%s (%i)",
--			vivi_template.name, vfd->num);
--
- 	if (video_nr >= 0)
- 		video_nr++;
- 
-Index: v4l-dvb-mc-uvc/linux/drivers/media/video/w9968cf.c
-===================================================================
---- v4l-dvb-mc-uvc.orig/linux/drivers/media/video/w9968cf.c
-+++ v4l-dvb-mc-uvc/linux/drivers/media/video/w9968cf.c
-@@ -2891,8 +2891,7 @@ static long w9968cf_v4l_ioctl(struct fil
- 			.minwidth = cam->minwidth,
- 			.minheight = cam->minheight,
- 		};
--		sprintf(cap.name, "W996[87]CF USB Camera #%d",
--			cam->v4ldev->num);
-+		sprintf(cap.name, "W996[87]CF USB Camera");
- 		cap.maxwidth = (cam->upscaling && w9968cf_vpp)
- 			       ? max((u16)W9968CF_MAX_WIDTH, cam->maxwidth)
- 				 : cam->maxwidth;
-Index: v4l-dvb-mc-uvc/linux/drivers/media/video/usbvision/usbvision-i2c.c
-===================================================================
---- v4l-dvb-mc-uvc.orig/linux/drivers/media/video/usbvision/usbvision-i2c.c
-+++ v4l-dvb-mc-uvc/linux/drivers/media/video/usbvision/usbvision-i2c.c
-@@ -219,8 +219,8 @@ int usbvision_i2c_register(struct usb_us
- 	memcpy(&usbvision->i2c_adap, &i2c_adap_template,
- 	       sizeof(struct i2c_adapter));
- 
--	sprintf(usbvision->i2c_adap.name + strlen(usbvision->i2c_adap.name),
--		" #%d", usbvision->vdev->num);
-+	sprintf(usbvision->i2c_adap.name, "%s-%d-%s", i2c_adap_template.name,
-+		usbvision->dev->bus->busnum, usbvision->dev->devpath);
- 	PDEBUG(DBG_I2C,"Adaptername: %s", usbvision->i2c_adap.name);
- 	usbvision->i2c_adap.dev.parent = &usbvision->dev->dev;
- 
+Hello,
+
+I have the same issue, I look a bit to the code of the DVB drivers, it
+seems not obvious to recover this name as it is written now
+
+It is stored in the "struct dvb_adapter". and printed by
+dvb_register_adapter, but doesn't seems to be available by other functions
+
+I don't think changing the v3 API or adding a new IOCTL for this is a
+good idea.
+
+What about using the new DVB API (v5) to do this? Since I'm not an
+expert with this API, is there some people familiar with it which can
+give me advices about the good way to do it (and if it is a good idea)
+so that I can start to write some code.
+
+Thank you
+
+Regards
