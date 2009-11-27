@@ -1,57 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from viefep27-int.chello.at ([62.179.121.47]:44232 "EHLO
-	viefep27-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751367AbZKZMoE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 07:44:04 -0500
-Received: from edge05.upc.biz ([192.168.13.212]) by viefep17-int.chello.at
-          (InterMail vM.7.09.01.00 201-2219-108-20080618) with ESMTP
-          id <20091126115550.JFKK18225.viefep17-int.chello.at@edge05.upc.biz>
-          for <linux-media@vger.kernel.org>;
-          Thu, 26 Nov 2009 12:55:50 +0100
-Message-ID: <4B0E6CC0.9030207@waechter.wiz.at>
-Date: Thu, 26 Nov 2009 12:55:44 +0100
-From: =?UTF-8?B?TWF0dGhpYXMgV8OkY2h0ZXI=?= <matthias@waechter.wiz.at>
+Received: from khc.piap.pl ([195.187.100.11]:53639 "EHLO khc.piap.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751971AbZK0Ag5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Nov 2009 19:36:57 -0500
+From: Krzysztof Halasa <khc@pm.waw.pl>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@redhat.com>,
+	"linux-kernel\@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Mario Limonciello <superm1@ubuntu.com>,
+	"linux-input\@vger.kernel.org" <linux-input@vger.kernel.org>,
+	"linux-media\@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Janne Grunau <j@jannau.net>,
+	Christoph Bartelmus <lirc@bartelmus.de>
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was: Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+References: <200910200958.50574.jarod@redhat.com>
+	<4B0A765F.7010204@redhat.com> <4B0A81BF.4090203@redhat.com>
+	<m36391tjj3.fsf@intrepid.localdomain>
+	<20091123173726.GE17813@core.coreip.homeip.net>
+	<m3r5rpq818.fsf@intrepid.localdomain>
+	<20091126052155.GD23244@core.coreip.homeip.net>
+	<m31vjlw54x.fsf@intrepid.localdomain>
+	<1F6BE32B-13EE-4FB4-96AD-D4526F435777@gmail.com>
+	<m3d434su2o.fsf@intrepid.localdomain>
+	<20091127002645.GH6936@core.coreip.homeip.net>
+Date: Fri, 27 Nov 2009 01:37:01 +0100
+In-Reply-To: <20091127002645.GH6936@core.coreip.homeip.net> (Dmitry Torokhov's
+	message of "Thu, 26 Nov 2009 16:26:45 -0800")
+Message-ID: <m3zl68refm.fsf@intrepid.localdomain>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Mantis =?UTF-8?B?4oCTIGFueW9uZT8=?=
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am now playing around with the available code for quite some time now
-with mixed success, but no solution comes near the term “stable”.
+Dmitry Torokhov <dmitry.torokhov@gmail.com> writes:
 
-• kernel: nothing in there. Well, reasonable.
-• v4l-dvb: nothing in there.
-• s2-liplianin: mantis available, but obviously not under
-development/bugfixing. IR seems to work, CI handling looks quite broken,
-hangups/lockups are the rule, additional problems with more than one of
-these cards in the system.
-• mantis-v4l: does not compile out of the box for recent kernels. When
-hand-knitting the files into a kernel source directory (2.6.31), works
-quite unstable, module reloading frequently segfaults. IR does not work
-(at least for VDR), CI handling looks better than s2-liplianin.
+> There is nothing in input layer that precludes you from creating
+> multiple input devices per *whatever*.
 
-Conclusion: Stability is way below a level for reasonable usage while
-bug fixing.
-
-[1] gives an overview of the current state of (non-)development. Does
-this still apply?
-
-My questions are:
-
-• Is there someone feeling responsible for that baby?
-• What is the main part of the mantis stuff not working – mantis itself,
-the frontend, or adaptions from multiproto to s2api?
-• What can someone owning some of these cards (one Terratec, two
-Technisat) do to help the (former) authors to continue their work?
-• Is there some documentation available which would enable ‘the
-community’ to work on that further?
-
-Cheers,
-– Matthias
-
-1:
-http://linuxtv.org/wiki/index.php/Azurewave_AD_SP400_CI_%28VP-1041%29#Drivers
+Of course. I though it was obvious I mean present situation with the
+media drivers but I can see now it was far from being obvious.
+-- 
+Krzysztof Halasa
