@@ -1,142 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:43188 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753460AbZKWAQN convert rfc822-to-8bit (ORCPT
+Received: from mail-in-07.arcor-online.net ([151.189.21.47]:45945 "EHLO
+	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751749AbZK0XT1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Nov 2009 19:16:13 -0500
-Received: by bwz27 with SMTP id 27so4619389bwz.21
-        for <linux-media@vger.kernel.org>; Sun, 22 Nov 2009 16:16:18 -0800 (PST)
-To: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org,
-	Matthias Fechner <idefix@fechner.net>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Jean Delvare <khali@linux-fr.org>
-Subject: Re: IR Receiver on an Tevii S470
-Content-Disposition: inline
-From: "Igor M. Liplianin" <liplianin@me.by>
-Date: Mon, 23 Nov 2009 02:15:33 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <200911230215.33644.liplianin@me.by>
+	Fri, 27 Nov 2009 18:19:27 -0500
+Subject: Re: Compile error saa7134 - compro videomate S350
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Dominic Fernandes <dalf198@yahoo.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <8049.95935.qm@web110610.mail.gq1.yahoo.com>
+References: <754577.88092.qm@web110614.mail.gq1.yahoo.com>
+	 <1259025174.5511.24.camel@pc07.localdom.local>
+	 <990417.69725.qm@web110607.mail.gq1.yahoo.com>
+	 <1259107698.2535.10.camel@localhost>
+	 <623705.13034.qm@web110608.mail.gq1.yahoo.com>
+	 <1259172867.3335.7.camel@pc07.localdom.local>
+	 <214960.24182.qm@web110609.mail.gq1.yahoo.com>
+	 <1259360050.6061.22.camel@pc07.localdom.local>
+	 <8049.95935.qm@web110610.mail.gq1.yahoo.com>
+Content-Type: text/plain
+Date: Sat, 28 Nov 2009 00:14:47 +0100
+Message-Id: <1259363687.6061.45.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23 ноября 2009, "Igor M. Liplianin" <liplianin@me.by> wrote:
-> On Mon, 2009-11-23 at 00:29 +0200, Igor M. Liplianin wrote:
-> > On 22 ноября 2009 22:11:47 Andy Walls wrote:
-> > > On Sun, 2009-11-22 at 19:08 +0100, Matthias Fechner wrote:
-> > > > Hi Andy,
-> > > >
-> > > > Andy Walls wrote:
-> > > > > Thank you.  I will probably need you for testing when ready.
-> > > > >
-> > > > >
-> > > > > I was planning to do step 1 above for HVR-1800 IR anyway.
-> > > > >
-> > > > > I will estimate that I may have something ready by about Christmas
-> > > > > (25 December 2009), unless work becomes very busy.
-> > > >
-> > > > thanks a lot for your answer.
-> > > > I uploaded two pictures I did from the card, you can find it here:
-> > > > http://fechner.net/tevii-s470/
-> > > >
-> > > > It is a CX23885.
-> > > > The driver I use is the ds3000.
-> > > > lspci says:
-> > >
-> > > [snip]
-> > >
-> > > Matthias,
-> > >
-> > > Thanks for the pictures.  OK so of the two other interesting chips on
-> > > the S470:
-> > >
-> > > U4 is an I2C connected EEPROM - we don't care about that for IR.
-> > >
-> > > U10 appears to perhaps be a Silicon Labs C8051F300 microcontroller or
-> > > similar:
-> > >
-> > > http://www.silabs.com/products/mcu/smallmcu/Pages/C8051F30x.aspx
-> > >
-> > > Since the 'F300 has an A/D convertor and has an SMBus interface
-> > > (compatable with the I2C bus), I suspect this chip could be the IR
-> > > controller on the TeVii S470.
-> > >
-> > > Could you as root:
-> > >
-> > > # modprobe cx23885
-> > > # modprobe i2c-dev
-> > > # i2c-detect -l
-> > > (to list all the i2c buses, including cx23885 mastered i2c buses)
-> > > # i2c-detect -y N
-> > > (to show the addresses in use on bus # N: only query the cx23885 buses)
-> > >
-> > >
-> > > i2c-detect was in the lm-sensors package last I checked.  (Jean can
-> > > correct me if I'm wrong.)
-> > >
-> > > With that information, I should be able to figure out what I2C address
-> > > that microcontroller is listening to.
-> > >
-> > > Then we can work out how to read and decode it's data and add it to
-> > > ir-kbd-i2c at least.  Depending on how your kernel and LIRC versions
-> > > LIRC might still work with I2C IR chips too.
-> > >
-> > >
-> > > All presupposing of course that that 'F300 chip is for IR...
-> >
-> > Receiver connected to cx23885 IR_RX(pin 106). It is not difficult to
-> > track.
->
-> Igor,
->
-> Thank you.  I did not have a board to trace.  I will then stick with my
-> original plan since the F300 doesn't do the IR.
-I have cx23885 based Compro E650F DVB-T card. It shipped with RC6 type remote.
-So I can test RC6 too... And I will.
+Hi Dominic,
 
->
-> > F300 is for LNB power control.
-> > It connected to cx23885 GPIO pins:
-> > GPIO0 - data - P0.3 F300
-> > GPIO1 - reset - P0.2 F300
-> > GPIO2 - clk - P0.1 F300
-> > GPIO3 - busy - P0.0 F300
-> >
-> > Interface seems not I2C/SMBUS.
-> >
-> > Source code from TeVii:
-> > http://mercurial.intuxication.org/hg/s2-
-> > liplianin/file/d0dfe416e0f6/linux/drivers/media/video/cx23885/tevii_pwr.c
->
-> Interesting....
->
->    static void Delay1mS(void)
->    {
-> 	   udelay(800);
->    }
->
-> :D
-Your link to datasheet helps me a lot :)
-I will clear all that out and will commit to linuxtv soon.
+Am Freitag, den 27.11.2009, 14:59 -0800 schrieb Dominic Fernandes:
+> hi,
+> 
+> where does  "options saa7134 alsa=0" need to be declared?  Is it in /etc/modprobe.d/options.conf ?  If so, it didn't work - "FATAL: saa7134-alsa is in use"
 
-BR
-Igor
->
-> Regards,
-> Andy
->
-> > BR
-> > Igor
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+yes, you can only unload saa7134-alsa after you close all apps using it.
 
+It is very distribution depending and I'm not aware of all, where to put
+options.
 
--- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+If it doesn't work for options.conf, it should still work with a
+recently deprecated declared /etc/modprobe.conf file you have to create
+as a work around for all distros.
+
+You must issue a "depmod -a" after that and reboot, if you don't know
+how to unload saa7134-alsa by closing all apps using it.
+
+A "modprobe -vr saa7134-alsa saa7134-dvb" and then load it with
+"modprobe -v saa7134 card=169 gpio_tracking=1" should still reveal
+something configured in the system overriding your command line with
+card=169.
+
+I'm not on latest here ...
+
+Cheers,
+Hermann
+
 
