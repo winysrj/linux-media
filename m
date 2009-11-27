@@ -1,146 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:47837 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754737AbZKIJfU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2009 04:35:20 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC] Restructure video_device
-Date: Mon, 9 Nov 2009 10:36:00 +0100
-Cc: linux-media@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-References: <200910231625.40822.laurent.pinchart@ideasonboard.com> <200911061123.59977.laurent.pinchart@ideasonboard.com> <200911071336.33364.hverkuil@xs4all.nl>
-In-Reply-To: <200911071336.33364.hverkuil@xs4all.nl>
+Received: from n71.bullet.mail.sp1.yahoo.com ([98.136.44.36]:21374 "HELO
+	n71.bullet.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753105AbZK0KMg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Nov 2009 05:12:36 -0500
+Message-ID: <214960.24182.qm@web110609.mail.gq1.yahoo.com>
+References: <754577.88092.qm@web110614.mail.gq1.yahoo.com>  <1259025174.5511.24.camel@pc07.localdom.local>  <990417.69725.qm@web110607.mail.gq1.yahoo.com>  <1259107698.2535.10.camel@localhost>  <623705.13034.qm@web110608.mail.gq1.yahoo.com> <1259172867.3335.7.camel@pc07.localdom.local>
+Date: Fri, 27 Nov 2009 02:12:42 -0800 (PST)
+From: Dominic Fernandes <dalf198@yahoo.com>
+Subject: Re: Compile error saa7134 - compro videomate S350
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <1259172867.3335.7.camel@pc07.localdom.local>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200911091036.00243.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Hermann,
 
-On Saturday 07 November 2009 13:36:33 Hans Verkuil wrote:
-> On Friday 06 November 2009 11:23:59 Laurent Pinchart wrote:
-> > Hi Hans,
-> >
-> > On Thursday 05 November 2009 15:19:06 Hans Verkuil wrote:
-> > > On Friday 23 October 2009 16:25:40 Laurent Pinchart wrote:
-> > > > Hi everybody,
-> > > >
-> > > > while working on device node support for subdevs I ran into an issue
-> > > > with the way v4l2 objects are structured.
-> > > >
-> > > > We currently have the following structure:
-> > > >
-> > > > - video_device represents a device that complies with the V4L1 or
-> > > > V4L2 API. Every video_device has a corresponding device node.
-> > > >
-> > > > - v4l2_device represents a high-level media device that handles
-> > > > sub-devices. With the new media controller infrastructure a
-> > > > v4l2_device will have a device node as well.
-> > > >
-> > > > - v4l2_subdev represents a sub-device. As for v4l2_device's, the new
-> > > > media controller infrastructure will give a device node for every
-> > > > sub-device.
-> > > >
-> > > > - v4l2_entity is the structure that both v4l2_subdev and video_device
-> > > > derive from. Most of the media controller code will deal with
-> > > > entities rather than sub-devices or video devices, as most operations
-> > > > (such as discovering the topology and create links) do not depend on
-> > > > the exact nature of the entity. New types of entities could be
-> > > > introduced later.
-> > > >
-> > > > Both the video_device and v4l2_subdev structure inherit from
-> > > > v4l2_entity, so both of them have a v4l2_entity field. With
-> > > > v4l2_device and v4l2_subdev now needing to devices to have device
-> > > > nodes created, the v4l2_device and v4l2_subdev structure both have a
-> > > > video_device field.
-> > > >
-> > > > This isn't clean for two reasons:
-> > > >
-> > > > - v4l2_device isn't a v4l2_entity, so it should inherit from a
-> > > > structure (video_device) that itself inherits from v4l2_entity.
-> > > >
-> > > > - v4l2_subdev shouldn't inherit twice from v4l2_entity, once directly
-> > > > and once through video_device.
-> > >
-> > > I agree.
-> > >
-> > > > To fix this I would like to refactor the video_device structure and
-> > > > cut it in two pieces. One of them will deal with device node related
-> > > > tasks, being mostly V4L1/V4L2 agnostic, and the other will inherit
-> > > > from the first and add V4L1/V4L2 support
-> > > > (tvnorms/current_norm/ioctl_ops fields from the current video_device
-> > > > structure), as well as media controller support (inheriting from
-> > > > v4l2_entity).
-> > > >
-> > > > My plan was to create a video_devnode structure for the low-level
-> > > > device node
-> > >
-> > > Let's call it v4l2_devnode to be consistent with the current naming
-> > >  convention.
-> >
-> > Ok.
-> >
-> > > > related structure, and keeping the video_device name for the higher
-> > > > level structure. v4l2_device, v4l2_subdev and video_device would then
-> > > > all have a video_devnode field.
-> > > >
-> > > > While this isn't exactly difficult, it would require changing a lot
-> > > > of drivers, as some field will be moved from video_device to
-> > > > video_device::video_devnode. Some of those fields are internal, some
-> > > > of them are accessed by drivers while they shouldn't in most cases
-> > > > (the minor field for instance), and some are public (name, parent).
-> > > >
-> > > > I would like to have your opinion on whether you think this proposal
-> > > > is acceptable or whether you see a better and cleaner way to
-> > > > restructure the video device code structures.
-> > >
-> > > I have two issues with this:
-> > >
-> > > 1) Is it really necessary to do this now? We are still in the
-> > > prototyping phase and I think it is probably more efficient right now
-> > > to hack around this and postpone the real fix (as described above)
-> > > until we are sure that the mc concept is working correctly.
-> >
-> > The media controller prototyping code is, as usual with prototyping
-> > codes, a bit messy. Splitting the device node management part from
-> > video_device into v4l2_devnode will make the media controller code easier
-> > to understand for outsiders (by outsider I mean every person who haven't
-> > been actively working on the code, so that includes pretty much
-> > everybody). I think it's worth it, especially given that I've already
-> > written the patches. They can live in the media controller tree of
-> > course, we don't have to apply them to mainline at the moment.
+> unload the driver with "modprobe -vr saa7134-alsa saa7134-dvb".
+
+When I tried this I got the message "FATAL: saa7134-alsa is in use" (or something like that).
+
+>You might have to close mixers using saa7134-alsa previously.
+> With "modinfo saa7134" you get available options.
+
+I wasn't sure what to look for here, there was a lot of info. being displayed.
+
+I carried on with "modprobe -v saa7134 card=169" command.  I ran dmesg to see the status of the card.  It did get the card id 169 but the board decription came up as unknown instead of the name of the videomate S350.  Is this expected?
+
+The modification of the GPIO address "Instead of 0x8000 used in Jan's patch, use 0xC000 for GPIO setup" I'm not sure what I changed was the correct value.  Looking at the code lines I found relate to the Remote that I had changed (saa7134-cards.c):
+
+
++	case SAA7134_BOARD_VIDEOMATE_S350:
++		dev->has_remote = SAA7134_REMOTE_GPIO;
++		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x00008000, 0x00008000);
++		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00008000);
++		break;
+
+Which leads to the question where the GPIO address of 0x8000 is currently specified?
+
+
+Thanks,
+Dominic
+
+
+
+
+----- Original Message ----
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Dominic Fernandes <dalf198@yahoo.com>
+Cc: linux-media@vger.kernel.org
+Sent: Wed, November 25, 2009 6:14:27 PM
+Subject: Re: Compile error saa7134 - compro videomate S350
+
+Hi Dominic,
+
+Am Mittwoch, den 25.11.2009, 08:31 -0800 schrieb Dominic Fernandes:
+> Hi Hermann,
 > 
-> Ah, it's only for the mc tree. I was getting the impression that you wanted
->  to do this for the mainline tree as well. But if it is just for the mc
->  tree, then go ahead. You can just do it in your own tree; as far as I am
->  concerned your tree is leading for now.
-
-Ok. I just wanted to make sure there was no huge issue with the proposed 
-change. I want to avoid writing code that I'll have to completely redesign 
-later.
-
-> > > 2) I'm not sure whether the final media controller will and should be
-> > > part of the v4l framework at all. I think that this is something that
-> > > can be used separately from the v4l subsystem.
-> >
-> > I think it should not be part of the v4l subsystem. ALSA will benefit
-> > from the media controller, and so might other subsystems such as GPU. A
-> > media_ prefix would be much nicer.
+> Thanks for your reply.  I'm a little lost in what to do next.
 > 
-> I agree, but let's postpone such decisions until later.
-> 
-> > >  So we should be very careful about integrating this too closely in
-> > > v4l. Again, this is not much of an issue while prototyping, but it
-> > > definitely will need some careful thinking when we do the final
-> > > implementation.
-> >
-> > Agreed. Let's rename v4l2_devnode to media_devnode in the future then :-)
+> How do I force the card to be recongised as card 169 (the compro videomate S350) instead of card 139?
 
--- 
-Regards,
+unload the driver with "modprobe -vr saa7134-alsa saa7134-dvb".
 
-Laurent Pinchart
+You might have to close mixers using saa7134-alsa previously.
+With "modinfo saa7134" you get available options.
+
+With "modprobe -v saa7134 card=169" you can force that card then.
+
+If we disable the T750 auto detection in saa7134-cards.c, both have to
+force the correct card number.
+
+Cheers,
+Hermann
+
+
+      
+
