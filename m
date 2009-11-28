@@ -1,127 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1930 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754064AbZKQTu2 (ORCPT
+Received: from qw-out-2122.google.com ([74.125.92.27]:4588 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751539AbZK1Qpq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2009 14:50:28 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id nAHJoW0x047461
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 17 Nov 2009 20:50:33 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 17 Nov 2009 20:50:32 +0100 (CET)
-Message-Id: <200911171950.nAHJoW0x047461@smtp-vbr8.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Sat, 28 Nov 2009 11:45:46 -0500
+MIME-Version: 1.0
+In-Reply-To: <1259422559.18747.6.camel@maxim-laptop>
+References: <9e4733910911270757j648e39ecl7487b7e6c43db828@mail.gmail.com>
+	 <4B104971.4020800@s5r6.in-berlin.de>
+	 <1259370501.11155.14.camel@maxim-laptop>
+	 <m37hta28w9.fsf@intrepid.localdomain>
+	 <1259419368.18747.0.camel@maxim-laptop>
+	 <m3zl66y8mo.fsf@intrepid.localdomain>
+	 <1259422559.18747.6.camel@maxim-laptop>
+Date: Sat, 28 Nov 2009 11:45:51 -0500
+Message-ID: <9e4733910911280845y5cf06836l1640e9fc8b1740cf@mail.gmail.com>
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
+	system?
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Krzysztof Halasa <khc@pm.waw.pl>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Christoph Bartelmus <christoph@bartelmus.de>,
+	jarod@wilsonet.com, awalls@radix.net, dmitry.torokhov@gmail.com,
+	j@jannau.net, jarod@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	mchehab@redhat.com, superm1@ubuntu.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Sat, Nov 28, 2009 at 10:35 AM, Maxim Levitsky
+<maximlevitsky@gmail.com> wrote:
+> On Sat, 2009-11-28 at 16:25 +0100, Krzysztof Halasa wrote:
+>> Maxim Levitsky <maximlevitsky@gmail.com> writes:
+>>
+>> >> And that's good. Especially for a popular and simple protocol such as
+>> >> RC5.
+>> >> Actually, it's not about adding the decoder. It's about fixing it.
+>> >> I can fix it.
+>> >
+>> > This is nonsense.
+>>
+>> You forgot to say why do you think so.
+>
+> Because frankly, I am sick of this discussion.
+> Generic decoder that lirc has is actually much better and more tolerant
+> that protocol specific decoders that you propose,
 
-Results of the daily build of v4l-dvb:
+Porting the decoder engine from lirc into the kernel is also a possibility.
 
-date:        Tue Nov 17 19:00:03 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13333:e341e9e85af2
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+I'm asking to have an architecture design discussion, not to pick one
+of the various implementations. This is something that we have to live
+with for twenty years and it is a giant pain to change if we get wrong
+initially.
 
-linux-2.6.22.19-armv5: WARNINGS
-linux-2.6.23.12-armv5: WARNINGS
-linux-2.6.24.7-armv5: WARNINGS
-linux-2.6.25.11-armv5: WARNINGS
-linux-2.6.26-armv5: WARNINGS
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29.1-armv5: WARNINGS
-linux-2.6.30-armv5: WARNINGS
-linux-2.6.31-armv5: WARNINGS
-linux-2.6.32-rc6-armv5: ERRORS
-linux-2.6.32-rc6-armv5-davinci: ERRORS
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.31-armv5-ixp: WARNINGS
-linux-2.6.32-rc6-armv5-ixp: ERRORS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.31-armv5-omap2: ERRORS
-linux-2.6.32-rc6-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-rc6-i686: WARNINGS
-linux-2.6.23.12-m32r: WARNINGS
-linux-2.6.24.7-m32r: WARNINGS
-linux-2.6.25.11-m32r: WARNINGS
-linux-2.6.26-m32r: WARNINGS
-linux-2.6.27-m32r: WARNINGS
-linux-2.6.28-m32r: WARNINGS
-linux-2.6.29.1-m32r: WARNINGS
-linux-2.6.30-m32r: WARNINGS
-linux-2.6.31-m32r: WARNINGS
-linux-2.6.32-rc6-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: WARNINGS
-linux-2.6.32-rc6-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: WARNINGS
-linux-2.6.32-rc6-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-rc6-x86_64: ERRORS
-sparse (linux-2.6.31): OK
-sparse (linux-2.6.32-rc6): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+> You claim you 'fix' the decoder, right?
+> But what about all these lirc userspace drivers?
+> How they are supposed to use that 'fixed' decoder.
 
-Detailed results are available here:
+Some of that user space hardware belongs in the trash can and will
+never work reliably in a modern system. For example - sitting in a
+tight user space loop reading the DTS bit from a serial port or
+parallel port and then using the system clock to derive IR timings.
+That process is going to be inaccurate or it is going to make video
+frames drop. Big banging from user space is completely unreliable.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+If you really want to use your microphone input as a DAC channel, run
+a little app that reads the ALSA input and converts it to a timing
+stream and then inject this data into the kernel input system using
+uevent.
 
-Full logs are available here:
+Both of these are hobbyist class solutions. They are extremely cheap
+but they are unreliable and create large CPU loads.  But some people
+want to use a $300 CPU to eliminate $2 worth of IR hardware. This type
+of hardware will continue to work via event injection. But neither of
+these solutions belong in the kernel.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+What are other examples of user space IR drivers?
 
-The V4L2 specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+-- 
+Jon Smirl
+jonsmirl@gmail.com
