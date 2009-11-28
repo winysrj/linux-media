@@ -1,56 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:38407 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750830AbZKJNxb (ORCPT
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:45116 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750787AbZK1VeL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Nov 2009 08:53:31 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Subject: Re: [PATCH/RFC 9/9 v2] mt9t031: make the use of the soc-camera client API optional
-Date: Tue, 10 Nov 2009 14:54:14 +0100
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange> <Pine.LNX.4.64.0911051753540.5620@axis700.grange> <A69FA2915331DC488A831521EAE36FE4015583406A@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE4015583406A@dlee06.ent.ti.com>
+	Sat, 28 Nov 2009 16:34:11 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: vandrove@vc.cvut.cz
+Subject: radio-sf16fmi: add autoprobing
+Date: Sat, 28 Nov 2009 22:34:07 +0100
+Cc: linux-media@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Message-Id: <200911101454.14124.laurent.pinchart@ideasonboard.com>
+Content-Disposition: inline
+Message-Id: <200911282234.08713.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Add automatic probing of ports 0x284 and 0x384 to radio-sf16fmi if no card is
+found using PnP.
 
-On Thursday 05 November 2009 18:07:09 Karicheri, Muralidharan wrote:
-> Guennadi,
-> 
-> >> in the v4l2_queryctrl struct.
-> >
-> >I think, this is unrelated. Muralidharan just complained about the
-> >soc_camera_find_qctrl() function being used in client subdev drivers, that
-> >were to be converted to v4l2-subdev, specifically, in mt9t031.c. And I
-> >just explained, that that's just a pretty trivial library function, that
-> >does not introduce any restrictions on how that subdev driver can be used
-> >in non-soc-camera configurations, apart from the need to build and load
-> >the soc-camera module. In other words, any v4l2-device bridge driver
-> >should be able to communicate with such a subdev driver, calling that
-> >function.
-> 
-> If soc_camera_find_qctrl() is such a generic function, why don't you
-> move it to v4l2-common.c so that other platforms doesn't have to build
-> SOC camera sub system to use this function? Your statement reinforce
-> this.
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-I second this. Hans is working on a controls framework that should (hopefully 
-:-)) make drivers simpler by handling common tasks in the v4l core.
+--- linux-source-2.6.31/drivers/media/radio/Kconfig.1	2009-11-28 21:40:32.000000000 +0100
++++ linux-source-2.6.31/drivers/media/radio/Kconfig	2009-11-28 21:32:58.000000000 +0100
+@@ -199,10 +199,7 @@
+ 	tristate "SF16-FMI/SF16-FMP Radio"
+ 	depends on ISA && VIDEO_V4L2
+ 	---help---
+-	  Choose Y here if you have one of these FM radio cards.  If you
+-	  compile the driver into the kernel and your card is not PnP one, you
+-	  have to add "sf16fm=<io>" to the kernel command line (I/O address is
+-	  0x284 or 0x384).
++	  Choose Y here if you have one of these FM radio cards.
+ 
+ 	  In order to control your radio card, you will need to use programs
+ 	  that are compatible with the Video For Linux API.  Information on
+--- linux-source-2.6.31/drivers/media/radio/radio-sf16fmi.c.1	2009-11-28 21:27:22.000000000 +0100
++++ linux-source-2.6.31/drivers/media/radio/radio-sf16fmi.c	2009-11-28 22:15:57.000000000 +0100
+@@ -54,6 +54,7 @@ struct fmi
+ 
+ static struct fmi fmi_card;
+ static struct pnp_dev *dev;
++bool pnp_attached;
+ 
+ /* freq is in 1/16 kHz to internal number, hw precision is 50 kHz */
+ /* It is only useful to give freq in interval of 800 (=0.05Mhz),
+@@ -316,26 +317,54 @@ static int __init fmi_init(void)
+ {
+ 	struct fmi *fmi = &fmi_card;
+ 	struct v4l2_device *v4l2_dev = &fmi->v4l2_dev;
+-	int res;
++	int res, i;
++	int probe_ports[] = { 0, 0x284, 0x384 };
+ 
+-	if (io < 0)
+-		io = isapnp_fmi_probe();
+-	strlcpy(v4l2_dev->name, "sf16fmi", sizeof(v4l2_dev->name));
+-	fmi->io = io;
+-	if (fmi->io < 0) {
+-		v4l2_err(v4l2_dev, "No PnP card found.\n");
+-		return fmi->io;
++	if (io < 0) {
++		for (i = 0; i < ARRAY_SIZE(probe_ports); i++) {
++			io = probe_ports[i];
++			if (io == 0) {
++				io = isapnp_fmi_probe();
++				if (io < 0)
++					continue;
++				pnp_attached = 1;
++			}
++			if (!request_region(io, 2, "radio-sf16fmi")) {
++				if (pnp_attached)
++					pnp_device_detach(dev);
++				io = -1;
++				continue;
++			}
++			if (pnp_attached ||
++			    ((inb(io) & 0xf9) == 0xf9 && (inb(io) & 0x4) == 0))
++				break;
++			release_region(io, 2);
++			io = -1;
++		}
++	} else {
++		if (!request_region(io, 2, "radio-sf16fmi")) {
++			printk(KERN_ERR "radio-sf16fmi: port %#x already in use\n", io);
++			return -EBUSY;
++		}
++		if (inb(io) == 0xff) {
++			printk(KERN_ERR "radio-sf16fmi: card not present at %#x\n", io);
++			release_region(io, 2);
++			return -ENODEV;
++		}
+ 	}
+-	if (!request_region(io, 2, "radio-sf16fmi")) {
+-		v4l2_err(v4l2_dev, "port 0x%x already in use\n", fmi->io);
+-		pnp_device_detach(dev);
+-		return -EBUSY;
++	if (io < 0) {
++		printk(KERN_ERR "radio-sf16fmi: no cards found\n");
++		return -ENODEV;
+ 	}
+ 
++	strlcpy(v4l2_dev->name, "sf16fmi", sizeof(v4l2_dev->name));
++	fmi->io = io;
++
+ 	res = v4l2_device_register(NULL, v4l2_dev);
+ 	if (res < 0) {
+ 		release_region(fmi->io, 2);
+-		pnp_device_detach(dev);
++		if (pnp_attached)
++			pnp_device_detach(dev);
+ 		v4l2_err(v4l2_dev, "Could not register v4l2_device\n");
+ 		return res;
+ 	}
+@@ -352,7 +381,8 @@ static int __init fmi_init(void)
+ 	if (video_register_device(&fmi->vdev, VFL_TYPE_RADIO, radio_nr) < 0) {
+ 		v4l2_device_unregister(v4l2_dev);
+ 		release_region(fmi->io, 2);
+-		pnp_device_detach(dev);
++		if (pnp_attached)
++			pnp_device_detach(dev);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -369,7 +399,7 @@ static void __exit fmi_exit(void)
+ 	video_unregister_device(&fmi->vdev);
+ 	v4l2_device_unregister(&fmi->v4l2_dev);
+ 	release_region(fmi->io, 2);
+-	if (dev)
++	if (dev && pnp_attached)
+ 		pnp_device_detach(dev);
+ }
+ 
 
-Do you have any plan to work on the bus hardware configuration API ? When that 
-will be available the mt9t031 driver could be made completely soc-camera-free.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Ondrej Zary
