@@ -1,83 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:51045
-	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755003AbZKZGYA convert rfc822-to-8bit (ORCPT
+Received: from mail-fx0-f213.google.com ([209.85.220.213]:39059 "EHLO
+	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751852AbZK1SqA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 01:24:00 -0500
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was: Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-Mime-Version: 1.0 (Apple Message framework v1077)
-Content-Type: text/plain; charset=us-ascii
-From: Jarod Wilson <jarod@wilsonet.com>
-In-Reply-To: <20091126054938.GH23244@core.coreip.homeip.net>
-Date: Thu, 26 Nov 2009 01:23:50 -0500
-Cc: Andy Walls <awalls@radix.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>, khc@pm.waw.pl,
+	Sat, 28 Nov 2009 13:46:00 -0500
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR  system?
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: Jon Smirl <jonsmirl@gmail.com>
+Cc: Krzysztof Halasa <khc@pm.waw.pl>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Christoph Bartelmus <christoph@bartelmus.de>,
+	jarod@wilsonet.com, awalls@radix.net, dmitry.torokhov@gmail.com,
 	j@jannau.net, jarod@redhat.com, linux-input@vger.kernel.org,
 	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
 	mchehab@redhat.com, superm1@ubuntu.com
-Content-Transfer-Encoding: 8BIT
-Message-Id: <6619F77F-446F-47ED-B9F5-6CFC00E3EA49@wilsonet.com>
-References: <BDRae8rZjFB@christoph> <1259024037.3871.36.camel@palomino.walls.org> <20091126054938.GH23244@core.coreip.homeip.net>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+In-Reply-To: <9e4733910911280845y5cf06836l1640e9fc8b1740cf@mail.gmail.com>
+References: <9e4733910911270757j648e39ecl7487b7e6c43db828@mail.gmail.com>
+	 <4B104971.4020800@s5r6.in-berlin.de>
+	 <1259370501.11155.14.camel@maxim-laptop>
+	 <m37hta28w9.fsf@intrepid.localdomain>
+	 <1259419368.18747.0.camel@maxim-laptop>
+	 <m3zl66y8mo.fsf@intrepid.localdomain>
+	 <1259422559.18747.6.camel@maxim-laptop>
+	 <9e4733910911280845y5cf06836l1640e9fc8b1740cf@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 28 Nov 2009 20:45:59 +0200
+Message-ID: <1259433959.3658.0.camel@maxim-laptop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Nov 26, 2009, at 12:49 AM, Dmitry Torokhov wrote:
-
-> On Mon, Nov 23, 2009 at 07:53:57PM -0500, Andy Walls wrote:
->> On Mon, 2009-11-23 at 22:11 +0100, Christoph Bartelmus wrote:
->>> Czesc Krzysztof,
->>> 
->>> on 23 Nov 09 at 15:14, Krzysztof Halasa wrote:
->>> [...]
->>>> I think we shouldn't at this time worry about IR transmitters.
->>> 
->>> Sorry, but I have to disagree strongly.
->>> Any interface without transmitter support would be absolutely unacceptable  
->>> for many LIRC users, including myself.
->> 
->> I agree with Christoph.  
->> 
->> Is it that the input subsystem is better developed and seen as a
->> leverage point for development and thus an "easier" place to get results
->> earlier?  If so, then one should definitely deal with transmitters early
->> in the design, as that is where the most unknowns lie.
->> 
->> With the end of analog TV, people will have STBs feeding analog only
->> video cards.  Being able to change the channel on the STB with an IR
->> transmitter controlled by applications like MythTV is essential.
->> 
->> 
->> And on some different notes:
->> 
->> I generally don't understand the LIRC aversion I perceive in this thread
->> (maybe I just have a skewed perception).  Aside for a video card's
->> default remote setup, the suggestions so far don't strike me as any
->> simpler for the end user than LIRC -- maybe I'm just used to LIRC.  LIRC
->> already works for both transmit and receive and has existing support in
->> applications such as MythTV and mplayer.
+On Sat, 2009-11-28 at 11:45 -0500, Jon Smirl wrote: 
+> On Sat, Nov 28, 2009 at 10:35 AM, Maxim Levitsky
+> <maximlevitsky@gmail.com> wrote:
+> > On Sat, 2009-11-28 at 16:25 +0100, Krzysztof Halasa wrote:
+> >> Maxim Levitsky <maximlevitsky@gmail.com> writes:
+> >>
+> >> >> And that's good. Especially for a popular and simple protocol such as
+> >> >> RC5.
+> >> >> Actually, it's not about adding the decoder. It's about fixing it.
+> >> >> I can fix it.
+> >> >
+> >> > This is nonsense.
+> >>
+> >> You forgot to say why do you think so.
+> >
+> > Because frankly, I am sick of this discussion.
+> > Generic decoder that lirc has is actually much better and more tolerant
+> > that protocol specific decoders that you propose,
 > 
-> Is it that LIRC supports MythTV and mplayer or MythTV and mplayer are
-> forced to support lirc because the remores are not available through
-> other means? I believe it is the latter and applications writers would
-> be happy to reduce number of ways they get button data.
+> Porting the decoder engine from lirc into the kernel is also a possibility.
+> 
+> I'm asking to have an architecture design discussion, not to pick one
+> of the various implementations. This is something that we have to live
+> with for twenty years and it is a giant pain to change if we get wrong
+> initially.
+> 
+> > You claim you 'fix' the decoder, right?
+> > But what about all these lirc userspace drivers?
+> > How they are supposed to use that 'fixed' decoder.
+> 
+> Some of that user space hardware belongs in the trash can and will
+> never work reliably in a modern system. For example - sitting in a
+> tight user space loop reading the DTS bit from a serial port or
+> parallel port and then using the system clock to derive IR timings.
+> That process is going to be inaccurate or it is going to make video
+> frames drop. Big banging from user space is completely unreliable.
+> 
+> If you really want to use your microphone input as a DAC channel, run
+> a little app that reads the ALSA input and converts it to a timing
+> stream and then inject this data into the kernel input system using
+> uevent.
+> 
+> Both of these are hobbyist class solutions. They are extremely cheap
+> but they are unreliable and create large CPU loads.  But some people
+> want to use a $300 CPU to eliminate $2 worth of IR hardware. This type
+> of hardware will continue to work via event injection. But neither of
+> these solutions belong in the kernel.
 
-Well, when mythtv was started, I don't know that there were many input layer remotes around... lirc was definitely around though. serial receivers and transmitters, both supported by lirc_serial, were the most frequently used devices outside of plain old keyboards. The lirc support in mythtv actually relies on mapping remote button names as defined in lircd.conf to keyboard key strokes. As mentioned elsewhere in this beast of a thread, mythtv doesn't currently support things like KEY_PLAY, KEY_VOLUMEUP, KEY_CHANNELUP, etc. just yet, but I intend on fixing that...
 
-> I don't think there is LIRC aversion per se. We are just trying to
-> decide whether multiple interfaces for the same data is needed. And
-> I don't think that we will completely reject userspace components. Just
-> as input subsystem allows for userspace drivers I do not think why we
-> can't have the same for the LIRC. But I do think that the primary
-> interface for regular userspace consumers (read mplayer and MythTV and
-> the likes) should be input event interface (EV_KEY/KEY_*).
+> 
+> What are other examples of user space IR drivers?
+> 
 
-Works for me.
+many libusb based drivers?
 
-
--- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
+Regards,
+Maxim Levitsky
 
