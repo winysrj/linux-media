@@ -1,76 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:39330 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1759442AbZKFQj5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Nov 2009 11:39:57 -0500
-Date: Fri, 6 Nov 2009 17:40:14 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Antonio Ospite <ospite@studenti.unina.it>
-cc: Eric Miao <eric.y.miao@gmail.com>,
-	linux-arm-kernel@lists.infradead.org,
-	openezx-devel@lists.openezx.org, Bart Visscher <bartv@thisnet.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: Re: [PATCH 1/3] ezx: Add camera support for A780 and A910 EZX phones
-In-Reply-To: <20091104123536.9b95d161.ospite@studenti.unina.it>
-Message-ID: <Pine.LNX.4.64.0911061720570.4389@axis700.grange>
-References: <1257266734-28673-1-git-send-email-ospite@studenti.unina.it>
- <1257266734-28673-2-git-send-email-ospite@studenti.unina.it>
- <f17812d70911032238i3ae6fa19g24720662b9079f24@mail.gmail.com>
- <Pine.LNX.4.64.0911040907400.4837@axis700.grange>
- <20091104123536.9b95d161.ospite@studenti.unina.it>
+Received: from einhorn.in-berlin.de ([192.109.42.8]:42817 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752831AbZK1KcC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Nov 2009 05:32:02 -0500
+Message-ID: <4B10FC0A.7050408@s5r6.in-berlin.de>
+Date: Sat, 28 Nov 2009 11:31:38 +0100
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: 8BIT
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Jarod Wilson <jarod@redhat.com>, linux-kernel@vger.kernel.org,
+	Mario Limonciello <superm1@ubuntu.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Janne Grunau <j@jannau.net>,
+	Christoph Bartelmus <lirc@bartelmus.de>
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
+ Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+References: <4B0A765F.7010204@redhat.com> <4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain> <4B0AB60B.2030006@s5r6.in-berlin.de> <4B0AC8C9.6080504@redhat.com> <m34oolrnwd.fsf@intrepid.localdomain> <4B0E71B6.4080808@redhat.com> <m3my29up3y.fsf@intrepid.localdomain> <4B0ED19B.9030409@redhat.com> <20091128003918.628d4b84@pedra> <20091128025437.GN6936@core.coreip.homeip.net> <4B10F0BC.60008@redhat.com>
+In-Reply-To: <4B10F0BC.60008@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(added Robert to CC)
+Mauro Carvalho Chehab wrote:
+> Dmitry Torokhov wrote:
+[scancode-to-keycode map size]
+>> Hmm, why can't you just resize it when you get EVIOCSKEYCODE for
+>> scancode that would be out of bounds for the current table (if using
+>> table approach)?
+[...]
+> Let's suppose, for example that instead of using a 49 keys
+> IR, they want to use some programable IR with 55 keys, with different
+> scancodes. This means that they'll need to delete all 49 scancodes from the old IR 
+> and add 55 new scancodes. As there's no explicit call to delete a scan code, the solution
+> I found with the current API is to read the current scancode table and replace them with
+> KEY_UNKNOWN, allowing its re-use (this is what the driver currently does) or deleting
+> that scancode from the table. After deleting 49 keys, you'll need to add the 55 new keys.
+> If we do dynamic table resize for each operation, we'll do 104 sequences of kmalloc/kfree
+> for replacing one table.
 
-On Wed, 4 Nov 2009, Antonio Ospite wrote:
+It is not a performance sensitive task, is it?  If you can trade ABI
+simplicity for performance (which shouldn't actually matter), that'd be
+a better deal.
 
-> On Wed, 4 Nov 2009 09:13:16 +0100 (CET)
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> 
-> > > > +/* camera */
-> > > > +static int a780_pxacamera_init(struct device *dev)
-> > > > +{
-> > > > +       int err;
-> > > > +
-> > > > +       /*
-> > > > +        * GPIO50_GPIO is CAM_EN: active low
-> > > > +        * GPIO19_GPIO is CAM_RST: active high
-> > > > +        */
-> > > > +       err = gpio_request(MFP_PIN_GPIO50, "nCAM_EN");
-> > > 
-> > > Mmm... MFP != GPIO, so this probably should be written simply as:
-> > > 
-> > > #define GPIO_nCAM_EN	(50)
-> > 
-> > ...but without parenthesis, please:
-> > 
-> > #define GPIO_nCAM_EN	50
-> > 
-> > same everywhere below
-> >
-> 
-> OK.
-> 
-> BTW, Guennadi, shouldn't the pxa_camera platform_data expose also an
-> exit() method for symmetry with the init() one, where we can free the
-> requested resources?
+Besides, some of the necessary kernel-internal house-keeping can also be
+deferred until close().
 
-Good that you mentioned this. In fact, I think, that .init should go. So 
-far it is used in pcm990-baseboard.c to initialise pins. You're doing 
-essentially the same - requesting and configuring GPIOs. And it has been 
-agreed, that there is so far no real case, where a static 
-GPIO-configuration wouldn't work. So, I would suggest you remove .init, 
-configure GPIOs statically. And then submit a patch to remove .init 
-completely from struct pxacamera_platform_data. Robert, do you agree?
+> IMO, it would be better to have an ioctl to do the keycode table resize. An optional flag
+> at the ioctl (or a separate one) can be used to ask the driver to clean the current
+> keymap table and allocate a new one with the specified size. 
+> This will avoid playing with memory allocation for every new key and will provide a simple
+> way to say to the driver to discard the current keybable, since a new one will be used.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+OTOH, an additional "forget all current mappings" ioctl sounds like an
+ABI simplification.
+-- 
+Stefan Richter
+-=====-==--= =-== ===--
+http://arcgraph.de/sr/
