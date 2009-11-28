@@ -1,46 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:57048 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750729AbZK0HWI (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.159]:21267 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751283AbZK1Oms (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Nov 2009 02:22:08 -0500
-Message-ID: <4B0F7E21.3020703@s5r6.in-berlin.de>
-Date: Fri, 27 Nov 2009 08:22:09 +0100
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-MIME-Version: 1.0
-To: Jarod Wilson <jarod@wilsonet.com>
-CC: Jon Smirl <jonsmirl@gmail.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
-Subject: Re: [IR-RFC PATCH v4 0/6] In-kernel IR support using evdev
-References: <20091127013217.7671.32355.stgit@terra> <4B0F43B3.4090804@wilsonet.com>
-In-Reply-To: <4B0F43B3.4090804@wilsonet.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sat, 28 Nov 2009 09:42:48 -0500
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR 	system?
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: Krzysztof Halasa <khc@pm.waw.pl>
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Jon Smirl <jonsmirl@gmail.com>,
+	Christoph Bartelmus <christoph@bartelmus.de>,
+	jarod@wilsonet.com, awalls@radix.net, dmitry.torokhov@gmail.com,
+	j@jannau.net, jarod@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	mchehab@redhat.com, superm1@ubuntu.com
+In-Reply-To: <m37hta28w9.fsf@intrepid.localdomain>
+References: <9e4733910911270757j648e39ecl7487b7e6c43db828@mail.gmail.com>
+	 <4B104971.4020800@s5r6.in-berlin.de>
+	 <1259370501.11155.14.camel@maxim-laptop>
+	 <m37hta28w9.fsf@intrepid.localdomain>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 28 Nov 2009 16:42:48 +0200
+Message-ID: <1259419368.18747.0.camel@maxim-laptop>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jarod Wilson wrote:
-> On 11/26/2009 08:34 PM, Jon Smirl wrote:
->> Raw mode. There are three sysfs attributes - ir_raw, ir_carrier,
->> ir_xmitter. Read from ir_raw to get the raw timing data from the IR
->> device. Set carrier and active xmitters and then copy raw data to
->> ir_raw to send. These attributes may be better on a debug switch. You
->> would use raw mode when decoding a new protocol. After you figure out
->> the new protocol, write an in-kernel encoder/decoder for it.
+On Sat, 2009-11-28 at 12:20 +0100, Krzysztof Halasa wrote: 
+> Maxim Levitsky <maximlevitsky@gmail.com> writes:
 > 
-> Also neglected to recall there was raw IR data access too. However, a
-> few things... One, this is, in some sense, cheating, as its not an input
-> layer interface being used. :) Granted though, it *is* an existing
-> kernel interface being used, instead of adding a new one. Two, there's
-> no userspace to do anything with it at this time.
+> > If we add in-kernel decoding, we still will end up with two different
+> > decoding, one in kernel and one in lirc.
+> 
+> And that's good. Especially for a popular and simple protocol such as
+> RC5.
+> Actually, it's not about adding the decoder. It's about fixing it.
+> I can fix it.
 
-No; it is a new interface, just using an existing mechanism (sysfs). Not
-all of sysfs in itself is an interface really; rather there is a number
-of interfaces which are implemented by means of sysfs.
+This is nonsense.
 
-sysfs is primarily meant for simple textual attributes though, not for
-I/O streams.
--- 
-Stefan Richter
--=====-==--= =-== ==-==
-http://arcgraph.de/sr/
+
+
