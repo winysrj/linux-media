@@ -1,78 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:42508 "EHLO znsun1.ifh.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753674AbZKSPhR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2009 10:37:17 -0500
-Date: Thu, 19 Nov 2009 16:37:18 +0100 (CET)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Mario Bachmann <grafgrimm77@gmx.de>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: dibusb-common.c FE_HAS_LOCK problem
-In-Reply-To: <20091107105614.7a51f2f5@x2.grafnetz>
-Message-ID: <alpine.LRH.2.00.0911191630250.12734@pub2.ifh.de>
-References: <20091107105614.7a51f2f5@x2.grafnetz>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:50236 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751904AbZK1Q0Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Nov 2009 11:26:16 -0500
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR 	system?
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: Krzysztof Halasa <khc@pm.waw.pl>
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Jon Smirl <jonsmirl@gmail.com>,
+	Christoph Bartelmus <christoph@bartelmus.de>,
+	jarod@wilsonet.com, awalls@radix.net, dmitry.torokhov@gmail.com,
+	j@jannau.net, jarod@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	mchehab@redhat.com, superm1@ubuntu.com
+In-Reply-To: <m3r5riy7py.fsf@intrepid.localdomain>
+References: <9e4733910911270757j648e39ecl7487b7e6c43db828@mail.gmail.com>
+	 <4B104971.4020800@s5r6.in-berlin.de>
+	 <1259370501.11155.14.camel@maxim-laptop>
+	 <m37hta28w9.fsf@intrepid.localdomain>
+	 <1259419368.18747.0.camel@maxim-laptop>
+	 <m3zl66y8mo.fsf@intrepid.localdomain>
+	 <1259422559.18747.6.camel@maxim-laptop>
+	 <m3r5riy7py.fsf@intrepid.localdomain>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 28 Nov 2009 18:26:15 +0200
+Message-ID: <1259425575.19883.13.camel@maxim-laptop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 7 Nov 2009, Mario Bachmann wrote:
+On Sat, 2009-11-28 at 16:44 +0100, Krzysztof Halasa wrote: 
+> Maxim Levitsky <maximlevitsky@gmail.com> writes:
+> 
+> > Generic decoder that lirc has is actually much better and more tolerant
+> > that protocol specific decoders that you propose,
+> 
+> Actually, it is not the case. Why do you think it's better (let alone
+> "much better")? Have you at least seen my RC5 decoder?
+Because userspace decoder is general, it doesn't depend on exact timing,
+as long as pulses vary in size it can distinguish between keys, and that
+is enough.
+I didn't use your decoder, so in that particular case I don't know.
 
-> Hi there,
->
-> I tried linux-2.6.31.5 and tuning still does not work:
-> tuning to 738000000 Hz
-> video pid 0x0131, audio pid 0x0132
-> status 00 | signal 0000 | snr 0000 | ber 001fffff | unc 0000ffff |
-> status 00 | signal 0000 | snr 0000 | ber 001fffff | unc 0000ffff |
-> status 00 | signal 0000 | snr 0000 | ber 001fffff | unc 0000ffff |
-> status 04 | signal 0000 | snr 0000 | ber 001fffff | unc 0000ffff |
->
-> With some changes for the following file it works again:
-> /usr/src/linux/drivers/media/dvb/dvb-usb/dibusb-common.c
->
-> diff -Naur dibusb-common.c-ORIGINAL dibusb-common.c
->
-> --- dibusb-common.c-ORIGINAL	2009-11-07 10:30:43.705344308 +0100
-> +++ dibusb-common.c	2009-11-07 10:33:49.969345253 +0100
-> @@ -133,17 +133,14 @@
->
-> 	for (i = 0; i < num; i++) {
-> 		/* write/read request */
-> -		if (i+1 < num && (msg[i].flags & I2C_M_RD) == 0
-> -					  && (msg[i+1].flags & I2C_M_RD)) {
-> +		if (i+1 < num && (msg[i+1].flags & I2C_M_RD)) {
-> 			if (dibusb_i2c_msg(d, msg[i].addr, msg[i].buf,msg[i].len,
-> 						msg[i+1].buf,msg[i+1].len) < 0)
-> 				break;
-> 			i++;
-> -		} else if ((msg[i].flags & I2C_M_RD) == 0) {
-> +		} else
-> 			if (dibusb_i2c_msg(d, msg[i].addr, msg[i].buf,msg[i].len,NULL,0) < 0)
-> 				break;
-> -		} else
-> -			break;
-> 	}
 
-Doing it is reverting a fix which avoids that uncontrolled i2c-access from 
-userspace is destroying the USB-eeprom.
+> 
+> > You claim you 'fix' the decoder, right?
+> 
+> Sure.
+Unless you put it againt an inaccurate decoder....
+Ask the lirc developers.
 
-I understand that this is breaking the tuning for your board. I'm just not 
-understanding why.
 
-If you have some time to debug this issue, could you please try the 
-following:
+> 
+> > But what about all these lirc userspace drivers?
+> 
+> Nothing. They are not relevant and obviously have to use lircd.
+> If you can have userspace driver, you can have lircd as well.
+> 
+> > How they are supposed to use that 'fixed' decoder.
+> 
+> They are not.
+> 
+> Is it a problem for you?
+> How is your keyboard supposed to use scanner driver?
+Another piece of off-topic nonsense.
 
-One of the devices for your board is trying to do an I2c access which is 
-falling into the last 'else'-branch - can you add a printk to find out 
-which one it is? The access must be wrongly constructed and must be fixed 
-in that driver.
+I have a VCR remote, ok?
+I have a pulse/space decoder in my notebook, I have created a config
+file for that, and I did a lot of customizations, because this remote
+isn't supposed to be used with PC.
 
-thanks,
+Now, I also have a desktop.
+I don't have a receiver there, but someday I arrange some sort of it.
+I have an IR dongle in the closed, its raw IR diode.
+Probably with few components I could connect it to soundcard (and I have
+3 independent inputs, of which only one is used)
+And then I will use alsa input driver.
 
-PS: if you don't have time to do it, please tell so.
+Now I had ended up with 2 different configurations, one for the kernel,
+another for the lirc.
+Great, isn't it?
 
---
+The point is again, I *emphasize* that as long as lirc is used to decode
+all but ready to use scancodes, everything is kept in one place.
+Both decode algorithms and configuration.
 
-Patrick
-http://www.kernellabs.com/
+For ready to use scancode, a hardcoded table can be used in kernel to
+translate to input events.
+
+How hard to understand that?
+
+
+
+Also, I repeat again, that this discussion *IS NOT* about userspace api,
+its about who decodes the input, kernel or lirc.
+
+Raw access to timing will be aviable this way or another, ether as
+primary way of decoding for lirc, or as a debug measure.
+
+Regards,
+Maxim Levitsky
+
+
