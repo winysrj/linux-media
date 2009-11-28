@@ -1,363 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp240.poczta.interia.pl ([217.74.64.240]:4504 "EHLO
-	smtp240.poczta.interia.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750919AbZKZMsZ (ORCPT
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:40304 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751977AbZK1LLM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 07:48:25 -0500
-Date: Thu, 26 Nov 2009 13:50:17 +0100
-From: Krzysztof Helt <krzysztof.h1@poczta.fm>
-To: linux-media@vger.kernel.org
-Cc: Takashi Iwai <tiwai@suse.de>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] New driver for the radio FM module on Miro PCM20 sound card
-Message-Id: <20091126135017.891d5aa0.krzysztof.h1@poczta.fm>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Sat, 28 Nov 2009 06:11:12 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: vandrove@vc.cvut.cz
+Subject: radio-sf16fmi: fix mute, add SF16-FMP to texts
+Date: Sat, 28 Nov 2009 12:04:30 +0100
+Cc: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200911281204.32570.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Fix completely broken mute handling radio-sf16fmi.
+The sound was muted immediately after tuning in KRadio.
+Also fix typos and add SF16-FMP to the texts.
 
-This is recreated driver for the FM module found on Miro
-PCM20 sound cards. This driver was removed around the 2.6.2x
-kernels because it relied on the removed OSS module. Now, it
-uses a current ALSA module (snd-miro) and is adapted to v4l2
-layer.
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-It provides only basic functionality: frequency changing and
-FM module muting.
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
----
-This is the second version of the patch with changes suggested by Hans Verkuil.
-
-
- drivers/media/radio/Kconfig           |   17 ++
- drivers/media/radio/Makefile          |    1 +
- drivers/media/radio/radio-miropcm20.c |  269 +++++++++++++++++++++++++++++++++
- 3 files changed, 287 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/radio/radio-miropcm20.c
-
-diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-index a87a477..b1df9f2 100644
---- a/drivers/media/radio/Kconfig
-+++ b/drivers/media/radio/Kconfig
-@@ -195,6 +195,23 @@ config RADIO_MAESTRO
- 	  To compile this driver as a module, choose M here: the
+diff -urp linux-source-2.6.31-orig/drivers/media/radio/Kconfig linux-source-2.6.31/drivers/media/radio/Kconfig
+--- linux-source-2.6.31-orig/drivers/media/radio/Kconfig	2009-09-10 00:13:59.000000000 +0200
++++ linux-source-2.6.31/drivers/media/radio/Kconfig	2009-11-28 11:51:42.000000000 +0100
+@@ -196,7 +196,7 @@ config RADIO_MAESTRO
  	  module will be called radio-maestro.
  
-+config RADIO_MIROPCM20
-+	tristate "miroSOUND PCM20 radio"
-+	depends on ISA && VIDEO_V4L2
-+	select SND_MIRO
-+	---help---
-+	  Choose Y here if you have this FM radio card. You also need to select
-+	  the "Miro miroSOUND PCM1pro/PCM12/PCM20radio driver" ALSA sound card
-+	  driver for this to work.
-+
-+	  In order to control your radio card, you will need to use programs
-+	  that are compatible with the Video For Linux API.  Information on
-+	  this API and pointers to "v4l" programs may be found at
-+	  <file:Documentation/video4linux/API.html>.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called radio-miropcm20.
-+
  config RADIO_SF16FMI
- 	tristate "SF16FMI Radio"
+-	tristate "SF16FMI Radio"
++	tristate "SF16-FMI/SF16-FMP Radio"
  	depends on ISA && VIDEO_V4L2
-diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
-index 2a1be3b..8a63d54 100644
---- a/drivers/media/radio/Makefile
-+++ b/drivers/media/radio/Makefile
-@@ -18,6 +18,7 @@ obj-$(CONFIG_RADIO_TRUST) += radio-trust.o
- obj-$(CONFIG_I2C_SI4713) += si4713-i2c.o
- obj-$(CONFIG_RADIO_SI4713) += radio-si4713.o
- obj-$(CONFIG_RADIO_MAESTRO) += radio-maestro.o
-+obj-$(CONFIG_RADIO_MIROPCM20) += radio-miropcm20.o
- obj-$(CONFIG_USB_DSBR) += dsbr100.o
- obj-$(CONFIG_RADIO_SI470X) += si470x/
- obj-$(CONFIG_USB_MR800) += radio-mr800.o
-diff --git a/drivers/media/radio/radio-miropcm20.c b/drivers/media/radio/radio-miropcm20.c
-new file mode 100644
-index 0000000..6fd71f3
---- /dev/null
-+++ b/drivers/media/radio/radio-miropcm20.c
-@@ -0,0 +1,269 @@
-+/* Miro PCM20 radio driver for Linux radio support
-+ * (c) 1998 Ruurd Reitsma <R.A.Reitsma@wbmt.tudelft.nl>
-+ * Thanks to Norberto Pellici for the ACI device interface specification
-+ * The API part is based on the radiotrack driver by M. Kirkwood
-+ * This driver relies on the aci mixer provided by the snd-miro
-+ * ALSA driver.
-+ * Look there for further info...
-+ */
-+
-+/* What ever you think about the ACI, version 0x07 is not very well!
-+ * I can't get frequency, 'tuner status', 'tuner flags' or mute/mono
-+ * conditions...                Robert
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/videodev2.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ioctl.h>
-+#include <sound/aci.h>
-+
-+static int radio_nr = -1;
-+module_param(radio_nr, int, 0);
-+
-+static int mono;
-+module_param(mono, bool, 0);
-+MODULE_PARM_DESC(mono, "Force tuner into mono mode.");
-+
-+struct pcm20 {
-+	struct v4l2_device v4l2_dev;
-+	struct video_device vdev;
-+	unsigned long freq;
-+	int muted;
-+	struct snd_miro_aci *aci;
-+};
-+
-+static struct pcm20 pcm20_card = {
-+	.freq   = 87*16000,
-+	.muted  = 1,
-+};
-+
-+static int pcm20_mute(struct pcm20 *dev, unsigned char mute)
-+{
-+	dev->muted = mute;
-+	return snd_aci_cmd(dev->aci, ACI_SET_TUNERMUTE, mute, -1);
-+}
-+
-+static int pcm20_stereo(struct pcm20 *dev, unsigned char stereo)
-+{
-+	return snd_aci_cmd(dev->aci, ACI_SET_TUNERMONO, !stereo, -1);
-+}
-+
-+static int pcm20_setfreq(struct pcm20 *dev, unsigned long freq)
-+{
-+	unsigned char freql;
-+	unsigned char freqh;
-+	struct snd_miro_aci *aci = dev->aci;
-+
-+	dev->freq = freq;
-+
-+	freq /= 160;
-+	if (!(aci->aci_version == 0x07 || aci->aci_version >= 0xb0))
-+		freq /= 10;  /* I don't know exactly which version
-+			      * needs this hack */
-+	freql = freq & 0xff;
-+	freqh = freq >> 8;
-+
-+	pcm20_stereo(dev, !mono);
-+	return snd_aci_cmd(aci, ACI_WRITE_TUNE, freql, freqh);
-+}
-+
-+static const struct v4l2_file_operations pcm20_fops = {
-+	.owner		= THIS_MODULE,
-+	.ioctl		= video_ioctl2,
-+};
-+
-+static int vidioc_querycap(struct file *file, void *priv,
-+				struct v4l2_capability *v)
-+{
-+	strlcpy(v->driver, "Miro PCM20", sizeof(v->driver));
-+	strlcpy(v->card, "Miro PCM20", sizeof(v->card));
-+	strlcpy(v->bus_info, "ISA", sizeof(v->bus_info));
-+	v->version = 0x1;
-+	v->capabilities = V4L2_CAP_TUNER | V4L2_CAP_RADIO;
-+	return 0;
-+}
-+
-+static int vidioc_g_tuner(struct file *file, void *priv,
-+				struct v4l2_tuner *v)
-+{
-+	if (v->index)	/* Only 1 tuner */
-+		return -EINVAL;
-+	strlcpy(v->name, "FM", sizeof(v->name));
-+	v->type = V4L2_TUNER_RADIO;
-+	v->rangelow = 87*16000;
-+	v->rangehigh = 108*16000;
-+	v->signal = 0xffff;
-+	v->rxsubchans = V4L2_TUNER_SUB_MONO | V4L2_TUNER_SUB_STEREO;
-+	v->capability = V4L2_TUNER_CAP_LOW;
-+	v->audmode = V4L2_TUNER_MODE_MONO;
-+	return 0;
-+}
-+
-+static int vidioc_s_tuner(struct file *file, void *priv,
-+				struct v4l2_tuner *v)
-+{
-+	return v->index ? -EINVAL : 0;
-+}
-+
-+static int vidioc_g_frequency(struct file *file, void *priv,
-+				struct v4l2_frequency *f)
-+{
-+	struct pcm20 *dev = video_drvdata(file);
-+
-+	if (f->tuner != 0)
-+		return -EINVAL;
-+
-+	f->type = V4L2_TUNER_RADIO;
-+	f->frequency = dev->freq;
-+	return 0;
-+}
-+
-+
-+static int vidioc_s_frequency(struct file *file, void *priv,
-+				struct v4l2_frequency *f)
-+{
-+	struct pcm20 *dev = video_drvdata(file);
-+
-+	if (f->tuner != 0 || f->type != V4L2_TUNER_RADIO)
-+		return -EINVAL;
-+
-+	dev->freq = f->frequency;
-+	pcm20_setfreq(dev, f->frequency);
-+	return 0;
-+}
-+
-+static int vidioc_queryctrl(struct file *file, void *priv,
-+				struct v4l2_queryctrl *qc)
-+{
-+	switch (qc->id) {
-+	case V4L2_CID_AUDIO_MUTE:
-+		return v4l2_ctrl_query_fill(qc, 0, 1, 1, 1);
-+	}
-+	return -EINVAL;
-+}
-+
-+static int vidioc_g_ctrl(struct file *file, void *priv,
-+				struct v4l2_control *ctrl)
-+{
-+	struct pcm20 *dev = video_drvdata(file);
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_AUDIO_MUTE:
-+		ctrl->value = dev->muted;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static int vidioc_s_ctrl(struct file *file, void *priv,
-+				struct v4l2_control *ctrl)
-+{
-+	struct pcm20 *dev = video_drvdata(file);
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_AUDIO_MUTE:
-+		pcm20_mute(dev, ctrl->value);
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static int vidioc_g_input(struct file *filp, void *priv, unsigned int *i)
-+{
-+	*i = 0;
-+	return 0;
-+}
-+
-+static int vidioc_s_input(struct file *filp, void *priv, unsigned int i)
-+{
-+	return i ? -EINVAL : 0;
-+}
-+
-+static int vidioc_g_audio(struct file *file, void *priv,
-+				struct v4l2_audio *a)
-+{
-+	a->index = 0;
-+	strlcpy(a->name, "Radio", sizeof(a->name));
-+	a->capability = V4L2_AUDCAP_STEREO;
-+	return 0;
-+}
-+
-+static int vidioc_s_audio(struct file *file, void *priv,
-+				struct v4l2_audio *a)
-+{
-+	return a->index ? -EINVAL : 0;
-+}
-+
-+static const struct v4l2_ioctl_ops pcm20_ioctl_ops = {
-+	.vidioc_querycap    = vidioc_querycap,
-+	.vidioc_g_tuner     = vidioc_g_tuner,
-+	.vidioc_s_tuner     = vidioc_s_tuner,
-+	.vidioc_g_frequency = vidioc_g_frequency,
-+	.vidioc_s_frequency = vidioc_s_frequency,
-+	.vidioc_queryctrl   = vidioc_queryctrl,
-+	.vidioc_g_ctrl      = vidioc_g_ctrl,
-+	.vidioc_s_ctrl      = vidioc_s_ctrl,
-+	.vidioc_g_audio     = vidioc_g_audio,
-+	.vidioc_s_audio     = vidioc_s_audio,
-+	.vidioc_g_input     = vidioc_g_input,
-+	.vidioc_s_input     = vidioc_s_input,
-+};
-+
-+static int __init pcm20_init(void)
-+{
-+	struct pcm20 *dev = &pcm20_card;
-+	struct v4l2_device *v4l2_dev = &dev->v4l2_dev;
-+	int res;
-+
-+	dev->aci = snd_aci_get_aci();
-+	if (dev->aci == NULL) {
-+		v4l2_err(v4l2_dev,
-+			 "you must load the snd-miro driver first!\n");
-+		return -ENODEV;
-+	}
-+	strlcpy(v4l2_dev->name, "miropcm20", sizeof(v4l2_dev->name));
-+
-+
-+	res = v4l2_device_register(NULL, v4l2_dev);
-+	if (res < 0) {
-+		v4l2_err(v4l2_dev, "could not register v4l2_device\n");
-+		return -EINVAL;
-+	}
-+
-+	strlcpy(dev->vdev.name, v4l2_dev->name, sizeof(dev->vdev.name));
-+	dev->vdev.v4l2_dev = v4l2_dev;
-+	dev->vdev.fops = &pcm20_fops;
-+	dev->vdev.ioctl_ops = &pcm20_ioctl_ops;
-+	dev->vdev.release = video_device_release_empty;
-+	video_set_drvdata(&dev->vdev, dev);
-+
-+	if (video_register_device(&dev->vdev, VFL_TYPE_RADIO, radio_nr) < 0)
-+		goto fail;
-+
-+	v4l2_info(v4l2_dev, "Mirosound PCM20 Radio tuner\n");
-+	return 0;
-+fail:
-+	v4l2_device_unregister(v4l2_dev);
-+	return -EINVAL;
-+}
-+
-+MODULE_AUTHOR("Ruurd Reitsma, Krzysztof Helt");
-+MODULE_DESCRIPTION("A driver for the Miro PCM20 radio card.");
-+MODULE_LICENSE("GPL");
-+
-+static void __exit pcm20_cleanup(void)
-+{
-+	struct pcm20 *dev = &pcm20_card;
-+
-+	video_unregister_device(&dev->vdev);
-+	v4l2_device_unregister(&dev->v4l2_dev);
-+}
-+
-+module_init(pcm20_init);
-+module_exit(pcm20_cleanup);
+ 	---help---
+ 	  Choose Y here if you have one of these FM radio cards.  If you
+diff -urp linux-source-2.6.31-orig/drivers/media/radio/radio-sf16fmi.c linux-source-2.6.31/drivers/media/radio/radio-sf16fmi.c
+--- linux-source-2.6.31-orig/drivers/media/radio/radio-sf16fmi.c	2009-09-10 00:13:59.000000000 +0200
++++ linux-source-2.6.31/drivers/media/radio/radio-sf16fmi.c	2009-11-28 11:39:35.000000000 +0100
+@@ -1,4 +1,4 @@
+-/* SF16FMI radio driver for Linux radio support
++/* SF16-FMI and SF16-FMP radio driver for Linux radio support
+  * heavily based on rtrack driver...
+  * (c) 1997 M. Kirkwood
+  * (c) 1998 Petr Vandrovec, vandrove@vc.cvut.cz
+@@ -11,7 +11,7 @@
+  *
+  *  Frequency control is done digitally -- ie out(port,encodefreq(95.8));
+  *  No volume control - only mute/unmute - you have to use line volume
+- *  control on SB-part of SF16FMI
++ *  control on SB-part of SF16-FMI/SF16-FMP
+  *
+  * Converted to V4L2 API by Mauro Carvalho Chehab <mchehab@infradead.org>
+  */
+@@ -30,14 +30,14 @@
+ #include <media/v4l2-ioctl.h>
+ 
+ MODULE_AUTHOR("Petr Vandrovec, vandrove@vc.cvut.cz and M. Kirkwood");
+-MODULE_DESCRIPTION("A driver for the SF16MI radio.");
++MODULE_DESCRIPTION("A driver for the SF16-FMI and SF16-FMP radio.");
+ MODULE_LICENSE("GPL");
+ 
+ static int io = -1;
+ static int radio_nr = -1;
+ 
+ module_param(io, int, 0);
+-MODULE_PARM_DESC(io, "I/O address of the SF16MI card (0x284 or 0x384)");
++MODULE_PARM_DESC(io, "I/O address of the SF16-FMI or SF16-FMP card (0x284 or 0x384)");
+ module_param(radio_nr, int, 0);
+ 
+ #define RADIO_VERSION KERNEL_VERSION(0, 0, 2)
+@@ -47,7 +47,7 @@ struct fmi
+ 	struct v4l2_device v4l2_dev;
+ 	struct video_device vdev;
+ 	int io;
+-	int curvol; /* 1 or 0 */
++	bool mute;
+ 	unsigned long curfreq; /* freq in kHz */
+ 	struct mutex lock;
+ };
+@@ -105,7 +105,7 @@ static inline int fmi_setfreq(struct fmi
+ 	outbits(8, 0xC0, fmi->io);
+ 	msleep(143);		/* was schedule_timeout(HZ/7) */
+ 	mutex_unlock(&fmi->lock);
+-	if (fmi->curvol)
++	if (!fmi->mute)
+ 		fmi_unmute(fmi);
+ 	return 0;
+ }
+@@ -116,7 +116,7 @@ static inline int fmi_getsigstr(struct f
+ 	int res;
+ 
+ 	mutex_lock(&fmi->lock);
+-	val = fmi->curvol ? 0x08 : 0x00;	/* unmute/mute */
++	val = fmi->mute ? 0x00 : 0x08;	/* mute/unmute */
+ 	outb(val, fmi->io);
+ 	outb(val | 0x10, fmi->io);
+ 	msleep(143); 		/* was schedule_timeout(HZ/7) */
+@@ -204,7 +204,7 @@ static int vidioc_g_ctrl(struct file *fi
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_AUDIO_MUTE:
+-		ctrl->value = fmi->curvol;
++		ctrl->value = fmi->mute;
+ 		return 0;
+ 	}
+ 	return -EINVAL;
+@@ -221,7 +221,7 @@ static int vidioc_s_ctrl(struct file *fi
+ 			fmi_mute(fmi);
+ 		else
+ 			fmi_unmute(fmi);
+-		fmi->curvol = ctrl->value;
++		fmi->mute = ctrl->value;
+ 		return 0;
+ 	}
+ 	return -EINVAL;
+
 -- 
-1.6.4
-
-----------------------------------------------------------------------
-Audi kilka tysiecy zlotych taniej? Przebieraj wsrod tysiecy ogloszen!
-Kliknij >>> http://link.interia.pl/f2424
-
+Ondrej Zary
