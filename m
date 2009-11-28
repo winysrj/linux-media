@@ -1,75 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:45146 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753364AbZKZXXJ (ORCPT
+Received: from qw-out-2122.google.com ([74.125.92.24]:55853 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753074AbZK1S6V convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 18:23:09 -0500
-Date: Thu, 26 Nov 2009 15:23:11 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Krzysztof Halasa <khc@pm.waw.pl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@redhat.com>, linux-kernel@vger.kernel.org,
-	Mario Limonciello <superm1@ubuntu.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Janne Grunau <j@jannau.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
-	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-Message-ID: <20091126232311.GD6936@core.coreip.homeip.net>
-References: <200910200956.33391.jarod@redhat.com> <200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com> <4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain> <20091123173726.GE17813@core.coreip.homeip.net> <4B0B6321.3050001@wilsonet.com> <20091126053109.GE23244@core.coreip.homeip.net> <A910E742-51B5-45E0-AD80-B9AE0728D9FB@wilsonet.com>
+	Sat, 28 Nov 2009 13:58:21 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <A910E742-51B5-45E0-AD80-B9AE0728D9FB@wilsonet.com>
+In-Reply-To: <4B116954.5050706@s5r6.in-berlin.de>
+References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc>
+	 <9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>
+	 <4B116954.5050706@s5r6.in-berlin.de>
+Date: Sat, 28 Nov 2009 13:58:27 -0500
+Message-ID: <9e4733910911281058i1b28f33bh64c724a89dcb8cf5@mail.gmail.com>
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
+	system?
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: Christoph Bartelmus <lirc@bartelmus.de>, khc@pm.waw.pl,
+	awalls@radix.net, dmitry.torokhov@gmail.com, j@jannau.net,
+	jarod@redhat.com, jarod@wilsonet.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	maximlevitsky@gmail.com, mchehab@redhat.com, superm1@ubuntu.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 26, 2009 at 01:16:01AM -0500, Jarod Wilson wrote:
-> On Nov 26, 2009, at 12:31 AM, Dmitry Torokhov wrote:
-> 
-> > On Mon, Nov 23, 2009 at 11:37:53PM -0500, Jarod Wilson wrote:
-> >> On 11/23/2009 12:37 PM, Dmitry Torokhov wrote:
-> >>> On Mon, Nov 23, 2009 at 03:14:56PM +0100, Krzysztof Halasa wrote:
-> >>>> Mauro Carvalho Chehab<mchehab@redhat.com>  writes:
-> >>>> 
-> >>>>> Event input has the advantage that the keystrokes will provide an unique
-> >>>>> representation that is independent of the device.
-> >>>> 
-> >>>> This can hardly work as the only means, the remotes have different keys,
-> >>>> the user almost always has to provide customized key<>function mapping.
-> >>>> 
-> >>> 
-> >>> Is it true? I would expect the remotes to have most of the keys to have
-> >>> well-defined meanings (unless it is one of the programmable remotes)...
-> >> 
-> >> Its the cases like programmable universal remotes that really throw  
-> >> things for a loop. That, and people wanting to use random remote X that  
-> >> came with the amp or tv or set top box, with IR receiver Y.
-> > 
-> > Right, but still the keys usually do have the well-defined meaning,
-> 
-> Except when they don't. I have two very similar remotes, one that was bundled with a system from CaptiveWorks, and one that was bundled with an Antec Veris IR/LCD (SoundGraph iMON rebrand). Outside of the Antec remote having a mouse pad instead of up/down/left/right/enter, they have an identical layout, and the keys in the same locations on the remotes send the same IR signal. But the button names vary a LOT between the two. So on the DVD key on the Antec and the MUTE key on the CW send the same signal. Same with Audio vs. Eject, TV vs. History, etc. Moral of the story is that not all IR protocols spell things out particularly well for what a given code should actually mean.
+On Sat, Nov 28, 2009 at 1:17 PM, Stefan Richter
+<stefanr@s5r6.in-berlin.de> wrote:
+> Jon Smirl wrote:
+>> There are two very basic things that we need to reach consensus on first.
+>>
+>> 1) Unification with mouse/keyboard in evdev - put IR on equal footing.
+>> 2) Specific tools (xmodmap, setkeycodes, etc or the LIRC ones) or
+>> generic tools (ls, mkdir, echo) for configuration
+>
+> About 2:  If at all, there only needs to be a decision about pulse/space
+> to scancode converter configuration.  In contrast, scancode to keycode
+> converter configuration is already solved; the interface is
+> EVIOCSKEYCODE.  If you find the EVIOCSKEYCODE interface lacking, extend
+> it or submit an alternative --- but this does not affect LIRC and
+> whether to merge it in any way.
 
-I guess we are talking about different things. While the 2 remotes may
-use different protocols to communicate and may use the same codes to
-mean different things they buttons have well-defined meaning and we
-could map that to input keycodes. Then what is left is to load the
-proper mapping for particular device into the kernel. This can be done
-either automatically (when we know the mapping) or with the help of the
-user (owner of the system).
+EVIOCSKEYCODE is lacking, first parameter is an INT. Some decoded IR
+codes are over 32b. Christoph posted an example that needs 128b. This
+is a problem with ioctls, they change size depending on platform and
+endianess.
 
-> 
-> > teh
-> > issue is in mapping raw code to the appropriate keycode. This can be
-> > done either by lirc config file (when lirc is used) or by some other
-> > means.
-> 
-> The desire to map a button press to multiple keystrokes isn't uncommon either, though I presume that's doable within the input layer context too.
+Also, how do you create the devices for each remote? You would need to
+create these devices before being able to do EVIOCSKEYCODE to them.
 
-No, at present we expect 1:1 button->event mapping leaving macro
-expansion (i.e. KEY_PROG1 -> "do some multi-step sequence" to
-userspace).
+>
+> PS:  Drop your "specific vs. generic tools" terminology already.  Your
+> configfs based proposal requires "specific" tools as well, it's just
+> that they can be implemented in bash, among else.
+
+The shell commands are the most generic tools in Unix. udev already
+knows how to run shell scripts.
+
+But there is no technical reason why setkeycodes, getkeycodes,
+showkey, loadkeys, xmodmap, and dump-keys can't be modified to support
+IR. I already have to have the man page on the screen when using these
+commands so adding a bunch more parameters won't hurt.
+
+> --
+> Stefan Richter
+> -=====-==--= =-== ===--
+> http://arcgraph.de/sr/
+>
+
+
 
 -- 
-Dmitry
+Jon Smirl
+jonsmirl@gmail.com
