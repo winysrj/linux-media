@@ -1,90 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.work.de ([212.12.32.49]:47724 "EHLO smtp.work.de"
+Received: from smtp3-g21.free.fr ([212.27.42.3]:60666 "EHLO smtp3-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753313AbZKTXkz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2009 18:40:55 -0500
-Message-ID: <4B07290B.4060307@jusst.de>
-Date: Sat, 21 Nov 2009 00:40:59 +0100
-From: Julian Scheel <julian@jusst.de>
-MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jean Delvare <khali@linux-fr.org>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: Details about DVB frontend API
-References: <20091022211330.6e84c6e7@hyperion.delvare>	 <4B02FDA4.5030508@infradead.org>	 <1a297b360911200129pe5af064wf9cf239851ac5c46@mail.gmail.com>	 <200911201237.31537.julian@jusst.de> <1a297b360911200808k12676112lf7a11f3dfd44a187@mail.gmail.com>
-In-Reply-To: <1a297b360911200808k12676112lf7a11f3dfd44a187@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1752756AbZK1S5t convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Nov 2009 13:57:49 -0500
+Received: from smtp3-g21.free.fr (localhost [127.0.0.1])
+	by smtp3-g21.free.fr (Postfix) with ESMTP id 7136C818167
+	for <linux-media@vger.kernel.org>; Sat, 28 Nov 2009 19:57:50 +0100 (CET)
+Received: from tele (qrm29-1-82-245-201-222.fbx.proxad.net [82.245.201.222])
+	by smtp3-g21.free.fr (Postfix) with ESMTP id 5BB038180EA
+	for <linux-media@vger.kernel.org>; Sat, 28 Nov 2009 19:57:48 +0100 (CET)
+Date: Sat, 28 Nov 2009 19:57:54 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/2] gspca: add input support for interrupt endpoints
+Message-ID: <20091128195754.74503736@tele>
+In-Reply-To: <4B10CDF1.9030204@freemail.hu>
+References: <4B095EDE.4090409@freemail.hu>
+	<4B10CDF1.9030204@freemail.hu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Manu Abraham schrieb
-> Not only is it time critical, but it should also be "atomic", ie it
-> should be all in one go, ie one single snapshot of an event, not
-> events bunched together serially. Things wont seem that "atomic" on a
-> system with a large load. Latency will have a significant effect on
-> the statistics (values) read back, since it is again disjoint events.
->   
-Right, the values should be treatened as a unique unit...
-> Time stamping would be helpful, prior to any processing by the library
-> such that the time overhead for the calculations is offset, but that
-> can be really useful within the same library alone. I can't imagine
-> how time stamping can be helpful to result a low latency.
->   
+On Sat, 28 Nov 2009 08:14:57 +0100
+Németh Márton <nm127@freemail.hu> wrote:
 
-No, timestamping would of course not be helpful for reducing the 
-latency, it would just allow to correctly interpret values if they are 
-delayed. So that you won't assume the values you receive can be taken as 
-proven for the current moment.
+> what do you think about the latest version of this patchset?
 
-> If you don't have a low latency, Consider this (even when you are able
-> to ignore the statistics for any general processing, on the thought
-> that "i can always live with those errors and i always had"):
->
-> The error fedback into the loop for a sat positioner/rotor. The final
-> calculated position will never be the actual position that you wanted
-> the antenna to be at a certain location. The problem would be made
-> worser by the different rotor speeds as well, to add to the nightmare.
->
-> With the V5 operation, you bunch operations together in a serial
-> manner, it is atomic to the sense that it happens or doesn't happen,
-> but it is not atomic to the sense of any particular time frame. You
-> just keep your fingers crossed that the CPU executes the event in the
-> shortest frame. This won't hold good in all cases when there is a high
-> latency on the system when there is a significant load.
->
-> eg: You can imagine an IPTV headend streaming data, with a small CPU
-> with multiple tuners and trying to compensate the offset that's
-> introduced.
->
-> Still worser situation: imagine a gyro stabilized setup, where the
-> base itself is not that stationary.
->   
+Hello Márton,
 
-Ok, thanks for the details about how V5 API deals with this. Indeed this 
-is a major issue one has to think of when talking about signal statistics.
+I wonder why you did not include the input functions directly in the
+file gspca.c instead of adding new files and changing the Makefile.
 
-> Some other points to be considered:
-> * As of now, the get/set interface is not used for any signal statistics
->
-> * Even if one prefers to normalize all parameters into one single
-> standard, even then you wouldn't land with a get/set interface.
->
-> * The generic get/set interface is good when you have an unknown set
-> of parameters, such that one can keep adding in parameters.  Eg: most
-> people favoured this approach when we had a larger set of modulations/
-> error correction and other parameters.
->
-> For the case what we have currently, we do not have such a varied set
-> of parameters to consider.
+Below are more remarks.
 
-Right, the situation about the parameters which will be requested in 
-terms of signal statistics should not change for future frontend types, 
-so it really should be a save approach to have a static API here. I have 
-not yet done a very detailed look into your proposed patch, but I will 
-do so tomorrow.
-I really would like to see a reliable statistics API in v4l-dvb soon.
+Regards.
 
-Regards,
-Julian
+	[snip]
+> > diff -r bc16afd1e7a4 linux/drivers/media/video/gspca/gspca.c
+> > --- a/linux/drivers/media/video/gspca/gspca.c	Sat Nov 21
+> > 12:01:36 2009 +0100 +++
+> > b/linux/drivers/media/video/gspca/gspca.c	Sun Nov 22
+	[snip]
+> > @@ -499,11 +502,13 @@
+> >  			i, ep->desc.bEndpointAddress);
+> >  	gspca_dev->alt = i;		/* memorize the current
+> > alt setting */ if (gspca_dev->nbalt > 1) {
+> > +		gspca_input_destroy_urb(gspca_dev);
+> >  		ret = usb_set_interface(gspca_dev->dev,
+> > gspca_dev->iface, i); if (ret < 0) {
+> >  			err("set alt %d err %d", i, ret);
+> > -			return NULL;
+> > +			ep = NULL;
+> >  		}
+> > +		gspca_input_create_urb(gspca_dev);
+> >  	}
+> >  	return ep;
+> >  }
+
+If the interface cannot be set, I wonder if creating the input URB is
+useful.
+
+> > @@ -707,7 +712,9 @@
+> >  		if (gspca_dev->sd_desc->stopN)
+> >  			gspca_dev->sd_desc->stopN(gspca_dev);
+> >  		destroy_urbs(gspca_dev);
+> > +		gspca_input_destroy_urb(gspca_dev);
+> >  		gspca_set_alt0(gspca_dev);
+> > +		gspca_input_create_urb(gspca_dev);
+> >  	}
+
+Instead of destroying and recreating the input URB at each interface
+change, it might be simpler to have a global function set_alt() and to
+do the input job inside this one.
+
+[snip]
+> > diff -r bc16afd1e7a4 linux/drivers/media/video/gspca/input.c
+> > --- /dev/null	Thu Jan 01 00:00:00 1970 +0000
+> > +++ b/linux/drivers/media/video/gspca/input.c	Sun Nov 22
+> > 16:40:34 2009 +0100 @@ -0,0 +1,184 @@
+	[snip]
+> > +EXPORT_SYMBOL(gspca_input_connect);
+
+Don't do that: this function is not used by any other module.
+
+> > +
+> > +static int alloc_and_submit_int_urb(struct gspca_dev *gspca_dev,
+> > +			  struct usb_endpoint_descriptor *ep)
+> > +{
+> > +	unsigned int buffer_len;
+> > +	int interval;
+> > +	struct urb *urb;
+> > +	struct usb_device *dev;
+> > +	void *buffer = NULL;
+> > +	int ret = -EINVAL;
+> > +
+> > +	buffer_len = ep->wMaxPacketSize;
+> > +	interval = ep->bInterval;
+> > +	PDEBUG(D_PROBE, "found int in endpoint: 0x%x, "
+> > +		"buffer_len=%u, interval=%u",
+> > +		ep->bEndpointAddress, buffer_len, interval);
+> > +
+> > +	dev = gspca_dev->dev;
+> > +	gspca_dev->int_urb = NULL;
+
+Not useful: the descriptor is already set to zero.
+
+> > +
+> > +	urb = usb_alloc_urb(0, GFP_KERNEL);
+> > +	if (!urb) {
+> > +		ret = -ENOMEM;
+> > +		goto error;
+> > +	}
+> > +
+> > +	buffer = usb_buffer_alloc(dev, ep->wMaxPacketSize,
+> > +				GFP_KERNEL, &urb->transfer_dma);
+> > +	if (!buffer) {
+> > +		ret = -ENOMEM;
+> > +		goto error_buffer;
+> > +	}
+> > +	usb_fill_int_urb(urb, dev,
+> > +		usb_rcvintpipe(dev, ep->bEndpointAddress),
+> > +		buffer, buffer_len,
+> > +		int_irq, (void *)gspca_dev, interval);
+> > +	gspca_dev->int_urb = urb;
+
+This instruction should go just before the normal return.
+
+> > +	ret = usb_submit_urb(urb, GFP_KERNEL);
+> > +	if (ret < 0) {
+> > +		PDEBUG(D_ERR, "submit URB failed with error %i",
+> > ret);
+> > +		goto error_submit;
+> > +	}
+> > +	return ret;
+> > +
+> > +error_submit:
+> > +	usb_buffer_free(dev,
+> > +			urb->transfer_buffer_length,
+> > +			urb->transfer_buffer,
+> > +			urb->transfer_dma);
+> > +error_buffer:
+> > +	usb_free_urb(urb);
+> > +error:
+> > +	return ret;
+> > +}
+	[snip]
+> > diff -r bc16afd1e7a4 linux/drivers/media/video/gspca/input.h
+> > --- /dev/null	Thu Jan 01 00:00:00 1970 +0000
+> > +++ b/linux/drivers/media/video/gspca/input.h	Sun Nov 22
+> > 16:40:34 2009 +0100 @@ -0,0 +1,36 @@
+	[snip]
+> > +#ifdef CONFIG_INPUT
+> > +int gspca_input_connect(struct gspca_dev *gspca_dev);
+> > +int gspca_input_create_urb(struct gspca_dev *gspca_dev);
+> > +void gspca_input_destroy_urb(struct gspca_dev *gspca_dev);
+> > +#else
+> > +#define gspca_input_connect(gspca_dev)		0
+> > +#define gspca_input_create_urb(gspca_dev)	0
+> > +#define gspca_input_destroy_urb(gspca_dev)
+
+I better like empty functions, but this will be natural with the input
+functions in the file gspca.c...
+
+> > +#endif
+> > +
+> > +#endif
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
