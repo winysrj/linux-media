@@ -1,80 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.162]:38267 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753891AbZK1Uza (ORCPT
+Received: from qw-out-2122.google.com ([74.125.92.26]:45524 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752878AbZK1Rhi convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Nov 2009 15:55:30 -0500
-Received: from compi (xdsl-81-173-252-240.netcologne.de [81.173.252.240])
-	by post.strato.de (fruni mo36) (RZmta 22.5)
-	with ESMTP id x01574lASJ8OWh for <linux-media@vger.kernel.org>;
-	Sat, 28 Nov 2009 21:55:36 +0100 (MET)
-From: Jochen Puchalla <mail@puchalla-online.de>
-To: linux-media@vger.kernel.org
-Subject: Problem tuning TT T-1200 FF DVB-T
-Date: Sat, 28 Nov 2009 21:55:27 +0100
+	Sat, 28 Nov 2009 12:37:38 -0500
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200911282155.27486.mail@puchalla-online.de>
+In-Reply-To: <m3aay6y2m1.fsf@intrepid.localdomain>
+References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc>
+	 <9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>
+	 <m3aay6y2m1.fsf@intrepid.localdomain>
+Date: Sat, 28 Nov 2009 12:37:40 -0500
+Message-ID: <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
+	system?
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Krzysztof Halasa <khc@pm.waw.pl>
+Cc: Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	maximlevitsky@gmail.com, mchehab@redhat.com,
+	stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Sat, Nov 28, 2009 at 12:35 PM, Krzysztof Halasa <khc@pm.waw.pl> wrote:
+> Jon Smirl <jonsmirl@gmail.com> writes:
+>
+>> There are two very basic things that we need to reach consensus on first.
+>>
+>> 1) Unification with mouse/keyboard in evdev - put IR on equal footing.
+>> 2) Specific tools (xmodmap, setkeycodes, etc or the LIRC ones) or
+>> generic tools (ls, mkdir, echo) for configuration
+>
+> I think we can do this gradually:
+> 1. Merging the lirc drivers. The only stable thing needed is lirc
+>   interface.
 
-my new card will not tune, it has a problem with the firmware I am offering. 
-Does not seem to fit. TV-out with this card works fine.
+Doing that locks in a user space API that needs to be supported
+forever. We need to think this API through before locking it in.
 
-Here's my log:
-Nov 28 15:35:00 vdr kernel: saa7146: register extension 'dvb'.
-Nov 28 15:35:00 vdr kernel: dvb 0000:00:0d.0: enabling device (0004 -> 0006)
-Nov 28 15:35:00 vdr kernel: dvb 0000:00:0d.0: PCI INT A -> GSI 16 (level, 
-low) -> IRQ 16
-Nov 28 15:35:00 vdr kernel: IRQ 16/: IRQF_DISABLED is not guaranteed on shared 
-IRQs
-Nov 28 15:35:00 vdr kernel: saa7146: found saa7146 @ mem d2146000 (revision 1, 
-irq 16) (0x13c2,0x0001).
-Nov 28 15:35:00 vdr kernel: dvb 0000:00:0d.0: firmware: requesting 
-dvb-ttpci-01.fw
-Nov 28 15:35:00 vdr kernel: DVB: registering new adapter 
-(Technotrend/Hauppauge WinTV DVB-T rev1.X)
-Nov 28 15:35:00 vdr kernel: adapter has MAC addr = 00:d0:5c:01:e4:50
-Nov 28 15:35:00 vdr kernel: dvb 0000:00:0d.0: firmware: requesting 
-av7110/bootcode.bin
-Nov 28 15:35:00 vdr kernel: dvb-ttpci: gpioirq unknown type=0 len=0
-Nov 28 15:35:00 vdr kernel: dvb-ttpci: info @ card 1: firm f0240009, rtsl 
-b0250018, vid 71010068, app 8000261d
-Nov 28 15:35:00 vdr kernel: dvb-ttpci: firmware @ card 1 supports CI link 
-layer interface
-Nov 28 15:35:00 vdr kernel: dvb-ttpci: Crystal audio DAC @ card 1 detected
-Nov 28 15:35:00 vdr kernel: saa7146_vv: saa7146 (0): registered device video0 
-[v4l2]
-Nov 28 15:35:00 vdr kernel: saa7146_vv: saa7146 (0): registered device vbi0 
-[v4l2]
-Nov 28 15:35:00 vdr kernel: DVB: registering adapter 1 frontend 0 (Spase 
-SP8870 DVB-T)...
-Nov 28 15:35:00 vdr kernel: input: DVB on-card IR receiver 
-as /class/input/input4
-Nov 28 15:35:00 vdr kernel: dvb-ttpci: found av7110-0.
-Nov 28 15:35:00 vdr kernel: sp8870: waiting for firmware upload 
-(dvb-fe-sp8870.fw)...
-Nov 28 15:35:00 vdr kernel: dvb 0000:00:0d.0: firmware: requesting 
-dvb-fe-sp8870.fw
-Nov 28 15:35:00 vdr kernel: sp8870: no firmware upload (timeout or file not 
-found?)
-Nov 28 15:35:00 vdr kernel: sp8870_set_frontend: firmware crash!!!!!!
-Nov 28 15:35:00 vdr last message repeated 7 times
-Nov 28 15:35:00 vdr kernel: warning: `dnsmasq' uses 32-bit capabilities 
-(legacy support in use)
-Nov 28 15:35:00 vdr kernel: sp8870_set_frontend: firmware crash!!!!!!
-Nov 28 15:35:01 vdr kernel: sp8870_set_frontend: firmware crash!!!!!!
-Nov 28 15:35:05 vdr last message repeated 8 times
-Nov 28 15:35:05 vdr vdr: [2109] frontend 1 timed out while tuning to channel 
-1, tp 706
-Nov 28 15:35:05 vdr kernel: sp8870_set_frontend: firmware crash!!!!!!
-Nov 28 15:35:06 vdr kernel: sp8870_set_frontend: firmware crash!!!!!!
-Nov 28 15:35:31 vdr last message repeated 52 times
+> 2. Changing IR input layer interface ("media" drivers and adding to lirc
+>   drivers).
+> --
+> Krzysztof Halasa
+>
 
-I do have this firmware:
--rw-r--r-- 1 root root  20108 2009-11-28 16:28 dvb-fe-sp8870.fw
-All other firmwares load fine, but this one doesn't.
-Can you help me?
+
+
+-- 
+Jon Smirl
+jonsmirl@gmail.com
