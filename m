@@ -1,63 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2338 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753475AbZKQHOk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2009 02:14:40 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Subject: Re: [PATCH] V4L: adding digital video timings APIs
-Date: Tue, 17 Nov 2009 08:14:35 +0100
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>
-References: <1256164939-21803-1-git-send-email-m-karicheri2@ti.com> <200911110821.10524.hverkuil@xs4all.nl> <A69FA2915331DC488A831521EAE36FE401559C5591@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE401559C5591@dlee06.ent.ti.com>
+Received: from khc.piap.pl ([195.187.100.11]:35399 "EHLO khc.piap.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753626AbZK1U3U (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Nov 2009 15:29:20 -0500
+From: Krzysztof Halasa <khc@pm.waw.pl>
+To: Jon Smirl <jonsmirl@gmail.com>
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	maximlevitsky@gmail.com, mchehab@redhat.com, superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
+References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc>
+	<9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>
+	<4B116954.5050706@s5r6.in-berlin.de>
+	<9e4733910911281058i1b28f33bh64c724a89dcb8cf5@mail.gmail.com>
+	<m3ws1awhk8.fsf@intrepid.localdomain>
+	<9e4733910911281214o614fd912wbbe5dcc50108aeea@mail.gmail.com>
+Date: Sat, 28 Nov 2009 21:29:23 +0100
+In-Reply-To: <9e4733910911281214o614fd912wbbe5dcc50108aeea@mail.gmail.com>
+	(Jon Smirl's message of "Sat, 28 Nov 2009 15:14:32 -0500")
+Message-ID: <m3bpimwfz0.fsf@intrepid.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200911170814.35326.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 16 November 2009 19:35:40 Karicheri, Muralidharan wrote:
-> 
-> Hans,
-> 
-> >Hi Murali,
-> >
-> >What is the status of this? It would be great if we can get this in for
-> >2.6.33.
-> >
-> 
-> I am working on the documentation today and then the application. I think a
-> new patch will be ready by tomorrow. I am not sure if there is a better way
-> to add documentation.. Currently I have just editing the xml file manually.
+Jon Smirl <jonsmirl@gmail.com> writes:
 
-That's what I do as well. I know that there are some xml editing programs
-available, but I've no idea how well they work with this code.
+> Endianess comes into play when send/receiving multibyte integers on
+> platforms with different endianess.
 
-Regards,
+It's the case when you're sending this data to a machine with
+a different endianness. For example, in a network or to another CPU in
+e.g. add-on card.
+Ioctls are not affected by this, since both ends are the same.
 
-	Hans
-
-> 
-> Regards,
-> Murali
-> >Regards,
-> >
-> >	Hans
-> >
-> >--
-> >Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
-> 
-> 
-> 
-> 
-
-
-
+Obviously you can be affected if you try to access data as integers in
+one point and as arrays of bytes in the other, but it has nothing to do
+with ioctls.
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Krzysztof Halasa
