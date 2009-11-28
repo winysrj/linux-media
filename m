@@ -1,51 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f226.google.com ([209.85.217.226]:34807 "EHLO
-	mail-gx0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754163AbZKWDZQ (ORCPT
+Received: from mail-qy0-f194.google.com ([209.85.221.194]:46299 "EHLO
+	mail-qy0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751785AbZK1RGm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Nov 2009 22:25:16 -0500
-Received: by gxk26 with SMTP id 26so4478280gxk.1
-        for <linux-media@vger.kernel.org>; Sun, 22 Nov 2009 19:25:22 -0800 (PST)
-Message-ID: <4B0A009C.3080801@hotmail.com>
-Date: Mon, 23 Nov 2009 11:25:16 +0800
-From: Huang Shijie <shijie8@gmail.com>
+	Sat, 28 Nov 2009 12:06:42 -0500
 MIME-Version: 1.0
-CC: mchehab@redhat.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH 06/11] add the generic file
-References: <1258687493-4012-1-git-send-email-shijie8@gmail.com> <1258687493-4012-2-git-send-email-shijie8@gmail.com> <1258687493-4012-3-git-send-email-shijie8@gmail.com> <1258687493-4012-4-git-send-email-shijie8@gmail.com> <1258687493-4012-5-git-send-email-shijie8@gmail.com> <1258687493-4012-6-git-send-email-shijie8@gmail.com> <1258687493-4012-7-git-send-email-shijie8@gmail.com>
-In-Reply-To: <1258687493-4012-7-git-send-email-shijie8@gmail.com>
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+In-Reply-To: <BDkdITRHqgB@lirc>
+References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc>
+Date: Sat, 28 Nov 2009 12:06:48 -0500
+Message-ID: <9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
+	system?
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Christoph Bartelmus <lirc@bartelmus.de>
+Cc: khc@pm.waw.pl, awalls@radix.net, dmitry.torokhov@gmail.com,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, maximlevitsky@gmail.com,
+	mchehab@redhat.com, stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sat, Nov 28, 2009 at 11:47 AM, Christoph Bartelmus <lirc@bartelmus.de> wrote:
+> @Maxim: I think Mauro is right. We need to find an approach that makes
+> everybody happy. We should take the time now to discuss all the
+> possibilities and choose the best solution. LIRC has lived so long outside
+> the kernel, that we can wait another couple of weeks/months until we
+> agreed on something which will be a stable API hopefully for many years to
+> come.
 
-> +#ifdef CONFIG_PM
-> +/* Is the card working now ? */
-> +static inline int is_working(struct poseidon *pd)
-> +{
-> +	if (pd->state & POSEIDON_STATE_IDLE_HIBERANTION)
-> +		return 0;
-> +	return pd->interface->pm_usage_cnt > 0;
-> +}
-> +
-> +static int poseidon_suspend(struct usb_interface *intf, pm_message_t msg)
-> +{
-> +	struct poseidon *pd = usb_get_intfdata(intf);
-> +
-> +	if (!is_working(pd)) {
-> +		if (pd->interface->pm_usage_cnt <= 0
->   
-`interface->pm_usage_cnt` has been changed to atomic_t type in the latest code. 
+Please do this. That's why I started this thread off with goals for
+the implementation. After we settle on a set of goals we can move on
+to how to implement those goals.  The end result is almost certainly
+going to combine aspects from all of the various proposals and the
+LIRC code base is likely to be the largest contributor.
 
-> +			&& !in_hibernation(pd)) {
-> +			pd->msg.event = PM_EVENT_AUTO_SUSPEND;
-> +			pd->pm_resume = NULL; /*  a good guard */
-> +			printk(KERN_DEBUG "\n\t ++ TLG2300 auto suspend ++\n");
-> +		}
-> +		return 0;
-> +	}
-> +	pd->msg = msg;
->   
+There are two very basic things that we need to reach consensus on first.
 
+1) Unification with mouse/keyboard in evdev - put IR on equal footing.
+2) Specific tools (xmodmap, setkeycodes, etc or the LIRC ones) or
+generic tools (ls, mkdir, echo) for configuration
+
+Once consensus is reached in those two areas everything else should be
+much easier.
+
+-- 
+Jon Smirl
+jonsmirl@gmail.com
