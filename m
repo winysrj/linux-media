@@ -1,45 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from khc.piap.pl ([195.187.100.11]:52176 "EHLO khc.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754000AbZKYWaj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2009 17:30:39 -0500
-From: Krzysztof Halasa <khc@pm.waw.pl>
-To: Sean Young <sean@mess.org>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>,
-	Trent Piepho <xyzzy@speakeasy.org>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@redhat.com>, linux-kernel@vger.kernel.org,
-	Mario Limonciello <superm1@ubuntu.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Janne Grunau <j@jannau.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: IR raw input is not sutable for input system
-References: <200910200956.33391.jarod@redhat.com>
-	<200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com>
-	<4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain>
-	<20091123173726.GE17813@core.coreip.homeip.net>
-	<4B0B6321.3050001@wilsonet.com>
-	<1259105571.28219.20.camel@maxim-laptop>
-	<Pine.LNX.4.58.0911241918390.30284@shell2.speakeasy.net>
-	<1259155734.4875.23.camel@maxim-laptop>
-	<20091125213246.GA44831@atlantis.8hz.com>
-Date: Wed, 25 Nov 2009 23:30:41 +0100
-In-Reply-To: <20091125213246.GA44831@atlantis.8hz.com> (Sean Young's message
-	of "Wed, 25 Nov 2009 21:32:46 +0000")
-Message-ID: <m3d43644q6.fsf@intrepid.localdomain>
+Received: from mail-px0-f173.google.com ([209.85.216.173]:63239 "EHLO
+	mail-px0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751589AbZK1LgY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Nov 2009 06:36:24 -0500
+Received: by pxi3 with SMTP id 3so1633943pxi.22
+        for <linux-media@vger.kernel.org>; Sat, 28 Nov 2009 03:36:30 -0800 (PST)
+Message-ID: <4B110B3A.3030401@gmail.com>
+Date: Sat, 28 Nov 2009 19:36:26 +0800
+From: "David T. L. Wong" <davidtlwong@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: v4l-dvb <linux-media@vger.kernel.org>
+Subject: [PATCH] cxusb: Mygica D689 compilation warning fix and clean up
+Content-Type: multipart/mixed;
+ boundary="------------060802090505070805070805"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sean Young <sean@mess.org> writes:
+This is a multi-part message in MIME format.
+--------------060802090505070805070805
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> Absolutely. There are a number of use cases when you want access to the 
-> space-pulse (i.e. IR) information.
+Hi,
 
-I think nobody proposes otherwise (except for devices which can't pass
-this info).
--- 
-Krzysztof Halasa
+   This patch fix compilation warning for cxusb mygica d689 and clean up 
+unused code.
+
+Regards,
+David
+
+Signed-off-by: David T. L. Wong <davidtlwong@gmail.com>
+
+
+--------------060802090505070805070805
+Content-Type: text/x-patch;
+ name="mygica_d689_fix_warnings.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="mygica_d689_fix_warnings.patch"
+
+diff --git a/linux/drivers/media/dvb/dvb-usb/cxusb.c b/linux/drivers/media/dvb/dvb-usb/cxusb.c
+--- a/linux/drivers/media/dvb/dvb-usb/cxusb.c
++++ b/linux/drivers/media/dvb/dvb-usb/cxusb.c
+@@ -1195,7 +1195,6 @@
+ static int cxusb_mygica_d689_frontend_attach(struct dvb_usb_adapter *adap)
+ {
+ 	struct dvb_usb_device *d = adap->dev;
+-	int n;
+ 
+ 	/* Select required USB configuration */
+ 	if (usb_set_interface(d->udev, 0, 0) < 0)
+@@ -1209,15 +1208,6 @@
+ 	usb_clear_halt(d->udev,
+ 		usb_rcvbulkpipe(d->udev, d->props.adapter[0].stream.endpoint));
+ 
+-#if 0
+-	/* Drain USB pipes to avoid hang after reboot */
+-	for (n = 0;  n < 5;  n++) {
+-		cxusb_d680_dmb_drain_message(d);
+-		cxusb_d680_dmb_drain_video(d);
+-		msleep(200);
+-	}
+-#endif
+-
+ 	/* Reset the tuner */
+ 	if (cxusb_d680_dmb_gpio_tuner(d, 0x07, 0) < 0) {
+ 		err("clear tuner gpio failed");
+
+--------------060802090505070805070805--
