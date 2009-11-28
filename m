@@ -1,89 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:35817 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934050AbZKXVJB (ORCPT
+Received: from mail-ew0-f215.google.com ([209.85.219.215]:57520 "EHLO
+	mail-ew0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752138AbZK1Wws (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Nov 2009 16:09:01 -0500
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
-	<u.kleine-koenig@pengutronix.de>
-To: linux-kernel@vger.kernel.org
-Cc: akpm@linux-foundation.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Magnus Damm <damm@igel.co.jp>,
-	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 33/38] don't use __exit_p to wrap sh_mobile_ceu_remove
-Date: Tue, 24 Nov 2009 22:07:28 +0100
-Message-Id: <1259096853-18909-33-git-send-email-u.kleine-koenig@pengutronix.de>
-In-Reply-To: <1259096853-18909-32-git-send-email-u.kleine-koenig@pengutronix.de>
-References: <1259096853-18909-1-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-2-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-3-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-4-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-5-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-6-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-7-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-8-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-9-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-10-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-11-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-12-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-13-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-14-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-15-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-16-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-17-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-18-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-19-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-20-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-21-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-22-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-23-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-24-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-25-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-26-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-27-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-28-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-29-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-30-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-31-git-send-email-u.kleine-koenig@pengutronix.de>
- <1259096853-18909-32-git-send-email-u.kleine-koenig@pengutronix.de>
+	Sat, 28 Nov 2009 17:52:48 -0500
+Received: by ewy7 with SMTP id 7so3049856ewy.28
+        for <linux-media@vger.kernel.org>; Sat, 28 Nov 2009 14:52:53 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <355c45860911281450g70094174u7805884d669dd5ea@mail.gmail.com>
+References: <355c45860911281450g70094174u7805884d669dd5ea@mail.gmail.com>
+Date: Sat, 28 Nov 2009 23:52:53 +0100
+Message-ID: <355c45860911281452tcc8a6q99145ccbc7238b63@mail.gmail.com>
+Subject: Fwd: Build fails when compiling dvb_frontend.c
+From: Tomislav Strelar <tstrelar@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The function sh_mobile_ceu_remove is defined using __devexit, so don't
-use __exit_p but __devexit_p to wrap it.
+Hello everyone.
 
-Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Magnus Damm <damm@igel.co.jp>
-Cc: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-Cc: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org
----
- drivers/media/video/sh_mobile_ceu_camera.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+I am trying to build v4l-dvb device drivers according to instruction
+on linuxTV wiki
+http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
 
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index 2f78b4f..e3e1ef2 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -1778,7 +1778,7 @@ static struct platform_driver sh_mobile_ceu_driver = {
- 		.pm	= &sh_mobile_ceu_dev_pm_ops,
- 	},
- 	.probe		= sh_mobile_ceu_probe,
--	.remove		= __exit_p(sh_mobile_ceu_remove),
-+	.remove		= __devexit_p(sh_mobile_ceu_remove),
- };
- 
- static int __init sh_mobile_ceu_init(void)
--- 
-1.6.5.2
+but it fails when compiling dvb_frontend.c
 
+This is what I get:
+
+/home/tomislav/src/v4l-dvb-e341e9e85af2/v4l/dvb_frontend.c: In
+function 'dvb_frontend_stop':
+/home/tomislav/src/v4l-dvb-e341e9e85af2/v4l/dvb_frontend.c:707: error:
+implicit declaration of function 'init_MUTEX'
+make[3]: *** [/home/tomislav/src/v4l-dvb-e341e9e85af2/v4l/dvb_frontend.o]
+Error 1
+make[3]: *** Waiting for unfinished jobs....
+make[2]: *** [_module_/home/tomislav/src/v4l-dvb-e341e9e85af2/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-headers-2.6.31-9-rt'
+
+Kerner version is
+Linux version 2.6.31-9-rt (buildd@yellow) (gcc version 4.4.1 (Ubuntu
+4.4.1-4ubuntu8) ) #152-Ubuntu SMP PREEMPT RT Thu Oct 15 13:22:24 UTC
+2009
+
+
+I've searched everywhere, and I haven't find similar problem. Can
+someone give me a hint what am I doing wrong. And just to say, I'm far
+from being a linux expert. :)
+
+Thank you,
+Tomislav
