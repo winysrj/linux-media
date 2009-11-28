@@ -1,16 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227])
+Received: from ey-out-2122.google.com ([74.125.78.24])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <dehqan65@gmail.com>) id 1N4oCZ-000602-KZ
-	for linux-dvb@linuxtv.org; Mon, 02 Nov 2009 05:07:32 +0100
-Received: by bwz27 with SMTP id 27so7521949bwz.1
-	for <linux-dvb@linuxtv.org>; Sun, 01 Nov 2009 20:06:58 -0800 (PST)
+	(envelope-from <tstrelar@gmail.com>) id 1NEW7N-0007fl-G3
+	for linux-dvb@linuxtv.org; Sat, 28 Nov 2009 23:50:18 +0100
+Received: by ey-out-2122.google.com with SMTP id 9so675248eyd.39
+	for <linux-dvb@linuxtv.org>; Sat, 28 Nov 2009 14:50:13 -0800 (PST)
 MIME-Version: 1.0
-Date: Mon, 2 Nov 2009 07:36:58 +0330
-Message-ID: <267bb6670911012006n12603900p339ba9547e2df7a6@mail.gmail.com>
-From: a dehqan <dehqan65@gmail.com>
+Date: Sat, 28 Nov 2009 23:50:13 +0100
+Message-ID: <355c45860911281450g70094174u7805884d669dd5ea@mail.gmail.com>
+From: Tomislav Strelar <tstrelar@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Request driver working report for Tevii S660 DVB card ?
+Subject: [linux-dvb] Build fails when compiling dvb_frontend.c
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -19,60 +19,47 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1382274176=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1382274176==
-Content-Type: multipart/alternative; boundary=0016e65b61cc43a92e04775b82ba
+Hello everyone.
 
---0016e65b61cc43a92e04775b82ba
-Content-Type: text/plain; charset=ISO-8859-1
+I am trying to build v4l-dvb device drivers according to instruction
+on linuxTV wiki
+http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
 
-In The Name Of God The compassionate merciful
+but it fails when compiling dvb_frontend.c
 
-Good day everyone ;
-Has anyone tested Driver for S660 in linux ?
-Does driver have any problem ? or it works completely ?
-Does not it have problem with S2 channels ?
+This is what I get:
 
-There is need to know whether S660 works fine in linux or not before buying
-it ,Would you (those who have DVB USB card S660) Test in linux ?
+/home/tomislav/src/v4l-dvb-e341e9e85af2/v4l/dvb_frontend.c: In
+function 'dvb_frontend_stop':
+/home/tomislav/src/v4l-dvb-e341e9e85af2/v4l/dvb_frontend.c:707: error:
+implicit declaration of function 'init_MUTEX'
+make[3]: *** [/home/tomislav/src/v4l-dvb-e341e9e85af2/v4l/dvb_frontend.o]
+Error 1
+make[3]: *** Waiting for unfinished jobs....
+make[2]: *** [_module_/home/tomislav/src/v4l-dvb-e341e9e85af2/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-headers-2.6.31-9-rt'
 
-This is driver
-http://mercurial.intuxication.org/hg/s2-liplianin/rev/d0dfe416e0f6 .
-
-Regards dehqan
-
---0016e65b61cc43a92e04775b82ba
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-In The Name Of God The compassionate merciful<br><br>Good day everyone ;<br=
->Has anyone tested Driver for S660 in linux ?<br>Does driver have any probl=
-em ? or it works completely ?<br>Does not it have problem with S2 channels =
-?<br>
-<br>There is need to know whether S660 works fine in linux or not before bu=
-ying it ,Would you (those who have DVB USB card S660) Test in linux ?<br><b=
-r>This is driver <a href=3D"http://mercurial.intuxication.org/hg/s2-liplian=
-in/rev/d0dfe416e0f6">http://mercurial.intuxication.org/hg/s2-liplianin/rev/=
-d0dfe416e0f6</a> .<br>
-<br>Regards dehqan <br>
-
---0016e65b61cc43a92e04775b82ba--
+Kerner version is
+Linux version 2.6.31-9-rt (buildd@yellow) (gcc version 4.4.1 (Ubuntu
+4.4.1-4ubuntu8) ) #152-Ubuntu SMP PREEMPT RT Thu Oct 15 13:22:24 UTC
+2009
 
 
---===============1382274176==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I've searched everywhere, and I haven't find similar problem. Can
+someone give me a hint what am I doing wrong. And just to say, I'm far
+from being a linux expert. :)
+
+Thank you,
+Tomislav
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1382274176==--
