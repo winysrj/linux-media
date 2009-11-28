@@ -1,213 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:35636 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932464AbZKRTDM (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2209 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753015AbZK1TsL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 14:03:12 -0500
-Date: Wed, 18 Nov 2009 20:03:03 +0100 (CET)
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Subject: [PATCH 5/6] firedtv: remove check for interrupting signal
+	Sat, 28 Nov 2009 14:48:11 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id nASJmGD3012493
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 28 Nov 2009 20:48:16 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 28 Nov 2009 20:48:16 +0100 (CET)
+Message-Id: <200911281948.nASJmGD3012493@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-cc: linux1394-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
-In-Reply-To: <tkrat.7dc1f889fd1b69ad@s5r6.in-berlin.de>
-Message-ID: <tkrat.9de6666bf8c2cf11@s5r6.in-berlin.de>
-References: <tkrat.7dc1f889fd1b69ad@s5r6.in-berlin.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=us-ascii
-Content-Disposition: INLINE
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-FCP transactions as well as CMP transactions were serialized with
-mutex_lock_interruptible.  It is extremely unlikly though that a signal
-will arrive while a concurrent process holds the mutex.  And even if one
-does, the duration of a transaction is reasonably short (1.2 seconds if
-all retries time out, usually much shorter).
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Hence simplify the code to plain mutex_lock.
+Results of the daily build of v4l-dvb:
 
-Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
----
- drivers/media/dvb/firewire/firedtv-avc.c |   51 ++++++++---------------
- 1 file changed, 17 insertions(+), 34 deletions(-)
+date:        Sat Nov 28 19:00:06 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13536:9c38704cfd56
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Index: linux-2.6.32-rc7/drivers/media/dvb/firewire/firedtv-avc.c
-===================================================================
---- linux-2.6.32-rc7.orig/drivers/media/dvb/firewire/firedtv-avc.c
-+++ linux-2.6.32-rc7/drivers/media/dvb/firewire/firedtv-avc.c
-@@ -542,8 +542,7 @@ int avc_tuner_dsd(struct firedtv *fdtv,
- 	struct avc_command_frame *c = (void *)fdtv->avc_data;
- 	int ret;
- 
--	if (mutex_lock_interruptible(&fdtv->avc_mutex))
--		return -EINTR;
-+	mutex_lock(&fdtv->avc_mutex);
- 
- 	memset(c, 0, sizeof(*c));
- 
-@@ -584,8 +583,7 @@ int avc_tuner_set_pids(struct firedtv *f
- 	if (pidc > 16 && pidc != 0xff)
- 		return -EINVAL;
- 
--	if (mutex_lock_interruptible(&fdtv->avc_mutex))
--		return -EINTR;
-+	mutex_lock(&fdtv->avc_mutex);
- 
- 	memset(c, 0, sizeof(*c));
- 
-@@ -629,8 +627,7 @@ int avc_tuner_get_ts(struct firedtv *fdt
- 	struct avc_command_frame *c = (void *)fdtv->avc_data;
- 	int ret, sl;
- 
--	if (mutex_lock_interruptible(&fdtv->avc_mutex))
--		return -EINTR;
-+	mutex_lock(&fdtv->avc_mutex);
- 
- 	memset(c, 0, sizeof(*c));
- 
-@@ -670,8 +667,7 @@ int avc_identify_subunit(struct firedtv 
- 	struct avc_response_frame *r = (void *)fdtv->avc_data;
- 	int ret;
- 
--	if (mutex_lock_interruptible(&fdtv->avc_mutex))
--		return -EINTR;
-+	mutex_lock(&fdtv->avc_mutex);
- 
- 	memset(c, 0, sizeof(*c));
- 
-@@ -712,8 +708,7 @@ int avc_tuner_status(struct firedtv *fdt
- 	struct avc_response_frame *r = (void *)fdtv->avc_data;
- 	int length, ret;
- 
--	if (mutex_lock_interruptible(&fdtv->avc_mutex))
--		return -EINTR;
-+	mutex_lock(&fdtv->avc_mutex);
- 
- 	memset(c, 0, sizeof(*c));
- 
-@@ -795,8 +790,7 @@ int avc_lnb_control(struct firedtv *fdtv
- 	struct avc_response_frame *r = (void *)fdtv->avc_data;
- 	int i, j, k, ret;
- 
--	if (mutex_lock_interruptible(&fdtv->avc_mutex))
--		return -EINTR;
-+	mutex_lock(&fdtv->avc_mutex);
- 
- 	memset(c, 0, sizeof(*c));
- 
-@@ -844,8 +838,7 @@ int avc_register_remote_control(struct f
- 	struct avc_command_frame *c = (void *)fdtv->avc_data;
- 	int ret;
- 
--	if (mutex_lock_interruptible(&fdtv->avc_mutex))
--		return -EINTR;
-+	mutex_lock(&fdtv->avc_mutex);
- 
- 	memset(c, 0, sizeof(*c));
- 
-@@ -883,8 +876,7 @@ int avc_tuner_host2ca(struct firedtv *fd
- 	struct avc_command_frame *c = (void *)fdtv->avc_data;
- 	int ret;
- 
--	if (mutex_lock_interruptible(&fdtv->avc_mutex))
--		return -EINTR;
-+	mutex_lock(&fdtv->avc_mutex);
- 
- 	memset(c, 0, sizeof(*c));
- 
-@@ -943,8 +935,7 @@ int avc_ca_app_info(struct firedtv *fdtv
- 	struct avc_response_frame *r = (void *)fdtv->avc_data;
- 	int pos, ret;
- 
--	if (mutex_lock_interruptible(&fdtv->avc_mutex))
--		return -EINTR;
-+	mutex_lock(&fdtv->avc_mutex);
- 
- 	memset(c, 0, sizeof(*c));
- 
-@@ -986,8 +977,7 @@ int avc_ca_info(struct firedtv *fdtv, ch
- 	struct avc_response_frame *r = (void *)fdtv->avc_data;
- 	int pos, ret;
- 
--	if (mutex_lock_interruptible(&fdtv->avc_mutex))
--		return -EINTR;
-+	mutex_lock(&fdtv->avc_mutex);
- 
- 	memset(c, 0, sizeof(*c));
- 
-@@ -1028,8 +1018,7 @@ int avc_ca_reset(struct firedtv *fdtv)
- 	struct avc_command_frame *c = (void *)fdtv->avc_data;
- 	int ret;
- 
--	if (mutex_lock_interruptible(&fdtv->avc_mutex))
--		return -EINTR;
-+	mutex_lock(&fdtv->avc_mutex);
- 
- 	memset(c, 0, sizeof(*c));
- 
-@@ -1073,8 +1062,7 @@ int avc_ca_pmt(struct firedtv *fdtv, cha
- 	if (unlikely(avc_debug & AVC_DEBUG_APPLICATION_PMT))
- 		debug_pmt(msg, length);
- 
--	if (mutex_lock_interruptible(&fdtv->avc_mutex))
--		return -EINTR;
-+	mutex_lock(&fdtv->avc_mutex);
- 
- 	memset(c, 0, sizeof(*c));
- 
-@@ -1196,8 +1184,7 @@ int avc_ca_get_time_date(struct firedtv 
- 	struct avc_response_frame *r = (void *)fdtv->avc_data;
- 	int ret;
- 
--	if (mutex_lock_interruptible(&fdtv->avc_mutex))
--		return -EINTR;
-+	mutex_lock(&fdtv->avc_mutex);
- 
- 	memset(c, 0, sizeof(*c));
- 
-@@ -1233,8 +1220,7 @@ int avc_ca_enter_menu(struct firedtv *fd
- 	struct avc_command_frame *c = (void *)fdtv->avc_data;
- 	int ret;
- 
--	if (mutex_lock_interruptible(&fdtv->avc_mutex))
--		return -EINTR;
-+	mutex_lock(&fdtv->avc_mutex);
- 
- 	memset(c, 0, sizeof(*c));
- 
-@@ -1267,8 +1253,7 @@ int avc_ca_get_mmi(struct firedtv *fdtv,
- 	struct avc_response_frame *r = (void *)fdtv->avc_data;
- 	int ret;
- 
--	if (mutex_lock_interruptible(&fdtv->avc_mutex))
--		return -EINTR;
-+	mutex_lock(&fdtv->avc_mutex);
- 
- 	memset(c, 0, sizeof(*c));
- 
-@@ -1306,8 +1291,7 @@ static int cmp_read(struct firedtv *fdtv
- {
- 	int ret;
- 
--	if (mutex_lock_interruptible(&fdtv->avc_mutex))
--		return -EINTR;
-+	mutex_lock(&fdtv->avc_mutex);
- 
- 	ret = fdtv->backend->read(fdtv, addr, data);
- 	if (ret < 0)
-@@ -1322,8 +1306,7 @@ static int cmp_lock(struct firedtv *fdtv
- {
- 	int ret;
- 
--	if (mutex_lock_interruptible(&fdtv->avc_mutex))
--		return -EINTR;
-+	mutex_lock(&fdtv->avc_mutex);
- 
- 	/* data[] is stack-allocated and should not be DMA-mapped. */
- 	memcpy(fdtv->avc_data, data, 8);
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-rc8-armv5: OK
+linux-2.6.32-rc8-armv5-davinci: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.32-rc8-armv5-ixp: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: OK
+linux-2.6.32-rc8-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: OK
+linux-2.6.31-i686: OK
+linux-2.6.32-rc8-i686: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-rc8-m32r: OK
+linux-2.6.30-mips: OK
+linux-2.6.31-mips: OK
+linux-2.6.32-rc8-mips: OK
+linux-2.6.30-powerpc64: OK
+linux-2.6.31-powerpc64: OK
+linux-2.6.32-rc8-powerpc64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: OK
+linux-2.6.31-x86_64: OK
+linux-2.6.32-rc8-x86_64: OK
+spec: OK
+sparse (linux-2.6.31): ERRORS
+sparse (linux-2.6.32-rc8): ERRORS
+linux-2.6.16.61-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
--- 
-Stefan Richter
--=====-==--= =-== =--=-
-http://arcgraph.de/sr/
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
