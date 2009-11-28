@@ -1,59 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gv-out-0910.google.com ([216.239.58.186]:64839 "EHLO
-	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756801AbZKJPwv (ORCPT
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:57877 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753756AbZK1Beu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Nov 2009 10:52:51 -0500
-Received: by gv-out-0910.google.com with SMTP id r4so14326gve.37
-        for <linux-media@vger.kernel.org>; Tue, 10 Nov 2009 07:52:56 -0800 (PST)
+	Fri, 27 Nov 2009 20:34:50 -0500
+Date: Fri, 27 Nov 2009 17:34:44 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Jon Smirl <jonsmirl@gmail.com>
+Cc: Ferenc Wagner <wferi@niif.hu>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	christoph@bartelmus.de, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	mchehab@redhat.com, superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+	IR system?
+Message-ID: <20091128013443.GL6936@core.coreip.homeip.net>
+References: <9e4733910911270757j648e39ecl7487b7e6c43db828@mail.gmail.com> <BDgcsm11qgB@lirc> <9e4733910911270949s3e8b5ba9qfe5025d490ad0cfa@mail.gmail.com> <874oof6b9u.fsf@tac.ki.iif.hu> <9e4733910911271121j452aa796j543f1fc3f6de7028@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <ad6681df0911100749p13bc917al2390f85d471e2765@mail.gmail.com>
-References: <ad6681df0911090313t17652362v2e92c465b60a92e4@mail.gmail.com>
-	 <20091109144647.2f876934@pedra.chehab.org>
-	 <ad6681df0911090919i717a7ac3occdf8e260def2193@mail.gmail.com>
-	 <829197380911090933y76e53e57o940520a0e7912092@mail.gmail.com>
-	 <829197380911090935r1d0abbdcq49f2d76c8a1618f5@mail.gmail.com>
-	 <ad6681df0911090956r12424564uf9384d53ee5c6ffa@mail.gmail.com>
-	 <829197380911091040l46e40bf8t783bbdf3590b1244@mail.gmail.com>
-	 <ad6681df0911100139u6ea649c7rcc8c2f840167d4bc@mail.gmail.com>
-	 <829197380911100739k1b1a1c78t97c5a9dddae89b00@mail.gmail.com>
-	 <ad6681df0911100749p13bc917al2390f85d471e2765@mail.gmail.com>
-Date: Tue, 10 Nov 2009 10:52:56 -0500
-Message-ID: <829197380911100752yf4ff138rb3ecae613586f59f@mail.gmail.com>
-Subject: Re: [XC3028] Terretec Cinergy T XS wrong firmware xc3028-v27.fw
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Valerio Bontempi <valerio.bontempi@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <9e4733910911271121j452aa796j543f1fc3f6de7028@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 10, 2009 at 10:49 AM, Valerio Bontempi
-<valerio.bontempi@gmail.com> wrote:
-> Hi Devin,
->
-> I feared about that
-> So, in this moment my only possibilities available to make it work are:
-> - use an older kernel (<=2.6.27) to compile successfully em28xx-new
-> (maybe it could be better to use older linux distro)
-> - make em28xx-new to compile on 2.6.31 kernel version
-> - wait for device support on next kernel releases
->
-> I have good programming knowledge, but few with C and driver
-> programming, so if you can suggest me how can I modify em28xx-new
-> sources to make them work on 2.6.31, then I can try to adjust them and
-> then make this driver available just waiting for kernel support.
+On Fri, Nov 27, 2009 at 02:21:13PM -0500, Jon Smirl wrote:
+> On Fri, Nov 27, 2009 at 2:03 PM, Ferenc Wagner <wferi@niif.hu> wrote:
+> > Admittedly, I don't know why /dev/mouse is evil, maybe I'd understand if
+> 
+> /dev/mouse is evil because it is possible to read partial mouse
+> messages. evdev fixes things so that you only get complete messages.
+> 
 
-In theory you just need your board profile properly defined in
-em28xx-cards.c and em28xx-dvb.c.  If I were going to choose between
-trying to make the old em28xx-new compile under the current kernel,
-and adding the 10-15 lines of code to the in-kernel em28xx driver, I
-would probably consider choosing the latter (and then feel free to
-submit the patch to be merged upstream).
-
-Devin
+For me the main evil of /dev/mouse (and other multuiplexing interfaces)
+is that it is impossible to remove one of the streams from the
+multiplexed stream without affecting other users. And so are born
+various "grab" schemes where we declare one application _the
+application_ and let it "grab" the device.. which breaks when there are
+other applications also interested in the same data stream.
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Dmitry
