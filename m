@@ -1,71 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:35806 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1757031AbZKEUiR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Nov 2009 15:38:17 -0500
-Received: from lyakh (helo=localhost)
-	by axis700.grange with local-esmtp (Exim 4.63)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1N6965-0002l3-Cs
-	for linux-media@vger.kernel.org; Thu, 05 Nov 2009 21:38:21 +0100
-Date: Thu, 5 Nov 2009 21:38:21 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Capturing video and still images using one driver
-Message-ID: <Pine.LNX.4.64.0911052138040.5620@axis700.grange>
+Received: from moutng.kundenserver.de ([212.227.17.10]:64823 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752161AbZK1QsW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Nov 2009 11:48:22 -0500
+Date: 28 Nov 2009 17:47:00 +0100
+From: lirc@bartelmus.de (Christoph Bartelmus)
+To: khc@pm.waw.pl
+Cc: awalls@radix.net
+Cc: dmitry.torokhov@gmail.com
+Cc: j@jannau.net
+Cc: jarod@redhat.com
+Cc: jarod@wilsonet.com
+Cc: jonsmirl@gmail.com
+Cc: linux-input@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Cc: maximlevitsky@gmail.com
+Cc: mchehab@redhat.com
+Cc: stefanr@s5r6.in-berlin.de
+Cc: superm1@ubuntu.com
+Message-ID: <BDkdITRHqgB@lirc>
+In-Reply-To: <m3r5riy7py.fsf@intrepid.localdomain>
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR 	system?
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(forwarding to the new v4l list)
+Hi Krzysztof and Maxim,
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+on 28 Nov 09 at 16:44, Krzysztof Halasa wrote:
+> Maxim Levitsky <maximlevitsky@gmail.com> writes:
 
----------- Forwarded message ----------
-Date: Thu, 5 Nov 2009 21:37:46 +0100 (CET)
-From: Guennadi Liakhovetski <lyakh@axis700.grange>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-Cc: Neil Johnson <realdealneil@gmail.com>, video4linux-list@redhat.com
-Subject: Re: Capturing video and still images using one driver
+>> Generic decoder that lirc has is actually much better and more tolerant
+>> that protocol specific decoders that you propose,
 
-On Wed, 4 Nov 2009, Robert Jarzmik wrote:
+> Actually, it is not the case. Why do you think it's better (let alone
+> "much better")? Have you at least seen my RC5 decoder?
 
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
-> 
-> > I came across the same problem when working on the rj54n1cb0c driver. 
-> > What's even more exciting with that sensor, is that it has separate 
-> > frame-size settings for preview (video) and still capture.
-> 
-> It seems this behaviour is generic across several sensors. As far as I know, the
-> mt9m111 has 2 modes : low power low resolution, and high power high resolution,
-> and both are programmable apart (in terms of resolution, zoom, etc ...)
-> 
-> What this makes me think is that a sensor could provide several "contexts" of
-> use, as :
->  - full resolution still image context
->  - low resolution still image context
->  - full resolution video context
->  - low resolution video context
+Nobody here doubts that you can implement a working RC-5 decoder. It's  
+really easy. I'll give you an example why Maxim thinks that the generic  
+LIRC approach has advantages:
 
-Why fixed resolutions? Just make it possible to issue S_FMT for video or 
-for still imaging... That would work seamlessly with several inputs 
-(S_INPUT, S_FMT...).
+Look at the Streamzap remote (I think Jarod submitted the lirc_streamzap  
+driver in his patchset):
+http://lirc.sourceforge.net/remotes/streamzap/PC_Remote
 
-> Then, a new/existing v4l2 call would switch the context (perhaps based on buffer
-> type ?) of the sensor.
+This remote uses RC-5. But some of the developers must have thought that  
+it may be a smart idea to use 14 bits instead the standard 13 bits for  
+this remote. In LIRC you won't care, because this is configurable and  
+irrecord will figure it out automatically for you. In the proposed kernel  
+decoders I have seen until now, you will have to treat this case specially  
+in the decoder because you expect 13 bits for RC-5, not 14.
+Well, it can be done. But you'll have to add another IR protocol define  
+for RC-5_14, which will become very ugly with many non-standard protocol  
+variations.
 
-...on a second thought, it doesn't seem that smart to me any more to tie 
-the streaming vs. still mode distinction to a specific buffer type...
+@Maxim: I think Mauro is right. We need to find an approach that makes  
+everybody happy. We should take the time now to discuss all the  
+possibilities and choose the best solution. LIRC has lived so long outside  
+the kernel, that we can wait another couple of weeks/months until we  
+agreed on something which will be a stable API hopefully for many years to  
+come.
 
-> Well, that's just some junk I've been thinking over lately.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Christoph
