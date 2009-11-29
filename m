@@ -1,100 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44576 "EHLO comal.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:26419 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755258AbZKBQFH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Nov 2009 11:05:07 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Date: Mon, 2 Nov 2009 10:05:01 -0600
-Subject: RE: [PATCH/RFC 9/9] mt9t031: make the use of the soc-camera client
- API optional
-Message-ID: <A69FA2915331DC488A831521EAE36FE40155798D56@dlee06.ent.ti.com>
-References: <Pine.LNX.4.64.0910301338140.4378@axis700.grange>
- <Pine.LNX.4.64.0910301442570.4378@axis700.grange>
- <A69FA2915331DC488A831521EAE36FE401557987F6@dlee06.ent.ti.com>
- <Pine.LNX.4.64.0910302112300.4378@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0910302112300.4378@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	id S1750918AbZK2Q0c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Nov 2009 11:26:32 -0500
+Message-ID: <4B12A275.3070902@redhat.com>
+Date: Sun, 29 Nov 2009 17:33:57 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: V4L Mailing List <linux-media@vger.kernel.org>,
+	=?ISO-8859-1?Q?N=E9me?= =?ISO-8859-1?Q?th_M=E1rton?=
+	<nm127@freemail.hu>
+Subject: Re: [PATCH] gspca main: reorganize loop
+References: <4B124BDF.50309@freemail.hu>	<20091129113834.6b47767a@tele>	<4B1258D2.7060706@freemail.hu> <20091129131511.2bb26f2b@tele>
+In-Reply-To: <20091129131511.2bb26f2b@tele>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi,
+Hi,
 
-Thanks for the reply.
-
->> >+};
->> >+
->> >+static struct soc_camera_ops mt9t031_ops = {
->> >+	.set_bus_param		= mt9t031_set_bus_param,
->> >+	.query_bus_param	= mt9t031_query_bus_param,
->> >+	.controls		= mt9t031_controls,
->> >+	.num_controls		= ARRAY_SIZE(mt9t031_controls),
->> >+};
->> >+
+On 11/29/2009 01:15 PM, Jean-Francois Moine wrote:
+> On Sun, 29 Nov 2009 12:19:46 +0100
+> Németh Márton<nm127@freemail.hu>  wrote:
+>
+>> Is there any subdriver where the isoc_nego() is implemented? I
+>> couldn't find one. What would be the task of the isoc_nego()
+>> function? Should it set the interface by calling usb_set_interface()
+>> as the get_ep() does? Should it create URBs for the endpoint?
 >>
->> [MK] Why don't you implement queryctrl ops in core? query_bus_param
->> & set_bus_param() can be implemented as a sub device operation as well
->> right? I think we need to get the bus parameter RFC implemented and
->> this driver could be targeted for it's first use so that we could
->> work together to get it accepted. I didn't get a chance to study your
->> bus image format RFC, but plan to review it soon and to see if it can be
->> used in my platform as well. For use of this driver in our platform,
->> all reference to soc_ must be removed. I am ok if the structure is
->> re-used, but if this driver calls any soc_camera function, it canot
->> be used in my platform.
+>> Although I found the patch where the isoc_nego() was introduced
+>> ( http://linuxtv.org/hg/v4l-dvb/rev/5a5b23605bdb56aec86c9a89de8ca8b8ae9cb925 )
+>> it is not clear how the "ep" pointer is updated when not the
+>> isoc_nego() is called instead of get_ep() in the current
+>> implementation.
 >
->Why? Some soc-camera functions are just library functions, you just have
->to build soc-camera into your kernel. (also see below)
+> Hello Hans,
 >
-My point is that the control is for the sensor device, so why to implement
-queryctrl in SoC camera? Just for this I need to include SOC camera in my build? That doesn't make any sense at all. IMHO, queryctrl() logically belongs to this sensor driver which can be called from the bridge driver using sudev API call. Any reverse dependency from MT9T031 to SoC camera to be removed if it is to be re-used across other platforms. Can we agree on this? Did you have a chance to compare the driver file that I had sent to you?
+> This function (isoc_nego) was added to fix the Mauro's problem with the
+> st6422. Was this problem solved in some other way, or is the fix still
+> waiting to be pulled?
+>
 
-Thanks.
+The fix is still waiting to be pulled, or actually to be made working :|
 
-Murali
->> BTW, I am attaching a version of the driver that we use in our kernel
->> tree for your reference which will give you an idea of my requirement.
->>
->
->[snip]
->
->> >@@ -565,7 +562,6 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd,
->> >struct v4l2_control *ctrl)
->> > {
->> > 	struct i2c_client *client = sd->priv;
->> > 	struct mt9t031 *mt9t031 = to_mt9t031(client);
->> >-	struct soc_camera_device *icd = client->dev.platform_data;
->> > 	const struct v4l2_queryctrl *qctrl;
->> > 	int data;
->> >
->> >@@ -657,7 +653,8 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd,
->> >struct v4l2_control *ctrl)
->> >
->> > 			if (set_shutter(client, total_h) < 0)
->> > 				return -EIO;
->> >-			qctrl = soc_camera_find_qctrl(icd->ops,
->> >V4L2_CID_EXPOSURE);
->> >+			qctrl = soc_camera_find_qctrl(&mt9t031_ops,
->> >+						      V4L2_CID_EXPOSURE);
->>
->> [MK] Why do we still need this call? In my version of the sensor driver,
->> I just implement the queryctrl() operation in core_ops. This cannot work
->> since soc_camera_find_qctrl() is implemented only in SoC camera.
->
->As mentioned above, that's just a library function without any further
->dependencies, so, why reimplement it?
->
->Thanks
->Guennadi
->---
->Guennadi Liakhovetski, Ph.D.
->Freelance Open-Source Software Developer
->http://www.open-technology.de/
+First a quick summary of the need for the isoc_nego() function
+(and to only call get_ep() once). Some cams, at least those based on stv06xx
+bridges, have only 1 alt setting, but they have a register which allows
+one to tell it to send isoc frames which are never bigger then the value
+set in the register. I've tested this and it works as advertised,
+when you create isoc urbs with a size < wMaxPacketSize, then normally
+you will get -EMSGSIZE errors (iirc) as the camera sends isoc frames,
+larger then the buffers in the isoc urbs created, but if you then write the
+size you created the isoc urbs with to the register in question, things
+will work. So this works as expected.
 
+The problem is that the usb "scheduler" which checks the bandwidth constrains
+will always use wMaxPacketSize to check if there is enough bandwidth instead
+of the actual packet size of the isoc packets. So although I have a patch
+implementing the isoc_neg call for stv06xx cams, it does not actually help
+as although it is scaling back the bandwidth needed, the usb core does not
+see this and keeps returning -ENOSPC.
+
+After finding out about this I ran out of time. This reminds me that I need to
+send a message about this to the usb mailing list. I will do so now, and
+then we will see what will come from this.
+
+Regards,
+
+Hans
