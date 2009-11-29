@@ -1,74 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.navvo.net ([74.208.67.6]:52701 "EHLO mail.navvo.net"
+Received: from mail1.radix.net ([207.192.128.31]:37844 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756672AbZKEQqi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Nov 2009 11:46:38 -0500
-Message-ID: <4AF30178.7040008@ridgerun.com>
-Date: Thu, 05 Nov 2009 10:46:48 -0600
-From: Santiago Nunez-Corrales <snunez@ridgerun.com>
-Reply-To: santiago.nunez@ridgerun.com
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"Narnakaje, Snehaprabha" <nsnehaprabha@ti.com>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"Grosen, Mark" <mgrosen@ti.com>,
-	Diego Dompe <diego.dompe@ridgerun.com>,
-	"todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>
-References: <4AF1B89C.5000108@ridgerun.com> <200911051721.58407.hverkuil@xs4all.nl>
-In-Reply-To: <200911051721.58407.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	id S1753275AbZK2OXz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Nov 2009 09:23:55 -0500
+Subject: Re: IR Receiver on an Tevii S470
+From: Andy Walls <awalls@radix.net>
+To: Matthias Fechner <idefix@fechner.net>
+Cc: Jean Delvare <khali@linux-fr.org>, linux-media@vger.kernel.org,
+	Jarod Wilson <jarod@wilsonet.com>,
+	"Igor M. Liplianin" <liplianin@me.by>, stoth@kernellabs.com
+In-Reply-To: <4B0EB017.5000601@fechner.net>
+References: <4B0459B1.50600@fechner.net> <4B081F0B.1060204@fechner.net>
+	 <1258836102.1794.7.camel@localhost> <200911220303.36715.liplianin@me.by>
+	 <1258858102.3072.14.camel@palomino.walls.org> <4B097E37.10402@fechner.net>
+	 <1258920707.4201.16.camel@palomino.walls.org>
+	 <4B099E37.5070405@fechner.net> <20091122213230.38650f8d@hyperion.delvare>
+	 <1258935479.1896.29.camel@localhost>
+	 <20091123095435.310fcdf3@hyperion.delvare>
+	 <1259108724.3069.22.camel@palomino.walls.org>
+	 <4B0EB017.5000601@fechner.net>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 29 Nov 2009 09:22:39 -0500
+Message-Id: <1259504559.2071.16.camel@localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH 0/4 v6] Support for TVP7002 in DM365
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Odd, I sent them all. Anyways, I just have re-sent them. Let me know if 
-they arrive.
+On Thu, 2009-11-26 at 17:43 +0100, Matthias Fechner wrote:
+> Hi Andy,
+> 
+> Andy Walls wrote:
+> > I will inspect and test these with my HVR-1850 (CX23888) loaner board
+> > this weekend (hopefully).
+> >   
+> 
+> if you want me to test something on the Tevii S470 card, please let me know.
+
+MAtthias,
+
+Not right now.  I'll let you know.  If you wish, you can monitor
+
+	http://linuxtv.org/hg/~awalls/cx23885-ir
+
+Right now that repository has Jean's patches which I have minimally
+tested.  They do fix the i2cdetect problems.
+
+There are not TeVii S470 patches there, so I'm not sure how easy it will
+be for you to test.
+
+In the v4l2_subdev_ir_parameters and cx23888-ir.c, I need to improve a
+minor point about carrier sense inversion (configuring if a carrier
+burst means mark or space) and IO pin level inversion.  After that, I
+can port cx23888-ir.c to a cx25840-ir.c implementation.
+
+I also have to implement NEC decoding in cx23885-input.c.  I found a
+remote in my house that implements the NEC protocol with Extended
+addresses (although its timing is about 100 microseconds short for every
+mark & space pair and the header pulse is almost 1 ms shorter than it
+should be :P ).  I should be able to get NEC decoding worked out with
+that remote and the HVR-1850 I have in hand.
+
+Merging TeVii S470 fixes from Igor will then be a final step before I
+ask you to correct my guess at the v4l2_subdev_ir_parameters setup in
+cx23885-input.c for your card.
+
 
 Regards,
+Andy
 
-Hans Verkuil wrote:
-> On Wednesday 04 November 2009 18:23:40 Santiago Nunez-Corrales wrote:
->   
->> This series of patches provide support for the TVP7002 decoder in DM365.
->>
->> Support includes:
->>
->> * Inclusion of the chip in v4l2 definitions
->> * Definition of TVP7002 specific data structures
->> * Kconfig and Makefile support
->>
->> This series corrects many issued pointed out by Snehaprabha Narnakaje,
->> Muralidharan Karicheri, Vaibhav Hiremath and Hans Verkuil and solves
->> testing problems.  Tested on DM365 TI EVM with resolutions 720p,
->> 1080i@60, 576P and 480P with video capture application and video
->> output in 480P, 576P, 720P and 1080I. This driver depends upon 
->> board-dm365-evm.c and vpfe_capture.c to be ready for complete 
->> integration. Uses the new V4L2 DV API sent by Muralidharan Karicheri.
->>
->>
->>     
->
-> Erm, where is the rest of the series? :-)
->
-> Regards,
->
-> 	Hans
->
->   
-
-
--- 
-Santiago Nunez-Corrales, Eng.
-RidgeRun Engineering, LLC
-
-Guayabos, Curridabat
-San Jose, Costa Rica
-+(506) 2271 1487
-+(506) 8313 0536
-http://www.ridgerun.com
-
+> Bye,
+> Matthias
 
