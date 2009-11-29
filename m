@@ -1,77 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:65218 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755664AbZKWDEC convert rfc822-to-8bit (ORCPT
+Received: from mail-qy0-f194.google.com ([209.85.221.194]:53425 "EHLO
+	mail-qy0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752986AbZK2TQH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Nov 2009 22:04:02 -0500
-Received: by fxm5 with SMTP id 5so4238419fxm.28
-        for <linux-media@vger.kernel.org>; Sun, 22 Nov 2009 19:04:06 -0800 (PST)
+	Sun, 29 Nov 2009 14:16:07 -0500
 MIME-Version: 1.0
-In-Reply-To: <1257913905.28958.32.camel@palomino.walls.org>
-References: <1257913905.28958.32.camel@palomino.walls.org>
-Date: Sun, 22 Nov 2009 22:04:06 -0500
-Message-ID: <829197380911221904uedc18e5qbc9a37cfcee23b5d@mail.gmail.com>
-Subject: Re: cx18: Reprise of YUV frame alignment improvements
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Andy Walls <awalls@radix.net>
-Cc: ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
+In-Reply-To: <20091129190435.6500ac84@lxorguk.ukuu.org.uk>
+References: <m3r5riy7py.fsf@intrepid.localdomain>
+	 <m3aay6y2m1.fsf@intrepid.localdomain>
+	 <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>
+	 <1259469121.3125.28.camel@palomino.walls.org>
+	 <20091129124011.4d8a6080@lxorguk.ukuu.org.uk>
+	 <1259515703.3284.11.camel@maxim-laptop>
+	 <2c0942db0911290949p89ae64bjc3c7501c2de6930c@mail.gmail.com>
+	 <20091129181316.7850f33c@lxorguk.ukuu.org.uk>
+	 <2c0942db0911291052n6e9dd116x943ee636bcf548b9@mail.gmail.com>
+	 <20091129190435.6500ac84@lxorguk.ukuu.org.uk>
+Date: Sun, 29 Nov 2009 14:16:11 -0500
+Message-ID: <9e4733910911291116r66dda6dap591d1b0f322f9663@mail.gmail.com>
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
+	system?
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Ray Lee <ray-lk@madrabbit.org>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	Andy Walls <awalls@radix.net>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	mchehab@redhat.com, stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 10, 2009 at 11:31 PM, Andy Walls <awalls@radix.net> wrote:
-> OK, here's my second attempt at getting rid of cx18 YUV frame alignment
-> and tearing issues.
+On Sun, Nov 29, 2009 at 2:04 PM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
+>> Jon is asking for an architecture discussion, y'know, with use cases.
+>> Maxim seems to be saying it's obvious that what we have today works
+>> fine. Except it doesn't appear that we have a consensus that
+>> everything is fine, nor an obvious winner for how to reduce the
+>> complexity here and keep the kernel in a happy, maintainable state for
+>> the long haul.
 >
->        http://linuxtv.org/hg/~awalls/cx18-yuv2
+> The important point is that this is not an A or B discussion. There are
+> lots of ways to tackle it that are neither. If you look at things like
+> complex video format handling it is done in user space but with an
+> infrastructure to handle it.
+>
+> I don't believe putting it in the kernel is the alternative to the
+> current setup. Cleaning up the way what we have today is presented to
+> applications is perfectly possible without a whole new pile of kernel
+> crap, because evdev was designed sensibly in the first place to allow
+> userspace added events.
 
-Hi Andy,
+So we're just back to the status quo of last year which is to do
+nothing except some minor clean up.
 
-I did some testing of your tree, using the following command
-
-mplayer /dev/video32 -demuxer rawvideo -rawvideo w=720:h=480:format=hm12:ntsc
-
-and then in parallel run a series of make commands of the v4l-dvb tree
-
-make -j2 && make unload && make -j2 && make unload && make -j2 && make
-unload && make -j2 && make unload
-
-I was definitely seeing the corruption by doing this test before your
-patches (both frame alignment and colorspace problems as PCI frames
-were being dropped).  After your change, I no longer see those
-problems.  The picture never became misaligned.  However, it would
-appear that some sort of regression may have been introduced with the
-buffer handling.
-
-I was seeing a continuous reporting of the following in dmesg, even
-*after* I stopped generating the load by running the make commands.
-
-[ 5175.703811] cx18-0: Could not find MDL 106 for stream encoder YUV
-[ 5175.737380] cx18-0: Could not find MDL 111 for stream encoder YUV
-[ 5175.804317] cx18-0: Skipped encoder YUV, MDL 96, 3 times - it must
-have dropped out of rotation
-[ 5175.804324] cx18-0: Skipped encoder YUV, MDL 101, 3 times - it must
-have dropped out of rotation
-[ 5175.904500] cx18-0: Skipped encoder YUV, MDL 96, 2 times - it must
-have dropped out of rotation
-[ 5176.204507] cx18-0: Skipped encoder YUV, MDL 101, 1 times - it must
-have dropped out of rotation
-[ 5176.204513] cx18-0: Skipped encoder YUV, MDL 96, 1 times - it must
-have dropped out of rotation
-[ 5176.204518] cx18-0: Could not find MDL 111 for stream encoder YUV
-
-I would expect to see frame drops while the system was under high
-load, but I would expect that the errors would stop once the load fell
-back to something reasonable.  However, they continue to accumulate
-even after the make commands stop and the only thing running on the
-system is mplayer (with a CPU load of around 10%).
-
-I think this tree is definitely on the right track, but it looks like
-some edge case has been missed.
-
-Devin
+We'll be back here again next year repeating this until IR gets
+redesigned into something fairly invisible like keyboard and mouse
+drivers.
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Jon Smirl
+jonsmirl@gmail.com
