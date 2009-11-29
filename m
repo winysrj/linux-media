@@ -1,85 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01a.mail.t-online.hu ([84.2.40.6]:50627 "EHLO
-	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753920AbZK2LTo (ORCPT
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:42287 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752505AbZK2Vbv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2009 06:19:44 -0500
-Message-ID: <4B1258D2.7060706@freemail.hu>
-Date: Sun, 29 Nov 2009 12:19:46 +0100
-From: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] gspca main: reorganize loop
-References: <4B124BDF.50309@freemail.hu> <20091129113834.6b47767a@tele>
-In-Reply-To: <20091129113834.6b47767a@tele>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+	Sun, 29 Nov 2009 16:31:51 -0500
+References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc> <9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com> <m3aay6y2m1.fsf@intrepid.localdomain> <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com> <1259450815.3137.19.camel@palomino.walls.org> <m3ocml6ppt.fsf@intrepid.localdomain>
+Message-Id: <D9ED2E54-7B65-4841-AADF-110C8E51DD0E@gmail.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Krzysztof Halasa <khc@pm.waw.pl>
+In-Reply-To: <m3ocml6ppt.fsf@intrepid.localdomain>
+Content-Type: text/plain;
+	charset=us-ascii;
+	format=flowed
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0 (iPhone Mail 7C144)
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
+Date: Sun, 29 Nov 2009 13:31:46 -0800
+Cc: Andy Walls <awalls@radix.net>, Jon Smirl <jonsmirl@gmail.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	"j@jannau.net" <j@jannau.net>,
+	"jarod@redhat.com" <jarod@redhat.com>,
+	"jarod@wilsonet.com" <jarod@wilsonet.com>,
+	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"maximlevitsky@gmail.com" <maximlevitsky@gmail.com>,
+	"mchehab@redhat.com" <mchehab@redhat.com>,
+	"stefanr@s5r6.in-berlin.de" <stefanr@s5r6.in-berlin.de>,
+	"superm1@ubuntu.com" <superm1@ubuntu.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jean-Francois Moine wrote:
-> On Sun, 29 Nov 2009 11:24:31 +0100
-> Németh Márton <nm127@freemail.hu> wrote:
-> 
->> From: Márton Németh <nm127@freemail.hu>
->>
->> Eliminate redundant code by reorganizing the loop.
->>
->> Signed-off-by: Márton Németh <nm127@freemail.hu>
->> ---
->> diff -r 064a82aa2daa linux/drivers/media/video/gspca/gspca.c
->> --- a/linux/drivers/media/video/gspca/gspca.c	Thu Nov 26
->> 19:36:40 2009 +0100 +++
->> b/linux/drivers/media/video/gspca/gspca.c	Sun Nov 29 11:09:33
->> 2009 +0100 @@ -623,12 +623,12 @@ if (ret < 0)
->>  			goto out;
->>  	}
->> -	ep = get_ep(gspca_dev);
->> -	if (ep == NULL) {
->> -		ret = -EIO;
->> -		goto out;
->> -	}
->>  	for (;;) {
->> +		ep = get_ep(gspca_dev);
->> +		if (ep == NULL) {
->> +			ret = -EIO;
->> +			goto out;
->> +		}
->>  		PDEBUG(D_STREAM, "init transfer alt %d",
->> gspca_dev->alt); ret = create_urbs(gspca_dev, ep);
->>  		if (ret < 0)
->> @@ -677,12 +677,6 @@
->>  			ret =
->> gspca_dev->sd_desc->isoc_nego(gspca_dev); if (ret < 0)
->>  				goto out;
->> -		} else {
->> -			ep = get_ep(gspca_dev);
->> -			if (ep == NULL) {
->> -				ret = -EIO;
->> -				goto out;
->> -			}
->>  		}
->>  	}
->>  out:
-> 
-> Hello Márton,
-> 
-> As you may see, in the loop, get_ep() is called only when isoc_nego()
-> is not called. So, your patch does not work.
+On Nov 29, 2009, at 12:27 PM, Krzysztof Halasa <khc@pm.waw.pl> wrote:
 
-You are right, I overseen that.
+> 1. Do we agree that a lirc (-style) kernel-user interface is needed at
+>   least?
+>
+> 2. Is there any problem with lirc kernel-user interface?
+>
+> If the answer for #1 is "yes" and for #2 is "no" then perhaps we merge
+> the Jarod's lirc patches (at least the core) so at least the
+> non-controversial part is done?
 
-Is there any subdriver where the isoc_nego() is implemented? I couldn't find
-one. What would be the task of the isoc_nego() function? Should it set
-the interface by calling usb_set_interface() as the get_ep() does? Should
-it create URBs for the endpoint?
 
-Although I found the patch where the isoc_nego() was introduced
-( http://linuxtv.org/hg/v4l-dvb/rev/5a5b23605bdb56aec86c9a89de8ca8b8ae9cb925 )
-it is not clear how the "ep" pointer is updated when not the isoc_nego() is
-called instead of get_ep() in the current implementation.
+Isn't the meat of Jarod's patch the lirc interface?
 
-Regards,
+-- 
+>
 
-	Márton Németh
+Dmitry
