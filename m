@@ -1,59 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from outbound.icp-qv1-irony-out3.iinet.net.au ([203.59.1.148]:20039
-	"EHLO outbound.icp-qv1-irony-out3.iinet.net.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750795AbZKGFMN (ORCPT
+Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:44365 "EHLO
+	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751217AbZK2SL7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Nov 2009 00:12:13 -0500
-Message-ID: <4AF501B1.6050408@iinet.com.au>
-Date: Sat, 07 Nov 2009 15:12:17 +1000
-From: deepee <dvb_t@iinet.com.au>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Dual tuner DVB-T card on Linux
-References: <7fedbc910911060752y215adeccm6dc4d35131c62746@mail.gmail.com>	<c4e36d110911060755rb4303f7pe5f91b5988e9d101@mail.gmail.com>	<7fedbc910911060806s15ecbbfdwb19bbad52682e4cb@mail.gmail.com>	<200911061611.24120.linuxtv@mfraz.orangehome.co.uk> <c4e36d110911060852j7dab9d4cpcc2f34f933a4833@mail.gmail.com>
-In-Reply-To: <c4e36d110911060852j7dab9d4cpcc2f34f933a4833@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	Sun, 29 Nov 2009 13:11:59 -0500
+Date: Sun, 29 Nov 2009 18:13:16 +0000
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Ray Lee <ray-lk@madrabbit.org>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>,
+	Andy Walls <awalls@radix.net>, Jon Smirl <jonsmirl@gmail.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	mchehab@redhat.com, stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR  system?
+Message-ID: <20091129181316.7850f33c@lxorguk.ukuu.org.uk>
+In-Reply-To: <2c0942db0911290949p89ae64bjc3c7501c2de6930c@mail.gmail.com>
+References: <m3r5riy7py.fsf@intrepid.localdomain>
+	<BDkdITRHqgB@lirc>
+	<9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>
+	<m3aay6y2m1.fsf@intrepid.localdomain>
+	<9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>
+	<1259469121.3125.28.camel@palomino.walls.org>
+	<20091129124011.4d8a6080@lxorguk.ukuu.org.uk>
+	<1259515703.3284.11.camel@maxim-laptop>
+	<2c0942db0911290949p89ae64bjc3c7501c2de6930c@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Zdenek Kabelac wrote:
-> 2009/11/6 Mark Fraser <linuxtv@mfraz.orangehome.co.uk>:
->   
->> On Friday 06 Nov 2009 16:06:05 shacky wrote:
->>     
->>>> WinNova Hauppage
->>>> You could have either PCI or USB version.
->>>> Work relatively well - open source drivers are easy to fix in case of
->>>> problems.
->>>>         
->>> Thank you for your answer.
->>> I'm looking for this model on the Hauppauge website, but I only found
->>> many models of the "WinTV Nova" type.
->>> Could you help me please?
->>>       
->> I'm using the 
->> Nova-T 500 Dual DVB-T
->>     
->
-> Yes - this I've meant for PCI version - it is actually  USB card on
-> PCI device - thus  you should be aware you need motherboard that
-> handles USB2.0 - but I assume that you do no try to use this on some
-> ancient USB1.1 board.
->
-> Look with USB stick discussion from this week for dual USB version.
->
-> Zdenek
->
->   
+> If decoding can *only* be sanely handled in user-space, that's one
+> thing. If it can be handled in kernel, then that would be better.
 
-I don't think the Nova-T 500 Dual DVB-T is restricted only to 
-motherboards with USB2.0
-I believe the USB2.0 controllers are integrated on the PCI card and it 
-should still work on a board with USB1.1
+Why ?
 
-Deepee
+I can compute fast fourier transforms in the kernel but that doesn't make
+it better than doing it in user space. I can write web servers in the
+kernel and the same applies.
 
-
-
-
+Alan
