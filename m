@@ -1,51 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:42287 "EHLO
-	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752505AbZK2Vbv (ORCPT
+Received: from qw-out-2122.google.com ([74.125.92.24]:1291 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751886AbZK2C0B convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2009 16:31:51 -0500
-References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc> <9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com> <m3aay6y2m1.fsf@intrepid.localdomain> <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com> <1259450815.3137.19.camel@palomino.walls.org> <m3ocml6ppt.fsf@intrepid.localdomain>
-Message-Id: <D9ED2E54-7B65-4841-AADF-110C8E51DD0E@gmail.com>
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Krzysztof Halasa <khc@pm.waw.pl>
-In-Reply-To: <m3ocml6ppt.fsf@intrepid.localdomain>
-Content-Type: text/plain;
-	charset=us-ascii;
-	format=flowed
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0 (iPhone Mail 7C144)
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
-Date: Sun, 29 Nov 2009 13:31:46 -0800
-Cc: Andy Walls <awalls@radix.net>, Jon Smirl <jonsmirl@gmail.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	"j@jannau.net" <j@jannau.net>,
-	"jarod@redhat.com" <jarod@redhat.com>,
-	"jarod@wilsonet.com" <jarod@wilsonet.com>,
-	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"maximlevitsky@gmail.com" <maximlevitsky@gmail.com>,
-	"mchehab@redhat.com" <mchehab@redhat.com>,
-	"stefanr@s5r6.in-berlin.de" <stefanr@s5r6.in-berlin.de>,
-	"superm1@ubuntu.com" <superm1@ubuntu.com>
+	Sat, 28 Nov 2009 21:26:01 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so496933qwe.37
+        for <linux-media@vger.kernel.org>; Sat, 28 Nov 2009 18:26:07 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20091127213939.9bb235fa.ospite@studenti.unina.it>
+References: <1258495463-26029-1-git-send-email-ospite@studenti.unina.it>
+	<20091127213939.9bb235fa.ospite@studenti.unina.it>
+From: Eric Miao <eric.y.miao@gmail.com>
+Date: Sun, 29 Nov 2009 10:25:47 +0800
+Message-ID: <f17812d70911281825q5be6a000p24063a1bf0f17be7@mail.gmail.com>
+Subject: Re: [PATCH 0/3] pxa_camera: remove init() callback
+To: Antonio Ospite <ospite@studenti.unina.it>
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Mike Rapoport <mike@compulab.co.il>,
+	Juergen Beisert <j.beisert@pengutronix.de>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Nov 29, 2009, at 12:27 PM, Krzysztof Halasa <khc@pm.waw.pl> wrote:
-
-> 1. Do we agree that a lirc (-style) kernel-user interface is needed at
->   least?
+On Sat, Nov 28, 2009 at 4:39 AM, Antonio Ospite
+<ospite@studenti.unina.it> wrote:
+> On Tue, 17 Nov 2009 23:04:20 +0100
+> Antonio Ospite <ospite@studenti.unina.it> wrote:
 >
-> 2. Is there any problem with lirc kernel-user interface?
+>> Hi,
+>>
+>> this series removes the init() callback from pxa_camera_platform_data, and
+>> fixes its users to do initialization statically at machine init time.
+>>
+> [...]
+>> Antonio Ospite (3):
+>>   em-x270: don't use pxa_camera init() callback
+>>   pcm990-baseboard: don't use pxa_camera init() callback
 >
-> If the answer for #1 is "yes" and for #2 is "no" then perhaps we merge
-> the Jarod's lirc patches (at least the core) so at least the
-> non-controversial part is done?
-
-
-Isn't the meat of Jarod's patch the lirc interface?
-
--- 
+> Eric, if Guennadi ACKs v2 for these two please apply them only, we are
+> postponing the third one, hence you can discard it.
 >
 
-Dmitry
+OK, fine.
