@@ -1,45 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:38762 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750850AbZKZFVy (ORCPT
+Received: from smtp3-g21.free.fr ([212.27.42.3]:37108 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751937AbZK2MPG convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 00:21:54 -0500
-Date: Wed, 25 Nov 2009 21:21:55 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Krzysztof Halasa <khc@pm.waw.pl>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@redhat.com>, linux-kernel@vger.kernel.org,
-	Mario Limonciello <superm1@ubuntu.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Janne Grunau <j@jannau.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
-	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-Message-ID: <20091126052155.GD23244@core.coreip.homeip.net>
-References: <200910200956.33391.jarod@redhat.com> <200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com> <4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain> <20091123173726.GE17813@core.coreip.homeip.net> <m3r5rpq818.fsf@intrepid.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <m3r5rpq818.fsf@intrepid.localdomain>
+	Sun, 29 Nov 2009 07:15:06 -0500
+Date: Sun, 29 Nov 2009 13:15:11 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] gspca main: reorganize loop
+Message-ID: <20091129131511.2bb26f2b@tele>
+In-Reply-To: <4B1258D2.7060706@freemail.hu>
+References: <4B124BDF.50309@freemail.hu>
+	<20091129113834.6b47767a@tele>
+	<4B1258D2.7060706@freemail.hu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 23, 2009 at 09:51:31PM +0100, Krzysztof Halasa wrote:
-> Dmitry Torokhov <dmitry.torokhov@gmail.com> writes:
-> 
-> > Curreently the "scan" codes in the input layer serve just to help users
-> > to map whatever the device emits into a proper input event code so that
-> > the rest of userspace would not have to care and would work with all
-> > types of devices (USB, PS/2, etc).
-> >
-> > I would not want to get to the point where the raw codes are used as a
-> > primary data source.
-> 
-> The "key" interface is not flexible enough at present.
-> 
+On Sun, 29 Nov 2009 12:19:46 +0100
+Németh Márton <nm127@freemail.hu> wrote:
 
-In what way the key interface is unsufficient for delivering button
-events?
+> Is there any subdriver where the isoc_nego() is implemented? I
+> couldn't find one. What would be the task of the isoc_nego()
+> function? Should it set the interface by calling usb_set_interface()
+> as the get_ep() does? Should it create URBs for the endpoint?
+> 
+> Although I found the patch where the isoc_nego() was introduced
+> ( http://linuxtv.org/hg/v4l-dvb/rev/5a5b23605bdb56aec86c9a89de8ca8b8ae9cb925 )
+> it is not clear how the "ep" pointer is updated when not the
+> isoc_nego() is called instead of get_ep() in the current
+> implementation.
+
+Hello Hans,
+
+This function (isoc_nego) was added to fix the Mauro's problem with the
+st6422. Was this problem solved in some other way, or is the fix still
+waiting to be pulled?
+
+Best regards.
 
 -- 
-Dmitry
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
