@@ -1,54 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx.stud.uni-hannover.de ([130.75.176.3]:62177 "EHLO
-	studserv5d.stud.uni-hannover.de" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756867AbZKBW6w (ORCPT
+Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:35039 "EHLO
+	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751622AbZK2S7Z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Nov 2009 17:58:52 -0500
-Message-ID: <4AEF5FE5.2000607@stud.uni-hannover.de>
-Date: Mon, 02 Nov 2009 23:40:37 +0100
-From: Soeren Moch <Soeren.Moch@stud.uni-hannover.de>
-MIME-Version: 1.0
-To: zdenek.kabelac@gmail.com
-CC: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] NOVA-TD exeriences?
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	Sun, 29 Nov 2009 13:59:25 -0500
+Date: Sun, 29 Nov 2009 19:00:59 +0000
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Jon Smirl <jonsmirl@gmail.com>
+Cc: Andy Walls <awalls@radix.net>, Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	maximlevitsky@gmail.com, mchehab@redhat.com,
+	stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR  system?
+Message-ID: <20091129190059.02c2a0ff@lxorguk.ukuu.org.uk>
+In-Reply-To: <9e4733910911291019l27e5fea2x3db268311842b17@mail.gmail.com>
+References: <m3r5riy7py.fsf@intrepid.localdomain>
+	<BDkdITRHqgB@lirc>
+	<9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>
+	<m3aay6y2m1.fsf@intrepid.localdomain>
+	<9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>
+	<1259469121.3125.28.camel@palomino.walls.org>
+	<20091129124011.4d8a6080@lxorguk.ukuu.org.uk>
+	<9e4733910911291019l27e5fea2x3db268311842b17@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+> Half of the drivers are in user space and there are two different
+> classes of kernel driver - LIRC and V4L.
 
- > > Hi. I would be happy to hear if anyone has tried both the NOVA-TD 
-and the
- > > NOVA-T. The NOVA-T has always worked perfectly here but I would 
-like to know
- > > if the -TD will do the job of two NOVA-T's. And there also seems to 
-be a new
- > > version out with two small antenna connectors instead of the previous
- > > configuration. Anyone tried it? Does it come with an antenna 
-adaptor cable?
- > > http://www.hauppauge.de/de/pics/novatdstick_top.jpg
- > > Thankful for any info.
- >
- > Well I've this usb stick with these two small connectors - and it runs
- > just fine.
- >
- > Though I think there is some problem with suspend/resume recently
- > (2.6.32-rc5)  and it needs some inspection.
- >
- > But it works just fine for dual dvb-t viewing.
- >
- > And yes - it contains two small antennas with small connectors and
- > one adapter for normal antenna - i.e. 1 antenna input goes to 2 small
- > antenna connectors.
 
-zdenek, your nova-td stick works just fine for dual dvb-t viewing?
-I always had this problem:
-When one channel is streaming and the other channel is switched on, the
-stream of the already running channel gets broken.
-see also: 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg06376.html
+> A lot of the hardware doesn't identify itself.
+> There are two types of IR data in use - pulse timing and decoded protocol.
+> 
+> IR is an input device. We have a nice evdev input subsystem and it has
+> been demonstrated that IR can work with it.
 
-Can you please test this case on your nova-td stick?
+Evdev allows userspace to feed events into the kernel.
 
-Thanks,
-Soeren
+> Everybody keeps complaining that they want IR to "just work".
+> Consolidating all of this (under 50K of code)  driver support in the
+> kernel is the way to make it "just work".
+
+We have things called "Libraries" that unlike kernel code run out of a
+secure context, can be paged and shared by applications dynamically.
+
+Also the data rate of IR controllers puts it into the realm where the
+kernel doesn't need to be involved, in fact you could turn them into
+evdev events via user space quite acceptably, or even into meaningful
+actions and onto dbus.
+
+> For example. Some IR devices only record pulse timing data. There are
+> various protocols - RC5, RC6, etc for turning these pulse timing into
+> a decode IR command. This is about 20K of code. Does it really make
+> sense to create a device, push this data out into user space, decode
+> it there, then inject the results back into the kernel (uinput) for
+> further processing by the input subsystem?
+
+Does it really make sense to put big chunks of protocol decoding crap for
+an interface which runs at about 1 character per second on a good day
+into the kernel ? Does it really make sense ot move 50K of code from user
+context to kernel context where it must meet strict security
+requirements, be extensively audited and cannot be paged. For embedded
+users will also have to be highly modular so no unused bits are loaded.
+
+> This decoding is getting done in user space because half of the IR
+> drivers are in user space. But the other half of them aren't in user
+> space and that set can't work in user space.  Most of the user space
+> drivers can be pushed into the kernel where they'll automatically load
+> when the device is detected.
+
+So you proposed to write another ton of new drivers in kernel space for
+these only devices supported by user space, portably and to test and
+submit them all. If you can't persuade the maintainera of all those
+drivers to do so you don't appear to have a credible proposal.
+
+> attaching an IR diode to the mic input of your sound card really a
+> device or is it a hack that should be dealt with in user space?
+
+It's a device. There is no divide between "hack" and "device", as anyone
+who ever worked on the Mac68K can assure you ;)
+
+> Another type is IR hardware that toggles the DTR output of a serial
+> port at 40Khz to make a signal. Same thing is done with parallel
+> ports. Those force the system into a bit-banging timing loop for
+> 1/10th second.
+
+We have people who run wireless like that, people who ran SCSI and IDE
+like that. In the embedded world its the norm. If you sell 100,000
+devices then saving that part, wiring and board space is often the right
+choice. That kind of stuff needs doing in user space not kernel.
+
+You stated the real problem at the start - devices don't identify
+themselves well. That doesn't seem to be a kernel problem other than for
+kernel drivers perhaps exposing more information on themselves via sysfs.
+
