@@ -1,31 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:43247 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754799AbZKBUfV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Nov 2009 15:35:21 -0500
-Received: by ey-out-2122.google.com with SMTP id d26so488914eyd.19
-        for <linux-media@vger.kernel.org>; Mon, 02 Nov 2009 12:35:24 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4AEDB05E.1090704@googlemail.com>
-References: <4AEDB05E.1090704@googlemail.com>
-Date: Mon, 2 Nov 2009 21:27:44 +0100
-Message-ID: <9ac6f40e0911021227h166f798djf9fbec10a5d72179@mail.gmail.com>
-Subject: Re: bug in changeset 13239:54535665f94b ?
-From: e9hack@googlemail.com
-To: linux-media@vger.kernel.org
-Cc: e9hack@gmail.com
-Content-Type: text/plain; charset=UTF-8
+Received: from smtp3-g21.free.fr ([212.27.42.3]:41851 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752500AbZK2Ki3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Nov 2009 05:38:29 -0500
+Received: from smtp3-g21.free.fr (localhost [127.0.0.1])
+	by smtp3-g21.free.fr (Postfix) with ESMTP id 845FD8181CB
+	for <linux-media@vger.kernel.org>; Sun, 29 Nov 2009 11:38:30 +0100 (CET)
+Received: from tele (qrm29-1-82-245-201-222.fbx.proxad.net [82.245.201.222])
+	by smtp3-g21.free.fr (Postfix) with ESMTP id 4C9D28180BA
+	for <linux-media@vger.kernel.org>; Sun, 29 Nov 2009 11:38:28 +0100 (CET)
+Date: Sun, 29 Nov 2009 11:38:34 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] gspca main: reorganize loop
+Message-ID: <20091129113834.6b47767a@tele>
+In-Reply-To: <4B124BDF.50309@freemail.hu>
+References: <4B124BDF.50309@freemail.hu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Sun, 29 Nov 2009 11:24:31 +0100
+Németh Márton <nm127@freemail.hu> wrote:
 
-the BUG is in vidioc_streamoff() for the saa7146. This function
-releases all buffers first, and stops the capturing and dma tranfer of
-the saa7146 as second. If the page table, which is currently used by
-the saa7146, is modified by another thread, the saa7146 writes
-anywhere to the physical RAM. IMHO vidioc_streamoff() must stop the
-saa7146 first and may then release the buffers.
+> From: Márton Németh <nm127@freemail.hu>
+> 
+> Eliminate redundant code by reorganizing the loop.
+> 
+> Signed-off-by: Márton Németh <nm127@freemail.hu>
+> ---
+> diff -r 064a82aa2daa linux/drivers/media/video/gspca/gspca.c
+> --- a/linux/drivers/media/video/gspca/gspca.c	Thu Nov 26
+> 19:36:40 2009 +0100 +++
+> b/linux/drivers/media/video/gspca/gspca.c	Sun Nov 29 11:09:33
+> 2009 +0100 @@ -623,12 +623,12 @@ if (ret < 0)
+>  			goto out;
+>  	}
+> -	ep = get_ep(gspca_dev);
+> -	if (ep == NULL) {
+> -		ret = -EIO;
+> -		goto out;
+> -	}
+>  	for (;;) {
+> +		ep = get_ep(gspca_dev);
+> +		if (ep == NULL) {
+> +			ret = -EIO;
+> +			goto out;
+> +		}
+>  		PDEBUG(D_STREAM, "init transfer alt %d",
+> gspca_dev->alt); ret = create_urbs(gspca_dev, ep);
+>  		if (ret < 0)
+> @@ -677,12 +677,6 @@
+>  			ret =
+> gspca_dev->sd_desc->isoc_nego(gspca_dev); if (ret < 0)
+>  				goto out;
+> -		} else {
+> -			ep = get_ep(gspca_dev);
+> -			if (ep == NULL) {
+> -				ret = -EIO;
+> -				goto out;
+> -			}
+>  		}
+>  	}
+>  out:
 
-Regards,
-Hartmut
+Hello Márton,
+
+As you may see, in the loop, get_ep() is called only when isoc_nego()
+is not called. So, your patch does not work.
+
+Regards.
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
