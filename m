@@ -1,42 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from khc.piap.pl ([195.187.100.11]:42237 "EHLO khc.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754286AbZKWWbD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2009 17:31:03 -0500
-From: Krzysztof Halasa <khc@pm.waw.pl>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Christoph Bartelmus <lirc@bartelmus.de>, dmitry.torokhov@gmail.com,
-	j@jannau.net, jarod@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, superm1@ubuntu.com
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:  Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-References: <BDRae8rZjFB@christoph> <m3einork1o.fsf@intrepid.localdomain>
-	<829197380911231354y764e01b7hc0c5721b3ebf1f26@mail.gmail.com>
-Date: Mon, 23 Nov 2009 23:31:06 +0100
-In-Reply-To: <829197380911231354y764e01b7hc0c5721b3ebf1f26@mail.gmail.com>
-	(Devin Heitmueller's message of "Mon, 23 Nov 2009 16:54:44 -0500")
-Message-ID: <m36390rhzp.fsf@intrepid.localdomain>
+Received: from mail02a.mail.t-online.hu ([84.2.40.7]:60511 "EHLO
+	mail02a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752500AbZK2MPf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Nov 2009 07:15:35 -0500
+Message-ID: <4B1265E9.1040505@freemail.hu>
+Date: Sun, 29 Nov 2009 13:15:37 +0100
+From: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] gspca sunplus: propagate error for higher level
+References: <4B093DDD.5@freemail.hu>	<4B10CD81.7060909@freemail.hu> <20091128191717.5164a003@tele>
+In-Reply-To: <20091128191717.5164a003@tele>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller <dheitmueller@kernellabs.com> writes:
+Jean-Francois Moine wrote:
+> On Sat, 28 Nov 2009 08:13:05 +0100
+> Németh Márton <nm127@freemail.hu> wrote:
+> 
+>> what do you think about this patch?
+> 
+> Hi Márton,
+> 
+> There are many other drivers where the usb_control_msg() errors are not
+> tested nor propagated to higher levels. Generally, this does not matter:
+> the errors are signalled at the lowest level, and they seldom occur.
+> Thus, I don't think your patch is useful...
 
-> There is an argument to be made that since it may be desirable for
-> both IR receivers and transmitters to share the same table of remote
-> control definitions, it might make sense to at least *consider* how
-> the IR transmitter interface is going to work, even if it is decided
-> to not implement such a design in the first revision.
->
-> Personally, I would hate to see a situation where we find out that we
-> took a bad approach because nobody considered what would be required
-> for IR transmitters to reuse the same remote control definition data.
+I think that the return value of the usb_control_msg() is to be evaluated.
+If other drivers also not evaluating the usb_control_msg() *they* has to
+be fixed.
 
-I briefly though about such possibility, but dismissed it with
-assumption that we won't transmit the same codes (including "key" codes)
-that we receive.
+The benefit would be that the userspace program can recognise error condition
+faster and react accordingly. For example the USB device can be unplugged any
+time. In this case there is no use to continue sending URBs. Otherwise the user
+program thinks that everything went on correctly and the user will be surprised
+how come that he or she unplugged a device and it is still working.
 
-Perhaps I'm wrong.
--- 
-Krzysztof Halasa
+Regards,
+
+	Márton Németh
+
