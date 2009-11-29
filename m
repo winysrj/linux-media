@@ -1,113 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:44689 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1758375AbZKKSeY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Nov 2009 13:34:24 -0500
-Date: Wed, 11 Nov 2009 19:34:43 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Harald Welte <laforge@gnumonks.org>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jin-Sung Yang <jsgood.yang@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC] Global video buffers pool / Samsung SoC's
-In-Reply-To: <20091111071250.GV4047@prithivi.gnumonks.org>
-Message-ID: <Pine.LNX.4.64.0911111926560.4072@axis700.grange>
-References: <20091111071250.GV4047@prithivi.gnumonks.org>
+Received: from mx1.redhat.com ([209.132.183.28]:47233 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751182AbZK2QCH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Nov 2009 11:02:07 -0500
+Message-ID: <4B129ADF.9050004@redhat.com>
+Date: Sun, 29 Nov 2009 14:01:35 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Jon Smirl <jonsmirl@gmail.com>
+CC: Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, khc@pm.waw.pl,
+	awalls@radix.net, dmitry.torokhov@gmail.com, j@jannau.net,
+	jarod@redhat.com, jarod@wilsonet.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	maximlevitsky@gmail.com, superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR 	system?
+References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc>	 <9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>	 <4B116954.5050706@s5r6.in-berlin.de>	 <9e4733910911281058i1b28f33bh64c724a89dcb8cf5@mail.gmail.com>	 <4B117DEA.3030400@s5r6.in-berlin.de> <9e4733910911281208t23c938a2l7537e248e1eda4ae@mail.gmail.com>
+In-Reply-To: <9e4733910911281208t23c938a2l7537e248e1eda4ae@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 11 Nov 2009, Harald Welte wrote:
+Jon Smirl wrote:
+> On Sat, Nov 28, 2009 at 2:45 PM, Stefan Richter
+> <stefanr@s5r6.in-berlin.de> wrote:
+>> Jon Smirl wrote:
+>>> Also, how do you create the devices for each remote? You would need to
+>>> create these devices before being able to do EVIOCSKEYCODE to them.
+>> The input subsystem creates devices on behalf of input drivers.  (Kernel
+>> drivers, that is.  Userspace drivers are per se not affected.)
+> 
+> We have one IR receiver device and multiple remotes. How does the
+> input system know how many devices to create corresponding to how many
+> remotes you have? There is no current mechanism to do that. You need
+> an input device for each remote so that you can do the EVIOCSKEYCODE
+> against it. Some type of "create subdevice" IOCTL will need to be
+> built.
+> 
+> I handled that in configds like this:
+> /configfs - mount the basic configfs
+> /configfs/remotes (created by loading IR support)
+> mkdir /configfs/remotes/remote_A  - this causes the input subdevice to
+> be created, the name of it appears in the created directory.
+> mkdir /configfs/remotes/remote_A/... - now build the mapping entires.
+> 
+> This "create subdevice" IOCTL will need to take a name so that it can
+> be identified. You will probably another IOCTL to enumerate which
+> subdevices belong to the root device, etc...
+> 
+> Keyboards don't have subdevices. There is a 1:1 mapping between the
+> keyboard and the device driver.
 
-> Hi Guennadi and others,
-> 
-> first of all sorry for breaking the thread, but I am new to this list
-> and could not find the message-id of the original mails nor a .mbox
-> format archive for the list :(
-> 
-> As I was one of the people giving comments to Guennadi's talk at ELCE,
-> let me give some feedback here, too.
+The above struct doesn't fit for the already existing in-kernel drivers, since
+you may have more than one IR driver on kernel. I have some machines here with
+3 or 4 different input cards, each with their own IR hardware. How are you
+supposing to associate a created Remote Controller with the corresponding driver?
 
-Adding the author of the RFC to CC.
+With EVIOSKEYCODE, it is as simple as directing the ioctl to the corresponding
+evdev interface.
 
-> I'm currently helping the Samsung System LSI Linux kernel team with
-> bringing their various ports for their ARM SoCs mainline.  So far we
-> have excluded much of the multimedia related parts due to the complexity
-> and lack of kernel infrastructure.
+Cheers,
+Mauro.
 > 
-> Let me briefly describe the SoCs in question: They have an ARM9, ARM11
-> or Cortex-A8 core and multiple video input and output paths, such as
-> * camera interface
-> * 2d acceleration engine
-> * 3d acceleration engine
-> * post-processor (colorspace conversion, scaling, rotating)
-> * LCM output for classic digital RGB+sync interfaces
-> * TV scaler
-> * TV encoder
-> * HDMI interface (simple serial-HDMI with DMA from/to system memory)
-> * Transport Stream interface (MPEG-transport stream input with PID
->   filter which can DMA to system memory
-> * MIPI-HSI LCM output device
-> * Multi-Function codec for H.264 and other stuff
-> * Hardware JPEG codec.
-> plus even some more that I might have missed.
-> 
-> One of the issues is that, at least in many current and upcoming
-> products, all those integrated peripherals can only use physically
-> contiguous memory.
-> 
-> For the classic output path (e.g. Xorg+EXA+XAA+3D), that is fine.  The
-> framebuffer driver can simply allocate some large chunk of physical
-> system memory at boot time, map that into userspace and be happy.  This
-> includes things like Xvideo support in the Xserver.  Also, HDMI output
-> and TV output can be handled inside X or switch to a new KMS model.
-> 
-> However, the input side looks quite different,  On the one hand, we have
-> the camera driver, but possibly HDMI input and transport stream input,
-> are less easy.
-> 
-> also, given the plethora of such subsytems in a device, you definitely
-> don't want to have one static big boot-time allocation for each of those
-> devices.  You don't want to waste that much memory all the time just in
-> case at some time you start an application that actually needs this.
-> Also, it is unlikely that all of the subsystems will operate at the same
-> time.
-> 
-> So having an in-kernel allocator for physically contiguous memory is
-> something that is needed to properly support this hardware.  At boot
-> time you allocate one big pool, from which you then on-demand allocate
-> and free physically contiguous buffers, even at much later time.
-> 
-> Furthermore, think of something like the JPEG codec acceleration, which
-> you also want to use zero-copy from userspace.  So userpsace (like
-> libjpeg for decode, or a camera application for encode)would also need
-> to be able to allocate such a buffer inside the kernel for input and
-> output data of the codec, mmap it, put its jpeg data into it and then
-> run the actual codec.
-> 
-> How would that relate to the proposed global video buffers pool? Well,
-> I think before thinking strictly about video buffers for camera chips,
-> we have to think much more generically!
-> 
-> Also, has anyone investigated if GEM or TTM could be used in unmodified
-> or modified form for this?  After all, they are intended to allocate
-> (and possibly map) video buffers...
 
-Don't think I can contribute much to the actual matter of the discussion, 
-yes, there is a problem, the RFC is trying to address it, there have been 
-attempts to implement similar things before (as you write above), so, it 
-"just" has to eventually be done.
-
-One question to your SoCs though - do they have SRAM? usable and 
-sufficient for graphics buffers? In any case any such implementation will 
-have to be able to handle RAMs other than main system memory too, 
-including card memory, NUMA, sparse RAM, etc., which is probably obvious 
-anyway.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
