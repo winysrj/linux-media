@@ -1,120 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:60639 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753490AbZK1TGq convert rfc822-to-8bit (ORCPT
+Received: from mail-yx0-f188.google.com ([209.85.210.188]:48076 "EHLO
+	mail-yx0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751017AbZK2Hed (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Nov 2009 14:06:46 -0500
-Date: Sat, 28 Nov 2009 20:06:59 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Ian Molton <ian@mnementh.co.uk>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH/RFC] tmio_mmc: keep card-detect interrupts enabled
-In-Reply-To: <c09aa50a0911091736k27d66483t9012e296bfbf578a@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0911282002490.3696@axis700.grange>
-References: <Pine.LNX.4.64.0911061127240.4389@axis700.grange>
- <c09aa50a0911090242l35d0dfb2vec0cdeff8b86d33e@mail.gmail.com>
- <Pine.LNX.4.64.0911091530030.4289@axis700.grange>
- <c09aa50a0911091218i681449e0r5cb96b9db3e0def6@mail.gmail.com>
- <Pine.LNX.4.64.0911092134440.4289@axis700.grange>
- <c09aa50a0911091736k27d66483t9012e296bfbf578a@mail.gmail.com>
+	Sun, 29 Nov 2009 02:34:33 -0500
+Date: Sat, 28 Nov 2009 23:34:34 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Jon Smirl <jonsmirl@gmail.com>
+Cc: Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
+Subject: Re: [IR-RFC PATCH v4 0/6] In-kernel IR support using evdev
+Message-ID: <20091129073434.GX6936@core.coreip.homeip.net>
+References: <20091127013217.7671.32355.stgit@terra> <4B0F43B3.4090804@wilsonet.com> <9e4733910911261958w2911f69dk4ab747b4bf12461@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <9e4733910911261958w2911f69dk4ab747b4bf12461@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 10 Nov 2009, Ian Molton wrote:
-
-> Well if they are only masked they shouldnt stop being asserted. But we
-> should unmask them again.
+On Thu, Nov 26, 2009 at 10:58:59PM -0500, Jon Smirl wrote:
+> >
+> >> Code is only lightly tested. Encoders and decoders have not been
+> >> written for all protocols. Repeat is not handled for any protocol. I'm
+> >> looking for help. There are 15 more existing LIRC drivers.
+> >
+> > And there's the hangup for me. The lirc drivers and interface have been
+> > pretty heavily battle-tested over years and years in the field. And there
+> > are those 15 more drivers that already work with the lirc interface. I'm
+> > woefully short on time to work on any porting myself, and about to get even
+> > shorter with some new responsibilities at work requiring even more of my
+> > attention.
+> >
+> > If we go with a hybrid approach, all those existing drivers can be brought
+> > in supporting just the lirc interface initially, and have in-kernel decode
+> > support added as folks have time to work on them, if it actually makes sense
+> > for those devices.
+> >
+> > Just trying to find a happy middle ground that minimizes regressions for
+> > users *and* gives us maximum flexibility.
 > 
-> Im not really sure we should mask them anyway, with the card possibly
-> being gone... Will need to look into it further.
-
-Hi Ingo
-
-What's the status of this patch? Are you going to queue it for 2.6.33?
-
-Thanks
-Guennadi
-
-> 
-> 2009/11/9 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> > (re-adding accidentally dropped ML)
-> >
-> > On Mon, 9 Nov 2009, Ian Molton wrote:
-> >
-> >> Well, I presume we want to know when the card gets removed :)
-> >
-> > Sure, that's why we shouldn't mask those interrupts:-) If they do get
-> > masked and missed, I do not know, if the interrupt remains pending in this
-> > case, because they never get detected then:)
-> >
-> >>
-> >> 2009/11/9 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> >> > Hi Ian
-> >> >
-> >> > Why did you drop all CCs?
-> >> >
-> >> > On Mon, 9 Nov 2009, Ian Molton wrote:
-> >> >
-> >> >> I havent looked at the consequences for the driver if a insert IRQ
-> >> >> occurs during IO, however it seems logical that we should not
-> >> >> permanently mask the IRQ.
-> >> >>
-> >> >> I presume that the IRQ remains pending?
-> >> >
-> >> > Don't know, never checked. Is this important to know?
-> >> >
-> >> > Thanks
-> >> > Guennadi
-> >> >
-> >> >>
-> >> >> 2009/11/6 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> >> >> > On SuperH platforms the SDHI controller does not produce any command IRQs
-> >> >> > after a completed IO. This leads to card-detect interrupts staying
-> >> >> > disabled. Do not disable card-detect interrupts on DATA IRQs.
-> >> >> >
-> >> >> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> >> >> > ---
-> >> >> >
-> >> >> > Marked as RFC because I'm not really sure this is a correct approach to
-> >> >> > fix this problem, and whether this will have negative effect on other
-> >> >> > tmio_mmc MFD users.
-> >> >> >
-> >> >> > diff --git a/drivers/mmc/host/tmio_mmc.h b/drivers/mmc/host/tmio_mmc.h
-> >> >> > index c676767..0b31d44 100644
-> >> >> > --- a/drivers/mmc/host/tmio_mmc.h
-> >> >> > +++ b/drivers/mmc/host/tmio_mmc.h
-> >> >> > @@ -55,10 +55,8 @@
-> >> >> >  /* Define some IRQ masks */
-> >> >> >  /* This is the mask used at reset by the chip */
-> >> >> >  #define TMIO_MASK_ALL           0x837f031d
-> >> >> > -#define TMIO_MASK_READOP  (TMIO_STAT_RXRDY | TMIO_STAT_DATAEND | \
-> >> >> > -               TMIO_STAT_CARD_REMOVE | TMIO_STAT_CARD_INSERT)
-> >> >> > -#define TMIO_MASK_WRITEOP (TMIO_STAT_TXRQ | TMIO_STAT_DATAEND | \
-> >> >> > -               TMIO_STAT_CARD_REMOVE | TMIO_STAT_CARD_INSERT)
-> >> >> > +#define TMIO_MASK_READOP  (TMIO_STAT_RXRDY | TMIO_STAT_DATAEND)
-> >> >> > +#define TMIO_MASK_WRITEOP (TMIO_STAT_TXRQ | TMIO_STAT_DATAEND)
-> >> >> >  #define TMIO_MASK_CMD     (TMIO_STAT_CMDRESPEND | TMIO_STAT_CMDTIMEOUT | \
-> >> >> >                TMIO_STAT_CARD_REMOVE | TMIO_STAT_CARD_INSERT)
-> >> >> >  #define TMIO_MASK_IRQ     (TMIO_MASK_READOP | TMIO_MASK_WRITEOP | TMIO_MASK_CMD)
-> >
-> > Thanks
-> > Guennadi
-> > ---
-> > Guennadi Liakhovetski, Ph.D.
-> > Freelance Open-Source Software Developer
-> > http://www.open-technology.de/
-> >
-> 
-> 
-> 
-> -- 
-> Ian Molton
-> Linux, Automotive, and other hacking:
-> http://www.mnementh.co.uk/
+> You are going to have to choose. Recreate the problems of type
+> specific devices like /dev/mouse and /dev/kbd that evdev was created
+> to fix, or skip those type specific devices and go straight to evdev.
+> We've known for years the /dev/mouse was badly broken. How many more
+> years is it going to be before it can be removed? /dev/lirc has the
+> same type of problems that /dev/mouse has. The only reason that
+> /dev/lirc works now is because there is a single app that uses it.
 > 
 
----
-Guennadi Liakhovetski
+Pardon my ignorance here but it does not seem that /dev/lirc actually
+multiplexes data stream from different receivers but rather creates a
+device per receiver... Multiplexing is the main issue with /dev/mouse
+for me.
+
+What are the other issues with LIRC interface _for lircd-type applications_
+do we see? I see for example that it is not 32/64 bit clean so that is
+somethign that we may consider re-evaluating before just acceptig it
+into kernel. Is there anything else?
+
+> Also, implementing a new evdev based system in the kernel in no way
+> breaks existing lirc installations. Just don't load the new
+> implementation and everything works exactly the same way as before.
+> 
+> I'd go the evdev only route for in-kernel and leave existing lirc out
+> of tree. Existing lirc will continue to work. This is probably the
+> most stable strategy, even more so than a hybrid approach. The
+> in-kernel implementation will then be free to evolve without the
+> constraint of legacy APIs. As people become happy with it they can
+> switch over.
+> 
+
+If by evdev-based system you mean adding EV_IR event to the input core I
+think it would be a mistake. Such data (EV_IR/IR_XXX) will have to be read
+from an event device, processed (probably in userspace) and re-injected
+back through uinput as (EV_KEY/KEY_XXX) for consumption again. Such
+looping interface would be a mistake IMHO.
+
+Still, the end result of the transformation should be EV_KEY/KEY_XXX
+delivered on one of the event devices (preferrably one per remote, not
+one per receiver), I believe everyone agrees on that.
+
+-- 
+Dmitry
