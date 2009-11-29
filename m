@@ -1,126 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acorn.exetel.com.au ([220.233.0.21]:49271 "EHLO
-	acorn.exetel.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759194AbZKFCbc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Nov 2009 21:31:32 -0500
-Message-ID: <40380.64.213.30.2.1257474692.squirrel@webmail.exetel.com.au>
-In-Reply-To: <39786.64.213.30.2.1257466403.squirrel@webmail.exetel.com.au>
-References: <20764.64.213.30.2.1257390002.squirrel@webmail.exetel.com.au>
-    <829197380911042051l295e9796g65fe1b163f72a70c@mail.gmail.com>
-    <26256.64.213.30.2.1257398603.squirrel@webmail.exetel.com.au>
-    <829197380911050602t30bc69d0sd0b269c39bf759e@mail.gmail.com>
-    <702870ef0911051257k52c142e8ne1b32506f1efb45c@mail.gmail.com>
-    <829197380911051304g1544e277s870f869be14e1a18@mail.gmail.com>
-    <25126.64.213.30.2.1257464759.squirrel@webmail.exetel.com.au>
-    <829197380911051551q3b844c5ek490a5eb7c96783e9@mail.gmail.com>
-    <39786.64.213.30.2.1257466403.squirrel@webmail.exetel.com.au>
-Date: Fri, 6 Nov 2009 13:31:32 +1100 (EST)
-Subject: Re: bisected regression in tuner-xc2028 on DVICO dual digital 4
-From: "Robert Lowery" <rglowery@exemail.com.au>
-To: "Devin Heitmueller" <dheitmueller@kernellabs.com>
-Cc: "Vincent McIntyre" <vincent.mcintyre@gmail.com>,
-	linux-media@vger.kernel.org
+Received: from outbound-mail02.westnet.com.au ([203.10.1.243]:48255 "EHLO
+	outbound-mail02.westnet.com.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752734AbZK2C4b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Nov 2009 21:56:31 -0500
+From: Mike Lampard <mike@mtgambier.net>
+Reply-To: mike@mtgambier.net
+To: Jon Smirl <jonsmirl@gmail.com>
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR system?
+Date: Sun, 29 Nov 2009 13:17:03 +1030
+Cc: Christoph Bartelmus <christoph@bartelmus.de>, jarod@wilsonet.com,
+	awalls@radix.net, dmitry.torokhov@gmail.com, j@jannau.net,
+	jarod@redhat.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	mchehab@redhat.com, superm1@ubuntu.com
+References: <9e4733910911270757j648e39ecl7487b7e6c43db828@mail.gmail.com>
+In-Reply-To: <9e4733910911270757j648e39ecl7487b7e6c43db828@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200911291317.03612.mike@mtgambier.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> On Thu, Nov 5, 2009 at 6:45 PM, Robert Lowery <rglowery@exemail.com.au>
->> wrote:
->>> Do you mean something like this (untested) patch?  I'll try it out
->>> tonight.
->>>
->>> diff -r 43878f8dbfb0 linux/drivers/media/dvb/dvb-usb/cxusb.c
->>> --- a/linux/drivers/media/dvb/dvb-usb/cxusb.c   Sun Nov 01 07:17:46
->>> 2009
->>> -0200
->>> +++ b/linux/drivers/media/dvb/dvb-usb/cxusb.c   Fri Nov 06 10:39:38
->>> 2009
->>> +1100
->>> @@ -666,6 +666,14 @@
->>>        .parallel_ts = 1,
->>>  };
->>>
->>> +static struct zl10353_config cxusb_zl10353_xc3028_config_no_i2c_gate =
->>> {
->>> +       .demod_address = 0x0f,
->>> +       .if2 = 45600,
->>> +       .no_tuner = 1,
->>> +       .parallel_ts = 1,
->>> +       .disable_i2c_gate_ctrl = 1,
->>> +};
->>> +
->>>  static struct mt352_config cxusb_mt352_xc3028_config = {
->>>        .demod_address = 0x0f,
->>>        .if2 = 4560,
->>> @@ -897,7 +905,7 @@
->>>        cxusb_bluebird_gpio_pulse(adap->dev, 0x02, 1);
->>>
->>>        if ((adap->fe = dvb_attach(zl10353_attach,
->>> -                                  &cxusb_zl10353_xc3028_config,
->>> +                                
->>>  &cxusb_zl10353_xc3028_config_no_i2c_gate,
->>>                                   &adap->dev->i2c_adap)) == NULL)
->>>                return -EIO;
->>
->> Wow, that looks shockingly similar to the patch I did for an em28xx
->> boards a couple of months ago, even down to the part where you added
->> "_no_i2c_gate" to the end!  :-)
->
-> I might have got some inspiration from somewhere :)
->
->>
->> Yeah, that's the fix, although from the diff I can't tell if you're
->> doing it for all zl10353 boards in cxusb.c or just yours.  I would
->> have to see the source to know for sure.
->
-> I only changed cxusb_dualdig4_frontend_attach() so it should be just my
-> board.  The only other board that was using cxusb_zl10353_xc3028_config
-> was cxusb_nano2_frontend_attach(), but I left that as is since I don't
-> know if that board is similarily affected.
->
-> I'll try it out tonight and confirm it fixes the problem
+On Sat, 28 Nov 2009 02:27:59 am Jon Smirl wrote:
+> On Fri, Nov 27, 2009 at 2:45 AM, Christoph Bartelmus
+> 
+> <christoph@bartelmus.de> wrote:
+> > Hi Mauro,
+> >
+> > on 26 Nov 09 at 14:25, Mauro Carvalho Chehab wrote:
+> >> Christoph Bartelmus wrote:
+> >
+> > [...]
+> >
+> >>> But I'm still a bit hesitant about the in-kernel decoding. Maybe it's
+> >>> just because I'm not familiar at all with input layer toolset.
+> >
+> > [...]
+> >
+> >> I hope it helps for you to better understand how this works.
+> >
+> > So the plan is to have two ways of using IR in the future which are
+> > incompatible to each other, the feature-set of one being a subset of the
+> > other?
+> 
+> Take advantage of the fact that we don't have a twenty year old legacy
+> API already in the kernel. Design an IR API that uses current kernel
+> systems. Christoph, ignore the code I wrote and make a design proposal
+> that addresses these goals...
+> 
+> 1) Unified input in Linux using evdev. IR is on equal footing with
+> mouse and keyboard.
 
-Devin,
+I think this a case where automating setup can be over-emphasised (in the 
+remote-as-keyboard case).
 
-I have confirmed the patch below fixes my issue.  Could you please merge
-it for me?
+Apologies in advance if I've misunderstood the idea of utilising the 'input 
+subsystem' for IR.  If the plan is to offer dedicated IR events via a yet-to-
+be-announced input event subsystem and to optionally disallow acting as a 
+keyboard via a module option or similar then please ignore the following.
 
-Thanks
+Whilst having remotes come through the input subsystem might be 'the correct 
+thing' from a purely technical standpoint, as an end-user I find the use-case 
+for remotes completely different in one key aspect:  Keyboards and mice are 
+generally foreground-app input devices, whereas remotes are often controlling 
+daemons sitting in the background piping media through dedicated devices.  As 
+an example I have a VDR instance running in the background on my desktop 
+machine outputting to a TV in another room via a pci mpeg decoder - I 
+certainly don't want the VDR remote control interacting with my X11 desktop in 
+any way unless I go out of my way to set it up to do so, nor do I want it 
+interacting with other applications (such as MPD piping music around the 
+house) that are controlled via other remotes in other rooms unless specified.
 
--Rob
+Setting this up with Lircd was easy, how would a kernel-based proposal handle 
+this?
 
-Fix hang on DViCO FusionHDTV DVB-T Dual Digital 4 (rev 1)
-Signed Off: Robert Lowery <rglowery@exemail.com.au>
-
-diff -r c57f47cfb0e8 linux/drivers/media/dvb/dvb-usb/cxusb.c
---- a/linux/drivers/media/dvb/dvb-usb/cxusb.c   Wed Nov 04 18:21:15 2009
--0200
-+++ b/linux/drivers/media/dvb/dvb-usb/cxusb.c   Fri Nov 06 13:28:07 2009
-+1100
-@@ -666,6 +666,14 @@
-        .parallel_ts = 1,
- };
-
-+static struct zl10353_config cxusb_zl10353_xc3028_config_no_i2c_gate = {
-+       .demod_address = 0x0f,
-+       .if2 = 45600,
-+       .no_tuner = 1,
-+       .parallel_ts = 1,
-+       .disable_i2c_gate_ctrl = 1,
-+};
-+
- static struct mt352_config cxusb_mt352_xc3028_config = {
-        .demod_address = 0x0f,
-        .if2 = 4560,
-@@ -897,7 +905,7 @@
-        cxusb_bluebird_gpio_pulse(adap->dev, 0x02, 1);
-
-        if ((adap->fe = dvb_attach(zl10353_attach,
--                                  &cxusb_zl10353_xc3028_config,
-+                                  &cxusb_zl10353_xc3028_config_no_i2c_gate,
-                                   &adap->dev->i2c_adap)) == NULL)
-                return -EIO;
+Regards
+Mike
 
 
+> 2) plug and play for basic systems - you only need an external app for
+>  scripting 
+>  3) No special tools - use mkdir, echo, cat, shell scripts to
+>  build maps 
+>  4) Use of modern Linux features like sysfs, configfs and udev.
+> 5) Direct multi-app support - no daemon
+> 6) Hide timing data from user as much as possible.
+> 
+> What are other goals for this subsystem?
+> 
+> Maybe we decide to take the existing LIRC system as is and not
+> integrate it into the input subsystem. But I think there is a window
+> here to update the LIRC design to use the latest kernel features. We
+> don't want to build another /dev/mouse and have to rip it out in five
+> years.
+> 
+> > When designing the key mapping in the kernel you should be aware that
+> > there are remotes out there that send a sequence of scan codes for some
+> > buttons, e.g.
+> > http://lirc.sourceforge.net/remotes/pioneer/CU-VSX159
+> 
+> This is good input.
+> 
