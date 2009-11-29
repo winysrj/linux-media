@@ -1,39 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 78.218.95.91.static.ter-s.siw.siwnet.net ([91.95.218.78]:42210
-	"EHLO alefors.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751295AbZKUIvE (ORCPT
+Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:53850 "EHLO
+	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751894AbZK2T2k (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Nov 2009 03:51:04 -0500
-Received: from [10.0.0.11] ([10.0.0.11]:46325)
-	by alefors.se with [XMail 1.26 ESMTP Server]
-	id <S62E> for <linux-media@vger.kernel.org> from <magnus@alefors.se>;
-	Sat, 21 Nov 2009 09:51:06 +0100
-Message-ID: <4B07A9F6.8040205@alefors.se>
-Date: Sat, 21 Nov 2009 09:51:02 +0100
-From: =?UTF-8?B?TWFnbnVzIEjDtnJsaW4=?= <magnus@alefors.se>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: SV: [linux-dvb] NOVA-TD exeriences?
-References: <4AEF5FE5.2000607@stud.uni-hannover.de> <4AF162BC.4010700@stud.uni-hannover.de> <4B0694F7.7070604@stud.uni-hannover.de> <4B06A22D.4090404@stud.uni-hannover.de> <4B072D3F.8060807@stud.uni-hannover.de>
-In-Reply-To: <4B072D3F.8060807@stud.uni-hannover.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+	Sun, 29 Nov 2009 14:28:40 -0500
+Date: Sun, 29 Nov 2009 19:29:56 +0000
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Jon Smirl <jonsmirl@gmail.com>
+Cc: Ray Lee <ray-lk@madrabbit.org>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	Andy Walls <awalls@radix.net>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	mchehab@redhat.com, stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR  system?
+Message-ID: <20091129192956.7c297797@lxorguk.ukuu.org.uk>
+In-Reply-To: <9e4733910911291116r66dda6dap591d1b0f322f9663@mail.gmail.com>
+References: <m3r5riy7py.fsf@intrepid.localdomain>
+	<m3aay6y2m1.fsf@intrepid.localdomain>
+	<9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>
+	<1259469121.3125.28.camel@palomino.walls.org>
+	<20091129124011.4d8a6080@lxorguk.ukuu.org.uk>
+	<1259515703.3284.11.camel@maxim-laptop>
+	<2c0942db0911290949p89ae64bjc3c7501c2de6930c@mail.gmail.com>
+	<20091129181316.7850f33c@lxorguk.ukuu.org.uk>
+	<2c0942db0911291052n6e9dd116x943ee636bcf548b9@mail.gmail.com>
+	<20091129190435.6500ac84@lxorguk.ukuu.org.uk>
+	<9e4733910911291116r66dda6dap591d1b0f322f9663@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Soeren Moch wrote:
-> OK, my nova-td device id is 2040:9580, for 2040:5200 the attached 
-> extended
-> patch version may help. (I have no access to such device.)
-> Please test.
->
-> Soeren
->
+> So we're just back to the status quo of last year which is to do
+> nothing except some minor clean up.
 
-Well, it did help thank you very much! Now I finally have four DVB-T and 
-four DVB-S2 adapters that can take any transponder I have access to 
-without problems. I haven't looked into your patches yet but I hope the 
-problems get solved in the main linuxtv tree soon, one way or the other.
-Thanks again,
-/Magnus H
+Which in itself is vastly preferable to some grandiose scheme that turns
+out to be wrong.
 
+And no it's not a back to the status quo, it's a request to discuss the
+actual problems and options not to simply try and force your chosen
+solution down the throats of everyone else.
