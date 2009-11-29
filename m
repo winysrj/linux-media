@@ -1,54 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:40085 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751092AbZKIEGB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Nov 2009 23:06:01 -0500
-Received: by bwz27 with SMTP id 27so3047439bwz.21
-        for <linux-media@vger.kernel.org>; Sun, 08 Nov 2009 20:06:06 -0800 (PST)
+Received: from mail-qy0-f194.google.com ([209.85.221.194]:39655 "EHLO
+	mail-qy0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751724AbZK2Rhb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Nov 2009 12:37:31 -0500
 MIME-Version: 1.0
-In-Reply-To: <cd9524450911081958v57b77d27iae3ab37ffef1ee8d@mail.gmail.com>
-References: <cd9524450911081743y92a616amfcb8c6c069112240@mail.gmail.com>
-	 <829197380911081752x707d9e2bs99f4dc044544d66f@mail.gmail.com>
-	 <cd9524450911081801i5e8d97f4nd5864d46a66c676e@mail.gmail.com>
-	 <829197380911081834v445d36c1yd931c5af69a21505@mail.gmail.com>
-	 <cd9524450911081958v57b77d27iae3ab37ffef1ee8d@mail.gmail.com>
-Date: Sun, 8 Nov 2009 23:06:05 -0500
-Message-ID: <829197380911082006s5a575789rd1e2881e874177cd@mail.gmail.com>
-Subject: Re: bisected regression in tuner-xc2028 on DVICO dual digital 4
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Barry Williams <bazzawill@gmail.com>
-Cc: linux-media@vger.kernel.org
+In-Reply-To: <20091129171437.GA4993@kroah.com>
+References: <20091127013217.7671.32355.stgit@terra>
+	 <20091127013423.7671.36546.stgit@terra>
+	 <20091129171437.GA4993@kroah.com>
+Date: Sun, 29 Nov 2009 12:37:36 -0500
+Message-ID: <9e4733910911290937v7795da49q613c172b2cc9d13c@mail.gmail.com>
+Subject: Re: [IR-RFC PATCH v4 2/6] Core IR module
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Greg KH <greg@kroah.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-input@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Nov 8, 2009 at 10:58 PM, Barry Williams <bazzawill@gmail.com> wrote:
-> Hi Devin
-> I did not reboot after installing the patch somehow I thought simply
-> removing the module (as I had done to restore some stability to my
-> system) and reloading the module after the patch would be all I need.
-> Well I learned that is not the case my apologies for not trying that
-> first. So your tree fixed my second system with the rev 1 tuner.
-> However my first system with the rev 2 card while now stable with your
-> tree will not tune.
-> Barry
+On Sun, Nov 29, 2009 at 12:14 PM, Greg KH <greg@kroah.com> wrote:
+> On Thu, Nov 26, 2009 at 08:34:23PM -0500, Jon Smirl wrote:
+>> Changes to core input subsystem to allow send and receive of IR messages. Encode and decode state machines are provided for common IR porotocols such as Sony, JVC, NEC, Philips, etc.
+>>
+>> Received IR messages generate event in the input queue.
+>> IR messages are sent using an input IOCTL.
+>
+> As you are creating new sysfs files here, please document them in
+> Documentation/ABI/
 
-Ok, good.  So now we just need to nail down why the 0fe9:db98 board
-doesn't work.  Fortunately, I think I know what that bug is too.
+This code is not going to get merged as is. It's just a starting point
+to get a discussion started about designing an IR subsystem. I expect
+the final design will look a lot different.
 
-Try this:
-
-1.  Reboot the system.
-2.  Perform a single tuning attempt.
-3.  Send the full dmesg output starting at the time the box is booted.
-
-If you're lucky, it's the issue I think it is, which will result in a
-one-line patch.
-
-Thanks,
-
-Devin
+I'm trying to demonstrate that IR is an input device and that it can
+be supported by the Linux input subsystem without the need to create a
+special IR device.
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Jon Smirl
+jonsmirl@gmail.com
