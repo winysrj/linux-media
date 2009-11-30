@@ -1,96 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:43410 "EHLO mail1.radix.net"
+Received: from mx1.redhat.com ([209.132.183.28]:49092 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759054AbZKZMaa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 07:30:30 -0500
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
- Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-From: Andy Walls <awalls@radix.net>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Jarod Wilson <jarod@wilsonet.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>, khc@pm.waw.pl,
-	j@jannau.net, jarod@redhat.com, linux-input@vger.kernel.org,
+	id S1752460AbZK3J7v (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Nov 2009 04:59:51 -0500
+Message-ID: <4B139721.5030808@redhat.com>
+Date: Mon, 30 Nov 2009 07:57:53 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+CC: Jon Smirl <jonsmirl@gmail.com>, Andy Walls <awalls@radix.net>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, linux-input@vger.kernel.org,
 	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, superm1@ubuntu.com
-In-Reply-To: <6619F77F-446F-47ED-B9F5-6CFC00E3EA49@wilsonet.com>
-References: <BDRae8rZjFB@christoph>
-	 <1259024037.3871.36.camel@palomino.walls.org>
-	 <20091126054938.GH23244@core.coreip.homeip.net>
-	 <6619F77F-446F-47ED-B9F5-6CFC00E3EA49@wilsonet.com>
-Content-Type: text/plain
-Date: Thu, 26 Nov 2009 07:28:20 -0500
-Message-Id: <1259238500.3062.10.camel@palomino.walls.org>
-Mime-Version: 1.0
+	maximlevitsky@gmail.com, stefanr@s5r6.in-berlin.de,
+	superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR  system?
+References: <m3r5riy7py.fsf@intrepid.localdomain>	<BDkdITRHqgB@lirc>	<9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>	<m3aay6y2m1.fsf@intrepid.localdomain>	<9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>	<1259469121.3125.28.camel@palomino.walls.org>	<20091129124011.4d8a6080@lxorguk.ukuu.org.uk>	<9e4733910911291019l27e5fea2x3db268311842b17@mail.gmail.com> <20091129190059.02c2a0ff@lxorguk.ukuu.org.uk>
+In-Reply-To: <20091129190059.02c2a0ff@lxorguk.ukuu.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2009-11-26 at 01:23 -0500, Jarod Wilson wrote:
-> On Nov 26, 2009, at 12:49 AM, Dmitry Torokhov wrote:
-> 
-> > On Mon, Nov 23, 2009 at 07:53:57PM -0500, Andy Walls wrote:
-> >> On Mon, 2009-11-23 at 22:11 +0100, Christoph Bartelmus wrote:
-> >>> Czesc Krzysztof,
-> >>> 
-> >>> on 23 Nov 09 at 15:14, Krzysztof Halasa wrote:
-> >>> [...]
-> >>>> I think we shouldn't at this time worry about IR transmitters.
-> >>> 
-> >>> Sorry, but I have to disagree strongly.
-> >>> Any interface without transmitter support would be absolutely unacceptable  
-> >>> for many LIRC users, including myself.
-> >> 
-> >> I agree with Christoph.  
-> >> 
-> >> Is it that the input subsystem is better developed and seen as a
-> >> leverage point for development and thus an "easier" place to get results
-> >> earlier?  If so, then one should definitely deal with transmitters early
-> >> in the design, as that is where the most unknowns lie.
-> >> 
-> >> With the end of analog TV, people will have STBs feeding analog only
-> >> video cards.  Being able to change the channel on the STB with an IR
-> >> transmitter controlled by applications like MythTV is essential.
-> >> 
-> >> 
-> >> And on some different notes:
-> >> 
-> >> I generally don't understand the LIRC aversion I perceive in this thread
-> >> (maybe I just have a skewed perception).  Aside for a video card's
-> >> default remote setup, the suggestions so far don't strike me as any
-> >> simpler for the end user than LIRC -- maybe I'm just used to LIRC.  LIRC
-> >> already works for both transmit and receive and has existing support in
-> >> applications such as MythTV and mplayer.
-> > 
-> > Is it that LIRC supports MythTV and mplayer or MythTV and mplayer are
-> > forced to support lirc because the remores are not available through
-> > other means? I believe it is the latter and applications writers would
-> > be happy to reduce number of ways they get button data.
-> 
-> Well, when mythtv was started, I don't know that there were many input layer remotes around... lirc was definitely around though. serial receivers and transmitters, both supported by lirc_serial, were the most frequently used devices outside of plain old keyboards. The lirc support in mythtv actually relies on mapping remote button names as defined in lircd.conf to keyboard key strokes. As mentioned elsewhere in this beast of a thread, mythtv doesn't currently support things like KEY_PLAY, KEY_VOLUMEUP, KEY_CHANNELUP, etc. just yet, but I intend on fixing that...
-> 
-> > I don't think there is LIRC aversion per se. We are just trying to
-> > decide whether multiple interfaces for the same data is needed. And
-> > I don't think that we will completely reject userspace components. Just
-> > as input subsystem allows for userspace drivers I do not think why we
-> > can't have the same for the LIRC. But I do think that the primary
-> > interface for regular userspace consumers (read mplayer and MythTV and
-> > the likes) should be input event interface (EV_KEY/KEY_*).
-> 
-> Works for me.
+Hi Alan,
 
-Even though two interfaces is a bit of "extra" work, I'm not averse to
-Gerd's suggestions of a dual implementation: input layer for the simple,
-common use case, and lirc type interface for more sophisticated usage.
+Alan Cox wrote:
 
-One thing I would like to be provided by the input layer is automatic
-key-up after a specified time.  Remote protocols send an initial button
-press and then after a certain amount of time (~115 ms for RC-5) send a
-repeated code or repeat sequence, if the button is still pressed.
-Currently, most of the V4L-DVB drivers have some code to perform a
-timeout just to send the key-up event.  That's a good bit of redundant
-code for key-up timeouts that I suspect makes sense for the input layer
-to handle.
+> Does it really make sense to put big chunks of protocol decoding crap for
+> an interface which runs at about 1 character per second on a good day
+> into the kernel ? Does it really make sense ot move 50K of code from user
+> context to kernel context where it must meet strict security
+> requirements, be extensively audited and cannot be paged. For embedded
+> users will also have to be highly modular so no unused bits are loaded.
 
-Regards,
-Andy
+The same logic would apply to mouse, keyboards and serial consoles. 
+It is possible to move everything to userspace. 
 
+However, there are some reassons for they to be in kernelspace:
+	- you may need them during boot time;
+	- they are mandatory to allow the users interaction;
+	- you need low latency.
+
+The same arguments apply to IR, especially on embedded devices: some devices,
+like TVs, Set Top TV boxes and IPTV Set Top Boxes have IR as their primary
+input device.
+
+Also, as changing a digital TV or an IP TV channel requires to discard the current
+MPEG stream and getting a newer one, and it requires a large time until you'll
+be able to output something to the user, one of the needs is to handle IR keystrokes
+(especially channel up/down) as fast as possible, to try to minimize the discomfort
+of changing a channel.
+
+Using an approach where you'll send a raw event to userspace, process there and return
+back to kernel will increase the latency and can only be done after when loading
+the SYSV runlevel stuff.
+
+On the other hand, we already have IR decoding in-kernel. Most of the code are
+at:
+	drivers/media/common/ir-functions.c
+
+But there are also some other decoders at bttv, saa7134 and cx88 drivers.
+
+In the case of drivers/media stuff, there common case is that the drivers have
+support for both space/pulse decoding and in-hardware decoding. On both cases,
+the scancode is converted to a keystroke via evdev. IMHO, we shouldn't really
+consider dropping those decoders from kernel.
+
+Cheers,
+Mauro. 
