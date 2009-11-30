@@ -1,92 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:39059 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751852AbZK1SqA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Nov 2009 13:46:00 -0500
+Received: from mx1.redhat.com ([209.132.183.28]:43309 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752154AbZK3KmL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Nov 2009 05:42:11 -0500
+Message-ID: <4B13A161.7050405@redhat.com>
+Date: Mon, 30 Nov 2009 08:41:37 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Christoph Bartelmus <lirc@bartelmus.de>
+CC: jonsmirl@gmail.com, awalls@radix.net, dmitry.torokhov@gmail.com,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com, khc@pm.waw.pl,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, superm1@ubuntu.com
 Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
  IR  system?
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: Jon Smirl <jonsmirl@gmail.com>
-Cc: Krzysztof Halasa <khc@pm.waw.pl>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Christoph Bartelmus <christoph@bartelmus.de>,
-	jarod@wilsonet.com, awalls@radix.net, dmitry.torokhov@gmail.com,
-	j@jannau.net, jarod@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, superm1@ubuntu.com
-In-Reply-To: <9e4733910911280845y5cf06836l1640e9fc8b1740cf@mail.gmail.com>
-References: <9e4733910911270757j648e39ecl7487b7e6c43db828@mail.gmail.com>
-	 <4B104971.4020800@s5r6.in-berlin.de>
-	 <1259370501.11155.14.camel@maxim-laptop>
-	 <m37hta28w9.fsf@intrepid.localdomain>
-	 <1259419368.18747.0.camel@maxim-laptop>
-	 <m3zl66y8mo.fsf@intrepid.localdomain>
-	 <1259422559.18747.6.camel@maxim-laptop>
-	 <9e4733910911280845y5cf06836l1640e9fc8b1740cf@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 28 Nov 2009 20:45:59 +0200
-Message-ID: <1259433959.3658.0.camel@maxim-laptop>
-Mime-Version: 1.0
+References: <BDodiKlXqgB@lirc>
+In-Reply-To: <BDodiKlXqgB@lirc>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2009-11-28 at 11:45 -0500, Jon Smirl wrote: 
-> On Sat, Nov 28, 2009 at 10:35 AM, Maxim Levitsky
-> <maximlevitsky@gmail.com> wrote:
-> > On Sat, 2009-11-28 at 16:25 +0100, Krzysztof Halasa wrote:
-> >> Maxim Levitsky <maximlevitsky@gmail.com> writes:
-> >>
-> >> >> And that's good. Especially for a popular and simple protocol such as
-> >> >> RC5.
-> >> >> Actually, it's not about adding the decoder. It's about fixing it.
-> >> >> I can fix it.
-> >> >
-> >> > This is nonsense.
-> >>
-> >> You forgot to say why do you think so.
-> >
-> > Because frankly, I am sick of this discussion.
-> > Generic decoder that lirc has is actually much better and more tolerant
-> > that protocol specific decoders that you propose,
+Christoph Bartelmus wrote:
+> Hi Jon,
 > 
-> Porting the decoder engine from lirc into the kernel is also a possibility.
+> on 27 Nov 09 at 12:49, Jon Smirl wrote:
+> [...]
+>> Christoph, take what you know from all of the years of working on LIRC
+>> and design the perfect in-kernel system. This is the big chance to
+>> redesign IR support and get rid of any past mistakes. Incorporate any
+>> useful chunks of code and knowledge from the existing LIRC into the
+>> new design. Drop legacy APIs, get rid of daemons, etc. You can do this
+>> redesign in parallel with existing LIRC. Everyone can continue using
+>> the existing code while the new scheme is being built. Think of it as
+>> LIRC 2.0. You can lead this design effort, you're the most experience
+>> developer in the IR area.
 > 
-> I'm asking to have an architecture design discussion, not to pick one
-> of the various implementations. This is something that we have to live
-> with for twenty years and it is a giant pain to change if we get wrong
-> initially.
-> 
-> > You claim you 'fix' the decoder, right?
-> > But what about all these lirc userspace drivers?
-> > How they are supposed to use that 'fixed' decoder.
-> 
-> Some of that user space hardware belongs in the trash can and will
-> never work reliably in a modern system. For example - sitting in a
-> tight user space loop reading the DTS bit from a serial port or
-> parallel port and then using the system clock to derive IR timings.
-> That process is going to be inaccurate or it is going to make video
-> frames drop. Big banging from user space is completely unreliable.
-> 
-> If you really want to use your microphone input as a DAC channel, run
-> a little app that reads the ALSA input and converts it to a timing
-> stream and then inject this data into the kernel input system using
-> uevent.
-> 
-> Both of these are hobbyist class solutions. They are extremely cheap
-> but they are unreliable and create large CPU loads.  But some people
-> want to use a $300 CPU to eliminate $2 worth of IR hardware. This type
-> of hardware will continue to work via event injection. But neither of
-> these solutions belong in the kernel.
+> This is a very difficult thing for me to do. I must admit that I'm very  
+> biased.
+> Because lircd is the only userspace application that uses the LIRC kernel  
+> interface, we never had any problems changing the interface when needed.
+> I can't say there's much legacy stuff inside. I'm quite happy with the  
+> interface.
 
+It makes sense currently, but, once added at kernel, you won't be able
+to change it again, without huge efforts. So, if the interface has any 
+trouble, we need to correct it before adding at the kernel. You should
+remember that a kernel driver shouldn't be bound to an specific userspace
+application. So, the same kernel interface should work with all lircd's
+starting from the version where the interface was added. In other words,
+it should be possible to use let's say a 5 year-old lirc with a brand 
+new kernel.
 
+Also, some non lirc applications may arise, using the same kernel interface.
+So, the API stability needs to be kept.
+
+> The other thing is that I can't really move the decoder from userspace to  
+> kernel because there are way too many userspace drivers that do require a  
+> userspace decoder. LIRC also is running on FreeBSD, MacOS and even Cygwin.  
+> So letting the userspace drivers take advantage of a potential Linux in- 
+> kernel decoder is not an option for me either.
+
+You can take advantage of a in-kernel decoder. Instead of receiving raw
+pulse/space, you'll be receiving keystrokes (or scancodes).
+
+Probably, it doesn't make sense to port every single IR protocol decoder
+to kernel. We need there support for the protocols that come with the IR shipped
+with the devices (I think that currently we have RC5, RC4, NEC and pulse-distance), 
+and the most used procolos at the universal IR's (RC5 may be enough?).
+
+>> Take advantage of this window to make a
+>> design that is fully integrated with Linux - put IR on equal footing
+>> with the keyboard and mouse as it should be.
 > 
-> What are other examples of user space IR drivers?
-> 
+> That's a question that I have not answered for myself concludingly.
+> Is a remote control really on exactly the same level as a keyboard or  
+> mouse?
 
-many libusb based drivers?
+On some devices like STB and TV sets (most of modern LCD/Plasma TV's run Linux),
+they are at the same level. I'd say that the same applies to PC's that
+the user has dedicated to work as an MCE.
 
-Regards,
-Maxim Levitsky
-
+Cheers,
+Mauro.
