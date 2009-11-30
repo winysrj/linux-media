@@ -1,63 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.152]:23572 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750993AbZKCKSa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Nov 2009 05:18:30 -0500
-Received: by fg-out-1718.google.com with SMTP id d23so1208588fga.1
-        for <linux-media@vger.kernel.org>; Tue, 03 Nov 2009 02:18:35 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:4424 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751994AbZK3MN5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Nov 2009 07:13:57 -0500
+Message-ID: <4B13B6FA.40005@redhat.com>
+Date: Mon, 30 Nov 2009 10:13:46 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <4AEF5FE5.2000607@stud.uni-hannover.de>
-References: <4AEF5FE5.2000607@stud.uni-hannover.de>
-Date: Tue, 3 Nov 2009 11:18:34 +0100
-Message-ID: <c4e36d110911030218k606e3108l67456727780439a8@mail.gmail.com>
-Subject: Re: [linux-dvb] NOVA-TD exeriences?
-From: Zdenek Kabelac <zdenek.kabelac@gmail.com>
-To: Soeren Moch <Soeren.Moch@stud.uni-hannover.de>
-Cc: linux-media@vger.kernel.org
+To: Jon Smirl <jonsmirl@gmail.com>
+CC: Christoph Bartelmus <christoph@bartelmus.de>, jarod@wilsonet.com,
+	awalls@radix.net, dmitry.torokhov@gmail.com, j@jannau.net,
+	jarod@redhat.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR 	system?
+References: <9e4733910911270757j648e39ecl7487b7e6c43db828@mail.gmail.com>
+In-Reply-To: <9e4733910911270757j648e39ecl7487b7e6c43db828@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/11/2 Soeren Moch <Soeren.Moch@stud.uni-hannover.de>:
->
->> > Hi. I would be happy to hear if anyone has tried both the NOVA-TD and
->> > the
->> > NOVA-T. The NOVA-T has always worked perfectly here but I would like to
->> > know
->> > if the -TD will do the job of two NOVA-T's. And there also seems to be a
->> > new
->> > version out with two small antenna connectors instead of the previous
->> > configuration. Anyone tried it? Does it come with an antenna adaptor
->> > cable?
->> > http://www.hauppauge.de/de/pics/novatdstick_top.jpg
->> > Thankful for any info.
+Jon Smirl wrote:
+> On Fri, Nov 27, 2009 at 2:45 AM, Christoph Bartelmus
+> <christoph@bartelmus.de> wrote:
+>> Hi Mauro,
 >>
->> Well I've this usb stick with these two small connectors - and it runs
->> just fine.
->>
->> Though I think there is some problem with suspend/resume recently
->> (2.6.32-rc5)  and it needs some inspection.
->>
->> But it works just fine for dual dvb-t viewing.
->>
->> And yes - it contains two small antennas with small connectors and
->> one adapter for normal antenna - i.e. 1 antenna input goes to 2 small
->> antenna connectors.
->
-> zdenek, your nova-td stick works just fine for dual dvb-t viewing?
-> I always had this problem:
-> When one channel is streaming and the other channel is switched on, the
-> stream of the already running channel gets broken.
-> see also:
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg06376.html
->
-> Can you please test this case on your nova-td stick?
+>> on 26 Nov 09 at 14:25, Mauro Carvalho Chehab wrote:
+>>> Christoph Bartelmus wrote:
+>> [...]
+>>>> But I'm still a bit hesitant about the in-kernel decoding. Maybe it's just
+>>>> because I'm not familiar at all with input layer toolset.
+>> [...]
+>>> I hope it helps for you to better understand how this works.
+>> So the plan is to have two ways of using IR in the future which are
+>> incompatible to each other, the feature-set of one being a subset of the
+>> other?
+> 
+> Take advantage of the fact that we don't have a twenty year old legacy
+> API already in the kernel. Design an IR API that uses current kernel
+> systems. Christoph, ignore the code I wrote and make a design proposal
+> that addresses these goals...
+> 
+> 1) Unified input in Linux using evdev. IR is on equal footing with
+> mouse and keyboard.
 
-I'll recheck in the evening whether there are no regression, but I've
-been able to get 3 dvb-t independent (different mux) TV streams (with
-the usage of the second stick Aver Hybrid Volar HX & proprietary Aver
-driver) with 2.6.29/30 vanilla kernels played at the same time on my
-C2D T61.
+This makes sense to me. Yet, I think that, on some specific cases, we'll
+need a raw interface.
 
-Zdenek
+> 2) plug and play for basic systems - you only need an external app for scripting
+
+Yes.
+
+> 3) No special tools - use mkdir, echo, cat, shell scripts to build maps
+
+I don't think this is relevant. As we already have ioctls for building maps, and
+while all in-kernel drivers can handle scancodes with up to 32 bits, I don't see
+any reason to use anything different than what's currently available.
+
+> 4) Use of modern Linux features like sysfs, configfs and udev.
+
+sysfs/udev is a need for hot-plugging. I wouldn't use configfs for it. There aren't
+many places using it and afaik some distros are not compiling their kernels with
+configfs enabled. Also, as we have already ioctl's for keycode maps, I think
+we shouldn't be migrating to controlfs.
+
+> 5) Direct multi-app support - no daemon
+
+For multi-app support usage like your example (e. g. different IR keys mapped into
+the same evdev keycode and sent to different applications), I think we should need
+a daemon for handling it.
+
+> 6) Hide timing data from user as much as possible.
+
+I agree. Porting the IRQ/gpio pollings to userspace on a system with a high workload
+may mean that the keycode will be badly interpreted.
+
+Cheers,
+Mauro.
