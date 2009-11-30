@@ -1,16 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-ew0-f217.google.com ([209.85.219.217])
+Received: from mail-ew0-f219.google.com ([209.85.219.219])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <osatien@gmail.com>) id 1NEhw0-0001WM-U0
-	for linux-dvb@linuxtv.org; Sun, 29 Nov 2009 12:27:21 +0100
-Received: by ewy9 with SMTP id 9so196480ewy.11
-	for <linux-dvb@linuxtv.org>; Sun, 29 Nov 2009 03:26:47 -0800 (PST)
+	(envelope-from <bjornjorgensen@gmail.com>) id 1NFEW8-0008Ev-V2
+	for linux-dvb@linuxtv.org; Mon, 30 Nov 2009 23:14:49 +0100
+Received: by ewy19 with SMTP id 19so4362643ewy.1
+	for <linux-dvb@linuxtv.org>; Mon, 30 Nov 2009 14:14:15 -0800 (PST)
 MIME-Version: 1.0
-From: ALi <osatien@gmail.com>
-Date: Sun, 29 Nov 2009 12:26:27 +0100
-Message-ID: <431ff28c0911290326h5704f274s50b30336733d1e75@mail.gmail.com>
+Date: Mon, 30 Nov 2009 23:14:14 +0100
+Message-ID: <1c335d470911301414g2a6cb185t42fa15ff3c6cfac@mail.gmail.com>
+From: =?ISO-8859-1?Q?Bj=F8rn_J=F8rgensen?= <bjornjorgensen@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Problem with af9015
+Subject: [linux-dvb] TERRATEC Cinergy C PCI & CI, HD problems with sync
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -25,27 +25,20 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello, people
+Hi, I have this TERRATEC Cinergy C PCI & CI, HD, card. I have follow
+this guide http://dolot.kipdola.com/wiki/Install_S2API for installing
+it, but it don't seems to work. I get a lot of "blop blup" sounds and
+some out of sync picture. I have installed hts-tvheadend and are using
+xbmc to play show it. its the same problems on sd and hd. i have also
+tried kaffeine, but the same problems.
+Its ubuntu 9.10 and kernel 2.6.31-15-generic #50-Ubuntu SMP
+I can play 1080p files on the same pc and no problems.
 
-   I am new here, and i only ask for support if someone wants help me.
-I have attach my dvb-usb-af9015 (the ones from TVISTO) and now i dont
-see TV not in Linux, not in windows!!!. I think it is related to
-something in the eeprom :S
-
-   I have put the firmware 4.95 in /lib/firmware and it started to
-work "bad" problems with i2c and so on .... now i think it doesnt
-start well the stick, because it dosnt have a light inside .....
-However the devinput works well.
-
-   What more should i try?
-
-
-   Sorry for hesitate you :)
-
-
-Thx to all!!
-
-Oscar
+in dmesg i get many
+[ 5960.873141] mantis stop feed and dma
+[ 5960.873281] mantis start feed & dma
+[ 5981.315566] mantis stop feed and dma
+[ 5981.315710] mantis start feed & dma
 
 _______________________________________________
 linux-dvb users mailing list
