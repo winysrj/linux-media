@@ -1,86 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01d.mail.t-online.hu ([84.2.42.6]:64759 "EHLO
-	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752051AbZKBFps (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Nov 2009 00:45:48 -0500
-Message-ID: <4AEE720A.50101@freemail.hu>
-Date: Mon, 02 Nov 2009 06:45:46 +0100
-From: =?ISO-8859-2?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+Received: from smtp.uniroma2.it ([160.80.6.16]:42759 "EHLO smtp.uniroma2.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751409AbZK3Vvj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Nov 2009 16:51:39 -0500
+Received: from lists.uniroma2.it (lists.uniroma2.it [160.80.1.182])
+	by smtp.uniroma2.it (8.13.6/8.13.6) with ESMTP id nAUMna7d031794
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 30 Nov 2009 23:49:38 +0100
+Received: from apple-juice.local (host220-230-dynamic.22-79-r.retail.telecomitalia.it [79.22.230.220])
+	(authenticated bits=0)
+	by lists.uniroma2.it (8.13.1/8.13.1) with ESMTP id nAULpcBY002837
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 30 Nov 2009 22:51:40 +0100
+Message-ID: <4B143E29.4090307@autistici.org>
+Date: Mon, 30 Nov 2009 22:50:33 +0100
+From: "OrazioPirataDelloSpazio (Lorenzo)" <ziducaixao@autistici.org>
 MIME-Version: 1.0
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-CC: Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>,
-	V4L Mailing List <linux-media@vger.kernel.org>,
-	Thomas Kaiser <thomas@kaiser-linux.li>,
-	Theodore Kilgore <kilgota@auburn.edu>,
-	Kyle Guinn <elyk03@gmail.com>
-Subject: Re: [PATCH 1/3] gspca pac7302/pac7311: simplify pac_find_sof
-References: <4AEE04CB.5060802@freemail.hu> <alpine.LNX.2.00.0911012112421.7702@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.00.0911012112421.7702@banach.math.auburn.edu>
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 8bit
+CC: linux-media@vger.kernel.org
+Subject: Re: DIY Satellite Web Radio
+References: <4B14195D.6000205@autistici.org> <4B142E2C.1020108@redhat.com>
+In-Reply-To: <4B142E2C.1020108@redhat.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig799A2F20E14180EA8E94FDEC"
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Theodore Kilgore wrote:
-> 
-> On Sun, 1 Nov 2009, Németh Márton wrote:
->> Remove struct sd dependency from pac_find_sof() function implementation.
->> This step prepares separation of pac7302 and pac7311 specific parts of
->> struct sd.
-> [...]
-> But here is the point. The sn9c2028 cameras have a structure which seems 
-> similar to the mr97310a cameras. They use a similar decompression 
-> algorithm. They have a similar frame header. Specifically, the sn9c2028 
-> frame header starts with the five bytes
-> 
->                  0xff, 0xff, 0x00, 0xc4, 0xc4
-> 
-> whereas the pac_common frame header starts with the five bytes
-> 
->                  0xff, 0xff, 0x00, 0xff, 0x96
-> 
-> Right now, for my own use, I have written a file sn9c2028.h which 
-> essentially duplicates the functionality of pac_common.h and contains a 
-> function which searches for the sn9c2028 SOF marker instead of searching 
-> for the pac SOF marker. Is this necessarily the good, permanent solution? 
-> I am not so sure about that.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig799A2F20E14180EA8E94FDEC
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-I think the pac_find_sof() is a special case. To find a SOF sequence in
-a bigger buffer in general needs to first analyze the SOF sequence for
-repeated bytes. If there are repeated bytes the search have to be
-continued in a different way, see the state machine currently in the
-pac_common.h. To find the sn9c2028 frame header a different state machine
-is needed. It might be possible to implement a search function which
-can find any SOF sequence but I am afraid that this algorithm would be
-too complicated because of the search string analysis.
+Mauro Carvalho Chehab ha scritto:
+> Receiving sat signals without dishes? From some trials we had on a telc=
+o
+> I used to work, You would need to use a network of low-orbit satellites=
+,
+> carefully choosing the better frequencies and it will provide you
+> low bandwidth.
+I also believed this, but their use geostationary orbit [1] and
+terrestrial devices handly and without dishes [2] [3].
+I belive they should rely on some very robust modulation e channel
+coding, but unfortunately I didn't find any specification.
 
-> Perhaps when making changes it is a good time to think over the idea of 
-> combining things which are in fact not very much different. After all, 
-> another set of cameras might come along, too, which essentially requires 
-> yet another minor variation on the same basic algorithm. Then we are 
-> supposed to have three .h files with three functions which have the same 
-> code and just search for slightly different strings?
-> 
-> I am well aware that you started out to do something different, but how 
-> does this strike you?
+Lorenzo
 
-I was also thinking about not just duplicate the code but find functions
-which are similar. My thinking was that first I try to separate the
-pac7302 and pac7311 subdrivers and get feedback. If this change was
-accepted I would look for common functions not only in pac7302 and pac7311
-but also in the gspca family of subdrivers.
 
-My first candidate would be the low level reg_w*() and reg_r*() functions.
-I haven't finished the analysis but it seems that most of the time the
-usb_control_msg() parameters are the same except the request and
-requesttype parameter. The request contains a number specific to the
-device. The requesttype usually contains USB_RECIP_DEVICE or
-USB_RECIP_INTERFACE. This means that these function can be extracted
-to a common helper module or to gspca_main and introduce the request
-and requesttype values somehow to struct sd_desc in gspca.h.
+[1]http://en.wikipedia.org/wiki/XM_Satellite_Radio
+[2]http://shop.xmradio.com/xm/ctl10600/cp49770/si4025808/cl1/xmp3_portabl=
+e_radio_with_home_kit
+[3]http://shop.xmradio.com/xm/ctl10600/cp56879/si4343009/cl1/xm_direct_2
 
-Regards,
 
-	Márton Németh
+--------------enig799A2F20E14180EA8E94FDEC
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG/MacGPG2 v2.0.12 (Darwin)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iQEcBAEBAgAGBQJLFD4vAAoJEBuiD2h8GyB+wPwH/RzR/qEeRQ0qVyDt8b0xTGIs
+28GXj0nhe28PCjloHlc6fnAgVVpvhkr6psaSfFOPMYgi5kQT2r6z3hegco+vl9kt
+dPFXZRgA3JNC69QtLnafiPJi6Y8/K+x37lO/5hpO5PsUGFivP1sLzSTdrW/dCkd3
+K25MNgJ612UEN9ynEOAmp67MigSj3/KDuwg5+pY2b2cdPMns775FurANdN+bRWAu
+3insuOCt6L6PTmatZnm6Go5GekqlrK2HqfjlpAPRz0X4UWXfo8UzUmhyvan8xa1k
+cLxRTlQiHIIdHo+qS8/GV3ndLdzo4akYBJjxZZUSWZqNEphBljMXCfDIFVevCkg=
+=KLIh
+-----END PGP SIGNATURE-----
+
+--------------enig799A2F20E14180EA8E94FDEC--
