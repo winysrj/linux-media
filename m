@@ -1,252 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.navvo.net ([74.208.67.6]:39147 "EHLO mail.navvo.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752540AbZKZUD4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 15:03:56 -0500
-From: santiago.nunez@ridgerun.com
-To: davinci-linux-open-source@linux.davincidsp.com
-Cc: linux-media@vger.kernel.org, nsnehaprabha@ti.com,
-	m-karicheri2@ti.com, diego.dompe@ridgerun.com,
-	todd.fischer@ridgerun.com, mgrosen@ti.com,
-	Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-Date: Thu, 26 Nov 2009 14:04:14 -0600
-Message-Id: <1259265854-498-1-git-send-email-santiago.nunez@ridgerun.com>
-Subject: [PATCH 2/4 v9] Definitions for TVP7002 in DM365
+Received: from mail-fx0-f213.google.com ([209.85.220.213]:55191 "EHLO
+	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752943AbZK3Nn3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Nov 2009 08:43:29 -0500
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR  system?
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: Andy Walls <awalls@radix.net>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Ray Lee <ray-lk@madrabbit.org>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	Jon Smirl <jonsmirl@gmail.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
+In-Reply-To: <1259585852.3093.31.camel@palomino.walls.org>
+References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc>
+	 <9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>
+	 <m3aay6y2m1.fsf@intrepid.localdomain>
+	 <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>
+	 <1259469121.3125.28.camel@palomino.walls.org>
+	 <20091129124011.4d8a6080@lxorguk.ukuu.org.uk>
+	 <1259515703.3284.11.camel@maxim-laptop>
+	 <2c0942db0911290949p89ae64bjc3c7501c2de6930c@mail.gmail.com>
+	 <1259537732.5231.11.camel@palomino.walls.org> <4B13B2FA.4050600@redhat.com>
+	 <1259585852.3093.31.camel@palomino.walls.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 30 Nov 2009 15:43:28 +0200
+Message-ID: <1259588608.13049.16.camel@maxim-laptop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+On Mon, 2009-11-30 at 07:57 -0500, Andy Walls wrote: 
+> On Mon, 2009-11-30 at 09:56 -0200, Mauro Carvalho Chehab wrote:
+> > Andy Walls wrote:
+> > > On Sun, 2009-11-29 at 09:49 -0800, Ray Lee wrote:
+> > >> On Sun, Nov 29, 2009 at 9:28 AM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
+> > >>> This has zero advantages besides good developer feeling that "My system
+> > >>> has one less daemon..."
+> > >> Surely it's clear that having an unnecessary daemon is introducing
+> > >> another point of failure?
+> > > 
+> > > A failure in a userspace IR daemon is worst case loss of IR
+> > > functionality.
+> > > 
+> > > A failure in kernel space can oops or panic the machine.
+> > 
+> > If IR is the only interface between the user and the system (like in a TV
+> > or a Set Top Box), both will give you the same practical result: the system
+> > will be broken, if you got a crash at the IR driver.
+> 
+> Yes, true.  I had forgotten about the embedded space.
+> 
+> Nonetheless I'd still rather debug a problem with a dead process in
+> userspace than an oops or panic (not that an end user cares) and avoid
+> the risk of filesystem corruption.
+> 
+> > Userspace is much more flexible.
+> > 
+> > Why? The flexibility about the same on both kernelspace and userspace,
+> > except for the boot time.
+> 
+> I suppose my best answer to that is question back to you: Why does udev
+> run in userspace versus a kernel thread?
+> 
+> 
+> My personal thoughts on why user space is more flexible:
+> 
+> 1. You have all of *NIX available to you to use as tools to achieve your
+> requirements.
+> 
+> 2. You are not constrained to use C.
+> 
+> 3. You can link in libraries with functions that are not available in
+> the kernel.  (udev has libudev IIRC to handle complexities)
+> 
+> 4. Reading a configuration file or other file from the filesystem is
+> trivial - file access from usespace is easy.
+> 
+> 5. You don't have to be concerned about the running context (am I
+> allowed to sleep here or not?).
 
-This patch provides the required definitions for the TVP7002 driver
-in DM365.
 
-Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
----
- drivers/media/video/tvp7002_reg.h |  150 +++++++++++++++++++++++++++++++++++++
- include/media/tvp7002.h           |   57 ++++++++++++++
- 2 files changed, 207 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/tvp7002_reg.h
- create mode 100644 include/media/tvp7002.h
+6. You can modify userspace driver easily to cope with all weird setups.
+Like you know that there are remotes that send whole packet of data that
+consist of many numbers that are also displayed on the LCD of the
+remote.
+Otherwise you will have to go through same fight for every minor thing
+you like to add to kernel...
 
-diff --git a/drivers/media/video/tvp7002_reg.h b/drivers/media/video/tvp7002_reg.h
-new file mode 100644
-index 0000000..0e34ca9
---- /dev/null
-+++ b/drivers/media/video/tvp7002_reg.h
-@@ -0,0 +1,150 @@
-+/* Texas Instruments Triple 8-/10-BIT 165-/110-MSPS Video and Graphics
-+ * Digitizer with Horizontal PLL registers
-+ *
-+ * Copyright (C) 2009 Texas Instruments Inc
-+ * Author: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-+ *
-+ * This code is partially based upon the TVP5150 driver
-+ * written by Mauro Carvalho Chehab (mchehab@infradead.org),
-+ * the TVP514x driver written by Vaibhav Hiremath <hvaibhav@ti.com>
-+ * and the TVP7002 driver in the TI LSP 2.10.00.14
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+/* Naming conventions
-+ * ------------------
-+ *
-+ * FDBK:  Feedback
-+ * DIV:   Divider
-+ * CTL:   Control
-+ * SEL:   Select
-+ * IN:    Input
-+ * OUT:   Output
-+ * R:     Red
-+ * G:     Green
-+ * B:     Blue
-+ * OFF:   Offset
-+ * THRS:  Threshold
-+ * DGTL:  Digital
-+ * LVL:   Level
-+ * PWR:   Power
-+ * MVIS:  Macrovision
-+ * W:     Width
-+ * H:     Height
-+ * ALGN:  Alignment
-+ * CLK:   Clocks
-+ * TOL:   Tolerance
-+ * BWTH:  Bandwidth
-+ * COEF:  Coefficient
-+ * STAT:  Status
-+ * AUTO:  Automatic
-+ * FLD:   Field
-+ * L:	  Line
-+ */
-+
-+#define TVP7002_CHIP_REV		0x00
-+#define TVP7002_HPLL_FDBK_DIV_MSBS	0x01
-+#define TVP7002_HPLL_FDBK_DIV_LSBS	0x02
-+#define TVP7002_HPLL_CRTL		0x03
-+#define TVP7002_HPLL_PHASE_SEL		0x04
-+#define TVP7002_CLAMP_START		0x05
-+#define TVP7002_CLAMP_W			0x06
-+#define TVP7002_HSYNC_OUT_W		0x07
-+#define TVP7002_B_FINE_GAIN		0x08
-+#define TVP7002_G_FINE_GAIN		0x09
-+#define TVP7002_R_FINE_GAIN		0x0a
-+#define TVP7002_B_FINE_OFF_MSBS		0x0b
-+#define TVP7002_G_FINE_OFF_MSBS         0x0c
-+#define TVP7002_R_FINE_OFF_MSBS         0x0d
-+#define TVP7002_SYNC_CTL_1		0x0e
-+#define TVP7002_HPLL_AND_CLAMP_CTL	0x0f
-+#define TVP7002_SYNC_ON_G_THRS		0x10
-+#define TVP7002_SYNC_SEPARATOR_THRS	0x11
-+#define TVP7002_HPLL_PRE_COAST		0x12
-+#define TVP7002_HPLL_POST_COAST		0x13
-+#define TVP7002_SYNC_DETECT_STAT	0x14
-+#define TVP7002_OUT_FORMATTER		0x15
-+#define TVP7002_MISC_CTL_1		0x16
-+#define TVP7002_MISC_CTL_2              0x17
-+#define TVP7002_MISC_CTL_3              0x18
-+#define TVP7002_IN_MUX_SEL_1		0x19
-+#define TVP7002_IN_MUX_SEL_2            0x1a
-+#define TVP7002_B_AND_G_COARSE_GAIN	0x1b
-+#define TVP7002_R_COARSE_GAIN		0x1c
-+#define TVP7002_FINE_OFF_LSBS		0x1d
-+#define TVP7002_B_COARSE_OFF		0x1e
-+#define TVP7002_G_COARSE_OFF            0x1f
-+#define TVP7002_R_COARSE_OFF            0x20
-+#define TVP7002_HSOUT_OUT_START		0x21
-+#define TVP7002_MISC_CTL_4		0x22
-+#define TVP7002_B_DGTL_ALC_OUT_LSBS	0x23
-+#define TVP7002_G_DGTL_ALC_OUT_LSBS     0x24
-+#define TVP7002_R_DGTL_ALC_OUT_LSBS     0x25
-+#define TVP7002_AUTO_LVL_CTL_ENABLE	0x26
-+#define TVP7002_DGTL_ALC_OUT_MSBS	0x27
-+#define TVP7002_AUTO_LVL_CTL_FILTER	0x28
-+/* Reserved 0x29*/
-+#define TVP7002_FINE_CLAMP_CTL		0x2a
-+#define TVP7002_PWR_CTL			0x2b
-+#define TVP7002_ADC_SETUP		0x2c
-+#define TVP7002_COARSE_CLAMP_CTL	0x2d
-+#define TVP7002_SOG_CLAMP		0x2e
-+#define TVP7002_RGB_COARSE_CLAMP_CTL	0x2f
-+#define TVP7002_SOG_COARSE_CLAMP_CTL	0x30
-+#define TVP7002_ALC_PLACEMENT		0x31
-+/* Reserved 0x32 */
-+/* Reserved 0x33 */
-+#define TVP7002_MVIS_STRIPPER_W		0x34
-+#define TVP7002_VSYNC_ALGN		0x35
-+#define TVP7002_SYNC_BYPASS		0x36
-+#define TVP7002_L_FRAME_STAT_LSBS	0x37
-+#define TVP7002_L_FRAME_STAT_MSBS	0x38
-+#define TVP7002_CLK_L_STAT_LSBS		0x39
-+#define TVP7002_CLK_L_STAT_MSBS      	0x3a
-+#define TVP7002_HSYNC_W			0x3b
-+#define TVP7002_VSYNC_W                 0x3c
-+#define TVP7002_L_LENGTH_TOL 		0x3d
-+/* Reserved 0x3e */
-+#define TVP7002_VIDEO_BWTH_CTL		0x3f
-+#define TVP7002_AVID_START_PIXEL_LSBS	0x40
-+#define TVP7002_AVID_START_PIXEL_MSBS   0x41
-+#define TVP7002_AVID_STOP_PIXEL_LSBS  	0x42
-+#define TVP7002_AVID_STOP_PIXEL_MSBS    0x43
-+#define TVP7002_VBLK_F_0_START_L_OFF	0x44
-+#define TVP7002_VBLK_F_1_START_L_OFF    0x45
-+#define TVP7002_VBLK_F_0_DURATION	0x46
-+#define TVP7002_VBLK_F_1_DURATION       0x47
-+#define TVP7002_FBIT_F_0_START_L_OFF	0x48
-+#define TVP7002_FBIT_F_1_START_L_OFF    0x49
-+#define TVP7002_YUV_Y_G_COEF_LSBS	0x4a
-+#define TVP7002_YUV_Y_G_COEF_MSBS       0x4b
-+#define TVP7002_YUV_Y_B_COEF_LSBS       0x4c
-+#define TVP7002_YUV_Y_B_COEF_MSBS       0x4d
-+#define TVP7002_YUV_Y_R_COEF_LSBS       0x4e
-+#define TVP7002_YUV_Y_R_COEF_MSBS       0x4f
-+#define TVP7002_YUV_U_G_COEF_LSBS       0x50
-+#define TVP7002_YUV_U_G_COEF_MSBS       0x51
-+#define TVP7002_YUV_U_B_COEF_LSBS       0x52
-+#define TVP7002_YUV_U_B_COEF_MSBS       0x53
-+#define TVP7002_YUV_U_R_COEF_LSBS       0x54
-+#define TVP7002_YUV_U_R_COEF_MSBS       0x55
-+#define TVP7002_YUV_V_G_COEF_LSBS       0x56
-+#define TVP7002_YUV_V_G_COEF_MSBS       0x57
-+#define TVP7002_YUV_V_B_COEF_LSBS       0x58
-+#define TVP7002_YUV_V_B_COEF_MSBS       0x59
-+#define TVP7002_YUV_V_R_COEF_LSBS       0x5a
-+#define TVP7002_YUV_V_R_COEF_MSBS       0x5b
-+
-diff --git a/include/media/tvp7002.h b/include/media/tvp7002.h
-new file mode 100644
-index 0000000..3619f66
---- /dev/null
-+++ b/include/media/tvp7002.h
-@@ -0,0 +1,57 @@
-+/* Texas Instruments Triple 8-/10-BIT 165-/110-MSPS Video and Graphics
-+ * Digitizer with Horizontal PLL registers
-+ *
-+ * Copyright (C) 2009 Texas Instruments Inc
-+ * Author: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-+ *
-+ * This code is partially based upon the TVP5150 driver
-+ * written by Mauro Carvalho Chehab (mchehab@infradead.org),
-+ * the TVP514x driver written by Vaibhav Hiremath <hvaibhav@ti.com>
-+ * and the TVP7002 driver in the TI LSP 2.10.00.14
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+#ifndef _TVP7002_H_
-+#define _TVP7002_H_
-+
-+/* Platform-dependent data
-+ *
-+ * clk_polarity:
-+ * 			0 -> data clocked out on rising edge of DATACLK signal
-+ * 			1 -> data clocked out on falling edge of DATACLK signal
-+ * hs_polarity:
-+ * 			0 -> active low HSYNC output
-+ * 			1 -> active high HSYNC output
-+ * sog_polarity:
-+ * 			0 -> normal operation
-+ * 			1 -> operation with polarity inverted
-+ * vs_polarity:
-+ * 			0 -> active low VSYNC output
-+ * 			1 -> active high VSYNC output
-+ * fid_polarity: (*)
-+ * 			0 -> even field ID output
-+ * 			1 -> odd field ID output
-+ * (*) Note: FID polarity controls the timing on which interlaced video frames
-+ *     are displayed. This is given in terms of raising and falling edge times
-+ *     set for the device.
-+ */
-+struct tvp7002_config {
-+	u8 clk_polarity;
-+	u8 hs_polarity;
-+	u8 vs_polarity;
-+	u8 fid_polarity;
-+	u8 sog_polarity;
-+};
-+#endif
--- 
-1.6.0.4
+
+7. You don't have an ABI constraints, your userspace program can read a
+configuration file in any format you wish.
+I for example was thinking about putting all lirc config files into an
+sqllite database, and pulling them out when specific remote is detected.
+
+
+> 
+> 
+> 
+> 
+> 
+> 
+> > A kernelspace input device driver can start working since boot time.
+> > On the other hand, an userspace device driver will be available only 
+> > after mounting the filesystems and starting the deamons 
+> > (e. g. after running inittab). 
+> > 
+> > So, you cannot catch a key that would be affecting the boot 
+> > (for example to ask the kernel to run a different runlevel or entering
+> > on some administrative mode).
+> 
+> Right.  That's another requirement that makes sense, if we're talking
+> about systems that don't have any other keyboard handy to the user.
+> 
+> So are we optimizing for the embedded/STB and HTPC with no keyboard use
+> case, or the desktop or HTPC with a keyboard for maintencance?
+> 
+> 
+> Regards,
+> Andy
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 
