@@ -1,81 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:26257 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752720AbZK3QTa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Nov 2009 11:19:30 -0500
-Message-ID: <4B13F075.2090806@redhat.com>
-Date: Mon, 30 Nov 2009 14:19:01 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Andy Walls <awalls@radix.net>
-CC: Ray Lee <ray-lk@madrabbit.org>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	Jon Smirl <jonsmirl@gmail.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR  system?
-References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc>	 <9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>	 <m3aay6y2m1.fsf@intrepid.localdomain>	 <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>	 <1259469121.3125.28.camel@palomino.walls.org>	 <20091129124011.4d8a6080@lxorguk.ukuu.org.uk>	 <1259515703.3284.11.camel@maxim-laptop>	 <2c0942db0911290949p89ae64bjc3c7501c2de6930c@mail.gmail.com>	 <1259537732.5231.11.camel@palomino.walls.org> <4B13B2FA.4050600@redhat.com> <1259585852.3093.31.camel@palomino.walls.org>
-In-Reply-To: <1259585852.3093.31.camel@palomino.walls.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-in-06.arcor-online.net ([151.189.21.46]:34204 "EHLO
+	mail-in-06.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751277AbZK3BbB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Nov 2009 20:31:01 -0500
+Subject: Re: Compile error saa7134 - compro videomate S350
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Dominic Fernandes <dalf198@yahoo.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <721764.95451.qm@web110610.mail.gq1.yahoo.com>
+References: <754577.88092.qm@web110614.mail.gq1.yahoo.com>
+	 <1259025174.5511.24.camel@pc07.localdom.local>
+	 <990417.69725.qm@web110607.mail.gq1.yahoo.com>
+	 <1259107698.2535.10.camel@localhost>
+	 <623705.13034.qm@web110608.mail.gq1.yahoo.com>
+	 <1259172867.3335.7.camel@pc07.localdom.local>
+	 <214960.24182.qm@web110609.mail.gq1.yahoo.com>
+	 <1259360050.6061.22.camel@pc07.localdom.local>
+	 <8049.95935.qm@web110610.mail.gq1.yahoo.com>
+	 <1259363687.6061.45.camel@pc07.localdom.local>
+	 <721764.95451.qm@web110610.mail.gq1.yahoo.com>
+Content-Type: text/plain
+Date: Mon, 30 Nov 2009 02:29:25 +0100
+Message-Id: <1259544565.4436.27.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andy Walls wrote:
+Hi Dominic,
 
-> Nonetheless I'd still rather debug a problem with a dead process in
-> userspace than an oops or panic (not that an end user cares) and avoid
-> the risk of filesystem corruption.
+Am Samstag, den 28.11.2009, 17:30 -0800 schrieb Dominic Fernandes: 
+> Hi Hermann,
+> 
+> I'm getting closer!!! 
+> 
+> I'm using ubuntu 9.10, unloading saa7134 alsa wasn't working for me so I put it into the blacklist which prevented it from loading and then I was able to do the "modprobe -vr saa7134-alsa saa7134-dvb" and "modprobe -v saa7134 card=16". 
+> 
+> And now the card recongnised correctly as the S350 and the dvb frontend loads.  
+> 
+> So, now I've plugged in the cable to the SAT dish which is pointing to Astra 19.2 and want to tune into some channels.
+> I installed dvb-apps and use the command below to create a channels.conf to use later:-
+> 
+> scan -x0 /usr/share/dvb/dvb-s/Astra-19.2E | tee channels.conf
+> 
+> but this soon concludes with tunning finished with no channels found.  I get a warning >>> tuning failed.
+> 
+> So, I tried both the modification of the GPIO address of xc0000 and what it 
+> was originally x8000 which gave the same tuning failed message.
+> 
+> Are there some other commands to test the DVB Frontend?
 
-Considering my experience adding in-kernel support for IR's, I'd say that
-in general, a driver does some things:
+if Astra-19.2E is unchanged in dvb-apps, it has not much.
 
-1) it polls or waits IRQ's for an IR event. On raw IR devices, the read value
-means a mark or a space;
-2) it counts the timings between each pulse, and pulse/space duration;
-3) it runs a protocol decoding logic that, based on pulse/space duration, one
-   scancode is produced;
-4) it does a table lookup to convert the scancode into the corresponding keycode;
-5) it generates an evdev event.
+# Astra 19.2E SDT info service transponder
+# freq pol sr fec
+S 12551500 V 22000000 5/6
 
-Steps 2 and 3 happen only when the device doesn't have hardware decoding capabilities.
-For devices with hardware decoding, the polling/IRQ process already retrieves a scancode.
+We don't even know if 13 and 18 Volts to the LNB work both for sure with
+that variant, IIRC. The report says just somehow works.
 
-Based on my experience, I can say that, from the above logic, the one
-where you're more likely to generate an OOPS is at the first one, 
-where you need to do the proper memory barriers for example to avoid
-unregistering an IR while you're in the middle of an IRQ or pull handling.
-In the case of IRQ, you'll also need to take care to not sleep, since you're
-in interrupt mode.
+I think I would try with some peace of copper from a LNB cable into the
+RF connector and a Voltmeter, if there is any sign of life first, either
+using kaffeine with better files for scanning or the "setvoltage" tool
+in /test.
 
-If you're outputing raw pulse/space to userspace (a lirc-like raw interface), 
-you'll still need to do steps (1) and (2) in kernel, and doing a logic close
-to (5) to output an event to userspace.
+You might want to set dvb_powerdown_on_sleep=0 for dvb_core.
 
-So, the basic difference is that you won't run the decoder (3) nor do a table lookup (4).
+For the other saa7134 driver cards currently is hacked on,
 
-The logic for (4) is trivial (a simple a table lookup). If you do a mistake
-there, the bug will likely arise at the development time. Also, if you're not able
-to write a proper code to get a value from a table, you shouldn't be trying
-to write a driver anyway.
+For Dominic with the Leadtek on the saa7134 driver, Terry, me or anyone
+else interested should provide some test patches.
 
-The logic for (3) is as simple as identifying the length of a pulse and the length of
-the spaces. Depending on the length, it will produce a zero or one. Pure integer math.
-The only risk of such logic is if you try to divide by zero. Except of that, this type
-of code shouldn't cause any OOPS or panic.
+Why that AverMedia analog only in the Ukraine doesn't have sound even on
+PAL around there, is beyond my imagination, except it would not have
+ever been tested for TV sound, also beyond what I can imagine.
 
-Also, for (3) and (4), it is very easy to write it first on userspace (if you feel
-more comfortable on doing so) and, after doing enough testing, add the same code to
-kernelspace.
+Any log for obviously failing sound carrier detection is still missing.
 
 Cheers,
-Mauro.
-
+Hermann
 
 
