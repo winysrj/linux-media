@@ -1,103 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:38735 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751737AbZK1UqA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Nov 2009 15:46:00 -0500
+Received: from mx1.redhat.com ([209.132.183.28]:60632 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752318AbZK3ReV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Nov 2009 12:34:21 -0500
+Message-ID: <4B140200.9020503@redhat.com>
+Date: Mon, 30 Nov 2009 15:33:52 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <4B11881B.7000204@s5r6.in-berlin.de>
-References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc>
-	 <9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>
-	 <4B116954.5050706@s5r6.in-berlin.de>
-	 <9e4733910911281058i1b28f33bh64c724a89dcb8cf5@mail.gmail.com>
-	 <4B117DEA.3030400@s5r6.in-berlin.de>
-	 <9e4733910911281208t23c938a2l7537e248e1eda4ae@mail.gmail.com>
-	 <4B11881B.7000204@s5r6.in-berlin.de>
-Date: Sat, 28 Nov 2009 15:46:01 -0500
-Message-ID: <9e4733910911281246r65670e1free76e98ff4a23822@mail.gmail.com>
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
-	system?
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: Christoph Bartelmus <lirc@bartelmus.de>, khc@pm.waw.pl,
-	awalls@radix.net, dmitry.torokhov@gmail.com, j@jannau.net,
-	jarod@redhat.com, jarod@wilsonet.com, linux-input@vger.kernel.org,
+To: kevin granade <kevin.granade@gmail.com>
+CC: Andy Walls <awalls@radix.net>, Ray Lee <ray-lk@madrabbit.org>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	Jon Smirl <jonsmirl@gmail.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, linux-input@vger.kernel.org,
 	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	maximlevitsky@gmail.com, mchehab@redhat.com, superm1@ubuntu.com
+	stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR 	system?
+References: <m3r5riy7py.fsf@intrepid.localdomain>	 <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>	 <1259469121.3125.28.camel@palomino.walls.org>	 <20091129124011.4d8a6080@lxorguk.ukuu.org.uk>	 <1259515703.3284.11.camel@maxim-laptop>	 <2c0942db0911290949p89ae64bjc3c7501c2de6930c@mail.gmail.com>	 <1259537732.5231.11.camel@palomino.walls.org>	 <4B13B2FA.4050600@redhat.com>	 <1259585852.3093.31.camel@palomino.walls.org>	 <4B13C799.4060906@redhat.com> <7004b08e0911300814tb474f96s42ec56ca2e43cf7a@mail.gmail.com>
+In-Reply-To: <7004b08e0911300814tb474f96s42ec56ca2e43cf7a@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 28, 2009 at 3:29 PM, Stefan Richter
-<stefanr@s5r6.in-berlin.de> wrote:
-> Jon Smirl wrote:
->> On Sat, Nov 28, 2009 at 2:45 PM, Stefan Richter
->> <stefanr@s5r6.in-berlin.de> wrote:
->>> Jon Smirl wrote:
->>>> Also, how do you create the devices for each remote? You would need to
->>>> create these devices before being able to do EVIOCSKEYCODE to them.
->>> The input subsystem creates devices on behalf of input drivers.  (Kernel
->>> drivers, that is.  Userspace drivers are per se not affected.)
->>
->> We have one IR receiver device and multiple remotes. How does the
->> input system know how many devices to create corresponding to how many
->> remotes you have?
->
-> If several remotes are to be used on the same receiver, then they
-> necessarily need to generate different scancodes, don't they?  Otherwise
-> the input driver wouldn't be able to route their events to the
-> respective subdevice.  But if they do generate different scancodes,
-> there is no need to create subdevices just for EVIOCSKEYCODE's sake. (It
-> might still be desirable to have subdevices for other reasons perhaps.)
+kevin granade wrote:
+> On Mon, Nov 30, 2009 at 7:24 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+> 
+>> After the boot, a device can open the raw API, disabling any in-kernel
+>> decoding/handling and handle IR directly. Alternatively, an udev rule
+>> can load a different keymap based on some config written on a file.
+> 
+> This idea of the in-kernel decoding being disabled when the raw API is
+> opened worries me.  What guarantees that the following scenario will
+> not happen?
+> 
+> User uses apps which retrieve the decoded IR messages from the kernel.
+> User installs an app which decodes messages via the raw API (not lirc).
+> User's other applications no longer receive IR messages.
+> 
+> I know the assumption has been that "only lirc will use the raw API",
+> but this seems like a poor assumption for an API design to me.
 
-Multiple remotes will have duplicate buttons (1, 2 ,3, power, mute,
-etc) these should get mapped into the standard keycodes. You need to
-devices to key things straight.
+All those questions are theoretical, as we haven't a raw API code
+already merged in kernel. So, this is just my understanding on how
+this should work.
 
-Push button 1 on Remote A. That should generate a KP_1 on the evdev
-interface for that remote.
-Push button 1 on Remote B. That should generate a KP_1 on the evdev
-interface for that remote.
+If the user wants to use the raw interface, it is because the in-kernel
+decoding is not appropriate for his usage (at least while such application
+is opened). So, not disabling the evdev output seems senseless.
 
-Scenario for this - a mutifunction remote that is controlling two
-different devices/apps. In one mode the 1 might be a channel number,
-in the other mode it might be a telephone number.
+Btw, this is the same behavior that happens when some application directly 
+opens an evdev interface, instead of letting it to be redirected to stdin.
 
-The user may chose to make button 1 on both remote A/B map to KP_1 on
-a single interface.
+> A related question, what is an application developer who wishes to
+> decode the raw IR signal (for whatever reason) to do?  Are they
+> *required* to implement full decoding and feed all the messages back
+> to the kernel so they don't break other applications?
 
-Scenario for this - I want to use two different remotes to control a
-single device.
+If such application won't do it, the IR will stop working, while the
+application is in use.
 
----------------------
-
-I handled that in configds like this:
-/configfs - mount the basic configfs
-/configfs/remotes (created by loading IR support)
-mkdir /configfs/remotes/remote_A  - this causes the input subdevice to
-be created, the name of it appears in the created directory.
-
---- this entry really shouldn't be called "remote" it should be named
-"application" . Then you build map entries under it for the keycodes
-the app knows about. Nothing prevents you from adding entries that map
-both Remote_A_1 and Remote_B_1 to KP_1.
-
--- it's not sufficient to support a single application. I might be
-running mythtv, a voip phone, home automation, etc all using a remote.
- By switching modes on a multifunction remote I can switch apps.
-
-mkdir /configfs/remotes/remote_A/... - now build the mapping entires.
-
-
-> --
-> Stefan Richter
-> -=====-==--= =-== ===--
-> http://arcgraph.de/sr/
->
-
-
-
--- 
-Jon Smirl
-jonsmirl@gmail.com
+Cheers,
+Mauro.
