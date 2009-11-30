@@ -1,133 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3377 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754707AbZKMHVO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Nov 2009 02:21:14 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Stefan Lippers-Hollmann" <s.L-H@gmx.de>
-Subject: Re: V4L/DVB (12859): go7007: semaphore -> mutex conversion
-Date: Fri, 13 Nov 2009 08:21:13 +0100
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Greg KH <gregkh@suse.de>, Ross Cohen <rcohen@snurgle.org>,
-	linux-media@vger.kernel.org
-References: <200909211659.n8LGxVXZ000601@hera.kernel.org> <200911130101.29882.s.L-H@gmx.de>
-In-Reply-To: <200911130101.29882.s.L-H@gmx.de>
+Received: from mx1.redhat.com ([209.132.183.28]:47779 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752252AbZK3NZJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Nov 2009 08:25:09 -0500
+Message-ID: <4B13C799.4060906@redhat.com>
+Date: Mon, 30 Nov 2009 11:24:41 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+To: Andy Walls <awalls@radix.net>
+CC: Ray Lee <ray-lk@madrabbit.org>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	Jon Smirl <jonsmirl@gmail.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR  system?
+References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc>	 <9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>	 <m3aay6y2m1.fsf@intrepid.localdomain>	 <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>	 <1259469121.3125.28.camel@palomino.walls.org>	 <20091129124011.4d8a6080@lxorguk.ukuu.org.uk>	 <1259515703.3284.11.camel@maxim-laptop>	 <2c0942db0911290949p89ae64bjc3c7501c2de6930c@mail.gmail.com>	 <1259537732.5231.11.camel@palomino.walls.org> <4B13B2FA.4050600@redhat.com> <1259585852.3093.31.camel@palomino.walls.org>
+In-Reply-To: <1259585852.3093.31.camel@palomino.walls.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200911130821.13559.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 13 November 2009 01:01:27 Stefan Lippers-Hollmann wrote:
-> Hi
+Andy Walls wrote:
+> On Mon, 2009-11-30 at 09:56 -0200, Mauro Carvalho Chehab wrote:
+>> Andy Walls wrote:
+>>> On Sun, 2009-11-29 at 09:49 -0800, Ray Lee wrote:
+>>>> On Sun, Nov 29, 2009 at 9:28 AM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
+>>>>> This has zero advantages besides good developer feeling that "My system
+>>>>> has one less daemon..."
+>>>> Surely it's clear that having an unnecessary daemon is introducing
+>>>> another point of failure?
+>>> A failure in a userspace IR daemon is worst case loss of IR
+>>> functionality.
+>>>
+>>> A failure in kernel space can oops or panic the machine.
+>> If IR is the only interface between the user and the system (like in a TV
+>> or a Set Top Box), both will give you the same practical result: the system
+>> will be broken, if you got a crash at the IR driver.
 > 
-> On Friday 13 November 2009, Linux Kernel Mailing List wrote:
-> > Gitweb:     http://git.kernel.org/linus/fd9a40da1db372833e1af6397d2f6c94ceff3dad
-> > Commit:     fd9a40da1db372833e1af6397d2f6c94ceff3dad
-> > Parent:     028d4c989ab9e839471739332d185f8f158b0043
-> > Author:     Mauro Carvalho Chehab <mchehab@redhat.com>
-> > AuthorDate: Tue Sep 15 11:07:59 2009 -0300
-> > Committer:  Mauro Carvalho Chehab <mchehab@redhat.com>
-> > CommitDate: Sat Sep 19 00:13:37 2009 -0300
-> > 
-> >     V4L/DVB (12859): go7007: semaphore -> mutex conversion
-> >     
-> >     Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-> >     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Yes, true.  I had forgotten about the embedded space.
 > 
-> As already noticed by Pascal Terjan <pterjan@gmail.com>
-> 	http://lkml.indiana.edu/hypermail/linux/kernel/0909.3/00062.html
-> go7007 currently fails to build in 2.6.32-rc6-git5
+> Nonetheless I'd still rather debug a problem with a dead process in
+> userspace than an oops or panic (not that an end user cares) and avoid
+> the risk of filesystem corruption.
 > 
->   LD      drivers/staging/go7007/built-in.o                                                      
->   CC [M]  drivers/staging/go7007/go7007-v4l2.o                                                   
->   CC [M]  drivers/staging/go7007/go7007-driver.o                                                 
->   CC [M]  drivers/staging/go7007/go7007-i2c.o                                                    
->   CC [M]  drivers/staging/go7007/go7007-fw.o                                                     
->   CC [M]  drivers/staging/go7007/snd-go7007.o                                                    
->   CC [M]  drivers/staging/go7007/s2250-board.o                                                   
-> drivers/staging/go7007/s2250-board.c:24:26: error: s2250-loader.h: No such file or directory     
-> drivers/staging/go7007/s2250-board.c: In function 'read_reg_fp':                                 
-> drivers/staging/go7007/s2250-board.c:264: warning: passing argument 1 of 'down_interruptible' from incompatible pointer type                                                                      
-> drivers/staging/go7007/s2250-board.c:273: warning: passing argument 1 of 'up' from incompatible pointer type                                                                                      
-> drivers/staging/go7007/s2250-board.c: In function 's2250_init':                                  
-> drivers/staging/go7007/s2250-board.c:670: error: implicit declaration of function 's2250loader_init'                                                                                              
-> drivers/staging/go7007/s2250-board.c:676: error: implicit declaration of function 's2250loader_cleanup'                                                                                           
-> make[6]: *** [drivers/staging/go7007/s2250-board.o] Error 1                                      
-> make[5]: *** [drivers/staging/go7007] Error 2                                                    
-> make[4]: *** [drivers/staging] Error 2                                                           
-> make[3]: *** [drivers] Error 2        
+>> Userspace is much more flexible.
+>>
+>> Why? The flexibility about the same on both kernelspace and userspace,
+>> except for the boot time.
 > 
-> >  drivers/staging/go7007/go7007-driver.c |   12 +++---
-> >  drivers/staging/go7007/go7007-i2c.c    |   12 +++---
-> >  drivers/staging/go7007/go7007-priv.h   |    6 +-
-> >  drivers/staging/go7007/go7007-usb.c    |   10 ++--
-> >  drivers/staging/go7007/go7007-v4l2.c   |   66 ++++++++++++++++----------------
-> >  drivers/staging/go7007/go7007.txt      |    4 +-
-> >  drivers/staging/go7007/s2250-board.c   |   18 ++++-----
-> >  drivers/staging/go7007/s2250-loader.c  |    8 ++--
-> >  drivers/staging/go7007/snd-go7007.c    |    2 +-
-> >  9 files changed, 68 insertions(+), 70 deletions(-)
-> 
-> [...]
-> > diff --git a/drivers/staging/go7007/s2250-board.c b/drivers/staging/go7007/s2250-board.c
-> > index b398db4..f35f077 100644
-> > --- a/drivers/staging/go7007/s2250-board.c
-> > +++ b/drivers/staging/go7007/s2250-board.c
-> > @@ -21,12 +21,10 @@
-> >  #include <linux/i2c.h>
-> >  #include <linux/videodev2.h>
-> >  #include <media/v4l2-common.h>
-> > +#include "s2250-loader.h"
-> 
-> s2250-loader.h is neither available in 
-> 	git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-> nor
-> 	git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
-> although it seems to have been included in Hans' initial pull request 
-> 	http://www.mail-archive.com/linux-media@vger.kernel.org/msg09506.html
-> 
-> >  #include "go7007-priv.h"
-> >  #include "wis-i2c.h"
-> >  
-> > -extern int s2250loader_init(void);
-> > -extern void s2250loader_cleanup(void);
-> > -
-> >  #define TLV320_ADDRESS      0x34
-> >  #define VPX322_ADDR_ANALOGCONTROL1	0x02
-> >  #define VPX322_ADDR_BRIGHTNESS0		0x0127
-> [...]
-> 
-> This is a regression since 2.6.31.
-> 
-> Regards
-> 	Stefan Lippers-Hollmann
-> 
+> I suppose my best answer to that is question back to you: Why does udev
+> run in userspace versus a kernel thread?
 
-Thanks for reporting this. I have already received patches and will review
-and queue them this weekend. I wasn't aware that 2.6.32 was also broken,
-so this will be a high-prio item for me.
+udev relies on a kernel implementation: sysfs.
 
-We should catch these things with the daily build process that we have, but
-the daily build is effectively broken at the moment. I hope to address that
-this weekend as well to get that back on track. I've been just too busy the
-last two months to give it the attention it needs :-(
+> My personal thoughts on why user space is more flexible:
+> 
+> 1. You have all of *NIX available to you to use as tools to achieve your
+> requirements.
+> 
+> 2. You are not constrained to use C.
+> 
+> 3. You can link in libraries with functions that are not available in
+> the kernel.  (udev has libudev IIRC to handle complexities)
+> 
+> 4. Reading a configuration file or other file from the filesystem is
+> trivial - file access from usespace is easy.
+> 
+> 5. You don't have to be concerned about the running context (am I
+> allowed to sleep here or not?).
 
-This is the second compilation error that was introduced in 2.6.32. I found
-another one in the davinci drivers. This is really bad...
+You can do all the above steps with the proper API, just like udev does
+with sysfs API.
 
-Fellow v4l-dvb developers: please don't let me be the only one who pays
-attention to the daily build report! Just the fact that it is running on
-my computer doesn't mean that I have to be the one to fix issues!
+After the boot, a device can open the raw API, disabling any in-kernel
+decoding/handling and handle IR directly. Alternatively, an udev rule 
+can load a different keymap based on some config written on a file. 
 
-Regards,
+So, you won't loose anything by having an in-kernel driver or decoder.
 
-	Hans
+>> A kernelspace input device driver can start working since boot time.
+>> On the other hand, an userspace device driver will be available only 
+>> after mounting the filesystems and starting the deamons 
+>> (e. g. after running inittab). 
+>>
+>> So, you cannot catch a key that would be affecting the boot 
+>> (for example to ask the kernel to run a different runlevel or entering
+>> on some administrative mode).
+> 
+> Right.  That's another requirement that makes sense, if we're talking
+> about systems that don't have any other keyboard handy to the user.
+> 
+> So are we optimizing for the embedded/STB and HTPC with no keyboard use
+> case, or the desktop or HTPC with a keyboard for maintencance?
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+If we remove the in-kernel decoders/evdev handlers, you'l limit the usecase,
+where if you keep them in kernel, both ways can be used.
+
+Cheers,
+Mauro.
