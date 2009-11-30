@@ -1,75 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:39320 "EHLO mail1.radix.net"
+Received: from ns.gsystems.sk ([62.176.172.50]:48589 "EHLO www.gsystems.sk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751821AbZKHBjN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Nov 2009 20:39:13 -0500
-Subject: Re: [PATCH 29/75] cx18: declare MODULE_FIRMWARE
-From: Andy Walls <awalls@radix.net>
-To: Ben Hutchings <ben@decadent.org.uk>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media <linux-media@vger.kernel.org>
-In-Reply-To: <1257630681.15927.423.camel@localhost>
-References: <1257630681.15927.423.camel@localhost>
-Content-Type: text/plain
-Date: Sat, 07 Nov 2009 20:40:22 -0500
-Message-Id: <1257644422.6895.8.camel@palomino.walls.org>
-Mime-Version: 1.0
+	id S1752812AbZK3MqS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Nov 2009 07:46:18 -0500
+To: vandrove@vc.cvut.cz
+Subject: [resend] radio-sf16fmi: fix mute, add SF16-FMP to texts
+Cc: linux-media@vger.kernel.org
+Content-Disposition: inline
+From: Ondrej Zary <zary@gsystems.sk>
+Date: Mon, 30 Nov 2009 13:08:33 +0100
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <200911301308.34295.zary@gsystems.sk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2009-11-07 at 21:51 +0000, Ben Hutchings wrote:
-> Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
-> ---
->  drivers/media/video/cx18/cx18-av-firmware.c |    1 +
->  drivers/media/video/cx18/cx18-dvb.c         |    2 ++
->  drivers/media/video/cx18/cx18-firmware.c    |    3 +++
->  3 files changed, 6 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/cx18/cx18-av-firmware.c b/drivers/media/video/cx18/cx18-av-firmware.c
-> index b9e8cc5..137445c 100644
-> --- a/drivers/media/video/cx18/cx18-av-firmware.c
-> +++ b/drivers/media/video/cx18/cx18-av-firmware.c
-> @@ -32,6 +32,7 @@
->  #define CX18_AI1_MUX_INVALID 0x30
->  
->  #define FWFILE "v4l-cx23418-dig.fw"
-> +MODULE_FIRMWARE(FWFILE);
->  
->  static int cx18_av_verifyfw(struct cx18 *cx, const struct firmware *fw)
->  {
-> diff --git a/drivers/media/video/cx18/cx18-dvb.c b/drivers/media/video/cx18/cx18-dvb.c
-> index 51a0c33..9f70168 100644
-> --- a/drivers/media/video/cx18/cx18-dvb.c
-> +++ b/drivers/media/video/cx18/cx18-dvb.c
-> @@ -131,6 +131,8 @@ static int yuan_mpc718_mt352_reqfw(struct cx18_stream *stream,
->  	return ret;
->  }
->  
-> +MODULE_FIRMWARE("dvb-cx18-mpc718-mt352.fw");
-> +
+Fix completely broken mute handling radio-sf16fmi.
+The sound was muted immediately after tuning in KRadio.
+Also fix typos and add SF16-FMP to the texts.
 
-Ben,
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-This particular firmware is only needed by one relatively rare TV card.
-Is there any way for MODULE_FIRMWARE advertisements to hint at
-"mandatory" vs. "particular case(s)"?
+diff -urp linux-source-2.6.31-orig/drivers/media/radio/Kconfig linux-source-2.6.31/drivers/media/radio/Kconfig
+--- linux-source-2.6.31-orig/drivers/media/radio/Kconfig	2009-09-10 00:13:59.000000000 +0200
++++ linux-source-2.6.31/drivers/media/radio/Kconfig	2009-11-28 11:51:42.000000000 +0100
+@@ -196,7 +196,7 @@ config RADIO_MAESTRO
+ 	  module will be called radio-maestro.
+ 
+ config RADIO_SF16FMI
+-	tristate "SF16FMI Radio"
++	tristate "SF16-FMI/SF16-FMP Radio"
+ 	depends on ISA && VIDEO_V4L2
+ 	---help---
+ 	  Choose Y here if you have one of these FM radio cards.  If you
+diff -urp linux-source-2.6.31-orig/drivers/media/radio/radio-sf16fmi.c linux-source-2.6.31/drivers/media/radio/radio-sf16fmi.c
+--- linux-source-2.6.31-orig/drivers/media/radio/radio-sf16fmi.c	2009-09-10 00:13:59.000000000 +0200
++++ linux-source-2.6.31/drivers/media/radio/radio-sf16fmi.c	2009-11-28 11:39:35.000000000 +0100
+@@ -1,4 +1,4 @@
+-/* SF16FMI radio driver for Linux radio support
++/* SF16-FMI and SF16-FMP radio driver for Linux radio support
+  * heavily based on rtrack driver...
+  * (c) 1997 M. Kirkwood
+  * (c) 1998 Petr Vandrovec, vandrove@vc.cvut.cz
+@@ -11,7 +11,7 @@
+  *
+  *  Frequency control is done digitally -- ie out(port,encodefreq(95.8));
+  *  No volume control - only mute/unmute - you have to use line volume
+- *  control on SB-part of SF16FMI
++ *  control on SB-part of SF16-FMI/SF16-FMP
+  *
+  * Converted to V4L2 API by Mauro Carvalho Chehab <mchehab@infradead.org>
+  */
+@@ -30,14 +30,14 @@
+ #include <media/v4l2-ioctl.h>
+ 
+ MODULE_AUTHOR("Petr Vandrovec, vandrove@vc.cvut.cz and M. Kirkwood");
+-MODULE_DESCRIPTION("A driver for the SF16MI radio.");
++MODULE_DESCRIPTION("A driver for the SF16-FMI and SF16-FMP radio.");
+ MODULE_LICENSE("GPL");
+ 
+ static int io = -1;
+ static int radio_nr = -1;
+ 
+ module_param(io, int, 0);
+-MODULE_PARM_DESC(io, "I/O address of the SF16MI card (0x284 or 0x384)");
++MODULE_PARM_DESC(io, "I/O address of the SF16-FMI or SF16-FMP card (0x284 or 0x384)");
+ module_param(radio_nr, int, 0);
+ 
+ #define RADIO_VERSION KERNEL_VERSION(0, 0, 2)
+@@ -47,7 +47,7 @@ struct fmi
+ 	struct v4l2_device v4l2_dev;
+ 	struct video_device vdev;
+ 	int io;
+-	int curvol; /* 1 or 0 */
++	bool mute;
+ 	unsigned long curfreq; /* freq in kHz */
+ 	struct mutex lock;
+ };
+@@ -105,7 +105,7 @@ static inline int fmi_setfreq(struct fmi
+ 	outbits(8, 0xC0, fmi->io);
+ 	msleep(143);		/* was schedule_timeout(HZ/7) */
+ 	mutex_unlock(&fmi->lock);
+-	if (fmi->curvol)
++	if (!fmi->mute)
+ 		fmi_unmute(fmi);
+ 	return 0;
+ }
+@@ -116,7 +116,7 @@ static inline int fmi_getsigstr(struct f
+ 	int res;
+ 
+ 	mutex_lock(&fmi->lock);
+-	val = fmi->curvol ? 0x08 : 0x00;	/* unmute/mute */
++	val = fmi->mute ? 0x00 : 0x08;	/* mute/unmute */
+ 	outb(val, fmi->io);
+ 	outb(val | 0x10, fmi->io);
+ 	msleep(143); 		/* was schedule_timeout(HZ/7) */
+@@ -204,7 +204,7 @@ static int vidioc_g_ctrl(struct file *fi
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_AUDIO_MUTE:
+-		ctrl->value = fmi->curvol;
++		ctrl->value = fmi->mute;
+ 		return 0;
+ 	}
+ 	return -EINVAL;
+@@ -221,7 +221,7 @@ static int vidioc_s_ctrl(struct file *fi
+ 			fmi_mute(fmi);
+ 		else
+ 			fmi_unmute(fmi);
+-		fmi->curvol = ctrl->value;
++		fmi->mute = ctrl->value;
+ 		return 0;
+ 	}
+ 	return -EINVAL;
 
-Regards,
-Andy
-
->  static int yuan_mpc718_mt352_init(struct dvb_frontend *fe)
->  {
->  	struct cx18_dvb *dvb = container_of(fe->dvb,
-> diff --git a/drivers/media/video/cx18/cx18-firmware.c b/drivers/media/video/cx18/cx18-firmware.c
-> index 83cd559..4ac4b81 100644
-> --- a/drivers/media/video/cx18/cx18-firmware.c
-> +++ b/drivers/media/video/cx18/cx18-firmware.c
-> @@ -446,3 +446,6 @@ int cx18_firmware_init(struct cx18 *cx)
->  	cx18_write_reg_expect(cx, 0x14001400, 0xc78110, 0x00001400, 0x14001400);
->  	return 0;
->  }
-> +
-> +MODULE_FIRMWARE("v4l-cx23418-cpu.fw");
-> +MODULE_FIRMWARE("v4l-cx23418-apu.fw");
-
+-- 
+Ondrej Zary
