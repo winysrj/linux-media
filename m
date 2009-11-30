@@ -1,83 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:40724
-	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752235AbZKPEuy (ORCPT
+Received: from mail-qy0-f192.google.com ([209.85.221.192]:51118 "EHLO
+	mail-qy0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752469AbZK3OBZ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Nov 2009 23:50:54 -0500
-Message-ID: <4B00DB5B.10109@wilsonet.com>
-Date: Sun, 15 Nov 2009 23:55:55 -0500
-From: Jarod Wilson <jarod@wilsonet.com>
+	Mon, 30 Nov 2009 09:01:25 -0500
 MIME-Version: 1.0
-To: Robert Cicconetti <grythumn@gmail.com>
-CC: linux-media@vger.kernel.org, Mike Krufky <mkrufky@linuxtv.org>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>
-Subject: Re: KWorld UB435-Q Support
-References: <15cfa2a50910071839j58026d10we2ccbaeb26527abc@mail.gmail.com>	 <0C6DEB14-B32A-4A20-B569-16B2A028CE25@wilsonet.com> <15cfa2a50910091827l449f0fb0t2974219b6ea76608@mail.gmail.com> <4B00D91B.1000906@wilsonet.com>
-In-Reply-To: <4B00D91B.1000906@wilsonet.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1259588608.13049.16.camel@maxim-laptop>
+References: <m3r5riy7py.fsf@intrepid.localdomain>
+	 <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>
+	 <1259469121.3125.28.camel@palomino.walls.org>
+	 <20091129124011.4d8a6080@lxorguk.ukuu.org.uk>
+	 <1259515703.3284.11.camel@maxim-laptop>
+	 <2c0942db0911290949p89ae64bjc3c7501c2de6930c@mail.gmail.com>
+	 <1259537732.5231.11.camel@palomino.walls.org>
+	 <4B13B2FA.4050600@redhat.com>
+	 <1259585852.3093.31.camel@palomino.walls.org>
+	 <1259588608.13049.16.camel@maxim-laptop>
+Date: Mon, 30 Nov 2009 09:01:31 -0500
+Message-ID: <9e4733910911300601x513e8ac5n86b9b745536ca955@mail.gmail.com>
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
+	system?
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Andy Walls <awalls@radix.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Ray Lee <ray-lk@madrabbit.org>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/15/2009 11:46 PM, Jarod Wilson wrote:
-> On 10/09/2009 09:27 PM, Robert Cicconetti wrote:
->> On Wed, Oct 7, 2009 at 10:08 PM, Jarod Wilson<jarod@wilsonet.com> wrote:
->>> On Oct 7, 2009, at 9:39 PM, Robert Cicconetti wrote:
->>>> Okay... I built the tip of the archive linked above. It works with my
->>>> UB435-Q fairly well, built against 2.6.28-15-generic #52-Ubuntu SMP
->>>> x86_64. I've been able to stream QAM256 content for several hours
->>>> reliably. Mythfrontend works somewhat... it'll tune the initial
->>>> channel, but fails afterward. I suspect it is timing out while waiting
->>>> for the RF tracking filter calibration... it adds about 6 seconds to
->>>> every tuning operation.
->>>>
->>>> [ 812.465930] tda18271: performing RF tracking filter calibration
->>>> [ 818.572446] tda18271: RF tracking filter calibration complete
->>>> [ 818.953946] tda18271: performing RF tracking filter calibration
->>>> [ 825.093211] tda18271: RF tracking filter calibration complete
->>>>
->>>> Any suggestions? Further data needed?
->>>
->>> Nothing off the top of my head, no. But I've got a UB435-Q of my own
->>> now,
->>> sitting on my desk waiting for me to poke at it... Not sure when I'll
->>> have
->>> time to actually poke at it though. :\
+On Mon, Nov 30, 2009 at 8:43 AM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
+> On Mon, 2009-11-30 at 07:57 -0500, Andy Walls wrote:
+>> On Mon, 2009-11-30 at 09:56 -0200, Mauro Carvalho Chehab wrote:
+>> > Andy Walls wrote:
+>> > > On Sun, 2009-11-29 at 09:49 -0800, Ray Lee wrote:
+>> > >> On Sun, Nov 29, 2009 at 9:28 AM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
+>> > >>> This has zero advantages besides good developer feeling that "My system
+>> > >>> has one less daemon..."
+>> > >> Surely it's clear that having an unnecessary daemon is introducing
+>> > >> another point of failure?
+>> > >
+>> > > A failure in a userspace IR daemon is worst case loss of IR
+>> > > functionality.
+>> > >
+>> > > A failure in kernel space can oops or panic the machine.
+>> >
+>> > If IR is the only interface between the user and the system (like in a TV
+>> > or a Set Top Box), both will give you the same practical result: the system
+>> > will be broken, if you got a crash at the IR driver.
 >>
->> A little further poking yields that RF_CAL_OK in EP1 is 0, which is
->> why it keeps recalibrating.
+>> Yes, true.  I had forgotten about the embedded space.
 >>
->> I've commented out the part of the code that recalibrates if RF_CAL_OK
->> is 0; EP1 always seems to be c6... and now mythfrontend is happy. :)
+>> Nonetheless I'd still rather debug a problem with a dead process in
+>> userspace than an oops or panic (not that an end user cares) and avoid
+>> the risk of filesystem corruption.
 >>
->> This is not a long term solution, but as ugly hacks go it was pretty
->> straight forward. :)
+>> > Userspace is much more flexible.
+>> >
+>> > Why? The flexibility about the same on both kernelspace and userspace,
+>> > except for the boot time.
+>>
+>> I suppose my best answer to that is question back to you: Why does udev
+>> run in userspace versus a kernel thread?
+>>
+>>
+>> My personal thoughts on why user space is more flexible:
+>>
+>> 1. You have all of *NIX available to you to use as tools to achieve your
+>> requirements.
+>>
+>> 2. You are not constrained to use C.
+>>
+>> 3. You can link in libraries with functions that are not available in
+>> the kernel.  (udev has libudev IIRC to handle complexities)
+>>
+>> 4. Reading a configuration file or other file from the filesystem is
+>> trivial - file access from usespace is easy.
+>>
+>> 5. You don't have to be concerned about the running context (am I
+>> allowed to sleep here or not?).
 >
-> Finally got around to poking at this again. Forward-ported the patches
-> to the current v4l-dvb tip
-
-Meant to include this:
-
-http://wilsonet.com/jarod/junk/kworld-a340-20091115/
-
-> , and gave 'em a spin with my own UB435-Q, as
-> well as a 340U that Doug gave me when he was in town a bit ago. Both are
-> working just fine with my QAM feed here at the house, albeit with the
-> same lengthy delay when changing channels you (Robert) mentioned. At a
-> glance, I was hoping simply setting rf_cal_on_startup for the
-> card-specific tda18271_config would remove the delay, but neither a 0 or
-> a 1 seems to particularly help with tuning delays. Hoping maybe Mike has
-> an idea on this part...
 >
-> In related news, I actually managed to get my original 340U with the C1
-> tuner to work briefly as well, and with the same code, no tuning delays.
-> Seems either the PCB is cracked or the usb connector is just that bad,
-> and it only works when positioned just so...
+> 6. You can modify userspace driver easily to cope with all weird setups.
+> Like you know that there are remotes that send whole packet of data that
+> consist of many numbers that are also displayed on the LCD of the
+> remote.
+> Otherwise you will have to go through same fight for every minor thing
+> you like to add to kernel...
+>
+>
+> 7. You don't have an ABI constraints, your userspace program can read a
+> configuration file in any format you wish.
+> I for example was thinking about putting all lirc config files into an
+> sqllite database, and pulling them out when specific remote is detected.
 
-I'll give all three sticks I've got here a quick spin with an OTA signal 
-tomorrow too. But I think I'm not seeing any significant reason to not 
-move forward with trying to get this code finally merged.
+Linux is not a microkernel it is a monolithic kernel.
+http://en.wikipedia.org/wiki/Microkernel
+
+If you want to push all of the device drivers to user space go run a
+microkernel. Even the X server has finally come around to getting rid
+of their cross platform OS in user space model and begun the switch to
+kernel drivers. That transition is going to take ten years to
+complete.
+
+Once things get into the kernel they become far harder to change.
+Stop for a minute and think about designing the best IR system for
+Linux and forget about making a cross platform solution. IR is an
+input device, it should be integrated into the Linux input subsystem.
+You may not like the designs I have proposed, but running IR in user
+space and injecting a keystroke at the end of the process is not
+integrating it into the input subsystem.
+
+
+>
+>
+>>
+>>
+>>
+>>
+>>
+>>
+>> > A kernelspace input device driver can start working since boot time.
+>> > On the other hand, an userspace device driver will be available only
+>> > after mounting the filesystems and starting the deamons
+>> > (e. g. after running inittab).
+>> >
+>> > So, you cannot catch a key that would be affecting the boot
+>> > (for example to ask the kernel to run a different runlevel or entering
+>> > on some administrative mode).
+>>
+>> Right.  That's another requirement that makes sense, if we're talking
+>> about systems that don't have any other keyboard handy to the user.
+>>
+>> So are we optimizing for the embedded/STB and HTPC with no keyboard use
+>> case, or the desktop or HTPC with a keyboard for maintencance?
+>>
+>>
+>> Regards,
+>> Andy
+>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+>
+
+
 
 -- 
-Jarod Wilson
-jarod@wilsonet.com
+Jon Smirl
+jonsmirl@gmail.com
