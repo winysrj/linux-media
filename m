@@ -1,58 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from khc.piap.pl ([195.187.100.11]:48400 "EHLO khc.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750791AbZKZSY1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2009 13:24:27 -0500
-From: Krzysztof Halasa <khc@pm.waw.pl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Jarod Wilson <jarod@redhat.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-kernel@vger.kernel.org,
-	Mario Limonciello <superm1@ubuntu.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Janne Grunau <j@jannau.net>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was: Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-References: <200910200956.33391.jarod@redhat.com>
-	<200910200958.50574.jarod@redhat.com> <4B0A765F.7010204@redhat.com>
-	<4B0A81BF.4090203@redhat.com> <m36391tjj3.fsf@intrepid.localdomain>
-	<4B0AC65C.806@redhat.com> <m3zl6dq8ig.fsf@intrepid.localdomain>
-	<4B0E765C.2080806@redhat.com>
-Date: Thu, 26 Nov 2009 19:24:30 +0100
-In-Reply-To: <4B0E765C.2080806@redhat.com> (Mauro Carvalho Chehab's message of
-	"Thu, 26 Nov 2009 10:36:44 -0200")
-Message-ID: <m3iqcxuotd.fsf@intrepid.localdomain>
-MIME-Version: 1.0
+Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:51526
+	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752374AbZK3Eup convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Nov 2009 23:50:45 -0500
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
+Mime-Version: 1.0 (Apple Message framework v1077)
 Content-Type: text/plain; charset=us-ascii
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <D9ED2E54-7B65-4841-AADF-110C8E51DD0E@gmail.com>
+Date: Sun, 29 Nov 2009 23:50:45 -0500
+Cc: Krzysztof Halasa <khc@pm.waw.pl>, Andy Walls <awalls@radix.net>,
+	Jon Smirl <jonsmirl@gmail.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	"j@jannau.net" <j@jannau.net>,
+	"jarod@redhat.com" <jarod@redhat.com>,
+	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"maximlevitsky@gmail.com" <maximlevitsky@gmail.com>,
+	"mchehab@redhat.com" <mchehab@redhat.com>,
+	"stefanr@s5r6.in-berlin.de" <stefanr@s5r6.in-berlin.de>,
+	"superm1@ubuntu.com" <superm1@ubuntu.com>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <AFCCABA5-177F-4FA5-827E-BFF216510943@wilsonet.com>
+References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc> <9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com> <m3aay6y2m1.fsf@intrepid.localdomain> <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com> <1259450815.3137.19.camel@palomino.walls.org> <m3ocml6ppt.fsf@intrepid.localdomain> <D9ED2E54-7B65-4841-AADF-110C8E51DD0E@gmail.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab <mchehab@redhat.com> writes:
+On Nov 29, 2009, at 4:31 PM, Dmitry Torokhov wrote:
 
-> The issue I see is to support at the same time NEC and RC5 protocols. While
-> this may work with some devices, for others, the hardware won't allow.
+> On Nov 29, 2009, at 12:27 PM, Krzysztof Halasa <khc@pm.waw.pl> wrote:
+> 
+>> 1. Do we agree that a lirc (-style) kernel-user interface is needed at
+>>  least?
+>> 
+>> 2. Is there any problem with lirc kernel-user interface?
+>> 
+>> If the answer for #1 is "yes" and for #2 is "no" then perhaps we merge
+>> the Jarod's lirc patches (at least the core) so at least the
+>> non-controversial part is done?
+> 
+> 
+> Isn't the meat of Jarod's patch the lirc interface?
 
-Sure. We can handle it for the "simple" devices at least.
+Patch 1 was the lirc interface, 2 and 3 are individual device drivers that use it.
 
->> I think the mapping should be: key = proto + group + raw code, while
->> key2 could be different_proto + different group (if any) + another code.
->
-> This may work for protocols up to RC5, that uses either 8 or 16 bits.
-> However, RC6 mode 6 codes can be 32 bits, and we have "only" 32 bits
-> for a scancode. So, we don't have spare bits to represent a protocol, 
-> if we consider RC6 mode 6 codes as well.
+/me has some catching up to do on this thread after being partially detached from the computer over the holiday weekend here in the US...
 
-I don't see this limitation. The number of bits should depend on the
-protocol.
-
-> See above. Also, several protocols have a way to check if a keystroke were
-> properly received. When handling just one protocol, we can use this to double
-> check the key. However, on a multiprotocol mode, we'll need to disable this
-> feature.
-
-I don't think so. We can pass the space/mark data to all (configured,
-i.e. with active mapping) protocol handlers at once. Should a check
-fail, we ignore the data. Perhaps another protocol will make some sense
-out of it.
 -- 
-Krzysztof Halasa
+Jarod Wilson
+jarod@wilsonet.com
+
+
+
