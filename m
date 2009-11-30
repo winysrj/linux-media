@@ -1,114 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54721 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753226AbZKSO0G convert rfc822-to-8bit (ORCPT
+Received: from mail-qy0-f192.google.com ([209.85.221.192]:38110 "EHLO
+	mail-qy0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751722AbZK3NXA convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2009 09:26:06 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>
-Date: Thu, 19 Nov 2009 08:26:10 -0600
-Subject: RE: [PATCH v3] V4L - Adding Digital Video Timings APIs
-Message-ID: <A69FA2915331DC488A831521EAE36FE40155A51350@dlee06.ent.ti.com>
-References: <1258584239-12092-1-git-send-email-m-karicheri2@ti.com>
- <200911190825.12788.hverkuil@xs4all.nl>
-In-Reply-To: <200911190825.12788.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Mon, 30 Nov 2009 08:23:00 -0500
 MIME-Version: 1.0
+In-Reply-To: <1259585852.3093.31.camel@palomino.walls.org>
+References: <m3r5riy7py.fsf@intrepid.localdomain>
+	 <m3aay6y2m1.fsf@intrepid.localdomain>
+	 <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>
+	 <1259469121.3125.28.camel@palomino.walls.org>
+	 <20091129124011.4d8a6080@lxorguk.ukuu.org.uk>
+	 <1259515703.3284.11.camel@maxim-laptop>
+	 <2c0942db0911290949p89ae64bjc3c7501c2de6930c@mail.gmail.com>
+	 <1259537732.5231.11.camel@palomino.walls.org>
+	 <4B13B2FA.4050600@redhat.com>
+	 <1259585852.3093.31.camel@palomino.walls.org>
+Date: Mon, 30 Nov 2009 08:23:05 -0500
+Message-ID: <9e4733910911300523y69b66963t36db6d52def6679d@mail.gmail.com>
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
+	system?
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Andy Walls <awalls@radix.net>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Ray Lee <ray-lk@madrabbit.org>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans,
+On Mon, Nov 30, 2009 at 7:57 AM, Andy Walls <awalls@radix.net> wrote:
+> I suppose my best answer to that is question back to you: Why does udev
+> run in userspace versus a kernel thread?
 
-My mistake. I had a confusion on if you had signed-off this patch
-or the application diff that you had sent.
+Because udev is a scripting system. I've always said that the
+scripting piece of IR belongs in user space. IR scripting should be
+optional, none of the systems I work on need it.
 
-Could you add this to your tree and send a pull request to Mauro?
+This is the event flow being built...
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-phone: 301-407-9583
-email: m-karicheri2@ti.com
+device timing data
+ -- send timing data to user space
+ -- do protocol decode (40K code)
+ -- send decoded data back to kernel
+other devices that decode in HW add events here
+ -- send decoded data to user space
+ -- map to keys (30K code)
+ -- send keys back to kernel
+apps listen for keys
+ -- send keys back to user space
+ -- user space apps act on key (possibly run scripts)
 
->-----Original Message-----
->From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
->Sent: Thursday, November 19, 2009 2:25 AM
->To: Karicheri, Muralidharan
->Cc: linux-media@vger.kernel.org; davinci-linux-open-
->source@linux.davincidsp.com
->Subject: Re: [PATCH v3] V4L - Adding Digital Video Timings APIs
->
->On Wednesday 18 November 2009 23:43:59 m-karicheri2@ti.com wrote:
->> From: Muralidharan Karicheri <m-karicheri2@ti.com>
->>
->> Some minor updates (comment format) made to previous v3.
->>
->> This is v3 of the digital video timings APIs implementation.
->> This has updates based on comments received against v2 of the patch.
->Hopefully
->> this can be merged to 2.6.33 if there are no more comments.
->>
->> This adds the above APIs to the v4l2 core. This is based on version v1.2
->> of the RFC titled "V4L - Support for video timings at the input/output
->interface"
->> Following new ioctls are added:-
->>
->> 	- VIDIOC_ENUM_DV_PRESETS
->> 	- VIDIOC_S_DV_PRESET
->> 	- VIDIOC_G_DV_PRESET
->> 	- VIDIOC_QUERY_DV_PRESET
->> 	- VIDIOC_S_DV_TIMINGS
->> 	- VIDIOC_G_DV_TIMINGS
->>
->> Please refer to the RFC for the details. This code was tested using vpfe
->> capture driver on TI's DM365. Following is the test configuration used :-
->>
->> Blue Ray HD DVD source -> TVP7002 -> DM365 (VPFE) ->DDR
->>
->> A draft version of the TVP7002 driver (currently being reviewed in the
->mailing
->> list) was used that supports V4L2_DV_1080I60 & V4L2_DV_720P60 presets.
->>
->> A loopback video capture application was used for testing these APIs.
->This calls
->> following IOCTLS :-
->>
->>  -  verify the new v4l2_input capabilities flag added
->>  -  Enumerate available presets using VIDIOC_ENUM_DV_PRESETS
->>  -  Set one of the supported preset using VIDIOC_S_DV_PRESET
->>  -  Get current preset using VIDIOC_G_DV_PRESET
->>  -  Detect current preset using VIDIOC_QUERY_DV_PRESET
->>  -  Using stub functions in tvp7002, verify VIDIOC_S_DV_TIMINGS
->>     and VIDIOC_G_DV_TIMINGS ioctls are received at the sub device.
->>  -  Tested on 64bit platform by Hans Verkuil
->>
->> TODOs :
->>
->>  - Update v4l2-apps for the new ioctl (will send another patch after
->>    compilation issue is resolved)
->>
->> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
->> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
->
->I actually had not signed off on this yet, but now I do:
->
->Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
->
->Thanks!
->
->	Hans
->
->> Reviewed-by: Randy Dunlap <randy.dunlap@oracle.com>
->
->
->
->
->--
->Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+I'd like to see...
 
+device timing data
+-- user space can inject timing data from user space drivers
+do protocol decode (40K code)
+other devices that decode in HW add events here
+-- user space can inject decoded data from user space drivers
+map to keys (30K code)
+apps listen for keys
+ -- send keys back to user space
+ -- user space apps act on key (possibly run scripts)
+
+
+
+>
+> My personal thoughts on why user space is more flexible:
+>
+> 1. You have all of *NIX available to you to use as tools to achieve your
+> requirements.
+>
+> 2. You are not constrained to use C.
+>
+> 3. You can link in libraries with functions that are not available in
+> the kernel.  (udev has libudev IIRC to handle complexities)
+>
+> 4. Reading a configuration file or other file from the filesystem is
+> trivial - file access from usespace is easy.
+>
+> 5. You don't have to be concerned about the running context (am I
+> allowed to sleep here or not?).
+>
+>
+>
+>
+>
+>
+>> A kernelspace input device driver can start working since boot time.
+>> On the other hand, an userspace device driver will be available only
+>> after mounting the filesystems and starting the deamons
+>> (e. g. after running inittab).
+>>
+>> So, you cannot catch a key that would be affecting the boot
+>> (for example to ask the kernel to run a different runlevel or entering
+>> on some administrative mode).
+>
+> Right.  That's another requirement that makes sense, if we're talking
+> about systems that don't have any other keyboard handy to the user.
+>
+> So are we optimizing for the embedded/STB and HTPC with no keyboard use
+> case, or the desktop or HTPC with a keyboard for maintencance?
+>
+>
+> Regards,
+> Andy
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-input" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
+
+-- 
+Jon Smirl
+jonsmirl@gmail.com
