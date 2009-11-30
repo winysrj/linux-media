@@ -1,138 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44284 "EHLO comal.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:31006 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751144AbZKPOvG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2009 09:51:06 -0500
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAGEpBb5022445
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 16 Nov 2009 08:51:11 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id nAGEpBiC027082
-	for <linux-media@vger.kernel.org>; Mon, 16 Nov 2009 08:51:11 -0600 (CST)
-Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAGEpBYh017023
-	for <linux-media@vger.kernel.org>; Mon, 16 Nov 2009 08:51:11 -0600 (CST)
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Mon, 16 Nov 2009 08:51:09 -0600
-Subject: RE: [PATCH] DM644x CCDC: Add 10bit BT support
-Message-ID: <A69FA2915331DC488A831521EAE36FE401559C536C@dlee06.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1258349415-18499-1-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <1258349415-18499-1-git-send-email-hvaibhav@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	id S1751217AbZK3L5L (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Nov 2009 06:57:11 -0500
+Message-ID: <4B13B2FA.4050600@redhat.com>
+Date: Mon, 30 Nov 2009 09:56:42 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
+To: Andy Walls <awalls@radix.net>
+CC: Ray Lee <ray-lk@madrabbit.org>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	Jon Smirl <jonsmirl@gmail.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR  system?
+References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc>	 <9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>	 <m3aay6y2m1.fsf@intrepid.localdomain>	 <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>	 <1259469121.3125.28.camel@palomino.walls.org>	 <20091129124011.4d8a6080@lxorguk.ukuu.org.uk>	 <1259515703.3284.11.camel@maxim-laptop>	 <2c0942db0911290949p89ae64bjc3c7501c2de6930c@mail.gmail.com> <1259537732.5231.11.camel@palomino.walls.org>
+In-Reply-To: <1259537732.5231.11.camel@palomino.walls.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Andy Walls wrote:
+> On Sun, 2009-11-29 at 09:49 -0800, Ray Lee wrote:
+>> On Sun, Nov 29, 2009 at 9:28 AM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
+>>> This has zero advantages besides good developer feeling that "My system
+>>> has one less daemon..."
+>> Surely it's clear that having an unnecessary daemon is introducing
+>> another point of failure?
+> 
+> A failure in a userspace IR daemon is worst case loss of IR
+> functionality.
+> 
+> A failure in kernel space can oops or panic the machine.
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-phone: 301-407-9583
-email: m-karicheri2@ti.com
+If IR is the only interface between the user and the system (like in a TV
+or a Set Top Box), both will give you the same practical result: the system
+will be broken, if you got a crash at the IR driver.
 
->-----Original Message-----
->From: Hiremath, Vaibhav
->Sent: Monday, November 16, 2009 12:30 AM
->To: linux-media@vger.kernel.org
->Cc: Karicheri, Muralidharan; Hiremath, Vaibhav
->Subject: [PATCH] DM644x CCDC: Add 10bit BT support
->
->From: Vaibhav Hiremath <hvaibhav@ti.com>
->
->
->Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
->Reviewed-by: Muralidharan Karicheri <m-karicheri2@ti.com>
->---
-> drivers/media/video/davinci/dm644x_ccdc.c      |   17 +++++++++++++----
-> drivers/media/video/davinci/dm644x_ccdc_regs.h |    8 ++++++++
-> 2 files changed, 21 insertions(+), 4 deletions(-)
->
->diff --git a/drivers/media/video/davinci/dm644x_ccdc.c
->b/drivers/media/video/davinci/dm644x_ccdc.c
->index 2f19a91..9d601b4 100644
->--- a/drivers/media/video/davinci/dm644x_ccdc.c
->+++ b/drivers/media/video/davinci/dm644x_ccdc.c
->@@ -394,7 +394,11 @@ void ccdc_config_ycbcr(void)
-> 		 * configure the FID, VD, HD pin polarity,
-> 		 * fld,hd pol positive, vd negative, 8-bit data
-> 		 */
->-		syn_mode |= CCDC_SYN_MODE_VD_POL_NEGATIVE |
->CCDC_SYN_MODE_8BITS;
->+		syn_mode |= CCDC_SYN_MODE_VD_POL_NEGATIVE;
->+		if (ccdc_if_type == VPFE_BT656_10BIT)
->+			syn_mode |= CCDC_SYN_MODE_10BITS;
->+		else
->+			syn_mode |= CCDC_SYN_MODE_8BITS;
-> 	} else {
-> 		/* y/c external sync mode */
-> 		syn_mode |= (((params->fid_pol & CCDC_FID_POL_MASK) <<
->@@ -413,8 +417,13 @@ void ccdc_config_ycbcr(void)
-> 	 * configure the order of y cb cr in SDRAM, and disable latch
-> 	 * internal register on vsync
-> 	 */
->-	regw((params->pix_order << CCDC_CCDCFG_Y8POS_SHIFT) |
->-		 CCDC_LATCH_ON_VSYNC_DISABLE, CCDC_CCDCFG);
->+	if (ccdc_if_type == VPFE_BT656_10BIT)
->+		regw((params->pix_order << CCDC_CCDCFG_Y8POS_SHIFT) |
->+			CCDC_LATCH_ON_VSYNC_DISABLE | CCDC_CCDCFG_BW656_10BIT,
->+			CCDC_CCDCFG);
->+	else
->+		regw((params->pix_order << CCDC_CCDCFG_Y8POS_SHIFT) |
->+			CCDC_LATCH_ON_VSYNC_DISABLE, CCDC_CCDCFG);
->
-> 	/*
-> 	 * configure the horizontal line offset. This should be a
->@@ -429,7 +438,6 @@ void ccdc_config_ycbcr(void)
->
-> 	ccdc_sbl_reset();
-> 	dev_dbg(dev, "\nEnd of ccdc_config_ycbcr...\n");
->-	ccdc_readregs();
-> }
->
-> static void ccdc_config_black_clamp(struct ccdc_black_clamp *bclamp)
->@@ -822,6 +830,7 @@ static int ccdc_set_hw_if_params(struct
->vpfe_hw_if_param *params)
-> 	case VPFE_BT656:
-> 	case VPFE_YCBCR_SYNC_16:
-> 	case VPFE_YCBCR_SYNC_8:
->+	case VPFE_BT656_10BIT:
-> 		ccdc_hw_params_ycbcr.vd_pol = params->vdpol;
-> 		ccdc_hw_params_ycbcr.hd_pol = params->hdpol;
-> 		break;
->diff --git a/drivers/media/video/davinci/dm644x_ccdc_regs.h
->b/drivers/media/video/davinci/dm644x_ccdc_regs.h
->index 6e5d053..b18d166 100644
->--- a/drivers/media/video/davinci/dm644x_ccdc_regs.h
->+++ b/drivers/media/video/davinci/dm644x_ccdc_regs.h
->@@ -135,11 +135,19 @@
-> #define CCDC_SYN_MODE_INPMOD_SHIFT		12
-> #define CCDC_SYN_MODE_INPMOD_MASK		3
-> #define CCDC_SYN_MODE_8BITS			(7 << 8)
->+#define CCDC_SYN_MODE_10BITS			(6 << 8)
->+#define CCDC_SYN_MODE_11BITS			(5 << 8)
->+#define CCDC_SYN_MODE_12BITS			(4 << 8)
->+#define CCDC_SYN_MODE_13BITS			(3 << 8)
->+#define CCDC_SYN_MODE_14BITS			(2 << 8)
->+#define CCDC_SYN_MODE_15BITS			(1 << 8)
->+#define CCDC_SYN_MODE_16BITS			(0 << 8)
-> #define CCDC_SYN_FLDMODE_MASK			1
-> #define CCDC_SYN_FLDMODE_SHIFT			7
-> #define CCDC_REC656IF_BT656_EN			3
-> #define CCDC_SYN_MODE_VD_POL_NEGATIVE		(1 << 2)
-> #define CCDC_CCDCFG_Y8POS_SHIFT			11
->+#define CCDC_CCDCFG_BW656_10BIT 		(1 << 5)
-> #define CCDC_SDOFST_FIELD_INTERLEAVED		0x249
-> #define CCDC_NO_CULLING				0xffff00ff
-> #endif
->--
->1.6.2.4
+> Userspace is much more flexible.
+
+Why? The flexibility about the same on both kernelspace and userspace,
+except for the boot time.
+
+A kernelspace input device driver can start working since boot time.
+On the other hand, an userspace device driver will be available only 
+after mounting the filesystems and starting the deamons 
+(e. g. after running inittab). 
+
+So, you cannot catch a key that would be affecting the boot 
+(for example to ask the kernel to run a different runlevel or entering
+on some administrative mode).
+
+After the boot, and providing that the kernel has the proper
+API's, a pure userspace driver can behave just like a kernelspace
+driver and vice-versa. The only difference may be in terms of device
+transfer rate (not relevant for input devices) and latency.
+
+Cheers,
+Mauro.
 
