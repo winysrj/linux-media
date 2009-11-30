@@ -1,58 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:59576 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752434AbZKRI4I (ORCPT
+Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:4168 "EHLO
+	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753167AbZK3Tsc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2009 03:56:08 -0500
-Received: by bwz27 with SMTP id 27so838070bwz.21
-        for <linux-media@vger.kernel.org>; Wed, 18 Nov 2009 00:56:13 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <200911180801.48950.hverkuil@xs4all.nl>
-References: <1258504731-8430-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	 <1258504731-8430-8-git-send-email-laurent.pinchart@ideasonboard.com>
-	 <200911180801.48950.hverkuil@xs4all.nl>
-Date: Wed, 18 Nov 2009 03:56:12 -0500
-Message-ID: <829197380911180056i5102b87bw2926a7b38608570d@mail.gmail.com>
-Subject: Re: v4l: Use the video_drvdata function in drivers
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, mchehab@infradead.org,
-	sakari.ailus@maxwell.research.nokia.com
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 30 Nov 2009 14:48:32 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr3.xs4all.nl (8.13.8/8.13.8) with ESMTP id nAUJmbpK057441
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 30 Nov 2009 20:48:37 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 30 Nov 2009 20:48:37 +0100 (CET)
+Message-Id: <200911301948.nAUJmbpK057441@smtp-vbr3.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 18, 2009 at 2:01 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Very nice cleanup!
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-The last time I saw one of these relatively innocent-looking changes
-being done across all drivers without testing, it introduced a rather
-nasty and hard to find OOPS into one of my drivers and I had to fix
-it:
+Results of the daily build of v4l-dvb:
 
-http://linuxtv.org/hg/v4l-dvb/rev/5a54038a66c9
+date:        Mon Nov 30 19:00:03 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13538:e0cd9a337600
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Is there some reason this is one massive patch instead of individual
-patches for each driver?  How confident are we that this *really*
-isn't going to break some bridge without anyone realizing it?  Is this
-going to be some situation where it just "goes in" and then the
-maintainers of individual bridges are going to have to clean up the
-mess when users start complaining?
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-rc8-armv5: OK
+linux-2.6.32-rc8-armv5-davinci: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.32-rc8-armv5-ixp: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: OK
+linux-2.6.32-rc8-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: OK
+linux-2.6.31-i686: OK
+linux-2.6.32-rc8-i686: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-rc8-m32r: OK
+linux-2.6.30-mips: OK
+linux-2.6.31-mips: OK
+linux-2.6.32-rc8-mips: OK
+linux-2.6.30-powerpc64: OK
+linux-2.6.31-powerpc64: OK
+linux-2.6.32-rc8-powerpc64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: OK
+linux-2.6.31-x86_64: OK
+linux-2.6.32-rc8-x86_64: OK
+spec: OK
+sparse (linux-2.6.31): ERRORS
+sparse (linux-2.6.32-rc8): ERRORS
+linux-2.6.16.61-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-If there are going to be a series of cleanups such as this, perhaps it
-makes sense for Laurent to setup a tree with all the proposed fixes,
-and put out a call for testers so we can be more confident that it
-doesn't screw anything up.
+Detailed results are available here:
 
-Don't get me wrong, I'm all for seeing these things cleaned up, and
-the more functionality in the core the better.  But I am admittedly a
-bit nervous to see huge patches touching all the drivers where I am
-pretty sure that the developer probably only tested it on a couple of
-drivers and is assuming it works across all.
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-Devin
+Full logs are available here:
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
