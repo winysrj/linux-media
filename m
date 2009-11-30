@@ -1,64 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx38.mail.ru ([94.100.176.52]:56074 "EHLO mx38.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751630AbZKCMil (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Nov 2009 07:38:41 -0500
-Date: Tue, 3 Nov 2009 15:43:17 +0300
-From: Goga777 <goga777@bk.ru>
-To: linux-dvb@linuxtv.org
-Cc: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Struggling with Astra 2D (Freesat) / Happauage
- Nova-HD-S2
-Message-ID: <20091103154317.74e56bd5@bk.ru>
-In-Reply-To: <hcnsfa$v70$1@ger.gmane.org>
-References: <hcnd9s$c1f$1@ger.gmane.org>
-	<20091102231735.63fd30c4@bk.ru>
-	<hcnsfa$v70$1@ger.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from caffeine.csclub.uwaterloo.ca ([129.97.134.17]:38115 "EHLO
+	caffeine.csclub.uwaterloo.ca" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752696AbZK3RnN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Nov 2009 12:43:13 -0500
+Date: Mon, 30 Nov 2009 12:45:12 -0500
+To: Andy Walls <awalls@radix.net>
+Cc: Jon Smirl <jonsmirl@gmail.com>, Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	maximlevitsky@gmail.com, mchehab@redhat.com,
+	stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+	IR  system?
+Message-ID: <20091130174512.GA762@caffeine.csclub.uwaterloo.ca>
+References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc> <9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com> <m3aay6y2m1.fsf@intrepid.localdomain> <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com> <1259450815.3137.19.camel@palomino.walls.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1259450815.3137.19.camel@palomino.walls.org>
+From: lsorense@csclub.uwaterloo.ca (Lennart Sorensen)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I forgot to mention that you should use the transponders lists - ini file (for scan-s2) and xml file (for dvb2010) from
-here
-
-http://www.vdr-settings.com/download/channels/CLyngsatSP.tar.bz2
-
-
-Goga
-
-
-
-> > you have to use scan-s2
-> > http://mercurial.intuxication.org/hg/scan-s2
+On Sat, Nov 28, 2009 at 06:26:55PM -0500, Andy Walls wrote:
+> The only thing this buys for the user is remote/products bundles that
+> work out of the box.  That can only be a solution for the 80% case.
 > 
-> Hi, and thanks for your quick reply.
-> 
-> I tried it but no better:
-> <snip>
-> initial transponder DVB-S  12692000 V 19532000 1/2 AUTO AUTO
-> initial transponder DVB-S2 12692000 V 19532000 1/2 AUTO AUTO
-> ----------------------------------> Using DVB-S
-> >>> tune to: 11720:hC34S0:S0.0W:29500:
-> DVB-S IF freq is 1120000
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 11720:hC34S0:S0.0W:29500: (tuning failed)
-> 
-> and the channels.conf was no better than before - it didn't include *one* BBC
-> channel, for example.
-> 
-> >
-> > or
-> >
-> > dvb2010 scan
-> > http://hg.kewl.org/dvb2010/
-> 
-> Once I got it working, same:
-> Astra 2A/2B/2D/Eurobird 1 (28.2E) 10714 H DVB-S QPSK 22000 5/6 ONID:0 TID:0
-> AGC:0% SNR:0% 
->     Can't tune
-> 
-> Astra 2A/2B/2D/Eurobird 1 (28.2E) 10729 V DVB-S QPSK 22000 5/6 ONID:0 TID:0
-> AGC:0% SNR:0% 
->     Can't tune
+> I don't hear users crying out "Please integrate IR with the input
+> system".  I do hear users say "I want my remote to work", and "How can I
+> make my remote work?".  Users are not specifically asking for this
+> integration of IR and the input system - a technical nuance.  If such a
+> tecnical desire-ment drives excessive rework, I doubt anyone will care
+> enough about IR to follow through to make a complete system.
+
+Please integrate it so I can stop having issues with the lirc moduels
+when going to a new kernel version.
+
+> What does "equal footing" mean as an incentive anyway?  The opportunity
+> to reimplement *everything* that exists for IR already over again in
+> kernel-space for the sake of developer technical desires?  That's just a
+> lot of work for "not invented here" syndrome.  IR transceivers are
+> arguably superior to keyboards and mice anyway because they can transmit
+> data too.
+
+I have no idea.  I am sure you guys will come up with a great interface.
+I just use lirc with my mythtv box.
+
+-- 
+Len Sorensen
