@@ -1,133 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1773 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751944AbZKEMel (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Nov 2009 07:34:41 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Pawel Osciak <p.osciak@samsung.com>
-Subject: Re: [RFC] v1.1: Multi-plane (discontiguous) buffers
-Date: Thu, 5 Nov 2009 13:34:36 +0100
-Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	Tomasz Fujak <t.fujak@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-References: <E4D3F24EA6C9E54F817833EAE0D912AC07D2F45382@bssrvexch01.BS.local> <7e82ade47f528c59e82018a67e4e2982.squirrel@webmail.xs4all.nl> <000001ca521b$1defcd50$59cf67f0$%osciak@samsung.com>
-In-Reply-To: <000001ca521b$1defcd50$59cf67f0$%osciak@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200911051334.36700.hverkuil@xs4all.nl>
+Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:34593
+	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750763AbZK3FBJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Nov 2009 00:01:09 -0500
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:  Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+Mime-Version: 1.0 (Apple Message framework v1077)
+Content-Type: text/plain; charset=us-ascii
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <9e4733910911262106r553bb28brb5bef07dee3aae3b@mail.gmail.com>
+Date: Mon, 30 Nov 2009 00:01:09 -0500
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@redhat.com>, linux-kernel@vger.kernel.org,
+	Mario Limonciello <superm1@ubuntu.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Janne Grunau <j@jannau.net>,
+	Christoph Bartelmus <lirc@bartelmus.de>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <AD7A0010-DFD7-42F3-8C3D-E68DB4DCD291@wilsonet.com>
+References: <4B0A765F.7010204@redhat.com> <m36391tjj3.fsf@intrepid.localdomain> <20091123173726.GE17813@core.coreip.homeip.net> <4B0B6321.3050001@wilsonet.com> <20091126053109.GE23244@core.coreip.homeip.net> <A910E742-51B5-45E0-AD80-B9AE0728D9FB@wilsonet.com> <20091126232311.GD6936@core.coreip.homeip.net> <4B0F3963.8040701@wilsonet.com> <9e4733910911261908l122263c3x68854e8a00334eae@mail.gmail.com> <20091127043318.GK6936@core.coreip.homeip.net> <9e4733910911262106r553bb28brb5bef07dee3aae3b@mail.gmail.com>
+To: Jon Smirl <jonsmirl@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 21 October 2009 08:52:55 Pawel Osciak wrote:
-> Hello,
-> 
-> thank you for your comments.
-> 
-> Hans Verkuil [mailto:hverkuil@xs4all.nl] wrote:
-> >>
-> >> 3. The multi_info_ptr would contain a userspace pointer to a structure
-> >> further
-> >> describing the buffer:
-> >>
-> >> + struct v4l2_multiplane_info {
-> >> +         __u32  count;
-> >
-> >Rather than introducing this new struct, perhaps it would be better to
-> >reuse the v4l2_buffer length field as a 'count' for multiplanes. That
-> >length field is currently unused for multiplane formats.
-> >
-> 
-> Good idea. This way we can copy whole v4l2_plane array in one shot.
-> Now we can substitute the multi_info_ptr with a direct pointer to the
-> array of v4l2_plane structs and copy it in one shot instead of two.
-> 
-> 
-> >> + struct v4l2_plane {
-> >> +         __u32   parent_index;
-> >> +         __u32   bytesused;
-> >> +         union {
-> >> +                 __u32 offset;
-> >> +                 unsigned long userptr;
-> >> +         } m;
-> >> +         __u32   flags;
-> >> +         __u32   length;
-> >> +         __u32   reserved;
-> >
-> >Make this reserved[4].
-> >
-> 
-> Right.
-> 
-> >> + };
-> >>
-> >> parent_index - index of the parent v4l2_buffer
-> >
-> >Why do we need this index?
-> 
-> The idea was to have a reverse mapping to the parent (i.e. the v4l2_buffer
-> struct) to simplify mmap() (see below). But the userspace doesn't need this,
-> so I guess we should take this out and handle it differently.
-> 
-> >> flags - one flag currently: V4L2_PLANE_FLAG_MAPPED
-> >> (or reuse V4L2_BUF_FLAG_MAPPED for that)
-> >
-> >Isn't this just a copy of the v4l2_buffer flags? Why do we need it again?
-> >
-> 
-> mmap() will have to be called once per each plane. That said, we cannot have
-> a v4l2_buffer mapped "fully" (it's state may be "partially mapped"). Only when
-> all its planes are mapped, we can mark the parent v4l2_buffer as mapped.
-> 
-> This is also the reason for the parent_index member of v4l2_plane struct: when
-> mmaping, we would be marking the plane as mapped. Then we would have to check
-> whether all the other planes in the buffer are already mapped and only then mark
-> the whole buffer as mapped.
-> 
-> There are other ways to do that though:
-> 
-> 1. Lazy check.
-> 
-> Get rid of both parent_index and flags from the plane and verify that the buffer
-> is mapped during qbuf. Something like that:
-> 
-> v4l2_buffer *buf;
-> 
-> if (buf->memory & V4L2_MEMORY_MULTI_MMAP) {
->         if (!(buf->flags & V4L2_BUF_FLAG_MAPPED)) {
->                  if (verify_all_planes_mapped(buf)) {
->                           buf->flags |= V4L2_BUF_FLAG_MAPPED;
->                           /* Continue qbuf. In next qbuf the flag will be set
-> 				 * already.
->                            */
->                  } else {
->                           /* Not all planes are mmapped() */
->                           return -EINVAL;
->                  }
->         }
-> } else {
->         /* Handle other buffer memory types as usual */
-> }
-> 
-> 
-> 2. Let the driver (videobuffer framework) handle it however it wants.
-> 
-> For example, store the "PLANE_MMAPED" somewhere in internal structures and do not
-> expose the plane mapped state to the userspace.
-> 
-> What do you think? I'm leaning towards the first solution...
+On Nov 27, 2009, at 12:06 AM, Jon Smirl wrote:
 
-I think that option 2 is best. The videobuf framework needs to be updated
-anyway to support multiplanes, and I'm pretty sure that that will also
-involve administrating which planes have been mapped. So I suspect that all
-the information needed to determine whether all planes are mapped will be
-available.
+> On Thu, Nov 26, 2009 at 11:33 PM, Dmitry Torokhov
+> <dmitry.torokhov@gmail.com> wrote:
+>>> In the code I posted there is one evdev device for each configured
+>>> remote. Mapped single keycodes are presented on these devices for each
+>>> IR burst. There is no device for the IR receiver.  A LIRC type process
+>>> could watch these devices and then execute scripts based on the
+>>> keycodes reported.
+>>> 
+> ...
+>> 
+>> Maybe we should revisit Jon's patchset as well. Regretfully I did not
+>> have time to do that when it was submitted the last time.
+> 
+> Consider my patch set a technology demo starting point. It shows a
+> modern architecture for integrating IR into evdev.  Use the input from
+> everyone else to turn these concepts into a real design. I wrote the
+> code for the fun of it, I have no commercial interest in IR. I was
+> annoyed with how LIRC handled Sony remotes on my home system.
+> 
+> The design is a clean slate implementation of IR for the kernel. No
+> attempt was made at legacy compatibility. I was familiar with evdev vs
+> /dev/mouse problems from my work on the X server. Because of working
+> on X I've also always hated keymaps (that's what drove the configfs
+> design).
+> 
+> I wish one of the set top box or TV manufacturers would step up and
+> own this.  They are the ones that would benefit the most. Jarod would
+> probably be open to some consulting, right?
 
-Regards,
-
-          Hans
+Mauro may actually have better connections on that front than I do... Thus far, I've only talked to a few vendors of IR devices, with mixed results getting any sort of support out of them. But its on my todo list to put out some feelers on the work front to see if we have any connections that we might be able to utilize.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Jarod Wilson
+jarod@wilsonet.com
+
+
+
