@@ -1,77 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40620 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761006AbZLJRAa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2009 12:00:30 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	khilman@deeprootsystems.com, nsekhar@ti.com, hvaibhav@ti.com
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH - v1 5/6] V4L - vpfe capture - build environment for ISIF driver
-Date: Thu, 10 Dec 2009 12:00:28 -0500
-Message-Id: <1260464429-10537-5-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1260464429-10537-4-git-send-email-m-karicheri2@ti.com>
-References: <1260464429-10537-1-git-send-email-m-karicheri2@ti.com>
- <1260464429-10537-2-git-send-email-m-karicheri2@ti.com>
- <1260464429-10537-3-git-send-email-m-karicheri2@ti.com>
- <1260464429-10537-4-git-send-email-m-karicheri2@ti.com>
+Received: from acsinet12.oracle.com ([141.146.126.234]:17726 "EHLO
+	acsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753111AbZLASwl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 13:52:41 -0500
+Message-ID: <4B1565CD.5080908@oracle.com>
+Date: Tue, 01 Dec 2009 10:51:57 -0800
+From: Randy Dunlap <randy.dunlap@oracle.com>
+MIME-Version: 1.0
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+CC: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH -next] media/radio/miro: depends on SND
+References: <20091201190301.0fb7abad.sfr@canb.auug.org.au>
+In-Reply-To: <20091201190301.0fb7abad.sfr@canb.auug.org.au>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Adding Makefile and Kconfig for ISIF driver
+miropcm20 uses ALSA (snd_) interfaces from the SND_MIRO
+driver, so it should depend on SND.
+(selecting SND_MIRO when CONFIG_SND is not enabled is a
+problem.)
 
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+drivers/built-in.o: In function `vidioc_s_ctrl':
+radio-miropcm20.c:(.text+0x227499): undefined reference to `snd_aci_cmd'
+drivers/built-in.o: In function `vidioc_s_frequency':
+radio-miropcm20.c:(.text+0x227574): undefined reference to `snd_aci_cmd'
+radio-miropcm20.c:(.text+0x227588): undefined reference to `snd_aci_cmd'
+drivers/built-in.o: In function `pcm20_init':
+radio-miropcm20.c:(.init.text+0x2a784): undefined reference to `snd_aci_get_aci'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 ---
-Applies to linux-next tree
- drivers/media/video/Kconfig          |   15 ++++++++++++++-
- drivers/media/video/davinci/Makefile |    1 +
- 2 files changed, 15 insertions(+), 1 deletions(-)
+ drivers/media/radio/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 9dc74c9..8250c68 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -552,7 +552,7 @@ config VIDEO_VPSS_SYSTEM
- 	depends on ARCH_DAVINCI
- 	help
- 	  Support for vpss system module for video driver
--	default y
-+	default n
+--- linux-next-20091201.orig/drivers/media/radio/Kconfig
++++ linux-next-20091201/drivers/media/radio/Kconfig
+@@ -197,7 +197,7 @@ config RADIO_MAESTRO
  
- config VIDEO_VPFE_CAPTURE
- 	tristate "VPFE Video Capture Driver"
-@@ -596,6 +596,19 @@ config VIDEO_DM355_CCDC
- 	   To compile this driver as a module, choose M here: the
- 	   module will be called vpfe.
- 
-+config VIDEO_ISIF
-+	tristate "ISIF HW module"
-+	depends on ARCH_DAVINCI_DM365 && VIDEO_VPFE_CAPTURE
-+	select VIDEO_VPSS_SYSTEM
-+	default y
-+	help
-+	   Enables ISIF hw module. This is the hardware module for
-+	   configuring ISIF in VPFE to capture Raw Bayer RGB data  from
-+	   a image sensor or YUV data from a YUV source.
-+
-+	   To compile this driver as a module, choose M here: the
-+	   module will be called vpfe.
-+
- source "drivers/media/video/bt8xx/Kconfig"
- 
- config VIDEO_PMS
-diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
-index 1a8b8f3..a379557 100644
---- a/drivers/media/video/davinci/Makefile
-+++ b/drivers/media/video/davinci/Makefile
-@@ -15,3 +15,4 @@ obj-$(CONFIG_VIDEO_VPSS_SYSTEM) += vpss.o
- obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
- obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
- obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
-+obj-$(CONFIG_VIDEO_ISIF) += isif.o
--- 
-1.6.0.4
-
+ config RADIO_MIROPCM20
+ 	tristate "miroSOUND PCM20 radio"
+-	depends on ISA && VIDEO_V4L2
++	depends on ISA && VIDEO_V4L2 && SND
+ 	select SND_MIRO
+ 	---help---
+ 	  Choose Y here if you have this FM radio card. You also need to enable
