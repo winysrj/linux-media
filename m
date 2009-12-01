@@ -1,102 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41855 "EHLO comal.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:19485 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753864AbZLCUSU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Dec 2009 15:18:20 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH -v2] Adding helper function to get dv preset description
-Date: Thu,  3 Dec 2009 15:18:24 -0500
-Message-Id: <1259871504-18156-1-git-send-email-m-karicheri2@ti.com>
+	id S1750929AbZLAOPF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Dec 2009 09:15:05 -0500
+Message-ID: <4B1524DD.3080708@redhat.com>
+Date: Tue, 01 Dec 2009 12:14:53 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Gerd Hoffmann <kraxel@redhat.com>
+CC: Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, jonsmirl@gmail.com, khc@pm.waw.pl,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR  system?
+References: <BDodf9W1qgB@lirc> <4B14EDE3.5050201@redhat.com>
+In-Reply-To: <4B14EDE3.5050201@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+Gerd Hoffmann wrote:
+>   Hi,
+> 
+>>> The point is that for simple usage, like an user plugging his new USB
+>>> stick
+>>> he just bought, he should be able to use the shipped IR without
+>>> needing to
+>>> configure anything or manually calling any daemon. This currently works
+>>> with the existing drivers and it is a feature that needs to be kept.
+>>
+>> Admittedly, LIRC is way behind when it comes to plug'n'play.
+> 
+> Should not be that hard to fixup.
+> 
+> When moving the keytable loading from kernel to userspace the kernel
+> drivers have to inform userspace anyway what kind of hardware the IR
+> device is, so udev can figure what keytable it should load.  A sysfs
+> attribute is the way to go here I think.
+> 
+> lirc drivers can do the same, and lircd can startup with a reasonable
+> (default) configuration.
+> 
+> Of course evdev and lirc subsytems/drivers should agree on which
+> attributes should be defined and how they are filled.
 
-Updated based on comments against v1 of the patch
+Yes, a sysfs attribute seems appropriate in this case.
 
-This patch adds a helper function to get description of a digital
-video preset added by the video timing API. This will be usefull for drivers
-implementing the above API.
+This is the attributes that are currently available via sysfs:
 
-NOTE: depends on the patch that adds video timing API.
+  looking at device '/class/input/input13/event5':
+    KERNEL=="event5"
+    SUBSYSTEM=="input"
+    SYSFS{dev}=="13:69"
 
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+  looking at parent device '/class/input/input13':
+    ID=="input13"
+    BUS=="input"
+    DRIVER==""
+    SYSFS{name}=="em28xx IR _em28xx #0_"
+    SYSFS{phys}=="usb-0000:00:1d.7-8/input0"
+    SYSFS{uniq}==""
+
+For the currently used attributes, we have:
+
+The name attribute. If we do some effort to standardize it, it could be an option.
+However, on several drivers, this attribute is filled with something that is generic
+for the entire driver, and on several cases like the above, it adds a device number. 
+
+The phys attribute has to do only with the bus address. Btw, the lirc drivers need
+to follow the conventions here. We did a great effort at 2.6.30 or 2.6.31 to standardize
+the phys attribute, as some drivers were using different conventions for it.
+
+The uniq attribute is meant to be used as a serial number (no driver seems to use
+it currently, from my tests with git grep).
+
+By looking on other subsystems, ALSA defines two name attributes: a shortname and a longname.
+
+The current board naming schema at the V4L drivers are a long name. For example:
+"Pinnacle Dazzle DVC 90/100/101/107 / Kaiser Baas Video to DVD maker"
+
+The rationale is that they should be user-friendly.
+
+Maybe a similar concept could be used here: we can add a sort of shortname string
+that will uniquely describe a device and will have a rule to describe them unically.
+
+For example, the above device is a Hauppauge HVR950 usb stick, that is supported
+by em28xx driver.
+
+We may call it as "EM28xxHVR950-00" (the last 2 chars is to allow having board revisions, 
+as some devices may have more than one variant).
+
+Another alternative would be to create an integer SYSFS atribute and use some rule to
+associate the device number with the driver.
+
+The big issue here is: how do we document that "EM28xxHVR950-00" is the Hauppauge Grey IR that
+is shipped with their newer devices.
+
+A third approach would be to identify, instead, the Remote Controller directly. So, we would
+add a sysfs field like ir_type.
+
+There are two issues here:
+	1) What's the name for this IR? We'll need to invent names for the existing IR's, as
+those devices don't have a known brand name;
+	2) there are cases where the same device is provided with two or more different IR
+types. If we identify the board type instead of the IR type, userspace can better handle
+it, by providing a list of the possibilities.
+
 ---
-Applies to V4L-DVB linux-next branch
- drivers/media/video/v4l2-common.c |   47 +++++++++++++++++++++++++++++++++++++
- include/media/v4l2-common.h       |    2 +-
- 2 files changed, 48 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
-index e8e5aff..36b5cb8 100644
---- a/drivers/media/video/v4l2-common.c
-+++ b/drivers/media/video/v4l2-common.c
-@@ -1024,3 +1024,50 @@ void v4l_bound_align_image(u32 *w, unsigned int wmin, unsigned int wmax,
- 	}
- }
- EXPORT_SYMBOL_GPL(v4l_bound_align_image);
-+
-+/**
-+ * v4l_fill_dv_preset_info - fill description of a digital video preset
-+ * @preset - preset value
-+ * @info - pointer to struct v4l2_dv_enum_preset
-+ *
-+ * drivers can use this helper function to fill description of dv preset
-+ * in info.
-+ */
-+int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset *info)
-+{
-+	static const struct v4l2_dv_preset_info {
-+		u16 width;
-+		u16 height;
-+		const char *name;
-+	} dv_presets[] = {
-+		{ 0, 0, "Invalid" },		/* V4L2_DV_INVALID */
-+		{ 720,  480, "480p@59.94" },	/* V4L2_DV_480P59_94 */
-+		{ 720,  576, "576p@50" },	/* V4L2_DV_576P50 */
-+		{ 1280, 720, "720p@24" },	/* V4L2_DV_720P24 */
-+		{ 1280, 720, "720p@25" },	/* V4L2_DV_720P25 */
-+		{ 1280, 720, "720p@30" },	/* V4L2_DV_720P30 */
-+		{ 1280, 720, "720p@50" },	/* V4L2_DV_720P50 */
-+		{ 1280, 720, "720p@59.94" },	/* V4L2_DV_720P59_94 */
-+		{ 1280, 720, "720p@60" },	/* V4L2_DV_720P60 */
-+		{ 1920, 1080, "1080i@29.97" },	/* V4L2_DV_1080I29_97 */
-+		{ 1920, 1080, "1080i@30" },	/* V4L2_DV_1080I30 */
-+		{ 1920, 1080, "1080i@25" },	/* V4L2_DV_1080I25 */
-+		{ 1920, 1080, "1080i@50" },	/* V4L2_DV_1080I50 */
-+		{ 1920, 1080, "1080i@60" },	/* V4L2_DV_1080I60 */
-+		{ 1920, 1080, "1080p@24" },	/* V4L2_DV_1080P24 */
-+		{ 1920, 1080, "1080p@25" },	/* V4L2_DV_1080P25 */
-+		{ 1920, 1080, "1080p@30" },	/* V4L2_DV_1080P30 */
-+		{ 1920, 1080, "1080p@50" },	/* V4L2_DV_1080P50 */
-+		{ 1920, 1080, "1080p@60" },	/* V4L2_DV_1080P60 */
-+	};
-+
-+	if (info == NULL || preset >= ARRAY_SIZE(dv_presets))
-+		return -EINVAL;
-+
-+	info->preset = preset;
-+	info->width = dv_presets[preset].width;
-+	info->height = dv_presets[preset].height;
-+	strlcpy(info->name, dv_presets[preset].name, sizeof(info->name));
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(v4l_fill_dv_preset_info);
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index 1c25b10..1c7b259 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -212,5 +212,5 @@ void v4l_bound_align_image(unsigned int *w, unsigned int wmin,
- 			   unsigned int *h, unsigned int hmin,
- 			   unsigned int hmax, unsigned int halign,
- 			   unsigned int salign);
--
-+int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset *info);
- #endif /* V4L2_COMMON_H_ */
--- 
-1.6.0.4
+No matter how we map, we'll still need to document it somehow to userspace. What would be
+the better? A header file? A set of keymaps from the default IR's that will be added
+on some directory at the Linux tree? A Documentation/IR ?
 
+I'm for having the keymaps on some file at the kernel tree, maybe at Documentation/IR,
+but this is just my 2 cents. We need to think more about that.
+
+Comments?
+
+Anyway, we shouldn't postpone lirc drivers addition due to that. There are still lots of work
+to do before we'll be able to split the tables from the kernel drivers.
+
+Cheers,
+Mauro.
