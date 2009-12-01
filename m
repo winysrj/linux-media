@@ -1,61 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:47639 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753735AbZLAJwb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Dec 2009 04:52:31 -0500
-Message-ID: <4B14E747.9060208@redhat.com>
-Date: Tue, 01 Dec 2009 10:52:07 +0100
-From: Gerd Hoffmann <kraxel@redhat.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, jonsmirl@gmail.com, khc@pm.waw.pl,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR  system?
-References: <BDodf9W1qgB@lirc> <4B13BBBE.3010101@redhat.com>
-In-Reply-To: <4B13BBBE.3010101@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout5.samsung.com ([203.254.224.35]:36871 "EHLO
+	mailout5.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754747AbZLAXyz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 18:54:55 -0500
+Received: from epmmp2 (mailout5.samsung.com [203.254.224.35])
+ by mailout1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0KTZ002JQZRG64@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 02 Dec 2009 08:54:52 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0KTZ00D0YZQE2P@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 02 Dec 2009 08:54:14 +0900 (KST)
+Date: Wed, 02 Dec 2009 08:54:15 +0900
+From: Joonyoung Shim <jy0922.shim@samsung.com>
+Subject: Re: [PATCH 1/3] radio-si470x: fix SYSCONFIG1 register set on
+ si470x_start()
+In-reply-to: <200912020039.02737.tobias.lorenz@gmx.net>
+To: Tobias Lorenz <tobias.lorenz@gmx.net>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	kyungmin.park@samsung.com
+Message-id: <4B15ACA7.6070807@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7BIT
+References: <4B039265.1020906@samsung.com>
+ <200912020039.02737.tobias.lorenz@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/30/09 13:34, Mauro Carvalho Chehab wrote:
-> Christoph Bartelmus wrote:
->> Hi Mauro,
+Hi, Tobias.
+
+On 12/2/2009 8:39 AM, Tobias Lorenz wrote:
+> Hi,
+> 
+> what is the advantage in not setting SYSCONFIG1 into a known state?
+> 
+
+At patch 3/3, i am setting the SYSCONFIG1 register for RDS interrupt in
+i2c probe function, so i need this patch. Do you have other idea?
+
+> Bye,
+> Toby
+> 
+> Am Mittwoch 18 November 2009 07:21:25 schrieb Joonyoung Shim:
+>> We should use the or operation to set value to the SYSCONFIG1 register
+>> on si470x_start().
 >>
->> I just don't want to change a working interface just because it could be
->> also implemented in a different way, but having no other visible advantage
->> than using more recent kernel features.
->
-> I agree. The main reasons to review the interface is:
-> 	1) to avoid any overlaps (if are there any) with the evdev interface;
-
-Use lirc for raw samples.
-Use evdev for decoded data.
-
-Hardware/drivers which can handle both can support both interfaces.
-
-IMHO it makes no sense at all to squeeze raw samples through the input 
-layer.  It looks more like a serial line than a input device.  In fact 
-you can homebrew a receiver and connect it to the serial port, which was 
-quite common in pre-usb-ir-receiver times.
-
-> 	2) to have it stable enough to be used, without changes, for a long
-> 	   time.
-
-It isn't like lirc is a new interface.  It has been used in practice for 
-years.  I don't think API stability is a problem here.
-
-> True, but even if we want to merge lirc drivers "as-is", the drivers will
-> still need changes, due to kernel CodingStyle, due to the usage of some API's
-> that may be deprecated, due to some breakage with non-Intel architectures, due
-> to some bugs that kernel hackers may discover, etc.
-
-I assumed this did happen in already in preparation of this submission?
-
-cheers,
-   Gerd
+>> Signed-off-by: Joonyoung Shim <jy0922.shim@samsung.com>
+>> ---
+>>  drivers/media/radio/si470x/radio-si470x-common.c |    2 +-
+>>  1 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
+>> index f33315f..09f631a 100644
+>> --- a/drivers/media/radio/si470x/radio-si470x-common.c
+>> +++ b/drivers/media/radio/si470x/radio-si470x-common.c
+>> @@ -357,7 +357,7 @@ int si470x_start(struct si470x_device *radio)
+>>  		goto done;
+>>  
+>>  	/* sysconfig 1 */
+>> -	radio->registers[SYSCONFIG1] = SYSCONFIG1_DE;
+>> +	radio->registers[SYSCONFIG1] |= SYSCONFIG1_DE;
+>>  	retval = si470x_set_register(radio, SYSCONFIG1);
+>>  	if (retval < 0)
+>>  		goto done;
+>>
+> 
 
