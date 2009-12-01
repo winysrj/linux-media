@@ -1,90 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f219.google.com ([209.85.219.219]:33511 "EHLO
-	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752651AbZLSRLw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Dec 2009 12:11:52 -0500
+Received: from mail-fx0-f213.google.com ([209.85.220.213]:38852 "EHLO
+	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753111AbZLATFV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 14:05:21 -0500
+Received: by fxm5 with SMTP id 5so5276996fxm.28
+        for <linux-media@vger.kernel.org>; Tue, 01 Dec 2009 11:05:27 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20091218191859.ca78c2f1.randy.dunlap@oracle.com>
-References: <20091219110457.d6c5de1f.sfr@canb.auug.org.au>
-	 <20091218191859.ca78c2f1.randy.dunlap@oracle.com>
-Date: Sat, 19 Dec 2009 21:11:50 +0400
-Message-ID: <1a297b360912190911v77b8519dtd5a93556a8693dd9@mail.gmail.com>
-Subject: Re: linux-next: Tree for December 19 (media/mantis)
+In-Reply-To: <4B142E2C.1020108@redhat.com>
+References: <4B14195D.6000205@autistici.org> <4B142E2C.1020108@redhat.com>
+Date: Tue, 1 Dec 2009 23:05:27 +0400
+Message-ID: <1a297b360912011105s707ce090m4af01bb6232d4814@mail.gmail.com>
+Subject: Re: DIY Satellite Web Radio
 From: Manu Abraham <abraham.manu@gmail.com>
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-media@vger.kernel.org, linux-next@vger.kernel.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Chehab <mchehab@infradead.org>
-Content-Type: multipart/mixed; boundary=0016e6d97735bef1f3047b17f338
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: "OrazioPirataDelloSpazio (Lorenzo)" <ziducaixao@autistici.org>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0016e6d97735bef1f3047b17f338
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On Sat, Dec 19, 2009 at 7:18 AM, Randy Dunlap <randy.dunlap@oracle.com> wro=
-te:
-> On Sat, 19 Dec 2009 11:04:57 +1100 Stephen Rothwell wrote:
->
+On Tue, Dec 1, 2009 at 12:42 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em 30-11-2009 17:13, OrazioPirataDelloSpazio (Lorenzo) escreveu:
 >> Hi all,
+>> I'm not a DVB expert but I'm wondering if this idea is feasible:
+>> For an "amateur" web radio, for what I know, it is really hard to
+>> being listened in cars, like people do with commercial satellite radio
+>> [1] . Basically this is unaffortable for private user and this is
+>> probably the most relevant factor that penalize web radios againt
+>> terrestrial one.
 >>
->> I said:
->> > News: =A0there will be no linux-next releases until at least Dec 24 an=
-d,
->> > more likely, Dec 29. =A0Have a Merry Christmas and take a break. =A0:-=
-)
->>
->> Well, I decided I had time for one more so it will be based in -rc1).
->>
->> This one has not had the build testing *between* merges, but has had all
->> the normal build testing at the end. =A0Since the latter testing showed =
-no
->> problems, this just means that there may be more unbisectable points in
->> the tree (but that is unlikely).
+>> My question is: is there any way to use the current, cheap, satellite
+>> internet connections to stream some data above all the coverage of a geo
+>> satellite? and make the receiver handy (so without any dishes) ?
 >
+> Receiving sat signals without dishes? From some trials we had on a telco
+> I used to work, You would need to use a network of low-orbit satellites,
+> carefully choosing the better frequencies and it will provide you
+> low bandwidth.
 >
->
-> ERROR: "ir_input_register" [drivers/media/dvb/mantis/mantis_core.ko] unde=
-fined!
-> ERROR: "ir_input_unregister" [drivers/media/dvb/mantis/mantis_core.ko] un=
-defined!
-> ERROR: "ir_input_init" [drivers/media/dvb/mantis/mantis_core.ko] undefine=
-d!
-> ERROR: "input_free_device" [drivers/media/dvb/mantis/mantis_core.ko] unde=
-fined!
-> ERROR: "input_allocate_device" [drivers/media/dvb/mantis/mantis_core.ko] =
-undefined!
->
->
->
-> CONFIG_INPUT=3Dn
+> This will likely cost a lot of money, if you find someone providing a
+> service like that. One trial for such network were the Iridum
+> project. AFAIK, the original company bankrupted due to the very high costs of
+> launching and managing about a hundred satellite network.
 
-Attached patch to fix the issue.
-
-Fix Input dependency for Mantis
-
-From: Manu Abraham <abraham.manu@gmail.com>
-Signed-off-by: Manu Abraham <manu@linuxtv.org>
+Low orbital satellites aren't geo-stationary. Technically speaking, a
+broadcaster would use only geo-stationary satellites for broadcast
+services. The basic reason: A broadcaster simply would have rented out
+a transponder on an existing satellite from a satellite operator, or
+still: if the broadcaster is a major player, they would have a few
+satellites of their own to provide coverage over multiple regions, but
+still: they are indeed geo-stationary satellites (you will need a very
+large number of satellites to provide services in a low orbital
+position, similar to the Iridium network, which is not practically
+feasible for a broadcaster. Even the Iridium network had a hard time
+taking off!)
 
 Regards,
 Manu
-
---0016e6d97735bef1f3047b17f338
-Content-Type: text/x-patch; charset=US-ASCII; name="fix-mantis-input-dependency.patch"
-Content-Disposition: attachment;
-	filename="fix-mantis-input-dependency.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_g3encs4j0
-
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvZHZiL21hbnRpcy9LY29uZmlnIGIvZHJpdmVycy9t
-ZWRpYS9kdmIvbWFudGlzL0tjb25maWcKaW5kZXggZjkyMTljZC4uZjdiNzJhMyAxMDA2NDQKLS0t
-IGEvZHJpdmVycy9tZWRpYS9kdmIvbWFudGlzL0tjb25maWcKKysrIGIvZHJpdmVycy9tZWRpYS9k
-dmIvbWFudGlzL0tjb25maWcKQEAgLTEsNiArMSw2IEBACiBjb25maWcgTUFOVElTX0NPUkUKIAl0
-cmlzdGF0ZSAiTWFudGlzL0hvcHBlciBQQ0kgYnJpZGdlIGJhc2VkIGRldmljZXMiCi0JZGVwZW5k
-cyBvbiBQQ0kgJiYgSTJDCisJZGVwZW5kcyBvbiBQQ0kgJiYgSTJDICYmIElOUFVUCiAKIAloZWxw
-CiAJICBTdXBwb3J0IGZvciBQQ0kgY2FyZHMgYmFzZWQgb24gdGhlIE1hbnRpcyBhbmQgSG9wcGVy
-IFBDaSBicmlkZ2UuCg==
---0016e6d97735bef1f3047b17f338--
