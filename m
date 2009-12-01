@@ -1,38 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cp-out9.libero.it ([212.52.84.109]:47777 "HELO
-	cp-out9.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755230AbZLMDJq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Dec 2009 22:09:46 -0500
-Received: from [151.82.188.131] (151.82.188.131) by cp-out9.libero.it (8.5.107)
-        id 4B2251E0003D5479 for linux-media@vger.kernel.org; Sat, 12 Dec 2009 20:41:13 +0100
-Subject: Adding support for Benq DC E300 camera
-From: Francesco Lavra <francescolavra@interfree.it>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Sat, 12 Dec 2009 20:41:24 +0100
-Message-Id: <1260646884.23354.22.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57481 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754666AbZLAVix (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Dec 2009 16:38:53 -0500
+From: m-karicheri2@ti.com
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	khilman@deeprootsystems.com
+Cc: davinci-linux-open-source@linux.davincidsp.com, hvaibhav@ti.com,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: [PATCH 4/5 - v0] V4L - vpfe capture - build environment to support DM365 CCDC
+Date: Tue,  1 Dec 2009 16:38:52 -0500
+Message-Id: <1259703533-1789-4-git-send-email-m-karicheri2@ti.com>
+In-Reply-To: <1259703533-1789-3-git-send-email-m-karicheri2@ti.com>
+References: <1259703533-1789-1-git-send-email-m-karicheri2@ti.com>
+ <1259703533-1789-2-git-send-email-m-karicheri2@ti.com>
+ <1259703533-1789-3-git-send-email-m-karicheri2@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-I'm trying to get my Benq DC E300 camera to work under Linux.
-It has an Atmel AT76C113 chip. I don't know how many Linux users would
-benefit from a driver supporting this camera (and possibly other models,
-too), so my question is: if/when such a driver will be written, is there
-someone willing to review it and finally get it merged?
-If the answer is yes, I will try to write something working.
+From: Muralidharan Karicheri <m-karicheri2@ti.com>
 
-This camera USB interface has 10 alternate settings, and altsetting 5 is
-used to stream data; it uses two isochronous endpoints to transfer an
-AVI-formatted video stream (320x240) to the USB host.
-It would be great if someone could give me some information to make
-writing the driver easier: so far, I have only USB sniffer capture logs
-from the Windows driver.
+Added support for building DM365 CCDC module. Also made VPSS module default
+configuration variable value to n.
 
-Regards,
-Francesco
+NOTE: This patch is for review purpose only
 
+Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+---
+ drivers/media/video/Kconfig          |   15 ++++++++++++++-
+ drivers/media/video/davinci/Makefile |    1 +
+ 2 files changed, 15 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 9dc74c9..6d3ae06 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -552,7 +552,7 @@ config VIDEO_VPSS_SYSTEM
+ 	depends on ARCH_DAVINCI
+ 	help
+ 	  Support for vpss system module for video driver
+-	default y
++	default n
+ 
+ config VIDEO_VPFE_CAPTURE
+ 	tristate "VPFE Video Capture Driver"
+@@ -596,6 +596,19 @@ config VIDEO_DM355_CCDC
+ 	   To compile this driver as a module, choose M here: the
+ 	   module will be called vpfe.
+ 
++config VIDEO_DM365_ISIF
++	tristate "DM365 CCDC/ISIF HW module"
++	depends on ARCH_DAVINCI_DM365 && VIDEO_VPFE_CAPTURE
++	select VIDEO_VPSS_SYSTEM
++	default y
++	help
++	   Enables DM365 ISIF hw module. This is the hardware module for
++	   configuring ISIF in VPFE to capture Raw Bayer RGB data  from
++	   a image sensor or YUV data from a YUV source.
++
++	   To compile this driver as a module, choose M here: the
++	   module will be called vpfe.
++
+ source "drivers/media/video/bt8xx/Kconfig"
+ 
+ config VIDEO_PMS
+diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
+index 1a8b8f3..3642d79 100644
+--- a/drivers/media/video/davinci/Makefile
++++ b/drivers/media/video/davinci/Makefile
+@@ -15,3 +15,4 @@ obj-$(CONFIG_VIDEO_VPSS_SYSTEM) += vpss.o
+ obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
+ obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
+ obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
++obj-$(CONFIG_VIDEO_DM365_ISIF) += dm365_ccdc.o
+-- 
+1.6.0.4
 
