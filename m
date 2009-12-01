@@ -1,64 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:62570 "EHLO
-	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750942AbZL0WUE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Dec 2009 17:20:04 -0500
-Received: by fxm25 with SMTP id 25so4255680fxm.21
-        for <linux-media@vger.kernel.org>; Sun, 27 Dec 2009 14:20:01 -0800 (PST)
+Received: from comal.ext.ti.com ([198.47.26.152]:48223 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752503AbZLATao convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 14:30:44 -0500
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+CC: "davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+Date: Wed, 2 Dec 2009 01:00:40 +0530
+Subject: RE: [PATCH 2/2] DaVinci - vpfe capture - converting ccdc to
+ platform driver
+Message-ID: <19F8576C6E063C45BE387C64729E7394043716AE12@dbde02.ent.ti.com>
+References: <1259691333-32164-1-git-send-email-m-karicheri2@ti.com>
+ <1259691333-32164-2-git-send-email-m-karicheri2@ti.com>
+In-Reply-To: <1259691333-32164-2-git-send-email-m-karicheri2@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <20091227163736.CC9C03F6D6@gemini.denx.de>
-References: <20091227163736.CC9C03F6D6@gemini.denx.de>
-Date: Mon, 28 Dec 2009 02:20:00 +0400
-Message-ID: <1a297b360912271420g154e34a4gab4382de3a3169a0@mail.gmail.com>
-Subject: Re: Mantis driver on TechniSat "CableStar HD 2"
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Wolfgang Denk <wd@denx.de>
-Cc: linux-media@vger.kernel.org, Manu Abraham <manu@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Wolfgang,
 
-On Sun, Dec 27, 2009 at 8:37 PM, Wolfgang Denk <wd@denx.de> wrote:
-> I have problems getting a TechniSat "CableStar HD 2" DVB-C card
-> running with the latest Mantis driver on a Fedora 12 system (using
-> their current standard 2.6.31.9-174.fc12.i686.PAE kernel in
-> combination with the drivers from the http://linuxtv.org/hg/v4l-dvb
-> repository). Tests have been done on two different mainboards.
->
-> I can run a channel scan (using kaffeine) perfectly fine, also tuning
-> to channels appears to work. I see a load of some 1,300 interrupts per
-> sec when I have kaffeine running and tuned, and it seems there is data
-> transferred between the card and the application.
+> -----Original Message-----
+> From: Karicheri, Muralidharan
+> Sent: Tuesday, December 01, 2009 11:46 PM
+> To: linux-media@vger.kernel.org; hverkuil@xs4all.nl;
+> khilman@deeprootsystems.com
+> Cc: davinci-linux-open-source@linux.davincidsp.com; Hiremath,
+> Vaibhav; Karicheri, Muralidharan
+> Subject: [PATCH 2/2] DaVinci - vpfe capture - converting ccdc to
+> platform driver
+> 
+> From: Muralidharan Karicheri <m-karicheri2@ti.com>
+> 
+> This is the platform part for converting ccdc to platform driver.
+> 
+> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+> ---
+> Applies to linux-davinci tree
+>  arch/arm/mach-davinci/dm355.c  |   27 +++++++++++++++------------
+>  arch/arm/mach-davinci/dm644x.c |   18 +++++++++++++++++-
+>  2 files changed, 32 insertions(+), 13 deletions(-)
+> 
+> diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-
+> davinci/dm355.c
+> index dedf4d4..045cb0d 100644
+> --- a/arch/arm/mach-davinci/dm355.c
+> +++ b/arch/arm/mach-davinci/dm355.c
+> @@ -701,6 +701,10 @@ static struct resource vpfe_resources[] = {
+>  		.end            = IRQ_VDINT1,
+>  		.flags          = IORESOURCE_IRQ,
+>  	},
+> +};
+> +
+> +static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
+> +static struct resource dm355_ccdc_resource[] = {
+>  	/* CCDC Base address */
+>  	{
+>  		.flags          = IORESOURCE_MEM,
+> @@ -708,8 +712,17 @@ static struct resource vpfe_resources[] = {
+>  		.end            = 0x01c70600 + 0x1ff,
+>  	},
+>  };
+> +static struct platform_device dm355_ccdc_dev = {
+> +	.name           = "dm355_ccdc",
+> +	.id             = -1,
+> +	.num_resources  = ARRAY_SIZE(dm355_ccdc_resource),
+> +	.resource       = dm355_ccdc_resource,
+> +	.dev = {
+> +		.dma_mask               = &vpfe_capture_dma_mask,
+> +		.coherent_dma_mask      = DMA_BIT_MASK(32),
+> +	},
+> +};
+> 
+> -static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
+>  static struct platform_device vpfe_capture_dev = {
+>  	.name		= CAPTURE_DRV_NAME,
+>  	.id		= -1,
+> @@ -860,17 +873,7 @@ static int __init dm355_init_devices(void)
+>  	davinci_cfg_reg(DM355_INT_EDMA_CC);
+>  	platform_device_register(&dm355_edma_device);
+>  	platform_device_register(&dm355_vpss_device);
+> -	/*
+> -	 * setup Mux configuration for vpfe input and register
+> -	 * vpfe capture platform device
+> -	 */
+> -	davinci_cfg_reg(DM355_VIN_PCLK);
+> -	davinci_cfg_reg(DM355_VIN_CAM_WEN);
+> -	davinci_cfg_reg(DM355_VIN_CAM_VD);
+> -	davinci_cfg_reg(DM355_VIN_CAM_HD);
+> -	davinci_cfg_reg(DM355_VIN_YIN_EN);
+> -	davinci_cfg_reg(DM355_VIN_CINL_EN);
+> -	davinci_cfg_reg(DM355_VIN_CINH_EN);
+[Hiremath, Vaibhav] Why have you removed mux configuration from here and moved to CCDC driver? Any specific reason?
 
+> +	platform_device_register(&dm355_ccdc_dev);
+>  	platform_device_register(&vpfe_capture_dev);
+> 
+>  	return 0;
+> diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-
+> davinci/dm644x.c
+> index 2cd0081..982be1f 100644
+> --- a/arch/arm/mach-davinci/dm644x.c
+> +++ b/arch/arm/mach-davinci/dm644x.c
+> @@ -612,6 +612,11 @@ static struct resource vpfe_resources[] = {
+>  		.end            = IRQ_VDINT1,
+>  		.flags          = IORESOURCE_IRQ,
+>  	},
+> +};
+> +
+> +static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
+> +static struct resource dm644x_ccdc_resource[] = {
+> +	/* CCDC Base address */
+>  	{
+>  		.start          = 0x01c70400,
+>  		.end            = 0x01c70400 + 0xff,
+> @@ -619,7 +624,17 @@ static struct resource vpfe_resources[] = {
+>  	},
+>  };
+> 
+> -static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
+> +static struct platform_device dm644x_ccdc_dev = {
+> +	.name           = "dm644x_ccdc",
+> +	.id             = -1,
+> +	.num_resources  = ARRAY_SIZE(dm644x_ccdc_resource),
+> +	.resource       = dm644x_ccdc_resource,
+> +	.dev = {
+> +		.dma_mask               = &vpfe_capture_dma_mask,
+> +		.coherent_dma_mask      = DMA_BIT_MASK(32),
+> +	},
+> +};
+> +
+>  static struct platform_device vpfe_capture_dev = {
+>  	.name		= CAPTURE_DRV_NAME,
+>  	.id		= -1,
+> @@ -772,6 +787,7 @@ static int __init dm644x_init_devices(void)
+>  	platform_device_register(&dm644x_edma_device);
+>  	platform_device_register(&dm644x_emac_device);
+>  	platform_device_register(&dm644x_vpss_device);
+> +	platform_device_register(&dm644x_ccdc_dev);
+>  	platform_device_register(&vpfe_capture_dev);
+> 
+>  	return 0;
+> --
+> 1.6.0.4
 
->From what i understand without much deeper look is that you have a
-successful LOCK and hence the transfer.
-
->
-> The problem is: there is no video nor sound.
-
-
-The generic budget DVB cards do not have an onboard hardware decoder
-and what we have is a DVR device from which the Transport stream is
-being read out. A Software decoder is used to process the TS.
-
-
-> I have bought this card second-hand on, so I am not really sure if it
-> is a software issue, or if eventually the hardware is broken.
->
->
-> Can anybody recommend a way how to verify the driver or the hardware?
-> Or can you recommend a specific kernel version the Mantis driver has
-> been tested against?
-
-
-If you can successfully tune and get a valid TS from the DVR device,
-you can rule out issues with the card and the driver.
-You can verify the functionality of the hardware and driver with the
-command line applications from the dvb-apps repository.
-
-Regards,
-Manu
