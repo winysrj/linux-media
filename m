@@ -1,99 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1847 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751890AbZLXTRv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Dec 2009 14:17:51 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id nBOJHaPJ061833
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 24 Dec 2009 20:17:50 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 24 Dec 2009 20:17:36 +0100 (CET)
-Message-Id: <200912241917.nBOJHaPJ061833@smtp-vbr6.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:64185 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750849AbZLAPIy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 10:08:54 -0500
+MIME-Version: 1.0
+Date: Tue, 1 Dec 2009 10:08:59 -0500
+Message-ID: <9e4733910912010708u1064e2c6mbc08a01293c3e7fd@mail.gmail.com>
+Subject: [RFC v2] Another approach to IR
+From: Jon Smirl <jonsmirl@gmail.com>
+To: awalls@radix.net, dmitry.torokhov@gmail.com, j@jannau.net,
+	jarod@redhat.com, jarod@wilsonet.com, khc@pm.waw.pl,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, lirc-list@lists.sourceforge.net,
+	mchehab@redhat.com, superm1@ubuntu.com,
+	Christoph Bartelmus <lirc@bartelmus.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+While reading all of these IR threads another way of handling IR
+occurred to me that pretty much eliminates the need for LIRC and
+configuration files in default cases. The best way to make everything
+"just work" is to eliminate it.
 
-Results of the daily build of v4l-dvb:
+The first observation is that the IR profile of various devices are
+well known. Most devices profiles are in the published One-for-All
+database. These device profiles consist of vendor/device/command
+triplets. There is one triplet for each command like play, pause, 1,
+2, 3, power, etc.
 
-date:        Thu Dec 24 19:00:07 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13842:4506e2d54126
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+The second observation is that universal remotes know how to generate
+commands for all of the common devices.
 
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-armv5: OK
-linux-2.6.32-armv5-davinci: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.32-armv5-ixp: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.32-armv5-omap2: OK
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: ERRORS
-linux-2.6.28-i686: ERRORS
-linux-2.6.29.1-i686: ERRORS
-linux-2.6.30-i686: ERRORS
-linux-2.6.31-i686: ERRORS
-linux-2.6.32-i686: ERRORS
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: OK
-linux-2.6.32-mips: OK
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: OK
-linux-2.6.32-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: OK
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-x86_64: WARNINGS
-spec: OK
-sparse (linux-2.6.32): ERRORS
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+Let's define evdev messages for IR than contain vendor/device/command
+triplets. I already posted code for doing that in my original patch
+set. These messages are generated from in-kernel code.
 
-Detailed results are available here:
+Now add a small amount of code to MythTV, etc to act on these evdev
+messages. Default MythTV, etc to respond to the IR commands for a
+common DVR device. Program your universal remote to send the commands
+for this device. You're done. Everything will "just work" - no LIRC,
+no irrecord, no config files, no command mapping, etc.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+Of course there are details involved in making this work. MythTV will
+have to have a config option to allow it to emulate several different
+DVR devices so that you can pick one that you don't own. It should
+also have choices for emulating the common devices defined for the
+remotes included with various Linux video board like the Hauppauge
+remote.
 
-Full logs are available here:
+For apps that haven't been modified you will have to run a daemon
+which will capture vendor/device/command evdev events and convert them
+into keystroke commands than work the menus. You'll need a config file
+for this and have to write scripts. Instead I'd just go modify the app
+the respond to the IR events, it is easy to do.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+Long run, we define a MythTV IR profile, mplayer profile, etc and get
+these into the IR database for universal remotes. Now MythTV can stop
+emulating another vendor's device.
 
-The V4L-DVB specification from this daily build is here:
+For the default MythTV case no external support will need to be
+installed if the protocol decode engines are in the kernel. The raw
+data will come in, run through the engines, and pop out as evdev
+messages with a vendor/device/command triplet. Devices that decode in
+hardware will just send vendor/device/command triplets.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Jon Smirl
+jonsmirl@gmail.com
