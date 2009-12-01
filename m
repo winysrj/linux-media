@@ -1,63 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:60771 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758503AbZLJORU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2009 09:17:20 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Pablo Baena <pbaena@gmail.com>
-Subject: Re: uvcvideo kernel panic when using libv4l
-Date: Thu, 10 Dec 2009 15:19:04 +0100
-Cc: linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
-References: <36be2c7a0912070918h23cee33bia26c85b13d242ca9@mail.gmail.com>
-In-Reply-To: <36be2c7a0912070918h23cee33bia26c85b13d242ca9@mail.gmail.com>
+Received: from mail-ew0-f215.google.com ([209.85.219.215]:64047 "EHLO
+	mail-ew0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753016AbZLAPoN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 10:44:13 -0500
+Received: by ewy7 with SMTP id 7so5950907ewy.28
+        for <linux-media@vger.kernel.org>; Tue, 01 Dec 2009 07:44:18 -0800 (PST)
+Date: Tue, 1 Dec 2009 16:44:13 +0100
+From: Domenico Andreoli <cavokz@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Replace Mercurial with GIT as SCM
+Message-ID: <20091201154413.GA11696@raptus.dandreoli.com>
+References: <alpine.LRH.2.00.0912011003480.30797@pub3.ifh.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200912101519.04700.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <alpine.LRH.2.00.0912011003480.30797@pub3.ifh.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pablo,
+On Tue, Dec 01, 2009 at 03:59:20PM +0100, Patrick Boettcher wrote:
+> Hi all,
 
-On Monday 07 December 2009 18:18:11 Pablo Baena wrote:
-> I get a kernel panic when running the attached sample code.
-> 
-> I run it as:
-> 
-> $ gcc capture.c -o capture
-> $ export LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so
-> $ ./capture -d/dev/video0 -c1000 -r
-> 
-> -r tells it to capture using read(), which libv4l emulates.
-> 
-> In the example code, I use read() to fetch from the webcam directly,
-> without using select() to wait for a frame. In the v4l documentation,
-> it states that read() should block until it has a new frame available.
-> 
-> This is a Bus 002 Device 005: ID 0c45:62c0 Microdia Sonix USB 2.0 Camera.
-> 
-> I can't capture the kernel panic because everything hangs and I have
-> no kernel debugger to try to get that info. I attach a poor quality
-> image taken with a webcam from the screen. I even tried having a
-> vmware virtual machine to try to better capture the panic, but in the
-> virtual machine it doesn't hang.
-> 
-> This is Ubuntu 9.10, Linux pablo-laptop 2.6.31-16-generic #52-Ubuntu
-> SMP Thu Dec 3 22:00:22 UTC 2009 i686 GNU/Linux.
-> 
-> But I got reports that the same camera on Debian 5.3 is also panicking.
-> 
-> Please advice if you need more information to solve this problem.
+hi,
 
-I can't reproduce the problem here (with another camera).
+> I would like to start a discussion which ideally results in either
+> changing the SCM of v4l-dvb to git _or_ leaving everything as it is
+> today with mercurial.
 
-To investigate I will need a copy of the source code and binary kernel module 
-for the uvcvideo driver running on your system as well as a complete complete 
-backtrace.
+i should not be stopped by a tool i'm not familiar with (that is hg)
+but actually it is a barrier for me. i'd like to regularly follow v4l-dvb
+and surely with git i'd not waste the time as with hg.
 
--- 
-Regards,
+the result is that i have a separate git tree for "my" tw68xx driver
+and the integration with v4l-dvb and hg is not my topomost priority
+given also that everything needs to be ported back to git before kernel
+inclusion.
 
-Laurent Pinchart
+while i accept that people doing real work should use the tool the
+prefer i consider this fracture with the kernel SCM a mistake.
+
+this is only my opinion, my intent is not to start any flamewar.
+
+regards,
+Domenico
+
+-----[ Domenico Andreoli, aka cavok
+ --[ http://www.dandreoli.com/gpgkey.asc
+   ---[ 3A0F 2F80 F79C 678A 8936  4FEE 0677 9033 A20E BC50
