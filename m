@@ -1,72 +1,243 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from khc.piap.pl ([195.187.100.11]:33551 "EHLO khc.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757547AbZLFUTD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Dec 2009 15:19:03 -0500
-From: Krzysztof Halasa <khc@pm.waw.pl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Gerd Hoffmann <kraxel@redhat.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jonsmirl@gmail.com,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
-References: <BDodf9W1qgB@lirc> <4B14EDE3.5050201@redhat.com>
-	<4B1524DD.3080708@redhat.com> <4B153617.8070608@redhat.com>
-	<A6D5FF84-2DB8-4543-ACCB-287305CA0739@wilsonet.com>
-	<4B17AA6A.9060702@redhat.com>
-	<20091203175531.GB776@core.coreip.homeip.net>
-	<20091203163328.613699e5@pedra>
-	<20091204100642.GD22570@core.coreip.homeip.net>
-	<20091204121234.5144836b@pedra>
-	<20091206070929.GB14651@core.coreip.homeip.net>
-	<4B1B8F83.5080009@redhat.com>
-Date: Sun, 06 Dec 2009 21:19:06 +0100
-In-Reply-To: <4B1B8F83.5080009@redhat.com> (Mauro Carvalho Chehab's message of
-	"Sun, 06 Dec 2009 09:03:31 -0200")
-Message-ID: <m31vj77t51.fsf@intrepid.localdomain>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3160 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752597AbZLAKZ6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 05:25:58 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 1/2 v3] v4l: add a media-bus API for configuring v4l2 subdev pixel and frame formats
+Date: Tue, 1 Dec 2009 15:54:19 +0530
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+References: <Pine.LNX.4.64.0911261509100.5450@axis700.grange> <alpine.LNX.2.01.0911300854060.3049@alastor> <Pine.LNX.4.64.0911301014570.12689@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0911301014570.12689@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200912011554.19929.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab <mchehab@redhat.com> writes:
-
-> All the IR's I found with V4L/DVB use up to 16 bits code (or 24 bits, for NEC extended protocol).
-> However, currently, the drivers were getting only 7 bits, due to the old way to implement
-> EVIO[S|G]KEYCODE. 
+On Monday 30 November 2009 14:49:07 Guennadi Liakhovetski wrote:
+> On Mon, 30 Nov 2009, Hans Verkuil wrote:
+> > On Thu, 26 Nov 2009, Guennadi Liakhovetski wrote:
+> > > > From 8b24c617e1ac4d324538a3eec476d48b85c2091f Mon Sep 17 00:00:00
+> > > > 2001
+> > >
+> > > From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > Date: Thu, 26 Nov 2009 18:20:45 +0100
+> > > Subject: [PATCH] v4l: add a media-bus API for configuring v4l2 subdev
+> > > pixel and frame formats
+> > >
+> > > Video subdevices, like cameras, decoders, connect to video bridges over
+> > > specialised busses. Data is being transferred over these busses in
+> > > various formats, which only loosely correspond to fourcc codes,
+> > > describing how video data is stored in RAM. This is not a one-to-one
+> > > correspondence, therefore we cannot use fourcc codes to configure
+> > > subdevice output data formats. This patch
+> > > adds codes for several such on-the-bus formats and an API, similar to
+> > > the familiar .s_fmt(), .g_fmt(), .try_fmt(), .enum_fmt() API for
+> > > configuring those
+> > > codes. After all users of the old API in struct v4l2_subdev_video_ops
+> > > are converted, it will be removed. Also add helper routines to support
+> > > generic pass-through mode for the soc-camera framework.
+> > >
+> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > ---
+> > >
+> > > v2 -> v3: more comments:
+> > >
+> > > 1. moved enum v4l2_mbus_packing, enum v4l2_mbus_order, and struct
+> > > v4l2_mbus_pixelfmt to soc-camera specific header, renamed them into
+> > > soc-namespace.
+> > >
+> > > 2. commented enum v4l2_mbus_pixelcode and removed unused values.
+> > >
+> > > v1 -> v2: addressed comments from Hans, namely:
+> > >
+> > > 1. renamed image bus to media bus, now using "mbus" as a shorthand in
+> > > function and data type names.
+> > >
+> > > 2. made media-bus helper functions soc-camera local.
+> > >
+> > > 3. moved colorspace from struct v4l2_mbus_pixelfmt to struct
+> > > v4l2_mbus_framefmt.
+> > >
+> > > 4. added documentation for data types and enums.
+> > >
+> > > 5. added
+> > >
+> > >      V4L2_MBUS_FMT_FIXED = 1,
+> > >
+> > > format as the first in enum.
+> > >
+> > > soc-camera driver port will follow tomorrow.
+> > >
+> > > Thanks
+> > > Guennadi
+> > >
+> > >
+> > > drivers/media/video/Makefile       |    2 +-
+> > > drivers/media/video/soc_mediabus.c |  157
+> > > ++++++++++++++++++++++++++++++++++++
+> > > include/media/soc_mediabus.h       |   84 +++++++++++++++++++
+> > > include/media/v4l2-mediabus.h      |   59 ++++++++++++++
+> > > include/media/v4l2-subdev.h        |   19 ++++-
+> >
+> > <cut>
+> >
+> > > diff --git a/include/media/v4l2-mediabus.h
+> > > b/include/media/v4l2-mediabus.h new file mode 100644
+> > > index 0000000..359840c
+> > > --- /dev/null
+> > > +++ b/include/media/v4l2-mediabus.h
+> > > @@ -0,0 +1,59 @@
+> > > +/*
+> > > + * Media Bus API header
+> > > + *
+> > > + * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > + *
+> > > + * This program is free software; you can redistribute it and/or
+> > > modify + * it under the terms of the GNU General Public License version
+> > > 2 as + * published by the Free Software Foundation.
+> > > + */
+> > > +
+> > > +#ifndef V4L2_MEDIABUS_H
+> > > +#define V4L2_MEDIABUS_H
+> > > +
+> > > +/*
+> > > + * These pixel codes uniquely identify data formats on the media bus.
+> > > Mostly
+> > > + * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0
+> > > is + * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client
+> > > pairs, where the
+> > > + * data format is fixed. Additionally, "2X8" means that one pixel is
+> > > transferred
+> > > + * in two 8-bit samples, "BE" or "LE" specify in which order those
+> > > samples + * should be stored in RAM, and "PADHI" and "PADLO" define
+> > > which bits - low or
+> > > + * high, in the incomplete high byte, are filled with padding bits.
+> > > + */
+> >
+> > Hi Guennadi,
+> >
+> > This still needs some improvement. There are two things that need to be
+> > changed here:
+> >
+> > 1) add the width of the data bus to the format name: so
+> > V4L2_MBUS_FMT_YUYV becomes _FMT_YUYV_8. This is required since I know
+> > several video receivers that can be programmed to use one of several data
+> > widths (8, 10, 12 bits per color component). Perhaps _1X8 is even better
+> > since that is nicely consistent with the 2X8 suffix that you already use.
+> > The PADHI and PADLO naming convention
+> > is fine and should be used whereever it is neeeded. Ditto for BE and LE.
 >
-> I know, however, one i2c chip that returns a 5 byte scancode when you press a key. 
-> We're currently just discarding the remaining bits, so I'm not really sure what's there.
-
-Right. This will have to be investigated by owners of the exact hardware
-in question. What we can do is to try to make it easy for them.
-There is no hurry, though - it can and will continue to work the current
-way.
-
-> In general, the scancode contains 8 or 16 bits for address, and 8 bits for command.
-
-Right. I think the kernel shouldn't differentiate between address and
-command too much.
-
-> at include/linux/input.h, we'll add a code like:
+> Ok, my first thought was "no, there only very seldom will be a need for a
+> different padding / order / bus-width," but the second thought was "but
+> if there ever will be one, you'll have to rename the original code too..."
 >
-> struct input_keytable_entry {
->  	u16	index;
->  	u64	scancode;
->  	u32	keycode;
-> } __attribute__ ((packed));
+> > 2) Rephrase '"BE" or "LE" specify in which order those samples should be
+> > stored
+> > in RAM' to:
+> >
+> > '"BE" or "LE" specify in which order those samples are transferred over
+> > the bus:
+> > BE means that the most significant bits are transferred first, "LE" means
+> > that the least significant bits are transferred first.'
+> >
+> > This also means that formats like RGB555 need to be renamed to
+> > RGB555_2X8_PADHI_LE.
+> >
+> > I think that this would make this list of pixelcodes unambiguous and
+> > understandable.
 >
-> (the attribute packed avoids needing a compat for 64 bits)
+> Right, how about this:
+>
+> /*
+>  * These pixel codes uniquely identify data formats on the media bus.
+> Mostly * they correspond to similarly named V4L2_PIX_FMT_* formats, format
+> 0 is * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs,
+> where the * data format is fixed. Additionally, "2X8" means that one pixel
+> is transferred * in two 8-bit samples, "BE" or "LE" specify in which order
+> those samples are * transferred over the bus: "LE" means that the least
+> significant bits are * transferred first, "BE" means that the most
+> significant bits are transferred * first, and "PADHI" and "PADLO" define
+> which bits - low or high, in the * incomplete high byte, are filled with
+> padding bits.
+>  */
+> enum v4l2_mbus_pixelcode {
+> 	V4L2_MBUS_FMT_FIXED = 1,
+> 	V4L2_MBUS_FMT_YUYV_2X8_LE,
+> 	V4L2_MBUS_FMT_YVYU_2X8_LE,
+> 	V4L2_MBUS_FMT_UYVY_2X8_LE,
+> 	V4L2_MBUS_FMT_VYUY_2X8_LE,
 
-Maybe { u64 scancode; u32 keycode; u16 index; u16 reserved } would be a
-bit better, no alignment problems and we could eventually change
-"reserved" into something useful.
+These possibly may need a comment saying that each Y/U/V sample is 8 bits 
+wide. I'm not sure how far we want to go with systematic naming schemes here. 
+Adding a short comment if there is a possible ambiguity is probably 
+sufficient.
 
-But I think, if we are going to redesign it, we better use scancodes of
-arbitrary length (e.g. protocol-dependent length). It should be opaque
-except for the protocol handler.
--- 
-Krzysztof Halasa
+> 	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
+> 	V4L2_MBUS_FMT_RGB555X_2X8_PADHI_LE,
+
+Shouldn't this be: V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE? Since the 555X format is 
+just the big-endian variant of the RGB555 if I am not mistaken.
+
+> 	V4L2_MBUS_FMT_RGB565_2X8_LE,
+> 	V4L2_MBUS_FMT_RGB565X_2X8_LE,
+
+Ditto.
+
+> 	V4L2_MBUS_FMT_SBGGR8_1X8,
+> 	V4L2_MBUS_FMT_SBGGR10_1X10,
+> 	V4L2_MBUS_FMT_GREY_1X8,
+
+This is also 8 bits per sample, right? This might be renamed to GREY8_1X8.
+
+Regards,
+
+	Hans
+
+> 	V4L2_MBUS_FMT_Y10_1X10,
+> 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
+> 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
+> 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
+> 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
+> };
+>
+> > Regards,
+> >
+> > 	Hans
+> >
+> > > +enum v4l2_mbus_pixelcode {
+> > > +	V4L2_MBUS_FMT_FIXED = 1,
+> > > +	V4L2_MBUS_FMT_YUYV,
+> > > +	V4L2_MBUS_FMT_YVYU,
+> > > +	V4L2_MBUS_FMT_UYVY,
+> > > +	V4L2_MBUS_FMT_VYUY,
+> > > +	V4L2_MBUS_FMT_RGB555,
+> > > +	V4L2_MBUS_FMT_RGB555X,
+> > > +	V4L2_MBUS_FMT_RGB565,
+> > > +	V4L2_MBUS_FMT_RGB565X,
+> > > +	V4L2_MBUS_FMT_SBGGR8,
+> > > +	V4L2_MBUS_FMT_SBGGR10,
+> > > +	V4L2_MBUS_FMT_GREY,
+> > > +	V4L2_MBUS_FMT_Y10,
+> > > +	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
+> > > +	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
+> > > +	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
+> > > +	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
+> > > +};
+>
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
