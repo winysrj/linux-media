@@ -1,49 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f215.google.com ([209.85.219.215]:64047 "EHLO
-	mail-ew0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753016AbZLAPoN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 10:44:13 -0500
-Received: by ewy7 with SMTP id 7so5950907ewy.28
-        for <linux-media@vger.kernel.org>; Tue, 01 Dec 2009 07:44:18 -0800 (PST)
-Date: Tue, 1 Dec 2009 16:44:13 +0100
-From: Domenico Andreoli <cavokz@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Replace Mercurial with GIT as SCM
-Message-ID: <20091201154413.GA11696@raptus.dandreoli.com>
-References: <alpine.LRH.2.00.0912011003480.30797@pub3.ifh.de>
+Received: from mail.gmx.net ([213.165.64.20]:56711 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754629AbZLAXi7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Dec 2009 18:38:59 -0500
+From: Tobias Lorenz <tobias.lorenz@gmx.net>
+To: Joonyoung Shim <jy0922.shim@samsung.com>
+Subject: Re: [PATCH 1/3] radio-si470x: fix SYSCONFIG1 register set on si470x_start()
+Date: Wed, 2 Dec 2009 00:39:02 +0100
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	kyungmin.park@samsung.com
+References: <4B039265.1020906@samsung.com>
+In-Reply-To: <4B039265.1020906@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <alpine.LRH.2.00.0912011003480.30797@pub3.ifh.de>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200912020039.02737.tobias.lorenz@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 01, 2009 at 03:59:20PM +0100, Patrick Boettcher wrote:
-> Hi all,
+Hi,
 
-hi,
+what is the advantage in not setting SYSCONFIG1 into a known state?
 
-> I would like to start a discussion which ideally results in either
-> changing the SCM of v4l-dvb to git _or_ leaving everything as it is
-> today with mercurial.
+Bye,
+Toby
 
-i should not be stopped by a tool i'm not familiar with (that is hg)
-but actually it is a barrier for me. i'd like to regularly follow v4l-dvb
-and surely with git i'd not waste the time as with hg.
-
-the result is that i have a separate git tree for "my" tw68xx driver
-and the integration with v4l-dvb and hg is not my topomost priority
-given also that everything needs to be ported back to git before kernel
-inclusion.
-
-while i accept that people doing real work should use the tool the
-prefer i consider this fracture with the kernel SCM a mistake.
-
-this is only my opinion, my intent is not to start any flamewar.
-
-regards,
-Domenico
-
------[ Domenico Andreoli, aka cavok
- --[ http://www.dandreoli.com/gpgkey.asc
-   ---[ 3A0F 2F80 F79C 678A 8936  4FEE 0677 9033 A20E BC50
+Am Mittwoch 18 November 2009 07:21:25 schrieb Joonyoung Shim:
+> We should use the or operation to set value to the SYSCONFIG1 register
+> on si470x_start().
+> 
+> Signed-off-by: Joonyoung Shim <jy0922.shim@samsung.com>
+> ---
+>  drivers/media/radio/si470x/radio-si470x-common.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
+> index f33315f..09f631a 100644
+> --- a/drivers/media/radio/si470x/radio-si470x-common.c
+> +++ b/drivers/media/radio/si470x/radio-si470x-common.c
+> @@ -357,7 +357,7 @@ int si470x_start(struct si470x_device *radio)
+>  		goto done;
+>  
+>  	/* sysconfig 1 */
+> -	radio->registers[SYSCONFIG1] = SYSCONFIG1_DE;
+> +	radio->registers[SYSCONFIG1] |= SYSCONFIG1_DE;
+>  	retval = si470x_set_register(radio, SYSCONFIG1);
+>  	if (retval < 0)
+>  		goto done;
+> 
