@@ -1,421 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:38064 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:50852 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754721AbZLDJLj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Dec 2009 04:11:39 -0500
-Date: Fri, 4 Dec 2009 10:11:49 +0100 (CET)
+	id S1752426AbZLALC6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Dec 2009 06:02:58 -0500
+Date: Tue, 1 Dec 2009 12:03:08 +0100 (CET)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: Hans Verkuil <hverkuil@xs4all.nl>
 cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: [PATCH 1/2 v5] v4l: add a media-bus API for configuring v4l2 subdev
- pixel and frame formats
-In-Reply-To: <Pine.LNX.4.64.0912040816390.3981@axis700.grange>
-Message-ID: <Pine.LNX.4.64.0912041006080.3981@axis700.grange>
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Paul Mundt <lethal@linux-sh.org>
+Subject: Re: [PATCH 2/2 v2] soc-camera: convert to the new mediabus API
+In-Reply-To: <200912011545.24634.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.0912011153170.4701@axis700.grange>
 References: <Pine.LNX.4.64.0911261509100.5450@axis700.grange>
- <200912022257.33941.hverkuil@xs4all.nl> <Pine.LNX.4.64.0912031036510.4328@axis700.grange>
- <200912040946.24152.hverkuil@xs4all.nl> <Pine.LNX.4.64.0912040816390.3981@axis700.grange>
+ <alpine.LNX.2.01.0911301006240.3107@alastor> <Pine.LNX.4.64.0911301100050.12689@axis700.grange>
+ <200912011545.24634.hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Video subdevices, like cameras, decoders, connect to video bridges over
-specialised busses. Data is being transferred over these busses in various
-formats, which only loosely correspond to fourcc codes, describing how video
-data is stored in RAM. This is not a one-to-one correspondence, therefore we
-cannot use fourcc codes to configure subdevice output data formats. This patch
-adds codes for several such on-the-bus formats and an API, similar to the
-familiar .s_fmt(), .g_fmt(), .try_fmt(), .enum_fmt() API for configuring those
-codes. After all users of the old API in struct v4l2_subdev_video_ops are
-converted, it will be removed. Also add helper routines to support generic
-pass-through mode for the soc-camera framework.
+On Tue, 1 Dec 2009, Hans Verkuil wrote:
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+> On Monday 30 November 2009 15:48:24 Guennadi Liakhovetski wrote:
+> > On Mon, 30 Nov 2009, Hans Verkuil wrote:
+> > > On Fri, 27 Nov 2009, Guennadi Liakhovetski wrote:
+> > > > On Fri, 27 Nov 2009, Hans Verkuil wrote:
+> > > > > Hi Guennadi,
+> > > > >
+> > > > > > Convert soc-camera core and all soc-camera drivers to the new
+> > > > > > mediabus API. This also takes soc-camera client drivers one step
+> > > > > > closer to also be
+> > > > > > usable with generic v4l2-subdev host drivers.
+> > > > >
+> > > > > Just a quick question:
+> > > > > > @@ -323,28 +309,39 @@ static int mt9m001_s_fmt(struct v4l2_subdev
+> > > > > > *sd, struct v4l2_format *f)
+> > > > > >  	/* No support for scaling so far, just crop. TODO: use skipping
+> > > > > > */ ret = mt9m001_s_crop(sd, &a);
+> > > > > >  	if (!ret) {
+> > > > > > -		pix->width = mt9m001->rect.width;
+> > > > > > -		pix->height = mt9m001->rect.height;
+> > > > > > -		mt9m001->fourcc = pix->pixelformat;
+> > > > > > +		mf->width	= mt9m001->rect.width;
+> > > > > > +		mf->height	= mt9m001->rect.height;
+> > > > > > +		mt9m001->fmt	= soc_mbus_find_datafmt(mf->code,
+> > > > > > +					mt9m001->fmts, mt9m001->num_fmts);
+> > > > > > +		mf->colorspace	= mt9m001->fmt->colorspace;
+> > > > > >  	}
+> > > > > >
+> > > > > >  	return ret;
+> > > > > >  }
+> > > > > >
+> > > > > > -static int mt9m001_try_fmt(struct v4l2_subdev *sd, struct
+> > > > > > v4l2_format *f)
+> > > > > > +static int mt9m001_try_fmt(struct v4l2_subdev *sd,
+> > > > > > +			   struct v4l2_mbus_framefmt *mf)
+> > > > > >  {
+> > > > > >  	struct i2c_client *client = sd->priv;
+> > > > > >  	struct mt9m001 *mt9m001 = to_mt9m001(client);
+> > > > > > -	struct v4l2_pix_format *pix = &f->fmt.pix;
+> > > > > > +	const struct soc_mbus_datafmt *fmt;
+> > > > > >
+> > > > > > -	v4l_bound_align_image(&pix->width, MT9M001_MIN_WIDTH,
+> > > > > > +	v4l_bound_align_image(&mf->width, MT9M001_MIN_WIDTH,
+> > > > > >  		MT9M001_MAX_WIDTH, 1,
+> > > > > > -		&pix->height, MT9M001_MIN_HEIGHT + mt9m001->y_skip_top,
+> > > > > > +		&mf->height, MT9M001_MIN_HEIGHT + mt9m001->y_skip_top,
+> > > > > >  		MT9M001_MAX_HEIGHT + mt9m001->y_skip_top, 0, 0);
+> > > > > >
+> > > > > > -	if (pix->pixelformat == V4L2_PIX_FMT_SBGGR8 ||
+> > > > > > -	    pix->pixelformat == V4L2_PIX_FMT_SBGGR16)
+> > > > > > -		pix->height = ALIGN(pix->height - 1, 2);
+> > > > > > +	if (mt9m001->fmts == mt9m001_colour_fmts)
+> > > > > > +		mf->height = ALIGN(mf->height - 1, 2);
+> > > > > > +
+> > > > > > +	fmt = soc_mbus_find_datafmt(mf->code, mt9m001->fmts,
+> > > > > > +				    mt9m001->num_fmts);
+> > > > > > +	if (!fmt) {
+> > > > > > +		fmt = mt9m001->fmt;
+> > > > > > +		mf->code = fmt->code;
+> > > > > > +	}
+> > > > > > +
+> > > > > > +	mf->colorspace	= fmt->colorspace;
+> > > > > >
+> > > > > >  	return 0;
+> > > > > >  }
+> > > > >
+> > > > > Why do the sensor drivers use soc_mbus_find_datafmt? They only seem
+> > > > > to be interested in the colorspace field, but I don't see the reason
+> > > > > for that. Most if not all sensors have a fixed colorspace depending
+> > > > > on the pixelcode, so they can just ignore the colorspace that the
+> > > > > caller requested and replace it with their own.
+> > > >
+> > > > Right, that's exactly what's done here. mt9m001 and mt9v022 drivers
+> > > > support different formats, depending on the exact detected or specified
+> > > > by the user model. That's why they have to search for the requested
+> > > > format in supported list. and then - yes, they just put the found
+> > > > format into user
+> > > >
+> > > > request:
+> > > > > > +	mf->colorspace	= fmt->colorspace;
+> > > > >
+> > > > > I didn't have time for a full review, so I might have missed
+> > > > > something.
+> > >
+> > > I looked at this more closely and I realized that I did indeed miss that
+> > > soc_mbus_find_datafmt just searched in the pixelcode -> colorspace
+> > > mapping array.
+> > >
+> > > I also realized that there is no need for that data structure and
+> > > function to be soc-camera specific. I believe I said otherwise in an
+> > > earlier review. My apologies for that, all I can say is that I had very
+> > > little time to do the reviews...
+> >
+> > No, you did not say otherwise about _these_ struct and function - they
+> > only appeared in v2 of the mediabus API, after you'd suggested to move
+> > colorspace into struct v4l2_mbus_framefmt.
+> >
+> > > That said, there is no need for both the soc_mbus_datafmt struct and the
+> > > soc_mbus_find_datafmt function. These can easily be replaced by something
+> > > like this as a local function in each subdev:
+> > >
+> > > static enum v4l2_colorspace mt9m111_g_colorspace(enum v4l2_mbus_pixelcode
+> > > code)
+> > > {
+> > > 	switch (code) {
+> > > 	case V4L2_MBUS_FMT_YUYV:
+> > > 	case V4L2_MBUS_FMT_YVYU:
+> > > 	case V4L2_MBUS_FMT_UYVY:
+> > > 	case V4L2_MBUS_FMT_VYUY:
+> > > 		return V4L2_COLORSPACE_JPEG;
+> > >
+> > > 	case V4L2_MBUS_FMT_RGB555:
+> > > 	case V4L2_MBUS_FMT_RGB565:
+> > > 	case V4L2_MBUS_FMT_SBGGR8:
+> > > 	case V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE:
+> > > 		return V4L2_COLORSPACE_SRGB;
+> > >
+> > > 	default:
+> > > 		return 0;
+> > > 	}
+> > > }
+> > >
+> > > So if mt9m111_g_colorspace() returns 0, then the format wasn't found.
+> > > (Note that the compiler might give a warning for the return 0, so that
+> > > might need some editing)
+> > >
+> > > Much simpler and much easier to understand.
+> >
+> > Drivers are not forced to use that small and trivial function - everyone
+> > is welcome to reinvent the wheel:-) In many cases it is indeed an
+> > overkill, like mt9t031, which only supports one format. However, in some
+> > other drivers this is not that trivial. First, as I said, mt9m001 and
+> > mt9v022 generate that array dynamically, depending on the chip version and
+> > platform configuration. So, you anyway would have to iterate over the
+> > array. In other drivers, like ov772x and the recently submitted mt9t112
+> > this function is also used to retrieve register configuration for a
+> > specific pixel code. So, I still think that function is useful, and being
+> > kept under soc-camera mediabus extensions, and being inline, it shouldn't
+> > cause too many problems.
+> 
+> It definitely shouldn't be in a soc-camera header. If this is going to be used
+> as a common utility, then it should be in v4l2-mediabus.h.
+
+Sorry, I don't understand. IMHO soc_mbus_get_fmtdesc() and 
+soc_mbus_bytes_per_line() are much more likely to be useful for non 
+soc-camera drivers, and still you wanted them to remain soc-camera 
+specific. Now this small and trivial function, which, as you say, only 
+very few need, so, I made it soc-camera specific, now you want it to be 
+available to all...
+
+> But frankly the only two places where I think it is useful are mt9m001 and
+> mt9v022. In all other cases is can be replaced by simpler code. For ov772x
+> I would just add the pixelcode and colorspace fields to the 
+> ov772x_color_format struct instead and you iterate of the elements of the 
+> ov772x_cfmts array to find the one that matches the desired pixelcode.
+> 
+> I think the usefulness of the datastructure and utility function depends very 
+> much on the sensor driver which is why I prefer to have this being just part 
+> of the driver source itself rather than in a generic header. That gives the 
+> impression that driver writers *have* to do it that way, when often it can be 
+> done much simpler.
+
+Ok, how about this: I preserve the function as is in soc-camera, and leave 
+it as is in mt9m001, mt9v022, and ov772x (and in the forthcoming mt9t112). 
+In other drivers with constant format lists, where this function is only 
+used to find the colorspace, I'll replace it with a switch-case.
+
+I _really_ do not understand why soc-camera internal APIs now suddenly 
+receive such attention.
+
+Thanks
+Guennadi
 ---
-
-v4 -> v5: add byte-order annotations to YUV formats.
-
-Other patches in the series adjusted accordingly. This is what I'm going 
-to push in a few minutes / hours.
-
- drivers/media/video/Makefile       |    2 +-
- drivers/media/video/soc_mediabus.c |  157 ++++++++++++++++++++++++++++++++++++
- include/media/soc_mediabus.h       |   65 +++++++++++++++
- include/media/v4l2-mediabus.h      |   61 ++++++++++++++
- include/media/v4l2-subdev.h        |   19 ++++-
- 5 files changed, 302 insertions(+), 2 deletions(-)
- create mode 100644 drivers/media/video/soc_mediabus.c
- create mode 100644 include/media/soc_mediabus.h
- create mode 100644 include/media/v4l2-mediabus.h
-
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index 7a2dcc3..e7bc8da 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -149,7 +149,7 @@ obj-$(CONFIG_VIDEO_VIVI) += vivi.o
- obj-$(CONFIG_VIDEO_CX23885) += cx23885/
- 
- obj-$(CONFIG_VIDEO_OMAP2)		+= omap2cam.o
--obj-$(CONFIG_SOC_CAMERA)		+= soc_camera.o
-+obj-$(CONFIG_SOC_CAMERA)		+= soc_camera.o soc_mediabus.o
- obj-$(CONFIG_SOC_CAMERA_PLATFORM)	+= soc_camera_platform.o
- # soc-camera host drivers have to be linked after camera drivers
- obj-$(CONFIG_VIDEO_MX1)			+= mx1_camera.o
-diff --git a/drivers/media/video/soc_mediabus.c b/drivers/media/video/soc_mediabus.c
-new file mode 100644
-index 0000000..c54cae7
---- /dev/null
-+++ b/drivers/media/video/soc_mediabus.c
-@@ -0,0 +1,157 @@
-+/*
-+ * soc-camera media bus helper routines
-+ *
-+ * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-mediabus.h>
-+#include <media/soc_mediabus.h>
-+
-+#define MBUS_IDX(f) (V4L2_MBUS_FMT_ ## f - V4L2_MBUS_FMT_FIXED - 1)
-+
-+static const struct soc_mbus_pixelfmt mbus_fmt[] = {
-+	[MBUS_IDX(YUYV8_2X8_LE)] = {
-+		.fourcc			= V4L2_PIX_FMT_YUYV,
-+		.name			= "YUYV",
-+		.bits_per_sample	= 8,
-+		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
-+		.order			= SOC_MBUS_ORDER_LE,
-+	}, [MBUS_IDX(YVYU8_2X8_LE)] = {
-+		.fourcc			= V4L2_PIX_FMT_YVYU,
-+		.name			= "YVYU",
-+		.bits_per_sample	= 8,
-+		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
-+		.order			= SOC_MBUS_ORDER_LE,
-+	}, [MBUS_IDX(YUYV8_2X8_BE)] = {
-+		.fourcc			= V4L2_PIX_FMT_UYVY,
-+		.name			= "UYVY",
-+		.bits_per_sample	= 8,
-+		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
-+		.order			= SOC_MBUS_ORDER_LE,
-+	}, [MBUS_IDX(YVYU8_2X8_BE)] = {
-+		.fourcc			= V4L2_PIX_FMT_VYUY,
-+		.name			= "VYUY",
-+		.bits_per_sample	= 8,
-+		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
-+		.order			= SOC_MBUS_ORDER_LE,
-+	}, [MBUS_IDX(RGB555_2X8_PADHI_LE)] = {
-+		.fourcc			= V4L2_PIX_FMT_RGB555,
-+		.name			= "RGB555",
-+		.bits_per_sample	= 8,
-+		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
-+		.order			= SOC_MBUS_ORDER_LE,
-+	}, [MBUS_IDX(RGB555_2X8_PADHI_BE)] = {
-+		.fourcc			= V4L2_PIX_FMT_RGB555X,
-+		.name			= "RGB555X",
-+		.bits_per_sample	= 8,
-+		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
-+		.order			= SOC_MBUS_ORDER_LE,
-+	}, [MBUS_IDX(RGB565_2X8_LE)] = {
-+		.fourcc			= V4L2_PIX_FMT_RGB565,
-+		.name			= "RGB565",
-+		.bits_per_sample	= 8,
-+		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
-+		.order			= SOC_MBUS_ORDER_LE,
-+	}, [MBUS_IDX(RGB565_2X8_BE)] = {
-+		.fourcc			= V4L2_PIX_FMT_RGB565X,
-+		.name			= "RGB565X",
-+		.bits_per_sample	= 8,
-+		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
-+		.order			= SOC_MBUS_ORDER_LE,
-+	}, [MBUS_IDX(SBGGR8_1X8)] = {
-+		.fourcc			= V4L2_PIX_FMT_SBGGR8,
-+		.name			= "Bayer 8 BGGR",
-+		.bits_per_sample	= 8,
-+		.packing		= SOC_MBUS_PACKING_NONE,
-+		.order			= SOC_MBUS_ORDER_LE,
-+	}, [MBUS_IDX(SBGGR10_1X10)] = {
-+		.fourcc			= V4L2_PIX_FMT_SBGGR10,
-+		.name			= "Bayer 10 BGGR",
-+		.bits_per_sample	= 10,
-+		.packing		= SOC_MBUS_PACKING_EXTEND16,
-+		.order			= SOC_MBUS_ORDER_LE,
-+	}, [MBUS_IDX(GREY8_1X8)] = {
-+		.fourcc			= V4L2_PIX_FMT_GREY,
-+		.name			= "Grey",
-+		.bits_per_sample	= 8,
-+		.packing		= SOC_MBUS_PACKING_NONE,
-+		.order			= SOC_MBUS_ORDER_LE,
-+	}, [MBUS_IDX(Y10_1X10)] = {
-+		.fourcc			= V4L2_PIX_FMT_Y10,
-+		.name			= "Grey 10bit",
-+		.bits_per_sample	= 10,
-+		.packing		= SOC_MBUS_PACKING_EXTEND16,
-+		.order			= SOC_MBUS_ORDER_LE,
-+	}, [MBUS_IDX(SBGGR10_2X8_PADHI_LE)] = {
-+		.fourcc			= V4L2_PIX_FMT_SBGGR10,
-+		.name			= "Bayer 10 BGGR",
-+		.bits_per_sample	= 8,
-+		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
-+		.order			= SOC_MBUS_ORDER_LE,
-+	}, [MBUS_IDX(SBGGR10_2X8_PADLO_LE)] = {
-+		.fourcc			= V4L2_PIX_FMT_SBGGR10,
-+		.name			= "Bayer 10 BGGR",
-+		.bits_per_sample	= 8,
-+		.packing		= SOC_MBUS_PACKING_2X8_PADLO,
-+		.order			= SOC_MBUS_ORDER_LE,
-+	}, [MBUS_IDX(SBGGR10_2X8_PADHI_BE)] = {
-+		.fourcc			= V4L2_PIX_FMT_SBGGR10,
-+		.name			= "Bayer 10 BGGR",
-+		.bits_per_sample	= 8,
-+		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
-+		.order			= SOC_MBUS_ORDER_BE,
-+	}, [MBUS_IDX(SBGGR10_2X8_PADLO_BE)] = {
-+		.fourcc			= V4L2_PIX_FMT_SBGGR10,
-+		.name			= "Bayer 10 BGGR",
-+		.bits_per_sample	= 8,
-+		.packing		= SOC_MBUS_PACKING_2X8_PADLO,
-+		.order			= SOC_MBUS_ORDER_BE,
-+	},
-+};
-+
-+s32 soc_mbus_bytes_per_line(u32 width, const struct soc_mbus_pixelfmt *mf)
-+{
-+	switch (mf->packing) {
-+	case SOC_MBUS_PACKING_NONE:
-+		return width * mf->bits_per_sample / 8;
-+	case SOC_MBUS_PACKING_2X8_PADHI:
-+	case SOC_MBUS_PACKING_2X8_PADLO:
-+	case SOC_MBUS_PACKING_EXTEND16:
-+		return width * 2;
-+	}
-+	return -EINVAL;
-+}
-+EXPORT_SYMBOL(soc_mbus_bytes_per_line);
-+
-+const struct soc_mbus_pixelfmt *soc_mbus_get_fmtdesc(
-+	enum v4l2_mbus_pixelcode code)
-+{
-+	if ((unsigned int)(code - V4L2_MBUS_FMT_FIXED) > ARRAY_SIZE(mbus_fmt))
-+		return NULL;
-+	return mbus_fmt + code - V4L2_MBUS_FMT_FIXED - 1;
-+}
-+EXPORT_SYMBOL(soc_mbus_get_fmtdesc);
-+
-+static int __init soc_mbus_init(void)
-+{
-+	return 0;
-+}
-+
-+static void __exit soc_mbus_exit(void)
-+{
-+}
-+
-+module_init(soc_mbus_init);
-+module_exit(soc_mbus_exit);
-+
-+MODULE_DESCRIPTION("soc-camera media bus interface");
-+MODULE_AUTHOR("Guennadi Liakhovetski <g.liakhovetski@gmx.de>");
-+MODULE_LICENSE("GPL v2");
-diff --git a/include/media/soc_mediabus.h b/include/media/soc_mediabus.h
-new file mode 100644
-index 0000000..037cd7b
---- /dev/null
-+++ b/include/media/soc_mediabus.h
-@@ -0,0 +1,65 @@
-+/*
-+ * SoC-camera Media Bus API extensions
-+ *
-+ * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef SOC_MEDIABUS_H
-+#define SOC_MEDIABUS_H
-+
-+#include <linux/videodev2.h>
-+
-+#include <media/v4l2-mediabus.h>
-+
-+/**
-+ * enum soc_mbus_packing - data packing types on the media-bus
-+ * @SOC_MBUS_PACKING_NONE:	no packing, bit-for-bit transfer to RAM
-+ * @SOC_MBUS_PACKING_2X8_PADHI:	16 bits transferred in 2 8-bit samples, in the
-+ *				possibly incomplete byte high bits are padding
-+ * @SOC_MBUS_PACKING_2X8_PADLO:	as above, but low bits are padding
-+ * @SOC_MBUS_PACKING_EXTEND16:	sample width (e.g., 10 bits) has to be extended
-+ *				to 16 bits
-+ */
-+enum soc_mbus_packing {
-+	SOC_MBUS_PACKING_NONE,
-+	SOC_MBUS_PACKING_2X8_PADHI,
-+	SOC_MBUS_PACKING_2X8_PADLO,
-+	SOC_MBUS_PACKING_EXTEND16,
-+};
-+
-+/**
-+ * enum soc_mbus_order - sample order on the media bus
-+ * @SOC_MBUS_ORDER_LE:		least significant sample first
-+ * @SOC_MBUS_ORDER_BE:		most significant sample first
-+ */
-+enum soc_mbus_order {
-+	SOC_MBUS_ORDER_LE,
-+	SOC_MBUS_ORDER_BE,
-+};
-+
-+/**
-+ * struct soc_mbus_pixelfmt - Data format on the media bus
-+ * @name:		Name of the format
-+ * @fourcc:		Fourcc code, that will be obtained if the data is
-+ *			stored in memory in the following way:
-+ * @packing:		Type of sample-packing, that has to be used
-+ * @order:		Sample order when storing in memory
-+ * @bits_per_sample:	How many bits the bridge has to sample
-+ */
-+struct soc_mbus_pixelfmt {
-+	const char		*name;
-+	u32			fourcc;
-+	enum soc_mbus_packing	packing;
-+	enum soc_mbus_order	order;
-+	u8			bits_per_sample;
-+};
-+
-+const struct soc_mbus_pixelfmt *soc_mbus_get_fmtdesc(
-+	enum v4l2_mbus_pixelcode code);
-+s32 soc_mbus_bytes_per_line(u32 width, const struct soc_mbus_pixelfmt *mf);
-+
-+#endif
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-new file mode 100644
-index 0000000..5cf2a6d
---- /dev/null
-+++ b/include/media/v4l2-mediabus.h
-@@ -0,0 +1,61 @@
-+/*
-+ * Media Bus API header
-+ *
-+ * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef V4L2_MEDIABUS_H
-+#define V4L2_MEDIABUS_H
-+
-+/*
-+ * These pixel codes uniquely identify data formats on the media bus. Mostly
-+ * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
-+ * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
-+ * data format is fixed. Additionally, "2X8" means that one pixel is transferred
-+ * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
-+ * transferred over the bus: "LE" means that the least significant bits are
-+ * transferred first, "BE" means that the most significant bits are transferred
-+ * first, and "PADHI" and "PADLO" define which bits - low or high, in the
-+ * incomplete high byte, are filled with padding bits.
-+ */
-+enum v4l2_mbus_pixelcode {
-+	V4L2_MBUS_FMT_FIXED = 1,
-+	V4L2_MBUS_FMT_YUYV8_2X8_LE,
-+	V4L2_MBUS_FMT_YVYU8_2X8_LE,
-+	V4L2_MBUS_FMT_YUYV8_2X8_BE,
-+	V4L2_MBUS_FMT_YVYU8_2X8_BE,
-+	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
-+	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
-+	V4L2_MBUS_FMT_RGB565_2X8_LE,
-+	V4L2_MBUS_FMT_RGB565_2X8_BE,
-+	V4L2_MBUS_FMT_SBGGR8_1X8,
-+	V4L2_MBUS_FMT_SBGGR10_1X10,
-+	V4L2_MBUS_FMT_GREY8_1X8,
-+	V4L2_MBUS_FMT_Y10_1X10,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
-+};
-+
-+/**
-+ * struct v4l2_mbus_framefmt - frame format on the media bus
-+ * @width:	frame width
-+ * @height:	frame height
-+ * @code:	data format code
-+ * @field:	used interlacing type
-+ * @colorspace:	colorspace of the data
-+ */
-+struct v4l2_mbus_framefmt {
-+	__u32				width;
-+	__u32				height;
-+	enum v4l2_mbus_pixelcode	code;
-+	enum v4l2_field			field;
-+	enum v4l2_colorspace		colorspace;
-+};
-+
-+#endif
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 544ce87..c53d462 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -22,6 +22,7 @@
- #define _V4L2_SUBDEV_H
- 
- #include <media/v4l2-common.h>
-+#include <media/v4l2-mediabus.h>
- 
- /* generic v4l2_device notify callback notification values */
- #define V4L2_SUBDEV_IR_RX_NOTIFY		_IOW('v', 0, u32)
-@@ -207,7 +208,7 @@ struct v4l2_subdev_audio_ops {
-    s_std_output: set v4l2_std_id for video OUTPUT devices. This is ignored by
- 	video input devices.
- 
--  s_crystal_freq: sets the frequency of the crystal used to generate the
-+   s_crystal_freq: sets the frequency of the crystal used to generate the
- 	clocks in Hz. An extra flags field allows device specific configuration
- 	regarding clock frequency dividers, etc. If not used, then set flags
- 	to 0. If the frequency is not supported, then -EINVAL is returned.
-@@ -217,6 +218,14 @@ struct v4l2_subdev_audio_ops {
- 
-    s_routing: see s_routing in audio_ops, except this version is for video
- 	devices.
-+
-+   enum_mbus_fmt: enumerate pixel formats, provided by a video data source
-+
-+   g_mbus_fmt: get the current pixel format, provided by a video data source
-+
-+   try_mbus_fmt: try to set a pixel format on a video data source
-+
-+   s_mbus_fmt: set a pixel format on a video data source
-  */
- struct v4l2_subdev_video_ops {
- 	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
-@@ -240,6 +249,14 @@ struct v4l2_subdev_video_ops {
- 	int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
- 	int (*enum_framesizes)(struct v4l2_subdev *sd, struct v4l2_frmsizeenum *fsize);
- 	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct v4l2_frmivalenum *fival);
-+	int (*enum_mbus_fmt)(struct v4l2_subdev *sd, int index,
-+			     enum v4l2_mbus_pixelcode *code);
-+	int (*g_mbus_fmt)(struct v4l2_subdev *sd,
-+			  struct v4l2_mbus_framefmt *fmt);
-+	int (*try_mbus_fmt)(struct v4l2_subdev *sd,
-+			    struct v4l2_mbus_framefmt *fmt);
-+	int (*s_mbus_fmt)(struct v4l2_subdev *sd,
-+			  struct v4l2_mbus_framefmt *fmt);
- };
- 
- /**
--- 
-1.6.2.4
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
