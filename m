@@ -1,52 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:56562 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757322AbZLDX0y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 18:26:54 -0500
-Received: by fxm5 with SMTP id 5so3048028fxm.28
-        for <linux-media@vger.kernel.org>; Fri, 04 Dec 2009 15:27:00 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:46911 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754397AbZLAVG0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Dec 2009 16:06:26 -0500
+Message-ID: <4B15852D.4050505@redhat.com>
+Date: Tue, 01 Dec 2009 19:05:49 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <44c6f3de0912041415r54d8ab6fq486f2a82edb91a68@mail.gmail.com>
-References: <44c6f3de0912041415r54d8ab6fq486f2a82edb91a68@mail.gmail.com>
-Date: Fri, 4 Dec 2009 18:26:59 -0500
-Message-ID: <829197380912041526r764a0deeyb64910a22e92d75d@mail.gmail.com>
-Subject: Re: [PATCH] sound/usb: Relax urb data alignment restriciton for
-	HVR-950Q only
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: John S Gruber <johnsgruber@gmail.com>
-Cc: linux-media@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Jon Smirl <jonsmirl@gmail.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com, khc@pm.waw.pl,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, lirc-list@lists.sourceforge.net,
+	superm1@ubuntu.com, Christoph Bartelmus <lirc@bartelmus.de>
+Subject: Re: [RFC v2] Another approach to IR
+References: <9e4733910912010708u1064e2c6mbc08a01293c3e7fd@mail.gmail.com> <1259682428.18599.10.camel@maxim-laptop> <9e4733910912010816q32e829a2uce180bfda69ef86d@mail.gmail.com> <4B154C54.5090906@redhat.com> <829197380912010909m59cb1078q5bd2e00af0368aaf@mail.gmail.com> <4B155288.1060509@redhat.com> <20091201175400.GA19259@core.coreip.homeip.net> <4B1567D8.7080007@redhat.com> <20091201201158.GA20335@core.coreip.homeip.net>
+In-Reply-To: <20091201201158.GA20335@core.coreip.homeip.net>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Dec 4, 2009 at 5:15 PM, John S Gruber <johnsgruber@gmail.com> wrote:
-> Addressing audio quality problem.
->
-> In sound/usb/usbaudio.c, for the Hauppage HVR-950Q only, change
-> retire_capture_urb to copy the entire byte stream while still counting
-> entire audio frames. urbs unaligned on channel sample boundaries are
-> still truncated to the next lowest stride (audio slot) size to try to
-> retain channel alignment in cases of data loss over usb.
->
-> With the HVR950Q the left and right channel samples can be split between
-> two different urbs. Throwing away extra channel samples causes a sound
-> quality problem for stereo streams as the left and right channels are
-> swapped repeatedly.
-<snip>
+Dmitry Torokhov wrote:
+> On Tue, Dec 01, 2009 at 05:00:40PM -0200, Mauro Carvalho Chehab wrote:
+>> Dmitry Torokhov wrote:
+>>> On Tue, Dec 01, 2009 at 03:29:44PM -0200, Mauro Carvalho Chehab wrote:
+>>>> For sure we need to add an EVIOSETPROTO ioctl to allow the driver 
+>>>> to change the protocol in runtime.
+>>>>
+>>> Mauro,
+>>>
+>>> I think this kind of confuguration belongs to lirc device space,
+>>> not input/evdev. This is the same as protocol selection for psmouse
+>>> module: while it is normally auto-detected we have sysfs attribute to
+>>> force one or another and it is tied to serio device, not input
+>>> device.
+>> Dmitry,
+>>
+>> This has nothing to do with the raw interface nor with lirc. This problem 
+>> happens with the evdev interface and already affects the in-kernel drivers.
+>>
+>> In this case, psmouse is not a good example. With a mouse, when a movement
+>> occurs, you'll receive some data from its port. So, a software can autodetect
+>> the protocol. The same principle can be used also with a raw pulse/space
+>> interface, where software can autodetect the protocol.
+> 
+> Or, in certain cases, it can not.
+> 
+> [... skipped rationale for adding a way to control protocol (with which
+> I agree) ...]
+> 
+>> To solve this, we really need to extend evdev API to do 3 things: enumberate the
+>> supported protocols, get the current protocol(s), and select the protocol(s) that
+>> will be used by a newer table.
+>>
+> 
+> And here we start disagreeing. My preference would be for adding this
+> API on lirc device level (i.e. /syc/class/lirc/lircX/blah namespace),
+> since it only applicable to IR, not to input devices in general.
+> 
+> Once you selected proper protocol(s) and maybe instantiated several
+> input devices then udev (by examining input device capabilities and
+> optionally looking up at the parent device properties) would use
+> input evdev API to load proper keymap. Because translation of
+> driver-specific codes into standard key definitions is in the input
+> realm. Reading these driver-specific codes from hardware is outside of
+> input layer domain.
+> 
+> Just as psmouse ability to specify protocol is not shoved into evdev;
+> just as atkbd quirks (force release key list and other driver-specific
+> options) are not in evdev either; we should not overload evdev interface
+> with IR-specific items.
 
-Hello John,
+I'm not against mapping those features as sysfs atributes, but they don't belong
+to lirc, as far as I understand. From all we've discussed, we'll create a lirc
+interface to allow the direct usage of raw IO. However, IR protocol is a property
+that is not related to raw IO mode but, instead, to evdev mode.
 
-Thanks for taking the time to dig into this.  I will try to review
-your patch this weekend (in conjunction with the spec).
+We might add a /sys/class/IR and add IR specific stuff there, but it seems
+overkill to me and will hide the fact that those parameters are part of the evdev
+interface.
 
-It's worth noting that there are actually nine different USB IDs that
-would need this change (see au0828-cards.c), so it might be nice to
-see if we can figure out a way for the au0828 driver to tell the
-usbaudio driver about the quirk without relying on embedding USB ids
-in the usbaudio driver.
+So, I would just add the IR sysfs parameters at the /sys/class/input, if
+the device is an IR (or create it is /sys/class/input/IR).
 
-Devin
+I agree that the code to implement the IR specific sysfs parameter should be kept
+oustide input core, as they're specific to IR implementations.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Would this work for you?
+
+Cheers,
+Mauro.
+
