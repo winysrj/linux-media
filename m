@@ -1,91 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f187.google.com ([209.85.210.187]:46311 "EHLO
-	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751022AbZLKQ4T (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2009 11:56:19 -0500
-Received: by yxe17 with SMTP id 17so948364yxe.33
-        for <linux-media@vger.kernel.org>; Fri, 11 Dec 2009 08:56:26 -0800 (PST)
+Received: from mail-qy0-f192.google.com ([209.85.221.192]:59679 "EHLO
+	mail-qy0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752302AbZLASS4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 13:18:56 -0500
 MIME-Version: 1.0
-In-Reply-To: <37367b3a0912080842h601be618tdc4151ba226bbb60@mail.gmail.com>
-References: <37367b3a0912071113y41efc736h20a6fe203244811d@mail.gmail.com>
-	 <Pine.LNX.4.64.0912072052030.8481@axis700.grange>
-	 <37367b3a0912080842h601be618tdc4151ba226bbb60@mail.gmail.com>
-Date: Fri, 11 Dec 2009 14:56:25 -0200
-Message-ID: <37367b3a0912110856p24462203q481d6c330380c665@mail.gmail.com>
-Subject: Re: soc_camera: OV2640
-From: Alan Carvalho de Assis <acassis@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <4B154C54.5090906@redhat.com>
+References: <9e4733910912010708u1064e2c6mbc08a01293c3e7fd@mail.gmail.com>
+	 <1259682428.18599.10.camel@maxim-laptop>
+	 <9e4733910912010816q32e829a2uce180bfda69ef86d@mail.gmail.com>
+	 <4B154C54.5090906@redhat.com>
+Date: Tue, 1 Dec 2009 13:19:02 -0500
+Message-ID: <9e4733910912011019n798c7552i6f9b16f9e8e90c58@mail.gmail.com>
+Subject: Re: [RFC v2] Another approach to IR
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>, awalls@radix.net,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	lirc-list@lists.sourceforge.net, superm1@ubuntu.com,
+	Christoph Bartelmus <lirc@bartelmus.de>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+On Tue, Dec 1, 2009 at 12:03 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Hi Jon,
+> So, what we can do is to have a "default" keycode table mapping several
+> different IR's there to be used by drivers that are shipped with an IR
+> that can be fully mapped by the default table. However, for devices
+> with scancodes that overlaps with the default table, we'll need a separate
+> table.
 
-On 12/8/09, Alan Carvalho de Assis <acassis@gmail.com> wrote:
-> Hi Guennadi,
-...
->>> I am trying to use an OV2640 camera with soc_camera.
->>>
->>> I'm using ov772x driver as base, but it needs too much modification to
->>> work with ov2640.
->>
->> I don't know that sensor specifically, but they can be quite different.
->>
->
-> Yes, in fact ov2640 appears quite different compared to ov772x and ov9640.
->
->>> The OV2640 chip remaps all registers when register 0xFF is 1 or when it
->>> is
->>> 0.
->>
->> This is not unusual. There are a few ways to implement this, for example,
->> drivers/media/video/rj54n1cb0c.c uses 16-bit addresses, and decodes them
->> to bank:register pairs in its reg_read() and reg_write() routines.
->>
->
-> Ok, I will try to implement it this way, case nobody suggests me a
-> better approach.
->
+The goal is to try and design a set of zero config defaults that can
+work for 90% of users.
 
-I got mx27_camera from pengutronix tree and modified it to work with
-kernel 2.6.32 (few modifications). I added platform data/device on my
-board using pcm970-baseboard.c as example.
+LIRC merges two different things, basic IR driver support and
+application scripting for non-IR aware apps. Application scripting for
+unaware apps is always going to happen in user space and it will
+always need to be manually configured.  But scripting should be
+optional.
 
-In the kernel config I selected:
-CONFIG_VIDEO_MX27
-CONFIG_SOC_CAMERA_OV9640
+I'm looking at the driver half and I'd like to explore how zero config
+support can be built for IR aware apps. Of course we don't have any IR
+aware apps today because no kernel IR event types have been defined
+yet. It is better to simply make the apps IR aware and have them
+process IR events from evdev (in other words forget about the configs
+code it was a poor man's scripting scheme).
 
+For mouse/keyboard support something parallel to USB HID is needed. A
+couple of common device profiles would be mapped to keyboard/mouse
+events by default. That should support 90% of users. The other 10% can
+use a set keys IOCTL to change the mappings.
 
-I noticed a strange behavior: the ov9640 driver is called before mx27_camera:
+A couple of use cases:
+  insert MSMCE IR device
+  kernel automatically loads all drivers
+  IR events appear in evdev as vendor/device/command triplets
 
-Linux video capture interface: v2.00
->>> Probe OK until now, going to ProbeVideo <<<
->>> Probing OV9640 <<<
-Parent missing or invalid!
-Driver for 1-wire Dallas network protocol.
-i.MX SDHC driver
-usbcore: registered new interface driver usbhid
-usbhid: v2.6:USB HID core driver
-oprofile: using timer interrupt.
-TCP cubic registered
-NET: Registered protocol family 17
-mx27-camera mx27-camera.0: initialising
->>> mx27_camera: IRQ request OK!
->>> mx27_camera: pcdev OK!
->>> mx27_camera: clk_csi OK!
-mx27-camera mx27-camera.0: Camera clock frequency: 26600000
->>> mx27_camera: DMA request OK!
-mx27-camera mx27-camera.0: Using EMMA
->>> mx27_camera: probe OK until now!
-mx27-camera mx27-camera.0: Non-NULL drvdata on register
->>> mx27_camera: soc_camera_host_register returned 0!
+  apt-get mythtv
+  set universal remote to xmit DVR commands
+  everything just works
 
-Then ov9640 returns error because icd->dev.parent doesn't exist.
+  set universal remote to xmit device A commands
+  device A commands mapped to keyboard/mouse movements
+  everything just works
 
-Did you already see this issue?
+For these default cases you just have to read enough docs to know what
+device to set your universal remote to.
 
-Best Regards,
+The scenario I'd like to achieve
+   install TV app
+   install audio app
+   install home automation app
+   use multi-function remote to control in parallel with zero config
+other than setting three devices into the remote.
 
-Alan
+-- 
+Jon Smirl
+jonsmirl@gmail.com
