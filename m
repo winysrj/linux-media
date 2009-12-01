@@ -1,67 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-05.arcor-online.net ([151.189.21.45]:42360 "EHLO
-	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752171AbZLNBoy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Dec 2009 20:44:54 -0500
-Subject: Re: New ASUS P3-100 DVB-T/DVB-S device (1043:48cd)
-From: hermann pitton <hermann-pitton@arcor.de>
-To: dvblinux@free.fr
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <1260543775.4b225f1f4cec9@imp.free.fr>
-References: <200912111456.45947.amlopezalonso@gmail.com>
-	 <1260543775.4b225f1f4cec9@imp.free.fr>
-Content-Type: text/plain
-Date: Mon, 14 Dec 2009 02:36:20 +0100
-Message-Id: <1260754580.3275.20.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from devils.ext.ti.com ([198.47.26.153]:56033 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754046AbZLAWrM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 17:47:12 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Date: Tue, 1 Dec 2009 16:47:12 -0600
+Subject: RE: linux-media documentation fails to build
+Message-ID: <A69FA2915331DC488A831521EAE36FE40155B76C37@dlee06.ent.ti.com>
+References: <A69FA2915331DC488A831521EAE36FE40155B76C14@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40155B76C14@dlee06.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Some body removed media-spec target from v4l/Makefile.
 
-sorry for delay, no time for the list during the last days.
+I got it working with make spec.
 
-Am Freitag, den 11.12.2009, 16:02 +0100 schrieb dvblinux@free.fr:
-> Hi all, I'm new on this list.
-> 
-> I modified on my own the SAA driver to manage an ASUS PS3-100 combo card not
-> supported yet in current version.
-> 
-> It features two DVB-S and DVB-T receivers packed on the same PCI card.
+Why to change target name like this? 
 
-I'm not aware of such an Asus PCI card with two DVB-S and DVB-T
-receivers. We might hang in wording ...
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+phone: 301-407-9583
+email: m-karicheri2@ti.com
 
-Maybe one DVB-S, one DVB-T/analog hybrid tuner/demod and also support
-for analog radio and external S-Video/Composite and analog audio in?
-
-> The DVB-T part is identical to ASUS P7131 Hybrid and therefore is managed thru
-> the existing driver after a light patch in the driver source (and card.c):
-> copying relevant stuff from (1043:4876) to (1043:48cd).
-> 
-> I'm not a developper, how to share my successfull experiments ?
-
-We have support for the Asus Tiger 3in1 since last summer.
-This board was OEM only and also does not come with a remote, but your
-stuff is very likely based on that one.
-
-Please try all functions and inputs and post related "dmesg" output
-loading the saa7134 driver with "card=147 i2c_scan=1".
-
-It has the same LNA config like the ASUS P7131 Hybrid LNA too.
-
-I can't tell anything about a possible remote, but last on Asus was a
-transmitter labeled PC-39 that far and that one we do support.
-
-Cheers,
-Hermann
-
-
-
-
-
-
-
-
+>-----Original Message-----
+>From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>owner@vger.kernel.org] On Behalf Of Karicheri, Muralidharan
+>Sent: Tuesday, December 01, 2009 5:28 PM
+>To: linux-media@vger.kernel.org
+>Cc: Mauro Carvalho Chehab; Hans Verkuil
+>Subject: linux-media documentation fails to build
+>
+>Hi,
+>
+>I had downloaded the v4l2-dvb tree few days back to create my video timings
+>API documentation and it had compiled fine when I did,
+>
+>make media-spec
+>
+>I still can build using the old tar ball. But today, I downloaded v4l-dvb-
+>e0cd9a337600.tar.gz, it fails immediately after running the
+>make_myconfig.pl script with the error
+>
+>"No rule to make target 'media-spec'. Stop
+>
+>Has something changed last few days that broke the build?
+>
+>I need to make updates to video timing API documentation based on Han's
+>review comments and I am stuck at this issue now :(
+>
+>Murali Karicheri
+>Software Design Engineer
+>Texas Instruments Inc.
+>Germantown, MD 20874
+>phone: 301-407-9583
+>email: m-karicheri2@ti.com
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
