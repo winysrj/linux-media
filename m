@@ -1,52 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:40756 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756162AbZLIRvR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2009 12:51:17 -0500
-Received: by fxm5 with SMTP id 5so7824840fxm.28
-        for <linux-media@vger.kernel.org>; Wed, 09 Dec 2009 09:51:23 -0800 (PST)
+Received: from mail3.sea5.speakeasy.net ([69.17.117.5]:51364 "EHLO
+	mail3.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752231AbZLATtR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 14:49:17 -0500
+Date: Tue, 1 Dec 2009 11:49:22 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Replace Mercurial with GIT as SCM
+In-Reply-To: <alpine.LRH.2.00.0912011003480.30797@pub3.ifh.de>
+Message-ID: <Pine.LNX.4.58.0912011141340.4729@shell2.speakeasy.net>
+References: <alpine.LRH.2.00.0912011003480.30797@pub3.ifh.de>
 MIME-Version: 1.0
-In-Reply-To: <ad6681df0912090949k2bbdd926tc6b14ab690e9bb26@mail.gmail.com>
-References: <ad6681df0912090617k768b7f22p9abfb462ff32026f@mail.gmail.com>
-	 <829197380912090723s56ef100fpe0e7182a885ddf13@mail.gmail.com>
-	 <ad6681df0912090748i709fb67dn5c5fd889835913ea@mail.gmail.com>
-	 <829197380912090754j416e7058obae074df83420704@mail.gmail.com>
-	 <ad6681df0912090806o173d3e0do6d48a125e21a49f8@mail.gmail.com>
-	 <829197380912090826w3821ce97i3df653a2d7c83f0f@mail.gmail.com>
-	 <ad6681df0912090911w13a1c2e1q2a4e59cec2c4e000@mail.gmail.com>
-	 <829197380912090916q61d45ddbraf89852dc524dcf3@mail.gmail.com>
-	 <ad6681df0912090949k2bbdd926tc6b14ab690e9bb26@mail.gmail.com>
-Date: Wed, 9 Dec 2009 12:51:22 -0500
-Message-ID: <829197380912090951u38928896ne85d1202d22eba8a@mail.gmail.com>
-Subject: Re: v4l-dvb from source on 2.6.31.5 opensuse kernel - not working
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Valerio Bontempi <valerio.bontempi@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 9, 2009 at 12:49 PM, Valerio Bontempi
-> Hi Devin
->
-> attached you find the output.log requested
->
-> Thanks a lot
->
+On Tue, 1 Dec 2009, Patrick Boettcher wrote:
+> To start right away: I'm in favour of using GIT because of difficulties I
+> have with my "daily" work with v4l-dvb. It is in my nature do to mistakes,
+> so I need a tool which assists me in fixing those, I have not found a
+> simple way to do my stuff with HG.
 
-Ah, there is your problem.  You have updates installed, presumably by
-your distro.
-
-/lib/modules/2.6.31.5-0.1-desktop/updates/kernel/drivers/media/video/em28xx
-/lib/modules/2.6.31.5-0.1-desktop/updates/kernel/drivers/media/video/em28xx/em28xx-alsa.ko
-/lib/modules/2.6.31.5-0.1-desktop/updates/kernel/drivers/media/video/em28xx/em28xx-dvb.ko
-/lib/modules/2.6.31.5-0.1-desktop/updates/kernel/drivers/media/video/em28xx/em28xx.ko
-
-Those modules are conflicting with the base modules you replaced when
-you installed the latest v4l-dvb tree.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Try the mq extension.  It's included by default with mercurial, you just
+need to add:
+[extensions]
+hgext.mq=
+to your .hgrc file.  It lets you maintain a stack of patches that you can
+freely push and pop.  You can make changes and then commit them to one of
+the existing patches.  Like git commit -amend, except you can amend any
+patch not just the last one.  IMHO, it's better than stock git when you're
+trying to make a good patch series.  There is something called stgit which
+is very much like mq and a little better I think.
