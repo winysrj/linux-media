@@ -1,67 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:61730 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753699AbZLAQHG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 11:07:06 -0500
-Received: by fxm5 with SMTP id 5so5061309fxm.28
-        for <linux-media@vger.kernel.org>; Tue, 01 Dec 2009 08:07:12 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:35025 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752375AbZLARak (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Dec 2009 12:30:40 -0500
+Message-ID: <4B155288.1060509@redhat.com>
+Date: Tue, 01 Dec 2009 15:29:44 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <alpine.LRH.2.00.0912011003480.30797@pub3.ifh.de>
-References: <alpine.LRH.2.00.0912011003480.30797@pub3.ifh.de>
-Date: Tue, 1 Dec 2009 11:07:11 -0500
-Message-ID: <a728f9f90912010807g42705243u5509a66d8be74145@mail.gmail.com>
-Subject: Re: Replace Mercurial with GIT as SCM
-From: Alex Deucher <alexdeucher@gmail.com>
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Jon Smirl <jonsmirl@gmail.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>, awalls@radix.net,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	lirc-list@lists.sourceforge.net, superm1@ubuntu.com,
+	Christoph Bartelmus <lirc@bartelmus.de>
+Subject: Re: [RFC v2] Another approach to IR
+References: <9e4733910912010708u1064e2c6mbc08a01293c3e7fd@mail.gmail.com>	 <1259682428.18599.10.camel@maxim-laptop>	 <9e4733910912010816q32e829a2uce180bfda69ef86d@mail.gmail.com>	 <4B154C54.5090906@redhat.com> <829197380912010909m59cb1078q5bd2e00af0368aaf@mail.gmail.com>
+In-Reply-To: <829197380912010909m59cb1078q5bd2e00af0368aaf@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 1, 2009 at 9:59 AM, Patrick Boettcher
-<pboettcher@kernellabs.com> wrote:
-> Hi all,
->
-> I would like to start a discussion which ideally results in either changing
-> the SCM of v4l-dvb to git _or_ leaving everything as it is today with
-> mercurial.
->
-> To start right away: I'm in favour of using GIT because of difficulties I
-> have with my "daily" work with v4l-dvb. It is in my nature do to mistakes,
-> so I need a tool which assists me in fixing those, I have not found a simple
-> way to do my stuff with HG.
->
-> I'm helping out myself using a citation from which basically describes why
-> GIT fits the/my needs better than HG (*):
->
-> "The culture of mercurial is one of immutability. This is quite a good
-> thing, and it's one of my favorite aspects of gnu arch. If I commit
-> something, I like to know that it's going to be there. Because of this,
-> there are no tools to manipulate history by default.
->
-> git is all about manipulating history. There's rebase, commit amend,
-> reset, filter-branch, and probably other commands I'm not thinking of,
-> many of which make it into day-to-day workflows. Then again, there's
-> reflog, which adds a big safety net around this mutability."
->
-> The first paragraph here describes exactly my problem and the second
-> descibes how to solve it.
->
-> My suggestion is not to have the full Linux Kernel source as a new base for
-> v4l-dvb development, but "only" to replace the current v4l-dvb hg with a GIT
-> one. Importing all the history and everything.
->
-> Unfortunately it will change nothing for Mauro's job.
->
-> I also understand that it does not give a lot to people who haven't used GIT
-> until now other than a new SCM to learn. But believe me, once you've done a
-> rebase when Mauro has asked you to rebuild your tree before he can merge it,
-> you will see what I mean.
->
-> I'm waiting for comments.
+Devin Heitmueller wrote:
+> On Tue, Dec 1, 2009 at 12:03 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> Just taking an example from the dibcom0700 driver (as the same driver
+>> supports several different RC5 and NEC codes at the same time),
+>> the kernel table has several keycodes added there, all working
+>> at the same time. Providing that the scancodes won't overlap, you can
+>> map two different scancodes (from different IR's) to return the same
+>> keycode (table is not complete - I just got a few common keycodes):
+> 
+> Mauro,
+> 
+> Just to be clear, the dib0700 does not actually support receiving RC5
+> or NEC codes at the same time.  You have to tell the chip which mode
+> to operate in, via a REQUEST_SET_RC to the firmware (see
+> dib0700_core.c:405).  The em28xx works the same way (you have to tell
+> it what type of IR format to receive).
 
-I prefer git myself, but I'm not really actively working on v4l at the
-moment, so, I leave it up to the active devs.  One nice thing about
-git is the ability to maintain patch authorship.
+Yes, I know. I have a dib0700-based device that came with a NEC table, and
+I had to fix the driver to work with NEC on newer (1.20) firmwares and add the
+corresponding table for my NEC IR. Still I prefer to use this device with a
+RC5 IR from another manufacturer ;)
 
-Alex
+Yet, the same table works on my device with the shipped IR and with some
+other RC5 IR's I have. Due to the lack of an API to select the IR standard,
+I need to reload the module, passing a different modprobe parameter, to
+set it to either mode.
+
+> The fact that the driver currently uses the same lookup table for both
+> types of remote controls however, was perhaps not the best design
+> choice.  It really should be separated out, and merged with the
+> regular ir-functions.c.  I just never got around to it.
+
+I'm not sure if splitting the table on two would be the better way.
+
+For sure we need to add an EVIOSETPROTO ioctl to allow the driver 
+to change the protocol in runtime.
+
+If we'll keep using the same table, all an userspace app need is to say what's
+the desired IR mode. On the other hand, it should be easy for the application
+to also replace the table when a different protocol is selected.
+
+The point that I want to bold is that it is possible to use one big table to
+support several different IR's at the same time. This may be a good solution for
+devices that were shipped with more than one different IR models. It may also
+be a good solution to avoid having a large number of keymaps, as we may consolidate
+commonly used IR's on an unique table (or on a few groups of tables).
+
+Cheers,
+Mauro.
+
+
