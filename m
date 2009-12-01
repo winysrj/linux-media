@@ -1,39 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:54767 "EHLO znsun1.ifh.de"
+Received: from mx1.redhat.com ([209.132.183.28]:26082 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933848AbZLGL1T (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Dec 2009 06:27:19 -0500
-Received: from pub6.ifh.de (pub6.ifh.de [141.34.15.118])
-	by znsun1.ifh.de (8.12.11.20060614/8.12.11) with ESMTP id nB7BRLxR019162
-	for <linux-media@vger.kernel.org>; Mon, 7 Dec 2009 12:27:21 +0100 (MET)
-Received: from localhost (localhost [127.0.0.1])
-	by pub6.ifh.de (Postfix) with ESMTP id CFB21300124
-	for <linux-media@vger.kernel.org>; Mon,  7 Dec 2009 12:27:20 +0100 (CET)
-Date: Mon, 7 Dec 2009 12:27:20 +0100 (CET)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: DiB0700: streaming buffer size changed
-Message-ID: <alpine.LRH.2.00.0912071224350.13793@pub6.ifh.de>
+	id S1753244AbZLAKqe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Dec 2009 05:46:34 -0500
+Message-ID: <4B14F3EA.4090000@redhat.com>
+Date: Tue, 01 Dec 2009 11:46:02 +0100
+From: Gerd Hoffmann <kraxel@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+To: Andy Walls <awalls@radix.net>
+CC: Krzysztof Halasa <khc@pm.waw.pl>, Jon Smirl <jonsmirl@gmail.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	maximlevitsky@gmail.com, mchehab@redhat.com,
+	stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR  system?
+References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc>	 <9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>	 <m3aay6y2m1.fsf@intrepid.localdomain>	 <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>	 <1259450815.3137.19.camel@palomino.walls.org>	 <m3ocml6ppt.fsf@intrepid.localdomain> <1259542097.5231.78.camel@palomino.walls.org>
+In-Reply-To: <1259542097.5231.78.camel@palomino.walls.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello DiB0700-users,
+   Hi,
 
-Soon Mauro will pull in some changes on the dib0700-usb bridge which will 
-change the streaming-buffer-size by default.
+> A current related problem is that i2c based devices can only be bound to
+> only one of ir-kbd-i2c *or* lirc_i2c *or* lirc_zilog at any one time.
+> Currently it is somewhat up to the bridge driver which binding is
+> preferred.  Discussion about this for the pvrusb2 module had the biggest
+> email churn IIRC.
 
-According to our tests this should not create any problems and 
-unfortunately it won't fix anything except some timeouts on low-bitrate 
-services/sections when HW-PID-filtering is enabled.
+Once lirc_dev is merged you can easily fix this:  You'll have *one* 
+driver which supports *both* evdev and lirc interfaces.  If lircd opens 
+the lirc interface raw data will be sent there, keystrokes come in via 
+uinput.  Otherwise keystrokes are send directly via evdev.  Problem solved.
 
-If anyone of you DiB0700-users experiences any odd behaviour after the 
-patch has been applied to v4l-dvb, please report immediatly.
+cheers,
+   Gerd
 
-thanks,
+PS:  Not sure this actually makes sense for the i2c case, as far I know
+      these do decoding in hardware and don't provide access to the raw
+      samples, so killing the in-kernel IR limits to make ir-kbd-i2c
+      being on par with lirc_i2c might be more useful in this case.
 
---
-
-Patrick
-http://www.kernellabs.com/
