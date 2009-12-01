@@ -1,99 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4939 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750823AbZL0TPh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Dec 2009 14:15:37 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id nBRJFVUX064681
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 27 Dec 2009 20:15:36 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 27 Dec 2009 20:15:31 +0100 (CET)
-Message-Id: <200912271915.nBRJFVUX064681@smtp-vbr1.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail1.radix.net ([207.192.128.31]:49394 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752947AbZLALjz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Dec 2009 06:39:55 -0500
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR  system?
+From: Andy Walls <awalls@radix.net>
+To: Christoph Bartelmus <lirc@bartelmus.de>
+Cc: jonsmirl@gmail.com, dmitry.torokhov@gmail.com, j@jannau.net,
+	jarod@redhat.com, jarod@wilsonet.com, khc@pm.waw.pl,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, lirc-list@lists.sourceforge.net,
+	mchehab@redhat.com, superm1@ubuntu.com
+In-Reply-To: <BE3edeNXqgB@lirc>
+References: <BE3edeNXqgB@lirc>
+Content-Type: text/plain
+Date: Tue, 01 Dec 2009 06:38:00 -0500
+Message-Id: <1259667480.3100.10.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Tue, 2009-12-01 at 08:45 +0100, Christoph Bartelmus wrote:
+> Hi Jon,
+> 
+> on 30 Nov 09 at 16:35, Jon Smirl wrote:
 
-Results of the daily build of v4l-dvb:
 
-date:        Sun Dec 27 19:00:02 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13848:75c97b2d1a2a
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+> Currently I would tend to an approach like this:
+> - raw interface to userspace using LIRC
+> - fixed set of in-kernel decoders that can handle bundled remotes
+> 
+> That would allow zero configuration for simple use cases and full  
+> flexibility for more advanced use cases.
+> 
+> Christoph
 
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-armv5: OK
-linux-2.6.32-armv5-davinci: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.32-armv5-ixp: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.32-armv5-omap2: OK
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: ERRORS
-linux-2.6.28-i686: ERRORS
-linux-2.6.29.1-i686: ERRORS
-linux-2.6.30-i686: ERRORS
-linux-2.6.31-i686: ERRORS
-linux-2.6.32-i686: ERRORS
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: OK
-linux-2.6.32-mips: OK
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: OK
-linux-2.6.32-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: OK
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-x86_64: WARNINGS
-spec: OK
-sparse (linux-2.6.32): ERRORS
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+I'd also prefer that approach.
 
-Detailed results are available here:
+That probably comes as no surprise, but I may not be able to keep
+following/kibitzing in this thread. Christoph's statement sums up my
+preference.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+Regards,
+Andy
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
