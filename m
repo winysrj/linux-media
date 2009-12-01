@@ -1,67 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:38353 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754717AbZLAXsk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Dec 2009 18:48:40 -0500
-Subject: [PATCH] uvcvideo: add another YUYV format GUID
-From: Daniel Ritz <daniel.ritz@gmx.ch>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	daniel.ritz-ml@swissonline.ch
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:55046 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750815AbZLAOKg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 09:10:36 -0500
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR  system?
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: Andy Walls <awalls@radix.net>
+Cc: Christoph Bartelmus <lirc@bartelmus.de>, jonsmirl@gmail.com,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	lirc-list@lists.sourceforge.net, mchehab@redhat.com,
+	superm1@ubuntu.com
+In-Reply-To: <1259667480.3100.10.camel@palomino.walls.org>
+References: <BE3edeNXqgB@lirc> <1259667480.3100.10.camel@palomino.walls.org>
 Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 02 Dec 2009 00:48:44 +0100
-Message-ID: <1259711324.13720.20.camel@MacRitz2>
+Date: Tue, 01 Dec 2009 16:10:35 +0200
+Message-ID: <1259676635.18599.5.camel@maxim-laptop>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For some unknown reason, on a MacBookPro5,3 the iSight _sometimes_ report
-a different video format GUID. This patch add the other (wrong) GUID to
-the format table, making the iSight work always w/o other problems.
+On Tue, 2009-12-01 at 06:38 -0500, Andy Walls wrote: 
+> On Tue, 2009-12-01 at 08:45 +0100, Christoph Bartelmus wrote:
+> > Hi Jon,
+> > 
+> > on 30 Nov 09 at 16:35, Jon Smirl wrote:
+> 
+> 
+> > Currently I would tend to an approach like this:
+> > - raw interface to userspace using LIRC
+> > - fixed set of in-kernel decoders that can handle bundled remotes
+> > 
+> > That would allow zero configuration for simple use cases and full  
+> > flexibility for more advanced use cases.
+> > 
+> > Christoph
+> 
+> I'd also prefer that approach.
 
-What it should report: 32595559-0000-0010-8000-00aa00389b71
-What it often reports: 32595559-0000-0010-8000-000000389b71
+I also agree with this approach.
+This way, there will be no need for configfs hacks, but just static
+table for bundled remotes, and in fact this is very clean approach.
+Also, since bundled remotes use standard protocols, there will be no
+problem to add decoders for them.
 
-Signed-off-by: Daniel Ritz <daniel.ritz@gmx.ch>
----
- drivers/media/video/uvc/uvc_driver.c |    5 +++++
- drivers/media/video/uvc/uvcvideo.h   |    3 +++
- 2 files changed, 8 insertions(+), 0 deletions(-)
+For the rest, the remotes that were never meant to be used with the
+computer, lircd will do just fine.
 
-diff --git a/drivers/media/video/uvc/uvc_driver.c b/drivers/media/video/uvc/uvc_driver.c
-index 8756be5..c5af0a2 100644
---- a/drivers/media/video/uvc/uvc_driver.c
-+++ b/drivers/media/video/uvc/uvc_driver.c
-@@ -58,6 +58,11 @@ static struct uvc_format_desc uvc_fmts[] = {
- 		.fcc		= V4L2_PIX_FMT_YUYV,
- 	},
- 	{
-+		.name		= "YUV 4:2:2 (YUYV)",
-+		.guid		= UVC_GUID_FORMAT_YUY2_2,
-+		.fcc		= V4L2_PIX_FMT_YUYV,
-+	},
-+	{
- 		.name		= "YUV 4:2:0 (NV12)",
- 		.guid		= UVC_GUID_FORMAT_NV12,
- 		.fcc		= V4L2_PIX_FMT_NV12,
-diff --git a/drivers/media/video/uvc/uvcvideo.h b/drivers/media/video/uvc/uvcvideo.h
-index e7958aa..f18eac2 100644
---- a/drivers/media/video/uvc/uvcvideo.h
-+++ b/drivers/media/video/uvc/uvcvideo.h
-@@ -112,6 +112,9 @@ struct uvc_xu_control {
- #define UVC_GUID_FORMAT_YUY2 \
- 	{ 'Y',  'U',  'Y',  '2', 0x00, 0x00, 0x10, 0x00, \
- 	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+#define UVC_GUID_FORMAT_YUY2_2 \
-+	{ 'Y',  'U',  'Y',  '2', 0x00, 0x00, 0x10, 0x00, \
-+	 0x80, 0x00, 0x00, 0x00, 0x00, 0x38, 0x9b, 0x71}
- #define UVC_GUID_FORMAT_NV12 \
- 	{ 'N',  'V',  '1',  '2', 0x00, 0x00, 0x10, 0x00, \
- 	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
--- 
-1.6.3.3
+So, it a deal?
+
+Best regards,
+Maxim Levitsky
 
 
 
