@@ -1,52 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:8257 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:34943 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756731AbZLITIY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Dec 2009 14:08:24 -0500
-Message-ID: <4B1FF5AB.30405@redhat.com>
-Date: Wed, 09 Dec 2009 17:08:27 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1751824AbZLAP3y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Dec 2009 10:29:54 -0500
+Received: from int-mx03.intmail.prod.int.phx2.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id nB1FU05L006794
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 1 Dec 2009 10:30:00 -0500
+Received: from patchwork.usersys.redhat.com (dell-pe1800-02.lab.bos.redhat.com [10.16.42.196])
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id nB1FU0C9018525
+	for <linux-media@vger.kernel.org>; Tue, 1 Dec 2009 10:30:00 -0500
+Date: Tue, 1 Dec 2009 10:31:39 -0500
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] bttv: fix MODULE_PARM_DESC for i2c_debug and i2c_hw
+Message-ID: <20091201153139.GA10871@redhat.com>
 MIME-Version: 1.0
-To: Huang Shijie <shijie8@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 00/11] add linux driver for chip TLG2300
-References: <1258687493-4012-1-git-send-email-shijie8@gmail.com>
-In-Reply-To: <1258687493-4012-1-git-send-email-shijie8@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Huang Shijie wrote:
-> The TLG2300 is a chip of Telegent System.
-> It support analog tv,DVB-T and radio in a single chip.
-> The chip has been used in several dongles, such as aeromax DH-9000:
-> 	http://www.b2bdvb.com/dh-9000.htm
-> 
-> You can get more info from:
-> 	[1] http://www.telegent.com/
-> 	[2] http://www.telegent.com/press/2009Sept14_CSI.html
-> 
-> Huang Shijie (10):
->   add maitainers for tlg2300
->   add readme file for tlg2300
->   add Kconfig and Makefile for tlg2300
->   add header files for tlg2300
->   add the generic file
->   add video file for tlg2300
->   add vbi code for tlg2300
->   add audio support for tlg2300
->   add DVB-T support for tlg2300
->   add FM support for tlg2300
-> 
+Currently, i2c_debug shows up w/o a desc in modinfo, and i2c_hw shows
+up with i2c_debug's desc. Fix that.
 
-Ok, finished reviewing it.
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
 
-Patches 01, 02 and 04 seems ok to me. You didn't sent a patch 03.
-Patch 05 will likely need some changes (the headers) due to some reviews I did
-on the other patches.
-
-The other patches need some adjustments, as commented on separate emails.
-
-Cheers,
-Mauro.
+diff -r e0cd9a337600 linux/drivers/media/video/bt8xx/bttv-i2c.c
+--- a/linux/drivers/media/video/bt8xx/bttv-i2c.c	Sun Nov 29 12:08:02 2009 -0200
++++ b/linux/drivers/media/video/bt8xx/bttv-i2c.c	Tue Dec 01 10:23:54 2009 -0500
+@@ -40,7 +40,7 @@
+ static int i2c_hw;
+ static int i2c_scan;
+ module_param(i2c_debug, int, 0644);
+-MODULE_PARM_DESC(i2c_hw,"configure i2c debug level");
++MODULE_PARM_DESC(i2c_debug,"configure i2c debug level");
+ module_param(i2c_hw,    int, 0444);
+ MODULE_PARM_DESC(i2c_hw,"force use of hardware i2c support, "
+ 			"instead of software bitbang");
