@@ -1,99 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:4588 "EHLO
-	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754686AbZLTTOw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Dec 2009 14:14:52 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr17.xs4all.nl (8.13.8/8.13.8) with ESMTP id nBKJEo4t039723
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 20 Dec 2009 20:14:51 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 20 Dec 2009 20:14:50 +0100 (CET)
-Message-Id: <200912201914.nBKJEo4t039723@smtp-vbr17.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mx1.redhat.com ([209.132.183.28]:47639 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753735AbZLAJwb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Dec 2009 04:52:31 -0500
+Message-ID: <4B14E747.9060208@redhat.com>
+Date: Tue, 01 Dec 2009 10:52:07 +0100
+From: Gerd Hoffmann <kraxel@redhat.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, jonsmirl@gmail.com, khc@pm.waw.pl,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR  system?
+References: <BDodf9W1qgB@lirc> <4B13BBBE.3010101@redhat.com>
+In-Reply-To: <4B13BBBE.3010101@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On 11/30/09 13:34, Mauro Carvalho Chehab wrote:
+> Christoph Bartelmus wrote:
+>> Hi Mauro,
+>>
+>> I just don't want to change a working interface just because it could be
+>> also implemented in a different way, but having no other visible advantage
+>> than using more recent kernel features.
+>
+> I agree. The main reasons to review the interface is:
+> 	1) to avoid any overlaps (if are there any) with the evdev interface;
 
-Results of the daily build of v4l-dvb:
+Use lirc for raw samples.
+Use evdev for decoded data.
 
-date:        Sun Dec 20 19:00:02 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13836:9defbd461e5f
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Hardware/drivers which can handle both can support both interfaces.
 
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-armv5: OK
-linux-2.6.32-armv5-davinci: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.32-armv5-ixp: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.32-armv5-omap2: OK
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: ERRORS
-linux-2.6.28-i686: ERRORS
-linux-2.6.29.1-i686: ERRORS
-linux-2.6.30-i686: ERRORS
-linux-2.6.31-i686: ERRORS
-linux-2.6.32-i686: ERRORS
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: OK
-linux-2.6.32-mips: OK
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: OK
-linux-2.6.32-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: OK
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-x86_64: WARNINGS
-spec: OK
-sparse (linux-2.6.32): ERRORS
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+IMHO it makes no sense at all to squeeze raw samples through the input 
+layer.  It looks more like a serial line than a input device.  In fact 
+you can homebrew a receiver and connect it to the serial port, which was 
+quite common in pre-usb-ir-receiver times.
 
-Detailed results are available here:
+> 	2) to have it stable enough to be used, without changes, for a long
+> 	   time.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+It isn't like lirc is a new interface.  It has been used in practice for 
+years.  I don't think API stability is a problem here.
 
-Full logs are available here:
+> True, but even if we want to merge lirc drivers "as-is", the drivers will
+> still need changes, due to kernel CodingStyle, due to the usage of some API's
+> that may be deprecated, due to some breakage with non-Intel architectures, due
+> to some bugs that kernel hackers may discover, etc.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+I assumed this did happen in already in preparation of this submission?
 
-The V4L-DVB specification from this daily build is here:
+cheers,
+   Gerd
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
