@@ -1,124 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f192.google.com ([209.85.221.192]:64074 "EHLO
-	mail-qy0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751988AbZLBTuU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Dec 2009 14:50:20 -0500
-MIME-Version: 1.0
-In-Reply-To: <4B16C10E.6040907@redhat.com>
-References: <9e4733910912010816q32e829a2uce180bfda69ef86d@mail.gmail.com>
-	 <4B155288.1060509@redhat.com>
-	 <20091201175400.GA19259@core.coreip.homeip.net>
-	 <4B1567D8.7080007@redhat.com>
-	 <20091201201158.GA20335@core.coreip.homeip.net>
-	 <4B15852D.4050505@redhat.com>
-	 <20091202093803.GA8656@core.coreip.homeip.net>
-	 <4B16614A.3000208@redhat.com>
-	 <20091202171059.GC17839@core.coreip.homeip.net>
-	 <4B16C10E.6040907@redhat.com>
-Date: Wed, 2 Dec 2009 14:50:25 -0500
-Message-ID: <9e4733910912021150k33446d3aybf0634fa0007ca1d@mail.gmail.com>
-Subject: Re: [RFC v2] Another approach to IR
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com, khc@pm.waw.pl,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, lirc-list@lists.sourceforge.net,
-	superm1@ubuntu.com, Christoph Bartelmus <lirc@bartelmus.de>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from comal.ext.ti.com ([198.47.26.152]:54678 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754583AbZLAViw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Dec 2009 16:38:52 -0500
+From: m-karicheri2@ti.com
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	khilman@deeprootsystems.com
+Cc: davinci-linux-open-source@linux.davincidsp.com, hvaibhav@ti.com,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: [PATCH 2/5 - v0] V4L - vpfe capture enhancements to support DM365
+Date: Tue,  1 Dec 2009 16:38:50 -0500
+Message-Id: <1259703533-1789-2-git-send-email-m-karicheri2@ti.com>
+In-Reply-To: <1259703533-1789-1-git-send-email-m-karicheri2@ti.com>
+References: <1259703533-1789-1-git-send-email-m-karicheri2@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 2, 2009 at 2:33 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Dmitry Torokhov wrote:
->>> The raw interface applies only to the devices that doesn't have a hardware decoder
->>> (something between 40%-60% of the currently supported devices).
->>
->> 50% is quite a number I think. But if driver does not allow access to
->> the raw stream - it will refuse binding to lirc_dev interface.
->
-> Ok.
->
->> We need to cater to the future cases as well. I don't want to redesign
->> it in 2 years. But for devices that have only hardware decoders I
->> suppose we can short-curcuit "interfaces" and have a library-like module
->> creating input devices directly.
->
-> We really need only one interface for those devices. However, protocol selection
-> is needed, as it is associated with the scantable on those devices.
-> a sysfs entry would solve this issue.
->
-> Also, we need a better schema to cleanup the keycode table. Currently, the only way
-> I'm aware is to run a loop from 0 to 65535 associating a scancode to KEY_UNKNOWN or
-> to KEY_RESERVED.
->
->>> In the case of the cheap devices with just raw interfaces, running in-kernel
->>> decoders, while it will work if you create one interface per protocol
->>> per IR receiver, this also seems overkill. Why to do that? It sounds that it will
->>> just create additional complexity at the kernelspace and at the userspace, since
->>> now userspace programs will need to open more than one device to receive the
->>> keycodes.
->>
->> _Yes_!!! You open as many event devices as there are devices you are
->> interested in receiving data from. Multiplexing devices are bad, bad,
->> bad. Witness /dev/input/mouse and all the attempts at working around the
->> fact that if you have a special driver for one of your devices you
->> receive events from the same device through 2 interfaces and all kind of
->> "grab", "super-grab", "smart-grab" schemes are born.
->
-> The only device that the driver can actually see is the IR receiver. There's no way to
-> know if there is only one physical IR sending signals to it or several different models,
-> especially if we consider that programmable IR's can be able even to generate more than one
-> protocol at the same time, and can emulate other IR types.
+From: Muralidharan Karicheri <m-karicheri2@ti.com>
 
-IR devices transmit vendor/device/command triplets. They are easy to
-tell apart and create an evdev device corresponding to each
-vendor/device pair or something else along those lines.
+This patch adds support for handling CCDC configuration ioctl. A new
+IOCTL added to support reading current configuration at CCDC.
 
-If I tell a programmable remote to send out the same commands as my
-Sony remote that's the same thing as owning two identical Sony
-remotes. I'd expect them to be indistinguishable. If you want to be
-able to tell your remotes apart, don't program them to emulate each
-other.
+NOTE: This is the initial version for review.
 
-I've published code that can split these devices apart, it's not
-impossible to do.
+Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+---
+ drivers/media/video/davinci/vpfe_capture.c |   74 +++++++++++++++++++++++++++-
+ include/media/davinci/vpfe_capture.h       |    5 ++-
+ 2 files changed, 76 insertions(+), 3 deletions(-)
 
-802.11 receivers have the same problem, there is one receiver and many
-transmitters. The networking code doesn't have problems with sorting
-this out and separating the streams.
-
-> You might create some artificial schema to try to deal with different IR's being received
-> at the same IR receiver, but, IMHO, this will just add a complex abstraction layer.
->
-> Also, this won't give any real gain, as either both IR's will generate the same scancodes (and you can't distinguish what IR generated that code), or the scancode is different, and you
-> can handle it differently.
-
-Reusing the keycode is fine if they on different evdev devices. A key
-feature is creating one evdev device for each remote.
-
->
->>>> (for each remote/substream that they can recognize).
->>> I'm assuming that, by remote, you're referring to a remote receiver (and not to
->>> the remote itself), right?
->>
->> If we could separate by remote transmitter that would be the best I
->> think, but I understand that it is rarely possible?
->
-> IMHO, the better is to use a separate interface for the IR transmitters,
-> on the devices that support this feature. There are only a few devices
-> I'm aware of that are able to transmit IR codes.
->
-> Cheers,
-> Mauro.
->
->
-
-
-
+diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
+index 35bbb08..ae8f993 100644
+--- a/drivers/media/video/davinci/vpfe_capture.c
++++ b/drivers/media/video/davinci/vpfe_capture.c
+@@ -759,12 +759,83 @@ static unsigned int vpfe_poll(struct file *file, poll_table *wait)
+ 	return 0;
+ }
+ 
++static long vpfe_param_handler(struct file *file, void *priv,
++		int cmd, void *param)
++{
++	struct vpfe_device *vpfe_dev = video_drvdata(file);
++	int ret = 0;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_param_handler\n");
++
++	if (NULL == param) {
++		v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
++			"Invalid user ptr\n");
++	}
++
++	if (vpfe_dev->started) {
++		/* only allowed if streaming is not started */
++		v4l2_err(&vpfe_dev->v4l2_dev, "device already started\n");
++		return -EBUSY;
++	}
++
++
++	switch (cmd) {
++	case VPFE_CMD_S_CCDC_RAW_PARAMS:
++		v4l2_warn(&vpfe_dev->v4l2_dev,
++			  "VPFE_CMD_S_CCDC_RAW_PARAMS: experimental ioctl\n");
++		ret = mutex_lock_interruptible(&vpfe_dev->lock);
++		if (ret)
++			return ret;
++		ret = ccdc_dev->hw_ops.set_params(param);
++		if (ret) {
++			v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
++				"Error in setting parameters in CCDC\n");
++			goto unlock_out;
++		}
++
++		if (vpfe_get_ccdc_image_format(vpfe_dev, &vpfe_dev->fmt) < 0) {
++			v4l2_err(&vpfe_dev->v4l2_dev,
++				"Invalid image format at CCDC\n");
++			ret = -EINVAL;
++		}
++unlock_out:
++		mutex_unlock(&vpfe_dev->lock);
++		break;
++	case VPFE_CMD_G_CCDC_RAW_PARAMS:
++		v4l2_warn(&vpfe_dev->v4l2_dev,
++			  "VPFE_CMD_G_CCDC_RAW_PARAMS: experimental ioctl\n");
++		if (!ccdc_dev->hw_ops.get_params) {
++			ret = -EINVAL;
++			break;
++		}
++		ret = ccdc_dev->hw_ops.get_params(param);
++		if (ret) {
++			v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
++				"Error in getting parameters from CCDC\n");
++		}
++		break;
++
++	default:
++		ret = -EINVAL;
++	}
++	return ret;
++}
++
++static long vpfe_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
++{
++	if (cmd == VPFE_CMD_S_CCDC_RAW_PARAMS ||
++	    cmd == VPFE_CMD_G_CCDC_RAW_PARAMS)
++		return vpfe_param_handler(file, file->private_data, cmd,
++					 (void *)arg);
++	return video_ioctl2(file, cmd, arg);
++}
++
+ /* vpfe capture driver file operations */
+ static const struct v4l2_file_operations vpfe_fops = {
+ 	.owner = THIS_MODULE,
+ 	.open = vpfe_open,
+ 	.release = vpfe_release,
+-	.unlocked_ioctl = video_ioctl2,
++	.unlocked_ioctl = vpfe_ioctl,
+ 	.mmap = vpfe_mmap,
+ 	.poll = vpfe_poll
+ };
+@@ -1751,7 +1822,6 @@ static const struct v4l2_ioctl_ops vpfe_ioctl_ops = {
+ 	.vidioc_cropcap		 = vpfe_cropcap,
+ 	.vidioc_g_crop		 = vpfe_g_crop,
+ 	.vidioc_s_crop		 = vpfe_s_crop,
+-	.vidioc_default		 = vpfe_param_handler,
+ };
+ 
+ static struct vpfe_device *vpfe_initialize(void)
+diff --git a/include/media/davinci/vpfe_capture.h b/include/media/davinci/vpfe_capture.h
+index 7b62a5c..1e6817c 100644
+--- a/include/media/davinci/vpfe_capture.h
++++ b/include/media/davinci/vpfe_capture.h
+@@ -71,7 +71,7 @@ struct vpfe_subdev_info {
+ 	/* Sub dev routing information for each input */
+ 	struct vpfe_route *routes;
+ 	/* check if sub dev supports routing */
+-	int can_route;
++	int can_route:1;
+ 	/* ccdc bus/interface configuration */
+ 	struct vpfe_hw_if_param ccdc_if_params;
+ 	/* i2c subdevice board info */
+@@ -202,4 +202,7 @@ struct vpfe_config_params {
+  **/
+ #define VPFE_CMD_S_CCDC_RAW_PARAMS _IOW('V', BASE_VIDIOC_PRIVATE + 1, \
+ 					void *)
++#define VPFE_CMD_G_CCDC_RAW_PARAMS _IOR('V', BASE_VIDIOC_PRIVATE + 2, \
++					void *)
++
+ #endif				/* _DAVINCI_VPFE_H */
 -- 
-Jon Smirl
-jonsmirl@gmail.com
+1.6.0.4
+
