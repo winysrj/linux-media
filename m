@@ -1,73 +1,468 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:49603 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753480AbZLALus (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Dec 2009 06:50:48 -0500
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR  system?
-From: Andy Walls <awalls@radix.net>
-To: Gerd Hoffmann <kraxel@redhat.com>
-Cc: Krzysztof Halasa <khc@pm.waw.pl>, Jon Smirl <jonsmirl@gmail.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	maximlevitsky@gmail.com, mchehab@redhat.com,
-	stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
-In-Reply-To: <4B14F3EA.4090000@redhat.com>
-References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc>
-	 <9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>
-	 <m3aay6y2m1.fsf@intrepid.localdomain>
-	 <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>
-	 <1259450815.3137.19.camel@palomino.walls.org>
-	 <m3ocml6ppt.fsf@intrepid.localdomain>
-	 <1259542097.5231.78.camel@palomino.walls.org> <4B14F3EA.4090000@redhat.com>
-Content-Type: text/plain
-Date: Tue, 01 Dec 2009 06:49:03 -0500
-Message-Id: <1259668143.3100.18.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from devils.ext.ti.com ([198.47.26.153]:45456 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752496AbZLAT2q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 14:28:46 -0500
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+CC: "davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+Date: Wed, 2 Dec 2009 00:58:36 +0530
+Subject: RE: [PATCH v0 1/2] V4L - vpfe capture - convert ccdc drivers to
+ platform drivers
+Message-ID: <19F8576C6E063C45BE387C64729E7394043716AE11@dbde02.ent.ti.com>
+References: <1259691333-32164-1-git-send-email-m-karicheri2@ti.com>
+In-Reply-To: <1259691333-32164-1-git-send-email-m-karicheri2@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2009-12-01 at 11:46 +0100, Gerd Hoffmann wrote:
-> Hi,
+> -----Original Message-----
+> From: Karicheri, Muralidharan
+> Sent: Tuesday, December 01, 2009 11:46 PM
+> To: linux-media@vger.kernel.org; hverkuil@xs4all.nl;
+> khilman@deeprootsystems.com
+> Cc: davinci-linux-open-source@linux.davincidsp.com; Hiremath,
+> Vaibhav; Karicheri, Muralidharan
+> Subject: [PATCH v0 1/2] V4L - vpfe capture - convert ccdc drivers to
+> platform drivers
 > 
-> > A current related problem is that i2c based devices can only be bound to
-> > only one of ir-kbd-i2c *or* lirc_i2c *or* lirc_zilog at any one time.
-> > Currently it is somewhat up to the bridge driver which binding is
-> > preferred.  Discussion about this for the pvrusb2 module had the biggest
-> > email churn IIRC.
+> From: Muralidharan Karicheri <m-karicheri2@ti.com>
 > 
-> Once lirc_dev is merged you can easily fix this:  You'll have *one* 
-> driver which supports *both* evdev and lirc interfaces.  If lircd opens 
-> the lirc interface raw data will be sent there, keystrokes come in via 
-> uinput.  Otherwise keystrokes are send directly via evdev.  Problem solved.
-
-This will be kind of strange for lirc_zilog (aka lirc_pvr150).  It
-supports IR transmit on the PVR-150, HVR-1600, and HD-PVR.  I don't know
-if transmit is raw pulse timings, but I'm sure the unit provides codes
-on receive.  Occasionally blocks of "boot data" need to be programmed
-into the transmitter side.  I suspect lirc_zilog will likely need
-rework....
-
-
-> cheers,
->    Gerd
+> Current implementation defines ccdc memory map in vpfe capture
+> platform
+> file and update the same in ccdc through a function call. This will
+> not
+> scale well. For example for DM365 CCDC, there are are additional
+> memory
+> map for Linear table. So it is cleaner to define memory map for ccdc
+> driver in the platform file and read it by the ccdc platform driver
+> during
+> probe.
 > 
-> PS:  Not sure this actually makes sense for the i2c case, as far I know
->       these do decoding in hardware and don't provide access to the raw
->       samples,
+> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+> ---
+> Applies to V4L-DVB linux-next tree
+>  drivers/media/video/davinci/dm355_ccdc.c   |   89
+> ++++++++++++++++++++++++----
+>  drivers/media/video/davinci/dm644x_ccdc.c  |   78
+> ++++++++++++++++++++----
+>  drivers/media/video/davinci/vpfe_capture.c |   49 +--------------
+>  3 files changed, 145 insertions(+), 71 deletions(-)
+> 
+> diff --git a/drivers/media/video/davinci/dm355_ccdc.c
+> b/drivers/media/video/davinci/dm355_ccdc.c
+> index 56fbefe..aacb95f 100644
+> --- a/drivers/media/video/davinci/dm355_ccdc.c
+> +++ b/drivers/media/video/davinci/dm355_ccdc.c
+> @@ -37,6 +37,7 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/uaccess.h>
+>  #include <linux/videodev2.h>
+> +#include <mach/mux.h>
+[Hiremath, Vaibhav] This should not be here, this should get handled in board file. The driver should be generic.
 
-True.
+>  #include <media/davinci/dm355_ccdc.h>
+>  #include <media/davinci/vpss.h>
+>  #include "dm355_ccdc_regs.h"
+> @@ -105,7 +106,6 @@ static struct ccdc_params_ycbcr
+> ccdc_hw_params_ycbcr = {
+> 
+>  static enum vpfe_hw_if_type ccdc_if_type;
+>  static void *__iomem ccdc_base_addr;
+> -static int ccdc_addr_size;
+> 
+>  /* Raw Bayer formats */
+>  static u32 ccdc_raw_bayer_pix_formats[] =
+> @@ -126,12 +126,6 @@ static inline void regw(u32 val, u32 offset)
+>  	__raw_writel(val, ccdc_base_addr + offset);
+>  }
+> 
+> -static void ccdc_set_ccdc_base(void *addr, int size)
+> -{
+> -	ccdc_base_addr = addr;
+> -	ccdc_addr_size = size;
+> -}
+> -
+>  static void ccdc_enable(int en)
+>  {
+>  	unsigned int temp;
+> @@ -938,7 +932,6 @@ static struct ccdc_hw_device ccdc_hw_dev = {
+>  	.hw_ops = {
+>  		.open = ccdc_open,
+>  		.close = ccdc_close,
+> -		.set_ccdc_base = ccdc_set_ccdc_base,
+>  		.enable = ccdc_enable,
+>  		.enable_out_to_sdram = ccdc_enable_output_to_sdram,
+>  		.set_hw_if_params = ccdc_set_hw_if_params,
+> @@ -959,19 +952,89 @@ static struct ccdc_hw_device ccdc_hw_dev = {
+>  	},
+>  };
+> 
+> -static int __init dm355_ccdc_init(void)
+> +static int __init dm355_ccdc_probe(struct platform_device *pdev)
+>  {
+> -	printk(KERN_NOTICE "dm355_ccdc_init\n");
+> -	if (vpfe_register_ccdc_device(&ccdc_hw_dev) < 0)
+> -		return -1;
+> +	static resource_size_t  res_len;
+> +	struct resource	*res;
+> +	int status = 0;
+> +
+> +	/**
+> +	 * first try to register with vpfe. If not correct platform,
+> then we
+> +	 * don't have to iomap
+> +	 */
+> +	status = vpfe_register_ccdc_device(&ccdc_hw_dev);
+> +	if (status < 0)
+> +		return status;
+> +
+> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	if (!res) {
+> +		status = -ENOENT;
+[Hiremath, Vaibhav] I think right return value is -ENODEV.
 
->  so killing the in-kernel IR limits to make ir-kbd-i2c
-                  ^^^^^^^^^^^^^^^^^^^ 
->       being on par with lirc_i2c might be more useful in this case.
+> +		goto fail_nores;
+> +	}
+> +	res_len = res->end - res->start + 1;
+> +
+> +	res = request_mem_region(res->start, res_len, res->name);
+[Hiremath, Vaibhav] You should use "resource_size" here for res_len here.
 
-I didn't quite understand that.  Can you provide a little more info?
+> +	if (!res) {
+> +		status = -EBUSY;
+> +		goto fail_nores;
+> +	}
+> +
+> +	ccdc_base_addr = ioremap_nocache(res->start, res_len);
+> +	if (!ccdc_base_addr) {
+> +		status = -EBUSY;
+[Hiremath, Vaibhav] Is -EBUSY right return value, I think it should be -ENXIO or -ENOMEM.
 
+> +		goto fail;
+> +	}
+> +	/**
+> +	 * setup Mux configuration for vpfe input and register
+> +	 * vpfe capture platform device
+> +	 */
+> +	davinci_cfg_reg(DM355_VIN_PCLK);
+> +	davinci_cfg_reg(DM355_VIN_CAM_WEN);
+> +	davinci_cfg_reg(DM355_VIN_CAM_VD);
+> +	davinci_cfg_reg(DM355_VIN_CAM_HD);
+> +	davinci_cfg_reg(DM355_VIN_YIN_EN);
+> +	davinci_cfg_reg(DM355_VIN_CINL_EN);
+> +	davinci_cfg_reg(DM355_VIN_CINH_EN);
+> +
+[Hiremath, Vaibhav] This should not be here, this code must be generic and might get used in another SoC.
+
+>  	printk(KERN_NOTICE "%s is registered with vpfe.\n",
+>  		ccdc_hw_dev.name);
+>  	return 0;
+> +fail:
+> +	release_mem_region(res->start, res_len);
+> +fail_nores:
+> +	vpfe_unregister_ccdc_device(&ccdc_hw_dev);
+> +	return status;
+>  }
+> 
+> -static void __exit dm355_ccdc_exit(void)
+> +static int dm355_ccdc_remove(struct platform_device *pdev)
+>  {
+> +	struct resource	*res;
+> +
+> +	iounmap(ccdc_base_addr);
+> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	if (res)
+> +		release_mem_region(res->start, res->end - res->start +
+> 1);
+[Hiremath, Vaibhav] Please use "resource_size" here for size.
+
+>  	vpfe_unregister_ccdc_device(&ccdc_hw_dev);
+> +	return 0;
+> +}
+> +
+> +static struct platform_driver dm355_ccdc_driver = {
+> +	.driver = {
+> +		.name	= "dm355_ccdc",
+> +		.owner = THIS_MODULE,
+> +	},
+> +	.remove = __devexit_p(dm355_ccdc_remove),
+> +	.probe = dm355_ccdc_probe,
+> +};
+> +
+> +static int __init dm355_ccdc_init(void)
+> +{
+> +	return platform_driver_register(&dm355_ccdc_driver);
+> +}
+> +
+> +static void __exit dm355_ccdc_exit(void)
+> +{
+> +	platform_driver_unregister(&dm355_ccdc_driver);
+>  }
+> 
+>  module_init(dm355_ccdc_init);
+> diff --git a/drivers/media/video/davinci/dm644x_ccdc.c
+> b/drivers/media/video/davinci/dm644x_ccdc.c
+> index d5fa193..89ea6ae 100644
+> --- a/drivers/media/video/davinci/dm644x_ccdc.c
+> +++ b/drivers/media/video/davinci/dm644x_ccdc.c
+> @@ -85,7 +85,6 @@ static u32 ccdc_raw_yuv_pix_formats[] =
+>  	{V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_YUYV};
+> 
+>  static void *__iomem ccdc_base_addr;
+> -static int ccdc_addr_size;
+>  static enum vpfe_hw_if_type ccdc_if_type;
+> 
+>  /* register access routines */
+> @@ -99,12 +98,6 @@ static inline void regw(u32 val, u32 offset)
+>  	__raw_writel(val, ccdc_base_addr + offset);
+>  }
+> 
+> -static void ccdc_set_ccdc_base(void *addr, int size)
+> -{
+> -	ccdc_base_addr = addr;
+> -	ccdc_addr_size = size;
+> -}
+> -
+>  static void ccdc_enable(int flag)
+>  {
+>  	regw(flag, CCDC_PCR);
+> @@ -838,7 +831,6 @@ static struct ccdc_hw_device ccdc_hw_dev = {
+>  	.hw_ops = {
+>  		.open = ccdc_open,
+>  		.close = ccdc_close,
+> -		.set_ccdc_base = ccdc_set_ccdc_base,
+>  		.reset = ccdc_sbl_reset,
+>  		.enable = ccdc_enable,
+>  		.set_hw_if_params = ccdc_set_hw_if_params,
+> @@ -859,19 +851,79 @@ static struct ccdc_hw_device ccdc_hw_dev = {
+>  	},
+>  };
+> 
+> -static int __init dm644x_ccdc_init(void)
+> +static int __init dm644x_ccdc_probe(struct platform_device *pdev)
+>  {
+> -	printk(KERN_NOTICE "dm644x_ccdc_init\n");
+> -	if (vpfe_register_ccdc_device(&ccdc_hw_dev) < 0)
+> -		return -1;
+> +	static resource_size_t  res_len;
+> +	struct resource	*res;
+> +	int status = 0;
+> +
+> +	/**
+> +	 * first try to register with vpfe. If not correct platform,
+> then we
+> +	 * don't have to iomap
+> +	 */
+> +	status = vpfe_register_ccdc_device(&ccdc_hw_dev);
+> +	if (status < 0)
+> +		return status;
+> +
+> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	if (!res) {
+> +		status = -ENOENT;
+> +		goto fail_nores;
+> +	}
+> +
+> +	res_len = res->end - res->start + 1;
+> +
+> +	res = request_mem_region(res->start, res_len, res->name);
+> +	if (!res) {
+> +		status = -EBUSY;
+> +		goto fail_nores;
+> +	}
+> +
+> +	ccdc_base_addr = ioremap_nocache(res->start, res_len);
+> +	if (!ccdc_base_addr) {
+> +		status = -EBUSY;
+> +		goto fail;
+> +	}
+> +
+>  	printk(KERN_NOTICE "%s is registered with vpfe.\n",
+>  		ccdc_hw_dev.name);
+>  	return 0;
+> +fail:
+> +	release_mem_region(res->start, res_len);
+> +fail_nores:
+> +	vpfe_unregister_ccdc_device(&ccdc_hw_dev);
+> +	return status;
+> +}
+> +
+> +static int dm644x_ccdc_remove(struct platform_device *pdev)
+> +{
+> +	struct resource	*res;
+> +
+> +	iounmap(ccdc_base_addr);
+> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	if (res)
+> +		release_mem_region(res->start, res->end - res->start +
+> 1);
+> +	vpfe_unregister_ccdc_device(&ccdc_hw_dev);
+> +	return 0;
+> +}
+> +
+> +static struct platform_driver dm644x_ccdc_driver = {
+> +	.driver = {
+> +		.name	= "dm644x_ccdc",
+> +		.owner = THIS_MODULE,
+> +	},
+> +	.remove = __devexit_p(dm644x_ccdc_remove),
+> +	.probe = dm644x_ccdc_probe,
+> +};
+> +
+> +static int __init dm644x_ccdc_init(void)
+> +{
+> +	return platform_driver_register(&dm644x_ccdc_driver);
+>  }
+> 
+>  static void __exit dm644x_ccdc_exit(void)
+>  {
+> -	vpfe_unregister_ccdc_device(&ccdc_hw_dev);
+> +	platform_driver_unregister(&dm644x_ccdc_driver);
+>  }
+[Hiremath, Vaibhav] All above comments mentioned for DM355 applicable here too.
 
 Thanks,
-Andy
+Vaibhav
+
+> 
+>  module_init(dm644x_ccdc_init);
+> diff --git a/drivers/media/video/davinci/vpfe_capture.c
+> b/drivers/media/video/davinci/vpfe_capture.c
+> index c3468ee..35bbb08 100644
+> --- a/drivers/media/video/davinci/vpfe_capture.c
+> +++ b/drivers/media/video/davinci/vpfe_capture.c
+> @@ -108,9 +108,6 @@ struct ccdc_config {
+>  	int vpfe_probed;
+>  	/* name of ccdc device */
+>  	char name[32];
+> -	/* for storing mem maps for CCDC */
+> -	int ccdc_addr_size;
+> -	void *__iomem ccdc_addr;
+>  };
+> 
+>  /* data structures */
+> @@ -230,7 +227,6 @@ int vpfe_register_ccdc_device(struct
+> ccdc_hw_device *dev)
+>  	BUG_ON(!dev->hw_ops.set_image_window);
+>  	BUG_ON(!dev->hw_ops.get_image_window);
+>  	BUG_ON(!dev->hw_ops.get_line_length);
+> -	BUG_ON(!dev->hw_ops.setfbaddr);
+>  	BUG_ON(!dev->hw_ops.getfid);
+> 
+>  	mutex_lock(&ccdc_lock);
+> @@ -241,25 +237,23 @@ int vpfe_register_ccdc_device(struct
+> ccdc_hw_device *dev)
+>  		 * walk through it during vpfe probe
+>  		 */
+>  		printk(KERN_ERR "vpfe capture not initialized\n");
+> -		ret = -1;
+> +		ret = -EFAULT;
+>  		goto unlock;
+>  	}
+> 
+>  	if (strcmp(dev->name, ccdc_cfg->name)) {
+>  		/* ignore this ccdc */
+> -		ret = -1;
+> +		ret = -EINVAL;
+>  		goto unlock;
+>  	}
+> 
+>  	if (ccdc_dev) {
+>  		printk(KERN_ERR "ccdc already registered\n");
+> -		ret = -1;
+> +		ret = -EINVAL;
+>  		goto unlock;
+>  	}
+> 
+>  	ccdc_dev = dev;
+> -	dev->hw_ops.set_ccdc_base(ccdc_cfg->ccdc_addr,
+> -				  ccdc_cfg->ccdc_addr_size);
+>  unlock:
+>  	mutex_unlock(&ccdc_lock);
+>  	return ret;
+> @@ -1947,37 +1941,12 @@ static __init int vpfe_probe(struct
+> platform_device *pdev)
+>  	}
+>  	vpfe_dev->ccdc_irq1 = res1->start;
+> 
+> -	/* Get address base of CCDC */
+> -	res1 = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> -	if (!res1) {
+> -		v4l2_err(pdev->dev.driver,
+> -			"Unable to get register address map\n");
+> -		ret = -ENOENT;
+> -		goto probe_disable_clock;
+> -	}
+> -
+> -	ccdc_cfg->ccdc_addr_size = res1->end - res1->start + 1;
+> -	if (!request_mem_region(res1->start, ccdc_cfg->ccdc_addr_size,
+> -				pdev->dev.driver->name)) {
+> -		v4l2_err(pdev->dev.driver,
+> -			"Failed request_mem_region for ccdc base\n");
+> -		ret = -ENXIO;
+> -		goto probe_disable_clock;
+> -	}
+> -	ccdc_cfg->ccdc_addr = ioremap_nocache(res1->start,
+> -					     ccdc_cfg->ccdc_addr_size);
+> -	if (!ccdc_cfg->ccdc_addr) {
+> -		v4l2_err(pdev->dev.driver, "Unable to ioremap ccdc
+> addr\n");
+> -		ret = -ENXIO;
+> -		goto probe_out_release_mem1;
+> -	}
+> -
+>  	ret = request_irq(vpfe_dev->ccdc_irq0, vpfe_isr,
+> IRQF_DISABLED,
+>  			  "vpfe_capture0", vpfe_dev);
+> 
+>  	if (0 != ret) {
+>  		v4l2_err(pdev->dev.driver, "Unable to request
+> interrupt\n");
+> -		goto probe_out_unmap1;
+> +		goto probe_disable_clock;
+>  	}
+> 
+>  	/* Allocate memory for video device */
+> @@ -2101,10 +2070,6 @@ probe_out_video_release:
+>  		video_device_release(vpfe_dev->video_dev);
+>  probe_out_release_irq:
+>  	free_irq(vpfe_dev->ccdc_irq0, vpfe_dev);
+> -probe_out_unmap1:
+> -	iounmap(ccdc_cfg->ccdc_addr);
+> -probe_out_release_mem1:
+> -	release_mem_region(res1->start, res1->end - res1->start + 1);
+>  probe_disable_clock:
+>  	vpfe_disable_clock(vpfe_dev);
+>  	mutex_unlock(&ccdc_lock);
+> @@ -2120,7 +2085,6 @@ probe_free_dev_mem:
+>  static int vpfe_remove(struct platform_device *pdev)
+>  {
+>  	struct vpfe_device *vpfe_dev = platform_get_drvdata(pdev);
+> -	struct resource *res;
+> 
+>  	v4l2_info(pdev->dev.driver, "vpfe_remove\n");
+> 
+> @@ -2128,11 +2092,6 @@ static int vpfe_remove(struct platform_device
+> *pdev)
+>  	kfree(vpfe_dev->sd);
+>  	v4l2_device_unregister(&vpfe_dev->v4l2_dev);
+>  	video_unregister_device(vpfe_dev->video_dev);
+> -	mutex_lock(&ccdc_lock);
+> -	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> -	release_mem_region(res->start, res->end - res->start + 1);
+> -	iounmap(ccdc_cfg->ccdc_addr);
+> -	mutex_unlock(&ccdc_lock);
+>  	vpfe_disable_clock(vpfe_dev);
+>  	kfree(vpfe_dev);
+>  	kfree(ccdc_cfg);
+> --
+> 1.6.0.4
 
