@@ -1,76 +1,274 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:53604 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932458AbZLOQqr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2009 11:46:47 -0500
-Date: Tue, 15 Dec 2009 17:47:06 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: leandro Costantino <lcostantino@gmail.com>
-Cc: Luis Maia <lmaia@royalhat.org>, linux-media@vger.kernel.org
-Subject: Re: PATCH- gspca: added chipset revision sensor
-Message-ID: <20091215174706.5d5cbd5b@tele>
-In-Reply-To: <c2fe070d0912150525m623dbc48hff9e3ac5c1227db0@mail.gmail.com>
-References: <4B27063C.6020200@royalhat.org>
-	<20091215085445.093ebfd8@tele>
-	<c2fe070d0912150525m623dbc48hff9e3ac5c1227db0@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail.gmx.net ([213.165.64.20]:32839 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754527AbZLAXfM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Dec 2009 18:35:12 -0500
+From: Tobias Lorenz <tobias.lorenz@gmx.net>
+To: Joonyoung Shim <jy0922.shim@samsung.com>
+Subject: Re: [PATCH 3/3] radio-si470x: support RDS on si470x i2c driver
+Date: Wed, 2 Dec 2009 00:35:14 +0100
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	kyungmin.park@samsung.com
+References: <4B039271.9060008@samsung.com>
+In-Reply-To: <4B039271.9060008@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200912020035.14257.tobias.lorenz@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 15 Dec 2009 10:25:29 -0300
-leandro Costantino <lcostantino@gmail.com> wrote:
+Hi,
 
-> Jean,
-> let me know , if you need to the test this patch, since i added the
-> tas1530k long time ago, and still have the webcam :)
-> Best Regards
+unfortunately I have no possibility to test this patch. Nevertheless it looks clean to me.
+
+Acked-by: Tobias Lorenz <tobias.lorenz@gmx.net>
+
+Bye,
+Toby
+
+Am Mittwoch 18 November 2009 07:21:37 schrieb Joonyoung Shim:
+> This patch is to support RDS on si470x i2c driver. The routine of RDS
+> operation is almost same with thing of usb driver, but this uses RDS
+> interrupt.
 > 
-> On Tue, Dec 15, 2009 at 4:54 AM, Jean-Francois Moine
-> <moinejf@free.fr> wrote:
-> > On Tue, 15 Dec 2009 03:45:00 +0000
-> > Luis Maia <lmaia@royalhat.org> wrote:
-> >
-> >> Added extra chipset revision (sensor) to fix camera zc0301 with
-> >>  ID: 0ac8:301b .
-> >> Since i own one of this cameras fixed and tested it.
-> >
-> >> -------------
-> >>
-> >> diff -uNr linux-2.6.32.1/drivers/media/video/gspca/zc3xx.c
-> >> linux-2.6.32.1-patch/drivers/media/video/gspca/zc3xx.c
-> >> --- linux-2.6.32.1/drivers/media/video/gspca/zc3xx.c    2009-12-14
-> >> 17:47:25.000000000 +0000
-> >> +++ linux-2.6.32.1-patch/drivers/media/video/gspca/zc3xx.c
-> >> 2009-12-15 02:42:13.000000000 +0000
-> >> @@ -6868,6 +6868,7 @@
-> >>      {0x8001, 0x13},
-> >>      {0x8000, 0x14},        /* CS2102K */
-> >>      {0x8400, 0x15},        /* TAS5130K */
-> >> +    {0xe400, 0x15},
-> >>  };
-> >>
-> >>  static int vga_3wr_probe(struct gspca_dev *gspca_dev)
-> >> @@ -7634,7 +7635,7 @@
-> >>      {USB_DEVICE(0x0698, 0x2003)},
-> >>      {USB_DEVICE(0x0ac8, 0x0301), .driver_info = SENSOR_PAS106},
-> >>      {USB_DEVICE(0x0ac8, 0x0302), .driver_info = SENSOR_PAS106},
-> >> -    {USB_DEVICE(0x0ac8, 0x301b)},
-> >> +    {USB_DEVICE(0x0ac8, 0x301b), .driver_info = SENSOR_PB0330},
-> >>      {USB_DEVICE(0x0ac8, 0x303b)},
-> >>      {USB_DEVICE(0x0ac8, 0x305b), .driver_info =
-> >> SENSOR_TAS5130C_VF0250}, {USB_DEVICE(0x0ac8, 0x307b)},
-
-Hello Luis and Leandro,
-
-Thanks for the patch. Luis said his sensor is the tas5130K, so the 2nd
-part of the patch is useless. But, maybe, Leandro, have you heard about
-other chipset revision IDs?
-
-Best regards.
-
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+> Signed-off-by: Joonyoung Shim <jy0922.shim@samsung.com>
+> ---
+>  drivers/media/radio/si470x/radio-si470x-i2c.c |  159 +++++++++++++++++++++++--
+>  drivers/media/radio/si470x/radio-si470x.h     |    1 +
+>  2 files changed, 152 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/media/radio/si470x/radio-si470x-i2c.c b/drivers/media/radio/si470x/radio-si470x-i2c.c
+> index 4816a6d..77532e6 100644
+> --- a/drivers/media/radio/si470x/radio-si470x-i2c.c
+> +++ b/drivers/media/radio/si470x/radio-si470x-i2c.c
+> @@ -22,22 +22,17 @@
+>   */
+>  
+>  
+> -/*
+> - * ToDo:
+> - * - RDS support
+> - */
+> -
+> -
+>  /* driver definitions */
+>  #define DRIVER_AUTHOR "Joonyoung Shim <jy0922.shim@samsung.com>";
+> -#define DRIVER_KERNEL_VERSION KERNEL_VERSION(1, 0, 0)
+> +#define DRIVER_KERNEL_VERSION KERNEL_VERSION(1, 0, 1)
+>  #define DRIVER_CARD "Silicon Labs Si470x FM Radio Receiver"
+>  #define DRIVER_DESC "I2C radio driver for Si470x FM Radio Receivers"
+> -#define DRIVER_VERSION "1.0.0"
+> +#define DRIVER_VERSION "1.0.1"
+>  
+>  /* kernel includes */
+>  #include <linux/i2c.h>
+>  #include <linux/delay.h>
+> +#include <linux/interrupt.h>
+>  
+>  #include "radio-si470x.h"
+>  
+> @@ -62,6 +57,20 @@ static int radio_nr = -1;
+>  module_param(radio_nr, int, 0444);
+>  MODULE_PARM_DESC(radio_nr, "Radio Nr");
+>  
+> +/* RDS buffer blocks */
+> +static unsigned int rds_buf = 100;
+> +module_param(rds_buf, uint, 0444);
+> +MODULE_PARM_DESC(rds_buf, "RDS buffer entries: *100*");
+> +
+> +/* RDS maximum block errors */
+> +static unsigned short max_rds_errors = 1;
+> +/* 0 means   0  errors requiring correction */
+> +/* 1 means 1-2  errors requiring correction (used by original USBRadio.exe) */
+> +/* 2 means 3-5  errors requiring correction */
+> +/* 3 means   6+ errors or errors in checkword, correction not possible */
+> +module_param(max_rds_errors, ushort, 0644);
+> +MODULE_PARM_DESC(max_rds_errors, "RDS maximum block errors: *1*");
+> +
+>  
+>  
+>  /**************************************************************************
+> @@ -242,6 +251,105 @@ int si470x_vidioc_querycap(struct file *file, void *priv,
+>   **************************************************************************/
+>  
+>  /*
+> + * si470x_i2c_interrupt_work - rds processing function
+> + */
+> +static void si470x_i2c_interrupt_work(struct work_struct *work)
+> +{
+> +	struct si470x_device *radio = container_of(work,
+> +			struct si470x_device, radio_work);
+> +	unsigned char regnr;
+> +	unsigned char blocknum;
+> +	unsigned short bler; /* rds block errors */
+> +	unsigned short rds;
+> +	unsigned char tmpbuf[3];
+> +	int retval = 0;
+> +
+> +	/* safety checks */
+> +	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
+> +		return;
+> +
+> +	/* Update RDS registers */
+> +	for (regnr = 0; regnr < RDS_REGISTER_NUM; regnr++) {
+> +		retval = si470x_get_register(radio, STATUSRSSI + regnr);
+> +		if (retval < 0)
+> +			return;
+> +	}
+> +
+> +	/* get rds blocks */
+> +	if ((radio->registers[STATUSRSSI] & STATUSRSSI_RDSR) == 0)
+> +		/* No RDS group ready, better luck next time */
+> +		return;
+> +
+> +	for (blocknum = 0; blocknum < 4; blocknum++) {
+> +		switch (blocknum) {
+> +		default:
+> +			bler = (radio->registers[STATUSRSSI] &
+> +					STATUSRSSI_BLERA) >> 9;
+> +			rds = radio->registers[RDSA];
+> +			break;
+> +		case 1:
+> +			bler = (radio->registers[READCHAN] &
+> +					READCHAN_BLERB) >> 14;
+> +			rds = radio->registers[RDSB];
+> +			break;
+> +		case 2:
+> +			bler = (radio->registers[READCHAN] &
+> +					READCHAN_BLERC) >> 12;
+> +			rds = radio->registers[RDSC];
+> +			break;
+> +		case 3:
+> +			bler = (radio->registers[READCHAN] &
+> +					READCHAN_BLERD) >> 10;
+> +			rds = radio->registers[RDSD];
+> +			break;
+> +		};
+> +
+> +		/* Fill the V4L2 RDS buffer */
+> +		put_unaligned_le16(rds, &tmpbuf);
+> +		tmpbuf[2] = blocknum;		/* offset name */
+> +		tmpbuf[2] |= blocknum << 3;	/* received offset */
+> +		if (bler > max_rds_errors)
+> +			tmpbuf[2] |= 0x80;	/* uncorrectable errors */
+> +		else if (bler > 0)
+> +			tmpbuf[2] |= 0x40;	/* corrected error(s) */
+> +
+> +		/* copy RDS block to internal buffer */
+> +		memcpy(&radio->buffer[radio->wr_index], &tmpbuf, 3);
+> +		radio->wr_index += 3;
+> +
+> +		/* wrap write pointer */
+> +		if (radio->wr_index >= radio->buf_size)
+> +			radio->wr_index = 0;
+> +
+> +		/* check for overflow */
+> +		if (radio->wr_index == radio->rd_index) {
+> +			/* increment and wrap read pointer */
+> +			radio->rd_index += 3;
+> +			if (radio->rd_index >= radio->buf_size)
+> +				radio->rd_index = 0;
+> +		}
+> +	}
+> +
+> +	if (radio->wr_index != radio->rd_index)
+> +		wake_up_interruptible(&radio->read_queue);
+> +}
+> +
+> +
+> +/*
+> + * si470x_i2c_interrupt - interrupt handler
+> + */
+> +static irqreturn_t si470x_i2c_interrupt(int irq, void *dev_id)
+> +{
+> +	struct si470x_device *radio = dev_id;
+> +
+> +	if (!work_pending(&radio->radio_work))
+> +		schedule_work(&radio->radio_work);
+> +
+> +	return IRQ_HANDLED;
+> +}
+> +
+> +
+> +/*
+>   * si470x_i2c_probe - probe for the device
+>   */
+>  static int __devinit si470x_i2c_probe(struct i2c_client *client,
+> @@ -257,6 +365,8 @@ static int __devinit si470x_i2c_probe(struct i2c_client *client,
+>  		retval = -ENOMEM;
+>  		goto err_initial;
+>  	}
+> +
+> +	INIT_WORK(&radio->radio_work, si470x_i2c_interrupt_work);
+>  	radio->users = 0;
+>  	radio->client = client;
+>  	mutex_init(&radio->lock);
+> @@ -308,6 +418,34 @@ static int __devinit si470x_i2c_probe(struct i2c_client *client,
+>  	/* set initial frequency */
+>  	si470x_set_freq(radio, 87.5 * FREQ_MUL); /* available in all regions */
+>  
+> +	/* rds buffer allocation */
+> +	radio->buf_size = rds_buf * 3;
+> +	radio->buffer = kmalloc(radio->buf_size, GFP_KERNEL);
+> +	if (!radio->buffer) {
+> +		retval = -EIO;
+> +		goto err_video;
+> +	}
+> +
+> +	/* rds buffer configuration */
+> +	radio->wr_index = 0;
+> +	radio->rd_index = 0;
+> +	init_waitqueue_head(&radio->read_queue);
+> +
+> +	/* enable RDS interrupt */
+> +	radio->registers[SYSCONFIG1] |= SYSCONFIG1_RDSIEN;
+> +	radio->registers[SYSCONFIG1] &= ~SYSCONFIG1_GPIO2;
+> +	radio->registers[SYSCONFIG1] |= 0x1 << 2;
+> +	retval = si470x_set_register(radio, SYSCONFIG1);
+> +	if (retval < 0)
+> +		goto err_rds;
+> +
+> +	retval = request_irq(client->irq, si470x_i2c_interrupt,
+> +			IRQF_TRIGGER_FALLING, DRIVER_NAME, radio);
+> +	if (retval) {
+> +		dev_err(&client->dev, "Failed to register interrupt\n");
+> +		goto err_rds;
+> +	}
+> +
+>  	/* register video device */
+>  	retval = video_register_device(radio->videodev, VFL_TYPE_RADIO,
+>  			radio_nr);
+> @@ -319,6 +457,9 @@ static int __devinit si470x_i2c_probe(struct i2c_client *client,
+>  
+>  	return 0;
+>  err_all:
+> +	free_irq(client->irq, radio);
+> +err_rds:
+> +	kfree(radio->buffer);
+>  err_video:
+>  	video_device_release(radio->videodev);
+>  err_radio:
+> @@ -335,6 +476,8 @@ static __devexit int si470x_i2c_remove(struct i2c_client *client)
+>  {
+>  	struct si470x_device *radio = i2c_get_clientdata(client);
+>  
+> +	free_irq(client->irq, radio);
+> +	cancel_work_sync(&radio->radio_work);
+>  	video_unregister_device(radio->videodev);
+>  	kfree(radio);
+>  	i2c_set_clientdata(client, NULL);
+> diff --git a/drivers/media/radio/si470x/radio-si470x.h b/drivers/media/radio/si470x/radio-si470x.h
+> index f646f79..29e05cf 100644
+> --- a/drivers/media/radio/si470x/radio-si470x.h
+> +++ b/drivers/media/radio/si470x/radio-si470x.h
+> @@ -181,6 +181,7 @@ struct si470x_device {
+>  
+>  #if defined(CONFIG_I2C_SI470X) || defined(CONFIG_I2C_SI470X_MODULE)
+>  	struct i2c_client *client;
+> +	struct work_struct radio_work;
+>  #endif
+>  };
+>  
+> 
