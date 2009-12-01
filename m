@@ -1,41 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from viefep11-int.chello.at ([62.179.121.31]:35460 "EHLO
-	viefep11-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759082AbZLGI73 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2009 03:59:29 -0500
-Message-ID: <4B1CC3EE.5010605@waechter.wiz.at>
-Date: Mon, 07 Dec 2009 09:59:26 +0100
-From: =?UTF-8?B?TWF0dGhpYXMgV8OkY2h0ZXI=?= <matthias@waechter.wiz.at>
+Received: from mx1.redhat.com ([209.132.183.28]:1522 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753570AbZLAP3E (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Dec 2009 10:29:04 -0500
+Message-ID: <4B153617.8070608@redhat.com>
+Date: Tue, 01 Dec 2009 16:28:23 +0100
+From: Gerd Hoffmann <kraxel@redhat.com>
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Mantis =?UTF-8?B?4oCTIGFueW9uZT8=?=
-References: <4B0E6CC0.9030207@waechter.wiz.at> <1a297b360912042154q619caa3dkf3818793f46c2c50@mail.gmail.com> <4B1BA901.3080703@waechter.wiz.at>
-In-Reply-To: <4B1BA901.3080703@waechter.wiz.at>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, jonsmirl@gmail.com, khc@pm.waw.pl,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR  system?
+References: <BDodf9W1qgB@lirc> <4B14EDE3.5050201@redhat.com> <4B1524DD.3080708@redhat.com>
+In-Reply-To: <4B1524DD.3080708@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Manu,
+   Hi,
 
-Am 06.12.2009 13:52, schrieb Matthias Wächter:
-> • Sometimes very slow lock at transponder change, slow enough to trace
-> it in femon. femon first shows high BER rates and the picture is blocky,
-> reducing within 3 or 4 Seconds to BER=0 and perfect picture. I should be
-> able to repeat that and give you some logs if you need it.
-> 
-> • Sometimes lock to a transponder only in certain order of previous
-> transponder. Hard to formalize, though. Verbose module output shows 1 to
-> 2 unsuccessful locking attempts per second by the driver.
+> The big issue here is: how do we document that "EM28xxHVR950-00" is the Hauppauge Grey IR that
+> is shipped with their newer devices.
+ >
+> A third approach would be to identify, instead, the Remote Controller directly. So, we would
+> add a sysfs field like ir_type.
 
-> • Currently no lock on 19.2/12693h either, but this may be a signal
-> quality issue on my side.
+I'd pick a more descriptive name like 'bundled_remote'.
+Maybe an additional attribute could say which protocol the bundled 
+remote speaks (rc5, ...), so userspace could do something sensible by 
+default even if it has no data about the bundled remote.
 
-After playing some more, I think those are all related: Lock to a
-transponder takes from <1 second to minutes, and sometimes I was not
-patient enough to wait for the lock to finally happen.
+> There are two issues here:
+> 	1) What's the name for this IR? We'll need to invent names for the existing IR's, as
+> those devices don't have a known brand name;
 
-The no-lock on 19.2°/11303h does not seem to be related to that.
+Name them by the hardware they are bundled with should work reasonable well.
 
-– Matthias
+> 	2) there are cases where the same device is provided with two or more different IR
+> types. If we identify the board type instead of the IR type, userspace can better handle
+> it, by providing a list of the possibilities.
+
+We also could also provide a list of possible remotes directly via sysfs 
+instead of expecting userspace know which remotes can come bundled with 
+which board.
+
+> No matter how we map, we'll still need to document it somehow to userspace. What would be
+> the better? A header file? A set of keymaps from the default IR's that will be added
+> on some directory at the Linux tree? A Documentation/IR ?
+
+I'd suggest tools/ir/ (map loader intended to be called by udev) and the 
+maps being files in the linux source tree (next to the drivers?).  The 
+maps probably should be installed on some standard location (pretty much 
+like firmware).
+
+> Anyway, we shouldn't postpone lirc drivers addition due to that. There are still lots of work
+> to do before we'll be able to split the tables from the kernel drivers.
+
+Indeed.  The sysfs bits are future work for both lirc and evdev drivers. 
+  There is no reason to make the lirc merge wait for it.
+
+cheers,
+   Gerd
