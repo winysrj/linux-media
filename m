@@ -1,39 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp6-g21.free.fr ([212.27.42.6]:36072 "EHLO smtp6-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757909AbZLKPCz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2009 10:02:55 -0500
-Received: from smtp6-g21.free.fr (localhost [127.0.0.1])
-	by smtp6-g21.free.fr (Postfix) with ESMTP id 3BC44E0809B
-	for <linux-media@vger.kernel.org>; Fri, 11 Dec 2009 16:02:57 +0100 (CET)
-Received: from UNKNOWN (imp2-g19.priv.proxad.net [172.20.243.132])
-	by smtp6-g21.free.fr (Postfix) with ESMTP id 66B92E08162
-	for <linux-media@vger.kernel.org>; Fri, 11 Dec 2009 16:02:55 +0100 (CET)
-Message-ID: <1260543775.4b225f1f4cec9@imp.free.fr>
-Date: Fri, 11 Dec 2009 16:02:55 +0100
-From: dvblinux@free.fr
-To: linux-media@vger.kernel.org
-Subject: New ASUS P3-100 DVB-T/DVB-S device (1043:48cd)
-References: <200912111456.45947.amlopezalonso@gmail.com>
-In-Reply-To: <200912111456.45947.amlopezalonso@gmail.com>
+Received: from perceval.irobotique.be ([92.243.18.41]:54732 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751503AbZLALb4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 06:31:56 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: =?utf-8?q?N=C3=A9meth_M=C3=A1rton?= <nm127@freemail.hu>
+Subject: Re: [PATCH] usbvideo: limit the length of string creation
+Date: Tue, 1 Dec 2009 12:33:12 +0100
+Cc: V4L Mailing List <linux-media@vger.kernel.org>, cocci@diku.dk,
+	LKML <linux-kernel@vger.kernel.org>
+References: <4B081D40.9030607@freemail.hu>
+In-Reply-To: <4B081D40.9030607@freemail.hu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <200912011233.12290.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all, I'm new on this list.
+On Saturday 21 November 2009 18:02:56 Németh Márton wrote:
+> From: Márton Németh <nm127@freemail.hu>
+> 
+> Use strlcat() to append a string to the previously created first part.
+> The strlcat() function limits the size of the string to the whole
+> destination buffer.
+> 
+> The semantic match that finds this kind of problem is as follows:
+> (http://coccinelle.lip6.fr/)
+> 
+> // <smpl>
+> @@
+> expression dev;
+> expression phys;
+> expression str;
+> expression size;
+> @@
+>  	usb_make_path(dev, phys, size);
+> -	strncat(phys, str, size);
+> +	strlcat(phys, str, size);
+> // </smpl>
+> 
+> Signed-off-by: Márton Németh <nm127@freemail.hu>
 
-I modified on my own the SAA driver to manage an ASUS PS3-100 combo card not
-supported yet in current version.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-It features two DVB-S and DVB-T receivers packed on the same PCI card.
+-- 
+Regards,
 
-The DVB-T part is identical to ASUS P7131 Hybrid and therefore is managed thru
-the existing driver after a light patch in the driver source (and card.c):
-copying relevant stuff from (1043:4876) to (1043:48cd).
-
-I'm not a developper, how to share my successfull experiments ?
-
-Regards.
-
+Laurent Pinchart
