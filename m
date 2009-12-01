@@ -1,100 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from m0-if0.velocitynet.com.au ([203.17.154.50]:35925 "EHLO
-	m0.velocity.net.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752036AbZLBBlR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 20:41:17 -0500
-Received: from [192.168.0.10] (110.143.46.202-static.velocitynet.com.au [202.46.143.110])
-	by m0.velocity.net.au (Postfix) with ESMTP id 9A06060186
-	for <linux-media@vger.kernel.org>; Wed,  2 Dec 2009 12:35:28 +1100 (EST)
-Message-ID: <4B15C45F.7020909@wilsononline.id.au>
-Date: Wed, 02 Dec 2009 12:35:27 +1100
-From: Paul <mylists@wilsononline.id.au>
+Received: from mx1.redhat.com ([209.132.183.28]:41894 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752828AbZLARhb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Dec 2009 12:37:31 -0500
+Message-ID: <4B15543F.1000604@redhat.com>
+Date: Tue, 01 Dec 2009 15:37:03 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: dvb_usb_dib0700  ( T14BR) not initializing on reboot
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+CC: Jon Smirl <jonsmirl@gmail.com>, awalls@radix.net,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	lirc-list@lists.sourceforge.net, superm1@ubuntu.com,
+	Christoph Bartelmus <lirc@bartelmus.de>
+Subject: Re: [RFC v2] Another approach to IR
+References: <9e4733910912010708u1064e2c6mbc08a01293c3e7fd@mail.gmail.com> <1259682428.18599.10.camel@maxim-laptop>
+In-Reply-To: <1259682428.18599.10.camel@maxim-laptop>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have a DVB-T USB device ( T14BR),
-which seems to work fine when I plug in my Fedora 10 box but I if I
-reboot with device connected it regularity fails to initialise correctly
-and to correct I have to remove unplug-device remove the module and
-reload module to fix up and only after system has been fully booted
+Maxim Levitsky wrote:
+> On Tue, 2009-12-01 at 10:08 -0500, Jon Smirl wrote: 
+>> While reading all of these IR threads another way of handling IR
+>> occurred to me that pretty much eliminates the need for LIRC and
+>> configuration files in default cases. The best way to make everything
+>> "just work" is to eliminate it.
+>>
+>> The first observation is that the IR profile of various devices are
+>> well known. Most devices profiles are in the published One-for-All
+>> database. These device profiles consist of vendor/device/command
+>> triplets. There is one triplet for each command like play, pause, 1,
+>> 2, 3, power, etc.
+>>
+>> The second observation is that universal remotes know how to generate
+>> commands for all of the common devices.
+>>
+>> Let's define evdev messages for IR than contain vendor/device/command
+>> triplets. I already posted code for doing that in my original patch
+>> set. These messages are generated from in-kernel code.
+>>
+>> Now add a small amount of code to MythTV, etc to act on these evdev
+>> messages. Default MythTV, etc to respond to the IR commands for a
+>> common DVR device. Program your universal remote to send the commands
+>> for this device. You're done. Everything will "just work" - no LIRC,
+>> no irrecord, no config files, no command mapping, etc.
+> You are making one  big wrong assumption that everyone that has a remote
+> uses mythtv, and only it.
+> 
+> Many users including me, use the remote just like a keyboard, or even
+> like a mouse.
 
-eg
-modprobe -r dvb-usb-dib0700
-then
-modprobe dvb-usb-dib0700  adapter_nr=2
-and then plug device in.
-I get the following msgs when it seems to fail and the second set when
-it works
++1. 
 
-kernel log (failed)
+I also use the remote as a keyboard replacement. I used an IR like
+that for a long time while teaching, using a standard USB video board,
+as a way to remotely control my notebook.
 
-Nov 22 13:51:50 mythbox kernel: usb 2-7: new full speed USB device using
-ohci_hcd and address 2
-Nov 22 13:51:50 mythbox kernel: usb 2-7: new full speed USB device using
-ohci_hcd and address 3
-Nov 22 13:51:50 mythbox kernel: usb 2-7: new full speed USB device using
-ohci_hcd and address 4
-Nov 22 13:51:50 mythbox kernel: usb 2-7: new full speed USB device using
-ohci_hcd and address 5
-Nov 22 13:51:50 mythbox kernel: usb 2-8: new low speed USB device using
-ohci_hcd and address 6
-Nov 22 13:51:50 mythbox kernel: usb 2-8: configuration #1 chosen from 1
-choice
-Nov 22 13:51:50 mythbox kernel: usb 2-8: New USB device found,
-idVendor=413c, idProduct=3010
-Nov 22 13:51:50 mythbox kernel: usb 2-8: New USB device strings: Mfr=0,
-Product=0, SerialNumber=0
-Nov 22 13:51:50 mythbox kernel: usbcore: registered new interface driver
-hiddev
-Nov 22 13:51:50 mythbox kernel: input: HID 413c:3010 as
-/devices/pci0000:00/0000:00:02.0/usb2/2-8/2-8:1.0/input/input4
-Nov 22 13:51:50 mythbox kernel: input,hidraw0: USB HID v1.00 Mouse [HID
-413c:3010] on usb-0000:00:02.0-8
-Nov 22 13:51:50 mythbox kernel: usbcore: registered new interface driver
-usbhid
-Nov 22 13:51:50 mythbox kernel: usbhid: v2.6:USB HID core driver
+Well, now I have an USB IR for this usage, using HID, that emulates
+both keyboard and mouse. In fact, the application didn't change. 
+I'm just using the standard USB class for HID, instead of using
+vendor class to generate the same kind of evdev events ;)
 
-
-http://www.artectv.com/ehtm/products/t14.htm
-
-kernel log (working)
-
-Nov 29 09:58:20 mythbox kernel: usb 1-8: new high speed USB device using
-ehci_hcd and address 3
-Nov 29 09:58:20 mythbox kernel: usb 1-8: configuration #1 chosen from 1
-choice
-Nov 29 09:58:20 mythbox kernel: usb 1-8: New USB device found,
-idVendor=05d8, idProduct=810f
-Nov 29 09:58:20 mythbox kernel: usb 1-8: New USB device strings: Mfr=1,
-Product=2, SerialNumber=3
-Nov 29 09:58:20 mythbox kernel: usb 1-8: Product: ART7070
-Nov 29 09:58:20 mythbox kernel: usb 1-8: Manufacturer: Ultima
-Nov 29 09:58:20 mythbox kernel: usb 1-8: SerialNumber: 001
-Nov 29 09:58:20 mythbox kernel: dib0700: loaded with support for 7
-different device-types
-Nov 29 09:58:20 mythbox kernel: dvb-usb: found a 'Artec T14BR DVB-T' in
-cold state, will try to load a firmware
-Nov 29 09:58:20 mythbox kernel: firmware: requesting dvb-usb-dib0700-1.10.fw
-Nov 29 09:58:20 mythbox kernel: dvb-usb: downloading firmware from file
-'dvb-usb-dib0700-1.10.fw'
-Nov 29 09:58:22 mythbox kernel: dib0700: firmware started successfully.
-Nov 29 09:58:23 mythbox kernel: dvb-usb: found a 'Artec T14BR DVB-T' in
-warm state.
-Nov 29 09:58:23 mythbox kernel: dvb-usb: will pass the complete MPEG2
-transport stream to the software demuxer.
-Nov 29 09:58:23 mythbox kernel: DVB: registering new adapter (Artec
-T14BR DVB-T)
-Nov 29 09:58:23 mythbox kernel: DiB0070: successfully identified
-Nov 29 09:58:23 mythbox kernel: input: IR-receiver inside an USB DVB
-receiver as /devices/pci0000:00/0000:00:02.1/usb1/1
--8/input/input7
-Nov 29 09:58:23 mythbox kernel: dvb-usb: schedule remote query interval
-to 150 msecs.
-Nov 29 09:58:23 mythbox kernel: dvb-usb: Artec T14BR DVB-T successfully
-initialized and connected.
-
+Cheers,
+Mauro.
