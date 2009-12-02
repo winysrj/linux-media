@@ -1,48 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:2829 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:3961 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932119AbZLHPls (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2009 10:41:48 -0500
-Message-ID: <4B1E73A5.2040006@redhat.com>
-Date: Tue, 08 Dec 2009 13:41:25 -0200
+	id S1753016AbZLBTeO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Dec 2009 14:34:14 -0500
+Message-ID: <4B16C10E.6040907@redhat.com>
+Date: Wed, 02 Dec 2009 17:33:34 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Krzysztof Halasa <khc@pm.waw.pl>
-CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
 	Jon Smirl <jonsmirl@gmail.com>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
-	kraxel@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR  system?
-References: <BEJgSGGXqgB@lirc>	<9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>	<1260070593.3236.6.camel@pc07.localdom.local>	<20091206065512.GA14651@core.coreip.homeip.net>	<4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain>	<9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>	<m3skbn6dv1.fsf@intrepid.localdomain>	<9e4733910912061323x22c618ccyf6edcee5b021cbe3@mail.gmail.com>	<4B1D934E.7030103@redhat.com>	<20091208042340.GC11147@core.coreip.homeip.net>	<4B1E3F7D.9070806@redhat.com> <m34oo1va2y.fsf@intrepid.localdomain>	<4B1E5EFA.4020801@redhat.com> <m33a3ltrjz.fsf@intrepid.localdomain>
-In-Reply-To: <m33a3ltrjz.fsf@intrepid.localdomain>
+	Maxim Levitsky <maximlevitsky@gmail.com>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com, khc@pm.waw.pl,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, lirc-list@lists.sourceforge.net,
+	superm1@ubuntu.com, Christoph Bartelmus <lirc@bartelmus.de>
+Subject: Re: [RFC v2] Another approach to IR
+References: <9e4733910912010816q32e829a2uce180bfda69ef86d@mail.gmail.com> <4B154C54.5090906@redhat.com> <829197380912010909m59cb1078q5bd2e00af0368aaf@mail.gmail.com> <4B155288.1060509@redhat.com> <20091201175400.GA19259@core.coreip.homeip.net> <4B1567D8.7080007@redhat.com> <20091201201158.GA20335@core.coreip.homeip.net> <4B15852D.4050505@redhat.com> <20091202093803.GA8656@core.coreip.homeip.net> <4B16614A.3000208@redhat.com> <20091202171059.GC17839@core.coreip.homeip.net>
+In-Reply-To: <20091202171059.GC17839@core.coreip.homeip.net>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Krzysztof Halasa wrote:
-> Mauro Carvalho Chehab <mchehab@redhat.com> writes:
+Dmitry Torokhov wrote:
+>> The raw interface applies only to the devices that doesn't have a hardware decoder
+>> (something between 40%-60% of the currently supported devices).
 > 
->> The enable/disable protocol decoder enable/disable interface is needed anyway,
->> due to the needs for the hardware IR decoders
+> 50% is quite a number I think. But if driver does not allow access to
+> the raw stream - it will refuse binding to lirc_dev interface.
+
+Ok.
+
+> We need to cater to the future cases as well. I don't want to redesign
+> it in 2 years. But for devices that have only hardware decoders I
+> suppose we can short-curcuit "interfaces" and have a library-like module
+> creating input devices directly.
+
+We really need only one interface for those devices. However, protocol selection
+is needed, as it is associated with the scantable on those devices.
+a sysfs entry would solve this issue.
+
+Also, we need a better schema to cleanup the keycode table. Currently, the only way 
+I'm aware is to run a loop from 0 to 65535 associating a scancode to KEY_UNKNOWN or
+to KEY_RESERVED.
+
+>> In the case of the cheap devices with just raw interfaces, running in-kernel
+>> decoders, while it will work if you create one interface per protocol
+>> per IR receiver, this also seems overkill. Why to do that? It sounds that it will
+>> just create additional complexity at the kernelspace and at the userspace, since
+>> now userspace programs will need to open more than one device to receive the
+>> keycodes.
 > 
-> Why do they need it exactly?
-> The key tables say all they need I hope?
+> _Yes_!!! You open as many event devices as there are devices you are
+> interested in receiving data from. Multiplexing devices are bad, bad,
+> bad. Witness /dev/input/mouse and all the attempts at working around the
+> fact that if you have a special driver for one of your devices you
+> receive events from the same device through 2 interfaces and all kind of
+> "grab", "super-grab", "smart-grab" schemes are born.
 
-You can't upload a key for an unsupported protocol. Also, provided
-that hardware decoders in general don't support decoding multiple
-protocols at the same time, it is needed to select what protocol it
-will be decoding.
+The only device that the driver can actually see is the IR receiver. There's no way to
+know if there is only one physical IR sending signals to it or several different models,
+especially if we consider that programmable IR's can be able even to generate more than one
+protocol at the same time, and can emulate other IR types.
 
-So, userspace needs to:
-	- retrieve the list of the supported protocols;
-	- identify if a given IR is capable of multiple protocols;
-	- be able to select what protocol(s) decoder(s) will be enabled.
+You might create some artificial schema to try to deal with different IR's being received
+at the same IR receiver, but, IMHO, this will just add a complex abstraction layer.
+
+Also, this won't give any real gain, as either both IR's will generate the same scancodes (and you can't distinguish what IR generated that code), or the scancode is different, and you
+can handle it differently.
+
+>>> (for each remote/substream that they can recognize).
+>> I'm assuming that, by remote, you're referring to a remote receiver (and not to 
+>> the remote itself), right?
+> 
+> If we could separate by remote transmitter that would be the best I
+> think, but I understand that it is rarely possible?
+
+IMHO, the better is to use a separate interface for the IR transmitters,
+on the devices that support this feature. There are only a few devices
+I'm aware of that are able to transmit IR codes.
 
 Cheers,
 Mauro.
+
