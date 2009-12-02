@@ -1,99 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:49015
-	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965065AbZLGVrN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2009 16:47:13 -0500
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was: Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-Mime-Version: 1.0 (Apple Message framework v1077)
-Content-Type: text/plain; charset=us-ascii
-From: Jarod Wilson <jarod@wilsonet.com>
-In-Reply-To: <1259264614.1781.47.camel@localhost>
-Date: Mon, 7 Dec 2009 13:19:12 -0500
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, superm1@ubuntu.com
-Content-Transfer-Encoding: 8BIT
-Message-Id: <6B4C84CD-F146-4B8B-A8BB-9963E0BA4C47@wilsonet.com>
-References: <BDRae8rZjFB@christoph> <1259024037.3871.36.camel@palomino.walls.org> <m3k4xe7dtz.fsf@intrepid.localdomain>  <4B0E8B32.3020509@redhat.com> <1259264614.1781.47.camel@localhost>
-To: Andy Walls <awalls@radix.net>
+Received: from m0-if0.velocitynet.com.au ([203.17.154.50]:42778 "EHLO
+	m0.velocity.net.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754667AbZLBI4i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Dec 2009 03:56:38 -0500
+Message-ID: <4B162BCA.80503@wilsononline.id.au>
+Date: Wed, 02 Dec 2009 19:56:42 +1100
+From: Paul <mylists@wilsononline.id.au>
+MIME-Version: 1.0
+To: ALi <osatien@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: dvb_usb_dib0700 ( T14BR) not initializing on reboot
+References: <4B15C45F.7020909@wilsononline.id.au> <4B15E9F0.3050701@wilsononline.id.au> <431ff28c0912012328j3956c544h132b7c3995fd01ee@mail.gmail.com>
+In-Reply-To: <431ff28c0912012328j3956c544h132b7c3995fd01ee@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Nov 26, 2009, at 2:43 PM, Andy Walls wrote:
+Vendor is below:
+usb 1-8: New USB device found, idVendor=05d8, idProduct=810f
+usb 1-8: New USB device strings: Mfr=1, Product=2, SerialNumber=3
 
-> On Thu, 2009-11-26 at 12:05 -0200, Mauro Carvalho Chehab wrote:
->> Krzysztof Halasa wrote:
->>> Andy Walls <awalls@radix.net> writes:
->>> 
->>>> I would also note that RC-6 Mode 6A, used by most MCE remotes, was
->>>> developed by Philips, but Microsoft has some sort of licensing interest
->>>> in it and it is almost surely encumbered somwhow:
->>> 
->>> I don't know about legal problems in some countries but from the
->>> technical POV handling the protocol in the kernel is more efficient
->>> or (/and) simpler.
->> 
->> A software licensing from Microsoft won't apply to Linux kernel, so I'm
->> assuming that you're referring to some patent that they could be filled
->> about RC6 mode 6A.
->> 
->> I don't know if is there any US patent pending about it (AFAIK, only US
->> accepts software patents), but there are some prior-art for IR key
->> decoding. So, I don't see what "innovation" RC6 would be adding. 
->> If it is some new way to transmit waves, the patent issues
->> aren't related to software, and the device manufacturer had already handled
->> it when they made their devices.
->> 
->> If it is just a new keytable, this issue 
->> could be easily solved by loading the keytable via userspace.
->> 
->> Also, assuming that you can use the driver only with a hardware that comes
->> with a licensed software, the user has already the license for using it.
->> 
->> Do you have any details on what patents they are claiming?
-> 
-> The US Philips RC-6 patent is US Patent 5,877,702
-> 
-> http://www.google.com/patents?vid=USPAT5877702
-> 
-> Click on download PDF to get a copy of the whole patent.
-> 
-> I am not a lawyer.  Philips claims' all appear to tie to a transmitter
-> or receiver as part of a system, but most of the claims are about
-> information and bit positions and lengths.
-...
-> IMO, given
-> 
-> a. the dearth of public information about RC-6, indicating someone
-> thinks it's their trade secret or intellectual property
-> 
-> b. Microsoft claiming to license something related to the MCE remote
-> protocols (which are obviously RC-6 Mode 6A),
-> 
-> c. my inability to draw a "clear, bright line" that RC-6 Mode 6A
-> encoding and decoding, as needed by MCE remotes, implemented in software
-> doesn't violate anyone's government granted rights to exclusivity.
-> 
-> I think it's much better to implement software RC-6 Mode 6A encoding and
-> decoding in user space, doing only the minimum needed to get the
-> hardware setup and going in the kernel.  
-> 
-> Encoding/decoding of RC-6 by microcontrollers with firmware doesn't
-> worry me. 
-> 
-> 
-> Maybe I'm being too conservative here, but I have a personal interest in
-> keeping Linux free and unencumbered even in the US which, I cannot deny,
-> has a patent system that is screwed up.
-
-So I had one of the people who does all the license and patent audits for Fedora packages look at the Philips patent on RC-6. He's 100% positive that the patent *only* covers hardware, there should be no problem whatsoever writing a software decoder for RC-6.
-
--- 
-Jarod Wilson
-jarod@wilsonet.com
+Note it does work as I said AFTER boot is complete but not if its plugged in during the 
+boot phase..
 
 
+so i must be something to do with how USB is initialised perhaps?
+Note it does work sometimes during reboot so perhaps some timing issue during init?
+
+thanks
+Paul
+
+
+On 2/12/2009 6:28 PM, ALi wrote:
+> Are you sure that your usb is dib0700?
+> if you look on the sources .... you wont see idVendor=413c,
+> idProduct=3010 however there is
+> 
+> oscar@X-Evian:/usr/src/linux-source-2.6.30/drivers/media/dvb/dvb-usb$
+> grep 05d8 * -iR
+> Coincidencia en el fichero binario dvb-usb-dib0700.ko
+> dvb-usb-dib0700.mod.c:MODULE_ALIAS("usb:v05D8p810Fd*dc*dsc*dp*ic*isc*ip*");
+> 
+> 
+> in the file .... so .... try to recompile it with your device id, and
+> pray for it :)
+> 
+> On Wed, Dec 2, 2009 at 5:15 AM, Paul <mylists@wilsononline.id.au> wrote:
+>> On 2/12/2009 12:35 PM, Paul wrote:
+>>> I have a DVB-T USB device ( T14BR),
+>>> which seems to work fine when I plug in my Fedora 10 box but I if I
+>>> reboot with device connected it regularity fails to initialise correctly
+>>> and to correct I have to remove unplug-device remove the module and
+>>> reload module to fix up and only after system has been fully booted
+>>>
+>>> eg
+>>> modprobe -r dvb-usb-dib0700
+>>> then
+>>> modprobe dvb-usb-dib0700  adapter_nr=2
+>>> and then plug device in.
+>>> I get the following msgs when it seems to fail and the second set when
+>>> it works
+>>>
+>>> kernel log (failed)
+>>>
+>>> Nov 22 13:51:50 mythbox kernel: usb 2-7: new full speed USB device using
+>>> ohci_hcd and address 2
+>>> Nov 22 13:51:50 mythbox kernel: usb 2-7: new full speed USB device using
+>>> ohci_hcd and address 3
+>>> Nov 22 13:51:50 mythbox kernel: usb 2-7: new full speed USB device using
+>>> ohci_hcd and address 4
+>>> Nov 22 13:51:50 mythbox kernel: usb 2-7: new full speed USB device using
+>>> ohci_hcd and address 5
+>>> Nov 22 13:51:50 mythbox kernel: usb 2-8: new low speed USB device using
+>>> ohci_hcd and address 6
+>>> Nov 22 13:51:50 mythbox kernel: usb 2-8: configuration #1 chosen from 1
+>>> choice
+>>> Nov 22 13:51:50 mythbox kernel: usb 2-8: New USB device found,
+>>> idVendor=413c, idProduct=3010
+>>> Nov 22 13:51:50 mythbox kernel: usb 2-8: New USB device strings: Mfr=0,
+>>> Product=0, SerialNumber=0
+>>> Nov 22 13:51:50 mythbox kernel: usbcore: registered new interface driver
+>>> hiddev
+>>> Nov 22 13:51:50 mythbox kernel: input: HID 413c:3010 as
+>>> /devices/pci0000:00/0000:00:02.0/usb2/2-8/2-8:1.0/input/input4
+>>> Nov 22 13:51:50 mythbox kernel: input,hidraw0: USB HID v1.00 Mouse [HID
+>>> 413c:3010] on usb-0000:00:02.0-8
+>>> Nov 22 13:51:50 mythbox kernel: usbcore: registered new interface driver
+>>> usbhid
+>>> Nov 22 13:51:50 mythbox kernel: usbhid: v2.6:USB HID core driver
+>>>
+>>>
+>>> http://www.artectv.com/ehtm/products/t14.htm
+>>>
+>>> kernel log (working)
+>>>
+>>> Nov 29 09:58:20 mythbox kernel: usb 1-8: new high speed USB device using
+>>> ehci_hcd and address 3
+>>> Nov 29 09:58:20 mythbox kernel: usb 1-8: configuration #1 chosen from 1
+>>> choice
+>>> Nov 29 09:58:20 mythbox kernel: usb 1-8: New USB device found,
+>>> idVendor=05d8, idProduct=810f
+>>> Nov 29 09:58:20 mythbox kernel: usb 1-8: New USB device strings: Mfr=1,
+>>> Product=2, SerialNumber=3
+>>> Nov 29 09:58:20 mythbox kernel: usb 1-8: Product: ART7070
+>>> Nov 29 09:58:20 mythbox kernel: usb 1-8: Manufacturer: Ultima
+>>> Nov 29 09:58:20 mythbox kernel: usb 1-8: SerialNumber: 001
+>>> Nov 29 09:58:20 mythbox kernel: dib0700: loaded with support for 7
+>>> different device-types
+>>> Nov 29 09:58:20 mythbox kernel: dvb-usb: found a 'Artec T14BR DVB-T' in
+>>> cold state, will try to load a firmware
+>>> Nov 29 09:58:20 mythbox kernel: firmware: requesting
+>>> dvb-usb-dib0700-1.10.fw
+>>> Nov 29 09:58:20 mythbox kernel: dvb-usb: downloading firmware from file
+>>> 'dvb-usb-dib0700-1.10.fw'
+>>> Nov 29 09:58:22 mythbox kernel: dib0700: firmware started successfully.
+>>> Nov 29 09:58:23 mythbox kernel: dvb-usb: found a 'Artec T14BR DVB-T' in
+>>> warm state.
+>>> Nov 29 09:58:23 mythbox kernel: dvb-usb: will pass the complete MPEG2
+>>> transport stream to the software demuxer.
+>>> Nov 29 09:58:23 mythbox kernel: DVB: registering new adapter (Artec
+>>> T14BR DVB-T)
+>>> Nov 29 09:58:23 mythbox kernel: DiB0070: successfully identified
+>>> Nov 29 09:58:23 mythbox kernel: input: IR-receiver inside an USB DVB
+>>> receiver as /devices/pci0000:00/0000:00:02.1/usb1/1
+>>> -8/input/input7
+>>> Nov 29 09:58:23 mythbox kernel: dvb-usb: schedule remote query interval
+>>> to 150 msecs.
+>>> Nov 29 09:58:23 mythbox kernel: dvb-usb: Artec T14BR DVB-T successfully
+>>> initialized and connected.
+>>>
+>>>
+>>
+>> Note I googled a few other people with the same issue:
+>>
+>> http://www.linuxtv.org/pipermail/linux-dvb/2007-November/022145.html
+>> http://ubuntuforums.org/archive/index.php/t-1233131.html
+>>
+>> so I'm assuming its a known issue, right?
+>>
+>> Paul
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+> 
 
