@@ -1,102 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:57843 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753284AbZLCVDl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 16:03:41 -0500
-Date: Thu, 3 Dec 2009 16:03:47 -0500 (EST)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Sean <knife@toaster.net>
-cc: Andrew Morton <akpm@linux-foundation.org>,
-	<bugzilla-daemon@bugzilla.kernel.org>,
-	<linux-media@vger.kernel.org>,
-	USB list <linux-usb@vger.kernel.org>,
-	Ingo Molnar <mingo@elte.hu>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	"H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [Bugme-new] [Bug 14564] New: capture-example sleeping function
- called from invalid context at arch/x86/mm/fault.c
-In-Reply-To: <4B175111.9070800@toaster.net>
-Message-ID: <Pine.LNX.4.44L0.0912031601420.4795-100000@iolanthe.rowland.org>
+Received: from ey-out-2122.google.com ([74.125.78.27]:18930 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751688AbZLBH2X convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Dec 2009 02:28:23 -0500
+Received: by ey-out-2122.google.com with SMTP id 4so1391270eyf.19
+        for <linux-media@vger.kernel.org>; Tue, 01 Dec 2009 23:28:28 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <4B15E9F0.3050701@wilsononline.id.au>
+References: <4B15C45F.7020909@wilsononline.id.au> <4B15E9F0.3050701@wilsononline.id.au>
+From: ALi <osatien@gmail.com>
+Date: Wed, 2 Dec 2009 08:28:07 +0100
+Message-ID: <431ff28c0912012328j3956c544h132b7c3995fd01ee@mail.gmail.com>
+Subject: Re: dvb_usb_dib0700 ( T14BR) not initializing on reboot
+To: Paul <mylists@wilsononline.id.au>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2 Dec 2009, Sean wrote:
+Are you sure that your usb is dib0700?
+if you look on the sources .... you wont see idVendor=413c,
+idProduct=3010 however there is
 
-> Is there anything I can do to help? This is a show stopping bug for me.
-
-Here's a patch you can try.  It will add a _lot_ of debugging
-information to the system log.  Maybe it will help pin down the source
-of the problem.
-
-Alan Stern
-
+oscar@X-Evian:/usr/src/linux-source-2.6.30/drivers/media/dvb/dvb-usb$
+grep 05d8 * -iR
+Coincidencia en el fichero binario dvb-usb-dib0700.ko
+dvb-usb-dib0700.mod.c:MODULE_ALIAS("usb:v05D8p810Fd*dc*dsc*dp*ic*isc*ip*");
 
 
-Index: 2.6.31/drivers/usb/host/ohci-hcd.c
-===================================================================
---- 2.6.31.orig/drivers/usb/host/ohci-hcd.c
-+++ 2.6.31/drivers/usb/host/ohci-hcd.c
-@@ -197,7 +197,7 @@ static int ohci_urb_enqueue (
- 
- 	/* allocate the TDs (deferring hash chain updates) */
- 	for (i = 0; i < size; i++) {
--		urb_priv->td [i] = td_alloc (ohci, mem_flags);
-+		urb_priv->td [i] = td_alloc (ohci, mem_flags, urb->dev, urb->ep);
- 		if (!urb_priv->td [i]) {
- 			urb_priv->length = i;
- 			urb_free_priv (ohci, urb_priv);
-Index: 2.6.31/drivers/usb/host/ohci-mem.c
-===================================================================
---- 2.6.31.orig/drivers/usb/host/ohci-mem.c
-+++ 2.6.31/drivers/usb/host/ohci-mem.c
-@@ -82,7 +82,8 @@ dma_to_td (struct ohci_hcd *hc, dma_addr
- 
- /* TDs ... */
- static struct td *
--td_alloc (struct ohci_hcd *hc, gfp_t mem_flags)
-+td_alloc (struct ohci_hcd *hc, gfp_t mem_flags, struct usb_device *udev,
-+	struct usb_host_endpoint *ep)
- {
- 	dma_addr_t	dma;
- 	struct td	*td;
-@@ -94,6 +95,8 @@ td_alloc (struct ohci_hcd *hc, gfp_t mem
- 		td->hwNextTD = cpu_to_hc32 (hc, dma);
- 		td->td_dma = dma;
- 		/* hashed in td_fill */
-+		ohci_info(hc, "td alloc for %s ep%x: %p\n",
-+			udev->devpath, ep->desc.bEndpointAddress, td);
- 	}
- 	return td;
- }
-@@ -103,8 +106,14 @@ td_free (struct ohci_hcd *hc, struct td 
- {
- 	struct td	**prev = &hc->td_hash [TD_HASH_FUNC (td->td_dma)];
- 
--	while (*prev && *prev != td)
-+	ohci_info(hc, "td free %p\n", td);
-+	while (*prev && *prev != td) {
-+		if ((unsigned long) *prev == 0xa7a7a7a7) {
-+			ohci_info(hc, "poisoned hash at %p\n", prev);
-+			return;
-+		}
- 		prev = &(*prev)->td_hash;
-+	}
- 	if (*prev)
- 		*prev = td->td_hash;
- 	else if ((td->hwINFO & cpu_to_hc32(hc, TD_DONE)) != 0)
-Index: 2.6.31/drivers/usb/host/ohci-q.c
-===================================================================
---- 2.6.31.orig/drivers/usb/host/ohci-q.c
-+++ 2.6.31/drivers/usb/host/ohci-q.c
-@@ -403,7 +403,7 @@ static struct ed *ed_get (
- 		}
- 
- 		/* dummy td; end of td list for ed */
--		td = td_alloc (ohci, GFP_ATOMIC);
-+		td = td_alloc (ohci, GFP_ATOMIC, udev, ep);
- 		if (!td) {
- 			/* out of memory */
- 			ed_free (ohci, ed);
+in the file .... so .... try to recompile it with your device id, and
+pray for it :)
 
+On Wed, Dec 2, 2009 at 5:15 AM, Paul <mylists@wilsononline.id.au> wrote:
+> On 2/12/2009 12:35 PM, Paul wrote:
+>>
+>> I have a DVB-T USB device ( T14BR),
+>> which seems to work fine when I plug in my Fedora 10 box but I if I
+>> reboot with device connected it regularity fails to initialise correctly
+>> and to correct I have to remove unplug-device remove the module and
+>> reload module to fix up and only after system has been fully booted
+>>
+>> eg
+>> modprobe -r dvb-usb-dib0700
+>> then
+>> modprobe dvb-usb-dib0700  adapter_nr=2
+>> and then plug device in.
+>> I get the following msgs when it seems to fail and the second set when
+>> it works
+>>
+>> kernel log (failed)
+>>
+>> Nov 22 13:51:50 mythbox kernel: usb 2-7: new full speed USB device using
+>> ohci_hcd and address 2
+>> Nov 22 13:51:50 mythbox kernel: usb 2-7: new full speed USB device using
+>> ohci_hcd and address 3
+>> Nov 22 13:51:50 mythbox kernel: usb 2-7: new full speed USB device using
+>> ohci_hcd and address 4
+>> Nov 22 13:51:50 mythbox kernel: usb 2-7: new full speed USB device using
+>> ohci_hcd and address 5
+>> Nov 22 13:51:50 mythbox kernel: usb 2-8: new low speed USB device using
+>> ohci_hcd and address 6
+>> Nov 22 13:51:50 mythbox kernel: usb 2-8: configuration #1 chosen from 1
+>> choice
+>> Nov 22 13:51:50 mythbox kernel: usb 2-8: New USB device found,
+>> idVendor=413c, idProduct=3010
+>> Nov 22 13:51:50 mythbox kernel: usb 2-8: New USB device strings: Mfr=0,
+>> Product=0, SerialNumber=0
+>> Nov 22 13:51:50 mythbox kernel: usbcore: registered new interface driver
+>> hiddev
+>> Nov 22 13:51:50 mythbox kernel: input: HID 413c:3010 as
+>> /devices/pci0000:00/0000:00:02.0/usb2/2-8/2-8:1.0/input/input4
+>> Nov 22 13:51:50 mythbox kernel: input,hidraw0: USB HID v1.00 Mouse [HID
+>> 413c:3010] on usb-0000:00:02.0-8
+>> Nov 22 13:51:50 mythbox kernel: usbcore: registered new interface driver
+>> usbhid
+>> Nov 22 13:51:50 mythbox kernel: usbhid: v2.6:USB HID core driver
+>>
+>>
+>> http://www.artectv.com/ehtm/products/t14.htm
+>>
+>> kernel log (working)
+>>
+>> Nov 29 09:58:20 mythbox kernel: usb 1-8: new high speed USB device using
+>> ehci_hcd and address 3
+>> Nov 29 09:58:20 mythbox kernel: usb 1-8: configuration #1 chosen from 1
+>> choice
+>> Nov 29 09:58:20 mythbox kernel: usb 1-8: New USB device found,
+>> idVendor=05d8, idProduct=810f
+>> Nov 29 09:58:20 mythbox kernel: usb 1-8: New USB device strings: Mfr=1,
+>> Product=2, SerialNumber=3
+>> Nov 29 09:58:20 mythbox kernel: usb 1-8: Product: ART7070
+>> Nov 29 09:58:20 mythbox kernel: usb 1-8: Manufacturer: Ultima
+>> Nov 29 09:58:20 mythbox kernel: usb 1-8: SerialNumber: 001
+>> Nov 29 09:58:20 mythbox kernel: dib0700: loaded with support for 7
+>> different device-types
+>> Nov 29 09:58:20 mythbox kernel: dvb-usb: found a 'Artec T14BR DVB-T' in
+>> cold state, will try to load a firmware
+>> Nov 29 09:58:20 mythbox kernel: firmware: requesting
+>> dvb-usb-dib0700-1.10.fw
+>> Nov 29 09:58:20 mythbox kernel: dvb-usb: downloading firmware from file
+>> 'dvb-usb-dib0700-1.10.fw'
+>> Nov 29 09:58:22 mythbox kernel: dib0700: firmware started successfully.
+>> Nov 29 09:58:23 mythbox kernel: dvb-usb: found a 'Artec T14BR DVB-T' in
+>> warm state.
+>> Nov 29 09:58:23 mythbox kernel: dvb-usb: will pass the complete MPEG2
+>> transport stream to the software demuxer.
+>> Nov 29 09:58:23 mythbox kernel: DVB: registering new adapter (Artec
+>> T14BR DVB-T)
+>> Nov 29 09:58:23 mythbox kernel: DiB0070: successfully identified
+>> Nov 29 09:58:23 mythbox kernel: input: IR-receiver inside an USB DVB
+>> receiver as /devices/pci0000:00/0000:00:02.1/usb1/1
+>> -8/input/input7
+>> Nov 29 09:58:23 mythbox kernel: dvb-usb: schedule remote query interval
+>> to 150 msecs.
+>> Nov 29 09:58:23 mythbox kernel: dvb-usb: Artec T14BR DVB-T successfully
+>> initialized and connected.
+>>
+>>
+>
+>
+> Note I googled a few other people with the same issue:
+>
+> http://www.linuxtv.org/pipermail/linux-dvb/2007-November/022145.html
+> http://ubuntuforums.org/archive/index.php/t-1233131.html
+>
+> so I'm assuming its a known issue, right?
+>
+> Paul
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
