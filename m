@@ -1,100 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:19516 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752950AbZLHOff (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2009 09:35:35 -0500
-Message-ID: <4B1E640B.6030705@redhat.com>
-Date: Tue, 08 Dec 2009 12:34:51 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2620 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752742AbZLBCuN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 21:50:13 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Subject: Re: linux-media documentation fails to build
+Date: Wed, 2 Dec 2009 08:18:26 +0530
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <A69FA2915331DC488A831521EAE36FE40155B76C14@dlee06.ent.ti.com> <A69FA2915331DC488A831521EAE36FE40155B76C37@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40155B76C37@dlee06.ent.ti.com>
 MIME-Version: 1.0
-To: Jon Smirl <jonsmirl@gmail.com>
-CC: Andy Walls <awalls@radix.net>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	Christoph Bartelmus <lirc@bartelmus.de>, j@jannau.net,
-	jarod@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
- 	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-References: <BDRae8rZjFB@christoph> <4B0E8B32.3020509@redhat.com>	 <1259264614.1781.47.camel@localhost>	 <6B4C84CD-F146-4B8B-A8BB-9963E0BA4C47@wilsonet.com>	 <1260240142.3086.14.camel@palomino.walls.org>	 <20091208042210.GA11147@core.coreip.homeip.net>	 <1260275743.3094.6.camel@palomino.walls.org>	 <4B1E54FF.8060404@redhat.com>	 <9e4733910912080547j75c2c885o29664470ff5e2c6a@mail.gmail.com>	 <4B1E5BDF.7010202@redhat.com> <9e4733910912080619t36089c9bg5e54114844b9694a@mail.gmail.com>
-In-Reply-To: <9e4733910912080619t36089c9bg5e54114844b9694a@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200912020818.27071.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jon Smirl wrote:
-> On Tue, Dec 8, 2009 at 8:59 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> Jon Smirl wrote:
->>> On Tue, Dec 8, 2009 at 8:30 AM, Mauro Carvalho Chehab
->>> <mchehab@redhat.com> wrote:
->>>> Andy Walls wrote:
->>>>> On Mon, 2009-12-07 at 20:22 -0800, Dmitry Torokhov wrote:
->>>>>> On Mon, Dec 07, 2009 at 09:42:22PM -0500, Andy Walls wrote:
->>>>>>> So I'll whip up an RC-6 Mode 6A decoder for cx23885-input.c before the
->>>>>>> end of the month.
->>>>>>>
->>>>>>> I can setup the CX2388[58] hardware to look for both RC-5 and RC-6 with
->>>>>>> a common set of parameters, so I may be able to set up the decoders to
->>>>>>> handle decoding from two different remote types at once.  The HVR boards
->>>>>>> can ship with either type of remote AFAIK.
->>>>>>>
->>>>>>> I wonder if I can flip the keytables on the fly or if I have to create
->>>>>>> two different input devices?
->>>>>>>
->>>>>> Can you distinguish between the 2 remotes (not receivers)?
->>>>> Yes.  RC-6 and RC-5 are different enough to distinguish between the two.
->>>>> (Honestly I could pile on more protocols that have similar pulse time
->>>>> periods, but that's complexity for no good reason and I don't know of a
->>>>> vendor that bundles 3 types of remotes per TV card.)
->>>> You'll be distinguishing the protocol, not the remote. If I understood
->>>> Dmitry's question, he is asking if you can distinguish between two different
->>>> remotes that may, for example, be using both RC-5 or both RC-6 or one RC-5
->>>> and another RC-6.
->>> RC-5 and RC-6 both contain an address field.  My opinion is that
->>> different addresses represent different devices and in general they
->>> should appear on an input devices per address.
->> The same IR can produce two different addresses. The IR bundled with my satellite
->> STB produces two different codes, depending if you previously pressed <TV> or <SAT>
->> key (in fact, I think it can even produce different protocols for TV, as it can
->> be configured to work with different TV sets).
-> 
-> You have a multi-function remote.
+On Wednesday 02 December 2009 04:17:12 Karicheri, Muralidharan wrote:
+> Some body removed media-spec target from v4l/Makefile.
+>
+> I got it working with make spec.
+>
+> Why to change target name like this?
 
-Yes.
+I always used 'make spec'. The 'make media-spec' was probably introduced when 
+the v4l and dvb docs were merged. Since I recently removed the old v4l2-spec 
+and dvb-spec make targets I also removed the media-spec target since there was 
+no need for it anymore. Just the 'spec' target is needed, as it always was.
 
-> That's why those keys don't send codes. When writing code you should
-> think of this remote as being two indpendent virtual remotes, not a
-> single one.
+Regards,
 
-Not really. I may think on it as a single device and use the two groups
-of functions to control two aspects at the same application.
+	Hans
 
-For example, I may map the <TV> group on kaffeine for DVB reception and the
-<SAT> group for DVD (well, probably, in this case, I'll use an IR with
-<TV> and <DVD> keys, instead ;) ).
+>
+> Murali Karicheri
+> Software Design Engineer
+> Texas Instruments Inc.
+> Germantown, MD 20874
+> phone: 301-407-9583
+> email: m-karicheri2@ti.com
+>
+> >-----Original Message-----
+> >From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> >owner@vger.kernel.org] On Behalf Of Karicheri, Muralidharan
+> >Sent: Tuesday, December 01, 2009 5:28 PM
+> >To: linux-media@vger.kernel.org
+> >Cc: Mauro Carvalho Chehab; Hans Verkuil
+> >Subject: linux-media documentation fails to build
+> >
+> >Hi,
+> >
+> >I had downloaded the v4l2-dvb tree few days back to create my video
+> > timings API documentation and it had compiled fine when I did,
+> >
+> >make media-spec
+> >
+> >I still can build using the old tar ball. But today, I downloaded v4l-dvb-
+> >e0cd9a337600.tar.gz, it fails immediately after running the
+> >make_myconfig.pl script with the error
+> >
+> >"No rule to make target 'media-spec'. Stop
+> >
+> >Has something changed last few days that broke the build?
+> >
+> >I need to make updates to video timing API documentation based on Han's
+> >review comments and I am stuck at this issue now :(
+> >
+> >Murali Karicheri
+> >Software Design Engineer
+> >Texas Instruments Inc.
+> >Germantown, MD 20874
+> >phone: 301-407-9583
+> >email: m-karicheri2@ti.com
+> >
+> >--
+> >To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> >the body of a message to majordomo@vger.kernel.org
+> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-> By using maps containing the two different addresses for <TV> and
-> <SAT> you can split these commands onto two different evdev devices.
-
-True. I can do it, but I can opt to have both mapped as one evdev device as well.
-This will basically depend on how I want to mount my environment.
- 
-> This model is complicated by the fact that some remotes that look like
-> multi-function remotes aren't really multifunction. The remote bundled
-> with the MS MCE receiver is one. That remote is a single function
-> device even though it has function buttons for TV, Music, Pictures,
-> etc.
-
-It is very common to have such remotes bundled with multimedia devices.
-
-An unsolved question on my mind is how should we map such IR's? Should we
-provide a way for them to emulate a multifunction IR (for example, after pressing
-TV key, subsequent keystrokes would be directed to the TV evdev device?), or
-should we let this up to some userspace app to handle this case?
- 
-Cheers,
-Mauro.
