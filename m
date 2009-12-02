@@ -1,78 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:35409
-	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752667AbZLAOco convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 09:32:44 -0500
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
-Mime-Version: 1.0 (Apple Message framework v1077)
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:61543 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754258AbZLBT4f (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Dec 2009 14:56:35 -0500
+Date: Wed, 2 Dec 2009 11:56:34 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Jarod Wilson <jarod@redhat.com>
+Cc: Jon Smirl <jonsmirl@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>, awalls@radix.net,
+	j@jannau.net, jarod@wilsonet.com, khc@pm.waw.pl,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, lirc-list@lists.sourceforge.net,
+	superm1@ubuntu.com, Christoph Bartelmus <lirc@bartelmus.de>
+Subject: Re: [RFC v2] Another approach to IR
+Message-ID: <20091202195634.GB22689@core.coreip.homeip.net>
+References: <4B155288.1060509@redhat.com> <20091201175400.GA19259@core.coreip.homeip.net> <4B1567D8.7080007@redhat.com> <20091201201158.GA20335@core.coreip.homeip.net> <4B15852D.4050505@redhat.com> <20091202093803.GA8656@core.coreip.homeip.net> <4B16614A.3000208@redhat.com> <20091202171059.GC17839@core.coreip.homeip.net> <9e4733910912020930t3c9fe973k16fd353e916531a4@mail.gmail.com> <4B16BE6A.7000601@redhat.com>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-From: Jarod Wilson <jarod@wilsonet.com>
-In-Reply-To: <4B14E747.9060208@redhat.com>
-Date: Tue, 1 Dec 2009 09:32:42 -0500
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jonsmirl@gmail.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Content-Transfer-Encoding: 8BIT
-Message-Id: <119343FC-A4FF-456A-8709-36ED941AC9C3@wilsonet.com>
-References: <BDodf9W1qgB@lirc> <4B13BBBE.3010101@redhat.com> <4B14E747.9060208@redhat.com>
-To: Gerd Hoffmann <kraxel@redhat.com>
+Content-Disposition: inline
+In-Reply-To: <4B16BE6A.7000601@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Dec 1, 2009, at 4:52 AM, Gerd Hoffmann wrote:
+On Wed, Dec 02, 2009 at 02:22:18PM -0500, Jarod Wilson wrote:
+> On 12/2/09 12:30 PM, Jon Smirl wrote:
+>>>>> (for each remote/substream that they can recognize).
+>>>> >>
+>>>> >>  I'm assuming that, by remote, you're referring to a remote receiver (and not to
+>>>> >>  the remote itself), right?
+>>> >
+>>> >  If we could separate by remote transmitter that would be the best I
+>>> >  think, but I understand that it is rarely possible?
+> >
+>> The code I posted using configfs did that. Instead of making apps IR
+>> aware it mapped the vendor/device/command triplets into standard Linux
+>> keycodes.  Each remote was its own evdev device.
+>
+> Note, of course, that you can only do that iff each remote uses distinct  
+> triplets. A good portion of mythtv users use a universal of some sort,  
+> programmed to emulate another remote, such as the mce remote bundled  
+> with mceusb transceivers, or the imon remote bundled with most imon  
+> receivers. I do just that myself.
+>
+> Personally, I've always considered the driver/interface to be the  
+> receiver, not the remote. The lirc drivers operate at the receiver  
+> level, anyway, and the distinction between different remotes is made by  
+> the lirc daemon.
 
-> On 11/30/09 13:34, Mauro Carvalho Chehab wrote:
->> Christoph Bartelmus wrote:
->>> Hi Mauro,
->>> 
->>> I just don't want to change a working interface just because it could be
->>> also implemented in a different way, but having no other visible advantage
->>> than using more recent kernel features.
->> 
->> I agree. The main reasons to review the interface is:
->> 	1) to avoid any overlaps (if are there any) with the evdev interface;
-> 
-> Use lirc for raw samples.
-> Use evdev for decoded data.
+The fact that lirc does it this way does not necessarily mean it is the
+most corerct way. Do you expect all bluetooth input devices be presented
+as a single blob just because they happen to talk to the sane receiver
+in yoru laptop? Do you expect your USB mouse and keyboard be merged
+together just because they end up being serviced by the same host
+controller? If not why remotes should be any different?
 
-This is the approach I'm pretty well settled on wanting to take myself.
-
-> Hardware/drivers which can handle both can support both interfaces.
-
-Exactly.
-
-> IMHO it makes no sense at all to squeeze raw samples through the input layer.  It looks more like a serial line than a input device.  In fact you can homebrew a receiver and connect it to the serial port, which was quite common in pre-usb-ir-receiver times.
-> 
->> 	2) to have it stable enough to be used, without changes, for a long
->> 	   time.
-> 
-> It isn't like lirc is a new interface.  It has been used in practice for years.  I don't think API stability is a problem here.
-
-Yeah, in the ~3 years I've been maintaining lirc patches for the Fedora kernels, only once has something happened where new userspace could no longer talk to old kernelspace. The majority of the work has been keeping things running as kernel interfaces change -- the 2.6.31 i2c changes are still biting us, as some capture card devices lagged behind a bit on converting to the new i2c scheme, making it impossible for lirc_i2c and/or lirc_zilog to bind (and ir-kbd-i2c, for that matter).
-
->> True, but even if we want to merge lirc drivers "as-is", the drivers will
->> still need changes, due to kernel CodingStyle, due to the usage of some API's
->> that may be deprecated, due to some breakage with non-Intel architectures, due
->> to some bugs that kernel hackers may discover, etc.
-> 
-> I assumed this did happen in already in preparation of this submission?
-
-Yes. There may still be a bit of work to do here, but there was a crew of us about a year, year and a half ago, that did a major sweep through all the lirc drivers, reformatting things so that we were at least mostly checkpatch-clean. The original lirc patches I put into the Fedora Core 6 kernel had several thousand lines of warnings and errors, while with the current lirc patches in Fedora 12, I get:
-
-total: 1 errors, 12 warnings, 15987 lines checked
-
-The error is new, hadn't seen that one before, going to fix it now... :) The warnings are almost all the same thing, "WARNING: struct file_operations should normally be const", need to fix that too, though we actually do edit the lirc_fops on a per-device basis right now, so they can't be const...
-
-Okay, the error and one of the warnings are gone from my local tree, now its all just the above.
-
-But yeah, for the most part, I think the coding style and formatting of the lirc drivers *does* look like kernel code these days, minor fixages suggested in Mauro's review aside. I submitted only a 3-part series (lirc_dev, lirc_mceusb and lirc_imon) to keep from overwhelming anyone (myself included) with too much code at once, and went with the two device drivers that I've personally done the most work on and have several devices driven by (which includes the IR parts I've been using in my "production" MythTV setup for years now).
+Now I understand that if 2 remotes send completely identical signals we
+won't be able to separete them, but in cases when we can I think we
+should.
 
 -- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
-
+Dmitry
