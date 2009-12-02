@@ -1,22 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-out002.kontent.com ([81.88.40.216])
+Received: from highwire.stanford.edu ([171.66.121.166])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <lothar.behrens@lollisoft.de>) id 1NKvV5-0004zq-LZ
-	for linux-dvb@linuxtv.org; Wed, 16 Dec 2009 16:09:17 +0100
-Received: from jedi.behrens.de (p57B42D2C.dip0.t-ipconnect.de [87.180.45.44])
-	(Authenticated sender: lollisoft_de_001@smtp-out002.kontent.com)
-	by smtp-out002.kontent.com (Postfix) with ESMTPA id 236495802DAC
-	for <linux-dvb@linuxtv.org>; Wed, 16 Dec 2009 16:09:12 +0100 (CET)
-Received: from [192.168.150.18] (mac [192.168.150.18])
-	by jedi.behrens.de (Postfix) with ESMTP id 6E6101B948
-	for <linux-dvb@linuxtv.org>; Wed, 16 Dec 2009 16:15:37 +0100 (CET)
-Message-Id: <938B2714-17EB-476A-8EB0-5C42894E60DC@lollisoft.de>
-From: Lothar Behrens <lothar.behrens@lollisoft.de>
+	(envelope-from <durket@rlucier-home2.stanford.edu>)
+	id 1NFqMJ-0002hN-1V
+	for linux-dvb@linuxtv.org; Wed, 02 Dec 2009 15:39:11 +0100
+Received: from rlucier-home2.stanford.edu (rlucier-home2.Stanford.EDU
+	[171.66.222.187])
+	by highwire.stanford.edu (Postfix) with ESMTP id 69D948DE8
+	for <linux-dvb@linuxtv.org>; Wed,  2 Dec 2009 06:39:04 -0800 (PST)
+Received: from [192.168.3.201] (unknown [192.168.3.201])
+	by rlucier-home2.stanford.edu (Postfix) with ESMTP id D94463D4513
+	for <linux-dvb@linuxtv.org>; Wed,  2 Dec 2009 06:39:03 -0800 (PST)
+From: Michael Durket <durket@rlucier-home2.stanford.edu>
+Message-Id: <0337E89E-20AA-446D-9DE8-6D5961F07852@rlucier-home2.stanford.edu>
+Date: Wed, 2 Dec 2009 06:39:03 -0800
 To: linux-dvb@linuxtv.org
-Mime-Version: 1.0 (Apple Message framework v936)
-Date: Wed, 16 Dec 2009 16:12:51 +0100
-Subject: [linux-dvb] SheevaBox as a media Server and a Fit-PC as a streaming
-	client?
+Mime-Version: 1.0 (Apple Message framework v1077)
+Subject: [linux-dvb] ds3000.c driver question (Tevii S660 USB DVB-S/S2 tuner)
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -25,66 +25,16 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="windows-1252"; Format="flowed"; DelSp="yes"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-
-I am new here and start with a setup question.
-
-The media or NAS server I think about: http://plugcomputer.org/
-
-It has a high speed USB 2.0 port and a gigabit Lan.
-
-Using Linux and VLC as the streaming server, would this be good for  =
-
-streaming full HD videos from a attached USB hard drive?
-The streaming client in mind: http://www.fit-pc.com/web/
-
-Would it be possible to use this box (the cheapest one is about 299 =80  =
-
-+ shipping in germany) with XBMC or other stuff?
-I mean saving the hard drives in the client box when a SAN is used.  =
-
-Both could use Linux and thus fully controlled and tweaked for best  =
-
-performing as a media center solution.
-
-The reason why I ask is because my brother want's to save money and  =
-
-don't like to waste money for hardware components that may not really  =
-
-needed.
-
-Other devices in mind were these components:
-
-http://www.openpr.de/news/365458/Movie-Cube-S800H-Genuss-fuer-Augen-und-Ohr=
-en.html
-http://www.tomsnetworking.de/content/aktuelles/news_beitrag/news/3828/index=
-.html
-
-But is there the opportunity to use the media from the movie cube to  =
-
-be streamed to other computers?
-
-Thanks for your help,
-
-Lothar
-
--- | Rapid Prototyping | XSLT Codegeneration | http://www.lollisoft.de
-Lothar Behrens
-Heinrich-Scheufelen-Platz 2
-73252 Lenningen
-
-
-
-
-
-
-
+I have some questions about the ds3000.c driver. I (and also someone at Tevii at my 
+request) have attempted to contact the driver author to no avail. Is there anyone here
+familiar enough with that driver (and the firmware) that can answer some detailed questions
+about the device?
 
 
 _______________________________________________
