@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-iw0-f198.google.com ([209.85.223.198])
-	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <leszek@koltunski.pl>) id 1NG6nn-0006Aq-9u
-	for linux-dvb@linuxtv.org; Thu, 03 Dec 2009 09:12:39 +0100
-Received: by iwn36 with SMTP id 36so715362iwn.3
-	for <linux-dvb@linuxtv.org>; Thu, 03 Dec 2009 00:12:04 -0800 (PST)
+Received: from m0-if0.velocitynet.com.au ([203.17.154.50]
+	helo=m0.velocity.net.au) by mail.linuxtv.org with esmtp (Exim 4.69)
+	(envelope-from <mylists@wilsononline.id.au>) id 1NFe3v-0008El-Rp
+	for linux-dvb@linuxtv.org; Wed, 02 Dec 2009 02:31:25 +0100
+Received: from [192.168.0.10] (110.143.46.202-static.velocitynet.com.au
+	[202.46.143.110])
+	by m0.velocity.net.au (Postfix) with ESMTP id 7905A603F0
+	for <linux-dvb@linuxtv.org>; Wed,  2 Dec 2009 12:31:07 +1100 (EST)
+Message-ID: <4B15C35A.9010902@wilsononline.id.au>
+Date: Wed, 02 Dec 2009 12:31:06 +1100
+From: Paul <mylists@wilsononline.id.au>
 MIME-Version: 1.0
-Date: Thu, 3 Dec 2009 16:12:04 +0800
-Message-ID: <8cd7f1780912030012h609a7a5w72d054ac5749eab1@mail.gmail.com>
-From: Leszek Koltunski <leszek@koltunski.pl>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] /dev/dvb/adapter0/net0 <-- what is this for and how to
-	use it?
+Subject: [linux-dvb] dvb_usb_dib0700  ( T14BR) not initializing on reboot
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -20,67 +21,95 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0878459000=="
-Mime-version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0878459000==
-Content-Type: multipart/alternative; boundary=000325579eb2ea17c10479ce8b35
+I have a DVB-T USB device ( T14BR),
+which seems to work fine when I plug in my Fedora 10 box but I if I 
+reboot with device connected it regularity fails to initialise correctly
+and to correct I have to remove unplug-device remove the module and 
+reload module to fix up and only after system has been fully booted
 
---000325579eb2ea17c10479ce8b35
-Content-Type: text/plain; charset=ISO-8859-1
+eg
+modprobe -r dvb-usb-dib0700
+then
+modprobe dvb-usb-dib0700  adapter_nr=2
+and then plug device in.
+I get the following msgs when it seems to fail and the second set when 
+it works
 
-Hello DVB gurus,
+kernel log (failed)
 
-I've got a TwinHan DVB-S2 card. I compiled the 'liplianin' drivers and it's
-working nicely; thanks for all your work!
-
-One question: in /dev/dvb/adapter0 I can see
-
-leszek@satellite:~$ ls -l /dev/dvb/adapter0/
-total 0
-crw-rw----+ 1 root video 212, 4 2009-12-02 18:22 ca0
-crw-rw----+ 1 root video 212, 0 2009-12-02 18:22 demux0
-crw-rw----+ 1 root video 212, 1 2009-12-02 18:22 dvr0
-crw-rw----+ 1 root video 212, 3 2009-12-02 18:22 frontend0
-crw-rw----+ 1 root video 212, 2 2009-12-02 18:22 net0
-
-What is this 'net0' device and how do I use it? Can I use it to directly
-multicast my (FTA) satellite stream to my lan by any chance?
-
-I have found no documentation about this...
-
---000325579eb2ea17c10479ce8b35
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-Hello DVB gurus,<br><br>I&#39;ve got a TwinHan DVB-S2 card. I compiled the =
-&#39;liplianin&#39; drivers and it&#39;s working nicely; thanks for all you=
-r work!<br><br>One question: in /dev/dvb/adapter0 I can see<br><br>leszek@s=
-atellite:~$ ls -l /dev/dvb/adapter0/<br>
-total 0<br>crw-rw----+ 1 root video 212, 4 2009-12-02 18:22 ca0<br>crw-rw--=
---+ 1 root video 212, 0 2009-12-02 18:22 demux0<br>crw-rw----+ 1 root video=
- 212, 1 2009-12-02 18:22 dvr0<br>crw-rw----+ 1 root video 212, 3 2009-12-02=
- 18:22 frontend0<br>
-crw-rw----+ 1 root video 212, 2 2009-12-02 18:22 net0<br><br>What is this &=
-#39;net0&#39; device and how do I use it? Can I use it to directly multicas=
-t my (FTA) satellite stream to my lan by any chance?<br><br>I have found no=
- documentation about this...<br>
-
---000325579eb2ea17c10479ce8b35--
+Nov 22 13:51:50 mythbox kernel: usb 2-7: new full speed USB device using 
+ohci_hcd and address 2
+Nov 22 13:51:50 mythbox kernel: usb 2-7: new full speed USB device using 
+ohci_hcd and address 3
+Nov 22 13:51:50 mythbox kernel: usb 2-7: new full speed USB device using 
+ohci_hcd and address 4
+Nov 22 13:51:50 mythbox kernel: usb 2-7: new full speed USB device using 
+ohci_hcd and address 5
+Nov 22 13:51:50 mythbox kernel: usb 2-8: new low speed USB device using 
+ohci_hcd and address 6
+Nov 22 13:51:50 mythbox kernel: usb 2-8: configuration #1 chosen from 1 
+choice
+Nov 22 13:51:50 mythbox kernel: usb 2-8: New USB device found, 
+idVendor=413c, idProduct=3010
+Nov 22 13:51:50 mythbox kernel: usb 2-8: New USB device strings: Mfr=0, 
+Product=0, SerialNumber=0
+Nov 22 13:51:50 mythbox kernel: usbcore: registered new interface driver 
+hiddev
+Nov 22 13:51:50 mythbox kernel: input: HID 413c:3010 as 
+/devices/pci0000:00/0000:00:02.0/usb2/2-8/2-8:1.0/input/input4
+Nov 22 13:51:50 mythbox kernel: input,hidraw0: USB HID v1.00 Mouse [HID 
+413c:3010] on usb-0000:00:02.0-8
+Nov 22 13:51:50 mythbox kernel: usbcore: registered new interface driver 
+usbhid
+Nov 22 13:51:50 mythbox kernel: usbhid: v2.6:USB HID core driver
 
 
---===============0878459000==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+http://www.artectv.com/ehtm/products/t14.htm
+
+kernel log (working)
+
+Nov 29 09:58:20 mythbox kernel: usb 1-8: new high speed USB device using 
+ehci_hcd and address 3
+Nov 29 09:58:20 mythbox kernel: usb 1-8: configuration #1 chosen from 1 
+choice
+Nov 29 09:58:20 mythbox kernel: usb 1-8: New USB device found, 
+idVendor=05d8, idProduct=810f
+Nov 29 09:58:20 mythbox kernel: usb 1-8: New USB device strings: Mfr=1, 
+Product=2, SerialNumber=3
+Nov 29 09:58:20 mythbox kernel: usb 1-8: Product: ART7070
+Nov 29 09:58:20 mythbox kernel: usb 1-8: Manufacturer: Ultima
+Nov 29 09:58:20 mythbox kernel: usb 1-8: SerialNumber: 001
+Nov 29 09:58:20 mythbox kernel: dib0700: loaded with support for 7 
+different device-types
+Nov 29 09:58:20 mythbox kernel: dvb-usb: found a 'Artec T14BR DVB-T' in 
+cold state, will try to load a firmware
+Nov 29 09:58:20 mythbox kernel: firmware: requesting dvb-usb-dib0700-1.10.fw
+Nov 29 09:58:20 mythbox kernel: dvb-usb: downloading firmware from file 
+'dvb-usb-dib0700-1.10.fw'
+Nov 29 09:58:22 mythbox kernel: dib0700: firmware started successfully.
+Nov 29 09:58:23 mythbox kernel: dvb-usb: found a 'Artec T14BR DVB-T' in 
+warm state.
+Nov 29 09:58:23 mythbox kernel: dvb-usb: will pass the complete MPEG2 
+transport stream to the software demuxer.
+Nov 29 09:58:23 mythbox kernel: DVB: registering new adapter (Artec 
+T14BR DVB-T)
+Nov 29 09:58:23 mythbox kernel: DiB0070: successfully identified
+Nov 29 09:58:23 mythbox kernel: input: IR-receiver inside an USB DVB 
+receiver as /devices/pci0000:00/0000:00:02.1/usb1/1
+-8/input/input7
+Nov 29 09:58:23 mythbox kernel: dvb-usb: schedule remote query interval 
+to 150 msecs.
+Nov 29 09:58:23 mythbox kernel: dvb-usb: Artec T14BR DVB-T successfully 
+initialized and connected.
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0878459000==--
