@@ -1,57 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:14752 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755209AbZLHON3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2009 09:13:29 -0500
-Message-ID: <4B1E5EFA.4020801@redhat.com>
-Date: Tue, 08 Dec 2009 12:13:14 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3526 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752597AbZLBCxD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 21:53:03 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: =?iso-8859-1?q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: WARNINGS
+Date: Wed, 2 Dec 2009 08:21:17 +0530
+Cc: linux-media@vger.kernel.org
+References: <200912011947.nB1JltLm031870@smtp-vbr17.xs4all.nl> <4B158C0E.4080709@freemail.hu>
+In-Reply-To: <4B158C0E.4080709@freemail.hu>
 MIME-Version: 1.0
-To: Krzysztof Halasa <khc@pm.waw.pl>
-CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Jon Smirl <jonsmirl@gmail.com>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
-	kraxel@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR  system?
-References: <BEJgSGGXqgB@lirc>	<9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>	<1260070593.3236.6.camel@pc07.localdom.local>	<20091206065512.GA14651@core.coreip.homeip.net>	<4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain>	<9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>	<m3skbn6dv1.fsf@intrepid.localdomain>	<9e4733910912061323x22c618ccyf6edcee5b021cbe3@mail.gmail.com>	<4B1D934E.7030103@redhat.com>	<20091208042340.GC11147@core.coreip.homeip.net>	<4B1E3F7D.9070806@redhat.com> <m34oo1va2y.fsf@intrepid.localdomain>
-In-Reply-To: <m34oo1va2y.fsf@intrepid.localdomain>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200912020821.18004.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Krzysztof Halasa wrote:
-> Mauro Carvalho Chehab <mchehab@redhat.com> writes:
-> 
->> I don't think we need an userspace interface for the in-kernel
->> decoders.
-> 
-> Of course we need it, to set (and probably retrieve) scancode-keycode
-> mappings. This could probably be, ATM, the existing input layer channel.
+On Wednesday 02 December 2009 03:05:10 Németh Márton wrote:
+> Hans Verkuil wrote:
+> > This message is generated daily by a cron job that builds v4l-dvb for
+> > the kernels and architectures in the list below.
+> >
+> > Results of the daily build of v4l-dvb:
+> >
+> > date:        Tue Dec  1 19:00:02 CET 2009
+> > path:        http://www.linuxtv.org/hg/v4l-dvb
+> > changeset:   13538:e0cd9a337600
+> > gcc version: gcc (GCC) 4.3.1
+> > hardware:    x86_64
+> > host os:     2.6.26
+> > [...]
+> > Detailed results are available here:
+> >
+> > http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+> >
+> >> linux-2.6.29.1-i686: WARNINGS
+> >> /marune/build/v4l-dvb-master/v4l/firedtv-1394.c:264: warning:
+> >> initialization discards qualifiers from pointer target type
+> >>
+> >> linux-2.6.29.1-x86_64: WARNINGS
+> >> /marune/build/v4l-dvb-master/v4l/firedtv-1394.c:264: warning:
+> >> initialization discards qualifiers from pointer target type
+>
+> I found about this two warnings that this module is not to be built with
+> 2.6.29.1
+>
+> according to the following lines from version.txt:
+> > [2.6.30]
+> > # Needs const id_table pointer in struct hpsb_protocol_driver
+> > DVB_FIREDTV_IEEE1394
+>
+> I'm not sure whether the script v4l/scripts/make_kconfig.pl is working
+> correctly or not.
 
-This is the standard/extended evdev interface already discussed.
-> 
->> All
->> it needs is to enable/disable the protocol decoders, imo via sysfs interface.
-> 
-> This isn't IMHO needed at all. The protocol is enabled when at least one
-> key using it is configured, otherwise it's disabled. We probably need
-> some "wildcard" as well, to capture decoded scancodes (through the input
-> layer).
-> This is BTW pure optimization, the protocol could stay enabled all the
-> time, only wasting the cycles.
+There are some weird conditions on that IEEE1394 config that seem to defeat 
+the make_kconfig.pl script. I haven't had the time to look at it. It would be 
+great if someone can take a look at it as I don't have the time.
 
-The enable/disable protocol decoder enable/disable interface is needed anyway,
-due to the needs for the hardware IR decoders (and the legacy IR decoders,
-while we don't convert all of them to the generic ones).
+Regards,
 
-So, IMO, the interface will be cleaner if we use it also for the generic
-IR decoders.
+	Hans
 
-Cheers,
-Mauro.
+>
+> Regards,
+>
+> 	Márton Németh
+
