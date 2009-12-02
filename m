@@ -1,1255 +1,1220 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:51512 "EHLO
-	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758154AbZLQOM6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2009 09:12:58 -0500
-Received: by pzk1 with SMTP id 1so1505332pzk.33
-        for <linux-media@vger.kernel.org>; Thu, 17 Dec 2009 06:12:57 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1260999122-28318-1-git-send-email-santiago.nunez@ridgerun.com>
-References: <1260999122-28318-1-git-send-email-santiago.nunez@ridgerun.com>
-Date: Thu, 17 Dec 2009 17:12:57 +0300
-Message-ID: <208cbae30912170612n49292be6i35e8a7d98c440d80@mail.gmail.com>
-Subject: Re: [PATCH 3/4 v12] TVP7002 driver for DM365
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: santiago.nunez@ridgerun.com
+Received: from comal.ext.ti.com ([198.47.26.152]:36783 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754388AbZLBWzh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Dec 2009 17:55:37 -0500
+From: m-karicheri2@ti.com
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
 Cc: davinci-linux-open-source@linux.davincidsp.com,
-	linux-media@vger.kernel.org, nsnehaprabha@ti.com,
-	m-karicheri2@ti.com, diego.dompe@ridgerun.com,
-	todd.fischer@ridgerun.com, mgrosen@ti.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: [PATCH - v1] V4L - Digital Video Timings API documentation
+Date: Wed,  2 Dec 2009 17:55:41 -0500
+Message-Id: <1259794541-19250-1-git-send-email-m-karicheri2@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+From: Muralidharan Karicheri <m-karicheri2@ti.com>
 
-On Thu, Dec 17, 2009 at 12:32 AM,  <santiago.nunez@ridgerun.com> wrote:
-> From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
->
-> This patch provides the implementation of the TVP7002 decoder
-> driver for DM365. Implemented using the V4L2 DV presets API.
-> Removed shadow register values. Testing shows that the device
-> needs not to be powered down and up for correct behaviour.
-> Improved readability. Uses helper function for preset information.
->
-> Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-> ---
->  drivers/media/video/tvp7002.c | 1189 +++++++++++++++++++++++++++++++++++++++++
->  1 files changed, 1189 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/tvp7002.c
->
-> diff --git a/drivers/media/video/tvp7002.c b/drivers/media/video/tvp7002.c
-> new file mode 100644
-> index 0000000..6ce57b6
-> --- /dev/null
-> +++ b/drivers/media/video/tvp7002.c
-> @@ -0,0 +1,1189 @@
-> +/* Texas Instruments Triple 8-/10-BIT 165-/110-MSPS Video and Graphics
-> + * Digitizer with Horizontal PLL registers
-> + *
-> + * Copyright (C) 2009 Texas Instruments Inc
-> + * Author: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-> + *
-> + * This code is partially based upon the TVP5150 driver
-> + * written by Mauro Carvalho Chehab (mchehab@infradead.org),
-> + * the TVP514x driver written by Vaibhav Hiremath <hvaibhav@ti.com>
-> + * and the TVP7002 driver in the TI LSP 2.10.00.14. Revisions by
-> + * Muralidharan Karicheri and Snehaprabha Narnakaje (TI).
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-> + */
-> +#include <linux/delay.h>
-> +#include <linux/i2c.h>
-> +#include <linux/videodev2.h>
-> +#include <media/tvp7002.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-chip-ident.h>
-> +#include <media/v4l2-common.h>
-> +#include "tvp7002_reg.h"
-> +
-> +MODULE_DESCRIPTION("TI TVP7002 Video and Graphics Digitizer driver");
-> +MODULE_AUTHOR("Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>");
-> +MODULE_LICENSE("GPL");
-> +
-> +/* Module Name */
-> +#define TVP7002_MODULE_NAME    "tvp7002"
-> +
-> +/* I2C retry attempts */
-> +#define I2C_RETRY_COUNT                (5)
-> +
-> +/* End of registers */
-> +#define TVP7002_EOR            0x5c
-> +
-> +/* Read write definition for registers */
-> +#define TVP7002_READ           0
-> +#define TVP7002_WRITE          1
-> +#define TVP7002_RESERVED       2
-> +
-> +/* Interlaced vs progressive mask and shift */
-> +#define TVP7002_IP_SHIFT       5
-> +#define TVP7002_INPR_MASK      (0x01 << TVP7002_IP_SHIFT)
-> +
-> +/* Shift for CPL and LPF registers */
-> +#define TVP7002_CL_SHIFT       8
-> +#define TVP7002_CL_MASK                0x0f
-> +
-> +/* Debug functions */
-> +static int debug;
-> +module_param(debug, bool, 0644);
-> +MODULE_PARM_DESC(debug, "Debug level (0-2)");
-> +
-> +/* Structure for register values */
-> +struct i2c_reg_value {
-> +       u8 reg;
-> +       u8 value;
-> +       u8 type;
-> +};
-> +
-> +/*
-> + * Register default values (according to tvp7002 datasheet)
-> + * In the case of read-only registers, the value (0xff) is
-> + * never written. R/W functionality is controlled by the
-> + * writable bit in the register struct definition.
-> + */
-> +static const struct i2c_reg_value tvp7002_init_default[] = {
-> +       { TVP7002_CHIP_REV, 0xff, TVP7002_READ },
-> +       { TVP7002_HPLL_FDBK_DIV_MSBS, 0x67, TVP7002_WRITE },
-> +       { TVP7002_HPLL_FDBK_DIV_LSBS, 0x20, TVP7002_WRITE },
-> +       { TVP7002_HPLL_CRTL, 0xa0, TVP7002_WRITE },
-> +       { TVP7002_HPLL_PHASE_SEL, 0x80, TVP7002_WRITE },
-> +       { TVP7002_CLAMP_START, 0x32, TVP7002_WRITE },
-> +       { TVP7002_CLAMP_W, 0x20, TVP7002_WRITE },
-> +       { TVP7002_HSYNC_OUT_W, 0x60, TVP7002_WRITE },
-> +       { TVP7002_B_FINE_GAIN, 0x00, TVP7002_WRITE },
-> +       { TVP7002_G_FINE_GAIN, 0x00, TVP7002_WRITE },
-> +       { TVP7002_R_FINE_GAIN, 0x00, TVP7002_WRITE },
-> +       { TVP7002_B_FINE_OFF_MSBS, 0x80, TVP7002_WRITE },
-> +       { TVP7002_G_FINE_OFF_MSBS, 0x80, TVP7002_WRITE },
-> +       { TVP7002_R_FINE_OFF_MSBS, 0x80, TVP7002_WRITE },
-> +       { TVP7002_SYNC_CTL_1, 0x20, TVP7002_WRITE },
-> +       { TVP7002_HPLL_AND_CLAMP_CTL, 0x2e, TVP7002_WRITE },
-> +       { TVP7002_SYNC_ON_G_THRS, 0x5d, TVP7002_WRITE },
-> +       { TVP7002_SYNC_SEPARATOR_THRS, 0x47, TVP7002_WRITE },
-> +       { TVP7002_HPLL_PRE_COAST, 0x00, TVP7002_WRITE },
-> +       { TVP7002_HPLL_POST_COAST, 0x00, TVP7002_WRITE },
-> +       { TVP7002_SYNC_DETECT_STAT, 0xff, TVP7002_READ },
-> +       { TVP7002_OUT_FORMATTER, 0x47, TVP7002_WRITE },
-> +       { TVP7002_MISC_CTL_1, 0x01, TVP7002_WRITE },
-> +       { TVP7002_MISC_CTL_2, 0x00, TVP7002_WRITE },
-> +       { TVP7002_MISC_CTL_3, 0x01, TVP7002_WRITE },
-> +       { TVP7002_IN_MUX_SEL_1, 0x00, TVP7002_WRITE },
-> +       { TVP7002_IN_MUX_SEL_2, 0x67, TVP7002_WRITE },
-> +       { TVP7002_B_AND_G_COARSE_GAIN, 0x77, TVP7002_WRITE },
-> +       { TVP7002_R_COARSE_GAIN, 0x07, TVP7002_WRITE },
-> +       { TVP7002_FINE_OFF_LSBS, 0x00, TVP7002_WRITE },
-> +       { TVP7002_B_COARSE_OFF, 0x10, TVP7002_WRITE },
-> +       { TVP7002_G_COARSE_OFF, 0x10, TVP7002_WRITE },
-> +       { TVP7002_R_COARSE_OFF, 0x10, TVP7002_WRITE },
-> +       { TVP7002_HSOUT_OUT_START, 0x08, TVP7002_WRITE },
-> +       { TVP7002_MISC_CTL_4, 0x00, TVP7002_WRITE },
-> +       { TVP7002_B_DGTL_ALC_OUT_LSBS, 0xff, TVP7002_READ },
-> +       { TVP7002_G_DGTL_ALC_OUT_LSBS, 0xff, TVP7002_READ },
-> +       { TVP7002_R_DGTL_ALC_OUT_LSBS, 0xff, TVP7002_READ },
-> +       { TVP7002_AUTO_LVL_CTL_ENABLE, 0x80, TVP7002_WRITE },
-> +       { TVP7002_DGTL_ALC_OUT_MSBS, 0xff, TVP7002_READ },
-> +       { TVP7002_AUTO_LVL_CTL_FILTER, 0x53, TVP7002_WRITE },
-> +       { 0x29, 0x08, TVP7002_RESERVED },
-> +       { TVP7002_FINE_CLAMP_CTL, 0x07, TVP7002_WRITE },
-> +       /* PWR_CTL is controlled only by the probe and reset functions */
-> +       { TVP7002_PWR_CTL, 0x00, TVP7002_RESERVED },
-> +       { TVP7002_ADC_SETUP, 0x50, TVP7002_WRITE },
-> +       { TVP7002_COARSE_CLAMP_CTL, 0x00, TVP7002_WRITE },
-> +       { TVP7002_SOG_CLAMP, 0x80, TVP7002_WRITE },
-> +       { TVP7002_RGB_COARSE_CLAMP_CTL, 0x00, TVP7002_WRITE },
-> +       { TVP7002_SOG_COARSE_CLAMP_CTL, 0x04, TVP7002_WRITE },
-> +       { TVP7002_ALC_PLACEMENT, 0x5a, TVP7002_WRITE },
-> +       { 0x32, 0x18, TVP7002_RESERVED },
-> +       { 0x33, 0x60, TVP7002_RESERVED },
-> +       { TVP7002_MVIS_STRIPPER_W, 0xff, TVP7002_RESERVED },
-> +       { TVP7002_VSYNC_ALGN, 0x10, TVP7002_WRITE },
-> +       { TVP7002_SYNC_BYPASS, 0x00, TVP7002_WRITE },
-> +       { TVP7002_L_FRAME_STAT_LSBS, 0xff, TVP7002_READ },
-> +       { TVP7002_L_FRAME_STAT_MSBS, 0xff, TVP7002_READ },
-> +       { TVP7002_CLK_L_STAT_LSBS, 0xff, TVP7002_READ },
-> +       { TVP7002_CLK_L_STAT_MSBS, 0xff, TVP7002_READ },
-> +       { TVP7002_HSYNC_W, 0xff, TVP7002_READ },
-> +       { TVP7002_VSYNC_W, 0xff, TVP7002_READ },
-> +       { TVP7002_L_LENGTH_TOL, 0x03, TVP7002_WRITE },
-> +       { 0x3e, 0x60, TVP7002_RESERVED },
-> +       { TVP7002_VIDEO_BWTH_CTL, 0x01, TVP7002_WRITE },
-> +       { TVP7002_AVID_START_PIXEL_LSBS, 0x01, TVP7002_WRITE },
-> +       { TVP7002_AVID_START_PIXEL_MSBS, 0x2c, TVP7002_WRITE },
-> +       { TVP7002_AVID_STOP_PIXEL_LSBS, 0x06, TVP7002_WRITE },
-> +       { TVP7002_AVID_STOP_PIXEL_MSBS, 0x2c, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_0_START_L_OFF, 0x05, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_1_START_L_OFF, 0x00, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_0_DURATION, 0x1e, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_1_DURATION, 0x00, TVP7002_WRITE },
-> +       { TVP7002_FBIT_F_0_START_L_OFF, 0x00, TVP7002_WRITE },
-> +       { TVP7002_FBIT_F_1_START_L_OFF, 0x00, TVP7002_WRITE },
-> +       { TVP7002_YUV_Y_G_COEF_LSBS, 0xe3, TVP7002_WRITE },
-> +       { TVP7002_YUV_Y_G_COEF_MSBS, 0x16, TVP7002_WRITE },
-> +       { TVP7002_YUV_Y_B_COEF_LSBS, 0x4f, TVP7002_WRITE },
-> +       { TVP7002_YUV_Y_B_COEF_MSBS, 0x02, TVP7002_WRITE },
-> +       { TVP7002_YUV_Y_R_COEF_LSBS, 0xce, TVP7002_WRITE },
-> +       { TVP7002_YUV_Y_R_COEF_MSBS, 0x06, TVP7002_WRITE },
-> +       { TVP7002_YUV_U_G_COEF_LSBS, 0xab, TVP7002_WRITE },
-> +       { TVP7002_YUV_U_G_COEF_MSBS, 0xf3, TVP7002_WRITE },
-> +       { TVP7002_YUV_U_B_COEF_LSBS, 0x00, TVP7002_WRITE },
-> +       { TVP7002_YUV_U_B_COEF_MSBS, 0x10, TVP7002_WRITE },
-> +       { TVP7002_YUV_U_R_COEF_LSBS, 0x55, TVP7002_WRITE },
-> +       { TVP7002_YUV_U_R_COEF_MSBS, 0xfc, TVP7002_WRITE },
-> +       { TVP7002_YUV_V_G_COEF_LSBS, 0x78, TVP7002_WRITE },
-> +       { TVP7002_YUV_V_G_COEF_MSBS, 0xf1, TVP7002_WRITE },
-> +       { TVP7002_YUV_V_B_COEF_LSBS, 0x88, TVP7002_WRITE },
-> +       { TVP7002_YUV_V_B_COEF_MSBS, 0xfe, TVP7002_WRITE },
-> +       { TVP7002_YUV_V_R_COEF_LSBS, 0x00, TVP7002_WRITE },
-> +       { TVP7002_YUV_V_R_COEF_MSBS, 0x10, TVP7002_WRITE },
-> +       /* This signals end of register values */
-> +       { TVP7002_EOR, 0xff, TVP7002_RESERVED }
-> +};
-> +
-> +/* Register parameters for 480P */
-> +static const struct i2c_reg_value tvp7002_parms_480P[] = {
-> +       { TVP7002_HPLL_FDBK_DIV_MSBS, 0x35, TVP7002_WRITE },
-> +       { TVP7002_HPLL_FDBK_DIV_LSBS, 0x0a, TVP7002_WRITE },
-> +       { TVP7002_HPLL_CRTL, 0x02, TVP7002_WRITE },
-> +       { TVP7002_HPLL_PHASE_SEL, 0x14, TVP7002_WRITE },
-> +       { TVP7002_AVID_START_PIXEL_LSBS, 0x91, TVP7002_WRITE },
-> +       { TVP7002_AVID_START_PIXEL_MSBS, 0x00, TVP7002_WRITE },
-> +       { TVP7002_AVID_STOP_PIXEL_LSBS, 0x0B, TVP7002_WRITE },
-> +       { TVP7002_AVID_STOP_PIXEL_MSBS, 0x00, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_0_START_L_OFF, 0x03, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_1_START_L_OFF, 0x01, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_0_DURATION, 0x13, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_1_DURATION, 0x13, TVP7002_WRITE },
-> +       { TVP7002_ALC_PLACEMENT, 0x18, TVP7002_WRITE },
-> +       { TVP7002_CLAMP_START, 0x06, TVP7002_WRITE },
-> +       { TVP7002_CLAMP_W, 0x10, TVP7002_WRITE },
-> +       { TVP7002_HPLL_PRE_COAST, 0x03, TVP7002_WRITE },
-> +       { TVP7002_HPLL_POST_COAST, 0x03, TVP7002_WRITE },
-> +       { TVP7002_EOR, 0xff, TVP7002_RESERVED }
-> +};
-> +
-> +/* Register parameters for 576P */
-> +static const struct i2c_reg_value tvp7002_parms_576P[] = {
-> +       { TVP7002_HPLL_FDBK_DIV_MSBS, 0x36, TVP7002_WRITE },
-> +       { TVP7002_HPLL_FDBK_DIV_LSBS, 0x00, TVP7002_WRITE },
-> +       { TVP7002_HPLL_CRTL, 0x18, TVP7002_WRITE },
-> +       { TVP7002_HPLL_PHASE_SEL, 0x14, TVP7002_WRITE },
-> +       { TVP7002_AVID_START_PIXEL_LSBS, 0x9B, TVP7002_WRITE },
-> +       { TVP7002_AVID_START_PIXEL_MSBS, 0x00, TVP7002_WRITE },
-> +       { TVP7002_AVID_STOP_PIXEL_LSBS, 0x0F, TVP7002_WRITE },
-> +       { TVP7002_AVID_STOP_PIXEL_MSBS, 0x00, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_0_START_L_OFF, 0x00, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_1_START_L_OFF, 0x00, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_0_DURATION, 0x2D, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_1_DURATION, 0x00, TVP7002_WRITE },
-> +       { TVP7002_ALC_PLACEMENT, 0x18, TVP7002_WRITE },
-> +       { TVP7002_CLAMP_START, 0x06, TVP7002_WRITE },
-> +       { TVP7002_CLAMP_W, 0x10, TVP7002_WRITE },
-> +       { TVP7002_HPLL_PRE_COAST, 0x03, TVP7002_WRITE },
-> +       { TVP7002_HPLL_POST_COAST, 0x03, TVP7002_WRITE },
-> +       { TVP7002_EOR, 0xff, TVP7002_RESERVED }
-> +};
-> +
-> +/* Register parameters for 1080I60 */
-> +static const struct i2c_reg_value tvp7002_parms_1080I60[] = {
-> +       { TVP7002_HPLL_FDBK_DIV_MSBS, 0x89, TVP7002_WRITE },
-> +       { TVP7002_HPLL_FDBK_DIV_LSBS, 0x08, TVP7002_WRITE },
-> +       { TVP7002_HPLL_CRTL, 0x98, TVP7002_WRITE },
-> +       { TVP7002_HPLL_PHASE_SEL, 0x14, TVP7002_WRITE },
-> +       { TVP7002_AVID_START_PIXEL_LSBS, 0x06, TVP7002_WRITE },
-> +       { TVP7002_AVID_START_PIXEL_MSBS, 0x01, TVP7002_WRITE },
-> +       { TVP7002_AVID_STOP_PIXEL_LSBS, 0x8a, TVP7002_WRITE },
-> +       { TVP7002_AVID_STOP_PIXEL_MSBS, 0x08, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_0_START_L_OFF, 0x02, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_1_START_L_OFF, 0x02, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_0_DURATION, 0x16, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_1_DURATION, 0x17, TVP7002_WRITE },
-> +       { TVP7002_ALC_PLACEMENT, 0x5a, TVP7002_WRITE },
-> +       { TVP7002_CLAMP_START, 0x32, TVP7002_WRITE },
-> +       { TVP7002_CLAMP_W, 0x20, TVP7002_WRITE },
-> +       { TVP7002_HPLL_PRE_COAST, 0x01, TVP7002_WRITE },
-> +       { TVP7002_HPLL_POST_COAST, 0x00, TVP7002_WRITE },
-> +       { TVP7002_EOR, 0xff, TVP7002_RESERVED }
-> +};
-> +
-> +/* Register parameters for 1080P60 */
-> +static const struct i2c_reg_value tvp7002_parms_1080P60[] = {
-> +       { TVP7002_HPLL_FDBK_DIV_MSBS, 0x89, TVP7002_WRITE },
-> +       { TVP7002_HPLL_FDBK_DIV_LSBS, 0x08, TVP7002_WRITE },
-> +       { TVP7002_HPLL_CRTL, 0xE0, TVP7002_WRITE },
-> +       { TVP7002_HPLL_PHASE_SEL, 0x14, TVP7002_WRITE },
-> +       { TVP7002_AVID_START_PIXEL_LSBS, 0x06, TVP7002_WRITE },
-> +       { TVP7002_AVID_START_PIXEL_MSBS, 0x01, TVP7002_WRITE },
-> +       { TVP7002_AVID_STOP_PIXEL_LSBS, 0x8a, TVP7002_WRITE },
-> +       { TVP7002_AVID_STOP_PIXEL_MSBS, 0x08, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_0_START_L_OFF, 0x02, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_1_START_L_OFF, 0x02, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_0_DURATION, 0x16, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_1_DURATION, 0x17, TVP7002_WRITE },
-> +       { TVP7002_ALC_PLACEMENT, 0x5a, TVP7002_WRITE },
-> +       { TVP7002_CLAMP_START, 0x32, TVP7002_WRITE },
-> +       { TVP7002_CLAMP_W, 0x20, TVP7002_WRITE },
-> +       { TVP7002_HPLL_PRE_COAST, 0x01, TVP7002_WRITE },
-> +       { TVP7002_HPLL_POST_COAST, 0x00, TVP7002_WRITE },
-> +       { TVP7002_EOR, 0xff, TVP7002_RESERVED }
-> +};
-> +
-> +/* Register parameters for 1080I50 */
-> +static const struct i2c_reg_value tvp7002_parms_1080I50[] = {
-> +       { TVP7002_HPLL_FDBK_DIV_MSBS, 0xa5, TVP7002_WRITE },
-> +       { TVP7002_HPLL_FDBK_DIV_LSBS, 0x00, TVP7002_WRITE },
-> +       { TVP7002_HPLL_CRTL, 0x98, TVP7002_WRITE },
-> +       { TVP7002_HPLL_PHASE_SEL, 0x14, TVP7002_WRITE },
-> +       { TVP7002_AVID_START_PIXEL_LSBS, 0x06, TVP7002_WRITE },
-> +       { TVP7002_AVID_START_PIXEL_MSBS, 0x01, TVP7002_WRITE },
-> +       { TVP7002_AVID_STOP_PIXEL_LSBS, 0x8a, TVP7002_WRITE },
-> +       { TVP7002_AVID_STOP_PIXEL_MSBS, 0x08, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_0_START_L_OFF, 0x02, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_1_START_L_OFF, 0x02, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_0_DURATION, 0x16, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_1_DURATION, 0x17, TVP7002_WRITE },
-> +       { TVP7002_ALC_PLACEMENT, 0x5a, TVP7002_WRITE },
-> +       { TVP7002_CLAMP_START, 0x32, TVP7002_WRITE },
-> +       { TVP7002_CLAMP_W, 0x20, TVP7002_WRITE },
-> +       { TVP7002_HPLL_PRE_COAST, 0x01, TVP7002_WRITE },
-> +       { TVP7002_HPLL_POST_COAST, 0x00, TVP7002_WRITE },
-> +       { TVP7002_EOR, 0xff, TVP7002_RESERVED }
-> +};
-> +
-> +/* Register parameters for 720P60 */
-> +static const struct i2c_reg_value tvp7002_parms_720P60[] = {
-> +       { TVP7002_HPLL_FDBK_DIV_MSBS, 0x67, TVP7002_WRITE },
-> +       { TVP7002_HPLL_FDBK_DIV_LSBS, 0x02, TVP7002_WRITE },
-> +       { TVP7002_HPLL_CRTL, 0xa0, TVP7002_WRITE },
-> +       { TVP7002_HPLL_PHASE_SEL, 0x16, TVP7002_WRITE },
-> +       { TVP7002_AVID_START_PIXEL_LSBS, 0x47, TVP7002_WRITE },
-> +       { TVP7002_AVID_START_PIXEL_MSBS, 0x01, TVP7002_WRITE },
-> +       { TVP7002_AVID_STOP_PIXEL_LSBS, 0x4B, TVP7002_WRITE },
-> +       { TVP7002_AVID_STOP_PIXEL_MSBS, 0x06, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_0_START_L_OFF, 0x05, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_1_START_L_OFF, 0x00, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_0_DURATION, 0x2D, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_1_DURATION, 0x00, TVP7002_WRITE },
-> +       { TVP7002_ALC_PLACEMENT, 0x5a, TVP7002_WRITE },
-> +       { TVP7002_CLAMP_START, 0x32, TVP7002_WRITE },
-> +       { TVP7002_CLAMP_W, 0x20, TVP7002_WRITE },
-> +       { TVP7002_HPLL_PRE_COAST, 0x00, TVP7002_WRITE },
-> +       { TVP7002_HPLL_POST_COAST, 0x00, TVP7002_WRITE },
-> +       { TVP7002_EOR, 0xff, TVP7002_RESERVED }
-> +};
-> +
-> +/* Register parameters for 720P50 */
-> +static const struct i2c_reg_value tvp7002_parms_720P50[] = {
-> +       { TVP7002_HPLL_FDBK_DIV_MSBS, 0x7b, TVP7002_WRITE },
-> +       { TVP7002_HPLL_FDBK_DIV_LSBS, 0x0c, TVP7002_WRITE },
-> +       { TVP7002_HPLL_CRTL, 0x98, TVP7002_WRITE },
-> +       { TVP7002_HPLL_PHASE_SEL, 0x16, TVP7002_WRITE },
-> +       { TVP7002_AVID_START_PIXEL_LSBS, 0x47, TVP7002_WRITE },
-> +       { TVP7002_AVID_START_PIXEL_MSBS, 0x01, TVP7002_WRITE },
-> +       { TVP7002_AVID_STOP_PIXEL_LSBS, 0x4B, TVP7002_WRITE },
-> +       { TVP7002_AVID_STOP_PIXEL_MSBS, 0x06, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_0_START_L_OFF, 0x05, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_1_START_L_OFF, 0x00, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_0_DURATION, 0x2D, TVP7002_WRITE },
-> +       { TVP7002_VBLK_F_1_DURATION, 0x00, TVP7002_WRITE },
-> +       { TVP7002_ALC_PLACEMENT, 0x5a, TVP7002_WRITE },
-> +       { TVP7002_CLAMP_START, 0x32, TVP7002_WRITE },
-> +       { TVP7002_CLAMP_W, 0x20, TVP7002_WRITE },
-> +       { TVP7002_HPLL_PRE_COAST, 0x01, TVP7002_WRITE },
-> +       { TVP7002_HPLL_POST_COAST, 0x00, TVP7002_WRITE },
-> +       { TVP7002_EOR, 0xff, TVP7002_RESERVED }
-> +};
-> +
-> +/* Struct list for available formats */
-> +static const struct v4l2_fmtdesc tvp7002_fmt_list[] = {
-> +       {
-> +        .index = 0,
-> +        .type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
-> +        .flags = 0,
-> +        .description = "8-bit UYVY 4:2:2 Format",
-> +        .pixelformat = V4L2_PIX_FMT_UYVY,
-> +       },
-> +};
-> +
-> +#define NUM_FORMATS            ARRAY_SIZE(tvp7002_fmt_list)
-> +
-> +/* Preset definition for handling device operation */
-> +struct tvp7002_preset_definition {
-> +       u32 preset;
-> +       const struct i2c_reg_value *p_settings;
-> +       enum v4l2_colorspace color_space;
-> +       enum v4l2_field scanmode;
-> +       u16 progressive;
-> +       u16 lines_per_frame;
-> +       u16 cpl_min;
-> +       u16 cpl_max;
-> +};
-> +
-> +/* Struct list for digital video presets */
-> +static const struct tvp7002_preset_definition tvp7002_presets[] = {
-> +       {
-> +               V4L2_DV_720P60,
-> +               tvp7002_parms_720P60,
-> +               V4L2_COLORSPACE_REC709,
-> +               V4L2_FIELD_SEQ_TB,
-> +               1,
-> +               0x2EE,
-> +               135,
-> +               153
-> +       },
-> +       {
-> +               V4L2_DV_1080I60,
-> +               tvp7002_parms_1080I60,
-> +               V4L2_COLORSPACE_REC709,
-> +               V4L2_FIELD_INTERLACED,
-> +               0,
-> +               0x465,
-> +               181,
-> +               205
-> +       },
-> +       {
-> +               V4L2_DV_1080I50,
-> +               tvp7002_parms_1080I50,
-> +               V4L2_COLORSPACE_REC709,
-> +               V4L2_FIELD_INTERLACED,
-> +               0,
-> +               0x465,
-> +               217,
-> +               245
-> +       },
-> +       {
-> +               V4L2_DV_720P50,
-> +               tvp7002_parms_720P50,
-> +               V4L2_COLORSPACE_REC709,
-> +               V4L2_FIELD_SEQ_TB,
-> +               1,
-> +               0x2EE,
-> +               163,
-> +               183
-> +       },
-> +       {
-> +               V4L2_DV_1080P60,
-> +               tvp7002_parms_1080P60,
-> +               V4L2_COLORSPACE_REC709,
-> +               V4L2_FIELD_SEQ_TB,
-> +               1,
-> +               0x465,
-> +               90,
-> +               102
-> +       },
-> +       {
-> +               V4L2_DV_480P59_94,
-> +               tvp7002_parms_480P,
-> +               V4L2_COLORSPACE_SMPTE170M,
-> +               V4L2_FIELD_SEQ_TB,
-> +               1,
-> +               0x20D,
-> +               0xffff,
-> +               0xffff
-> +       },
-> +       {
-> +               V4L2_DV_576P50,
-> +               tvp7002_parms_576P,
-> +               V4L2_COLORSPACE_SMPTE170M,
-> +               V4L2_FIELD_SEQ_TB,
-> +               1,
-> +               0x271,
-> +               0xffff,
-> +               0xffff
-> +       }
-> +};
-> +
-> +#define NUM_PRESETS    ARRAY_SIZE(tvp7002_presets)
-> +
-> +/* Device definition */
-> +struct tvp7002 {
-> +       struct v4l2_subdev sd;
-> +       const struct tvp7002_config *pdata;
-> +
-> +       int ver;
-> +       int streaming;
-> +
-> +       struct v4l2_pix_format pix;
-> +       const struct tvp7002_preset_definition *current_preset;
-> +       u8 gain;
-> +};
-> +
-> +/*
-> + * to_tvp7002 - Obtain device handler TVP7002
-> + * @sd: ptr to v4l2_subdev struct
-> + *
-> + * Returns device handler tvp7002.
-> + */
-> +static inline struct tvp7002 *to_tvp7002(struct v4l2_subdev *sd)
-> +{
-> +       return container_of(sd, struct tvp7002, sd);
-> +}
-> +
-> +/*
-> + * tvp7002_read - Read a value from a register in an TVP7002
-> + * @sd: ptr to v4l2_subdev struct
-> + * @reg: TVP7002 register address
-> + * @dst: pointer to 8-bit destination
-> + *
-> + * Returns value read if successful, or non-zero (-1) otherwise.
-> + */
-> +static int tvp7002_read(struct v4l2_subdev *sd, u8 addr, u8 *dst)
-> +{
-> +       struct i2c_client *c = v4l2_get_subdevdata(sd);
-> +       int retry;
-> +       int error;
-> +
-> +       for (retry = 0; retry < I2C_RETRY_COUNT; retry++) {
-> +               error = i2c_smbus_read_byte_data(c, addr);
-> +
-> +               if (error >= 0) {
-> +                       *dst = (u8)error;
-> +                       return 0;
-> +               }
-> +
-> +               msleep_interruptible(10);
-> +       }
-> +       v4l2_err(sd, "TVP7002 read error %d\n", error);
-> +       return error;
-> +}
-> +
-> +/*
-> + * tvp7002_read_err() - Read a register value with error code
-> + * @sd: pointer to standard V4L2 sub-device structure
-> + * @reg: destination register
-> + * @val: value to be read
-> + * @error: pointer to error value
-> + *
-> + * Read a value in a register and save error value in pointer.
-> + * Also update the register table if successful
-> + */
-> +static inline void tvp7002_read_err(struct v4l2_subdev *sd, u8 reg,
-> +                                                       u8 *dst, int *err)
-> +{
-> +       if (!*err)
-> +               *err = tvp7002_read(sd, reg, dst);
-> +}
-> +
-> +/*
-> + * tvp7002_write() - Write a value to a register in TVP7002
-> + * @sd: ptr to v4l2_subdev struct
-> + * @addr: TVP7002 register address
-> + * @value: value to be written to the register
-> + *
-> + * Write a value to a register in an TVP7002 decoder device.
-> + * Returns zero if successful, or non-zero otherwise.
-> + */
-> +static int tvp7002_write(struct v4l2_subdev *sd, u8 addr, u8 value)
-> +{
-> +       struct i2c_client *c;
-> +       int retry;
-> +       int error;
-> +
-> +       c = v4l2_get_subdevdata(sd);
-> +
-> +       for (retry = 0; retry < I2C_RETRY_COUNT; retry++) {
-> +               error = i2c_smbus_write_byte_data(c, addr, value);
-> +
-> +               if (error >= 0)
-> +                       return 0;
-> +
-> +               v4l2_warn(sd, "Write: retry ... %d\n", retry);
-> +               msleep_interruptible(10);
-> +       }
-> +       v4l2_err(sd, "TVP7002 write error %d\n", error);
-> +       return error;
-> +}
-> +
-> +/*
-> + * tvp7002_write_err() - Write a register value with error code
-> + * @sd: pointer to standard V4L2 sub-device structure
-> + * @reg: destination register
-> + * @val: value to be written
-> + * @error: pointer to error value
-> + *
-> + * Write a value in a register and save error value in pointer.
-> + * Also update the register table if successful
-> + */
-> +static inline void tvp7002_write_err(struct v4l2_subdev *sd, u8 reg,
-> +                                                       u8 val, int *err)
-> +{
-> +       if (!*err)
-> +               *err = tvp7002_write(sd, reg, val);
-> +}
-> +
-> +/*
-> + * tvp7002_g_chip_ident() - Get chip identification number
-> + * @sd: ptr to v4l2_subdev struct
-> + * @chip: ptr to v4l2_dbg_chip_ident struct
-> + *
-> + * Obtains the chip's identification number.
-> + * Returns zero or -EINVAL if read operation fails.
-> + */
-> +static int tvp7002_g_chip_ident(struct v4l2_subdev *sd,
-> +                                       struct v4l2_dbg_chip_ident *chip)
-> +{
-> +       u8 rev;
-> +       int error;
-> +       struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +
-> +       error = tvp7002_read(sd, TVP7002_CHIP_REV, &rev);
-> +
-> +       if (error < 0)
-> +               return error;
-> +
-> +       return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_TVP7002, rev);
-> +}
-> +
-> +/*
-> + * tvp7002_write_inittab() - Write initialization values
-> + * @sd: ptr to v4l2_subdev struct
-> + * @regs: ptr to i2c_reg_value struct
-> + *
-> + * Write initialization values.
-> + * Returns zero or -EINVAL if read operation fails.
-> + */
-> +static int tvp7002_write_inittab(struct v4l2_subdev *sd,
-> +                                       const struct i2c_reg_value *regs)
-> +{
-> +       int error = 0;
-> +
-> +       /* Initialize the first (defined) registers */
-> +       while (TVP7002_EOR != regs->reg) {
-> +               if (TVP7002_WRITE == regs->type)
-> +                       tvp7002_write_err(sd, regs->reg, regs->value, &error);
-> +               regs++;
-> +       }
-> +
-> +       return error;
-> +}
-> +
-> +/*
-> + * tvp7002_s_dv_preset() - Set digital video preset
-> + * @sd: ptr to v4l2_subdev struct
-> + * @std: ptr to v4l2_dv_preset struct
-> + *
-> + * Set the digital video preset for a TVP7002 decoder device.
-> + * Returns zero when successful or -EINVAL if register access fails.
-> + */
-> +static int tvp7002_s_dv_preset(struct v4l2_subdev *sd,
-> +                                       struct v4l2_dv_preset *dv_preset)
-> +{
-> +       struct tvp7002 *device = to_tvp7002(sd);
-> +       u32 preset;
-> +       int i;
-> +
-> +       for (i = 0; i < NUM_PRESETS; i++) {
-> +               preset = tvp7002_presets[i].preset;
-> +               if (preset == dv_preset->preset) {
-> +                       device->current_preset = &tvp7002_presets[i];
-> +                       return tvp7002_write_inittab(sd, tvp7002_presets[i].p_settings);
-> +               }
-> +       }
-> +
-> +       return -EINVAL;
-> +}
-> +
-> +/*
-> + * tvp7002_g_ctrl() - Get a control
-> + * @sd: ptr to v4l2_subdev struct
-> + * @ctrl: ptr to v4l2_control struct
-> + *
-> + * Get a control for a TVP7002 decoder device.
-> + * Returns zero when successful or -EINVAL if register access fails.
-> + */
-> +static int tvp7002_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-> +{
-> +       struct tvp7002 *device = to_tvp7002(sd);
-> +
-> +       switch (ctrl->id) {
-> +       case V4L2_CID_GAIN:
-> +               ctrl->value = device->gain;
-> +               return 0;
-> +       default:
-> +               return -EINVAL;
-> +       }
-> +}
-> +
-> +/*
-> + * tvp7002_s_ctrl() - Set a control
-> + * @sd: ptr to v4l2_subdev struct
-> + * @ctrl: ptr to v4l2_control struct
-> + *
-> + * Set a control in TVP7002 decoder device.
-> + * Returns zero when successful or -EINVAL if register access fails.
-> + */
-> +static int tvp7002_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-> +{
-> +       struct tvp7002 *device = to_tvp7002(sd);
-> +       int error = 0;
-> +
-> +       switch (ctrl->id) {
-> +       case V4L2_CID_GAIN:
-> +               tvp7002_write_err(sd, TVP7002_R_FINE_GAIN,
-> +                                               ctrl->value & 0xff, &error);
-> +               tvp7002_write_err(sd, TVP7002_G_FINE_GAIN,
-> +                                               ctrl->value & 0xff, &error);
-> +               tvp7002_write_err(sd, TVP7002_B_FINE_GAIN,
-> +                                               ctrl->value & 0xff, &error);
-> +
-> +               if (error < 0)
-> +                       return error;
-> +
-> +               /* Set only after knowing there is no error */
-> +               device->gain = ctrl->value & 0xff;
-> +               return 0;
-> +       default:
-> +               return -EINVAL;
-> +       }
-> +}
-> +
-> +/*
-> + * tvp7002_queryctrl() - Query a control
-> + * @sd: ptr to v4l2_subdev struct
-> + * @ctrl: ptr to v4l2_queryctrl struct
-> + *
-> + * Query a control of a TVP7002 decoder device.
-> + * Returns zero when successful or -EINVAL if register read fails.
-> + */
-> +static int tvp7002_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc)
-> +{
-> +       switch (qc->id) {
-> +       case V4L2_CID_GAIN:
-> +               /*
-> +                * Gain is supported [0-255, default=0, step=1]
-> +                */
-> +               return v4l2_ctrl_query_fill(qc, 0, 255, 1, 0);
-> +       default:
-> +               return -EINVAL;
-> +       }
-> +}
-> +
-> +/*
-> + * tvp7002_try_fmt_cap() - V4L2 decoder interface handler for try_fmt
-> + * @sd: pointer to standard V4L2 sub-device structure
-> + * @f: pointer to standard V4L2 VIDIOC_TRY_FMT ioctl structure
-> + *
-> + * Implement the VIDIOC_TRY_FMT ioctl for the CAPTURE buffer type. This
-> + * ioctl is used to negotiate the image capture size and pixel format
-> + * without actually making it take effect.
-> + */
-> +static int tvp7002_try_fmt_cap(struct v4l2_subdev *sd, struct v4l2_format *f)
-> +{
-> +       struct tvp7002 *device = to_tvp7002(sd);
-> +       struct v4l2_dv_enum_preset e_preset;
-> +       struct v4l2_pix_format *pix;
-> +
-> +       pix = &f->fmt.pix;
-> +
-> +       /* Calculate height and width based on current standard */
-> +       if (v4l_fill_dv_preset_info(device->current_preset->preset, &e_preset))
-> +               return -EINVAL;
-> +
-> +       pix->width = e_preset.width;
-> +       pix->height = e_preset.height;
-> +       pix->pixelformat = V4L2_PIX_FMT_UYVY;
-> +       pix->field = device->current_preset->scanmode;
-> +       pix->bytesperline = pix->width * 2;
-> +       pix->sizeimage = pix->bytesperline * pix->height;
-> +       pix->colorspace = device->current_preset->color_space;
-> +       pix->priv = 0;
-> +
-> +       v4l2_dbg(1, debug, sd, "Try FMT: pixelformat - %s, bytesperline - %d"
-> +                       "Width - %d, Height - %d", "8-bit UYVY 4:2:2 Format",
-> +                       pix->bytesperline, pix->width, pix->height);
-> +       return 0;
-> +}
-> +
-> +/*
-> + * tvp7002_s_fmt() - V4L2 decoder interface handler for s_fmt
-> + * @sd: pointer to standard V4L2 sub-device structure
-> + * @f: pointer to standard V4L2 VIDIOC_S_FMT ioctl structure
-> + *
-> + * If the requested format is supported, configures the HW to use that
-> + * format, returns error code if format not supported or HW can't be
-> + * correctly configured.
-> + */
-> +static int tvp7002_s_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
-> +{
-> +       struct tvp7002 *decoder = to_tvp7002(sd);
-> +       int rval;
-> +
-> +       rval = tvp7002_try_fmt_cap(sd, f);
-> +       if (!rval)
-> +               decoder->pix = f->fmt.pix;
-> +       return rval;
-> +}
-> +
-> +/*
-> + * tvp7002_g_fmt() - V4L2 decoder interface handler for tvp7002_g_fmt
-> + * @sd: pointer to standard V4L2 sub-device structure
-> + * @f: pointer to standard V4L2 v4l2_format structure
-> + *
-> + * Returns the decoder's current pixel format in the v4l2_format
-> + * parameter.
-> + */
-> +static int tvp7002_g_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
-> +{
-> +       struct tvp7002 *decoder = to_tvp7002(sd);
-> +
-> +       f->fmt.pix = decoder->pix;
-> +
-> +       v4l2_dbg(1, debug, sd, "Current FMT: bytesperline - %d"
-> +                       "Width - %d, Height - %d",
-> +                       decoder->pix.bytesperline,
-> +                       decoder->pix.width, decoder->pix.height);
-> +       return 0;
-> +}
-> +
-> +/*
-> + * tvp7002_query_dv_preset() - query DV preset
-> + * @sd: pointer to standard V4L2 sub-device structure
-> + * @std_id: standard V4L2 v4l2_dv_preset
-> + *
-> + * Returns the current DV preset by TVP7002. If no active input is
-> + * detected, returns -EINVAL
-> + */
-> +static int tvp7002_query_dv_preset(struct v4l2_subdev *sd,
-> +                                               struct v4l2_dv_preset *qpreset)
-> +{
-> +       const struct tvp7002_preset_definition *presets = tvp7002_presets;
-> +       struct v4l2_dv_enum_preset e_preset;
-> +       struct tvp7002 *device;
-> +       u8 progressive;
-> +       u32 lpfr;
-> +       u32 cpln;
-> +       int error = 0;
-> +       u8 lpf_lsb;
-> +       u8 lpf_msb;
-> +       u8 cpl_lsb;
-> +       u8 cpl_msb;
-> +       int index;
-> +
-> +       device = to_tvp7002(sd);
-> +
-> +       /* Read standards from device registers */
-> +       tvp7002_read_err(sd, TVP7002_L_FRAME_STAT_LSBS, &lpf_lsb, &error);
-> +       tvp7002_read_err(sd, TVP7002_L_FRAME_STAT_MSBS, &lpf_msb, &error);
-> +
-> +       if (error < 0)
-> +               return error;
-> +
-> +       tvp7002_read_err(sd, TVP7002_CLK_L_STAT_LSBS, &cpl_lsb, &error);
-> +       tvp7002_read_err(sd, TVP7002_CLK_L_STAT_MSBS, &cpl_msb, &error);
-> +
-> +       if (error < 0)
-> +               return error;
-> +
-> +       /* Get lines per frame, clocks per line and interlaced/progresive */
-> +       lpfr = lpf_lsb | ((TVP7002_CL_MASK & lpf_msb) << TVP7002_CL_SHIFT);
-> +       cpln = cpl_lsb | ((TVP7002_CL_MASK & cpl_msb) << TVP7002_CL_SHIFT);
-> +       progressive = (lpf_msb & TVP7002_INPR_MASK) >> TVP7002_IP_SHIFT;
-> +
-> +       /* Do checking of video modes */
-> +       for (index = 0; index < NUM_PRESETS; index++, presets++)
-> +               if (lpfr  == presets->lines_per_frame &&
-> +                       progressive == presets->progressive) {
-> +                       if (presets->cpl_min == 0xffff)
-> +                               break;
-> +                       if (cpln >= presets->cpl_min && cpln <= presets->cpl_max)
-> +                               break;
-> +               }
-> +
-> +       if (index == NUM_PRESETS) {
-> +               v4l2_err(sd, "querystd error, lpf = %x, cpl = %x\n",
-> +                                                               lpfr, cpln);
-> +               return -EINVAL;
-> +       }
-> +
-> +       if (v4l_fill_dv_preset_info(presets->preset, &e_preset))
-> +               return -EINVAL;
-> +
-> +       /* Set values in found preset */
-> +       qpreset->preset = presets->preset;
-> +
-> +       /* Update lines per frame and clocks per line info */
-> +       v4l2_dbg(1, debug, sd, "Current preset: %d %d",
-> +                                       e_preset.width, e_preset.height);
-> +       return 0;
-> +}
-> +
-> +#ifdef CONFIG_VIDEO_ADV_DEBUG
-> +/*
-> + * tvp7002_g_register() - Get the value of a register
-> + * @sd: ptr to v4l2_subdev struct
-> + * @vreg: ptr to v4l2_dbg_register struct
-> + *
-> + * Get the value of a TVP7002 decoder device register.
-> + * Returns zero when successful, -EINVAL if register read fails or
-> + * access to I2C client fails, -EPERM if the call is not allowed
-> + * by diabled CAP_SYS_ADMIN.
-> + */
-> +static int tvp7002_g_register(struct v4l2_subdev *sd,
-> +                                               struct v4l2_dbg_register *reg)
-> +{
-> +       struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +
-> +       if (!v4l2_chip_match_i2c_client(client, &reg->match))
-> +               return -EINVAL;
-> +       if (!capable(CAP_SYS_ADMIN))
-> +               return -EPERM;
-> +
-> +       return reg->val < 0 ? -EINVAL : 0;
-> +}
-> +
-> +/*
-> + * tvp7002_s_register() - set a control
-> + * @sd: ptr to v4l2_subdev struct
-> + * @ctrl: ptr to v4l2_control struct
-> + *
-> + * Get the value of a TVP7002 decoder device register.
-> + * Returns zero when successful or -EINVAL if register read fails.
-> + */
-> +static int tvp7002_s_register(struct v4l2_subdev *sd,
-> +                                               struct v4l2_dbg_register *reg)
-> +{
-> +       struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +       struct tvp7002 *device = to_tvp7002(sd);
-> +       int wres;
-> +
-> +       if (!v4l2_chip_match_i2c_client(client, &reg->match))
-> +               return -EINVAL;
-> +       if (!capable(CAP_SYS_ADMIN))
-> +               return -EPERM;
-> +
-> +       wres = tvp7002_write(sd, reg->reg & 0xff, reg->val & 0xff);
-> +
-> +       /* Update the register value in device's table */
-> +       if (!wres)
-> +               device->registers[reg->reg].value = reg->val;
-> +
-> +       return wres < 0 ? -EINVAL : 0;
-> +}
-> +#endif
-> +
-> +/*
-> + * tvp7002_enum_fmt() - Enum supported formats
-> + * @sd: pointer to standard V4L2 sub-device structure
-> + * @enable: pointer to format struct
-> + *
-> + * Enumerate supported formats.
-> + */
-> +
-> +static int tvp7002_enum_fmt(struct v4l2_subdev *sd,
-> +                                               struct v4l2_fmtdesc *fmtdesc)
-> +{
-> +       /* Check requested format index is within range */
-> +       if (fmtdesc->index < 0 || fmtdesc->index >= NUM_FORMATS)
-> +               return -EINVAL;
-> +       *fmtdesc = tvp7002_fmt_list[fmtdesc->index];
-> +
-> +       return 0;
-> +}
-> +
-> +/*
-> + * tvp7002_s_stream() - V4L2 decoder i/f handler for s_stream
-> + * @sd: pointer to standard V4L2 sub-device structure
-> + * @enable: streaming enable or disable
-> + *
-> + * Sets streaming to enable or disable, if possible.
-> + */
-> +static int tvp7002_s_stream(struct v4l2_subdev *sd, int enable)
-> +{
-> +       struct tvp7002 *device = to_tvp7002(sd);
-> +       int error = 0;
-> +
-> +       if (device->streaming == enable)
-> +               return 0;
-> +
-> +       if (enable) {
-> +               /* Set output state on (low impedance means stream on) */
-> +               error = tvp7002_write(sd, TVP7002_MISC_CTL_2, 0x00);
-> +               device->streaming = enable;
-> +       } else {
-> +               /* Set output state off (high impedance means stream off) */
-> +               error = tvp7002_write(sd, TVP7002_MISC_CTL_2, 0x03);
-> +               if (error)
-> +                       v4l2_dbg(1, debug, sd, "Unable to stop streaming\n");
-> +
-> +               device->streaming = enable;
-> +       }
-> +
-> +       return error;
-> +}
-> +
-> +/*
-> + * tvp7002_log_status() - Print information about register settings
-> + * @sd: ptr to v4l2_subdev struct
-> + *
-> + * Log register values of a TVP7002 decoder device.
-> + * Returns zero or -EINVAL if read operation fails.
-> + */
-> +static int tvp7002_log_status(struct v4l2_subdev *sd)
-> +{
-> +       const struct tvp7002_preset_definition *presets = tvp7002_presets;
-> +       struct tvp7002 *device = to_tvp7002(sd);
-> +       struct v4l2_dv_enum_preset e_preset;
-> +       struct v4l2_dv_preset detected;
-> +       int i;
-> +
-> +       detected.preset = V4L2_DV_INVALID;
-> +       /* Find my current standard*/
-> +       tvp7002_query_dv_preset(sd, &detected);
-> +
-> +       /* Print standard related code values */
-> +       for (i = 0; i < NUM_PRESETS; i++, presets++)
-> +               if (presets->preset == detected.preset)
-> +                       break;
-> +
-> +       if (v4l_fill_dv_preset_info(device->current_preset->preset, &e_preset))
-> +               return -EINVAL;
-> +
-> +       v4l2_info(sd, "Selected DV Preset: %s\n", e_preset.name);
-> +       v4l2_info(sd, "   Pixels per line: %u\n", e_preset.width);
-> +       v4l2_info(sd, "   Lines per frame: %u\n\n", e_preset.height);
-> +       if (i == NUM_PRESETS) {
-> +               v4l2_info(sd, "Detected DV Preset: None\n");
-> +       } else {
-> +               if (v4l_fill_dv_preset_info(presets->preset, &e_preset))
-> +                       return -EINVAL;
-> +               v4l2_info(sd, "Detected DV Preset: %s\n", e_preset.name);
-> +               v4l2_info(sd, "  Pixels per line: %u\n", e_preset.width);
-> +               v4l2_info(sd, "  Lines per frame: %u\n\n", e_preset.height);
-> +       }
-> +       v4l2_info(sd, "Streaming enabled: %s\n",
-> +                                       device->streaming ? "yes" : "no");
-> +
-> +       /* Print the current value of the gain control */
-> +       v4l2_info(sd, "Gain: %u\n", device->gain);
-> +
-> +       return 0;
-> +}
-> +
-> +/* V4L2 core operation handlers */
-> +static const struct v4l2_subdev_core_ops tvp7002_core_ops = {
-> +       .g_chip_ident = tvp7002_g_chip_ident,
-> +       .log_status = tvp7002_log_status,
-> +       .g_ctrl = tvp7002_g_ctrl,
-> +       .s_ctrl = tvp7002_s_ctrl,
-> +       .queryctrl = tvp7002_queryctrl,
-> +#ifdef CONFIG_VIDEO_ADV_DEBUG
-> +       .g_register = tvp7002_g_register,
-> +       .s_register = tvp7002_s_register,
-> +#endif
-> +};
-> +
-> +/* Specific video subsystem operation handlers */
-> +static const struct v4l2_subdev_video_ops tvp7002_video_ops = {
-> +       .s_dv_preset = tvp7002_s_dv_preset,
-> +       .query_dv_preset = tvp7002_query_dv_preset,
-> +       .s_stream = tvp7002_s_stream,
-> +       .g_fmt = tvp7002_g_fmt,
-> +       .s_fmt = tvp7002_s_fmt,
-> +       .enum_fmt = tvp7002_enum_fmt,
-> +};
-> +
-> +/* V4L2 top level operation handlers */
-> +static const struct v4l2_subdev_ops tvp7002_ops = {
-> +       .core = &tvp7002_core_ops,
-> +       .video = &tvp7002_video_ops,
-> +};
-> +
-> +static struct tvp7002 tvp7002_dev = {
-> +       .streaming = 0,
-> +
-> +       .pix = {
-> +               .width = 1280,
-> +               .height = 720,
-> +               .pixelformat = V4L2_PIX_FMT_UYVY,
-> +               .field = V4L2_FIELD_NONE,
-> +               .bytesperline = 1280 * 2,
-> +               .sizeimage = 1280 * 2 * 720,
-> +               .colorspace = V4L2_COLORSPACE_REC709,
-> +               },
-> +
-> +       .current_preset = tvp7002_presets,
-> +       .gain = 0,
-> +};
-> +
-> +/*
-> + * tvp7002_probe - Probe a TVP7002 device
-> + * @sd: ptr to v4l2_subdev struct
-> + * @ctrl: ptr to i2c_device_id struct
-> + *
-> + * Initialize the TVP7002 device
-> + * Returns zero when successful or -EINVAL if register read fails.
-> + */
-> +static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
-> +{
-> +       struct v4l2_subdev *sd;
-> +       struct tvp7002 *device;
-> +       struct v4l2_dv_preset preset;
-> +       int polarity_a;
-> +       int polarity_b;
-> +       u8 revision;
-> +
-> +       int error;
-> +
-> +       /* Check if the adapter supports the needed features */
-> +       if (!i2c_check_functionality(c->adapter,
-> +               I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
-> +               return -EIO;
-> +
-> +       if (!c->dev.platform_data) {
-> +               v4l2_err(c, "No platform data!!\n");
-> +               return -ENODEV;
-> +       }
-> +
-> +       device = kmalloc(sizeof(struct tvp7002), GFP_KERNEL);
-> +
-> +       if (!device)
-> +               return -ENOMEM;
-> +
-> +       *device = tvp7002_dev;
-> +       sd = &device->sd;
-> +       device->pdata = c->dev.platform_data;
-> +
-> +       /* Tell v4l2 the device is ready */
-> +       v4l2_i2c_subdev_init(sd, c, &tvp7002_ops);
-> +       v4l_info(c, "tvp7002 found @ 0x%02x (%s)\n",
-> +                                       c->addr, c->adapter->name);
-> +
-> +       error = tvp7002_read(sd, TVP7002_CHIP_REV, &revision);
-> +       if (error < 0)
-> +               goto found_error;
-> +
-> +       /* Get revision number */
-> +       v4l2_info(sd, "Rev. %02x detected.\n", revision);
-> +       if (revision != 0x02)
-> +               v4l2_info(sd, "Unknown revision detected.\n");
-> +
-> +       /* Initializes TVP7002 to its default values */
-> +       error = tvp7002_write_inittab(sd, tvp7002_init_default);
-> +
-> +       if (error < 0)
-> +               goto found_error;
-> +
-> +       /* Set polarity information after registers have been set */
-> +       polarity_a = 0x20 | device->pdata->hs_polarity << 5
-> +                       | device->pdata->vs_polarity << 2;
-> +       error = tvp7002_write(sd, TVP7002_SYNC_CTL_1, polarity_a);
-> +       if (error < 0)
-> +               goto found_error;
-> +
-> +       polarity_b = 0x01  | device->pdata->fid_polarity << 2
-> +                       | device->pdata->sog_polarity << 1
-> +                       | device->pdata->clk_polarity;
-> +       error = tvp7002_write(sd, TVP7002_MISC_CTL_3, polarity_b);
-> +       if (error < 0)
-> +               goto found_error;
-> +
-> +       /* Set registers according to default video mode */
-> +       preset.preset = device->current_preset->preset;
-> +       error = tvp7002_s_dv_preset(sd, &preset);
-> +
-> +       if (error < 0) {
-> +               kfree(device);
-> +               return error;
+This patch updates the v4l2-dvb documentation for the new video timings API added.
+Also updated the document based on comments from Hans Verkuil
 
-May i call small attention to this kfree and return? You probably
-don't need this "return error" because you have "return error" below
-in code. Or why you call kfree(device) only after
-tvp7002_s_dv_preset()? This is not clear for me, is all error paths in
-this function ok?
-
-Thanks.
-
-> +       }
-> +
-> +found_error:
-> +       return error;
-> +}
-> +
-> +/*
-> + * tvp7002_remove - Remove TVP7002 device support
-> + * @c: ptr to i2c_client struct
-> + *
-> + * Reset the TVP7002 device
-> + * Returns zero.
-> + */
-> +static int tvp7002_remove(struct i2c_client *c)
-> +{
-> +       struct v4l2_subdev *sd = i2c_get_clientdata(c);
-> +       struct tvp7002 *device = to_tvp7002(sd);
-> +
-> +       v4l2_dbg(1, debug, sd, "Removing tvp7002 adapter"
-> +                               "on address 0x%x\n", c->addr);
-> +
-> +       v4l2_device_unregister_subdev(sd);
-> +       kfree(device);
-> +       return 0;
-> +}
-> +
-> +/* I2C Device ID table */
-> +static const struct i2c_device_id tvp7002_id[] = {
-> +       { "tvp7002", 0 },
-> +       { }
-> +};
-> +MODULE_DEVICE_TABLE(i2c, tvp7002_id);
-> +
-> +/* I2C driver data */
-> +static struct i2c_driver tvp7002_driver = {
-> +       .driver = {
-> +               .owner = THIS_MODULE,
-> +               .name = TVP7002_MODULE_NAME,
-> +       },
-> +       .probe = tvp7002_probe,
-> +       .remove = tvp7002_remove,
-> +       .id_table = tvp7002_id,
-> +};
-> +
-> +/*
-> + * tvp7002_init - Initialize driver via I2C interface
-> + *
-> + * Register the TVP7002 driver.
-> + * Returns 0 on success or < 0 on failure.
-> + */
-> +static int __init tvp7002_init(void)
-> +{
-> +       return i2c_add_driver(&tvp7002_driver);
-> +}
-> +
-> +/*
-> + * tvp7002_exit - Remove driver via I2C interface
-> + *
-> + * Unregister the TVP7002 driver.
-> + * Returns 0 on success or < 0 on failure.
-> + */
-> +static void __exit tvp7002_exit(void)
-> +{
-> +       i2c_del_driver(&tvp7002_driver);
-> +}
-> +
-> +module_init(tvp7002_init);
-> +module_exit(tvp7002_exit);
-> --
-> 1.6.0.4
-
-
-
-
-
--- 
-Best regards, Klimov Alexey
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+---
+diff -uNr v4l-dvb-e0cd9a337600_master/linux/Documentation/DocBook/v4l/common.xml v4l-dvb-patch/linux/Documentation/DocBook/v4l/common.xml
+--- v4l-dvb-e0cd9a337600_master/linux/Documentation/DocBook/v4l/common.xml	2009-12-01 17:02:04.000000000 -0500
++++ v4l-dvb-patch/linux/Documentation/DocBook/v4l/common.xml	2009-12-02 17:16:24.000000000 -0500
+@@ -716,6 +716,41 @@
+ }
+       </programlisting>
+     </example>
++  <section id="dv-timings">
++    	<title>Digital Video (DV) Timings</title>
++    	<para> 
++	The video standards discussed so far has been dealing with Analog TV and the
++corresponding video timings. Today there are many more different hardware interfaces
++such as High Definition TV interfaces (HDMI), VGA, DVI connectors etc., that carry
++video signals and there is a need to extend the API to select the video timings
++ for these interfaces. Since it is not possible to extend the v4l2-std-id due to
++the limited bits available, a new set of IOCTLs are added to set/get video timings at
++the input and output: </para><itemizedlist>
++	<listitem>
++	<para> DV Presets: Digital Video (DV) presets. These are IDs representing a
++video timing at the input/output. Presets are pre-defined timings implemented
++by the hardware according to video standards. A __u32 data type is used to represent
++ a preset unlike the bit mask that is used in &v4l2-std-id; allowing future extensions
++ to support many different presets as needed.</para>
++	</listitem>
++	<listitem>
++	<para> Custom DV Timings: This will allow applications to define more detailed
++custom video timings at the interface. This includes parameters such as width, height,
++ polarities, frontporch, backporch etc.
++	</para> 
++	</listitem>
++	</itemizedlist>
++	<para> To enumerate and query the attributes of DV presets supported by a device,
++ applications use the &VIDIOC-ENUM-DV-PRESETS; ioctl. To get the current DV preset,
++ application use the &VIDIOC-G-DV-PRESET; ioctl and to set a preset it uses the 
++ &VIDIOC-S-DV-PRESET; ioctl.</para>
++	<para> To set a Custom DV timings at the device, applications use the
++ &VIDIOC-S-DV-TIMINGS; ioctl and to get current Custom DV timings, it uses the
++ &VIDIOC-G-DV-TIMINGS; ioctl.</para>
++	<para> Applications can make use of the <xref linkend="input-capabilities" /> and
++<xref linkend="output-capabilities"/> flags to decide what ioctls are available to set the
++video timings for the device.</para> 
++  	</section>
+   </section>
+ 
+   &sub-controls;
+diff -uNr v4l-dvb-e0cd9a337600_master/linux/Documentation/DocBook/v4l/v4l2.xml v4l-dvb-patch/linux/Documentation/DocBook/v4l/v4l2.xml
+--- v4l-dvb-e0cd9a337600_master/linux/Documentation/DocBook/v4l/v4l2.xml	2009-12-01 17:02:04.000000000 -0500
++++ v4l-dvb-patch/linux/Documentation/DocBook/v4l/v4l2.xml	2009-12-02 17:16:50.000000000 -0500
+@@ -416,6 +416,10 @@
+     &sub-enum-frameintervals;
+     &sub-enuminput;
+     &sub-enumoutput;
++    &sub-enum-dv-presets;
++    &sub-g-dv-preset;
++    &sub-query-dv-preset;
++    &sub-g-dv-timings;
+     &sub-enumstd;
+     &sub-g-audio;
+     &sub-g-audioout;
+diff -uNr v4l-dvb-e0cd9a337600_master/linux/Documentation/DocBook/v4l/videodev2.h.xml v4l-dvb-patch/linux/Documentation/DocBook/v4l/videodev2.h.xml
+--- v4l-dvb-e0cd9a337600_master/linux/Documentation/DocBook/v4l/videodev2.h.xml	2009-12-01 17:02:04.000000000 -0500
++++ v4l-dvb-patch/linux/Documentation/DocBook/v4l/videodev2.h.xml	2009-12-02 17:44:24.000000000 -0500
+@@ -734,6 +734,99 @@
+ };
+ 
+ /*
++ *      V I D E O       T I M I N G S   D V     P R E S E T
++ */
++struct <link linkend="v4l2-dv-preset">v4l2_dv_preset</link> {
++        __u32   preset;
++        __u32   reserved[4];
++};
++
++/*
++ *      D V     P R E S E T S   E N U M E R A T I O N
++ */
++struct <link linkend="v4l2-dv-enum-preset">v4l2_dv_enum_preset</link> {
++        __u32   index;
++        __u32   preset;
++        __u8    name[32]; /* Name of the preset timing */
++        __u32   width;
++        __u32   height;
++        __u32   reserved[4];
++};
++
++/*
++ *      D V     P R E S E T     V A L U E S
++ */
++#define         V4L2_DV_INVALID         0
++#define         V4L2_DV_480P59_94       1 /* BT.1362 */
++#define         V4L2_DV_576P50          2 /* BT.1362 */
++#define         V4L2_DV_720P24          3 /* SMPTE 296M */
++#define         V4L2_DV_720P25          4 /* SMPTE 296M */
++#define         V4L2_DV_720P30          5 /* SMPTE 296M */
++#define         V4L2_DV_720P50          6 /* SMPTE 296M */
++#define         V4L2_DV_720P59_94       7 /* SMPTE 274M */
++#define         V4L2_DV_720P60          8 /* SMPTE 274M/296M */
++#define         V4L2_DV_1080I29_97      9 /* BT.1120/ SMPTE 274M */
++#define         V4L2_DV_1080I30         10 /* BT.1120/ SMPTE 274M */
++#define         V4L2_DV_1080I25         11 /* BT.1120 */
++#define         V4L2_DV_1080I50         12 /* SMPTE 296M */
++#define         V4L2_DV_1080I60         13 /* SMPTE 296M */
++#define         V4L2_DV_1080P24         14 /* SMPTE 296M */
++#define         V4L2_DV_1080P25         15 /* SMPTE 296M */
++#define         V4L2_DV_1080P30         16 /* SMPTE 296M */
++#define         V4L2_DV_1080P50         17 /* BT.1120 */
++#define         V4L2_DV_1080P60         18 /* BT.1120 */
++
++/*
++ *      D V     B T     T I M I N G S
++ */
++
++/* BT.656/BT.1120 timing data */
++struct <link linkend="v4l2-bt-timings">v4l2_bt_timings</link> {
++        __u32   width;          /* width in pixels */
++        __u32   height;         /* height in lines */
++        __u32   interlaced;     /* Interlaced or progressive */
++        __u32   polarities;     /* Positive or negative polarity */
++        __u64   pixelclock;     /* Pixel clock in HZ. Ex. 74.25MHz-&gt;74250000 */
++        __u32   hfrontporch;    /* Horizpontal front porch in pixels */
++        __u32   hsync;          /* Horizontal Sync length in pixels */
++        __u32   hbackporch;     /* Horizontal back porch in pixels */
++        __u32   vfrontporch;    /* Vertical front porch in pixels */
++        __u32   vsync;          /* Vertical Sync length in lines */
++        __u32   vbackporch;     /* Vertical back porch in lines */
++        __u32   il_vfrontporch; /* Vertical front porch for bottom field of
++                                 * interlaced field formats
++                                 */
++        __u32   il_vsync;       /* Vertical sync length for bottom field of
++                                 * interlaced field formats
++                                 */
++        __u32   il_vbackporch;  /* Vertical back porch for bottom field of
++                                 * interlaced field formats
++                                 */
++        __u32   reserved[16];
++} __attribute__ ((packed));
++
++/* Interlaced or progressive format */
++#define V4L2_DV_PROGRESSIVE     0
++#define V4L2_DV_INTERLACED      1
++
++/* Polarities. If bit is not set, it is assumed to be negative polarity */
++#define V4L2_DV_VSYNC_POS_POL   0x00000001
++#define V4L2_DV_HSYNC_POS_POL   0x00000002
++
++
++/* DV timings */
++struct <link linkend="v4l2-dv-timings">v4l2_dv_timings</link> {
++        __u32 type;
++        union {
++                struct <link linkend="v4l2-bt-timings">v4l2_bt_timings</link>  bt;
++                __u32   reserved[32];
++        };
++} __attribute__ ((packed));
++
++/* Values for the type field */
++#define V4L2_DV_BT_656_1120     0       /* BT.656/1120 timing type */
++
++/*
+  *      V I D E O   I N P U T S
+  */
+ struct <link linkend="v4l2-input">v4l2_input</link> {
+@@ -744,7 +837,8 @@
+         __u32        tuner;             /*  Associated tuner */
+         v4l2_std_id  std;
+         __u32        status;
+-        __u32        reserved[4];
++        __u32        capabilities;
++        __u32        reserved[3];
+ };
+ 
+ /*  Values for the 'type' field */
+@@ -775,6 +869,11 @@
+ #define V4L2_IN_ST_NO_ACCESS   0x02000000  /* Conditional access denied */
+ #define V4L2_IN_ST_VTR         0x04000000  /* VTR time constant */
+ 
++/* capabilities flags */
++#define V4L2_IN_CAP_PRESETS             0x00000001 /* Supports S_DV_PRESET */
++#define V4L2_IN_CAP_CUSTOM_TIMINGS      0x00000002 /* Supports S_DV_TIMINGS */
++#define V4L2_IN_CAP_STD                 0x00000004 /* Supports S_STD */
++
+ /*
+  *      V I D E O   O U T P U T S
+  */
+@@ -785,13 +884,19 @@
+         __u32        audioset;          /*  Associated audios (bitfield) */
+         __u32        modulator;         /*  Associated modulator */
+         v4l2_std_id  std;
+-        __u32        reserved[4];
++        __u32        capabilities;
++        __u32        reserved[3];
+ };
+ /*  Values for the 'type' field */
+ #define V4L2_OUTPUT_TYPE_MODULATOR              1
+ #define V4L2_OUTPUT_TYPE_ANALOG                 2
+ #define V4L2_OUTPUT_TYPE_ANALOGVGAOVERLAY       3
+ 
++/* capabilities flags */
++#define V4L2_OUT_CAP_PRESETS            0x00000001 /* Supports S_DV_PRESET */
++#define V4L2_OUT_CAP_CUSTOM_TIMINGS     0x00000002 /* Supports S_DV_TIMINGS */
++#define V4L2_OUT_CAP_STD                0x00000004 /* Supports S_STD */
++
+ /*
+  *      C O N T R O L S
+  */
+@@ -1626,6 +1731,13 @@
+ #endif
+ 
+ #define VIDIOC_S_HW_FREQ_SEEK    _IOW('V', 82, struct <link linkend="v4l2-hw-freq-seek">v4l2_hw_freq_seek</link>)
++#define VIDIOC_ENUM_DV_PRESETS  _IOWR('V', 83, struct <link linkend="v4l2-dv-enum-preset">v4l2_dv_enum_preset</link>)
++#define VIDIOC_S_DV_PRESET      _IOWR('V', 84, struct <link linkend="v4l2-dv-preset">v4l2_dv_preset</link>)
++#define VIDIOC_G_DV_PRESET      _IOWR('V', 85, struct <link linkend="v4l2-dv-preset">v4l2_dv_preset</link>)
++#define VIDIOC_QUERY_DV_PRESET  _IOR('V',  86, struct <link linkend="v4l2-dv-preset">v4l2_dv_preset</link>)
++#define VIDIOC_S_DV_TIMINGS     _IOWR('V', 87, struct <link linkend="v4l2-dv-timings">v4l2_dv_timings</link>)
++#define VIDIOC_G_DV_TIMINGS     _IOWR('V', 88, struct <link linkend="v4l2-dv-timings">v4l2_dv_timings</link>)
++
+ /* Reminder: when adding new ioctls please add support for them to
+    drivers/media/video/v4l2-compat-ioctl32.c as well! */
+ 
+diff -uNr v4l-dvb-e0cd9a337600_master/linux/Documentation/DocBook/v4l/vidioc-enum-dv-presets.xml v4l-dvb-patch/linux/Documentation/DocBook/v4l/vidioc-enum-dv-presets.xml
+--- v4l-dvb-e0cd9a337600_master/linux/Documentation/DocBook/v4l/vidioc-enum-dv-presets.xml	1969-12-31 19:00:00.000000000 -0500
++++ v4l-dvb-patch/linux/Documentation/DocBook/v4l/vidioc-enum-dv-presets.xml	2009-12-02 17:17:45.000000000 -0500
+@@ -0,0 +1,238 @@
++<refentry id="vidioc-enum-dv-presets">
++  <refmeta>
++    <refentrytitle>ioctl VIDIOC_ENUM_DV_PRESETS</refentrytitle>
++    &manvol;
++  </refmeta>
++
++  <refnamediv>
++    <refname>VIDIOC_ENUM_DV_PRESETS</refname>
++    <refpurpose>Enumerate supported Digital Video Presets</refpurpose>
++  </refnamediv>
++
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>struct v4l2_dv_enum_preset *<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
++
++  <refsect1>
++    <title>Arguments</title>
++
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>VIDIOC_ENUM_DV_PRESETS</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++
++    <para>To query the attributes of a DV preset, applications initialize the
++<structfield>index</structfield> field and zero the reserved array of &v4l2-dv-enum-preset;
++ and call the <constant>VIDIOC_ENUM_DV_PRESETS</constant> ioctl with a pointer to this
++structure. Drivers fill the rest of the structure or return an
++&EINVAL; when the index is out of bounds. To enumerate all DV Presets supported, 
++applications shall begin  at index zero, incrementing by one until the
++driver returns <errorcode>EINVAL</errorcode>. Drivers may enumerate a
++different set of DV Presets after switching the video input or
++output.</para>
++
++    <table pgwide="1" frame="none" id="v4l2-dv-enum-preset">
++      <title>struct <structname>v4l2_dv_enum_presets</structname></title>
++      <tgroup cols="3">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>index</structfield></entry>
++	    <entry>Number of the DV preset, set by the
++application.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>preset</structfield></entry>
++	    <entry>This field identify one of the DV Preset value listed in <xref linkend="v4l2-dv-presets-vals"/>.</entry>
++	  </row>
++	  <row>
++	    <entry>__u8</entry>
++	    <entry><structfield>name</structfield>[24]</entry>
++	    <entry>Name of the preset, a NULL-terminated ASCII string, for example: "720P-60", "1080I-60". This information is
++intended for the user.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>width</structfield></entry>
++	    <entry>Width of active video in pixels for the DV preset.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>height</structfield></entry>
++	    <entry>Height of active video in lines for the DV preset.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[4]</entry>
++	    <entry>Reserved for future extensions. Drivers must set the array to zero.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++    <table pgwide="1" frame="none" id="v4l2-dv-presets-vals">
++      <title>struct <structname>DV Presets</structname></title>
++      <tgroup cols="3">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>Preset</entry>
++	    <entry>Preset value</entry>
++	    <entry>Description</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	  </row>
++	  <row>
++	    <entry>V4L2_DV_INVALID</entry>
++	    <entry>0</entry>
++	    <entry>Invalid Preset value.</entry>
++	  </row>
++	  <row>
++	    <entry>V4L2_DV_480P59_94</entry>
++	    <entry>1</entry>
++	    <entry>720x480 progressive video at 59.94 fps as per BT.1362.</entry>
++	  </row>
++	  <row>
++	    <entry>V4L2_DV_576P50</entry>
++	    <entry>2</entry>
++	    <entry>720x576 progressive video at 50 fps as per BT.1362.</entry>
++	  </row>
++	  <row>
++	    <entry>V4L2_DV_720P24</entry>
++	    <entry>3</entry>
++	    <entry>1280x720 progressive video at 24 fps as per SMPTE 296M.</entry>
++	  </row>
++	  <row>
++	    <entry>V4L2_DV_720P25</entry>
++	    <entry>4</entry>
++	    <entry>1280x720 progressive video at 25 fps as per SMPTE 296M.</entry>
++	  </row>
++	  <row>
++	    <entry>V4L2_DV_720P30</entry>
++	    <entry>5</entry>
++	    <entry>1280x720 progressive video at 30 fps as per SMPTE 296M.</entry>
++	  </row>
++	  <row>
++	    <entry>V4L2_DV_720P50</entry>
++	    <entry>6</entry>
++	    <entry>1280x720 progressive video at 50 fps as per SMPTE 296M.</entry>
++	  </row>
++	  <row>
++	    <entry>V4L2_DV_720P59_94</entry>
++	    <entry>7</entry>
++	    <entry>1280x720 progressive video at 59.94 fps as per SMPTE 274M.</entry>
++	  </row>
++	  <row>
++	    <entry>V4L2_DV_720P60</entry>
++	    <entry>8</entry>
++	    <entry>1280x720 progressive video at 60 fps as per SMPTE 274M/296M.</entry>
++	  </row>
++	  <row>
++	    <entry>V4L2_DV_1080I29_97</entry>
++	    <entry>9</entry>
++	    <entry>1920x1080 interlaced video at 29.97 fps as per BT.1120/SMPTE 274M.</entry>
++	  </row>
++	  <row>
++	    <entry>V4L2_DV_1080I30</entry>
++	    <entry>10</entry>
++	    <entry>1920x1080 interlaced video at 30 fps as per BT.1120/SMPTE 274M.</entry>
++	  </row>
++	  <row>
++	    <entry>V4L2_DV_1080I25</entry>
++	    <entry>11</entry>
++	    <entry>1920x1080 interlaced video at 25 fps as per BT.1120.</entry>
++	  </row>
++	  <row>
++	    <entry>V4L2_DV_1080I50</entry>
++	    <entry>12</entry>
++	    <entry>1920x1080 interlaced video at 50 fps as per SMPTE 296M.</entry>
++	  </row>
++	  <row>
++	    <entry>V4L2_DV_1080I60</entry>
++	    <entry>13</entry>
++	    <entry>1920x1080 interlaced video at 60 fps as per SMPTE 296M.</entry>
++	  </row>
++	  <row>
++	    <entry>V4L2_DV_1080P24</entry>
++	    <entry>14</entry>
++	    <entry>1920x1080 progressive video at 24 fps as per SMPTE 296M.</entry>
++	  </row>
++	  <row>
++	    <entry>V4L2_DV_1080P25</entry>
++	    <entry>15</entry>
++	    <entry>1920x1080 progressive video at 25 fps as per SMPTE 296M.</entry>
++	  </row>
++	  <row>
++	    <entry>V4L2_DV_1080P30</entry>
++	    <entry>16</entry>
++	    <entry>1920x1080 progressive video at 30 fps as per SMPTE 296M.</entry>
++	  </row>
++	  <row>
++	    <entry>V4L2_DV_1080P50</entry>
++	    <entry>17</entry>
++	    <entry>1920x1080 progressive video at 50 fps as per BT.1120.</entry>
++	  </row>
++	  <row>
++	    <entry>V4L2_DV_1080P60</entry>
++	    <entry>18</entry>
++	    <entry>1920x1080 progressive video at 60 fps as per BT.1120.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++  </refsect1>
++
++  <refsect1>
++    &return-value;
++
++    <variablelist>
++      <varlistentry>
++	<term><errorcode>EINVAL</errorcode></term>
++	<listitem>
++	  <para>The &v4l2-dv-enum-preset; <structfield>index</structfield>
++is out of bounds.</para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++</refentry>
++
++<!--
++Local Variables:
++mode: sgml
++sgml-parent-document: "v4l2.sgml"
++indent-tabs-mode: nil
++End:
++-->
+diff -uNr v4l-dvb-e0cd9a337600_master/linux/Documentation/DocBook/v4l/vidioc-enuminput.xml v4l-dvb-patch/linux/Documentation/DocBook/v4l/vidioc-enuminput.xml
+--- v4l-dvb-e0cd9a337600_master/linux/Documentation/DocBook/v4l/vidioc-enuminput.xml	2009-12-01 17:02:04.000000000 -0500
++++ v4l-dvb-patch/linux/Documentation/DocBook/v4l/vidioc-enuminput.xml	2009-12-02 17:18:11.000000000 -0500
+@@ -124,7 +124,13 @@
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+-	    <entry><structfield>reserved</structfield>[4]</entry>
++	    <entry><structfield>capabilities</structfield></entry>
++	    <entry>This field provides capabilities that exists at the
++input.  See <xref linkend="input-capabilities" /> for flags. </entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[3]</entry>
+ 	    <entry>Reserved for future extensions. Drivers must set
+ the array to zero.</entry>
+ 	  </row>
+@@ -261,6 +267,34 @@
+ 	</tbody>
+       </tgroup>
+     </table>
++
++    <!-- Capabilities flags based on video timings RFC by Muralidharan
++Karicheri, titled RFC (v1.2): V4L - Support for video timings at the
++input/output interface to linux-media@vger.kernel.org on 19 Oct 2009.
++	-->
++    <table frame="none" pgwide="1" id="input-capabilities">
++      <title>Input capabilities</title>
++      <tgroup cols="3">
++	&cs-def;
++	<tbody valign="top">
++	  <row>
++	    <entry><constant>V4L2_IN_CAP_PRESETS</constant></entry>
++	    <entry>0x00000001</entry>
++	    <entry>This input supports setting DV PRESET using VIDIOC_S_DV_PRESET</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_OUT_CAP_CUSTOM_TIMINGS</constant></entry>
++	    <entry>0x00000002</entry>
++	    <entry>This input supports setting Custom timings using VIDIOC_S_DV_TIMINGS</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_IN_CAP_STD</constant></entry>
++	    <entry>0x00000004</entry>
++	    <entry>This input supports setting standard using VIDIOC_S_STD</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
+   </refsect1>
+ 
+   <refsect1>
+diff -uNr v4l-dvb-e0cd9a337600_master/linux/Documentation/DocBook/v4l/vidioc-enumoutput.xml v4l-dvb-patch/linux/Documentation/DocBook/v4l/vidioc-enumoutput.xml
+--- v4l-dvb-e0cd9a337600_master/linux/Documentation/DocBook/v4l/vidioc-enumoutput.xml	2009-12-01 17:02:04.000000000 -0500
++++ v4l-dvb-patch/linux/Documentation/DocBook/v4l/vidioc-enumoutput.xml	2009-12-02 17:18:18.000000000 -0500
+@@ -114,7 +114,13 @@
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+-	    <entry><structfield>reserved</structfield>[4]</entry>
++	    <entry><structfield>capabilities</structfield></entry>
++	    <entry>This field provides capabilities that exists at the
++output.  See <xref linkend="output-capabilities" /> for flags. </entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[3]</entry>
+ 	    <entry>Reserved for future extensions. Drivers must set
+ the array to zero.</entry>
+ 	  </row>
+@@ -147,6 +153,34 @@
+       </tgroup>
+     </table>
+ 
++    <!-- Capabilities flags based on video timings RFC by Muralidharan
++Karicheri, titled RFC (v1.2): V4L - Support for video timings at the
++input/output interface to linux-media@vger.kernel.org on 19 Oct 2009.
++	-->
++    <table frame="none" pgwide="1" id="output-capabilities">
++      <title>Output capabilities</title>
++      <tgroup cols="3">
++	&cs-def;
++	<tbody valign="top">
++	  <row>
++	    <entry><constant>V4L2_OUT_CAP_PRESETS</constant></entry>
++	    <entry>0x00000001</entry>
++	    <entry>This output supports setting DV PRESET using VIDIOC_S_DV_PRESET</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_OUT_CAP_CUSTOM_TIMINGS</constant></entry>
++	    <entry>0x00000002</entry>
++	    <entry>This output supports setting Custom timings using VIDIOC_S_DV_TIMINGS</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_OUT_CAP_STD</constant></entry>
++	    <entry>0x00000004</entry>
++	    <entry>This output supports setting standard using VIDIOC_S_STD</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
+   </refsect1>
+   <refsect1>
+     &return-value;
+diff -uNr v4l-dvb-e0cd9a337600_master/linux/Documentation/DocBook/v4l/vidioc-g-dv-preset.xml v4l-dvb-patch/linux/Documentation/DocBook/v4l/vidioc-g-dv-preset.xml
+--- v4l-dvb-e0cd9a337600_master/linux/Documentation/DocBook/v4l/vidioc-g-dv-preset.xml	1969-12-31 19:00:00.000000000 -0500
++++ v4l-dvb-patch/linux/Documentation/DocBook/v4l/vidioc-g-dv-preset.xml	2009-12-02 17:18:57.000000000 -0500
+@@ -0,0 +1,111 @@
++<refentry id="vidioc-g-dv-preset">
++  <refmeta>
++    <refentrytitle>ioctl VIDIOC_G_DV_PRESET, VIDIOC_S_DV_PRESET</refentrytitle>
++    &manvol;
++  </refmeta>
++
++  <refnamediv>
++    <refname>VIDIOC_G_DV_PRESET</refname>
++    <refname>VIDIOC_S_DV_PRESET</refname>
++    <refpurpose>Query or select the DV preset of the current input or output</refpurpose>
++  </refnamediv>
++
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>&v4l2-dv-preset;
++*<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
++
++  <refsect1>
++    <title>Arguments</title>
++
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>VIDIOC_G_DV_PRESET, VIDIOC_S_DV_PRESET</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++    <para>To query and select the current DV preset, applications
++use the <constant>VIDIOC_G_DV_PRESET</constant> and <constant>VIDIOC_S_DV_PRESET</constant>
++ioctls which take a pointer to a &v4l2-dv-preset; type as argument.
++ Application must zero the reserved array in &v4l2-dv-preset;.
++<constant>VIDIOC_G_DV_PRESET</constant> returns a dv preset in the field
++ <structfield>preset</structfield> of &v4l2-dv-preset;.</para>
++
++    <para><constant>VIDIOC_S_DV_PRESET</constant> accepts a pointer to a &v4l2-dv-preset;
++that has the preset value to be set. Application must zero the reserved array in &v4l2-dv-preset;.
++If the preset is not supported, it returns an &EINVAL; </para>
++  </refsect1>
++
++  <refsect1>
++    &return-value;
++
++    <variablelist>
++      <varlistentry>
++	<term><errorcode>EINVAL</errorcode></term>
++	<listitem>
++	  <para>This ioctl is not supported, or the
++<constant>VIDIOC_S_DV_PRESET</constant>,<constant>VIDIOC_S_DV_PRESET</constant> parameter was unsuitable.</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><errorcode>EBUSY</errorcode></term>
++	<listitem>
++	  <para>The device is busy and therefore can not change the preset</para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++
++    <table pgwide="1" frame="none" id="v4l2-dv-preset">
++      <title>struct <structname>v4l2_dv_preset</structname></title>
++      <tgroup cols="3">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>preset</structfield></entry>
++	    <entry>preset value to represent the digital video timings</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved[4]</structfield></entry>
++	    <entry>Reserved fields for future use</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++  </refsect1>
++</refentry>
++
++<!--
++Local Variables:
++mode: sgml
++sgml-parent-document: "v4l2.sgml"
++indent-tabs-mode: nil
++End:
++-->
+diff -uNr v4l-dvb-e0cd9a337600_master/linux/Documentation/DocBook/v4l/vidioc-g-dv-timings.xml v4l-dvb-patch/linux/Documentation/DocBook/v4l/vidioc-g-dv-timings.xml
+--- v4l-dvb-e0cd9a337600_master/linux/Documentation/DocBook/v4l/vidioc-g-dv-timings.xml	1969-12-31 19:00:00.000000000 -0500
++++ v4l-dvb-patch/linux/Documentation/DocBook/v4l/vidioc-g-dv-timings.xml	2009-12-02 17:24:11.000000000 -0500
+@@ -0,0 +1,224 @@
++<refentry id="vidioc-g-dv-timings">
++  <refmeta>
++    <refentrytitle>ioctl VIDIOC_G_DV_TIMINGS, VIDIOC_S_DV_TIMINGS</refentrytitle>
++    &manvol;
++  </refmeta>
++
++  <refnamediv>
++    <refname>VIDIOC_G_DV_TIMINGS</refname>
++    <refname>VIDIOC_S_DV_TIMINGS</refname>
++    <refpurpose>Get or Set Custom DV Timings at input or output</refpurpose>
++  </refnamediv>
++
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>&v4l2-dv-timings;
++*<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
++
++  <refsect1>
++    <title>Arguments</title>
++
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>VIDIOC_G_DV_TIMINGS, VIDIOC_S_DV_TIMINGS</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++    <para>To Set Custom DV timings at the input or output, applications use the
++<constant>VIDIOC_S_DV_TIMINGS</constant> ioctl and to Get the current custom timings,
++applications use  <constant>VIDIOC_G_DV_TIMINGS</constant> ioctl. The detailed timing
++informations are filled in using the structure &v4l2-dv-timings;. These ioctls take
++ a pointer to &v4l2-dv-timings; structure as argument. If the ioctl is not supported
++or the timing values are not correct, driver returns an &EINVAL; </para>
++  </refsect1>
++
++  <refsect1>
++    &return-value;
++
++    <variablelist>
++      <varlistentry>
++	<term><errorcode>EINVAL</errorcode></term>
++	<listitem>
++	  <para>This ioctl is not supported, or the
++<constant>VIDIOC_S_DV_TIMINGS</constant> parameter was unsuitable.</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><errorcode>EBUSY</errorcode></term>
++	<listitem>
++	  <para>The device is busy and therefore can not change the timings.</para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++
++    <table pgwide="1" frame="none" id="v4l2-bt-timings">
++      <title>struct <structname>v4l2_bt_timings</structname></title>
++      <tgroup cols="3">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>width</structfield></entry>
++	    <entry>Width of active video in pixels</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>height</structfield></entry>
++	    <entry>Height of active video in lines</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>interlaced</structfield></entry>
++	    <entry>Progressive (0) or interlaced (1)</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>polarities</structfield></entry>
++	    <entry>This is a bit mask that defines polarities of sync signals.
++bit 0 is for vertical sync polarity and bit 1 for horizontal sync polarity. If the bit is set
++it is positive polarity and if is reset, it is negative polarity.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>pixelclock</structfield></entry>
++	    <entry>Pixel clock in Hz. Ex. 74.25MHz->74250000</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>hfrontporch</structfield></entry>
++	    <entry>Horizontal front porch in pixels</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>hsync</structfield></entry>
++	    <entry>Horizontal Sync length in pixels</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>hbackporch</structfield></entry>
++	    <entry>Horizontal back porch in pixels</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>vfrontporch</structfield></entry>
++	    <entry>Vertical front porch in pixels</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>vsync</structfield></entry>
++	    <entry>Vertical Sync length in lines</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>vbackporch</structfield></entry>
++	    <entry>Vertical back porch in lines</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>il_vfrontporch</structfield></entry>
++	    <entry>Vertical front porch for bottom field of interlaced field formats</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>il_vsync</structfield></entry>
++	    <entry>Vertical sync length for bottom field of interlaced field formats</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>il_vbackporch</structfield></entry>
++	    <entry>Vertical back porch for bottom field of interlaced field formats</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++    <table pgwide="1" frame="none" id="v4l2-dv-timings">
++      <title>struct <structname>v4l2_dv_timings</structname></title>
++      <tgroup cols="4">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>type</structfield></entry>
++	    <entry></entry>
++	    <entry>Type of DV timings as listed in <xref linkend="dv-timing-types"/>.</entry>
++	  </row>
++	  <row>
++	    <entry>union</entry>
++	    <entry><structfield></structfield></entry>
++	    <entry></entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>&v4l2-bt-timings;</entry>
++	    <entry><structfield>bt</structfield></entry>
++	    <entry>Timings defined by BT.656/1120 specifications </entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[32]</entry>
++	    <entry></entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++    <table pgwide="1" frame="none" id="dv-timing-types">
++      <title>DV Timing types</title>
++      <tgroup cols="3">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>Timing type</entry>
++	    <entry>value</entry>
++	    <entry>Description</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	  </row>
++	  <row>
++	    <entry>V4L2_DV_BT_656_1120</entry>
++	    <entry>0</entry>
++	    <entry>BT.656/1120 timings</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++  </refsect1>
++</refentry>
++
++<!--
++Local Variables:
++mode: sgml
++sgml-parent-document: "v4l2.sgml"
++indent-tabs-mode: nil
++End:
++-->
+diff -uNr v4l-dvb-e0cd9a337600_master/linux/Documentation/DocBook/v4l/vidioc-query-dv-preset.xml v4l-dvb-patch/linux/Documentation/DocBook/v4l/vidioc-query-dv-preset.xml
+--- v4l-dvb-e0cd9a337600_master/linux/Documentation/DocBook/v4l/vidioc-query-dv-preset.xml	1969-12-31 19:00:00.000000000 -0500
++++ v4l-dvb-patch/linux/Documentation/DocBook/v4l/vidioc-query-dv-preset.xml	2009-12-02 17:19:41.000000000 -0500
+@@ -0,0 +1,85 @@
++<refentry id="vidioc-query-dv-preset">
++  <refmeta>
++    <refentrytitle>ioctl VIDIOC_QUERY_DV_PRESET</refentrytitle>
++    &manvol;
++  </refmeta>
++
++  <refnamediv>
++    <refname>VIDIOC_QUERY_DV_PRESET</refname>
++    <refpurpose>Sense the DV preset received by the current
++input</refpurpose>
++  </refnamediv>
++
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>&v4l2-dv-preset; *<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
++
++  <refsect1>
++    <title>Arguments</title>
++
++    <variablelist>
++	<varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>VIDIOC_QUERY_DV_PRESET</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++
++    <para>The hardware may be able to detect the current DV preset
++automatically similar to sensing the video standard. To do so, applications
++call <constant> VIDIOC_QUERY_DV_PRESET</constant> with a pointer to a
++ &v4l2-dv-preset; type.  Once hardware detects a preset, that preset is
++returned in the preset field of &v4l2-dv-preset; When detection is not
++possible or fails, the value V4L2_DV_INVALID is returned.</para>
++  </refsect1>
++
++  <refsect1>
++    &return-value;
++    <variablelist>
++      <varlistentry>
++	<term><errorcode>EINVAL</errorcode></term>
++	<listitem>
++	  <para>This ioctl is not supported.</para>
++	</listitem>
++    </varlistentry>
++      <varlistentry>
++	<term><errorcode>EBUSY</errorcode></term>
++	<listitem>
++	  <para>The device is busy and therefore can not sense the preset</para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++</refentry>
++
++<!--
++Local Variables:
++mode: sgml
++sgml-parent-document: "v4l2.sgml"
++indent-tabs-mode: nil
++End:
++-->
+diff -uNr v4l-dvb-e0cd9a337600_master/linux/include/linux/videodev2.h v4l-dvb-patch/linux/include/linux/videodev2.h
+--- v4l-dvb-e0cd9a337600_master/linux/include/linux/videodev2.h	2009-12-01 17:02:04.000000000 -0500
++++ v4l-dvb-patch/linux/include/linux/videodev2.h	2009-12-02 17:21:48.000000000 -0500
+@@ -733,6 +733,99 @@
+ };
+ 
+ /*
++ *	V I D E O	T I M I N G S	D V	P R E S E T
++ */
++struct v4l2_dv_preset {
++	__u32	preset;
++	__u32	reserved[4];
++};
++
++/*
++ *	D V	P R E S E T S	E N U M E R A T I O N
++ */
++struct v4l2_dv_enum_preset {
++	__u32	index;
++	__u32	preset;
++	__u8	name[32]; /* Name of the preset timing */
++	__u32	width;
++	__u32	height;
++	__u32	reserved[4];
++};
++
++/*
++ * 	D V	P R E S E T	V A L U E S
++ */
++#define		V4L2_DV_INVALID		0
++#define		V4L2_DV_480P59_94	1 /* BT.1362 */
++#define		V4L2_DV_576P50		2 /* BT.1362 */
++#define		V4L2_DV_720P24		3 /* SMPTE 296M */
++#define		V4L2_DV_720P25		4 /* SMPTE 296M */
++#define		V4L2_DV_720P30		5 /* SMPTE 296M */
++#define		V4L2_DV_720P50		6 /* SMPTE 296M */
++#define		V4L2_DV_720P59_94	7 /* SMPTE 274M */
++#define		V4L2_DV_720P60		8 /* SMPTE 274M/296M */
++#define		V4L2_DV_1080I29_97	9 /* BT.1120/ SMPTE 274M */
++#define		V4L2_DV_1080I30		10 /* BT.1120/ SMPTE 274M */
++#define		V4L2_DV_1080I25		11 /* BT.1120 */
++#define		V4L2_DV_1080I50		12 /* SMPTE 296M */
++#define		V4L2_DV_1080I60		13 /* SMPTE 296M */
++#define		V4L2_DV_1080P24		14 /* SMPTE 296M */
++#define		V4L2_DV_1080P25		15 /* SMPTE 296M */
++#define		V4L2_DV_1080P30		16 /* SMPTE 296M */
++#define		V4L2_DV_1080P50		17 /* BT.1120 */
++#define		V4L2_DV_1080P60		18 /* BT.1120 */
++
++/*
++ *	D V 	B T	T I M I N G S
++ */
++
++/* BT.656/BT.1120 timing data */
++struct v4l2_bt_timings {
++	__u32	width;		/* width in pixels */
++	__u32	height;		/* height in lines */
++	__u32	interlaced;	/* Interlaced or progressive */
++	__u32	polarities;	/* Positive or negative polarity */
++	__u64	pixelclock;	/* Pixel clock in HZ. Ex. 74.25MHz->74250000 */
++	__u32	hfrontporch;	/* Horizpontal front porch in pixels */
++	__u32	hsync;		/* Horizontal Sync length in pixels */
++	__u32	hbackporch;	/* Horizontal back porch in pixels */
++	__u32	vfrontporch;	/* Vertical front porch in pixels */
++	__u32	vsync;		/* Vertical Sync length in lines */
++	__u32	vbackporch;	/* Vertical back porch in lines */
++	__u32	il_vfrontporch;	/* Vertical front porch for bottom field of
++				 * interlaced field formats
++				 */
++	__u32	il_vsync;	/* Vertical sync length for bottom field of
++				 * interlaced field formats
++				 */
++	__u32	il_vbackporch;	/* Vertical back porch for bottom field of
++				 * interlaced field formats
++				 */
++	__u32	reserved[16];
++} __attribute__ ((packed));
++
++/* Interlaced or progressive format */
++#define	V4L2_DV_PROGRESSIVE	0
++#define	V4L2_DV_INTERLACED	1
++
++/* Polarities. If bit is not set, it is assumed to be negative polarity */
++#define V4L2_DV_VSYNC_POS_POL	0x00000001
++#define V4L2_DV_HSYNC_POS_POL	0x00000002
++
++
++/* DV timings */
++struct v4l2_dv_timings {
++	__u32 type;
++	union {
++		struct v4l2_bt_timings	bt;
++		__u32	reserved[32];
++	};
++} __attribute__ ((packed));
++
++/* Values for the type field */
++#define V4L2_DV_BT_656_1120	0	/* BT.656/1120 timing type */
++
++/*
+  *	V I D E O   I N P U T S
+  */
+ struct v4l2_input {
+@@ -743,7 +836,8 @@
+ 	__u32        tuner;             /*  Associated tuner */
+ 	v4l2_std_id  std;
+ 	__u32	     status;
+-	__u32	     reserved[4];
++	__u32	     capabilities;
++	__u32	     reserved[3];
+ };
+ 
+ /*  Values for the 'type' field */
+@@ -774,6 +868,11 @@
+ #define V4L2_IN_ST_NO_ACCESS   0x02000000  /* Conditional access denied */
+ #define V4L2_IN_ST_VTR         0x04000000  /* VTR time constant */
+ 
++/* capabilities flags */
++#define V4L2_IN_CAP_PRESETS		0x00000001 /* Supports S_DV_PRESET */
++#define V4L2_IN_CAP_CUSTOM_TIMINGS	0x00000002 /* Supports S_DV_TIMINGS */
++#define V4L2_IN_CAP_STD			0x00000004 /* Supports S_STD */
++
+ /*
+  *	V I D E O   O U T P U T S
+  */
+@@ -784,13 +883,19 @@
+ 	__u32	     audioset;		/*  Associated audios (bitfield) */
+ 	__u32	     modulator;         /*  Associated modulator */
+ 	v4l2_std_id  std;
+-	__u32	     reserved[4];
++	__u32	     capabilities;
++	__u32	     reserved[3];
+ };
+ /*  Values for the 'type' field */
+ #define V4L2_OUTPUT_TYPE_MODULATOR		1
+ #define V4L2_OUTPUT_TYPE_ANALOG			2
+ #define V4L2_OUTPUT_TYPE_ANALOGVGAOVERLAY	3
+ 
++/* capabilities flags */
++#define V4L2_OUT_CAP_PRESETS		0x00000001 /* Supports S_DV_PRESET */
++#define V4L2_OUT_CAP_CUSTOM_TIMINGS	0x00000002 /* Supports S_DV_TIMINGS */
++#define V4L2_OUT_CAP_STD		0x00000004 /* Supports S_STD */
++
+ /*
+  *	C O N T R O L S
+  */
+@@ -1625,6 +1730,13 @@
+ #endif
+ 
+ #define VIDIOC_S_HW_FREQ_SEEK	 _IOW('V', 82, struct v4l2_hw_freq_seek)
++#define	VIDIOC_ENUM_DV_PRESETS	_IOWR('V', 83, struct v4l2_dv_enum_preset)
++#define	VIDIOC_S_DV_PRESET	_IOWR('V', 84, struct v4l2_dv_preset)
++#define	VIDIOC_G_DV_PRESET	_IOWR('V', 85, struct v4l2_dv_preset)
++#define	VIDIOC_QUERY_DV_PRESET	_IOR('V',  86, struct v4l2_dv_preset)
++#define	VIDIOC_S_DV_TIMINGS	_IOWR('V', 87, struct v4l2_dv_timings)
++#define	VIDIOC_G_DV_TIMINGS	_IOWR('V', 88, struct v4l2_dv_timings)
++
+ /* Reminder: when adding new ioctls please add support for them to
+    drivers/media/video/v4l2-compat-ioctl32.c as well! */
+ 
+diff -uNr v4l-dvb-e0cd9a337600_master/media-specs/Makefile v4l-dvb-patch/media-specs/Makefile
+--- v4l-dvb-e0cd9a337600_master/media-specs/Makefile	2009-12-01 17:02:04.000000000 -0500
++++ v4l-dvb-patch/media-specs/Makefile	2009-12-02 17:49:08.000000000 -0500
+@@ -60,6 +60,10 @@
+ 	v4l/vidioc-enumaudioout.xml \
+ 	v4l/vidioc-enuminput.xml \
+ 	v4l/vidioc-enumoutput.xml \
++	v4l/vidioc-enum-dv-presets.xml \
++	v4l/vidioc-g-dv-preset.xml \
++	v4l/vidioc-query-dv-preset.xml \
++	v4l/vidioc-g-dv-timings.xml \
+ 	v4l/vidioc-enumstd.xml \
+ 	v4l/vidioc-g-audio.xml \
+ 	v4l/vidioc-g-audioout.xml \
+@@ -191,6 +195,12 @@
+ 	VIDIOC_ENUMAUDOUT \
+ 	VIDIOC_ENUMINPUT \
+ 	VIDIOC_ENUMOUTPUT \
++	VIDIOC_ENUM_DV_PRESETS \
++	VIDIOC_QUERY_DV_PRESET \
++	VIDIOC_G_DV_PRESET \
++	VIDIOC_S_DV_PRESET \
++	VIDIOC_G_DV_TIMINGS \
++	VIDIOC_S_DV_TIMINGS \
+ 	VIDIOC_ENUMSTD \
+ 	VIDIOC_ENUM_FMT \
+ 	VIDIOC_ENUM_FRAMEINTERVALS \
+@@ -333,6 +343,10 @@
+ 	v4l2_tuner \
+ 	v4l2_vbi_format \
+ 	v4l2_window \
++	v4l2_dv_enum_preset \
++	v4l2_dv_preset \
++	v4l2_dv_timings \
++	v4l2_bt_timings \
+ 
+ ERRORS = \
+ 	EACCES \
