@@ -1,77 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:50970 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752501AbZLCXrd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Dec 2009 18:47:33 -0500
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR  system?
-From: Andy Walls <awalls@radix.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Gerd Hoffmann <kraxel@redhat.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jonsmirl@gmail.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-In-Reply-To: <4B18292C.6070303@redhat.com>
-References: <BDodf9W1qgB@lirc> <4B14EDE3.5050201@redhat.com>
-	 <4B1524DD.3080708@redhat.com> <4B153617.8070608@redhat.com>
-	 <A6D5FF84-2DB8-4543-ACCB-287305CA0739@wilsonet.com>
-	 <4B17AA6A.9060702@redhat.com>  <4B18292C.6070303@redhat.com>
-Content-Type: text/plain
-Date: Thu, 03 Dec 2009 18:45:26 -0500
-Message-Id: <1259883926.3095.13.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:37726 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750929AbZLBIC0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Dec 2009 03:02:26 -0500
+Date: Wed, 2 Dec 2009 09:02:35 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH 1/2 v3] v4l: add a media-bus API for configuring v4l2
+ subdev pixel and frame formats
+In-Reply-To: <200912020811.12156.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.0912020847350.4694@axis700.grange>
+References: <Pine.LNX.4.64.0911261509100.5450@axis700.grange>
+ <200912011554.19929.hverkuil@xs4all.nl> <Pine.LNX.4.64.0912011141590.4701@axis700.grange>
+ <200912020811.12156.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2009-12-03 at 19:10 -0200, Mauro Carvalho Chehab wrote:
-> Gerd Hoffmann wrote:
+Hi Hans
+
+On Wed, 2 Dec 2009, Hans Verkuil wrote:
+
+> On Tuesday 01 December 2009 16:22:55 Guennadi Liakhovetski wrote:
+> > On Tue, 1 Dec 2009, Hans Verkuil wrote:
+> > > On Monday 30 November 2009 14:49:07 Guennadi Liakhovetski wrote:
+> > > > Right, how about this:
+> > > >
+> > > > /*
+> > > >  * These pixel codes uniquely identify data formats on the media bus.
+> > > > Mostly * they correspond to similarly named V4L2_PIX_FMT_* formats,
+> > > > format 0 is * reserved, V4L2_MBUS_FMT_FIXED shall be used by
+> > > > host-client pairs, where the * data format is fixed. Additionally,
+> > > > "2X8" means that one pixel is transferred * in two 8-bit samples, "BE"
+> > > > or "LE" specify in which order those samples are * transferred over the
+> > > > bus: "LE" means that the least significant bits are * transferred
+> > > > first, "BE" means that the most significant bits are transferred *
+> > > > first, and "PADHI" and "PADLO" define which bits - low or high, in the
+> > > > * incomplete high byte, are filled with padding bits.
+> > > >  */
+> > > > enum v4l2_mbus_pixelcode {
+> > > > 	V4L2_MBUS_FMT_FIXED = 1,
+> > > > 	V4L2_MBUS_FMT_YUYV_2X8_LE,
+> > > > 	V4L2_MBUS_FMT_YVYU_2X8_LE,
+> > > > 	V4L2_MBUS_FMT_UYVY_2X8_LE,
+> > > > 	V4L2_MBUS_FMT_VYUY_2X8_LE,
+> > >
+> > > These possibly may need a comment saying that each Y/U/V sample is 8 bits
+> > > wide. I'm not sure how far we want to go with systematic naming schemes
+> > > here. Adding a short comment if there is a possible ambiguity is probably
+> > > sufficient.
+> >
+> > Is there an ambiguity? Aren't these formats standardised?
 > 
-> > One final pass over the lirc interface would be good, taking the chance
-> > to fixup anything before the ABI is set in stone with the mainline
-> > merge.  Things to look at:
- 
-> >   (3) Someone suggested a 'commit' ioctl which would activate
-> >       the parameters set in (multiple) previous ioctls.  Makes sense?
+> HDMI receivers/transmitters can do YUV with 8, 10 or 12 bits. So when you say
+> YUYV_2X8_LE do you mean that 10 bits are transported over two bytes, or that
+> a Y and a U (or V) are transferred one after another? From the absence of a 
+> PADHI or PADLO I can infer that it is the latter, but it is not exactly 
+> obvious.
 > 
-> A better approach is to create an ioctl that can send a group of value/attribute pairs
-> at the same time. We used this estrategy for V4L extended controls to do things like
-> setting an mpeg encoder (were we need to adjust several parameters at the same time,
-> and adding all of them on one struct would be hard, since you can't specify all
-> of them sa the same time). The same strategy is also used by DVB API to allow it
-> to use any arbitrary protocol. It was conceived to support DVB-S2.
+> Actually, why not name these formats YUYV8, etc. and the order of the bytes 
+> going over the bus is just the order of the text 'YUYV'. There is not really 
+> any big or little endian issues since you just need to know the sequence of 
+> Ys, Us and Vs.
 
-Gerd,
+Ok, we could keep discussing these things for a while, but I don't think 
+we have that time, and it's not _that_ important to me what these things 
+will be called - will use whatever names there are.
 
-I mentioned it.  The reason that I mentioned it is that partial
-configuration, before all the IOCTLs are done, of the IR chips that I
-work with *may* cause:
+Just to explain 2X8 - this notation comes from packing and means, to get 
+one _pixel_ you need two 8-bit wide samples. With YUYV one pixel is 
+defined as YU or YV, so, that gives you (at most) 8 bits per component.
 
-1. Unnecessary, extra I2C bus operations leading to delay on
-configuration.  That's no big deal as it would really only matter for a
-genuine discrete CX2584x chip with IR implemented using the integrated
-IR controller.  I do not know of any TV capture cards wired up like
-that.
+Ok, I'm planning to submit a version of this patch a bit later today with 
+names like
 
-2. If the Low Pass Filter gets turned off, or set to very short time
-interval, bad ambient light conditions could create an "interrupt
-storm".  As soon as all the IOCTLs complete, the storm would stop.
+enum v4l2_mbus_pixelcode {
+	V4L2_MBUS_FMT_FIXED = 1,
+	V4L2_MBUS_FMT_YUYV8,
+	V4L2_MBUS_FMT_YVYU8,
 
+according to your last suggestion.
 
-We can probably do without the change in lirc_dev ioctl() altogether,
-since it only *really* affects one set of chips  that I work with, and
-only during configuration.  I could instead implement interrupt storm
-detection and interrupt rate limiting for those devices.
+> > Do we then have
+> > to explain what rgb555 means etc?
+> >
+> > > > 	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
+> > > > 	V4L2_MBUS_FMT_RGB555X_2X8_PADHI_LE,
+> > >
+> > > Shouldn't this be: V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE? Since the 555X
+> > > format is just the big-endian variant of the RGB555 if I am not mistaken.
+> >
+> > No, don't think so. As an RGB555X format it is sent in LE order, if you
+> > send RGB555X in BE order you get RGB555 (without an "X"). In fact, you'll
+> > never have a RGB555X_BE format, because, that's just the RGB555_LE. So,
+> > you may only have BE variants for formats, whoch byte-swapped variants do
+> > not have an own name.
+> 
+> RGB 5:5:5 consists of 16 bits arrrrrgg gggbbbbb ('a' is either padding or an 
+> alpha bit).
 
+>From what I read, RGB555 has high bit unused. With the alpha bit (or 
+transparency bit) it's already RGBA or RGBT.
 
-BTW IIRC, LIRC likes to resend the ioctl() to set the carrier frequency
-over again when it goes to transmit.  That's kind of annoying, but I can
-work around that too by caching a copy of the carrier freq LIRC set the
-last time.
+> RGB 5:5:5 over an 8 bit data bus is either with the MSB byte first (big endian 
+> aka RGB555X aka RGB555_2X8_PADHI_BE) or with the LSB byte first (little endian 
+> aka RGB555 aka RGB555_2X8_PADHI_LE).
+> 
+> The use of RGB555X in the pixel formats is a really ugly accident of history. 
+> 'RGB555' is the name of the format, and _LE or _BE should define what the 
+> order of the LSB and MSB over the data bus is.
 
-Regards,
-Andy
+So, I'll make them
 
+	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
+	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
+
+and "555X" will just vanish?
+
+> > > > 	V4L2_MBUS_FMT_RGB565_2X8_LE,
+> > > > 	V4L2_MBUS_FMT_RGB565X_2X8_LE,
+> > >
+> > > Ditto.
+> > >
+> > > > 	V4L2_MBUS_FMT_SBGGR8_1X8,
+> > > > 	V4L2_MBUS_FMT_SBGGR10_1X10,
+> > > > 	V4L2_MBUS_FMT_GREY_1X8,
+> > >
+> > > This is also 8 bits per sample, right? This might be renamed to
+> > > GREY8_1X8.
+> >
+> > I named it after V4L2_PIX_FMT_GREY. If we ever get GREY7 or similar, I
+> > think, we anyway will need a new fourcc code for it, then we'll call the
+> > MBUS_FMT similarly.
+> 
+> Why not do it right from the start? Frankly, the PIX_FMT names aren't that 
+> great. And since this will become a public API in the future I think it is 
+> reasonable to spend some time on it (and it is the reason why I'm so picky 
+> about it :-) ).
+
+The whole then becomes:
+
+/*
+ * These pixel codes uniquely identify data formats on the media bus. Mostly
+ * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
+ * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
+ * data format is fixed. Additionally, "2X8" means that one pixel is transferred
+ * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
+ * transferred over the bus: "LE" means that the least significant bits are
+ * transferred first, "BE" means that the most significant bits are transferred
+ * first, and "PADHI" and "PADLO" define which bits - low or high, in the
+ * incomplete high byte, are filled with padding bits.
+ */
+enum v4l2_mbus_pixelcode {
+	V4L2_MBUS_FMT_FIXED = 1,
+	V4L2_MBUS_FMT_YUYV8,
+	V4L2_MBUS_FMT_YVYU8,
+	V4L2_MBUS_FMT_UYVY8,
+	V4L2_MBUS_FMT_VYUY8,
+	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
+	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
+	V4L2_MBUS_FMT_RGB565_2X8_LE,
+	V4L2_MBUS_FMT_RGB565_2X8_BE,
+	V4L2_MBUS_FMT_SBGGR8_1X8,
+	V4L2_MBUS_FMT_SBGGR10_1X10,
+	V4L2_MBUS_FMT_GREY8_1X8,
+	V4L2_MBUS_FMT_Y10_1X10,
+	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
+	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
+	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
+	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
+};
+
+Agree? Would be much appreciated if you could reply yet today.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
