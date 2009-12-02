@@ -1,44 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:64312 "EHLO znsun1.ifh.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753304AbZLOLEW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2009 06:04:22 -0500
-Date: Tue, 15 Dec 2009 12:04:12 +0100 (CET)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Jan Korbel <jackc@teptin.net>
-cc: Markus Suvanto <markus.suvanto@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: High cpu load (dvb_usb_dib0700)
-In-Reply-To: <4B2750BD.6000700@teptin.net>
-Message-ID: <alpine.LRH.2.00.0912151203580.16159@pub6.ifh.de>
-References: <bcf98daa0911270513v7463260dm36e0a5e2557b797f@mail.gmail.com> <4B2750BD.6000700@teptin.net>
+Received: from moutng.kundenserver.de ([212.227.17.9]:54108 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753500AbZLBN7N (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Dec 2009 08:59:13 -0500
+Message-ID: <4B1672B6.3010700@diezwickers.de>
+Date: Wed, 02 Dec 2009 14:59:18 +0100
+From: Andreas Zwicker <dvb@diezwickers.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+To: linux-media@vger.kernel.org
+Subject: TT S2-3200
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi,
 
-On Tue, 15 Dec 2009, Jan Korbel wrote:
+I have problems with my new TT S2-3200 DVB-S2 cards. Tuning / scanning 
+with scan-s2 / szap-s2 is fine ( well almost ). My two satellite dishes 
+are directing towards Astra 19.2E / Astra 28.2E.
+I'm using Debian Lenny with a custom build 2.6.31 kernel und dvb-s2 
+drivers from the v4l-dvb repository.
 
-> Hello.
->
-> I have the same problem. Two tuners "ASUS My Cinema U3000 Mini DVBT Tuner":
->
-> Bus 005 Device 004: ID 0b05:171f ASUSTek Computer, Inc.
-> Bus 005 Device 003: ID 0b05:171f ASUSTek Computer, Inc.
->
-> Kernel 2.6.31 and 2.6.32 (debian packages), firmware dvb-usb-dib0700-1.20.fw. 
-> Intel Atom 330 (dualcore CPU).
+The dvb channel scanner in mythtv 0.22 has massive locking problems. 
+Most of the found channels are not tunable. Arte works almost, RTL is 
+found but is not tunable.
 
-Have you tried to load dvb-usb with disable_rc_polling=1 ?
+Mythtv contains a so called signalmonitor. This signalmonitor checks 40 
+times a second the status of the dvb frontend. I've patched the 
+signalmonitor calls from 40 times to 2 times a second. With this patch, 
+the channelscanner works und nearly all channels are tunable.
 
-It may or may not help.
+Where is the problem? My old Skystar 2 TV PCI DVB-S cards are running 
+with no problem with the same system / software / dishes / coax cable 
+and 40 Status calls a second.
 
-If it helps it will necessary to have a look at the ir-polling code to see 
-whether there is some thing like 'scheduling'.
+thanks in advance for your advice,
 
-regards,
---
-
-Patrick
+Andreas
