@@ -1,54 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:47720 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761022AbZLOUOE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2009 15:14:04 -0500
+Received: from mx1.redhat.com ([209.132.183.28]:25374 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755184AbZLBUsh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Dec 2009 15:48:37 -0500
+Message-ID: <4B16D26E.9010200@redhat.com>
+Date: Wed, 02 Dec 2009 18:47:42 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20091215195859.GI24406@elf.ucw.cz>
-References: <1260070593.3236.6.camel@pc07.localdom.local>
-	 <4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain>
-	 <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
-	 <m3skbn6dv1.fsf@intrepid.localdomain>
-	 <20091207184153.GD998@core.coreip.homeip.net>
-	 <4B24DABA.9040007@redhat.com> <20091215115011.GB1385@ucw.cz>
-	 <4B279017.3080303@redhat.com> <20091215195859.GI24406@elf.ucw.cz>
-Date: Tue, 15 Dec 2009 15:14:02 -0500
-Message-ID: <9e4733910912151214n68161fc7tca0ffbf34c2c4e4@mail.gmail.com>
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
-	system?
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
-	kraxel@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
+To: Jon Smirl <jonsmirl@gmail.com>
+CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com, khc@pm.waw.pl,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, lirc-list@lists.sourceforge.net,
+	superm1@ubuntu.com, Christoph Bartelmus <lirc@bartelmus.de>
+Subject: Re: [RFC v2] Another approach to IR
+References: <9e4733910912010816q32e829a2uce180bfda69ef86d@mail.gmail.com>	 <4B155288.1060509@redhat.com>	 <20091201175400.GA19259@core.coreip.homeip.net>	 <4B1567D8.7080007@redhat.com>	 <20091201201158.GA20335@core.coreip.homeip.net>	 <4B15852D.4050505@redhat.com>	 <20091202093803.GA8656@core.coreip.homeip.net>	 <4B16614A.3000208@redhat.com>	 <20091202171059.GC17839@core.coreip.homeip.net>	 <4B16C10E.6040907@redhat.com> <9e4733910912021150k33446d3aybf0634fa0007ca1d@mail.gmail.com>
+In-Reply-To: <9e4733910912021150k33446d3aybf0634fa0007ca1d@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 15, 2009 at 2:58 PM, Pavel Machek <pavel@ucw.cz> wrote:
-> Hi!
->
->>       (11) if none is against renaming IR as RC, I'll do it on a next patch;
->
-> Call it irc -- infrared remote control. Bluetooth remote controls will
-> have very different characteristics.
+Jon Smirl wrote:
 
-How are they different after the scancode is extracted from the
-network packet? The scancode still needs to be passed to the input
-system, go through a keymap, and end up on an evdev device.
+> IR devices transmit vendor/device/command triplets. They are easy to
+> tell apart and create an evdev device corresponding to each
+> vendor/device pair or something else along those lines.
 
-I would expect the code for extracting the scancode to live in the
-networking stack, but after it is recovered the networking code would
-use the same API as IR to submit it to input.
+What they transmit depend on the used protocol. With NEC and RC5 (currently, the
+most common protocols), they transmit only address (TV, VCR, SAT) and command.
 
--- 
-Jon Smirl
-jonsmirl@gmail.com
+If you have two IR's that not fully follow RC5 standard, they may use distinct
+addresses. So, if you're lucky enough, you'll be able to guess the IR vendor,
+based on the 8 bit address code.
+
+I think that you can get the vendor only with RC6 IR's on some modes. 
+In the case of RC6, as pointed by Andy, there are some patents envolved, 
+meaning that we probably will need to decode it on userspace, except if 
+someone can get the proper patent rights for its used on Linux.
+
+Cheers,
+Mauro.
+
