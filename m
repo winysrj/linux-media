@@ -1,251 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.navvo.net ([74.208.67.6]:42184 "EHLO mail.navvo.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757923AbZLPVbd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2009 16:31:33 -0500
-From: santiago.nunez@ridgerun.com
-To: davinci-linux-open-source@linux.davincidsp.com
-Cc: linux-media@vger.kernel.org, nsnehaprabha@ti.com,
-	m-karicheri2@ti.com, diego.dompe@ridgerun.com,
-	todd.fischer@ridgerun.com, mgrosen@ti.com,
-	Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-Date: Wed, 16 Dec 2009 15:31:54 -0600
-Message-Id: <1260999114-28291-1-git-send-email-santiago.nunez@ridgerun.com>
-Subject: [PATCH 2/4 v12] Definitions for TVP7002 in DM365
+Received: from mail-px0-f188.google.com ([209.85.216.188]:55350 "EHLO
+	mail-px0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754323AbZLBSXb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Dec 2009 13:23:31 -0500
+Date: Wed, 2 Dec 2009 10:23:29 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Jon Smirl <jonsmirl@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com, khc@pm.waw.pl,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, lirc-list@lists.sourceforge.net,
+	superm1@ubuntu.com, Christoph Bartelmus <lirc@bartelmus.de>
+Subject: Re: [RFC v2] Another approach to IR
+Message-ID: <20091202182329.GA20530@core.coreip.homeip.net>
+References: <829197380912010909m59cb1078q5bd2e00af0368aaf@mail.gmail.com> <4B155288.1060509@redhat.com> <20091201175400.GA19259@core.coreip.homeip.net> <4B1567D8.7080007@redhat.com> <20091201201158.GA20335@core.coreip.homeip.net> <4B15852D.4050505@redhat.com> <20091202093803.GA8656@core.coreip.homeip.net> <4B16614A.3000208@redhat.com> <20091202171059.GC17839@core.coreip.homeip.net> <9e4733910912020930t3c9fe973k16fd353e916531a4@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <9e4733910912020930t3c9fe973k16fd353e916531a4@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+On Wed, Dec 02, 2009 at 12:30:29PM -0500, Jon Smirl wrote:
+> On Wed, Dec 2, 2009 at 12:10 PM, Dmitry Torokhov
+> <dmitry.torokhov@gmail.com> wrote:
+> > On Wed, Dec 02, 2009 at 10:44:58AM -0200, Mauro Carvalho Chehab wrote:
+> >> Dmitry Torokhov wrote:
+> >> > On Tue, Dec 01, 2009 at 07:05:49PM -0200, Mauro Carvalho Chehab wrote:
+> >> >> Dmitry Torokhov wrote:
+> >> >>> On Tue, Dec 01, 2009 at 05:00:40PM -0200, Mauro Carvalho Chehab wrote:
+> >> >>>> Dmitry Torokhov wrote:
+> >> >>>>> On Tue, Dec 01, 2009 at 03:29:44PM -0200, Mauro Carvalho Chehab wrote:
+> >> >>>>>> For sure we need to add an EVIOSETPROTO ioctl to allow the driver
+> >> >>>>>> to change the protocol in runtime.
+> >> >>>>>>
+> >> >>>>> Mauro,
+> >> >>>>>
+> >> >>>>> I think this kind of confuguration belongs to lirc device space,
+> >> >>>>> not input/evdev. This is the same as protocol selection for psmouse
+> >> >>>>> module: while it is normally auto-detected we have sysfs attribute to
+> >> >>>>> force one or another and it is tied to serio device, not input
+> >> >>>>> device.
+> >> >>>> Dmitry,
+> >> >>>>
+> >> >>>> This has nothing to do with the raw interface nor with lirc. This problem
+> >> >>>> happens with the evdev interface and already affects the in-kernel drivers.
+> >> >>>>
+> >> >>>> In this case, psmouse is not a good example. With a mouse, when a movement
+> >> >>>> occurs, you'll receive some data from its port. So, a software can autodetect
+> >> >>>> the protocol. The same principle can be used also with a raw pulse/space
+> >> >>>> interface, where software can autodetect the protocol.
+> >> >>> Or, in certain cases, it can not.
+> >> >>>
+> >> >>> [... skipped rationale for adding a way to control protocol (with which
+> >> >>> I agree) ...]
+> >> >>>
+> >> >>>> To solve this, we really need to extend evdev API to do 3 things: enumberate the
+> >> >>>> supported protocols, get the current protocol(s), and select the protocol(s) that
+> >> >>>> will be used by a newer table.
+> >> >>>>
+> >> >>> And here we start disagreeing. My preference would be for adding this
+> >> >>> API on lirc device level (i.e. /syc/class/lirc/lircX/blah namespace),
+> >> >>> since it only applicable to IR, not to input devices in general.
+> >> >>>
+> >> >>> Once you selected proper protocol(s) and maybe instantiated several
+> >> >>> input devices then udev (by examining input device capabilities and
+> >> >>> optionally looking up at the parent device properties) would use
+> >> >>> input evdev API to load proper keymap. Because translation of
+> >> >>> driver-specific codes into standard key definitions is in the input
+> >> >>> realm. Reading these driver-specific codes from hardware is outside of
+> >> >>> input layer domain.
+> >> >>>
+> >> >>> Just as psmouse ability to specify protocol is not shoved into evdev;
+> >> >>> just as atkbd quirks (force release key list and other driver-specific
+> >> >>> options) are not in evdev either; we should not overload evdev interface
+> >> >>> with IR-specific items.
+> >> >> I'm not against mapping those features as sysfs atributes, but they don't belong
+> >> >> to lirc, as far as I understand. From all we've discussed, we'll create a lirc
+> >> >> interface to allow the direct usage of raw IO. However, IR protocol is a property
+> >> >> that is not related to raw IO mode but, instead, to evdev mode.
+> >> >>
+> >> >
+> >> > Why would protocol relate to evdev node? Evdev does not really care what
+> >> > how the fact that a certain button was pressed was communicated to it.
+> >> > It may be deliveretd through PS/2 port, or maybe it was Bluetooth HID,
+> >> > or USB HID or USB boot protocol or some custom protocol, or RC-5, NEC or
+> >> > some custom IR protocol. It makes no difference _whatsoever_ to evdev
+> >> > nor any users of evdev care about protocol used by underlying hardware
+> >> > device to transmit the data.
+> >> >
+> >> >> We might add a /sys/class/IR and add IR specific stuff there, but it seems
+> >> >> overkill to me and will hide the fact that those parameters are part of the evdev
+> >> >> interface.
+> >> >>
+> >> >> So, I would just add the IR sysfs parameters at the /sys/class/input, if
+> >> >> the device is an IR (or create it is /sys/class/input/IR).
+> >> >>
+> >> >> I agree that the code to implement the IR specific sysfs parameter should be kept
+> >> >> oustide input core, as they're specific to IR implementations.
+> >> >>
+> >> >> Would this work for you?
+> >> >
+> >> > I am seeing a little bit differently structured subsystem for IR at the
+> >> > moment. I think we should do something like this:
+> >> >
+> >> > - receivers create /sys/class/lirc devices. These devices provide API
+> >> >   with a ring buffer (fifo) for the raw data stream coming from (and to)
+> >> >   them.
+> >>
+> >> The raw interface applies only to the devices that doesn't have a hardware decoder
+> >> (something between 40%-60% of the currently supported devices).
+> >
+> > 50% is quite a number I think. But if driver does not allow access to
+> > the raw stream - it will refuse binding to lirc_dev interface.
+> >
+> >>
+> >> > - we allow registering several data interfaces/decoders that can be bound
+> >> >   (manually or maybe automatically) to lirc devices. lirc devices may
+> >> >   provide hints as to which interface(s) better suited for handling the
+> >> >   data coming form particular receiver. Several interfaces may be bound
+> >> >   to one device at a time.
+> >> > - one of the interfaces is interface implementing current lirc_dev
+> >> > - other interfaces may be in-kernel RC-5 decoder or other decoders.
+> >> >   decoders will create instances of input devices
+> >>
+> >> I don't see why having more than one interface, especially for devices with
+> >> hardware decoders.
+> >>
+> >> On IR remote receivers, internally, there's just one interface per hardware.
+> >>
+> >> Considering the hardware decoding case, why to artificially create other
+> >> interfaces that can't be used simultaneously? No current hardware
+> >> decoders can do that (or, at least, no current implementation allows).
+> >> We're foreseen some cases where we'll have that (like Patrick's dib0700 driver),
+> >> but for now, it is not possible to offer more than one interface to userspace.
+> >> Creating an arbitrary number of artificial interfaces just to pass a parameter
+> >> to the driver (the protocol), really seems overkill to me.
+> >
+> > We need to cater to the future cases as well. I don't want to redesign
+> > it in 2 years. But for devices that have only hardware decoders I
+> > suppose we can short-curcuit "interfaces" and have a library-like module
+> > creating input devices directly.
+> >
+> >>
+> >> In the case of the cheap devices with just raw interfaces, running in-kernel
+> >> decoders, while it will work if you create one interface per protocol
+> >> per IR receiver, this also seems overkill. Why to do that? It sounds that it will
+> >> just create additional complexity at the kernelspace and at the userspace, since
+> >> now userspace programs will need to open more than one device to receive the
+> >> keycodes.
+> >
+> > _Yes_!!! You open as many event devices as there are devices you are
+> > interested in receiving data from. Multiplexing devices are bad, bad,
+> > bad. Witness /dev/input/mouse and all the attempts at working around the
+> > fact that if you have a special driver for one of your devices you
+> > receive events from the same device through 2 interfaces and all kind of
+> > "grab", "super-grab", "smart-grab" schemes are born.
+> >
+> >>
+> >> > (for each remote/substream that they can recognize).
+> >>
+> >> I'm assuming that, by remote, you're referring to a remote receiver (and not to
+> >> the remote itself), right?
+> >
+> > If we could separate by remote transmitter that would be the best I
+> > think, but I understand that it is rarely possible?
+> 
+> The code I posted using configfs did that. Instead of making apps IR
+> aware it mapped the vendor/device/command triplets into standard Linux
+> keycodes.  Each remote was its own evdev device.
+>
 
-This patch provides the required definitions for the TVP7002 driver
-in DM365.
+That is what I liked about the patchset.
+ 
+> That scheme could be made to "just work" by building in a couple of
+> mapping tables. The driver would pre-populate configfs entries for a
+> some standard IR devices. Set the remote for Motorala DVR. Default
+> Myth to look for the evdev device associated with Motorola DVR. The
+> built-in mapping table would then map from pulse timing to Linux
+> keycodes.
+> 
+> If everyone hates configfs the same mapping can be done via the set
+> keys IOCTL and making changes to the user space apps like loadkeys.
+> 
 
-Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
----
- drivers/media/video/tvp7002_reg.h |  150 +++++++++++++++++++++++++++++++++++++
- include/media/tvp7002.h           |   56 ++++++++++++++
- 2 files changed, 206 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/tvp7002_reg.h
- create mode 100644 include/media/tvp7002.h
+It is not the hate of configfs per se, but rather concern that configfs
+takes too much resources and is not normally enabled.
 
-diff --git a/drivers/media/video/tvp7002_reg.h b/drivers/media/video/tvp7002_reg.h
-new file mode 100644
-index 0000000..0e34ca9
---- /dev/null
-+++ b/drivers/media/video/tvp7002_reg.h
-@@ -0,0 +1,150 @@
-+/* Texas Instruments Triple 8-/10-BIT 165-/110-MSPS Video and Graphics
-+ * Digitizer with Horizontal PLL registers
-+ *
-+ * Copyright (C) 2009 Texas Instruments Inc
-+ * Author: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-+ *
-+ * This code is partially based upon the TVP5150 driver
-+ * written by Mauro Carvalho Chehab (mchehab@infradead.org),
-+ * the TVP514x driver written by Vaibhav Hiremath <hvaibhav@ti.com>
-+ * and the TVP7002 driver in the TI LSP 2.10.00.14
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+/* Naming conventions
-+ * ------------------
-+ *
-+ * FDBK:  Feedback
-+ * DIV:   Divider
-+ * CTL:   Control
-+ * SEL:   Select
-+ * IN:    Input
-+ * OUT:   Output
-+ * R:     Red
-+ * G:     Green
-+ * B:     Blue
-+ * OFF:   Offset
-+ * THRS:  Threshold
-+ * DGTL:  Digital
-+ * LVL:   Level
-+ * PWR:   Power
-+ * MVIS:  Macrovision
-+ * W:     Width
-+ * H:     Height
-+ * ALGN:  Alignment
-+ * CLK:   Clocks
-+ * TOL:   Tolerance
-+ * BWTH:  Bandwidth
-+ * COEF:  Coefficient
-+ * STAT:  Status
-+ * AUTO:  Automatic
-+ * FLD:   Field
-+ * L:	  Line
-+ */
-+
-+#define TVP7002_CHIP_REV		0x00
-+#define TVP7002_HPLL_FDBK_DIV_MSBS	0x01
-+#define TVP7002_HPLL_FDBK_DIV_LSBS	0x02
-+#define TVP7002_HPLL_CRTL		0x03
-+#define TVP7002_HPLL_PHASE_SEL		0x04
-+#define TVP7002_CLAMP_START		0x05
-+#define TVP7002_CLAMP_W			0x06
-+#define TVP7002_HSYNC_OUT_W		0x07
-+#define TVP7002_B_FINE_GAIN		0x08
-+#define TVP7002_G_FINE_GAIN		0x09
-+#define TVP7002_R_FINE_GAIN		0x0a
-+#define TVP7002_B_FINE_OFF_MSBS		0x0b
-+#define TVP7002_G_FINE_OFF_MSBS         0x0c
-+#define TVP7002_R_FINE_OFF_MSBS         0x0d
-+#define TVP7002_SYNC_CTL_1		0x0e
-+#define TVP7002_HPLL_AND_CLAMP_CTL	0x0f
-+#define TVP7002_SYNC_ON_G_THRS		0x10
-+#define TVP7002_SYNC_SEPARATOR_THRS	0x11
-+#define TVP7002_HPLL_PRE_COAST		0x12
-+#define TVP7002_HPLL_POST_COAST		0x13
-+#define TVP7002_SYNC_DETECT_STAT	0x14
-+#define TVP7002_OUT_FORMATTER		0x15
-+#define TVP7002_MISC_CTL_1		0x16
-+#define TVP7002_MISC_CTL_2              0x17
-+#define TVP7002_MISC_CTL_3              0x18
-+#define TVP7002_IN_MUX_SEL_1		0x19
-+#define TVP7002_IN_MUX_SEL_2            0x1a
-+#define TVP7002_B_AND_G_COARSE_GAIN	0x1b
-+#define TVP7002_R_COARSE_GAIN		0x1c
-+#define TVP7002_FINE_OFF_LSBS		0x1d
-+#define TVP7002_B_COARSE_OFF		0x1e
-+#define TVP7002_G_COARSE_OFF            0x1f
-+#define TVP7002_R_COARSE_OFF            0x20
-+#define TVP7002_HSOUT_OUT_START		0x21
-+#define TVP7002_MISC_CTL_4		0x22
-+#define TVP7002_B_DGTL_ALC_OUT_LSBS	0x23
-+#define TVP7002_G_DGTL_ALC_OUT_LSBS     0x24
-+#define TVP7002_R_DGTL_ALC_OUT_LSBS     0x25
-+#define TVP7002_AUTO_LVL_CTL_ENABLE	0x26
-+#define TVP7002_DGTL_ALC_OUT_MSBS	0x27
-+#define TVP7002_AUTO_LVL_CTL_FILTER	0x28
-+/* Reserved 0x29*/
-+#define TVP7002_FINE_CLAMP_CTL		0x2a
-+#define TVP7002_PWR_CTL			0x2b
-+#define TVP7002_ADC_SETUP		0x2c
-+#define TVP7002_COARSE_CLAMP_CTL	0x2d
-+#define TVP7002_SOG_CLAMP		0x2e
-+#define TVP7002_RGB_COARSE_CLAMP_CTL	0x2f
-+#define TVP7002_SOG_COARSE_CLAMP_CTL	0x30
-+#define TVP7002_ALC_PLACEMENT		0x31
-+/* Reserved 0x32 */
-+/* Reserved 0x33 */
-+#define TVP7002_MVIS_STRIPPER_W		0x34
-+#define TVP7002_VSYNC_ALGN		0x35
-+#define TVP7002_SYNC_BYPASS		0x36
-+#define TVP7002_L_FRAME_STAT_LSBS	0x37
-+#define TVP7002_L_FRAME_STAT_MSBS	0x38
-+#define TVP7002_CLK_L_STAT_LSBS		0x39
-+#define TVP7002_CLK_L_STAT_MSBS      	0x3a
-+#define TVP7002_HSYNC_W			0x3b
-+#define TVP7002_VSYNC_W                 0x3c
-+#define TVP7002_L_LENGTH_TOL 		0x3d
-+/* Reserved 0x3e */
-+#define TVP7002_VIDEO_BWTH_CTL		0x3f
-+#define TVP7002_AVID_START_PIXEL_LSBS	0x40
-+#define TVP7002_AVID_START_PIXEL_MSBS   0x41
-+#define TVP7002_AVID_STOP_PIXEL_LSBS  	0x42
-+#define TVP7002_AVID_STOP_PIXEL_MSBS    0x43
-+#define TVP7002_VBLK_F_0_START_L_OFF	0x44
-+#define TVP7002_VBLK_F_1_START_L_OFF    0x45
-+#define TVP7002_VBLK_F_0_DURATION	0x46
-+#define TVP7002_VBLK_F_1_DURATION       0x47
-+#define TVP7002_FBIT_F_0_START_L_OFF	0x48
-+#define TVP7002_FBIT_F_1_START_L_OFF    0x49
-+#define TVP7002_YUV_Y_G_COEF_LSBS	0x4a
-+#define TVP7002_YUV_Y_G_COEF_MSBS       0x4b
-+#define TVP7002_YUV_Y_B_COEF_LSBS       0x4c
-+#define TVP7002_YUV_Y_B_COEF_MSBS       0x4d
-+#define TVP7002_YUV_Y_R_COEF_LSBS       0x4e
-+#define TVP7002_YUV_Y_R_COEF_MSBS       0x4f
-+#define TVP7002_YUV_U_G_COEF_LSBS       0x50
-+#define TVP7002_YUV_U_G_COEF_MSBS       0x51
-+#define TVP7002_YUV_U_B_COEF_LSBS       0x52
-+#define TVP7002_YUV_U_B_COEF_MSBS       0x53
-+#define TVP7002_YUV_U_R_COEF_LSBS       0x54
-+#define TVP7002_YUV_U_R_COEF_MSBS       0x55
-+#define TVP7002_YUV_V_G_COEF_LSBS       0x56
-+#define TVP7002_YUV_V_G_COEF_MSBS       0x57
-+#define TVP7002_YUV_V_B_COEF_LSBS       0x58
-+#define TVP7002_YUV_V_B_COEF_MSBS       0x59
-+#define TVP7002_YUV_V_R_COEF_LSBS       0x5a
-+#define TVP7002_YUV_V_R_COEF_MSBS       0x5b
-+
-diff --git a/include/media/tvp7002.h b/include/media/tvp7002.h
-new file mode 100644
-index 0000000..b894f02
---- /dev/null
-+++ b/include/media/tvp7002.h
-@@ -0,0 +1,56 @@
-+/* Texas Instruments Triple 8-/10-BIT 165-/110-MSPS Video and Graphics
-+ * Digitizer with Horizontal PLL registers
-+ *
-+ * Copyright (C) 2009 Texas Instruments Inc
-+ * Author: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-+ *
-+ * This code is partially based upon the TVP5150 driver
-+ * written by Mauro Carvalho Chehab (mchehab@infradead.org),
-+ * the TVP514x driver written by Vaibhav Hiremath <hvaibhav@ti.com>
-+ * and the TVP7002 driver in the TI LSP 2.10.00.14
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+#ifndef _TVP7002_H_
-+#define _TVP7002_H_
-+
-+/* Platform-dependent data
-+ *
-+ * clk_polarity:
-+ * 			0 -> data clocked out on rising edge of DATACLK signal
-+ * 			1 -> data clocked out on falling edge of DATACLK signal
-+ * hs_polarity:
-+ * 			0 -> active low HSYNC output
-+ * 			1 -> active high HSYNC output
-+ * sog_polarity:
-+ * 			0 -> normal operation
-+ * 			1 -> operation with polarity inverted
-+ * vs_polarity:
-+ * 			0 -> active low VSYNC output
-+ * 			1 -> active high VSYNC output
-+ * fid_polarity: (*)
-+ *			0 -> the field ID output is set to logic 1 for an odd
-+ *			     field (field 1) and set to logic 0 for an even
-+ *			     field (field 0).
-+ *			1 -> operation with polarity inverted.
-+ */
-+struct tvp7002_config {
-+	u8 clk_polarity;
-+	u8 hs_polarity;
-+	u8 vs_polarity;
-+	u8 fid_polarity;
-+	u8 sog_polarity;
-+};
-+#endif
 -- 
-1.6.0.4
-
+Dmitry
