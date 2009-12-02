@@ -1,18 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2.ecunet.org ([72.250.175.188]:50057 "EHLO mail2.ecunet.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752409AbZLSQIr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Dec 2009 11:08:47 -0500
-Date: Sat, 19 Dec 2009 11:06:48 -0500
-Message-Id: <200912191606.nBJG6mQN021724@ecunet-web-1.ecunet.org>
-From: van_laban1@ecunet.org
-Subject: Hello Dear!
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from smtp2.infomaniak.ch ([84.16.68.90]:38998 "EHLO
+	smtp2.infomaniak.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752523AbZLBObK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Dec 2009 09:31:10 -0500
+Received: from dhcp-144-254-20-79.cisco.com (dhcp-144-254-20-79.cisco.com [144.254.20.79])
+	(authenticated bits=0)
+	by smtp2.infomaniak.ch (8.14.2/8.14.2) with ESMTP id nB2EVF1v032026
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 2 Dec 2009 15:31:16 +0100
+Message-ID: <4B167A32.7000509@deckpoint.ch>
+Date: Wed, 02 Dec 2009 15:31:14 +0100
+From: Thomas Kernen <tkernen@deckpoint.ch>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: TBS 6980 Dual DVB-S2 PCIe card
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Dear!
-How are you doing? I hope you are fine with family and friends too. I got your email address at www.gmane.org when searching for my soulmate on line today because I am really in need of love and seeking for someone that i can call my own, I know this will sound as a surprise to you since we haven't communicate before now or don't even know each other at the moment but i also know that the journey of a thousand mile must start with a step that is why I want to know more about you and also i will like to let you know more about me too and even to give you entrance into my life, i mean, i need a serious and real relationship not just a mail friend or pen pals or phone and chatting friends, i need a someone who will be ready for both of us to meet each other face to face, I need someone that i can see and talk with face to face, if you are also interested kindly write back for me to talk and know each other more better and also for photos sharing too, i will be waitin!
-g to read from you, take care of yourself and may God be with you,
-Yours friend to be
-Van Laban
+
+Hello,
+
+Is someone already working on supporting the TBS 6980 Dual DVB-S2 PCIe 
+card? http://www.tbsdtv.com/english/product/6980.html
+
+Chips in use appear to be:
+- Conexant CX23885 (PCI Express bridge)
+- NXP/Conexant CX24132 (DVB-S/S2 tuner)
+- NXP/Conexant CX24117 (DVB-S/S2 demodulator)
+
+I know there is code in v4l-dvb for the CX23885 but I don't think I've 
+seen any for the CX24132 and CX24117.
+
+Any insight into supporting this card would be great
+
+Thanks
+Thomas
