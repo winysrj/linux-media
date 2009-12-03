@@ -1,83 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:32881 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754000AbZLJQQW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2009 11:16:22 -0500
-Received: by bwz27 with SMTP id 27so6228074bwz.21
-        for <linux-media@vger.kernel.org>; Thu, 10 Dec 2009 08:16:27 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Andy Walls <awalls@radix.net>
-Subject: Re: IR Receiver on an Tevii S470
-Date: Thu, 10 Dec 2009 18:16:21 +0200
-Cc: Matthias Fechner <idefix@fechner.net>, linux-media@vger.kernel.org,
-	stoth@kernellabs.com
-References: <4B0459B1.50600@fechner.net> <200912091754.09985.liplianin@me.by> <1260407559.3084.6.camel@palomino.walls.org>
-In-Reply-To: <1260407559.3084.6.camel@palomino.walls.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="koi8-r"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200912101816.21587.liplianin@me.by>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1709 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753782AbZLCTr6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 14:47:58 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id nB3Jm4Xw098834
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 3 Dec 2009 20:48:04 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 3 Dec 2009 20:48:04 +0100 (CET)
+Message-Id: <200912031948.nB3Jm4Xw098834@smtp-vbr4.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10 декабря 2009 03:12:39 Andy Walls wrote:
-> On Wed, 2009-12-09 at 17:54 +0200, Igor M. Liplianin wrote:
-> > > > > Igor and Matthias,
-> > > > >
-> > > > > Please try the changes that I have for the TeVii S470 that are
-> > > > > here:
-> > > > >
-> > > > > 	http://linuxtv.org/hg/~awalls/cx23885-ir
-> >
-> > In fact some time ago I was writing some code for cx23885 IR, but not
-> > reached IR interrupts to work. Though I used PCI_MSK_AV_CORE (1 << 27),
-> > then test register PIN_CTRL for field FLD_IR_IRQ_STAT.
->
-> Igor,
->
-> You are exactly right on this.  I used the wrong interrupt status flag.
-> I have pushed a patch to my repository to use the PCI_MSK_AV_CORE status
-> flag.
->
-> Could you please update an test the TeVii S470 again when you have time?
->
-> > I have Compro E650F with RC6 remote, also have RC5 remote from TV set.
-> > I will made little hack to test Compro & RC5.
->
-> OK. Thank you.
->
-> Regards,
-> Andy
-First try, without pressing IR keys
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-cx25840 3-0044: IRQ Enables:     rse rte roe
-cx25840 3-0044: IRQ Status:  tsr                    
-cx25840 3-0044: IRQ Enables:     rse rte roe
-irq 16: nobody cared (try booting with the "irqpoll" option)
-Pid: 0, comm: swapper Not tainted 2.6.32 #2
-Call Trace:
- [<c1052db0>] ? __report_bad_irq+0x24/0x69
- [<c1052db7>] ? __report_bad_irq+0x2b/0x69
- [<c1052edc>] ? note_interrupt+0xe7/0x13f
- [<c1053416>] ? handle_fasteoi_irq+0x7a/0x97
- [<c1004411>] ? handle_irq+0x38/0x3f
- [<c1003bd1>] ? do_IRQ+0x38/0x89
- [<c1002ea9>] ? common_interrupt+0x29/0x30
- [<c1007a1e>] ? mwait_idle+0x7a/0x7f
- [<c1001b93>] ? cpu_idle+0x37/0x4c
-handlers:
-[<c13179ad>] (usb_hcd_irq+0x0/0x59)
-[<f85ba5e7>] (azx_interrupt+0x0/0xe7 [snd_hda_intel])
-[<f88b1d2b>] (cx23885_irq+0x0/0x4a5 [cx23885])
-Disabling IRQ #16
-cx25840 3-0044: IRQ Status:  tsr                    
-cx25840 3-0044: IRQ Enables:     rse rte roe
-cx25840 3-0044: IRQ Status:  tsr                    
+Results of the daily build of v4l-dvb:
 
-Sorry for not speaking to much :)
--- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+date:        Thu Dec  3 19:00:03 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13538:e0cd9a337600
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
+
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-rc8-armv5: OK
+linux-2.6.32-rc8-armv5-davinci: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.32-rc8-armv5-ixp: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: OK
+linux-2.6.32-rc8-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: OK
+linux-2.6.31-i686: OK
+linux-2.6.32-rc8-i686: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-rc8-m32r: OK
+linux-2.6.30-mips: OK
+linux-2.6.31-mips: OK
+linux-2.6.32-rc8-mips: OK
+linux-2.6.30-powerpc64: OK
+linux-2.6.31-powerpc64: OK
+linux-2.6.32-rc8-powerpc64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: OK
+linux-2.6.31-x86_64: OK
+linux-2.6.32-rc8-x86_64: OK
+spec: OK
+sparse (linux-2.6.31): ERRORS
+sparse (linux-2.6.32-rc8): ERRORS
+linux-2.6.16.61-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
