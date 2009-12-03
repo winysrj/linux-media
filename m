@@ -1,125 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iw0-f171.google.com ([209.85.223.171]:58549 "EHLO
-	mail-iw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752655AbZL2Jic (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Dec 2009 04:38:32 -0500
-Received: by iwn1 with SMTP id 1so7770492iwn.33
-        for <linux-media@vger.kernel.org>; Tue, 29 Dec 2009 01:38:31 -0800 (PST)
-MIME-Version: 1.0
-Date: Tue, 29 Dec 2009 17:38:30 +0800
-Message-ID: <8cd7f1780912290138q1a58d3a5xa444a9cdcd577cfd@mail.gmail.com>
-Subject: MANTIS / STB0899 / STB6100 card ( Twinhan VP-1041): problems locking
-	to transponder
-From: Leszek Koltunski <leszek@koltunski.pl>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:38701
+	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751158AbZLCE3t convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Dec 2009 23:29:49 -0500
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
+Mime-Version: 1.0 (Apple Message framework v1077)
+Content-Type: text/plain; charset=us-ascii
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <4B153617.8070608@redhat.com>
+Date: Wed, 2 Dec 2009 23:29:39 -0500
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jonsmirl@gmail.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Content-Transfer-Encoding: 8BIT
+Message-Id: <A6D5FF84-2DB8-4543-ACCB-287305CA0739@wilsonet.com>
+References: <BDodf9W1qgB@lirc> <4B14EDE3.5050201@redhat.com> <4B1524DD.3080708@redhat.com> <4B153617.8070608@redhat.com>
+To: Gerd Hoffmann <kraxel@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello linux dvb gurus,
+On Dec 1, 2009, at 10:28 AM, Gerd Hoffmann wrote:
 
-I've got the following setup:
+>> Anyway, we shouldn't postpone lirc drivers addition due to that. There are still lots of work
+>> to do before we'll be able to split the tables from the kernel drivers.
+> 
+> Indeed.  The sysfs bits are future work for both lirc and evdev drivers.  There is no reason to make the lirc merge wait for it.
 
-1. current Mythbuntu 9.10 ( kernel 2.6.31-16-generic-pae )
-2. current v4l-dvb drivers ( freshly checked out from
-http://linuxtv.org/hg/v4l-dvb ;
-I've also tried with Liplianin drivers from
-http://mercurial.intuxication.org/hg/s2-liplianin  with the same
-effect )
-3. a TwinHan VP-1041 DVB-S2 card.
+At this point, my plan is to try to finish cleaning up lirc_dev and lirc_mceusb at least over the weekend while at FUDCon up in Toronto, and resubmit them next week.
 
-My signal comes from ASIASAT-5 satellite. You can see all the stuff
-this satellite provides in
+I'm still on the fence over what to do about lirc_imon. The driver supports essentially 3 generations of devices. First-gen is very old imon parts that don't do onboard decoding. Second-gen is the devices that all got (insanely stupidly) tagged with the exact same usb device ID (0x15c2:0xffdc), some of which have an attached VFD, some with an attached LCD, some with neither, some that are actually RF parts, but all (I think) of which do onboard decoding. Third-gen is the latest stuff, which is all pretty sane, unique device IDs for unique devices, onboard decoding, etc.
 
-http://www.tvro.com.tw/SATELLITE/100.5/100.5d.asp
+So the lirc_imon I submitted supports all device types, with the onboard decode devices defaulting to operating as pure input devices, but an option to pass hex values out via the lirc interface (which is how they've historically been used -- the pure input stuff I hacked together just a few weeks ago), to prevent functional setups from being broken for those who prefer the lirc way.
 
-( the page is in Chinese, but you can see it has - among others - two
-transponders which I am going to talk about , one is at
+What I'm debating is whether this should be split into two drivers, one for the older devices that don't do onboard decoding (which would use the lirc_dev interface) called 'lirc_imon' or 'lirc_imon_legacy', and one that is a pure input driver, not unlike the ati_remote{,2} drivers, with no lirc_dev dependency at all, probably called simply 'imon'. Could still be used with lirc via its devinput userspace driver, of course. But if I split it out, there may end up being a fair amount of code duplication, and the resulting lirc_imon wouldn't be as interesting to submit, and I wouldn't have any devices that worked with it, I've only got onboard decode devices... The new imon input driver would be a separate submission that is completely irrelevant to this whole discussion.
 
-4000H  freq 1150 sr 28125  fec 3/4
+So perhaps for round three, lirc_dev, lirc_mceusb and lirc_zilog, to make it more interesting...
 
-and another on
-
-3960H freq 1190 sr 27500 fec 3/4
-
-**************************************************************************************************
-
-Now, I want to stream a whole transponder via UDP. So I try with a first one:
-
-$ dvbstream -c 1 -f 1150000 -s 28125 -udp -i 224.224.224.1 -r 1234 8192
-dvbstream v0.6 - (C) Dave Chapman 2001-2004
-Released under the GPL.
-Latest version available from http://www.linuxstb.org/
-Tuning to 1150000 Hz
-Using DVB card "STB0899 Multistandard", freq=1150000
-tuning DVB-S to Freq: 1150000, Pol: Srate=28125000, 22kHz tone=off, LNB: 0
-Setting only tone ON and voltage 18V
-DISEQC SETTING SUCCEDED
-Getting frontend status
-Event:  Frequency: 1150000
-        SymbolRate: 28125000
-        FEC_inner:  9
-
-Bit error rate: 0
-Signal strength: 65336
-SNR: 93
-FE_STATUS: FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI FE_HAS_SYNC
-dvbstream will stop after -1 seconds (71582788 minutes)
-Using 224.224.224.1:1234:2
-version=2
-Streaming 1 stream
+-- 
+Jarod Wilson
+jarod@wilsonet.com
 
 
-and the transponder correctly appears in 224.224.224.1:1234, 100% success rate.
 
-************************************************************************************************
-
-Now I want to do the same with the other transponder, so I try:
-
-$ dvbstream -c 1 -f 1190000 -s 27500 -udp -i 224.224.224.1 -r 1234 8192
-dvbstream v0.6 - (C) Dave Chapman 2001-2004
-Released under the GPL.
-Latest version available from http://www.linuxstb.org/
-Tuning to 1190000 Hz
-Using DVB card "STB0899 Multistandard", freq=1190000
-tuning DVB-S to Freq: 1190000, Pol: Srate=27500000, 22kHz tone=off, LNB: 0
-Setting only tone ON and voltage 18V
-DISEQC SETTING SUCCEDED
-Getting frontend status
-Not able to lock to the signal on the given frequency
-dvbstream will stop after -1 seconds (71582788 minutes)
-Using 224.224.224.1:1234:2
-version=2
-Streaming 1 stream
-
-... and it always says 'Not able to lock to the signal on the given
-frequency' , and even though it says 'Streaming 1 stream' , nothing
-appears in the network.
-
-************************************************************************************************
-
-Now , some more info:
-
-1. I've connected a satellite set-top-box to the signal and the STB
-can tune to and watch channels from both transponders with no problems
-at all.
-That IMHO proves that the signal is all right and the problem lies in
-the drivers, or maybe in dvbstream. ( or hopefully between the chair
-and the keyboard )
-
-2. I can ONLY tune to the 'freq 1150 / sr 28125' transponder. All
-others fail.  But with that one I have no problems at all, I tunes
-100% of the time; I got it to stream for 4 days straight with no
-problems.
-
-3. You can see that both transponders are C-BAND , H polarization, so
-theoretically, AFAIK, if I can tune to the '1150' transponder, I
-should be able to tune to the '1190' one with no magic at all, am I
-wrong here?
-
-Could anyone shed some light on this?
-
-best,
-
-Leszek
