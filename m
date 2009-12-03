@@ -1,40 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01.rbsworldpay.com ([193.41.220.65]:61747 "EHLO
-	mail01.rbsworldpay.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755987AbZLHPRw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2009 10:17:52 -0500
-Message-ID: <4B1E6BD4.2060204@rbsworldpay.com>
-Date: Tue, 08 Dec 2009 15:08:04 +0000
-From: Ian Richardson <ian.richardson@rbsworldpay.com>
+Received: from mail.gmx.net ([213.165.64.20]:43663 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753299AbZLCV6B (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Dec 2009 16:58:01 -0500
+Date: Thu, 3 Dec 2009 22:58:08 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Paul Mundt <lethal@linux-sh.org>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: acks needed for arch/sh parts of the patches
+Message-ID: <Pine.LNX.4.64.0912032243390.4328@axis700.grange>
 MIME-Version: 1.0
-To: Thomas Kernen <tkernen@deckpoint.ch>
-CC: =?UTF-8?B?TWF0dGhpYXMgV8OkY2h0ZXI=?= <matthias@waechter.wiz.at>,
-	linux-media@vger.kernel.org
-Subject: Re: TBS 6980 Dual DVB-S2 PCIe card
-References: <4B167A32.7000509@deckpoint.ch> <4B1E2243.2070306@waechter.wiz.at> <4B1E551C.6090307@deckpoint.ch>
-In-Reply-To: <4B1E551C.6090307@deckpoint.ch>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2009-12-08 13:31, Thomas Kernen wrote:
-> Matthias Wächter wrote:
->> Hallo Thomas!
->>
->> Am 02.12.2009 15:31, schrieb Thomas Kernen:
->>> Is someone already working on supporting the TBS 6980 Dual DVB-S2 PCIe
->>> card? http://www.tbsdtv.com/english/product/6980.html
+Hi Paul
 
-I got one last Thursday, also direct from TBS. They provide a mini CD 
-with their own V4L which has support for it included, together with 
-versions of scan-s2 and szap-s2, but I'm a relative newbie and I've 
-already managed to break my MythTV 0.22 setup trying to get it working. 
-Any tips on how to get it working with Ubuntu 9.10 and kernel 
-2.6.31-16.52 would be very handy.
+unfortunately 3 of my V4L patches for 2.6.33 have to touch arch/sh 
+simultaneously with drivers and headers. Therefore I need your acks to 
+them for arch parts. All those patches have already been posted to the 
+list at different times, here are links to them (perhaps, with some minor 
+differences):
 
-With their V4L I can only get as far as a successful channel scan.
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/13307
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/11492
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/11504
 
-Ian
+I will also send patches directly to you without cc-ing the list for 
+easier review. If you have no objections, you can just reply to this mail 
+confirming your 3 acks, if you have any comments, please reply to 
+respective mails, and then, please, add the v4l list back to cc.
 
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
