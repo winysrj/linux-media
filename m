@@ -1,51 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f221.google.com ([209.85.220.221]:39024 "EHLO
-	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753410AbZLCWDM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 17:03:12 -0500
-Received: by fxm21 with SMTP id 21so2012527fxm.1
-        for <linux-media@vger.kernel.org>; Thu, 03 Dec 2009 14:03:17 -0800 (PST)
+Received: from jordan.toaster.net ([69.36.241.228]:1328 "EHLO
+	jordan.toaster.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750748AbZLCFuc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 00:50:32 -0500
+Message-ID: <4B175111.9070800@toaster.net>
+Date: Wed, 02 Dec 2009 21:48:01 -0800
+From: Sean <knife@toaster.net>
 MIME-Version: 1.0
-In-Reply-To: <41ef408f0912031347j6b9a704flc6d9c302f4e0517@mail.gmail.com>
-References: <1259695756.5239.2.camel@desktop>
-	 <loom.20091202T230047-299@post.gmane.org>
-	 <37219a840912021508s75535fa6v83006d3bad0c301@mail.gmail.com>
-	 <1259874920.2151.13.camel@desktop>
-	 <41ef408f0912031347j6b9a704flc6d9c302f4e0517@mail.gmail.com>
-Date: Thu, 3 Dec 2009 17:03:16 -0500
-Message-ID: <829197380912031403l6b828821q87f407fa95bc25f9@mail.gmail.com>
-Subject: Re: af9015: tuner id:179 not supported, please report!
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Bert Massop <bert.massop@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Alan Stern <stern@rowland.harvard.edu>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	bugzilla-daemon@bugzilla.kernel.org, linux-media@vger.kernel.org,
+	USB list <linux-usb@vger.kernel.org>,
+	Ingo Molnar <mingo@elte.hu>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	"H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [Bugme-new] [Bug 14564] New: capture-example sleeping function
+ called from invalid context at arch/x86/mm/fault.c
+References: <Pine.LNX.4.44L0.0911121058210.3000-100000@iolanthe.rowland.org>
+In-Reply-To: <Pine.LNX.4.44L0.0911121058210.3000-100000@iolanthe.rowland.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 3, 2009 at 4:47 PM, Bert Massop <bert.massop@gmail.com> wrote:
-> Hi Jan,
->
-> The datasheet for the TDA18218 can be obtained from NXP:
-> http://www.nxp.com/documents/data_sheet/TDA18218HN.pdf
->
-> That's all the information I have at the moment, maybe Mike has some
-> other information (like the Application Note mentioned in the
-> datasheet, that claims to contain information on writing drivers, but
-> cannot be found anywhere).
->
-> Best regards,
->
-> Bert
+Is there anything I can do to help? This is a show stopping bug for me.
 
-Took a quick look at that datasheet.  I would guess between that
-datasheet and a usbsnoop, there is probably enough there to write a
-driver that basically works for your particular hardware if you know
-what you are doing.  The register map is abbreviated, but probably
-good enough...
+Thanks,
+Sean Lazar
 
-Devin
-
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Alan Stern wrote:
+> On Wed, 11 Nov 2009, Andrew Morton wrote:
+>
+>   
+>>> http://bugzilla.kernel.org/show_bug.cgi?id=14564
+>>>
+>>>            Summary: capture-example sleeping function called from invalid
+>>>                     context at arch/x86/mm/fault.c
+>>>       
+>
+>   
+>> We oopsed in td_free() (see below).  But as part of that oops
+>> processing the kernel entered do_page_fault() and emitted a
+>> might_sleep() warning because we took a pagefault with local interrupts
+>> disabled.
+>>
+>> This is undesirable behaviour from the low-level x86 fault code and I
+>> don't think it normally happens.
+>>
+>> Did we break something in x86 land, or is this oops sufficiently weird
+>> and whacky to bypass existing checks for this false positive?
+>>     
+>
+> No, what happened was a structure containing a linked-list entry got
+> freed while it was still on the list.  Then when the driver walked
+> through the list, it attempted to dereference a list pointer that had
+> been poisoned.  More or less by coincidence, the poison value
+> represented a paged-out address rather than an invalid address, so a
+> page fault occurred.  That's what caused the oops.
+>
+>   
+>>> BUG: unable to handle kernel paging request at a7a7a7c3                         
+>>> IP: [<c11c5cef>] td_free+0x23/0x75                                              
+>>>       
+>
+>   
+>>>  [<c1155a42>] ? tty_ldisc_deref+0x8/0xa                                         
+>>>  [<c1150c1c>] ? tty_write+0x1b1/0x1c2                                           
+>>>  [<c1152d69>] ? n_tty_write+0x0/0x2e6                                           
+>>>  [<c1150a6b>] ? tty_write+0x0/0x1c2                                             
+>>>  [<c106431d>] ? vfs_write+0xe3/0xfa                                             
+>>>  [<c1002858>] ? restore_all_notrace+0x0/0x18                                    
+>>>  [<c106e3e2>] ? sys_ioctl+0x2c/0x45                                             
+>>>  [<c1002825>] ? syscall_call+0x7/0xb                                            
+>>> Code: e5 e8 bf 7b e9 ff 5d c3 55 89 e5 57 89 c7 56 89 d6 53 8b 42 28 89 c2 c1
+>>> ea 06 31 d0 83 e0 3f 8d 94 87 cc 00 00 00 eb 03 8d 50 1c <8b> 02 85 c0 74 0b 39 
+>>> EIP: [<c11c5cef>] td_free+0x23/0x75 SS:ESP 0068:c6785cb8                        
+>>> CR2: 00000000a7a7a7c3                                                           
+>>>       
+>> And here's the real oops.  drivers/usb/host/ohci-mem.c:td_free()
+>> dereferenced a7a7a7c3.  Which looks like
+>>
+>> /********** drivers/base/dmapool.c **********/
+>> #define	POOL_POISON_FREED	0xa7	/* !inuse */
+>> #define	POOL_POISON_ALLOCATED	0xa9	/* !initted */
+>>     
+>
+> If I'm reading this correctly, the bad dereference occurred in the
+> second source line:
+>
+> 		prev = &(*prev)->td_hash;
+> 	if (*prev)
+>
+> The original value in *prev was 0xa7a7a7a7 and the offset of td_hash is
+> 0x1c, causing the offending address to be 0xa7a7a7c3.
+>
+> I have no idea why a struct td would have been freed while it was still 
+> in use.
+>
+> Alan Stern
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>   
