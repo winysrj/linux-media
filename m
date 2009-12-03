@@ -1,275 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46707 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752890AbZLRX6b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2009 18:58:31 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	khilman@deeprootsystems.com, hvaibhav@ti.com, nsekhar@ti.com
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH - v2 6/6] DaVinci - Adding platform code for vpfe capture on DM365
-Date: Fri, 18 Dec 2009 18:58:20 -0500
-Message-Id: <1261180705-8150-1-git-send-email-m-karicheri2@ti.com>
+Received: from mail1.radix.net ([207.192.128.31]:36213 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751750AbZLCMEd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Dec 2009 07:04:33 -0500
+Subject: Re: [RFC v2] Another approach to IR
+From: Andy Walls <awalls@radix.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Jon Smirl <jonsmirl@gmail.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>, j@jannau.net,
+	jarod@redhat.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	lirc-list@lists.sourceforge.net, superm1@ubuntu.com,
+	Christoph Bartelmus <lirc@bartelmus.de>
+In-Reply-To: <4B178C4D.1020007@redhat.com>
+References: <9e4733910912010816q32e829a2uce180bfda69ef86d@mail.gmail.com>
+	 <4B154C54.5090906@redhat.com>
+	 <829197380912010909m59cb1078q5bd2e00af0368aaf@mail.gmail.com>
+	 <4B155288.1060509@redhat.com>
+	 <20091201175400.GA19259@core.coreip.homeip.net>
+	 <4B1567D8.7080007@redhat.com>
+	 <20091201201158.GA20335@core.coreip.homeip.net>
+	 <4B15852D.4050505@redhat.com>
+	 <20091202093803.GA8656@core.coreip.homeip.net>
+	 <4B16614A.3000208@redhat.com>
+	 <20091202171059.GC17839@core.coreip.homeip.net>
+	 <4B16C10E.6040907@redhat.com>
+	 <1CA77278-9B8E-4169-8F10-78764A35F64E@wilsonet.com>
+	 <1259802169.3085.10.camel@palomino.walls.org> <4B178C4D.1020007@redhat.com>
+Content-Type: text/plain
+Date: Thu, 03 Dec 2009 07:02:49 -0500
+Message-Id: <1259841769.3100.18.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+On Thu, 2009-12-03 at 08:00 -0200, Mauro Carvalho Chehab wrote:
+> Andy Walls wrote:
+> > On Wed, 2009-12-02 at 14:55 -0500, Jarod Wilson wrote:
+> >> On Dec 2, 2009, at 2:33 PM, Mauro Carvalho Chehab wrote:
 
-updated based on comments against v1 of the patch
+ 
+> > Both of those IR devices are/will be encapsulated in a v4l2_subdevice
+> > object internally.  I was going to write lirc_v4l glue between the
+> > v4l2_device/v4l2_subdev_ir_ops and lirc_dev.
+> > 
+> > As for the the I2C chips, I was going to go back and encapsulate those
+> > in the v4l2_subdevice object as well, so then my notional lirc_v4l could
+> > pick those up too.  The I2C subsystem only allows one binding to an I2C
+> > client address/name on a bus.  So without some new glue like a notional
+> > lirc_v4l, it *may* be hard to share between ir-kbd-i2c and lirc_i2c and
+> > lirc_zilog.
+> 
+> Maybe you're having a bad time because you may be trying to integrate lirc
+> at the wrong place.
 
-Adding platform code for supporting vpfe capture and ISIF driver on DM365.
+These were just ideas.  I haven't done *anything* yet. ;)
 
-Reviewed-by: Kevin Hilman <khilman@deeprootsystems.com>
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
-Applies to linux-next of v4l-dvb
- arch/arm/mach-davinci/board-dm365-evm.c    |   71 +++++++++++++++++++
- arch/arm/mach-davinci/dm365.c              |  101 +++++++++++++++++++++++++++-
- arch/arm/mach-davinci/include/mach/dm365.h |    2 +
- 3 files changed, 173 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-davinci/board-dm365-evm.c b/arch/arm/mach-davinci/board-dm365-evm.c
-index 289fe1b..06f53bf 100644
---- a/arch/arm/mach-davinci/board-dm365-evm.c
-+++ b/arch/arm/mach-davinci/board-dm365-evm.c
-@@ -37,6 +37,8 @@
- #include <mach/nand.h>
- #include <mach/keyscan.h>
- 
-+#include <media/tvp514x.h>
-+
- static inline int have_imager(void)
- {
- 	/* REVISIT when it's supported, trigger via Kconfig */
-@@ -302,6 +304,73 @@ static void dm365evm_mmc_configure(void)
- 	davinci_cfg_reg(DM365_SD1_DATA0);
- }
- 
-+static struct tvp514x_platform_data tvp5146_pdata = {
-+	.clk_polarity = 0,
-+	.hs_polarity = 1,
-+	.vs_polarity = 1
-+};
-+
-+#define TVP514X_STD_ALL        (V4L2_STD_NTSC | V4L2_STD_PAL)
-+/* Inputs available at the TVP5146 */
-+static struct v4l2_input tvp5146_inputs[] = {
-+	{
-+		.index = 0,
-+		.name = "Composite",
-+		.type = V4L2_INPUT_TYPE_CAMERA,
-+		.std = TVP514X_STD_ALL,
-+	},
-+	{
-+		.index = 1,
-+		.name = "S-Video",
-+		.type = V4L2_INPUT_TYPE_CAMERA,
-+		.std = TVP514X_STD_ALL,
-+	},
-+};
-+
-+/*
-+ * this is the route info for connecting each input to decoder
-+ * ouput that goes to vpfe. There is a one to one correspondence
-+ * with tvp5146_inputs
-+ */
-+static struct vpfe_route tvp5146_routes[] = {
-+	{
-+		.input = INPUT_CVBS_VI2B,
-+		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
-+	},
-+{
-+		.input = INPUT_SVIDEO_VI2C_VI1C,
-+		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
-+	},
-+};
-+
-+static struct vpfe_subdev_info vpfe_sub_devs[] = {
-+	{
-+		.name = "tvp5146",
-+		.grp_id = 0,
-+		.num_inputs = ARRAY_SIZE(tvp5146_inputs),
-+		.inputs = tvp5146_inputs,
-+		.routes = tvp5146_routes,
-+		.can_route = 1,
-+		.ccdc_if_params = {
-+			.if_type = VPFE_BT656,
-+			.hdpol = VPFE_PINPOL_POSITIVE,
-+			.vdpol = VPFE_PINPOL_POSITIVE,
-+		},
-+		.board_info = {
-+			I2C_BOARD_INFO("tvp5146", 0x5d),
-+			.platform_data = &tvp5146_pdata,
-+		},
-+	},
-+};
-+
-+static struct vpfe_config vpfe_cfg = {
-+       .num_subdevs = ARRAY_SIZE(vpfe_sub_devs),
-+       .sub_devs = vpfe_sub_devs,
-+	.i2c_adapter_id = 1,
-+       .card_name = "DM365 EVM",
-+       .ccdc = "ISIF",
-+};
-+
- static void __init evm_init_i2c(void)
- {
- 	davinci_init_i2c(&i2c_pdata);
-@@ -493,6 +562,8 @@ static struct davinci_uart_config uart_config __initdata = {
- 
- static void __init dm365_evm_map_io(void)
- {
-+	/* setup input configuration for VPFE input devices */
-+	dm365_set_vpfe_config(&vpfe_cfg);
- 	dm365_init();
- }
- 
-diff --git a/arch/arm/mach-davinci/dm365.c b/arch/arm/mach-davinci/dm365.c
-index 2ec619e..7da8a91 100644
---- a/arch/arm/mach-davinci/dm365.c
-+++ b/arch/arm/mach-davinci/dm365.c
-@@ -459,6 +459,7 @@ static struct davinci_clk dm365_clks[] = {
- 	CLK("davinci-asp.0", NULL, &asp0_clk),
- 	CLK(NULL, "rto", &rto_clk),
- 	CLK(NULL, "mjcp", &mjcp_clk),
-+	CLK("isif", "master", &vpss_master_clk),
- 	CLK(NULL, NULL, NULL),
- };
- 
-@@ -1009,6 +1010,97 @@ void __init dm365_init(void)
- 	davinci_common_init(&davinci_soc_info_dm365);
- }
- 
-+static struct resource dm365_vpss_resources[] = {
-+	{
-+		/* VPSS ISP5 Base address */
-+		.name           = "isp5",
-+		.start          = 0x01c70000,
-+		.end            = 0x01c70000 + 0xff,
-+		.flags          = IORESOURCE_MEM,
-+	},
-+	{
-+		/* VPSS CLK Base address */
-+		.name           = "vpss",
-+		.start          = 0x01c70200,
-+		.end            = 0x01c70200 + 0xff,
-+		.flags          = IORESOURCE_MEM,
-+	},
-+};
-+
-+static struct platform_device dm365_vpss_device = {
-+       .name                   = "vpss",
-+       .id                     = -1,
-+       .dev.platform_data      = "dm365_vpss",
-+       .num_resources          = ARRAY_SIZE(dm365_vpss_resources),
-+       .resource               = dm365_vpss_resources,
-+};
-+
-+static struct resource vpfe_resources[] = {
-+	{
-+		.start          = IRQ_VDINT0,
-+		.end            = IRQ_VDINT0,
-+		.flags          = IORESOURCE_IRQ,
-+	},
-+	{
-+		.start          = IRQ_VDINT1,
-+		.end            = IRQ_VDINT1,
-+		.flags          = IORESOURCE_IRQ,
-+	},
-+};
-+
-+static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
-+static struct platform_device vpfe_capture_dev = {
-+	.name           = CAPTURE_DRV_NAME,
-+	.id             = -1,
-+	.num_resources  = ARRAY_SIZE(vpfe_resources),
-+	.resource       = vpfe_resources,
-+	.dev = {
-+		.dma_mask               = &vpfe_capture_dma_mask,
-+		.coherent_dma_mask      = DMA_BIT_MASK(32),
-+	},
-+};
-+
-+static void dm365_isif_setup_pinmux(void)
-+{
-+	davinci_cfg_reg(DM365_VIN_CAM_WEN);
-+	davinci_cfg_reg(DM365_VIN_CAM_VD);
-+	davinci_cfg_reg(DM365_VIN_CAM_HD);
-+	davinci_cfg_reg(DM365_VIN_YIN4_7_EN);
-+	davinci_cfg_reg(DM365_VIN_YIN0_3_EN);
-+}
-+
-+static struct resource isif_resource[] = {
-+	/* ISIF Base address */
-+	{
-+		.start          = 0x01c71000,
-+		.end            = 0x01c71000 + 0x1ff,
-+		.flags          = IORESOURCE_MEM,
-+	},
-+	/* ISIF Linearization table 0 */
-+	{
-+		.start          = 0x1C7C000,
-+		.end            = 0x1C7C000 + 0x2ff,
-+		.flags          = IORESOURCE_MEM,
-+	},
-+	/* ISIF Linearization table 1 */
-+	{
-+		.start          = 0x1C7C400,
-+		.end            = 0x1C7C400 + 0x2ff,
-+		.flags          = IORESOURCE_MEM,
-+	},
-+};
-+static struct platform_device dm365_isif_dev = {
-+	.name           = "isif",
-+	.id             = -1,
-+	.num_resources  = ARRAY_SIZE(isif_resource),
-+	.resource       = isif_resource,
-+	.dev = {
-+		.dma_mask               = &vpfe_capture_dma_mask,
-+		.coherent_dma_mask      = DMA_BIT_MASK(32),
-+		.platform_data		= dm365_isif_setup_pinmux,
-+	},
-+};
-+
- static int __init dm365_init_devices(void)
- {
- 	if (!cpu_is_davinci_dm365())
-@@ -1017,7 +1109,14 @@ static int __init dm365_init_devices(void)
- 	davinci_cfg_reg(DM365_INT_EDMA_CC);
- 	platform_device_register(&dm365_edma_device);
- 	platform_device_register(&dm365_emac_device);
--
-+	platform_device_register(&dm365_vpss_device);
-+	platform_device_register(&dm365_isif_dev);
-+	platform_device_register(&vpfe_capture_dev);
- 	return 0;
- }
- postcore_initcall(dm365_init_devices);
-+
-+void dm365_set_vpfe_config(struct vpfe_config *cfg)
-+{
-+       vpfe_capture_dev.dev.platform_data = cfg;
-+}
-diff --git a/arch/arm/mach-davinci/include/mach/dm365.h b/arch/arm/mach-davinci/include/mach/dm365.h
-index f1710a3..9fc5a64 100644
---- a/arch/arm/mach-davinci/include/mach/dm365.h
-+++ b/arch/arm/mach-davinci/include/mach/dm365.h
-@@ -18,6 +18,7 @@
- #include <mach/emac.h>
- #include <mach/asp.h>
- #include <mach/keyscan.h>
-+#include <media/davinci/vpfe_capture.h>
- 
- #define DM365_EMAC_BASE			(0x01D07000)
- #define DM365_EMAC_CNTRL_OFFSET		(0x0000)
-@@ -36,4 +37,5 @@ void __init dm365_init_asp(struct snd_platform_data *pdata);
- void __init dm365_init_ks(struct davinci_ks_platform_data *pdata);
- void __init dm365_init_rtc(void);
- 
-+void dm365_set_vpfe_config(struct vpfe_config *cfg);
- #endif /* __ASM_ARCH_DM365_H */
--- 
-1.6.0.4
+> All devices at V4L tree including ir-kbd-i2c use ir-common.ko 
+> (at /drivers/media/common tree) module to communicate to IR's. 
+> I'm preparing some patches to extend this also to dvb-usb devices 
+> (that uses a close enough infrastructure). 
+> 
+> Also, most of the decoding code are there, in a form of helper routines.
+> 
+> As the idea is to provide lirc interface to all devices that can work with
+> raw pulse/space, the proper place is to write a subroutine there that, once
+> called, will make those pulse/space raw codes available to lirc and will
+> call the needed decoders to export them also to evdev.
+> 
+> The code at ir-common module was originally built to be used by V4L, but I'm
+> porting the code there to be generic enough to be a library that can be used
+> by other drivers. So, lirc_zilog and other lirc devices that will need to open
+> evdev interfaces after running a decoder can use them.
+
+I think I see what you are saying (I wish could see look at a whiteboard
+somewhere...).  Wherever we come through internally to split to 2
+different userspace interfaces is fine, if you've got a big picture plan
+you think is feasible.
+
+That seems like a bit of perturbation to lirc_zilog and lirc_i2c.  My
+thought was that lirc_v4l using the standardized v4l2_subdev_ir_ops
+interface, and maybe some new calls associted with v4l2_device, could
+subsume/unify all the functionality of lirc_i2c, lirc_zilog, ...
+lirc_whatever.
+
+Maybe that's just a poorly thought out dream though...
+
+
+> Due to that, we shouldn't add v4l2_subdevice there. Nothing prevents to create
+> a v4l2-ir-subdev glue if you want to see the IR's as subdevices, but this should
+> be implemented as a separate module.
+
+The v4l_subdevice just abstracted the IR hardware into a nice (mental)
+box for me -- easier to keep hardware separate from software decoders
+and userspace interface logic.
+
+Also, since v4l2_subdevices may have per subdevice /dev nodes and
+the /dev/../mcN nodes providing a discovery mechanism due to the Meda
+Controller framework, wrapping things in v4l2_subdevice may be handy for
+development and debug.  Or ... as an additional operational interface to
+userspace. :D  *ducks and runs for cover*
+
+Regards,
+Andy
+
+> Cheers,
+> Mauro.
+
 
