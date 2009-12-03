@@ -1,111 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38018 "EHLO bear.ext.ti.com"
+Received: from lo.gmane.org ([80.91.229.12]:45230 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752600AbZLQOmU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2009 09:42:20 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Alexey Klimov <klimov.linux@gmail.com>,
-	"santiago.nunez@ridgerun.com" <santiago.nunez@ridgerun.com>
-CC: "davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Narnakaje, Snehaprabha" <nsnehaprabha@ti.com>,
-	"diego.dompe@ridgerun.com" <diego.dompe@ridgerun.com>,
-	"todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>,
-	"Grosen, Mark" <mgrosen@ti.com>
-Date: Thu, 17 Dec 2009 08:42:07 -0600
-Subject: RE: [PATCH 3/4 v12] TVP7002 driver for DM365
-Message-ID: <A69FA2915331DC488A831521EAE36FE401625D11E1@dlee06.ent.ti.com>
-References: <1260999122-28318-1-git-send-email-santiago.nunez@ridgerun.com>
- <208cbae30912170612n49292be6i35e8a7d98c440d80@mail.gmail.com>
-In-Reply-To: <208cbae30912170612n49292be6i35e8a7d98c440d80@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	id S1751787AbZLCMcD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Dec 2009 07:32:03 -0500
+Received: from list by lo.gmane.org with local (Exim 4.50)
+	id 1NGAqu-0006nd-4g
+	for linux-media@vger.kernel.org; Thu, 03 Dec 2009 13:32:08 +0100
+Received: from 92.103.125.220 ([92.103.125.220])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 03 Dec 2009 13:32:08 +0100
+Received: from ticapix by 92.103.125.220 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 03 Dec 2009 13:32:08 +0100
+To: linux-media@vger.kernel.org
+From: "pierre.gronlier" <ticapix@gmail.com>
+Subject: Re: /dev/dvb/adapter0/net0 <-- what is this for and how to use it?
+Date: Thu, 03 Dec 2009 13:31:30 +0100
+Message-ID: <4B17AFA2.6020302@gmail.com>
+References: <8cd7f1780912030021q182347ebr6bc8be8536c5d53@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <8cd7f1780912030021q182347ebr6bc8be8536c5d53@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Santiago,
+Leszek Koltunski wrote, On 12/03/2009 09:21 AM:
+> Hello DVB gurus,
+> 
+> I've got a TwinHan DVB-S2 card. I compiled the 'liplianin' drivers and
+> it's working nicely; thanks for all your work!
+> 
+> One question: in /dev/dvb/adapter0 I can see
+> 
+> leszek@satellite:~$ ls -l /dev/dvb/adapter0/
+> total 0
+> crw-rw----+ 1 root video 212, 4 2009-12-02 18:22 ca0
+> crw-rw----+ 1 root video 212, 0 2009-12-02 18:22 demux0
+> crw-rw----+ 1 root video 212, 1 2009-12-02 18:22 dvr0
+> crw-rw----+ 1 root video 212, 3 2009-12-02 18:22 frontend0
+> crw-rw----+ 1 root video 212, 2 2009-12-02 18:22 net0
+> 
+> What is this 'net0' device and how do I use it? Can I use it to
+> directly multicast my (FTA) satellite stream to my lan by any chance?
 
->> +
->> +/* Struct list for digital video presets */
->> +static const struct tvp7002_preset_definition tvp7002_presets[] = {
->> +       {
->> +               V4L2_DV_720P60,
->> +               tvp7002_parms_720P60,
->> +               V4L2_COLORSPACE_REC709,
->> +               V4L2_FIELD_SEQ_TB,
-Why don't we set this to V4L2_FIELD_NONE? That is what we used in
-internal releases and is the requirement. Same for all of Progressive
-frame formats below.
->> +               1,
->> +               0x2EE,
->> +               135,
->> +               153
->> +       },
->> +       {
->> +               V4L2_DV_1080I60,
->> +               tvp7002_parms_1080I60,
->> +               V4L2_COLORSPACE_REC709,
->> +               V4L2_FIELD_INTERLACED,
->> +               0,
->> +               0x465,
->> +               181,
->> +               205
->> +       },
->> +       {
->> +               V4L2_DV_1080I50,
->> +               tvp7002_parms_1080I50,
->> +               V4L2_COLORSPACE_REC709,
->> +               V4L2_FIELD_INTERLACED,
->> +               0,
->> +               0x465,
->> +               217,
->> +               245
->> +       },
->> +       {
->> +               V4L2_DV_720P50,
->> +               tvp7002_parms_720P50,
->> +               V4L2_COLORSPACE_REC709,
->> +               V4L2_FIELD_SEQ_TB,
->> +               1,
->> +               0x2EE,
->> +               163,
->> +               183
->> +       },
->> +       {
->> +               V4L2_DV_1080P60,
->> +               tvp7002_parms_1080P60,
->> +               V4L2_COLORSPACE_REC709,
->> +               V4L2_FIELD_SEQ_TB,
->> +               1,
->> +               0x465,
->> +               90,
->> +               102
->> +       },
->> +       {
->> +               V4L2_DV_480P59_94,
->> +               tvp7002_parms_480P,
->> +               V4L2_COLORSPACE_SMPTE170M,
->> +               V4L2_FIELD_SEQ_TB,
->> +               1,
->> +               0x20D,
->> +               0xffff,
->> +               0xffff
->> +       },
->> +       {
->> +               V4L2_DV_576P50,
->> +               tvp7002_parms_576P,
->> +               V4L2_COLORSPACE_SMPTE170M,
->> +               V4L2_FIELD_SEQ_TB,
->> +               1,
->> +               0x271,
->> +               0xffff,
->> +               0xffff
->> +       }
->> +};
->> +
+You can use MuMuDVB for this: http://mumudvb.braice.net/
 
-Murali
+And net0 is related to network over dvb. look at the dvbnet tool (in
+dvb-apps package)
+
+Pierre
+
+> 
+> I have found no documentation about this...
+
