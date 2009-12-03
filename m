@@ -1,47 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:59514 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1757406AbZLNPIF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Dec 2009 10:08:05 -0500
-Date: Mon, 14 Dec 2009 16:08:15 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: Latest stack that can be merged on top of linux-next tree
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE40155CEE4E4@dlee06.ent.ti.com>
-Message-ID: <Pine.LNX.4.64.0912141606180.4957@axis700.grange>
-References: <A69FA2915331DC488A831521EAE36FE40155C809AB@dlee06.ent.ti.com>
- <Pine.LNX.4.64.0912120141160.5084@axis700.grange>
- <A69FA2915331DC488A831521EAE36FE40155CEE4E4@dlee06.ent.ti.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:45847 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750976AbZLCVrp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Dec 2009 16:47:45 -0500
+Message-ID: <4B183204.6020409@iki.fi>
+Date: Thu, 03 Dec 2009 23:47:48 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Peter Rasmussen <plr@udgaard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: How to help with RTL2832U based TV?
+References: <4B181B0C.2070503@udgaard.com>
+In-Reply-To: <4B181B0C.2070503@udgaard.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 14 Dec 2009, Karicheri, Muralidharan wrote:
+On 12/03/2009 10:09 PM, Peter Rasmussen wrote:
+> as mentioned in the welcome email of this list, but it isn't apparent to
+> me what the status in Linux of using a device based on this chip is?
 
-> Guennadi,
-> 
-> I marged relevant files from the latest of your v4l tree after seeing 
-> your pull request. I worked fine for VGA capture.
+I have got today device having this chip (thanks to verkkokauppa.com for 
+sponsoring) and I am going to implement the driver. I am in hope I can 
+share some code from the old RTL2831U chip driver. I haven't looked 
+driver code yet nor taken any sniffs. I will do that during next week.
 
-Good.
+Anyhow, there is Realtek released driver spreading over the net for that 
+chip, you can use it.
 
-> But I need to enable 
-> SOC_CAMERA to get the MT9T031 enabled which looks improper to me. Can we 
-> remove this restriction from KConfig?
-
-Sure, as long as we have a valid case where the driver can and does work 
-without soc-camera, which we now do, we shall remove this dependency.
-
-> I plan to send a vpfe capture 
-> patch to support capture using this driver this week.
-
-Good, looking forward to it.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Antti
+-- 
+http://palosaari.fi/
