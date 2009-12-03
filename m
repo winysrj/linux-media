@@ -1,98 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3508 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965890AbZLHTeg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2009 14:34:36 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id nB8JYbD3052096
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 8 Dec 2009 20:34:41 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 8 Dec 2009 20:34:37 +0100 (CET)
-Message-Id: <200912081934.nB8JYbD3052096@smtp-vbr4.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from 0x55535970.adsl.cybercity.dk ([85.83.89.112]:29025 "EHLO
+	kultorvet.udgaard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753676AbZLCUa7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 15:30:59 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by kultorvet.udgaard.com (8.14.3/8.14.3) with ESMTP id nB3K9mLI002846
+	for <linux-media@vger.kernel.org>; Thu, 3 Dec 2009 21:09:48 +0100
+Message-ID: <4B181B0C.2070503@udgaard.com>
+Date: Thu, 03 Dec 2009 21:09:48 +0100
+From: Peter Rasmussen <plr@udgaard.com>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+Subject: How to help with RTL2832U based TV?
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+I looked around in the archives of:
 
-Results of the daily build of v4l-dvb:
+	http://dir.gmane.org/gmane.linux.drivers.video-input-infrastructure
+	http://www.spinics.net/lists/linux-media/
 
-date:        Tue Dec  8 19:00:02 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13588:065f9e34e07b
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+as mentioned in the welcome email of this list, but it isn't apparent to me what the status in Linux of using a device based on this chip is?
 
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-armv5: OK
-linux-2.6.32-armv5-davinci: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.32-armv5-ixp: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.32-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: OK
-linux-2.6.31-i686: OK
-linux-2.6.32-i686: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-m32r: OK
-linux-2.6.30-mips: OK
-linux-2.6.31-mips: OK
-linux-2.6.32-mips: OK
-linux-2.6.30-powerpc64: OK
-linux-2.6.31-powerpc64: OK
-linux-2.6.32-powerpc64: OK
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: OK
-linux-2.6.31-x86_64: OK
-linux-2.6.32-x86_64: OK
-spec: OK
-sparse (linux-2.6.32): ERRORS
-linux-2.6.16.61-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
 
-Detailed results are available here:
+When inserting the USB dongle I get the following:
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+Dec  3 20:56:22 kultorvet kernel: usb 1-1: new high speed USB device 
+using ehci_hcd and address 5
+Dec  3 20:56:22 kultorvet kernel: usb 1-1: New USB device found, 
+idVendor=1d19, idProduct=1102
+Dec  3 20:56:22 kultorvet kernel: usb 1-1: New USB device strings: 
+Mfr=1, Product=2, SerialNumber=3
+Dec  3 20:56:22 kultorvet kernel: usb 1-1: Product: Rtl2832UDVB
+Dec  3 20:56:22 kultorvet kernel: usb 1-1: Manufacturer: Realtek
+Dec  3 20:56:22 kultorvet kernel: usb 1-1: SerialNumber: 1
+Dec  3 20:56:22 kultorvet kernel: usb 1-1: configuration #1 chosen from 
+1 choice
 
-Full logs are available here:
+In Windows Vista it runs fine, showing TV using both MPEG2 and MPEG4 
+encoded signals, but I would much rather run it with Linux.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+I am also developing software for a living, but not this close to 
+hardware, however I would like to help out the way I can.
 
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Thanks,
+Peter
