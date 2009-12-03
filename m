@@ -1,69 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:49868 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966658AbZLHWd4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2009 17:33:56 -0500
-Date: 08 Dec 2009 23:25:00 +0100
-From: lirc@bartelmus.de (Christoph Bartelmus)
-To: jonsmirl@gmail.com
-Cc: awalls@radix.net
-Cc: dmitry.torokhov@gmail.com
-Cc: hermann-pitton@arcor.de
-Cc: j@jannau.net
-Cc: jarod@redhat.com
-Cc: jarod@wilsonet.com
-Cc: khc@pm.waw.pl
-Cc: kraxel@redhat.com
-Cc: linux-input@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com
-Cc: superm1@ubuntu.com
-Message-ID: <BEVhz2BHqgB@lirc>
-In-Reply-To: <9e4733910912080534m1fe8c5bakb9219c6a55f0bcaa@mail.gmail.com>
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
+Received: from out01.mta.xmission.com ([166.70.13.231]:35264 "EHLO
+	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752987AbZLCTr4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 14:47:56 -0500
+Message-ID: <20091203124800.hkb2hbx0gk0o0s0s@webmail.xmission.com>
+Date: Thu, 03 Dec 2009 12:48:00 -0700
+From: alhaz@xmission.com
+To: lirc-list@lists.sourceforge.net
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-input@vger.kernel.org
+References: <4B155288.1060509@redhat.com>
+	<20091201201158.GA20335@core.coreip.homeip.net>
+	<4B15852D.4050505@redhat.com>
+	<20091202093803.GA8656@core.coreip.homeip.net>
+	<4B16614A.3000208@redhat.com>
+	<20091202171059.GC17839@core.coreip.homeip.net>
+	<9e4733910912020930t3c9fe973k16fd353e916531a4@mail.gmail.com>
+	<4B16BE6A.7000601@redhat.com>
+	<20091202195634.GB22689@core.coreip.homeip.net>
+	<2D11378A-041C-4B56-91FF-3E62F5F19753@wilsonet.com>
+	<9e4733910912021620s7a2b09a8v88dd45eef38835a@mail.gmail.com>
+In-Reply-To: <9e4733910912021620s7a2b09a8v88dd45eef38835a@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII;
+	DelSp=Yes	format=flowed
+Content-Disposition: inline
+Content-Transfer-Encoding: 7BIT
+Subject: Re: [RFC v2] Another approach to IR
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jon,
+Quoting Jon Smirl <jonsmirl@gmail.com>:
 
-on 08 Dec 09 at 08:34, Jon Smirl wrote:
-[...]
-> The point of those design review questions was to illustrate that the
-> existing LIRC system is only partially designed. Subsystems need to be
-> fully designed before they get merged.
+>>> Now I understand that if 2 remotes send completely identical signals we
+>>> won't be able to separate them, but in cases when we can I think we
+>>> should.
+>>
+>> I don't have a problem with that, if its a truly desired feature.   
+>> But for the most part, I don't see the point. Generally, you go   
+>> from having multiple remotes, one per device (where "device" is   
+>> your TV, amplifier, set top box, htpc, etc), to having a single   
+>> universal remote that controls all of those devices. But for each   
+>> device (IR receiver), *one* IR command set. The desire to use   
+>> multiple distinct remotes with a single IR receiver doesn't make   
+>> sense to me. Perhaps I'm just not creative enough in my use of IR. :)
 
-I'd say that a system that has proven itself in real world applications  
-for >10 years, does not deserve to be called partially designed.
+ From a hobbiest's perspective there's likely rarely any reason to be  
+able to do the same thing with two different remotes that send  
+different signals, but i could see it come up - For example if you  
+wanted to have both a feature-rich,  busy/complicated remote but also  
+wanted to provide a simpler remote with a relatively small number of  
+large buttons on it for basic functions, as for children or people  
+with poor eyesight or poor motor control.
 
-> For example 36-40K and 56K IR signals are both in use. It is a simple
-> matter to design a receiver (or buy two receivers)  that would support
-> both these frequencies. But the current LIRC model only supports  a
-> single IR receiver. Adjusting it to support two receivers is going to
-> break the ABI.
+ From a business perspective, I've worked for a company that sold  
+turn-key video training systems, and depending on the whims of our  
+so-called business partners and the desires of customers, there were  
+as many as three distinct remotes that might get shipped with the  
+training system, and they all sent different signals.
 
-Really? When we added support for multiple transmitters, we somehow  
-managed to do without breaking the ABI. Do I miss something?
-
-Your example could even now be solved by using the LIRC_SET_REC_CARRIER  
-ioctl. The driver would have to choose the receiver that best fits the  
-requested frequency.
-
-[...]
-> We need to think about all of these use cases before designing the
-> ABI.  Only after we think we have a good ABI design should code start
-> being merged. Of course we may make mistakes and have to fix the ABI,
-> but there is nothing to be gained by merging the existing ABI if we
-> already know it has problems.
-
-The point is that we did not get up this morning and started to think  
-about how the LIRC interface should look like. That happened 10 years ago.
-
-I'm not saying that the interface is the nicest thing ever invented, but  
-it works and is extendable. If you see that something is missing please  
-bring it up.
-
-Christoph
+That was a less than ideal situation, and if we had been really on top  
+of things we'd have just declined to use any of those remotes and  
+bought custom remotes from any of the numerous vendors that sell them  
+which would allow us to have one set of IR signals used by remotes  
+with different features - but for whatever reason that wasn't how  
+management decided to do things.
