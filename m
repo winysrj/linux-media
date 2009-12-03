@@ -1,71 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40548 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752125AbZLDGoi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 01:44:38 -0500
-From: "Nori, Sekhar" <nsekhar@ti.com>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
-CC: "davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>
-Date: Fri, 4 Dec 2009 12:14:35 +0530
-Subject: RE: [PATCH v0 1/2] V4L - vpfe capture - convert ccdc drivers to
-	platform drivers
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE90CA4E@dbde02.ent.ti.com>
-References: <1259691333-32164-1-git-send-email-m-karicheri2@ti.com>
-	<19F8576C6E063C45BE387C64729E7394043716AE11@dbde02.ent.ti.com>
- <A69FA2915331DC488A831521EAE36FE40155B775E9@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE40155B775E9@dlee06.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-pz0-f184.google.com ([209.85.222.184]:50395 "EHLO
+	mail-pz0-f184.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755452AbZLCRzd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 12:55:33 -0500
+Date: Thu, 3 Dec 2009 09:55:31 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Gerd Hoffmann <kraxel@redhat.com>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jonsmirl@gmail.com, khc@pm.waw.pl,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+	IR  system?
+Message-ID: <20091203175531.GB776@core.coreip.homeip.net>
+References: <BDodf9W1qgB@lirc> <4B14EDE3.5050201@redhat.com> <4B1524DD.3080708@redhat.com> <4B153617.8070608@redhat.com> <A6D5FF84-2DB8-4543-ACCB-287305CA0739@wilsonet.com> <4B17AA6A.9060702@redhat.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4B17AA6A.9060702@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Dec 04, 2009 at 01:21:43, Karicheri, Muralidharan wrote:
+On Thu, Dec 03, 2009 at 01:09:14PM +0100, Gerd Hoffmann wrote:
+> On 12/03/09 05:29, Jarod Wilson wrote:
+>> On Dec 1, 2009, at 10:28 AM, Gerd Hoffmann wrote:
+>>
+>>>> Anyway, we shouldn't postpone lirc drivers addition due to that.
+>>>> There are still lots of work to do before we'll be able to split
+>>>> the tables from the kernel drivers.
+>>>
+>>> Indeed.  The sysfs bits are future work for both lirc and evdev
+>>> drivers.  There is no reason to make the lirc merge wait for it.
+>>
+>> At this point, my plan is to try to finish cleaning up lirc_dev and
+>> lirc_mceusb at least over the weekend while at FUDCon up in Toronto,
+>> and resubmit them next week.
 >
+> Good plan IMHO.  Having lirc_dev merged quickly allows in-kernel drivers  
+> start supporting lirc.
 
-[...]
+No, please, wait just a minute. I know it is tempting to just merge
+lirc_dev and start working, but can we first agree on the overall
+subsystem structure before doing so. It is still quite inclear to me.
 
-> >
-> >> +  if (!res) {
-> >> +          status = -EBUSY;
-> >> +          goto fail_nores;
-> >> +  }
-> >> +
-> >> +  ccdc_base_addr = ioremap_nocache(res->start, res_len);
-> >> +  if (!ccdc_base_addr) {
-> >> +          status = -EBUSY;
-> >[Hiremath, Vaibhav] Is -EBUSY right return value, I think it should be -
-> >ENXIO or -ENOMEM.
-> >
-> I see -ENXIO & -ENOMEM being used by drivers. -ENXIO stands for "No such device or address". ENOMEM stands for "Out of memory" . Since we are trying to map the address here, -ENXIO looks reasonable to me. Same if request_mem_region() fails.
->
+The open questions (for me at least):
 
-Sergei had posted on this earlier[1]. Quoting him here:
+- do we create a new class infrastructure for all receivers or only for
+  ones plugged into lirc_dev? Remember that classifying objects affects
+  how udev and friemds see them and may either help or hurt writing PnP
+  rules.
 
-"
-> What are the proper error codes when platform_get_resource,
+- do we intend to support in-kernel sotfware decoders? What is the
+  structure? Do we organize them as a module to be used by driver
+  directly or the driver "streams" the data to IR core and the core
+  applies decoders (in the same fashion input events from drivers flow
+  into input core and then distributed to all bound interfaces for
+  processing/conversion/transmission to userspace)?
 
-    -ENODEV.
+- how do we control which decoder should handle particular
+  receiver/remote? Is it driver's decision, decoder's decision, user's
+  or all of the above?
 
-> request_mem_region
+- do we allow to have several decorers active at once for a receiver?
 
-    -EBUSY.
+- who decides that we want to utilize lirc_dev? Driver's themselves, IR
+  core (looking at the driver/device "capabilities"), something else?
 
-> and ioremap functions fail?.
+- do we recognize and create input devices "on-fly" or require user
+  intervention? Semantics for splitting into several input/event
+  devices?
 
-    -ENOMEM.
-"
+Could anyone please draw me a picture, starting with a "receiver"
+piece of hardware. I am not concerned much with how exactly receiver is
+plugged into a particular subsystem (DVB/V4L etc) since it would be
+_their_ implementation detail, but with the flow in/out of that
+"receiver" device.
 
-Not sure if ioremap failure can relate to absence of a device.
+Now as far as input core goes I see very limited number of changes that
+may be needed:
 
-Thanks,
-Sekhar
+- Allow to extend size of "scancode" in EVIOC{S,G}KEYCODE if we are
+  unable to limit ourselves to 32 bits (keeping compatibility of course)
 
-[1] http://www.mail-archive.com/davinci-linux-open-source@linux.davincidsp.com/msg14973.html
+- Maybe adding new ioctl to "zap" the keymap table
 
+- Adding more key EV_KEY/KEY_* definitons, if needed
+
+Thanks.
+
+-- 
+Dmitry
