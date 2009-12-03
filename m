@@ -1,157 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f192.google.com ([209.85.221.192]:59989 "EHLO
-	mail-qy0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753618AbZLBPg4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Dec 2009 10:36:56 -0500
+Received: from mx1.redhat.com ([209.132.183.28]:36337 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753662AbZLCMJz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Dec 2009 07:09:55 -0500
+Message-ID: <4B17AA6A.9060702@redhat.com>
+Date: Thu, 03 Dec 2009 13:09:14 +0100
+From: Gerd Hoffmann <kraxel@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20091202093803.GA8656@core.coreip.homeip.net>
-References: <9e4733910912010708u1064e2c6mbc08a01293c3e7fd@mail.gmail.com>
-	 <9e4733910912010816q32e829a2uce180bfda69ef86d@mail.gmail.com>
-	 <4B154C54.5090906@redhat.com>
-	 <829197380912010909m59cb1078q5bd2e00af0368aaf@mail.gmail.com>
-	 <4B155288.1060509@redhat.com>
-	 <20091201175400.GA19259@core.coreip.homeip.net>
-	 <4B1567D8.7080007@redhat.com>
-	 <20091201201158.GA20335@core.coreip.homeip.net>
-	 <4B15852D.4050505@redhat.com>
-	 <20091202093803.GA8656@core.coreip.homeip.net>
-Date: Wed, 2 Dec 2009 10:37:02 -0500
-Message-ID: <9e4733910912020737if40c20ndd033578f5aac93c@mail.gmail.com>
-Subject: Re: [RFC v2] Another approach to IR
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com, khc@pm.waw.pl,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, lirc-list@lists.sourceforge.net,
-	superm1@ubuntu.com, Christoph Bartelmus <lirc@bartelmus.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Jarod Wilson <jarod@wilsonet.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jonsmirl@gmail.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR  system?
+References: <BDodf9W1qgB@lirc> <4B14EDE3.5050201@redhat.com> <4B1524DD.3080708@redhat.com> <4B153617.8070608@redhat.com> <A6D5FF84-2DB8-4543-ACCB-287305CA0739@wilsonet.com>
+In-Reply-To: <A6D5FF84-2DB8-4543-ACCB-287305CA0739@wilsonet.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 2, 2009 at 4:38 AM, Dmitry Torokhov
-<dmitry.torokhov@gmail.com> wrote:
-> On Tue, Dec 01, 2009 at 07:05:49PM -0200, Mauro Carvalho Chehab wrote:
->> Dmitry Torokhov wrote:
->> > On Tue, Dec 01, 2009 at 05:00:40PM -0200, Mauro Carvalho Chehab wrote:
->> >> Dmitry Torokhov wrote:
->> >>> On Tue, Dec 01, 2009 at 03:29:44PM -0200, Mauro Carvalho Chehab wrote:
->> >>>> For sure we need to add an EVIOSETPROTO ioctl to allow the driver
->> >>>> to change the protocol in runtime.
->> >>>>
->> >>> Mauro,
->> >>>
->> >>> I think this kind of confuguration belongs to lirc device space,
->> >>> not input/evdev. This is the same as protocol selection for psmouse
->> >>> module: while it is normally auto-detected we have sysfs attribute to
->> >>> force one or another and it is tied to serio device, not input
->> >>> device.
->> >> Dmitry,
->> >>
->> >> This has nothing to do with the raw interface nor with lirc. This problem
->> >> happens with the evdev interface and already affects the in-kernel drivers.
->> >>
->> >> In this case, psmouse is not a good example. With a mouse, when a movement
->> >> occurs, you'll receive some data from its port. So, a software can autodetect
->> >> the protocol. The same principle can be used also with a raw pulse/space
->> >> interface, where software can autodetect the protocol.
->> >
->> > Or, in certain cases, it can not.
->> >
->> > [... skipped rationale for adding a way to control protocol (with which
->> > I agree) ...]
->> >
->> >> To solve this, we really need to extend evdev API to do 3 things: enumberate the
->> >> supported protocols, get the current protocol(s), and select the protocol(s) that
->> >> will be used by a newer table.
->> >>
->> >
->> > And here we start disagreeing. My preference would be for adding this
->> > API on lirc device level (i.e. /syc/class/lirc/lircX/blah namespace),
->> > since it only applicable to IR, not to input devices in general.
->> >
->> > Once you selected proper protocol(s) and maybe instantiated several
->> > input devices then udev (by examining input device capabilities and
->> > optionally looking up at the parent device properties) would use
->> > input evdev API to load proper keymap. Because translation of
->> > driver-specific codes into standard key definitions is in the input
->> > realm. Reading these driver-specific codes from hardware is outside of
->> > input layer domain.
->> >
->> > Just as psmouse ability to specify protocol is not shoved into evdev;
->> > just as atkbd quirks (force release key list and other driver-specific
->> > options) are not in evdev either; we should not overload evdev interface
->> > with IR-specific items.
+On 12/03/09 05:29, Jarod Wilson wrote:
+> On Dec 1, 2009, at 10:28 AM, Gerd Hoffmann wrote:
+>
+>>> Anyway, we shouldn't postpone lirc drivers addition due to that.
+>>> There are still lots of work to do before we'll be able to split
+>>> the tables from the kernel drivers.
 >>
->> I'm not against mapping those features as sysfs atributes, but they don't belong
->> to lirc, as far as I understand. From all we've discussed, we'll create a lirc
->> interface to allow the direct usage of raw IO. However, IR protocol is a property
->> that is not related to raw IO mode but, instead, to evdev mode.
->>
+>> Indeed.  The sysfs bits are future work for both lirc and evdev
+>> drivers.  There is no reason to make the lirc merge wait for it.
 >
-> Why would protocol relate to evdev node? Evdev does not really care what
-> how the fact that a certain button was pressed was communicated to it.
-> It may be deliveretd through PS/2 port, or maybe it was Bluetooth HID,
-> or USB HID or USB boot protocol or some custom protocol, or RC-5, NEC or
-> some custom IR protocol. It makes no difference _whatsoever_ to evdev
-> nor any users of evdev care about protocol used by underlying hardware
-> device to transmit the data.
->
->> We might add a /sys/class/IR and add IR specific stuff there, but it seems
->> overkill to me and will hide the fact that those parameters are part of the evdev
->> interface.
->>
->> So, I would just add the IR sysfs parameters at the /sys/class/input, if
->> the device is an IR (or create it is /sys/class/input/IR).
->>
->> I agree that the code to implement the IR specific sysfs parameter should be kept
->> oustide input core, as they're specific to IR implementations.
->>
->> Would this work for you?
->
-> I am seeing a little bit differently structured subsystem for IR at the
-> moment. I think we should do something like this:
->
-> - receivers create /sys/class/lirc devices. These devices provide API
->  with a ring buffer (fifo) for the raw data stream coming from (and to)
->  them.
+> At this point, my plan is to try to finish cleaning up lirc_dev and
+> lirc_mceusb at least over the weekend while at FUDCon up in Toronto,
+> and resubmit them next week.
 
-The FIFO will have to appear as a /dev/device or be in debugfs. GregKH
-sent earlier mail telling me to get the FIFO out of sysfs.
+Good plan IMHO.  Having lirc_dev merged quickly allows in-kernel drivers 
+start supporting lirc.
 
-> - we allow registering several data interfaces/decoders that can be bound
->  (manually or maybe automatically) to lirc devices. lirc devices may
->  provide hints as to which interface(s) better suited for handling the
->  data coming form particular receiver. Several interfaces may be bound
->  to one device at a time.
-> - one of the interfaces is interface implementing current lirc_dev
-> - other interfaces may be in-kernel RC-5 decoder or other decoders.
->  decoders will create instances of input devices (for each
->  remote/substream that they can recognize).
+One final pass over the lirc interface would be good, taking the chance 
+to fixup anything before the ABI is set in stone with the mainline 
+merge.  Things to look at:
 
-This includes defining IR events for evdev with vendor/device/command triplets?
-You need those standard events to make apps IR aware.
+   (1) Make sure ioctl structs are 32/64 bit invariant.
+   (2) Maybe add some reserved fields to allow extending later
+       without breaking the ABI.
+   (3) Someone suggested a 'commit' ioctl which would activate
+       the parameters set in (multiple) previous ioctls.  Makes sense?
+   (4) Add a ioctl to enable/disable evdev event submission for
+       evdev/lirc hybrid drivers.
 
-LIRC will also need to inject those events after decoding pulse data.
+> I'm still on the fence over what to do about lirc_imon. The driver
+> supports essentially 3 generations of devices. First-gen is very old
+> imon parts that don't do onboard decoding. Second-gen is the devices
+> that all got (insanely stupidly) tagged with the exact same usb
+> device ID (0x15c2:0xffdc), some of which have an attached VFD, some
+> with an attached LCD, some with neither, some that are actually RF
+> parts, but all (I think) of which do onboard decoding. Third-gen is
+> the latest stuff, which is all pretty sane, unique device IDs for
+> unique devices, onboard decoding, etc.
 
->
-> This way there is clear layering, protocol selection is kept at lirc
-> level.
+Do have second-gen and third-gen devices have a 'raw mode'?  If so, then 
+there should be a lirc interface for raw data access.
 
-Did you checkout capabilities bits in evdev?
+> So the lirc_imon I submitted supports all device types, with the
+> onboard decode devices defaulting to operating as pure input devices,
+> but an option to pass hex values out via the lirc interface (which is
+> how they've historically been used -- the pure input stuff I hacked
+> together just a few weeks ago), to prevent functional setups from
+> being broken for those who prefer the lirc way.
 
->
-> Would this work?
->
-> --
-> Dmitry
->
+Hmm.  I'd tend to limit the lirc interface to the 'raw samples' case.
 
+Historically it has also been used to pass decoded data (i.e. rc5) from 
+devices with onboard decoding, but for that in-kernel mapping + input 
+layer really fits better.
 
+> What I'm debating is whether this should be split into two drivers,
+> one for the older devices that don't do onboard decoding (which would
+> use the lirc_dev interface) called 'lirc_imon' or 'lirc_imon_legacy',
+> and one that is a pure input driver, not unlike the ati_remote{,2}
+> drivers, with no lirc_dev dependency at all, probably called simply
+> 'imon'.
 
--- 
-Jon Smirl
-jonsmirl@gmail.com
+i.e. lirc_imon would support first+second gen, and imon third-gen 
+devices, without overlap?
+
+ > But if I split it out, there may end up being a
+> fair amount of code duplication,
+
+You could try to split common code into a third module used by the other 
+two.  Or have one module for all devices which is a evdev/lirc hybrid.
+
+cheers,
+   Gerd
+
