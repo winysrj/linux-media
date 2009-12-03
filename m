@@ -1,135 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail02d.mail.t-online.hu ([84.2.42.7]:57529 "EHLO
-	mail02d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758722AbZLKXFK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2009 18:05:10 -0500
-Message-ID: <4B22D026.2090104@freemail.hu>
-Date: Sat, 12 Dec 2009 00:05:10 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Received: from mail-qy0-f192.google.com ([209.85.221.192]:53841 "EHLO
+	mail-qy0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750931AbZLCFSt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 00:18:49 -0500
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] sanio-ms: clean up init, exit and id_table
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <5FED031C-C24B-4F82-9621-EB1C8A5B928B@wilsonet.com>
+References: <4B155288.1060509@redhat.com> <4B16614A.3000208@redhat.com>
+	 <20091202171059.GC17839@core.coreip.homeip.net>
+	 <9e4733910912020930t3c9fe973k16fd353e916531a4@mail.gmail.com>
+	 <4B16BE6A.7000601@redhat.com>
+	 <20091202195634.GB22689@core.coreip.homeip.net>
+	 <2D11378A-041C-4B56-91FF-3E62F5F19753@wilsonet.com>
+	 <9e4733910912021620s7a2b09a8v88dd45eef38835a@mail.gmail.com>
+	 <Pine.LNX.4.58.0912021827120.4729@shell2.speakeasy.net>
+	 <5FED031C-C24B-4F82-9621-EB1C8A5B928B@wilsonet.com>
+Date: Thu, 3 Dec 2009 00:18:54 -0500
+Message-ID: <9e4733910912022118h28058f4dt2815c3da4f717b02@mail.gmail.com>
+Subject: Re: [RFC v2] Another approach to IR
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Trent Piepho <xyzzy@speakeasy.org>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Jarod Wilson <jarod@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>, awalls@radix.net,
+	j@jannau.net, khc@pm.waw.pl, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	lirc-list@lists.sourceforge.net, superm1@ubuntu.com,
+	Christoph Bartelmus <lirc@bartelmus.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: MÃ¡rton NÃ©meth <nm127@freemail.hu>
+On Wed, Dec 2, 2009 at 11:13 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
+> On Dec 2, 2009, at 9:48 PM, Trent Piepho wrote:
+> ...
+>>>>> Now I understand that if 2 remotes send completely identical signals we
+>>>>> won't be able to separate them, but in cases when we can I think we
+>>>>> should.
+>>>>
+>>>> I don't have a problem with that, if its a truly desired feature.  But
+>>>> for the most part, I don't see the point.  Generally, you go from
+>>>> having multiple remotes, one per device (where "device" is your TV,
+>>>> amplifier, set top box, htpc, etc), to having a single universal remote
+>>>> that controls all of those devices.  But for each device (IR receiver),
+>>>> *one* IR command set.  The desire to use multiple distinct remotes with
+>>>> a single IR receiver doesn't make sense to me.  Perhaps I'm just not
+>>>> creative enough in my use of IR.  :)
+>>
+>> Most universal remotes I'm familiar with emulate multiple remotes.  I.e.
+>> my tv remote generates one set of scancodes for the numeric keys.  The DVD
+>> remote generates a different set.  The amplifier remote in "tv mode"
+>> generates the same codes as the tv remote, and in "dvd mode" the same codes
+>> as the dvd remote.  From the perspective of the IR receiver there is no
+>> difference between having both the DVD and TV remotes, or using the
+>> aplifier remote to control both devices.
+>
+> Okay, in the above scenario, you've still got a single input device...
+>
+>> Now, my aplifier remote has a number of modes.  Some control devices I
+>> have, like "vcr mode", and there is nothing I can do about that.  Some,
+>> like "md mode" don't control devices I have.  That means they are free to
+>> do things on the computer.  Someone else with the same remote (or any
+>> number of remotes that use the same protocol and scancodes) might have
+>> different devices.
+>>
+>> So I want my computer to do stuff when I push "JVC MD #xx" keys, but ignore
+>> "JVC VCR #yyy" yets.  Someone with an MD player and not a VCR would want to
+>> opposite.  Rather than force everyone to create custom keymaps, it's much
+>> easier if we can use the standard keymaps from a database of common remotes
+>> and simply tell mythtv to only use remote #xxx or not to use remote #yyy.
+>
+> Sure, but the key is that this can't be done automagically. The IR driver has no way of knowing that user A wants JVC MD keys handled and JVC VCR keys ignored, and user B wants vice versa, while user C wants both ignored, etc. This is somewhat tangential to whether or not there's a separate input device per "remote" though. You can use multiple remotes/protocols with a single input device or lirc device already (if the hardware doesn't have to be put explicitly into a mode to listen for that proto, of course, but then its a hardware decoding device feeding a single input device anyway, so...).
+>
+>> It sounds like you're thinking of a receiver that came bundled with a
+>> remote and that's it.  Not someone with a number of remotes that came with
+>> different pieces of AV gear that they want to use with their computer.
+>
+> No, I just pick *one* remote and use it for everything, not schizophrenically hopping from one remote to another, expecting them all the be able to control everything. :) Its a hell of a lot easier to find buttons w/o looking at the remote if you always use the same one for everything, for one.
+>
+> Anyway, I think I'm talking myself in circles. Supporting multiple remotes via multiple input devices (or even via a single input device) isn't at all interesting to me for my own use, but if there really is demand for such support (and it appears there is), then fine, lets do it.
 
-Make module_init static and mark it with __init.
-Make module_exit static and mark it with __exit.
-Mark probe functions with __devinit.
-Make id table static and mark with __devinitconst.
+Simple use case:
 
-This will eliminate the following sparse warnings (see "make C=1"):
- * smsdvb.c:668:5: warning: symbol 'smsdvb_module_init' was not declared. Should it be static?
- * smsdvb.c:682:6: warning: symbol 'smsdvb_module_exit' was not declared. Should it be static?
- * smsusb.c:491:22: warning: symbol 'smsusb_id_table' was not declared. Should it be static?
- * smsusb.c:567:5: warning: symbol 'smsusb_module_init' was not declared. Should it be static?
- * smsusb.c:578:6: warning: symbol 'smsusb_module_exit' was not declared. Should it be static?
- * smssdio.c:341:5: warning: symbol 'smssdio_module_init' was not declared. Should it be static?
- * smssdio.c:353:6: warning: symbol 'smssdio_module_exit' was not declared. Should it be static?
+You have a multifunction remote. Press the CABLE key - it sends out
+commands that control the cable box, press the TV key - now the
+commands control the TV, press CD - now the CD player, etc.
 
-Signed-off-by: MÃ¡rton NÃ©meth <nm127@freemail.hu>
----
-diff -r f5662ce08663 linux/drivers/media/dvb/siano/smsdvb.c
---- a/linux/drivers/media/dvb/siano/smsdvb.c	Fri Dec 11 09:53:41 2009 +0100
-+++ b/linux/drivers/media/dvb/siano/smsdvb.c	Fri Dec 11 23:58:27 2009 +0100
-@@ -665,7 +665,7 @@
- 	return rc;
- }
+Now imagine a headless Linux box running a music server and a home
+automation app. Press the CD key - commands get routed to the music
+server, press the AUX key - commands get routed to the home automation
+app.
 
--int smsdvb_module_init(void)
-+static int __init smsdvb_module_init(void)
- {
- 	int rc;
+This is accomplished by recognizing the device code part of the IR
+signal and figuring out that there are two different device codes in
+use. The commands of then routed to two evdev devices corresponding to
+the two different device codes.
 
-@@ -679,7 +679,7 @@
- 	return rc;
- }
+Using things like Alt-Tab to switch apps is impossible. There's no
+screen to look at.
 
--void smsdvb_module_exit(void)
-+static void __exit smsdvb_module_exit(void)
- {
- 	smscore_unregister_hotplug(smsdvb_hotplug);
+>
+> --
+> Jarod Wilson
+> jarod@wilsonet.com
+>
+>
+>
+>
 
-diff -r f5662ce08663 linux/drivers/media/dvb/siano/smssdio.c
---- a/linux/drivers/media/dvb/siano/smssdio.c	Fri Dec 11 09:53:41 2009 +0100
-+++ b/linux/drivers/media/dvb/siano/smssdio.c	Fri Dec 11 23:58:27 2009 +0100
-@@ -48,7 +48,7 @@
- #define SMSSDIO_INT		0x04
- #define SMSSDIO_BLOCK_SIZE	128
 
--static const struct sdio_device_id smssdio_ids[] = {
-+static const struct sdio_device_id smssdio_ids[] __devinitconst = {
- 	{SDIO_DEVICE(SDIO_VENDOR_ID_SIANO, SDIO_DEVICE_ID_SIANO_STELLAR),
- 	 .driver_data = SMS1XXX_BOARD_SIANO_STELLAR},
- 	{SDIO_DEVICE(SDIO_VENDOR_ID_SIANO, SDIO_DEVICE_ID_SIANO_NOVA_A0),
-@@ -222,7 +222,7 @@
- 	smscore_onresponse(smsdev->coredev, cb);
- }
 
--static int smssdio_probe(struct sdio_func *func,
-+static int __devinit smssdio_probe(struct sdio_func *func,
- 			 const struct sdio_device_id *id)
- {
- 	int ret;
-@@ -338,7 +338,7 @@
- /* Module functions                                                */
- /*******************************************************************/
-
--int smssdio_module_init(void)
-+static int __init smssdio_module_init(void)
- {
- 	int ret = 0;
-
-@@ -350,7 +350,7 @@
- 	return ret;
- }
-
--void smssdio_module_exit(void)
-+static void __exit smssdio_module_exit(void)
- {
- 	sdio_unregister_driver(&smssdio_driver);
- }
-diff -r f5662ce08663 linux/drivers/media/dvb/siano/smsusb.c
---- a/linux/drivers/media/dvb/siano/smsusb.c	Fri Dec 11 09:53:41 2009 +0100
-+++ b/linux/drivers/media/dvb/siano/smsusb.c	Fri Dec 11 23:58:27 2009 +0100
-@@ -394,7 +394,7 @@
- 	return rc;
- }
-
--static int smsusb_probe(struct usb_interface *intf,
-+static int __devinit smsusb_probe(struct usb_interface *intf,
- 			const struct usb_device_id *id)
- {
- 	struct usb_device *udev = interface_to_usbdev(intf);
-@@ -488,7 +488,7 @@
- 	return 0;
- }
-
--struct usb_device_id smsusb_id_table[] = {
-+static const struct usb_device_id smsusb_id_table[] __devinitconst = {
- 	{ USB_DEVICE(0x187f, 0x0010),
- 		.driver_info = SMS1XXX_BOARD_SIANO_STELLAR },
- 	{ USB_DEVICE(0x187f, 0x0100),
-@@ -564,7 +564,7 @@
- 	.resume			= smsusb_resume,
- };
-
--int smsusb_module_init(void)
-+static int __init smsusb_module_init(void)
- {
- 	int rc = usb_register(&smsusb_driver);
- 	if (rc)
-@@ -575,7 +575,7 @@
- 	return rc;
- }
-
--void smsusb_module_exit(void)
-+static void __exit smsusb_module_exit(void)
- {
- 	/* Regular USB Cleanup */
- 	usb_deregister(&smsusb_driver);
+-- 
+Jon Smirl
+jonsmirl@gmail.com
