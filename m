@@ -1,85 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout0.freenet.de ([195.4.92.90]:52786 "EHLO mout0.freenet.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753727AbZLWVDp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Dec 2009 16:03:45 -0500
-Received: from [195.4.92.13] (helo=3.mx.freenet.de)
-	by mout0.freenet.de with esmtpa (ID ruedigerDohmhardt@freenet.de) (port 25) (Exim 4.70 #1)
-	id 1NNYMx-0001LK-C9
-	for linux-media@vger.kernel.org; Wed, 23 Dec 2009 22:03:43 +0100
-Received: from 188-193-187-213-dynip.superkabel.de ([188.193.187.213]:33555 helo=[192.168.178.20])
-	by 3.mx.freenet.de with esmtpa (ID ruedigerDohmhardt@freenet.de) (port 25) (Exim 4.69 #94)
-	id 1NNYMw-00065s-QY
-	for linux-media@vger.kernel.org; Wed, 23 Dec 2009 22:03:43 +0100
-Message-ID: <4B3285AB.4070108@freenet.de>
-Date: Wed, 23 Dec 2009 22:03:39 +0100
-From: Ruediger Dohmhardt <ruediger.dohmhardt@freenet.de>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Which modules for the VP-2033? Where is the module "mantis.ko"?
-References: <4B1D6194.4090308@freenet.de> <1261578615.8948.4.camel@slash.doma>	 <200912231753.28988.liplianin@me.by>	 <1261586462.8948.23.camel@slash.doma> <4B3269AE.6080602@freenet.de>	 <1a297b360912231124v6e31c9e6ja24d205f6b5dc39@mail.gmail.com>	 <4B327726.2080705@freenet.de> <1a297b360912231226j704e2c92jd9bb04cf23275829@mail.gmail.com>
-In-Reply-To: <1a297b360912231226j704e2c92jd9bb04cf23275829@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-in-03.arcor-online.net ([151.189.21.43]:49795 "EHLO
+	mail-in-03.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751412AbZLCWDw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Dec 2009 17:03:52 -0500
+Subject: Re: V4L1 compatibility broken for VIDIOCGTUNER with radio
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <200912031656.20893.herton@mandriva.com.br>
+References: <200912031656.20893.herton@mandriva.com.br>
+Content-Type: text/plain
+Date: Thu, 03 Dec 2009 22:54:29 +0100
+Message-Id: <1259877269.10943.3.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Manu Abraham schrieb:
-> On Thu, Dec 24, 2009 at 12:01 AM, Ruediger Dohmhardt
-> <ruediger.dohmhardt@freenet.de> wrote:
->   
->> Manu Abraham schrieb:
->>     
->>> Hello Ruediger,
->>>
->>> On Wed, Dec 23, 2009 at 11:04 PM, Ruediger Dohmhardt
->>> <ruediger.dohmhardt@freenet.de> wrote:
->>>
->>>       
->>>> Aljaž Prusnik schrieb:
->>>>
->>>>         
->>>>> If using the http://jusst.de/hg/v4l-dvb tree, everything compiles ok,
->>>>> module loads, but there is no remote anywhere (there is an IR folder
->>>>> with the ir-common.ko file, under common there is not).
->>>>>
->>>>>
->>>>>
->>>>>           
->>>> Aljaz, do you have the module mantis.ko?
->>>>
->>>> Ruediger
->>>>
->>>>
->>>>         
->>> There was a build issue when i posted the link originally, but it had
->>> been fixed..
->>>
->>>
->>>       
->> Yupp, it works now!
->>
->> I just downloaded version 2315248f648c. It compiles fine on Suse 11.1 and
->> it works here with vdr-1.7.10 and xineliboutput (from CVS).
->>
->> However, as Aljaž also noted, the driver does not "autoload".
->> I need to do modprobe mantis.ko.
->>
->> Manu, this used to work, but I do not remember when the "autoload was lost".
->>     
->
->
-> Have you run depmod ?
->   
-Yes, I did
+Hi,
 
-    depmod -a
+Am Donnerstag, den 03.12.2009, 16:56 -0200 schrieb Herton Ronaldo
+Krzesinski:
+> Hi,
+> 
+> After commit 9bedc7f ("V4L/DVB (12429): v4l2-ioctl: fix G_STD and G_PARM 
+> default handlers"), radio software using V4L1 stopped to work on a saa7134 
+> card, a git bisect pointed to this commit introducing the regression. All 
+> VIDIOCGTUNER calls on a v4l1 application are returning -EINVAL after this 
+> commit.
+> 
+> Investigating the issue, it turns out that v4l1_compat_get_tuner calls 
+> VIDIOC_G_STD ioctl, but as it is a radio device (saa7134-radio) it now is 
+> returning -EINVAL to user space applications which are being confused about 
+> this.
+> 
+> May be VIDIOC_G_STD change in the commit above should be reverted, or 
+> v4l1_compat_get_tuner changed to not return error with G_STD, or not call 
+> G_STD ioctl for a radio device?
+> 
+> --
+> []'s
+> Herton
 
-several times. Actually, if I were to miss a "depmod" than also the command
+it was fixed here.
 
-    modprobe mantis
+http://linuxtv.org/hg/v4l-dvb/rev/58ecda742a70
 
-would not work, because the module would not be found.
+Maybe it was not ported to stable?
 
-Ruediger
+Cheers,
+Hermann
+
 
