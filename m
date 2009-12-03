@@ -1,96 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44871 "EHLO mx1.redhat.com"
+Received: from mail1.radix.net ([207.192.128.31]:59391 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755059AbZLHNkj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2009 08:40:39 -0500
-Message-ID: <4B1E5746.7010305@redhat.com>
-Date: Tue, 08 Dec 2009 11:40:22 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Jon Smirl <jonsmirl@gmail.com>
-CC: Andy Walls <awalls@radix.net>,
+	id S1752753AbZLCBDm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Dec 2009 20:03:42 -0500
+Subject: Re: [RFC v2] Another approach to IR
+From: Andy Walls <awalls@radix.net>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	Christoph Bartelmus <lirc@bartelmus.de>, j@jannau.net,
-	jarod@redhat.com, linux-input@vger.kernel.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Jon Smirl <jonsmirl@gmail.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>, j@jannau.net,
+	jarod@redhat.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
 	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
- 	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-References: <BDRae8rZjFB@christoph>	 <1259024037.3871.36.camel@palomino.walls.org>	 <m3k4xe7dtz.fsf@intrepid.localdomain> <4B0E8B32.3020509@redhat.com>	 <1259264614.1781.47.camel@localhost>	 <6B4C84CD-F146-4B8B-A8BB-9963E0BA4C47@wilsonet.com>	 <1260240142.3086.14.camel@palomino.walls.org>	 <20091208042210.GA11147@core.coreip.homeip.net>	 <1260275743.3094.6.camel@palomino.walls.org> <9e4733910912080452p42efa794mb7fd608fa4fbad7c@mail.gmail.com>
-In-Reply-To: <9e4733910912080452p42efa794mb7fd608fa4fbad7c@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	lirc-list@lists.sourceforge.net, superm1@ubuntu.com,
+	Christoph Bartelmus <lirc@bartelmus.de>
+In-Reply-To: <1CA77278-9B8E-4169-8F10-78764A35F64E@wilsonet.com>
+References: <9e4733910912010816q32e829a2uce180bfda69ef86d@mail.gmail.com>
+	 <4B154C54.5090906@redhat.com>
+	 <829197380912010909m59cb1078q5bd2e00af0368aaf@mail.gmail.com>
+	 <4B155288.1060509@redhat.com>
+	 <20091201175400.GA19259@core.coreip.homeip.net>
+	 <4B1567D8.7080007@redhat.com>
+	 <20091201201158.GA20335@core.coreip.homeip.net>
+	 <4B15852D.4050505@redhat.com>
+	 <20091202093803.GA8656@core.coreip.homeip.net>
+	 <4B16614A.3000208@redhat.com>
+	 <20091202171059.GC17839@core.coreip.homeip.net>
+	 <4B16C10E.6040907@redhat.com>
+	 <1CA77278-9B8E-4169-8F10-78764A35F64E@wilsonet.com>
+Content-Type: text/plain
+Date: Wed, 02 Dec 2009 20:02:49 -0500
+Message-Id: <1259802169.3085.10.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jon Smirl wrote:
-> On Tue, Dec 8, 2009 at 7:35 AM, Andy Walls <awalls@radix.net> wrote:
->> On Mon, 2009-12-07 at 20:22 -0800, Dmitry Torokhov wrote:
->>> On Mon, Dec 07, 2009 at 09:42:22PM -0500, Andy Walls wrote:
->>>> So I'll whip up an RC-6 Mode 6A decoder for cx23885-input.c before the
->>>> end of the month.
->>>>
->>>> I can setup the CX2388[58] hardware to look for both RC-5 and RC-6 with
->>>> a common set of parameters, so I may be able to set up the decoders to
->>>> handle decoding from two different remote types at once.  The HVR boards
->>>> can ship with either type of remote AFAIK.
->>>>
->>>> I wonder if I can flip the keytables on the fly or if I have to create
->>>> two different input devices?
->>>>
->>> Can you distinguish between the 2 remotes (not receivers)?
->> Yes.  RC-6 and RC-5 are different enough to distinguish between the two.
->> (Honestly I could pile on more protocols that have similar pulse time
->> periods, but that's complexity for no good reason and I don't know of a
->> vendor that bundles 3 types of remotes per TV card.)
->>
->>
->>>  Like I said,
->>> I think the preferred way is to represent every remote that can be
->>> distinguished from each other as a separate input device.
->> OK.  With RC-5, NEC, and RC-6 at least there is also an address or
->> system byte or word to distingish different remotes.  However creating
->> multiple input devices on the fly for detected remotes would be madness
->> - especially with a decoding error in the address bits.
+On Wed, 2009-12-02 at 14:55 -0500, Jarod Wilson wrote:
+> On Dec 2, 2009, at 2:33 PM, Mauro Carvalho Chehab wrote:
 > 
-> I agree that creating devices on the fly has problems. Another
-> solution is to create one device for each map that is loaded. There
-> would be a couple built-in maps for bundled remotes - each would
-> create a device. Then the user could load more maps with each map
-> creating a device.
+> > Dmitry Torokhov wrote:
+> >> 
+> ...
+> >>>> (for each remote/substream that they can recognize).
+> >>> I'm assuming that, by remote, you're referring to a remote receiver (and not to 
+> >>> the remote itself), right?
+> >> 
+> >> If we could separate by remote transmitter that would be the best I
+> >> think, but I understand that it is rarely possible?
+> > 
+> > IMHO, the better is to use a separate interface for the IR transmitters,
+> > on the devices that support this feature. There are only a few devices
+> > I'm aware of that are able to transmit IR codes.
+> 
+> If I'm thinking clearly, there are only three lirc kernel drivers that
+> support transmit, lirc_mceusb, lirc_zilog and lirc_serial. The mceusb
+> driver was posted, so I won't rehash what it is here. The zilog driver
+> binds to a Zilog z80 microprocessor thingy (iirc) exposed via i2c,
+> found on many Hauppauge v4l/dvb devices (PVR-150, HVR-1600, HD-PVR,
+> etc). The serial driver is fairly self-explanatory as well.
+> 
+> There are also a few userspace-driven devices that do transmit, but
+> I'm assuming they're (currently) irrelevant to this discussion.
 
-No, please. We currently have already 89 different keymaps in-kernel. Creating
-89 different interfaces per IR receiver is not useful at all.
 
-IMO, the interfaces should be created as the keymaps are associated
-to an specific IR receiver.
+I've got the CX23888 integrated IR Rx done and Tx nearly done.  I was
+waiting to see how kfifo and lirc_dev panned out before making the
+interface to userspace.
 
-> Incoming scancodes are matched against all of the loaded maps and a
-> keycode event is generated if a match occurs.
+The CX23885, CX23418, and CX2584x integrated IR is essentially the same.
+I hope to have CX23885 IR done by Christmas.
 
-s/all of the loaded maps/all of the loaded maps per device/
+Both of those IR devices are/will be encapsulated in a v4l2_subdevice
+object internally.  I was going to write lirc_v4l glue between the
+v4l2_device/v4l2_subdev_ir_ops and lirc_dev.
 
-You may have more than one IR receiver on a given machine.
+As for the the I2C chips, I was going to go back and encapsulate those
+in the v4l2_subdevice object as well, so then my notional lirc_v4l could
+pick those up too.  The I2C subsystem only allows one binding to an I2C
+client address/name on a bus.  So without some new glue like a notional
+lirc_v4l, it *may* be hard to share between ir-kbd-i2c and lirc_i2c and
+lirc_zilog.
 
-IMO, we may have a mask filter matching also, associated with each keycode
-table, to minimize the keycode seek time. Something like:
+Regards,
+Andy
 
-	if (scancode & scancode_mask)
-		check_scancode()
-
-> This illustrates why there should an EV_IR event which communicates
-> scancodes, without this event you can't see the scancodes that don't
-> match a map entry. A scancode would be first matched against the map,
-> then if there as no match an EV_IR event would be reported.
-
-There's nothing wrong on receiving a scancode that won't map. This can
-simply be an event that you don't want to handle (for example, an IR
-code sent to user's TV set).
-
-IMO, the better is to provide this scancode at KERN_DEBUG (if debug is
-enabled), and via an "observer" program.
-
-Cheers,
-Mauro.
