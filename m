@@ -1,20 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-ew0-f215.google.com ([209.85.219.215])
+Received: from www.viadmin.org ([195.145.128.101])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1NG7Ld-00013I-7B
-	for linux-dvb@linuxtv.org; Thu, 03 Dec 2009 09:47:38 +0100
-Received: by ewy7 with SMTP id 7so145582ewy.12
-	for <linux-dvb@linuxtv.org>; Thu, 03 Dec 2009 00:47:03 -0800 (PST)
-Date: Thu, 3 Dec 2009 09:47:01 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Leszek Koltunski <leszek@koltunski.pl>
-In-Reply-To: <8cd7f1780912030012h609a7a5w72d054ac5749eab1@mail.gmail.com>
-Message-ID: <alpine.DEB.2.01.0912030943130.4548@ybpnyubfg.ybpnyqbznva>
-References: <8cd7f1780912030012h609a7a5w72d054ac5749eab1@mail.gmail.com>
+	(envelope-from <henrik-dvb@prak.org>) id 1NGCSE-0003qP-C9
+	for linux-dvb@linuxtv.org; Thu, 03 Dec 2009 15:14:46 +0100
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by www.viadmin.org (Postfix) with ESMTP id 18CE54970A
+	for <linux-dvb@linuxtv.org>; Thu,  3 Dec 2009 15:09:51 +0100 (CET)
+Received: from www.viadmin.org ([127.0.0.1])
+	by localhost (www.viadmin.org [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id TcER84wyKSAT for <linux-dvb@linuxtv.org>;
+	Thu,  3 Dec 2009 15:09:20 +0100 (CET)
+Date: Thu, 3 Dec 2009 15:09:20 +0100
+From: "H. Langos" <henrik-dvb@prak.org>
+To: linux-dvb@linuxtv.org
+Message-ID: <20091203140920.GK10524@www.viadmin.org>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] /dev/dvb/adapter0/net0 <-- what is this for and how
- to use it?
+Content-Disposition: inline
+Subject: [linux-dvb] linuxtv wiki device database progress
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -29,37 +31,36 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, 3 Dec 2009, Leszek Koltunski wrote:
+Hi there,
 
-> One question: in /dev/dvb/adapter0 I can see
-> 
-> leszek@satellite:~$ ls -l /dev/dvb/adapter0/
-> total 0
-> crw-rw----+ 1 root video 212, 4 2009-12-02 18:22 ca0
-> crw-rw----+ 1 root video 212, 0 2009-12-02 18:22 demux0
-> crw-rw----+ 1 root video 212, 1 2009-12-02 18:22 dvr0
-> crw-rw----+ 1 root video 212, 3 2009-12-02 18:22 frontend0
-> crw-rw----+ 1 root video 212, 2 2009-12-02 18:22 net0
-> 
-> What is this 'net0' device and how do I use it? Can I use it to directly
-> multicast my (FTA) satellite stream to my lan by any chance?
+I guess I already talked enough about the device database article in
+the wiki, where device data from one template
+http://www.linuxtv.org/wiki/index.php/Template:USB_Device_Data
+can be displayed/filtered in many different articles
+http://www.linuxtv.org/wiki/index.php/DVB-T_USB_Devices#DVB-T_USB_Devices
+http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_Digi_Volar_X_%28A815%29
+http://www.linuxtv.org/wiki/index.php/Artec
+http://www.linuxtv.org/wiki/index.php/MSI_DigiVox_mini_II_V3.0
+...
 
-No, it can be used for receiving IP datastreams broadcast by
-satellite.
+I'd just like to let you guys know that I'll be mostly offline 
+in the brazilean jungle for some month. Thats why I will not be able to
+work on that project for a while. I hope somebody will pick it up but 
+I'm afraid it will lie dormant for some month.
 
+I am not sure if the whole thing is mature enough to mention it in the
+new device article template. I guess to have it there we will need somebody
+to take responsibility for PCI and PCIe devices. There are already a lot of
+those (though no where near as many as USB devices), and it would make sense
+to translate the data from that table, into a structured data set that can 
+be included whereever it is needed.
 
-> I have found no documentation about this...
+Take care and see you guys in april.
 
-There is a guide I've found to setting this up (a few years ago)
-but I can't give an off-the-top-of-my-head pointer to this.
+-henrik
 
-Unless you want to receive a satellite-delivered multicast or
-unicast stream -- I'm not sure if there are any out there of
-interest to non-subscribers -- it something you wouldn't need
-to use.
-
-
-barry bouwsma
+PS: I'll unsubscribe from linux-dvb and linux-media for the time being. So
+if there's anything you need to ask, write an email directly to me.
 
 _______________________________________________
 linux-dvb users mailing list
