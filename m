@@ -1,80 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from thsmsgxrt13p.thalesgroup.com ([192.54.144.136]:59471 "EHLO
-	thsmsgxrt13p.thalesgroup.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751934AbZLHJdd convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2009 04:33:33 -0500
-Message-ID: <4B1E1CEF.7050706@thalesgroup.com>
-Date: Tue, 08 Dec 2009 10:31:27 +0100
-From: =?ISO-8859-1?Q?Emmanuel_Fust=E9?= <emmanuel.fuste@thalesgroup.com>
+Received: from tac.ki.iif.hu ([193.6.222.43]:54800 "EHLO tac.ki.iif.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751053AbZLCQDY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Dec 2009 11:03:24 -0500
+From: Ferenc Wagner <wferi@niif.hu>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Jarod Wilson <jarod@redhat.com>,
+	Jon Smirl <jonsmirl@gmail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>, awalls@radix.net,
+	j@jannau.net, khc@pm.waw.pl, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	lirc-list@lists.sourceforge.net, superm1@ubuntu.com,
+	Christoph Bartelmus <lirc@bartelmus.de>
+Subject: Re: [RFC v2] Another approach to IR
+References: <4B15852D.4050505@redhat.com>
+	<20091202093803.GA8656@core.coreip.homeip.net>
+	<4B16614A.3000208@redhat.com>
+	<20091202171059.GC17839@core.coreip.homeip.net>
+	<9e4733910912020930t3c9fe973k16fd353e916531a4@mail.gmail.com>
+	<4B16BE6A.7000601@redhat.com>
+	<20091202195634.GB22689@core.coreip.homeip.net>
+	<2D11378A-041C-4B56-91FF-3E62F5F19753@wilsonet.com>
+	<20091202201404.GD22689@core.coreip.homeip.net>
+	<4B16CCD7.20601@redhat.com>
+	<20091202205323.GF22689@core.coreip.homeip.net>
+	<4B16D87F.7080701@redhat.com>
+Date: Thu, 03 Dec 2009 17:03:16 +0100
+In-Reply-To: <4B16D87F.7080701@redhat.com> (Mauro Carvalho Chehab's message of
+	"Wed, 02 Dec 2009 19:13:35 -0200")
+Message-ID: <87tyw8ujsr.fsf@tac.ki.iif.hu>
 MIME-Version: 1.0
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR system?
-References: <4B1D415F.5090308@thalesgroup.com> <20091207182438.GB998@core.coreip.homeip.net>
-In-Reply-To: <20091207182438.GB998@core.coreip.homeip.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dmitry Torokhov a écrit :
-> On Mon, Dec 07, 2009 at 06:54:39PM +0100, Emmanuel Fusté wrote:
->   
->> Mauro Carvalho Chehab wrote:
->>
->>     
->>> In summary,
->>>
->>> While the current EVIO[G|S]KEYCODE works sub-optimally for scancodes up 
->>> to 16 bytes
->>> (since a read loop for 2^16 is not that expensive), the current approach
->>> won't scale with bigger scancode spaces. So, it is needed expand it
->>> to work with bigger scancode spaces, used by more recent IR protocols.
->>>
->>> I'm afraid that any tricks we may try to go around the current limits to still
->>> keep using the same ioctl definition will sooner or later cause big headaches.
->>> The better is to redesign it to allow using different scancode spaces.
->>>
->>>
->>>   
->>>       
->> I second you: input layer events from drivers should be augmented with a
->> protocol member, allowing us to define new ioctl and new ways to
->> efficiently store and manage sparse scancode spaces (tree, hashtable
->> ....).
->>     
->
-> Userspace has no business knowing how driver maps hardware data stream
-> into a keycode, only what is being mapped to what. The way is is done
-> can change from driver-to-driver, from release to release. If I come up
-> with an super-smart or super-stupid way of storing key mapping I won't
-> want to modify userpsace tools to support it.
->
->   
-But this is the point for IR. Userspace need a stable and "universal" 
-driver to driver way to represent the hardware data stream. This is 
-needed for only one but very important application: creating and 
-modifying exchangeable remote mappings.
-The way of storing in kernel key mapping should not have any impacts on 
-usersapce tools. If this is the case, this is because the actual ioctl 
-is too tied to the way these mapping are stored. These need to changed 
-or be expanded for IR.
->> It will allow us to abstract the scancode value and to use
->> variable length scancode depending on the used protocol, and using the
->> most appropriate scheme to store the scancode/keycode mapping per protocol.
->> The today scancode space will be the legacy one, the default if not
->> specified "protocol". It will permit to progressively clean up the
->> actual acceptable mess in the input layer and finally using real
->> scancode -> keycode mappings everywhere if it is cleaner/convenient.
->>
->>     
->
-> I am unable to parse this part, sorry.
->
->   
-My bad, my English is awful, sorry. :-(
+Mauro Carvalho Chehab <mchehab@redhat.com> writes:
 
-Best regards,
-Emmanuel.
+> Dmitry Torokhov wrote:
+>
+>>>>> On Dec 2, 2009, at 2:56 PM, Dmitry Torokhov wrote:
+>>>>>
+>>>>>> Now I understand that if 2 remotes send completely identical
+>>>>>> signals we won't be able to separete them, but in cases when we
+>>>>>> can I think we should.
+>>
+>> They are the same key events (Lets's say KEY_PLAY) but one is
+>> supposed to affect CD player while another DVD player
+>> application. Evdev will not be able to distinguish them but if we had
+>> 2 separate devices then applications could read from the one thet
+>> user assigned to them.
+>
+> This is clear, but the point is that the two distinguish scancodes can
+> (and, in practice, will) be generated by the same IR. For example, my
+> Satellite IR produces two different sets of codes. if you press <SAT>,
+> all keys you press after that will have the "sat" address. If you
+> press <TV>, they'll get a different address.
+
+The interesting thing is that input.h defines KEY_TV, KEY_PC, KEY_SAT,
+KEY_CD, KEY_TAPE etc., but no corresponding scan codes will ever be sent
+by any remote (ok, I'm stretching it a bit).  Instead, a multifunction
+remote (or two distinct remotes) would send different scan codes[1],
+which should be mapped to KEY_PLAYCD and KEY_PLAYDVD for example.
+Btw. the former is already defined, besides the generic KEY_PLAY.
+
+Even if all this worked, user space would need integration with
+hal/devicekit to open the new input devices appearing on the fly (if
+it's initiated by the arrival of a scan code belonging to some new
+protocol), and also be able to decide whether the new event source is
+for it or not.
+
+Given that commodity home appliances manage not to be confused by
+multiple or multifunction remotes, decent software should be able to do
+so as well.
+
+[1] scan codes in the broadest possible sense, containing vendor,
+address and whatever, and only treating the case which is possible to
+handle in principle.
+-- 
+Regards,
+Feri.
