@@ -1,22 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from moutng.kundenserver.de ([212.227.17.9])
+Received: from mail-ew0-f215.google.com ([209.85.219.215])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <SRS0=5DuQ=IK=gmx.de=jens.nixdorf@srs.kundenserver.de>)
-	id 1NNlEy-00040i-8V
-	for linux-dvb@linuxtv.org; Thu, 24 Dec 2009 11:48:21 +0100
-Received: from miniserver.lan (localhost.localdomain [127.0.0.1])
-	by miniserver.lan (8.13.8/8.13.8/SuSE Linux 0.8) with ESMTP id
-	nBOAljtU025915
-	for <linux-dvb@linuxtv.org>; Thu, 24 Dec 2009 11:47:45 +0100
-Date: Thu, 24 Dec 2009 11:47:38 +0100
-From: Jens Nixdorf <jens.nixdorf@gmx.de>
-To: linux-dvb@linuxtv.org
-Message-ID: <200912241147.38182.jens.nixdorf@gmx.de>
-In-Reply-To: <267bb6670912231253y40b6197j454df3ff51944f7d@mail.gmail.com>
-References: <267bb6670912231253y40b6197j454df3ff51944f7d@mail.gmail.com>
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1NGAjK-0002L3-Tg
+	for linux-dvb@linuxtv.org; Thu, 03 Dec 2009 13:24:20 +0100
+Received: by ewy7 with SMTP id 7so340982ewy.12
+	for <linux-dvb@linuxtv.org>; Thu, 03 Dec 2009 04:23:45 -0800 (PST)
+Date: Thu, 3 Dec 2009 13:23:37 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Luca Olivetti <luca@ventoso.org>
+In-Reply-To: <4B177C81.5030900@ventoso.org>
+Message-ID: <alpine.DEB.2.01.0912031303050.4548@ybpnyubfg.ybpnyqbznva>
+References: <4B14CC1E.7030102@ventoso.org>
+	<alpine.DEB.2.01.0912030540570.4548@ybpnyubfg.ybpnyqbznva>
+	<4B177C81.5030900@ventoso.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: Re: [linux-dvb] DVB-S2 boxes with CI support ?
+Cc: Linux DVB <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] siano firmware and behaviour after resuming power
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -31,22 +30,76 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Am Mittwoch 23 Dezember 2009 21:53:58 schrieb dehqan65:
+On Thu, 3 Dec 2009, Luca Olivetti wrote:
+
+> > This is from a URL provided by Siano in the archives of this list
+> > which can probably be found by searching for keywords like DAB
+> > or their host library.
 > 
-> 1 - What are DVB-S2 USB boxes with CI support that are supported in
-> Linux/GNU ?
-> one of them is
-> http://linuxtv.org/wiki/index.php/DVBWorld_HD_2104_CA%2BCI_USB_Box anyother
-> ?
-> 2 - Which one those do you advice ?
+> Ah, ok, I got my sources from linuxtv and there's no firmware there.
+> In fact, one of the search results for "siano firmware" was a message from
+> Mauro asking Uri (who doesn't work for siano any more) for permission to
+> distribute the firmware, with no follow-ups.
+
+Oh, in case it would be helpful (meaning that either the previous,
+now snipped, filesizes would match your firmware, or these which
+I quote now match), here's what I dug out of the musty depths of
+the machine hidden away -- these are likely to be the files for
+the firmware as extracted from the CD-ROM that came with my 
+device, if not downloaded elsewhere, based on the timestamps.
+
+[13:00:05]beer@charlie:/tmp$ ls -lart /tmp/server/usr/lib/hotplug/firmware/
+total 928
+-r-xr-xr-x 1 beer besoffen  40324 2007-03-21 21:48 dvbh_stellar_usb.inp
+-r-xr-xr-x 1 beer besoffen  38144 2007-05-17 14:35 dvbt_stellar_usb.inp
+-r-xr-xr-x 1 beer besoffen  38144 2007-05-17 14:35 dvbt_bda_stellar_usb.inp
+-r-xr-xr-x 1 beer besoffen  40096 2007-05-17 14:38 tdmb_stellar_usb.inp
+
+Sorry I only saved those corresponding to my device.  As you can
+see, the file sizes differ between the two sources, but perhaps
+you can match them against the tarballs from Steven Toth, to
+determine whether your firmware is the same as either of these
+manufacturer- or vendor-supplied sources.
+
+This is all going from memory, but if it helps set your mind at
+ease, then I'm happy to help.
+
+
+
+> > As I managed to kill off my workstation, more than once, I
+> > see the same problem with other USB devices that get power
+> > through other means.  I'd be inclined to believe this may be
+> > a problem in the USB stack, where it's not issuing a proper
+> > reset to restore the devices -- if this is possible with
+> > power supplied.
 > 
+> I found a something here
+> 
+> http://marc.info/?l=linux-usb-users&m=116827193506484&w=2
+> 
+> that purportedly resets an usb device.
+> What I tried was, before powering off:
+> 
+> 1) unload the drivers
+> 2) use the above to reset the stick
+> 3) power off
+> 
+> and, before loading the drivers, issue a reset again.
+> Sometimes it works, sometimes it doesn't, the end result is that I cannot
+> leave the device plugged-in if I want to use it.
 
-Hi,
+That might work for a planned reboot -- my reboots are 
+occasionally unplanned, and the devices are in part hanging
+at boot time.  I guess if I had had the patience to watch and
+see if the wait eventually timed out, I could test just how
+the system came up and reset anything not present (and then
+configure it as needed). Too much work for a non-critical
+system, when I'd rather it Just Work.
 
-the DVBWorld-Box i didnt know, but i'm using the "Technotrend 3650 CI"-S2-USB-
-Box, which works well, even if it is very verbose in the logfiles.
+I am lazy.  So sue me  :-)
 
-regards, Jens
+
+barry bouwsma
 
 _______________________________________________
 linux-dvb users mailing list
