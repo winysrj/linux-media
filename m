@@ -1,149 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:62431 "EHLO
-	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751093AbZLHJDR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2009 04:03:17 -0500
-Received: by pzk1 with SMTP id 1so2015317pzk.33
-        for <linux-media@vger.kernel.org>; Tue, 08 Dec 2009 01:03:24 -0800 (PST)
+Received: from thsmsgxrt11p.thalesgroup.com ([192.54.144.134]:60431 "EHLO
+	thsmsgxrt11p.thalesgroup.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753918AbZLCSDm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Dec 2009 13:03:42 -0500
+Message-ID: <4B17FD03.6070207@thalesgroup.com>
+Date: Thu, 03 Dec 2009 19:01:39 +0100
+From: =?ISO-8859-1?Q?Emmanuel_Fust=E9?= <emmanuel.fuste@thalesgroup.com>
 MIME-Version: 1.0
-In-Reply-To: <36364.64.213.30.2.1260252173.squirrel@webmail.exetel.com.au>
-References: <33305.64.213.30.2.1259216241.squirrel@webmail.exetel.com.au>
-	 <50104.115.70.135.213.1259224041.squirrel@webmail.exetel.com.au>
-	 <702870ef0911260137r35f1784exc27498d0db3769c2@mail.gmail.com>
-	 <56069.115.70.135.213.1259234530.squirrel@webmail.exetel.com.au>
-	 <46566.64.213.30.2.1259278557.squirrel@webmail.exetel.com.au>
-	 <702870ef0912010118r1e5e3been840726e6364d991a@mail.gmail.com>
-	 <829197380912020657v52e42690k46172f047ebd24b0@mail.gmail.com>
-	 <36364.64.213.30.2.1260252173.squirrel@webmail.exetel.com.au>
-Date: Tue, 8 Dec 2009 20:03:23 +1100
-Message-ID: <702870ef0912080103x58eaeaa2w625a6cc76bba2831@mail.gmail.com>
-Subject: Re: [RESEND] Re: DViCO FusionHDTV DVB-T Dual Digital 4 (rev 1) tuning
-	regression
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: Robert Lowery <rglowery@exemail.com.au>
-Cc: mchehab@redhat.com,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	terrywu2009@gmail.com, awalls@radix.net,
-	linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=001636e1f8f5ac7d85047a33d8af
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [RFC v2] Another approach to IR
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---001636e1f8f5ac7d85047a33d8af
-Content-Type: text/plain; charset=ISO-8859-1
-
-> Mauro,
 >
-> Resend of my proposed patch attached that reverts tuning regressions with
-> my DViCO card, whilst still fixing the original 6Mhz tuning issue.  Please
-> merge or let me know how else I should proceed to get this merged.
+> On Thu, Dec 03, 2009 at 02:33:56PM -0200, Mauro Carvalho Chehab wrote:
+> > Ferenc Wagner wrote:
+> > > Mauro Carvalho Chehab <mchehab@redhat.com> writes:
+> > 
+> > We should not forget that simple IR's don't have any key to select the address,
+> > so the produced codes there will never have KEY_TV/KEY_DVD, etc.
 >
-> Thanks
->
-> -Rob
+> Wait, wait, KEY_TV, KEY_DVD, KEY_TAPE - they should be used to select
+> media inputs in a device/application. My receiver accepts codees like
+> that.
+>   
+Yes, it seem that there is confusion here.
+Forget my proposition. It is a corner case that could be handled later 
+if needed.
 
-perhaps the attached notes will help Rob's case here.
-I did a few more tests, with just one tuner.
-First I changed a cable that I was suspicious of (it was way too long anyway)
-but I got no significant improvement.
-Then I applied the 'revert2.diff' patch that Rob sent and cold-booted.
-I reran the test and got significantly lower BER and UNC values.
 
-There is still something odd going on, in that the UNC seem to get
-worse with repeated tunings to the same channel, a few minutes apart
-(less than 10min). This might be a
-measurement artefact, I don't know. I might try changing the channel
-order - that should
-test whether the trend of the UNC values is with frequency or order in
-the tuning sequence.
-
-Cheers
-VInce
-
---001636e1f8f5ac7d85047a33d8af
-Content-Type: text/plain; charset=US-ASCII; name="test-tuning-revert.txt"
-Content-Disposition: attachment; filename="test-tuning-revert.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: file0
-
-MjAwOS0xMi0wNwoKVHJ5IHNpZ25hbHRlc3QucGwgYWdhaW4uCgpGaXJzdCwgd2l0aCBvbGQgY2Fi
-bGUgYW5kIG5vIGNvZGUgY2hhbmdlcwpoZyBpZGVudGlmeSA9IGM1N2Y0N2NmYjBlOCsgdGlwCgp0
-dW5lciAwIGlzIHVzYmlkIDBmZTk6ZGI3OApkbyB0aHJlZSBjb25zZWN1dGl2ZSBydW5zIHRvIHNl
-ZSBpZiB0aGluZ3Mgd29yc2VuIHdpdGggcmVwZWF0ZWQgdHVuaW5nLgoKRnJlcXVlbmN5ICAgICAg
-IFNpZ25hbCAgICAgICAgICBCZXIgICAgICAgICAgICAgVW5jCj09PT09PT09PSAgICAgICA9PT09
-PT09PSAgICAgICAgPT09PT09PT0gICAgICAgID09PT09PT09CjE3NzUwMDAwMCAgICAgICAgIDc1
-LjkgJSAgICAgICAgICAgMzE4LjkgICAgICAgICAgIDM3Ni4yCjE5MTYyNTAwMCAgICAgICAgIDc0
-LjUgJSAgICAgICAgICAgMjgwLjEgICAgICAgICAgIDkwNC45CjIxOTUwMDAwMCAgICAgICAgIDc3
-LjAgJSAgICAgICAgICAgMjQ1LjIgICAgICAgICAgMTg2Mi4yCjIyNjUwMDAwMCAgICAgICAgIDc3
-LjAgJSAgICAgICAgICAgMTg2LjQgICAgICAgICAgMzUyNS40CjU3MTUwMDAwMCAgICAgICAgIDc3
-LjEgJSAgICAgICAgICAgNTAyLjkgICAgICAgICAgNjE2MS4zCjU3ODUwMDAwMCAgICAgICAgIDc3
-LjIgJSAgICAgICAgICAgNTQxLjEgICAgICAgICAgOTEyOC44CgpGcmVxdWVuY3kgICAgICAgU2ln
-bmFsICAgICAgICAgIEJlciAgICAgICAgICAgICBVbmMKPT09PT09PT09ICAgICAgID09PT09PT09
-ICAgICAgICA9PT09PT09PSAgICAgICAgPT09PT09PT0KMTc3NTAwMDAwICAgICAgICAgNzUuNSAl
-ICAgICAgICAgICAzMTQuNiAgICAgICAgIDExMjE5LjIKMTkxNjI1MDAwICAgICAgICAgNzQuMCAl
-ICAgICAgICAgICAzODQuMyAgICAgICAgIDEyMDU3LjMKMjE5NTAwMDAwICAgICAgICAgNzYuOCAl
-ICAgICAgICAgICAxMTguNyAgICAgICAgIDEzMjM2LjkKMjI2NTAwMDAwICAgICAgICAgNzYuOCAl
-ICAgICAgICAgICAxNzMuNSAgICAgICAgIDE1MjU2LjYKNTcxNTAwMDAwICAgICAgICAgNzcuMCAl
-ICAgICAgICAgICA0NzIuMyAgICAgICAgIDE3OTMwLjcKNTc4NTAwMDAwICAgICAgICAgNzcuMSAl
-ICAgICAgICAgICA1NTAuMCAgICAgICAgIDIwODg4LjgKCkZyZXF1ZW5jeSAgICAgICBTaWduYWwg
-ICAgICAgICAgQmVyICAgICAgICAgICAgIFVuYwo9PT09PT09PT0gICAgICAgPT09PT09PT0gICAg
-ICAgID09PT09PT09ICAgICAgICA9PT09PT09PQoxNzc1MDAwMDAgICAgICAgICA3NS40ICUgICAg
-ICAgICAgIDM0Ni4wICAgICAgICAgMjMwNTIuOAoxOTE2MjUwMDAgICAgICAgICA3My4zICUgICAg
-ICAgICAgIDM0Ny41ICAgICAgICAgMjQwODcuNwoyMTk1MDAwMDAgICAgICAgICA3Ni43ICUgICAg
-ICAgICAgIDIzNi4wICAgICAgICAgMjUyODkuMAoyMjY1MDAwMDAgICAgICAgICA3Ni44ICUgICAg
-ICAgICAgIDE5MC4xICAgICAgICAgMjcyNDEuMAo1NzE1MDAwMDAgICAgICAgICA3Ni45ICUgICAg
-ICAgICAgIDU0MS4xICAgICAgICAgMjk5MTAuMAo1Nzg1MDAwMDAgICAgICAgICA3Ny4xICUgICAg
-ICAgICAgIDUxMS43ICAgICAgICAgMzI5MDIuMQoKCk5vdyByZXBlYXQgd2l0aCB0aGUgMS41bSBj
-YWJsZSBjb25uZWN0aW5nIHdhbGwgc29ja2V0IHRvIHNwbGl0dGVyLgpjb2xkIGJvb3QgdGhlIG1h
-Y2hpbmUKaGcgaWRlbnRpZnkgPSBjNTdmNDdjZmIwZTgrIHRpcAoKZHZiMC5mcm9udGVuZDA6IHVz
-YmlkIDBmZTk6ZGI3OAoKRnJlcXVlbmN5ICAgICAgIFNpZ25hbCAgICAgICAgICBCZXIgICAgICAg
-ICAgICAgVW5jCj09PT09PT09PSAgICAgICA9PT09PT09PSAgICAgICAgPT09PT09PT0gICAgICAg
-ID09PT09PT09CjE3NzUwMDAwMCAgICAgICAgIDc0LjAgJSAgICAgICAgICAgMjg4LjIgICAgICAg
-ICAgIDc4NC44CjE5MTYyNTAwMCAgICAgICAgIDczLjMgJSAgICAgICAgICAgNDg3LjIgICAgICAg
-ICAgMTg5MC45CjIxOTUwMDAwMCAgICAgICAgIDc2LjcgJSAgICAgICAgICAgMTQ3LjIgICAgICAg
-ICAgMzE4OS44CjIyNjUwMDAwMCAgICAgICAgIDc2LjggJSAgICAgICAgICAgMjAyLjIgICAgICAg
-ICAgNTA5NC43CjU3MTUwMDAwMCAgICAgICAgIDc2LjkgJSAgICAgICAgICAgNDQzLjEgICAgICAg
-ICAgNzY0MC42CjU3ODUwMDAwMCAgICAgICAgIDc2LjkgJSAgICAgICAgICAgNDk5LjkgICAgICAg
-ICAxMDY3NS4zCgpGcmVxdWVuY3kgICAgICAgU2lnbmFsICAgICAgICAgIEJlciAgICAgICAgICAg
-ICBVbmMKPT09PT09PT09ICAgICAgID09PT09PT09ICAgICAgICA9PT09PT09PSAgICAgICAgPT09
-PT09PT0KMTc3NTAwMDAwICAgICAgICAgNzMuMCAlICAgICAgICAgICAzMzAuNyAgICAgICAgIDEy
-Nzk1LjQKMTkxNjI1MDAwICAgICAgICAgNzIuNiAlICAgICAgICAgICAyOTEuOCAgICAgICAgIDEz
-ODQ0LjMKMjE5NTAwMDAwICAgICAgICAgNzYuNyAlICAgICAgICAgICAxMzIuNSAgICAgICAgIDE1
-MDA1LjUKMjI2NTAwMDAwICAgICAgICAgNzYuOCAlICAgICAgICAgICAxMzYuMiAgICAgICAgIDE2
-OTI4LjAKNTcxNTAwMDAwICAgICAgICAgNzYuOSAlICAgICAgICAgICA1MjUuMiAgICAgICAgIDE5
-NDgwLjcKNTc4NTAwMDAwICAgICAgICAgNzcuMCAlICAgICAgICAgICA1MjIuNyAgICAgICAgIDIy
-MzYxLjcKCkZyZXF1ZW5jeSAgICAgICBTaWduYWwgICAgICAgICAgQmVyICAgICAgICAgICAgIFVu
-Ywo9PT09PT09PT0gICAgICAgPT09PT09PT0gICAgICAgID09PT09PT09ICAgICAgICA9PT09PT09
-PQoxNzc1MDAwMDAgICAgICAgICA3NS41ICUgICAgICAgICAgIDM2MS42ICAgICAgICAgMjQ1ODQu
-MgoxOTE2MjUwMDAgICAgICAgICA3My44ICUgICAgICAgICAgIDQ4MC45ICAgICAgICAgMjU4MTYu
-NAoyMTk1MDAwMDAgICAgICAgICA3Ni43ICUgICAgICAgICAgIDE0My40ICAgICAgICAgMjY5NjIu
-MgoyMjY1MDAwMDAgICAgICAgICA3Ni44ICUgICAgICAgICAgIDE4Ny41ICAgICAgICAgMjg4NDYu
-MQo1NzE1MDAwMDAgICAgICAgICA3Ny4wICUgICAgICAgICAgIDQ2OC40ICAgICAgICAgMzE0NDgu
-OQo1Nzg1MDAwMDAgICAgICAgICA3Ny4wICUgICAgICAgICAgIDU0Ny4zICAgICAgICAgMzQ1MTEu
-OAoKCk5vdyBtYWtlIHRoZSBjb2RlIGNoYW5nZS4gQ29sZCBib290LgpkdmIwLmZyb250ZW5kMDog
-dXNiaWQgMGZlOTpkYjc4CgpGcmVxdWVuY3kgICAgICAgU2lnbmFsICAgICAgICAgIEJlciAgICAg
-ICAgICAgICBVbmMKPT09PT09PT09ICAgICAgID09PT09PT09ICAgICAgICA9PT09PT09PSAgICAg
-ICAgPT09PT09PT0KMTc3NTAwMDAwICAgICAgICAgNzYuNSAlICAgICAgICAgICAgIDAuMCAgICAg
-ICAgICAgICAwLjAKMTkxNjI1MDAwICAgICAgICAgNzYuOSAlICAgICAgICAgICAxMzYuOCAgICAg
-ICAgICAgMTAyLjMKMjE5NTAwMDAwICAgICAgICAgNzYuOSAlICAgICAgICAgICAyOTcuNiAgICAg
-ICAgICAgNTQ5LjAKMjI2NTAwMDAwICAgICAgICAgNzYuOCAlICAgICAgICAgICAzMDQuNyAgICAg
-ICAgICAxNDYxLjQKNTcxNTAwMDAwICAgICAgICAgNzYuOSAlICAgICAgICAgICA1MDUuMCAgICAg
-ICAgICAzODAxLjAKNTc4NTAwMDAwICAgICAgICAgNzcuMCAlICAgICAgICAgICA1NzMuNyAgICAg
-ICAgICA2ODE4LjYKCkZyZXF1ZW5jeSAgICAgICBTaWduYWwgICAgICAgICAgQmVyICAgICAgICAg
-ICAgIFVuYwo9PT09PT09PT0gICAgICAgPT09PT09PT0gICAgICAgID09PT09PT09ICAgICAgICA9
-PT09PT09PQoxNzc1MDAwMDAgICAgICAgICA3Ni40ICUgICAgICAgICAgICAgMC4wICAgICAgICAg
-IDgzNDUuMAoxOTE2MjUwMDAgICAgICAgICA3Ni44ICUgICAgICAgICAgIDE2OS43ICAgICAgICAg
-IDg0NzYuMAoyMTk1MDAwMDAgICAgICAgICA3Ni43ICUgICAgICAgICAgIDI0My44ICAgICAgICAg
-IDg5NjcuMgoyMjY1MDAwMDAgICAgICAgICA3Ni45ICUgICAgICAgICAgIDI3MS42ICAgICAgICAg
-IDk5MDQuNwo1NzE1MDAwMDAgICAgICAgICA3Ni45ICUgICAgICAgICAgIDUyNS45ICAgICAgICAg
-MTIwOTcuNAo1Nzg1MDAwMDAgICAgICAgICA3Ny4xICUgICAgICAgICAgIDU1NC45ICAgICAgICAg
-MTUzNjQuOQoKRnJlcXVlbmN5ICAgICAgIFNpZ25hbCAgICAgICAgICBCZXIgICAgICAgICAgICAg
-VW5jCj09PT09PT09PSAgICAgICA9PT09PT09PSAgICAgICAgPT09PT09PT0gICAgICAgID09PT09
-PT09CjE3NzUwMDAwMCAgICAgICAgIDc2LjMgJSAgICAgICAgICAgICAxLjMgICAgICAgICAxNjgz
-NS4wCjE5MTYyNTAwMCAgICAgICAgIDc2LjcgJSAgICAgICAgICAgMjI1LjAgICAgICAgICAxNjk0
-OS43CjIxOTUwMDAwMCAgICAgICAgIDc2LjcgJSAgICAgICAgICAgMjY3LjEgICAgICAgICAxNzQz
-Mi41CjIyNjUwMDAwMCAgICAgICAgIDc2LjggJSAgICAgICAgICAgMjU0LjQgICAgICAgICAxODM3
-Mi45CjU3MTUwMDAwMCAgICAgICAgIDc2LjkgJSAgICAgICAgICAgNTc1LjIgICAgICAgICAyMDU3
-My43CjU3ODUwMDAwMCAgICAgICAgIDc3LjAgJSAgICAgICAgICAgNTEyLjcgICAgICAgICAyMzc3
-MS4yCgo=
---001636e1f8f5ac7d85047a33d8af--
+Cheers,
+Emmanuel.
