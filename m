@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 39.mail-out.ovh.net ([213.251.138.60])
-	by mail.linuxtv.org with smtp (Exim 4.69)
-	(envelope-from <luca@ventoso.org>) id 1NGBtM-0000Le-Qt
-	for linux-dvb@linuxtv.org; Thu, 03 Dec 2009 14:38:45 +0100
-Message-ID: <4B17BF5B.7010400@ventoso.org>
-Date: Thu, 03 Dec 2009 14:38:35 +0100
-From: Luca Olivetti <luca@ventoso.org>
+Received: from mail-ew0-f215.google.com ([209.85.219.215])
+	by mail.linuxtv.org with esmtp (Exim 4.69)
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1NG7Ld-00013I-7B
+	for linux-dvb@linuxtv.org; Thu, 03 Dec 2009 09:47:38 +0100
+Received: by ewy7 with SMTP id 7so145582ewy.12
+	for <linux-dvb@linuxtv.org>; Thu, 03 Dec 2009 00:47:03 -0800 (PST)
+Date: Thu, 3 Dec 2009 09:47:01 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Leszek Koltunski <leszek@koltunski.pl>
+In-Reply-To: <8cd7f1780912030012h609a7a5w72d054ac5749eab1@mail.gmail.com>
+Message-ID: <alpine.DEB.2.01.0912030943130.4548@ybpnyubfg.ybpnyqbznva>
+References: <8cd7f1780912030012h609a7a5w72d054ac5749eab1@mail.gmail.com>
 MIME-Version: 1.0
-To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-References: <4B14CC1E.7030102@ventoso.org>
-	<alpine.DEB.2.01.0912030540570.4548@ybpnyubfg.ybpnyqbznva>
-	<4B177C81.5030900@ventoso.org>
-	<alpine.DEB.2.01.0912031303050.4548@ybpnyubfg.ybpnyqbznva>
-In-Reply-To: <alpine.DEB.2.01.0912031303050.4548@ybpnyubfg.ybpnyqbznva>
-Cc: Linux DVB <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] siano firmware and behaviour after resuming power
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] /dev/dvb/adapter0/net0 <-- what is this for and how
+ to use it?
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -23,54 +23,43 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-En/na BOUWSMA Barry ha escrit:
+On Thu, 3 Dec 2009, Leszek Koltunski wrote:
 
->> I found a something here
->>
->> http://marc.info/?l=linux-usb-users&m=116827193506484&w=2
->>
->> that purportedly resets an usb device.
->> What I tried was, before powering off:
->>
->> 1) unload the drivers
->> 2) use the above to reset the stick
->> 3) power off
->>
->> and, before loading the drivers, issue a reset again.
->> Sometimes it works, sometimes it doesn't, the end result is that I cannot
->> leave the device plugged-in if I want to use it.
+> One question: in /dev/dvb/adapter0 I can see
 > 
-> That might work for a planned reboot 
-
-This being a vdr machine, the reboot is either planned or due to a power 
-loss, and I suppose that the latter would really reset the device, but I 
-didn't try.
-The problem is that even so (planned reboot/switch off) it only works 
-sometimes.
-
-
-> -- my reboots are 
-> occasionally unplanned, and the devices are in part hanging
-> at boot time.  I guess if I had had the patience to watch and
-> see if the wait eventually timed out, I could test just how
-> the system came up and reset anything not present (and then
-> configure it as needed). Too much work for a non-critical
-> system, when I'd rather it Just Work.
+> leszek@satellite:~$ ls -l /dev/dvb/adapter0/
+> total 0
+> crw-rw----+ 1 root video 212, 4 2009-12-02 18:22 ca0
+> crw-rw----+ 1 root video 212, 0 2009-12-02 18:22 demux0
+> crw-rw----+ 1 root video 212, 1 2009-12-02 18:22 dvr0
+> crw-rw----+ 1 root video 212, 3 2009-12-02 18:22 frontend0
+> crw-rw----+ 1 root video 212, 2 2009-12-02 18:22 net0
 > 
-> I am lazy.  So sue me  :-)
+> What is this 'net0' device and how do I use it? Can I use it to directly
+> multicast my (FTA) satellite stream to my lan by any chance?
 
-As I'm getting older, I'm also getting lazier, so I'm not going to sue 
-you ;-)
+No, it can be used for receiving IP datastreams broadcast by
+satellite.
 
-Bye
--- 
-Luca
+
+> I have found no documentation about this...
+
+There is a guide I've found to setting this up (a few years ago)
+but I can't give an off-the-top-of-my-head pointer to this.
+
+Unless you want to receive a satellite-delivered multicast or
+unicast stream -- I'm not sure if there are any out there of
+interest to non-subscribers -- it something you wouldn't need
+to use.
+
+
+barry bouwsma
 
 _______________________________________________
 linux-dvb users mailing list
