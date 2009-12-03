@@ -1,104 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:59029 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751255AbZLRKRE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2009 05:17:04 -0500
-Date: Fri, 18 Dec 2009 11:17:04 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Created files in patch comment intended?
-In-Reply-To: <4B2B5574.3090407@infradead.org>
-Message-ID: <Pine.LNX.4.64.0912181114070.4406@axis700.grange>
-References: <Pine.LNX.4.64.0912180756580.4406@axis700.grange>
- <4B2B5574.3090407@infradead.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from legolas.alcom.aland.fi ([194.112.1.132]:50408 "EHLO
+	legolas.alcom.aland.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751192AbZLCVPX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 16:15:23 -0500
+Received: from aragon.alcom.aland.fi (aragon [194.112.0.1])
+	by legolas.alcom.aland.fi (8.12.11.20060308/8.12.11) with ESMTP id nB3LFRpq011128
+	for <linux-media@vger.kernel.org>; Thu, 3 Dec 2009 23:15:28 +0200
+Received: from [10.0.0.2] (82-199-168-58.bredband.aland.net [82.199.168.58])
+	(authenticated bits=0)
+	by aragon.alcom.aland.fi (8.12.11.20060308/8.12.11) with ESMTP id nB3LFPOJ009121
+	for <linux-media@vger.kernel.org>; Thu, 3 Dec 2009 23:15:26 +0200
+Subject: Re: af9015: tuner id:179 not supported, please report!
+From: Jan Sundman <jan.sundman@aland.net>
+To: linux-media@vger.kernel.org
+In-Reply-To: <37219a840912021508s75535fa6v83006d3bad0c301@mail.gmail.com>
+References: <1259695756.5239.2.camel@desktop>
+	 <loom.20091202T230047-299@post.gmane.org>
+	 <37219a840912021508s75535fa6v83006d3bad0c301@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 03 Dec 2009 23:15:20 +0200
+Message-ID: <1259874920.2151.13.camel@desktop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 18 Dec 2009, Mauro Carvalho Chehab wrote:
+Hi Bert and Mike,
 
-> Hi Guennadi,
-> 
-> Guennadi Liakhovetski wrote:
-> > Hi Mauro
-> > 
-> > Looking at how my mediabus patches got committed into the mainline, I 
-> > noticed, that the add-mediabus patch contains a list of added files 
-> > between the patch description and the Sob's:
-> > 
-> >      create mode 100644 drivers/media/video/soc_mediabus.c
-> >      create mode 100644 include/media/soc_mediabus.h
-> >      create mode 100644 include/media/v4l2-mediabus.h
-> > 
-> > Is this intended, and if yes - why? If not, maybe you'd like to fix this 
-> > in your hg-git export scripts.
-> > 
-> No, this is not intentional. The scripts have a logic to identify the description
-> body of a mercurial commit and of a patch received by email. The logic should
-> just import whatever description is provided on -hg.
-> 
-> By looking on your commit for this patch on mercurial, we have:
-> 
-> $ hg log -r 13658 -v
-> changeset:   13658:2c60bd900a7a
-> user:        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> date:        Fri Dec 11 15:41:28 2009 +0100
-> files:       linux/drivers/media/video/Makefile linux/drivers/media/video/soc_mediabus.c linux/include/media/soc_mediabus.h linux/include/media/v4l2-mediabus.h linux/include/media/v4l2-subdev.h
-> description:
-> v4l: add a media-bus API for configuring v4l2 subdev pixel and frame formats
-> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> 
-> Video subdevices, like cameras, decoders, connect to video bridges over
-> specialised busses. Data is being transferred over these busses in various
-> formats, which only loosely correspond to fourcc codes, describing how video
-> data is stored in RAM. This is not a one-to-one correspondence, therefore we
-> cannot use fourcc codes to configure subdevice output data formats. This patch
-> adds codes for several such on-the-bus formats and an API, similar to the
-> familiar .s_fmt(), .g_fmt(), .try_fmt(), .enum_fmt() API for configuring those
-> codes. After all users of the old API in struct v4l2_subdev_video_ops are
-> converted, it will be removed. Also add helper routines to support generic
-> pass-through mode for the soc-camera framework.
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
-> ---
->  drivers/media/video/Makefile       |    2 +-
->  drivers/media/video/soc_mediabus.c |  157 ++++++++++++++++++++++++++++++++++++
->  include/media/soc_mediabus.h       |   65 +++++++++++++++
->  include/media/v4l2-mediabus.h      |   61 ++++++++++++++
->  include/media/v4l2-subdev.h        |   19 ++++-
->  5 files changed, 302 insertions(+), 2 deletions(-)
->  create mode 100644 drivers/media/video/soc_mediabus.c
->  create mode 100644 include/media/soc_mediabus.h
->  create mode 100644 include/media/v4l2-mediabus.h
-> 
-> 
-> As you see, you added those comments at the end of the patch, together with a diffstat.
-> While the script has a logic to remove diffstats, it doesn't contain anything to remove
-> the "create mode" lines that you've added at the end of the patch description.
+The information that you have regarding the TDA18218, where can I get my
+hands on that? It would be interesting to take a shot at writing the
+driver, but I guess I would need some pointers in the right direction.
 
-No, _I_ didn't add those, git did. This is the standard output from "git 
-format patch." And the patch format for submission to the kernel is 
-roughly
+Would it be possible to get the information from you, or is such
+information freely available on the internet? Where should I start
+looking?
 
-<subject>
+Best regards,
 
-<description>
+//Jan
 
-<Sob, ack,...>
----
-<ignored lines>
-<diff -u>
+On Wed, 2009-12-02 at 18:08 -0500, Michael Krufky wrote:
+> On Wed, Dec 2, 2009 at 5:06 PM, Bert Massop <bert.massop@gmail.com> wrote:
+> > Jan Sundman <jan.sundman <at> aland.net> writes:
+> >
+> >>
+> >> Hi,
+> >>
+> >> I just received a usb DVB-T card and have been trying to get it to work
+> >> under Ubuntu 9.10, but to no avail. dmesg shows the following when
+> >> plugging in the card:
+> >>
+> >> [   35.280024] usb 2-1: new high speed USB device using ehci_hcd and
+> >> address 4
+> >> [   35.435978] usb 2-1: configuration #1 chosen from 1 choice
+> >> [   35.450176] af9015: tuner id:179 not supported, please report!
+> >> [   35.452891] Afatech DVB-T 2: Fixing fullspeed to highspeed interval:
+> >> 10 -> 7
+> >> [   35.453097] input: Afatech DVB-T 2
+> >> as /devices/pci0000:00/0000:00:13.2/usb2/2-1/2-1:1.1/input/input8
+> >> [   35.453141] generic-usb 0003:15A4:9016.0005: input,hidraw3: USB HID
+> >> v1.01 Keyboard [Afatech DVB-T 2] on usb-0000:00:13.2-1/input1
+> >>
+> >> lsusb shows:
+> >> Bus 002 Device 005: ID 15a4:9016
+> >>
+> >> and finally lsmod | grep dvb
+> >> dvb_usb_af9015         37152  0
+> >> dvb_usb                22892  1 dvb_usb_af9015
+> >> dvb_core              109716  1 dvb_usb
+> >>
+> >> While googling for an answer to my troubles I came across
+> >> http://ubuntuforums.org/showthread.php?t=606487&page=5 which hints that
+> >> the card may use the TDA18218HK tuner chip which does not seem to be
+> >> supported currently.
+> >>
+> >> Does anyone have any experience regarding this chip and know what to do
+> >> to get it working.
+> >>
+> >> Best regards,
+> >>
+> >> //Jan
+> >>
+> >>
+> >
+> > Hi Jan,
+> >
+> > As stated in the Ubuntuforums thread, there doesn't seem to be any support for
+> > this chip at the moment. I don't know how hard it is to code support for a
+> > specific tuner, but I'm looking into that right now.
+> >
+> > Hopefully some more experienced coders will join in writing something usable, as
+> > I don't think I will be able to do it myself.
+> >
+> > Please drop a message if anyone finds something useful.
+> >
+> > Best regards,
+> >
+> > Bert
+> 
+> The TDA18218 is not currently supported under Linux.  I have the
+> information needed to write a driver to support it, but I do not have
+> any devices that use it, nor any interest (as of now) to write the
+> driver on my own time.
+> 
+> For me, it would not be very difficult to get this done, as I have
+> done work to support a similar family of tuners -- TDA18271 /
+> TDA18211.  The TDA18218 tuner is not supported by the current driver.
+> 
+> In the past, I would have gone ahead and written a driver for the
+> sheer enjoyment of doing so... but nowadays, I actually have other
+> projects of a higher priority that need my attention instead.
+> 
+> If, in the future, any commercial entity has interest in seeing this
+> tuner silicon supported under Linux, they should contact me -- perhaps
+> my desire to write this driver can be increased ;-)
+> 
+> Regards,
+> 
+> Mike Krufky
+> kernellabs.com
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-So, anything, beginning with "---\n" and the patch must be ignored. That's 
-also where you provide any comments, that should not be included in the 
-commit text.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
