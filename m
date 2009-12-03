@@ -1,124 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f219.google.com ([209.85.219.219]:61848 "EHLO
-	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752125AbZLDGhy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 01:37:54 -0500
-Received: by ewy19 with SMTP id 19so2425459ewy.1
-        for <linux-media@vger.kernel.org>; Thu, 03 Dec 2009 22:38:00 -0800 (PST)
-Message-ID: <4B18AE42.6010000@gmail.com>
-Date: Fri, 04 Dec 2009 07:37:54 +0100
-From: "tomlohave@gmail.com" <tomlohave@gmail.com>
+Received: from mail-yw0-f182.google.com ([209.85.211.182]:36638 "EHLO
+	mail-yw0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752857AbZLCWMe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 17:12:34 -0500
+Date: Thu, 3 Dec 2009 14:12:31 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Christoph Bartelmus <lirc@bartelmus.de>
+Cc: mchehab@redhat.com, awalls@radix.net, j@jannau.net,
+	jarod@redhat.com, jarod@wilsonet.com, jonsmirl@gmail.com,
+	khc@pm.waw.pl, kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+	IR  system?
+Message-ID: <20091203221231.GE776@core.coreip.homeip.net>
+References: <4B18292C.6070303@redhat.com> <BEBfoS11qgB@lirc>
 MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-CC: linux-media@vger.kernel.org, jpnews13@free.fr
-Subject: Re: saa7134  (not very) new board 5168:0307
-References: <4B03F15D.1090907@gmail.com>	 <1258585719.3275.14.camel@pc07.localdom.local> <4B1101B0.5010008@gmail.com> <1259543353.4436.21.camel@pc07.localdom.local>
-In-Reply-To: <1259543353.4436.21.camel@pc07.localdom.local>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <BEBfoS11qgB@lirc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi hermann,
+On Thu, Dec 03, 2009 at 10:51:00PM +0100, Christoph Bartelmus wrote:
+> Hi Mauro,
+> 
+> on 03 Dec 09 at 19:10, Mauro Carvalho Chehab wrote:
+> [...]
+> >>> So the lirc_imon I submitted supports all device types, with the
+> >>> onboard decode devices defaulting to operating as pure input devices,
+> >>> but an option to pass hex values out via the lirc interface (which is
+> >>> how they've historically been used -- the pure input stuff I hacked
+> >>> together just a few weeks ago), to prevent functional setups from
+> >>> being broken for those who prefer the lirc way.
+> >>
+> >> Hmm.  I'd tend to limit the lirc interface to the 'raw samples' case.
+> 
+> >> Historically it has also been used to pass decoded data (i.e. rc5) from
+> >> devices with onboard decoding, but for that in-kernel mapping + input
+> >> layer really fits better.
+> 
+> > I agree.
+> 
+> Consider passing the decoded data through lirc_dev.
+> - there's a large user base already that uses this mode through lirc and  
+> would be forced to switch to input layer if it disappears.
 
-we are this results :
+I believe it was agreed that lirc-dev should be used mainly for decoding
+protocols that are more conveniently decoded in userspace and the
+results would be looped back into input layer through evdev which will
+be the main interface for consumer applications to use.
 
-with
-
-&tda827x_cfg_0, &tda827x_cfg_1 or &tda827x_cfg_2
-
-we have a perfect image without sound on the analogic part (test with mplayer),
-a partial result with dvb-t : we need to initialize first with analogic (with cold boot, the card doesn't work on dvb)
-but only for few seconds(sound and image are ok) 
-then re-initialize with analogic, work for few seconds on dvb and then nothing
-maybe i am wrong but, the sound part for analogic is a problem of redirection, isn't it  ?
-
-here are our configuration for this card :
-
-in saa7134-dvb.c
-
-static struct tda1004x_config tda827x_flydvbtduo_medion_config = {
-	.demod_address = 0x08,
-	.invert        = 1,
-	.invert_oclk   = 0,
-	.xtal_freq     = TDA10046_XTAL_16M,
-	.agc_config    = TDA10046_AGC_TDA827X,
-	.gpio_config   = TDA10046_GP01_I,
-	.if_freq       = TDA10046_FREQ_045,
-	.i2c_gate      = 0x4b,
-	.tuner_address = 0x61,
-	.antenna_switch = 2,
-	.request_firmware = philips_tda1004x_request_firmware
-};
-
-case SAA7134_BOARD_FLYDVBTDUO_MEDION:
-		if (configure_tda827x_fe(dev, &tda827x_flydvbtduo_medion_config,
-					 &tda827x_cfg_2) < 0)
-			goto dettach_frontend;
-		break;
-	default:
-		wprintk("Huh? unknown DVB card?\n");
-		break;
-
-
-in saa7134-cards.c
-
-    [SAA7134_BOARD_FLYDVBTDUO_MEDION] = {
-        .name           = "LifeView FlyDVB-T DUO Medion",
-        .audio_clock    = 0x00187de7,
-        .tuner_type     = TUNER_PHILIPS_TDA8290,
-        .radio_type     = UNSET,
-        .tuner_addr    = ADDR_UNSET,
-        .radio_addr    = ADDR_UNSET,
-        .gpiomask    = 0x00200000,
-        .mpeg           = SAA7134_MPEG_DVB,
-        .inputs         = {{
-            .name = name_tv,
-            .vmux = 1,
-            .amux = TV,
-            .gpio = 0x200000,     /* GPIO21=High for TV input */
-            .tv   = 1,
-        },{
-            .name = name_comp1,    /* Composite signal on S-Video input */
-            .vmux = 3,
-            .amux = LINE1,
-        },{
-            .name = name_svideo,    /* S-Video signal on S-Video input */
-            .vmux = 8,
-            .amux = LINE1,
-        }},
-        .radio = {
-            .name = name_radio,
-            .amux = TV,
-            .gpio = 0x000000,    /* GPIO21=Low for FM radio antenna */
-        },
-
-
-.vendor       = PCI_VENDOR_ID_PHILIPS,
-        .device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-        .subvendor    = 0x5168,        
-        .subdevice    = 0x0307,  /* LR307-N */      
-        .driver_data  = SAA7134_BOARD_FLYDVBTDUO_MEDION,
-
-case SAA7134_BOARD_FLYDVBTDUO_MEDION:
-    {
-        /* this is a hybrid board, initialize to analog mode
-         * and configure firmware eeprom address
-         */
-        u8 data[] = { 0x3c, 0x33, 0x60};
-        struct i2c_msg msg = {.addr=0x08, .flags=0, .buf=data, .len = 
-sizeof(data)};
-        i2c_transfer(&dev->i2c_adap, &msg, 1);
-        break;
-
-
-
-
-What can we do to have dvb fully supported ?
-
-thanks in advance,
-
-Cheers,
-
-Thomas
-
+-- 
+Dmitry
