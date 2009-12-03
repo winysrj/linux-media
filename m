@@ -1,47 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:4160 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752812AbZLARlk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Dec 2009 12:41:40 -0500
-Message-ID: <4B155534.6060907@redhat.com>
-Date: Tue, 01 Dec 2009 15:41:08 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+Received: from mail-pz0-f184.google.com ([209.85.222.184]:37928 "EHLO
+	mail-pz0-f184.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755510AbZLCRbG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 12:31:06 -0500
+Date: Thu, 3 Dec 2009 09:31:06 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Ferenc Wagner <wferi@niif.hu>, Jarod Wilson <jarod@wilsonet.com>,
+	Jarod Wilson <jarod@redhat.com>,
 	Jon Smirl <jonsmirl@gmail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
 	Maxim Levitsky <maximlevitsky@gmail.com>, awalls@radix.net,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
+	j@jannau.net, khc@pm.waw.pl, linux-input@vger.kernel.org,
 	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
 	lirc-list@lists.sourceforge.net, superm1@ubuntu.com,
 	Christoph Bartelmus <lirc@bartelmus.de>
 Subject: Re: [RFC v2] Another approach to IR
-References: <9e4733910912010708u1064e2c6mbc08a01293c3e7fd@mail.gmail.com>  <1259682428.18599.10.camel@maxim-laptop>  <9e4733910912010816q32e829a2uce180bfda69ef86d@mail.gmail.com>  <4B154C54.5090906@redhat.com> <829197380912010909m59cb1078q5bd2e00af0368aaf@mail.gmail.com> <alpine.LRH.2.00.0912011833070.11226@pub6.ifh.de>
-In-Reply-To: <alpine.LRH.2.00.0912011833070.11226@pub6.ifh.de>
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Message-ID: <20091203173105.GA776@core.coreip.homeip.net>
+References: <9e4733910912020930t3c9fe973k16fd353e916531a4@mail.gmail.com> <4B16BE6A.7000601@redhat.com> <20091202195634.GB22689@core.coreip.homeip.net> <2D11378A-041C-4B56-91FF-3E62F5F19753@wilsonet.com> <20091202201404.GD22689@core.coreip.homeip.net> <4B16CCD7.20601@redhat.com> <20091202205323.GF22689@core.coreip.homeip.net> <4B16D87F.7080701@redhat.com> <87tyw8ujsr.fsf@tac.ki.iif.hu> <4B17E874.5020003@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4B17E874.5020003@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patrick Boettcher wrote:
-
->> The fact that the driver currently uses the same lookup table for both
->> types of remote controls however, was perhaps not the best design
->> choice.  It really should be separated out, and merged with the
->> regular ir-functions.c.  I just never got around to it.
+On Thu, Dec 03, 2009 at 02:33:56PM -0200, Mauro Carvalho Chehab wrote:
+> Ferenc Wagner wrote:
+> > Mauro Carvalho Chehab <mchehab@redhat.com> writes:
 > 
-> I did not follow all the discussion, still I have a comment:
-> 
-> I will soon work on a device where it is the driver who is doing the
-> decoding of the IR-frames. It is (maybe, I'm still missing some pieces
-> to be sure) possible to receive different protocols at the same time
-> with this hardware.
+> We should not forget that simple IR's don't have any key to select the address,
+> so the produced codes there will never have KEY_TV/KEY_DVD, etc.
 
-That's good news! Needing to pass a modprobe parameter to select the protocol
-is not nice, and, while an ioctl will be needed to select IR protocols
-(as there are some hardwares where this is not possible at all), the better
-is to auto-detect the protocol.
+Wait, wait, KEY_TV, KEY_DVD, KEY_TAPE - they should be used to select
+media inputs in a device/application. My receiver accepts codees like
+that.
 
-Cheers,
-Mauro.
+-- 
+Dmitry
