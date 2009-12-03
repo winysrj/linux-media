@@ -1,21 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225])
-	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <dehqan65@gmail.com>) id 1NORhI-0002R8-Jx
-	for linux-dvb@linuxtv.org; Sat, 26 Dec 2009 09:08:26 +0100
-Received: by fxm25 with SMTP id 25so3507718fxm.1
-	for <linux-dvb@linuxtv.org>; Sat, 26 Dec 2009 00:07:51 -0800 (PST)
+Received: from 39.mail-out.ovh.net ([213.251.138.60])
+	by mail.linuxtv.org with smtp (Exim 4.69)
+	(envelope-from <luca@ventoso.org>) id 1NGBtM-0000Le-Qt
+	for linux-dvb@linuxtv.org; Thu, 03 Dec 2009 14:38:45 +0100
+Message-ID: <4B17BF5B.7010400@ventoso.org>
+Date: Thu, 03 Dec 2009 14:38:35 +0100
+From: Luca Olivetti <luca@ventoso.org>
 MIME-Version: 1.0
-In-Reply-To: <200912251235.26746.jens.nixdorf@gmx.de>
-References: <267bb6670912231253y40b6197j454df3ff51944f7d@mail.gmail.com>
-	<200912241747.47491.jens.nixdorf@gmx.de>
-	<267bb6670912242258i21e03a29k2f33398ce74623f@mail.gmail.com>
-	<200912251235.26746.jens.nixdorf@gmx.de>
-Date: Sat, 26 Dec 2009 11:37:51 +0330
-Message-ID: <267bb6670912260007h3e719792k1256288dace2084d@mail.gmail.com>
-From: dehqan65 <dehqan65@gmail.com>
-To: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB-S2 boxes with CI support ?
+To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+References: <4B14CC1E.7030102@ventoso.org>
+	<alpine.DEB.2.01.0912030540570.4548@ybpnyubfg.ybpnyqbznva>
+	<4B177C81.5030900@ventoso.org>
+	<alpine.DEB.2.01.0912031303050.4548@ybpnyubfg.ybpnyqbznva>
+In-Reply-To: <alpine.DEB.2.01.0912031303050.4548@ybpnyubfg.ybpnyqbznva>
+Cc: Linux DVB <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] siano firmware and behaviour after resuming power
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -24,83 +23,57 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0127509008=="
-Mime-version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0127509008==
-Content-Type: multipart/alternative; boundary=0016e65ae9f22a0b79047b9d2b17
+En/na BOUWSMA Barry ha escrit:
 
---0016e65ae9f22a0b79047b9d2b17
-Content-Type: text/plain; charset=ISO-8859-1
+>> I found a something here
+>>
+>> http://marc.info/?l=linux-usb-users&m=116827193506484&w=2
+>>
+>> that purportedly resets an usb device.
+>> What I tried was, before powering off:
+>>
+>> 1) unload the drivers
+>> 2) use the above to reset the stick
+>> 3) power off
+>>
+>> and, before loading the drivers, issue a reset again.
+>> Sometimes it works, sometimes it doesn't, the end result is that I cannot
+>> leave the device plugged-in if I want to use it.
+> 
+> That might work for a planned reboot 
 
-In The Name Of God The compassionate merciful
-
-hello;
-
-Here <http://linuxtv.org/wiki/index.php/DVB-S2_USB_Devices> is mentioned
-that DVBWorld<http://linuxtv.org/wiki/index.php/DVBWorld_HD_2104_CA%2BCI_USB_Box>is
-supported device and others have experimental support :
-
-
-   - TechnoTrend <http://linuxtv.org/wiki/index.php/TechnoTrend> TT-connect
-   S2-3650 CI<http://linuxtv.org/wiki/index.php/TechnoTrend_TT-connect_S2-3650_CI>
-   - Technisat SkyStar USB 2 HD
-CI<http://linuxtv.org/wiki/index.php/Technisat_SkyStar_USB_2_HD_CI>
-   - AzureWave DVB-S2 USB CI - AD-SB300
-(7050)<http://linuxtv.org/wiki/index.php/AzureWave_DVB-S2_USB_CI_-_AD-SB300_%287050%29>
-
-
-1 - Do these 4 boxes work in Linux ,and only 1 one of them is supported in
-linux ?
-2 - Which one do you advice for linux ? If you only check all these
-propeties : Driver,tuner,demod,stability Which one will you advice overall ?
-
-Regards dehqan
-
---0016e65ae9f22a0b79047b9d2b17
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-<div dir=3D"ltr">In The Name Of God The compassionate merciful<br><br>hello=
-;<br><br><a href=3D"http://linuxtv.org/wiki/index.php/DVB-S2_USB_Devices" c=
-lass=3D"externalURL">Here</a> is mentioned that <a href=3D"http://linuxtv.o=
-rg/wiki/index.php/DVBWorld_HD_2104_CA%2BCI_USB_Box" class=3D"externalURL">D=
-VBWorld</a> is supported device and others have experimental support :<br>
-
-<br>
-<ul style=3D"list-style-type: disc;"><li><a href=3D"http://linuxtv.org/wiki=
-/index.php/TechnoTrend" class=3D"externalURL">TechnoTrend</a> <a href=3D"ht=
-tp://linuxtv.org/wiki/index.php/TechnoTrend_TT-connect_S2-3650_CI" class=3D=
-"externalURL">TT-connect S2-3650 CI</a></li>
-<li><a href=3D"http://linuxtv.org/wiki/index.php/Technisat_SkyStar_USB_2_HD=
-_CI" class=3D"externalURL">Technisat SkyStar USB 2 HD CI</a></li><li><a hre=
-f=3D"http://linuxtv.org/wiki/index.php/AzureWave_DVB-S2_USB_CI_-_AD-SB300_%=
-287050%29" class=3D"externalURL">AzureWave DVB-S2 USB CI - AD-SB300 (7050)<=
-/a></li>
-</ul><br>
-1 - Do these 4 boxes work in Linux ,and only 1 one of them is supported in =
-linux ?<br>
-2 - Which one do you advice for linux ? If you only check all these
-propeties : Driver,tuner,demod,stability Which one will you advice
-overall ?<br>
-<br>
-Regards dehqan							</div>
-
---0016e65ae9f22a0b79047b9d2b17--
+This being a vdr machine, the reboot is either planned or due to a power 
+loss, and I suppose that the latter would really reset the device, but I 
+didn't try.
+The problem is that even so (planned reboot/switch off) it only works 
+sometimes.
 
 
---===============0127509008==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> -- my reboots are 
+> occasionally unplanned, and the devices are in part hanging
+> at boot time.  I guess if I had had the patience to watch and
+> see if the wait eventually timed out, I could test just how
+> the system came up and reset anything not present (and then
+> configure it as needed). Too much work for a non-critical
+> system, when I'd rather it Just Work.
+> 
+> I am lazy.  So sue me  :-)
+
+As I'm getting older, I'm also getting lazier, so I'm not going to sue 
+you ;-)
+
+Bye
+-- 
+Luca
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0127509008==--
