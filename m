@@ -1,80 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f219.google.com ([209.85.219.219]:43074 "EHLO
-	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753611AbZLONZd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2009 08:25:33 -0500
-Received: by ewy19 with SMTP id 19so474023ewy.21
-        for <linux-media@vger.kernel.org>; Tue, 15 Dec 2009 05:25:30 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20091215085445.093ebfd8@tele>
-References: <4B27063C.6020200@royalhat.org> <20091215085445.093ebfd8@tele>
-Date: Tue, 15 Dec 2009 10:25:29 -0300
-Message-ID: <c2fe070d0912150525m623dbc48hff9e3ac5c1227db0@mail.gmail.com>
-Subject: Re: PATCH- gspca: added chipset revision sensor
-From: leandro Costantino <lcostantino@gmail.com>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Luis Maia <lmaia@royalhat.org>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from comal.ext.ti.com ([198.47.26.152]:41855 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753864AbZLCUSU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Dec 2009 15:18:20 -0500
+From: m-karicheri2@ti.com
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: [PATCH -v2] Adding helper function to get dv preset description
+Date: Thu,  3 Dec 2009 15:18:24 -0500
+Message-Id: <1259871504-18156-1-git-send-email-m-karicheri2@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jean,
-let me know , if you need to the test this patch, since i added the
-tas1530k long time ago, and still have the webcam :)
-Best Regards
+From: Muralidharan Karicheri <m-karicheri2@ti.com>
 
-On Tue, Dec 15, 2009 at 4:54 AM, Jean-Francois Moine <moinejf@free.fr> wrote:
-> On Tue, 15 Dec 2009 03:45:00 +0000
-> Luis Maia <lmaia@royalhat.org> wrote:
->
->> Added extra chipset revision (sensor) to fix camera zc0301 with  ID:
->> 0ac8:301b .
->> Since i own one of this cameras fixed and tested it.
->
->> -------------
->>
->> diff -uNr linux-2.6.32.1/drivers/media/video/gspca/zc3xx.c
->> linux-2.6.32.1-patch/drivers/media/video/gspca/zc3xx.c
->> --- linux-2.6.32.1/drivers/media/video/gspca/zc3xx.c    2009-12-14
->> 17:47:25.000000000 +0000
->> +++ linux-2.6.32.1-patch/drivers/media/video/gspca/zc3xx.c
->> 2009-12-15 02:42:13.000000000 +0000
->> @@ -6868,6 +6868,7 @@
->>      {0x8001, 0x13},
->>      {0x8000, 0x14},        /* CS2102K */
->>      {0x8400, 0x15},        /* TAS5130K */
->> +    {0xe400, 0x15},
->>  };
->>
->>  static int vga_3wr_probe(struct gspca_dev *gspca_dev)
->> @@ -7634,7 +7635,7 @@
->>      {USB_DEVICE(0x0698, 0x2003)},
->>      {USB_DEVICE(0x0ac8, 0x0301), .driver_info = SENSOR_PAS106},
->>      {USB_DEVICE(0x0ac8, 0x0302), .driver_info = SENSOR_PAS106},
->> -    {USB_DEVICE(0x0ac8, 0x301b)},
->> +    {USB_DEVICE(0x0ac8, 0x301b), .driver_info = SENSOR_PB0330},
->>      {USB_DEVICE(0x0ac8, 0x303b)},
->>      {USB_DEVICE(0x0ac8, 0x305b), .driver_info =
->> SENSOR_TAS5130C_VF0250}, {USB_DEVICE(0x0ac8, 0x307b)},
->
-> Hello Luis,
->
-> I don't understand your patch:
-> 1) you added 0xe400 in the chipset table giving the sensor tas5130c K
-> 2) in the device table you say that the 0ac8:301b sensor is a pb0330
->   (but this information is not used: the sensor type in .driver_info
->   may be only pas106 for sif probe or mc501cb/tas5130_vf0250 for no
->   probe.
->
-> What is exactly the sensor of your webcam?
->
-> --
-> Ken ar c'hentañ |             ** Breizh ha Linux atav! **
-> Jef             |               http://moinejf.free.fr/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Updated based on comments against v1 of the patch
+
+This patch adds a helper function to get description of a digital
+video preset added by the video timing API. This will be usefull for drivers
+implementing the above API.
+
+NOTE: depends on the patch that adds video timing API.
+
+Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+Applies to V4L-DVB linux-next branch
+ drivers/media/video/v4l2-common.c |   47 +++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-common.h       |    2 +-
+ 2 files changed, 48 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
+index e8e5aff..36b5cb8 100644
+--- a/drivers/media/video/v4l2-common.c
++++ b/drivers/media/video/v4l2-common.c
+@@ -1024,3 +1024,50 @@ void v4l_bound_align_image(u32 *w, unsigned int wmin, unsigned int wmax,
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(v4l_bound_align_image);
++
++/**
++ * v4l_fill_dv_preset_info - fill description of a digital video preset
++ * @preset - preset value
++ * @info - pointer to struct v4l2_dv_enum_preset
++ *
++ * drivers can use this helper function to fill description of dv preset
++ * in info.
++ */
++int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset *info)
++{
++	static const struct v4l2_dv_preset_info {
++		u16 width;
++		u16 height;
++		const char *name;
++	} dv_presets[] = {
++		{ 0, 0, "Invalid" },		/* V4L2_DV_INVALID */
++		{ 720,  480, "480p@59.94" },	/* V4L2_DV_480P59_94 */
++		{ 720,  576, "576p@50" },	/* V4L2_DV_576P50 */
++		{ 1280, 720, "720p@24" },	/* V4L2_DV_720P24 */
++		{ 1280, 720, "720p@25" },	/* V4L2_DV_720P25 */
++		{ 1280, 720, "720p@30" },	/* V4L2_DV_720P30 */
++		{ 1280, 720, "720p@50" },	/* V4L2_DV_720P50 */
++		{ 1280, 720, "720p@59.94" },	/* V4L2_DV_720P59_94 */
++		{ 1280, 720, "720p@60" },	/* V4L2_DV_720P60 */
++		{ 1920, 1080, "1080i@29.97" },	/* V4L2_DV_1080I29_97 */
++		{ 1920, 1080, "1080i@30" },	/* V4L2_DV_1080I30 */
++		{ 1920, 1080, "1080i@25" },	/* V4L2_DV_1080I25 */
++		{ 1920, 1080, "1080i@50" },	/* V4L2_DV_1080I50 */
++		{ 1920, 1080, "1080i@60" },	/* V4L2_DV_1080I60 */
++		{ 1920, 1080, "1080p@24" },	/* V4L2_DV_1080P24 */
++		{ 1920, 1080, "1080p@25" },	/* V4L2_DV_1080P25 */
++		{ 1920, 1080, "1080p@30" },	/* V4L2_DV_1080P30 */
++		{ 1920, 1080, "1080p@50" },	/* V4L2_DV_1080P50 */
++		{ 1920, 1080, "1080p@60" },	/* V4L2_DV_1080P60 */
++	};
++
++	if (info == NULL || preset >= ARRAY_SIZE(dv_presets))
++		return -EINVAL;
++
++	info->preset = preset;
++	info->width = dv_presets[preset].width;
++	info->height = dv_presets[preset].height;
++	strlcpy(info->name, dv_presets[preset].name, sizeof(info->name));
++	return 0;
++}
++EXPORT_SYMBOL_GPL(v4l_fill_dv_preset_info);
+diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+index 1c25b10..1c7b259 100644
+--- a/include/media/v4l2-common.h
++++ b/include/media/v4l2-common.h
+@@ -212,5 +212,5 @@ void v4l_bound_align_image(unsigned int *w, unsigned int wmin,
+ 			   unsigned int *h, unsigned int hmin,
+ 			   unsigned int hmax, unsigned int halign,
+ 			   unsigned int salign);
+-
++int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset *info);
+ #endif /* V4L2_COMMON_H_ */
+-- 
+1.6.0.4
+
